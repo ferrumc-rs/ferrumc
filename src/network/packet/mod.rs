@@ -2,6 +2,8 @@ use std::collections::HashMap;
 use std::sync::{Arc, Once};
 
 use async_trait::async_trait;
+use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use tokio::net::TcpStream;
 use tokio::sync::Mutex;
 
@@ -32,28 +34,20 @@ pub struct PacketRegistry {
     pub outbound: HashMap<u32, PacketConstructor>,
 }
 
-static INIT: Once = Once::new();
-static mut REGISTRY: Option<Arc<Mutex<PacketRegistry>>> = None;
-
+lazy_static! {
+    pub static ref REGISTRY: Arc<PacketRegistry> = {
+        let mut registry = PacketRegistry::new();
+        registry.initialize();
+        Arc::new(registry)
+    };
+}
 impl PacketRegistry {
-    pub fn instance() -> Arc<Mutex<Self>> {
-        INIT.call_once(|| {
-            unsafe {
-                REGISTRY = Some(Arc::new(Mutex::new(Self::new())));
-            }
-        });
-
-        unsafe { REGISTRY.clone().unwrap() }
-    }
 
     pub fn new() -> Self {
-        let mut registry = Self {
+        PacketRegistry {
             inbound: HashMap::new(),
             outbound: HashMap::new(),
-        };
-
-        registry.initialize();
-        registry
+        }
     }
 
     pub fn initialize(&mut self) {

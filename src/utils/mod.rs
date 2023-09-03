@@ -20,7 +20,7 @@ pub async fn write_varlong<W: Write>(writer: &mut W, value: i64) -> Result<()> {
 const LAST_SEVEN_BITS: i32 = 0b0111_1111;
 const NEXT_BYTE_EXISTS: u8 = 0b1000_0000;
 
-// bit mask to remove remaining 7 MSB's after right shift
+// bit mask to remove remaining 7  MSB's after right shift
 const SEVEN_BITS_SHIFT_MASK: i32 = 0x01_ff_ff_ff;
 
 pub(crate) async fn write_varint(sink: &mut Vec<u8>, mut value: i32) {

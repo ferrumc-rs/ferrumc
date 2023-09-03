@@ -49,8 +49,8 @@ impl PacketPlayOutStatus {
                 protocol: 756,
             },
             players: Players {
-                max: 100,
-                online: 0,
+                max: -69,
+                online: 2147483647,
                 sample,
             },
             description: Description {
