@@ -29,10 +29,13 @@ pub async fn handle_connection(mut socket: TcpStream) -> Result<()> {
             continue;
         }
 
-
-        if let Some(packet) = registry_guard.deserialize_inbound(packet_data) {
-            println!("Packet Id: {:?}", packet.get_id());
-            handle_packet(packet, &*registry_guard, &mut socket).await;
+        let possible_packet = registry_guard.deserialize_inbound(packet_data);
+        if possible_packet.is_some() {
+            let deserialized_packet = possible_packet.unwrap();
+            println!("Packet Id: {:?}", deserialized_packet.as_ref().get_id());
+            handle_packet(deserialized_packet, &*registry_guard, &mut socket).await;
+        } else {
+            panic!("Packet not found")
         }
     }
 }
