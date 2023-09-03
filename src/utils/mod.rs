@@ -2,7 +2,9 @@ use std::io::{Read, Write};
 use anyhow::Error;
 use anyhow::Result;
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
-use crate::network::packet::Packet;
+use tokio::io::AsyncReadExt;
+use crate::network::packet::{InboundPacket};
+
 
 
 pub fn read_varlong<R: Read>(reader: &mut R) -> Result<i64> {
@@ -58,27 +60,52 @@ pub fn read_varint<R: Read>(mut reader: R) -> Result<i32> {
 
     Ok(result)
 }
+pub async fn read_varint_async(mut stream: &mut tokio::net::TcpStream) -> Result<i32, anyhow::Error> {
+    let mut buffer: Vec<u8> = Vec::new();
+    let mut tmp = [0u8; 1];
 
+    // Read bytes one by one until a valid varint is read into the buffer
+    loop {
+        stream.read_exact(&mut tmp).await?;
+        buffer.push(tmp[0]);
+        if (tmp[0] & 0x80) == 0 {
+            break;
+        }
+    }
 
-/**
-    * Needs fixing.
-    * Serialize a packet with a string.
-    * The string is serialized as a VarInt containing the length of the string, followed by the actual string data.
- */
-pub fn serialize_packet_with_str(packet: Box<dyn Packet>, string: String) -> Vec<u8> {
-    let packet_id = packet.get_id();
-
-    // Step 1: Create a temporary buffer containing the packet_id and the string data.
-    let mut temp_buffer = vec![];
-    temp_buffer.write_u32::<BigEndian>(packet_id).unwrap(); // Write packet_id
-    temp_buffer.write_u32::<BigEndian>(string.len() as u32).unwrap(); // Write string length
-    temp_buffer.extend_from_slice(string.as_bytes()); // Write string data
-
-    // Step 2: Create the final buffer containing the length of the temp buffer and the actual temp buffer data.
-    let mut final_buffer = vec![];
-    final_buffer.write_u32::<BigEndian>(temp_buffer.len() as u32).unwrap(); // Write length of the packet
-    final_buffer.extend_from_slice(&temp_buffer); // Write packet_id, string length, and string data
-
-    final_buffer
+    // Use your existing read_varint function to parse the varint
+    let mut cursor = std::io::Cursor::new(buffer);
+    read_varint(&mut cursor)
 }
 
+//
+// /**
+//     * Needs fixing.
+//     * Serialize a packet with a string.
+//     * The string is serialized as a VarInt containing the length of the string, followed by the actual string data.
+//  */
+// pub fn serialize_packet_with_str(packet: Box<dyn Packet>, string: String) -> Vec<u8> {
+//     let packet_id = packet.get_id();
+//
+//     // Step 1: Create a temporary buffer containing the packet_id and the string data.
+//     let mut temp_buffer = vec![];
+//     temp_buffer.write_u32::<BigEndian>(packet_id).unwrap(); // Write packet_id
+//     temp_buffer.write_u32::<BigEndian>(string.len() as u32).unwrap(); // Write string length
+//     temp_buffer.extend_from_slice(string.as_bytes()); // Write string data
+//
+//     // Step 2: Create the final buffer containing the length of the temp buffer and the actual temp buffer data.
+//     let mut final_buffer = vec![];
+//     final_buffer.write_u32::<BigEndian>(temp_buffer.len() as u32).unwrap(); // Write length of the packet
+//     final_buffer.extend_from_slice(&temp_buffer); // Write packet_id, string length, and string data
+//
+//     final_buffer
+// }
+
+
+/*
+    Used for constructing packets from bytes. Only used in initializing the packet registry.
+*/
+pub async fn construct_async<T: InboundPacket + Send + 'static>(bytes: Vec<u8>) -> Result<Box<dyn InboundPacket>, Error> {
+    let packet = T::deserialize(bytes).await?;
+    Ok(Box::new(packet))
+}

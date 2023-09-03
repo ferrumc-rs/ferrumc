@@ -1,11 +1,7 @@
 use tokio::net::TcpStream;
 
-use crate::network::packet::Packet;
-use crate::network::packet::PacketRegistry;
+use crate::network::packet::{InboundPacket};
 
-pub async fn handle_packet(packet: Box<dyn Packet>, registry: &PacketRegistry, stream: &mut TcpStream) {
-    // let id = packet.get_id();
-    // if let Some(_packet_handler) = registry.inbound.get(&id) {
+pub async fn handle_packet(packet: Box<dyn InboundPacket>, stream: &mut TcpStream) {
     packet.handle(stream).await;
-    // }
 }
