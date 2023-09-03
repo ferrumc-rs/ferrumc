@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/rust-minecraft-server.iml" filepath="$PROJECT_DIR$/.idea/rust-minecraft-server.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/ferrumc.iml" filepath="$PROJECT_DIR$/.idea/ferrumc.iml" />
     </modules>
   </component>
 </project>

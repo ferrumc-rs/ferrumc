@@ -1,14 +1,13 @@
-mod server;
+extern crate ferrumc;
 
-use tokio::net::TcpListener;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
+
+use anyhow::Result;
+use ferrumc::server::Server;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Bind the listener to an address
-    let listener = TcpListener::bind("127.0.0.1:25565").await?;
-
-    server::run_server(listener).await?;
+async fn main() -> Result<()> {
+    let server = Server::new(25565).await?;
+    server.run().await?;
 
     Ok(())
 }
