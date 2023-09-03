@@ -90,5 +90,7 @@ impl Packet for PacketPlayInHandshake {
         write_varint(&mut ping_buffer, 0x00).await;
 
         let _ = stream.write_all((&ping_buffer).as_ref()).await;
+
+        stream.flush().await.unwrap();
     }
 }

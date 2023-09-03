@@ -59,8 +59,10 @@ impl Packet for PacketPlayInPing {
         stream.write_all((&pong).as_ref()).await.unwrap();
         println!("Sent pong packet with payload: {:?}", pong);
 
-        stream.shutdown().await.unwrap();
-
-        println!("Closed connection")
+        // stream.shutdown().
+        // dont unwrap, handle error too
+        if let Ok(_) = stream.shutdown().await {
+            println!("Successfully closed connection");
+        }
     }
 }
