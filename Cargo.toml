@@ -19,3 +19,6 @@ lazy_static = "1.4.0"
 [dependencies.uuid]
 version = "1.4.1"
 features = ["v3", "v4", "v5"]
+
+flate2 = "1.0"
+fastnbt = "2.4.4"
