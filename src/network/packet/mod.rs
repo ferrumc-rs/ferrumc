@@ -11,6 +11,7 @@ use tokio::net::TcpStream;
 use crate::network::connection::state::ConnectionState;
 use crate::network::packet::inbound::{packet_play_in_handshake::PacketPlayInHandshake, packet_play_in_ping::PacketPlayInPing};
 use crate::network::packet::inbound::packet_play_in_login_start::PacketPlayInLoginStart;
+use crate::player::Connection;
 use crate::utils::construct_async;
 
 pub mod inbound;
@@ -35,7 +36,7 @@ pub mod outbound;
 pub trait InboundPacket: Send + Sync + 'static {
     async fn deserialize(bytes: Vec<u8>) -> Result<Self, anyhow::Error> where Self: Sized;
     fn get_id(&self) -> u32;
-    async fn handle(&self, stream: &mut TcpStream);
+    async fn handle(&self, connection: &mut Connection);
 }
 
 #[async_trait]
