@@ -1,0 +1,5 @@
+### Plan
+Since the file system will probably be a bottleneck we will need to be smart about how we store things. First thing is to store commonly accessed world data (seed for chunk gen, time, etc) in 1 file, then all the other data in another. Since the client will need all of the data we will have to save all of it, but we can access the minimal version on the server for things like generating chunks and changing things clientside.
+
+As for storing the world, that's gunna be a tough one. We could store it in chunks, but that would be a lot of files. We could store it in one file, but that would be a lot of data to load at once. We will probably use the protobuf protocol to compress and serialize the data tho.
+One idea is to store chunks in seperate files containing 8x8x8 blocks. If the block is all the same, it can be indicated as such by having the first byte indicate everything is the same and the bytes after indicate what block it is. This would mean each chunk would use 128 files tho, so maybe not a great idea. Maybe in 4x256x4 sized chunks? Would make it harder to store all of the same block type tho.
