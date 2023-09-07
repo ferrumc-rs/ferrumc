@@ -1,3 +1,3 @@
 mod blocks;
 mod nbtstructs;
-mod world_tests;
+pub mod world_tests;

@@ -1,6 +1,10 @@
 #![allow(non_snake_case)]
 #![allow(dead_code)]
 
+use std::collections::HashMap;
+use fastnbt::Value;
+use serde::{Deserialize, Serialize};
+
 #[derive(Debug, serde::Deserialize)]
 pub struct WorldData {
     Data: WorldDataDetails,
@@ -164,3 +168,65 @@ struct Version {
     Id: i32,
 }
 
+
+#[derive(Serialize, Deserialize, Default, Debug, PartialEq, Clone)]
+pub struct SeriableRegion {
+    pub chunks: Vec<Chunk>,
+}
+
+
+#[derive(Serialize, Deserialize, Default, Debug, PartialEq, Clone)]
+pub struct Chunk {
+    DataVersion: Option<i32>,
+    pub xPos: Option<i32>,
+    pub yPos: Option<i32>,
+    pub zPos: Option<i32>,
+    Status: Option<String>,
+    LastUpdate: Option<i64>,
+    sections: Option<Value>,
+    block_entities: Option<Vec<BlockEntity>>,
+    CarvingMasks: Option<Value>,
+    HeightMasks: Option<Vec<HeightMap>>,
+    Lights: Option<Vec<Vec<i16>>>,
+    Entities: Option<Vec<Entity>>,
+    fluid_ticks: Option<Vec<TileTick>>,
+    block_ticks: Option<Vec<TileTick>>,
+    InhabitedTime: Option<i64>,
+    #[serde(flatten)]
+    other: HashMap<String, Value>,
+
+}
+
+#[derive(Serialize, Deserialize, Default, Debug, PartialEq, Clone)]
+pub struct TileTick {
+    i: String,
+    p: i32,
+    t: i32,
+    x: i32,
+    y: i32,
+    z: i32,
+}
+
+#[derive(Serialize, Deserialize, Default, Debug, PartialEq, Clone)]
+pub struct BlockEntity {
+    id: Option<String>,
+    keepPacked: Option<bool>,
+    x: Option<i32>,
+    y: Option<i32>,
+    z: Option<i32>
+}
+
+#[derive(Serialize, Deserialize, Default, Debug, PartialEq, Clone)]
+pub struct HeightMap {
+    MOTION_BLOCKING: i64,
+    MOTION_BLOCKING_NO_LEAVES: i64,
+    OCEAN_FLOOR: i64,
+    OCEAN_FLOOR_WG: i64,
+    WORLD_SURFACE: i64,
+    WORLD_SURFACE_WG: i64,
+}
+
+#[derive(Serialize, Deserialize, Default, Debug, PartialEq, Clone)]
+pub struct Entity {
+    // TODO
+}
