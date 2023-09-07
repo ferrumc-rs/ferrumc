@@ -1,10 +1,11 @@
 use std::collections::HashMap;
-use std::io::{Cursor, Write};
-use fastanvil::{ChunkData, complete, CurrentJavaChunk, Error, JavaChunk, Region};
-use fastnbt::{from_bytes, LongArray};
-use serde::{Deserialize, Serialize};
+use std::io::BufReader;
+use fastanvil::Region;
+use serde::{Deserialize, Serialize, Serializer};
 use serde_json::Value;
-use tokio::io::{BufStream, BufWriter};
+use crate::world::{nbtstructs};
+use crate::world::nbtstructs::{Chunk, SeriableRegion};
+
 
 #[allow(dead_code)]
 #[derive(Debug, serde::Deserialize)]
@@ -16,66 +17,52 @@ struct GenericData {
 #[test]
 fn test_world() {
     let file = std::fs::File::open("C:\\Users\\ReCor\\Documents\\Paper\\world\\level.dat").unwrap();
-    let bufreader = std::io::BufReader::new(file);
+    let bufreader = BufReader::new(file);
     let reader = flate2::read::MultiGzDecoder::new(bufreader);
-    let _: crate::world::nbtstructs::WorldData = fastnbt::from_reader(reader).unwrap();
+    let _: nbtstructs::WorldData = fastnbt::from_reader(reader).unwrap();
 }
 
 #[test]
 fn load_region() {
     let file = std::fs::File::open("C:\\Users\\ReCor\\Documents\\Paper\\world\\region\\r.0.0.mca").unwrap();
-    // let bufreader = std::io::BufReader::new(file);
-    // let reader = flate2::read::GzDecoder::new(bufreader);
-    let mut region = fastanvil::Region::from_stream(file).unwrap();
+    let mut region = Region::from_stream(file).unwrap();
     for chunk in region.iter().flatten() {
         println!("Chunk {}, {} loaded", chunk.x, chunk.z);
     }
 }
 
-#[derive(Serialize, Deserialize)]
-struct Chunk {
-    sections: Vec<Section>,
-
-    #[serde(flatten)]
-    other: HashMap<String, Value>,
-}
-
-
-#[derive(Serialize, Deserialize)]
-struct Section {
-    block_states: Option<Blockstates>,
-    #[serde(flatten)]
-    other: HashMap<String, Value>,
-}
-
-#[derive(Serialize, Deserialize)]
-struct Blockstates {
-    palette: Vec<PaletteItem>,
-    data: Option<LongArray>,
-    #[serde(flatten)]
-    other: HashMap<String, Value>,
-}
-
-#[derive(Serialize, Deserialize)]
-struct PaletteItem {
-    #[serde(rename = "Name")]
-    name: String,
-    #[serde(rename = "Properties")]
-    properties: Option<Value>,
-}
-
 
 
 #[test]
-fn read_chunks() {
-    let buf = Cursor::new(Vec::new());
+pub fn read_chunks() {
+    let start = std::time::Instant::now();
+    let mut last = std::time::Instant::now();
     let file = std::fs::File::open("C:\\Users\\ReCor\\Documents\\Paper\\world\\region\\r.0.0.mca").unwrap();
-    let mut dumpfile = std::fs::File::options().write(true).open("C:\\Users\\ReCor\\Documents\\Code\\Rust\\ferrumc\\dump.json").unwrap();
-    let mut newregion = Region::new(buf).unwrap();
-    let mut region = Region::from_stream(file).unwrap();
-    for chunkdata in region.iter().flatten() {
-        let chunk = fastnbt::from_bytes::<fastanvil::CurrentJavaChunk>(&*chunkdata.data).unwrap();
-        println!("Status: {}", chunk.status);
+    let buf = BufReader::new(file);
+    println!("File load time: {:?}", last.elapsed());
+    last = std::time::Instant::now();
+    let mut region = Region::from_stream(buf).unwrap();
+    let chunks: Vec<Chunk> = region.iter().flatten().map(|chunk_data| fastnbt::from_bytes::<Chunk>(&*chunk_data.data).unwrap()).collect();
 
-    }
+    // region.iter().for_each(
+    //     |chunk_data|
+    //         {
+    //             match chunk_data {
+    //                 Ok(chunk_data) => { fastnbt::from_bytes::<Chunk>(&*chunk_data.data).unwrap(); () }
+    //                 Err(_) => ()
+    //             }
+    //         }
+    // );
+    println!("Decode time: {:?}", last.elapsed());
+    last = std::time::Instant::now();
+    let serial_region = SeriableRegion { chunks };
+    let mut serial_buffer = flexbuffers::FlexbufferSerializer::new();
+    serial_region.serialize(&mut serial_buffer).unwrap();
+    println!("Serialize time: {:?}", last.elapsed());
+    last = std::time::Instant::now();
+    let compressed = lz4_flex::compress(&serial_buffer.view());
+    println!("Compressed size: {}", compressed.len());
+    println!("Uncompressed size: {}", serial_buffer.take_buffer().len());
+    println!("Compress time: {:?}", last.elapsed());
+    println!("Time taken: {:?}", start.elapsed());
 }
