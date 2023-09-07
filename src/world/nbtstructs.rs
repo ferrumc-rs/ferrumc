@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(dead_code)]
 
 #[derive(Debug, serde::Deserialize)]
 pub struct WorldData {
@@ -162,3 +163,4 @@ struct Version {
     Snapshot: bool,
     Id: i32,
 }
+
