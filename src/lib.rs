@@ -1,6 +1,5 @@
-pub mod network;
-pub mod utils;
 pub mod config;
-pub mod server;
+pub mod network;
 mod player;
-pub mod world;
+pub mod server;
+pub mod utils;
