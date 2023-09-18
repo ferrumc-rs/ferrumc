@@ -1,5 +1,5 @@
 extern crate ferrumc;
-
+pub use ferrumc_world as world;
 
 use anyhow::Result;
 use ferrumc::server::Server;

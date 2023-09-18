@@ -1,9 +1,9 @@
 #![allow(non_snake_case)]
 #![allow(dead_code)]
 
-use std::collections::HashMap;
-use fastnbt::Value;
+use fastnbt::{ByteArray, IntArray, LongArray, Value};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 #[derive(Debug, serde::Deserialize)]
 pub struct WorldData {
@@ -168,33 +168,37 @@ struct Version {
     Id: i32,
 }
 
-
 #[derive(Serialize, Deserialize, Default, Debug, PartialEq, Clone)]
 pub struct SeriableRegion {
     pub chunks: Vec<Chunk>,
 }
 
-
 #[derive(Serialize, Deserialize, Default, Debug, PartialEq, Clone)]
 pub struct Chunk {
     DataVersion: Option<i32>,
+    Level: Option<Level>,
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+pub struct Level {
     pub xPos: Option<i32>,
-    pub yPos: Option<i32>,
     pub zPos: Option<i32>,
     Status: Option<String>,
-    LastUpdate: Option<i64>,
-    sections: Option<Value>,
-    block_entities: Option<Vec<BlockEntity>>,
+    Biomes: Option<IntArray>,
+    Sections: Option<Vec<Section>>,
+    TileEntities: Option<Vec<BlockEntity>>,
     CarvingMasks: Option<Value>,
-    HeightMasks: Option<Vec<HeightMap>>,
-    Lights: Option<Vec<Vec<i16>>>,
+    HeightMasks: Option<HeightMap>,
+    LastUpdate: Option<i64>,
+    Lights: Option<Vec<LongArray>>,
     Entities: Option<Vec<Entity>>,
-    fluid_ticks: Option<Vec<TileTick>>,
-    block_ticks: Option<Vec<TileTick>>,
+    LiquidsToBeTicked: Option<Vec<LongArray>>,
+    LiquidTicks: Option<Vec<TileTick>>,
     InhabitedTime: Option<i64>,
-    #[serde(flatten)]
-    other: HashMap<String, Value>,
-
+    PostProcessing: Option<Vec<Vec<i16>>>,
+    TileTicks: Option<Vec<TileTick>>,
+    ToBeTicked: Option<Vec<LongArray>>,
+    Structures: Option<HashMap<String, Value>>,
 }
 
 #[derive(Serialize, Deserialize, Default, Debug, PartialEq, Clone)]
@@ -213,7 +217,7 @@ pub struct BlockEntity {
     keepPacked: Option<bool>,
     x: Option<i32>,
     y: Option<i32>,
-    z: Option<i32>
+    z: Option<i32>,
 }
 
 #[derive(Serialize, Deserialize, Default, Debug, PartialEq, Clone)]
@@ -224,6 +228,26 @@ pub struct HeightMap {
     OCEAN_FLOOR_WG: i64,
     WORLD_SURFACE: i64,
     WORLD_SURFACE_WG: i64,
+}
+
+#[derive(Serialize, Deserialize, Default, Debug, PartialEq, Clone)]
+pub struct Section {
+    Y: i8,
+    BlockStates: Option<LongArray>,
+    Palette: Option<Vec<PaletteBlock>>,
+    BlockLight: Option<ByteArray>,
+    SkyLight: Option<ByteArray>,
+}
+
+#[derive(Serialize, Deserialize, Default, Debug, PartialEq, Clone)]
+pub struct PaletteBlock {
+    Name: String,
+    Properties: Option<Value>, //Option<Vec<PaletteBlockName>>,
+}
+
+#[derive(Serialize, Deserialize, Default, Debug, PartialEq, Clone)]
+pub struct PaletteBlockName {
+    Name: String,
 }
 
 #[derive(Serialize, Deserialize, Default, Debug, PartialEq, Clone)]
