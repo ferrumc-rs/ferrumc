@@ -1,8 +1,11 @@
 #![allow(unused)]
 
+use std::collections::LinkedList;
+use std::io::Cursor;
 use std::sync::Arc;
 
 use log::{debug, info, trace};
+use tokio::io::AsyncReadExt;
 use tokio::net::{TcpListener};
 use tokio::sync::RwLock;
 
@@ -50,8 +53,95 @@ async fn start_server(config: SafeConfig) -> Result<()> {
     drop(config);
 
     loop {
-        let (socket, _) = listener.accept().await?;
-
+        let (mut socket, _) = listener.accept().await?;
+        // show a line of 100 dashes
+        trace!("{}", "-".repeat(100));
         trace!("Accepted connection from: {:?}", socket.peer_addr()?);
+
+        let thread = tokio::spawn(async move {
+            if let Err(e) = handle_connection(socket).await {
+                log::error!("Error handling connection: {:?}", e);
+            }
+        });
     }
+}
+
+async fn handle_connection(mut socket: tokio::net::TcpStream) -> Result<()> {
+    let mut length_buffer = vec![0u8; 1];
+    socket.read_exact(&mut length_buffer).await?;
+
+    // trace!("Received length: {:?}", length_buffer);
+
+    let length = length_buffer[0] as usize;
+
+    // trace!("Reading {} bytes", length);
+
+    let mut buffer = vec![0u8; length];
+
+    socket.read_exact(&mut buffer).await?;
+
+    // trace!("Received buffer: {:?}", buffer);
+
+    let mut buffer = vec![length_buffer, buffer].concat();
+
+    let mut cursor = Cursor::new(buffer);
+
+    let packet_length = read_varint(&mut cursor).await?;
+    let packet_id = read_varint(&mut cursor).await?;
+
+    trace!("Packet Length: {}", packet_length);
+    trace!("Packet ID: {}", packet_id);
+
+    match packet_id {
+        0 => handle_handshake(cursor).await?,
+        _ => {
+            log::warn!("Unknown packet id: {}", packet_id);
+        }
+    }
+
+
+    Ok(())
+}
+
+async fn read_varint(cursor: &mut Cursor<Vec<u8>>) -> Result<i32> {
+    let mut num_read = 0;
+    let mut result = 0;
+    let mut read: u8;
+    loop {
+        read = cursor.read_u8().await?;
+        let value = (read & 0b01111111) as i32;
+        result |= value << (7 * num_read);
+
+        num_read += 1;
+        if num_read > 5 {
+            return Err(Error::Generic("VarInt is too big".to_string()));
+        }
+
+        if (read & 0b10000000) == 0 {
+            break;
+        }
+    }
+    Ok(result)
+}
+async fn read_string(cursor: &mut Cursor<Vec<u8>>) -> Result<String> {
+    let length = read_varint(cursor).await?;
+    let mut buffer = vec![0u8; length as usize];
+    cursor.read_exact(&mut buffer).await?;
+    Ok(String::from_utf8(buffer)?)
+}
+
+async fn handle_handshake(mut cursor: Cursor<Vec<u8>>) -> Result<()> {
+    trace!("Handling handshake packet");
+
+    let protocol_version = read_varint(&mut cursor).await?;
+    let server_address = read_string(&mut cursor).await?;
+    let server_port = cursor.read_u16().await?;
+    let next_state = read_varint(&mut cursor).await?;
+
+    trace!("Protocol Version: {}", protocol_version);
+    trace!("Server Address: {}", server_address);
+    trace!("Server Port: {}", server_port);
+    trace!("Next State: {}", next_state);
+
+    Ok(())
 }

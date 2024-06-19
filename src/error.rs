@@ -10,4 +10,8 @@ pub enum Error {
     Config(#[from] ConfigError),
     #[error(transparent)]
     TomlSe(#[from] toml::ser::Error),
+    #[error(transparent)]
+    Utf8(#[from] std::string::FromUtf8Error),
+    #[error(transparent)]
+    TokioJoin(#[from] tokio::task::JoinError),
 }
