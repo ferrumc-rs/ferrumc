@@ -7,7 +7,7 @@ pub enum Error {
     #[error(transparent)]
     Io(#[from] std::io::Error),
     #[error(transparent)]
-    ConfigError(#[from] ConfigError),
+    Config(#[from] ConfigError),
     #[error(transparent)]
     TomlSe(#[from] toml::ser::Error),
 }
