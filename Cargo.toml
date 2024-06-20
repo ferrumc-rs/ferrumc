@@ -25,3 +25,4 @@ lazy_static = "1.4.0"
 
 # Custom crates
 ferrumc_net = { path = "src/crates/ferrumc_net"}
+byteorder = "1.5.0"

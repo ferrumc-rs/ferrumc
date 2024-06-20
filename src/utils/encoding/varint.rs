@@ -1,69 +1,63 @@
 use std::io::{Cursor, Read, Write};
-use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite};
+
+use byteorder::{ReadBytesExt, WriteBytesExt};
+
 use crate::error::Error;
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use std::io::Cursor;
-    use tokio::runtime::Runtime;
-    use crate::error::Error;
+
+    use super::*;
 
     #[test]
     fn read_varint_valid_input() {
-        let mut runtime = Runtime::new().unwrap();
         let mut cursor = Cursor::new(vec![0x80, 0x80, 0x80, 0x80, 0x08]);
-        let result = runtime.block_on(read_varint(&mut cursor));
+        let result = read_varint(&mut cursor);
         assert_eq!(result.unwrap(), -2147483648);
     }
 
     #[test]
     fn read_varint_too_big() {
-        let mut runtime = Runtime::new().unwrap();
         let mut cursor = Cursor::new(vec![0b10000000; 6]);
-        let result = runtime.block_on(read_varint(&mut cursor));
+        let result = read_varint(&mut cursor);
         assert!(result.is_err());
     }
 
     #[test]
     fn write_varint_valid_input() {
-        let mut runtime = Runtime::new().unwrap();
         let mut cursor = Cursor::new(Vec::new());
-        let result = runtime.block_on(write_varint(2097151, &mut cursor));
+        let result = write_varint(2097151, &mut cursor);
         assert!(result.is_ok());
         assert_eq!(cursor.into_inner(), vec![0xff, 0xff, 0x7f]);
     }
 
     #[test]
     fn write_varint_zero() {
-        let mut runtime = Runtime::new().unwrap();
         let mut cursor = Cursor::new(Vec::new());
-        let result = runtime.block_on(write_varint(0, &mut cursor));
+        let result = write_varint(0, &mut cursor);
         assert!(result.is_ok());
         assert_eq!(cursor.into_inner(), vec![0b00000000]);
     }
 
     #[test]
     fn read_varint_empty_input() {
-        let mut runtime = Runtime::new().unwrap();
         let mut cursor = Cursor::new(vec![]);
-        let result = runtime.block_on(read_varint(&mut cursor));
+        let result = read_varint(&mut cursor);
         assert!(result.is_err());
     }
 
     #[test]
     fn read_varint_single_byte() {
-        let mut runtime = Runtime::new().unwrap();
         let mut cursor = Cursor::new(vec![0b00000001]);
-        let result = runtime.block_on(read_varint(&mut cursor));
+        let result = read_varint(&mut cursor);
         assert_eq!(result.unwrap(), 1);
     }
 
     #[test]
     fn write_varint_negative_input() {
-        let mut runtime = Runtime::new().unwrap();
         let mut cursor = Cursor::new(Vec::new());
-        let result = runtime.block_on(write_varint(-1, &mut cursor));
+        let result = write_varint(-1, &mut cursor);
         assert!(result.is_ok());
         assert_eq!(cursor.into_inner(), vec![0xff, 0xff, 0xff, 0xff, 0x0f]);
     }
@@ -71,13 +65,13 @@ mod tests {
 
 // Read a VarInt from the given cursor.
 // Yoinked from valence: https://github.com/valence-rs/valence/blob/main/crates/valence_protocol/src/var_int.rs#L69
-pub async fn read_varint<T>(cursor: &mut T) -> crate::prelude::Result<i32>
+pub fn read_varint<T>(cursor: &mut T) -> crate::prelude::Result<i32>
 where
-    T: Read + AsyncRead + Unpin
+    T: Read + Unpin
 {
     let mut val = 0;
     for i in 0..5 {
-        let byte = cursor.read_u8().await?;
+        let byte = cursor.read_u8()?;
         val |= (i32::from(byte) & 0b01111111) << (i * 7);
         if byte & 0b10000000 == 0 {
             return Ok(val);
@@ -89,9 +83,9 @@ where
 
 // Write a VarInt to the given cursor.
 // Yoinked from valence: https://github.com/valence-rs/valence/blob/main/crates/valence_protocol/src/var_int.rs#L98
-pub async fn write_varint<T>(value: i32, cursor: &mut T) -> crate::prelude::Result<()>
+pub fn write_varint<T>(value: i32, cursor: &mut T) -> crate::prelude::Result<()>
 where
-    T: Write + Unpin + AsyncWrite
+    T: Write + Unpin
 {
     let x = value as u64;
     let stage1 = (x & 0x000000000000007f)

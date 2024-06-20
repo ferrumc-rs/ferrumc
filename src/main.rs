@@ -1,13 +1,13 @@
-#![allow(unused)]
-
 use std::collections::LinkedList;
 use std::io::Cursor;
 use std::sync::Arc;
+use std::io::Read;
 
 use log::{debug, info, trace};
-use tokio::io::AsyncReadExt;
 use tokio::net::{TcpListener};
 use tokio::sync::RwLock;
+
+use byteorder::{BigEndian, ByteOrder, ReadBytesExt};
 
 use crate::prelude::*;
 use ferrumc_net;
@@ -32,7 +32,7 @@ async fn main() -> Result<()> {
 
     let config = Arc::new(RwLock::new(config));
 
-    start_server(config.clone()).await;
+    start_server(config.clone()).await.expect("Server failed to start!");
 
     tokio::signal::ctrl_c().await?;
 
@@ -59,61 +59,19 @@ async fn start_server(config: SafeConfig) -> Result<()> {
         trace!("{}", "-".repeat(100));
         trace!("Accepted connection from: {:?}", socket.peer_addr()?);
 
-        ferrumc_net::handle_connection(socket);
+        tokio::task::spawn(ferrumc_net::handle_connection(socket));
     }
 }
 
-// async fn handle_connection(mut socket: tokio::net::TcpStream) -> Result<()> {
-//     let mut length_buffer = vec![0u8; 1];
-//     socket.read_exact(&mut length_buffer).await?;
-//
-//     // trace!("Received length: {:?}", length_buffer);
-//
-//     let length = length_buffer[0] as usize;
-//
-//     // trace!("Reading {} bytes", length);
-//
-//     let mut buffer = vec![0u8; length];
-//
-//     socket.read_exact(&mut buffer).await?;
-//
-//     // trace!("Received buffer: {:?}", buffer);
-//
-//     let mut buffer = vec![length_buffer, buffer].concat();
-//
-//     let mut cursor = Cursor::new(buffer);
-//
-//     let packet_length = read_varint(&mut cursor).await?;
-//     let packet_id = read_varint(&mut cursor).await?;
-//
-//     trace!("Packet Length: {}", packet_length);
-//     trace!("Packet ID: {}", packet_id);
-//
-//     match packet_id {
-//         0 => handle_handshake(cursor).await?,
-//         _ => {
-//             log::warn!("Unknown packet id: {}", packet_id);
-//         }
-//     }
-//
-//
-//     Ok(())
-// }
 
-async fn read_string(cursor: &mut Cursor<Vec<u8>>) -> Result<String> {
-    let length = utils::varint::read_varint(cursor).await?;
-    let mut buffer = vec![0u8; length as usize];
-    cursor.read_exact(&mut buffer).await?;
-    Ok(String::from_utf8(buffer)?)
-}
 
 async fn handle_handshake(mut cursor: Cursor<Vec<u8>>) -> Result<()> {
     trace!("Handling handshake packet");
 
-    let protocol_version = utils::varint::read_varint(&mut cursor).await?;
-    let server_address = read_string(&mut cursor).await?;
-    let server_port = cursor.read_u16().await?;
-    let next_state = utils::varint::read_varint(&mut cursor).await?;
+    let protocol_version = utils::encoding::varint::read_varint(&mut cursor)?;
+    let server_address = utils::encoding::string::read_string(&mut cursor)?;
+    let server_port = cursor.read_u16::<BigEndian>().unwrap();
+    let next_state = utils::encoding::varint::read_varint(&mut cursor)?;
 
     trace!("Protocol Version: {}", protocol_version);
     trace!("Server Address: {}", server_address);

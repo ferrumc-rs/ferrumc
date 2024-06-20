@@ -1,8 +1,8 @@
 pub mod config;
-pub mod varint;
+
+pub mod encoding;
 
 use crate::constants::DEFAULT_LOG_LEVEL;
-use crate::prelude::*;
 
 pub fn setup_logger() {
     let mut trace_level = std::env::args()
