@@ -21,3 +21,4 @@ env_logger = "0.11.3"
 serde = { version = "1.0.203", features = ["derive"]}
 toml = "0.8.14"
 config = "0.14.0"
+lazy_static = "1.4.0"

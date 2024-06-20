@@ -1,0 +1,12 @@
+[package]
+name = "ferrumc_net"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+dashmap = "5.5.3"
+lariv = "0.3.2"
+lazy_static = "1.4.0"
+tokio = "1.38.0"
+uuid = { version = "1.8.0", features = ["v4", "fast-rng"] }
+rand = "0.8.5"
