@@ -1,4 +1,5 @@
 pub mod config;
+pub mod varint;
 
 use crate::constants::DEFAULT_LOG_LEVEL;
 use crate::prelude::*;
