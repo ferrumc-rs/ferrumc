@@ -1,8 +1,41 @@
+use std::fmt::Display;
 use std::io::{Read, Write};
 
 use byteorder::ReadBytesExt;
 
 use crate::error::Error;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
+pub struct VarInt(pub i32);
+
+impl VarInt {
+    pub fn new(value: i32) -> Self {
+        VarInt(value)
+    }
+}
+
+impl Display for VarInt {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+impl From<VarInt> for i32 {
+    fn from(varint: VarInt) -> i32 {
+        varint.0
+    }
+}
+
+impl From<i32> for VarInt {
+    fn from(value: i32) -> VarInt {
+        VarInt(value)
+    }
+}
+
+impl Into<usize> for VarInt {
+    fn into(self) -> usize {
+        self.0 as usize
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -14,7 +47,7 @@ mod tests {
     fn read_varint_valid_input() {
         let mut cursor = Cursor::new(vec![0x80, 0x80, 0x80, 0x80, 0x08]);
         let result = read_varint(&mut cursor);
-        assert_eq!(result.unwrap(), -2147483648);
+        assert_eq!(result.unwrap(), VarInt::new(-2147483648));
     }
 
     #[test]
@@ -51,7 +84,7 @@ mod tests {
     fn read_varint_single_byte() {
         let mut cursor = Cursor::new(vec![0b00000001]);
         let result = read_varint(&mut cursor);
-        assert_eq!(result.unwrap(), 1);
+        assert_eq!(result.unwrap(), VarInt::new(1));
     }
 
     #[test]
@@ -65,16 +98,16 @@ mod tests {
 
 // Read a VarInt from the given cursor.
 // Yoinked from valence: https://github.com/valence-rs/valence/blob/main/crates/valence_protocol/src/var_int.rs#L69
-pub fn read_varint<T>(cursor: &mut T) -> Result<i32, Error>
+pub fn read_varint<T>(cursor: &mut T) -> Result<VarInt, Error>
 where
-    T: Read + Unpin
+    T: Read
 {
     let mut val = 0;
     for i in 0..5 {
         let byte = cursor.read_u8().map_err(|e| Error::Io(e))?;
         val |= (i32::from(byte) & 0b01111111) << (i * 7);
         if byte & 0b10000000 == 0 {
-            return Ok(val);
+            return Ok(VarInt::new(val));
         }
     }
     Err(Error::Generic("VarInt is too big".to_string()))

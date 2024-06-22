@@ -1,6 +1,6 @@
-use std::io::{Cursor, Read};
+use std::io::Read;
 
-use crate::encoding::varint::read_varint;
+use crate::encoding::varint::{read_varint, VarInt};
 use crate::error::Error;
 
 pub trait Decode {
@@ -128,19 +128,19 @@ impl Decode for String {
     where
         T: Read,
     {
-        use std::io::Write;
-        let mut buf = Cursor::new(Vec::new());
-        loop {
-            let mut byte = [0u8; 1];
-            bytes.read_exact(&mut byte)?;
-            buf.write_all(&byte)?;
-            if byte[0] & 0x80 == 0 {
-                break;
-            }
-        }
-        let remaining_bytes = read_varint(&mut buf)?;
-        let mut string_buf = vec![0u8; remaining_bytes as usize];
+        let remaining_bytes = read_varint(bytes)?;
+        //let remaining_bytes = bytes.read_u8()?;
+        let mut string_buf = vec![0u8; remaining_bytes.into()];
         bytes.read_exact(&mut string_buf)?;
         Ok(Box::from(String::from_utf8(string_buf)?))
+    }
+}
+
+impl Decode for VarInt {
+    fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
+    where
+        T: Read,
+    {
+        Ok(Box::from(read_varint(bytes)?))
     }
 }

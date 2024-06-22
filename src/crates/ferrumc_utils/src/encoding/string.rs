@@ -48,7 +48,7 @@ pub fn read_string<T>(cursor: &mut T) -> Result<String, Error>
 where
     T: Read + Unpin,
 {
-    let length = crate::encoding::varint::read_varint(cursor)?;
+    let length = crate::encoding::varint::read_varint(cursor)?.into();
     let mut buffer = vec![0u8; length as usize];
     for i in 0..length {
         buffer[i as usize] = cursor.read_u8().map_err(|_| Error::Generic("Bad byte read".parse().unwrap()))?; // TODO: Better error

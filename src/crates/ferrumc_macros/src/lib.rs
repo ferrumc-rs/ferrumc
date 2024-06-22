@@ -21,7 +21,10 @@ pub fn decode_derive(input: TokenStream) -> TokenStream {
             // Generate a statement to decode this field from the bytes
             let type_name = field.ty;
             let statement = quote! {
-                #ident: Box::into_inner(#type_name::decode(bytes)?),
+                #ident: match <#type_name as Decode>::decode(bytes) {
+                    Ok(value) => Box::into_inner(value),
+                    Err(e) => return Err(Error::Generic(format!("Failed to decode field {}: {}", stringify!(#ident), e)))
+                },
             };
             field_statements.push(statement);
         }
