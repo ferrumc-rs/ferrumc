@@ -46,7 +46,7 @@ pub struct Connection {
     pub state: State,
 }
 
-pub async fn handle_connection(mut socket: tokio::net::TcpStream)  {
+pub async fn handle_connection(socket: tokio::net::TcpStream)  {
     let mut id = random();
     // check if we have a collision (1 in 4.2 billion chance) and if so, generate a new id
     while CONNECTIONS.connections.contains_key(&id) {

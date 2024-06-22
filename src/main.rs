@@ -16,6 +16,7 @@ mod error;
 mod prelude;
 mod utils;
 mod constants;
+mod tests;
 
 type SafeConfig = Arc<RwLock<utils::config::ServerConfig>>;
 

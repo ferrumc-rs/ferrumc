@@ -23,6 +23,9 @@ toml = "0.8.14"
 config = "0.14.0"
 lazy_static = "1.4.0"
 
+# Binary
+byteorder = "1.5.0"
+
 # Custom crates
 ferrumc_net = { path = "src/crates/ferrumc_net"}
-byteorder = "1.5.0"
+ferrumc_macros = { path = "src/crates/ferrumc_macros"}
