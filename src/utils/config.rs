@@ -14,6 +14,8 @@ use crate::prelude::*;
 pub struct ServerConfig {
     pub host: String,
     pub port: u32,
+    pub motd: String,
+    pub max_players: u32,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -41,7 +43,7 @@ impl ServerConfig {
         let de_settings: ServerConfig = settings.try_deserialize().or_else(|e| {
             error!("There was an error deserializing the config.");
             if let Some(field) = missing_field(&e) {
-                info!("Missing field {} in config file", field);
+                info!("Missing field \"{}\" in config file", field);
                 info!("Would you like to create a new config file? (y/n)");
                 let mut input = String::new();
                 std::io::stdin().read_line(&mut input)?;
@@ -107,6 +109,7 @@ impl Default for ServerConfig {
         Self {
             host: DEFAULT_SERVER_HOST.to_string(),
             port: DEFAULT_SERVER_PORT, // Minecraft default port
+            ..ServerConfig::default()
         }
     }
 }

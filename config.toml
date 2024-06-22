@@ -1,2 +1,4 @@
 host = "0.0.0.0"
 port = 25565
+motd = "A Minecraft Server written in Rust"
+max_players = 20

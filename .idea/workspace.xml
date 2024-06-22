@@ -7,10 +7,10 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e0f3e79a-8e00-4bb3-91ee-3063e890ae27" name="Changes" comment="Added basic config">
+    <list default="true" id="e0f3e79a-8e00-4bb3-91ee-3063e890ae27" name="Changes" comment="Fixed tests and added more">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/error.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/error.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config.toml" beforeDir="false" afterPath="$PROJECT_DIR$/config.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/utils/config.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils/config.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -44,12 +44,12 @@
       </list>
     </option>
   </component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/Sweattypalms/ferrumc.git&quot;,
-    &quot;accountId&quot;: &quot;ed41d174-f2aa-4643-ba26-a0632a35f0b5&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/Sweattypalms/ferrumc.git",
+    "accountId": "0a6b1e87-f4a0-4c66-b00d-c65b23c23fb0"
   }
-}</component>
+}]]></component>
   <component name="MacroExpansionManager">
     <option name="directoryName" value="wesspajt" />
   </component>
@@ -60,6 +60,10 @@
   &quot;associatedIndex&quot;: 4
 }</component>
   <component name="ProjectId" id="2auyh9SRANvddaefz9vnJNolxft" />
+  <component name="ProjectLevelVcsManager">
+    <OptionsSetting value="false" id="Update" />
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -123,6 +127,7 @@
       <workItem from="1715780681525" duration="88000" />
       <workItem from="1718548691789" duration="1188000" />
       <workItem from="1718809668864" duration="3890000" />
+      <workItem from="1719035826153" duration="320000" />
     </task>
     <task id="LOCAL-00001" summary="Start basic TCP server">
       <option name="closed" value="true" />
