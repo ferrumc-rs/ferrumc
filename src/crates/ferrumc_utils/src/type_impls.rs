@@ -1,6 +1,7 @@
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncSeek};
 
 use crate::encoding::varint::{read_varint, VarInt};
+use crate::encoding::varlong::{read_varlong, Varlong};
 use crate::error::Error;
 
 pub trait Decode {
@@ -172,5 +173,14 @@ impl Decode for VarInt {
         T: AsyncRead + AsyncSeek + Unpin,
     {
         Ok(Box::from(read_varint(bytes).await?))
+    }
+}
+
+impl Decode for Varlong {
+    async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
+    where
+        T: AsyncRead + AsyncSeek + Unpin,
+    {
+        Ok(Box::from(read_varlong(bytes).await?))
     }
 }
