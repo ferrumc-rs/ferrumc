@@ -109,7 +109,8 @@ impl Default for ServerConfig {
         Self {
             host: DEFAULT_SERVER_HOST.to_string(),
             port: DEFAULT_SERVER_PORT, // Minecraft default port
-            ..ServerConfig::default()
+            motd: "A FerrumC Server".to_string(),
+            max_players: 20,
         }
     }
 }
