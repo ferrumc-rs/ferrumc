@@ -40,8 +40,6 @@ pub struct Connection {
     pub player_uuid: Option<uuid::Uuid>,
     // A queue of bytes to be sent to the client. Set up this way to allow for easy batching of packets & we can run the sender/receiver in parallel.
     pub send_queue: Lariv<Vec<u8>>,
-    // A queue of bytes received from the client. Set up this way to allow for easy batching of packets & we can run the sender/receiver in parallel.
-    pub recv_queue: Lariv<u8>,
     // State
     pub state: State,
 }
@@ -57,7 +55,6 @@ pub async fn handle_connection(socket: tokio::net::TcpStream) {
         socket,
         player_uuid: None,
         send_queue: Lariv::new(1024),
-        recv_queue: Lariv::new(1024),
         state: State::Unknown,
     };
     CONNECTIONS.connections.insert(id, conn);

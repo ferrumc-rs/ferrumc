@@ -1,7 +1,5 @@
 use std::fmt::Display;
-use std::io::{Read, Write};
-
-use byteorder::{ReadBytesExt, WriteBytesExt};
+use tokio::io::{AsyncRead, AsyncReadExt, AsyncSeek, AsyncWrite, AsyncWriteExt};
 
 use crate::error::Error;
 
@@ -44,54 +42,54 @@ mod tests {
 
     use super::*;
 
-    #[test]
-    fn read_varlong_valid_input() {
+    #[tokio::test]
+    async fn read_varlong_valid_input() {
         let mut cursor = Cursor::new(vec![0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f]);
-        let result = read_varlong(&mut cursor);
+        let result = read_varlong(&mut cursor).await;
         assert_eq!(result.unwrap(), Varlong::new(9223372036854775807));
     }
 
-    #[test]
-    fn read_varlong_too_big() {
+    #[tokio::test]
+    async fn read_varlong_too_big() {
         let mut cursor = Cursor::new(vec![0xff; 9]);
-        let result = read_varlong(&mut cursor);
+        let result = read_varlong(&mut cursor).await;
         assert!(result.is_err());
     }
 
-    #[test]
-    fn write_varlong_valid_input() {
+    #[tokio::test]
+    async fn write_varlong_valid_input() {
         let mut cursor = Cursor::new(Vec::new());
-        let result = write_varlong(Varlong::from(-2147483648), &mut cursor);
+        let result = write_varlong(Varlong::from(-2147483648), &mut cursor).await;
         assert!(result.is_ok());
         assert_eq!(cursor.into_inner(), vec![0x80, 0x80, 0x80, 0x80, 0xf8, 0xff, 0xff, 0xff, 0xff, 0x01]);
     }
 
-    #[test]
-    fn write_varlong_zero() {
+    #[tokio::test]
+    async fn write_varlong_zero() {
         let mut cursor = Cursor::new(Vec::new());
-        let result = write_varlong(Varlong::from(0), &mut cursor);
+        let result = write_varlong(Varlong::from(0), &mut cursor).await;
         assert!(result.is_ok());
         assert_eq!(cursor.into_inner(), vec![0b00000000]);
     }
 
-    #[test]
-    fn read_varlong_empty_input() {
+    #[tokio::test]
+    async fn read_varlong_empty_input() {
         let mut cursor = Cursor::new(vec![]);
-        let result = read_varlong(&mut cursor);
+        let result = read_varlong(&mut cursor).await;
         assert!(result.is_err());
     }
 
-    #[test]
-    fn read_varlong_single_byte() {
+    #[tokio::test]
+    async fn read_varlong_single_byte() {
         let mut cursor = Cursor::new(vec![0b00000001]);
-        let result = read_varlong(&mut cursor);
+        let result = read_varlong(&mut cursor).await;
         assert_eq!(result.unwrap(), Varlong::new(1));
     }
 
-    #[test]
-    fn write_varlong_negative_input() {
+    #[tokio::test]
+    async fn write_varlong_negative_input() {
         let mut cursor = Cursor::new(Vec::new());
-        let result = write_varlong(Varlong::from(-1), &mut cursor);
+        let result = write_varlong(Varlong::from(-1), &mut cursor).await;
         assert!(result.is_ok());
         assert_eq!(cursor.into_inner(), vec![0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01]);
     }
@@ -99,14 +97,14 @@ mod tests {
 
 // Read a Varlong from the given cursor.
 // Yoinked from valence: https://github.com/valence-rs/valence/blob/main/crates/valence_protocol/src/var_int.rs#L69
-pub fn read_varlong<T>(cursor: &mut T) -> Result<Varlong, Error>
+pub async fn read_varlong<T>(cursor: &mut T) -> Result<Varlong, Error>
 where
-    T: Read,
+    T: AsyncRead + AsyncSeek + Unpin,
 {
     let mut val = 0;
     let mut count = 0;
     loop {
-        let byte = cursor.read_u8().map_err(|e| Error::Io(e))?;
+        let byte = cursor.read_u8().await.map_err(|e| Error::Io(e))?;
         val |= ((byte & 0x7F) as i64) << (count * 7);
         count += 1;
         if count > 10 {
@@ -126,7 +124,10 @@ where
     any(target_arch = "x86", target_arch = "x86_64"),
     not(target_os = "macos")
 ))]
-pub fn write_varlong(varlong: Varlong, mut w: impl Write) -> anyhow::Result<()> {
+pub async fn write_varlong<T>(varlong: Varlong, mut w: T) -> anyhow::Result<()> 
+where
+    T: AsyncWrite + Unpin,
+{
     #[cfg(target_arch = "x86")]
     use std::arch::x86::*;
     #[cfg(target_arch = "x86_64")]
@@ -166,7 +167,7 @@ pub fn write_varlong(varlong: Varlong, mut w: impl Write) -> anyhow::Result<()> 
     let merged = unsafe { _mm_or_si128(stage1, msbmask) };
     let bytes = unsafe { std::mem::transmute::<__m128i, [u8; 16]>(merged) };
 
-    w.write_all(unsafe { bytes.get_unchecked(..bytes_needed as usize) })?;
+    w.write_all(unsafe { bytes.get_unchecked(..bytes_needed as usize) }).await?;
 
     Ok(())
 }
@@ -175,7 +176,10 @@ pub fn write_varlong(varlong: Varlong, mut w: impl Write) -> anyhow::Result<()> 
     not(any(target_arch = "x86", target_arch = "x86_64")),
     target_os = "macos"
 ))]
-fn write_varlong(varlong: Varlong, mut w: impl Write) -> anyhow::Result<()> {
+async fn write_varlong<T>(varlong: Varlong, mut w: T) -> anyhow::Result<()> 
+where
+    T: AsyncWrite + Unpin,
+{
     use byteorder::WriteBytesExt;
 
     let mut val = varlong.0 as u64;
@@ -184,7 +188,7 @@ fn write_varlong(varlong: Varlong, mut w: impl Write) -> anyhow::Result<()> {
             w.write_u8(val as u8)?;
             return Ok(());
         }
-        w.write_u8(val as u8 & 0b01111111 | 0b10000000)?;
+        w.write_u8(val as u8 & 0b01111111 | 0b10000000).await?;
         val >>= 7;
     }
 }

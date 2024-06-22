@@ -1,7 +1,6 @@
 use std::fmt::Display;
-use std::io::{Read, Seek, Write};
 
-use byteorder::ReadBytesExt;
+use tokio::io::{AsyncRead, AsyncReadExt, AsyncSeek, AsyncWrite, AsyncWriteExt};
 
 use crate::error::Error;
 
@@ -63,54 +62,54 @@ mod tests {
 
     use super::*;
 
-    #[test]
-    fn read_varint_valid_input() {
+    #[tokio::test]
+    async fn read_varint_valid_input() {
         let mut cursor = Cursor::new(vec![0x80, 0x80, 0x80, 0x80, 0x08]);
-        let result = read_varint(&mut cursor);
+        let result = read_varint(&mut cursor).await;
         assert_eq!(result.unwrap(), VarInt::new(-2147483648));
     }
 
-    #[test]
-    fn read_varint_too_big() {
+    #[tokio::test]
+    async fn read_varint_too_big() {
         let mut cursor = Cursor::new(vec![0b10000000; 6]);
-        let result = read_varint(&mut cursor);
+        let result = read_varint(&mut cursor).await;
         assert!(result.is_err());
     }
 
-    #[test]
-    fn write_varint_valid_input() {
+    #[tokio::test]
+    async fn write_varint_valid_input() {
         let mut cursor = Cursor::new(Vec::new());
-        let result = write_varint(2097151, &mut cursor);
+        let result = write_varint(2097151, &mut cursor).await;
         assert!(result.is_ok());
         assert_eq!(cursor.into_inner(), vec![0xff, 0xff, 0x7f]);
     }
 
-    #[test]
-    fn write_varint_zero() {
+    #[tokio::test]
+    async fn write_varint_zero() {
         let mut cursor = Cursor::new(Vec::new());
-        let result = write_varint(0, &mut cursor);
+        let result = write_varint(0, &mut cursor).await;
         assert!(result.is_ok());
         assert_eq!(cursor.into_inner(), vec![0b00000000]);
     }
 
-    #[test]
-    fn read_varint_empty_input() {
+    #[tokio::test]
+    async fn read_varint_empty_input() {
         let mut cursor = Cursor::new(vec![]);
-        let result = read_varint(&mut cursor);
+        let result = read_varint(&mut cursor).await;
         assert!(result.is_err());
     }
 
-    #[test]
-    fn read_varint_single_byte() {
+    #[tokio::test]
+    async fn read_varint_single_byte() {
         let mut cursor = Cursor::new(vec![0b00000001]);
-        let result = read_varint(&mut cursor);
+        let result = read_varint(&mut cursor).await;
         assert_eq!(result.unwrap(), VarInt::new(1));
     }
 
-    #[test]
-    fn write_varint_negative_input() {
+    #[tokio::test]
+    async fn write_varint_negative_input() {
         let mut cursor = Cursor::new(Vec::new());
-        let result = write_varint(-1, &mut cursor);
+        let result = write_varint(-1, &mut cursor).await;
         assert!(result.is_ok());
         assert_eq!(cursor.into_inner(), vec![0xff, 0xff, 0xff, 0xff, 0x0f]);
     }
@@ -118,13 +117,13 @@ mod tests {
 
 // Read a VarInt from the given cursor.
 // Yoinked from valence: https://github.com/valence-rs/valence/blob/main/crates/valence_protocol/src/var_int.rs#L69
-pub fn read_varint<T>(cursor: &mut T) -> Result<VarInt, Error>
+pub async fn read_varint<T>(cursor: &mut T) -> Result<VarInt, Error>
 where
-    T: Read + Seek,
+    T: AsyncRead + AsyncSeek + Unpin,
 {
     let mut val = 0;
     for i in 0..5 {
-        let byte = cursor.read_u8().map_err(|e| Error::Io(e))?;
+        let byte = cursor.read_u8().await.map_err(|e| Error::Io(e))?;
         val |= (i32::from(byte) & 0b01111111) << (i * 7);
         if byte & 0b10000000 == 0 {
             return Ok(VarInt { val, len: i + 1 });
@@ -135,10 +134,10 @@ where
 
 // Write a VarInt to the given cursor.
 // Yoinked from valence: https://github.com/valence-rs/valence/blob/main/crates/valence_protocol/src/var_int.rs#L98
-pub fn write_varint<A, T>(value: A, cursor: &mut T) -> Result<(), Error>
+pub async fn write_varint<A, T>(value: A, cursor: &mut T) -> Result<(), Error>
 where
     A: Into<VarInt>,
-    T: Write + Unpin + Seek,
+    T: AsyncWrite + Unpin + AsyncSeek,
 {
     let val = value.into().val as u64;
 
@@ -160,7 +159,7 @@ where
     let merged = stage1 | (most_significant_bits & most_significant_bits_mask);
     let bytes = merged.to_le_bytes();
 
-    cursor.write_all(unsafe { bytes.get_unchecked(..bytes_needed as usize) })?;
+    cursor.write_all(unsafe { bytes.get_unchecked(..bytes_needed as usize) }).await?;
 
     Ok(())
 }

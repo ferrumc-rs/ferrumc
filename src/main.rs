@@ -67,10 +67,10 @@ async fn start_server(config: SafeConfig) -> Result<()> {
 async fn handle_handshake(mut cursor: Cursor<Vec<u8>>) -> Result<()> {
     trace!("Handling handshake packet");
 
-    let protocol_version = ferrumc_utils::encoding::varint::read_varint(&mut cursor)?;
-    let server_address = ferrumc_utils::encoding::string::read_string(&mut cursor)?;
+    let protocol_version = ferrumc_utils::encoding::varint::read_varint(&mut cursor).await?;
+    let server_address = ferrumc_utils::encoding::string::read_string(&mut cursor).await?;
     let server_port = cursor.read_u16::<BigEndian>().unwrap();
-    let next_state = ferrumc_utils::encoding::varint::read_varint(&mut cursor)?;
+    let next_state = ferrumc_utils::encoding::varint::read_varint(&mut cursor).await?;
 
     trace!("Protocol Version: {}", protocol_version);
     trace!("Server Address: {}", server_address);

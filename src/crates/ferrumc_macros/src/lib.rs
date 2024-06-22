@@ -3,7 +3,7 @@ extern crate proc_macro;
 use proc_macro::TokenStream;
 
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput};
+use syn::{DeriveInput, parse_macro_input};
 
 #[proc_macro_derive(Decode)]
 pub fn decode_derive(input: TokenStream) -> TokenStream {
@@ -15,9 +15,9 @@ pub fn decode_derive(input: TokenStream) -> TokenStream {
 
     // Check if our struct has named fields
     if let syn::Data::Struct(syn::DataStruct {
-        fields: syn::Fields::Named(fields),
-        ..
-    }) = input.data
+                                 fields: syn::Fields::Named(fields),
+                                 ..
+                             }) = input.data
     {
         for field in fields.named {
             // Get the identifier of the field
@@ -25,7 +25,7 @@ pub fn decode_derive(input: TokenStream) -> TokenStream {
             // Generate a statement to decode this field from the bytes
             let type_name = field.ty;
             let statement = quote! {
-                #ident: match <#type_name as Decode>::decode(bytes) {
+                #ident: match <#type_name as Decode>::decode(bytes).await {
                     Ok(value) => Box::into_inner(value),
                     Err(e) => return Err(Error::Generic(format!("Failed to decode field {}: {}", stringify!(#ident), e)))
                 },
@@ -40,9 +40,9 @@ pub fn decode_derive(input: TokenStream) -> TokenStream {
     // Generate the implementation
     let expanded = quote! {
         impl #name {
-            pub fn decode<T>(bytes: &mut T) -> Result<Self, Error>
+            pub async fn decode<T>(bytes: &mut T) -> Result<Self, Error>
             where
-                T: Read + Seek,
+                T: AsyncRead + AsyncSeek + Unpin,
             {
                 Ok(Self {
                     #(#field_statements)*
