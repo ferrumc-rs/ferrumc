@@ -1,14 +1,14 @@
-use std::io::{Read, Seek, Write};
+use std::io::{Read, Write};
 
-use byteorder::{ReadBytesExt, WriteBytesExt};
+use byteorder::ReadBytesExt;
 
-use crate::utils;
+use crate::error::Error;
 
 #[cfg(test)]
 mod tests {
     use std::io::Cursor;
 
-    use crate::utils::encoding::string::{read_string, write_string};
+    use crate::encoding::string::{read_string, write_string};
 
     #[test]
     fn read_string_valid_input() {
@@ -44,22 +44,24 @@ mod tests {
     }
 }
 
-pub fn read_string<T>(cursor: &mut T) -> crate::prelude::Result<String>
-where T: Read + Unpin
+pub fn read_string<T>(cursor: &mut T) -> Result<String, Error>
+where
+    T: Read + Unpin,
 {
-    let length = utils::encoding::varint::read_varint(cursor)?;
+    let length = crate::encoding::varint::read_varint(cursor)?;
     let mut buffer = vec![0u8; length as usize];
     for i in 0..length {
-        buffer[i as usize] = cursor.read_u8()?;
+        buffer[i as usize] = cursor.read_u8().map_err(|_| Error::Generic("Bad byte read".parse().unwrap()))?; // TODO: Better error
     }
     Ok(String::from_utf8(buffer)?)
 }
 
-pub fn write_string<T>(string: &str, cursor: &mut T) -> crate::prelude::Result<()>
-where T: Write  + Unpin
+pub fn write_string<T>(string: &str, cursor: &mut T) -> Result<(), Error>
+where
+    T: Write + Unpin,
 {
     let length = string.len();
-    utils::encoding::varint::write_varint(length as i32, cursor)?;
-    cursor.write_all(string.as_bytes())?;
+    crate::encoding::varint::write_varint(length as i32, cursor).map_err(|_| Error::Generic("Failed to write varint".parse().unwrap()))?;
+    cursor.write_all(string.as_bytes()).map_err(|_| Error::Generic("Failed to write string".parse().unwrap()))?;
     Ok(())
 }

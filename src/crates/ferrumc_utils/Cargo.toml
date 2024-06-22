@@ -1,0 +1,12 @@
+[package]
+name = "ferrumc_utils"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+byteorder = "1.5.0"
+config = "0.14.0"
+thiserror = "1.0.61"
+toml = "0.8.14"
+tokio = { version = "1.38.0", features = ["full"] }
+

@@ -1,6 +1,6 @@
-use std::io::{Cursor, Read, Write};
+use std::io::{Read, Write};
 
-use byteorder::{ReadBytesExt, WriteBytesExt};
+use byteorder::ReadBytesExt;
 
 use crate::error::Error;
 
@@ -65,13 +65,13 @@ mod tests {
 
 // Read a VarInt from the given cursor.
 // Yoinked from valence: https://github.com/valence-rs/valence/blob/main/crates/valence_protocol/src/var_int.rs#L69
-pub fn read_varint<T>(cursor: &mut T) -> crate::prelude::Result<i32>
+pub fn read_varint<T>(cursor: &mut T) -> Result<i32, Error>
 where
     T: Read + Unpin
 {
     let mut val = 0;
     for i in 0..5 {
-        let byte = cursor.read_u8()?;
+        let byte = cursor.read_u8().map_err(|e| Error::Io(e))?;
         val |= (i32::from(byte) & 0b01111111) << (i * 7);
         if byte & 0b10000000 == 0 {
             return Ok(val);
@@ -83,7 +83,7 @@ where
 
 // Write a VarInt to the given cursor.
 // Yoinked from valence: https://github.com/valence-rs/valence/blob/main/crates/valence_protocol/src/var_int.rs#L98
-pub fn write_varint<T>(value: i32, cursor: &mut T) -> crate::prelude::Result<()>
+pub fn write_varint<T>(value: i32, cursor: &mut T) -> Result<(), Error>
 where
     T: Write + Unpin
 {
@@ -106,7 +106,8 @@ where
     let merged = stage1 | (msbs & msbmask);
     let bytes = merged.to_le_bytes();
 
-    cursor.write_all(unsafe { bytes.get_unchecked(..bytes_needed as usize) })?;
+    cursor.write_all(unsafe { bytes.get_unchecked(..bytes_needed as usize) })
+        .map_err(|e| Error::Io(e))?;
 
     Ok(())
 }

@@ -1,8 +1,9 @@
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
+
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput};
+use syn::{DeriveInput, parse_macro_input};
 
 #[proc_macro_derive(Decode)]
 pub fn decode_derive(input: TokenStream) -> TokenStream {
@@ -18,8 +19,9 @@ pub fn decode_derive(input: TokenStream) -> TokenStream {
             // Get the identifier of the field
             let ident = field.ident.unwrap();
             // Generate a statement to decode this field from the bytes
+            let type_name = field.ty;
             let statement = quote! {
-                println!("Decoding field: {}", stringify!(#ident));
+                #ident: Box::into_inner(#type_name::decode(bytes)?),
             };
             field_statements.push(statement);
         }
@@ -31,12 +33,13 @@ pub fn decode_derive(input: TokenStream) -> TokenStream {
     // Generate the implementation
     let expanded = quote! {
         impl #name {
-            pub fn decode(bytes: &mut impl Into<Vec<u8>>) -> Self {
-                #(#field_statements)*
-                // Self {
-                //     #(#field_statements)*
-                // }
-                Self::default()
+            pub fn decode<T>(bytes: &mut T) -> Result<Self, Error>
+            where
+                T: Read,
+            {
+                Ok(Self {
+                    #(#field_statements)*
+                })
                 
             }
         }

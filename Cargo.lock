@@ -336,6 +336,7 @@ dependencies = [
  "env_logger",
  "ferrumc_macros",
  "ferrumc_net",
+ "ferrumc_utils",
  "lazy_static",
  "log",
  "serde",
@@ -348,8 +349,10 @@ dependencies = [
 name = "ferrumc_macros"
 version = "0.1.0"
 dependencies = [
+ "ferrumc_utils",
  "quote",
  "syn",
+ "tokio",
 ]
 
 [[package]]
@@ -364,6 +367,17 @@ dependencies = [
  "rand",
  "tokio",
  "uuid",
+]
+
+[[package]]
+name = "ferrumc_utils"
+version = "0.1.0"
+dependencies = [
+ "byteorder",
+ "config",
+ "thiserror",
+ "tokio",
+ "toml",
 ]
 
 [[package]]

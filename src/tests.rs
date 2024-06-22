@@ -1,6 +1,12 @@
 #[cfg(test)]
 mod tests {
+    use std::io::Cursor;
+    use std::io::Read;
+
     use ferrumc_macros::Decode;
+    use ferrumc_utils::type_impls::Decode;
+
+    use crate::error::Error;
 
     #[test]
     fn test_macro_decode()
@@ -12,8 +18,7 @@ mod tests {
             server_port: u16,
             next_state: u32,
         }
-        
-        let handshake = Handshake::decode(&mut vec![0x00u8, 0x01u8, 0x02u8, 0x03u8, 0x04u8]);
-        
+        let mut data = Cursor::new(vec![0x00, 0x00, 0x00, 0x00, 0x0A]);
+        let handshake = Handshake::decode(&mut data);
     }
 }

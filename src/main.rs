@@ -1,22 +1,24 @@
+#![feature(box_into_inner)]
+
 use std::collections::LinkedList;
 use std::io::Cursor;
-use std::sync::Arc;
 use std::io::Read;
-
-use log::{debug, info, trace};
-use tokio::net::{TcpListener};
-use tokio::sync::RwLock;
+use std::sync::Arc;
 
 use byteorder::{BigEndian, ByteOrder, ReadBytesExt};
+use ferrumc_net;
+use log::{debug, info, trace};
+use tokio::net::TcpListener;
+use tokio::sync::RwLock;
+
+use ferrumc_utils::error;
 
 use crate::prelude::*;
-use ferrumc_net;
 
-mod error;
 mod prelude;
-mod utils;
 mod constants;
 mod tests;
+mod utils;
 
 type SafeConfig = Arc<RwLock<utils::config::ServerConfig>>;
 
@@ -65,14 +67,13 @@ async fn start_server(config: SafeConfig) -> Result<()> {
 }
 
 
-
 async fn handle_handshake(mut cursor: Cursor<Vec<u8>>) -> Result<()> {
     trace!("Handling handshake packet");
 
-    let protocol_version = utils::encoding::varint::read_varint(&mut cursor)?;
-    let server_address = utils::encoding::string::read_string(&mut cursor)?;
+    let protocol_version = ferrumc_utils::encoding::varint::read_varint(&mut cursor)?;
+    let server_address = ferrumc_utils::encoding::string::read_string(&mut cursor)?;
     let server_port = cursor.read_u16::<BigEndian>().unwrap();
-    let next_state = utils::encoding::varint::read_varint(&mut cursor)?;
+    let next_state = ferrumc_utils::encoding::varint::read_varint(&mut cursor)?;
 
     trace!("Protocol Version: {}", protocol_version);
     trace!("Server Address: {}", server_address);
