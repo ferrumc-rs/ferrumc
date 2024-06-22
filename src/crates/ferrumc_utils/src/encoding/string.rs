@@ -1,4 +1,4 @@
-use std::io::{Read, Write};
+use std::io::{Read, Seek, Write};
 
 use byteorder::ReadBytesExt;
 
@@ -32,7 +32,10 @@ mod tests {
         let mut cursor = Cursor::new(Vec::new());
         let result = write_string("Test", &mut cursor);
         assert!(result.is_ok());
-        assert_eq!(cursor.into_inner(), vec![4, 0b01010100, 0b01100101, 0b01110011, 0b01110100]);
+        assert_eq!(
+            cursor.into_inner(),
+            vec![4, 0b01010100, 0b01100101, 0b01110011, 0b01110100]
+        );
     }
 
     #[test]
@@ -46,22 +49,27 @@ mod tests {
 
 pub fn read_string<T>(cursor: &mut T) -> Result<String, Error>
 where
-    T: Read + Unpin,
+    T: Read + Unpin + Seek,
 {
     let length = crate::encoding::varint::read_varint(cursor)?.into();
     let mut buffer = vec![0u8; length as usize];
     for i in 0..length {
-        buffer[i as usize] = cursor.read_u8().map_err(|_| Error::Generic("Bad byte read".parse().unwrap()))?; // TODO: Better error
+        buffer[i as usize] = cursor
+            .read_u8()
+            .map_err(|_| Error::Generic("Bad byte read".parse().unwrap()))?;
     }
     Ok(String::from_utf8(buffer)?)
 }
 
 pub fn write_string<T>(string: &str, cursor: &mut T) -> Result<(), Error>
 where
-    T: Write + Unpin,
+    T: Write + Unpin + Seek,
 {
     let length = string.len();
-    crate::encoding::varint::write_varint(length as i32, cursor).map_err(|_| Error::Generic("Failed to write varint".parse().unwrap()))?;
-    cursor.write_all(string.as_bytes()).map_err(|_| Error::Generic("Failed to write string".parse().unwrap()))?;
+    crate::encoding::varint::write_varint(length as i32, cursor)
+        .map_err(|_| Error::Generic("Failed to write varint".parse().unwrap()))?;
+    cursor
+        .write_all(string.as_bytes())
+        .map_err(|_| Error::Generic("Failed to write string".parse().unwrap()))?;
     Ok(())
 }

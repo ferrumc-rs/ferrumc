@@ -373,8 +373,10 @@ dependencies = [
 name = "ferrumc_utils"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "byteorder",
  "config",
+ "lazy_static",
  "thiserror",
  "tokio",
  "toml",

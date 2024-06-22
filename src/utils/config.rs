@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::io::ErrorKind::NotFound;
 use std::io::Write;
 
@@ -73,7 +72,7 @@ fn is_not_found(err: &ConfigError) -> bool {
         return false;
     };
 
-    let Some(io_error) = foreign_error.downcast_ref::<std::io::Error>() else{
+    let Some(io_error) = foreign_error.downcast_ref::<std::io::Error>() else {
         error!("Foreign error wasn't an IO error: {:?}", foreign_error);
         return false;
     };

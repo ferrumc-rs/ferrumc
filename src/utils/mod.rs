@@ -3,13 +3,16 @@ use crate::constants::DEFAULT_LOG_LEVEL;
 pub mod config;
 
 pub fn setup_logger() {
-    let mut trace_level = std::env::args()
+    let trace_level = std::env::args()
         .find(|arg| arg.starts_with("--log="))
         .map(|arg| arg.replace("--log=", ""));
 
     let mut trace_level: &str = trace_level.as_deref().unwrap_or("");
     if trace_level.is_empty() {
-        eprintln!("No log level specified, using default: {}", DEFAULT_LOG_LEVEL);
+        eprintln!(
+            "No log level specified, using default: {}",
+            DEFAULT_LOG_LEVEL
+        );
         trace_level = DEFAULT_LOG_LEVEL;
     }
 

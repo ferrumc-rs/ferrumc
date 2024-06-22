@@ -3,7 +3,7 @@ extern crate proc_macro;
 use proc_macro::TokenStream;
 
 use quote::quote;
-use syn::{DeriveInput, parse_macro_input};
+use syn::{parse_macro_input, DeriveInput};
 
 #[proc_macro_derive(Decode)]
 pub fn decode_derive(input: TokenStream) -> TokenStream {
@@ -14,7 +14,11 @@ pub fn decode_derive(input: TokenStream) -> TokenStream {
     let mut field_statements = Vec::new();
 
     // Check if our struct has named fields
-    if let syn::Data::Struct(syn::DataStruct { fields: syn::Fields::Named(fields), .. }) = input.data {
+    if let syn::Data::Struct(syn::DataStruct {
+        fields: syn::Fields::Named(fields),
+        ..
+    }) = input.data
+    {
         for field in fields.named {
             // Get the identifier of the field
             let ident = field.ident.unwrap();
@@ -38,12 +42,12 @@ pub fn decode_derive(input: TokenStream) -> TokenStream {
         impl #name {
             pub fn decode<T>(bytes: &mut T) -> Result<Self, Error>
             where
-                T: Read,
+                T: Read + Seek,
             {
                 Ok(Self {
                     #(#field_statements)*
                 })
-                
+
             }
         }
     };

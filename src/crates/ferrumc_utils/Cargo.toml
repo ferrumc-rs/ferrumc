@@ -9,4 +9,5 @@ config = "0.14.0"
 thiserror = "1.0.61"
 toml = "0.8.14"
 tokio = { version = "1.38.0", features = ["full"] }
-
+lazy_static = "1.4.0"
+anyhow = "1.0.86"

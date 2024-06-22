@@ -1,11 +1,9 @@
 #![feature(box_into_inner)]
 
-use std::collections::LinkedList;
 use std::io::Cursor;
-use std::io::Read;
 use std::sync::Arc;
 
-use byteorder::{BigEndian, ByteOrder, ReadBytesExt};
+use byteorder::{BigEndian, ReadBytesExt};
 use ferrumc_net;
 use log::{debug, info, trace};
 use tokio::net::TcpListener;
@@ -15,8 +13,8 @@ use ferrumc_utils::error;
 
 use crate::prelude::*;
 
-mod prelude;
 mod constants;
+mod prelude;
 mod tests;
 mod utils;
 
@@ -35,18 +33,18 @@ async fn main() -> Result<()> {
 
     let config = Arc::new(RwLock::new(config));
 
-    start_server(config.clone()).await.expect("Server failed to start!");
+    start_server(config.clone())
+        .await
+        .expect("Server failed to start!");
 
     tokio::signal::ctrl_c().await?;
 
     Ok(())
 }
 
-
 async fn start_server(config: SafeConfig) -> Result<()> {
     let config = config.read().await;
     trace!("Starting server on {}:{}", config.host, config.port);
-
 
     let tcp_addr = format!("{}:{}", config.host, config.port);
 
@@ -57,7 +55,7 @@ async fn start_server(config: SafeConfig) -> Result<()> {
     drop(config);
 
     loop {
-        let (mut socket, _) = listener.accept().await?;
+        let (socket, _) = listener.accept().await?;
         // show a line of 100 dashes
         trace!("{}", "-".repeat(100));
         trace!("Accepted connection from: {:?}", socket.peer_addr()?);
@@ -65,7 +63,6 @@ async fn start_server(config: SafeConfig) -> Result<()> {
         tokio::task::spawn(ferrumc_net::handle_connection(socket));
     }
 }
-
 
 async fn handle_handshake(mut cursor: Cursor<Vec<u8>>) -> Result<()> {
     trace!("Handling handshake packet");

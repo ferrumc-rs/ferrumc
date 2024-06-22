@@ -1,39 +1,59 @@
 use std::fmt::Display;
-use std::io::{Read, Write};
+use std::io::{Read, Seek, Write};
 
 use byteorder::ReadBytesExt;
 
 use crate::error::Error;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
-pub struct VarInt(pub i32);
+pub struct VarInt {
+    /// The value of the VarInt.
+    val: i32,
+    /// The length of the VarInt in bytes.
+    len: usize,
+}
 
 impl VarInt {
     pub fn new(value: i32) -> Self {
-        VarInt(value)
+        let bytes_required = if value < 128 && value >= -128 {
+            1
+        } else if value < 16384 && value >= -16384 {
+            2
+        } else if value < 2097152 && value >= -2097152 {
+            3
+        } else if value < 268435456 && value >= -268435456 {
+            4
+        } else {
+            5
+        };
+        VarInt {
+            val: value,
+            len: bytes_required,
+        }
     }
 }
 
 impl Display for VarInt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "{}", self.val)
     }
 }
+
 impl From<VarInt> for i32 {
     fn from(varint: VarInt) -> i32 {
-        varint.0
+        varint.val
     }
 }
 
 impl From<i32> for VarInt {
     fn from(value: i32) -> VarInt {
-        VarInt(value)
+        VarInt::new(value)
     }
 }
 
 impl Into<usize> for VarInt {
     fn into(self) -> usize {
-        self.0 as usize
+        self.val as usize
     }
 }
 
@@ -100,32 +120,33 @@ mod tests {
 // Yoinked from valence: https://github.com/valence-rs/valence/blob/main/crates/valence_protocol/src/var_int.rs#L69
 pub fn read_varint<T>(cursor: &mut T) -> Result<VarInt, Error>
 where
-    T: Read
+    T: Read + Seek,
 {
     let mut val = 0;
     for i in 0..5 {
         let byte = cursor.read_u8().map_err(|e| Error::Io(e))?;
         val |= (i32::from(byte) & 0b01111111) << (i * 7);
         if byte & 0b10000000 == 0 {
-            return Ok(VarInt::new(val));
+            return Ok(VarInt { val, len: i + 1 });
         }
     }
     Err(Error::Generic("VarInt is too big".to_string()))
 }
 
-
 // Write a VarInt to the given cursor.
 // Yoinked from valence: https://github.com/valence-rs/valence/blob/main/crates/valence_protocol/src/var_int.rs#L98
-pub fn write_varint<T>(value: i32, cursor: &mut T) -> Result<(), Error>
+pub fn write_varint<A, T>(value: A, cursor: &mut T) -> Result<(), Error>
 where
-    T: Write + Unpin
+    A: Into<VarInt>,
+    T: Write + Unpin + Seek,
 {
-    let x = value as u64;
-    let stage1 = (x & 0x000000000000007f)
-        | ((x & 0x0000000000003f80) << 1)
-        | ((x & 0x00000000001fc000) << 2)
-        | ((x & 0x000000000fe00000) << 3)
-        | ((x & 0x00000000f0000000) << 4);
+    let val = value.into().val as u64;
+
+    let stage1 = (val & 0x000000000000007f)
+        | ((val & 0x0000000000003f80) << 1)
+        | ((val & 0x00000000001fc000) << 2)
+        | ((val & 0x000000000fe00000) << 3)
+        | ((val & 0x00000000f0000000) << 4);
 
     let leading = stage1.leading_zeros();
 
@@ -133,14 +154,13 @@ where
     let bytes_needed = 8 - unused_bytes;
 
     // set all but the last MSBs
-    let msbs = 0x8080808080808080;
-    let msbmask = 0xffffffffffffffff >> (((8 - bytes_needed + 1) << 3) - 1);
+    let most_significant_bits = 0x8080808080808080;
+    let most_significant_bits_mask = 0xffffffffffffffff >> (((8 - bytes_needed + 1) << 3) - 1);
 
-    let merged = stage1 | (msbs & msbmask);
+    let merged = stage1 | (most_significant_bits & most_significant_bits_mask);
     let bytes = merged.to_le_bytes();
 
-    cursor.write_all(unsafe { bytes.get_unchecked(..bytes_needed as usize) })
-        .map_err(|e| Error::Io(e))?;
+    cursor.write_all(unsafe { bytes.get_unchecked(..bytes_needed as usize) })?;
 
     Ok(())
 }
