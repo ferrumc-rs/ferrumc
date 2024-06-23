@@ -40,6 +40,8 @@ pub fn decode_derive(input: TokenStream) -> TokenStream {
     // Generate the implementation
     let expanded = quote! {
         use ferrumc_utils::type_impls::Decode;
+        use tokio::io::{AsyncRead, AsyncSeek};
+        use ferrumc_utils::error::Error;
         impl #name {
             pub async fn decode<T>(bytes: &mut T) -> core::result::Result<Self, Error>
             where
@@ -100,6 +102,10 @@ pub fn encode_derive(input: TokenStream) -> TokenStream {
 
     // Generate the implementation
     let expanded = quote! {
+        use ferrumc_utils::error::Error;
+        use ferrumc_utils::encoding::varint::VarInt;
+        use ferrumc_utils::type_impls::Encode;
+        use tokio::io::AsyncWriteExt;
         impl #name {
             pub async fn encode(&self) -> core::result::Result<Vec<u8>, Error>
             {

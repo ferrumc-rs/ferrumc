@@ -19,4 +19,6 @@ pub enum Error {
     ConnectionNotFound(u32),
     #[error("Invalid packet id: {0}")]
     InvalidPacketId(u32),
+    #[error("Invalid state: {0:x}")]
+    InvalidState(u32),
 }

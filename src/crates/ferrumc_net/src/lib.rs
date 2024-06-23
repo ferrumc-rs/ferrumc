@@ -14,7 +14,8 @@ use rand::random;
 use tokio::io::{AsyncWriteExt};
 use tokio::io::AsyncReadExt;
 use tokio::sync::{RwLock};
-use crate::packets::handshake::HandshakePacket;
+use crate::packets::incoming::handshake;
+use crate::packets::IncomingPacket;
 
 mod packets;
 
@@ -29,7 +30,7 @@ pub fn CONNECTIONS() -> &'static ConnectionList {
 }
 
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 pub enum State {
     Unknown,
     Handshake,
@@ -56,8 +57,6 @@ pub struct Connection {
     pub socket: tokio::net::TcpStream,
     // The player uuid, if the connection is authenticated.
     pub player_uuid: Option<uuid::Uuid>,
-    // A queue of bytes to be sent to the client. Set up this way to allow for easy batching of packets & we can run the sender/receiver in parallel.
-    pub send_queue: Vec<Vec<u8>>,
     // State
     pub state: State,
 }
@@ -72,7 +71,6 @@ pub async fn handle_connection(socket: tokio::net::TcpStream) -> Result<()> {
         id,
         socket,
         player_uuid: None,
-        send_queue: Vec::new(),
         state: State::Unknown,
     };
 
@@ -99,53 +97,17 @@ impl Connection {
         self.state = State::Handshake;
         debug!("Starting connection with id: {}", self.id);
 
-        let arc_id = Arc::new(RwLock::new(self.id));
-
-        tokio::spawn(async move {
-            let conn = CONNECTIONS().connections.get_mut(&*arc_id.read().await);
-
-            let Some(mut conn) = conn else {
-                error!("Connection not found for id: {}", *arc_id.read().await);
-                return;
-            };
-
-            let res = conn.sender().await;
-
-            if let Err(e) = res {
-                trace!("Error in sender: {:?}", e);
-            }
-        });
-
-        self.receiver().await?;
+        self.manage_conn().await?;
 
 
         Ok(())
     }
 
-    pub async fn sender(&mut self) -> Result<()> {
-        debug!("Starting sender for connection with addy: {:?}", self.socket.peer_addr()?);
-
-        loop {
-            while let Some(packet) = self.send_queue.pop() {
-                trace!("Sent packet with len: {:?}", packet.len());
-                self.socket.write_all(&packet).await?;
-            }
-
-            // TODO: Implement a way to break the loop when the connection is closed
-/*            if ([State::Unknown, State::Handshake].contains(&self.state)) {
-                trace!("Breaking the connection, state isn't unknown/handshake anymore");
-                break;
-            }
-*/
-            // TODO: Implement a proper tick system
-            // tokio::time::sleep(std::time::Duration::from_millis(50)).await;
-        }
-    }
-
-    pub async fn receiver(&mut self) -> Result<()> {
+    pub async fn manage_conn(&mut self) -> Result<()> {
         debug!("Starting receiver for the same addy: {:?}", self.socket.peer_addr()?);
 
         loop {
+            let mut drop_connection: bool = false;
             let mut length_buffer = vec![0u8; 1];
             self.socket.read_exact(&mut length_buffer).await?;
 
@@ -162,22 +124,70 @@ impl Connection {
             let packet_length = read_varint(&mut cursor).await?;
             let packet_id = read_varint(&mut cursor).await?;
 
-            if packet_id.get_val() != 0x00 {
-                return Err(Error::InvalidPacketId(packet_id.get_val() as u32));
-            }
-
             trace!("Packet Length: {}", packet_length);
             trace!("Packet ID: {}", packet_id);
 
-            let handshake_packet = HandshakePacket::decode(&mut cursor).await?;
+            let response = match self.state {
+                State::Handshake => {
+                    match packet_id.get_val() {
+                        0x00 => {
+                            let handshake_packet = handshake::Handshake::decode(&mut cursor).await?;
+                            handshake_packet.handle(self).await
+                        }
+                        _ => {
+                            error!("Invalid packet id: {}", packet_id);
+                            Ok(None)
+                        }
+                    }
+                }
+                State::Status => {
+                    match packet_id.get_val() {
+                        0x00 => {
+                            let request_packet = packets::incoming::status::IncomingStatusRequest::decode(&mut cursor).await?;
+                            drop_connection = true;
+                            request_packet.handle(self).await
+                        }
+                        _ => {
+                            error!("Invalid packet id: {}", packet_id);
+                            drop_connection = true;
+                            Ok(None)
+                        }
+                    }
+                }
+                
+                _ => {
+                    error!("Invalid state: {:?}", self.state);
+                    drop_connection = true;
+                    Ok(None)
+                }
+            };
 
-            handshake_packet.test_method_to_handle_handshake_packet(self).await?;
+            match response {
+                Ok(response) => {
+                    if let Some(response) = response {
+                        self.socket.write_all(&response).await?;
+                    }
+                }
+                Err(e) => {
+                    error!("Error handling packet: {:?}", e);
+                }
+            }
+            if drop_connection {
+                Self::drop_conn(self).await?;
+                break;
+            }
+
         }
-
+        Ok(())
     }
 
-    pub fn add_to_send_queue(&mut self, packet: Vec<u8>) {
-        self.send_queue.push(packet);
+    async fn drop_conn(connection: &mut Connection) -> Result<()> {
+        trace!("Dropping connection with id: {}", connection.id);
+        let id = connection.id;
+        CONNECTIONS().connections.remove(&id);
+        CONNECTIONS().connection_count.fetch_sub(1, atomic::Ordering::Relaxed);
+        Ok(())
     }
 }
+
 
