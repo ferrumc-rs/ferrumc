@@ -5,9 +5,9 @@ use config::{Config, ConfigError};
 use log::{error, info};
 use serde::{Deserialize, Serialize};
 
-use crate::constants::{DEFAULT_CONFIG_FILE, DEFAULT_SERVER_HOST, DEFAULT_SERVER_PORT};
+use crate::constants::{DEFAULT_CONFIG_FILE, DEFAULT_MAX_PLAYERS, DEFAULT_MOTD, DEFAULT_SERVER_HOST, DEFAULT_SERVER_PORT};
 use crate::error::Error;
-use crate::prelude::*;
+use ferrumc_utils::prelude::*;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ServerConfig {
@@ -107,9 +107,9 @@ impl Default for ServerConfig {
     fn default() -> Self {
         Self {
             host: DEFAULT_SERVER_HOST.to_string(),
-            port: DEFAULT_SERVER_PORT, // Minecraft default port
-            motd: "A FerrumC Server".to_string(),
-            max_players: 20,
+            port: DEFAULT_SERVER_PORT,
+            motd: DEFAULT_MOTD.to_string(),
+            max_players: DEFAULT_MAX_PLAYERS,
         }
     }
 }

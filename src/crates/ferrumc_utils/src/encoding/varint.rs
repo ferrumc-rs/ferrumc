@@ -30,6 +30,9 @@ impl VarInt {
             len: bytes_required,
         }
     }
+    pub fn get_val(&self) -> i32 {
+        self.val
+    }
 }
 
 impl Display for VarInt {

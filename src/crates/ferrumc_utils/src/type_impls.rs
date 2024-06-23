@@ -184,3 +184,13 @@ impl Decode for Varlong {
         Ok(Box::from(read_varlong(bytes).await?))
     }
 }
+
+
+pub trait Encode {
+    #[allow(unused)]
+    #[allow(async_fn_in_trait)]
+    async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
+    where
+        T: AsyncRead + AsyncSeek + Unpin;
+}
+

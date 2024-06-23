@@ -14,4 +14,9 @@ pub enum Error {
     Utf8(#[from] std::string::FromUtf8Error),
     #[error(transparent)]
     TokioJoin(#[from] tokio::task::JoinError),
+
+    #[error("Connection not found: {0}")]
+    ConnectionNotFound(u32),
+    #[error("Invalid packet id: {0}")]
+    InvalidPacketId(u32),
 }
