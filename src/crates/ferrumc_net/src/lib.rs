@@ -9,7 +9,7 @@ use dashmap::DashMap;
 use ferrumc_utils::encoding::varint::{read_varint};
 use ferrumc_utils::prelude::*;
 use lariv::Lariv;
-use log::{debug, error, trace};
+use log::{debug, error, info, trace};
 use rand::random;
 use tokio::io::{AsyncWriteExt};
 use tokio::io::AsyncReadExt;
@@ -60,6 +60,8 @@ pub struct Connection {
     pub send_queue: Vec<Vec<u8>>,
     // State
     pub state: State,
+    // Notifier for the sender to send the packets.
+    pub sender_notifier: tokio::sync::Notify,
 }
 
 pub async fn handle_connection(socket: tokio::net::TcpStream) -> Result<()> {
@@ -74,6 +76,7 @@ pub async fn handle_connection(socket: tokio::net::TcpStream) -> Result<()> {
         player_uuid: None,
         send_queue: Vec::new(),
         state: State::Unknown,
+        sender_notifier: tokio::sync::Notify::new(),
     };
 
     CONNECTIONS().connections.insert(id, conn);
@@ -81,15 +84,10 @@ pub async fn handle_connection(socket: tokio::net::TcpStream) -> Result<()> {
         .connection_count
         .fetch_add(1, atomic::Ordering::Relaxed);
 
-    trace!("Connection established with id: {}", id);
+    debug!("Connection established with id: {}, total count: {}", id, CONNECTIONS().connection_count.load(atomic::Ordering::Relaxed));
 
     let mut conn_ref = CONNECTIONS().connections.get_mut(&id).ok_or(Error::ConnectionNotFound(id))?;
     conn_ref.start_connection().await?;
-
-    /*    let conn_ref = CONNECTIONS().connections.get(&id).ok_or(Error::ConnectionNotFound(id))?;
-        let mut conn_write = conn_ref.write_owned().await;
-
-        conn_write.start_connection().await?;*/
 
     Ok(())
 }
@@ -97,7 +95,7 @@ pub async fn handle_connection(socket: tokio::net::TcpStream) -> Result<()> {
 impl Connection {
     pub async fn start_connection(&mut self) -> Result<()> {
         self.state = State::Handshake;
-        debug!("Starting connection with id: {}", self.id);
+        trace!("Starting connection with id: {}", self.id);
 
         let arc_id = Arc::new(RwLock::new(self.id));
 
@@ -123,9 +121,11 @@ impl Connection {
     }
 
     pub async fn sender(&mut self) -> Result<()> {
-        debug!("Starting sender for connection with addy: {:?}", self.socket.peer_addr()?);
+        trace!("Starting sender for connection with addy: {:?}", self.socket.peer_addr()?);
 
         loop {
+            self.sender_notifier.notified().await;
+
             while let Some(packet) = self.send_queue.pop() {
                 trace!("Sent packet with len: {:?}", packet.len());
                 self.socket.write_all(&packet).await?;
@@ -137,13 +137,11 @@ impl Connection {
                 break;
             }
 */
-            // TODO: Implement a proper tick system
-            // tokio::time::sleep(std::time::Duration::from_millis(50)).await;
         }
     }
 
     pub async fn receiver(&mut self) -> Result<()> {
-        debug!("Starting receiver for the same addy: {:?}", self.socket.peer_addr()?);
+        trace!("Starting receiver for the same addy: {:?}", self.socket.peer_addr()?);
 
         loop {
             let mut length_buffer = vec![0u8; 1];
@@ -176,8 +174,9 @@ impl Connection {
 
     }
 
-    pub fn add_to_send_queue(&mut self, packet: Vec<u8>) {
+    pub fn send_packet_to_conn(&mut self, packet: Vec<u8>) {
         self.send_queue.push(packet);
+        self.sender_notifier.notify_one();
     }
 }
 

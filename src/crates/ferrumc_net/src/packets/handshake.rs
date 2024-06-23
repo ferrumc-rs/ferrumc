@@ -44,7 +44,7 @@ impl HandshakePacket {
             "description": {
                 "text": "no way! it actually works LMAOOO WWWWW??"
             },
-            "favicon": "data:image/png;base64,<data>",
+            "favicon": " data:image/png;base64",
             "enforcesSecureChat": false,
             "previewsChat": false
         }"#;
@@ -57,7 +57,7 @@ impl HandshakePacket {
 
         let serialized = packet.encode().await?;
 
-        conn.add_to_send_queue(serialized);
+        conn.send_packet_to_conn(serialized);
 
         Ok(())
     }

@@ -54,7 +54,7 @@ async fn start_server(config: SafeConfig) -> Result<()> {
         let (socket, _) = listener.accept().await?;
         // show a line of 100 dashes
         trace!("{}", "-".repeat(100));
-        trace!("Accepted connection from: {:?}", socket.peer_addr()?);
+        debug!("Accepted connection from: {:?}", socket.peer_addr()?);
 
         tokio::task::spawn(ferrumc_net::handle_connection(socket));
     }
