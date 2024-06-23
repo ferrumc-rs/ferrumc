@@ -1,3 +1,4 @@
+use tokio::sync::OnceCell;
 use log::info;
 use serde::Serialize;
 use ferrumc_macros::Decode;
@@ -17,7 +18,7 @@ struct JsonResponse {
     version: Version,
     players: Players,
     description: Description,
-    favicon: Option<String>,
+    favicon: &'static String,
 }
 
 #[derive(Serialize)]
@@ -49,11 +50,11 @@ impl IncomingPacket for IncomingStatusRequest {
         info!("Handling status request packet");
         let config = config::get_global_config();
 
-        let mut data = Vec::new();
+        /*let mut data = Vec::new();
         if let Ok(mut image) = tokio::fs::File::open("icon-64.png").await {
             image.read_to_end(&mut data).await?;
         }
-        let image_base64 = base64::engine::general_purpose::STANDARD.encode(&data);
+        let image_base64 = base64::engine::general_purpose::STANDARD.encode(&data);*/
         let response = OutgoingStatusResponse {
             packet_id: VarInt::new(0x00),
             json_response: serde_json::ser::to_string(&JsonResponse {
@@ -78,11 +79,22 @@ impl IncomingPacket for IncomingStatusRequest {
                 description: Description {
                     text: config.motd.clone(),
                 },
-                favicon: if !data.is_empty() { Some(format!("data:image/png;base64,{}", image_base64)) } else { None },
+                favicon: get_encoded_favicon(),
             }).unwrap(),
         };
 
         Ok(Some(response.encode().await?))
     }
 }
-
+fn get_encoded_favicon() -> &'static String {
+    static FAVICON: OnceCell<String> = OnceCell::new();
+    FAVICON.get_or_init(async {
+        let mut data = Vec::new();
+        let Ok(mut image) = tokio::fs::File::open("icon-64.png").await else {
+            return String::new();
+        };
+        image.read_to_end(&mut data).await.unwrap_or_default();
+        let data = base64::engine::general_purpose::STANDARD.encode(&data);
+        format!("data:image/png;base64,{}", data)
+    })
+}
