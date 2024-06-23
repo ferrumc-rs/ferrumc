@@ -1,4 +1,6 @@
 # FerrumC
+![GitHub License](https://img.shields.io/github/license/Sweattypalms/ferrumc)
+<img alt="GitHub code size in bytes" src="https://img.shields.io/github/languages/code-size/Sweattypalms/ferrumc">
 
 A high performance Minecraft server written in Rust.
 
@@ -44,3 +46,5 @@ This project is licensed under the MIT License - see the LICENSE.md file for det
 
 Inspiration, code snippets, dependencies etc.
 * [Tokio Runtime](https://github.com/tokio-rs/tokio)
+* [Valence](https://github.com/valence-rs/valence)
+* [wiki.vg](https://wiki.vg)
