@@ -1,7 +1,7 @@
-use tokio::io::{AsyncRead, AsyncReadExt, AsyncSeek};
+use tokio::io::{AsyncRead, AsyncReadExt, AsyncSeek, AsyncWrite, AsyncWriteExt};
 
-use crate::encoding::varint::{read_varint, VarInt};
-use crate::encoding::varlong::{read_varlong, Varlong};
+use crate::encoding::varint::{read_varint, VarInt, write_varint};
+use crate::encoding::varlong::{read_varlong, Varlong, write_varlong};
 use crate::error::Error;
 
 pub trait Decode {
@@ -194,3 +194,165 @@ pub trait Encode {
         T: AsyncRead + AsyncSeek + Unpin;
 }
 
+
+impl Encode for bool {
+    async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
+    where
+        T: AsyncWrite + AsyncSeek + Unpin,
+    {
+        let buf = if *self { [1u8] } else { [0u8] };
+        bytes
+            .write_all(&buf)
+            .await
+            .map_err(|_| Error::Generic("Failed to write bool".parse().unwrap()))
+    }
+}
+
+impl Encode for u8 {
+    async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
+    where
+        T: AsyncWrite + AsyncSeek + Unpin,
+    {
+        let buf = [*self];
+        bytes
+            .write_all(&buf)
+            .await
+            .map_err(|_| Error::Generic("Failed to write u8".parse().unwrap()))
+    }
+}
+
+impl Encode for i8 {
+    async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
+    where
+        T: AsyncWrite + AsyncSeek + Unpin,
+    {
+        let buf = [*self as u8];
+        bytes
+            .write_all(&buf)
+            .await
+            .map_err(|_| Error::Generic("Failed to write i8".parse().unwrap()))
+    }
+}
+
+impl Encode for u16 {
+    async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
+    where
+        T: AsyncWrite + AsyncSeek + Unpin,
+    {
+        let buf = self.to_be_bytes();
+        bytes
+            .write_all(&buf)
+            .await
+            .map_err(|_| Error::Generic("Failed to write u16".parse().unwrap()))
+    }
+}
+
+impl Encode for i16 {
+    async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
+    where
+        T: AsyncWrite + AsyncSeek + Unpin,
+    {
+        let buf = self.to_be_bytes();
+        bytes
+            .write_all(&buf)
+            .await
+            .map_err(|_| Error::Generic("Failed to write i16".parse().unwrap()))
+    }
+}
+
+impl Encode for u32 {
+    async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
+    where
+        T: AsyncWrite + AsyncSeek + Unpin,
+    {
+        let buf = self.to_be_bytes();
+        bytes
+            .write_all(&buf)
+            .await
+            .map_err(|_| Error::Generic("Failed to write u32".parse().unwrap()))
+    }
+}
+
+impl Encode for i32 {
+    async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
+    where
+        T: AsyncWrite + AsyncSeek + Unpin,
+    {
+        let buf = self.to_be_bytes();
+        bytes
+            .write_all(&buf)
+            .await
+            .map_err(|_| Error::Generic("Failed to write i32".parse().unwrap()))
+    }
+}
+
+impl Encode for i64 {
+    async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
+    where
+        T: AsyncWrite + AsyncSeek + Unpin,
+    {
+        let buf = self.to_be_bytes();
+        bytes
+            .write_all(&buf)
+            .await
+            .map_err(|_| Error::Generic("Failed to write i64".parse().unwrap()))
+    }
+}
+
+impl Encode for f32 {
+    async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
+    where
+        T: AsyncWrite + AsyncSeek + Unpin,
+    {
+        let buf = self.to_be_bytes();
+        bytes
+            .write_all(&buf)
+            .await
+            .map_err(|_| Error::Generic("Failed to write f32".parse().unwrap()))
+    }
+}
+
+impl Encode for f64 {
+    async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
+    where
+        T: AsyncWrite + AsyncSeek + Unpin,
+    {
+        let buf = self.to_be_bytes();
+        bytes
+            .write_all(&buf)
+            .await
+            .map_err(|_| Error::Generic("Failed to write f64".parse().unwrap()))
+    }
+}
+
+impl Encode for String {
+    async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
+    where
+        T: AsyncWrite + AsyncSeek + Unpin,
+    {
+        let len = VarInt::new(self.len() as i32);
+        len.encode(bytes).await?;
+        bytes
+            .write_all(self.as_bytes())
+            .await
+            .map_err(|_| Error::Generic("Failed to write String".parse().unwrap()))
+    }
+}
+
+impl Encode for VarInt {
+    async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
+    where
+        T: AsyncWrite + AsyncSeek + Unpin,
+    {
+        write_varint(*self, bytes).await
+    }
+}
+
+impl Encode for Varlong {
+    async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
+    where
+        T: AsyncWrite + AsyncSeek + Unpin,
+    {
+        write_varlong(*self, bytes).await
+    }
+}

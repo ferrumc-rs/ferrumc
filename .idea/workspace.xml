@@ -7,12 +7,10 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e0f3e79a-8e00-4bb3-91ee-3063e890ae27" name="Changes" comment="Adding simple send / recv. Updated some data types. lazy_static -&gt; OnceLock">
+    <list default="true" id="e0f3e79a-8e00-4bb3-91ee-3063e890ae27" name="Changes" comment="Sender and writer both fixed. Handshake works now with new logic!">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/crates/ferrumc_net/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/crates/ferrumc_net/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/tests.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/tests.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/utils/config.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils/config.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/crates/ferrumc_utils/src/encoding/varlong.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/crates/ferrumc_utils/src/encoding/varlong.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/crates/ferrumc_utils/src/type_impls.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/crates/ferrumc_utils/src/type_impls.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -123,7 +121,7 @@
       <workItem from="1718548691789" duration="1188000" />
       <workItem from="1718809668864" duration="3890000" />
       <workItem from="1719035826153" duration="320000" />
-      <workItem from="1719114809997" duration="8239000" />
+      <workItem from="1719114809997" duration="8906000" />
     </task>
     <task id="LOCAL-00001" summary="Start basic TCP server">
       <option name="closed" value="true" />
@@ -149,7 +147,15 @@
       <option name="project" value="LOCAL" />
       <updated>1719125318673</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Sender and writer both fixed. Handshake works now with new logic!">
+      <option name="closed" value="true" />
+      <created>1719126635016</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1719126635016</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -182,6 +188,7 @@
     <MESSAGE value="Start basic TCP server" />
     <MESSAGE value="Added basic config" />
     <MESSAGE value="Adding simple send / recv. Updated some data types. lazy_static -&gt; OnceLock" />
-    <option name="LAST_COMMIT_MESSAGE" value="Adding simple send / recv. Updated some data types. lazy_static -&gt; OnceLock" />
+    <MESSAGE value="Sender and writer both fixed. Handshake works now with new logic!" />
+    <option name="LAST_COMMIT_MESSAGE" value="Sender and writer both fixed. Handshake works now with new logic!" />
   </component>
 </project>

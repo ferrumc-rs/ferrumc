@@ -124,7 +124,7 @@ where
     any(target_arch = "x86", target_arch = "x86_64"),
     not(target_os = "macos")
 ))]
-pub async fn write_varlong<T>(varlong: Varlong, mut w: T) -> anyhow::Result<()> 
+pub async fn write_varlong<T>(varlong: Varlong, mut w: T) -> Result<(), Error>
 where
     T: AsyncWrite + Unpin,
 {
