@@ -1,18 +1,13 @@
 #![feature(box_into_inner)]
 
-use std::io::Cursor;
 use std::sync::Arc;
 
-use byteorder::{BigEndian, ReadBytesExt};
-use ferrumc_net;
 use log::{debug, info, trace};
 use tokio::net::TcpListener;
 use tokio::sync::RwLock;
 
-use ferrumc_utils::error;
 use ferrumc_utils::prelude::*;
 
-use crate::prelude::*;
 
 mod constants;
 mod prelude;
@@ -65,7 +60,7 @@ async fn start_server(config: SafeConfig) -> Result<()> {
     }
 }
 
-async fn handle_handshake(mut cursor: Cursor<Vec<u8>>) -> Result<()> {
+/*async fn handle_handshake(mut cursor: Cursor<Vec<u8>>) -> Result<()> {
     trace!("Handling handshake packet");
 
     let protocol_version = ferrumc_utils::encoding::varint::read_varint(&mut cursor).await?;
@@ -80,3 +75,4 @@ async fn handle_handshake(mut cursor: Cursor<Vec<u8>>) -> Result<()> {
 
     Ok(())
 }
+*/

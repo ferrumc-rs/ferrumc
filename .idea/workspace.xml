@@ -7,20 +7,11 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e0f3e79a-8e00-4bb3-91ee-3063e890ae27" name="Changes" comment="Fixed tests and added more">
-      <change afterPath="$PROJECT_DIR$/src/crates/ferrumc_utils/src/prelude.rs" afterDir="false" />
+    <list default="true" id="e0f3e79a-8e00-4bb3-91ee-3063e890ae27" name="Changes" comment="Adding simple send / recv. Updated some data types. lazy_static -&gt; OnceLock">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/constants.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/constants.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/crates/ferrumc_macros/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/crates/ferrumc_macros/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/crates/ferrumc_net/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/src/crates/ferrumc_net/Cargo.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/crates/ferrumc_net/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/crates/ferrumc_net/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/crates/ferrumc_utils/src/encoding/varint.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/crates/ferrumc_utils/src/encoding/varint.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/crates/ferrumc_utils/src/error.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/crates/ferrumc_utils/src/error.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/crates/ferrumc_utils/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/crates/ferrumc_utils/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/crates/ferrumc_utils/src/type_impls.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/crates/ferrumc_utils/src/type_impls.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/prelude.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/prelude.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/tests.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/tests.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/utils/config.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils/config.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -132,7 +123,7 @@
       <workItem from="1718548691789" duration="1188000" />
       <workItem from="1718809668864" duration="3890000" />
       <workItem from="1719035826153" duration="320000" />
-      <workItem from="1719114809997" duration="6906000" />
+      <workItem from="1719114809997" duration="8239000" />
     </task>
     <task id="LOCAL-00001" summary="Start basic TCP server">
       <option name="closed" value="true" />
@@ -150,7 +141,15 @@
       <option name="project" value="LOCAL" />
       <updated>1718811418011</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Adding simple send / recv. Updated some data types. lazy_static -&gt; OnceLock">
+      <option name="closed" value="true" />
+      <created>1719125318673</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1719125318673</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -182,6 +181,7 @@
     <MESSAGE value="Project Init + Basic Config system" />
     <MESSAGE value="Start basic TCP server" />
     <MESSAGE value="Added basic config" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added basic config" />
+    <MESSAGE value="Adding simple send / recv. Updated some data types. lazy_static -&gt; OnceLock" />
+    <option name="LAST_COMMIT_MESSAGE" value="Adding simple send / recv. Updated some data types. lazy_static -&gt; OnceLock" />
   </component>
 </project>

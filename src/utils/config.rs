@@ -6,7 +6,6 @@ use log::{error, info};
 use serde::{Deserialize, Serialize};
 
 use crate::constants::{DEFAULT_CONFIG_FILE, DEFAULT_MAX_PLAYERS, DEFAULT_MOTD, DEFAULT_SERVER_HOST, DEFAULT_SERVER_PORT};
-use crate::error::Error;
 use ferrumc_utils::prelude::*;
 
 #[derive(Debug, Serialize, Deserialize)]

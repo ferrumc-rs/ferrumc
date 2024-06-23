@@ -1,4 +1,3 @@
-use ferrumc_utils::encoding::varint::VarInt;
 
 #[cfg(test)]
 mod tests {
@@ -10,7 +9,7 @@ mod tests {
     use ferrumc_utils::encoding::varint::VarInt;
     use ferrumc_utils::type_impls::Decode;
 
-    use crate::error::Error;
+    use crate::Error;
 
     #[tokio::test]
     async fn test_macro_decode() {
@@ -32,11 +31,11 @@ mod tests {
         assert_eq!(handshake.next_state, VarInt::new(1));
     }
 }
-
+/*
 struct Handshake {
     protocol_version: VarInt,
     server_address: String,
     server_port: u16,
     next_state: VarInt,
-}
+}*/
 
