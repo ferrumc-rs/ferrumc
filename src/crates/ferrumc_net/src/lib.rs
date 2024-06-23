@@ -2,7 +2,7 @@
 
 use std::cmp::PartialEq;
 use std::io::Cursor;
-use std::sync::{Arc, atomic, OnceLock};
+use std::sync::{atomic, OnceLock};
 use std::sync::atomic::AtomicU32;
 
 use dashmap::DashMap;
@@ -13,7 +13,6 @@ use log::{debug, error, trace};
 use rand::random;
 use tokio::io::{AsyncWriteExt};
 use tokio::io::AsyncReadExt;
-use tokio::sync::{RwLock};
 use crate::packets::incoming::handshake;
 use crate::packets::IncomingPacket;
 

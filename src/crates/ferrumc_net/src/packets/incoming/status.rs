@@ -1,4 +1,3 @@
-use std::io::Cursor;
 use log::info;
 use serde::Serialize;
 use ferrumc_macros::Decode;
@@ -6,10 +5,9 @@ use ferrumc_utils::encoding::varint::VarInt;
 use crate::Connection;
 use crate::packets::IncomingPacket;
 use crate::packets::outgoing::status::OutgoingStatusResponse;
-use serde_json;
 use tokio::io::AsyncReadExt;
 use ferrumc_utils::config;
-use base64::{encode, Engine};
+use base64::{Engine};
 
 #[derive(Decode)]
 pub struct IncomingStatusRequest;
@@ -49,7 +47,7 @@ struct Description {
 impl IncomingPacket for IncomingStatusRequest {
     async fn handle(&self, _: &mut Connection) -> Result<Option<Vec<u8>>, ferrumc_utils::error::Error> {
         info!("Handling status request packet");
-        let config = config::ServerConfig::new()?;
+        let config = config::get_global_config();
 
         let mut data = Vec::new();
         if let Ok(mut image) = tokio::fs::File::open("icon-64.png").await {
@@ -72,13 +70,13 @@ impl IncomingPacket for IncomingStatusRequest {
                             id: "2b3414ed-468a-45c2-b113-6c5f47430edc".to_string(),
                         },
                         Sample {
-                            name: "sweatypalms".to_string(),
+                            name: "sweattypalms".to_string(),
                             id: "26d88d10-f052-430f-9406-e6c3089792c4".to_string(),
                         },
                     ],
                 },
                 description: Description {
-                    text: config.motd,
+                    text: config.motd.clone(),
                 },
                 favicon: if !data.is_empty() { Some(format!("data:image/png;base64,{}", image_base64)) } else { None },
             }).unwrap(),
@@ -87,3 +85,4 @@ impl IncomingPacket for IncomingStatusRequest {
         Ok(Some(response.encode().await?))
     }
 }
+

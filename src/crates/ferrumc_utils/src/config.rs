@@ -1,5 +1,6 @@
 use std::io::ErrorKind::NotFound;
 use std::io::Write;
+use std::sync::OnceLock;
 
 use config::{Config, ConfigError};
 use log::{error, info};
@@ -111,4 +112,10 @@ impl Default for ServerConfig {
             max_players: DEFAULT_MAX_PLAYERS,
         }
     }
+}
+
+
+pub fn get_global_config() -> &'static ServerConfig {
+    static CONFIG: OnceLock<ServerConfig> = OnceLock::new();
+    CONFIG.get_or_init(|| ServerConfig::new().expect("Failed to load config"))
 }

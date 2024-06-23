@@ -1,9 +1,12 @@
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
+use std::env;
+use std::ops::Add;
+use std::path::Path;
 
 use quote::quote;
-use syn::{DeriveInput, parse_macro_input};
+use syn::{DeriveInput, LitInt, LitStr, parse_macro_input};
 
 #[proc_macro_derive(Decode)]
 pub fn decode_derive(input: TokenStream) -> TokenStream {
@@ -130,4 +133,154 @@ pub fn encode_derive(input: TokenStream) -> TokenStream {
 
     // Hand the output tokens back to the compiler
     TokenStream::from(expanded)
+}
+
+/// Just exists, so we can use it in the packet attribute
+#[proc_macro_attribute]
+pub fn packet(args: TokenStream, input: TokenStream) -> TokenStream {
+
+    // check if the packet attribute has the packet_id and state fields
+    // if not, compile_error
+
+    if args.is_empty() {
+        return TokenStream::from(quote! {
+            compile_error!("packet attribute must have the packet_id and state fields");
+        });
+    }
+
+    if !vec!["packet_id", "state"].iter().all(|x| args.to_string().contains(x)) {
+        return TokenStream::from(quote! {
+            compile_error!("packet attribute must have the packet_id and state fields");
+        });
+    }
+
+    TokenStream::from(input)
+}
+
+/// This macro generates a packet registry for the server.
+#[proc_macro]
+pub fn bake_packet_registry(input: TokenStream) -> TokenStream {
+    // read all the files in /src/packets/incoming
+    // for each file, read the packet_id attribute
+
+    let manifest_dir = env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set");
+    let module_path = parse_macro_input!(input as syn::LitStr).value();
+
+    let path = manifest_dir.add(module_path.as_str());
+    let dir_path = Path::new(&path);
+
+    // println!("dir path: {:?}", &dir_path);
+
+    if !std::fs::metadata(&dir_path).unwrap().is_dir() {
+        return TokenStream::from(quote! {
+            compile_error!("Provided path is not a directory");
+        });
+    }
+
+    let mut match_arms = Vec::new();
+
+    let start = std::time::Instant::now();
+
+    for entry in std::fs::read_dir(dir_path).expect("read_dir call failed") {
+        let entry = entry.expect("entry failed");
+        let path = entry.path();
+
+        if !path.is_file() {
+            continue;
+        }
+
+        let content = std::fs::read_to_string(path).expect("read_to_string call failed");
+        let syntax = syn::parse_file(&content).expect("parse_file call failed");
+
+        for item in syntax.items {
+            let syn::Item::Struct(item_struct) = item else {
+                continue;
+            };
+
+            // format: #[packet(packet_id = 0x00, state = "handshake")]
+
+            let mut packet_id = None;
+            let mut state = None;
+
+            for attr in item_struct.attrs {
+                if !(attr.path().is_ident("packet")) {
+                    continue;
+                }
+
+                attr.parse_nested_meta(|meta| {
+                    let Some(ident) = meta.path.get_ident() else {
+                        return Ok(());
+                    };
+
+                    match ident.to_string().as_str() {
+                        "packet_id" => {
+                            let value = meta.value().expect("value failed");
+                            let value = value.parse::<LitInt>().expect("parse failed");
+                            let n: usize = value.base10_parse().expect("base10_parse failed");
+                            packet_id = Some(n);
+
+                        },
+                        "state" => {
+                            let value = meta.value().expect("value failed");
+                            let value = value.parse::<LitStr>().expect("parse failed");
+                            let n = value.value();
+                            state = Some(n);
+
+                        },
+                        &_ => {
+                            return Ok(());
+                        }
+                    }
+
+                    Ok(())
+                }).unwrap();
+            }
+
+
+            let packet_id = match packet_id {
+                Some(id) => id,
+                None => continue,
+            };
+            let packet_id = packet_id as u8;
+
+            let state = match state {
+                Some(state) => state,
+                None => continue,
+            };
+
+            let struct_name = &item_struct.ident;
+
+            println!("Found Packet ID: 0x{:02X}, State: {}, Struct Name: {}", packet_id, state, struct_name);
+
+            let struct_name_lowercase = struct_name.clone().to_string().to_lowercase();
+            let struct_name_lowercase = syn::Ident::new(&struct_name_lowercase, struct_name.span());
+
+            match_arms.push(quote! {
+                (#packet_id, #state) => {
+                    let packet = crate::packets::incoming::#struct_name_lowercase::#struct_name::decode(cursor).await?;
+                    packet.handle(conn_owned).await?;
+                },
+            });
+        }
+    }
+
+    let elapsed = start.elapsed();
+    println!("Found {} packets", match_arms.len());
+    println!("It took: {:?} to parse all the files and generate the packet registry", elapsed);
+
+    let match_arms = match_arms.into_iter();
+
+    let output = quote! {
+        pub async fn handle_packet(packet_id: u8, state: String, conn_owned: &mut crate::Connection, cursor: &mut std::io::Cursor<Vec<u8>>) -> ferrumc_utils::prelude::Result<()> {
+            let state = state.as_str();
+            match (packet_id, state) {
+                #(#match_arms)*
+                _ => println!("No packet found for ID: 0x{:02X}", packet_id),
+            }
+
+            Ok(())
+        }
+    };
+
+    TokenStream::from(output)
 }

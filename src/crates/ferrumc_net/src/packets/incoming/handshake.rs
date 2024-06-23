@@ -1,10 +1,11 @@
 use log::info;
-use ferrumc_macros::Decode;
+use ferrumc_macros::{Decode, packet};
 use ferrumc_utils::encoding::varint::VarInt;
 use crate::{Connection, State};
 use crate::packets::IncomingPacket;
 
 #[derive(Decode)]
+#[packet(packet_id = 0x00, state = "handshake")]
 pub struct Handshake {
     pub protocol_version: VarInt,
     pub server_address: String,
