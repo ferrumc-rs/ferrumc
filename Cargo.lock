@@ -368,6 +368,8 @@ dependencies = [
  "lazy_static",
  "log",
  "rand",
+ "serde",
+ "serde_json",
  "tokio",
  "uuid",
 ]
@@ -820,9 +822,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.110"
+version = "1.0.117"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6fbd975230bada99c8bb618e0c365c2eefa219158d5c6c29610fd09ff1833257"
+checksum = "455182ea6142b14f93f4bc5320a2b31c1f266b66a4a5c858b013302a5d8cbfc3"
 dependencies = [
  "itoa",
  "ryu",

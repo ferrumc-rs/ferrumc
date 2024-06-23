@@ -1,23 +1,22 @@
 #![feature(box_into_inner)]
 
 use std::cmp::PartialEq;
-use std::fmt::Display;
 use std::io::Cursor;
 use std::sync::{Arc, atomic, OnceLock};
 use std::sync::atomic::AtomicU32;
 
 use dashmap::DashMap;
-use ferrumc_macros::Decode;
-use ferrumc_utils::encoding::varint::{read_varint, VarInt};
+use ferrumc_utils::encoding::varint::{read_varint};
 use ferrumc_utils::prelude::*;
-use ferrumc_utils::type_impls::Decode;
 use lariv::Lariv;
 use log::{debug, error, trace};
 use rand::random;
-use tokio::io::{AsyncRead, AsyncWriteExt};
+use tokio::io::{AsyncWriteExt};
 use tokio::io::AsyncReadExt;
-use tokio::io::AsyncSeek;
 use tokio::sync::{RwLock};
+use crate::packets::handshake::HandshakePacket;
+
+mod packets;
 
 #[allow(non_snake_case)]
 pub fn CONNECTIONS() -> &'static ConnectionList {
@@ -97,8 +96,6 @@ pub async fn handle_connection(socket: tokio::net::TcpStream) -> Result<()> {
 
 impl Connection {
     pub async fn start_connection(&mut self) -> Result<()> {
-        // let conn = conn_arc.clone();
-        // let mut conn = conn.write().await;
         self.state = State::Handshake;
         debug!("Starting connection with id: {}", self.id);
 
@@ -129,7 +126,7 @@ impl Connection {
         debug!("Starting sender for connection with addy: {:?}", self.socket.peer_addr()?);
 
         loop {
-            for packet in self.send_queue.iter() {
+            while let Some(packet) = self.send_queue.pop() {
                 self.socket.write_all(&packet).await?;
             }
 
@@ -140,7 +137,7 @@ impl Connection {
             }
 */
             // TODO: Implement a proper tick system
-            tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+            // tokio::time::sleep(std::time::Duration::from_millis(50)).await;
         }
     }
 
@@ -173,22 +170,13 @@ impl Connection {
 
             let handshake_packet = HandshakePacket::decode(&mut cursor).await?;
 
-            trace!("{}", handshake_packet);
+            handshake_packet.test_method_to_handle_handshake_packet(self).await?;
         }
 
     }
-}
 
-#[derive(Decode, Debug)]
-struct HandshakePacket {
-    protocol_version: VarInt,
-    server_address: String,
-    server_port: u16,
-    next_state: VarInt,
-}
-
-impl Display for HandshakePacket {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Handshake Packet: Protocol Version: {}, Server Address: {}, Server Port: {}, Next State: {}", self.protocol_version, self.server_address, self.server_port, self.next_state)
+    pub fn add_to_send_queue(&mut self, packet: Vec<u8>) {
+        self.send_queue.push(packet);
     }
 }
+

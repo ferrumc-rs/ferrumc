@@ -15,3 +15,5 @@ byteorder = "1.5.0"
 log = "0.4.21"
 ferrumc_utils = { path = "../ferrumc_utils" }
 ferrumc_macros = { path = "../ferrumc_macros" }
+serde = { version = "1.0.117", features = ["derive"] }
+serde_json = "1.0.117"

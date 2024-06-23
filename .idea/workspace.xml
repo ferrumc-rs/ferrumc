@@ -7,9 +7,15 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e0f3e79a-8e00-4bb3-91ee-3063e890ae27" name="Changes" comment="Sender and writer both fixed. Handshake works now with new logic!">
+    <list default="true" id="e0f3e79a-8e00-4bb3-91ee-3063e890ae27" name="Changes" comment="Encode partial">
+      <change afterPath="$PROJECT_DIR$/src/crates/ferrumc_net/src/packets/handshake.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/crates/ferrumc_net/src/packets/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/crates/ferrumc_utils/src/encoding/varlong.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/crates/ferrumc_utils/src/encoding/varlong.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/crates/ferrumc_macros/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/crates/ferrumc_macros/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/crates/ferrumc_net/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/src/crates/ferrumc_net/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/crates/ferrumc_net/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/crates/ferrumc_net/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/crates/ferrumc_utils/src/encoding/varint.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/crates/ferrumc_utils/src/encoding/varint.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/crates/ferrumc_utils/src/type_impls.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/crates/ferrumc_utils/src/type_impls.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -61,25 +67,25 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Cargo.Run ferrumc2_0.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.rust.reset.selective.auto.import&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;2.0&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;org.rust.cargo.project.model.PROJECT_DISCOVERY&quot;: &quot;true&quot;,
-    &quot;org.rust.cargo.project.model.impl.CargoExternalSystemProjectAware.subscribe.first.balloon&quot;: &quot;&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.lookFeel&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Cargo.Run ferrumc2_0.executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.rust.reset.selective.auto.import": "true",
+    "git-widget-placeholder": "2.0",
+    "ignore.virus.scanning.warn.message": "true",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "org.rust.cargo.project.model.PROJECT_DISCOVERY": "true",
+    "org.rust.cargo.project.model.impl.CargoExternalSystemProjectAware.subscribe.first.balloon": "",
+    "settings.editor.selected.configurable": "preferences.lookFeel",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RunManager">
     <configuration name="Run ferrumc2_0" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="command" value="run --package ferrumc2_0 --bin ferrumc2_0" />
@@ -121,7 +127,7 @@
       <workItem from="1718548691789" duration="1188000" />
       <workItem from="1718809668864" duration="3890000" />
       <workItem from="1719035826153" duration="320000" />
-      <workItem from="1719114809997" duration="8906000" />
+      <workItem from="1719114809997" duration="12085000" />
     </task>
     <task id="LOCAL-00001" summary="Start basic TCP server">
       <option name="closed" value="true" />
@@ -155,7 +161,15 @@
       <option name="project" value="LOCAL" />
       <updated>1719126635016</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Encode partial">
+      <option name="closed" value="true" />
+      <created>1719127343083</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1719127343083</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -189,6 +203,7 @@
     <MESSAGE value="Added basic config" />
     <MESSAGE value="Adding simple send / recv. Updated some data types. lazy_static -&gt; OnceLock" />
     <MESSAGE value="Sender and writer both fixed. Handshake works now with new logic!" />
-    <option name="LAST_COMMIT_MESSAGE" value="Sender and writer both fixed. Handshake works now with new logic!" />
+    <MESSAGE value="Encode partial" />
+    <option name="LAST_COMMIT_MESSAGE" value="Encode partial" />
   </component>
 </project>

@@ -33,6 +33,9 @@ impl VarInt {
     pub fn get_val(&self) -> i32 {
         self.val
     }
+    pub fn get_len(&self) -> usize {
+        self.len
+    }
 }
 
 impl Display for VarInt {

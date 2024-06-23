@@ -191,7 +191,7 @@ pub trait Encode {
     #[allow(async_fn_in_trait)]
     async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
     where
-        T: AsyncRead + AsyncSeek + Unpin;
+        T: AsyncWrite + AsyncSeek + Unpin;
 }
 
 
