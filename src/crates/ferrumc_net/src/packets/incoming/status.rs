@@ -1,3 +1,4 @@
+use std::io::Cursor;
 use log::info;
 use serde::Serialize;
 use ferrumc_macros::Decode;
@@ -6,7 +7,9 @@ use crate::Connection;
 use crate::packets::IncomingPacket;
 use crate::packets::outgoing::status::OutgoingStatusResponse;
 use serde_json;
+use tokio::io::AsyncReadExt;
 use ferrumc_utils::config;
+use base64::{encode, Engine};
 
 #[derive(Decode)]
 pub struct IncomingStatusRequest;
@@ -16,12 +19,15 @@ struct JsonResponse {
     version: Version,
     players: Players,
     description: Description,
+    favicon: Option<String>,
 }
+
 #[derive(Serialize)]
 struct Version {
     name: String,
     protocol: u32,
 }
+
 #[derive(Serialize)]
 struct Players {
     max: u32,
@@ -45,6 +51,11 @@ impl IncomingPacket for IncomingStatusRequest {
         info!("Handling status request packet");
         let config = config::ServerConfig::new()?;
 
+        let mut data = Vec::new();
+        if let Ok(mut image) = tokio::fs::File::open("icon-64.png").await {
+            image.read_to_end(&mut data).await?;
+        }
+        let image_base64 = base64::engine::general_purpose::STANDARD.encode(&data);
         let response = OutgoingStatusResponse {
             packet_id: VarInt::new(0x00),
             json_response: serde_json::ser::to_string(&JsonResponse {
@@ -63,12 +74,13 @@ impl IncomingPacket for IncomingStatusRequest {
                         Sample {
                             name: "sweatypalms".to_string(),
                             id: "26d88d10-f052-430f-9406-e6c3089792c4".to_string(),
-                        }
+                        },
                     ],
                 },
                 description: Description {
                     text: config.motd,
                 },
+                favicon: if !data.is_empty() { Some(format!("data:image/png;base64,{}", image_base64)) } else { None },
             }).unwrap(),
         };
 
