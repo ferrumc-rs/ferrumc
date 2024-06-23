@@ -32,8 +32,8 @@ impl HandshakePacket {
                 "protocol": 762
             },
             "players": {
-                "max": 100,
-                "online": 5,
+                "max": 200000,
+                "online": -98,
                 "sample": [
                     {
                         "name": "thinkofdeath",
