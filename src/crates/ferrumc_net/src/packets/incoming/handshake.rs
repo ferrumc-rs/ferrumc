@@ -14,14 +14,16 @@ pub struct Handshake {
 }
 
 impl IncomingPacket for Handshake {
-    async fn handle(&self, conn: &mut Connection) -> Result<Option<Vec<u8>>, Error> {
+    async fn handle(&self, conn: &mut Connection) -> Result<(), Error> {
         info!("Handling handshake packet");
 
+        conn.metadata.protocol_version = self.protocol_version.get_val();
         conn.state = match self.next_state.get_val() {
             1 => State::Status,
             2 => State::Login,
             s => {return Err(Error::InvalidState(s as u32))}
         };
-        Ok(None)
+
+        Ok(())
     }
 }

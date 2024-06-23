@@ -1,20 +1,21 @@
 #![feature(box_into_inner)]
 
 use std::cmp::PartialEq;
+use std::fmt::Display;
 use std::io::Cursor;
 use std::sync::{atomic, OnceLock};
 use std::sync::atomic::AtomicU32;
 
 use dashmap::DashMap;
-use ferrumc_utils::encoding::varint::{read_varint};
+use ferrumc_utils::encoding::varint::read_varint;
 use ferrumc_utils::prelude::*;
 use lariv::Lariv;
-use log::{debug, error, trace};
+use log::{debug, trace};
 use rand::random;
-use tokio::io::{AsyncWriteExt};
 use tokio::io::AsyncReadExt;
-use crate::packets::incoming::handshake;
-use crate::packets::IncomingPacket;
+use tokio::io::AsyncWriteExt;
+
+use crate::packets::{handle_packet};
 
 mod packets;
 
@@ -38,6 +39,18 @@ pub enum State {
     Play,
 }
 
+impl Display for State {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            State::Unknown => write!(f, "unknown"),
+            State::Handshake => write!(f, "handshake"),
+            State::Status => write!(f, "status"),
+            State::Login => write!(f, "login"),
+            State::Play => write!(f, "play"),
+        }
+    }
+}
+
 pub struct ConnectionList {
     // The connections, keyed with random values. The value also contains the connection id for ease of access.
     // pub connections: DashMap<u32, Connection>,
@@ -58,6 +71,13 @@ pub struct Connection {
     pub player_uuid: Option<uuid::Uuid>,
     // State
     pub state: State,
+    // Metadata
+    pub metadata: ConnectionMetadata,
+}
+
+#[derive(Debug, Default)]
+pub struct ConnectionMetadata {
+    pub protocol_version: i32,
 }
 
 pub async fn handle_connection(socket: tokio::net::TcpStream) -> Result<()> {
@@ -71,6 +91,7 @@ pub async fn handle_connection(socket: tokio::net::TcpStream) -> Result<()> {
         socket,
         player_uuid: None,
         state: State::Unknown,
+        metadata: ConnectionMetadata::default(),
     };
 
     CONNECTIONS().connections.insert(id, conn);
@@ -83,11 +104,6 @@ pub async fn handle_connection(socket: tokio::net::TcpStream) -> Result<()> {
     let mut conn_ref = CONNECTIONS().connections.get_mut(&id).ok_or(Error::ConnectionNotFound(id))?;
     conn_ref.start_connection().await?;
 
-    /*    let conn_ref = CONNECTIONS().connections.get(&id).ok_or(Error::ConnectionNotFound(id))?;
-        let mut conn_write = conn_ref.write_owned().await;
-
-        conn_write.start_connection().await?;*/
-
     Ok(())
 }
 
@@ -98,7 +114,6 @@ impl Connection {
 
         self.manage_conn().await?;
 
-
         Ok(())
     }
 
@@ -106,7 +121,6 @@ impl Connection {
         debug!("Starting receiver for the same addy: {:?}", self.socket.peer_addr()?);
 
         loop {
-            let mut drop_connection: bool = false;
             let mut length_buffer = vec![0u8; 1];
             self.socket.read_exact(&mut length_buffer).await?;
 
@@ -126,61 +140,15 @@ impl Connection {
             trace!("Packet Length: {}", packet_length);
             trace!("Packet ID: {}", packet_id);
 
-            let response = match self.state {
-                State::Handshake => {
-                    match packet_id.get_val() {
-                        0x00 => {
-                            let handshake_packet = handshake::Handshake::decode(&mut cursor).await?;
-                            handshake_packet.handle(self).await
-                        }
-                        _ => {
-                            error!("Invalid packet id: {}", packet_id);
-                            Ok(None)
-                        }
-                    }
-                }
-                State::Status => {
-                    match packet_id.get_val() {
-                        0x00 => {
-                            let request_packet = packets::incoming::status::IncomingStatusRequest::decode(&mut cursor).await?;
-                            request_packet.handle(self).await
-                        }
-                        0x01 => {
-                            let ping_packet = packets::incoming::ping::IncomingPing::decode(&mut cursor).await?;
-                            drop_connection = true;
-                            ping_packet.handle(self).await
-                        }
-                        _ => {
-                            error!("Invalid packet id: {}", packet_id);
-                            drop_connection = true;
-                            Ok(None)
-                        }
-                    }
-                }
-                
-                _ => {
-                    error!("Invalid state: {:?}", self.state);
-                    drop_connection = true;
-                    Ok(None)
-                }
-            };
+            handle_packet(packet_id.get_val() as u8, self.state.to_string(), self, &mut cursor).await?;
 
-            match response {
-                Ok(response) => {
-                    if let Some(response) = response {
-                        self.socket.write_all(&response).await?;
-                    }
-                }
-                Err(e) => {
-                    error!("Error handling packet: {:?}", e);
-                }
-            }
-            if drop_connection {
-                Self::drop_conn(self).await?;
-                break;
-            }
-
+            // TODO: Check if we need to drop the connection
         }
+        Ok(())
+    }
+
+    pub async fn send_packet(&mut self, bytes: Vec<u8>) -> Result<()> {
+        self.socket.write_all(&bytes).await?;
         Ok(())
     }
 

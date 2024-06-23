@@ -1,7 +1,7 @@
 use tokio::sync::OnceCell;
 use log::info;
 use serde::Serialize;
-use ferrumc_macros::Decode;
+use ferrumc_macros::{Decode, packet};
 use ferrumc_utils::encoding::varint::VarInt;
 use crate::Connection;
 use crate::packets::IncomingPacket;
@@ -11,7 +11,8 @@ use ferrumc_utils::config;
 use base64::{Engine};
 
 #[derive(Decode)]
-pub struct IncomingStatusRequest;
+#[packet(packet_id = 0x00, state = "status")]
+pub struct Status;
 
 #[derive(Serialize)]
 struct JsonResponse {
@@ -45,22 +46,18 @@ struct Description {
     text: String,
 }
 
-impl IncomingPacket for IncomingStatusRequest {
-    async fn handle(&self, _: &mut Connection) -> Result<Option<Vec<u8>>, ferrumc_utils::error::Error> {
+impl IncomingPacket for Status {
+    async fn handle(&self, conn: &mut Connection) -> Result<(), ferrumc_utils::error::Error> {
         info!("Handling status request packet");
         let config = config::get_global_config();
 
-        /*let mut data = Vec::new();
-        if let Ok(mut image) = tokio::fs::File::open("icon-64.png").await {
-            image.read_to_end(&mut data).await?;
-        }
-        let image_base64 = base64::engine::general_purpose::STANDARD.encode(&data);*/
         let response = OutgoingStatusResponse {
             packet_id: VarInt::new(0x00),
             json_response: serde_json::ser::to_string(&JsonResponse {
                 version: Version {
-                    name: "1.20.1".to_string(),
-                    protocol: 763,
+                    name: "1.20.6".to_string(),
+                    // Allow any protocol version for now. To check the ping and stuff
+                    protocol: conn.metadata.protocol_version.clone() as u32,
                 },
                 players: Players {
                     max: config.max_players,
@@ -79,16 +76,18 @@ impl IncomingPacket for IncomingStatusRequest {
                 description: Description {
                     text: config.motd.clone(),
                 },
-                favicon: get_encoded_favicon(),
+                favicon: get_encoded_favicon().await,
             }).unwrap(),
         };
 
-        Ok(Some(response.encode().await?))
+        let response = response.encode().await?;
+
+        conn.send_packet(response).await
     }
 }
-fn get_encoded_favicon() -> &'static String {
-    static FAVICON: OnceCell<String> = OnceCell::new();
-    FAVICON.get_or_init(async {
+async fn get_encoded_favicon() -> &'static String {
+    static FAVICON: OnceCell<String> = OnceCell:: const_new();
+    FAVICON.get_or_init(|| async {
         let mut data = Vec::new();
         let Ok(mut image) = tokio::fs::File::open("icon-64.png").await else {
             return String::new();
@@ -96,5 +95,5 @@ fn get_encoded_favicon() -> &'static String {
         image.read_to_end(&mut data).await.unwrap_or_default();
         let data = base64::engine::general_purpose::STANDARD.encode(&data);
         format!("data:image/png;base64,{}", data)
-    })
+    }).await
 }
