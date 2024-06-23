@@ -6,6 +6,7 @@ use crate::Connection;
 use crate::packets::IncomingPacket;
 use crate::packets::outgoing::status::OutgoingStatusResponse;
 use serde_json;
+use ferrumc_utils::config;
 
 #[derive(Decode)]
 pub struct IncomingStatusRequest;
@@ -25,15 +26,24 @@ struct Version {
 struct Players {
     max: u32,
     online: u32,
+    sample: Vec<Sample>,
 }
+
+#[derive(Serialize)]
+struct Sample {
+    name: String,
+    id: String,
+}
+
 #[derive(Serialize)]
 struct Description {
     text: String,
 }
 
 impl IncomingPacket for IncomingStatusRequest {
-    async fn handle(&self, conn: &mut Connection) -> Result<Option<Vec<u8>>, Error> {
+    async fn handle(&self, _: &mut Connection) -> Result<Option<Vec<u8>>, ferrumc_utils::error::Error> {
         info!("Handling status request packet");
+        let config = config::ServerConfig::new()?;
 
         let response = OutgoingStatusResponse {
             packet_id: VarInt::new(0x00),
@@ -43,11 +53,21 @@ impl IncomingPacket for IncomingStatusRequest {
                     protocol: 763,
                 },
                 players: Players {
-                    max: 20,
-                    online: 0,
+                    max: config.max_players,
+                    online: 2,
+                    sample: vec![
+                        Sample {
+                            name: "Recore_".to_string(),
+                            id: "2b3414ed-468a-45c2-b113-6c5f47430edc".to_string(),
+                        },
+                        Sample {
+                            name: "sweatypalms".to_string(),
+                            id: "26d88d10-f052-430f-9406-e6c3089792c4".to_string(),
+                        }
+                    ],
                 },
                 description: Description {
-                    text: "Hello, world!".to_string(),
+                    text: config.motd,
                 },
             }).unwrap(),
         };

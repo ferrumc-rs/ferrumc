@@ -8,13 +8,11 @@ use tokio::sync::RwLock;
 
 use ferrumc_utils::prelude::*;
 
-
-mod constants;
 mod prelude;
 mod tests;
 mod utils;
 
-type SafeConfig = Arc<RwLock<utils::config::ServerConfig>>;
+type SafeConfig = Arc<RwLock<ferrumc_utils::config::ServerConfig>>;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -22,7 +20,7 @@ async fn main() -> Result<()> {
     info!("Initializing server...");
 
     let start = std::time::Instant::now();
-    let config = utils::config::ServerConfig::new()?;
+    let config = ferrumc_utils::config::ServerConfig::new()?;
     let elapsed = start.elapsed();
 
     debug!("Found Config: {:?} in {:?}", config, elapsed);

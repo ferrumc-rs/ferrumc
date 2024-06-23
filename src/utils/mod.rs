@@ -1,6 +1,4 @@
-use crate::constants::DEFAULT_LOG_LEVEL;
-
-pub mod config;
+use ferrumc_utils::constants::DEFAULT_LOG_LEVEL;
 
 pub fn setup_logger() {
     let trace_level = std::env::args()

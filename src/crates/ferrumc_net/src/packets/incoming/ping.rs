@@ -11,7 +11,7 @@ pub struct IncomingPing {
 }
 
 impl IncomingPacket for IncomingPing {
-    async fn handle(&self, conn: &mut Connection) -> Result<Option<Vec<u8>>, Error> {
+    async fn handle(&self, _: &mut Connection) -> Result<Option<Vec<u8>>, ferrumc_utils::error::Error> {
         info!("Handling ping packet");
 
         let response = OutgoingPing {

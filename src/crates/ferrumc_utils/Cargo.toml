@@ -11,3 +11,6 @@ toml = "0.8.14"
 tokio = { version = "1.38.0", features = ["full"] }
 lazy_static = "1.4.0"
 anyhow = "1.0.86"
+log = "0.4.21"
+serde = { version = "1.0.203", features = ["derive"] }
+

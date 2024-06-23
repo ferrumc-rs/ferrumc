@@ -382,6 +382,8 @@ dependencies = [
  "byteorder",
  "config",
  "lazy_static",
+ "log",
+ "serde",
  "thiserror",
  "tokio",
  "toml",

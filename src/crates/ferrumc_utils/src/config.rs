@@ -6,7 +6,7 @@ use log::{error, info};
 use serde::{Deserialize, Serialize};
 
 use crate::constants::{DEFAULT_CONFIG_FILE, DEFAULT_MAX_PLAYERS, DEFAULT_MOTD, DEFAULT_SERVER_HOST, DEFAULT_SERVER_PORT};
-use ferrumc_utils::prelude::*;
+use crate::error::Error;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ServerConfig {
@@ -22,7 +22,7 @@ pub struct Server {
 }
 
 impl ServerConfig {
-    pub fn new() -> Result<Self> {
+    pub fn new() -> Result<Self, Error> {
         let settings = Config::builder()
             .add_source(config::File::with_name("config"))
             .build()
@@ -88,7 +88,7 @@ fn missing_field(err: &ConfigError) -> Option<String> {
     None
 }
 
-fn create_config_file() -> Result<()> {
+fn create_config_file() -> Result<(), Error> {
     let path = std::path::Path::new(DEFAULT_CONFIG_FILE);
     if path.exists() {
         std::fs::remove_file(path)?;
