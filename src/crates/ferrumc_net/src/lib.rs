@@ -127,6 +127,7 @@ impl Connection {
 
         loop {
             while let Some(packet) = self.send_queue.pop() {
+                trace!("Sent packet with len: {:?}", packet.len());
                 self.socket.write_all(&packet).await?;
             }
 
