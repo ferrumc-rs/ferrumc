@@ -1,4 +1,4 @@
-pub const DEFAULT_LOG_LEVEL: &str = "trace";
+pub const DEFAULT_LOG_LEVEL: &str = "debug";
 pub const DEFAULT_CONFIG_FILE: &str = "config.toml";
 pub const DEFAULT_SERVER_HOST: &str = "localhost";
 // Default port for a Minecraft server
