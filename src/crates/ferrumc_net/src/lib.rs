@@ -144,8 +144,12 @@ impl Connection {
                     match packet_id.get_val() {
                         0x00 => {
                             let request_packet = packets::incoming::status::IncomingStatusRequest::decode(&mut cursor).await?;
-                            drop_connection = true;
                             request_packet.handle(self).await
+                        }
+                        0x01 => {
+                            let ping_packet = packets::incoming::ping::IncomingPing::decode(&mut cursor).await?;
+                            drop_connection = true;
+                            ping_packet.handle(self).await
                         }
                         _ => {
                             error!("Invalid packet id: {}", packet_id);
