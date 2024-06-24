@@ -16,7 +16,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
+    # To allow unstable features
+    - name: Install Rust nightly
+      run: rustup override set nightly
+      
     - name: Build
       run: cargo build --verbose
+
     - name: Run tests
       run: cargo test --verbose
