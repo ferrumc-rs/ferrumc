@@ -16,9 +16,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Install Rust nightly
       run: rustup override set nightly
+
+    - name: Install required components
+      run: rustup component add rustfmt clippy
 
     - name: Cache cargo registry
       uses: actions/cache@v2
@@ -35,6 +38,15 @@ jobs:
         key: ${{ runner.os }}-cargo-build-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: |
           ${{ runner.os }}-cargo-build-
+
+    - name: Print environment variables
+      run: printenv
+
+    - name: Print current directory
+      run: pwd
+
+    - name: List current directory contents
+      run: ls -la
 
     - name: Build
       env:
