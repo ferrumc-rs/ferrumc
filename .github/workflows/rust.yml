@@ -16,13 +16,32 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-
-    # To allow unstable features
+    
     - name: Install Rust nightly
       run: rustup override set nightly
-      
+
+    - name: Cache cargo registry
+      uses: actions/cache@v2
+      with:
+        path: ~/.cargo/registry
+        key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-registry-
+
+    - name: Cache cargo build
+      uses: actions/cache@v2
+      with:
+        path: target
+        key: ${{ runner.os }}-cargo-build-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-build-
+
     - name: Build
+      env:
+        CARGO_MANIFEST_DIR: ${{ github.workspace }}
       run: cargo build --verbose
 
     - name: Run tests
+      env:
+        CARGO_MANIFEST_DIR: ${{ github.workspace }}
       run: cargo test --verbose
