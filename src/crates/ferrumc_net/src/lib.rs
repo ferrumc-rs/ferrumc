@@ -99,7 +99,7 @@ pub async fn handle_connection(socket: tokio::net::TcpStream) -> Result<()> {
         .connection_count
         .fetch_add(1, atomic::Ordering::Relaxed);
 
-    trace!("Connection established with id: {}", id);
+    debug!("Connection established with id: {}. Current connection count: {}", id, CONNECTIONS().connection_count.load(atomic::Ordering::Relaxed));
 
     let mut conn_ref = CONNECTIONS().connections.get_mut(&id).ok_or(Error::ConnectionNotFound(id))?;
     conn_ref.start_connection().await?;
@@ -110,7 +110,7 @@ pub async fn handle_connection(socket: tokio::net::TcpStream) -> Result<()> {
 impl Connection {
     pub async fn start_connection(&mut self) -> Result<()> {
         self.state = State::Handshake;
-        debug!("Starting connection with id: {}", self.id);
+        trace!("Starting connection with id: {}", self.id);
 
         self.manage_conn().await?;
 
@@ -118,7 +118,7 @@ impl Connection {
     }
 
     pub async fn manage_conn(&mut self) -> Result<()> {
-        debug!("Starting receiver for the same addy: {:?}", self.socket.peer_addr()?);
+        trace!("Starting receiver for the same addy: {:?}", self.socket.peer_addr()?);
 
         loop {
             let mut length_buffer = vec![0u8; 1];
@@ -144,6 +144,7 @@ impl Connection {
 
             // TODO: Check if we need to drop the connection
         }
+        #[allow(unreachable_code)]
         Ok(())
     }
 
@@ -152,6 +153,7 @@ impl Connection {
         Ok(())
     }
 
+    #[allow(dead_code)]
     async fn drop_conn(connection: &mut Connection) -> Result<()> {
         trace!("Dropping connection with id: {}", connection.id);
         let id = connection.id;

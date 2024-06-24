@@ -166,10 +166,12 @@ pub fn bake_packet_registry(input: TokenStream) -> TokenStream {
     let manifest_dir = env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set");
     let module_path = parse_macro_input!(input as syn::LitStr).value();
 
-    let path = manifest_dir.add(module_path.as_str());
-    let dir_path = Path::new(&path);
+    let mut path = manifest_dir.add(module_path.as_str());
+    path = path.replace("\\", "/");
 
-    // println!("dir path: {:?}", &dir_path);
+    println!("[FERRUMC_MACROS] Parsing packets in: {}", path);
+
+    let dir_path = Path::new(&path);
 
     if !std::fs::metadata(&dir_path).unwrap().is_dir() {
         return TokenStream::from(quote! {
@@ -250,7 +252,7 @@ pub fn bake_packet_registry(input: TokenStream) -> TokenStream {
 
             let struct_name = &item_struct.ident;
 
-            println!("Found Packet ID: 0x{:02X}, State: {}, Struct Name: {}", packet_id, state, struct_name);
+            println!("[FERRUMC_MACROS] Found Packet (ID: 0x{:02X}, State: {}, Struct Name: {})", packet_id, state, struct_name);
 
             let struct_name_lowercase = struct_name.clone().to_string().to_lowercase();
             let struct_name_lowercase = syn::Ident::new(&struct_name_lowercase, struct_name.span());
@@ -265,8 +267,8 @@ pub fn bake_packet_registry(input: TokenStream) -> TokenStream {
     }
 
     let elapsed = start.elapsed();
-    println!("Found {} packets", match_arms.len());
-    println!("It took: {:?} to parse all the files and generate the packet registry", elapsed);
+    println!("[FERRUMC_MACROS] Found {} packets", match_arms.len());
+    println!("[FERRUMC_MACROS] It took: {:?} to parse all the files and generate the packet registry", elapsed);
 
     let match_arms = match_arms.into_iter();
 
@@ -275,7 +277,7 @@ pub fn bake_packet_registry(input: TokenStream) -> TokenStream {
             let state = state.as_str();
             match (packet_id, state) {
                 #(#match_arms)*
-                _ => println!("No packet found for ID: 0x{:02X}", packet_id),
+                _ => println!("No packet found for ID: 0x{:02X} in state: {}", packet_id, state),
             }
 
             Ok(())
