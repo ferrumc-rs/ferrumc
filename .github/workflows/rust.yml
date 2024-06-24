@@ -39,21 +39,18 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-cargo-build-
 
-    - name: Print environment variables
-      run: printenv
-
-    - name: Print current directory
-      run: pwd
-
-    - name: List current directory contents
-      run: ls -la
-
     - name: Build
       env:
         CARGO_MANIFEST_DIR: ${{ github.workspace }}
-      run: cargo build --verbose
+      run: cargo build --release --verbose
 
     - name: Run tests
       env:
         CARGO_MANIFEST_DIR: ${{ github.workspace }}
       run: cargo test --verbose
+
+    - name: Upload executable
+      uses: actions/upload-artifact@v2
+      with:
+        name: ferrumc2_0
+        path: target/release/ferrumc2_0
