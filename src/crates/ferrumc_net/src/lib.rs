@@ -153,7 +153,7 @@ pub async fn handle_connection(socket: tokio::net::TcpStream) -> Result<()> {
             debug!("5");
 
             handle_packet(packet_id.get_val() as u8, conn, &mut cursor).await?;
-            
+
             debug!("6");
 
             // TODO: Check if we need to drop the connection
