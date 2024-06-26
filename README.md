@@ -1,6 +1,7 @@
 # FerrumC
 ![GitHub License](https://img.shields.io/github/license/Sweattypalms/ferrumc)
-<img alt="GitHub code size in bytes" src="https://img.shields.io/github/languages/code-size/Sweattypalms/ferrumc">
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/Sweattypalms/ferrumc)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/Sweattypalms/ferrumc/rust.yml)
 
 A high performance Minecraft server written in Rust.
 

@@ -3,8 +3,9 @@
 
 use std::fs;
 use std::sync::Arc;
-#[cfg(target_os = "linux")]
+#[allow(unused_imports)]
 use tokio::fs::try_exists;
+#[warn(unused_imports)]
 use clap::{Parser};
 
 use log::{debug, info, trace};
