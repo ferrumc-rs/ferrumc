@@ -16,6 +16,7 @@ type SafeConfig = Arc<RwLock<ferrumc_utils::config::ServerConfig>>;
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    ferrumc_net::setup_tracer();
     utils::setup_logger();
     info!("Initializing server...");
 

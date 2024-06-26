@@ -1,4 +1,5 @@
-use log::info;
+use std::sync::Arc;
+use log::{debug, info};
 use ferrumc_macros::{Decode, packet};
 use ferrumc_utils::encoding::varint::VarInt;
 use crate::{Connection, State};
@@ -14,11 +15,17 @@ pub struct Handshake {
 }
 
 impl IncomingPacket for Handshake {
-    async fn handle(&self, conn: &mut Connection) -> Result<(), Error> {
+    async fn handle(&self, conn: &mut Arc<tokio::sync::RwLock<Connection>>) -> Result<(), Error> {
         info!("Handling handshake packet");
 
-        conn.metadata.protocol_version = self.protocol_version.get_val();
-        conn.state = match self.next_state.get_val() {
+        debug!("Obtaining connection lock for protocol version and state");
+
+        let mut conn_write = conn.write().await;
+        
+        debug!("Successfully obtained connection lock for protocol version and state");
+        
+        conn_write.metadata.protocol_version = 763;
+        conn_write.state = match self.next_state.get_val() {
             1 => State::Status,
             2 => State::Login,
             s => {return Err(Error::InvalidState(s as u32))}

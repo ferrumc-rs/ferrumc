@@ -3,17 +3,19 @@
 use std::cmp::PartialEq;
 use std::fmt::Display;
 use std::io::Cursor;
-use std::sync::{atomic, OnceLock};
+use std::sync::{Arc, atomic, OnceLock};
 use std::sync::atomic::AtomicU32;
 
 use dashmap::DashMap;
 use ferrumc_utils::encoding::varint::read_varint;
 use ferrumc_utils::prelude::*;
 use lariv::Lariv;
+use lazy_static::lazy_static;
 use log::{debug, trace};
 use rand::random;
 use tokio::io::AsyncReadExt;
 use tokio::io::AsyncWriteExt;
+use tokio::sync::RwLock;
 
 use crate::packets::{handle_packet};
 
@@ -41,12 +43,18 @@ pub enum State {
 
 impl Display for State {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
+}
+
+impl State {
+    pub fn as_str(&self) -> &str {
         match self {
-            State::Unknown => write!(f, "unknown"),
-            State::Handshake => write!(f, "handshake"),
-            State::Status => write!(f, "status"),
-            State::Login => write!(f, "login"),
-            State::Play => write!(f, "play"),
+            State::Unknown => "unknown",
+            State::Handshake => "handshake",
+            State::Status => "status",
+            State::Login => "login",
+            State::Play => "play",
         }
     }
 }
@@ -54,7 +62,7 @@ impl Display for State {
 pub struct ConnectionList {
     // The connections, keyed with random values. The value also contains the connection id for ease of access.
     // pub connections: DashMap<u32, Connection>,
-    pub connections: DashMap<u32, Connection>,
+    pub connections: DashMap<u32, Arc<RwLock<Connection>>>,
     // The number of connections.
     pub connection_count: AtomicU32,
     // The queue of connections to be purged. This is used to store the connections to be dropped at the end of every tick.
@@ -80,19 +88,24 @@ pub struct ConnectionMetadata {
     pub protocol_version: i32,
 }
 
+pub fn setup_tracer() {
+    console_subscriber::init();
+}
+
 pub async fn handle_connection(socket: tokio::net::TcpStream) -> Result<()> {
     let mut id = random();
     // check if we have a collision (1 in 4.2 billion chance) and if so, generate a new id
     while CONNECTIONS().connections.contains_key(&id) {
         id = random();
     }
-    let conn = Connection {
+    let conn = Arc::new(RwLock::new(
+        Connection {
         id,
         socket,
         player_uuid: None,
-        state: State::Unknown,
+        state: State::Handshake,
         metadata: ConnectionMetadata::default(),
-    };
+    }));
 
     CONNECTIONS().connections.insert(id, conn);
     CONNECTIONS()
@@ -101,35 +114,29 @@ pub async fn handle_connection(socket: tokio::net::TcpStream) -> Result<()> {
 
     debug!("Connection established with id: {}. Current connection count: {}", id, CONNECTIONS().connection_count.load(atomic::Ordering::Relaxed));
 
-    let mut conn_ref = CONNECTIONS().connections.get_mut(&id).ok_or(Error::ConnectionNotFound(id))?;
-    conn_ref.start_connection().await?;
+    let mut conn_ref = CONNECTIONS().connections.view(&id, |_k, v| {v.clone()}).unwrap();
+    manage_conn(&mut conn_ref).await?;
 
     Ok(())
 }
 
-impl Connection {
-    pub async fn start_connection(&mut self) -> Result<()> {
-        self.state = State::Handshake;
-        trace!("Starting connection with id: {}", self.id);
-
-        self.manage_conn().await?;
-
-        Ok(())
-    }
-
-    pub async fn manage_conn(&mut self) -> Result<()> {
-        trace!("Starting receiver for the same addy: {:?}", self.socket.peer_addr()?);
+    pub async fn manage_conn(conn: &mut Arc<RwLock<Connection>>) -> Result<()> {
+        debug!("Starting receiver for the same addr: {:?}", conn.read().await.socket.peer_addr()?);
 
         loop {
             let mut length_buffer = vec![0u8; 1];
-            self.socket.read_exact(&mut length_buffer).await?;
-
+            {
+                let mut conn_write = conn.write().await;
+                conn_write.socket.read_exact(&mut length_buffer).await?;
+            }
             let length = length_buffer[0] as usize;
 
             let mut buffer = vec![0u8; length];
 
-            self.socket.read_exact(&mut buffer).await?;
-
+            {
+                let mut conn_write = conn.write().await;
+                conn_write.socket.read_exact(&mut buffer).await?;
+            }
             let buffer = vec![length_buffer, buffer].concat();
 
             let mut cursor = Cursor::new(buffer);
@@ -140,16 +147,11 @@ impl Connection {
             trace!("Packet Length: {}", packet_length);
             trace!("Packet ID: {}", packet_id);
 
-            handle_packet(packet_id.get_val() as u8, self.state.to_string(), self, &mut cursor).await?;
+            handle_packet(packet_id.get_val() as u8, conn, &mut cursor).await?;
 
             // TODO: Check if we need to drop the connection
         }
         #[allow(unreachable_code)]
-        Ok(())
-    }
-
-    pub async fn send_packet(&mut self, bytes: Vec<u8>) -> Result<()> {
-        self.socket.write_all(&bytes).await?;
         Ok(())
     }
 
@@ -161,6 +163,6 @@ impl Connection {
         CONNECTIONS().connection_count.fetch_sub(1, atomic::Ordering::Relaxed);
         Ok(())
     }
-}
+
 
 

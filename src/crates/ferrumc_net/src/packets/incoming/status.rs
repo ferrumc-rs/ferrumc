@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use tokio::sync::OnceCell;
 use log::info;
 use serde::Serialize;
@@ -6,7 +7,7 @@ use ferrumc_utils::encoding::varint::VarInt;
 use crate::Connection;
 use crate::packets::IncomingPacket;
 use crate::packets::outgoing::status::OutgoingStatusResponse;
-use tokio::io::AsyncReadExt;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use ferrumc_utils::config;
 use base64::{Engine};
 
@@ -47,7 +48,7 @@ struct Description {
 }
 
 impl IncomingPacket for Status {
-    async fn handle(&self, conn: &mut Connection) -> Result<(), ferrumc_utils::error::Error> {
+    async fn handle(&self, conn: &mut Arc<tokio::sync::RwLock<Connection>>) -> Result<(), ferrumc_utils::error::Error> {
         info!("Handling status request packet");
         let config = config::get_global_config();
 
@@ -57,7 +58,7 @@ impl IncomingPacket for Status {
                 version: Version {
                     name: "1.20.6".to_string(),
                     // Allow any protocol version for now. To check the ping and stuff
-                    protocol: conn.metadata.protocol_version.clone() as u32,
+                    protocol: conn.read().await.metadata.protocol_version.clone() as u32,
                 },
                 players: Players {
                     max: config.max_players,
@@ -82,7 +83,7 @@ impl IncomingPacket for Status {
 
         let response = response.encode().await?;
 
-        conn.send_packet(response).await
+        conn.write().await.socket.write_all(&response).await.map_err(|e| e.into())
     }
 }
 async fn get_encoded_favicon() -> &'static String {
