@@ -1,7 +1,6 @@
-use std::sync::Arc;
-use log::{debug, info};
 use ferrumc_macros::{Decode, packet};
 use ferrumc_utils::encoding::varint::VarInt;
+
 use crate::{Connection, State};
 use crate::packets::IncomingPacket;
 

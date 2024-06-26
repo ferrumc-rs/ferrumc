@@ -1,15 +1,16 @@
-use std::sync::Arc;
-use tokio::sync::OnceCell;
+use base64::Engine;
 use log::info;
 use serde::Serialize;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::sync::OnceCell;
+
 use ferrumc_macros::{Decode, packet};
+use ferrumc_utils::config;
 use ferrumc_utils::encoding::varint::VarInt;
+
 use crate::Connection;
 use crate::packets::IncomingPacket;
 use crate::packets::outgoing::status::OutgoingStatusResponse;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use ferrumc_utils::config;
-use base64::{Engine};
 
 #[derive(Decode)]
 #[packet(packet_id = 0x00, state = "status")]
@@ -48,7 +49,7 @@ struct Description {
 }
 
 impl IncomingPacket for Status {
-    async fn handle(&self, conn: &mut tokio::sync::RwLockWriteGuard<'_, Connection>) -> Result<(), ferrumc_utils::error::Error> {
+    async fn handle(&self, conn: &mut tokio::sync::RwLockWriteGuard<'_, Connection>) -> Result<(), Error> {
         info!("Handling status request packet");
         let config = config::get_global_config();
 

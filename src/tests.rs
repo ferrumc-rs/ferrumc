@@ -3,13 +3,8 @@
 mod tests {
     use std::io::Cursor;
 
-    use tokio::io::{AsyncRead, AsyncSeek};
-
     use ferrumc_macros::Decode;
     use ferrumc_utils::encoding::varint::VarInt;
-    use ferrumc_utils::type_impls::Decode;
-
-    use crate::Error;
 
     #[tokio::test]
     async fn test_macro_decode() {

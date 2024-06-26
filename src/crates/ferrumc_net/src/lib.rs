@@ -7,19 +7,18 @@ use std::sync::{Arc, atomic, OnceLock};
 use std::sync::atomic::AtomicU32;
 
 use dashmap::DashMap;
-use ferrumc_utils::encoding::varint::read_varint;
-use ferrumc_utils::prelude::*;
-use lariv::Lariv;
-use lazy_static::lazy_static;
 use log::{debug, trace};
 use rand::random;
 use tokio::io::AsyncReadExt;
 use tokio::io::AsyncWriteExt;
-use tokio::sync::{RwLock, RwLockWriteGuard};
+use tokio::sync::RwLock;
 
-use crate::packets::{handle_packet};
+use ferrumc_utils::encoding::varint::read_varint;
+use ferrumc_utils::prelude::*;
 
-mod packets;
+use crate::packets::handle_packet;
+
+pub mod packets;
 
 #[allow(non_snake_case)]
 pub fn CONNECTIONS() -> &'static ConnectionList {
@@ -27,7 +26,6 @@ pub fn CONNECTIONS() -> &'static ConnectionList {
     CONNECTIONS.get_or_init(|| ConnectionList {
         connections: DashMap::new(),
         connection_count: AtomicU32::new(0),
-        purge_queue: Lariv::new(1024),
     })
 }
 
@@ -65,8 +63,6 @@ pub struct ConnectionList {
     pub connections: DashMap<u32, Arc<RwLock<Connection>>>,
     // The number of connections.
     pub connection_count: AtomicU32,
-    // The queue of connections to be purged. This is used to store the connections to be dropped at the end of every tick.
-    pub purge_queue: Lariv<u32>,
 }
 
 #[derive()]

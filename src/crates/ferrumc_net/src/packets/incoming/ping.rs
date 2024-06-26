@@ -1,8 +1,9 @@
-use std::sync::Arc;
 use log::info;
 use tokio::io::AsyncWriteExt;
+
 use ferrumc_macros::{Decode, packet};
 use ferrumc_utils::encoding::varint::VarInt;
+
 use crate::Connection;
 use crate::packets::IncomingPacket;
 use crate::packets::outgoing::ping::OutgoingPing;
