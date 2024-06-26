@@ -1,14 +1,14 @@
 #![feature(box_into_inner)]
 #![feature(fs_try_exists)]
 
-use std::fs;
+use std::{env, fs};
 use std::sync::Arc;
 #[allow(unused_imports)]
 use tokio::fs::try_exists;
 #[warn(unused_imports)]
 use clap::{Parser};
 
-use log::{debug, info, trace};
+use log::{debug, error, info, trace};
 use tokio::net::TcpListener;
 use tokio::sync::RwLock;
 
@@ -35,10 +35,27 @@ async fn main() -> Result<()> {
 
     let args = Cli::parse();
 
-    // run setup if the flag is set or the config file does not exist in release mode
-    if args.setup || (!fs::try_exists("config.toml")? && !cfg!(debug_assertions)) {
+    if env::var("GITHUB_ACTIONS").is_ok() {
+        env::set_var("RUST_LOG", "info");
+    }
+    else if args.setup {
         setup::setup().await?;
-        return Ok(())
+        return Ok(());
+    } else {
+        let exe = std::env::current_exe()?;
+        let dir = exe.parent();
+        match dir {
+            Some(dir) => {
+                let config_path = dir.join("config.toml");
+                if !config_path.exists() {
+                    setup::setup().await?;
+                }
+            }
+            None => {
+                error!("No parent directory found for executable! Please don't try run ferrumc from root, its really not a good idea");
+                return Ok(());
+            }
+        }
     }
 
     utils::setup_logger();
