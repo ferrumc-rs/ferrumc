@@ -11,7 +11,7 @@ pub mod incoming;
 pub mod outgoing;
 
 pub trait IncomingPacket {
-    async fn handle(&self, conn: &mut std::sync::Arc<tokio::sync::RwLock<Connection>>) -> Result<(), Error>;
+    async fn handle(&self, conn: &mut tokio::sync::RwLockWriteGuard<Connection>) -> Result<(), Error>;
 }
 
 

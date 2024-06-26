@@ -14,7 +14,7 @@ pub struct Ping {
 }
 
 impl IncomingPacket for Ping {
-    async fn handle(&self, conn: &mut Arc<tokio::sync::RwLock<Connection>>) -> Result<(), ferrumc_utils::error::Error> {
+    async fn handle(&self, conn: &mut tokio::sync::RwLockWriteGuard<'_, Connection>) -> Result<(), ferrumc_utils::error::Error> {
         info!("Handling ping packet");
 
         let response = OutgoingPing {
@@ -24,6 +24,6 @@ impl IncomingPacket for Ping {
 
         let response = response.encode().await?;
 
-        conn.write().await.socket.write_all(&response).await.map_err(|e| e.into())
+        conn.socket.write_all(&response).await.map_err(|e| e.into())
     }
 }

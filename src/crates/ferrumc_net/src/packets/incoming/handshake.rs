@@ -15,17 +15,10 @@ pub struct Handshake {
 }
 
 impl IncomingPacket for Handshake {
-    async fn handle(&self, conn: &mut Arc<tokio::sync::RwLock<Connection>>) -> Result<(), Error> {
-        info!("Handling handshake packet");
+    async fn handle(&self, conn: &mut tokio::sync::RwLockWriteGuard<'_, Connection>) -> Result<(), Error> {
 
-        debug!("Obtaining connection lock for protocol version and state");
-
-        let mut conn_write = conn.write().await;
-        
-        debug!("Successfully obtained connection lock for protocol version and state");
-        
-        conn_write.metadata.protocol_version = 763;
-        conn_write.state = match self.next_state.get_val() {
+        conn.metadata.protocol_version = 763;
+        conn.state = match self.next_state.get_val() {
             1 => State::Status,
             2 => State::Login,
             s => {return Err(Error::InvalidState(s as u32))}

@@ -124,11 +124,13 @@ pub async fn handle_connection(socket: tokio::net::TcpStream) -> Result<()> {
         debug!("Starting receiver for the same addr: {:?}", conn.read().await.socket.peer_addr()?);
 
         loop {
+            debug!("1");
             let mut length_buffer = vec![0u8; 1];
             {
                 let mut conn_write = conn.write().await;
                 conn_write.socket.read_exact(&mut length_buffer).await?;
             }
+            debug!("2");
             let length = length_buffer[0] as usize;
 
             let mut buffer = vec![0u8; length];
@@ -137,17 +139,22 @@ pub async fn handle_connection(socket: tokio::net::TcpStream) -> Result<()> {
                 let mut conn_write = conn.write().await;
                 conn_write.socket.read_exact(&mut buffer).await?;
             }
+            debug!("3");
             let buffer = vec![length_buffer, buffer].concat();
 
             let mut cursor = Cursor::new(buffer);
 
             let packet_length = read_varint(&mut cursor).await?;
             let packet_id = read_varint(&mut cursor).await?;
+            debug!("4");
 
             trace!("Packet Length: {}", packet_length);
             trace!("Packet ID: {}", packet_id);
+            debug!("5");
 
             handle_packet(packet_id.get_val() as u8, conn, &mut cursor).await?;
+            
+            debug!("6");
 
             // TODO: Check if we need to drop the connection
         }
