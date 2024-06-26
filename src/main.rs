@@ -3,7 +3,8 @@
 
 use std::fs;
 use std::sync::Arc;
-
+#[cfg(target_os = "linux")]
+use tokio::fs::try_exists;
 use clap::{Parser};
 
 use log::{debug, info, trace};
