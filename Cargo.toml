@@ -16,6 +16,7 @@ thiserror = "1.0.61"
 # Logging
 log = "0.4.21"
 env_logger = "0.11.3"
+console-subscriber = "0.3.0"
 
 # config / ser / de
 serde = { version = "1.0.203", features = ["derive"]}

@@ -1,4 +1,6 @@
+use std::sync::Arc;
 use log::info;
+use tokio::io::AsyncWriteExt;
 use ferrumc_macros::{Decode, packet};
 use ferrumc_utils::encoding::varint::VarInt;
 use crate::Connection;
@@ -12,7 +14,7 @@ pub struct Ping {
 }
 
 impl IncomingPacket for Ping {
-    async fn handle(&self, conn: &mut Connection) -> Result<(), ferrumc_utils::error::Error> {
+    async fn handle(&self, conn: &mut tokio::sync::RwLockWriteGuard<'_, Connection>) -> Result<(), ferrumc_utils::error::Error> {
         info!("Handling ping packet");
 
         let response = OutgoingPing {
@@ -21,7 +23,9 @@ impl IncomingPacket for Ping {
         };
 
         let response = response.encode().await?;
+        
+        conn.drop = true;
 
-        conn.send_packet(response).await
+        conn.socket.write_all(&response).await.map_err(|e| e.into())
     }
 }

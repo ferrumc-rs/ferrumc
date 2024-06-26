@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-dashmap = "5.5.3"
+dashmap = "6.0.1"
 lariv = "0.3.2"
 lazy_static = "1.4.0"
 tokio = { version = "1.38.0", features = ["full"] }
@@ -18,3 +18,4 @@ ferrumc_macros = { path = "../ferrumc_macros" }
 serde = { version = "1.0.117", features = ["derive"] }
 serde_json = "1.0.117"
 base64 = "0.22.1"
+console-subscriber = "0.3.0"
