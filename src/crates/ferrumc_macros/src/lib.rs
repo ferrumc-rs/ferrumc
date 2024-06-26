@@ -275,7 +275,7 @@ pub fn bake_packet_registry(input: TokenStream) -> TokenStream {
     let output = quote! {
         pub async fn handle_packet(packet_id: u8, conn_owned: &mut Arc<RwLock<crate::Connection>>, cursor: &mut std::io::Cursor<Vec<u8>>) -> ferrumc_utils::prelude::Result<()> {
             let mut conn = conn_owned.write().await;
-            match (packet_id, conn_owned.read().await.state.as_str()) {
+            match (packet_id, conn.state.as_str()) {
                 #(#match_arms)*
                 _ => println!("No packet found for ID: 0x{:02X} in state: {}", packet_id, conn_owned.read().await.state.as_str()),
             }

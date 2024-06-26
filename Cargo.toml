@@ -8,7 +8,6 @@ edition = "2021"
 [dependencies]
 # Async
 tokio = {version = "1.38.0", features = ["full"]}
-parking_lot = "0.12.3"
 
 # Error handling
 anyhow = "1.0.86"

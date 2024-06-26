@@ -411,7 +411,6 @@ dependencies = [
  "lariv",
  "lazy_static",
  "log",
- "parking_lot",
  "rand",
  "serde",
  "serde_json",

@@ -15,7 +15,7 @@ use log::{debug, trace};
 use rand::random;
 use tokio::io::AsyncReadExt;
 use tokio::io::AsyncWriteExt;
-use tokio::sync::RwLock;
+use tokio::sync::{RwLock, RwLockWriteGuard};
 
 use crate::packets::{handle_packet};
 
@@ -81,6 +81,8 @@ pub struct Connection {
     pub state: State,
     // Metadata
     pub metadata: ConnectionMetadata,
+    // Whether to drop and clean up the connection
+    pub drop: bool,
 }
 
 #[derive(Debug, Default)]
@@ -100,13 +102,15 @@ pub async fn handle_connection(socket: tokio::net::TcpStream) -> Result<()> {
     }
     let conn = Arc::new(RwLock::new(
         Connection {
-        id,
-        socket,
-        player_uuid: None,
-        state: State::Handshake,
-        metadata: ConnectionMetadata::default(),
-    }));
+            id,
+            socket,
+            player_uuid: None,
+            state: State::Handshake,
+            metadata: ConnectionMetadata::default(),
+            drop: false,
+        }));
 
+    // Add the connection to the connections list
     CONNECTIONS().connections.insert(id, conn);
     CONNECTIONS()
         .connection_count
@@ -114,62 +118,68 @@ pub async fn handle_connection(socket: tokio::net::TcpStream) -> Result<()> {
 
     debug!("Connection established with id: {}. Current connection count: {}", id, CONNECTIONS().connection_count.load(atomic::Ordering::Relaxed));
 
-    let mut conn_ref = CONNECTIONS().connections.view(&id, |_k, v| {v.clone()}).unwrap();
+    // Get a reference to the connection
+    let mut conn_ref = CONNECTIONS().connections.view(&id, |_k, v| { v.clone() }).unwrap();
     manage_conn(&mut conn_ref).await?;
 
     Ok(())
 }
 
-    pub async fn manage_conn(conn: &mut Arc<RwLock<Connection>>) -> Result<()> {
-        debug!("Starting receiver for the same addr: {:?}", conn.read().await.socket.peer_addr()?);
+pub async fn manage_conn(conn: &mut Arc<RwLock<Connection>>) -> Result<()> {
+    debug!("Starting receiver for the same addr: {:?}", conn.read().await.socket.peer_addr()?);
 
-        loop {
-            debug!("1");
-            let mut length_buffer = vec![0u8; 1];
-            {
-                let mut conn_write = conn.write().await;
-                conn_write.socket.read_exact(&mut length_buffer).await?;
-            }
-            debug!("2");
-            let length = length_buffer[0] as usize;
-
-            let mut buffer = vec![0u8; length];
-
-            {
-                let mut conn_write = conn.write().await;
-                conn_write.socket.read_exact(&mut buffer).await?;
-            }
-            debug!("3");
-            let buffer = vec![length_buffer, buffer].concat();
-
-            let mut cursor = Cursor::new(buffer);
-
-            let packet_length = read_varint(&mut cursor).await?;
-            let packet_id = read_varint(&mut cursor).await?;
-            debug!("4");
-
-            trace!("Packet Length: {}", packet_length);
-            trace!("Packet ID: {}", packet_id);
-            debug!("5");
-
-            handle_packet(packet_id.get_val() as u8, conn, &mut cursor).await?;
-
-            debug!("6");
-
-            // TODO: Check if we need to drop the connection
+    loop {
+        // Get the length of the packet
+        let mut length_buffer = vec![0u8; 1];
+        {
+            let mut conn_write = conn.write().await;
+            conn_write.socket.read_exact(&mut length_buffer).await?;
         }
-        #[allow(unreachable_code)]
-        Ok(())
-    }
 
-    #[allow(dead_code)]
-    async fn drop_conn(connection: &mut Connection) -> Result<()> {
-        trace!("Dropping connection with id: {}", connection.id);
-        let id = connection.id;
-        CONNECTIONS().connections.remove(&id);
-        CONNECTIONS().connection_count.fetch_sub(1, atomic::Ordering::Relaxed);
-        Ok(())
+        let length = length_buffer[0] as usize;
+
+        // Get the rest of the packet
+        let mut buffer = vec![0u8; length];
+
+        {
+            let mut conn_write = conn.write().await;
+            conn_write.socket.read_exact(&mut buffer).await?;
+        }
+
+        let buffer = vec![length_buffer, buffer].concat();
+
+        let mut cursor = Cursor::new(buffer);
+
+        // Get the packet length and id
+        let packet_length = read_varint(&mut cursor).await?;
+        let packet_id = read_varint(&mut cursor).await?;
+
+        trace!("Packet Length: {}", packet_length);
+        trace!("Packet ID: {}", packet_id);
+
+        // Handle the packet
+        handle_packet(packet_id.get_val() as u8, conn, &mut cursor).await?;
+
+        // Check if we need to drop the connection
+        let do_drop = conn.read().await.drop;
+        let id = conn.read().await.id;
+
+        // Drop the connection if needed
+        if do_drop {
+            drop_conn(id).await?;
+            conn.write().await.socket.shutdown().await?;
+            break;
+        }
     }
+    Ok(())
+}
+
+async fn drop_conn(connection_id: u32) -> Result<()> {
+    debug!("Dropping connection with id: {}", connection_id);
+    CONNECTIONS().connections.remove(&connection_id);
+    CONNECTIONS().connection_count.fetch_sub(1, atomic::Ordering::Relaxed);
+    Ok(())
+}
 
 
 

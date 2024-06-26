@@ -23,6 +23,8 @@ impl IncomingPacket for Ping {
         };
 
         let response = response.encode().await?;
+        
+        conn.drop = true;
 
         conn.socket.write_all(&response).await.map_err(|e| e.into())
     }
