@@ -1,6 +1,6 @@
 [package]
 name = "ferrumc2_0"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -26,11 +26,13 @@ lazy_static = "1.4.0"
 
 # Binary
 byteorder = "1.5.0"
+include-flate = "0.3.0"
+
+# Display
+spinners = "4.1.1"
 
 # Custom crates
 ferrumc_net = { path = "src/crates/ferrumc_net"}
 ferrumc_macros = { path = "src/crates/ferrumc_macros"}
 ferrumc_utils = { path = "src/crates/ferrumc_utils"}
 clap = { version = "4.5.7", features = ["derive"] }
-spinners = "4.1.1"
-include-flate = "0.3.0"
