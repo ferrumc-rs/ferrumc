@@ -12,6 +12,7 @@ use rand::random;
 use tokio::io::AsyncReadExt;
 use tokio::io::AsyncWriteExt;
 use tokio::sync::RwLock;
+use ferrumc_utils::config::get_global_config;
 
 use ferrumc_utils::encoding::varint::read_varint;
 use ferrumc_utils::prelude::*;
@@ -166,6 +167,14 @@ pub async fn manage_conn(conn: &mut Arc<RwLock<Connection>>) -> Result<()> {
             conn.write().await.socket.shutdown().await?;
             break;
         }
+        
+        tokio::time::sleep(
+            if get_global_config().network_tick_rate > 0 {
+                std::time::Duration::from_millis(1000 / get_global_config().network_tick_rate as u64)
+            } else {
+                std::time::Duration::from_millis(0)
+            }
+        ).await;
     }
     Ok(())
 }

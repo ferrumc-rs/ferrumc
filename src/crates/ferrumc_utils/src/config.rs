@@ -15,6 +15,7 @@ pub struct ServerConfig {
     pub port: u32,
     pub motd: String,
     pub max_players: u32,
+    pub network_tick_rate: u32,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -110,6 +111,7 @@ impl Default for ServerConfig {
             port: DEFAULT_SERVER_PORT,
             motd: DEFAULT_MOTD.to_string(),
             max_players: DEFAULT_MAX_PLAYERS,
+            network_tick_rate: 0,
         }
     }
 }

@@ -1,6 +1,10 @@
 #![feature(box_into_inner)]
+#![feature(fs_try_exists)]
 
+use std::fs;
 use std::sync::Arc;
+
+use clap::{Parser};
 
 use log::{debug, info, trace};
 use tokio::net::TcpListener;
@@ -11,12 +15,30 @@ use ferrumc_utils::prelude::*;
 mod prelude;
 mod tests;
 mod utils;
+mod setup;
 
 type SafeConfig = Arc<RwLock<ferrumc_utils::config::ServerConfig>>;
 
+
+#[derive(Parser)]
+#[command(version, about, long_about = None)]
+struct Cli {
+    #[clap(long, default_value = "false")]
+    setup: bool,
+}
+
+
 #[tokio::main]
 async fn main() -> Result<()> {
-    ferrumc_net::setup_tracer();
+
+    let args = Cli::parse();
+
+    // run setup if the flag is set or the config file does not exist in release mode
+    if args.setup || (!fs::try_exists("config.toml")? && !cfg!(debug_assertions)) {
+        setup::setup().await?;
+        return Ok(())
+    }
+
     utils::setup_logger();
     info!("Initializing server...");
 
@@ -58,20 +80,3 @@ async fn start_server(config: SafeConfig) -> Result<()> {
         tokio::task::spawn(ferrumc_net::handle_connection(socket));
     }
 }
-
-/*async fn handle_handshake(mut cursor: Cursor<Vec<u8>>) -> Result<()> {
-    trace!("Handling handshake packet");
-
-    let protocol_version = ferrumc_utils::encoding::varint::read_varint(&mut cursor).await?;
-    let server_address = ferrumc_utils::encoding::string::read_string(&mut cursor).await?;
-    let server_port = cursor.read_u16::<BigEndian>().unwrap();
-    let next_state = ferrumc_utils::encoding::varint::read_varint(&mut cursor).await?;
-
-    trace!("Protocol Version: {}", protocol_version);
-    trace!("Server Address: {}", server_address);
-    trace!("Server Port: {}", server_port);
-    trace!("Next State: {}", next_state);
-
-    Ok(())
-}
-*/
