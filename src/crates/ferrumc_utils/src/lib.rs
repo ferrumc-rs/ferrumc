@@ -1,4 +1,5 @@
 #![feature(seek_stream_len)]
+#![feature(box_into_inner)]
 
 pub mod encoding;
 pub mod error;
