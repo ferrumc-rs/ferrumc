@@ -200,15 +200,18 @@ impl Decode for u128 {
     }
 }
 
-impl Decode for Vec<u8> {
+impl<V: Decode + Unpin> Decode for Vec<V> {
     async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
         T: AsyncRead + AsyncSeek + Unpin,
     {
-        let len = read_varint(bytes).await?;
-        let mut buf = vec![0u8; len.into()];
-        bytes.read_exact(&mut buf).await?;
-        Ok(Box::from(buf))
+        let len = read_varint(bytes).await?.get_val();
+        // Yes the cast is necessary, and yes it's annoying
+        let mut vec = Vec::new();
+        for _ in 0..len {
+            vec.push(Box::into_inner(V::decode(bytes).await?));
+        }
+        Ok(Box::from(vec))
     }
 }
 
@@ -220,6 +223,7 @@ pub trait Encode {
     where
         T: AsyncWrite + AsyncSeek + Unpin;
 }
+
 
 
 impl Encode for bool {
@@ -397,16 +401,16 @@ impl Encode for u128 {
     }
 }
 
-impl Encode for Vec<u8> {
+impl<V: Encode> Encode for Vec<V> {
     async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
     where
         T: AsyncWrite + AsyncSeek + Unpin,
     {
         let len = VarInt::new(self.len() as i32);
         len.encode(bytes).await?;
-        bytes
-            .write_all(self)
-            .await
-            .map_err(|_| Error::Generic("Failed to write Vec<u8>".parse().unwrap()))
+        for v in self {
+            v.encode(bytes).await?;
+        }
+        Ok(())
     }
 }

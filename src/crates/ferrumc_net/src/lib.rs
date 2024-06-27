@@ -20,6 +20,7 @@ use ferrumc_utils::prelude::*;
 use crate::packets::handle_packet;
 
 pub mod packets;
+pub mod the_dimension_codec;
 
 #[allow(non_snake_case)]
 pub fn CONNECTIONS() -> &'static ConnectionList {

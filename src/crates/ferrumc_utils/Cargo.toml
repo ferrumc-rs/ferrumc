@@ -13,4 +13,4 @@ lazy_static = "1.4.0"
 anyhow = "1.0.86"
 log = "0.4.21"
 serde = { version = "1.0.203", features = ["derive"] }
-
+fastnbt = "2.5.0"
