@@ -186,6 +186,21 @@ impl Decode for Varlong {
 }
 
 
+impl Decode for u128 {
+    async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
+    where
+        T: AsyncRead + AsyncSeek + Unpin,
+    {
+        let mut buf = [0u8; 16];
+        bytes
+            .read_exact(&mut buf)
+            .await
+            .map_err(|_| Error::Generic("Failed to read u128".parse().unwrap()))?;
+        Ok(Box::from(u128::from_be_bytes(buf)))
+    }
+}
+
+
 pub trait Encode {
     #[allow(unused)]
     #[allow(async_fn_in_trait)]
@@ -354,5 +369,18 @@ impl Encode for Varlong {
         T: AsyncWrite + AsyncSeek + Unpin,
     {
         write_varlong(*self, bytes).await
+    }
+}
+
+impl Encode for u128 {
+    async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
+    where
+        T: AsyncWrite + AsyncSeek + Unpin,
+    {
+        let buf = self.to_be_bytes();
+        bytes
+            .write_all(&buf)
+            .await
+            .map_err(|_| Error::Generic("Failed to write u128".parse().unwrap()))
     }
 }
