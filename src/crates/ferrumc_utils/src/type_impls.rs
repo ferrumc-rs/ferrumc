@@ -200,6 +200,18 @@ impl Decode for u128 {
     }
 }
 
+impl Decode for Vec<u8> {
+    async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
+    where
+        T: AsyncRead + AsyncSeek + Unpin,
+    {
+        let len = read_varint(bytes).await?;
+        let mut buf = vec![0u8; len.into()];
+        bytes.read_exact(&mut buf).await?;
+        Ok(Box::from(buf))
+    }
+}
+
 
 pub trait Encode {
     #[allow(unused)]
@@ -382,5 +394,19 @@ impl Encode for u128 {
             .write_all(&buf)
             .await
             .map_err(|_| Error::Generic("Failed to write u128".parse().unwrap()))
+    }
+}
+
+impl Encode for Vec<u8> {
+    async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
+    where
+        T: AsyncWrite + AsyncSeek + Unpin,
+    {
+        let len = VarInt::new(self.len() as i32);
+        len.encode(bytes).await?;
+        bytes
+            .write_all(self)
+            .await
+            .map_err(|_| Error::Generic("Failed to write Vec<u8>".parse().unwrap()))
     }
 }
