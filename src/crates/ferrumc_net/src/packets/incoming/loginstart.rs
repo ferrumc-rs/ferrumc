@@ -8,6 +8,7 @@ use uuid::Uuid;
 
 use crate::Connection;
 use crate::packets::IncomingPacket;
+use crate::packets::outgoing::login_success::Property;
 
 #[derive(Decode)]
 #[packet(packet_id = 0x00, state = "login")]
@@ -32,8 +33,15 @@ impl IncomingPacket for LoginStart {
             uuid: uuid.as_bytes().into(),
             username: "OfflinePlayer".to_string(),
             // property_count: VarInt::from(0),
-            property_count: VarInt::new(0),
-            properties: vec![],
+            // property_count: VarInt::new(1),
+            properties: vec![
+                Property {
+                    name: "textures".to_string(),
+                    value: "eyJ0aW1lc3R".to_string(),
+                    is_signed: false,
+                    signature: "".to_string(),
+                }
+            ],
             strict_error: true,
         };
 
