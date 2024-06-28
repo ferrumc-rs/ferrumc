@@ -3,7 +3,7 @@ use ferrumc_utils::encoding::varint::VarInt;
 use ferrumc_utils::prelude::*;
 use ferrumc_utils::type_impls::Encode;
 use log::debug;
-use tokio::io::{AsyncWrite, AsyncWriteExt};
+use tokio::io::{AsyncWriteExt};
 use uuid::Uuid;
 
 use crate::Connection;

@@ -4,7 +4,7 @@ use ferrumc_utils::config;
 use ferrumc_utils::encoding::varint::VarInt;
 use ferrumc_utils::prelude::*;
 use ferrumc_utils::type_impls::Encode;
-use log::info;
+use log::{debug, info};
 use serde::Serialize;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::sync::{OnceCell};
@@ -87,7 +87,11 @@ impl IncomingPacket for Status {
         response.encode(&mut cursor).await?;
         let response = cursor.into_inner();
 
-        conn.socket.write_all(&*response).await.map_err(|e| e.into())
+        let response = &*response;
+
+        conn.socket.write(response).await?;
+
+        Ok(())
     }
 }
 

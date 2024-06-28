@@ -3,6 +3,7 @@ use syn::DeriveInput;
 
 pub(crate) fn generate_encode_func(input: DeriveInput) -> proc_macro2::TokenStream {
     let name = &input.ident;
+    let mut is_packet_type = false;
 
     struct FieldAttribs {
         field_name: syn::Ident,
@@ -24,6 +25,11 @@ pub(crate) fn generate_encode_func(input: DeriveInput) -> proc_macro2::TokenStre
 
     for field in fields.named {
         let field_name = field.ident.unwrap();
+
+        if field_name.to_string() == "packet_id" {
+            is_packet_type = true;
+        }
+
         let mut field_attrib = FieldAttribs {
             field_name,
             raw_bytes: None,
@@ -42,7 +48,7 @@ pub(crate) fn generate_encode_func(input: DeriveInput) -> proc_macro2::TokenStre
                 continue;
             }
 
-            let meta = attrib.parse_nested_meta(|meta| {
+            attrib.parse_nested_meta(|meta| {
                 if meta.path.is_ident("raw_bytes") {
                     let mut prepend = false;
 
@@ -107,26 +113,58 @@ pub(crate) fn generate_encode_func(input: DeriveInput) -> proc_macro2::TokenStre
             };
         } else {
             statement = quote! {
-                // <#type_name as Encode>::encode(&self.#ident, &mut bytes).await?;
                 self.#field_name.encode(bytes).await?;
             };
         }
 
         field_statements.push(statement);
     }
-    let expanded = quote! {
-        impl ferrumc_utils::type_impls::Encode for #name {
-            async fn encode<T>(&self, bytes: &mut T) -> std::result::Result<(), ferrumc_utils::error::Error>
-                where
-                    // T: AsyncWrite + AsyncSeek + Unpin
-            //defined type definition
-            T: tokio::io::AsyncWrite + tokio::io::AsyncSeek + std::marker::Unpin
-            {
-                #(#field_statements)*
 
-                Ok(())
+    let expanded: proc_macro2::TokenStream;
+
+    if is_packet_type {
+        expanded = quote! {
+            impl ferrumc_utils::type_impls::Encode for #name {
+                async fn encode<T>(&self, bytes_out: &mut T) -> std::result::Result<(), ferrumc_utils::error::Error>
+                    where
+                            T: tokio::io::AsyncWrite + tokio::io::AsyncSeek + std::marker::Unpin
+                {
+                    use tokio::io::AsyncWriteExt;
+                    let mut bytes_ = std::io::Cursor::new(Vec::new());
+                    let mut bytes = &mut bytes_;
+
+                    #(#field_statements)*
+
+                    let __packet_data = bytes_.into_inner();
+
+                    let __length = __packet_data.len() as i32;
+                    let __length: ferrumc_utils::encoding::varint::VarInt = ferrumc_utils::encoding::varint::VarInt::new(__length);
+
+                    let mut __cursor = std::io::Cursor::new(Vec::new());
+                    __length.encode(&mut __cursor).await?;
+
+                    __cursor.write_all(&__packet_data).await?;
+
+                    let __encoded = __cursor.into_inner();
+                    bytes_out.write_all(&__encoded).await?;
+
+                    Ok(())
+                }
             }
         }
-    };
+    }else {
+        expanded = quote! {
+            impl ferrumc_utils::type_impls::Encode for #name {
+                async fn encode<T>(&self, bytes: &mut T) -> std::result::Result<(), ferrumc_utils::error::Error>
+                    where
+                            T: tokio::io::AsyncWrite + tokio::io::AsyncSeek + std::marker::Unpin
+                {
+                    use tokio::io::AsyncWriteExt;
+                    #(#field_statements)*
+                    Ok(())
+                }
+            }
+        }
+    }
     expanded
 }
