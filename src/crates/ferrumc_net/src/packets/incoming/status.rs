@@ -1,13 +1,12 @@
-use std::sync::Arc;
 use base64::Engine;
-use log::info;
-use serde::Serialize;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio::sync::{OnceCell, RwLock};
-
 use ferrumc_macros::{Decode, packet};
 use ferrumc_utils::config;
 use ferrumc_utils::encoding::varint::VarInt;
+use ferrumc_utils::prelude::*;
+use log::info;
+use serde::Serialize;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::sync::{OnceCell};
 
 use crate::Connection;
 use crate::packets::IncomingPacket;
@@ -50,7 +49,7 @@ struct Description {
 }
 
 impl IncomingPacket for Status {
-    async fn handle(&self, conn: & mut Connection) -> Result<(), Error> {
+    async fn handle(&self, conn: &mut Connection) -> Result<()> {
         info!("Handling status request packet");
         let config = config::get_global_config();
 
@@ -88,8 +87,9 @@ impl IncomingPacket for Status {
         conn.socket.write_all(&response).await.map_err(|e| e.into())
     }
 }
+
 async fn get_encoded_favicon() -> &'static String {
-    static FAVICON: OnceCell<String> = OnceCell:: const_new();
+    static FAVICON: OnceCell<String> = OnceCell::const_new();
     FAVICON.get_or_init(|| async {
         let mut data = Vec::new();
         let Ok(mut image) = tokio::fs::File::open("icon-64.png").await else {

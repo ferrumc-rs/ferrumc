@@ -1,18 +1,17 @@
 #![feature(box_into_inner)]
 #![feature(fs_try_exists)]
 
-use std::{env};
+use std::env;
 use std::sync::Arc;
+
+#[warn(unused_imports)]
+use clap::Parser;
+use ferrumc_utils::prelude::*;
+use log::{debug, error, info, trace};
 #[allow(unused_imports)]
 use tokio::fs::try_exists;
-#[warn(unused_imports)]
-use clap::{Parser};
-
-use log::{debug, error, info, trace};
 use tokio::net::TcpListener;
 use tokio::sync::RwLock;
-
-use ferrumc_utils::prelude::*;
 
 mod prelude;
 mod tests;
@@ -32,7 +31,6 @@ struct Cli {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-
     if handle_setup().await? {
         return Ok(());
     }
@@ -75,21 +73,23 @@ async fn start_server(config: SafeConfig) -> Result<()> {
         trace!("{}", "-".repeat(100));
         debug!("Accepted connection from: {:?}", socket.peer_addr()?);
 
-        tokio::task::spawn(ferrumc_net::handle_connection(socket));
+        tokio::task::spawn(async {
+            if let Err(e) = ferrumc_net::handle_connection(socket).await {
+                error!("Error handling connection: {:?}", e);
+            }
+        });
     }
 }
 
 /// Handles the setup of the server
 /// bool : true if to exit the program
 async fn handle_setup() -> Result<bool> {
-
     let args = Cli::parse();
 
     if env::var("GITHUB_ACTIONS").is_ok() {
         env::set_var("RUST_LOG", "info");
         Ok(false)
-    }
-    else if args.setup {
+    } else if args.setup {
         setup::setup().await?;
         return Ok(true);
     } else {

@@ -1,10 +1,10 @@
-use std::sync::Arc;
+use ferrumc_macros::{Decode, packet};
+use ferrumc_utils::encoding::varint::VarInt;
+use ferrumc_utils::prelude::*;
 use log::debug;
 use tokio::io::AsyncWriteExt;
 use uuid::Uuid;
-use ferrumc_macros::{Decode, packet};
-use ferrumc_utils::encoding::varint::VarInt;
-use tokio::sync::RwLock;
+
 use crate::Connection;
 use crate::packets::IncomingPacket;
 
@@ -17,7 +17,7 @@ pub struct LoginStart {
 }
 
 impl IncomingPacket for LoginStart {
-    async fn handle(&self, conn: & mut Connection) -> Result<(), Error> {
+    async fn handle(&self, conn: &mut Connection) -> Result<()> {
         debug!("LoginStart packet received");
         debug!("Username: {}", self.username);
         debug!("UUID: {:X}", self.uuid);

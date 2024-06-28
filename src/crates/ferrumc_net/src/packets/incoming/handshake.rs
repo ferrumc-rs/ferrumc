@@ -1,7 +1,6 @@
-use std::sync::{Arc};
-use tokio::sync::RwLock;
 use ferrumc_macros::{Decode, packet};
 use ferrumc_utils::encoding::varint::VarInt;
+use ferrumc_utils::prelude::*;
 
 use crate::{Connection, State};
 use crate::packets::IncomingPacket;
@@ -16,13 +15,13 @@ pub struct Handshake {
 }
 
 impl IncomingPacket for Handshake {
-    async fn handle(&self, conn: &mut Connection) -> Result<(), Error> {
+    async fn handle(&self, conn: &mut Connection) -> Result<()> {
 
         conn.metadata.protocol_version = self.protocol_version.get_val();
         conn.state = match self.next_state.get_val() {
             1 => State::Status,
             2 => State::Login,
-            s => {return Err(Error::InvalidState(s as u32))}
+            s => {return Err(Error::InvalidState(s))}
         };
 
         Ok(())

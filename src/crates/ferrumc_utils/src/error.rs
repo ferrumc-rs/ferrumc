@@ -20,5 +20,5 @@ pub enum Error {
     #[error("Invalid packet id: {0}")]
     InvalidPacketId(u32),
     #[error("Invalid state: {0:x}")]
-    InvalidState(u32),
+    InvalidState(i32),
 }
