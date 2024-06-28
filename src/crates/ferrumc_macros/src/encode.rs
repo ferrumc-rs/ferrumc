@@ -91,7 +91,7 @@ pub(crate) fn generate_encode_func(input: DeriveInput) -> proc_macro2::TokenStre
                 statement = quote! {
                     #statement
 
-                    let #len = #bytes.len();
+                    let #len = self.#field_name.len();
                     let #len = ferrumc_utils::encoding::varint::VarInt::new(#len as i32);
 
                     #len.encode(&mut #cursor).await?;
@@ -100,26 +100,31 @@ pub(crate) fn generate_encode_func(input: DeriveInput) -> proc_macro2::TokenStre
 
             statement = quote! {
                 #statement
-                #cursor.write_all(&self.#field_name).await?;
+                tokio::io::AsyncWriteExt::write_all(&mut #cursor, &self.#field_name).await?;
 
-                let #bytes = #cursor.into_inner();
-                bytes.write_all(&#bytes).await?;
+                let mut #bytes = #cursor.into_inner();
+                tokio::io::AsyncWriteExt::write_all(bytes, &#bytes).await?;
             };
         } else {
             statement = quote! {
                 // <#type_name as Encode>::encode(&self.#ident, &mut bytes).await?;
-                <#field_name as Encode>::encode(&self.#field_name, &mut bytes).await?;
+                self.#field_name.encode(bytes).await?;
             };
         }
 
         field_statements.push(statement);
     }
     let expanded = quote! {
-        impl #name {
-            pub async fn encode(&self) -> ferrumc_utils::prelude::Result<Vec<u8>> {
-                let mut bytes = std::io::Cursor::new(Vec::new());
+        impl ferrumc_utils::type_impls::Encode for #name {
+            async fn encode<T>(&self, bytes: &mut T) -> std::result::Result<(), ferrumc_utils::error::Error>
+                where
+                    // T: AsyncWrite + AsyncSeek + Unpin
+            //defined type definition
+            T: tokio::io::AsyncWrite + tokio::io::AsyncSeek + std::marker::Unpin
+            {
                 #(#field_statements)*
-                Ok(Vec::new())
+
+                Ok(())
             }
         }
     };

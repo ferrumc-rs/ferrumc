@@ -3,6 +3,7 @@ use ferrumc_macros::{Decode, packet};
 use ferrumc_utils::config;
 use ferrumc_utils::encoding::varint::VarInt;
 use ferrumc_utils::prelude::*;
+use ferrumc_utils::type_impls::Encode;
 use log::info;
 use serde::Serialize;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -82,9 +83,11 @@ impl IncomingPacket for Status {
             }).unwrap(),
         };
 
-        let response = response.encode().await?;
+        let mut cursor = std::io::Cursor::new(Vec::new());
+        response.encode(&mut cursor).await?;
+        let response = cursor.into_inner();
 
-        conn.socket.write_all(&response).await.map_err(|e| e.into())
+        conn.socket.write_all(&*response).await.map_err(|e| e.into())
     }
 }
 

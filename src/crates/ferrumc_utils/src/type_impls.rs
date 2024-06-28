@@ -401,26 +401,17 @@ impl Encode for u128 {
     }
 }
 
-/*impl<V: Encode> Encode for Vec<V> {
+impl<V: Encode> Encode for Vec<V> {
     async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
     where
         T: AsyncWrite + AsyncSeek + Unpin,
     {
-        let len = VarInt::new(self.len() as i32);
-        len.encode(bytes).await?;
+        // Length of the vec in general can be handled with the
+        // Encode derive macro
+        // Therefore, we just need to encode each element
         for v in self {
             v.encode(bytes).await?;
         }
-        Ok(())
-    }
-}
-    */
-impl Encode for Vec<u8> {
-    async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
-    where
-        T: AsyncWrite + AsyncSeek + Unpin
-    {
-        bytes.write_all(self).await?;
         Ok(())
     }
 }

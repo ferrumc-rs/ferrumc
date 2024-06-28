@@ -14,7 +14,9 @@ pub struct LoginSuccess {
     // it's probably dependant on the properties field tho
     pub strict_error: bool,
 }
-struct Property {
+
+#[derive(Encode)]
+pub struct Property {
     name: String,
     value: String,
     is_signed: bool,

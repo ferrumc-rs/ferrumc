@@ -1,6 +1,7 @@
 use ferrumc_macros::{Decode, packet};
 use ferrumc_utils::encoding::varint::VarInt;
 use ferrumc_utils::prelude::*;
+use ferrumc_utils::type_impls::Encode;
 use log::info;
 use tokio::io::AsyncWriteExt;
 use crate::Connection;
@@ -17,15 +18,18 @@ impl IncomingPacket for Ping {
     async fn handle(&self, conn: &mut Connection) -> Result<()> {
         info!("Handling ping packet");
 
+        // tokio::io::AsyncWriteExt::write_all()
         let response = OutgoingPing {
             packet_id: VarInt::from(0x01),
             payload: self.payload,
         };
 
-        let response = response.encode().await?;
+        let mut cursor = std::io::Cursor::new(Vec::new());
+        response.encode(&mut cursor).await?;
+        let response = cursor.into_inner();
 
         conn.drop = true;
 
-        conn.socket.write_all(&response).await.map_err(|e| e.into())
+        conn.socket.write_all(&*response).await.map_err(|e| e.into())
     }
 }
