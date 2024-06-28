@@ -1,7 +1,7 @@
 #![feature(box_into_inner)]
 #![feature(fs_try_exists)]
 
-use std::{env, fs};
+use std::{env};
 use std::sync::Arc;
 #[allow(unused_imports)]
 use tokio::fs::try_exists;
@@ -33,29 +33,8 @@ struct Cli {
 #[tokio::main]
 async fn main() -> Result<()> {
 
-    let args = Cli::parse();
-
-    if env::var("GITHUB_ACTIONS").is_ok() {
-        env::set_var("RUST_LOG", "info");
-    }
-    else if args.setup {
-        setup::setup().await?;
+    if handle_setup().await? {
         return Ok(());
-    } else {
-        let exe = std::env::current_exe()?;
-        let dir = exe.parent();
-        match dir {
-            Some(dir) => {
-                let config_path = dir.join("config.toml");
-                if !config_path.exists() {
-                    setup::setup().await?;
-                }
-            }
-            None => {
-                error!("No parent directory found for executable! Please don't try run ferrumc from root, its really not a good idea");
-                return Ok(());
-            }
-        }
     }
 
     utils::setup_logger();
@@ -97,5 +76,37 @@ async fn start_server(config: SafeConfig) -> Result<()> {
         debug!("Accepted connection from: {:?}", socket.peer_addr()?);
 
         tokio::task::spawn(ferrumc_net::handle_connection(socket));
+    }
+}
+
+/// Handles the setup of the server
+/// bool : true if to exit the program
+async fn handle_setup() -> Result<bool> {
+
+    let args = Cli::parse();
+
+    if env::var("GITHUB_ACTIONS").is_ok() {
+        env::set_var("RUST_LOG", "info");
+        Ok(false)
+    }
+    else if args.setup {
+        setup::setup().await?;
+        return Ok(true);
+    } else {
+        let exe = std::env::current_exe()?;
+        let dir = exe.parent();
+        match dir {
+            Some(dir) => {
+                let config_path = dir.join("config.toml");
+                if !config_path.exists() {
+                    setup::setup().await?;
+                }
+                Ok(false)
+            }
+            None => {
+                error!("No parent directory found for executable! Please don't try run ferrumc from root, its really not a good idea");
+                return Ok(true);
+            }
+        }
     }
 }

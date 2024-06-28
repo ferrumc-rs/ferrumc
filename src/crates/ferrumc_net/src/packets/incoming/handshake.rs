@@ -1,3 +1,5 @@
+use std::sync::{Arc};
+use tokio::sync::RwLock;
 use ferrumc_macros::{Decode, packet};
 use ferrumc_utils::encoding::varint::VarInt;
 
@@ -14,7 +16,7 @@ pub struct Handshake {
 }
 
 impl IncomingPacket for Handshake {
-    async fn handle(&self, conn: &mut tokio::sync::RwLockWriteGuard<'_, Connection>) -> Result<(), Error> {
+    async fn handle(&self, conn: &mut Connection) -> Result<(), Error> {
 
         conn.metadata.protocol_version = self.protocol_version.get_val();
         conn.state = match self.next_state.get_val() {

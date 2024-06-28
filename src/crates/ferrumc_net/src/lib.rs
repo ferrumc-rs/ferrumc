@@ -3,19 +3,19 @@
 use std::cmp::PartialEq;
 use std::fmt::Display;
 use std::io::Cursor;
+use std::ops::DerefMut;
 use std::sync::{Arc, atomic, OnceLock};
 use std::sync::atomic::AtomicU32;
 
 use dashmap::DashMap;
+use ferrumc_utils::config::get_global_config;
+use ferrumc_utils::encoding::varint::read_varint;
+use ferrumc_utils::prelude::*;
 use log::{debug, trace};
 use rand::random;
 use tokio::io::AsyncReadExt;
 use tokio::io::AsyncWriteExt;
 use tokio::sync::RwLock;
-use ferrumc_utils::config::get_global_config;
-
-use ferrumc_utils::encoding::varint::read_varint;
-use ferrumc_utils::prelude::*;
 
 use crate::packets::handle_packet;
 
@@ -70,7 +70,7 @@ pub struct ConnectionList {
 #[derive()]
 pub struct Connection {
     // The connection id.
-    pub id: u32,
+    pub id: Arc<u32>,
     // The socket.
     pub socket: tokio::net::TcpStream,
     // The player uuid, if the connection is authenticated.
@@ -94,6 +94,35 @@ pub fn setup_tracer() {
 
 pub async fn handle_connection(socket: tokio::net::TcpStream) -> Result<()> {
     let mut id = random();
+    while CONNECTIONS().connections.contains_key(&id) {
+        id = random();
+    }
+
+    let conn = Connection {
+        id: Arc::new(id),
+        socket,
+        player_uuid: None,
+        state: State::Handshake,
+        metadata: ConnectionMetadata::default(),
+        drop: false,
+    };
+    let conn = Arc::new(RwLock::new(conn));
+
+    // Doesn't matter if we clone, since actual value is not cloned
+    CONNECTIONS().connections.insert(id, conn.clone());
+    CONNECTIONS().connection_count.fetch_add(1, atomic::Ordering::Relaxed);
+
+    let current_amount = CONNECTIONS().connection_count.load(atomic::Ordering::Relaxed);
+    debug!("Connection established with id: {}. Current connection count: {}", id, current_amount);
+
+    manage_conn(conn).await?;
+
+    Ok(())
+}
+
+/*
+pub async fn handle_connection(socket: tokio::net::TcpStream) -> Result<()> {
+    let mut id = random();
     // check if we have a collision (1 in 4.2 billion chance) and if so, generate a new id
     while CONNECTIONS().connections.contains_key(&id) {
         id = random();
@@ -114,35 +143,31 @@ pub async fn handle_connection(socket: tokio::net::TcpStream) -> Result<()> {
         .connection_count
         .fetch_add(1, atomic::Ordering::Relaxed);
 
-    debug!("Connection established with id: {}. Current connection count: {}", id, CONNECTIONS().connection_count.load(atomic::Ordering::Relaxed));
 
     // Get a reference to the connection
     let mut conn_ref = CONNECTIONS().connections.view(&id, |_k, v| { v.clone() }).unwrap();
     manage_conn(&mut conn_ref).await?;
 
     Ok(())
-}
+}*/
 
-pub async fn manage_conn(conn: &mut Arc<RwLock<Connection>>) -> Result<()> {
+pub async fn manage_conn(conn: Arc<RwLock<Connection>>) -> Result<()> {
     debug!("Starting receiver for the same addr: {:?}", conn.read().await.socket.peer_addr()?);
 
     loop {
         // Get the length of the packet
         let mut length_buffer = vec![0u8; 1];
-        {
-            let mut conn_write = conn.write().await;
-            conn_write.socket.read_exact(&mut length_buffer).await?;
-        }
+
+        let mut conn_write = conn.write().await;
+        conn_write.socket.read_exact(&mut length_buffer).await?;
+
 
         let length = length_buffer[0] as usize;
 
         // Get the rest of the packet
         let mut buffer = vec![0u8; length];
 
-        {
-            let mut conn_write = conn.write().await;
-            conn_write.socket.read_exact(&mut buffer).await?;
-        }
+        conn_write.socket.read_exact(&mut buffer).await?;
 
         let buffer = vec![length_buffer, buffer].concat();
 
@@ -155,12 +180,15 @@ pub async fn manage_conn(conn: &mut Arc<RwLock<Connection>>) -> Result<()> {
         trace!("Packet Length: {}", packet_length);
         trace!("Packet ID: {}", packet_id);
 
-        // Handle the packet
-        handle_packet(packet_id.get_val() as u8, conn, &mut cursor).await?;
+        let packet_id = packet_id.get_val() as u8;
+        let actual_connection = conn_write.deref_mut();
+        handle_packet(packet_id,actual_connection , &mut cursor).await?;
+/*        // Handle the packet
+        handle_packet(packet_id.get_val() as u8, conn.clone(), &mut cursor).await?;
 
         // Check if we need to drop the connection
         let do_drop = conn.read().await.drop;
-        let id = conn.read().await.id;
+        let id = *conn.read().await.id.clone();
 
         // Drop the connection if needed
         if do_drop {
@@ -168,14 +196,14 @@ pub async fn manage_conn(conn: &mut Arc<RwLock<Connection>>) -> Result<()> {
             conn.write().await.socket.shutdown().await?;
             break;
         }
-        
+
         tokio::time::sleep(
             if get_global_config().network_tick_rate > 0 {
                 std::time::Duration::from_millis(1000 / get_global_config().network_tick_rate as u64)
             } else {
                 std::time::Duration::from_millis(0)
             }
-        ).await;
+        ).await;*/
     }
     Ok(())
 }

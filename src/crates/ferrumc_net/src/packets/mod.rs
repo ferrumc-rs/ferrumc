@@ -12,7 +12,8 @@ pub mod outgoing;
 
 pub trait IncomingPacket {
     #[allow(async_fn_in_trait)]
-    async fn handle(&self, conn: &mut tokio::sync::RwLockWriteGuard<Connection>) -> Result<(), Error>;
+    // async fn handle(&self, conn: tokio::sync::RwLockWriteGuard<Connection>) -> Result<(), Error>;
+    async fn handle(&self, conn: &mut Connection) -> Result<(), Error>;
 }
 
 

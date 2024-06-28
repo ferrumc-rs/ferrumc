@@ -260,7 +260,7 @@ pub fn bake_packet_registry(input: TokenStream) -> TokenStream {
             match_arms.push(quote! {
                 (#packet_id, #state) => {
                     let packet = crate::packets::incoming::#struct_name_lowercase::#struct_name::decode(cursor).await?;
-                    packet.handle(&mut conn).await?;
+                    packet.handle(conn_owned).await?;
                 },
             });
         }
@@ -273,11 +273,10 @@ pub fn bake_packet_registry(input: TokenStream) -> TokenStream {
     let match_arms = match_arms.into_iter();
 
     let output = quote! {
-        pub async fn handle_packet(packet_id: u8, conn_owned: &mut Arc<RwLock<crate::Connection>>, cursor: &mut std::io::Cursor<Vec<u8>>) -> ferrumc_utils::prelude::Result<()> {
-            let mut conn = conn_owned.write().await;
-            match (packet_id, conn.state.as_str()) {
+        pub async fn handle_packet(packet_id: u8, conn_owned: &mut crate::Connection, cursor: &mut std::io::Cursor<Vec<u8>>) -> ferrumc_utils::prelude::Result<()> {
+            match (packet_id, conn_owned.state.as_str()) {
                 #(#match_arms)*
-                _ => println!("No packet found for ID: 0x{:02X} in state: {}", packet_id, conn_owned.read().await.state.as_str()),
+                _ => println!("No packet found for ID: 0x{:02X} in state: {}", packet_id, conn_owned.state.as_str()),
             }
 
             Ok(())
