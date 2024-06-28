@@ -8,6 +8,8 @@ use std::path::Path;
 use quote::quote;
 use syn::{DeriveInput, LitInt, LitStr, parse_macro_input};
 
+mod encode;
+
 #[proc_macro_derive(Decode)]
 pub fn decode_derive(input: TokenStream) -> TokenStream {
     // Parse the input tokens into a syntax tree
@@ -62,10 +64,16 @@ pub fn decode_derive(input: TokenStream) -> TokenStream {
     TokenStream::from(expanded)
 }
 
-#[proc_macro_derive(Encode)]
+#[proc_macro_derive(Encode, attributes(encode))]
 pub fn encode_derive(input: TokenStream) -> TokenStream {
-    // Parse the input tokens into a syntax tree
     let input = parse_macro_input!(input as DeriveInput);
+
+    let output = encode::generate_encode_func(input);
+
+    TokenStream::from(output)
+
+
+    /*// Parse the input tokens into a syntax tree
 
     // Used to store all field encoding statements
     let mut field_statements = Vec::new();
@@ -132,7 +140,7 @@ pub fn encode_derive(input: TokenStream) -> TokenStream {
 
 
     // Hand the output tokens back to the compiler
-    TokenStream::from(expanded)
+    TokenStream::from(expanded)*/
 }
 
 /// Just exists, so we can use it in the packet attribute

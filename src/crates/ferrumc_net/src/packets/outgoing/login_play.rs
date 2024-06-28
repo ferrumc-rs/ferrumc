@@ -1,7 +1,7 @@
 use ferrumc_macros::Encode;
 use ferrumc_utils::encoding::varint::VarInt;
 
-// #[derive(Encode)]
+#[derive(Encode)]
 pub struct LoginPlay {
     pub packet_id: VarInt,
     pub entity_id: i32,

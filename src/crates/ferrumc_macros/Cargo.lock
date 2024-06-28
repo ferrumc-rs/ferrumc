@@ -225,6 +225,7 @@ name = "ferrumc_macros"
 version = "0.1.0"
 dependencies = [
  "ferrumc_utils",
+ "proc-macro2",
  "quote",
  "syn",
  "tokio",
