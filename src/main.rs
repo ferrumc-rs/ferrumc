@@ -7,11 +7,11 @@ use std::sync::Arc;
 #[warn(unused_imports)]
 use clap::Parser;
 use ferrumc_utils::prelude::*;
-use log::{debug, error, info, trace};
 #[allow(unused_imports)]
 use tokio::fs::try_exists;
 use tokio::net::TcpListener;
 use tokio::sync::RwLock;
+use tracing::{debug, error, info, Instrument, trace};
 
 mod prelude;
 mod tests;
@@ -68,16 +68,16 @@ async fn start_server(config: SafeConfig) -> Result<()> {
     drop(config);
 
     loop {
-        let (socket, _) = listener.accept().await?;
+        let (socket, addy) = listener.accept().await?;
         // show a line of 100 dashes
         trace!("{}", "-".repeat(100));
         debug!("Accepted connection from: {:?}", socket.peer_addr()?);
 
         tokio::task::spawn(async {
-            if let Err(e) = ferrumc_net::handle_connection(socket).await {
+            if let Err(e) = ferrumc_net::handle_connection(socket).await{
                 error!("Error handling connection: {:?}", e);
             }
-        });
+        }.instrument(tracing::info_span!("handle_connection", %addy)));
     }
 }
 
