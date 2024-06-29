@@ -173,10 +173,10 @@ pub async fn manage_conn(conn: Arc<RwLock<Connection>>) -> Result<()> {
         let do_drop = read.drop;
         let id = read.id;
 
+        drop(read);
+
         if do_drop {
             drop_conn(id).await?;
-            let mut writer = conn.write().await;
-            writer.socket.shutdown().await?;
             break;
         }
 
@@ -196,7 +196,12 @@ pub async fn manage_conn(conn: Arc<RwLock<Connection>>) -> Result<()> {
 
 async fn drop_conn(connection_id: u32) -> Result<()> {
     debug!("Dropping connection with id: {}", connection_id);
-    CONNECTIONS().connections.remove(&connection_id);
+    let connection = CONNECTIONS().connections.remove(&connection_id);
+    let Some((_, conn_arc)) = connection else {
+        return Err(Error::ConnectionNotFound(connection_id));
+    };
+    let mut conn = conn_arc.write().await;
+    conn.socket.shutdown().await?;
     CONNECTIONS().connection_count.fetch_sub(1, atomic::Ordering::Relaxed);
     Ok(())
 }
