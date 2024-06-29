@@ -4,10 +4,10 @@ use ferrumc_utils::config;
 use ferrumc_utils::encoding::varint::VarInt;
 use ferrumc_utils::prelude::*;
 use ferrumc_utils::type_impls::Encode;
-use log::{debug, info};
 use serde::Serialize;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::sync::{OnceCell};
+use tracing::info;
 
 use crate::Connection;
 use crate::packets::IncomingPacket;
