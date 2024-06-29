@@ -115,7 +115,7 @@ pub async fn handle_connection(socket: tokio::net::TcpStream) -> Result<()> {
     let current_amount = CONNECTIONS().connection_count.load(atomic::Ordering::Relaxed);
     debug!("Connection established with id: {}. Current connection count: {}", id, current_amount);
 
-    let res = manage_conn(conn.clone()).await;
+    let res = manage_conn(conn).await;
 
     if let Err(e) = res {
         error!("Error occurred in {:?}: {:?}, dropping connection", id, e);
