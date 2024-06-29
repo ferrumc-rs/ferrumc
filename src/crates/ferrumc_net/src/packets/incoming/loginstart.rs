@@ -8,7 +8,6 @@ use uuid::Uuid;
 
 use crate::Connection;
 use crate::packets::IncomingPacket;
-use crate::packets::outgoing::login_success::Property;
 
 #[derive(Decode)]
 #[packet(packet_id = 0x00, state = "login")]
@@ -35,7 +34,6 @@ impl IncomingPacket for LoginStart {
             // property_count: VarInt::from(0),
             property_count: VarInt::new(0),
             properties: vec![],
-            strict_error: true,
         };
 
         let mut cursor = std::io::Cursor::new(Vec::new());
