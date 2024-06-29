@@ -1,4 +1,5 @@
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncSeek, AsyncWrite, AsyncWriteExt};
+use crate::encoding::position::Position;
 
 use crate::encoding::varint::{read_varint, VarInt, write_varint};
 use crate::encoding::varlong::{read_varlong, Varlong, write_varlong};
@@ -215,6 +216,27 @@ impl<V: Decode + Unpin> Decode for Vec<V> {
     }
 }
 
+impl Decode for Position {
+    async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
+    where
+        T: AsyncRead + AsyncSeek + Unpin,
+    {
+        let mut pos = Position {
+            x: 0,
+            y: 0,
+            z: 0,
+        };
+        
+        let full_data = bytes.read_i64().await?;
+
+        pos.x = (full_data >> 38) as i32;
+        pos.y = (full_data << 52 >> 52) as i16;
+        pos.z = (full_data << 26 >> 38) as i32;
+
+        Ok(Box::from(pos))
+    }
+}
+
 
 pub trait Encode {
     #[allow(unused)]
@@ -413,5 +435,17 @@ impl<V: Encode> Encode for Vec<V> {
             v.encode(bytes).await?;
         }
         Ok(())
+    }
+}
+
+
+impl Encode for Position {
+    async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
+    where
+        T: AsyncWrite + AsyncSeek + Unpin,
+    {
+        let u64val: u64 = ((self.x as u64 & 0x3FFFFFF) << 38) | ((self.z as u64 & 0x3FFFFFF) << 12) | (self.y as u64 & 0xFFF);
+        let u64bytes = u64val.to_be_bytes();
+        bytes.write_all(&u64bytes).await.map_err(|_| Error::Generic("Failed to write Position".parse().unwrap()))
     }
 }

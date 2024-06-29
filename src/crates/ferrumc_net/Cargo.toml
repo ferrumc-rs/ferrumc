@@ -19,7 +19,8 @@ serde_json = "1.0.117"
 base64 = "0.22.1"
 console-subscriber = "0.3.0"
 serde_derive = "1.0.203"
-
+fastnbt = "2.5.0"
+zopfli = "0.8.1"
 tracing = "0.1"
 tracing-subscriber = "0.3"
 log = { version = "0.4.21", features = [] }

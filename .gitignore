@@ -1,2 +1,4 @@
 **/target
 .idea
+/src/crates/ferrumc_net/NBT_CODEC.nbt
+/src/crates/ferrumc_net/NBT_CODEC.zlib

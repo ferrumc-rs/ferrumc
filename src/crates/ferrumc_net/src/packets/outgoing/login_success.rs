@@ -10,8 +10,6 @@ pub struct LoginSuccess {
     pub property_count: VarInt,
     // TODO: Figure out how what in the everloving fuck this is
     pub properties: Vec<Property>,
-    // For client gets an out of bounds read error when this is defined. I'd love to fix it but
-    // it's probably dependant on the properties field tho
 }
 
 #[derive(Encode)]
