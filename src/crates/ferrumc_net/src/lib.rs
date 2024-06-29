@@ -200,9 +200,10 @@ async fn drop_conn(connection_id: u32) -> Result<()> {
     let Some((_, conn_arc)) = connection else {
         return Err(Error::ConnectionNotFound(connection_id));
     };
+    CONNECTIONS().connection_count.fetch_sub(1, atomic::Ordering::Relaxed);
+    // drop the connection in the end, just in case it errors out
     let mut conn = conn_arc.write().await;
     conn.socket.shutdown().await?;
-    CONNECTIONS().connection_count.fetch_sub(1, atomic::Ordering::Relaxed);
     Ok(())
 }
 
