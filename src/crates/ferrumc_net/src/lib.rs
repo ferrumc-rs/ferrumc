@@ -12,10 +12,10 @@ use dashmap::DashMap;
 use ferrumc_utils::config::get_global_config;
 use ferrumc_utils::encoding::varint::read_varint;
 use ferrumc_utils::prelude::*;
-use log::{debug, trace};
 use rand::random;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::sync::RwLock;
+use tracing::{debug, trace};
 
 use crate::packets::handle_packet;
 

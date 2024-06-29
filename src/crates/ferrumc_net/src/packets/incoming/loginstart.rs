@@ -2,8 +2,8 @@ use ferrumc_macros::{Decode, packet};
 use ferrumc_utils::encoding::varint::VarInt;
 use ferrumc_utils::prelude::*;
 use ferrumc_utils::type_impls::Encode;
-use log::debug;
 use tokio::io::{AsyncWriteExt};
+use tracing::debug;
 use uuid::Uuid;
 
 use crate::Connection;
