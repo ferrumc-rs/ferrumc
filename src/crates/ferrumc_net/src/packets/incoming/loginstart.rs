@@ -33,15 +33,8 @@ impl IncomingPacket for LoginStart {
             uuid: uuid.as_bytes().into(),
             username: "OfflinePlayer".to_string(),
             // property_count: VarInt::from(0),
-            // property_count: VarInt::new(1),
-            properties: vec![
-                Property {
-                    name: "textures".to_string(),
-                    value: "eyJ0aW1lc3R".to_string(),
-                    is_signed: false,
-                    signature: "".to_string(),
-                }
-            ],
+            property_count: VarInt::new(0),
+            properties: vec![],
             strict_error: true,
         };
 
