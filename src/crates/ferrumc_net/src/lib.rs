@@ -15,7 +15,7 @@ use ferrumc_utils::prelude::*;
 use rand::random;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::sync::RwLock;
-use tracing::{debug, trace};
+use tracing::{debug, error, trace};
 
 use crate::packets::handle_packet;
 
@@ -115,10 +115,11 @@ pub async fn handle_connection(socket: tokio::net::TcpStream) -> Result<()> {
     let current_amount = CONNECTIONS().connection_count.load(atomic::Ordering::Relaxed);
     debug!("Connection established with id: {}. Current connection count: {}", id, current_amount);
 
-    let res = manage_conn(conn).await;
+    let res = manage_conn(conn.clone()).await;
 
     if let Err(e) = res {
-        debug!("Error occurred: {:?}", e);
+        error!("Error occurred in {:?}: {:?}, dropping connection", id, e);
+        drop_conn(id).await?;
     }
 
     Ok(())
@@ -162,11 +163,13 @@ pub async fn manage_conn(conn: Arc<RwLock<Connection>>) -> Result<()> {
         let actual_connection = conn_write.deref_mut();
         // Handle the packet
         handle_packet(packet_id, actual_connection, &mut cursor).await?;
+
         // drop the handle to the write lock. to allow other tasks to write/read
         drop(conn_write);
 
         let read = conn.read().await;
 
+        // drop if the connection is marked for drop
         let do_drop = read.drop;
         let id = read.id;
 
