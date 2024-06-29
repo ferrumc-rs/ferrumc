@@ -12,7 +12,6 @@ pub struct LoginSuccess {
     pub properties: Vec<Property>,
     // For client gets an out of bounds read error when this is defined. I'd love to fix it but
     // it's probably dependant on the properties field tho
-    pub strict_error: bool,
 }
 
 #[derive(Encode)]
