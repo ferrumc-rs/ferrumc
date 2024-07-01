@@ -1,6 +1,7 @@
 use ferrumc_macros::{Encode};
 use ferrumc_utils::encoding::varint::VarInt;
 
+/// Sent by the server to the client to start the play state.
 #[derive(Encode)]
 pub struct LoginSuccess {
     pub packet_id: VarInt,

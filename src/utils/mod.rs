@@ -1,5 +1,6 @@
 use ferrumc_utils::constants::DEFAULT_LOG_LEVEL;
 
+/// Sets up the logger. Needs to be run before anything else in order for logging to run end.
 pub fn setup_logger() {
     let trace_level = std::env::args()
         .find(|arg| arg.starts_with("--log="))
@@ -22,14 +23,6 @@ pub fn setup_logger() {
             std::process::exit(1);
         }
     };
-
-    /*env_logger::builder()
-        .filter_module("warp", log::LevelFilter::Info)
-        .filter_module("hyper", log::LevelFilter::Info)
-        .filter_module("tracing", log::LevelFilter::Info)
-        .filter_module("tokio_util", log::LevelFilter::Info)
-        .filter_level(trace_level)
-        .init();*/
     tracing_subscriber::fmt()
         .with_max_level(trace_level)
         .init();

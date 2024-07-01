@@ -4,6 +4,8 @@ use tokio::io::{AsyncRead, AsyncReadExt, AsyncSeek, AsyncWrite, AsyncWriteExt};
 
 use crate::error::Error;
 
+/// A VarInt is a variable-length integer that is used in the Minecraft protocol. Similar to
+/// protobuf's varint, it uses the least amount of bytes possible to represent the value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct VarInt {
     /// The value of the VarInt.
@@ -165,7 +167,9 @@ where
     let merged = stage1 | (most_significant_bits & most_significant_bits_mask);
     let bytes = merged.to_le_bytes();
 
-    cursor.write_all(unsafe { bytes.get_unchecked(..bytes_needed as usize) }).await?;
+    cursor
+        .write_all(unsafe { bytes.get_unchecked(..bytes_needed as usize) })
+        .await?;
 
     Ok(())
 }

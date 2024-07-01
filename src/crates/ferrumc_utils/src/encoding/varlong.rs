@@ -1,8 +1,11 @@
 use std::fmt::Display;
+
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncSeek, AsyncWrite, AsyncWriteExt};
 
 use crate::error::Error;
 
+/// A Varlong is a variable-length long that is used in the Minecraft protocol. Similar to
+/// [crate::encoding::varint], it uses the least amount of bytes possible to represent the value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct Varlong(pub i64);
 
@@ -61,7 +64,10 @@ mod tests {
         let mut cursor = Cursor::new(Vec::new());
         let result = write_varlong(Varlong::from(-2147483648), &mut cursor).await;
         assert!(result.is_ok());
-        assert_eq!(cursor.into_inner(), vec![0x80, 0x80, 0x80, 0x80, 0xf8, 0xff, 0xff, 0xff, 0xff, 0x01]);
+        assert_eq!(
+            cursor.into_inner(),
+            vec![0x80, 0x80, 0x80, 0x80, 0xf8, 0xff, 0xff, 0xff, 0xff, 0x01]
+        );
     }
 
     #[tokio::test]
@@ -91,12 +97,17 @@ mod tests {
         let mut cursor = Cursor::new(Vec::new());
         let result = write_varlong(Varlong::from(-1), &mut cursor).await;
         assert!(result.is_ok());
-        assert_eq!(cursor.into_inner(), vec![0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01]);
+        assert_eq!(
+            cursor.into_inner(),
+            vec![0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01]
+        );
     }
 }
 
-// Read a Varlong from the given cursor.
-// Yoinked from valence: https://github.com/valence-rs/valence/blob/main/crates/valence_protocol/src/var_int.rs#L69
+/// Read a Varlong from the given cursor. Uses simple bit shifting to read the value.
+///
+/// I did not write this, but I genuinely have no idea where it came from. I think it was from
+/// a Minecraft protocol library, but I can't find the original source.
 pub async fn read_varlong<T>(cursor: &mut T) -> Result<Varlong, Error>
 where
     T: AsyncRead + AsyncSeek + Unpin,
@@ -117,9 +128,13 @@ where
 }
 
 /// Write a Varlong to the given cursor.
+///
 /// Yoinked from valence: https://github.com/valence-rs/valence/blob/main/crates/valence_protocol/src/var_long.rs#L52
+///
 /// Uses some assembly magic to write the Varlong in a more efficient way. I have no idea how it works.
 /// If the target architecture is not x86 or x86_64, or the target OS is macOS, it falls back to a slower method.
+///
+/// Unfortunately, this method uses a fair amount of unsafe code, so it's not the most readable.
 #[cfg(all(
     any(target_arch = "x86", target_arch = "x86_64"),
     not(target_os = "macos")
@@ -167,16 +182,18 @@ where
     let merged = unsafe { _mm_or_si128(stage1, msbmask) };
     let bytes = unsafe { std::mem::transmute::<__m128i, [u8; 16]>(merged) };
 
-    w.write_all(unsafe { bytes.get_unchecked(..bytes_needed as usize) }).await?;
+    w.write_all(unsafe { bytes.get_unchecked(..bytes_needed as usize) })
+        .await?;
 
     Ok(())
 }
 
+/// Fallback method for writing a Varlong. Safer and cross-platform, but slower.
 #[cfg(any(
     not(any(target_arch = "x86", target_arch = "x86_64")),
     target_os = "macos"
 ))]
-async fn write_varlong<T>(varlong: Varlong, mut w: T) -> anyhow::Result<()> 
+async fn write_varlong<T>(varlong: Varlong, mut w: T) -> anyhow::Result<()>
 where
     T: AsyncWrite + Unpin,
 {

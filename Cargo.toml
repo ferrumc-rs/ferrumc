@@ -7,22 +7,18 @@ edition = "2021"
 
 [dependencies]
 # Async
-tokio = {version = "1.38.0", features = ["full"]}
+tokio = { version = "1.38.0", features = ["full"] }
 
 # Error handling
 anyhow = "1.0.86"
 thiserror = "1.0.61"
 
 # Logging
-#log = "0.4.21"
-#env_logger = "0.11.3"
-#console-subscriber = "0.3.0"
-#tracing = "0.1"
-tracing = "0.1"
-tracing-subscriber = "0.3"
+tracing = "0.1.40"
+tracing-subscriber = "0.3.18"
 
 # config / ser / de
-serde = { version = "1.0.203", features = ["derive"]}
+serde = { version = "1.0.203", features = ["derive"] }
 toml = "0.8.14"
 config = "0.14.0"
 lazy_static = "1.4.0"
@@ -31,11 +27,11 @@ lazy_static = "1.4.0"
 byteorder = "1.5.0"
 include-flate = "0.3.0"
 
-# Display
+# CLI
 spinners = "4.1.1"
+clap = { version = "4.5.8", features = ["derive"] }
 
 # Custom crates
-ferrumc_net = { path = "src/crates/ferrumc_net"}
-ferrumc_macros = { path = "src/crates/ferrumc_macros"}
-ferrumc_utils = { path = "src/crates/ferrumc_utils"}
-clap = { version = "4.5.7", features = ["derive"] }
+ferrumc_net = { path = "src/crates/ferrumc_net" }
+ferrumc_macros = { path = "src/crates/ferrumc_macros" }
+ferrumc_utils = { path = "src/crates/ferrumc_utils" }

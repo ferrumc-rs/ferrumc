@@ -24,6 +24,7 @@ pub struct Server {
 }
 
 impl ServerConfig {
+    /// Load the server configuration from the config file
     pub fn new() -> Result<Self, Error> {
         let settings = Config::builder()
             .add_source(config::File::with_name("config"))
@@ -67,6 +68,7 @@ impl ServerConfig {
     }
 }
 
+/// Check if the error is a not found error
 fn is_not_found(err: &ConfigError) -> bool {
     let ConfigError::Foreign(foreign_error) = err else {
         error!("Error wasn't foreign: {:?}", err);
@@ -81,6 +83,7 @@ fn is_not_found(err: &ConfigError) -> bool {
     io_error.kind() == NotFound
 }
 
+/// Check if the error is a missing field error
 fn missing_field(err: &ConfigError) -> Option<String> {
     if let ConfigError::Message(message) = err {
         if message.contains("missing field") {
@@ -90,6 +93,7 @@ fn missing_field(err: &ConfigError) -> Option<String> {
     None
 }
 
+/// Create a new config file
 fn create_config_file() -> Result<(), Error> {
     let path = std::path::Path::new(DEFAULT_CONFIG_FILE);
     if path.exists() {
@@ -116,7 +120,7 @@ impl Default for ServerConfig {
     }
 }
 
-
+/// Get the global server configuration
 pub fn get_global_config() -> &'static ServerConfig {
     static CONFIG: OnceLock<ServerConfig> = OnceLock::new();
     CONFIG.get_or_init(|| ServerConfig::new().expect("Failed to load config"))
