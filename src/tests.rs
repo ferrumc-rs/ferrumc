@@ -1,4 +1,3 @@
-
 #[cfg(test)]
 mod tests {
     use std::io::Cursor;
@@ -26,11 +25,3 @@ mod tests {
         assert_eq!(handshake.next_state, VarInt::new(1));
     }
 }
-/*
-struct Handshake {
-    protocol_version: VarInt,
-    server_address: String,
-    server_port: u16,
-    next_state: VarInt,
-}*/
-

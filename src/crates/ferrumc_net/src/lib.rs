@@ -9,13 +9,14 @@ use std::sync::atomic::AtomicU32;
 use std::time::Duration;
 
 use dashmap::DashMap;
-use ferrumc_utils::config::get_global_config;
-use ferrumc_utils::encoding::varint::read_varint;
-use ferrumc_utils::prelude::*;
 use rand::random;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::sync::RwLock;
 use tracing::{debug, error, trace};
+
+use ferrumc_utils::config::get_global_config;
+use ferrumc_utils::encoding::varint::read_varint;
+use ferrumc_utils::prelude::*;
 
 use crate::packets::handle_packet;
 
@@ -30,7 +31,6 @@ pub fn CONNECTIONS() -> &'static ConnectionList {
         connection_count: AtomicU32::new(0),
     })
 }
-
 
 #[derive(PartialEq, Debug)]
 pub enum State {
@@ -59,6 +59,9 @@ impl State {
     }
 }
 
+/// A list of connections, with a counter for the number of connections.
+///
+/// In desperate need of reworking.
 pub struct ConnectionList {
     // The connections, keyed with random values. The value also contains the connection id for ease of access.
     // pub connections: DashMap<u32, Connection>,
@@ -67,19 +70,20 @@ pub struct ConnectionList {
     pub connection_count: AtomicU32,
 }
 
-#[derive()]
+/// A connection to a client.
+///
+/// - `id`: The numerical ID for the connection. Is also the key for it's [ConnectionList] entry.
+/// - `socket`: The TCP socket for the connection ([tokio::net::TcpStream]).
+/// - `player_uuid`: The UUID of the player, if the connection is authenticated ([uuid::Uuid]).
+/// - `state`: The current state of the connection ([State]).
+/// - `metadata`: Metadata for the connection ([ConnectionMetadata]).
+/// - `drop`: Whether to drop and clean up the connection after this network tick.
 pub struct Connection {
-    // The connection id.
     pub id: u32,
-    // The socket.
     pub socket: tokio::net::TcpStream,
-    // The player uuid, if the connection is authenticated.
     pub player_uuid: Option<uuid::Uuid>,
-    // State
     pub state: State,
-    // Metadata
     pub metadata: ConnectionMetadata,
-    // Whether to drop and clean up the connection
     pub drop: bool,
 }
 
@@ -92,7 +96,12 @@ pub fn setup_tracer() {
     console_subscriber::init();
 }
 
-pub async fn handle_connection(socket: tokio::net::TcpStream) -> Result<()> {
+/// Handles a connection. This is the main entry point for a connection.
+///
+/// - `socket`: The TCP socket for the connection ([tokio::net::TcpStream]).
+///
+/// Creates a new [Connection] and adds it to the [ConnectionList]. Passes the connection to [manage_conn].
+pub async fn init_connection(socket: tokio::net::TcpStream) -> Result<()> {
     let mut id = random();
     while CONNECTIONS().connections.contains_key(&id) {
         id = random();
@@ -110,10 +119,17 @@ pub async fn handle_connection(socket: tokio::net::TcpStream) -> Result<()> {
 
     // Doesn't matter if we clone, since actual value is not cloned
     CONNECTIONS().connections.insert(id, conn.clone());
-    CONNECTIONS().connection_count.fetch_add(1, atomic::Ordering::Relaxed);
+    CONNECTIONS()
+        .connection_count
+        .fetch_add(1, atomic::Ordering::Relaxed);
 
-    let current_amount = CONNECTIONS().connection_count.load(atomic::Ordering::Relaxed);
-    debug!("Connection established with id: {}. Current connection count: {}", id, current_amount);
+    let current_amount = CONNECTIONS()
+        .connection_count
+        .load(atomic::Ordering::Relaxed);
+    debug!(
+        "Connection established with id: {}. Current connection count: {}",
+        id, current_amount
+    );
 
     let res = manage_conn(conn).await;
 
@@ -125,9 +141,17 @@ pub async fn handle_connection(socket: tokio::net::TcpStream) -> Result<()> {
     Ok(())
 }
 
-
+/// Manages a connection. This is the main loop for a connection.
+///
+/// - `conn`: The connection to manage ([Arc<RwLock<Connection>>]).
+///
+/// Reads packets from the connection and passes them to [handle_packet]. The handle_packet function
+/// is generated at compile time by [ferrumc_macros::bake_packet_registry].
 pub async fn manage_conn(conn: Arc<RwLock<Connection>>) -> Result<()> {
-    debug!("Starting receiver for the same addr: {:?}", conn.read().await.socket.peer_addr()?);
+    debug!(
+        "Starting receiver for the same addr: {:?}",
+        conn.read().await.socket.peer_addr()?
+    );
 
     loop {
         // Get the length of the packet
@@ -139,7 +163,6 @@ pub async fn manage_conn(conn: Arc<RwLock<Connection>>) -> Result<()> {
         conn_write.socket.read_exact(&mut length_buffer).await?;
 
         trace!("Length buffer: {:?}", length_buffer);
-
 
         let length = length_buffer[0] as usize;
 
@@ -183,8 +206,7 @@ pub async fn manage_conn(conn: Arc<RwLock<Connection>>) -> Result<()> {
         let tick_rate = get_global_config().network_tick_rate;
         let sleep_duration_millis: u64 = if tick_rate > 0 {
             1000 / tick_rate as u64
-        }
-        else {
+        } else {
             0
         };
 
@@ -200,12 +222,11 @@ async fn drop_conn(connection_id: u32) -> Result<()> {
     let Some((_, conn_arc)) = connection else {
         return Err(Error::ConnectionNotFound(connection_id));
     };
-    CONNECTIONS().connection_count.fetch_sub(1, atomic::Ordering::Relaxed);
+    CONNECTIONS()
+        .connection_count
+        .fetch_sub(1, atomic::Ordering::Relaxed);
     // drop the connection in the end, just in case it errors out
     let mut conn = conn_arc.write().await;
     conn.socket.shutdown().await?;
     Ok(())
 }
-
-
-

@@ -5,6 +5,9 @@ use ferrumc_utils::prelude::*;
 use crate::{Connection, State};
 use crate::packets::IncomingPacket;
 
+/// The first packet sent by the client to the server.
+/// 
+/// This packet is used to negotiate the protocol version, server address, server port, and the next state.
 #[derive(Decode)]
 #[packet(packet_id = 0x00, state = "handshake")]
 pub struct Handshake {

@@ -8,6 +8,10 @@ use crate::Connection;
 use crate::packets::IncomingPacket;
 use crate::packets::outgoing::ping::OutgoingPing;
 
+/// This ping packet is sent by the client to the server to request a pong.
+/// 
+/// The payload is a random number that the server should return in the pong.
+/// For some reason, seems to be required for the client to acknowledge the server's status response.
 #[derive(Decode)]
 #[packet(packet_id = 0x01, state = "status")]
 pub struct Ping {

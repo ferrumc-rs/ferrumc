@@ -1,22 +1,28 @@
 use base64::Engine;
+use serde::Serialize;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::sync::OnceCell;
+use tracing::info;
+
 use ferrumc_macros::{Decode, packet};
 use ferrumc_utils::config;
 use ferrumc_utils::encoding::varint::VarInt;
 use ferrumc_utils::prelude::*;
 use ferrumc_utils::type_impls::Encode;
-use serde::Serialize;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio::sync::{OnceCell};
-use tracing::info;
 
 use crate::Connection;
 use crate::packets::IncomingPacket;
 use crate::packets::outgoing::status::OutgoingStatusResponse;
 
+/// The status packet is sent by the client to the server to request the server's status.
+/// 
+/// Usually sent after handshaking is completed.
 #[derive(Decode)]
 #[packet(packet_id = 0x00, state = "status")]
 pub struct Status;
 
+/// The response to the status packet.
+/// Sent as json.
 #[derive(Serialize)]
 struct JsonResponse {
     version: Version,
@@ -80,7 +86,8 @@ impl IncomingPacket for Status {
                     text: config.motd.clone(),
                 },
                 favicon: get_encoded_favicon().await,
-            }).unwrap(),
+            })
+            .unwrap(),
         };
 
         let mut cursor = std::io::Cursor::new(Vec::new());
@@ -95,15 +102,20 @@ impl IncomingPacket for Status {
     }
 }
 
+/// Get the favicon as a base64 encoded string.
+/// 
+/// This is cached in a `OnceCell` to avoid reading the file every time.
 async fn get_encoded_favicon() -> &'static String {
     static FAVICON: OnceCell<String> = OnceCell::const_new();
-    FAVICON.get_or_init(|| async {
-        let mut data = Vec::new();
-        let Ok(mut image) = tokio::fs::File::open("icon-64.png").await else {
-            return String::new();
-        };
-        image.read_to_end(&mut data).await.unwrap_or_default();
-        let data = base64::engine::general_purpose::STANDARD.encode(&data);
-        format!("data:image/png;base64,{}", data)
-    }).await
+    FAVICON
+        .get_or_init(|| async {
+            let mut data = Vec::new();
+            let Ok(mut image) = tokio::fs::File::open("icon-64.png").await else {
+                return String::new();
+            };
+            image.read_to_end(&mut data).await.unwrap_or_default();
+            let data = base64::engine::general_purpose::STANDARD.encode(&data);
+            format!("data:image/png;base64,{}", data)
+        })
+        .await
 }
