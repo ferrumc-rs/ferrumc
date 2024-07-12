@@ -32,7 +32,7 @@ pub struct LoginPlay {
 }
 
 // A test to just produce the codec file
-#[cfg(test)]
+// #[cfg(test)]
 #[test]
 fn generate_codec() {
     use crate::the_dimension_codec::Root;

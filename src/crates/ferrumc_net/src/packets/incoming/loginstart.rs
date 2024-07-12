@@ -31,8 +31,7 @@ pub struct LoginStart {
 // MAKE SURE YOU RUN THE TEST IN THE login_play.rs FILE TO GENERATE THE NBT FILE
 // The NBT encoded data for the dimension codec. Using flate_include cos the codec file is like 40kb
 #[cfg(not(test))]
-flate!(pub static NBT_CODEC: [u8] from "codec.json");
-
+flate!(pub static NBT_CODEC: [u8] from "nbt_codec.nbt");
 #[cfg(test)]
 const NBT_CODEC: &[u8] = &[0u8; 1];
 
@@ -61,7 +60,6 @@ impl IncomingPacket for LoginStart {
 
             conn.socket.write_all(&*response).await?;
         }
-
         {
             let play_packet = crate::packets::outgoing::login_play::LoginPlay {
                 packet_id: VarInt::from(0x28),
@@ -80,8 +78,8 @@ impl IncomingPacket for LoginStart {
                 simulation_distance: VarInt::new(10),
                 reduced_debug_info: false,
                 enable_respawn_screen: true,
-                is_debug: false,
-                is_flat: false,
+                is_debug: true,
+                is_flat: true,
                 has_death_location: false,
                 portal_cooldown: VarInt::new(0),
             };
@@ -92,6 +90,8 @@ impl IncomingPacket for LoginStart {
 
             conn.socket.write_all(&*play_packet).await?;
         }
+
+
 
         {
             let spawn_position =
