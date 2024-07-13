@@ -1,0 +1,13 @@
+[package]
+name = "ferrumc_world"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+fastanvil = "0.31.0"
+serde = "1.0.204"
+serde_derive = "1.0.204"
+tokio = "1.38.0"
+simdnbt = "0.6.0"
+
+ferrumc_utils = { path = "../ferrumc_utils" }
