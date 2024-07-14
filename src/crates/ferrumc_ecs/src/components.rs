@@ -1,19 +1,18 @@
-#[derive(Debug, Default)]
+use std::any::Any;
+use std::fmt::Debug;
+
+#[derive(Debug)]
 pub struct Position {
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
+    pub(crate) x: i32,
+    pub(crate) y: i32,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct Velocity {
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
+    pub(crate) x: i32,
+    pub(crate) y: i32,
 }
 
-#[derive(Debug, Default)]
-pub struct Player {
-    pub name: String,
-    pub health: i32,
-}
+
+pub trait Component: Any + 'static + Debug {}
+impl<T: Any + 'static + Debug> Component for T {}
