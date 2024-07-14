@@ -10,3 +10,9 @@ max_players = 20
 # This is the number of times per second the server will send updates to the client.
 # Having this too low will cause noticable lag for clients but may improve server performance.
 network_tick_rate = 0
+# The world name to load. You can switch between mutliple worlds by changing this value.
+world = "world"
+
+[database]
+path = "data"
+port = 29325

@@ -31,8 +31,14 @@ include-flate = "0.3.0"
 spinners = "4.1.1"
 clap = { version = "4.5.8", features = ["derive"] }
 
+# Networking
+reqwest = "0.12.5"
+
+# Database
+surrealdb = { version = "1.5.4", features = ["protocol-http"] }
+
 # Custom crates
 ferrumc_net = { path = "src/crates/ferrumc_net" }
 ferrumc_macros = { path = "src/crates/ferrumc_macros" }
 ferrumc_utils = { path = "src/crates/ferrumc_utils" }
-simdnbt = "0.6.0"
+ferrumc_world = { path = "src/crates/ferrumc_world" }

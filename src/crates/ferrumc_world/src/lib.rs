@@ -1,8 +1,69 @@
+use std::collections::HashMap;
+use std::env::consts::OS;
 use std::io::Cursor;
+use std::process::{exit, Stdio};
 
 use simdnbt::owned::Nbt;
+use tokio::io::{AsyncBufReadExt, BufReader};
+use tracing::{error, warn};
 
+use ferrumc_utils::config::get_global_config;
 use ferrumc_utils::error::Error;
+
+pub async fn start_database() -> Result<(), Error> {
+    let envs: HashMap<&str, String> = HashMap::from([
+        (
+            "SURREAL_BIND",
+            format!(
+                "127.0.0.1:{}",
+                get_global_config().database.port.to_string()
+            ),
+        ),
+        (
+            "SURREAL_PATH",
+            format!("file:{}", get_global_config().database.path),
+        ),
+        ("SURREAL_LOG_LEVEL", "info".to_string()),
+        ("SURREAL_NO_BANNER", "true".to_string()),
+    ]);
+
+    let mut executable_name = match OS {
+        "windows" => ".\\surreal.exe",
+        "macos" => "./surreal",
+        "linux" => "./surreal",
+        _ => {
+            return Err(Error::Generic("Unsupported OS".to_string()));
+        }
+    };
+
+    if !tokio::fs::try_exists(executable_name).await.unwrap() {
+        if which::which("surreal").is_ok() {
+            warn!("Using system surreal executable. This may be outdated.");
+            executable_name = "surreal";
+        } else {
+            error!("Surreal executable not found at {}", executable_name);
+            exit(1);
+        }
+    }
+
+    let mut surreal_setup_process = tokio::process::Command::new(executable_name)
+        .arg("start")
+        .envs(envs)
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+
+    // Why the fuck does surrealdb use stderr by default???
+    let mut stderr = BufReader::new(surreal_setup_process.stderr.take().unwrap());
+    let mut output = String::new();
+    loop {
+        stderr.read_line(&mut output).await.unwrap();
+        if !output.is_empty() {
+            print!("SURREAL: {}", output);
+            output.clear();
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {

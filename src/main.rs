@@ -1,7 +1,10 @@
 #![feature(box_into_inner)]
 #![feature(fs_try_exists)]
+#![feature(async_closure)]
+#![feature(future_join)]
 
 use std::env;
+use std::future::join;
 use std::sync::Arc;
 
 #[warn(unused_imports)]
@@ -44,9 +47,13 @@ async fn main() -> Result<()> {
 
     let config = Arc::new(RwLock::new(config));
 
-    start_server(config.clone())
-        .await
-        .expect("Server failed to start!");
+    let procs = tokio::join!(
+        start_server(config.clone()),
+        ferrumc_world::start_database()
+    );
+
+    procs.0.unwrap();
+    procs.1.unwrap();
 
     tokio::signal::ctrl_c().await?;
 
