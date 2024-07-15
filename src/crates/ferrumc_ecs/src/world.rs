@@ -1,83 +1,77 @@
-use std::any::{Any, TypeId};
+use std::any::TypeId;
+use std::cell::RefCell;
 use std::collections::HashMap;
-use std::fmt::Debug;
 
-type Entity = u32;
+pub type Entity = u32;
 
 #[derive(Default)]
 pub struct World {
     entities: Vec<Entity>,
-    components: HashMap<TypeId, ComponentVec>,
+    components: HashMap<TypeId, Box<dyn ComponentStorage>>,
+}
+
+pub trait ComponentStorage {
+    fn as_any(&self) -> &dyn std::any::Any;
+    fn as_any_mut(&mut self) -> &mut dyn std::any::Any;
+}
+
+impl<T: 'static> ComponentStorage for HashMap<Entity, RefCell<T>> {
+    fn as_any(&self) -> &dyn std::any::Any {
+        self as &dyn std::any::Any
+    }
+
+    fn as_any_mut(&mut self) -> &mut dyn std::any::Any {
+        self as &mut dyn std::any::Any
+    }
 }
 
 impl World {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
     pub fn new_entity(&mut self) -> Entity {
-        let new_entity: Entity = self.entities.len() as Entity;
-        self.entities.push(new_entity);
-        new_entity
-    }
-}
-
-struct ComponentVec {
-    // Entity is the index of the entity in the world
-    data: HashMap<Entity, Box<dyn Any>>,
-    component_type: TypeId,
-}
-
-impl ComponentVec {
-    fn new<T: 'static>() -> Self {
-        ComponentVec {
-            data: HashMap::new(),
-            component_type: TypeId::of::<T>(),
-        }
+        let entity = self.entities.len() as Entity;
+        self.entities.push(entity);
+        entity
     }
 
-    fn insert<T: 'static>(&mut self, entity: Entity, component: T) {
-        self.data.insert(entity, Box::new(component));
-    }
-
-    fn get<T: 'static>(&self, entity: Entity) -> Option<&T> {
-        self.data.get(&entity)?.downcast_ref::<T>()
-    }
-
-    fn get_mut<T: 'static>(&mut self, entity: Entity) -> Option<&mut T> {
-        self.data.get_mut(&entity)?.downcast_mut::<T>()
-    }
-}
-
-impl World {
-    pub fn add_component<T: 'static + Debug>(&mut self, entity: Entity, component: T) {
-        println!("Adding component {:?} to {entity}", component);
-
+    pub fn add_component<T: 'static>(&mut self, entity: Entity, component: T) {
         let type_id = TypeId::of::<T>();
-
         self.components
             .entry(type_id)
-            .or_insert_with(|| ComponentVec::new::<T>())
-            .insert(entity, component);
-    }
-    pub fn get_component<T: 'static>(&self, entity: Entity) -> Option<&T> {
-        let type_id = TypeId::of::<T>();
-        self.components.get(&type_id)?.get(entity)
-    }
-    pub fn get_component_mut<T: 'static>(&mut self, entity: Entity) -> Option<&mut T> {
-        let type_id = TypeId::of::<T>();
-        self.components.get_mut(&type_id)?.get_mut(entity)
+            .or_insert_with(|| Box::new(HashMap::<Entity, RefCell<T>>::new()))
+            .as_any_mut()
+            .downcast_mut::<HashMap<Entity, RefCell<T>>>()
+            .unwrap()
+            .insert(entity, RefCell::new(component));
     }
 
-    pub fn get_component_data_values<T: 'static>(&self) -> Vec<&T> {
+    pub fn get_component<T: 'static>(&self, entity: Entity) -> Option<std::cell::Ref<T>> {
         let type_id = TypeId::of::<T>();
-        let empty_bindings: Vec<T> = Vec::new();
-
-        self.components.get(&type_id).map(|component_vec| {
-            component_vec.data.values().map(|boxed| {
-                boxed.downcast_ref::<T>().unwrap()
-            }).collect()
-        }).unwrap_or(Vec::new())
+        self.components
+            .get(&type_id)?
+            .as_any()
+            .downcast_ref::<HashMap<Entity, RefCell<T>>>()?
+            .get(&entity)
+            .map(|rc| rc.borrow())
     }
-    pub fn get_component_data<T: 'static>(&self) -> Option<&ComponentVec> {
-        let type_id = TypeId::of::<T>();
 
-        self.components.get(&type_id)
+    pub fn get_component_mut<T: 'static>(&self, entity: Entity) -> Option<std::cell::RefMut<T>> {
+        let type_id = TypeId::of::<T>();
+        self.components
+            .get(&type_id)?
+            .as_any()
+            .downcast_ref::<HashMap<Entity, RefCell<T>>>()?
+            .get(&entity)
+            .map(|rc| rc.borrow_mut())
+    }
+
+    pub fn get_all_components<T: 'static>(&self) -> Option<&HashMap<Entity, RefCell<T>>> {
+        let type_id = TypeId::of::<T>();
+        self.components
+            .get(&type_id)?
+            .as_any()
+            .downcast_ref::<HashMap<Entity, RefCell<T>>>()
     }
 }

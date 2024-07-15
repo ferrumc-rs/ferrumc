@@ -4,8 +4,8 @@ use std::cmp::PartialEq;
 use std::fmt::Display;
 use std::io::Cursor;
 use std::ops::DerefMut;
-use std::sync::{Arc, atomic, OnceLock};
 use std::sync::atomic::AtomicU32;
+use std::sync::{atomic, Arc, OnceLock};
 use std::time::Duration;
 
 use dashmap::DashMap;
@@ -116,7 +116,7 @@ pub async fn init_connection(socket: tokio::net::TcpStream) -> Result<()> {
         drop: false,
     };
     let conn = Arc::new(RwLock::new(conn));
-
+    let some_type = Arc::new(0);
     // Doesn't matter if we clone, since actual value is not cloned
     CONNECTIONS().connections.insert(id, conn.clone());
     CONNECTIONS()

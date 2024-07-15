@@ -3,16 +3,15 @@ use std::fmt::Debug;
 
 #[derive(Debug)]
 pub struct Position {
-    pub(crate) x: i32,
-    pub(crate) y: i32,
+    pub(crate) x: f32,
+    pub(crate) y: f32,
 }
 
 #[derive(Debug)]
 pub struct Velocity {
-    pub(crate) x: i32,
-    pub(crate) y: i32,
+    pub(crate) x: f32,
+    pub(crate) y: f32,
 }
-
 
 pub trait Component: Any + 'static + Debug {}
 impl<T: Any + 'static + Debug> Component for T {}

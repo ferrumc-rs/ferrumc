@@ -10,7 +10,7 @@ use clap::Parser;
 use tokio::fs::try_exists;
 use tokio::net::TcpListener;
 use tokio::sync::RwLock;
-use tracing::{debug, error, info, Instrument, trace};
+use tracing::{debug, error, info, trace, Instrument};
 
 use ferrumc_utils::prelude::*;
 
