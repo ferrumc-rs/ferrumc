@@ -116,7 +116,6 @@ pub async fn init_connection(socket: tokio::net::TcpStream) -> Result<()> {
         drop: false,
     };
     let conn = Arc::new(RwLock::new(conn));
-    let some_type = Arc::new(0);
     // Doesn't matter if we clone, since actual value is not cloned
     CONNECTIONS().connections.insert(id, conn.clone());
     CONNECTIONS()
@@ -126,6 +125,7 @@ pub async fn init_connection(socket: tokio::net::TcpStream) -> Result<()> {
     let current_amount = CONNECTIONS()
         .connection_count
         .load(atomic::Ordering::Relaxed);
+
     debug!(
         "Connection established with id: {}. Current connection count: {}",
         id, current_amount

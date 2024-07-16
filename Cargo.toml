@@ -35,3 +35,4 @@ clap = { version = "4.5.8", features = ["derive"] }
 ferrumc_net = { path = "src/crates/ferrumc_net" }
 ferrumc_macros = { path = "src/crates/ferrumc_macros" }
 ferrumc_utils = { path = "src/crates/ferrumc_utils" }
+ferrumc_ecs = { path = "src/crates/ferrumc_ecs" }

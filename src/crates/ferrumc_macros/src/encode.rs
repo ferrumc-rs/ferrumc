@@ -17,9 +17,9 @@ pub(crate) fn generate_encode_func(input: DeriveInput) -> proc_macro2::TokenStre
 
     let fields = match input.data {
         syn::Data::Struct(syn::DataStruct {
-                              fields: syn::Fields::Named(fields),
-                              ..
-                          }) => fields,
+            fields: syn::Fields::Named(fields),
+            ..
+        }) => fields,
         _ => panic!("Only structs are supported"),
     };
 
@@ -43,38 +43,39 @@ pub(crate) fn generate_encode_func(input: DeriveInput) -> proc_macro2::TokenStre
 
             let attrib_name = attrib.path().get_ident().unwrap();
 
-
             if attrib_name != "encode" {
                 continue;
             }
 
-            attrib.parse_nested_meta(|meta| {
-                if meta.path.is_ident("raw_bytes") {
-                    let mut prepend = false;
+            attrib
+                .parse_nested_meta(|meta| {
+                    if meta.path.is_ident("raw_bytes") {
+                        let mut prepend = false;
 
-                    meta.parse_nested_meta(|meta| {
-                        if meta.path.is_ident("prepend_length") {
-                            let value = meta.value().unwrap();
-                            let value = value.parse::<syn::LitBool>().unwrap();
-                            let value = value.value();
-                            prepend = value;
-                        }
+                        meta.parse_nested_meta(|meta| {
+                            if meta.path.is_ident("prepend_length") {
+                                let value = meta.value().unwrap();
+                                let value = value.parse::<syn::LitBool>().unwrap();
+                                let value = value.value();
+                                prepend = value;
+                            }
 
-                        Ok(())
-                    }).unwrap();
+                            Ok(())
+                        })
+                        .unwrap();
 
-                    field_attrib.raw_bytes = Some(RawBytes {
-                        prepend_length: prepend,
-                    });
-                }
+                        field_attrib.raw_bytes = Some(RawBytes {
+                            prepend_length: prepend,
+                        });
+                    }
 
-                Ok(())
-            }).unwrap();
+                    Ok(())
+                })
+                .unwrap();
         }
 
         field_attribs.push(field_attrib);
     }
-
 
     let mut field_statements = Vec::new();
 
@@ -152,7 +153,7 @@ pub(crate) fn generate_encode_func(input: DeriveInput) -> proc_macro2::TokenStre
                 }
             }
         }
-    }else {
+    } else {
         expanded = quote! {
             impl ferrumc_utils::type_impls::Encode for #name {
                 async fn encode<T>(&self, bytes: &mut T) -> std::result::Result<(), ferrumc_utils::error::Error>

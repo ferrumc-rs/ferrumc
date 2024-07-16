@@ -1,19 +1,24 @@
 use crate::components::{Position, Velocity};
 use crate::world::World;
 
+pub fn movement_system(world: &mut World) {
+    let (positions, velocities) = world.get_component_storages::<Position, Velocity>();
 
-pub fn movement_system(world: &World) {
-    let positions = world.get_all_components::<Position>().unwrap();
-    let velocities = world.get_all_components::<Velocity>().unwrap();
-
-    for (&entity, position) in positions {
-        if let Some(velocity) = velocities.get(&entity) {
-            let mut position = position.borrow_mut();
-            let velocity = velocity.borrow();
-
-            println!("Moving entity {}", entity);
-            position.x += velocity.x;
-            position.y += velocity.y;
+    let (positions, velocities) = match (positions, velocities) {
+        (Some(p), Some(v)) => (p, v),
+        _ => {
+            // If the component storage is missing, return early
+            println!("Missing component storage");
+            return;
         }
+    };
+
+    for (pos, vel) in positions.data.iter_mut().zip(velocities.data.iter()) {
+        let (Some(position), Some(velocity)) = (pos, vel) else {
+            continue;
+        };
+
+        position.add_velocity(velocity);
+        println!("New position: {:?}", position);
     }
 }

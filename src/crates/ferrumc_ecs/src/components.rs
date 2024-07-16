@@ -1,17 +1,22 @@
 use std::any::Any;
 use std::fmt::Debug;
 
-#[derive(Debug)]
+// Example components
+#[derive(Debug, Clone, Copy)]
 pub struct Position {
-    pub(crate) x: f32,
-    pub(crate) y: f32,
+    pub x: f32,
+    pub y: f32,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Velocity {
-    pub(crate) x: f32,
-    pub(crate) y: f32,
+    pub x: f32,
+    pub y: f32,
 }
 
-pub trait Component: Any + 'static + Debug {}
-impl<T: Any + 'static + Debug> Component for T {}
+impl Position {
+    pub fn add_velocity(&mut self, velocity: &Velocity) {
+        self.x += velocity.x;
+        self.y += velocity.y;
+    }
+}
