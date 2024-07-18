@@ -27,6 +27,7 @@ pub struct ServerConfig {
 pub struct DatabaseConfig {
     pub port: u32,
     pub path: String,
+    pub mode: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -131,6 +132,7 @@ impl Default for ServerConfig {
             database: DatabaseConfig {
                 port: 29325,
                 path: "data".to_string(),
+                mode: "file".to_string(),
             },
         }
     }

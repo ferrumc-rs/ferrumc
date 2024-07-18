@@ -14,4 +14,4 @@ ferrumc_utils = { path = "../ferrumc_utils" }
 log = "0.4.22"
 tracing = "0.1.40"
 which = "6.0.1"
-surreal = "0.4.1"
+surrealdb = { version = "1.5.4", features = ["protocol-http"] }

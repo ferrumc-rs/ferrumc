@@ -4,6 +4,8 @@ use std::io::Cursor;
 use std::process::{exit, Stdio};
 
 use simdnbt::owned::Nbt;
+use surrealdb::engine::remote::http::Http;
+use surrealdb::opt::auth::Root;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tracing::{error, warn};
 
@@ -11,6 +13,11 @@ use ferrumc_utils::config::get_global_config;
 use ferrumc_utils::error::Error;
 
 pub async fn start_database() -> Result<(), Error> {
+    let store_path = if get_global_config().database.mode == "file" {
+        format!("file:{}", get_global_config().database.path)
+    } else {
+        "memory".to_string()
+    };
     let envs: HashMap<&str, String> = HashMap::from([
         (
             "SURREAL_BIND",
@@ -19,10 +26,7 @@ pub async fn start_database() -> Result<(), Error> {
                 get_global_config().database.port.to_string()
             ),
         ),
-        (
-            "SURREAL_PATH",
-            format!("file:{}", get_global_config().database.path),
-        ),
+        ("SURREAL_PATH", store_path),
         ("SURREAL_LOG_LEVEL", "info".to_string()),
         ("SURREAL_NO_BANNER", "true".to_string()),
     ]);
@@ -48,10 +52,29 @@ pub async fn start_database() -> Result<(), Error> {
 
     let mut surreal_setup_process = tokio::process::Command::new(executable_name)
         .arg("start")
+        .arg("--auth")
         .envs(envs)
         .stderr(Stdio::piped())
         .spawn()
         .unwrap();
+
+    let db =
+        surrealdb::Surreal::new::<Http>(format!("127.0.0.1:{}", get_global_config().database.port))
+            .await
+            .unwrap();
+    db.signin(Root {
+        username: "ferrumc",
+        password: "ferrumc",
+    })
+    .await
+    .unwrap();
+    db.use_ns("ferrumc").await.unwrap();
+    db.use_db(get_global_config().world.clone()).await.unwrap();
+
+    let query = "\
+        DEFINE TABLE chunks;
+        DEFINE TABLE entities;";
+    db.query(query).await.unwrap();
 
     // Why the fuck does surrealdb use stderr by default???
     let mut stderr = BufReader::new(surreal_setup_process.stderr.take().unwrap());
@@ -104,7 +127,7 @@ pub async fn load_chunk(x: i32, z: i32) -> Result<Chunk, Error> {
     let mut region = fastanvil::Region::from_stream(region_file).unwrap();
     let raw_chunk_data = region
         .read_chunk(x as usize, z as usize)
-        .map_err(|e| {
+        .map_err(|_| {
             Error::Generic(format!(
                 "Unable to read chunk {} {} from region {} {} ",
                 x, z, region_area.0, region_area.1

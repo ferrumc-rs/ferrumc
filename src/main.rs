@@ -7,8 +7,6 @@ use std::env;
 use std::future::join;
 use std::sync::Arc;
 
-#[warn(unused_imports)]
-use clap::Parser;
 #[allow(unused_imports)]
 use tokio::fs::try_exists;
 use tokio::net::TcpListener;
@@ -22,14 +20,6 @@ mod tests;
 mod utils;
 
 type SafeConfig = Arc<RwLock<ferrumc_utils::config::ServerConfig>>;
-
-#[derive(Parser)]
-#[command(version, about, long_about = None)]
-struct Cli {
-    #[clap(long, default_value = "false")]
-    setup: bool,
-}
-
 #[tokio::main]
 async fn main() -> Result<()> {
     if handle_setup().await? {
@@ -100,15 +90,13 @@ async fn start_server(config: SafeConfig) -> Result<()> {
 ///
 /// Runs [setup::setup] if the server needs setting up
 async fn handle_setup() -> Result<bool> {
-    let args = Cli::parse();
-
     // This env var will be present if the server is running in a CI environment
     // This will lead to set up not running, but we just need to check for compilation success, not actual functionality
     if env::var("GITHUB_ACTIONS").is_ok() {
         env::set_var("RUST_LOG", "info");
         Ok(false)
     // If the setup flag is passed, run the setup regardless of the config file
-    } else if args.setup {
+    } else if env::args().any(|x| x == "setup") {
         setup::setup().await?;
         return Ok(true);
     // Check if the config file exists already and run the setup if it doesn't

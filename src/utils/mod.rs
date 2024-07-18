@@ -25,5 +25,9 @@ pub fn setup_logger() {
     };
     tracing_subscriber::fmt()
         .with_max_level(trace_level)
+        .with_env_filter(
+            tracing_subscriber::EnvFilter::from_default_env()
+                .add_directive("hyper=warn".parse().unwrap()),
+        )
         .init();
 }

@@ -27,15 +27,8 @@ lazy_static = "1.4.0"
 byteorder = "1.5.0"
 include-flate = "0.3.0"
 
-# CLI
-spinners = "4.1.1"
-clap = { version = "4.5.8", features = ["derive"] }
-
-# Networking
-reqwest = "0.12.5"
-
-# Database
-surrealdb = { version = "1.5.4", features = ["protocol-http"] }
+# OS
+which = "6.0.1"
 
 # Custom crates
 ferrumc_net = { path = "src/crates/ferrumc_net" }
