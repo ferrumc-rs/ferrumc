@@ -1,3 +1,4 @@
+use std::any::Any;
 use config::ConfigError;
 
 #[derive(thiserror::Error, Debug)]
@@ -21,4 +22,7 @@ pub enum Error {
     InvalidPacketId(u32),
     #[error("Invalid state: {0:x}")]
     InvalidState(i32),
+
+    #[error(transparent)]
+    Other(#[from] Box<dyn std::error::Error + Send + Sync>)
 }

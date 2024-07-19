@@ -574,6 +574,11 @@ dependencies = [
 [[package]]
 name = "ferrumc_ecs"
 version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "ferrumc_utils",
+ "thiserror",
+]
 
 [[package]]
 name = "ferrumc_macros"
