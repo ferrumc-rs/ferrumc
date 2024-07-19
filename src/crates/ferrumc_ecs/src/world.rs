@@ -1,3 +1,4 @@
+use std::fmt::Display;
 use std::sync::atomic::{AtomicU64, Ordering};
 use anyhow::__private::kind::TraitKind;
 use ferrumc_utils::error::Error;
@@ -9,6 +10,11 @@ use crate::error::DeallocationErrorType;
 pub struct Entity {
     id: u64,
     generation: u64,
+}
+impl Display for Entity {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
 }
 
 impl Entity {
@@ -63,14 +69,14 @@ impl EntityAllocator {
 
         if id >= self.generations.len() {
             // Invalid entity, since the id is out of bounds
-            let error = error::Error::DeallocationError(DeallocationErrorType::EntityNotFound(entity.id()));
+            let error = error::Error::DeallocationError(DeallocationErrorType::EntityNotFound(entity));
             return Err(error.into());
         }
 
         if self.generations[id] != entity.generation() {
             // Invalid entity, since the generation does not match
             // return Err(error::Error::DeallocationError("DeallocErrorType::InvalidGeneration".to_string()).into());
-            let error = error::Error::DeallocationError(DeallocationErrorType::InvalidGeneration(entity.id()));
+            let error = error::Error::DeallocationError(DeallocationErrorType::InvalidGeneration(entity));
             return Err(error.into());
         }
 

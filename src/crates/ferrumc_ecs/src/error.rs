@@ -1,3 +1,4 @@
+use crate::world::Entity;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -7,10 +8,10 @@ pub enum Error {
 
 #[derive(thiserror::Error, Debug)]
 pub enum DeallocationErrorType {
-    #[error("Entity with id {0} not found")]
-    EntityNotFound(u64),
-    #[error("Entity with id {0} has a different generation")]
-    InvalidGeneration(u64),
+    #[error("Entity {0} not found")]
+    EntityNotFound(Entity),
+    #[error("Entity {0} has a different generation")]
+    InvalidGeneration(Entity),
 }
 
 

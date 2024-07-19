@@ -18,8 +18,7 @@ fn main() {
     println!("Created entities: {:?} and {:?}", entity1, entity2);
 
     // Simulate entity destruction
-    let entity1 = allocator.deallocate(Entity::new(999, 92)).expect("Failed to deallocate entity");
-
+    let entity1 = allocator.deallocate(Entity::new(9999, 999)).expect("Failed to deallocate entity");
     // Reallocate
     let entity3 = allocator.allocate();
 
