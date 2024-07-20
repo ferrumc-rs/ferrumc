@@ -12,22 +12,6 @@ pub trait QueryFilterMut: 'static {
     unsafe fn filter_fetch_mut<'a>(storage: *mut ComponentStorage, entity_id: usize) -> Option<Self::Item<'a>>;
 }
 
-impl<T: Component> QueryFilter for T {
-    type Item<'a> = &'a T;
-
-    unsafe fn filter_fetch<'a>(storage: *const ComponentStorage, entity_id: usize) -> Option<Self::Item<'a>> {
-        (*storage).get::<T>(entity_id)
-    }
-}
-
-impl<T: Component> QueryFilterMut for T {
-    type Item<'a> = &'a mut T;
-
-    unsafe fn filter_fetch_mut<'a>(storage: *mut ComponentStorage, entity_id: usize) -> Option<Self::Item<'a>> {
-        (*storage).get_mut::<T>(entity_id)
-    }
-}
-
 pub struct Query<'a, F: QueryFilter> {
     storage: *const ComponentStorage,
     _marker: PhantomData<&'a F>,
@@ -74,7 +58,7 @@ impl<'a, F: QueryFilterMut> QueryMut<'a, F> {
     }
 }
 
-impl<A: Component, B: Component> QueryFilter for (A, B) {
+/*impl<A: Component, B: Component> QueryFilter for (A, B) {
     type Item<'a> = (&'a A, &'a B);
 
     unsafe fn filter_fetch<'a>(storage: *const ComponentStorage, entity_id: usize) -> Option<Self::Item<'a>> {
@@ -95,53 +79,66 @@ impl<A: Component, B: Component> QueryFilterMut for (A, B) {
         ))
     }
 }
-/*
-mod tests  {
-    use crate::components::{ComponentStorage, Position, Velocity};
-    use crate::query::{Query, QueryMut};
-    use crate::world::EntityAllocator;
+*/
+// macro to generate QueryFilter and QueryFilterMut impls for tuples of components
+macro_rules! impl_query_filter {
+    ($($comp:ident),*) => {
+        impl<$($comp: Component),*> QueryFilter for ($($comp,)*) {
+            type Item<'a> = ($(&'a $comp,)*);
 
-    struct MovementSystem;
-
-    impl MovementSystem {
-        pub fn run(storage: &mut ComponentStorage) {
-            let mut query = QueryMut::<(Position, Velocity)>::new(storage);
-
-            for (_, (pos, vel)) in query.iter_mut() {
-                pos.add_velocity(vel);
+            unsafe fn filter_fetch<'a>(storage: *const ComponentStorage, entity_id: usize) -> Option<Self::Item<'a>> {
+                Some((
+                    $($comp::filter_fetch(storage, entity_id)?,)*
+                ))
             }
         }
-    }
 
-    struct EntityLogger;
+        impl<$($comp: Component),*> QueryFilterMut for ($($comp,)*) {
+            type Item<'a> = ($(&'a mut $comp,)*);
 
-    impl EntityLogger {
-        pub fn log(storage: &ComponentStorage) {
-            let query = Query::<Position>::new(storage);
-
-            for (entity_id, pos) in query.iter() {
-                println!("Entity {}: {:?}", entity_id, pos);
+            unsafe fn filter_fetch_mut<'a>(storage: *mut ComponentStorage, entity_id: usize) -> Option<Self::Item<'a>> {
+                Some((
+                    $($comp::filter_fetch_mut(storage, entity_id)?,)*
+                ))
             }
         }
+    };
+}
+
+// Query::<(A)>::iter()
+impl_query_filter!(A);
+// Query::<(A, B)>::iter()
+impl_query_filter!(A, B);
+// And so on...
+impl_query_filter!(A, B, C);
+impl_query_filter!(A, B, C, D);
+impl_query_filter!(A, B, C, D, E);
+impl_query_filter!(A, B, C, D, E, F);
+impl_query_filter!(A, B, C, D, E, F, G);
+impl_query_filter!(A, B, C, D, E, F, G, H);
+impl_query_filter!(A, B, C, D, E, F, G, H, I);
+impl_query_filter!(A, B, C, D, E, F, G, H, I, J);
+impl_query_filter!(A, B, C, D, E, F, G, H, I, J, K);
+impl_query_filter!(A, B, C, D, E, F, G, H, I, J, K, L);
+
+// for non tuple (single) components
+// EX:
+// Query::<Position>::iter()
+// Or   
+// Query::<Velocity>::iter()
+
+impl<T: Component> QueryFilter for T {
+    type Item<'a> = &'a T;
+
+    unsafe fn filter_fetch<'a>(storage: *const ComponentStorage, entity_id: usize) -> Option<Self::Item<'a>> {
+        (*storage).get::<T>(entity_id)
     }
+}
 
-    #[test]
-    fn test_movement_system() {
-        let mut allocator = EntityAllocator::new();
-        let mut storage = ComponentStorage::new();
+impl<T: Component> QueryFilterMut for T {
+    type Item<'a> = &'a mut T;
 
-        allocator.allocate(&mut storage)
-            .with(Position::new(0.0, 0.0, 0.0))
-            .with(Velocity::new(1.0, 1.0, 1.0));
-
-        allocator.allocate(&mut storage)
-            .with(Position::new(1.0, 0.0, 3.0))
-            .with(Velocity::new(2.0, 2.0, 2.0));
-
-        allocator.allocate(&mut storage)
-            .with(Position::new(2.0, 0.0, 6.0));
-
-        MovementSystem::run(&mut storage);
-        EntityLogger::log(&storage);
+    unsafe fn filter_fetch_mut<'a>(storage: *mut ComponentStorage, entity_id: usize) -> Option<Self::Item<'a>> {
+        (*storage).get_mut::<T>(entity_id)
     }
-}*/
+}

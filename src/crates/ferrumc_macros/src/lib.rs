@@ -1,7 +1,6 @@
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
-use std::ops::Add;
 
 mod encode;
 mod decode;

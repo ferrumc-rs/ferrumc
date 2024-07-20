@@ -1,8 +1,7 @@
 #![allow(dead_code)]
 
-use crate::world::World;
 
-mod world;
+pub mod world;
 pub mod components;
 mod error;
 mod macros;

@@ -1,6 +1,5 @@
 use std::any::{Any, TypeId};
 use std::collections::HashMap;
-use ferrumc_macros::{Component, Constructor};
 
 
 use crate::component_id;

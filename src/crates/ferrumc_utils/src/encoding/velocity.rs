@@ -1,8 +1,8 @@
-use ferrumc_macros::Component;
+use ferrumc_macros::{Component, Constructor};
 
 /// Represents a velocity in the world
 /// FIXME: Just to test the ecs system for now
-#[derive(Debug, Component)]
+#[derive(Debug, Component, Constructor)]
 pub struct Velocity {
     // Encoded as a 26 bit int
     pub x: i32,
