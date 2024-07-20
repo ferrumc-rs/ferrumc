@@ -122,8 +122,8 @@ impl<T> SparseSet<T> {
     /// let sum: i32 = set.iter().sum();
     /// assert_eq!(sum, 3);
     /// ```
-    pub fn iter(&self) -> impl Iterator<Item = &T> {
-        self.dense.iter().map(|(_, value)| value)
+    pub fn iter(&self) -> impl Iterator<Item = (&usize, &T)> {
+        self.dense.iter().map(|(key, value)| (key, value))
     }
 
     /// Returns a mutable iterator over the values in the set.
@@ -141,8 +141,10 @@ impl<T> SparseSet<T> {
     /// assert_eq!(set.get(5), Some(&2));
     /// assert_eq!(set.get(10), Some(&4));
     /// ```
-    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut T> {
-        self.dense.iter_mut().map(|(_, value)| value)
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = (&mut usize, &mut T)> {
+        // self.dense.iter_mut().map(|(key, value)| value)
+        // somehow only get the value as mutable, the key should remain immutable
+        self.dense.iter_mut().map(|(key, value)| (key, value))
     }
 
     /// Removes all elements from the set.
@@ -225,7 +227,7 @@ mod tests {
         set.insert(10, 10);
         set.insert(20, 20);
 
-        let mut iter = set.iter();
+        let mut iter = set.iter().map(|(_, value)| value);
         assert_eq!(iter.next(), Some(&0));
         assert_eq!(iter.next(), Some(&10));
         assert_eq!(iter.next(), Some(&20));
@@ -239,7 +241,7 @@ mod tests {
         set.insert(10, 10);
         set.insert(20, 20);
 
-        for value in set.iter_mut() {
+        for (_, value) in set.iter_mut() {
             *value += 1;
         }
 

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use ecs_macros::{Component, Constructor};
 use crate::{component_id};
 use crate::dsa::sparse_set::SparseSet;
-use crate::world::Entity;
+use crate::query::Query;
 
 pub trait Component: 'static {}
 
@@ -21,7 +21,13 @@ pub struct Velocity {
     z: f32,
 }
 
-// register_components!(Position, Velocity);
+impl Position {
+    pub fn add_velocity(&mut self, velocity: &Velocity) {
+        self.x += velocity.x;
+        self.y += velocity.y;
+        self.z += velocity.z;
+    }
+}
 
 
 pub struct ComponentStorage {
@@ -35,36 +41,56 @@ impl ComponentStorage {
         }
     }
 
-    pub fn insert<T: Component>(&mut self, entity:&Entity, component: T) {
+    pub fn insert<T: Component>(&mut self, entity_id: impl Into<usize>, component: T) {
         let storage = self.storages
             .entry(component_id!(T))
             .or_insert_with(|| Box::new(SparseSet::<T>::new()));
 
         let storage = storage.downcast_mut::<SparseSet<T>>().unwrap();
-        storage.insert(entity.id() as usize, component);
+        storage.insert(entity_id.into(), component);
     }
 
-    pub fn remove<T: Component>(&mut self, entity: Entity) -> Option<T> {
+    pub fn remove<T: Component>(&mut self, entity_id: impl Into<usize>) -> Option<T> {
         self.storages.get_mut(&component_id!(T))
             .and_then(|storage| {
                 let storage = storage.downcast_mut::<SparseSet<T>>().unwrap();
-                storage.remove(entity.id() as usize)
+                storage.remove(entity_id.into())
             })
     }
 
-    pub fn get<T: Component>(&self, entity: &Entity) -> Option<&T> {
+    pub fn get<T: Component>(&self, entity_id: impl Into<usize>) -> Option<&T> {
         self.storages.get(&component_id!(T))
             .and_then(|storage| {
                 let storage = storage.downcast_ref::<SparseSet<T>>().unwrap();
-                storage.get(entity.id() as usize)
+                storage.get(entity_id.into())
             })
     }
 
-    pub fn get_mut<T: Component>(&mut self, entity: Entity) -> Option<&mut T> {
+    pub fn get_mut<T: Component>(&mut self, entity_id: impl Into<usize>) -> Option<&mut T> {
         self.storages.get_mut(&component_id!(T))
             .and_then(|storage| {
                 let storage = storage.downcast_mut::<SparseSet<T>>().unwrap();
-                storage.get_mut(entity.id() as usize)
+                storage.get_mut(entity_id.into())
             })
+    }
+
+    pub fn get_storage<T: Component>(&self) -> Option<&SparseSet<T>> {
+        self.storages.get(&component_id!(T))
+            .and_then(|storage| {
+                storage.downcast_ref::<SparseSet<T>>()
+            })
+    }
+
+    pub fn get_storage_mut<T: Component>(&mut self) -> Option<&mut SparseSet<T>> {
+        self.storages.get_mut(&component_id!(T))
+            .and_then(|storage| {
+                storage.downcast_mut::<SparseSet<T>>()
+            })
+    }
+}
+
+impl ComponentStorage {
+    pub fn query<T: Component>(&mut self) -> Query<T> {
+        Query::new(self)
     }
 }

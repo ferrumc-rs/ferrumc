@@ -1,5 +1,7 @@
 use std::fmt::Display;
 use std::sync::atomic::{AtomicU64, Ordering};
+
+use crate::components::{Component, ComponentStorage};
 use crate::error;
 use crate::error::DeallocationErrorType;
 
@@ -8,6 +10,13 @@ pub struct Entity {
     id: u64,
     generation: u64,
 }
+
+impl Into<usize> for &Entity {
+    fn into(self) -> usize {
+        self.id as usize
+    }
+}
+
 impl Display for Entity {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self)
@@ -46,7 +55,19 @@ impl EntityAllocator {
         }
     }
 
-    pub fn allocate(&mut self) -> Entity {
+    /// Allocates a new entity.
+    /// Returns a builder that can be used to add components to the entity.
+    pub fn allocate<'a>(&mut self, component_storage: &'a mut ComponentStorage) -> EntityBuilder<'a> {
+        let entity = self.allocate_entity();
+
+        EntityBuilder {
+            entity,
+            component_storage,
+        }
+    }
+
+    /// Simply allocates an entity without any components.
+    pub fn allocate_entity(&mut self) -> Entity {
         if let Some(id) = self.free_ids.pop() {
             let generation = self.generations[id as usize];
             Entity::new(id, generation)
@@ -84,6 +105,22 @@ impl EntityAllocator {
     }
 }
 
+pub struct EntityBuilder<'a> {
+    entity: Entity,
+    component_storage: &'a mut ComponentStorage,
+}
+
+impl<'a> EntityBuilder<'a> {
+    pub fn with<T: Component>(self, component: T) -> Self {
+        self.component_storage.insert(&self.entity, component);
+        self
+    }
+
+    pub fn build(self) -> Entity {
+        self.entity
+    }
+}
+
 
 #[cfg(test)]
 mod tests {
@@ -92,8 +129,8 @@ mod tests {
     #[test]
     fn test_entity_creation() {
         let mut allocator = EntityAllocator::new();
-        let e1 = allocator.allocate();
-        let e2 = allocator.allocate();
+        let e1 = allocator.allocate_entity();
+        let e2 = allocator.allocate_entity();
         assert_ne!(e1, e2);
         assert_eq!(e1.id() + 1, e2.id());
     }
@@ -101,9 +138,9 @@ mod tests {
     #[test]
     fn test_entity_generation() {
         let mut allocator = EntityAllocator::new();
-        let e1 = allocator.allocate();
+        let e1 = allocator.allocate_entity();
         let e1 = allocator.deallocate(e1).expect("Failed to deallocate entity");
-        let e2 = allocator.allocate();
+        let e2 = allocator.allocate_entity();
         assert_ne!(e1, e2);
         assert_eq!(e1.id() + 1, e2.id());
         assert_eq!(e1.generation(), 0);
