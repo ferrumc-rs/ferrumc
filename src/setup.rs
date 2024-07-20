@@ -1,4 +1,4 @@
-use std::{env, thread};
+use std::{env};
 use std::collections::HashMap;
 use std::env::consts::OS;
 use std::env::current_exe;
@@ -6,7 +6,7 @@ use std::process::Stdio;
 
 use include_flate::flate;
 use tokio::fs;
-use tokio::io::{AsyncBufReadExt, AsyncReadExt, BufReader};
+use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::Command;
 use tracing::{error, info};
 
@@ -21,7 +21,7 @@ flate!(pub static BASE_CONFIG: [u8] from "config.toml");
 ///
 /// This function will create the necessary files and directories for the server to run. Also generates a default config file
 pub(crate) async fn setup() -> Result<(), Error> {
-    println!("> Creating files...");
+    info!("Creating files...");
     let exe = current_exe()?;
     let dir = exe.parent().unwrap();
     fs::write(dir.join("config.toml"), BASE_CONFIG.to_vec()).await?;
@@ -47,7 +47,7 @@ pub(crate) async fn setup() -> Result<(), Error> {
             return Err(Error::Generic("Unsupported OS".to_string()));
         }
     };
-    println!("> Downloading database...");
+    info!("Downloading database...");
     if which::which("curl").is_ok() {
         let command_result = Command::new("curl")
             .current_dir(dir)
@@ -129,7 +129,7 @@ pub(crate) async fn setup() -> Result<(), Error> {
         fs::remove_file(executable_name).await?;
         executable_name = "surreal";
     }
-    println!("> Setting up database...");
+    info!("Setting up database...");
     let envs = HashMap::from([
         (
             "SURREAL_PATH",
@@ -163,6 +163,6 @@ pub(crate) async fn setup() -> Result<(), Error> {
     }
 
     surreal_setup_process.kill().await.unwrap();
-    println!("Files setup successfully!");
+    info!("Files setup successfully!");
     Ok(())
 }

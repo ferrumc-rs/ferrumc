@@ -1,4 +1,4 @@
-use tracing::{info, trace};
+use tracing::{trace};
 use ferrumc_macros::{Decode, packet};
 use crate::Connection;
 use crate::packets::IncomingPacket;

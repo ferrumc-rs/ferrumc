@@ -50,9 +50,11 @@ pub async fn start_database() -> Result<(), Error> {
         }
     }
 
+    // start memory -A --auth --user root --pass root
     let mut surreal_setup_process = tokio::process::Command::new(executable_name)
         .arg("start")
-        .arg("--auth")
+        // .args(&["-A", "--auth", "--user", "ferrumc", "--pass", "ferrumc"])
+        .args(&["-A", "--auth"])
         .envs(envs)
         .stderr(Stdio::piped())
         .spawn()
@@ -82,7 +84,7 @@ pub async fn start_database() -> Result<(), Error> {
     loop {
         stderr.read_line(&mut output).await.unwrap();
         if !output.is_empty() {
-            print!("SURREAL: {}", output);
+            print!("{output}");
             output.clear();
         }
     }

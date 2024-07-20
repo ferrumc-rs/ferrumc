@@ -4,7 +4,6 @@
 #![feature(future_join)]
 
 use std::env;
-use std::future::join;
 use std::sync::Arc;
 
 #[allow(unused_imports)]
@@ -22,11 +21,12 @@ mod utils;
 type SafeConfig = Arc<RwLock<ferrumc_utils::config::ServerConfig>>;
 #[tokio::main]
 async fn main() -> Result<()> {
+    utils::setup_logger();
+    
     if handle_setup().await? {
         return Ok(());
     }
-
-    utils::setup_logger();
+    
     info!("Initializing server...");
 
     let start = std::time::Instant::now();
@@ -41,9 +41,9 @@ async fn main() -> Result<()> {
         start_server(config.clone()),
         ferrumc_world::start_database()
     );
-
-    procs.0.unwrap();
-    procs.1.unwrap();
+    
+    procs.0?;
+    procs.1?;
 
     tokio::signal::ctrl_c().await?;
 
