@@ -21,7 +21,6 @@ fastnbt = "2.5.0"
 zopfli = "0.8.1"
 tracing = "0.1"
 tracing-subscriber = "0.3"
-log = { version = "0.4.22", features = [] }
 include-flate = "0.3.0"
 
 

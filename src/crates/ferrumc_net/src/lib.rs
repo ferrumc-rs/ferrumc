@@ -9,20 +9,28 @@ use std::sync::{atomic, Arc, OnceLock};
 use std::time::Duration;
 
 use dashmap::DashMap;
+use ferrumc_ecs::world::{Entity, World};
 use rand::random;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio::sync::RwLock;
+use tokio::sync::{RwLock};
 use tracing::{debug, error, trace};
 
 use ferrumc_utils::config::get_global_config;
 use ferrumc_utils::encoding::varint::read_varint;
 use ferrumc_utils::prelude::*;
+use ferrumc_utils::type_impls::Encode;
 
-use crate::packets::handle_packet;
+use crate::packets::{handle_packet, IncomingPacket};
 
 pub mod packets;
 pub mod the_dimension_codec;
 mod test_ecs;
+
+#[allow(non_snake_case)]
+pub fn GET_WORLD() -> &'static RwLock<World> {
+    static WORLD: OnceLock<RwLock<World>> = OnceLock::new();
+    WORLD.get_or_init(|| RwLock::new(World::new()))
+}
 
 #[allow(non_snake_case)]
 pub fn CONNECTIONS() -> &'static ConnectionList {
@@ -91,6 +99,7 @@ pub struct Connection {
 #[derive(Debug, Default)]
 pub struct ConnectionMetadata {
     pub protocol_version: i32,
+    pub entity: Option<Entity>,
 }
 
 pub fn setup_tracer() {
@@ -230,4 +239,14 @@ async fn drop_conn(connection_id: u32) -> Result<()> {
     let mut conn = conn_arc.write().await;
     conn.socket.shutdown().await?;
     Ok(())
+}
+
+impl Connection {
+    pub async fn send_packet(&mut self, packet: impl Encode) -> Result<()> {
+        let mut cursor = Cursor::new(Vec::new());
+        packet.encode(&mut cursor)?;
+        let packet = cursor.into_inner();
+        self.socket.write_all(&*packet).await?;
+        Ok(())
+    }
 }

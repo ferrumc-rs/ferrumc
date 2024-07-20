@@ -6,9 +6,9 @@ use crate::component_id;
 use crate::dsa::sparse_set::SparseSet;
 use crate::query::{Query, QueryFilter};
 
-pub trait Component: 'static {}
+pub trait Component: 'static + Send + Sync {}
 
-pub trait ComponentType: Any {
+pub trait ComponentType: Any + Send + Sync {
     fn remove(&mut self, entity_id: usize);
     fn as_any(&self) -> &dyn Any;
     fn as_any_mut(&mut self) -> &mut dyn Any;

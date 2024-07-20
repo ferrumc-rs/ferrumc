@@ -1,14 +1,19 @@
+use std::time::{Duration, Instant};
 use tokio::io::AsyncWriteExt;
 use tracing::debug;
 use uuid::Uuid;
 
 use ferrumc_macros::{Decode, packet};
+use ferrumc_utils::components::keep_alive::KeepAlive;
+use ferrumc_utils::components::player::Player;
 use ferrumc_utils::encoding::position::Position;
 use ferrumc_utils::encoding::varint::VarInt;
 use ferrumc_utils::prelude::*;
 use ferrumc_utils::type_impls::Encode;
+#[cfg(not(test))]
+use include_flate::flate;
 
-use crate::Connection;
+use crate::{Connection, GET_WORLD};
 use crate::packets::IncomingPacket;
 use crate::State::Play;
 
@@ -89,14 +94,12 @@ impl IncomingPacket for LoginStart {
 
             conn.socket.write_all(&*play_packet).await?;
         }
-
-
-
+        let player_position = Position { x: 0, y: 0, z: 0 };
         {
             let spawn_position =
                 crate::packets::outgoing::defaultspawnposition::DefaultSpawnPosition {
                     packet_id: VarInt::from(0x50),
-                    location: Position { x: 0, y: 0, z: 0 },
+                    location: player_position.clone(),
                     angle: 0.0,
                 };
 
@@ -107,6 +110,25 @@ impl IncomingPacket for LoginStart {
             conn.socket.write_all(&*spawn_position).await?;
         }
 
+
+        let world = GET_WORLD();
+        let mut world = world.write().await;
+
+        let keep_alive = KeepAlive::new(Instant::from(Duration::ZERO), Instant::now());
+
+        {
+
+        }
+
+        // Create a new player entity with the respective player component
+        let player = world.create_entity()
+            .with(Player::new(self.uuid, self.username.clone()))
+            // last_received, last_sent (INSTANT)
+            .with(keep_alive.clone())
+            .with(player_position)
+            .build();
+
+        conn.metadata.entity = Some(player);
         conn.state = Play;
 
         Ok(())

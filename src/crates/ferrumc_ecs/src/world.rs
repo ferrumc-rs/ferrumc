@@ -35,6 +35,10 @@ impl World {
     pub fn query_mut<F: QueryFilterMut>(&mut self) -> QueryMut<F> {
         QueryMut::<F>::new(&mut self.component_storage)
     }
+
+    pub fn get_component_storage(&self) -> &ComponentStorage {
+        &self.component_storage
+    }
 }
 
 pub struct EntityBuilder<'a> {
@@ -54,7 +58,7 @@ impl<'a> EntityBuilder<'a> {
 }
 
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Default)]
 pub struct Entity {
     id: u64,
     generation: u64,

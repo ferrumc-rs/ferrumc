@@ -8,3 +8,4 @@ pub mod prelude;
 
 pub mod config;
 pub mod constants;
+pub mod components;

@@ -5,6 +5,7 @@ use spinners::{Spinner, Spinners};
 use include_flate::flate;
 use tracing::{info};
 
+
 flate!(pub static BASE_CONFIG: [u8] from "config.toml");
 
 /// Handles the setup of the server

@@ -5,7 +5,7 @@ use ferrumc_macros::{Component, Constructor};
 ///
 /// Check out the [Position::encode] and [Position::decode]
 /// implementations for more information on how this struct is encoded and decoded
-#[derive(Debug, Component, Constructor)]
+#[derive(Debug, Component, Constructor, Clone)]
 pub struct Position {
     // Encoded as a 26 bit int
     pub x: i32,

@@ -6,6 +6,8 @@ use std::sync::Arc;
 
 #[warn(unused_imports)]
 use clap::Parser;
+use ferrumc_ecs::world::World;
+use ferrumc_utils::config::get_global_config;
 #[allow(unused_imports)]
 use tokio::fs::try_exists;
 use tokio::net::TcpListener;
@@ -42,9 +44,8 @@ async fn main() -> Result<()> {
 
     debug!("Found Config: {:?} in {:?}", config, elapsed);
 
-    let config = Arc::new(RwLock::new(config));
-
-    start_server(config.clone())
+    
+    start_server()
         .await
         .expect("Server failed to start!");
 
@@ -56,8 +57,8 @@ async fn main() -> Result<()> {
 /// Starts the server. Sets up the sockets and listens for incoming connections
 ///
 /// The actual management of connections in handled by [ferrumc_net::init_connection]
-async fn start_server(config: SafeConfig) -> Result<()> {
-    let config = config.read().await;
+async fn start_server() -> Result<()> {
+    let config = get_global_config();
     trace!("Starting server on {}:{}", config.host, config.port);
 
     let tcp_addr = format!("{}:{}", config.host, config.port);
@@ -66,8 +67,8 @@ async fn start_server(config: SafeConfig) -> Result<()> {
     let addr = listener.local_addr()?;
 
     info!("Server started on {}", addr);
-    drop(config);
-
+    
+    
     loop {
         let (socket, addy) = listener.accept().await?;
         // show a line of 100 dashes
