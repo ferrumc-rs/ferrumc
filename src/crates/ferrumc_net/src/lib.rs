@@ -4,23 +4,28 @@ use std::cmp::PartialEq;
 use std::fmt::Display;
 use std::io::Cursor;
 use std::ops::DerefMut;
+use std::sync::{Arc, atomic, OnceLock};
 use std::sync::atomic::AtomicU32;
-use std::sync::{atomic, Arc, OnceLock};
 use std::time::Duration;
 
 use dashmap::DashMap;
+use ferrumc_ecs::components::{Component, ComponentType};
 use ferrumc_ecs::world::{Entity, World};
-use rand::random;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio::sync::{RwLock};
-use tracing::{debug, error, trace};
-
 use ferrumc_utils::config::get_global_config;
 use ferrumc_utils::encoding::varint::read_varint;
 use ferrumc_utils::prelude::*;
 use ferrumc_utils::type_impls::Encode;
+use rand::random;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::sync::RwLock;
+use tracing::{debug, error, trace};
 
 use crate::packets::{handle_packet, IncomingPacket};
+
+// To allow implementing the `Component` trait for `Connection`. Since we can't implement a trait for a type defined in another crate.
+pub struct ConnectionWrapper(pub Arc<RwLock<Connection>>);
+
+impl Component for ConnectionWrapper {}
 
 pub mod packets;
 pub mod the_dimension_codec;
@@ -99,7 +104,7 @@ pub struct Connection {
 #[derive(Debug, Default)]
 pub struct ConnectionMetadata {
     pub protocol_version: i32,
-    pub entity: Option<Entity>,
+    pub entity: Entity,
 }
 
 pub fn setup_tracer() {
@@ -126,6 +131,19 @@ pub async fn init_connection(socket: tokio::net::TcpStream) -> Result<()> {
         drop: false,
     };
     let conn = Arc::new(RwLock::new(conn));
+
+    let mut world = GET_WORLD().write().await;
+    let entity = world.create_entity()
+        .with(ConnectionWrapper(conn.clone()))
+        .build();
+    drop(world);
+
+    {
+        let mut conn = conn.write().await;
+        conn.metadata.entity = entity;
+        drop(conn);
+    }
+
     // Doesn't matter if we clone, since actual value is not cloned
     CONNECTIONS().connections.insert(id, conn.clone());
     CONNECTIONS()
@@ -140,6 +158,7 @@ pub async fn init_connection(socket: tokio::net::TcpStream) -> Result<()> {
         "Connection established with id: {}. Current connection count: {}",
         id, current_amount
     );
+
 
     let res = manage_conn(conn).await;
 

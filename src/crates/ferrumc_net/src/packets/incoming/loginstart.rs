@@ -15,7 +15,7 @@ use ferrumc_utils::type_impls::Encode;
 use include_flate::flate;
 use rand::random;
 
-use crate::{Connection, GET_WORLD};
+use crate::{Connection, ConnectionWrapper, GET_WORLD};
 use crate::packets::IncomingPacket;
 use crate::packets::outgoing::keep_alive::KeepAlivePacketOut;
 use crate::State::Play;
@@ -121,15 +121,13 @@ impl IncomingPacket for LoginStart {
             let world = GET_WORLD();
             let mut world = world.write().await;
 
-            // Create a new player entity with the respective player component
-            let player = world.create_entity()
-                .with(Player::new(self.uuid, self.username.clone()))
-                // last_received, last_sent (INSTANT)
-                .with(keep_alive.clone())
-                .with(player_position)
-                .build();
+            let entity = &conn.metadata.entity;
 
-            conn.metadata.entity = Some(player);
+            // Insert all the necessary components
+            let component_storage = world.get_component_storage_mut();
+            component_storage.insert(entity, Player::new(self.uuid, self.username.clone()));
+            component_storage.insert(entity, keep_alive.clone());
+            component_storage.insert(entity, player_position.clone());
         }
 
 

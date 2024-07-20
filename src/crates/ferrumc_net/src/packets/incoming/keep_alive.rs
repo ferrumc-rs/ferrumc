@@ -14,11 +14,7 @@ impl IncomingPacket for KeepAlivePacketIn{
     async fn handle(&self, conn: &mut Connection) -> ferrumc_utils::prelude::Result<()> {
         info!("KeepAlivePacketIn: {:?}", self);
 
-        let entity_metadata = &conn.metadata;
-
-        let Some(player) = &entity_metadata.entity else {
-            return Err(Error::InvalidConnectionMetadata("Player not found in connection metadata".to_string()));
-        };
+        let player = &conn.metadata.entity;
 
 
         info!("Player: {:?}", player);
