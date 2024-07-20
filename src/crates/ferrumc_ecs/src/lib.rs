@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use crate::components::{ComponentStorage, Position, Velocity};
-use crate::world::{EntityAllocator};
+use crate::world::{EntityAllocator, World};
 
 mod world;
 mod components;
@@ -16,23 +16,23 @@ fn entry() {
 }
 
 fn main() {
-    let mut storage = ComponentStorage::new();
-    let mut allocator = EntityAllocator::new();
+    let mut world = World::new();
 
-    let entity1 = allocator.allocate(&mut storage)
-        .with(Position::new(1.0, 2.0, 3.0))
-        .with(Velocity::new(2.0, 3.0, 4.0))
+    let entity = world.create_entity()
+        .with(Position::new(0.0, 0.0, 0.0))
+        .with(Velocity::new(1.0, 1.0, 1.0))
         .build();
 
-    let position = storage.get::<Position>(&entity1).unwrap();
-    let velocity = storage.get::<Velocity>(&entity1).unwrap();
-
-    println!("Position: {:?}", position);
-    println!("Velocity: {:?}", velocity);
-
-    let position_storage = storage.get_storage::<Position>().unwrap();
-    for (idx, position) in position_storage.iter() {
-        println!("Entity: {}, Position: {:?}", idx, position);
+    // Query example
+    for (entity_id, (pos, vel)) in world.query::<(Position, Velocity)>().iter() {
+        println!("Entity {}: Position {:?}, Velocity {:?}", entity_id, pos, vel);
     }
 
+    // Mutable query example
+    for (_, (pos, vel)) in world.query_mut::<(Position, Velocity)>().iter_mut() {
+        pos.add_velocity(vel);
+    }
+
+    // Delete entity
+    world.delete_entity(entity).expect("Failed to delete entity");
 }

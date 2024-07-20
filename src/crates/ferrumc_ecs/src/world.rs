@@ -2,8 +2,57 @@ use std::fmt::Display;
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use crate::components::{Component, ComponentStorage};
-use crate::error;
-use crate::error::DeallocationErrorType;
+use crate::error::{DeallocationErrorType, Error};
+use crate::query::{Query, QueryFilter, QueryFilterMut, QueryMut};
+
+
+pub struct World {
+    entity_allocator: EntityAllocator,
+    component_storage: ComponentStorage,
+}
+
+impl World {
+    pub fn new() -> Self {
+        World {
+            entity_allocator: EntityAllocator::new(),
+            component_storage: ComponentStorage::new(),
+        }
+    }
+
+    pub fn create_entity(&mut self) -> EntityBuilder {
+        self.entity_allocator.allocate(&mut self.component_storage)
+    }
+
+    pub fn delete_entity(&mut self, entity: Entity) -> Result<Entity, Error> {
+        self.component_storage.remove_all(&entity);
+        self.entity_allocator.deallocate(entity)
+    }
+
+    pub fn query<F: QueryFilter>(&self) -> Query<F> {
+        Query::new(&self.component_storage)
+    }
+
+    pub fn query_mut<F: QueryFilterMut>(&mut self) -> QueryMut<F> {
+        QueryMut::<F>::new(&mut self.component_storage)
+    }
+}
+
+pub struct EntityBuilder<'a> {
+    entity: Entity,
+    component_storage: &'a mut ComponentStorage,
+}
+
+impl<'a> EntityBuilder<'a> {
+    pub fn with<T: Component>(self, component: T) -> Self {
+        self.component_storage.insert(&self.entity, component);
+        self
+    }
+
+    pub fn build(self) -> Entity {
+        self.entity
+    }
+}
+
 
 #[derive(Debug, PartialEq)]
 pub struct Entity {
@@ -82,20 +131,19 @@ impl EntityAllocator {
 
     /// Deallocates an entity, making the id available for reuse.
     /// Returns the deallocated entity on success.
-    pub fn deallocate(&mut self, entity: Entity) -> ferrumc_utils::prelude::Result<Entity> {
+    pub fn deallocate(&mut self, entity: Entity) -> Result<Entity, Error> {
         let id = entity.id() as usize;
 
         if id >= self.generations.len() {
             // Invalid entity, since the id is out of bounds
-            let error = error::Error::DeallocationError(DeallocationErrorType::EntityNotFound(entity));
-            return Err(error.into());
+            let error = Error::DeallocationError(DeallocationErrorType::EntityNotFound(entity));
+            return Err(error);
         }
 
         if self.generations[id] != entity.generation() {
             // Invalid entity, since the generation does not match
-            // return Err(error::Error::DeallocationError("DeallocErrorType::InvalidGeneration".to_string()).into());
-            let error = error::Error::DeallocationError(DeallocationErrorType::InvalidGeneration(entity));
-            return Err(error.into());
+            let error = Error::DeallocationError(DeallocationErrorType::InvalidGeneration(entity));
+            return Err(error);
         }
 
         self.generations[id] += 1;
@@ -109,21 +157,7 @@ impl EntityAllocator {
     }
 }
 
-pub struct EntityBuilder<'a> {
-    entity: Entity,
-    component_storage: &'a mut ComponentStorage,
-}
 
-impl<'a> EntityBuilder<'a> {
-    pub fn with<T: Component>(self, component: T) -> Self {
-        self.component_storage.insert(&self.entity, component);
-        self
-    }
-
-    pub fn build(self) -> Entity {
-        self.entity
-    }
-}
 
 
 #[cfg(test)]
@@ -151,3 +185,7 @@ mod tests {
         assert_eq!(e2.generation(), 1);
     }
 }
+
+
+
+

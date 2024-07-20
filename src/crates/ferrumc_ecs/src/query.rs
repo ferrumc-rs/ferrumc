@@ -1,12 +1,13 @@
 use std::marker::PhantomData;
-use crate::components::{Component, ComponentStorage};
+use crate::components::{Component, ComponentStorage, ComponentType};
 
-pub trait QueryFilter: 'static  {
+
+pub trait QueryFilter: 'static {
     type Item<'a>;
     unsafe fn filter_fetch<'a>(storage: *const ComponentStorage, entity_id: usize) -> Option<Self::Item<'a>>;
 }
 
-pub trait QueryFilterMut: 'static  {
+pub trait QueryFilterMut: 'static {
     type Item<'a>;
     unsafe fn filter_fetch_mut<'a>(storage: *mut ComponentStorage, entity_id: usize) -> Option<Self::Item<'a>>;
 }
@@ -73,7 +74,6 @@ impl<'a, F: QueryFilterMut> QueryMut<'a, F> {
     }
 }
 
-// Implement for tuples (example with 2 components)
 impl<A: Component, B: Component> QueryFilter for (A, B) {
     type Item<'a> = (&'a A, &'a B);
 
@@ -95,6 +95,7 @@ impl<A: Component, B: Component> QueryFilterMut for (A, B) {
         ))
     }
 }
+
 mod tests  {
     use crate::components::{ComponentStorage, Position, Velocity};
     use crate::query::{Query, QueryMut};
