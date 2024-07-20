@@ -1,9 +1,7 @@
-use crate::components::ComponentStorage;
 #[macro_export]
 macro_rules! component_id {
     ($type: ty) => {
-        use std::any::TypeId;
-        TypeId::of::<$type>()
+        std::any::TypeId::of::<$type>()
     };
 }
 

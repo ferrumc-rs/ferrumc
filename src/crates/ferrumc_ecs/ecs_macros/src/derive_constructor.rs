@@ -1,48 +1,35 @@
 use proc_macro::TokenStream;
+use quote::quote;
 
-use syn::Data;
+use syn::{DeriveInput, Fields, parse_macro_input};
 
 pub fn derive(input: TokenStream) -> TokenStream {
-    // generate auto-implemented constructor
-    // $type::new($($field: expr),*)
-
-    // parse input
-    let input = syn::parse_macro_input!(input as syn::DeriveInput);
-
-    // get the name of the struct
+    let input = parse_macro_input!(input as DeriveInput);
     let name = &input.ident;
 
-    // get the fields of the struct
-    let fields = match input.data {
-        Data::Struct(data) => {
-            data.fields
-        }
-        Data::Enum(_) => {
-            panic!("Cannot derive Constructor for enums")
-        }
-        Data::Union(_) => {
-            panic!("Cannot derive Constructor for unions")
+    let fields = match &input.data {
+        syn::Data::Struct(data) => &data.fields,
+        _ => panic!("New can only be derived for structs"),
+    };
+
+    let (field_names, field_types): (Vec<_>, Vec<_>) = match fields {
+        Fields::Named(fields) => fields
+            .named
+            .iter()
+            .map(|f| (&f.ident, &f.ty))
+            .unzip(),
+        _ => panic!("New can only be derived for structs with named fields"),
+    };
+
+    let expanded = quote! {
+        impl #name {
+            pub fn new(#(#field_names: #field_types),*) -> Self {
+                Self {
+                    #(#field_names),*
+                }
+            }
         }
     };
 
-    // generate the constructor
-    let constructor = generate_constructor(name, fields);
-
-    // return the generated constructor
-    constructor.into()
-}
-
-fn generate_constructor(name: &syn::Ident, fields: syn::Fields) -> proc_macro2::TokenStream {
-    match fields {
-        syn::Fields::Named(fields) => {
-            let fields = fields.named.into_iter().map(|field| {
-                let field_name = field.ident.unwrap();
-                quote! { #field_name }
-            })
-            todo!()
-        }
-        _ => {
-            panic!("Cannot derive Constructor for structs with unnamed fields or unit structs")
-        }
-    }
+    expanded.into()
 }

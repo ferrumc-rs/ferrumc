@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
-use crate::components::{ComponentStorage, Position};
-use crate::world::{Entity, EntityAllocator};
+use crate::components::{ComponentStorage, Position, Velocity};
+use crate::world::{EntityAllocator};
 
 mod world;
 mod components;
@@ -35,10 +35,15 @@ fn main() {
 
     let entity1 = allocator.allocate();
 
-    storage.insert(entity1, Position { x: 1.0, y: 2.0, z: 3.0 });
+    storage.insert(&entity1, Position::new(1.0, 2.0, 3.0));
+    storage.insert(&entity1, Velocity::new(4.0, 5.0, 6.0));
 
 
+    let position = storage.get::<Position>(&entity1).unwrap();
+    let velocity = storage.get::<Velocity>(&entity1).unwrap();
 
+    println!("Position: {:?}", position);
+    println!("Velocity: {:?}", velocity);
 
 
 }

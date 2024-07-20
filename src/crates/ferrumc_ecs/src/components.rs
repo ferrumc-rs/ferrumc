@@ -1,20 +1,20 @@
 use std::any::{Any, TypeId};
 use std::collections::HashMap;
-use ecs_macros::Component;
+use ecs_macros::{Component, Constructor};
 use crate::{component_id};
 use crate::dsa::sparse_set::SparseSet;
 use crate::world::Entity;
 
 pub trait Component: 'static {}
 
-#[derive(Component)]
+#[derive(Debug, Component, Constructor)]
 pub struct Position {
     x: f32,
     y: f32,
     z: f32,
 }
 
-#[derive(Component)]
+#[derive(Debug, Component, Constructor)]
 pub struct Velocity {
     x: f32,
     y: f32,
@@ -35,7 +35,7 @@ impl ComponentStorage {
         }
     }
 
-    pub fn insert<T: Component>(&mut self, entity: Entity, component: T) {
+    pub fn insert<T: Component>(&mut self, entity:&Entity, component: T) {
         let storage = self.storages
             .entry(component_id!(T))
             .or_insert_with(|| Box::new(SparseSet::<T>::new()));
@@ -52,7 +52,7 @@ impl ComponentStorage {
             })
     }
 
-    pub fn get<T: Component>(&self, entity: Entity) -> Option<&T> {
+    pub fn get<T: Component>(&self, entity: &Entity) -> Option<&T> {
         self.storages.get(&component_id!(T))
             .and_then(|storage| {
                 let storage = storage.downcast_ref::<SparseSet<T>>().unwrap();
