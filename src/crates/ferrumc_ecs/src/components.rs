@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use ecs_macros::{Component, Constructor};
 use crate::{component_id};
 use crate::dsa::sparse_set::SparseSet;
-use crate::query::Query;
+use crate::query::{Query, QueryFilter};
 
 pub trait Component: 'static {}
 
@@ -32,22 +32,28 @@ impl Position {
 
 pub struct ComponentStorage {
     storages: HashMap<TypeId, Box<dyn Any>>,
+    max_entity_id: usize,
 }
 
 impl ComponentStorage {
     pub fn new() -> Self {
         ComponentStorage {
             storages: HashMap::new(),
+            max_entity_id: 0,
         }
     }
 
     pub fn insert<T: Component>(&mut self, entity_id: impl Into<usize>, component: T) {
+        let entity_id = entity_id.into();
+
         let storage = self.storages
             .entry(component_id!(T))
             .or_insert_with(|| Box::new(SparseSet::<T>::new()));
 
         let storage = storage.downcast_mut::<SparseSet<T>>().unwrap();
-        storage.insert(entity_id.into(), component);
+        storage.insert(entity_id, component);
+
+        self.max_entity_id = self.max_entity_id.max(entity_id);
     }
 
     pub fn remove<T: Component>(&mut self, entity_id: impl Into<usize>) -> Option<T> {
@@ -87,10 +93,14 @@ impl ComponentStorage {
                 storage.downcast_mut::<SparseSet<T>>()
             })
     }
+
+    pub fn max_entity_id(&self) -> usize {
+        self.max_entity_id
+    }
 }
 
 impl ComponentStorage {
-    pub fn query<T: Component>(&mut self) -> Query<T> {
+    pub fn query<F: QueryFilter>(&self) -> Query<F> {
         Query::new(self)
     }
 }

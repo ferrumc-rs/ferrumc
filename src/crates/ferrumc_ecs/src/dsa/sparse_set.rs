@@ -8,6 +8,10 @@ pub struct SparseSet<T> {
 }
 
 impl<T> SparseSet<T> {
+
+}
+
+impl<T> SparseSet<T> {
     /// Creates a new, empty `SparseSet`.
     ///
     /// # Examples
@@ -169,7 +173,11 @@ impl<T> SparseSet<T> {
         let new_len = (index + 1).next_power_of_two().max(64);
         self.sparse.resize(new_len, None);
     }
+
 }
+
+
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -103,6 +103,10 @@ impl EntityAllocator {
 
         Ok(entity)
     }
+
+    pub fn total_entities(&self) -> usize {
+        self.generations.len()
+    }
 }
 
 pub struct EntityBuilder<'a> {

@@ -1,78 +1,88 @@
+use std::marker::PhantomData;
+
 use crate::components::{Component, ComponentStorage};
 
-pub struct Query<'a, T: Component> {
-    storage: &'a mut ComponentStorage,
-    _marker: std::marker::PhantomData<T>,
+pub trait QueryFilter: 'static {
+    type Item<'a>;
+    fn filter_fetch<'a>(storage: &'a ComponentStorage, entity_id: usize) -> Option<Self::Item<'a>>;
+}
+impl<T: Component> QueryFilter for T {
+    type Item<'a> = &'a T;
+
+    fn filter_fetch<'a>(storage: &'a ComponentStorage, entity_id: usize) -> Option<Self::Item<'a>> {
+        storage.get::<T>(entity_id)
+    }
 }
 
-impl<'a, T: Component> Query<'a, T> {
-    pub fn new(component_storage: &'a mut ComponentStorage) -> Self {
+
+pub struct Query<'a, F: QueryFilter> {
+    storage: &'a ComponentStorage,
+    _marker: PhantomData<F>,
+}
+
+impl<'a, F: QueryFilter> Query<'a, F> {
+    pub fn new(storage: &'a ComponentStorage) -> Self {
         Query {
-            storage: component_storage,
-            _marker: std::marker::PhantomData,
+            storage,
+            _marker: PhantomData,
         }
     }
-}
 
-impl<'a, T: Component> Query<'a, T> {
-    pub fn iter(&self) -> impl Iterator<Item=(&usize, &T)> + '_ {
-        self.storage
-            .get_storage::<T>()
-            .map(|storage| storage.iter())
-            .into_iter()
-            .flatten()
-    }
-
-    pub fn iter_mut(&mut self) -> impl Iterator<Item=(&mut usize, &mut T)> + '_ {
-        self.storage
-            .get_storage_mut::<T>()
-            .map(|storage| storage.iter_mut())
-            .into_iter()
-            .flatten()
+    pub fn iter(&self) -> impl Iterator<Item = (usize, F::Item<'a>)> + '_ {
+        (0..=self.storage.max_entity_id())
+            .filter_map(|entity_id| {
+                F::filter_fetch(self.storage, entity_id)
+                    .map(|item| (entity_id, item))
+            })
     }
 }
+
+// You can add more implementations for tuples of 3, 4, etc. components if needed
 
 pub trait System {
-    fn run(&self, storage: &mut ComponentStorage);
+    fn run(&mut self, storage: &ComponentStorage);
 }
 
-mod test {
+mod tests {
     use crate::components::{ComponentStorage, Position, Velocity};
     use crate::query::System;
     use crate::world::EntityAllocator;
 
+    pub struct PhysicsSystem;
 
-    #[test]
-    fn test_physics_system() {
-        pub struct PhysicsSystem;
-
-        impl System for PhysicsSystem {
-            fn run(&self, storage: &mut ComponentStorage) {
-                let mut query = storage.query::<Position>();
-                for (entity, position) in query.iter_mut() {
-                    println!("Entity: {:?}, Position: {:?}", entity, position);
-                    let Some(velocity) = storage.get::<Velocity>(*entity) else {
-                        continue;
-                    };
-                    println!("Adding velocity: {:?}", velocity);
-                    position.add_velocity(velocity);
+    impl System for PhysicsSystem {
+        fn run(&mut self, storage: &ComponentStorage) {
+            let query = storage.query::<Position>();
+            for (entity_id, position) in query.iter() {
+                if let Some(velocity) = storage.get::<Velocity>(entity_id) {
+                    println!("Entity {}: Position {:?}, Velocity {:?}", entity_id, position, velocity);
                 }
             }
         }
+    }
 
+    #[test]
+    fn test_physics_system() {
         let mut storage = ComponentStorage::new();
         let mut allocator = EntityAllocator::new();
 
+
         allocator.allocate(&mut storage)
-            .with(Position::new(1.0, 2.0, 3.0))
-            .with(Velocity::new(2.0, 3.0, 4.0))
+            .with(Position::new(0.0, 0.0, 0.0))
+            .with(Velocity::new(1.0, 1.0, 1.0))
             .build();
 
         allocator.allocate(&mut storage)
-            .with(Position::new(1.0, 2.0, 3.0))
+            .with(Position::new(0.0, 0.0, 0.0))
             .build();
 
-        let physics_system = PhysicsSystem;
-        physics_system.run(&mut storage);
+        allocator.allocate(&mut storage)
+            .with(Position::new(9.0, 1.0, 5.0))
+            .with(Velocity::new(1.0, 1.0, 1.0))
+            .build();
+
+
+        let mut system = PhysicsSystem;
+        system.run(&storage);
     }
 }
