@@ -1,5 +1,5 @@
 use std::marker::PhantomData;
-use crate::components::{Component, ComponentStorage, ComponentType};
+use crate::components::{Component, ComponentStorage};
 
 
 pub trait QueryFilter: 'static {

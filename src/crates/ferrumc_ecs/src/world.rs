@@ -24,9 +24,7 @@ impl World {
     }
 
     pub fn delete_entity(&mut self, entity: Entity) -> Result<Entity, Error> {
-        println!("Deleting entity {:?}", entity);
         self.component_storage.remove_all(&entity);
-        println!("Removed all components from entity {:?}", entity);
         self.entity_allocator.deallocate(entity)
     }
 

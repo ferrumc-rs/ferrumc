@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
-use crate::components::{ComponentStorage, Position, Velocity};
-use crate::world::{EntityAllocator, World};
+use crate::components::{Position, Velocity};
+use crate::world::World;
 
 mod world;
 mod components;
@@ -9,7 +9,6 @@ mod error;
 mod macros;
 pub mod dsa;
 mod query;
-
 #[test]
 fn entry() {
     main();
@@ -19,7 +18,7 @@ fn main() {
     let mut world = World::new();
 
     let entity = world.create_entity()
-        .with(Position::new(0.0, 0.0, 0.0))
+        .with(Position::new(0.0, 1.0, 0.0))
         .with(Velocity::new(1.0, 1.0, 1.0))
         .build();
 
