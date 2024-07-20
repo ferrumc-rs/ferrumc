@@ -1,4 +1,3 @@
-use std::any::Any;
 use config::ConfigError;
 
 #[derive(thiserror::Error, Debug)]

@@ -1,8 +1,5 @@
 use std::fmt::Display;
 use std::sync::atomic::{AtomicU64, Ordering};
-use anyhow::__private::kind::TraitKind;
-use ferrumc_utils::error::Error;
-use thiserror::__private::AsDynError;
 use crate::error;
 use crate::error::DeallocationErrorType;
 

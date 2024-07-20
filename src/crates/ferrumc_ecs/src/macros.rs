@@ -1,0 +1,34 @@
+use crate::components::ComponentStorage;
+#[macro_export]
+macro_rules! component_id {
+    ($type: ty) => {
+        use std::any::TypeId;
+        TypeId::of::<$type>()
+    };
+}
+
+
+/*#[macro_export]
+macro_rules! register_components {
+    ($($component:ty),* $(,)?) => {
+        pub struct TypedComponentStorage {
+            storage: ComponentStorage
+        }
+
+        impl TypedComponentStorage {
+            pub fn new() -> Self {
+                TypedComponentStorage {
+                    storage: ComponentStorage::new()
+                }
+            }
+
+
+            pub fn get<T>(&self, entity: Entity) -> Option<&T>
+            where
+                T: Component
+            {
+                self.storage.get::<T>(entity)
+            }
+        }
+    };
+}*/
