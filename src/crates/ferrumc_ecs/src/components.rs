@@ -51,6 +51,7 @@ impl<T: Component> ComponentType for SparseSet<T> {
         self
     }
 }
+
 pub struct ComponentStorage {
     storages: HashMap<TypeId, Box<dyn ComponentType>>,
     max_entity_id: usize,
