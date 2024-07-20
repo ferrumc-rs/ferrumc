@@ -2,11 +2,9 @@
 #![feature(fs_try_exists)]
 
 use std::env;
-use std::sync::Arc;
 
 #[warn(unused_imports)]
 use clap::Parser;
-use ferrumc_ecs::world::World;
 use ferrumc_net::GET_WORLD;
 use ferrumc_utils::components::player::Player;
 use ferrumc_utils::config::get_global_config;
@@ -14,8 +12,7 @@ use ferrumc_utils::encoding::position::Position;
 #[allow(unused_imports)]
 use tokio::fs::try_exists;
 use tokio::net::TcpListener;
-use tokio::sync::RwLock;
-use tracing::{debug, error, info, trace, Instrument};
+use tracing::{debug, error, info, trace, Instrument, info_span};
 
 use ferrumc_utils::prelude::*;
 
@@ -23,7 +20,6 @@ mod setup;
 mod tests;
 mod utils;
 
-type SafeConfig = Arc<RwLock<ferrumc_utils::config::ServerConfig>>;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -72,40 +68,45 @@ async fn start_server() -> Result<()> {
     info!("Server started on {}", addr);
     
     
-    let read_connections = tokio::task::spawn(async move {
-        loop {
-            let (socket, addy) = listener.accept().await?;
-            // show a line of 100 dashes
-            trace!("{}", "-".repeat(100));
-            debug!("Accepted connection from: {:?}", socket.peer_addr()?);
-
-            tokio::task::spawn(
-                async {
-                    if let Err(e) = ferrumc_net::init_connection(socket).await {
-                        error!("Error handling connection: {:?}", e);
-                    }
-                }
-                    .instrument(tracing::info_span!("handle_connection", %addy)),
-            );
-        }
-    });
+    let read_connections = tokio::spawn(read_connections(listener));
     
     let systems = tokio::task::spawn(async {
         loop {
-            let mut world = GET_WORLD().write().await;
+            let world = GET_WORLD().write().await;
             // an example system (like just log all players)
-            for (id, (player)) in world.query::<(Player)>().iter() {
-                info!("[Entity {}] Player: {:?}", id, player);
+            for (id, (player, position)) in world.query::<(Player, Position)>().iter() {
+                info!("[Entity {}] Player: {:?}, Position: {:?}", id, player, position);
             }
             
+            drop(world);
+            
             // wait for a tick (1/20)
-            tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+            tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
         }
     });
     
-    tokio::try_join!(read_connections, systems)?;
+    let (res, _) = tokio::try_join!(read_connections, systems)?;
+    res?;
     
     Ok(())
+}
+
+async fn read_connections(listener: TcpListener) -> Result<()> {
+    loop {
+        let (socket, addy) = listener.accept().await?;
+        // show a line of 100 dashes
+        trace!("{}", "-".repeat(100));
+        debug!("Accepted connection from: {:?}", socket.peer_addr()?);
+
+        tokio::task::spawn(
+            async {
+                if let Err(e) = ferrumc_net::init_connection(socket).await {
+                    error!("Error handling connection: {:?}", e);
+                }
+            }
+                .instrument(info_span!("handle_connection", %addy)),
+        );
+    }
 }
 
 /// Handles the setup of the server

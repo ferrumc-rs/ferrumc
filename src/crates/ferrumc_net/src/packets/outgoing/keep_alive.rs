@@ -1,6 +1,5 @@
-use ferrumc_macros::{Decode, Encode};
+use ferrumc_macros::{Encode};
 use ferrumc_utils::encoding::varint::VarInt;
-use ferrumc_utils::encoding::varlong::Varlong;
 
 #[derive(Encode, Debug)]
 pub struct KeepAlivePacketOut {

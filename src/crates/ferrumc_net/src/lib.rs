@@ -9,7 +9,7 @@ use std::sync::atomic::AtomicU32;
 use std::time::Duration;
 
 use dashmap::DashMap;
-use ferrumc_ecs::components::{Component, ComponentType};
+use ferrumc_ecs::components::{Component};
 use ferrumc_ecs::world::{Entity, World};
 use ferrumc_utils::config::get_global_config;
 use ferrumc_utils::encoding::varint::read_varint;
@@ -20,7 +20,7 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::sync::RwLock;
 use tracing::{debug, error, trace};
 
-use crate::packets::{handle_packet, IncomingPacket};
+use crate::packets::{handle_packet};
 
 // To allow implementing the `Component` trait for `Connection`. Since we can't implement a trait for a type defined in another crate.
 pub struct ConnectionWrapper(pub Arc<RwLock<Connection>>);
@@ -160,10 +160,14 @@ pub async fn init_connection(socket: tokio::net::TcpStream) -> Result<()> {
     );
 
 
-    let res = manage_conn(conn).await;
+    let res = manage_conn(conn.clone()).await;
 
     if let Err(e) = res {
         error!("Error occurred in {:?}: {:?}, dropping connection", id, e);
+        let mut world = GET_WORLD().write().await;
+        let entity_id = &conn.read().await.metadata.entity;
+        world.delete_entity(entity_id)?;
+        drop(world);
         drop_conn(id).await?;
     }
 

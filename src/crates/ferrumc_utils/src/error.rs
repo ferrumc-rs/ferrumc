@@ -29,4 +29,7 @@ pub enum Error {
 
     #[error("Invalid component storage: {0}")]
     InvalidComponentStorage(String),
+
+    #[error(transparent)]
+    ECSError(#[from] ferrumc_ecs::error::Error)
 }

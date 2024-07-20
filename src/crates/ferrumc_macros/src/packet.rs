@@ -3,7 +3,7 @@ use std::env;
 use std::ops::Add;
 use std::path::Path;
 
-use quote::{format_ident, quote};
+use quote::{quote};
 use syn::{LitInt, LitStr, parse_macro_input};
 
 pub fn attribute(args: TokenStream, input: TokenStream) -> TokenStream {

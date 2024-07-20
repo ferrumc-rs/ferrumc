@@ -3,7 +3,7 @@
 
 pub mod world;
 pub mod components;
-mod error;
+pub mod error;
 mod macros;
 pub mod dsa;
 mod query;/*

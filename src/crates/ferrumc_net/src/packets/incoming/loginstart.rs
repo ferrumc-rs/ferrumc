@@ -1,4 +1,4 @@
-use std::time::{Duration, Instant};
+use std::time::{Instant};
 use tokio::io::AsyncWriteExt;
 use tracing::debug;
 use uuid::Uuid;
@@ -8,14 +8,12 @@ use ferrumc_utils::components::keep_alive::KeepAlive;
 use ferrumc_utils::components::player::Player;
 use ferrumc_utils::encoding::position::Position;
 use ferrumc_utils::encoding::varint::VarInt;
-use ferrumc_utils::encoding::varlong::Varlong;
 use ferrumc_utils::prelude::*;
 use ferrumc_utils::type_impls::Encode;
 #[cfg(not(test))]
 use include_flate::flate;
-use rand::random;
 
-use crate::{Connection, ConnectionWrapper, GET_WORLD};
+use crate::{Connection, GET_WORLD};
 use crate::packets::IncomingPacket;
 use crate::packets::outgoing::keep_alive::KeepAlivePacketOut;
 use crate::State::Play;

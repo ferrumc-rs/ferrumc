@@ -23,8 +23,8 @@ impl World {
         self.entity_allocator.allocate(&mut self.component_storage)
     }
 
-    pub fn delete_entity(&mut self, entity: Entity) -> Result<Entity, Error> {
-        self.component_storage.remove_all(&entity);
+    pub fn delete_entity(&mut self, entity: &Entity) -> Result<(), Error> {
+        self.component_storage.remove_all(entity);
         self.entity_allocator.deallocate(entity)
     }
 
@@ -138,26 +138,25 @@ impl EntityAllocator {
     }
 
     /// Deallocates an entity, making the id available for reuse.
-    /// Returns the deallocated entity on success.
-    pub fn deallocate(&mut self, entity: Entity) -> Result<Entity, Error> {
+    pub fn deallocate(&mut self, entity: &Entity) -> Result<(), Error> {
         let id = entity.id() as usize;
 
         if id >= self.generations.len() {
             // Invalid entity, since the id is out of bounds
-            let error = Error::DeallocationError(DeallocationErrorType::EntityNotFound(entity));
+            let error = Error::DeallocationError(DeallocationErrorType::EntityNotFound(id));
             return Err(error);
         }
 
         if self.generations[id] != entity.generation() {
             // Invalid entity, since the generation does not match
-            let error = Error::DeallocationError(DeallocationErrorType::InvalidGeneration(entity));
+            let error = Error::DeallocationError(DeallocationErrorType::InvalidGeneration(id));
             return Err(error);
         }
 
         self.generations[id] += 1;
         self.free_ids.push(id as u64);
 
-        Ok(entity)
+        Ok(())
     }
 
     pub fn total_entities(&self) -> usize {
