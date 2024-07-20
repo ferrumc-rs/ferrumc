@@ -8,13 +8,16 @@ use ferrumc_utils::components::keep_alive::KeepAlive;
 use ferrumc_utils::components::player::Player;
 use ferrumc_utils::encoding::position::Position;
 use ferrumc_utils::encoding::varint::VarInt;
+use ferrumc_utils::encoding::varlong::Varlong;
 use ferrumc_utils::prelude::*;
 use ferrumc_utils::type_impls::Encode;
 #[cfg(not(test))]
 use include_flate::flate;
+use rand::random;
 
 use crate::{Connection, GET_WORLD};
 use crate::packets::IncomingPacket;
+use crate::packets::outgoing::keep_alive::KeepAlivePacketOut;
 use crate::State::Play;
 
 /// The login start packet is sent by the client to the server to start the login process.
@@ -111,24 +114,32 @@ impl IncomingPacket for LoginStart {
         }
 
 
-        let world = GET_WORLD();
-        let mut world = world.write().await;
-
-        let keep_alive = KeepAlive::new(Instant::from(Duration::ZERO), Instant::now());
+        let keep_alive_id: i64 = 110;
+        let keep_alive = KeepAlive::new(Instant::now(), Instant::now(), keep_alive_id);
 
         {
+            let world = GET_WORLD();
+            let mut world = world.write().await;
 
+            // Create a new player entity with the respective player component
+            let player = world.create_entity()
+                .with(Player::new(self.uuid, self.username.clone()))
+                // last_received, last_sent (INSTANT)
+                .with(keep_alive.clone())
+                .with(player_position)
+                .build();
+
+            conn.metadata.entity = Some(player);
         }
 
-        // Create a new player entity with the respective player component
-        let player = world.create_entity()
-            .with(Player::new(self.uuid, self.username.clone()))
-            // last_received, last_sent (INSTANT)
-            .with(keep_alive.clone())
-            .with(player_position)
-            .build();
 
-        conn.metadata.entity = Some(player);
+        {
+            let keep_alive_outgoing = KeepAlivePacketOut::new_auto(keep_alive_id);
+            debug!("Sending keep alive packet {:?}", &keep_alive_outgoing);
+            conn.send_packet(keep_alive_outgoing).await?;
+        }
+
+
         conn.state = Play;
 
         Ok(())

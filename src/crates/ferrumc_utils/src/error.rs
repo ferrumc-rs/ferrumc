@@ -21,7 +21,12 @@ pub enum Error {
     InvalidPacketId(u32),
     #[error("Invalid state: {0:x}")]
     InvalidState(i32),
+    #[error("Invalid Connection Metadata: {0}")]
+    InvalidConnectionMetadata(String),
 
     #[error(transparent)]
-    Other(#[from] Box<dyn std::error::Error + Send + Sync>)
+    Other(#[from] Box<dyn std::error::Error + Send + Sync>),
+
+    #[error("Invalid component storage: {0}")]
+    InvalidComponentStorage(String),
 }

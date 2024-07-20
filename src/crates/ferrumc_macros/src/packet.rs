@@ -2,7 +2,8 @@ use proc_macro::TokenStream;
 use std::env;
 use std::ops::Add;
 use std::path::Path;
-use quote::quote;
+
+use quote::{format_ident, quote};
 use syn::{LitInt, LitStr, parse_macro_input};
 
 pub fn attribute(args: TokenStream, input: TokenStream) -> TokenStream {
@@ -52,6 +53,7 @@ pub fn bake(input: TokenStream) -> TokenStream {
     for entry in std::fs::read_dir(dir_path).expect("read_dir call failed") {
         let entry = entry.expect("entry failed");
         let path = entry.path();
+        let file_name = path.file_name().expect("file_name failed").to_os_string();
 
         if !path.is_file() {
             continue;
@@ -86,15 +88,13 @@ pub fn bake(input: TokenStream) -> TokenStream {
                             let value = value.parse::<LitInt>().expect("parse failed");
                             let n: usize = value.base10_parse().expect("base10_parse failed");
                             packet_id = Some(n);
-
-                        },
+                        }
                         "state" => {
                             let value = meta.value().expect("value failed");
                             let value = value.parse::<LitStr>().expect("parse failed");
                             let n = value.value();
                             state = Some(n);
-
-                        },
+                        }
                         &_ => {
                             return Ok(());
                         }
@@ -120,15 +120,28 @@ pub fn bake(input: TokenStream) -> TokenStream {
 
             println!("[FERRUMC_MACROS] Found Packet (ID: 0x{:02X}, State: {}, Struct Name: {})", packet_id, state, struct_name);
 
-            let struct_name_lowercase = struct_name.clone().to_string().to_lowercase();
-            let struct_name_lowercase = syn::Ident::new(&struct_name_lowercase, struct_name.span());
+            let path = format!("crate::packets::incoming::{}", file_name.to_string_lossy().replace(".rs", ""));
+
+            let struct_path = format!("{}::{}", path, struct_name);
+
+            println!("[FERRUMC_MACROS] Struct Path: {}", struct_path);
+
+
+            let struct_path = syn::parse_str::<syn::Path>(&struct_path).expect("parse_str failed");
 
             match_arms.push(quote! {
                 (#packet_id, #state) => {
-                    let packet = crate::packets::incoming::#struct_name_lowercase::#struct_name::decode(cursor).await?;
+                    let packet= #struct_path::decode(cursor).await?;
                     packet.handle(conn_owned).await?;
                 },
             });
+
+            /*match_arms.push(quote! {
+                (#packet_id, #state) => {
+                    let packet= #path::#struct_name::decode(cursor).await?;
+                    packet.handle(conn_owned).await?;
+                },
+            });*/
         }
     }
 

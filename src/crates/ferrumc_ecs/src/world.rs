@@ -39,6 +39,10 @@ impl World {
     pub fn get_component_storage(&self) -> &ComponentStorage {
         &self.component_storage
     }
+
+    pub fn get_component_storage_mut(&mut self) -> &mut ComponentStorage {
+        &mut self.component_storage
+    }
 }
 
 pub struct EntityBuilder<'a> {

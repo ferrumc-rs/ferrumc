@@ -244,7 +244,7 @@ async fn drop_conn(connection_id: u32) -> Result<()> {
 impl Connection {
     pub async fn send_packet(&mut self, packet: impl Encode) -> Result<()> {
         let mut cursor = Cursor::new(Vec::new());
-        packet.encode(&mut cursor)?;
+        packet.encode(&mut cursor).await?;
         let packet = cursor.into_inner();
         self.socket.write_all(&*packet).await?;
         Ok(())

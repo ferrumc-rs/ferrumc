@@ -1,9 +1,11 @@
-use ferrumc_macros::Encode;
+use ferrumc_macros::{Decode, Encode};
+use ferrumc_utils::encoding::varint::VarInt;
+use ferrumc_utils::encoding::varlong::Varlong;
 
-#[derive(Encode)]
+#[derive(Encode, Debug)]
 pub struct KeepAlivePacketOut {
-    #[encode(default = 0x23)]
-    pub packet_id: i32,
+    #[encode(default = VarInt::from(0x23))]
+    pub packet_id: VarInt,
     pub keep_alive_id: i64,
 }
 

@@ -4,4 +4,5 @@ use ferrumc_macros::{Component, Constructor};
 pub struct KeepAlive {
     pub last_received: std::time::Instant,
     pub last_sent: std::time::Instant,
+    pub data: i64,
 }

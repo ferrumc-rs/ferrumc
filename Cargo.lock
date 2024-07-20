@@ -613,7 +613,6 @@ dependencies = [
  "include-flate",
  "lariv",
  "lazy_static",
- "log",
  "rand",
  "serde",
  "serde_derive",
