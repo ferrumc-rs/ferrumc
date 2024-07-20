@@ -1,8 +1,10 @@
 #![allow(dead_code)]
 
-use crate::world::{Entity, EntityAllocator};
+use crate::world::EntityAllocator;
+
 
 mod world;
+mod components;
 mod error;
 #[test]
 fn entry() {
@@ -18,7 +20,7 @@ fn main() {
     println!("Created entities: {:?} and {:?}", entity1, entity2);
 
     // Simulate entity destruction
-    let entity1 = allocator.deallocate(Entity::new(9999, 999)).expect("Failed to deallocate entity");
+    let entity1 = allocator.deallocate(entity1).expect("Failed to deallocate entity");
     // Reallocate
     let entity3 = allocator.allocate();
 
