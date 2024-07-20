@@ -22,6 +22,7 @@ use crate::packets::handle_packet;
 
 pub mod packets;
 pub mod the_dimension_codec;
+mod test_ecs;
 
 #[allow(non_snake_case)]
 pub fn CONNECTIONS() -> &'static ConnectionList {

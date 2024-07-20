@@ -14,3 +14,6 @@ anyhow = "1.0.86"
 log = "0.4.22"
 serde = { version = "1.0.203", features = ["derive"] }
 fastnbt = "2.5.0"
+
+ferrumc_macros = { path = "../ferrumc_macros" }
+ferrumc_ecs = { path = "../ferrumc_ecs" }

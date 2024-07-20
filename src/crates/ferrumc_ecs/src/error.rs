@@ -13,10 +13,3 @@ pub enum DeallocationErrorType {
     #[error("Entity {0} has a different generation")]
     InvalidGeneration(Entity),
 }
-
-
-impl Into<ferrumc_utils::error::Error> for Error {
-    fn into(self) -> ferrumc_utils::error::Error {
-        ferrumc_utils::error::Error::Other(Box::new(self))
-    }
-}

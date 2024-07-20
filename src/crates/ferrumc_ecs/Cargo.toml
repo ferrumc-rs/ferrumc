@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-ferrumc_utils = { path = "../ferrumc_utils" }
 anyhow = "1.0.86"
 thiserror = "1.0.61"
 anymap = "1.0.0-beta.2"
-ecs_macros = { path= "./ecs_macros"}
+
+ferrumc_macros = { path = "../ferrumc_macros" }

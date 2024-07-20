@@ -95,7 +95,7 @@ impl<A: Component, B: Component> QueryFilterMut for (A, B) {
         ))
     }
 }
-
+/*
 mod tests  {
     use crate::components::{ComponentStorage, Position, Velocity};
     use crate::query::{Query, QueryMut};
@@ -144,4 +144,4 @@ mod tests  {
         MovementSystem::run(&mut storage);
         EntityLogger::log(&storage);
     }
-}
+}*/

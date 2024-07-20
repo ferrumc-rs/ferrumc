@@ -1,9 +1,18 @@
 use proc_macro::TokenStream;
 use quote::quote;
-
 use syn::{DeriveInput, Fields, parse_macro_input};
 
-pub fn derive(input: TokenStream) -> TokenStream {
+pub fn derive_component(input: TokenStream) -> TokenStream {
+    let ast = parse_macro_input!(input as DeriveInput);
+    let name = &ast.ident;
+    let gen = quote! {
+        impl ferrumc_ecs::components::Component for #name {}
+    };
+
+    gen.into()
+}
+
+pub fn derive_constructor(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let name = &input.ident;
 

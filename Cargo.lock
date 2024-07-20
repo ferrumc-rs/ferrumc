@@ -531,15 +531,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ecs_macros"
-version = "0.1.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.71",
-]
-
-[[package]]
 name = "either"
 version = "1.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -592,8 +583,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "anymap",
- "ecs_macros",
- "ferrumc_utils",
+ "ferrumc_macros",
  "thiserror",
 ]
 
@@ -601,7 +591,6 @@ dependencies = [
 name = "ferrumc_macros"
 version = "0.1.0"
 dependencies = [
- "ferrumc_utils",
  "proc-macro2",
  "quote",
  "syn 2.0.71",
@@ -618,6 +607,7 @@ dependencies = [
  "console-subscriber",
  "dashmap",
  "fastnbt",
+ "ferrumc_ecs",
  "ferrumc_macros",
  "ferrumc_utils",
  "include-flate",
@@ -643,6 +633,8 @@ dependencies = [
  "byteorder",
  "config",
  "fastnbt",
+ "ferrumc_ecs",
+ "ferrumc_macros",
  "lazy_static",
  "log",
  "serde",

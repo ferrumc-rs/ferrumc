@@ -1,7 +1,10 @@
+use proc_macro::TokenStream;
 use quote::{format_ident, quote};
-use syn::DeriveInput;
+use syn::{DeriveInput, parse_macro_input};
 
-pub(crate) fn generate_encode_func(input: DeriveInput) -> proc_macro2::TokenStream {
+pub(crate) fn derive(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+
     let name = &input.ident;
     let mut is_packet_type = false;
 
@@ -167,5 +170,7 @@ pub(crate) fn generate_encode_func(input: DeriveInput) -> proc_macro2::TokenStre
             }
         }
     }
-    expanded
+
+
+    TokenStream::from(expanded)
 }

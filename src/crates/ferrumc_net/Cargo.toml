@@ -12,8 +12,6 @@ uuid = { version = "1.9.1", features = ["v4", "fast-rng", "v3", "v5"] }
 rand = "0.8.5"
 atomic = "0.6.0"
 byteorder = "1.5.0"
-ferrumc_utils = { path = "../ferrumc_utils" }
-ferrumc_macros = { path = "../ferrumc_macros" }
 serde = { version = "1.0.117", features = ["derive"] }
 serde_json = "1.0.119"
 base64 = "0.22.1"
@@ -25,3 +23,8 @@ tracing = "0.1"
 tracing-subscriber = "0.3"
 log = { version = "0.4.22", features = [] }
 include-flate = "0.3.0"
+
+
+ferrumc_utils = { path = "../ferrumc_utils" }
+ferrumc_macros = { path = "../ferrumc_macros" }
+ferrumc_ecs = { path = "../ferrumc_ecs" }

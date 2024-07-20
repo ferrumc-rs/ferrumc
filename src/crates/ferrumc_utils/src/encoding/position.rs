@@ -1,9 +1,11 @@
 use std::fmt::Display;
+use ferrumc_macros::Component;
 
 /// Represents a position in the world
 ///
 /// Check out the [Position::encode] and [Position::decode]
 /// implementations for more information on how this struct is encoded and decoded
+#[derive(Debug, Component)]
 pub struct Position {
     // Encoded as a 26 bit int
     pub x: i32,

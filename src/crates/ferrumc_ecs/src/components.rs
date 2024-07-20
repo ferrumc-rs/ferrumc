@@ -1,36 +1,13 @@
 use std::any::{Any, TypeId};
 use std::collections::HashMap;
+use ferrumc_macros::{Component, Constructor};
 
-use ecs_macros::{Component, Constructor};
 
 use crate::component_id;
 use crate::dsa::sparse_set::SparseSet;
 use crate::query::{Query, QueryFilter};
 
 pub trait Component: 'static {}
-
-#[derive(Debug, Component, Constructor)]
-pub struct Position {
-    pub(crate) x: f32,
-    y: f32,
-    z: f32,
-}
-
-#[derive(Debug, Component, Constructor)]
-pub struct Velocity {
-    x: f32,
-    y: f32,
-    z: f32,
-}
-
-impl Position {
-    pub fn add_velocity(&mut self, velocity: &Velocity) {
-        self.x += velocity.x;
-        self.y += velocity.y;
-        self.z += velocity.z;
-    }
-}
-
 
 pub trait ComponentType: Any {
     fn remove(&mut self, entity_id: usize);

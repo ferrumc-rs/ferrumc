@@ -1,14 +1,13 @@
 #![allow(dead_code)]
 
-use crate::components::{Position, Velocity};
 use crate::world::World;
 
 mod world;
-mod components;
+pub mod components;
 mod error;
 mod macros;
 pub mod dsa;
-mod query;
+mod query;/*
 #[test]
 fn entry() {
     main();
@@ -34,4 +33,4 @@ fn main() {
 
     // Delete entity
     world.delete_entity(entity).expect("Failed to delete entity");
-}
+}*/
