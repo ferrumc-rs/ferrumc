@@ -50,6 +50,7 @@ pub(crate) async fn setup() -> Result<(), Error> {
     println!("> Downloading database...");
     if which::which("curl").is_ok() {
         let command_result = Command::new("curl")
+            .current_dir(dir)
             .arg("-L")
             .arg("-o")
             .arg(executable_name)
@@ -68,6 +69,7 @@ pub(crate) async fn setup() -> Result<(), Error> {
         }
     } else if which::which("wget").is_ok() {
         let command_result = Command::new("wget")
+            .current_dir(dir)
             .arg("-O")
             .arg(executable_name)
             .arg(url)
@@ -85,6 +87,7 @@ pub(crate) async fn setup() -> Result<(), Error> {
         }
     } else if which::which("powershell").is_ok() {
         let command_result = Command::new("powershell")
+            .current_dir(dir)
             .arg("-Command")
             .arg(format!(
                 "Invoke-WebRequest -Uri {} -OutFile {}",
@@ -140,6 +143,7 @@ pub(crate) async fn setup() -> Result<(), Error> {
     ]);
 
     let mut surreal_setup_process = Command::new(executable_name)
+        .current_dir(dir)
         .arg("start")
         .envs(envs)
         .stderr(Stdio::piped())
