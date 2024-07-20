@@ -24,7 +24,9 @@ impl World {
     }
 
     pub fn delete_entity(&mut self, entity: Entity) -> Result<Entity, Error> {
+        println!("Deleting entity {:?}", entity);
         self.component_storage.remove_all(&entity);
+        println!("Removed all components from entity {:?}", entity);
         self.entity_allocator.deallocate(entity)
     }
 
@@ -122,7 +124,7 @@ impl EntityAllocator {
             Entity::new(id, generation)
         } else {
             let id = self.next_id.fetch_add(1, Ordering::Relaxed);
-            if id > self.generations.len() as u64 {
+            if id >= self.generations.len() as u64 {
                 self.generations.push(0);
             }
             Entity::new(id, 0)
