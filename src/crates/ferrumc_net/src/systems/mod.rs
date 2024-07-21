@@ -16,6 +16,7 @@ pub trait System : Send + Sync
 
 pub static ALL_SYSTEMS: &[&dyn System] = &[
     &tick_system::TickSystem,
+    &keep_alive_system::KeepAliveSystem,
 ];
 
 pub async fn start_all_systems()  -> Result<()> {
@@ -28,7 +29,7 @@ pub async fn start_all_systems()  -> Result<()> {
 
 pub async fn kill_all_systems() -> Result<()> {
     for system in ALL_SYSTEMS {
-        system.kill().await?;
+        system.kill().await;
     }
     Ok(())
 }

@@ -27,6 +27,7 @@ pub struct ConnectionWrapper(pub Arc<RwLock<Connection>>);
 /// Implementing `Send` for `ConnectionWrapper` to allow sending it between threads.
 /// This is safe because `ConnectionWrapper` is just a wrapper around `Arc<RwLock<Connection>>`, which is `Send`.
 unsafe impl Send for ConnectionWrapper {}
+unsafe impl Sync for ConnectionWrapper {}
 impl Component for ConnectionWrapper {}
 
 pub mod packets;
@@ -252,7 +253,7 @@ pub async fn manage_conn(conn: Arc<RwLock<Connection>>) -> Result<()> {
     Ok(())
 }
 
-async fn drop_conn(connection_id: u32) -> Result<()> {
+pub async fn drop_conn(connection_id: u32) -> Result<()> {
     debug!("Dropping connection with id: {}", connection_id);
     let connection = CONNECTIONS().connections.remove(&connection_id);
     let Some((_, conn_arc)) = connection else {

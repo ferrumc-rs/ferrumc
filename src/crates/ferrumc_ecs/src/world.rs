@@ -43,6 +43,7 @@ impl World {
     pub fn get_component_storage_mut(&mut self) -> &mut ComponentStorage {
         &mut self.component_storage
     }
+
 }
 
 pub struct EntityBuilder<'a> {
@@ -62,7 +63,7 @@ impl<'a> EntityBuilder<'a> {
 }
 
 
-#[derive(Debug, PartialEq, Default)]
+#[derive(Debug, PartialEq, Default, Clone)]
 pub struct Entity {
     id: u64,
     generation: u64,
