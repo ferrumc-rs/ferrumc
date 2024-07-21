@@ -2,12 +2,12 @@ use std::marker::PhantomData;
 use crate::components::{Component, ComponentStorage};
 
 
-pub trait QueryFilter: 'static {
+pub trait QueryFilter: 'static + Send + Sync {
     type Item<'a>;
     unsafe fn filter_fetch<'a>(storage: *const ComponentStorage, entity_id: usize) -> Option<Self::Item<'a>>;
 }
 
-pub trait QueryFilterMut: 'static {
+pub trait QueryFilterMut: 'static + Send + Sync {
     type Item<'a>;
     unsafe fn filter_fetch_mut<'a>(storage: *mut ComponentStorage, entity_id: usize) -> Option<Self::Item<'a>>;
 }
@@ -58,28 +58,6 @@ impl<'a, F: QueryFilterMut> QueryMut<'a, F> {
     }
 }
 
-/*impl<A: Component, B: Component> QueryFilter for (A, B) {
-    type Item<'a> = (&'a A, &'a B);
-
-    unsafe fn filter_fetch<'a>(storage: *const ComponentStorage, entity_id: usize) -> Option<Self::Item<'a>> {
-        Some((
-            (*storage).get::<A>(entity_id)?,
-            (*storage).get::<B>(entity_id)?
-        ))
-    }
-}
-
-impl<A: Component, B: Component> QueryFilterMut for (A, B) {
-    type Item<'a> = (&'a mut A, &'a mut B);
-
-    unsafe fn filter_fetch_mut<'a>(storage: *mut ComponentStorage, entity_id: usize) -> Option<Self::Item<'a>> {
-        Some((
-            (*storage).get_mut::<A>(entity_id)?,
-            (*storage).get_mut::<B>(entity_id)?
-        ))
-    }
-}
-*/
 // macro to generate QueryFilter and QueryFilterMut impls for tuples of components
 macro_rules! impl_query_filter {
     ($($comp:ident),*) => {

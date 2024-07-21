@@ -2,19 +2,22 @@
 #![feature(fs_try_exists)]
 
 use std::env;
+use std::sync::Arc;
 
 #[warn(unused_imports)]
 use clap::Parser;
-use ferrumc_net::GET_WORLD;
+use ferrumc_net::{Connection, ConnectionWrapper, GET_WORLD};
+use ferrumc_net::packets::outgoing::keep_alive::KeepAlivePacketOut;
+use ferrumc_utils::components::keep_alive::KeepAlive;
 use ferrumc_utils::components::player::Player;
 use ferrumc_utils::config::get_global_config;
 use ferrumc_utils::encoding::position::Position;
+use ferrumc_utils::prelude::*;
 #[allow(unused_imports)]
 use tokio::fs::try_exists;
 use tokio::net::TcpListener;
-use tracing::{debug, error, info, trace, Instrument, info_span};
-
-use ferrumc_utils::prelude::*;
+use tokio::sync::RwLock;
+use tracing::{debug, error, info, info_span, Instrument, trace};
 
 mod setup;
 mod tests;
@@ -43,7 +46,7 @@ async fn main() -> Result<()> {
 
     debug!("Found Config: {:?} in {:?}", config, elapsed);
 
-    
+
     start_server()
         .await
         .expect("Server failed to start!");
@@ -66,28 +69,52 @@ async fn start_server() -> Result<()> {
     let addr = listener.local_addr()?;
 
     info!("Server started on {}", addr);
-    
-    
+
+
     let read_connections = tokio::spawn(read_connections(listener));
-    
+
     let systems = tokio::task::spawn(async {
         loop {
-            let world = GET_WORLD().write().await;
+            let world = GET_WORLD().read().await;
             // an example system (like just log all players)
             for (id, (player, position)) in world.query::<(Player, Position)>().iter() {
                 info!("[Entity {}] Player: {:?}, Position: {:?}", id, player, position);
             }
+            drop(world);
+
+            let mut world = GET_WORLD().write().await;
+
+            let keep_alive_data: Vec<(usize, (String, i64, Arc<RwLock<Connection>>))> = world
+                .query_mut::<(Player, KeepAlive, ConnectionWrapper)>()
+                .iter_mut()
+                .map(|(entity_id, (player, keep_alive, conn))| {
+                    keep_alive.data += 1;
+                    keep_alive.last_sent = std::time::Instant::now();
+                    (entity_id, (player.get_username().to_string(), keep_alive.data, conn.0.clone()))
+                })
+                .collect();
             
             drop(world);
-            
+
+
+            for (_,(player, data, conn)) in keep_alive_data {
+                let keep_alive_out = KeepAlivePacketOut::new_auto(data);
+                let mut conn = conn.write().await;
+                debug!("Sending keep alive packet to player: {:?}", player);
+                if let Err(e) = conn.send_packet(keep_alive_out).await {
+                    error!("Error sending keep alive packet: {:?}", e);
+                }
+                drop(conn);
+            }
+
             // wait for a tick (1/20)
-            tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
+            tokio::time::sleep(std::time::Duration::from_secs(10)).await;
         }
     });
-    
+
     let (res, _) = tokio::try_join!(read_connections, systems)?;
     res?;
-    
+
     Ok(())
 }
 
@@ -124,11 +151,11 @@ async fn handle_setup() -> Result<bool> {
     if env::var("GITHUB_ACTIONS").is_ok() {
         env::set_var("RUST_LOG", "info");
         Ok(false)
-    // If the setup flag is passed, run the setup regardless of the config file
+        // If the setup flag is passed, run the setup regardless of the config file
     } else if args.setup {
         setup::setup().await?;
         return Ok(true);
-    // Check if the config file exists already and run the setup if it doesn't
+        // Check if the config file exists already and run the setup if it doesn't
     } else {
         // Get the path to the current executable
         let exe = std::env::current_exe()?;

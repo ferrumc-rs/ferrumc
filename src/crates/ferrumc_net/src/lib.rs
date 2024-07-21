@@ -24,7 +24,9 @@ use crate::packets::{handle_packet};
 
 // To allow implementing the `Component` trait for `Connection`. Since we can't implement a trait for a type defined in another crate.
 pub struct ConnectionWrapper(pub Arc<RwLock<Connection>>);
-
+/// Implementing `Send` for `ConnectionWrapper` to allow sending it between threads.
+/// This is safe because `ConnectionWrapper` is just a wrapper around `Arc<RwLock<Connection>>`, which is `Send`.
+unsafe impl Send for ConnectionWrapper {}
 impl Component for ConnectionWrapper {}
 
 pub mod packets;

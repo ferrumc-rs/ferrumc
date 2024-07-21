@@ -27,7 +27,7 @@ impl IncomingPacket for KeepAlivePacketIn{
         info!("KeepAlive saved data : {:?}", keep_alive);
 
         let delta = Instant::now() - keep_alive.last_sent;
-        info!("It's been {} ticks since the last keep alive packet", delta.as_millis());
+        info!("It's been {:?} since the last keep alive packet", delta);
 
         keep_alive.last_received = Instant::now();
 
