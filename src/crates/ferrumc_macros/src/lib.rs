@@ -6,6 +6,7 @@ mod encode;
 mod decode;
 mod packet;
 mod ecs;
+mod utils;
 
 #[proc_macro_derive(Decode)]
 pub fn decode_derive(input: TokenStream) -> TokenStream {
@@ -33,4 +34,9 @@ pub fn derive_component(input: TokenStream) -> TokenStream {
 #[proc_macro_derive(Constructor)]
 pub fn derive_constructor(input: TokenStream) -> TokenStream {
     ecs::derive_constructor(input)
+}
+
+#[proc_macro_derive(AutoGenName)]
+pub fn derive_name(input: TokenStream) -> TokenStream {
+    utils::derive_name(input)
 }

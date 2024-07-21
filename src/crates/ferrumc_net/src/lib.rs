@@ -32,6 +32,7 @@ impl Component for ConnectionWrapper {}
 pub mod packets;
 pub mod the_dimension_codec;
 mod test_ecs;
+pub mod systems;
 
 #[allow(non_snake_case)]
 pub fn GET_WORLD() -> &'static RwLock<World> {

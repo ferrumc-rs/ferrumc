@@ -8,6 +8,7 @@ use std::sync::Arc;
 use clap::Parser;
 use ferrumc_net::{Connection, ConnectionWrapper, GET_WORLD};
 use ferrumc_net::packets::outgoing::keep_alive::KeepAlivePacketOut;
+use ferrumc_net::systems::{ALL_SYSTEMS, kill_all_systems, start_all_systems};
 use ferrumc_utils::components::keep_alive::KeepAlive;
 use ferrumc_utils::components::player::Player;
 use ferrumc_utils::config::get_global_config;
@@ -73,7 +74,11 @@ async fn start_server() -> Result<()> {
 
     let read_connections = tokio::spawn(read_connections(listener));
 
-    let systems = tokio::task::spawn(async {
+
+    /*ALL_SYSTEMS.iter().for_each(|system| {
+        tokio::spawn(system.run().instrument(info_span!("system", system = system.name())));
+    });*/
+    /*let systems = tokio::task::spawn(async {
         loop {
             let world = GET_WORLD().read().await;
             // an example system (like just log all players)
@@ -93,7 +98,7 @@ async fn start_server() -> Result<()> {
                     (entity_id, (player.get_username().to_string(), keep_alive.data, conn.0.clone()))
                 })
                 .collect();
-            
+
             drop(world);
 
 
@@ -110,10 +115,17 @@ async fn start_server() -> Result<()> {
             // wait for a tick (1/20)
             tokio::time::sleep(std::time::Duration::from_secs(10)).await;
         }
-    });
-
-    let (res, _) = tokio::try_join!(read_connections, systems)?;
-    res?;
+    });*/
+    
+    // Start all systems (separate task)
+    let all_systems = tokio::task::spawn(start_all_systems());
+    let (con, systems) = tokio::try_join!(read_connections, all_systems)?;
+    con?;
+    systems?;
+    
+    // Kill all systems since we're done.
+    kill_all_systems().await?;
+    
 
     Ok(())
 }

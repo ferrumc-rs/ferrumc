@@ -1,4 +1,3 @@
-#[cfg(test)]
 mod tests {
     use ferrumc_utils::encoding::position::Position;
     use ferrumc_utils::encoding::velocity::Velocity;
