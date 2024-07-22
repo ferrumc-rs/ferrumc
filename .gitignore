@@ -4,3 +4,5 @@
 /src/net/NBT_CODEC.zlib
 **/rustc-ice*
 .zed
+
+nbt_codec.nbt
