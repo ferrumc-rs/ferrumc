@@ -37,9 +37,9 @@ pub struct LoginPlay {
 #[test]
 fn generate_codec() {
     use crate::net::the_dimension_codec::Root;
-    let codec_file = std::fs::File::open("../../codec.json").unwrap();
+    let codec_file = std::fs::File::open("codec.json").unwrap();
     let reader = std::io::BufReader::new(codec_file);
     let mut codec: Root = serde_json::from_reader(reader).unwrap();
-    let mut codec_nbt_file = std::fs::File::create("../../nbt_codec.nbt").unwrap();
+    let mut codec_nbt_file = std::fs::File::create("nbt_codec.nbt").unwrap();
     fastnbt::to_writer(&mut codec_nbt_file, &mut codec).unwrap();
 }
