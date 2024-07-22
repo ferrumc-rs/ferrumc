@@ -1,6 +1,6 @@
 use tokio::fs;
 use std::env::current_exe;
-use ferrumc_utils::error::Error;
+use crate::utils::error::Error;
 use spinners::{Spinner, Spinners};
 use include_flate::flate;
 use tracing::{info};
@@ -9,9 +9,9 @@ use tracing::{info};
 flate!(pub static BASE_CONFIG: [u8] from "config.toml");
 
 /// Handles the setup of the server
-/// 
+///
 /// This function is called when the server is started with the `--setup` flag or when the server is run for the first time
-/// 
+///
 /// This function will create the necessary files and directories for the server to run. Also generates a default config file
 pub(crate) async fn setup() -> Result<(), Error> {
     // Create a spinner to show the user that the server is setting up.

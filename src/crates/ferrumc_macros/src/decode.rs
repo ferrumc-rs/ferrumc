@@ -35,9 +35,9 @@ Err(e) => return Err(Error::Generic(format!("Failed to decode field {}: {}", str
 
     // Generate the implementation
     let expanded = quote! {
-        use ferrumc_utils::type_impls::Decode;
+        use crate::utils::type_impls::Decode;
         use tokio::io::{AsyncRead, AsyncSeek};
-        use ferrumc_utils::error::Error;
+        use crate::utils::error::Error;
         impl #name {
             pub async fn decode<T>(bytes: &mut T) -> core::result::Result<Self, Error>
             where
