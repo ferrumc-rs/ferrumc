@@ -5,3 +5,5 @@
 **/rustc-ice*
 .zed
 /data
+
+nbt_codec.nbt
