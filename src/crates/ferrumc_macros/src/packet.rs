@@ -3,7 +3,7 @@ use std::env;
 use std::ops::Add;
 use std::path::Path;
 
-use quote::{quote};
+use quote::quote;
 use syn::{LitInt, LitStr, parse_macro_input};
 
 pub fn attribute(args: TokenStream, input: TokenStream) -> TokenStream {
@@ -16,7 +16,10 @@ pub fn attribute(args: TokenStream, input: TokenStream) -> TokenStream {
         });
     }
 
-    if !vec!["packet_id", "state"].iter().all(|x| args.to_string().contains(x)) {
+    if !vec!["packet_id", "state"]
+        .iter()
+        .all(|x| args.to_string().contains(x))
+    {
         return TokenStream::from(quote! {
             compile_error!("packet attribute must have the packet_id and state fields");
         });
@@ -26,7 +29,6 @@ pub fn attribute(args: TokenStream, input: TokenStream) -> TokenStream {
 }
 
 pub fn bake(input: TokenStream) -> TokenStream {
-
     // read all the files in /src/packets/incoming
     // for each file, read the packet_id attribute
 
@@ -101,9 +103,9 @@ pub fn bake(input: TokenStream) -> TokenStream {
                     }
 
                     Ok(())
-                }).unwrap();
+                })
+                .unwrap();
             }
-
 
             let packet_id = match packet_id {
                 Some(id) => id,
@@ -118,14 +120,19 @@ pub fn bake(input: TokenStream) -> TokenStream {
 
             let struct_name = &item_struct.ident;
 
-            println!("[FERRUMC_MACROS] Found Packet (ID: 0x{:02X}, State: {}, Struct Name: {})", packet_id, state, struct_name);
+            println!(
+                "[FERRUMC_MACROS] Found Packet (ID: 0x{:02X}, State: {}, Struct Name: {})",
+                packet_id, state, struct_name
+            );
 
-            let path = format!("crate::packets::incoming::{}", file_name.to_string_lossy().replace(".rs", ""));
+            let path = format!(
+                "crate::net::packets::incoming::{}",
+                file_name.to_string_lossy().replace(".rs", "")
+            );
 
             let struct_path = format!("{}::{}", path, struct_name);
 
             println!("[FERRUMC_MACROS] Struct Path: {}", struct_path);
-
 
             let struct_path = syn::parse_str::<syn::Path>(&struct_path).expect("parse_str failed");
 
@@ -147,12 +154,15 @@ pub fn bake(input: TokenStream) -> TokenStream {
 
     let elapsed = start.elapsed();
     println!("[FERRUMC_MACROS] Found {} packets", match_arms.len());
-    println!("[FERRUMC_MACROS] It took: {:?} to parse all the files and generate the packet registry", elapsed);
+    println!(
+        "[FERRUMC_MACROS] It took: {:?} to parse all the files and generate the packet registry",
+        elapsed
+    );
 
     let match_arms = match_arms.into_iter();
 
     let output = quote! {
-        pub async fn handle_packet(packet_id: u8, conn_owned: &mut crate::Connection, cursor: &mut std::io::Cursor<Vec<u8>>) -> ferrumc_utils::prelude::Result<()> {
+        pub async fn handle_packet(packet_id: u8, conn_owned: &mut crate::Connection, cursor: &mut std::io::Cursor<Vec<u8>>) -> crate::utils::prelude::Result<()> {
             match (packet_id, conn_owned.state.as_str()) {
                 #(#match_arms)*
                 _ => println!("No packet found for ID: 0x{:02X} in state: {}", packet_id, conn_owned.state.as_str()),

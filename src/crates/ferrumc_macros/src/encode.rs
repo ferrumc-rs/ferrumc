@@ -228,12 +228,15 @@ fn parse_field_attributes(field: &Field) -> FieldAttribs {
                     }
                     Ok(())
                 })?;
-                field_attrib.raw_bytes = Some(RawBytes { prepend_length: prepend });
+                field_attrib.raw_bytes = Some(RawBytes {
+                    prepend_length: prepend,
+                });
             } else if meta.path.is_ident("default") {
                 field_attrib.default_value = Some(meta.value()?.parse()?);
             }
             Ok(())
-        }).unwrap();
+        })
+        .unwrap();
     }
 
     field_attrib
@@ -254,7 +257,7 @@ fn generate_field_encode_statement(field_attrib: &FieldAttribs) -> proc_macro2::
             statement = quote! {
                 #statement
                 let #len = self.#field_name.len();
-                let #len = ferrumc_utils::encoding::varint::VarInt::new(#len as i32);
+                let #len = crate::utils::encoding::varint::VarInt::new(#len as i32);
                 #len.encode(&mut #cursor).await?;
             };
         }
@@ -272,11 +275,15 @@ fn generate_field_encode_statement(field_attrib: &FieldAttribs) -> proc_macro2::
     }
 }
 
-fn generate_encode_impl(name: &syn::Ident, field_statements: &[proc_macro2::TokenStream], is_packet_type: bool) -> proc_macro2::TokenStream {
+fn generate_encode_impl(
+    name: &syn::Ident,
+    field_statements: &[proc_macro2::TokenStream],
+    is_packet_type: bool,
+) -> proc_macro2::TokenStream {
     if is_packet_type {
         quote! {
-            impl ferrumc_utils::type_impls::Encode for #name {
-                async fn encode<T>(&self, bytes_out: &mut T) -> std::result::Result<(), ferrumc_utils::error::Error>
+            impl crate::utils::type_impls::Encode for #name {
+                async fn encode<T>(&self, bytes_out: &mut T) -> std::result::Result<(), crate::utils::error::Error>
                     where T: tokio::io::AsyncWrite + tokio::io::AsyncSeek + std::marker::Unpin
                 {
                     use tokio::io::AsyncWriteExt;
@@ -286,7 +293,7 @@ fn generate_encode_impl(name: &syn::Ident, field_statements: &[proc_macro2::Toke
                     #(#field_statements)*
 
                     let __packet_data = bytes_.into_inner();
-                    let __length = ferrumc_utils::encoding::varint::VarInt::new(__packet_data.len() as i32);
+                    let __length = crate::utils::encoding::varint::VarInt::new(__packet_data.len() as i32);
                     let mut __cursor = std::io::Cursor::new(Vec::new());
                     __length.encode(&mut __cursor).await?;
                     __cursor.write_all(&__packet_data).await?;
@@ -299,8 +306,8 @@ fn generate_encode_impl(name: &syn::Ident, field_statements: &[proc_macro2::Toke
         }
     } else {
         quote! {
-            impl ferrumc_utils::type_impls::Encode for #name {
-                async fn encode<T>(&self, bytes: &mut T) -> std::result::Result<(), ferrumc_utils::error::Error>
+            impl crate::utils::type_impls::Encode for #name {
+                async fn encode<T>(&self, bytes: &mut T) -> std::result::Result<(), crate::utils::error::Error>
                     where T: tokio::io::AsyncWrite + tokio::io::AsyncSeek + std::marker::Unpin
                 {
                     use tokio::io::AsyncWriteExt;
@@ -312,8 +319,10 @@ fn generate_encode_impl(name: &syn::Ident, field_statements: &[proc_macro2::Toke
     }
 }
 
-fn generate_modified_constructor(name: &syn::Ident, field_attribs: &[FieldAttribs]) -> proc_macro2::TokenStream {
-
+fn generate_modified_constructor(
+    name: &syn::Ident,
+    field_attribs: &[FieldAttribs],
+) -> proc_macro2::TokenStream {
     // example of this:
     // struct Test {
     //     a: i32,
@@ -330,23 +339,34 @@ fn generate_modified_constructor(name: &syn::Ident, field_attribs: &[FieldAttrib
     //             c: 5,
     //         }
 
-    let non_default_fields: Vec<&FieldAttribs> = field_attribs.into_iter().filter(|attr| attr.default_value.is_none()).collect();
-    let non_default_fields_params: Vec<proc_macro2::TokenStream> = non_default_fields.iter().map(|attr| {
-        let field_name = &attr.field_name;
-        let field_type = &attr.field_type;
-        quote! {
-            #field_name: #field_type,
-        }
-    }).collect();
-    let non_default_fields_names: Vec<proc_macro2::TokenStream> = non_default_fields.iter().map(|attr| {
-        let field_name = &attr.field_name;
-        quote! {
-            #field_name,
-        }
-    }).collect();
+    let non_default_fields: Vec<&FieldAttribs> = field_attribs
+        .into_iter()
+        .filter(|attr| attr.default_value.is_none())
+        .collect();
+    let non_default_fields_params: Vec<proc_macro2::TokenStream> = non_default_fields
+        .iter()
+        .map(|attr| {
+            let field_name = &attr.field_name;
+            let field_type = &attr.field_type;
+            quote! {
+                #field_name: #field_type,
+            }
+        })
+        .collect();
+    let non_default_fields_names: Vec<proc_macro2::TokenStream> = non_default_fields
+        .iter()
+        .map(|attr| {
+            let field_name = &attr.field_name;
+            quote! {
+                #field_name,
+            }
+        })
+        .collect();
 
-
-    let default_fields: Vec<&FieldAttribs> = field_attribs.iter().filter(|attr| attr.default_value.is_some()).collect();
+    let default_fields: Vec<&FieldAttribs> = field_attribs
+        .iter()
+        .filter(|attr| attr.default_value.is_some())
+        .collect();
 
     let default_field_statements = default_fields.iter().map(|attr| {
         let field_name = &attr.field_name;
@@ -355,7 +375,6 @@ fn generate_modified_constructor(name: &syn::Ident, field_attribs: &[FieldAttrib
             #field_name: #default_value,
         }
     });
-
 
     quote! {
         impl #name {
@@ -369,28 +388,36 @@ fn generate_modified_constructor(name: &syn::Ident, field_attribs: &[FieldAttrib
     }
 }
 
-
 pub(crate) fn derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let name = &input.ident;
 
     let fields = match input.data {
-        syn::Data::Struct(syn::DataStruct { fields: syn::Fields::Named(fields), .. }) => fields,
+        syn::Data::Struct(syn::DataStruct {
+            fields: syn::Fields::Named(fields),
+            ..
+        }) => fields,
         _ => panic!("Only structs with named fields are supported"),
     };
 
-    let field_attribs: Vec<FieldAttribs> = fields.named.iter().map(parse_field_attributes).collect();
+    let field_attribs: Vec<FieldAttribs> =
+        fields.named.iter().map(parse_field_attributes).collect();
 
-    let should_generate_modified_constructor = field_attribs.iter().any(|attr| attr.default_value.is_some());
+    let should_generate_modified_constructor = field_attribs
+        .iter()
+        .any(|attr| attr.default_value.is_some());
     let mut constructor = quote! {};
     if should_generate_modified_constructor {
         let modified_constructor = generate_modified_constructor(name, &field_attribs);
         constructor = modified_constructor;
     }
 
-    let is_packet_type = field_attribs.iter().any(|attr| attr.field_name == "packet_id");
+    let is_packet_type = field_attribs
+        .iter()
+        .any(|attr| attr.field_name == "packet_id");
 
-    let field_statements: Vec<proc_macro2::TokenStream> = field_attribs.iter()
+    let field_statements: Vec<proc_macro2::TokenStream> = field_attribs
+        .iter()
         .map(generate_field_encode_statement)
         .collect();
 
