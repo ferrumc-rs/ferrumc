@@ -3,7 +3,7 @@ mod tests {
     use std::io::Cursor;
 
     use ferrumc_macros::Decode;
-    use ferrumc_utils::encoding::varint::VarInt;
+    use crate::utils::encoding::varint::VarInt;
 
     #[tokio::test]
     async fn test_macro_decode() {

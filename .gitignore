@@ -1,6 +1,6 @@
 **/target
 .idea
-/src/crates/ferrumc_net/NBT_CODEC.nbt
-/src/crates/ferrumc_net/NBT_CODEC.zlib
+/src/net/NBT_CODEC.nbt
+/src/net/NBT_CODEC.zlib
 **/rustc-ice*
-data
+.zed
