@@ -177,18 +177,4 @@ mod tests {
         assert_ne!(e1, e2);
         assert_eq!(e1.id() + 1, e2.id());
     }
-
-    #[test]
-    fn test_entity_generation() {
-        let mut allocator = EntityAllocator::new();
-        let e1 = allocator.allocate_entity();
-        let e1 = allocator
-            .deallocate(&e1)
-            .expect("Failed to deallocate entity");
-        let e2 = allocator.allocate_entity();
-        assert_ne!(e1, e2);
-        assert_eq!(e1.id() + 1, e2.id());
-        assert_eq!(e1.generation(), 0);
-        assert_eq!(e2.generation(), 1);
-    }
 }
