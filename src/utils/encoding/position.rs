@@ -35,7 +35,7 @@ mod tests {
 
     use crate::utils::type_impls::{Decode, Encode};
 
-    use super::*;
+    use super::Position;
 
     #[tokio::test]
     async fn test_position_decode() {

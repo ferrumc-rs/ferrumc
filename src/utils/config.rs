@@ -5,11 +5,7 @@ use std::sync::OnceLock;
 use config::{Config, ConfigError};
 use serde::{Deserialize, Serialize};
 
-use crate::constants::{
-    DEFAULT_CONFIG_FILE, DEFAULT_MAX_PLAYERS, DEFAULT_MOTD, DEFAULT_SERVER_HOST,
-    DEFAULT_SERVER_PORT,
-};
-use crate::error::Error;
+use log::{error, info};
 
 use crate::utils::constants::{
     DEFAULT_CONFIG_FILE, DEFAULT_MAX_PLAYERS, DEFAULT_MOTD, DEFAULT_SERVER_HOST,
@@ -24,15 +20,6 @@ pub struct ServerConfig {
     pub motd: String,
     pub max_players: u32,
     pub network_tick_rate: u32,
-    pub world: String,
-    pub database: DatabaseConfig,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct DatabaseConfig {
-    pub port: u32,
-    pub path: String,
-    pub mode: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -133,12 +120,6 @@ impl Default for ServerConfig {
             motd: DEFAULT_MOTD.to_string(),
             max_players: DEFAULT_MAX_PLAYERS,
             network_tick_rate: 0,
-            world: "world".to_string(),
-            database: DatabaseConfig {
-                port: 29325,
-                path: "data".to_string(),
-                mode: "file".to_string(),
-            },
         }
     }
 }
