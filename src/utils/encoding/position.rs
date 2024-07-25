@@ -1,11 +1,12 @@
 use std::fmt::Display;
-use ferrumc_macros::{Component, Constructor};
+
+use ferrumc_macros::Component;
 
 /// Represents a position in the world
 ///
 /// Check out the [Position::encode] and [Position::decode]
 /// implementations for more information on how this struct is encoded and decoded
-#[derive(Debug, Component, Constructor, Clone)]
+#[derive(Clone, Component, Debug)]
 pub struct Position {
     // Encoded as a 26 bit int
     pub x: i32,
@@ -21,11 +22,18 @@ impl Display for Position {
     }
 }
 
+impl Position {
+    /// Creates a new position
+    pub fn new(x: i32, y: i16, z: i32) -> Self {
+        Position { x, y, z }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::io::Cursor;
 
-    use crate::type_impls::{Decode, Encode};
+    use crate::utils::type_impls::{Decode, Encode};
 
     use super::*;
 
