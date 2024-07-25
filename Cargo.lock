@@ -1787,16 +1787,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "valence_nbt"
-version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c3cddc3222ed5ead4fa446881b3deeeee0dba60b0088b2bf12fedbac7eda2312"
-dependencies = [
- "byteorder",
- "cesu8",
-]
-
-[[package]]
 name = "valuable"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
