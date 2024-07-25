@@ -1,16 +1,18 @@
 use std::collections::HashMap;
 use std::env::consts::OS;
-use std::io::Cursor;
 use std::process::{exit, Stdio};
 
-use simdnbt::owned::Nbt;
 use surrealdb::engine::remote::http::Http;
 use surrealdb::opt::auth::Root;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tracing::{error, warn};
 
-use ferrumc_utils::config::get_global_config;
-use ferrumc_utils::error::Error;
+use crate::utils::config::get_global_config;
+use crate::utils::error::Error;
+use crate::world::chunkformat::Chunk;
+
+mod chunkformat;
+pub mod importing;
 
 pub async fn start_database() -> Result<(), Error> {
     let store_path = if get_global_config().database.mode == "file" {
@@ -92,31 +94,31 @@ pub async fn start_database() -> Result<(), Error> {
 
 #[cfg(test)]
 mod tests {
-    use crate::load_chunk;
+    use std::io::Write;
+
+    use fastnbt::Value;
+
+    use crate::world;
+    use crate::world::load_chunk;
 
     #[tokio::test]
-    async fn test_load_chunks() {
-        assert!(load_chunk(0, 0).await.is_ok());
-        assert!(load_chunk(-5000, 4025).await.is_err());
-        assert_eq!(
-            load_chunk(0, 0)
-                .await
-                .unwrap()
-                .data
-                .unwrap()
-                .get("yPos")
-                .unwrap()
-                .int()
-                .unwrap(),
-            -4
-        );
+    async fn dump_region_to_json() {
+        let f = std::fs::File::open("./dummyregion.mca").unwrap();
+        let mut reader = fastanvil::Region::from_stream(f).unwrap();
+        let chunk = reader.read_chunk(0, 0).unwrap().unwrap();
+        let chunk_nbt: Value = fastnbt::from_bytes(&chunk).unwrap();
+        let mut outfile = std::fs::File::create("chunk.json").unwrap();
+        let raw_nbt = serde_json::ser::to_vec(&chunk_nbt).unwrap();
+        outfile.write_all(&*raw_nbt).unwrap()
     }
-}
 
-pub struct Chunk {
-    pub x: i32,
-    pub z: i32,
-    pub data: Nbt,
+    #[tokio::test]
+    async fn chunk_to_struct() {
+        let chunk = load_chunk(0, 0).await.unwrap();
+        assert_eq!(chunk.x_pos, 0);
+        assert_eq!(chunk.z_pos, 0);
+        assert_eq!(chunk.y_pos, -4);
+    }
 }
 
 pub async fn load_chunk(x: i32, z: i32) -> Result<Chunk, Error> {
@@ -142,10 +144,10 @@ pub async fn load_chunk(x: i32, z: i32) -> Result<Chunk, Error> {
             )
             .as_str(),
         );
-    let decoded_chunk = simdnbt::owned::read(&mut Cursor::new(&*raw_chunk_data)).unwrap();
-    Ok(Chunk {
-        x,
-        z,
-        data: decoded_chunk,
+    fastnbt::from_bytes(&raw_chunk_data).map_err(|_| {
+        Error::Generic(format!(
+            "Unable to parse chunk {} {} from region {} {} ",
+            x, z, region_area.0, region_area.1
+        ))
     })
 }

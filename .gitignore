@@ -5,3 +5,5 @@
 **/rustc-ice*
 .zed
 /data
+chunk.json
+dummyregion.mca

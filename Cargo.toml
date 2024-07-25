@@ -23,7 +23,7 @@ serde = { version = "1.0.203", features = ["derive"] }
 toml = "0.8.14"
 config = "0.14.0"
 lazy_static = "1.4.0"
-simdnbt = { version = "0.6.0", features = ["derive"] }
+simdnbt = { version = "0.6.0", features = ["derive", "default"] }
 fastnbt = "2.5.0"
 
 # Binary
@@ -43,3 +43,6 @@ base64 = "0.22.1"
 serde_json = "1.0.119"
 async-trait = "0.1.77"
 log = "0.4.22"
+surrealdb = { version = "1.5.4", features = ["protocol-http"] }
+fastanvil = "0.31.0"
+serde_derive = "1.0.204"

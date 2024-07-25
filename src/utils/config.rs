@@ -20,6 +20,15 @@ pub struct ServerConfig {
     pub motd: String,
     pub max_players: u32,
     pub network_tick_rate: u32,
+    pub database: Database,
+    pub world: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Database {
+    pub port: u32,
+    pub path: String,
+    pub mode: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -120,7 +129,12 @@ impl Default for ServerConfig {
             motd: DEFAULT_MOTD.to_string(),
             max_players: DEFAULT_MAX_PLAYERS,
             network_tick_rate: 0,
-        }
+            world: "world".to_string(),
+            database: Database {
+                port: 29325,
+                path: "data".to_string(),
+                mode: "file".to_string(),
+            }}
     }
 }
 
