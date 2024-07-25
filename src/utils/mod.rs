@@ -32,12 +32,5 @@ pub fn setup_logger() {
             std::process::exit(1);
         }
     };
-
-    let filter = tracing_subscriber::EnvFilter::from_default_env()
-        .add_directive(trace_level.into())
-        .add_directive("hyper=error".parse().unwrap());
-
-    tracing_subscriber::fmt()
-        .with_env_filter(filter)
-        .init();
+    tracing_subscriber::fmt().with_max_level(trace_level).init();
 }
