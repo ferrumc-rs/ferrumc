@@ -1,9 +1,9 @@
-pub mod clientinfo;
+pub mod client_info;
 pub mod handshake;
-pub mod loginstart;
+pub mod login_start;
 pub mod ping;
-pub mod playerabilities;
-pub mod setplayerposandrotate;
-pub mod setplayerposition;
+pub mod player_abilities;
+pub mod set_player_pos_and_rotate;
+pub mod set_player_position;
 pub mod keep_alive;
 pub mod status;
