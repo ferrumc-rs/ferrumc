@@ -38,6 +38,7 @@ pub struct LoginStart {
 // The NBT encoded data for the dimension codec. Using flate_include cos the codec file is like 40kb
 #[cfg(not(test))]
 flate!(pub static NBT_CODEC: [u8] from "nbt_codec.nbt");
+
 #[cfg(test)]
 const NBT_CODEC: &[u8] = &[0u8; 1];
 
@@ -71,7 +72,7 @@ impl IncomingPacket for LoginStart {
                 packet_id: VarInt::from(0x28),
                 entity_id: 0,
                 hardcore: false,
-                gamemode: 0,
+                gamemode: 1,
                 previous_gamemode: -1,
                 dimension_length: VarInt::new(1),
                 dimension_names: vec!["minecraft:overworld".to_string()],

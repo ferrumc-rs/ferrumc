@@ -10,3 +10,14 @@ max_players = 20
 # This is the number of times per second the server will send updates to the client.
 # Having this too low will cause noticable lag for clients but may improve server performance.
 network_tick_rate = 0
+# The world name to load. You can switch between mutliple worlds by changing this value.
+world = "world"
+
+[database]
+# The path to the database folder. Generally you don't need to change this.
+path = "data"
+# The port the database runs on. This number was chosen at random and should be changed if it conflicts with another program.
+port = 29325
+# The mode the database should run in. Options are "file" and "memory". "file" is recommended for persistence.
+# Memory mode will lose all data when the server is stopped and will have higher RAM use but will be noticeably faster.
+mode = "file"
