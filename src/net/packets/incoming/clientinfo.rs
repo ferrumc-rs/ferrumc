@@ -3,7 +3,7 @@ use tracing::trace;
 use ferrumc_macros::{Decode, packet};
 
 use crate::Connection;
-use crate::packets::IncomingPacket;
+use crate::net::packets::IncomingPacket;
 
 #[derive(Decode)]
 #[packet(packet_id = 0x08, state = "play")]
@@ -17,7 +17,7 @@ pub struct ClientInfo {
 }
 
 impl IncomingPacket for ClientInfo {
-    async fn handle(&self, _: &mut Connection) -> ferrumc_utils::prelude::Result<()> {
+    async fn handle(&self, _: &mut Connection) -> crate::utils::prelude::Result<()> {
         trace!("ClientInfo packet received");
         trace!("Locale: {}", self.locale);
         trace!("View Distance: {}", self.view_distance);

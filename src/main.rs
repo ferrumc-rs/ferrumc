@@ -4,6 +4,7 @@
 use std::env;
 
 use clap::Parser;
+use clap_derive::Parser;
 use tokio::net::TcpListener;
 use tracing::{debug, error, info, info_span, Instrument, trace};
 

@@ -4,9 +4,7 @@ use std::sync::OnceLock;
 
 use config::{Config, ConfigError};
 use serde::{Deserialize, Serialize};
-
-use log::{error, info};
-
+use tracing::{error, info};
 use crate::utils::constants::{
     DEFAULT_CONFIG_FILE, DEFAULT_MAX_PLAYERS, DEFAULT_MOTD, DEFAULT_SERVER_HOST,
     DEFAULT_SERVER_PORT,
