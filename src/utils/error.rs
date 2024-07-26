@@ -32,4 +32,7 @@ pub enum Error {
 
     #[error(transparent)]
     ECSError(#[from] crate::ecs::error::Error),
+    
+    #[error(transparent)]
+    FastAnvilError(#[from] fastanvil::Error),
 }
