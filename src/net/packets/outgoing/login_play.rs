@@ -13,7 +13,7 @@ pub struct LoginPlay {
     pub previous_gamemode: i8,
     pub dimension_length: VarInt,
     pub dimension_names: Vec<String>,
-    /// The codec for the dimension. Baked into the binary, see [crate::net::packets::incoming::loginstart::LoginStart::decode].
+    /// The codec for the dimension. Baked into the binary, see [crate::net::packets::incoming::login_start::LoginStart::decode].
     #[encode(raw_bytes(prepend_length = false))]
     pub registry_codec: Vec<u8>,
     pub dimension_type: String,

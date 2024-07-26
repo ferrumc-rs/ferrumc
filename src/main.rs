@@ -6,8 +6,8 @@
 use std::env;
 use std::sync::Arc;
 
-#[allow(unused_imports)]
-use tokio::fs::try_exists;
+use clap::Parser;
+use clap_derive::Parser;
 use tokio::net::TcpListener;
 use tokio::sync::RwLock;
 use tracing::{debug, error, info, info_span, Instrument, trace};
