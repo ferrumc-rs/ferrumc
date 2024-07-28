@@ -465,6 +465,7 @@ impl Encode for f64 {
     }
 }
 
+
 impl Encode for String {
     /// Encodes a String into a byte stream. A String is encoded as a VarInt representing the length
     /// of the string, followed by the string itself. The string is expected to be UTF-8 encoded.

@@ -38,7 +38,7 @@ pub struct ChunkSection {
     #[simdnbt(rename = "Y")]
     pub y: i8,
     pub block_states: PalettedContainer,
-    pub biomes: NbtCompound,
+    pub biomes: PalettedContainer,
 }
 
 #[derive(Debug, Clone, Deserialize)]

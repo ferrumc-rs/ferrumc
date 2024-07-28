@@ -1,15 +1,15 @@
 use std::time::Instant;
 
+use ferrumc_macros::{Decode, packet};
 #[cfg(not(test))]
 use include_flate::flate;
 use tokio::io::AsyncWriteExt;
 use tracing::debug;
-
-use ferrumc_macros::{Decode, packet};
 use uuid::Uuid;
 
 use crate::{Connection, GET_WORLD};
 use crate::net::packets::IncomingPacket;
+use crate::net::packets::outgoing::default_spawn_position::DefaultSpawnPosition;
 use crate::net::packets::outgoing::keep_alive::KeepAlivePacketOut;
 use crate::net::packets::outgoing::login_success::LoginSuccess;
 use crate::net::State::Play;
@@ -53,12 +53,12 @@ impl IncomingPacket for LoginStart {
 
             let namespace_uuid = Uuid::new_v5(&Uuid::NAMESPACE_URL, "OfflinePlayer".as_bytes());
             let uuid = Uuid::new_v3(&namespace_uuid, self.username.as_bytes());
-            
+
             let response = LoginSuccess::new_auto(
                 uuid.as_bytes().into(),
                 "OfflinePlayer".to_string(),
                 VarInt::new(0),
-                vec![]
+                vec![],
             );
 
             let mut cursor = std::io::Cursor::new(Vec::new());
@@ -97,20 +97,11 @@ impl IncomingPacket for LoginStart {
 
             conn.socket.write_all(&*play_packet).await?;
         }
-        let player_position = Position { x: 0, y: 0, z: 0 };
+        let player_position = Position { x: 0, y: 1000, z: 0 };
         {
-            let spawn_position =
-                crate::net::packets::outgoing::default_spawn_position::DefaultSpawnPosition {
-                    packet_id: VarInt::from(0x50),
-                    location: player_position.clone(),
-                    angle: 0.0,
-                };
+            let spawn_position = DefaultSpawnPosition::new_auto(player_position.clone(), 0.0);
 
-            let mut cursor = std::io::Cursor::new(Vec::new());
-            spawn_position.encode(&mut cursor).await?;
-            let spawn_position = cursor.into_inner();
-
-            conn.socket.write_all(&*spawn_position).await?;
+            conn.send_packet(spawn_position).await?;
         }
 
 
