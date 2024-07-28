@@ -5,6 +5,7 @@ use crate::utils::encoding::varint::VarInt;
 /// Sent by the server to the client to start the play state.
 #[derive(Encode)]
 pub struct LoginSuccess {
+    #[encode(default=VarInt::from(0x02))]
     pub packet_id: VarInt,
     pub uuid: Vec<u8>,
     pub username: String,

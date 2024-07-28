@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use std::collections::HashMap;
 use simdnbt::owned::NbtCompound;
-use simdnbt_derive::Deserialize;
+use simdnbt_derive::{Deserialize, Serialize};
 
 
 #[derive(Deserialize, Debug)]
@@ -22,11 +22,8 @@ pub struct Chunk {
     pub y: i32,
     #[simdnbt(rename = "zPos")]
     pub z: i32,
-
-
-    /*    #[simdnbt(rename = "Sections")]
-        pub sections: Vec<ChunkSection>,*/
-
+    pub sections: Vec<ChunkSection>,
+    /*    */
 
     /*    #[simdnbt(rename = "CarvingMasks")]
         // pub carving_masks: Option<HashMap<String, Vec<i64>>>,
@@ -39,16 +36,16 @@ pub struct Chunk {
 pub struct ChunkSection {
     #[simdnbt(rename = "Y")]
     pub y: i8,
-    #[simdnbt(rename = "BlockStates")]
+/*    #[simdnbt(rename = "BlockStates")]
     pub block_states: PalettedContainer,
     #[simdnbt(rename = "Biomes")]
-    pub biomes: PalettedContainer,
+    pub biomes: PalettedContainer,*/
 }
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct PalettedContainer {
     #[simdnbt(rename = "palette")]
-    pub palette: Vec<String>,
+    pub palette: Vec<Block>,
     #[simdnbt(rename = "data")]
     pub data: Vec<i64>,
 }
@@ -65,7 +62,7 @@ pub struct BlockEntity {
     pub id: String,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Heightmaps {
     #[simdnbt(rename = "MOTION_BLOCKING")]
     pub motion_blocking: Option<String>,
@@ -101,4 +98,12 @@ pub struct StructureStart {
 pub struct StructurePiece {
     #[simdnbt(flatten)]
     pub nbt: HashMap<String, NbtCompound>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct Block {
+    #[simdnbt(rename = "Name")]
+    pub name: String,
+    #[simdnbt(rename = "Properties")]
+    pub properties: Option<HashMap<String, String>>,
 }
