@@ -5,7 +5,7 @@ use simdnbt::owned::NbtCompound;
 use simdnbt_derive::{Deserialize, Serialize};
 
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Serialize)]
 pub struct Chunk {
     #[simdnbt(rename = "Heightmaps")]
     pub heightmaps: Heightmaps,
@@ -35,7 +35,7 @@ pub struct Chunk {
 }
 
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ChunkSection {
     #[simdnbt(rename = "Y")]
     pub y: i8,
@@ -43,13 +43,13 @@ pub struct ChunkSection {
     pub biomes: PalettedContainer,
 }
 
-#[derive(Debug, Clone, Deserialize, Encode)]
+#[derive(Debug, Clone, Deserialize, Serialize, Encode)]
 pub struct PalettedContainer {
     pub palette: Option<Vec<Block>>,
     pub data: Option<Vec<i64>>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct BlockEntity {
     #[simdnbt(rename = "x")]
     pub x: i32,
@@ -80,7 +80,7 @@ pub struct Heightmaps {
     pub world_surface_wg: Option<Vec<i64>>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Structures {
     #[simdnbt(rename = "starts")]
     pub starts: HashMap<String, StructureStart>,
@@ -89,7 +89,7 @@ pub struct Structures {
     // pub references: HashMap<String, Vec<i64>>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct StructureStart {
     #[simdnbt(rename = "id")]
     pub id: String,
@@ -97,13 +97,13 @@ pub struct StructureStart {
     pub children: Vec<StructurePiece>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct StructurePiece {
     #[simdnbt(flatten)]
     pub nbt: HashMap<String, NbtCompound>,
 }
 
-#[derive(Debug, Clone, Deserialize, Encode)]
+#[derive(Debug, Clone, Deserialize, Serialize, Encode)]
 pub struct Block {
     #[simdnbt(rename = "Name")]
     pub name: String,

@@ -203,10 +203,9 @@ impl From<&ChunkSection> for ChunkSectionEncode {
 }*/
 
 use std::io::Cursor;
-
 use ferrumc_macros::Encode;
-use simdnbt::{Deserialize, Serialize, ToNbtTag};
-use simdnbt::owned::{NbtCompound, NbtTag};
+use simdnbt::borrow::BaseNbt;
+use simdnbt::{Deserialize, Serialize};
 use tokio::io::AsyncWriteExt;
 
 use crate::net::systems::chunk_sender::GET_REGION;
@@ -264,7 +263,8 @@ impl ChunkDataAndUpdateLight {
         // Create dummy heightmaps NBT
         let mut heightmaps = create_dummy_heightmaps().await;
         let mut heightmaps_buf = Vec::new();
-        heightmaps.to_nbt().write(&mut heightmaps_buf);
+        todo!();
+        // heightmaps.to_nbt().write(&mut heightmaps_buf);
 
         // Create dummy chunk data
         let mut buffer = Cursor::new(Vec::new());
@@ -357,11 +357,10 @@ impl PalettedContainer {
     }
 }
 
-async fn create_dummy_heightmaps() -> Heightmaps {
+async fn create_dummy_heightmaps() -> Chunk {
     let mut  chunk_read = GET_REGION().write().await;
     let chunk = chunk_read.read_chunk(15, 30).unwrap(); // Get a chunk from the region
     let chunk = chunk.expect("Failed to read chunk data");
-    drop(chunk_read);
 
     /*// let mut compound = simdnbt::Compound::new();
     let mut compound = NbtCompound::new();
@@ -375,21 +374,22 @@ async fn create_dummy_heightmaps() -> Heightmaps {
 
     let base_nbt = simdnbt::borrow::read(&mut Cursor::new(&chunk)).expect("Failed to parse chunk data^1").unwrap();
 
-    let chunk = Chunk::from_nbt(&base_nbt).expect("Failed to parse chunk data^2");
 
+    let chunk = Chunk::from_nbt(&base_nbt).unwrap();
 
-    chunk.heightmaps
+    chunk
 }
 
 #[tokio::test]
 async fn try_load_heightmaps() {
     let heightmaps = create_dummy_heightmaps().await;
-    println!("{:?}", heightmaps);
     let nbt = heightmaps.to_nbt();
 
-    let mut buf = Vec::new();
-    nbt.write(&mut buf);
-    println!("{:?}", buf);
+    let mut bytes = Vec::new();
+    nbt.write(&mut bytes);
+
+    println!("{:?}", bytes);
+
 
     /*let nbt = heightmaps.to_compound();
     // convert nbt into bytes
