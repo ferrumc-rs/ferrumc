@@ -39,6 +39,11 @@ pub enum Error {
     FastAnvilError(#[from] fastanvil::Error),
     #[error("Chunk at ({0}, {1}) not found")]
     ChunkNotFound(i32, i32),
+
     #[error(transparent)]
     SimdNbtError(#[from] simdnbt::Error),
+    #[error("Invalid NBT: {0}")]
+    InvalidNbt(String),
+    #[error(transparent)]
+    NbtDeserializeError(#[from] simdnbt::DeserializeError),
 }

@@ -530,7 +530,7 @@ impl<V: Encode> Encode for Vec<V> {
     /// Encodes a Vec into a byte stream. The Vec is encoded as a VarInt representing the length of
     /// the Vec, followed by the elements of the Vec. The elements are encoded in order, and then
     /// written to the byte stream. Uses [ferrumc_utils::encoding::varint::VarInt] to encode the length
-    /// of the Vec, and [Encode::encode] to encode each element.
+    /// of the Vec, and [Encode::encode] to encode each element.-
     async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
     where
         T: AsyncWrite + AsyncSeek + Unpin,
@@ -564,5 +564,19 @@ impl Encode for Position {
             .write_all(&u64bytes)
             .await
             .map_err(|_| Error::Generic("Failed to write Position".parse().unwrap()))
+    }
+}
+
+
+impl<O: Encode> Encode for Option<O> {
+    async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
+    where
+        T: AsyncWrite + AsyncSeek + Unpin
+    {
+        match self {
+            Some(val) => {val.encode(bytes).await?; }
+            None => {}
+        }
+        Ok(())
     }
 }

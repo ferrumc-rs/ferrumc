@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 use std::collections::HashMap;
+use ferrumc_macros::Encode;
 use simdnbt::owned::NbtCompound;
 use simdnbt_derive::{Deserialize, Serialize};
 
@@ -33,6 +34,7 @@ pub struct Chunk {
 
 }
 
+
 #[derive(Debug, Clone, Deserialize)]
 pub struct ChunkSection {
     #[simdnbt(rename = "Y")]
@@ -41,9 +43,9 @@ pub struct ChunkSection {
     pub biomes: PalettedContainer,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Encode)]
 pub struct PalettedContainer {
-    pub palette: Vec<Block>,
+    pub palette: Option<Vec<Block>>,
     pub data: Option<Vec<i64>>,
 }
 
@@ -68,8 +70,9 @@ pub struct Heightmaps {
     pub motion_blocking: Option<String>,
     #[simdnbt(rename = "MOTION_BLOCKING_NO_LEAVES")]
     pub motion_blocking_no_leaves: Option<String>,
-    #[simdnbt(rename = "OCEAN_FLOOR")]
-    pub ocean_floor: Option<Vec<i64>>,
+    // TODO: renable
+    // #[simdnbt(rename = "OCEAN_FLOOR")]
+    // pub ocean_floor: Option<Vec<i64>>,
     #[simdnbt(rename = "OCEAN_FLOOR_WG")]
     pub ocean_floor_wg: Option<String>,
     #[simdnbt(rename = "WORLD_SURFACE")]
@@ -82,8 +85,9 @@ pub struct Heightmaps {
 pub struct Structures {
     #[simdnbt(rename = "starts")]
     pub starts: HashMap<String, StructureStart>,
-    #[simdnbt(rename = "References")]
-    pub references: HashMap<String, Vec<i64>>,
+    // TODO: renable
+    // #[simdnbt(rename = "References")]
+    // pub references: HashMap<String, Vec<i64>>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -100,10 +104,10 @@ pub struct StructurePiece {
     pub nbt: HashMap<String, NbtCompound>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Encode)]
 pub struct Block {
     #[simdnbt(rename = "Name")]
     pub name: String,
-    #[simdnbt(rename = "Properties")]
-    pub properties: Option<HashMap<String, String>>,
+/*    #[simdnbt(rename = "Properties")]
+    pub properties: Option<HashMap<String, String>>,*/
 }

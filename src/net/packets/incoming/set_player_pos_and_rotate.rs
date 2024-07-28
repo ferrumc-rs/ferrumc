@@ -38,9 +38,11 @@ impl IncomingPacket for SetPlayerPosAndRotate {
         };
 
         *position = Position {
-            x: self.x as i32,
+            // x: self.x as i32,
+            x: -189,
             y: self.y as i16,
-            z: self.z as i32,
+            // z: self.z as i32,
+            z: -548
         };
 
         Ok(())
