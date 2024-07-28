@@ -10,7 +10,6 @@ pub struct TickSystem;
 impl System for TickSystem {
     async fn run(&self) {
         loop {
-            debug!("Tick");
             tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
         }
     }

@@ -61,7 +61,7 @@ async fn send_chunks_around_player(conn: Arc<RwLock<Connection>>, player_x: i32,
             let x = chunk_x/* + dx*/;
             let z = chunk_z /*+ dz*/;
             let chunk = get_chunk(x, z).await?; // You need to implement this function
-            let packet = ChunkDataAndUpdateLight::new(&chunk).await?;
+            let packet = ChunkDataAndUpdateLight::new(x, z).await?;
             conn_write.send_packet(packet).await?;
         // }
     // }
@@ -89,7 +89,7 @@ async fn send_chunks_around_player(conn: Arc<RwLock<Connection>>, player_x: i32,
 
 
 #[allow(non_snake_case)]
-fn GET_REGION() -> &'static RwLock<Region<File>> {
+pub fn GET_REGION() -> &'static RwLock<Region<File>> {
     static STATIC_REGION: OnceLock<RwLock<Region<File>>> = OnceLock::new();
     // TODO: Change this entirely!
     STATIC_REGION.get_or_init(|| RwLock::new(get_region("r.-1.-2.mca")))

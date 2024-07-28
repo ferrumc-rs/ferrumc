@@ -4,7 +4,7 @@ use tracing::{info_span, Instrument};
 
 pub mod tick_system;
 pub mod keep_alive_system;
-mod chunk_sender;
+pub mod chunk_sender;
 
 #[async_trait]
 pub trait System: Send + Sync

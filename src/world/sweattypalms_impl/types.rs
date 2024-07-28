@@ -67,18 +67,17 @@ pub struct BlockEntity {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Heightmaps {
     #[simdnbt(rename = "MOTION_BLOCKING")]
-    pub motion_blocking: Option<String>,
+    pub motion_blocking: Option<Vec<i64>>,
     #[simdnbt(rename = "MOTION_BLOCKING_NO_LEAVES")]
-    pub motion_blocking_no_leaves: Option<String>,
-    // TODO: renable
-    // #[simdnbt(rename = "OCEAN_FLOOR")]
-    // pub ocean_floor: Option<Vec<i64>>,
+    pub motion_blocking_no_leaves: Option<Vec<i64>>,
+    #[simdnbt(rename = "OCEAN_FLOOR")]
+    pub ocean_floor: Option<Vec<i64>>,
     #[simdnbt(rename = "OCEAN_FLOOR_WG")]
-    pub ocean_floor_wg: Option<String>,
+    pub ocean_floor_wg: Option<Vec<i64>>,
     #[simdnbt(rename = "WORLD_SURFACE")]
-    pub world_surface: Option<String>,
+    pub world_surface: Option<Vec<i64>>,
     #[simdnbt(rename = "WORLD_SURFACE_WG")]
-    pub world_surface_wg: Option<String>,
+    pub world_surface_wg: Option<Vec<i64>>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
