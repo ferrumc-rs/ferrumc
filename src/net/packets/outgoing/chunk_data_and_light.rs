@@ -31,7 +31,10 @@ pub struct BlockEntity {
 }
 
 impl ChunkDataAndUpdateLight {
-    pub fn new(chunk: &Chunk, dimension_height: i32, min_y: i32) -> Self {
+    #[allow(unused_variables)]
+    
+    // 384 is the default height of a chunk
+    pub fn new(chunk: &Chunk, min_y: i32) -> Self {
         let chunk_x = chunk.x;
         let chunk_z = chunk.z;
 
@@ -39,17 +42,12 @@ impl ChunkDataAndUpdateLight {
         let heightmaps = chunk.heightmaps.clone().to_nbt();
         
         // Create chunk data
-        let mut data: Vec<ChunkSection> = Vec::new();
-        /*for section in &chunk.sections {
-            let mut section_data = Vec::new();
-            section_data.push(section.y as u8);
-            section_data.extend_from_slice(&section.block_states.palette);
-            section_data.extend_from_slice(&section.block_states.data);
-            section_data.extend_from_slice(&section.biomes.palette);
-            section_data.extend_from_slice(&section.biomes.data);
-            data.extend_from_slice(&section_data);
-        }*/
+        let data: Vec<ChunkSection> = Vec::new();
 
+        for chunk_section in chunk.sections.iter() {
+            
+        }
+        
         todo!()
     }
 }

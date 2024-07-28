@@ -23,7 +23,9 @@ pub struct Chunk {
     #[simdnbt(rename = "zPos")]
     pub z: i32,
     pub sections: Vec<ChunkSection>,
-    /*    */
+
+    /**/
+
 
     /*    #[simdnbt(rename = "CarvingMasks")]
         // pub carving_masks: Option<HashMap<String, Vec<i64>>>,
@@ -31,23 +33,18 @@ pub struct Chunk {
 
 }
 
-
 #[derive(Debug, Clone, Deserialize)]
 pub struct ChunkSection {
     #[simdnbt(rename = "Y")]
     pub y: i8,
-/*    #[simdnbt(rename = "BlockStates")]
     pub block_states: PalettedContainer,
-    #[simdnbt(rename = "Biomes")]
-    pub biomes: PalettedContainer,*/
+    pub biomes: NbtCompound,
 }
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct PalettedContainer {
-    #[simdnbt(rename = "palette")]
     pub palette: Vec<Block>,
-    #[simdnbt(rename = "data")]
-    pub data: Vec<i64>,
+    pub data: Option<Vec<i64>>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -60,6 +57,9 @@ pub struct BlockEntity {
     pub z: i32,
     #[simdnbt(rename = "id")]
     pub id: String,
+    // #[simdnbt(flatten)]
+    // pub data: HashMap<String, Box<dyn Any>>,
+    // pub data: HashMap<String, String>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
