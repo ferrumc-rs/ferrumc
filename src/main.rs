@@ -6,17 +6,16 @@
 use std::env;
 use std::sync::Arc;
 
-use clap::Parser;
-use clap_derive::Parser;
 use tokio::net::TcpListener;
 use tokio::sync::RwLock;
 use tracing::{debug, error, info, info_span, Instrument, trace};
 
 use crate::{
-    net::{Connection, ConnectionWrapper, GET_WORLD},
+    net::{Connection, ConnectionWrapper},
     net::systems::{kill_all_systems, start_all_systems},
     utils::{config, config::get_global_config, prelude::*},
 };
+use crate::state::GlobalState;
 
 pub mod ecs;
 pub mod net;
@@ -24,9 +23,9 @@ mod setup;
 mod tests;
 pub mod utils;
 
+mod database;
+mod state;
 pub mod world;
-
-type SafeConfig = Arc<RwLock<utils::config::ServerConfig>>;
 #[tokio::main]
 async fn main() -> Result<()> {
     utils::setup_logger();
@@ -42,13 +41,15 @@ async fn main() -> Result<()> {
     let elapsed = start.elapsed();
 
     debug!("Found Config: {:?} in {:?}", config, elapsed);
+    let db = database::start_database().await?;
 
-    start_server().await.expect("Server failed to start!");
+    let state: GlobalState = Arc::new(RwLock::new(state::ServerState {
+        world: ecs::world::World::new(),
+        connections: net::ConnectionList::new(),
+        database: db,
+    }));
 
-    let procs = tokio::join!(start_server(), world::start_database());
-
-    procs.0?;
-    procs.1?;
+    start_server(state).await.expect("Server failed to start!");
 
     tokio::signal::ctrl_c().await?;
 
@@ -58,7 +59,7 @@ async fn main() -> Result<()> {
 /// Starts the server. Sets up the sockets and listens for incoming connections
 ///
 /// The actual management of connections in handled by [r#mod::init_connection]
-async fn start_server() -> Result<()> {
+async fn start_server(state: GlobalState) -> Result<()> {
     let config = get_global_config();
     trace!("Starting server on {}:{}", config.host, config.port);
 
@@ -69,7 +70,7 @@ async fn start_server() -> Result<()> {
 
     info!("Server started on {}", addr);
 
-    let read_connections = tokio::spawn(read_connections(listener));
+    let read_connections = tokio::spawn(read_connections(listener, state.clone()));
 
     /*ALL_SYSTEMS.iter().for_each(|system| {
         tokio::spawn(system.run().instrument(info_span!("system", system = system.name())));
@@ -114,7 +115,7 @@ async fn start_server() -> Result<()> {
     });*/
 
     // Start all systems (separate task)
-    let all_systems = tokio::task::spawn(start_all_systems());
+    let all_systems = tokio::task::spawn(start_all_systems(state.clone()));
     let (con, systems) = tokio::try_join!(read_connections, all_systems)?;
     con?;
     systems?;
@@ -125,16 +126,16 @@ async fn start_server() -> Result<()> {
     Ok(())
 }
 
-async fn read_connections(listener: TcpListener) -> Result<()> {
+async fn read_connections(listener: TcpListener, state: GlobalState) -> Result<()> {
     loop {
         let (socket, addy) = listener.accept().await?;
         // show a line of 100 dashes
         trace!("{}", "-".repeat(100));
         debug!("Accepted connection from: {:?}", socket.peer_addr()?);
-
+        let state = state.clone();
         tokio::task::spawn(
-            async {
-                if let Err(e) = net::init_connection(socket).await {
+            async move {
+                if let Err(e) = net::init_connection(socket, state).await {
                     error!("Error handling connection: {:?}", e);
                 }
             }

@@ -7,7 +7,9 @@ use tokio::io::AsyncWriteExt;
 use tracing::debug;
 use uuid::Uuid;
 
-use crate::{Connection, GET_WORLD};
+use ferrumc_macros::{Decode, packet};
+
+use crate::Connection;
 use crate::net::packets::IncomingPacket;
 use crate::net::packets::outgoing::default_spawn_position::DefaultSpawnPosition;
 use crate::net::packets::outgoing::keep_alive::KeepAlivePacketOut;
@@ -44,7 +46,7 @@ flate!(pub static NBT_CODEC: [u8] from "nbt_codec.nbt");
 const NBT_CODEC: &[u8] = &[0u8; 1];
 
 impl IncomingPacket for LoginStart {
-    async fn handle(&self, conn: &mut Connection) -> Result<()> {
+    async fn handle(&self, conn: &mut Connection, state: crate::state::GlobalState) -> Result<()> {
         {
             debug!("LoginStart packet received");
             debug!("Username: {}", self.username);
@@ -104,30 +106,25 @@ impl IncomingPacket for LoginStart {
             conn.send_packet(spawn_position).await?;
         }
 
-
         let keep_alive_id: i64 = 110;
         let keep_alive = KeepAlive::new(Instant::now(), Instant::now(), keep_alive_id);
 
         {
-            let world = GET_WORLD();
-            let mut world = world.write().await;
-
             let entity = &conn.metadata.entity;
+            let mut state = state.write().await;
 
             // Insert all the necessary components
-            let component_storage = world.get_component_storage_mut();
+            let component_storage = state.world.get_component_storage_mut();
             component_storage.insert(entity, Player::new(self.uuid, self.username.clone()));
             component_storage.insert(entity, keep_alive.clone());
             component_storage.insert(entity, player_position.clone());
         }
-
 
         {
             let keep_alive_outgoing = KeepAlivePacketOut::new_auto(keep_alive_id);
             debug!("Sending keep alive packet {:?}", &keep_alive_outgoing);
             conn.send_packet(keep_alive_outgoing).await?;
         }
-
 
         conn.state = Play;
 
