@@ -29,7 +29,21 @@ pub enum Error {
 
     #[error("Invalid component storage: {0}")]
     InvalidComponentStorage(String),
+    #[error("Component {0} not found for entity {1}")]
+    ComponentNotFound(String, u64),
 
     #[error(transparent)]
     ECSError(#[from] crate::ecs::error::Error),
+
+    #[error(transparent)]
+    FastAnvilError(#[from] fastanvil::Error),
+    #[error("Chunk at ({0}, {1}) not found")]
+    ChunkNotFound(i32, i32),
+
+    #[error(transparent)]
+    SimdNbtError(#[from] simdnbt::Error),
+    #[error("Invalid NBT: {0}")]
+    InvalidNbt(String),
+    #[error(transparent)]
+    NbtDeserializeError(#[from] simdnbt::DeserializeError),
 }

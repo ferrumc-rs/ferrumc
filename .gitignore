@@ -7,3 +7,5 @@
 /data
 chunk.json
 dummyregion.mca
+
+nbt_codec.nbt

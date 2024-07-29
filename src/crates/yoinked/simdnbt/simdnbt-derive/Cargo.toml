@@ -1,0 +1,17 @@
+[package]
+name = "simdnbt-derive"
+version = "0.6.0"
+edition = "2021"
+description = "Derive macros for simdnbt"
+license = "MIT"
+repository = "https://github.com/azalea-rs/simdnbt"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+proc-macro2 = "1.0.86"
+quote = "1.0.36"
+syn = "2.0.68"
+
+[lib]
+proc-macro = true

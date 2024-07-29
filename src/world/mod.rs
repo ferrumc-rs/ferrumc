@@ -13,6 +13,7 @@ use crate::world::chunkformat::Chunk;
 
 mod chunkformat;
 pub mod importing;
+pub mod sweattypalms_impl;
 
 pub async fn start_database() -> Result<(), Error> {
     let store_path = if get_global_config().database.mode == "file" {

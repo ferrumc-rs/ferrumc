@@ -4,6 +4,7 @@ use tracing::{info_span, Instrument};
 
 pub mod tick_system;
 pub mod keep_alive_system;
+pub mod chunk_sender;
 
 #[async_trait]
 pub trait System: Send + Sync
@@ -17,6 +18,7 @@ pub trait System: Send + Sync
 pub static ALL_SYSTEMS: &[&dyn System] = &[
     &tick_system::TickSystem,
     &keep_alive_system::KeepAliveSystem,
+    &chunk_sender::ChunkSender,
 ];
 
 pub async fn start_all_systems() -> Result<()> {

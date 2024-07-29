@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use tracing::{debug, error, info, warn};
+use tracing::{debug, trace, warn};
 
 use ferrumc_macros::AutoGenName;
 
@@ -8,7 +8,6 @@ use crate::net::packets::outgoing::keep_alive::KeepAlivePacketOut;
 use crate::net::systems::System;
 use crate::utils::components::keep_alive::KeepAlive;
 use crate::utils::components::player::Player;
-use crate::utils::prelude::*;
 
 #[derive(AutoGenName)]
 pub struct KeepAliveSystem;
@@ -51,14 +50,14 @@ impl KeepAliveSystem {
             for (player, data, conn) in keep_alive_data {
                 let keep_alive_out = KeepAlivePacketOut::new_auto(data);
                 let mut conn = conn.write().await;
-                debug!("Sending keep alive packet to player: {:?}", player);
+                trace!("Sending keep alive packet to player: {:?}", player);
                 if let Err(e) = conn.send_packet(keep_alive_out).await {
-                    error!("Error sending keep alive packet: {:?}", e);
+                    warn!("Error sending keep alive packet: {:?}", e);
                 }
             }
         }
     }
-    async fn receiver() -> Result<()> {
+    async fn receiver() {
         let mut interval = tokio::time::interval(std::time::Duration::from_secs(5));
         loop {
             interval.tick().await;
@@ -84,7 +83,7 @@ impl KeepAliveSystem {
                 let conn_id = conn.id;
                 drop(conn);
 
-                info!("Dropping connection {} due to inactivity", conn_id);
+                debug!("Dropping connection {} due to inactivity", conn_id);
                 if let Err(err) = drop_conn(conn_id).await {
                     warn!("Error dropping connection {}: {:?}", conn_id, err);
                 }

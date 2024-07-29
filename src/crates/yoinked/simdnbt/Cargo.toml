@@ -1,0 +1,3 @@
+[workspace]
+members = ["simdnbt", "simdnbt-derive", "fuzz"]
+resolver = "2"

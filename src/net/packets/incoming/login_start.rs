@@ -1,16 +1,17 @@
 use std::time::Instant;
 
+use ferrumc_macros::{Decode, packet};
 #[cfg(not(test))]
 use include_flate::flate;
 use tokio::io::AsyncWriteExt;
 use tracing::debug;
-
-use ferrumc_macros::{Decode, packet};
 use uuid::Uuid;
 
 use crate::{Connection, GET_WORLD};
 use crate::net::packets::IncomingPacket;
+use crate::net::packets::outgoing::default_spawn_position::DefaultSpawnPosition;
 use crate::net::packets::outgoing::keep_alive::KeepAlivePacketOut;
+use crate::net::packets::outgoing::login_success::LoginSuccess;
 use crate::net::State::Play;
 use crate::utils::components::keep_alive::KeepAlive;
 use crate::utils::components::player::Player;
@@ -23,7 +24,7 @@ use crate::utils::type_impls::Encode;
 ///
 /// Server responds with [crate::net::packets::outgoing::login_success::LoginSuccess],
 /// [crate::net::packets::outgoing::login_play::LoginPlay], and
-/// [crate::net::packets::outgoing::defaultspawnposition::DefaultSpawnPosition] packets in that order.
+/// [crate::net::packets::outgoing::default_spawn_position::DefaultSpawnPosition] packets in that order.
 /// No response is required from the client while these are being sent.
 ///
 /// This is the final stage in the login process. The client is now in the play state.
@@ -53,13 +54,12 @@ impl IncomingPacket for LoginStart {
             let namespace_uuid = Uuid::new_v5(&Uuid::NAMESPACE_URL, "OfflinePlayer".as_bytes());
             let uuid = Uuid::new_v3(&namespace_uuid, self.username.as_bytes());
 
-            let response = crate::net::packets::outgoing::login_success::LoginSuccess {
-                packet_id: VarInt::from(0x02),
-                uuid: uuid.as_bytes().into(),
-                username: "OfflinePlayer".to_string(),
-                property_count: VarInt::new(0),
-                properties: vec![],
-            };
+            let response = LoginSuccess::new_auto(
+                uuid.as_bytes().into(),
+                "OfflinePlayer".to_string(),
+                VarInt::new(0),
+                vec![],
+            );
 
             let mut cursor = std::io::Cursor::new(Vec::new());
             response.encode(&mut cursor).await?;
@@ -85,8 +85,8 @@ impl IncomingPacket for LoginStart {
                 simulation_distance: VarInt::new(10),
                 reduced_debug_info: false,
                 enable_respawn_screen: true,
-                is_debug: true,
-                is_flat: true,
+                is_debug: false,
+                is_flat: false,
                 has_death_location: false,
                 portal_cooldown: VarInt::new(0),
             };
@@ -97,20 +97,11 @@ impl IncomingPacket for LoginStart {
 
             conn.socket.write_all(&*play_packet).await?;
         }
-        let player_position = Position { x: 0, y: 0, z: 0 };
+        let player_position = Position { x: 0, y: 1000, z: 0 };
         {
-            let spawn_position =
-                crate::net::packets::outgoing::defaultspawnposition::DefaultSpawnPosition {
-                    packet_id: VarInt::from(0x50),
-                    location: player_position.clone(),
-                    angle: 0.0,
-                };
+            let spawn_position = DefaultSpawnPosition::new_auto(player_position.clone(), 0.0);
 
-            let mut cursor = std::io::Cursor::new(Vec::new());
-            spawn_position.encode(&mut cursor).await?;
-            let spawn_position = cursor.into_inner();
-
-            conn.socket.write_all(&*spawn_position).await?;
+            conn.send_packet(spawn_position).await?;
         }
 
 
