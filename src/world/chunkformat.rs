@@ -1,55 +1,62 @@
+use fastnbt::Value;
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
-use fastnbt::Value;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Chunk {
     #[serde(rename = "Status")]
-    pub status: String,
+    pub status: Option<String>,
     #[serde(rename = "block_ticks")]
-    pub block_ticks: Vec<Value>,
+    pub block_ticks: Option<Vec<Value>>,
     #[serde(rename = "DataVersion")]
     pub data_version: i64,
     #[serde(rename = "fluid_ticks")]
-    pub fluid_ticks: Vec<Value>,
+    pub fluid_ticks: Option<Vec<Value>>,
+    #[serde(rename = "CarvingMasks")]
+    pub carving_masks: Option<Value>,
     #[serde(rename = "Heightmaps")]
-    pub heightmaps: Heightmaps,
-    pub is_light_on: i64,
+    pub heightmaps: Option<Heightmaps>,
+    #[serde(rename = "isLightOn")]
+    pub is_light_on: Option<i64>,
     #[serde(rename = "InhabitedTime")]
-    pub inhabited_time: i64,
+    pub inhabited_time: Option<i64>,
     pub y_pos: i64,
     pub x_pos: i64,
     #[serde(rename = "block_entities")]
-    pub block_entities: Vec<Value>,
-    pub structures: Structures,
+    pub block_entities: Option<Vec<Value>>,
+    pub structures: Option<Structures>,
     #[serde(rename = "LastUpdate")]
-    pub last_update: i64,
+    pub last_update: Option<i64>,
     pub z_pos: i64,
     pub sections: Vec<Section>,
     #[serde(rename = "PostProcessing")]
-    pub post_processing: Vec<Vec<Value>>,
+    pub post_processing: Option<Value>,
+    #[serde(rename = "Lights")]
+    pub lights: Option<Value>,
+    #[serde(rename = "Entities")]
+    pub entities: Option<Value>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Heightmaps {
     #[serde(rename = "MOTION_BLOCKING_NO_LEAVES")]
-    pub motion_blocking_no_leaves: fastnbt::LongArray,
+    pub motion_blocking_no_leaves: Option<MotionBlockingNoLeaves>,
     #[serde(rename = "MOTION_BLOCKING")]
-    pub motion_blocking: fastnbt::LongArray,
+    pub motion_blocking: Option<MotionBlocking>,
     #[serde(rename = "OCEAN_FLOOR")]
-    pub ocean_floor: fastnbt::LongArray,
+    pub ocean_floor: Option<OceanFloor>,
     #[serde(rename = "WORLD_SURFACE")]
-    pub world_surface: fastnbt::LongArray,
+    pub world_surface: Option<WorldSurface>,
 }
 
-// #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-// #[serde(rename_all = "camelCase")]
-// pub struct MotionBlockingNoLeaves {
-//     #[serde(rename = "__fastnbt_long_array")]
-//     pub fastnbt_long_array: fastnbt::LongArray,
-// }
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MotionBlockingNoLeaves {
+    #[serde(rename = "__fastnbt_long_array")]
+    pub fastnbt_long_array: fastnbt::LongArray,
+}
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -92,21 +99,21 @@ pub struct References {}
 #[serde(rename_all = "camelCase")]
 pub struct Section {
     #[serde(rename = "block_states")]
-    pub block_states: BlockStates,
-    pub biomes: Biomes,
+    pub block_states: Option<BlockStates>,
+    pub biomes: Option<Biomes>,
     #[serde(rename = "Y")]
     pub y: i64,
     #[serde(rename = "BlockLight")]
-    pub block_light: Option<fastnbt::ByteArray>,
+    pub block_light: Option<BlockLight>,
     #[serde(rename = "SkyLight")]
-    pub sky_light: Option<fastnbt::ByteArray>,
+    pub sky_light: Option<SkyLight>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BlockStates {
     pub data: Option<fastnbt::LongArray>,
-    pub palette: Vec<Palette>,
+    pub palette: Option<Vec<Palette>>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -151,13 +158,13 @@ pub struct Biomes {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BlockLight {
-    #[serde(rename = "__fastnbt_byte_array")]
-    pub fastnbt_byte_array: fastnbt::ByteArray,
+    #[serde(rename = "__fastnbt_long_array")]
+    pub fastnbt_byte_array: fastnbt::LongArray,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SkyLight {
-    #[serde(rename = "__fastnbt_byte_array")]
-    pub fastnbt_byte_array: fastnbt::ByteArray,
+    #[serde(rename = "__fastnbt_long_array")]
+    pub fastnbt_byte_array: fastnbt::LongArray,
 }

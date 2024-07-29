@@ -4,8 +4,8 @@ use ferrumc_macros::{Decode, packet};
 
 use crate::Connection;
 use crate::net::packets::IncomingPacket;
-use crate::utils::encoding::position::Position;
 use crate::state::GlobalState;
+use crate::utils::encoding::position::Position;
 
 #[derive(Decode)]
 #[packet(packet_id = 0x15, state = "play")]
@@ -21,8 +21,8 @@ pub struct SetPlayerPosAndRotate {
 impl IncomingPacket for SetPlayerPosAndRotate {
     async fn handle(
         &self,
-        _: &mut Connection,
-        _: GlobalState,
+        conn: &mut Connection,
+        state: GlobalState,
     ) -> crate::utils::prelude::Result<()> {
         trace!("SetPlayerPosAndRotate packet received");
         trace!("X: {}", self.x);
@@ -33,12 +33,15 @@ impl IncomingPacket for SetPlayerPosAndRotate {
 
         let my_entity_id = conn.metadata.entity.id();
 
-        let mut world = crate::GET_WORLD().write().await;
-        let component_storage = world.get_component_storage_mut();
-        let position =  match component_storage.get_mut::<Position>(my_entity_id as usize) {
+        let mut state = state.write().await;
+        let component_storage = state.world.get_component_storage_mut();
+        let position = match component_storage.get_mut::<Position>(my_entity_id as usize) {
             Some(pos) => pos,
             None => {
-                return Err(Error::ComponentNotFound(String::from("Position"), my_entity_id))
+                return Err(Error::ComponentNotFound(
+                    String::from("Position"),
+                    my_entity_id,
+                ))
             }
         };
 
@@ -47,7 +50,7 @@ impl IncomingPacket for SetPlayerPosAndRotate {
             x: -189,
             y: self.y as i16,
             // z: self.z as i32,
-            z: -548
+            z: -548,
         };
 
         Ok(())

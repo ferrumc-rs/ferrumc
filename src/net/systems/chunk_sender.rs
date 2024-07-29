@@ -1,19 +1,20 @@
 use std::fs::File;
-use std::hint::black_box;
 use std::io::Cursor;
 use std::sync::{Arc, OnceLock};
+
 use async_trait::async_trait;
 use fastanvil::Region;
-use ferrumc_macros::AutoGenName;
 use simdnbt::borrow::Nbt;
 use simdnbt::Deserialize;
 use tokio::sync::RwLock;
 use tracing::debug;
-use tracing::field::debug;
-use crate::net::{Connection, ConnectionWrapper, GET_WORLD};
+
+use ferrumc_macros::AutoGenName;
+
+use crate::net::{Connection, ConnectionWrapper};
 use crate::net::packets::outgoing::chunk_data_and_light::ChunkDataAndUpdateLight;
 use crate::net::systems::System;
-use crate::utils::components::keep_alive::KeepAlive;
+use crate::state::GlobalState;
 use crate::utils::components::player::Player;
 use crate::utils::encoding::position::Position;
 use crate::utils::prelude::*;
@@ -24,19 +25,27 @@ pub struct ChunkSender;
 
 #[async_trait]
 impl System for ChunkSender {
-    async fn run(&self) {
+    async fn run(&self, state: GlobalState) {
         let mut interval = tokio::time::interval(std::time::Duration::from_secs(1));
         loop {
             interval.tick().await;
-            let mut world = GET_WORLD().read().await;
-            let query = world.query::<(Player, Position, ConnectionWrapper)>()
-                .iter().collect::<Vec<_>>();
+            let state = state.write().await;
+            let query = state
+                .world
+                .query::<(Player, Position, ConnectionWrapper)>()
+                .iter()
+                .collect::<Vec<_>>();
 
             for (_, (player, pos, conn)) in query {
-                debug!("Sending chunk to player: {} with position: {}", player.get_username(), pos);
+                debug!(
+                    "Sending chunk to player: {} with position: {}",
+                    player.get_username(),
+                    pos
+                );
                 let player_x = pos.x;
                 let player_z = pos.z;
-                if let Err(e) = send_chunks_around_player(conn.0.clone(), player_x, player_z).await {
+                if let Err(e) = send_chunks_around_player(conn.0.clone(), player_x, player_z).await
+                {
                     debug!("Failed to send chunks to player: {}", e);
                 }
             }
@@ -48,7 +57,11 @@ impl System for ChunkSender {
     }
 }
 
-async fn send_chunks_around_player(conn: Arc<RwLock<Connection>>, player_x: i32, player_z: i32) -> Result<()> {
+async fn send_chunks_around_player(
+    conn: Arc<RwLock<Connection>>,
+    player_x: i32,
+    player_z: i32,
+) -> Result<()> {
     let chunk_x = player_x >> 4;
     let chunk_z = player_z >> 4;
     let render_distance = 1;
@@ -57,13 +70,16 @@ async fn send_chunks_around_player(conn: Arc<RwLock<Connection>>, player_x: i32,
 
     // for dx in -render_distance..=render_distance {
     //     for dz in -render_distance..=render_distance {
-            debug!("Sending chunk at x: {} z: {}", chunk_x/* + dx*/, chunk_z /*+ dz*/);
-            let x = chunk_x/* + dx*/;
-            let z = chunk_z /*+ dz*/;
-            let chunk = get_chunk(x, z).await?; // You need to implement this function
-            let packet = ChunkDataAndUpdateLight::new(x, z).await?;
-            conn_write.send_packet(packet).await?;
-        // }
+    debug!(
+        "Sending chunk at x: {} z: {}",
+        chunk_x, /* + dx*/ chunk_z /*+ dz*/
+    );
+    let x = chunk_x/* + dx*/;
+    let z = chunk_z /*+ dz*/;
+    let chunk = get_chunk(x, z).await?; // You need to implement this function
+    let packet = ChunkDataAndUpdateLight::new(x, z).await?;
+    conn_write.send_packet(packet).await?;
+    // }
     // }
 
     drop(conn_write);
@@ -87,7 +103,6 @@ async fn send_chunks_around_player(conn: Arc<RwLock<Connection>>, player_x: i32,
     println!("Time taken to read and parse one chunk: {:?}", start.elapsed());
 }*/
 
-
 #[allow(non_snake_case)]
 pub fn GET_REGION() -> &'static RwLock<Region<File>> {
     static STATIC_REGION: OnceLock<RwLock<Region<File>>> = OnceLock::new();
@@ -105,12 +120,14 @@ async fn get_chunk(x: i32, z: i32) -> Result<Chunk> {
     // For now just read from that specific region
     let mut region = GET_REGION().write().await;
     // let chunk_data = region.read_chunk(x as usize, z as usize)?.ok_or(Error::ChunkNotFound(x, z))?;
-    let chunk_data = region.read_chunk(15,30)?.ok_or(Error::ChunkNotFound(x, z))?;
+    let chunk_data = region
+        .read_chunk(15, 30)?
+        .ok_or(Error::ChunkNotFound(x, z))?;
 
     let nbt = simdnbt::borrow::read(&mut Cursor::new(&chunk_data))?;
 
     let nbt = match nbt {
-        Nbt::Some(nbt) => { nbt }
+        Nbt::Some(nbt) => nbt,
         Nbt::None => {
             return Err(Error::InvalidNbt("Chunk data is empty".to_string()));
         }
