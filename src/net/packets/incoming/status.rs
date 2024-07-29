@@ -1,9 +1,9 @@
+use base64::Engine;
 use serde::Serialize;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::sync::OnceCell;
 use tracing::info;
 
-use base64::Engine;
 use ferrumc_macros::{Decode, packet};
 
 use crate::Connection;
@@ -56,7 +56,7 @@ struct Description {
 }
 
 impl IncomingPacket for Status {
-    async fn handle(&self, conn: &mut Connection) -> Result<()> {
+    async fn handle(&self, conn: &mut Connection, _: crate::state::GlobalState) -> Result<()> {
         info!("Handling status request packet");
         let config = config::get_global_config();
 
@@ -87,7 +87,7 @@ impl IncomingPacket for Status {
                 },
                 favicon: get_encoded_favicon().await,
             })
-                .unwrap(),
+            .unwrap(),
         };
 
         let mut cursor = std::io::Cursor::new(Vec::new());

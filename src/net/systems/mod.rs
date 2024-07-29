@@ -1,28 +1,32 @@
 use async_trait::async_trait;
-use crate::utils::prelude::*;
 use tracing::{info_span, Instrument};
 
-pub mod tick_system;
+use crate::state::GlobalState;
+use crate::utils::prelude::*;
+
 pub mod keep_alive_system;
+pub mod tick_system;
 
 #[async_trait]
-pub trait System: Send + Sync
-{
-    async fn run(&self);
+pub trait System: Send + Sync {
+    async fn run(&self, state: GlobalState);
     fn name(&self) -> &'static str;
     async fn kill(&self) {}
 }
-
 
 pub static ALL_SYSTEMS: &[&dyn System] = &[
     &tick_system::TickSystem,
     &keep_alive_system::KeepAliveSystem,
 ];
 
-pub async fn start_all_systems() -> Result<()> {
+pub async fn start_all_systems(state: GlobalState) -> Result<()> {
     for system in ALL_SYSTEMS {
         let system_name = system.name();
-        tokio::spawn(system.run().instrument(info_span!("system", %system_name)));
+        tokio::spawn(
+            system
+                .run(state.clone())
+                .instrument(info_span!("system", %system_name)),
+        );
     }
     Ok(())
 }

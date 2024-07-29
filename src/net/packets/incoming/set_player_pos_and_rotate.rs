@@ -4,6 +4,7 @@ use ferrumc_macros::{Decode, packet};
 
 use crate::Connection;
 use crate::net::packets::IncomingPacket;
+use crate::state::GlobalState;
 
 #[derive(Decode)]
 #[packet(packet_id = 0x15, state = "play")]
@@ -17,7 +18,11 @@ pub struct SetPlayerPosAndRotate {
 }
 
 impl IncomingPacket for SetPlayerPosAndRotate {
-    async fn handle(&self, _: &mut Connection) -> crate::utils::prelude::Result<()> {
+    async fn handle(
+        &self,
+        _: &mut Connection,
+        _: GlobalState,
+    ) -> crate::utils::prelude::Result<()> {
         trace!("SetPlayerPosAndRotate packet received");
         trace!("X: {}", self.x);
         trace!("Y: {}", self.y);

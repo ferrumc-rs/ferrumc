@@ -21,7 +21,7 @@ pub struct Ping {
 }
 
 impl IncomingPacket for Ping {
-    async fn handle(&self, conn: &mut Connection) -> Result<()> {
+    async fn handle(&self, conn: &mut Connection, _: crate::state::GlobalState) -> Result<()> {
         info!("Handling ping packet");
 
         // tokio::io::AsyncWriteExt::write_all()
@@ -36,6 +36,9 @@ impl IncomingPacket for Ping {
 
         conn.drop = true;
 
-        conn.socket.write_all(&*response).await.map_err(|e| e.into())
+        conn.socket
+            .write_all(&*response)
+            .await
+            .map_err(|e| e.into())
     }
 }

@@ -3,9 +3,10 @@ use tracing::{debug, trace, warn};
 
 use ferrumc_macros::AutoGenName;
 
-use crate::{ConnectionWrapper, GET_WORLD, net::drop_conn};
+use crate::{ConnectionWrapper, net::drop_conn};
 use crate::net::packets::outgoing::keep_alive::KeepAlivePacketOut;
 use crate::net::systems::System;
+use crate::state::GlobalState;
 use crate::utils::components::keep_alive::KeepAlive;
 use crate::utils::components::player::Player;
 
@@ -14,9 +15,9 @@ pub struct KeepAliveSystem;
 
 #[async_trait]
 impl System for KeepAliveSystem {
-    async fn run(&self) {
-        let sender = KeepAliveSystem::sender();
-        let receiver = KeepAliveSystem::receiver();
+    async fn run(&self, state: GlobalState) {
+        let sender = KeepAliveSystem::sender(state.clone());
+        let receiver = KeepAliveSystem::receiver(state.clone());
         tokio::join!(sender, receiver);
     }
 
@@ -25,14 +26,16 @@ impl System for KeepAliveSystem {
     }
 }
 impl KeepAliveSystem {
-    async fn sender() {
+    async fn sender(state: GlobalState) {
         let mut interval = tokio::time::interval(std::time::Duration::from_secs(15));
         loop {
             interval.tick().await;
 
             let keep_alive_data = {
-                let mut world = GET_WORLD().write().await;
-                world
+                state
+                    .write()
+                    .await
+                    .world
                     .query_mut::<(Player, KeepAlive, ConnectionWrapper)>()
                     .iter_mut()
                     .map(|(_, (player, keep_alive, conn))| {
@@ -57,14 +60,16 @@ impl KeepAliveSystem {
             }
         }
     }
-    async fn receiver() {
+    async fn receiver(state: GlobalState) {
         let mut interval = tokio::time::interval(std::time::Duration::from_secs(5));
         loop {
             interval.tick().await;
 
             let to_disconnect = {
-                let world = GET_WORLD().read().await;
-                world
+                state
+                    .write()
+                    .await
+                    .world
                     .query::<(KeepAlive, ConnectionWrapper)>()
                     .iter()
                     .filter_map(|(_, (keep_alive, conn_wrapper))| {
@@ -84,12 +89,11 @@ impl KeepAliveSystem {
                 drop(conn);
 
                 debug!("Dropping connection {} due to inactivity", conn_id);
-                if let Err(err) = drop_conn(conn_id).await {
+                if let Err(err) = drop_conn(conn_id, state.clone()).await {
                     warn!("Error dropping connection {}: {:?}", conn_id, err);
                 }
 
-                let mut world = GET_WORLD().write().await;
-                if let Err(err) = world.delete_entity(&entity) {
+                if let Err(err) = state.write().await.world.delete_entity(&entity) {
                     warn!("Error deleting entity: {:?}", err);
                 }
             }

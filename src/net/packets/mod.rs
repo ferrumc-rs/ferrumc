@@ -8,8 +8,7 @@ pub mod outgoing;
 
 pub trait IncomingPacket {
     #[allow(async_fn_in_trait)]
-    async fn handle(&self, conn: &mut Connection) -> Result<()>;
+    async fn handle(&self, conn: &mut Connection, state: crate::state::GlobalState) -> Result<()>;
 }
-
 
 bake_packet_registry!("\\src\\net\\packets\\incoming");
