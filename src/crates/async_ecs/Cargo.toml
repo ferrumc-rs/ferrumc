@@ -5,3 +5,5 @@ edition = "2021"
 
 [dependencies]
 dashmap = "6.0.1"
+anyhow = "1.0.86"
+thiserror = "1.0.63"

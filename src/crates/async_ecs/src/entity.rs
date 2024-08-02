@@ -4,6 +4,12 @@ pub struct Entity {
     generation: u32,
 }
 
+impl Into<usize> for Entity {
+    fn into(self) -> usize {
+        self.id as usize
+    }
+}
+
 pub struct EntityManager {
     generations: Vec<u32>,
     free_ids: Vec<u32>,

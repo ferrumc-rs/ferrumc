@@ -2,6 +2,7 @@
 ///
 /// This implementation uses a sparse vector of optional indices paired with a dense vector of values,
 /// allowing for O(1) average time complexity for most operations while remaining memory efficient.
+#[derive(Debug)]
 pub struct SparseSet<T> {
     sparse: Vec<Option<usize>>,
     dense: Vec<(usize, T)>,

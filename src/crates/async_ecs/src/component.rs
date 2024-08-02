@@ -1,15 +1,20 @@
 use std::any::TypeId;
+use std::fmt::Debug;
 use std::sync::RwLock;
-use dashmap::DashMap;
+
+use dashmap::{DashMap, Entry};
+use dashmap::mapref::one::{Ref, RefMut};
+use crate::Error;
 use crate::helpers::sparse_set::SparseSet;
 
 // Component trait
-pub trait Component: 'static + Send + Sync {}
+pub trait Component: 'static + Send + Sync + Debug {}
 
-#[derive()]
+#[derive(Debug)]
 pub struct ComponentStorage {
     storages: DashMap<TypeId, SparseSet<RwLock<Box<dyn Component>>>>,
 }
+
 
 impl ComponentStorage {
     pub fn new() -> Self {
@@ -18,9 +23,19 @@ impl ComponentStorage {
         }
     }
 
-    pub fn insert<T: Component>(&self, entity_id: usize, component: T) {
+    pub fn insert<T: Component>(&self, entity_id: impl Into<usize>, component: T) {
         let type_id = TypeId::of::<T>();
-        println!("Inserting component: {:?}, for entity: {}\ncomponent data: {:#?}", type_id, entity_id, component);
+
+        let mut storage = self.storages.entry(type_id).or_insert_with(|| SparseSet::new());
+        storage.insert(entity_id.into(), RwLock::new(Box::new(component)));
+    }
+
+    pub fn get<T: Component>(&self, entity_id: impl Into<usize>) -> Result<?, Error> {
+    }
+
+    fn get_storage<'a, T: Component>(&self) -> RefMut<'a, TypeId, SparseSet<RwLock<Box<dyn Component>>>> {
+        let type_id = TypeId::of::<T>();
+        self.storages.entry(type_id).or_insert_with(|| SparseSet::new())
     }
 }
 
