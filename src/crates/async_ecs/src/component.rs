@@ -1,23 +1,20 @@
 use std::any::TypeId;
 use std::fmt::Debug;
-use std::future::Future;
+use std::future::{IntoFuture};
 use std::ops::{Deref, DerefMut};
-use std::pin::Pin;
+
 use dashmap::DashMap;
-use tokio::sync::RwLock;
-// use parking_lot::RwLock;
-// use tokio::sync::RwLock;
+use tokio::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 use crate::helpers::sparse_set::SparseSet;
 
 // Component trait
 
 pub trait DynamicComponent: 'static + Send + Sync + Debug {}
-/*
+
 #[derive(Debug)]
 pub struct ComponentRef<'a, T: DynamicComponent> {
-    // guard: &'a RwLock<Box<dyn DynamicComponent>>,
-    guard: tokio::sync::RwLockWriteGuard<'a, Box<dyn DynamicComponent>>,
+    read_guard: &'a RwLockReadGuard<'a, Box<dyn DynamicComponent>>,
     _phantom: std::marker::PhantomData<T>,
 }
 
@@ -25,52 +22,25 @@ impl<'a, T: DynamicComponent> Deref for ComponentRef<'a, T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
-        unsafe { &*(self.guard.as_ref() as *const dyn DynamicComponent as *const T) }
+        unsafe { &*(self.read_guard.as_ref() as *const dyn DynamicComponent as *const T) }
     }
 }
 
-impl<'a, T: DynamicComponent> DerefMut for ComponentRef<'a, T> {
-
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        unsafe { &mut *(self.guard.as_mut() as *mut dyn DynamicComponent as *mut T) }
-    }
-}
-*/
-
-#[derive(Debug)]
-pub struct ComponentRef<'a, T: DynamicComponent> {
-    guard: tokio::sync::RwLockReadGuard<'a, Box<dyn DynamicComponent>>,
-    _phantom: std::marker::PhantomData<T>,
-}
 
 #[derive(Debug)]
 pub struct ComponentRefMut<'a, T: DynamicComponent> {
-    guard: tokio::sync::RwLockWriteGuard<'a, Box<dyn DynamicComponent>>,
+    write_guard: &'a RwLockWriteGuard<'a, Box<dyn DynamicComponent>>,
     _phantom: std::marker::PhantomData<T>,
 }
-
-
-impl<'a, T: DynamicComponent> Deref for ComponentRef<'a, T> {
-    type Target = T;
-
-    fn deref(&self) -> &Self::Target {
-        unsafe { &*(self.guard.as_ref() as *const dyn DynamicComponent as *const T) }
-    }
-}
-
 impl<'a, T: DynamicComponent> Deref for ComponentRefMut<'a, T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
-        unsafe { &*(self.guard.as_ref() as *const dyn DynamicComponent as *const T) }
+        unsafe { &*(self.write_guard.as_ref() as *const dyn DynamicComponent as *const T) }
     }
 }
 
-impl<'a, T: DynamicComponent> DerefMut for ComponentRefMut<'a, T> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        unsafe { &mut *(self.guard.as_mut() as *mut dyn DynamicComponent as *mut T) }
-    }
-}
+
 
 #[derive(Debug)]
 pub struct ComponentStorage {
@@ -93,31 +63,39 @@ impl ComponentStorage {
         storage.insert(entity_id.into(), RwLock::new(Box::new(component)));
     }
 
-    /// Get a component of a specific type for an entity
-    /// Returns None if the entity does not have the component
-    /// or if the entity does not exist
-    /// NOTE: Uses unsafe
-    pub fn get<'a, T: DynamicComponent>(&self, entity_id: impl Into<usize>)
-        -> Option<Pin<Box<dyn Future<Output = Option<ComponentRef<'a, T>>> + 'a>>>
-    {
+    pub async fn get<T: DynamicComponent>(&self, entity_id: impl Into<usize>) -> Option<ComponentRef<T>> {
         let type_id = TypeId::of::<T>();
         let storage = self.storages.get(&type_id)?;
         let entity_id = entity_id.into();
 
         let guard = storage.get(entity_id.into())?;
+        let guard = guard.to_owned();
+        let guard = guard.read().await;
 
-        /*Some(ComponentRef {
-            // Safety: prayers 🤲
-            guard: unsafe { std::mem::transmute(guard) },
+        Some(ComponentRef {
+            // SAFETY: The component cannot possibly outlive the storage itself. Perhaps?
+            // If it does, then it'll be a dangling reference, which is UB (undefined behavior)
+            // Trick to make the borrow checker happy
+            read_guard: unsafe { std::mem::transmute(&guard) },
             _phantom: std::marker::PhantomData,
-        })*/
-        Some(Box::pin(async move {
-            let read_guard = guard.read().await;
-            Some(ComponentRef {
-                guard: read_guard,
-                _phantom: std::marker::PhantomData,
-            })
-        }))
+        })
+    }
+    pub async fn get_mut<T: DynamicComponent>(&self, entity_id: impl Into<usize>) -> Option<ComponentRefMut<T>> {
+        let type_id = TypeId::of::<T>();
+        let storage = self.storages.get(&type_id)?;
+        let entity_id = entity_id.into();
+
+        let guard = storage.get(entity_id.into())?;
+        let guard = guard.to_owned();
+        let guard = guard.write().await;
+
+        Some(ComponentRefMut {
+            // SAFETY: The component cannot possibly outlive the storage itself. Perhaps?
+            // If it does, then it'll be a dangling reference, which is UB (undefined behavior)
+            // Trick to make the borrow checker happy
+            write_guard: unsafe { std::mem::transmute(&guard) },
+            _phantom: std::marker::PhantomData,
+        })
     }
 }
 

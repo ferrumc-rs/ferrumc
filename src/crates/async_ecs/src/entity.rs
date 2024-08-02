@@ -11,7 +11,7 @@ impl Into<usize> for Entity {
 }
 
 pub struct EntityManager {
-    pub generations: Vec<u32>,
+    generations: Vec<u32>,
     free_ids: Vec<u32>,
 }
 
@@ -66,6 +66,10 @@ impl EntityManager {
         } else {
             None
         }
+    }
+    
+    pub fn len(&self) -> usize {
+        self.generations.len()
     }
 }
 

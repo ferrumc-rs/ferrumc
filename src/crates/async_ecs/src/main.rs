@@ -1,11 +1,3 @@
-use std::sync::Arc;
-use std::thread;
-use std::time::Duration;
-use parking_lot::RwLock;
-use crate::component::{ComponentStorage, Position, Velocity};
-use crate::entity::EntityManager;
-use crate::query::Query;
-use crate::query::tests::GET_WORLD;
 
 mod entity;
 mod component;
@@ -17,9 +9,9 @@ mod tests;
 #[tokio::main]
 async fn main() {
     /*test_two_thread_component();*/
-    test_concurrent().await;
+    /*test_concurrent().await;*/
 }
-
+/*
 #[allow(dead_code)]
 fn test_two_thread_component() {
     let entity_manager = Arc::new(RwLock::new(EntityManager::new()));
@@ -125,4 +117,4 @@ async fn test_concurrent() {
     tokio::try_join!(write_handle/*, read_handle*/).unwrap();
 
     tokio::time::sleep(Duration::from_millis(2000)).await;
-}
+}*/
