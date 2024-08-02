@@ -6,10 +6,6 @@ mod component;
 mod helpers;
 mod error;
 
-pub use error::Error;
-
-
-
 fn main() {
     test_component();
 }
@@ -43,4 +39,9 @@ fn test_component() {
 
     component_storage.insert(entity2, Position { x: 3.0, y: 4.0 });
 
+    if let Some(e1_pos) = component_storage.get::<Position>(entity1) {
+        let mut e1_pos = e1_pos;
+        e1_pos.x += 1.0;
+        println!("Entity 1 position: {:?}", e1_pos);
+    };
 }
