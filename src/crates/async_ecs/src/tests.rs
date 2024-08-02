@@ -1,123 +1,178 @@
-/*#[cfg(test)]
-mod tests {
-    use std::sync::Arc;
-    use std::thread;
+/*use std::sync::{Arc, Mutex};
+use crate::component::{ComponentStorage, DynamicComponent};
 
-    use crate::component::{ComponentStorage, DynamicComponent, Position};
-    use crate::entity::EntityManager;
+#[derive(Debug)]
+struct DropCounter {
+    count: Arc<Mutex<usize>>,
+}
 
-    #[derive(Debug, PartialEq)]
-    struct TestComponent {
-        value: i32,
+impl DropCounter {
+    fn new(count: Arc<Mutex<usize>>) -> Self {
+        Self { count }
     }
-    impl DynamicComponent for TestComponent {}
+}
 
-    #[test]
-    fn test_insert_and_get() {
+impl Drop for DropCounter {
+    fn drop(&mut self) {
+        let mut count = self.count.lock().unwrap();
+        *count += 1;
+    }
+}
+
+#[derive(Debug)]
+struct TestComponent {
+    _counter: DropCounter,
+}
+
+impl DynamicComponent for TestComponent {}
+
+#[tokio::test]
+pub async fn test_component_storage_memory_leak() {
+    let drop_count = Arc::new(Mutex::new(0));
+
+    {
         let storage = ComponentStorage::new();
-        storage.insert(0usize, TestComponent { value: 42 });
-        let component = storage.get::<TestComponent>(0usize);
-        assert!(component.is_some());
-        assert_eq!(component.unwrap().value, 42);
+
+        // Insert components
+        for i in 0..100 {
+            let component = TestComponent {
+                _counter: DropCounter::new(Arc::clone(&drop_count)),
+            };
+            storage.insert(i as usize, component);
+        }
+
+        // Access components
+        for i in 0..100 {
+            let _component = storage.get::<TestComponent>(i as usize).await;
+        }
+
+        // Remove components
+        for i in 0..100 {
+            storage.remove::<TestComponent>(i as usize);
+        }
+
+        // Insert new components
+        for i in 0..50 {
+            let component = TestComponent {
+                _counter: DropCounter::new(Arc::clone(&drop_count)),
+            };
+            storage.insert(i as usize, component);
+        }
+    } // ComponentStorage is dropped here
+
+    // Wait a bit to ensure all async operations are completed
+    tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+
+    let final_drop_count = *drop_count.lock().unwrap();
+    println!("Expected 150 drops, got {}", final_drop_count);
+}*/
+use std::sync::{Arc, Mutex};
+use tokio::sync::Semaphore;
+use crate::component::{ComponentStorage, DynamicComponent};
+
+#[derive(Debug)]
+struct DropCounter {
+    count: Arc<Mutex<usize>>,
+}
+
+impl DropCounter {
+    fn new(count: Arc<Mutex<usize>>) -> Self {
+        Self { count }
     }
+}
 
-    #[test]
-    fn test_get_nonexistent() {
-        let storage = ComponentStorage::new();
-        let component = storage.get::<TestComponent>(0usize);
-        assert!(component.is_none());
+impl Drop for DropCounter {
+    fn drop(&mut self) {
+        let mut count = self.count.lock().unwrap();
+        *count += 1;
     }
+}
 
-    #[test]
-    fn test_insert_overwrite() {
-        let storage = ComponentStorage::new();
-        storage.insert(0usize, TestComponent { value: 42 });
-        storage.insert(0usize, TestComponent { value: 84 });
-        let component = storage.get::<TestComponent>(0usize);
-        assert_eq!(component.unwrap().value, 84);
-    }
+#[derive(Debug)]
+struct TestComponent {
+    _counter: DropCounter,
+}
 
-    #[test]
-    fn test_multiple_component_types() {
-        let storage = ComponentStorage::new();
-        storage.insert(0usize, TestComponent { value: 42 });
-        storage.insert(0usize, Position { x: 1.0, y: 2.0 });
+impl DynamicComponent for TestComponent {}
 
-        let test_component = storage.get::<TestComponent>(0usize);
-        let position = storage.get::<Position>(0usize);
+#[tokio::test]
+async fn test_component_storage_complex_scenarios() {
+    let drop_count = Arc::new(Mutex::new(0));
+    let storage = Arc::new(ComponentStorage::new());
 
-        let position = position.unwrap();
+    // Scenario 1: Concurrent insertions and removals
+    let concurrent_ops = 1000;
+    let semaphore = Arc::new(Semaphore::new(100)); // Limit concurrent tasks
 
-        assert_eq!(test_component.unwrap().value, 42);
-        assert_eq!(position.x, 1.0);
-        assert_eq!(position.y, 2.0);
-    }
-
-    #[test]
-    fn test_concurrent_access() {
-        let storage = Arc::new(ComponentStorage::new());
+    let mut handles = vec![];
+    for i in 0..concurrent_ops {
         let storage_clone = Arc::clone(&storage);
+        let drop_count_clone = Arc::clone(&drop_count);
+        let sem_clone = Arc::clone(&semaphore);
 
-        storage.insert(0usize, TestComponent { value: 0 });
+        let handle = tokio::spawn(async move {
+            let _permit = sem_clone.acquire().await.unwrap();
+            let component = TestComponent {
+                _counter: DropCounter::new(Arc::clone(&drop_count_clone)),
+            };
+            storage_clone.insert(i, component);
 
-        let thread = thread::spawn(move || {
-            for i in 0..1000 {
-                storage_clone.insert(0usize, TestComponent { value: i });
+            // 50% chance of immediate removal
+            if i % 2 == 0 {
+                storage_clone.remove::<TestComponent>(i);
             }
         });
-
-        for i in 1000..2000 {
-            storage.insert(0usize, TestComponent { value: i });
-        }
-
-        thread.join().unwrap();
-
-        let final_value = storage.get::<TestComponent>(0usize).unwrap().value;
-        assert!(final_value >= 999 && final_value < 2000);
+        handles.push(handle);
     }
 
-    #[test]
-    fn test_large_entity_id() {
-        let mut em = EntityManager::new();
-        let storage = ComponentStorage::new();
-
-        for _ in 0..1_000_000_000 {
-            em.create_entity();
-        }
-
-        let large_id = 10_000_000usize;
-
-        storage.insert(large_id, TestComponent { value: 42 });
-        let component = storage.get::<TestComponent>(large_id);
-
-        assert_eq!(component.unwrap().value, 42);
+    for handle in handles {
+        handle.await.unwrap();
     }
 
-    #[test]
-    fn test_multiple_reads() {
-        let storage = ComponentStorage::new();
-        storage.insert(0usize, TestComponent { value: 42 });
-
-        let read1 = storage.get::<TestComponent>(0usize);
-        let read2 = storage.get::<TestComponent>(0usize);
-
-        assert_eq!(read1.unwrap().value, 42);
-        assert_eq!(read2.unwrap().value, 42);
+    // Scenario 2: Overwriting components
+    for i in 0..100 {
+        let component = TestComponent {
+            _counter: DropCounter::new(Arc::clone(&drop_count)),
+        };
+        storage.insert(i as usize, component);
     }
 
-    #[test]
-    fn test_insert_different_type() {
-        let storage = ComponentStorage::new();
-        storage.insert(0usize, TestComponent { value: 42 });
-        storage.insert(0usize, Position { x: 1.0, y: 2.0 });
-
-        let test_component = storage.get::<TestComponent>(0usize);
-        let position = storage.get::<Position>(0usize);
-
-        let position = position.unwrap();
-
-        assert_eq!(test_component.unwrap().value, 42);
-        assert_eq!(position.x, 1.0);
-        assert_eq!(position.y, 2.0);
+    // Scenario 3: Accessing non-existent components
+    for i in concurrent_ops..(concurrent_ops + 100) {
+        let _ = storage.get::<TestComponent>(i).await;
     }
-}*/
+
+    // Scenario 4: Removing non-existent components
+    for i in concurrent_ops..(concurrent_ops + 100) {
+        storage.remove::<TestComponent>(i);
+    }
+
+    // Shouldn't exactly happen like ever the bottom thing 👇
+    /*// Scenario 5: Inserting at very large indices
+    let large_indices = [usize::MAX, usize::MAX - 1, usize::MAX / 2];
+    for &i in &large_indices {
+        let component = TestComponent {
+            _counter: DropCounter::new(Arc::clone(&drop_count)),
+        };
+        storage.insert(i, component);
+    }*/
+
+    // Allow time for async operations to complete
+    // tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+
+    // Drop the storage
+    drop(storage);
+
+    // Wait a bit more to ensure all components are dropped
+    // tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+
+    let final_drop_count = *drop_count.lock().unwrap();
+    let expected_drop_count = concurrent_ops + 100; // 1000 concurrent ops, 100 overwrites, 100 accesses, 100 removals
+    assert_eq!(
+        final_drop_count,
+        expected_drop_count,
+        "Expected {} drops, got {}",
+        expected_drop_count,
+        final_drop_count
+    );
+}

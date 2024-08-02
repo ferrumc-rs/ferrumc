@@ -170,7 +170,9 @@ impl<T> SparseSet<T> {
     // Private helper method to grow the sparse vector
     fn grow(&mut self, index: usize) {
         let new_len = (index + 1).next_power_of_two().max(64);
-        self.sparse.resize(new_len, None);
+        self.sparse.reserve(new_len);
+        self.sparse.resize_with(new_len, || None);
+        self.dense.reserve(1);
     }
 }
 
