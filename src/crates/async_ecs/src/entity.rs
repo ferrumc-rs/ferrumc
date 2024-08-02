@@ -11,7 +11,7 @@ impl Into<usize> for Entity {
 }
 
 pub struct EntityManager {
-    generations: Vec<u32>,
+    pub generations: Vec<u32>,
     free_ids: Vec<u32>,
 }
 
@@ -57,6 +57,14 @@ impl EntityManager {
     pub fn clear(&mut self) {
         self.generations.clear();
         self.free_ids.clear();
+    }
+
+    pub fn get_entity(&self, id: u32) -> Option<Entity> {
+        if (id as usize) < self.generations.len() {
+            Some(Entity { id, generation: self.generations[id as usize] })
+        } else {
+            None
+        }
     }
 }
 

@@ -9,11 +9,10 @@ use crate::helpers::sparse_set::SparseSet;
 
 // Component trait
 
-trait DynamicComponent: 'static + Send + Sync + Debug {}
+pub trait DynamicComponent: 'static + Send + Sync + Debug {}
 
 #[derive(Debug)]
 pub struct ComponentRef<'a, T: DynamicComponent> {
-    // guard: parking_lot::RwLockReadGuard<'a, Box<dyn DynamicComponent>>,
     guard: &'a RwLock<Box<dyn DynamicComponent>>,
     _phantom: std::marker::PhantomData<T>,
 }
