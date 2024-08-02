@@ -41,7 +41,8 @@ async fn main() -> Result<()> {
     let elapsed = start.elapsed();
 
     debug!("Found Config: {:?} in {:?}", config, elapsed);
-    let db = database::start_database().await?;
+
+    let (db, tx) = database::start_database().await?;
 
     let state: GlobalState = Arc::new(RwLock::new(state::ServerState {
         world: ecs::world::World::new(),
@@ -49,11 +50,28 @@ async fn main() -> Result<()> {
         database: db,
     }));
 
-    start_server(state).await.expect("Server failed to start!");
+    if env::args().nth(1).unwrap_or_default() == "import" {
+        let import_path = env::current_exe().unwrap().parent().unwrap().join("import");
+        world::importing::import_regions(import_path, state.clone())
+            .await
+            .unwrap();
+        tx.send(true).unwrap();
 
-    tokio::signal::ctrl_c().await?;
+        info!("Waiting for database to close...");
+        tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+        return Ok(());
+    } else {
+        start_server(state).await.expect("Server failed to start!");
 
-    Ok(())
+        tokio::signal::ctrl_c().await?;
+
+        tx.send(true).unwrap();
+
+        info!("Waiting for database to close...");
+        tokio::time::sleep(std::time::Duration::from_millis(700)).await;
+
+        Ok(())
+    }
 }
 
 /// Starts the server. Sets up the sockets and listens for incoming connections
@@ -164,7 +182,7 @@ async fn handle_setup() -> Result<bool> {
         // Check if the config file exists already and run the setup if it doesn't
     } else {
         // Get the path to the current executable
-        let exe = std::env::current_exe()?;
+        let exe = env::current_exe()?;
         // This should be the directory the executable is in.
         // This should always work but if it doesn't, we'll just return an error
         let dir = exe.parent();

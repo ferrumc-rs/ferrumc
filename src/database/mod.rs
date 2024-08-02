@@ -5,7 +5,9 @@ use std::process::{exit, Stdio};
 use surrealdb::engine::remote::http::{Client, Http};
 use surrealdb::opt::auth::Root;
 use tokio::io::{AsyncBufReadExt, BufReader};
-use tracing::{error, warn};
+use tokio::sync::oneshot::error::TryRecvError;
+use tokio::sync::oneshot::Sender;
+use tracing::{error, info, warn};
 
 use crate::utils::config::get_global_config;
 use crate::utils::error::Error;
@@ -21,7 +23,7 @@ pub struct Database {
     pub state: DatabaseState,
 }
 
-pub async fn start_database() -> Result<Database, Error> {
+pub async fn start_database() -> Result<(Database, Sender<bool>), Error> {
     let store_path = if get_global_config().database.mode == "file" {
         format!("file:{}", get_global_config().database.path)
     } else {
@@ -87,6 +89,7 @@ pub async fn start_database() -> Result<Database, Error> {
         DEFINE TABLE entities;";
     db.query(query).await.unwrap();
 
+    let (tx, mut rx) = tokio::sync::oneshot::channel();
     tokio::task::spawn(async move {
         // Why the fuck does surrealdb use stderr by default???
         let mut stderr = BufReader::new(surreal_setup_process.stderr.take().unwrap());
@@ -97,11 +100,29 @@ pub async fn start_database() -> Result<Database, Error> {
                 print!("{output}");
                 output.clear();
             }
+
+            let res = rx.try_recv();
+
+            match res {
+                Ok(true) => {
+                    info!("Recieved kill for child");
+                    surreal_setup_process.kill().await.unwrap()
+                }
+                Err(TryRecvError::Closed) => {
+                    info!("Other pipe is closed");
+                    surreal_setup_process.kill().await.unwrap()
+                }
+                Err(TryRecvError::Empty) => {}
+                _ => {}
+            }
         }
     });
 
-    Ok(Database {
-        conn: db,
-        state: DatabaseState::NotStarted,
-    })
+    Ok((
+        Database {
+            conn: db,
+            state: DatabaseState::NotStarted,
+        },
+        tx,
+    ))
 }

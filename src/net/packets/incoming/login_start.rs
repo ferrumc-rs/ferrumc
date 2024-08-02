@@ -1,6 +1,5 @@
 use std::time::Instant;
 
-use ferrumc_macros::{Decode, packet};
 #[cfg(not(test))]
 use include_flate::flate;
 use tokio::io::AsyncWriteExt;
@@ -99,7 +98,11 @@ impl IncomingPacket for LoginStart {
 
             conn.socket.write_all(&*play_packet).await?;
         }
-        let player_position = Position { x: 0, y: 1000, z: 0 };
+        let player_position = Position {
+            x: 0,
+            y: 1000,
+            z: 0,
+        };
         {
             let spawn_position = DefaultSpawnPosition::new_auto(player_position.clone(), 0.0);
 
