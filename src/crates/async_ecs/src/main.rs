@@ -9,12 +9,14 @@ mod entity;
 mod component;
 mod helpers;
 mod error;
+mod query;
 mod tests;
 
 fn main() {
-    test_two_thread_component();
+    /*test_two_thread_component();*/
 }
 
+#[allow(dead_code)]
 fn test_two_thread_component() {
     let entity_manager = Arc::new(RwLock::new(EntityManager::new()));
     let component_storage = Arc::new(ComponentStorage::new());
@@ -28,12 +30,10 @@ fn test_two_thread_component() {
         e
     };
 
-    let em_modify = entity_manager.clone();
     let cs_modify = component_storage.clone();
     let modify_handle = thread::spawn(move || {
-        for i in 0..50 {  // Modify 50 times
+        for _ in 0..50 {  // Modify 50 times
             {
-                let em = em_modify.read();
                 if let Some(position) = cs_modify.get::<Position>(entity) {
                     let mut position = position;
                     if let Some(velocity) = cs_modify.get::<Velocity>(entity) {
@@ -52,12 +52,10 @@ fn test_two_thread_component() {
         }
     });
 
-    let em_log = entity_manager.clone();
     let cs_log = component_storage.clone();
     let log_handle = thread::spawn(move || {
         for _ in 0..6000 {  // Log 60 times (slightly more than modify thread iterations)
             {
-                let em = em_log.read();
                 if let Some(position) = cs_log.get::<Position>(entity) {
                     if let Some(velocity) = cs_log.get::<Velocity>(entity) {
                         println!(
@@ -76,7 +74,6 @@ fn test_two_thread_component() {
     log_handle.join().unwrap();
 
     // Verify final state
-    let em = entity_manager.read();
     if let Some(position) = component_storage.get::<Position>(entity) {
         if let Some(velocity) = component_storage.get::<Velocity>(entity) {
             println!("Final state - Position: {:?}, Velocity: {:?}", *position, *velocity);

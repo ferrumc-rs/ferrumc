@@ -1,7 +1,7 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Entity {
-    id: u32,
-    generation: u32,
+    pub(crate) id: u32,
+    pub(crate) generation: u32,
 }
 
 impl Into<usize> for Entity {
