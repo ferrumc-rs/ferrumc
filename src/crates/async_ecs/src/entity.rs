@@ -15,6 +15,7 @@ pub struct EntityManager {
     free_ids: Vec<u32>,
 }
 
+
 impl EntityManager {
     pub fn new() -> Self {
         EntityManager {

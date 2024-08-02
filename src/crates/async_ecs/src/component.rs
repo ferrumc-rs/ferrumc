@@ -1,19 +1,23 @@
 use std::any::TypeId;
 use std::fmt::Debug;
+use std::future::Future;
 use std::ops::{Deref, DerefMut};
-
+use std::pin::Pin;
 use dashmap::DashMap;
-use parking_lot::RwLock;
+use tokio::sync::RwLock;
+// use parking_lot::RwLock;
+// use tokio::sync::RwLock;
 
 use crate::helpers::sparse_set::SparseSet;
 
 // Component trait
 
 pub trait DynamicComponent: 'static + Send + Sync + Debug {}
-
+/*
 #[derive(Debug)]
 pub struct ComponentRef<'a, T: DynamicComponent> {
-    guard: &'a RwLock<Box<dyn DynamicComponent>>,
+    // guard: &'a RwLock<Box<dyn DynamicComponent>>,
+    guard: tokio::sync::RwLockWriteGuard<'a, Box<dyn DynamicComponent>>,
     _phantom: std::marker::PhantomData<T>,
 }
 
@@ -21,17 +25,52 @@ impl<'a, T: DynamicComponent> Deref for ComponentRef<'a, T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
-        unsafe { &*(self.guard.read().as_ref() as *const dyn DynamicComponent as *const T) }
+        unsafe { &*(self.guard.as_ref() as *const dyn DynamicComponent as *const T) }
     }
 }
 
 impl<'a, T: DynamicComponent> DerefMut for ComponentRef<'a, T> {
 
     fn deref_mut(&mut self) -> &mut Self::Target {
-        unsafe { &mut *(self.guard.write().as_mut() as *mut dyn DynamicComponent as *mut T) }
+        unsafe { &mut *(self.guard.as_mut() as *mut dyn DynamicComponent as *mut T) }
+    }
+}
+*/
+
+#[derive(Debug)]
+pub struct ComponentRef<'a, T: DynamicComponent> {
+    guard: tokio::sync::RwLockReadGuard<'a, Box<dyn DynamicComponent>>,
+    _phantom: std::marker::PhantomData<T>,
+}
+
+#[derive(Debug)]
+pub struct ComponentRefMut<'a, T: DynamicComponent> {
+    guard: tokio::sync::RwLockWriteGuard<'a, Box<dyn DynamicComponent>>,
+    _phantom: std::marker::PhantomData<T>,
+}
+
+
+impl<'a, T: DynamicComponent> Deref for ComponentRef<'a, T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        unsafe { &*(self.guard.as_ref() as *const dyn DynamicComponent as *const T) }
     }
 }
 
+impl<'a, T: DynamicComponent> Deref for ComponentRefMut<'a, T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        unsafe { &*(self.guard.as_ref() as *const dyn DynamicComponent as *const T) }
+    }
+}
+
+impl<'a, T: DynamicComponent> DerefMut for ComponentRefMut<'a, T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        unsafe { &mut *(self.guard.as_mut() as *mut dyn DynamicComponent as *mut T) }
+    }
+}
 
 #[derive(Debug)]
 pub struct ComponentStorage {
@@ -58,18 +97,27 @@ impl ComponentStorage {
     /// Returns None if the entity does not have the component
     /// or if the entity does not exist
     /// NOTE: Uses unsafe
-    pub fn get<T: DynamicComponent>(&self, entity_id: impl Into<usize>) -> Option<ComponentRef<T>> {
+    pub fn get<'a, T: DynamicComponent>(&self, entity_id: impl Into<usize>)
+        -> Option<Pin<Box<dyn Future<Output = Option<ComponentRef<'a, T>>> + 'a>>>
+    {
         let type_id = TypeId::of::<T>();
         let storage = self.storages.get(&type_id)?;
         let entity_id = entity_id.into();
 
         let guard = storage.get(entity_id.into())?;
 
-        Some(ComponentRef {
+        /*Some(ComponentRef {
             // Safety: prayers 🤲
             guard: unsafe { std::mem::transmute(guard) },
             _phantom: std::marker::PhantomData,
-        })
+        })*/
+        Some(Box::pin(async move {
+            let read_guard = guard.read().await;
+            Some(ComponentRef {
+                guard: read_guard,
+                _phantom: std::marker::PhantomData,
+            })
+        }))
     }
 }
 

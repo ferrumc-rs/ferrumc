@@ -4,6 +4,8 @@ use std::time::Duration;
 use parking_lot::RwLock;
 use crate::component::{ComponentStorage, Position, Velocity};
 use crate::entity::EntityManager;
+use crate::query::Query;
+use crate::query::tests::GET_WORLD;
 
 mod entity;
 mod component;
@@ -12,8 +14,10 @@ mod error;
 mod query;
 mod tests;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     /*test_two_thread_component();*/
+    test_concurrent().await;
 }
 
 #[allow(dead_code)]
@@ -79,4 +83,46 @@ fn test_two_thread_component() {
             println!("Final state - Position: {:?}, Velocity: {:?}", *position, *velocity);
         }
     }
+}
+
+
+async fn test_concurrent() {
+    println!("Testing concurrent");
+
+    let (rw_em, component_storage) = GET_WORLD();
+    let mut em = rw_em.write();
+    let entity = em.create_entity();
+    drop(em);
+    let position = Position { x: 0.0, y: 0.0 };
+    component_storage.insert(entity, position);
+
+    // create a thread to hold the lock with a mutable read
+    let write_handle = tokio::spawn(async move {
+        let em = rw_em.read();
+        let query = Query::<Position>::new(&em, &component_storage);
+        for (_, mut position) in query.iter() {
+            position.x += 1.0;
+
+            println!("position: {:?}", *position);
+            println!("Waiting for 1 second");
+            tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+            println!("Done waiting for 1 second");
+        }
+    });
+
+    // create a thread to hold the lock with a mutable write
+    let read_handle = tokio::spawn(async move {
+        let em = rw_em.read();
+        let query = Query::<Position>::new(&em, &component_storage);
+        for (_, position) in query.iter() {
+            // try reading the position
+            println!("position: {:?}", *position);
+        }
+    });
+
+
+    // wait for the threads to finish
+    tokio::try_join!(write_handle/*, read_handle*/).unwrap();
+
+    tokio::time::sleep(Duration::from_millis(2000)).await;
 }

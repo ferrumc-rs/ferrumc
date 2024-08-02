@@ -14,14 +14,6 @@ impl<'a, T: DynamicComponent> QueryItem<'a> for T {
         storage.get::<T>(entity_id)
     }
 }
-/*impl<'a, T: DynamicComponent> QueryItem<'a> for T {
-    type Item = ComponentRef<'a, T>;
-
-    fn fetch(entity_id: impl Into<usize>, storage: &'a ComponentStorage) -> Option<Self::Item> {
-        storage.get::<T>(entity_id)
-    }
-}
-*/
 
 pub struct Query<'a, Q: QueryItem<'a>> {
     entity_manager: &'a EntityManager,
@@ -70,9 +62,9 @@ impl_query_item_tuple!(A, B, C, D);
 impl_query_item_tuple!(A, B, C, D, E);
 
 
-#[cfg(test)]
-mod tests {
-    use std::sync::OnceLock;
+// #[cfg(test)]
+pub mod tests {
+    use std::sync::{OnceLock};
     use parking_lot::RwLock;
     use crate::component::{ComponentStorage, Position, Velocity};
     use crate::entity::EntityManager;
@@ -90,7 +82,7 @@ mod tests {
     type World = (RwLock<EntityManager>, ComponentStorage);
 
     #[allow(non_snake_case)]
-    fn GET_WORLD() -> &'static World {
+    pub fn GET_WORLD() -> &'static World {
         static STATIC_WORLD: OnceLock<World> = OnceLock::new();
 
         STATIC_WORLD.get_or_init(|| {
@@ -105,7 +97,6 @@ mod tests {
     #[test]
     fn test_basic_query() {
         let (em, component_storage) = GET_WORLD();
-
         let mut em = em.write();
 
         let entity = em.create_entity();
@@ -117,8 +108,7 @@ mod tests {
         let entity2 = em.create_entity();
         let position2 = Position { x: 0f32, y: 1f32 };
         component_storage.insert(entity2, position2);
-
-
+        // QUERY
         let query = Query::<(Position, Velocity)>::new(&em, &component_storage);
 
         query.iter().for_each(|(_, (mut position, velocity))| {
