@@ -1,54 +1,43 @@
 use std::path::PathBuf;
 
-use serde::Serialize;
-use tracing::{info, warn};
+use tracing::{error, info, warn};
 
 use crate::state::GlobalState;
 use crate::world::chunkformat::Chunk;
 
+/// since this is just used to import chunks, it doesn't need to be optimized much
 pub async fn import_regions(
     dir: PathBuf,
     state: GlobalState,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let mut region_files = tokio::fs::read_dir(dir).await?;
+    let mut region_files = if tokio::fs::read_dir(dir.clone()).await.is_ok() {
+        tokio::fs::read_dir(dir).await?
+    } else {
+        error!("Could not read the imports directory");
+        return Ok(());
+    };
     while let Some(dirfile) = region_files.next_entry().await? {
         let file = std::fs::File::open(dirfile.path())?;
         let mut region = fastanvil::Region::from_stream(file)?;
         for chunk in region.iter() {
             let chunk = chunk?.data;
             let chunk_nbt: Chunk = fastnbt::from_bytes(&chunk)?;
-            let record_name = format!("{},{}", chunk_nbt.x_pos, chunk_nbt.z_pos);
-
-            let mut ser = flexbuffers::FlexbufferSerializer::new();
-            chunk_nbt.serialize(&mut ser).unwrap();
-            let protochunk = crate::world::ProtoChunk {
-                x: chunk_nbt.x_pos,
-                z: chunk_nbt.z_pos,
-                data: ser.take_buffer(),
-            };
-            let record: Option<Chunk> = state
-                .write()
+            let x = chunk_nbt.x_pos.clone();
+            let z = chunk_nbt.z_pos.clone();
+            let record = state
+                .read()
                 .await
                 .database
-                .conn
-                .create(("chunks", record_name))
-                .content(chunk_nbt.clone())
+                .insert_chunk(chunk_nbt)
                 .await
                 .unwrap();
+
             match record {
-                Some(_) => {
-                    info!(
-                        "Chunk {} {} added to database",
-                        chunk_nbt.clone().x_pos,
-                        chunk_nbt.clone().z_pos
-                    );
+                false => {
+                    info!("Chunk {} {} added to database", x, z);
                 }
-                None => {
-                    warn!(
-                        "Could not add chunk {} {} to database",
-                        chunk_nbt.clone().x_pos,
-                        chunk_nbt.clone().z_pos
-                    );
+                true => {
+                    warn!("Could not add chunk {} {} to database", x, z);
                 }
             }
         }

@@ -4,7 +4,7 @@ use crate::state::GlobalState;
 use crate::utils::error::Error;
 use crate::world::chunkformat::Chunk;
 
-mod chunkformat;
+pub mod chunkformat;
 pub mod importing;
 pub mod sweattypalms_impl;
 

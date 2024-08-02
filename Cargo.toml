@@ -41,13 +41,15 @@ ferrumc_macros = { path = "src/crates/ferrumc_macros" }
 simdnbt = { path = "src/crates/yoinked/simdnbt/simdnbt" }
 simdnbt-derive = { path = "src/crates/yoinked/simdnbt/simdnbt-derive" }
 
+# Database
+sled = { version = "0.34.7", features = ["compression", "zstd", ] }
+
 # Misc
 dashmap = "6.0.1"
 rand = "0.9.0-alpha.1"
 base64 = "0.22.1"
 async-trait = "0.1.77"
 log = "0.4.22"
-surrealdb = { version = "1.5.4", features = ["protocol-http"] }
 fastanvil = "0.31.0"
 serde_derive = "1.0.204"
 
