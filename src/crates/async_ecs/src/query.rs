@@ -3,35 +3,35 @@ use std::marker::PhantomData;
 use crate::component::{ComponentRef, ComponentRefMut, ComponentStorage, DynamicComponent, Position, Velocity};
 use crate::entity::EntityManager;
 
-pub trait QueryItem<'a>: 'a {
-    type Item;
-    async fn fetch(entity_id: impl Into<usize>, storage: &'a ComponentStorage) -> Option<Self::Item>;
+pub trait QueryItem {
+    type Item<'a>;
+    async fn fetch<'a>(entity_id: impl Into<usize>, storage: &'a ComponentStorage) -> Option<Self::Item<'a>>;
 }
 
 // Usage: &T ; &mut T => To get the component
 
-impl<'a, T: DynamicComponent> QueryItem<'a> for &'a T {
-    type Item = ComponentRef<'a, T>;
+impl<T: DynamicComponent> QueryItem for &T {
+    type Item<'a> = ComponentRef<'a, T>;
 
-    async fn fetch(entity_id: impl Into<usize>, storage: &'a ComponentStorage) -> Option<Self::Item> {
+    async fn fetch<'a>(entity_id: impl Into<usize>, storage: &'a ComponentStorage) -> Option<Self::Item<'a>> {
         storage.get::<T>(entity_id).await
     }
 }
-impl<'a, T: DynamicComponent> QueryItem<'a> for &'a mut T {
-    type Item = ComponentRefMut<'a, T>;
-
-    async fn fetch(entity_id: impl Into<usize>, storage: &'a ComponentStorage) -> Option<Self::Item> {
+impl<T: DynamicComponent> QueryItem for &mut T {
+    type Item<'a> = ComponentRefMut<'a, T>;
+    
+    async fn fetch<'a>(entity_id: impl Into<usize>, storage: &'a ComponentStorage) -> Option<Self::Item<'a>> {
         storage.get_mut::<T>(entity_id).await
     }
 }
 
-pub struct Query<'a, Q: QueryItem<'a>> {
+pub struct Query<'a, Q: QueryItem> {
     entity_manager: &'a EntityManager,
     component_storage: &'a ComponentStorage,
     _marker: PhantomData<Q>,
 }
 
-impl<'a, Q: QueryItem<'a>> Query<'a, Q> {
+impl<'a, Q: QueryItem> Query<'a, Q> {
     pub fn new(entity_manager: &'a EntityManager, component_storage: &'a ComponentStorage) -> Self {
         Self {
             entity_manager,
@@ -40,7 +40,7 @@ impl<'a, Q: QueryItem<'a>> Query<'a, Q> {
         }
     }
 
-    pub async fn iter(&'a self) -> impl Iterator<Item = (usize, Q::Item)> + 'a {
+    pub async fn iter(&'a self) -> impl Iterator<Item = (usize, Q::Item<'a>)> + 'a {
         let max_entity_id = self.entity_manager.len();
         let mut results = vec![];
 
@@ -59,13 +59,13 @@ impl<'a, Q: QueryItem<'a>> Query<'a, Q> {
 // Macro to automatically generate tuples
 macro_rules! impl_query_item_tuple {
     ($($T: ident), *) => {
-        impl<'a, $($T),*> QueryItem<'a> for ($($T,)*)
+        impl<$($T),*> QueryItem for ($($T,)*)
         where
-            $($T: QueryItem<'a>,)*
+            $($T: QueryItem,)*
         {
-            type Item = ($($T::Item,)*);
+            type Item<'a> = ($($T::Item<'a>,)*);
 
-            async fn fetch(entity_id: impl Into<usize>, storage: &'a ComponentStorage) -> Option<Self::Item> {
+            async fn fetch<'a>(entity_id: impl Into<usize>, storage: &'a ComponentStorage) -> Option<Self::Item<'a>> {
                 let entity_id = entity_id.into();
                 Some((
                     $(

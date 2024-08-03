@@ -9,6 +9,7 @@ mod helpers;
 mod error;
 mod query;
 mod tests;
+mod query_tests;
 
 #[tokio::main]
 async fn main() {
