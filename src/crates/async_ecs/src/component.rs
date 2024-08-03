@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 use dashmap::DashMap;
 use dashmap::mapref::one::{Ref, RefMut};
-use tokio::sync::{RwLock, RwLockReadGuard};
+use tokio::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 use crate::helpers::sparse_set::SparseSet;
 
@@ -22,11 +22,14 @@ pub struct ComponentRef<'a, T: DynamicComponent> {
 
 #[derive(Debug)]
 pub struct ComponentRefMut<'a, T: DynamicComponent> {
-    write_guard: &'a RwLock<Box<dyn DynamicComponent>>,
+    write_guard: RwLockWriteGuard<'a, Box<dyn DynamicComponent>>,
     _phantom: PhantomData<T>,
 }
 
 
+// Can get component directly from ComponentRef.
+// e.g. let position: ComponentRef<Position> = ...;
+// let x = position.x
 impl<'id, T: DynamicComponent> std::ops::Deref for ComponentRef<'id, T> {
     type Target = T;
 
@@ -34,6 +37,15 @@ impl<'id, T: DynamicComponent> std::ops::Deref for ComponentRef<'id, T> {
         unsafe { &*(&**self.read_guard as *const dyn DynamicComponent as *const T) }
     }
 }
+impl<'id, T: DynamicComponent> std::ops::Deref for ComponentRefMut<'id, T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        unsafe { &*(&**self.write_guard as *const dyn DynamicComponent as *const T) }
+    }
+}
+
+
 
 
 type StoragesMap = DashMap<TypeId, SparseSet<RwLock<Box<dyn DynamicComponent>>>>;
@@ -88,7 +100,7 @@ impl ComponentStorage {
 
         // SAFETY: The RwLock is guaranteed to outlive self, so this write_guard can use the same lifetime
         let write_guard = unsafe {
-            std::mem::transmute::<&RwLock<Box<dyn DynamicComponent>>, &RwLock<Box<dyn DynamicComponent>>>(component)
+            std::mem::transmute::<RwLockWriteGuard<'_, Box<dyn DynamicComponent>>, RwLockWriteGuard<'_, Box<dyn DynamicComponent>>>(component.write().await)
         };
 
         Some(ComponentRefMut {
@@ -106,6 +118,7 @@ impl ComponentStorage {
             storage.remove(entity_id);
         }
     }
+
 }
 
 
@@ -141,6 +154,15 @@ async fn test_insert_and_get() {
     let storage = ComponentStorage::new();
     storage.insert(0usize, Position { x: 0.0, y: 0.0 });
     let component = storage.get::<Position>(0usize).await;
+    assert!(component.is_some());
+    assert_eq!(component.unwrap().x, 0.0);
+}
+
+#[tokio::test]
+async fn test_insert_and_get_mut() {
+    let storage = ComponentStorage::new();
+    storage.insert(0usize, Position { x: 0.0, y: 0.0 });
+    let component = storage.get_mut::<Position>(0usize).await;
     assert!(component.is_some());
     assert_eq!(component.unwrap().x, 0.0);
 }

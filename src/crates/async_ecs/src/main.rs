@@ -1,3 +1,7 @@
+// To allow stuff like this:
+// pub type EntityIdentity = impl Into<usize>;
+#![feature(type_alias_impl_trait)]
+
 
 mod entity;
 mod component;
