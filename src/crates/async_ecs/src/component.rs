@@ -1,11 +1,9 @@
 use std::any::TypeId;
 use std::fmt::Debug;
-use std::future::IntoFuture;
 use std::marker::PhantomData;
 use std::sync::Arc;
 
 use dashmap::DashMap;
-use dashmap::mapref::one::{Ref, RefMut};
 use tokio::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 use crate::helpers::sparse_set::SparseSet;
@@ -42,6 +40,11 @@ impl<'id, T: DynamicComponent> std::ops::Deref for ComponentRefMut<'id, T> {
 
     fn deref(&self) -> &Self::Target {
         unsafe { &*(&**self.write_guard as *const dyn DynamicComponent as *const T) }
+    }
+}
+impl<'id, T: DynamicComponent> std::ops::DerefMut for ComponentRefMut<'id, T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        unsafe { &mut *(&mut **self.write_guard as *mut dyn DynamicComponent as *mut T) }
     }
 }
 
