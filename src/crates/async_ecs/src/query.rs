@@ -19,7 +19,7 @@ impl<T: DynamicComponent> QueryItem for &T {
 }
 impl<T: DynamicComponent> QueryItem for &mut T {
     type Item<'a> = ComponentRefMut<'a, T>;
-    
+
     async fn fetch<'a>(entity_id: impl Into<usize>, storage: &'a ComponentStorage) -> Option<Self::Item<'a>> {
         storage.get_mut::<T>(entity_id).await
     }
@@ -28,6 +28,7 @@ impl<T: DynamicComponent> QueryItem for &mut T {
 pub struct Query<'a, Q: QueryItem> {
     entity_manager: &'a EntityManager,
     component_storage: &'a ComponentStorage,
+    current_id: usize,
     _marker: PhantomData<Q>,
 }
 
@@ -36,11 +37,12 @@ impl<'a, Q: QueryItem> Query<'a, Q> {
         Self {
             entity_manager,
             component_storage,
+            current_id: 0,
             _marker: PhantomData,
         }
     }
 
-    pub async fn iter(&'a self) -> impl Iterator<Item = (usize, Q::Item<'a>)> + 'a {
+    pub async fn iter(&'a self) -> impl Iterator<Item=(usize, Q::Item<'a>)> + 'a {
         let max_entity_id = self.entity_manager.len();
         let mut results = vec![];
 
@@ -51,6 +53,22 @@ impl<'a, Q: QueryItem> Query<'a, Q> {
         }
 
         results.into_iter()
+    }
+
+    pub async fn next<'b>(&mut self) -> Option<(usize, Q::Item<'b>)>
+    where
+        'a: 'b, // 'a must outlive 'b
+    {
+        let max_entity_id = self.entity_manager.len();
+        while self.current_id <= max_entity_id {
+            if let Some(item) = Q::fetch(self.current_id, self.component_storage).await {
+                let result = Some((self.current_id, item));
+                self.current_id += 1;
+                return result;
+            }
+            self.current_id += 1;
+        }
+        None
     }
 }
 
@@ -124,5 +142,4 @@ async fn test_iter() {
     for (entity_id, pos) in query.iter().await {
         println!("Entity {}: {:?}", entity_id, *pos);
     }
-
 }

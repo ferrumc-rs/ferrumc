@@ -44,7 +44,7 @@ mod tests {
         storage.insert(entity1, Velocity { x: 3.0, y: 4.0 });
         storage.insert(entity2, Position { x: 5.0, y: 6.0 });
 
-        let query = Query::<(&Position, &Velocity)>::new(&entity_manager, &storage);
+        let query = Query::<(&mut Position, &Velocity)>::new(&entity_manager, &storage);
         let results: Vec<_> = query.iter().await.collect();
 
         assert_eq!(results.len(), 1);
