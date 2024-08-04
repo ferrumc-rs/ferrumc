@@ -1,180 +1,157 @@
-use std::fmt::Display;
-use std::sync::atomic::{AtomicU64, Ordering};
+use crate::ecs::component::ComponentStorage;
+use crate::ecs::entity::{Entity, EntityManager};
+use crate::ecs::error::Error;
+use crate::ecs::helpers::entity_builder::EntityBuilder;
+use crate::ecs::query::Query;
 
-use crate::ecs::components::{Component, ComponentStorage};
-use crate::ecs::error::{DeallocationErrorType, Error};
-use crate::ecs::query::{Query, QueryFilter, QueryFilterMut, QueryMut};
-
+/// <p style="color:#4CAF50;font-size:1.2em;font-weight:bold;">The World struct</p>
+///
+/// The `World` struct is the central point of the ECS (Entity Component System).
+/// It manages entities and components, and provides an interface for querying and manipulating the game state.
+///
+/// <p style="color:#607D8B;font-size:1.1em;font-weight:bold;">Additional Examples</p>
+///
+/// <p style="color:#795548;">Creating and using a complete game world:</p>
+///
+/// ```rust
+/// // Create a new world
+/// let mut world = World::new();
+///
+/// // Create some entities
+/// let player = world.create_entity()
+///     .with(Position { x: 0.0, y: 0.0 })
+///     .with(Velocity { x: 0.0, y: 0.0 })
+///     .with(Player { name: "Hero".to_string() })
+///     .build();
+///
+/// let enemy = world.create_entity()
+///     .with(Position { x: 10.0, y: 10.0 })
+///     .with(Enemy { hp: 100 })
+///     .build();
+///
+/// // Run a game loop
+/// loop {
+///     // Update player position
+///     let mut query = world.query::<(&mut Position, &Velocity)>();
+///     for (_, (mut pos, vel)) in query.iter().await {
+///         pos.x += vel.x;
+///         pos.y += vel.y;
+///     }
+///
+///     // Check for collisions
+///     let mut collision_query = world.query::<(&Position, Option<&Player>, Option<&Enemy>)>();
+///     for (entity, (pos, player, enemy)) in collision_query.iter().await {
+///         // Handle collisions...
+///     }
+///
+///     // Break the loop when game is over
+///     // break;
+/// }
+/// ```
+///
+/// This example demonstrates creating a world, adding entities with various components,
+/// and running a simple game loop with position updates and collision detection.
 pub struct World {
-    entity_allocator: EntityAllocator,
+    entity_manager: EntityManager,
     component_storage: ComponentStorage,
 }
 
 impl World {
+    /// <p style="color:#2196F3;">Creates a new World instance</p>
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// let world = World::new();
+    /// ```
     pub fn new() -> Self {
-        World {
-            entity_allocator: EntityAllocator::new(),
+        Self {
+            entity_manager: EntityManager::new(),
             component_storage: ComponentStorage::new(),
         }
     }
 
+    /// <p style="color:#FFC107;">Creates a new entity and returns an EntityBuilder</p>
+    ///
+    /// Use this method to create and configure new entities in the world.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// let mut world = World::new();
+    /// let entity = world.create_entity()
+    ///     .with(Position { x: 0.0, y: 0.0 })
+    ///     .with(Velocity { x: 1.0, y: 1.0 })
+    ///     .build();
+    /// ```
     pub fn create_entity(&mut self) -> EntityBuilder {
-        self.entity_allocator.allocate(&mut self.component_storage)
+        let entity = self.entity_manager.create_entity();
+        EntityBuilder::new(entity, &self.component_storage)
     }
 
-    pub fn delete_entity(&mut self, entity: &Entity) -> Result<(), Error> {
-        self.component_storage.remove_all(entity);
-        self.entity_allocator.deallocate(entity)
-    }
+    pub fn delete_entity(&mut self, entity_id: impl Into<usize>) -> Result<(), Error> {
+        let entity_id = entity_id.into();
 
-    pub fn query<F: QueryFilter>(&self) -> Query<F> {
-        Query::new(&self.component_storage)
-    }
-
-    pub fn query_mut<F: QueryFilterMut>(&mut self) -> QueryMut<F> {
-        QueryMut::<F>::new(&mut self.component_storage)
-    }
-
-    pub fn get_component_storage(&self) -> &ComponentStorage {
-        &self.component_storage
-    }
-
-    pub fn get_component_storage_mut(&mut self) -> &mut ComponentStorage {
-        &mut self.component_storage
-    }
-}
-
-pub struct EntityBuilder<'a> {
-    entity: Entity,
-    component_storage: &'a mut ComponentStorage,
-}
-
-impl<'a> EntityBuilder<'a> {
-    pub fn with<T: Component>(self, component: T) -> Self {
-        self.component_storage.insert(&self.entity, component);
-        self
-    }
-
-    pub fn build(self) -> Entity {
-        self.entity
-    }
-}
-
-#[derive(Debug, PartialEq, Default, Clone)]
-pub struct Entity {
-    id: u64,
-    generation: u64,
-}
-
-impl Into<usize> for &Entity {
-    fn into(self) -> usize {
-        self.id as usize
-    }
-}
-
-impl Display for Entity {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
-
-impl Entity {
-    pub fn new(id: u64, generation: u64) -> Self {
-        Entity { id, generation }
-    }
-
-    /// Returns the id of the entity.
-    pub fn id(&self) -> u64 {
-        self.id
-    }
-
-    /// Returns the generation of the entity.
-    pub fn generation(&self) -> u64 {
-        self.generation
-    }
-}
-
-pub struct EntityAllocator {
-    next_id: AtomicU64,
-    // The generation of each entity, indexed by the entity id
-    generations: Vec<u64>,
-    free_ids: Vec<u64>,
-}
-
-impl EntityAllocator {
-    pub fn new() -> Self {
-        EntityAllocator {
-            next_id: AtomicU64::new(0),
-            generations: Vec::new(),
-            free_ids: Vec::new(),
-        }
-    }
-
-    /// Allocates a new entity.
-    /// Returns a builder that can be used to add components to the entity.
-    pub fn allocate<'a>(
-        &mut self,
-        component_storage: &'a mut ComponentStorage,
-    ) -> EntityBuilder<'a> {
-        let entity = self.allocate_entity();
-
-        EntityBuilder {
-            entity,
-            component_storage,
-        }
-    }
-
-    /// Simply allocates an entity without any components.
-    pub fn allocate_entity(&mut self) -> Entity {
-        if let Some(id) = self.free_ids.pop() {
-            let generation = self.generations[id as usize];
-            Entity::new(id, generation)
-        } else {
-            let id = self.next_id.fetch_add(1, Ordering::Relaxed);
-            if id >= self.generations.len() as u64 {
-                self.generations.push(0);
-            }
-            Entity::new(id, 0)
-        }
-    }
-
-    /// Deallocates an entity, making the id available for reuse.
-    pub fn deallocate(&mut self, entity: &Entity) -> Result<(), Error> {
-        let id = entity.id() as usize;
-
-        if id >= self.generations.len() {
-            // Invalid entity, since the id is out of bounds
-            let error = Error::DeallocationError(DeallocationErrorType::EntityNotFound(id));
-            return Err(error);
+        if !self.entity_manager.delete_entity(entity_id) {
+            return Err(Error::EntityNotFound(entity_id));
         }
 
-        if self.generations[id] != entity.generation() {
-            // Invalid entity, since the generation does not match
-            let error = Error::DeallocationError(DeallocationErrorType::InvalidGeneration(id));
-            return Err(error);
-        }
-
-        self.generations[id] += 1;
-        self.free_ids.push(id as u64);
+        self.component_storage.remove_all(entity_id);
 
         Ok(())
     }
 
-    pub fn total_entities(&self) -> usize {
-        self.generations.len()
+
+    /// <p style="color:#E91E63;">Creates a new query for components</p>
+    ///
+    /// Use this method to query entities with specific components.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// let world = World::new();
+    ///
+    /// // Query for all entities with Position and Velocity components
+    /// let query = world.query::<(&Position, &Velocity)>();
+    ///
+    /// // Iterate over the query results
+    /// for (entity_id, (position, velocity)) in query.iter().await {
+    ///     println!("Entity {} at {:?} moving with velocity {:?}", entity_id, position, velocity);
+    /// }
+    ///
+    /// // Query with mutable components
+    /// let mut update_query = world.query::<(&mut Position, &Velocity)>();
+    /// for (_, (mut position, velocity)) in update_query.iter().await {
+    ///     position.x += velocity.x;
+    ///     position.y += velocity.y;
+    /// }
+    /// ```
+    pub fn query<Q>(&self) -> Query<Q>
+    where
+        Q: crate::ecs::query::QueryItem,
+    {
+        Query::<Q>::new(&self.entity_manager, &self.component_storage)
+    }
+
+    /// <p style="color:#9C27B0;">Returns a reference to the ComponentStorage</p>
+    ///
+    /// This method provides direct access to the component storage.
+    /// <p style="color:#FF5722;"><strong>Note:</strong> Use with caution, as it bypasses the usual query system.</p>
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// let world = World::new();
+    /// let component_storage = world.get_component_storage();
+    ///
+    /// // Directly insert a component for an entity
+    /// component_storage.insert(entity_id, Position { x: 10.0, y: 20.0 });
+    /// ```
+    pub fn get_component_storage(&self) -> &ComponentStorage {
+        &self.component_storage
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
 
-    #[test]
-    fn test_entity_creation() {
-        let mut allocator = EntityAllocator::new();
-        let e1 = allocator.allocate_entity();
-        let e2 = allocator.allocate_entity();
-        assert_ne!(e1, e2);
-        assert_eq!(e1.id() + 1, e2.id());
-    }
-}
+#[allow(dead_code)]
+struct WorldDoc;

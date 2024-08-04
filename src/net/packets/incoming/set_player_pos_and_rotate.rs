@@ -26,7 +26,7 @@ impl IncomingPacket for SetPlayerPosAndRotate {
         trace!("Yaw: {}", self.yaw);
         trace!("Pitch: {}", self.pitch);
 
-        let my_entity_id = conn.metadata.entity.id();
+        /*let my_entity_id = conn.metadata.entity.id();
 
         let mut world = crate::GET_WORLD().write().await;
         let component_storage = world.get_component_storage_mut();
@@ -43,7 +43,7 @@ impl IncomingPacket for SetPlayerPosAndRotate {
             y: self.y as i16,
             // z: self.z as i32,
             z: -548
-        };
+        };*/
 
         Ok(())
     }

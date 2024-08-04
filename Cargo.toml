@@ -49,6 +49,8 @@ log = "0.4.22"
 surrealdb = { version = "1.5.4", features = ["protocol-http"] }
 fastanvil = "0.31.0"
 serde_derive = "1.0.204"
+futures = "0.3.30"
+rayon = "1.10.0"
 
 # CLI
 clap = { version = "4.5.11" }

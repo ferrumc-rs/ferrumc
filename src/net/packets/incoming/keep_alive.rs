@@ -21,7 +21,7 @@ impl IncomingPacket for KeepAlivePacketIn {
 
 
         info!("Player: {:?}", player);
-        let world = GET_WORLD();
+        /*let world = GET_WORLD();
 
         let mut world = world.write().await;
         let Some(keep_alive) = world.get_component_storage_mut().get_mut::<KeepAlive>(player) else {
@@ -32,7 +32,7 @@ impl IncomingPacket for KeepAlivePacketIn {
         let delta = Instant::now() - keep_alive.last_sent;
         info!("It's been {:?} since the last keep alive packet", delta);
 
-        keep_alive.last_received = Instant::now();
+        keep_alive.last_received = Instant::now();*/
 
         Ok(())
     }

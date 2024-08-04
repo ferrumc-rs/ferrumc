@@ -25,7 +25,7 @@ pub struct ChunkSender;
 #[async_trait]
 impl System for ChunkSender {
     async fn run(&self) {
-        let mut interval = tokio::time::interval(std::time::Duration::from_secs(1));
+        /*let mut interval = tokio::time::interval(std::time::Duration::from_secs(1));
         loop {
             interval.tick().await;
             let mut world = GET_WORLD().read().await;
@@ -40,7 +40,7 @@ impl System for ChunkSender {
                     debug!("Failed to send chunks to player: {}", e);
                 }
             }
-        }
+        }*/
     }
 
     fn name(&self) -> &'static str {

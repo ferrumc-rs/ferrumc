@@ -27,11 +27,6 @@ pub enum Error {
     #[error(transparent)]
     Other(#[from] Box<dyn std::error::Error + Send + Sync>),
 
-    #[error("Invalid component storage: {0}")]
-    InvalidComponentStorage(String),
-    #[error("Component {0} not found for entity {1}")]
-    ComponentNotFound(String, u64),
-
     #[error(transparent)]
     ECSError(#[from] crate::ecs::error::Error),
 

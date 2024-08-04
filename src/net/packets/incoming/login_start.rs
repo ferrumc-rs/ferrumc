@@ -1,5 +1,4 @@
 use std::time::Instant;
-
 use ferrumc_macros::{Decode, packet};
 #[cfg(not(test))]
 use include_flate::flate;
@@ -45,92 +44,104 @@ const NBT_CODEC: &[u8] = &[0u8; 1];
 
 impl IncomingPacket for LoginStart {
     async fn handle(&self, conn: &mut Connection) -> Result<()> {
-        {
-            debug!("LoginStart packet received");
-            debug!("Username: {}", self.username);
-            let uuid = Uuid::from_u128(self.uuid);
-            debug!("UUID: {uuid}");
-
-            let namespace_uuid = Uuid::new_v5(&Uuid::NAMESPACE_URL, "OfflinePlayer".as_bytes());
-            let uuid = Uuid::new_v3(&namespace_uuid, self.username.as_bytes());
-
-            let response = LoginSuccess::new_auto(
-                uuid.as_bytes().into(),
-                "OfflinePlayer".to_string(),
-                VarInt::new(0),
-                vec![],
-            );
-
-            let mut cursor = std::io::Cursor::new(Vec::new());
-            response.encode(&mut cursor).await?;
-            let response = cursor.into_inner();
-
-            conn.socket.write_all(&*response).await?;
-        }
-        {
-            let play_packet = crate::net::packets::outgoing::login_play::LoginPlay {
-                packet_id: VarInt::from(0x28),
-                entity_id: 0,
-                hardcore: false,
-                gamemode: 1,
-                previous_gamemode: -1,
-                dimension_length: VarInt::new(1),
-                dimension_names: vec!["minecraft:overworld".to_string()],
-                registry_codec: NBT_CODEC.to_vec(),
-                dimension_type: "minecraft:overworld".to_string(),
-                dimension_name: "minecraft:overworld".to_string(),
-                seed_hash: 0,
-                max_players: VarInt::new(20),
-                view_distance: VarInt::new(10),
-                simulation_distance: VarInt::new(10),
-                reduced_debug_info: false,
-                enable_respawn_screen: true,
-                is_debug: false,
-                is_flat: false,
-                has_death_location: false,
-                portal_cooldown: VarInt::new(0),
-            };
-
-            let mut cursor = std::io::Cursor::new(Vec::new());
-            play_packet.encode(&mut cursor).await?;
-            let play_packet = cursor.into_inner();
-
-            conn.socket.write_all(&*play_packet).await?;
-        }
-        let player_position = Position { x: 0, y: 1000, z: 0 };
-        {
-            let spawn_position = DefaultSpawnPosition::new_auto(player_position.clone(), 0.0);
-
-            conn.send_packet(spawn_position).await?;
-        }
-
-
-        let keep_alive_id: i64 = 110;
-        let keep_alive = KeepAlive::new(Instant::now(), Instant::now(), keep_alive_id);
-
-        {
-            let world = GET_WORLD();
-            let mut world = world.write().await;
-
-            let entity = &conn.metadata.entity;
-
-            // Insert all the necessary components
-            let component_storage = world.get_component_storage_mut();
-            component_storage.insert(entity, Player::new(self.uuid, self.username.clone()));
-            component_storage.insert(entity, keep_alive.clone());
-            component_storage.insert(entity, player_position.clone());
-        }
-
-
-        {
-            let keep_alive_outgoing = KeepAlivePacketOut::new_auto(keep_alive_id);
-            debug!("Sending keep alive packet {:?}", &keep_alive_outgoing);
-            conn.send_packet(keep_alive_outgoing).await?;
-        }
-
+        self.send_login_success(conn).await?;
+        self.send_login_play(conn).await?;
+        self.send_spawn_position(conn).await?;
+        self.send_keep_alive(conn).await?;
+        self.update_world_state(conn).await?;
 
         conn.state = Play;
 
+        Ok(())
+    }
+}
+
+impl LoginStart {
+    async fn send_login_success(&self, conn: &mut Connection) -> Result<()> {
+        debug!("LoginStart packet received");
+        debug!("Username: {}", self.username);
+        let uuid = Uuid::from_u128(self.uuid);
+        debug!("UUID: {uuid}");
+
+        let namespace_uuid = Uuid::new_v5(&Uuid::NAMESPACE_URL, "OfflinePlayer".as_bytes());
+        let uuid = Uuid::new_v3(&namespace_uuid, self.username.as_bytes());
+
+        let response = LoginSuccess::new_auto(
+            uuid.as_bytes().into(),
+            "OfflinePlayer".to_string(),
+            VarInt::new(0),
+            vec![],
+        );
+
+        let mut cursor = std::io::Cursor::new(Vec::new());
+        response.encode(&mut cursor).await?;
+        let response = cursor.into_inner();
+
+        conn.socket.write_all(&*response).await?;
+        Ok(())
+    }
+
+    async fn send_login_play(&self, conn: &mut Connection) -> Result<()> {
+        let play_packet = crate::net::packets::outgoing::login_play::LoginPlay {
+            packet_id: VarInt::from(0x28),
+            entity_id: 0,
+            hardcore: false,
+            gamemode: 1,
+            previous_gamemode: -1,
+            dimension_length: VarInt::new(1),
+            dimension_names: vec!["minecraft:overworld".to_string()],
+            registry_codec: NBT_CODEC.to_vec(),
+            dimension_type: "minecraft:overworld".to_string(),
+            dimension_name: "minecraft:overworld".to_string(),
+            seed_hash: 0,
+            max_players: VarInt::new(20),
+            view_distance: VarInt::new(10),
+            simulation_distance: VarInt::new(10),
+            reduced_debug_info: false,
+            enable_respawn_screen: true,
+            is_debug: false,
+            is_flat: false,
+            has_death_location: false,
+            portal_cooldown: VarInt::new(0),
+        };
+
+        let mut cursor = std::io::Cursor::new(Vec::new());
+        play_packet.encode(&mut cursor).await?;
+        let play_packet = cursor.into_inner();
+
+        conn.socket.write_all(&*play_packet).await?;
+        Ok(())
+    }
+
+    async fn send_spawn_position(&self, conn: &mut Connection) -> Result<()> {
+        let player_position = Position { x: 0, y: 1000, z: 0 };
+        let spawn_position = DefaultSpawnPosition::new_auto(player_position.clone(), 0.0);
+        conn.send_packet(spawn_position).await?;
+        Ok(())
+    }
+
+    async fn send_keep_alive(&self, conn: &mut Connection) -> Result<()> {
+        let keep_alive_id: i64 = 110;
+        let keep_alive = KeepAlive::new(Instant::now(), Instant::now(), keep_alive_id);
+
+        let keep_alive_outgoing = KeepAlivePacketOut::new_auto(keep_alive_id);
+        debug!("Sending keep alive packet {:?}", &keep_alive_outgoing);
+        conn.send_packet(keep_alive_outgoing).await?;
+        Ok(())
+    }
+
+    async fn update_world_state(&self, _conn: &mut Connection) -> Result<()> {
+ /*       let world = GET_WORLD();
+        let mut world = world.write().await;
+
+        let entity = &conn.metadata.entity;
+
+        // Insert all the necessary components
+        let component_storage = world.get_component_storage_mut();
+        component_storage.insert(entity, Player::new(self.uuid, self.username.clone()));
+        component_storage.insert(entity, KeepAlive::new(Instant::now(), Instant::now(), 110));
+        component_storage.insert(entity, Position { x: 0, y: 1000, z: 0 });
+*/
         Ok(())
     }
 }

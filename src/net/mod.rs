@@ -1,5 +1,5 @@
 use std::cmp::PartialEq;
-use std::fmt::Display;
+use std::fmt::{Debug, Display};
 use std::io::Cursor;
 use std::ops::DerefMut;
 use std::sync::{Arc, atomic, OnceLock};
@@ -7,13 +7,14 @@ use std::sync::atomic::AtomicU32;
 use std::time::Duration;
 
 use dashmap::DashMap;
+use ferrumc_macros::Component;
 use rand::random;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::sync::RwLock;
 use tracing::{debug, error, trace};
 
-use crate::ecs::components::Component;
-use crate::ecs::world::{Entity, World};
+use crate::ecs::entity::Entity;
+use crate::ecs::world::World;
 use crate::net::packets::handle_packet;
 
 use super::utils::config::get_global_config;
@@ -22,12 +23,20 @@ use super::utils::prelude::*;
 use super::utils::type_impls::Encode;
 
 // To allow implementing the `Component` trait for `Connection`. Since we can't implement a trait for a type defined in another crate.
+#[derive(Component)]
 pub struct ConnectionWrapper(pub Arc<RwLock<Connection>>);
+
+impl Debug for ConnectionWrapper {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "ConnectionWrapper")
+    }
+}
+
+
 /// Implementing `Send` for `ConnectionWrapper` to allow sending it between threads.
 /// This is safe because `ConnectionWrapper` is just a wrapper around `Arc<RwLock<Connection>>`, which is `Send`.
 unsafe impl Send for ConnectionWrapper {}
 unsafe impl Sync for ConnectionWrapper {}
-impl Component for ConnectionWrapper {}
 
 pub mod packets;
 pub mod systems;
@@ -107,7 +116,7 @@ pub struct Connection {
 #[derive(Debug, Default)]
 pub struct ConnectionMetadata {
     pub protocol_version: i32,
-    pub entity: Entity,
+    pub entity: usize,
 }
 
 pub fn setup_tracer() {
@@ -140,6 +149,7 @@ pub async fn init_connection(socket: tokio::net::TcpStream) -> Result<()> {
         .create_entity()
         .with(ConnectionWrapper(conn.clone()))
         .build();
+
     drop(world);
 
     {
@@ -168,7 +178,7 @@ pub async fn init_connection(socket: tokio::net::TcpStream) -> Result<()> {
     if let Err(e) = res {
         error!("Error occurred in {:?}: {:?}, dropping connection", id, e);
         let mut world = GET_WORLD().write().await;
-        let entity_id = &conn.read().await.metadata.entity;
+        let entity_id = conn.read().await.metadata.entity;
         world.delete_entity(entity_id)?;
         drop(world);
         drop_conn(id).await?;

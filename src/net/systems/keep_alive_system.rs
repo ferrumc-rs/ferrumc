@@ -15,9 +15,9 @@ pub struct KeepAliveSystem;
 #[async_trait]
 impl System for KeepAliveSystem {
     async fn run(&self) {
-        let sender = KeepAliveSystem::sender();
-        let receiver = KeepAliveSystem::receiver();
-        tokio::join!(sender, receiver);
+        // let sender = KeepAliveSystem::sender();
+        // let receiver = KeepAliveSystem::receiver();
+        // tokio::join!(sender, receiver);
     }
 
     fn name(&self) -> &'static str {
@@ -25,7 +25,7 @@ impl System for KeepAliveSystem {
     }
 }
 impl KeepAliveSystem {
-    async fn sender() {
+/*    async fn sender() {
         let mut interval = tokio::time::interval(std::time::Duration::from_secs(15));
         loop {
             interval.tick().await;
@@ -94,5 +94,5 @@ impl KeepAliveSystem {
                 }
             }
         }
-    }
+    }*/
 }

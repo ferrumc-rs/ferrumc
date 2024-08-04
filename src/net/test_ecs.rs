@@ -22,8 +22,8 @@ mod tests {
         world.create_entity().with(Position::new(2, 3, 2));
 
         // Query example
-        for (entity_id, (position, velocity)) in
-            world.query_mut::<(Position, Velocity)>().iter_mut()
+        for (entity_id, (mut position, velocity)) in
+            world.query::<(&mut Position, &Velocity)>().iter().await
         {
             println!(
                 "[Entity: {}] Adding {:?} to {:?}",
@@ -37,13 +37,13 @@ mod tests {
         println!("{}", "*".repeat(50));
 
         // Log all the entities with position
-        for (entity_id, position) in world.query::<Position>().iter() {
+        for (entity_id, position) in world.query::<&Position>().iter().await {
             println!("[Entity: {}] Position: {:?}", entity_id, position);
         }
 
         // delete entity
         world
-            .delete_entity(&entity1)
+            .delete_entity(entity1)
             .expect("Failed to delete entity1");
     }
 }
