@@ -143,7 +143,7 @@ pub async fn init_connection(socket: tokio::net::TcpStream) -> Result<()> {
     };
     let conn = Arc::new(RwLock::new(conn));
 
-    let mut world = GET_WORLD();
+    let world = GET_WORLD();
     let entity = world
         .create_entity().await
         .with(ConnectionWrapper(conn.clone()))
@@ -267,6 +267,14 @@ pub async fn drop_conn(connection_id: u32) -> Result<()> {
     CONNECTIONS()
         .connection_count
         .fetch_sub(1, atomic::Ordering::Relaxed);
+
+    {
+        let read_lock = conn_arc.read().await;
+        let entity_id = read_lock.metadata.entity;
+        GET_WORLD().delete_entity(entity_id).await?;
+    }
+
+
     // drop the connection in the end, just in case it errors out
     let mut conn = conn_arc.write().await;
     conn.socket.shutdown().await?;
@@ -280,5 +288,9 @@ impl Connection {
         let packet = cursor.into_inner();
         self.socket.write_all(&*packet).await?;
         Ok(())
+    }
+
+    pub async fn drop_connection(&self) -> Result<()> {
+        Ok(drop_conn(self.id).await?)
     }
 }

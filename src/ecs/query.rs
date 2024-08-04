@@ -106,8 +106,10 @@ impl<'a, Q: QueryItem> Query<'a, Q> {
             }
             self.current_id += 1;
         }
+        self.current_id = 0;
         None
     }
+
 }
 
 // Macro to automatically generate tuples

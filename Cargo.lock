@@ -1168,7 +1168,6 @@ dependencies = [
  "futures",
  "include-flate",
  "lazy_static",
- "log",
  "rand 0.9.0-alpha.1",
  "rayon",
  "serde",

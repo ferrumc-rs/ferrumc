@@ -80,10 +80,11 @@ impl ComponentStorage {
     /// let storage = ComponentStorage::new();
     /// storage.insert(0, Position { x: 0.0, y: 0.0 });
     /// ```
-    pub fn insert<T: Component>(&self, entity_id: impl Into<usize>, component: T) {
+    pub fn insert<T: Component>(&self, entity_id: impl Into<usize>, component: T) -> &Self {
         let type_id = TypeId::of::<T>();
         let mut storage = self.storages.entry(type_id).or_insert_with(|| SparseSet::new());
         storage.insert(entity_id.into(), RwLock::new(Box::new(component)));
+        self
     }
 
     /// Retrieves an immutable reference to a component for a given entity.
@@ -122,8 +123,10 @@ impl ComponentStorage {
         let storage = self.storages.get(&type_id)?;
         let component = storage.get(entity_id)?;
 
+        let write = component.write().await;
+
         let write_guard = unsafe {
-            std::mem::transmute::<RwLockWriteGuard<'_, Box<dyn Component>>, RwLockWriteGuard<'_, Box<dyn Component>>>(component.write().await)
+            std::mem::transmute::<RwLockWriteGuard<'_, Box<dyn Component>>, RwLockWriteGuard<'_, Box<dyn Component>>>(write)
         };
 
         Some(ComponentRefMut {

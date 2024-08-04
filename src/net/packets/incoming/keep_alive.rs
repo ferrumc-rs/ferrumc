@@ -11,12 +11,12 @@ use crate::net::packets::IncomingPacket;
 pub struct KeepAlivePacketIn {
     pub keep_alive_id: i64,
 }
+
 impl IncomingPacket for KeepAlivePacketIn {
     async fn handle(&self, conn: &mut Connection) -> crate::utils::prelude::Result<()> {
         info!("KeepAlivePacketIn: {:?}", self);
 
         let player = &conn.metadata.entity;
-
 
         info!("Player: {:?}", player);
         /*let world = GET_WORLD();

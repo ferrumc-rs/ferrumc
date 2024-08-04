@@ -1,7 +1,9 @@
 use std::time::Instant;
+
 use ferrumc_macros::{Decode, packet};
 #[cfg(not(test))]
 use include_flate::flate;
+use rand::random;
 use tokio::io::AsyncWriteExt;
 use tracing::debug;
 use uuid::Uuid;
@@ -14,6 +16,7 @@ use crate::net::packets::outgoing::keep_alive::KeepAlivePacketOut;
 use crate::net::packets::outgoing::login_success::LoginSuccess;
 use crate::net::State::Play;
 use crate::utils::components::keep_alive::KeepAlive;
+use crate::utils::components::player::Player;
 use crate::utils::encoding::position::Position;
 use crate::utils::encoding::varint::VarInt;
 use crate::utils::prelude::*;
@@ -47,8 +50,11 @@ impl IncomingPacket for LoginStart {
         self.send_login_success(conn).await?;
         self.send_login_play(conn).await?;
         self.send_spawn_position(conn).await?;
-        self.send_keep_alive(conn).await?;
-        self.update_world_state(conn).await?;
+
+        let data: i64 = random();
+        let mut keep_alive = KeepAlive::new(Instant::now(), Instant::now(), data);
+        self.send_keep_alive(conn, &mut keep_alive).await?;
+        self.update_world_state(conn, keep_alive).await?;
 
         conn.state = Play;
 
@@ -120,31 +126,25 @@ impl LoginStart {
         Ok(())
     }
 
-    async fn send_keep_alive(&self, conn: &mut Connection) -> Result<()> {
-        let keep_alive_id: i64 = 110;
-        let mut keep_alive = KeepAlive::new(Instant::now(), Instant::now(), keep_alive_id);
-
-        // let keep_alive_outgoing = KeepAlivePacketOut::new_auto(keep_alive_id);
-        let keep_alive_outgoing: KeepAlivePacketOut = (&mut keep_alive).into();
-        debug!("Sending keep alive packet {:?}", &keep_alive_outgoing);
+    async fn send_keep_alive(&self, conn: &mut Connection, keep_alive: &mut KeepAlive) -> Result<()> {
+        let keep_alive_outgoing: KeepAlivePacketOut = keep_alive.into();
+        debug!("Sending keep alive packet {:?}", keep_alive.data);
         conn.send_packet(keep_alive_outgoing).await?;
         Ok(())
     }
 
-    async fn update_world_state(&self, _conn: &mut Connection) -> Result<()> {
+    async fn update_world_state(&self, conn: &mut Connection, keep_alive: KeepAlive) -> Result<()> {
         let world = GET_WORLD();
 
- /*       let world = GET_WORLD();
-        let mut world = world.write().await;
+        let entity = conn.metadata.entity;
 
-        let entity = &conn.metadata.entity;
+        let component_storage = world.get_component_storage();
 
-        // Insert all the necessary components
-        let component_storage = world.get_component_storage_mut();
-        component_storage.insert(entity, Player::new(self.uuid, self.username.clone()));
-        component_storage.insert(entity, KeepAlive::new(Instant::now(), Instant::now(), 110));
-        component_storage.insert(entity, Position { x: 0, y: 1000, z: 0 });
-*/
+        component_storage
+            .insert(entity, Position { x: 0, y: 1000, z: 0 })
+            .insert(entity, keep_alive)
+            .insert(entity, Player::new(self.uuid, self.username.clone()));
+
         Ok(())
     }
 }
