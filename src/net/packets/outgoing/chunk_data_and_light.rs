@@ -204,8 +204,7 @@ impl From<&ChunkSection> for ChunkSectionEncode {
 
 use std::io::Cursor;
 use ferrumc_macros::Encode;
-use simdnbt::borrow::BaseNbt;
-use simdnbt::{Deserialize, Serialize};
+use simdnbt::Deserialize;
 use tokio::io::AsyncWriteExt;
 
 use crate::net::systems::chunk_sender::GET_REGION;
@@ -213,7 +212,7 @@ use crate::utils::encoding::bitset::BitSet;
 use crate::utils::encoding::varint::VarInt;
 use crate::utils::prelude::*;
 use crate::utils::type_impls::Encode;
-use crate::world::sweattypalms_impl::types::{Chunk, Heightmaps};
+use crate::world::sweattypalms_impl::types::Chunk;
 
 const STONE_BLOCK_ID: u32 = 1; // Assuming 1 is the ID for stone, adjust if needed
 
@@ -261,8 +260,8 @@ pub struct BlockLightArray {
 impl ChunkDataAndUpdateLight {
     pub async fn new(chunk_x: i32, chunk_z: i32) -> Result<Self> {
         // Create dummy heightmaps NBT
-        let mut heightmaps = create_dummy_heightmaps().await;
-        let mut heightmaps_buf = Vec::new();
+        let heightmaps = create_dummy_heightmaps().await;
+        let heightmaps_buf = Vec::new();
         todo!();
         // heightmaps.to_nbt().write(&mut heightmaps_buf);
 

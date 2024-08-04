@@ -4,10 +4,9 @@ use tracing::{info_span, Instrument};
 use crate::state::GlobalState;
 use crate::utils::prelude::*;
 
+pub mod chunk_sender;
 pub mod keep_alive_system;
 pub mod tick_system;
-pub mod keep_alive_system;
-pub mod chunk_sender;
 
 #[async_trait]
 pub trait System: Send + Sync {

@@ -2,6 +2,7 @@
 #![feature(fs_try_exists)]
 #![feature(async_closure)]
 #![feature(future_join)]
+#![feature(portable_simd)]
 
 use std::env;
 use std::sync::Arc;
@@ -41,6 +42,7 @@ async fn main() -> Result<()> {
     let elapsed = start.elapsed();
 
     debug!("Found Config: {:?} in {:?}", config, elapsed);
+
     let db = database::start_database().await?;
 
     let state: GlobalState = Arc::new(RwLock::new(state::ServerState {
@@ -49,11 +51,19 @@ async fn main() -> Result<()> {
         database: db,
     }));
 
-    start_server(state).await.expect("Server failed to start!");
+    if env::args().nth(1).unwrap_or_default() == "import" {
+        let import_path = env::current_exe().unwrap().parent().unwrap().join("import");
+        world::importing::import_regions(import_path, state.clone())
+            .await
+            .unwrap();
+        return Ok(());
+    } else {
+        start_server(state).await.expect("Server failed to start!");
 
-    tokio::signal::ctrl_c().await?;
+        tokio::signal::ctrl_c().await?;
 
-    Ok(())
+        Ok(())
+    }
 }
 
 /// Starts the server. Sets up the sockets and listens for incoming connections
@@ -71,49 +81,6 @@ async fn start_server(state: GlobalState) -> Result<()> {
     info!("Server started on {}", addr);
 
     let read_connections = tokio::spawn(read_connections(listener, state.clone()));
-
-    /*ALL_SYSTEMS.iter().for_each(|system| {
-        tokio::spawn(system.run().instrument(info_span!("system", system = system.name())));
-    });*/
-    /*let systems = tokio::task::spawn(async {
-        loop {
-            let world = GET_WORLD().read().await;
-            // an example system (like just log all players)
-            for (id, (player, position)) in world.query::<(Player, Position)>().iter() {
-                info!("[Entity {}] Player: {:?}, Position: {:?}", id, player, position);
-            }
-            drop(world);
-
-            let mut world = GET_WORLD().write().await;
-
-            let keep_alive_data: Vec<(usize, (String, i64, Arc<RwLock<Connection>>))> = world
-                .query_mut::<(Player, KeepAlive, ConnectionWrapper)>()
-                .iter_mut()
-                .map(|(entity_id, (player, keep_alive, conn))| {
-                    keep_alive.data += 1;
-                    keep_alive.last_sent = std::time::Instant::now();
-                    (entity_id, (player.get_username().to_string(), keep_alive.data, conn.0.clone()))
-                })
-                .collect();
-
-            drop(world);
-
-
-            for (_,(player, data, conn)) in keep_alive_data {
-                let keep_alive_out = KeepAlivePacketOut::new_auto(data);
-                let mut conn = conn.write().await;
-                debug!("Sending keep alive packet to player: {:?}", player);
-                if let Err(e) = conn.send_packet(keep_alive_out).await {
-                    error!("Error sending keep alive packet: {:?}", e);
-                }
-                drop(conn);
-            }
-
-            // wait for a tick (1/20)
-            tokio::time::sleep(std::time::Duration::from_secs(10)).await;
-        }
-    });*/
-
     // Start all systems (separate task)
     let all_systems = tokio::task::spawn(start_all_systems(state.clone()));
     let (con, systems) = tokio::try_join!(read_connections, all_systems)?;
@@ -135,7 +102,7 @@ async fn read_connections(listener: TcpListener, state: GlobalState) -> Result<(
         let state = state.clone();
         tokio::task::spawn(
             async move {
-                if let Err(e) = net::init_connection(socket, state).await {
+                if let Err(e) = net::init_connection(socket, state.clone()).await {
                     error!("Error handling connection: {:?}", e);
                 }
             }
@@ -164,7 +131,7 @@ async fn handle_setup() -> Result<bool> {
         // Check if the config file exists already and run the setup if it doesn't
     } else {
         // Get the path to the current executable
-        let exe = std::env::current_exe()?;
+        let exe = env::current_exe()?;
         // This should be the directory the executable is in.
         // This should always work but if it doesn't, we'll just return an error
         let dir = exe.parent();
