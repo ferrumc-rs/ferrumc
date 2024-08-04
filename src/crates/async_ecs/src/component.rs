@@ -51,19 +51,17 @@ impl<'id, T: DynamicComponent> std::ops::DerefMut for ComponentRefMut<'id, T> {
 
 
 
-type StoragesMap = DashMap<TypeId, SparseSet<RwLock<Box<dyn DynamicComponent>>>>;
 
 #[derive(Debug)]
 pub struct ComponentStorage {
-    // storages: DashMap<TypeId, SparseSet<RwLock<Box<dyn DynamicComponent>>>>,s
-    storages: Arc<StoragesMap>,
+    storages: DashMap<TypeId, SparseSet<RwLock<Box<dyn DynamicComponent>>>>,
 }
 
 
 impl ComponentStorage {
     pub fn new() -> Self {
         Self {
-            storages: Arc::new(DashMap::new()),
+            storages: DashMap::new(),
         }
     }
 
@@ -81,6 +79,8 @@ impl ComponentStorage {
 
         let storage = self.storages.get(&type_id)?;
         let component = storage.get(entity_id)?;
+
+
 
         // SAFETY: The RwLock is guaranteed to outlive self, so this read_guard can use the same lifetime
         let read_guard = unsafe {

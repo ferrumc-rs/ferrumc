@@ -44,11 +44,11 @@ async fn main() {
     while let Some((id, pos)) = query.next().await {
         println!("Entity {}: {:?}", id, *pos);
     }
-    
+
     let mut query = world.query::<&Velocity>();
-    
+
     while let Some((id, vel)) = query.next().await {
         println!("Entity {}: {:?}", id, *vel);
     }
-    
+
 }

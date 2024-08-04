@@ -26,7 +26,7 @@ pub mod utils;
 
 pub mod world;
 
-type SafeConfig = Arc<RwLock<utils::config::ServerConfig>>;
+type SafeConfig = Arc<RwLock<config::ServerConfig>>;
 #[tokio::main]
 async fn main() -> Result<()> {
     utils::setup_logger();

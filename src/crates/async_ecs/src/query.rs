@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::component::{ComponentRef, ComponentRefMut, ComponentStorage, DynamicComponent, Position, Velocity};
+use crate::component::{ComponentRef, ComponentRefMut, ComponentStorage, DynamicComponent};
 use crate::entity::EntityManager;
 
 pub trait QueryItem {
@@ -103,43 +103,49 @@ impl_query_item_tuple!(A, B, C, D);
 impl_query_item_tuple!(A, B, C, D, E);
 impl_query_item_tuple!(A, B, C, D, E, F);
 
+#[cfg(test)]
+mod tests {
+    use crate::component::{ComponentStorage, Position, Velocity};
+    use crate::entity::EntityManager;
+    use crate::query::{Query, QueryItem};
 
-#[tokio::test]
-async fn test_immut_query() {
-    let storage = ComponentStorage::new();
-    storage.insert(0usize, Position { x: 0.0, y: 0.0 });
-    let component = <&Position as QueryItem>::fetch(0usize, &storage).await;
-    assert!(component.is_some());
-    assert_eq!(component.unwrap().x, 0.0);
-}
-
-#[tokio::test]
-async fn test_iter() {
-    let storage = ComponentStorage::new();
-    let mut entity_manager = EntityManager::new();
-
-    for _ in 0..=2 {
-        entity_manager.create_entity();
+    #[tokio::test]
+    async fn test_immut_query() {
+        let storage = ComponentStorage::new();
+        storage.insert(0usize, Position { x: 0.0, y: 0.0 });
+        let component = <&Position as QueryItem>::fetch(0usize, &storage).await;
+        assert!(component.is_some());
+        assert_eq!(component.unwrap().x, 0.0);
     }
 
-    storage.insert(0usize, Position { x: 0.0, y: 0.0 });
-    storage.insert(0usize, Velocity { x: 2.0, y: 0.0 });
-    storage.insert(1usize, Position { x: 1.0, y: 1.0 });
-    storage.insert(1usize, Velocity { x: 2.0, y: 2.0 });
+    #[tokio::test]
+    async fn test_iter() {
+        let storage = ComponentStorage::new();
+        let mut entity_manager = EntityManager::new();
+
+        for _ in 0..=2 {
+            entity_manager.create_entity();
+        }
+
+        storage.insert(0usize, Position { x: 0.0, y: 0.0 });
+        storage.insert(0usize, Velocity { x: 2.0, y: 0.0 });
+        storage.insert(1usize, Position { x: 1.0, y: 1.0 });
+        storage.insert(1usize, Velocity { x: 2.0, y: 2.0 });
 
 
-    let query = Query::<(&mut Position, &Velocity)>::new(&entity_manager, &storage);
+        let query = Query::<(&mut Position, &Velocity)>::new(&entity_manager, &storage);
 
-    // System to update position (with velocity)
-    for (entity_id, (mut pos, vel)) in query.iter().await {
-        pos.x += vel.x;
-        pos.y += vel.y;
-        storage.remove::<Velocity>(entity_id);
-    }
+        // System to update position (with velocity)
+        for (entity_id, (mut pos, vel)) in query.iter().await {
+            pos.x += vel.x;
+            pos.y += vel.y;
+            storage.remove::<Velocity>(entity_id);
+        }
 
-    // Log the results
-    let query = Query::<&Position>::new(&entity_manager, &storage);
-    for (entity_id, pos) in query.iter().await {
-        println!("Entity {}: {:?}", entity_id, *pos);
+        // Log the results
+        let query = Query::<&Position>::new(&entity_manager, &storage);
+        for (entity_id, pos) in query.iter().await {
+            println!("Entity {}: {:?}", entity_id, *pos);
+        }
     }
 }
