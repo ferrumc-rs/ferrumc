@@ -2,6 +2,7 @@
 #![feature(fs_try_exists)]
 #![feature(async_closure)]
 #![feature(future_join)]
+#![feature(portable_simd)]
 
 use std::env;
 use std::sync::Arc;

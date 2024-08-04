@@ -28,7 +28,7 @@ pub async fn import_regions(
                 .read()
                 .await
                 .database
-                .insert_chunk(chunk_nbt)
+                .insert_chunk(chunk_nbt, "overworld".to_string())
                 .await
                 .unwrap();
 

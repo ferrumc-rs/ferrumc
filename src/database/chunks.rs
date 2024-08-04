@@ -6,14 +6,16 @@ use crate::utils::error::Error;
 use crate::world::chunkformat::Chunk;
 
 impl Database {
-    pub async fn insert_chunk(&self, value: Chunk) -> Result<bool, Error> {
+    pub async fn insert_chunk(&self, value: Chunk, dimension: String) -> Result<bool, Error> {
         let db = self.db.clone();
         let result = tokio::task::spawn_blocking(move || {
             let record_name = format!("{},{}", value.x_pos, value.z_pos);
             let mut ser = flexbuffers::FlexbufferSerializer::new();
             value.serialize(&mut ser).unwrap();
             let encoded = ser.take_buffer();
-            db.open_tree("chunks").unwrap().insert(record_name, encoded)
+            db.open_tree(format!("chunks/{}", dimension))
+                .unwrap()
+                .insert(record_name, encoded)
         })
         .await
         .expect("Failed to join tasks")
@@ -24,11 +26,20 @@ impl Database {
         }
     }
 
-    pub async fn get_chunk(&self, x: i32, z: i32) -> Result<Option<Chunk>, Error> {
+    pub async fn get_chunk(
+        &self,
+        x: i32,
+        z: i32,
+        dimension: String,
+    ) -> Result<Option<Chunk>, Error> {
         let db = self.db.clone();
         let result = tokio::task::spawn_blocking(move || {
             let record_name = format!("{},{}", x, z);
-            let chunk = db.open_tree("chunks").unwrap().get(record_name).unwrap();
+            let chunk = db
+                .open_tree(format!("chunks/{}", dimension))
+                .unwrap()
+                .get(record_name)
+                .unwrap();
             match chunk {
                 Some(chunk) => {
                     let chunk = chunk.as_ref();
@@ -44,11 +55,13 @@ impl Database {
         Ok(result)
     }
 
-    pub async fn chunk_exists(&self, x: i32, z: i32) -> Result<bool, Error> {
+    pub async fn chunk_exists(&self, x: i32, z: i32, dimension: String) -> Result<bool, Error> {
         let db = self.db.clone();
         let result = tokio::task::spawn_blocking(move || {
             let record_name = format!("{},{}", x, z);
-            db.open_tree("chunks").unwrap().contains_key(record_name)
+            db.open_tree(format!("chunks/{}", dimension))
+                .unwrap()
+                .contains_key(record_name)
         })
         .await
         .expect("Failed to join tasks")
@@ -56,7 +69,7 @@ impl Database {
         Ok(result)
     }
 
-    pub async fn update_chunk(&self, value: Chunk) -> Result<bool, Error> {
+    pub async fn update_chunk(&self, value: Chunk, dimension: String) -> Result<bool, Error> {
         let db = self.db.clone();
         let result = tokio::task::spawn_blocking(move || {
             let record_name = format!("{},{}", value.x_pos, value.z_pos);
@@ -72,7 +85,9 @@ impl Database {
             {
                 warn!("Attempted to update non-existent chunk: {}", record_name);
             }
-            db.open_tree("chunks").unwrap().insert(record_name, encoded)
+            db.open_tree(format!("chunks/{}", dimension))
+                .unwrap()
+                .insert(record_name, encoded)
         })
         .await
         .expect("Failed to join tasks")
