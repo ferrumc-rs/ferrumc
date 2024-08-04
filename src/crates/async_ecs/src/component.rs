@@ -1,40 +1,66 @@
 use std::any::TypeId;
 use std::fmt::Debug;
 use std::marker::PhantomData;
-use std::sync::Arc;
 
 use dashmap::DashMap;
 use tokio::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 use crate::helpers::sparse_set::SparseSet;
 
-
-
+/// A trait that represents a dynamic component in the ECS (Entity Component System).
+///
+/// This trait must be implemented by any type that is intended to be used as a component
+/// within the ECS.
 pub trait DynamicComponent: 'static + Send + Sync + Debug {}
 
+/// An **immutable** reference to a component in the ECS.
+///
+/// Equivalent of <p style="color:#FFD700">&Position</p>
+///
+/// # Examples
+/// ```rs
+/// // Equivalent of &Position
+///let position: ComponentRef<Position> = ...;
+///let x = position.x;
+///let y = position.y;
+/// ```
 #[derive(Debug)]
-pub struct ComponentRef<'a, T: DynamicComponent> {
+pub struct ComponentRef<'a, T: DynamicComponent + 'a> {
     read_guard: RwLockReadGuard<'a, Box<dyn DynamicComponent>>,
     _phantom: PhantomData<T>,
 }
 
+/// A mutable reference to a component in the ECS.
+///
+/// Equivalent of <p style="color:#FFD700">&mut Position</p>
+///
+/// # Examples
+/// ```rs
+/// let mut position: ComponentRefMut<Position> = ...;
+/// position.x = 10.0;
+/// position.y = 20.0;
+/// ```
 #[derive(Debug)]
 pub struct ComponentRefMut<'a, T: DynamicComponent> {
     write_guard: RwLockWriteGuard<'a, Box<dyn DynamicComponent>>,
     _phantom: PhantomData<T>,
 }
 
-
 // Can get component directly from ComponentRef.
 // e.g. let position: ComponentRef<Position> = ...;
 // let x = position.x
-impl<'id, T: DynamicComponent> std::ops::Deref for ComponentRef<'id, T> {
+impl<'a, T: DynamicComponent> std::ops::Deref for ComponentRef<'a, T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
         unsafe { &*(&**self.read_guard as *const dyn DynamicComponent as *const T) }
     }
 }
+
+// Can get component directly from ComponentRefMut.
+// e.g. let mut position: ComponentRefMut<Position> = ...;
+// position.x = 10.0;
+// position.y = 20.0;
 impl<'id, T: DynamicComponent> std::ops::Deref for ComponentRefMut<'id, T> {
     type Target = T;
 
@@ -49,9 +75,13 @@ impl<'id, T: DynamicComponent> std::ops::DerefMut for ComponentRefMut<'id, T> {
 }
 
 
-
-
-
+/// A storage structure for components in the ECS (Entity Component System).
+///
+/// This struct uses a `DashMap` to store components, where each component type
+/// is associated with a `TypeId` and stored in a `SparseSet` protected by an `RwLock`.
+///
+/// # Fields
+/// - `storages`: A `DashMap` that maps `TypeId` to `SparseSet` of components wrapped in `RwLock`.
 #[derive(Debug)]
 pub struct ComponentStorage {
     storages: DashMap<TypeId, SparseSet<RwLock<Box<dyn DynamicComponent>>>>,
@@ -59,12 +89,30 @@ pub struct ComponentStorage {
 
 
 impl ComponentStorage {
+    /// Creates a new instance of `ComponentStorage`.
+    ///
+    /// # Returns
+    /// A new `ComponentStorage` with an empty `DashMap` for storing components.
     pub fn new() -> Self {
         Self {
             storages: DashMap::new(),
         }
     }
 
+    /// Inserts a component into the storage for a given entity.
+    ///
+    /// This function takes an entity ID and a component, and inserts the component
+    /// into the storage associated with the component's type.
+    ///
+    /// # Parameters
+    /// - `entity_id`: The ID of the entity to which the component belongs.
+    /// - `component`: The component to be inserted.
+    ///
+    /// # Examples
+    /// ```
+    /// let storage = ComponentStorage::new();
+    /// storage.insert(0usize, Position { x: 0.0, y: 0.0 });
+    /// ```
     pub fn insert<T: DynamicComponent>(&self, entity_id: impl Into<usize>, component: T) {
         let type_id = TypeId::of::<T>();
 
@@ -72,15 +120,33 @@ impl ComponentStorage {
 
         storage.insert(entity_id.into(), RwLock::new(Box::new(component)));
     }
-    pub async fn get<T: DynamicComponent>(&self, entity_id: impl Into<usize>) -> Option<ComponentRef<T>> {
+
+    /// Retrieves an immutable reference to a component for a given entity.
+    ///
+    /// This function takes an entity ID and returns an immutable reference to the component
+    /// of type `T` associated with that entity, if it exists.
+    ///
+    /// # Parameters
+    /// - `entity_id`: The ID of the entity to which the component belongs.
+    ///
+    /// # Returns
+    /// An `Option` containing a `ComponentRef` to the component if it exists, or `None` if it does not.
+    ///
+    /// # Examples
+    /// ```
+    /// let storage = ComponentStorage::new();
+    /// storage.insert(0usize, Position { x: 0.0, y: 0.0 });
+    /// let position = storage.get::<Position>(0usize).await.unwrap();
+    /// assert_eq!(position.x, 0.0);
+    /// assert_eq!(position.y, 0.0);
+    /// ```
+    pub async fn get<'a, T: DynamicComponent + 'a>(&self, entity_id: impl Into<usize>) -> Option<ComponentRef<'a, T>> {
         let type_id = TypeId::of::<T>();
 
         let entity_id = entity_id.into();
 
         let storage = self.storages.get(&type_id)?;
         let component = storage.get(entity_id)?;
-
-
 
         // SAFETY: The RwLock is guaranteed to outlive self, so this read_guard can use the same lifetime
         let read_guard = unsafe {
@@ -121,7 +187,6 @@ impl ComponentStorage {
             storage.remove(entity_id);
         }
     }
-
 }
 
 

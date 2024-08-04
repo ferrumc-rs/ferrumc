@@ -8,6 +8,7 @@ mod error;
 mod query;
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
 mod test;
 mod world;
 
@@ -16,7 +17,15 @@ mod world;
 async fn main() {
     let mut world = World::new();
 
-    world.create_entity()
+    let entity = world.create_entity()
+        .with(Position { x: 0.0, y: 0.0 })
+        .build();
+    
+    let position = world.get_component_storage().get::<Position>(entity).await.unwrap();
+    world.get_component_storage().remove::<Position>(entity);
+    println!("{:?}", position);
+    
+    /*world.create_entity()
         .with(Position { x: 0.0, y: 0.0 })
         .with(Velocity { x: 10.0, y: 0.0 })
         .build();
@@ -50,5 +59,5 @@ async fn main() {
     while let Some((id, vel)) = query.next().await {
         println!("Entity {}: {:?}", id, *vel);
     }
-
+*/
 }
