@@ -1,10 +1,9 @@
+#![cfg(test)]
 mod tests {
     use std::sync::Arc;
     use std::time::Duration;
 
     use futures::future::join_all;
-    use rayon::prelude::IntoParallelRefIterator;
-    use tokio::join;
     use tokio::sync::Barrier;
 
     use crate::component::{ComponentStorage, DynamicComponent, Position, Velocity};
