@@ -2,6 +2,7 @@ use std::marker::PhantomData;
 use crate::ecs::component::{Component, ComponentRef, ComponentRefMut, ComponentStorage};
 use crate::ecs::entity::EntityManager;
 
+#[allow(async_fn_in_trait)]
 /// Trait for items that can be queried in the ECS.
 pub trait QueryItem {
     type Item<'a>;
@@ -70,7 +71,7 @@ impl<'a, Q: QueryItem> Query<'a, Q> {
     /// }
     /// ```
     pub async fn iter(&'a self) -> impl Iterator<Item=(usize, Q::Item<'a>)> + 'a {
-        let max_entity_id = self.entity_manager.len();
+        let max_entity_id = self.entity_manager.len().await;
         let mut results = vec![];
 
         for entity_id in 0..=max_entity_id {
@@ -96,7 +97,7 @@ impl<'a, Q: QueryItem> Query<'a, Q> {
     where
         'a: 'b, // 'a must outlive 'b
     {
-        let max_entity_id = self.entity_manager.len();
+        let max_entity_id = self.entity_manager.len().await;
         while self.current_id <= max_entity_id {
             if let Some(item) = Q::fetch(self.current_id, self.component_storage).await {
                 let result = Some((self.current_id, item));

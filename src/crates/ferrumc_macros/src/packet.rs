@@ -132,8 +132,6 @@ pub fn bake(input: TokenStream) -> TokenStream {
 
             let struct_path = format!("{}::{}", path, struct_name);
 
-            println!("[FERRUMC_MACROS] Struct Path: {}", struct_path);
-
             let struct_path = syn::parse_str::<syn::Path>(&struct_path).expect("parse_str failed");
 
             match_arms.push(quote! {

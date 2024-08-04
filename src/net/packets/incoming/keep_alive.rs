@@ -1,12 +1,10 @@
-use std::time::Instant;
 
 use tracing::info;
 
 use ferrumc_macros::{Decode, packet};
 
-use crate::{Connection, GET_WORLD};
+use crate::Connection;
 use crate::net::packets::IncomingPacket;
-use crate::utils::components::keep_alive::KeepAlive;
 
 #[derive(Decode, Debug)]
 #[packet(packet_id = 0x12, state = "play")]

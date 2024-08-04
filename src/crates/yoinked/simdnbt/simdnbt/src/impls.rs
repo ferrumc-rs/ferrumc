@@ -1,6 +1,4 @@
-use std::collections::HashMap;
 use crate::{FromNbtTag, owned, ToNbtTag};
-use crate::mutf8::Mutf8String;
 use crate::borrow::NbtTag;
 // Implementations for primitive types
 

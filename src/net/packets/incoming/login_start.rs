@@ -6,14 +6,14 @@ use tokio::io::AsyncWriteExt;
 use tracing::debug;
 use uuid::Uuid;
 
-use crate::{Connection, GET_WORLD};
+use crate::Connection;
+use crate::net::GET_WORLD;
 use crate::net::packets::IncomingPacket;
 use crate::net::packets::outgoing::default_spawn_position::DefaultSpawnPosition;
 use crate::net::packets::outgoing::keep_alive::KeepAlivePacketOut;
 use crate::net::packets::outgoing::login_success::LoginSuccess;
 use crate::net::State::Play;
 use crate::utils::components::keep_alive::KeepAlive;
-use crate::utils::components::player::Player;
 use crate::utils::encoding::position::Position;
 use crate::utils::encoding::varint::VarInt;
 use crate::utils::prelude::*;
@@ -122,15 +122,18 @@ impl LoginStart {
 
     async fn send_keep_alive(&self, conn: &mut Connection) -> Result<()> {
         let keep_alive_id: i64 = 110;
-        let keep_alive = KeepAlive::new(Instant::now(), Instant::now(), keep_alive_id);
+        let mut keep_alive = KeepAlive::new(Instant::now(), Instant::now(), keep_alive_id);
 
-        let keep_alive_outgoing = KeepAlivePacketOut::new_auto(keep_alive_id);
+        // let keep_alive_outgoing = KeepAlivePacketOut::new_auto(keep_alive_id);
+        let keep_alive_outgoing: KeepAlivePacketOut = (&mut keep_alive).into();
         debug!("Sending keep alive packet {:?}", &keep_alive_outgoing);
         conn.send_packet(keep_alive_outgoing).await?;
         Ok(())
     }
 
     async fn update_world_state(&self, _conn: &mut Connection) -> Result<()> {
+        let world = GET_WORLD();
+
  /*       let world = GET_WORLD();
         let mut world = world.write().await;
 

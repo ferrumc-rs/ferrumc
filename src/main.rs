@@ -1,19 +1,14 @@
 #![feature(box_into_inner)]
-#![feature(fs_try_exists)]
 #![feature(async_closure)]
 #![feature(future_join)]
 
 use std::env;
-use std::sync::Arc;
 
-use clap::Parser;
-use clap_derive::Parser;
 use tokio::net::TcpListener;
-use tokio::sync::RwLock;
 use tracing::{debug, error, info, info_span, Instrument, trace};
 
 use crate::{
-    net::{Connection, ConnectionWrapper, GET_WORLD},
+    net::{Connection},
     net::systems::{kill_all_systems, start_all_systems},
     utils::{config, config::get_global_config, prelude::*},
 };
@@ -21,12 +16,12 @@ use crate::{
 pub mod ecs;
 pub mod net;
 mod setup;
+#[cfg(test)]
 mod tests;
 pub mod utils;
 
 pub mod world;
 
-type SafeConfig = Arc<RwLock<config::ServerConfig>>;
 #[tokio::main]
 async fn main() -> Result<()> {
     utils::setup_logger();

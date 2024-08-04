@@ -1,6 +1,5 @@
 use async_trait::async_trait;
 use ferrumc_macros::AutoGenName;
-use tracing::debug;
 use crate::net::systems::System;
 
 #[derive(AutoGenName)]

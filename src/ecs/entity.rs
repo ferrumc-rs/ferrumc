@@ -1,8 +1,12 @@
+use std::sync::Arc;
+
+use tokio::sync::RwLock;
+
 /// Represents an entity in the ECS.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct Entity {
-    pub(crate) id: u32,
-    pub(crate) generation: u32,
+    pub id: u32,
+    pub generation: u32,
 }
 
 impl Into<usize> for Entity {
@@ -13,6 +17,10 @@ impl Into<usize> for Entity {
 
 /// Manages entity creation, deletion, and lifecycle.
 pub struct EntityManager {
+    inner: Arc<RwLock<EntityManagerInner>>,
+}
+
+struct EntityManagerInner {
     generations: Vec<u32>,
     free_ids: Vec<u32>,
 }
@@ -21,8 +29,10 @@ impl EntityManager {
     /// Creates a new `EntityManager`.
     pub fn new() -> Self {
         EntityManager {
-            generations: Vec::new(),
-            free_ids: Vec::new(),
+            inner: Arc::new(RwLock::new(EntityManagerInner {
+                generations: Vec::new(),
+                free_ids: Vec::new(),
+            })),
         }
     }
 
@@ -33,13 +43,14 @@ impl EntityManager {
     /// let mut manager = EntityManager::new();
     /// let entity = manager.create_entity();
     /// ```
-    pub fn create_entity(&mut self) -> Entity {
-        if let Some(id) = self.free_ids.pop() {
-            let generation = self.generations[id as usize];
+    pub async fn create_entity(&self) -> Entity {
+        let mut inner = self.inner.write().await;
+        if let Some(id) = inner.free_ids.pop() {
+            let generation = inner.generations[id as usize];
             Entity { id, generation }
         } else {
-            let id = self.generations.len() as u32;
-            self.generations.push(0);
+            let id = inner.generations.len() as u32;
+            inner.generations.push(0);
             Entity { id, generation: 0 }
         }
     }
@@ -54,26 +65,17 @@ impl EntityManager {
     /// let entity = manager.create_entity();
     /// assert!(manager.delete_entity(entity));
     /// ```
-    pub fn delete_entity(&mut self, entity: impl Into<usize>) -> bool {
+    pub async fn delete_entity(&self, entity: impl Into<usize>) -> bool {
         let entity = entity.into();
-        
-        if entity < self.generations.len() {
-            self.generations[entity] += 1;
-            self.free_ids.push(entity as u32);
+        let mut inner = self.inner.write().await;
+
+        if entity < inner.generations.len() {
+            inner.generations[entity] += 1;
+            inner.free_ids.push(entity as u32);
             true
         } else {
             false
         }
-        
-        /*
-        if (entity.id as usize) < self.generations.len() &&
-            self.generations[entity.id as usize] == entity.generation {
-            self.generations[entity.id as usize] += 1;
-            self.free_ids.push(entity.id);
-            true
-        } else {
-            false
-        }*/
     }
 
     /// Checks if an entity exists.
@@ -84,20 +86,24 @@ impl EntityManager {
     /// let entity = manager.create_entity();
     /// assert!(manager.entity_exists(entity));
     /// ```
-    pub fn entity_exists(&self, entity: Entity) -> bool {
-        (entity.id as usize) < self.generations.len() &&
-            self.generations[entity.id as usize] == entity.generation
+    pub async fn entity_exists(&self, entity: Entity) -> bool {
+        let inner = self.inner.read().await;
+        (entity.id as usize) < inner.generations.len() &&
+            inner.generations[entity.id as usize] == entity.generation
     }
 
     /// Returns the number of active entities.
-    pub fn entity_count(&self) -> usize {
-        self.generations.len() - self.free_ids.len()
+    pub async fn entity_count(&self) -> usize {
+        let inner = self.inner.read().await;
+        inner.generations.len() - inner.free_ids.len()
     }
 
+
     /// Removes all entities from the manager.
-    pub fn clear(&mut self) {
-        self.generations.clear();
-        self.free_ids.clear();
+    pub async fn clear(&self) {
+        let mut inner = self.inner.write().await;
+        inner.generations.clear();
+        inner.free_ids.clear();
     }
 
     /// Retrieves an entity by its ID.
@@ -110,107 +116,113 @@ impl EntityManager {
     /// let entity = manager.create_entity();
     /// assert!(manager.get_entity(entity.id).is_some());
     /// ```
-    pub fn get_entity(&self, id: u32) -> Option<Entity> {
-        if (id as usize) < self.generations.len() {
-            Some(Entity { id, generation: self.generations[id as usize] })
+    pub async fn get_entity(&self, id: u32) -> Option<Entity> {
+        let inner = self.inner.read().await;
+        if (id as usize) < inner.generations.len() {
+            Some(Entity { id, generation: inner.generations[id as usize] })
         } else {
             None
         }
     }
 
     /// Returns the total number of entity slots (including deleted entities).
-    pub fn len(&self) -> usize {
-        self.generations.len()
+    pub async fn len(&self) -> usize {
+        let inner = self.inner.read().await;
+        inner.generations.len()
     }
 }
 
-
+impl Clone for EntityManager {
+    fn clone(&self) -> Self {
+        EntityManager { inner: Arc::clone(&self.inner) }
+    }
+}
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_create_entity() {
-        let mut manager = EntityManager::new();
-        let entity1 = manager.create_entity();
-        let entity2 = manager.create_entity();
+    #[tokio::test]
+    async fn test_create_entity() {
+        let manager = EntityManager::new();
+        let entity1 = manager.create_entity().await;
+        let entity2 = manager.create_entity().await;
 
         assert_eq!(entity1.id, 0);
         assert_eq!(entity2.id, 1);
-        assert_eq!(manager.entity_count(), 2);
+        assert_eq!(manager.entity_count().await, 2);
     }
 
-    #[test]
-    fn test_delete_entity() {
-        let mut manager = EntityManager::new();
-        let entity = manager.create_entity();
+    #[tokio::test]
+    async fn test_delete_entity() {
+        let manager = EntityManager::new();
+        let entity = manager.create_entity().await;
 
-        assert!(manager.delete_entity(entity));
-        assert_eq!(manager.entity_count(), 0);
-        assert!(!manager.delete_entity(entity)); // Trying to delete non-existent entity
+        assert!(manager.delete_entity(entity).await);
+        assert_eq!(manager.entity_count().await, 0);
+        assert!(!manager.delete_entity(entity).await); // Trying to delete non-existent entity
     }
 
-    #[test]
-    fn test_entity_exists() {
-        let mut manager = EntityManager::new();
-        let entity = manager.create_entity();
+    #[tokio::test]
+    async fn test_entity_exists() {
+        let manager = EntityManager::new();
+        let entity = manager.create_entity().await;
 
-        assert!(manager.entity_exists(entity));
-        assert!(!manager.entity_exists(Entity { id: entity.id + 1, generation: 0 }));
+        assert!(manager.entity_exists(entity).await);
+        assert!(!manager.entity_exists(Entity { id: entity.id + 1, generation: 0 }).await);
     }
 
-    #[test]
-    fn test_clear() {
-        let mut manager = EntityManager::new();
-        manager.create_entity();
-        manager.create_entity();
-        manager.clear();
+    #[tokio::test]
+    async fn test_clear() {
+        let manager = EntityManager::new();
+        manager.create_entity().await;
+        manager.create_entity().await;
+        manager.clear().await;
 
-        assert_eq!(manager.entity_count(), 0);
-        let new_entity = manager.create_entity();
+        assert_eq!(manager.entity_count().await, 0);
+        let new_entity = manager.create_entity().await;
         assert_eq!(new_entity.id, 0); // Ensure IDs are reset
     }
 
-    #[test]
-    fn test_create_after_delete() {
-        let mut manager = EntityManager::new();
-        let entity1 = manager.create_entity();
-        manager.delete_entity(entity1);
-        let entity2 = manager.create_entity();
+    #[tokio::test]
+    async fn test_create_after_delete() {
+        let manager = EntityManager::new();
+        let entity1 = manager.create_entity().await;
+        manager.delete_entity(entity1).await;
+        let entity2 = manager.create_entity().await;
 
         assert_eq!(entity1.id, entity2.id);
         assert_ne!(entity1.generation, entity2.generation);
-        assert_eq!(manager.entity_count(), 1);
+        assert_eq!(manager.entity_count().await, 1);
     }
 
-    #[test]
-    fn test_generational_index() {
-        let mut manager = EntityManager::new();
-        let entity1 = manager.create_entity();
-        manager.delete_entity(entity1);
-        let entity2 = manager.create_entity();
+    #[tokio::test]
+    async fn test_generational_index() {
+        let manager = EntityManager::new();
+        let entity1 = manager.create_entity().await;
+        manager.delete_entity(entity1).await;
+        let entity2 = manager.create_entity().await;
 
-        assert!(!manager.entity_exists(entity1));
-        assert!(manager.entity_exists(entity2));
+        assert!(!manager.entity_exists(entity1).await);
+        assert!(manager.entity_exists(entity2).await);
     }
 
-    #[test]
-    fn test_reuse_deleted_ids() {
-        let mut manager = EntityManager::new();
-        let e1 = manager.create_entity();
-        let e2 = manager.create_entity();
-        let _e3 = manager.create_entity();
+    #[tokio::test]
+    async fn test_reuse_deleted_ids() {
+        let manager = EntityManager::new();
+        let e1 = manager.create_entity().await;
+        let e2 = manager.create_entity().await;
+        let _e3 = manager.create_entity().await;
 
-        manager.delete_entity(e2);
-        manager.delete_entity(e1);
+        manager.delete_entity(e2).await;
+        manager.delete_entity(e1).await;
 
-        let e4 = manager.create_entity();
-        let e5 = manager.create_entity();
+        let e4 = manager.create_entity().await;
+        let e5 = manager.create_entity().await;
 
         assert_eq!(e4.id, e1.id);
         assert_eq!(e5.id, e2.id);
         assert_ne!(e4.generation, e1.generation);
         assert_ne!(e5.generation, e2.generation);
-        assert_eq!(manager.entity_count(), 3);
+        assert_eq!(manager.entity_count().await, 3);
     }
 }

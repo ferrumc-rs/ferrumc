@@ -1,13 +1,8 @@
 use async_trait::async_trait;
-use tracing::{debug, trace, warn};
 
 use ferrumc_macros::AutoGenName;
 
-use crate::{ConnectionWrapper, GET_WORLD, net::drop_conn};
-use crate::net::packets::outgoing::keep_alive::KeepAlivePacketOut;
 use crate::net::systems::System;
-use crate::utils::components::keep_alive::KeepAlive;
-use crate::utils::components::player::Player;
 
 #[derive(AutoGenName)]
 pub struct KeepAliveSystem;

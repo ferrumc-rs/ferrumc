@@ -1,5 +1,4 @@
 use std::{collections::HashMap, fmt::Display, hash::Hash, str::FromStr};
-use crate::borrow::{NbtList, NbtTag};
 use crate::DeserializeError;
 
 pub trait Deserialize: Sized {

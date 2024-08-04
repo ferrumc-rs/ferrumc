@@ -13,7 +13,6 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::sync::RwLock;
 use tracing::{debug, error, trace};
 
-use crate::ecs::entity::Entity;
 use crate::ecs::world::World;
 use crate::net::packets::handle_packet;
 
@@ -44,9 +43,9 @@ mod test_ecs;
 pub mod the_dimension_codec;
 
 #[allow(non_snake_case)]
-pub fn GET_WORLD() -> &'static RwLock<World> {
-    static WORLD: OnceLock<RwLock<World>> = OnceLock::new();
-    WORLD.get_or_init(|| RwLock::new(World::new()))
+pub fn GET_WORLD() -> &'static World {
+    static WORLD: OnceLock<World> = OnceLock::new();
+    WORLD.get_or_init(|| World::new())
 }
 
 #[allow(non_snake_case)]
@@ -144,13 +143,11 @@ pub async fn init_connection(socket: tokio::net::TcpStream) -> Result<()> {
     };
     let conn = Arc::new(RwLock::new(conn));
 
-    let mut world = GET_WORLD().write().await;
+    let mut world = GET_WORLD();
     let entity = world
-        .create_entity()
+        .create_entity().await
         .with(ConnectionWrapper(conn.clone()))
         .build();
-
-    drop(world);
 
     {
         let mut conn = conn.write().await;
@@ -177,10 +174,9 @@ pub async fn init_connection(socket: tokio::net::TcpStream) -> Result<()> {
 
     if let Err(e) = res {
         error!("Error occurred in {:?}: {:?}, dropping connection", id, e);
-        let mut world = GET_WORLD().write().await;
+        let world = GET_WORLD();
         let entity_id = conn.read().await.metadata.entity;
-        world.delete_entity(entity_id)?;
-        drop(world);
+        world.delete_entity(entity_id).await?;
         drop_conn(id).await?;
     }
 

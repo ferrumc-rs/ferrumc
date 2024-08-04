@@ -1,5 +1,7 @@
+use std::sync::Arc;
+use tokio::sync::RwLock;
 use crate::ecs::component::ComponentStorage;
-use crate::ecs::entity::{Entity, EntityManager};
+use crate::ecs::entity::EntityManager;
 use crate::ecs::error::Error;
 use crate::ecs::helpers::entity_builder::EntityBuilder;
 use crate::ecs::query::Query;
@@ -84,15 +86,15 @@ impl World {
     ///     .with(Velocity { x: 1.0, y: 1.0 })
     ///     .build();
     /// ```
-    pub fn create_entity(&mut self) -> EntityBuilder {
-        let entity = self.entity_manager.create_entity();
+    pub async fn create_entity(&self) -> EntityBuilder {
+        let entity = self.entity_manager.create_entity().await;
         EntityBuilder::new(entity, &self.component_storage)
     }
 
-    pub fn delete_entity(&mut self, entity_id: impl Into<usize>) -> Result<(), Error> {
+    pub async fn delete_entity(&self, entity_id: impl Into<usize>) -> Result<(), Error> {
         let entity_id = entity_id.into();
 
-        if !self.entity_manager.delete_entity(entity_id) {
+        if !self.entity_manager.delete_entity(entity_id).await {
             return Err(Error::EntityNotFound(entity_id));
         }
 

@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use tokio::io::{AsyncSeek, AsyncWrite};
 use crate::utils::encoding::varint::VarInt;
 use crate::utils::error::Error;
