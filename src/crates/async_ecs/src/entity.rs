@@ -1,4 +1,4 @@
-
+/// Represents an entity in the ECS.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Entity {
     pub(crate) id: u32,
@@ -11,13 +11,14 @@ impl Into<usize> for Entity {
     }
 }
 
+/// Manages entity creation, deletion, and lifecycle.
 pub struct EntityManager {
     generations: Vec<u32>,
     free_ids: Vec<u32>,
 }
 
-
 impl EntityManager {
+    /// Creates a new `EntityManager`.
     pub fn new() -> Self {
         EntityManager {
             generations: Vec::new(),
@@ -25,6 +26,13 @@ impl EntityManager {
         }
     }
 
+    /// Creates a new entity and returns it.
+    ///
+    /// # Examples
+    /// ```
+    /// let mut manager = EntityManager::new();
+    /// let entity = manager.create_entity();
+    /// ```
     pub fn create_entity(&mut self) -> Entity {
         if let Some(id) = self.free_ids.pop() {
             let generation = self.generations[id as usize];
@@ -36,6 +44,16 @@ impl EntityManager {
         }
     }
 
+    /// Deletes an entity.
+    ///
+    /// Returns `true` if the entity was successfully deleted, `false` otherwise.
+    ///
+    /// # Examples
+    /// ```
+    /// let mut manager = EntityManager::new();
+    /// let entity = manager.create_entity();
+    /// assert!(manager.delete_entity(entity));
+    /// ```
     pub fn delete_entity(&mut self, entity: Entity) -> bool {
         if (entity.id as usize) < self.generations.len() &&
             self.generations[entity.id as usize] == entity.generation {
@@ -47,20 +65,40 @@ impl EntityManager {
         }
     }
 
+    /// Checks if an entity exists.
+    ///
+    /// # Examples
+    /// ```
+    /// let mut manager = EntityManager::new();
+    /// let entity = manager.create_entity();
+    /// assert!(manager.entity_exists(entity));
+    /// ```
     pub fn entity_exists(&self, entity: Entity) -> bool {
         (entity.id as usize) < self.generations.len() &&
             self.generations[entity.id as usize] == entity.generation
     }
 
+    /// Returns the number of active entities.
     pub fn entity_count(&self) -> usize {
         self.generations.len() - self.free_ids.len()
     }
 
+    /// Removes all entities from the manager.
     pub fn clear(&mut self) {
         self.generations.clear();
         self.free_ids.clear();
     }
 
+    /// Retrieves an entity by its ID.
+    ///
+    /// Returns `None` if the entity doesn't exist.
+    ///
+    /// # Examples
+    /// ```
+    /// let mut manager = EntityManager::new();
+    /// let entity = manager.create_entity();
+    /// assert!(manager.get_entity(entity.id).is_some());
+    /// ```
     pub fn get_entity(&self, id: u32) -> Option<Entity> {
         if (id as usize) < self.generations.len() {
             Some(Entity { id, generation: self.generations[id as usize] })
@@ -68,11 +106,13 @@ impl EntityManager {
             None
         }
     }
-    
+
+    /// Returns the total number of entity slots (including deleted entities).
     pub fn len(&self) -> usize {
         self.generations.len()
     }
 }
+
 
 #[cfg(test)]
 mod tests {

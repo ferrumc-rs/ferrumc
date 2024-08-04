@@ -4,13 +4,15 @@ use crate::world::World;
 mod entity;
 mod component;
 mod helpers;
-mod error;
 mod query;
 #[cfg(test)]
 mod tests;
 #[cfg(test)]
 mod test;
 mod world;
+pub mod error;
+
+pub use error::Error;
 
 
 #[tokio::main]
@@ -20,11 +22,20 @@ async fn main() {
     let entity = world.create_entity()
         .with(Position { x: 0.0, y: 0.0 })
         .build();
+
+    {
+        let position = world.get_component_storage().get::<Position>(entity).await.unwrap();
+    }
     
-    let position = world.get_component_storage().get::<Position>(entity).await.unwrap();
-    world.get_component_storage().remove::<Position>(entity);
-    println!("{:?}", position);
+    if let Err(e) = world.get_component_storage().remove::<Position>(entity) {
+        println!("Error: {:?}", e);
+    }else {
+        println!("Removed Position successfully");
+    }
     
+    // println!("{:?}", position);
+    
+
     /*world.create_entity()
         .with(Position { x: 0.0, y: 0.0 })
         .with(Velocity { x: 10.0, y: 0.0 })

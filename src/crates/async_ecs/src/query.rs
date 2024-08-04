@@ -3,13 +3,13 @@ use std::marker::PhantomData;
 use crate::component::{ComponentRef, ComponentRefMut, ComponentStorage, DynamicComponent};
 use crate::entity::EntityManager;
 
+/// Trait for items that can be queried in the ECS.
 pub trait QueryItem {
     type Item<'a>;
     async fn fetch<'a>(entity_id: impl Into<usize>, storage: &'a ComponentStorage) -> Option<Self::Item<'a>>;
 }
 
-// Usage: &T ; &mut T => To get the component
-
+// Implement QueryItem for immutable references
 impl<T: DynamicComponent> QueryItem for &T {
     type Item<'a> = ComponentRef<'a, T>;
 
@@ -17,6 +17,8 @@ impl<T: DynamicComponent> QueryItem for &T {
         storage.get::<T>(entity_id).await
     }
 }
+
+// Implement QueryItem for mutable references
 impl<T: DynamicComponent> QueryItem for &mut T {
     type Item<'a> = ComponentRefMut<'a, T>;
 
@@ -25,6 +27,7 @@ impl<T: DynamicComponent> QueryItem for &mut T {
     }
 }
 
+/// Struct for querying components in the ECS.
 pub struct Query<'a, Q: QueryItem> {
     entity_manager: &'a EntityManager,
     component_storage: &'a ComponentStorage,
@@ -33,6 +36,13 @@ pub struct Query<'a, Q: QueryItem> {
 }
 
 impl<'a, Q: QueryItem> Query<'a, Q> {
+    /// Creates a new Query.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let query = Query::<&Position>::new(&entity_manager, &component_storage);
+    /// ```
     pub fn new(entity_manager: &'a EntityManager, component_storage: &'a ComponentStorage) -> Self {
         Self {
             entity_manager,
@@ -42,6 +52,24 @@ impl<'a, Q: QueryItem> Query<'a, Q> {
         }
     }
 
+    /// Returns an iterator over the query results.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// // Query for positions
+    /// let query = Query::<&Position>::new(&entity_manager, &component_storage);
+    /// for (entity_id, position) in query.iter().await {
+    ///     println!("Entity {} is at position {:?}", entity_id, position);
+    /// }
+    ///
+    /// // Query for mutable positions and velocities
+    /// let query = Query::<(&mut Position, &Velocity)>::new(&entity_manager, &component_storage);
+    /// for (entity_id, (mut position, velocity)) in query.iter().await {
+    ///     position.x += velocity.x;
+    ///     position.y += velocity.y;
+    /// }
+    /// ```
     pub async fn iter(&'a self) -> impl Iterator<Item=(usize, Q::Item<'a>)> + 'a {
         let max_entity_id = self.entity_manager.len();
         let mut results = vec![];
@@ -55,6 +83,16 @@ impl<'a, Q: QueryItem> Query<'a, Q> {
         results.into_iter()
     }
 
+    /// Returns the next query result.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let mut query = Query::<(&Position, &Velocity)>::new(&entity_manager, &component_storage);
+    /// while let Some((entity_id, (position, velocity))) = query.next().await {
+    ///     println!("Entity {} is at {:?} moving at {:?}", entity_id, position, velocity);
+    /// }
+    /// ```
     pub async fn next<'b>(&mut self) -> Option<(usize, Q::Item<'b>)>
     where
         'a: 'b, // 'a must outlive 'b
@@ -71,8 +109,6 @@ impl<'a, Q: QueryItem> Query<'a, Q> {
         None
     }
 }
-
-
 
 // Macro to automatically generate tuples
 macro_rules! impl_query_item_tuple {
@@ -95,13 +131,51 @@ macro_rules! impl_query_item_tuple {
     };
 }
 
-
 impl_query_item_tuple!(A);
 impl_query_item_tuple!(A, B);
 impl_query_item_tuple!(A, B, C);
 impl_query_item_tuple!(A, B, C, D);
 impl_query_item_tuple!(A, B, C, D, E);
 impl_query_item_tuple!(A, B, C, D, E, F);
+
+/// Examples of using the Query system
+///
+/// ```
+/// // Example 1: Basic query for a single component
+/// let query = Query::<&Position>::new(&entity_manager, &component_storage);
+/// for (entity_id, position) in query.iter().await {
+///     println!("Entity {} is at position {:?}", entity_id, position);
+/// }
+///
+/// // Example 2: Query for multiple components
+/// let query = Query::<(&Position, &Velocity)>::new(&entity_manager, &component_storage);
+/// for (entity_id, (position, velocity)) in query.iter().await {
+///     println!("Entity {} is at {:?} moving at {:?}", entity_id, position, velocity);
+/// }
+///
+/// // Example 3: Query with mutable components
+/// let query = Query::<(&mut Position, &Velocity)>::new(&entity_manager, &component_storage);
+/// for (entity_id, (mut position, velocity)) in query.iter().await {
+///     position.x += velocity.x;
+///     position.y += velocity.y;
+///     println!("Updated position of entity {} to {:?}", entity_id, position);
+/// }
+///
+/// // Example 4: Combining mutable and immutable queries
+/// let query = Query::<(&mut Health, &Position, &Attack)>::new(&entity_manager, &component_storage);
+/// for (entity_id, (mut health, position, attack)) in query.iter().await {
+///     if position.x < 0.0 {
+///         health.current -= attack.damage;
+///         println!("Entity {} took damage, new health: {}", entity_id, health.current);
+///     }
+/// }
+///
+/// // Example 5: Using next() for manual iteration
+/// let mut query = Query::<&Position>::new(&entity_manager, &component_storage);
+/// while let Some((entity_id, position)) = query.next().await {
+///     println!("Found entity {} at position {:?}", entity_id, position);
+/// }
+/// ```
 
 #[cfg(test)]
 mod tests {
@@ -131,7 +205,6 @@ mod tests {
         storage.insert(0usize, Velocity { x: 2.0, y: 0.0 });
         storage.insert(1usize, Position { x: 1.0, y: 1.0 });
         storage.insert(1usize, Velocity { x: 2.0, y: 2.0 });
-
 
         let query = Query::<(&mut Position, &Velocity)>::new(&entity_manager, &storage);
 
