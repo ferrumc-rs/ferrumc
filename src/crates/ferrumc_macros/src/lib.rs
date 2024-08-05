@@ -2,10 +2,11 @@ extern crate proc_macro;
 
 use proc_macro::TokenStream;
 
-mod encode;
 mod decode;
-mod packet;
 mod ecs;
+mod encode;
+mod nbt_decode;
+mod packet;
 mod utils;
 
 #[proc_macro_derive(Decode)]
@@ -19,13 +20,14 @@ pub fn encode_derive(input: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
-pub fn packet(args: TokenStream, input: TokenStream) -> TokenStream { packet::attribute(args, input) }
+pub fn packet(args: TokenStream, input: TokenStream) -> TokenStream {
+    packet::attribute(args, input)
+}
 
 #[proc_macro]
 pub fn bake_packet_registry(input: TokenStream) -> TokenStream {
     packet::bake(input)
 }
-
 
 #[proc_macro_derive(Component)]
 pub fn derive_component(input: TokenStream) -> TokenStream {
