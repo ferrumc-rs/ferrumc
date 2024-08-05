@@ -13,8 +13,8 @@ mod tests {
         let storage = ComponentStorage::new();
         let mut entity_manager = EntityManager::new();
 
-        let entity1 = entity_manager.create_entity();
-        let entity2 = entity_manager.create_entity();
+        let entity1 = entity_manager.create_entity().await;
+        let entity2 = entity_manager.create_entity().await;
 
         storage.insert(entity1, Position { x: 1, y: 2 , z: 0});
         storage.insert(entity2, Position { x: 3, y: 4 , z: 0});
@@ -40,8 +40,8 @@ mod tests {
         let storage = ComponentStorage::new();
         let mut entity_manager = EntityManager::new();
 
-        let entity1 = entity_manager.create_entity();
-        let entity2 = entity_manager.create_entity();
+        let entity1 = entity_manager.create_entity().await;
+        let entity2 = entity_manager.create_entity().await;
 
         storage.insert(entity1, Position { x: 1, y: 2, z: 0});
         storage.insert(entity1, Velocity { x: 3, y: 4, z: 0});
@@ -62,7 +62,7 @@ mod tests {
         let storage = ComponentStorage::new();
         let mut entity_manager = EntityManager::new();
 
-        let entity = entity_manager.create_entity();
+        let entity = entity_manager.create_entity().await;
         storage.insert(entity, Position { x: 1, y: 2, z:0 });
 
         let mut query = Query::<&mut Position>::new(&entity_manager, &storage);
@@ -86,7 +86,7 @@ mod tests {
         let mut entity_manager = EntityManager::new();
 
         for i in 0..100 {
-            let entity = entity_manager.create_entity();
+            let entity = entity_manager.create_entity().await;
             storage.insert(entity, Position { x: i , y: 0, z:0 });
         }
 
@@ -118,7 +118,7 @@ mod tests {
         let mut entity_manager = EntityManager::new();
 
         for i in 0..100 {
-            let entity = entity_manager.create_entity();
+            let entity = entity_manager.create_entity().await;
             storage.insert(entity, Position { x: i, y: 0, z: 0 });
         }
 

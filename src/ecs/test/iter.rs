@@ -21,7 +21,7 @@ mod tests {
         let storage = ComponentStorage::new();
         let mut entity_manager = EntityManager::new();
 
-        let entity = entity_manager.create_entity();
+        let entity = entity_manager.create_entity().await;
         storage.insert(entity, Position { x: 1, y: 2, z: 0 });
 
         let query = Query::<&Position>::new(&entity_manager, &storage);
@@ -40,8 +40,8 @@ mod tests {
         let storage = ComponentStorage::new();
         let mut entity_manager = EntityManager::new();
 
-        let entity1 = entity_manager.create_entity();
-        let entity2 = entity_manager.create_entity();
+        let entity1 = entity_manager.create_entity().await;
+        let entity2 = entity_manager.create_entity().await;
 
         storage.insert(entity1, Position { x: 1, y: 2, z: 0 });
         storage.insert(entity1, Velocity { x: 3, y: 4 , z: 0 });
@@ -62,7 +62,7 @@ mod tests {
         let storage = ComponentStorage::new();
         let mut entity_manager = EntityManager::new();
 
-        let entity = entity_manager.create_entity();
+        let entity = entity_manager.create_entity().await;
         storage.insert(entity, Position { x: 1, y: 2, z: 0 });
 
         let query = Query::<&mut Position>::new(&entity_manager, &storage);
@@ -81,7 +81,7 @@ mod tests {
         let mut entity_manager = EntityManager::new();
 
         for i in 0..1000 {
-            let entity = entity_manager.create_entity();
+            let entity = entity_manager.create_entity().await;
             storage.insert(entity, Position { x: i , y: 0 , z: 0 });
         }
 
@@ -112,7 +112,7 @@ mod tests {
         let mut entity_manager = EntityManager::new();
 
         for i in 0..1000 {
-            let entity = entity_manager.create_entity();
+            let entity = entity_manager.create_entity().await;
             storage.insert(entity, Position { x: i, y: 0 , z: 0 });
         }
 
@@ -150,7 +150,7 @@ mod tests {
         let mut entity_manager = EntityManager::new();
 
         for i in 0..1000 {
-            let entity = entity_manager.create_entity();
+            let entity = entity_manager.create_entity().await;
             storage.insert(entity, Position { x: i, y: 0, z: 0 });
             storage.insert(entity, Velocity { x: 1, y: 1 , z: 0 });
             storage.insert(entity, Health(100.0));
@@ -232,7 +232,7 @@ mod tests {
             assert_eq!(results.len(), 0);
         }
 
-        let entity = entity_manager.create_entity();
+        let entity = entity_manager.create_entity().await;
         // Test query with non-existent component
         {
             storage.insert(entity, Position { x: 1, y: 2, z: 0 });
@@ -260,7 +260,7 @@ mod tests {
         struct C(f32);
         impl Component for C {}
 
-        let entity = entity_manager.create_entity();
+        let entity = entity_manager.create_entity().await;
         storage.insert(entity, Position { x: 1, y: 2, z: 0 });
         storage.insert(entity, Velocity { x: 3, y: 4, z: 0 });
         storage.insert(entity, Health(100.0));
@@ -306,7 +306,7 @@ mod tests {
             let weak = Arc::downgrade(&rc);
 
             for _ in 0..1000 {
-                let entity = entity_manager.create_entity();
+                let entity = entity_manager.create_entity().await;
                 storage.insert(entity, DropCounter(weak.clone()));
             }
 
@@ -331,7 +331,7 @@ mod tests {
 
         // Create entities with positions
         for i in 0..10 {
-            let entity = entity_manager.create_entity();
+            let entity = entity_manager.create_entity().await;
             storage.insert(entity, Position { x: i , y: 0, z: 0 });
         }
 

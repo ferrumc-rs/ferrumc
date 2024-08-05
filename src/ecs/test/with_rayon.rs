@@ -32,9 +32,9 @@ mod tests {
 
     // Helper function to create a large number of entities
     async fn create_test_entities(world: Arc<RwLock<World>>, count: usize) {
-        let mut world = world.write().await;
+        let world = world.read().await;
         for i in 0..count {
-            world.create_entity()
+            world.create_entity().await
                 .with(Position  { x: i as i32, y: i as i16 , z: 0})
                 .with(Velocity { x: 1, y: 1 , z: 0})
                 .with(Health { current: 100.0, max: 100.0})

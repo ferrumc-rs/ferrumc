@@ -7,6 +7,7 @@ use tokio::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 use crate::ecs::helpers::sparse_set::SparseSet;
 use crate::ecs::error::Error;
+use crate::utils::encoding::position::Position;
 
 /// A trait for components in the ECS.
 pub trait Component: 'static + Send + Sync + Debug {}

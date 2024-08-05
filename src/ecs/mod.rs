@@ -16,9 +16,9 @@ mod more_tests {
 
     #[tokio::test]
     async fn main() {
-        let mut world = World::new();
+        let world = World::new();
 
-        let entity = world.create_entity()
+        let entity = world.create_entity().await
             .with(Position { x: 0, z: 0, y: 0 })
             .build();
 

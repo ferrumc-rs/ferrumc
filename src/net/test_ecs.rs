@@ -9,17 +9,17 @@ mod tests {
         let mut world = World::new();
 
         let entity1 = world
-            .create_entity()
+            .create_entity().await
             .with(Position::new(0, 1, 0))
             .with(Velocity::new(1, 1, 1))
             .build();
 
         world
-            .create_entity()
+            .create_entity().await
             .with(Position::new(1, 2, 1))
             .with(Velocity::new(2, 2, 2));
 
-        world.create_entity().with(Position::new(2, 3, 2));
+        world.create_entity().await.with(Position::new(2, 3, 2));
 
         // Query example
         for (entity_id, (mut position, velocity)) in
@@ -44,6 +44,7 @@ mod tests {
         // delete entity
         world
             .delete_entity(entity1)
+            .await
             .expect("Failed to delete entity1");
     }
 }

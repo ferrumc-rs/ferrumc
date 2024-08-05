@@ -1,4 +1,4 @@
-use crate::ecs::component::ComponentStorage;
+use crate::ecs::component::{Component, ComponentRef, ComponentStorage};
 use crate::ecs::entity::EntityManager;
 use crate::ecs::error::Error;
 use crate::ecs::helpers::entity_builder::EntityBuilder;
@@ -131,6 +131,10 @@ impl World {
         Q: crate::ecs::query::QueryItem,
     {
         Query::<Q>::new(&self.entity_manager, &self.component_storage)
+    }
+
+    pub async fn get_component<T: Component>(&self, entity_id: impl Into<usize>) -> Option<ComponentRef<'_, T>> {
+        self.get_component_storage().get::<T>(entity_id).await
     }
 
     /// <p style="color:#9C27B0;">Returns a reference to the ComponentStorage</p>
