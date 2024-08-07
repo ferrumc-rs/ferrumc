@@ -1,5 +1,6 @@
 use async_trait::async_trait;
-use tracing::{info_span, Instrument};
+use futures::stream::FuturesUnordered;
+use tracing::{debug_span, info, info_span, Instrument, span};
 
 use crate::state::GlobalState;
 use crate::utils::prelude::*;
@@ -24,18 +25,25 @@ pub static ALL_SYSTEMS: &[&dyn System] = &[
 ];
 
 pub async fn start_all_systems(state: GlobalState) -> Result<()> {
+    let handles = FuturesUnordered::new();
     for system in ALL_SYSTEMS {
-        let system_name = system.name();
-        tokio::spawn(
+        let name = system.name();
+
+        let handle = tokio::spawn(
             system
                 .run(state.clone())
-                .instrument(info_span!("system", %system_name)),
+                .instrument(debug_span!("sys", %name)),
         );
+        handles.push(handle);
     }
+
+    futures::future::join_all(handles).await;
+
     Ok(())
 }
 
 pub async fn kill_all_systems() -> Result<()> {
+    info!("Killing all systems...");
     for system in ALL_SYSTEMS {
         system.kill().await;
     }

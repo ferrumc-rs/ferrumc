@@ -74,7 +74,6 @@ impl State {
 /// In desperate need of reworking.
 pub struct ConnectionList {
     // The connections, keyed with random values. The value also contains the connection id for ease of access.
-    // pub connections: DashMap<u32, Connection>,
     pub connections: DashMap<u32, Arc<RwLock<Connection>>>,
     // The number of connections.
     pub connection_count: AtomicU32,
@@ -162,8 +161,6 @@ pub async fn init_connection(socket: tokio::net::TcpStream, state: GlobalState) 
 
     if let Err(e) = res {
         error!("Error occurred in {:?}: {:?}, dropping connection", id, e);
-        let entity_id = conn.read().await.metadata.entity;
-        state.world.delete_entity(entity_id).await?;
         drop_conn(id, state).await?;
     }
 

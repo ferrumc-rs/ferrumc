@@ -44,18 +44,9 @@ async fn main() -> Result<()> {
     let config = config::ServerConfig::new()?;
     let elapsed = start.elapsed();
 
-    let state: GlobalState = Arc::new(ServerState {
-        world: Arc::new(World::new()),
-        connections: ConnectionList {
-            connections: DashMap::new(),
-            connection_count: AtomicU32::new(0),
-        },
-        database: database::start_database().await?,
-    });
-
     debug!("Found Config: \n{:#?} \nin {:?}", config, elapsed);
 
-    start_server(state).await.expect("Server failed to start!");
+    start_server().await.expect("Server failed to start!");
 
     tokio::signal::ctrl_c().await?;
 
@@ -65,32 +56,46 @@ async fn main() -> Result<()> {
 /// Starts the server. Sets up the sockets and listens for incoming connections
 ///
 /// The actual management of connections in handled by [r#mod::init_connection]
-async fn start_server(state: GlobalState) -> Result<()> {
+async fn start_server() -> Result<()> {
     let config = get_global_config();
     trace!("Starting server on {}:{}", config.host, config.port);
 
     let tcp_addr = format!("{}:{}", config.host, config.port);
 
     let listener = TcpListener::bind(tcp_addr).await?;
+
     let addr = listener.local_addr()?;
 
     info!("Server started on {}", addr);
 
-    let read_connections = tokio::spawn(read_connections(listener, state.clone()));
+    let state = create_state(listener).await?;
+
+    // let read_connections = tokio::spawn(read_connections(listener, state.clone()));
 
     // Start all systems (separate task)
     let all_systems = tokio::task::spawn(start_all_systems(state));
-    let (con, systems) = tokio::try_join!(read_connections, all_systems)?;
-    con?;
-    systems?;
+
+    // Wait for all systems to finish
+    all_systems.await??;
 
     // Kill all systems since we're done.
     kill_all_systems().await?;
 
     Ok(())
 }
+async fn create_state(tcp_listener: TcpListener) -> Result<GlobalState> {
+    Ok(Arc::new(ServerState {
+        world: Arc::new(World::new()),
+        connections: ConnectionList {
+            connections: DashMap::new(),
+            connection_count: AtomicU32::new(0),
+        },
+        database: database::start_database().await?,
+        server_stream: tcp_listener,
+    }))
+}
 
-async fn read_connections(listener: TcpListener, state: GlobalState) -> Result<()> {
+/*async fn read_connections(listener: TcpListener, state: GlobalState) -> Result<()> {
     loop {
         let state = state.clone();
         let (socket, addy) = listener.accept().await?;
@@ -104,10 +109,10 @@ async fn read_connections(listener: TcpListener, state: GlobalState) -> Result<(
                     error!("Error handling connection: {:?}", e);
                 }
             }
-            .instrument(info_span!("handle_connection", %addy)),
+                .instrument(info_span!("handle_connection", %addy)),
         );
     }
-}
+}*/
 
 /// Handles the setup of the server
 ///
@@ -122,7 +127,7 @@ async fn handle_setup() -> Result<bool> {
     if env::var("GITHUB_ACTIONS").is_ok() {
         env::set_var("RUST_LOG", "info");
         Ok(false)
-    // If the setup flag is passed, run the setup regardless of the config file
+        // If the setup flag is passed, run the setup regardless of the config file
     } else if env::args().any(|x| x == "setup") {
         setup::setup().await?;
         return Ok(true);
