@@ -2,19 +2,20 @@ use std::cmp::PartialEq;
 use std::fmt::{Debug, Display};
 use std::io::Cursor;
 use std::ops::DerefMut;
-use std::sync::{Arc, atomic, OnceLock};
+use std::sync::{Arc, atomic};
 use std::sync::atomic::AtomicU32;
 use std::time::Duration;
 
 use dashmap::DashMap;
-use ferrumc_macros::Component;
 use rand::random;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::sync::RwLock;
 use tracing::{debug, error, trace};
 
-use crate::ecs::world::World;
+use ferrumc_macros::Component;
+
 use crate::net::packets::handle_packet;
+use crate::state::GlobalState;
 
 use super::utils::config::get_global_config;
 use super::utils::encoding::varint::read_varint;
@@ -31,7 +32,6 @@ impl Debug for ConnectionWrapper {
     }
 }
 
-
 /// Implementing `Send` for `ConnectionWrapper` to allow sending it between threads.
 /// This is safe because `ConnectionWrapper` is just a wrapper around `Arc<RwLock<Connection>>`, which is `Send`.
 unsafe impl Send for ConnectionWrapper {}
@@ -41,21 +41,6 @@ pub mod packets;
 pub mod systems;
 mod test_ecs;
 pub mod the_dimension_codec;
-
-#[allow(non_snake_case)]
-pub fn GET_WORLD() -> &'static World {
-    static WORLD: OnceLock<World> = OnceLock::new();
-    WORLD.get_or_init(|| World::new())
-}
-
-#[allow(non_snake_case)]
-pub fn CONNECTIONS() -> &'static ConnectionList {
-    static CONNECTIONS: OnceLock<ConnectionList> = OnceLock::new();
-    CONNECTIONS.get_or_init(|| ConnectionList {
-        connections: DashMap::new(),
-        connection_count: AtomicU32::new(0),
-    })
-}
 
 #[derive(PartialEq, Debug)]
 pub enum State {
@@ -127,9 +112,9 @@ pub fn setup_tracer() {
 /// - `socket`: The TCP socket for the connection ([tokio::net::TcpStream]).
 ///
 /// Creates a new [Connection] and adds it to the [ConnectionList]. Passes the connection to [manage_conn].
-pub async fn init_connection(socket: tokio::net::TcpStream) -> Result<()> {
+pub async fn init_connection(socket: tokio::net::TcpStream, state: GlobalState) -> Result<()> {
     let mut id = random();
-    while CONNECTIONS().connections.contains_key(&id) {
+    while state.connections.connections.contains_key(&id) {
         id = random();
     }
 
@@ -143,9 +128,10 @@ pub async fn init_connection(socket: tokio::net::TcpStream) -> Result<()> {
     };
     let conn = Arc::new(RwLock::new(conn));
 
-    let world = GET_WORLD();
-    let entity = world
-        .create_entity().await
+    let entity = state
+        .world
+        .create_entity()
+        .await
         .with(ConnectionWrapper(conn.clone()))
         .build();
 
@@ -156,12 +142,14 @@ pub async fn init_connection(socket: tokio::net::TcpStream) -> Result<()> {
     }
 
     // Doesn't matter if we clone, since actual value is not cloned
-    CONNECTIONS().connections.insert(id, conn.clone());
-    CONNECTIONS()
+    state.connections.connections.insert(id, conn.clone());
+    state
+        .connections
         .connection_count
         .fetch_add(1, atomic::Ordering::Relaxed);
 
-    let current_amount = CONNECTIONS()
+    let current_amount = state
+        .connections
         .connection_count
         .load(atomic::Ordering::Relaxed);
 
@@ -170,14 +158,13 @@ pub async fn init_connection(socket: tokio::net::TcpStream) -> Result<()> {
         id, current_amount
     );
 
-    let res = manage_conn(conn.clone()).await;
+    let res = manage_conn(conn.clone(), state.clone()).await;
 
     if let Err(e) = res {
         error!("Error occurred in {:?}: {:?}, dropping connection", id, e);
-        let world = GET_WORLD();
         let entity_id = conn.read().await.metadata.entity;
-        world.delete_entity(entity_id).await?;
-        drop_conn(id).await?;
+        state.world.delete_entity(entity_id).await?;
+        drop_conn(id, state).await?;
     }
 
     Ok(())
@@ -189,7 +176,7 @@ pub async fn init_connection(socket: tokio::net::TcpStream) -> Result<()> {
 ///
 /// Reads packets from the connection and passes them to [handle_packet]. The handle_packet function
 /// is generated at compile time by [ferrumc_macros::bake_packet_registry].
-pub async fn manage_conn(conn: Arc<RwLock<Connection>>) -> Result<()> {
+pub async fn manage_conn(conn: Arc<RwLock<Connection>>, state: GlobalState) -> Result<()> {
     debug!(
         "Starting receiver for the same addr: {:?}",
         conn.read().await.socket.peer_addr()?
@@ -227,7 +214,7 @@ pub async fn manage_conn(conn: Arc<RwLock<Connection>>) -> Result<()> {
         let packet_id = packet_id.get_val() as u8;
         let actual_connection = conn_write.deref_mut();
         // Handle the packet
-        handle_packet(packet_id, actual_connection, &mut cursor).await?;
+        handle_packet(packet_id, actual_connection, &mut cursor, state.clone()).await?;
 
         // drop the handle to the write lock. to allow other tasks to write/read
         drop(conn_write);
@@ -241,7 +228,7 @@ pub async fn manage_conn(conn: Arc<RwLock<Connection>>) -> Result<()> {
         drop(read);
 
         if do_drop {
-            drop_conn(id).await?;
+            drop_conn(id, state).await?;
             break;
         }
 
@@ -258,22 +245,22 @@ pub async fn manage_conn(conn: Arc<RwLock<Connection>>) -> Result<()> {
     Ok(())
 }
 
-pub async fn drop_conn(connection_id: u32) -> Result<()> {
+pub async fn drop_conn(connection_id: u32, state: GlobalState) -> Result<()> {
     debug!("Dropping connection with id: {}", connection_id);
-    let connection = CONNECTIONS().connections.remove(&connection_id);
+    let connection = state.connections.connections.remove(&connection_id);
     let Some((_, conn_arc)) = connection else {
         return Err(Error::ConnectionNotFound(connection_id));
     };
-    CONNECTIONS()
+    state
+        .connections
         .connection_count
         .fetch_sub(1, atomic::Ordering::Relaxed);
 
     {
         let read_lock = conn_arc.read().await;
         let entity_id = read_lock.metadata.entity;
-        GET_WORLD().delete_entity(entity_id).await?;
+        state.world.delete_entity(entity_id).await?;
     }
-
 
     // drop the connection in the end, just in case it errors out
     let mut conn = conn_arc.write().await;
@@ -290,7 +277,7 @@ impl Connection {
         Ok(())
     }
 
-    pub async fn drop_connection(&self) -> Result<()> {
-        Ok(drop_conn(self.id).await?)
+    pub async fn drop_connection(&self, state: GlobalState) -> Result<()> {
+        Ok(drop_conn(self.id, state).await?)
     }
 }

@@ -1,11 +1,13 @@
 use async_trait::async_trait;
-use ferrumc_macros::AutoGenName;
 use tokio::sync::RwLockReadGuard;
 use tracing::{trace, warn};
 
-use crate::net::{Connection, ConnectionWrapper, GET_WORLD};
+use ferrumc_macros::AutoGenName;
+
+use crate::net::{Connection, ConnectionWrapper};
 use crate::net::packets::outgoing::keep_alive::KeepAlivePacketOut;
 use crate::net::systems::System;
+use crate::state::GlobalState;
 use crate::utils::components::keep_alive::KeepAlive;
 use crate::utils::components::player::Player;
 
@@ -14,9 +16,9 @@ pub struct KeepAliveSystem;
 
 #[async_trait]
 impl System for KeepAliveSystem {
-    async fn run(&self) {
-        let sender = KeepAliveSystem::sender();
-        let receiver = KeepAliveSystem::receiver();
+    async fn run(&self, state: GlobalState) {
+        let sender = KeepAliveSystem::sender(state.clone());
+        let receiver = KeepAliveSystem::receiver(state.clone());
         tokio::join!(sender, receiver);
     }
 
@@ -25,10 +27,11 @@ impl System for KeepAliveSystem {
     }
 }
 impl KeepAliveSystem {
-    async fn sender() {
+    async fn sender(state: GlobalState) {
         let mut interval = tokio::time::interval(std::time::Duration::from_secs(15));
-        let world = GET_WORLD();
-        let mut query = world.query::<(&Player, &mut KeepAlive, &ConnectionWrapper)>();
+        let mut query = state
+            .world
+            .query::<(&Player, &mut KeepAlive, &ConnectionWrapper)>();
 
         loop {
             interval.tick().await;
@@ -37,8 +40,11 @@ impl KeepAliveSystem {
                 if keep_alive.last_sent.elapsed().as_secs() > 30 {
                     let conn = conn.0.read().await;
                     warn!("Dropping connection {} due to inactivity", conn.id);
-                    if let Err(err) = conn.drop_connection().await {
-                        warn!("Error dropping connection {:?}: {:?}", conn.player_uuid, err);
+                    if let Err(err) = conn.drop_connection(state.clone()).await {
+                        warn!(
+                            "Error dropping connection {:?}: {:?}",
+                            conn.player_uuid, err
+                        );
                     }
                     continue;
                 }
@@ -56,10 +62,9 @@ impl KeepAliveSystem {
             }
         }
     }
-    async fn receiver() {
+    async fn receiver(state: GlobalState) {
         let mut interval = tokio::time::interval(std::time::Duration::from_secs(5));
-        let world = GET_WORLD();
-        let mut query = world.query::<(&KeepAlive, &ConnectionWrapper)>();
+        let mut query = state.world.query::<(&KeepAlive, &ConnectionWrapper)>();
 
         loop {
             interval.tick().await;
@@ -70,19 +75,35 @@ impl KeepAliveSystem {
                 }
 
                 let conn = conn_wrapper.0.read().await;
-                let player = world.get_component::<Player>(conn.metadata.entity).await;
+                let player = state
+                    .world
+                    .get_component::<Player>(conn.metadata.entity)
+                    .await;
 
-                let username = player.as_ref().map(|p| p.username.as_str()).unwrap_or("Unknown<!>Player");
+                let username = player
+                    .as_ref()
+                    .map(|p| p.username.as_str())
+                    .unwrap_or("Unknown<!>Player");
 
-                Self::drop_connection(conn, username).await;
+                Self::drop_connection(conn, username, state.clone()).await;
             }
         }
     }
 
-    async fn drop_connection(conn: RwLockReadGuard<'_, Connection>, username: &str) {
-        warn!("Dropping player `{}`'s connection due to inactivity", username);
-        if let Err(err) = conn.drop_connection().await {
-            warn!("Error dropping connection {:?}: {:?}", conn.player_uuid, err);
+    async fn drop_connection(
+        conn: RwLockReadGuard<'_, Connection>,
+        username: &str,
+        state: GlobalState,
+    ) {
+        warn!(
+            "Dropping player `{}`'s connection due to inactivity",
+            username
+        );
+        if let Err(err) = conn.drop_connection(state).await {
+            warn!(
+                "Error dropping connection {:?}: {:?}",
+                conn.player_uuid, err
+            );
         }
     }
 }

@@ -25,6 +25,9 @@ toml = "0.8.14"
 config = "0.14.0"
 lazy_static = "1.4.0"
 fastnbt = "2.5.0"
+fastanvil = "0.31.0"
+serde_derive = "1.0.204"
+flexbuffers = "2.0.0"
 
 # Binary
 byteorder = "1.5.0"
@@ -45,9 +48,7 @@ dashmap = "6.0.1"
 rand = "0.9.0-alpha.1"
 base64 = "0.22.1"
 async-trait = "0.1.77"
-surrealdb = { version = "1.5.4", features = ["protocol-http"] }
-fastanvil = "0.31.0"
-serde_derive = "1.0.204"
+sled = "0.34.7"
 futures = "0.3.30"
 rayon = "1.10.0"
 

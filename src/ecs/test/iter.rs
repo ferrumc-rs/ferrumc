@@ -6,7 +6,7 @@ mod tests {
     use futures::future::join_all;
     use tokio::sync::Barrier;
 
-    use crate::ecs::component::{ComponentStorage, Component};
+    use crate::ecs::component::{Component, ComponentStorage};
     use crate::ecs::entity::EntityManager;
     use crate::ecs::query::Query;
     use crate::utils::encoding::position::Position;
@@ -19,7 +19,7 @@ mod tests {
     #[tokio::test]
     async fn test_basic_query() {
         let storage = ComponentStorage::new();
-        let mut entity_manager = EntityManager::new();
+        let entity_manager = EntityManager::new();
 
         let entity = entity_manager.create_entity().await;
         storage.insert(entity, Position { x: 1, y: 2, z: 0 });
@@ -38,14 +38,14 @@ mod tests {
     #[tokio::test]
     async fn test_multi_component_query() {
         let storage = ComponentStorage::new();
-        let mut entity_manager = EntityManager::new();
+        let entity_manager = EntityManager::new();
 
         let entity1 = entity_manager.create_entity().await;
         let entity2 = entity_manager.create_entity().await;
 
         storage.insert(entity1, Position { x: 1, y: 2, z: 0 });
-        storage.insert(entity1, Velocity { x: 3, y: 4 , z: 0 });
-        storage.insert(entity2, Position { x: 5, y: 6 , z: 0 });
+        storage.insert(entity1, Velocity { x: 3, y: 4, z: 0 });
+        storage.insert(entity2, Position { x: 5, y: 6, z: 0 });
 
         let query = Query::<(&mut Position, &Velocity)>::new(&entity_manager, &storage);
         let results: Vec<_> = query.iter().await.collect();
@@ -53,14 +53,14 @@ mod tests {
         let entity1_id: usize = entity1.into();
         assert_eq!(results.len(), 1);
         assert_eq!(results[0].0, entity1_id);
-        assert_eq!(results[0].1.0.x, 1);
-        assert_eq!(results[0].1.1.x, 3);
+        assert_eq!(results[0].1 .0.x, 1);
+        assert_eq!(results[0].1 .1.x, 3);
     }
 
     #[tokio::test]
     async fn test_mutable_query() {
         let storage = ComponentStorage::new();
-        let mut entity_manager = EntityManager::new();
+        let entity_manager = EntityManager::new();
 
         let entity = entity_manager.create_entity().await;
         storage.insert(entity, Position { x: 1, y: 2, z: 0 });
@@ -78,11 +78,11 @@ mod tests {
     #[tokio::test]
     async fn test_concurrent_reads() {
         let storage = Arc::new(ComponentStorage::new());
-        let mut entity_manager = EntityManager::new();
+        let entity_manager = EntityManager::new();
 
         for i in 0..1000 {
             let entity = entity_manager.create_entity().await;
-            storage.insert(entity, Position { x: i , y: 0 , z: 0 });
+            storage.insert(entity, Position { x: i, y: 0, z: 0 });
         }
 
         let entity_manager = Arc::new(entity_manager);
@@ -109,11 +109,11 @@ mod tests {
     #[tokio::test]
     async fn test_concurrent_writes() {
         let storage = Arc::new(ComponentStorage::new());
-        let mut entity_manager = EntityManager::new();
+        let entity_manager = EntityManager::new();
 
         for i in 0..1000 {
             let entity = entity_manager.create_entity().await;
-            storage.insert(entity, Position { x: i, y: 0 , z: 0 });
+            storage.insert(entity, Position { x: i, y: 0, z: 0 });
         }
 
         let entity_manager = Arc::new(entity_manager);
@@ -147,12 +147,12 @@ mod tests {
     #[tokio::test]
     async fn test_mixed_queries() {
         let storage = Arc::new(ComponentStorage::new());
-        let mut entity_manager = EntityManager::new();
+        let entity_manager = EntityManager::new();
 
         for i in 0..1000 {
             let entity = entity_manager.create_entity().await;
             storage.insert(entity, Position { x: i, y: 0, z: 0 });
-            storage.insert(entity, Velocity { x: 1, y: 1 , z: 0 });
+            storage.insert(entity, Velocity { x: 1, y: 1, z: 0 });
             storage.insert(entity, Health(100.0));
         }
 
@@ -196,7 +196,10 @@ mod tests {
             let barrier_clone = barrier.clone();
             async move {
                 barrier_clone.wait().await;
-                let query = Query::<(&Position, &Velocity, &mut Health)>::new(&entity_manager_clone, &storage_clone);
+                let query = Query::<(&Position, &Velocity, &mut Health)>::new(
+                    &entity_manager_clone,
+                    &storage_clone,
+                );
                 for _ in 0..25 {
                     for (_, (pos, vel, mut health)) in query.iter().await {
                         health.0 -= ((pos.x * vel.x).abs() * 01 + 1) as f32;
@@ -223,7 +226,7 @@ mod tests {
     #[tokio::test]
     async fn test_edge_cases() {
         let storage = ComponentStorage::new();
-        let mut entity_manager = EntityManager::new();
+        let entity_manager = EntityManager::new();
 
         // Test query on empty storage
         {
@@ -243,7 +246,7 @@ mod tests {
 
         // Test query after removing a component
         {
-            storage.remove::<Position>(entity);
+            storage.remove::<Position>(entity).unwrap();
             let query = Query::<&Position>::new(&entity_manager, &storage);
             let results: Vec<_> = query.iter().await.collect();
             assert_eq!(results.len(), 0);
@@ -268,21 +271,22 @@ mod tests {
         storage.insert(entity, B(6.0));
         storage.insert(entity, C(7.0));
 
-        let query = Query::<(&Position, &Velocity, &Health, &A, &B, &C)>::new(&entity_manager, &storage);
+        let query =
+            Query::<(&Position, &Velocity, &Health, &A, &B, &C)>::new(&entity_manager, &storage);
         let results: Vec<_> = query.iter().await.collect();
         assert_eq!(results.len(), 1);
-        assert_eq!(results[0].1.0.x, 1);
-        assert_eq!(results[0].1.1.x, 3);
-        assert_eq!(results[0].1.2.0, 100f32);
-        assert_eq!(results[0].1.3.0, 5f32);
-        assert_eq!(results[0].1.4.0, 6f32);
-        assert_eq!(results[0].1.5.0, 7f32);
+        assert_eq!(results[0].1 .0.x, 1);
+        assert_eq!(results[0].1 .1.x, 3);
+        assert_eq!(results[0].1 .2 .0, 100f32);
+        assert_eq!(results[0].1 .3 .0, 5f32);
+        assert_eq!(results[0].1 .4 .0, 6f32);
+        assert_eq!(results[0].1 .5 .0, 7f32);
     }
 
     #[tokio::test]
     async fn test_memory_safety() {
-        use std::sync::Weak;
         use std::sync::atomic::{AtomicUsize, Ordering};
+        use std::sync::Weak;
 
         static DROP_COUNT: AtomicUsize = AtomicUsize::new(0);
 
@@ -300,7 +304,7 @@ mod tests {
 
         {
             let storage = ComponentStorage::new();
-            let mut entity_manager = EntityManager::new();
+            let entity_manager = EntityManager::new();
 
             let rc = Arc::new(());
             let weak = Arc::downgrade(&rc);
@@ -323,16 +327,16 @@ mod tests {
     async fn test_concurrent_read_write_with_rayon() {
         use rayon::iter::ParallelIterator;
         use rayon::prelude::IntoParallelIterator;
-        use tokio::time::{Duration, sleep};
         use std::sync::atomic::{AtomicBool, Ordering};
+        use tokio::time::{Duration, sleep};
 
         let storage = Arc::new(ComponentStorage::new());
-        let mut entity_manager = EntityManager::new();
+        let entity_manager = EntityManager::new();
 
         // Create entities with positions
         for i in 0..10 {
             let entity = entity_manager.create_entity().await;
-            storage.insert(entity, Position { x: i , y: 0, z: 0 });
+            storage.insert(entity, Position { x: i, y: 0, z: 0 });
         }
 
         let entity_manager = Arc::new(entity_manager);
@@ -350,7 +354,10 @@ mod tests {
                     let results: Vec<_> = query.iter().await.collect();
                     results.into_par_iter().for_each(|(entity_id, mut pos)| {
                         pos.x += 1;
-                        println!("Writer {}: Updated entity {} position to ({}, {})", iteration, entity_id, pos.x, pos.y);
+                        println!(
+                            "Writer {}: Updated entity {} position to ({}, {})",
+                            iteration, entity_id, pos.x, pos.y
+                        );
                     });
                     iteration += 1;
                     sleep(Duration::from_millis(50)).await;
@@ -359,24 +366,28 @@ mod tests {
         };
 
         // Reader tasks
-        let read_handles: Vec<_> = (0..2).map(|reader_id| {
-            let storage_clone = storage.clone();
-            let entity_manager_clone = entity_manager.clone();
-            let running_clone = running.clone();
-            tokio::spawn(async move {
-                let mut iteration = 0;
-                while running_clone.load(Ordering::Relaxed) {
-                    let query = Query::<&Position>::new(&entity_manager_clone, &storage_clone);
-                    let results: Vec<_> = query.iter().await.collect();
-                    results.into_par_iter().for_each(|(entity_id, pos)| {
-                        println!("Reader {} (Iteration {}): Read entity {} position as ({}, {})",
-                                 reader_id, iteration, entity_id, pos.x, pos.y);
-                    });
-                    iteration += 1;
-                    sleep(Duration::from_millis(25)).await;
-                }
+        let read_handles: Vec<_> = (0..2)
+            .map(|reader_id| {
+                let storage_clone = storage.clone();
+                let entity_manager_clone = entity_manager.clone();
+                let running_clone = running.clone();
+                tokio::spawn(async move {
+                    let mut iteration = 0;
+                    while running_clone.load(Ordering::Relaxed) {
+                        let query = Query::<&Position>::new(&entity_manager_clone, &storage_clone);
+                        let results: Vec<_> = query.iter().await.collect();
+                        results.into_par_iter().for_each(|(entity_id, pos)| {
+                            println!(
+                                "Reader {} (Iteration {}): Read entity {} position as ({}, {})",
+                                reader_id, iteration, entity_id, pos.x, pos.y
+                            );
+                        });
+                        iteration += 1;
+                        sleep(Duration::from_millis(25)).await;
+                    }
+                })
             })
-        }).collect();
+            .collect();
 
         // Let the tasks run for a while
         sleep(Duration::from_secs(1)).await;
@@ -394,9 +405,15 @@ mod tests {
         let query = Query::<&Position>::new(&entity_manager, &storage);
         let results: Vec<_> = query.iter().await.collect();
         results.into_par_iter().for_each(|(entity_id, pos)| {
-            println!("Final: Entity {} position is ({}, {})", entity_id, pos.x, pos.y);
-            assert!(pos.x >= entity_id as i32,
-                    "Unexpected final position for entity {}", entity_id);
+            println!(
+                "Final: Entity {} position is ({}, {})",
+                entity_id, pos.x, pos.y
+            );
+            assert!(
+                pos.x >= entity_id as i32,
+                "Unexpected final position for entity {}",
+                entity_id
+            );
         });
     }
 }

@@ -70,8 +70,10 @@ pub async fn test_component_storage_memory_leak() {
 #[cfg(test)]
 mod tests_pro_max {
     use std::sync::{Arc, Mutex};
+
     use tokio::sync::Semaphore;
-    use crate::ecs::component::{ComponentStorage, Component};
+
+    use crate::ecs::component::{Component, ComponentStorage};
 
     #[derive(Debug)]
     struct DropCounter {
@@ -122,7 +124,7 @@ mod tests_pro_max {
 
                 // 50% chance of immediate removal
                 if i % 2 == 0 {
-                    storage_clone.remove::<TestComponent>(i);
+                    storage_clone.remove::<TestComponent>(i).unwrap();
                 }
             });
             handles.push(handle);
@@ -147,18 +149,18 @@ mod tests_pro_max {
 
         // Scenario 4: Removing non-existent components
         for i in concurrent_ops..(concurrent_ops + 100) {
-            storage.remove::<TestComponent>(i);
+            storage.remove::<TestComponent>(i).unwrap();
         }
 
         // Shouldn't exactly happen like ever the bottom thing 👇
         /*// Scenario 5: Inserting at very large indices
-    let large_indices = [usize::MAX, usize::MAX - 1, usize::MAX / 2];
-    for &i in &large_indices {
-        let component = TestComponent {
-            _counter: DropCounter::new(Arc::clone(&drop_count)),
-        };
-        storage.insert(i, component);
-    }*/
+        let large_indices = [usize::MAX, usize::MAX - 1, usize::MAX / 2];
+        for &i in &large_indices {
+            let component = TestComponent {
+                _counter: DropCounter::new(Arc::clone(&drop_count)),
+            };
+            storage.insert(i, component);
+        }*/
 
         // Allow time for async operations to complete
         // tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
@@ -172,11 +174,9 @@ mod tests_pro_max {
         let final_drop_count = *drop_count.lock().unwrap();
         let expected_drop_count = concurrent_ops + 100; // 1000 concurrent ops, 100 overwrites, 100 accesses, 100 removals
         assert_eq!(
-            final_drop_count,
-            expected_drop_count,
+            final_drop_count, expected_drop_count,
             "Expected {} drops, got {}",
-            expected_drop_count,
-            final_drop_count
+            expected_drop_count, final_drop_count
         );
     }
 }

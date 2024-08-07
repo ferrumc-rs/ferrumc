@@ -1,19 +1,21 @@
 use std::fs::File;
-use std::sync::{OnceLock};
+use std::sync::OnceLock;
 
 use async_trait::async_trait;
 use fastanvil::Region;
-use ferrumc_macros::AutoGenName;
 use tokio::sync::RwLock;
 
+use ferrumc_macros::AutoGenName;
+
 use crate::net::systems::System;
+use crate::state::GlobalState;
 
 #[derive(AutoGenName)]
 pub struct ChunkSender;
 
 #[async_trait]
 impl System for ChunkSender {
-    async fn run(&self) {
+    async fn run(&self, _state: GlobalState) {
         /*let mut interval = tokio::time::interval(std::time::Duration::from_secs(1));
         loop {
             interval.tick().await;
@@ -70,7 +72,6 @@ async fn send_chunks_around_player(conn: Arc<RwLock<Connection>>, player_x: i32,
     black_box(data);
     println!("Time taken to read and parse one chunk: {:?}", start.elapsed());
 }*/
-
 
 #[allow(non_snake_case)]
 pub fn GET_REGION() -> &'static RwLock<Region<File>> {

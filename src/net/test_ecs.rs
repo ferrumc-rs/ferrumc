@@ -6,7 +6,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_ecs() {
-        let mut world = World::new();
+        let world = World::new();
 
         let entity1 = world
             .create_entity().await

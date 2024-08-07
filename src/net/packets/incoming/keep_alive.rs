@@ -1,10 +1,10 @@
-
 use tracing::info;
 
 use ferrumc_macros::{Decode, packet};
 
 use crate::Connection;
 use crate::net::packets::IncomingPacket;
+use crate::state::GlobalState;
 
 #[derive(Decode, Debug)]
 #[packet(packet_id = 0x12, state = "play")]
@@ -13,7 +13,11 @@ pub struct KeepAlivePacketIn {
 }
 
 impl IncomingPacket for KeepAlivePacketIn {
-    async fn handle(&self, conn: &mut Connection) -> crate::utils::prelude::Result<()> {
+    async fn handle(
+        &self,
+        conn: &mut Connection,
+        _state: GlobalState,
+    ) -> crate::utils::prelude::Result<()> {
         info!("KeepAlivePacketIn: {:?}", self);
 
         let player = &conn.metadata.entity;

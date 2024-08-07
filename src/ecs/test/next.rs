@@ -11,7 +11,7 @@ mod tests {
     #[tokio::test]
     async fn test_next_basic() {
         let storage = ComponentStorage::new();
-        let mut entity_manager = EntityManager::new();
+        let entity_manager = EntityManager::new();
 
         let entity1 = entity_manager.create_entity().await;
         let entity2 = entity_manager.create_entity().await;
@@ -38,7 +38,7 @@ mod tests {
     #[tokio::test]
     async fn test_next_multi_component() {
         let storage = ComponentStorage::new();
-        let mut entity_manager = EntityManager::new();
+        let entity_manager = EntityManager::new();
 
         let entity1 = entity_manager.create_entity().await;
         let entity2 = entity_manager.create_entity().await;
@@ -60,7 +60,7 @@ mod tests {
     #[tokio::test]
     async fn test_next_mutable() {
         let storage = ComponentStorage::new();
-        let mut entity_manager = EntityManager::new();
+        let entity_manager = EntityManager::new();
 
         let entity = entity_manager.create_entity().await;
         storage.insert(entity, Position { x: 1, y: 2, z:0 });
@@ -83,7 +83,7 @@ mod tests {
     #[tokio::test]
     async fn test_next_concurrent() {
         let storage = Arc::new(ComponentStorage::new());
-        let mut entity_manager = EntityManager::new();
+        let entity_manager = EntityManager::new();
 
         for i in 0..100 {
             let entity = entity_manager.create_entity().await;
@@ -115,7 +115,7 @@ mod tests {
     #[tokio::test]
     async fn test_next_with_reads_and_writes() {
         let storage = Arc::new(ComponentStorage::new());
-        let mut entity_manager = EntityManager::new();
+        let entity_manager = EntityManager::new();
 
         for i in 0..100 {
             let entity = entity_manager.create_entity().await;

@@ -101,7 +101,6 @@ impl World {
         Ok(())
     }
 
-
     /// <p style="color:#E91E63;">Creates a new query for components</p>
     ///
     /// Use this method to query entities with specific components.
@@ -133,7 +132,10 @@ impl World {
         Query::<Q>::new(&self.entity_manager, &self.component_storage)
     }
 
-    pub async fn get_component<T: Component>(&self, entity_id: impl Into<usize>) -> Option<ComponentRef<'_, T>> {
+    pub async fn get_component<T: Component>(
+        &self,
+        entity_id: impl Into<usize>,
+    ) -> Option<ComponentRef<'_, T>> {
         self.get_component_storage().get::<T>(entity_id).await
     }
 
@@ -155,7 +157,6 @@ impl World {
         &self.component_storage
     }
 }
-
 
 #[allow(dead_code)]
 struct WorldDoc;

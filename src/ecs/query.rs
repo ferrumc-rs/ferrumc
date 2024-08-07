@@ -1,4 +1,5 @@
 use std::marker::PhantomData;
+
 use crate::ecs::component::{Component, ComponentRef, ComponentRefMut, ComponentStorage};
 use crate::ecs::entity::EntityManager;
 
@@ -6,14 +7,20 @@ use crate::ecs::entity::EntityManager;
 /// Trait for items that can be queried in the ECS.
 pub trait QueryItem {
     type Item<'a>;
-    async fn fetch<'a>(entity_id: impl Into<usize>, storage: &'a ComponentStorage) -> Option<Self::Item<'a>>;
+    async fn fetch<'a>(
+        entity_id: impl Into<usize>,
+        storage: &'a ComponentStorage,
+    ) -> Option<Self::Item<'a>>;
 }
 
 // Implement QueryItem for immutable references
 impl<T: Component> QueryItem for &T {
     type Item<'a> = ComponentRef<'a, T>;
 
-    async fn fetch<'a>(entity_id: impl Into<usize>, storage: &'a ComponentStorage) -> Option<Self::Item<'a>> {
+    async fn fetch<'a>(
+        entity_id: impl Into<usize>,
+        storage: &'a ComponentStorage,
+    ) -> Option<Self::Item<'a>> {
         storage.get::<T>(entity_id).await
     }
 }
@@ -22,7 +29,10 @@ impl<T: Component> QueryItem for &T {
 impl<T: Component> QueryItem for &mut T {
     type Item<'a> = ComponentRefMut<'a, T>;
 
-    async fn fetch<'a>(entity_id: impl Into<usize>, storage: &'a ComponentStorage) -> Option<Self::Item<'a>> {
+    async fn fetch<'a>(
+        entity_id: impl Into<usize>,
+        storage: &'a ComponentStorage,
+    ) -> Option<Self::Item<'a>> {
         storage.get_mut::<T>(entity_id).await
     }
 }
@@ -70,7 +80,7 @@ impl<'a, Q: QueryItem> Query<'a, Q> {
     ///     position.y += velocity.y;
     /// }
     /// ```
-    pub async fn iter(&'a self) -> impl Iterator<Item=(usize, Q::Item<'a>)> + 'a {
+    pub async fn iter(&'a self) -> impl Iterator<Item = (usize, Q::Item<'a>)> + 'a {
         let max_entity_id = self.entity_manager.len().await;
         let mut results = vec![];
 
@@ -109,7 +119,6 @@ impl<'a, Q: QueryItem> Query<'a, Q> {
         self.current_id = 0;
         None
     }
-
 }
 
 // Macro to automatically generate tuples
@@ -199,16 +208,16 @@ mod tests {
     #[tokio::test]
     async fn test_iter() {
         let storage = ComponentStorage::new();
-        let mut entity_manager = EntityManager::new();
+        let entity_manager = EntityManager::new();
 
         for _ in 0..=2 {
-            entity_manager.create_entity();
+            entity_manager.create_entity().await;
         }
 
-        storage.insert(0usize, Position { x: 0,  y: 0, z: 0 });
+        storage.insert(0usize, Position { x: 0, y: 0, z: 0 });
         storage.insert(0usize, Velocity { x: 2, y: 0, z: 0 });
-        storage.insert(1usize, Position { x: 1, y: 1 , z: 1 });
-        storage.insert(1usize, Velocity { x: 2, y: 2 , z: 2 });
+        storage.insert(1usize, Position { x: 1, y: 1, z: 1 });
+        storage.insert(1usize, Velocity { x: 2, y: 2, z: 2 });
 
         let query = Query::<(&mut Position, &Velocity)>::new(&entity_manager, &storage);
 
@@ -216,7 +225,7 @@ mod tests {
         for (entity_id, (mut pos, vel)) in query.iter().await {
             pos.x += vel.x;
             pos.y += vel.y;
-            storage.remove::<Velocity>(entity_id);
+            storage.remove::<Velocity>(entity_id).unwrap();
         }
 
         // Log the results
