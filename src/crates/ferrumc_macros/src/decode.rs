@@ -1,4 +1,5 @@
 use proc_macro::TokenStream;
+
 use quote::quote;
 use syn::{DeriveInput, parse_macro_input};
 
@@ -21,11 +22,11 @@ pub fn derive(input: TokenStream) -> TokenStream {
             // Generate a statement to decode this field from the bytes
             let type_name = field.ty;
             let statement = quote! {
-#ident: match <#type_name as Decode>::decode(bytes).await {
-Ok(value) => Box::into_inner(value),
-Err(e) => return Err(Error::Generic(format!("Failed to decode field {}: {}", stringify!(#ident), e)))
-},
-};
+                #ident: match <#type_name as Decode>::decode(bytes).await {
+                    Ok(value) => Box::into_inner(value),
+                    Err(e) => return Err(Error::Generic(format!("Failed to decode field {}: {}", stringify!(#ident), e)))
+                },
+            };
             field_statements.push(statement);
         }
     }

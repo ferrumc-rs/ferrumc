@@ -1,3 +1,4 @@
+use std::convert::Infallible;
 use config::ConfigError;
 
 #[derive(thiserror::Error, Debug)]
@@ -44,4 +45,13 @@ pub enum Error {
 
     #[error("Database error: {0}")]
     DatabaseError(String),
+
+    #[error("Invalid directive: {0}")]
+    InvalidDirective(String),
+}
+
+impl From<Infallible> for Error {
+    fn from(e: Infallible) -> Self {
+        return Error::Generic(format!("{:?}", e));
+    }
 }

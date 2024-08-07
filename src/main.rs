@@ -32,7 +32,7 @@ pub mod world;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    utils::setup_logger();
+    utils::setup_logger()?;
 
     if handle_setup().await? {
         return Ok(());
@@ -53,7 +53,7 @@ async fn main() -> Result<()> {
         database: database::start_database().await?,
     });
 
-    debug!("Found Config: {:?} in {:?}", config, elapsed);
+    debug!("Found Config: \n{:#?} \nin {:?}", config, elapsed);
 
     start_server(state).await.expect("Server failed to start!");
 

@@ -1,4 +1,6 @@
+use tracing_subscriber::filter::Directive;
 use crate::utils::constants::DEFAULT_LOG_LEVEL;
+use crate::utils::prelude::*;
 
 pub mod encoding;
 pub mod error;
@@ -10,7 +12,7 @@ pub mod config;
 pub mod constants;
 
 /// Sets up the logger. Needs to be run before anything else in order for logging to run end.
-pub fn setup_logger() {
+pub fn setup_logger() -> Result<()> {
     let trace_level = std::env::args()
         .find(|arg| arg.starts_with("--log="))
         .map(|arg| arg.replace("--log=", ""));
@@ -32,5 +34,16 @@ pub fn setup_logger() {
             std::process::exit(1);
         }
     };
-    tracing_subscriber::fmt().with_max_level(trace_level).init();
+
+    let env_filter = tracing_subscriber::EnvFilter::from_default_env()
+        .add_directive(trace_level.into())
+        .add_directive(str_to_directive("sled=off")?);
+
+
+    Ok(tracing_subscriber::fmt()
+        .with_env_filter(env_filter)
+        .init())
+}
+fn str_to_directive(directive: &str) -> Result<Directive> {
+    directive.parse().map_err(|_| Error::InvalidDirective(directive.to_string()))
 }

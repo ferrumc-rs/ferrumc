@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use tracing::{debug, info};
+use tracing::{info};
 
 use ferrumc_macros::AutoGenName;
 
@@ -17,8 +17,6 @@ impl System for TickSystem {
         let mut query = state.world.query::<(&Player, &Position)>();
 
         loop {
-            let tick_start = std::time::Instant::now();
-
             while let Some((idx, (player, position))) = query.next().await {
                 info!(
                     "[{idx}] @ Player = {} \t Position = {}",
@@ -27,7 +25,7 @@ impl System for TickSystem {
                 );
             }
 
-            debug!("Time taken to run tick system: {:?}", tick_start.elapsed());
+            // debug!("Time taken to run tick system: {:?}", tick_start.elapsed());
             tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
         }
     }

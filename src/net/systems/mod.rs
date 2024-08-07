@@ -7,6 +7,7 @@ use crate::utils::prelude::*;
 pub mod chunk_sender;
 pub mod keep_alive_system;
 pub mod tick_system;
+pub mod connection_handler;
 
 #[async_trait]
 pub trait System: Send + Sync {
@@ -19,6 +20,7 @@ pub static ALL_SYSTEMS: &[&dyn System] = &[
     &tick_system::TickSystem,
     &keep_alive_system::KeepAliveSystem,
     &chunk_sender::ChunkSender,
+    &connection_handler::ConnectionHandler,
 ];
 
 pub async fn start_all_systems(state: GlobalState) -> Result<()> {
