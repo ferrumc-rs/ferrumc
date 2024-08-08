@@ -21,12 +21,26 @@ pub fn decode(input: TokenStream) -> TokenStream {
             let ident = field.ident.unwrap();
             // Generate a statement to decode this field from the bytes
             let type_name = field.ty;
-            let statement = quote! {
-                #ident: match <#type_name as crate::utils::nbt_impls::NBTDecodable>::decode_from_base(nbt, stringify!(#ident)) {
-                    Ok(value) => value,
-                    Err(e) => return Err(Error::Generic(format!("Failed to decode field {}: {}", stringify!(#ident), e)))
-                },
+            let statement = if field
+                .attrs
+                .iter()
+                .any(|attr| attr.path().is_ident("nbtcompound"))
+            {
+                quote! {
+                    #ident: match <#type_name as crate::utils::nbt_impls::NBTDecodable>::decode_from_compound(nbt, stringify!(#ident)) {
+                        Ok(value) => value,
+                        Err(e) => return Err(Error::Generic(format!("Failed to decode field {}: {}", stringify!(#ident), e)))
+                    },
+                }
+            } else {
+                quote! {
+                    #ident: match <#type_name as crate::utils::nbt_impls::NBTDecodable>::decode_from_base(nbt, stringify!(#ident)) {
+                        Ok(value) => value,
+                        Err(e) => return Err(Error::Generic(format!("Failed to decode field {}: {}", stringify!(#ident), e)))
+                    },
+                }
             };
+
             field_statements.push(statement);
         }
     }
