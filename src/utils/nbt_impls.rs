@@ -2,6 +2,26 @@ use simdnbt::borrow::{BaseNbt, NbtCompound, NbtList};
 
 use crate::utils::error::Error;
 
+pub struct ByteArray(pub Vec<u8>);
+
+impl From<Vec<u8>> for ByteArray {
+    fn from(value: Vec<u8>) -> Self {
+        ByteArray(value)
+    }
+}
+
+impl From<ByteArray> for Vec<u8> {
+    fn from(value: ByteArray) -> Self {
+        value.0
+    }
+}
+
+impl From<&[u8]> for ByteArray {
+    fn from(value: &[u8]) -> Self {
+        ByteArray(value.to_vec())
+    }
+}
+
 pub trait NBTDecodable {
     fn decode_from_base(nbt: BaseNbt, name: &str) -> Result<Self, Error>
     where
@@ -316,7 +336,7 @@ impl NBTDecodable for f64 {
     }
 }
 
-impl NBTDecodable for Vec<u8> {
+impl NBTDecodable for ByteArray {
     fn decode_from_base(nbt: BaseNbt, name: &str) -> Result<Self, Error>
     where
         Self: Sized,
@@ -327,7 +347,7 @@ impl NBTDecodable for Vec<u8> {
             ));
         }
         match nbt.byte_array(name) {
-            Some(value) => Ok(value.into()),
+            Some(value) => Ok(value.to_vec().into()),
             None => Err(Error::GenericNbtError(
                 format!("Could not decode Vec<u8> named {} from base nbt", name).to_string(),
             )),
@@ -356,7 +376,7 @@ impl NBTDecodable for Vec<u8> {
         Self: Sized,
     {
         match nbt.byte_arrays() {
-            Some(value) => Ok(value.to_vec().iter().map(|x| x.to_vec()).collect()),
+            Some(value) => Ok(value.to_vec().iter().map(|x| x.to_vec().into()).collect()),
             None => Err(Error::GenericNbtError(
                 "Could not decode Vec<Vec<u8>> from list nbt".to_string(),
             )),
@@ -505,5 +525,28 @@ impl<T: NBTDecodable> NBTDecodable for Option<T> {
             Ok(value) => Ok(value.into_iter().map(|x| Some(x)).collect()),
             Err(e) => Err(e),
         }
+    }
+}
+
+impl<T: NBTDecodable> NBTDecodable for T {
+    fn decode_from_base(nbt: BaseNbt, name: &str) -> Result<Self, Error>
+    where
+        Self: Sized,
+    {
+        todo!()
+    }
+
+    fn decode_from_compound(nbt: NbtCompound, name: &str) -> Result<Self, Error>
+    where
+        Self: Sized,
+    {
+        todo!()
+    }
+
+    fn decode_from_list(nbt: NbtList) -> Result<Vec<Self>, Error>
+    where
+        Self: Sized,
+    {
+        todo!()
     }
 }
