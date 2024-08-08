@@ -8,7 +8,7 @@ use std::sync::atomic::AtomicU32;
 
 use dashmap::DashMap;
 use tokio::net::TcpListener;
-use tracing::{debug, error, info, info_span, Instrument, trace};
+use tracing::{debug, error, info, trace};
 
 use crate::{
     net::Connection,

@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use futures::stream::FuturesUnordered;
-use tracing::{debug_span, info, info_span, Instrument, span};
+use tracing::{debug_span, info, Instrument};
 
 use crate::state::GlobalState;
 use crate::utils::prelude::*;

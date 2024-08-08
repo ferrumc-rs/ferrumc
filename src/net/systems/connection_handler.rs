@@ -1,7 +1,6 @@
 use async_trait::async_trait;
 use ferrumc_macros::AutoGenName;
-use tracing::{debug, error, info_span, Instrument, span_enabled, trace};
-use crate::net::Connection;
+use tracing::{debug, error, info_span, Instrument};
 use crate::net::systems::System;
 use crate::state::GlobalState;
 use crate::utils::prelude::*;
