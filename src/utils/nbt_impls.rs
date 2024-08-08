@@ -527,26 +527,3 @@ impl<T: NBTDecodable> NBTDecodable for Option<T> {
         }
     }
 }
-
-impl<T: NBTDecodable> NBTDecodable for T {
-    fn decode_from_base(nbt: BaseNbt, name: &str) -> Result<Self, Error>
-    where
-        Self: Sized,
-    {
-        todo!()
-    }
-
-    fn decode_from_compound(nbt: NbtCompound, name: &str) -> Result<Self, Error>
-    where
-        Self: Sized,
-    {
-        todo!()
-    }
-
-    fn decode_from_list(nbt: NbtList) -> Result<Vec<Self>, Error>
-    where
-        Self: Sized,
-    {
-        todo!()
-    }
-}

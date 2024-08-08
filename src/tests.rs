@@ -2,7 +2,8 @@
 mod tests {
     use std::io::Cursor;
 
-    use ferrumc_macros::Decode;
+    use ferrumc_macros::{Decode, NBTDecode};
+
     use crate::utils::encoding::varint::VarInt;
 
     #[tokio::test]
@@ -23,5 +24,13 @@ mod tests {
         assert_eq!(handshake.server_address, "127.0.0.1".to_string());
         assert_eq!(handshake.server_port, 25565);
         assert_eq!(handshake.next_state, VarInt::new(1));
+    }
+
+    #[tokio::test]
+    async fn test_nbt_decode() {
+        #[derive(NBTDecode)]
+        struct Test {
+            test: i32,
+        }
     }
 }
