@@ -23,21 +23,21 @@ impl From<&[u8]> for ByteArray {
 }
 
 pub trait NBTDecodable {
-    fn decode_from_base(nbt: BaseNbt, name: &str) -> Result<Self, Error>
+    fn decode_from_base(nbt: &BaseNbt, name: &str) -> Result<Self, Error>
     where
         Self: Sized;
 
-    fn decode_from_compound(nbt: NbtCompound, name: &str) -> Result<Self, Error>
+    fn decode_from_compound(nbt: &NbtCompound, name: &str) -> Result<Self, Error>
     where
         Self: Sized;
 
-    fn decode_from_list(nbt: NbtList) -> Result<Vec<Self>, Error>
+    fn decode_from_list(nbt: &NbtList) -> Result<Vec<Self>, Error>
     where
         Self: Sized;
 }
 
 impl NBTDecodable for i8 {
-    fn decode_from_base(nbt: BaseNbt, name: &str) -> Result<Self, Error>
+    fn decode_from_base(nbt: &BaseNbt, name: &str) -> Result<Self, Error>
     where
         Self: Sized,
     {
@@ -54,7 +54,7 @@ impl NBTDecodable for i8 {
         }
     }
 
-    fn decode_from_compound(nbt: NbtCompound, name: &str) -> Result<Self, Error>
+    fn decode_from_compound(nbt: &NbtCompound, name: &str) -> Result<Self, Error>
     where
         Self: Sized,
     {
@@ -71,7 +71,7 @@ impl NBTDecodable for i8 {
         }
     }
 
-    fn decode_from_list(nbt: NbtList) -> Result<Vec<Self>, Error>
+    fn decode_from_list(nbt: &NbtList) -> Result<Vec<Self>, Error>
     where
         Self: Sized,
     {
@@ -87,7 +87,7 @@ impl NBTDecodable for i8 {
 }
 
 impl NBTDecodable for i16 {
-    fn decode_from_base(nbt: BaseNbt, name: &str) -> Result<Self, Error>
+    fn decode_from_base(nbt: &BaseNbt, name: &str) -> Result<Self, Error>
     where
         Self: Sized,
     {
@@ -104,7 +104,7 @@ impl NBTDecodable for i16 {
         }
     }
 
-    fn decode_from_compound(nbt: NbtCompound, name: &str) -> Result<Self, Error>
+    fn decode_from_compound(nbt: &NbtCompound, name: &str) -> Result<Self, Error>
     where
         Self: Sized,
     {
@@ -121,7 +121,7 @@ impl NBTDecodable for i16 {
         }
     }
 
-    fn decode_from_list(nbt: NbtList) -> Result<Vec<Self>, Error>
+    fn decode_from_list(nbt: &NbtList) -> Result<Vec<Self>, Error>
     where
         Self: Sized,
     {
@@ -137,7 +137,7 @@ impl NBTDecodable for i16 {
 }
 
 impl NBTDecodable for i32 {
-    fn decode_from_base(nbt: BaseNbt, name: &str) -> Result<Self, Error>
+    fn decode_from_base(nbt: &BaseNbt, name: &str) -> Result<Self, Error>
     where
         Self: Sized,
     {
@@ -154,7 +154,7 @@ impl NBTDecodable for i32 {
         }
     }
 
-    fn decode_from_compound(nbt: NbtCompound, name: &str) -> Result<Self, Error>
+    fn decode_from_compound(nbt: &NbtCompound, name: &str) -> Result<Self, Error>
     where
         Self: Sized,
     {
@@ -171,7 +171,7 @@ impl NBTDecodable for i32 {
         }
     }
 
-    fn decode_from_list(nbt: NbtList) -> Result<Vec<Self>, Error>
+    fn decode_from_list(nbt: &NbtList) -> Result<Vec<Self>, Error>
     where
         Self: Sized,
     {
@@ -187,7 +187,7 @@ impl NBTDecodable for i32 {
 }
 
 impl NBTDecodable for i64 {
-    fn decode_from_base(nbt: BaseNbt, name: &str) -> Result<Self, Error>
+    fn decode_from_base(nbt: &BaseNbt, name: &str) -> Result<Self, Error>
     where
         Self: Sized,
     {
@@ -204,7 +204,7 @@ impl NBTDecodable for i64 {
         }
     }
 
-    fn decode_from_compound(nbt: NbtCompound, name: &str) -> Result<Self, Error>
+    fn decode_from_compound(nbt: &NbtCompound, name: &str) -> Result<Self, Error>
     where
         Self: Sized,
     {
@@ -221,7 +221,7 @@ impl NBTDecodable for i64 {
         }
     }
 
-    fn decode_from_list(nbt: NbtList) -> Result<Vec<Self>, Error>
+    fn decode_from_list(nbt: &NbtList) -> Result<Vec<Self>, Error>
     where
         Self: Sized,
     {
@@ -237,7 +237,7 @@ impl NBTDecodable for i64 {
 }
 
 impl NBTDecodable for f32 {
-    fn decode_from_base(nbt: BaseNbt, name: &str) -> Result<Self, Error>
+    fn decode_from_base(nbt: &BaseNbt, name: &str) -> Result<Self, Error>
     where
         Self: Sized,
     {
@@ -254,7 +254,7 @@ impl NBTDecodable for f32 {
         }
     }
 
-    fn decode_from_compound(nbt: NbtCompound, name: &str) -> Result<Self, Error>
+    fn decode_from_compound(nbt: &NbtCompound, name: &str) -> Result<Self, Error>
     where
         Self: Sized,
     {
@@ -271,7 +271,7 @@ impl NBTDecodable for f32 {
         }
     }
 
-    fn decode_from_list(nbt: NbtList) -> Result<Vec<Self>, Error>
+    fn decode_from_list(nbt: &NbtList) -> Result<Vec<Self>, Error>
     where
         Self: Sized,
     {
@@ -287,7 +287,7 @@ impl NBTDecodable for f32 {
 }
 
 impl NBTDecodable for f64 {
-    fn decode_from_base(nbt: BaseNbt, name: &str) -> Result<Self, Error>
+    fn decode_from_base(nbt: &BaseNbt, name: &str) -> Result<Self, Error>
     where
         Self: Sized,
     {
@@ -304,7 +304,7 @@ impl NBTDecodable for f64 {
         }
     }
 
-    fn decode_from_compound(nbt: NbtCompound, name: &str) -> Result<Self, Error>
+    fn decode_from_compound(nbt: &NbtCompound, name: &str) -> Result<Self, Error>
     where
         Self: Sized,
     {
@@ -321,7 +321,7 @@ impl NBTDecodable for f64 {
         }
     }
 
-    fn decode_from_list(nbt: NbtList) -> Result<Vec<Self>, Error>
+    fn decode_from_list(nbt: &NbtList) -> Result<Vec<Self>, Error>
     where
         Self: Sized,
     {
@@ -337,7 +337,7 @@ impl NBTDecodable for f64 {
 }
 
 impl NBTDecodable for ByteArray {
-    fn decode_from_base(nbt: BaseNbt, name: &str) -> Result<Self, Error>
+    fn decode_from_base(nbt: &BaseNbt, name: &str) -> Result<Self, Error>
     where
         Self: Sized,
     {
@@ -354,7 +354,7 @@ impl NBTDecodable for ByteArray {
         }
     }
 
-    fn decode_from_compound(nbt: NbtCompound, name: &str) -> Result<Self, Error>
+    fn decode_from_compound(nbt: &NbtCompound, name: &str) -> Result<Self, Error>
     where
         Self: Sized,
     {
@@ -371,7 +371,7 @@ impl NBTDecodable for ByteArray {
         }
     }
 
-    fn decode_from_list(nbt: NbtList) -> Result<Vec<Self>, Error>
+    fn decode_from_list(nbt: &NbtList) -> Result<Vec<Self>, Error>
     where
         Self: Sized,
     {
@@ -385,7 +385,7 @@ impl NBTDecodable for ByteArray {
 }
 
 impl NBTDecodable for String {
-    fn decode_from_base(nbt: BaseNbt, name: &str) -> Result<Self, Error>
+    fn decode_from_base(nbt: &BaseNbt, name: &str) -> Result<Self, Error>
     where
         Self: Sized,
     {
@@ -402,7 +402,7 @@ impl NBTDecodable for String {
         }
     }
 
-    fn decode_from_compound(nbt: NbtCompound, name: &str) -> Result<Self, Error>
+    fn decode_from_compound(nbt: &NbtCompound, name: &str) -> Result<Self, Error>
     where
         Self: Sized,
     {
@@ -419,7 +419,7 @@ impl NBTDecodable for String {
         }
     }
 
-    fn decode_from_list(nbt: NbtList) -> Result<Vec<Self>, Error>
+    fn decode_from_list(nbt: &NbtList) -> Result<Vec<Self>, Error>
     where
         Self: Sized,
     {
@@ -433,7 +433,7 @@ impl NBTDecodable for String {
 }
 
 impl<T: NBTDecodable> NBTDecodable for Vec<T> {
-    fn decode_from_base(nbt: BaseNbt, name: &str) -> Result<Self, Error>
+    fn decode_from_base(nbt: &BaseNbt, name: &str) -> Result<Self, Error>
     where
         Self: Sized,
     {
@@ -450,7 +450,7 @@ impl<T: NBTDecodable> NBTDecodable for Vec<T> {
         }
     }
 
-    fn decode_from_compound(nbt: NbtCompound, name: &str) -> Result<Self, Error>
+    fn decode_from_compound(nbt: &NbtCompound, name: &str) -> Result<Self, Error>
     where
         Self: Sized,
     {
@@ -467,7 +467,7 @@ impl<T: NBTDecodable> NBTDecodable for Vec<T> {
         }
     }
 
-    fn decode_from_list(nbt: NbtList) -> Result<Vec<Self>, Error>
+    fn decode_from_list(nbt: &NbtList) -> Result<Vec<Self>, Error>
     where
         Self: Sized,
     {
@@ -491,7 +491,7 @@ impl<T: NBTDecodable> NBTDecodable for Vec<T> {
 }
 
 impl<T: NBTDecodable> NBTDecodable for Option<T> {
-    fn decode_from_base(nbt: BaseNbt, name: &str) -> Result<Self, Error>
+    fn decode_from_base(nbt: &BaseNbt, name: &str) -> Result<Self, Error>
     where
         Self: Sized,
     {
@@ -504,7 +504,7 @@ impl<T: NBTDecodable> NBTDecodable for Option<T> {
         }
     }
 
-    fn decode_from_compound(nbt: NbtCompound, name: &str) -> Result<Self, Error>
+    fn decode_from_compound(nbt: &NbtCompound, name: &str) -> Result<Self, Error>
     where
         Self: Sized,
     {
@@ -517,7 +517,7 @@ impl<T: NBTDecodable> NBTDecodable for Option<T> {
         }
     }
 
-    fn decode_from_list(nbt: NbtList) -> Result<Vec<Self>, Error>
+    fn decode_from_list(nbt: &NbtList) -> Result<Vec<Self>, Error>
     where
         Self: Sized,
     {

@@ -24,7 +24,7 @@ pub fn packet(args: TokenStream, input: TokenStream) -> TokenStream {
     packet::attribute(args, input)
 }
 
-#[proc_macro_derive(NBTDecode)]
+#[proc_macro_derive(NBTDecode, attributes(nbtcompound))]
 pub fn nbt_decode_derive(input: TokenStream) -> TokenStream {
     nbt_decode::decode(input)
 }

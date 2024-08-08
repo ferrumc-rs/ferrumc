@@ -31,6 +31,14 @@ mod tests {
         #[derive(NBTDecode)]
         struct Test {
             test: i32,
+            #[nbtcompound]
+            nested: Nested,
+        }
+
+        #[derive(NBTDecode)]
+        #[nbtcompound]
+        struct Nested {
+            second_test: i8,
         }
     }
 }

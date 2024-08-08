@@ -46,7 +46,7 @@ pub enum Error {
     InvalidNbt(String),
     #[error(transparent)]
     NbtDeserializeError(#[from] simdnbt::DeserializeError),
-    #[error(transparent)]
+    #[error("Invalid NBT: {0}")]
     GenericNbtError(String),
 
     #[error("Database error: {0}")]
