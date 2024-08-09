@@ -31,7 +31,21 @@ mod state;
 pub mod world;
 
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() {
+    let result = entry().await;
+
+    match result {
+        Ok(_) => {
+            info!("Server exited successfully!");
+        }
+        Err(e) => {
+            error!("Server exited with an error");
+            error!("{}", e);
+        }
+    }
+}
+
+async fn entry() -> Result<()> {
     utils::setup_logger()?;
 
     if handle_setup().await? {
@@ -46,7 +60,7 @@ async fn main() -> Result<()> {
 
     debug!("Found Config: \n{:#?} \nin {:?}", config, elapsed);
 
-    start_server().await.expect("Server failed to start!");
+    start_server().await?;
 
     tokio::signal::ctrl_c().await?;
 
@@ -62,7 +76,20 @@ async fn start_server() -> Result<()> {
 
     let tcp_addr = format!("{}:{}", config.host, config.port);
 
-    let listener = TcpListener::bind(tcp_addr).await?;
+    // let listener = TcpListener::bind(tcp_addr).await?;
+    let Ok(listener) = TcpListener::bind(tcp_addr.clone()).await else {
+        /*error!("Failed to bind to address: {}", &tcp_addr);
+        error!("Perhaps the address {} is already in use?", &tcp_addr);
+        return Err(Error::TcpError("Failed to bind to address".to_string()));*/
+        // let error = format!("Failed to bind to address: {} \nPerhaps the address {} is already in use?", &tcp_addr, &tcp_addr);
+        //
+        // error!("{}", error);
+
+        error!("Failed to bind to address: {}", &tcp_addr);
+        error!("Perhaps the port {} is already in use?", &config.port);
+
+        return Err(Error::TcpError("Failed to bind to address".to_string()));
+    };
 
     let addr = listener.local_addr()?;
 

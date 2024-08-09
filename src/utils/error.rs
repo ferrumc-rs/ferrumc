@@ -48,6 +48,9 @@ pub enum Error {
 
     #[error("Invalid directive: {0}")]
     InvalidDirective(String),
+
+    #[error("TCP Error: {0}")]
+    TcpError(String),
 }
 
 impl From<Infallible> for Error {

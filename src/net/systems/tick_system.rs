@@ -1,7 +1,8 @@
-use async_trait::async_trait;
-use tracing::{info};
+use std::hint::black_box;
 
+use async_trait::async_trait;
 use ferrumc_macros::AutoGenName;
+use tracing::{debug, info};
 
 use crate::net::systems::System;
 use crate::state::GlobalState;
@@ -25,7 +26,6 @@ impl System for TickSystem {
                 );
             }
 
-            // debug!("Time taken to run tick system: {:?}", tick_start.elapsed());
             tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
         }
     }
