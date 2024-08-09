@@ -1,7 +1,9 @@
+use serde_derive::{Deserialize, Serialize};
 use simdnbt::borrow::{BaseNbt, NbtCompound, NbtList};
 
 use crate::utils::error::Error;
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ByteArray(pub Vec<u8>);
 
 impl From<Vec<u8>> for ByteArray {
@@ -19,6 +21,27 @@ impl From<ByteArray> for Vec<u8> {
 impl From<&[u8]> for ByteArray {
     fn from(value: &[u8]) -> Self {
         ByteArray(value.to_vec())
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct LongArray(pub Vec<i64>);
+
+impl From<Vec<i64>> for LongArray {
+    fn from(value: Vec<i64>) -> Self {
+        LongArray(value)
+    }
+}
+
+impl From<LongArray> for Vec<i64> {
+    fn from(value: LongArray) -> Self {
+        value.0
+    }
+}
+
+impl From<&[i64]> for LongArray {
+    fn from(value: &[i64]) -> Self {
+        LongArray(value.to_vec())
     }
 }
 
@@ -384,6 +407,54 @@ impl NBTDecodable for ByteArray {
     }
 }
 
+impl NBTDecodable for LongArray {
+    fn decode_from_base(nbt: &BaseNbt, name: &str) -> Result<Self, Error>
+    where
+        Self: Sized,
+    {
+        if !nbt.contains(name) {
+            return Err(Error::GenericNbtError(
+                format!("Could not find Vec<i64> named {} in base nbt", name).to_string(),
+            ));
+        }
+        match nbt.long_array(name) {
+            Some(value) => Ok(value.to_vec().into()),
+            None => Err(Error::GenericNbtError(
+                format!("Could not decode Vec<i64> named {} from base nbt", name).to_string(),
+            )),
+        }
+    }
+
+    fn decode_from_compound(nbt: &NbtCompound, name: &str) -> Result<Self, Error>
+    where
+        Self: Sized,
+    {
+        if !nbt.contains(name) {
+            return Err(Error::GenericNbtError(
+                format!("Could not find Vec<i64> named {} in compound nbt", name).to_string(),
+            ));
+        }
+        match nbt.long_array(name) {
+            Some(value) => Ok(value.into()),
+            None => Err(Error::GenericNbtError(
+                format!("Could not decode Vec<i64> named {} from compound nbt", name).to_string(),
+            )),
+        }
+    }
+
+    fn decode_from_list(nbt: &NbtList) -> Result<Vec<Self>, Error>
+    where
+        Self: Sized,
+    {
+        match nbt.long_arrays() {
+            Some(value) => Ok(value.to_vec().iter().map(|x| x.to_vec().into()).collect()),
+            None => Err(Error::GenericNbtError(
+                "Could not decode Vec<Vec<i64>> from list nbt".to_string(),
+            )),
+        }
+    }
+}
+
 impl NBTDecodable for String {
     fn decode_from_base(nbt: &BaseNbt, name: &str) -> Result<Self, Error>
     where
@@ -443,7 +514,7 @@ impl<T: NBTDecodable> NBTDecodable for Vec<T> {
             ));
         }
         match nbt.list(name) {
-            Some(value) => T::decode_from_list(value),
+            Some(value) => T::decode_from_list(&value),
             None => Err(Error::GenericNbtError(
                 format!("Could not decode Vec<T> named {} from base nbt", name).to_string(),
             )),
@@ -460,7 +531,7 @@ impl<T: NBTDecodable> NBTDecodable for Vec<T> {
             ));
         }
         match nbt.list(name) {
-            Some(value) => T::decode_from_list(value),
+            Some(value) => T::decode_from_list(&value),
             None => Err(Error::GenericNbtError(
                 format!("Could not decode Vec<T> named {} from compound nbt", name).to_string(),
             )),
@@ -477,7 +548,7 @@ impl<T: NBTDecodable> NBTDecodable for Vec<T> {
                 for element in value {
                     element.lists().map(|x| {
                         for y in x {
-                            vec.push(T::decode_from_list(y).unwrap())
+                            vec.push(T::decode_from_list(&y).unwrap())
                         }
                     });
                 }

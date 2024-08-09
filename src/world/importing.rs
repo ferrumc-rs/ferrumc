@@ -21,7 +21,7 @@ pub async fn import_regions(
         let mut region = fastanvil::Region::from_stream(file)?;
         for chunk in region.iter() {
             let chunk = chunk?.data;
-            let chunk_nbt: Chunk = fastnbt::from_bytes(&chunk)?;
+            let chunk_nbt: Chunk = Chunk::decode(chunk).unwrap();
             let x = chunk_nbt.x_pos.clone();
             let z = chunk_nbt.z_pos.clone();
             let record = state

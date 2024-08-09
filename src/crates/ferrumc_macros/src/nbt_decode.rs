@@ -1,7 +1,7 @@
 use proc_macro::TokenStream;
 
-use quote::quote;
-use syn::{DeriveInput, parse_macro_input};
+use quote::{quote, ToTokens};
+use syn::{DeriveInput, Meta, parse_macro_input};
 
 pub fn decode(input: TokenStream) -> TokenStream {
     // Parse the input tokens into a syntax tree
@@ -30,20 +30,41 @@ pub fn decode(input: TokenStream) -> TokenStream {
                 .attrs
                 .iter()
                 .any(|attr| attr.path().is_ident("nbtcompound"));
+            let is_renamed = field
+                .attrs
+                .iter()
+                .any(|attr| attr.path().is_ident("rename"));
+            let name = if is_renamed {
+                let rename = field
+                    .attrs
+                    .iter()
+                    .find(|attr| attr.path().is_ident("rename"))
+                    .unwrap();
+                let meta = rename.clone().meta;
+                match meta {
+                    Meta::NameValue(meta) => {
+                        meta.value.into_token_stream().to_string().replace("\"", "")
+                    }
+                    _ => panic!("Invalid rename attribute"),
+                }
+            } else {
+                ident.to_string()
+            };
+            let fail_message = format!("Tried to read {} that doesn't exist", name);
             if is_field_nbtcompound {
                 statements.push(quote! {
-                #ident: #type_name::decode_from_compound(&nbt.compound(stringify!(#ident)).unwrap())?,
+                #ident: <#type_name as crate::utils::nbt_impls::NBTDecodable>::decode_from_compound(&nbt.compound(#name).expect(#fail_message), "")?,
                 });
             } else if is_nbtcompound {
                 statements.push(
                     quote! {
-                    #ident: <#type_name as crate::utils::nbt_impls::NBTDecodable>::decode_from_compound(nbt, stringify!(#ident))?,
+                    #ident: <#type_name as crate::utils::nbt_impls::NBTDecodable>::decode_from_compound(nbt, #name).expect(#fail_message),
                     },
                 );
             } else {
                 statements.push(
                 quote! {
-                    #ident: <#type_name as crate::utils::nbt_impls::NBTDecodable>::decode_from_base(&nbt, stringify!(#ident))?,
+                    #ident: <#type_name as crate::utils::nbt_impls::NBTDecodable>::decode_from_base(&nbt, #name).expect(#fail_message),
                     },
             );
             };
@@ -56,9 +77,19 @@ pub fn decode(input: TokenStream) -> TokenStream {
     // Generate the implementation
     let expanded = if is_nbtcompound {
         quote! {
-            impl #name {
+            impl crate::utils::nbt_impls::NBTDecodable for #name {
 
-                pub fn decode_from_compound(nbt: &simdnbt::borrow::NbtCompound) -> core::result::Result<Self, crate::utils::error::Error>
+                fn decode_from_base(_: &simdnbt::borrow::BaseNbt, _: &str) -> core::result::Result<Self, crate::utils::error::Error>
+                {
+                    panic!("This should never be called");
+                }
+
+                fn decode_from_list(_: &simdnbt::borrow::NbtList) -> core::result::Result<Vec<Self>, crate::utils::error::Error>
+                {
+                    panic!("This should never be called");
+                }
+
+                fn decode_from_compound(nbt: &simdnbt::borrow::NbtCompound, _: &str) -> core::result::Result<Self, crate::utils::error::Error>
                 {
                     Ok(Self {
                         #(#statements)*

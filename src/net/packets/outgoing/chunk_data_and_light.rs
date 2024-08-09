@@ -203,9 +203,11 @@ impl From<&ChunkSection> for ChunkSectionEncode {
 }*/
 
 use std::io::Cursor;
-use ferrumc_macros::Encode;
-use simdnbt::Deserialize;
+
+use simdnbt::{Deserialize, Serialize};
 use tokio::io::AsyncWriteExt;
+
+use ferrumc_macros::Encode;
 
 use crate::net::systems::chunk_sender::GET_REGION;
 use crate::utils::encoding::bitset::BitSet;
@@ -267,7 +269,8 @@ impl ChunkDataAndUpdateLight {
 
         // Create dummy chunk data
         let mut buffer = Cursor::new(Vec::new());
-        for _ in 0..24 { // 24 sections for 1.18+ worlds
+        for _ in 0..24 {
+            // 24 sections for 1.18+ worlds
             let chunk_section_enc = ChunkSectionEncode::new_stone();
             chunk_section_enc.encode(&mut buffer).await?;
         }
@@ -357,7 +360,7 @@ impl PalettedContainer {
 }
 
 async fn create_dummy_heightmaps() -> Chunk {
-    let mut  chunk_read = GET_REGION().write().await;
+    let mut chunk_read = GET_REGION().write().await;
     let chunk = chunk_read.read_chunk(15, 30).unwrap(); // Get a chunk from the region
     let chunk = chunk.expect("Failed to read chunk data");
 
@@ -371,8 +374,9 @@ async fn create_dummy_heightmaps() -> Chunk {
     // You might want to add WORLD_SURFACE as well, but it's not strictly necessary
     compound*/
 
-    let base_nbt = simdnbt::borrow::read(&mut Cursor::new(&chunk)).expect("Failed to parse chunk data^1").unwrap();
-
+    let base_nbt = simdnbt::borrow::read(&mut Cursor::new(&chunk))
+        .expect("Failed to parse chunk data^1")
+        .unwrap();
 
     let chunk = Chunk::from_nbt(&base_nbt).unwrap();
 
@@ -388,7 +392,6 @@ async fn try_load_heightmaps() {
     nbt.write(&mut bytes);
 
     println!("{:?}", bytes);
-
 
     /*let nbt = heightmaps.to_compound();
     // convert nbt into bytes

@@ -2,6 +2,8 @@
 mod tests {
     use std::io::Cursor;
 
+    use serde_derive::{Deserialize, Serialize};
+
     use ferrumc_macros::{Decode, NBTDecode};
 
     use crate::utils::encoding::varint::VarInt;
@@ -28,17 +30,30 @@ mod tests {
 
     #[tokio::test]
     async fn test_nbt_decode() {
-        #[derive(NBTDecode)]
+        #[derive(NBTDecode, Serialize, Deserialize, Clone)]
         struct Test {
             test: i32,
             #[nbtcompound]
             nested: Nested,
         }
 
-        #[derive(NBTDecode)]
+        #[derive(NBTDecode, Serialize, Deserialize, Clone)]
         #[nbtcompound]
         struct Nested {
             second_test: i8,
         }
+
+        let structed = Test {
+            test: 1,
+            nested: Nested { second_test: 2 },
+        };
+
+        let data = fastnbt::to_bytes(&structed).unwrap();
+
+        let decoded = Test::decode(data);
+        assert!(decoded.is_ok());
+        let decoded = decoded.unwrap();
+        assert_eq!(decoded.test, 1);
+        assert_eq!(decoded.nested.second_test, 2);
     }
 }
