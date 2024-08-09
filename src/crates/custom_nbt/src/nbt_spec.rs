@@ -1,30 +1,28 @@
 use std::io;
-use std::io::Write;
-
+use tokio::io::{AsyncWrite, AsyncWriteExt};
 pub enum Tag {
     Byte(i8)
 }
 
 pub trait NBTSerialize {
-    fn nbt_serialize<W: Write + Unpin>(&self , writer: &mut W) -> io::Result<()>;
+    async fn nbt_serialize<W: AsyncWrite + Unpin + Send>(&self, writer: &mut W) -> io::Result<()>;
 }
 
 impl NBTSerialize for bool {
-    fn nbt_serialize<W: Write + Unpin>(&self, writer: &mut W) -> io::Result<()> {
+    async fn nbt_serialize<W: AsyncWrite + Unpin + Send>(&self, writer: &mut W) -> io::Result<()> {
         // TAG_Byte
-        writer.write_all(&[1])?;
+        writer.write_u8(1).await?;
 
         // Name length (0 for now, we're not using names in this simple version)
-        writer.write_all(&[0, 0])?;
+        writer.write_u16(0).await?;
 
         // Value
-        writer.write_all(&[*self as u8])?;
+        writer.write_i8(*self as i8).await?;
 
         Ok(())
     }
 }
 
-pub fn serialize_to_nbt<T: NBTSerialize, W: Write + Unpin>(value: &T, writer: &mut W) -> io::Result<()> {
-    value.nbt_serialize(writer)
+pub async fn serialize_to_nbt<T: NBTSerialize, W: AsyncWrite + Unpin + Send>(value: &T, writer: &mut W) -> io::Result<()> {
+    value.nbt_serialize(writer).await
 }
-

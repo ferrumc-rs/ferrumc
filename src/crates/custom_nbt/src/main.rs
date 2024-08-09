@@ -4,9 +4,10 @@ use crate::nbt_spec::serialize_to_nbt;
 
 mod nbt_spec;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let mut buffer = Vec::new();
-    serialize_to_nbt(&true, &mut buffer).unwrap();
+    serialize_to_nbt(&true, &mut buffer).await.unwrap();
 
     // write it to a file
     let exe_path = current_exe().unwrap();
