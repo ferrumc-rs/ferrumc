@@ -1,45 +1,30 @@
-use std::io::{Read, Write};
+use std::io;
+use std::io::Write;
 
-#[derive(Debug, PartialEq)]
 pub enum Tag {
-    End,
-    Byte(i8),
-    Short(i16),
-    Int(i32),
-    Long(i64),
-    Float(f32),
-    Double(f64),
-    ByteArray(Vec<i8>),
-    String(String),
-    List(Vec<Tag>),
-    Compound(Vec<(String, Tag)>),
-    IntArray(Vec<i32>),
-    LongArray(Vec<i64>),
+    Byte(i8)
 }
 
-pub struct NBTSerializer;
+pub trait NBTSerialize {
+    fn nbt_serialize<W: Write + Unpin>(&self , writer: &mut W) -> io::Result<()>;
+}
 
-impl NBTSerializer {
-    pub fn serialize<W: Write>(tag: &Tag, writer: &mut W) -> std::io::Result<()> {
-        // TODO: Implement serialization
+impl NBTSerialize for bool {
+    fn nbt_serialize<W: Write + Unpin>(&self, writer: &mut W) -> io::Result<()> {
+        // TAG_Byte
+        writer.write_all(&[1])?;
+
+        // Name length (0 for now, we're not using names in this simple version)
+        writer.write_all(&[0, 0])?;
+
+        // Value
+        writer.write_all(&[*self as u8])?;
+
         Ok(())
     }
-
-    pub fn deserialize<R: Read>(reader: &mut R) -> std::io::Result<Tag> {
-        // TODO: Implement deserialization
-        Ok(Tag::End)
-    }
 }
 
-#[derive(Debug)]
-pub enum NBTError {
-    IoError(std::io::Error),
-    InvalidTagType(u8),
-    // Add more error types as needed
+pub fn serialize_to_nbt<T: NBTSerialize, W: Write + Unpin>(value: &T, writer: &mut W) -> io::Result<()> {
+    value.nbt_serialize(writer)
 }
 
-impl From<std::io::Error> for NBTError {
-    fn from(err: std::io::Error) -> Self {
-        NBTError::IoError(err)
-    }
-}
