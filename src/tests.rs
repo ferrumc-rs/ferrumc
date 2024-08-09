@@ -34,7 +34,7 @@ mod tests {
         struct Test {
             test: i32,
             #[nbtcompound]
-            nested: Nested,
+            nested: Option<Nested>,
         }
 
         #[derive(NBTDecode, Serialize, Deserialize, Clone)]
@@ -45,7 +45,7 @@ mod tests {
 
         let structed = Test {
             test: 1,
-            nested: Nested { second_test: 2 },
+            nested: Some(Nested { second_test: 2 }),
         };
 
         let data = fastnbt::to_bytes(&structed).unwrap();
@@ -54,6 +54,6 @@ mod tests {
         assert!(decoded.is_ok());
         let decoded = decoded.unwrap();
         assert_eq!(decoded.test, 1);
-        assert_eq!(decoded.nested.second_test, 2);
+        assert_eq!(decoded.nested.unwrap().second_test, 2);
     }
 }
