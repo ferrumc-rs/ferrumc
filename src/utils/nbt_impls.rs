@@ -579,13 +579,22 @@ impl<T: NBTDecodable> NBTDecodable for Option<T> {
     where
         Self: Sized,
     {
-        if !nbt.contains(name) {
+        // Already in compound
+        if name.is_empty() {
+            T::decode_from_compound(nbt, name).map(|x| Some(x))
+        }else {
+            match nbt.compound(name) {
+                Some(nested_nbt) => T::decode_from_compound(&nested_nbt, "").map(|x| Some(x)),
+                None => Ok(None),
+            }
+        }
+        /*if !nbt.contains(name) || nbt.compound(name).is_none() {
             return Ok(None);
         }
         match T::decode_from_compound(nbt, name) {
             Ok(value) => Ok(Some(value)),
             Err(e) => Err(e),
-        }
+        }*/
     }
 
     fn decode_from_list(nbt: &NbtList) -> Result<Vec<Self>, Error>

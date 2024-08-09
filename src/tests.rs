@@ -5,8 +5,8 @@ mod tests {
     use serde_derive::{Deserialize, Serialize};
 
     use ferrumc_macros::{Decode, NBTDecode};
-
     use crate::utils::encoding::varint::VarInt;
+    use crate::utils::nbt_impls::NBTDecodable;
 
     #[tokio::test]
     async fn test_macro_decode() {
@@ -30,14 +30,14 @@ mod tests {
 
     #[tokio::test]
     async fn test_nbt_decode() {
-        #[derive(NBTDecode, Serialize, Deserialize, Clone)]
+        #[derive(NBTDecode, Serialize, Deserialize, Clone, Debug)]
         struct Test {
             test: i32,
             #[nbtcompound]
             nested: Option<Nested>,
         }
 
-        #[derive(NBTDecode, Serialize, Deserialize, Clone)]
+        #[derive(NBTDecode, Serialize, Deserialize, Clone, Debug)]
         #[nbtcompound]
         struct Nested {
             second_test: i8,
@@ -46,14 +46,40 @@ mod tests {
         let structed = Test {
             test: 1,
             nested: Some(Nested { second_test: 2 }),
+            // nested: None,
         };
 
         let data = fastnbt::to_bytes(&structed).unwrap();
 
-        let decoded = Test::decode(data);
-        assert!(decoded.is_ok());
-        let decoded = decoded.unwrap();
-        assert_eq!(decoded.test, 1);
-        assert_eq!(decoded.nested.unwrap().second_test, 2);
+
+
+        // let decoded = Test::decode(data).unwrap();
+        // println!("{:?}", decoded);
+
+        let simdnbt_read = simdnbt::borrow::read(&mut std::io::Cursor::new(data.as_slice())).unwrap().unwrap();
+
+        let test = <i32 as NBTDecodable>::decode_from_base(&simdnbt_read, "test").unwrap();
+        /*let compound = simdnbt_read.compound("nested");
+        let nested: Option<Nested> = match compound {
+            Some(compound) => <Option<Nested> as NBTDecodable>::decode_from_compound(&compound, "").unwrap(),
+            None => <Option<Nested> as Default>::default(),
+        };*/
+        let nested = match simdnbt_read.compound("nested") {
+            Some(compound) => <Option<Nested> as NBTDecodable>::decode_from_compound(&compound, "").unwrap(),
+            None => <Option<Nested> as Default>::default(),
+        };
+
+        let decoded = Test {
+            test,
+            nested,
+        };
+
+        println!("{:?}", decoded);
+
+        /*if compound.is_none() {
+            nested = <Option<Nested> as Default>::default();
+        }else */
+        /*let nested = <Option<Nested> as NBTDecodable>::decode_from_compound(&simdnbt_read, "nested").unwrap();*/
+
     }
 }

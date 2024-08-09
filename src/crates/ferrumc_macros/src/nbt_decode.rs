@@ -17,9 +17,9 @@ pub fn decode(input: TokenStream) -> TokenStream {
 
     // Check if our struct has named fields
     if let syn::Data::Struct(syn::DataStruct {
-        fields: syn::Fields::Named(fields),
-        ..
-    }) = input.data
+                                 fields: syn::Fields::Named(fields),
+                                 ..
+                             }) = input.data
     {
         for field in fields.named {
             // Get the identifier of the field
@@ -50,11 +50,32 @@ pub fn decode(input: TokenStream) -> TokenStream {
             } else {
                 ident.to_string()
             };
+
+            let is_optional = if let syn::Type::Path(type_path) = &type_name {
+                type_path.path.segments.iter().any(|segment| {
+                    segment.ident == "Option"
+                })
+            } else {
+                false
+            };
             let fail_message = format!("Tried to read {} that doesn't exist", name);
             if is_field_nbtcompound {
-                statements.push(quote! {
-                #ident: <#type_name as crate::utils::nbt_impls::NBTDecodable>::decode_from_compound(&nbt.compound(#name).expect(#fail_message), "")?,
-                });
+                if is_optional {
+                    statements.push(
+                        quote! {
+                            #ident: match nbt.compound(#name) {
+                                Some(compound) => <#type_name as crate::utils::nbt_impls::NBTDecodable>::decode_from_compound(&compound, "").expect(#fail_message),
+                                None => None,
+                            },
+                        }
+                    );
+                }else {
+                    statements.push(
+                        quote! {
+                            #ident: <#type_name as crate::utils::nbt_impls::NBTDecodable>::decode_from_compound(&nbt.compound(#name).expect(#fail_message), "").expect(#fail_message),
+                        }
+                    );
+                }
             } else if is_nbtcompound {
                 statements.push(
                     quote! {
@@ -63,10 +84,10 @@ pub fn decode(input: TokenStream) -> TokenStream {
                 );
             } else {
                 statements.push(
-                quote! {
+                    quote! {
                     #ident: <#type_name as crate::utils::nbt_impls::NBTDecodable>::decode_from_base(&nbt, #name).expect(#fail_message),
                     },
-            );
+                );
             };
         }
     }
