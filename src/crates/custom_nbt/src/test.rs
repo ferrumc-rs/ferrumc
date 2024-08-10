@@ -24,6 +24,7 @@ pub struct Item {
 }
 
 #[derive(serde::Serialize)]
+#[serde(rename_all = "PascalCase")]
 pub struct PlayerAbilities {
     pub invulnerable: bool,
     pub flying: bool,

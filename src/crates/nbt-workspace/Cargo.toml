@@ -1,0 +1,14 @@
+[workspace]
+members = [
+    "nbt-lib",
+    "nbt-derive",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["Sweattypalms", "Recore_"]
+license = "MIT"
+
+[dev-dependencies]
+criterion = { version = "0.5.1", features = ["html_reports"] }

@@ -1,0 +1,9 @@
+[package]
+name = "nbt-lib"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+
+[dependencies]
+nbt-derive = { path = "../nbt-derive" }
