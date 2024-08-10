@@ -1,11 +1,10 @@
 use std::io::{self, Write};
 use std::collections::HashMap;
-use serde::Serialize;
 use crate::nbt_spec::serializer::NBTSerialize;
 use crate::nbt_spec::tag_types;
 use crate::nbt_spec::named_tag::NamedTag;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug)]
 pub enum Tag {
     End,
     Byte(i8),

@@ -1,7 +1,6 @@
 
 use std::io;
 use std::io::Write;
-
 use crate::nbt_spec::serializer::NBTSerialize;
 use crate::nbt_spec::tag::Tag;
 

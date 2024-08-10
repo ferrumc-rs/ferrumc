@@ -1,65 +1,103 @@
 use std::collections::HashMap;
 use crate::nbt_spec::named_tag::NamedTag;
-use crate::nbt_spec::serializer::NBTSerialize;
 use crate::nbt_spec::tag::Tag;
 
+#[derive(serde::Serialize)]
+#[serde(rename_all = "PascalCase")]
 pub struct NBTTestStruct {
-    pub byte_field: i8,
-    pub short_field: i16,
-    pub int_field: i32,
-    pub long_field: i64,
-    pub float_field: f32,
-    pub double_field: f64,
-    pub string_field: String,
-    pub byte_array_field: Vec<i8>,
-    pub int_array_field: Vec<i32>,
-    pub long_array_field: Vec<i64>,
-    pub list_field: Vec<Tag>,
-    pub compound_field: HashMap<String, NamedTag>,
+    pub player_name: String,
+    pub health: f32,
+    pub food_level: i32,
+    pub xp_level: i32,
+    pub xp_total: i32,
+    pub position: Vec<f64>,
+    pub inventory: Vec<Item>,
+    pub abilities: PlayerAbilities,
+    pub stats: HashMap<String, i32>,
+}
+
+#[derive(serde::Serialize)]
+pub struct Item {
+    pub id: String,
+    pub count: i8,
+    pub damage: i16,
+}
+
+#[derive(serde::Serialize)]
+pub struct PlayerAbilities {
+    pub invulnerable: bool,
+    pub flying: bool,
+    pub allow_flying: bool,
+    pub creative_mode: bool,
 }
 
 impl NBTTestStruct {
     pub fn new() -> Self {
         NBTTestStruct {
-            byte_field: 127,
-            short_field: 32767,
-            int_field: 2147483647,
-            long_field: 9223372036854775807,
-            float_field: std::f32::consts::PI,
-            double_field: std::f64::consts::E,
-            string_field: "Hello, NBT!".to_string(),
-            byte_array_field: vec![i8::MIN, 0, i8::MAX],
-            int_array_field: vec![i32::MIN, 0, i32::MAX],
-            long_array_field: vec![i64::MIN, 0, i64::MAX],
-            list_field: vec![
-                Tag::Int(1),
-                Tag::Int(2),
-                Tag::Int(3),
+            player_name: "Steve".to_string(),
+            health: 20.0,
+            food_level: 20,
+            xp_level: 30,
+            xp_total: 1500,
+            position: vec![100.5, 64.0, -200.5],
+            inventory: vec![
+                Item { id: "minecraft:diamond_sword".to_string(), count: 1, damage: 0 },
+                Item { id: "minecraft:apple".to_string(), count: 64, damage: 0 },
+                Item { id: "minecraft:oak_planks".to_string(), count: 32, damage: 0 },
             ],
-            compound_field: {
+            abilities: PlayerAbilities {
+                invulnerable: false,
+                flying: false,
+                allow_flying: true,
+                creative_mode: false,
+            },
+            stats: {
                 let mut map = HashMap::new();
-                map.insert("nested_string".to_string(), NamedTag::new("nested_string".to_string(), Tag::String("Nested compound value".to_string())));
-                map.insert("nested_int".to_string(), NamedTag::new("nested_int".to_string(), Tag::Int(42)));
+                map.insert("mob_kills".to_string(), 100);
+                map.insert("distance_walked".to_string(), 10000);
+                map.insert("play_time".to_string(), 36000);
                 map
             },
         }
     }
+
     pub fn to_nbt(self) -> NamedTag {
         let mut compound = HashMap::new();
 
-        compound.insert("byte_field".to_string(), NamedTag::new("byte_field".to_string(), Tag::Byte(self.byte_field)));
-        compound.insert("short_field".to_string(), NamedTag::new("short_field".to_string(), Tag::Short(self.short_field)));
-        compound.insert("int_field".to_string(), NamedTag::new("int_field".to_string(), Tag::Int(self.int_field)));
-        compound.insert("long_field".to_string(), NamedTag::new("long_field".to_string(), Tag::Long(self.long_field)));
-        compound.insert("float_field".to_string(), NamedTag::new("float_field".to_string(), Tag::Float(self.float_field)));
-        compound.insert("double_field".to_string(), NamedTag::new("double_field".to_string(), Tag::Double(self.double_field)));
-        compound.insert("string_field".to_string(), NamedTag::new("string_field".to_string(), Tag::String(self.string_field)));
-        compound.insert("byte_array_field".to_string(), NamedTag::new("byte_array_field".to_string(), Tag::ByteArray(self.byte_array_field)));
-        compound.insert("int_array_field".to_string(), NamedTag::new("int_array_field".to_string(), Tag::IntArray(self.int_array_field)));
-        compound.insert("long_array_field".to_string(), NamedTag::new("long_array_field".to_string(), Tag::LongArray(self.long_array_field)));
-        compound.insert("list_field".to_string(), NamedTag::new("list_field".to_string(), Tag::List(self.list_field)));
-        compound.insert("compound_field".to_string(), NamedTag::new("compound_field".to_string(), Tag::Compound(self.compound_field)));
+        compound.insert("PlayerName".to_string(), NamedTag::new("PlayerName".to_string(), Tag::String(self.player_name)));
+        compound.insert("Health".to_string(), NamedTag::new("Health".to_string(), Tag::Float(self.health)));
+        compound.insert("FoodLevel".to_string(), NamedTag::new("FoodLevel".to_string(), Tag::Int(self.food_level)));
+        compound.insert("XpLevel".to_string(), NamedTag::new("XpLevel".to_string(), Tag::Int(self.xp_level)));
+        compound.insert("XpTotal".to_string(), NamedTag::new("XpTotal".to_string(), Tag::Int(self.xp_total)));
 
-        NamedTag::new("root".to_string(), Tag::Compound(compound))
+        let pos = Tag::List(vec![
+            Tag::Double(self.position[0]),
+            Tag::Double(self.position[1]),
+            Tag::Double(self.position[2]),
+        ]);
+        compound.insert("Pos".to_string(), NamedTag::new("Pos".to_string(), pos));
+
+        let inventory = Tag::List(self.inventory.into_iter().map(|item| {
+            let mut item_compound = HashMap::new();
+            item_compound.insert("id".to_string(), NamedTag::new("id".to_string(), Tag::String(item.id)));
+            item_compound.insert("Count".to_string(), NamedTag::new("Count".to_string(), Tag::Byte(item.count)));
+            item_compound.insert("Damage".to_string(), NamedTag::new("Damage".to_string(), Tag::Short(item.damage)));
+            Tag::Compound(item_compound)
+        }).collect());
+        compound.insert("Inventory".to_string(), NamedTag::new("Inventory".to_string(), inventory));
+
+        let mut abilities_compound = HashMap::new();
+        abilities_compound.insert("invulnerable".to_string(), NamedTag::new("invulnerable".to_string(), Tag::Byte(self.abilities.invulnerable as i8)));
+        abilities_compound.insert("flying".to_string(), NamedTag::new("flying".to_string(), Tag::Byte(self.abilities.flying as i8)));
+        abilities_compound.insert("allow_flying".to_string(), NamedTag::new("allow_flying".to_string(), Tag::Byte(self.abilities.allow_flying as i8)));
+        abilities_compound.insert("creative_mode".to_string(), NamedTag::new("creative_mode".to_string(), Tag::Byte(self.abilities.creative_mode as i8)));
+        compound.insert("Abilities".to_string(), NamedTag::new("Abilities".to_string(), Tag::Compound(abilities_compound)));
+
+        let stats = Tag::Compound(self.stats.into_iter().map(|(k, v)| {
+            (k.clone(), NamedTag::new(k, Tag::Int(v)))
+        }).collect());
+        compound.insert("Stats".to_string(), NamedTag::new("Stats".to_string(), stats));
+
+        NamedTag::new("Player".to_string(), Tag::Compound(compound))
     }
 }
