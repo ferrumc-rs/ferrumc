@@ -56,46 +56,6 @@ impl NBTTestStruct {
             },
         }
     }
-
-    /*pub fn to_nbt(self) -> NamedTag {
-        let mut compound = HashMap::new();
-
-        compound.insert("PlayerName".to_string(), NamedTag::new("PlayerName".to_string(), Tag::String(self.player_name)));
-        compound.insert("Health".to_string(), NamedTag::new("Health".to_string(), Tag::Float(self.health)));
-        compound.insert("FoodLevel".to_string(), NamedTag::new("FoodLevel".to_string(), Tag::Int(self.food_level)));
-        compound.insert("XpLevel".to_string(), NamedTag::new("XpLevel".to_string(), Tag::Int(self.xp_level)));
-        compound.insert("XpTotal".to_string(), NamedTag::new("XpTotal".to_string(), Tag::Int(self.xp_total)));
-
-        let pos = Tag::List(vec![
-            Tag::Double(self.position[0]),
-            Tag::Double(self.position[1]),
-            Tag::Double(self.position[2]),
-        ]);
-        compound.insert("Pos".to_string(), NamedTag::new("Pos".to_string(), pos));
-
-        let inventory = Tag::List(self.inventory.into_iter().map(|item| {
-            let mut item_compound = HashMap::new();
-            item_compound.insert("id".to_string(), NamedTag::new("id".to_string(), Tag::String(item.id)));
-            item_compound.insert("Count".to_string(), NamedTag::new("Count".to_string(), Tag::Byte(item.count)));
-            item_compound.insert("Damage".to_string(), NamedTag::new("Damage".to_string(), Tag::Short(item.damage)));
-            Tag::Compound(item_compound)
-        }).collect());
-        compound.insert("Inventory".to_string(), NamedTag::new("Inventory".to_string(), inventory));
-
-        let mut abilities_compound = HashMap::new();
-        abilities_compound.insert("invulnerable".to_string(), NamedTag::new("invulnerable".to_string(), Tag::Byte(self.abilities.invulnerable as i8)));
-        abilities_compound.insert("flying".to_string(), NamedTag::new("flying".to_string(), Tag::Byte(self.abilities.flying as i8)));
-        abilities_compound.insert("allow_flying".to_string(), NamedTag::new("allow_flying".to_string(), Tag::Byte(self.abilities.allow_flying as i8)));
-        abilities_compound.insert("creative_mode".to_string(), NamedTag::new("creative_mode".to_string(), Tag::Byte(self.abilities.creative_mode as i8)));
-        compound.insert("Abilities".to_string(), NamedTag::new("Abilities".to_string(), Tag::Compound(abilities_compound)));
-
-        let stats = Tag::Compound(self.stats.into_iter().map(|(k, v)| {
-            (k.clone(), NamedTag::new(k, Tag::Int(v)))
-        }).collect());
-        compound.insert("Stats".to_string(), NamedTag::new("Stats".to_string(), stats));
-
-        NamedTag::new("Player".to_string(), Tag::Compound(compound))
-    }*/
 }
 
 #[test]
@@ -103,7 +63,19 @@ fn validate_generation() {
     use std::fs::File;
     use std::io::Write;
 
-    let root = NBTTestStruct::new();
+    #[derive(Serialize, Debug)]
+    #[nbt(is_root)]
+    struct Root {
+        #[nbt(rename = "test")]
+        test: u8,
+        optional_test: Option<u8>,
+    }
+
+    let root = Root {
+        test: 1,
+        optional_test: Some(2),
+    };
+    // let root = NBTTestStruct::new();
 
     let mut buffer = Vec::new();
 

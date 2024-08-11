@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
 
-use quote::{quote};
+use quote::quote;
 use syn::{Attribute, Data, DeriveInput, parse_macro_input};
 
 const RENAME_NON_ROOT_ERROR: &str = "Rename attribute can only be used with root attribute, please rename the field name of the parent.";
@@ -29,10 +29,26 @@ pub(crate) fn nbt_serialize_derive(input: TokenStream) -> TokenStream {
         let field_rename = parse_field_attributes(&f.attrs);
         let field_name_as_string = field_rename.unwrap_or_else(|| field_name_as_string);
 
-        quote! {
+        let is_optional = if let  syn::Type::Path(path) = field_type {
+            path.path.segments.iter().any(|segment| segment.ident == "Option")
+        } else {
+            false
+        };
+
+        if is_optional {
+            quote! {
+                if let Some(value) = &self.#field_name {
+                    <#field_type as nbt_lib::nbt_spec::impls::NBTTag>::tag_type().serialize(writer)?;
+                    #field_name_as_string.serialize(writer)?;
+                    value.serialize(writer)?;
+                }
+            }
+        } else {
+            quote! {
             <#field_type as nbt_lib::nbt_spec::impls::NBTTag>::tag_type().serialize(writer)?;
             #field_name_as_string.serialize(writer)?;
             self.#field_name.serialize(writer)?;
+        }
         }
     });
 
