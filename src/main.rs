@@ -9,8 +9,6 @@ use std::env;
 use std::sync::Arc;
 use std::sync::atomic::AtomicU32;
 
-use clap::Parser;
-use clap_derive::Parser;
 use dashmap::DashMap;
 use tokio::net::TcpListener;
 use tracing::{debug, error, info, trace};

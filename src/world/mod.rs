@@ -33,7 +33,7 @@ mod tests {
     }
 }
 
-pub async fn load_chunk(state: GlobalState, x: i32, z: i32) -> Result<Chunk, Error> {
+pub async fn load_chunk(_state: GlobalState, x: i32, z: i32) -> Result<Chunk, Error> {
     // TODO: Replace with database call when that is all set up
     let region_area = (
         (x as f64 / 32.0).floor() as i32,

@@ -59,6 +59,55 @@ pub trait NBTDecodable {
         Self: Sized;
 }
 
+
+impl NBTDecodable for bool {
+    fn decode_from_base(nbt: &BaseNbt, name: &str) -> Result<Self, Error>
+    where
+        Self: Sized,
+    {
+        if !nbt.contains(name) {
+            return Err(Error::GenericNbtError(
+                format!("Could not find bool named {} in base nbt", name).to_string(),
+            ));
+        }
+        match nbt.byte(name) {
+            Some(value) => Ok(value != 0),
+            None => Err(Error::GenericNbtError(
+                format!("Could not decode bool named {} from base nbt", name).to_string(),
+            )),
+        }
+    }
+
+    fn decode_from_compound(nbt: &NbtCompound, name: &str) -> Result<Self, Error>
+    where
+        Self: Sized,
+    {
+        if !nbt.contains(name) {
+            return Err(Error::GenericNbtError(
+                format!("Could not find bool named {} in compound nbt", name).to_string(),
+            ));
+        }
+        match nbt.byte(name) {
+            Some(value) => Ok(value != 0),
+            None => Err(Error::GenericNbtError(
+                format!("Could not decode bool named {} from compound nbt", name).to_string(),
+            )),
+        }
+    }
+
+    fn decode_from_list(nbt: &NbtList) -> Result<Vec<Self>, Error>
+    where
+        Self: Sized,
+    {
+        match nbt.bytes() {
+            Some(value) => Ok(value.into_iter().map(|x| *x != 0).collect()),
+            None => Err(Error::GenericNbtError(
+                "Could not decode Vec<bool> from list nbt".to_string(),
+            )),
+        }
+    }
+}
+
 impl NBTDecodable for i8 {
     fn decode_from_base(nbt: &BaseNbt, name: &str) -> Result<Self, Error>
     where

@@ -1,29 +1,14 @@
-use std::fs::File;
-use std::io::Cursor;
-use std::sync::{Arc, OnceLock};
-
 use async_trait::async_trait;
-use fastanvil::Region;
 use ferrumc_macros::AutoGenName;
-use simdnbt::borrow::Nbt;
-use simdnbt::Deserialize;
-use tokio::sync::RwLock;
-use tracing::debug;
-
-use crate::net::{Connection, ConnectionWrapper};
 use crate::net::systems::System;
 use crate::state::GlobalState;
-use crate::utils::components::player::Player;
-use crate::utils::encoding::position::Position;
-use crate::utils::prelude::*;
-use crate::world::sweattypalms_impl::types::Chunk;
 
 #[derive(AutoGenName)]
 pub struct ChunkSender;
 
 #[async_trait]
 impl System for ChunkSender {
-    async fn run(&self, state: GlobalState) {
+    async fn run(&self, _state: GlobalState) {
         /*let mut interval = tokio::time::interval(std::time::Duration::from_secs(1));
         loop {
             interval.tick().await;

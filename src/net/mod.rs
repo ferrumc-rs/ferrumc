@@ -7,12 +7,11 @@ use std::sync::atomic::AtomicU32;
 use std::time::Duration;
 
 use dashmap::DashMap;
+use ferrumc_macros::Component;
 use rand::random;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::sync::RwLock;
 use tracing::{debug, error, trace};
-
-use ferrumc_macros::Component;
 
 use crate::net::packets::handle_packet;
 use crate::state::GlobalState;
