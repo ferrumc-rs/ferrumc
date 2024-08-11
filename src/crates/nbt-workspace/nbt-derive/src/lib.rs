@@ -10,9 +10,13 @@ mod serialize;
 /// Example:
 ///
 /// ```rust
-/// #[derive(Serialize(root = "Player"))] // ROOT!
+/// use nbt_derive::Serialize;
+///
+/// #[derive(Serialize)]
+/// #[nbt(is_root)] // Can also be written as #[nbt(is_root = true)]
 /// pub struct Root {
 ///     pub player_name: String,
+///     #[nbt(rename = "player_age")]
 ///     pub x: X,
 /// }
 /// #[derive(Serialize)] // NOT ROOT!
@@ -27,9 +31,11 @@ mod serialize;
 ///     player.serialize(&mut buffer).unwrap();
 /// }
 ///
+/// // Just an example of the serialize method. It's already implemented for
+/// impl Root { pub fn serialize(&self, writer: &mut Vec<u8>) -> std::io::Result<()> { Ok(unimplemented!()) } }
 /// ```
 ///
-#[proc_macro_derive(Serialize, attributes(root))]
+#[proc_macro_derive(Serialize, attributes(nbt))]
 pub fn nbt_serialize_derive(input: TokenStream) -> TokenStream {
     serialize::nbt_serialize_derive(input)
 }

@@ -1,13 +1,12 @@
 #![allow(dead_code)]
 use std::collections::HashMap;
 
-use nbt_lib::nbt_spec::named_tag::NamedTag;
 use nbt_lib::nbt_spec::serializer::NBTSerialize;
-use nbt_lib::nbt_spec::tag::Tag;
-use nbt_lib::nbt_spec::tag_types::TAG_COMPOUND;
 use nbt_lib::Serialize;
 
 #[derive(Serialize, Debug)]
+#[nbt(is_root)]
+#[nbt(rename = "Player")]
 pub struct NBTTestStruct {
     pub player_name: String,
     pub health: f32,
@@ -16,8 +15,8 @@ pub struct NBTTestStruct {
     pub xp_total: i32,
     pub position: Vec<f64>,
     pub inventory: Vec<Item>,
+    #[nbt(rename = "🦀🦀")]
     pub abilities: PlayerAbilities,
-    pub stats: HashMap<String, i32>,
 }
 
 #[derive(Serialize, Debug)]
@@ -55,13 +54,6 @@ impl NBTTestStruct {
                 flying: false,
                 allow_flying: true,
                 creative_mode: false,
-            },
-            stats: {
-                let mut map = HashMap::new();
-                map.insert("mob_kills".to_string(), 100);
-                map.insert("distance_walked".to_string(), 10000);
-                map.insert("play_time".to_string(), 36000);
-                map
             },
         }
     }
@@ -116,8 +108,8 @@ fn validate_generation() {
 
     let mut buffer = Vec::new();
 
-    TAG_COMPOUND.serialize(&mut buffer).unwrap();
-    0u16.serialize(&mut buffer).unwrap();
+    /*TAG_COMPOUND.serialize(&mut buffer).unwrap();
+    0u16.serialize(&mut buffer).unwrap();*/
     root.serialize(&mut buffer).unwrap();
 
     /*let mut buffer = Vec::new();

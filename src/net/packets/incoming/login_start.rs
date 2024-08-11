@@ -41,7 +41,7 @@ pub struct LoginStart {
 // MAKE SURE YOU RUN THE TEST IN THE login_play.rs FILE TO GENERATE THE NBT FILE
 // The NBT encoded data for the dimension codec. Using flate_include cos the codec file is like 40kb
 #[cfg(not(test))]
-flate!(pub static NBT_CODEC: [u8] from "nbt_codec.nbt");
+flate!(pub static NBT_CODEC: [u8] from "./.etc/nbt_codec.nbt");
 
 #[cfg(test)]
 const NBT_CODEC: &[u8] = &[0u8; 1];
