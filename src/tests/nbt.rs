@@ -110,3 +110,4 @@ fn validate_generation() {
 
     println!("Expected NBT data: compound + test + 1u8");
 }
+

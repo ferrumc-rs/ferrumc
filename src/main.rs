@@ -98,8 +98,6 @@ async fn start_server() -> Result<()> {
 
     let state = create_state(listener).await?;
 
-    // let read_connections = tokio::spawn(read_connections(listener, state.clone()));
-
     // Start all systems (separate task)
     let all_systems = tokio::task::spawn(start_all_systems(state));
 
