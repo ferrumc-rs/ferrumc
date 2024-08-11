@@ -5,9 +5,8 @@ use std::marker::PhantomData;
 use dashmap::DashMap;
 use tokio::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
-use crate::ecs::helpers::sparse_set::SparseSet;
 use crate::ecs::error::Error;
-use crate::utils::encoding::position::Position;
+use crate::ecs::helpers::sparse_set::SparseSet;
 
 /// A trait for components in the ECS.
 pub trait Component: 'static + Send + Sync + Debug {}
@@ -166,33 +165,40 @@ impl ComponentStorage {
     }
 }
 
-#[tokio::test]
-async fn test_basic_usage() {
-    let component_storage = ComponentStorage::new();
+#[cfg(test)]
+mod tests {
+    use crate::utils::encoding::position::Position;
 
-    let entity = 0usize;
-    let position = Position { x: 0, z: 0, y: 0 };
-    component_storage.insert(entity, position);
+    use super::*;
 
-    let position = component_storage.get::<Position>(entity).await.unwrap();
-    assert_eq!(position.x, 0);
-    assert_eq!(position.y, 0);
-}
+    #[tokio::test]
+    async fn test_basic_usage() {
+        let component_storage = ComponentStorage::new();
 
-#[tokio::test]
-async fn test_insert_and_get() {
-    let storage = ComponentStorage::new();
-    storage.insert(0usize, Position { x: 0, y: 0, z: 0 });
-    let component = storage.get::<Position>(0usize).await;
-    assert!(component.is_some());
-    assert_eq!(component.unwrap().x, 0);
-}
+        let entity = 0usize;
+        let position = Position { x: 0, z: 0, y: 0 };
+        component_storage.insert(entity, position);
 
-#[tokio::test]
-async fn test_insert_and_get_mut() {
-    let storage = ComponentStorage::new();
-    storage.insert(0usize, Position { x: 0, y: 0, z: 0 });
-    let component = storage.get_mut::<Position>(0usize).await;
-    assert!(component.is_some());
-    assert_eq!(component.unwrap().x, 0);
+        let position = component_storage.get::<Position>(entity).await.unwrap();
+        assert_eq!(position.x, 0);
+        assert_eq!(position.y, 0);
+    }
+
+    #[tokio::test]
+    async fn test_insert_and_get() {
+        let storage = ComponentStorage::new();
+        storage.insert(0usize, Position { x: 0, y: 0, z: 0 });
+        let component = storage.get::<Position>(0usize).await;
+        assert!(component.is_some());
+        assert_eq!(component.unwrap().x, 0);
+    }
+
+    #[tokio::test]
+    async fn test_insert_and_get_mut() {
+        let storage = ComponentStorage::new();
+        storage.insert(0usize, Position { x: 0, y: 0, z: 0 });
+        let component = storage.get_mut::<Position>(0usize).await;
+        assert!(component.is_some());
+        assert_eq!(component.unwrap().x, 0);
+    }
 }
