@@ -1,8 +1,9 @@
-use std::io::{self, Write};
+use std::io::{Write};
 use std::collections::HashMap;
 use crate::nbt_spec::serializer::NBTSerialize;
 use crate::nbt_spec::tag_types;
 use crate::nbt_spec::named_tag::NamedTag;
+use crate::NBTResult;
 
 #[derive(Debug)]
 pub enum Tag {
@@ -40,7 +41,7 @@ impl Tag {
         }
     }
 
-    pub fn write<W: Write>(&self, writer: &mut W) -> io::Result<()> {
+    pub fn write<W: Write>(&self, writer: &mut W) -> NBTResult<()> {
         match self {
             Tag::End => {},
             Tag::Byte(v) => v.serialize(writer)?,
@@ -73,7 +74,7 @@ impl Tag {
 }
 
 impl NBTSerialize for Tag {
-    fn serialize<W: Write>(&self, writer: &mut W) -> io::Result<()> {
+    fn serialize<W: Write>(&self, writer: &mut W) -> NBTResult<()> {
         writer.write_all(&[self.get_type_id()])?;
         self.write(writer)?;
         Ok(())

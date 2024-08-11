@@ -8,6 +8,7 @@ derive = ["nbt-derive"]
 
 [dependencies]
 nbt-derive = { path = "../nbt-derive", optional = true }
+thiserror = "1.0.63"
 
 [dev-dependencies]
 criterion = { version = "0.5.1", features = ["html_reports"] }

@@ -19,7 +19,7 @@ pub(crate) fn nbt_serialize_derive(input: TokenStream) -> TokenStream {
 
     let serialize_impl = quote! {
         impl ::nbt_lib::nbt_spec::serializer::NBTSerialize for #name {
-            fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
+            fn serialize<W: std::io::Write>(&self, writer: &mut W) -> ::nbt_lib::NBTResult<()> {
                 #(#fields)*
                 Ok(())
             }
