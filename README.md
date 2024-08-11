@@ -1,11 +1,23 @@
-<div align="center" style="background: linear-gradient(to bottom, #0d0f10 80%, rgba(13,15,16,0)); padding: 60px 0 40px; width: auto;">
-    <div style="width: 200px; height: 200px; margin: 0 auto; position: relative;">
-        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #ff6600; filter: blur(20px) opacity(0.7); border-radius: 20px;"></div>
-        <img src="icon.png" alt="FerrumC Icon" width="200" style="position: relative; border-radius: 20px;">
-    </div>
-    <h1 style="color: #ff6600; font-size: 38px; margin-top: 30px; letter-spacing: 2px;">FerrumC</h1>
-    <p style="color: #ffa366; font-size: 14px; max-width: 600px; margin: 10px auto;">A high-performance Minecraft server implementation, crafted in Rust for unparalleled speed and efficiency</p>
+[//]: # (<div align="center" style="background: linear-gradient&#40;to bottom, #0d0f10 80%, rgba&#40;13,15,16,0&#41;&#41;; padding: 60px 0 40px; width: auto;">)
+
+[//]: # (    <div style="width: 200px; height: 200px; margin: 0 auto; position: relative;">)
+
+[//]: # (        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #ff6600; filter: blur&#40;20px&#41; opacity&#40;0.7&#41;; border-radius: 20px;"></div>)
+
+[//]: # (        <img src="icon.png" alt="FerrumC Icon" width="200" style="position: relative; border-radius: 20px;">)
+
+[//]: # (    </div>)
+
+[//]: # (    <h1 style="color: #ff6600; font-size: 38px; margin-top: 30px; letter-spacing: 2px;">FerrumC</h1>)
+
+[//]: # (    <p style="color: #ffa366; font-size: 14px; max-width: 600px; margin: 10px auto;">A high-performance Minecraft server implementation, crafted in Rust for unparalleled speed and efficiency</p>)
+
+[//]: # (</div>)
+
+<div style="width: 100%">
+   <img src="README/assets/header.svg" alt="FerrumC Header">
 </div>
+
 
 <p align="center">
   <img src="https://img.shields.io/github/license/Sweattypalms/ferrumc" alt="License">
