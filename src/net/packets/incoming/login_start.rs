@@ -47,7 +47,9 @@ flate!(pub static NBT_CODEC: [u8] from "./.etc/nbt_codec.nbt");
 const NBT_CODEC: &[u8] = &[0u8; 1];
 
 impl IncomingPacket for LoginStart {
-    async fn handle(&self, conn: &mut Connection, state: GlobalState) -> Result<()> {
+    async fn handle(mut self, conn: &mut Connection, state: GlobalState) -> Result<()> {
+        self.username = self.username.trim().to_string();
+
         self.send_login_success(conn).await?;
         self.send_login_play(conn).await?;
         self.send_spawn_position(conn).await?;

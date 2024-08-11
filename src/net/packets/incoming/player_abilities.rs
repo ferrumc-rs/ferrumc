@@ -14,7 +14,7 @@ pub struct PlayerAbilities {
 
 impl IncomingPacket for PlayerAbilities {
     async fn handle(
-        &self,
+        self,
         _: &mut Connection,
         _state: GlobalState,
     ) -> crate::utils::prelude::Result<()> {

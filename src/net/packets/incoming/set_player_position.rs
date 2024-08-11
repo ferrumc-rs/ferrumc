@@ -19,7 +19,7 @@ pub struct SetPlayerPosition {
 
 impl IncomingPacket for SetPlayerPosition {
     async fn handle(
-        &self,
+        self,
         conn: &mut Connection,
         state: GlobalState,
     ) -> crate::utils::prelude::Result<()> {

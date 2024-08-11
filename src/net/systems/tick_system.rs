@@ -19,8 +19,8 @@ impl System for TickSystem {
         loop {
             while let Some((idx, (player, position, rotation))) = query.next().await {
                 info!(
-                    "[{idx}] @ Player = {}\t Position = {}\t Rotation = {:?}",
-                    player.get_username(),
+                    "[{idx}] @ Player = {:?}\tPosition = {}\tRotation = {:?}",
+                    player.username,
                     *position,
                     *rotation,
                 );

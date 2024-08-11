@@ -22,7 +22,7 @@ pub struct Ping {
 }
 
 impl IncomingPacket for Ping {
-    async fn handle(&self, conn: &mut Connection, _state: GlobalState) -> Result<()> {
+    async fn handle(self, conn: &mut Connection, _state: GlobalState) -> Result<()> {
         info!("Handling ping packet");
 
         // tokio::io::AsyncWriteExt::write_all()

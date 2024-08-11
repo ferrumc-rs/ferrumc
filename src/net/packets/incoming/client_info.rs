@@ -19,7 +19,7 @@ pub struct ClientInfo {
 
 impl IncomingPacket for ClientInfo {
     async fn handle(
-        &self,
+        self,
         _: &mut Connection,
         _state: GlobalState,
     ) -> crate::utils::prelude::Result<()> {

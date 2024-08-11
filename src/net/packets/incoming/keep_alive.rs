@@ -14,7 +14,7 @@ pub struct KeepAlivePacketIn {
 
 impl IncomingPacket for KeepAlivePacketIn {
     async fn handle(
-        &self,
+        self,
         conn: &mut Connection,
         _state: GlobalState,
     ) -> crate::utils::prelude::Result<()> {

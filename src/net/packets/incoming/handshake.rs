@@ -19,7 +19,7 @@ pub struct Handshake {
 }
 
 impl IncomingPacket for Handshake {
-    async fn handle(&self, conn: &mut Connection, _state: GlobalState) -> Result<()> {
+    async fn handle(self, conn: &mut Connection, _state: GlobalState) -> Result<()> {
         conn.metadata.protocol_version = self.protocol_version.get_val();
         conn.state = match self.next_state.get_val() {
             1 => State::Status,

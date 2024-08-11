@@ -14,7 +14,7 @@ pub struct SetPlayerRotation {
 }
 
 impl IncomingPacket for SetPlayerRotation {
-    async fn handle(&self, conn: &mut Connection, state: GlobalState) -> crate::utils::prelude::Result<()> {
+    async fn handle(self, conn: &mut Connection, state: GlobalState) -> crate::utils::prelude::Result<()> {
         let my_entity_id = conn.metadata.entity;
 
         let component_storage = state.world.get_component_storage();
