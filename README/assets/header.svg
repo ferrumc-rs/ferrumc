@@ -1,4 +1,10 @@
 <svg fill="none" viewBox="0 0 800 400" width="800" height="400" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <clipPath id="roundedImageClip">
+            <rect width="200" height="200" rx="20" ry="20"/>
+        </clipPath>
+    </defs>
+
     <foreignObject width="100%" height="100%">
         <div xmlns="http://www.w3.org/1999/xhtml">
             <style>
@@ -65,11 +71,21 @@
             <div class="container">
                 <div class="icon-container">
                     <div class="icon-glow"></div>
-                    <img src="https://raw.githubusercontent.com/Sweattypalms/ferrumc/2.0/icon.png" alt="FerrumC Icon" class="icon" />
                 </div>
                 <h1 class="title">FerrumC</h1>
                 <p class="description">A high-performance Minecraft server implementation, crafted in Rust for unparalleled speed and efficiency</p>
             </div>
         </div>
     </foreignObject>
+
+
+    <image
+            href="https://raw.githubusercontent.com/Sweattypalms/ferrumc/2.0/icon.png"
+            width="200"
+            height="200"
+            transform="translate(300, 15)"
+            class="icon"
+            clip-path="url(#roundedImageClip)"
+    >
+    </image>
 </svg>
