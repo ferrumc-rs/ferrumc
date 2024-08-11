@@ -1,4 +1,6 @@
-use tracing_subscriber::filter::Directive;
+use tracing_subscriber::EnvFilter;
+use tracing_subscriber::filter::LevelFilter;
+
 use crate::utils::constants::DEFAULT_LOG_LEVEL;
 use crate::utils::prelude::*;
 
@@ -10,6 +12,7 @@ pub mod type_impls;
 pub mod components;
 pub mod config;
 pub mod constants;
+pub mod nbt_impls;
 
 /// Sets up the logger. Needs to be run before anything else in order for logging to run end.
 pub fn setup_logger() -> Result<()> {
@@ -43,7 +46,4 @@ pub fn setup_logger() -> Result<()> {
     Ok(tracing_subscriber::fmt()
         .with_env_filter(env_filter)
         .init())
-}
-fn str_to_directive(directive: &str) -> Result<Directive> {
-    directive.parse().map_err(|_| Error::InvalidDirective(directive.to_string()))
 }

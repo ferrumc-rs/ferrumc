@@ -25,6 +25,7 @@ toml = "0.8.14"
 config = "0.14.0"
 lazy_static = "1.4.0"
 fastnbt = "2.5.0"
+flexbuffers = "2.0.0"
 fastanvil = "0.31.0"
 serde_derive = "1.0.204"
 flexbuffers = "2.0.0"
@@ -44,6 +45,9 @@ nbt-lib = { path = 'src/crates/nbt-workspace/nbt-lib', features = ["derive"]}
 # # yoinked
 simdnbt = { path = "src/crates/yoinked/simdnbt/simdnbt" }
 simdnbt-derive = { path = "src/crates/yoinked/simdnbt/simdnbt-derive" }
+
+# Database
+sled = { version = "0.34.7", features = ["compression", "zstd", ] }
 
 # Misc
 dashmap = "6.0.1"

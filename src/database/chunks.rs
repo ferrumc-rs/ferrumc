@@ -1,4 +1,3 @@
-use flexbuffers;
 use serde::{Deserialize, Serialize};
 use tracing::warn;
 

@@ -2,12 +2,15 @@
 #![feature(box_into_inner)]
 #![feature(async_closure)]
 #![feature(future_join)]
+#![feature(portable_simd)]
+extern crate core;
 
 use std::env;
 use std::sync::Arc;
 use std::sync::atomic::AtomicU32;
 
-use dashmap::DashMap;
+use clap::Parser;
+use clap_derive::Parser;
 use tokio::net::TcpListener;
 use tracing::{debug, error, info, trace};
 
@@ -61,17 +64,25 @@ async fn entry() -> Result<()> {
 
     debug!("Found Config: \n{:#?} \nin {:?}", config, elapsed);
 
-    start_server().await?;
+    if env::args().nth(1).unwrap_or_default() == "import" {
+        let import_path = env::current_exe().unwrap().parent().unwrap().join("import");
+        world::importing::import_regions(import_path, state.clone())
+            .await
+            .unwrap();
+        return Ok(());
+    } else {
+        start_server().await?;
 
-    tokio::signal::ctrl_c().await?;
+        tokio::signal::ctrl_c().await?;
 
-    Ok(())
+        Ok(())
+    }
 }
 
 /// Starts the server. Sets up the sockets and listens for incoming connections
 ///
 /// The actual management of connections in handled by [r#mod::init_connection]
-async fn start_server() -> Result<()> {
+async fn start_server(state: GlobalState) -> Result<()> {
     let config = get_global_config();
     trace!("Starting server on {}:{}", config.host, config.port);
 
@@ -128,10 +139,10 @@ async fn create_state(tcp_listener: TcpListener) -> Result<GlobalState> {
         // show a line of 100 dashes
         trace!("{}", "-".repeat(100));
         debug!("Accepted connection from: {:?}", socket.peer_addr()?);
-
+        let state = state.clone();
         tokio::task::spawn(
-            async move {
-                if let Err(e) = net::init_connection(socket, state).await {
+            async {
+                if let Err(e) = net::init_connection(socket).await {
                     error!("Error handling connection: {:?}", e);
                 }
             }
@@ -160,7 +171,7 @@ async fn handle_setup() -> Result<bool> {
         // Check if the config file exists already and run the setup if it doesn't
     } else {
         // Get the path to the current executable
-        let exe = std::env::current_exe()?;
+        let exe = env::current_exe()?;
         // This should be the directory the executable is in.
         // This should always work but if it doesn't, we'll just return an error
         let dir = exe.parent();

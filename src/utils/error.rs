@@ -28,6 +28,11 @@ pub enum Error {
     #[error(transparent)]
     Other(#[from] Box<dyn std::error::Error + Send + Sync>),
 
+    #[error("Invalid component storage: {0}")]
+    InvalidComponentStorage(String),
+    #[error("Component {0} not found for entity {1}")]
+    ComponentNotFound(String, u64),
+
     #[error(transparent)]
     ECSError(#[from] crate::ecs::error::Error),
 
@@ -51,10 +56,14 @@ pub enum Error {
 
     #[error("TCP Error: {0}")]
     TcpError(String),
+
+    #[error("Invalid NBT: {0}")]
+    GenericNbtError(String),
 }
 
 impl From<Infallible> for Error {
     fn from(e: Infallible) -> Self {
         return Error::Generic(format!("{:?}", e));
     }
+
 }
