@@ -10,19 +10,8 @@ derive = ["nbt-derive"]
 nbt-derive = { path = "../nbt-derive", optional = true }
 thiserror = "1.0.63"
 
+
 [dev-dependencies]
-criterion = { version = "0.5.1", features = ["html_reports"] }
 nbt-derive = { path = "../nbt-derive" }
-
-[[bench]]
-name = "benches"
-harness = false
-
 
 [lib]
-
-
-
-# Enable derive feature for benchmarks
-[target.'cfg(bench)'.dependencies]
-nbt-derive = { path = "../nbt-derive" }

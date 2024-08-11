@@ -58,3 +58,13 @@ rayon = "1.10.0"
 clap = { version = "4.5.11" }
 clap_derive = "4.5.11"
 spinners = "4.1.1"
+
+# Benches
+criterion = { version = "0.5.1", features = ["html_reports"] }
+
+
+[[bench]]
+name = "benches"
+harness = false
+path = "./src/benches/benches.rs"
+

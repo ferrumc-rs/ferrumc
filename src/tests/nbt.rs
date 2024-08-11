@@ -1,5 +1,4 @@
 #![allow(dead_code)]
-use std::collections::HashMap;
 
 use nbt_lib::nbt_spec::serializer::NBTSerialize;
 use nbt_lib::Serialize;
@@ -15,7 +14,7 @@ pub struct NBTTestStruct {
     pub xp_total: i32,
     pub position: Vec<f64>,
     pub inventory: Vec<Item>,
-    #[nbt(rename = "🦀🦀")]
+    #[nbt(rename = "Abilities")]
     pub abilities: PlayerAbilities,
 }
 
