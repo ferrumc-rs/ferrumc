@@ -1,13 +1,12 @@
 use std::time::Instant;
 
+use ferrumc_macros::{Decode, packet};
 #[cfg(not(test))]
 use include_flate::flate;
 use rand::random;
 use tokio::io::AsyncWriteExt;
 use tracing::debug;
 use uuid::Uuid;
-
-use ferrumc_macros::{Decode, packet};
 
 use crate::Connection;
 use crate::net::packets::IncomingPacket;
@@ -18,6 +17,7 @@ use crate::net::State::Play;
 use crate::state::GlobalState;
 use crate::utils::components::keep_alive::KeepAlive;
 use crate::utils::components::player::Player;
+use crate::utils::components::rotation::Rotation;
 use crate::utils::encoding::position::Position;
 use crate::utils::encoding::varint::VarInt;
 use crate::utils::prelude::*;
@@ -153,14 +153,8 @@ impl LoginStart {
         let component_storage = state.world.get_component_storage();
 
         component_storage
-            .insert(
-                entity,
-                Position {
-                    x: 0,
-                    y: 1000,
-                    z: 0,
-                },
-            )
+            .insert(entity, Position::new(0, 1000, 0))
+            .insert(entity, Rotation::new(0.0, 0.0))
             .insert(entity, keep_alive)
             .insert(entity, Player::new(self.uuid, self.username.clone()));
 
