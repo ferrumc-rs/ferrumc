@@ -12,8 +12,15 @@ pub(crate) fn nbt_serialize_derive(input: TokenStream) -> TokenStream {
 
     let fields = data.fields.iter().map(|f| {
         let field_name = &f.ident;
+        let field_name_as_string = field_name.as_ref().unwrap().to_string();
+        let field_type = &f.ty;
         quote! {
-            self.#field_name.serialize(writer)?;
+            // Serialize for #field_name
+            {
+/*  TAG_TYPE  */<#field_type as nbt_lib::nbt_spec::impls::NBTTag>::tag_type().serialize(writer)?;
+/*(l+)TAG_NAME*/#field_name_as_string.serialize(writer)?;
+/*ACTUAL_VALUE*/self.#field_name.serialize(writer)?;
+            }
         }
     });
 
@@ -21,7 +28,14 @@ pub(crate) fn nbt_serialize_derive(input: TokenStream) -> TokenStream {
         impl ::nbt_lib::nbt_spec::serializer::NBTSerialize for #name {
             fn serialize<W: std::io::Write>(&self, writer: &mut W) -> ::nbt_lib::NBTResult<()> {
                 #(#fields)*
+                nbt_lib::nbt_spec::tag_types::TAG_END.serialize(writer)?;
                 Ok(())
+            }
+        }
+
+        impl nbt_lib::nbt_spec::impls::NBTTag for #name {
+            fn tag_type() -> u8 {
+                nbt_lib::nbt_spec::tag_types::TAG_COMPOUND
             }
         }
     };
