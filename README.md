@@ -1,51 +1,121 @@
-# FerrumC
-![GitHub License](https://img.shields.io/github/license/Sweattypalms/ferrumc)
-![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/Sweattypalms/ferrumc)
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/Sweattypalms/ferrumc/rust.yml)
+<div align="center" style="background: linear-gradient(to bottom, #0d0f10 80%, rgba(13,15,16,0)); padding: 60px 0 40px; width: auto;">
+    <div style="width: 200px; height: 200px; margin: 0 auto; position: relative;">
+        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #ff6600; filter: blur(20px) opacity(0.7); border-radius: 20px;"></div>
+        <img src="icon.png" alt="FerrumC Icon" width="200" style="position: relative; border-radius: 20px;">
+    </div>
+    <h1 style="color: #ff6600; font-size: 38px; margin-top: 30px; letter-spacing: 2px;">FerrumC</h1>
+    <p style="color: #ffa366; font-size: 14px; max-width: 600px; margin: 10px auto;">A high-performance Minecraft server implementation, crafted in Rust for unparalleled speed and efficiency</p>
+</div>
 
-A high performance Minecraft server written in Rust.
+<p align="center">
+  <img src="https://img.shields.io/github/license/Sweattypalms/ferrumc" alt="License">
+  <img src="https://img.shields.io/github/languages/code-size/Sweattypalms/ferrumc" alt="Code Size">
+  <img src="https://img.shields.io/badge/language-Rust-orange" alt="Language">
+</p>
 
-## Description
+## 📖 About
 
-FerrumC is a Minecraft server written from the ground up in rust with performance in mind. Utilizing the power of the 
-Rust language, FerrumC is able to achieve high performance and low latency. FerrumC is designed to be a drop-in 
-replacement for the vanilla Minecraft server, and aims to be compatible with all vanilla clients. The open-source
-nature of FerrumC allows for the community to contribute to the project and help shape the future of the server. It
-also allows for easy tweaking and customization of the server to fit the needs of the user.
+FerrumC is a Minecraft server implementation written from the ground up in Rust with performance in mind. Leveraging the power of the Rust programming language, FerrumC achieves high performance and low latency, making it an ideal choice for Minecraft server hosting.
 
-## Getting Started
+### ✨ Key Features
 
-### Dependencies
+- 🚀 High performance and low latency
+- 🔄 Drop-in replacement for vanilla Minecraft server
+- 🌐 Compatible with all vanilla Minecraft clients (Version: 1.20.1)
+- 🛠 Open-source for community contributions and customization
+- ⚡ Built with Rust for memory safety and concurrency
 
-* Nothing but the Rust compiler!
+## 🎯 Current Features and Roadmap
 
-### Installing
+<details>
+<summary><b>✅ Implemented Features</b></summary>
 
-You can either download the source code and compile it yourself to get bleeding edge updates, or download a pre-compiled 
-binary from the releases page.
+- Basic server setup and configuration
+- Server list ping
+- Player connection and authentication
+- Entity Component System
+- Packet handling, serialization, and deserialization
+- Great logging system
+- Keep-alive system
 
-### Using FerrumC
+</details>
 
-#### Compiling from source
-```
+<details>
+<summary><b>🔨 In Progress</b></summary>
+
+- NBT serialization and deserialization
+- World stuff (chunks loading, saving, saving etc.)
+- Database integration (embedded)
+
+</details>
+
+<details>
+<summary><b>📅 Planned Features</b></summary>
+
+- Chat system
+- Advanced world generation
+- Plugin support + API (Rust and Lua)
+- Multi-world support
+- Performance optimizations
+
+</details>
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Rust compiler (latest stable version)
+- Cargo (comes with Rust)
+
+### 📥 Installation
+
+#### Option 1: Download pre-compiled binary (Maybe outdated!)
+
+1. Go to the [Releases](https://github.com/Sweattypalms/ferrumc/releases) page
+2. Download the latest version for your operating system
+3. Extract the archive to your desired location
+
+#### Option 2: Compile from source (Bleeding edge updates, always up-to-date)
+
+```bash
+# Clone the repository
 git clone https://github.com/Sweattypalms/ferrumc
 cd ferrumc
-cargo build --release # This will take a while
-cd target/release
+
+# Build the project
+cargo build --release
 ```
+### The binary will be in target/release/
 
-#### Running the server
-* Move the binary to a directory of your choice (it will create a few files in the directory it is run from)
-* Run the binary with `./ferrumc.exe` on Windows or `./ferrumc` on Linux/Mac to start up the server with the default settings
-* You can also run `./ferrumc --setup` to generate a config file and then edit it to your liking
 
-## License
+### 🖥️ Usage
 
-This project is licensed under the MIT License - see the LICENSE.md file for details
+1. Move the FerrumC binary to your desired server directory
+2. Open a terminal in that directory
+3. Run the server:
+    - Windows: `./ferrumc.exe`
+    - Linux/macOS: `./ferrumc`
+4. (Optional) Generate a config file: `./ferrumc --setup`
+5. Edit the generated `config.toml` file to customize your server settings
 
-## Acknowledgments
+## 🛠️ Development
 
-Inspiration, code snippets, dependencies etc.
-* [Tokio Runtime](https://github.com/tokio-rs/tokio)
-* [Valence](https://github.com/valence-rs/valence)
-* [wiki.vg](https://wiki.vg)
+We welcome contributions! If you'd like to contribute to FerrumC, please follow these steps:
+
+1. Fork the repository
+2. Create a new branch for your feature
+3. Implement your changes
+4. Write or update tests as necessary
+5. Submit a pull request
+
+
+## 📜 License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+
+
+## 🙏 Acknowledgments
+
+- [wiki.vg](https://wiki.vg): Used for protocol documentation
+- [Tokio Runtime](https://github.com/tokio-rs/tokio): Asynchronous runtime for Rust
+- [Valence](https://github.com/valence-rs/valence): VarInt/VarLong encoding and decoding
