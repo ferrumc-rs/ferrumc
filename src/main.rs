@@ -167,7 +167,7 @@ async fn handle_setup() -> Result<bool> {
         let dir = exe.parent();
         match dir {
             Some(dir) => {
-                let config_path = dir.join("config.toml");
+                let config_path = dir.join("../.etc/config.toml");
                 if !config_path.exists() {
                     setup::setup().await?;
                 }

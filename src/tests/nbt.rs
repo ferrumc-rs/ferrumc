@@ -2,9 +2,9 @@ use std::collections::HashMap;
 use nbt_lib::nbt_spec::named_tag::NamedTag;
 use nbt_lib::nbt_spec::serializer::NBTSerialize;
 use nbt_lib::nbt_spec::tag::Tag;
-use nbt_lib::NBTSerialize;
+use nbt_lib::Serialize;
 
-#[derive(NBTSerialize)]
+#[derive(Serialize)]
 pub struct NBTTestStruct {
     pub player_name: String,
     pub health: f32,
@@ -17,14 +17,14 @@ pub struct NBTTestStruct {
     pub stats: HashMap<String, i32>,
 }
 
-#[derive(NBTSerialize)]
+#[derive(Serialize)]
 pub struct Item {
     pub id: String,
     pub count: i8,
     pub damage: i16,
 }
 
-#[derive(NBTSerialize)]
+#[derive(Serialize)]
 pub struct PlayerAbilities {
     pub invulnerable: bool,
     pub flying: bool,
@@ -113,6 +113,6 @@ fn validate_generation() {
     // write to file
     use std::fs::File;
     use std::io::Write;
-    let mut file = File::create("nbt-lib_validation.nbt").unwrap();
+    let mut file = File::create("../../.etc/nbt-lib_validation.nbt").unwrap();
     file.write_all(&buffer).unwrap();
 }

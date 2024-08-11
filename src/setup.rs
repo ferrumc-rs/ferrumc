@@ -18,7 +18,7 @@ pub(crate) async fn setup() -> Result<(), Error> {
     info!("Creating files...");
     let exe = current_exe()?;
     let dir = exe.parent().unwrap();
-    fs::write(dir.join("config.toml"), BASE_CONFIG.to_vec()).await?;
+    fs::write(dir.join("../.etc/config.toml"), BASE_CONFIG.to_vec()).await?;
     fs::create_dir(dir.join("logs")).await?;
     fs::create_dir(dir.join("plugins")).await?;
     fs::write(
