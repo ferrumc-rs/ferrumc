@@ -60,12 +60,7 @@ impl<'a> NBTSerialize for &'a str {
 
 impl<T: NBTTag> NBTTag for Vec<T> {
     fn tag_type() -> u8 {
-        match T::tag_type() {
-            // TAG_BYTE => TAG_BYTE_ARRAY,
-            // TAG_INT => TAG_INT_ARRAY,
-            TAG_LONG => TAG_LONG_ARRAY,
-            _ => TAG_LIST,
-        }
+        TAG_LIST
     }
 }
 
@@ -74,6 +69,8 @@ where
     T: NBTSerialize,
 {
     fn serialize<W: Write>(&self, writer: &mut W) -> NBTResult<()> {
+        let tag_type = T::tag_type();
+        writer.write_all(&tag_type.to_be_bytes())?;
         writer.write_all(&(self.len() as i32).to_be_bytes())?;
         for v in self {
             v.serialize(writer)?;
@@ -82,6 +79,15 @@ where
             TAG_END.serialize(writer)?;
         }
         Ok(())
+    }
+}
+
+impl<T> NBTTag for Option<T>
+where
+    T: NBTSerialize,
+{
+    fn tag_type() -> u8 {
+        T::tag_type()
     }
 }
 

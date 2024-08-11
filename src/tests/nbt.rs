@@ -15,9 +15,9 @@ pub struct NBTTestStruct {
     pub xp_level: i32,
     pub xp_total: i32,
     pub position: Vec<f64>,
-    // pub inventory: Vec<Item>,
-    // pub abilities: PlayerAbilities,
-    // pub stats: HashMap<String, i32>,
+    pub inventory: Vec<Item>,
+    pub abilities: PlayerAbilities,
+    pub stats: HashMap<String, i32>,
 }
 
 #[derive(Serialize, Debug)]
@@ -44,7 +44,7 @@ impl NBTTestStruct {
             xp_level: 30,
             xp_total: 1500,
             position: vec![100.5, 64.0, -200.5],
-            /*
+
             inventory: vec![
                 Item { id: "minecraft:diamond_sword".to_string(), count: 1, damage: 0 },
                 Item { id: "minecraft:apple".to_string(), count: 64, damage: 0 },
@@ -55,14 +55,14 @@ impl NBTTestStruct {
                 flying: false,
                 allow_flying: true,
                 creative_mode: false,
-            },*/
-            /*stats: {
+            },
+            stats: {
                 let mut map = HashMap::new();
                 map.insert("mob_kills".to_string(), 100);
                 map.insert("distance_walked".to_string(), 10000);
                 map.insert("play_time".to_string(), 36000);
                 map
-            },*/
+            },
         }
     }
 
