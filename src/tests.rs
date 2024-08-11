@@ -1,3 +1,6 @@
+
+mod nbt;
+
 #[cfg(test)]
 mod tests {
     use std::io::Cursor;

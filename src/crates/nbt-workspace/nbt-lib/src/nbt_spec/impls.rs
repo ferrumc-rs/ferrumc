@@ -45,3 +45,30 @@ where
         Ok(())
     }
 }
+
+impl<T> NBTSerialize for Option<T>
+where
+    T: NBTSerialize,
+{
+    fn serialize<W: Write>(&self, writer: &mut W) -> std::io::Result<()> {
+        match self {
+            Some(v) => v.serialize(writer),
+            None => Ok(()),
+        }
+    }
+}
+
+impl<K, V> NBTSerialize for std::collections::HashMap<K, V>
+where
+    K: NBTSerialize,
+    V: NBTSerialize,
+{
+    fn serialize<W: Write>(&self, writer: &mut W) -> std::io::Result<()> {
+        writer.write_all(&(self.len() as i32).to_be_bytes())?;
+        for (k, v) in self {
+            k.serialize(writer)?;
+            v.serialize(writer)?;
+        }
+        Ok(())
+    }
+}

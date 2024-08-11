@@ -1,8 +1,6 @@
-use std::hint::black_box;
-
 use async_trait::async_trait;
 use ferrumc_macros::AutoGenName;
-use tracing::{debug, info};
+use tracing::{info};
 
 use crate::net::systems::System;
 use crate::state::GlobalState;

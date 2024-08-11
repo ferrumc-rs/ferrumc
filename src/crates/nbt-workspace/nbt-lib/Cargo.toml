@@ -3,7 +3,25 @@ name = "nbt-lib"
 version = "0.1.0"
 edition = "2021"
 
-[lib]
+[features]
+derive = ["nbt-derive"]
 
 [dependencies]
+nbt-derive = { path = "../nbt-derive", optional = true }
+
+[dev-dependencies]
+criterion = { version = "0.5.1", features = ["html_reports"] }
+nbt-derive = { path = "../nbt-derive" }
+
+[[bench]]
+name = "benches"
+harness = false
+
+
+[lib]
+
+
+
+# Enable derive feature for benchmarks
+[target.'cfg(bench)'.dependencies]
 nbt-derive = { path = "../nbt-derive" }

@@ -1,9 +1,10 @@
 use std::collections::HashMap;
-use crate::nbt_spec::named_tag::NamedTag;
-use crate::nbt_spec::tag::Tag;
+use nbt_lib::nbt_spec::named_tag::NamedTag;
+use nbt_lib::nbt_spec::serializer::NBTSerialize;
+use nbt_lib::nbt_spec::tag::Tag;
+use nbt_lib::NBTSerialize;
 
-#[derive(serde::Serialize)]
-#[serde(rename_all = "PascalCase")]
+#[derive(NBTSerialize)]
 pub struct NBTTestStruct {
     pub player_name: String,
     pub health: f32,
@@ -16,15 +17,14 @@ pub struct NBTTestStruct {
     pub stats: HashMap<String, i32>,
 }
 
-#[derive(serde::Serialize)]
+#[derive(NBTSerialize)]
 pub struct Item {
     pub id: String,
     pub count: i8,
     pub damage: i16,
 }
 
-#[derive(serde::Serialize)]
-#[serde(rename_all = "PascalCase")]
+#[derive(NBTSerialize)]
 pub struct PlayerAbilities {
     pub invulnerable: bool,
     pub flying: bool,
@@ -101,4 +101,18 @@ impl NBTTestStruct {
 
         NamedTag::new("Player".to_string(), Tag::Compound(compound))
     }
+}
+
+#[test]
+fn validate_generation() {
+    let test_struct = NBTTestStruct::new();
+    let named_tag = test_struct.to_nbt();
+    let mut buffer = Vec::new();
+    named_tag.serialize(&mut buffer).unwrap();
+
+    // write to file
+    use std::fs::File;
+    use std::io::Write;
+    let mut file = File::create("nbt-lib_validation.nbt").unwrap();
+    file.write_all(&buffer).unwrap();
 }

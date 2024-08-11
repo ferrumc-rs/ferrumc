@@ -1,3 +1,5 @@
-pub fn add(a: i32, b: i32) -> i32 {
-    a + b
-}
+pub mod nbt_spec;
+
+
+#[cfg(feature = "derive")]
+pub use nbt_derive::NBTSerialize;
