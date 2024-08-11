@@ -40,3 +40,8 @@ pub fn derive_constructor(input: TokenStream) -> TokenStream {
 pub fn derive_name(input: TokenStream) -> TokenStream {
     utils::derive_name(input)
 }
+
+#[proc_macro_derive(Getter)]
+pub fn derive_getter(input: TokenStream) -> TokenStream {
+    utils::derive_getter(input)
+}

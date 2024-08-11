@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use ferrumc_macros::AutoGenName;
+use tokio::runtime::Handle;
 use tracing::{info};
 
 use crate::net::systems::System;
@@ -13,6 +14,7 @@ pub struct TickSystem;
 #[async_trait]
 impl System for TickSystem {
     async fn run(&self, state: GlobalState) {
+        let metrics = Handle::current().metrics();
         let mut query = state.world.query::<(&Player, &Position)>();
 
         loop {
@@ -23,6 +25,10 @@ impl System for TickSystem {
                     *position
                 );
             }
+
+
+
+            info!("Currently running {} tasks", metrics.active_tasks_count());
 
             tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
         }

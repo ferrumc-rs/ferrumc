@@ -65,6 +65,7 @@ pub struct ComponentStorage {
 }
 
 
+// New + Insert
 impl ComponentStorage {
     /// Creates a new instance of `ComponentStorage`.
     pub fn new() -> Self {
@@ -86,7 +87,10 @@ impl ComponentStorage {
         storage.insert(entity_id.into(), RwLock::new(Box::new(component)));
         self
     }
+}
 
+// Get + GetMut
+impl ComponentStorage {
     /// Retrieves an immutable reference to a component for a given entity.
     ///
     /// # Examples
@@ -134,6 +138,45 @@ impl ComponentStorage {
             _phantom: PhantomData,
         })
     }
+
+}
+
+// GetOrInsertWith + GetMutOrInsertWith
+impl ComponentStorage {
+    pub async fn get_or_insert_with<'a, T: Component + 'a>(&self, entity_id: impl Into<usize>, f: impl FnOnce() -> T) -> ComponentRef<'a, T> {
+        let entity_id = entity_id.into();
+
+        if let Some(component) = self.get::<T>(entity_id).await {
+            return component;
+        }
+
+        let value = f();
+
+        self
+            .insert(entity_id, value)
+            .get::<T>(entity_id)
+            .await
+            .expect("Component should've been inserted. Please report this as a bug.")
+    }
+    pub async fn get_mut_or_insert_with<T: Component>(&self, entity_id: impl Into<usize>, f: impl FnOnce() -> T) -> ComponentRefMut<T> {
+        let entity_id = entity_id.into();
+
+        if let Some(component) = self.get_mut::<T>(entity_id).await {
+            return component;
+        }
+
+        let value = f();
+
+        self
+            .insert(entity_id, value)
+            .get_mut::<T>(entity_id)
+            .await
+            .expect("Component should've been inserted. Please report this as a bug.")
+    }
+}
+
+// Remove + RemoveAll
+impl ComponentStorage {
 
     /// Removes a component for a given entity.
     ///
