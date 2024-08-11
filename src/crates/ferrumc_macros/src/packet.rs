@@ -163,7 +163,8 @@ pub fn bake(input: TokenStream) -> TokenStream {
         pub async fn handle_packet(packet_id: u8, conn_owned: &mut crate::Connection, cursor: &mut std::io::Cursor<Vec<u8>>, state: crate::state::GlobalState) -> crate::utils::prelude::Result<()> {
             match (packet_id, conn_owned.state.as_str()) {
                 #(#match_arms)*
-                _ => println!("No packet found for ID: 0x{:02X} in state: {}", packet_id, conn_owned.state.as_str()),
+                // _ => println!("No packet found for ID: 0x{:02X} in state: {}", packet_id, conn_owned.state.as_str()),
+                _ => tracing::warn!("No packet found for ID: 0x{:02X} in state: {}", packet_id, conn_owned.state.as_str()),
             }
 
             Ok(())

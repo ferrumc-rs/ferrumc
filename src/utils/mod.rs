@@ -1,5 +1,5 @@
 use tracing_subscriber::EnvFilter;
-use tracing_subscriber::filter::LevelFilter;
+use tracing_subscriber::filter::{Directive, LevelFilter};
 
 use crate::utils::constants::DEFAULT_LOG_LEVEL;
 use crate::utils::prelude::*;
@@ -46,4 +46,8 @@ pub fn setup_logger() -> Result<()> {
     Ok(tracing_subscriber::fmt()
         .with_env_filter(env_filter)
         .init())
+}
+
+fn str_to_directive(s: &str) -> Result<Directive> {
+    s.parse().map_err(|e| Error::InvalidDirective(s.to_string()))
 }

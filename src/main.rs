@@ -11,6 +11,7 @@ use std::sync::atomic::AtomicU32;
 
 use clap::Parser;
 use clap_derive::Parser;
+use dashmap::DashMap;
 use tokio::net::TcpListener;
 use tracing::{debug, error, info, trace};
 
@@ -64,25 +65,17 @@ async fn entry() -> Result<()> {
 
     debug!("Found Config: \n{:#?} \nin {:?}", config, elapsed);
 
-    if env::args().nth(1).unwrap_or_default() == "import" {
-        let import_path = env::current_exe().unwrap().parent().unwrap().join("import");
-        world::importing::import_regions(import_path, state.clone())
-            .await
-            .unwrap();
-        return Ok(());
-    } else {
-        start_server().await?;
+    start_server().await?;
 
-        tokio::signal::ctrl_c().await?;
+    tokio::signal::ctrl_c().await?;
 
-        Ok(())
-    }
+    Ok(())
 }
 
 /// Starts the server. Sets up the sockets and listens for incoming connections
 ///
 /// The actual management of connections in handled by [r#mod::init_connection]
-async fn start_server(state: GlobalState) -> Result<()> {
+async fn start_server() -> Result<()> {
     let config = get_global_config();
     trace!("Starting server on {}:{}", config.host, config.port);
 
@@ -108,6 +101,14 @@ async fn start_server(state: GlobalState) -> Result<()> {
     info!("Server started on {}", addr);
 
     let state = create_state(listener).await?;
+
+    if env::args().nth(1).unwrap_or_default() == "import" {
+        let import_path = env::current_exe().unwrap().parent().unwrap().join("import");
+        world::importing::import_regions(import_path, state.clone())
+            .await
+            .unwrap();
+        return Ok(());
+    }
 
     // Start all systems (separate task)
     let all_systems = tokio::task::spawn(start_all_systems(state));

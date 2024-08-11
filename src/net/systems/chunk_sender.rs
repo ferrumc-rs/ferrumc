@@ -4,15 +4,13 @@ use std::sync::{Arc, OnceLock};
 
 use async_trait::async_trait;
 use fastanvil::Region;
+use ferrumc_macros::AutoGenName;
 use simdnbt::borrow::Nbt;
 use simdnbt::Deserialize;
 use tokio::sync::RwLock;
 use tracing::debug;
 
-use ferrumc_macros::AutoGenName;
-
 use crate::net::{Connection, ConnectionWrapper};
-use crate::net::packets::outgoing::chunk_data_and_light::ChunkDataAndUpdateLight;
 use crate::net::systems::System;
 use crate::state::GlobalState;
 use crate::utils::components::player::Player;
@@ -26,15 +24,15 @@ pub struct ChunkSender;
 #[async_trait]
 impl System for ChunkSender {
     async fn run(&self, state: GlobalState) {
-        let mut interval = tokio::time::interval(std::time::Duration::from_secs(1));
+        /*let mut interval = tokio::time::interval(std::time::Duration::from_secs(1));
         loop {
             interval.tick().await;
-            let state = state.write().await;
-            let query = state
-                .world
-                .query::<(Player, Position, ConnectionWrapper)>()
-                .iter()
-                .collect::<Vec<_>>();
+            let query =
+                state
+                    .world
+                    .query::<(Player, Position, ConnectionWrapper)>()
+                    .iter()
+                    .collect::<Vec<_>>();
 
             for (_, (player, pos, conn)) in query {
                 debug!(
@@ -49,7 +47,7 @@ impl System for ChunkSender {
                     debug!("Failed to send chunks to player: {}", e);
                 }
             }
-        }
+        }*/
     }
 
     fn name(&self) -> &'static str {
@@ -57,7 +55,7 @@ impl System for ChunkSender {
     }
 }
 
-async fn send_chunks_around_player(
+/*async fn send_chunks_around_player(
     conn: Arc<RwLock<Connection>>,
     player_x: i32,
     player_z: i32,
@@ -137,3 +135,4 @@ async fn get_chunk(x: i32, z: i32) -> Result<Chunk> {
 
     Ok(data)
 }
+*/

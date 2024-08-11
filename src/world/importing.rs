@@ -25,8 +25,6 @@ pub async fn import_regions(
             let x = chunk_nbt.x_pos.clone();
             let z = chunk_nbt.z_pos.clone();
             let record = state
-                .read()
-                .await
                 .database
                 .insert_chunk(chunk_nbt, "overworld".to_string())
                 .await
