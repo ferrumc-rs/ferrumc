@@ -2,7 +2,7 @@ use std::io::Write;
 
 use crate::nbt_spec::serializer::NBTSerialize;
 use crate::nbt_spec::serializer::tag_types::*;
-use crate::NBTResult;
+use crate::{NBTResult};
 
 pub trait NBTTagIdentity {
     fn tag_type() -> u8;

@@ -31,6 +31,7 @@ impl NBTTag {
     }
 }
 
+#[inline]
 pub fn read_tag(cursor: &mut Cursor<Vec<u8>>) -> NBTResult<NBTTag> {
     let mut compound_data: HashMap<String, NBTTag> = HashMap::new();
 
@@ -42,7 +43,7 @@ pub fn read_tag(cursor: &mut Cursor<Vec<u8>>) -> NBTResult<NBTTag> {
         let name: String = cursor.read_nbt_string()?;
 
         let tag = read_tag_based_on_type(cursor, tag_type)
-            .map_err(|e| NBTError::DeserializeError(format!("Error reading tag '{}': {}. Possibly wrong type?", name, e)))?;
+            .map_err(|e| NBTError::DeserializeError(format!("Error reading tag '{}': {}", name, e)))?;
 
         if let NBTTag::End = tag { break; }
 
@@ -52,6 +53,7 @@ pub fn read_tag(cursor: &mut Cursor<Vec<u8>>) -> NBTResult<NBTTag> {
     Ok(NBTTag::Compound(compound_data))
 }
 
+#[inline]
 fn read_tag_based_on_type(cursor: &mut Cursor<Vec<u8>>, tag_type: u8) -> NBTResult<NBTTag> {
     match tag_type {
         0 => Ok(NBTTag::End),

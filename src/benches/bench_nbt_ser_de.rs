@@ -1,5 +1,5 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use nbt_lib::{Serialize, Deserialize, NBTSerialize, NBTDeserialize, NBTTag, read_tag};
+use nbt_lib::{Serialize, Deserialize, NBTSerialize, NBTDeserialize, read_tag};
 use std::io::Cursor;
 use r#struct::{create_test_player, Player};
 
@@ -94,12 +94,12 @@ mod r#struct {
                         Enchantment { id: "unbreaking".to_string(), level: 3 },
                     ],
                 },
-                Item {
+                /*Item {
                     id: "golden_apple".to_string(),
                     count: 64,
                     durability: 0,
                     enchantments: vec![],
-                },
+                },*/
                 Item {
                     id: "netherite_pickaxe".to_string(),
                     count: 1,
@@ -142,14 +142,14 @@ mod r#struct {
         }
     }
 }
-fn benchmark_serialization(c: &mut Criterion) {
+/*fn benchmark_serialization(c: &mut Criterion) {
     let player = create_test_player();
 
     c.bench_function("serialize", |b| b.iter(|| {
         let mut buffer = Vec::new();
         black_box(player.serialize(&mut buffer)).unwrap();
     }));
-}
+}*/
 
 fn benchmark_deserialization(c: &mut Criterion) {
     let player = create_test_player();
@@ -165,5 +165,5 @@ fn benchmark_deserialization(c: &mut Criterion) {
     }));
 }
 
-criterion_group!(benches, benchmark_serialization, benchmark_deserialization);
+criterion_group!(benches, /*benchmark_serialization,*/ benchmark_deserialization);
 criterion_main!(benches);

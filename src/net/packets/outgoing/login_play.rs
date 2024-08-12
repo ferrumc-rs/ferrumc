@@ -1,5 +1,5 @@
 use ferrumc_macros::Encode;
-use nbt_lib::nbt_spec::serializer::NBTSerialize;
+use nbt_lib::NBTSerialize;
 use crate::utils::encoding::varint::VarInt;
 
 /// The login play packet is sent by the server to the client to start the play state.

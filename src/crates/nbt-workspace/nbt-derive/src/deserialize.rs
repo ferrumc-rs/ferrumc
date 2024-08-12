@@ -31,7 +31,7 @@ pub(crate) fn nbt_deserialize_derive(input: TokenStream) -> TokenStream {
             let field_type =  format_generic_type(field_type);
             quote! {
                 #field_name: match compound.get(#field_name_str) {
-                    Some(tag) => Some(#field_type::read_from(tag)?),
+                    Some(tag) => #field_type::read_from(tag)?,
                     None => None,
                 },
             }
