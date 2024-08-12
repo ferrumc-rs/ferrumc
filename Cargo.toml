@@ -55,11 +55,14 @@ base64 = "0.22.1"
 async-trait = "0.1.77"
 futures = "0.3.30"
 rayon = "1.10.0"
+flate2 = "1.0.31"
 
 # CLI
 clap = { version = "4.5.11" }
 clap_derive = "4.5.11"
 spinners = "4.1.1"
+
+
 
 [dev-dependencies]
 # Benches
@@ -70,4 +73,5 @@ criterion = { version = "0.5.1", features = ["html_reports"] }
 name = "benches"
 harness = false
 path = "./src/benches/benches.rs"
+
 

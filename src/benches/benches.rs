@@ -1,9 +1,8 @@
 #![cfg(test)]
 
 mod r#impl;
+mod bench_nbt_codec;
 
-use std::thread::sleep;
-use std::time::Duration;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use nbt_lib::nbt_spec::serializer::NBTSerialize;
 use nbt_lib::Serialize;

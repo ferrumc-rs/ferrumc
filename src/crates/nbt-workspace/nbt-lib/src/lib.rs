@@ -1,5 +1,8 @@
+#![feature(cursor_remaining)]
+
 pub mod nbt_spec;
 pub mod error;
+
 
 
 #[cfg(feature = "derive")]

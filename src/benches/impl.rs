@@ -1,6 +1,5 @@
 #![allow(dead_code)]
 
-use nbt_lib::nbt_spec::serializer::NBTSerialize;
 use nbt_lib::Serialize;
 
 #[derive(Serialize, Debug)]

@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use std::fs::File;
-use std::io::Write;
+use std::io::{Write};
 use ferrumc_macros::NBTDecode;
 use nbt_lib::nbt_spec::serializer::NBTSerialize;
 use nbt_lib::Serialize;
@@ -89,3 +89,15 @@ fn validate_generation() {
     // println!("Expected NBT data: compound + test + 1u8");
 }
 
+
+#[test]
+fn validate_codec_file() {
+
+    let root = NBTTestStruct::new();
+
+    let mut buffer = Vec::with_capacity(1024);
+    root.serialize(&mut buffer).unwrap();
+
+    let mut file = File::create("./.etc/nbt_codec_validation.nbt").unwrap();
+    file.write_all(&buffer).unwrap();
+}
