@@ -1,7 +1,7 @@
 use proc_macro::TokenStream;
 
 use quote::quote;
-use syn::{Attribute, Data, DeriveInput, parse_macro_input};
+use syn::{Data, DeriveInput, parse_macro_input};
 use crate::helper::{parse_field_attributes, parse_struct_attributes};
 
 const RENAME_NON_ROOT_ERROR: &str = "Rename attribute can only be used with root attribute, please rename the field name of the parent.";
@@ -39,14 +39,14 @@ pub(crate) fn nbt_serialize_derive(input: TokenStream) -> TokenStream {
         if is_optional {
             quote! {
                 if let Some(value) = &self.#field_name {
-                    <#field_type as nbt_lib::nbt_spec::impls::NBTTag>::tag_type().serialize(writer)?;
+                    <#field_type as nbt_lib::nbt_spec::serializer::impls::NBTTagIdentity>::tag_type().serialize(writer)?;
                     #field_name_as_string.serialize(writer)?;
                     value.serialize(writer)?;
                 }
             }
         } else {
             quote! {
-            <#field_type as nbt_lib::nbt_spec::impls::NBTTag>::tag_type().serialize(writer)?;
+            <#field_type as nbt_lib::nbt_spec::serializer::impls::NBTTagIdentity>::tag_type().serialize(writer)?;
             #field_name_as_string.serialize(writer)?;
             self.#field_name.serialize(writer)?;
         }
@@ -55,7 +55,7 @@ pub(crate) fn nbt_serialize_derive(input: TokenStream) -> TokenStream {
 
     let root_header = if is_root {
         quote! {
-            nbt_lib::nbt_spec::tag_types::TAG_COMPOUND.serialize(writer)?;
+            nbt_lib::nbt_spec::serializer::tag_types::TAG_COMPOUND.serialize(writer)?;
             #name.serialize(writer)?;
         }
     } else {
@@ -67,14 +67,14 @@ pub(crate) fn nbt_serialize_derive(input: TokenStream) -> TokenStream {
             fn serialize<W: std::io::Write>(&self, writer: &mut W) -> ::nbt_lib::NBTResult<()> {
                 #root_header
                 #(#fields)*
-                nbt_lib::nbt_spec::tag_types::TAG_END.serialize(writer)?;
+                nbt_lib::nbt_spec::serializer::tag_types::TAG_END.serialize(writer)?;
                 Ok(())
             }
         }
 
-        impl nbt_lib::nbt_spec::impls::NBTTag for #struct_name {
+        impl nbt_lib::nbt_spec::serializer::impls::NBTTagIdentity for #struct_name {
             fn tag_type() -> u8 {
-                nbt_lib::nbt_spec::tag_types::TAG_COMPOUND
+                nbt_lib::nbt_spec::serializer::tag_types::TAG_COMPOUND
             }
         }
     };

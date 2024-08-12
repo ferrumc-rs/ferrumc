@@ -42,6 +42,8 @@ pub fn nbt_serialize_derive(input: TokenStream) -> TokenStream {
 
 /// Derive macro for the `NBTDeserialize` trait to auto-generate deserialization into the provided Struct format.
 ///
+/// Must define root attribute for the root struct.
+///
 /// <h5> Example usage: </h5>
 
 /// ```rust
@@ -49,11 +51,13 @@ pub fn nbt_serialize_derive(input: TokenStream) -> TokenStream {
 ///
 ///
 /// #[derive(Deserialize)]
+/// #[nbt(is_root)] // Can also be written as #[nbt(is_root = true)]
 /// pub struct Root {
 ///     pub player_name: String,
 ///     #[nbt(rename = "player_age")]
 ///     pub x: X,
 /// }
+///
 /// #[derive(Deserialize)]
 /// struct X {
 ///     pub y: i32,

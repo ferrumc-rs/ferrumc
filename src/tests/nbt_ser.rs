@@ -6,7 +6,7 @@ use std::fs::File;
 use std::io::{Write};
 use ferrumc_macros::NBTDecode;
 use nbt_lib::nbt_spec::serializer::NBTSerialize;
-use nbt_lib::Serialize;
+use nbt_lib::{Deserialize, Serialize};
 
 #[derive(Serialize, NBTDecode, Debug)]
 #[nbt(is_root)]
@@ -107,7 +107,7 @@ fn validate_codec_file() {
 }
 
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 #[nbt(is_root)]
 #[nbt(rename = "ImTheRoot")]
 pub struct SimpleRoot {
@@ -123,20 +123,20 @@ pub struct SimpleRoot {
     im_a_list: Vec<SimpleListInner>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SimpleChild {
     im_a_child_byte: i8,
     im_a_child_string: String,
     grand_child: SimpleGrandChild,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SimpleGrandChild {
     im_a_grand_child_byte: i8,
     im_a_grand_child_string: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SimpleListInner {
     im_a_list_byte: i8,
     im_a_list_string: String,

@@ -3,7 +3,6 @@ use std::io::Cursor;
 use crate::error::NBTError;
 use crate::nbt_spec::deserializer::cursor_ext::CursorExt;
 use crate::nbt_spec::deserializer::NBTDeserializeBytes;
-use crate::nbt_spec::serializer::impls::NBTTagIdentity;
 use crate::NBTResult;
 
 #[derive(Debug)]

@@ -1,7 +1,5 @@
 #![allow(dead_code)]
-use std::collections::HashMap;
-use std::io::{Cursor, Read};
-use crate::error::NBTError;
+use std::io::{Cursor};
 use crate::NBTResult;
 use cursor_ext::CursorExt;
 use crate::nbt_spec::deserializer::nbt_tag_reader::NBTTag;
