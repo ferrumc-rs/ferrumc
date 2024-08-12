@@ -33,7 +33,15 @@ impl NBTTag {
 
 #[inline]
 pub fn read_tag(cursor: &mut Cursor<Vec<u8>>) -> NBTResult<NBTTag> {
-    let mut compound_data: HashMap<String, NBTTag> = HashMap::new();
+    if cursor.get_ref().len() >= cursor.position() as usize {
+        Ok(unsafe { read_tag_unchecked(cursor) })
+    }else {
+        return Err(NBTError::UnexpectedEOF);
+    }
+
+
+
+ /*   let mut compound_data: HashMap<String, NBTTag> = HashMap::new();
 
     while cursor.position() < cursor.get_ref().len() as u64 {
         let tag_type: u8 = cursor.read_i8()? as u8;
@@ -50,7 +58,7 @@ pub fn read_tag(cursor: &mut Cursor<Vec<u8>>) -> NBTResult<NBTTag> {
         compound_data.insert(name, tag);
     }
 
-    Ok(NBTTag::Compound(compound_data))
+    Ok(NBTTag::Compound(compound_data))*/
 }
 
 #[inline]
@@ -99,4 +107,56 @@ impl NBTTag {
             NBTTag::LongArray(_) => "TAG_LONG_ARRAY",
         }
     }
+}
+
+
+
+
+
+#[inline(always)]
+unsafe fn read_tag_based_on_type_unchecked(cursor: &mut Cursor<Vec<u8>>, tag_type: u8) -> NBTTag {
+    match tag_type {
+        0 => NBTTag::End,
+        1 => NBTTag::Byte(cursor.read_i8_unchecked()),
+        2 => NBTTag::Short(cursor.read_i16_unchecked()),
+        3 => NBTTag::Int(cursor.read_i32_unchecked()),
+        4 => NBTTag::Long(cursor.read_i64_unchecked()),
+        5 => NBTTag::Float(cursor.read_f32_unchecked()),
+        6 => NBTTag::Double(cursor.read_f64_unchecked()),
+        7 => NBTTag::ByteArray(Vec::read_from_bytes(cursor).unwrap_unchecked()),
+        8 => NBTTag::String(cursor.read_nbt_string_unchecked()),
+        9 => {
+            let list_type = cursor.read_i8_unchecked() as u8;
+            let len = cursor.read_i32_unchecked();
+            let mut list = Vec::with_capacity(len as usize);
+            for _ in 0..len {
+                list.push(read_tag_based_on_type_unchecked(cursor, list_type));
+            }
+            NBTTag::List(list)
+        }
+        10 => read_tag_unchecked(cursor),
+        11 => NBTTag::IntArray(Vec::read_from_bytes(cursor).unwrap_unchecked()),
+        12 => NBTTag::LongArray(Vec::read_from_bytes(cursor).unwrap_unchecked()),
+        _ => std::hint::unreachable_unchecked(),
+    }
+}
+
+#[inline(always)]
+unsafe fn read_tag_unchecked(cursor: &mut Cursor<Vec<u8>>) -> NBTTag {
+    let mut compound_data = HashMap::new();
+
+    loop {
+        if cursor.position() >= cursor.get_ref().len() as u64 {
+            break;
+        }
+        let tag_type: u8 = cursor.read_i8_unchecked() as u8;
+        if tag_type == 0 {
+            break;
+        }
+        let name: String = cursor.read_nbt_string_unchecked();
+        let tag = read_tag_based_on_type_unchecked(cursor, tag_type);
+        compound_data.insert(name, tag);
+    }
+
+    NBTTag::Compound(compound_data)
 }

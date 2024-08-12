@@ -6,6 +6,8 @@ pub enum NBTError {
     ReadWriteError(#[from] std::io::Error),
     #[error("NBT, Deserialization Error: {0}")]
     DeserializeError(String),
+    #[error("NBT, Unexpected EOF")]
+    UnexpectedEOF,
     #[error("NBT, couldn't read string")]
     StringReadError(#[from] std::str::Utf8Error),
     /// (expected, actual)

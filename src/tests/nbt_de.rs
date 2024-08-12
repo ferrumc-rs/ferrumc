@@ -1,65 +1,24 @@
 use std::io::{Read, Write};
-use nbt_lib::{NBTDeserializeBytes, NBTSerialize};
+use nbt_lib::{Deserialize, NBTDeserializeBytes, };
 use crate::tests::nbt_de::alguy_struct::PlayerData;
 
 #[test]
 fn try_read() {
-    let start_time = std::time::Instant::now();
+    let file_bytes = std::fs::read(".etc/test.nbt").unwrap();
 
-    // Read file
-    let read_start = std::time::Instant::now();
-    let file_bytes = std::fs::read(".etc/TheAIguy_.nbt").unwrap();
-    println!("File read time: {:?}", read_start.elapsed());
+    #[derive(Deserialize, Debug)]
+    #[nbt(is_root)]
+    #[nbt(rename = "")]
+    struct Test{
+        field_one: i8,
+        field_two: i16,
+        optional_field: Option<i32>,
+    }
 
-    // Gzip decompression
-    let decompress_start = std::time::Instant::now();
-    let file_bytes = match file_bytes[0..2] {
-        [0x1F, 0x8B] => {
-            println!("Decompressing gzip file");
-            let mut decoder = flate2::read::GzDecoder::new(&file_bytes[..]);
-            let mut decompressed = Vec::new();
-            decoder.read_to_end(&mut decompressed).unwrap();
-            decompressed
-        },
-        _ => file_bytes,
-    };
-    println!("Decompression time: {:?}", decompress_start.elapsed());
-
-    // Deserialize
-    let deserialize_start = std::time::Instant::now();
     let mut cursor = std::io::Cursor::new(file_bytes);
-    let root = PlayerData::read_from_bytes(&mut cursor).unwrap();
-    println!("Deserialization time: {:?}", deserialize_start.elapsed());
+    let root = Test::read_from_bytes(&mut cursor).unwrap();
 
-    // Serialize and compress
-    let serialize_start = std::time::Instant::now();
-    let mut compressed_bytes = Vec::new();
-    root.serialize(&mut compressed_bytes).unwrap();
-    println!("Serialization time: {:?}", serialize_start.elapsed());
-
-    // Gzip compression
-    let compress_start = std::time::Instant::now();
-    let mut encoder = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::default());
-    encoder.write_all(&compressed_bytes).unwrap();
-    let compressed_bytes = encoder.finish().unwrap();
-    println!("Compression time: {:?}", compress_start.elapsed());
-
-    // Write output file
-    let write_start = std::time::Instant::now();
-    std::fs::write(".etc/TheAIguy_.output.nbt", compressed_bytes).unwrap();
-    println!("File write time: {:?}", write_start.elapsed());
-
-    // Compare files
-    let compare_start = std::time::Instant::now();
-    let original = std::fs::read(".etc/TheAIguy_.nbt").unwrap();
-    let output = std::fs::read(".etc/TheAIguy_.output.nbt").unwrap();
-    println!("File comparison time: {:?}", compare_start.elapsed());
-
-    println!("Original size: {} bytes", original.len());
-    println!("Output size: {} bytes", output.len());
-    println!("Size difference: {} bytes", output.len() as i64 - original.len() as i64);
-
-    println!("Total execution time: {:?}", start_time.elapsed());
+    println!("{:?}", root);
 }
 mod alguy_struct {
     use std::collections::HashMap;
