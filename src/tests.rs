@@ -1,5 +1,6 @@
 
-mod nbt;
+mod nbt_ser;
+mod nbt_de;
 
 #[cfg(test)]
 mod tests {

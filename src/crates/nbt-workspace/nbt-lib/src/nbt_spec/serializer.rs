@@ -1,7 +1,10 @@
 use std::io::Write;
-use crate::nbt_spec::impls::NBTTag;
+use impls::NBTTagIdentity;
 use crate::NBTResult;
 
-pub trait NBTSerialize: NBTTag {
+pub mod impls;
+pub mod tag_types;
+
+pub trait NBTSerialize: NBTTagIdentity {
     fn serialize<W: Write>(&self, writer: &mut W) -> NBTResult<()>;
 }

@@ -1,10 +1,10 @@
 use std::io::Write;
 
 use crate::nbt_spec::serializer::NBTSerialize;
-use crate::nbt_spec::tag_types::*;
+use crate::nbt_spec::serializer::tag_types::*;
 use crate::NBTResult;
 
-pub trait NBTTag {
+pub trait NBTTagIdentity {
     fn tag_type() -> u8;
 }
 
@@ -16,7 +16,7 @@ macro_rules! impl_nbt_serialize {
             }
         }
 
-        impl NBTTag for $type {
+        impl NBTTagIdentity for $type {
             fn tag_type() -> u8 {
                 $tag_type
             }
@@ -34,14 +34,14 @@ impl_nbt_serialize!(i64, TAG_LONG);
 impl_nbt_serialize!(f32, TAG_FLOAT);
 impl_nbt_serialize!(f64, TAG_DOUBLE);
 
-impl NBTTag for bool { fn tag_type() -> u8 { TAG_BYTE } }
+impl NBTTagIdentity for bool { fn tag_type() -> u8 { TAG_BYTE } }
 impl NBTSerialize for bool {
     fn serialize<W: Write>(&self, writer: &mut W) -> NBTResult<()> {
         Ok(writer.write_all(&(*self as u8).to_be_bytes())?)
     }
 }
 
-impl NBTTag for String { fn tag_type() -> u8 { TAG_STRING } }
+impl NBTTagIdentity for String { fn tag_type() -> u8 { TAG_STRING } }
 impl NBTSerialize for String {
     fn serialize<W: Write>(&self, writer: &mut W) -> NBTResult<()> {
         writer.write_all(&(self.len() as u16).to_be_bytes())?;
@@ -49,7 +49,7 @@ impl NBTSerialize for String {
     }
 }
 
-impl<'a> NBTTag for &'a str { fn tag_type() -> u8 { TAG_STRING } }
+impl<'a> NBTTagIdentity for &'a str { fn tag_type() -> u8 { TAG_STRING } }
 impl<'a> NBTSerialize for &'a str {
     fn serialize<W: Write>(&self, writer: &mut W) -> NBTResult<()> {
         writer.write_all(&((*self).len() as u16).to_be_bytes())?;
@@ -58,7 +58,7 @@ impl<'a> NBTSerialize for &'a str {
 }
 
 
-impl<T: NBTTag> NBTTag for Vec<T> {
+impl<T: NBTTagIdentity> NBTTagIdentity for Vec<T> {
     fn tag_type() -> u8 {
         TAG_LIST
     }
@@ -82,7 +82,7 @@ where
     }
 }
 
-impl<T> NBTTag for Option<T>
+impl<T> NBTTagIdentity for Option<T>
 where
     T: NBTSerialize,
 {
@@ -103,7 +103,7 @@ where
     }
 }
 
-impl<K, V> NBTTag for std::collections::HashMap<K, V> {
+impl<K, V> NBTTagIdentity for std::collections::HashMap<K, V> {
     fn tag_type() -> u8 {
         TAG_COMPOUND
     }

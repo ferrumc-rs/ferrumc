@@ -1,6 +1,8 @@
 use proc_macro::TokenStream;
 
 mod serialize;
+mod deserialize;
+mod helper;
 /// Derive macro for the `NBTSerialize` trait to auto-generate serialization into NBT format.
 ///
 /// To serialize the entire root, please use the `root` attribute.
@@ -31,11 +33,41 @@ mod serialize;
 ///     player.serialize(&mut buffer).unwrap();
 /// }
 ///
-/// // Just an example of the serialize method. It's already implemented for
-/// impl Root { pub fn serialize(&self, writer: &mut Vec<u8>) -> std::io::Result<()> { Ok(unimplemented!()) } }
 /// ```
 ///
 #[proc_macro_derive(Serialize, attributes(nbt))]
 pub fn nbt_serialize_derive(input: TokenStream) -> TokenStream {
     serialize::nbt_serialize_derive(input)
+}
+
+/// Derive macro for the `NBTDeserialize` trait to auto-generate deserialization into the provided Struct format.
+///
+/// <h5> Example usage: </h5>
+
+/// ```rust
+/// use nbt_derive::Deserialize;
+///
+///
+/// #[derive(Deserialize)]
+/// pub struct Root {
+///     pub player_name: String,
+///     #[nbt(rename = "player_age")]
+///     pub x: X,
+/// }
+/// #[derive(Deserialize)]
+/// struct X {
+///     pub y: i32,
+/// }
+///
+/// fn main() {
+///     let buffer: Vec<u8> = unimplemented!();
+///     let nbt = read_tag(&mut Cursor::new(buffer)).unwrap();
+///     let player: Root = Root::deserialize(nbt).unwrap();
+/// }
+///
+/// ```
+///
+#[proc_macro_derive(Deserialize, attributes(nbt))]
+pub fn nbt_deserialize_derive(input: TokenStream) -> TokenStream {
+    deserialize::nbt_deserialize_derive(input)
 }

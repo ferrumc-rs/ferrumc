@@ -110,7 +110,7 @@ fn validate_codec_file() {
 #[derive(Serialize, Debug)]
 #[nbt(is_root)]
 #[nbt(rename = "ImTheRoot")]
-struct SimpleRoot {
+pub struct SimpleRoot {
     im_a_byte: i8,
     im_a_short: i16,
     im_an_int: i32,
@@ -124,20 +124,20 @@ struct SimpleRoot {
 }
 
 #[derive(Debug, Serialize)]
-struct SimpleChild {
+pub struct SimpleChild {
     im_a_child_byte: i8,
     im_a_child_string: String,
     grand_child: SimpleGrandChild,
 }
 
 #[derive(Debug, Serialize)]
-struct SimpleGrandChild {
+pub struct SimpleGrandChild {
     im_a_grand_child_byte: i8,
     im_a_grand_child_string: String,
 }
 
 #[derive(Debug, Serialize)]
-struct SimpleListInner {
+pub struct SimpleListInner {
     im_a_list_byte: i8,
     im_a_list_string: String,
 }
