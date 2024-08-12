@@ -22,13 +22,15 @@ enum NBTTag {
 #[test]
 fn try_read() {
     // base => ../../../../
-    let file_bytes = std::fs::read("../../../../.etc/nbt-lib_validation.nbt").unwrap();
+    let file_bytes = std::fs::read("../../../../.etc/nbt_lib_validation.nbt").unwrap();
 
-    deserialize_simple(file_bytes);
+    let nbt_tag = deserialize_simple(file_bytes);
+
+    println!("{:#?}", nbt_tag);
 }
 
-fn deserialize_simple(bytes: Vec<u8>) {
-    read_tag(&mut Cursor::new(bytes));
+fn deserialize_simple(bytes: Vec<u8>) -> NBTTag {
+    read_tag(&mut Cursor::new(bytes))
 }
 
 fn read_tag(cursor:&mut Cursor<Vec<u8>>) -> NBTTag {
@@ -36,6 +38,9 @@ fn read_tag(cursor:&mut Cursor<Vec<u8>>) -> NBTTag {
 
     while cursor.position() < cursor.get_ref().len() as u64 {
         let tag_type: u8 = cursor.read_i8() as u8;
+        if tag_type == 0  {
+            break;
+        }
         let name: String = cursor.read_nbt_string();
 
         println!("Reading tag: {} ({})", name, tag_type);
@@ -56,7 +61,6 @@ fn read_tag(cursor:&mut Cursor<Vec<u8>>) -> NBTTag {
                 println!("Unknown tag type: {}", tag_type);
             }
         }
-
 
         if let NBTTag::End = tag {
             println!("Ending {}", name);

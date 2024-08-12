@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 
+use std::f32::consts::PI;
+use std::f64::consts::E;
 use std::fs::File;
 use std::io::{Write};
 use ferrumc_macros::NBTDecode;
@@ -92,12 +94,53 @@ fn validate_generation() {
 
 #[test]
 fn validate_codec_file() {
+    // let root = NBTTestStruct::new();
+    // Has all but nested fields
 
-    let root = NBTTestStruct::new();
+    let root = SimpleRoot::new();
 
     let mut buffer = Vec::with_capacity(1024);
     root.serialize(&mut buffer).unwrap();
 
-    let mut file = File::create("./.etc/nbt_codec_validation.nbt").unwrap();
+    let mut file = File::create("./.etc/nbt_lib_validation.nbt").unwrap();
     file.write_all(&buffer).unwrap();
+}
+
+
+#[derive(Serialize, Debug)]
+#[nbt(is_root)]
+#[nbt(rename = "ImTheRoot")]
+struct SimpleRoot {
+    im_a_byte: i8,
+    im_a_short: i16,
+    im_an_int: i32,
+    im_a_long: i64,
+    im_a_float: f32,
+    im_a_double: f64,
+    im_a_string: String,
+    im_a_compound: SimpleChild,
+}
+
+#[derive(Debug, Serialize)]
+struct SimpleChild {
+    im_a_child_byte: i8,
+    im_a_child_string: String,
+}
+
+impl SimpleRoot {
+    pub fn new() -> Self {
+        SimpleRoot {
+            im_a_byte: 1,
+            im_a_short: 2,
+            im_an_int: 3,
+            im_a_long: 4,
+            im_a_float: PI,
+            im_a_double: E,
+            im_a_string: "Hello, world!".to_string(),
+            im_a_compound: SimpleChild {
+                im_a_child_byte: 7,
+                im_a_child_string: "Hello, child!".to_string(),
+            },
+        }
+    }
 }
