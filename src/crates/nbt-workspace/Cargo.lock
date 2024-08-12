@@ -3,10 +3,6 @@
 version = 3
 
 [[package]]
-name = "deserializer"
-version = "0.1.0"
-
-[[package]]
 name = "nbt-derive"
 version = "0.1.0"
 dependencies = [

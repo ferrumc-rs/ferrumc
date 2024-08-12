@@ -1,7 +1,7 @@
 [workspace]
 members = [
     "nbt-lib",
-    "nbt-derive", "deserializer",
+    "nbt-derive",
 ]
 resolver = "2"
 

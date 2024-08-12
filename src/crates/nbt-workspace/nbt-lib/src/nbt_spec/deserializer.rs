@@ -33,45 +33,24 @@ fn deserialize_simple(bytes: Vec<u8>) -> NBTTag {
     read_tag(&mut Cursor::new(bytes))
 }
 
-fn read_tag(cursor:&mut Cursor<Vec<u8>>) -> NBTTag {
+fn read_tag(cursor: &mut Cursor<Vec<u8>>) -> NBTTag {
     let mut compound_data: HashMap<String, NBTTag> = HashMap::new();
 
     while cursor.position() < cursor.get_ref().len() as u64 {
         let tag_type: u8 = cursor.read_i8() as u8;
-        if tag_type == 0  {
+        if tag_type == 0 {
             break;
         }
         let name: String = cursor.read_nbt_string();
 
         println!("Reading tag: {} ({})", name, tag_type);
 
-        let mut tag: NBTTag = NBTTag::End;
+        let tag = read_tag_based_on_type(cursor, tag_type);
 
-        match tag_type {
-            0 => tag = NBTTag::End,
-            1 => tag = NBTTag::Byte(cursor.read_i8()),
-            2 => tag = NBTTag::Short(cursor.read_i16()),
-            3 => tag = NBTTag::Int(cursor.read_i32()),
-            4 => tag = NBTTag::Long(cursor.read_i64()),
-            5 => tag = NBTTag::Float(cursor.read_f32()),
-            6 => tag = NBTTag::Double(cursor.read_f64()),
-            8 => tag = NBTTag::String(cursor.read_nbt_string()),
-            10 => tag = read_tag(cursor),
-            _ => {
-                println!("Unknown tag type: {}", tag_type);
-            }
-        }
+        if let NBTTag::End = tag { break; }
 
-        if let NBTTag::End = tag {
-            println!("Ending {}", name);
-            break;
-        }
-
-        println!("{} = {:?}", name, tag);
         compound_data.insert(name, tag);
     }
-
-    println!("End of tag");
 
     NBTTag::Compound(compound_data)
 }
@@ -133,5 +112,94 @@ impl CursorExt for Cursor<Vec<u8>> {
         let mut buf = vec![0; len as usize];
         self.read(&mut buf).unwrap();
         String::from_utf8(buf).unwrap()
+    }
+}
+
+pub trait NBTDeserialize {
+    fn read_from(cursor: &mut Cursor<Vec<u8>>) -> Self;
+}
+mod impls {
+    use super::*;
+
+    impl NBTDeserialize for i8 {
+        fn read_from(cursor: &mut Cursor<Vec<u8>>) -> Self {
+            cursor.read_i8()
+        }
+    }
+
+    impl NBTDeserialize for i16 {
+        fn read_from(cursor: &mut Cursor<Vec<u8>>) -> Self {
+            cursor.read_i16()
+        }
+    }
+
+    impl NBTDeserialize for i32 {
+        fn read_from(cursor: &mut Cursor<Vec<u8>>) -> Self {
+            cursor.read_i32()
+        }
+    }
+
+    impl NBTDeserialize for i64 {
+        fn read_from(cursor: &mut Cursor<Vec<u8>>) -> Self {
+            cursor.read_i64()
+        }
+    }
+
+    impl NBTDeserialize for f32 {
+        fn read_from(cursor: &mut Cursor<Vec<u8>>) -> Self {
+            cursor.read_f32()
+        }
+    }
+
+    impl NBTDeserialize for f64 {
+        fn read_from(cursor: &mut Cursor<Vec<u8>>) -> Self {
+            cursor.read_f64()
+        }
+    }
+
+    impl NBTDeserialize for String {
+        fn read_from(cursor: &mut Cursor<Vec<u8>>) -> Self {
+            cursor.read_nbt_string()
+        }
+    }
+
+    impl<T: NBTDeserialize> NBTDeserialize for Vec<T> {
+        fn read_from(cursor: &mut Cursor<Vec<u8>>) -> Self {
+            let len = cursor.read_i32();
+            let mut vec = Vec::with_capacity(len as usize);
+            for _ in 0..len {
+                vec.push(T::read_from(cursor));
+            }
+            vec
+        }
+    }
+}
+
+fn read_tag_based_on_type(cursor: &mut Cursor<Vec<u8>>, tag_type: u8) -> NBTTag {
+    match tag_type {
+        0 => NBTTag::End,
+        1 => NBTTag::Byte(cursor.read_i8()),
+        2 => NBTTag::Short(cursor.read_i16()),
+        3 => NBTTag::Int(cursor.read_i32()),
+        4 => NBTTag::Long(cursor.read_i64()),
+        5 => NBTTag::Float(cursor.read_f32()),
+        6 => NBTTag::Double(cursor.read_f64()),
+        7 => NBTTag::ByteArray(Vec::read_from(cursor)),
+        8 => NBTTag::String(cursor.read_nbt_string()),
+        9 => {
+            let list_type = cursor.read_i8() as u8;
+            let len = cursor.read_i32();
+            let mut list = Vec::with_capacity(len as usize);
+            for _ in 0..len {
+                list.push(read_tag_based_on_type(cursor, list_type));
+            }
+            NBTTag::List(list)
+        }
+        10 => read_tag(cursor),
+        11 => NBTTag::IntArray(Vec::read_from(cursor)),
+        12 => NBTTag::LongArray(Vec::read_from(cursor)),
+        _ => {
+            panic!("Unknown tag type: {}", tag_type);
+        }
     }
 }

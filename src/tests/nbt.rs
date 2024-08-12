@@ -118,13 +118,28 @@ struct SimpleRoot {
     im_a_float: f32,
     im_a_double: f64,
     im_a_string: String,
+    im_a_byte_array: Vec<i8>,
     im_a_compound: SimpleChild,
+    im_a_list: Vec<SimpleListInner>,
 }
 
 #[derive(Debug, Serialize)]
 struct SimpleChild {
     im_a_child_byte: i8,
     im_a_child_string: String,
+    grand_child: SimpleGrandChild,
+}
+
+#[derive(Debug, Serialize)]
+struct SimpleGrandChild {
+    im_a_grand_child_byte: i8,
+    im_a_grand_child_string: String,
+}
+
+#[derive(Debug, Serialize)]
+struct SimpleListInner {
+    im_a_list_byte: i8,
+    im_a_list_string: String,
 }
 
 impl SimpleRoot {
@@ -137,10 +152,29 @@ impl SimpleRoot {
             im_a_float: PI,
             im_a_double: E,
             im_a_string: "Hello, world!".to_string(),
+            im_a_byte_array: vec![1, 2, 3, 4, 5],
             im_a_compound: SimpleChild {
                 im_a_child_byte: 7,
                 im_a_child_string: "Hello, child!".to_string(),
+                grand_child: SimpleGrandChild {
+                    im_a_grand_child_byte: 6,
+                    im_a_grand_child_string: "Hello, grand child!".to_string(),
+                },
             },
+            im_a_list: vec![
+                SimpleListInner {
+                    im_a_list_byte: 8,
+                    im_a_list_string: "Hello, alpha!".to_string(),
+                },
+                SimpleListInner {
+                    im_a_list_byte: 9,
+                    im_a_list_string: "Hello, beta!".to_string(),
+                },
+                SimpleListInner {
+                    im_a_list_byte: 10,
+                    im_a_list_string: "Hello, gamma!".to_string(),
+                },
+            ],
         }
     }
 }
