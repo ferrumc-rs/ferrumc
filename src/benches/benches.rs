@@ -2,6 +2,7 @@
 
 mod r#impl;
 mod bench_nbt_codec;
+mod bench_nbt_ser_de;
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use nbt_lib::nbt_spec::serializer::NBTSerialize;

@@ -72,6 +72,6 @@ criterion = { version = "0.5.1", features = ["html_reports"] }
 [[bench]]
 name = "benches"
 harness = false
-path = "./src/benches/benches.rs"
+path = "./src/benches/bench_nbt_ser_de.rs"
 
 
