@@ -2,14 +2,14 @@ use std::io::ErrorKind::NotFound;
 use std::io::Write;
 use std::sync::OnceLock;
 
-use config::{Config, ConfigError};
-use serde::{Deserialize, Serialize};
-use tracing::{error, info};
 use crate::utils::constants::{
     DEFAULT_CONFIG_FILE, DEFAULT_MAX_PLAYERS, DEFAULT_MOTD, DEFAULT_SERVER_HOST,
     DEFAULT_SERVER_PORT,
 };
 use crate::utils::error::Error;
+use config::{Config, ConfigError};
+use serde::{Deserialize, Serialize};
+use tracing::{error, info};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ServerConfig {
@@ -132,7 +132,8 @@ impl Default for ServerConfig {
                 port: 29325,
                 path: "data".to_string(),
                 mode: "file".to_string(),
-            }}
+            },
+        }
     }
 }
 

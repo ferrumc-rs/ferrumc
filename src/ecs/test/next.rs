@@ -2,7 +2,7 @@
 mod tests {
     use std::sync::Arc;
 
-    use crate::ecs::component::{ComponentStorage};
+    use crate::ecs::component::ComponentStorage;
     use crate::ecs::entity::EntityManager;
     use crate::ecs::query::Query;
     use crate::utils::encoding::position::Position;
@@ -16,9 +16,8 @@ mod tests {
         let entity1 = entity_manager.create_entity().await;
         let entity2 = entity_manager.create_entity().await;
 
-        storage.insert(entity1, Position { x: 1, y: 2 , z: 0});
-        storage.insert(entity2, Position { x: 3, y: 4 , z: 0});
-
+        storage.insert(entity1, Position { x: 1, y: 2, z: 0 });
+        storage.insert(entity2, Position { x: 3, y: 4, z: 0 });
 
         let mut query = Query::<&Position>::new(&entity_manager, &storage);
 
@@ -43,9 +42,9 @@ mod tests {
         let entity1 = entity_manager.create_entity().await;
         let entity2 = entity_manager.create_entity().await;
 
-        storage.insert(entity1, Position { x: 1, y: 2, z: 0});
-        storage.insert(entity1, Velocity { x: 3, y: 4, z: 0});
-        storage.insert(entity2, Position { x: 5, y: 6, z: 0});
+        storage.insert(entity1, Position { x: 1, y: 2, z: 0 });
+        storage.insert(entity1, Velocity { x: 3, y: 4, z: 0 });
+        storage.insert(entity2, Position { x: 5, y: 6, z: 0 });
 
         let mut query = Query::<(&Position, &Velocity)>::new(&entity_manager, &storage);
 
@@ -63,18 +62,18 @@ mod tests {
         let entity_manager = EntityManager::new();
 
         let entity = entity_manager.create_entity().await;
-        storage.insert(entity, Position { x: 1, y: 2, z:0 });
+        storage.insert(entity, Position { x: 1, y: 2, z: 0 });
 
         let mut query = Query::<&mut Position>::new(&entity_manager, &storage);
 
         let (id, mut pos) = query.next().await.unwrap();
         assert_eq!(id, entity.id as usize);
         pos.x += 1;
-        
+
         drop(pos); // Explicitly drop the RwLockWriteGuard.
 
         assert!(query.next().await.is_none());
-        
+
         let query = Query::<&Position>::new(&entity_manager, &storage);
         let results: Vec<_> = query.iter().await.collect();
         assert_eq!(results[0].1.x, 2);
@@ -87,7 +86,7 @@ mod tests {
 
         for i in 0..100 {
             let entity = entity_manager.create_entity().await;
-            storage.insert(entity, Position { x: i , y: 0, z:0 });
+            storage.insert(entity, Position { x: i, y: 0, z: 0 });
         }
 
         let entity_manager = Arc::new(entity_manager);
@@ -108,7 +107,11 @@ mod tests {
             })
             .collect();
 
-        let results = futures::future::join_all(handles).await.into_iter().map(|r| r.unwrap()).collect::<Vec<_>>();
+        let results = futures::future::join_all(handles)
+            .await
+            .into_iter()
+            .map(|r| r.unwrap())
+            .collect::<Vec<_>>();
         assert_eq!(results.iter().sum::<usize>(), 1000);
     }
 

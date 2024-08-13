@@ -1,5 +1,5 @@
-use std::convert::Infallible;
 use config::ConfigError;
+use std::convert::Infallible;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -65,5 +65,4 @@ impl From<Infallible> for Error {
     fn from(e: Infallible) -> Self {
         return Error::Generic(format!("{:?}", e));
     }
-
 }

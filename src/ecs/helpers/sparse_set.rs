@@ -91,7 +91,8 @@ impl<T> SparseSet<T> {
     /// assert_eq!(set.get(6), None);
     /// ```
     pub fn get(&self, index: usize) -> Option<&T> {
-        self.sparse.get(index)
+        self.sparse
+            .get(index)
             .and_then(|&dense_index| dense_index.map(|di| &self.dense[di].1))
     }
 
@@ -109,7 +110,8 @@ impl<T> SparseSet<T> {
     /// assert_eq!(set.get(5), Some(&String::from("value modified")));
     /// ```
     pub fn get_mut(&mut self, index: usize) -> Option<&mut T> {
-        self.sparse.get(index)
+        self.sparse
+            .get(index)
             .and_then(|&dense_index| dense_index.map(|di| &mut self.dense[di].1))
     }
 
@@ -125,7 +127,7 @@ impl<T> SparseSet<T> {
     /// let sum: i32 = set.iter().sum();
     /// assert_eq!(sum, 3);
     /// ```
-    pub fn iter(&self) -> impl Iterator<Item=(&usize, &T)> {
+    pub fn iter(&self) -> impl Iterator<Item = (&usize, &T)> {
         self.dense.iter().map(|(key, value)| (key, value))
     }
 
@@ -144,7 +146,7 @@ impl<T> SparseSet<T> {
     /// assert_eq!(set.get(5), Some(&2));
     /// assert_eq!(set.get(10), Some(&4));
     /// ```
-    pub fn iter_mut(&mut self) -> impl Iterator<Item=(&mut usize, &mut T)> {
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = (&mut usize, &mut T)> {
         // self.dense.iter_mut().map(|(key, value)| value)
         // somehow only get the value as mutable, the key should remain immutable
         self.dense.iter_mut().map(|(key, value)| (key, value))
@@ -175,7 +177,6 @@ impl<T> SparseSet<T> {
         self.dense.reserve(1);
     }
 }
-
 
 #[cfg(test)]
 mod tests {

@@ -1,5 +1,5 @@
 use nbt_lib::Serialize;
-use serde::{Deserialize};
+use serde::Deserialize;
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

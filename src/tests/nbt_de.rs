@@ -1,6 +1,5 @@
+use nbt_lib::{Deserialize, NBTDeserializeBytes};
 use std::io::{Read, Write};
-use nbt_lib::{Deserialize, NBTDeserializeBytes, };
-use crate::tests::nbt_de::alguy_struct::PlayerData;
 
 #[test]
 fn try_read() {
@@ -9,7 +8,7 @@ fn try_read() {
     #[derive(Deserialize, Debug)]
     #[nbt(is_root)]
     #[nbt(rename = "")]
-    struct Test{
+    struct Test {
         field_one: i8,
         field_two: i16,
         optional_field: Option<i32>,
@@ -21,8 +20,8 @@ fn try_read() {
     println!("{:?}", root);
 }
 mod alguy_struct {
-    use std::collections::HashMap;
     use nbt_lib::{Deserialize, Serialize};
+    use std::collections::HashMap;
 
     #[derive(Debug, Serialize, Deserialize)]
     #[nbt(rename = "")] // root tag

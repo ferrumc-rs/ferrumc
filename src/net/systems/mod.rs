@@ -6,9 +6,9 @@ use crate::state::GlobalState;
 use crate::utils::prelude::*;
 
 pub mod chunk_sender;
+pub mod connection_handler;
 pub mod keep_alive_system;
 pub mod tick_system;
-pub mod connection_handler;
 
 #[async_trait]
 pub trait System: Send + Sync {

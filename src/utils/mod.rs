@@ -1,4 +1,4 @@
-use tracing_subscriber::filter::{Directive};
+use tracing_subscriber::filter::Directive;
 
 use crate::utils::constants::DEFAULT_LOG_LEVEL;
 use crate::utils::prelude::*;
@@ -41,12 +41,10 @@ pub fn setup_logger() -> Result<()> {
         .add_directive(trace_level.into())
         .add_directive(str_to_directive("sled=off")?);
 
-
-    Ok(tracing_subscriber::fmt()
-        .with_env_filter(env_filter)
-        .init())
+    Ok(tracing_subscriber::fmt().with_env_filter(env_filter).init())
 }
 
 fn str_to_directive(s: &str) -> Result<Directive> {
-    s.parse().map_err(|_| Error::InvalidDirective(s.to_string()))
+    s.parse()
+        .map_err(|_| Error::InvalidDirective(s.to_string()))
 }

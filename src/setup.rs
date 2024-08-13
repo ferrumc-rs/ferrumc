@@ -1,9 +1,8 @@
 use std::env::current_exe;
 
+use crate::utils::error::Error;
 use tokio::fs;
 use tracing::info;
-use crate::utils::error::Error;
-
 
 /// Handles the setup of the server
 ///

@@ -1,15 +1,15 @@
 use tokio::io::AsyncWriteExt;
 use tracing::info;
 
-use ferrumc_macros::{Decode, packet};
+use ferrumc_macros::{packet, Decode};
 
-use crate::Connection;
-use crate::net::packets::IncomingPacket;
 use crate::net::packets::outgoing::ping::OutgoingPing;
+use crate::net::packets::IncomingPacket;
 use crate::state::GlobalState;
 use crate::utils::encoding::varint::VarInt;
 use crate::utils::prelude::*;
 use crate::utils::type_impls::Encode;
+use crate::Connection;
 
 /// This ping packet is sent by the client to the server to request a pong.
 ///

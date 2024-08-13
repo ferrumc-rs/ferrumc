@@ -1,12 +1,12 @@
 #![allow(dead_code)]
 
-use std::f32::consts::PI;
-use std::f64::consts::E;
-use std::fs::File;
-use std::io::{Write};
 use ferrumc_macros::NBTDecode;
 use nbt_lib::nbt_spec::serializer::NBTSerialize;
 use nbt_lib::{Deserialize, Serialize};
+use std::f32::consts::PI;
+use std::f64::consts::E;
+use std::fs::File;
+use std::io::Write;
 
 #[derive(Serialize, NBTDecode, Debug)]
 #[nbt(is_root)]
@@ -53,9 +53,21 @@ impl NBTTestStruct {
             position: vec![100.5, 64.0, -200.5],
 
             inventory: vec![
-                Item { id: "minecraft:diamond_sword".to_string(), count: 1, damage: 0 },
-                Item { id: "minecraft:apple".to_string(), count: 64, damage: 0 },
-                Item { id: "minecraft:oak_planks".to_string(), count: 32, damage: 0 },
+                Item {
+                    id: "minecraft:diamond_sword".to_string(),
+                    count: 1,
+                    damage: 0,
+                },
+                Item {
+                    id: "minecraft:apple".to_string(),
+                    count: 64,
+                    damage: 0,
+                },
+                Item {
+                    id: "minecraft:oak_planks".to_string(),
+                    count: 32,
+                    damage: 0,
+                },
             ],
             abilities: PlayerAbilities {
                 invulnerable: false,
@@ -77,7 +89,6 @@ fn validate_generation() {
 
     println!("{:?}", buffer);
 
-
     let mut file = File::create("./.etc/nbt-lib_validation.nbt").unwrap();
     file.write_all(&buffer).unwrap();
 
@@ -85,12 +96,8 @@ fn validate_generation() {
 
     println!("{:?}", decode);
 
-
-
-
     // println!("Expected NBT data: compound + test + 1u8");
 }
-
 
 #[test]
 fn validate_codec_file() {
@@ -105,7 +112,6 @@ fn validate_codec_file() {
     let mut file = File::create("./.etc/nbt_lib_validation.nbt").unwrap();
     file.write_all(&buffer).unwrap();
 }
-
 
 #[derive(Serialize, Deserialize, Debug)]
 #[nbt(is_root)]

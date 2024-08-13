@@ -1,9 +1,9 @@
 #![allow(dead_code)]
 
-use tokio::io::{AsyncSeek, AsyncWrite};
 use crate::utils::encoding::varint::VarInt;
 use crate::utils::error::Error;
 use crate::utils::type_impls::Encode;
+use tokio::io::{AsyncSeek, AsyncWrite};
 
 pub struct BitSet {
     len: VarInt,
@@ -35,7 +35,7 @@ impl BitSet {
 impl Encode for BitSet {
     async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
     where
-        T: AsyncWrite + AsyncSeek + Unpin
+        T: AsyncWrite + AsyncSeek + Unpin,
     {
         self.len.encode(bytes).await?;
         self.data.encode(bytes).await?;

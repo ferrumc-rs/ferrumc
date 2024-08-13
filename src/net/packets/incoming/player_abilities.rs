@@ -1,10 +1,10 @@
 use tracing::trace;
 
-use ferrumc_macros::{Decode, packet};
+use ferrumc_macros::{packet, Decode};
 
-use crate::Connection;
 use crate::net::packets::IncomingPacket;
 use crate::state::GlobalState;
+use crate::Connection;
 
 #[derive(Decode)]
 #[packet(packet_id = 0x1C, state = "play")]

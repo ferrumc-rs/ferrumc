@@ -1,6 +1,6 @@
-use ferrumc_macros::{Encode};
 use crate::utils::components::keep_alive::KeepAlive;
 use crate::utils::encoding::varint::VarInt;
+use ferrumc_macros::Encode;
 
 #[derive(Encode, Debug)]
 pub struct KeepAlivePacketOut {
@@ -16,10 +16,8 @@ fn test_auto_impl() {
     assert_eq!(packet.keep_alive_id, 99999i64);
 }
 
-
 impl Into<KeepAlivePacketOut> for &mut KeepAlive {
     fn into(self) -> KeepAlivePacketOut {
         KeepAlivePacketOut::new_auto(self.data)
     }
 }
-

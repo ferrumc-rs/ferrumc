@@ -1,10 +1,10 @@
-use ferrumc_macros::{Decode, packet};
+use ferrumc_macros::{packet, Decode};
 
-use crate::{Connection, net::State};
 use crate::net::packets::IncomingPacket;
 use crate::state::GlobalState;
 use crate::utils::encoding::varint::VarInt;
 use crate::utils::prelude::*;
+use crate::{net::State, Connection};
 
 /// The first packet sent by the client to the server.
 ///

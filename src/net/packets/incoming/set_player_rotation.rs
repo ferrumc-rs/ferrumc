@@ -1,7 +1,7 @@
-use ferrumc_macros::{Decode, packet};
+use ferrumc_macros::{packet, Decode};
 
-use crate::net::Connection;
 use crate::net::packets::IncomingPacket;
+use crate::net::Connection;
 use crate::state::GlobalState;
 use crate::utils::components::rotation::Rotation;
 
@@ -14,7 +14,11 @@ pub struct SetPlayerRotation {
 }
 
 impl IncomingPacket for SetPlayerRotation {
-    async fn handle(self, conn: &mut Connection, state: GlobalState) -> crate::utils::prelude::Result<()> {
+    async fn handle(
+        self,
+        conn: &mut Connection,
+        state: GlobalState,
+    ) -> crate::utils::prelude::Result<()> {
         let my_entity_id = conn.metadata.entity;
 
         let component_storage = state.world.get_component_storage();

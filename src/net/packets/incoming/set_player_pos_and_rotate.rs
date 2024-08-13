@@ -1,11 +1,11 @@
-use ferrumc_macros::{Decode, packet};
+use ferrumc_macros::{packet, Decode};
 
-use crate::Connection;
 use crate::net::packets::IncomingPacket;
 use crate::state::GlobalState;
 use crate::utils::components::rotation::Rotation;
 use crate::utils::encoding::position::Position;
 use crate::utils::prelude::*;
+use crate::Connection;
 
 #[derive(Decode)]
 #[packet(packet_id = 0x15, state = "play")]

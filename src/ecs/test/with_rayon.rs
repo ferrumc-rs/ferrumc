@@ -1,14 +1,14 @@
 #[cfg(test)]
 mod tests {
-    use std::sync::Arc;
-    use rayon::prelude::IntoParallelRefMutIterator;
-    use rayon::prelude::ParallelIterator;
-    use tokio::runtime::Runtime;
-    use tokio::sync::RwLock;
     use crate::ecs::component::Component;
     use crate::ecs::world::World;
     use crate::utils::encoding::position::Position;
     use crate::utils::encoding::velocity::Velocity;
+    use rayon::prelude::IntoParallelRefMutIterator;
+    use rayon::prelude::ParallelIterator;
+    use std::sync::Arc;
+    use tokio::runtime::Runtime;
+    use tokio::sync::RwLock;
 
     // New components for our test scenario
     #[derive(Debug, Clone)]
@@ -34,19 +34,36 @@ mod tests {
     async fn create_test_entities(world: Arc<RwLock<World>>, count: usize) {
         let world = world.read().await;
         for i in 0..count {
-            world.create_entity().await
-                .with(Position  { x: i as i32, y: i as i16 , z: 0})
-                .with(Velocity { x: 1, y: 1 , z: 0})
-                .with(Health { current: 100.0, max: 100.0})
+            world
+                .create_entity()
+                .await
+                .with(Position {
+                    x: i as i32,
+                    y: i as i16,
+                    z: 0,
+                })
+                .with(Velocity { x: 1, y: 1, z: 0 })
+                .with(Health {
+                    current: 100.0,
+                    max: 100.0,
+                })
                 .with(if i % 2 == 0 {
-                    DamageOverTime { damage_per_second: 5.0 }
+                    DamageOverTime {
+                        damage_per_second: 5.0,
+                    }
                 } else {
-                    DamageOverTime { damage_per_second: 0.0 }
+                    DamageOverTime {
+                        damage_per_second: 0.0,
+                    }
                 })
                 .with(if i % 3 == 0 {
-                    Healer { heal_per_second: 2.0 }
+                    Healer {
+                        heal_per_second: 2.0,
+                    }
                 } else {
-                    Healer { heal_per_second: 0.0 }
+                    Healer {
+                        heal_per_second: 0.0,
+                    }
                 })
                 .build();
         }
@@ -124,7 +141,6 @@ mod tests {
         }
     }
 
-
     #[test]
     fn test_parallel_systems() {
         let rt = Runtime::new().unwrap();
@@ -153,7 +169,10 @@ mod tests {
 
             while let Some((_, (position, health))) = query.next().await {
                 assert!(position.x > 0 && position.y > 0, "Entity should have moved");
-                assert!(health.current > 0.0 && health.current <= health.max, "Health should be within valid range");
+                assert!(
+                    health.current > 0.0 && health.current <= health.max,
+                    "Health should be within valid range"
+                );
             }
         });
     }

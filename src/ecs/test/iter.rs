@@ -328,7 +328,7 @@ mod tests {
         use rayon::iter::ParallelIterator;
         use rayon::prelude::IntoParallelIterator;
         use std::sync::atomic::{AtomicBool, Ordering};
-        use tokio::time::{Duration, sleep};
+        use tokio::time::{sleep, Duration};
 
         let storage = Arc::new(ComponentStorage::new());
         let entity_manager = EntityManager::new();

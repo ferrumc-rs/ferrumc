@@ -7,7 +7,6 @@ pub struct Rotation {
 }
 
 impl Rotation {
-
     pub fn add_yaw(&mut self, yaw: f32) {
         self.yaw += yaw;
     }

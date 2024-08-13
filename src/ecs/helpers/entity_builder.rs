@@ -1,4 +1,4 @@
-use crate::ecs::component::{ComponentStorage, Component};
+use crate::ecs::component::{Component, ComponentStorage};
 
 /// A builder for creating and configuring entities in an Entity-Component-System architecture.
 pub struct EntityBuilder<'a> {

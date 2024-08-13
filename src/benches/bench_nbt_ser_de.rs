@@ -1,7 +1,7 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use nbt_lib::{Serialize, Deserialize, NBTSerialize, NBTDeserialize, read_tag};
-use std::io::Cursor;
+use nbt_lib::{read_tag, Deserialize, NBTDeserialize, NBTSerialize, Serialize};
 use r#struct::{create_test_player, Player};
+use std::io::Cursor;
 
 mod r#struct {
     use super::*;
@@ -83,15 +83,25 @@ mod r#struct {
             mana: 150.0,
             experience: 1_000_000,
             is_admin: false,
-            position: Position { x: 156.7, y: 64.0, z: -892.3 },
+            position: Position {
+                x: 156.7,
+                y: 64.0,
+                z: -892.3,
+            },
             inventory: vec![
                 Item {
                     id: "diamond_sword".to_string(),
                     count: 1,
                     durability: 1500,
                     enchantments: vec![
-                        Enchantment { id: "sharpness".to_string(), level: 5 },
-                        Enchantment { id: "unbreaking".to_string(), level: 3 },
+                        Enchantment {
+                            id: "sharpness".to_string(),
+                            level: 5,
+                        },
+                        Enchantment {
+                            id: "unbreaking".to_string(),
+                            level: 3,
+                        },
                     ],
                 },
                 /*Item {
@@ -105,15 +115,33 @@ mod r#struct {
                     count: 1,
                     durability: 2000,
                     enchantments: vec![
-                        Enchantment { id: "efficiency".to_string(), level: 4 },
-                        Enchantment { id: "fortune".to_string(), level: 3 },
+                        Enchantment {
+                            id: "efficiency".to_string(),
+                            level: 4,
+                        },
+                        Enchantment {
+                            id: "fortune".to_string(),
+                            level: 3,
+                        },
                     ],
                 },
             ],
             skills: vec![
-                Skill { name: "Mining".to_string(), level: 75, experience: 95000.5 },
-                Skill { name: "Combat".to_string(), level: 60, experience: 75000.0 },
-                Skill { name: "Farming".to_string(), level: 45, experience: 50000.25 },
+                Skill {
+                    name: "Mining".to_string(),
+                    level: 75,
+                    experience: 95000.5,
+                },
+                Skill {
+                    name: "Combat".to_string(),
+                    level: 60,
+                    experience: 75000.0,
+                },
+                Skill {
+                    name: "Farming".to_string(),
+                    level: 45,
+                    experience: 50000.25,
+                },
             ],
             achievements: Achievements {
                 total_unlocked: 150,
@@ -146,10 +174,12 @@ mod r#struct {
 fn benchmark_serialization(c: &mut Criterion) {
     let player = create_test_player();
 
-    c.bench_function("serialize", |b| b.iter(|| {
-        let mut buffer = Vec::with_capacity(2048);
-        black_box(player.serialize(&mut buffer)).unwrap();
-    }));
+    c.bench_function("serialize", |b| {
+        b.iter(|| {
+            let mut buffer = Vec::with_capacity(2048);
+            black_box(player.serialize(&mut buffer)).unwrap();
+        })
+    });
 }
 
 /*fn benchmark_deserialization(c: &mut Criterion) {
@@ -173,11 +203,13 @@ fn benchmark_raw_deserialization(c: &mut Criterion) {
 
     std::fs::write(".etc/test_player.nbt", &buffer).unwrap();
 
-    c.bench_function("raw_deserialize", |b| b.iter(|| {
-        let cursor = black_box(Cursor::new(buffer.clone()));
-        let nbt_data = black_box(read_tag(&mut cursor.clone())).unwrap();
-        black_box(nbt_data);
-    }));
+    c.bench_function("raw_deserialize", |b| {
+        b.iter(|| {
+            let cursor = black_box(Cursor::new(buffer.clone()));
+            let nbt_data = black_box(read_tag(&mut cursor.clone())).unwrap();
+            black_box(nbt_data);
+        })
+    });
 }
 fn benchmark_simdnbt_deserialization(c: &mut Criterion) {
     let player = create_test_player();
@@ -190,10 +222,12 @@ fn benchmark_simdnbt_deserialization(c: &mut Criterion) {
     let data = data.as_slice();
     let mut cursor = Cursor::new(data);
 
-    c.bench_function("simdnbt_deserialize", |b| b.iter(|| {
-        let nbt_data = black_box(simdnbt::borrow::read(&mut cursor.clone())).unwrap();
-        black_box(nbt_data);
-    }));
+    c.bench_function("simdnbt_deserialize", |b| {
+        b.iter(|| {
+            let nbt_data = black_box(simdnbt::borrow::read(&mut cursor.clone())).unwrap();
+            black_box(nbt_data);
+        })
+    });
 }
 
 criterion_group!(benches, benchmark_simdnbt_deserialization);

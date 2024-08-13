@@ -2,8 +2,8 @@ use std::cmp::PartialEq;
 use std::fmt::{Debug, Display};
 use std::io::Cursor;
 use std::ops::DerefMut;
-use std::sync::{Arc, atomic};
 use std::sync::atomic::AtomicU32;
+use std::sync::{atomic, Arc};
 use std::time::Duration;
 
 use dashmap::DashMap;

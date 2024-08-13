@@ -59,7 +59,6 @@ pub trait NBTDecodable {
         Self: Sized;
 }
 
-
 impl NBTDecodable for bool {
     fn decode_from_base(nbt: &BaseNbt, name: &str) -> Result<Self, Error>
     where
@@ -631,7 +630,7 @@ impl<T: NBTDecodable> NBTDecodable for Option<T> {
         // Already in compound
         if name.is_empty() {
             T::decode_from_compound(nbt, name).map(|x| Some(x))
-        }else {
+        } else {
             match nbt.compound(name) {
                 Some(nested_nbt) => T::decode_from_compound(&nested_nbt, "").map(|x| Some(x)),
                 None => Ok(None),

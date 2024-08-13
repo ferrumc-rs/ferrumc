@@ -1,6 +1,6 @@
 use std::time::Instant;
 
-use ferrumc_macros::{Decode, packet};
+use ferrumc_macros::{packet, Decode};
 #[cfg(not(test))]
 use include_flate::flate;
 use rand::random;
@@ -8,11 +8,10 @@ use tokio::io::AsyncWriteExt;
 use tracing::debug;
 use uuid::Uuid;
 
-use crate::Connection;
-use crate::net::packets::IncomingPacket;
 use crate::net::packets::outgoing::default_spawn_position::DefaultSpawnPosition;
 use crate::net::packets::outgoing::keep_alive::KeepAlivePacketOut;
 use crate::net::packets::outgoing::login_success::LoginSuccess;
+use crate::net::packets::IncomingPacket;
 use crate::net::State::Play;
 use crate::state::GlobalState;
 use crate::utils::components::keep_alive::KeepAlive;
@@ -22,6 +21,7 @@ use crate::utils::encoding::position::Position;
 use crate::utils::encoding::varint::VarInt;
 use crate::utils::prelude::*;
 use crate::utils::type_impls::Encode;
+use crate::Connection;
 
 /// The login start packet is sent by the client to the server to start the login process.
 ///

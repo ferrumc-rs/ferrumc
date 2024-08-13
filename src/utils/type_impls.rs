@@ -1,8 +1,8 @@
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncSeek, AsyncWrite, AsyncWriteExt};
 
 use crate::utils::encoding::position::Position;
-use crate::utils::encoding::varint::{read_varint, VarInt, write_varint};
-use crate::utils::encoding::varlong::{read_varlong, Varlong, write_varlong};
+use crate::utils::encoding::varint::{read_varint, write_varint, VarInt};
+use crate::utils::encoding::varlong::{read_varlong, write_varlong, Varlong};
 use crate::utils::error::Error;
 
 /// This trait is used to decode a type from a byte stream. It is implemented for all types that
@@ -465,7 +465,6 @@ impl Encode for f64 {
     }
 }
 
-
 impl Encode for String {
     /// Encodes a String into a byte stream. A String is encoded as a VarInt representing the length
     /// of the string, followed by the string itself. The string is expected to be UTF-8 encoded.
@@ -567,14 +566,15 @@ impl Encode for Position {
     }
 }
 
-
 impl<O: Encode> Encode for Option<O> {
     async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
     where
-        T: AsyncWrite + AsyncSeek + Unpin
+        T: AsyncWrite + AsyncSeek + Unpin,
     {
         match self {
-            Some(val) => {val.encode(bytes).await?; }
+            Some(val) => {
+                val.encode(bytes).await?;
+            }
             None => {}
         }
         Ok(())

@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use ferrumc_macros::AutoGenName;
-use tracing::{info};
+use tracing::info;
 
 use crate::net::systems::System;
 use crate::state::GlobalState;
@@ -20,9 +20,7 @@ impl System for TickSystem {
             while let Some((idx, (player, position, rotation))) = query.next().await {
                 info!(
                     "[{idx}] @ Player = {:?}\tPosition = {}\tRotation = {:?}",
-                    player.username,
-                    *position,
-                    *rotation,
+                    player.username, *position, *rotation,
                 );
             }
 

@@ -1,9 +1,9 @@
-use async_trait::async_trait;
-use ferrumc_macros::AutoGenName;
-use tracing::{debug, error, info_span, Instrument};
 use crate::net::systems::System;
 use crate::state::GlobalState;
 use crate::utils::prelude::*;
+use async_trait::async_trait;
+use ferrumc_macros::AutoGenName;
+use tracing::{debug, error, info_span, Instrument};
 
 #[derive(AutoGenName)]
 pub struct ConnectionHandler;
@@ -30,10 +30,8 @@ impl ConnectionHandler {
             debug!("Accepted connection from {:?}", stream.peer_addr()?);
             let addy = stream.peer_addr()?;
             tokio::task::spawn(
-                Self::handle_connection(
-                    state.clone(),
-                    stream
-                ).instrument(info_span!("conn", %addy).or_current()),
+                Self::handle_connection(state.clone(), stream)
+                    .instrument(info_span!("conn", %addy).or_current()),
             );
         }
     }

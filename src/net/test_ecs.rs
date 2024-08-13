@@ -9,13 +9,15 @@ mod tests {
         let world = World::new();
 
         let entity1 = world
-            .create_entity().await
+            .create_entity()
+            .await
             .with(Position::new(0, 1, 0))
             .with(Velocity::new(1, 1, 1))
             .build();
 
         world
-            .create_entity().await
+            .create_entity()
+            .await
             .with(Position::new(1, 2, 1))
             .with(Velocity::new(2, 2, 2));
 

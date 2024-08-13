@@ -1,9 +1,8 @@
 #![allow(dead_code)]
-use std::collections::HashMap;
 use ferrumc_macros::Encode;
 use simdnbt::owned::NbtCompound;
 use simdnbt_derive::{Deserialize, Serialize};
-
+use std::collections::HashMap;
 
 #[derive(Deserialize, Debug, Serialize)]
 pub struct Chunk {
@@ -24,16 +23,13 @@ pub struct Chunk {
     #[simdnbt(rename = "zPos")]
     pub z: i32,
     pub sections: Vec<ChunkSection>,
-
     /**/
 
 
     /*    #[simdnbt(rename = "CarvingMasks")]
         // pub carving_masks: Option<HashMap<String, Vec<i64>>>,
         pub carving_masks: HashMap<String, String>,*/
-
 }
-
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ChunkSection {
@@ -107,6 +103,6 @@ pub struct StructurePiece {
 pub struct Block {
     #[simdnbt(rename = "Name")]
     pub name: String,
-/*    #[simdnbt(rename = "Properties")]
+    /*    #[simdnbt(rename = "Properties")]
     pub properties: Option<HashMap<String, String>>,*/
 }

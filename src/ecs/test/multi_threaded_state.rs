@@ -8,7 +8,9 @@ pub struct ServerState {
 
 impl ServerState {
     pub fn new(world: World) -> Self {
-        ServerState { world: Arc::new(world) }
+        ServerState {
+            world: Arc::new(world),
+        }
     }
 }
 

@@ -1,7 +1,7 @@
-use async_trait::async_trait;
-use ferrumc_macros::AutoGenName;
 use crate::net::systems::System;
 use crate::state::GlobalState;
+use async_trait::async_trait;
+use ferrumc_macros::AutoGenName;
 
 #[derive(AutoGenName)]
 pub struct ChunkSender;

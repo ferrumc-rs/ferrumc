@@ -1,7 +1,7 @@
-use std::sync::Arc;
 use crate::database::Database;
 use crate::ecs::world::World;
 use crate::net::ConnectionList;
+use std::sync::Arc;
 
 pub struct ServerState {
     pub world: Arc<World>,

@@ -88,8 +88,8 @@ impl EntityManager {
     /// ```
     pub async fn entity_exists(&self, entity: Entity) -> bool {
         let inner = self.inner.read().await;
-        (entity.id as usize) < inner.generations.len() &&
-            inner.generations[entity.id as usize] == entity.generation
+        (entity.id as usize) < inner.generations.len()
+            && inner.generations[entity.id as usize] == entity.generation
     }
 
     /// Returns the number of active entities.
@@ -97,7 +97,6 @@ impl EntityManager {
         let inner = self.inner.read().await;
         inner.generations.len() - inner.free_ids.len()
     }
-
 
     /// Removes all entities from the manager.
     pub async fn clear(&self) {
@@ -119,7 +118,10 @@ impl EntityManager {
     pub async fn get_entity(&self, id: u32) -> Option<Entity> {
         let inner = self.inner.read().await;
         if (id as usize) < inner.generations.len() {
-            Some(Entity { id, generation: inner.generations[id as usize] })
+            Some(Entity {
+                id,
+                generation: inner.generations[id as usize],
+            })
         } else {
             None
         }
@@ -134,7 +136,9 @@ impl EntityManager {
 
 impl Clone for EntityManager {
     fn clone(&self) -> Self {
-        EntityManager { inner: Arc::clone(&self.inner) }
+        EntityManager {
+            inner: Arc::clone(&self.inner),
+        }
     }
 }
 #[cfg(test)]
@@ -168,7 +172,14 @@ mod tests {
         let entity = manager.create_entity().await;
 
         assert!(manager.entity_exists(entity).await);
-        assert!(!manager.entity_exists(Entity { id: entity.id + 1, generation: 0 }).await);
+        assert!(
+            !manager
+                .entity_exists(Entity {
+                    id: entity.id + 1,
+                    generation: 0
+                })
+                .await
+        );
     }
 
     #[tokio::test]

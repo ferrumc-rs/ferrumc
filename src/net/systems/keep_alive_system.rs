@@ -4,9 +4,9 @@ use tracing::{trace, warn};
 
 use ferrumc_macros::AutoGenName;
 
-use crate::net::{Connection, ConnectionWrapper};
 use crate::net::packets::outgoing::keep_alive::KeepAlivePacketOut;
 use crate::net::systems::System;
+use crate::net::{Connection, ConnectionWrapper};
 use crate::state::GlobalState;
 use crate::utils::components::keep_alive::KeepAlive;
 use crate::utils::components::player::Player;

@@ -64,7 +64,6 @@ pub struct ComponentStorage {
     storages: DashMap<TypeId, SparseSet<RwLock<Box<dyn Component>>>>,
 }
 
-
 // New + Insert
 impl ComponentStorage {
     /// Creates a new instance of `ComponentStorage`.
@@ -83,7 +82,10 @@ impl ComponentStorage {
     /// ```
     pub fn insert<T: Component>(&self, entity_id: impl Into<usize>, component: T) -> &Self {
         let type_id = TypeId::of::<T>();
-        let mut storage = self.storages.entry(type_id).or_insert_with(|| SparseSet::new());
+        let mut storage = self
+            .storages
+            .entry(type_id)
+            .or_insert_with(|| SparseSet::new());
         storage.insert(entity_id.into(), RwLock::new(Box::new(component)));
         self
     }
@@ -98,14 +100,20 @@ impl ComponentStorage {
     /// let position = storage.get::<Position>(0).await.unwrap();
     /// assert_eq!(position.x, 0.0);
     /// ```
-    pub async fn get<'a, T: Component + 'a>(&self, entity_id: impl Into<usize>) -> Option<ComponentRef<'a, T>> {
+    pub async fn get<'a, T: Component + 'a>(
+        &self,
+        entity_id: impl Into<usize>,
+    ) -> Option<ComponentRef<'a, T>> {
         let type_id = TypeId::of::<T>();
         let entity_id = entity_id.into();
         let storage = self.storages.get(&type_id)?;
         let component = storage.get(entity_id)?;
 
         let read_guard = unsafe {
-            std::mem::transmute::<RwLockReadGuard<'_, Box<dyn Component>>, RwLockReadGuard<'_, Box<dyn Component>>>(component.read().await)
+            std::mem::transmute::<
+                RwLockReadGuard<'_, Box<dyn Component>>,
+                RwLockReadGuard<'_, Box<dyn Component>>,
+            >(component.read().await)
         };
 
         Some(ComponentRef {
@@ -121,7 +129,10 @@ impl ComponentStorage {
     /// let mut position = storage.get_mut::<Position>(0).await.unwrap();
     /// position.x = 1.0;
     /// ```
-    pub async fn get_mut<T: Component>(&self, entity_id: impl Into<usize>) -> Option<ComponentRefMut<T>> {
+    pub async fn get_mut<T: Component>(
+        &self,
+        entity_id: impl Into<usize>,
+    ) -> Option<ComponentRefMut<T>> {
         let type_id = TypeId::of::<T>();
         let entity_id = entity_id.into();
         let storage = self.storages.get(&type_id)?;
@@ -130,7 +141,10 @@ impl ComponentStorage {
         let write = component.write().await;
 
         let write_guard = unsafe {
-            std::mem::transmute::<RwLockWriteGuard<'_, Box<dyn Component>>, RwLockWriteGuard<'_, Box<dyn Component>>>(write)
+            std::mem::transmute::<
+                RwLockWriteGuard<'_, Box<dyn Component>>,
+                RwLockWriteGuard<'_, Box<dyn Component>>,
+            >(write)
         };
 
         Some(ComponentRefMut {
@@ -138,12 +152,15 @@ impl ComponentStorage {
             _phantom: PhantomData,
         })
     }
-
 }
 
 // GetOrInsertWith + GetMutOrInsertWith
 impl ComponentStorage {
-    pub async fn get_or_insert_with<'a, T: Component + 'a>(&self, entity_id: impl Into<usize>, f: impl FnOnce() -> T) -> ComponentRef<'a, T> {
+    pub async fn get_or_insert_with<'a, T: Component + 'a>(
+        &self,
+        entity_id: impl Into<usize>,
+        f: impl FnOnce() -> T,
+    ) -> ComponentRef<'a, T> {
         let entity_id = entity_id.into();
 
         if let Some(component) = self.get::<T>(entity_id).await {
@@ -152,13 +169,16 @@ impl ComponentStorage {
 
         let value = f();
 
-        self
-            .insert(entity_id, value)
+        self.insert(entity_id, value)
             .get::<T>(entity_id)
             .await
             .expect("Component should've been inserted. Please report this as a bug.")
     }
-    pub async fn get_mut_or_insert_with<T: Component>(&self, entity_id: impl Into<usize>, f: impl FnOnce() -> T) -> ComponentRefMut<T> {
+    pub async fn get_mut_or_insert_with<T: Component>(
+        &self,
+        entity_id: impl Into<usize>,
+        f: impl FnOnce() -> T,
+    ) -> ComponentRefMut<T> {
         let entity_id = entity_id.into();
 
         if let Some(component) = self.get_mut::<T>(entity_id).await {
@@ -167,8 +187,7 @@ impl ComponentStorage {
 
         let value = f();
 
-        self
-            .insert(entity_id, value)
+        self.insert(entity_id, value)
             .get_mut::<T>(entity_id)
             .await
             .expect("Component should've been inserted. Please report this as a bug.")
@@ -177,7 +196,6 @@ impl ComponentStorage {
 
 // Remove + RemoveAll
 impl ComponentStorage {
-
     /// Removes a component for a given entity.
     ///
     /// # Examples
