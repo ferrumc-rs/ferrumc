@@ -142,16 +142,17 @@ mod r#struct {
         }
     }
 }
-/*fn benchmark_serialization(c: &mut Criterion) {
+
+fn benchmark_serialization(c: &mut Criterion) {
     let player = create_test_player();
 
     c.bench_function("serialize", |b| b.iter(|| {
-        let mut buffer = Vec::new();
+        let mut buffer = Vec::with_capacity(2048);
         black_box(player.serialize(&mut buffer)).unwrap();
     }));
-}*/
+}
 
-fn benchmark_deserialization(c: &mut Criterion) {
+/*fn benchmark_deserialization(c: &mut Criterion) {
     let player = create_test_player();
     let mut buffer = Vec::new();
     player.serialize(&mut buffer).unwrap();
@@ -164,6 +165,36 @@ fn benchmark_deserialization(c: &mut Criterion) {
         let _deserialized_player: Player = black_box(Player::read_from(nbt_data)).unwrap();
     }));
 }
+*/
+fn benchmark_raw_deserialization(c: &mut Criterion) {
+    let player = create_test_player();
+    let mut buffer = Vec::new();
+    player.serialize(&mut buffer).unwrap();
 
-criterion_group!(benches, /*benchmark_serialization,*/ benchmark_deserialization);
+    std::fs::write(".etc/test_player.nbt", &buffer).unwrap();
+
+    c.bench_function("raw_deserialize", |b| b.iter(|| {
+        let cursor = black_box(Cursor::new(buffer.clone()));
+        let nbt_data = black_box(read_tag(&mut cursor.clone())).unwrap();
+        black_box(nbt_data);
+    }));
+}
+fn benchmark_simdnbt_deserialization(c: &mut Criterion) {
+    let player = create_test_player();
+    let mut buffer = Vec::new();
+    player.serialize(&mut buffer).unwrap();
+
+    std::fs::write(".etc/test_player.nbt", &buffer).unwrap();
+
+    let data = buffer.clone();
+    let data = data.as_slice();
+    let mut cursor = Cursor::new(data);
+
+    c.bench_function("simdnbt_deserialize", |b| b.iter(|| {
+        let nbt_data = black_box(simdnbt::borrow::read(&mut cursor.clone())).unwrap();
+        black_box(nbt_data);
+    }));
+}
+
+criterion_group!(benches, benchmark_simdnbt_deserialization);
 criterion_main!(benches);
