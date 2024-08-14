@@ -176,8 +176,6 @@ fn try_read() {
     let mut buffer = Vec::new();
     player.serialize(&mut buffer).unwrap();
 
-    let mut file = std::fs::File::create(".etc/test_player.nbt").unwrap();
-    file.write_all(&buffer).unwrap();
 
     let mut cursor = std::io::Cursor::new(buffer);
     let nbt_data = nbt_lib::read_tag(&mut cursor).unwrap();

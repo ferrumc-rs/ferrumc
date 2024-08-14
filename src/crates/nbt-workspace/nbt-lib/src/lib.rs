@@ -1,4 +1,3 @@
-#![feature(cursor_remaining)]
 #![feature(portable_simd)]
 
 pub mod nbt_spec;
