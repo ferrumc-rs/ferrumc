@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 use std::io::Cursor;
+use std::simd::*;
+use std::simd::num::SimdInt;
 use crate::error::NBTError;
 use crate::nbt_spec::deserializer::cursor_ext::CursorExt;
 use crate::nbt_spec::deserializer::NBTDeserializeBytes;
@@ -36,7 +38,7 @@ pub fn read_tag(cursor: &mut Cursor<Vec<u8>>) -> NBTResult<NBTTag> {
     if cursor.get_ref().len() >= cursor.position() as usize {
         Ok(unsafe { read_tag_unchecked(cursor) })
     }else {
-        return Err(NBTError::UnexpectedEOF);
+        Err(NBTError::UnexpectedEOF)
     }
 
 
@@ -135,8 +137,16 @@ unsafe fn read_tag_based_on_type_unchecked(cursor: &mut Cursor<Vec<u8>>, tag_typ
             NBTTag::List(list)
         }
         10 => read_tag_unchecked(cursor),
-        11 => NBTTag::IntArray(Vec::read_from_bytes(cursor).unwrap_unchecked()),
-        12 => NBTTag::LongArray(Vec::read_from_bytes(cursor).unwrap_unchecked()),
+        // 11 => NBTTag::IntArray(Vec::read_from_bytes(cursor).unwrap_unchecked()),
+        // 12 => NBTTag::LongArray(Vec::read_from_bytes(cursor).unwrap_unchecked()),
+        11 => {
+            let len = cursor.read_i32_unchecked() as usize;
+            NBTTag::IntArray(read_int_array_simd(cursor, len))
+        },
+        12 => {
+            let len = cursor.read_i32_unchecked() as usize;
+            NBTTag::LongArray(read_long_array_simd(cursor, len))
+        },
         _ => std::hint::unreachable_unchecked(),
     }
 }
@@ -146,9 +156,8 @@ unsafe fn read_tag_unchecked(cursor: &mut Cursor<Vec<u8>>) -> NBTTag {
     let mut compound_data = HashMap::new();
 
     loop {
-        if cursor.position() >= cursor.get_ref().len() as u64 {
-            break;
-        }
+        if cursor.position() >= cursor.get_ref().len() as u64 { break; }
+        
         let tag_type: u8 = cursor.read_i8_unchecked() as u8;
         if tag_type == 0 {
             break;
@@ -159,4 +168,59 @@ unsafe fn read_tag_unchecked(cursor: &mut Cursor<Vec<u8>>) -> NBTTag {
     }
 
     NBTTag::Compound(compound_data)
+}
+
+
+// SIMD implementations
+#[inline(always)]
+unsafe fn read_int_array_simd(cursor: &mut Cursor<Vec<u8>>, len: usize) -> Vec<i32> {
+    let mut result = Vec::with_capacity(len);
+    let mut remaining = len;
+    let mut pos = cursor.position() as usize;
+
+    while remaining >= 4 {
+        unsafe {
+            let simd_val: Simd<i32, 4> = Simd::from_slice(
+                std::mem::transmute(&cursor.get_ref()[pos..pos + 16])
+            ).swap_bytes();
+            result.extend_from_slice(simd_val.as_array());
+            pos+=16;
+            remaining-=4;
+        }
+    }
+
+    for _ in 0..remaining {
+        result.push(i32::from_be_bytes(*(cursor.get_ref().as_ptr().add(pos) as *const [u8; 4])));
+        pos += 4;
+    }
+
+    cursor.set_position(pos as u64);
+    result
+}
+
+#[inline(always)]
+unsafe fn read_long_array_simd(cursor: &mut Cursor<Vec<u8>>, len: usize) -> Vec<i64> {
+    let mut result = Vec::with_capacity(len);
+    let mut remaining = len;
+    let mut pos = cursor.position() as usize;
+
+    while remaining >= 2 {
+        unsafe {
+            let simd_val: Simd<i64, 2> = Simd::from_slice(
+                std::mem::transmute(&cursor.get_ref()[pos..pos + 16])
+            ).swap_bytes();
+            result.extend_from_slice(simd_val.as_array());
+            result.extend_from_slice(simd_val.as_array());
+            pos+=16;
+            remaining-=2;
+        }
+    }
+
+    if remaining > 0 {
+        result.push(i64::from_be_bytes(*(cursor.get_ref().as_ptr().add(pos) as *const [u8; 8])));
+        pos += 8;
+    }
+
+    cursor.set_position(pos as u64);
+    result
 }

@@ -60,7 +60,13 @@ impl<'a> NBTSerialize for &'a str {
 
 impl<T: NBTTagIdentity> NBTTagIdentity for Vec<T> {
     fn tag_type() -> u8 {
-        TAG_LIST
+        // TAG_LIST
+        match T::tag_type() {
+            TAG_BYTE => TAG_BYTE_ARRAY,
+            TAG_INT => TAG_INT_ARRAY,
+            TAG_LONG => TAG_LONG_ARRAY,
+            _ => TAG_LIST,
+        }
     }
 }
 

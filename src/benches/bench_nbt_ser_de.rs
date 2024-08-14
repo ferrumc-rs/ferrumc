@@ -1,9 +1,10 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use nbt_lib::{read_tag, Deserialize, NBTDeserialize, NBTSerialize, Serialize};
-use r#struct::{create_test_player, Player};
-use std::io::Cursor;
+use nbt_lib::{read_tag, Deserialize, NBTDeserialize, NBTDeserializeBytes, NBTSerialize, Serialize};
+use std::io::{Cursor, Read, Write};
+use crate::test_de_data::{create_test_player, Player};
+use crate::test_simd_de_data::MinecraftChunk;
 
-mod r#struct {
+mod test_de_data {
     use super::*;
     #[derive(Serialize, Deserialize, Debug, Clone)]
     #[nbt(is_root)]
@@ -170,6 +171,112 @@ mod r#struct {
         }
     }
 }
+mod test_simd_de_data {
+    use super::*;
+
+    #[derive(Serialize, Deserialize, Debug)]
+    #[nbt(rename = "Level")]
+    #[nbt(is_root)]
+    pub struct MinecraftChunk {
+        #[nbt(rename = "xPos")]
+        pub x_pos: i32,
+        #[nbt(rename = "zPos")]
+        pub z_pos: i32,
+        #[nbt(rename = "LastUpdate")]
+        pub last_update: i64,
+        #[nbt(rename = "TerrainPopulated")]
+        pub terrain_populated: i8,
+        #[nbt(rename = "LightPopulated")]
+        pub light_populated: i8,
+        #[nbt(rename = "InhabitedTime")]
+        pub inhabited_time: i64,
+        #[nbt(rename = "Biomes")]
+        pub biomes: Vec<i8>,
+        #[nbt(rename = "HeightMap")]
+        pub height_map: Vec<i32>,
+        #[nbt(rename = "Sections")]
+        pub sections: Vec<ChunkSection>,
+        #[nbt(rename = "Entities")]
+        pub entities: Vec<Entity>,
+        #[nbt(rename = "TileEntities")]
+        pub tile_entities: Vec<TileEntity>,
+    }
+
+    #[derive(Serialize, Deserialize, Debug)]
+    pub struct ChunkSection {
+        #[nbt(rename = "Y")]
+        pub y: i8,
+        #[nbt(rename = "BlockLight")]
+        pub block_light: Vec<i8>,
+        #[nbt(rename = "SkyLight")]
+        pub sky_light: Vec<i8>,
+        #[nbt(rename = "Blocks")]
+        pub blocks: Vec<i8>,
+        #[nbt(rename = "Data")]
+        pub data: Vec<i8>,
+        #[nbt(rename = "BlockStates")]
+        pub block_states: Vec<i64>,
+    }
+
+    #[derive(Serialize, Deserialize, Debug)]
+    pub struct Entity {
+        #[nbt(rename = "id")]
+        pub id: String,
+        #[nbt(rename = "Pos")]
+        pub position: Vec<f64>,
+        #[nbt(rename = "Motion")]
+        pub motion: Vec<f64>,
+        #[nbt(rename = "Rotation")]
+        pub rotation: Vec<f32>,
+    }
+
+    #[derive(Serialize, Deserialize, Debug)]
+    pub struct TileEntity {
+        #[nbt(rename = "id")]
+        pub id: String,
+        #[nbt(rename = "x")]
+        pub x: i32,
+        #[nbt(rename = "y")]
+        pub y: i32,
+        #[nbt(rename = "z")]
+        pub z: i32,
+    }
+
+    impl MinecraftChunk {
+        pub fn create_test_instance() -> Self {
+            MinecraftChunk {
+                x_pos: 0,
+                z_pos: 0,
+                last_update: 1234567890,
+                terrain_populated: 1,
+                light_populated: 1,
+                inhabited_time: 9876543210,
+                biomes: vec![1; 256],  // 16x16 biome data
+                height_map: vec![64; 256],  // 16x16 height map
+                sections: vec![ChunkSection {
+                    y: 0,
+                    block_light: vec![0; 2048],  // 16x16x16 / 2 (4 bits per block)
+                    sky_light: vec![15; 2048],   // 16x16x16 / 2 (4 bits per block)
+                    blocks: vec![1; 4096],       // 16x16x16 block IDs
+                    data: vec![0; 2048],         // 16x16x16 / 2 (4 bits per block)
+                    block_states: vec![0; 256],  // Compressed block state data
+                }],
+                entities: vec![Entity {
+                    id: "minecraft:pig".to_string(),
+                    position: vec![0.5, 65.0, 0.5],
+                    motion: vec![0.0, 0.0, 0.0],
+                    rotation: vec![0.0, 0.0],
+                }],
+                tile_entities: vec![TileEntity {
+                    id: "minecraft:chest".to_string(),
+                    x: 0,
+                    y: 64,
+                    z: 0,
+                }],
+            }
+        }
+    }
+}
 
 fn benchmark_serialization(c: &mut Criterion) {
     let player = create_test_player();
@@ -196,36 +303,60 @@ fn benchmark_serialization(c: &mut Criterion) {
     }));
 }
 */
+
+fn get_nbt_buffer() -> Vec<u8> {
+    /*let mut buffer = std::fs::read(".etc/TheAIguy_.nbt").unwrap();
+
+    // decompress gzip
+    if buffer[0] == 0x1F && buffer[1] == 0x8B && buffer[2] == 0x08 {
+        println!("Decompressing gzip...");
+        let mut decoder = flate2::read::GzDecoder::new(&buffer[..]);
+        let mut decoded = Vec::new();
+        decoder.read_to_end(&mut decoded).unwrap();
+        return decoded;
+    }
+
+    buffer*/
+
+    let data = MinecraftChunk::create_test_instance();
+
+    let mut buffer = Vec::with_capacity(2048);
+    data.serialize(&mut buffer).unwrap();
+
+    let mut file = std::fs::File::create(".etc/test_chunk.nbt").unwrap();
+    file.write_all(&buffer).unwrap();
+
+    buffer
+}
+
 fn benchmark_raw_deserialization(c: &mut Criterion) {
-    let player = create_test_player();
-    let mut buffer = Vec::new();
-    player.serialize(&mut buffer).unwrap();
+    let buffer = get_nbt_buffer();
+    let mut cursor = Cursor::new(buffer);
 
-    std::fs::write(".etc/test_player.nbt", &buffer).unwrap();
-
-    c.bench_function("raw_deserialize", |b| {
+    c.bench_function("world_chunk_deser_raw", |b| {
         b.iter(|| {
-            let cursor = black_box(Cursor::new(buffer.clone()));
-            let nbt_data = black_box(read_tag(&mut cursor.clone())).unwrap();
-            black_box(nbt_data);
+            let nbt = read_tag(&mut cursor).unwrap();
+
+            black_box(nbt);
+
+            cursor.set_position(0);
         })
     });
 }
 fn benchmark_simdnbt_deserialization(c: &mut Criterion) {
-    let player = create_test_player();
-    let mut buffer = Vec::new();
-    player.serialize(&mut buffer).unwrap();
+    let buffer = get_nbt_buffer();
 
-    std::fs::write(".etc/test_player.nbt", &buffer).unwrap();
+    let buffer = buffer.as_slice();
 
-    let data = buffer.clone();
-    let data = data.as_slice();
-    let mut cursor = Cursor::new(data);
+    let mut cursor = Cursor::new(buffer);
 
-    c.bench_function("simdnbt_deserialize", |b| {
+    c.bench_function("aiguynbt_deser_simdnbt", |b| {
         b.iter(|| {
-            let nbt_data = black_box(simdnbt::borrow::read(&mut cursor.clone())).unwrap();
-            black_box(nbt_data);
+            let data = simdnbt::borrow::read(&mut cursor)
+                .unwrap()
+                .unwrap();
+
+            black_box(data);
         })
     });
 }
