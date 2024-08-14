@@ -56,7 +56,7 @@ FerrumC is a Minecraft server implementation written from the ground up in Rust 
 <summary><b>🔨 In Progress</b></summary>
 
 - NBT serialization and deserialization
-- World stuff (chunks loading, saving, saving etc.)
+- World stuff (chunks loading, saving, etc.)
 - Database integration (embedded)
 
 </details>
