@@ -22,7 +22,7 @@ pub struct Chunk {
     #[nbt(rename = "Heightmaps")]
     pub heightmaps: Option<Heightmaps>,
     #[nbt(rename = "isLightOn")]
-    pub is_light_on: Option<i64>,
+    pub is_light_on: Option<i8>,
     #[nbt(rename = "InhabitedTime")]
     pub inhabited_time: Option<i64>,
     #[nbt(rename = "yPos")]
@@ -117,7 +117,7 @@ pub struct Section {
     pub block_states: Option<BlockStates>,
     pub biomes: Option<Biomes>,
     #[nbt(rename = "Y")]
-    pub y: i64,
+    pub y: i8,
     #[nbt(rename = "BlockLight")]
     pub block_light: Option<Vec<i8>>,
     #[nbt(rename = "SkyLight")]

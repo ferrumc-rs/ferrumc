@@ -30,7 +30,7 @@ pub async fn read_block(
         .as_ref()
         .unwrap()
         .iter()
-        .find(|section| section.y == (y / 16) as i64)
+        .find(|section| section.y == (y / 16) as i8)
         .unwrap();
     let first = section
         .block_states

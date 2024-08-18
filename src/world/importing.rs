@@ -1,8 +1,8 @@
 use std::io::Cursor;
 use std::path::PathBuf;
 
-use nbt_lib::{Deserialize, NBTDeserialize, NBTDeserializeBytes};
-use tracing::{error, info, warn};
+use nbt_lib::{read_tag, Deserialize, NBTDeserialize, NBTDeserializeBytes};
+use tracing::{debug, error, info, warn};
 
 use crate::state::GlobalState;
 use crate::world::chunkformat::Chunk;
@@ -21,13 +21,24 @@ pub async fn import_regions(
     while let Some(dirfile) = region_files.next_entry().await? {
         let file = std::fs::File::open(dirfile.path())?;
         let mut region = fastanvil::Region::from_stream(file)?;
+
         for chunk in region.iter() {
-            let chunk = chunk?.data;
+            let Ok(chunk) = chunk else {
+                warn!("Could not read chunk");
+                continue;
+            };
+
+            let x = chunk.x;
+            let z = chunk.z;
+            debug!("Importing chunk {} {}", x, z);
+            let chunk = chunk.data;
             // println!(
             //     "Chunk: {:?}",
             //     nbt_lib::read_tag(&mut Cursor::new(chunk.clone()))?
             // );
+
             let chunk_nbt = Chunk::read_from_bytes(&mut Cursor::new(chunk));
+
             if chunk_nbt.is_err() {
                 warn!(
                     "Could not read chunk {} {}",

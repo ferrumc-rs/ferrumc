@@ -36,31 +36,10 @@ impl NBTTag {
 #[inline]
 pub fn read_tag(cursor: &mut Cursor<Vec<u8>>) -> NBTResult<NBTTag> {
     if cursor.get_ref().len() >= cursor.position() as usize {
-        Ok(unsafe { read_tag_unchecked(cursor) })
+        Ok(read_tag_checked(cursor)?)
     }else {
         Err(NBTError::UnexpectedEOF)
     }
-
-
-
- /*   let mut compound_data: HashMap<String, NBTTag> = HashMap::new();
-
-    while cursor.position() < cursor.get_ref().len() as u64 {
-        let tag_type: u8 = cursor.read_i8()? as u8;
-        if tag_type == 0 {
-            break;
-        }
-        let name: String = cursor.read_nbt_string()?;
-
-        let tag = read_tag_based_on_type(cursor, tag_type)
-            .map_err(|e| NBTError::DeserializeError(format!("Error reading tag '{}': {}", name, e)))?;
-
-        if let NBTTag::End = tag { break; }
-
-        compound_data.insert(name, tag);
-    }
-
-    Ok(NBTTag::Compound(compound_data))*/
 }
 
 #[inline]
@@ -85,8 +64,14 @@ fn read_tag_based_on_type(cursor: &mut Cursor<Vec<u8>>, tag_type: u8) -> NBTResu
             Ok(NBTTag::List(list))
         }
         10 => read_tag(cursor),
-        11 => Ok(NBTTag::IntArray(Vec::read_from_bytes(cursor)?)),
-        12 => Ok(NBTTag::LongArray(Vec::read_from_bytes(cursor)?)),
+        11 => unsafe {
+            let len = cursor.read_i32()? as usize;
+            Ok(NBTTag::IntArray(read_int_array_simd(cursor, len)))
+        },
+        12 => unsafe {
+            let len = cursor.read_i32()? as usize;
+            Ok(NBTTag::LongArray(read_long_array_simd(cursor, len)))
+        },
         _ => Err(NBTError::DeserializeError(format!("Unknown tag type: {}", tag_type))),
     }
 }
@@ -111,8 +96,43 @@ impl NBTTag {
     }
 }
 
+#[inline]
+fn read_tag_checked(cursor: &mut Cursor<Vec<u8>>) -> NBTResult<NBTTag> {
+    let mut compound_data = HashMap::new();
 
+    loop {
+        if cursor.position() >= cursor.get_ref().len() as u64 { break; }
 
+        let tag_type: u8 = cursor.read_i8()? as u8;
+        if tag_type == 0 {
+            break;
+        }
+        let name: String = cursor.read_nbt_string()?;
+        let tag = read_tag_based_on_type(cursor, tag_type)?;
+        compound_data.insert(name, tag);
+    }
+
+    Ok(NBTTag::Compound(compound_data))
+}
+
+#[inline(always)]
+unsafe fn read_tag_unchecked(cursor: &mut Cursor<Vec<u8>>) -> NBTTag {
+    let mut compound_data = HashMap::new();
+
+    loop {
+        if cursor.position() >= cursor.get_ref().len() as u64 { break; }
+
+        let tag_type: u8 = cursor.read_i8_unchecked() as u8;
+        if tag_type == 0 {
+            break;
+        }
+        let name: String = cursor.read_nbt_string_unchecked();
+        let tag = read_tag_based_on_type_unchecked(cursor, tag_type);
+        compound_data.insert(name, tag);
+    }
+
+    NBTTag::Compound(compound_data)
+}
 
 
 #[inline(always)]
@@ -158,28 +178,10 @@ unsafe fn read_tag_based_on_type_unchecked(cursor: &mut Cursor<Vec<u8>>, tag_typ
     }
 }
 
-#[inline(always)]
-unsafe fn read_tag_unchecked(cursor: &mut Cursor<Vec<u8>>) -> NBTTag {
-    let mut compound_data = HashMap::new();
-
-    loop {
-        if cursor.position() >= cursor.get_ref().len() as u64 { break; }
-        
-        let tag_type: u8 = cursor.read_i8_unchecked() as u8;
-        if tag_type == 0 {
-            break;
-        }
-        let name: String = cursor.read_nbt_string_unchecked();
-        let tag = read_tag_based_on_type_unchecked(cursor, tag_type);
-        compound_data.insert(name, tag);
-    }
-
-    NBTTag::Compound(compound_data)
-}
 
 
 // SIMD implementations
-#[inline(always)]
+/*#[inline(always)]
 unsafe fn read_int_array_simd(cursor: &mut Cursor<Vec<u8>>, len: usize) -> Vec<i32> {
     let mut result = Vec::with_capacity(len);
     let mut remaining = len;
@@ -226,6 +228,74 @@ unsafe fn read_long_array_simd(cursor: &mut Cursor<Vec<u8>>, len: usize) -> Vec<
     if remaining > 0 {
         result.push(i64::from_be_bytes(*(cursor.get_ref().as_ptr().add(pos) as *const [u8; 8])));
         pos += 8;
+    }
+
+    cursor.set_position(pos as u64);
+    result
+}*/
+#[inline(always)]
+fn read_int_array_simd(cursor: &mut Cursor<Vec<u8>>, len: usize) -> Vec<i32> {
+    let mut result = Vec::with_capacity(len);
+    let mut remaining = len;
+    let mut pos = cursor.position() as usize;
+    let data = cursor.get_ref();
+
+    while remaining >= 4 && pos + 16 <= data.len() {
+        let chunk = unsafe {
+            std::slice::from_raw_parts(data[pos..].as_ptr() as *const u8, 16)
+        };
+        let bytes: Simd<u8, 16> = Simd::from_slice(chunk);
+        let mut ints = Simd::from_array([
+            i32::from_be_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]),
+            i32::from_be_bytes([bytes[4], bytes[5], bytes[6], bytes[7]]),
+            i32::from_be_bytes([bytes[8], bytes[9], bytes[10], bytes[11]]),
+            i32::from_be_bytes([bytes[12], bytes[13], bytes[14], bytes[15]]),
+        ]);
+        result.extend_from_slice(ints.as_array());
+        pos += 16;
+        remaining -= 4;
+    }
+
+    while remaining > 0 && pos + 4 <= data.len() {
+        let val = i32::from_be_bytes([data[pos], data[pos+1], data[pos+2], data[pos+3]]);
+        result.push(val);
+        pos += 4;
+        remaining -= 1;
+    }
+
+    cursor.set_position(pos as u64);
+    result
+}
+
+#[inline(always)]
+fn read_long_array_simd(cursor: &mut Cursor<Vec<u8>>, len: usize) -> Vec<i64> {
+    let mut result = Vec::with_capacity(len);
+    let mut remaining = len;
+    let mut pos = cursor.position() as usize;
+    let data = cursor.get_ref();
+
+    while remaining >= 2 && pos + 16 <= data.len() {
+        let chunk = unsafe {
+            std::slice::from_raw_parts(data[pos..].as_ptr() as *const u8, 16)
+        };
+        let bytes: Simd<u8, 16> = Simd::from_slice(chunk);
+        let mut longs = Simd::from_array([
+            i64::from_be_bytes([bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7]]),
+            i64::from_be_bytes([bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13], bytes[14], bytes[15]]),
+        ]);
+        result.extend_from_slice(longs.as_array());
+        pos += 16;
+        remaining -= 2;
+    }
+
+    while remaining > 0 && pos + 8 <= data.len() {
+        let val = i64::from_be_bytes([
+            data[pos], data[pos+1], data[pos+2], data[pos+3],
+            data[pos+4], data[pos+5], data[pos+6], data[pos+7]
+        ]);
+        result.push(val);
+        pos += 8;
+        remaining -= 1;
     }
 
     cursor.set_position(pos as u64);
