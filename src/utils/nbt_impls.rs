@@ -1,9 +1,10 @@
+use bincode::{Decode, Encode};
 use serde_derive::{Deserialize, Serialize};
 use simdnbt::borrow::{BaseNbt, NbtCompound, NbtList};
 
 use crate::utils::error::Error;
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Decode, Encode, Serialize, Deserialize)]
 pub struct ByteArray(pub Vec<u8>);
 
 impl From<Vec<u8>> for ByteArray {
@@ -24,7 +25,7 @@ impl From<&[u8]> for ByteArray {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Decode, Encode, Serialize, Deserialize)]
 pub struct LongArray(pub Vec<i64>);
 
 impl From<Vec<i64>> for LongArray {

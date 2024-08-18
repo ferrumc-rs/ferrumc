@@ -1,5 +1,4 @@
-use serde::{Deserialize, Serialize};
-use tracing::warn;
+use tracing::{debug, warn};
 
 use crate::database::Database;
 use crate::utils::error::Error;
@@ -10,11 +9,9 @@ impl Database {
         let db = self.db.clone();
         let result = tokio::task::spawn_blocking(move || {
             let record_name = format!("{},{}", value.x_pos, value.z_pos);
-            let mut ser = flexbuffers::FlexbufferSerializer::new();
-            value.serialize(&mut ser).unwrap();
-            let encoded = ser.take_buffer();
-            db.open_tree(format!("chunks/{}", dimension))
-                .unwrap()
+            let encoded = bincode::encode_to_vec(value, bincode::config::standard())
+                .expect("Failed to encode");
+            db.open_tree(format!("chunks/{}", dimension))?
                 .insert(record_name, encoded)
         })
         .await
@@ -35,19 +32,24 @@ impl Database {
         let db = self.db.clone();
         let result = tokio::task::spawn_blocking(move || {
             let record_name = format!("{},{}", x, z);
+            debug!("Getting chunk: {}", record_name);
             let chunk = db
                 .open_tree(format!("chunks/{}", dimension))
                 .unwrap()
-                .get(record_name)
+                .get(&record_name)
                 .unwrap();
             match chunk {
                 Some(chunk) => {
                     let chunk = chunk.as_ref();
-                    let deserializer = flexbuffers::Reader::get_root(chunk).unwrap();
-                    let chunk: Chunk = Chunk::deserialize(deserializer).unwrap();
+                    let (chunk, len) =
+                        bincode::decode_from_slice(chunk, bincode::config::standard()).unwrap();
+                    debug!("Got chunk: {}, {} bytes long", record_name, len);
                     Some(chunk)
                 }
-                None => None,
+                None => {
+                    debug!("Could not find chunk {}", record_name);
+                    None
+                }
             }
         })
         .await
@@ -73,9 +75,8 @@ impl Database {
         let db = self.db.clone();
         let result = tokio::task::spawn_blocking(move || {
             let record_name = format!("{},{}", value.x_pos, value.z_pos);
-            let mut ser = flexbuffers::FlexbufferSerializer::new();
-            value.serialize(&mut ser).unwrap();
-            let encoded = ser.take_buffer();
+            let encoded = bincode::encode_to_vec(value, bincode::config::standard())
+                .expect("Failed to encode");
             if db
                 .open_tree("chunks")
                 .unwrap()
@@ -97,4 +98,24 @@ impl Database {
             None => Ok(false),
         }
     }
+}
+
+#[tokio::test]
+#[ignore]
+async fn dump_chunk() {
+    use crate::utils::setup_logger;
+    use tokio::net::TcpListener;
+    setup_logger().unwrap();
+    let state = crate::create_state(TcpListener::bind("0.0.0.0:0").await.unwrap())
+        .await
+        .unwrap();
+    let chunk = state
+        .database
+        .get_chunk(-34, 1, "overworld".to_string())
+        .await
+        .unwrap()
+        .unwrap();
+    let outfile = std::fs::File::create("chunk.dump").unwrap();
+    let mut writer = std::io::BufWriter::new(outfile);
+    serde_json::to_writer(&mut writer, &chunk).unwrap();
 }

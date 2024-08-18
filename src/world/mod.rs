@@ -1,9 +1,6 @@
 use serde_derive::{Deserialize, Serialize};
 
-use crate::state::GlobalState;
-use crate::utils::error::Error;
-use crate::world::chunkformat::Chunk;
-
+mod blocks;
 pub mod chunkformat;
 pub mod importing;
 pub mod sweattypalms_impl;
@@ -31,37 +28,6 @@ mod tests {
         let raw_nbt = serde_json::ser::to_vec(&chunk_nbt).unwrap();
         outfile.write_all(&*raw_nbt).unwrap()
     }
-}
-
-pub async fn load_chunk(_state: GlobalState, x: i32, z: i32) -> Result<Chunk, Error> {
-    // TODO: Replace with database call when that is all set up
-    let region_area = (
-        (x as f64 / 32.0).floor() as i32,
-        (z as f64 / 32.0).floor() as i32,
-    );
-    let region_file = std::fs::File::open("dummyregion.mca")?;
-    let mut region = fastanvil::Region::from_stream(region_file).unwrap();
-    let raw_chunk_data = region
-        .read_chunk(x as usize, z as usize)
-        .map_err(|_| {
-            Error::Generic(format!(
-                "Unable to read chunk {} {} from region {} {} ",
-                x, z, region_area.0, region_area.1
-            ))
-        })?
-        .expect(
-            format!(
-                "Chunk {} {} not found in region {} {}",
-                x, z, region_area.0, region_area.1
-            )
-            .as_str(),
-        );
-    fastnbt::from_bytes(&raw_chunk_data).map_err(|_| {
-        Error::Generic(format!(
-            "Unable to parse chunk {} {} from region {} {} ",
-            x, z, region_area.0, region_area.1
-        ))
-    })
 }
 
 /// Since we don't know the exact amount of bytes, the first byte is the number of u8s in the last i64,

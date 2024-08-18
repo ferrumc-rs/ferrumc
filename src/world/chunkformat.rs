@@ -1,108 +1,174 @@
-use serde_derive::Deserialize;
-use serde_derive::Serialize;
+use bincode::{Decode, Encode};
+use serde_derive::{Deserialize, Serialize};
 
-use ferrumc_macros::NBTDecode;
-
-use crate::utils::nbt_impls::{ByteArray, LongArray};
-
-#[derive(NBTDecode, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(
+    nbt_lib::Serialize,
+    nbt_lib::Deserialize,
+    Debug,
+    Clone,
+    PartialEq,
+    Encode,
+    Serialize,
+    Decode,
+    Deserialize,
+)]
+#[nbt(is_root)]
+#[nbt(rename = "")]
 pub struct Chunk {
-    #[rename = "Status"]
-    pub status: Option<String>,
-    #[rename = "DataVersion"]
+    #[nbt(rename = "Status")]
+    pub status: String,
+    #[nbt(rename = "DataVersion")]
     pub data_version: i32,
-    #[rename = "Heightmaps"]
-    #[nbtcompound]
+    #[nbt(rename = "Heightmaps")]
     pub heightmaps: Option<Heightmaps>,
-    #[rename = "isLightOn"]
+    #[nbt(rename = "isLightOn")]
     pub is_light_on: Option<i64>,
-    #[rename = "InhabitedTime"]
+    #[nbt(rename = "InhabitedTime")]
     pub inhabited_time: Option<i64>,
-    #[rename = "yPos"]
+    #[nbt(rename = "yPos")]
     pub y_pos: i32,
-    #[rename = "xPos"]
+    #[nbt(rename = "xPos")]
     pub x_pos: i32,
-    #[rename = "zPos"]
+    #[nbt(rename = "zPos")]
     pub z_pos: i32,
-    #[nbtcompound]
     pub structures: Option<Structures>,
-    #[rename = "LastUpdate"]
+    #[nbt(rename = "LastUpdate")]
     pub last_update: Option<i64>,
-    #[nbtcompound]
     pub sections: Option<Vec<Section>>,
-    #[rename = "BlockLight"]
-    pub block_light: Option<ByteArray>,
-    #[rename = "SkyLight"]
-    pub sky_light: Option<ByteArray>,
 }
 
-#[derive(NBTDecode, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[nbtcompound]
+#[derive(
+    nbt_lib::Serialize,
+    nbt_lib::Deserialize,
+    Debug,
+    Clone,
+    PartialEq,
+    Encode,
+    Serialize,
+    Decode,
+    Deserialize,
+)]
 pub struct Heightmaps {
-    #[rename = "MOTION_BLOCKING_NO_LEAVES"]
-    pub motion_blocking_no_leaves: Option<LongArray>,
-    #[rename = "MOTION_BLOCKING"]
-    pub motion_blocking: Option<LongArray>,
-    #[rename = "OCEAN_FLOOR"]
-    pub ocean_floor: Option<LongArray>,
-    #[rename = "WORLD_SURFACE"]
-    pub world_surface: Option<LongArray>,
+    #[nbt(rename = "MOTION_BLOCKING_NO_LEAVES")]
+    pub motion_blocking_no_leaves: Option<Vec<i64>>,
+    #[nbt(rename = "MOTION_BLOCKING")]
+    pub motion_blocking: Option<Vec<i64>>,
+    #[nbt(rename = "OCEAN_FLOOR")]
+    pub ocean_floor: Option<Vec<i64>>,
+    #[nbt(rename = "WORLD_SURFACE")]
+    pub world_surface: Option<Vec<i64>>,
 }
 
-#[derive(NBTDecode, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[nbtcompound]
+#[derive(
+    nbt_lib::Serialize,
+    nbt_lib::Deserialize,
+    Debug,
+    Clone,
+    PartialEq,
+    Encode,
+    Serialize,
+    Decode,
+    Deserialize,
+)]
 pub struct Structures {
-    #[nbtcompound]
     pub starts: Starts,
-    #[rename = "References"]
-    #[nbtcompound]
+    #[nbt(rename = "References")]
     pub references: References,
 }
 
-#[derive(NBTDecode, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[nbtcompound]
+#[derive(
+    nbt_lib::Serialize,
+    nbt_lib::Deserialize,
+    Debug,
+    Clone,
+    PartialEq,
+    Encode,
+    Serialize,
+    Decode,
+    Deserialize,
+)]
 pub struct Starts {}
-#[derive(NBTDecode, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[nbtcompound]
+#[derive(
+    nbt_lib::Serialize,
+    nbt_lib::Deserialize,
+    Debug,
+    Clone,
+    PartialEq,
+    Encode,
+    Serialize,
+    Decode,
+    Deserialize,
+)]
 pub struct References {}
 
-#[derive(NBTDecode, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[nbtcompound]
+#[derive(
+    nbt_lib::Serialize,
+    nbt_lib::Deserialize,
+    Debug,
+    Clone,
+    PartialEq,
+    Encode,
+    Serialize,
+    Decode,
+    Deserialize,
+)]
 pub struct Section {
-    #[rename = "block_states"]
-    #[nbtcompound]
+    #[nbt(rename = "block_states")]
     pub block_states: Option<BlockStates>,
-    #[nbtcompound]
     pub biomes: Option<Biomes>,
-    #[rename = "Y"]
+    #[nbt(rename = "Y")]
     pub y: i64,
-    #[rename = "BlockLight"]
-    #[nbtcompound]
-    pub block_light: Option<ByteArray>,
-    #[rename = "SkyLight"]
-    #[nbtcompound]
-    pub sky_light: Option<ByteArray>,
+    #[nbt(rename = "BlockLight")]
+    pub block_light: Option<Vec<i8>>,
+    #[nbt(rename = "SkyLight")]
+    pub sky_light: Option<Vec<i8>>,
 }
 
-#[derive(NBTDecode, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[nbtcompound]
+#[derive(
+    nbt_lib::Serialize,
+    nbt_lib::Deserialize,
+    Debug,
+    Clone,
+    PartialEq,
+    Encode,
+    Serialize,
+    Decode,
+    Deserialize,
+)]
 pub struct BlockStates {
-    pub data: Option<LongArray>,
+    pub data: Option<Vec<i64>>,
     pub palette: Option<Vec<Palette>>,
 }
 
-#[derive(NBTDecode, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[nbtcompound]
+#[derive(
+    nbt_lib::Serialize,
+    nbt_lib::Deserialize,
+    Debug,
+    Clone,
+    PartialEq,
+    Encode,
+    Serialize,
+    Decode,
+    Deserialize,
+)]
 pub struct Palette {
-    #[rename = "Name"]
+    #[nbt(rename = "Name")]
     pub name: String,
-    #[rename = "Properties"]
-    #[nbtcompound]
+    #[nbt(rename = "Properties")]
     pub properties: Option<Properties>,
 }
 
-#[derive(NBTDecode, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[nbtcompound]
+#[derive(
+    nbt_lib::Serialize,
+    nbt_lib::Deserialize,
+    Debug,
+    Clone,
+    PartialEq,
+    Encode,
+    Serialize,
+    Decode,
+    Deserialize,
+)]
 pub struct Properties {
     pub snowy: Option<String>,
     pub level: Option<String>,
@@ -118,8 +184,17 @@ pub struct Properties {
     pub axis: Option<String>,
 }
 
-#[derive(NBTDecode, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[nbtcompound]
+#[derive(
+    nbt_lib::Serialize,
+    nbt_lib::Deserialize,
+    Debug,
+    Clone,
+    PartialEq,
+    Encode,
+    Serialize,
+    Decode,
+    Deserialize,
+)]
 pub struct Biomes {
     pub palette: Vec<String>,
 }

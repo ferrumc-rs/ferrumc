@@ -59,6 +59,11 @@ pub enum Error {
 
     #[error("Invalid NBT: {0}")]
     GenericNbtError(String),
+    
+    #[error("Serialization failed: {0}")]
+    SerializationError(String),
+    #[error("Deserialization failed: {0}")]
+    DeserializationError(String)
 }
 
 impl From<Infallible> for Error {

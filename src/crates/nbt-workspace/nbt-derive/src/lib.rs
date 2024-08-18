@@ -1,8 +1,8 @@
 use proc_macro::TokenStream;
 
-mod serialize;
 mod deserialize;
 mod helper;
+mod serialize;
 /// Derive macro for the `NBTSerialize` trait to auto-generate serialization into NBT format.
 ///
 /// To serialize the entire root, please use the `root` attribute.
@@ -66,7 +66,7 @@ pub fn nbt_serialize_derive(input: TokenStream) -> TokenStream {
 /// fn main() {
 ///     let buffer: Vec<u8> = unimplemented!();
 ///     let nbt = read_tag(&mut Cursor::new(buffer)).unwrap();
-///     let player: Root = Root::deserialize(nbt).unwrap();
+///     let player: Root = Root::read_from(nbt).unwrap();
 /// }
 ///
 /// ```

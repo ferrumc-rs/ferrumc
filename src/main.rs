@@ -6,21 +6,23 @@
 extern crate core;
 
 use std::env;
-use std::sync::atomic::AtomicU32;
+use std::path::PathBuf;
+use std::process::exit;
 use std::sync::Arc;
+use std::sync::atomic::AtomicU32;
 
 use dashmap::DashMap;
 use tokio::net::TcpListener;
 use tracing::{debug, error, info, trace};
 
+use crate::{
+    net::Connection,
+    net::systems::{kill_all_systems, start_all_systems},
+    utils::{config, config::get_global_config, prelude::*},
+};
 use crate::ecs::world::World;
 use crate::net::ConnectionList;
 use crate::state::{GlobalState, ServerState};
-use crate::{
-    net::systems::{kill_all_systems, start_all_systems},
-    net::Connection,
-    utils::{config, config::get_global_config, prelude::*},
-};
 
 pub mod ecs;
 pub mod net;
@@ -101,11 +103,21 @@ async fn start_server() -> Result<()> {
     let state = create_state(listener).await?;
 
     if env::args().nth(1).unwrap_or_default() == "import" {
-        let import_path = env::current_exe().unwrap().parent().unwrap().join("import");
+        let import_path = if env::var("FERRUMC_ROOT").is_ok() {
+            PathBuf::from(env::var("FERRUMC_ROOT").unwrap()).join("import")
+        } else {
+            PathBuf::from(
+                env::current_exe()
+                    .unwrap()
+                    .parent()
+                    .ok_or(Error::Generic("Failed to get exe directory".to_string()))?
+                    .join("import"),
+            )
+        };
         world::importing::import_regions(import_path, state.clone())
             .await
             .unwrap();
-        return Ok(());
+        exit(0);
     }
 
     // Start all systems (separate task)
