@@ -279,12 +279,12 @@ mod test_simd_de_data {
 }
 
 fn benchmark_serialization(c: &mut Criterion) {
-    let player = create_test_player();
+    let world = MinecraftChunk::create_test_instance();
 
     c.bench_function("serialize", |b| {
         b.iter(|| {
-            let mut buffer = Vec::with_capacity(2048);
-            black_box(player.serialize(&mut buffer)).unwrap();
+            let mut buffer = Vec::with_capacity( 10240);
+            black_box(world.serialize(&mut buffer)).unwrap();
         })
     });
 }
@@ -318,7 +318,7 @@ fn get_nbt_buffer() -> Vec<u8> {
 
     buffer*/
 
-    let data = create_test_player();
+    let data = MinecraftChunk::create_test_instance();
 
     let mut buffer = Vec::with_capacity(2048);
     data.serialize(&mut buffer).unwrap();
@@ -330,7 +330,7 @@ fn benchmark_raw_deserialization(c: &mut Criterion) {
     let buffer = get_nbt_buffer();
     let mut cursor = Cursor::new(buffer);
 
-    c.bench_function("raw_deserialize", |b| {
+    c.bench_function("world_chunk_deser_raw", |b| {
         b.iter(|| {
             let nbt = read_tag(&mut cursor).unwrap();
 
@@ -358,5 +358,5 @@ fn benchmark_simdnbt_deserialization(c: &mut Criterion) {
     });
 }
 
-criterion_group!(benches, benchmark_raw_deserialization);
+criterion_group!(benches, benchmark_serialization);
 criterion_main!(benches);

@@ -1,5 +1,5 @@
 use nbt_lib::{Deserialize, NBTDeserialize, NBTDeserializeBytes, NBTSerialize, Serialize};
-use std::io::{Read, Write};
+use std::io::{Cursor};
 use crate::tests::nbt_de::test_de_data::Player;
 
 pub mod test_de_data {
@@ -387,4 +387,62 @@ mod alguy_struct {
         #[nbt(rename = "Base")]
         base: f64,
     }
+}
+
+
+
+
+
+
+#[test]
+fn showcase_nbt_usage() {
+    #[derive(Serialize, Deserialize)]
+    #[nbt(is_root)]
+    struct Sample {
+        name: String,
+        hand_item: Item
+    }
+
+    #[derive(Serialize, Deserialize)]
+    struct Item {
+        id: String,
+    }
+
+
+    // Create an instance of the sample
+    let sample = Sample {
+        name: "Steve".to_string(),
+        hand_item: Item {
+            id: "minecraft:diamond_sword".to_string()
+        }
+    };
+
+    // Serialize the item into plain bytes:
+    let mut buffer = Vec::new(); // => Serialized bytes
+    sample.serialize(&mut buffer).unwrap();
+
+
+    // Deserialize the item from the bytes:
+    let sample = Sample::read_from_bytes(&mut Cursor::new(buffer)).unwrap();
+}
+
+
+#[test]
+fn test_byte_array() {
+    #[derive(Serialize, Deserialize, Debug)]
+    #[nbt(is_root)]
+    struct ByteArray {
+        data: Vec<i8>
+    }
+
+    let byte_array = ByteArray {
+        data: vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    };
+
+    let mut buffer = Vec::new();
+    byte_array.serialize(&mut buffer).unwrap();
+
+
+    let deserialized_byte_array = ByteArray::read_from_bytes(&mut Cursor::new(buffer)).unwrap();
+    println!("{:?}", deserialized_byte_array);
 }

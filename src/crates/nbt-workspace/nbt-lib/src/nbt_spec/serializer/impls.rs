@@ -76,7 +76,9 @@ where
 {
     fn serialize<W: Write>(&self, writer: &mut W) -> NBTResult<()> {
         let tag_type = T::tag_type();
-        writer.write_all(&tag_type.to_be_bytes())?;
+        if tag_type == TAG_LIST {
+            writer.write_all(&tag_type.to_be_bytes())?;
+        }
         writer.write_all(&(self.len() as i32).to_be_bytes())?;
         for v in self {
             v.serialize(writer)?;
