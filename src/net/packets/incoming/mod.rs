@@ -8,3 +8,4 @@ pub mod set_player_pos_and_rotate;
 pub mod set_player_position;
 pub mod set_player_rotation;
 pub mod status;
+pub mod chat_message;

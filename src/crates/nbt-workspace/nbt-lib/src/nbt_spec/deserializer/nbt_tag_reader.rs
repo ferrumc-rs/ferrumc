@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::io::Cursor;
+use std::io::{Cursor, Read};
 use std::simd::*;
 use std::simd::num::SimdInt;
 use crate::error::NBTError;
@@ -125,7 +125,16 @@ unsafe fn read_tag_based_on_type_unchecked(cursor: &mut Cursor<Vec<u8>>, tag_typ
         4 => NBTTag::Long(cursor.read_i64_unchecked()),
         5 => NBTTag::Float(cursor.read_f32_unchecked()),
         6 => NBTTag::Double(cursor.read_f64_unchecked()),
-        7 => NBTTag::ByteArray(Vec::read_from_bytes(cursor).unwrap_unchecked()),
+        7 => {
+            let len = cursor.read_i32_unchecked() as usize;
+            let mut vec = Vec::<u8>::with_capacity(len);
+            unsafe {
+                vec.set_len(len);
+                cursor.read_exact(vec.as_mut_slice()).expect("Failed to read byte array");
+            }
+            // Convert Vec<u8> to Vec<i8>
+            NBTTag::ByteArray(vec.into_iter().map(|b| b as i8).collect())
+        },
         8 => NBTTag::String(cursor.read_nbt_string_unchecked()),
         9 => {
             let list_type = cursor.read_i8_unchecked() as u8;
@@ -137,8 +146,6 @@ unsafe fn read_tag_based_on_type_unchecked(cursor: &mut Cursor<Vec<u8>>, tag_typ
             NBTTag::List(list)
         }
         10 => read_tag_unchecked(cursor),
-        // 11 => NBTTag::IntArray(Vec::read_from_bytes(cursor).unwrap_unchecked()),
-        // 12 => NBTTag::LongArray(Vec::read_from_bytes(cursor).unwrap_unchecked()),
         11 => {
             let len = cursor.read_i32_unchecked() as usize;
             NBTTag::IntArray(read_int_array_simd(cursor, len))
