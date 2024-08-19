@@ -13,6 +13,7 @@ pub mod config;
 pub mod constants;
 pub mod hash;
 pub mod nbt_impls;
+pub mod binary_utils;
 
 /// Sets up the logger. Needs to be run before anything else in order for logging to run end.
 pub fn setup_logger() -> Result<()> {

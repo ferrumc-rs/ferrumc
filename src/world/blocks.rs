@@ -33,7 +33,7 @@ pub async fn read_block(
         .iter()
         .find(|section| section.y == (y / 16) as i8)
         .unwrap();
-    let first = section
+    let firsti64 = section
         .block_states
         .as_ref()
         .unwrap()
@@ -42,7 +42,7 @@ pub async fn read_block(
         .unwrap()
         .get(0)
         .unwrap();
-    let bit_per_block = first.to_be_bytes().get(0).unwrap().clone();
+    let bit_per_block = firsti64.to_be_bytes().get(0).unwrap().clone();
 
     info!("bit_per_block: {}", bit_per_block);
 
