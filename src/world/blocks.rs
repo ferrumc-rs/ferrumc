@@ -1,4 +1,4 @@
-use tracing::info;
+use tracing::{debug, info};
 
 use crate::state::GlobalState;
 use crate::utils::error::Error;
@@ -11,6 +11,7 @@ pub async fn read_block(
     dimension: String,
 ) -> Result<String, Error> {
     let (chunk_x, chunk_z) = (x / 16, z / 16);
+    debug!("Getting chunk: {} {}", chunk_x, chunk_z);
     let chunk = state
         .database
         .get_chunk(chunk_x, chunk_z, dimension)
@@ -61,7 +62,7 @@ mod tests {
         let state = crate::create_state(TcpListener::bind("0.0.0.0:0").await.unwrap())
             .await
             .unwrap();
-        read_block(state, 0, 50, 0, "overworld".to_string())
+        read_block(state, -150, 50, 0, "overworld".to_string())
             .await
             .unwrap();
     }

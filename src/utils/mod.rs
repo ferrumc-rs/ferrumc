@@ -11,6 +11,7 @@ pub mod type_impls;
 pub mod components;
 pub mod config;
 pub mod constants;
+pub mod hash;
 pub mod nbt_impls;
 
 /// Sets up the logger. Needs to be run before anything else in order for logging to run end.

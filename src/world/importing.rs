@@ -1,7 +1,7 @@
 use std::io::Cursor;
 use std::path::PathBuf;
 
-use nbt_lib::{read_tag, Deserialize, NBTDeserialize, NBTDeserializeBytes};
+use nbt_lib::{Deserialize, NBTDeserialize, NBTDeserializeBytes, read_tag};
 use tracing::{debug, error, info, warn};
 
 use crate::state::GlobalState;
@@ -27,15 +27,7 @@ pub async fn import_regions(
                 warn!("Could not read chunk");
                 continue;
             };
-
-            let x = chunk.x;
-            let z = chunk.z;
-            debug!("Importing chunk {} {}", x, z);
             let chunk = chunk.data;
-            // println!(
-            //     "Chunk: {:?}",
-            //     nbt_lib::read_tag(&mut Cursor::new(chunk.clone()))?
-            // );
 
             let chunk_nbt = Chunk::read_from_bytes(&mut Cursor::new(chunk));
 
