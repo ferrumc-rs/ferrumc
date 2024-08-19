@@ -117,7 +117,7 @@ async fn dump_chunk() {
         .await
         .unwrap()
         .unwrap();
-    let outfile = std::fs::File::create("chunk.dump").unwrap();
+    let outfile = std::fs::File::create("chunk.json").unwrap();
     let mut writer = std::io::BufWriter::new(outfile);
     serde_json::to_writer(&mut writer, &chunk).unwrap();
 }

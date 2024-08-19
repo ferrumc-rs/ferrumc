@@ -15,8 +15,6 @@ pub struct Database {
 }
 
 pub async fn start_database() -> Result<Database, Error> {
-    debug!("Starting database");
-
     let root = if env::var("FERRUMC_ROOT").is_ok() {
         PathBuf::from(env::var("FERRUMC_ROOT").unwrap())
     } else {
@@ -30,7 +28,6 @@ pub async fn start_database() -> Result<Database, Error> {
 
     let world = get_global_config().world.clone();
     let world_path = root.join("data").join(world);
-    println!("Database path: {:?}", world_path.to_str().unwrap());
 
     if !fs::try_exists(&world_path).await? {
         fs::create_dir_all(&world_path).await?;

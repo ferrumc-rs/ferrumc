@@ -61,7 +61,7 @@ bincode = "2.0.0-rc.3"
 # CLI
 clap = { version = "4.5.11" }
 clap_derive = "4.5.11"
-spinners = "4.1.1"
+indicatif = "0.17.8"
 
 
 

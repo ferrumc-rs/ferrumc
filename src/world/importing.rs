@@ -1,31 +1,90 @@
 use std::io::Cursor;
 use std::path::PathBuf;
+use std::process::exit;
 
+use indicatif::ProgressBar;
 use nbt_lib::{Deserialize, NBTDeserialize, NBTDeserializeBytes, read_tag};
+use rayon::prelude::*;
+use tokio::task::JoinSet;
 use tracing::{debug, error, info, warn};
 
 use crate::state::GlobalState;
 use crate::world::chunkformat::Chunk;
+
+fn format_time(millis: u64) -> String {
+    return if millis < 1000 {
+        format!("{}ms", millis)
+    } else if millis < 60_000 {
+        format!("{}s {}ms", millis / 1000, millis % 1000)
+    } else if millis < 3_600_000 {
+        format!(
+            "{}m {}s {}ms",
+            millis / 60_000,
+            (millis % 60_000) / 1000,
+            millis % 1000
+        )
+    } else {
+        format!(
+            "{}h {}m {}s {}ms",
+            millis / 3_600_000,
+            (millis % 3_600_000) / 60_000,
+            (millis % 60_000) / 1000,
+            millis % 1000
+        )
+    };
+}
+
+async fn get_total_chunks(dir: PathBuf) -> Result<usize, Box<dyn std::error::Error>> {
+    let mut region_files = tokio::fs::read_dir(dir).await?;
+    let mut total_chunks = 0;
+    let mut set = JoinSet::new();
+    while let Some(dirfile) = region_files.next_entry().await? {
+        set.spawn_blocking(move || {
+            let file = std::fs::File::open(dirfile.path()).unwrap();
+            let mut region = fastanvil::Region::from_stream(file).unwrap();
+            region.iter().count()
+        });
+    }
+    while let Some(Ok(count)) = set.join_next().await {
+        total_chunks += count;
+    }
+    Ok(total_chunks)
+}
 
 /// since this is just used to import chunks, it doesn't need to be optimized much
 pub async fn import_regions(
     dir: PathBuf,
     state: GlobalState,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    // We aren't, but I can't think of a better way to say "Counting chunks" without it sounding
+    // super slow
+    info!("Fetching preliminary chunk information");
+    let total_chunks = get_total_chunks(dir.clone()).await?;
     let mut region_files = if tokio::fs::read_dir(dir.clone()).await.is_ok() {
         tokio::fs::read_dir(dir).await?
     } else {
         error!("Could not read the imports directory");
         return Ok(());
     };
+    info!("Importing {} chunks", total_chunks);
+    info!("This could take a while if there are a lot of chunks to import!");
+    let start = std::time::Instant::now();
+    let bar = ProgressBar::new(total_chunks as u64);
     while let Some(dirfile) = region_files.next_entry().await? {
         let file = std::fs::File::open(dirfile.path())?;
         let mut region = fastanvil::Region::from_stream(file)?;
 
         for chunk in region.iter() {
             let Ok(chunk) = chunk else {
-                warn!("Could not read chunk");
-                continue;
+                warn!(
+                    "Could not read chunk {}",
+                    dirfile.file_name().to_str().unwrap()
+                );
+                bar.abandon_with_message(format!(
+                    "Chunk {} failed to import",
+                    dirfile.file_name().to_str().unwrap()
+                ));
+                exit(1);
             };
             let chunk = chunk.data;
 
@@ -37,7 +96,11 @@ pub async fn import_regions(
                     chunk_nbt.as_ref().unwrap_err(),
                     dirfile.file_name().to_str().unwrap()
                 );
-                panic!();
+                bar.abandon_with_message(format!(
+                    "Chunk {} failed to import",
+                    dirfile.file_name().to_str().unwrap()
+                ));
+                exit(1);
             }
             let chunk_nbt = chunk_nbt.unwrap();
             let x = chunk_nbt.x_pos.clone();
@@ -48,19 +111,20 @@ pub async fn import_regions(
                 .await
                 .unwrap();
 
-            match record {
-                false => {
-                    info!("Chunk {} {} added to database", x, z);
-                }
-                true => {
-                    warn!("Could not add chunk {} {} to database", x, z);
-                }
+            if record {
+                error!("Chunk {} {} already exists", x, z);
+                bar.abandon_with_message(format!("Chunk {} {} failed to import", x, z));
+                exit(1);
             }
+            bar.inc(1);
+            bar.set_message(format!("{} {}", x, z));
         }
-        info!(
-            "Finished importing region file {}",
-            dirfile.file_name().to_str().unwrap()
-        );
     }
+    bar.abandon_with_message(format!("{} chunks imported!", total_chunks));
+    info!(
+        "Imported {} chunks in {} seconds",
+        total_chunks,
+        format_time(start.elapsed().as_millis() as u64)
+    );
     Ok(())
 }
