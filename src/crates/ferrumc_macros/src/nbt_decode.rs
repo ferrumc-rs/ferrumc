@@ -3,7 +3,7 @@ use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{DeriveInput, Meta, parse_macro_input};
 
-pub fn decode(input: TokenStream) -> TokenStream {
+/*pub fn decode(input: TokenStream) -> TokenStream {
     // Parse the input tokens into a syntax tree
     let input = parse_macro_input!(input as DeriveInput);
 
@@ -64,7 +64,7 @@ pub fn decode(input: TokenStream) -> TokenStream {
                     statements.push(
                         quote! {
                             #ident: match nbt.compound(#name) {
-                                Some(compound) => <#type_name as crate::utils::nbt_impls::NBTDecodable>::decode_from_compound(&compound, "").expect(#fail_message),
+                                Some(compound) => <#type_name as crate::utils::impls::nbt_impls::NBTDecodable>::decode_from_compound(&compound, "").expect(#fail_message),
                                 None => None,
                             },
                         }
@@ -72,20 +72,20 @@ pub fn decode(input: TokenStream) -> TokenStream {
                 }else {
                     statements.push(
                         quote! {
-                            #ident: <#type_name as crate::utils::nbt_impls::NBTDecodable>::decode_from_compound(&nbt.compound(#name).expect(#fail_message), "").expect(#fail_message),
+                            #ident: <#type_name as crate::utils::impls::nbt_impls::NBTDecodable>::decode_from_compound(&nbt.compound(#name).expect(#fail_message), "").expect(#fail_message),
                         }
                     );
                 }
             } else if is_nbtcompound {
                 statements.push(
                     quote! {
-                    #ident: <#type_name as crate::utils::nbt_impls::NBTDecodable>::decode_from_compound(nbt, #name).expect(#fail_message),
+                    #ident: <#type_name as crate::utils::impls::nbt_impls::NBTDecodable>::decode_from_compound(nbt, #name).expect(#fail_message),
                     },
                 );
             } else {
                 statements.push(
                     quote! {
-                    #ident: <#type_name as crate::utils::nbt_impls::NBTDecodable>::decode_from_base(&nbt, #name).expect(#fail_message),
+                    #ident: <#type_name as crate::utils::impls::nbt_impls::NBTDecodable>::decode_from_base(&nbt, #name).expect(#fail_message),
                     },
                 );
             };
@@ -98,7 +98,7 @@ pub fn decode(input: TokenStream) -> TokenStream {
     // Generate the implementation
     let expanded = if is_nbtcompound {
         quote! {
-            impl crate::utils::nbt_impls::NBTDecodable for #name {
+            impl crate::utils::impls::nbt_impls::NBTDecodable for #name {
 
                 fn decode_from_base(_: &simdnbt::borrow::BaseNbt, _: &str) -> core::result::Result<Self, crate::utils::error::Error>
                 {
@@ -135,3 +135,4 @@ pub fn decode(input: TokenStream) -> TokenStream {
     // Hand the output tokens back to the compiler
     TokenStream::from(expanded)
 }
+*/

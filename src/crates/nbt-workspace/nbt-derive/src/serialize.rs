@@ -39,14 +39,14 @@ pub(crate) fn nbt_serialize_derive(input: TokenStream) -> TokenStream {
         if is_optional {
             quote! {
                 if let Some(value) = &self.#field_name {
-                    <#field_type as nbt_lib::nbt_spec::serializer::impls::NBTTagIdentity>::tag_type().serialize(writer)?;
+                    <#field_type as nbt_lib::nbt_spec::serializer::impls::NBTFieldType>::tag_type().serialize(writer)?;
                     #field_name_as_string.serialize(writer)?;
                     value.serialize(writer)?;
                 }
             }
         } else {
             quote! {
-            <#field_type as nbt_lib::nbt_spec::serializer::impls::NBTTagIdentity>::tag_type().serialize(writer)?;
+            <#field_type as nbt_lib::nbt_spec::serializer::impls::NBTFieldType>::tag_type().serialize(writer)?;
             #field_name_as_string.serialize(writer)?;
             self.#field_name.serialize(writer)?;
         }
@@ -72,7 +72,7 @@ pub(crate) fn nbt_serialize_derive(input: TokenStream) -> TokenStream {
             }
         }
 
-        impl nbt_lib::nbt_spec::serializer::impls::NBTTagIdentity for #struct_name {
+        impl nbt_lib::nbt_spec::serializer::impls::NBTFieldType for #struct_name {
             fn tag_type() -> u8 {
                 nbt_lib::nbt_spec::serializer::tag_types::TAG_COMPOUND
             }

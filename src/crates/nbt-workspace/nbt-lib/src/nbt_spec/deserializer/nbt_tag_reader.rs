@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 use std::io::{Cursor, Read};
 use std::simd::*;
-use std::simd::num::SimdInt;
 use crate::error::NBTError;
 use crate::nbt_spec::deserializer::cursor_ext::CursorExt;
 use crate::nbt_spec::deserializer::NBTDeserializeBytes;
+use crate::nbt_spec::serializer::{NBTAnonymousType, NBTFieldType};
 use crate::NBTResult;
 
 #[derive(Debug)]
@@ -64,11 +64,11 @@ fn read_tag_based_on_type(cursor: &mut Cursor<Vec<u8>>, tag_type: u8) -> NBTResu
             Ok(NBTTag::List(list))
         }
         10 => read_tag(cursor),
-        11 => unsafe {
+        11 => {
             let len = cursor.read_i32()? as usize;
             Ok(NBTTag::IntArray(read_int_array_simd(cursor, len)))
         },
-        12 => unsafe {
+        12 => {
             let len = cursor.read_i32()? as usize;
             Ok(NBTTag::LongArray(read_long_array_simd(cursor, len)))
         },
@@ -245,7 +245,7 @@ fn read_int_array_simd(cursor: &mut Cursor<Vec<u8>>, len: usize) -> Vec<i32> {
             std::slice::from_raw_parts(data[pos..].as_ptr() as *const u8, 16)
         };
         let bytes: Simd<u8, 16> = Simd::from_slice(chunk);
-        let mut ints = Simd::from_array([
+        let ints = Simd::from_array([
             i32::from_be_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]),
             i32::from_be_bytes([bytes[4], bytes[5], bytes[6], bytes[7]]),
             i32::from_be_bytes([bytes[8], bytes[9], bytes[10], bytes[11]]),
@@ -279,7 +279,7 @@ fn read_long_array_simd(cursor: &mut Cursor<Vec<u8>>, len: usize) -> Vec<i64> {
             std::slice::from_raw_parts(data[pos..].as_ptr() as *const u8, 16)
         };
         let bytes: Simd<u8, 16> = Simd::from_slice(chunk);
-        let mut longs = Simd::from_array([
+        let longs = Simd::from_array([
             i64::from_be_bytes([bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7]]),
             i64::from_be_bytes([bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13], bytes[14], bytes[15]]),
         ]);

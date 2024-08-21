@@ -12,7 +12,7 @@ use crate::state::GlobalState;
 use crate::utils::config;
 use crate::utils::encoding::varint::VarInt;
 use crate::utils::prelude::*;
-use crate::utils::type_impls::Encode;
+use crate::utils::impls::type_impls::Encode;
 use crate::Connection;
 
 /// The status packet is sent by the client to the server to request the server's status.

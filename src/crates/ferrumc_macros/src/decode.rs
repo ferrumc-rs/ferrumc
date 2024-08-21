@@ -36,7 +36,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
 
     // Generate the implementation
     let expanded = quote! {
-        use crate::utils::type_impls::Decode;
+        use crate::utils::impls::type_impls::Decode;
         use tokio::io::{AsyncRead, AsyncSeek};
         use crate::utils::error::Error;
         impl #name {

@@ -33,7 +33,7 @@ impl Position {
 mod tests {
     use std::io::Cursor;
 
-    use crate::utils::type_impls::{Decode, Encode};
+    use crate::utils::impls::type_impls::{Decode, Encode};
 
     use super::Position;
 

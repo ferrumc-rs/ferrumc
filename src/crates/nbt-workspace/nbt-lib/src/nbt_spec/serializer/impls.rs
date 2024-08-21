@@ -4,9 +4,7 @@ use crate::nbt_spec::serializer::NBTSerialize;
 use crate::nbt_spec::serializer::tag_types::*;
 use crate::{NBTResult};
 
-pub trait NBTTagIdentity {
-    fn tag_type() -> u8;
-}
+
 
 macro_rules! impl_nbt_serialize {
     ($type:ty, $tag_type:expr) => {
@@ -16,8 +14,8 @@ macro_rules! impl_nbt_serialize {
             }
         }
 
-        impl NBTTagIdentity for $type {
-            fn tag_type() -> u8 {
+        impl NBTFieldType for $type {
+            fn tag_type(&self) -> u8 {
                 $tag_type
             }
         }
@@ -34,14 +32,14 @@ impl_nbt_serialize!(i64, TAG_LONG);
 impl_nbt_serialize!(f32, TAG_FLOAT);
 impl_nbt_serialize!(f64, TAG_DOUBLE);
 
-impl NBTTagIdentity for bool { fn tag_type() -> u8 { TAG_BYTE } }
+impl NBTFieldType for bool { fn tag_type(&self) -> u8 { TAG_BYTE } }
 impl NBTSerialize for bool {
     fn serialize<W: Write>(&self, writer: &mut W) -> NBTResult<()> {
         Ok(writer.write_all(&(*self as u8).to_be_bytes())?)
     }
 }
 
-impl NBTTagIdentity for String { fn tag_type() -> u8 { TAG_STRING } }
+impl NBTFieldType for String { fn tag_type(&self) -> u8 { TAG_STRING } }
 impl NBTSerialize for String {
     fn serialize<W: Write>(&self, writer: &mut W) -> NBTResult<()> {
         writer.write_all(&(self.len() as u16).to_be_bytes())?;
@@ -49,7 +47,7 @@ impl NBTSerialize for String {
     }
 }
 
-impl<'a> NBTTagIdentity for &'a str { fn tag_type() -> u8 { TAG_STRING } }
+impl<'a> NBTFieldType for &'a str { fn tag_type(&self) -> u8 { TAG_STRING } }
 impl<'a> NBTSerialize for &'a str {
     fn serialize<W: Write>(&self, writer: &mut W) -> NBTResult<()> {
         writer.write_all(&((*self).len() as u16).to_be_bytes())?;
@@ -58,10 +56,10 @@ impl<'a> NBTSerialize for &'a str {
 }
 
 
-impl<T: NBTTagIdentity> NBTTagIdentity for Vec<T> {
-    fn tag_type() -> u8 {
+impl<T: NBTFieldType> NBTFieldType for Vec<T> {
+    fn tag_type(&self) -> u8 {
         // TAG_LIST
-        match T::tag_type() {
+        match T::tag_type(&self[0]) {
             TAG_BYTE => TAG_BYTE_ARRAY,
             TAG_INT => TAG_INT_ARRAY,
             TAG_LONG => TAG_LONG_ARRAY,
@@ -90,18 +88,18 @@ where
     }
 }
 
-impl<T> NBTTagIdentity for Option<T>
+impl<T> NBTFieldType for Option<T>
 where
     T: NBTSerialize,
 {
-    fn tag_type() -> u8 {
+    fn tag_type(&self) -> u8 {
         T::tag_type()
     }
 }
 
 impl<T> NBTSerialize for Option<T>
 where
-    T: NBTSerialize,
+    T: NBTSerialize + NBTFieldType,
 {
     fn serialize<W: Write>(&self, writer: &mut W) -> NBTResult<()> {
         match self {
@@ -111,8 +109,8 @@ where
     }
 }
 
-impl<K, V> NBTTagIdentity for std::collections::HashMap<K, V> {
-    fn tag_type() -> u8 {
+impl<K, V> NBTFieldType for std::collections::HashMap<K, V> {
+    fn tag_type(&self) -> u8 {
         TAG_COMPOUND
     }
 }

@@ -19,7 +19,7 @@ use crate::state::GlobalState;
 use super::utils::config::get_global_config;
 use super::utils::encoding::varint::read_varint;
 use super::utils::prelude::*;
-use super::utils::type_impls::Encode;
+use crate::utils::impls::type_impls::Encode;
 
 // To allow implementing the `Component` trait for `Connection`. Since we can't implement a trait for a type defined in another crate.
 #[derive(Component)]

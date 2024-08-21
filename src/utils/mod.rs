@@ -6,12 +6,11 @@ use crate::utils::prelude::*;
 pub mod encoding;
 pub mod error;
 pub mod prelude;
-pub mod type_impls;
 
 pub mod components;
 pub mod config;
 pub mod constants;
-pub mod nbt_impls;
+pub mod impls;
 
 /// Sets up the logger. Needs to be run before anything else in order for logging to run end.
 pub fn setup_logger() -> Result<()> {

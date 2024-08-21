@@ -1,8 +1,8 @@
-#![allow(dead_code)]
+/*#![allow(dead_code)]
 
 use crate::utils::encoding::varint::VarInt;
 use crate::utils::error::Error;
-use crate::utils::type_impls::Encode;
+use crate::utils::impls::type_impls::Encode;
 use tokio::io::{AsyncSeek, AsyncWrite};
 
 pub struct BitSet {
@@ -40,5 +40,135 @@ impl Encode for BitSet {
         self.len.encode(bytes).await?;
         self.data.encode(bytes).await?;
         Ok(())
+    }
+}
+*/
+
+use std::ops::{Index, IndexMut};
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct BitSet {
+    data: Vec<u64>,
+    size: usize,
+}
+
+impl BitSet {
+    pub fn new(size: usize) -> Self {
+        let num_blocks = (size + 63) / 64;
+        BitSet {
+            data: vec![0; num_blocks],
+            size,
+        }
+    }
+
+    pub fn set(&mut self, index: usize) {
+        if index < self.size {
+            let block = index / 64;
+            let bit = index % 64;
+            self.data[block] |= 1 << bit;
+        }
+    }
+
+    pub fn clear(&mut self, index: usize) {
+        if index < self.size {
+            let block = index / 64;
+            let bit = index % 64;
+            self.data[block] &= !(1 << bit);
+        }
+    }
+
+    pub fn get(&self, index: usize) -> bool {
+        if index < self.size {
+            let block = index / 64;
+            let bit = index % 64;
+            (self.data[block] & (1 << bit)) != 0
+        } else {
+            false
+        }
+    }
+
+    pub fn toggle(&mut self, index: usize) {
+        if index < self.size {
+            let block = index / 64;
+            let bit = index % 64;
+            self.data[block] ^= 1 << bit;
+        }
+    }
+
+    pub fn len(&self) -> usize {
+        self.size
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.size == 0
+    }
+
+    pub fn count_ones(&self) -> usize {
+        self.data.iter().map(|&block| block.count_ones() as usize).sum()
+    }
+
+    pub fn clear_all(&mut self) {
+        self.data.fill(0);
+    }
+
+    pub fn set_all(&mut self) {
+        self.data.fill(u64::MAX);
+        // Clear any bits beyond the set size
+        if self.size % 64 != 0 {
+            let last_block = self.data.last_mut().unwrap();
+            *last_block &= (1 << (self.size % 64)) - 1;
+        }
+    }
+}
+
+impl Index<usize> for BitSet {
+    type Output = bool;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        if self.get(index) {
+            &true
+        } else {
+            &false
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_bitset_operations() {
+        let mut bs = BitSet::new(100);
+
+        assert_eq!(bs.len(), 100);
+        assert!(!bs.is_empty());
+
+        bs.set(50);
+        assert!(bs.get(50));
+        assert!(!bs.get(51));
+
+        bs.toggle(51);
+        assert!(bs.get(51));
+
+        bs.clear(50);
+        assert!(!bs.get(50));
+
+        assert_eq!(bs.count_ones(), 1);
+
+        bs.set_all();
+        assert_eq!(bs.count_ones(), 100);
+
+        bs.clear_all();
+        assert_eq!(bs.count_ones(), 0);
+    }
+
+    #[test]
+    fn test_bitset_indexing() {
+        let mut bs = BitSet::new(100);
+
+        bs.set(50);
+        assert!(bs[50]);
+        assert!(!bs[51]);
     }
 }

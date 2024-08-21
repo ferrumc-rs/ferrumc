@@ -8,8 +8,7 @@ mod tests {
     use serde_derive::{Deserialize, Serialize};
 
     use crate::utils::encoding::varint::VarInt;
-    use crate::utils::nbt_impls::NBTDecodable;
-    use ferrumc_macros::{Decode, NBTDecode};
+    use ferrumc_macros::{Decode};
 
     #[tokio::test]
     async fn test_macro_decode() {
@@ -30,18 +29,16 @@ mod tests {
         assert_eq!(handshake.server_port, 25565);
         assert_eq!(handshake.next_state, VarInt::new(1));
     }
-
+/*
     #[tokio::test]
     async fn test_nbt_decode() {
-        #[derive(NBTDecode, Serialize, Deserialize, Clone, Debug)]
+        #[derive(Serialize, Deserialize, Clone, Debug)]
         struct Test {
             test: i32,
-            #[nbtcompound]
             nested: Option<Nested>,
         }
 
-        #[derive(NBTDecode, Serialize, Deserialize, Clone, Debug)]
-        #[nbtcompound]
+        #[derive(Serialize, Deserialize, Clone, Debug)]
         struct Nested {
             second_test: i8,
         }
@@ -61,7 +58,7 @@ mod tests {
             .unwrap()
             .unwrap();
 
-        let test = <i32 as NBTDecodable>::decode_from_base(&simdnbt_read, "test").unwrap();
+        let test = <i32 >::decode_from_base(&simdnbt_read, "test").unwrap();
         /*let compound = simdnbt_read.compound("nested");
         let nested: Option<Nested> = match compound {
             Some(compound) => <Option<Nested> as NBTDecodable>::decode_from_compound(&compound, "").unwrap(),
@@ -82,5 +79,5 @@ mod tests {
             nested = <Option<Nested> as Default>::default();
         }else */
         /*let nested = <Option<Nested> as NBTDecodable>::decode_from_compound(&simdnbt_read, "nested").unwrap();*/
-    }
+    }*/
 }

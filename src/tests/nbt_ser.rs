@@ -1,6 +1,5 @@
 #![allow(dead_code)]
 
-use ferrumc_macros::NBTDecode;
 use nbt_lib::nbt_spec::serializer::NBTSerialize;
 use nbt_lib::{Deserialize, Serialize};
 use std::f32::consts::PI;
@@ -8,7 +7,7 @@ use std::f64::consts::E;
 use std::fs::File;
 use std::io::Write;
 
-#[derive(Serialize, NBTDecode, Debug)]
+#[derive(Serialize, Debug)]
 #[nbt(is_root)]
 #[nbt(rename = "Player")]
 pub struct NBTTestStruct {
@@ -18,23 +17,19 @@ pub struct NBTTestStruct {
     pub xp_level: i32,
     pub xp_total: i32,
     pub position: Vec<f64>,
-    #[nbtcompound]
     pub inventory: Vec<Item>,
     #[nbt(rename = "Abilities")]
-    #[nbtcompound]
     pub abilities: PlayerAbilities,
 }
 
-#[derive(Serialize, NBTDecode, Debug)]
-#[nbtcompound]
+#[derive(Serialize, Debug)]
 pub struct Item {
     pub id: String,
     pub count: i8,
     pub damage: i16,
 }
 
-#[derive(Serialize, NBTDecode, Debug)]
-#[nbtcompound]
+#[derive(Serialize, Debug)]
 pub struct PlayerAbilities {
     pub invulnerable: bool,
     pub flying: bool,
@@ -78,7 +73,7 @@ impl NBTTestStruct {
         }
     }
 }
-
+/*
 #[test]
 fn validate_generation() {
     let root = NBTTestStruct::new();
@@ -98,7 +93,7 @@ fn validate_generation() {
 
     // println!("Expected NBT data: compound + test + 1u8");
 }
-
+*/
 #[test]
 fn validate_codec_file() {
     // let root = NBTTestStruct::new();

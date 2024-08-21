@@ -23,11 +23,11 @@ pub fn encode_derive(input: TokenStream) -> TokenStream {
 pub fn packet(args: TokenStream, input: TokenStream) -> TokenStream {
     packet::attribute(args, input)
 }
-
+/*
 #[proc_macro_derive(NBTDecode, attributes(nbtcompound, rename))]
 pub fn nbt_decode_derive(input: TokenStream) -> TokenStream {
     nbt_decode::decode(input)
-}
+}*/
 
 #[proc_macro]
 pub fn bake_packet_registry(input: TokenStream) -> TokenStream {

@@ -192,7 +192,7 @@ fn generate_encode_impl(
 ) -> proc_macro2::TokenStream {
     if is_packet_type {
         quote! {
-            impl crate::utils::type_impls::Encode for #name {
+            impl crate::utils::impls::type_impls::Encode for #name {
                 async fn encode<T>(&self, bytes_out: &mut T) -> std::result::Result<(), crate::utils::error::Error>
                     where T: tokio::io::AsyncWrite + tokio::io::AsyncSeek + std::marker::Unpin
                 {
@@ -216,7 +216,7 @@ fn generate_encode_impl(
         }
     } else {
         quote! {
-            impl crate::utils::type_impls::Encode for #name {
+            impl crate::utils::impls::type_impls::Encode for #name {
                 async fn encode<T>(&self, bytes: &mut T) -> std::result::Result<(), crate::utils::error::Error>
                     where T: tokio::io::AsyncWrite + tokio::io::AsyncSeek + std::marker::Unpin
                 {
