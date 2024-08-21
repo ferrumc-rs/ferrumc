@@ -14,6 +14,3 @@ pub trait NBTAnonymousType {
     fn tag_type() -> u8;
 }
 
-pub trait NBTFieldType{
-    fn tag_type(&self) -> u8;
-}

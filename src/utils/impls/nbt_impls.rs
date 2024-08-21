@@ -9,6 +9,8 @@ impl Encode for NBTTag {
     where
         T: AsyncWrite + AsyncSeek + Unpin
     {
+        let mut buffer = Vec::new();
+        self.ser(&mut buffer)?;
         Ok(())
     }
 }

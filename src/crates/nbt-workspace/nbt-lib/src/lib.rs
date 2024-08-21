@@ -1,4 +1,5 @@
 #![feature(portable_simd)]
+#![feature(extend_one)]
 
 pub mod nbt_spec;
 pub mod error;

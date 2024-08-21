@@ -1,10 +1,14 @@
+use std::collections::HashMap;
 use std::io::Write;
 
-use crate::nbt_spec::serializer::NBTSerialize;
 use crate::nbt_spec::serializer::tag_types::*;
-use crate::{NBTResult};
+pub use crate::nbt_spec::serializer::{NBTAnonymousType, NBTSerialize};
+use crate::NBTResult;
 
 
+pub trait NBTFieldType {
+    fn tag_type(&self) -> u8;
+}
 
 macro_rules! impl_nbt_serialize {
     ($type:ty, $tag_type:expr) => {
@@ -19,9 +23,27 @@ macro_rules! impl_nbt_serialize {
                 $tag_type
             }
         }
+        impl NBTAnonymousType for $type {
+            fn tag_type() -> u8 {
+                $tag_type
+            }
+        }
     };
 }
-
+macro_rules! impl_nbt_tag_type {
+    ($type:ty, $tag_type:expr) => {
+        impl NBTFieldType for $type {
+            fn tag_type(&self) -> u8 {
+                $tag_type
+            }
+        }
+        impl NBTAnonymousType for $type {
+            fn tag_type() -> u8 {
+                $tag_type
+            }
+        }
+    };
+}
 
 impl_nbt_serialize!(u8, TAG_BYTE);
 impl_nbt_serialize!(i8, TAG_BYTE);
@@ -32,14 +54,17 @@ impl_nbt_serialize!(i64, TAG_LONG);
 impl_nbt_serialize!(f32, TAG_FLOAT);
 impl_nbt_serialize!(f64, TAG_DOUBLE);
 
-impl NBTFieldType for bool { fn tag_type(&self) -> u8 { TAG_BYTE } }
+
+// impl NBTFieldType for bool { fn tag_type(&self) -> u8 { TAG_BYTE } }
+impl_nbt_tag_type!(bool, TAG_BYTE);
 impl NBTSerialize for bool {
     fn serialize<W: Write>(&self, writer: &mut W) -> NBTResult<()> {
         Ok(writer.write_all(&(*self as u8).to_be_bytes())?)
     }
 }
 
-impl NBTFieldType for String { fn tag_type(&self) -> u8 { TAG_STRING } }
+// impl NBTFieldType for String { fn tag_type(&self) -> u8 { TAG_STRING } }
+impl_nbt_tag_type!(String, TAG_STRING);
 impl NBTSerialize for String {
     fn serialize<W: Write>(&self, writer: &mut W) -> NBTResult<()> {
         writer.write_all(&(self.len() as u16).to_be_bytes())?;
@@ -47,7 +72,8 @@ impl NBTSerialize for String {
     }
 }
 
-impl<'a> NBTFieldType for &'a str { fn tag_type(&self) -> u8 { TAG_STRING } }
+// impl<'a> NBTFieldType for &'a str { fn tag_type(&self) -> u8 { TAG_STRING } }
+impl_nbt_tag_type!(&str, TAG_STRING);
 impl<'a> NBTSerialize for &'a str {
     fn serialize<W: Write>(&self, writer: &mut W) -> NBTResult<()> {
         writer.write_all(&((*self).len() as u16).to_be_bytes())?;
@@ -56,10 +82,13 @@ impl<'a> NBTSerialize for &'a str {
 }
 
 
-impl<T: NBTFieldType> NBTFieldType for Vec<T> {
+impl<T: NBTFieldType> NBTFieldType for Vec<T>
+where
+    T: NBTAnonymousType,
+{
     fn tag_type(&self) -> u8 {
         // TAG_LIST
-        match T::tag_type(&self[0]) {
+        match <T as NBTAnonymousType>::tag_type() {
             TAG_BYTE => TAG_BYTE_ARRAY,
             TAG_INT => TAG_INT_ARRAY,
             TAG_LONG => TAG_LONG_ARRAY,
@@ -68,12 +97,18 @@ impl<T: NBTFieldType> NBTFieldType for Vec<T> {
     }
 }
 
+impl<T: NBTAnonymousType> NBTAnonymousType for Vec<T> {
+    fn tag_type() -> u8 {
+        T::tag_type()
+    }
+}
+
 impl<T> NBTSerialize for Vec<T>
 where
-    T: NBTSerialize,
+    T: NBTSerialize + NBTAnonymousType,
 {
     fn serialize<W: Write>(&self, writer: &mut W) -> NBTResult<()> {
-        let tag_type = T::tag_type();
+        let tag_type = <T as NBTAnonymousType>::tag_type();
         if tag_type == TAG_LIST {
             writer.write_all(&tag_type.to_be_bytes())?;
         }
@@ -90,16 +125,16 @@ where
 
 impl<T> NBTFieldType for Option<T>
 where
-    T: NBTSerialize,
+    T: NBTSerialize + NBTAnonymousType,
 {
     fn tag_type(&self) -> u8 {
-        T::tag_type()
+        <T as NBTAnonymousType>::tag_type()
     }
 }
 
 impl<T> NBTSerialize for Option<T>
 where
-    T: NBTSerialize + NBTFieldType,
+    T: NBTSerialize + NBTAnonymousType,
 {
     fn serialize<W: Write>(&self, writer: &mut W) -> NBTResult<()> {
         match self {
@@ -109,12 +144,14 @@ where
     }
 }
 
-impl<K, V> NBTFieldType for std::collections::HashMap<K, V> {
+impl<K, V> NBTFieldType for HashMap<K, V>
+{
     fn tag_type(&self) -> u8 {
         TAG_COMPOUND
     }
 }
-impl<K, V> NBTSerialize for std::collections::HashMap<K, V>
+
+impl<K, V> NBTSerialize for HashMap<K, V>
 where
     K: NBTSerialize,
     V: NBTSerialize,
