@@ -1,3 +1,4 @@
+pub mod chat_message;
 pub mod client_info;
 pub mod handshake;
 pub mod keep_alive;
@@ -8,4 +9,3 @@ pub mod set_player_pos_and_rotate;
 pub mod set_player_position;
 pub mod set_player_rotation;
 pub mod status;
-pub mod chat_message;

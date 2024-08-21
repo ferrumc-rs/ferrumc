@@ -3,10 +3,12 @@ use serde::Deserialize;
 
 mod quarantined {
     #[test]
-    fn something () {
+    fn something() {
         let test_tag: nbt_lib::NBTTag = nbt_lib::NBTTag::Compound(std::collections::HashMap::new());
         // <test_tag as nbt_lib::nbt_spec::serializer::impls::NBTFieldType>.tag_type().serialize(writer)?;
-        <nbt_lib::NBTTag as nbt_lib::nbt_spec::serializer::impls::NBTFieldType>::tag_type(&test_tag);
+        <nbt_lib::NBTTag as nbt_lib::nbt_spec::serializer::impls::NBTFieldType>::tag_type(
+            &test_tag,
+        );
     }
 }
 

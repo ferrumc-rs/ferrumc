@@ -45,6 +45,10 @@ impl Encode for BitSet {
 */
 
 use std::ops::{Index, IndexMut};
+use tokio::io::{AsyncSeek, AsyncWrite, AsyncWriteExt};
+use crate::utils::encoding::varint::VarInt;
+use crate::utils::error::Error;
+use crate::utils::impls::type_impls::Encode;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct BitSet {
@@ -104,7 +108,10 @@ impl BitSet {
     }
 
     pub fn count_ones(&self) -> usize {
-        self.data.iter().map(|&block| block.count_ones() as usize).sum()
+        self.data
+            .iter()
+            .map(|&block| block.count_ones() as usize)
+            .sum()
     }
 
     pub fn clear_all(&mut self) {
@@ -170,5 +177,25 @@ mod tests {
         bs.set(50);
         assert!(bs[50]);
         assert!(!bs[51]);
+    }
+}
+
+
+impl Encode for BitSet {
+    async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
+    where
+        T: AsyncWrite + AsyncSeek + Unpin
+    {
+        // Bit sets of type BitSet are prefixed by their length in longs.
+        // Field Name 	Field Type 	Meaning
+        // Length 	VarInt 	Number of longs in the following array. May be 0 (if no bits are set).
+        // Data 	Array of Long 	A packed representation of the bit set as created by BitSet.toLongArray.
+        let len = VarInt::from(self.data.len() as i32);
+        len.encode(bytes).await?;
+        for &word in &self.data {
+            let word = word.to_be_bytes();
+            bytes.write_all(&word).await?;
+        }
+        Ok(())
     }
 }

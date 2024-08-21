@@ -19,8 +19,8 @@ use crate::utils::components::player::Player;
 use crate::utils::components::rotation::Rotation;
 use crate::utils::encoding::position::Position;
 use crate::utils::encoding::varint::VarInt;
-use crate::utils::prelude::*;
 use crate::utils::impls::type_impls::Encode;
+use crate::utils::prelude::*;
 use crate::Connection;
 
 /// The login start packet is sent by the client to the server to start the login process.

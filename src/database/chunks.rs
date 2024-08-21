@@ -23,14 +23,9 @@ impl Database {
         }
     }
 
-    pub async fn get_chunk(
-        &self,
-        x: i32,
-        z: i32,
-        dimension: String,
-    ) -> Result<Option<Chunk>, Error> {
+    pub async fn get_chunk(&self, x: i32, z: i32, dimension: &str) -> Result<Option<Chunk>, Error> {
         let db = self.db.clone();
-        let result = tokio::task::spawn_blocking(move || {
+        let result = {
             let record_name = format!("{},{}", x, z);
             debug!("Getting chunk: {}", record_name);
             let chunk = db
@@ -51,8 +46,7 @@ impl Database {
                     None
                 }
             }
-        })
-        .await
+        }
         .expect("Failed to join tasks");
         Ok(result)
     }
@@ -111,7 +105,7 @@ async fn dump_chunk() {
         .unwrap();
     let chunk = state
         .database
-        .get_chunk(-34, 1, "overworld".to_string())
+        .get_chunk(-34, 1, "overworld")
         .await
         .unwrap()
         .unwrap();

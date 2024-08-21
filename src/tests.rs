@@ -8,7 +8,7 @@ mod tests {
     use serde_derive::{Deserialize, Serialize};
 
     use crate::utils::encoding::varint::VarInt;
-    use ferrumc_macros::{Decode};
+    use ferrumc_macros::Decode;
 
     #[tokio::test]
     async fn test_macro_decode() {
@@ -29,7 +29,7 @@ mod tests {
         assert_eq!(handshake.server_port, 25565);
         assert_eq!(handshake.next_state, VarInt::new(1));
     }
-/*
+    /*
     #[tokio::test]
     async fn test_nbt_decode() {
         #[derive(Serialize, Deserialize, Clone, Debug)]

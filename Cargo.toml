@@ -75,7 +75,4 @@ name = "benches"
 harness = false
 path = "./src/benches/bench_nbt_ser_de.rs"
 
-[profile.release]
-codegen-units = 1
-
 

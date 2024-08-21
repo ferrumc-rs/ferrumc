@@ -1,6 +1,6 @@
 use serde_derive::{Deserialize, Serialize};
 
-mod blocks;
+pub mod blocks;
 pub mod chunkformat;
 pub mod importing;
 pub mod sweattypalms_impl;

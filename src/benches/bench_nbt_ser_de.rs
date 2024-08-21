@@ -1,8 +1,10 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use nbt_lib::{read_tag, Deserialize, NBTDeserialize, NBTDeserializeBytes, NBTSerialize, Serialize};
-use std::io::{Cursor, Read, Write};
 use crate::test_de_data::{create_test_player, Player};
 use crate::test_simd_de_data::MinecraftChunk;
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use nbt_lib::{
+    read_tag, Deserialize, NBTDeserialize, NBTDeserializeBytes, NBTSerialize, Serialize,
+};
+use std::io::{Cursor, Read, Write};
 
 mod test_de_data {
     use super::*;
@@ -251,15 +253,15 @@ mod test_simd_de_data {
                 terrain_populated: 1,
                 light_populated: 1,
                 inhabited_time: 9876543210,
-                biomes: vec![1; 256],  // 16x16 biome data
-                height_map: vec![64; 256],  // 16x16 height map
+                biomes: vec![1; 256],      // 16x16 biome data
+                height_map: vec![64; 256], // 16x16 height map
                 sections: vec![ChunkSection {
                     y: 0,
-                    block_light: vec![0; 2048],  // 16x16x16 / 2 (4 bits per block)
-                    sky_light: vec![15; 2048],   // 16x16x16 / 2 (4 bits per block)
-                    blocks: vec![1; 4096],       // 16x16x16 block IDs
-                    data: vec![0; 2048],         // 16x16x16 / 2 (4 bits per block)
-                    block_states: vec![0; 256],  // Compressed block state data
+                    block_light: vec![0; 2048], // 16x16x16 / 2 (4 bits per block)
+                    sky_light: vec![15; 2048],  // 16x16x16 / 2 (4 bits per block)
+                    blocks: vec![1; 4096],      // 16x16x16 block IDs
+                    data: vec![0; 2048],        // 16x16x16 / 2 (4 bits per block)
+                    block_states: vec![0; 256], // Compressed block state data
                 }],
                 entities: vec![Entity {
                     id: "minecraft:pig".to_string(),
@@ -283,7 +285,7 @@ fn benchmark_serialization(c: &mut Criterion) {
 
     c.bench_function("serialize", |b| {
         b.iter(|| {
-            let mut buffer = Vec::with_capacity( 10240);
+            let mut buffer = Vec::with_capacity(10240);
             black_box(world.serialize(&mut buffer)).unwrap();
         })
     });
@@ -349,9 +351,7 @@ fn benchmark_simdnbt_deserialization(c: &mut Criterion) {
 
     c.bench_function("aiguynbt_deser_simdnbt", |b| {
         b.iter(|| {
-            let data = simdnbt::borrow::read(&mut cursor)
-                .unwrap()
-                .unwrap();
+            let data = simdnbt::borrow::read(&mut cursor).unwrap().unwrap();
 
             black_box(data);
         })

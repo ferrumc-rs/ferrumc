@@ -1,14 +1,62 @@
 use crate::net::systems::System;
+use crate::net::ConnectionWrapper;
 use crate::state::GlobalState;
+use crate::utils::components::player::Player;
+use crate::utils::encoding::position::Position;
 use async_trait::async_trait;
 use ferrumc_macros::AutoGenName;
+use tracing::{info, warn};
 
 #[derive(AutoGenName)]
 pub struct ChunkSender;
 
 #[async_trait]
 impl System for ChunkSender {
-    async fn run(&self, _state: GlobalState) {
+    async fn run(&self, state: GlobalState) {
+        let mut interval = tokio::time::interval(std::time::Duration::from_secs(1));
+        loop {
+            interval.tick().await;
+
+            info!("Sending chunks to players");
+            let mut query = state.world.query::<(&Player, &mut ConnectionWrapper)>();
+
+            while let Some((_, (player, conn))) = query.next().await {
+                info!("Sending chunk to player: {}", player.get_username());
+                let packet = crate::net::packets::outgoing::chunk_data::ChunkDataPacket::new(
+                    1,
+                    1
+                ).await;
+
+/*                let Ok(packet) = packet else {
+                    info!("Failed to send chunk to player: {}", player.get_username());
+                    continue;
+                };
+*/
+                let packet = match packet {
+                    Ok(packet) => packet,
+                    Err(e) => {
+                        warn!("Failed to send chunk to player: {}", e);
+                        continue;
+                    }
+                };
+
+                if let Err(e) = conn.0.write().await.send_packet(packet).await {
+                    warn!("Failed to send chunk to player: {}", e);
+                    continue;
+                };
+            }
+
+            // let query = state.world.query::<(Player, Position, ConnectionWrapper)>().iter().collect::<Vec<_>>();
+
+            // for (_, (player, pos, conn)) in query {
+            //     debug!("Sending chunk to player: {} with position: {}", player.get_username(), pos);
+            //     let player_x = pos.x;
+            //     let player_z = pos.z;
+            //     if let Err(e) = send_chunks_around_player(conn.0.clone(), player_x, player_z).await {
+            //         debug!("Failed to send chunks to player: {}", e);
+            //     }
+            // }
+        }
         /*let mut interval = tokio::time::interval(std::time::Duration::from_secs(1));
         loop {
             interval.tick().await;

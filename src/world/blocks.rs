@@ -2,23 +2,15 @@ use tracing::info;
 
 use crate::state::GlobalState;
 use crate::utils::error::Error;
+use crate::world::chunkformat::Chunk;
 
 pub async fn read_block(
-    state: GlobalState,
+    chunk: &Chunk,
     x: i32,
     y: i32,
     z: i32,
-    dimension: String,
 ) -> Result<String, Error> {
     let (chunk_x, chunk_z) = (x / 16, z / 16);
-    let chunk = state
-        .database
-        .get_chunk(chunk_x, chunk_z, dimension)
-        .await?;
-    if !chunk.is_some() {
-        return Err(Error::ChunkNotFound(chunk_x, chunk_z));
-    }
-    let chunk = chunk.unwrap();
     if !chunk.sections.is_some() {
         return Err(Error::Generic(format!(
             "Chunk {} {} does not have any sections",
@@ -61,8 +53,12 @@ mod tests {
         let state = crate::create_state(TcpListener::bind("0.0.0.0:0").await.unwrap())
             .await
             .unwrap();
-        read_block(state, 0, 50, 0, "overworld".to_string())
+        let chunk = state
+            .database
+            .get_chunk(0, 0, "overworld")
             .await
+            .unwrap()
             .unwrap();
+        read_block(&chunk, 0, 50, 0, "overworld").await.unwrap();
     }
 }

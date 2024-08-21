@@ -40,6 +40,8 @@ pub enum Error {
     FastAnvilError(#[from] fastanvil::Error),
     #[error("Chunk at ({0}, {1}) not found")]
     ChunkNotFound(i32, i32),
+    #[error("Chunk has no sections")]
+    ChunkHasNoSections,
 
     #[error(transparent)]
     SimdNbtError(#[from] simdnbt::Error),
@@ -59,11 +61,15 @@ pub enum Error {
 
     #[error("Invalid NBT: {0}")]
     GenericNbtError(String),
-    
+
     #[error("Serialization failed: {0}")]
     SerializationError(String),
     #[error("Deserialization failed: {0}")]
-    DeserializationError(String)
+    DeserializationError(String),
+
+    #[error("NBT Error")]
+    NbtError(#[from] nbt_lib::error::NBTError),
+
 }
 
 impl From<Infallible> for Error {
