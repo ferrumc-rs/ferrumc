@@ -1,6 +1,8 @@
+use tokio::io::AsyncWriteExt;
 use tracing::{debug, info};
 
 use crate::state::GlobalState;
+use crate::utils::binary_utils::{read_n_bits_u16, read_n_bits_u8};
 use crate::utils::error::Error;
 
 pub async fn read_block(
@@ -33,6 +35,7 @@ pub async fn read_block(
         .iter()
         .find(|section| section.y == (y / 16) as i8)
         .unwrap();
+
     let firsti64 = section
         .block_states
         .as_ref()
@@ -40,11 +43,18 @@ pub async fn read_block(
         .data
         .as_ref()
         .unwrap()
-        .get(0)
+        .first()
         .unwrap();
-    let bit_per_block = firsti64.to_be_bytes().get(0).unwrap().clone();
-
-    info!("bit_per_block: {}", bit_per_block);
+    let pallette = section
+        .block_states
+        .as_ref()
+        .unwrap()
+        .palette
+        .as_ref()
+        .unwrap();
+    info!("Pallette: {:?}", pallette);
+    let bits_per_block = read_n_bits_u8(&firsti64, 0, 8).unwrap();
+    info!("bit_per_block: {}", bits_per_block);
 
     Ok("balls".to_string())
 }

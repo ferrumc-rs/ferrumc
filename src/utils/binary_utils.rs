@@ -1,47 +1,82 @@
-use byteorder::ReadBytesExt;
-use tokio::io::AsyncReadExt;
+use crate::utils::error::Error;
 
-pub fn read_n_byte_integer<T>(data: T, n: usize) -> i32
-where
-    T: Into<Vec<u8>>,
-{
-    let data: Vec<u8> = data.into();
-    let mut result = 0;
-    for i in 0..n {
-        result |= (data[i] as i32) << (8 * (n - i - 1));
+/// Read an arbitrary amount of bits from a i64 at a given position and convert it to a u8.
+/// Expects the bits to be in the least significant bits of the i64 (big-endian)
+///
+/// # Arguments
+/// * `bytes` - The i64 to read from
+/// * `pos` - The position to start reading from in bits
+/// * `n` - The number of bits to read
+///
+/// # Example
+/// ```rs
+/// let bytes = 0b1110011;
+/// let pos = 0;
+/// let n = 5;
+/// let result = read_n_bits_u8(bytes, pos, n).unwrap();
+/// assert_eq!(result, 28u8);
+/// ```
+pub fn read_n_bits_u8(bytes: &i64, pos: usize, n: usize) -> Result<u8, Error> {
+    if n > 8 {
+        return Err(Error::BitOutputOverflow(n, 8));
     }
-    result
+    if pos + n > 64 {
+        return Err(Error::BitReadOverflow(pos + n, 64));
+    }
+    let mask = (1 << n) - 1;
+    Ok(((u64::try_from(*bytes).expect("Failed to convert i64 to u64") >> pos) & mask) as u8)
 }
 
-pub fn read_n_byte_unsigned_integer<T>(data: T, n: usize) -> u32
-where
-    T: Into<Vec<u8>>,
-{
-    let data: Vec<u8> = data.into();
-    let mut result = 0;
-    for i in 0..n {
-        result |= (data[i] as u32) << (8 * (n - i - 1));
+/// Read an arbitrary amount of bits from a i64 at a given position and convert it to a u16.
+/// Expects the bits to be in the least significant bits of the i64 (big-endian)
+///
+/// # Arguments
+/// * `bytes` - The i64 to read from
+/// * `pos` - The position to start reading from in bits
+/// * `n` - The number of bits to read
+///
+/// # Example
+/// ```rs
+/// let bytes = 0b100111000100000;
+/// let pos = 0;
+/// let n = 9;
+/// let result = read_n_bits_u16(bytes, pos, n).unwrap();
+/// assert_eq!(result, 312u16);
+/// ```
+pub fn read_n_bits_u16(bytes: &i64, pos: usize, n: usize) -> Result<u16, Error> {
+    if n > 16 {
+        return Err(Error::BitOutputOverflow(n, 16));
     }
-    result
+    if pos + n > 64 {
+        return Err(Error::BitReadOverflow(pos + n, 64));
+    }
+    let mask = (1 << n) - 1;
+    Ok(((u64::try_from(*bytes).expect("Failed to convert i64 to u64") >> pos) & mask) as u16)
 }
 
-pub fn read_n_byte_integer_stream<T>(data: &mut T, n: usize) -> i32
-where
-    T: std::io::Read,
-{
-    let mut result = 0;
-    for i in 0..n {
-        result |= (data.read_u8().unwrap() as i32) << (8 * (n - i - 1));
+/// Read an arbitrary amount of bits from a i64 at a given position and convert it to a u32.
+/// Expects the bits to be in the least significant bits of the i64 (big-endian)
+///
+/// # Arguments
+/// * `bytes` - The i64 to read from
+/// * `pos` - The position to start reading from in bits
+/// * `n` - The number of bits to read
+///
+/// # Example
+/// ```rs
+/// let bytes = 0b100111110001111001010100101011;
+/// let pos = 2;
+/// let n = 28;
+/// let result = read_n_bits_u32(bytes, pos, n).unwrap();
+/// assert_eq!(result, 32630090u32);
+/// ```
+pub fn read_n_bits_u32(bytes: &i64, pos: usize, n: usize) -> Result<u32, Error> {
+    if n > 32 {
+        return Err(Error::BitOutputOverflow(n, 32));
     }
-    result
-}
-pub async fn read_n_byte_integer_stream_async<T>(data: &mut T, n: usize) -> i32
-where
-    T: tokio::io::AsyncRead + Unpin,
-{
-    let mut result = 0;
-    for i in 0..n {
-        result |= (data.read_u8().await.unwrap() as i32) << (8 * (n - i - 1));
+    if pos + n > 64 {
+        return Err(Error::BitReadOverflow(pos + n, 64));
     }
-    result
+    let mask = (1 << n) - 1;
+    Ok(((u64::try_from(*bytes).expect("Failed to convert i64 to u64") >> pos) & mask) as u32)
 }

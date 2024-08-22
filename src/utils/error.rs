@@ -1,5 +1,6 @@
-use config::ConfigError;
 use std::convert::Infallible;
+
+use config::ConfigError;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -59,11 +60,16 @@ pub enum Error {
 
     #[error("Invalid NBT: {0}")]
     GenericNbtError(String),
-    
+
     #[error("Serialization failed: {0}")]
     SerializationError(String),
     #[error("Deserialization failed: {0}")]
-    DeserializationError(String)
+    DeserializationError(String),
+
+    #[error("Attempted to output more bits that will fit in output type: {0} attempted, {1} max")]
+    BitOutputOverflow(usize, usize),
+    #[error("Attempted to read more bits than are available: {0} attempted, {1} available")]
+    BitReadOverflow(usize, usize),
 }
 
 impl From<Infallible> for Error {
