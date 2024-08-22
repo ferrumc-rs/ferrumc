@@ -35,33 +35,71 @@ pub async fn read_block(
         .iter()
         .find(|section| section.y == (y / 16) as i8)
         .unwrap();
-
-    let firsti64 = section
-        .block_states
-        .as_ref()
-        .unwrap()
-        .data
-        .as_ref()
-        .unwrap()
-        .first()
-        .unwrap();
-    let pallette = section
+    if !section.block_states.is_some() {
+        return Err(Error::Generic(format!(
+            "Section {} does not have any block states",
+            y / 16
+        )));
+    }
+    if !section.block_states.as_ref().unwrap().palette.is_some() {
+        return Err(Error::Generic(format!(
+            "Section {} does not have any palette",
+            y / 16
+        )));
+    }
+    let palette = section
         .block_states
         .as_ref()
         .unwrap()
         .palette
         .as_ref()
         .unwrap();
-    info!("Pallette: {:?}", pallette);
-    let bits_per_block = read_n_bits_u8(&firsti64, 0, 8).unwrap();
-    info!("bit_per_block: {}", bits_per_block);
+    if !section.block_states.as_ref().unwrap().data.is_some() {
+        return Err(Error::Generic(format!(
+            "Section {} does not have any block states data",
+            y / 16
+        )));
+    }
+    let bits_per_block = section
+        .block_states
+        .as_ref()
+        .unwrap()
+        .data
+        .as_ref()
+        .unwrap()
+        .len()
+        * 64
+        / 4096;
 
-    Ok("balls".to_string())
+    let index = (y % 16) * 256 + (z % 16) * 16 + (x % 16);
+    let specific_index = (index * bits_per_block as i32) / 64;
+    if let Some(target_long) = &section
+        .block_states
+        .as_ref()
+        .unwrap()
+        .data
+        .as_ref()
+        .unwrap()
+        .get(specific_index as usize)
+    {
+        let block_index = read_n_bits_u16(
+            *target_long,
+            (index as usize * bits_per_block) % 64,
+            bits_per_block,
+        )?;
+        Ok(palette[block_index as usize].name.clone())
+    } else {
+        Err(Error::Generic(format!(
+            "Could not find block at index {}",
+            index
+        )))
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use tokio::net::TcpListener;
+    use tracing::info;
 
     use crate::utils::setup_logger;
     use crate::world::blocks::read_block;
@@ -72,8 +110,11 @@ mod tests {
         let state = crate::create_state(TcpListener::bind("0.0.0.0:0").await.unwrap())
             .await
             .unwrap();
-        read_block(state, -150, 50, 0, "overworld".to_string())
-            .await
-            .unwrap();
+        info!(
+            "{}",
+            read_block(state, -537, 69, 51, "overworld".to_string())
+                .await
+                .unwrap()
+        );
     }
 }
