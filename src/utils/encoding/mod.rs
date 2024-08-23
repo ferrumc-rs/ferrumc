@@ -1,8 +1,8 @@
-use crate::utils::error::Error;
 use crate::utils::impls::type_impls::Encode;
+use nbt_lib::nbt_spec::serializer::NBTCompoundMarker;
 use nbt_lib::NBTSerialize;
 use tokio::io::AsyncWrite;
-use nbt_lib::nbt_spec::serializer::NBTCompoundMarker;
+use crate::utils::error::Error;
 
 pub mod bitset;
 pub mod position;
@@ -11,22 +11,31 @@ pub mod varlong;
 pub mod velocity;
 
 
-impl<S> Encode for S
-where
-    S: NBTSerialize + NBTCompoundMarker,
-{
+pub struct Enc<S>(pub S);
+
+impl<S> Encode for Enc<S> {
     async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
     where
-        T: AsyncWrite + Unpin,
+        T: AsyncWrite + Unpin
     {
-        let mut pseudo_cursor = Vec::new();
+        self.0.encode(bytes).await
+    }
+}
 
-        self.serialize(&mut pseudo_cursor)?;
+impl<S: NBTSerialize> Enc<S> {
+    fn into_encodable(self) -> Enc<S> {
+        Enc(self.0)
+    }
+}
+pub trait Fallback {
+    type Output;
+    fn into_encodable(self) -> Self::Output;
+}
 
-        {
-            use tokio::io::AsyncWriteExt;
-            bytes.write_all(&pseudo_cursor).await?;
-        }
-        Ok(())
+impl<S> Fallback for Enc<S> {
+    type Output = S;
+
+    fn into_encodable(self) -> S {
+        self.0
     }
 }

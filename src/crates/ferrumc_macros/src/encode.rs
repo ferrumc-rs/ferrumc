@@ -93,13 +93,14 @@ fn generate_field_encode_statement(field_attrib: &FieldAttribs) -> proc_macro2::
         if prepend_length {
             quote! {
                 #statement
-                self.#field_name.encode(&mut #cursor).await?;
+                ::crate::utils::encoding::Enc(self.#field_name).into_encodable().encode(&mut #cursor).await?;
                 let mut #bytes = #cursor.into_inner();
                 tokio::io::AsyncWriteExt::write_all(bytes, &#bytes).await?;
             }
         } else {
             quote! {
-                self.#field_name.encode(bytes).await?;
+                // self.#field_name.encode(bytes).await?;
+                crate::utils::encoding::Enc(self.#field_name).into_encodable().encode(bytes).await?;
             }
         }
     }
@@ -121,6 +122,8 @@ fn generate_encode_impl(
                     where T: tokio::io::AsyncWrite + std::marker::Unpin
                 {
                     use tokio::io::AsyncWriteExt;
+                    use crate::utils::encoding::Fallback;
+
                     let mut bytes_ = std::io::Cursor::new(Vec::new());
                     let mut bytes = &mut bytes_;
 
@@ -145,6 +148,8 @@ fn generate_encode_impl(
                     where T: tokio::io::AsyncWrite + std::marker::Unpin
                 {
                     use tokio::io::AsyncWriteExt;
+                    use crate::utils::encoding::Fallback;
+
                     #(#field_statements)*
                     Ok(())
                 }

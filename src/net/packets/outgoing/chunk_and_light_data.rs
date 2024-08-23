@@ -3,7 +3,7 @@ use nbt_lib::{NBTTag};
 use crate::utils::encoding::bitset::BitSet;
 use crate::utils::encoding::varint::VarInt;
 use crate::utils::impls::type_impls::Encode;
-use crate::world::chunkformat::{Chunk, Heightmaps};
+use crate::world::chunkformat::{Heightmaps};
 use crate::Result;
 use crate::state::GlobalState;
 use crate::utils::error::Error;
@@ -14,7 +14,7 @@ pub struct ChunkDataAndUpdateLight<'a> {
     pub packet_id: VarInt,
     pub chunk_x: i32,
     pub chunk_z: i32,
-    pub heightmaps: &'a Heightmaps,
+    pub heightmaps: Heightmaps,
     #[encode(raw_bytes(prepend_length = true))]
     pub data: Vec<u8>,
     pub block_entities_count: VarInt,
@@ -48,6 +48,8 @@ impl<'a> ChunkDataAndUpdateLight<'a> {
         let x = 1;
         let z = 1;
 
+
+
         let chunk = state
             .database
             .get_chunk(x, z, "overworld")
@@ -68,7 +70,7 @@ impl<'a> ChunkDataAndUpdateLight<'a> {
             packet_id: VarInt::from(0x24),
             chunk_x: chunk.x_pos,
             chunk_z: chunk.z_pos,
-            heightmaps,
+            heightmaps: heightmaps.clone(),
             data,
             block_entities_count: VarInt::from(0),
             block_entities: Vec::new(),
