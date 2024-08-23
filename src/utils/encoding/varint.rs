@@ -127,7 +127,7 @@ mod tests {
 // Yoinked from valence: https://github.com/valence-rs/valence/blob/main/crates/valence_protocol/src/var_int.rs#L69
 pub async fn read_varint<T>(cursor: &mut T) -> Result<VarInt, Error>
 where
-    T: AsyncRead + AsyncSeek + Unpin,
+    T: AsyncRead + Unpin,
 {
     let mut val = 0;
     for i in 0..5 {
@@ -145,7 +145,7 @@ where
 pub async fn write_varint<A, T>(value: A, cursor: &mut T) -> Result<(), Error>
 where
     A: Into<VarInt>,
-    T: AsyncWrite + Unpin + AsyncSeek,
+    T: AsyncWrite + Unpin,
 {
     let val = value.into().val as u64;
 

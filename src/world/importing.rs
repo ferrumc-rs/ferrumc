@@ -12,7 +12,7 @@ use crate::state::GlobalState;
 use crate::world::chunkformat::Chunk;
 
 fn format_time(millis: u64) -> String {
-    return if millis < 1000 {
+    if millis < 1000 {
         format!("{}ms", millis)
     } else if millis < 60_000 {
         format!("{}s {}ms", millis / 1000, millis % 1000)
@@ -31,7 +31,7 @@ fn format_time(millis: u64) -> String {
             (millis % 60_000) / 1000,
             millis % 1000
         )
-    };
+    }
 }
 
 async fn get_total_chunks(dir: PathBuf) -> Result<usize, Box<dyn std::error::Error>> {

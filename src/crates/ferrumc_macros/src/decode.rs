@@ -42,7 +42,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
         impl #name {
             pub async fn decode<T>(bytes: &mut T) -> core::result::Result<Self, Error>
             where
-                T: AsyncRead + AsyncSeek + Unpin,
+                T: AsyncRead + Unpin,
             {
                 Ok(Self {
                     #(#field_statements)*

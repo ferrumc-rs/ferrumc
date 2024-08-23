@@ -17,7 +17,7 @@ use crate::net::packets::handle_packet;
 use crate::state::GlobalState;
 
 use super::utils::config::get_global_config;
-use super::utils::encoding::varint::read_varint;
+use super::utils::encoding::varint::{read_varint, VarInt};
 use super::utils::prelude::*;
 use super::utils::type_impls::Encode;
 
@@ -180,67 +180,52 @@ pub async fn manage_conn(conn: Arc<RwLock<Connection>>, state: GlobalState) -> R
 
     loop {
         // Get the length of the packet
-        let mut length_buffer = vec![0u8; 1];
+        let mut conn_write = conn.write().await;
 
         trace!("Reading length buffer");
 
-        let mut conn_write = conn.write().await;
-        conn_write.socket.read_exact(&mut length_buffer).await?;
-
-        trace!("Length buffer: {:?}", length_buffer);
-
-        let length = length_buffer[0] as usize;
-
-        // Get the rest of the packet
-        let mut buffer = vec![0u8; length];
-
-        conn_write.socket.read_exact(&mut buffer).await?;
-
-        let buffer = vec![length_buffer, buffer].concat();
+        let (packet_length, buffer) = get_packet_length_and_buffer(&mut conn_write).await?;
+        trace!("Packet Length: {}", packet_length.get_val());
 
         let mut cursor = Cursor::new(buffer);
 
-        // Get the packet length and id
-        let packet_length = read_varint(&mut cursor).await?;
+        // Get the packet id
         let packet_id = read_varint(&mut cursor).await?;
-
-        trace!("Packet Length: {}", packet_length);
         trace!("Packet ID: {}", packet_id);
 
         let packet_id = packet_id.get_val() as u8;
-        let actual_connection = conn_write.deref_mut();
-        // Handle the packet
-        handle_packet(packet_id, actual_connection, &mut cursor, state.clone()).await?;
+        handle_packet(packet_id, &mut conn_write, &mut cursor, state.clone()).await?;
 
         // drop the handle to the write lock. to allow other tasks to write/read
         drop(conn_write);
 
-        let read = conn.read().await;
-
-        // drop if the connection is marked for drop
-        let do_drop = read.drop;
-        let id = read.id;
-
-        drop(read);
-
-        if do_drop {
-            drop_conn(id, state).await?;
-            break;
-        }
+        drop_conn_if_flagged(conn.clone(), state.clone()).await?;
 
         let tick_rate = get_global_config().network_tick_rate;
-        let sleep_duration_millis: u64 = if tick_rate > 0 {
-            1000 / tick_rate as u64
-        } else {
-            0
-        };
-
-        tokio::time::sleep(Duration::from_millis(sleep_duration_millis)).await;
+        let sleep_duration = Duration::from_millis(if tick_rate > 0 { 1000 / tick_rate as u64 } else { 0 });
+        tokio::time::sleep(sleep_duration).await;
     }
     #[allow(unreachable_code)]
     Ok(())
 }
+async fn get_packet_length_and_buffer(conn: &mut Connection) -> Result<(VarInt, Vec<u8>)> {
+    let packet_length = read_varint(&mut conn.socket).await?;
+    let mut buffer = vec![0u8; packet_length.get_val() as usize];
+    conn.socket.read_exact(&mut buffer).await?;
+    Ok((packet_length, buffer))
+}
+async fn drop_conn_if_flagged(conn: Arc<RwLock<Connection>>, state: GlobalState) -> Result<()> {
+    let read = conn.read().await;
+    let do_drop = read.drop;
+    let id = read.id;
+    drop(read);
 
+    if do_drop {
+        drop_conn(id, state).await?;
+    }
+
+    Ok(())
+}
 pub async fn drop_conn(connection_id: u32, state: GlobalState) -> Result<()> {
     debug!("Dropping connection with id: {}", connection_id);
     let connection = state.connections.connections.remove(&connection_id);

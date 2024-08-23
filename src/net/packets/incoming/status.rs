@@ -2,7 +2,7 @@ use base64::Engine;
 use serde::Serialize;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::sync::OnceCell;
-use tracing::info;
+use tracing::{debug};
 
 use ferrumc_macros::{packet, Decode};
 
@@ -58,7 +58,7 @@ struct Description {
 
 impl IncomingPacket for Status {
     async fn handle(self, conn: &mut Connection, _state: GlobalState) -> Result<()> {
-        info!("Handling status request packet");
+        debug!("Handling status request packet");
         let config = config::get_global_config();
 
         let response = OutgoingStatusResponse {

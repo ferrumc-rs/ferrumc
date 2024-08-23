@@ -110,7 +110,7 @@ mod tests {
 /// a Minecraft protocol library, but I can't find the original source.
 pub async fn read_varlong<T>(cursor: &mut T) -> Result<Varlong, Error>
 where
-    T: AsyncRead + AsyncSeek + Unpin,
+    T: AsyncRead + Unpin,
 {
     let mut val = 0;
     let mut count = 0;

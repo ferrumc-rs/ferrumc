@@ -23,7 +23,7 @@ pub trait Decode {
     #[allow(async_fn_in_trait)]
     async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
-        T: AsyncRead + AsyncSeek + Unpin;
+        T: AsyncRead + Unpin;
 }
 
 impl Decode for bool {
@@ -31,7 +31,7 @@ impl Decode for bool {
     /// byte, with 0 being false and 1 being true.
     async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
-        T: AsyncRead + AsyncSeek + Unpin,
+        T: AsyncRead + Unpin,
     {
         let mut buf = [0u8; 1];
         bytes
@@ -46,7 +46,7 @@ impl Decode for u8 {
     /// Decodes a u8 from a byte stream. Takes out a single byte.
     async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
-        T: AsyncRead + AsyncSeek + Unpin,
+        T: AsyncRead + Unpin,
     {
         let mut buf = [0u8; 1];
         bytes
@@ -61,7 +61,7 @@ impl Decode for i8 {
     /// Decodes an i8 from a byte stream. Takes out a single byte, and sign extends it.
     async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
-        T: AsyncRead + AsyncSeek + Unpin,
+        T: AsyncRead + Unpin,
     {
         let mut buf = [0u8; 1];
         bytes
@@ -76,7 +76,7 @@ impl Decode for u16 {
     /// Decodes a u16 from a byte stream. Takes out 2 bytes.
     async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
-        T: AsyncRead + AsyncSeek + Unpin,
+        T: AsyncRead + Unpin,
     {
         let mut buf = [0u8; 2];
         bytes
@@ -91,7 +91,7 @@ impl Decode for i16 {
     /// Decodes an i16 from a byte stream. Takes out 2 bytes, and sign extends it.
     async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
-        T: AsyncRead + AsyncSeek + Unpin,
+        T: AsyncRead + Unpin,
     {
         let mut buf = [0u8; 2];
         bytes
@@ -106,7 +106,7 @@ impl Decode for u32 {
     /// Decodes a u32 from a byte stream. Takes out 4 bytes.
     async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
-        T: AsyncRead + AsyncSeek + Unpin,
+        T: AsyncRead + Unpin,
     {
         let mut buf = [0u8; 4];
         bytes
@@ -121,7 +121,7 @@ impl Decode for i32 {
     /// Decodes an i32 from a byte stream. Takes out 4 bytes, and sign extends it.
     async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
-        T: AsyncRead + AsyncSeek + Unpin,
+        T: AsyncRead + Unpin,
     {
         let mut buf = [0u8; 4];
         bytes
@@ -136,7 +136,7 @@ impl Decode for u64 {
     /// Decodes a u64 from a byte stream. Takes out 8 bytes.
     async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
-        T: AsyncRead + AsyncSeek + Unpin,
+        T: AsyncRead + Unpin,
     {
         let mut buf = [0u8; 8];
         bytes
@@ -151,7 +151,7 @@ impl Decode for i64 {
     /// Decodes an i64 from a byte stream. Takes out 8 bytes, and sign extends it.
     async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
-        T: AsyncRead + AsyncSeek + Unpin,
+        T: AsyncRead + Unpin,
     {
         let mut buf = [0u8; 8];
         bytes
@@ -166,7 +166,7 @@ impl Decode for f32 {
     /// Decodes a f32 (float) from a byte stream. Takes out 4 bytes.
     async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
-        T: AsyncRead + AsyncSeek + Unpin,
+        T: AsyncRead + Unpin,
     {
         let mut buf = [0u8; 4];
         bytes
@@ -181,7 +181,7 @@ impl Decode for f64 {
     /// Decodes a f64 (double) from a byte stream. Takes out 8 bytes.
     async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
-        T: AsyncRead + AsyncSeek + Unpin,
+        T: AsyncRead + Unpin,
     {
         let mut buf = [0u8; 8];
         bytes
@@ -198,7 +198,7 @@ impl Decode for String {
     /// Takes out a variable number of bytes.
     async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
-        T: AsyncRead + AsyncSeek + Unpin,
+        T: AsyncRead + Unpin,
     {
         let remaining_bytes = read_varint(bytes).await?;
         let mut string_buf = vec![0u8; remaining_bytes.into()];
@@ -215,7 +215,7 @@ impl Decode for VarInt {
     /// [ferrumc_utils::encoding::varint::read_varint] to read the VarInt.
     async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
-        T: AsyncRead + AsyncSeek + Unpin,
+        T: AsyncRead + Unpin,
     {
         Ok(Box::from(read_varint(bytes).await?))
     }
@@ -229,7 +229,7 @@ impl Decode for Varlong {
     /// [ferrumc_utils::encoding::varlong::read_varlong] to read the Varlong.
     async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
-        T: AsyncRead + AsyncSeek + Unpin,
+        T: AsyncRead + Unpin,
     {
         Ok(Box::from(read_varlong(bytes).await?))
     }
@@ -239,7 +239,7 @@ impl Decode for u128 {
     /// Decodes a u128 from a byte stream. Takes out 16 bytes.
     async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
-        T: AsyncRead + AsyncSeek + Unpin,
+        T: AsyncRead + Unpin,
     {
         let mut buf = [0u8; 16];
         bytes
@@ -257,7 +257,7 @@ impl<V: Decode + Unpin> Decode for Vec<V> {
     /// read the length of the Vec, and [Decode::decode] to decode each element.
     async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
-        T: AsyncRead + AsyncSeek + Unpin,
+        T: AsyncRead + Unpin,
     {
         let len = read_varint(bytes).await?.get_val();
         // Yes the cast is necessary, and yes it's annoying
@@ -278,7 +278,7 @@ impl Decode for Position {
     /// boxed and returned. The Position struct is used to represent block positions in Minecraft.
     async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
-        T: AsyncRead + AsyncSeek + Unpin,
+        T: AsyncRead + Unpin,
     {
         let mut pos = Position { x: 0, y: 0, z: 0 };
 
@@ -308,14 +308,14 @@ pub trait Encode {
     #[allow(async_fn_in_trait)]
     async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
     where
-        T: AsyncWrite + AsyncSeek + Unpin;
+        T: AsyncWrite + Unpin;
 }
 
 impl Encode for bool {
     /// Encodes a bool into a byte stream. A bool is encoded as a single byte, with 0 being false
     async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
     where
-        T: AsyncWrite + AsyncSeek + Unpin,
+        T: AsyncWrite + Unpin,
     {
         let buf = if *self { [1u8] } else { [0u8] };
         bytes
@@ -329,7 +329,7 @@ impl Encode for u8 {
     /// Encodes a u8 into a byte stream. A u8 is encoded as a single byte.
     async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
     where
-        T: AsyncWrite + AsyncSeek + Unpin,
+        T: AsyncWrite + Unpin,
     {
         let buf = [*self];
         bytes
@@ -343,7 +343,7 @@ impl Encode for i8 {
     /// Encodes an i8 into a byte stream. An i8 is encoded as a single byte.
     async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
     where
-        T: AsyncWrite + AsyncSeek + Unpin,
+        T: AsyncWrite + Unpin,
     {
         let buf = [*self as u8];
         bytes
@@ -357,7 +357,7 @@ impl Encode for u16 {
     /// Encodes a u16 into a byte stream. A u16 is encoded as 2 bytes.
     async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
     where
-        T: AsyncWrite + AsyncSeek + Unpin,
+        T: AsyncWrite + Unpin,
     {
         let buf = self.to_be_bytes();
         bytes
@@ -371,7 +371,7 @@ impl Encode for i16 {
     /// Encodes an i16 into a byte stream. An i16 is encoded as 2 bytes.
     async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
     where
-        T: AsyncWrite + AsyncSeek + Unpin,
+        T: AsyncWrite + Unpin,
     {
         let buf = self.to_be_bytes();
         bytes
@@ -385,7 +385,7 @@ impl Encode for u32 {
     /// Encodes a u32 into a byte stream. A u32 is encoded as 4 bytes.
     async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
     where
-        T: AsyncWrite + AsyncSeek + Unpin,
+        T: AsyncWrite + Unpin,
     {
         let buf = self.to_be_bytes();
         bytes
@@ -399,7 +399,7 @@ impl Encode for i32 {
     /// Encodes an i32 into a byte stream. An i32 is encoded as 4 bytes.
     async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
     where
-        T: AsyncWrite + AsyncSeek + Unpin,
+        T: AsyncWrite + Unpin,
     {
         let buf = self.to_be_bytes();
         bytes
@@ -413,7 +413,7 @@ impl Encode for u64 {
     /// Encodes a u64 into a byte stream. A u64 is encoded as 8 bytes.
     async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
     where
-        T: AsyncWrite + AsyncSeek + Unpin,
+        T: AsyncWrite + Unpin,
     {
         let buf = self.to_be_bytes();
         bytes
@@ -427,7 +427,7 @@ impl Encode for i64 {
     /// Encodes an i64 into a byte stream. An i64 is encoded as 8 bytes.
     async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
     where
-        T: AsyncWrite + AsyncSeek + Unpin,
+        T: AsyncWrite + Unpin,
     {
         let buf = self.to_be_bytes();
         bytes
@@ -441,7 +441,7 @@ impl Encode for f32 {
     /// Encodes a f32 (float) into a byte stream. A f32 is encoded as 4 bytes.
     async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
     where
-        T: AsyncWrite + AsyncSeek + Unpin,
+        T: AsyncWrite + Unpin,
     {
         let buf = self.to_be_bytes();
         bytes
@@ -455,7 +455,7 @@ impl Encode for f64 {
     /// Encodes a f64 (double) into a byte stream. A f64 is encoded as 8 bytes.
     async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
     where
-        T: AsyncWrite + AsyncSeek + Unpin,
+        T: AsyncWrite + Unpin,
     {
         let buf = self.to_be_bytes();
         bytes
@@ -472,7 +472,7 @@ impl Encode for String {
     /// stream. Uses [ferrumc_utils::encoding::varint::VarInt] to encode the length of the string.
     async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
     where
-        T: AsyncWrite + AsyncSeek + Unpin,
+        T: AsyncWrite + Unpin,
     {
         let len = VarInt::new(self.len() as i32);
         len.encode(bytes).await?;
@@ -491,7 +491,7 @@ impl Encode for VarInt {
     /// to encode the VarInt.
     async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
     where
-        T: AsyncWrite + AsyncSeek + Unpin,
+        T: AsyncWrite + Unpin,
     {
         write_varint(*self, bytes).await
     }
@@ -505,7 +505,7 @@ impl Encode for Varlong {
     /// to encode the Varlong.
     async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
     where
-        T: AsyncWrite + AsyncSeek + Unpin,
+        T: AsyncWrite + Unpin,
     {
         write_varlong(*self, bytes).await
     }
@@ -515,7 +515,7 @@ impl Encode for u128 {
     /// Encodes a u128 into a byte stream. A u128 is encoded as 16 bytes.
     async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
     where
-        T: AsyncWrite + AsyncSeek + Unpin,
+        T: AsyncWrite + Unpin,
     {
         let buf = self.to_be_bytes();
         bytes
@@ -532,7 +532,7 @@ impl<V: Encode> Encode for Vec<V> {
     /// of the Vec, and [Encode::encode] to encode each element.-
     async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
     where
-        T: AsyncWrite + AsyncSeek + Unpin,
+        T: AsyncWrite + Unpin,
     {
         // Length of the vec in general can be handled with the
         // Encode derive macro
@@ -553,7 +553,7 @@ impl Encode for Position {
     /// to represent the Position.
     async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
     where
-        T: AsyncWrite + AsyncSeek + Unpin,
+        T: AsyncWrite + Unpin,
     {
         let u64val: u64 = ((self.x as u64 & 0x3FFFFFF) << 38)
             | ((self.z as u64 & 0x3FFFFFF) << 12)
@@ -569,7 +569,7 @@ impl Encode for Position {
 impl<O: Encode> Encode for Option<O> {
     async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
     where
-        T: AsyncWrite + AsyncSeek + Unpin,
+        T: AsyncWrite + Unpin,
     {
         match self {
             Some(val) => {

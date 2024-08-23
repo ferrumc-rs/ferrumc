@@ -1,5 +1,5 @@
 use tokio::io::AsyncWriteExt;
-use tracing::info;
+use tracing::{debug};
 
 use ferrumc_macros::{packet, Decode};
 
@@ -23,7 +23,7 @@ pub struct Ping {
 
 impl IncomingPacket for Ping {
     async fn handle(self, conn: &mut Connection, _state: GlobalState) -> Result<()> {
-        info!("Handling ping packet");
+        debug!("Handling ping packet");
 
         // tokio::io::AsyncWriteExt::write_all()
         let response = OutgoingPing {
