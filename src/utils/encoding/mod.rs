@@ -1,3 +1,4 @@
+use std::io::{Cursor, Write};
 use crate::utils::impls::type_impls::Encode;
 use nbt_lib::nbt_spec::serializer::NBTCompoundMarker;
 use nbt_lib::NBTSerialize;
@@ -10,32 +11,43 @@ pub mod varint;
 pub mod varlong;
 pub mod velocity;
 
+/*impl<S: NBTSerialize> Encode for &S {
+    async fn encode<T>(self, bytes: &mut T) -> Result<(), Error>
+    where
+        T: AsyncWrite + Unpin
+    {
+        let mut sync_bytes = Cursor::new(Vec::new());
+        self.serialize(&mut sync_bytes)?;
+        {
+            use tokio::io::AsyncWriteExt;
+            bytes.write_all(&sync_bytes.into_inner()).await?;
+        }
+        Ok(())
+    }
+}
+*/
+/*pub struct Enc<S, M>(pub S, std::marker::PhantomData<M>);
 
-pub struct Enc<S>(pub S);
+impl<S: NBTSerialize> Encode for Enc<S, dyn NBTSerialize> {
+    async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
+    where
+        T: AsyncWrite + Unpin
+    {
+        let mut sync_bytes = Cursor::new(Vec::new());
+        self.0.serialize(&mut sync_bytes)?;
+        {
+            use tokio::io::AsyncWriteExt;
+            bytes.write_all(&sync_bytes.into_inner()).await?;
+        }
+        Ok(())
+    }
+}
 
-impl<S> Encode for Enc<S> {
+impl<S: Encode> Encode for Enc<S, dyn Encode> {
     async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
     where
         T: AsyncWrite + Unpin
     {
         self.0.encode(bytes).await
     }
-}
-
-impl<S: NBTSerialize> Enc<S> {
-    fn into_encodable(self) -> Enc<S> {
-        Enc(self.0)
-    }
-}
-pub trait Fallback {
-    type Output;
-    fn into_encodable(self) -> Self::Output;
-}
-
-impl<S> Fallback for Enc<S> {
-    type Output = S;
-
-    fn into_encodable(self) -> S {
-        self.0
-    }
-}
+}*/

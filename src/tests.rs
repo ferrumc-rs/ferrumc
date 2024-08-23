@@ -5,10 +5,9 @@ mod nbt_ser;
 mod tests {
     use std::io::Cursor;
 
-    use serde_derive::{Deserialize, Serialize};
-
     use crate::utils::encoding::varint::VarInt;
     use ferrumc_macros::Decode;
+
 
     #[tokio::test]
     async fn test_macro_decode() {

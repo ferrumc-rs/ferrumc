@@ -1,27 +1,25 @@
-use byteorder::WriteBytesExt;
-use futures::AsyncWriteExt;
+use std::io::Cursor;
+use tokio::io::AsyncWrite;
+use nbt_lib::NBTSerialize;
 use crate::utils::error::Error;
-use crate::utils::impls::type_impls::Encode;
-use nbt_lib::{NBTSerialize, NBTTag};
-use tokio::io::{AsyncSeek, AsyncWrite};
 
-/*impl Encode for NBTTag {
+pub trait SpecEncode {
     async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
     where
-        T: AsyncWrite + Unpin,
+        T: AsyncWrite + Unpin;
+}
+
+impl<S: NBTSerialize> SpecEncode for S {
+    async fn encode<T>(self, bytes: &mut T) -> Result<(), Error>
+    where
+        T: AsyncWrite + Unpin
     {
-        let mut pseudo_cursor = Vec::new();
-
-        pseudo_cursor.write_u8(self.tag_type())?;
-        pseudo_cursor.write_all(&[0; 4]).await?;
-
-        self.serialize(&mut pseudo_cursor)?;
-
+        let mut sync_bytes = Cursor::new(Vec::new());
+        self.serialize(&mut sync_bytes)?;
         {
             use tokio::io::AsyncWriteExt;
-            bytes.write_all(&pseudo_cursor).await?;
+            bytes.write_all(&sync_bytes.into_inner()).await?;
         }
         Ok(())
     }
 }
-*/
