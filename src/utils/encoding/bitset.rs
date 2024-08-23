@@ -35,7 +35,7 @@ impl BitSet {
 impl Encode for BitSet {
     async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
     where
-        T: AsyncWrite + AsyncSeek + Unpin,
+        T: AsyncWrite + Unpin,
     {
         self.len.encode(bytes).await?;
         self.data.encode(bytes).await?;

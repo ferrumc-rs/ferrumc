@@ -2,17 +2,18 @@ use tracing::{debug, warn};
 
 use crate::database::Database;
 use crate::utils::error::Error;
+use crate::utils::hash::hash;
 use crate::world::chunkformat::Chunk;
 
 impl Database {
     pub async fn insert_chunk(&self, value: Chunk, dimension: String) -> Result<bool, Error> {
         let db = self.db.clone();
         let result = tokio::task::spawn_blocking(move || {
-            let record_name = format!("{},{}", value.x_pos, value.z_pos);
+            let key = hash((value.x_pos, value.z_pos));
             let encoded = bincode::encode_to_vec(value, bincode::config::standard())
                 .expect("Failed to encode");
             db.open_tree(format!("chunks/{}", dimension))?
-                .insert(record_name, encoded)
+                .insert(key, encoded)
         })
         .await
         .expect("Failed to join tasks")
@@ -23,30 +24,36 @@ impl Database {
         }
     }
 
-    pub async fn get_chunk(&self, x: i32, z: i32, dimension: &str) -> Result<Option<Chunk>, Error> {
+    pub async fn get_chunk(
+        &self,
+        x: i32,
+        z: i32,
+        dimension: String,
+    ) -> Result<Option<Chunk>, Error> {
         let db = self.db.clone();
-        let result = {
-            let record_name = format!("{},{}", x, z);
-            debug!("Getting chunk: {}", record_name);
+        let result = tokio::task::spawn_blocking(move || {
+            let key = hash((x, z));
+            debug!("Getting chunk: {}, {}", x, z);
             let chunk = db
                 .open_tree(format!("chunks/{}", dimension))
                 .unwrap()
-                .get(&record_name)
+                .get(key)
                 .unwrap();
             match chunk {
                 Some(chunk) => {
                     let chunk = chunk.as_ref();
                     let (chunk, len) =
                         bincode::decode_from_slice(chunk, bincode::config::standard()).unwrap();
-                    debug!("Got chunk: {}, {} bytes long", record_name, len);
+                    debug!("Got chunk: {} {}, {} bytes long", x, z, len);
                     Some(chunk)
                 }
                 None => {
-                    debug!("Could not find chunk {}", record_name);
+                    debug!("Could not find chunk {}, {}", x, z);
                     None
                 }
             }
-        }
+        })
+        .await
         .expect("Failed to join tasks");
         Ok(result)
     }
@@ -54,7 +61,7 @@ impl Database {
     pub async fn chunk_exists(&self, x: i32, z: i32, dimension: String) -> Result<bool, Error> {
         let db = self.db.clone();
         let result = tokio::task::spawn_blocking(move || {
-            let record_name = format!("{},{}", x, z);
+            let record_name = hash((x, z));
             db.open_tree(format!("chunks/{}", dimension))
                 .unwrap()
                 .contains_key(record_name)
@@ -68,7 +75,8 @@ impl Database {
     pub async fn update_chunk(&self, value: Chunk, dimension: String) -> Result<bool, Error> {
         let db = self.db.clone();
         let result = tokio::task::spawn_blocking(move || {
-            let record_name = format!("{},{}", value.x_pos, value.z_pos);
+            let (x, z) = (value.x_pos, value.z_pos);
+            let record_name = hash((x, z));
             let encoded = bincode::encode_to_vec(value, bincode::config::standard())
                 .expect("Failed to encode");
             if db
@@ -78,7 +86,7 @@ impl Database {
                 .unwrap()
                 .is_none()
             {
-                warn!("Attempted to update non-existent chunk: {}", record_name);
+                warn!("Attempted to update non-existent chunk: {}, {}", x, z);
             }
             db.open_tree(format!("chunks/{}", dimension))
                 .unwrap()
@@ -105,11 +113,11 @@ async fn dump_chunk() {
         .unwrap();
     let chunk = state
         .database
-        .get_chunk(-34, 1, "overworld")
+        .get_chunk(0, 0, "overworld".to_string())
         .await
         .unwrap()
         .unwrap();
-    let outfile = std::fs::File::create("chunk.dump").unwrap();
+    let outfile = std::fs::File::create("chunk.json").unwrap();
     let mut writer = std::io::BufWriter::new(outfile);
     serde_json::to_writer(&mut writer, &chunk).unwrap();
 }

@@ -1,16 +1,27 @@
-use tracing::info;
+use tokio::io::AsyncWriteExt;
+use tracing::{debug, info};
 
 use crate::state::GlobalState;
+use crate::utils::binary_utils::{read_n_bits_u16, read_n_bits_u8};
 use crate::utils::error::Error;
-use crate::world::chunkformat::Chunk;
 
 pub async fn read_block(
-    chunk: &Chunk,
+    state: GlobalState,
     x: i32,
     y: i32,
     z: i32,
+    dimension: String,
 ) -> Result<String, Error> {
     let (chunk_x, chunk_z) = (x / 16, z / 16);
+    debug!("Getting chunk: {} {}", chunk_x, chunk_z);
+    let chunk = state
+        .database
+        .get_chunk(chunk_x, chunk_z, dimension)
+        .await?;
+    if !chunk.is_some() {
+        return Err(Error::ChunkNotFound(chunk_x, chunk_z));
+    }
+    let chunk = chunk.unwrap();
     if !chunk.sections.is_some() {
         return Err(Error::Generic(format!(
             "Chunk {} {} does not have any sections",
@@ -24,25 +35,71 @@ pub async fn read_block(
         .iter()
         .find(|section| section.y == (y / 16) as i8)
         .unwrap();
-    let first = section
+    if !section.block_states.is_some() {
+        return Err(Error::Generic(format!(
+            "Section {} does not have any block states",
+            y / 16
+        )));
+    }
+    if !section.block_states.as_ref().unwrap().palette.is_some() {
+        return Err(Error::Generic(format!(
+            "Section {} does not have any palette",
+            y / 16
+        )));
+    }
+    let palette = section
+        .block_states
+        .as_ref()
+        .unwrap()
+        .palette
+        .as_ref()
+        .unwrap();
+    if !section.block_states.as_ref().unwrap().data.is_some() {
+        return Err(Error::Generic(format!(
+            "Section {} does not have any block states data",
+            y / 16
+        )));
+    }
+    let bits_per_block = section
         .block_states
         .as_ref()
         .unwrap()
         .data
         .as_ref()
         .unwrap()
-        .get(0)
-        .unwrap();
-    let bit_per_block = first.to_be_bytes().get(0).unwrap().clone();
+        .len()
+        * 64
+        / 4096;
 
-    info!("bit_per_block: {}", bit_per_block);
-
-    Ok("balls".to_string())
+    let index = (y % 16) * 256 + (z % 16) * 16 + (x % 16);
+    let specific_index = (index * bits_per_block as i32) / 64;
+    if let Some(target_long) = &section
+        .block_states
+        .as_ref()
+        .unwrap()
+        .data
+        .as_ref()
+        .unwrap()
+        .get(specific_index as usize)
+    {
+        let block_index = read_n_bits_u16(
+            *target_long,
+            (index as usize * bits_per_block) % 64,
+            bits_per_block,
+        )?;
+        Ok(palette[block_index as usize].name.clone())
+    } else {
+        Err(Error::Generic(format!(
+            "Could not find block at index {}",
+            index
+        )))
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use tokio::net::TcpListener;
+    use tracing::info;
 
     use crate::utils::setup_logger;
     use crate::world::blocks::read_block;
@@ -53,12 +110,11 @@ mod tests {
         let state = crate::create_state(TcpListener::bind("0.0.0.0:0").await.unwrap())
             .await
             .unwrap();
-        let chunk = state
-            .database
-            .get_chunk(0, 0, "overworld")
-            .await
-            .unwrap()
-            .unwrap();
-        read_block(&chunk, 0, 50, 0, "overworld").await.unwrap();
+        info!(
+            "{}",
+            read_block(state, -537, 69, 51, "overworld".to_string())
+                .await
+                .unwrap()
+        );
     }
 }

@@ -194,7 +194,7 @@ fn generate_encode_impl(
         quote! {
             impl crate::utils::impls::type_impls::Encode for #name {
                 async fn encode<T>(&self, bytes_out: &mut T) -> std::result::Result<(), crate::utils::error::Error>
-                    where T: tokio::io::AsyncWrite + tokio::io::AsyncSeek + std::marker::Unpin
+                    where T: tokio::io::AsyncWrite + std::marker::Unpin
                 {
                     use tokio::io::AsyncWriteExt;
                     let mut bytes_ = std::io::Cursor::new(Vec::new());
@@ -218,7 +218,7 @@ fn generate_encode_impl(
         quote! {
             impl crate::utils::impls::type_impls::Encode for #name {
                 async fn encode<T>(&self, bytes: &mut T) -> std::result::Result<(), crate::utils::error::Error>
-                    where T: tokio::io::AsyncWrite + tokio::io::AsyncSeek + std::marker::Unpin
+                    where T: tokio::io::AsyncWrite + std::marker::Unpin
                 {
                     use tokio::io::AsyncWriteExt;
                     #(#field_statements)*
