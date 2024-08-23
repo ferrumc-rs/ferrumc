@@ -3,7 +3,6 @@ use serde_derive::{Deserialize, Serialize};
 pub mod blocks;
 pub mod chunkformat;
 pub mod importing;
-pub mod sweattypalms_impl;
 
 #[derive(Deserialize, Serialize)]
 pub struct ProtoChunk {

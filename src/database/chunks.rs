@@ -28,7 +28,7 @@ impl Database {
         &self,
         x: i32,
         z: i32,
-        dimension: String,
+        dimension: impl Into<String>,
     ) -> Result<Option<Chunk>, Error> {
         let db = self.db.clone();
         let result = tokio::task::spawn_blocking(move || {

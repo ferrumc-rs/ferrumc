@@ -48,6 +48,8 @@ pub enum Error {
     InvalidNbt(String),
     #[error(transparent)]
     NbtDeserializeError(#[from] simdnbt::DeserializeError),
+    #[error(transparent)]
+    NBTError(#[from] nbt_lib::NBTError),
 
     #[error("Database error: {0}")]
     DatabaseError(String),

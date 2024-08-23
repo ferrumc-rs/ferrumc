@@ -91,6 +91,8 @@ pub(crate) fn nbt_serialize_derive(input: TokenStream) -> TokenStream {
                 nbt_lib::nbt_spec::serializer::tag_types::TAG_COMPOUND
             }
         }
+
+        impl nbt_lib::nbt_spec::serializer::NBTCompoundMarker for #struct_name {}
     };
 
 

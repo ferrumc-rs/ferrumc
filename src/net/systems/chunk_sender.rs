@@ -6,6 +6,7 @@ use crate::utils::encoding::position::Position;
 use async_trait::async_trait;
 use ferrumc_macros::AutoGenName;
 use tracing::{info, warn};
+use crate::net::packets::outgoing::chunk_and_light_data::ChunkDataAndUpdateLight;
 
 #[derive(AutoGenName)]
 pub struct ChunkSender;
@@ -22,9 +23,8 @@ impl System for ChunkSender {
 
             while let Some((_, (player, conn))) = query.next().await {
                 info!("Sending chunk to player: {}", player.get_username());
-                let packet = crate::net::packets::outgoing::chunk_data::ChunkDataPacket::new(
-                    1,
-                    1
+                let packet = ChunkDataAndUpdateLight::new(
+                    state
                 ).await;
 
 /*                let Ok(packet) = packet else {

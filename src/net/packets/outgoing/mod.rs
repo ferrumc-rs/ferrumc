@@ -1,4 +1,4 @@
-pub mod chunk_data;
+pub mod chunk_and_light_data;
 pub mod default_spawn_position;
 pub mod keep_alive;
 pub mod login_disconnect;

@@ -65,6 +65,13 @@ impl BitSet {
         }
     }
 
+    pub fn empty() -> Self {
+        BitSet {
+            data: Vec::new(),
+            size: 0,
+        }
+    }
+
     pub fn set(&mut self, index: usize) {
         if index < self.size {
             let block = index / 64;
@@ -184,7 +191,7 @@ mod tests {
 impl Encode for BitSet {
     async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
     where
-        T: AsyncWrite + AsyncSeek + Unpin
+        T: AsyncWrite + Unpin
     {
         // Bit sets of type BitSet are prefixed by their length in longs.
         // Field Name 	Field Type 	Meaning
