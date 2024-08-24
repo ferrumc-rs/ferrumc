@@ -9,4 +9,6 @@ pub enum CodecError {
     DoubleConversion,
     #[error("VarInt too big")]
     VarIntTooBig,
+    #[error("VarLong too big")]
+    VarLongTooBig,
 }
