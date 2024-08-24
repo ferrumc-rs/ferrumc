@@ -1,0 +1,9 @@
+[package]
+name = "ferurmc-enc"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+thiserror = "1.0.63"
+anyhow = "1.0.86"
+tokio = { version = "1.16.1", features = ["io-util", "macros", "rt-multi-thread"] }
