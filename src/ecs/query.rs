@@ -202,7 +202,7 @@ mod tests {
         let storage = ComponentStorage::new();
         storage.insert(0usize, Position { x: 0, y: 0, z: 0 });
         let component = <&Position as QueryItem>::fetch(0usize, &storage).await;
-        assert!(component.is_some());
+        assert!(component.is_ok());
         assert_eq!(component.unwrap().x, 0);
     }
 

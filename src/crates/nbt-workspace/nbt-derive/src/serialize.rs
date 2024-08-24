@@ -12,7 +12,7 @@ pub(crate) fn nbt_serialize_derive(input: TokenStream) -> TokenStream {
 
     let (is_root, rename) = parse_struct_attributes(&input.attrs);
 
-    if !is_root && rename.is_some() { panic!("{RENAME_NON_ROOT_ERROR}") }
+    // if !is_root && rename.is_some() { panic!("{RENAME_NON_ROOT_ERROR}") }
 
     let name = rename.clone().unwrap_or_else(|| struct_name.to_string());
     // let name = format_ident!("{}", name);
@@ -110,18 +110,34 @@ pub(crate) fn nbt_serialize_derive(input: TokenStream) -> TokenStream {
             {
                 let wrapper = nbt_lib::nbt_spec::serializer::NBTSerializeToEncodeWrapper::new(self);
 
-                let compound_tag = nbt_lib::nbt_spec::serializer::tag_types::TAG_COMPOUND;
+                let mut sync_writer = Vec::new();
+
+                // nbt_lib::nbt_spec::serializer::tag_types::TAG_COMPOUND.serialize(sync_writer)?;
+                ::nbt_lib::NBTSerialize::serialize(&nbt_lib::nbt_spec::serializer::tag_types::TAG_COMPOUND, &mut sync_writer).map_err(ferrumc_codec::error::CodecError::from_external_error)?;
+                ::nbt_lib::NBTSerialize::serialize(&#name, &mut sync_writer).map_err(ferrumc_codec::error::CodecError::from_external_error)?;
+                // ::nbt_lib::NBTSerialize::serialize(&*self, &mut sync_writer).map_err(ferrumc_codec::error::CodecError::from_external_error)?;
+                // ::nbt_lib::NBTSerialize::serialize(&8u8, &mut sync_writer).map_err(ferrumc_codec::error::CodecError::from_external_error)?;
+                // ::nbt_lib::NBTSerialize::serialize(&"field name test", &mut sync_writer).map_err(ferrumc_codec::error::CodecError::from_external_error)?;
+                // ::nbt_lib::NBTSerialize::serialize(&"field value test", &mut sync_writer).map_err(ferrumc_codec::error::CodecError::from_external_error)?;
+                // Automatically puts the end tag!
+                ::nbt_lib::NBTSerialize::serialize(&*self, &mut sync_writer).map_err(ferrumc_codec::error::CodecError::from_external_error)?;
+                //::nbt_lib::NBTSerialize::serialize(&nbt_lib::nbt_spec::serializer::tag_types::TAG_END, &mut sync_writer).map_err(ferrumc_codec::error::CodecError::from_external_error)?;
+
+                {
+                    use tokio::io::AsyncWriteExt;
+                    writer.write_all(&sync_writer).await?;
+                }
 
                 // Header (TAG_COMPOUND, empty name)
-                ferrumc_codec::enc::Encode::encode(&compound_tag, writer).await?;
-                ferrumc_codec::enc::Encode::encode(&#name, writer).await?;
+                // ferrumc_codec::enc::Encode::encode(&compound_tag, writer).await?;
+                // ferrumc_codec::enc::Encode::encode(&#name, writer).await?;
 
                 // Data
-                ferrumc_codec::enc::Encode::encode(&wrapper, writer).await?;
-
+                // ferrumc_codec::enc::Encode::encode(&wrapper, writer).await?;
+/*
                 // End tag
                 let end_tag = nbt_lib::nbt_spec::serializer::tag_types::TAG_END;
-                ferrumc_codec::enc::Encode::encode(&end_tag, writer).await?;
+                ferrumc_codec::enc::Encode::encode(&end_tag, writer).await?;*/
                 Ok(())
             }
         }

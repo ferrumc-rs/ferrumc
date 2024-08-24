@@ -7,8 +7,6 @@ use crate::utils::error::Error;
 
 pub mod bitset;
 pub mod position;
-mod varint;
-mod varlong;
 pub mod velocity;
 
 /*impl<S: NBTSerialize> Encode for &S {

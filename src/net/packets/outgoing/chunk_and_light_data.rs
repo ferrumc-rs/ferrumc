@@ -63,7 +63,13 @@ impl ChunkDataAndUpdateLight {
         let mut data = Vec::new();
 
         debug!("Getting heightmaps");
-        let heightmaps = chunk.heightmaps.as_ref().expect("Chunk heightmaps missing");
+        // let heightmaps = chunk.heightmaps.as_ref().expect("Chunk heightmaps missing");
+        let heightmaps: Heightmaps = Heightmaps {
+            motion_blocking_no_leaves: None,
+            motion_blocking: None,
+            ocean_floor: None,
+            world_surface: None,
+        };
 
         // Simple light data (full bright)
         let light_array = vec![0xFF; 2048];
@@ -98,7 +104,6 @@ impl ChunkDataAndUpdateLight {
 
         // Debug print sizes
         debug!("Data size: {}", packet.data.len());
-        debug!("Heightmaps size: {}", packet.heightmaps.motion_blocking.as_ref().unwrap().len());
         debug!("Sky light arrays total size: {}", packet.sky_light_arrays.iter().map(|a| a.data.len()).sum::<usize>());
         debug!("Block light arrays total size: {}", packet.block_light_arrays.iter().map(|a| a.data.len()).sum::<usize>());
 

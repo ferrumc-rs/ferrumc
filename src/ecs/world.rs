@@ -1,4 +1,4 @@
-use crate::ecs::component::{Component, ComponentRef, ComponentStorage};
+use crate::ecs::component::{Component, ComponentRef, ComponentRefMut, ComponentStorage};
 use crate::ecs::entity::EntityManager;
 use crate::ecs::error::Error;
 use crate::ecs::helpers::entity_builder::EntityBuilder;
@@ -139,6 +139,13 @@ impl World {
     ) -> Result<ComponentRef<'_, T>> {
         let entity_id = entity_id.try_into().map_err(|_| Error::ConversionError)?;
         self.get_component_storage().get::<T>(entity_id).await
+    }
+    pub async fn get_component_mut<T: Component>(
+        &self,
+        entity_id: impl TryInto<usize>,
+    ) -> Result<ComponentRefMut<'_, T>> {
+        let entity_id = entity_id.try_into().map_err(|_| Error::ConversionError)?;
+        self.get_component_storage().get_mut::<T>(entity_id).await
     }
 
     /// <p style="color:#9C27B0;">Returns a reference to the ComponentStorage</p>

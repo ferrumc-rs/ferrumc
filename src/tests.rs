@@ -1,5 +1,6 @@
 mod nbt_de;
 mod nbt_ser;
+mod chunk_stuff;
 
 #[cfg(test)]
 mod tests {

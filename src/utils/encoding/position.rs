@@ -56,7 +56,7 @@ impl Encode for Position {
 #[cfg(test)]
 mod tests {
     use std::io::Cursor;
-
+    use ferrumc_codec::enc::Encode;
     use crate::utils::impls::type_impls::{Decode};
 
     use super::Position;

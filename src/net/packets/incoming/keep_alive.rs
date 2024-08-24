@@ -25,11 +25,7 @@ impl IncomingPacket for KeepAlivePacketIn {
 
         info!("Player: {:?}", player);
 
-        let mut keep_alive = state
-            .world
-            .get_component_storage()
-            .get_mut::<KeepAlive>(player)
-            .await?;
+        let mut keep_alive = state.world.get_component_mut::<KeepAlive>(player).await?;
 
 
         info!("KeepAlive for player: {:?}", *keep_alive);
