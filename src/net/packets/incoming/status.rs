@@ -2,18 +2,18 @@ use base64::Engine;
 use serde::Serialize;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::sync::OnceCell;
-use tracing::{debug};
+use tracing::debug;
 
 use ferrumc_macros::{packet, Decode};
 
 use crate::net::packets::outgoing::status::OutgoingStatusResponse;
-use crate::net::packets::IncomingPacket;
+use crate::net::packets::{ConnectionId, IncomingPacket};
 use crate::state::GlobalState;
 use crate::utils::config;
-use ferrumc_codec::network_types::varint::VarInt;
-use ferrumc_codec::enc::Encode;
 use crate::utils::prelude::*;
 use crate::Connection;
+use ferrumc_codec::enc::Encode;
+use ferrumc_codec::network_types::varint::VarInt;
 
 /// The status packet is sent by the client to the server to request the server's status.
 ///
@@ -57,9 +57,16 @@ struct Description {
 }
 
 impl IncomingPacket for Status {
-    async fn handle(self, conn: &mut Connection, _state: GlobalState) -> Result<()> {
+    async fn handle(self, conn_id: ConnectionId, state: GlobalState) -> Result<()> {
         debug!("Handling status request packet");
         let config = config::get_global_config();
+
+        let mut conn = state
+            .connections
+            .get_connection(conn_id)?;
+        let mut conn = conn
+            .write()
+            .await;
 
         let response = OutgoingStatusResponse {
             packet_id: VarInt::new(0x00),
@@ -88,7 +95,7 @@ impl IncomingPacket for Status {
                 },
                 favicon: get_encoded_favicon().await,
             })
-            .unwrap(),
+                .unwrap(),
         };
 
         let mut cursor = std::io::Cursor::new(Vec::new());

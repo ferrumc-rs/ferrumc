@@ -4,7 +4,7 @@ use tracing::{debug};
 use ferrumc_macros::{packet, Decode};
 
 use crate::net::packets::outgoing::ping::OutgoingPing;
-use crate::net::packets::IncomingPacket;
+use crate::net::packets::{ConnectionId, IncomingPacket};
 use crate::state::GlobalState;
 use ferrumc_codec::network_types::varint::VarInt;
 use ferrumc_codec::enc::Encode;
@@ -22,7 +22,7 @@ pub struct Ping {
 }
 
 impl IncomingPacket for Ping {
-    async fn handle(self, conn: &mut Connection, _state: GlobalState) -> Result<()> {
+    async fn handle(self, conn_id: ConnectionId, state: GlobalState) -> Result<()> {
         debug!("Handling ping packet");
 
         // tokio::io::AsyncWriteExt::write_all()
@@ -34,6 +34,13 @@ impl IncomingPacket for Ping {
         let mut cursor = std::io::Cursor::new(Vec::new());
         response.encode(&mut cursor).await?;
         let response = cursor.into_inner();
+
+        let conn = state
+            .connections
+            .get_connection(conn_id)?;
+        let mut conn = conn
+            .write()
+            .await;
 
         conn.drop = true;
 

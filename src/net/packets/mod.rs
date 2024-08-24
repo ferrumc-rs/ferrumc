@@ -7,9 +7,11 @@ use crate::Connection;
 pub mod incoming;
 pub mod outgoing;
 
+pub type ConnectionId = u32;
+
 pub trait IncomingPacket {
     #[allow(async_fn_in_trait)]
-    async fn handle(self, conn: &mut Connection, state: GlobalState) -> Result<()>;
+    async fn handle(self, conn_id: ConnectionId, state: GlobalState) -> Result<()>;
 }
 
 bake_packet_registry!("\\src\\net\\packets\\incoming");

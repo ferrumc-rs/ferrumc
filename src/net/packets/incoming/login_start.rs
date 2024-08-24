@@ -11,7 +11,7 @@ use uuid::Uuid;
 use crate::net::packets::outgoing::default_spawn_position::DefaultSpawnPosition;
 use crate::net::packets::outgoing::keep_alive::KeepAlivePacketOut;
 use crate::net::packets::outgoing::login_success::LoginSuccess;
-use crate::net::packets::IncomingPacket;
+use crate::net::packets::{ConnectionId, IncomingPacket};
 use crate::net::State::Play;
 use crate::state::GlobalState;
 use crate::utils::components::keep_alive::KeepAlive;
@@ -20,6 +20,7 @@ use crate::utils::components::rotation::Rotation;
 use crate::utils::encoding::position::Position;
 use ferrumc_codec::network_types::varint::VarInt;
 use ferrumc_codec::enc::Encode;
+use tokio::sync::RwLockWriteGuard;
 use crate::utils::prelude::*;
 use crate::Connection;
 
@@ -47,17 +48,22 @@ flate!(pub static NBT_CODEC: [u8] from "./.etc/nbt_codec.nbt");
 const NBT_CODEC: &[u8] = &[0u8; 1];
 
 impl IncomingPacket for LoginStart {
-    async fn handle(mut self, conn: &mut Connection, state: GlobalState) -> Result<()> {
+    async fn handle(mut self, conn_id: ConnectionId, state: GlobalState) -> Result<()> {
         self.username = self.username.trim().to_string();
 
-        self.send_login_success(conn).await?;
-        self.send_login_play(conn).await?;
-        self.send_spawn_position(conn).await?;
+        let conn = state
+            .connections
+            .get_connection(conn_id)?;
+        let mut conn = conn.write().await;
+
+        self.send_login_success(&mut conn).await?;
+        self.send_login_play(&mut conn).await?;
+        self.send_spawn_position(&mut conn).await?;
 
         let data: i64 = random();
         let mut keep_alive = KeepAlive::new(Instant::now(), Instant::now(), data);
-        self.send_keep_alive(conn, &mut keep_alive).await?;
-        self.update_world_state(conn, keep_alive, state).await?;
+        self.send_keep_alive(&mut conn, &mut keep_alive).await?;
+        self.update_world_state(&conn, keep_alive, state).await?;
 
         conn.state = Play;
 
@@ -66,7 +72,7 @@ impl IncomingPacket for LoginStart {
 }
 
 impl LoginStart {
-    async fn send_login_success(&self, conn: &mut Connection) -> Result<()> {
+    async fn send_login_success(&self, conn: &mut RwLockWriteGuard<'_, Connection>) -> Result<()> {
         debug!("LoginStart packet received");
         debug!("Username: {}", self.username);
         let uuid = Uuid::from_u128(self.uuid);
@@ -90,7 +96,7 @@ impl LoginStart {
         Ok(())
     }
 
-    async fn send_login_play(&self, conn: &mut Connection) -> Result<()> {
+    async fn send_login_play(&self, conn: &mut RwLockWriteGuard<'_, Connection>) -> Result<()> {
         let play_packet = crate::net::packets::outgoing::login_play::LoginPlay {
             packet_id: VarInt::from(0x28),
             entity_id: 0,
@@ -122,7 +128,7 @@ impl LoginStart {
         Ok(())
     }
 
-    async fn send_spawn_position(&self, conn: &mut Connection) -> Result<()> {
+    async fn send_spawn_position(&self, mut conn: &mut RwLockWriteGuard<'_, Connection>) -> Result<()> {
         let player_position = Position {
             x: 0,
             y: 1000,
@@ -135,7 +141,7 @@ impl LoginStart {
 
     async fn send_keep_alive(
         &self,
-        conn: &mut Connection,
+        mut conn: &mut RwLockWriteGuard<'_, Connection>,
         keep_alive: &mut KeepAlive,
     ) -> Result<()> {
         let keep_alive_outgoing: KeepAlivePacketOut = keep_alive.into();
@@ -146,7 +152,7 @@ impl LoginStart {
 
     async fn update_world_state(
         &self,
-        conn: &mut Connection,
+        conn: &RwLockWriteGuard<'_, Connection>,
         keep_alive: KeepAlive,
         state: GlobalState,
     ) -> Result<()> {

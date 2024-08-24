@@ -1,6 +1,6 @@
 use ferrumc_macros::{packet, Decode};
 
-use crate::net::packets::IncomingPacket;
+use crate::net::packets::{ConnectionId, IncomingPacket};
 use crate::state::GlobalState;
 use crate::utils::components::rotation::Rotation;
 use crate::utils::encoding::position::Position;
@@ -19,8 +19,8 @@ pub struct SetPlayerPosAndRotate {
 }
 
 impl IncomingPacket for SetPlayerPosAndRotate {
-    async fn handle(self, conn: &mut Connection, state: GlobalState) -> Result<()> {
-        let my_entity_id = conn.id;
+    async fn handle(self, conn_id: ConnectionId, state: GlobalState) -> Result<()> {
+        let my_entity_id = conn_id;
 
         let component_storage = state.world.get_component_storage();
 

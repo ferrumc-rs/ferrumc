@@ -2,9 +2,10 @@ use tracing::info;
 
 use ferrumc_macros::{packet, Decode};
 
-use crate::net::packets::IncomingPacket;
+use crate::net::packets::{ConnectionId, IncomingPacket};
 use crate::state::GlobalState;
 use crate::Connection;
+use crate::utils::components::keep_alive::KeepAlive;
 
 #[derive(Decode, Debug)]
 #[packet(packet_id = 0x12, state = "play")]
@@ -15,26 +16,26 @@ pub struct KeepAlivePacketIn {
 impl IncomingPacket for KeepAlivePacketIn {
     async fn handle(
         self,
-        conn: &mut Connection,
-        _state: GlobalState,
+        conn: ConnectionId,
+        state: GlobalState,
     ) -> crate::utils::prelude::Result<()> {
         info!("KeepAlivePacketIn: {:?}", self);
 
-        let player = &conn.id;
+        let player = conn;
 
         info!("Player: {:?}", player);
-        /*let world = GET_WORLD();
 
-        let mut world = world.write().await;
-        let Some(keep_alive) = world.get_component_storage_mut().get_mut::<KeepAlive>(player) else {
-            return Err(Error::InvalidComponentStorage("KeepAlive component not found".to_string()));
-        };
-        info!("KeepAlive saved data : {:?}", keep_alive);
+        let mut keep_alive = state
+            .world
+            .get_component_storage()
+            .get_mut::<KeepAlive>(player)
+            .await
+            .ok_or(Error::InvalidComponentStorage("KeepAlive component not found".to_string()))?;
 
-        let delta = Instant::now() - keep_alive.last_sent;
-        info!("It's been {:?} since the last keep alive packet", delta);
 
-        keep_alive.last_received = Instant::now();*/
+        info!("KeepAlive for player: {:?}", *keep_alive);
+
+        keep_alive.last_received = std::time::Instant::now();
 
         Ok(())
     }

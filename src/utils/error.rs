@@ -75,6 +75,8 @@ pub enum Error {
 
     #[error("Codec error")]
     CodecError(#[from] ferrumc_codec::error::CodecError),
+    #[error("Conversion error")]
+    ConversionError,
 }
 
 impl From<Infallible> for Error {

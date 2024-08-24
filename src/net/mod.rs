@@ -13,7 +13,7 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::sync::RwLock;
 use tracing::{debug, error, trace};
 
-use crate::net::packets::handle_packet;
+use crate::net::packets::{handle_packet, ConnectionId};
 use crate::state::GlobalState;
 
 use super::utils::config::get_global_config;
@@ -41,7 +41,7 @@ pub mod systems;
 mod test_ecs;
 pub mod the_dimension_codec;
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum State {
     Unknown,
     Handshake,
@@ -76,6 +76,15 @@ pub struct ConnectionList {
     pub connections: DashMap<u32, Arc<RwLock<Connection>>>,
     // The number of connections.
     pub connection_count: AtomicU32,
+}
+
+impl ConnectionList {
+    pub fn get_connection(&self, conn_id: impl TryInto<u32>) -> Result<Arc<RwLock<Connection>>> {
+        let conn_id = conn_id.try_into().map_err(|_| Error::ConversionError)?;
+        let conn = self.connections.get(&conn_id).ok_or(Error::ConnectionNotFound(conn_id))?;
+
+        Ok(conn.clone())
+    }
 }
 
 /// A connection to a client.
@@ -181,7 +190,9 @@ pub async fn manage_conn(conn: Arc<RwLock<Connection>>, state: GlobalState) -> R
         trace!("Reading length buffer");
 
         let (packet_length, buffer) = get_packet_length_and_buffer(&mut conn_write).await?;
-        let (conn_id, conn_state) = (conn_write.id, &conn_write.state);
+        let (conn_id, conn_state) = (conn_write.id, conn_write.state.clone());
+        // drop the handle to the write lock. to allow other tasks to write/read
+        // mainly cuz the packet tries to access ECS component. And some system tries to access connection turns into a deadlock!!
         drop(conn_write);
 
         trace!("Packet Length: {}", packet_length.get_val());
@@ -194,10 +205,8 @@ pub async fn manage_conn(conn: Arc<RwLock<Connection>>, state: GlobalState) -> R
 
         let packet_id = packet_id.get_val() as u8;
 
-        handle_packet(packet_id, &mut conn_write, &mut cursor, state.clone()).await?;
-
-        // drop the handle to the write lock. to allow other tasks to write/read
-        drop(conn_write);
+        // handle_packet(packet_id, &mut conn_write, &mut cursor, state.clone()).await?;
+        handle_packet(packet_id, conn_id, &conn_state, &mut cursor, state.clone()).await?;
 
         drop_conn_if_flagged(conn.clone(), state.clone()).await?;
 

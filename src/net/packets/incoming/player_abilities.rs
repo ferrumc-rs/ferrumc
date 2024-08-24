@@ -2,7 +2,7 @@ use tracing::trace;
 
 use ferrumc_macros::{packet, Decode};
 
-use crate::net::packets::IncomingPacket;
+use crate::net::packets::{ConnectionId, IncomingPacket};
 use crate::state::GlobalState;
 use crate::Connection;
 
@@ -15,7 +15,7 @@ pub struct PlayerAbilities {
 impl IncomingPacket for PlayerAbilities {
     async fn handle(
         self,
-        _: &mut Connection,
+        _: ConnectionId,
         _state: GlobalState,
     ) -> crate::utils::prelude::Result<()> {
         trace!("PlayerAbilities packet received");

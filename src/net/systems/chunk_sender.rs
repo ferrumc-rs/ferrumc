@@ -22,9 +22,6 @@ impl System for ChunkSender {
             let mut query = state.world.query::<(&Player, &Position, &ConnectionWrapper)>();
 
             while let Some((_, (player, pos, conn))) = query.next().await {
-                if conn.0.try_write().is_err() {
-                    error!("Failed to get write lock for connection. DEADLOCK IMMINENT");
-                }
                 info!("Sending chunk to player: {}", player.get_username());
                 let packet = ChunkDataAndUpdateLight::new(
                     state.clone(),
@@ -39,7 +36,7 @@ impl System for ChunkSender {
                     }
                 };
 
-                debug!("Trying to get write_guard");
+                debug!("Trying to get write_guard for connection");
                 let mut write_guard = conn.0.write().await;
                 debug!("Sending chunk to player: {} with position: {:?}", player.get_username(), *pos);
 

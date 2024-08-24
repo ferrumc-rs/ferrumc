@@ -2,7 +2,7 @@ use tracing::trace;
 
 use ferrumc_macros::{packet, Decode};
 
-use crate::net::packets::IncomingPacket;
+use crate::net::packets::{ConnectionId, IncomingPacket};
 use crate::state::GlobalState;
 use crate::Connection;
 
@@ -20,7 +20,7 @@ pub struct ClientInfo {
 impl IncomingPacket for ClientInfo {
     async fn handle(
         self,
-        _: &mut Connection,
+        _: ConnectionId,
         _state: GlobalState,
     ) -> crate::utils::prelude::Result<()> {
         trace!("ClientInfo packet received");
