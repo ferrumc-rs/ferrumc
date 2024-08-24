@@ -20,7 +20,7 @@ pub struct SetPlayerPosAndRotate {
 
 impl IncomingPacket for SetPlayerPosAndRotate {
     async fn handle(self, conn: &mut Connection, state: GlobalState) -> Result<()> {
-        let my_entity_id = conn.metadata.entity;
+        let my_entity_id = conn.id;
 
         let component_storage = state.world.get_component_storage();
 

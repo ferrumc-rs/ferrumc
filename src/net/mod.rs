@@ -111,36 +111,32 @@ pub fn setup_tracer() {
 ///
 /// Creates a new [Connection] and adds it to the [ConnectionList]. Passes the connection to [manage_conn].
 pub async fn init_connection(socket: tokio::net::TcpStream, state: GlobalState) -> Result<()> {
-    let mut id = random();
-    while state.connections.connections.contains_key(&id) {
-        id = random();
-    }
+    let entity_id = state
+        .world
+        .create_entity()
+        .await
+        .build()
+        as u32;
+
 
     let conn = Connection {
-        id,
+        id: entity_id,
         socket,
         player_uuid: None,
         state: State::Handshake,
         metadata: ConnectionMetadata::default(),
         drop: false,
     };
+
     let conn = Arc::new(RwLock::new(conn));
 
-    let entity = state
+    state
         .world
-        .create_entity()
-        .await
-        .with(ConnectionWrapper(conn.clone()))
-        .build();
-
-    {
-        let mut conn = conn.write().await;
-        conn.metadata.entity = entity;
-        drop(conn);
-    }
+        .get_component_storage()
+        .insert(entity_id, ConnectionWrapper(conn.clone()));
 
     // Doesn't matter if we clone, since actual value is not cloned
-    state.connections.connections.insert(id, conn.clone());
+    state.connections.connections.insert(entity_id, conn.clone());
     state
         .connections
         .connection_count
@@ -153,14 +149,14 @@ pub async fn init_connection(socket: tokio::net::TcpStream, state: GlobalState) 
 
     debug!(
         "Connection established with id: {}. Current connection count: {}",
-        id, current_amount
+        entity_id, current_amount
     );
 
     let res = manage_conn(conn.clone(), state.clone()).await;
 
     if let Err(e) = res {
-        error!("Error occurred in {:?}: {:?}, dropping connection", id, e);
-        drop_conn(id, state).await?;
+        error!("Error occurred in {:?}: {:?}, dropping connection", entity_id, e);
+        drop_conn(entity_id, state).await?;
     }
 
     Ok(())
@@ -185,6 +181,8 @@ pub async fn manage_conn(conn: Arc<RwLock<Connection>>, state: GlobalState) -> R
         trace!("Reading length buffer");
 
         let (packet_length, buffer) = get_packet_length_and_buffer(&mut conn_write).await?;
+        let (conn_id, conn_state) = (conn_write.id, &conn_write.state);
+        drop(conn_write);
 
         trace!("Packet Length: {}", packet_length.get_val());
 
@@ -241,7 +239,7 @@ pub async fn drop_conn(connection_id: u32, state: GlobalState) -> Result<()> {
 
     {
         let read_lock = conn_arc.read().await;
-        let entity_id = read_lock.metadata.entity;
+        let entity_id = read_lock.id;
         state.world.delete_entity(entity_id).await?;
     }
 

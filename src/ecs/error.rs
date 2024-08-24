@@ -1,3 +1,5 @@
+use std::convert::TryInto;
+
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("Entity {0} not found")]
@@ -6,4 +8,6 @@ pub enum Error {
     ComponentNotFound,
     #[error("Couldn't remove component since it's locked")]
     ComponentLocked,
+    #[error("Conversion error from usize to entity id")]
+    ConversionError,
 }

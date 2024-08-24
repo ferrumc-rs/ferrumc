@@ -20,7 +20,7 @@ impl IncomingPacket for KeepAlivePacketIn {
     ) -> crate::utils::prelude::Result<()> {
         info!("KeepAlivePacketIn: {:?}", self);
 
-        let player = &conn.metadata.entity;
+        let player = &conn.id;
 
         info!("Player: {:?}", player);
         /*let world = GET_WORLD();

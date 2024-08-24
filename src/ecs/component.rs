@@ -4,7 +4,7 @@ use std::marker::PhantomData;
 
 use dashmap::DashMap;
 use tokio::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
-
+use tracing::debug;
 use crate::ecs::error::Error;
 use crate::ecs::helpers::sparse_set::SparseSet;
 
@@ -44,7 +44,6 @@ impl<'a, T: Component> std::ops::Deref for ComponentRef<'a, T> {
         unsafe { &*(&**self.read_guard as *const dyn Component as *const T) }
     }
 }
-
 impl<'id, T: Component> std::ops::Deref for ComponentRefMut<'id, T> {
     type Target = T;
 
@@ -80,13 +79,14 @@ impl ComponentStorage {
     /// let storage = ComponentStorage::new();
     /// storage.insert(0, Position { x: 0.0, y: 0.0 });
     /// ```
-    pub fn insert<T: Component>(&self, entity_id: impl Into<usize>, component: T) -> &Self {
+    pub fn insert<T: Component>(&self, entity_id: impl TryInto<usize>, component: T) -> &Self {
+        let entity_id = entity_id.try_into().map_err(|_| Error::ConversionError).unwrap();
         let type_id = TypeId::of::<T>();
         let mut storage = self
             .storages
             .entry(type_id)
             .or_insert_with(|| SparseSet::new());
-        storage.insert(entity_id.into(), RwLock::new(Box::new(component)));
+        storage.insert(entity_id, RwLock::new(Box::new(component)));
         self
     }
 }
@@ -129,12 +129,12 @@ impl ComponentStorage {
     /// let mut position = storage.get_mut::<Position>(0).await.unwrap();
     /// position.x = 1.0;
     /// ```
-    pub async fn get_mut<T: Component>(
-        &self,
-        entity_id: impl Into<usize>,
+    pub async fn get_mut<'a, T: Component>(
+        &'a self,
+        entity_id: impl TryInto<usize>,
     ) -> Option<ComponentRefMut<T>> {
         let type_id = TypeId::of::<T>();
-        let entity_id = entity_id.into();
+        let entity_id = entity_id.try_into().ok()?;
         let storage = self.storages.get(&type_id)?;
         let component = storage.get(entity_id)?;
 
@@ -143,7 +143,7 @@ impl ComponentStorage {
         let write_guard = unsafe {
             std::mem::transmute::<
                 RwLockWriteGuard<'_, Box<dyn Component>>,
-                RwLockWriteGuard<'_, Box<dyn Component>>,
+                RwLockWriteGuard<'a, Box<dyn Component>>,
             >(write)
         };
 
@@ -176,10 +176,10 @@ impl ComponentStorage {
     }
     pub async fn get_mut_or_insert_with<T: Component>(
         &self,
-        entity_id: impl Into<usize>,
+        entity_id: impl TryInto<usize>,
         f: impl FnOnce() -> T,
     ) -> ComponentRefMut<T> {
-        let entity_id = entity_id.into();
+        let entity_id = entity_id.try_into().ok().expect("Failed to convert entity_id to usize. This is a BUG!");
 
         if let Some(component) = self.get_mut::<T>(entity_id).await {
             return component;

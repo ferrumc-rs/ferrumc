@@ -1,4 +1,4 @@
-use tracing::trace;
+use tracing::{debug, trace};
 
 use ferrumc_macros::{packet, Decode};
 
@@ -28,7 +28,7 @@ impl IncomingPacket for SetPlayerPosition {
         trace!("Y: {}", self.y);
         trace!("Z: {}", self.z);
 
-        let my_entity_id = conn.metadata.entity;
+        let my_entity_id = conn.id;
 
         let component_storage = state.world.get_component_storage();
 

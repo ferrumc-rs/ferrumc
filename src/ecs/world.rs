@@ -89,8 +89,8 @@ impl World {
         EntityBuilder::new(entity, &self.component_storage)
     }
 
-    pub async fn delete_entity(&self, entity_id: impl Into<usize>) -> Result<(), Error> {
-        let entity_id = entity_id.into();
+    pub async fn delete_entity(&self, entity_id: impl TryInto<usize>) -> Result<(), Error> {
+        let entity_id = entity_id.try_into().map_err(|_| Error::ConversionError)?;
 
         if !self.entity_manager.delete_entity(entity_id).await {
             return Err(Error::EntityNotFound(entity_id));
@@ -134,8 +134,9 @@ impl World {
 
     pub async fn get_component<T: Component>(
         &self,
-        entity_id: impl Into<usize>,
+        entity_id: impl TryInto<usize>,
     ) -> Option<ComponentRef<'_, T>> {
+        let entity_id = entity_id.try_into().ok()?;
         self.get_component_storage().get::<T>(entity_id).await
     }
 

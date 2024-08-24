@@ -150,7 +150,7 @@ impl LoginStart {
         keep_alive: KeepAlive,
         state: GlobalState,
     ) -> Result<()> {
-        let entity = conn.metadata.entity;
+        let entity = conn.id;
 
         let component_storage = state.world.get_component_storage();
 

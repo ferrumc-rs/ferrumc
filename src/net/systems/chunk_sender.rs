@@ -5,7 +5,7 @@ use crate::utils::components::player::Player;
 use crate::utils::encoding::position::Position;
 use async_trait::async_trait;
 use ferrumc_macros::AutoGenName;
-use tracing::{debug, info, warn};
+use tracing::{debug, error, info, warn};
 use crate::net::packets::outgoing::chunk_and_light_data::ChunkDataAndUpdateLight;
 
 #[derive(AutoGenName)]
@@ -22,6 +22,9 @@ impl System for ChunkSender {
             let mut query = state.world.query::<(&Player, &Position, &ConnectionWrapper)>();
 
             while let Some((_, (player, pos, conn))) = query.next().await {
+                if conn.0.try_write().is_err() {
+                    error!("Failed to get write lock for connection. DEADLOCK IMMINENT");
+                }
                 info!("Sending chunk to player: {}", player.get_username());
                 let packet = ChunkDataAndUpdateLight::new(
                     state.clone(),

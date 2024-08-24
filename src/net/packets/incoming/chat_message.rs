@@ -18,7 +18,7 @@ impl IncomingPacket for PacketChatMessage {
         conn: &mut Connection,
         state: GlobalState,
     ) -> crate::utils::prelude::Result<()> {
-        let my_id = conn.metadata.entity;
+        let my_id = conn.id;
 
         let my_player = state
             .world

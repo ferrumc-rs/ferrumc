@@ -19,7 +19,7 @@ impl IncomingPacket for SetPlayerRotation {
         conn: &mut Connection,
         state: GlobalState,
     ) -> crate::utils::prelude::Result<()> {
-        let my_entity_id = conn.metadata.entity;
+        let my_entity_id = conn.id;
 
         let component_storage = state.world.get_component_storage();
 
