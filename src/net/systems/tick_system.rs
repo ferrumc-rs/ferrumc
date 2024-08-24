@@ -24,16 +24,7 @@ impl System for TickSystem {
                 );
             }*/
 
-            while let Some((id, (conn))) = query.next().await {
-                let conn_locked = conn.0.try_write().is_err();
-                info!(
-                    "[{id}] @ Connection = {:?}",
-                    conn_locked,
-                );
-            }
-
-
-            tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+            tokio::time::sleep(tokio::time::Duration::from_millis(10000)).await;
         }
     }
 

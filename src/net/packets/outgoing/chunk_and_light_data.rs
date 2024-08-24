@@ -39,70 +39,48 @@ pub struct BlockEntity {
     pub data: NBTTag,
 }
 
-#[derive(Encode)]
+#[derive(Encode, Clone)]
 pub struct LightArray {
     #[encode(raw_bytes(prepend_length = true))]
     pub data: Vec<u8>,
 }
 
 impl ChunkDataAndUpdateLight {
-    pub async fn new(state: GlobalState, player_pos: &Position) -> Result<Self> {
-        let x = player_pos.x >> 4;
-        let z = player_pos.z >> 4;
-
+    pub async fn new(state: GlobalState, x: i32, z: i32) -> Result<Self> {
         debug!("Sending chunk at {}, {}", x, z);
-
-        let chunk = state
-            .database
-            .get_chunk(x, z, "overworld")
-            .await?
-            .ok_or(Error::ChunkNotFound(x, z))?;
-
-        debug!("Preparing chunk data");
 
         let mut data = Vec::new();
 
-        debug!("Getting heightmaps");
-        // let heightmaps = chunk.heightmaps.as_ref().expect("Chunk heightmaps missing");
-        let heightmaps: Heightmaps = Heightmaps {
-            motion_blocking_no_leaves: None,
-            motion_blocking: None,
-            ocean_floor: None,
-            world_surface: None,
-        };
+        // Generate heightmaps for a solid stone chunk up to y=64
+        let heightmaps = generate_heightmaps(64);
+
+        // Encode 4 sections of solid stone (up to y=64)
+        for _ in 0..4 {
+            encode_stone_section(&mut data).await.expect("Failed to encode stone section");
+        }
 
         // Simple light data (full bright)
         let light_array = vec![0xFF; 2048];
 
-        debug!("Encoding stone section");
-        encode_stone_section(&mut data).await.expect("Failed to encode stone section");
-
-
         let packet = ChunkDataAndUpdateLight {
             packet_id: VarInt::from(0x24),
-            chunk_x: chunk.x_pos,
-            chunk_z: chunk.z_pos,
-            heightmaps: heightmaps.clone(),
+            chunk_x: x,
+            chunk_z: z,
+            heightmaps,
             data,
             block_entities_count: VarInt::from(0),
             block_entities: Vec::new(),
-            sky_light_mask: BitSet::from_iter(vec![1]), // Only one section
-            block_light_mask: BitSet::from_iter(vec![1]), // Only one section
+            sky_light_mask: BitSet::from_iter(vec![0b1111]), // 4 sections
+            block_light_mask: BitSet::from_iter(vec![0b1111]), // 4 sections
             empty_sky_light_mask: BitSet::empty(),
             empty_block_light_mask: BitSet::empty(),
-            sky_light_array_count: VarInt::from(1),
-            sky_light_arrays: vec![LightArray {
-                data: light_array.clone(),
-            }],
-            block_light_array_count: VarInt::from(1),
-            block_light_arrays: vec![LightArray {
-                data: light_array,
-            }],
+            sky_light_array_count: VarInt::from(4),
+            sky_light_arrays: vec![LightArray { data: light_array.clone() }; 4],
+            block_light_array_count: VarInt::from(4),
+            block_light_arrays: vec![LightArray { data: light_array }; 4],
         };
 
         debug!("Chunk data packet prepared");
-
-        // Debug print sizes
         debug!("Data size: {}", packet.data.len());
         debug!("Sky light arrays total size: {}", packet.sky_light_arrays.iter().map(|a| a.data.len()).sum::<usize>());
         debug!("Block light arrays total size: {}", packet.block_light_arrays.iter().map(|a| a.data.len()).sum::<usize>());
@@ -113,17 +91,14 @@ impl ChunkDataAndUpdateLight {
 
 async fn encode_stone_section(data: &mut Vec<u8>) -> Result<()> {
     // Non-air block count (16x16x16 = 4096)
-    // data.extend_from_slice(&VarInt::from(4096).e());
     VarInt::from(4096).encode(data).await?;
 
-    // Bits per block (4 is enough for just stone)
-    data.push(4);
+    // Bits per block
+    data.push(0);
 
     // Palette
-    // Palette length
-    VarInt::from(1).encode(data).await?;
-    // Stone block state ID
-    VarInt::from(1).encode(data).await?;
+    VarInt::from(1).encode(data).await?; // Palette length
+    VarInt::from(1).encode(data).await?; // Stone block state ID
 
     // Block data (all zeros, since 0 in palette = stone)
     let block_data_length = 4096 * 4 / 64; // 4 bits per block, 64 bits per long
@@ -131,11 +106,37 @@ async fn encode_stone_section(data: &mut Vec<u8>) -> Result<()> {
     data.extend(vec![0u8; block_data_length * 8]); // 8 bytes per long
 
     // Biomes (single biome for simplicity)
-    // data.extend_from_slice(&VarInt::from(1).to_bytes()); // Palette length
-    // data.extend_from_slice(&VarInt::from(1).to_bytes()); // Plains biome ID
-    VarInt::from(1).encode(data).await?;
-    VarInt::from(1).encode(data).await?;
-    data.extend(vec![0u8; 64]); // 64 bytes for 16x16 biomes
+    VarInt::from(1).encode(data).await?; // Palette length
+    VarInt::from(127).encode(data).await?; // Plains biome ID
+    data.extend(vec![0u8; 64]); // 64 bytes for 4x4x4 biomes
 
     Ok(())
+}
+fn generate_heightmaps(height: i32) -> Heightmaps {
+    let mut motion_blocking = vec![0i64; 37];
+
+    for z in 0..16 {
+        for x in 0..16 {
+            let index = z * 16 + x;
+            let long_index = index / 7;
+            let bit_index = (index % 7) * 9;
+
+            let value = height as i64 & 0x1FF; // Ensure we only use 9 bits
+            motion_blocking[long_index] |= value << bit_index;
+
+            // If the shift would overflow, put the remaining bits in the next long
+            if bit_index > 55 { // 64 - 9 = 55
+                let remaining_bits = bit_index + 9 - 64;
+                motion_blocking[long_index + 1] |= value >> (9 - remaining_bits);
+            }
+        }
+    }
+
+
+    Heightmaps {
+        motion_blocking_no_leaves: None,
+        motion_blocking: Some(motion_blocking),
+        ocean_floor: None,
+        world_surface: None,
+    }
 }

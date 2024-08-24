@@ -99,7 +99,13 @@ where
 
 impl<T: NBTAnonymousType> NBTAnonymousType for Vec<T> {
     fn tag_type() -> u8 {
-        T::tag_type()
+        // T::tag_type()
+        match T::tag_type() {
+            TAG_BYTE => TAG_BYTE_ARRAY,
+            TAG_INT => TAG_INT_ARRAY,
+            TAG_LONG => TAG_LONG_ARRAY,
+            _ => TAG_LIST,
+        }
     }
 }
 
