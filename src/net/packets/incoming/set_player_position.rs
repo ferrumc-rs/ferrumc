@@ -34,8 +34,7 @@ impl IncomingPacket for SetPlayerPosition {
 
         let mut position = component_storage
             .get_mut::<Position>(my_entity_id)
-            .await
-            .ok_or(Error::from(crate::ecs::error::Error::ComponentNotFound))?;
+            .await?;
 
         *position = Position {
             x: self.x as i32,

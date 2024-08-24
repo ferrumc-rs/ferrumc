@@ -29,8 +29,7 @@ impl IncomingPacket for KeepAlivePacketIn {
             .world
             .get_component_storage()
             .get_mut::<KeepAlive>(player)
-            .await
-            .ok_or(Error::InvalidComponentStorage("KeepAlive component not found".to_string()))?;
+            .await?;
 
 
         info!("KeepAlive for player: {:?}", *keep_alive);

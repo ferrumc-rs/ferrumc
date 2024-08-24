@@ -26,12 +26,10 @@ impl IncomingPacket for SetPlayerPosAndRotate {
 
         let mut position = component_storage
             .get_mut::<Position>(my_entity_id)
-            .await
-            .ok_or(Error::from(crate::ecs::error::Error::ComponentNotFound))?;
+            .await?;
         let mut rotation = component_storage
             .get_mut::<Rotation>(my_entity_id)
-            .await
-            .ok_or(Error::from(crate::ecs::error::Error::ComponentNotFound))?;
+            .await?;
 
         *position = Position {
             x: self.x as i32,

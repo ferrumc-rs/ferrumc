@@ -3,6 +3,7 @@ use crate::ecs::entity::EntityManager;
 use crate::ecs::error::Error;
 use crate::ecs::helpers::entity_builder::EntityBuilder;
 use crate::ecs::query::Query;
+use crate::utils::prelude::*;
 
 /// <p style="color:#4CAF50;font-size:1.2em;font-weight:bold;">The World struct</p>
 ///
@@ -89,11 +90,11 @@ impl World {
         EntityBuilder::new(entity, &self.component_storage)
     }
 
-    pub async fn delete_entity(&self, entity_id: impl TryInto<usize>) -> Result<(), Error> {
+    pub async fn delete_entity(&self, entity_id: impl TryInto<usize>) -> Result<()> {
         let entity_id = entity_id.try_into().map_err(|_| Error::ConversionError)?;
 
         if !self.entity_manager.delete_entity(entity_id).await {
-            return Err(Error::EntityNotFound(entity_id));
+            return Err(Error::EntityNotFound(entity_id))?;
         }
 
         self.component_storage.remove_all(entity_id);
@@ -135,8 +136,8 @@ impl World {
     pub async fn get_component<T: Component>(
         &self,
         entity_id: impl TryInto<usize>,
-    ) -> Option<ComponentRef<'_, T>> {
-        let entity_id = entity_id.try_into().ok()?;
+    ) -> Result<ComponentRef<'_, T>> {
+        let entity_id = entity_id.try_into().map_err(|_| Error::ConversionError)?;
         self.get_component_storage().get::<T>(entity_id).await
     }
 

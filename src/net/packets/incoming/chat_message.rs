@@ -23,8 +23,7 @@ impl IncomingPacket for PacketChatMessage {
         let my_player = state
             .world
             .get_component::<Player>(my_id)
-            .await
-            .ok_or(Error::ComponentNotFound("Player".to_string(), my_id as u64))?;
+            .await?;
 
         debug!("[{}]: {}", my_player.username, self.message);
 

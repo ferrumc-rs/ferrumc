@@ -2,6 +2,7 @@ use std::marker::PhantomData;
 
 use crate::ecs::component::{Component, ComponentRef, ComponentRefMut, ComponentStorage};
 use crate::ecs::entity::EntityManager;
+use crate::utils::prelude::*;
 
 #[allow(async_fn_in_trait)]
 /// Trait for items that can be queried in the ECS.
@@ -10,7 +11,7 @@ pub trait QueryItem {
     async fn fetch<'a>(
         entity_id: impl Into<usize>,
         storage: &'a ComponentStorage,
-    ) -> Option<Self::Item<'a>>;
+    ) -> Result<Self::Item<'a>>;
 }
 
 // Implement QueryItem for immutable references
@@ -20,7 +21,7 @@ impl<T: Component> QueryItem for &T {
     async fn fetch<'a>(
         entity_id: impl Into<usize>,
         storage: &'a ComponentStorage,
-    ) -> Option<Self::Item<'a>> {
+    ) -> Result<Self::Item<'a>> {
         storage.get::<T>(entity_id).await
     }
 }
@@ -32,7 +33,7 @@ impl<T: Component> QueryItem for &mut T {
     async fn fetch<'a>(
         entity_id: impl Into<usize>,
         storage: &'a ComponentStorage,
-    ) -> Option<Self::Item<'a>> {
+    ) -> Result<Self::Item<'a>> {
         storage.get_mut::<T>(entity_id).await
     }
 }
@@ -85,7 +86,7 @@ impl<'a, Q: QueryItem> Query<'a, Q> {
         let mut results = vec![];
 
         for entity_id in 0..=max_entity_id {
-            if let Some(item) = Q::fetch(entity_id, self.component_storage).await {
+            if let Ok(item) = Q::fetch(entity_id, self.component_storage).await {
                 results.push((entity_id, item));
             }
         }
@@ -109,7 +110,7 @@ impl<'a, Q: QueryItem> Query<'a, Q> {
     {
         let max_entity_id = self.entity_manager.len().await;
         while self.current_id <= max_entity_id {
-            if let Some(item) = Q::fetch(self.current_id, self.component_storage).await {
+            if let Ok(item) = Q::fetch(self.current_id, self.component_storage).await {
                 let result = Some((self.current_id, item));
                 self.current_id += 1;
                 return result;
@@ -130,9 +131,9 @@ macro_rules! impl_query_item_tuple {
         {
             type Item<'a> = ($($T::Item<'a>,)*);
 
-            async fn fetch<'a>(entity_id: impl Into<usize>, storage: &'a ComponentStorage) -> Option<Self::Item<'a>> {
+            async fn fetch<'a>(entity_id: impl Into<usize>, storage: &'a ComponentStorage) -> Result<Self::Item<'a>> {
                 let entity_id = entity_id.into();
-                Some((
+                Ok((
                     $(
                         $T::fetch(entity_id, storage).await?,
                     )*

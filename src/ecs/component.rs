@@ -1,6 +1,7 @@
 use std::any::TypeId;
 use std::fmt::Debug;
 use std::marker::PhantomData;
+use crate::utils::prelude::*;
 
 use dashmap::DashMap;
 use tokio::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
@@ -103,11 +104,13 @@ impl ComponentStorage {
     pub async fn get<'a, T: Component + 'a>(
         &self,
         entity_id: impl Into<usize>,
-    ) -> Option<ComponentRef<'a, T>> {
+    ) -> Result<ComponentRef<'a, T>> {
         let type_id = TypeId::of::<T>();
         let entity_id = entity_id.into();
-        let storage = self.storages.get(&type_id)?;
-        let component = storage.get(entity_id)?;
+        let storage = self.storages.get(&type_id)
+            .ok_or(Error::ComponentNotFound)?;
+        let component = storage.get(entity_id)
+            .ok_or(Error::ComponentNotFound)?;
 
         let read_guard = unsafe {
             std::mem::transmute::<
@@ -116,7 +119,7 @@ impl ComponentStorage {
             >(component.read().await)
         };
 
-        Some(ComponentRef {
+        Ok(ComponentRef {
             read_guard,
             _phantom: PhantomData,
         })
@@ -132,11 +135,13 @@ impl ComponentStorage {
     pub async fn get_mut<'a, T: Component>(
         &'a self,
         entity_id: impl TryInto<usize>,
-    ) -> Option<ComponentRefMut<T>> {
+    ) -> Result<ComponentRefMut<T>> {
         let type_id = TypeId::of::<T>();
-        let entity_id = entity_id.try_into().ok()?;
-        let storage = self.storages.get(&type_id)?;
-        let component = storage.get(entity_id)?;
+        let entity_id = entity_id.try_into().map_err(|_| Error::ConversionError)?;
+        let storage = self.storages.get(&type_id)
+            .ok_or(Error::ComponentNotFound)?;
+        let component = storage.get(entity_id)
+            .ok_or(Error::ComponentNotFound)?;
 
         let write = component.write().await;
 
@@ -147,7 +152,7 @@ impl ComponentStorage {
             >(write)
         };
 
-        Some(ComponentRefMut {
+        Ok(ComponentRefMut {
             write_guard,
             _phantom: PhantomData,
         })
@@ -163,7 +168,7 @@ impl ComponentStorage {
     ) -> ComponentRef<'a, T> {
         let entity_id = entity_id.into();
 
-        if let Some(component) = self.get::<T>(entity_id).await {
+        if let Ok(component) = self.get::<T>(entity_id).await {
             return component;
         }
 
@@ -181,7 +186,7 @@ impl ComponentStorage {
     ) -> ComponentRefMut<T> {
         let entity_id = entity_id.try_into().ok().expect("Failed to convert entity_id to usize. This is a BUG!");
 
-        if let Some(component) = self.get_mut::<T>(entity_id).await {
+        if let Ok(component) = self.get_mut::<T>(entity_id).await {
             return component;
         }
 
@@ -202,16 +207,16 @@ impl ComponentStorage {
     /// ```
     /// storage.remove::<Position>(0);
     /// ```
-    pub fn remove<T: Component>(&self, entity_id: impl Into<usize>) -> Result<(), Error> {
+    pub fn remove<T: Component>(&self, entity_id: impl Into<usize>) -> Result<()> {
         let type_id = TypeId::of::<T>();
         let entity_id = entity_id.into();
         if let Some(mut storage) = self.storages.get_mut(&type_id) {
             let component = storage.get(entity_id);
             let Some(component) = component else {
-                return Err(Error::ComponentNotFound);
+                return Err(Error::ComponentNotFound)?;
             };
             if component.try_write().is_err() {
-                return Err(Error::ComponentLocked);
+                return Err(Error::ComponentLocked)?;
             }
             storage.remove(entity_id);
         }
@@ -250,7 +255,7 @@ mod tests {
         let storage = ComponentStorage::new();
         storage.insert(0usize, Position { x: 0, y: 0, z: 0 });
         let component = storage.get::<Position>(0usize).await;
-        assert!(component.is_some());
+        assert!(component.is_ok());
         assert_eq!(component.unwrap().x, 0);
     }
 
@@ -259,7 +264,7 @@ mod tests {
         let storage = ComponentStorage::new();
         storage.insert(0usize, Position { x: 0, y: 0, z: 0 });
         let component = storage.get_mut::<Position>(0usize).await;
-        assert!(component.is_some());
+        assert!(component.is_ok());
         assert_eq!(component.unwrap().x, 0);
     }
 }
