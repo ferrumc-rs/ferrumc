@@ -5,6 +5,16 @@ use crate::error::Result;
 
 impl Encode for String {
 
+    async fn encode<W>(&self, writer: &mut W) -> Result<()>
+    where
+        W: AsyncWrite + Unpin,
+    {
+        self.as_str().encode(writer).await?;
+        Ok(())
+    }
+}
+
+impl<'a> Encode for &'a str {
 
     async fn encode<W>(&self, writer: &mut W) -> Result<()>
     where
@@ -19,7 +29,6 @@ impl Encode for String {
         Ok(())
     }
 }
-
 // TODO: Use simd for primitive types to swap endianness way faster
 impl<E: Encode> Encode for Vec<E> {
 

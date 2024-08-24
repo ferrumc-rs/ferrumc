@@ -198,3 +198,4 @@ pub struct Properties {
 pub struct Biomes {
     pub palette: Vec<String>,
 }
+

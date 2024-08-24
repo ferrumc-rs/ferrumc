@@ -133,6 +133,17 @@ impl BitSet {
             *last_block &= (1 << (self.size % 64)) - 1;
         }
     }
+
+    pub fn from_iter<I>(iter: I) -> Self
+    where
+        I: IntoIterator<Item = usize>,
+    {
+        let mut bs = BitSet::empty();
+        for i in iter {
+            bs.set(i);
+        }
+        bs
+    }
 }
 
 impl Index<usize> for BitSet {
@@ -146,6 +157,7 @@ impl Index<usize> for BitSet {
         }
     }
 }
+
 
 #[cfg(test)]
 mod tests {
@@ -189,7 +201,7 @@ mod tests {
 
 
 impl Encode for BitSet {
-    async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
+    async fn encode<T>(&self, bytes: &mut T) -> Result<(), ferrumc_codec::CodecError>
     where
         T: AsyncWrite + Unpin
     {

@@ -116,8 +116,8 @@ fn generate_encode_impl(
 
     if is_packet_type {
         quote! {
-            impl #impl_generics ferrumc_codec:::enc::Encode for &#name #ty_generics #where_clause {
-                async fn encode<T>(&self, bytes_out: &mut T) -> std::result::Result<(), crate::utils::error::Error>
+            impl #impl_generics ferrumc_codec::enc::Encode for #name #ty_generics #where_clause {
+                async fn encode<T>(&self, bytes_out: &mut T) -> std::result::Result<(), ferrumc_codec::error::CodecError>
                     where T: tokio::io::AsyncWrite + std::marker::Unpin
                 {
                     use tokio::io::AsyncWriteExt;
@@ -141,8 +141,8 @@ fn generate_encode_impl(
         }
     } else {
         quote! {
-            impl #impl_generics ferrumc_codec:::enc::Encode for #name #ty_generics #where_clause {
-                async fn encode<T>(&self, bytes: &mut T) -> std::result::Result<(), crate::utils::error::Error>
+            impl #impl_generics ferrumc_codec::enc::Encode for #name #ty_generics #where_clause {
+                async fn encode<T>(&self, bytes: &mut T) -> std::result::Result<(), ferrumc_codec::error::CodecError>
                     where T: tokio::io::AsyncWrite + std::marker::Unpin
                 {
                     use tokio::io::AsyncWriteExt;

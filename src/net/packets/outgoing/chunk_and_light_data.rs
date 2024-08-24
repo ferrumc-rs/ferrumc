@@ -3,13 +3,15 @@ use nbt_lib::{NBTTag};
 use crate::utils::encoding::bitset::BitSet;
 use ferrumc_codec::network_types::varint::VarInt;
 use ferrumc_codec::enc::Encode;
+use tracing::debug;
 use crate::world::chunkformat::{Heightmaps};
 use crate::Result;
 use crate::state::GlobalState;
+use crate::utils::encoding::position::Position;
 use crate::utils::error::Error;
 
 #[derive(Encode)]
-pub struct ChunkDataAndUpdateLight<'a> {
+pub struct ChunkDataAndUpdateLight {
     #[encode(default=VarInt::from(0x24))]
     pub packet_id: VarInt,
     pub chunk_x: i32,
@@ -43,12 +45,12 @@ pub struct LightArray {
     pub data: Vec<u8>,
 }
 
-impl<'a> ChunkDataAndUpdateLight<'a> {
-    pub async fn new(state: GlobalState) -> Result<Self> {
-        let x = 1;
-        let z = 1;
+impl ChunkDataAndUpdateLight {
+    pub async fn new(state: GlobalState, player_pos: &Position) -> Result<Self> {
+        let x = player_pos.x >> 4;
+        let z = player_pos.z >> 4;
 
-
+        debug!("Sending chunk at {}, {}", x, z);
 
         let chunk = state
             .database
@@ -56,13 +58,17 @@ impl<'a> ChunkDataAndUpdateLight<'a> {
             .await?
             .ok_or(Error::ChunkNotFound(x, z))?;
 
+        debug!("Preparing chunk data");
+
         let mut data = Vec::new();
 
+        debug!("Getting heightmaps");
         let heightmaps = chunk.heightmaps.as_ref().expect("Chunk heightmaps missing");
 
         // Simple light data (full bright)
         let light_array = vec![0xFF; 2048];
 
+        debug!("Encoding stone section");
         encode_stone_section(&mut data).await.expect("Failed to encode stone section");
 
 
@@ -89,6 +95,8 @@ impl<'a> ChunkDataAndUpdateLight<'a> {
                 data: light_array,
             }],
         };
+
+        debug!("Chunk data packet prepared");
 
         Ok(packet)
     }

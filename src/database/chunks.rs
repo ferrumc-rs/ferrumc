@@ -30,6 +30,7 @@ impl Database {
         z: i32,
         dimension: impl Into<String>,
     ) -> Result<Option<Chunk>, Error> {
+        let dimension = dimension.into();
         let db = self.db.clone();
         let result = tokio::task::spawn_blocking(move || {
             let key = hash((x, z));

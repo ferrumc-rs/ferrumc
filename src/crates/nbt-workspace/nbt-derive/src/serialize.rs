@@ -93,11 +93,36 @@ pub(crate) fn nbt_serialize_derive(input: TokenStream) -> TokenStream {
         }
 
         impl nbt_lib::nbt_spec::serializer::NBTCompoundMarker for #struct_name {
-            fn wrapped<T>(t: T) -> nbt_lib::nbt_spec::serializer::NBTSerializeToEncodeWrapper<T>
+            fn wrapped<'a, T>(t: &'a T) -> nbt_lib::nbt_spec::serializer::NBTSerializeToEncodeWrapper<'a, T>
             where
                 T: nbt_lib::NBTSerialize,
             {
-                nbt_lib::nbt_spec::serializer::NBTSerializeToEncodeWrapper(t)
+                nbt_lib::nbt_spec::serializer::NBTSerializeToEncodeWrapper::new(t)
+            }
+        }
+
+        impl ferrumc_codec::enc::Encode for #struct_name
+            where Self: nbt_lib::NBTSerialize
+        {
+            async fn encode<W>(&self, writer: &mut W) -> ferrumc_codec::Result<()>
+            where
+                W: tokio::io::AsyncWrite + std::marker::Unpin
+            {
+                let wrapper = nbt_lib::nbt_spec::serializer::NBTSerializeToEncodeWrapper::new(self);
+
+                let compound_tag = nbt_lib::nbt_spec::serializer::tag_types::TAG_COMPOUND;
+
+                // Header (TAG_COMPOUND, empty name)
+                ferrumc_codec::enc::Encode::encode(&compound_tag, writer).await?;
+                ferrumc_codec::enc::Encode::encode(&#name, writer).await?;
+
+                // Data
+                ferrumc_codec::enc::Encode::encode(&wrapper, writer).await?;
+
+                // End tag
+                let end_tag = nbt_lib::nbt_spec::serializer::tag_types::TAG_END;
+                ferrumc_codec::enc::Encode::encode(&end_tag, writer).await?;
+                Ok(())
             }
         }
     };

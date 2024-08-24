@@ -1,8 +1,8 @@
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncSeek, AsyncWrite, AsyncWriteExt};
 
 use crate::utils::encoding::position::Position;
-use ferrumc_codec::network_types::varint::{read_varint, write_varint, VarInt};
-use crate::utils::encoding::varlong::{read_varlong, write_varlong, Varlong};
+use ferrumc_codec::network_types::varint::{VarInt};
+use ferrumc_codec::network_types::varlong::{Varlong};
 use crate::utils::error::Error;
 
 /// This trait is used to decode a type from a byte stream. It is implemented for all types that
@@ -200,7 +200,7 @@ impl Decode for String {
     where
         T: AsyncRead + Unpin,
     {
-        let remaining_bytes = read_varint(bytes).await?;
+        let remaining_bytes = VarInt::read(bytes).await?;
         let mut string_buf = vec![0u8; remaining_bytes.into()];
         bytes.read_exact(&mut string_buf).await?;
         Ok(Box::from(String::from_utf8(string_buf)?))
@@ -217,7 +217,7 @@ impl Decode for VarInt {
     where
         T: AsyncRead + Unpin,
     {
-        Ok(Box::from(read_varint(bytes).await?))
+        Ok(Box::from( VarInt::read(bytes).await?))
     }
 }
 
@@ -231,7 +231,7 @@ impl Decode for Varlong {
     where
         T: AsyncRead + Unpin,
     {
-        Ok(Box::from(read_varlong(bytes).await?))
+        Ok(Box::from(Varlong::read(bytes).await?))
     }
 }
 
@@ -259,7 +259,7 @@ impl<V: Decode + Unpin> Decode for Vec<V> {
     where
         T: AsyncRead + Unpin,
     {
-        let len = read_varint(bytes).await?.get_val();
+        let len = VarInt::read(bytes).await?.get_val();
         // Yes the cast is necessary, and yes it's annoying
         let mut vec = Vec::new();
         for _ in 0..len {

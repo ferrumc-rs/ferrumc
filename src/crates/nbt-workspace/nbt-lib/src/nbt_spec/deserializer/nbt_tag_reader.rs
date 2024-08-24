@@ -1,10 +1,12 @@
 use std::collections::HashMap;
 use std::io::{Cursor, Read};
 use std::simd::*;
+use ferrumc_codec::enc::Encode;
+use tokio::io::AsyncWrite;
 use crate::error::NBTError;
 use crate::nbt_spec::deserializer::cursor_ext::CursorExt;
 use crate::nbt_spec::deserializer::NBTDeserializeBytes;
-use crate::NBTResult;
+use crate::{NBTResult, NBTSerialize};
 
 #[derive(Debug)]
 pub enum NBTTag {
@@ -299,4 +301,21 @@ fn read_long_array_simd(cursor: &mut Cursor<Vec<u8>>, len: usize) -> Vec<i64> {
 
     cursor.set_position(pos as u64);
     result
+}
+
+impl Encode for NBTTag {
+    async fn encode<W>(&self, writer: &mut W) -> ferrumc_codec::Result<()>
+    where
+        W: AsyncWrite + Unpin
+    {
+        let mut sync_bytes = Vec::new();
+        self.serialize(&mut sync_bytes)
+            .map_err(ferrumc_codec::error::CodecError::from_external_error)?;
+        {
+            use tokio::io::AsyncWriteExt;
+            writer.write_all(&sync_bytes).await?;
+        }
+
+        Ok(())
+    }
 }

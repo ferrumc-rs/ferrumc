@@ -14,15 +14,15 @@ pub struct TickSystem;
 #[async_trait]
 impl System for TickSystem {
     async fn run(&self, state: GlobalState) {
-        let mut query = state.world.query::<(&Player, &Position, &Rotation)>();
+        let _query = state.world.query::<(&Player, &Position, &Rotation)>();
 
         loop {
-            while let Some((idx, (player, position, rotation))) = query.next().await {
+            /*while let Some((idx, (player, position, rotation))) = query.next().await {
                 info!(
                     "[{idx}] @ Player = {:?}\tPosition = {}\tRotation = {:?}",
                     player.username, *position, *rotation,
                 );
-            }
+            }*/
 
             tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
         }

@@ -73,14 +73,14 @@ mod tests {
     #[tokio::test]
     async fn read_varint_valid_input() {
         let mut cursor = Cursor::new(vec![0x80, 0x80, 0x80, 0x80, 0x08]);
-        let result = read_varint(&mut cursor).await;
+        let result = VarInt::read(&mut cursor).await;
         assert_eq!(result.unwrap(), VarInt::new(-2147483648));
     }
 
     #[tokio::test]
     async fn read_varint_too_big() {
         let mut cursor = Cursor::new(vec![0b10000000; 6]);
-        let result = read_varint(&mut cursor).await;
+        let result = VarInt::read(&mut cursor).await;
         assert!(result.is_err());
     }
 
@@ -103,14 +103,14 @@ mod tests {
     #[tokio::test]
     async fn read_varint_empty_input() {
         let mut cursor = Cursor::new(vec![]);
-        let result = read_varint(&mut cursor).await;
+        let result = VarInt::read(&mut cursor).await;
         assert!(result.is_err());
     }
 
     #[tokio::test]
     async fn read_varint_single_byte() {
         let mut cursor = Cursor::new(vec![0b00000001]);
-        let result = read_varint(&mut cursor).await;
+        let result = VarInt::read(&mut cursor).await;
         assert_eq!(result.unwrap(), VarInt::new(1));
     }
 

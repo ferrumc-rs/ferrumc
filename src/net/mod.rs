@@ -17,9 +17,9 @@ use crate::net::packets::handle_packet;
 use crate::state::GlobalState;
 
 use super::utils::config::get_global_config;
-use super::utils::encoding::varint::{read_varint, VarInt};
 use super::utils::prelude::*;
 use ferrumc_codec::enc::Encode;
+use ferrumc_codec::network_types::varint::VarInt;
 
 // To allow implementing the `Component` trait for `Connection`. Since we can't implement a trait for a type defined in another crate.
 #[derive(Component)]
@@ -190,7 +190,7 @@ pub async fn manage_conn(conn: Arc<RwLock<Connection>>, state: GlobalState) -> R
         let mut cursor = Cursor::new(buffer);
 
         // Get the packet id
-        let packet_id = read_varint(&mut cursor).await?;
+        let packet_id = VarInt::read(&mut cursor).await?;
         trace!("Packet ID: {}", packet_id);
 
         let packet_id = packet_id.get_val() as u8;
@@ -209,7 +209,7 @@ pub async fn manage_conn(conn: Arc<RwLock<Connection>>, state: GlobalState) -> R
     Ok(())
 }
 async fn get_packet_length_and_buffer(conn: &mut Connection) -> Result<(VarInt, Vec<u8>)> {
-    let packet_length = read_varint(&mut conn.socket).await?;
+    let packet_length = VarInt::read(&mut conn.socket).await?;
     let mut buffer = vec![0u8; packet_length.get_val() as usize];
     conn.socket.read_exact(&mut buffer).await?;
     Ok((packet_length, buffer))

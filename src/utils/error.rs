@@ -72,6 +72,9 @@ pub enum Error {
     BitOutputOverflow(usize, usize),
     #[error("Attempted to read more bits than are available: {0} attempted, {1} available")]
     BitReadOverflow(usize, usize),
+
+    #[error("Codec error")]
+    CodecError(#[from] ferrumc_codec::error::CodecError),
 }
 
 impl From<Infallible> for Error {
