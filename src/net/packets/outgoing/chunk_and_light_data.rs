@@ -41,7 +41,7 @@ pub struct BlockEntity {
 
 #[derive(Encode)]
 pub struct LightArray {
-    pub length: VarInt,
+    #[encode(raw_bytes(prepend_length = true))]
     pub data: Vec<u8>,
 }
 
@@ -86,17 +86,21 @@ impl ChunkDataAndUpdateLight {
             empty_block_light_mask: BitSet::empty(),
             sky_light_array_count: VarInt::from(1),
             sky_light_arrays: vec![LightArray {
-                length: VarInt::from(2048),
                 data: light_array.clone(),
             }],
             block_light_array_count: VarInt::from(1),
             block_light_arrays: vec![LightArray {
-                length: VarInt::from(2048),
                 data: light_array,
             }],
         };
 
         debug!("Chunk data packet prepared");
+
+        // Debug print sizes
+        debug!("Data size: {}", packet.data.len());
+        debug!("Heightmaps size: {}", packet.heightmaps.motion_blocking.as_ref().unwrap().len());
+        debug!("Sky light arrays total size: {}", packet.sky_light_arrays.iter().map(|a| a.data.len()).sum::<usize>());
+        debug!("Block light arrays total size: {}", packet.block_light_arrays.iter().map(|a| a.data.len()).sum::<usize>());
 
         Ok(packet)
     }

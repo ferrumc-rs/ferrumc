@@ -185,6 +185,7 @@ pub async fn manage_conn(conn: Arc<RwLock<Connection>>, state: GlobalState) -> R
         trace!("Reading length buffer");
 
         let (packet_length, buffer) = get_packet_length_and_buffer(&mut conn_write).await?;
+
         trace!("Packet Length: {}", packet_length.get_val());
 
         let mut cursor = Cursor::new(buffer);
@@ -194,6 +195,7 @@ pub async fn manage_conn(conn: Arc<RwLock<Connection>>, state: GlobalState) -> R
         trace!("Packet ID: {}", packet_id);
 
         let packet_id = packet_id.get_val() as u8;
+
         handle_packet(packet_id, &mut conn_write, &mut cursor, state.clone()).await?;
 
         // drop the handle to the write lock. to allow other tasks to write/read
