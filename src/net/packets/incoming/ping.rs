@@ -6,8 +6,8 @@ use ferrumc_macros::{packet, Decode};
 use crate::net::packets::outgoing::ping::OutgoingPing;
 use crate::net::packets::IncomingPacket;
 use crate::state::GlobalState;
-use crate::utils::encoding::varint::VarInt;
-use crate::utils::impls::type_impls::Encode;
+use ferrumc_codec::network_types::varint::VarInt;
+use ferrumc_codec::enc::Encode;
 use crate::utils::prelude::*;
 use crate::Connection;
 

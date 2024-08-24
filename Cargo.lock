@@ -738,6 +738,7 @@ dependencies = [
  "dashmap",
  "fastanvil",
  "fastnbt",
+ "ferrumc_codec",
  "ferrumc_macros",
  "flate2",
  "flexbuffers",
@@ -761,6 +762,16 @@ dependencies = [
  "tracing-subscriber",
  "uuid",
  "which",
+]
+
+[[package]]
+name = "ferrumc_codec"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "byteorder",
+ "thiserror",
+ "tokio",
 ]
 
 [[package]]
@@ -1429,8 +1440,10 @@ dependencies = [
 name = "nbt-lib"
 version = "0.1.0"
 dependencies = [
+ "ferrumc_codec",
  "nbt-derive",
  "thiserror",
+ "tokio",
 ]
 
 [[package]]

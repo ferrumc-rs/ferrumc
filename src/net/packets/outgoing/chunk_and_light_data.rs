@@ -1,8 +1,8 @@
 use ferrumc_macros::Encode;
 use nbt_lib::{NBTTag};
 use crate::utils::encoding::bitset::BitSet;
-use crate::utils::encoding::varint::VarInt;
-use crate::utils::impls::type_impls::Encode;
+use ferrumc_codec::network_types::varint::VarInt;
+use ferrumc_codec::enc::Encode;
 use crate::world::chunkformat::{Heightmaps};
 use crate::Result;
 use crate::state::GlobalState;

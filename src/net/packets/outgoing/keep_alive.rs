@@ -1,5 +1,5 @@
 use crate::utils::components::keep_alive::KeepAlive;
-use crate::utils::encoding::varint::VarInt;
+use ferrumc_codec::network_types::varint::VarInt;
 use ferrumc_macros::Encode;
 
 #[derive(Encode, Debug)]

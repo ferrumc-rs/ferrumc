@@ -39,6 +39,7 @@ which = "6.0.1"
 
 # Custom crates
 ferrumc_macros = { path = "src/crates/ferrumc_macros" }
+ferrumc_codec = { path = "src/crates/ferurmc_codec" }
 nbt-lib = { path = 'src/crates/nbt-workspace/nbt-lib', features = ["derive"] }
 
 # # yoinked

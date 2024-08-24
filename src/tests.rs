@@ -5,7 +5,7 @@ mod nbt_ser;
 mod tests {
     use std::io::Cursor;
 
-    use crate::utils::encoding::varint::VarInt;
+    use ferrumc_codec::network_types::varint::VarInt;
     use ferrumc_macros::Decode;
 
 

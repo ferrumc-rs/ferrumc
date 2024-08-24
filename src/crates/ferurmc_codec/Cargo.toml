@@ -1,5 +1,5 @@
 [package]
-name = "ferurmc-enc"
+name = "ferrumc_codec"
 version = "0.1.0"
 edition = "2021"
 

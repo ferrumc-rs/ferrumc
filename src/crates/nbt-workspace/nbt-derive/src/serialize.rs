@@ -92,7 +92,14 @@ pub(crate) fn nbt_serialize_derive(input: TokenStream) -> TokenStream {
             }
         }
 
-        impl nbt_lib::nbt_spec::serializer::NBTCompoundMarker for #struct_name {}
+        impl nbt_lib::nbt_spec::serializer::NBTCompoundMarker for #struct_name {
+            fn wrapped<T>(t: T) -> nbt_lib::nbt_spec::serializer::NBTSerializeToEncodeWrapper<T>
+            where
+                T: nbt_lib::NBTSerialize,
+            {
+                nbt_lib::nbt_spec::serializer::NBTSerializeToEncodeWrapper(t)
+            }
+        }
     };
 
 

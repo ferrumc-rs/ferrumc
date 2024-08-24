@@ -1,7 +1,7 @@
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncSeek, AsyncWrite, AsyncWriteExt};
 
 use crate::utils::encoding::position::Position;
-use crate::utils::encoding::varint::{read_varint, write_varint, VarInt};
+use ferrumc_codec::network_types::varint::{read_varint, write_varint, VarInt};
 use crate::utils::encoding::varlong::{read_varlong, write_varlong, Varlong};
 use crate::utils::error::Error;
 
@@ -291,7 +291,7 @@ impl Decode for Position {
         Ok(Box::from(pos))
     }
 }
-
+/*
 /// This trait is used to encode a type into a byte stream. It is implemented for all types that
 /// can be encoded into a byte stream. This trait is async, as it is expected that encoding will
 /// involve writing to a stream, which is an async operation.
@@ -580,3 +580,4 @@ impl<O: Encode> Encode for Option<O> {
         Ok(())
     }
 }
+*/

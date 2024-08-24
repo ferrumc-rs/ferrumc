@@ -1,8 +1,8 @@
 /*#![allow(dead_code)]
 
-use crate::utils::encoding::varint::VarInt;
+use ferrumc_codec::network_types::varint::VarInt;
 use crate::utils::error::Error;
-use crate::utils::impls::type_impls::Encode;
+use ferrumc_codec::enc::Encode;
 use tokio::io::{AsyncSeek, AsyncWrite};
 
 pub struct BitSet {
@@ -46,9 +46,9 @@ impl Encode for BitSet {
 
 use std::ops::{Index, IndexMut};
 use tokio::io::{AsyncSeek, AsyncWrite, AsyncWriteExt};
-use crate::utils::encoding::varint::VarInt;
+use ferrumc_codec::network_types::varint::VarInt;
 use crate::utils::error::Error;
-use crate::utils::impls::type_impls::Encode;
+use ferrumc_codec::enc::Encode;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct BitSet {

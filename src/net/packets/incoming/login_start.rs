@@ -18,8 +18,8 @@ use crate::utils::components::keep_alive::KeepAlive;
 use crate::utils::components::player::Player;
 use crate::utils::components::rotation::Rotation;
 use crate::utils::encoding::position::Position;
-use crate::utils::encoding::varint::VarInt;
-use crate::utils::impls::type_impls::Encode;
+use ferrumc_codec::network_types::varint::VarInt;
+use ferrumc_codec::enc::Encode;
 use crate::utils::prelude::*;
 use crate::Connection;
 

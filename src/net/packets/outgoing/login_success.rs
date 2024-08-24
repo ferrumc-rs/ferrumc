@@ -1,6 +1,6 @@
 use ferrumc_macros::Encode;
 
-use crate::utils::encoding::varint::VarInt;
+use ferrumc_codec::network_types::varint::VarInt;
 
 /// Sent by the server to the client to start the play state.
 #[derive(Encode)]

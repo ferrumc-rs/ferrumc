@@ -1,4 +1,4 @@
-use crate::utils::encoding::varint::VarInt;
+use ferrumc_codec::network_types::varint::VarInt;
 use ferrumc_macros::Encode;
 use nbt_lib::NBTSerialize;
 

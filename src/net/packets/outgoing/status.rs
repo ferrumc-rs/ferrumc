@@ -1,6 +1,6 @@
 use ferrumc_macros::Encode;
 
-use crate::utils::encoding::varint::VarInt;
+use ferrumc_codec::network_types::varint::VarInt;
 
 /// The outgoing status response packet is sent by the server to the client to respond to a status request.
 /// Contains the JSON response.

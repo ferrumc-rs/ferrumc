@@ -1,6 +1,6 @@
 use ferrumc_macros::Encode;
 
-use crate::utils::encoding::varint::VarInt;
+use ferrumc_codec::network_types::varint::VarInt;
 
 /// The outgoing ping packet is sent by the server to the client to check the connection.
 /// Payload is just the same as whatever the client sent.

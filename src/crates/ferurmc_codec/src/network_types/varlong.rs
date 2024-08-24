@@ -68,6 +68,7 @@ mod adapters {
     }
 
     impl Encode for Varlong {
+
         async fn encode<T>(&self, cursor: &mut T) -> Result<()>
         where
             T: AsyncWrite + Unpin,

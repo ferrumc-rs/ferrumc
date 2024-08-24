@@ -77,7 +77,7 @@ fn generate_field_encode_statement(field_attrib: &FieldAttribs) -> proc_macro2::
         statement = quote! {
             #statement
             let #len = self.#field_name.len();
-            let #len = crate::utils::encoding::varint::VarInt::new(#len as i32);
+            let #len = ferrumc_codec::network_types::varint::VarInt::new(#len as i32);
             #len.encode(&mut #cursor).await?;
         };
     }
@@ -93,13 +93,13 @@ fn generate_field_encode_statement(field_attrib: &FieldAttribs) -> proc_macro2::
         if prepend_length {
             quote! {
                 #statement
-                (&self.#field_name).encode(&mut #cursor).await?;
+                self.#field_name.encode(&mut #cursor).await?;
                 let mut #bytes = #cursor.into_inner();
                 tokio::io::AsyncWriteExt::write_all(bytes, &#bytes).await?;
             }
         } else {
             quote! {
-                (&self.#field_name).encode(bytes).await?;
+                self.#field_name.encode(bytes).await?;
             }
         }
     }
@@ -116,12 +116,11 @@ fn generate_encode_impl(
 
     if is_packet_type {
         quote! {
-            impl #impl_generics crate::utils::impls::type_impls::Encode for &#name #ty_generics #where_clause {
+            impl #impl_generics ferrumc_codec:::enc::Encode for &#name #ty_generics #where_clause {
                 async fn encode<T>(&self, bytes_out: &mut T) -> std::result::Result<(), crate::utils::error::Error>
                     where T: tokio::io::AsyncWrite + std::marker::Unpin
                 {
                     use tokio::io::AsyncWriteExt;
-                    use crate::utils::impls::nbt_impls::*;
 
                     let mut bytes_ = std::io::Cursor::new(Vec::new());
                     let mut bytes = &mut bytes_;
@@ -129,7 +128,7 @@ fn generate_encode_impl(
                     #(#field_statements)*
 
                     let __packet_data = bytes_.into_inner();
-                    let __length = crate::utils::encoding::varint::VarInt::new(__packet_data.len() as i32);
+                    let __length = ferrumc_codec::network_types::varint::VarInt::new(__packet_data.len() as i32);
                     let mut __cursor = std::io::Cursor::new(Vec::new());
                     __length.encode(&mut __cursor).await?;
                     __cursor.write_all(&__packet_data).await?;
@@ -142,12 +141,11 @@ fn generate_encode_impl(
         }
     } else {
         quote! {
-            impl #impl_generics crate::utils::impls::type_impls::Encode for #name #ty_generics #where_clause {
+            impl #impl_generics ferrumc_codec:::enc::Encode for #name #ty_generics #where_clause {
                 async fn encode<T>(&self, bytes: &mut T) -> std::result::Result<(), crate::utils::error::Error>
                     where T: tokio::io::AsyncWrite + std::marker::Unpin
                 {
                     use tokio::io::AsyncWriteExt;
-                    use crate::utils::impls::nbt_impls::*;
 
                     #(#field_statements)*
                     Ok(())

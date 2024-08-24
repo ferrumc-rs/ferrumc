@@ -2,7 +2,7 @@ use ferrumc_macros::{packet, Decode};
 
 use crate::net::packets::IncomingPacket;
 use crate::state::GlobalState;
-use crate::utils::encoding::varint::VarInt;
+use ferrumc_codec::network_types::varint::VarInt;
 use crate::utils::prelude::*;
 use crate::{net::State, Connection};
 

@@ -101,6 +101,7 @@ mod adapters {
     }
 
     impl Encode for VarInt {
+
         async fn encode<W>(&self, writer: &mut W) -> Result<()>
         where
             W: AsyncWrite + Unpin,

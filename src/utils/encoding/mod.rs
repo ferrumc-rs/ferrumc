@@ -1,5 +1,5 @@
 use std::io::{Cursor, Write};
-use crate::utils::impls::type_impls::Encode;
+use ferrumc_codec::enc::Encode;
 use nbt_lib::nbt_spec::serializer::NBTCompoundMarker;
 use nbt_lib::NBTSerialize;
 use tokio::io::AsyncWrite;
@@ -7,8 +7,8 @@ use crate::utils::error::Error;
 
 pub mod bitset;
 pub mod position;
-pub mod varint;
-pub mod varlong;
+mod varint;
+mod varlong;
 pub mod velocity;
 
 /*impl<S: NBTSerialize> Encode for &S {

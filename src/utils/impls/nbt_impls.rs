@@ -3,7 +3,7 @@ use tokio::io::AsyncWrite;
 use nbt_lib::NBTSerialize;
 use crate::utils::error::Error;
 
-pub trait SpecEncode {
+/*pub trait SpecEncode {
     async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
     where
         T: AsyncWrite + Unpin;
@@ -23,3 +23,4 @@ impl<S: NBTSerialize> SpecEncode for S {
         Ok(())
     }
 }
+*/
