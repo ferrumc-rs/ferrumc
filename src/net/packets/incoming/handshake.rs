@@ -2,9 +2,9 @@ use ferrumc_macros::{packet, Decode};
 
 use crate::net::packets::{ConnectionId, IncomingPacket};
 use crate::state::GlobalState;
-use ferrumc_codec::network_types::varint::VarInt;
 use crate::utils::prelude::*;
 use crate::{net::State, Connection};
+use ferrumc_codec::network_types::varint::VarInt;
 
 /// The first packet sent by the client to the server.
 ///
@@ -32,7 +32,7 @@ impl IncomingPacket for Handshake {
             2 => State::Login,
             s => return Err(Error::InvalidState(s)),
         };
-        
+
         Ok(())
     }
 }

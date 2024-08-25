@@ -41,6 +41,8 @@ pub enum Error {
     FastAnvilError(#[from] fastanvil::Error),
     #[error("Chunk at ({0}, {1}) not found")]
     ChunkNotFound(i32, i32),
+    #[error("Chunk is missing block states")]
+    MissingBlockStates,
 
     #[error(transparent)]
     SimdNbtError(#[from] simdnbt::Error),

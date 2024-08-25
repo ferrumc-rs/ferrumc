@@ -1,13 +1,13 @@
+use crate::utils::prelude::*;
 use std::any::TypeId;
 use std::fmt::Debug;
 use std::marker::PhantomData;
-use crate::utils::prelude::*;
 
+use crate::ecs::error::Error;
+use crate::ecs::helpers::sparse_set::SparseSet;
 use dashmap::DashMap;
 use tokio::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use tracing::debug;
-use crate::ecs::error::Error;
-use crate::ecs::helpers::sparse_set::SparseSet;
 
 /// A trait for components in the ECS.
 pub trait Component: 'static + Send + Sync + Debug {}
@@ -81,7 +81,10 @@ impl ComponentStorage {
     /// storage.insert(0, Position { x: 0.0, y: 0.0 });
     /// ```
     pub fn insert<T: Component>(&self, entity_id: impl TryInto<usize>, component: T) -> &Self {
-        let entity_id = entity_id.try_into().map_err(|_| Error::ConversionError).unwrap();
+        let entity_id = entity_id
+            .try_into()
+            .map_err(|_| Error::ConversionError)
+            .unwrap();
         let type_id = TypeId::of::<T>();
         let mut storage = self
             .storages
@@ -107,10 +110,11 @@ impl ComponentStorage {
     ) -> Result<ComponentRef<'a, T>> {
         let type_id = TypeId::of::<T>();
         let entity_id = entity_id.into();
-        let storage = self.storages.get(&type_id)
+        let storage = self
+            .storages
+            .get(&type_id)
             .ok_or(Error::ComponentNotFound)?;
-        let component = storage.get(entity_id)
-            .ok_or(Error::ComponentNotFound)?;
+        let component = storage.get(entity_id).ok_or(Error::ComponentNotFound)?;
 
         let read_guard = unsafe {
             std::mem::transmute::<
@@ -138,10 +142,11 @@ impl ComponentStorage {
     ) -> Result<ComponentRefMut<T>> {
         let type_id = TypeId::of::<T>();
         let entity_id = entity_id.try_into().map_err(|_| Error::ConversionError)?;
-        let storage = self.storages.get(&type_id)
+        let storage = self
+            .storages
+            .get(&type_id)
             .ok_or(Error::ComponentNotFound)?;
-        let component = storage.get(entity_id)
-            .ok_or(Error::ComponentNotFound)?;
+        let component = storage.get(entity_id).ok_or(Error::ComponentNotFound)?;
 
         let write = component.write().await;
 
@@ -184,7 +189,10 @@ impl ComponentStorage {
         entity_id: impl TryInto<usize>,
         f: impl FnOnce() -> T,
     ) -> ComponentRefMut<T> {
-        let entity_id = entity_id.try_into().ok().expect("Failed to convert entity_id to usize. This is a BUG!");
+        let entity_id = entity_id
+            .try_into()
+            .ok()
+            .expect("Failed to convert entity_id to usize. This is a BUG!");
 
         if let Ok(component) = self.get_mut::<T>(entity_id).await {
             return component;

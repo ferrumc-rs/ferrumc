@@ -59,7 +59,6 @@ pub struct Heightmaps {
     pub world_surface: Option<Vec<i64>>,
 }
 
-
 #[derive(
     nbt_lib::Serialize,
     nbt_lib::Deserialize,
@@ -169,6 +168,7 @@ pub struct Palette {
     Serialize,
     Decode,
     Deserialize,
+    Default
 )]
 pub struct Properties {
     pub snowy: Option<String>,
@@ -199,4 +199,3 @@ pub struct Properties {
 pub struct Biomes {
     pub palette: Vec<String>,
 }
-

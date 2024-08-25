@@ -44,11 +44,11 @@ impl Encode for BitSet {
 }
 */
 
-use std::ops::{Index, IndexMut};
-use tokio::io::{AsyncSeek, AsyncWrite, AsyncWriteExt};
-use ferrumc_codec::network_types::varint::VarInt;
 use crate::utils::error::Error;
 use ferrumc_codec::enc::Encode;
+use ferrumc_codec::network_types::varint::VarInt;
+use std::ops::{Index, IndexMut};
+use tokio::io::{AsyncSeek, AsyncWrite, AsyncWriteExt};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct BitSet {
@@ -158,7 +158,6 @@ impl Index<usize> for BitSet {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -199,11 +198,10 @@ mod tests {
     }
 }
 
-
 impl Encode for BitSet {
     async fn encode<T>(&self, bytes: &mut T) -> Result<(), ferrumc_codec::CodecError>
     where
-        T: AsyncWrite + Unpin
+        T: AsyncWrite + Unpin,
     {
         // Bit sets of type BitSet are prefixed by their length in longs.
         // Field Name 	Field Type 	Meaning

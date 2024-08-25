@@ -29,6 +29,8 @@ pub async fn start_database() -> Result<Database, Error> {
     let world = get_global_config().world.clone();
     let world_path = root.join("data").join(world);
 
+    debug!("Opening database at {:?}", world_path);
+
     if !fs::try_exists(&world_path).await? {
         fs::create_dir_all(&world_path).await?;
     }

@@ -1,7 +1,7 @@
+use crate::utils::error::Error;
+use nbt_lib::NBTSerialize;
 use std::io::Cursor;
 use tokio::io::AsyncWrite;
-use nbt_lib::NBTSerialize;
-use crate::utils::error::Error;
 
 /*pub trait SpecEncode {
     async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>

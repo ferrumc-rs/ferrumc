@@ -81,7 +81,10 @@ pub struct ConnectionList {
 impl ConnectionList {
     pub fn get_connection(&self, conn_id: impl TryInto<u32>) -> Result<Arc<RwLock<Connection>>> {
         let conn_id = conn_id.try_into().map_err(|_| Error::ConversionError)?;
-        let conn = self.connections.get(&conn_id).ok_or(Error::ConnectionNotFound(conn_id))?;
+        let conn = self
+            .connections
+            .get(&conn_id)
+            .ok_or(Error::ConnectionNotFound(conn_id))?;
 
         Ok(conn.clone())
     }
@@ -120,13 +123,7 @@ pub fn setup_tracer() {
 ///
 /// Creates a new [Connection] and adds it to the [ConnectionList]. Passes the connection to [manage_conn].
 pub async fn init_connection(socket: tokio::net::TcpStream, state: GlobalState) -> Result<()> {
-    let entity_id = state
-        .world
-        .create_entity()
-        .await
-        .build()
-        as u32;
-
+    let entity_id = state.world.create_entity().await.build() as u32;
 
     let conn = Connection {
         id: entity_id,
@@ -145,7 +142,10 @@ pub async fn init_connection(socket: tokio::net::TcpStream, state: GlobalState) 
         .insert(entity_id, ConnectionWrapper(conn.clone()));
 
     // Doesn't matter if we clone, since actual value is not cloned
-    state.connections.connections.insert(entity_id, conn.clone());
+    state
+        .connections
+        .connections
+        .insert(entity_id, conn.clone());
     state
         .connections
         .connection_count
@@ -164,7 +164,10 @@ pub async fn init_connection(socket: tokio::net::TcpStream, state: GlobalState) 
     let res = manage_conn(conn.clone(), state.clone()).await;
 
     if let Err(e) = res {
-        error!("Error occurred in {:?}: {:?}, dropping connection", entity_id, e);
+        error!(
+            "Error occurred in {:?}: {:?}, dropping connection",
+            entity_id, e
+        );
         drop_conn(entity_id, state).await?;
     }
 
@@ -211,7 +214,11 @@ pub async fn manage_conn(conn: Arc<RwLock<Connection>>, state: GlobalState) -> R
         drop_conn_if_flagged(conn.clone(), state.clone()).await?;
 
         let tick_rate = get_global_config().network_tick_rate;
-        let sleep_duration = Duration::from_millis(if tick_rate > 0 { 1000 / tick_rate as u64 } else { 0 });
+        let sleep_duration = Duration::from_millis(if tick_rate > 0 {
+            1000 / tick_rate as u64
+        } else {
+            0
+        });
         tokio::time::sleep(sleep_duration).await;
     }
     #[allow(unreachable_code)]

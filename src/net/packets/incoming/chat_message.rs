@@ -20,10 +20,7 @@ impl IncomingPacket for PacketChatMessage {
     ) -> crate::utils::prelude::Result<()> {
         let my_id = conn_id;
 
-        let my_player = state
-            .world
-            .get_component::<Player>(my_id)
-            .await?;
+        let my_player = state.world.get_component::<Player>(my_id).await?;
 
         debug!("[{}]: {}", my_player.username, self.message);
 

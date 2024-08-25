@@ -1,6 +1,6 @@
-use std::fmt::Display;
 use ferrumc_codec::enc::Encode;
 use ferrumc_macros::Component;
+use std::fmt::Display;
 use tokio::io::{AsyncWrite, AsyncWriteExt};
 
 /// Represents a position in the world
@@ -55,9 +55,9 @@ impl Encode for Position {
 
 #[cfg(test)]
 mod tests {
-    use std::io::Cursor;
+    use crate::utils::impls::type_impls::Decode;
     use ferrumc_codec::enc::Encode;
-    use crate::utils::impls::type_impls::{Decode};
+    use std::io::Cursor;
 
     use super::Position;
 

@@ -18,11 +18,11 @@ use crate::utils::components::keep_alive::KeepAlive;
 use crate::utils::components::player::Player;
 use crate::utils::components::rotation::Rotation;
 use crate::utils::encoding::position::Position;
-use ferrumc_codec::network_types::varint::VarInt;
-use ferrumc_codec::enc::Encode;
-use tokio::sync::RwLockWriteGuard;
 use crate::utils::prelude::*;
 use crate::Connection;
+use ferrumc_codec::enc::Encode;
+use ferrumc_codec::network_types::varint::VarInt;
+use tokio::sync::RwLockWriteGuard;
 
 /// The login start packet is sent by the client to the server to start the login process.
 ///
@@ -51,9 +51,7 @@ impl IncomingPacket for LoginStart {
     async fn handle(mut self, conn_id: ConnectionId, state: GlobalState) -> Result<()> {
         self.username = self.username.trim().to_string();
 
-        let conn = state
-            .connections
-            .get_connection(conn_id)?;
+        let conn = state.connections.get_connection(conn_id)?;
         let mut conn = conn.write().await;
 
         self.send_login_success(&mut conn).await?;
@@ -128,7 +126,10 @@ impl LoginStart {
         Ok(())
     }
 
-    async fn send_spawn_position(&self, mut conn: &mut RwLockWriteGuard<'_, Connection>) -> Result<()> {
+    async fn send_spawn_position(
+        &self,
+        mut conn: &mut RwLockWriteGuard<'_, Connection>,
+    ) -> Result<()> {
         let player_position = Position {
             x: 0,
             y: 1000,

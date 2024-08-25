@@ -1,15 +1,15 @@
 use tokio::io::AsyncWriteExt;
-use tracing::{debug};
+use tracing::debug;
 
 use ferrumc_macros::{packet, Decode};
 
 use crate::net::packets::outgoing::ping::OutgoingPing;
 use crate::net::packets::{ConnectionId, IncomingPacket};
 use crate::state::GlobalState;
-use ferrumc_codec::network_types::varint::VarInt;
-use ferrumc_codec::enc::Encode;
 use crate::utils::prelude::*;
 use crate::Connection;
+use ferrumc_codec::enc::Encode;
+use ferrumc_codec::network_types::varint::VarInt;
 
 /// This ping packet is sent by the client to the server to request a pong.
 ///
@@ -35,12 +35,8 @@ impl IncomingPacket for Ping {
         response.encode(&mut cursor).await?;
         let response = cursor.into_inner();
 
-        let conn = state
-            .connections
-            .get_connection(conn_id)?;
-        let mut conn = conn
-            .write()
-            .await;
+        let conn = state.connections.get_connection(conn_id)?;
+        let mut conn = conn.write().await;
 
         conn.drop = true;
 

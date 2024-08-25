@@ -1,5 +1,6 @@
 use ferrumc_macros::{packet, Decode};
 
+use crate::net::packets::outgoing::chunk_and_light_data::ChunkDataAndUpdateLight;
 use crate::net::packets::{ConnectionId, IncomingPacket};
 use crate::state::GlobalState;
 use crate::utils::components::rotation::Rotation;
@@ -24,12 +25,8 @@ impl IncomingPacket for SetPlayerPosAndRotate {
 
         let component_storage = state.world.get_component_storage();
 
-        let mut position = component_storage
-            .get_mut::<Position>(my_entity_id)
-            .await?;
-        let mut rotation = component_storage
-            .get_mut::<Rotation>(my_entity_id)
-            .await?;
+        let mut position = component_storage.get_mut::<Position>(my_entity_id).await?;
+        let mut rotation = component_storage.get_mut::<Rotation>(my_entity_id).await?;
 
         *position = Position {
             x: self.x as i32,

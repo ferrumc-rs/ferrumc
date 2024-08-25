@@ -1,8 +1,8 @@
-use std::io::Cursor;
-use ferrumc_codec::enc::Encode;
-use tracing::debug;
-use nbt_lib::{read_tag, NBTSerialize, Serialize};
 use crate::world::chunkformat::Heightmaps;
+use ferrumc_codec::enc::Encode;
+use nbt_lib::{read_tag, NBTSerialize, Serialize};
+use std::io::Cursor;
+use tracing::debug;
 
 #[tokio::test]
 pub async fn test_heightmaps() -> Result<(), Box<dyn std::error::Error>> {

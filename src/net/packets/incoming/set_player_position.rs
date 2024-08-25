@@ -32,9 +32,7 @@ impl IncomingPacket for SetPlayerPosition {
 
         let component_storage = state.world.get_component_storage();
 
-        let mut position = component_storage
-            .get_mut::<Position>(my_entity_id)
-            .await?;
+        let mut position = component_storage.get_mut::<Position>(my_entity_id).await?;
 
         *position = Position {
             x: self.x as i32,

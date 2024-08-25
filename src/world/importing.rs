@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use std::process::exit;
 
 use indicatif::ProgressBar;
-use nbt_lib::{Deserialize, NBTDeserialize, NBTDeserializeBytes, read_tag};
+use nbt_lib::{read_tag, Deserialize, NBTDeserialize, NBTDeserializeBytes};
 use rayon::prelude::*;
 use tokio::task::JoinSet;
 use tracing::{debug, error, info, warn};
@@ -127,4 +127,32 @@ pub async fn import_regions(
         format_time(start.elapsed().as_millis() as u64)
     );
     Ok(())
+}
+
+#[cfg(test)]
+mod test {
+    use crate::create_state;
+    use crate::utils::setup_logger;
+    use tokio::net::TcpListener;
+
+    #[tokio::test]
+    async fn get_chunk_at() {
+        // set environment variable "FERRUMC_ROOT" to the root of the ferrumc project
+        std::env::set_var(
+            "FERRUMC_ROOT",
+            "D:\\Minecraft\\framework\\ferrumc\\ferrumc-2_0\\ferrumc\\target\\release",
+        );
+        setup_logger();
+        let listener = TcpListener::bind("0.0.0.0:25565").await.unwrap();
+        let state = create_state(listener).await.unwrap();
+
+        let chunk = state
+            .database
+            .get_chunk(0, 0, "overworld")
+            .await
+            .unwrap()
+            .unwrap();
+
+        println!("{:#?}", chunk);
+    }
 }

@@ -3,15 +3,15 @@ use tracing_subscriber::filter::Directive;
 use crate::utils::constants::DEFAULT_LOG_LEVEL;
 use crate::utils::prelude::*;
 
-pub mod encoding;
-pub mod error;
-pub mod prelude;
-pub mod impls;
+pub mod binary_utils;
 pub mod components;
 pub mod config;
 pub mod constants;
+pub mod encoding;
+pub mod error;
 pub mod hash;
-pub mod binary_utils;
+pub mod impls;
+pub mod prelude;
 
 /// Sets up the logger. Needs to be run before anything else in order for logging to run end.
 pub fn setup_logger() -> Result<()> {

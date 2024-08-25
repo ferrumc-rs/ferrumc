@@ -4,8 +4,8 @@ use ferrumc_macros::{packet, Decode};
 
 use crate::net::packets::{ConnectionId, IncomingPacket};
 use crate::state::GlobalState;
-use crate::Connection;
 use crate::utils::components::keep_alive::KeepAlive;
+use crate::Connection;
 
 #[derive(Decode, Debug)]
 #[packet(packet_id = 0x12, state = "play")]
@@ -26,7 +26,6 @@ impl IncomingPacket for KeepAlivePacketIn {
         info!("Player: {:?}", player);
 
         let mut keep_alive = state.world.get_component_mut::<KeepAlive>(player).await?;
-
 
         info!("KeepAlive for player: {:?}", *keep_alive);
 

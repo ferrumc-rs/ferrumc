@@ -1,6 +1,6 @@
+mod chunk_stuff;
 mod nbt_de;
 mod nbt_ser;
-mod chunk_stuff;
 
 #[cfg(test)]
 mod tests {
@@ -8,7 +8,6 @@ mod tests {
 
     use ferrumc_codec::network_types::varint::VarInt;
     use ferrumc_macros::Decode;
-
 
     #[tokio::test]
     async fn test_macro_decode() {

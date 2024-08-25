@@ -75,10 +75,7 @@ impl KeepAliveSystem {
                 }
 
                 let conn = conn_wrapper.0.read().await;
-                let player = state
-                    .world
-                    .get_component::<Player>(conn.id)
-                    .await;
+                let player = state.world.get_component::<Player>(conn.id).await;
 
                 let username = player
                     .as_ref()

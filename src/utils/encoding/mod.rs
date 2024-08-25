@@ -1,9 +1,9 @@
-use std::io::{Cursor, Write};
+use crate::utils::error::Error;
 use ferrumc_codec::enc::Encode;
 use nbt_lib::nbt_spec::serializer::NBTCompoundMarker;
 use nbt_lib::NBTSerialize;
+use std::io::{Cursor, Write};
 use tokio::io::AsyncWrite;
-use crate::utils::error::Error;
 
 pub mod bitset;
 pub mod position;

@@ -61,12 +61,8 @@ impl IncomingPacket for Status {
         debug!("Handling status request packet");
         let config = config::get_global_config();
 
-        let mut conn = state
-            .connections
-            .get_connection(conn_id)?;
-        let mut conn = conn
-            .write()
-            .await;
+        let mut conn = state.connections.get_connection(conn_id)?;
+        let mut conn = conn.write().await;
 
         let response = OutgoingStatusResponse {
             packet_id: VarInt::new(0x00),
@@ -95,7 +91,7 @@ impl IncomingPacket for Status {
                 },
                 favicon: get_encoded_favicon().await,
             })
-                .unwrap(),
+            .unwrap(),
         };
 
         let mut cursor = std::io::Cursor::new(Vec::new());

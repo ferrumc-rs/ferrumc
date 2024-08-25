@@ -1,9 +1,9 @@
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncSeek, AsyncWrite, AsyncWriteExt};
 
 use crate::utils::encoding::position::Position;
-use ferrumc_codec::network_types::varint::{VarInt};
-use ferrumc_codec::network_types::varlong::{Varlong};
 use crate::utils::error::Error;
+use ferrumc_codec::network_types::varint::VarInt;
+use ferrumc_codec::network_types::varlong::Varlong;
 
 /// This trait is used to decode a type from a byte stream. It is implemented for all types that
 /// can be decoded from a byte stream.
@@ -217,7 +217,7 @@ impl Decode for VarInt {
     where
         T: AsyncRead + Unpin,
     {
-        Ok(Box::from( VarInt::read(bytes).await?))
+        Ok(Box::from(VarInt::read(bytes).await?))
     }
 }
 

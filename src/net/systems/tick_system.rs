@@ -1,12 +1,12 @@
-use async_trait::async_trait;
-use ferrumc_macros::AutoGenName;
-use tracing::info;
-use crate::net::ConnectionWrapper;
 use crate::net::systems::System;
+use crate::net::ConnectionWrapper;
 use crate::state::GlobalState;
 use crate::utils::components::player::Player;
 use crate::utils::components::rotation::Rotation;
 use crate::utils::encoding::position::Position;
+use async_trait::async_trait;
+use ferrumc_macros::AutoGenName;
+use tracing::info;
 
 #[derive(AutoGenName)]
 pub struct TickSystem;
