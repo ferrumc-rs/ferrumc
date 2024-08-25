@@ -8,6 +8,12 @@
   <img src="https://img.shields.io/github/languages/code-size/Sweattypalms/ferrumc" alt="Code Size">
   <img src="https://img.shields.io/badge/language-Rust-orange" alt="Language">
 </p>
+<p align="center">
+  <a href="https://discord.gg/qT5J8EMjwk">
+    <img src="https://img.shields.io/discord/1277314213878173726?color=7289DA&label=Join%20our%20Discord&logo=discord&logoColor=white" alt="Join our Discord">
+  </a>
+</p>
+
 
 ## 📖 About
 
