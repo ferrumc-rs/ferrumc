@@ -6,7 +6,6 @@ use crate::Result;
 use ferrumc_codec::enc::Encode;
 use ferrumc_codec::network_types::varint::VarInt;
 use ferrumc_macros::Encode;
-use tracing::debug;
 use nbt_lib::NBTTag;
 
 #[derive(Encode)]
@@ -103,9 +102,13 @@ impl ChunkDataAndUpdateLight {
 async fn serialize_block_states(block_states: &BlockStates) -> Result<Vec<u8>> {
     let mut data = Vec::new();
 
+    let non_air_blocks: i16 = 4096; // 16 * 16 * 16
+    non_air_blocks.encode(&mut data).await?;
+
     let palettes = block_states.palette.as_ref().ok_or(Error::MissingBlockStates)?;
     let palette_len = palettes.len();
-    let bits_per_block = (palette_len as f32).log2().ceil() as u8;
+    // let bits_per_block = (palette_len as f32).log2().ceil().max(2.0) as u8;
+    let bits_per_block = 15;
 
     data.push(bits_per_block);
 
@@ -142,7 +145,7 @@ async fn serialize_biomes(biomes: &Biomes) -> Result<Vec<u8>> {
     }
 
     // Set all biomes to the first biome in the palette (For simplicity)
-    let biome_data = vec![0u64; 1];
+    let biome_data = vec![0u64; 64];
     VarInt::from(biome_data.len() as i32).encode(&mut data).await?;
     for long in &biome_data {
         long.encode(&mut data).await?;
@@ -172,12 +175,12 @@ fn create_basic_chunk(chunk_x: i32, chunk_z: i32) -> Chunk {
         }),
     };
 
-    let palette = vec![air_palette, stone_palette, grass_palette, oak_log_palette];
+    let palette = vec![air_palette, stone_palette];
 
 
     let mut sections = Vec::with_capacity(24); // 24 sections for -64 to 320 world height
     for y in -4..=20 {
-        let chunk_data = vec![vec![(y as u8 % 4); 16*16*16]];
+        let chunk_data = vec![vec![1; 16 * 16 * 16]];
 
         let block_states = create_block_states(chunk_data, palette.clone());
 
@@ -195,7 +198,6 @@ fn create_basic_chunk(chunk_x: i32, chunk_z: i32) -> Chunk {
 
     // Set heightmap to the top of the world (320 + 1)
     let mut heightmap = vec![0; 37];
-
 
 
     Chunk {
@@ -222,7 +224,8 @@ fn create_basic_chunk(chunk_x: i32, chunk_z: i32) -> Chunk {
 }
 
 fn create_block_states(chunk_data: Vec<Vec<u8>>, palette: Vec<Palette>) -> BlockStates {
-    let bits_per_block = (palette.len() as f32).log2().ceil() as u8;
+    // let bits_per_block = (palette.len() as f32).log2().ceil().max(2.0) as u8;
+    let bits_per_block = 15;
 
     let mask = (1 << bits_per_block) - 1;
 
