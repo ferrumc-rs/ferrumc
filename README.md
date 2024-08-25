@@ -79,13 +79,20 @@ FerrumC is a Minecraft server implementation written from the ground up in Rust.
 
 ### 📥 Installation
 
-#### Option 1: Download pre-compiled binary (Maybe outdated!)
+[//]: # (#### Option 1: Download pre-compiled binary &#40;Maybe outdated!&#41;)
 
-1. Go to the [Releases](https://github.com/Sweattypalms/ferrumc/releases) page
-2. Download the latest version for your operating system
-3. Extract the archive to your desired location
+[//]: # ()
+[//]: # (1. Go to the [Releases]&#40;https://github.com/Sweattypalms/ferrumc/releases&#41; page)
 
-#### Option 2: Compile from source (Bleeding edge updates, always up-to-date)
+[//]: # (2. Download the latest version for your operating system)
+
+[//]: # (3. Extract the archive to your desired location)
+
+<p>
+Unfortunately, the server is not yet ready for production use. If you want to try it out, you can compile it from source.
+</p>
+
+#### Compile from source (Bleeding edge updates, always up-to-date)
 
 ```bash
 # Clone the repository
