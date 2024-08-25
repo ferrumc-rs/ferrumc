@@ -21,7 +21,7 @@ FerrumC is a Minecraft server implementation written from the ground up in Rust 
 ### ✨ Key Features
 
 - 🚀 High performance and low latency as well as efficient resource usage
-#![Low memory usage](https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/low_mem_usage.png?raw=true)
+![Low memory usage](https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/low_mem_usage.png?raw=true)
 - 🔄 Drop-in replacement for vanilla Minecraft server (kinda)
 - 🌐 Compatible with all vanilla Minecraft clients (Version: 1.20.1)
 - 🛠 Open-source for community contributions and customization
