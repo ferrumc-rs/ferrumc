@@ -1,7 +1,7 @@
 use crate::state::GlobalState;
 use crate::utils::encoding::bitset::BitSet;
 use crate::utils::error::Error;
-use crate::world::chunkformat::{Biomes, BlockStates, Chunk, Heightmaps, Palette, Properties, References, Section, Starts, Structures};
+use crate::world::chunkformat::{Biomes, BlockStates, Chunk, Heightmaps, References, Section, Starts, Structures};
 use crate::Result;
 use ferrumc_codec::enc::Encode;
 use ferrumc_codec::network_types::varint::VarInt;
@@ -58,7 +58,7 @@ impl ChunkDataAndUpdateLight {
             };
             // data.extend(serialize_block_sttes(block_states)?);
 
-            2048i16.encode(&mut data).await?;
+            4096i16.encode(&mut data).await?;
 
             let block_states_data = serialize_block_states(block_states).await?;
             data.extend(block_states_data);
@@ -76,14 +76,14 @@ impl ChunkDataAndUpdateLight {
         // -4 to 20
         const SECTIONS: usize = 24;
 
-        let sky_light_mask = BitSet::from_iter((0..SECTIONS+2).map(|_| 1));
-        let block_light_mask = BitSet::from_iter((0..SECTIONS+2).map(|_| 1));
-        let empty_sky_light_mask = BitSet::from_iter((0..SECTIONS+2).map(|_| 0));
-        let empty_block_light_mask = BitSet::from_iter((0..SECTIONS+2).map(|_| 0));
+        let sky_light_mask = BitSet::from_iter((0..SECTIONS + 2).map(|_| 1));
+        let block_light_mask = BitSet::from_iter((0..SECTIONS + 2).map(|_| 1));
+        let empty_sky_light_mask = BitSet::from_iter((0..SECTIONS + 2).map(|_| 0));
+        let empty_block_light_mask = BitSet::from_iter((0..SECTIONS + 2).map(|_| 0));
 
         // Create light arrays
-        let sky_light_arrays = vec![LightArray { data: vec![0xFF; 2048] };  SECTIONS+2];
-        let block_light_arrays = vec![LightArray { data: vec![0xFF; 2048] }; SECTIONS+2];
+        let sky_light_arrays = vec![LightArray { data: vec![0xFF; 2048] }; SECTIONS + 2];
+        let block_light_arrays = vec![LightArray { data: vec![0xFF; 2048] }; SECTIONS + 2];
 
         Ok(ChunkDataAndUpdateLight {
             packet_id: VarInt::from(0x24),
@@ -97,9 +97,9 @@ impl ChunkDataAndUpdateLight {
             block_light_mask,
             empty_sky_light_mask,
             empty_block_light_mask,
-            sky_light_array_count: VarInt::from((SECTIONS + 2)as i32),
+            sky_light_array_count: VarInt::from((SECTIONS + 2) as i32),
             sky_light_arrays,
-            block_light_array_count: VarInt::from((SECTIONS +2) as i32),
+            block_light_array_count: VarInt::from((SECTIONS + 2) as i32),
             block_light_arrays,
         })
     }
@@ -107,21 +107,10 @@ impl ChunkDataAndUpdateLight {
 
 async fn serialize_block_states(block_states: &BlockStates) -> Result<Vec<u8>> {
     let mut data = Vec::new();
-
-    let palettes = block_states.palette.as_ref().ok_or(Error::MissingBlockStates)?;
-    let palette_len = palettes.len();
-    // let bits_per_block = (palette_len as f32).log2().ceil() as u8;
     let bits_per_block = 15; // direct palette
-
     data.push(bits_per_block);
 
-    // Serialize palette
-/*    VarInt::from(palette_len as i32).encode(&mut data).await?;
-    for palette_entry in palettes {
-        // data.extend(palette_entry.)
-        let block_state_id = get_block_state_id(&palette_entry.name);
-        VarInt::from(block_state_id).encode(&mut data).await?;
-    }*/
+    // No palette serialization for direct palette
 
     // Serialize the block data
     let block_data = block_states.data.as_ref().unwrap();
@@ -134,36 +123,23 @@ async fn serialize_block_states(block_states: &BlockStates) -> Result<Vec<u8>> {
     Ok(data)
 }
 async fn serialize_biomes(biomes: &Biomes) -> Result<Vec<u8>> {
-    let mut data = Vec::new();
-
-    let palette_len = biomes.palette.len();
-    let bits_per_biome = (palette_len as f32).log2().ceil() as u8;
-
+    let mut data: Vec<u8> = Vec::new();
+    let bits_per_biome = 6;
     data.push(bits_per_biome);
 
-    // Serialize palette
-    VarInt::from(palette_len as i32).encode(&mut data).await?;
-    for palette_entry in &biomes.palette {
-        let biome_id = get_biome_id(palette_entry);
-        VarInt::from(biome_id).encode(&mut data).await?;
-    }
-
-    // Set all biomes to the first biome in the palette (For simplicity)
-    let biome_data = vec![0u64; 1];
+    // Direct biome encoding, no palette
+    let biome_data = vec![0u64; (64 * (bits_per_biome as usize) / 64) as usize]; // 64 biomes per section
     VarInt::from(biome_data.len() as i32).encode(&mut data).await?;
-    // 127u64.encode(&mut data).await?; // void
 
-    for _ in 0..SECTION_WIDTH * SECTION_WIDTH {
-        // 127u64.encode(&mut data).await?; // void
-        VarInt::from(127).encode(&mut data).await?;
+    for long in biome_data {
+        long.encode(&mut data).await?;
     }
-
 
     Ok(data)
 }
 
 fn create_basic_chunk(chunk_x: i32, chunk_z: i32) -> Chunk {
-    let air_palette = Palette {
+    /*let air_palette = Palette {
         name: "minecraft:air".to_string(),
         properties: None,
     };
@@ -183,23 +159,29 @@ fn create_basic_chunk(chunk_x: i32, chunk_z: i32) -> Chunk {
         }),
     };
 
-    let palette = vec![air_palette, stone_palette];
-
+*/
 
     let mut sections = Vec::with_capacity(24); // 24 sections for -64 to 320 world height
     for y in -4..=20 {
-        let chunk_data = vec![vec![1; 16 * 16 * 16]];
+        let possible_values = vec![1, 9, 131]; // stone, grass, oak log
+        let first_half = possible_values[y as usize % possible_values.len()];
+        let second_half = possible_values[(y + 1) as usize % possible_values.len()];
+        // let chunk_data = vec![my_value; 16 * 16 * 16];
 
-        let block_states = create_block_states(chunk_data, palette.clone());
+        let mut chunk_data = vec![first_half; 16 * 16 * 8];
+        chunk_data.extend(vec![second_half; 16 * 16 * 8]);
+
+
+        let block_states = create_block_states(&chunk_data, 15);
 
         let section = Section {
             block_states: Some(block_states.clone()),
             biomes: Some(Biomes {
                 palette: vec!["minecraft:plains".to_string()]
             }),
-            y: y as i8, // Bottom most section
-            block_light: Some(vec![0xf; 2048]), // Full bright (0-15)
-            sky_light: Some(vec![0xf; 2048]), // Full bright (0-15)
+            y: y as i8,
+            block_light: Some(vec![0xf; 2048]),
+            sky_light: Some(vec![0xf; 2048]),
         };
         sections.push(section);
     }
@@ -231,73 +213,46 @@ fn create_basic_chunk(chunk_x: i32, chunk_z: i32) -> Chunk {
     }
 }
 
-fn create_block_states(chunk_data: Vec<Vec<u8>>, palette: Vec<Palette>) -> BlockStates {
-    // let bits_per_block = (palette.len() as f32).log2().ceil().max(2.0) as u8;
-    let bits_per_block = 15; // direct palette
-
-    let mask = (1 << bits_per_block) - 1;
-
-    let mut data = Vec::new();
-
-    for layer in chunk_data.iter() {
-        let mut current_long = 0u64;
-        let mut blocks_in_current_long = 0;
-
-        for &block in layer.iter() {
-            current_long |= (block as u64 & mask) << (bits_per_block as u64 * blocks_in_current_long as u64);
-            blocks_in_current_long += 1;
-
-            if blocks_in_current_long == 64 / bits_per_block as usize {
-                data.push(current_long);
-                current_long = 0;
-                blocks_in_current_long = 0;
-            }
-        }
-
-        if blocks_in_current_long > 0 {
-            data.push(current_long);
-        }
-    }
-
-    let data = unsafe { std::mem::transmute::<Vec<u64>, Vec<i64>>(data) };
+fn create_block_states(chunk_data: &[u32], bits_per_entry: u8) -> BlockStates {
+    let packed_data = pack_entries(chunk_data, bits_per_entry);
 
     BlockStates {
-        data: Some(data),
-        palette: Some(palette),
+        data: Some(packed_data),
+        palette: if bits_per_entry < 15 {
+            Some(Vec::new()) // We'll need to populate this for indirect encoding
+        } else {
+            None // Direct encoding, no palette
+        },
     }
-    /*let bits_per_block = (palette.len() as f32).log2().ceil() as u8;
-    let blocks_per_long = 64 / bits_per_block as usize;
-    let mask = (1 << bits_per_block) - 1;
-
-    let mut data = Vec::new();
-    let mut current_long = 0u64;
-    let mut blocks_in_current_long = 0;
-
-    for layer in chunk_data.iter() {
-        for &block in layer.iter() {
-            current_long |= (block as u64 & mask) << (bits_per_block as u64 * blocks_in_current_long as u64);
-            blocks_in_current_long += 1;
-
-            if blocks_in_current_long == blocks_per_long {
-                data.push(current_long);
-                current_long = 0;
-                blocks_in_current_long = 0;
-            }
-        }
-    }
-
-    if blocks_in_current_long > 0 {
-        data.push(current_long);
-    }
-
-    // Convert u64 to i64 cuz i cba writing a proper conversion function ;)
-    let data = unsafe { std::mem::transmute::<Vec<u64>, Vec<i64>>(data) };
-
-    BlockStates {
-        data: Some(data),
-        palette: Some(palette),
-    }*/
 }
+fn pack_entries(entries: &[u32], bits_per_entry: u8) -> Vec<i64> {
+    let entries_per_long = 64 / bits_per_entry as usize;
+    let mask = (1u64 << bits_per_entry) - 1;
+    let total_longs = (entries.len() + entries_per_long - 1) / entries_per_long;
+
+    let mut packed_data = Vec::with_capacity(total_longs);
+    let mut current_long = 0u64;
+    let mut entries_in_long = 0;
+
+    for &entry in entries {
+        current_long |= (entry as u64 & mask) << (bits_per_entry as u64 * entries_in_long as u64);
+        entries_in_long += 1;
+
+        if entries_in_long == entries_per_long {
+            packed_data.push(current_long as i64);
+            current_long = 0;
+            entries_in_long = 0;
+        }
+    }
+
+    // Handle padding for the last long if necessary
+    if entries_in_long > 0 {
+        packed_data.push(current_long as i64);
+    }
+
+    packed_data
+}
+
 
 fn get_block_state_id(block_name: &str) -> i32 {
     // This should be replaced with a proper block state registry lookup
