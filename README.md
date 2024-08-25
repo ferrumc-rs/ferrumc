@@ -29,9 +29,14 @@
 
 FerrumC is a Minecraft server implementation written from the ground up in Rust with performance in mind. Leveraging the power of the Rust programming language, FerrumC achieves high performance and low latency, making it an ideal choice for Minecraft server hosting.
 
+![Minecraft Character](README/assets/in_game.png)
+![Server list](README/assets/server%20list.png)
+![Cool stuff](README/assets/mind%20boggling.gif)
+
 ### ✨ Key Features
 
-- 🚀 High performance and low latency
+- 🚀 High performance and low latency as well as efficient resource usage
+#![Low memory usage](README/assets/low_mem_usage.png)
 - 🔄 Drop-in replacement for vanilla Minecraft server
 - 🌐 Compatible with all vanilla Minecraft clients (Version: 1.20.1)
 - 🛠 Open-source for community contributions and customization
@@ -49,15 +54,17 @@ FerrumC is a Minecraft server implementation written from the ground up in Rust 
 - Packet handling, serialization, and deserialization
 - Great logging system
 - Keep-alive system
+- NBT serialization and deserialization
 
 </details>
+
 
 <details>
 <summary><b>🔨 In Progress</b></summary>
 
-- NBT serialization and deserialization
 - World stuff (chunks loading, saving, etc.)
 - Database integration (embedded)
+- Entities and physics
 
 </details>
 

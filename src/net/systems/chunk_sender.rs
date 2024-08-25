@@ -19,7 +19,7 @@ pub struct ChunkSender;
 #[async_trait]
 impl System for ChunkSender {
     async fn run(&self, state: GlobalState) {
-        let mut interval = tokio::time::interval(std::time::Duration::from_secs(5));
+        let mut interval = tokio::time::interval(std::time::Duration::from_millis(5000));
         loop {
             interval.tick().await;
 
@@ -57,13 +57,16 @@ async fn send_chunks_to_player(
 ) -> Result<()> {
     let mut write_guard = conn.write().await;
 
-    const CHUNK_RADIUS: i32 = 1;
+    const CHUNK_RADIUS: i32 = 5;
 
-    for x in -CHUNK_RADIUS..=CHUNK_RADIUS {
+    for x in 0..=CHUNK_RADIUS*2 {
         for z in -CHUNK_RADIUS..=CHUNK_RADIUS {
             let packet =
-                ChunkDataAndUpdateLight::new(state.clone(), (pos.x >> 4) + x, (pos.z >> 4) + z)
-                    .await?;
+                ChunkDataAndUpdateLight::new(
+                    state.clone(),
+                    (pos.x >> 4) + x,
+                    (pos.z >> 4) + z
+                ).await?;
 
             if let Err(e) = write_guard.send_packet(packet).await {
                 warn!("Failed to send chunk to player: {}", e);

@@ -1,9 +1,11 @@
 [package]
-name = "ferrumc2_0"
+name = "ferrumc"
 version = "0.1.1"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+build = "build/build.rs"
 
 [dependencies]
 # Async
@@ -59,12 +61,15 @@ rayon = "1.10.0"
 flate2 = "1.0.31"
 bincode = "2.0.0-rc.3"
 
+
 # CLI
 clap = { version = "4.5.11" }
 clap_derive = "4.5.11"
 indicatif = "0.17.8"
 
-
+[build-dependencies]
+# Build
+winres = "0.1.12"
 
 [dev-dependencies]
 # Benches

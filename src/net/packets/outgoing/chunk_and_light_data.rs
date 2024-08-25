@@ -138,38 +138,24 @@ async fn serialize_biomes(biomes: &Biomes) -> Result<Vec<u8>> {
     Ok(data)
 }
 
+use rand::Rng;
+
 fn create_basic_chunk(chunk_x: i32, chunk_z: i32) -> Chunk {
-    /*let air_palette = Palette {
-        name: "minecraft:air".to_string(),
-        properties: None,
-    };
-    let stone_palette = Palette {
-        name: "minecraft:stone".to_string(),
-        properties: None,
-    };
-    let grass_palette = Palette {
-        name: "minecraft:grass_block".to_string(),
-        properties: None,
-    };
-    let oak_log_palette = Palette {
-        name: "minecraft:oak_log".to_string(),
-        properties: Some(Properties {
-            axis: Some("y".to_string()),
-            ..Default::default()
-        }),
-    };
-
-*/
-
+    let mut rng = rand::thread_rng();
     let mut sections = Vec::with_capacity(24); // 24 sections for -64 to 320 world height
     for y in -4..=20 {
-        let possible_values = vec![1, 9, 131]; // stone, grass, oak log
-        let first_half = possible_values[y as usize % possible_values.len()];
-        let second_half = possible_values[(y + 1) as usize % possible_values.len()];
-        // let chunk_data = vec![my_value; 16 * 16 * 16];
+        // let possible_values = vec![1, 9, 131]; // stone, grass, oak log
+        let mut chunk_data = vec![9; 16 * 16 * 16];
 
-        let mut chunk_data = vec![first_half; 16 * 16 * 8];
-        chunk_data.extend(vec![second_half; 16 * 16 * 8]);
+        /*if y > 1 && y < 6 {
+            for x in 0..16 {
+                for z in 0..16 {
+                    let random_block = rng.gen_range(0..20_000);
+                    // let random_value = possible_values[rng.gen_range(0..possible_values.len())];
+                    chunk_data[x * 16 + z * 256] = random_block;
+                }
+            }
+        }*/
 
 
         let block_states = create_block_states(&chunk_data, 15);
@@ -187,8 +173,7 @@ fn create_basic_chunk(chunk_x: i32, chunk_z: i32) -> Chunk {
     }
 
     // Set heightmap to the top of the world (320 + 1)
-    let mut heightmap = vec![1i64; 256];
-
+    let mut heightmap = vec![321i64; 256];
 
     Chunk {
         status: "full".to_string(),
