@@ -57,10 +57,10 @@ async fn send_chunks_to_player(
 ) -> Result<()> {
     let mut write_guard = conn.write().await;
 
-    const CHUNK_RADIUS: i32 = 5;
+    const CHUNK_RADIUS: i32 = 1;
 
-    for x in -CHUNK_RADIUS..CHUNK_RADIUS {
-        for z in -CHUNK_RADIUS..CHUNK_RADIUS {
+    for x in -CHUNK_RADIUS..=CHUNK_RADIUS {
+        for z in -CHUNK_RADIUS..=CHUNK_RADIUS {
             let packet =
                 ChunkDataAndUpdateLight::new(state.clone(), (pos.x >> 4) + x, (pos.z >> 4) + z)
                     .await?;
