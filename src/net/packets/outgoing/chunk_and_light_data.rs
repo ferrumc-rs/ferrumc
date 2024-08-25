@@ -6,6 +6,7 @@ use crate::Result;
 use ferrumc_codec::enc::Encode;
 use ferrumc_codec::network_types::varint::VarInt;
 use ferrumc_macros::Encode;
+use tracing::debug;
 use nbt_lib::NBTTag;
 
 #[derive(Encode)]
@@ -99,7 +100,7 @@ async fn serialize_block_states(block_states: &BlockStates) -> Result<Vec<u8>> {
 
     let palettes = block_states.palette.as_ref().ok_or(Error::MissingBlockStates)?;
     let palette_len = palettes.len();
-    let bits_per_block = (palette_len as f32).log2().ceil() as u8;
+    let bits_per_block = (palette_len as f32).log2().ceil().max(4.0) as u8;
 
     data.push(bits_per_block);
 
@@ -107,6 +108,7 @@ async fn serialize_block_states(block_states: &BlockStates) -> Result<Vec<u8>> {
     VarInt::from(palette_len as i32).encode(&mut data).await?;
     for palette_entry in palettes {
         // data.extend(palette_entry.)
+        debug!("Palette entry: {:?}", palette_entry);
         let block_state_id = get_block_state_id(&palette_entry.name);
         VarInt::from(block_state_id).encode(&mut data).await?;
     }
@@ -155,10 +157,6 @@ fn create_basic_chunk(chunk_x: i32, chunk_z: i32) -> Chunk {
         name: "minecraft:stone".to_string(),
         properties: None,
     };
-    let dirt_palette = Palette {
-        name: "minecraft:dirt".to_string(),
-        properties: None,
-    };
     let grass_palette = Palette {
         name: "minecraft:grass_block".to_string(),
         properties: Some(Properties {
@@ -166,27 +164,91 @@ fn create_basic_chunk(chunk_x: i32, chunk_z: i32) -> Chunk {
             ..Default::default()
         }),
     };
+    let oak_log_palette = Palette {
+        name: "minecraft:oak_log".to_string(),
+        properties: Some(Properties {
+            axis: Some("y".to_string()),
+            ..Default::default()
+        }),
+    };
+
+    // let chunk_data = vec![vec![1; 16*16*8], vec![2; 16*16*8]];
 
     // Create block states for a single section
-    let block_states = BlockStates {
-        // data: Some(vec![1]),
-        data: Some(vec![
-            /*            0x3333333333333333, 0x3333333333333333, // Grass layer
-                        0x2222222222222222, 0x2222222222222222, // Dirt layer
-                        0x1111111111111111, 0x1111111111111111, // Stone layers
-                        0x1111111111111111, 0x1111111111111111,*/
-            8; 8
-        ]),
-        palette: Some(vec![
-            air_palette,
-            stone_palette,
-            // dirt_palette,
-            grass_palette,
-        ]),
-    };
+    // let block_states = create_block_states(chunk_data, vec![air_palette, grass_palette, dirt_palette, stone_palette]);
+
+    let palette = vec![air_palette, oak_log_palette, grass_palette, stone_palette];
+
+    fn create_block_states(chunk_data: Vec<Vec<u8>>, palette: Vec<Palette>) -> BlockStates {
+        /*let bits_per_block = (palette.len() as f32).log2().ceil().max(4.0) as u8;
+        let blocks_per_long = 64 / bits_per_block as usize;
+        let mask = (1 << bits_per_block) - 1;
+
+        let mut data = Vec::new();
+        let mut current_long = 0u64;
+        let mut blocks_in_current_long = 0;
+
+        for layer in chunk_data.iter() {
+            for &block in layer.iter() {
+                current_long |= (block as u64 & mask) << (bits_per_block as u64 * blocks_in_current_long as u64);
+                blocks_in_current_long += 1;
+
+                if blocks_in_current_long == blocks_per_long {
+                    data.push(current_long);
+                    current_long = 0;
+                    blocks_in_current_long = 0;
+                }
+            }
+        }
+
+        if blocks_in_current_long > 0 {
+            data.push(current_long);
+        }
+
+        // Convert u64 to i64 cuz i cba writing a proper conversion function ;)
+        let data = unsafe { std::mem::transmute::<Vec<u64>, Vec<i64>>(data) };
+
+        BlockStates {
+            data: Some(data),
+            palette: Some(palette),
+        }*/
+        let bits_per_block = 4; // Force 4 bits per block for simplicity
+        let blocks_per_long = 64 / bits_per_block as usize; // Should be 16
+
+        // Create a simple repeating pattern: air, stone, grass, log
+        let mut data = Vec::new();
+        for _ in 0..(4096 / blocks_per_long) { // 4096 is 16x16x16
+            let mut long = 0u64;
+            for i in 0..blocks_per_long {
+                long |= (i as u64 % 4) << (i * bits_per_block);
+            }
+            data.push(long as i64);
+        }
+
+        BlockStates {
+            data: Some(data),
+            palette: Some(palette),
+        }
+    }
 
     let mut sections = Vec::with_capacity(24); // 24 sections for -64 to 320 world height
     for y in -4..20 {
+        let chunk_data = /*if y == 3 {*/
+            // Top layer (grass)
+            vec![vec![4; 16*16*16]];
+        /* else if y == 2 {
+            // Second layer (dirt)
+            vec![vec![2; 16*16*16]]
+        } else if y >= 0 {
+            // Air above ground
+            vec![vec![0; 16*16*16]]
+        } else {
+            // Stone below ground
+            vec![vec![3; 16*16*16]]
+        };*/
+
+        let block_states = create_block_states(chunk_data, palette.clone());
+
         let section = Section {
             block_states: Some(block_states.clone()),
             biomes: Some(Biomes {
@@ -199,7 +261,8 @@ fn create_basic_chunk(chunk_x: i32, chunk_z: i32) -> Chunk {
         sections.push(section);
     }
 
-    let mut heightmap = vec![1i64; 37];
+    // Set heightmap to the top of the grass layer
+    let heightmap = vec![320i64; 37];
 
 
     Chunk {
@@ -231,8 +294,8 @@ fn get_block_state_id(block_name: &str) -> i32 {
     match block_name {
         "minecraft:air" => 0,
         "minecraft:stone" => 1,
-        "minecraft:dirt" => 3,
-        "minecraft:grass_block" => 8,
+        "minecraft:grass_block" => 9,
+        "minecraft:oak_log" => 131,
         _ => 0,
     }
 }
