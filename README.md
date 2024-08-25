@@ -118,6 +118,8 @@ We welcome contributions! If you'd like to contribute to FerrumC, please follow 
 4. Write or update tests as necessary
 5. Submit a pull request
 
+Join our [Discord server](https://discord.gg/qT5J8EMjwk) to get help or discuss the project!
+
 
 ## 📜 License
 
