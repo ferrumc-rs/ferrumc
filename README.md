@@ -1,21 +1,5 @@
-[//]: # (<div align="center" style="background: linear-gradient&#40;to bottom, #0d0f10 80%, rgba&#40;13,15,16,0&#41;&#41;; padding: 60px 0 40px; width: auto;">)
-
-[//]: # (    <div style="width: 200px; height: 200px; margin: 0 auto; position: relative;">)
-
-[//]: # (        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #ff6600; filter: blur&#40;20px&#41; opacity&#40;0.7&#41;; border-radius: 20px;"></div>)
-
-[//]: # (        <img src="icon.png" alt="FerrumC Icon" width="200" style="position: relative; border-radius: 20px;">)
-
-[//]: # (    </div>)
-
-[//]: # (    <h1 style="color: #ff6600; font-size: 38px; margin-top: 30px; letter-spacing: 2px;">FerrumC</h1>)
-
-[//]: # (    <p style="color: #ffa366; font-size: 14px; max-width: 600px; margin: 10px auto;">A high-performance Minecraft server implementation, crafted in Rust for unparalleled speed and efficiency</p>)
-
-[//]: # (</div>)
-
 <div style="width: 100%">
-   <img src="README/assets/header.svg" alt="FerrumC Header">
+   <img src="https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/header.svg?raw=true" alt="FerrumC Header">
 </div>
 
 
@@ -27,18 +11,18 @@
 
 ## 📖 About
 
-FerrumC is a Minecraft server implementation written from the ground up in Rust with performance in mind. Leveraging the power of the Rust programming language, FerrumC achieves high performance and low latency, making it an ideal choice for Minecraft server hosting.
+FerrumC is a Minecraft server implementation written from the ground up in Rust with performance in mind. Leveraging the power of the Rust programming language, it achieves high performance and low latency as well as amazing memory efficiency!
 
-![Minecraft Character](README/assets/in_game.png)
-![Server list](README/assets/server%20list.png)
+![Minecraft Character](https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/in_game.png?raw=true)
+![Server list](https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/server%20list.png?raw=true)
 *FerrumC in action! This is updating almost 50k blocks in 10th of a second*
-![Cool stuff](README/assets/mind%20boggling.gif)
+![Cool stuff](https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/mind%20boggling.gif?raw=true)
 
 ### ✨ Key Features
 
 - 🚀 High performance and low latency as well as efficient resource usage
-#![Low memory usage](README/assets/low_mem_usage.png)
-- 🔄 Drop-in replacement for vanilla Minecraft server
+#![Low memory usage](https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/low_mem_usage.png?raw=true)
+- 🔄 Drop-in replacement for vanilla Minecraft server (kinda)
 - 🌐 Compatible with all vanilla Minecraft clients (Version: 1.20.1)
 - 🛠 Open-source for community contributions and customization
 - ⚡ Built with Rust for memory safety and concurrency
