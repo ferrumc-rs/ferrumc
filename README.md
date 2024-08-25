@@ -31,6 +31,7 @@ FerrumC is a Minecraft server implementation written from the ground up in Rust 
 
 ![Minecraft Character](README/assets/in_game.png)
 ![Server list](README/assets/server%20list.png)
+*FerrumC in action! This is updating almost 50k blocks in 10th of a second*
 ![Cool stuff](README/assets/mind%20boggling.gif)
 
 ### ✨ Key Features
