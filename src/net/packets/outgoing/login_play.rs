@@ -1,6 +1,6 @@
 use ferrumc_codec::network_types::varint::VarInt;
+
 use ferrumc_macros::Encode;
-use nbt_lib::NBTSerialize;
 
 /// The login play packet is sent by the server to the client to start the play state.
 /// Contains info about the world
@@ -32,15 +32,15 @@ pub struct LoginPlay {
     pub portal_cooldown: VarInt,
 }
 
-// A test to just produce the codec file
-// #[cfg(test)]
+#[ignore]
 #[test]
 fn generate_codec() {
     use crate::net::the_dimension_codec::Root;
     let codec_file = std::fs::File::open("../../../../.etc/codec.json").unwrap();
     let reader = std::io::BufReader::new(codec_file);
-    let codec: Root = serde_json::from_reader(reader).unwrap();
+    let mut codec: Root = serde_json::from_reader(reader).unwrap();
     let mut codec_nbt_file = std::fs::File::create("../../../../.etc/nbt_codec.nbt").unwrap();
-    // fastnbt::to_writer(&mut codec_nbt_file, &mut codec).unwrap();
-    codec.serialize(&mut codec_nbt_file).unwrap();
+    // Use fastnbt here since I can't be fucked doing the attributes for the codec struct, and it's for
+    // tests anyway so doesn't need to be that fast
+    fastnbt::to_writer(&mut codec_nbt_file, &mut codec).unwrap();
 }

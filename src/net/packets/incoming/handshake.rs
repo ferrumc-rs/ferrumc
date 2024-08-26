@@ -3,7 +3,7 @@ use ferrumc_macros::{packet, Decode};
 use crate::net::packets::{ConnectionId, IncomingPacket};
 use crate::state::GlobalState;
 use crate::utils::prelude::*;
-use crate::{net::State, Connection};
+use crate::net::State;
 use ferrumc_codec::network_types::varint::VarInt;
 
 /// The first packet sent by the client to the server.
@@ -20,7 +20,7 @@ pub struct Handshake {
 
 impl IncomingPacket for Handshake {
     async fn handle(self, conn_id: ConnectionId, state: GlobalState) -> Result<()> {
-        let Some(mut conn) = state.connections.connections.get(&conn_id) else {
+        let Some(conn) = state.connections.connections.get(&conn_id) else {
             return Err(Error::ConnectionNotFound(conn_id));
         };
 

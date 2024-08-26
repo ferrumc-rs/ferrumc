@@ -1,7 +1,4 @@
-use crate::world::chunkformat::Heightmaps;
 use ferrumc_codec::enc::Encode;
-use nbt_lib::{read_tag, NBTSerialize, Serialize};
-use std::io::Cursor;
 use tracing::debug;
 
 #[tokio::test]

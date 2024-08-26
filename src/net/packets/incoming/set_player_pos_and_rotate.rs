@@ -1,12 +1,10 @@
 use ferrumc_macros::{packet, Decode};
 
-use crate::net::packets::outgoing::chunk_and_light_data::ChunkDataAndUpdateLight;
 use crate::net::packets::{ConnectionId, IncomingPacket};
 use crate::state::GlobalState;
 use crate::utils::components::rotation::Rotation;
 use crate::utils::encoding::position::Position;
 use crate::utils::prelude::*;
-use crate::Connection;
 
 #[derive(Decode)]
 #[packet(packet_id = 0x15, state = "play")]

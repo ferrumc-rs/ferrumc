@@ -1,19 +1,17 @@
 use std::cmp::PartialEq;
 use std::fmt::{Debug, Display};
 use std::io::Cursor;
-use std::ops::DerefMut;
 use std::sync::atomic::AtomicU32;
 use std::sync::{atomic, Arc};
 use std::time::Duration;
 
 use dashmap::DashMap;
 use ferrumc_macros::Component;
-use rand::random;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::sync::RwLock;
 use tracing::{debug, error, trace};
 
-use crate::net::packets::{handle_packet, ConnectionId};
+use crate::net::packets::handle_packet;
 use crate::state::GlobalState;
 
 use super::utils::config::get_global_config;

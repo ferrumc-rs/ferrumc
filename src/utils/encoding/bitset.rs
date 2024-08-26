@@ -44,11 +44,10 @@ impl Encode for BitSet {
 }
 */
 
-use crate::utils::error::Error;
 use ferrumc_codec::enc::Encode;
 use ferrumc_codec::network_types::varint::VarInt;
-use std::ops::{Index, IndexMut};
-use tokio::io::{AsyncSeek, AsyncWrite, AsyncWriteExt};
+use std::ops::Index;
+use tokio::io::{AsyncWrite, AsyncWriteExt};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct BitSet {

@@ -11,7 +11,6 @@ use crate::net::packets::{ConnectionId, IncomingPacket};
 use crate::state::GlobalState;
 use crate::utils::config;
 use crate::utils::prelude::*;
-use crate::Connection;
 use ferrumc_codec::enc::Encode;
 use ferrumc_codec::network_types::varint::VarInt;
 
@@ -61,7 +60,7 @@ impl IncomingPacket for Status {
         debug!("Handling status request packet");
         let config = config::get_global_config();
 
-        let mut conn = state.connections.get_connection(conn_id)?;
+        let conn = state.connections.get_connection(conn_id)?;
         let mut conn = conn.write().await;
 
         let response = OutgoingStatusResponse {

@@ -138,14 +138,13 @@ async fn serialize_biomes(biomes: &Biomes) -> Result<Vec<u8>> {
     Ok(data)
 }
 
-use rand::Rng;
 
 fn create_basic_chunk(chunk_x: i32, chunk_z: i32) -> Chunk {
-    let mut rng = rand::thread_rng();
+    let rng = rand::thread_rng();
     let mut sections = Vec::with_capacity(24); // 24 sections for -64 to 320 world height
     for y in -4..=20 {
         // let possible_values = vec![1, 9, 131]; // stone, grass, oak log
-        let mut chunk_data = vec![9; 16 * 16 * 16];
+        let chunk_data = vec![9; 16 * 16 * 16];
 
         /*if y > 1 && y < 6 {
             for x in 0..16 {
@@ -173,7 +172,7 @@ fn create_basic_chunk(chunk_x: i32, chunk_z: i32) -> Chunk {
     }
 
     // Set heightmap to the top of the world (320 + 1)
-    let mut heightmap = vec![321i64; 256];
+    let heightmap = vec![321i64; 256];
 
     Chunk {
         status: "full".to_string(),

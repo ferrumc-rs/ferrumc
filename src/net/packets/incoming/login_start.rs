@@ -128,7 +128,7 @@ impl LoginStart {
 
     async fn send_spawn_position(
         &self,
-        mut conn: &mut RwLockWriteGuard<'_, Connection>,
+        conn: &mut RwLockWriteGuard<'_, Connection>,
     ) -> Result<()> {
         let player_position = Position {
             x: 0,
@@ -142,7 +142,7 @@ impl LoginStart {
 
     async fn send_keep_alive(
         &self,
-        mut conn: &mut RwLockWriteGuard<'_, Connection>,
+        conn: &mut RwLockWriteGuard<'_, Connection>,
         keep_alive: &mut KeepAlive,
     ) -> Result<()> {
         let keep_alive_outgoing: KeepAlivePacketOut = keep_alive.into();

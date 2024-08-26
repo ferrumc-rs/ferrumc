@@ -3,10 +3,10 @@ use std::path::PathBuf;
 use std::process::exit;
 
 use indicatif::ProgressBar;
-use nbt_lib::{read_tag, Deserialize, NBTDeserialize, NBTDeserializeBytes};
+use nbt_lib::NBTDeserializeBytes;
 use rayon::prelude::*;
 use tokio::task::JoinSet;
-use tracing::{debug, error, info, warn};
+use tracing::{error, info, warn};
 
 use crate::state::GlobalState;
 use crate::world::chunkformat::Chunk;

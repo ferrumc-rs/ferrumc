@@ -4,7 +4,6 @@ use ferrumc_macros::{packet, Decode};
 
 use crate::net::packets::{ConnectionId, IncomingPacket};
 use crate::state::GlobalState;
-use crate::Connection;
 
 #[derive(Decode)]
 #[packet(packet_id = 0x08, state = "play")]

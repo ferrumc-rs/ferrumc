@@ -1,5 +1,4 @@
 use crate::net::packets::{ConnectionId, IncomingPacket};
-use crate::net::Connection;
 use crate::state::GlobalState;
 use crate::utils::components::player::Player;
 use ferrumc_macros::{packet, Decode};

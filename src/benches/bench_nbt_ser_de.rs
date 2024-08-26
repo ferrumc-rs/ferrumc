@@ -1,10 +1,9 @@
-use crate::test_de_data::{create_test_player, Player};
 use crate::test_simd_de_data::MinecraftChunk;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use nbt_lib::{
-    read_tag, Deserialize, NBTDeserialize, NBTDeserializeBytes, NBTSerialize, Serialize,
+    read_tag, Deserialize, NBTDeserialize, NBTSerialize, Serialize,
 };
-use std::io::{Cursor, Read, Write};
+use std::io::{Cursor, Write};
 
 mod test_de_data {
     use super::*;

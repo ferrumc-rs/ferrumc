@@ -7,7 +7,6 @@ use crate::net::packets::outgoing::ping::OutgoingPing;
 use crate::net::packets::{ConnectionId, IncomingPacket};
 use crate::state::GlobalState;
 use crate::utils::prelude::*;
-use crate::Connection;
 use ferrumc_codec::enc::Encode;
 use ferrumc_codec::network_types::varint::VarInt;
 

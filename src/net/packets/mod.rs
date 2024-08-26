@@ -2,7 +2,6 @@ use ferrumc_macros::bake_packet_registry;
 
 use crate::state::GlobalState;
 use crate::utils::prelude::*;
-use crate::Connection;
 
 pub mod incoming;
 pub mod outgoing;

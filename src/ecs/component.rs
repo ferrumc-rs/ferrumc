@@ -7,7 +7,6 @@ use crate::ecs::error::Error;
 use crate::ecs::helpers::sparse_set::SparseSet;
 use dashmap::DashMap;
 use tokio::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
-use tracing::debug;
 
 /// A trait for components in the ECS.
 pub trait Component: 'static + Send + Sync + Debug {}
