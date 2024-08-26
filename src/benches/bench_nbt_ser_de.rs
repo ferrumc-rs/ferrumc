@@ -1,13 +1,14 @@
-use crate::test_simd_de_data::MinecraftChunk;
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use nbt_lib::{
-    read_tag, Deserialize, NBTDeserialize, NBTSerialize, Serialize,
-};
 use std::io::{Cursor, Write};
+
+use criterion::{black_box, Criterion, criterion_group, criterion_main};
+use nbt_lib::{NBTDeserialize, NBTDeserialize, NBTSerialize, NBTSerialize, read_tag};
+
+use crate::test_simd_de_data::MinecraftChunk;
 
 mod test_de_data {
     use super::*;
-    #[derive(Serialize, Deserialize, Debug, Clone)]
+
+    #[derive(NBTSerialize, NBTDeserialize, Debug, Clone)]
     #[nbt(is_root)]
     #[nbt(rename = "Player")]
     pub struct Player {
@@ -25,14 +26,14 @@ mod test_de_data {
         settings: Settings,
     }
 
-    #[derive(Serialize, Deserialize, Debug, Clone)]
+    #[derive(NBTSerialize, NBTDeserialize, Debug, Clone)]
     struct Position {
         x: f64,
         y: f64,
         z: f64,
     }
 
-    #[derive(Serialize, Deserialize, Debug, Clone)]
+    #[derive(NBTSerialize, NBTDeserialize, Debug, Clone)]
     struct Item {
         id: String,
         count: i32,
@@ -40,26 +41,26 @@ mod test_de_data {
         enchantments: Vec<Enchantment>,
     }
 
-    #[derive(Serialize, Deserialize, Debug, Clone)]
+    #[derive(NBTSerialize, NBTDeserialize, Debug, Clone)]
     struct Enchantment {
         id: String,
         level: i16,
     }
 
-    #[derive(Serialize, Deserialize, Debug, Clone)]
+    #[derive(NBTSerialize, NBTDeserialize, Debug, Clone)]
     struct Skill {
         name: String,
         level: i32,
         experience: f32,
     }
 
-    #[derive(Serialize, Deserialize, Debug, Clone)]
+    #[derive(NBTSerialize, NBTDeserialize, Debug, Clone)]
     struct Achievements {
         total_unlocked: i32,
         list: Vec<String>,
     }
 
-    #[derive(Serialize, Deserialize, Debug, Clone)]
+    #[derive(NBTSerialize, NBTDeserialize, Debug, Clone)]
     struct Stats {
         playtime: i64,
         mobs_killed: i32,
@@ -68,7 +69,7 @@ mod test_de_data {
         blocks_broken: i64,
     }
 
-    #[derive(Serialize, Deserialize, Debug, Clone)]
+    #[derive(NBTSerialize, NBTDeserialize, Debug, Clone)]
     struct Settings {
         render_distance: i32,
         difficulty: String,
@@ -175,7 +176,7 @@ mod test_de_data {
 mod test_simd_de_data {
     use super::*;
 
-    #[derive(Serialize, Deserialize, Debug)]
+    #[derive(NBTSerialize, NBTDeserialize, Debug)]
     #[nbt(rename = "Level")]
     #[nbt(is_root)]
     pub struct MinecraftChunk {
@@ -203,7 +204,7 @@ mod test_simd_de_data {
         pub tile_entities: Vec<TileEntity>,
     }
 
-    #[derive(Serialize, Deserialize, Debug)]
+    #[derive(NBTSerialize, NBTDeserialize, Debug)]
     pub struct ChunkSection {
         #[nbt(rename = "Y")]
         pub y: i8,
@@ -219,7 +220,7 @@ mod test_simd_de_data {
         pub block_states: Vec<i64>,
     }
 
-    #[derive(Serialize, Deserialize, Debug)]
+    #[derive(NBTSerialize, NBTDeserialize, Debug)]
     pub struct Entity {
         #[nbt(rename = "id")]
         pub id: String,
@@ -231,7 +232,7 @@ mod test_simd_de_data {
         pub rotation: Vec<f32>,
     }
 
-    #[derive(Serialize, Deserialize, Debug)]
+    #[derive(NBTSerialize, NBTDeserialize, Debug)]
     pub struct TileEntity {
         #[nbt(rename = "id")]
         pub id: String,

@@ -4,14 +4,13 @@ const BASE_NAME: &str = "nbt";
 const IS_ROOT_ATTRIBUTE: &str = "is_root";
 const RENAME_ATTRIBUTE: &str = "rename";
 
-
 /// Parses the attributes of the struct and returns the values of the `is_root` and `rename` attributes.
 /// @return: (is_root, rename)
 /// Example of usage:
 /// ```rust
-/// use nbt_derive::Serialize;
+/// use nbt_derive::NBTSerialize;
 ///
-/// #[derive(Serialize)]
+/// #[derive(NBTSerialize)]
 /// #[nbt(is_root = true)]
 /// #[nbt(rename = "player_data")]
 /// pub struct Root {
@@ -40,7 +39,8 @@ pub fn parse_struct_attributes(attrs: &[Attribute]) -> (bool, Option<String>) {
                 rename = Some(meta.value()?.parse::<syn::LitStr>()?.value());
             }
             Ok(())
-        }).unwrap();
+        })
+        .unwrap();
     }
 
     (is_root, rename)
@@ -50,16 +50,18 @@ pub fn parse_struct_attributes(attrs: &[Attribute]) -> (bool, Option<String>) {
 /// @return: rename option
 /// Example of usage:
 /// ```rust
-/// use nbt_derive::Serialize;
+/// use nbt_derive::NBTSerialize;
 ///
-/// #[derive(Serialize)]
+/// #[derive(NBTSerialize)]
 /// pub struct Root {
 ///   #[nbt(rename = "player_name")]
 ///   pub x: String,
 /// }
 pub fn parse_field_attributes(attrs: &[Attribute]) -> Option<String> {
     attrs.iter().find_map(|attr| {
-        if !attr.path().is_ident(BASE_NAME) { return None; }
+        if !attr.path().is_ident(BASE_NAME) {
+            return None;
+        }
 
         let mut rename = None;
         attr.parse_nested_meta(|meta| {
@@ -68,7 +70,8 @@ pub fn parse_field_attributes(attrs: &[Attribute]) -> Option<String> {
             }
 
             Ok(())
-        }).unwrap();
+        })
+        .unwrap();
 
         rename
     })

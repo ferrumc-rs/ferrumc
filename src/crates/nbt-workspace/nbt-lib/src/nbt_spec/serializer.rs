@@ -12,7 +12,7 @@ pub mod nbt_tag_to_writer;
 pub mod tag_types;
 
 pub trait NBTSerialize: NBTFieldType {
-    fn serialize<W: Write>(&self, writer: &mut W) -> NBTResult<()>;
+    fn nbt_serialize<W: Write>(&self, writer: &mut W) -> NBTResult<()>;
 }
 
 pub trait NBTAnonymousType {
@@ -44,7 +44,7 @@ impl<'a, T: NBTSerialize> Encode for NBTSerializeToEncodeWrapper<'a, T> {
 
         let mut sync_bytes = Vec::new();
         self.0
-            .serialize(&mut sync_bytes)
+            .nbt_serialize(&mut sync_bytes)
             .map_err(ferrumc_codec::error::CodecError::from_external_error)?;
         {
             use tokio::io::AsyncWriteExt;

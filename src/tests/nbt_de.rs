@@ -1,10 +1,13 @@
-use crate::tests::nbt_de::test_de_data::Player;
-use nbt_lib::{Deserialize, NBTDeserialize, NBTDeserializeBytes, NBTSerialize, Serialize};
 use std::io::Cursor;
+
+use nbt_lib::{NBTDeserialize, NBTDeserialize, NBTDeserializeBytes, NBTSerialize, NBTSerialize};
+
+use crate::tests::nbt_de::test_de_data::Player;
 
 pub mod test_de_data {
     use super::*;
-    #[derive(Serialize, Deserialize, Debug, Clone)]
+
+    #[derive(NBTSerialize, NBTDeserialize, Debug, Clone)]
     #[nbt(is_root)]
     #[nbt(rename = "Player")]
     pub struct Player {
@@ -22,14 +25,14 @@ pub mod test_de_data {
         settings: Settings,
     }
 
-    #[derive(Serialize, Deserialize, Debug, Clone)]
+    #[derive(NBTSerialize, NBTDeserialize, Debug, Clone)]
     struct Position {
         x: f64,
         y: f64,
         z: f64,
     }
 
-    #[derive(Serialize, Deserialize, Debug, Clone)]
+    #[derive(NBTSerialize, NBTDeserialize, Debug, Clone)]
     struct Item {
         id: String,
         count: i32,
@@ -37,26 +40,26 @@ pub mod test_de_data {
         enchantments: Vec<Enchantment>,
     }
 
-    #[derive(Serialize, Deserialize, Debug, Clone)]
+    #[derive(NBTSerialize, NBTDeserialize, Debug, Clone)]
     struct Enchantment {
         id: String,
         level: i16,
     }
 
-    #[derive(Serialize, Deserialize, Debug, Clone)]
+    #[derive(NBTSerialize, NBTDeserialize, Debug, Clone)]
     struct Skill {
         name: String,
         level: i32,
         experience: f32,
     }
 
-    #[derive(Serialize, Deserialize, Debug, Clone)]
+    #[derive(NBTSerialize, NBTDeserialize, Debug, Clone)]
     struct Achievements {
         total_unlocked: i32,
         list: Vec<String>,
     }
 
-    #[derive(Serialize, Deserialize, Debug, Clone)]
+    #[derive(NBTSerialize, NBTDeserialize, Debug, Clone)]
     struct Stats {
         playtime: i64,
         mobs_killed: i32,
@@ -65,7 +68,7 @@ pub mod test_de_data {
         blocks_broken: i64,
     }
 
-    #[derive(Serialize, Deserialize, Debug, Clone)]
+    #[derive(NBTSerialize, NBTDeserialize, Debug, Clone)]
     struct Settings {
         render_distance: i32,
         difficulty: String,
@@ -182,10 +185,11 @@ fn try_read() {
     println!("{:#?}", deserialized_player);
 }
 mod alguy_struct {
-    use nbt_lib::{Deserialize, Serialize};
     use std::collections::HashMap;
 
-    #[derive(Debug, Serialize, Deserialize)]
+    use nbt_lib::{NBTDeserialize, NBTSerialize};
+
+    #[derive(Debug, NBTSerialize, NBTDeserialize)]
     #[nbt(rename = "")] // root tag
     #[nbt(is_root)]
     pub struct PlayerData {
@@ -267,7 +271,7 @@ mod alguy_struct {
         inventory: Vec<Item>,
     }
 
-    #[derive(Debug, Serialize, Deserialize)]
+    #[derive(Debug, NBTSerialize, NBTDeserialize)]
     struct Item {
         #[nbt(rename = "Slot")]
         slot: i8,
@@ -277,7 +281,7 @@ mod alguy_struct {
         tag: Option<ItemTag>,
     }
 
-    #[derive(Debug, Serialize, Deserialize)]
+    #[derive(Debug, NBTSerialize, NBTDeserialize)]
     struct ItemTag {
         display: Option<Display>,
         #[nbt(rename = "Enchantments")]
@@ -292,19 +296,19 @@ mod alguy_struct {
         trim: Option<Trim>,
     }
 
-    #[derive(Debug, Serialize, Deserialize)]
+    #[derive(Debug, NBTSerialize, NBTDeserialize)]
     struct Display {
         #[nbt(rename = "Name")]
         name: Option<String>,
     }
 
-    #[derive(Debug, Serialize, Deserialize)]
+    #[derive(Debug, NBTSerialize, NBTDeserialize)]
     struct Enchantment {
         id: String,
         lvl: i16,
     }
 
-    #[derive(Debug, Serialize, Deserialize)]
+    #[derive(Debug, NBTSerialize, NBTDeserialize)]
     struct BlockEntityTag {
         #[nbt(rename = "Items")]
         items: Option<Vec<Item>>,
@@ -316,7 +320,7 @@ mod alguy_struct {
         base: Option<i32>,
     }
 
-    #[derive(Debug, Serialize, Deserialize)]
+    #[derive(Debug, NBTSerialize, NBTDeserialize)]
     struct Pattern {
         #[nbt(rename = "Color")]
         color: i32,
@@ -324,13 +328,13 @@ mod alguy_struct {
         pattern: String,
     }
 
-    #[derive(Debug, Serialize, Deserialize)]
+    #[derive(Debug, NBTSerialize, NBTDeserialize)]
     struct Trim {
         pattern: String,
         material: String,
     }
 
-    #[derive(Debug, Serialize, Deserialize)]
+    #[derive(Debug, NBTSerialize, NBTDeserialize)]
     struct Abilities {
         flying: bool,
         instabuild: bool,
@@ -344,14 +348,14 @@ mod alguy_struct {
         may_build: bool,
     }
 
-    #[derive(Debug, Serialize, Deserialize)]
+    #[derive(Debug, NBTSerialize, NBTDeserialize)]
     struct WardenSpawnTracker {
         warning_level: i32,
         ticks_since_last_warning: i32,
         cooldown_ticks: i32,
     }
 
-    #[derive(Debug, Serialize, Deserialize)]
+    #[derive(Debug, NBTSerialize, NBTDeserialize)]
     struct RecipeBook {
         recipes: Vec<String>,
         #[nbt(rename = "toBeDisplayed")]
@@ -374,12 +378,12 @@ mod alguy_struct {
         is_smoker_gui_open: bool,
     }
 
-    #[derive(Debug, Serialize, Deserialize)]
+    #[derive(Debug, NBTSerialize, NBTDeserialize)]
     struct Brain {
         memories: HashMap<String, String>,
     }
 
-    #[derive(Debug, Serialize, Deserialize)]
+    #[derive(Debug, NBTSerialize, NBTDeserialize)]
     struct Attribute {
         #[nbt(rename = "Name")]
         name: String,
@@ -390,14 +394,14 @@ mod alguy_struct {
 
 #[test]
 fn showcase_nbt_usage() {
-    #[derive(Serialize, Deserialize)]
+    #[derive(NBTSerialize, NBTDeserialize)]
     #[nbt(is_root)]
     struct Sample {
         name: String,
         hand_item: Item,
     }
 
-    #[derive(Serialize, Deserialize)]
+    #[derive(NBTSerialize, NBTDeserialize)]
     struct Item {
         id: String,
     }
@@ -420,7 +424,7 @@ fn showcase_nbt_usage() {
 
 #[test]
 fn test_byte_array() {
-    #[derive(Serialize, Deserialize, Debug)]
+    #[derive(NBTSerialize, NBTDeserialize, Debug)]
     #[nbt(is_root)]
     struct ByteArray {
         data: Vec<i8>,

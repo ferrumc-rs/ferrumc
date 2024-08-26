@@ -32,7 +32,7 @@ impl NBTFieldType for NBTTag {
 }
 
 impl NBTSerialize for NBTTag {
-    fn serialize<W: Write>(&self, writer: &mut W) -> NBTResult<()> {
+    fn nbt_serialize<W: Write>(&self, writer: &mut W) -> NBTResult<()> {
         write_tag(self, writer)
     }
 }
