@@ -80,3 +80,59 @@ pub fn read_n_bits_u32(bytes: &i64, pos: usize, n: usize) -> Result<u32, Error> 
     let mask = (1 << n) - 1;
     Ok(((u64::try_from(*bytes).expect("Failed to convert i64 to u64") >> pos) & mask) as u32)
 }
+
+/// Write an arbitrary amount of bits to an i64 at a given position.
+/// Expects the bits to be in the least significant bits of the i64 (big-endian)
+///
+/// # Arguments
+/// * `bytes` - The i64 to write to
+/// * `pos` - The position to start writing to in bits
+/// * `n` - The number of bits to write
+/// * `value` - The value to write
+///
+/// # Example
+/// ```rs
+/// let mut bytes = 0b
+/// let pos = 0;
+/// let n = 5;
+/// let value = 28;
+/// write_n_bits_u8(&mut bytes, pos, n, value).unwrap();
+/// assert_eq!(bytes, 0b1110011);
+pub fn write_n_bits_u8(bytes: &mut i64, pos: usize, n: usize, value: u8) -> Result<(), Error> {
+    if n > 8 {
+        return Err(Error::BitReadOverflowInput(n, 8));
+    }
+    if pos + n > 64 {
+        return Err(Error::BitWriteOverflow(pos + n, 64));
+    }
+    let mask = (1 << n) - 1;
+    *bytes &= !(mask << pos);
+    *bytes |= (i64::from(value) & mask) << pos;
+    Ok(())
+}
+
+pub fn write_n_bits_u16(bytes: &mut i64, pos: usize, n: usize, value: u16) -> Result<(), Error> {
+    if n > 16 {
+        return Err(Error::BitReadOverflowInput(n, 16));
+    }
+    if pos + n > 64 {
+        return Err(Error::BitWriteOverflow(pos + n, 64));
+    }
+    let mask = (1 << n) - 1;
+    *bytes &= !(mask << pos);
+    *bytes |= (i64::from(value) & mask) << pos;
+    Ok(())
+}
+
+pub fn write_n_bits_u32(bytes: &mut i64, pos: usize, n: usize, value: u32) -> Result<(), Error> {
+    if n > 32 {
+        return Err(Error::BitReadOverflowInput(n, 32));
+    }
+    if pos + n > 64 {
+        return Err(Error::BitWriteOverflow(pos + n, 64));
+    }
+    let mask = (1 << n) - 1;
+    *bytes &= !(mask << pos);
+    *bytes |= (i64::from(value) & mask) << pos;
+    Ok(())
+}

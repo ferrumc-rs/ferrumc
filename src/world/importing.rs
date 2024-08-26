@@ -138,12 +138,8 @@ mod test {
     #[tokio::test]
     async fn get_chunk_at() {
         // set environment variable "FERRUMC_ROOT" to the root of the ferrumc project
-        std::env::set_var(
-            "FERRUMC_ROOT",
-            "D:\\Minecraft\\framework\\ferrumc\\ferrumc-2_0\\ferrumc\\target\\release",
-        );
         setup_logger().unwrap();
-        let listener = TcpListener::bind("0.0.0.0:25565").await.unwrap();
+        let listener = TcpListener::bind("0.0.0.0:0").await.unwrap();
         let state = create_state(listener).await.unwrap();
 
         let chunk = state

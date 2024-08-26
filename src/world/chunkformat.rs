@@ -136,8 +136,15 @@ pub struct Section {
     Deserialize,
 )]
 pub struct BlockStates {
+    // These 2 fields don't exist in the chunks stored on disk but will exist when converted to
+    // network format
+    pub non_air_blocks: Option<i16>,
+    pub bits_per_block: Option<i8>,
     pub data: Option<Vec<i64>>,
+    // This is the palette for the chunk when stored on disk
     pub palette: Option<Vec<Palette>>,
+    // This is the palette for the chunk when converted to network format
+    pub net_palette: Option<Vec<i8>>,
 }
 
 #[derive(

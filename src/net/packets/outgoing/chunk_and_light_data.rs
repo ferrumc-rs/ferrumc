@@ -12,8 +12,8 @@ use crate::world::chunkformat::{
     Biomes, BlockStates, Chunk, Heightmaps, References, Section, Starts, Structures,
 };
 
-// const SECTION_WIDTH: usize = 16;
-// const SECTION_HEIGHT: usize = 16;
+const SECTION_WIDTH: usize = 16;
+const SECTION_HEIGHT: usize = 16;
 
 #[derive(NetEncode)]
 pub struct ChunkDataAndUpdateLight {
@@ -217,12 +217,15 @@ fn create_block_states(chunk_data: &[u32], bits_per_entry: u8) -> BlockStates {
     let packed_data = pack_entries(chunk_data, bits_per_entry);
 
     BlockStates {
+        non_air_blocks: None,
+        bits_per_block: None,
         data: Some(packed_data),
         palette: if bits_per_entry < 15 {
             Some(Vec::new()) // We'll need to populate this for indirect encoding
         } else {
             None // Direct encoding, no palette
         },
+        net_palette: None,
     }
 }
 fn pack_entries(entries: &[u32], bits_per_entry: u8) -> Vec<i64> {
