@@ -4,7 +4,6 @@ use std::process::exit;
 
 use indicatif::ProgressBar;
 use nbt_lib::NBTDeserializeBytes;
-use rayon::prelude::*;
 use tokio::task::JoinSet;
 use tracing::{error, info, warn};
 
@@ -131,9 +130,10 @@ pub async fn import_regions(
 
 #[cfg(test)]
 mod test {
+    use tokio::net::TcpListener;
+
     use crate::create_state;
     use crate::utils::setup_logger;
-    use tokio::net::TcpListener;
 
     #[tokio::test]
     async fn get_chunk_at() {

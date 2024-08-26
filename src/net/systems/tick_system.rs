@@ -1,8 +1,10 @@
-use crate::net::systems::System;
-use crate::net::ConnectionWrapper;
-use crate::state::GlobalState;
 use async_trait::async_trait;
+
 use ferrumc_macros::AutoGenName;
+
+use crate::net::ConnectionWrapper;
+use crate::net::systems::System;
+use crate::state::GlobalState;
 
 #[derive(AutoGenName)]
 pub struct TickSystem;
@@ -10,7 +12,7 @@ pub struct TickSystem;
 #[async_trait]
 impl System for TickSystem {
     async fn run(&self, state: GlobalState) {
-        let query = state.world.query::<&ConnectionWrapper>();
+        let _query = state.world.query::<&ConnectionWrapper>();
 
         loop {
             /*while let Some((idx, (player, position, rotation))) = query.next().await {

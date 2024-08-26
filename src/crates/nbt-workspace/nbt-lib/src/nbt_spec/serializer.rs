@@ -1,15 +1,15 @@
-use crate::NBTResult;
-use ferrumc_codec::enc::Encode;
-use impls::NBTFieldType;
 use std::io::Write;
 use std::marker::PhantomData;
+
+use ferrumc_codec::enc::Encode;
+use impls::NBTFieldType;
 use tokio::io::AsyncWrite;
-use crate::nbt_spec::serializer::tag_types::{TAG_COMPOUND, TAG_END};
+
+use crate::NBTResult;
 
 pub mod impls;
-pub mod tag_types;
 pub mod nbt_tag_to_writer;
-
+pub mod tag_types;
 
 pub trait NBTSerialize: NBTFieldType {
     fn serialize<W: Write>(&self, writer: &mut W) -> NBTResult<()>;
@@ -19,7 +19,6 @@ pub trait NBTAnonymousType {
     fn tag_type() -> u8;
 }
 
-
 pub struct NBTSerializeToEncodeWrapper<'a, T: NBTSerialize>(pub &'a T, PhantomData<T>);
 
 impl<'a, T: NBTSerialize> NBTSerializeToEncodeWrapper<'a, T> {
@@ -27,7 +26,6 @@ impl<'a, T: NBTSerialize> NBTSerializeToEncodeWrapper<'a, T> {
         NBTSerializeToEncodeWrapper(value, PhantomData)
     }
 }
-
 
 /// Just a marker trait to identify NBTCompound.
 /// This is used to implement network Serialize for : NBTSerialize + NBTCompoundMarker
@@ -45,7 +43,8 @@ impl<'a, T: NBTSerialize> Encode for NBTSerializeToEncodeWrapper<'a, T> {
         // Header (TAG_COMPOUND, empty name) is written by the caller. Usually the derive macro.
 
         let mut sync_bytes = Vec::new();
-        self.0.serialize(&mut sync_bytes)
+        self.0
+            .serialize(&mut sync_bytes)
             .map_err(ferrumc_codec::error::CodecError::from_external_error)?;
         {
             use tokio::io::AsyncWriteExt;

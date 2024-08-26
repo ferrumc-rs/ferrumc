@@ -1,15 +1,19 @@
+use ferrumc_codec::enc::Encode;
+use ferrumc_codec::network_types::varint::VarInt;
+use nbt_lib::NBTTag;
+
+use ferrumc_macros::Encode;
+
+use crate::Result;
 use crate::state::GlobalState;
 use crate::utils::encoding::bitset::BitSet;
 use crate::utils::error::Error;
-use crate::world::chunkformat::{Biomes, BlockStates, Chunk, Heightmaps, References, Section, Starts, Structures};
-use crate::Result;
-use ferrumc_codec::enc::Encode;
-use ferrumc_codec::network_types::varint::VarInt;
-use ferrumc_macros::Encode;
-use nbt_lib::NBTTag;
+use crate::world::chunkformat::{
+    Biomes, BlockStates, Chunk, Heightmaps, References, Section, Starts, Structures,
+};
 
-const SECTION_WIDTH: usize = 16;
-const SECTION_HEIGHT: usize = 16;
+// const SECTION_WIDTH: usize = 16;
+// const SECTION_HEIGHT: usize = 16;
 
 #[derive(Encode)]
 pub struct ChunkDataAndUpdateLight {
@@ -54,7 +58,7 @@ impl ChunkDataAndUpdateLight {
         let mut data = Vec::new();
         for section in chunk.sections.as_ref().unwrap() {
             let Some(block_states) = &section.block_states else {
-                return Err(Error::MissingBlockStates)
+                return Err(Error::MissingBlockStates);
             };
             // data.extend(serialize_block_sttes(block_states)?);
 
@@ -64,7 +68,7 @@ impl ChunkDataAndUpdateLight {
             data.extend(block_states_data);
 
             let Some(biomes) = &section.biomes else {
-                return Err(Error::MissingBlockStates)
+                return Err(Error::MissingBlockStates);
             };
 
             let biomes_data = serialize_biomes(biomes).await?;
@@ -82,8 +86,18 @@ impl ChunkDataAndUpdateLight {
         let empty_block_light_mask = BitSet::from_iter((0..SECTIONS + 2).map(|_| 0));
 
         // Create light arrays
-        let sky_light_arrays = vec![LightArray { data: vec![0xFF; 2048] }; SECTIONS + 2];
-        let block_light_arrays = vec![LightArray { data: vec![0xFF; 2048] }; SECTIONS + 2];
+        let sky_light_arrays = vec![
+            LightArray {
+                data: vec![0xFF; 2048]
+            };
+            SECTIONS + 2
+        ];
+        let block_light_arrays = vec![
+            LightArray {
+                data: vec![0xFF; 2048]
+            };
+            SECTIONS + 2
+        ];
 
         Ok(ChunkDataAndUpdateLight {
             packet_id: VarInt::from(0x24),
@@ -114,7 +128,9 @@ async fn serialize_block_states(block_states: &BlockStates) -> Result<Vec<u8>> {
 
     // Serialize the block data
     let block_data = block_states.data.as_ref().unwrap();
-    VarInt::from(block_data.len() as i32).encode(&mut data).await?;
+    VarInt::from(block_data.len() as i32)
+        .encode(&mut data)
+        .await?;
 
     for long in block_data {
         long.encode(&mut data).await?;
@@ -122,14 +138,16 @@ async fn serialize_block_states(block_states: &BlockStates) -> Result<Vec<u8>> {
 
     Ok(data)
 }
-async fn serialize_biomes(biomes: &Biomes) -> Result<Vec<u8>> {
+async fn serialize_biomes(_biomes: &Biomes) -> Result<Vec<u8>> {
     let mut data: Vec<u8> = Vec::new();
     let bits_per_biome = 6;
     data.push(bits_per_biome);
 
     // Direct biome encoding, no palette
     let biome_data = vec![0u64; (64 * (bits_per_biome as usize) / 64) as usize]; // 64 biomes per section
-    VarInt::from(biome_data.len() as i32).encode(&mut data).await?;
+    VarInt::from(biome_data.len() as i32)
+        .encode(&mut data)
+        .await?;
 
     for long in biome_data {
         long.encode(&mut data).await?;
@@ -138,9 +156,8 @@ async fn serialize_biomes(biomes: &Biomes) -> Result<Vec<u8>> {
     Ok(data)
 }
 
-
 fn create_basic_chunk(chunk_x: i32, chunk_z: i32) -> Chunk {
-    let rng = rand::thread_rng();
+    let _rng = rand::thread_rng();
     let mut sections = Vec::with_capacity(24); // 24 sections for -64 to 320 world height
     for y in -4..=20 {
         // let possible_values = vec![1, 9, 131]; // stone, grass, oak log
@@ -156,13 +173,12 @@ fn create_basic_chunk(chunk_x: i32, chunk_z: i32) -> Chunk {
             }
         }*/
 
-
         let block_states = create_block_states(&chunk_data, 15);
 
         let section = Section {
             block_states: Some(block_states.clone()),
             biomes: Some(Biomes {
-                palette: vec!["minecraft:plains".to_string()]
+                palette: vec!["minecraft:plains".to_string()],
             }),
             y: y as i8,
             block_light: Some(vec![0xf; 2048]),
@@ -237,22 +253,21 @@ fn pack_entries(entries: &[u32], bits_per_entry: u8) -> Vec<i64> {
     packed_data
 }
 
+// fn get_block_state_id(block_name: &str) -> i32 {
+//     // This should be replaced with a proper block state registry lookup
+//     match block_name {
+//         "minecraft:air" => 0,
+//         "minecraft:stone" => 1,
+//         "minecraft:grass_block" => 9,
+//         "minecraft:oak_log" => 131,
+//         _ => 0,
+//     }
+// }
 
-fn get_block_state_id(block_name: &str) -> i32 {
-    // This should be replaced with a proper block state registry lookup
-    match block_name {
-        "minecraft:air" => 0,
-        "minecraft:stone" => 1,
-        "minecraft:grass_block" => 9,
-        "minecraft:oak_log" => 131,
-        _ => 0,
-    }
-}
-
-fn get_biome_id(biome: &str) -> i32 {
-    // This should be replaced with a proper biome registry lookup
-    match biome {
-        "minecraft:plains" => 127,
-        _ => 0,
-    }
-}
+// fn get_biome_id(biome: &str) -> i32 {
+//     // This should be replaced with a proper biome registry lookup
+//     match biome {
+//         "minecraft:plains" => 127,
+//         _ => 0,
+//     }
+// }
