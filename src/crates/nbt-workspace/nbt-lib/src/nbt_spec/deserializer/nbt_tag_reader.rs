@@ -1,12 +1,14 @@
 use std::collections::HashMap;
 use std::io::{Cursor, Read};
 use std::simd::*;
-use ferrumc_codec::enc::Encode;
+
+use ferrumc_codec::enc::NetEncode;
 use tokio::io::AsyncWrite;
+
+use crate::{NBTResult, NBTSerialize};
 use crate::error::NBTError;
 use crate::nbt_spec::deserializer::cursor_ext::CursorExt;
 use crate::nbt_spec::deserializer::NBTDeserializeBytes;
-use crate::{NBTResult, NBTSerialize};
 
 #[derive(Debug)]
 pub enum NBTTag {
@@ -38,7 +40,7 @@ impl NBTTag {
 pub fn read_tag(cursor: &mut Cursor<Vec<u8>>) -> NBTResult<NBTTag> {
     if cursor.get_ref().len() >= cursor.position() as usize {
         Ok(read_tag_checked(cursor)?)
-    }else {
+    } else {
         Err(NBTError::UnexpectedEOF)
     }
 }
@@ -68,12 +70,15 @@ fn read_tag_based_on_type(cursor: &mut Cursor<Vec<u8>>, tag_type: u8) -> NBTResu
         11 => {
             let len = cursor.read_i32()? as usize;
             Ok(NBTTag::IntArray(read_int_array_simd(cursor, len)))
-        },
+        }
         12 => {
             let len = cursor.read_i32()? as usize;
             Ok(NBTTag::LongArray(read_long_array_simd(cursor, len)))
-        },
-        _ => Err(NBTError::DeserializeError(format!("Unknown tag type: {}", tag_type))),
+        }
+        _ => Err(NBTError::DeserializeError(format!(
+            "Unknown tag type: {}",
+            tag_type
+        ))),
     }
 }
 
@@ -102,7 +107,9 @@ fn read_tag_checked(cursor: &mut Cursor<Vec<u8>>) -> NBTResult<NBTTag> {
     let mut compound_data = HashMap::new();
 
     loop {
-        if cursor.position() >= cursor.get_ref().len() as u64 { break; }
+        if cursor.position() >= cursor.get_ref().len() as u64 {
+            break;
+        }
 
         let tag_type: u8 = cursor.read_i8()? as u8;
         if tag_type == 0 {
@@ -121,7 +128,9 @@ unsafe fn read_tag_unchecked(cursor: &mut Cursor<Vec<u8>>) -> NBTTag {
     let mut compound_data = HashMap::new();
 
     loop {
-        if cursor.position() >= cursor.get_ref().len() as u64 { break; }
+        if cursor.position() >= cursor.get_ref().len() as u64 {
+            break;
+        }
 
         let tag_type: u8 = cursor.read_i8_unchecked() as u8;
         if tag_type == 0 {
@@ -134,7 +143,6 @@ unsafe fn read_tag_unchecked(cursor: &mut Cursor<Vec<u8>>) -> NBTTag {
 
     NBTTag::Compound(compound_data)
 }
-
 
 #[inline(always)]
 unsafe fn read_tag_based_on_type_unchecked(cursor: &mut Cursor<Vec<u8>>, tag_type: u8) -> NBTTag {
@@ -151,11 +159,13 @@ unsafe fn read_tag_based_on_type_unchecked(cursor: &mut Cursor<Vec<u8>>, tag_typ
             let mut vec = Vec::<u8>::with_capacity(len);
             unsafe {
                 vec.set_len(len);
-                cursor.read_exact(vec.as_mut_slice()).expect("Failed to read byte array");
+                cursor
+                    .read_exact(vec.as_mut_slice())
+                    .expect("Failed to read byte array");
             }
             // Convert Vec<u8> to Vec<i8>
             NBTTag::ByteArray(vec.into_iter().map(|b| b as i8).collect())
-        },
+        }
         8 => NBTTag::String(cursor.read_nbt_string_unchecked()),
         9 => {
             let list_type = cursor.read_i8_unchecked() as u8;
@@ -170,16 +180,14 @@ unsafe fn read_tag_based_on_type_unchecked(cursor: &mut Cursor<Vec<u8>>, tag_typ
         11 => {
             let len = cursor.read_i32_unchecked() as usize;
             NBTTag::IntArray(read_int_array_simd(cursor, len))
-        },
+        }
         12 => {
             let len = cursor.read_i32_unchecked() as usize;
             NBTTag::LongArray(read_long_array_simd(cursor, len))
-        },
+        }
         _ => std::hint::unreachable_unchecked(),
     }
 }
-
-
 
 // SIMD implementations
 /*#[inline(always)]
@@ -242,9 +250,7 @@ fn read_int_array_simd(cursor: &mut Cursor<Vec<u8>>, len: usize) -> Vec<i32> {
     let data = cursor.get_ref();
 
     while remaining >= 4 && pos + 16 <= data.len() {
-        let chunk = unsafe {
-            std::slice::from_raw_parts(data[pos..].as_ptr() as *const u8, 16)
-        };
+        let chunk = unsafe { std::slice::from_raw_parts(data[pos..].as_ptr(), 16) };
         let bytes: Simd<u8, 16> = Simd::from_slice(chunk);
         let ints = Simd::from_array([
             i32::from_be_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]),
@@ -258,7 +264,7 @@ fn read_int_array_simd(cursor: &mut Cursor<Vec<u8>>, len: usize) -> Vec<i32> {
     }
 
     while remaining > 0 && pos + 4 <= data.len() {
-        let val = i32::from_be_bytes([data[pos], data[pos+1], data[pos+2], data[pos+3]]);
+        let val = i32::from_be_bytes([data[pos], data[pos + 1], data[pos + 2], data[pos + 3]]);
         result.push(val);
         pos += 4;
         remaining -= 1;
@@ -276,13 +282,16 @@ fn read_long_array_simd(cursor: &mut Cursor<Vec<u8>>, len: usize) -> Vec<i64> {
     let data = cursor.get_ref();
 
     while remaining >= 2 && pos + 16 <= data.len() {
-        let chunk = unsafe {
-            std::slice::from_raw_parts(data[pos..].as_ptr() as *const u8, 16)
-        };
+        let chunk = unsafe { std::slice::from_raw_parts(data[pos..].as_ptr(), 16) };
         let bytes: Simd<u8, 16> = Simd::from_slice(chunk);
         let longs = Simd::from_array([
-            i64::from_be_bytes([bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7]]),
-            i64::from_be_bytes([bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13], bytes[14], bytes[15]]),
+            i64::from_be_bytes([
+                bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
+            ]),
+            i64::from_be_bytes([
+                bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13], bytes[14],
+                bytes[15],
+            ]),
         ]);
         result.extend_from_slice(longs.as_array());
         pos += 16;
@@ -291,8 +300,14 @@ fn read_long_array_simd(cursor: &mut Cursor<Vec<u8>>, len: usize) -> Vec<i64> {
 
     while remaining > 0 && pos + 8 <= data.len() {
         let val = i64::from_be_bytes([
-            data[pos], data[pos+1], data[pos+2], data[pos+3],
-            data[pos+4], data[pos+5], data[pos+6], data[pos+7]
+            data[pos],
+            data[pos + 1],
+            data[pos + 2],
+            data[pos + 3],
+            data[pos + 4],
+            data[pos + 5],
+            data[pos + 6],
+            data[pos + 7],
         ]);
         result.push(val);
         pos += 8;
@@ -303,13 +318,13 @@ fn read_long_array_simd(cursor: &mut Cursor<Vec<u8>>, len: usize) -> Vec<i64> {
     result
 }
 
-impl Encode for NBTTag {
-    async fn encode<W>(&self, writer: &mut W) -> ferrumc_codec::Result<()>
+impl NetEncode for NBTTag {
+    async fn net_encode<W>(&self, writer: &mut W) -> ferrumc_codec::Result<()>
     where
-        W: AsyncWrite + Unpin
+        W: AsyncWrite + Unpin,
     {
         let mut sync_bytes = Vec::new();
-        self.serialize(&mut sync_bytes)
+        self.nbt_serialize(&mut sync_bytes)
             .map_err(ferrumc_codec::error::CodecError::from_external_error)?;
         {
             use tokio::io::AsyncWriteExt;

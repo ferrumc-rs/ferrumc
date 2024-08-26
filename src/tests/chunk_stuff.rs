@@ -1,7 +1,4 @@
-use crate::world::chunkformat::Heightmaps;
-use ferrumc_codec::enc::Encode;
-use nbt_lib::{read_tag, NBTSerialize, Serialize};
-use std::io::Cursor;
+use ferrumc_codec::enc::NetEncode;
 use tracing::debug;
 
 #[tokio::test]
@@ -25,7 +22,7 @@ pub async fn test_heightmaps() -> Result<(), Box<dyn std::error::Error>> {
     let heightmaps = chunk.heightmaps.unwrap();
 
     let mut buffer = Vec::new();
-    heightmaps.encode(&mut buffer).await.unwrap();
+    heightmaps.net_encode(&mut buffer).await.unwrap();
 
     std::fs::write(".etc/heightmaps.nbt", buffer).unwrap();
 

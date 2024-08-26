@@ -1,14 +1,13 @@
-use tracing::{debug, trace};
+use tracing::trace;
 
-use ferrumc_macros::{packet, Decode};
+use ferrumc_macros::{NetDecode, packet};
 
 use crate::net::packets::{ConnectionId, IncomingPacket};
 use crate::state::GlobalState;
 use crate::utils::encoding::position::Position;
-use crate::Connection;
 
 /// The set player position packet is sent by the client to the server to update the player's position.
-#[derive(Decode)]
+#[derive(NetDecode)]
 #[packet(packet_id = 0x14, state = "play")]
 pub struct SetPlayerPosition {
     pub x: f64,

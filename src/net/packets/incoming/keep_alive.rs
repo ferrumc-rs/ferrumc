@@ -1,13 +1,12 @@
 use tracing::info;
 
-use ferrumc_macros::{packet, Decode};
+use ferrumc_macros::{NetDecode, packet};
 
 use crate::net::packets::{ConnectionId, IncomingPacket};
 use crate::state::GlobalState;
 use crate::utils::components::keep_alive::KeepAlive;
-use crate::Connection;
 
-#[derive(Decode, Debug)]
+#[derive(NetDecode, Debug)]
 #[packet(packet_id = 0x12, state = "play")]
 pub struct KeepAlivePacketIn {
     pub keep_alive_id: i64,

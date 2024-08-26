@@ -14,7 +14,6 @@ impl Varlong {
         Varlong(value)
     }
 
-
     /// Read a Varlong from the given cursor. Uses simple bit shifting to read the value.
     ///
     /// I did not write this, but I genuinely have no idea where it came from. I think it was from
@@ -40,7 +39,8 @@ impl Varlong {
 }
 
 mod adapters {
-    use crate::enc::Encode;
+    use crate::enc::NetEncode;
+
     use super::*;
 
     impl Display for Varlong {
@@ -67,9 +67,8 @@ mod adapters {
         }
     }
 
-    impl Encode for Varlong {
-
-        async fn encode<T>(&self, cursor: &mut T) -> Result<()>
+    impl NetEncode for Varlong {
+        async fn net_encode<T>(&self, cursor: &mut T) -> Result<()>
         where
             T: AsyncWrite + Unpin,
         {
@@ -77,8 +76,6 @@ mod adapters {
         }
     }
 }
-
-
 
 /// Write a Varlong to the given cursor.
 ///
@@ -163,8 +160,6 @@ where
     }
 }
 
-
-
 #[cfg(test)]
 mod tests {
     use std::io::Cursor;
@@ -229,4 +224,3 @@ mod tests {
         );
     }
 }
-

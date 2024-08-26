@@ -1,13 +1,13 @@
 #![allow(dead_code)]
 
-use nbt_lib::nbt_spec::serializer::NBTSerialize;
-use nbt_lib::{Deserialize, Serialize};
 use std::f32::consts::PI;
 use std::f64::consts::E;
 use std::fs::File;
 use std::io::Write;
 
-#[derive(Serialize, Debug)]
+use nbt_lib::{NBTDeserialize, NBTSerialize};
+
+#[derive(NBTSerialize, Debug)]
 #[nbt(is_root)]
 #[nbt(rename = "Player")]
 pub struct NBTTestStruct {
@@ -22,14 +22,14 @@ pub struct NBTTestStruct {
     pub abilities: PlayerAbilities,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(NBTSerialize, Debug)]
 pub struct Item {
     pub id: String,
     pub count: i8,
     pub damage: i16,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(NBTSerialize, Debug)]
 pub struct PlayerAbilities {
     pub invulnerable: bool,
     pub flying: bool,
@@ -102,13 +102,13 @@ fn validate_codec_file() {
     let root = SimpleRoot::new();
 
     let mut buffer = Vec::with_capacity(1024);
-    root.serialize(&mut buffer).unwrap();
+    root.nbt_serialize(&mut buffer).unwrap();
 
     let mut file = File::create("./.etc/nbt_lib_validation.nbt").unwrap();
     file.write_all(&buffer).unwrap();
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(NBTSerialize, NBTDeserialize, Debug)]
 #[nbt(is_root)]
 #[nbt(rename = "ImTheRoot")]
 pub struct SimpleRoot {
@@ -124,20 +124,20 @@ pub struct SimpleRoot {
     im_a_list: Vec<SimpleListInner>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, NBTSerialize, NBTDeserialize)]
 pub struct SimpleChild {
     im_a_child_byte: i8,
     im_a_child_string: String,
     grand_child: SimpleGrandChild,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, NBTSerialize, NBTDeserialize)]
 pub struct SimpleGrandChild {
     im_a_grand_child_byte: i8,
     im_a_grand_child_string: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, NBTSerialize, NBTDeserialize)]
 pub struct SimpleListInner {
     im_a_list_byte: i8,
     im_a_list_string: String,

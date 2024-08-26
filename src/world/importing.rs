@@ -3,10 +3,9 @@ use std::path::PathBuf;
 use std::process::exit;
 
 use indicatif::ProgressBar;
-use nbt_lib::{read_tag, Deserialize, NBTDeserialize, NBTDeserializeBytes};
-use rayon::prelude::*;
+use nbt_lib::NBTDeserializeBytes;
 use tokio::task::JoinSet;
-use tracing::{debug, error, info, warn};
+use tracing::{error, info, warn};
 
 use crate::state::GlobalState;
 use crate::world::chunkformat::Chunk;
@@ -131,9 +130,10 @@ pub async fn import_regions(
 
 #[cfg(test)]
 mod test {
+    use tokio::net::TcpListener;
+
     use crate::create_state;
     use crate::utils::setup_logger;
-    use tokio::net::TcpListener;
 
     #[tokio::test]
     async fn get_chunk_at() {
@@ -142,7 +142,7 @@ mod test {
             "FERRUMC_ROOT",
             "D:\\Minecraft\\framework\\ferrumc\\ferrumc-2_0\\ferrumc\\target\\release",
         );
-        setup_logger();
+        setup_logger().unwrap();
         let listener = TcpListener::bind("0.0.0.0:25565").await.unwrap();
         let state = create_state(listener).await.unwrap();
 

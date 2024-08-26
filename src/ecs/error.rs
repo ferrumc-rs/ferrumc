@@ -1,4 +1,3 @@
-use std::convert::TryInto;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {

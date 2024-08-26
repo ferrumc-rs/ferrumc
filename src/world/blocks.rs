@@ -1,8 +1,7 @@
-use tokio::io::AsyncWriteExt;
-use tracing::{debug, info};
+use tracing::debug;
 
 use crate::state::GlobalState;
-use crate::utils::binary_utils::{read_n_bits_u16, read_n_bits_u8};
+use crate::utils::binary_utils::read_n_bits_u16;
 use crate::utils::error::Error;
 
 pub async fn read_block(

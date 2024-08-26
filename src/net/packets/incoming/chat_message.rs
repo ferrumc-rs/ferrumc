@@ -1,11 +1,12 @@
-use crate::net::packets::{ConnectionId, IncomingPacket};
-use crate::net::Connection;
-use crate::state::GlobalState;
-use crate::utils::components::player::Player;
-use ferrumc_macros::{packet, Decode};
 use tracing::debug;
 
-#[derive(Decode)]
+use ferrumc_macros::{NetDecode, packet};
+
+use crate::net::packets::{ConnectionId, IncomingPacket};
+use crate::state::GlobalState;
+use crate::utils::components::player::Player;
+
+#[derive(NetDecode)]
 #[packet(packet_id = 0x05, state = "play")]
 pub struct PacketChatMessage {
     pub message: String,

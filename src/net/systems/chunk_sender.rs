@@ -1,17 +1,19 @@
-use crate::ecs::component::ComponentRef;
+use std::sync::Arc;
+
+use async_trait::async_trait;
+use tokio::sync::RwLock;
+use tracing::{debug, error, info, warn};
+
+use ferrumc_macros::AutoGenName;
+
+use crate::net::{Connection, ConnectionWrapper};
 use crate::net::packets::outgoing::chunk_and_light_data::ChunkDataAndUpdateLight;
 use crate::net::packets::outgoing::set_center_chunk::SetCenterChunk;
 use crate::net::systems::System;
-use crate::net::{Connection, ConnectionWrapper};
 use crate::state::GlobalState;
 use crate::utils::components::player::Player;
 use crate::utils::encoding::position::Position;
 use crate::utils::prelude::*;
-use async_trait::async_trait;
-use ferrumc_macros::AutoGenName;
-use std::sync::Arc;
-use tokio::sync::RwLock;
-use tracing::{debug, error, info, warn};
 
 #[derive(AutoGenName)]
 pub struct ChunkSender;
@@ -51,7 +53,7 @@ impl System for ChunkSender {
 
 async fn send_chunks_to_player(
     state: GlobalState,
-    player: &Player,
+    _player: &Player,
     pos: &Position,
     conn: Arc<RwLock<Connection>>,
 ) -> Result<()> {
@@ -59,14 +61,11 @@ async fn send_chunks_to_player(
 
     const CHUNK_RADIUS: i32 = 5;
 
-    for x in 0..=CHUNK_RADIUS*2 {
+    for x in 0..=CHUNK_RADIUS * 2 {
         for z in -CHUNK_RADIUS..=CHUNK_RADIUS {
             let packet =
-                ChunkDataAndUpdateLight::new(
-                    state.clone(),
-                    (pos.x >> 4) + x,
-                    (pos.z >> 4) + z
-                ).await?;
+                ChunkDataAndUpdateLight::new(state.clone(), (pos.x >> 4) + x, (pos.z >> 4) + z)
+                    .await?;
 
             if let Err(e) = write_guard.send_packet(packet).await {
                 warn!("Failed to send chunk to player: {}", e);

@@ -7,11 +7,12 @@ mod tests {
     use std::io::Cursor;
 
     use ferrumc_codec::network_types::varint::VarInt;
-    use ferrumc_macros::Decode;
+
+    use ferrumc_macros::NetDecode;
 
     #[tokio::test]
     async fn test_macro_decode() {
-        #[derive(Decode, Default)]
+        #[derive(NetDecode, Default)]
         struct Handshake {
             protocol_version: VarInt,
             server_address: String,
@@ -22,7 +23,7 @@ mod tests {
             0xFB, 0x05, 0x09, 0x31, 0x32, 0x37, 0x2E, 0x30, 0x2E, 0x30, 0x2E, 0x31, 0x63, 0xDD,
             0x01,
         ]);
-        let handshake = Handshake::decode(&mut data).await.unwrap();
+        let handshake = Handshake::net_decode(&mut data).await.unwrap();
         assert_eq!(handshake.protocol_version, VarInt::new(763));
         assert_eq!(handshake.server_address, "127.0.0.1".to_string());
         assert_eq!(handshake.server_port, 25565);

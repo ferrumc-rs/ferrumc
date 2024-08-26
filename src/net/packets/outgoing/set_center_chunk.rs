@@ -1,7 +1,8 @@
 use ferrumc_codec::network_types::varint::VarInt;
-use ferrumc_macros::Encode;
 
-#[derive(Encode)]
+use ferrumc_macros::NetEncode;
+
+#[derive(NetEncode)]
 pub struct SetCenterChunk {
     #[encode(default = VarInt::from(0x4E))]
     pub packet_id: VarInt,

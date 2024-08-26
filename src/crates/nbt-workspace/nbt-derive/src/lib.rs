@@ -12,16 +12,16 @@ mod serialize;
 /// Example:
 ///
 /// ```rust
-/// use nbt_derive::Serialize;
+/// use nbt_derive::NBTSerialize;
 ///
-/// #[derive(Serialize)]
+/// #[derive(NBTSerialize)]
 /// #[nbt(is_root)] // Can also be written as #[nbt(is_root = true)]
 /// pub struct Root {
 ///     pub player_name: String,
 ///     #[nbt(rename = "player_age")]
 ///     pub x: X,
 /// }
-/// #[derive(Serialize)] // NOT ROOT!
+/// #[derive(NBTSerialize)] // NOT ROOT!
 /// struct X {
 ///     pub y: i32,
 /// }
@@ -30,12 +30,12 @@ mod serialize;
 ///     let player: Root = unimplemented!();
 ///
 ///     let mut buffer = Vec::new();
-///     player.serialize(&mut buffer).unwrap();
+///     player.nbt_serialize(&mut buffer).unwrap();
 /// }
 ///
 /// ```
 ///
-#[proc_macro_derive(Serialize, attributes(nbt))]
+#[proc_macro_derive(NBTSerialize, attributes(nbt))]
 pub fn nbt_serialize_derive(input: TokenStream) -> TokenStream {
     serialize::nbt_serialize_derive(input)
 }
@@ -45,12 +45,15 @@ pub fn nbt_serialize_derive(input: TokenStream) -> TokenStream {
 /// Must define root attribute for the root struct.
 ///
 /// <h5> Example usage: </h5>
-
+///
 /// ```rust
-/// use nbt_derive::Deserialize;
+///
+/// use std::io::Cursor;
+/// use nbt_derive::NBTDeserialize;
+/// use nbt_lib::read_tag;
 ///
 ///
-/// #[derive(Deserialize)]
+/// #[derive(NBTDeserialize)]
 /// #[nbt(is_root)] // Can also be written as #[nbt(is_root = true)]
 /// pub struct Root {
 ///     pub player_name: String,
@@ -58,7 +61,7 @@ pub fn nbt_serialize_derive(input: TokenStream) -> TokenStream {
 ///     pub x: X,
 /// }
 ///
-/// #[derive(Deserialize)]
+/// #[derive(NBTDeserialize)]
 /// struct X {
 ///     pub y: i32,
 /// }
@@ -71,7 +74,7 @@ pub fn nbt_serialize_derive(input: TokenStream) -> TokenStream {
 ///
 /// ```
 ///
-#[proc_macro_derive(Deserialize, attributes(nbt))]
+#[proc_macro_derive(NBTDeserialize, attributes(nbt))]
 pub fn nbt_deserialize_derive(input: TokenStream) -> TokenStream {
     deserialize::nbt_deserialize_derive(input)
 }

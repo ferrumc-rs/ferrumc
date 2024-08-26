@@ -9,12 +9,12 @@ mod nbt_decode;
 mod packet;
 mod utils;
 
-#[proc_macro_derive(Decode)]
+#[proc_macro_derive(NetDecode)]
 pub fn decode_derive(input: TokenStream) -> TokenStream {
     decode::derive(input)
 }
 
-#[proc_macro_derive(Encode, attributes(encode))]
+#[proc_macro_derive(NetEncode, attributes(encode))]
 pub fn encode_derive(input: TokenStream) -> TokenStream {
     encode::derive(input)
 }

@@ -2,8 +2,8 @@ use bincode::{Decode, Encode};
 use serde_derive::{Deserialize, Serialize};
 
 #[derive(
-    nbt_lib::Serialize,
-    nbt_lib::Deserialize,
+    nbt_lib::NBTSerialize,
+    nbt_lib::NBTDeserialize,
     Debug,
     Clone,
     PartialEq,
@@ -38,8 +38,8 @@ pub struct Chunk {
 }
 
 #[derive(
-    nbt_lib::Serialize,
-    nbt_lib::Deserialize,
+    nbt_lib::NBTSerialize,
+    nbt_lib::NBTDeserialize,
     Debug,
     Clone,
     PartialEq,
@@ -60,8 +60,8 @@ pub struct Heightmaps {
 }
 
 #[derive(
-    nbt_lib::Serialize,
-    nbt_lib::Deserialize,
+    nbt_lib::NBTSerialize,
+    nbt_lib::NBTDeserialize,
     Debug,
     Clone,
     PartialEq,
@@ -77,8 +77,8 @@ pub struct Structures {
 }
 
 #[derive(
-    nbt_lib::Serialize,
-    nbt_lib::Deserialize,
+    nbt_lib::NBTSerialize,
+    nbt_lib::NBTDeserialize,
     Debug,
     Clone,
     PartialEq,
@@ -89,8 +89,8 @@ pub struct Structures {
 )]
 pub struct Starts {}
 #[derive(
-    nbt_lib::Serialize,
-    nbt_lib::Deserialize,
+    nbt_lib::NBTSerialize,
+    nbt_lib::NBTDeserialize,
     Debug,
     Clone,
     PartialEq,
@@ -102,8 +102,8 @@ pub struct Starts {}
 pub struct References {}
 
 #[derive(
-    nbt_lib::Serialize,
-    nbt_lib::Deserialize,
+    nbt_lib::NBTSerialize,
+    nbt_lib::NBTDeserialize,
     Debug,
     Clone,
     PartialEq,
@@ -125,8 +125,8 @@ pub struct Section {
 }
 
 #[derive(
-    nbt_lib::Serialize,
-    nbt_lib::Deserialize,
+    nbt_lib::NBTSerialize,
+    nbt_lib::NBTDeserialize,
     Debug,
     Clone,
     PartialEq,
@@ -141,8 +141,8 @@ pub struct BlockStates {
 }
 
 #[derive(
-    nbt_lib::Serialize,
-    nbt_lib::Deserialize,
+    nbt_lib::NBTSerialize,
+    nbt_lib::NBTDeserialize,
     Debug,
     Clone,
     PartialEq,
@@ -159,8 +159,8 @@ pub struct Palette {
 }
 
 #[derive(
-    nbt_lib::Serialize,
-    nbt_lib::Deserialize,
+    nbt_lib::NBTSerialize,
+    nbt_lib::NBTDeserialize,
     Debug,
     Clone,
     PartialEq,
@@ -168,7 +168,7 @@ pub struct Palette {
     Serialize,
     Decode,
     Deserialize,
-    Default
+    Default,
 )]
 pub struct Properties {
     pub snowy: Option<String>,
@@ -186,8 +186,8 @@ pub struct Properties {
 }
 
 #[derive(
-    nbt_lib::Serialize,
-    nbt_lib::Deserialize,
+    nbt_lib::NBTSerialize,
+    nbt_lib::NBTDeserialize,
     Debug,
     Clone,
     PartialEq,

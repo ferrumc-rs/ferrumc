@@ -1,7 +1,7 @@
-use proc_macro::TokenStream;
-
 use quote::quote;
 use syn::{DeriveInput, parse_macro_input};
+
+use proc_macro::TokenStream;
 
 pub fn derive(input: TokenStream) -> TokenStream {
     // Parse the input tokens into a syntax tree
@@ -12,9 +12,9 @@ pub fn derive(input: TokenStream) -> TokenStream {
 
     // Check if our struct has named fields
     if let syn::Data::Struct(syn::DataStruct {
-                                 fields: syn::Fields::Named(fields),
-                                 ..
-                             }) = input.data
+        fields: syn::Fields::Named(fields),
+        ..
+    }) = input.data
     {
         for field in fields.named {
             // Get the identifier of the field
@@ -22,7 +22,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
             // Generate a statement to decode this field from the bytes
             let type_name = field.ty;
             let statement = quote! {
-                #ident: match <#type_name as Decode>::decode(bytes).await {
+                #ident: match <#type_name as NetDecode>::net_decode(bytes).await {
                     Ok(value) => Box::into_inner(value),
                     Err(e) => return Err(Error::Generic(format!("Failed to decode field {}: {}", stringify!(#ident), e)))
                 },
@@ -36,11 +36,11 @@ pub fn derive(input: TokenStream) -> TokenStream {
 
     // Generate the implementation
     let expanded = quote! {
-        use crate::utils::impls::type_impls::Decode;
+        use crate::utils::impls::packet_impls::NetDecode;
         use tokio::io::{AsyncRead, AsyncSeek};
         use crate::utils::error::Error;
         impl #name {
-            pub async fn decode<T>(bytes: &mut T) -> core::result::Result<Self, Error>
+            pub async fn net_decode<T>(bytes: &mut T) -> core::result::Result<Self, Error>
             where
                 T: AsyncRead + Unpin,
             {

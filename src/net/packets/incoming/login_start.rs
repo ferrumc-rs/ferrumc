@@ -1,17 +1,22 @@
 use std::time::Instant;
 
-use ferrumc_macros::{packet, Decode};
+use ferrumc_codec::enc::NetEncode;
+use ferrumc_codec::network_types::varint::VarInt;
 #[cfg(not(test))]
 use include_flate::flate;
 use rand::random;
 use tokio::io::AsyncWriteExt;
+use tokio::sync::RwLockWriteGuard;
 use tracing::debug;
 use uuid::Uuid;
 
+use ferrumc_macros::{NetDecode, packet};
+
+use crate::Connection;
+use crate::net::packets::{ConnectionId, IncomingPacket};
 use crate::net::packets::outgoing::default_spawn_position::DefaultSpawnPosition;
 use crate::net::packets::outgoing::keep_alive::KeepAlivePacketOut;
 use crate::net::packets::outgoing::login_success::LoginSuccess;
-use crate::net::packets::{ConnectionId, IncomingPacket};
 use crate::net::State::Play;
 use crate::state::GlobalState;
 use crate::utils::components::keep_alive::KeepAlive;
@@ -19,10 +24,6 @@ use crate::utils::components::player::Player;
 use crate::utils::components::rotation::Rotation;
 use crate::utils::encoding::position::Position;
 use crate::utils::prelude::*;
-use crate::Connection;
-use ferrumc_codec::enc::Encode;
-use ferrumc_codec::network_types::varint::VarInt;
-use tokio::sync::RwLockWriteGuard;
 
 /// The login start packet is sent by the client to the server to start the login process.
 ///
@@ -32,7 +33,7 @@ use tokio::sync::RwLockWriteGuard;
 /// No response is required from the client while these are being sent.
 ///
 /// This is the final stage in the login process. The client is now in the play state.
-#[derive(Decode)]
+#[derive(NetDecode)]
 #[packet(packet_id = 0x00, state = "login")]
 pub struct LoginStart {
     pub username: String,
@@ -87,7 +88,7 @@ impl LoginStart {
         );
 
         let mut cursor = std::io::Cursor::new(Vec::new());
-        response.encode(&mut cursor).await?;
+        response.net_encode(&mut cursor).await?;
         let response = cursor.into_inner();
 
         conn.socket.write_all(&*response).await?;
@@ -119,17 +120,14 @@ impl LoginStart {
         };
 
         let mut cursor = std::io::Cursor::new(Vec::new());
-        play_packet.encode(&mut cursor).await?;
+        play_packet.net_encode(&mut cursor).await?;
         let play_packet = cursor.into_inner();
 
         conn.socket.write_all(&*play_packet).await?;
         Ok(())
     }
 
-    async fn send_spawn_position(
-        &self,
-        mut conn: &mut RwLockWriteGuard<'_, Connection>,
-    ) -> Result<()> {
+    async fn send_spawn_position(&self, conn: &mut RwLockWriteGuard<'_, Connection>) -> Result<()> {
         let player_position = Position {
             x: 0,
             y: 1000,
@@ -142,7 +140,7 @@ impl LoginStart {
 
     async fn send_keep_alive(
         &self,
-        mut conn: &mut RwLockWriteGuard<'_, Connection>,
+        conn: &mut RwLockWriteGuard<'_, Connection>,
         keep_alive: &mut KeepAlive,
     ) -> Result<()> {
         let keep_alive_outgoing: KeepAlivePacketOut = keep_alive.into();

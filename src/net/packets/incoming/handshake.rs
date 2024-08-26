@@ -1,15 +1,16 @@
-use ferrumc_macros::{packet, Decode};
+use ferrumc_codec::network_types::varint::VarInt;
+
+use ferrumc_macros::{NetDecode, packet};
 
 use crate::net::packets::{ConnectionId, IncomingPacket};
+use crate::net::State;
 use crate::state::GlobalState;
 use crate::utils::prelude::*;
-use crate::{net::State, Connection};
-use ferrumc_codec::network_types::varint::VarInt;
 
 /// The first packet sent by the client to the server.
 ///
 /// This packet is used to negotiate the protocol version, server address, server port, and the next state.
-#[derive(Decode)]
+#[derive(NetDecode)]
 #[packet(packet_id = 0x00, state = "handshake")]
 pub struct Handshake {
     pub protocol_version: VarInt,
@@ -20,7 +21,7 @@ pub struct Handshake {
 
 impl IncomingPacket for Handshake {
     async fn handle(self, conn_id: ConnectionId, state: GlobalState) -> Result<()> {
-        let Some(mut conn) = state.connections.connections.get(&conn_id) else {
+        let Some(conn) = state.connections.connections.get(&conn_id) else {
             return Err(Error::ConnectionNotFound(conn_id));
         };
 

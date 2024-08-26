@@ -1,5 +1,4 @@
 use std::env;
-use std::ops::Deref;
 use std::path::PathBuf;
 
 use tokio::fs;

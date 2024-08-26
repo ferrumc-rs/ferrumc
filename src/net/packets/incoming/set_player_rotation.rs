@@ -1,11 +1,10 @@
-use ferrumc_macros::{packet, Decode};
+use ferrumc_macros::{NetDecode, packet};
 
 use crate::net::packets::{ConnectionId, IncomingPacket};
-use crate::net::Connection;
 use crate::state::GlobalState;
 use crate::utils::components::rotation::Rotation;
 
-#[derive(Decode)]
+#[derive(NetDecode)]
 #[packet(packet_id = 0x16, state = "play")]
 pub struct SetPlayerRotation {
     pub yaw: f32,

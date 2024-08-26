@@ -1,8 +1,10 @@
-use crate::utils::components::keep_alive::KeepAlive;
 use ferrumc_codec::network_types::varint::VarInt;
-use ferrumc_macros::Encode;
 
-#[derive(Encode, Debug)]
+use ferrumc_macros::NetEncode;
+
+use crate::utils::components::keep_alive::KeepAlive;
+
+#[derive(NetEncode, Debug)]
 pub struct KeepAlivePacketOut {
     #[encode(default = VarInt::from(0x23))]
     pub packet_id: VarInt,
