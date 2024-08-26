@@ -142,7 +142,7 @@ mod test {
             "FERRUMC_ROOT",
             "D:\\Minecraft\\framework\\ferrumc\\ferrumc-2_0\\ferrumc\\target\\release",
         );
-        setup_logger();
+        setup_logger().unwrap();
         let listener = TcpListener::bind("0.0.0.0:25565").await.unwrap();
         let state = create_state(listener).await.unwrap();
 

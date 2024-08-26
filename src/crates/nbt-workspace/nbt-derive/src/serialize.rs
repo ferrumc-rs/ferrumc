@@ -101,10 +101,10 @@ pub(crate) fn nbt_serialize_derive(input: TokenStream) -> TokenStream {
                 }
             }
 
-            impl ferrumc_codec::enc::Encode for #struct_name
+            impl ferrumc_codec::enc::NetEncode for #struct_name
                 where Self: nbt_lib::NBTSerialize
             {
-                async fn encode<W>(&self, writer: &mut W) -> ferrumc_codec::Result<()>
+                async fn net_encode<W>(&self, writer: &mut W) -> ferrumc_codec::Result<()>
                 where
                     W: tokio::io::AsyncWrite + std::marker::Unpin
                 {

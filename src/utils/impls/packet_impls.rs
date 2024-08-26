@@ -1,9 +1,9 @@
+use ferrumc_codec::network_types::varint::VarInt;
+use ferrumc_codec::network_types::varlong::Varlong;
 use tokio::io::{AsyncRead, AsyncReadExt};
 
 use crate::utils::encoding::position::Position;
 use crate::utils::error::Error;
-use ferrumc_codec::network_types::varint::VarInt;
-use ferrumc_codec::network_types::varlong::Varlong;
 
 /// This trait is used to decode a type from a byte stream. It is implemented for all types that
 /// can be decoded from a byte stream.
@@ -18,18 +18,18 @@ use ferrumc_codec::network_types::varlong::Varlong;
 /// The main use for this is type-agnostic decoding in macros, mainly in the `Decode` derive macro
 /// ([ferrumc_macros::derive_decode()]) to convert a byte stream into struct fields without knowledge
 /// of their types.
-pub trait Decode {
+pub trait NetDecode {
     #[allow(unused)]
     #[allow(async_fn_in_trait)]
-    async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
+    async fn net_decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
         T: AsyncRead + Unpin;
 }
 
-impl Decode for bool {
+impl NetDecode for bool {
     /// Decodes a bool from a byte stream. This is a simple operation, as a bool is just a single
     /// byte, with 0 being false and 1 being true.
-    async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
+    async fn net_decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
         T: AsyncRead + Unpin,
     {
@@ -42,9 +42,9 @@ impl Decode for bool {
     }
 }
 
-impl Decode for u8 {
+impl NetDecode for u8 {
     /// Decodes a u8 from a byte stream. Takes out a single byte.
-    async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
+    async fn net_decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
         T: AsyncRead + Unpin,
     {
@@ -57,9 +57,9 @@ impl Decode for u8 {
     }
 }
 
-impl Decode for i8 {
+impl NetDecode for i8 {
     /// Decodes an i8 from a byte stream. Takes out a single byte, and sign extends it.
-    async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
+    async fn net_decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
         T: AsyncRead + Unpin,
     {
@@ -72,9 +72,9 @@ impl Decode for i8 {
     }
 }
 
-impl Decode for u16 {
+impl NetDecode for u16 {
     /// Decodes a u16 from a byte stream. Takes out 2 bytes.
-    async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
+    async fn net_decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
         T: AsyncRead + Unpin,
     {
@@ -87,9 +87,9 @@ impl Decode for u16 {
     }
 }
 
-impl Decode for i16 {
+impl NetDecode for i16 {
     /// Decodes an i16 from a byte stream. Takes out 2 bytes, and sign extends it.
-    async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
+    async fn net_decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
         T: AsyncRead + Unpin,
     {
@@ -102,9 +102,9 @@ impl Decode for i16 {
     }
 }
 
-impl Decode for u32 {
+impl NetDecode for u32 {
     /// Decodes a u32 from a byte stream. Takes out 4 bytes.
-    async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
+    async fn net_decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
         T: AsyncRead + Unpin,
     {
@@ -117,9 +117,9 @@ impl Decode for u32 {
     }
 }
 
-impl Decode for i32 {
+impl NetDecode for i32 {
     /// Decodes an i32 from a byte stream. Takes out 4 bytes, and sign extends it.
-    async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
+    async fn net_decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
         T: AsyncRead + Unpin,
     {
@@ -132,9 +132,9 @@ impl Decode for i32 {
     }
 }
 
-impl Decode for u64 {
+impl NetDecode for u64 {
     /// Decodes a u64 from a byte stream. Takes out 8 bytes.
-    async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
+    async fn net_decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
         T: AsyncRead + Unpin,
     {
@@ -147,9 +147,9 @@ impl Decode for u64 {
     }
 }
 
-impl Decode for i64 {
+impl NetDecode for i64 {
     /// Decodes an i64 from a byte stream. Takes out 8 bytes, and sign extends it.
-    async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
+    async fn net_decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
         T: AsyncRead + Unpin,
     {
@@ -162,9 +162,9 @@ impl Decode for i64 {
     }
 }
 
-impl Decode for f32 {
+impl NetDecode for f32 {
     /// Decodes a f32 (float) from a byte stream. Takes out 4 bytes.
-    async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
+    async fn net_decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
         T: AsyncRead + Unpin,
     {
@@ -177,9 +177,9 @@ impl Decode for f32 {
     }
 }
 
-impl Decode for f64 {
+impl NetDecode for f64 {
     /// Decodes a f64 (double) from a byte stream. Takes out 8 bytes.
-    async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
+    async fn net_decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
         T: AsyncRead + Unpin,
     {
@@ -192,11 +192,11 @@ impl Decode for f64 {
     }
 }
 
-impl Decode for String {
+impl NetDecode for String {
     /// Decodes a String from a byte stream. The first byte(s) is a VarInt representing the length of
     /// the string, followed by the string itself. The string is expected to be UTF-8 encoded.
     /// Takes out a variable number of bytes.
-    async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
+    async fn net_decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
         T: AsyncRead + Unpin,
     {
@@ -207,13 +207,13 @@ impl Decode for String {
     }
 }
 
-impl Decode for VarInt {
+impl NetDecode for VarInt {
     /// Decodes a VarInt from a byte stream. VarInts are a variable length encoding of integers,
     /// where the lower 7 bits of each byte are used to encode the number, and the 8th bit is used
     /// to indicate if there are more bytes to read. This method reads bytes until it finds a byte
     /// where the 8th bit is 0, and then decodes the number from the bytes read. Uses
     /// [ferrumc_utils::encoding::varint::read_varint] to read the VarInt.
-    async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
+    async fn net_decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
         T: AsyncRead + Unpin,
     {
@@ -221,13 +221,13 @@ impl Decode for VarInt {
     }
 }
 
-impl Decode for Varlong {
+impl NetDecode for Varlong {
     /// Decodes a Varlong from a byte stream. Varlongs are a variable length encoding of longs,
     /// where the lower 7 bits of each byte are used to encode the number, and the 8th bit is used
     /// to indicate if there are more bytes to read. This method reads bytes until it finds a byte
     /// where the 8th bit is 0, and then decodes the number from the bytes read. Uses
     /// [ferrumc_utils::encoding::varlong::read_varlong] to read the Varlong.
-    async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
+    async fn net_decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
         T: AsyncRead + Unpin,
     {
@@ -235,9 +235,9 @@ impl Decode for Varlong {
     }
 }
 
-impl Decode for u128 {
+impl NetDecode for u128 {
     /// Decodes a u128 from a byte stream. Takes out 16 bytes.
-    async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
+    async fn net_decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
         T: AsyncRead + Unpin,
     {
@@ -250,12 +250,12 @@ impl Decode for u128 {
     }
 }
 
-impl<V: Decode + Unpin> Decode for Vec<V> {
+impl<V: NetDecode + Unpin> NetDecode for Vec<V> {
     /// Decodes a Vec from a byte stream. The first byte(s) is a VarInt representing the length of the
     /// Vec, followed by the elements of the Vec. The elements are decoded in order, and the Vec is
     /// constructed from the decoded elements. Uses [ferrumc_utils::encoding::varint::read_varint] to
-    /// read the length of the Vec, and [Decode::decode] to decode each element.
-    async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
+    /// read the length of the Vec, and [NetDecode::net_decode] to decode each element.
+    async fn net_decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
         T: AsyncRead + Unpin,
     {
@@ -263,20 +263,20 @@ impl<V: Decode + Unpin> Decode for Vec<V> {
         // Yes the cast is necessary, and yes it's annoying
         let mut vec = Vec::new();
         for _ in 0..len {
-            vec.push(Box::into_inner(V::decode(bytes).await?));
+            vec.push(Box::into_inner(V::net_decode(bytes).await?));
         }
         Ok(Box::from(vec))
     }
 }
 
-impl Decode for Position {
+impl NetDecode for Position {
     /// Decodes a Position from a byte stream. A Position is a 64-bit integer, where the 26 MSB
     /// are the x coordinate, the next 26 bits are the z coordinate, and the 12 LSB are
     /// the y coordinate. This method reads the 64-bit integer, and then extracts the x, y, and z
     /// coordinates from it. The x and z coordinates are sign extended, and the y coordinate is zero
     /// extended. The coordinates are then stored in a Position struct. The Position struct is then
     /// boxed and returned. The Position struct is used to represent block positions in Minecraft.
-    async fn decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
+    async fn net_decode<T>(bytes: &mut T) -> Result<Box<Self>, Error>
     where
         T: AsyncRead + Unpin,
     {

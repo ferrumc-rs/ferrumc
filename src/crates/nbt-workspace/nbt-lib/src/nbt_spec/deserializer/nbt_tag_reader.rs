@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::io::{Cursor, Read};
 use std::simd::*;
 
-use ferrumc_codec::enc::Encode;
+use ferrumc_codec::enc::NetEncode;
 use tokio::io::AsyncWrite;
 
 use crate::{NBTResult, NBTSerialize};
@@ -318,8 +318,8 @@ fn read_long_array_simd(cursor: &mut Cursor<Vec<u8>>, len: usize) -> Vec<i64> {
     result
 }
 
-impl Encode for NBTTag {
-    async fn encode<W>(&self, writer: &mut W) -> ferrumc_codec::Result<()>
+impl NetEncode for NBTTag {
+    async fn net_encode<W>(&self, writer: &mut W) -> ferrumc_codec::Result<()>
     where
         W: AsyncWrite + Unpin,
     {

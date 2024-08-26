@@ -67,8 +67,10 @@ impl VarInt {
 }
 
 mod adapters {
+    use crate::enc::NetEncode;
+
     use super::*;
-    use crate::enc::Encode;
+
     impl Display for VarInt {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             write!(f, "{}", self.val)
@@ -100,9 +102,8 @@ mod adapters {
         }
     }
 
-    impl Encode for VarInt {
-
-        async fn encode<W>(&self, writer: &mut W) -> Result<()>
+    impl NetEncode for VarInt {
+        async fn net_encode<W>(&self, writer: &mut W) -> Result<()>
         where
             W: AsyncWrite + Unpin,
         {
@@ -111,18 +112,13 @@ mod adapters {
     }
 }
 
-
-
-
 // Write a VarInt to the given cursor.
 // Yoinked from valence: https://github.com/valence-rs/valence/blob/main/crates/valence_protocol/src/var_int.rs#L98
 pub async fn write_varint<T>(value: impl TryInto<i64>, cursor: &mut T) -> Result<()>
 where
     T: AsyncWrite + Unpin,
 {
-    let val = value
-        .try_into()
-        .map_err(|_| CodecError::DoubleConversion)?;
+    let val = value.try_into().map_err(|_| CodecError::DoubleConversion)?;
 
     // We need to convert the value to a u64 to prevent overflow.
     // The reason we don't just use TryInto<u64> is because negative values won't work.
@@ -153,12 +149,10 @@ where
     Ok(())
 }
 
-
-
-
 #[cfg(test)]
 mod tests {
     use std::io::Cursor;
+
     use super::*;
 
     #[tokio::test]

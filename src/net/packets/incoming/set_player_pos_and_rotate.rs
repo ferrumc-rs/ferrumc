@@ -1,4 +1,4 @@
-use ferrumc_macros::{packet, Decode};
+use ferrumc_macros::{NetDecode, packet};
 
 use crate::net::packets::{ConnectionId, IncomingPacket};
 use crate::state::GlobalState;
@@ -6,7 +6,7 @@ use crate::utils::components::rotation::Rotation;
 use crate::utils::encoding::position::Position;
 use crate::utils::prelude::*;
 
-#[derive(Decode)]
+#[derive(NetDecode)]
 #[packet(packet_id = 0x15, state = "play")]
 pub struct SetPlayerPosAndRotate {
     pub x: f64,

@@ -1,7 +1,7 @@
-use proc_macro::TokenStream;
-
 use quote::{format_ident, quote};
-use syn::{parse_macro_input, DeriveInput, Field, Generics, Lifetime};
+use syn::{DeriveInput, Field, Generics, Lifetime, parse_macro_input};
+
+use proc_macro::TokenStream;
 
 struct FieldAttribs {
     field_name: syn::Ident,
@@ -55,7 +55,7 @@ fn parse_field_attributes(field: &Field) -> FieldAttribs {
             }
             Ok(())
         })
-            .unwrap();
+        .unwrap();
     }
 
     field_attrib
@@ -67,7 +67,11 @@ fn generate_field_encode_statement(field_attrib: &FieldAttribs) -> proc_macro2::
     let bytes = format_ident!("__bytes_{}", field_name);
     let len = format_ident!("__len_{}", field_name);
 
-    let prepend_length = field_attrib.prepend_length || field_attrib.raw_bytes.as_ref().map_or(false, |rb| rb.prepend_length);
+    let prepend_length = field_attrib.prepend_length
+        || field_attrib
+            .raw_bytes
+            .as_ref()
+            .map_or(false, |rb| rb.prepend_length);
 
     let mut statement = quote! {
         let mut #cursor = std::io::Cursor::new(Vec::new());
@@ -78,7 +82,7 @@ fn generate_field_encode_statement(field_attrib: &FieldAttribs) -> proc_macro2::
             #statement
             let #len = self.#field_name.len();
             let #len = ferrumc_codec::network_types::varint::VarInt::new(#len as i32);
-            #len.encode(&mut #cursor).await?;
+            #len.net_encode(&mut #cursor).await?;
         };
     }
 
@@ -93,18 +97,17 @@ fn generate_field_encode_statement(field_attrib: &FieldAttribs) -> proc_macro2::
         if prepend_length {
             quote! {
                 #statement
-                self.#field_name.encode(&mut #cursor).await?;
+                self.#field_name.net_encode(&mut #cursor).await?;
                 let mut #bytes = #cursor.into_inner();
                 tokio::io::AsyncWriteExt::write_all(bytes, &#bytes).await?;
             }
         } else {
             quote! {
-                self.#field_name.encode(bytes).await?;
+                self.#field_name.net_encode(bytes).await?;
             }
         }
     }
 }
-
 
 fn generate_encode_impl(
     name: &syn::Ident,
@@ -116,8 +119,8 @@ fn generate_encode_impl(
 
     if is_packet_type {
         quote! {
-            impl #impl_generics ferrumc_codec::enc::Encode for #name #ty_generics #where_clause {
-                async fn encode<T>(&self, bytes_out: &mut T) -> std::result::Result<(), ferrumc_codec::error::CodecError>
+            impl #impl_generics ferrumc_codec::enc::NetEncode for #name #ty_generics #where_clause {
+                async fn net_encode<T>(&self, bytes_out: &mut T) -> std::result::Result<(), ferrumc_codec::error::CodecError>
                     where T: tokio::io::AsyncWrite + std::marker::Unpin
                 {
                     use tokio::io::AsyncWriteExt;
@@ -130,7 +133,7 @@ fn generate_encode_impl(
                     let __packet_data = bytes_.into_inner();
                     let __length = ferrumc_codec::network_types::varint::VarInt::new(__packet_data.len() as i32);
                     let mut __cursor = std::io::Cursor::new(Vec::new());
-                    __length.encode(&mut __cursor).await?;
+                    __length.net_encode(&mut __cursor).await?;
                     __cursor.write_all(&__packet_data).await?;
                     let __encoded = __cursor.into_inner();
                     bytes_out.write_all(&__encoded).await?;
@@ -141,8 +144,8 @@ fn generate_encode_impl(
         }
     } else {
         quote! {
-            impl #impl_generics ferrumc_codec::enc::Encode for #name #ty_generics #where_clause {
-                async fn encode<T>(&self, bytes: &mut T) -> std::result::Result<(), ferrumc_codec::error::CodecError>
+            impl #impl_generics ferrumc_codec::enc::NetEncode for #name #ty_generics #where_clause {
+                async fn net_encode<T>(&self, bytes: &mut T) -> std::result::Result<(), ferrumc_codec::error::CodecError>
                     where T: tokio::io::AsyncWrite + std::marker::Unpin
                 {
                     use tokio::io::AsyncWriteExt;
@@ -217,9 +220,9 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
 
     let fields = match input.data {
         syn::Data::Struct(syn::DataStruct {
-                              fields: syn::Fields::Named(fields),
-                              ..
-                          }) => fields,
+            fields: syn::Fields::Named(fields),
+            ..
+        }) => fields,
         _ => panic!("Only structs with named fields are supported"),
     };
 
@@ -231,7 +234,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
         .any(|attr| attr.default_value.is_some());
     let mut constructor = quote! {};
     if should_generate_modified_constructor {
-        let modified_constructor= generate_modified_constructor(name, &generics, &field_attribs);
+        let modified_constructor = generate_modified_constructor(name, &generics, &field_attribs);
         constructor = modified_constructor;
     }
 

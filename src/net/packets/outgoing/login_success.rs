@@ -1,9 +1,9 @@
-use ferrumc_macros::Encode;
-
 use ferrumc_codec::network_types::varint::VarInt;
 
+use ferrumc_macros::NetEncode;
+
 /// Sent by the server to the client to start the play state.
-#[derive(Encode)]
+#[derive(NetEncode)]
 pub struct LoginSuccess {
     #[encode(default=VarInt::from(0x02))]
     pub packet_id: VarInt,
@@ -15,7 +15,7 @@ pub struct LoginSuccess {
     pub properties: Vec<Property>,
 }
 
-#[derive(Encode)]
+#[derive(NetEncode)]
 pub struct Property {
     pub name: String,
     pub value: String,

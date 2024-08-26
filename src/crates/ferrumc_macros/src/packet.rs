@@ -1,10 +1,11 @@
-use proc_macro::TokenStream;
 use std::env;
 use std::ops::Add;
 use std::path::Path;
 
 use quote::quote;
 use syn::{LitInt, LitStr, parse_macro_input};
+
+use proc_macro::TokenStream;
 
 pub fn attribute(args: TokenStream, input: TokenStream) -> TokenStream {
     // check if the packet attribute has the packet_id and state fields
@@ -136,7 +137,7 @@ pub fn bake(input: TokenStream) -> TokenStream {
 
             match_arms.push(quote! {
                 (#packet_id, #state) => {
-                    let packet= #struct_path::decode(cursor).await?;
+                    let packet= #struct_path::net_decode(cursor).await?;
                     packet.handle(conn_id, state).await?;
                 },
             });

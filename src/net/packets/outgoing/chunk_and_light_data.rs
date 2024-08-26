@@ -1,8 +1,8 @@
-use ferrumc_codec::enc::Encode;
+use ferrumc_codec::enc::NetEncode;
 use ferrumc_codec::network_types::varint::VarInt;
 use nbt_lib::NBTTag;
 
-use ferrumc_macros::Encode;
+use ferrumc_macros::NetEncode;
 
 use crate::Result;
 use crate::state::GlobalState;
@@ -15,7 +15,7 @@ use crate::world::chunkformat::{
 // const SECTION_WIDTH: usize = 16;
 // const SECTION_HEIGHT: usize = 16;
 
-#[derive(Encode)]
+#[derive(NetEncode)]
 pub struct ChunkDataAndUpdateLight {
     #[encode(default=VarInt::from(0x24))]
     pub packet_id: VarInt,
@@ -36,7 +36,7 @@ pub struct ChunkDataAndUpdateLight {
     pub block_light_arrays: Vec<LightArray>,
 }
 
-#[derive(Encode)]
+#[derive(NetEncode)]
 pub struct BlockEntity {
     pub packed_xz: u8,
     pub y: i16,
@@ -44,7 +44,7 @@ pub struct BlockEntity {
     pub data: NBTTag,
 }
 
-#[derive(Encode, Clone)]
+#[derive(NetEncode, Clone)]
 pub struct LightArray {
     #[encode(raw_bytes(prepend_length = true))]
     pub data: Vec<u8>,
@@ -62,7 +62,7 @@ impl ChunkDataAndUpdateLight {
             };
             // data.extend(serialize_block_sttes(block_states)?);
 
-            4096i16.encode(&mut data).await?;
+            4096i16.net_encode(&mut data).await?;
 
             let block_states_data = serialize_block_states(block_states).await?;
             data.extend(block_states_data);
@@ -129,11 +129,11 @@ async fn serialize_block_states(block_states: &BlockStates) -> Result<Vec<u8>> {
     // Serialize the block data
     let block_data = block_states.data.as_ref().unwrap();
     VarInt::from(block_data.len() as i32)
-        .encode(&mut data)
+        .net_encode(&mut data)
         .await?;
 
     for long in block_data {
-        long.encode(&mut data).await?;
+        long.net_encode(&mut data).await?;
     }
 
     Ok(data)
@@ -146,11 +146,11 @@ async fn serialize_biomes(_biomes: &Biomes) -> Result<Vec<u8>> {
     // Direct biome encoding, no palette
     let biome_data = vec![0u64; (64 * (bits_per_biome as usize) / 64) as usize]; // 64 biomes per section
     VarInt::from(biome_data.len() as i32)
-        .encode(&mut data)
+        .net_encode(&mut data)
         .await?;
 
     for long in biome_data {
-        long.encode(&mut data).await?;
+        long.net_encode(&mut data).await?;
     }
 
     Ok(data)

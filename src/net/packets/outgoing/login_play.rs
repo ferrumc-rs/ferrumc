@@ -1,10 +1,10 @@
 use ferrumc_codec::network_types::varint::VarInt;
 
-use ferrumc_macros::Encode;
+use ferrumc_macros::NetEncode;
 
 /// The login play packet is sent by the server to the client to start the play state.
 /// Contains info about the world
-#[derive(Encode)]
+#[derive(NetEncode)]
 pub struct LoginPlay {
     pub packet_id: VarInt,
     pub entity_id: i32,

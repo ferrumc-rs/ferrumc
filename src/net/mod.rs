@@ -1,23 +1,24 @@
 use std::cmp::PartialEq;
 use std::fmt::{Debug, Display};
 use std::io::Cursor;
+use std::sync::{Arc, atomic};
 use std::sync::atomic::AtomicU32;
-use std::sync::{atomic, Arc};
 use std::time::Duration;
 
 use dashmap::DashMap;
-use ferrumc_macros::Component;
+use ferrumc_codec::enc::NetEncode;
+use ferrumc_codec::network_types::varint::VarInt;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::sync::RwLock;
 use tracing::{debug, error, trace};
+
+use ferrumc_macros::Component;
 
 use crate::net::packets::handle_packet;
 use crate::state::GlobalState;
 
 use super::utils::config::get_global_config;
 use super::utils::prelude::*;
-use ferrumc_codec::enc::Encode;
-use ferrumc_codec::network_types::varint::VarInt;
 
 // To allow implementing the `Component` trait for `Connection`. Since we can't implement a trait for a type defined in another crate.
 #[derive(Component)]
@@ -264,9 +265,9 @@ pub async fn drop_conn(connection_id: u32, state: GlobalState) -> Result<()> {
 }
 
 impl Connection {
-    pub async fn send_packet(&mut self, packet: impl Encode) -> Result<()> {
+    pub async fn send_packet(&mut self, packet: impl NetEncode) -> Result<()> {
         let mut cursor = Cursor::new(Vec::new());
-        packet.encode(&mut cursor).await?;
+        packet.net_encode(&mut cursor).await?;
         let packet = cursor.into_inner();
         self.socket.write_all(&*packet).await?;
         Ok(())

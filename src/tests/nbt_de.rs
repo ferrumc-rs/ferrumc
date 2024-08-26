@@ -1,6 +1,6 @@
 use std::io::Cursor;
 
-use nbt_lib::{NBTDeserialize, NBTDeserialize, NBTDeserializeBytes, NBTSerialize, NBTSerialize};
+use nbt_lib::{NBTDeserialize, NBTDeserializeBytes, NBTSerialize};
 
 use crate::tests::nbt_de::test_de_data::Player;
 
@@ -177,7 +177,7 @@ pub mod test_de_data {
 fn try_read() {
     let player = test_de_data::create_test_player();
     let mut buffer = Vec::new();
-    player.serialize(&mut buffer).unwrap();
+    player.nbt_serialize(&mut buffer).unwrap();
 
     let mut cursor = std::io::Cursor::new(buffer);
     let nbt_data = nbt_lib::read_tag(&mut cursor).unwrap();
@@ -416,10 +416,10 @@ fn showcase_nbt_usage() {
 
     // Serialize the item into plain bytes:
     let mut buffer = Vec::new(); // => Serialized bytes
-    sample.serialize(&mut buffer).unwrap();
+    sample.nbt_serialize(&mut buffer).unwrap();
 
     // Deserialize the item from the bytes:
-    let sample = Sample::read_from_bytes(&mut Cursor::new(buffer)).unwrap();
+    Sample::read_from_bytes(&mut Cursor::new(buffer)).unwrap();
 }
 
 #[test]
@@ -435,7 +435,7 @@ fn test_byte_array() {
     };
 
     let mut buffer = Vec::new();
-    byte_array.serialize(&mut buffer).unwrap();
+    byte_array.nbt_serialize(&mut buffer).unwrap();
 
     let deserialized_byte_array = ByteArray::read_from_bytes(&mut Cursor::new(buffer)).unwrap();
     println!("{:?}", deserialized_byte_array);

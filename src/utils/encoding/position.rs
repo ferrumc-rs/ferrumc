@@ -1,11 +1,13 @@
-use ferrumc_codec::enc::Encode;
-use ferrumc_macros::Component;
 use std::fmt::Display;
+
+use ferrumc_codec::enc::NetEncode;
 use tokio::io::{AsyncWrite, AsyncWriteExt};
+
+use ferrumc_macros::Component;
 
 /// Represents a position in the world
 ///
-/// Check out the [Position::encode] and [Position::decode]
+/// Check out the [Position::net_encode] and [Position::net_decode]
 /// implementations for more information on how this struct is encoded and decoded
 #[derive(Clone, Component, Debug)]
 pub struct Position {
@@ -30,14 +32,14 @@ impl Position {
     }
 }
 
-impl Encode for Position {
+impl NetEncode for Position {
     /// Encodes a Position into a byte stream. A Position is a 64-bit integer, where the 26 MSB
     /// are the x coordinate, the next 26 bits are the z coordinate, and the 12 LSB are
     /// the y coordinate. This method encodes the x, y, and z coordinates into a 64-bit integer,
     /// and then writes the integer to the byte stream. The x and z coordinates are masked to 26 bits,
     /// and the y coordinate is masked to 12 bits. Uses [ferrumc_utils::encoding::position::Position]
     /// to represent the Position.
-    async fn encode<T>(&self, bytes: &mut T) -> Result<(), ferrumc_codec::CodecError>
+    async fn net_encode<T>(&self, bytes: &mut T) -> Result<(), ferrumc_codec::CodecError>
     where
         T: AsyncWrite + Unpin,
     {
@@ -55,9 +57,11 @@ impl Encode for Position {
 
 #[cfg(test)]
 mod tests {
-    use crate::utils::impls::type_impls::Decode;
-    use ferrumc_codec::enc::Encode;
     use std::io::Cursor;
+
+    use ferrumc_codec::enc::NetEncode;
+
+    use crate::utils::impls::packet_impls::NetDecode;
 
     use super::Position;
 
@@ -66,7 +70,7 @@ mod tests {
         let mut data = Cursor::new(
             0b01000110000001110110001100_10110000010101101101001000_001100111111_i64.to_be_bytes(),
         );
-        let position = Position::decode(&mut data).await.unwrap();
+        let position = Position::net_decode(&mut data).await.unwrap();
         assert_eq!(position.x, 18357644);
         assert_eq!(position.z, -20882616);
         assert_eq!(position.y, 831);
@@ -80,7 +84,7 @@ mod tests {
             y: 831,
         };
         let mut data = Cursor::new(Vec::new());
-        position.encode(&mut data).await.unwrap();
+        position.net_encode(&mut data).await.unwrap();
         let data = data.into_inner();
         assert_eq!(
             data,

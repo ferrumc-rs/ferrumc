@@ -1,23 +1,23 @@
 use base64::Engine;
+use ferrumc_codec::enc::NetEncode;
+use ferrumc_codec::network_types::varint::VarInt;
 use serde::Serialize;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::sync::OnceCell;
 use tracing::debug;
 
-use ferrumc_macros::{packet, Decode};
+use ferrumc_macros::{NetDecode, packet};
 
-use crate::net::packets::outgoing::status::OutgoingStatusResponse;
 use crate::net::packets::{ConnectionId, IncomingPacket};
+use crate::net::packets::outgoing::status::OutgoingStatusResponse;
 use crate::state::GlobalState;
 use crate::utils::config;
 use crate::utils::prelude::*;
-use ferrumc_codec::enc::Encode;
-use ferrumc_codec::network_types::varint::VarInt;
 
 /// The status packet is sent by the client to the server to request the server's status.
 ///
 /// Usually sent after handshaking is completed.
-#[derive(Decode)]
+#[derive(NetDecode)]
 #[packet(packet_id = 0x00, state = "status")]
 pub struct Status;
 
@@ -94,7 +94,7 @@ impl IncomingPacket for Status {
         };
 
         let mut cursor = std::io::Cursor::new(Vec::new());
-        response.encode(&mut cursor).await?;
+        response.net_encode(&mut cursor).await?;
         let response = cursor.into_inner();
 
         let response = &*response;

@@ -6,7 +6,6 @@ use std::fs::File;
 use std::io::Write;
 
 use nbt_lib::{NBTDeserialize, NBTSerialize};
-use nbt_lib::nbt_spec::serializer::NBTSerialize;
 
 #[derive(NBTSerialize, Debug)]
 #[nbt(is_root)]
@@ -103,7 +102,7 @@ fn validate_codec_file() {
     let root = SimpleRoot::new();
 
     let mut buffer = Vec::with_capacity(1024);
-    root.serialize(&mut buffer).unwrap();
+    root.nbt_serialize(&mut buffer).unwrap();
 
     let mut file = File::create("./.etc/nbt_lib_validation.nbt").unwrap();
     file.write_all(&buffer).unwrap();
