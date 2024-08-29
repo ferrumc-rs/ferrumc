@@ -223,10 +223,9 @@ mod tests {
         let query = Query::<(&mut Position, &Velocity)>::new(&entity_manager, &storage);
 
         // System to update position (with velocity)
-        for (entity_id, (mut pos, vel)) in query.iter().await {
+        for (_, (mut pos, vel)) in query.iter().await {
             pos.x += vel.x;
             pos.y += vel.y;
-            storage.remove::<Velocity>(entity_id).unwrap();
         }
 
         // Log the results

@@ -2,8 +2,6 @@
 
 use std::f32::consts::PI;
 use std::f64::consts::E;
-use std::fs::File;
-use std::io::Write;
 
 use nbt_lib::{NBTDeserialize, NBTSerialize};
 
