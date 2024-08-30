@@ -1,5 +1,5 @@
-use std::collections::HashSet;
 use rand::Rng;
+use std::collections::HashSet;
 use tokio::time::Instant;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -27,7 +27,8 @@ impl Octree {
     }
 
     fn insert(&mut self, position: Position) {
-        if self.half_dimension <= 1000 {  // Increased threshold for subdivision
+        if self.half_dimension <= 1000 {
+            // Increased threshold for subdivision
             self.positions.insert(position);
             return;
         }
@@ -49,22 +50,84 @@ impl Octree {
         let z = self.center.z;
 
         self.children = Some(Box::new([
-            Octree::new(Position { x: x - half, y: y - half, z: z - half }, half),
-            Octree::new(Position { x: x + half, y: y - half, z: z - half }, half),
-            Octree::new(Position { x: x - half, y: y + half, z: z - half }, half),
-            Octree::new(Position { x: x + half, y: y + half, z: z - half }, half),
-            Octree::new(Position { x: x - half, y: y - half, z: z + half }, half),
-            Octree::new(Position { x: x + half, y: y - half, z: z + half }, half),
-            Octree::new(Position { x: x - half, y: y + half, z: z + half }, half),
-            Octree::new(Position { x: x + half, y: y + half, z: z + half }, half),
+            Octree::new(
+                Position {
+                    x: x - half,
+                    y: y - half,
+                    z: z - half,
+                },
+                half,
+            ),
+            Octree::new(
+                Position {
+                    x: x + half,
+                    y: y - half,
+                    z: z - half,
+                },
+                half,
+            ),
+            Octree::new(
+                Position {
+                    x: x - half,
+                    y: y + half,
+                    z: z - half,
+                },
+                half,
+            ),
+            Octree::new(
+                Position {
+                    x: x + half,
+                    y: y + half,
+                    z: z - half,
+                },
+                half,
+            ),
+            Octree::new(
+                Position {
+                    x: x - half,
+                    y: y - half,
+                    z: z + half,
+                },
+                half,
+            ),
+            Octree::new(
+                Position {
+                    x: x + half,
+                    y: y - half,
+                    z: z + half,
+                },
+                half,
+            ),
+            Octree::new(
+                Position {
+                    x: x - half,
+                    y: y + half,
+                    z: z + half,
+                },
+                half,
+            ),
+            Octree::new(
+                Position {
+                    x: x + half,
+                    y: y + half,
+                    z: z + half,
+                },
+                half,
+            ),
         ]));
     }
 
     fn get_octant(&self, position: Position) -> usize {
         let mut octant = 0;
-        if position.x >= self.center.x { octant |= 1; }
-        if position.y as i32 >= self.center.y as i32 { octant |= 2; }
-        if position.z >= self.center.z { octant |= 4; }
+        if position.x >= self.center.x {
+            octant |= 1;
+        }
+        if position.y as i32 >= self.center.y as i32 {
+            octant |= 2;
+        }
+        if position.z >= self.center.z {
+            octant |= 4;
+        }
         octant
     }
 
@@ -111,7 +174,7 @@ impl Octree {
 }
 pub async fn test_spatial_query() {
     let center = Position { x: 0, y: 0, z: 0 };
-    let mut octree = Octree::new(center, 3_000_000);  // Increased size to cover -3M to +3M range
+    let mut octree = Octree::new(center, 3_000_000); // Increased size to cover -3M to +3M range
 
     let mut rng = rand::thread_rng();
 
@@ -137,7 +200,12 @@ pub async fn test_spatial_query() {
     let query_duration = query_start.elapsed();
 
     println!("Query completed in {:?}", query_duration);
-    println!("Found {} positions within radius {} of {:?}", result.len(), radius, query_pos);
+    println!(
+        "Found {} positions within radius {} of {:?}",
+        result.len(),
+        radius,
+        query_pos
+    );
 
     // Print first 10 results as a sample
     for pos in result.iter().take(10) {

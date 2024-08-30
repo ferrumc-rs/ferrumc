@@ -1,6 +1,6 @@
 use ferrumc_codec::network_types::varint::VarInt;
 
-use ferrumc_macros::{NetDecode, packet};
+use ferrumc_macros::{packet, NetDecode};
 
 use crate::net::packets::{ConnectionId, IncomingPacket};
 use crate::net::State;

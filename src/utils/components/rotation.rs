@@ -1,6 +1,6 @@
 use ferrumc_macros::{Component, Constructor, Getter};
 
-#[derive(Debug, Component, Getter, Constructor)]
+#[derive(Debug, Component, Getter, Constructor, Clone)]
 pub struct Rotation {
     pub yaw: f32,
     pub pitch: f32,

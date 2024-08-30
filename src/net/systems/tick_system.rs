@@ -2,8 +2,8 @@ use async_trait::async_trait;
 
 use ferrumc_macros::AutoGenName;
 
-use crate::net::ConnectionWrapper;
 use crate::net::systems::System;
+use crate::net::ConnectionWrapper;
 use crate::state::GlobalState;
 
 #[derive(AutoGenName)]

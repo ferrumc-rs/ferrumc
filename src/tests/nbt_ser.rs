@@ -1,9 +1,10 @@
 #![allow(dead_code)]
 
+use nbt_lib::{NBTDeserialize, NBTSerialize};
 use std::f32::consts::PI;
 use std::f64::consts::E;
-
-use nbt_lib::{NBTDeserialize, NBTSerialize};
+use std::fs::File;
+use std::io::Write;
 
 #[derive(NBTSerialize, Debug)]
 #[nbt(is_root)]

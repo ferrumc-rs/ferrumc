@@ -1,4 +1,4 @@
-use ferrumc_macros::{NetDecode, packet};
+use ferrumc_macros::{packet, NetDecode};
 
 use crate::net::packets::{ConnectionId, IncomingPacket};
 use crate::state::GlobalState;

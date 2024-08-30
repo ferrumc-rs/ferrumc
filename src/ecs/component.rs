@@ -105,10 +105,10 @@ impl ComponentStorage {
     /// ```
     pub async fn get<'a, T: Component + 'a>(
         &self,
-        entity_id: impl Into<usize>,
+        entity_id: impl TryInto<usize>,
     ) -> Result<ComponentRef<'a, T>> {
         let type_id = TypeId::of::<T>();
-        let entity_id = entity_id.into();
+        let entity_id = entity_id.try_into().map_err(|_| Error::ConversionError)?;
         let storage = self
             .storages
             .get(&type_id)

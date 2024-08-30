@@ -10,20 +10,24 @@ use tokio::sync::RwLockWriteGuard;
 use tracing::debug;
 use uuid::Uuid;
 
-use ferrumc_macros::{NetDecode, packet};
+use ferrumc_macros::{packet, NetDecode};
 
-use crate::Connection;
-use crate::net::packets::{ConnectionId, IncomingPacket};
 use crate::net::packets::outgoing::default_spawn_position::DefaultSpawnPosition;
 use crate::net::packets::outgoing::keep_alive::KeepAlivePacketOut;
 use crate::net::packets::outgoing::login_success::LoginSuccess;
+use crate::net::packets::outgoing::synchronize_player_position::SynchronizePlayerPosition;
+use crate::net::packets::{ConnectionId, IncomingPacket};
 use crate::net::State::Play;
 use crate::state::GlobalState;
 use crate::utils::components::keep_alive::KeepAlive;
 use crate::utils::components::player::Player;
 use crate::utils::components::rotation::Rotation;
+use crate::utils::constants::init;
 use crate::utils::encoding::position::Position;
 use crate::utils::prelude::*;
+use crate::Connection;
+use crate::net::packets::outgoing::login_plugin_request::LoginPluginRequest;
+use crate::net::systems::chunk_sender::ChunkSender;
 
 /// The login start packet is sent by the client to the server to start the login process.
 ///
@@ -55,6 +59,7 @@ impl IncomingPacket for LoginStart {
         let conn = state.connections.get_connection(conn_id)?;
         let mut conn = conn.write().await;
 
+
         self.send_login_success(&mut conn).await?;
         self.send_login_play(&mut conn).await?;
         self.send_spawn_position(&mut conn).await?;
@@ -62,9 +67,26 @@ impl IncomingPacket for LoginStart {
         let data: i64 = random();
         let mut keep_alive = KeepAlive::new(Instant::now(), Instant::now(), data);
         self.send_keep_alive(&mut conn, &mut keep_alive).await?;
-        self.update_world_state(&conn, keep_alive, state).await?;
+        self.update_world_state(&conn, keep_alive, state.clone())
+            .await?;
+
+        self.synchronize_player_position(state.clone(), &mut conn)
+            .await?;
+
+
+        let packet = LoginPluginRequest::server_brand("🦀".repeat(100)).await;
+        conn.send_packet(packet).await?;
+
 
         conn.state = Play;
+
+        let entity = conn.id;
+        // Drop connection to avoid deadlock with chunk sender since it also needs to write to the connection
+        drop(conn);
+
+        ChunkSender::send_chunks_to_player(state.clone(), entity).await?;
+
+
 
         Ok(())
     }
@@ -129,9 +151,9 @@ impl LoginStart {
 
     async fn send_spawn_position(&self, conn: &mut RwLockWriteGuard<'_, Connection>) -> Result<()> {
         let player_position = Position {
-            x: 0,
-            y: 1000,
-            z: 0,
+            x: init::DEFAULT_SPAWN_X_POS,
+            y: init::DEFAULT_SPAWN_Y_POS,
+            z: init::DEFAULT_SPAWN_Z_POS,
         };
         let spawn_position = DefaultSpawnPosition::new_auto(player_position.clone(), 0.0);
         conn.send_packet(spawn_position).await?;
@@ -160,10 +182,37 @@ impl LoginStart {
         let component_storage = state.world.get_component_storage();
 
         component_storage
-            .insert(entity, Position::new(0, 1000, 0))
-            .insert(entity, Rotation::new(0.0, 0.0))
+            .insert(
+                entity,
+                Position::new(
+                    init::DEFAULT_SPAWN_X_POS,
+                    init::DEFAULT_SPAWN_Y_POS,
+                    init::DEFAULT_SPAWN_Z_POS,
+                ),
+            )
+            .insert(
+                entity,
+                Rotation::new(init::DEFAULT_SPAWN_YAW, init::DEFAULT_SPAWN_PITCH),
+            )
             .insert(entity, keep_alive)
             .insert(entity, Player::new(self.uuid, self.username.clone()));
+
+        Ok(())
+    }
+    async fn synchronize_player_position(
+        &self,
+        state: GlobalState,
+        conn: &mut RwLockWriteGuard<'_, Connection>,
+    ) -> Result<()> {
+        let entity = conn.id;
+        let component_storage = state.world.get_component_storage();
+
+        let position = component_storage.get::<Position>(entity).await?;
+        let rotation = component_storage.get::<Rotation>(entity).await?;
+
+        let packet = SynchronizePlayerPosition::new(&*position, &*rotation);
+
+        conn.send_packet(packet).await?;
 
         Ok(())
     }

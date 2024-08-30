@@ -6,10 +6,10 @@ use tracing::{debug, error, info, warn};
 
 use ferrumc_macros::AutoGenName;
 
-use crate::net::{Connection, ConnectionWrapper};
 use crate::net::packets::outgoing::chunk_and_light_data::ChunkDataAndUpdateLight;
 use crate::net::packets::outgoing::set_center_chunk::SetCenterChunk;
 use crate::net::systems::System;
+use crate::net::{Connection, ConnectionWrapper};
 use crate::state::GlobalState;
 use crate::utils::components::player::Player;
 use crate::utils::encoding::position::Position;
@@ -25,20 +25,12 @@ impl System for ChunkSender {
         loop {
             interval.tick().await;
 
-            info!("Sending chunks to players");
-            let mut query = state
-                .world
-                .query::<(&Player, &Position, &ConnectionWrapper)>();
+            let mut query = state.world.query::<&Player>();
 
-            while let Some((_, (player, pos, conn))) = query.next().await {
+            while let Some((entity_id, player)) = query.next().await {
                 info!("Sending chunk to player: {}", player.get_username());
-                if let Err(e) = send_set_center_chunk(&*player, &*pos, conn.0.clone()).await {
-                    error!("Failed to send center chunk to player: {}", e);
-                    continue;
-                }
-                if let Err(e) =
-                    send_chunks_to_player(state.clone(), &*player, &*pos, conn.0.clone()).await
-                {
+                drop(player);
+                if let Err(e) = ChunkSender::send_chunks_to_player(state.clone(), entity_id).await {
                     error!("Failed to send chunk to player: {}", e);
                     continue;
                 }
@@ -51,48 +43,64 @@ impl System for ChunkSender {
     }
 }
 
-async fn send_chunks_to_player(
-    state: GlobalState,
-    _player: &Player,
-    pos: &Position,
-    conn: Arc<RwLock<Connection>>,
-) -> Result<()> {
-    let mut write_guard = conn.write().await;
+impl ChunkSender {
+    pub async fn send_chunks_to_player(
+        state: GlobalState,
+        entity_id: impl TryInto<usize>,
+    ) -> Result<()> {
+        let entity_id = entity_id.try_into().map_err(|_| Error::ConversionError)?;
 
-    const CHUNK_RADIUS: i32 = 5;
+        let (
+            player,
+            pos,
+            conn
+        ) = state.world.get_components::<(Player, Position, ConnectionWrapper)>(entity_id).await?;
 
-    for x in 0..=CHUNK_RADIUS * 2 {
-        for z in -CHUNK_RADIUS..=CHUNK_RADIUS {
-            let packet =
-                ChunkDataAndUpdateLight::new(state.clone(), (pos.x >> 4) + x, (pos.z >> 4) + z)
-                    .await?;
+        debug!("Sending chunks to player: {} @ {:?}", player.get_username(), *pos);
 
-            if let Err(e) = write_guard.send_packet(packet).await {
-                warn!("Failed to send chunk to player: {}", e);
-            };
-        }
+        ChunkSender::send_set_center_chunk(&*pos, conn.0.clone()).await?;
+        ChunkSender::send_chunk_data_to_player(state.clone(), &*pos, conn.0.clone()).await?;
+
+        Ok(())
     }
 
-    Ok(())
-}
-async fn send_set_center_chunk(
-    player: &Player,
-    pos: &Position,
-    conn: Arc<RwLock<Connection>>,
-) -> Result<()> {
-    let packet = SetCenterChunk::new(pos.x >> 4, pos.z >> 4);
+    async fn send_chunk_data_to_player(
+        state: GlobalState,
+        pos: &Position,
+        conn: Arc<RwLock<Connection>>,
+    ) -> Result<()> {
+        let mut write_guard = conn.write().await;
 
-    let mut write_guard = conn.write().await;
+        const CHUNK_RADIUS: i32 = 10;
 
-    debug!(
-        "Sending center chunk to player: {} with position: {:?}",
-        player.get_username(),
-        pos
-    );
+        for x in -CHUNK_RADIUS..=CHUNK_RADIUS {
+            for z in -CHUNK_RADIUS..=CHUNK_RADIUS {
+                let packet =
+                    ChunkDataAndUpdateLight::new(
+                        state.clone(),
+                        (pos.x >> 4) + x,
+                        (pos.z >> 4) + z,
+                    )
+                        .await?;
 
-    if let Err(e) = write_guard.send_packet(packet).await {
-        warn!("Failed to send chunk to player: {}", e);
-    };
+                if let Err(e) = write_guard.send_packet(packet).await {
+                    warn!("Failed to send chunk to player: {}", e);
+                };
+            }
+        }
 
-    Ok(())
+        Ok(())
+    }
+    async fn send_set_center_chunk(
+        pos: &Position,
+        conn: Arc<RwLock<Connection>>,
+    ) -> Result<()> {
+        let packet = SetCenterChunk::new(pos.x >> 4, pos.z >> 4);
+
+        let mut write_guard = conn.write().await;
+
+        write_guard.send_packet(packet).await?;
+
+        Ok(())
+    }
 }
