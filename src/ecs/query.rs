@@ -39,6 +39,7 @@ impl<T: Component> QueryItem for &mut T {
 }
 
 /// Struct for querying components in the ECS.
+#[derive(Clone, Copy)]
 pub struct Query<'a, Q: QueryItem> {
     entity_manager: &'a EntityManager,
     component_storage: &'a ComponentStorage,
