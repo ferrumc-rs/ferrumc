@@ -67,11 +67,10 @@ FerrumC is a Minecraft server implementation written from the ground up in Rust.
 - Great logging system
 
 ```log
-// [Timestamp] [Log Level] [System Name] [Connection?] [Module (rm'd for brevity)]: [Message]
-2024-08-31T12:00:40.578321Z DEBUG sys{name=ConnectionHandler}:conn{addy=127.0.0.1:59996}: Player `Sweattypalms` moved to Position { x: 0, z: 0, y: 400 }
-2024-08-31T12:00:40.578314Z DEBUG sys{name=ChunkSender}: Sending chunk to player: Sweattypalms
-2024-08-31T12:00:40.578686Z DEBUG sys{name=ChunkSender}: Sending chunks to player: Sweattypalms @ Position { x: 0, z: 0, y: 400 }
-2024-08-31T12:00:40.953293Z DEBUG sys{name=TickSystem}: Ticked connection for `Sweattypalms`
+// [Timestamp (stripped)] [Log Level] [System Name] [Connection?] [Module (rm'd for brevity)]: [Message]
+2024-08...Z DEBUG sys{name=ConnectionHandler}:conn{addy=127.0.0.1:59996}: Sweattypalms moved to (0,400,0)
+2024-08...Z DEBUG sys{name=ChunkSender}: Sending chunks to player: Sweattypalms @ (0,400,0)
+2024-08...Z DEBUG sys{name=TickSystem}: Ticked `Sweattypalms`
 ```
 
 - Keep-alive system
