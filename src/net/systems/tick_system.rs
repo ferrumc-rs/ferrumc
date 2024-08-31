@@ -6,6 +6,7 @@ use crate::net::systems::System;
 use crate::net::ConnectionWrapper;
 use crate::net::packets::outgoing::login_plugin_request::LoginPluginRequest;
 use crate::state::GlobalState;
+use crate::utils::components::player::Player;
 
 #[derive(AutoGenName)]
 pub struct TickSystem;
@@ -14,7 +15,7 @@ pub struct TickSystem;
 impl System for TickSystem {
 
     async fn run(&self, state: GlobalState) {
-        let mut query = state.world.query::<&ConnectionWrapper>();
+        let mut query = state.world.query::<(&ConnectionWrapper, &Player)>();
 
         let width = 40;
         let total_width = width * 2;
@@ -37,14 +38,14 @@ impl System for TickSystem {
                 .cloned()
                 .collect();
 
-            while let Some((_, conn)) = query.next().await {
+            while let Some((_, (conn, player))) = query.next().await {
                 let packet = LoginPluginRequest::server_brand(&visible_wave).await;
                 let mut conn = conn.0.write().await;
                 if let Err(e) = conn.send_packet(packet).await {
                     warn!("Failed to send packet: {}", e);
                     continue;
                 }
-                debug!("Sent crab wave to connection");
+                debug!("Ticked connection for `{}`", player.get_username());
             }
 
             offset = (offset + 1) % total_width;

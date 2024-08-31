@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use tokio::sync::RwLock;
-use tracing::{debug, error, info, warn};
+use tracing::{debug, error, warn};
 
 use ferrumc_macros::AutoGenName;
 
@@ -21,14 +21,14 @@ pub struct ChunkSender;
 #[async_trait]
 impl System for ChunkSender {
     async fn run(&self, state: GlobalState) {
-        let mut interval = tokio::time::interval(std::time::Duration::from_millis(5000));
+        let mut interval = tokio::time::interval(std::time::Duration::from_millis(250));
         loop {
             interval.tick().await;
 
             let mut query = state.world.query::<&Player>();
 
             while let Some((entity_id, player)) = query.next().await {
-                info!("Sending chunk to player: {}", player.get_username());
+                debug!("Sending chunk to player: {}", player.get_username());
                 drop(player);
                 if let Err(e) = ChunkSender::send_chunks_to_player(state.clone(), entity_id).await {
                     error!("Failed to send chunk to player: {}", e);

@@ -7,7 +7,7 @@ use include_flate::flate;
 use rand::random;
 use tokio::io::AsyncWriteExt;
 use tokio::sync::RwLockWriteGuard;
-use tracing::debug;
+use tracing::{debug, info};
 use uuid::Uuid;
 
 use ferrumc_macros::{packet, NetDecode};
@@ -76,6 +76,8 @@ impl IncomingPacket for LoginStart {
 
         let packet = LoginPluginRequest::server_brand("🦀".repeat(100)).await;
         conn.send_packet(packet).await?;
+
+        info!("Player {} has joined the server", self.username);
 
 
         conn.state = Play;

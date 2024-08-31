@@ -1,4 +1,4 @@
-use tracing::info;
+use tracing::{debug};
 
 use ferrumc_macros::{packet, NetDecode};
 
@@ -18,15 +18,15 @@ impl IncomingPacket for KeepAlivePacketIn {
         conn: ConnectionId,
         state: GlobalState,
     ) -> crate::utils::prelude::Result<()> {
-        info!("KeepAlivePacketIn: {:?}", self);
+        debug!("KeepAlivePacketIn: {:?}", self);
 
         let player = conn;
 
-        info!("Player: {:?}", player);
+        debug!("Player: {:?}", player);
 
         let mut keep_alive = state.world.get_component_mut::<KeepAlive>(player).await?;
 
-        info!("KeepAlive for player: {:?}", *keep_alive);
+        debug!("KeepAlive for player: {:?}", *keep_alive);
 
         keep_alive.last_received = std::time::Instant::now();
 

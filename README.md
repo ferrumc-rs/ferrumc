@@ -35,15 +35,45 @@ FerrumC is a Minecraft server implementation written from the ground up in Rust.
 
 ## 🎯 Current Features and Roadmap
 
-<details>
+<details open>
 <summary><b>✅ Implemented Features</b></summary>
 
 - Basic server setup and configuration
+ 
+![Configuration](README/assets/configuration.png)
+
 - Server list ping
+
+![Server list ping](README/assets/server%20list.png)
+
 - Player connection and authentication
+
+![Player Joining](README/assets/player_joining.png)
+
 - Entity Component System
+
+![ECS Example](README/assets/ecs_example.png)
+
 - Packet handling, serialization, and deserialization
+
+*Incoming packet definition*
+
+![Incoming packet definition](README/assets/packet_incoming_def.png)
+
+*Packet handling*
+
+![Packet handling](README/assets/packet_handling.png)
+
 - Great logging system
+
+```log
+// [Timestamp] [Log Level] [System Name] [Connection?] [Module]: [Message]
+2024-08-31T12:00:40.578321Z DEBUG sys{name=ConnectionHandler}:conn{addy=127.0.0.1:59996}: ferrumc::net::packets::incoming::set_player_pos_and_rotate: Player `Sweattypalms` moved to Position { x: 0, z: 0, y: 400 }
+2024-08-31T12:00:40.578314Z DEBUG sys{name=ChunkSender}: ferrumc::net::systems::chunk_sender: Sending chunk to player: Sweattypalms
+2024-08-31T12:00:40.578686Z DEBUG sys{name=ChunkSender}: ferrumc::net::systems::chunk_sender: Sending chunks to player: Sweattypalms @ Position { x: 0, z: 0, y: 400 }
+2024-08-31T12:00:40.953293Z DEBUG sys{name=TickSystem}: ferrumc::net::systems::tick_system: Ticked connection for `Sweattypalms`
+```
+
 - Keep-alive system
 - NBT serialization and deserialization
 
