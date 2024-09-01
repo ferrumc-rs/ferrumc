@@ -1,6 +1,5 @@
 use bincode::{Decode, Encode};
 use ferrumc_codec::network_types::varint::VarInt;
-use ferrumc_macros::NetEncode;
 use serde_derive::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -126,6 +125,9 @@ pub struct Section {
     pub block_light: Option<Vec<i8>>,
     #[nbt(rename = "SkyLight")]
     pub sky_light: Option<Vec<i8>>,
+    // This field doesn't exist in the chunks stored on disk but will exist when converted to network format
+    /// This indicates if the section has been fully imported
+    pub full_imported: Option<bool>,
 }
 
 #[derive(
@@ -149,8 +151,6 @@ pub struct BlockStates {
     pub palette: Option<Vec<Palette>>,
     // This is the palette for the chunk when converted to network format
     pub net_palette: Option<Vec<VarInt>>,
-    // This indicates that the block doesn't have any state data
-    pub default: Option<bool>,
 }
 
 #[derive(

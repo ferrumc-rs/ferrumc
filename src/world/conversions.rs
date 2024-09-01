@@ -37,6 +37,7 @@ impl Chunk {
             ));
         };
         for section in sections {
+            section.full_imported = Some(true);
             if section.block_states.is_none() {
                 if section.y < 0 || section.y > 15 {
                     // This is a valid case, as the section is empty
@@ -55,6 +56,8 @@ impl Chunk {
             // TODO: Adapt this for single block sections
             if let Some(data) = &block_states.data {
                 block_states.bits_per_block = Some((data.len() * 64 / 4096) as i8);
+            } else {
+                section.full_imported = Some(false);
             }
             let palette = block_states.palette.as_mut().unwrap();
 
@@ -68,6 +71,8 @@ impl Chunk {
                             non_air_blocks -= 1;
                         }
                         checked_palette.push(VarInt::from(block_id));
+                    } else {
+                        section.full_imported = Some(false);
                     }
                 } else {
                     return Err(Error::InvalidChunk(
@@ -89,32 +94,33 @@ impl NetEncode for Section {
     where
         W: AsyncWrite + Unpin,
     {
-        if let Some(block_states) = &self.block_states {
-            // Non-air blocks
-            writer
-                .write_all(&block_states.non_air_blocks.unwrap().to_be_bytes())
-                .await?;
-            // Blocks
-            writer
-                .write_all(&block_states.bits_per_block.unwrap().to_be_bytes())
-                .await?;
-            &block_states
-                .net_palette
-                .as_ref()
-                .unwrap()
-                .net_encode(writer)
-                .await?;
-            VarInt::from(block_states.data.as_ref().unwrap().len() as i32)
-                .net_encode(writer)
-                .await?;
-            for long in block_states.data.as_ref().unwrap() {
-                writer.write_all(&long.to_be_bytes()).await?;
+        if self.full_imported.unwrap() {
+            if let Some(block_states) = &self.block_states {
+                // Non-air blocks
+                writer
+                    .write_all(&block_states.non_air_blocks.unwrap().to_be_bytes())
+                    .await?;
+                // Blocks
+                writer
+                    .write_all(&block_states.bits_per_block.unwrap().to_be_bytes())
+                    .await?;
+                let _ = &block_states
+                    .net_palette
+                    .as_ref()
+                    .unwrap()
+                    .net_encode(writer)
+                    .await?;
+                VarInt::from(block_states.data.as_ref().unwrap().len() as i32)
+                    .net_encode(writer)
+                    .await?;
+                for long in block_states.data.as_ref().unwrap() {
+                    writer.write_all(&long.to_be_bytes()).await?;
+                }
+                // Biomes
+                // For now just write 3 0s
+                writer.write_all(&[0; 3]).await?;
             }
-            // Biomes
-            // For now just write 3 0s
-            writer.write_all(&[0; 3]).await?;
         }
-
         Ok(())
     }
 }

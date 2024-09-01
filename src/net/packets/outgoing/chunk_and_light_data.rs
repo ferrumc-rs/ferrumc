@@ -1,6 +1,7 @@
 use ferrumc_codec::enc::NetEncode;
 use ferrumc_codec::network_types::varint::VarInt;
 use nbt_lib::NBTTag;
+use std::io::Cursor;
 
 use ferrumc_macros::NetEncode;
 
@@ -22,7 +23,7 @@ pub struct ChunkDataAndUpdateLight {
     pub chunk_x: i32,
     pub chunk_z: i32,
     pub heightmaps: Heightmaps,
-    #[encode(raw_bytes(prepend_length = true))]
+    #[encode(raw_bytes(prepend_length = false))]
     pub data: Vec<u8>,
     pub block_entities_count: VarInt,
     pub block_entities: Vec<BlockEntity>,
@@ -64,24 +65,18 @@ impl ChunkDataAndUpdateLight {
         let chunk = chunk.unwrap();
 
         // Serialize the chunk data
-        let mut data = Vec::new();
-        for section in chunk.sections.as_ref().unwrap() {
-            let Some(block_states) = &section.block_states else {
-                return Err(Error::MissingBlockStates);
-            };
-            // data.extend(serialize_block_sttes(block_states)?);
+        let mut data = Cursor::new(Vec::new());
 
-            4096i16.net_encode(&mut data).await?;
-
-            let block_states_data = serialize_block_states(block_states).await?;
-            data.extend(block_states_data);
-
-            let Some(biomes) = &section.biomes else {
-                return Err(Error::MissingBlockStates);
-            };
-
-            let biomes_data = serialize_biomes(biomes).await?;
-            data.extend(biomes_data);
+        if let Some(sections) = &chunk.sections {
+            for section in sections {
+                section.net_encode(&mut data).await?;
+            }
+        } else {
+            return Err(Error::InvalidChunk(
+                chunk.x_pos,
+                chunk.z_pos,
+                "Chunk is missing sections".to_string(),
+            ));
         }
 
         // 24 is the number of sections in a chunk
@@ -113,7 +108,7 @@ impl ChunkDataAndUpdateLight {
             chunk_x,
             chunk_z,
             heightmaps: create_basic_chunk(chunk_x, chunk_z).heightmaps.unwrap(),
-            data,
+            data: data.into_inner(),
             block_entities_count: VarInt::from(0),
             block_entities: Vec::new(),
             sky_light_mask,
@@ -192,6 +187,7 @@ fn create_basic_chunk(chunk_x: i32, chunk_z: i32) -> Chunk {
             y: y as i8,
             block_light: Some(vec![0xf; 2048]),
             sky_light: Some(vec![0xf; 2048]),
+            full_imported: Some(false),
         };
         sections.push(section);
     }
@@ -235,7 +231,7 @@ fn create_block_states(chunk_data: &[u32], bits_per_entry: u8) -> BlockStates {
             None // Direct encoding, no palette
         },
         net_palette: None,
-        default: None,
+        // default: None,
     }
 }
 fn pack_entries(entries: &[u32], bits_per_entry: u8) -> Vec<i64> {
