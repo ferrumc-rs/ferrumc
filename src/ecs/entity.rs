@@ -69,6 +69,10 @@ impl EntityManager {
         let entity = entity.into();
         let mut inner = self.inner.write().await;
 
+        if inner.free_ids.contains(&(entity as u32)) {
+            return false;
+        }
+
         if entity < inner.generations.len() {
             inner.generations[entity] += 1;
             inner.free_ids.push(entity as u32);

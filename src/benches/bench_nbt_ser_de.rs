@@ -1,7 +1,7 @@
 use std::io::{Cursor, Write};
 
-use criterion::{black_box, Criterion, criterion_group, criterion_main};
-use nbt_lib::{NBTDeserialize, NBTDeserialize, NBTSerialize, NBTSerialize, read_tag};
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use nbt_lib::{read_tag, NBTDeserialize, NBTDeserialize, NBTSerialize, NBTSerialize};
 
 use crate::test_simd_de_data::MinecraftChunk;
 

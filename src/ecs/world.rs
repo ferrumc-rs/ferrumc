@@ -3,6 +3,7 @@ use crate::ecs::entity::EntityManager;
 use crate::ecs::error::Error;
 use crate::ecs::helpers::entity_builder::EntityBuilder;
 use crate::ecs::query::Query;
+
 use crate::utils::prelude::*;
 
 /// <p style="color:#4CAF50;font-size:1.2em;font-weight:bold;">The World struct</p>
@@ -167,5 +168,68 @@ impl World {
     }
 }
 
-#[allow(dead_code)]
-struct WorldDoc;
+mod multiple_components {
+    use super::*;
+
+    impl World {
+        pub async fn get_components<T>(
+            &self,
+            entity_id: impl TryInto<usize>,
+        ) -> Result<T::Output<'_>>
+        where
+            T: GetComponents,
+        {
+            let entity_id = entity_id.try_into().map_err(|_| Error::ConversionError)?;
+            T::get_components(self, entity_id).await
+        }
+    }
+
+    pub trait GetComponents: Sized {
+        type Output<'a>;
+        #[allow(async_fn_in_trait)]
+        async fn get_components(world: &World, entity_id: usize) -> Result<Self::Output<'_>>;
+    }
+
+    macro_rules! impl_get_components_for_tuple {
+        ($($T:ident),*) => {
+            impl<$($T: Component),*> GetComponents for ($($T,)*) {
+                type Output<'a> = ($(ComponentRef<'a, $T>,)*);
+
+                async fn get_components(world: &World, entity_id: usize) -> Result<Self::Output<'_>> {
+                    Ok(($(world.get_component::<$T>(entity_id).await?,)*))
+                }
+            }
+        };
+    }
+
+    // Implement for tuples of different sizes
+    impl_get_components_for_tuple!(A);
+    impl_get_components_for_tuple!(A, B);
+    impl_get_components_for_tuple!(A, B, C);
+    impl_get_components_for_tuple!(A, B, C, D);
+    impl_get_components_for_tuple!(A, B, C, D, E);
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+        use crate::utils::components::rotation::Rotation;
+        use crate::utils::encoding::position::Position;
+
+        #[tokio::test]
+        async fn test_get_components() {
+            let mut world = World::new();
+            let entity = world
+                .create_entity()
+                .await
+                .with(Position::new(0, 0, 0))
+                .with(Rotation::new(0f32, 0f32))
+                .build();
+
+            let result = world.get_components::<(Position, Rotation)>(entity).await;
+            assert!(result.is_ok());
+            let (pos, rot) = result.unwrap();
+            assert_eq!(pos.x, 0);
+            assert_eq!(rot.pitch, 0.0);
+        }
+    }
+}

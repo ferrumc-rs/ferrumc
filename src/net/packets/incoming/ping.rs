@@ -3,10 +3,10 @@ use ferrumc_codec::network_types::varint::VarInt;
 use tokio::io::AsyncWriteExt;
 use tracing::debug;
 
-use ferrumc_macros::{NetDecode, packet};
+use ferrumc_macros::{packet, NetDecode};
 
-use crate::net::packets::{ConnectionId, IncomingPacket};
 use crate::net::packets::outgoing::ping::OutgoingPing;
+use crate::net::packets::{ConnectionId, IncomingPacket};
 use crate::state::GlobalState;
 use crate::utils::prelude::*;
 

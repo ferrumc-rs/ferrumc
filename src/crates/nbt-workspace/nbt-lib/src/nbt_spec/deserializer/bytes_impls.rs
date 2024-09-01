@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+use crate::NBTError;
 use super::*;
 
 impl NBTDeserializeBytes for i8 {
@@ -58,5 +60,27 @@ impl<T: NBTDeserializeBytes> NBTDeserializeBytes for Vec<T> {
             vec.push(T::read_from_bytes(cursor)?);
         }
         Ok(vec)
+    }
+}
+
+impl<V: NBTDeserializeBytes + NBTDeserialize> NBTDeserializeBytes for HashMap<String, V> {
+    #[inline]
+    fn read_from_bytes(cursor: &mut Cursor<Vec<u8>>) -> NBTResult<Self> {
+        let Ok(nbt_tag) = nbt_tag_reader::read_tag(cursor) else {
+            return Err(NBTError::DeserializeError("Failed to read compound tag".to_string()))
+        };
+
+        match nbt_tag {
+            NBTTag::Compound(hashmap) => {
+                Ok(hashmap
+                    .into_iter()
+                    .filter_map(|(key, tag)| {
+                        let value = V::read_from(tag).ok()?;
+                        Some((key, value))
+                    })
+                    .collect())
+            }
+            _ => Err(NBTError::InvalidType("Compound", nbt_tag.my_type())),
+        }
     }
 }

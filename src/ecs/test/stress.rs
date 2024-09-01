@@ -20,21 +20,15 @@ mod tests {
 
         let mut query = world.query::<(&mut Position, &Velocity)>();
 
-        let mut interval = tokio::time::interval(std::time::Duration::from_secs(1));
+        let start = std::time::Instant::now();
 
-        loop {
-            let start = std::time::Instant::now();
-
-            while let Some((_, (mut pos, vel))) = query.next().await {
-                pos.x += vel.x;
-                pos.y += vel.y;
-                pos.z += vel.z;
-            }
-
-            let elapsed = start.elapsed();
-            println!("Time taken to update 1000 entities: {:?}", elapsed);
-
-            interval.tick().await;
+        while let Some((_, (mut pos, vel))) = query.next().await {
+            pos.x += vel.x;
+            pos.y += vel.y;
+            pos.z += vel.z;
         }
+
+        let elapsed = start.elapsed();
+        println!("Time taken to update 1000 entities: {:?}", elapsed);
     }
 }

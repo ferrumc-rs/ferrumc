@@ -1,5 +1,6 @@
 use tracing_subscriber::filter::Directive;
-
+use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::util::SubscriberInitExt;
 use crate::utils::constants::DEFAULT_LOG_LEVEL;
 use crate::utils::prelude::*;
 
@@ -41,7 +42,23 @@ pub fn setup_logger() -> Result<()> {
         .add_directive(trace_level.into())
         .add_directive(str_to_directive("sled=off")?);
 
-    Ok(tracing_subscriber::fmt().with_env_filter(env_filter).init())
+    let mut fmt_layer = tracing_subscriber::fmt::Layer::default();
+
+    if trace_level == tracing::Level::INFO {
+        // remove path from logs if log level is info
+        fmt_layer = tracing_subscriber::fmt::Layer::default()
+            .with_target(false)
+            .with_thread_ids(false)
+            .with_thread_names(false);
+    };
+
+    tracing_subscriber::registry()
+        .with(env_filter)
+        .with(fmt_layer)
+        .init();
+
+
+    Ok(())
 }
 
 fn str_to_directive(s: &str) -> Result<Directive> {

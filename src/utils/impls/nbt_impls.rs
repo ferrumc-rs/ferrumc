@@ -1,4 +1,3 @@
-
 /*pub trait SpecEncode {
     async fn encode<T>(&self, bytes: &mut T) -> Result<(), Error>
     where

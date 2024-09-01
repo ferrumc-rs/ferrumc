@@ -1,6 +1,3 @@
-use ferrumc_codec::enc::NetEncode;
-use tracing::debug;
-
 #[tokio::test]
 pub async fn test_heightmaps() -> Result<(), Box<dyn std::error::Error>> {
     use crate::utils::setup_logger;
@@ -16,8 +13,6 @@ pub async fn test_heightmaps() -> Result<(), Box<dyn std::error::Error>> {
         .await
         .unwrap()
         .unwrap();
-
-    debug!("Chunk: {:?}", chunk);
 
     let heightmaps = chunk.heightmaps.unwrap();
 

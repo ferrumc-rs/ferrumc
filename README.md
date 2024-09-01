@@ -35,15 +35,44 @@ FerrumC is a Minecraft server implementation written from the ground up in Rust.
 
 ## 🎯 Current Features and Roadmap
 
-<details>
+<details open>
 <summary><b>✅ Implemented Features</b></summary>
 
 - Basic server setup and configuration
+ 
+![Configuration](https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/configuration.png?raw=true)
+
 - Server list ping
+
+![Server list ping](https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/server%20list.png?raw=true)
+
 - Player connection and authentication
+
+![Player Joining](https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/player_joining.png?raw=true)
+
 - Entity Component System
+
+![ECS Example](https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/ecs_example.png?raw=true)
+
 - Packet handling, serialization, and deserialization
+
+*Incoming packet definition*
+
+![Incoming packet definition](https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/packet_incoming_def.png?raw=true)
+
+*Packet handling*
+
+![Packet handling](https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/packet_handling.png?raw=true)
+
 - Great logging system
+
+```log
+// [Timestamp (stripped)] [Log Level] [System Name] [Connection?] [Module (rm'd for brevity)]: [Message]
+2024-08...Z DEBUG sys{name=ConnectionHandler}:conn{addy=127.0.0.1:59996}: Sweattypalms moved to (0,400,0)
+2024-08...Z DEBUG sys{name=ChunkSender}: Sending chunks to player: Sweattypalms @ (0,400,0)
+2024-08...Z DEBUG sys{name=TickSystem}: Ticked `Sweattypalms`
+```
+
 - Keep-alive system
 - NBT serialization and deserialization
 

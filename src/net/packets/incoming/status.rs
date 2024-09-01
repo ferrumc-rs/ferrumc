@@ -6,10 +6,10 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::sync::OnceCell;
 use tracing::debug;
 
-use ferrumc_macros::{NetDecode, packet};
+use ferrumc_macros::{packet, NetDecode};
 
-use crate::net::packets::{ConnectionId, IncomingPacket};
 use crate::net::packets::outgoing::status::OutgoingStatusResponse;
+use crate::net::packets::{ConnectionId, IncomingPacket};
 use crate::state::GlobalState;
 use crate::utils::config;
 use crate::utils::prelude::*;

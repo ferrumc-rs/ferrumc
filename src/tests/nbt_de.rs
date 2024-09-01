@@ -1,8 +1,6 @@
-use std::io::Cursor;
-
-use nbt_lib::{NBTDeserialize, NBTDeserializeBytes, NBTSerialize};
-
 use crate::tests::nbt_de::test_de_data::Player;
+use nbt_lib::{NBTDeserialize, NBTDeserializeBytes, NBTSerialize};
+use std::io::Cursor;
 
 pub mod test_de_data {
     use super::*;

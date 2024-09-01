@@ -4,13 +4,13 @@ use nbt_lib::NBTTag;
 
 use ferrumc_macros::NetEncode;
 
-use crate::Result;
 use crate::state::GlobalState;
 use crate::utils::encoding::bitset::BitSet;
 use crate::utils::error::Error;
 use crate::world::chunkformat::{
     Biomes, BlockStates, Chunk, Heightmaps, References, Section, Starts, Structures,
 };
+use crate::Result;
 
 const SECTION_WIDTH: usize = 16;
 const SECTION_HEIGHT: usize = 16;

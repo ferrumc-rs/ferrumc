@@ -1,7 +1,8 @@
-use ferrumc_macros::{NetDecode, packet};
-
+use ferrumc_macros::{packet, NetDecode};
+use tracing::debug;
 use crate::net::packets::{ConnectionId, IncomingPacket};
 use crate::state::GlobalState;
+use crate::utils::components::player::Player;
 use crate::utils::components::rotation::Rotation;
 use crate::utils::encoding::position::Position;
 use crate::utils::prelude::*;
@@ -36,6 +37,9 @@ impl IncomingPacket for SetPlayerPosAndRotate {
             yaw: self.yaw,
             pitch: self.pitch,
         };
+
+        let player = state.world.get_component::<Player>(my_entity_id).await?;
+        debug!("Player `{}` moved to {:?}", player.get_username(), *position);
 
         Ok(())
     }
