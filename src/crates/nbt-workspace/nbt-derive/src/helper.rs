@@ -3,12 +3,12 @@ use syn::Attribute;
 const BASE_NAME: &str = "nbt";
 const IS_ROOT_ATTRIBUTE: &str = "is_root";
 const RENAME_ATTRIBUTE: &str = "rename";
-const NO_ENCODE_ATTRIBUTE: &str = "no_encode";
+const NET_ENCODE_ATTRIBUTE: &str = "net_encode";
 
 pub struct AttributeValues {
     pub is_root: bool,
     pub rename: Option<String>,
-    pub no_encode: bool,
+    pub net_encode: bool,
 }
 
 
@@ -29,7 +29,7 @@ pub fn parse_struct_attributes(attrs: &[Attribute]) -> AttributeValues {
     let mut attribute_values = AttributeValues {
         is_root: false,
         rename: None,
-        no_encode: false,
+        net_encode: false,
     };
 
     for attr in attrs {
@@ -50,10 +50,10 @@ pub fn parse_struct_attributes(attrs: &[Attribute]) -> AttributeValues {
             if meta.path.is_ident(RENAME_ATTRIBUTE) {
                 attribute_values.rename = Some(meta.value()?.parse::<syn::LitStr>()?.value());
             }
-            if meta.path.is_ident(NO_ENCODE_ATTRIBUTE) {
-                attribute_values.no_encode = true;
+            if meta.path.is_ident(NET_ENCODE_ATTRIBUTE) {
+                attribute_values.net_encode = true;
                 if let Ok(value) = meta.value() {
-                    attribute_values.no_encode = value.parse::<syn::LitBool>()?.value;
+                    attribute_values.net_encode = value.parse::<syn::LitBool>()?.value;
                 }
             }
             Ok(())

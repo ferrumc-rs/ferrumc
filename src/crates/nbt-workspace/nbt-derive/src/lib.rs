@@ -5,8 +5,14 @@ mod helper;
 mod serialize;
 /// Derive macro for the `NBTSerialize` trait to auto-generate serialization into NBT format.
 ///
+/// **POSSIBLE ATTRIBUTES**:
+/// - ***rename***: Renames the field to the provided string.
+/// - ***is_root***: Marks the struct as the root struct.
+/// - ***net_encode***: Makes the NBT be encoded properly to work with other NBTEncodable types.
+///                     (Must NOT implement `NBTEncodable`)
+///
 /// To serialize the entire root, please use the `root` attribute.
-/// Otherwise the serialization ***won't*** be generated properly!!!!
+/// Otherwise the serialization **WON'T** be generated properly!!!!
 ///
 /// <h5> For root usage: </h5>
 /// Example:

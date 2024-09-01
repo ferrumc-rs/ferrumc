@@ -93,7 +93,7 @@ pub(crate) fn nbt_serialize_derive(input: TokenStream) -> TokenStream {
         }
     };
 
-    let should_gen_encode = !struct_attrs.no_encode;
+    let should_gen_encode = struct_attrs.net_encode;
 
     if should_gen_encode {
         serialize_impl = quote! {
