@@ -147,6 +147,8 @@ pub struct BlockStates {
     pub palette: Option<Vec<Palette>>,
     // This is the palette for the chunk when converted to network format
     pub net_palette: Option<Vec<VarInt>>,
+    // This indicates that the block doesn't have any state data
+    pub default: Option<bool>,
 }
 
 #[derive(

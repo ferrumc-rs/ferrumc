@@ -85,9 +85,9 @@ pub async fn import_regions(
                 ));
                 exit(1);
             };
-            let chunk = chunk.data;
+            let chunk_raw = chunk.data;
 
-            let chunk_nbt = Chunk::read_from_bytes(&mut Cursor::new(chunk));
+            let chunk_nbt = Chunk::read_from_bytes(&mut Cursor::new(chunk_raw));
 
             if chunk_nbt.is_err() {
                 warn!(
@@ -101,12 +101,27 @@ pub async fn import_regions(
                 ));
                 exit(1);
             }
-            let chunk_nbt = chunk_nbt.unwrap();
-            let x = chunk_nbt.x_pos.clone();
-            let z = chunk_nbt.z_pos.clone();
+            let mut final_chunk = chunk_nbt.unwrap();
+            final_chunk.convert_to_net_mode().unwrap();
+            // match final_chunk.convert_to_net_mode() {
+            //     Ok(_) => {}
+            //     Err(e) => {
+            //         warn!(
+            //             "Could not convert chunk {} {} to network mode: {}",
+            //             final_chunk.x_pos, final_chunk.z_pos, e
+            //         );
+            //         bar.abandon_with_message(format!(
+            //             "Chunk {} {} failed to import",
+            //             final_chunk.x_pos, final_chunk.z_pos
+            //         ));
+            //         exit(1);
+            //     }
+            // }
+            let x = final_chunk.x_pos.clone();
+            let z = final_chunk.z_pos.clone();
             let record = state
                 .database
-                .insert_chunk(chunk_nbt, "overworld".to_string())
+                .insert_chunk(final_chunk, "overworld".to_string())
                 .await
                 .unwrap();
 

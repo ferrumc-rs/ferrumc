@@ -5,7 +5,7 @@ use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use std::io::Read;
 
-const BLOCKSFILE: &[u8] = include_bytes!("../../.etc/blockmappings.json");
+const BLOCKSFILE: &[u8] = include_bytes!("../../.etc/blockmappings.bz2");
 
 lazy_static! {
     static ref ID2BLOCK: HashMap<i32, Palette> = {

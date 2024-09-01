@@ -226,6 +226,7 @@ fn create_block_states(chunk_data: &[u32], bits_per_entry: u8) -> BlockStates {
             None // Direct encoding, no palette
         },
         net_palette: None,
+        default: None,
     }
 }
 fn pack_entries(entries: &[u32], bits_per_entry: u8) -> Vec<i64> {
