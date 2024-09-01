@@ -217,7 +217,7 @@ mod multiple_components {
 
         #[tokio::test]
         async fn test_get_components() {
-            let mut world = World::new();
+            let world = World::new();
             let entity = world
                 .create_entity()
                 .await

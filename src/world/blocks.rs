@@ -61,7 +61,7 @@ pub async fn read_block(
             .name
             .clone());
     }
-    println!("Palette: {:?}", palette);
+    println!("Palette: {:#?}", palette);
     if !section.block_states.is_some() {
         return Err(Error::Generic(format!(
             "Section {} does not have any block states",

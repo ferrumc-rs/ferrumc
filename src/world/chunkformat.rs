@@ -1,5 +1,7 @@
 use bincode::{Decode, Encode};
+use ferrumc_codec::network_types::varint::VarInt;
 use serde_derive::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 
 #[derive(
     nbt_lib::NBTSerialize,
@@ -144,7 +146,7 @@ pub struct BlockStates {
     // This is the palette for the chunk when stored on disk
     pub palette: Option<Vec<Palette>>,
     // This is the palette for the chunk when converted to network format
-    pub net_palette: Option<Vec<i8>>,
+    pub net_palette: Option<Vec<VarInt>>,
 }
 
 #[derive(
@@ -157,12 +159,14 @@ pub struct BlockStates {
     Serialize,
     Decode,
     Deserialize,
+    Hash,
+    Eq,
 )]
 pub struct Palette {
     #[nbt(rename = "Name")]
     pub name: String,
     #[nbt(rename = "Properties")]
-    pub properties: Option<Properties>,
+    pub properties: Option<BTreeMap<String, String>>,
 }
 
 #[derive(

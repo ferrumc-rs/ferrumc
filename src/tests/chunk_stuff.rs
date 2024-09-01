@@ -1,3 +1,5 @@
+use ferrumc_codec::enc::NetEncode;
+
 #[tokio::test]
 pub async fn test_heightmaps() -> Result<(), Box<dyn std::error::Error>> {
     use crate::utils::setup_logger;

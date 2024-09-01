@@ -12,8 +12,8 @@ use crate::world::chunkformat::{
 };
 use crate::Result;
 
-const SECTION_WIDTH: usize = 16;
-const SECTION_HEIGHT: usize = 16;
+const _SECTION_WIDTH: usize = 16;
+const _SECTION_HEIGHT: usize = 16;
 
 #[derive(NetEncode)]
 pub struct ChunkDataAndUpdateLight {
