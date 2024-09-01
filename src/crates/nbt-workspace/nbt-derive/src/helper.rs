@@ -3,6 +3,14 @@ use syn::Attribute;
 const BASE_NAME: &str = "nbt";
 const IS_ROOT_ATTRIBUTE: &str = "is_root";
 const RENAME_ATTRIBUTE: &str = "rename";
+const NO_ENCODE_ATTRIBUTE: &str = "no_encode";
+
+pub struct AttributeValues {
+    pub is_root: bool,
+    pub rename: Option<String>,
+    pub no_encode: bool,
+}
+
 
 /// Parses the attributes of the struct and returns the values of the `is_root` and `rename` attributes.
 /// @return: (is_root, rename)
@@ -16,9 +24,13 @@ const RENAME_ATTRIBUTE: &str = "rename";
 /// pub struct Root {
 ///    pub player_name: String,
 /// }
-pub fn parse_struct_attributes(attrs: &[Attribute]) -> (bool, Option<String>) {
-    let mut is_root = false;
-    let mut rename = None;
+pub fn parse_struct_attributes(attrs: &[Attribute]) -> AttributeValues {
+
+    let mut attribute_values = AttributeValues {
+        is_root: false,
+        rename: None,
+        no_encode: false,
+    };
 
     for attr in attrs {
         if !attr.path().is_ident(BASE_NAME) {
@@ -27,23 +39,29 @@ pub fn parse_struct_attributes(attrs: &[Attribute]) -> (bool, Option<String>) {
 
         attr.parse_nested_meta(|meta| {
             if meta.path.is_ident(IS_ROOT_ATTRIBUTE) {
-                // is_root = meta.value()?.parse::<syn::LitBool>()?.value;
                 // So it also works like this (both are valid):
                 // #[nbt(is_root)]
                 // #[nbt(is_root = true)]
-                is_root = true;
+                attribute_values.is_root = true;
                 if let Ok(value) = meta.value() {
-                    is_root = value.parse::<syn::LitBool>()?.value;
+                    attribute_values.is_root = value.parse::<syn::LitBool>()?.value;
                 }
-            } else if meta.path.is_ident(RENAME_ATTRIBUTE) {
-                rename = Some(meta.value()?.parse::<syn::LitStr>()?.value());
+            }
+            if meta.path.is_ident(RENAME_ATTRIBUTE) {
+                attribute_values.rename = Some(meta.value()?.parse::<syn::LitStr>()?.value());
+            }
+            if meta.path.is_ident(NO_ENCODE_ATTRIBUTE) {
+                attribute_values.no_encode = true;
+                if let Ok(value) = meta.value() {
+                    attribute_values.no_encode = value.parse::<syn::LitBool>()?.value;
+                }
             }
             Ok(())
         })
         .unwrap();
     }
 
-    (is_root, rename)
+    attribute_values
 }
 
 /// Parses the attributes of the field and returns the value of the `rename` attribute.

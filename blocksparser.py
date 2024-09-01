@@ -6,7 +6,7 @@ def dict_reorder(item):
 
 out = {}
 
-with open("blocks.json") as f:
+with open(".etc/blocks.json") as f:
     blocks = json.load(f)
     for block in blocks:
         data = blocks[block]
@@ -23,6 +23,6 @@ with open("blocks.json") as f:
 
 with open("blockstates.json", "w") as bs:
     json.dump(out, bs, indent=4)
-    with open(".etc/blockmappings.bz2", "wb") as f:
-        as_string = json.dumps(dict_reorder(out), separators=(',', ':'))
-        f.write(bz2.compress(as_string.encode("utf-8")))
+with open(".etc/blockmappings.bz2", "wb") as f:
+    as_string = json.dumps(dict_reorder(out), separators=(',', ':'))
+    f.write(bz2.compress(as_string.encode("utf-8")))

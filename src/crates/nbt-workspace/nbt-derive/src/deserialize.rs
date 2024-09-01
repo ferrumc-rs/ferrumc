@@ -2,13 +2,13 @@ use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{Data, DeriveInput, Fields, parse_macro_input, Type};
 
-use crate::helper::{parse_field_attributes, parse_struct_attributes};
+use crate::helper::{parse_field_attributes, parse_struct_attributes, AttributeValues};
 
 pub(crate) fn nbt_deserialize_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let struct_name = &input.ident;
 
-    let (is_root, rename) = parse_struct_attributes(&input.attrs);
+    let AttributeValues {is_root, rename, .. } = parse_struct_attributes(&input.attrs);
     let name = rename.clone().unwrap_or_else(|| struct_name.to_string());
 
     let Data::Struct(data_struct) = &input.data else {
@@ -46,30 +46,6 @@ pub(crate) fn nbt_deserialize_derive(input: TokenStream) -> TokenStream {
         deserialize_field
     });
 
-    /*let deserialize_impl = if !is_root {
-        quote! {
-            impl NBTDeserialize for #struct_name {
-                fn read_from(compound: ::nbt_lib::NBTTag) -> NBTResult<Self> {
-                    Ok(Self {
-                        #(#field_deserializations)*
-                    })
-                }
-            }
-        }
-    } else {
-        quote! {
-            impl ::nbt_lib::NBTDeserialize for #struct_name {
-                fn read_from(mut tag: nbt_lib::NBTTag) -> ::nbt_lib::NBTResult<Self> {
-                    let mut compound = tag.get(#name)
-                        .ok_or_else(|| ::nbt_lib::NBTError::DeserializeError(format!("Root `{}` not found", #name)))?;
-
-                    Ok(Self {
-                        #(#field_deserializations)*
-                    })
-                }
-            }
-        }
-    };*/
     let root_alignment = if is_root {
         quote! {
             let mut compound = nbt.get(#name)
