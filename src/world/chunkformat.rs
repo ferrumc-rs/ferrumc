@@ -1,5 +1,6 @@
 use bincode::{Decode, Encode};
 use ferrumc_codec::network_types::varint::VarInt;
+use ferrumc_macros::NetEncode;
 use serde_derive::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -42,6 +43,7 @@ pub struct Chunk {
 #[derive(
     nbt_lib::NBTSerialize,
     nbt_lib::NBTDeserialize,
+    NetEncode,
     Debug,
     Clone,
     PartialEq,

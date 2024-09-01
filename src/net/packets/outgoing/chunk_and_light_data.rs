@@ -51,8 +51,17 @@ pub struct LightArray {
 }
 
 impl ChunkDataAndUpdateLight {
-    pub async fn new(_state: GlobalState, chunk_x: i32, chunk_z: i32) -> Result<Self> {
-        let chunk = create_basic_chunk(chunk_x, chunk_z);
+    pub async fn new(state: GlobalState, chunk_x: i32, chunk_z: i32) -> Result<Self> {
+        let chunk = state
+            .database
+            .get_chunk(chunk_x, chunk_z, "overworld")
+            .await?;
+
+        if chunk.is_none() {
+            return Err(Error::ChunkNotFound(chunk_x, chunk_z));
+        }
+
+        let chunk = chunk.unwrap();
 
         // Serialize the chunk data
         let mut data = Vec::new();
@@ -103,7 +112,7 @@ impl ChunkDataAndUpdateLight {
             packet_id: VarInt::from(0x24),
             chunk_x,
             chunk_z,
-            heightmaps: chunk.heightmaps.unwrap(),
+            heightmaps: create_basic_chunk(chunk_x, chunk_z).heightmaps.unwrap(),
             data,
             block_entities_count: VarInt::from(0),
             block_entities: Vec::new(),

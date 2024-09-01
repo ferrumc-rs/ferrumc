@@ -1,5 +1,5 @@
 use quote::quote;
-use syn::{Data, DeriveInput, parse_macro_input};
+use syn::{parse_macro_input, Data, DeriveInput};
 
 use proc_macro::TokenStream;
 
@@ -71,77 +71,59 @@ pub(crate) fn nbt_serialize_derive(input: TokenStream) -> TokenStream {
     };
 
     let serialize_impl = quote! {
-            impl ::nbt_lib::NBTSerialize for #struct_name {
-                fn nbt_serialize<W: std::io::Write>(&self, writer: &mut W) -> ::nbt_lib::NBTResult<()> {
-                    #root_header
-                    #(#fields)*
-                    nbt_lib::nbt_spec::serializer::tag_types::TAG_END.nbt_serialize(writer)?;
-                    Ok(())
-                }
+        impl ::nbt_lib::NBTSerialize for #struct_name {
+            fn nbt_serialize<W: std::io::Write>(&self, writer: &mut W) -> ::nbt_lib::NBTResult<()> {
+                #root_header
+                #(#fields)*
+                nbt_lib::nbt_spec::serializer::tag_types::TAG_END.nbt_serialize(writer)?;
+                Ok(())
             }
+        }
 
-            impl nbt_lib::nbt_spec::serializer::impls::NBTFieldType for #struct_name {
-                fn tag_type(&self) -> u8 {
-                    nbt_lib::nbt_spec::serializer::tag_types::TAG_COMPOUND
-                }
+        impl nbt_lib::nbt_spec::serializer::impls::NBTFieldType for #struct_name {
+            fn tag_type(&self) -> u8 {
+                nbt_lib::nbt_spec::serializer::tag_types::TAG_COMPOUND
             }
+        }
 
-            impl nbt_lib::nbt_spec::serializer::impls::NBTAnonymousType for #struct_name {
-                fn tag_type() -> u8 {
-                    nbt_lib::nbt_spec::serializer::tag_types::TAG_COMPOUND
-                }
+        impl nbt_lib::nbt_spec::serializer::impls::NBTAnonymousType for #struct_name {
+            fn tag_type() -> u8 {
+                nbt_lib::nbt_spec::serializer::tag_types::TAG_COMPOUND
             }
+        }
 
-            impl nbt_lib::nbt_spec::serializer::NBTCompoundMarker for #struct_name {
-                fn wrapped<'a, T>(t: &'a T) -> nbt_lib::nbt_spec::serializer::NBTSerializeToEncodeWrapper<'a, T>
-                where
-                    T: nbt_lib::NBTSerialize,
-                {
-                    nbt_lib::nbt_spec::serializer::NBTSerializeToEncodeWrapper::new(t)
-                }
-            }
-
-            impl ferrumc_codec::enc::NetEncode for #struct_name
-                where Self: nbt_lib::NBTSerialize
+        impl nbt_lib::nbt_spec::serializer::NBTCompoundMarker for #struct_name {
+            fn wrapped<'a, T>(t: &'a T) -> nbt_lib::nbt_spec::serializer::NBTSerializeToEncodeWrapper<'a, T>
+            where
+                T: nbt_lib::NBTSerialize,
             {
-                async fn net_encode<W>(&self, writer: &mut W) -> ferrumc_codec::Result<()>
-                where
-                    W: tokio::io::AsyncWrite + std::marker::Unpin
-                {
-                    let wrapper = nbt_lib::nbt_spec::serializer::NBTSerializeToEncodeWrapper::new(self);
-
-                    let mut sync_writer = Vec::new();
-
-                    // nbt_lib::nbt_spec::serializer::tag_types::TAG_COMPOUND.serialize(sync_writer)?;
-                    ::nbt_lib::NBTSerialize::nbt_serialize(&nbt_lib::nbt_spec::serializer::tag_types::TAG_COMPOUND, &mut sync_writer).map_err(ferrumc_codec::error::CodecError::from_external_error)?;
-                    ::nbt_lib::NBTSerialize::nbt_serialize(&#name, &mut sync_writer).map_err(ferrumc_codec::error::CodecError::from_external_error)?;
-                    // ::nbt_lib::NBTSerialize::serialize(&*self, &mut sync_writer).map_err(ferrumc_codec::error::CodecError::from_external_error)?;
-                    // ::nbt_lib::NBTSerialize::serialize(&8u8, &mut sync_writer).map_err(ferrumc_codec::error::CodecError::from_external_error)?;
-                    // ::nbt_lib::NBTSerialize::serialize(&"field name test", &mut sync_writer).map_err(ferrumc_codec::error::CodecError::from_external_error)?;
-                    // ::nbt_lib::NBTSerialize::serialize(&"field value test", &mut sync_writer).map_err(ferrumc_codec::error::CodecError::from_external_error)?;
-                    // Automatically puts the end tag!
-                    ::nbt_lib::NBTSerialize::nbt_serialize(&*self, &mut sync_writer).map_err(ferrumc_codec::error::CodecError::from_external_error)?;
-                    //::nbt_lib::NBTSerialize::serialize(&nbt_lib::nbt_spec::serializer::tag_types::TAG_END, &mut sync_writer).map_err(ferrumc_codec::error::CodecError::from_external_error)?;
-
-                    {
-                        use tokio::io::AsyncWriteExt;
-                        writer.write_all(&sync_writer).await?;
-                    }
-
-                    // Header (TAG_COMPOUND, empty name)
-                    // ferrumc_codec::enc::Encode::encode(&compound_tag, writer).await?;
-                    // ferrumc_codec::enc::Encode::encode(&#name, writer).await?;
-
-                    // Data
-                    // ferrumc_codec::enc::Encode::encode(&wrapper, writer).await?;
-    /*
-                    // End tag
-                    let end_tag = nbt_lib::nbt_spec::serializer::tag_types::TAG_END;
-                    ferrumc_codec::enc::Encode::encode(&end_tag, writer).await?;*/
-                    Ok(())
-                }
+                nbt_lib::nbt_spec::serializer::NBTSerializeToEncodeWrapper::new(t)
             }
-        };
+        }
+
+        // impl ferrumc_codec::enc::NetEncode for #struct_name
+        //     where Self: nbt_lib::NBTSerialize
+        // {
+        //     async fn net_encode<W>(&self, writer: &mut W) -> ferrumc_codec::Result<()>
+        //     where
+        //         W: tokio::io::AsyncWrite + std::marker::Unpin
+        //     {
+        //         let wrapper = nbt_lib::nbt_spec::serializer::NBTSerializeToEncodeWrapper::new(self);
+        //
+        //         let mut sync_writer = Vec::new();
+        //
+        //         ::nbt_lib::NBTSerialize::nbt_serialize(&nbt_lib::nbt_spec::serializer::tag_types::TAG_COMPOUND, &mut sync_writer).map_err(ferrumc_codec::error::CodecError::from_external_error)?;
+        //         ::nbt_lib::NBTSerialize::nbt_serialize(&#name, &mut sync_writer).map_err(ferrumc_codec::error::CodecError::from_external_error)?;
+        //         ::nbt_lib::NBTSerialize::nbt_serialize(&*self, &mut sync_writer).map_err(ferrumc_codec::error::CodecError::from_external_error)?;
+        //
+        //         {
+        //             use tokio::io::AsyncWriteExt;
+        //             writer.write_all(&sync_writer).await?;
+        //         }
+        //         Ok(())
+        //     }
+        // }
+    };
 
     TokenStream::from(serialize_impl)
 }
