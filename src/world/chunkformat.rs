@@ -43,7 +43,6 @@ pub struct Chunk {
 #[derive(
     nbt_lib::NBTSerialize,
     nbt_lib::NBTDeserialize,
-    NetEncode,
     Debug,
     Clone,
     PartialEq,
@@ -52,6 +51,7 @@ pub struct Chunk {
     Decode,
     Deserialize,
 )]
+#[nbt(net_encode)]
 pub struct Heightmaps {
     #[nbt(rename = "MOTION_BLOCKING_NO_LEAVES")]
     pub motion_blocking_no_leaves: Option<Vec<i64>>,
