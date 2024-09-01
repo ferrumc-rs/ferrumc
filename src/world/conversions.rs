@@ -104,6 +104,9 @@ impl NetEncode for Section {
                 writer
                     .write_all(&block_states.bits_per_block.unwrap().to_be_bytes())
                     .await?;
+                VarInt::from(block_states.net_palette.as_ref().unwrap().len() as i32)
+                    .net_encode(writer)
+                    .await?;
                 let _ = &block_states
                     .net_palette
                     .as_ref()
