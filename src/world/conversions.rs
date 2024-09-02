@@ -116,11 +116,9 @@ impl NetEncode for Section {
         if let Some(block_states) = &self.block_states {
             // Non-air blocks
             if let Some(non_air_blocks) = block_states.non_air_blocks {
-                VarInt::from(non_air_blocks as i32)
-                    .net_encode(writer)
-                    .await?;
+                writer.write_i16(non_air_blocks).await?;
             } else {
-                VarInt::from(0).net_encode(writer).await?;
+                writer.write_i16(0).await?;
             }
             // Blocks
             writer
