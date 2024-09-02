@@ -50,19 +50,25 @@ impl ChunkSender {
     ) -> Result<()> {
         let entity_id = entity_id.try_into().map_err(|_| Error::ConversionError)?;
 
-        let (player, pos, conn) = state
+        let (player, c_pos, c_conn) = state
             .world
             .get_components::<(Player, Position, ConnectionWrapper)>(entity_id)
             .await?;
 
+        let pos = c_pos.clone();
+        let conn = c_conn.0.clone();
+
+        drop(c_pos);
+        drop(c_conn);
+
         debug!(
             "Sending chunks to player: {} @ {:?}",
             player.get_username(),
-            *pos
+            pos
         );
 
-        ChunkSender::send_set_center_chunk(&*pos, conn.0.clone()).await?;
-        ChunkSender::send_chunk_data_to_player(state.clone(), &*pos, conn.0.clone()).await?;
+        ChunkSender::send_set_center_chunk(&pos, conn.clone()).await?;
+        ChunkSender::send_chunk_data_to_player(state.clone(), &pos, conn.clone()).await?;
 
         Ok(())
     }
@@ -74,7 +80,7 @@ impl ChunkSender {
     ) -> Result<()> {
         let mut write_guard = conn.write().await;
 
-        const CHUNK_RADIUS: i32 = 32;
+        const CHUNK_RADIUS: i32 = 16;
 
         for x in -CHUNK_RADIUS..=CHUNK_RADIUS {
             for z in -CHUNK_RADIUS..=CHUNK_RADIUS {
