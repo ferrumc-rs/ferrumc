@@ -21,7 +21,7 @@ pub struct ChunkSender;
 #[async_trait]
 impl System for ChunkSender {
     async fn run(&self, state: GlobalState) {
-        let mut interval = tokio::time::interval(std::time::Duration::from_millis(7500));
+        let mut interval = tokio::time::interval(std::time::Duration::from_millis(750));
         loop {
             interval.tick().await;
 
@@ -74,7 +74,7 @@ impl ChunkSender {
     ) -> Result<()> {
         let mut write_guard = conn.write().await;
 
-        const CHUNK_RADIUS: i32 = 10;
+        const CHUNK_RADIUS: i32 = 32;
 
         for x in -CHUNK_RADIUS..=CHUNK_RADIUS {
             for z in -CHUNK_RADIUS..=CHUNK_RADIUS {

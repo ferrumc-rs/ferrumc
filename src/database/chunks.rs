@@ -1,4 +1,4 @@
-use tracing::{debug, warn};
+use tracing::{debug, trace, warn};
 
 use crate::database::Database;
 use crate::utils::error::Error;
@@ -34,7 +34,7 @@ impl Database {
         let db = self.db.clone();
         let result = tokio::task::spawn_blocking(move || {
             let key = hash((x, z));
-            debug!("Getting chunk: {}, {}", x, z);
+            trace!("Getting chunk: {}, {}", x, z);
             let chunk = db
                 .open_tree(format!("chunks/{}", dimension))
                 .unwrap()
@@ -45,7 +45,7 @@ impl Database {
                     let chunk = chunk.as_ref();
                     let (chunk, len) =
                         bincode::decode_from_slice(chunk, bincode::config::standard()).unwrap();
-                    debug!("Got chunk: {} {}, {} bytes long", x, z, len);
+                    trace!("Got chunk: {} {}, {} bytes long", x, z, len);
                     Some(chunk)
                 }
                 None => {
