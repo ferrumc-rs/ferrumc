@@ -2,6 +2,9 @@ use bincode::{Decode, Encode};
 use ferrumc_codec::network_types::varint::VarInt;
 use serde_derive::{Deserialize, Serialize};
 use std::collections::BTreeMap;
+use ferrumc_codec::enc::NetEncode;
+use ferrumc_macros::NetEncode;
+use tokio::io::AsyncWrite;
 
 #[derive(
     nbt_lib::NBTSerialize,
@@ -169,6 +172,7 @@ pub struct Palette {
     #[nbt(rename = "Properties")]
     pub properties: Option<BTreeMap<String, String>>,
 }
+
 
 #[derive(
     nbt_lib::NBTSerialize,

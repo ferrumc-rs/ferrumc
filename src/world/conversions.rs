@@ -6,6 +6,7 @@ use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use std::io::Read;
 use tokio::io::{AsyncWrite, AsyncWriteExt};
+use tracing::{debug, warn};
 
 const BLOCKSFILE: &[u8] = include_bytes!("../../.etc/blockmappings.bz2");
 
@@ -52,6 +53,7 @@ impl Chunk {
             let mut set_empty = false;
             match section.block_states.as_mut() {
                 None => {
+                    warn!("No block states found in section at {}, {}", self.x_pos, self.z_pos);
                     set_empty = true;
                 }
                 Some(block_states) => {
@@ -67,13 +69,18 @@ impl Chunk {
 
                     let palette = block_states.palette.as_mut().unwrap();
 
+                    debug!("palette: {:?}", palette);
+
                     // TODO: Adapt this for single block sections
                     if let Some(_) = &block_states.data {
-                        block_states.bits_per_block =
-                            Some((palette.len() as f32).log2().ceil() as i8);
+                        let bpe = (palette.len() as f32).log2().ceil() as i8;
+                        block_states.bits_per_block = Some(bpe.max(4));
                     } else {
+                        warn!("No data found in section at {}", section.y);
                         set_empty = true;
                     }
+
+                    block_states.net_palette = Some(Vec::new());
 
                     for palette_entry in palette.iter() {
                         if BLOCK2ID.contains_key(palette_entry) {
@@ -100,6 +107,7 @@ impl Chunk {
                 }
             }
             if set_empty {
+                warn!("Setting section at {} to empty", section.y);
                 section.set_empty();
             }
         }
@@ -116,37 +124,38 @@ impl NetEncode for Section {
         if let Some(block_states) = &self.block_states {
             // Non-air blocks
             if let Some(non_air_blocks) = block_states.non_air_blocks {
-                VarInt::from(non_air_blocks as i32)
-                    .net_encode(writer)
-                    .await?;
+                (non_air_blocks as u16).net_encode(writer).await?;
             } else {
-                VarInt::from(0).net_encode(writer).await?;
+                // VarInt::from(0).net_encode(writer).await?;
+                0u16.net_encode(writer).await?;
             }
+
             // Blocks
-            writer
-                .write_all(&block_states.bits_per_block.unwrap().to_be_bytes())
-                .await?;
+            let bpe = block_states.bits_per_block.unwrap_or(15);
+            bpe.net_encode(writer).await?;
+
             VarInt::from(block_states.net_palette.as_ref().unwrap().len() as i32)
                 .net_encode(writer)
                 .await?;
-            let _ = &block_states
+            block_states
                 .net_palette
                 .as_ref()
-                .unwrap()
+                .expect("Palette is missing")
                 .net_encode(writer)
                 .await?;
+
             if let Some(data) = &block_states.data {
                 VarInt::from(data.len() as i32).net_encode(writer).await?;
                 for long in block_states.data.as_ref().unwrap() {
-                    writer.write_all(&long.to_be_bytes()).await?;
+                    long.net_encode(writer).await?;
                 }
             } else {
                 VarInt::from(0).net_encode(writer).await?;
             }
 
-            // Biomes
+            /*// Biomes
             // For now just write 3 0s
-            writer.write_all(&[0; 3]).await?;
+            writer.write_all(&[0; 3]).await?;*/
         }
         Ok(())
     }

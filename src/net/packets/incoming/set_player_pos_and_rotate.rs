@@ -38,9 +38,6 @@ impl IncomingPacket for SetPlayerPosAndRotate {
             pitch: self.pitch,
         };
 
-        let player = state.world.get_component::<Player>(my_entity_id).await?;
-        debug!("Player `{}` moved to {:?}", player.get_username(), *position);
-
         Ok(())
     }
 }

@@ -4,7 +4,7 @@ use nbt_lib::NBTTag;
 use std::io::Cursor;
 
 use ferrumc_macros::NetEncode;
-
+use tracing::debug;
 use crate::state::GlobalState;
 use crate::utils::encoding::bitset::BitSet;
 use crate::utils::error::Error;
@@ -70,6 +70,7 @@ impl ChunkDataAndUpdateLight {
         if let Some(sections) = &chunk.sections {
             for section in sections {
                 section.net_encode(&mut data).await?;
+                serialize_biomes().await?.net_encode(&mut data).await?;
             }
         } else {
             return Err(Error::InvalidChunk(
@@ -142,13 +143,13 @@ async fn serialize_block_states(block_states: &BlockStates) -> Result<Vec<u8>> {
 
     Ok(data)
 }
-async fn serialize_biomes(_biomes: &Biomes) -> Result<Vec<u8>> {
+async fn serialize_biomes() -> Result<Vec<u8>> {
     let mut data: Vec<u8> = Vec::new();
     let bits_per_biome = 6;
     data.push(bits_per_biome);
 
     // Direct biome encoding, no palette
-    let biome_data = vec![0u64; (64 * (bits_per_biome as usize) / 64) as usize]; // 64 biomes per section
+    let biome_data = vec![0u64; (64 * (bits_per_biome as usize) / 64)]; // 64 biomes per section
     VarInt::from(biome_data.len() as i32)
         .net_encode(&mut data)
         .await?;
