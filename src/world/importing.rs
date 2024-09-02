@@ -102,21 +102,21 @@ pub async fn import_regions(
                 exit(1);
             }
             let mut final_chunk = chunk_nbt.unwrap();
-            final_chunk.convert_to_net_mode().unwrap();
-            // match final_chunk.convert_to_net_mode() {
-            //     Ok(_) => {}
-            //     Err(e) => {
-            //         warn!(
-            //             "Could not convert chunk {} {} to network mode: {}",
-            //             final_chunk.x_pos, final_chunk.z_pos, e
-            //         );
-            //         bar.abandon_with_message(format!(
-            //             "Chunk {} {} failed to import",
-            //             final_chunk.x_pos, final_chunk.z_pos
-            //         ));
-            //         exit(1);
-            //     }
-            // }
+            // final_chunk.convert_to_net_mode().unwrap();
+            match final_chunk.convert_to_net_mode() {
+                Ok(_) => {}
+                Err(e) => {
+                    warn!(
+                        "Could not convert chunk {} {} to network mode: {}",
+                        final_chunk.x_pos, final_chunk.z_pos, e
+                    );
+                    bar.abandon_with_message(format!(
+                        "Chunk {} {} failed to import",
+                        final_chunk.x_pos, final_chunk.z_pos
+                    ));
+                    exit(1);
+                }
+            }
             let x = final_chunk.x_pos.clone();
             let z = final_chunk.z_pos.clone();
             let record = state

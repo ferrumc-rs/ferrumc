@@ -125,9 +125,6 @@ pub struct Section {
     pub block_light: Option<Vec<i8>>,
     #[nbt(rename = "SkyLight")]
     pub sky_light: Option<Vec<i8>>,
-    // This field doesn't exist in the chunks stored on disk but will exist when converted to network format
-    /// This indicates if the section has been fully imported
-    pub full_imported: Option<bool>,
 }
 
 #[derive(

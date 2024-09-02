@@ -84,7 +84,6 @@ impl ChunkSender {
 
                 if let Err(e) = write_guard.send_packet(packet).await {
                     warn!("Failed to send chunk to player: {}", e);
-                    break;
                 };
             }
         }

@@ -23,7 +23,7 @@ pub struct ChunkDataAndUpdateLight {
     pub chunk_x: i32,
     pub chunk_z: i32,
     pub heightmaps: Heightmaps,
-    #[encode(raw_bytes(prepend_length = false))]
+    #[encode(raw_bytes(prepend_length = true))]
     pub data: Vec<u8>,
     pub block_entities_count: VarInt,
     pub block_entities: Vec<BlockEntity>,
@@ -187,7 +187,6 @@ fn create_basic_chunk(chunk_x: i32, chunk_z: i32) -> Chunk {
             y: y as i8,
             block_light: Some(vec![0xf; 2048]),
             sky_light: Some(vec![0xf; 2048]),
-            full_imported: Some(false),
         };
         sections.push(section);
     }
