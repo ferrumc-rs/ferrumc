@@ -57,12 +57,6 @@ impl Chunk {
                 Some(block_states) => {
                     let mut non_air_blocks = 4096i16;
                     let air_id = 0i32;
-                    // TODO: Adapt this for single block sections
-                    if let Some(data) = &block_states.data {
-                        block_states.bits_per_block = Some((data.len() * 64 / 4096) as i8);
-                    } else {
-                        set_empty = true;
-                    }
                     if block_states.palette.is_none() {
                         return Err(Error::InvalidChunk(
                             self.x_pos,
@@ -70,7 +64,16 @@ impl Chunk {
                             "Palette is missing".to_string(),
                         ));
                     }
+
                     let palette = block_states.palette.as_mut().unwrap();
+
+                    // TODO: Adapt this for single block sections
+                    if let Some(_) = &block_states.data {
+                        block_states.bits_per_block =
+                            Some((palette.len() as f32).log2().ceil() as i8);
+                    } else {
+                        set_empty = true;
+                    }
 
                     for palette_entry in palette.iter() {
                         if BLOCK2ID.contains_key(palette_entry) {
