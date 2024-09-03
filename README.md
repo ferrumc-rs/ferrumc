@@ -70,6 +70,8 @@ is data-oriented and allows for better performance and scalability.*
 
 - Packet handling, serialization, and deserialization
 
+![Minecraft Packet Structure](https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/minecraft_packet_format.png)
+
 *Incoming packet definition*
 
 ![Incoming packet definition](https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/packet.png?raw=true)
