@@ -15,7 +15,7 @@ use tracing::{error, info};
 pub struct ServerConfig {
     pub host: String,
     pub port: u32,
-    pub motd: String,
+    pub motd: Vec<String>,
     pub max_players: u32,
     pub network_tick_rate: u32,
     pub database: Database,
@@ -123,7 +123,7 @@ impl Default for ServerConfig {
         Self {
             host: DEFAULT_SERVER_HOST.to_string(),
             port: DEFAULT_SERVER_PORT,
-            motd: DEFAULT_MOTD.to_string(),
+            motd: vec![DEFAULT_MOTD.to_string()],
             max_players: DEFAULT_MAX_PLAYERS,
             network_tick_rate: 0,
             world: "world".to_string(),

@@ -32,17 +32,17 @@ programming language, it achieves high performance and low latency as well as am
    </li>
    <li>
      <h4>Highly efficient memory usage</h4>
-     <img src="https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/low_mem_usage.png?raw=true" alt="Low memory usage">
+     <img src="https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/mem_use.png?raw=true" alt="Low memory usage">
    </li>
    <li>
      <h4>Customizable configuration</h4>
      <img src="https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/config.png?raw=true" alt="Configuration">
    </li>
    <li>
-      <h4>🔄 Drop-in replacement for vanilla Minecraft server (kinda)</h4>
+      <h4>🔄 Can import existing worlds from vanilla minecraft</h4>
    </li>
    <li>
-      <h4>🌐 Compatible with all vanilla Minecraft clients (Version: 1.20.1)</h4>
+      <h4>🌐 Compatible with vanilla Minecraft clients (Currently only 1.20.1)</h4>
    </li>
    <li>
       <h4>🛠 Open-source for community contributions and customization</h4>
@@ -112,7 +112,7 @@ programming language, it achieves high performance and low latency as well as am
 
 ### Prerequisites
 
-- Rust compiler (latest stable version)
+- Rust compiler (latest nightly version)
 - Cargo (comes with Rust)
 
 ### 📥 Installation

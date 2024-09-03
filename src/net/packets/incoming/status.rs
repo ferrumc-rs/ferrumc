@@ -1,10 +1,13 @@
 use base64::Engine;
 use ferrumc_codec::enc::NetEncode;
 use ferrumc_codec::network_types::varint::VarInt;
+use rand::prelude::IndexedRandom;
 use serde::Serialize;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::sync::OnceCell;
 use tracing::debug;
+
+use rand::seq::SliceRandom;
 
 use ferrumc_macros::{packet, NetDecode};
 
@@ -63,6 +66,8 @@ impl IncomingPacket for Status {
         let conn = state.connections.get_connection(conn_id)?;
         let mut conn = conn.write().await;
 
+        let random_motd = config.motd.choose(&mut rand::thread_rng()).unwrap().clone();
+
         let response = OutgoingStatusResponse {
             packet_id: VarInt::new(0x00),
             json_response: serde_json::ser::to_string(&JsonResponse {
@@ -85,9 +90,7 @@ impl IncomingPacket for Status {
                         },
                     ],
                 },
-                description: Description {
-                    text: config.motd.clone(),
-                },
+                description: Description { text: random_motd },
                 favicon: get_encoded_favicon().await,
             })
             .unwrap(),
