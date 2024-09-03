@@ -1,9 +1,10 @@
 use ferrumc_codec::enc::NetEncode;
 use ferrumc_codec::network_types::varint::VarInt;
 use nbt_lib::NBTTag;
+use std::io::Cursor;
 
 use ferrumc_macros::NetEncode;
-
+use tracing::debug;
 use crate::state::GlobalState;
 use crate::utils::encoding::bitset::BitSet;
 use crate::utils::error::Error;
@@ -12,8 +13,8 @@ use crate::world::chunkformat::{
 };
 use crate::Result;
 
-// const SECTION_WIDTH: usize = 16;
-// const SECTION_HEIGHT: usize = 16;
+const _SECTION_WIDTH: usize = 16;
+const _SECTION_HEIGHT: usize = 16;
 
 #[derive(NetEncode)]
 pub struct ChunkDataAndUpdateLight {
@@ -51,28 +52,32 @@ pub struct LightArray {
 }
 
 impl ChunkDataAndUpdateLight {
-    pub async fn new(_state: GlobalState, chunk_x: i32, chunk_z: i32) -> Result<Self> {
-        let chunk = create_basic_chunk(chunk_x, chunk_z);
+    pub async fn new(state: GlobalState, chunk_x: i32, chunk_z: i32) -> Result<Self> {
+        let chunk = state
+            .database
+            .get_chunk(chunk_x, chunk_z, "overworld")
+            .await?;
+
+        if chunk.is_none() {
+            return Err(Error::ChunkNotFound(chunk_x, chunk_z));
+        }
+
+        let chunk = chunk.unwrap();
 
         // Serialize the chunk data
-        let mut data = Vec::new();
-        for section in chunk.sections.as_ref().unwrap() {
-            let Some(block_states) = &section.block_states else {
-                return Err(Error::MissingBlockStates);
-            };
-            // data.extend(serialize_block_sttes(block_states)?);
+        let mut data = Cursor::new(Vec::new());
 
-            4096i16.net_encode(&mut data).await?;
-
-            let block_states_data = serialize_block_states(block_states).await?;
-            data.extend(block_states_data);
-
-            let Some(biomes) = &section.biomes else {
-                return Err(Error::MissingBlockStates);
-            };
-
-            let biomes_data = serialize_biomes(biomes).await?;
-            data.extend(biomes_data);
+        if let Some(sections) = &chunk.sections {
+            for section in sections {
+                section.net_encode(&mut data).await?;
+                serialize_biomes().await?.net_encode(&mut data).await?;
+            }
+        } else {
+            return Err(Error::InvalidChunk(
+                chunk.x_pos,
+                chunk.z_pos,
+                "Chunk is missing sections".to_string(),
+            ));
         }
 
         // 24 is the number of sections in a chunk
@@ -103,8 +108,8 @@ impl ChunkDataAndUpdateLight {
             packet_id: VarInt::from(0x24),
             chunk_x,
             chunk_z,
-            heightmaps: chunk.heightmaps.unwrap(),
-            data,
+            heightmaps: create_basic_chunk(chunk_x, chunk_z).heightmaps.unwrap(),
+            data: data.into_inner(),
             block_entities_count: VarInt::from(0),
             block_entities: Vec::new(),
             sky_light_mask,
@@ -138,13 +143,13 @@ async fn serialize_block_states(block_states: &BlockStates) -> Result<Vec<u8>> {
 
     Ok(data)
 }
-async fn serialize_biomes(_biomes: &Biomes) -> Result<Vec<u8>> {
+async fn serialize_biomes() -> Result<Vec<u8>> {
     let mut data: Vec<u8> = Vec::new();
     let bits_per_biome = 6;
     data.push(bits_per_biome);
 
     // Direct biome encoding, no palette
-    let biome_data = vec![0u64; (64 * (bits_per_biome as usize) / 64) as usize]; // 64 biomes per section
+    let biome_data = vec![0u64; (64 * (bits_per_biome as usize) / 64)]; // 64 biomes per section
     VarInt::from(biome_data.len() as i32)
         .net_encode(&mut data)
         .await?;
@@ -217,12 +222,16 @@ fn create_block_states(chunk_data: &[u32], bits_per_entry: u8) -> BlockStates {
     let packed_data = pack_entries(chunk_data, bits_per_entry);
 
     BlockStates {
+        non_air_blocks: None,
+        bits_per_block: None,
         data: Some(packed_data),
         palette: if bits_per_entry < 15 {
             Some(Vec::new()) // We'll need to populate this for indirect encoding
         } else {
             None // Direct encoding, no palette
         },
+        net_palette: None,
+        // default: None,
     }
 }
 fn pack_entries(entries: &[u32], bits_per_entry: u8) -> Vec<i64> {

@@ -1,9 +1,9 @@
-use std::collections::HashMap;
-use std::io::Write;
-
-pub use crate::nbt_spec::serializer::{NBTAnonymousType, NBTSerialize};
 use crate::nbt_spec::serializer::tag_types::*;
+pub use crate::nbt_spec::serializer::{NBTAnonymousType, NBTSerialize};
 use crate::NBTResult;
+use ferrumc_codec::network_types::varint::VarInt;
+use std::collections::{BTreeMap, HashMap};
+use std::io::Write;
 
 pub trait NBTFieldType {
     fn tag_type(&self) -> u8;
@@ -165,5 +165,56 @@ where
             v.nbt_serialize(writer)?;
         }
         Ok(())
+    }
+}
+
+impl<K, V> NBTAnonymousType for HashMap<K, V> {
+    fn tag_type() -> u8 {
+        TAG_COMPOUND
+    }
+}
+
+impl<K, V> NBTFieldType for BTreeMap<K, V> {
+    fn tag_type(&self) -> u8 {
+        TAG_COMPOUND
+    }
+}
+
+impl<K, V> NBTSerialize for BTreeMap<K, V>
+where
+    K: NBTSerialize,
+    V: NBTSerialize,
+{
+    fn nbt_serialize<W: Write>(&self, writer: &mut W) -> NBTResult<()> {
+        writer.write_all(&(self.len() as i32).to_be_bytes())?;
+        for (k, v) in self {
+            k.nbt_serialize(writer)?;
+            v.nbt_serialize(writer)?;
+        }
+        Ok(())
+    }
+}
+
+impl<K, V> NBTAnonymousType for BTreeMap<K, V> {
+    fn tag_type() -> u8 {
+        TAG_COMPOUND
+    }
+}
+
+impl NBTAnonymousType for VarInt {
+    fn tag_type() -> u8 {
+        TAG_INT
+    }
+}
+
+impl NBTFieldType for VarInt {
+    fn tag_type(&self) -> u8 {
+        TAG_INT
+    }
+}
+
+impl NBTSerialize for VarInt {
+    fn nbt_serialize<W: Write>(&self, writer: &mut W) -> NBTResult<()> {
+        i32::nbt_serialize(&self.get_val(), writer)
     }
 }

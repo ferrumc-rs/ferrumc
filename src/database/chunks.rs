@@ -1,6 +1,7 @@
-use tracing::{debug, warn};
+use tracing::{debug, trace, warn};
 
 use crate::database::Database;
+use crate::utils::binary_utils::{bzip_compress, bzip_decompress, human_readable_size};
 use crate::utils::error::Error;
 use crate::utils::hash::hash;
 use crate::world::chunkformat::Chunk;
@@ -8,12 +9,23 @@ use crate::world::chunkformat::Chunk;
 impl Database {
     pub async fn insert_chunk(&self, value: Chunk, dimension: String) -> Result<bool, Error> {
         let db = self.db.clone();
+        let x = value.x_pos;
+        let z = value.z_pos;
         let result = tokio::task::spawn_blocking(move || {
             let key = hash((value.x_pos, value.z_pos));
             let encoded = bincode::encode_to_vec(value, bincode::config::standard())
                 .expect("Failed to encode");
+            let compressed = bzip_compress(&encoded).expect("Failed to compress");
+            trace!(
+                "Inserting chunk: {}, {} | Uncompressed: {} | Compressed: {}",
+                x,
+                z,
+                human_readable_size(encoded.len() as u64),
+                human_readable_size(compressed.len() as u64)
+            );
+
             db.open_tree(format!("chunks/{}", dimension))?
-                .insert(key, encoded)
+                .insert(key, compressed)
         })
         .await
         .expect("Failed to join tasks")
@@ -34,7 +46,7 @@ impl Database {
         let db = self.db.clone();
         let result = tokio::task::spawn_blocking(move || {
             let key = hash((x, z));
-            debug!("Getting chunk: {}, {}", x, z);
+            trace!("Getting chunk: {}, {}", x, z);
             let chunk = db
                 .open_tree(format!("chunks/{}", dimension))
                 .unwrap()
@@ -42,10 +54,18 @@ impl Database {
                 .unwrap();
             match chunk {
                 Some(chunk) => {
-                    let chunk = chunk.as_ref();
+                    let chunk = bzip_decompress(chunk.as_ref()).expect("Failed to decompress");
                     let (chunk, len) =
-                        bincode::decode_from_slice(chunk, bincode::config::standard()).unwrap();
-                    debug!("Got chunk: {} {}, {} bytes long", x, z, len);
+                        bincode::decode_from_slice(chunk.as_slice(), bincode::config::standard())
+                            .expect(
+                                "Could not decode chunk from database. Has the format changed?",
+                            );
+                    trace!(
+                        "Got chunk: {} {}, {} long",
+                        x,
+                        z,
+                        human_readable_size(len as u64)
+                    );
                     Some(chunk)
                 }
                 None => {
@@ -80,6 +100,7 @@ impl Database {
             let record_name = hash((x, z));
             let encoded = bincode::encode_to_vec(value, bincode::config::standard())
                 .expect("Failed to encode");
+            let compressed = bzip_compress(&encoded).expect("Failed to compress");
             if db
                 .open_tree("chunks")
                 .unwrap()
@@ -91,7 +112,7 @@ impl Database {
             }
             db.open_tree(format!("chunks/{}", dimension))
                 .unwrap()
-                .insert(record_name, encoded)
+                .insert(record_name, compressed)
         })
         .await
         .expect("Failed to join tasks")

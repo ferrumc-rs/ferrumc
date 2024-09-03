@@ -2,6 +2,7 @@ use serde_derive::{Deserialize, Serialize};
 
 pub mod blocks;
 pub mod chunkformat;
+pub mod conversions;
 pub mod importing;
 
 #[derive(Deserialize, Serialize)]

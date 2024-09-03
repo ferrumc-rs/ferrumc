@@ -1,5 +1,10 @@
 use bincode::{Decode, Encode};
+use ferrumc_codec::network_types::varint::VarInt;
 use serde_derive::{Deserialize, Serialize};
+use std::collections::BTreeMap;
+use ferrumc_codec::enc::NetEncode;
+use ferrumc_macros::NetEncode;
+use tokio::io::AsyncWrite;
 
 #[derive(
     nbt_lib::NBTSerialize,
@@ -48,6 +53,7 @@ pub struct Chunk {
     Decode,
     Deserialize,
 )]
+#[nbt(net_encode)]
 pub struct Heightmaps {
     #[nbt(rename = "MOTION_BLOCKING_NO_LEAVES")]
     pub motion_blocking_no_leaves: Option<Vec<i64>>,
@@ -136,8 +142,15 @@ pub struct Section {
     Deserialize,
 )]
 pub struct BlockStates {
+    // These 2 fields don't exist in the chunks stored on disk but will exist when converted to
+    // network format
+    pub non_air_blocks: Option<i16>,
+    pub bits_per_block: Option<i8>,
     pub data: Option<Vec<i64>>,
+    // This is the palette for the chunk when stored on disk
     pub palette: Option<Vec<Palette>>,
+    // This is the palette for the chunk when converted to network format
+    pub net_palette: Option<Vec<VarInt>>,
 }
 
 #[derive(
@@ -150,13 +163,16 @@ pub struct BlockStates {
     Serialize,
     Decode,
     Deserialize,
+    Hash,
+    Eq,
 )]
 pub struct Palette {
     #[nbt(rename = "Name")]
     pub name: String,
     #[nbt(rename = "Properties")]
-    pub properties: Option<Properties>,
+    pub properties: Option<BTreeMap<String, String>>,
 }
+
 
 #[derive(
     nbt_lib::NBTSerialize,

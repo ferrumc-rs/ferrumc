@@ -43,6 +43,8 @@ pub enum Error {
     ChunkNotFound(i32, i32),
     #[error("Chunk is missing block states")]
     MissingBlockStates,
+    #[error("Chunk is not valid: {0}")]
+    InvalidChunk(i32, i32, String),
 
     #[error(transparent)]
     SimdNbtError(#[from] simdnbt::Error),
@@ -74,15 +76,44 @@ pub enum Error {
     BitOutputOverflow(usize, usize),
     #[error("Attempted to read more bits than are available: {0} attempted, {1} available")]
     BitReadOverflow(usize, usize),
-
+    #[error("Attemped to read more bits than are available in the input type: {0} attempted, {1} available")]
+    BitReadOverflowInput(usize, usize),
+    #[error("Attemped to write more bits than are available in the output type: {0} attempted, {1} available")]
+    BitWriteOverflow(usize, usize),
     #[error("Codec error")]
     CodecError(#[from] ferrumc_codec::error::CodecError),
     #[error("Conversion error")]
     ConversionError,
+    #[error(transparent)]
+    CompressionError(std::io::Error),
 }
 
 impl From<Infallible> for Error {
     fn from(e: Infallible) -> Self {
         return Error::Generic(format!("{:?}", e));
+    }
+}
+
+impl Into<sled::Error> for Error {
+    fn into(self) -> sled::Error {
+        sled::Error::Unsupported(format!("{:?}", self))
+    }
+}
+
+impl From<sled::Error> for Error {
+    fn from(e: sled::Error) -> Self {
+        Error::Generic(format!("{:?}", e))
+    }
+}
+
+impl From<Error> for std::io::Error {
+    fn from(e: Error) -> std::io::Error {
+        std::io::Error::new(std::io::ErrorKind::Other, format!("{:?}", e))
+    }
+}
+
+impl From<Error> for std::io::ErrorKind {
+    fn from(e: Error) -> std::io::ErrorKind {
+        std::io::ErrorKind::Other
     }
 }

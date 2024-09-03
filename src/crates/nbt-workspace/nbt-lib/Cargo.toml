@@ -11,6 +11,7 @@ nbt-derive = { path = "../nbt-derive", optional = true }
 thiserror = "1.0.63"
 ferrumc_codec = { path = "../../ferurmc_codec" }
 tokio = { version = "1.16.1", features = ["io-util"] }
+hashbrown = "0.14.5"
 
 [dev-dependencies]
 nbt-derive = { path = "../nbt-derive" }

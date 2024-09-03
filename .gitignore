@@ -10,3 +10,6 @@ dummyregion.mca
 .etc
 config.toml
 import/*
+blocks.json
+
+blockstates.json

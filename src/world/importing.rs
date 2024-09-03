@@ -5,7 +5,7 @@ use std::process::exit;
 use indicatif::ProgressBar;
 use nbt_lib::NBTDeserializeBytes;
 use tokio::task::JoinSet;
-use tracing::{error, info, warn};
+use tracing::{debug, error, info, trace, warn};
 
 use crate::state::GlobalState;
 use crate::world::chunkformat::Chunk;
@@ -85,9 +85,15 @@ pub async fn import_regions(
                 ));
                 exit(1);
             };
-            let chunk = chunk.data;
 
-            let chunk_nbt = Chunk::read_from_bytes(&mut Cursor::new(chunk));
+            /*           // FIXME: remove this
+            if chunk.z != 0 || chunk.x != 0 {
+                continue;
+            }*/
+
+            let chunk_raw = chunk.data;
+
+            let chunk_nbt = Chunk::read_from_bytes(&mut Cursor::new(chunk_raw));
 
             if chunk_nbt.is_err() {
                 warn!(
@@ -101,12 +107,30 @@ pub async fn import_regions(
                 ));
                 exit(1);
             }
-            let chunk_nbt = chunk_nbt.unwrap();
-            let x = chunk_nbt.x_pos.clone();
-            let z = chunk_nbt.z_pos.clone();
+            let mut final_chunk = chunk_nbt.unwrap();
+            // final_chunk.convert_to_net_mode().unwrap();
+            match final_chunk.convert_to_net_mode() {
+                Ok(_) => {}
+                Err(e) => {
+                    warn!(
+                        "Could not convert chunk {} {} to network mode: {}",
+                        final_chunk.x_pos, final_chunk.z_pos, e
+                    );
+                    bar.abandon_with_message(format!(
+                        "Chunk {} {} failed to import",
+                        final_chunk.x_pos, final_chunk.z_pos
+                    ));
+                    exit(1);
+                }
+            }
+            let x = final_chunk.x_pos.clone();
+            let z = final_chunk.z_pos.clone();
+
+            trace!("Inserting chunk {}, {}", x, z);
+
             let record = state
                 .database
-                .insert_chunk(chunk_nbt, "overworld".to_string())
+                .insert_chunk(final_chunk, "overworld".to_string())
                 .await
                 .unwrap();
 
@@ -117,6 +141,8 @@ pub async fn import_regions(
             }
             bar.inc(1);
             bar.set_message(format!("{} {}", x, z));
+
+            trace!("Imported chunk {} {}", x, z);
         }
     }
     bar.abandon_with_message(format!("{} chunks imported!", total_chunks));
@@ -138,12 +164,8 @@ mod test {
     #[tokio::test]
     async fn get_chunk_at() {
         // set environment variable "FERRUMC_ROOT" to the root of the ferrumc project
-        std::env::set_var(
-            "FERRUMC_ROOT",
-            "D:\\Minecraft\\framework\\ferrumc\\ferrumc-2_0\\ferrumc\\target\\release",
-        );
         setup_logger().unwrap();
-        let listener = TcpListener::bind("0.0.0.0:25565").await.unwrap();
+        let listener = TcpListener::bind("0.0.0.0:0").await.unwrap();
         let state = create_state(listener).await.unwrap();
 
         let chunk = state

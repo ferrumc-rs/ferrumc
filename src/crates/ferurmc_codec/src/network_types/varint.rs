@@ -2,11 +2,29 @@ use std::fmt::Display;
 
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 
+use bincode::{Decode, Encode};
+
+use serde_derive::{Deserialize, Serialize};
+
 use crate::prelude::*;
 
 /// A VarInt is a variable-length integer that is used in the Minecraft protocol. Similar to
 /// protobuf's varint, it uses the least amount of bytes possible to represent the value.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Hash,
+    Default,
+    Encode,
+    Decode,
+    Serialize,
+    Deserialize,
+)]
 pub struct VarInt {
     /// The value of the VarInt.
     val: i32,

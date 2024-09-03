@@ -34,18 +34,14 @@ pub async fn read_block(
         .iter()
         .find(|section| section.y == (y / 16) as i8)
         .unwrap();
-    if !section.block_states.is_some() {
-        return Err(Error::Generic(format!(
-            "Section {} does not have any block states",
-            y / 16
-        )));
-    }
+
     if !section.block_states.as_ref().unwrap().palette.is_some() {
         return Err(Error::Generic(format!(
             "Section {} does not have any palette",
             y / 16
         )));
     }
+
     let palette = section
         .block_states
         .as_ref()
@@ -53,6 +49,25 @@ pub async fn read_block(
         .palette
         .as_ref()
         .unwrap();
+    // If the palette only has one block, we can just return that
+    if palette.len() == 1 {
+        return Ok(section
+            .block_states
+            .as_ref()
+            .unwrap()
+            .palette
+            .as_ref()
+            .unwrap()[0]
+            .name
+            .clone());
+    }
+    println!("Palette: {:#?}", palette);
+    if !section.block_states.is_some() {
+        return Err(Error::Generic(format!(
+            "Section {} does not have any block states",
+            y / 16
+        )));
+    }
     if !section.block_states.as_ref().unwrap().data.is_some() {
         return Err(Error::Generic(format!(
             "Section {} does not have any block states data",

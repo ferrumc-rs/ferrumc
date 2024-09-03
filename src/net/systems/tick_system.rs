@@ -1,19 +1,18 @@
 use async_trait::async_trait;
 
-use ferrumc_macros::AutoGenName;
-use tracing::{debug, warn};
+use crate::net::packets::outgoing::login_plugin_request::LoginPluginRequest;
 use crate::net::systems::System;
 use crate::net::ConnectionWrapper;
-use crate::net::packets::outgoing::login_plugin_request::LoginPluginRequest;
 use crate::state::GlobalState;
 use crate::utils::components::player::Player;
+use ferrumc_macros::AutoGenName;
+use tracing::{debug, trace, warn};
 
 #[derive(AutoGenName)]
 pub struct TickSystem;
 
 #[async_trait]
 impl System for TickSystem {
-
     async fn run(&self, state: GlobalState) {
         let mut query = state.world.query::<(&ConnectionWrapper, &Player)>();
 
@@ -31,7 +30,8 @@ impl System for TickSystem {
                 }
             }
 
-            let visible_wave: String = crab_wave.iter()
+            let visible_wave: String = crab_wave
+                .iter()
                 .cycle()
                 .skip(offset)
                 .take(width)
@@ -45,7 +45,7 @@ impl System for TickSystem {
                     warn!("Failed to send packet: {}", e);
                     continue;
                 }
-                debug!("Ticked connection for `{}`", player.get_username());
+                trace!("Ticked connection for player `{}`", player.get_username());
             }
 
             offset = (offset + 1) % total_width;
