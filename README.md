@@ -1,50 +1,61 @@
-<div style="width: 100%">
-   <img src="https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/header.svg?raw=true" alt="FerrumC Header">
+<img style="width: 100%" src="https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/header.svg?raw=true" alt="FerrumC Header">
+<div align="center">
+    <img src="https://img.shields.io/github/license/Sweattypalms/ferrumc?style=for-the-badge&color=red" alt="License">
+    <img src="https://img.shields.io/github/languages/code-size/Sweattypalms/ferrumc?style=for-the-badge&color=red" alt="Code Size">
+    <img src="https://www.aschey.tech/tokei/github.com/Sweattypalms/ferrumc?style=for-the-badge&color=red" alt="Lines of Code">
+    <img src="https://img.shields.io/badge/language-Rust-orange?style=for-the-badge&color=red" alt="Language">
 </div>
-
-
-<p align="center">
-  <img src="https://img.shields.io/github/license/Sweattypalms/ferrumc" alt="License">
-  <img src="https://img.shields.io/github/languages/code-size/Sweattypalms/ferrumc" alt="Code Size">
-  <img src="https://img.shields.io/badge/language-Rust-orange" alt="Language">
-</p>
 <p align="center">
   <a href="https://discord.gg/qT5J8EMjwk">
     <img src="https://img.shields.io/discord/1277314213878173726?color=7289DA&label=Join%20our%20Discord&logo=discord&logoColor=white" alt="Join our Discord&style=for-the-badge">
   </a>
 </p>
 
-
 ## 📖 About
 
-FerrumC is a Minecraft server implementation written from the ground up in Rust. Leveraging the power of the Rust programming language, it achieves high performance and low latency as well as amazing memory efficiency!
+FerrumC is a Minecraft server implementation written from the ground up in Rust. Leveraging the power of the Rust
+programming language, it achieves high performance and low latency as well as amazing memory efficiency!
 
-![Minecraft Character](https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/in_game.png?raw=true)
-![Server list](https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/server%20list.png?raw=true)
-*FerrumC in action! This is updating almost 50k blocks in 10th of a second*
-![Cool stuff](https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/mind%20boggling.gif?raw=true)
+<img src="https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/in_game.png?raw=true" alt="In-game screenshot">
 
-### ✨ Key Features
 
-- 🚀 High performance and low latency as well as efficient resource usage
-![Low memory usage](https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/low_mem_usage.png?raw=true)
-- 🔄 Drop-in replacement for vanilla Minecraft server (kinda)
-- 🌐 Compatible with all vanilla Minecraft clients (Version: 1.20.1)
-- 🛠 Open-source for community contributions and customization
-- ⚡ Built with Rust for memory safety and concurrency
+<h1>✨ Key Features</h1>
+
+<ul>
+   <li>
+     <h4>Customizable server list</h4>
+     <img src="https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/server%20list.png?raw=true" alt="Server list">
+   </li>
+   <li>
+     <h4>Extremely fast and adaptable update speeds</h4>
+     <img src="https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/mind%20boggling.gif?raw=true" alt="Mind boggling">
+   </li>
+   <li>
+     <h4>Highly efficient memory usage</h4>
+     <img src="https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/low_mem_usage.png?raw=true" alt="Low memory usage">
+   </li>
+   <li>
+     <h4>Customizable configuration</h4>
+     <img src="https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/config.png?raw=true" alt="Configuration">
+   </li>
+   <li>
+      <h4>🔄 Drop-in replacement for vanilla Minecraft server (kinda)</h4>
+   </li>
+   <li>
+      <h4>🌐 Compatible with all vanilla Minecraft clients (Version: 1.20.1)</h4>
+   </li>
+   <li>
+      <h4>🛠 Open-source for community contributions and customization</h4>
+   </li>
+   <li>
+      <h4>⚡ Built with Rust for memory safety and concurrency</h4>
+   </li>
+</ul>
 
 ## 🎯 Current Features and Roadmap
 
 <details open>
 <summary><b>✅ Implemented Features</b></summary>
-
-- Basic server setup and configuration
- 
-![Configuration](https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/configuration.png?raw=true)
-
-- Server list ping
-
-![Server list ping](https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/server%20list.png?raw=true)
 
 - Player connection and authentication
 
@@ -52,13 +63,11 @@ FerrumC is a Minecraft server implementation written from the ground up in Rust.
 
 - Entity Component System
 
-![ECS Example](https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/ecs_example.png?raw=true)
-
 - Packet handling, serialization, and deserialization
 
 *Incoming packet definition*
 
-![Incoming packet definition](https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/packet_incoming_def.png?raw=true)
+![Incoming packet definition](https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/packet.png?raw=true)
 
 *Packet handling*
 
@@ -111,6 +120,7 @@ FerrumC is a Minecraft server implementation written from the ground up in Rust.
 [//]: # (#### Option 1: Download pre-compiled binary &#40;Maybe outdated!&#41;)
 
 [//]: # ()
+
 [//]: # (1. Go to the [Releases]&#40;https://github.com/Sweattypalms/ferrumc/releases&#41; page)
 
 [//]: # (2. Download the latest version for your operating system)
@@ -131,8 +141,8 @@ cd ferrumc
 # Build the project
 cargo build --release
 ```
-### The binary will be in target/release/
 
+### The binary will be in target/release/
 
 ### 🖥️ Usage
 
@@ -156,11 +166,9 @@ We welcome contributions! If you'd like to contribute to FerrumC, please follow 
 
 Join our [Discord server](https://discord.gg/qT5J8EMjwk) to get help or discuss the project!
 
-
 ## 📜 License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
-
 
 ## 🙏 Acknowledgments
 
