@@ -58,6 +58,7 @@ nbt-lib = { path = 'src/crates/nbt-workspace/nbt-lib', features = ["derive"] }
 
 # Database
 sled = { version = "0.34.7", features = ["compression", "zstd"] }
+redb = "2.1.2"
 
 # Misc
 dashmap = "6.0.1"

@@ -1,3 +1,4 @@
+use redb::TableDefinition;
 use tracing::{debug, trace, warn};
 
 use crate::database::Database;
@@ -23,17 +24,30 @@ impl Database {
                 human_readable_size(encoded.len() as u64),
                 human_readable_size(compressed.len() as u64)
             );
-
-            db.open_tree(format!("chunks/{}", dimension))?
-                .insert(key, compressed)
+            let tx = db.begin_write().unwrap();
+            let mut did_exist = false;
+            let tablename = format!("chunks/{}", dimension);
+            {
+                let table: TableDefinition<u64, Vec<u8>> = TableDefinition::new(tablename.as_str());
+                let mut transaction = tx.open_table(table).unwrap();
+                match transaction.insert(key, compressed) {
+                    Ok(val) => {
+                        if val.is_some() {
+                            did_exist = true;
+                        }
+                    }
+                    Err(e) => {
+                        warn!("Failed to insert chunk: {}", e);
+                        did_exist = true;
+                    }
+                };
+            }
+            tx.commit().unwrap();
+            did_exist
         })
         .await
-        .expect("Failed to join tasks")
-        .expect("Failed to insert chunk");
-        match result {
-            Some(_) => Ok(true),
-            None => Ok(false),
-        }
+        .expect("Failed to join tasks");
+        Ok(result)
     }
 
     pub async fn get_chunk(
@@ -47,30 +61,40 @@ impl Database {
         let result = tokio::task::spawn_blocking(move || {
             let key = hash((x, z));
             trace!("Getting chunk: {}, {}", x, z);
-            let chunk = db
-                .open_tree(format!("chunks/{}", dimension))
-                .unwrap()
-                .get(key)
-                .unwrap();
-            match chunk {
-                Some(chunk) => {
-                    let chunk = bzip_decompress(chunk.as_ref()).expect("Failed to decompress");
-                    let (chunk, len) =
-                        bincode::decode_from_slice(chunk.as_slice(), bincode::config::standard())
+            let tablename = format!("chunks/{}", dimension);
+            let tx = db.begin_read().unwrap();
+            {
+                let table: TableDefinition<u64, Vec<u8>> = TableDefinition::new(tablename.as_str());
+                let transaction = tx.open_table(table).unwrap();
+                match transaction.get(key) {
+                    Ok(chunk) => match chunk {
+                        Some(chunk) => {
+                            let chunk = bzip_decompress(chunk.value().as_ref())
+                                .expect("Failed to decompress");
+                            let (chunk, len) = bincode::decode_from_slice(
+                                chunk.as_slice(),
+                                bincode::config::standard(),
+                            )
                             .expect(
                                 "Could not decode chunk from database. Has the format changed?",
                             );
-                    trace!(
-                        "Got chunk: {} {}, {} long",
-                        x,
-                        z,
-                        human_readable_size(len as u64)
-                    );
-                    Some(chunk)
-                }
-                None => {
-                    debug!("Could not find chunk {}, {}", x, z);
-                    None
+                            trace!(
+                                "Got chunk: {} {}, {} long",
+                                x,
+                                z,
+                                human_readable_size(len as u64)
+                            );
+                            Some(chunk)
+                        }
+                        None => {
+                            debug!("Could not find chunk {}, {}", x, z);
+                            None
+                        }
+                    },
+                    Err(e) => {
+                        warn!("Failed to get chunk: {}", e);
+                        None
+                    }
                 }
             }
         })
@@ -83,13 +107,14 @@ impl Database {
         let db = self.db.clone();
         let result = tokio::task::spawn_blocking(move || {
             let record_name = hash((x, z));
-            db.open_tree(format!("chunks/{}", dimension))
-                .unwrap()
-                .contains_key(record_name)
+            let tablename = format!("chunks/{}", dimension);
+            let tx = db.begin_read().unwrap();
+            let table: TableDefinition<u64, Vec<u8>> = TableDefinition::new(tablename.as_str());
+            let transaction = tx.open_table(table).unwrap();
+            transaction.get(record_name).is_ok()
         })
         .await
-        .expect("Failed to join tasks")
-        .expect("Failed to check if chunk exists");
+        .expect("Failed to join tasks");
         Ok(result)
     }
 
@@ -101,26 +126,29 @@ impl Database {
             let encoded = bincode::encode_to_vec(value, bincode::config::standard())
                 .expect("Failed to encode");
             let compressed = bzip_compress(&encoded).expect("Failed to compress");
-            if db
-                .open_tree("chunks")
-                .unwrap()
-                .remove(&record_name)
-                .unwrap()
-                .is_none()
+            let tablename = format!("chunks/{}", dimension);
+            let tx = db.begin_write().unwrap();
+            let mut did_exist = false;
             {
-                warn!("Attempted to update non-existent chunk: {}, {}", x, z);
+                let table: TableDefinition<u64, Vec<u8>> = TableDefinition::new(tablename.as_str());
+                let mut transaction = tx.open_table(table).unwrap();
+                match transaction.insert(record_name, compressed) {
+                    Ok(val) => {
+                        if val.is_some() {
+                            did_exist = true;
+                        }
+                    }
+                    Err(e) => {
+                        warn!("Failed to update chunk: {}", e);
+                        did_exist = true;
+                    }
+                };
             }
-            db.open_tree(format!("chunks/{}", dimension))
-                .unwrap()
-                .insert(record_name, compressed)
+            tx.commit().unwrap();
+            did_exist
         })
-        .await
-        .expect("Failed to join tasks")
-        .expect("Failed to update chunk");
-        match result {
-            Some(_) => Ok(true),
-            None => Ok(false),
-        }
+        .await;
+        Ok(result.expect("Failed to join tasks"))
     }
 }
 
