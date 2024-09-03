@@ -1,16 +1,20 @@
+use redb::backends::FileBackend;
 use std::env;
+use std::fs::File;
 use std::path::PathBuf;
-
+use std::sync::Arc;
 use tokio::fs;
 use tracing::{debug, info};
 
 use crate::utils::config::get_global_config;
 use crate::utils::error::Error;
 
+use redb::Database as RedbDatabase;
+
 pub mod chunks;
 
 pub struct Database {
-    pub db: sled::Db,
+    pub db: Arc<RedbDatabase>,
 }
 
 pub async fn start_database() -> Result<Database, Error> {
@@ -34,11 +38,22 @@ pub async fn start_database() -> Result<Database, Error> {
         fs::create_dir_all(&world_path).await?;
     }
 
-    let database = sled::open(world_path)
-        .map_err(|e| Error::DatabaseError(format!("Failed to open database: {}", e)))
+    let file = File::options()
+        .create(true)
+        .write(true)
+        .read(true)
+        .open(world_path.join("test"))?;
+
+    let cache_size = get_global_config().database.cache_size;
+
+    let database = redb::Database::builder()
+        .set_cache_size((cache_size * 1024) as usize)
+        .create_with_backend(FileBackend::new(file).expect("Failed to create backend"))
         .unwrap();
 
     info!("Database started");
 
-    Ok(Database { db: database })
+    Ok(Database {
+        db: Arc::new(database),
+    })
 }

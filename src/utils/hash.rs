@@ -11,8 +11,8 @@ use std::hash::{Hash, Hasher};
 /// ```
 ///
 #[inline]
-pub fn hash(input: impl Hash) -> Vec<u8> {
+pub fn hash(input: impl Hash) -> u64 {
     let mut hasher = std::collections::hash_map::DefaultHasher::new();
     input.hash(&mut hasher);
-    hasher.finish().to_ne_bytes().into()
+    hasher.finish()
 }

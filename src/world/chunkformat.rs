@@ -2,9 +2,6 @@ use bincode::{Decode, Encode};
 use ferrumc_codec::network_types::varint::VarInt;
 use serde_derive::{Deserialize, Serialize};
 use std::collections::BTreeMap;
-use ferrumc_codec::enc::NetEncode;
-use ferrumc_macros::NetEncode;
-use tokio::io::AsyncWrite;
 
 #[derive(
     nbt_lib::NBTSerialize,
@@ -20,6 +17,7 @@ use tokio::io::AsyncWrite;
 #[nbt(is_root)]
 #[nbt(rename = "")]
 pub struct Chunk {
+    pub dimension: Option<String>,
     #[nbt(rename = "Status")]
     pub status: String,
     #[nbt(rename = "DataVersion")]
@@ -172,7 +170,6 @@ pub struct Palette {
     #[nbt(rename = "Properties")]
     pub properties: Option<BTreeMap<String, String>>,
 }
-
 
 #[derive(
     nbt_lib::NBTSerialize,

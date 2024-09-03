@@ -5,7 +5,7 @@ use std::process::exit;
 use indicatif::ProgressBar;
 use nbt_lib::NBTDeserializeBytes;
 use tokio::task::JoinSet;
-use tracing::{debug, error, info, trace, warn};
+use tracing::{error, info, trace, warn};
 
 use crate::state::GlobalState;
 use crate::world::chunkformat::Chunk;
@@ -73,6 +73,9 @@ pub async fn import_regions(
         let file = std::fs::File::open(dirfile.path())?;
         let mut region = fastanvil::Region::from_stream(file)?;
 
+        let mut queued_chunks = Vec::new();
+        let mut pending_chunks = 0u8;
+
         for chunk in region.iter() {
             let Ok(chunk) = chunk else {
                 warn!(
@@ -125,24 +128,47 @@ pub async fn import_regions(
             }
             let x = final_chunk.x_pos.clone();
             let z = final_chunk.z_pos.clone();
+            final_chunk.dimension = Some("overworld".to_string());
 
             trace!("Inserting chunk {}, {}", x, z);
 
-            let record = state
-                .database
-                .insert_chunk(final_chunk, "overworld".to_string())
-                .await
-                .unwrap();
+            queued_chunks.push(final_chunk);
+            pending_chunks += 1;
 
-            if record {
-                error!("Chunk {} {} already exists", x, z);
-                bar.abandon_with_message(format!("Chunk {} {} failed to import", x, z));
-                exit(1);
+            if pending_chunks == 150 {
+                let res = state.database.batch_insert(queued_chunks).await;
+                if res.is_err() {
+                    error!(
+                        "Could not insert chunk {} {}: {}",
+                        x,
+                        z,
+                        res.as_ref().unwrap_err()
+                    );
+                    bar.abandon_with_message(format!("Chunk {} {} failed to import", x, z));
+                    exit(1);
+                }
+                queued_chunks = Vec::new();
+                pending_chunks = 0;
             }
             bar.inc(1);
             bar.set_message(format!("{} {}", x, z));
 
             trace!("Imported chunk {} {}", x, z);
+        }
+        if !queued_chunks.is_empty() {
+            let res = state.database.batch_insert(queued_chunks).await;
+            if res.is_err() {
+                error!(
+                    "Could not insert chunk {}: {}",
+                    dirfile.file_name().to_str().unwrap(),
+                    res.as_ref().unwrap_err()
+                );
+                bar.abandon_with_message(format!(
+                    "Chunk {} failed to import",
+                    dirfile.file_name().to_str().unwrap()
+                ));
+                exit(1);
+            }
         }
     }
     bar.abandon_with_message(format!("{} chunks imported!", total_chunks));

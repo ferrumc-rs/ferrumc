@@ -45,6 +45,8 @@ pub enum Error {
     MissingBlockStates,
     #[error("Chunk is not valid: {0}")]
     InvalidChunk(i32, i32, String),
+    #[error("Chunk already exists at ({0}, {1})")]
+    ChunkExists(i32, i32),
 
     #[error(transparent)]
     SimdNbtError(#[from] simdnbt::Error),
