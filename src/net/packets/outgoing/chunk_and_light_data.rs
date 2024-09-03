@@ -3,8 +3,6 @@ use ferrumc_codec::network_types::varint::VarInt;
 use nbt_lib::NBTTag;
 use std::io::Cursor;
 
-use ferrumc_macros::NetEncode;
-use tracing::debug;
 use crate::state::GlobalState;
 use crate::utils::encoding::bitset::BitSet;
 use crate::utils::error::Error;
@@ -12,6 +10,7 @@ use crate::world::chunkformat::{
     Biomes, BlockStates, Chunk, Heightmaps, References, Section, Starts, Structures,
 };
 use crate::Result;
+use ferrumc_macros::NetEncode;
 
 const _SECTION_WIDTH: usize = 16;
 const _SECTION_HEIGHT: usize = 16;
@@ -196,6 +195,7 @@ fn create_basic_chunk(chunk_x: i32, chunk_z: i32) -> Chunk {
     let heightmap = vec![321i64; 256];
 
     Chunk {
+        dimension: Some("overworld".to_string()),
         status: "full".to_string(),
         data_version: 3465,
         heightmaps: Some(Heightmaps {

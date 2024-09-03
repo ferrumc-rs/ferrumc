@@ -8,13 +8,13 @@ use crate::utils::hash::hash;
 use crate::world::chunkformat::Chunk;
 
 impl Database {
-    pub async fn insert_chunk(&self, value: Chunk, dimension: String) -> Result<bool, Error> {
+    pub async fn insert_chunk(&self, value: Chunk) -> Result<(), Error> {
         let db = self.db.clone();
         let x = value.x_pos;
         let z = value.z_pos;
-        let result = tokio::task::spawn_blocking(move || {
+        tokio::task::spawn_blocking(move || {
             let key = hash((value.x_pos, value.z_pos));
-            let encoded = bincode::encode_to_vec(value, bincode::config::standard())
+            let encoded = bincode::encode_to_vec(&value, bincode::config::standard())
                 .expect("Failed to encode");
             let compressed = bzip_compress(&encoded).expect("Failed to compress");
             trace!(
@@ -25,29 +25,31 @@ impl Database {
                 human_readable_size(compressed.len() as u64)
             );
             let tx = db.begin_write().unwrap();
-            let mut did_exist = false;
-            let tablename = format!("chunks/{}", dimension);
-            {
+            let tablename = format!("chunks/{}", value.dimension.unwrap());
+            let res = {
                 let table: TableDefinition<u64, Vec<u8>> = TableDefinition::new(tablename.as_str());
                 let mut transaction = tx.open_table(table).unwrap();
-                match transaction.insert(key, compressed) {
-                    Ok(val) => {
-                        if val.is_some() {
-                            did_exist = true;
+                let res: Result<(), Error> = match transaction.insert(key, compressed) {
+                    Ok(val) => match val {
+                        Some(_) => {
+                            warn!("Chunk already exists at {}, {}", x, z);
+                            Err(Error::ChunkExists(x, z))
                         }
-                    }
-                    Err(e) => {
-                        warn!("Failed to insert chunk: {}", e);
-                        did_exist = true;
-                    }
+                        None => Ok(()),
+                    },
+                    Err(e) => Err(Error::Generic(format!("Failed to insert chunk: {}", e))),
                 };
-            }
-            tx.commit().unwrap();
-            did_exist
+                res
+            };
+            return if res.is_ok() {
+                tx.commit().unwrap();
+                Ok(())
+            } else {
+                tx.abort().unwrap();
+                res
+            };
         })
-        .await
-        .expect("Failed to join tasks");
-        Ok(result)
+        .await?
     }
 
     pub async fn get_chunk(
@@ -118,37 +120,89 @@ impl Database {
         Ok(result)
     }
 
-    pub async fn update_chunk(&self, value: Chunk, dimension: String) -> Result<bool, Error> {
+    pub async fn update_chunk(&self, value: Chunk) -> Result<(), Error> {
         let db = self.db.clone();
-        let result = tokio::task::spawn_blocking(move || {
+        tokio::task::spawn_blocking(move || {
             let (x, z) = (value.x_pos, value.z_pos);
             let record_name = hash((x, z));
-            let encoded = bincode::encode_to_vec(value, bincode::config::standard())
+            let encoded = bincode::encode_to_vec(&value, bincode::config::standard())
                 .expect("Failed to encode");
             let compressed = bzip_compress(&encoded).expect("Failed to compress");
-            let tablename = format!("chunks/{}", dimension);
+            let dim = value.dimension.unwrap();
+            let tablename = format!("chunks/{}", dim);
             let tx = db.begin_write().unwrap();
-            let mut did_exist = false;
-            {
+            let res = {
                 let table: TableDefinition<u64, Vec<u8>> = TableDefinition::new(tablename.as_str());
                 let mut transaction = tx.open_table(table).unwrap();
-                match transaction.insert(record_name, compressed) {
+                let res = match transaction.insert(record_name, compressed) {
                     Ok(val) => {
-                        if val.is_some() {
-                            did_exist = true;
+                        if val.is_none() {
+                            Err(Error::ChunkNotFound(x, z))
+                        } else {
+                            Ok(())
                         }
                     }
-                    Err(e) => {
-                        warn!("Failed to update chunk: {}", e);
-                        did_exist = true;
-                    }
+                    Err(e) => Err(Error::Generic(format!("Failed to insert chunk: {}", e))),
+                };
+                res
+            };
+            if res.is_ok() {
+                tx.commit().unwrap();
+                Ok(())
+            } else {
+                tx.abort().unwrap();
+                res
+            }
+        })
+        .await?
+    }
+
+    pub async fn batch_insert(&self, values: Vec<Chunk>) -> Result<(), Error> {
+        let db = self.db.clone();
+        let result = tokio::task::spawn_blocking(move || {
+            let tx = db.begin_write().unwrap();
+            for value in values {
+                let x = value.x_pos;
+                let z = value.z_pos;
+                let key = hash((value.x_pos, value.z_pos));
+                let encoded = bincode::encode_to_vec(&value, bincode::config::standard())
+                    .expect("Failed to encode");
+                let compressed = bzip_compress(&encoded).expect("Failed to compress");
+                trace!(
+                    "Inserting chunk: {}, {} | Uncompressed: {} | Compressed: {}",
+                    x,
+                    z,
+                    human_readable_size(encoded.len() as u64),
+                    human_readable_size(compressed.len() as u64)
+                );
+                let tablename = format!("chunks/{}", value.dimension.unwrap());
+                let res = {
+                    let table: TableDefinition<u64, Vec<u8>> =
+                        TableDefinition::new(tablename.as_str());
+                    let mut transaction = tx.open_table(table).unwrap();
+                    let res = match transaction.insert(key, compressed) {
+                        Ok(val) => match val {
+                            Some(_) => {
+                                warn!("Chunk already exists at {}, {}", x, z);
+                                Err(Error::ChunkExists(x, z))
+                            }
+                            None => Ok(()),
+                        },
+                        Err(e) => Err(Error::Generic(format!("Failed to insert chunk: {}", e))),
+                    };
+                    res
+                };
+                if res.is_err() {
+                    tx.abort().unwrap();
+                    return res;
                 };
             }
             tx.commit().unwrap();
-            did_exist
+            Ok(())
         })
         .await;
-        Ok(result.expect("Failed to join tasks"))
+        result.expect("Failed to join tasks")?;
+        Ok(())
     }
 }
 
