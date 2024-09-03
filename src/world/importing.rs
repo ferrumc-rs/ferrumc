@@ -74,7 +74,6 @@ pub async fn import_regions(
         let mut region = fastanvil::Region::from_stream(file)?;
 
         for chunk in region.iter() {
-
             let Ok(chunk) = chunk else {
                 warn!(
                     "Could not read chunk {}",
@@ -87,13 +86,12 @@ pub async fn import_regions(
                 exit(1);
             };
 
- /*           // FIXME: remove this
+            /*           // FIXME: remove this
             if chunk.z != 0 || chunk.x != 0 {
                 continue;
             }*/
 
             let chunk_raw = chunk.data;
-
 
             let chunk_nbt = Chunk::read_from_bytes(&mut Cursor::new(chunk_raw));
 
@@ -128,8 +126,7 @@ pub async fn import_regions(
             let x = final_chunk.x_pos.clone();
             let z = final_chunk.z_pos.clone();
 
-            debug!("Inserting chunk {:?}", final_chunk);
-
+            debug!("Inserting chunk {}, {}", x, z);
 
             let record = state
                 .database
@@ -145,7 +142,7 @@ pub async fn import_regions(
             bar.inc(1);
             bar.set_message(format!("{} {}", x, z));
 
-            info!("Imported chunk {} {}", x, z);
+            debug!("Imported chunk {} {}", x, z);
         }
     }
     bar.abandon_with_message(format!("{} chunks imported!", total_chunks));

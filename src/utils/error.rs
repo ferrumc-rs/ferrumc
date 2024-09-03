@@ -84,10 +84,36 @@ pub enum Error {
     CodecError(#[from] ferrumc_codec::error::CodecError),
     #[error("Conversion error")]
     ConversionError,
+    #[error(transparent)]
+    CompressionError(std::io::Error),
 }
 
 impl From<Infallible> for Error {
     fn from(e: Infallible) -> Self {
         return Error::Generic(format!("{:?}", e));
+    }
+}
+
+impl Into<sled::Error> for Error {
+    fn into(self) -> sled::Error {
+        sled::Error::Unsupported(format!("{:?}", self))
+    }
+}
+
+impl From<sled::Error> for Error {
+    fn from(e: sled::Error) -> Self {
+        Error::Generic(format!("{:?}", e))
+    }
+}
+
+impl From<Error> for std::io::Error {
+    fn from(e: Error) -> std::io::Error {
+        std::io::Error::new(std::io::ErrorKind::Other, format!("{:?}", e))
+    }
+}
+
+impl From<Error> for std::io::ErrorKind {
+    fn from(e: Error) -> std::io::ErrorKind {
+        std::io::ErrorKind::Other
     }
 }

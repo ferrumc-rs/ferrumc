@@ -5,8 +5,8 @@ use ferrumc_codec::network_types::varint::VarInt;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use std::io::Read;
-use tokio::io::{AsyncWrite, AsyncWriteExt};
-use tracing::{debug, warn};
+use tokio::io::AsyncWrite;
+use tracing::{debug, trace, warn};
 
 const BLOCKSFILE: &[u8] = include_bytes!("../../.etc/blockmappings.bz2");
 
@@ -38,6 +38,7 @@ impl Section {
 }
 
 impl Chunk {
+    /// Converts a chunk in the disk format to the network format
     pub fn convert_to_net_mode(&mut self) -> Result<(), Error> {
         // This looks ugly, but it's the best way I could think of to do the error checking
         let sections = if let Some(c) = self.sections.as_mut() {
@@ -52,13 +53,29 @@ impl Chunk {
         for section in sections {
             let mut set_empty = false;
             match section.block_states.as_mut() {
+                /*
+                If there are no block states, set the section to empty
+                This is mostly just if the section is empty or outside the world border
+                In network form this would also include sections that are only 1 type of block
+                But I'm not sure if this could also be the case for disk form.
+                TODO: Adapt this to work for sections that are possibly only 1 block that isn't air
+                */
                 None => {
-                    warn!("No block states found in section at {}, {}", self.x_pos, self.z_pos);
+                    trace!(
+                        "No block states found in section at {}, {}",
+                        self.x_pos,
+                        self.z_pos
+                    );
                     set_empty = true;
                 }
                 Some(block_states) => {
+                    // Set the max number of air blocks then decrease it every time we find and air
+                    // block in the data array. This will short-circuit if the section is malformed
+                    // but in that case we set it all to air anyway.
                     let mut non_air_blocks = 4096i16;
+                    // This is just for readability
                     let air_id = 0i32;
+                    // If the palette is missing, we can't do anything and it's actually fucked
                     if block_states.palette.is_none() {
                         return Err(Error::InvalidChunk(
                             self.x_pos,
@@ -69,25 +86,29 @@ impl Chunk {
 
                     let palette = block_states.palette.as_mut().unwrap();
 
-                    debug!("palette: {:?}", palette);
-
                     // TODO: Adapt this for single block sections
                     if let Some(_) = &block_states.data {
-                        let bpe = (palette.len() as f32).log2().ceil() as i8;
-                        block_states.bits_per_block = Some(bpe.max(4));
+                        let bits_per_entry = (palette.len() as f32).log2().ceil() as i8;
+                        block_states.bits_per_block = Some(bits_per_entry.max(4));
                     } else {
-                        warn!("No data found in section at {}", section.y);
+                        trace!("No data found in section at {}", section.y);
                         set_empty = true;
                     }
 
                     block_states.net_palette = Some(Vec::new());
 
+                    // Since the only difference (as far as I know) between the network and disk palettes
+                    // is that the disk palette uses full block states and the network palette uses block IDs
+                    // we can actually just swap the block states for block IDs. We can't really do this
+                    // in place cos of type differences so we'll just make a new vec, iterate over the
+                    // block states and push the block IDs to the new vec, then clear the old one.
                     for palette_entry in palette.iter() {
                         if BLOCK2ID.contains_key(palette_entry) {
                             if let Some(checked_palette) = block_states.net_palette.as_mut() {
                                 let block_id = *BLOCK2ID
                                     .get(palette_entry)
                                     .expect("Block not found in block mappings");
+                                // If the block is air, decrease the non-air blocks count
                                 if block_id == air_id {
                                     non_air_blocks -= 1;
                                 }
@@ -103,11 +124,19 @@ impl Chunk {
                             ));
                         }
                     }
+                    // This should never happen but if it does, we got some major problems to sort out
+                    if non_air_blocks < 0 {
+                        return Err(Error::InvalidChunk(
+                            self.x_pos,
+                            self.z_pos,
+                            "Too many air blocks. How the crispy kentucky fried fuck did this happen???".to_string(),
+                        ));
+                    }
                     block_states.non_air_blocks = Some(non_air_blocks);
                 }
             }
             if set_empty {
-                warn!("Setting section at {} to empty", section.y);
+                trace!("Setting section at {} to empty", section.y);
                 section.set_empty();
             }
         }
