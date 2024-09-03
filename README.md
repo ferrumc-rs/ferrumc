@@ -63,14 +63,14 @@ programming language, it achieves high performance and low latency as well as am
 
 - Entity Component System
 
-![ECS Diagram](https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/ECSBlockDiagram.png)
+![ECS Diagram](https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/ECSBlockDiagram.png?raw=true)
  
 *Entity Component System, unlike inheritance-based systems,
 is data-oriented and allows for better performance and scalability.*
 
 - Packet handling, serialization, and deserialization
 
-![Minecraft Packet Structure](https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/minecraft_packet_format.png)
+![Minecraft Packet Structure](https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/minecraft_packet_format.png?raw=true)
 
 *Incoming packet definition*
 
