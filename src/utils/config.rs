@@ -24,9 +24,8 @@ pub struct ServerConfig {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Database {
-    pub port: u32,
-    pub path: String,
-    pub mode: String,
+    pub cache_size: u32,
+    pub compression: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -129,9 +128,8 @@ impl Default for ServerConfig {
             network_tick_rate: 0,
             world: "world".to_string(),
             database: Database {
-                port: 29325,
-                path: "data".to_string(),
-                mode: "file".to_string(),
+                cache_size: 1024,
+                compression: "fast".to_string(),
             },
         }
     }

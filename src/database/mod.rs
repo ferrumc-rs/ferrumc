@@ -44,8 +44,10 @@ pub async fn start_database() -> Result<Database, Error> {
         .read(true)
         .open(world_path.join("test"))?;
 
+    let cache_size = get_global_config().database.cache_size;
+
     let database = redb::Database::builder()
-        .set_cache_size(1024 * 1024 * 1024)
+        .set_cache_size((cache_size * 1024) as usize)
         .create_with_backend(FileBackend::new(file).expect("Failed to create backend"))
         .unwrap();
 

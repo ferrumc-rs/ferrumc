@@ -5,7 +5,7 @@ use std::process::exit;
 use indicatif::ProgressBar;
 use nbt_lib::NBTDeserializeBytes;
 use tokio::task::JoinSet;
-use tracing::{debug, error, info, trace, warn};
+use tracing::{error, info, trace, warn};
 
 use crate::state::GlobalState;
 use crate::world::chunkformat::Chunk;
