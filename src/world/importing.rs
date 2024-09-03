@@ -5,7 +5,7 @@ use std::process::exit;
 use indicatif::ProgressBar;
 use nbt_lib::NBTDeserializeBytes;
 use tokio::task::JoinSet;
-use tracing::{debug, error, info, warn};
+use tracing::{debug, error, info, trace, warn};
 
 use crate::state::GlobalState;
 use crate::world::chunkformat::Chunk;
@@ -126,7 +126,7 @@ pub async fn import_regions(
             let x = final_chunk.x_pos.clone();
             let z = final_chunk.z_pos.clone();
 
-            debug!("Inserting chunk {}, {}", x, z);
+            trace!("Inserting chunk {}, {}", x, z);
 
             let record = state
                 .database
@@ -142,7 +142,7 @@ pub async fn import_regions(
             bar.inc(1);
             bar.set_message(format!("{} {}", x, z));
 
-            debug!("Imported chunk {} {}", x, z);
+            trace!("Imported chunk {} {}", x, z);
         }
     }
     bar.abandon_with_message(format!("{} chunks imported!", total_chunks));
