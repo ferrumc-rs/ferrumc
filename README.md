@@ -11,6 +11,21 @@
   </a>
 </p>
 
+<div align="center">
+    <a href="#-about">About</a>
+    •
+    <a href="#-current-features-and-roadmap">Features</a>
+    •
+    <a href="#-getting-started">Getting Started</a>
+    •
+    <a href="#-development">Development</a>
+    •
+    <a href="#-license">License</a>
+    •
+    <a href="#-acknowledgments">Acknowledgments</a>
+
+</div>
+
 ## 📖 About
 
 FerrumC is a Minecraft server implementation written from the ground up in Rust. Leveraging the power of the Rust
@@ -23,19 +38,19 @@ programming language, it achieves high performance and low latency as well as am
 
 <ul>
    <li>
-     <h4>Customizable server list</h4>
+     <h4>🛈 Customizable server list</h4>
      <img src="https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/server%20list.png?raw=true" alt="Server list">
    </li>
    <li>
-     <h4>Extremely fast and adaptable update speeds</h4>
+     <h4>🚄 Extremely fast and adaptable update speeds</h4>
      <img src="https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/mind%20boggling.gif?raw=true" alt="Mind boggling">
    </li>
    <li>
-     <h4>Highly efficient memory usage</h4>
+     <h4>🖥️ Highly efficient memory usage</h4>
      <img src="https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/mem_use.png?raw=true" alt="Low memory usage">
    </li>
    <li>
-     <h4>Customizable configuration</h4>
+     <h4>🗂️ Customizable configuration</h4>
      <img src="https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/config.png?raw=true" alt="Configuration">
    </li>
    <li>
@@ -50,63 +65,41 @@ programming language, it achieves high performance and low latency as well as am
    <li>
       <h4>⚡ Built with Rust for memory safety and concurrency</h4>
    </li>
+   <li>
+      <h4>💪 Powerful Entity Component System to handle high entity loads</h4>
+   </li>
+   <li>
+      <h4>📦 Asynchronous networking stack to compartmentalise individual players</h4>
+   </li>
+   <li>
+      <h4>📝 Custom made network and NBT encoding system to allow for minimal I/O lag</h4>
+   </li>
+   <li>
+      <h4>💾 Lighting fast database to ensure optimal world loading speeds</h4>
+   </li>
 </ul>
 
-## 🎯 Current Features and Roadmap
+<h1>✅ Upcoming features</h1>
 
-<details open>
-<summary><b>✅ Implemented Features</b></summary>
-
-- Player connection and authentication
-
-![Player Joining](https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/player_joining.png?raw=true)
-
-- Entity Component System
-
-- Packet handling, serialization, and deserialization
-
-*Incoming packet definition*
-
-![Incoming packet definition](https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/packet.png?raw=true)
-
-*Packet handling*
-
-![Packet handling](https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/packet_handling.png?raw=true)
-
-- Great logging system
-
-```log
-// [Timestamp (stripped)] [Log Level] [System Name] [Connection?] [Module (rm'd for brevity)]: [Message]
-2024-08...Z DEBUG sys{name=ConnectionHandler}:conn{addy=127.0.0.1:59996}: Sweattypalms moved to (0,400,0)
-2024-08...Z DEBUG sys{name=ChunkSender}: Sending chunks to player: Sweattypalms @ (0,400,0)
-2024-08...Z DEBUG sys{name=TickSystem}: Ticked `Sweattypalms`
-```
-
-- Keep-alive system
-- NBT serialization and deserialization
-
-</details>
-
-
-<details>
-<summary><b>🔨 In Progress</b></summary>
-
-- World stuff (chunks loading, saving, etc.)
-- Database integration (embedded)
-- Entities and physics
-
-</details>
-
-<details>
-<summary><b>📅 Planned Features</b></summary>
-
-- Chat system
-- Advanced world generation
-- Plugin support + API (Rust and Lua)
-- Multi-world support
-- Performance optimizations
-
-</details>
+<ul>
+   <li>
+      <h4>IP and account based whitelisting/blacklisting</h4>
+   </li>
+   <li>
+      <h4>Cross-platform WASM plugin system</h4>
+   </li>
+   <li>
+      <h4>SIMD accelerated lighting calculations</h4>
+   </li>
+   <li>
+      <h4>Multithreaded terrain generation</h4>
+   </li>
+   <li>
+      <h4>Custom dimensions</h4></li>
+   <li>
+      <h4>Parallel physics processing</h4>
+   </li>
+</ul>
 
 ## 🚀 Getting Started
 
@@ -149,10 +142,13 @@ cargo build --release
 1. Move the FerrumC binary to your desired server directory
 2. Open a terminal in that directory
 3. Run the server:
-    - Windows: `./ferrumc.exe`
+    - Windows: `.\ferrumc.exe`
     - Linux/macOS: `./ferrumc`
 4. (Optional) Generate a config file: `./ferrumc --setup`
 5. Edit the generated `config.toml` file to customize your server settings
+6. (Optional) Import an existing world: Place the region files (`.mca`) in the folder named `import` then run
+   `./ferrumc --import`.
+   The location of these files is explained [here](https://minecraft.wiki/w/Region_file_format#Location).
 
 ## 🛠️ Development
 
@@ -169,9 +165,3 @@ Join our [Discord server](https://discord.gg/qT5J8EMjwk) to get help or discuss 
 ## 📜 License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
-
-## 🙏 Acknowledgments
-
-- [wiki.vg](https://wiki.vg): Used for protocol documentation
-- [Tokio Runtime](https://github.com/tokio-rs/tokio): Asynchronous runtime for Rust
-- [Valence](https://github.com/valence-rs/valence): VarInt/VarLong encoding and decoding
