@@ -63,6 +63,11 @@ programming language, it achieves high performance and low latency as well as am
 
 - Entity Component System
 
+![ECS Diagram](https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/ECSBlockDiagram.png)
+ 
+*Entity Component System, unlike inheritance-based systems,
+is data-oriented and allows for better performance and scalability.*
+
 - Packet handling, serialization, and deserialization
 
 *Incoming packet definition*
@@ -175,3 +180,4 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 - [wiki.vg](https://wiki.vg): Used for protocol documentation
 - [Tokio Runtime](https://github.com/tokio-rs/tokio): Asynchronous runtime for Rust
 - [Valence](https://github.com/valence-rs/valence): VarInt/VarLong encoding and decoding
+- [Unity](https://docs.unity3d.com/Packages/com.unity.entities@0.1/manual/ecs_core.html): ECS Diagram
