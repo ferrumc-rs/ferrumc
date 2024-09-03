@@ -1,4 +1,4 @@
-# The network address to bind to. Usually just 0.0.0.0 or 127.0.0.1 if you don't want to expose the server to the internet.s
+# The network address to bind to. Usually just 0.0.0.0 or 127.0.0.1 if you don't want to expose the server to the internet.
 host = "0.0.0.0"
 # The port to bind to. Default is 25565.
 port = 25565
