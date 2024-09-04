@@ -53,12 +53,12 @@ pub struct Chunk {
 )]
 #[nbt(net_encode)]
 pub struct Heightmaps {
-    #[nbt(rename = "MOTION_BLOCKING_NO_LEAVES")]
-    pub motion_blocking_no_leaves: Option<Vec<i64>>,
+    // #[nbt(rename = "MOTION_BLOCKING_NO_LEAVES")]
+    // pub motion_blocking_no_leaves: Option<Vec<i64>>,
     #[nbt(rename = "MOTION_BLOCKING")]
     pub motion_blocking: Option<Vec<i64>>,
-    #[nbt(rename = "OCEAN_FLOOR")]
-    pub ocean_floor: Option<Vec<i64>>,
+    // #[nbt(rename = "OCEAN_FLOOR")]
+    // pub ocean_floor: Option<Vec<i64>>,
     #[nbt(rename = "WORLD_SURFACE")]
     pub world_surface: Option<Vec<i64>>,
 }
