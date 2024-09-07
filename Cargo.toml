@@ -59,6 +59,7 @@ nbt-lib = { path = 'src/crates/nbt-workspace/nbt-lib', features = ["derive"] }
 # Database
 redb = "2.1.2"
 moka = { version = "0.12.8", features = ["future"] }
+rocksdb = "0.22.0"
 
 # Misc
 dashmap = "6.0.1"

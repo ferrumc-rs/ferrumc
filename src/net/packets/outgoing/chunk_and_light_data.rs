@@ -54,7 +54,7 @@ impl ChunkDataAndUpdateLight {
     pub async fn new(state: GlobalState, chunk_x: i32, chunk_z: i32) -> Result<Self> {
         let chunk = state
             .database
-            .get_chunk(chunk_x, chunk_z, "overworld")
+            .get_chunk(chunk_x, chunk_z, "overworld".to_string())
             .await?;
 
         if chunk.is_none() {

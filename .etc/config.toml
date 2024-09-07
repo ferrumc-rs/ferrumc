@@ -15,7 +15,9 @@ world = "world"
 
 [database]
 # How many kilobytes of memory to use for the database cache. Default is 1024.
-cache_size = 1024
+cache_size = 10240
 # Compression mode for chunks. Options are "best" or "fast". Default is "fast". May make a difference in performance for
 # servers with many saved chunks.
 compression = "fast"
+# How many threads to use for the database. Default is 4. Setting this higher will let the database use more CPU.
+threads = 4
