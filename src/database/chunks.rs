@@ -19,7 +19,7 @@ impl Database {
                 let cf = db
                     .cf_handle("chunks")
                     .expect("Failed to get column family \"chunks\"");
-                if let Ok(data) = db.get_cf(cf, key.to_be_bytes()) {
+                if let Ok(data) = db.get_cf(&cf, key.to_be_bytes()) {
                     if let Some(encoded) = data {
                         let chunk: (Chunk, usize) = decode_from_slice(&encoded, standard())
                             .expect("Failed to decode chunk from database");
@@ -89,7 +89,7 @@ impl Database {
                 .expect("Failed to get column family \"chunks\"");
             let encoded = encode_to_vec(&value, standard()).expect("Failed to encode chunk");
             let key = hash((value.dimension.unwrap(), value.x_pos, value.z_pos));
-            db.put_cf(cf, key.to_be_bytes(), encoded)
+            db.put_cf(&cf, key.to_be_bytes(), encoded)
                 .or(Err(Error::DatabaseError(
                     "Failed to insert chunk".to_string(),
                 )))
@@ -144,7 +144,7 @@ impl Database {
             let cf = db
                 .cf_handle("chunks")
                 .expect("Failed to get column family \"chunks\"");
-            if let Ok(data) = db.get_cf(cf, key.to_be_bytes()) {
+            if let Ok(data) = db.get_cf(&cf, key.to_be_bytes()) {
                 if let Some(encoded) = data {
                     let chunk = decode_from_slice(&encoded, standard())
                         .expect("Failed to decode chunk from database");
@@ -193,7 +193,7 @@ impl Database {
             .db
             .cf_handle("chunks")
             .expect("Failed to get column family \"chunks\"");
-        Ok(self.db.get_cf(cf, key.to_be_bytes()).is_ok())
+        Ok(self.db.get_cf(&cf, key.to_be_bytes()).is_ok())
     }
 
     /// Update a chunk in the database <br>
@@ -234,7 +234,7 @@ impl Database {
                 .expect("Failed to get column family \"chunks\"");
             let encoded = encode_to_vec(&value, standard()).expect("Failed to encode chunk");
             let key = hash((value.dimension.unwrap(), value.x_pos, value.z_pos));
-            db.put_cf(cf, key.to_be_bytes(), encoded)
+            db.put_cf(&cf, key.to_be_bytes(), encoded)
                 .or(Err(Error::DatabaseError(
                     "Failed to update chunk".to_string(),
                 )))
@@ -288,7 +288,7 @@ impl Database {
             for value in values {
                 let encoded = encode_to_vec(&value, standard()).expect("Failed to encode chunk");
                 let key = hash((value.dimension.unwrap(), value.x_pos, value.z_pos));
-                batch.put_cf(cf, key.to_be_bytes(), encoded);
+                batch.put_cf(&cf, key.to_be_bytes(), encoded);
             }
             db.write(batch).or(Err(Error::DatabaseError(
                 "Failed to batch insert chunks".to_string(),

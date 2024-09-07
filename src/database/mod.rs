@@ -1,7 +1,6 @@
 use deepsize::DeepSizeOf;
 use futures::FutureExt;
 use moka::notification::{ListenerFuture, RemovalCause};
-use redb::backends::FileBackend;
 use rocksdb::{DBWithThreadMode, MultiThreaded, Options, DB};
 use std::env;
 use std::fs::File;
