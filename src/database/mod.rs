@@ -1,3 +1,4 @@
+use moka::notification::RemovalCause;
 use redb::backends::FileBackend;
 use std::env;
 use std::fs::File;
@@ -9,12 +10,14 @@ use tracing::{debug, info};
 use crate::utils::config::get_global_config;
 use crate::utils::error::Error;
 
+use crate::world::chunkformat::Chunk;
 use redb::Database as RedbDatabase;
 
 pub mod chunks;
 
 pub struct Database {
-    pub db: Arc<RedbDatabase>,
+    db: Arc<RedbDatabase>,
+    cache: moka::future::Cache<u64, Chunk>,
 }
 
 pub async fn start_database() -> Result<Database, Error> {
@@ -44,16 +47,28 @@ pub async fn start_database() -> Result<Database, Error> {
         .read(true)
         .open(world_path.join("test"))?;
 
-    let cache_size = get_global_config().database.cache_size;
-
     let database = redb::Database::builder()
-        .set_cache_size((cache_size * 1024) as usize)
         .create_with_backend(FileBackend::new(file).expect("Failed to create backend"))
         .unwrap();
 
     info!("Database started");
 
+    info!("Initializing cache");
+
+    let evict_chunk = |key, value: Chunk, cause| {
+        if cause == RemovalCause::Expired {
+            info!("Evicting chunk: {}, {}", value.x_pos, value.z_pos);
+        }
+    };
+
+    let cache = moka::future::Cache::builder()
+        .eviction_listener(evict_chunk)
+        .eviction_policy(moka::policy::EvictionPolicy::lru())
+        .max_capacity(get_global_config().database.cache_size as u64 * 1024)
+        .build();
+
     Ok(Database {
         db: Arc::new(database),
+        cache,
     })
 }
