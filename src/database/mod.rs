@@ -1,7 +1,7 @@
 use deepsize::DeepSizeOf;
 use futures::FutureExt;
 use moka::notification::{ListenerFuture, RemovalCause};
-use redb::backends::FileBackend;
+use rocksdb::{DBWithThreadMode, MultiThreaded, Options, DB};
 use std::env;
 use std::fs::File;
 use std::path::PathBuf;
@@ -13,12 +13,11 @@ use crate::utils::config::get_global_config;
 use crate::utils::error::Error;
 
 use crate::world::chunkformat::Chunk;
-use redb::Database as RedbDatabase;
 
 pub mod chunks;
 
 pub struct Database {
-    db: Arc<RedbDatabase>,
+    db: Arc<DB>,
     cache: Arc<moka::future::Cache<u64, Chunk>>,
 }
 
@@ -52,15 +51,17 @@ pub async fn start_database() -> Result<Database, Error> {
         fs::create_dir_all(&world_path).await?;
     }
 
-    let file = File::options()
-        .create(true)
-        .write(true)
-        .read(true)
-        .open(world_path.join("test"))?;
+    let mut options = Options::default();
+    options.create_if_missing(true);
+    options.create_missing_column_families(true);
+    options.enable_statistics();
+    options.increase_parallelism(get_global_config().database.threads as i32);
+    options.set_db_log_dir(root.join("logs"));
+    options.set_compression_type(rocksdb::DBCompressionType::Zstd);
+    options.set_compression_options_parallel_threads(get_global_config().database.threads as i32);
 
-    let database = redb::Database::builder()
-        .create_with_backend(FileBackend::new(file).expect("Failed to create backend"))
-        .unwrap();
+    let database = DB::open_cf(&options, world_path, &["chunks", "entities"])
+        .expect("Failed to open database");
 
     info!("Database started");
 

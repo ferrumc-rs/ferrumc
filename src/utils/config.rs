@@ -26,6 +26,7 @@ pub struct ServerConfig {
 pub struct Database {
     pub cache_size: u32,
     pub compression: String,
+    pub threads: u32,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -130,6 +131,7 @@ impl Default for ServerConfig {
             database: Database {
                 cache_size: 1024,
                 compression: "fast".to_string(),
+                threads: 4,
             },
         }
     }

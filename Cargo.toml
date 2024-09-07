@@ -57,8 +57,8 @@ ferrumc_codec = { path = "src/crates/ferurmc_codec" }
 nbt-lib = { path = 'src/crates/nbt-workspace/nbt-lib', features = ["derive"] }
 
 # Database
-redb = "2.1.2"
 moka = { version = "0.12.8", features = ["future"] }
+rocksdb = { version = "0.22.0", features = ["multi-threaded-cf"] }
 
 # Misc
 dashmap = "6.0.1"

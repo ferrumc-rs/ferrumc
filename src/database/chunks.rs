@@ -1,29 +1,55 @@
-use redb::TableDefinition;
-use tracing::{debug, trace, warn};
+use tracing::{debug, warn};
 
 use crate::database::Database;
-use crate::utils::binary_utils::{bzip_compress, bzip_decompress, human_readable_size};
 use crate::utils::error::Error;
 use crate::utils::hash::hash;
 use crate::world::chunkformat::Chunk;
 
+use bincode::config::standard;
+use bincode::{decode_from_slice, encode_to_vec};
+
 impl Database {
-    async fn load_into_cache(&self, x: i32, z: i32, dimension: String) -> Result<(), Error> {
-        let key = hash((x, z));
-        if self.cache.contains_key(&key) {
-            debug!("Chunk already in cache: {}, {}", x, z);
-            return Ok(());
-        } else {
-            let c = self.internal_get_chunk(x, z, dimension).await?;
-            if c.is_some() {
-                self.cache.insert(key, c.unwrap()).await;
+    async fn load_into_cache(&self, key: u64) -> Result<(), Error> {
+        let db = self.db.clone();
+        let cache = self.cache.clone();
+
+        tokio::task::spawn(async move {
+            // This is stupid, but it's the only way to get the lifetime checker to shut up
+            let get_chunk = |db: &rocksdb::DB, key: u64| {
+                let cf = db
+                    .cf_handle("chunks")
+                    .expect("Failed to get column family \"chunks\"");
+                if let Ok(data) = db.get_cf(&cf, key.to_be_bytes()) {
+                    if let Some(encoded) = data {
+                        let chunk: (Chunk, usize) = decode_from_slice(&encoded, standard())
+                            .expect("Failed to decode chunk from database");
+                        Ok(Some(chunk.0))
+                    } else {
+                        Ok(None)
+                    }
+                } else {
+                    Err(Error::DatabaseError("Failed to get chunk".to_string()))
+                }
+            };
+
+            if cache.contains_key(&key) {
+                debug!("Chunk already exists in cache: {:X}", key);
             } else {
-                warn!(
-                    "Chunk does not exist in db, can't load into cache: {}, {}",
-                    x, z
-                );
+                if let Ok(c) = get_chunk(&db, key) {
+                    if c.is_some() {
+                        cache.insert(key, c.unwrap()).await;
+                    } else {
+                        warn!(
+                            "Chunk does not exist in db, can't load into cache: {:X}",
+                            key,
+                        );
+                    }
+                } else {
+                    warn!("Error getting chunk: {:X}", key,);
+                }
             }
-        }
+        })
+        .await?;
         Ok(())
     }
 
@@ -57,44 +83,16 @@ impl Database {
     }
     async fn internal_insert_chunk(&self, value: Chunk) -> Result<(), Error> {
         let db = self.db.clone();
-        let x = value.x_pos;
-        let z = value.z_pos;
         tokio::task::spawn_blocking(move || {
-            let key = hash((value.x_pos, value.z_pos));
-            let encoded = bincode::encode_to_vec(&value, bincode::config::standard())
-                .expect("Failed to encode");
-            let compressed = bzip_compress(&encoded).expect("Failed to compress");
-            trace!(
-                "Inserting chunk: {}, {} | Uncompressed: {} | Compressed: {}",
-                x,
-                z,
-                human_readable_size(encoded.len() as u64),
-                human_readable_size(compressed.len() as u64)
-            );
-            let tx = db.begin_write().unwrap();
-            let tablename = format!("chunks/{}", value.dimension.unwrap());
-            let res = {
-                let table: TableDefinition<u64, Vec<u8>> = TableDefinition::new(tablename.as_str());
-                let mut transaction = tx.open_table(table).unwrap();
-                let res: Result<(), Error> = match transaction.insert(key, compressed) {
-                    Ok(val) => match val {
-                        Some(_) => {
-                            warn!("Chunk already exists at {}, {}", x, z);
-                            Err(Error::ChunkExists(x, z))
-                        }
-                        None => Ok(()),
-                    },
-                    Err(e) => Err(Error::Generic(format!("Failed to insert chunk: {}", e))),
-                };
-                res
-            };
-            return if res.is_ok() {
-                tx.commit().unwrap();
-                Ok(())
-            } else {
-                tx.abort().unwrap();
-                res
-            };
+            let cf = db
+                .cf_handle("chunks")
+                .expect("Failed to get column family \"chunks\"");
+            let encoded = encode_to_vec(&value, standard()).expect("Failed to encode chunk");
+            let key = hash((value.dimension.unwrap(), value.x_pos, value.z_pos));
+            db.put_cf(&cf, key.to_be_bytes(), encoded)
+                .or(Err(Error::DatabaseError(
+                    "Failed to insert chunk".to_string(),
+                )))
         })
         .await?
     }
@@ -123,13 +121,13 @@ impl Database {
         &self,
         x: i32,
         z: i32,
-        dimension: impl Into<String>,
+        dimension: String,
     ) -> Result<Option<Chunk>, Error> {
-        let key = hash((x, z));
+        let key = hash((dimension, x, z));
         if self.cache.contains_key(&key) {
             Ok(self.cache.get(&key).await)
         } else {
-            if let Ok(chunk) = self.internal_get_chunk(x, z, dimension).await {
+            if let Ok(chunk) = self.internal_get_chunk(key).await {
                 if chunk.is_some() {
                     self.cache.insert(key, chunk.clone().unwrap()).await;
                 }
@@ -140,57 +138,25 @@ impl Database {
         }
     }
 
-    async fn internal_get_chunk(
-        &self,
-        x: i32,
-        z: i32,
-        dimension: impl Into<String>,
-    ) -> Result<Option<Chunk>, Error> {
-        let dimension = dimension.into();
+    async fn internal_get_chunk(&self, key: u64) -> Result<Option<Chunk>, Error> {
         let db = self.db.clone();
-        let result = tokio::task::spawn_blocking(move || {
-            let key = hash((x, z));
-            trace!("Getting chunk: {}, {}", x, z);
-            let tablename = format!("chunks/{}", dimension);
-            let tx = db.begin_read().unwrap();
-            {
-                let table: TableDefinition<u64, Vec<u8>> = TableDefinition::new(tablename.as_str());
-                let transaction = tx.open_table(table).unwrap();
-                match transaction.get(key) {
-                    Ok(chunk) => match chunk {
-                        Some(chunk) => {
-                            let chunk = bzip_decompress(chunk.value().as_ref())
-                                .expect("Failed to decompress");
-                            let (chunk, len) = bincode::decode_from_slice(
-                                chunk.as_slice(),
-                                bincode::config::standard(),
-                            )
-                            .expect(
-                                "Could not decode chunk from database. Has the format changed?",
-                            );
-                            trace!(
-                                "Got chunk: {} {}, {} long",
-                                x,
-                                z,
-                                human_readable_size(len as u64)
-                            );
-                            Some(chunk)
-                        }
-                        None => {
-                            debug!("Could not find chunk {}, {}", x, z);
-                            None
-                        }
-                    },
-                    Err(e) => {
-                        warn!("Failed to get chunk: {}", e);
-                        None
-                    }
+        tokio::task::spawn_blocking(move || {
+            let cf = db
+                .cf_handle("chunks")
+                .expect("Failed to get column family \"chunks\"");
+            if let Ok(data) = db.get_cf(&cf, key.to_be_bytes()) {
+                if let Some(encoded) = data {
+                    let chunk = decode_from_slice(&encoded, standard())
+                        .expect("Failed to decode chunk from database");
+                    Ok(Some(chunk.0))
+                } else {
+                    Ok(None)
                 }
+            } else {
+                Err(Error::DatabaseError("Failed to get chunk".to_string()))
             }
         })
-        .await
-        .expect("Failed to join tasks");
-        Ok(result)
+        .await?
     }
 
     /// Check if a chunk exists in the database
@@ -212,34 +178,22 @@ impl Database {
     ///
     /// ```
     pub async fn chunk_exists(&self, x: i32, z: i32, dimension: String) -> Result<bool, Error> {
-        let key = hash((x, z));
+        let key = hash((dimension, x, z));
         if self.cache.contains_key(&key) {
             Ok(true)
         } else {
-            let res = self.internal_chunk_exists(x, z, dimension.clone()).await;
-            self.load_into_cache(x, z, dimension).await?;
+            let res = self.internal_chunk_exists(key).await;
+            self.load_into_cache(key).await?;
             res
         }
     }
 
-    async fn internal_chunk_exists(
-        &self,
-        x: i32,
-        z: i32,
-        dimension: String,
-    ) -> Result<bool, Error> {
-        let db = self.db.clone();
-        let result = tokio::task::spawn_blocking(move || {
-            let record_name = hash((x, z));
-            let tablename = format!("chunks/{}", dimension);
-            let tx = db.begin_read().unwrap();
-            let table: TableDefinition<u64, Vec<u8>> = TableDefinition::new(tablename.as_str());
-            let transaction = tx.open_table(table).unwrap();
-            transaction.get(record_name).is_ok()
-        })
-        .await
-        .expect("Failed to join tasks");
-        Ok(result)
+    async fn internal_chunk_exists(&self, key: u64) -> Result<bool, Error> {
+        let cf = self
+            .db
+            .cf_handle("chunks")
+            .expect("Failed to get column family \"chunks\"");
+        Ok(self.db.get_cf(&cf, key.to_be_bytes()).is_ok())
     }
 
     /// Update a chunk in the database <br>
@@ -273,37 +227,17 @@ impl Database {
 
     async fn internal_update_chunk(&self, value: Chunk) -> Result<(), Error> {
         let db = self.db.clone();
+
         tokio::task::spawn_blocking(move || {
-            let (x, z) = (value.x_pos, value.z_pos);
-            let record_name = hash((x, z));
-            let encoded = bincode::encode_to_vec(&value, bincode::config::standard())
-                .expect("Failed to encode");
-            let compressed = bzip_compress(&encoded).expect("Failed to compress");
-            let dim = value.dimension.unwrap();
-            let tablename = format!("chunks/{}", dim);
-            let tx = db.begin_write().unwrap();
-            let res = {
-                let table: TableDefinition<u64, Vec<u8>> = TableDefinition::new(tablename.as_str());
-                let mut transaction = tx.open_table(table).unwrap();
-                let res = match transaction.insert(record_name, compressed) {
-                    Ok(val) => {
-                        if val.is_none() {
-                            Err(Error::ChunkNotFound(x, z))
-                        } else {
-                            Ok(())
-                        }
-                    }
-                    Err(e) => Err(Error::Generic(format!("Failed to insert chunk: {}", e))),
-                };
-                res
-            };
-            if res.is_ok() {
-                tx.commit().unwrap();
-                Ok(())
-            } else {
-                tx.abort().unwrap();
-                res
-            }
+            let cf = db
+                .cf_handle("chunks")
+                .expect("Failed to get column family \"chunks\"");
+            let encoded = encode_to_vec(&value, standard()).expect("Failed to encode chunk");
+            let key = hash((value.dimension.unwrap(), value.x_pos, value.z_pos));
+            db.put_cf(&cf, key.to_be_bytes(), encoded)
+                .or(Err(Error::DatabaseError(
+                    "Failed to update chunk".to_string(),
+                )))
         })
         .await?
     }
@@ -328,11 +262,14 @@ impl Database {
     /// ```
     pub async fn batch_insert(&self, values: Vec<Chunk>) -> Result<(), Error> {
         // TODO: Ewwwww clones, disgusting, fix this
-        let result = self.internal_batch_insert(values.clone()).await;
+        let keys = values
+            .iter()
+            .map(|v| hash((v.dimension.as_ref().unwrap(), v.x_pos, v.z_pos)))
+            .collect::<Vec<u64>>();
+        let result = self.internal_batch_insert(values).await;
         if result.is_ok() {
-            for value in values {
-                let key = hash((value.x_pos, value.z_pos));
-                self.cache.insert(key, value).await;
+            for key in keys {
+                self.load_into_cache(key).await?;
             }
             Ok(())
         } else {
@@ -342,50 +279,22 @@ impl Database {
 
     async fn internal_batch_insert(&self, values: Vec<Chunk>) -> Result<(), Error> {
         let db = self.db.clone();
-        let result = tokio::task::spawn_blocking(move || {
-            let tx = db.begin_write().unwrap();
+
+        tokio::task::spawn_blocking(move || {
+            let cf = db
+                .cf_handle("chunks")
+                .expect("Failed to get column family \"chunks\"");
+            let mut batch = rocksdb::WriteBatch::default();
             for value in values {
-                let x = value.x_pos;
-                let z = value.z_pos;
-                let key = hash((value.x_pos, value.z_pos));
-                let encoded = bincode::encode_to_vec(&value, bincode::config::standard())
-                    .expect("Failed to encode");
-                let compressed = bzip_compress(&encoded).expect("Failed to compress");
-                trace!(
-                    "Inserting chunk: {}, {} | Uncompressed: {} | Compressed: {}",
-                    x,
-                    z,
-                    human_readable_size(encoded.len() as u64),
-                    human_readable_size(compressed.len() as u64)
-                );
-                let tablename = format!("chunks/{}", value.dimension.unwrap());
-                let res = {
-                    let table: TableDefinition<u64, Vec<u8>> =
-                        TableDefinition::new(tablename.as_str());
-                    let mut transaction = tx.open_table(table).unwrap();
-                    let res = match transaction.insert(key, compressed) {
-                        Ok(val) => match val {
-                            Some(_) => {
-                                warn!("Chunk already exists at {}, {}", x, z);
-                                Err(Error::ChunkExists(x, z))
-                            }
-                            None => Ok(()),
-                        },
-                        Err(e) => Err(Error::Generic(format!("Failed to insert chunk: {}", e))),
-                    };
-                    res
-                };
-                if res.is_err() {
-                    tx.abort().unwrap();
-                    return res;
-                };
+                let encoded = encode_to_vec(&value, standard()).expect("Failed to encode chunk");
+                let key = hash((value.dimension.unwrap(), value.x_pos, value.z_pos));
+                batch.put_cf(&cf, key.to_be_bytes(), encoded);
             }
-            tx.commit().unwrap();
-            Ok(())
+            db.write(batch).or(Err(Error::DatabaseError(
+                "Failed to batch insert chunks".to_string(),
+            )))
         })
-        .await;
-        result.expect("Failed to join tasks")?;
-        Ok(())
+        .await?
     }
 }
 
