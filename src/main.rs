@@ -5,6 +5,8 @@
 #![feature(portable_simd)]
 
 extern crate core;
+#[macro_use]
+extern crate macro_rules_attribute;
 
 use std::env;
 use std::path::PathBuf;

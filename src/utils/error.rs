@@ -96,18 +96,6 @@ impl From<Infallible> for Error {
     }
 }
 
-impl Into<sled::Error> for Error {
-    fn into(self) -> sled::Error {
-        sled::Error::Unsupported(format!("{:?}", self))
-    }
-}
-
-impl From<sled::Error> for Error {
-    fn from(e: sled::Error) -> Self {
-        Error::Generic(format!("{:?}", e))
-    }
-}
-
 impl From<Error> for std::io::Error {
     fn from(e: Error) -> std::io::Error {
         std::io::Error::new(std::io::ErrorKind::Other, format!("{:?}", e))
