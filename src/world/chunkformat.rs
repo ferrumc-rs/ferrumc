@@ -1,11 +1,12 @@
 use bincode::{Decode, Encode};
 use ferrumc_codec::network_types::varint::VarInt;
+use nbt_lib::NBTDeserialize;
+use nbt_lib::NBTSerialize;
 use serde_derive::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-#[derive(
-    nbt_lib::NBTSerialize,
-    nbt_lib::NBTDeserialize,
+attribute_alias! {
+    #[apply(ChunkDerives)] = #[derive(nbt_lib::NBTSerialize, nbt_lib::NBTDeserialize,
     Debug,
     Clone,
     PartialEq,
@@ -13,7 +14,12 @@ use std::collections::BTreeMap;
     Serialize,
     Decode,
     Deserialize,
-)]
+    Eq
+)];
+}
+
+#[apply(ChunkDerives)]
+#[derive(deepsize::DeepSizeOf)]
 #[nbt(is_root)]
 #[nbt(rename = "")]
 pub struct Chunk {
@@ -40,17 +46,8 @@ pub struct Chunk {
     pub sections: Option<Vec<Section>>,
 }
 
-#[derive(
-    nbt_lib::NBTSerialize,
-    nbt_lib::NBTDeserialize,
-    Debug,
-    Clone,
-    PartialEq,
-    Encode,
-    Serialize,
-    Decode,
-    Deserialize,
-)]
+#[apply(ChunkDerives)]
+#[derive(deepsize::DeepSizeOf)]
 #[nbt(net_encode)]
 pub struct Heightmaps {
     // #[nbt(rename = "MOTION_BLOCKING_NO_LEAVES")]
@@ -63,59 +60,24 @@ pub struct Heightmaps {
     pub world_surface: Option<Vec<i64>>,
 }
 
-#[derive(
-    nbt_lib::NBTSerialize,
-    nbt_lib::NBTDeserialize,
-    Debug,
-    Clone,
-    PartialEq,
-    Encode,
-    Serialize,
-    Decode,
-    Deserialize,
-)]
+#[apply(ChunkDerives)]
+#[derive(deepsize::DeepSizeOf)]
 pub struct Structures {
     pub starts: Starts,
     #[nbt(rename = "References")]
     pub references: References,
 }
 
-#[derive(
-    nbt_lib::NBTSerialize,
-    nbt_lib::NBTDeserialize,
-    Debug,
-    Clone,
-    PartialEq,
-    Encode,
-    Serialize,
-    Decode,
-    Deserialize,
-)]
+#[apply(ChunkDerives)]
+#[derive(deepsize::DeepSizeOf)]
 pub struct Starts {}
-#[derive(
-    nbt_lib::NBTSerialize,
-    nbt_lib::NBTDeserialize,
-    Debug,
-    Clone,
-    PartialEq,
-    Encode,
-    Serialize,
-    Decode,
-    Deserialize,
-)]
+
+#[apply(ChunkDerives)]
+#[derive(deepsize::DeepSizeOf)]
 pub struct References {}
 
-#[derive(
-    nbt_lib::NBTSerialize,
-    nbt_lib::NBTDeserialize,
-    Debug,
-    Clone,
-    PartialEq,
-    Encode,
-    Serialize,
-    Decode,
-    Deserialize,
-)]
+#[apply(ChunkDerives)]
+#[derive(deepsize::DeepSizeOf)]
 pub struct Section {
     #[nbt(rename = "block_states")]
     pub block_states: Option<BlockStates>,
@@ -128,17 +90,8 @@ pub struct Section {
     pub sky_light: Option<Vec<i8>>,
 }
 
-#[derive(
-    nbt_lib::NBTSerialize,
-    nbt_lib::NBTDeserialize,
-    Debug,
-    Clone,
-    PartialEq,
-    Encode,
-    Serialize,
-    Decode,
-    Deserialize,
-)]
+#[apply(ChunkDerives)]
+#[derive(deepsize::DeepSizeOf)]
 pub struct BlockStates {
     // These 2 fields don't exist in the chunks stored on disk but will exist when converted to
     // network format
@@ -151,19 +104,8 @@ pub struct BlockStates {
     pub net_palette: Option<Vec<VarInt>>,
 }
 
-#[derive(
-    nbt_lib::NBTSerialize,
-    nbt_lib::NBTDeserialize,
-    Debug,
-    Clone,
-    PartialEq,
-    Encode,
-    Serialize,
-    Decode,
-    Deserialize,
-    Hash,
-    Eq,
-)]
+#[apply(ChunkDerives)]
+#[derive(deepsize::DeepSizeOf, Hash)]
 pub struct Palette {
     #[nbt(rename = "Name")]
     pub name: String,
@@ -171,18 +113,8 @@ pub struct Palette {
     pub properties: Option<BTreeMap<String, String>>,
 }
 
-#[derive(
-    nbt_lib::NBTSerialize,
-    nbt_lib::NBTDeserialize,
-    Debug,
-    Clone,
-    PartialEq,
-    Encode,
-    Serialize,
-    Decode,
-    Deserialize,
-    Default,
-)]
+#[apply(ChunkDerives)]
+#[derive(deepsize::DeepSizeOf)]
 pub struct Properties {
     pub snowy: Option<String>,
     pub level: Option<String>,
@@ -198,17 +130,8 @@ pub struct Properties {
     pub axis: Option<String>,
 }
 
-#[derive(
-    nbt_lib::NBTSerialize,
-    nbt_lib::NBTDeserialize,
-    Debug,
-    Clone,
-    PartialEq,
-    Encode,
-    Serialize,
-    Decode,
-    Deserialize,
-)]
+#[apply(ChunkDerives)]
+#[derive(deepsize::DeepSizeOf)]
 pub struct Biomes {
     pub palette: Vec<String>,
 }

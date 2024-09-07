@@ -1,4 +1,6 @@
-use moka::notification::RemovalCause;
+use deepsize::DeepSizeOf;
+use futures::FutureExt;
+use moka::notification::{ListenerFuture, RemovalCause};
 use redb::backends::FileBackend;
 use std::env;
 use std::fs::File;
@@ -17,7 +19,16 @@ pub mod chunks;
 
 pub struct Database {
     db: Arc<RedbDatabase>,
-    cache: moka::future::Cache<u64, Chunk>,
+    cache: Arc<moka::future::Cache<u64, Chunk>>,
+}
+
+fn evict_chunk(_key: Arc<u64>, value: Chunk, cause: RemovalCause) -> ListenerFuture {
+    async move {
+        if cause == RemovalCause::Expired {
+            info!("Evicting chunk: {}, {}", value.x_pos, value.z_pos);
+        }
+    }
+    .boxed()
 }
 
 pub async fn start_database() -> Result<Database, Error> {
@@ -55,20 +66,15 @@ pub async fn start_database() -> Result<Database, Error> {
 
     info!("Initializing cache");
 
-    let evict_chunk = |key, value: Chunk, cause| {
-        if cause == RemovalCause::Expired {
-            info!("Evicting chunk: {}, {}", value.x_pos, value.z_pos);
-        }
-    };
-
     let cache = moka::future::Cache::builder()
-        .eviction_listener(evict_chunk)
-        .eviction_policy(moka::policy::EvictionPolicy::lru())
+        .async_eviction_listener(evict_chunk)
+        .weigher(|k, v| v.deep_size_of() as u32)
+        .eviction_policy(moka::policy::EvictionPolicy::tiny_lfu())
         .max_capacity(get_global_config().database.cache_size as u64 * 1024)
         .build();
 
     Ok(Database {
         db: Arc::new(database),
-        cache,
+        cache: Arc::new(cache),
     })
 }

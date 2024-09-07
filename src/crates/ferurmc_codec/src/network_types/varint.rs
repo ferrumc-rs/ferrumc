@@ -24,6 +24,7 @@ use crate::prelude::*;
     Decode,
     Serialize,
     Deserialize,
+    deepsize::DeepSizeOf,
 )]
 pub struct VarInt {
     /// The value of the VarInt.

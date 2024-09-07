@@ -66,11 +66,20 @@ hashbrown = { version = "0.14.5", features = ["serde"] }
 rand = "0.9.0-alpha.1"
 base64 = "0.22.1"
 rayon = "1.10.0"
+macro_rules_attribute = "0.2.0"
+deepsize = "0.2.0"
+deepsize_derive = "0.1.2"
 
 # CLI
 clap = { version = "4.5.11" }
 clap_derive = "4.5.11"
 indicatif = "0.17.8"
+
+
+# Set the cache to the highest level for development
+[profile.dev.package.moka]
+opt-level = 3
+
 
 [build-dependencies]
 # Build
