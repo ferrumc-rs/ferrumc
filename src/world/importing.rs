@@ -36,16 +36,21 @@ fn format_time(millis: u64) -> String {
 async fn get_total_chunks(dir: PathBuf) -> Result<usize, Box<dyn std::error::Error>> {
     let mut region_files = tokio::fs::read_dir(dir).await?;
     let mut total_chunks = 0;
-    let mut set = JoinSet::new();
     while let Some(dirfile) = region_files.next_entry().await? {
-        set.spawn_blocking(move || {
-            let file = std::fs::File::open(dirfile.path()).unwrap();
-            let mut region = fastanvil::Region::from_stream(file).unwrap();
-            region.iter().count()
-        });
-    }
-    while let Some(Ok(count)) = set.join_next().await {
-        total_chunks += count;
+        let file = std::fs::File::open(dirfile.path()).unwrap();
+        match fastanvil::Region::from_stream(file).as_mut() {
+            Ok(region) => {
+                total_chunks += region.iter().count();
+            }
+            Err(e) => {
+                error!(
+                    "Could not read region file {}: {}",
+                    dirfile.file_name().to_str().unwrap(),
+                    e
+                );
+                exit(1);
+            }
+        }
     }
     Ok(total_chunks)
 }

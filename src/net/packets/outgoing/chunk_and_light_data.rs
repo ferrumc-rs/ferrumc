@@ -1,8 +1,3 @@
-use ferrumc_codec::enc::NetEncode;
-use ferrumc_codec::network_types::varint::VarInt;
-use nbt_lib::NBTTag;
-use std::io::Cursor;
-
 use crate::state::GlobalState;
 use crate::utils::encoding::bitset::BitSet;
 use crate::utils::error::Error;
@@ -10,7 +5,12 @@ use crate::world::chunkformat::{
     Biomes, BlockStates, Chunk, Heightmaps, References, Section, Starts, Structures,
 };
 use crate::Result;
+use ferrumc_codec::enc::NetEncode;
+use ferrumc_codec::network_types::varint::VarInt;
 use ferrumc_macros::NetEncode;
+use nbt_lib::NBTTag;
+use std::io::Cursor;
+use tracing::warn;
 
 const _SECTION_WIDTH: usize = 16;
 const _SECTION_HEIGHT: usize = 16;
@@ -84,30 +84,69 @@ impl ChunkDataAndUpdateLight {
         // -4 to 20
         const SECTIONS: usize = 24;
 
-        let sky_light_mask = BitSet::from_iter((0..SECTIONS + 2).map(|_| 1));
-        let block_light_mask = BitSet::from_iter((0..SECTIONS + 2).map(|_| 1));
-        let empty_sky_light_mask = BitSet::from_iter((0..SECTIONS + 2).map(|_| 0));
-        let empty_block_light_mask = BitSet::from_iter((0..SECTIONS + 2).map(|_| 0));
+        // let sky_light_mask = BitSet::from_iter((0..SECTIONS + 2).map(|_| 1));
+        // let block_light_mask = BitSet::from_iter((0..SECTIONS + 2).map(|_| 1));
+        // let empty_sky_light_mask = BitSet::from_iter((0..SECTIONS + 2).map(|_| 0));
+        // let empty_block_light_mask = BitSet::from_iter((0..SECTIONS + 2).map(|_| 0));
+
+        let mut sky_light_mask = BitSet::new(SECTIONS + 2);
+        sky_light_mask.set_all();
+        let mut block_light_mask = BitSet::new(SECTIONS + 2);
+        block_light_mask.set_all();
+        let empty_sky_light_mask = BitSet::new(SECTIONS + 2);
+        let empty_block_light_mask = BitSet::new(SECTIONS + 2);
 
         // Create light arrays
-        let sky_light_arrays = vec![
-            LightArray {
-                data: vec![0xFF; 2048]
-            };
-            SECTIONS + 2
-        ];
-        let block_light_arrays = vec![
-            LightArray {
-                data: vec![0xFF; 2048]
-            };
-            SECTIONS + 2
-        ];
+        let mut sky_light_arrays = Vec::new();
+        let mut block_light_arrays = Vec::new();
 
-        Ok(ChunkDataAndUpdateLight {
+        for section in chunk.sections.as_ref().unwrap() {
+            sky_light_arrays.push(if let Some(sky_light) = &section.sky_light {
+                LightArray {
+                    data: sky_light.iter().take(2048).map(|&x| x as u8).collect(),
+                }
+            } else {
+                LightArray {
+                    data: vec![0; 2048],
+                }
+            });
+            block_light_arrays.push(if let Some(block_light) = &section.block_light {
+                LightArray {
+                    data: block_light.iter().take(2048).map(|&x| x as u8).collect(),
+                }
+            } else {
+                LightArray {
+                    data: vec![0; 2048],
+                }
+            });
+        }
+        block_light_arrays.push(LightArray {
+            data: vec![0; 2048],
+        });
+        sky_light_arrays.push(LightArray {
+            data: vec![0; 2048],
+        });
+        block_light_arrays.push(LightArray {
+            data: vec![0; 2048],
+        });
+        sky_light_arrays.push(LightArray {
+            data: vec![0; 2048],
+        });
+
+        let heightmaps = chunk.heightmaps.unwrap_or_else(|| {
+            warn!("Chunk is missing heightmaps, creating default heightmaps");
+            Heightmaps {
+                //motion_blocking_no_leaves: None,
+                motion_blocking: Some(vec![i64::MAX; 37]),
+                //ocean_floor: None,
+                world_surface: Some(vec![i64::MAX; 37]),
+            }
+        });
+        let res = ChunkDataAndUpdateLight {
             packet_id: VarInt::from(0x24),
             chunk_x,
             chunk_z,
-            heightmaps: create_basic_chunk(chunk_x, chunk_z).heightmaps.unwrap(),
+            heightmaps,
             data: data.into_inner(),
             block_entities_count: VarInt::from(0),
             block_entities: Vec::new(),
@@ -115,11 +154,12 @@ impl ChunkDataAndUpdateLight {
             block_light_mask,
             empty_sky_light_mask,
             empty_block_light_mask,
-            sky_light_array_count: VarInt::from((SECTIONS + 2) as i32),
+            sky_light_array_count: VarInt::from(sky_light_arrays.len() as i32),
             sky_light_arrays,
-            block_light_array_count: VarInt::from((SECTIONS + 2) as i32),
+            block_light_array_count: VarInt::from(block_light_arrays.len() as i32),
             block_light_arrays,
-        })
+        };
+        Ok(res)
     }
 }
 
@@ -199,9 +239,9 @@ fn create_basic_chunk(chunk_x: i32, chunk_z: i32) -> Chunk {
         status: "full".to_string(),
         data_version: 3465,
         heightmaps: Some(Heightmaps {
-            motion_blocking_no_leaves: None,
+            // motion_blocking_no_leaves: None,
             motion_blocking: Some(heightmap.clone()),
-            ocean_floor: None,
+            // ocean_floor: None,
             world_surface: Some(heightmap),
         }),
         is_light_on: Some(1),

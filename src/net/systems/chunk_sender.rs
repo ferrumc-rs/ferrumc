@@ -82,6 +82,8 @@ impl ChunkSender {
 
         const CHUNK_RADIUS: i32 = 16;
 
+        let mut break_loop = false;
+
         for x in -CHUNK_RADIUS..=CHUNK_RADIUS {
             for z in -CHUNK_RADIUS..=CHUNK_RADIUS {
                 let packet =
@@ -90,10 +92,16 @@ impl ChunkSender {
 
                 if let Err(e) = write_guard.send_packet(packet).await {
                     warn!("Failed to send chunk to player: {}", e);
+                    break_loop = true;
                 };
+                if break_loop {
+                    break;
+                }
+            }
+            if break_loop {
+                break;
             }
         }
-
         Ok(())
     }
     async fn send_set_center_chunk(pos: &Position, conn: Arc<RwLock<Connection>>) -> Result<()> {
