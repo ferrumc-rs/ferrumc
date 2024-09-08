@@ -63,7 +63,7 @@ programming language, it is completely multi-threaded; and offers high performan
    <li>
       <h4>💪 Powerful Entity Component System to handle high entity loads</h4>
       <img src="https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/ECSBlockDiagram.png?raw=true" alt="Entity Component System">
-      <p><i>ECS Block Diagram (credits: unity)</i></p>
+      <p><i>ECS Block Diagram (credits: <a href="https://docs.unity3d.com/Packages/com.unity.entities@0.1/manual/ecs_core.html">Unity</a>)</i></p>
    </li>
    <li>
       <h4>📦 Fully multithreaded; Utilizes all available CPU cores, instead of a single "main" thread</h4>
