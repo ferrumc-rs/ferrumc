@@ -194,7 +194,7 @@ pub async fn manage_conn(conn: Arc<RwLock<Connection>>, state: GlobalState) -> R
     {
         let local_addr = conn.read().await.stream.in_stream.lock().await.peer_addr()?;
         debug!(
-            "Starting receiver for the same addr: {:?}",
+            "Starting receiver for the addr: {:?}",
             local_addr
         );
     }
@@ -221,8 +221,11 @@ pub async fn manage_conn(conn: Arc<RwLock<Connection>>, state: GlobalState) -> R
 
         let packet_id = packet_id.get_val() as u8;
 
-        // handle_packet(packet_id, &mut conn_write, &mut cursor, state.clone()).await?;
-        handle_packet(packet_id, conn_id, &conn_state, &mut cursor, state.clone()).await?;
+        let state_clone = state.clone();
+        tokio::spawn(async move {
+            handle_packet(packet_id, conn_id, &conn_state, &mut cursor, state_clone).await
+        });
+        // handle_packet(packet_id, conn_id, &conn_state, &mut cursor, state.clone()).await?;
 
         drop_conn_if_flagged(conn.clone(), state.clone()).await?;
 
@@ -282,13 +285,8 @@ pub async fn drop_conn(connection_id: u32, state: GlobalState) -> Result<()> {
 
 impl Connection {
     pub async fn send_packet(&self, packet: impl NetEncode) -> Result<()> {
-        let mut data = Vec::new();
-        packet.net_encode(&mut data).await?;
-        self
-            .get_out_stream()
-            .await
-            .write_all(&*data)
-            .await?;
+        let mut out_stream = self.get_out_stream().await;
+        packet.net_encode(&mut *out_stream).await?;
         Ok(())
     }
 

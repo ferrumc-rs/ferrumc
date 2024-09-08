@@ -15,10 +15,14 @@ use crate::utils::components::player::Player;
 use crate::utils::encoding::position::Position;
 use crate::utils::prelude::*;
 use ferrumc_macros::AutoGenName;
-use tokio::task::JoinHandle;
+use futures::stream::FuturesUnordered;
+use futures::task::SpawnExt;
+use futures::{StreamExt, TryStreamExt};
+use rayon::iter::IntoParallelIterator;
+use tokio::task::{JoinHandle, JoinSet};
 
 const CHUNK_RADIUS: i32 = 16;
-const CHUNK_TX_INTERVAL_MS: u64 = 1000;
+const CHUNK_TX_INTERVAL_MS: u64 = 150;
 
 #[derive(AutoGenName)]
 pub struct ChunkSender;
@@ -30,16 +34,20 @@ impl System for ChunkSender {
         loop {
             interval.tick().await;
 
-            let mut query = state.world.query::<&Player>();
+            // Get all the Players, instead of all the *entities*. The player is just a filter.
+            let query = state.world.query::<&Player>();
+            let send_to = query.iter().await
+                .collect::<Vec<_>>();
 
-            while let Some((entity_id, player)) = query.next().await {
+            send_to.into_iter().for_each(|(entity_id, player)| {
                 debug!("Sending chunk to player: {}", player.get_username());
-                drop(player);
-                if let Err(e) = ChunkSender::send_chunks_to_player(state.clone(), entity_id).await {
-                    error!("Failed to send chunk to player: {}", e);
-                    continue;
-                }
-            }
+                let state = state.clone();
+                tokio::spawn(async move {
+                    if let Err(e) = ChunkSender::send_chunks_to_player(state, entity_id).await {
+                        error!("Failed to send chunk to player: {}", e);
+                    }
+                });
+            });
         }
     }
 
@@ -72,6 +80,8 @@ impl ChunkSender {
             pos
         );
 
+        drop(player);
+
         ChunkSender::send_set_center_chunk(&pos, conn.clone()).await?;
         ChunkSender::send_chunk_data_to_player(state.clone(), &pos, conn.clone()).await?;
 
@@ -84,42 +94,26 @@ impl ChunkSender {
         conn: Arc<RwLock<Connection>>,
     ) -> Result<()> {
         let start = std::time::Instant::now();
-        let mut packet_queue = PacketQueue::new();
 
-
-        let mut break_loop = false;
+        let pos_x = pos.x;
+        let pos_z = pos.z;
 
         'x: for x in -CHUNK_RADIUS..=CHUNK_RADIUS {
             for z in -CHUNK_RADIUS..=CHUNK_RADIUS {
-                let start = std::time::Instant::now();
-                let packet =
-                    ChunkDataAndUpdateLight::new(state.clone(), (pos.x >> 4) + x, (pos.z >> 4) + z)
-                        .await?;
-
-                if let Err(e) = packet_queue.queue(packet).await {
+                let packet = ChunkDataAndUpdateLight::new(state.clone(), (pos_x >> 4) + x, (pos_z >> 4) + z).await?;
+                let conn_read = conn.read().await;
+                if let Err(e) = conn_read.send_packet(packet).await {
                     warn!("Failed to send chunk to player: {}", e);
                     break 'x;
-                };
+                }
             }
         }
 
-        tokio::spawn(async move {
-            let start = std::time::Instant::now();
-            debug!("Getting read guard");
-            let read_guard = conn.read().await;
-            debug!("Sending packet");
-            if let Err(e) = read_guard.send_packet(packet_queue).await {
-                error!("Failed to send chunk data to player: {}", e);
-            }
-            debug!("Packet sent; took: {:?}", start.elapsed());
-        });
-
-
         debug!(
-            "Send {} chunks to player in {:?}",
-            (CHUNK_RADIUS * 2 + 1) * (CHUNK_RADIUS * 2 + 1),
-            start.elapsed()
-        );
+                "Send {} chunks to player in {:?}",
+                (CHUNK_RADIUS * 2 + 1) * (CHUNK_RADIUS * 2 + 1),
+                start.elapsed()
+            );
 
         Ok(())
     }

@@ -40,12 +40,12 @@ impl System for TickSystem {
 
             while let Some((_, (conn, player))) = query.next().await {
                 let packet = LoginPluginRequest::server_brand(&visible_wave).await;
-                let mut conn = conn.0.write().await;
+                let conn = conn.0.read().await;
                 if let Err(e) = conn.send_packet(packet).await {
                     warn!("Failed to send packet: {}", e);
                     continue;
                 }
-                trace!("Ticked connection for player `{}`", player.get_username());
+                // trace!("Ticked connection for player `{}`", player.get_username());
             }
 
             offset = (offset + 1) % total_width;
