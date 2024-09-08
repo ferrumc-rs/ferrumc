@@ -145,14 +145,14 @@ cargo build --release
 
 1. Move the FerrumC binary to your desired server directory
 2. Open a terminal in that directory
-3. Run the server:
-    - Windows: `.\ferrumc.exe`
-    - Linux/macOS: `./ferrumc`
-4. (Optional) Generate a config file: `./ferrumc --setup`
-5. Edit the generated `config.toml` file to customize your server settings
-6. Import an existing world: Place the region files (`.mca`) in the folder named `import` then run
+3. (Optional) Generate a config file: `./ferrumc --setup`
+4. Edit the generated `config.toml` file to customize your server settings
+5. Import an existing world: Place the region files (`.mca`) in the folder named `import` then run
    `./ferrumc --import`.
    The location of these files is explained [here](https://minecraft.wiki/w/Region_file_format#Location).
+6. Run the server:
+   - Windows: `.\ferrumc.exe`
+   - Linux/macOS: `./ferrumc`
 
 ## 🛠️ Development
 
