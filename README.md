@@ -55,6 +55,7 @@ programming language, it achieves high performance and low latency as well as am
    </li>
    <li>
       <h4>🔄 Can import existing worlds from vanilla minecraft</h4>
+      <img src="https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/importing_chunks.png?raw=true" alt="Configuration">
    </li>
    <li>
       <h4>🌐 Compatible with vanilla Minecraft clients (Currently only 1.20.1)</h4>
@@ -67,6 +68,8 @@ programming language, it achieves high performance and low latency as well as am
    </li>
    <li>
       <h4>💪 Powerful Entity Component System to handle high entity loads</h4>
+      <img src="https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/ECSBlockDiagram.png?raw=true" alt="Entity Component System">
+      <p><i>ECS Block Diagram (credits: unity)</i></p>
    </li>
    <li>
       <h4>📦 Asynchronous networking stack to compartmentalise individual players</h4>
@@ -76,6 +79,8 @@ programming language, it achieves high performance and low latency as well as am
    </li>
    <li>
       <h4>💾 Lighting fast database to ensure optimal world loading speeds</h4>
+      <h6><i>[Currently using RocksDB](https://github.com/facebook/rocksdb)</i></h6>
+      <img src="https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/chunk_loading.gif?raw=true" alt="Chunk Loading DEMO">
    </li>
 </ul>
 
@@ -107,6 +112,7 @@ programming language, it achieves high performance and low latency as well as am
 
 - Rust compiler (latest nightly version)
 - Cargo (comes with Rust)
+- LLVM (required for RocksDB compilation)
 
 ### 📥 Installation
 
@@ -125,6 +131,11 @@ Unfortunately, the server is not yet ready for production use. If you want to tr
 </p>
 
 #### Compile from source (Bleeding edge updates, always up-to-date)
+
+1. Ensure you have LLVM installed on your system. This is required for RocksDB compilation. 
+   - The env variable `LIBCLANG_PATH` must be set to the path of the `[LLVM path]/bin`. 
+
+2. Clone and build the project.
 
 ```bash
 # Clone the repository
