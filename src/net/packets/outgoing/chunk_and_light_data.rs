@@ -55,13 +55,9 @@ impl ChunkDataAndUpdateLight {
         let chunk = state
             .database
             .get_chunk(chunk_x, chunk_z, "overworld".to_string())
-            .await?;
+            .await?
+            .ok_or(Error::ChunkNotFound(chunk_x, chunk_z))?;
 
-        if chunk.is_none() {
-            return Err(Error::ChunkNotFound(chunk_x, chunk_z));
-        }
-
-        let chunk = chunk.unwrap();
 
         // Serialize the chunk data
         let mut data = Cursor::new(Vec::new());

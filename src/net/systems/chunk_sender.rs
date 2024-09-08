@@ -95,7 +95,6 @@ impl ChunkSender {
                 let packet =
                     ChunkDataAndUpdateLight::new(state.clone(), (pos.x >> 4) + x, (pos.z >> 4) + z)
                         .await?;
-                debug!("Got chunk data in {:?}", start.elapsed());
 
                 if let Err(e) = packet_queue.queue(packet).await {
                     warn!("Failed to send chunk to player: {}", e);
