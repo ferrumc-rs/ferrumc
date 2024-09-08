@@ -61,18 +61,12 @@ programming language, it achieves high performance and low latency as well as am
       <h4>🌐 Compatible with vanilla Minecraft clients (Currently only 1.20.1)</h4>
    </li>
    <li>
-      <h4>🛠 Open-source for community contributions and customization</h4>
-   </li>
-   <li>
-      <h4>⚡ Built with Rust for memory safety and concurrency</h4>
-   </li>
-   <li>
       <h4>💪 Powerful Entity Component System to handle high entity loads</h4>
       <img src="https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/ECSBlockDiagram.png?raw=true" alt="Entity Component System">
       <p><i>ECS Block Diagram (credits: unity)</i></p>
    </li>
    <li>
-      <h4>📦 Asynchronous networking stack to compartmentalise individual players</h4>
+      <h4>📦 Fully multithreaded; Utilizes all available CPU cores, instead of a single "main" thread</h4>
    </li>
    <li>
       <h4>📝 Custom made network and NBT encoding system to allow for minimal I/O lag</h4>
@@ -112,7 +106,7 @@ programming language, it achieves high performance and low latency as well as am
 
 - Rust compiler (latest nightly version)
 - Cargo (comes with Rust)
-- LLVM (required for RocksDB compilation)
+- [LLVM](https://github.com/llvm/llvm-project/releases) (required for RocksDB compilation)
 
 ### 📥 Installation
 
