@@ -1,8 +1,4 @@
-// #![feature(const_type_id)] // For TypeId::of as a const fn
 #![feature(box_into_inner)]
-// #![feature(async_closure)]
-// #![feature(future_join)]
-// #![feature(portable_simd)]
 
 extern crate core;
 #[macro_use]
