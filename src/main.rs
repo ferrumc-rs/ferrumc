@@ -86,7 +86,7 @@ async fn start_server() -> Result<()> {
 
     let state = create_state(listener).await?;
 
-    if env::args().nth(1).unwrap_or_default() == "import" {
+    if env::args().nth(1).unwrap_or_default() == "--import" {
         world::importing::import_regions(state.clone()).await?;
         exit(0);
     }
