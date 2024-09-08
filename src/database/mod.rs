@@ -1,10 +1,11 @@
 use deepsize::DeepSizeOf;
 use futures::FutureExt;
 use moka::notification::{ListenerFuture, RemovalCause};
-use rocksdb::{Cache, Options, DB};
+use rocksdb::{Cache, ColumnFamilyDescriptor, Options, DB};
 use std::env;
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::time::Duration;
 use tokio::fs;
 use tracing::{debug, info};
 
@@ -23,7 +24,7 @@ pub struct Database {
 fn evict_chunk(_key: Arc<u64>, value: Chunk, cause: RemovalCause) -> ListenerFuture {
     async move {
         if cause == RemovalCause::Expired {
-            info!("Evicting chunk: {}, {}", value.x_pos, value.z_pos);
+            debug!("Evicting chunk: {}, {}", value.x_pos, value.z_pos);
         }
     }
     .boxed()
@@ -50,20 +51,36 @@ pub async fn start_database() -> Result<Database, Error> {
         fs::create_dir_all(&world_path).await?;
     }
 
-    let mut options = Options::default();
-    options.create_if_missing(true);
-    options.create_missing_column_families(true);
-    options.enable_statistics();
-    options.increase_parallelism(num_cpus::get() as i32);
-    options.set_db_log_dir(root.join("logs"));
-    options.set_compression_type(rocksdb::DBCompressionType::Zstd);
-    options.set_compression_options_parallel_threads(num_cpus::get() as i32);
-    let mut block_based_options = rocksdb::BlockBasedOptions::default();
-    let cache = Cache::new_lru_cache(0);
-    block_based_options.set_block_cache(&cache);
-    options.set_block_based_table_factory(&block_based_options);
+    let mut opts = Options::default();
+    opts.create_if_missing(true);
+    opts.create_missing_column_families(true);
+    opts.increase_parallelism(num_cpus::get() as i32);
+    opts.set_db_log_dir(root.join("logs"));
+    opts.set_compression_type(rocksdb::DBCompressionType::Lz4);
+    // opts.set_compression_options_parallel_threads(num_cpus::get() as i32);
+    let cache = Cache::new_lru_cache(512 * 1024); // 1MB cache
+    {
+        let mut bb_opts = rocksdb::BlockBasedOptions::default();
+        bb_opts.set_block_cache(&cache);
+        bb_opts.set_checksum_type(rocksdb::ChecksumType::NoChecksum);
+        opts.set_block_based_table_factory(&bb_opts);
+    }
+    opts.set_row_cache(&cache);
+    opts.set_paranoid_checks(false);
+    opts.set_disable_auto_compactions(true);
+    opts.set_compaction_readahead_size(0);
+    opts.set_allow_mmap_reads(true);
+    opts.set_allow_mmap_writes(true);
 
-    let database = DB::open_cf(&options, world_path, &["chunks", "entities"])
+    let cf_names = vec!["chunks", "entities"];
+    let cf_descriptors = cf_names
+        .into_iter()
+        .map(|name| {
+            ColumnFamilyDescriptor::new(name, opts.clone())
+        })
+        .collect::<Vec<_>>();
+
+    let database = DB::open_cf_descriptors(&opts, world_path, cf_descriptors)
         .expect("Failed to open database");
 
     info!("Database started");
@@ -75,6 +92,7 @@ pub async fn start_database() -> Result<Database, Error> {
         .weigher(|_, v| v.deep_size_of() as u32)
         .eviction_policy(moka::policy::EvictionPolicy::tiny_lfu())
         .max_capacity(get_global_config().database.cache_size as u64 * 1024)
+        .time_to_live(Duration::from_millis(1000))
         .build();
 
     Ok(Database {
@@ -82,3 +100,4 @@ pub async fn start_database() -> Result<Database, Error> {
         cache: Arc::new(cache),
     })
 }
+

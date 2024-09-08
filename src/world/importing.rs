@@ -1,3 +1,4 @@
+use std::env;
 use std::io::Cursor;
 use std::path::PathBuf;
 use std::process::exit;
@@ -5,8 +6,10 @@ use std::process::exit;
 use indicatif::ProgressBar;
 use nbt_lib::NBTDeserializeBytes;
 use tracing::{error, info, trace, warn};
+use crate::utils::prelude::*;
 
 use crate::state::GlobalState;
+use crate::utils::error::Error;
 use crate::world::chunkformat::Chunk;
 
 fn format_time(millis: u64) -> String {
@@ -32,11 +35,11 @@ fn format_time(millis: u64) -> String {
     }
 }
 
-async fn get_total_chunks(dir: PathBuf) -> Result<usize, Box<dyn std::error::Error>> {
+async fn get_total_chunks(dir: PathBuf) -> Result<usize> {
     let mut region_files = tokio::fs::read_dir(dir).await?;
     let mut total_chunks = 0;
-    while let Some(dirfile) = region_files.next_entry().await? {
-        let file = std::fs::File::open(dirfile.path()).unwrap();
+    while let Some(dir_file) = region_files.next_entry().await? {
+        let file = std::fs::File::open(dir_file.path())?;
         match fastanvil::Region::from_stream(file).as_mut() {
             Ok(region) => {
                 total_chunks += region.iter().count();
@@ -44,7 +47,7 @@ async fn get_total_chunks(dir: PathBuf) -> Result<usize, Box<dyn std::error::Err
             Err(e) => {
                 error!(
                     "Could not read region file {}: {}",
-                    dirfile.file_name().to_str().unwrap(),
+                    dir_file.file_name().to_str().unwrap(),
                     e
                 );
                 exit(1);
@@ -56,9 +59,20 @@ async fn get_total_chunks(dir: PathBuf) -> Result<usize, Box<dyn std::error::Err
 
 /// since this is just used to import chunks, it doesn't need to be optimized much
 pub async fn import_regions(
-    dir: PathBuf,
     state: GlobalState,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<()> {
+    let dir = if env::var("FERRUMC_ROOT").is_ok() {
+        PathBuf::from(env::var("FERRUMC_ROOT").unwrap()).join("import")
+    } else {
+        PathBuf::from(
+            env::current_exe()
+                .unwrap()
+                .parent()
+                .ok_or(Error::Generic("Failed to get exe directory".to_string()))?
+                .join("import"),
+        )
+    };
+
     // We aren't, but I can't think of a better way to say "Counting chunks" without it sounding
     // super slow
     info!("Fetching preliminary chunk information");
@@ -92,11 +106,6 @@ pub async fn import_regions(
                 ));
                 exit(1);
             };
-
-            /*           // FIXME: remove this
-            if chunk.z != 0 || chunk.x != 0 {
-                continue;
-            }*/
 
             let chunk_raw = chunk.data;
 
@@ -200,7 +209,7 @@ mod test {
 
         let chunk = state
             .database
-            .get_chunk(0, 0, "overworld")
+            .get_chunk(0, 0, "overworld".to_string())
             .await
             .unwrap()
             .unwrap();

@@ -1,8 +1,51 @@
+use std::env;
 use std::env::current_exe;
 
 use crate::utils::error::Error;
 use tokio::fs;
-use tracing::info;
+use tracing::{error, info};
+use crate::setup;
+
+/// Handles the setup of the server
+///
+/// If the server is running in a CI environment, it will set the log level to info
+///
+/// Returns True if the server should exit after setup
+///
+/// Runs [setup::setup] if the server needs setting up
+pub(super)async fn handle_setup() -> crate::utils::prelude::Result<bool> {
+    // This env var will be present if the server is running in a CI environment
+    // This will lead to set up not running, but we just need to check for compilation success, not actual functionality
+    if env::var("GITHUB_ACTIONS").is_ok() {
+        env::set_var("RUST_LOG", "info");
+        Ok(false)
+        // If the setup flag is passed, run the setup regardless of the config file
+    } else if env::args().any(|x| x == "setup") {
+        setup::setup().await?;
+        return Ok(true);
+        // Check if the config file exists already and run the setup if it doesn't
+    } else {
+        // Get the path to the current executable
+        let exe = env::current_exe()?;
+        // This should be the directory the executable is in.
+        // This should always work but if it doesn't, we'll just return an error
+        let dir = exe.parent();
+        match dir {
+            Some(dir) => {
+                let config_path = dir.join("config.toml");
+                if !config_path.exists() {
+                    setup::setup().await?;
+                }
+                Ok(false)
+            }
+            None => {
+                error!("Failed to get the directory of the executable. Exiting...");
+                return Ok(true);
+            }
+        }
+    }
+}
+
 
 /// Handles the setup of the server
 ///

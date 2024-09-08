@@ -1,22 +1,21 @@
-#![feature(const_type_id)] // For TypeId::of as a const fn
+// #![feature(const_type_id)] // For TypeId::of as a const fn
 #![feature(box_into_inner)]
-#![feature(async_closure)]
-#![feature(future_join)]
-#![feature(portable_simd)]
+// #![feature(async_closure)]
+// #![feature(future_join)]
+// #![feature(portable_simd)]
 
 extern crate core;
 #[macro_use]
 extern crate macro_rules_attribute;
 
 use std::env;
-use std::path::PathBuf;
 use std::process::exit;
 use std::sync::atomic::AtomicU32;
 use std::sync::Arc;
 
 use dashmap::DashMap;
 use tokio::net::TcpListener;
-use tracing::{debug, error, info, trace};
+use tracing::{error, info, trace};
 
 use crate::ecs::world::World;
 use crate::net::ConnectionList;
@@ -24,7 +23,7 @@ use crate::state::{GlobalState, ServerState};
 use crate::{
     net::systems::{kill_all_systems, start_all_systems},
     net::Connection,
-    utils::{config, config::get_global_config, prelude::*},
+    utils::{config::get_global_config, prelude::*},
 };
 
 pub mod ecs;
@@ -56,21 +55,17 @@ async fn main() {
 async fn entry() -> Result<()> {
     utils::setup_logger()?;
 
-    if handle_setup().await? {
+    if setup::handle_setup().await? {
         return Ok(());
     }
 
     info!("Initializing server...");
 
-    let start = std::time::Instant::now();
-    let config = config::ServerConfig::new()?;
-    let elapsed = start.elapsed();
-
-    debug!("Found Config: \n{:#?} \nin {:?}", config, elapsed);
-
     start_server().await?;
 
     tokio::signal::ctrl_c().await?;
+
+    info!("Exiting server;");
 
     Ok(())
 }
@@ -84,15 +79,7 @@ async fn start_server() -> Result<()> {
 
     let tcp_addr = format!("{}:{}", config.host, config.port);
 
-    // let listener = TcpListener::bind(tcp_addr).await?;
     let Ok(listener) = TcpListener::bind(tcp_addr.clone()).await else {
-        /*error!("Failed to bind to address: {}", &tcp_addr);
-        error!("Perhaps the address {} is already in use?", &tcp_addr);
-        return Err(Error::TcpError("Failed to bind to address".to_string()));*/
-        // let error = format!("Failed to bind to address: {} \nPerhaps the address {} is already in use?", &tcp_addr, &tcp_addr);
-        //
-        // error!("{}", error);
-
         error!("Failed to bind to address: {}", &tcp_addr);
         error!("Perhaps the port {} is already in use?", &config.port);
 
@@ -101,27 +88,14 @@ async fn start_server() -> Result<()> {
 
     let addr = listener.local_addr()?;
 
-    info!("Server started on {}", addr);
-
     let state = create_state(listener).await?;
 
     if env::args().nth(1).unwrap_or_default() == "import" {
-        let import_path = if env::var("FERRUMC_ROOT").is_ok() {
-            PathBuf::from(env::var("FERRUMC_ROOT").unwrap()).join("import")
-        } else {
-            PathBuf::from(
-                env::current_exe()
-                    .unwrap()
-                    .parent()
-                    .ok_or(Error::Generic("Failed to get exe directory".to_string()))?
-                    .join("import"),
-            )
-        };
-        world::importing::import_regions(import_path, state.clone())
-            .await
-            .unwrap();
+        world::importing::import_regions(state.clone()).await?;
         exit(0);
     }
+
+    info!("Server started on {}", addr);
 
     // Start all systems (separate task)
     let all_systems = tokio::task::spawn(start_all_systems(state));
@@ -146,61 +120,4 @@ async fn create_state(tcp_listener: TcpListener) -> Result<GlobalState> {
     }))
 }
 
-/*async fn read_connections(listener: TcpListener, state: GlobalState) -> Result<()> {
-    loop {
-        let state = state.clone();
-        let (socket, addy) = listener.accept().await?;
-        // show a line of 100 dashes
-        trace!("{}", "-".repeat(100));
-        debug!("Accepted connection from: {:?}", socket.peer_addr()?);
-        let state = state.clone();
-        tokio::task::spawn(
-            async {
-                if let Err(e) = net::init_connection(socket).await {
-                    error!("Error handling connection: {:?}", e);
-                }
-            }
-                .instrument(info_span!("handle_connection", %addy)),
-        );
-    }
-}*/
 
-/// Handles the setup of the server
-///
-/// If the server is running in a CI environment, it will set the log level to info
-///
-/// Returns True if the server should exit after setup
-///
-/// Runs [setup::setup] if the server needs setting up
-async fn handle_setup() -> Result<bool> {
-    // This env var will be present if the server is running in a CI environment
-    // This will lead to set up not running, but we just need to check for compilation success, not actual functionality
-    if env::var("GITHUB_ACTIONS").is_ok() {
-        env::set_var("RUST_LOG", "info");
-        Ok(false)
-        // If the setup flag is passed, run the setup regardless of the config file
-    } else if env::args().any(|x| x == "setup") {
-        setup::setup().await?;
-        return Ok(true);
-        // Check if the config file exists already and run the setup if it doesn't
-    } else {
-        // Get the path to the current executable
-        let exe = env::current_exe()?;
-        // This should be the directory the executable is in.
-        // This should always work but if it doesn't, we'll just return an error
-        let dir = exe.parent();
-        match dir {
-            Some(dir) => {
-                let config_path = dir.join("config.toml");
-                if !config_path.exists() {
-                    setup::setup().await?;
-                }
-                Ok(false)
-            }
-            None => {
-                error!("Failed to get the directory of the executable. Exiting...");
-                return Ok(true);
-            }
-        }
-    }
-}
