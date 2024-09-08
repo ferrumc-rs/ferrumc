@@ -8,6 +8,7 @@
 chunk.json
 dummyregion.mca
 .etc
+!.etc/blocks.json
 config.toml
 import/*
 blocks.json
@@ -17,3 +18,4 @@ blockstates.json
 flame.svg
 
 logs/
+newblocks.json
