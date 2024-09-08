@@ -55,10 +55,10 @@ pub async fn start_database() -> Result<Database, Error> {
     options.create_if_missing(true);
     options.create_missing_column_families(true);
     options.enable_statistics();
-    options.increase_parallelism(get_global_config().database.threads as i32);
+    options.increase_parallelism(num_cpus::get() as i32);
     options.set_db_log_dir(root.join("logs"));
     options.set_compression_type(rocksdb::DBCompressionType::Zstd);
-    options.set_compression_options_parallel_threads(get_global_config().database.threads as i32);
+    options.set_compression_options_parallel_threads(num_cpus::get() as i32);
 
     let database = DB::open_cf(&options, world_path, &["chunks", "entities"])
         .expect("Failed to open database");

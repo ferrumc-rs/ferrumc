@@ -9,7 +9,7 @@ use dashmap::DashMap;
 use ferrumc_codec::enc::NetEncode;
 use ferrumc_codec::network_types::varint::VarInt;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio::sync::RwLock;
+use tokio::sync::{Mutex, MutexGuard, RwLock, RwLockReadGuard};
 use tracing::{debug, error, trace};
 
 use ferrumc_macros::Component;
@@ -19,7 +19,7 @@ use crate::state::GlobalState;
 
 use super::utils::config::get_global_config;
 use super::utils::prelude::*;
-
+pub mod utils;
 // To allow implementing the `Component` trait for `Connection`. Since we can't implement a trait for a type defined in another crate.
 #[derive(Component)]
 pub struct ConnectionWrapper(pub Arc<RwLock<Connection>>);
@@ -99,11 +99,17 @@ impl ConnectionList {
 /// - `drop`: Whether to drop and clean up the connection after this network tick.
 pub struct Connection {
     pub id: u32,
-    pub socket: tokio::net::TcpStream,
+    // pub socket: tokio::net::TcpStream,
+    pub stream: NetStream,
     pub player_uuid: Option<uuid::Uuid>,
     pub state: State,
     pub metadata: ConnectionMetadata,
     pub drop: bool,
+}
+
+pub struct NetStream {
+    pub in_stream: Mutex<tokio::net::tcp::OwnedReadHalf>,
+    pub out_stream: Mutex<tokio::net::tcp::OwnedWriteHalf>,
 }
 
 #[derive(Debug, Default)]
@@ -124,9 +130,14 @@ pub fn setup_tracer() {
 pub async fn init_connection(socket: tokio::net::TcpStream, state: GlobalState) -> Result<()> {
     let entity_id = state.world.create_entity().await.build() as u32;
 
+    let (in_stream, out_stream) = socket.into_split();
+
     let conn = Connection {
         id: entity_id,
-        socket,
+        stream: NetStream {
+            in_stream: Mutex::new(in_stream),
+            out_stream: Mutex::new(out_stream),
+        },
         player_uuid: None,
         state: State::Handshake,
         metadata: ConnectionMetadata::default(),
@@ -180,22 +191,25 @@ pub async fn init_connection(socket: tokio::net::TcpStream, state: GlobalState) 
 /// Reads packets from the connection and passes them to [handle_packet]. The handle_packet function
 /// is generated at compile time by [ferrumc_macros::bake_packet_registry].
 pub async fn manage_conn(conn: Arc<RwLock<Connection>>, state: GlobalState) -> Result<()> {
-    debug!(
-        "Starting receiver for the same addr: {:?}",
-        conn.read().await.socket.peer_addr()?
-    );
+    {
+        let local_addr = conn.read().await.stream.in_stream.lock().await.peer_addr()?;
+        debug!(
+            "Starting receiver for the same addr: {:?}",
+            local_addr
+        );
+    }
 
     loop {
         // Get the length of the packet
-        let mut conn_write = conn.write().await;
+        let mut conn_read = conn.read().await;
 
         trace!("Reading length buffer");
 
-        let (packet_length, buffer) = get_packet_length_and_buffer(&mut conn_write).await?;
-        let (conn_id, conn_state) = (conn_write.id, conn_write.state.clone());
+        let (packet_length, buffer) = get_packet_length_and_buffer(&conn_read).await?;
+        let (conn_id, conn_state) = (conn_read.id, conn_read.state.clone());
         // drop the handle to the write lock. to allow other tasks to write/read
         // mainly cuz the packet tries to access ECS component. And some system tries to access connection turns into a deadlock!!
-        drop(conn_write);
+        drop(conn_read);
 
         trace!("Packet Length: {}", packet_length.get_val());
 
@@ -223,10 +237,11 @@ pub async fn manage_conn(conn: Arc<RwLock<Connection>>, state: GlobalState) -> R
     #[allow(unreachable_code)]
     Ok(())
 }
-async fn get_packet_length_and_buffer(conn: &mut Connection) -> Result<(VarInt, Vec<u8>)> {
-    let packet_length = VarInt::read(&mut conn.socket).await?;
+async fn get_packet_length_and_buffer(conn: &RwLockReadGuard<'_,Connection>) -> Result<(VarInt, Vec<u8>)> {
+    let mut conn = conn.get_in_stream().await;
+    let packet_length = VarInt::read(&mut *conn).await?;
     let mut buffer = vec![0u8; packet_length.get_val() as usize];
-    conn.socket.read_exact(&mut buffer).await?;
+    conn.read_exact(&mut buffer).await?;
     Ok((packet_length, buffer))
 }
 async fn drop_conn_if_flagged(conn: Arc<RwLock<Connection>>, state: GlobalState) -> Result<()> {
@@ -259,18 +274,35 @@ pub async fn drop_conn(connection_id: u32, state: GlobalState) -> Result<()> {
     }
 
     // drop the connection in the end, just in case it errors out
-    let mut conn = conn_arc.write().await;
-    conn.socket.shutdown().await?;
+    let conn = conn_arc.read().await;
+    let mut conn = conn.get_out_stream().await;
+    conn.shutdown().await?;
     Ok(())
 }
 
 impl Connection {
-    pub async fn send_packet(&mut self, packet: impl NetEncode) -> Result<()> {
-        let mut cursor = Cursor::new(Vec::new());
-        packet.net_encode(&mut cursor).await?;
-        let packet = cursor.into_inner();
-        self.socket.write_all(&*packet).await?;
+    pub async fn send_packet(&self, packet: impl NetEncode) -> Result<()> {
+        let mut data = Vec::new();
+        packet.net_encode(&mut data).await?;
+        self
+            .get_out_stream()
+            .await
+            .write_all(&*data)
+            .await?;
         Ok(())
+    }
+
+    /// Just exists so it doesn't seem weird when sending a packet_queue, since multiple packetS are sent.
+    pub async fn send_packets(&self, packets: impl NetEncode) -> Result<()> {
+        self.send_packet(packets).await
+    }
+
+    pub async fn get_in_stream<'a>(&'a self) -> MutexGuard<'a, tokio::net::tcp::OwnedReadHalf> {
+        self.stream.in_stream.lock().await
+    }
+
+    pub async fn get_out_stream<'a>(&'a self) -> MutexGuard<'a, tokio::net::tcp::OwnedWriteHalf> {
+        self.stream.out_stream.lock().await
     }
 
     pub async fn drop_connection(&self, state: GlobalState) -> Result<()> {

@@ -64,7 +64,7 @@ impl IncomingPacket for Status {
         let config = config::get_global_config();
 
         let conn = state.connections.get_connection(conn_id)?;
-        let mut conn = conn.write().await;
+        let conn = conn.read().await;
 
         let random_motd = config.motd.choose(&mut rand::thread_rng()).unwrap().clone();
 
@@ -96,13 +96,14 @@ impl IncomingPacket for Status {
             .unwrap(),
         };
 
-        let mut cursor = std::io::Cursor::new(Vec::new());
+        conn.send_packet(response).await?;
+        /*let mut cursor = std::io::Cursor::new(Vec::new());
         response.net_encode(&mut cursor).await?;
         let response = cursor.into_inner();
 
         let response = &*response;
 
-        conn.socket.write(response).await?;
+        conn.socket.write(response).await?;*/
 
         Ok(())
     }

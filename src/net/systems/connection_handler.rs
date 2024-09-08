@@ -26,7 +26,7 @@ impl System for ConnectionHandler {
 impl ConnectionHandler {
     async fn handle_connections(state: GlobalState) -> Result<()> {
         loop {
-            let (stream, _) = state.server_stream.accept().await?;
+            let (mut stream, _) = state.server_stream.accept().await?;
             debug!("Accepted connection from {:?}", stream.peer_addr()?);
             let addy = stream.peer_addr()?;
             tokio::task::spawn(

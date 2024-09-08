@@ -74,6 +74,7 @@ deepsize_derive = "0.1.2"
 clap = { version = "4.5.11" }
 clap_derive = "4.5.11"
 indicatif = "0.17.8"
+num_cpus = "1.16.0"
 
 
 # Set the cache to the highest level for development

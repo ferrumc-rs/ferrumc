@@ -30,18 +30,20 @@ impl IncomingPacket for Ping {
             payload: self.payload,
         };
 
-        let mut cursor = std::io::Cursor::new(Vec::new());
+        /*let mut cursor = std::io::Cursor::new(Vec::new());
         response.net_encode(&mut cursor).await?;
         let response = cursor.into_inner();
-
+*/
         let conn = state.connections.get_connection(conn_id)?;
         let mut conn = conn.write().await;
 
         conn.drop = true;
 
-        conn.socket
+       /* conn.socket
             .write_all(&*response)
             .await
-            .map_err(|e| e.into())
+            .map_err(|e| e.into())*/
+
+        conn.send_packet(response).await
     }
 }

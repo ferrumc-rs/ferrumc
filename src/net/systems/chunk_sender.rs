@@ -1,19 +1,24 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
+use ferrumc_codec::enc::NetEncode;
 use tokio::sync::RwLock;
 use tracing::{debug, error, warn};
-
-use ferrumc_macros::AutoGenName;
 
 use crate::net::packets::outgoing::chunk_and_light_data::ChunkDataAndUpdateLight;
 use crate::net::packets::outgoing::set_center_chunk::SetCenterChunk;
 use crate::net::systems::System;
+use crate::net::utils::packet_queue::PacketQueue;
 use crate::net::{Connection, ConnectionWrapper};
 use crate::state::GlobalState;
 use crate::utils::components::player::Player;
 use crate::utils::encoding::position::Position;
 use crate::utils::prelude::*;
+use ferrumc_macros::AutoGenName;
+use tokio::task::JoinHandle;
+
+const CHUNK_RADIUS: i32 = 16;
+const CHUNK_TX_INTERVAL_MS: u64 = 1000;
 
 #[derive(AutoGenName)]
 pub struct ChunkSender;
@@ -21,7 +26,7 @@ pub struct ChunkSender;
 #[async_trait]
 impl System for ChunkSender {
     async fn run(&self, state: GlobalState) {
-        let mut interval = tokio::time::interval(std::time::Duration::from_secs(5));
+        let mut interval = tokio::time::interval(std::time::Duration::from_millis(CHUNK_TX_INTERVAL_MS));
         loop {
             interval.tick().await;
 
@@ -78,38 +83,53 @@ impl ChunkSender {
         pos: &Position,
         conn: Arc<RwLock<Connection>>,
     ) -> Result<()> {
-        let mut write_guard = conn.write().await;
+        let start = std::time::Instant::now();
+        let mut packet_queue = PacketQueue::new();
 
-        const CHUNK_RADIUS: i32 = 16;
 
         let mut break_loop = false;
 
-        for x in -CHUNK_RADIUS..=CHUNK_RADIUS {
+        'x: for x in -CHUNK_RADIUS..=CHUNK_RADIUS {
             for z in -CHUNK_RADIUS..=CHUNK_RADIUS {
+                let start = std::time::Instant::now();
                 let packet =
                     ChunkDataAndUpdateLight::new(state.clone(), (pos.x >> 4) + x, (pos.z >> 4) + z)
                         .await?;
+                debug!("Got chunk data in {:?}", start.elapsed());
 
-                if let Err(e) = write_guard.send_packet(packet).await {
+                if let Err(e) = packet_queue.queue(packet).await {
                     warn!("Failed to send chunk to player: {}", e);
-                    break_loop = true;
+                    break 'x;
                 };
-                if break_loop {
-                    break;
-                }
-            }
-            if break_loop {
-                break;
             }
         }
+
+        tokio::spawn(async move {
+            let start = std::time::Instant::now();
+            debug!("Getting read guard");
+            let read_guard = conn.read().await;
+            debug!("Sending packet");
+            if let Err(e) = read_guard.send_packet(packet_queue).await {
+                error!("Failed to send chunk data to player: {}", e);
+            }
+            debug!("Packet sent; took: {:?}", start.elapsed());
+        });
+
+
+        debug!(
+            "Send {} chunks to player in {:?}",
+            (CHUNK_RADIUS * 2 + 1) * (CHUNK_RADIUS * 2 + 1),
+            start.elapsed()
+        );
+
         Ok(())
     }
     async fn send_set_center_chunk(pos: &Position, conn: Arc<RwLock<Connection>>) -> Result<()> {
         let packet = SetCenterChunk::new(pos.x >> 4, pos.z >> 4);
 
-        let mut write_guard = conn.write().await;
+        let read_guard = conn.read().await;
 
-        write_guard.send_packet(packet).await?;
+        read_guard.send_packet(packet).await?;
 
         Ok(())
     }
