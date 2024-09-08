@@ -83,22 +83,20 @@ programming language, it is completely multi-threaded; and offers high performan
 
 <ul>
    <li>
-      <h4>IP and account based whitelisting/blacklisting</h4>
+      <h4>Ability to view other players</h4>
    </li>
    <li>
-      <h4>Cross-platform WASM plugin system</h4>
+      <h4>World modification (place / break blocks etc)</h4>
    </li>
-   <li>
-      <h4>SIMD accelerated lighting calculations</h4>
+    <li>
+        <h4>Chat & Command system</h4>
    </li>
-   <li>
-      <h4>Multithreaded terrain generation</h4>
+    <li>
+        <h4>Optimizations</h4>
    </li>
-   <li>
-      <h4>Custom dimensions</h4></li>
-   <li>
-      <h4>Parallel physics processing</h4>
-   </li>
+    <li>
+        <h4>Plugin support (Javascript, Rust, and other WASM support languages)</h4>
+    </li>
 </ul>
 
 ## 🚀 Getting Started
@@ -127,8 +125,8 @@ Unfortunately, the server is not yet ready for production use. If you want to tr
 
 #### Compile from source (Bleeding edge updates, always up-to-date)
 
-1. Ensure you have LLVM installed on your system. This is required for RocksDB compilation. 
-   - The env variable `LIBCLANG_PATH` must be set to the path of the `[LLVM path]/bin`. 
+1. Ensure you have LLVM installed on your system. This is required for RocksDB compilation.
+    - The env variable `LIBCLANG_PATH` must be set to the path of the `[LLVM path]/bin`.
 
 2. Clone and build the project.
 
