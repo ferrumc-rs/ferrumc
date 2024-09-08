@@ -195,7 +195,7 @@ pub async fn manage_conn(conn: Arc<RwLock<Connection>>, state: GlobalState) -> R
         let local_addr = conn.read().await.stream.in_stream.lock().await.peer_addr()?;
         debug!(
             "Starting receiver for the addr: {:?}",
-            local_addr
+            local_addrs
         );
     }
 

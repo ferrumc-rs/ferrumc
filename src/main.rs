@@ -68,7 +68,7 @@ async fn entry() -> Result<()> {
 
 /// Starts the server. Sets up the sockets and listens for incoming connections
 ///
-/// The actual management of connections in handled by [r#mod::init_connection]
+/// The actual management of connections tx/rx is handled by [net::systems::connection_handler]
 async fn start_server() -> Result<()> {
     let config = get_global_config();
     trace!("Starting server on {}:{}", config.host, config.port);
