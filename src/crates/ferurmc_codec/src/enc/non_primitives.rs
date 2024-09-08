@@ -1,4 +1,3 @@
-use std::collections::VecDeque;
 use tokio::io::{AsyncWrite, AsyncWriteExt};
 
 use crate::enc::NetEncode;

@@ -1,9 +1,8 @@
 use deepsize::DeepSizeOf;
 use futures::FutureExt;
 use moka::notification::{ListenerFuture, RemovalCause};
-use rocksdb::{DBWithThreadMode, MultiThreaded, Options, DB};
+use rocksdb::{Cache, Options, DB};
 use std::env;
-use std::fs::File;
 use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::fs;
@@ -59,6 +58,10 @@ pub async fn start_database() -> Result<Database, Error> {
     options.set_db_log_dir(root.join("logs"));
     options.set_compression_type(rocksdb::DBCompressionType::Zstd);
     options.set_compression_options_parallel_threads(num_cpus::get() as i32);
+    let mut block_based_options = rocksdb::BlockBasedOptions::default();
+    let cache = Cache::new_lru_cache(0);
+    block_based_options.set_block_cache(&cache);
+    options.set_block_based_table_factory(&block_based_options);
 
     let database = DB::open_cf(&options, world_path, &["chunks", "entities"])
         .expect("Failed to open database");
@@ -69,7 +72,7 @@ pub async fn start_database() -> Result<Database, Error> {
 
     let cache = moka::future::Cache::builder()
         .async_eviction_listener(evict_chunk)
-        .weigher(|k, v| v.deep_size_of() as u32)
+        .weigher(|_, v| v.deep_size_of() as u32)
         .eviction_policy(moka::policy::EvictionPolicy::tiny_lfu())
         .max_capacity(get_global_config().database.cache_size as u64 * 1024)
         .build();

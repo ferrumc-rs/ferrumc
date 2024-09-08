@@ -1,13 +1,11 @@
 use base64::Engine;
-use ferrumc_codec::enc::NetEncode;
 use ferrumc_codec::network_types::varint::VarInt;
 use rand::prelude::IndexedRandom;
 use serde::Serialize;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::io::{AsyncReadExt};
 use tokio::sync::OnceCell;
 use tracing::debug;
 
-use rand::seq::SliceRandom;
 
 use ferrumc_macros::{packet, NetDecode};
 

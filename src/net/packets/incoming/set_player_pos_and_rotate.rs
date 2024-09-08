@@ -1,11 +1,10 @@
 use crate::net::packets::{ConnectionId, IncomingPacket};
 use crate::state::GlobalState;
-use crate::utils::components::player::Player;
 use crate::utils::components::rotation::Rotation;
 use crate::utils::encoding::position::Position;
 use crate::utils::prelude::*;
 use ferrumc_macros::{packet, NetDecode};
-use tracing::{debug, trace};
+use tracing::{trace};
 
 #[derive(NetDecode, Debug)]
 #[packet(packet_id = 0x15, state = "play")]

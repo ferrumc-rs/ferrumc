@@ -201,7 +201,7 @@ pub async fn manage_conn(conn: Arc<RwLock<Connection>>, state: GlobalState) -> R
 
     loop {
         // Get the length of the packet
-        let mut conn_read = conn.read().await;
+        let conn_read = conn.read().await;
 
         trace!("Reading length buffer");
 

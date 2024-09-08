@@ -1,9 +1,7 @@
 use crate::state::GlobalState;
 use crate::utils::encoding::bitset::BitSet;
 use crate::utils::error::Error;
-use crate::world::chunkformat::{
-    Biomes, BlockStates, Chunk, Heightmaps, References, Section, Starts, Structures,
-};
+use crate::world::chunkformat::{Heightmaps};
 use crate::Result;
 use ferrumc_codec::enc::NetEncode;
 use ferrumc_codec::network_types::varint::VarInt;
@@ -158,7 +156,7 @@ impl ChunkDataAndUpdateLight {
         Ok(res)
     }
 }
-
+/*
 async fn serialize_block_states(block_states: &BlockStates) -> Result<Vec<u8>> {
     let mut data = Vec::new();
     let bits_per_block = 15; // direct palette
@@ -177,14 +175,14 @@ async fn serialize_block_states(block_states: &BlockStates) -> Result<Vec<u8>> {
     }
 
     Ok(data)
-}
+}*/
 async fn serialize_biomes() -> Result<Vec<u8>> {
     let mut data: Vec<u8> = Vec::new();
     let bits_per_biome = 6;
     data.push(bits_per_biome);
 
     // Direct biome encoding, no palette
-    let biome_data = vec![0u64; (64 * (bits_per_biome as usize) / 64)]; // 64 biomes per section
+    let biome_data = vec![0u64; 64 * (bits_per_biome as usize) / 64]; // 64 biomes per section
     VarInt::from(biome_data.len() as i32)
         .net_encode(&mut data)
         .await?;
@@ -195,7 +193,7 @@ async fn serialize_biomes() -> Result<Vec<u8>> {
 
     Ok(data)
 }
-
+/*
 fn create_basic_chunk(chunk_x: i32, chunk_z: i32) -> Chunk {
     let _rng = rand::thread_rng();
     let mut sections = Vec::with_capacity(24); // 24 sections for -64 to 320 world height
@@ -253,8 +251,8 @@ fn create_basic_chunk(chunk_x: i32, chunk_z: i32) -> Chunk {
         sections: Some(sections),
     }
 }
-
-fn create_block_states(chunk_data: &[u32], bits_per_entry: u8) -> BlockStates {
+*/
+/*fn create_block_states(chunk_data: &[u32], bits_per_entry: u8) -> BlockStates {
     let packed_data = pack_entries(chunk_data, bits_per_entry);
 
     BlockStates {
@@ -269,7 +267,7 @@ fn create_block_states(chunk_data: &[u32], bits_per_entry: u8) -> BlockStates {
         net_palette: None,
         // default: None,
     }
-}
+}*//*
 fn pack_entries(entries: &[u32], bits_per_entry: u8) -> Vec<i64> {
     let entries_per_long = 64 / bits_per_entry as usize;
     let mask = (1u64 << bits_per_entry) - 1;
@@ -296,7 +294,7 @@ fn pack_entries(entries: &[u32], bits_per_entry: u8) -> Vec<i64> {
     }
 
     packed_data
-}
+}*/
 
 // fn get_block_state_id(block_name: &str) -> i32 {
 //     // This should be replaced with a proper block state registry lookup

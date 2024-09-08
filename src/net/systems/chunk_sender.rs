@@ -1,25 +1,18 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use ferrumc_codec::enc::NetEncode;
 use tokio::sync::RwLock;
 use tracing::{debug, error, warn};
 
 use crate::net::packets::outgoing::chunk_and_light_data::ChunkDataAndUpdateLight;
 use crate::net::packets::outgoing::set_center_chunk::SetCenterChunk;
 use crate::net::systems::System;
-use crate::net::utils::packet_queue::PacketQueue;
 use crate::net::{Connection, ConnectionWrapper};
 use crate::state::GlobalState;
 use crate::utils::components::player::Player;
 use crate::utils::encoding::position::Position;
 use crate::utils::prelude::*;
 use ferrumc_macros::AutoGenName;
-use futures::stream::FuturesUnordered;
-use futures::task::SpawnExt;
-use futures::{StreamExt, TryStreamExt};
-use rayon::iter::IntoParallelIterator;
-use tokio::task::{JoinHandle, JoinSet};
 
 const CHUNK_RADIUS: i32 = 16;
 const CHUNK_TX_INTERVAL_MS: u64 = 150;
@@ -41,6 +34,7 @@ impl System for ChunkSender {
 
             send_to.into_iter().for_each(|(entity_id, player)| {
                 debug!("Sending chunk to player: {}", player.get_username());
+                drop(player);
                 let state = state.clone();
                 tokio::spawn(async move {
                     if let Err(e) = ChunkSender::send_chunks_to_player(state, entity_id).await {

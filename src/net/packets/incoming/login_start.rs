@@ -1,12 +1,9 @@
 use std::time::Instant;
 
-use ferrumc_codec::enc::NetEncode;
 use ferrumc_codec::network_types::varint::VarInt;
 #[cfg(not(test))]
 use include_flate::flate;
 use rand::random;
-use tokio::io::AsyncWriteExt;
-use tokio::sync::{RwLockReadGuard, RwLockWriteGuard};
 use tracing::{debug, info};
 use uuid::Uuid;
 

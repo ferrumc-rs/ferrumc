@@ -1,7 +1,5 @@
 use bincode::{Decode, Encode};
 use ferrumc_codec::network_types::varint::VarInt;
-use nbt_lib::NBTDeserialize;
-use nbt_lib::NBTSerialize;
 use serde_derive::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 

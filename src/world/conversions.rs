@@ -6,7 +6,7 @@ use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use std::io::Read;
 use tokio::io::AsyncWrite;
-use tracing::{debug, trace, warn};
+use tracing::{trace};
 
 const BLOCKSFILE: &[u8] = include_bytes!("../../.etc/blockmappings.bz2");
 

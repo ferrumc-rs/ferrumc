@@ -6,7 +6,7 @@ use crate::net::ConnectionWrapper;
 use crate::state::GlobalState;
 use crate::utils::components::player::Player;
 use ferrumc_macros::AutoGenName;
-use tracing::{debug, trace, warn};
+use tracing::{warn};
 
 #[derive(AutoGenName)]
 pub struct TickSystem;
@@ -38,7 +38,7 @@ impl System for TickSystem {
                 .cloned()
                 .collect();
 
-            while let Some((_, (conn, player))) = query.next().await {
+            while let Some((_, (conn, _))) = query.next().await {
                 let packet = LoginPluginRequest::server_brand(&visible_wave).await;
                 let conn = conn.0.read().await;
                 if let Err(e) = conn.send_packet(packet).await {

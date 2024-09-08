@@ -92,7 +92,7 @@ pub enum Error {
 
 impl From<Infallible> for Error {
     fn from(e: Infallible) -> Self {
-        return Error::Generic(format!("{:?}", e));
+        Error::Generic(format!("{:?}", e))
     }
 }
 
@@ -103,7 +103,7 @@ impl From<Error> for std::io::Error {
 }
 
 impl From<Error> for std::io::ErrorKind {
-    fn from(e: Error) -> std::io::ErrorKind {
+    fn from(_: Error) -> std::io::ErrorKind {
         std::io::ErrorKind::Other
     }
 }

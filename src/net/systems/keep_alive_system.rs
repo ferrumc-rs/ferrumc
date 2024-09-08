@@ -53,7 +53,7 @@ impl KeepAliveSystem {
                 keep_alive.last_sent = std::time::Instant::now();
 
                 let keep_alive_out = KeepAlivePacketOut::new_auto(keep_alive.data);
-                let mut conn = conn.0.write().await;
+                let conn = conn.0.write().await;
 
                 trace!("Sending keep alive packet to player: {:?}", player);
                 if let Err(e) = conn.send_packet(keep_alive_out).await {
