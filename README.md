@@ -29,7 +29,7 @@
 ## 📖 About
 
 FerrumC is a Minecraft server implementation written from the ground up in Rust. Leveraging the power of the Rust
-programming language, it achieves high performance and low latency as well as amazing memory efficiency!
+programming language, it is completely multi-threaded; and offers high performance as well as amazing memory efficiency!
 
 <img src="https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/in_game.png?raw=true" alt="In-game screenshot">
 
