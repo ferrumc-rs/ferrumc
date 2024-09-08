@@ -79,7 +79,7 @@ programming language, it achieves high performance and low latency as well as am
    </li>
    <li>
       <h4>💾 Lighting fast database to ensure optimal world loading speeds</h4>
-      <h6><i>[Currently using RocksDB](https://github.com/facebook/rocksdb)</i></h6>
+      <h6><i><a href="https://github.com/facebook/rocksdb">Currently using RocksDB</a></i></h6>
       <img src="https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/chunk_loading.gif?raw=true" alt="Chunk Loading DEMO">
    </li>
 </ul>
