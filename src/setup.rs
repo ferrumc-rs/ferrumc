@@ -77,7 +77,7 @@ host = "0.0.0.0"
 # The port to bind to. Default is 25565.
 port = 25565
 # The message displayed in the server list.
-motd = "A Minecraft Server written in Rust"
+motd = ["A FerrumC server; Absolute precision, power, and perfection."]
 # The maximum number of players that can be connected at once.
 max_players = 20
 # How many network updates to process per second per user. 0 means no limit.
@@ -88,11 +88,9 @@ network_tick_rate = 0
 world = "world"
 
 [database]
-# The path to the database folder. Generally you don't need to change this.
-path = "data"
-# The port the database runs on. This number should be changed if it conflicts with another program.
-port = 29325
-# The mode the database should run in. Options are "file" and "memory". "file" is recommended for persistence.
-# Memory mode will lose all data when the server is stopped and will have higher RAM use but will be noticeably faster.
-mode = "file"
+# The cache size in KB. We recommend leaving this at the default value.
+cache_size = 1024
+# The compression algorithm to use. "fast" is recommended for most use cases.
+# "best" is slower but may provide better compression ratio.
+compression = "fast"
 "#;
