@@ -20,3 +20,4 @@ newblocks.json
 
 .etc/*
 !.etc/blockmappings.bz2
+!.etc/nbt_codec.nbt
