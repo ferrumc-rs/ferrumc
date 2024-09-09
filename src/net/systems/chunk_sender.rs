@@ -14,8 +14,8 @@ use crate::utils::encoding::position::Position;
 use crate::utils::prelude::*;
 use ferrumc_macros::AutoGenName;
 
-const CHUNK_RADIUS: i32 = 16;
-const CHUNK_TX_INTERVAL_MS: u64 = 150;
+pub const CHUNK_RADIUS: i32 = 8;
+const CHUNK_TX_INTERVAL_MS: u64 = 50000;
 
 #[derive(AutoGenName)]
 pub struct ChunkSender;
