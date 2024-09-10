@@ -4,12 +4,10 @@
     <img src="https://img.shields.io/github/languages/code-size/Sweattypalms/ferrumc?style=for-the-badge&color=red" alt="Code Size">
     <img src="https://www.aschey.tech/tokei/github.com/Sweattypalms/ferrumc?style=for-the-badge&color=red" alt="Lines of Code">
     <img src="https://img.shields.io/badge/language-Rust-orange?style=for-the-badge&color=red" alt="Language">
+    <a  href="https://discord.gg/qT5J8EMjwk">
+    <img alt="Discord" src="https://img.shields.io/discord/1277314213878173726?style=for-the-badge&logo=discord&logoColor=red&color=red&link=https%3A%2F%2Fdiscord.gg%2FqT5J8EMjwk">
+    </a>
 </div>
-<p align="center">
-  <a href="https://discord.gg/qT5J8EMjwk">
-    <img src="https://img.shields.io/discord/1277314213878173726?color=7289DA&label=Join%20our%20Discord&logo=discord&logoColor=white" alt="Join our Discord&style=for-the-badge">
-  </a>
-</p>
 
 <div align="center">
     <a href="#-about">About</a>
@@ -23,13 +21,16 @@
     <a href="#-license">License</a>
     •
     <a href="#-acknowledgments">Acknowledgments</a>
+    •
+    <a href="#-faq">FAQ</a>
+
 
 </div>
 
 ## 📖 About
 
 FerrumC is a Minecraft server implementation written from the ground up in Rust. Leveraging the power of the Rust
-programming language, it is completely multi-threaded; and offers high performance as well as amazing memory efficiency!
+programming language, it is completely multithreaded; and offers high performance as well as amazing memory efficiency!
 
 <img src="https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/in_game.png?raw=true" alt="In-game screenshot">
 
@@ -151,8 +152,13 @@ cargo build --release
    `./ferrumc --import`.
    The location of these files is explained [here](https://minecraft.wiki/w/Region_file_format#Location).
 5. Run the server:
-   - Windows: `.\ferrumc.exe`
-   - Linux/macOS: `./ferrumc`
+    - Windows: `.\ferrumc.exe`
+    - Linux/macOS: `./ferrumc`
+
+*Note: You can specify the directory to treat as the root directory (the place where the config files, data files,
+etc. live) by setting an environment variable `FERRUMC_ROOT` to the path of the directory. For example, I run
+`set FERRUMC_ROOT=C:\Users\ReCor\Documents\Code\Rust\ferrumc` before running the server. This is useful if you
+can't move the place the binary is executed from (`cargo run` for example).*
 
 ## 🛠️ Development
 
@@ -166,15 +172,33 @@ We welcome contributions! If you'd like to contribute to FerrumC, please follow 
 
 Join our [Discord server](https://discord.gg/qT5J8EMjwk) to get help or discuss the project!
 
-
 ## ❔ FAQ
 
-# How does this project differ from:
-- **Valence**: Valence is a framework for building your own custom server by pulling in different components of their library. FerrumC is a fully built server designed to act as a potential replacement for the vanilla server. It's like the difference between buying the ingredients to make a meal yourself or just buying a pre-made meal.
-- **Minestom**: Same as Valence, it's a framework to build your own server, which is different to what we are trying to do.
-- **Paper/Spigot/Bukkit**: These are all great tools and have undoubtably set the groundwork for projects like this to exist, but ultimately they are still somewhat bound to the original server implementation. We aim to write the entire server from the ground up, hopefully giving us a leg up.
-- **Pumpkin**: It really doesn't differ that much. We are both trying to acheive the same thing. It's also not a competition, we are both aware of each other's progress and to be honest the Pumpkin team are doing really well. We won't tolarate any disrespect towards them as they are also undertaking the same monumental task.
+### How does this project differ from:
+
+- **Valence**: Valence is a framework for building your own custom server by pulling in different components of their
+  library. FerrumC is a fully built server designed to act as a potential replacement for the vanilla server. It's like
+  the difference between buying the ingredients to make a meal yourself or just buying a pre-made meal.
+- **Minestom**: Same as Valence, it's a framework to build your own server, which is different to what we are trying to
+  do.
+- **Paper/Spigot/Bukkit**: These are all great tools and have undoubtedly set the groundwork for projects like this to
+  exist, but ultimately they are still somewhat bound to the original server implementation. We aim to write the entire
+  server from the ground up, hopefully giving us a leg up.
+- **Pumpkin**: It really doesn't differ that much. We are both trying to achieve the same thing. It's also not a
+  competition, we are both aware of each other's progress and to be honest the Pumpkin team are doing really well. We
+  won't tolerate any disrespect towards them as they are also undertaking the same monumental task.
+
+### Will we be implementing terrain generation?
+
+Yes! Not currently on our list of priorities and it's very unlikely that we will be able to have 1:1 terrain generation
+with the vanilla server, but we do plan on implementing some sort of terrain generation as soon as we can.
+
+### Will there be plugins? And how?
+
+We do very much plan to have a plugin system and as of right now, our plan is to leverage the
+awesome [Extism](https://extism.org/) project to allow for plugins to be written in a multitude of languages (Rust, Go,
+JS/TS, Zig and more) while not losing out on the performance gains of native code.
 
 ## 📜 License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE) file for details.
