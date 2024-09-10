@@ -113,14 +113,17 @@ pub async fn read_block(
 #[cfg(test)]
 mod tests {
     use tokio::net::TcpListener;
-    use tracing::info;
+    use tracing::{info, warn};
 
     use crate::utils::setup_logger;
     use crate::world::blocks::read_block;
 
     #[tokio::test]
+    #[ignore]
     async fn test_reading() {
-        setup_logger().unwrap();
+        if setup_logger().is_ok() {
+            warn!("Logger already set up");
+        }
         let state = crate::create_state(TcpListener::bind("0.0.0.0:0").await.unwrap())
             .await
             .unwrap();

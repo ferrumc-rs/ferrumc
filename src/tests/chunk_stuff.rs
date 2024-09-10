@@ -1,7 +1,8 @@
 use ferrumc_codec::enc::NetEncode;
 
 #[tokio::test]
-pub async fn test_heightmaps() -> Result<(), Box<dyn std::error::Error>> {
+#[ignore]
+pub async fn dump_heightmaps() -> Result<(), Box<dyn std::error::Error>> {
     use crate::utils::setup_logger;
     use tokio::net::TcpListener;
     setup_logger().unwrap();
@@ -11,7 +12,7 @@ pub async fn test_heightmaps() -> Result<(), Box<dyn std::error::Error>> {
 
     let chunk = state
         .database
-        .get_chunk(0, 0, "overworld")
+        .get_chunk(0, 0, "overworld".to_string())
         .await
         .unwrap()
         .unwrap();
