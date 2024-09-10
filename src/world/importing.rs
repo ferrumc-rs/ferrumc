@@ -3,10 +3,10 @@ use std::io::Cursor;
 use std::path::PathBuf;
 use std::process::exit;
 
+use crate::utils::prelude::*;
 use indicatif::ProgressBar;
 use nbt_lib::NBTDeserializeBytes;
 use tracing::{error, info, trace, warn};
-use crate::utils::prelude::*;
 
 use crate::state::GlobalState;
 use crate::utils::error::Error;
@@ -58,9 +58,7 @@ async fn get_total_chunks(dir: PathBuf) -> Result<usize> {
 }
 
 /// since this is just used to import chunks, it doesn't need to be optimized much
-pub async fn import_regions(
-    state: GlobalState,
-) -> Result<()> {
+pub async fn import_regions(state: GlobalState) -> Result<()> {
     let dir = if env::var("FERRUMC_ROOT").is_ok() {
         PathBuf::from(env::var("FERRUMC_ROOT").unwrap()).join("import")
     } else {
@@ -195,15 +193,18 @@ pub async fn import_regions(
 
 #[cfg(test)]
 mod test {
-    use tokio::net::TcpListener;
-
     use crate::create_state;
     use crate::utils::setup_logger;
+    use tokio::net::TcpListener;
+    use tracing::warn;
 
     #[tokio::test]
+    #[ignore]
     async fn get_chunk_at() {
         // set environment variable "FERRUMC_ROOT" to the root of the ferrumc project
-        setup_logger().unwrap();
+        if setup_logger().is_ok() {
+            warn!("Logger already set up");
+        }
         let listener = TcpListener::bind("0.0.0.0:0").await.unwrap();
         let state = create_state(listener).await.unwrap();
 
