@@ -28,20 +28,7 @@ impl IncomingPacket for SetPlayerPosAndRotate {
         let mut rotation = component_storage.get_mut::<Rotation>(my_entity_id).await?;
 
         ChunkSender::send_chunks_to_player_if_needed(state.clone(), my_entity_id, (position.x >> 4, position.z >> 4)).await?;
-        /*let old_chunk_pos = (position.x >> 4, position.z >> 4);
-        let new_chunk_pos = (self.x as i32 >> 4, self.z as i32 >> 4);
 
-        if old_chunk_pos != new_chunk_pos {
-            let state_clone = state.clone();
-            tokio::spawn(
-                async move {
-                    ChunkSender::send_chunks_to_player(state_clone, my_entity_id).await?;
-
-                    Ok::<(), Error>(())
-                }
-            );
-        }
-*/
         *position = Position {
             x: self.x as i32,
             y: self.y as i16,

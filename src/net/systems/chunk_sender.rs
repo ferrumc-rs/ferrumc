@@ -15,7 +15,7 @@ use crate::utils::encoding::position::Position;
 use crate::utils::prelude::*;
 use ferrumc_macros::AutoGenName;
 
-pub const CHUNK_RADIUS: i32 = 32;
+pub const CHUNK_RADIUS: i32 = 16;
 const CHUNK_TX_INTERVAL_MS: u64 = 50000;
 
 #[derive(AutoGenName)]
@@ -67,7 +67,7 @@ impl ChunkSender {
 
         let distance = last_chunk_tx_pos.distance_to(current_pos.0, current_pos.1);
 
-        if distance < (CHUNK_RADIUS as f64 / 4f64) {
+        if distance < (CHUNK_RADIUS as f64 / 5f64) {
             return Ok(());
         }
 
@@ -126,13 +126,18 @@ impl ChunkSender {
         let pos_x = pos.x;
         let pos_z = pos.z;
 
-        'x: for x in -CHUNK_RADIUS..=CHUNK_RADIUS {
+        for x in -CHUNK_RADIUS..=CHUNK_RADIUS {
             for z in -CHUNK_RADIUS..=CHUNK_RADIUS {
-                let packet = ChunkDataAndUpdateLight::new(state.clone(), (pos_x >> 4) + x, (pos_z >> 4) + z).await?;
+                let Ok(packet) = ChunkDataAndUpdateLight::new(
+                    state.clone(),
+                    (pos_x >> 4) + x,
+                    (pos_z >> 4) + z,
+                ).await else {
+                    continue;
+                };
                 let conn_read = conn.read().await;
                 if let Err(e) = conn_read.send_packet(packet).await {
                     warn!("Failed to send chunk to player: {}", e);
-                    break 'x;
                 }
             }
         }
