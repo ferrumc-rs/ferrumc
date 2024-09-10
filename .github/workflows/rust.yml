@@ -2,55 +2,90 @@ name: Rust
 
 on:
   push:
-    branches: [ "2.0", "dev" ]
+    branches: [ "dev" ]
   pull_request:
-    branches: [ "2.0", "dev" ]
+    branches: [ "dev" ]
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Install Rust nightly
-      run: rustup override set nightly
+      - name: Install Rust nightly
+        #      run: rustup override set nightly
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
 
-    - name: Install required components
-      run: rustup component add rustfmt clippy
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
 
-    - name: Cache cargo registry
-      uses: actions/cache@v2
-      with:
-        path: ~/.cargo/registry
-        key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-cargo-registry-
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --verbose
 
-    - name: Cache cargo build
-      uses: actions/cache@v2
-      with:
-        path: target
-        key: ${{ runner.os }}-cargo-build-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-cargo-build-
+#          TODO: Enable tests
+#      - name: Run tests
+#        uses: actions-rs/cargo@v1
+#        with:
+#          command: test
+#          args: --verbose
 
-    - name: Build
-      env:
-        CARGO_MANIFEST_DIR: ${{ github.workspace }}
-      run: cargo build --release --verbose
 
-    - name: Run tests
-      env:
-        CARGO_MANIFEST_DIR: ${{ github.workspace }}
-      run: cargo test --verbose
-
-    - name: Upload executable
-      uses: actions/upload-artifact@v2
-      with:
-        name: ferrumc2_0
-        path: target/release/ferrumc2_0
+      - name: Upload executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: ferrumc
+          path: target/release/ferrumc
+#      - name: Install required components
+#        run: rustup component add rustfmt clippy
+#
+#      - name: Cache cargo registry
+#        uses: actions/cache@v2
+#        with:
+#          path: ~/.cargo/registry
+#          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+#          restore-keys: |
+#            ${{ runner.os }}-cargo-registry-
+#
+#      - name: Cache cargo build
+#        uses: actions/cache@v2
+#        with:
+#          path: target
+#          key: ${{ runner.os }}-cargo-build-${{ hashFiles('**/Cargo.lock') }}
+#          restore-keys: |
+#            ${{ runner.os }}-cargo-build-
+#
+#      - name: Build
+#        env:
+#          CARGO_MANIFEST_DIR: ${{ github.workspace }}
+#        run: cargo build --release --verbose
+#
+#      - name: Run tests
+#        env:
+#          CARGO_MANIFEST_DIR: ${{ github.workspace }}
+#        run: cargo test --verbose
+#
+#      - name: Upload executable
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: ferrumc2_0
+#          path: target/release/ferrumc2_0
