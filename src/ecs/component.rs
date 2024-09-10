@@ -138,7 +138,7 @@ impl ComponentStorage {
     pub async fn get_mut<'a, T: Component>(
         &'a self,
         entity_id: impl TryInto<usize>,
-    ) -> Result<ComponentRefMut<T>> {
+    ) -> Result<ComponentRefMut<'a, T>> {
         let type_id = TypeId::of::<T>();
         let entity_id = entity_id.try_into().map_err(|_| Error::ConversionError)?;
         let storage = self
