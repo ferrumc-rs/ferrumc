@@ -62,4 +62,4 @@ jobs:
         with:
           args: 'A new commit has been pushed!
           
-          [Commit]({{ EVENT_PAYLOAD.head_commit.url }})'
+          {{ EVENT_PAYLOAD.head_commit.url }}'
