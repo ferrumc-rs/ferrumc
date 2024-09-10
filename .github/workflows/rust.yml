@@ -60,8 +60,6 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         uses: Ilshidur/action-discord@master
         with:
-          args: 'New commit pushed to {{ EVENT_PAYLOAD.repository.full_name }}
+          args: 'A new commit has been pushed!
           
-          Commit message: {{ EVENT_PAYLOAD.head_commit.message }}
-          Author: {{ EVENT_PAYLOAD.head_commit.author.name }}
-          Link: {{ EVENT_PAYLOAD.head_commit.url }}'
+          [Commit]({{ EVENT_PAYLOAD.head_commit.url }})'
