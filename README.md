@@ -166,6 +166,15 @@ We welcome contributions! If you'd like to contribute to FerrumC, please follow 
 
 Join our [Discord server](https://discord.gg/qT5J8EMjwk) to get help or discuss the project!
 
+
+## ❔ FAQ
+
+# How does this project differ from:
+- **Valence**: Valence is a framework for building your own custom server by pulling in different components of their library. FerrumC is a fully built server designed to act as a potential replacement for the vanilla server. It's like the difference between buying the ingredients to make a meal yourself or just buying a pre-made meal.
+- **Minestom**: Same as Valence, it's a framework to build your own server, which is different to what we are trying to do.
+- **Paper/Spigot/Bukkit**: These are all great tools and have undoubtably set the groundwork for projects like this to exist, but ultimately they are still somewhat bound to the original server implementation. We aim to write the entire server from the ground up, hopefully giving us a leg up.
+- **Pumpkin**: It really doesn't differ that much. We are both trying to acheive the same thing. It's also not a competition, we are both aware of each other's progress and to be honest the Pumpkin team are doing really well. We won't tolarate any disrespect towards them as they are also undertaking the same monumental task.
+
 ## 📜 License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
