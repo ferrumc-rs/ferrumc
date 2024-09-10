@@ -23,6 +23,9 @@
     <a href="#-license">License</a>
     •
     <a href="#-acknowledgments">Acknowledgments</a>
+    •
+    <a href="#-faq">FAQ</a>
+
 
 </div>
 
@@ -151,8 +154,13 @@ cargo build --release
    `./ferrumc --import`.
    The location of these files is explained [here](https://minecraft.wiki/w/Region_file_format#Location).
 5. Run the server:
-   - Windows: `.\ferrumc.exe`
-   - Linux/macOS: `./ferrumc`
+    - Windows: `.\ferrumc.exe`
+    - Linux/macOS: `./ferrumc`
+
+*Note: You can specify the directory to treat as the root directory (the place where the config files, data files,
+etc. live) by setting an environment variable `FERRUMC_ROOT` to the path of the directory. For example, I run
+`set FERRUMC_ROOT=C:\Users\ReCor\Documents\Code\Rust\ferrumc` before running the server. This is useful if you
+can't move the place the binary is executed from (`cargo run` for example).*
 
 ## 🛠️ Development
 
@@ -166,14 +174,32 @@ We welcome contributions! If you'd like to contribute to FerrumC, please follow 
 
 Join our [Discord server](https://discord.gg/qT5J8EMjwk) to get help or discuss the project!
 
-
 ## ❔ FAQ
 
-# How does this project differ from:
-- **Valence**: Valence is a framework for building your own custom server by pulling in different components of their library. FerrumC is a fully built server designed to act as a potential replacement for the vanilla server. It's like the difference between buying the ingredients to make a meal yourself or just buying a pre-made meal.
-- **Minestom**: Same as Valence, it's a framework to build your own server, which is different to what we are trying to do.
-- **Paper/Spigot/Bukkit**: These are all great tools and have undoubtably set the groundwork for projects like this to exist, but ultimately they are still somewhat bound to the original server implementation. We aim to write the entire server from the ground up, hopefully giving us a leg up.
-- **Pumpkin**: It really doesn't differ that much. We are both trying to acheive the same thing. It's also not a competition, we are both aware of each other's progress and to be honest the Pumpkin team are doing really well. We won't tolarate any disrespect towards them as they are also undertaking the same monumental task.
+### How does this project differ from:
+
+- **Valence**: Valence is a framework for building your own custom server by pulling in different components of their
+  library. FerrumC is a fully built server designed to act as a potential replacement for the vanilla server. It's like
+  the difference between buying the ingredients to make a meal yourself or just buying a pre-made meal.
+- **Minestom**: Same as Valence, it's a framework to build your own server, which is different to what we are trying to
+  do.
+- **Paper/Spigot/Bukkit**: These are all great tools and have undoubtedly set the groundwork for projects like this to
+  exist, but ultimately they are still somewhat bound to the original server implementation. We aim to write the entire
+  server from the ground up, hopefully giving us a leg up.
+- **Pumpkin**: It really doesn't differ that much. We are both trying to achieve the same thing. It's also not a
+  competition, we are both aware of each other's progress and to be honest the Pumpkin team are doing really well. We
+  won't tolerate any disrespect towards them as they are also undertaking the same monumental task.
+
+### Will we be implementing terrain generation?
+
+Yes! Not currently on our list of priorities and it's very unlikely that we will be able to have 1:1 terrain generation
+with the vanilla server, but we do plan on implementing some sort of terrain generation as soon as we can.
+
+### Will there be plugins? And how?
+
+We do very much plan to have a plugin system and as of right now, our plan is to leverage the
+awesome [Extism](https://extism.org/) project to allow for plugins to be written in a multitude of languages (Rust, Go,
+JS/TS, Zig and more) while not losing out on the performance gains of native code.
 
 ## 📜 License
 
