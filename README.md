@@ -4,12 +4,10 @@
     <img src="https://img.shields.io/github/languages/code-size/Sweattypalms/ferrumc?style=for-the-badge&color=red" alt="Code Size">
     <img src="https://www.aschey.tech/tokei/github.com/Sweattypalms/ferrumc?style=for-the-badge&color=red" alt="Lines of Code">
     <img src="https://img.shields.io/badge/language-Rust-orange?style=for-the-badge&color=red" alt="Language">
+    <a  href="https://discord.gg/qT5J8EMjwk">
+    <img alt="Discord" src="https://img.shields.io/discord/1277314213878173726?style=for-the-badge&logo=discord&logoColor=red&color=red&link=https%3A%2F%2Fdiscord.gg%2FqT5J8EMjwk">
+    </a>
 </div>
-<p align="center">
-  <a href="https://discord.gg/qT5J8EMjwk">
-    <img src="https://img.shields.io/discord/1277314213878173726?color=7289DA&label=Join%20our%20Discord&logo=discord&logoColor=white" alt="Join our Discord&style=for-the-badge">
-  </a>
-</p>
 
 <div align="center">
     <a href="#-about">About</a>
@@ -32,7 +30,7 @@
 ## 📖 About
 
 FerrumC is a Minecraft server implementation written from the ground up in Rust. Leveraging the power of the Rust
-programming language, it is completely multi-threaded; and offers high performance as well as amazing memory efficiency!
+programming language, it is completely multithreaded; and offers high performance as well as amazing memory efficiency!
 
 <img src="https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/in_game.png?raw=true" alt="In-game screenshot">
 
@@ -203,4 +201,4 @@ JS/TS, Zig and more) while not losing out on the performance gains of native cod
 
 ## 📜 License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE) file for details.
