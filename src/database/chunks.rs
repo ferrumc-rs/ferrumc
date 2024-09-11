@@ -1,6 +1,9 @@
+use std::borrow::Cow;
+use std::marker::PhantomData;
+
 use byteorder::LE;
-use heed::types::{Bytes, U64};
-use heed::Env;
+use heed::types::U64;
+use heed::{BytesDecode, BytesEncode, Env};
 use tokio::task::spawn_blocking;
 use tracing::{trace, warn};
 
@@ -11,7 +14,34 @@ use crate::world::chunkformat::Chunk;
 
 use crate::utils::binary_utils::{bzip_compress, bzip_decompress};
 use bincode::config::standard;
-use bincode::{decode_from_slice, encode_to_vec};
+use bincode::{decode_from_slice, encode_to_vec, Decode, Encode};
+
+/// Marker object implementing encoding routine for the persistent database
+pub struct BincodeBzip<T>(PhantomData<T>);
+
+impl<'a, T: Encode + 'a> BytesEncode<'a> for BincodeBzip<T> {
+    type EItem = T;
+
+    fn bytes_encode(item: &'a Self::EItem) -> Result<Cow<'a, [u8]>, heed::BoxedError> {
+        
+        // Encode data and compress it using bzip
+        let encoded_chunk = encode_to_vec(item, standard())?;
+        let compressed = bzip_compress(&encoded_chunk)?;
+        Ok(Cow::Owned(compressed))
+    }
+}
+
+impl<'a, T: Decode + 'a> BytesDecode<'a> for BincodeBzip<T> {
+    type DItem = T;
+
+    fn bytes_decode(bytes: &'a [u8]) -> Result<Self::DItem, heed::BoxedError> {
+        
+        // Decode data and decompress it using bzip
+        let decompressed = bzip_decompress(bytes)?;
+        let data: (T, usize) = decode_from_slice(&decompressed, standard())?;
+        Ok(data.0)
+    }
+}
 
 impl Database {
     /// Fetch chunk from database
@@ -19,22 +49,13 @@ impl Database {
         // Initialize read transaction and open chunks table
         let ro_tx = db.read_txn().unwrap();
         let database = db
-            .open_database::<U64<LE>, Bytes>(&ro_tx, Some("chunks"))
+            .open_database::<U64<LE>, BincodeBzip<Chunk>>(&ro_tx, Some("chunks"))
             .unwrap()
             .expect("No table \"chunks\" found. The database should have been initialized");
 
         // Attempt to fetch chunk from table
-        if let Ok(data) = database.get(&ro_tx, key) {
-            Ok(data.map(|encoded_chunk| {
-                let decompressed =
-                    bzip_decompress(&encoded_chunk).expect("Failed to decompress chunk");
-                let chunk: (Chunk, usize) = decode_from_slice(&*decompressed, standard())
-                    .expect("Failed to decode chunk from database");
-                chunk.0
-            }))
-        } else {
-            Err(Error::DatabaseError("Failed to get chunk".into()))
-        }
+        database.get(&ro_tx, key)
+            .map_err(|err| Error::DatabaseError(format!("Failed to get chunk: {err}")))
     }
 
     /// Insert a single chunk into database
@@ -42,17 +63,15 @@ impl Database {
         // Initialize write transaction and open chunks table
         let mut rw_tx = db.write_txn().unwrap();
         let database = db
-            .open_database::<U64<LE>, Bytes>(&rw_tx, Some("chunks"))
+            .open_database::<U64<LE>, BincodeBzip<Chunk>>(&rw_tx, Some("chunks"))
             .unwrap()
             .expect("No table \"chunks\" found. The database should have been initialized");
 
-        // Encode chunk
-        let encoded_chunk = encode_to_vec(chunk, standard()).expect("Failed to encode chunk");
-        let compressed = bzip_compress(&encoded_chunk).expect("Failed to compress chunk");
+        // Calculate key
         let key = hash((chunk.dimension.as_ref().unwrap(), chunk.x_pos, chunk.z_pos));
 
         // Insert chunk
-        let res = database.put(&mut rw_tx, &key, &compressed);
+        let res = database.put(&mut rw_tx, &key, chunk);
         rw_tx.commit().map_err(|err| {
             Error::DatabaseError(format!("Unable to commit changes to database: {err}"))
         })?;
@@ -72,20 +91,16 @@ impl Database {
         // Initialize write transaction and open chunks table
         let mut rw_tx = db.write_txn().unwrap();
         let database = db
-            .open_database::<U64<LE>, Bytes>(&rw_tx, Some("chunks"))
+            .open_database::<U64<LE>, BincodeBzip<Chunk>>(&rw_tx, Some("chunks"))
             .unwrap()
             .expect("No table \"chunks\" found. The database should have been initialized");
 
         // Update page
         for chunk in chunks {
-            // Encode chunk
-            let encoded_chunk = encode_to_vec(chunk, standard()).expect("Failed to encode chunk");
-
-            let compressed = bzip_compress(&encoded_chunk).expect("Failed to compress chunk");
             let key = hash((chunk.dimension.as_ref().unwrap(), chunk.x_pos, chunk.z_pos));
 
             // Insert chunk
-            database.put(&mut rw_tx, &key, &compressed).map_err(|err| {
+            database.put(&mut rw_tx, &key, chunk).map_err(|err| {
                 Error::DatabaseError(format!("Failed to insert or update chunk: {err}"))
             })?;
         }
