@@ -14,11 +14,10 @@ use tracing::{debug, info, trace};
 use crate::utils::config::get_global_config;
 use crate::utils::error::Error;
 
-use crate::world::chunkformat::Chunk;
+use crate::world::chunk_format::Chunk;
 pub mod chunks;
 
 // MDBX constants
-const LMDB_MAX_TABLE: u32 = 16;
 const LMDB_PAGE_SIZE: usize = 50 * 1024usize.pow(3); // 50GiB
 
 /// Global database structure
@@ -61,7 +60,7 @@ pub async fn start_database() -> Result<Database, Error> {
     let world = get_global_config().world.clone();
     let world_path = root.join("data").join(world);
 
-    debug!("Opening database at {:?}", world_path);
+    debug!("Opening database at {}", world_path.display());
 
     if !fs::try_exists(&world_path).await? {
         fs::create_dir_all(&world_path).await?;
@@ -71,7 +70,7 @@ pub async fn start_database() -> Result<Database, Error> {
     let mut opts = EnvOpenOptions::new();
     opts.max_readers(num_cpus::get() as u32)
         .map_size(LMDB_PAGE_SIZE)
-        .max_dbs(LMDB_MAX_TABLE);
+        .max_dbs(num_cpus::get() as u32 *2);
 
     // Open database (This operation is safe as we assume no other process touched the database)
     let lmdb = unsafe {

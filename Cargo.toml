@@ -47,6 +47,8 @@ uuid = { version = "1.9.1", features = ["v4", "v3", "v5"] }
 include-flate = "0.3.0"
 flate2 = "1.0.31"
 bzip2 = "0.4.4"
+lz4_flex = "0.11.3"
+zstd = "0.13.2"
 
 # OS
 which = "6.0.1"

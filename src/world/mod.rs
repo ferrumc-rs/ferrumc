@@ -1,16 +1,9 @@
-use serde_derive::{Deserialize, Serialize};
-
 pub mod blocks;
-pub mod chunkformat;
+pub mod chunk_format;
 pub mod conversions;
 pub mod importing;
+pub mod importing_v2;
 
-#[derive(Deserialize, Serialize)]
-pub struct ProtoChunk {
-    pub x: i64,
-    pub z: i64,
-    pub data: Vec<u8>,
-}
 
 #[cfg(test)]
 mod tests {

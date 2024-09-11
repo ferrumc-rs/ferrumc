@@ -1,16 +1,18 @@
 use std::env;
+use std::fs::File;
 use std::io::Cursor;
 use std::path::PathBuf;
 use std::process::exit;
-
+use fastanvil::{Region};
 use crate::utils::prelude::*;
 use indicatif::ProgressBar;
 use nbt_lib::NBTDeserializeBytes;
-use tracing::{error, info, trace, warn};
+use rayon::prelude::*;
+use tracing::{debug, error, info, trace, warn};
 
 use crate::state::GlobalState;
-use crate::utils::error::Error;
-use crate::world::chunkformat::Chunk;
+use crate::world::chunk_format::Chunk;
+
 
 fn format_time(millis: u64) -> String {
     if millis < 1000 {
@@ -36,7 +38,7 @@ fn format_time(millis: u64) -> String {
 }
 
 async fn get_total_chunks(dir: PathBuf) -> Result<usize> {
-    let mut region_files = tokio::fs::read_dir(dir).await?;
+    /*let mut region_files = tokio::fs::read_dir(dir).await?;
     let mut total_chunks = 0;
     while let Some(dir_file) = region_files.next_entry().await? {
         let file = std::fs::File::open(dir_file.path())?;
@@ -54,7 +56,42 @@ async fn get_total_chunks(dir: PathBuf) -> Result<usize> {
             }
         }
     }
-    Ok(total_chunks)
+    Ok(total_chunks)*/
+    let mut files = tokio::fs::read_dir(dir).await?;
+
+    let mut regions = Vec::new();
+
+    while let Some(file_path) = files.next_entry().await? {
+        if !file_path.path().is_file() || file_path.path().extension() != Some("mca".as_ref()) {
+            continue;
+        }
+        let file = File::open(file_path.path())?;
+        let Ok(region) = Region::from_stream(file) else {
+            warn!("(Skipped) Could not read region file: {}", file_path.path().display());
+            continue;
+        };
+
+        regions.push(region);
+    }
+
+    let chunks = regions
+        .into_par_iter()
+        .map(|mut region: Region<File>| region.iter().count())
+        .sum();
+
+    Ok(chunks)
+        /*.map(|region| region.iter().filter_map(|x| x.ok()).collect::<Vec<ChunkData>>())
+        .map(|chunks| {
+            chunks.into_iter().filter_map(|chunk| {
+                let mut chunk = Chunk::read_from_bytes(&mut Cursor::new(chunk.data)).ok()?;
+                chunk.dimension = Some("overworld".to_string());
+
+                Some(chunk)
+            }).collect::<Vec<_>>()
+        })
+        .collect::<Vec<_>>();*/
+
+    // Ok(regions)
 }
 
 /// since this is just used to import chunks, it doesn't need to be optimized much
@@ -71,9 +108,11 @@ pub async fn import_regions(state: GlobalState) -> Result<()> {
         )
     };
 
+    debug!("Starting import from {:?}", dir);
+    let start = std::time::Instant::now();
     // We aren't, but I can't think of a better way to say "Counting chunks" without it sounding
     // super slow
-    info!("Fetching preliminary chunk information");
+    info!("Counting chunks...");
     let total_chunks = get_total_chunks(dir.clone()).await?;
     let mut region_files = if tokio::fs::read_dir(dir.clone()).await.is_ok() {
         tokio::fs::read_dir(dir).await?
@@ -83,11 +122,10 @@ pub async fn import_regions(state: GlobalState) -> Result<()> {
     };
     info!("Importing {} chunks", total_chunks);
     info!("This could take a while if there are a lot of chunks to import!");
-    let start = std::time::Instant::now();
     let bar = ProgressBar::new(total_chunks as u64);
-    while let Some(dirfile) = region_files.next_entry().await? {
-        let file = std::fs::File::open(dirfile.path())?;
-        let mut region = fastanvil::Region::from_stream(file)?;
+    while let Some(dir_file) = region_files.next_entry().await? {
+        let file = File::open(dir_file.path())?;
+        let mut region = Region::from_stream(file)?;
 
         let mut queued_chunks = Vec::new();
         let mut pending_chunks = 0u8;
@@ -96,11 +134,11 @@ pub async fn import_regions(state: GlobalState) -> Result<()> {
             let Ok(chunk) = chunk else {
                 warn!(
                     "Could not read chunk {}",
-                    dirfile.file_name().to_str().unwrap()
+                    dir_file.file_name().to_str().unwrap()
                 );
                 bar.abandon_with_message(format!(
                     "Chunk {} failed to import",
-                    dirfile.file_name().to_str().unwrap()
+                    dir_file.file_name().to_str().unwrap()
                 ));
                 exit(1);
             };
@@ -113,11 +151,11 @@ pub async fn import_regions(state: GlobalState) -> Result<()> {
                 warn!(
                     "Could not read chunk {} {}",
                     chunk_nbt.as_ref().unwrap_err(),
-                    dirfile.file_name().to_str().unwrap()
+                    dir_file.file_name().to_str().unwrap()
                 );
                 bar.abandon_with_message(format!(
                     "Chunk {} failed to import",
-                    dirfile.file_name().to_str().unwrap()
+                    dir_file.file_name().to_str().unwrap()
                 ));
                 exit(1);
             }
@@ -127,7 +165,7 @@ pub async fn import_regions(state: GlobalState) -> Result<()> {
                 Ok(_) => {}
                 Err(e) => {
                     warn!(
-                        "Could not convert chunk {} {} to network mode: {}",
+                        "Could not convert chunk {} {} to networkmode: {}",
                         final_chunk.x_pos, final_chunk.z_pos, e
                     );
                     bar.abandon_with_message(format!(
@@ -171,12 +209,12 @@ pub async fn import_regions(state: GlobalState) -> Result<()> {
             if res.is_err() {
                 error!(
                     "Could not insert chunk {}: {}",
-                    dirfile.file_name().to_str().unwrap(),
+                    dir_file.file_name().to_str().unwrap(),
                     res.as_ref().unwrap_err()
                 );
                 bar.abandon_with_message(format!(
                     "Chunk {} failed to import",
-                    dirfile.file_name().to_str().unwrap()
+                    dir_file.file_name().to_str().unwrap()
                 ));
                 exit(1);
             }
@@ -196,25 +234,26 @@ mod test {
     use crate::create_state;
     use crate::utils::setup_logger;
     use tokio::net::TcpListener;
-    use tracing::warn;
+    use crate::utils::prelude::*;
 
     #[tokio::test]
     #[ignore]
-    async fn get_chunk_at() {
+    async fn get_chunk_at() -> Result<()> {
         // set environment variable "FERRUMC_ROOT" to the root of the ferrumc project
-        if setup_logger().is_ok() {
-            warn!("Logger already set up");
-        }
+        setup_logger()?;
         let listener = TcpListener::bind("0.0.0.0:0").await.unwrap();
         let state = create_state(listener).await.unwrap();
 
         let chunk = state
             .database
             .get_chunk(0, 0, "overworld".to_string())
-            .await
-            .unwrap()
+            .await?
             .unwrap();
 
         println!("{:#?}", chunk);
+
+        Ok(())
     }
 }
+
+

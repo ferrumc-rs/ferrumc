@@ -1,5 +1,6 @@
 use std::convert::Infallible;
 
+use crate::world::importing_v2::ImportingError;
 use config::ConfigError;
 
 #[derive(thiserror::Error, Debug)]
@@ -78,9 +79,11 @@ pub enum Error {
     BitOutputOverflow(usize, usize),
     #[error("Attempted to read more bits than are available: {0} attempted, {1} available")]
     BitReadOverflow(usize, usize),
-    #[error("Attemped to read more bits than are available in the input type: {0} attempted, {1} available")]
+    #[error("Attemped to read more bits than are available in the input type: {0} attempted, {1} available"
+    )]
     BitReadOverflowInput(usize, usize),
-    #[error("Attemped to write more bits than are available in the output type: {0} attempted, {1} available")]
+    #[error("Attemped to write more bits than are available in the output type: {0} attempted, {1} available"
+    )]
     BitWriteOverflow(usize, usize),
     #[error("Codec error")]
     CodecError(#[from] ferrumc_codec::error::CodecError),
@@ -88,6 +91,11 @@ pub enum Error {
     ConversionError,
     #[error(transparent)]
     CompressionError(std::io::Error),
+
+    #[error(transparent)]
+    ImportingError(#[from] ImportingError),
+    #[error("Database error: {0}")]
+    LmdbError(#[from] heed::Error),
 }
 
 impl From<Infallible> for Error {
@@ -107,3 +115,5 @@ impl From<Error> for std::io::ErrorKind {
         std::io::ErrorKind::Other
     }
 }
+
+

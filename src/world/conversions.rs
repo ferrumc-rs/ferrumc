@@ -1,5 +1,5 @@
 use crate::utils::error::Error;
-use crate::world::chunkformat::{BlockStates, Chunk, Palette, Section};
+use crate::world::chunk_format::{BlockStates, Chunk, Palette, Section};
 use ferrumc_codec::enc::NetEncode;
 use ferrumc_codec::network_types::varint::VarInt;
 use hashbrown::HashMap;

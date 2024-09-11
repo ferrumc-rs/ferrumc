@@ -87,6 +87,8 @@ async fn start_server() -> Result<()> {
     let state = create_state(listener).await?;
 
     if env::args().any(|arg| arg == "--import") {
+        // world::importing::import_regions(state.clone()).await?;
+        rayon::ThreadPoolBuilder::new().num_threads(num_cpus::get() * 2).build_global().expect("Failed to build rayon thread pool");
         world::importing::import_regions(state.clone()).await?;
         exit(0);
     }

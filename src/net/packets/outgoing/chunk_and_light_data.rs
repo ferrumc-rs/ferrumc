@@ -1,7 +1,7 @@
 use crate::state::GlobalState;
 use crate::utils::encoding::bitset::BitSet;
 use crate::utils::error::Error;
-use crate::world::chunkformat::{Heightmaps};
+use crate::world::chunk_format::{Heightmaps};
 use crate::Result;
 use ferrumc_codec::enc::NetEncode;
 use ferrumc_codec::network_types::varint::VarInt;
