@@ -1,42 +1,86 @@
+use std::borrow::Cow;
+use std::future::Future;
+use std::marker::PhantomData;
+
+use bincode::{Decode, Encode, config::standard};
 use byteorder::LE;
-use zstd::bulk::compress as zstd_compress;
-use zstd::bulk::decompress as zstd_decompress;
-use heed::types::{Bytes, U64};
-use heed::Env;
-use tokio::task::spawn_blocking;
+use futures::channel::oneshot::{self, Canceled};
+use heed::{BytesDecode, BytesEncode, types::U64, Env};
 use tracing::{trace, warn};
 
-use crate::database::Database;
-use crate::utils::error::Error;
-use crate::utils::hash::hash;
-use crate::world::chunk_format::Chunk;
+use crate::{
+    database::Database,
+    utils::error::Error,
+    utils::hash::hash,
+    world::chunk_format::Chunk
+};
 
-// use crate::utils::binary_utils::{bzip_compress, bzip_decompress};
-use bincode::config::standard;
-use bincode::{decode_from_slice, encode_to_vec};
+use super::LMDB_THREADPOOL;
+
+pub struct Zstd<T>(PhantomData<T>);
+
+impl<'a, T: Encode + 'a> BytesEncode<'a> for Zstd<T> {
+    type EItem = T;
+
+    fn bytes_encode(item: &'a Self::EItem) -> Result<Cow<'a, [u8]>, heed::BoxedError> {
+        
+        // Compress
+        let mut bytes = Vec::new();
+        let mut compressor = zstd::Encoder::new(&mut bytes, 6)?;
+        bincode::encode_into_std_write(item, &mut compressor, standard())?;
+        
+        Ok(Cow::Owned(bytes))
+    }
+}
+
+impl<'a, T: Decode + 'a> BytesDecode<'a> for Zstd<T> {
+    type DItem = T;
+
+    fn bytes_decode(bytes: &'a [u8]) -> Result<Self::DItem, heed::BoxedError> {
+        
+        let mut decompressor = zstd::Decoder::new(bytes)?;
+        let decoded = bincode::decode_from_std_read(&mut decompressor, standard())?;
+        Ok(decoded)
+    }
+}
+
+// Will delegate a database operation to the database threadpool
+pub(super) fn spawn_blocking_db<F, R>(f: F) -> impl Future<Output = Result<R,Canceled>> 
+where  
+    F: FnOnce() -> R + Send + 'static,
+    R: Send + 'static,
+{
+    let (tx,res) = oneshot::channel::<R>();
+    
+    let pool = LMDB_THREADPOOL.get().unwrap();
+    pool.spawn(move || {
+        if tx.send(f()).is_err() {
+            tracing::warn!("A database task has been unable to send its result because the receiver at other end have closed.")
+        }
+    });
+    
+    res
+}
 
 impl Database {
+    
+    // Close the database
+    pub fn close(self) {
+        let token = self.db.prepare_for_closing();
+        token.wait();
+    }
+    
     /// Fetch chunk from database
     fn get_chunk_from_database(db: &Env, key: &u64) -> Result<Option<Chunk>, Error> {
         // Initialize read transaction and open chunks table
         let ro_tx = db.read_txn()?;
         let database = db
-            .open_database::<U64<LE>, Bytes>(&ro_tx, Some("chunks"))?
+            .open_database::<U64<LE>, Zstd<Chunk>>(&ro_tx, Some("chunks"))?
             .expect("No table \"chunks\" found. The database should have been initialized");
 
         // Attempt to fetch chunk from table
-        if let Ok(data) = database.get(&ro_tx, key) {
-            Ok(data.map(|encoded_chunk| {
-                // let decompressed =
-                //     bzip_decompress(&encoded_chunk).expect("Failed to decompress chunk");
-                let decompressed = zstd_decompress(&encoded_chunk, 1024*1024*64).expect("Failed to decompress chunk");
-                let chunk: (Chunk, usize) = decode_from_slice(&*decompressed, standard())
-                    .expect("Failed to decode chunk from database");
-                chunk.0
-            }))
-        } else {
-            Err(Error::DatabaseError("Failed to get chunk".into()))
-        }
+        database.get(&ro_tx, key)
+            .map_err(|err| Error::DatabaseError(format!("Failed to get chunk: {err}")))
     }
 
     /// Insert a single chunk into database
@@ -44,17 +88,14 @@ impl Database {
         // Initialize write transaction and open chunks table
         let mut rw_tx = db.write_txn()?;
         let database = db
-            .open_database::<U64<LE>, Bytes>(&rw_tx, Some("chunks"))?
+            .open_database::<U64<LE>, Zstd<Chunk>>(&rw_tx, Some("chunks"))?
             .expect("No table \"chunks\" found. The database should have been initialized");
 
-        // Encode chunk
-        let encoded_chunk = encode_to_vec(chunk, standard()).expect("Failed to encode chunk");
-        // let compressed = bzip_compress(&encoded_chunk).expect("Failed to compress chunk");
-        let compressed = zstd_compress(&encoded_chunk, 3).expect("Failed to compress chunk");
+        // Calculate key
         let key = hash((chunk.dimension.as_ref().unwrap(), chunk.x_pos, chunk.z_pos));
 
         // Insert chunk
-        let res = database.put(&mut rw_tx, &key, &compressed);
+        let res = database.put(&mut rw_tx, &key, chunk);
         rw_tx.commit().map_err(|err| {
             Error::DatabaseError(format!("Unable to commit changes to database: {err}"))
         })?;
@@ -74,20 +115,16 @@ impl Database {
         // Initialize write transaction and open chunks table
         let mut rw_tx = db.write_txn()?;
         let database = db
-            .open_database::<U64<LE>, Bytes>(&rw_tx, Some("chunks"))?
+            .open_database::<U64<LE>, Zstd<Chunk>>(&rw_tx, Some("chunks"))?
             .expect("No table \"chunks\" found. The database should have been initialized");
 
         // Update page
         for chunk in chunks {
-            // Encode chunk
-            let encoded_chunk = encode_to_vec(chunk, standard()).expect("Failed to encode chunk");
-
-            // let compressed = bzip_compress(&encoded_chunk).expect("Failed to compress chunk");
-            let compressed = zstd_compress(&encoded_chunk, 3).expect("Failed to compress chunk");
+            // Calculate key
             let key = hash((chunk.dimension.as_ref().unwrap(), chunk.x_pos, chunk.z_pos));
 
             // Insert chunk
-            database.put(&mut rw_tx, &key, &compressed).map_err(|err| {
+            database.put(&mut rw_tx, &key, chunk).map_err(|err| {
                 Error::DatabaseError(format!("Failed to insert or update chunk: {err}"))
             })?;
         }
@@ -104,13 +141,14 @@ impl Database {
         let cache = self.cache.clone();
 
         tokio::task::spawn(async move {
+            
             // Check cache
             if cache.contains_key(&key) {
                 trace!("Chunk already exists in cache: {:X}", key);
             }
             // If not in cache then search in database
             else if let Ok(chunk) =
-                spawn_blocking(move || Self::get_chunk_from_database(&db, &key))
+                spawn_blocking_db(move || Self::get_chunk_from_database(&db, &key))
                     .await
                     .unwrap()
             {
@@ -158,7 +196,7 @@ impl Database {
         // Insert chunk into persistent database
         let chunk = value.clone();
         let db = self.db.clone();
-        spawn_blocking(move || Self::insert_chunk_into_database(&db, &chunk))
+        spawn_blocking_db(move || Self::insert_chunk_into_database(&db, &chunk))
             .await
             .unwrap()?;
 
@@ -202,7 +240,7 @@ impl Database {
             Ok(self.cache.get(&key).await)
         }
         // Attempt to get chunk from persistent database
-        else if let Some(chunk) = spawn_blocking(move || Self::get_chunk_from_database(&db, &key))
+        else if let Some(chunk) = spawn_blocking_db(move || Self::get_chunk_from_database(&db, &key))
             .await
             .unwrap()?
         {
@@ -243,7 +281,7 @@ impl Database {
             Ok(true)
         // Else check persistent database and load it into cache
         } else {
-            let res = spawn_blocking(move || Self::get_chunk_from_database(&db, &key)).await?;
+            let res = spawn_blocking_db(move || Self::get_chunk_from_database(&db, &key)).await.unwrap();
 
             // WARNING: The previous logic was to order the chunk to be loaded into cache whether it existed or not.
             // This has been replaced by directly loading the queried chunk into cache
@@ -286,7 +324,7 @@ impl Database {
         // Insert new chunk state into persistent database
         let chunk = value.clone();
         let db = self.db.clone();
-        spawn_blocking(move || Self::insert_chunk_into_database(&db, &chunk)).await??;
+        spawn_blocking_db(move || Self::insert_chunk_into_database(&db, &chunk)).await.unwrap()?;
 
         // Insert new chunk state into cache
         self.cache.insert(key, value).await;
@@ -389,7 +427,7 @@ impl Database {
         }
 
         // Then insert into persistent database
-        spawn_blocking(move || Self::insert_chunks_into_database(&db, &values))
+        spawn_blocking_db(move || Self::insert_chunks_into_database(&db, &values))
             .await
             .unwrap()?;
         Ok(())
