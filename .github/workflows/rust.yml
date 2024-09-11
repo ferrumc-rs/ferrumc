@@ -34,19 +34,18 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
+
       - name: Build
         uses: actions-rs/cargo@v1
         with:
           command: build
           args: --release --verbose
 
-         TODO: Enable tests
-     - name: Run tests
-       uses: actions-rs/cargo@v1
-       with:
-         command: test
-         args: --verbose
-
+      - name: Run tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --verbose
 
       - name: Upload executable
         uses: actions/upload-artifact@v4
@@ -54,11 +53,12 @@ jobs:
           name: ferrumc
           path: target/release/ferrumc
 
-    #   - name: Send message to Discord
-    #     env:
-    #       DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-    #     uses: Ilshidur/action-discord@master
-    #     with:
-    #       args: 'A new commit has been pushed!
-          
-    #       {{ EVENT_PAYLOAD.head_commit.url }}'
+      # Uncomment the following block if you want to send a message to Discord:
+      # - name: Send message to Discord
+      #   env:
+      #     DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+      #   uses: Ilshidur/action-discord@master
+      #   with:
+      #     args: 'A new commit has been pushed!
+      #
+      #     {{ EVENT_PAYLOAD.head_commit.url }}'
