@@ -9,6 +9,7 @@ use crate::utils::error::Error;
 use crate::utils::hash::hash;
 use crate::world::chunkformat::Chunk;
 
+use crate::utils::binary_utils::{bzip_compress, bzip_decompress};
 use bincode::config::standard;
 use bincode::{decode_from_slice, encode_to_vec};
 
@@ -25,7 +26,9 @@ impl Database {
         // Attempt to fetch chunk from table
         if let Ok(data) = database.get(&ro_tx, key) {
             Ok(data.map(|encoded_chunk| {
-                let chunk: (Chunk, usize) = decode_from_slice(encoded_chunk, standard())
+                let decompressed =
+                    bzip_decompress(&encoded_chunk).expect("Failed to decompress chunk");
+                let chunk: (Chunk, usize) = decode_from_slice(&*decompressed, standard())
                     .expect("Failed to decode chunk from database");
                 chunk.0
             }))
@@ -45,10 +48,11 @@ impl Database {
 
         // Encode chunk
         let encoded_chunk = encode_to_vec(chunk, standard()).expect("Failed to encode chunk");
+        let compressed = bzip_compress(&encoded_chunk).expect("Failed to compress chunk");
         let key = hash((chunk.dimension.as_ref().unwrap(), chunk.x_pos, chunk.z_pos));
 
         // Insert chunk
-        let res = database.put(&mut rw_tx, &key, &encoded_chunk);
+        let res = database.put(&mut rw_tx, &key, &compressed);
         rw_tx.commit().map_err(|err| {
             Error::DatabaseError(format!("Unable to commit changes to database: {err}"))
         })?;
@@ -76,14 +80,14 @@ impl Database {
         for chunk in chunks {
             // Encode chunk
             let encoded_chunk = encode_to_vec(chunk, standard()).expect("Failed to encode chunk");
+
+            let compressed = bzip_compress(&encoded_chunk).expect("Failed to compress chunk");
             let key = hash((chunk.dimension.as_ref().unwrap(), chunk.x_pos, chunk.z_pos));
 
             // Insert chunk
-            database
-                .put(&mut rw_tx, &key, &encoded_chunk)
-                .map_err(|err| {
-                    Error::DatabaseError(format!("Failed to insert or update chunk: {err}"))
-                })?;
+            database.put(&mut rw_tx, &key, &compressed).map_err(|err| {
+                Error::DatabaseError(format!("Failed to insert or update chunk: {err}"))
+            })?;
         }
 
         // Commit changes
@@ -237,8 +241,7 @@ impl Database {
             Ok(true)
         // Else check persistent database and load it into cache
         } else {
-            let res = spawn_blocking(move || Self::get_chunk_from_database(&db, &key))
-                .await?;
+            let res = spawn_blocking(move || Self::get_chunk_from_database(&db, &key)).await?;
 
             // WARNING: The previous logic was to order the chunk to be loaded into cache whether it existed or not.
             // This has been replaced by directly loading the queried chunk into cache
@@ -281,9 +284,7 @@ impl Database {
         // Insert new chunk state into persistent database
         let chunk = value.clone();
         let db = self.db.clone();
-        spawn_blocking(move || Self::insert_chunk_into_database(&db, &chunk))
-            .await
-            .unwrap()?;
+        spawn_blocking(move || Self::insert_chunk_into_database(&db, &chunk)).await??;
 
         // Insert new chunk state into cache
         self.cache.insert(key, value).await;
