@@ -41,12 +41,12 @@ jobs:
           command: build
           args: --release --verbose
 
-#          TODO: Enable tests
-#      - name: Run tests
-#        uses: actions-rs/cargo@v1
-#        with:
-#          command: test
-#          args: --verbose
+         TODO: Enable tests
+     - name: Run tests
+       uses: actions-rs/cargo@v1
+       with:
+         command: test
+         args: --verbose
 
 
       - name: Upload executable
@@ -55,11 +55,11 @@ jobs:
           name: ferrumc
           path: target/release/ferrumc
 
-      - name: Send message to Discord
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-        uses: Ilshidur/action-discord@master
-        with:
-          args: 'A new commit has been pushed!
+    #   - name: Send message to Discord
+    #     env:
+    #       DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+    #     uses: Ilshidur/action-discord@master
+    #     with:
+    #       args: 'A new commit has been pushed!
           
-          {{ EVENT_PAYLOAD.head_commit.url }}'
+    #       {{ EVENT_PAYLOAD.head_commit.url }}'
