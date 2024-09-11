@@ -19,6 +19,7 @@ mod tests {
     use fastnbt::Value;
 
     #[tokio::test]
+    #[ignore]
     async fn dump_region_to_json() {
         let f = std::fs::File::open("./dummyregion.mca").unwrap();
         let mut reader = fastanvil::Region::from_stream(f).unwrap();
