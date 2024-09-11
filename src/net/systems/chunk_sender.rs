@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
+use ferrumc_codec::enc::NetEncode;
 use tokio::sync::RwLock;
 use tracing::{debug, error, warn};
 
@@ -142,10 +143,16 @@ impl ChunkSender {
             }
         }
 
+        // check the size of a single chunk and multiply it by the number of chunks sent
+        let sample_chunk = ChunkDataAndUpdateLight::new(state.clone(), pos_x >> 4, pos_z >> 4).await?;
+        let mut vec = vec![];
+        sample_chunk.net_encode(&mut vec).await?;
         debug!(
-                "Send {} chunks to player in {:?}",
+                "Send {} chunks to player in {:?}. Approximately {} kb of data (~{} kb per chunk)",
                 (CHUNK_RADIUS * 2 + 1) * (CHUNK_RADIUS * 2 + 1),
-                start.elapsed()
+                start.elapsed(),
+                vec.len() as i32 * ((CHUNK_RADIUS * 2 + 1) * (CHUNK_RADIUS * 2 + 1)) / 1024,
+                vec.len() as i32 / 1024
             );
 
         Ok(())
