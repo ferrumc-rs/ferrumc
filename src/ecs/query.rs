@@ -151,44 +151,22 @@ impl_query_item_tuple!(A, B, C, D);
 impl_query_item_tuple!(A, B, C, D, E);
 impl_query_item_tuple!(A, B, C, D, E, F);
 
-/// Examples of using the Query system
-///
-/// ```
-/// // Example 1: Basic query for a single component
-/// let query = Query::<&Position>::new(&entity_manager, &component_storage);
-/// for (entity_id, position) in query.iter().await {
-///     println!("Entity {} is at position {:?}", entity_id, position);
-/// }
-///
-/// // Example 2: Query for multiple components
-/// let query = Query::<(&Position, &Velocity)>::new(&entity_manager, &component_storage);
-/// for (entity_id, (position, velocity)) in query.iter().await {
-///     println!("Entity {} is at {:?} moving at {:?}", entity_id, position, velocity);
-/// }
-///
-/// // Example 3: Query with mutable components
-/// let query = Query::<(&mut Position, &Velocity)>::new(&entity_manager, &component_storage);
-/// for (entity_id, (mut position, velocity)) in query.iter().await {
-///     position.x += velocity.x;
-///     position.y += velocity.y;
-///     println!("Updated position of entity {} to {:?}", entity_id, position);
-/// }
-///
-/// // Example 4: Combining mutable and immutable queries
-/// let query = Query::<(&mut Health, &Position, &Attack)>::new(&entity_manager, &component_storage);
-/// for (entity_id, (mut health, position, attack)) in query.iter().await {
-///     if position.x < 0.0 {
-///         health.current -= attack.damage;
-///         println!("Entity {} took damage, new health: {}", entity_id, health.current);
-///     }
-/// }
-///
-/// // Example 5: Using next() for manual iteration
-/// let mut query = Query::<&Position>::new(&entity_manager, &component_storage);
-/// while let Some((entity_id, position)) = query.next().await {
-///     println!("Found entity {} at position {:?}", entity_id, position);
-/// }
-/// ```
+mod helpers {
+    use super::*;
+
+    // optional query
+    impl<T: QueryItem> QueryItem for Option<T> {
+        type Item<'a> = Option<T::Item<'a>>;
+
+        async fn fetch<'a>(entity_id: impl Into<usize>, storage: &'a ComponentStorage) -> Result<Self::Item<'a>> {
+            let entity_id = entity_id.into();
+            let component = T::fetch(entity_id, storage).await;
+            Ok(component.ok())
+        }
+    }
+
+    impl<T: Component> Component for Option<T> {}
+}
 
 #[cfg(test)]
 mod tests {

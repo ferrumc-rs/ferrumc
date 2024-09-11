@@ -1,9 +1,21 @@
 use ferrumc_macros::{Component, Constructor, Getter};
 
-#[derive(Debug, Default, Component, Getter, Constructor)]
+#[derive(Debug, Component, Getter, Constructor)]
 pub struct LastChunkTxPos {
     pub x: i32,
     pub z: i32,
+}
+
+impl Default for LastChunkTxPos {
+    fn default() -> Self {
+        // The player has not moved yet.
+        // So, when player joins the world, it sends chunks instantly since
+        // the threshold is passed by lots.
+        Self {
+            x: i32::MAX,
+            z: i32::MAX,
+        }
+    }
 }
 
 impl LastChunkTxPos {

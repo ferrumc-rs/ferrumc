@@ -5,6 +5,7 @@ use ferrumc_codec::enc::NetEncode;
 use tokio::sync::RwLock;
 use tracing::{debug, error, warn};
 
+use crate::net::packets::incoming::client_info::ClientInfo;
 use crate::net::packets::outgoing::chunk_and_light_data::ChunkDataAndUpdateLight;
 use crate::net::packets::outgoing::set_center_chunk::SetCenterChunk;
 use crate::net::systems::System;
@@ -16,7 +17,7 @@ use crate::utils::encoding::position::Position;
 use crate::utils::prelude::*;
 use ferrumc_macros::AutoGenName;
 
-pub const CHUNK_RADIUS: i32 = 16;
+pub const DEFAULT_CHUNK_RADIUS: i8 = 16;
 const CHUNK_TX_INTERVAL_MS: u64 = 50000;
 
 #[derive(AutoGenName)]
@@ -66,9 +67,14 @@ impl ChunkSender {
             .get_mut_or_insert_with::<LastChunkTxPos>(entity_id, Default::default)
             .await;
 
+        let client_info = state
+            .world
+            .get_component::<ClientInfo>(entity_id)
+            .await?;
+
         let distance = last_chunk_tx_pos.distance_to(current_pos.0, current_pos.1);
 
-        if distance < (CHUNK_RADIUS as f64 / 5f64) {
+        if distance < (client_info.view_distance as f64 / 5f64) {
             return Ok(());
         }
 
@@ -77,9 +83,9 @@ impl ChunkSender {
         let state_clone = state.clone();
         tokio::spawn(
             async move {
-                ChunkSender::send_chunks_to_player(state_clone, entity_id).await?;
-
-                Ok::<(), Error>(())
+                if let Err(e) = ChunkSender::send_chunks_to_player(state_clone, entity_id).await {
+                    error!("Failed to send chunk to player: {}", e);
+                }
             }
         );
 
@@ -97,7 +103,14 @@ impl ChunkSender {
             .get_components::<(Player, Position, ConnectionWrapper)>(entity_id)
             .await?;
 
+        let c_info = state
+            .world
+            .get_component::<ClientInfo>(entity_id)
+            .await.ok();
+
+
         let pos = c_pos.clone();
+        let view_distance: i8 = c_info.as_ref().map_or(DEFAULT_CHUNK_RADIUS, |c| c.view_distance);
         let conn = c_conn.0.clone();
 
         drop(c_pos);
@@ -112,7 +125,7 @@ impl ChunkSender {
         drop(player);
 
         ChunkSender::send_set_center_chunk(&pos, conn.clone()).await?;
-        ChunkSender::send_chunk_data_to_player(state.clone(), &pos, conn.clone()).await?;
+        ChunkSender::send_chunk_data_to_player(state.clone(), &pos, view_distance, conn.clone()).await?;
 
         Ok(())
     }
@@ -120,6 +133,7 @@ impl ChunkSender {
     async fn send_chunk_data_to_player(
         state: GlobalState,
         pos: &Position,
+        player_view_distance: i8,
         conn: Arc<RwLock<Connection>>,
     ) -> Result<()> {
         let start = std::time::Instant::now();
@@ -127,8 +141,10 @@ impl ChunkSender {
         let pos_x = pos.x;
         let pos_z = pos.z;
 
-        for x in -CHUNK_RADIUS..=CHUNK_RADIUS {
-            for z in -CHUNK_RADIUS..=CHUNK_RADIUS {
+        let chunk_radius = player_view_distance as i32;
+
+        for x in -chunk_radius..=chunk_radius {
+            for z in -chunk_radius..=chunk_radius {
                 let Ok(packet) = ChunkDataAndUpdateLight::new(
                     state.clone(),
                     (pos_x >> 4) + x,
@@ -147,11 +163,14 @@ impl ChunkSender {
         let sample_chunk = ChunkDataAndUpdateLight::new(state.clone(), pos_x >> 4, pos_z >> 4).await?;
         let mut vec = vec![];
         sample_chunk.net_encode(&mut vec).await?;
+        let chunk_rad_axis = chunk_radius * 2 + 1;
         debug!(
-                "Send {} chunks to player in {:?}. Approximately {} kb of data (~{} kb per chunk)",
-                (CHUNK_RADIUS * 2 + 1) * (CHUNK_RADIUS * 2 + 1),
+                "Send {}({}x{}) chunks to player in {:?}. Approximately {} kb of data (~{} kb per chunk)",
+                chunk_rad_axis * chunk_rad_axis,
+                chunk_rad_axis,
+                chunk_rad_axis,
                 start.elapsed(),
-                vec.len() as i32 * ((CHUNK_RADIUS * 2 + 1) * (CHUNK_RADIUS * 2 + 1)) / 1024,
+                vec.len() as i32 * chunk_rad_axis * chunk_rad_axis / 1024,
                 vec.len() as i32 / 1024
             );
 

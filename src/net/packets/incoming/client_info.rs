@@ -1,11 +1,11 @@
-use tracing::trace;
+use tracing::{trace};
 
-use ferrumc_macros::{packet, NetDecode};
+use ferrumc_macros::{packet, Component, NetDecode};
 
 use crate::net::packets::{ConnectionId, IncomingPacket};
 use crate::state::GlobalState;
 
-#[derive(NetDecode)]
+#[derive(NetDecode, Component, Clone, Debug)]
 #[packet(packet_id = 0x08, state = "play")]
 pub struct ClientInfo {
     pub locale: String,
@@ -19,8 +19,8 @@ pub struct ClientInfo {
 impl IncomingPacket for ClientInfo {
     async fn handle(
         self,
-        _: ConnectionId,
-        _state: GlobalState,
+        entity_id: ConnectionId,
+        state: GlobalState,
     ) -> crate::utils::prelude::Result<()> {
         trace!("ClientInfo packet received");
         trace!("Locale: {}", self.locale);
@@ -29,6 +29,14 @@ impl IncomingPacket for ClientInfo {
         trace!("Chat Colors: {}", self.chat_colors);
         trace!("Displayed Skin Parts: {}", self.displayed_skin_parts);
         trace!("Main Hand: {}", self.main_hand);
+
+        // ClientInfo is a packet & also a component.
+        state
+            .world
+            .get_component_storage()
+            .insert(entity_id, self);
+
+
         Ok(())
     }
 }
