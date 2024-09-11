@@ -1,9 +1,7 @@
-use byteorder::LE;
 use deepsize::DeepSizeOf;
 use futures::FutureExt;
-use heed::types::{Bytes, U64};
-use heed::{Env as LMDBDatabase, EnvFlags, EnvOpenOptions};
 use moka::notification::{ListenerFuture, RemovalCause};
+use rocksdb::{Cache, ColumnFamilyDescriptor, Options, DB};
 use std::env;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -15,19 +13,11 @@ use crate::utils::config::get_global_config;
 use crate::utils::error::Error;
 
 use crate::world::chunkformat::Chunk;
+
 pub mod chunks;
 
-
-// MDBX constants
-const LMDB_MAX_TABLE: u32 = 16;
-const LMDB_PAGE_SIZE: usize = 50*1024usize.pow(3); // 50GiB
-
-/// Global database structure
-/// 
-/// Internally contain a handle to the persistent database and a
-/// cache for all in-memory updates
 pub struct Database {
-    db: LMDBDatabase,
+    db: Arc<DB>,
     cache: Arc<moka::future::Cache<u64, Chunk>>,
 }
 
@@ -40,10 +30,7 @@ fn evict_chunk(_key: Arc<u64>, value: Chunk, cause: RemovalCause) -> ListenerFut
     .boxed()
 }
 
-/// Start database
 pub async fn start_database() -> Result<Database, Error> {
-    
-    // Parse root directory from environment variable
     let root = if env::var("FERRUMC_ROOT").is_ok() {
         PathBuf::from(env::var("FERRUMC_ROOT").unwrap())
     } else {
@@ -55,7 +42,6 @@ pub async fn start_database() -> Result<Database, Error> {
         )
     };
 
-    // Obtain global config to locate which world folder to load
     let world = get_global_config().world.clone();
     let world_path = root.join("data").join(world);
 
@@ -65,30 +51,42 @@ pub async fn start_database() -> Result<Database, Error> {
         fs::create_dir_all(&world_path).await?;
     }
 
-    // Database Options
-    let mut opts = EnvOpenOptions::new();
-    opts
-        .max_readers(num_cpus::get() as u32)
-        .map_size(LMDB_PAGE_SIZE)
-        .max_dbs(LMDB_MAX_TABLE);
-    
-    // Open database (This operation is safe as we assume no other process touched the database)
-    let lmdb = unsafe { opts.flags(EnvFlags::WRITE_MAP).open(&world_path).expect("Unable to open LMDB environment located at {world_path:?}") };
-
-    // Check if database is built. Otherwise initialize it
-    let mut rw_tx = lmdb.write_txn().unwrap();
-    if lmdb.open_database::<U64<LE>, Bytes>(&rw_tx, Some("chunks")).unwrap().is_none() {
-        lmdb.create_database::<U64<LE>, Bytes>(&mut rw_tx, Some("chunks")).expect("Unable to create database");
+    let mut opts = Options::default();
+    opts.create_if_missing(true);
+    opts.create_missing_column_families(true);
+    opts.increase_parallelism(num_cpus::get() as i32);
+    opts.set_db_log_dir(root.join("logs"));
+    opts.set_compression_type(rocksdb::DBCompressionType::Lz4);
+    // opts.set_compression_options_parallel_threads(num_cpus::get() as i32);
+    let cache = Cache::new_lru_cache(512 * 1024); // 1MB cache
+    {
+        let mut bb_opts = rocksdb::BlockBasedOptions::default();
+        bb_opts.set_block_cache(&cache);
+        bb_opts.set_checksum_type(rocksdb::ChecksumType::NoChecksum);
+        opts.set_block_based_table_factory(&bb_opts);
     }
-    // `entities` table to be added, but needs the type to do so
-    
-    rw_tx.commit().unwrap();
-    
+    opts.set_row_cache(&cache);
+    opts.set_paranoid_checks(false);
+    opts.set_disable_auto_compactions(true);
+    opts.set_compaction_readahead_size(0);
+    opts.set_allow_mmap_reads(true);
+    opts.set_allow_mmap_writes(true);
+
+    let cf_names = vec!["chunks", "entities"];
+    let cf_descriptors = cf_names
+        .into_iter()
+        .map(|name| {
+            ColumnFamilyDescriptor::new(name, opts.clone())
+        })
+        .collect::<Vec<_>>();
+
+    let database = DB::open_cf_descriptors(&opts, world_path, cf_descriptors)
+        .expect("Failed to open database");
+
     info!("Database started");
 
     info!("Initializing cache");
 
-    // Initializing moka cache
     let cache = moka::future::Cache::builder()
         .async_eviction_listener(evict_chunk)
         .weigher(|_, v| v.deep_size_of() as u32)
@@ -98,7 +96,8 @@ pub async fn start_database() -> Result<Database, Error> {
         .build();
 
     Ok(Database {
-        db: lmdb,
+        db: Arc::new(database),
         cache: Arc::new(cache),
     })
 }
+
