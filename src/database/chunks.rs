@@ -2,7 +2,7 @@ use byteorder::LE;
 use heed::types::{Bytes, U64};
 use heed::Env;
 use tokio::task::spawn_blocking;
-use tracing::{debug, warn};
+use tracing::{trace, warn};
 
 use crate::database::Database;
 use crate::utils::error::Error;
@@ -100,7 +100,7 @@ impl Database {
         tokio::task::spawn(async move {
             // Check cache
             if cache.contains_key(&key) {
-                debug!("Chunk already exists in cache: {:X}", key);
+                trace!("Chunk already exists in cache: {:X}", key);
             }
             // If not in cache then search in database
             else if let Ok(chunk) =
@@ -146,7 +146,7 @@ impl Database {
     /// ```
     pub async fn insert_chunk(&self, value: Chunk) -> Result<(), Error> {
         // Calculate key of this chunk
-        // WARNING: This key wasn't supposed to include value.dimension in the tuple but it was different from the key used in persistent database most likely a bug.
+        // WARNING: This key wasn't supposed to include value.dimension in the tuple, but it was different from the key used in persistent database most likely a bug.
         let key = hash((value.dimension.as_ref().unwrap(), value.x_pos, value.z_pos));
 
         // Insert chunk into persistent database
@@ -238,8 +238,7 @@ impl Database {
         // Else check persistent database and load it into cache
         } else {
             let res = spawn_blocking(move || Self::get_chunk_from_database(&db, &key))
-                .await
-                .unwrap();
+                .await?;
 
             // WARNING: The previous logic was to order the chunk to be loaded into cache whether it existed or not.
             // This has been replaced by directly loading the queried chunk into cache
@@ -276,7 +275,7 @@ impl Database {
     /// ```
     pub async fn update_chunk(&self, value: Chunk) -> Result<(), Error> {
         // Calculate key of this chunk
-        // WARNING: This key wasn't supposed to include value.dimension in the tuple but it was different from the key used in persistent database most likely a bug.
+        // WARNING: This key wasn't supposed to include value.dimension in the tuple, but it was different from the key used in persistent database most likely a bug.
         let key = hash((value.dimension.as_ref().unwrap(), value.x_pos, value.z_pos));
 
         // Insert new chunk state into persistent database

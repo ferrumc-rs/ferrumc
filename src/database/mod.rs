@@ -9,7 +9,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::fs;
-use tracing::{debug, info};
+use tracing::{debug, info, trace};
 
 use crate::utils::config::get_global_config;
 use crate::utils::error::Error;
@@ -33,7 +33,11 @@ pub struct Database {
 fn evict_chunk(_key: Arc<u64>, value: Chunk, cause: RemovalCause) -> ListenerFuture {
     async move {
         if cause == RemovalCause::Expired {
-            debug!("Evicting chunk: {}, {}", value.x_pos, value.z_pos);
+            trace!(
+                "Evicting chunk from cache: {}, {}",
+                value.x_pos,
+                value.z_pos
+            );
         }
     }
     .boxed()
