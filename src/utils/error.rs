@@ -93,6 +93,10 @@ pub enum Error {
 
     #[error("Database error: {0}")]
     LmdbError(#[from] heed::Error),
+    #[error("(bincode) Encode error")]
+    BincodeEncodeError(#[from] bincode::error::EncodeError),
+    #[error("(bincode) Decode error")]
+    BincodeDecodeError(#[from] bincode::error::DecodeError),
 }
 
 impl From<Infallible> for Error {

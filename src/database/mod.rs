@@ -2,7 +2,7 @@ use byteorder::LE;
 use chunks::Zstd;
 use deepsize::DeepSizeOf;
 use futures::FutureExt;
-use heed::types::U64;
+use heed::types::{Bytes, U64};
 use heed::{Env as LMDBDatabase, EnvFlags, EnvOpenOptions};
 use moka::notification::{ListenerFuture, RemovalCause};
 use rayon::{ThreadPool, ThreadPoolBuilder};
@@ -95,18 +95,18 @@ pub async fn start_database() -> Result<Database, Error> {
     });
     
     // Check if database is built. Otherwise, initialize it
-    let mut rw_tx = lmdb.write_txn().unwrap();
+    let mut rw_tx = lmdb.write_txn()?;
     if lmdb
-        .open_database::<U64<LE>, Zstd<Chunk>>(&rw_tx, Some("chunks"))
-        .unwrap()
+        // .open_database::<U64<LE>, Zstd<Chunk>>(&rw_tx, Some("chunks"))
+        .open_database::<U64<LE>, Bytes>(&rw_tx, Some("chunks"))?
         .is_none()
     {
-        lmdb.create_database::<U64<LE>, Zstd<Chunk>>(&mut rw_tx, Some("chunks"))
+        lmdb.create_database::<U64<LE>, Bytes>(&mut rw_tx, Some("chunks"))
             .expect("Unable to create database");
     }
     // `entities` table to be added, but needs the type to do so
 
-    rw_tx.commit().unwrap();
+    rw_tx.commit()?;
 
     info!("Database started");
 

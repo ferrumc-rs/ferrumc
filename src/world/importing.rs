@@ -1,19 +1,40 @@
 use crate::utils::prelude::*;
 use fastanvil::{ChunkData, Region};
 use indicatif::{ProgressBar, ProgressStyle};
-use nbt_lib::NBTDeserializeBytes;
+use nbt_lib::{NBTDeserializeBytes, NBTSerialize};
 use rayon::prelude::*;
 use std::env;
 use std::fs::File;
 use std::io::Cursor;
 use std::path::PathBuf;
 use std::sync::Arc;
+use bincode::config::standard;
+use bincode::Encode;
+use tokio::runtime::Handle;
 use tracing::{debug, info, warn};
-
+use crate::database::chunks::ZstdCodec;
 use crate::state::GlobalState;
+use crate::utils::hash::hash;
 use crate::world::chunk_format::Chunk;
 
 const DEFAULT_BATCH_SIZE: u8 = 150;
+
+/// A serialized chunk is a tuple of the chunk's hash and the compressed chunk data
+/// (hash, compressed_chunk_data)
+pub struct SerializedChunk(u64, Vec<u8>);
+
+impl SerializedChunk {
+    pub fn new(hash: u64, data: Vec<u8>) -> Self {
+        Self(hash, data)
+    }
+    pub fn hash(&self) -> u64 {
+        self.0
+    }
+
+    pub fn data(&self) -> &Vec<u8> {
+        self.1.as_ref()
+    }
+}
 
 fn get_batch_size() -> i32 {
     let batch_size = env::args()
@@ -73,22 +94,31 @@ async fn get_total_chunks(dir: &PathBuf) -> Result<usize> {
     Ok(regions.into_par_iter().map(|mut region| region.iter().count()).sum())
 }
 
-fn process_chunk(chunk_data: Vec<u8>, file_name: &str, bar: Arc<ProgressBar>) -> Result<Chunk> {
-    let mut final_chunk = Chunk::read_from_bytes(&mut Cursor::new(chunk_data))
+async fn process_chunk(chunk_data: Vec<u8>, file_name: &str, bar: Arc<ProgressBar>) -> Result<SerializedChunk> {
+    let mut chunk = Chunk::read_from_bytes(&mut Cursor::new(chunk_data))
         .map_err(|e| {
             bar.abandon_with_message(format!("Chunk {} failed to import", file_name));
             Error::Generic(format!("Could not read chunk {} {}", e, file_name))
         })?;
 
-    final_chunk.convert_to_net_mode()
+    chunk.convert_to_net_mode()
         .map_err(|e| {
-            bar.abandon_with_message(format!("Chunk {} {} failed to import", final_chunk.x_pos, final_chunk.z_pos));
-            Error::Generic(format!("Could not convert chunk {} {} to network mode: {}", final_chunk.x_pos, final_chunk.z_pos, e))
+            bar.abandon_with_message(format!("Chunk {} {} failed to import", chunk.x_pos, chunk.z_pos));
+            Error::Generic(format!("Could not convert chunk {} {} to network mode: {}", chunk.x_pos, chunk.z_pos, e))
         })?;
 
-    final_chunk.dimension = Some("overworld".to_string());
+    chunk.dimension = Some("overworld".to_string());
 
-    Ok(final_chunk)
+    // let chunk_data = bincode::encode_to_vec(final_chunk, standard())?;
+    // let chunk_data = ZstdCodec::compress_data(final_chunk);
+    let hash =  hash((chunk.dimension.as_ref().expect(format!("Invalid chunk @ ({},{})", chunk.x_pos, chunk.z_pos).as_str()), chunk.x_pos, chunk.z_pos));
+    /*let chunk_data = tokio::task::(async move {
+        ZstdCodec::compress_data(chunk).await.expect("Failed to compress chunk")
+    });*/
+    // let chunk_data = Handle::current().block_on(ZstdCodec::compress_data(chunk)).expect("Failed to compress chunk");
+    let chunk_data = ZstdCodec::compress_data(chunk).await.expect("Failed to compress chunk");
+
+    Ok(SerializedChunk::new(hash, chunk_data))
 }
 
 //noinspection RsBorrowChecker
@@ -122,7 +152,7 @@ pub async fn import_regions(state: GlobalState) -> Result<()> {
         while !chunks.is_empty() {
             let chunk_batch: Vec<ChunkData> = chunks.drain(..std::cmp::min(batch_size, chunks.len())).collect();
 
-            let processed_chunks: Vec<Chunk> = chunk_batch.into_par_iter()
+            /*let processed_chunks: Vec<SerializedChunk> = chunk_batch.into_par_iter()
                 .filter_map(|chunk| {
                     let data = chunk.data.clone();
                     match process_chunk(data, file_name, Arc::clone(&bar)) {
@@ -137,6 +167,32 @@ pub async fn import_regions(state: GlobalState) -> Result<()> {
                         }
                     }
                 })
+                .collect();*/
+
+            let processed_chunks_futures: Vec<_> = chunk_batch.into_iter()
+                .map(|chunk| {
+                    let data = chunk.data.clone();
+                    let bar_clone = Arc::clone(&bar);
+                    let file_name = file_name.to_string();
+                    tokio::spawn(async move {
+                        match process_chunk(data, &file_name, Arc::clone(&bar_clone)).await {
+                            Ok(processed) => {
+                                bar_clone.inc(1);
+                                Some(processed)
+                            }
+                            Err(e) => {
+                                warn!("Failed to process chunk: {}. Skipping.", e);
+                                None
+                            }
+                        }
+                    })
+                })
+                .collect();
+
+            let processed_chunks: Vec<SerializedChunk> = futures::future::join_all(processed_chunks_futures)
+                .await
+                .into_iter()
+                .filter_map(|result| result.ok().flatten())
                 .collect();
 
             // Insert the batch of processed chunks
@@ -193,7 +249,7 @@ fn create_progress_bar(total_chunks: usize) -> ProgressBar {
     bar
 }
 
-async fn insert_chunks(state: &GlobalState, queued_chunks: Vec<Chunk>, bar: &ProgressBar) -> Result<()> {
+async fn insert_chunks(state: &GlobalState, queued_chunks: Vec<SerializedChunk>, bar: &ProgressBar) -> Result<()> {
     state.database.batch_insert(queued_chunks).await
         .map_err(|e| {
             bar.abandon_with_message("Chunk insertion failed".to_string());

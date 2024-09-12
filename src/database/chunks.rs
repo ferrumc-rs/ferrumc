@@ -6,7 +6,10 @@ use bincode::{Decode, Encode, config::standard};
 use byteorder::LE;
 use futures::channel::oneshot::{self, Canceled};
 use heed::{types::U64, BytesDecode, BytesEncode, Env, MdbError};
+use heed::types::Bytes;
 use moka::future::Cache;
+use tokio::runtime::Handle;
+use tokio::task::block_in_place;
 use tracing::{trace, warn};
 
 use crate::{
@@ -15,7 +18,7 @@ use crate::{
     utils::hash::hash,
     world::chunk_format::Chunk
 };
-
+use crate::world::importing::SerializedChunk;
 use super::{LMDB_PAGE_SIZE, LMDB_PAGE_SIZE_INCREMENT, LMDB_READER_SYNC, LMDB_THREADPOOL};
 
 pub struct Zstd<T>(PhantomData<T>);
@@ -45,6 +48,30 @@ impl<'a, T: Decode + 'a> BytesDecode<'a> for Zstd<T> {
         Ok(decoded)*/
         let decoded = bincode::decode_from_slice(bytes, standard())?;
         Ok(decoded.0)
+    }
+}
+
+pub struct ZstdCodec;
+
+impl ZstdCodec {
+    pub async fn compress_data<T: Encode + Send + 'static>(data: T) -> crate::Result<Vec<u8>> {
+        tokio::task::spawn_blocking(
+            move ||{
+                let mut bytes = Vec::new();
+                let mut compressor = zstd::Encoder::new(&mut bytes, 3)?;
+                bincode::encode_into_std_write(&data, &mut compressor, standard())?;
+                compressor.finish()?;
+                Ok(bytes)
+            }
+        ).await?
+    }
+    pub async fn decompress_data<T: Decode + Send + 'static>(data: Vec<u8>) -> crate::Result<T> {
+        tokio::task::spawn_blocking(
+            move || {
+                let decoded = bincode::decode_from_slice(data.as_slice(), standard())?;
+                Ok(decoded.0)
+            }
+        ).await?
     }
 }
 
@@ -114,11 +141,23 @@ impl Database {
         // Initialize read transaction and open chunks table
         let ro_tx = db.read_txn()?;
         let database = db
-            .open_database::<U64<LE>, Zstd<Chunk>>(&ro_tx, Some("chunks"))?
+            .open_database::<U64<LE>, Bytes>(&ro_tx, Some("chunks"))?
             .expect("No table \"chunks\" found. The database should have been initialized");
 
         // Attempt to fetch chunk from table
-        database.get(&ro_tx, key)
+        let data = database.get(&ro_tx, key)?;
+        let chunk = match data {
+            Some(data) => {
+                // let chunk = ZstdCodec::decompress_data::<Chunk>(data.to_vec()).expect("Failed to decompress chunk");
+                let chunk = Handle::current().block_on(async {
+                    ZstdCodec::decompress_data::<Chunk>(data.to_vec()).await.expect("Failed to decompress chunk")
+                });
+                Some(chunk)
+            }
+            None => None,
+        };
+
+        Ok(chunk)
         //.map_err(|err| Error::DatabaseError(format!("Failed to get chunk: {err}")))
     }
 
@@ -127,14 +166,23 @@ impl Database {
         // Initialize write transaction and open chunks table
         let mut rw_tx = db.write_txn()?;
         let database = db
-            .open_database::<U64<LE>, Zstd<Chunk>>(&rw_tx, Some("chunks"))?
+            .open_database::<U64<LE>, Bytes>(&rw_tx, Some("chunks"))?
             .expect("No table \"chunks\" found. The database should have been initialized");
 
         // Calculate key
         let key = hash((chunk.dimension.as_ref().unwrap(), chunk.x_pos, chunk.z_pos));
 
+        // let chunk = Handle::current().block_on(ZstdCodec::compress_data(chunk)).expect("Failed to compress chunk");
+        let chunk = chunk.clone();
+        let chunk = Handle::current().block_on(async {
+            ZstdCodec::compress_data(chunk).await.expect("Failed to compress chunk")
+        });
+        /*
+            ZstdCodec::compress_data(chunk).await.expect("Failed to compress chunk")
+        });*/
+
         // Insert chunk
-        let res = database.put(&mut rw_tx, &key, chunk);
+        let res = database.put(&mut rw_tx, &key, chunk.as_slice());
         rw_tx.commit()?;
         // .map_err(|err| {
         //     Error::DatabaseError(format!("Unable to commit changes to database: {err}"))
@@ -152,20 +200,20 @@ impl Database {
 
     /// Insert multiple chunks into database
     /// TODO: Find better name/disambiguation
-    fn insert_chunks_into_database(db: &Env, chunks: &[Chunk]) -> Result<(), heed::Error> {
+    fn insert_chunks_into_database(db: &Env, chunks: &[SerializedChunk]) -> Result<(), heed::Error> {
         // Initialize write transaction and open chunks table
         let mut rw_tx = db.write_txn()?;
         let database = db
-            .open_database::<U64<LE>, Zstd<Chunk>>(&rw_tx, Some("chunks"))?
+            .open_database::<U64<LE>, Bytes>(&rw_tx, Some("chunks"))?
             .expect("No table \"chunks\" found. The database should have been initialized");
 
         // Update page
         for chunk in chunks {
             // Calculate key
-            let key = hash((chunk.dimension.as_ref().unwrap(), chunk.x_pos, chunk.z_pos));
+            // let key = hash((chunk.dimension.as_ref().unwrap(), chunk.x_pos, chunk.z_pos));
 
             // Insert chunk
-            database.put(&mut rw_tx, &key, chunk)?;
+            database.put(&mut rw_tx, &chunk.hash(), chunk.data())?;
         }
         // Commit changes
         rw_tx.commit()?;
@@ -392,25 +440,30 @@ impl Database {
     /// }
     ///
     /// ```
-    pub async fn batch_insert(&self, values: Vec<Chunk>) -> Result<(), Error> {
+    pub async fn batch_insert(&self, values: Vec<SerializedChunk>) -> Result<(), Error> {
         // Clone database pointer
         let db = self.db.clone();
         let tsk_db = self.db.clone();
 
         // Calculate all keys
-        let keys = values
+  /*      let keys = values
             .iter()
             .map(|v| hash((v.dimension.as_ref().unwrap_or_else(|| panic!("Invalid chunk @ ({},{})", v.x_pos, v.z_pos)), v.x_pos, v.z_pos)))
             .collect::<Vec<u64>>();
+*/
+        // let keys = values.iter().map(|v| v.hash()).collect::<Vec<u64>>();
 
         // WARNING: The previous logic was to first insert in database and then insert in cache using load_into_cache fn.
         // This has been modified to avoid having to query database while we already have the data available.
         // First insert into cache
 
-        for (key, chunk) in keys.into_iter().zip(&values) {
+        // TODO: Renable cache. Currently disabled because we only get serialized bytes with the hash.
+        // to save in the database
+        /*for (chunk) in values.iter() {
             let cache = self.cache.clone();
             let db = self.db.clone();
-            let chunk = chunk.clone();
+            let key = chunk.hash();
+            let chunk = chunk.data().clone();
             tokio::spawn(async move {
                 cache.insert(key, chunk).await;
                 if let Err(e) = Database::load_into_cache_standalone(db, cache, key).await {
@@ -418,7 +471,7 @@ impl Database {
                 }
             });
         }
-        
+        */
         // Then insert into persistent database
         spawn_blocking_db(tsk_db, move || Self::insert_chunks_into_database(&db, &values))
             .await
