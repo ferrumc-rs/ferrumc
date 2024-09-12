@@ -1,12 +1,11 @@
-use std::io::{Cursor, Write};
-
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use nbt_lib::{read_tag, NBTDeserialize, NBTDeserialize, NBTSerialize, NBTSerialize};
+use std::io::Cursor;
 
 use crate::test_simd_de_data::MinecraftChunk;
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use nbt_lib::{read_tag, NBTSerialize};
 
 mod test_de_data {
-    use super::*;
+    use nbt_lib::{NBTDeserialize, NBTSerialize};
 
     #[derive(NBTSerialize, NBTDeserialize, Debug, Clone)]
     #[nbt(is_root)]
@@ -78,7 +77,7 @@ mod test_de_data {
         language: String,
     }
 
-    pub fn create_test_player() -> Player {
+    pub fn _create_test_player() -> Player {
         Player {
             name: "SuperPlayer123".to_string(),
             age: 25,
@@ -174,7 +173,7 @@ mod test_de_data {
     }
 }
 mod test_simd_de_data {
-    use super::*;
+    use nbt_lib::{NBTDeserialize, NBTSerialize};
 
     #[derive(NBTSerialize, NBTDeserialize, Debug)]
     #[nbt(rename = "Level")]
@@ -286,7 +285,7 @@ fn benchmark_serialization(c: &mut Criterion) {
     c.bench_function("serialize", |b| {
         b.iter(|| {
             let mut buffer = Vec::with_capacity(10240);
-            black_box(world.serialize(&mut buffer)).unwrap();
+            black_box(world.nbt_serialize(&mut buffer)).unwrap();
         })
     });
 }
@@ -306,7 +305,7 @@ fn benchmark_serialization(c: &mut Criterion) {
 }
 */
 
-fn get_nbt_buffer() -> Vec<u8> {
+fn _get_nbt_buffer() -> Vec<u8> {
     /*let mut buffer = std::fs::read(".etc/TheAIguy_.nbt").unwrap();
 
     // decompress gzip
@@ -323,13 +322,13 @@ fn get_nbt_buffer() -> Vec<u8> {
     let data = MinecraftChunk::create_test_instance();
 
     let mut buffer = Vec::with_capacity(2048);
-    data.serialize(&mut buffer).unwrap();
+    data.nbt_serialize(&mut buffer).unwrap();
 
     buffer
 }
 
-fn benchmark_raw_deserialization(c: &mut Criterion) {
-    let buffer = get_nbt_buffer();
+fn _benchmark_raw_deserialization(c: &mut Criterion) {
+    let buffer = _get_nbt_buffer();
     let mut cursor = Cursor::new(buffer);
 
     c.bench_function("world_chunk_deser_raw", |b| {
@@ -342,8 +341,8 @@ fn benchmark_raw_deserialization(c: &mut Criterion) {
         })
     });
 }
-fn benchmark_simdnbt_deserialization(c: &mut Criterion) {
-    let buffer = get_nbt_buffer();
+fn _benchmark_simdnbt_deserialization(c: &mut Criterion) {
+    let buffer = _get_nbt_buffer();
 
     let buffer = buffer.as_slice();
 
