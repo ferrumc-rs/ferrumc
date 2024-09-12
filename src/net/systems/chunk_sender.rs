@@ -143,7 +143,7 @@ impl ChunkSender {
 
         let chunk_radius = player_view_distance as i32;
 
-        for x in -chunk_radius..=chunk_radius {
+        'x: for x in -chunk_radius..=chunk_radius {
             for z in -chunk_radius..=chunk_radius {
                 let Ok(packet) = ChunkDataAndUpdateLight::new(
                     state.clone(),
@@ -154,7 +154,8 @@ impl ChunkSender {
                 };
                 let conn_read = conn.read().await;
                 if let Err(e) = conn_read.send_packet(packet).await {
-                    warn!("Failed to send chunk to player: {}", e);
+                    warn!("Failed to send chunk to player: {} ; Cancelling.", e);
+                    break 'x;
                 }
             }
         }

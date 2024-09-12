@@ -1,12 +1,13 @@
 use std::borrow::Cow;
 use std::future::Future;
 use std::marker::PhantomData;
-
+use std::sync::Arc;
 use bincode::{Decode, Encode, config::standard};
 use byteorder::LE;
 use futures::channel::oneshot::{self, Canceled};
 use heed::{types::U64, BytesDecode, BytesEncode, Env, MdbError};
-use tracing::{info, trace, warn};
+use moka::future::Cache;
+use tracing::{trace, warn};
 
 use crate::{
     database::Database,
@@ -162,27 +163,22 @@ impl Database {
             let key = hash((chunk.dimension.as_ref().unwrap(), chunk.x_pos, chunk.z_pos));
 
             // Insert chunk
-            database.put(&mut rw_tx, &key, chunk)?
-            //     .map_err(|err| {
-            //     Error::DatabaseError(format!("Failed to insert or update chunk: {err}"))
-            // })?;
+            database.put(&mut rw_tx, &key, chunk)?;
         }
-
         // Commit changes
         rw_tx.commit()?;
-        // .map_err(|err| {
-        //     Error::DatabaseError(format!("Unable to commit changes to database: {err}"))
-        // })?;
         Ok(())
     }
 
     async fn load_into_cache(&self, key: u64) -> Result<(), Error> {
-        let db = self.db.clone();
-        let tsk_db = self.db.clone();
-        let cache = self.cache.clone();
+        Database::load_into_cache_standalone(self.db.clone(), self.cache.clone(), key).await
+    }
+
+    async fn load_into_cache_standalone(db: Env, cache: Arc<Cache<u64, Chunk>>, key: u64) -> Result<(), Error> {
+        let tsk_db = db.clone();
 
         tokio::task::spawn(async move {
-            
+
             // Check cache
             if cache.contains_key(&key) {
                 trace!("Chunk already exists in cache: {:X}", key);
@@ -210,7 +206,6 @@ impl Database {
             .await?;
         Ok(())
     }
-
     /// Insert a chunk into the database <br>
     /// This will also insert the chunk into the cache <br>
     /// If the chunk already exists, it will return an error
@@ -395,65 +390,6 @@ impl Database {
     ///
     /// ```
     pub async fn batch_insert(&self, values: Vec<Chunk>) -> Result<(), Error> {
-        /*
-
-        trace!("processing chunks (compressing and encoding)");
-        // Process chunks in parallel
-        let processed_chunks: Vec<(u64, Vec<u8>)> = values
-            .par_iter()
-            .map(|chunk| {
-                let key = hash((
-                    chunk.dimension.as_ref().expect(&format!("Invalid chunk @ ({},{})", chunk.x_pos, chunk.z_pos)),
-                    chunk.x_pos,
-                    chunk.z_pos,
-                ));
-
-                let encoded_chunk = encode_to_vec(chunk, standard())
-                    .expect("Failed to encode chunk");
-                let compressed = zstd_compress(&encoded_chunk, 3)
-                    .expect("Failed to compress chunk.")
-                    ;
-
-                (key, compressed)
-            })
-            .collect();
-        trace!("processed chunks");*/
-
-        // Insert into cache in parallel
-        // TODO: re-enable this?
-        /*values.par_iter().for_each(|chunk| {
-            let key = hash((
-                chunk.dimension.as_ref().expect(&format!("Invalid chunk @ ({},{})", chunk.x_pos, chunk.z_pos)),
-                chunk.x_pos,
-                chunk.z_pos,
-            ));
-
-            // tokio::spawn(self.load_into_cache(key));
-            // if let Err(e) = self.cache.insert(key, chunk.clone()) {
-            //     warn!("Failed to insert chunk into cache: {:?}", e);
-            // }
-        });
-*/
-
-        /*trace!("Inserting chunks into database");
-        // Perform batch insert into LMDB
-        spawn_blocking(move || {
-            let mut rw_tx = db.write_txn()?;
-            let database = db
-                .open_database::<U64<LE>, Bytes>(&rw_tx, Some("chunks"))?
-                .expect("No table \"chunks\" found. The database should have been initialized");
-
-            for (key, compressed) in processed_chunks {
-                database.put(&mut rw_tx, &key, &compressed)?;
-            }
-
-            rw_tx.commit()?;
-            Ok::<_, Error>(())
-        })
-            .await??;
-
-        Ok(())*/
-
         // Clone database pointer
         let db = self.db.clone();
         let tsk_db = self.db.clone();
@@ -467,9 +403,17 @@ impl Database {
         // WARNING: The previous logic was to first insert in database and then insert in cache using load_into_cache fn.
         // This has been modified to avoid having to query database while we already have the data available.
         // First insert into cache
+
         for (key, chunk) in keys.into_iter().zip(&values) {
-            self.cache.insert(key, chunk.clone()).await;
-            self.load_into_cache(key).await?;
+            let cache = self.cache.clone();
+            let db = self.db.clone();
+            let chunk = chunk.clone();
+            tokio::spawn(async move {
+                cache.insert(key, chunk).await;
+                if let Err(e) = Database::load_into_cache_standalone(db, cache, key).await {
+                    warn!("Error inserting chunk into database: {:?}", e);
+                }
+            });
         }
         
         // Then insert into persistent database

@@ -19,9 +19,8 @@ use crate::utils::error::Error;
 use crate::world::chunk_format::Chunk;
 pub mod chunks;
 
-// MDBX constants
-const LMDB_MIN_PAGE_SIZE: usize = 2 * 1024usize.pow(2); // 100MiB
-const LMDB_PAGE_SIZE_INCREMENT: usize = 50*1024usize.pow(2); // 200MiB
+const LMDB_MIN_PAGE_SIZE: usize = 50 * 1024usize.pow(2); // 50MB
+const LMDB_PAGE_SIZE_INCREMENT: usize = 250*1024usize.pow(2); // 250MB
 const LMDB_MAX_DBS: u32 = 10;
 
 // Database threadpool
@@ -85,7 +84,7 @@ pub async fn start_database() -> Result<Database, Error> {
 
     // Open database (This operation is safe as we assume no other process touched the database)
     let lmdb = unsafe {
-        opts.flags(EnvFlags::empty())
+        opts.flags(EnvFlags::WRITE_MAP | EnvFlags::NO_SYNC)
             .open(&world_path)
             .expect("Unable to open LMDB environment located at {world_path:?}")
     };

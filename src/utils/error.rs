@@ -1,6 +1,5 @@
 use std::convert::Infallible;
 
-use crate::world::importing_v2::ImportingError;
 use config::ConfigError;
 
 #[derive(thiserror::Error, Debug)]
@@ -92,8 +91,6 @@ pub enum Error {
     #[error(transparent)]
     CompressionError(std::io::Error),
 
-    #[error(transparent)]
-    ImportingError(#[from] ImportingError),
     #[error("Database error: {0}")]
     LmdbError(#[from] heed::Error),
 }

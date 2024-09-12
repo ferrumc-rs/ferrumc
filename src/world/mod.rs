@@ -2,7 +2,6 @@ pub mod blocks;
 pub mod chunk_format;
 pub mod conversions;
 pub mod importing;
-pub mod importing_v2;
 
 
 #[cfg(test)]
