@@ -5,8 +5,8 @@ use std::marker::PhantomData;
 use bincode::{Decode, Encode, config::standard};
 use byteorder::LE;
 use futures::channel::oneshot::{self, Canceled};
-use heed::{BytesDecode, BytesEncode, types::U64, Env};
-use tracing::{trace, warn};
+use heed::{types::U64, BytesDecode, BytesEncode, Env, MdbError};
+use tracing::{info, trace, warn};
 
 use crate::{
     database::Database,
@@ -15,7 +15,7 @@ use crate::{
     world::chunk_format::Chunk
 };
 
-use super::LMDB_THREADPOOL;
+use super::{LMDB_PAGE_SIZE, LMDB_PAGE_SIZE_INCREMENT, LMDB_READER_SYNC, LMDB_THREADPOOL};
 
 pub struct Zstd<T>(PhantomData<T>);
 
@@ -28,6 +28,7 @@ impl<'a, T: Encode + 'a> BytesEncode<'a> for Zstd<T> {
         let mut bytes = Vec::new();
         let mut compressor = zstd::Encoder::new(&mut bytes, 6)?;
         bincode::encode_into_std_write(item, &mut compressor, standard())?;
+        compressor.finish()?;
         
         Ok(Cow::Owned(bytes))
     }
@@ -44,17 +45,52 @@ impl<'a, T: Decode + 'a> BytesDecode<'a> for Zstd<T> {
     }
 }
 
+/// LMDB will follow a linear growth as opposed to MDBX which
+/// uses a geometric growth.
+pub(super) fn new_page_size(old_size: usize) -> usize {
+    old_size + LMDB_PAGE_SIZE_INCREMENT
+}
+
 // Will delegate a database operation to the database threadpool
-pub(super) fn spawn_blocking_db<F, R>(f: F) -> impl Future<Output = Result<R,Canceled>> 
+pub(super) fn spawn_blocking_db<F, R>(db: Env, f: F) -> impl Future<Output = Result<Result<R,heed::Error>,Canceled>> 
 where  
-    F: FnOnce() -> R + Send + 'static,
-    R: Send + 'static,
+    F: Fn() -> Result<R,heed::Error> + Send + 'static,
+    R: Send + 'static + std::fmt::Debug,
 {
-    let (tx,res) = oneshot::channel::<R>();
+    let (tx,res) = oneshot::channel::<Result<R,heed::Error>>();
     
     let pool = LMDB_THREADPOOL.get().unwrap();
     pool.spawn(move || {
-        if tx.send(f()).is_err() {
+        
+        let read_lock = LMDB_READER_SYNC.read()
+            .expect("Database RWLock has been poisoned. A thread should have crashed somewhere.");
+        
+        let mut res = f();
+        if let Err(heed::Error::Mdb(MdbError::MapFull)) = res {
+            
+            tracing::warn!("Database page is full. Resizing...");
+            
+            drop(read_lock);
+            
+            let _resize_guard = LMDB_READER_SYNC.write()
+                .expect("Database RWLock has been poisoned. A thread should have crashed somewhere.");
+            
+            let mut global_size_lock = LMDB_PAGE_SIZE.lock().unwrap();
+            let old_size = *global_size_lock;
+            *global_size_lock = new_page_size(old_size);
+            unsafe { db.resize(*global_size_lock).expect("Unable to resize LMDB environment.") };
+            
+            tracing::info!("Successfully resized LMDB page from {} MiB to {} MiB", (old_size / 1024usize.pow(2)), (*global_size_lock / 1024usize.pow(2)));
+            
+            drop(global_size_lock);
+            drop(_resize_guard);
+            
+            res = f();
+        } else {
+            drop(read_lock)
+        }
+        
+        if tx.send(res).is_err() {
             tracing::warn!("A database task has been unable to send its result because the receiver at other end have closed.")
         }
     });
@@ -71,7 +107,7 @@ impl Database {
     }
     
     /// Fetch chunk from database
-    fn get_chunk_from_database(db: &Env, key: &u64) -> Result<Option<Chunk>, Error> {
+    fn get_chunk_from_database(db: &Env, key: &u64) -> Result<Option<Chunk>, heed::Error> {
         // Initialize read transaction and open chunks table
         let ro_tx = db.read_txn()?;
         let database = db
@@ -80,11 +116,11 @@ impl Database {
 
         // Attempt to fetch chunk from table
         database.get(&ro_tx, key)
-            .map_err(|err| Error::DatabaseError(format!("Failed to get chunk: {err}")))
+        //.map_err(|err| Error::DatabaseError(format!("Failed to get chunk: {err}")))
     }
 
     /// Insert a single chunk into database
-    fn insert_chunk_into_database(db: &Env, chunk: &Chunk) -> Result<(), Error> {
+    fn insert_chunk_into_database(db: &Env, chunk: &Chunk) -> Result<(), heed::Error> {
         // Initialize write transaction and open chunks table
         let mut rw_tx = db.write_txn()?;
         let database = db
@@ -96,22 +132,24 @@ impl Database {
 
         // Insert chunk
         let res = database.put(&mut rw_tx, &key, chunk);
-        rw_tx.commit().map_err(|err| {
-            Error::DatabaseError(format!("Unable to commit changes to database: {err}"))
-        })?;
+        rw_tx.commit()?;
+        // .map_err(|err| {
+        //     Error::DatabaseError(format!("Unable to commit changes to database: {err}"))
+        // })?;
 
-        if let Err(err) = res {
-            Err(Error::DatabaseError(format!(
-                "Failed to insert or update chunk: {err}"
-            )))
-        } else {
-            Ok(())
-        }
+        res
+        // if let Err(err) = res {
+        //     Err(Error::DatabaseError(format!(
+        //         "Failed to insert or update chunk: {err}"
+        //     )))
+        // } else {
+        //     Ok(())
+        // }
     }
 
     /// Insert multiple chunks into database
     /// TODO: Find better name/disambiguation
-    fn insert_chunks_into_database(db: &Env, chunks: &[Chunk]) -> Result<(), Error> {
+    fn insert_chunks_into_database(db: &Env, chunks: &[Chunk]) -> Result<(), heed::Error> {
         // Initialize write transaction and open chunks table
         let mut rw_tx = db.write_txn()?;
         let database = db
@@ -124,20 +162,23 @@ impl Database {
             let key = hash((chunk.dimension.as_ref().unwrap(), chunk.x_pos, chunk.z_pos));
 
             // Insert chunk
-            database.put(&mut rw_tx, &key, chunk).map_err(|err| {
-                Error::DatabaseError(format!("Failed to insert or update chunk: {err}"))
-            })?;
+            database.put(&mut rw_tx, &key, chunk)?
+            //     .map_err(|err| {
+            //     Error::DatabaseError(format!("Failed to insert or update chunk: {err}"))
+            // })?;
         }
 
         // Commit changes
-        rw_tx.commit().map_err(|err| {
-            Error::DatabaseError(format!("Unable to commit changes to database: {err}"))
-        })?;
+        rw_tx.commit()?;
+        // .map_err(|err| {
+        //     Error::DatabaseError(format!("Unable to commit changes to database: {err}"))
+        // })?;
         Ok(())
     }
 
     async fn load_into_cache(&self, key: u64) -> Result<(), Error> {
         let db = self.db.clone();
+        let tsk_db = self.db.clone();
         let cache = self.cache.clone();
 
         tokio::task::spawn(async move {
@@ -148,7 +189,7 @@ impl Database {
             }
             // If not in cache then search in database
             else if let Ok(chunk) =
-                spawn_blocking_db(move || Self::get_chunk_from_database(&db, &key))
+                spawn_blocking_db(tsk_db, move || Self::get_chunk_from_database(&db, &key))
                     .await
                     .unwrap()
             {
@@ -196,7 +237,8 @@ impl Database {
         // Insert chunk into persistent database
         let chunk = value.clone();
         let db = self.db.clone();
-        spawn_blocking_db(move || Self::insert_chunk_into_database(&db, &chunk))
+        let tsk_db = self.db.clone();
+        spawn_blocking_db(tsk_db, move || Self::insert_chunk_into_database(&db, &chunk))
             .await
             .unwrap()?;
 
@@ -233,6 +275,7 @@ impl Database {
     ) -> Result<Option<Chunk>, Error> {
         // Calculate key of this chunk and clone database pointer
         let key = hash((dimension, x, z));
+        let tsk_db = self.db.clone();
         let db = self.db.clone();
 
         // First check cache
@@ -240,7 +283,7 @@ impl Database {
             Ok(self.cache.get(&key).await)
         }
         // Attempt to get chunk from persistent database
-        else if let Some(chunk) = spawn_blocking_db(move || Self::get_chunk_from_database(&db, &key))
+        else if let Some(chunk) = spawn_blocking_db(tsk_db, move || Self::get_chunk_from_database(&db, &key))
             .await
             .unwrap()?
         {
@@ -274,6 +317,7 @@ impl Database {
     pub async fn chunk_exists(&self, x: i32, z: i32, dimension: String) -> Result<bool, Error> {
         // Calculate key and copy database pointer
         let key = hash((dimension, x, z));
+        let tsk_db = self.db.clone();
         let db = self.db.clone();
 
         // Check first cache
@@ -281,7 +325,7 @@ impl Database {
             Ok(true)
         // Else check persistent database and load it into cache
         } else {
-            let res = spawn_blocking_db(move || Self::get_chunk_from_database(&db, &key)).await.unwrap();
+            let res = spawn_blocking_db(tsk_db, move || Self::get_chunk_from_database(&db, &key)).await.unwrap();
 
             // WARNING: The previous logic was to order the chunk to be loaded into cache whether it existed or not.
             // This has been replaced by directly loading the queried chunk into cache
@@ -293,7 +337,7 @@ impl Database {
                     }
                     Ok(exist)
                 }
-                Err(err) => Err(err),
+                Err(err) => Err(Error::LmdbError(err)),
             }
         }
     }
@@ -324,7 +368,8 @@ impl Database {
         // Insert new chunk state into persistent database
         let chunk = value.clone();
         let db = self.db.clone();
-        spawn_blocking_db(move || Self::insert_chunk_into_database(&db, &chunk)).await.unwrap()?;
+        let tsk_db = self.db.clone();
+        spawn_blocking_db(tsk_db, move || Self::insert_chunk_into_database(&db, &chunk)).await.unwrap()?;
 
         // Insert new chunk state into cache
         self.cache.insert(key, value).await;
@@ -411,11 +456,12 @@ impl Database {
 
         // Clone database pointer
         let db = self.db.clone();
+        let tsk_db = self.db.clone();
 
         // Calculate all keys
         let keys = values
             .iter()
-            .map(|v| hash((v.dimension.as_ref().expect(format!("Invalid chunk @ ({},{})", v.x_pos, v.z_pos).as_str()), v.x_pos, v.z_pos)))
+            .map(|v| hash((v.dimension.as_ref().unwrap_or_else(|| panic!("Invalid chunk @ ({},{})", v.x_pos, v.z_pos)), v.x_pos, v.z_pos)))
             .collect::<Vec<u64>>();
 
         // WARNING: The previous logic was to first insert in database and then insert in cache using load_into_cache fn.
@@ -425,11 +471,12 @@ impl Database {
             self.cache.insert(key, chunk.clone()).await;
             self.load_into_cache(key).await?;
         }
-
+        
         // Then insert into persistent database
-        spawn_blocking_db(move || Self::insert_chunks_into_database(&db, &values))
+        spawn_blocking_db(tsk_db, move || Self::insert_chunks_into_database(&db, &values))
             .await
             .unwrap()?;
+        
         Ok(())
     }
 }
