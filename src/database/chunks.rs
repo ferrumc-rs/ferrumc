@@ -26,10 +26,11 @@ impl<'a, T: Encode + 'a> BytesEncode<'a> for Zstd<T> {
     fn bytes_encode(item: &'a Self::EItem) -> Result<Cow<'a, [u8]>, heed::BoxedError> {
         
         // Compress
-        let mut bytes = Vec::new();
+        /*let mut bytes = Vec::new();
         let mut compressor = zstd::Encoder::new(&mut bytes, 6)?;
         bincode::encode_into_std_write(item, &mut compressor, standard())?;
-        compressor.finish()?;
+        compressor.finish()?;*/
+        let bytes= bincode::encode_to_vec(item, standard())?;
         
         Ok(Cow::Owned(bytes))
     }
@@ -39,10 +40,11 @@ impl<'a, T: Decode + 'a> BytesDecode<'a> for Zstd<T> {
     type DItem = T;
 
     fn bytes_decode(bytes: &'a [u8]) -> Result<Self::DItem, heed::BoxedError> {
-        
-        let mut decompressor = zstd::Decoder::new(bytes)?;
+        /*let mut decompressor = zstd::Decoder::new(bytes)?;
         let decoded = bincode::decode_from_std_read(&mut decompressor, standard())?;
-        Ok(decoded)
+        Ok(decoded)*/
+        let decoded = bincode::decode_from_slice(bytes, standard())?;
+        Ok(decoded.0)
     }
 }
 
@@ -170,6 +172,7 @@ impl Database {
         Ok(())
     }
 
+    #[allow(dead_code)]
     async fn load_into_cache(&self, key: u64) -> Result<(), Error> {
         Database::load_into_cache_standalone(self.db.clone(), self.cache.clone(), key).await
     }

@@ -19,7 +19,7 @@ use crate::utils::error::Error;
 use crate::world::chunk_format::Chunk;
 pub mod chunks;
 
-const LMDB_MIN_PAGE_SIZE: usize = 50 * 1024usize.pow(2); // 50MB
+const LMDB_MIN_PAGE_SIZE: usize = 1800 * 1024usize.pow(2); // 1800MB
 const LMDB_PAGE_SIZE_INCREMENT: usize = 250*1024usize.pow(2); // 250MB
 const LMDB_MAX_DBS: u32 = 10;
 

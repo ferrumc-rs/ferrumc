@@ -87,6 +87,7 @@ fn process_chunk(chunk_data: Vec<u8>, file_name: &str, bar: Arc<ProgressBar>) ->
         })?;
 
     final_chunk.dimension = Some("overworld".to_string());
+
     Ok(final_chunk)
 }
 
@@ -121,7 +122,6 @@ pub async fn import_regions(state: GlobalState) -> Result<()> {
         while !chunks.is_empty() {
             let chunk_batch: Vec<ChunkData> = chunks.drain(..std::cmp::min(batch_size, chunks.len())).collect();
 
-            let start = std::time::Instant::now();
             let processed_chunks: Vec<Chunk> = chunk_batch.into_par_iter()
                 .filter_map(|chunk| {
                     let data = chunk.data.clone();
@@ -138,13 +138,9 @@ pub async fn import_regions(state: GlobalState) -> Result<()> {
                     }
                 })
                 .collect();
-            info!("Processed {} chunks in {:?}", processed_chunks.len(), start.elapsed());
 
             // Insert the batch of processed chunks
-            let start = std::time::Instant::now();
-            let chunks_len = processed_chunks.len();
             insert_chunks(&state, processed_chunks, &bar).await?;
-            info!("Inserted {} chunks in {:?}", chunks_len, start.elapsed());
         }
 
         /*
