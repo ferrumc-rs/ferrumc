@@ -74,7 +74,7 @@ programming language, it is completely multithreaded; and offers high performanc
    </li>
    <li>
       <h4>💾 Lighting fast database to ensure extremely fast world loading speeds</h4>
-      <h6><i><a href="https://github.com/facebook/rocksdb">Currently using RocksDB</a></i></h6>
+      <h6><i><a href="https://www.symas.com/lmdb">Currently using LMDB</a></i></h6>
       <i>32 render distance*</i>
       <img src="https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/chunk_loading.gif?raw=true" alt="Chunk Loading DEMO">
    </li>
@@ -106,7 +106,6 @@ programming language, it is completely multithreaded; and offers high performanc
 
 - Rust compiler (latest nightly version)
 - Cargo (comes with Rust)
-- [LLVM](https://github.com/llvm/llvm-project/releases) (required for RocksDB compilation)
 
 ### 📥 Installation
 
