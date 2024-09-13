@@ -1,4 +1,4 @@
-<img style="width: 100%" src="https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/header.svg?raw=true" alt="FerrumC Header">
+<img style="width: 100%" src="https://github.com/ferrumc-rs/ferrumc/blob/dev/README/assets/header.svg?raw=true" alt="FerrumC Header">
 <div align="center">
     <img src="https://img.shields.io/github/license/Sweattypalms/ferrumc?style=for-the-badge&color=red" alt="License">
     <img src="https://img.shields.io/github/languages/code-size/Sweattypalms/ferrumc?style=for-the-badge&color=red" alt="Code Size">
@@ -32,7 +32,7 @@
 FerrumC is a Minecraft server implementation written from the ground up in Rust. Leveraging the power of the Rust
 programming language, it is completely multithreaded; and offers high performance as well as amazing memory efficiency!
 
-<img src="https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/in_game.png?raw=true" alt="In-game screenshot">
+<img src="https://github.com/ferrumc-rs/ferrumc/blob/dev/README/assets/in_game.png?raw=true" alt="In-game screenshot">
 
 
 <h1>✨ Key Features</h1>
@@ -40,30 +40,30 @@ programming language, it is completely multithreaded; and offers high performanc
 <ul>
    <li>
      <h4>🛈 Customizable server list</h4>
-     <img src="https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/server%20list.png?raw=true" alt="Server list">
+     <img src="https://github.com/ferrumc-rs/ferrumc/blob/dev/README/assets/server%20list.png?raw=true" alt="Server list">
    </li>
    <li>
      <h4>🚄 Extremely fast and adaptable update speeds</h4>
-     <img src="https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/mind%20boggling.gif?raw=true" alt="Mind boggling">
+     <img src="https://github.com/ferrumc-rs/ferrumc/blob/dev/README/assets/mind%20boggling.gif?raw=true" alt="Mind boggling">
    </li>
    <li>
      <h4>🖥️ Highly efficient memory usage</h4>
-     <img src="https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/mem_use.png?raw=true" alt="Low memory usage">
+     <img src="https://github.com/ferrumc-rs/ferrumc/blob/dev/README/assets/mem_use.png?raw=true" alt="Low memory usage">
    </li>
    <li>
      <h4>🗂️ Customizable configuration</h4>
-     <img src="https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/config.png?raw=true" alt="Configuration">
+     <img src="https://github.com/ferrumc-rs/ferrumc/blob/dev/README/assets/config.png?raw=true" alt="Configuration">
    </li>
    <li>
       <h4>🔄 Can import existing worlds from vanilla minecraft</h4>
-      <img src="https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/importing_chunks.png?raw=true" alt="Configuration">
+      <img src="https://github.com/ferrumc-rs/ferrumc/blob/dev/README/assets/importing_chunks.png?raw=true" alt="Configuration">
    </li>
    <li>
       <h4>🌐 Compatible with vanilla Minecraft clients (Currently only 1.20.1)</h4>
    </li>
    <li>
       <h4>💪 Powerful Entity Component System to handle high entity loads</h4>
-      <img src="https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/ECSBlockDiagram.png?raw=true" alt="Entity Component System">
+      <img src="https://github.com/ferrumc-rs/ferrumc/blob/dev/README/assets/ECSBlockDiagram.png?raw=true" alt="Entity Component System">
       <p><i>ECS Block Diagram (credits: <a href="https://docs.unity3d.com/Packages/com.unity.entities@0.1/manual/ecs_core.html">Unity</a>)</i></p>
    </li>
    <li>
@@ -76,7 +76,7 @@ programming language, it is completely multithreaded; and offers high performanc
       <h4>💾 Lighting fast database to ensure extremely fast world loading speeds</h4>
       <h6><i><a href="https://www.symas.com/lmdb">Currently using LMDB</a></i></h6>
       <i>32 render distance*</i>
-      <img src="https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/chunk_loading.gif?raw=true" alt="Chunk Loading DEMO">
+      <img src="https://github.com/ferrumc-rs/ferrumc/blob/dev/README/assets/chunk_loading.gif?raw=true" alt="Chunk Loading DEMO">
    </li>
 </ul>
 
@@ -125,7 +125,7 @@ For now, you can either **compile** the server from source or **download** from 
 
 ### [Option 1] Download from Github Actions
 
-![Where To Find](https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/download_prebuilt.gif?raw=true)
+![Where To Find](https://github.com/ferrumc-rs/ferrumc/blob/dev/README/assets/download_prebuilt.gif?raw=true)
 
 1. Go to the [Actions](https://github.com/sweattypalms/ferrumc/actions) tab
 2. Click on the latest build
