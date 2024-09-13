@@ -56,7 +56,7 @@ programming language, it is completely multithreaded; and offers high performanc
    </li>
    <li>
       <h4>🔄 Can import existing worlds from vanilla minecraft</h4>
-      <img src="https://github.com/ferrumc-rs/ferrumc/blob/dev/README/assets/importing_chunks.png?raw=true" alt="Configuration">
+      <img src="https://github.com/ferrumc-rs/ferrumc/blob/dev/README/assets/importing/chunk_importing.gif?raw=true" alt="Configuration">
    </li>
    <li>
       <h4>🌐 Compatible with vanilla Minecraft clients (Currently only 1.20.1)</h4>
