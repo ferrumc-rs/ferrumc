@@ -209,7 +209,7 @@ fn create_progress_bar(total_chunks: usize) -> ProgressBar {
     let bar = ProgressBar::new(total_chunks as u64);
     bar.set_style(
         ProgressStyle::default_bar()
-            .template("[{elapsed_precise}] {bar:40.cyan/blue} {pos:>7}/{len:7} {msg}")
+            .template("[{elapsed_precise}] {bar:100.cyan/blue} {pos:>7}/{len:7} {msg}")
             .expect("Could not set progress bar style")
             .progress_chars("##-"),
     );
