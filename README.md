@@ -202,3 +202,14 @@ JS/TS, Zig and more) while not losing out on the performance gains of native cod
 ## 📜 License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE) file for details.
+
+
+## 🌟 Star History
+
+<a href="https://star-history.com/#ferrumc-rs/ferrumc&Date">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=ferrumc-rs/ferrumc&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=ferrumc-rs/ferrumc&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=ferrumc-rs/ferrumc&type=Date" />
+ </picture>
+</a>
