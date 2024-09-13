@@ -124,7 +124,8 @@ stages of development and are working hard to add more features and fix bugs.
 For now, you can either **compile** the server from source or **download** from Github Actions.
 
 ### [Option 1] Download from Github Actions
-![Where To Find](README/assets/download_prebuilt.gif)
+
+![Where To Find](https://github.com/Sweattypalms/ferrumc/blob/dev/README/assets/download_prebuilt.gif?raw=true)
 
 1. Go to the [Actions](https://github.com/sweattypalms/ferrumc/actions) tab
 2. Click on the latest build
