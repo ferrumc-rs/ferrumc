@@ -143,7 +143,7 @@ where
     not(any(target_arch = "x86", target_arch = "x86_64")),
     target_os = "macos"
 ))]
-async fn write_varlong<T>(varlong: Varlong, mut w: T) -> anyhow::Result<()>
+async fn write_varlong<T>(varlong: Varlong, mut w: T) -> Result<()>
 where
     T: AsyncWrite + Unpin,
 {
@@ -152,7 +152,7 @@ where
     let mut val = varlong.0 as u64;
     loop {
         if val & 0b1111111111111111111111111111111111111111111111111111111110000000 == 0 {
-            w.write_u8(val as u8)?;
+            w.write_u8(val as u8).await?;
             return Ok(());
         }
         w.write_u8(val as u8 & 0b01111111 | 0b10000000).await?;
