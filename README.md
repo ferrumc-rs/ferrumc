@@ -107,7 +107,7 @@ programming language, it is completely multithreaded; and offers high performanc
 - Rust compiler (latest nightly version)
 - Cargo (comes with Rust)
 
-### 📥 Installation
+## 📥 Installation
 
 [//]: # (#### Option 1: Download pre-compiled binary &#40;Maybe outdated!&#41;)
 
@@ -123,12 +123,9 @@ programming language, it is completely multithreaded; and offers high performanc
 Unfortunately, the server is not yet ready for production use. If you want to try it out, you can compile it from source.
 </p>
 
-#### Compile from source (Bleeding edge updates, always up-to-date)
+### Compile from source (Bleeding edge updates, always up-to-date)
 
-1. Ensure you have LLVM installed on your system. This is required for RocksDB compilation.
-    - The env variable `LIBCLANG_PATH` must be set to the path of the `[LLVM path]/bin`.
-
-2. Clone and build the project.
+##### Clone and build the project.
 
 ```bash
 # Clone the repository
@@ -139,9 +136,9 @@ cd ferrumc
 cargo build --release
 ```
 
-### The binary will be in target/release/
+#### The binary will be in target/release/
 
-### 🖥️ Usage
+## 🖥️ Usage
 
 1. Move the FerrumC binary to your desired server directory
 2. Open a terminal in that directory
@@ -199,13 +196,13 @@ awesome [Extism](https://extism.org/) project to allow for plugins to be written
 JS/TS, Zig and more) while not losing out on the performance gains of native code.
 
 ### What does 'FerrumC' mean?
-It's a play on words. Ferrum is the Latin word for iron and it ***rust***s. And MC (Minecraft) in the end. 
+
+It's a play on words. Ferrum is the Latin word for iron and it ***rust***s. And MC (Minecraft) in the end.
 So it becomes Ferru*mc*. Get it? 😄
 
 ## 📜 License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE) file for details.
-
 
 ## 🌟 Star History
 
