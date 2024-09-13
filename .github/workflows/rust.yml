@@ -11,54 +11,80 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
+  build-linux:
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        include:
-          - os: macos-14
-            target: aarch64-apple-darwin
-          - os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
-
+        target:
+          - x86_64-unknown-linux-gnu
+          - aarch64-unknown-linux-gnu
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Cache dependencies
-        uses: swatinem/rust-cache@v2
-
-      - name: Install Rust nightly
-        uses: dtolnay/rust-toolchain@nightly
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
         with:
           targets: ${{ matrix.target }}
-
+      - uses: swatinem/rust-cache@v2
+      - name: Install cross
+        run: cargo install cross
       - name: Build
-        uses: ClementTsang/cargo-action@v0.0.6
-        with:
-          args: --release --target ${{ matrix.target }} --verbose
-          command: build
-
+        run: cross build --release --target ${{ matrix.target }}
       - name: Run tests
-        uses: ClementTsang/cargo-action@v0.0.6
-        with:
-          args: --target ${{ matrix.target }} --verbose
-          command: test
-
-      - name: Upload executable
+        run: cross test --target ${{ matrix.target }}
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ferrumc-${{ matrix.os }}
+          name: ferrumc-${{ matrix.target }}
           path: target/${{ matrix.target }}/release/ferrumc*
 
-      # Uncomment the following block if you want to send a message to Discord:
-      # - name: Send message to Discord
-      #   env:
-      #     DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-      #   uses: Ilshidur/action-discord@master
-      #   with:
-      #     args: 'A new commit has been pushed!
-      #
-      #     {{ EVENT_PAYLOAD.head_commit.url }}'
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          targets: x86_64-pc-windows-msvc
+      - uses: swatinem/rust-cache@v2
+      - name: Build
+        run: cargo build --release --target x86_64-pc-windows-msvc
+      - name: Run tests
+        run: cargo test --target x86_64-pc-windows-msvc
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ferrumc-x86_64-pc-windows-msvc
+          path: target/x86_64-pc-windows-msvc/release/ferrumc*
+
+  build-macos:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        target:
+          - x86_64-apple-darwin
+          - aarch64-apple-darwin
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          targets: ${{ matrix.target }}
+      - uses: swatinem/rust-cache@v2
+      - name: Build
+        run: cargo build --release --target ${{ matrix.target }}
+      - name: Run tests
+        run: cargo test --target ${{ matrix.target }}
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ferrumc-${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/ferrumc*
+
+  # Uncomment the following block if you want to send a message to Discord:
+  # notify:
+  #   needs: [build-linux, build-windows, build-macos]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Send message to Discord
+  #       env:
+  #         DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+  #       uses: Ilshidur/action-discord@master
+  #       with:
+  #         args: 'A new commit has been pushed and all builds completed!'
