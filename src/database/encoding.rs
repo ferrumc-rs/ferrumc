@@ -41,8 +41,10 @@ impl ZstdCodec {
     }
     pub async fn decompress_data<T: Decode + Send + 'static>(data: Vec<u8>) -> crate::Result<T> {
         tokio::task::spawn_blocking(move || {
-            let decoded = bincode::decode_from_slice(data.as_slice(), standard())?;
-            Ok(decoded.0)
+            let mut decoder = zstd::Decoder::new(data.as_slice())?;
+            // let decoded = bincode::decode_from_slice(data.as_slice(), standard())?;
+            let decoded = bincode::decode_from_std_read(&mut decoder, standard())?;
+            Ok(decoded)
         })
         .await?
     }
