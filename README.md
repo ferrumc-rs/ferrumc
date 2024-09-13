@@ -199,6 +199,10 @@ We do very much plan to have a plugin system and as of right now, our plan is to
 awesome [Extism](https://extism.org/) project to allow for plugins to be written in a multitude of languages (Rust, Go,
 JS/TS, Zig and more) while not losing out on the performance gains of native code.
 
+### What does 'FerrumC' mean?
+It's a play on words. Ferrum is the Latin word for iron and it ***rust***s. And MC (Minecraft) in the end. 
+So it becomes Ferru*mc*. Get it? 😄
+
 ## 📜 License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE) file for details.
