@@ -119,11 +119,21 @@ programming language, it is completely multithreaded; and offers high performanc
 
 [//]: # (3. Extract the archive to your desired location)
 
-<p>
-Unfortunately, the server is not yet ready for production use. If you want to try it out, you can compile it from source.
-</p>
+Unfortunately, the server is **not yet ready for production use**. We are still in the early
+stages of development and are working hard to add more features and fix bugs.
+For now, you can either **compile** the server from source or **download** from Github Actions.
 
-### Compile from source (Bleeding edge updates, always up-to-date)
+### [Option 1] Download from Github Actions
+![Where To Find](README/assets/download_prebuilt.gif)
+
+1. Go to the [Actions](https://github.com/sweattypalms/ferrumc/actions) tab
+2. Click on the latest build
+3. Scroll all the way down to the `Artifacts` section
+4. Download the artifact for your operating system (Windows, Linux, or macOS)
+5. Follow the instructions in the `Usage` section
+
+
+### [Option 2] Compile from source 
 
 ##### Clone and build the project.
 
@@ -140,16 +150,27 @@ cargo build --release
 
 ## 🖥️ Usage
 
-1. Move the FerrumC binary to your desired server directory
+1. Move the FerrumC binary (`ferrumc.exe` or `ferrumc` depending on the OS) to your desired server directory
 2. Open a terminal in that directory
 3. (Optional) Generate a config file: `./ferrumc --setup`
     - Edit the generated `config.toml` file to customize your server settings
 4. Import an existing world: Place the region files (`.mca`) in the folder named `import` then run
    `./ferrumc --import`.
-   The location of these files is explained [here](https://minecraft.wiki/w/Region_file_format#Location).
+   - The location of these files is explained [here](https://minecraft.wiki/w/Region_file_format#Location).
+   - If you want to modify batch size (default 150), you can use `./ferrumc --import --batch_size=<num>`.
+     - Basically the number of chunks to import at once, higher => faster but more CPU intensive.
+     - Max is 1024, since that's the max number of chunks in a region(`.mca`) file.
 5. Run the server:
     - Windows: `.\ferrumc.exe`
     - Linux/macOS: `./ferrumc`
+    - You can change logging level by using `--log=<level>`:
+      - e.g. `.\ferrumc.exe --log=info` for info level logging
+      - Possible values:
+        - `trace` (Extremely verbose)
+        - `debug` (Default, Slightly verbose, used for debugging)
+        - `info` (**Recommended**, useful information)
+        - `warn` (Only warnings)
+        - `error` (Only errors)
 
 *Note: You can specify the directory to treat as the root directory (the place where the config files, data files,
 etc. live) by setting an environment variable `FERRUMC_ROOT` to the path of the directory. For example, I run
@@ -166,7 +187,7 @@ We welcome contributions! If you'd like to contribute to FerrumC, please follow 
 4. Write or update tests as necessary
 5. Submit a pull request
 
-Join our [Discord server](https://discord.gg/qT5J8EMjwk) to get help or discuss the project!
+*Please* join our [Discord server](https://discord.gg/qT5J8EMjwk) to get help or discuss the project!
 
 ## ❔ FAQ
 
