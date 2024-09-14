@@ -20,8 +20,6 @@
     •
     <a href="#-license">License</a>
     •
-    <a href="#-acknowledgments">Acknowledgments</a>
-    •
     <a href="#-faq">FAQ</a>
 
 
