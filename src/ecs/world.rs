@@ -168,6 +168,12 @@ impl World {
     }
 }
 
+impl Default for World {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 mod multiple_components {
     use super::*;
 

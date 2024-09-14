@@ -2,10 +2,9 @@ use base64::Engine;
 use ferrumc_codec::network_types::varint::VarInt;
 use rand::prelude::IndexedRandom;
 use serde::Serialize;
-use tokio::io::{AsyncReadExt};
+use tokio::io::AsyncReadExt;
 use tokio::sync::OnceCell;
 use tracing::debug;
-
 
 use ferrumc_macros::{packet, NetDecode};
 
@@ -72,7 +71,7 @@ impl IncomingPacket for Status {
                 version: Version {
                     name: "1.20.6".to_string(),
                     // Allow any protocol version for now. To check the ping and stuff
-                    protocol: conn.metadata.protocol_version.clone() as u32,
+                    protocol: conn.metadata.protocol_version as u32,
                 },
                 players: Players {
                     max: config.max_players,

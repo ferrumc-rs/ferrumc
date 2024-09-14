@@ -1,4 +1,4 @@
-use tracing::{debug};
+use tracing::debug;
 
 use ferrumc_macros::{packet, NetDecode};
 

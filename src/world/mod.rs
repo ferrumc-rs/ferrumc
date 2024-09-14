@@ -3,26 +3,6 @@ pub mod chunk_format;
 pub mod conversions;
 pub mod importing;
 
-
-#[cfg(test)]
-mod tests {
-    use std::io::Write;
-
-    use fastnbt::Value;
-
-    #[tokio::test]
-    #[ignore]
-    async fn dump_region_to_json() {
-        let f = std::fs::File::open("./dummyregion.mca").unwrap();
-        let mut reader = fastanvil::Region::from_stream(f).unwrap();
-        let chunk = reader.read_chunk(0, 0).unwrap().unwrap();
-        let chunk_nbt: Value = fastnbt::from_bytes(&chunk).unwrap();
-        let mut outfile = std::fs::File::create("chunk.json").unwrap();
-        let raw_nbt = serde_json::ser::to_vec(&chunk_nbt).unwrap();
-        outfile.write_all(&*raw_nbt).unwrap()
-    }
-}
-
 /// Since we don't know the exact amount of bytes, the first byte is the number of u8s in the last i64,
 /// so we know when to stop reading bytes from the last i64
 pub async fn encode_bytes_to_i64(bytes: Vec<u8>) -> Vec<i64> {
@@ -58,4 +38,23 @@ pub async fn decode_i64_to_bytes(i64s: Vec<i64>) -> Vec<u8> {
     }
     bytes.truncate(bytes.len() - remaining);
     bytes
+}
+
+#[cfg(test)]
+mod tests {
+    use std::io::Write;
+
+    use fastnbt::Value;
+
+    #[tokio::test]
+    #[ignore]
+    async fn dump_region_to_json() {
+        let f = std::fs::File::open("./dummyregion.mca").unwrap();
+        let mut reader = fastanvil::Region::from_stream(f).unwrap();
+        let chunk = reader.read_chunk(0, 0).unwrap().unwrap();
+        let chunk_nbt: Value = fastnbt::from_bytes(&chunk).unwrap();
+        let mut outfile = std::fs::File::create("chunk.json").unwrap();
+        let raw_nbt = serde_json::ser::to_vec(&chunk_nbt).unwrap();
+        outfile.write_all(&raw_nbt).unwrap()
+    }
 }

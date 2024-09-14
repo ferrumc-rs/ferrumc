@@ -83,6 +83,13 @@ num_cpus = "1.16.0"
 [profile.dev.package.moka]
 opt-level = 3
 
+[lib]
+name = "ferrumc"
+path = "src/lib.rs"
+
+[[bin]]
+name = "ferrumc"
+path = "src/main.rs"
 
 [build-dependencies]
 # Build

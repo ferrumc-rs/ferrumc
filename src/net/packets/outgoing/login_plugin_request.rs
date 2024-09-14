@@ -11,14 +11,8 @@ pub struct LoginPluginRequest {
 }
 
 impl LoginPluginRequest {
-    pub fn new(
-        channel: impl Into<String>,
-        data: Vec<u8>,
-    ) -> Self {
-        Self::new_auto(
-            channel.into(),
-            data
-        )
+    pub fn new(channel: impl Into<String>, data: Vec<u8>) -> Self {
+        Self::new_auto(channel.into(), data)
     }
 
     pub async fn server_brand(data: impl Into<String>) -> Self {

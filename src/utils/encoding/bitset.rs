@@ -133,8 +133,10 @@ impl BitSet {
             *last_block &= (1 << (self.size % 64)) - 1;
         }
     }
+}
 
-    pub fn from_iter<I>(iter: I) -> Self
+impl FromIterator<usize> for BitSet {
+    fn from_iter<I>(iter: I) -> Self
     where
         I: IntoIterator<Item = usize>,
     {
@@ -155,6 +157,25 @@ impl Index<usize> for BitSet {
         } else {
             &false
         }
+    }
+}
+
+impl NetEncode for BitSet {
+    async fn net_encode<T>(&self, bytes: &mut T) -> Result<(), ferrumc_codec::CodecError>
+    where
+        T: AsyncWrite + Unpin,
+    {
+        // Bit sets of type BitSet are prefixed by their length in longs.
+        // Field Name 	Field Type 	Meaning
+        // Length 	VarInt 	Number of longs in the following array. May be 0 (if no bits are set).
+        // Data 	Array of Long 	A packed representation of the bit set as created by BitSet.toLongArray.
+        let len = VarInt::from(self.data.len() as i32);
+        len.net_encode(bytes).await?;
+        for &word in &self.data {
+            let word = word.to_be_bytes();
+            bytes.write_all(&word).await?;
+        }
+        Ok(())
     }
 }
 
@@ -195,24 +216,5 @@ mod tests {
         bs.set(50);
         assert!(bs[50]);
         assert!(!bs[51]);
-    }
-}
-
-impl NetEncode for BitSet {
-    async fn net_encode<T>(&self, bytes: &mut T) -> Result<(), ferrumc_codec::CodecError>
-    where
-        T: AsyncWrite + Unpin,
-    {
-        // Bit sets of type BitSet are prefixed by their length in longs.
-        // Field Name 	Field Type 	Meaning
-        // Length 	VarInt 	Number of longs in the following array. May be 0 (if no bits are set).
-        // Data 	Array of Long 	A packed representation of the bit set as created by BitSet.toLongArray.
-        let len = VarInt::from(self.data.len() as i32);
-        len.net_encode(bytes).await?;
-        for &word in &self.data {
-            let word = word.to_be_bytes();
-            bytes.write_all(&word).await?;
-        }
-        Ok(())
     }
 }

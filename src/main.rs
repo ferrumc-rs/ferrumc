@@ -1,37 +1,14 @@
-#![feature(box_into_inner)]
-
-extern crate core;
-#[macro_use]
-extern crate macro_rules_attribute;
-
 use std::env;
 use std::process::exit;
-use std::sync::atomic::AtomicU32;
-use std::sync::Arc;
 
-use dashmap::DashMap;
+use ferrumc::{create_state, setup, utils, world};
 use tokio::net::TcpListener;
 use tracing::{error, info, trace};
 
-use crate::ecs::world::World;
-use crate::net::ConnectionList;
-use crate::state::{GlobalState, ServerState};
-use crate::{
+use ferrumc::{
     net::systems::{kill_all_systems, start_all_systems},
-    net::Connection,
     utils::{config::get_global_config, prelude::*},
 };
-
-pub mod ecs;
-pub mod net;
-mod setup;
-#[cfg(test)]
-mod tests;
-pub mod utils;
-
-mod database;
-mod state;
-pub mod world;
 
 #[tokio::main]
 async fn main() {
@@ -88,7 +65,10 @@ async fn start_server() -> Result<()> {
 
     if env::args().any(|arg| arg == "--import") {
         // world::importing::import_regions(state.clone()).await?;
-        rayon::ThreadPoolBuilder::new().num_threads(num_cpus::get()).build_global().expect("Failed to build rayon thread pool");
+        rayon::ThreadPoolBuilder::new()
+            .num_threads(num_cpus::get())
+            .build_global()
+            .expect("Failed to build rayon thread pool");
         world::importing::import_regions(state.clone()).await?;
         exit(0);
     }
@@ -105,15 +85,4 @@ async fn start_server() -> Result<()> {
     kill_all_systems().await?;
 
     Ok(())
-}
-async fn create_state(tcp_listener: TcpListener) -> Result<GlobalState> {
-    Ok(Arc::new(ServerState {
-        world: Arc::new(World::new()),
-        connections: ConnectionList {
-            connections: DashMap::new(),
-            connection_count: AtomicU32::new(0),
-        },
-        database: database::start_database().await?,
-        server_stream: tcp_listener,
-    }))
 }

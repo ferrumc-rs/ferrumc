@@ -116,7 +116,7 @@ async fn process_chunk(
         chunk
             .dimension
             .as_ref()
-            .expect(format!("Invalid chunk @ ({},{})", chunk.x_pos, chunk.z_pos).as_str()),
+            .unwrap_or_else(|| panic!("Invalid chunk @ ({},{})", chunk.x_pos, chunk.z_pos)),
         chunk.x_pos,
         chunk.z_pos,
     ));

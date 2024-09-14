@@ -100,7 +100,6 @@ mod tests_pro_max {
 
     impl Component for TestComponent {}
 
-    
     // TODO: Fix this test
     #[tokio::test]
     #[ignore]

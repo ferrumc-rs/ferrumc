@@ -1,7 +1,7 @@
 use crate::state::GlobalState;
 use crate::utils::encoding::bitset::BitSet;
 use crate::utils::error::Error;
-use crate::world::chunk_format::{Heightmaps};
+use crate::world::chunk_format::Heightmaps;
 use crate::Result;
 use ferrumc_codec::enc::NetEncode;
 use ferrumc_codec::network_types::varint::VarInt;
@@ -13,6 +13,7 @@ use tracing::warn;
 const _SECTION_WIDTH: usize = 16;
 const _SECTION_HEIGHT: usize = 16;
 
+// Seperated light data from chunk data since clippy was complaining about the size of the struct
 #[derive(NetEncode)]
 pub struct ChunkDataAndUpdateLight {
     #[encode(default=VarInt::from(0x24))]
@@ -22,15 +23,18 @@ pub struct ChunkDataAndUpdateLight {
     pub heightmaps: Heightmaps,
     #[encode(raw_bytes(prepend_length = true))]
     pub data: Vec<u8>,
-    pub block_entities_count: VarInt,
     pub block_entities: Vec<BlockEntity>,
+    pub light_data: LightData,
+}
+
+#[derive(NetEncode)]
+pub struct LightData {
+    pub block_entities_count: VarInt,
     pub sky_light_mask: BitSet,
     pub block_light_mask: BitSet,
     pub empty_sky_light_mask: BitSet,
     pub empty_block_light_mask: BitSet,
-    pub sky_light_array_count: VarInt,
     pub sky_light_arrays: Vec<LightArray>,
-    pub block_light_array_count: VarInt,
     pub block_light_arrays: Vec<LightArray>,
 }
 
@@ -55,7 +59,6 @@ impl ChunkDataAndUpdateLight {
             .get_chunk(chunk_x, chunk_z, "overworld".to_string())
             .await?
             .ok_or(Error::ChunkNotFound(chunk_x, chunk_z))?;
-
 
         // Serialize the chunk data
         let mut data = Cursor::new(Vec::new());
@@ -142,16 +145,16 @@ impl ChunkDataAndUpdateLight {
             chunk_z,
             heightmaps,
             data: data.into_inner(),
-            block_entities_count: VarInt::from(0),
             block_entities: Vec::new(),
-            sky_light_mask,
-            block_light_mask,
-            empty_sky_light_mask,
-            empty_block_light_mask,
-            sky_light_array_count: VarInt::from(sky_light_arrays.len() as i32),
-            sky_light_arrays,
-            block_light_array_count: VarInt::from(block_light_arrays.len() as i32),
-            block_light_arrays,
+            light_data: LightData {
+                block_entities_count: VarInt::from(0),
+                sky_light_mask,
+                block_light_mask,
+                empty_sky_light_mask,
+                empty_block_light_mask,
+                sky_light_arrays,
+                block_light_arrays,
+            },
         };
         Ok(res)
     }

@@ -9,9 +9,9 @@ pub struct Entity {
     pub generation: u32,
 }
 
-impl Into<usize> for Entity {
-    fn into(self) -> usize {
-        self.id as usize
+impl From<Entity> for usize {
+    fn from(val: Entity) -> Self {
+        val.id as usize
     }
 }
 
@@ -135,6 +135,18 @@ impl EntityManager {
     pub async fn len(&self) -> usize {
         let inner = self.inner.read().await;
         inner.generations.len()
+    }
+
+    /// Returns bool if total number of entity slots (including deleted entities) is empty.
+    pub async fn is_empty(&self) -> bool {
+        let inner = self.inner.read().await;
+        inner.generations.is_empty()
+    }
+}
+
+impl Default for EntityManager {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

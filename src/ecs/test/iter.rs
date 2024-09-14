@@ -204,7 +204,7 @@ mod tests {
                 );
                 for _ in 0..25 {
                     for (_, (pos, vel, mut health)) in query.iter().await {
-                        health.0 -= ((pos.x * vel.x).abs() * 01 + 1) as f32;
+                        health.0 -= ((pos.x * vel.x).abs() + 1) as f32;
                     }
                     tokio::time::sleep(Duration::from_millis(4)).await;
                 }

@@ -1,11 +1,11 @@
 use crate::net::packets::{ConnectionId, IncomingPacket};
-use crate::net::systems::chunk_sender::{ChunkSender};
+use crate::net::systems::chunk_sender::ChunkSender;
 use crate::state::GlobalState;
 use crate::utils::components::rotation::Rotation;
 use crate::utils::encoding::position::Position;
 use crate::utils::prelude::*;
 use ferrumc_macros::{packet, NetDecode};
-use tracing::{trace};
+use tracing::trace;
 
 #[derive(NetDecode, Debug)]
 #[packet(packet_id = 0x15, state = "play")]
@@ -27,7 +27,12 @@ impl IncomingPacket for SetPlayerPosAndRotate {
         let mut position = component_storage.get_mut::<Position>(my_entity_id).await?;
         let mut rotation = component_storage.get_mut::<Rotation>(my_entity_id).await?;
 
-        ChunkSender::send_chunks_to_player_if_needed(state.clone(), my_entity_id, (position.x >> 4, position.z >> 4)).await?;
+        ChunkSender::send_chunks_to_player_if_needed(
+            state.clone(),
+            my_entity_id,
+            (position.x >> 4, position.z >> 4),
+        )
+        .await?;
 
         *position = Position {
             x: self.x as i32,

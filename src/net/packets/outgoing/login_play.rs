@@ -38,9 +38,9 @@ fn generate_codec() {
     use crate::net::the_dimension_codec::Root;
     let codec_file = std::fs::File::open("../../../../.etc/codec.json").unwrap();
     let reader = std::io::BufReader::new(codec_file);
-    let mut codec: Root = serde_json::from_reader(reader).unwrap();
+    let codec: Root = serde_json::from_reader(reader).unwrap();
     let mut codec_nbt_file = std::fs::File::create("../../../../.etc/nbt_codec.nbt").unwrap();
     // Use fastnbt here since I can't be fucked doing the attributes for the codec struct, and it's for
     // tests anyway so doesn't need to be that fast
-    fastnbt::to_writer(&mut codec_nbt_file, &mut codec).unwrap();
+    fastnbt::to_writer(&mut codec_nbt_file, &codec).unwrap();
 }

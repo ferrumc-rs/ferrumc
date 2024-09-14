@@ -1,4 +1,4 @@
-use tracing::{trace};
+use tracing::trace;
 
 use ferrumc_macros::{packet, Component, NetDecode};
 
@@ -32,14 +32,10 @@ impl IncomingPacket for ClientInfo {
         trace!("Main Hand: {}", self.main_hand);
 
         // ClientInfo is a packet & also a component.
-        state
-            .world
-            .get_component_storage()
-            .insert(entity_id, self);
+        state.world.get_component_storage().insert(entity_id, self);
 
         // Send chunks again
         ChunkSender::send_chunks_to_player(state.clone(), entity_id).await?;
-
 
         Ok(())
     }

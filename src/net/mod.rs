@@ -192,11 +192,15 @@ pub async fn init_connection(socket: tokio::net::TcpStream, state: GlobalState) 
 /// is generated at compile time by [ferrumc_macros::bake_packet_registry].
 pub async fn manage_conn(conn: Arc<RwLock<Connection>>, state: GlobalState) -> Result<()> {
     {
-        let local_addr = conn.read().await.stream.in_stream.lock().await.peer_addr()?;
-        debug!(
-            "Starting receiver for the addr: {:?}",
-            local_addr
-        );
+        let local_addr = conn
+            .read()
+            .await
+            .stream
+            .in_stream
+            .lock()
+            .await
+            .peer_addr()?;
+        debug!("Starting receiver for the addr: {:?}", local_addr);
     }
 
     loop {
@@ -240,7 +244,9 @@ pub async fn manage_conn(conn: Arc<RwLock<Connection>>, state: GlobalState) -> R
     #[allow(unreachable_code)]
     Ok(())
 }
-async fn get_packet_length_and_buffer(conn: &RwLockReadGuard<'_,Connection>) -> Result<(VarInt, Vec<u8>)> {
+async fn get_packet_length_and_buffer(
+    conn: &RwLockReadGuard<'_, Connection>,
+) -> Result<(VarInt, Vec<u8>)> {
     let mut conn = conn.get_in_stream().await;
     let packet_length = VarInt::read(&mut *conn).await?;
     let mut buffer = vec![0u8; packet_length.get_val() as usize];
@@ -295,15 +301,15 @@ impl Connection {
         self.send_packet(packets).await
     }
 
-    pub async fn get_in_stream<'a>(&'a self) -> MutexGuard<'a, tokio::net::tcp::OwnedReadHalf> {
+    pub async fn get_in_stream(&self) -> MutexGuard<'_, tokio::net::tcp::OwnedReadHalf> {
         self.stream.in_stream.lock().await
     }
 
-    pub async fn get_out_stream<'a>(&'a self) -> MutexGuard<'a, tokio::net::tcp::OwnedWriteHalf> {
+    pub async fn get_out_stream(&self) -> MutexGuard<'_, tokio::net::tcp::OwnedWriteHalf> {
         self.stream.out_stream.lock().await
     }
 
     pub async fn drop_connection(&self, state: GlobalState) -> Result<()> {
-        Ok(drop_conn(self.id, state).await?)
+        drop_conn(self.id, state).await
     }
 }
