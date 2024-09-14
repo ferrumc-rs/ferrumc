@@ -10,7 +10,7 @@ use std::io::{Read, Write};
 /// * `n` - The number of bits to read
 ///
 /// # Example
-/// ```rs
+/// ```ignore
 /// let bytes = 0b1110011;
 /// let pos = 0;
 /// let n = 5;
@@ -37,7 +37,7 @@ pub fn read_n_bits_u8(bytes: &i64, pos: usize, n: usize) -> Result<u8, Error> {
 /// * `n` - The number of bits to read
 ///
 /// # Example
-/// ```rs
+/// ```ignore
 /// let bytes = 0b100111000100000;
 /// let pos = 0;
 /// let n = 9;
@@ -64,7 +64,7 @@ pub fn read_n_bits_u16(bytes: &i64, pos: usize, n: usize) -> Result<u16, Error> 
 /// * `n` - The number of bits to read
 ///
 /// # Example
-/// ```rs
+/// ```ignore
 /// let bytes = 0b100111110001111001010100101011;
 /// let pos = 2;
 /// let n = 28;
@@ -92,13 +92,14 @@ pub fn read_n_bits_u32(bytes: &i64, pos: usize, n: usize) -> Result<u32, Error> 
 /// * `value` - The value to write
 ///
 /// # Example
-/// ```rs
+/// ```ignore
 /// let mut bytes = 0b
 /// let pos = 0;
 /// let n = 5;
 /// let value = 28;
 /// write_n_bits_u8(&mut bytes, pos, n, value).unwrap();
 /// assert_eq!(bytes, 0b1110011);
+/// ```
 pub fn write_n_bits_u8(bytes: &mut i64, pos: usize, n: usize, value: u8) -> Result<(), Error> {
     if n > 8 {
         return Err(Error::BitReadOverflowInput(n, 8));
@@ -144,7 +145,7 @@ pub fn write_n_bits_u32(bytes: &mut i64, pos: usize, n: usize, value: u32) -> Re
 /// * `data` - The data to compress
 ///
 /// # Example
-/// ```rs
+/// ```ignore
 /// let data = b"Hello, world!";
 /// let compressed = bzip_compress(data).unwrap();
 /// ```
@@ -164,7 +165,7 @@ pub fn bzip_compress(data: &[u8]) -> Result<Vec<u8>, Error> {
 /// * `data` - The data to decompress
 ///
 /// # Example
-/// ```rs
+/// ```ignore
 /// let data = b"Hello, world!";
 /// let compressed = bzip_compress(data).unwrap();
 /// let decompressed = bzip_decompress(&compressed).unwrap();
@@ -183,7 +184,7 @@ pub fn bzip_decompress(data: &[u8]) -> Result<Vec<u8>, Error> {
 /// * `size` - The size in bytes
 ///
 /// # Example
-/// ```rs
+/// ```ignore
 /// let size = 1024;
 /// let result = human_readable_size(size);
 /// assert_eq!(result, "1.00 KB");

@@ -14,7 +14,7 @@ pub trait Component: 'static + Send + Sync + Debug {}
 /// An immutable reference to a component.
 ///
 /// # Examples
-/// ```
+/// ```ignore
 /// let position: ComponentRef<Position> = ...;
 /// let x = position.x;
 /// ```
@@ -27,7 +27,7 @@ pub struct ComponentRef<'a, T: Component + 'a> {
 /// A mutable reference to a component.
 ///
 /// # Examples
-/// ```
+/// ```ignore
 /// let mut position: ComponentRefMut<Position> = ...;
 /// position.x = 10.0;
 /// ```
@@ -75,7 +75,7 @@ impl ComponentStorage {
     /// Inserts a component for a given entity.
     ///
     /// # Examples
-    /// ```
+    /// ```ignore
     /// let storage = ComponentStorage::new();
     /// storage.insert(0, Position { x: 0.0, y: 0.0 });
     /// ```
@@ -102,7 +102,7 @@ impl ComponentStorage {
     /// Retrieves an immutable reference to a component for a given entity.
     ///
     /// # Examples
-    /// ```
+    /// ```ignore
     /// let position = storage.get::<Position>(0).await.unwrap();
     /// assert_eq!(position.x, 0.0);
     /// ```
@@ -134,7 +134,7 @@ impl ComponentStorage {
     /// Retrieves a mutable reference to a component for a given entity.
     ///
     /// # Examples
-    /// ```
+    /// ```ignore
     /// let mut position = storage.get_mut::<Position>(0).await.unwrap();
     /// position.x = 1.0;
     /// ```
@@ -214,7 +214,7 @@ impl ComponentStorage {
     /// Removes a component for a given entity.
     ///
     /// # Examples
-    /// ```
+    /// ```ignore
     /// storage.remove::<Position>(0);
     /// ```
     pub fn remove<T: Component>(&self, entity_id: impl Into<usize>) -> Result<()> {

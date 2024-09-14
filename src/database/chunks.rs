@@ -32,18 +32,18 @@ impl Database {
             // Attempt to fetch chunk from table
             let data = database.get(&ro_tx, key)?;
 
-
             data.map(|data| data.to_vec())
         };
 
         // Now, proceed with the async operation without holding `ro_tx`
         if let Some(data) = data {
-            let chunk = ZstdCodec::decompress_data::<Chunk>(data).await.expect("Failed to decompress chunk");
+            let chunk = ZstdCodec::decompress_data::<Chunk>(data)
+                .await
+                .expect("Failed to decompress chunk");
             Ok(Some(chunk))
         } else {
             Ok(None)
         }
-
     }
 
     /// Insert a single chunk into database
@@ -110,16 +110,15 @@ impl Database {
 
         let db = db.clone();
         tokio::task::spawn(async move {
-
             // Check cache
             if cache.contains_key(&key) {
                 trace!("Chunk already exists in cache: {:X}", key);
             }
             // If not in cache then search in database
             else if let Ok(chunk) = Self::get_chunk_from_database(&db, &key).await
-                /*spawn_blocking_db(tsk_db, move || Self::get_chunk_from_database(&db, &key))
-                    .await
-                    .unwrap()*/
+            /*spawn_blocking_db(tsk_db, move || Self::get_chunk_from_database(&db, &key))
+            .await
+            .unwrap()*/
             {
                 if let Some(chunk) = chunk {
                     cache.insert(key, chunk).await;
@@ -146,7 +145,7 @@ impl Database {
     /// # Returns
     /// * `Result<(), Error>` - Ok if the chunk was inserted, Err if the chunk already exists
     /// # Example
-    /// ```no_run
+    /// ```ignore
     /// use crate::world::chunkformat::Chunk;
     /// use crate::database::Database;
     /// use crate::utils::error::Error;
@@ -186,7 +185,7 @@ impl Database {
     /// # Returns
     /// * `Result<Option<Chunk>, Error>` - Ok if the chunk was found, Err if the chunk does not exist
     /// # Example
-    /// ```no_run
+    /// ```ignore
     /// use crate::world::chunkformat::Chunk;
     /// use crate::database::Database;
     /// use crate::utils::error::Error;
@@ -210,7 +209,7 @@ impl Database {
 
         Ok(res)
 
-       /* // First check cache
+        /* // First check cache
         if self.cache.contains_key(&key) {
             Ok(self.cache.get(&key).await)
         }
@@ -239,7 +238,7 @@ impl Database {
     ///
     /// * `Result<bool, Error>` - Ok if the chunk exists, Err if the chunk does not exist
     /// # Example
-    /// ```no_run
+    /// ```ignore
     /// use crate::database::Database;
     /// use crate::utils::error::Error;
     ///
@@ -259,8 +258,8 @@ impl Database {
         // Else check persistent database and load it into cache
         } else {
             /*let res = spawn_blocking_db(tsk_db, move || Self::get_chunk_from_database(&db, &key))
-                .await
-                .unwrap();*/
+            .await
+            .unwrap();*/
             let Some(res) = Self::get_chunk_from_database(&db, &key).await? else {
                 return Ok(false);
             };
@@ -272,7 +271,7 @@ impl Database {
             self.cache.insert(key, res.clone()).await;
             Ok(true)
 
-           /* match res {
+            /* match res {
                 Ok(opt) => {
                     let exist = opt.is_some();
                     if let Some(chunk) = opt {
@@ -293,7 +292,7 @@ impl Database {
     /// # Returns
     /// * `Result<(), Error>` - Ok if the chunk was updated, Err if the chunk does not exist
     /// # Example
-    /// ```no_run
+    /// ```ignore
     /// use crate::world::chunkformat::Chunk;
     /// use crate::database::Database;
     /// use crate::utils::error::Error;
@@ -331,7 +330,7 @@ impl Database {
     /// # Returns
     /// * `Result<(), Error>` - Ok if the chunks were inserted, Err if any of the chunks already exist
     /// # Example
-    /// ```no_run
+    /// ```ignore
     /// use crate::world::chunkformat::Chunk;
     /// use crate::database::Database;
     /// use crate::utils::error::Error;

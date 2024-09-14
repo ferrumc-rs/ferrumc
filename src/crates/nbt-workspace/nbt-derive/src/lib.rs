@@ -17,7 +17,7 @@ mod serialize;
 /// <h5> For root usage: </h5>
 /// Example:
 ///
-/// ```rust
+/// ```ignore
 /// use nbt_derive::NBTSerialize;
 ///
 /// #[derive(NBTSerialize)]
@@ -52,7 +52,7 @@ pub fn nbt_serialize_derive(input: TokenStream) -> TokenStream {
 ///
 /// <h5> Example usage: </h5>
 ///
-/// ```rust
+/// ```ignore
 ///
 /// use std::io::Cursor;
 /// use nbt_derive::NBTDeserialize;

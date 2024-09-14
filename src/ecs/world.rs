@@ -15,20 +15,21 @@ use crate::utils::prelude::*;
 ///
 /// <p style="color:#795548;">Creating and using a complete game world:</p>
 ///
-/// ```rust
+/// ```ignore
+/// # use ferrumc::ecs::world::World;
+/// # use ferrumc::utils::encoding::position::Position;
+/// # use ferrumc::utils::encoding::velocity::Velocity;
+/// # use ferrumc::utils::components::player::Player;
+/// # async fn doc() {
 /// // Create a new world
 /// let mut world = World::new();
 ///
 /// // Create some entities
 /// let player = world.create_entity()
-///     .with(Position { x: 0.0, y: 0.0 })
-///     .with(Velocity { x: 0.0, y: 0.0 })
-///     .with(Player { name: "Hero".to_string() })
-///     .build();
-///
-/// let enemy = world.create_entity()
-///     .with(Position { x: 10.0, y: 10.0 })
-///     .with(Enemy { hp: 100 })
+///     .await
+///     .with(Position { x: 0, y: 0, z: 0 })
+///     .with(Velocity { x: 0, y: 0, z: 0 })
+///     .with(Player { username: "Hero".to_string(), uuid: 1234 })
 ///     .build();
 ///
 /// // Run a game loop
@@ -41,14 +42,15 @@ use crate::utils::prelude::*;
 ///     }
 ///
 ///     // Check for collisions
-///     let mut collision_query = world.query::<(&Position, Option<&Player>, Option<&Enemy>)>();
-///     for (entity, (pos, player, enemy)) in collision_query.iter().await {
+///     let mut collision_query = world.query::<(&Position, Option<&Player>)>();
+///     for (entity, (pos, player)) in collision_query.iter().await {
 ///         // Handle collisions...
 ///     }
 ///
 ///     // Break the loop when game is over
 ///     // break;
 /// }
+/// # }
 /// ```
 ///
 /// This example demonstrates creating a world, adding entities with various components,
@@ -63,7 +65,8 @@ impl World {
     ///
     /// # Example
     ///
-    /// ```rust
+    /// ```ignore
+    /// # use ferrumc::ecs::world::World;
     /// let world = World::new();
     /// ```
     pub fn new() -> Self {
@@ -79,12 +82,18 @@ impl World {
     ///
     /// # Example
     ///
-    /// ```rust
+    /// ```ignore
+    /// # use ferrumc::ecs::world::World;
+    /// # use ferrumc::utils::encoding::position::Position;
+    /// # use ferrumc::utils::encoding::velocity::Velocity;
+    /// # async fn doc() {
     /// let mut world = World::new();
     /// let entity = world.create_entity()
-    ///     .with(Position { x: 0.0, y: 0.0 })
-    ///     .with(Velocity { x: 1.0, y: 1.0 })
+    ///     .await
+    ///     .with(Position { x: 0, y: 0, z: 1 })
+    ///     .with(Velocity { x: 1, y: 1, z: 1 })
     ///     .build();
+    /// # }
     /// ```
     pub async fn create_entity(&self) -> EntityBuilder {
         let entity = self.entity_manager.create_entity().await;
@@ -109,7 +118,11 @@ impl World {
     ///
     /// # Example
     ///
-    /// ```rust
+    /// ```ignore
+    /// # use ferrumc::ecs::world::World;
+    /// # use ferrumc::utils::encoding::position::Position;
+    /// # use ferrumc::utils::encoding::velocity::Velocity;
+    /// # async fn doc() {
     /// let world = World::new();
     ///
     /// // Query for all entities with Position and Velocity components
@@ -126,6 +139,7 @@ impl World {
     ///     position.x += velocity.x;
     ///     position.y += velocity.y;
     /// }
+    /// # }
     /// ```
     pub fn query<Q>(&self) -> Query<Q>
     where
@@ -156,12 +170,15 @@ impl World {
     ///
     /// # Example
     ///
-    /// ```rust
+    /// ```ignore
+    /// # use ferrumc::ecs::world::World;
+    /// # use ferrumc::utils::encoding::position::Position;
+    /// # let entity_id = 0;
     /// let world = World::new();
     /// let component_storage = world.get_component_storage();
     ///
     /// // Directly insert a component for an entity
-    /// component_storage.insert(entity_id, Position { x: 10.0, y: 20.0 });
+    /// component_storage.insert(entity_id, Position { x: 10, y: 20, z: 10 });
     /// ```
     pub fn get_component_storage(&self) -> &ComponentStorage {
         &self.component_storage

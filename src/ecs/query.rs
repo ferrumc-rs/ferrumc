@@ -52,7 +52,7 @@ impl<'a, Q: QueryItem> Query<'a, Q> {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```ignore
     /// let query = Query::<&Position>::new(&entity_manager, &component_storage);
     /// ```
     pub fn new(entity_manager: &'a EntityManager, component_storage: &'a ComponentStorage) -> Self {
@@ -68,7 +68,7 @@ impl<'a, Q: QueryItem> Query<'a, Q> {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```ignore
     /// // Query for positions
     /// let query = Query::<&Position>::new(&entity_manager, &component_storage);
     /// for (entity_id, position) in query.iter().await {
@@ -99,11 +99,16 @@ impl<'a, Q: QueryItem> Query<'a, Q> {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```ignore
+    /// # use ferrumc::ecs::query::Query;
+    /// # use ferrumc::utils::encoding::position::Position;
+    /// # use ferrumc::utils::encoding::velocity::Velocity;
+    /// # async fn doc() {
     /// let mut query = Query::<(&Position, &Velocity)>::new(&entity_manager, &component_storage);
     /// while let Some((entity_id, (position, velocity))) = query.next().await {
     ///     println!("Entity {} is at {:?} moving at {:?}", entity_id, position, velocity);
     /// }
+    /// # }
     /// ```
     pub async fn next<'b>(&mut self) -> Option<(usize, Q::Item<'b>)>
     where

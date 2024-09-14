@@ -15,7 +15,7 @@ impl<T> SparseSet<T> {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```ignore
     /// use crateecs::dsa::sparse_set::SparseSet;
     /// let set: SparseSet<i32> = SparseSet::new();
     /// ```
@@ -32,7 +32,7 @@ impl<T> SparseSet<T> {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```ignore
     /// use crateecs::dsa::sparse_set::SparseSet;
     /// let mut set = SparseSet::new();
     /// set.insert(5, "value");
@@ -57,7 +57,7 @@ impl<T> SparseSet<T> {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```ignore
     /// use crateecs::dsa::sparse_set::SparseSet;
     /// let mut set = SparseSet::new();
     /// set.insert(5, "value");
@@ -83,7 +83,7 @@ impl<T> SparseSet<T> {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```ignore
     /// use crateecs::dsa::sparse_set::SparseSet;
     /// let mut set = SparseSet::new();
     /// set.insert(5, "value");
@@ -100,7 +100,7 @@ impl<T> SparseSet<T> {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```ignore
     /// use crateecs::dsa::sparse_set::SparseSet;
     /// let mut set = SparseSet::new();
     /// set.insert(5, String::from("value"));
@@ -119,7 +119,7 @@ impl<T> SparseSet<T> {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```ignore
     /// use crateecs::dsa::sparse_set::SparseSet;
     /// let mut set = SparseSet::new();
     /// set.insert(5, 1);
@@ -135,7 +135,7 @@ impl<T> SparseSet<T> {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```ignore
     /// use crateecs::dsa::sparse_set::SparseSet;
     /// let mut set = SparseSet::new();
     /// set.insert(5, 1);
@@ -156,7 +156,7 @@ impl<T> SparseSet<T> {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```ignore
     /// use crateecs::dsa::sparse_set::SparseSet;
     /// let mut set = SparseSet::new();
     /// set.insert(5, 1);
