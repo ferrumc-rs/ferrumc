@@ -16,7 +16,7 @@
     •
     <a href="#-getting-started">Getting Started</a>
     •
-    <a href="#-development">Development</a>
+    <a href="#%EF%B8%8F-development">Development</a>
     •
     <a href="#-license">License</a>
     •
