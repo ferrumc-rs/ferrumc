@@ -3,6 +3,7 @@ use tracing::{trace};
 use ferrumc_macros::{packet, Component, NetDecode};
 
 use crate::net::packets::{ConnectionId, IncomingPacket};
+use crate::net::systems::chunk_sender::ChunkSender;
 use crate::state::GlobalState;
 
 #[derive(NetDecode, Component, Clone, Debug)]
@@ -35,6 +36,9 @@ impl IncomingPacket for ClientInfo {
             .world
             .get_component_storage()
             .insert(entity_id, self);
+
+        // Send chunks again
+        ChunkSender::send_chunks_to_player(state.clone(), entity_id).await?;
 
 
         Ok(())

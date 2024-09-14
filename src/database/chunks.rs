@@ -44,22 +44,6 @@ impl Database {
             Ok(None)
         }
 
-
-       /*
-
-        drop(ro_tx);
-
-        let chunk = match data {
-            Some(data) => {
-                let chunk = ZstdCodec::decompress_data::<Chunk>(data)
-                    .await
-                    .expect("Failed to decompress chunk");
-                Some(chunk)
-            }
-            None => None,
-        };
-
-        Ok(chunk)*/
     }
 
     /// Insert a single chunk into database
@@ -222,7 +206,11 @@ impl Database {
         let key = hash((dimension, x, z));
         let db = self.db.clone();
 
-        // First check cache
+        let res = Self::get_chunk_from_database(&db, &key).await?;
+
+        Ok(res)
+
+       /* // First check cache
         if self.cache.contains_key(&key) {
             Ok(self.cache.get(&key).await)
         }
@@ -233,13 +221,13 @@ impl Database {
                 .await
                 .unwrap()?*/
         {
-            self.cache.insert(key, chunk.clone()).await;
+            // self.cache.insert(key, chunk.clone()).await;
             Ok(Some(chunk))
         }
         // Chunk do not exist
         else {
             Ok(None)
-        }
+        }*/
     }
 
     /// Check if a chunk exists in the database

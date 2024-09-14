@@ -123,7 +123,8 @@ pub async fn start_database() -> Result<Database, Error> {
         .async_eviction_listener(evict_chunk)
         .weigher(|_, v| v.deep_size_of() as u32)
         .eviction_policy(moka::policy::EvictionPolicy::tiny_lfu())
-        .max_capacity(get_global_config().database.cache_size as u64 * 1024)
+        /*.max_capacity(get_global_config().database.cache_size as u64 * 1024)
+        .initial_capacity(1000)*/
         .time_to_live(Duration::from_millis(1000))
         .build();
 
