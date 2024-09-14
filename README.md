@@ -26,7 +26,6 @@
 
 
 </div>
-
 ## 📖 About
 
 FerrumC is a Minecraft server implementation written from the ground up in Rust. Leveraging the power of the Rust

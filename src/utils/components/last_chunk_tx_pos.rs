@@ -12,8 +12,8 @@ impl Default for LastChunkTxPos {
         // So, when player joins the world, it sends chunks instantly since
         // the threshold is passed by lots.
         Self {
-            x: i32::MAX,
-            z: i32::MAX,
+            x: 0,
+            z: 0,
         }
     }
 }
