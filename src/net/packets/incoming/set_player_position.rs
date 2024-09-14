@@ -1,9 +1,9 @@
-use tracing::{trace};
+use tracing::trace;
 
 use ferrumc_macros::{packet, NetDecode};
 
 use crate::net::packets::{ConnectionId, IncomingPacket};
-use crate::net::systems::chunk_sender::{ChunkSender};
+use crate::net::systems::chunk_sender::ChunkSender;
 use crate::state::GlobalState;
 use crate::utils::encoding::position::Position;
 
@@ -34,7 +34,12 @@ impl IncomingPacket for SetPlayerPosition {
 
         let mut position = component_storage.get_mut::<Position>(my_entity_id).await?;
 
-        ChunkSender::send_chunks_to_player_if_needed(state.clone(), my_entity_id, (position.x >> 4, position.z >> 4)).await?;
+        ChunkSender::send_chunks_to_player_if_needed(
+            state.clone(),
+            my_entity_id,
+            (position.x >> 4, position.z >> 4),
+        )
+        .await?;
 
         /*let old_chunk_pos = (position.x >> 4, position.z >> 4);
         let new_chunk_pos = (self.x as i32 >> 4, self.z as i32 >> 4);

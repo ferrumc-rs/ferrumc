@@ -18,8 +18,8 @@ fn test_auto_impl() {
     assert_eq!(packet.keep_alive_id, 99999i64);
 }
 
-impl Into<KeepAlivePacketOut> for &mut KeepAlive {
-    fn into(self) -> KeepAlivePacketOut {
-        KeepAlivePacketOut::new_auto(self.data)
+impl From<&mut KeepAlive> for KeepAlivePacketOut {
+    fn from(val: &mut KeepAlive) -> Self {
+        KeepAlivePacketOut::new_auto(val.data)
     }
 }

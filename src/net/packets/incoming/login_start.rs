@@ -17,6 +17,7 @@ use crate::net::packets::outgoing::synchronize_player_position::SynchronizePlaye
 use crate::net::packets::{ConnectionId, IncomingPacket};
 use crate::net::systems::chunk_sender::ChunkSender;
 use crate::net::utils::packet_queue::PacketQueue;
+use crate::net::Connection;
 use crate::net::State::Play;
 use crate::state::GlobalState;
 use crate::utils::components::keep_alive::KeepAlive;
@@ -25,7 +26,6 @@ use crate::utils::components::rotation::Rotation;
 use crate::utils::constants::init;
 use crate::utils::encoding::position::Position;
 use crate::utils::prelude::*;
-use crate::Connection;
 
 /// The login start packet is sent by the client to the server to start the login process.
 ///
@@ -65,20 +65,19 @@ impl IncomingPacket for LoginStart {
 
         let data: i64 = random();
         let mut keep_alive = KeepAlive::new(Instant::now(), Instant::now(), data);
-        self.send_keep_alive(&mut packet_queue, &mut keep_alive).await?;
+        self.send_keep_alive(&mut packet_queue, &mut keep_alive)
+            .await?;
         self.update_world_state(&*conn.read().await, keep_alive, state.clone())
             .await?;
 
         self.synchronize_player_position(state.clone(), &*conn.read().await, &mut packet_queue)
             .await?;
 
-
         let packet = LoginPluginRequest::server_brand("🦀".repeat(100)).await;
         // conn.send_packet(packet).await?;
         packet_queue.queue(packet).await?;
 
         info!("Player {} has joined the server", self.username);
-
 
         let mut conn = conn.write().await;
         // Send all the queued packets
@@ -91,9 +90,7 @@ impl IncomingPacket for LoginStart {
         // Drop connection to avoid deadlock with chunk sender since it also needs to write to the connection
         drop(conn);
 
-
         ChunkSender::send_chunks_to_player(state.clone(), entity).await?;
-
 
         Ok(())
     }
@@ -220,7 +217,7 @@ impl LoginStart {
         let position = component_storage.get::<Position>(entity).await?;
         let rotation = component_storage.get::<Rotation>(entity).await?;
 
-        let packet = SynchronizePlayerPosition::new(&*position, &*rotation);
+        let packet = SynchronizePlayerPosition::new(&position, &rotation);
 
         packet_queue.queue(packet).await?;
 

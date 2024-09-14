@@ -99,7 +99,7 @@ mod tests {
                 tokio::spawn(async move {
                     let mut query = Query::<&Position>::new(&entity_manager_clone, &storage_clone);
                     let mut count = 0;
-                    while let Some(_) = query.next().await {
+                    while (query.next().await).is_some() {
                         count += 1;
                     }
                     count
@@ -133,7 +133,7 @@ mod tests {
             async move {
                 let mut query = Query::<&Position>::new(&entity_manager_clone, &storage_clone);
                 let mut count = 0;
-                while let Some(_) = query.next().await {
+                while (query.next().await).is_some() {
                     count += 1;
                     tokio::time::sleep(std::time::Duration::from_millis(1)).await;
                 }

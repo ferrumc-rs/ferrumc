@@ -16,7 +16,7 @@ pub mod world;
 #[allow(non_snake_case)]
 fn GET_WORLD() -> &'static world::World {
     static WORLD: OnceLock<world::World> = OnceLock::new();
-    WORLD.get_or_init(|| world::World::new())
+    WORLD.get_or_init(world::World::new)
 }
 
 #[cfg(test)]

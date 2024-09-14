@@ -1,8 +1,8 @@
+use crate::utils::constants::DEFAULT_LOG_LEVEL;
+use crate::utils::prelude::*;
 use tracing_subscriber::filter::Directive;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
-use crate::utils::constants::DEFAULT_LOG_LEVEL;
-use crate::utils::prelude::*;
 
 pub mod binary_utils;
 pub mod components;
@@ -56,7 +56,6 @@ pub fn setup_logger() -> Result<()> {
         .with(env_filter)
         .with(fmt_layer)
         .init();
-
 
     Ok(())
 }

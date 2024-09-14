@@ -68,7 +68,8 @@ mod tests {
     #[tokio::test]
     async fn test_position_decode() {
         let mut data = Cursor::new(
-            0b01000110000001110110001100_10110000010101101101001000_001100111111_i64.to_be_bytes(),
+            0b0100_0110_0000_0111_0110_0011_0010_1100_0001_0101_1011_0100_1000_0011_0011_1111_i64
+                .to_be_bytes(),
         );
         let position = Position::net_decode(&mut data).await.unwrap();
         assert_eq!(position.x, 18357644);
@@ -88,7 +89,8 @@ mod tests {
         let data = data.into_inner();
         assert_eq!(
             data,
-            0b01000110000001110110001100_10110000010101101101001000_001100111111_i64.to_be_bytes()
+            0b0100_0110_0000_0111_0110_0011_0010_1100_0001_0101_1011_0100_1000_0011_0011_1111_i64
+                .to_be_bytes()
         );
     }
 }

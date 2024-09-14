@@ -6,7 +6,7 @@ use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use std::io::Read;
 use tokio::io::AsyncWrite;
-use tracing::{trace};
+use tracing::trace;
 
 const BLOCKSFILE: &[u8] = include_bytes!("../../.etc/blockmappings.bz2");
 
@@ -87,7 +87,7 @@ impl Chunk {
                     let palette = block_states.palette.as_mut().unwrap();
 
                     // TODO: Adapt this for single block sections
-                    if let Some(_) = &block_states.data {
+                    if block_states.data.is_some() {
                         let bits_per_entry = (palette.len() as f32).log2().ceil() as i8;
                         block_states.bits_per_block = Some(bits_per_entry.max(4));
                     } else {

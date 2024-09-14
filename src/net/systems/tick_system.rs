@@ -6,7 +6,7 @@ use crate::net::ConnectionWrapper;
 use crate::state::GlobalState;
 use crate::utils::components::player::Player;
 use ferrumc_macros::AutoGenName;
-use tracing::{warn};
+use tracing::warn;
 
 #[derive(AutoGenName)]
 pub struct TickSystem;
@@ -23,10 +23,10 @@ impl System for TickSystem {
         loop {
             let mut crab_wave = vec![" "; total_width];
 
-            for x in 0..total_width {
-                let wave_height = ((x as f64 * 0.2).sin() + 1.0) * 2.0;
+            for (index, wave) in crab_wave.iter_mut().enumerate().take(total_width) {
+                let wave_height = ((index as f64 * 0.2).sin() + 1.0) * 2.0;
                 if wave_height.round() as usize == 2 {
-                    crab_wave[x] = "🦀";
+                    *wave = "🦀";
                 }
             }
 

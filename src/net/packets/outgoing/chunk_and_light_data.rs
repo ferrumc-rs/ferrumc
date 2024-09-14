@@ -1,7 +1,7 @@
 use crate::state::GlobalState;
 use crate::utils::encoding::bitset::BitSet;
 use crate::utils::error::Error;
-use crate::world::chunk_format::{Heightmaps};
+use crate::world::chunk_format::Heightmaps;
 use crate::Result;
 use ferrumc_codec::enc::NetEncode;
 use ferrumc_codec::network_types::varint::VarInt;
@@ -13,6 +13,7 @@ use tracing::warn;
 const _SECTION_WIDTH: usize = 16;
 const _SECTION_HEIGHT: usize = 16;
 
+// TODO: fix too many arguments
 #[derive(NetEncode)]
 pub struct ChunkDataAndUpdateLight {
     #[encode(default=VarInt::from(0x24))]
@@ -55,7 +56,6 @@ impl ChunkDataAndUpdateLight {
             .get_chunk(chunk_x, chunk_z, "overworld".to_string())
             .await?
             .ok_or(Error::ChunkNotFound(chunk_x, chunk_z))?;
-
 
         // Serialize the chunk data
         let mut data = Cursor::new(Vec::new());

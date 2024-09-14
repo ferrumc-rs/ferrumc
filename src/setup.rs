@@ -1,10 +1,10 @@
 use std::env;
 use std::env::current_exe;
 
+use crate::setup;
 use crate::utils::error::Error;
 use tokio::fs;
 use tracing::{error, info};
-use crate::setup;
 
 /// Handles the setup of the server
 ///
@@ -13,7 +13,7 @@ use crate::setup;
 /// Returns True if the server should exit after setup
 ///
 /// Runs [setup::setup] if the server needs setting up
-pub(super)async fn handle_setup() -> crate::utils::prelude::Result<bool> {
+pub async fn handle_setup() -> crate::utils::prelude::Result<bool> {
     // This env var will be present if the server is running in a CI environment
     // This will lead to set up not running, but we just need to check for compilation success, not actual functionality
     if env::var("GITHUB_ACTIONS").is_ok() {
@@ -45,7 +45,6 @@ pub(super)async fn handle_setup() -> crate::utils::prelude::Result<bool> {
         }
     }
 }
-
 
 /// Handles the setup of the server
 ///

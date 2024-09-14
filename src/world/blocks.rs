@@ -17,11 +17,11 @@ pub async fn read_block(
         .database
         .get_chunk(chunk_x, chunk_z, dimension)
         .await?;
-    if !chunk.is_some() {
+    if chunk.is_none() {
         return Err(Error::ChunkNotFound(chunk_x, chunk_z));
     }
     let chunk = chunk.unwrap();
-    if !chunk.sections.is_some() {
+    if chunk.sections.is_none() {
         return Err(Error::Generic(format!(
             "Chunk {} {} does not have any sections",
             chunk_x, chunk_z
@@ -35,7 +35,7 @@ pub async fn read_block(
         .find(|section| section.y == (y / 16) as i8)
         .unwrap();
 
-    if !section.block_states.as_ref().unwrap().palette.is_some() {
+    if section.block_states.as_ref().unwrap().palette.is_none() {
         return Err(Error::Generic(format!(
             "Section {} does not have any palette",
             y / 16
@@ -62,13 +62,13 @@ pub async fn read_block(
             .clone());
     }
     println!("Palette: {:#?}", palette);
-    if !section.block_states.is_some() {
+    if section.block_states.is_none() {
         return Err(Error::Generic(format!(
             "Section {} does not have any block states",
             y / 16
         )));
     }
-    if !section.block_states.as_ref().unwrap().data.is_some() {
+    if section.block_states.as_ref().unwrap().data.is_none() {
         return Err(Error::Generic(format!(
             "Section {} does not have any block states data",
             y / 16
@@ -97,7 +97,7 @@ pub async fn read_block(
         .get(specific_index as usize)
     {
         let block_index = read_n_bits_u16(
-            *target_long,
+            target_long,
             (index as usize * bits_per_block) % 64,
             bits_per_block,
         )?;

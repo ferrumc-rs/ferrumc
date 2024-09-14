@@ -26,14 +26,14 @@ pub struct ChunkSender;
 #[async_trait]
 impl System for ChunkSender {
     async fn run(&self, state: GlobalState) {
-        let mut interval = tokio::time::interval(std::time::Duration::from_millis(CHUNK_TX_INTERVAL_MS));
+        let mut interval =
+            tokio::time::interval(std::time::Duration::from_millis(CHUNK_TX_INTERVAL_MS));
         loop {
             interval.tick().await;
 
             // Get all the Players, instead of all the *entities*. The player is just a filter.
             let query = state.world.query::<&Player>();
-            let send_to = query.iter().await
-                .collect::<Vec<_>>();
+            let send_to = query.iter().await.collect::<Vec<_>>();
 
             send_to.into_iter().for_each(|(entity_id, player)| {
                 debug!("Sending chunk to player: {}", player.get_username());
@@ -67,10 +67,7 @@ impl ChunkSender {
             .get_mut_or_insert_with::<LastChunkTxPos>(entity_id, Default::default)
             .await;
 
-        let client_info = state
-            .world
-            .get_component::<ClientInfo>(entity_id)
-            .await?;
+        let client_info = state.world.get_component::<ClientInfo>(entity_id).await?;
 
         let distance = last_chunk_tx_pos.distance_to(current_pos.0, current_pos.1);
 
@@ -81,14 +78,11 @@ impl ChunkSender {
         last_chunk_tx_pos.set_last_chunk_tx_pos(current_pos.0, current_pos.1);
 
         let state_clone = state.clone();
-        tokio::spawn(
-            async move {
-                if let Err(e) = ChunkSender::send_chunks_to_player(state_clone, entity_id).await {
-                    error!("Failed to send chunk to player: {}", e);
-                }
+        tokio::spawn(async move {
+            if let Err(e) = ChunkSender::send_chunks_to_player(state_clone, entity_id).await {
+                error!("Failed to send chunk to player: {}", e);
             }
-        );
-
+        });
 
         Ok(())
     }
@@ -106,11 +100,13 @@ impl ChunkSender {
         let c_info = state
             .world
             .get_component::<ClientInfo>(entity_id)
-            .await.ok();
-
+            .await
+            .ok();
 
         let pos = c_pos.clone();
-        let view_distance: i8 = c_info.as_ref().map_or(DEFAULT_CHUNK_RADIUS, |c| c.view_distance);
+        let view_distance: i8 = c_info
+            .as_ref()
+            .map_or(DEFAULT_CHUNK_RADIUS, |c| c.view_distance);
         let conn = c_conn.0.clone();
 
         drop(c_pos);
@@ -125,7 +121,8 @@ impl ChunkSender {
         drop(player);
 
         ChunkSender::send_set_center_chunk(&pos, conn.clone()).await?;
-        ChunkSender::send_chunk_data_to_player(state.clone(), &pos, view_distance, conn.clone()).await?;
+        ChunkSender::send_chunk_data_to_player(state.clone(), &pos, view_distance, conn.clone())
+            .await?;
 
         Ok(())
     }
@@ -145,11 +142,10 @@ impl ChunkSender {
 
         'x: for x in -chunk_radius..=chunk_radius {
             for z in -chunk_radius..=chunk_radius {
-                let Ok(packet) = ChunkDataAndUpdateLight::new(
-                    state.clone(),
-                    (pos_x >> 4) + x,
-                    (pos_z >> 4) + z,
-                ).await else {
+                let Ok(packet) =
+                    ChunkDataAndUpdateLight::new(state.clone(), (pos_x >> 4) + x, (pos_z >> 4) + z)
+                        .await
+                else {
                     continue;
                 };
                 let conn_read = conn.read().await;
@@ -161,7 +157,8 @@ impl ChunkSender {
         }
 
         // check the size of a single chunk and multiply it by the number of chunks sent
-        let sample_chunk = ChunkDataAndUpdateLight::new(state.clone(), pos_x >> 4, pos_z >> 4).await?;
+        let sample_chunk =
+            ChunkDataAndUpdateLight::new(state.clone(), pos_x >> 4, pos_z >> 4).await?;
         let mut vec = vec![];
         sample_chunk.net_encode(&mut vec).await?;
         let chunk_rad_axis = chunk_radius * 2 + 1;

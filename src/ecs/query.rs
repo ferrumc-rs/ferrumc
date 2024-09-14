@@ -158,7 +158,10 @@ mod helpers {
     impl<T: QueryItem> QueryItem for Option<T> {
         type Item<'a> = Option<T::Item<'a>>;
 
-        async fn fetch<'a>(entity_id: impl Into<usize>, storage: &'a ComponentStorage) -> Result<Self::Item<'a>> {
+        async fn fetch<'a>(
+            entity_id: impl Into<usize>,
+            storage: &'a ComponentStorage,
+        ) -> Result<Self::Item<'a>> {
             let entity_id = entity_id.into();
             let component = T::fetch(entity_id, storage).await;
             Ok(component.ok())
