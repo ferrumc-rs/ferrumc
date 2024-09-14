@@ -3,6 +3,8 @@ use std::process::exit;
 
 use ferrumc::{create_state, setup, utils, world};
 use tokio::net::TcpListener;
+use tokio::select;
+use tokio::task::JoinHandle;
 use tracing::{error, info, trace};
 
 use ferrumc::{
@@ -12,17 +14,7 @@ use ferrumc::{
 
 #[tokio::main]
 async fn main() {
-    let result = entry().await;
-
-    match result {
-        Ok(_) => {
-            info!("Server exited successfully!");
-        }
-        Err(e) => {
-            error!("Server exited with an error");
-            error!("{}", e);
-        }
-    }
+    entry().await.expect("Failed to shutdown server:");
 }
 
 async fn entry() -> Result<()> {
@@ -34,9 +26,30 @@ async fn entry() -> Result<()> {
 
     info!("Initializing server...");
 
-    start_server().await?;
+    let server_handle = start_server().await?;
 
-    tokio::signal::ctrl_c().await?;
+    let need_to_kill = select! {
+        server_result = server_handle => {
+            match server_result.expect("join_error") {
+                Ok(_) => {
+                    info!("Server exited successfully!");
+                }
+                Err(e) => {
+                    error!("Server exited with an error");
+                    error!("{}", e);
+                }
+            }
+            false
+        },
+        _ = tokio::signal::ctrl_c() => {
+            info!("Received ctrl+c.. Shutting down..");
+            true
+        }
+    };
+
+    if need_to_kill {
+        kill_all_systems().await?;
+    }
 
     info!("Exiting server;");
 
@@ -46,7 +59,7 @@ async fn entry() -> Result<()> {
 /// Starts the server. Sets up the sockets and listens for incoming connections
 ///
 /// The actual management of connections tx/rx is handled by [net::systems::connection_handler]
-async fn start_server() -> Result<()> {
+async fn start_server() -> Result<JoinHandle<Result<()>>> {
     let config = get_global_config();
     trace!("Starting server on {}:{}", config.host, config.port);
 
@@ -76,13 +89,16 @@ async fn start_server() -> Result<()> {
     info!("Server started on {}", addr);
 
     // Start all systems (separate task)
-    let all_systems = tokio::task::spawn(start_all_systems(state));
+    let handle = tokio::task::spawn(async {
+        let all_systems = tokio::task::spawn(start_all_systems(state));
 
-    // Wait for all systems to finish
-    all_systems.await??;
+        // Wait for all systems to finish
+        all_systems.await??;
 
-    // Kill all systems since we're done.
-    kill_all_systems().await?;
+        // Kill all systems since we're done.
+        kill_all_systems().await?;
+        Ok(())
+    });
 
-    Ok(())
+    Ok(handle)
 }
