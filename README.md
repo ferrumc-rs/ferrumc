@@ -12,7 +12,7 @@
 <div align="center">
     <a href="#-about">About</a>
     •
-    <a href="#-current-features-and-roadmap">Features</a>
+    <a href="#-key-features">Features</a>
     •
     <a href="#-getting-started">Getting Started</a>
     •
