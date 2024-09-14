@@ -217,7 +217,7 @@ mod multiple_components {
 
     #[cfg(test)]
     mod tests {
-        use super::*;
+        use crate::ecs::world::World;
         use crate::utils::components::rotation::Rotation;
         use crate::utils::encoding::position::Position;
 
