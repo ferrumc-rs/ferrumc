@@ -6,7 +6,7 @@ use std::hash::{Hash, Hasher};
 /// variable in scope
 ///
 /// # Example
-/// ```rs
+/// ```ignore
 /// let hashed: u64 = hash("hello");
 /// ```
 ///

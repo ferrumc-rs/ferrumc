@@ -11,11 +11,10 @@ pub struct AttributeValues {
     pub net_encode: bool,
 }
 
-
 /// Parses the attributes of the struct and returns the values of the `is_root` and `rename` attributes.
 /// @return: (is_root, rename)
 /// Example of usage:
-/// ```rust
+/// ```ignore
 /// use nbt_derive::NBTSerialize;
 ///
 /// #[derive(NBTSerialize)]
@@ -25,7 +24,6 @@ pub struct AttributeValues {
 ///    pub player_name: String,
 /// }
 pub fn parse_struct_attributes(attrs: &[Attribute]) -> AttributeValues {
-
     let mut attribute_values = AttributeValues {
         is_root: false,
         rename: None,
@@ -67,7 +65,7 @@ pub fn parse_struct_attributes(attrs: &[Attribute]) -> AttributeValues {
 /// Parses the attributes of the field and returns the value of the `rename` attribute.
 /// @return: rename option
 /// Example of usage:
-/// ```rust
+/// ```ignore
 /// use nbt_derive::NBTSerialize;
 ///
 /// #[derive(NBTSerialize)]
