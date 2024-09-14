@@ -25,9 +25,9 @@ impl LastChunkTxPos {
     }
 
     pub fn distance_to(&self, x: i32, z: i32) -> f64 {
-        let dx = self.x - x;
-        let dz = self.z - z;
+        let dx = (self.x - x) as f64;
+        let dz = (self.z - z) as f64;
 
-        ((dx * dx + dz * dz) as f64).sqrt()
+        (dx * dx + dz * dz).sqrt()
     }
 }
