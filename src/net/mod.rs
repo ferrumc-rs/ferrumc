@@ -301,11 +301,11 @@ impl Connection {
         self.send_packet(packets).await
     }
 
-    pub async fn get_in_stream<'a>(&'a self) -> MutexGuard<'a, tokio::net::tcp::OwnedReadHalf> {
+    pub async fn get_in_stream(&self) -> MutexGuard<'_, tokio::net::tcp::OwnedReadHalf> {
         self.stream.in_stream.lock().await
     }
 
-    pub async fn get_out_stream<'a>(&'a self) -> MutexGuard<'a, tokio::net::tcp::OwnedWriteHalf> {
+    pub async fn get_out_stream(&self) -> MutexGuard<'_, tokio::net::tcp::OwnedWriteHalf> {
         self.stream.out_stream.lock().await
     }
 
