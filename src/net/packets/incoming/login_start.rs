@@ -235,7 +235,7 @@ impl LoginStart {
 
     async fn send_set_compression(
         &self,
-        packet_queue: &mut PacketQueue,
+        _packet_queue: &mut PacketQueue,
         conn: Arc<RwLock<Connection>>,
     ) -> Result<()> {
         // Get config file's network_compression_threshold value
@@ -256,7 +256,10 @@ impl LoginStart {
         let set_compression = crate::net::packets::outgoing::set_compression::SetCompression::new(
             network_compression_threshold,
         );
-        packet_queue.queue(set_compression).await?;
+        // packet_queue.queue(set_compression).await?;
+
+        // We have to send this packet before we can start compressing packets
+        conn.write().await.send_packet(set_compression).await?;
 
         // Enable compression for subsequent packets
         conn.write().await.metadata.compressed = true;

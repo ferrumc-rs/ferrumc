@@ -44,7 +44,7 @@ impl Encode for BitSet {
 }
 */
 
-use std::ops::Index;
+use std::{fmt::Debug, ops::Index};
 
 use ferrumc_codec::enc::NetEncode;
 use ferrumc_codec::network_types::varint::VarInt;

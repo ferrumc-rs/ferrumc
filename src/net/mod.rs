@@ -329,19 +329,31 @@ pub async fn drop_conn(connection_id: u32, state: GlobalState) -> Result<()> {
 
 impl Connection {
     pub async fn send_packet(&self, packet: impl NetEncode) -> Result<()> {
+        trace!("Sending packet");
         let mut out_stream = self.get_out_stream().await;
 
         // Encode packet into a buffer
         let mut buffer = Vec::new();
+
         // packet.net_encode(&mut *out_stream).await?;
         packet.net_encode(&mut buffer).await?;
 
+        let length = buffer.len(); // Length of Packet ID + Data (uncompressed)
+        trace!("Uncompressed length: {}", length);
+
         // Check if compression is enabled
         if self.metadata.compressed {
-            let mut packet_length = buffer.len();
-            let mut compressed_buffer = Vec::new();
+            trace!("Compression enabled");
+            let mut compressed_buffer = Vec::new(); // The compressed (or uncompressed) data
+            let mut data_length = length; // Length of uncompressed (Packet ID + Data) or 0
+            let packet_length;
 
-            if buffer.len() > get_global_config().network_compression_threshold as usize {
+            // "If the size of the buffer containing the packet data and ID (as a VarInt)
+            // is smaller than the threshold specified in the packet Set Compression. It will be sent as uncompressed."
+            if length > get_global_config().network_compression_threshold as usize {
+                trace!("Compressing packet");
+                // New buffer to store the compressed data
+                let buffer = Vec::new();
                 // Compress the packet
                 let mut z =
                     ZlibEncoder::new(&mut compressed_buffer, flate2::Compression::default());
@@ -349,27 +361,38 @@ impl Connection {
                 z.finish()?;
 
                 // Update the packet length
-                packet_length = compressed_buffer.len();
+                packet_length = compressed_buffer.len() + data_length;
             } else {
+                trace!("Not compressing packet");
                 // Uncompressed: Set data length to 0
+                data_length = 0;
+                packet_length = length + VarInt::from(data_length as i32).get_len();
                 compressed_buffer = buffer;
             }
 
-            // Write the packet length
+            // Write the packet length to the buffer
             VarInt::from(packet_length as i32)
                 .write(&mut *out_stream)
                 .await?;
 
-            // Write the buffer
-            out_stream.write_all(&compressed_buffer).await?;
-        } else {
-            // Not compressed: Send packet as is
-            VarInt::from(buffer.len() as i32)
+            // Write the data length to the buffer
+            VarInt::from(data_length as i32)
                 .write(&mut *out_stream)
                 .await?;
 
+            // Write the compressed/uncompressed data to the buffer
+            out_stream.write_all(&compressed_buffer).await?;
+        } else {
+            // Not compressed.
+
+            // Write the length to the out_stream
+            VarInt::from(length as i32).write(&mut *out_stream).await?;
+
+            // Write the out_stream and buffer to the stream
             out_stream.write_all(&buffer).await?;
         }
+
+        trace!("Packet sent");
 
         Ok(())
     }

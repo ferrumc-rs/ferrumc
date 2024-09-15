@@ -1,5 +1,5 @@
 use quote::{format_ident, quote};
-use syn::{DeriveInput, Field, Generics, Lifetime, parse_macro_input};
+use syn::{parse_macro_input, DeriveInput, Field, Generics, Lifetime};
 
 use proc_macro::TokenStream;
 
@@ -131,9 +131,9 @@ fn generate_encode_impl(
                     #(#field_statements)*
 
                     let __packet_data = bytes_.into_inner();
-                    let __length = ferrumc_codec::network_types::varint::VarInt::new(__packet_data.len() as i32);
+                    // let __length = ferrumc_codec::network_types::varint::VarInt::new(__packet_data.len() as i32);
                     let mut __cursor = std::io::Cursor::new(Vec::new());
-                    __length.net_encode(&mut __cursor).await?;
+                    // __length.net_encode(&mut __cursor).await?;
                     __cursor.write_all(&__packet_data).await?;
                     let __encoded = __cursor.into_inner();
                     bytes_out.write_all(&__encoded).await?;
