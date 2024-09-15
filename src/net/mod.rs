@@ -105,6 +105,7 @@ pub struct Connection {
     pub state: State,
     pub metadata: ConnectionMetadata,
     pub drop: bool,
+    pub compressed: bool,
 }
 
 pub struct NetStream {
@@ -142,6 +143,7 @@ pub async fn init_connection(socket: tokio::net::TcpStream, state: GlobalState) 
         state: State::Handshake,
         metadata: ConnectionMetadata::default(),
         drop: false,
+        compressed: false, // By default until server sends SetCompression
     };
 
     let conn = Arc::new(RwLock::new(conn));

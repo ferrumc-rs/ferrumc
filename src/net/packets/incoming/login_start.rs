@@ -1,9 +1,11 @@
+use std::sync::Arc;
 use std::time::Instant;
 
 use ferrumc_codec::network_types::varint::VarInt;
 #[cfg(not(test))]
 use include_flate::flate;
 use rand::random;
+use tokio::sync::RwLock;
 use tracing::{debug, info};
 use uuid::Uuid;
 
@@ -23,6 +25,7 @@ use crate::state::GlobalState;
 use crate::utils::components::keep_alive::KeepAlive;
 use crate::utils::components::player::Player;
 use crate::utils::components::rotation::Rotation;
+use crate::utils::config::get_global_config;
 use crate::utils::constants::init;
 use crate::utils::encoding::position::Position;
 use crate::utils::prelude::*;
@@ -58,6 +61,12 @@ impl IncomingPacket for LoginStart {
         // let conn = conn.read().await;
 
         let mut packet_queue = PacketQueue::new();
+
+        // Encryption logic here
+
+        // Compression logic
+        self.send_set_compression(&mut packet_queue, conn.clone())
+            .await?; // Optional, however since config for compression is not implemented, ill send it anyways lol
 
         self.send_login_success(&mut packet_queue).await?;
         self.send_login_play(&mut packet_queue).await?;
@@ -221,6 +230,36 @@ impl LoginStart {
 
         packet_queue.queue(packet).await?;
 
+        Ok(())
+    }
+
+    async fn send_set_compression(
+        &self,
+        packet_queue: &mut PacketQueue,
+        conn: Arc<RwLock<Connection>>,
+    ) -> Result<()> {
+        // Get config file's network_compression_threshold value
+        let network_compression_threshold = get_global_config().network_compression_threshold;
+
+        // Compression disabled
+        // This packet is optional anyways, so no packet assumes no compression.
+        if network_compression_threshold <= -1 {
+            return Ok(());
+        }
+
+        // Compression enabled
+        // Send packet
+        debug!(
+            "Sending SetCompression packet with threshold: {}",
+            network_compression_threshold
+        );
+        let set_compression = crate::net::packets::outgoing::set_compression::SetCompression::new(
+            network_compression_threshold,
+        );
+        packet_queue.queue(set_compression).await?;
+
+        // Enable compression for subsequent packets
+        conn.write().await.compressed = true;
         Ok(())
     }
 }
