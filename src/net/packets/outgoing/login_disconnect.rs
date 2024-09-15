@@ -6,6 +6,7 @@ use ferrumc_macros::NetEncode;
 /// Used to cancel the login process.
 #[derive(NetEncode)]
 pub struct LoginDisconnect {
+    #[encode(default = VarInt::from(0x00))]
     pub packet_id: VarInt,
     pub reason: String,
 }
