@@ -16,7 +16,7 @@ const _SECTION_HEIGHT: usize = 16;
 // Seperated light data from chunk data since clippy was complaining about the size of the struct
 #[derive(NetEncode)]
 pub struct ChunkDataAndUpdateLight {
-    #[encode(default=VarInt::from(0x24))]
+/*    #[encode(default=VarInt::from(0x24))]
     pub packet_id: VarInt,
     pub chunk_x: i32,
     pub chunk_z: i32,
@@ -24,17 +24,28 @@ pub struct ChunkDataAndUpdateLight {
     #[encode(raw_bytes(prepend_length = true))]
     pub data: Vec<u8>,
     pub block_entities: Vec<BlockEntity>,
+    pub light_data: LightData,*/
+    #[encode(default=VarInt::from(0x24))]
+    pub packet_id: VarInt,
+    pub chunk_x: i32,
+    pub chunk_z: i32,
+    pub heightmaps: Heightmaps,
+    #[encode(raw_bytes(prepend_length = true))]
+    pub data: Vec<u8>,
+    pub block_entities_count: VarInt,
+    pub block_entities: Vec<BlockEntity>,
     pub light_data: LightData,
 }
 
 #[derive(NetEncode)]
 pub struct LightData {
-    pub block_entities_count: VarInt,
     pub sky_light_mask: BitSet,
     pub block_light_mask: BitSet,
     pub empty_sky_light_mask: BitSet,
     pub empty_block_light_mask: BitSet,
+    pub sky_light_array_count: VarInt,
     pub sky_light_arrays: Vec<LightArray>,
+    pub block_light_array_count: VarInt,
     pub block_light_arrays: Vec<LightArray>,
 }
 
@@ -139,20 +150,23 @@ impl ChunkDataAndUpdateLight {
                 world_surface: Some(vec![i64::MAX; 37]),
             }
         });
+
         let res = ChunkDataAndUpdateLight {
             packet_id: VarInt::from(0x24),
             chunk_x,
             chunk_z,
             heightmaps,
             data: data.into_inner(),
+            block_entities_count: VarInt::from(0),
             block_entities: Vec::new(),
             light_data: LightData {
-                block_entities_count: VarInt::from(0),
                 sky_light_mask,
                 block_light_mask,
                 empty_sky_light_mask,
                 empty_block_light_mask,
+                sky_light_array_count: VarInt::from(sky_light_arrays.len() as i32),
                 sky_light_arrays,
+                block_light_array_count: VarInt::from(block_light_arrays.len() as i32),
                 block_light_arrays,
             },
         };

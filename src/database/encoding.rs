@@ -30,22 +30,22 @@ pub struct ZstdCodec;
 
 impl ZstdCodec {
     pub async fn compress_data<T: Encode + Send + 'static>(data: T) -> crate::Result<Vec<u8>> {
-        tokio::task::spawn_blocking(move || {
-            let mut bytes = Vec::new();
-            let mut compressor = zstd::Encoder::new(&mut bytes, 3)?;
-            bincode::encode_into_std_write(&data, &mut compressor, standard())?;
-            compressor.finish()?;
-            Ok(bytes)
-        })
-        .await?
+        /*            let mut bytes = Vec::new();
+                    let mut compressor = zstd::Encoder::new(&mut bytes, 3)?;
+                    bincode::encode_into_std_write(&data, &mut compressor, standard())?;
+                    compressor.finish()?;*/
+        let mut bytes = Vec::new();
+        bincode::encode_into_std_write(&data, &mut bytes, standard())?;
+        Ok(bytes)
     }
-    pub async fn decompress_data<T: Decode + Send + 'static>(data: Vec<u8>) -> crate::Result<T> {
-        tokio::task::spawn_blocking(move || {
-            let mut decoder = zstd::Decoder::new(data.as_slice())?;
-            // let decoded = bincode::decode_from_slice(data.as_slice(), standard())?;
-            let decoded = bincode::decode_from_std_read(&mut decoder, standard())?;
-            Ok(decoded)
-        })
-        .await?
+    pub async fn decompress_data<T: Decode + Send + 'static>(data: &[u8]) -> crate::Result<T> {
+
+        // let mut decoder = zstd::Decoder::new(data.as_slice())?;
+        // let decoded = bincode::decode_from_slice(data.as_slice(), standard())?;
+        // let decoded = bincode::decode_from_std_read(&mut decoder, standard())?;
+
+        let decoded = bincode::decode_from_slice(data, standard())?;
+
+        Ok(decoded.0)
     }
 }

@@ -37,7 +37,7 @@ impl Database {
 
         // Now, proceed with the async operation without holding `ro_tx`
         if let Some(data) = data {
-            let chunk = ZstdCodec::decompress_data::<Chunk>(data)
+            let chunk = ZstdCodec::decompress_data::<Chunk>(data.as_slice())
                 .await
                 .expect("Failed to decompress chunk");
             Ok(Some(chunk))

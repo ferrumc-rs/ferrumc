@@ -53,3 +53,16 @@ impl<O: NetEncode> NetEncode for Option<O> {
         }
     }
 }
+impl<'a, E: NetEncode> NetEncode for &'a [E] {
+    async fn net_encode<W>(&self, writer: &mut W) -> Result<()>
+    where
+        W: AsyncWrite + Unpin,
+    {
+        //! <WARNING> This function does not encode the size of the slice.
+        for v in self.iter() {
+            v.net_encode(writer).await?;
+        }
+
+        Ok(())
+    }
+}

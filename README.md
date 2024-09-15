@@ -12,15 +12,13 @@
 <div align="center">
     <a href="#-about">About</a>
     •
-    <a href="#-current-features-and-roadmap">Features</a>
+    <a href="#-key-features">Features</a>
     •
     <a href="#-getting-started">Getting Started</a>
     •
-    <a href="#-development">Development</a>
+    <a href="#%EF%B8%8F-development">Development</a>
     •
     <a href="#-license">License</a>
-    •
-    <a href="#-acknowledgments">Acknowledgments</a>
     •
     <a href="#-faq">FAQ</a>
 
