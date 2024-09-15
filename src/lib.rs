@@ -23,6 +23,7 @@ pub mod utils;
 pub mod database;
 pub mod state;
 pub mod world;
+pub mod events;
 
 pub async fn create_state(tcp_listener: TcpListener) -> Result<GlobalState> {
     Ok(Arc::new(ServerState {

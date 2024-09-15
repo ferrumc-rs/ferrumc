@@ -8,6 +8,7 @@ mod encode;
 mod nbt_decode;
 mod packet;
 mod utils;
+mod events;
 
 #[proc_macro_derive(NetDecode)]
 pub fn decode_derive(input: TokenStream) -> TokenStream {
@@ -51,4 +52,9 @@ pub fn derive_name(input: TokenStream) -> TokenStream {
 #[proc_macro_derive(Getter)]
 pub fn derive_getter(input: TokenStream) -> TokenStream {
     utils::derive_getter(input)
+}
+
+#[proc_macro_derive(EventHandler)]
+pub fn derive_event_handler(input: TokenStream) -> TokenStream {
+    events::derive_event_handler(input)
 }

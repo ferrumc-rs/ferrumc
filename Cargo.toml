@@ -78,6 +78,9 @@ clap_derive = "4.5.11"
 indicatif = "0.17.8"
 num_cpus = "1.16.0"
 
+# Compile Time Reflections (?)
+inventory = "0.3.15"
+
 
 # Set the cache to the highest level for development
 [profile.dev.package.moka]

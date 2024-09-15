@@ -76,7 +76,7 @@ pub fn bake(input: TokenStream) -> TokenStream {
             let mut state = None;
 
             for attr in item_struct.attrs {
-                if !(attr.path().is_ident("packet")) {
+                if !attr.path().is_ident("packet") {
                     continue;
                 }
 
