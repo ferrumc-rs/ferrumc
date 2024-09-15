@@ -160,7 +160,7 @@ impl ChunkSender {
         let sample_chunk =
             ChunkDataAndUpdateLight::new(state.clone(), pos_x >> 4, pos_z >> 4).await?;
         let mut vec = vec![];
-        sample_chunk.net_encode(&mut vec).await?;
+        sample_chunk.net_encode_no_size(&mut vec).await?;
         let chunk_rad_axis = chunk_radius * 2 + 1;
         debug!(
                 "Send {}({}x{}) chunks to player in {:?}. Approximately {} kb of data (~{} kb per chunk)",

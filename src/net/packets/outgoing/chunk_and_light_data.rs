@@ -65,8 +65,11 @@ impl ChunkDataAndUpdateLight {
 
         if let Some(sections) = &chunk.sections {
             for section in sections {
-                section.net_encode(&mut data).await?;
-                serialize_biomes().await?.net_encode(&mut data).await?;
+                section.net_encode_no_size(&mut data).await?;
+                serialize_biomes()
+                    .await?
+                    .net_encode_no_size(&mut data)
+                    .await?;
             }
         } else {
             return Err(Error::InvalidChunk(
@@ -187,11 +190,11 @@ async fn serialize_biomes() -> Result<Vec<u8>> {
     // Direct biome encoding, no palette
     let biome_data = vec![0u64; 64 * (bits_per_biome as usize) / 64]; // 64 biomes per section
     VarInt::from(biome_data.len() as i32)
-        .net_encode(&mut data)
+        .net_encode_no_size(&mut data)
         .await?;
 
     for long in biome_data {
-        long.net_encode(&mut data).await?;
+        long.net_encode_no_size(&mut data).await?;
     }
 
     Ok(data)

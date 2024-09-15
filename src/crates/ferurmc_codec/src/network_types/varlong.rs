@@ -68,7 +68,7 @@ mod adapters {
     }
 
     impl NetEncode for Varlong {
-        async fn net_encode<T>(&self, cursor: &mut T) -> Result<()>
+        async fn net_encode_no_size<T>(&self, cursor: &mut T) -> Result<()>
         where
             T: AsyncWrite + Unpin,
         {

@@ -122,7 +122,7 @@ mod adapters {
     }
 
     impl NetEncode for VarInt {
-        async fn net_encode<W>(&self, writer: &mut W) -> Result<()>
+        async fn net_encode_no_size<W>(&self, writer: &mut W) -> Result<()>
         where
             W: AsyncWrite + Unpin,
         {

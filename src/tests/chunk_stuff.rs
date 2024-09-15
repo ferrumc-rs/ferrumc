@@ -20,7 +20,7 @@ pub async fn dump_heightmaps() -> Result<(), Box<dyn std::error::Error>> {
     let heightmaps = chunk.heightmaps.unwrap();
 
     let mut buffer = Vec::new();
-    heightmaps.net_encode(&mut buffer).await.unwrap();
+    heightmaps.net_encode_no_size(&mut buffer).await.unwrap();
 
     std::fs::write(".etc/heightmaps.nbt", buffer).unwrap();
 

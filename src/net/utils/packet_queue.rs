@@ -14,7 +14,7 @@ impl PacketQueue {
 
     /// Queue a packet to be sent.
     pub async fn queue(&mut self, packet: impl NetEncode) -> Result<()> {
-        packet.net_encode(&mut self.queue).await.map_err(Into::into)
+        packet.net_encode_no_size(&mut self.queue).await.map_err(Into::into)
     }
 }
 
