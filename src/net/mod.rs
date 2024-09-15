@@ -1,6 +1,6 @@
 use std::cmp::PartialEq;
 use std::fmt::{Debug, Display};
-use std::io::Cursor;
+use std::io::{Cursor, Read, Write};
 use std::sync::atomic::AtomicU32;
 use std::sync::{atomic, Arc};
 use std::time::Duration;
@@ -8,6 +8,8 @@ use std::time::Duration;
 use dashmap::DashMap;
 use ferrumc_codec::enc::NetEncode;
 use ferrumc_codec::network_types::varint::VarInt;
+use flate2::read::ZlibDecoder;
+use flate2::write::ZlibEncoder;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::sync::{Mutex, MutexGuard, RwLock, RwLockReadGuard};
 use tracing::{debug, error, trace};
@@ -112,10 +114,16 @@ pub struct NetStream {
     pub out_stream: Mutex<tokio::net::tcp::OwnedWriteHalf>,
 }
 
+/// Metadata for a connection.
+///
+/// - `protocol_version`: The protocol version of the connection.
+/// - `entity`: The entity ID of the player.
+/// - `compressed`: Whether the connection is compressed. Default is false, until the server sends a SetCompression packet.
 #[derive(Debug, Default)]
 pub struct ConnectionMetadata {
     pub protocol_version: i32,
     pub entity: usize,
+    pub compressed: bool, // Default false, until server sends SetCompression
 }
 
 pub fn setup_tracer() {
@@ -203,13 +211,16 @@ pub async fn manage_conn(conn: Arc<RwLock<Connection>>, state: GlobalState) -> R
         debug!("Starting receiver for the addr: {:?}", local_addr);
     }
 
+    let network_compression_threshold = get_global_config().network_compression_threshold;
+
     loop {
         // Get the length of the packet
         let conn_read = conn.read().await;
 
         trace!("Reading length buffer");
 
-        let (packet_length, buffer) = get_packet_length_and_buffer(&conn_read).await?;
+        let (packet_length, buffer) =
+            get_packet_length_and_buffer(&conn_read, network_compression_threshold).await?;
         let (conn_id, conn_state) = (conn_read.id, conn_read.state.clone());
         // drop the handle to the write lock. to allow other tasks to write/read
         // mainly cuz the packet tries to access ECS component. And some system tries to access connection turns into a deadlock!!
@@ -246,11 +257,38 @@ pub async fn manage_conn(conn: Arc<RwLock<Connection>>, state: GlobalState) -> R
 }
 async fn get_packet_length_and_buffer(
     conn: &RwLockReadGuard<'_, Connection>,
+    network_compression_threshold: i32,
 ) -> Result<(VarInt, Vec<u8>)> {
+    let compressed = conn.metadata.compressed;
     let mut conn = conn.get_in_stream().await;
+
+    // Read length of packet
     let packet_length = VarInt::read(&mut *conn).await?;
+
+    // Read packet data into buffer
     let mut buffer = vec![0u8; packet_length.get_val() as usize];
     conn.read_exact(&mut buffer).await?;
+
+    // Handle cases when compression is enabled
+    if compressed {
+        // Decompress the packet
+        let mut cursor = Cursor::new(&buffer);
+        let data_length = VarInt::read(&mut cursor).await?;
+
+        // If the data length is greater than or equal to the threshold, the data is compressed
+        if data_length.get_val() >= network_compression_threshold {
+            // Compressed packet. Need to decompress it.
+            let compressed_data = &buffer[cursor.position() as usize..];
+            let mut z = ZlibDecoder::new(Cursor::new(compressed_data));
+            let mut decompressed_data = Vec::new();
+            z.read_to_end(&mut decompressed_data)?;
+
+            // return the decompressed data
+            return Ok((data_length, decompressed_data));
+        }
+    }
+
+    // Compression off or data length less than threshold. Return the buffer as is.
     Ok((packet_length, buffer))
 }
 async fn drop_conn_if_flagged(conn: Arc<RwLock<Connection>>, state: GlobalState) -> Result<()> {
@@ -291,6 +329,7 @@ pub async fn drop_conn(connection_id: u32, state: GlobalState) -> Result<()> {
 
 impl Connection {
     pub async fn send_packet(&self, packet: impl NetEncode) -> Result<()> {
+        trace!("Sending packet");
         let mut out_stream = self.get_out_stream().await;
         packet.net_encode_no_size(&mut *out_stream).await?;
         Ok(())
