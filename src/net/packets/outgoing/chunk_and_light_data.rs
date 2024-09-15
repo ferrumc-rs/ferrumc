@@ -7,7 +7,7 @@ use ferrumc_codec::enc::NetEncode;
 use ferrumc_codec::network_types::varint::VarInt;
 use ferrumc_macros::NetEncode;
 use nbt_lib::NBTTag;
-use std::io::Cursor;
+use std::io::Cursor; // Import the AsyncWrite trait
 use tracing::warn;
 
 const _SECTION_WIDTH: usize = 16;

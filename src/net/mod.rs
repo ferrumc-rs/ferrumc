@@ -1,6 +1,6 @@
 use std::cmp::PartialEq;
 use std::fmt::{Debug, Display};
-use std::io::{Cursor, Read, Write};
+use std::io::{Cursor, Read};
 use std::sync::atomic::AtomicU32;
 use std::sync::{atomic, Arc};
 use std::time::Duration;
@@ -9,7 +9,6 @@ use dashmap::DashMap;
 use ferrumc_codec::enc::NetEncode;
 use ferrumc_codec::network_types::varint::VarInt;
 use flate2::read::ZlibDecoder;
-use flate2::write::ZlibEncoder;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::sync::{Mutex, MutexGuard, RwLock, RwLockReadGuard};
 use tracing::{debug, error, trace};

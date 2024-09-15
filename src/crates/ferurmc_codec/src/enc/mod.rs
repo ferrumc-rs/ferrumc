@@ -1,3 +1,5 @@
+use std::io::Write;
+
 use tokio::io::AsyncWrite;
 
 use crate::{network_types::varint::VarInt, prelude::*};
@@ -16,13 +18,17 @@ pub trait NetEncode {
     where
         W: AsyncWrite + Unpin,
     {
+        use tokio::io::AsyncWriteExt;
+
         let mut data_buffer = Vec::new();
 
-        self.net_encode_no_size(&mut data_buffer).await;
+        self.net_encode_no_size(&mut data_buffer).await?;
 
         let length = VarInt::new(data_buffer.len() as i32);
 
-        length.net_encode(writer).await?;
+        length.net_encode_no_size(writer).await?;
+
+        writer.write_all(&data_buffer).await?;
 
         Ok(())
     }
@@ -32,26 +38,48 @@ pub trait NetEncode {
     where
         W: AsyncWrite + Unpin,
     {
+        use tokio::io::AsyncWriteExt;
+
         let mut data_buffer = Vec::new();
 
-        self.net_encode_no_size(&mut data_buffer).await;
+        self.net_encode_no_size(&mut data_buffer).await?;
 
-        let length = VarInt::new(data_buffer.len() as i32);
+        let data_length = VarInt::new(data_buffer.len() as i32);
 
-        length.net_encode(writer).await?;
+        // length.net_encode(writer).await?;
 
         if data_buffer.len() as i32 >= threshold {
-            let compressed_data = compress::compress(data_buffer.as_slice());
+            // Compress the data
 
-            let compressed_length = VarInt::new(compressed_data.len() as i32);
+            let mut e = flate2::write::ZlibEncoder::new(Vec::new(), flate2::Compression::default());
+            e.write_all(&data_buffer)?;
+            let compressed_buffer = e.finish()?;
 
-            compressed_length.net_encode(writer).await?;
+            // Write:
+            // Packet Length - Length of (Data Length) + Compressed length of (Packet ID + Data)
+            // Data Length - Length of uncompressed (Packet ID + Data) or 0
+            // Data contents - Packet ID + Data (compressed)
 
-            writer.net_encode(&compressed_data).await?;
+            // Length of data length + compressed length
+            let packet_length = compressed_buffer.len() + data_length.get_len() as usize;
+
+            VarInt::from(packet_length as i32) // Length of (Data Length) + Compressed length of (Packet ID + Data)
+                .net_encode_no_size(writer)
+                .await?;
+
+            data_length.net_encode_no_size(writer).await?; // Length of uncompressed data
+
+            writer.write_all(&compressed_buffer).await?;
         } else {
-            let uncompressed_length = VarInt::new(0);
+            let data_length = VarInt::new(0);
 
-            uncompressed_length.net_encode(writer).await?;
+            let packet_length = data_buffer.len() + data_length.get_len() as usize;
+
+            VarInt::from(packet_length as i32) // Length of (Data Length) + Compressed length of (Packet ID + Data)
+                .net_encode_no_size(writer)
+                .await?;
+
+            data_length.net_encode_no_size(writer).await?; // Length of uncompressed data (0)
 
             writer.write_all(&data_buffer).await?;
         }
