@@ -46,7 +46,7 @@ impl Encode for BitSet {
 
 use std::{fmt::Debug, ops::Index};
 
-use ferrumc_codec::enc::NetEncode;
+use ferrumc_codec::enc::{EncodeOption, NetEncode};
 use ferrumc_codec::network_types::varint::VarInt;
 use tokio::io::{AsyncWrite, AsyncWriteExt};
 
@@ -161,7 +161,11 @@ impl Index<usize> for BitSet {
 }
 
 impl NetEncode for BitSet {
-    async fn net_encode<T>(&self, bytes: &mut T) -> Result<(), ferrumc_codec::CodecError>
+    async fn net_encode<T>(
+        &self,
+        bytes: &mut T,
+        encode_option: &EncodeOption,
+    ) -> Result<(), ferrumc_codec::CodecError>
     where
         T: AsyncWrite + Unpin,
     {
@@ -170,7 +174,7 @@ impl NetEncode for BitSet {
         // Length 	VarInt 	Number of longs in the following array. May be 0 (if no bits are set).
         // Data 	Array of Long 	A packed representation of the bit set as created by BitSet.toLongArray.
         let len = VarInt::from(self.data.len() as i32);
-        len.net_encode(bytes).await?;
+        len.net_encode(bytes, encode_option).await?;
         for &word in &self.data {
             let word = word.to_be_bytes();
             bytes.write_all(&word).await?;

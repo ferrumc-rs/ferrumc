@@ -39,7 +39,7 @@ impl Varlong {
 }
 
 mod adapters {
-    use crate::enc::NetEncode;
+    use crate::enc::{EncodeOption, NetEncode};
 
     use super::*;
 
@@ -68,7 +68,7 @@ mod adapters {
     }
 
     impl NetEncode for Varlong {
-        async fn net_encode<T>(&self, cursor: &mut T) -> Result<()>
+        async fn net_encode<T>(&self, cursor: &mut T, _encode_option: &EncodeOption) -> Result<()>
         where
             T: AsyncWrite + Unpin,
         {

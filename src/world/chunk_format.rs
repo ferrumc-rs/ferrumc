@@ -1,4 +1,5 @@
 use bincode::{Decode, Encode};
+use ferrumc_codec::enc::EncodeOption;
 use ferrumc_codec::network_types::varint::VarInt;
 use serde_derive::{Deserialize, Serialize};
 use std::collections::BTreeMap;

@@ -1,12 +1,12 @@
 use std::cmp::PartialEq;
 use std::fmt::{Debug, Display};
-use std::io::{Cursor, Read};
+use std::io::{Cursor, Read, Write};
 use std::sync::atomic::AtomicU32;
 use std::sync::{atomic, Arc};
 use std::time::Duration;
 
 use dashmap::DashMap;
-use ferrumc_codec::enc::NetEncode;
+use ferrumc_codec::enc::{EncodeOption, NetEncode};
 use ferrumc_codec::network_types::varint::VarInt;
 use flate2::read::ZlibDecoder;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -330,7 +330,91 @@ impl Connection {
     pub async fn send_packet(&self, packet: impl NetEncode) -> Result<()> {
         trace!("Sending packet");
         let mut out_stream = self.get_out_stream().await;
-        packet.net_encode(&mut *out_stream).await?;
+
+        // Is compression enabled?
+        let compressed = self.metadata.compressed;
+        if compressed {
+            // Compression is enabled
+            // Get the packet without length information
+            let mut packet_data = Vec::new();
+            packet
+                .net_encode(&mut packet_data, &EncodeOption::AlwaysOmitSize)
+                .await?;
+
+            // Get the length of the data
+            let mut data_length = VarInt::from(packet_data.len() as i32);
+
+            // Compress the packet if the data length is greater than or equal to the threshold
+            let network_compression_threshold = get_global_config().network_compression_threshold;
+            if data_length.get_val() >= network_compression_threshold {
+                // Compress the packet
+                let compressed_data = Vec::new();
+                let mut encoder = flate2::write::ZlibEncoder::new(
+                    compressed_data,
+                    flate2::Compression::default(),
+                );
+                encoder.write_all(&packet_data)?;
+                let compressed_data = encoder.finish()?;
+
+                // Send the packet with compression format
+                let mut final_packet = Vec::new();
+
+                // Length of (Data Length) + Compressed length of (Packet ID + Data)
+                let packet_length =
+                    VarInt::from((data_length.get_len() + compressed_data.len()) as i32);
+
+                // Construct the final packet
+                packet_length
+                    .net_encode(&mut final_packet, &EncodeOption::AlwaysOmitSize)
+                    .await?;
+
+                data_length
+                    .net_encode(&mut final_packet, &EncodeOption::AlwaysOmitSize)
+                    .await?;
+
+                std::io::Write::write_all(&mut final_packet, &compressed_data)?;
+
+                // Send final packet
+                final_packet
+                    .net_encode(&mut *out_stream, &EncodeOption::Default)
+                    .await?;
+                out_stream.write_all(&compressed_data).await?;
+            } else {
+                // Data length is less than the threshold. Send the packet in compression format but without compression
+                data_length = VarInt::from(0); // Set data length to 0 to indicate no compression
+                data_length
+                    .net_encode(&mut *out_stream, &EncodeOption::Default)
+                    .await?;
+
+                let mut final_packet = Vec::new();
+
+                // Length of (Data Length) + Compressed length of (Packet ID + Data)
+                let packet_length =
+                    VarInt::from((data_length.get_len() + packet_data.len()) as i32);
+
+                // Construct the final packet
+                packet_length
+                    .net_encode(&mut final_packet, &EncodeOption::AlwaysOmitSize)
+                    .await?;
+
+                data_length
+                    .net_encode(&mut final_packet, &EncodeOption::AlwaysOmitSize)
+                    .await?;
+
+                std::io::Write::write_all(&mut final_packet, &packet_data)?;
+
+                // Send final packet
+                final_packet
+                    .net_encode(&mut *out_stream, &EncodeOption::Default)
+                    .await?;
+            }
+        } else {
+            // Compression is disabled
+            // Send the packet with no compression format (Default EncodeOption)
+            packet
+                .net_encode(&mut *out_stream, &EncodeOption::Default)
+                .await?;
+        }
         Ok(())
     }
 

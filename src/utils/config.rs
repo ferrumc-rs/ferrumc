@@ -8,6 +8,7 @@ use crate::utils::constants::{
 };
 use crate::utils::error::Error;
 use config::{Config, ConfigError};
+use ferrumc_codec::enc::EncodeOption;
 use serde::{Deserialize, Serialize};
 use tracing::{error, info};
 
@@ -85,6 +86,18 @@ impl ServerConfig {
         }
 
         Ok(de_settings)
+    }
+
+    pub fn is_compression_enabled(&self) -> bool {
+        self.network_compression_threshold >= 0
+    }
+
+    pub fn compression_and_encode_opt(&self) -> EncodeOption {
+        if self.network_compression_threshold < 0 {
+            EncodeOption::Default
+        } else {
+            EncodeOption::AlwaysOmitSize
+        }
     }
 }
 

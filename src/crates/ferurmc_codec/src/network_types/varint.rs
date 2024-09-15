@@ -86,7 +86,7 @@ impl VarInt {
 }
 
 mod adapters {
-    use crate::enc::NetEncode;
+    use crate::enc::{EncodeOption, NetEncode};
 
     use super::*;
 
@@ -122,7 +122,7 @@ mod adapters {
     }
 
     impl NetEncode for VarInt {
-        async fn net_encode<W>(&self, writer: &mut W) -> Result<()>
+        async fn net_encode<W>(&self, writer: &mut W, _encode_option: &EncodeOption) -> Result<()>
         where
             W: AsyncWrite + Unpin,
         {

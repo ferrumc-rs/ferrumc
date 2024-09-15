@@ -67,13 +67,16 @@ impl IncomingPacket for LoginStart {
         self.send_set_compression(&mut packet_queue, conn.clone())
             .await?;
 
-        self.send_login_success(&mut packet_queue).await?;
-        self.send_login_play(&mut packet_queue).await?;
-        self.send_spawn_position(&mut packet_queue).await?;
+        self.send_login_success(&mut packet_queue, &*conn.read().await)
+            .await?;
+        self.send_login_play(&mut packet_queue, &*conn.read().await)
+            .await?;
+        self.send_spawn_position(&mut packet_queue, &*conn.read().await)
+            .await?;
 
         let data: i64 = random();
         let mut keep_alive = KeepAlive::new(Instant::now(), Instant::now(), data);
-        self.send_keep_alive(&mut packet_queue, &mut keep_alive)
+        self.send_keep_alive(&mut packet_queue, &mut keep_alive, &*conn.read().await)
             .await?;
         self.update_world_state(&*conn.read().await, keep_alive, state.clone())
             .await?;
@@ -83,7 +86,9 @@ impl IncomingPacket for LoginStart {
 
         let packet = LoginPluginRequest::server_brand("🦀".repeat(100)).await;
         // conn.send_packet(packet).await?;
-        packet_queue.queue(packet).await?;
+        packet_queue
+            .queue(packet, conn.read().await.metadata.compressed)
+            .await?;
 
         info!("Player {} has joined the server", self.username);
 
@@ -105,7 +110,11 @@ impl IncomingPacket for LoginStart {
 }
 
 impl LoginStart {
-    async fn send_login_success(&self, packet_queue: &mut PacketQueue) -> Result<()> {
+    async fn send_login_success(
+        &self,
+        packet_queue: &mut PacketQueue,
+        conn: &Connection,
+    ) -> Result<()> {
         debug!("LoginStart packet received");
         debug!("Username: {}", self.username);
         let uuid = Uuid::from_u128(self.uuid);
@@ -121,7 +130,9 @@ impl LoginStart {
             vec![],
         );
 
-        packet_queue.queue(response).await?;
+        packet_queue
+            .queue(response, conn.metadata.compressed)
+            .await?;
 
         // let mut cursor = std::io::Cursor::new(Vec::new());
         // response.net_encode(&mut cursor).await?;
@@ -130,7 +141,11 @@ impl LoginStart {
         Ok(())
     }
 
-    async fn send_login_play(&self, packet_queue: &mut PacketQueue) -> Result<()> {
+    async fn send_login_play(
+        &self,
+        packet_queue: &mut PacketQueue,
+        conn: &Connection,
+    ) -> Result<()> {
         let play_packet = crate::net::packets::outgoing::login_play::LoginPlay {
             packet_id: VarInt::from(0x28),
             entity_id: 0,
@@ -154,7 +169,9 @@ impl LoginStart {
             portal_cooldown: VarInt::new(0),
         };
 
-        packet_queue.queue(play_packet).await?;
+        packet_queue
+            .queue(play_packet, conn.metadata.compressed)
+            .await?;
         /*let mut cursor = std::io::Cursor::new(Vec::new());
         play_packet.net_encode(&mut cursor).await?;
         let play_packet = cursor.into_inner();
@@ -163,14 +180,20 @@ impl LoginStart {
         Ok(())
     }
 
-    async fn send_spawn_position(&self, packet_queue: &mut PacketQueue) -> Result<()> {
+    async fn send_spawn_position(
+        &self,
+        packet_queue: &mut PacketQueue,
+        conn: &Connection,
+    ) -> Result<()> {
         let player_position = Position {
             x: init::DEFAULT_SPAWN_X_POS,
             y: init::DEFAULT_SPAWN_Y_POS,
             z: init::DEFAULT_SPAWN_Z_POS,
         };
         let spawn_position = DefaultSpawnPosition::new_auto(player_position.clone(), 0.0);
-        packet_queue.queue(spawn_position).await?;
+        packet_queue
+            .queue(spawn_position, conn.metadata.compressed)
+            .await?;
         Ok(())
     }
 
@@ -178,10 +201,13 @@ impl LoginStart {
         &self,
         packet_queue: &mut PacketQueue,
         keep_alive: &mut KeepAlive,
+        conn: &Connection,
     ) -> Result<()> {
         let keep_alive_outgoing: KeepAlivePacketOut = keep_alive.into();
         debug!("Sending keep alive packet {:?}", keep_alive.data);
-        packet_queue.queue(keep_alive_outgoing).await?;
+        packet_queue
+            .queue(keep_alive_outgoing, conn.metadata.compressed)
+            .await?;
         Ok(())
     }
 
@@ -227,7 +253,7 @@ impl LoginStart {
 
         let packet = SynchronizePlayerPosition::new(&position, &rotation);
 
-        packet_queue.queue(packet).await?;
+        packet_queue.queue(packet, conn.metadata.compressed).await?;
 
         Ok(())
     }
