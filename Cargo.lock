@@ -860,12 +860,14 @@ dependencies = [
  "heed",
  "include-flate",
  "indicatif",
+ "inventory",
  "lazy_static",
  "lz4_flex",
  "macro_rules_attribute",
  "moka",
  "nbt-lib",
  "num_cpus",
+ "parking_lot",
  "rand 0.9.0-alpha.1",
  "rayon",
  "serde",
@@ -904,6 +906,7 @@ version = "0.1.0"
 dependencies = [
  "proc-macro2",
  "quote",
+ "regex",
  "syn 2.0.72",
  "tokio",
 ]
@@ -1392,6 +1395,12 @@ checksum = "e0242819d153cba4b4b05a5a8f2a7e9bbf97b6055b2a002b395c96b5ff3c0222"
 dependencies = [
  "cfg-if",
 ]
+
+[[package]]
+name = "inventory"
+version = "0.3.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f958d3d68f4167080a18141e10381e7634563984a537f2a49a30fd8e53ac5767"
 
 [[package]]
 name = "is-terminal"
@@ -2202,9 +2211,9 @@ dependencies = [
 
 [[package]]
 name = "regex"
-version = "1.10.5"
+version = "1.10.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b91213439dad192326a0d7c6ee3955910425f441d7038e0d6933b0aec5c4517f"
+checksum = "4219d74c6b67a3654a9fbebc4b419e22126d13d2f3c4a07ee0cb61ff79a79619"
 dependencies = [
  "aho-corasick",
  "memchr",

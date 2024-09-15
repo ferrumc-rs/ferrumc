@@ -12,6 +12,9 @@ tokio = { version = "1.38.0", features = ["full", "tracing"] }
 futures = "0.3.30"
 async-trait = "0.1.77"
 
+# Multi-threading
+parking_lot = "0.12.3"
+
 # Error handling
 anyhow = "1.0.86"
 thiserror = "1.0.61"
@@ -77,6 +80,9 @@ clap = { version = "4.5.11" }
 clap_derive = "4.5.11"
 indicatif = "0.17.8"
 num_cpus = "1.16.0"
+
+# Compile Time Reflections (?)
+inventory = "0.3.15"
 
 
 # Set the cache to the highest level for development
