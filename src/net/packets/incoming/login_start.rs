@@ -259,7 +259,7 @@ impl LoginStart {
         packet_queue.queue(set_compression).await?;
 
         // Enable compression for subsequent packets
-        conn.write().await.compressed = true;
+        conn.write().await.metadata.compressed = true;
         Ok(())
     }
 }

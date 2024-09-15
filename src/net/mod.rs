@@ -105,7 +105,6 @@ pub struct Connection {
     pub state: State,
     pub metadata: ConnectionMetadata,
     pub drop: bool,
-    pub compressed: bool,
 }
 
 pub struct NetStream {
@@ -113,10 +112,16 @@ pub struct NetStream {
     pub out_stream: Mutex<tokio::net::tcp::OwnedWriteHalf>,
 }
 
+/// Metadata for a connection.
+///
+/// - `protocol_version`: The protocol version of the connection.
+/// - `entity`: The entity ID of the player.
+/// - `compressed`: Whether the connection is compressed. Default is false, until the server sends a SetCompression packet.
 #[derive(Debug, Default)]
 pub struct ConnectionMetadata {
     pub protocol_version: i32,
     pub entity: usize,
+    pub compressed: bool, // Default false, until server sends SetCompression
 }
 
 pub fn setup_tracer() {
@@ -143,7 +148,6 @@ pub async fn init_connection(socket: tokio::net::TcpStream, state: GlobalState) 
         state: State::Handshake,
         metadata: ConnectionMetadata::default(),
         drop: false,
-        compressed: false, // By default until server sends SetCompression
     };
 
     let conn = Arc::new(RwLock::new(conn));
