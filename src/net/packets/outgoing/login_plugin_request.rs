@@ -1,4 +1,4 @@
-use ferrumc_codec::enc::NetEncode;
+use ferrumc_codec::enc::{EncodeOption, NetEncode};
 use ferrumc_codec::network_types::varint::VarInt;
 use ferrumc_macros::NetEncode;
 
@@ -17,7 +17,10 @@ impl LoginPluginRequest {
 
     pub async fn server_brand(data: impl Into<String>) -> Self {
         let mut str_buffer = Vec::new();
-        data.into().net_encode(&mut str_buffer).await.expect("tf");
+        data.into()
+            .net_encode(&mut str_buffer, &EncodeOption::Default)
+            .await
+            .expect("tf");
         Self::new("minecraft:brand", str_buffer)
     }
 }

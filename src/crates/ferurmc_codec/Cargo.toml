@@ -12,3 +12,4 @@ bincode = "2.0.0-rc.3"
 serde_derive = "1.0.209"
 serde = "1.0.209"
 deepsize = "0.2.0"
+flate2 = { version = "1.0.33", features = ["zlib"] }

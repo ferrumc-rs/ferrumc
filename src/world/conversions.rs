@@ -1,6 +1,6 @@
 use crate::utils::error::Error;
 use crate::world::chunk_format::{BlockStates, Chunk, Palette, Section};
-use ferrumc_codec::enc::NetEncode;
+use ferrumc_codec::enc::{EncodeOption, NetEncode};
 use ferrumc_codec::network_types::varint::VarInt;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
@@ -146,40 +146,48 @@ impl Chunk {
 }
 
 impl NetEncode for Section {
-    async fn net_encode<W>(&self, writer: &mut W) -> ferrumc_codec::Result<()>
+    async fn net_encode<W>(
+        &self,
+        writer: &mut W,
+        encode_option: &EncodeOption,
+    ) -> ferrumc_codec::Result<()>
     where
         W: AsyncWrite + Unpin,
     {
         if let Some(block_states) = &self.block_states {
             // Non-air blocks
             if let Some(non_air_blocks) = block_states.non_air_blocks {
-                (non_air_blocks as u16).net_encode(writer).await?;
+                (non_air_blocks as u16)
+                    .net_encode(writer, encode_option)
+                    .await?;
             } else {
                 // VarInt::from(0).net_encode(writer).await?;
-                0u16.net_encode(writer).await?;
+                0u16.net_encode(writer, encode_option).await?;
             }
 
             // Blocks
             let bpe = block_states.bits_per_block.unwrap_or(15);
-            bpe.net_encode(writer).await?;
+            bpe.net_encode(writer, encode_option).await?;
 
             VarInt::from(block_states.net_palette.as_ref().unwrap().len() as i32)
-                .net_encode(writer)
+                .net_encode(writer, encode_option)
                 .await?;
             block_states
                 .net_palette
                 .as_ref()
                 .expect("Palette is missing")
-                .net_encode(writer)
+                .net_encode(writer, encode_option)
                 .await?;
 
             if let Some(data) = &block_states.data {
-                VarInt::from(data.len() as i32).net_encode(writer).await?;
+                VarInt::from(data.len() as i32)
+                    .net_encode(writer, encode_option)
+                    .await?;
                 for long in block_states.data.as_ref().unwrap() {
-                    long.net_encode(writer).await?;
+                    long.net_encode(writer, encode_option).await?;
                 }
             } else {
-                VarInt::from(0).net_encode(writer).await?;
+                VarInt::from(0).net_encode(writer, encode_option).await?;
             }
 
             /*// Biomes

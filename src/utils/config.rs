@@ -8,6 +8,7 @@ use crate::utils::constants::{
 };
 use crate::utils::error::Error;
 use config::{Config, ConfigError};
+use ferrumc_codec::enc::EncodeOption;
 use serde::{Deserialize, Serialize};
 use tracing::{error, info};
 
@@ -20,6 +21,7 @@ pub struct ServerConfig {
     pub network_tick_rate: u32,
     pub database: Database,
     pub world: String,
+    pub network_compression_threshold: i32, // -1, no compression. 0, compress everything, n > 0, compress packets larger than n size in bytes.
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -74,7 +76,28 @@ impl ServerConfig {
             Err(Error::from(e))
         })?;
 
+        // Validate network_compression_threshold value
+        if de_settings.network_compression_threshold < -1 {
+            info!(
+                "Invalid network_compression_threshold value. It must be -1, 0, or greater than 0."
+            );
+            info!("Assuming default value of -1.");
+            // All logic for compression always does <= -1 anyways. The warning exists since its not compliant with the server.properties.
+        }
+
         Ok(de_settings)
+    }
+
+    pub fn is_compression_enabled(&self) -> bool {
+        self.network_compression_threshold >= 0
+    }
+
+    pub fn compression_and_encode_opt(&self) -> EncodeOption {
+        if self.network_compression_threshold < 0 {
+            EncodeOption::Default
+        } else {
+            EncodeOption::AlwaysOmitSize
+        }
     }
 }
 
@@ -131,6 +154,7 @@ impl Default for ServerConfig {
                 cache_size: 1024,
                 compression: "fast".to_string(),
             },
+            network_compression_threshold: 256,
         }
     }
 }

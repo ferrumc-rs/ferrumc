@@ -1,5 +1,7 @@
 use ferrumc_codec::enc::NetEncode;
 
+use crate::utils::config::get_global_config;
+
 #[tokio::test]
 #[ignore]
 pub async fn dump_heightmaps() -> Result<(), Box<dyn std::error::Error>> {
@@ -20,7 +22,13 @@ pub async fn dump_heightmaps() -> Result<(), Box<dyn std::error::Error>> {
     let heightmaps = chunk.heightmaps.unwrap();
 
     let mut buffer = Vec::new();
-    heightmaps.net_encode(&mut buffer).await.unwrap();
+    heightmaps
+        .net_encode(
+            &mut buffer,
+            &get_global_config().compression_and_encode_opt(),
+        )
+        .await
+        .unwrap();
 
     std::fs::write(".etc/heightmaps.nbt", buffer).unwrap();
 

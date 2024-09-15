@@ -1,4 +1,5 @@
 use crate::state::GlobalState;
+use crate::utils::config::get_global_config;
 use crate::utils::encoding::bitset::BitSet;
 use crate::utils::error::Error;
 use crate::world::chunk_format::Heightmaps;
@@ -7,7 +8,7 @@ use ferrumc_codec::enc::NetEncode;
 use ferrumc_codec::network_types::varint::VarInt;
 use ferrumc_macros::NetEncode;
 use nbt_lib::NBTTag;
-use std::io::Cursor;
+use std::io::Cursor; // Import the AsyncWrite trait
 use tracing::warn;
 
 const _SECTION_WIDTH: usize = 16;
@@ -16,7 +17,7 @@ const _SECTION_HEIGHT: usize = 16;
 // Seperated light data from chunk data since clippy was complaining about the size of the struct
 #[derive(NetEncode)]
 pub struct ChunkDataAndUpdateLight {
-/*    #[encode(default=VarInt::from(0x24))]
+    /*    #[encode(default=VarInt::from(0x24))]
     pub packet_id: VarInt,
     pub chunk_x: i32,
     pub chunk_z: i32,
@@ -76,8 +77,13 @@ impl ChunkDataAndUpdateLight {
 
         if let Some(sections) = &chunk.sections {
             for section in sections {
-                section.net_encode(&mut data).await?;
-                serialize_biomes().await?.net_encode(&mut data).await?;
+                section
+                    .net_encode(&mut data, &get_global_config().compression_and_encode_opt())
+                    .await?;
+                serialize_biomes()
+                    .await?
+                    .net_encode(&mut data, &get_global_config().compression_and_encode_opt())
+                    .await?;
             }
         } else {
             return Err(Error::InvalidChunk(
@@ -201,11 +207,12 @@ async fn serialize_biomes() -> Result<Vec<u8>> {
     // Direct biome encoding, no palette
     let biome_data = vec![0u64; 64 * (bits_per_biome as usize) / 64]; // 64 biomes per section
     VarInt::from(biome_data.len() as i32)
-        .net_encode(&mut data)
+        .net_encode(&mut data, &get_global_config().compression_and_encode_opt())
         .await?;
 
     for long in biome_data {
-        long.net_encode(&mut data).await?;
+        long.net_encode(&mut data, &get_global_config().compression_and_encode_opt())
+            .await?;
     }
 
     Ok(data)

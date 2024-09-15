@@ -15,7 +15,10 @@ pub(crate) fn nbt_serialize_derive(input: TokenStream) -> TokenStream {
 
     // if !is_root && rename.is_some() { panic!("{RENAME_NON_ROOT_ERROR}") }
 
-    let name = struct_attrs.rename.clone().unwrap_or_else(|| struct_name.to_string());
+    let name = struct_attrs
+        .rename
+        .clone()
+        .unwrap_or_else(|| struct_name.to_string());
     // let name = format_ident!("{}", name);
 
     let Data::Struct(data) = input.data else {
@@ -111,7 +114,7 @@ pub(crate) fn nbt_serialize_derive(input: TokenStream) -> TokenStream {
             impl ferrumc_codec::enc::NetEncode for #struct_name
                 where Self: nbt_lib::NBTSerialize
             {
-                async fn net_encode<W>(&self, writer: &mut W) -> ferrumc_codec::Result<()>
+                async fn net_encode<W>(&self, writer: &mut W, _encode_option: &EncodeOption) -> ferrumc_codec::Result<()>
                 where
                     W: tokio::io::AsyncWrite + std::marker::Unpin
                 {

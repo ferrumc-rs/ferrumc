@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use ferrumc_codec::enc::NetEncode;
+use ferrumc_codec::enc::{EncodeOption, NetEncode};
 use tokio::io::{AsyncWrite, AsyncWriteExt};
 
 use ferrumc_macros::Component;
@@ -39,7 +39,11 @@ impl NetEncode for Position {
     /// and then writes the integer to the byte stream. The x and z coordinates are masked to 26 bits,
     /// and the y coordinate is masked to 12 bits. Uses [ferrumc_utils::encoding::position::Position]
     /// to represent the Position.
-    async fn net_encode<T>(&self, bytes: &mut T) -> Result<(), ferrumc_codec::CodecError>
+    async fn net_encode<T>(
+        &self,
+        bytes: &mut T,
+        _encode_option: &EncodeOption,
+    ) -> Result<(), ferrumc_codec::CodecError>
     where
         T: AsyncWrite + Unpin,
     {
@@ -59,7 +63,7 @@ impl NetEncode for Position {
 mod tests {
     use std::io::Cursor;
 
-    use ferrumc_codec::enc::NetEncode;
+    use ferrumc_codec::enc::{EncodeOption, NetEncode};
 
     use crate::utils::impls::packet_impls::NetDecode;
 
@@ -85,7 +89,10 @@ mod tests {
             y: 831,
         };
         let mut data = Cursor::new(Vec::new());
-        position.net_encode(&mut data).await.unwrap();
+        position
+            .net_encode(&mut data, &EncodeOption::Default)
+            .await
+            .unwrap();
         let data = data.into_inner();
         assert_eq!(
             data,

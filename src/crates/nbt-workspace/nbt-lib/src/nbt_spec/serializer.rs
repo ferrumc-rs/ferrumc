@@ -1,7 +1,7 @@
 use std::io::Write;
 use std::marker::PhantomData;
 
-use ferrumc_codec::enc::NetEncode;
+use ferrumc_codec::enc::{EncodeOption, NetEncode};
 use impls::NBTFieldType;
 use tokio::io::AsyncWrite;
 
@@ -36,7 +36,11 @@ pub trait NBTCompoundMarker {
 }
 
 impl<'a, T: NBTSerialize> NetEncode for NBTSerializeToEncodeWrapper<'a, T> {
-    async fn net_encode<W>(&self, writer: &mut W) -> ferrumc_codec::Result<()>
+    async fn net_encode<W>(
+        &self,
+        writer: &mut W,
+        _encode_option: &EncodeOption,
+    ) -> ferrumc_codec::Result<()>
     where
         W: AsyncWrite + Unpin,
     {

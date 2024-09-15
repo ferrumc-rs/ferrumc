@@ -160,7 +160,11 @@ impl ChunkSender {
         let sample_chunk =
             ChunkDataAndUpdateLight::new(state.clone(), pos_x >> 4, pos_z >> 4).await?;
         let mut vec = vec![];
-        sample_chunk.net_encode(&mut vec).await?;
+        let encode_option = match conn.read().await.metadata.compressed {
+            true => ferrumc_codec::enc::EncodeOption::AlwaysOmitSize,
+            false => ferrumc_codec::enc::EncodeOption::Default,
+        };
+        sample_chunk.net_encode(&mut vec, &encode_option).await?;
         let chunk_rad_axis = chunk_radius * 2 + 1;
         debug!(
                 "Send {}({}x{}) chunks to player in {:?}. Approximately {} kb of data (~{} kb per chunk)",

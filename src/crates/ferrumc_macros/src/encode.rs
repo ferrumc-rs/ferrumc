@@ -1,5 +1,5 @@
 use quote::{format_ident, quote};
-use syn::{DeriveInput, Field, Generics, Lifetime, parse_macro_input};
+use syn::{parse_macro_input, DeriveInput, Field, Generics, Lifetime};
 
 use proc_macro::TokenStream;
 
@@ -82,7 +82,7 @@ fn generate_field_encode_statement(field_attrib: &FieldAttribs) -> proc_macro2::
             #statement
             let #len = self.#field_name.len();
             let #len = ferrumc_codec::network_types::varint::VarInt::new(#len as i32);
-            #len.net_encode(&mut #cursor).await?;
+            #len.net_encode(&mut #cursor, encode_option).await?;
         };
     }
 
@@ -97,13 +97,13 @@ fn generate_field_encode_statement(field_attrib: &FieldAttribs) -> proc_macro2::
         if prepend_length {
             quote! {
                 #statement
-                self.#field_name.net_encode(&mut #cursor).await?;
+                self.#field_name.net_encode(&mut #cursor, encode_option).await?;
                 let mut #bytes = #cursor.into_inner();
                 tokio::io::AsyncWriteExt::write_all(bytes, &#bytes).await?;
             }
         } else {
             quote! {
-                self.#field_name.net_encode(bytes).await?;
+                self.#field_name.net_encode(bytes, encode_option).await?;
             }
         }
     }
@@ -120,7 +120,7 @@ fn generate_encode_impl(
     if is_packet_type {
         quote! {
             impl #impl_generics ferrumc_codec::enc::NetEncode for #name #ty_generics #where_clause {
-                async fn net_encode<T>(&self, bytes_out: &mut T) -> std::result::Result<(), ferrumc_codec::error::CodecError>
+                async fn net_encode<T>(&self, bytes_out: &mut T, encode_option: &ferrumc_codec::enc::EncodeOption) -> std::result::Result<(), ferrumc_codec::error::CodecError>
                     where T: tokio::io::AsyncWrite + std::marker::Unpin
                 {
                     use tokio::io::AsyncWriteExt;
@@ -128,24 +128,30 @@ fn generate_encode_impl(
                     let mut bytes_ = std::io::Cursor::new(Vec::new());
                     let mut bytes = &mut bytes_;
 
-                    #(#field_statements)*
+                    if matches!(encode_option, ferrumc_codec::enc::EncodeOption::AlwaysOmitSize) {
+                        #(#field_statements)*
 
-                    let __packet_data = bytes_.into_inner();
-                    let __length = ferrumc_codec::network_types::varint::VarInt::new(__packet_data.len() as i32);
-                    let mut __cursor = std::io::Cursor::new(Vec::new());
-                    __length.net_encode(&mut __cursor).await?;
-                    __cursor.write_all(&__packet_data).await?;
-                    let __encoded = __cursor.into_inner();
-                    bytes_out.write_all(&__encoded).await?;
+                        Ok(())
+                    } else {
+                        #(#field_statements)*
 
-                    Ok(())
+                        let __packet_data = bytes_.into_inner();
+                        let __length = ferrumc_codec::network_types::varint::VarInt::new(__packet_data.len() as i32);
+                        let mut __cursor = std::io::Cursor::new(Vec::new());
+                        __length.net_encode(&mut __cursor, encode_option).await?;
+                        __cursor.write_all(&__packet_data).await?;
+                        let __encoded = __cursor.into_inner();
+                        bytes_out.write_all(&__encoded).await?;
+
+                        Ok(())
+                    }
                 }
             }
         }
     } else {
         quote! {
             impl #impl_generics ferrumc_codec::enc::NetEncode for #name #ty_generics #where_clause {
-                async fn net_encode<T>(&self, bytes: &mut T) -> std::result::Result<(), ferrumc_codec::error::CodecError>
+                async fn net_encode<T>(&self, bytes: &mut T, encode_option: &ferrumc_codec::enc::EncodeOption) -> std::result::Result<(), ferrumc_codec::error::CodecError>
                     where T: tokio::io::AsyncWrite + std::marker::Unpin
                 {
                     use tokio::io::AsyncWriteExt;

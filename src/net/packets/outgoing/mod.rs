@@ -7,5 +7,6 @@ pub mod login_plugin_request;
 pub mod login_success;
 pub mod ping;
 pub mod set_center_chunk;
+pub mod set_compression;
 pub mod status;
 pub mod synchronize_player_position;
