@@ -21,6 +21,12 @@ impl EventPriority {
     }
 }
 
+impl From<u8> for EventPriority {
+    fn from(value: u8) -> Self {
+        Self(value)
+    }
+}
+
 pub struct EventContainer {
     /// before <-----> after (lower = runs first)
     /// 0 <-----> 255
@@ -30,9 +36,9 @@ pub struct EventContainer {
 }
 
 impl EventContainer {
-    pub const fn new(priority: EventPriority, handler: &'static dyn EventHandlerWrapper) -> Self {
+    pub const fn new(priority: u8, handler: &'static dyn EventHandlerWrapper) -> Self {
         Self {
-            priority,
+            priority: EventPriority(priority),
             handler,
         }
     }
@@ -45,6 +51,24 @@ pub fn get_event_handlers() -> Vec<&'static EventContainer> {
         .collect()
 }
 
+pub fn get_event_handlers_for<T: 'static>() -> Vec<&'static EventContainer> {
+    let mut handlers = get_event_handlers()
+        .into_iter()
+        .filter(|h| h.handler.event_type_id() == std::any::TypeId::of::<T>())
+        .collect::<Vec<_>>();
+
+    handlers.sort_by(|a, b| a.priority.0.cmp(&b.priority.0));
+
+    handlers
+}
+
+pub fn call_event<T: 'static>(event: &mut T) {
+    let handlers = get_event_handlers_for::<T>();
+
+    for handler in handlers.iter() {
+        handler.handler.handle(event as &mut dyn Any);
+    }
+}
 
 impl<T: EventHandler> EventHandlerWrapper for T {
     fn handle(&self, event: &mut dyn Any) {
@@ -60,54 +84,6 @@ impl<T: EventHandler> EventHandlerWrapper for T {
     }
 }
 
-mod test {
-    use crate::events::registry::{get_event_handlers, EventHandler};
-    use ferrumc_macros::EventHandler;
-    use std::any::Any;
-
-    struct TestEvent {
-        value: i32,
-    }
-    #[derive(EventHandler)]
-    struct Handler1;
-
-    impl EventHandler for Handler1 {
-        type EventType = TestEvent;
-
-        fn handle(&self, event: &mut Self::EventType) {
-            println!("Handler 1 called with value: {}", event.value);
-            event.value += 1;
-        }
-    }
-
-    #[derive(EventHandler)]
-    struct Handler2;
-
-    impl EventHandler for Handler2 {
-        type EventType = TestEvent;
-
-        fn handle(&self, event: &mut Self::EventType) {
-            println!("Handler 2 called with value: {}", event.value);
-            event.value += 1;
-        }
-    }
-
-    #[test]
-    fn test_if_this_even_compiles() {
-        let mut handlers = get_event_handlers();
-
-        let mut some_event = TestEvent {
-            value: 0,
-        };
-
-        for handler in handlers.iter_mut().rev() {
-            println!("Handler with priority: {:?}", handler.priority);
-            handler.handler.handle(&mut some_event as &mut dyn Any);
-        }
-
-        println!("Final value: {}", some_event.value);
-    }
-}
 
 
 inventory::collect!(EventContainer);

@@ -54,7 +54,12 @@ pub fn derive_getter(input: TokenStream) -> TokenStream {
     utils::derive_getter(input)
 }
 
-#[proc_macro_derive(EventHandler)]
+#[proc_macro_derive(EventHandler, attributes(priority))]
 pub fn derive_event_handler(input: TokenStream) -> TokenStream {
     events::derive_event_handler(input)
+}
+
+#[proc_macro_attribute]
+pub fn event_handler(_args: TokenStream, input: TokenStream) -> TokenStream {
+    input
 }
