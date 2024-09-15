@@ -1,7 +1,6 @@
 use std::time::Instant;
 
 use ferrumc_codec::network_types::varint::VarInt;
-#[cfg(not(test))]
 use rand::random;
 use tracing::{debug, info};
 use uuid::Uuid;
