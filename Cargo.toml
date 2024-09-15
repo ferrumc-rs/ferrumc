@@ -12,6 +12,9 @@ tokio = { version = "1.38.0", features = ["full", "tracing"] }
 futures = "0.3.30"
 async-trait = "0.1.77"
 
+# Multi-threading
+parking_lot = "0.12.3"
+
 # Error handling
 anyhow = "1.0.86"
 thiserror = "1.0.61"

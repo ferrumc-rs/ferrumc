@@ -28,33 +28,38 @@ impl EventHandler for Handler2 {
 }
 
 */
-use ferrumc_macros::event_handler;
 use crate::events::registry::call_event;
+use ferrumc_macros::event_handler;
+use std::sync::Arc;
 
 struct TestEvent {
     value: i32,
 }
 
 #[event_handler(priority = "fastest")]
-fn handler(event: &mut TestEvent) {
-    println!("Handler 1 called with value: {}", event.value);
-    event.value += 999;
+async fn handler(event: Arc<parking_lot::RwLock<TestEvent>>) {
+    let mut event = event.write();
+    println!("Handler called with value: {}", event.value);
+    event.value += i32::MAX;
 }
 
 #[event_handler]
-fn handler2(event: &TestEvent) {
+async fn handler2(event: Arc<parking_lot::RwLock<TestEvent>>) {
+    let mut event = event.write();
     println!("Handler 2 called with value: {}", event.value);
+    event.value -= i32::MAX;
 }
 
-#[test]
-fn test_if_this_even_compiles() {
-    let mut some_event = TestEvent {
+#[tokio::test]
+async fn test_if_this_even_compiles() {
+    let some_event = TestEvent {
         value: 0,
     };
 
-    call_event(&mut some_event);
+    let some_event = Arc::new(parking_lot::RwLock::new(some_event));
+    call_event(Arc::clone(&some_event)).await;
 
-    println!("Final value: {}", some_event.value);
+    println!("Final value: {}", some_event.read().value);
 }
 
 

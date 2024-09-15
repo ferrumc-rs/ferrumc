@@ -1,13 +1,10 @@
 use std::any::Any;
-
-pub trait EventHandler: Send + Sync + 'static {
-    type EventType: 'static;
-
-    fn handle(&self, event: &mut Self::EventType);
-}
+use std::future::Future;
+use std::pin::Pin;
+use std::sync::Arc;
 
 pub trait EventHandlerWrapper: Send + Sync + 'static {
-    fn handle(&self, event: &mut dyn Any);
+    fn handle(&self, event: Arc<dyn Any + Send + Sync>) -> Pin<Box<dyn Future<Output=()> + Send + '_>>;
     fn event_type_id(&self) -> std::any::TypeId;
 }
 
@@ -62,58 +59,29 @@ pub fn get_event_handlers_for<T: 'static>() -> Vec<&'static EventContainer> {
     handlers
 }
 
-pub fn call_event<T: 'static>(event: &mut T) {
+pub async fn call_event<T: 'static + Any + Send + Sync>(event: Arc<T>) {
     let handlers = get_event_handlers_for::<T>();
 
+    let event = event as Arc<dyn Any + Send + Sync>;
+
     for handler in handlers.iter() {
-        handler.handler.handle(event as &mut dyn Any);
+        handler.handler.handle(Arc::clone(&event)).await;
     }
 }
 
-impl<T: EventHandler> EventHandlerWrapper for T {
-    fn handle(&self, event: &mut dyn Any) {
-        let Some(event) = event.downcast_mut::<T::EventType>() else {
-            println!("Invalid event type received for handler: {:?}", std::any::type_name::<T::EventType>());
-            return;
-        };
-        self.handle(event);
-    }
-
-    fn event_type_id(&self) -> std::any::TypeId {
-        std::any::TypeId::of::<T::EventType>()
-    }
+pub struct FunctionEventHandler<E: Send + Sync> {
+    // pub handler: fn(Arc<E>) -> Pin<Box<dyn Future<Output=()> + Send + '_>>,
+    // pub handler: Arc<dyn Fn(Arc<E>) -> Pin<Box<dyn Future<Output=()> + Send + 'static>>>,
+//     fn(parking_lot::lock_api::RwLock<parking_lot::RawRwLock, TestEvent>) -> impl futures::Future<Output = ()> {handler}
+    pub handler: fn(Arc<E>) -> Pin<Box<dyn Future<Output=()> + Send + 'static>>,
 }
 
-
-pub struct FunctionEventHandlerMut<E> {
-    pub handler: fn(&mut E),
-}
-
-pub struct FunctionEventHandlerRef<E> {
-    pub handler: fn(&E),
-}
-
-impl<E: 'static> EventHandlerWrapper for FunctionEventHandlerMut<E> {
-    fn handle(&self, event: &mut dyn Any) {
-        let Some(event) = event.downcast_mut::<E>() else {
-            println!("Invalid event type received for handler: {:?}", std::any::type_name::<E>());
-            return;
-        };
-        (self.handler)(event);
-    }
-
-    fn event_type_id(&self) -> std::any::TypeId {
-        std::any::TypeId::of::<E>()
-    }
-}
-
-impl<E: 'static> EventHandlerWrapper for FunctionEventHandlerRef<E> {
-    fn handle(&self, event: &mut dyn Any) {
-        if let Some(event) = (&*event).downcast_ref::<E>() {
-            (self.handler)(event);
-        } else {
-            println!("Invalid event type received for handler");
-        }
+impl<E: 'static + Any + Send + Sync> EventHandlerWrapper for FunctionEventHandler<E> {
+    fn handle(&self, event: Arc<dyn Any + Send + Sync>) -> Pin<Box<dyn Future<Output=()> + Send + '_>> {
+        Box::pin(async move {
+            let event = Arc::downcast::<E>(event).expect("wrong type for event");
+            (self.handler)(event).await;
+        })
     }
 
     fn event_type_id(&self) -> std::any::TypeId {

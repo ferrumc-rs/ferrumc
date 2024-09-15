@@ -1,9 +1,6 @@
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
-use quote::quote;
-use syn::punctuated::Punctuated;
-use syn::{parse_macro_input, Expr, Lit, Meta, Type};
 
 mod decode;
 mod ecs;
