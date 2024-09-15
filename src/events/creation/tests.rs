@@ -28,7 +28,7 @@ impl EventHandler for Handler2 {
 }
 
 */
-use crate::events::registry::call_event;
+use crate::events::creation::registry::dispatch_event;
 use ferrumc_macros::event_handler;
 use std::sync::Arc;
 
@@ -57,7 +57,7 @@ async fn test_if_this_even_compiles() {
     };
 
     let some_event = Arc::new(parking_lot::RwLock::new(some_event));
-    call_event(Arc::clone(&some_event)).await;
+    dispatch_event(Arc::clone(&some_event)).await;
 
     println!("Final value: {}", some_event.read().value);
 }

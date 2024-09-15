@@ -59,7 +59,7 @@ pub fn get_event_handlers_for<T: 'static>() -> Vec<&'static EventContainer> {
     handlers
 }
 
-pub async fn call_event<T: 'static + Any + Send + Sync>(event: Arc<T>) {
+pub async fn dispatch_event<T: 'static + Any + Send + Sync>(event: Arc<T>) {
     let handlers = get_event_handlers_for::<T>();
 
     let event = event as Arc<dyn Any + Send + Sync>;

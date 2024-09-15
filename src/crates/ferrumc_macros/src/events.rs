@@ -71,13 +71,13 @@ pub(super) fn event_handler(args: TokenStream, input: TokenStream) -> TokenStrea
         _ => panic!("Expected a typed argument for the event handler")
     };
 
-    let handler_path = quote! { crate::events::registry::FunctionEventHandler::<#event_type> };
+    let handler_path = quote! { crate::events::creation::registry::FunctionEventHandler::<#event_type> };
 
     let expanded = quote! {
         #input_fn
 
         inventory::submit! {
-            crate::events::registry::EventContainer::new(
+            crate::events::creation::registry::EventContainer::new(
                 #event_priority,
                 /*#handler_path {
                     handler: &#fn_name,
