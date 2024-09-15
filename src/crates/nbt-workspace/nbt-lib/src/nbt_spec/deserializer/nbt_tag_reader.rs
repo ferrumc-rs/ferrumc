@@ -319,7 +319,7 @@ fn read_long_array_simd(cursor: &mut Cursor<Vec<u8>>, len: usize) -> Vec<i64> {
 }
 
 impl NetEncode for NBTTag {
-    async fn net_encode_no_size<W>(&self, writer: &mut W) -> ferrumc_codec::Result<()>
+    async fn net_encode<W>(&self, writer: &mut W) -> ferrumc_codec::Result<()>
     where
         W: AsyncWrite + Unpin,
     {

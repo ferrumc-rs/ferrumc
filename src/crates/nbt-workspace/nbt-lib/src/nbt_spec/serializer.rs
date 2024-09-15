@@ -36,7 +36,7 @@ pub trait NBTCompoundMarker {
 }
 
 impl<'a, T: NBTSerialize> NetEncode for NBTSerializeToEncodeWrapper<'a, T> {
-    async fn net_encode_no_size<W>(&self, writer: &mut W) -> ferrumc_codec::Result<()>
+    async fn net_encode<W>(&self, writer: &mut W) -> ferrumc_codec::Result<()>
     where
         W: AsyncWrite + Unpin,
     {

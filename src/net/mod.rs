@@ -330,7 +330,7 @@ impl Connection {
     pub async fn send_packet(&self, packet: impl NetEncode) -> Result<()> {
         trace!("Sending packet");
         let mut out_stream = self.get_out_stream().await;
-        packet.net_encode_no_size(&mut *out_stream).await?;
+        packet.net_encode(&mut *out_stream).await?;
         Ok(())
     }
 

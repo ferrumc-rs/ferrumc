@@ -146,40 +146,40 @@ impl Chunk {
 }
 
 impl NetEncode for Section {
-    async fn net_encode_no_size<W>(&self, writer: &mut W) -> ferrumc_codec::Result<()>
+    async fn net_encode<W>(&self, writer: &mut W) -> ferrumc_codec::Result<()>
     where
         W: AsyncWrite + Unpin,
     {
         if let Some(block_states) = &self.block_states {
             // Non-air blocks
             if let Some(non_air_blocks) = block_states.non_air_blocks {
-                (non_air_blocks as u16).net_encode_no_size(writer).await?;
+                (non_air_blocks as u16).net_encode(writer).await?;
             } else {
                 // VarInt::from(0).net_encode(writer).await?;
-                0u16.net_encode_no_size(writer).await?;
+                0u16.net_encode(writer).await?;
             }
 
             // Blocks
             let bpe = block_states.bits_per_block.unwrap_or(15);
-            bpe.net_encode_no_size(writer).await?;
+            bpe.net_encode(writer).await?;
 
             VarInt::from(block_states.net_palette.as_ref().unwrap().len() as i32)
-                .net_encode_no_size(writer)
+                .net_encode(writer)
                 .await?;
             block_states
                 .net_palette
                 .as_ref()
                 .expect("Palette is missing")
-                .net_encode_no_size(writer)
+                .net_encode(writer)
                 .await?;
 
             if let Some(data) = &block_states.data {
-                VarInt::from(data.len() as i32).net_encode_no_size(writer).await?;
+                VarInt::from(data.len() as i32).net_encode(writer).await?;
                 for long in block_states.data.as_ref().unwrap() {
-                    long.net_encode_no_size(writer).await?;
+                    long.net_encode(writer).await?;
                 }
             } else {
-                VarInt::from(0).net_encode_no_size(writer).await?;
+                VarInt::from(0).net_encode(writer).await?;
             }
 
             /*// Biomes
