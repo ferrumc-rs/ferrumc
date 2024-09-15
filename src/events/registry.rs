@@ -85,5 +85,41 @@ impl<T: EventHandler> EventHandlerWrapper for T {
 }
 
 
+pub struct FunctionEventHandlerMut<E> {
+    pub handler: fn(&mut E),
+}
+
+pub struct FunctionEventHandlerRef<E> {
+    pub handler: fn(&E),
+}
+
+impl<E: 'static> EventHandlerWrapper for FunctionEventHandlerMut<E> {
+    fn handle(&self, event: &mut dyn Any) {
+        let Some(event) = event.downcast_mut::<E>() else {
+            println!("Invalid event type received for handler: {:?}", std::any::type_name::<E>());
+            return;
+        };
+        (self.handler)(event);
+    }
+
+    fn event_type_id(&self) -> std::any::TypeId {
+        std::any::TypeId::of::<E>()
+    }
+}
+
+impl<E: 'static> EventHandlerWrapper for FunctionEventHandlerRef<E> {
+    fn handle(&self, event: &mut dyn Any) {
+        if let Some(event) = (&*event).downcast_ref::<E>() {
+            (self.handler)(event);
+        } else {
+            println!("Invalid event type received for handler");
+        }
+    }
+
+    fn event_type_id(&self) -> std::any::TypeId {
+        std::any::TypeId::of::<E>()
+    }
+}
+
 
 inventory::collect!(EventContainer);

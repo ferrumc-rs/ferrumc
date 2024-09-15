@@ -3,7 +3,7 @@ use std::ops::Add;
 use std::path::Path;
 
 use quote::quote;
-use syn::{LitInt, LitStr, parse_macro_input};
+use syn::{parse_macro_input, LitInt, LitStr};
 
 use proc_macro::TokenStream;
 
@@ -105,7 +105,7 @@ pub fn bake(input: TokenStream) -> TokenStream {
 
                     Ok(())
                 })
-                .unwrap();
+                    .unwrap();
             }
 
             let packet_id = match packet_id {

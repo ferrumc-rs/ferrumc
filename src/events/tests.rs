@@ -1,9 +1,7 @@
-use crate::events::registry::{call_event, EventHandler};
+/*use crate::events::registry::{call_event, EventHandler};
 use ferrumc_macros::{event_handler, EventHandler};
 
-struct TestEvent {
-    value: i32,
-}
+
 #[derive(EventHandler)]
 struct Handler1;
 
@@ -29,6 +27,25 @@ impl EventHandler for Handler2 {
     }
 }
 
+*/
+use ferrumc_macros::event_handler;
+use crate::events::registry::call_event;
+
+struct TestEvent {
+    value: i32,
+}
+
+#[event_handler(priority = "fastest")]
+fn handler(event: &mut TestEvent) {
+    println!("Handler 1 called with value: {}", event.value);
+    event.value += 999;
+}
+
+#[event_handler]
+fn handler2(event: &TestEvent) {
+    println!("Handler 2 called with value: {}", event.value);
+}
+
 #[test]
 fn test_if_this_even_compiles() {
     let mut some_event = TestEvent {
@@ -39,3 +56,12 @@ fn test_if_this_even_compiles() {
 
     println!("Final value: {}", some_event.value);
 }
+
+
+
+
+
+
+
+
+

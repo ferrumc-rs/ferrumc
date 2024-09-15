@@ -39,8 +39,8 @@ struct Version {
 
 #[derive(Serialize)]
 struct Players {
-    max: u32,
-    online: u32,
+    max: i32,
+    online: i32,
     sample: Vec<Sample>,
 }
 
