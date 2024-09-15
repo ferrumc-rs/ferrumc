@@ -66,7 +66,7 @@ impl IncomingPacket for LoginStart {
 
         // Compression logic
         self.send_set_compression(&mut packet_queue, conn.clone())
-            .await?; // Optional, however since config for compression is not implemented, ill send it anyways lol
+            .await?;
 
         self.send_login_success(&mut packet_queue).await?;
         self.send_login_play(&mut packet_queue).await?;
