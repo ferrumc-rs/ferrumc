@@ -8,6 +8,7 @@ use net::ConnectionList;
 use state::{GlobalState, ServerState};
 use tokio::net::TcpListener;
 use utils::prelude::*;
+use crate::events::creation::dispatcher::EventDispatcher;
 
 extern crate core;
 #[macro_use]
@@ -34,5 +35,6 @@ pub async fn create_state(tcp_listener: TcpListener) -> Result<GlobalState> {
         },
         database: database::start_database().await?,
         server_stream: tcp_listener,
+        event_dispatcher: Arc::new(EventDispatcher::new()),
     }))
 }

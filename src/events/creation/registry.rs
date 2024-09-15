@@ -2,9 +2,10 @@ use std::any::Any;
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
+use crate::state::GlobalState;
 
 pub trait EventHandlerWrapper: Send + Sync + 'static {
-    fn handle(&self, event: Arc<dyn Any + Send + Sync>) -> Pin<Box<dyn Future<Output=()> + Send + '_>>;
+    fn handle(&self, event: Arc<dyn Any + Send + Sync>, state: GlobalState) -> Pin<Box<dyn Future<Output=()> + Send + '_>>;
     fn event_type_id(&self) -> std::any::TypeId;
 }
 
@@ -29,7 +30,7 @@ pub struct EventContainer {
     /// 0 <-----> 255
     /// Default is 128 (not too high, not too low)
     priority: EventPriority,
-    handler: &'static dyn EventHandlerWrapper,
+    pub(crate) handler: &'static dyn EventHandlerWrapper,
 }
 
 impl EventContainer {
@@ -59,13 +60,13 @@ pub fn get_event_handlers_for<T: 'static>() -> Vec<&'static EventContainer> {
     handlers
 }
 
-pub async fn dispatch_event<T: 'static + Any + Send + Sync>(event: Arc<T>) {
+pub async fn dispatch_event<T: 'static + Any + Send + Sync>(event: Arc<T>, state: GlobalState) {
     let handlers = get_event_handlers_for::<T>();
 
     let event = event as Arc<dyn Any + Send + Sync>;
 
     for handler in handlers.iter() {
-        handler.handler.handle(Arc::clone(&event)).await;
+        handler.handler.handle(Arc::clone(&event), state.clone()).await;
     }
 }
 
@@ -73,14 +74,14 @@ pub struct FunctionEventHandler<E: Send + Sync> {
     // pub handler: fn(Arc<E>) -> Pin<Box<dyn Future<Output=()> + Send + '_>>,
     // pub handler: Arc<dyn Fn(Arc<E>) -> Pin<Box<dyn Future<Output=()> + Send + 'static>>>,
 //     fn(parking_lot::lock_api::RwLock<parking_lot::RawRwLock, TestEvent>) -> impl futures::Future<Output = ()> {handler}
-    pub handler: fn(Arc<E>) -> Pin<Box<dyn Future<Output=()> + Send + 'static>>,
+    pub handler: fn(Arc<E>, GlobalState) -> Pin<Box<dyn Future<Output=()> + Send + 'static>>,
 }
 
 impl<E: 'static + Any + Send + Sync> EventHandlerWrapper for FunctionEventHandler<E> {
-    fn handle(&self, event: Arc<dyn Any + Send + Sync>) -> Pin<Box<dyn Future<Output=()> + Send + '_>> {
+    fn handle(&self, event: Arc<dyn Any + Send + Sync>, state: GlobalState) -> Pin<Box<dyn Future<Output=()> + Send + '_>> {
         Box::pin(async move {
             let event = Arc::downcast::<E>(event).expect("wrong type for event");
-            (self.handler)(event).await;
+            (self.handler)(event, state).await;
         })
     }
 

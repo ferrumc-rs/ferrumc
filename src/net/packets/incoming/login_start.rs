@@ -2,11 +2,11 @@ use std::time::Instant;
 
 use ferrumc_codec::network_types::varint::VarInt;
 use rand::random;
-use tracing::{debug, info};
+use tracing::{debug};
 use uuid::Uuid;
 
 use ferrumc_macros::{packet, NetDecode};
-
+use crate::events::world_events::PlayerJoinWorldEvent;
 use crate::net::packets::outgoing::default_spawn_position::DefaultSpawnPosition;
 use crate::net::packets::outgoing::keep_alive::KeepAlivePacketOut;
 use crate::net::packets::outgoing::login_plugin_request::LoginPluginRequest;
@@ -76,7 +76,8 @@ impl IncomingPacket for LoginStart {
         // conn.send_packet(packet).await?;
         packet_queue.queue(packet).await?;
 
-        info!("Player {} has joined the server", self.username);
+        let event = PlayerJoinWorldEvent::new(conn_id);
+        state.event_dispatcher.dispatch_event(event, state.clone()).await;
 
         let mut conn = conn.write().await;
         // Send all the queued packets

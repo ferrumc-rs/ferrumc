@@ -83,7 +83,7 @@ pub(super) fn event_handler(args: TokenStream, input: TokenStream) -> TokenStrea
                     handler: &#fn_name,
                 }*/
                 &#handler_path {
-                    handler: |event| Box::pin(#fn_name(event)),
+                    handler: |event, state| Box::pin(#fn_name(event, state)),
                 }
             )
         }
