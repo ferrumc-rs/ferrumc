@@ -30,7 +30,9 @@ use crate::utils::prelude::*;
 
 /// The login start packet is sent by the client to the server to start the login process.
 ///
-/// Server responds with [crate::net::packets::outgoing::login_success::LoginSuccess],
+/// Server responds with:
+/// [crate::net::packets::outgoing::set_compression::SetCompression],
+/// [crate::net::packets::outgoing::login_success::LoginSuccess],
 /// [crate::net::packets::outgoing::login_play::LoginPlay], and
 /// [crate::net::packets::outgoing::default_spawn_position::DefaultSpawnPosition] packets in that order.
 /// No response is required from the client while these are being sent.

@@ -220,14 +220,31 @@ pub async fn manage_conn(conn: Arc<RwLock<Connection>>, state: GlobalState) -> R
 
         let (packet_length, buffer) =
             get_packet_length_and_buffer(&conn_read, network_compression_threshold).await?;
-        let (conn_id, conn_state) = (conn_read.id, conn_read.state.clone());
-        // drop the handle to the write lock. to allow other tasks to write/read
-        // mainly cuz the packet tries to access ECS component. And some system tries to access connection turns into a deadlock!!
-        drop(conn_read);
+        let (conn_id, conn_state, is_compressed) = (
+            conn_read.id,
+            conn_read.state.clone(),
+            conn_read.metadata.compressed,
+        );
+        drop(conn_read); // Release the read lock
 
         trace!("Packet Length: {}", packet_length.get_val());
 
         let mut cursor = Cursor::new(buffer);
+
+        if is_compressed {
+            // If the packet is compressed, handle decompression
+            let data_length = VarInt::read(&mut cursor).await?.get_val() as usize;
+
+            if data_length != 0 {
+                let mut z = ZlibDecoder::new(cursor);
+                let mut decompressed_data = Vec::new();
+                z.read_to_end(&mut decompressed_data)?;
+
+                cursor = Cursor::new(decompressed_data); // Update cursor with decompressed data
+            } else {
+                trace!("Packet is not compressed (size below compression threshold)");
+            }
+        }
 
         // Get the packet id
         let packet_id = VarInt::read(&mut cursor).await?;
@@ -239,10 +256,11 @@ pub async fn manage_conn(conn: Arc<RwLock<Connection>>, state: GlobalState) -> R
         tokio::spawn(async move {
             handle_packet(packet_id, conn_id, &conn_state, &mut cursor, state_clone).await
         });
-        // handle_packet(packet_id, conn_id, &conn_state, &mut cursor, state.clone()).await?;
 
+        // Drop connection if flagged
         drop_conn_if_flagged(conn.clone(), state.clone()).await?;
 
+        // Sleep based on network tick rate
         let tick_rate = get_global_config().network_tick_rate;
         let sleep_duration = Duration::from_millis(if tick_rate > 0 {
             1000 / tick_rate as u64
@@ -334,7 +352,8 @@ impl Connection {
         // Is compression enabled?
         let compressed = self.metadata.compressed;
         if compressed {
-            // Compression is enabled
+            trace!("Compression is enabled");
+
             // Get the packet without length information
             let mut packet_data = Vec::new();
             packet
@@ -342,73 +361,56 @@ impl Connection {
                 .await?;
 
             // Get the length of the data
-            let mut data_length = VarInt::from(packet_data.len() as i32);
+            let data_length = VarInt::from(packet_data.len() as i32);
 
-            // Compress the packet if the data length is greater than or equal to the threshold
             let network_compression_threshold = get_global_config().network_compression_threshold;
             if data_length.get_val() >= network_compression_threshold {
+                trace!("Compressing packet");
                 // Compress the packet
-                let compressed_data = Vec::new();
+                let mut compressed_data = Vec::new();
                 let mut encoder = flate2::write::ZlibEncoder::new(
-                    compressed_data,
+                    &mut compressed_data,
                     flate2::Compression::default(),
                 );
                 encoder.write_all(&packet_data)?;
-                let compressed_data = encoder.finish()?;
+                encoder.finish()?;
 
-                // Send the packet with compression format
-                let mut final_packet = Vec::new();
-
-                // Length of (Data Length) + Compressed length of (Packet ID + Data)
+                // Compressed packet structure
+                let compressed_length = compressed_data.len();
                 let packet_length =
-                    VarInt::from((data_length.get_len() + compressed_data.len()) as i32);
+                    VarInt::from((data_length.get_len() + compressed_length) as i32);
 
-                // Construct the final packet
+                // Send the packet
                 packet_length
-                    .net_encode(&mut final_packet, &EncodeOption::AlwaysOmitSize)
+                    .net_encode(&mut *out_stream, &EncodeOption::AlwaysOmitSize)
                     .await?;
 
                 data_length
-                    .net_encode(&mut final_packet, &EncodeOption::AlwaysOmitSize)
+                    .net_encode(&mut *out_stream, &EncodeOption::AlwaysOmitSize)
                     .await?;
 
-                std::io::Write::write_all(&mut final_packet, &compressed_data)?;
-
-                // Send final packet
-                final_packet
-                    .net_encode(&mut *out_stream, &EncodeOption::Default)
-                    .await?;
-                out_stream.write_all(&compressed_data).await?;
+                out_stream.write_all(&compressed_data).await?; // Sending raw compressed data
             } else {
-                // Data length is less than the threshold. Send the packet in compression format but without compression
-                data_length = VarInt::from(0); // Set data length to 0 to indicate no compression
-                data_length
-                    .net_encode(&mut *out_stream, &EncodeOption::Default)
-                    .await?;
+                trace!("Data length is less than threshold");
+                // No compression applied, use a 0 length
+                let zero_length = VarInt::from(0); // Indicate no compression
 
-                let mut final_packet = Vec::new();
-
-                // Length of (Data Length) + Compressed length of (Packet ID + Data)
                 let packet_length =
-                    VarInt::from((data_length.get_len() + packet_data.len()) as i32);
+                    VarInt::from((zero_length.get_len() + packet_data.len()) as i32);
 
-                // Construct the final packet
+                // Send the packet length and uncompressed data
                 packet_length
-                    .net_encode(&mut final_packet, &EncodeOption::AlwaysOmitSize)
+                    .net_encode(&mut *out_stream, &EncodeOption::AlwaysOmitSize)
                     .await?;
 
-                data_length
-                    .net_encode(&mut final_packet, &EncodeOption::AlwaysOmitSize)
+                zero_length
+                    .net_encode(&mut *out_stream, &EncodeOption::AlwaysOmitSize)
                     .await?;
 
-                std::io::Write::write_all(&mut final_packet, &packet_data)?;
-
-                // Send final packet
-                final_packet
-                    .net_encode(&mut *out_stream, &EncodeOption::Default)
-                    .await?;
+                out_stream.write_all(&packet_data).await?;
             }
         } else {
+            trace!("Compression is disabled");
             // Compression is disabled
             // Send the packet with no compression format (Default EncodeOption)
             packet
