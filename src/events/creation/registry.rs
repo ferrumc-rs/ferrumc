@@ -55,7 +55,7 @@ pub fn get_event_handlers_for<T: 'static>() -> Vec<&'static EventContainer> {
         .filter(|h| h.handler.event_type_id() == std::any::TypeId::of::<T>())
         .collect::<Vec<_>>();
 
-    handlers.sort_by(|a, b| a.priority.0.cmp(&b.priority.0));
+    handlers.sort_by_key(|h| h.priority.0);
 
     handlers
 }
@@ -64,6 +64,7 @@ pub async fn dispatch_event<T: 'static + Any + Send + Sync>(event: Arc<T>, state
     let handlers = get_event_handlers_for::<T>();
 
     let event = event as Arc<dyn Any + Send + Sync>;
+
 
     for handler in handlers.iter() {
         handler.handler.handle(Arc::clone(&event), state.clone()).await;

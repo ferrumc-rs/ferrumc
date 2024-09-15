@@ -9,7 +9,7 @@ pub struct PlayerJoinWorldEvent {
     entity_id: u32,
 }
 
-#[event_handler]
+#[event_handler(priority = "slow")]
 async fn on_player_join_world(event: Arc<PlayerJoinWorldEvent>, state: GlobalState) {
     let Ok(player) = state.world.get_component::<Player>(event.entity_id).await else {
         tracing::warn!("Failed to get player with entity_id {}", event.entity_id);
