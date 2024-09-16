@@ -4,9 +4,9 @@ use lazy_static::lazy_static;
 use parking_lot::RwLock;
 use serde_derive::Serialize;
 use std::sync::Arc;
-use std::thread;
 use std::time::{Duration, Instant};
-use tracing::{error, info, Id, Subscriber};
+use tracing::span::Attributes;
+use tracing::{error, Id, Subscriber};
 use tracing_subscriber::layer::Context;
 use tracing_subscriber::registry::LookupSpan;
 use tracing_subscriber::Layer;
@@ -130,6 +130,11 @@ pub async fn stop_profiling(key: u64) -> Vec<FinalProfileResult> {
             });
     });
     let final_results = generate_final_result(raw_results);
+    if RUNNING_PROFILERS.read().len() == 1 {
+        RESULTS_MAP.clear();
+    }
+    let mut profilers = RUNNING_PROFILERS.write();
+    profilers.retain(|x| *x != key);
     final_results
 }
 
@@ -140,7 +145,7 @@ impl<S> Layer<S> for ProfilerTracingLayer
 where
     S: Subscriber + for<'lookup> LookupSpan<'lookup>,
 {
-    fn on_enter(&self, id: &Id, ctx: Context<'_, S>) {
+    fn on_new_span(&self, _: &Attributes<'_>, id: &Id, ctx: Context<'_, S>) {
         if RUNNING_PROFILERS.read().len() >= 1 {
             match ctx.span(id) {
                 None => {
@@ -154,10 +159,9 @@ where
             }
         }
     }
-    fn on_exit(&self, id: &Id, ctx: Context<'_, S>) {
-        info!("Exiting span");
+    fn on_close(&self, id: Id, ctx: Context<'_, S>) {
         if RUNNING_PROFILERS.read().len() >= 1 {
-            let instant = match ctx.span(id) {
+            let instant = match ctx.span(&id) {
                 None => {
                     error!("No span found");
                     None
@@ -175,7 +179,7 @@ where
 
             if let Some(start) = instant {
                 let elapsed = start.elapsed();
-                let name = ctx.span(id).unwrap().name().to_string();
+                let name = ctx.span(&id).unwrap().name().to_string();
                 let keys = RUNNING_PROFILERS.read().iter().map(|x| *x).collect();
                 let result = SingleProfileResult {
                     duration: elapsed,
@@ -185,7 +189,6 @@ where
                     .entry(name)
                     .or_insert_with(Vec::new)
                     .push(result);
-                info!("Inserted result");
             }
         }
     }
@@ -195,6 +198,8 @@ where
 mod tests {
     use super::*;
     use derive_macros::profile;
+    use std::thread;
+    use thread::sleep;
     use tracing::Level;
     use tracing_subscriber::layer::SubscriberExt;
     use tracing_subscriber::util::SubscriberInitExt;
@@ -216,13 +221,25 @@ mod tests {
     #[profile("test1")]
     fn dummy_func1() {
         // Sleep for 1 second
-        thread::sleep(Duration::from_secs(1));
+        sleep(Duration::from_secs(1));
     }
 
     #[profile("test2")]
     fn dummy_func2() {
         // Sleep for 2 seconds
-        thread::sleep(Duration::from_secs(2));
+        sleep(Duration::from_secs(2));
+    }
+
+    #[profile("nested/test1")]
+    fn dummy_func3() {
+        // Sleep for 1 second
+        sleep(Duration::from_secs(1));
+    }
+
+    #[profile("nested/test2")]
+    async fn dummy_func4() {
+        // Sleep for 2 seconds
+        tokio::time::sleep(Duration::from_secs(2)).await;
     }
 
     #[tokio::test]
@@ -231,8 +248,13 @@ mod tests {
         let profile_key = start_profiler().await;
         dummy_func1();
         dummy_func2();
+        dummy_func3();
+        dummy_func4().await;
         let results = stop_profiling(profile_key).await;
         let json = serde_json::to_string(&results).unwrap();
         println!("{}", json);
+        assert_ne!(json, "[]");
+        assert!(json.contains("test1"));
+        assert!(!json.contains("nested/test1"));
     }
 }
