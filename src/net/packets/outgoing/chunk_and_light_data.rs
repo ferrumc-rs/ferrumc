@@ -150,6 +150,7 @@ impl ChunkDataAndUpdateLight {
                 world_surface: Some(vec![i64::MAX; 37]),
             }
         });
+
         let res = ChunkDataAndUpdateLight {
             packet_id: VarInt::from(0x24),
             chunk_x,

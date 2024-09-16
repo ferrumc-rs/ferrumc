@@ -5,7 +5,8 @@ use ferrumc_macros::NetEncode;
 /// The login play packet is sent by the server to the client to start the play state.
 /// Contains info about the world
 #[derive(NetEncode)]
-pub struct LoginPlay {
+pub struct LoginPlay<'a> {
+    #[encode(default = VarInt::from(0x28))]
     pub packet_id: VarInt,
     pub entity_id: i32,
     pub hardcore: bool,
@@ -14,8 +15,8 @@ pub struct LoginPlay {
     pub dimension_length: VarInt,
     pub dimension_names: Vec<String>,
     /// The codec for the dimension. Baked into the binary, see [crate::net::packets::incoming::login_start::LoginStart::decode].
-    #[encode(raw_bytes(prepend_length = false))]
-    pub registry_codec: Vec<u8>,
+    // #[encode(raw_bytes(prepend_length = false))]
+    pub registry_codec: &'a [u8],
     pub dimension_type: String,
     pub dimension_name: String,
     pub seed_hash: i64,

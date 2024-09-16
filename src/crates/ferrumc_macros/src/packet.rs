@@ -3,7 +3,7 @@ use std::ops::Add;
 use std::path::Path;
 
 use quote::quote;
-use syn::{LitInt, LitStr, parse_macro_input};
+use syn::{parse_macro_input, LitInt, LitStr};
 
 use proc_macro::TokenStream;
 
@@ -76,7 +76,7 @@ pub fn bake(input: TokenStream) -> TokenStream {
             let mut state = None;
 
             for attr in item_struct.attrs {
-                if !(attr.path().is_ident("packet")) {
+                if !attr.path().is_ident("packet") {
                     continue;
                 }
 
@@ -105,7 +105,7 @@ pub fn bake(input: TokenStream) -> TokenStream {
 
                     Ok(())
                 })
-                .unwrap();
+                    .unwrap();
             }
 
             let packet_id = match packet_id {
@@ -161,7 +161,7 @@ pub fn bake(input: TokenStream) -> TokenStream {
     let match_arms = match_arms.into_iter();
 
     let output = quote! {
-        pub async fn handle_packet(packet_id: u8, conn_id: u32, conn_state: &crate::net::State, cursor: &mut std::io::Cursor<Vec<u8>>, state: crate::state::GlobalState) -> crate::utils::prelude::Result<()> {
+        pub async fn handle_packet(packet_id: u8, conn_id: usize, conn_state: &crate::net::State, cursor: &mut std::io::Cursor<Vec<u8>>, state: crate::state::GlobalState) -> crate::utils::prelude::Result<()> {
             match (packet_id, conn_state.as_str()) {
                 #(#match_arms)*
                 _ => tracing::warn!("No packet found for ID: 0x{:02X} in state: {}", packet_id, conn_state.as_str()),

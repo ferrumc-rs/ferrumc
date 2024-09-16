@@ -10,13 +10,14 @@ use crate::utils::error::Error;
 use config::{Config, ConfigError};
 use serde::{Deserialize, Serialize};
 use tracing::{error, info};
+use crate::setup::BASE_CONFIG;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ServerConfig {
     pub host: String,
     pub port: u32,
     pub motd: Vec<String>,
-    pub max_players: u32,
+    pub max_players: i32,
     pub network_tick_rate: u32,
     pub database: Database,
     pub world: String,
@@ -68,7 +69,7 @@ impl ServerConfig {
                         .and_then(|settings| settings.try_deserialize().map_err(Error::from))
                 } else {
                     error!("Aborting...");
-                    Err(Error::from(e))
+                    Err(Error::Generic(format!("The config file has a missing field: {}", field)))
                 };
             }
             Err(Error::from(e))
@@ -97,7 +98,7 @@ fn is_not_found(err: &ConfigError) -> bool {
 fn missing_field(err: &ConfigError) -> Option<String> {
     if let ConfigError::Message(message) = err {
         if message.contains("missing field") {
-            return message.split('"').nth(1).map(String::from);
+            return message.split('`').nth(1).map(String::from);
         }
     }
     None
@@ -110,7 +111,8 @@ fn create_config_file() -> Result<(), Error> {
         std::fs::remove_file(path)?;
     }
     let mut file = std::fs::File::create(path)?;
-    let contents = toml::to_string(&ServerConfig::default())?;
+    // let contents = toml::to_string(&ServerConfig::default())?;
+    let contents = BASE_CONFIG;
     file.write_all(contents.as_bytes())?;
 
     info!("Path: {}", path.display());
@@ -124,7 +126,7 @@ impl Default for ServerConfig {
             host: DEFAULT_SERVER_HOST.to_string(),
             port: DEFAULT_SERVER_PORT,
             motd: vec![DEFAULT_MOTD.to_string()],
-            max_players: DEFAULT_MAX_PLAYERS,
+            max_players: DEFAULT_MAX_PLAYERS as i32,
             network_tick_rate: 0,
             world: "world".to_string(),
             database: Database {

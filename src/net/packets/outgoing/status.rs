@@ -6,6 +6,7 @@ use ferrumc_macros::NetEncode;
 /// Contains the JSON response.
 #[derive(NetEncode)]
 pub struct OutgoingStatusResponse {
+    #[encode(default = VarInt::from(0x00))]
     pub packet_id: VarInt,
     pub json_response: String,
 }
