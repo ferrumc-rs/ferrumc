@@ -1,17 +1,19 @@
-[package]
-name = "ferrumc"
-version = "0.1.1"
-edition = "2021"
+[workspace]
+resolver = "2"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+members = [
+    "crates/bin",
+    "crates/lib/*",
+]
+exclude = []
 
-[dependencies]
+# Strip debuginfo from the release builds
+# Also enable thin LTO for some optimizations
+[profile.release]
+strip = "debuginfo"
+lto = "thin"
+opt-level = "z"
 
-
-[lib]
-name = "ferrumc"
-path = "src/lib.rs"
-
-[[bin]]
-name = "ferrumc"
-path = "src/main.rs"
+# A little bit of a speedup
+[profile.dev]
+split-debuginfo = "unpacked"
