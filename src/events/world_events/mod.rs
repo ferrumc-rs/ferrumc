@@ -2,7 +2,7 @@ use crate::state::GlobalState;
 use crate::utils::components::player::{Player};
 use ferrumc_macros::{event_handler, Constructor};
 use std::sync::Arc;
-use tracing::{error, info, warn};
+use tracing::{error, info};
 
 #[derive(Constructor)]
 pub struct PlayerJoinWorldEvent {
