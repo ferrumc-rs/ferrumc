@@ -1,11 +1,11 @@
-# FerrumC rewrite v3
+# Ferrumc Rewrite [v3]
 
+> [!WARNING]
+> FerrumC is going through a major rewrite. This branch contains all of the new code.\
+> To view the original code, go to the [dev branch](https://github.com/ferrumc-rs/ferrumc/tree/dev).
 
-This is the FerrumC branch for the rewrite version 3.
+# Roadmap
+To view the roadmap, see [plans.md](assets/plans/plans.md)
 
-If you want to visit the original versions:
-
-https://github.com/ferrumc-rs/ferrumc/tree/dev
-or
-https://github.ferrumc.com
-
+> [!IMPORTANT]
+> Use pull requests instead of direct pushes.
