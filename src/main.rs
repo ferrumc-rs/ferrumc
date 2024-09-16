@@ -56,7 +56,7 @@ async fn entry() -> Result<()> {
             true
         }
     };
-
+  
     if need_to_kill {
         kill_all_systems().await?;
     }
