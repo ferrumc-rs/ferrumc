@@ -15,3 +15,13 @@ impl EventDispatcher {
         dispatch_event::<T>(event, state).await;
     }
 }
+
+pub trait EventDispatcherExt {
+    async fn dispatch_event<T: 'static + Any + Send + Sync>(&self, event: T);
+}
+
+impl EventDispatcherExt for GlobalState {
+    async fn dispatch_event<T: 'static + Any + Send + Sync>(&self, event: T) {
+        self.event_dispatcher.dispatch_event(event, self.clone()).await;
+    }
+}

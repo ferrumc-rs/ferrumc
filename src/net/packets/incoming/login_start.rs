@@ -6,6 +6,7 @@ use tracing::{debug};
 use uuid::Uuid;
 
 use ferrumc_macros::{packet, NetDecode};
+use crate::events::creation::dispatcher::EventDispatcherExt;
 use crate::events::world_events::PlayerJoinWorldEvent;
 use crate::net::packets::outgoing::default_spawn_position::DefaultSpawnPosition;
 use crate::net::packets::outgoing::keep_alive::KeepAlivePacketOut;
@@ -77,7 +78,7 @@ impl IncomingPacket for LoginStart {
         packet_queue.queue(packet).await?;
 
         let event = PlayerJoinWorldEvent::new(conn_id);
-        state.event_dispatcher.dispatch_event(event, state.clone()).await;
+        state.dispatch_event(event).await;
 
         let mut conn = conn.write().await;
         // Send all the queued packets
