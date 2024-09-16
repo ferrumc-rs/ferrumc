@@ -1,5 +1,5 @@
 [package]
-name = "derive_macros"
+name = "ferrumc-macros"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,4 +7,4 @@ edition = "2021"
 proc-macro = true
 
 [dependencies]
-quote = "1.0.37"
+quote = { workspace = true }

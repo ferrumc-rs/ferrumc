@@ -197,7 +197,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use derive_macros::profile;
+    use ferrumc_macros::profile;
     use std::thread;
     use thread::sleep;
     use tracing::Level;

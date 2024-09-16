@@ -1,11 +1,10 @@
 [package]
-name = "logging"
+name = "ferrumc-logging"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-tracing = "0.1.40"
-tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
-tokio = "1.40.0"
-
-profiling = { path = "../profiling" }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+tokio = { workspace = true }
+ferrumc-profiling = { workspace = true }
