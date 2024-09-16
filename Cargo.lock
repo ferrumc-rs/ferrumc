@@ -3,6 +3,7 @@
 version = 3
 
 [[package]]
+name = "events"
 name = "addr2line"
 version = "0.24.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -122,10 +123,39 @@ version = "0.1.0"
 
 [[package]]
 name = "ferrumc"
-version = "0.1.1"
-dependencies = [
- "dummy_lib",
-]
+version = "0.1.0"
+
+[[package]]
+name = "ferrumc-core"
+version = "0.1.0"
+
+[[package]]
+name = "ferrumc-ecs"
+version = "0.1.0"
+
+[[package]]
+name = "ferrumc-encryption"
+version = "0.1.0"
+
+[[package]]
+name = "ferrumc-net"
+version = "0.1.0"
+
+[[package]]
+name = "ferrumc-plugins"
+version = "0.1.0"
+
+[[package]]
+name = "ferrumc-storage"
+version = "0.1.0"
+
+[[package]]
+name = "ferrumc-utils"
+version = "0.1.0"
+
+[[package]]
+name = "ferrumc-world"
+version = "0.1.0"
 
 [[package]]
 name = "getrandom"

@@ -1,19 +1,94 @@
+# FerrumC Project workspace
+#
+# Layout of this file:
+# - Members of the workspace.
+# - Profile compilation settings.
+# - Workspace lints
+# - Workspace dependencies.
+
 [workspace]
 resolver = "2"
 
+#================= Members =================#
 members = [
-    "crates/bin",
-    "crates/lib/*",
+	"src/bin",
+	"src/core", 
+	"src/ecs", 
+	"src/events", 
+	"src/net", 
+	"src/net/encryption",
+	"src/net/packets",
+	"src/plugins", 
+	"src/storage", 
+	"src/utils", 
+	"src/world"
 ]
-exclude = []
 
-# Strip debuginfo from the release builds
-# Also enable thin LTO for some optimizations
+#================== Lints ==================#
+[workspace.lints.rust]
+unsafe_code = "deny"
+unused_unsafe = "deny"
+unsafe_op_in_unsafe_fn = "deny"
+unused_crate_dependencies = "deny"
+unused_import_braces = "deny"
+unused_lifetimes = "deny"
+keyword_idents_2018 = "deny"
+keyword_idents_2024 = "deny"
+missing_abi = "deny"
+future_incompatible = { level = "deny", priority = -1 }
+
+[workspace.lints.clippy]
+borrow_as_ptr = "deny"
+case_sensitive_file_extension_comparisons = "deny"
+cast_lossless = "deny"
+cast_ptr_alignment = "deny"
+match_bool = "deny"
+mut_mut = "deny"
+wildcard_dependencies = "deny"
+redundant_type_annotations = "deny"
+infinite_loop = "deny"
+
+#================= Profile =================#
 [profile.release]
-strip = "debuginfo"
-lto = "thin"
-opt-level = "z"
+lto           = true
+strip         = "none"
+codegen-units = 1
+opt-level     = 3
 
-# A little bit of a speedup
 [profile.dev]
+lto           = false
+opt-level     = 1
 split-debuginfo = "unpacked"
+
+#=============== Dependencies ==============#
+[workspace.dependencies]
+# Workspace members
+ferrumc-core 				= { path = "src/core" 			}
+ferrumc-ecs 				= { path = "src/ecs" 			}
+ferrumc-events 				= { path = "src/events" 		}
+ferrumc-net 				= { path = "src/net" 			}
+ferrumc-net-encryption 		= { path = "src/net/encryption" }
+ferrumc-net-packets 		= { path = "src/net/packets" 	}
+ferrumc-plugins 			= { path = "src/plugins" 		}
+ferrumc-storage 			= { path = "src/storage" 		}
+ferrumc-utils 				= { path = "src/utils" 			}
+ferrumc-world 				= { path = "src/world" 			}
+
+# Asynchronous
+tokio =  { version = "1.40.0", features = ["full"] }
+
+# Logging
+tracing = "0.1.40"
+
+# Concurrency/Parallelism
+rayon = "1.10.0"
+crossbeam = "0.8.4"
+
+# Network
+
+
+# Cryptography
+rsa = "0.9.6"
+
+# Encoding/Serialization
+fastnbt = "2.5.0"
