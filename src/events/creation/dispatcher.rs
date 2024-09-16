@@ -17,6 +17,7 @@ impl EventDispatcher {
 }
 
 pub trait EventDispatcherExt {
+    #[allow(async_fn_in_trait)]
     async fn dispatch_event<T: 'static + Any + Send + Sync>(&self, event: T);
 }
 

@@ -23,13 +23,3 @@ async fn send_join_message(entity_id: usize, state: GlobalState) -> crate::Resul
     
     Ok(())
 }
-
-#[event_handler(priority = "slow")]
-async fn on_player_join_world2(event: Arc<PlayerJoinWorldEvent>, state: GlobalState) {
-    let Ok(player) = state.world.get_component::<Player>(event.entity_id).await else {
-        warn!("Failed to get player component for entity {}", event.entity_id);
-        return;
-    };
-
-    info!("{} joined the world!", player.get_username());
-}
