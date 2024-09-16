@@ -35,6 +35,14 @@ Workspace members dependencies are defined as follows:
 member = { workspace = true } 
 ```
 
+## Clippy
+
+FerrumC enforce the usage of clippy and this source code should not contains any clippy warning.
+
+## Components
+
+Any system within FerrumC is built with the ability to be shutdown at some point in time.
+
 ## Tests
 
 Tests are located within their respective crates and do not have a separate tests/ folder.
