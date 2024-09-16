@@ -68,5 +68,13 @@ encryption
 - mojang authentication and stuff
 
 
+error handling
+- actually consistent error handling
+
+organization
+- use workspaces
+
+
+
 Tips:
 - Pull request instead of direct pushings.
