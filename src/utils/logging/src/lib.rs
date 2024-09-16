@@ -11,7 +11,7 @@ pub fn init_logging() {
 
     let fmt_layer = tracing_subscriber::fmt::Layer::default();
 
-    let profiler_layer = ProfilerTracingLayer::default();
+    let profiler_layer = ProfilerTracingLayer;
     tracing_subscriber::registry()
         .with(env_filter)
         .with(profiler_layer)

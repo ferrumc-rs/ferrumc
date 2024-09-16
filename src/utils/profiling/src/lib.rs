@@ -180,15 +180,12 @@ where
             if let Some(start) = instant {
                 let elapsed = start.elapsed();
                 let name = ctx.span(&id).unwrap().name().to_string();
-                let keys = RUNNING_PROFILERS.read().iter().map(|x| *x).collect();
+                let keys = RUNNING_PROFILERS.read().iter().copied().collect();
                 let result = SingleProfileResult {
                     duration: elapsed,
                     keys,
                 };
-                RESULTS_MAP
-                    .entry(name)
-                    .or_insert_with(Vec::new)
-                    .push(result);
+                RESULTS_MAP.entry(name).or_default().push(result);
             }
         }
     }
@@ -210,7 +207,7 @@ mod tests {
 
         let fmt_layer = tracing_subscriber::fmt::Layer::default();
 
-        let profiler_layer = ProfilerTracingLayer::default();
+        let profiler_layer = ProfilerTracingLayer;
         tracing_subscriber::registry()
             .with(env_filter)
             .with(profiler_layer)
