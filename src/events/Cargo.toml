@@ -1,5 +1,5 @@
 [package]
-name = "dummy_lib"
+name = "events"
 version = "0.1.0"
 edition = "2021"
 
