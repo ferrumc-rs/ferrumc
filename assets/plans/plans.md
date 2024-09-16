@@ -8,7 +8,7 @@
 > [!IMPORTANT]
 > Use pull requests instead of direct pushes.
 
-## Roadmap:
+## Roadmap (subject to change):
 
 - [ ] Plugins
   - [ ] Basic API (right away)
