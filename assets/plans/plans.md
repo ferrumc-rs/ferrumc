@@ -1,67 +1,73 @@
-# FerrumC rewrite v3
+<img style="width: 100%" src="https://github.com/ferrumc-rs/ferrumc/blob/dev/README/assets/header.svg?raw=true" alt="FerrumC Header">
 
-### Plans:
+# Ferrumc Rewrite
+> [!WARNING]
+> FerrumC is going through a major rewrite. This branch contains all of the new code.\
+> To view the original code, go to the [dev branch](https://github.com/ferrumc-rs/ferrumc/tree/dev).
 
-plugins
-- basic api right away
-- wasm
-- extism??
+> [!IMPORTANT]
+> Use pull requests instead of direct pushes.
 
-events
-- nice and clean events system
-- runtime registration (to allow plugins to work)
-- extremely fast (a lot of systems would heavily rely on this )
-- cancellable events
+## Roadmap:
 
-ecs
-- basic stuff like components
-- excellent iterators
-- with tokio? optimized stuff?
-
-chunks
-- better format? throw away generation status and stuff
-- only read the necessary data (tapes) ; simdnbt?
-
-network encoding
-- helpful derive macro like `#[derive(NetEncode)]` and `#[derive(NetDecode)]`
-- support encoding options (omit packet size, compressed, and shit like that)
-
-nbt
-- custom tapes based reader and writer + GPU accelerated parsing
-- implement methods for nbt to be network encoded, since i forgot that the first time
-
-database
--  lmdb (k/v store)
-- hash(key) => value
-
-packet
-- have a nice API (current way for parsing if fine, with derive macros)
-- use events to handle them
-- allow plugins to listen / interact with packets. cancel them etc
-- both in and out
-- server handles event on priority u8::MAX/2
-- support compression (handled by network encoding)
-- auto initialized with "reflections", read through every file basically
-- support multi versions directly. map versions packet id and shit
-
-redstone
-- compile redstone and make it fast and accurate
+- [ ] Plugins
+  - [ ] Basic API (right away)
+  - [ ] WASM
+  - [ ] [Extism???](https://extism.org/)
 
 
-misc
-- horizontal scaling?
-
-encryption
-- mojang authentication and stuff
-
-
-error handling
-- actually consistent error handling
-
-organization
-- use workspaces
+- [ ] Events
+  - [ ] Clean & Nice impl
+  - [ ] Runteim registration (for plugins)
+  - [ ] Light and efficient (heavily relied on)
+  - [ ] Cancellable Events
 
 
+- [ ] ECS
+  - [ ] Basic impl (components, etc)
+  - [ ] Excellent iterators
+  - [ ] [Tokio](https://github.com/tokio-rs/tokio) for better optimisation?
 
-Tips:
-- Pull request instead of direct pushings.
+
+- [ ] Chunks
+  - [ ] Better format?
+  - [ ] Only read necessary data (tapes) - simdnbt?
+
+
+- [ ] Network Encoding
+  - [ ] Helpful derive macro like `#[derive(NetEncode)]` & `#[derive(NetDecode)]`
+  - [ ] Support encoding options (omit packet size, compression, etc)
+  
+
+- [ ] NBT
+  - [ ] Custom tapes based read + writer
+    - [ ] GPU accelerated Parsing
+  - [ ] Implement methods for nbt to be network encoded
+
+
+- [ ] Database
+  - [ ] [LMDB](https://en.wikipedia.org/wiki/Lightning_Memory-Mapped_Database) (K/V Store)
+  - [ ] Hash(key) => Value
+
+
+- [ ] Packets
+  - [ ] Functional API
+  - [ ] use Events system for handling
+    - [ ] Server handles on priority u8::MAX/2
+  - [ ] Plugin support (listening, interacting, canceling, etc)
+  - [ ] Auto init with reflections
+  - [ ] support multiple versions (map versions packet id etc)
+
+
+- [ ] Redstone
+  - [ ] Compile redstone, lightweight impl (fast & accurate)
+
+
+- [ ] Misc
+  - [ ] Horizontal Scaling?
+  - [ ] consistent error handling
+  - [ ] use workspaces (organisation)
+
+
+- [ ] Encryption
+  - [ ] Mojang Auth etc
