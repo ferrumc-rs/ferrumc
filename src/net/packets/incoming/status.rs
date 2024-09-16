@@ -1,3 +1,5 @@
+use std::sync::Arc;
+use std::sync::atomic::Ordering;
 use base64::Engine;
 use ferrumc_codec::network_types::varint::VarInt;
 use rand::prelude::IndexedRandom;
@@ -7,10 +9,12 @@ use tokio::sync::OnceCell;
 use tracing::debug;
 
 use ferrumc_macros::{packet, NetDecode};
+use uuid::Uuid;
 
 use crate::net::packets::outgoing::status::OutgoingStatusResponse;
 use crate::net::packets::{ConnectionId, IncomingPacket};
 use crate::state::GlobalState;
+use crate::utils::components::player::Player;
 use crate::utils::config;
 use crate::utils::prelude::*;
 
@@ -65,6 +69,26 @@ impl IncomingPacket for Status {
 
         let random_motd = config.motd.choose(&mut rand::thread_rng()).unwrap().clone();
 
+        //Create a vec of Samples for each player connected.
+        //Does not include player who sent packet, as they are only querying the server
+        let mut player_samples: Vec<Sample> = vec![];
+        for connection in &state.connections.connections {
+            let player_conn_id = Arc::clone(connection.value()).read().await.id;
+            let player_result = state.world.get_component::<Player>(player_conn_id).await;
+            match player_result {
+                Ok(player) => {
+                    player_samples.push(Sample{
+                        name: player.username.to_string(),
+                        id: Uuid::from_u128(player.uuid).to_string(),
+                    })
+                }
+                Err(_) => {
+                    //Skips any player not fully connected
+                    continue;
+                }
+            }
+        }
+
         let response = OutgoingStatusResponse {
             packet_id: VarInt::new(0x00),
             json_response: serde_json::ser::to_string(&JsonResponse {
@@ -75,17 +99,8 @@ impl IncomingPacket for Status {
                 },
                 players: Players {
                     max: config.max_players,
-                    online: 2,
-                    sample: vec![
-                        Sample {
-                            name: "Recore_".to_string(),
-                            id: "2b3414ed-468a-45c2-b113-6c5f47430edc".to_string(),
-                        },
-                        Sample {
-                            name: "sweattypalms".to_string(),
-                            id: "26d88d10-f052-430f-9406-e6c3089792c4".to_string(),
-                        },
-                    ],
+                    online: player_samples.len() as u32,
+                    sample: player_samples,
                 },
                 description: Description { text: random_motd },
                 favicon: get_encoded_favicon().await,
