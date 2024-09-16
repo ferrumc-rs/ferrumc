@@ -2,9 +2,9 @@ name: Rust
 
 on:
   pull_request:
-    branches: ["dev"]
+    branches: ["dev", "rewrite/v3"]
   push:
-    branches: ["dev"]
+    branches: ["dev", "rewrite/v3"]
   workflow_dispatch:
 
 env:
