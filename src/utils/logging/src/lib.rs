@@ -1,10 +1,20 @@
+use profiling::ProfilerTracingLayer;
 use tracing::Level;
+use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::util::SubscriberInitExt;
 
 static LOG_LEVEL: Level = Level::INFO;
 
-pub async fn init_logging() {
+pub fn init_logging() {
     let env_filter =
         tracing_subscriber::EnvFilter::from_default_env().add_directive(LOG_LEVEL.into());
 
-    tracing_subscriber::fmt().with_env_filter(env_filter).init();
+    let fmt_layer = tracing_subscriber::fmt::Layer::default();
+
+    let profiler_layer = ProfilerTracingLayer::default();
+    tracing_subscriber::registry()
+        .with(env_filter)
+        .with(profiler_layer)
+        .with(fmt_layer)
+        .init();
 }
