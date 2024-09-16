@@ -1,0 +1,7 @@
+[package]
+name = "ferrumc-utils"
+description = "Collection of utilities for use within FerrumC codebase."
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]

@@ -1,0 +1,7 @@
+[package]
+name = "ferrumc-core"
+description = "This crate defines all the primitives, traits and logics used in FerrumC codebase."
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
