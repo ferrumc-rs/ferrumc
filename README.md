@@ -6,3 +6,6 @@
 
 # Roadmap
 To view the roadmap, see [plans.md](assets/plans/plans.md)
+
+> [!IMPORTANT]
+> Use pull requests instead of direct pushes.
