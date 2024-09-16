@@ -322,6 +322,7 @@ name = "profiling"
 version = "0.1.0"
 dependencies = [
  "dashmap",
+ "derive_macros",
  "hashbrown",
  "lazy_static",
  "log",

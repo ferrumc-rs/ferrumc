@@ -6,7 +6,7 @@ use serde_derive::Serialize;
 use std::sync::Arc;
 use std::thread;
 use std::time::{Duration, Instant};
-use tracing::{error, Id, Subscriber};
+use tracing::{error, info, Id, Subscriber};
 use tracing_subscriber::layer::Context;
 use tracing_subscriber::registry::LookupSpan;
 use tracing_subscriber::Layer;
@@ -118,15 +118,18 @@ pub async fn start_profiler() -> u64 {
 
 pub async fn stop_profiling(key: u64) -> Vec<FinalProfileResult> {
     let mut raw_results = HashMap::new();
-    RESULTS_MAP
-        .iter()
-        .filter(|x| x.key().contains(&key.to_string()))
-        .for_each(|x| {
-            raw_results.insert(x.key().clone(), x.value().clone());
-        });
-    let final_results = tokio::task::spawn_blocking(|| generate_final_result(raw_results))
-        .await
-        .unwrap();
+    RESULTS_MAP.iter().for_each(|x| {
+        x.value()
+            .iter()
+            .filter(|y| y.keys.contains(&key))
+            .for_each(|y| {
+                raw_results
+                    .entry(x.key().clone())
+                    .or_insert_with(Vec::new)
+                    .push(y.clone());
+            });
+    });
+    let final_results = generate_final_result(raw_results);
     final_results
 }
 
@@ -152,6 +155,7 @@ where
         }
     }
     fn on_exit(&self, id: &Id, ctx: Context<'_, S>) {
+        info!("Exiting span");
         if RUNNING_PROFILERS.read().len() >= 1 {
             let instant = match ctx.span(id) {
                 None => {
@@ -172,17 +176,16 @@ where
             if let Some(start) = instant {
                 let elapsed = start.elapsed();
                 let name = ctx.span(id).unwrap().name().to_string();
-                thread::spawn(move || {
-                    let keys = RUNNING_PROFILERS.read().iter().map(|x| *x).collect();
-                    let result = SingleProfileResult {
-                        duration: elapsed,
-                        keys,
-                    };
-                    RESULTS_MAP
-                        .entry(name)
-                        .or_insert_with(Vec::new)
-                        .push(result);
-                });
+                let keys = RUNNING_PROFILERS.read().iter().map(|x| *x).collect();
+                let result = SingleProfileResult {
+                    duration: elapsed,
+                    keys,
+                };
+                RESULTS_MAP
+                    .entry(name)
+                    .or_insert_with(Vec::new)
+                    .push(result);
+                info!("Inserted result");
             }
         }
     }
@@ -191,18 +194,45 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tracing::info;
+    use derive_macros::profile;
+    use tracing::Level;
+    use tracing_subscriber::layer::SubscriberExt;
+    use tracing_subscriber::util::SubscriberInitExt;
 
-    async fn dummy_func1() {
-        tokio::time::sleep(Duration::from_millis(1500)).await;
+    fn init_logging() {
+        let env_filter =
+            tracing_subscriber::EnvFilter::from_default_env().add_directive(Level::INFO.into());
+
+        let fmt_layer = tracing_subscriber::fmt::Layer::default();
+
+        let profiler_layer = ProfilerTracingLayer::default();
+        tracing_subscriber::registry()
+            .with(env_filter)
+            .with(profiler_layer)
+            .with(fmt_layer)
+            .init();
+    }
+
+    #[profile("test1")]
+    fn dummy_func1() {
+        // Sleep for 1 second
+        thread::sleep(Duration::from_secs(1));
+    }
+
+    #[profile("test2")]
+    fn dummy_func2() {
+        // Sleep for 2 seconds
+        thread::sleep(Duration::from_secs(2));
     }
 
     #[tokio::test]
     async fn test_profiler() {
-        let _profiler = start_profiler().await;
-        info!("test");
-        let results = stop_profiling(0).await;
-        assert_eq!(results.len(), 1);
-        assert_eq!(results[0].name, "test");
+        init_logging();
+        let profile_key = start_profiler().await;
+        dummy_func1();
+        dummy_func2();
+        let results = stop_profiling(profile_key).await;
+        let json = serde_json::to_string(&results).unwrap();
+        println!("{}", json);
     }
 }
