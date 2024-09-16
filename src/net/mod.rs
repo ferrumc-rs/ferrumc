@@ -15,7 +15,7 @@ use tracing::{debug, error, trace};
 
 use ferrumc_macros::Component;
 
-use crate::net::packets::handle_packet;
+use crate::net::packets::{handle_packet, ConnectionId};
 use crate::state::GlobalState;
 
 use super::utils::config::get_global_config;
@@ -73,13 +73,13 @@ impl State {
 /// In desperate need of reworking.
 pub struct ConnectionList {
     // The connections, keyed with random values. The value also contains the connection id for ease of access.
-    pub connections: DashMap<u32, Arc<RwLock<Connection>>>,
+    pub connections: DashMap<ConnectionId, Arc<RwLock<Connection>>>,
     // The number of connections.
     pub connection_count: AtomicU32,
 }
 
 impl ConnectionList {
-    pub fn get_connection(&self, conn_id: impl TryInto<u32>) -> Result<Arc<RwLock<Connection>>> {
+    pub fn get_connection(&self, conn_id: impl TryInto<usize>) -> Result<Arc<RwLock<Connection>>> {
         let conn_id = conn_id.try_into().map_err(|_| Error::ConversionError)?;
         let conn = self
             .connections
@@ -99,7 +99,7 @@ impl ConnectionList {
 /// - `metadata`: Metadata for the connection ([ConnectionMetadata]).
 /// - `drop`: Whether to drop and clean up the connection after this network tick.
 pub struct Connection {
-    pub id: u32,
+    pub id: usize,
     // pub socket: tokio::net::TcpStream,
     pub stream: NetStream,
     pub player_uuid: Option<uuid::Uuid>,
@@ -135,7 +135,7 @@ pub fn setup_tracer() {
 ///
 /// Creates a new [Connection] and adds it to the [ConnectionList]. Passes the connection to [manage_conn].
 pub async fn init_connection(socket: tokio::net::TcpStream, state: GlobalState) -> Result<()> {
-    let entity_id = state.world.create_entity().await.build() as u32;
+    let entity_id = state.world.create_entity().await.build();
 
     let (in_stream, out_stream) = socket.into_split();
 
@@ -320,7 +320,7 @@ async fn drop_conn_if_flagged(conn: Arc<RwLock<Connection>>, state: GlobalState)
 
     Ok(())
 }
-pub async fn drop_conn(connection_id: u32, state: GlobalState) -> Result<()> {
+pub async fn drop_conn(connection_id: usize, state: GlobalState) -> Result<()> {
     debug!("Dropping connection with id: {}", connection_id);
     let connection = state.connections.connections.remove(&connection_id);
     let Some((_, conn_arc)) = connection else {

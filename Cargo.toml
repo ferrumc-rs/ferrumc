@@ -8,12 +8,15 @@ build = "build/build.rs"
 
 [dependencies]
 # Async
-tokio = { version = "1.38.0", features = ["full", "tracing"] }
+tokio = { version = "1.40", features = ["full", "tracing"] }
 futures = "0.3.30"
-async-trait = "0.1.77"
+async-trait = "0.1"
+
+# Multi-threading
+parking_lot = "0.12.3"
 
 # Error handling
-anyhow = "1.0.86"
+anyhow = "1.0.89"
 thiserror = "1.0.61"
 
 # Logging
@@ -22,8 +25,8 @@ tracing-subscriber = "0.3.18"
 console-subscriber = "0.4.0"
 
 # Serialization / Deserialization
-serde = { version = "1.0.203", features = ["derive"] }
-serde_derive = "1.0.209"
+serde = { version = "1.0", features = ["derive"] }
+serde_derive = "1.0"
 serde_json = "1.0.119"
 toml = "0.8.14"
 flexbuffers = "2.0.0"
@@ -31,7 +34,7 @@ bincode = "2.0.0-rc.3"
 
 # Configuration
 config = "0.14.0"
-lazy_static = "1.4.0"
+lazy_static = "1.5.0"
 
 # NBT and Anvil
 fastnbt = "2.5.0"
@@ -51,7 +54,7 @@ lz4_flex = "0.11.3"
 zstd = "0.13.2"
 
 # OS
-which = "6.0.1"
+which = "6.0.3"
 
 # Custom crates
 ferrumc_macros = { path = "src/crates/ferrumc_macros" }
@@ -63,7 +66,7 @@ moka = { version = "0.12.8", features = ["future"] }
 heed = "0.20.5"
 
 # Misc
-dashmap = "6.0.1"
+dashmap = "6.1"
 hashbrown = { version = "0.14.5", features = ["serde"] }
 rand = "0.9.0-alpha.1"
 base64 = "0.22.1"
@@ -73,10 +76,13 @@ deepsize = "0.2.0"
 deepsize_derive = "0.1.2"
 
 # CLI
-clap = { version = "4.5.11" }
-clap_derive = "4.5.11"
+clap = { version = "4.5" }
+clap_derive = "4.5"
 indicatif = "0.17.8"
 num_cpus = "1.16.0"
+
+# Compile Time Reflections (?)
+inventory = "0.3.15"
 
 
 # Set the cache to the highest level for development

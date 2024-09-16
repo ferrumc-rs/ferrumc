@@ -6,6 +6,7 @@ use ferrumc_macros::NetEncode;
 /// Contains info about the world
 #[derive(NetEncode)]
 pub struct LoginPlay<'a> {
+    #[encode(default = VarInt::from(0x28))]
     pub packet_id: VarInt,
     pub entity_id: i32,
     pub hardcore: bool,
