@@ -11,17 +11,19 @@ resolver = "2"
 
 #================= Members =================#
 members = [
-	"src/bin",
-	"src/core", 
-	"src/ecs", 
-	"src/events", 
-	"src/net", 
-	"src/net/encryption",
-	"src/net/packets",
-	"src/plugins", 
-	"src/storage", 
-	"src/utils", 
-	"src/world"
+    "src/bin",
+    "src/core",
+    "src/ecs",
+    "src/events",
+    "src/net",
+    "src/net/encryption",
+    "src/net/packets",
+    "src/plugins",
+    "src/storage",
+    "src/utils",
+    "src/utils/logging",
+    "src/utils/profiling",
+    "src/world"
 ]
 
 #================== Lints ==================#
@@ -50,32 +52,32 @@ infinite_loop = "deny"
 
 #================= Profile =================#
 [profile.release]
-lto           = true
-strip         = "none"
+lto = true
+strip = "none"
 codegen-units = 1
-opt-level     = 3
+opt-level = 3
 
 [profile.dev]
-lto           = false
-opt-level     = 1
+lto = false
+opt-level = 1
 split-debuginfo = "unpacked"
 
 #=============== Dependencies ==============#
 [workspace.dependencies]
 # Workspace members
-ferrumc-core 				= { path = "src/core" 			}
-ferrumc-ecs 				= { path = "src/ecs" 			}
-ferrumc-events 				= { path = "src/events" 		}
-ferrumc-net 				= { path = "src/net" 			}
-ferrumc-net-encryption 		= { path = "src/net/encryption" }
-ferrumc-net-packets 		= { path = "src/net/packets" 	}
-ferrumc-plugins 			= { path = "src/plugins" 		}
-ferrumc-storage 			= { path = "src/storage" 		}
-ferrumc-utils 				= { path = "src/utils" 			}
-ferrumc-world 				= { path = "src/world" 			}
+ferrumc-core = { path = "src/core" }
+ferrumc-ecs = { path = "src/ecs" }
+ferrumc-events = { path = "src/events" }
+ferrumc-net = { path = "src/net" }
+ferrumc-net-encryption = { path = "src/net/encryption" }
+ferrumc-net-packets = { path = "src/net/packets" }
+ferrumc-plugins = { path = "src/plugins" }
+ferrumc-storage = { path = "src/storage" }
+ferrumc-utils = { path = "src/utils" }
+ferrumc-world = { path = "src/world" }
 
 # Asynchronous
-tokio =  { version = "1.40.0", features = ["full"] }
+tokio = { version = "1.40.0", features = ["full"] }
 
 # Logging
 tracing = "0.1.40"

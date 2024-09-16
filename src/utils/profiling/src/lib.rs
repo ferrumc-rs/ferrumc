@@ -221,25 +221,25 @@ mod tests {
     #[profile("test1")]
     fn dummy_func1() {
         // Sleep for 1 second
-        sleep(Duration::from_secs(1));
+        sleep(Duration::from_millis(100));
     }
 
     #[profile("test2")]
     fn dummy_func2() {
         // Sleep for 2 seconds
-        sleep(Duration::from_secs(2));
+        sleep(Duration::from_millis(200));
     }
 
     #[profile("nested/test1")]
     fn dummy_func3() {
         // Sleep for 1 second
-        sleep(Duration::from_secs(1));
+        sleep(Duration::from_millis(100));
     }
 
     #[profile("nested/test2")]
     async fn dummy_func4() {
         // Sleep for 2 seconds
-        tokio::time::sleep(Duration::from_secs(2)).await;
+        tokio::time::sleep(Duration::from_millis(200)).await;
     }
 
     #[tokio::test]
@@ -252,7 +252,6 @@ mod tests {
         dummy_func4().await;
         let results = stop_profiling(profile_key).await;
         let json = serde_json::to_string(&results).unwrap();
-        println!("{}", json);
         assert_ne!(json, "[]");
         assert!(json.contains("test1"));
         assert!(!json.contains("nested/test1"));
