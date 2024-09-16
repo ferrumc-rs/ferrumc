@@ -1,5 +1,5 @@
 use quote::{format_ident, quote};
-use syn::{DeriveInput, Field, Generics, Lifetime, parse_macro_input};
+use syn::{DeriveInput, Field, Generics, Lifetime, parse_macro_input, Data};
 
 use proc_macro::TokenStream;
 
@@ -213,7 +213,7 @@ fn generate_modified_constructor(
         }
     }
 }
-pub(crate) fn derive(input: TokenStream) -> TokenStream {
+/*pub(crate) fn derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let name = &input.ident;
     let generics = input.generics;
@@ -255,4 +255,140 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
     };
 
     TokenStream::from(final_output)
+}
+*/
+
+pub(crate) fn derive(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    let name = &input.ident;
+    let generics = input.generics;
+
+    let expanded = match &input.data {
+        Data::Struct(data_struct) => {
+            derive_for_struct(name, generics, data_struct)
+        }
+        Data::Enum(data_enum) => {
+            derive_for_enum(name, generics, data_enum)
+        }
+        _ => panic!("Only structs and enums are supported"),
+    };
+
+    TokenStream::from(expanded)
+}
+
+fn derive_for_enum(
+    name: &syn::Ident,
+    generics: Generics,
+    data_enum: &syn::DataEnum,
+) -> proc_macro2::TokenStream {
+    let variants = &data_enum.variants;
+
+    let match_arms: Vec<proc_macro2::TokenStream> = variants
+        .iter()
+        .map(|variant| {
+            let variant_name = &variant.ident;
+
+            match &variant.fields {
+                syn::Fields::Unnamed(fields_unnamed) => {
+                    let field_patterns: Vec<_> = fields_unnamed
+                        .unnamed
+                        .iter()
+                        .enumerate()
+                        .map(|(i, _)| format_ident!("field{}", i))
+                        .collect();
+
+                    let encode_calls: Vec<_> = field_patterns
+                        .iter()
+                        .map(|fp| quote! { #fp.net_encode(bytes).await?; })
+                        .collect();
+
+                    quote! {
+                        Self::#variant_name( #(ref #field_patterns),* ) => {
+                            #(#encode_calls)*
+                            Ok(())
+                        }
+                    }
+                }
+                syn::Fields::Named(fields_named) => {
+                    let field_names: Vec<_> = fields_named
+                        .named
+                        .iter()
+                        .map(|f| f.ident.as_ref().unwrap())
+                        .collect();
+
+                    let encode_calls: Vec<_> = field_names
+                        .iter()
+                        .map(|fnm| quote! { #fnm.net_encode(bytes).await?; })
+                        .collect();
+
+                    quote! {
+                        Self::#variant_name { #(ref #field_names),* } => {
+                            #(#encode_calls)*
+                            Ok(())
+                        }
+                    }
+                }
+                syn::Fields::Unit => {
+                    quote! {
+                        Self::#variant_name => {
+                            Ok(())
+                        }
+                    }
+                }
+            }
+        })
+        .collect();
+
+    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+
+    quote! {
+        impl #impl_generics ferrumc_codec::enc::NetEncode for #name #ty_generics #where_clause {
+            async fn net_encode<T>(&self, bytes: &mut T) -> std::result::Result<(), ferrumc_codec::error::CodecError>
+                where T: tokio::io::AsyncWrite + std::marker::Unpin
+            {
+                use tokio::io::AsyncWriteExt;
+                match self {
+                    #(#match_arms),*
+                }
+            }
+        }
+    }
+}
+fn derive_for_struct(
+    name: &syn::Ident,
+    generics: Generics,
+    data_struct: &syn::DataStruct,
+) -> proc_macro2::TokenStream {
+    let fields = match &data_struct.fields {
+        syn::Fields::Named(fields) => fields,
+        _ => panic!("Only structs with named fields are supported"),
+    };
+
+    let field_attribs: Vec<FieldAttribs> =
+        fields.named.iter().map(parse_field_attributes).collect();
+
+    let should_generate_modified_constructor = field_attribs
+        .iter()
+        .any(|attr| attr.default_value.is_some());
+    let constructor = if should_generate_modified_constructor {
+        generate_modified_constructor(name, &generics, &field_attribs)
+    } else {
+        quote! {}
+    };
+
+    let is_packet_type = field_attribs
+        .iter()
+        .any(|attr| attr.field_name == "packet_id");
+
+    let field_statements: Vec<proc_macro2::TokenStream> = field_attribs
+        .iter()
+        .map(generate_field_encode_statement)
+        .collect();
+
+    let expanded = generate_encode_impl(name, generics, &field_statements, is_packet_type);
+
+    quote! {
+        #constructor
+        #expanded
+    }
 }
