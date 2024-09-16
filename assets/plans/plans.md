@@ -41,7 +41,6 @@
 
 - [ ] NBT
   - [ ] Custom tapes based read + writer
-    - [ ] GPU accelerated Parsing
   - [ ] Implement methods for nbt to be network encoded
 
 
