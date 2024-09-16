@@ -5,6 +5,7 @@ pub struct Grounded {
     pub is_grounded: bool,
 }
 
+
 impl Grounded {
     pub fn set_grounded(&mut self, is_grounded: bool) {
         self.is_grounded = is_grounded;

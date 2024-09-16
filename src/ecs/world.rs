@@ -148,10 +148,10 @@ impl World {
         Query::<Q>::new(&self.entity_manager, &self.component_storage)
     }
 
-    pub async fn get_component<T: Component>(
-        &self,
+    pub async fn get_component<'a, T: Component>(
+        &'a self,
         entity_id: impl TryInto<usize>,
-    ) -> Result<ComponentRef<'_, T>> {
+    ) -> Result<ComponentRef<'a, T>> {
         let entity_id = entity_id.try_into().map_err(|_| Error::ConversionError)?;
         self.get_component_storage().get::<T>(entity_id).await
     }

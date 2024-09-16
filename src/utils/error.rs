@@ -18,7 +18,7 @@ pub enum Error {
     TokioJoin(#[from] tokio::task::JoinError),
 
     #[error("Connection not found: {0}")]
-    ConnectionNotFound(u32),
+    ConnectionNotFound(usize),
     #[error("Invalid packet id: {0}")]
     InvalidPacketId(u32),
     #[error("Invalid state: {0:x}")]
