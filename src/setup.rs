@@ -70,13 +70,13 @@ pub(crate) async fn setup() -> Result<(), Error> {
 
 /// The default configuration file
 /// Not using ServerConfig::default(), since it doesn't have documentation on the usage of each field.
-static BASE_CONFIG: &str = r#"
+pub static BASE_CONFIG: &str = r#"
 # The network address to bind to. Usually just 0.0.0.0 or 127.0.0.1 if you don't want to expose the server to the internet.
 host = "0.0.0.0"
 # The port to bind to. Default is 25565.
 port = 25565
 # The message displayed in the server list.
-motd = ["A FerrumC server; Absolute precision, power, and perfection."]
+motd = ["A supersonic FerrumC server."]
 # The maximum number of players that can be connected at once.
 max_players = 20
 # How many network updates to process per second per user. 0 means no limit.
