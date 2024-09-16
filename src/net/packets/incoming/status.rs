@@ -1,5 +1,3 @@
-use std::sync::Arc;
-use std::sync::atomic::Ordering;
 use base64::Engine;
 use ferrumc_codec::network_types::varint::VarInt;
 use rand::prelude::IndexedRandom;
@@ -69,25 +67,13 @@ impl IncomingPacket for Status {
 
         let random_motd = config.motd.choose(&mut rand::thread_rng()).unwrap().clone();
 
-        //Create a vec of Samples for each player connected.
-        //Does not include player who sent packet, as they are only querying the server
-        let mut player_samples: Vec<Sample> = vec![];
-        for connection in &state.connections.connections {
-            let player_conn_id = Arc::clone(connection.value()).read().await.id;
-            let player_result = state.world.get_component::<Player>(player_conn_id).await;
-            match player_result {
-                Ok(player) => {
-                    player_samples.push(Sample{
-                        name: player.username.to_string(),
-                        id: Uuid::from_u128(player.uuid).to_string(),
-                    })
-                }
-                Err(_) => {
-                    //Skips any player not fully connected
-                    continue;
-                }
-            }
-        }
+        //Queries all players and makes a Sample struct from them
+        let player_query = state.world.query::<&Player>();
+        let players = player_query.iter().await.collect::<Vec<_>>();
+        let player_samples: Vec<Sample> = players.iter().map(|(_, player)| Sample{
+            name: player.username.to_string(),
+            id: Uuid::from_u128(player.uuid).to_string(),
+        }).collect();
 
         let response = OutgoingStatusResponse {
             packet_id: VarInt::new(0x00),
@@ -99,7 +85,7 @@ impl IncomingPacket for Status {
                 },
                 players: Players {
                     max: config.max_players,
-                    online: player_samples.len() as u32,
+                    online: player_samples.len() as i32,
                     sample: player_samples,
                 },
                 description: Description { text: random_motd },
