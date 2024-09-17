@@ -1,0 +1,75 @@
+name: "Bug Report"
+description: If you find a bug or a problem, report it to us here.
+labels: [bug, unconfirmed]
+body:
+- type: markdown
+  attributes:
+    value: Bug reports should only be used for reporting issues with how the server works / its features. For general questions, please use our [Discord Server](https://discord.gg/qT5J8EMjwk) instead.
+
+- type: textarea
+  attributes:
+    label: Describe the Bug
+    description: A clear and concise description of what the bug is.
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: To Reproduce
+    description: Steps to reproduce the unintended behaviour. Include media (images, videos, whatever) if possible in the `Screenshots / Videos` section.
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: Expected Behaviour
+    description: A clear and concise description of what you expect to happen.
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: Screenshots / Videos
+    description: If applicable, add screenshots or videos to help explain your problem.
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: FerrumC Version
+    description: Please provide which version of FerrumC you are using (either github actions run number or release ver).
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: Rust Version
+    description: Provide what Rust version you are using.
+  validations:
+    required: true
+  
+- type: textarea
+  attributes:
+    label: Server Logs
+    description: Please upload your entire server logs (via github gist, whatever)
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: Additional Context
+    description: Add any other context about the problem here.
+  validations:
+    required: true
+
+- type: checkboxes
+  attributes:
+    label: Is there an existing issue for this?
+    description: Please [search here](https://github.com/ferrumc-rs/ferrumc/issues) to see if an issue already exists for your problem.
+    options:
+    - label: I have searched current existing issues before creating this.
+      required: true
+    - label: I checked all the boxes without reading them
+      required: false
+    - label: I have provided all necessary and relevant details, including logs, reproduction steps, etc.
+      required: true
