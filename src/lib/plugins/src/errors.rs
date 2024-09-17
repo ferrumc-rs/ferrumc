@@ -1,6 +1,5 @@
 use thiserror::Error;
 use ferrumc_net_encryption::errors::NetEncryptionError;
-use ferrumc_net_packets::errors::NetPacketError;
 
 #[derive(Debug, Clone, Error)]
 pub enum NetError {

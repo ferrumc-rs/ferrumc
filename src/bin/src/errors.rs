@@ -1,12 +1,11 @@
 use thiserror::Error;
 use ferrumc_core::errors::CoreError;
 use ferrumc_ecs::errors::ECSError;
-use ferrumc_events::errors::EventsError;
-use ferrumc_net::errors::NetError;
-use ferrumc_plugins::errors::PluginsError;
-use ferrumc_storage::errors::StorageError;
-use ferrumc_utils::errors::UtilsError;
-use ferrumc_world::errors::WorldError;
+use ferrumc_net_encryption::errors::EventsError;
+use ferrumc_plugins::errors::NetError;
+use ferrumc_storage::errors::PluginsError;
+use ferrumc_utils::errors::StorageError;
+use ferrumc_world::errors::UtilsError;
 
 #[derive(Debug, Error)]
 pub enum BinaryError {
