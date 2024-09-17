@@ -26,6 +26,7 @@ ferrumc-macros = { workspace = true }
 ctor = { workspace = true }
 parking_lot = { workspace = true }
 tracing = { workspace = true }
+tokio = { workspace = true }
 
 [[bin]]
 name = "ferrumc"

@@ -1,7 +1,7 @@
 use thiserror::Error;
 
 #[derive(Debug, Clone, Error)]
-pub enum NetPacketError {
+pub enum EventsError {
     #[error("Something failed lol")]
     SomeError,
 }

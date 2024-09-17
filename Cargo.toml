@@ -92,6 +92,7 @@ log = "0.4.22"
 # Concurrency/Parallelism
 rayon = "1.10.0"
 crossbeam = "0.8.4"
+futures = "0.3.30"
 
 # Network
 

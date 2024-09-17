@@ -1,7 +1,7 @@
 use thiserror::Error;
 
 #[derive(Debug, Clone, Error)]
-pub enum PluginsError {
+pub enum StorageError {
     #[error("Something failed lol")]
     SomeError,
 }

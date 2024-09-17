@@ -6,9 +6,9 @@ edition = "2021"
 [dependencies]
 
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"]}
-
-ctor.workspace = true
-parking_lot.workspace = true
-hashbrown.workspace = true
-tinyvec.workspace = true
-once_cell = "1.19.0"
+ctor = { workspace = true}
+parking_lot = { workspace = true }
+hashbrown = { workspace = true }
+tinyvec = { workspace = true }
+thiserror = { workspace = true }
+futures = { workspace = true }

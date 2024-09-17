@@ -12,7 +12,7 @@ pub fn event_handler_fn(attr: TokenStream, input: TokenStream) -> TokenStream {
     
     let priority = parse_priority(args);
 
-    let register_fn_name = format_ident!("__register_listener__{}", fn_name);
+    let register_fn_name = format_ident!("__register_listener_{}", fn_name);
     
     let event_type = extract_event_type(&input);
 

@@ -1,11 +1,12 @@
 use thiserror::Error;
 use ferrumc_core::errors::CoreError;
 use ferrumc_ecs::errors::ECSError;
-use ferrumc_net_encryption::errors::EventsError;
-use ferrumc_plugins::errors::NetError;
-use ferrumc_storage::errors::PluginsError;
-use ferrumc_utils::errors::StorageError;
-use ferrumc_world::errors::UtilsError;
+use ferrumc_events::errors::EventsError;
+use ferrumc_net::errors::NetError;
+use ferrumc_plugins::errors::PluginsError;
+use ferrumc_storage::errors::StorageError;
+use ferrumc_utils::errors::UtilsError;
+use ferrumc_world::errors::WorldError;
 
 #[derive(Debug, Error)]
 pub enum BinaryError {
@@ -18,7 +19,7 @@ pub enum BinaryError {
     #[error("Events error: {0}")]
     Events(#[from] EventsError),
 
-    #[error("Net error: {0}")]
+    #[error("Net error: {0}")] 
     Net(#[from] NetError),
 
     #[error("Plugins error: {0}")]
@@ -33,6 +34,7 @@ pub enum BinaryError {
     #[error("World error: {0}")]
     World(#[from] WorldError),
     
+    #[allow(dead_code)]
     #[error("{0}")]
     Custom(String),
 
