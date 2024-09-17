@@ -8,4 +8,4 @@ proc-macro = true
 
 [dependencies]
 quote = { workspace = true }
-thiserror = "1.0.63"
+thiserror.workspace = true
