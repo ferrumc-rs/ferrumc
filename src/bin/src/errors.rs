@@ -19,7 +19,7 @@ pub enum BinaryError {
     #[error("Events error: {0}")]
     Events(#[from] EventsError),
 
-    #[error("Net error: {0}")]
+    #[error("Net error: {0}")] 
     Net(#[from] NetError),
 
     #[error("Plugins error: {0}")]
@@ -34,6 +34,7 @@ pub enum BinaryError {
     #[error("World error: {0}")]
     World(#[from] WorldError),
     
+    #[allow(dead_code)]
     #[error("{0}")]
     Custom(String),
 

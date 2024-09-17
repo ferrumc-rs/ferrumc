@@ -6,3 +6,6 @@ edition = "2021"
 
 [dependencies]
 thiserror = { workspace = true }
+
+ferrumc-net = { workspace = true }
+ferrumc-net-encryption = { workspace = true }
