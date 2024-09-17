@@ -1,5 +1,5 @@
 [package]
-name = "events"
+name = "ferrumc-events"
 version = "0.1.0"
 edition = "2021"
 
