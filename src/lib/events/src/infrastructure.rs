@@ -44,7 +44,7 @@ pub fn get_event_listeners<E: Event>() -> Vec<AsyncEventListenerFn<ThreadSafeRwL
             let mut listeners = events.iter()
                 .filter_map(|boxed| boxed.downcast_ref::<EventListener<ThreadSafeRwLock<E>>>())
                 .collect::<Vec<_>>();
-            
+
             listeners.sort_by_key(|listener| listener.priority);
             listeners.into_iter()
                 .map(|listener| listener.listener)
