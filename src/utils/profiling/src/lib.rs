@@ -1,3 +1,5 @@
+pub mod errors;
+
 use dashmap::DashMap;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
