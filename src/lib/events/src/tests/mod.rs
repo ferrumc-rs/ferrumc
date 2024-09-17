@@ -30,13 +30,11 @@ impl Event for SomeEvent {
 
 #[tokio::test]
 async fn test_something() {
-    let listeners = get_event_listeners::<SomeEvent>();
-
     let event_data = Arc::new(RwLock::new(SomeEvent {
         data: 0
     }));
-
-    for listener in listeners {
+    
+    for listener in get_event_listeners::<SomeEvent>() {
         listener(Arc::clone(&event_data)).await;
     }
 }
@@ -44,18 +42,22 @@ async fn test_something() {
 
 
 #[ctor::ctor]
-fn register_some_event() {
-    insert_into_events(|ev: Arc<RwLock<SomeEvent>>| Box::pin(async move {
-        let mut ev = ev.write();
-        ev.data = 10;
-        println!("I set the event's data to 10");
-    }));
+fn __register_some_event_listener() {
+    insert_into_events(|ev: Arc<RwLock<SomeEvent>>| Box::pin(some_event_listener(ev)), 0);
+}
+
+async fn some_event_listener(event: Arc<RwLock<SomeEvent>>) {
+    let mut ev = event.write();
+    ev.data = 10;
+    println!("I set the event's data to 10");
 }
 
 #[ctor::ctor]
-fn register_some_event2() {
-    insert_into_events(|ev: Arc<RwLock<SomeEvent>>| Box::pin(async move {
-        let ev = ev.read();
-        println!("I read the event's data: {}", ev.data);
-    }));
+fn __register_some_event_listener2() {
+    insert_into_events(|ev: Arc<RwLock<SomeEvent>>| Box::pin(some_event_listener2(ev)), 255);
+}
+
+async fn some_event_listener2(event: Arc<RwLock<SomeEvent>>) {
+    let ev = event.read();
+    println!("I read the event's data: {}", ev.data);
 }
