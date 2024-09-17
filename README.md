@@ -9,10 +9,6 @@
     </a>
 </div>
 
-> [!WARNING]
-> FerrumC is currently going through a rewrite!\
-> Please see the [v3/rewrite branch](https://github.com/ferrumc-rs/ferrumc/tree/rewrite/v3).
-
 <div align="center">
     <a href="#-about">About</a>
     •
@@ -25,6 +21,10 @@
     <a href="#-license">License</a>
     •
     <a href="#-faq">FAQ</a>
+
+> [!WARNING]
+> FerrumC is currently going through a rewrite!\
+> Please see the [v3/rewrite branch](https://github.com/ferrumc-rs/ferrumc/tree/rewrite/v3).
 
 
 </div>
