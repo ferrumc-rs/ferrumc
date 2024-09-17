@@ -1,0 +1,47 @@
+name: "Feature Request"
+description:  Suggest a feature or idea for this server.
+labels: enhancement
+body:
+- type: markdown
+  attributes:
+    value: This should only be used for new ideas / features. For general questions, please use our [Discord Server](https://discord.gg/qT5J8EMjwk) instead.
+
+- type: textarea
+  attributes:
+    label: Is your feature request related to a problem?
+    description: "A clear and concise description of what the problem is. Ex. I'm always frustrated when [...] Link the GitHub issue if applicable."
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: "Describe the solution / feature you'd like."
+    description: "A clear and concise description of what feature / solution you would like to be implemented."
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: "Alternatives you've considered."
+    description: "A clear and concise description of any alternative solutions / features you've considered."
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: "Additional Context"
+    description: "Add any other context or screenshots about the feature request here."
+  validations:
+    required: true
+
+- type: checkboxes
+  attributes:
+    label: I have confimed that...
+    options:
+    - label: ... such a feature does not exist already.
+      required: true
+    - label: ... I ticked all the boxes without reading them
+      required: false
+    - label: ... such a feature request has not been submitted already.
+      required: true
+    

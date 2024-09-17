@@ -21,9 +21,11 @@
     <a href="#-license">License</a>
     •
     <a href="#-faq">FAQ</a>
-
-
 </div>
+
+> [!WARNING]
+> FerrumC is currently going through a rewrite!\
+> Please see the [v3/rewrite branch](https://github.com/ferrumc-rs/ferrumc/tree/rewrite/v3).
 
 ## 📖 About
 
