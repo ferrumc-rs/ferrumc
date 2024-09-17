@@ -1,6 +1,21 @@
 use std::sync::Arc;
 use parking_lot::RwLock;
+
 use crate::infrastructure::{get_event_listeners, insert_into_events, Event};
+
+
+
+
+// Final API example:
+//
+// #[event_handler]
+// pub fn handle_event(event: Arc<Rwlock<SomeEvent>>) {
+//     println!("Event: {:?}", event);
+// }
+
+
+
+
 
 #[derive(Debug)]
 struct SomeEvent {
@@ -8,7 +23,7 @@ struct SomeEvent {
 }
 
 impl Event for SomeEvent {
-    fn name(&self) -> &'static str {
+    fn name() -> &'static str {
         "SomeEvent"
     }
 }
