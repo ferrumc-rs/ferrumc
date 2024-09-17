@@ -19,4 +19,4 @@ serde_derive = { workspace = true }
 log = { workspace = true }
 tokio = { workspace = true }
 ferrumc-macros = { workspace = true }
-thiserror.workspace = true
+thiserror = { workspace = true }
