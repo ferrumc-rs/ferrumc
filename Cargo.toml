@@ -12,19 +12,19 @@ resolver = "2"
 #================= Members =================#
 members = [
     "src/bin",
-    "src/core",
-    "src/ecs",
-    "src/events",
-    "src/net",
-    "src/net/encryption",
-    "src/net/packets",
-    "src/plugins",
-    "src/storage",
-    "src/utils",
-    "src/utils/logging",
-    "src/utils/profiling",
-    "src/world",
-    "src/derive_macros",
+    "src/lib/core",
+    "src/lib/ecs",
+    "src/lib/events",
+    "src/lib/net",
+    "src/lib/net/encryption",
+    "src/lib/net/packets",
+    "src/lib/plugins",
+    "src/lib/storage",
+    "src/lib/utils",
+    "src/lib/utils/logging",
+    "src/lib/utils/profiling",
+    "src/lib/world",
+    "src/lib/derive_macros",
 ]
 
 #================== Lints ==================#
@@ -66,19 +66,19 @@ split-debuginfo = "unpacked"
 #=============== Dependencies ==============#
 [workspace.dependencies]
 # Workspace members
-ferrumc-core = { path = "src/core" }
-ferrumc-ecs = { path = "src/ecs" }
-ferrumc-events = { path = "src/events" }
-ferrumc-net = { path = "src/net" }
-ferrumc-net-encryption = { path = "src/net/encryption" }
-ferrumc-net-packets = { path = "src/net/packets" }
-ferrumc-plugins = { path = "src/plugins" }
-ferrumc-storage = { path = "src/storage" }
-ferrumc-utils = { path = "src/utils" }
-ferrumc-profiling = { path = "src/utils/profiling" }
-ferrumc-logging = { path = "src/utils/logging" }
-ferrumc-macros = { path = "src/derive_macros" }
-ferrumc-world = { path = "src/world" }
+ferrumc-core = { path = "src/lib/core" }
+ferrumc-ecs = { path = "src/lib/ecs" }
+ferrumc-events = { path = "src/lib/events" }
+ferrumc-net = { path = "src/lib/net" }
+ferrumc-net-encryption = { path = "src/lib/net/encryption" }
+ferrumc-net-packets = { path = "src/lib/net/packets" }
+ferrumc-plugins = { path = "src/lib/plugins" }
+ferrumc-storage = { path = "src/lib/storage" }
+ferrumc-utils = { path = "src/lib/utils" }
+ferrumc-profiling = { path = "src/lib/utils/profiling" }
+ferrumc-logging = { path = "src/lib/utils/logging" }
+ferrumc-macros = { path = "src/lib/derive_macros" }
+ferrumc-world = { path = "src/lib/world" }
 
 # Asynchronous
 tokio = { version = "1.40.0", features = ["full"] }
