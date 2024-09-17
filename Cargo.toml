@@ -95,6 +95,8 @@ crossbeam = "0.8.4"
 
 # Network
 
+# Error handling
+thiserror = "1.0.63"
 
 # Cryptography
 rsa = "0.9.6"
