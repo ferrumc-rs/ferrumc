@@ -115,6 +115,7 @@ dashmap = "6.1.0"
 # Macros
 lazy_static = "1.5.0"
 quote = "1.0.37"
+syn = "2.0.77"
 
 # Magic
 ctor = "0.2.8"

@@ -1,4 +1,4 @@
 
 #[cfg(test)]
 mod tests;
-mod infrastructure;
+pub mod infrastructure;

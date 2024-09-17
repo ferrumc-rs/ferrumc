@@ -33,12 +33,11 @@ async fn test_something() {
     let event_data = Arc::new(RwLock::new(SomeEvent {
         data: 0
     }));
-    
+
     for listener in get_event_listeners::<SomeEvent>() {
         listener(Arc::clone(&event_data)).await;
     }
 }
-
 
 
 #[ctor::ctor]
