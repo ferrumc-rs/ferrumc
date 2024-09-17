@@ -1,3 +1,5 @@
+pub mod errors;
+
 use ferrumc_profiling::ProfilerTracingLayer;
 use tracing::Level;
 use tracing_subscriber::layer::SubscriberExt;
