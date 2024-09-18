@@ -1,10 +1,10 @@
 //! # Statics module.
-//! 
+//!
 //! Contains the static global configuration and its related functions.
 
-use std::sync::OnceLock;
 use crate::errors::ConfigError;
 use crate::server_config::ServerConfig;
+use std::sync::OnceLock;
 
 /// The server configuration that is stored in memory.
 static CONFIG: OnceLock<ServerConfig> = OnceLock::new();

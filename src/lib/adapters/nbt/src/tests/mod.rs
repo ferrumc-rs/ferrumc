@@ -25,7 +25,7 @@ fn bigtest() -> Result<(), NBTError> {
 fn the_algui() {
     let data = include_bytes!("../../../../../../.etc/TheAIguy_.nbt");
     let data = NbtParser::decompress(data).unwrap();
-    
+
     let data = data.as_slice();
 
     let mut parser = NbtParser::new(data);

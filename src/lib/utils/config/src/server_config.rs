@@ -2,10 +2,10 @@
 //!
 //! Contains the server configuration struct and its related functions.
 
-use serde_derive::{Deserialize, Serialize};
-use tracing::{info, warn};
 use crate::errors::ConfigError;
 use crate::statics::{get_global_config, set_global_config};
+use serde_derive::{Deserialize, Serialize};
+use tracing::{info, warn};
 
 /// The server configuration struct.
 ///

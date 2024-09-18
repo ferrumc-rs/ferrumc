@@ -1,7 +1,9 @@
-use std::arch::x86_64::{__m128i, _mm_loadu_si128, _mm_setr_epi8, _mm_shuffle_epi8, _mm_storeu_si128};
+use crate::errors::NBTError;
+use std::arch::x86_64::{
+    __m128i, _mm_loadu_si128, _mm_setr_epi8, _mm_shuffle_epi8, _mm_storeu_si128,
+};
 use std::io::Read;
 use std::str;
-use crate::errors::NBTError;
 
 /// Represents a token in the NBT tape.
 #[derive(Debug)]
@@ -349,9 +351,15 @@ impl<'a> NbtParser<'a> {
             while remaining >= 4 && src_pos + 16 <= byte_len {
                 #[allow(clippy::cast_ptr_alignment)]
                 let simd_bytes = _mm_loadu_si128(bytes[src_pos..].as_ptr() as *const __m128i);
-                let simd_ints = _mm_shuffle_epi8(simd_bytes, _mm_setr_epi8(3,2,1,0, 7,6,5,4, 11,10,9,8, 15,14,13,12));
+                let simd_ints = _mm_shuffle_epi8(
+                    simd_bytes,
+                    _mm_setr_epi8(3, 2, 1, 0, 7, 6, 5, 4, 11, 10, 9, 8, 15, 14, 13, 12),
+                );
                 #[allow(clippy::cast_ptr_alignment)]
-                _mm_storeu_si128(aligned_buffer[dst_pos..].as_mut_ptr() as *mut __m128i, simd_ints);
+                _mm_storeu_si128(
+                    aligned_buffer[dst_pos..].as_mut_ptr() as *mut __m128i,
+                    simd_ints,
+                );
                 src_pos += 16;
                 dst_pos += 4;
                 remaining -= 4;
@@ -360,7 +368,10 @@ impl<'a> NbtParser<'a> {
             // Handle remaining elements
             while remaining > 0 {
                 aligned_buffer[dst_pos] = i32::from_be_bytes([
-                    bytes[src_pos], bytes[src_pos + 1], bytes[src_pos + 2], bytes[src_pos + 3]
+                    bytes[src_pos],
+                    bytes[src_pos + 1],
+                    bytes[src_pos + 2],
+                    bytes[src_pos + 3],
                 ]);
                 src_pos += 4;
                 dst_pos += 1;
@@ -396,9 +407,15 @@ impl<'a> NbtParser<'a> {
             while remaining >= 2 && src_pos + 16 <= byte_len {
                 #[allow(clippy::cast_ptr_alignment)]
                 let simd_bytes = _mm_loadu_si128(bytes[src_pos..].as_ptr() as *const __m128i);
-                let simd_longs = _mm_shuffle_epi8(simd_bytes, _mm_setr_epi8(7,6,5,4,3,2,1,0, 15,14,13,12,11,10,9,8));
+                let simd_longs = _mm_shuffle_epi8(
+                    simd_bytes,
+                    _mm_setr_epi8(7, 6, 5, 4, 3, 2, 1, 0, 15, 14, 13, 12, 11, 10, 9, 8),
+                );
                 #[allow(clippy::cast_ptr_alignment)]
-                _mm_storeu_si128(aligned_buffer[dst_pos..].as_mut_ptr() as *mut __m128i, simd_longs);
+                _mm_storeu_si128(
+                    aligned_buffer[dst_pos..].as_mut_ptr() as *mut __m128i,
+                    simd_longs,
+                );
                 src_pos += 16;
                 dst_pos += 2;
                 remaining -= 2;
@@ -407,8 +424,14 @@ impl<'a> NbtParser<'a> {
             // Handle remaining elements
             while remaining > 0 {
                 aligned_buffer[dst_pos] = i64::from_be_bytes([
-                    bytes[src_pos], bytes[src_pos + 1], bytes[src_pos + 2], bytes[src_pos + 3],
-                    bytes[src_pos + 4], bytes[src_pos + 5], bytes[src_pos + 6], bytes[src_pos + 7]
+                    bytes[src_pos],
+                    bytes[src_pos + 1],
+                    bytes[src_pos + 2],
+                    bytes[src_pos + 3],
+                    bytes[src_pos + 4],
+                    bytes[src_pos + 5],
+                    bytes[src_pos + 6],
+                    bytes[src_pos + 7],
                 ]);
                 src_pos += 8;
                 dst_pos += 1;
@@ -424,7 +447,6 @@ impl<'a> NbtParser<'a> {
         Ok(leaked_slice)
     }
 }
-
 
 use std::collections::HashMap;
 
@@ -452,7 +474,10 @@ impl<'a, 'b> NbtCompoundView<'a, 'b> {
         let mut i = self.start + 1; // Start after the TagStart of this compound
         while i < self.tape.len() {
             match &self.tape[i] {
-                NbtToken::TagStart { name: Some(tag_name), .. } => {
+                NbtToken::TagStart {
+                    name: Some(tag_name),
+                    ..
+                } => {
                     self.children.insert(tag_name, i);
                     // Skip to the end of this tag
                     i = self.find_tag_end(i) + 1;
@@ -483,11 +508,15 @@ impl<'a, 'b> NbtCompoundView<'a, 'b> {
     }
 
     pub fn get(&self, name: &str) -> Option<NbtTokenView<'a, 'b>> {
-        self.children.get(name).map(|&pos| NbtTokenView::new(self.tape, pos))
+        self.children
+            .get(name)
+            .map(|&pos| NbtTokenView::new(self.tape, pos))
     }
 
     pub fn iter(&self) -> impl Iterator<Item = (&str, NbtTokenView<'a, 'b>)> + '_ {
-        self.children.iter().map(|(&name, &pos)| (name, NbtTokenView::new(self.tape, pos)))
+        self.children
+            .iter()
+            .map(|(&name, &pos)| (name, NbtTokenView::new(self.tape, pos)))
     }
 }
 
@@ -508,7 +537,9 @@ impl<'a, 'b> NbtTokenView<'a, 'b> {
 
     pub fn as_compound(&self) -> Option<NbtCompoundView<'a, 'b>> {
         match self.tape[self.pos] {
-            NbtToken::TagStart { tag_type: 10, .. } => Some(NbtCompoundView::new(self.tape, self.pos)),
+            NbtToken::TagStart { tag_type: 10, .. } => {
+                Some(NbtCompoundView::new(self.tape, self.pos))
+            }
             _ => None,
         }
     }
@@ -582,15 +613,20 @@ impl<'a, 'b> NbtListView<'a, 'b> {
         self.tape.len() - 1
     }
 
-    pub fn iter(&self) -> impl Iterator<Item =NbtTokenView<'a, 'b>> + '_ {
-        (self.start + 2..self.end).filter_map(move |i| {
-            match &self.tape[i] {
-                NbtToken::TagStart { .. } | NbtToken::Byte(..) | NbtToken::Short(..) |
-                NbtToken::Int(..) | NbtToken::Long(..) | NbtToken::Float(..) |
-                NbtToken::Double(..) | NbtToken::String(..) | NbtToken::ByteArray(..) |
-                NbtToken::IntArray(..) | NbtToken::LongArray(..) => Some(NbtTokenView::new(self.tape, i)),
-                _ => None,
-            }
+    pub fn iter(&self) -> impl Iterator<Item = NbtTokenView<'a, 'b>> + '_ {
+        (self.start + 2..self.end).filter_map(move |i| match &self.tape[i] {
+            NbtToken::TagStart { .. }
+            | NbtToken::Byte(..)
+            | NbtToken::Short(..)
+            | NbtToken::Int(..)
+            | NbtToken::Long(..)
+            | NbtToken::Float(..)
+            | NbtToken::Double(..)
+            | NbtToken::String(..)
+            | NbtToken::ByteArray(..)
+            | NbtToken::IntArray(..)
+            | NbtToken::LongArray(..) => Some(NbtTokenView::new(self.tape, i)),
+            _ => None,
         })
     }
 }
@@ -603,9 +639,9 @@ fn basic_usage() {
 
     let mut parser = NbtParser::new(bytes);
     let tapes = parser.parse().unwrap();
-    
+
     let root = NbtCompoundView::new(tapes, 0);
-    
+
     for (name, tag) in root.iter() {
         println!("{}: {:?}", name, tag.token());
     }

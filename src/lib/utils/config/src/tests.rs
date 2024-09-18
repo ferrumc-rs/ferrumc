@@ -2,10 +2,10 @@
 //!
 //! Contains unit tests for the configuration utilities.
 
+use crate::server_config::DatabaseCompression;
+use crate::{get_global_config, ServerConfig};
 use std::fs::*;
 use std::io::Write;
-use crate::{get_global_config, ServerConfig};
-use crate::server_config::DatabaseCompression;
 
 /// A struct to hold the test configuration file paths.
 /// When drop is called, it will remove the files.
@@ -36,7 +36,7 @@ fn sample_config_toml() -> String {
         cache_size = 4096
         compression = "fast"
         "#
-        .to_string()
+    .to_string()
 }
 
 /// A helper function to generate an invalid configuration string in TOML format.
@@ -48,7 +48,7 @@ fn invalid_config_toml() -> String {
         max_players = 100
         network_tick_rate = 20
         "#
-        .to_string()
+    .to_string()
 }
 
 /// Test a sample configuration file in TOML format.
@@ -64,10 +64,13 @@ fn test_sample_config_toml() {
         config_file: File::create(config_file_path).expect("Unable to create test config file."),
         path: config_file_path,
     };
-    file.config_file.write_all(config_str.as_bytes()).expect("Unable to write test config data.");
+    file.config_file
+        .write_all(config_str.as_bytes())
+        .expect("Unable to write test config data.");
 
     // Load the configuration from the file
-    let server_config = ServerConfig::new_no_prompt(Some(config_file_path)).expect("Failed to read configuration file.");
+    let server_config = ServerConfig::new_no_prompt(Some(config_file_path))
+        .expect("Failed to read configuration file.");
 
     // Test the get_global_config function
     let global_config = get_global_config().expect("Failed to get global configuration.");
@@ -79,7 +82,10 @@ fn test_sample_config_toml() {
     assert_eq!(global_config.world, "default_world");
     assert_eq!(global_config.network_compression_threshold, 512);
     assert_eq!(global_config.database.cache_size, 4096);
-    assert!(matches!(global_config.database.compression, DatabaseCompression::Fast));
+    assert!(matches!(
+        global_config.database.compression,
+        DatabaseCompression::Fast
+    ));
 
     // Test the values in the ServerConfig struct
     assert_eq!(server_config.host, "127.0.0.1");
@@ -90,7 +96,10 @@ fn test_sample_config_toml() {
     assert_eq!(server_config.world, "default_world");
     assert_eq!(server_config.network_compression_threshold, 512);
     assert_eq!(server_config.database.cache_size, 4096);
-    assert!(matches!(server_config.database.compression, DatabaseCompression::Fast));
+    assert!(matches!(
+        server_config.database.compression,
+        DatabaseCompression::Fast
+    ));
 }
 
 /// Test an invalid configuration file in TOML format.
@@ -106,7 +115,9 @@ fn test_invalid_config_toml() {
         config_file: File::create(config_file_path).expect("Unable to create test config file."),
         path: config_file_path,
     };
-    file.config_file.write_all(config_str.as_bytes()).expect("Unable to write test config data.");
+    file.config_file
+        .write_all(config_str.as_bytes())
+        .expect("Unable to write test config data.");
 
     // Load the configuration from the file
     let server_config = ServerConfig::new_no_prompt(Some(config_file_path));
