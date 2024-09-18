@@ -1,4 +1,3 @@
-use hashbrown::HashMap;
 use std::convert::TryInto;
 use std::io::Read;
 use std::str;
@@ -44,13 +43,15 @@ impl<'a> NbtList<'a> {
 /// Represents an NBT compound tag.
 #[derive(Debug)]
 pub struct NbtCompound<'a> {
-    tags: HashMap<&'a str, NbtTag<'a>>,
+    // tags: HashMap<&'a str, NbtTag<'a>>,
+    tags: Vec<(&'a str, NbtTag<'a>)>,
 }
 
 impl<'a> NbtCompound<'a> {
     /// Gets a tag by name.
     pub fn get(&self, name: &str) -> Option<&NbtTag<'a>> {
-        self.tags.get(name)
+        // self.tags.get(name)
+        self.tags.iter().find(|(n, _)| *n == name).map(|(_, t)| t)
     }
 }
 
@@ -179,7 +180,8 @@ impl<'a> NbtParser<'a> {
             }
             10 => {
                 // TAG_Compound
-                let mut tags = HashMap::new();
+                // let mut tags = HashMap::new();
+                let mut tags = Vec::new();
                 loop {
                     let tag_type = self.read_u8()?;
                     if tag_type == 0 {
@@ -187,7 +189,8 @@ impl<'a> NbtParser<'a> {
                     }
                     let name = self.parse_string()?;
                     let payload = self.parse_payload(tag_type)?;
-                    tags.insert(name, payload);
+                    // tags.insert(name, payload);
+                    tags.push((name, payload));
                 }
                 Ok(NbtTag::Compound(NbtCompound { tags }))
             }
@@ -208,81 +211,94 @@ impl<'a> NbtParser<'a> {
     }
 
     /// Reads an u8 from the data.
+    #[inline(always)]
     fn read_u8(&mut self) -> Result<u8, NBTError> {
         if self.pos >= self.data.len() {
             return Err(NBTError::UnexpectedEndOfData);
         }
-        let v = self.data[self.pos];
+        let v = unsafe { *self.data.get_unchecked(self.pos) };
         self.pos += 1;
         Ok(v)
     }
 
     /// Reads an i8 from the data.
+    #[inline(always)]
     fn read_i8(&mut self) -> Result<i8, NBTError> {
         Ok(self.read_u8()? as i8)
     }
 
     /// Reads a big-endian u16 from the data.
+    #[inline(always)]
     fn read_u16(&mut self) -> Result<u16, NBTError> {
         if self.pos + 2 > self.data.len() {
             return Err(NBTError::UnexpectedEndOfData);
         }
         let v = u16::from_be_bytes(
             self.data[self.pos..self.pos + 2]
-                .try_into().map_err(|_| NBTError::InvalidNBTData)?,
+                .try_into()
+                .map_err(|_| NBTError::InvalidNBTData)?,
         );
         self.pos += 2;
         Ok(v)
     }
 
     /// Reads a big-endian i16 from the data.
+    #[inline(always)]
     fn read_i16(&mut self) -> Result<i16, NBTError> {
         Ok(self.read_u16()? as i16)
     }
 
     /// Reads a big-endian u32 from the data.
+    #[inline(always)]
     fn read_u32(&mut self) -> Result<u32, NBTError> {
         if self.pos + 4 > self.data.len() {
             return Err(NBTError::UnexpectedEndOfData);
         }
         let v = u32::from_be_bytes(
             self.data[self.pos..self.pos + 4]
-                .try_into()?,
+                .try_into()
+                .map_err(|_| NBTError::InvalidNBTData)?,
         );
         self.pos += 4;
         Ok(v)
     }
 
     /// Reads a big-endian i32 from the data.
+    #[inline(always)]
     fn read_i32(&mut self) -> Result<i32, NBTError> {
         Ok(self.read_u32()? as i32)
     }
 
     /// Reads a big-endian u64 from the data.
+    #[inline(always)]
     fn read_u64(&mut self) -> Result<u64, NBTError> {
         if self.pos + 8 > self.data.len() {
             return Err(NBTError::UnexpectedEndOfData);
         }
         let v = u64::from_be_bytes(
             self.data[self.pos..self.pos + 8]
-                .try_into()?,
+                .try_into()
+                .map_err(|_| NBTError::InvalidNBTData)?,
         );
         self.pos += 8;
         Ok(v)
     }
 
     /// Reads a big-endian i64 from the data.
+    #[inline(always)]
     fn read_i64(&mut self) -> Result<i64, NBTError> {
         Ok(self.read_u64()? as i64)
     }
 
     /// Reads a big-endian f32 from the data.
+    #[inline(always)]
     fn read_f32(&mut self) -> Result<f32, NBTError> {
         let bits = self.read_u32()?;
         Ok(f32::from_bits(bits))
     }
 
     /// Reads a big-endian f64 from the data.
+    #[inline(always)]
     fn read_f64(&mut self) -> Result<f64, NBTError> {
         let bits = self.read_u64()?;
         Ok(f64::from_bits(bits))

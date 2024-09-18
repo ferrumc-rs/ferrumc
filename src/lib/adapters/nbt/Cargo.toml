@@ -9,5 +9,18 @@ thiserror = { workspace = true }
 hashbrown = { workspace = true }
 libflate = { workspace = true }
 
+smallvec = "1.13.2"
+
 [lints]
 workspace = true
+
+#================= Benches ==============#
+[dev-dependencies]
+criterion = { workspace = true}
+fastnbt = "2.5.0"
+simdnbt = "0.6.1"
+
+[[bench]]
+name = "ferrumc-nbt"
+path = "benches/ferrumc-nbt.rs"
+harness = false

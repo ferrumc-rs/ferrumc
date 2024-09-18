@@ -8,4 +8,7 @@ pub mod errors;
 #[cfg(test)]
 mod tests;
 
+pub mod v2_parser;
+
+
 pub(crate) type Result<T> = std::result::Result<T, errors::NBTError>;

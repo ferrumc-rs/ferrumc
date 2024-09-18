@@ -32,7 +32,7 @@ members = [
 unsafe_code = "deny"
 unused_unsafe = "deny"
 unsafe_op_in_unsafe_fn = "deny"
-unused_crate_dependencies = "deny"
+#unused_crate_dependencies = "deny"
 unused_import_braces = "deny"
 unused_lifetimes = "deny"
 keyword_idents_2018 = "deny"
@@ -124,3 +124,7 @@ ctor = "0.2.8"
 
 # Compression/Decompression
 libflate = "2.1.0"
+
+
+# Benchmarking
+criterion = { version = "0.5.1", features = ["html_reports"] }
