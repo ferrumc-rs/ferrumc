@@ -119,5 +119,8 @@ lazy_static = "1.5.0"
 quote = "1.0.37"
 syn = "2.0.77"
 
-# Magic
+# Magic ("life-before-main" initialization, __attribute__((constructor)))
 ctor = "0.2.8"
+
+# Compression/Decompression
+libflate = "2.1.0"

@@ -1,7 +1,7 @@
 #![feature(proc_macro_quote)]
 
-mod profiling;
 mod events;
+mod profiling;
 
 #[proc_macro_attribute]
 pub fn profile(

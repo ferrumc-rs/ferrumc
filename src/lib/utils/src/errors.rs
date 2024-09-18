@@ -1,6 +1,6 @@
-use thiserror::Error;
 use ferrumc_logging::errors::LoggingError;
 use ferrumc_profiling::errors::ProfilingError;
+use thiserror::Error;
 
 #[derive(Debug, Clone, Error)]
 pub enum UtilsError {

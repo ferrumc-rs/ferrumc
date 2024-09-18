@@ -11,14 +11,12 @@ async fn main() {
     println!("good day to ya. enjoy your time with ferrumc!");
     println!("beep boop beep boop...");
 
+    let some_event = SomeEvent { data: 42 };
 
-    let some_event = SomeEvent {
-        data: 42,
-    };
-
-    SomeEvent::trigger(some_event).await.expect("Failed to trigger SomeEvent");
+    SomeEvent::trigger(some_event)
+        .await
+        .expect("Failed to trigger SomeEvent");
 }
-
 
 #[derive(Debug)]
 struct SomeEvent {
@@ -36,7 +34,6 @@ impl Event for SomeEvent {
         "SomeEvent"
     }
 }
-
 
 #[event_handler(priority = "fastest")]
 async fn some_event_listener(mut event: SomeEvent) -> Result<SomeEvent, SomeEventError> {
