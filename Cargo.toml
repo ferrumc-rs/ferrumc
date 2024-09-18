@@ -83,7 +83,7 @@ ferrumc-nbt = { path = "src/lib/adapters/nbt" }
 
 # Asynchronous
 tokio = { version = "1.40.0", features = ["full"] }
-parking_lot = "0.12.3"
+futures = "0.3.30"
 
 # Logging
 tracing = "0.1.40"
@@ -91,9 +91,9 @@ tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 log = "0.4.22"
 
 # Concurrency/Parallelism
+parking_lot = "0.12.3"
 rayon = "1.10.0"
 crossbeam = "0.8.4"
-futures = "0.3.30"
 
 # Network
 

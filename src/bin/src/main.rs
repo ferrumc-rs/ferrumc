@@ -12,9 +12,15 @@ async fn main() {
     ferrumc_logging::init_logging();
 
     println!("good day to ya. enjoy your time with ferrumc!");
-    println!("beep boop beep boop..."); 
-    
-    
+    println!("beep boop beep boop...");
+
+
+
+    let some_event = SomeEvent {
+        some_data: 42,
+    };
+
+    SomeEvent::trigger(some_event).await;
 }
 
 
@@ -23,10 +29,19 @@ struct SomeEvent {
     pub some_data: i32,
 }
 
+#[derive(Debug)]
+pub enum SomeEventError {
+
+}
+
 impl Event for SomeEvent {
+    type Data = Self;
+    type Error = SomeEventError;
+
     fn name() -> &'static str {
         "SomeEvent"
     }
+
 }
 
 #[event_handler(priority = "fastest")]
