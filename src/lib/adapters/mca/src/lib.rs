@@ -1,4 +1,3 @@
-use ferrumc_nbt::de::NbtToken;
 
 #[allow(unused)]
 fn coming_soon() {
@@ -25,7 +24,7 @@ fn test() {
     let hi = compound.get("I'm").expect("Expected a key named 'Hi'");
 
     let value = hi.value().unwrap();
-    if let NbtToken::String(value) = value {
+    if let ferrumc_nbt::de::NbtToken::String(value) = value {
         assert_eq!(*value, "ferrumc")
     } else {
         panic!("Expected a string")

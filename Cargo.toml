@@ -58,7 +58,6 @@ lto = true
 strip = "none"
 codegen-units = 1
 opt-level = 3
-incremental = false
 
 [profile.dev]
 lto = false
