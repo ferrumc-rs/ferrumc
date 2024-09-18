@@ -4,7 +4,7 @@
 use std::sync::Arc;
 use parking_lot::RwLock;
 use tracing::info;
-use ferrumc_events::infrastructure::{get_event_listeners, Event};
+use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::event_handler;
 
 #[tokio::main]
@@ -13,14 +13,11 @@ async fn main() {
     
     println!("good day to ya. enjoy your time with ferrumc!");
 
-    let some_event = Arc::new(RwLock::new( SomeEvent {
+    let some_event = SomeEvent {
         some_data: 42,
-    }));
+    };
 
-    for listener in get_event_listeners::<SomeEvent>() {
-        listener(some_event.clone()).await;
-    }
-
+    SomeEvent::trigger(some_event).await;
 }
 
 
@@ -29,10 +26,19 @@ struct SomeEvent {
     pub some_data: i32,
 }
 
+#[derive(Debug)]
+pub enum SomeEventError {
+    
+}
+
 impl Event for SomeEvent {
+    type Data = Self;
+    type Error = SomeEventError;
+    
     fn name() -> &'static str {
         "SomeEvent"
     }
+
 }
 
 #[event_handler(priority = "fastest")]

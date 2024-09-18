@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"]}
+crossbeam = { workspace = true }
 ctor = { workspace = true}
 parking_lot = { workspace = true }
 hashbrown = { workspace = true }
