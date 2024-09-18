@@ -48,10 +48,10 @@ impl Default for KeyPair {
 
 #[test]
 fn test_encrypt_decrypt() {
-    let keypair = KeyPair::new();
+    let keypair = KeyPair::new().expect("Failed keypair generation");
     let msg = "Hello World!";
     let msg_in_bytes: Vec<u8> = msg.to_string().into_bytes();
-    let encrypted_msg = keypair.encrypt(&msg_in_bytes);
-    let decrypted_msg = keypair.decrypt(&encrypted_msg);
+    let encrypted_msg = keypair.encrypt(&msg_in_bytes).expect("Failed to encrypt");
+    let decrypted_msg = keypair.decrypt(&encrypted_msg).expect("Failed to decrypt");
     assert_eq!(decrypted_msg, msg_in_bytes);
 }
