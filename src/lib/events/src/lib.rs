@@ -1,5 +1,4 @@
-
+pub mod errors;
+pub mod infrastructure;
 #[cfg(test)]
 mod tests;
-pub mod infrastructure;
-pub mod errors;

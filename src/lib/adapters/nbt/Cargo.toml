@@ -1,0 +1,29 @@
+[package]
+name = "ferrumc-nbt"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+thiserror = { workspace = true }
+hashbrown = { workspace = true }
+libflate = { workspace = true }
+
+smallvec = "1.13.2"
+
+[lints]
+workspace = true
+
+#================= Benches ==============#
+[dev-dependencies]
+criterion = { workspace = true}
+fastnbt = "2.5.0"
+simdnbt = "0.6.1"
+ussr-nbt = "0.2.1"
+crab_nbt = "0.2.1"
+hematite-nbt = "0.5.2"
+
+[[bench]]
+name = "ferrumc-nbt"
+path = "benches/ferrumc-nbt.rs"
+harness = false

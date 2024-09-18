@@ -1,7 +1,7 @@
-use thiserror::Error;
-use ferrumc_config::errors::ConfigError;
 use ferrumc_logging::errors::LoggingError;
 use ferrumc_profiling::errors::ProfilingError;
+use thiserror::Error;
+use ferrumc_config::errors::ConfigError;
 
 #[derive(Debug, Error)]
 pub enum UtilsError {

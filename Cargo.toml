@@ -25,14 +25,15 @@ members = [
     "src/lib/utils/profiling",
     "src/lib/world",
     "src/lib/derive_macros",
+    "src/lib/adapters/nbt", "src/lib/adapters/mca",
 ]
 
 #================== Lints ==================#
 [workspace.lints.rust]
 unsafe_code = "deny"
 unused_unsafe = "deny"
-unsafe_op_in_unsafe_fn = "deny"
-unused_crate_dependencies = "deny"
+#unsafe_op_in_unsafe_fn = "deny"
+#unused_crate_dependencies = "deny"
 unused_import_braces = "deny"
 unused_lifetimes = "deny"
 keyword_idents_2018 = "deny"
@@ -80,6 +81,7 @@ ferrumc-logging = { path = "src/lib/utils/logging" }
 ferrumc-config = { path = "src/lib/utils/config" }
 ferrumc-macros = { path = "src/lib/derive_macros" }
 ferrumc-world = { path = "src/lib/world" }
+ferrumc-nbt = { path = "src/lib/adapters/nbt" }
 
 
 # Asynchronous
@@ -120,5 +122,12 @@ lazy_static = "1.5.0"
 quote = "1.0.37"
 syn = "2.0.77"
 
-# Magic
+# Magic ("life-before-main" initialization, __attribute__((constructor)))
 ctor = "0.2.8"
+
+# Compression/Decompression
+libflate = "2.1.0"
+
+
+# Benchmarking
+criterion = { version = "0.5.1", features = ["html_reports"] }
