@@ -12,7 +12,7 @@ use hashbrown::HashMap;
 /// A Lazily initialized HashMap wrapped in a ShardedLock optimized for reads.
 type LazyRwListenerMap<K,V> = LazyLock<ShardedLock<HashMap<K, V>>>;
 
-type AsyncEventListener<E: Event> = fn(E::Data) -> Pin<Box<dyn Future<Output = Result<E::Data,E::Error>> + Send>>;
+type AsyncEventListener<E> = fn(<E as Event>::Data) -> Pin<Box<dyn Future<Output = Result<<E as Event>::Data,<E as Event>::Error>> + Send>>;
 
 /// This is the global map of event listeners.
 /// It is lazily initialized at runtime.

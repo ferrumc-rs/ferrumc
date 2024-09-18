@@ -42,7 +42,6 @@ impl<'a> NbtList<'a> {
 /// Represents an NBT compound tag.
 #[derive(Debug)]
 pub struct NbtCompound<'a> {
-    // pub tags: Vec<(&'a str, NbtTag<'a>)>,
     tags: HashMap<&'a str, NbtTag<'a>>,
 }
 
@@ -50,11 +49,6 @@ impl<'a> NbtCompound<'a> {
     /// Gets a tag by name.
     pub fn get(&self, name: &str) -> Option<&NbtTag<'a>> {
         self.tags.get(name)
-    }
-
-    /// Returns an iterator over the tags.
-    pub fn iter(&self) -> impl Iterator<Item = (&'a str, &NbtTag<'a>)> {
-        self.tags.iter().map(|(name, tag)| (*name, tag))
     }
 }
 
@@ -158,7 +152,6 @@ impl<'a> NbtParser<'a> {
             }
             10 => {
                 // TAG_Compound
-                // let mut tags = Vec::new();
                 let mut tags = HashMap::new();
                 loop {
                     let tag_type = self.read_u8()?;

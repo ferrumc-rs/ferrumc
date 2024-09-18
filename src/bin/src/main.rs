@@ -1,11 +1,8 @@
 // Security or something like that
 #![forbid(unsafe_code)]
 
-use ferrumc_events::infrastructure::{Event};
+use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::event_handler;
-use parking_lot::RwLock;
-use std::sync::Arc;
-use tracing::info;
 
 #[tokio::main]
 async fn main() {
@@ -15,24 +12,21 @@ async fn main() {
     println!("beep boop beep boop...");
 
 
-
     let some_event = SomeEvent {
-        some_data: 42,
+        data: 42,
     };
 
-    SomeEvent::trigger(some_event).await;
+    SomeEvent::trigger(some_event).await.expect("Failed to trigger SomeEvent");
 }
 
 
 #[derive(Debug)]
 struct SomeEvent {
-    pub some_data: i32,
+    pub data: i32,
 }
 
 #[derive(Debug)]
-pub enum SomeEventError {
-
-}
+pub enum SomeEventError {}
 
 impl Event for SomeEvent {
     type Data = Self;
@@ -41,15 +35,24 @@ impl Event for SomeEvent {
     fn name() -> &'static str {
         "SomeEvent"
     }
-
 }
 
+
 #[event_handler(priority = "fastest")]
-async fn some_test_event(some_event: Arc<RwLock<SomeEvent>>) {
-    info!("some_test_event: {:?}", some_event.read().some_data);
+async fn some_event_listener(mut event: SomeEvent) -> Result<SomeEvent, SomeEventError> {
+    event.data = 10;
+    println!("I set the event's data to 10");
+    Ok(event)
 }
 
 #[event_handler(priority = "slowest")]
-async fn some_test_event2(some_event: Arc<RwLock<SomeEvent>>) {
-    info!("some_test_event 2: {:?}", some_event.read().some_data);
+async fn some_event_listener2(event: SomeEvent) -> Result<SomeEvent, SomeEventError> {
+    println!("I read the event's data: {}", event.data);
+    Ok(event)
+}
+
+#[event_handler]
+async fn some_event_listener3(event: SomeEvent) -> Result<SomeEvent, SomeEventError> {
+    println!("im just here to listen to the event");
+    Ok(event)
 }

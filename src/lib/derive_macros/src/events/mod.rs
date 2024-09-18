@@ -14,14 +14,15 @@ pub fn event_handler_fn(attr: TokenStream, input: TokenStream) -> TokenStream {
 
     let register_fn_name = format_ident!("__register_listener_{}", fn_name);
     
-    let event_type = extract_event_type(&input);
+    let event_type = extract_event_type(&input).ty;
 
     let output = quote! {
         #input
         
         #[ctor::ctor]
         fn #register_fn_name() {
-            ::ferrumc_events::infrastructure::insert_into_events(
+            // ::ferrumc_events::infrastructure::insert_into_events(
+            #event_type ::register(
                 |ev: #event_type| std::boxed::Box::pin(#fn_name(ev)),
                 #priority
             );
@@ -78,7 +79,7 @@ fn parse_priority(args: Punctuated<Meta, Comma>) -> u8 {
     event_priority
 }
 
-fn extract_event_type(input: &syn::ItemFn) -> syn::Type {
+fn extract_event_type(input: &syn::ItemFn) -> syn::PatType {
     let inputs = &input.sig.inputs;
     
     if inputs.len() != 1 {
@@ -91,7 +92,7 @@ fn extract_event_type(input: &syn::ItemFn) -> syn::Type {
     
     // let syn::Path { segments, .. } = &type_path.path;
     
-    *pat_type.ty.clone()
+    pat_type.clone()
 }
 
 // #[ctor::ctor]
