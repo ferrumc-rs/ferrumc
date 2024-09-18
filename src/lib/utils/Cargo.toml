@@ -8,3 +8,4 @@ edition = "2021"
 thiserror = { workspace = true }
 ferrumc-logging = { workspace = true }
 ferrumc-profiling = { workspace = true }
+ferrumc-config = { workspace = true }

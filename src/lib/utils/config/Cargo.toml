@@ -1,0 +1,12 @@
+[package]
+name = "ferrumc-config"
+version = "0.1.0"
+edition = "2021"
+description = "FerrumC configuration utilities"
+
+[dependencies]
+toml = "0.8.19"
+thiserror = { workspace = true }
+serde = { workspace = true }
+serde_derive = { workspace = true }
+tracing = { workspace = true }

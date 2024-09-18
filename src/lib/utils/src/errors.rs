@@ -12,4 +12,7 @@ pub enum UtilsError {
 
     #[error("Profiling error: {0}")]
     ProfilingError(#[from] ProfilingError),
+
+    #[error("Config error: {0}")]
+    ConfigError(#[from] ConfigError),
 }

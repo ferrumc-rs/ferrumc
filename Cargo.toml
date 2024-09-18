@@ -79,9 +79,11 @@ ferrumc-storage = { path = "src/lib/storage" }
 ferrumc-utils = { path = "src/lib/utils" }
 ferrumc-profiling = { path = "src/lib/utils/profiling" }
 ferrumc-logging = { path = "src/lib/utils/logging" }
+ferrumc-config = { path = "src/lib/utils/config" }
 ferrumc-macros = { path = "src/lib/derive_macros" }
 ferrumc-world = { path = "src/lib/world" }
 ferrumc-nbt = { path = "src/lib/adapters/nbt" }
+
 
 # Asynchronous
 tokio = { version = "1.40.0", features = ["full"] }
