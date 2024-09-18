@@ -21,13 +21,19 @@ impl KeyPair {
         }
     }
 
-    pub fn encrypt (&self, data: &Vec<u8>) -> Vec<u8> {
+    pub fn encrypt (&self, data: &[u8]) -> Vec<u8> {
         let mut rng = OsRng;
-        self.public_key.encrypt(&mut rng, Pkcs1v15Encrypt, &data).expect("Failed to encrypt data")
+        self.public_key.encrypt(&mut rng, Pkcs1v15Encrypt, data).expect("Failed to encrypt data")
     }
 
-    pub fn decrypt (&self, data: &Vec<u8>) -> Vec<u8> {
-        self.private_key.decrypt(Pkcs1v15Encrypt, &data).expect("Failed to decrypt data")
+    pub fn decrypt (&self, data: &[u8]) -> Vec<u8> {
+        self.private_key.decrypt(Pkcs1v15Encrypt, data).expect("Failed to decrypt data")
+    }
+}
+
+impl Default for KeyPair {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
