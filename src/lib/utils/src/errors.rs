@@ -1,8 +1,9 @@
 use thiserror::Error;
+use ferrumc_config::errors::ConfigError;
 use ferrumc_logging::errors::LoggingError;
 use ferrumc_profiling::errors::ProfilingError;
 
-#[derive(Debug, Clone, Error)]
+#[derive(Debug, Error)]
 pub enum UtilsError {
     #[error("Something failed lol")]
     SomeError,
@@ -12,4 +13,7 @@ pub enum UtilsError {
 
     #[error("Profiling error: {0}")]
     ProfilingError(#[from] ProfilingError),
+
+    #[error("Config error: {0}")]
+    ConfigError(#[from] ConfigError),
 }
