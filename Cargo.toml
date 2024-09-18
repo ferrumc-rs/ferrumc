@@ -23,6 +23,7 @@ members = [
     "src/utils",
     "src/utils/logging",
     "src/utils/profiling",
+    "src/utils/config",
     "src/world",
     "src/derive_macros",
 ]
@@ -79,6 +80,7 @@ ferrumc-profiling = { path = "src/utils/profiling" }
 ferrumc-logging = { path = "src/utils/logging" }
 ferrumc-macros = { path = "src/derive_macros" }
 ferrumc-world = { path = "src/world" }
+ferrumc-config = { path = "src/utils/config" }
 
 # Asynchronous
 tokio = { version = "1.40.0", features = ["full"] }
