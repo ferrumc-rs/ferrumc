@@ -19,6 +19,9 @@ workspace = true
 criterion = { workspace = true}
 fastnbt = "2.5.0"
 simdnbt = "0.6.1"
+ussr-nbt = "0.2.1"
+crab_nbt = "0.2.1"
+hematite-nbt = "0.5.2"
 
 [[bench]]
 name = "ferrumc-nbt"

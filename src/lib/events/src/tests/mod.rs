@@ -1,7 +1,4 @@
-use parking_lot::RwLock;
-use std::sync::Arc;
-
-use crate::{errors::EventsError, infrastructure::Event};
+use crate::infrastructure::Event;
 
 // Final API example:
 //
@@ -32,7 +29,7 @@ impl Event for SomeEvent {
 async fn test_something() {
     let event_data = SomeEvent { data: 0 };
 
-    SomeEvent::trigger(event_data).await;
+    SomeEvent::trigger(event_data).await.unwrap();
 }
 
 // #[ctor::ctor]
