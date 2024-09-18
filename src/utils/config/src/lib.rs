@@ -53,3 +53,5 @@ mod tests;
 // Re-exports
 pub use statics::get_global_config;
 pub use server_config::ServerConfig;
+pub use server_config::DatabaseConfig;
+pub use server_config::DatabaseCompression;
