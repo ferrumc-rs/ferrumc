@@ -347,8 +347,10 @@ impl<'a> NbtParser<'a> {
 
             // Use SIMD for chunks of 4 i32s
             while remaining >= 4 && src_pos + 16 <= byte_len {
+                #[allow(clippy::cast_ptr_alignment)]
                 let simd_bytes = _mm_loadu_si128(bytes[src_pos..].as_ptr() as *const __m128i);
                 let simd_ints = _mm_shuffle_epi8(simd_bytes, _mm_setr_epi8(3,2,1,0, 7,6,5,4, 11,10,9,8, 15,14,13,12));
+                #[allow(clippy::cast_ptr_alignment)]
                 _mm_storeu_si128(aligned_buffer[dst_pos..].as_mut_ptr() as *mut __m128i, simd_ints);
                 src_pos += 16;
                 dst_pos += 4;
@@ -392,8 +394,10 @@ impl<'a> NbtParser<'a> {
 
             // Use SIMD for chunks of 2 i64s
             while remaining >= 2 && src_pos + 16 <= byte_len {
+                #[allow(clippy::cast_ptr_alignment)]
                 let simd_bytes = _mm_loadu_si128(bytes[src_pos..].as_ptr() as *const __m128i);
                 let simd_longs = _mm_shuffle_epi8(simd_bytes, _mm_setr_epi8(7,6,5,4,3,2,1,0, 15,14,13,12,11,10,9,8));
+                #[allow(clippy::cast_ptr_alignment)]
                 _mm_storeu_si128(aligned_buffer[dst_pos..].as_mut_ptr() as *mut __m128i, simd_longs);
                 src_pos += 16;
                 dst_pos += 2;

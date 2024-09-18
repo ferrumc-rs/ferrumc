@@ -24,7 +24,8 @@ members = [
     "src/lib/utils/logging",
     "src/lib/utils/profiling",
     "src/lib/world",
-    "src/lib/derive_macros", "src/lib/adapters/nbt",
+    "src/lib/derive_macros",
+    "src/lib/adapters/nbt", "src/lib/adapters/mca",
 ]
 
 #================== Lints ==================#
