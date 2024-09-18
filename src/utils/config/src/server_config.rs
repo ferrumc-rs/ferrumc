@@ -3,6 +3,7 @@
 //! Contains the server configuration struct and its related functions.
 
 use serde_derive::{Deserialize, Serialize};
+use tracing::warn;
 use crate::errors::ConfigError;
 use crate::statics::{get_global_config, set_global_config};
 
@@ -133,8 +134,8 @@ impl ServerConfig {
 
                 // Config could not be serialized. Prompt the user to create
                 // a new one from ServerConfig::Default.
-                println!("Could not read configuration file: {}", e);
-                println!("Would you like to create a new one? Your old configuration will be saved as config.toml.bak. (y/N) ");
+                warn!("Could not read configuration file: {}", e);
+                warn!("Would you like to create a new config file? Your old configuration will be saved as \"config.toml.bak\". (y/N): ");
                 let mut input = String::new();
                 std::io::stdin().read_line(&mut input)?;
 
