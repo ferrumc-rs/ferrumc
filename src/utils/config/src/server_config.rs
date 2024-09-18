@@ -3,7 +3,7 @@
 //! Contains the server configuration struct and its related functions.
 
 use serde_derive::{Deserialize, Serialize};
-use tracing::warn;
+use tracing::{info, warn};
 use crate::errors::ConfigError;
 use crate::statics::{get_global_config, set_global_config};
 
@@ -148,7 +148,7 @@ impl ServerConfig {
                     let new_config = ServerConfig::default();
                     let toml = toml::to_string(&new_config)?;
                     std::fs::write("./config.toml", toml)?;
-                    println!("Configuration file created.");
+                    info!("Configuration file created.");
                     Ok(new_config)
                 } else {
                     // User did not enter "y". Return the error.
