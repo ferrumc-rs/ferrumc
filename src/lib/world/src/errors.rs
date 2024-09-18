@@ -1,7 +1,7 @@
 use thiserror::Error;
 
 #[derive(Debug, Clone, Error)]
-pub enum EventsError {
+pub enum WorldError {
     #[error("Something failed lol")]
     SomeError,
 }

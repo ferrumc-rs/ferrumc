@@ -5,7 +5,7 @@ use tracing::Level;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 
-static LOG_LEVEL: Level = Level::INFO;
+static LOG_LEVEL: Level = Level::TRACE;
 
 pub fn init_logging() {
     let env_filter =
