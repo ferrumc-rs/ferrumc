@@ -3,9 +3,12 @@ use rand::rngs::OsRng;
 use crate::errors;
 
 pub struct KeyPair {
-    pub public_key: RsaPublicKey, //public key side of the keypair (for encryption)
-    pub encoded_public_key: der::Document, //the public key encoded in ASN.1 DER format for publishing to the client
-    pub private_key: RsaPrivateKey, //private key side of the keypair (for decryption)
+    //public key side of the keypair (for encryption)
+    pub public_key: RsaPublicKey,
+    //the public key encoded in ASN.1 DER format for publishing to the client
+    pub encoded_public_key: der::Document,
+     //private key side of the keypair (for decryption)
+    pub private_key: RsaPrivateKey,
 }
 
 impl KeyPair {
