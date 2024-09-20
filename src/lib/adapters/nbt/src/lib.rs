@@ -13,4 +13,4 @@ pub(crate) type Result<T> = std::result::Result<T, errors::NBTError>;
 
 pub use ser::{NBTSerializable, NBTSerializeOptions};
 pub use de::borrow::{NbtParser, NbtToken, NbtTokenView, NbtTokenViewExt, NbtCompoundView, NbtListView};
-pub use de::owned::OwnedNbtValue;
+pub use de::owned::FromNbtToken;

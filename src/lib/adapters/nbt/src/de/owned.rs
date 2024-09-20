@@ -1,11 +1,12 @@
 use std::collections::HashMap;
 use crate::{NbtToken, NbtTokenView};
 use crate::errors::NBTError;
+use crate::Result;
 
 /// Trait for converting NbtToken into owned types.
 pub trait FromNbtToken<'a>: Sized {
     /// Converts a `NbtTokenView` into an owned type `Self`.
-    fn from_token(token_view: &NbtTokenView<'a, '_>) -> Result<Self, NBTError>;
+    fn from_token(token_view: &NbtTokenView<'a, '_>) -> Result<Self>;
 }
 
 /// Implementations for primitive types.
@@ -13,8 +14,11 @@ pub trait FromNbtToken<'a>: Sized {
 macro_rules! impl_from_nbt_token_primitive {
     ($t:ty, $variant:ident) => {
         impl<'a> FromNbtToken<'a> for $t {
-            fn from_token(token_view: &NbtTokenView<'a, '_>) -> Result<Self, NBTError> {
-                match token_view.token() {
+            fn from_token(token_view: &NbtTokenView<'a, '_>) -> Result<Self> {
+                match token_view.value().ok_or(NBTError::TypeMismatch {
+                    expected: stringify!($variant),
+                    found: token_view.token_type(),
+                })? {
                     NbtToken::$variant(v) => Ok(*v),
                     _ => Err(NBTError::TypeMismatch {
                         expected: stringify!($variant),
@@ -35,8 +39,8 @@ impl_from_nbt_token_primitive!(f64, Double);
 
 /// Implementation for String.
 impl<'a> FromNbtToken<'a> for String {
-    fn from_token(token_view: &NbtTokenView<'a, '_>) -> Result<Self, NBTError> {
-        match token_view.token() {
+    fn from_token(token_view: &NbtTokenView<'a, '_>) -> Result<Self> {
+        match token_view.value().ok_or(NBTError::TypeMismatch { expected: "String", found: token_view.token_type() })? {
             NbtToken::String(s) => Ok((*s).to_string()),
             _ => Err(NBTError::TypeMismatch {
                 expected: "String",
@@ -51,7 +55,7 @@ impl<'a, T> FromNbtToken<'a> for Vec<T>
 where
     T: FromNbtToken<'a>,
 {
-    fn from_token(token_view: &NbtTokenView<'a, '_>) -> Result<Self, NBTError> {
+    fn from_token(token_view: &NbtTokenView<'a, '_>) -> Result<Self> {
         if let Some(list_view) = token_view.as_list() {
             let mut vec = Vec::with_capacity(list_view.len());
             for element in list_view.iter() {
@@ -72,7 +76,7 @@ impl<'a, T> FromNbtToken<'a> for HashMap<String, T>
 where
     T: FromNbtToken<'a>,
 {
-    fn from_token(token_view: &NbtTokenView<'a, '_>) -> Result<Self, NBTError> {
+    fn from_token(token_view: &NbtTokenView<'a, '_>) -> Result<Self> {
         if let Some(compound_view) = token_view.as_compound() {
             let mut map = HashMap::with_capacity(compound_view.children.len());
             for (name, child_view) in compound_view.iter() {

@@ -2,30 +2,41 @@
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
 use fastnbt::Value;
-use ferrumc_nbt::de::test_owned_borrow::NbtParser;
+use ferrumc_nbt::{FromNbtToken, NbtCompoundView, NbtParser};
 use nbt as hematite_nbt;
 use std::io::Cursor;
+use simdnbt::borrow::NbtTag;
 
 fn bench_ferrumc_nbt(data: &[u8]) {
-    /*let mut parser = NbtParser::new(data);
+    let mut parser = NbtParser::new(data);
     let tapes = parser.parse().unwrap();
-    let view = NbtTokenView::new(tapes, 0);
-    let view = view.into_owned();
-    assert!(view.is_ok());*/
-    // black_box(view);
-    let mut parser = NbtParser::new(data.to_vec());
-    let tapes = parser.parse().unwrap();
-    assert!(!tapes.is_empty());
+
+    let root = NbtCompoundView::new(tapes, 0);
+
+    /*let dim = root.get("Dimension").unwrap();
+    let dim : String = String::from_token(&dim).unwrap();
+
+    assert_eq!(dim, "minecraft:overworld");*/
+    let recipes = root.get("recipeBook").unwrap();
+    let recipes = recipes.as_compound().unwrap();
+    let recipes = recipes.get("toBeDisplayed").unwrap();
+    // let recipes = recipes.as_list().unwrap();
+    let recipes: Vec<String> = Vec::from_token(&recipes).unwrap();
+    assert_ne!(recipes.len(), 0);
 }
 
 fn bench_simdnbt(data: &[u8]) {
     let nbt = simdnbt::borrow::read(&mut Cursor::new(data)).unwrap();
-    assert!(nbt.is_some())
+    let nbt = nbt.unwrap();
+    let dim = nbt.get("Dimension").unwrap();
+    assert!(dim.string().is_some());
 }
 
 fn bench_simdnbt_owned(data: &[u8]) {
     let nbt = simdnbt::owned::read(&mut Cursor::new(data)).unwrap();
-    assert!(nbt.is_some())
+    let nbt = nbt.unwrap();
+    let dim = nbt.get("Dimension").unwrap();
+    assert!(dim.string().is_some());
 }
 
 fn ussr_nbt_borrow(data: &[u8]) {
