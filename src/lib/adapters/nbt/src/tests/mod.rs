@@ -1,5 +1,6 @@
 use crate::de::{NbtCompoundView, NbtParser};
 use crate::errors::NBTError;
+mod ser;
 
 #[test]
 fn bigtest() -> Result<(), NBTError> {

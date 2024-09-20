@@ -8,20 +8,19 @@ edition = "2021"
 thiserror = { workspace = true }
 hashbrown = { workspace = true }
 libflate = { workspace = true }
-
-smallvec = "1.13.2"
+ferrumc-macros = { workspace = true }
 
 [lints]
 workspace = true
 
 #================= Benches ==============#
 [dev-dependencies]
-criterion = { workspace = true}
-fastnbt = "2.5.0"
-simdnbt = "0.6.1"
-ussr-nbt = "0.2.1"
-crab_nbt = "0.2.1"
-hematite-nbt = "0.5.2"
+criterion = {  workspace = true }
+fastnbt = {  version = "2.5.0" }
+simdnbt = {  version = "0.6.1" }
+ussr-nbt = {  version = "0.2.1" }
+crab_nbt = {  version = "0.2.1" }
+hematite-nbt = {  version = "0.5.2" }
 
 [[bench]]
 name = "ferrumc-nbt"

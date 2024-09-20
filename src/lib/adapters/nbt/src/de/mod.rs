@@ -5,8 +5,10 @@ use std::arch::x86_64::{
 use std::io::Read;
 use std::str;
 
+mod owned;
+
 /// Represents a token in the NBT tape.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum NbtToken<'a> {
     TagStart { tag_type: u8, name: Option<&'a str> },
     TagEnd,
@@ -299,38 +301,7 @@ impl<'a> NbtParser<'a> {
         Ok(f64::from_bits(bits))
     }
 
-    /*/// Reads an array of i32 from the data.
-    fn read_i32_array(&mut self, len: usize) -> Result<&'a [i32], NBTError> {
-        let byte_len = len * 4;
-        if self.pos + byte_len > self.data.len() {
-            return Err(NBTError::UnexpectedEndOfData);
-        }
-        let bytes = &self.data[self.pos..self.pos + byte_len];
-        if bytes.as_ptr().align_offset(std::mem::align_of::<i32>()) != 0 {
-            // return Err("Data is not properly aligned for i32 array".to_string());
-            return Err(NBTError::InvalidNBTData);
-        }
-        #[allow(clippy::cast_ptr_alignment)]
-        let array = unsafe { std::slice::from_raw_parts(bytes.as_ptr() as *const i32, len) };
-        self.pos += byte_len;
-        Ok(array)
-    }
-
-    /// Reads an array of i64 from the data.
-    fn read_i64_array(&mut self, len: usize) -> Result<&'a [i64], NBTError> {
-        let byte_len = len * 8;
-        if self.pos + byte_len > self.data.len() {
-            return Err(NBTError::UnexpectedEndOfData);
-        }
-        let bytes = &self.data[self.pos..self.pos + byte_len];
-        if bytes.as_ptr().align_offset(align_of::<i64>()) != 0 {
-            return Err(NBTError::InvalidNBTData);
-        }
-        #[allow(clippy::cast_ptr_alignment)]
-        let array = unsafe { std::slice::from_raw_parts(bytes.as_ptr() as *const i64, len) };
-        self.pos += byte_len;
-        Ok(array)
-    }*/
+   
     /// Reads an array of i32 from the data using SIMD when possible, supporting unaligned data.
     fn read_i32_array(&mut self, len: usize) -> Result<&'a [i32], NBTError> {
         let byte_len = len * size_of::<i32>();
@@ -446,6 +417,7 @@ impl<'a> NbtParser<'a> {
         let leaked_slice = aligned_buffer.leak();
         Ok(leaked_slice)
     }
+    
 }
 
 use std::collections::HashMap;
@@ -631,6 +603,17 @@ impl<'a, 'b> NbtListView<'a, 'b> {
     }
 }
 
+pub trait NbtTokenViewExt<'a> {
+    fn to_viewer(self) -> NbtTokenView<'a, 'a>;
+}
+impl<'a> NbtTokenViewExt<'a> for &'a [NbtToken<'a>] {
+    fn to_viewer(self) -> NbtTokenView<'a, 'a> {
+        NbtTokenView::new(self, 0)
+    }
+}
+
+
+
 #[cfg(test)]
 #[test]
 #[ignore]
@@ -638,11 +621,38 @@ fn basic_usage() {
     let bytes = include_bytes!("../../../../../../.etc/hello_world.nbt");
 
     let mut parser = NbtParser::new(bytes);
-    let tapes = parser.parse().unwrap();
+    let root = parser.parse().unwrap().to_viewer();
 
-    let root = NbtCompoundView::new(tapes, 0);
-
-    for (name, tag) in root.iter() {
+    for (name, tag) in root.as_compound().unwrap().iter() {
         println!("{}: {:?}", name, tag.token());
     }
+}
+
+#[cfg(test)]
+#[test]
+#[ignore]
+fn owned() {
+    #[derive(Debug)]
+    struct ToDeserializeInto {
+        name: String
+    }
+    
+    let bytes = include_bytes!("../../../../../../.etc/hello_world.nbt");
+    
+    let mut parser = NbtParser::new(bytes);
+    let root = parser.parse().unwrap().to_viewer();
+    
+    let compound = root.as_compound().unwrap();
+    
+    let name = compound.get("name").unwrap();
+    let name = name.value().unwrap();
+    
+    let to_deserialize_into = match name {
+        NbtToken::String(s) => ToDeserializeInto {
+            name: s.to_string()
+        },
+        _ => panic!("Expected a string")
+    };
+    
+    println!("{:?}", to_deserialize_into);
 }
