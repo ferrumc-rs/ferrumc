@@ -1,0 +1,11 @@
+[package]
+name = "ferrumc-tests"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ferrumc-nbt = { workspace = true }
+ferrumc-macros = { workspace = true }
+
+[lints]
+workspace = true
