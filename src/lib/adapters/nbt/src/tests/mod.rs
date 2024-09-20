@@ -1,5 +1,8 @@
-use crate::de::{NbtCompoundView, NbtParser};
+#![cfg(test)]
+
 use crate::errors::NBTError;
+use crate::{NbtCompoundView, NbtParser};
+
 mod ser;
 
 #[test]

@@ -18,4 +18,8 @@ pub enum NBTError {
     TryFromSlice(#[from] std::array::TryFromSliceError),
     #[error("The NBT data is compressed.")]
     CompressedData,
+    #[error("The NBT token was empty.")]
+    MissingNbtValue,
+    #[error("Invalid NBT token.")]
+    InvalidToken,
 }
