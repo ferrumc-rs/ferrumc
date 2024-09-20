@@ -22,4 +22,8 @@ pub enum NBTError {
     MissingNbtValue,
     #[error("Invalid NBT token.")]
     InvalidToken,
+    #[error("Invalid NBT tag type (id): {0}")]
+    InvalidTagType(u8),
+    #[error("Invalid NBT tag name : expected {expected:?} but found {found:?}")]
+    TypeMismatch { expected: &'static str, found: &'static str },
 }

@@ -2,7 +2,7 @@
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
 use fastnbt::Value;
-use ferrumc_nbt::{NbtParser, NbtTokenView};
+use ferrumc_nbt::de::test_owned_borrow::NbtParser;
 use nbt as hematite_nbt;
 use std::io::Cursor;
 
@@ -13,7 +13,9 @@ fn bench_ferrumc_nbt(data: &[u8]) {
     let view = view.into_owned();
     assert!(view.is_ok());*/
     // black_box(view);
-    black_box(data.to_vec());
+    let mut parser = NbtParser::new(data.to_vec());
+    let tapes = parser.parse().unwrap();
+    assert!(!tapes.is_empty());
 }
 
 fn bench_simdnbt(data: &[u8]) {

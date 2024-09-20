@@ -1,15 +1,12 @@
 use crate::errors::NBTError;
-use std::arch::x86_64::{
-    __m128i, _mm_loadu_si128, _mm_setr_epi8, _mm_shuffle_epi8, _mm_storeu_si128,
-};
 use std::collections::HashMap;
 use std::io::Read;
 use std::str;
 
 /// Represents a token in the NBT tape.
 #[derive(Debug, PartialEq, Clone)]
-pub enum NbtToken<'a> {
-    TagStart { tag_type: u8, name: Option<&'a str> },
+pub enum NbtToken {
+    TagStart { tag_type: u8, name: String },
     TagEnd,
     Byte(i8),
     Short(i16),
@@ -17,37 +14,37 @@ pub enum NbtToken<'a> {
     Long(i64),
     Float(f32),
     Double(f64),
-    ByteArray(&'a [u8]),
-    String(&'a str),
+    ByteArray(Vec<u8>),
+    String(String),
     ListStart { element_type: u8, length: usize },
     ListEnd,
-    IntArray(&'a [i32]),
-    LongArray(&'a [i64]),
+    IntArray(Vec<i32>),
+    LongArray(Vec<i64>),
 }
 
 /// NBT parser using a tape-based approach.
 /// Please use Clone carefully.
 #[derive(Debug, Clone)]
-pub struct NbtParser<'a> {
-    data: &'a [u8],
+pub struct NbtParser {
+    data: Vec<u8>,
     pos: usize,
-    tape: Vec<NbtToken<'a>>,
-
+    tape: Vec<NbtToken>,
 }
 
-impl<'a> NbtParser<'a> {
-    /// Creates a new `NbtParser` from the given data slice.
-    pub fn new(data: &'a [u8]) -> NbtParser<'a> {
+impl NbtParser {
+    /// Creates a new `NbtParser` from the given data vector.
+    pub fn new(data: Vec<u8>) -> NbtParser {
+        let len = data.len();
         NbtParser {
             data,
             pos: 0,
-            tape: Vec::new(),
+            tape: Vec::with_capacity(len + 1024), // Preallocate with an estimate
         }
     }
 
     /// Parses the NBT data and returns the tape of tokens.
-    pub fn parse(&'a mut self) -> Result<&[NbtToken<'a>], NBTError> {
-        if Self::is_compressed(self.data) {
+    pub fn parse(&mut self) -> Result<&[NbtToken], NBTError> {
+        if Self::is_compressed(&self.data) {
             return Err(NBTError::CompressedData);
         }
 
@@ -56,10 +53,7 @@ impl<'a> NbtParser<'a> {
             return Err(NBTError::InvalidRootCompound(tag_type));
         }
         let name = self.parse_string()?;
-        self.tape.push(NbtToken::TagStart {
-            tag_type,
-            name: Some(name),
-        });
+        self.tape.push(NbtToken::TagStart { tag_type, name: name.clone() });
         self.parse_payload(tag_type)?;
         self.tape.push(NbtToken::TagEnd);
         Ok(&self.tape)
@@ -77,22 +71,25 @@ impl<'a> NbtParser<'a> {
         Ok(decompressed)
     }
 
+    /// Checks if the data is compressed (gzip).
     pub(crate) fn is_compressed(data: &[u8]) -> bool {
         data.starts_with(&[0x1F, 0x8B])
     }
 
-    fn parse_string(&mut self) -> Result<&'a str, NBTError> {
+    /// Parses a string from the data.
+    fn parse_string(&mut self) -> Result<String, NBTError> {
         let len = self.read_u16()? as usize;
         if self.pos + len > self.data.len() {
             return Err(NBTError::UnexpectedEndOfData);
         }
 
-        // SAFETY: We just checked that the data is long enough.
-        let s = unsafe { str::from_utf8_unchecked(&self.data[self.pos..self.pos + len]) };
+        // SAFETY: We just checked that the data is long enough and is valid UTF-8.
+        let s = unsafe { str::from_utf8_unchecked(&self.data[self.pos..self.pos + len]) }.to_string();
         self.pos += len;
         Ok(s)
     }
 
+    /// Parses the payload based on the tag type.
     fn parse_payload(&mut self, tag_type: u8) -> Result<(), NBTError> {
         match tag_type {
             0 => Ok(()),
@@ -135,12 +132,8 @@ impl<'a> NbtParser<'a> {
             7 => {
                 // TAG_Byte_Array
                 let len = self.read_i32()? as usize;
-                if self.pos + len > self.data.len() {
-                    return Err(NBTError::UnexpectedEndOfData);
-                }
-                let v = &self.data[self.pos..self.pos + len];
-                self.pos += len;
-                self.tape.push(NbtToken::ByteArray(v));
+                let array = self.read_byte_array(len)?;
+                self.tape.push(NbtToken::ByteArray(array));
                 Ok(())
             }
             8 => {
@@ -173,7 +166,7 @@ impl<'a> NbtParser<'a> {
                     let name = self.parse_string()?;
                     self.tape.push(NbtToken::TagStart {
                         tag_type,
-                        name: Some(name),
+                        name: name.clone(),
                     });
                     self.parse_payload(tag_type)?;
                     self.tape.push(NbtToken::TagEnd);
@@ -194,22 +187,22 @@ impl<'a> NbtParser<'a> {
                 self.tape.push(NbtToken::LongArray(array));
                 Ok(())
             }
-            _ => unreachable!("Invalid tag type: {}", tag_type),
+            _ => Err(NBTError::InvalidTagType(tag_type)),
         }
     }
 
-    /// Reads an u8 from the data.
+    /// Reads a single byte from the data.
     #[inline(always)]
     fn read_u8(&mut self) -> Result<u8, NBTError> {
         if self.pos >= self.data.len() {
             return Err(NBTError::UnexpectedEndOfData);
         }
-        let v = unsafe { *self.data.get_unchecked(self.pos) };
+        let v = self.data[self.pos];
         self.pos += 1;
         Ok(v)
     }
 
-    /// Reads an i8 from the data.
+    /// Reads a signed byte from the data.
     #[inline(always)]
     fn read_i8(&mut self) -> Result<i8, NBTError> {
         Ok(self.read_u8()? as i8)
@@ -221,12 +214,10 @@ impl<'a> NbtParser<'a> {
         if self.pos + 2 > self.data.len() {
             return Err(NBTError::UnexpectedEndOfData);
         }
-        let v = unsafe {
-            u16::from_be_bytes([
-                *self.data.get_unchecked(self.pos),
-                *self.data.get_unchecked(self.pos + 1),
-            ])
-        };
+        let v = u16::from_be_bytes([
+            self.data[self.pos],
+            self.data[self.pos + 1],
+        ]);
         self.pos += 2;
         Ok(v)
     }
@@ -243,14 +234,12 @@ impl<'a> NbtParser<'a> {
         if self.pos + 4 > self.data.len() {
             return Err(NBTError::UnexpectedEndOfData);
         }
-        let v = unsafe {
-            u32::from_be_bytes([
-                *self.data.get_unchecked(self.pos),
-                *self.data.get_unchecked(self.pos + 1),
-                *self.data.get_unchecked(self.pos + 2),
-                *self.data.get_unchecked(self.pos + 3),
-            ])
-        };
+        let v = u32::from_be_bytes([
+            self.data[self.pos],
+            self.data[self.pos + 1],
+            self.data[self.pos + 2],
+            self.data[self.pos + 3],
+        ]);
         self.pos += 4;
         Ok(v)
     }
@@ -267,18 +256,16 @@ impl<'a> NbtParser<'a> {
         if self.pos + 8 > self.data.len() {
             return Err(NBTError::UnexpectedEndOfData);
         }
-        let v = unsafe {
-            u64::from_be_bytes([
-                *self.data.get_unchecked(self.pos),
-                *self.data.get_unchecked(self.pos + 1),
-                *self.data.get_unchecked(self.pos + 2),
-                *self.data.get_unchecked(self.pos + 3),
-                *self.data.get_unchecked(self.pos + 4),
-                *self.data.get_unchecked(self.pos + 5),
-                *self.data.get_unchecked(self.pos + 6),
-                *self.data.get_unchecked(self.pos + 7),
-            ])
-        };
+        let v = u64::from_be_bytes([
+            self.data[self.pos],
+            self.data[self.pos + 1],
+            self.data[self.pos + 2],
+            self.data[self.pos + 3],
+            self.data[self.pos + 4],
+            self.data[self.pos + 5],
+            self.data[self.pos + 6],
+            self.data[self.pos + 7],
+        ]);
         self.pos += 8;
         Ok(v)
     }
@@ -303,135 +290,66 @@ impl<'a> NbtParser<'a> {
         Ok(f64::from_bits(bits))
     }
 
+    /// Reads a byte array from the data.
+    fn read_byte_array(&mut self, len: usize) -> Result<Vec<u8>, NBTError> {
+        if self.pos + len > self.data.len() {
+            return Err(NBTError::UnexpectedEndOfData);
+        }
+        let array = self.data[self.pos..self.pos + len].to_vec();
+        self.pos += len;
+        Ok(array)
+    }
 
-    /// Reads an array of i32 from the data using SIMD when possible, supporting unaligned data.
-    fn read_i32_array(&mut self, len: usize) -> Result<&'a [i32], NBTError> {
-        let byte_len = len * size_of::<i32>();
+    /// Reads an array of i32 from the data.
+    fn read_i32_array(&mut self, len: usize) -> Result<Vec<i32>, NBTError> {
+        let byte_len = len * std::mem::size_of::<i32>();
         if self.pos + byte_len > self.data.len() {
             return Err(NBTError::UnexpectedEndOfData);
         }
-        let bytes = &self.data[self.pos..self.pos + byte_len];
+        let mut array = Vec::with_capacity(len);
 
-        // Create a new aligned buffer
-        let mut aligned_buffer = vec![0i32; len];
-
-        unsafe {
-            let mut src_pos = 0;
-            let mut dst_pos = 0;
-            let mut remaining = len;
-
-            // Use SIMD for chunks of 4 i32s
-            while remaining >= 4 && src_pos + 16 <= byte_len {
-                #[allow(clippy::cast_ptr_alignment)]
-                let simd_bytes = _mm_loadu_si128(bytes[src_pos..].as_ptr() as *const __m128i);
-                let simd_ints = _mm_shuffle_epi8(
-                    simd_bytes,
-                    _mm_setr_epi8(3, 2, 1, 0, 7, 6, 5, 4, 11, 10, 9, 8, 15, 14, 13, 12),
-                );
-                #[allow(clippy::cast_ptr_alignment)]
-                _mm_storeu_si128(
-                    aligned_buffer[dst_pos..].as_mut_ptr() as *mut __m128i,
-                    simd_ints,
-                );
-                src_pos += 16;
-                dst_pos += 4;
-                remaining -= 4;
-            }
-
-            // Handle remaining elements
-            while remaining > 0 {
-                aligned_buffer[dst_pos] = i32::from_be_bytes([
-                    bytes[src_pos],
-                    bytes[src_pos + 1],
-                    bytes[src_pos + 2],
-                    bytes[src_pos + 3],
-                ]);
-                src_pos += 4;
-                dst_pos += 1;
-                remaining -= 1;
-            }
+        // Efficiently parse i32 array
+        for chunk in self.data[self.pos..self.pos + byte_len].chunks_exact(4) {
+            let value = i32::from_be_bytes([chunk[0], chunk[1], chunk[2], chunk[3]]);
+            array.push(value);
         }
 
         self.pos += byte_len;
-
-        // Convert the Vec<i32> to a &'a [i32]
-        // This is safe because we're leaking the memory, which will live for 'a
-        let leaked_slice = aligned_buffer.leak();
-        Ok(leaked_slice)
+        Ok(array)
     }
 
-    /// Reads an array of i64 from the data using SIMD when possible, supporting unaligned data.
-    fn read_i64_array(&mut self, len: usize) -> Result<&'a [i64], NBTError> {
-        let byte_len = len * size_of::<i64>();
+    /// Reads an array of i64 from the data.
+    fn read_i64_array(&mut self, len: usize) -> Result<Vec<i64>, NBTError> {
+        let byte_len = len * std::mem::size_of::<i64>();
         if self.pos + byte_len > self.data.len() {
             return Err(NBTError::UnexpectedEndOfData);
         }
-        let bytes = &self.data[self.pos..self.pos + byte_len];
+        let mut array = Vec::with_capacity(len);
 
-        // Create a new aligned buffer
-        let mut aligned_buffer = vec![0i64; len];
-
-        unsafe {
-            let mut src_pos = 0;
-            let mut dst_pos = 0;
-            let mut remaining = len;
-
-            // Use SIMD for chunks of 2 i64s
-            while remaining >= 2 && src_pos + 16 <= byte_len {
-                #[allow(clippy::cast_ptr_alignment)]
-                let simd_bytes = _mm_loadu_si128(bytes[src_pos..].as_ptr() as *const __m128i);
-                let simd_longs = _mm_shuffle_epi8(
-                    simd_bytes,
-                    _mm_setr_epi8(7, 6, 5, 4, 3, 2, 1, 0, 15, 14, 13, 12, 11, 10, 9, 8),
-                );
-                #[allow(clippy::cast_ptr_alignment)]
-                _mm_storeu_si128(
-                    aligned_buffer[dst_pos..].as_mut_ptr() as *mut __m128i,
-                    simd_longs,
-                );
-                src_pos += 16;
-                dst_pos += 2;
-                remaining -= 2;
-            }
-
-            // Handle remaining elements
-            while remaining > 0 {
-                aligned_buffer[dst_pos] = i64::from_be_bytes([
-                    bytes[src_pos],
-                    bytes[src_pos + 1],
-                    bytes[src_pos + 2],
-                    bytes[src_pos + 3],
-                    bytes[src_pos + 4],
-                    bytes[src_pos + 5],
-                    bytes[src_pos + 6],
-                    bytes[src_pos + 7],
-                ]);
-                src_pos += 8;
-                dst_pos += 1;
-                remaining -= 1;
-            }
+        // Efficiently parse i64 array
+        for chunk in self.data[self.pos..self.pos + byte_len].chunks_exact(8) {
+            let value = i64::from_be_bytes([
+                chunk[0], chunk[1], chunk[2], chunk[3],
+                chunk[4], chunk[5], chunk[6], chunk[7],
+            ]);
+            array.push(value);
         }
 
         self.pos += byte_len;
-
-        // Convert the Vec<i64> to a &'a [i64]
-        // This is safe because we're leaking the memory, which will live for 'a
-        let leaked_slice = aligned_buffer.leak();
-        Ok(leaked_slice)
+        Ok(array)
     }
-
 }
 
 #[derive(Debug)]
-pub struct NbtCompoundView<'a, 'b> {
-    tape: &'b [NbtToken<'a>],
+pub struct NbtCompoundView<'a> {
+    tape: &'a [NbtToken],
     start: usize,
     end: usize,
-    pub(crate) children: HashMap<&'a str, usize>,
+    children: HashMap<String, usize>,
 }
 
-impl<'a, 'b> NbtCompoundView<'a, 'b> {
-    pub fn new(tape: &'b [NbtToken<'a>], start: usize) -> Self {
+impl<'a> NbtCompoundView<'a> {
+    pub fn new(tape: &'a [NbtToken], start: usize) -> Self {
         let mut view = NbtCompoundView {
             tape,
             start,
@@ -446,16 +364,13 @@ impl<'a, 'b> NbtCompoundView<'a, 'b> {
         let mut i = self.start + 1; // Start after the TagStart of this compound
         while i < self.tape.len() {
             match &self.tape[i] {
-                NbtToken::TagStart {
-                    name: Some(tag_name),
-                    ..
-                } => {
-                    self.children.insert(tag_name, i);
+                NbtToken::TagStart { name, .. } => {
+                    self.children.insert(name.clone(), i);
                     // Skip to the end of this tag
                     i = self.find_tag_end(i) + 1;
                 }
                 NbtToken::TagEnd => {
-                    // This TagEnd might belong to our compound
+                    // This TagEnd belongs to our compound
                     self.end = i;
                     break;
                 }
@@ -470,7 +385,6 @@ impl<'a, 'b> NbtCompoundView<'a, 'b> {
             match &self.tape[i] {
                 NbtToken::TagEnd => return i,
                 NbtToken::TagStart { .. } => {
-                    // Skip nested structures
                     i = self.find_tag_end(i) + 1;
                 }
                 _ => i += 1,
@@ -479,58 +393,54 @@ impl<'a, 'b> NbtCompoundView<'a, 'b> {
         self.tape.len() - 1 // If no TagEnd found, return the last index
     }
 
-    pub fn get(&self, name: &str) -> Option<NbtTokenView<'a, 'b>> {
+    pub fn get(&self, name: &str) -> Option<NbtTokenView<'a>> {
         self.children
             .get(name)
             .map(|&pos| NbtTokenView::new(self.tape, pos))
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = (&str, NbtTokenView<'a, 'b>)> + '_ {
-        self.children
-            .iter()
-            .map(|(&name, &pos)| (name, NbtTokenView::new(self.tape, pos)))
+    pub fn iter(&self) -> impl Iterator<Item = (&str, NbtTokenView<'a>)> + '_ {
+        self.children.iter().map(move |(name, &pos)| (name.as_str(), NbtTokenView::new(self.tape, pos)))
     }
 }
 
 #[derive(Debug)]
-pub struct NbtTokenView<'a, 'b> {
-    tape: &'b [NbtToken<'a>],
+pub struct NbtTokenView<'a> {
+    tape: &'a [NbtToken],
     pos: usize,
 }
 
-impl<'a, 'b> NbtTokenView<'a, 'b> {
-    pub fn new(tape: &'b [NbtToken<'a>], pos: usize) -> Self {
+impl<'a> NbtTokenView<'a> {
+    pub fn new(tape: &'a [NbtToken], pos: usize) -> Self {
         NbtTokenView { tape, pos }
     }
 
-    pub fn token(&self) -> &NbtToken<'a> {
+    pub fn token(&self) -> &NbtToken {
         &self.tape[self.pos]
     }
 
-    pub fn as_compound(&self) -> Option<NbtCompoundView<'a, 'b>> {
-        match self.tape[self.pos] {
-            NbtToken::TagStart { tag_type: 10, .. } => {
-                Some(NbtCompoundView::new(self.tape, self.pos))
-            }
+    pub fn as_compound(&self) -> Option<NbtCompoundView<'a>> {
+        match &self.tape[self.pos] {
+            NbtToken::TagStart { tag_type: 10, .. } => Some(NbtCompoundView::new(self.tape, self.pos)),
             _ => None,
         }
     }
 
-    pub fn as_list(&self) -> Option<NbtListView<'a, 'b>> {
-        match self.tape[self.pos] {
+    pub fn as_list(&self) -> Option<NbtListView<'a>> {
+        match &self.tape[self.pos] {
             NbtToken::TagStart { tag_type: 9, .. } => Some(NbtListView::new(self.tape, self.pos)),
             _ => None,
         }
     }
 
-    pub fn name(&self) -> Option<&'a str> {
+    pub fn name(&self) -> Option<&str> {
         match &self.tape[self.pos] {
-            NbtToken::TagStart { name, .. } => name.as_ref().map(|s| *s),
+            NbtToken::TagStart { name, .. } => Some(name.as_str()),
             _ => None,
         }
     }
 
-    pub fn value(&self) -> Option<&NbtToken<'a>> {
+    pub fn value(&self) -> Option<&NbtToken> {
         match &self.tape[self.pos] {
             NbtToken::TagStart { .. } => self.tape.get(self.pos + 1),
             _ => Some(&self.tape[self.pos]),
@@ -538,14 +448,14 @@ impl<'a, 'b> NbtTokenView<'a, 'b> {
     }
 }
 
-pub struct NbtListView<'a, 'b> {
-    tape: &'b [NbtToken<'a>],
+pub struct NbtListView<'a> {
+    tape: &'a [NbtToken],
     start: usize,
     end: usize,
 }
 
-impl<'a, 'b> NbtListView<'a, 'b> {
-    pub fn new(tape: &'b [NbtToken<'a>], start: usize) -> Self {
+impl<'a> NbtListView<'a> {
+    pub fn new(tape: &'a [NbtToken], start: usize) -> Self {
         let mut view = NbtListView {
             tape,
             start,
@@ -585,19 +495,19 @@ impl<'a, 'b> NbtListView<'a, 'b> {
         self.tape.len() - 1
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = NbtTokenView<'a, 'b>> + '_ {
+    pub fn iter(&self) -> impl Iterator<Item = NbtTokenView<'a>> + '_ {
         (self.start + 2..self.end).filter_map(move |i| match &self.tape[i] {
             NbtToken::TagStart { .. }
-            | NbtToken::Byte(..)
-            | NbtToken::Short(..)
-            | NbtToken::Int(..)
-            | NbtToken::Long(..)
-            | NbtToken::Float(..)
-            | NbtToken::Double(..)
-            | NbtToken::String(..)
-            | NbtToken::ByteArray(..)
-            | NbtToken::IntArray(..)
-            | NbtToken::LongArray(..) => Some(NbtTokenView::new(self.tape, i)),
+            | NbtToken::Byte(_)
+            | NbtToken::Short(_)
+            | NbtToken::Int(_)
+            | NbtToken::Long(_)
+            | NbtToken::Float(_)
+            | NbtToken::Double(_)
+            | NbtToken::String(_)
+            | NbtToken::ByteArray(_)
+            | NbtToken::IntArray(_)
+            | NbtToken::LongArray(_) => Some(NbtTokenView::new(self.tape, i)),
             _ => None,
         })
     }
@@ -605,58 +515,4 @@ impl<'a, 'b> NbtListView<'a, 'b> {
     pub fn len(&self) -> usize {
         self.end - self.start - 2
     }
-}
-
-pub trait NbtTokenViewExt<'a> {
-    fn to_viewer(self) -> NbtTokenView<'a, 'a>;
-}
-impl<'a> NbtTokenViewExt<'a> for &'a [NbtToken<'a>] {
-    fn to_viewer(self) -> NbtTokenView<'a, 'a> {
-        NbtTokenView::new(self, 0)
-    }
-}
-
-
-
-#[cfg(test)]
-#[test]
-#[ignore]
-fn basic_usage() {
-    let bytes = include_bytes!("../../../../../../.etc/hello_world.nbt");
-
-    let mut parser = NbtParser::new(bytes);
-    let root = parser.parse().unwrap().to_viewer();
-
-    for (name, tag) in root.as_compound().unwrap().iter() {
-        println!("{}: {:?}", name, tag.token());
-    }
-}
-
-#[cfg(test)]
-#[test]
-#[ignore]
-fn owned() {
-    #[derive(Debug)]
-    struct ToDeserializeInto {
-        name: String
-    }
-
-    let bytes = include_bytes!("../../../../../../.etc/hello_world.nbt");
-
-    let mut parser = NbtParser::new(bytes);
-    let root = parser.parse().unwrap().to_viewer();
-
-    let compound = root.as_compound().unwrap();
-
-    let name = compound.get("name").unwrap();
-    let name = name.value().unwrap();
-
-    let to_deserialize_into = match name {
-        NbtToken::String(s) => ToDeserializeInto {
-            name: s.to_string()
-        },
-        _ => panic!("Expected a string")
-    };
-
-    println!("{:?}", to_deserialize_into);
 }
