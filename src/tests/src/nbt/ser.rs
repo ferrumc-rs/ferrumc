@@ -1,8 +1,6 @@
 use ferrumc_nbt::{NBTSerializable, NBTSerializeOptions};
 use std::collections::HashMap;
 
-const BASE_PATH: &str = env!("CARGO_MANIFEST_DIR");
-
 #[test]
 fn basic_compound_ser() {
     let mut map = HashMap::new();
@@ -15,7 +13,6 @@ fn basic_compound_ser() {
 #[test]
 fn derive_macro() {
     use ferrumc_macros::NBTSerialize;
-    use ferrumc_nbt::NBTSerializable;
 
     #[derive(NBTSerialize)]
     struct Test {
@@ -34,18 +31,21 @@ fn derive_macro() {
     // test.serialize(&mut buf, &ferrumc_nbt::NBTSerializeOptions::WithHeader("test"));
     test.serialize_with_header(&mut buf);
 
-    println!("{:?}", buf);
-
     let mut parser = ferrumc_nbt::de::borrow::NbtTape::new(&buf);
     parser.parse();
 
-    println!("{:?}", parser.root);
+    let some_list = parser.get("some_list").unwrap();
+    // let some_list : &[i32] = parser.unpack_list_sliced(some_list).unwrap();
+    let some_list: Vec<i32> = parser.unpack_list(&some_list).unwrap();
+
+    println!("{:?}", some_list);
+
+    // assert_eq!(some_list, &[1, 2, 3]);
 }
 
 #[test]
 fn derive_macro_nested() {
     use ferrumc_macros::NBTSerialize;
-    use ferrumc_nbt::NBTSerializable;
 
     #[derive(NBTSerialize)]
     struct Test {
@@ -74,7 +74,6 @@ fn derive_macro_nested() {
 #[test]
 fn derive_macro_nested_with_list() {
     use ferrumc_macros::NBTSerialize;
-    use ferrumc_nbt::NBTSerializable;
 
     #[derive(NBTSerialize, Debug)]
     struct Test {

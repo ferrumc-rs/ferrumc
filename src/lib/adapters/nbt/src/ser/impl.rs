@@ -1,5 +1,3 @@
-use std::fmt::Debug;
-
 use super::{NBTSerializable, NBTSerializeOptions};
 
 macro_rules! impl_ser_primitives {
@@ -80,7 +78,7 @@ impl<T: NBTSerializable +std::fmt::Debug> NBTSerializable for Vec<T> {
         write_header::<Self>(buf, options);
 
         let is_special = [TAG_BYTE_ARRAY, TAG_INT_ARRAY, TAG_LONG_ARRAY].contains(&Self::id());
-        println!("is_special: {}", is_special);
+        
         if !is_special {
             buf.push(T::id());
         }
@@ -96,19 +94,10 @@ impl<T: NBTSerializable +std::fmt::Debug> NBTSerializable for Vec<T> {
                     buf.extend_from_slice(bytes);
                 }
                 TAG_INT_ARRAY => {
-                    println!("int array: {:?}", self);
-                    // let bytes = unsafe {crate::simd_utils::u32_slice_to_u8_be(
-                    //     std::slice::from_raw_parts(self.as_ptr() as *const u32, self.len())
-                    // )};
-                    let elements = unsafe { std::mem::transmute::<&[T], &[u32]>(self.as_slice()) };
-        
-                    println!("int array bytes: {:?}", elements);
-                    let mut data: Vec<u8> = Vec::new();
-                    for i in elements {
-                        data.extend_from_slice(i.to_be_bytes().as_slice());
-                    }
-                    println!("int array bytes: {:?}", data);
-                    buf.extend_from_slice(data.as_slice());
+                    let bytes = unsafe {crate::simd_utils::u32_slice_to_u8_be(
+                        std::slice::from_raw_parts(self.as_ptr() as *const u32, self.len())
+                    )};
+                    buf.extend_from_slice(bytes.as_slice());
                 }
                 TAG_LONG_ARRAY => {
                     let bytes = unsafe {crate::simd_utils::u64_slice_to_u8_be(

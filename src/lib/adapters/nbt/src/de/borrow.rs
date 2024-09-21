@@ -186,6 +186,74 @@ impl<'a> NbtTape<'a> {
                 }
                 Some(elements)
             }
+            NbtTapeElement::ByteArray(data) => {
+                // I mean you wouldn't want to get the wrong type of data right?
+                let data_vec = (*data).to_vec();
+                let data = unsafe {
+                    std::mem::transmute::<Vec<i8>, Vec<T>>(data_vec)
+                };
+
+                if size_of::<T>() != size_of::<i8>() {
+                    panic!("Invalid type conversion!");
+                }
+
+                // safety: there is none :) jk its a byte array so its fine
+                // todo: revisit and see if this is actually safe
+                // let data = unsafe { 
+                //     std::mem::forget(data);
+                //     Vec::from_raw_parts(data.as_ptr() as *mut T, data.len(), data.len()) 
+                // };
+
+                Some(data)
+            }
+            NbtTapeElement::IntArray(data) => {
+                let data = data.clone();
+                let data = unsafe {
+                    std::mem::transmute::<Vec<i32>, Vec<T>>(data)
+                };
+                Some(data)
+            }
+            NbtTapeElement::LongArray(data) => {
+                let data = data.clone();
+                let data = unsafe {
+                    std::mem::transmute::<Vec<i64>, Vec<T>>(data)
+                };
+                Some(data)
+            }
+            _ => None,
+        }
+    }
+
+    pub fn unpack_list_sliced<T: NbtDeserializable<'a>>(
+        &self,
+        element: &NbtTapeElement<'a>,
+    ) -> Option<&[T]> {
+        match element {
+            NbtTapeElement::ByteArray(data) => {
+                // I mean you wouldn't want to get the wrong type of data right?
+                let data = unsafe {
+                    std::mem::transmute::<&[i8], &[T]>(data)
+                };
+
+                Some(data)
+            }
+            NbtTapeElement::IntArray(data) => {
+                let data = data.as_slice();
+                let data = unsafe {
+                    std::mem::transmute::<&[i32], &[T]>(data)
+                };
+
+                Some(data)
+            }
+            NbtTapeElement::LongArray(data) => {
+                let data = data.as_slice();
+                let data = unsafe {
+                    std::mem::transmute::<&[i64], &[T]>(data)
+                };
+
+                Some(data)
+            }
+            
             _ => None,
         }
     }
