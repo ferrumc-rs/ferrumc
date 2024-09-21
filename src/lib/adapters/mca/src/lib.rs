@@ -13,17 +13,17 @@ fn test() {
         0,    // End tag
     ];
 
-    let mut nbt = ferrumc_nbt::de::NbtParser::new(&some_test_nbt);
+    let mut nbt = ferrumc_nbt::NbtParser::new(&some_test_nbt);
     let tapes = nbt.parse().unwrap();
 
-    let viewer = ferrumc_nbt::de::NbtTokenView::new(tapes, 0);
+    let viewer = ferrumc_nbt::NbtTokenView::new(tapes, 0);
 
     let compound = viewer.as_compound().expect("Expected a compound");
 
     let hi = compound.get("I'm").expect("Expected a key named 'Hi'");
 
     let value = hi.value().unwrap();
-    if let ferrumc_nbt::de::NbtToken::String(value) = value {
+    if let ferrumc_nbt::NbtToken::String(value) = value {
         assert_eq!(*value, "ferrumc")
     } else {
         panic!("Expected a string")

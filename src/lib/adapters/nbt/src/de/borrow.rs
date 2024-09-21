@@ -1,4 +1,5 @@
 use crate::errors::NBTError;
+use crate::FromNbtToken;
 use std::arch::x86_64::{
     __m128i, _mm_loadu_si128, _mm_setr_epi8, _mm_shuffle_epi8, _mm_storeu_si128,
 };
@@ -419,7 +420,6 @@ impl<'a> NbtParser<'a> {
         let leaked_slice = aligned_buffer.leak();
         Ok(leaked_slice)
     }
-
 }
 
 #[derive(Debug)]
@@ -485,7 +485,7 @@ impl<'a> NbtCompoundView<'a> {
             .map(|&pos| NbtTokenView::new(self.tape, pos))
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = (&str, NbtTokenView<'a>)> + '_ {
+    pub fn iter(&self) -> impl Iterator<Item=(&str, NbtTokenView<'a>)> + '_ {
         self.children
             .iter()
             .map(|(&name, &pos)| (name, NbtTokenView::new(self.tape, pos)))
@@ -521,6 +521,9 @@ impl<'a> NbtTokenView<'a>
     pub fn as_list(&self) -> Option<NbtListView<'a>> {
         match self.tape[self.pos] {
             NbtToken::TagStart { tag_type: 9, .. } => Some(NbtListView::new(self.tape, self.pos)),
+            NbtToken::ByteArray(..) => Some(NbtListView::new(self.tape, self.pos)),
+            NbtToken::IntArray(..) => Some(NbtListView::new(self.tape, self.pos)),
+            NbtToken::LongArray(..) => Some(NbtListView::new(self.tape, self.pos)),
             _ => None,
         }
     }
@@ -544,6 +547,7 @@ pub struct NbtListView<'a> {
     tape: &'a [NbtToken<'a>],
     start: usize,
     end: usize,
+    type_id: u8,
 }
 
 impl<'a> NbtListView<'a> {
@@ -552,6 +556,14 @@ impl<'a> NbtListView<'a> {
             tape,
             start,
             end: start,
+            type_id: 0,
+        };
+        view.type_id = match tape[start] {
+            NbtToken::ByteArray(..) => 7,
+            NbtToken::ListStart { .. } => 9,
+            NbtToken::IntArray(..) => 11,
+            NbtToken::LongArray(..) => 12,
+            _ => 0,
         };
         view.parse();
         view
@@ -587,7 +599,7 @@ impl<'a> NbtListView<'a> {
         self.tape.len() - 1
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = NbtTokenView<'a>> + '_ {
+    pub fn iter(&self) -> impl Iterator<Item=NbtTokenView<'a>> + '_ {
         (self.start + 2..self.end).filter_map(move |i| match &self.tape[i] {
             NbtToken::TagStart { .. }
             | NbtToken::Byte(..)
@@ -607,7 +619,79 @@ impl<'a> NbtListView<'a> {
     pub fn len(&self) -> usize {
         self.end - self.start - 2
     }
+
+    pub fn elems_slice(&self) -> &'a [NbtToken<'a>] {
+        &self.tape[self.start + 2..self.end]
+    }
+    pub fn get_byte_array(&self) -> &'a [u8] {
+        let token = &self.tape[self.start];
+        let NbtToken::ByteArray(array) = token else {
+            panic!("Expected a byte array");
+        };
+
+        array
+    }
+
+    pub fn get_int_array(&self) -> &'a [i32] {
+        let token = &self.tape[self.start];
+        let NbtToken::IntArray(array) = token else {
+            panic!("Expected an int array");
+        };
+
+        array
+    }
+
+    pub fn get_long_array(&self) -> &'a [i64] {
+        let token = &self.tape[self.start];
+        let NbtToken::LongArray(array) = token else {
+            panic!("Expected a long array");
+        };
+
+        array
+    }
+
+    pub fn get_appropriate_list<T: FromNbtToken<'a>>(&self) -> &'a [T] {
+        match self.type_id {
+            7 => {
+                // SAFE: The type_id is 7, so the token is a ByteArray
+                let same_size = size_of::<T>() == size_of::<u8>();
+                if !same_size {
+                    panic!("Invalid list type. Tried casting a byte array to a non-byte array type T!");
+                }
+                unsafe {
+                    let ptr = self.get_byte_array().as_ptr() as *const T;
+                    std::slice::from_raw_parts(ptr, self.len())
+                }
+            }
+            9 => {
+                // todo: parse list of actual elements
+                unimplemented!()
+            }
+            11 => {
+                if size_of::<T>() != size_of::<i32>() {
+                    panic!("Invalid list type. Tried casting an int array to a non-int array type T !");
+                }
+                // SAFE: The type_id is 11, so the token is an IntArray
+                unsafe {
+                    let ptr = self.get_int_array().as_ptr() as *const T;
+                    std::slice::from_raw_parts(ptr, self.len())
+                }
+            }
+            12 => {
+                if size_of::<T>() != size_of::<i64>() {
+                    panic!("Invalid list type. Tried casting a long array to a non-long array type T !");
+                }
+                // SAFE: The type_id is 12, so the token is a LongArray
+                unsafe {
+                    let ptr = self.get_long_array().as_ptr() as *const T;
+                    std::slice::from_raw_parts(ptr, self.len())
+                }
+            }
+            _ => panic!("Invalid list type"),
+        }
+    }
 }
+
 
 pub trait NbtTokenViewExt<'a> {
     fn to_viewer(self) -> NbtTokenView<'a>;
@@ -617,7 +701,6 @@ impl<'a> NbtTokenViewExt<'a> for &'a [NbtToken<'a>] {
         NbtTokenView::new(self, 0)
     }
 }
-
 
 
 #[cfg(test)]
@@ -640,7 +723,7 @@ fn basic_usage() {
 fn owned() {
     #[derive(Debug)]
     struct ToDeserializeInto {
-        name: String
+        name: String,
     }
 
     let bytes = include_bytes!("../../../../../../.etc/hello_world.nbt");

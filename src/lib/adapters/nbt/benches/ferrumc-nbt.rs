@@ -21,22 +21,28 @@ fn bench_ferrumc_nbt(data: &[u8]) {
     let recipes = recipes.as_compound().unwrap();
     let recipes = recipes.get("toBeDisplayed").unwrap();
     // let recipes = recipes.as_list().unwrap();
-    let recipes: Vec<String> = Vec::from_token(recipes).unwrap();
+    let recipes: Vec<&str> = Vec::from_token(recipes).unwrap();
     assert_ne!(recipes.len(), 0);
 }
 
 fn bench_simdnbt(data: &[u8]) {
     let nbt = simdnbt::borrow::read(&mut Cursor::new(data)).unwrap();
     let nbt = nbt.unwrap();
-    let dim = nbt.get("Dimension").unwrap();
-    assert!(dim.string().is_some());
+    let recipes = nbt.get("recipeBook").unwrap();
+    let recipes = recipes.compound().unwrap();
+    let recipes = recipes.get("toBeDisplayed").unwrap();
+    let recipes = recipes.list().unwrap().strings().unwrap();
+    assert!(!recipes.is_empty());
 }
 
 fn bench_simdnbt_owned(data: &[u8]) {
     let nbt = simdnbt::owned::read(&mut Cursor::new(data)).unwrap();
     let nbt = nbt.unwrap();
-    let dim = nbt.get("Dimension").unwrap();
-    assert!(dim.string().is_some());
+    let recipes = nbt.get("recipeBook").unwrap();
+    let recipes = recipes.compound().unwrap();
+    let recipes = recipes.get("toBeDisplayed").unwrap();
+    let recipes = recipes.list().unwrap().strings().unwrap();
+    assert!(!recipes.is_empty());
 }
 
 fn ussr_nbt_borrow(data: &[u8]) {

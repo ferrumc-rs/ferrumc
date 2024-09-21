@@ -34,3 +34,34 @@ fn hello_world() {
     let name: String = String::from_token(name).unwrap();
     dbg!(name);
 }
+
+#[test]
+#[ignore]
+fn bigtest() {
+    let data = include_bytes!("../../../../.etc/bigtest.nbt");
+    let data = NbtParser::decompress(data).unwrap();
+    let mut parser = NbtParser::new(data.as_slice()).clone();
+
+    let tapes = parser.parse().unwrap();
+
+    let root = NbtCompoundView::new(tapes, 0);
+    let name = root.get("listTest (long)").unwrap();
+    
+    dbg!(name.value());
+}
+
+#[test]
+#[ignore]
+fn nested_compound() {
+    let data = include_bytes!("../../../../.etc/tests/nested_compound.nbt");
+    let data = NbtParser::decompress(data).unwrap();
+    let mut parser = NbtParser::new(data.as_slice()).clone();
+
+    let tapes = parser.parse().unwrap();
+
+    let root = NbtCompoundView::new(tapes, 0);
+    let name = root.get("test").unwrap();
+    
+    
+    dbg!(name.value());
+}

@@ -1,7 +1,7 @@
-use crate::errors::NBTError;
-use crate::Result;
+use crate::{NBTError, Result};
 use crate::{NbtToken, NbtTokenView};
 use std::collections::HashMap;
+
 
 /// Trait for converting NbtToken into owned types.
 pub trait FromNbtToken<'a>: Sized
@@ -47,44 +47,59 @@ impl_from_nbt_token_primitive!(f64, Double);
 
 mod slices {
     use super::*;
+    use crate::NBTSerializable;
 
     /// Macro to implement `FromNbtToken` for borrowed primitive slices.
     /*    macro_rules! impl_from_nbt_token_primitive_borrowed_slice {
-            ($t:ty, $variant:ident) => {
-                impl<'a> FromNbtToken<'a> for &'a [$t] {
-                    #[inline]
-                    fn from_token(token_view'a : &NbtTokenView<'a>) -> Result<Self> {
-                        match token_view.token() {
-                            NbtToken::$variant(slice) => {
-                                // SAFETY: The slice in NbtToken is guaranteed to be valid and of type [$t].
-                                Ok(unsafe { &*(slice as *const [_] as *const [$t]) })
-                            },
-                            _ => Err(NBTError::TypeMismatch {
-                                expected: stringify!($variant),
-                                found: token_view.token_type(),
-                            }),
+                ($($t:ty)*, $variant:ident) => {
+                    $(
+                    impl<'a> FromNbtToken<'a> for &'a [$t] {
+                        #[inline]
+                        fn from_token(token_view: NbtTokenView<'a>) -> Result<Self> {
+                            match token_view.value().ok_or(NBTError::TypeMismatch { expected: stringify!($variant), found: token_view.token_type() })? {
+                                NbtToken::$variant(slice) => {
+                                    // SAFETY: The slice in NbtToken is guaranteed to be valid and of type [$t].
+                                    // Ok(slice.as_ref() as &[$t])
+                                    unsafe {
+                                        Ok(std::slice::from_raw_parts(slice.as_ptr() as *const $t, slice.len()))
+                                    }
+                                },
+                                _ => Err(NBTError::TypeMismatch {
+                                    expected: stringify!($variant),
+                                    found: token_view.token_type(),
+                                }),
+                            }
                         }
                     }
-                }
-            };
-        }
-
-        // Implement `FromNbtToken` for borrowed primitive slices.
-        impl_from_nbt_token_primitive_borrowed_slice!(u8, ByteArray);
-        impl_from_nbt_token_primitive_borrowed_slice!(i32, IntArray);
-        impl_from_nbt_token_primitive_borrowed_slice!(i64, LongArray);*/
-
-    impl<'a> FromNbtToken<'a> for &'a [u8]
-
-    {
-        fn from_token(token_view: NbtTokenView<'a>) -> Result<Self> {
-            match token_view.value().ok_or(NBTError::TypeMismatch { expected: "ByteArray", found: token_view.token_type() })? {
-                NbtToken::ByteArray(array) => {
-                    let slice = array.as_ref();
-                    Ok(slice)
-                }
-                _ => return Err(NBTError::TypeMismatch { expected: "ByteArray", found: token_view.token_type() }),
+                    )*
+                };
             }
+    
+        // Implement `FromNbtToken` for borrowed primitive slices.
+        impl_from_nbt_token_primitive_borrowed_slice!(u8 i8, ByteArray);
+        impl_from_nbt_token_primitive_borrowed_slice!(i32 u32, IntArray);
+        impl_from_nbt_token_primitive_borrowed_slice!(i64 u64, LongArray);*/
+
+    impl<'a, T: FromNbtToken<'a> + NBTSerializable> FromNbtToken<'a> for &'a [T] {
+        fn from_token(token_view: NbtTokenView<'a>) -> Result<Self> {
+            let list = token_view.as_list().ok_or(NBTError::TypeMismatch {
+                expected: "List",
+                found: token_view.token_type(),
+            })?;
+
+            Ok(list.get_appropriate_list::<T>())
+            /*if let Some(list_view) = token_view.as_list() {
+                let mut vec = Vec::with_capacity(list_view.len());
+                for element in list_view.iter() {
+                    vec.push(T::from_token(element)?);
+                }
+                Ok(vec.as_slice())
+            } else {
+                Err(NBTError::TypeMismatch {
+                    expected: "List",
+                    found: token_view.token_type(),
+                })
+            }*/
         }
     }
 }
@@ -161,37 +176,22 @@ where
 /// Extension methods for `NbtTokenView` to assist in type identification.
 impl<'a> NbtTokenView<'a> {
     /// Returns the type of the current token as a string.
-    pub fn token_type(&self) -> &'static str {
+    pub fn token_type(&self) -> u8 {
         match self.token() {
-            NbtToken::TagStart { tag_type, .. } => match *tag_type {
-                0 => "TagEnd",
-                1 => "Byte",
-                2 => "Short",
-                3 => "Int",
-                4 => "Long",
-                5 => "Float",
-                6 => "Double",
-                7 => "ByteArray",
-                8 => "String",
-                9 => "List",
-                10 => "Compound",
-                11 => "IntArray",
-                12 => "LongArray",
-                _ => "Unknown",
-            },
-            NbtToken::TagEnd => "TagEnd",
-            NbtToken::Byte(_) => "Byte",
-            NbtToken::Short(_) => "Short",
-            NbtToken::Int(_) => "Int",
-            NbtToken::Long(_) => "Long",
-            NbtToken::Float(_) => "Float",
-            NbtToken::Double(_) => "Double",
-            NbtToken::ByteArray(_) => "ByteArray",
-            NbtToken::String(_) => "String",
-            NbtToken::ListStart { .. } => "List",
-            NbtToken::ListEnd => "ListEnd",
-            NbtToken::IntArray(_) => "IntArray",
-            NbtToken::LongArray(_) => "LongArray",
+            NbtToken::TagStart { tag_type, .. } => *tag_type,
+            NbtToken::TagEnd => 0,
+            NbtToken::Byte(_) => 1,
+            NbtToken::Short(_) => 2,
+            NbtToken::Int(_) => 3,
+            NbtToken::Long(_) => 4,
+            NbtToken::Float(_) => 5,
+            NbtToken::Double(_) => 6,
+            NbtToken::ByteArray(_) => 7,
+            NbtToken::String(_) => 8,
+            NbtToken::ListStart { .. } => 9,
+            NbtToken::ListEnd => 90,
+            NbtToken::IntArray(_) => 11,
+            NbtToken::LongArray(_) => 12,
         }
     }
 }
