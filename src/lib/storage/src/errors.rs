@@ -2,6 +2,6 @@ use thiserror::Error;
 
 #[derive(Debug, Clone, Error)]
 pub enum StorageError {
-    #[error("Something failed lol")]
-    SomeError,
+    #[error("Error initializing database: {0}")]
+    DatabaseInitError(String),
 }
