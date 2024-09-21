@@ -48,7 +48,11 @@ pub enum NbtTapeElement<'a> {
     Double(f64),
     ByteArray(&'a [i8]),
     String(&'a str),
-    List { el_type: NbtTag, size: usize, elements_pos: usize },
+    List {
+        el_type: NbtTag,
+        size: usize,
+        elements_pos: usize,
+    },
     // For better cache locality. It's way faster than hashmaps.
     // Although lookups are O(n), the n is very small.
     // But the data is big so it's worth it.
@@ -79,14 +83,14 @@ impl<'a> NbtTapeElement<'a> {
             _ => None,
         }
     }
-    
+
     pub fn as_compound(&self) -> Option<&Vec<(&'a str, NbtTapeElement<'a>)>> {
         match self {
             NbtTapeElement::Compound(elements) => Some(elements),
             _ => None,
         }
     }
-    
+
     pub fn as_list<T: NbtDeserializable<'a>>(&self, tape: &NbtTape<'a>) -> Option<Vec<T>> {
         tape.unpack_list(self)
     }
@@ -117,7 +121,10 @@ impl<'a> NbtTape<'a> {
 
         self.root = Some((
             name,
-            NbtTapeElement::parse_from_nbt(self, NbtDeserializableOptions::TagType(NbtTag::Compound)),
+            NbtTapeElement::parse_from_nbt(
+                self,
+                NbtDeserializableOptions::TagType(NbtTag::Compound),
+            ),
         ));
     }
 
@@ -140,7 +147,9 @@ impl<'a> NbtTape<'a> {
     }
 
     pub fn get(&self, key: &str) -> Option<&NbtTapeElement<'a>> {
-        let res = self.root.as_ref()
+        let res = self
+            .root
+            .as_ref()
             .map(|(_, element)| element.get_element(key));
 
         res.flatten()
@@ -150,10 +159,17 @@ impl<'a> NbtTape<'a> {
         let res = self.get(key)?;
         self.unpack_list(res)
     }
-    
-    pub fn unpack_list<T: NbtDeserializable<'a>>(&self, element: &NbtTapeElement<'a>) -> Option<Vec<T>> {
+
+    pub fn unpack_list<T: NbtDeserializable<'a>>(
+        &self,
+        element: &NbtTapeElement<'a>,
+    ) -> Option<Vec<T>> {
         match element {
-            NbtTapeElement::List { elements_pos, size, el_type } => {
+            NbtTapeElement::List {
+                elements_pos,
+                size,
+                el_type,
+            } => {
                 let mut tape = NbtTape {
                     data: self.data,
                     pos: *elements_pos,
@@ -162,7 +178,10 @@ impl<'a> NbtTape<'a> {
                 };
                 let mut elements = vec![];
                 for _ in 0..*size {
-                    let element = T::parse_from_nbt(&mut tape, NbtDeserializableOptions::TagType(el_type.clone()));
+                    let element = T::parse_from_nbt(
+                        &mut tape,
+                        NbtDeserializableOptions::TagType(el_type.clone()),
+                    );
                     elements.push(element);
                 }
                 Some(elements)
@@ -380,7 +399,7 @@ mod taped {
                 NbtTag::ByteArray => {
                     let len = i32::parse_from_nbt(tape, NbtDeserializableOptions::None) as usize;
                     let data = tape.read_n_bytes(len);
-                    let data = crate::de::simd_utils::u8_slice_to_i8(data);
+                    let data = crate::simd_utils::u8_slice_to_i8(data);
                     NbtTapeElement::ByteArray(data)
                 }
                 NbtTag::String => {
@@ -400,7 +419,11 @@ mod taped {
                     tape.skip_list(el_type, size);
 
                     let el_type = NbtTag::from(el_type);
-                    NbtTapeElement::List { el_type, size, elements_pos }
+                    NbtTapeElement::List {
+                        el_type,
+                        size,
+                        elements_pos,
+                    }
                 }
                 NbtTag::Compound => {
                     tape.depth += 1;
@@ -424,13 +447,13 @@ mod taped {
                 NbtTag::IntArray => {
                     let len = i32::parse_from_nbt(tape, NbtDeserializableOptions::None) as usize;
                     let data = tape.read_n_bytes(len * size_of::<i32>());
-                    let data = crate::de::simd_utils::u8_slice_to_i32_be(data);
+                    let data = crate::simd_utils::u8_slice_to_i32_be(data);
                     NbtTapeElement::IntArray(data)
                 }
                 NbtTag::LongArray => {
                     let len = i32::parse_from_nbt(tape, NbtDeserializableOptions::None) as usize;
                     let data = tape.read_n_bytes(len * size_of::<i64>());
-                    let data = crate::de::simd_utils::u8_slice_to_i64_be(data);
+                    let data = crate::simd_utils::u8_slice_to_i64_be(data);
                     NbtTapeElement::LongArray(data)
                 }
             }
@@ -473,5 +496,3 @@ mod general {
         }
     }
 }
-
-

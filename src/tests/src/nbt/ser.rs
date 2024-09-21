@@ -24,11 +24,17 @@ fn derive_macro() {
         some_list: Vec<i32>,
     }
 
-    let test = Test { hello: 1, world: 2, some_list: vec![1, 2, 3] };
+    let test = Test {
+        hello: 1,
+        world: 2,
+        some_list: vec![1, 2, 3],
+    };
 
     let mut buf = Vec::new();
     // test.serialize(&mut buf, &ferrumc_nbt::NBTSerializeOptions::WithHeader("test"));
     test.serialize_with_header(&mut buf);
+
+    println!("{:?}", buf);
 
     let mut parser = ferrumc_nbt::de::borrow::NbtTape::new(&buf);
     parser.parse();
@@ -61,7 +67,7 @@ fn derive_macro_nested() {
 
     let mut parser = ferrumc_nbt::de::borrow::NbtTape::new(&buf);
     parser.parse();
-    
+
     println!("{:?}", parser.root);
 }
 
@@ -70,7 +76,7 @@ fn derive_macro_nested_with_list() {
     use ferrumc_macros::NBTSerialize;
     use ferrumc_nbt::NBTSerializable;
 
-    #[derive(NBTSerialize)]
+    #[derive(NBTSerialize, Debug)]
     struct Test {
         hello: i32,
         world: i32,

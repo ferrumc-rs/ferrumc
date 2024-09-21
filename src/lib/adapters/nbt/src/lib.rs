@@ -8,6 +8,7 @@ use hashbrown as _;
 pub mod de;
 pub mod errors;
 pub mod ser;
+pub(crate) mod simd_utils;
 #[cfg(test)]
 mod tests;
 
@@ -16,11 +17,10 @@ pub(crate) type Result<T> = std::result::Result<T, errors::NBTError>;
 pub use errors::NBTError;
 pub use ser::{NBTSerializable, NBTSerializeOptions};
 
-
 pub fn decompress_gzip(data: &[u8]) -> Result<Vec<u8>> {
-    use std::io::Read;
     use libflate::gzip::Decoder;
-    
+    use std::io::Read;
+
     if !data.starts_with(&[0x1F, 0x8B]) {
         return Ok(data.to_vec());
     }

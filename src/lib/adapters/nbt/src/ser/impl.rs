@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use super::{NBTSerializable, NBTSerializeOptions};
 
 macro_rules! impl_ser_primitives {
@@ -73,23 +75,49 @@ impl NBTSerializable for &str {
     }
 }
 
-impl<T: NBTSerializable> NBTSerializable for Vec<T> {
+impl<T: NBTSerializable +std::fmt::Debug> NBTSerializable for Vec<T> {
     fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
         write_header::<Self>(buf, options);
 
-        let is_special = [TAG_BYTE_ARRAY, TAG_INT_ARRAY, TAG_LONG_ARRAY].contains(&T::id());
+        let is_special = [TAG_BYTE_ARRAY, TAG_INT_ARRAY, TAG_LONG_ARRAY].contains(&Self::id());
+        println!("is_special: {}", is_special);
         if !is_special {
             buf.push(T::id());
         }
 
-        (self.len() as i32).serialize(buf, options);
+        (self.len() as i32).serialize(buf, &NBTSerializeOptions::None);
 
         if is_special {
-            // T is i8, u8 ... f64 , therefore we can just serialize the whole slice
-            let bytes = unsafe {
-                std::slice::from_raw_parts(self.as_ptr() as *const u8, self.len() * size_of::<T>())
-            };
-            buf.extend_from_slice(bytes);
+            match Self::id() {
+                TAG_BYTE_ARRAY => {
+                    let bytes = unsafe {
+                        std::slice::from_raw_parts(self.as_ptr() as *const u8, self.len())
+                    };
+                    buf.extend_from_slice(bytes);
+                }
+                TAG_INT_ARRAY => {
+                    println!("int array: {:?}", self);
+                    // let bytes = unsafe {crate::simd_utils::u32_slice_to_u8_be(
+                    //     std::slice::from_raw_parts(self.as_ptr() as *const u32, self.len())
+                    // )};
+                    let elements = unsafe { std::mem::transmute::<&[T], &[u32]>(self.as_slice()) };
+        
+                    println!("int array bytes: {:?}", elements);
+                    let mut data: Vec<u8> = Vec::new();
+                    for i in elements {
+                        data.extend_from_slice(i.to_be_bytes().as_slice());
+                    }
+                    println!("int array bytes: {:?}", data);
+                    buf.extend_from_slice(data.as_slice());
+                }
+                TAG_LONG_ARRAY => {
+                    let bytes = unsafe {crate::simd_utils::u64_slice_to_u8_be(
+                        std::slice::from_raw_parts(self.as_ptr() as *const u64, self.len())
+                    )};
+                    buf.extend_from_slice(&bytes);
+                }
+                _ => unreachable!(),
+            }
         } else {
             for item in self {
                 item.serialize(buf, options);

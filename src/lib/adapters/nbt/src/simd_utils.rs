@@ -131,3 +131,127 @@ pub fn u8_slice_to_i64_be(input: &[u8]) -> Vec<i64> {
 
     unsafe { std::mem::transmute::<Vec<u64>, Vec<i64>>(u64s) }
 }
+
+/// Converts a slice of `u32` integers to a `Vec<u8>` with big-endian byte order.
+///
+/// # Safety
+///
+/// - The CPU must support AVX2 instructions.
+/// - The input slice's length should be a multiple of 8 for optimal performance.
+///
+#[target_feature(enable = "avx2")]
+pub unsafe fn u32_slice_to_u8_be(input: &[u32]) -> Vec<u8> {
+    let num_elements = input.len();
+    let mut output = Vec::with_capacity(num_elements * 4);
+    let mut i = 0;
+
+    // Shuffle mask to reverse bytes in each u32
+    let shuffle_mask = _mm256_setr_epi8(
+        3, 2, 1, 0, 7, 6, 5, 4, 11, 10, 9, 8, 15, 14, 13, 12, 19, 18, 17, 16, 23, 22, 21, 20, 27,
+        26, 25, 24, 31, 30, 29, 28,
+    );
+
+    while i + 8 <= num_elements {
+        // Load 8 u32s (32 bytes) into a 256-bit AVX2 register
+        let data = _mm256_loadu_si256(input.as_ptr().add(i) as *const __m256i);
+
+        // Shuffle bytes to reverse within each u32
+        let shuffled = _mm256_shuffle_epi8(data, shuffle_mask);
+
+        // Store the shuffled bytes into a temporary buffer
+        let mut temp = [0u8; 32];
+        _mm256_storeu_si256(temp.as_mut_ptr() as *mut __m256i, shuffled);
+
+        // Append the shuffled bytes to the output vector
+        output.extend_from_slice(&temp);
+
+        i += 8;
+    }
+
+    // Handle remaining u32s with scalar code
+    while i < num_elements {
+        let val = input[i].to_be_bytes();
+        output.extend_from_slice(&val);
+        i += 1;
+    }
+
+    output
+}
+
+/// Converts a slice of `i32` integers to a `Vec<u8>` with big-endian byte order.
+///
+/// # Safety
+///
+/// This function transmutes `i32` to `u32` and calls `u32_slice_to_u8_be`.
+/// Ensure that the input slice does not contain any invalid bit patterns for `i32`.
+pub fn i32_slice_to_u8_be(input: &[i32]) -> Vec<u8> {
+    // Transmute &[i32] to &[u32] safely as they have the same size and alignment
+    let u32_slice: &[u32] =
+        unsafe { slice::from_raw_parts(input.as_ptr() as *const u32, input.len()) };
+
+    // Call the u32 conversion function
+    unsafe { u32_slice_to_u8_be(u32_slice) }
+}
+
+/// Converts a slice of `u64` integers to a `Vec<u8>` with big-endian byte order.
+///
+/// # Safety
+///
+/// - The CPU must support AVX2 instructions.
+/// - The input slice's length should be a multiple of 4 for optimal performance.
+///
+#[target_feature(enable = "avx2")]
+pub unsafe fn u64_slice_to_u8_be(input: &[u64]) -> Vec<u8> {
+    let num_elements = input.len();
+    let mut output = Vec::with_capacity(num_elements * 8);
+    let mut i = 0;
+
+    // Shuffle mask to reverse bytes in each u64
+    let shuffle_mask = _mm256_setr_epi8(
+        7, 6, 5, 4, 3, 2, 1, 0, // Reverse first u64
+        15, 14, 13, 12, 11, 10, 9, 8, // Reverse second u64
+        23, 22, 21, 20, 19, 18, 17, 16, // Reverse third u64
+        31, 30, 29, 28, 27, 26, 25, 24, // Reverse fourth u64
+    );
+
+    while i + 4 <= num_elements {
+        // Load 4 u64s (32 bytes) into a 256-bit AVX2 register
+        let data = _mm256_loadu_si256(input.as_ptr().add(i) as *const __m256i);
+
+        // Shuffle bytes to reverse within each u64
+        let shuffled = _mm256_shuffle_epi8(data, shuffle_mask);
+
+        // Store the shuffled bytes into a temporary buffer
+        let mut temp = [0u8; 32];
+        _mm256_storeu_si256(temp.as_mut_ptr() as *mut __m256i, shuffled);
+
+        // Append the shuffled bytes to the output vector
+        output.extend_from_slice(&temp);
+
+        i += 4;
+    }
+
+    // Handle remaining u64s with scalar code
+    while i < num_elements {
+        let val = input[i].to_be_bytes();
+        output.extend_from_slice(&val);
+        i += 1;
+    }
+
+    output
+}
+
+/// Converts a slice of `i64` integers to a `Vec<u8>` with big-endian byte order.
+///
+/// # Safety
+///
+/// This function transmutes `i64` to `u64` and calls `u64_slice_to_u8_be`.
+/// Ensure that the input slice does not contain any invalid bit patterns for `i64`.
+pub fn i64_slice_to_u8_be(input: &[i64]) -> Vec<u8> {
+    // Transmute &[i64] to &[u64] safely as they have the same size and alignment
+    let u64_slice: &[u64] =
+        unsafe { slice::from_raw_parts(input.as_ptr() as *const u64, input.len()) };
+
+    // Call the u64 conversion function
+    unsafe { u64_slice_to_u8_be(u64_slice) }
+}
