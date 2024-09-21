@@ -259,7 +259,7 @@ pub enum NbtDeserializableOptions {
 }
 pub trait NbtDeserializable<'a>: Sized {
     fn parse_from_bytes(data: &'a [u8]) -> Self;
-    fn parse_from_nbt(tape: &mut NbtTape<'a>, opts: NbtDeserializableOptions) -> Self {
+    fn parse_from_nbt(tape: &mut NbtTape<'a>, _opts: NbtDeserializableOptions) -> Self {
         //! By default, this function directly reads the bytes
         //! from the tape and BE deserializes them.
 
@@ -420,7 +420,6 @@ mod taped {
                         );
                         elements.push((name, element));
                     }
-                    NbtTapeElement::Compound(elements)
                 }
                 NbtTag::IntArray => {
                     let len = i32::parse_from_nbt(tape, NbtDeserializableOptions::None) as usize;
@@ -450,7 +449,7 @@ mod general {
             unsafe { std::str::from_utf8_unchecked(data) }.to_string()
         }
 
-        fn parse_from_nbt(tape: &mut NbtTape<'a>, opts: NbtDeserializableOptions) -> Self {
+        fn parse_from_nbt(tape: &mut NbtTape<'a>, _opts: NbtDeserializableOptions) -> Self {
             <&str>::parse_from_nbt(tape, NbtDeserializableOptions::None).to_string()
         }
     }
@@ -464,7 +463,7 @@ mod general {
             unsafe { std::str::from_utf8_unchecked(data) }
         }
 
-        fn parse_from_nbt(tape: &mut NbtTape<'a>, opts: NbtDeserializableOptions) -> Self {
+        fn parse_from_nbt(tape: &mut NbtTape<'a>, _opts: NbtDeserializableOptions) -> Self {
             let len = u16::parse_from_nbt(tape, NbtDeserializableOptions::None) as usize;
             if len == 0 {
                 return "";

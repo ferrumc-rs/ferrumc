@@ -55,14 +55,14 @@ infinite_loop = "deny"
 
 #================= Profile =================#
 [profile.release]
-#lto = true
-#strip = "symbols"
-#codegen-units = 1
-#opt-level = 3
-#debug = false
-#debug-assertions = false
-#overflow-checks = false
-#panic = "abort"
+lto = true
+strip = "symbols"
+codegen-units = 1
+opt-level = 3
+debug = false
+debug-assertions = false
+overflow-checks = false
+panic = "abort"
 
 [profile.dev]
 lto = false

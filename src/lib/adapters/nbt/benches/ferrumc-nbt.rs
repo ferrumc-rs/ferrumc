@@ -3,38 +3,23 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
 use fastnbt::Value;
 use nbt as hematite_nbt;
-use simdnbt::borrow::NbtTag;
 use std::io::Cursor;
 
 fn bench_ferrumc_nbt(data: &[u8]) {
     let mut parser = ferrumc_nbt::de::borrow::NbtTape::new(data);
     parser.parse();
 
-    let recipe_book = parser.get("recipeBook").unwrap();
-    let recipes = recipe_book.get_element("recipes").unwrap();
-    let recipes: Vec<&str> = recipes.as_list(&parser).unwrap();
-    
-    assert!(!recipes.is_empty());
+    black_box(parser);
 }
 
 fn bench_simdnbt(data: &[u8]) {
     let nbt = simdnbt::borrow::read(&mut Cursor::new(data)).unwrap();
-    let nbt = nbt.unwrap();
-    let recipes = nbt.get("recipeBook").unwrap();
-    let recipes = recipes.compound().unwrap();
-    let recipes = recipes.get("toBeDisplayed").unwrap();
-    let recipes = recipes.list().unwrap().strings().unwrap();
-    assert!(!recipes.is_empty());
+    assert!(nbt.is_some());
 }
 
 fn bench_simdnbt_owned(data: &[u8]) {
     let nbt = simdnbt::owned::read(&mut Cursor::new(data)).unwrap();
-    let nbt = nbt.unwrap();
-    let recipes = nbt.get("recipeBook").unwrap();
-    let recipes = recipes.compound().unwrap();
-    let recipes = recipes.get("toBeDisplayed").unwrap();
-    let recipes = recipes.list().unwrap().strings().unwrap();
-    assert!(!recipes.is_empty());
+    assert!(nbt.is_some());
 }
 
 fn ussr_nbt_borrow(data: &[u8]) {

@@ -20,6 +20,10 @@ pub use ser::{NBTSerializable, NBTSerializeOptions};
 pub fn decompress_gzip(data: &[u8]) -> Result<Vec<u8>> {
     use std::io::Read;
     use libflate::gzip::Decoder;
+    
+    if !data.starts_with(&[0x1F, 0x8B]) {
+        return Ok(data.to_vec());
+    }
 
     let mut decoder = Decoder::new(data)?;
     let mut decompressed = Vec::new();
