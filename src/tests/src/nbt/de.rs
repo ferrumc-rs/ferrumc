@@ -15,7 +15,7 @@ fn test_the_ai_guy_nbt() {
     let root = NbtCompoundView::new(tapes, 0);
     
     let dim = root.get("Dimension").unwrap();
-    let dim : String = String::from_token(&dim).unwrap();
+    let dim : String = String::from_token(dim).unwrap();
     
     dbg!(dim);
 }
@@ -31,6 +31,6 @@ fn hello_world() {
 
     let root = NbtCompoundView::new(tapes, 0);
     let name = root.get("name").unwrap();
-    let name: String = String::from_token(&name).unwrap();
+    let name: String = String::from_token(name).unwrap();
     dbg!(name);
 }

@@ -423,15 +423,15 @@ impl<'a> NbtParser<'a> {
 }
 
 #[derive(Debug)]
-pub struct NbtCompoundView<'a, 'b> {
-    tape: &'b [NbtToken<'a>],
+pub struct NbtCompoundView<'a> {
+    tape: &'a [NbtToken<'a>],
     start: usize,
     end: usize,
     pub(crate) children: HashMap<&'a str, usize>,
 }
 
-impl<'a, 'b> NbtCompoundView<'a, 'b> {
-    pub fn new(tape: &'b [NbtToken<'a>], start: usize) -> Self {
+impl<'a> NbtCompoundView<'a> {
+    pub fn new(tape: &'a [NbtToken<'a>], start: usize) -> Self {
         let mut view = NbtCompoundView {
             tape,
             start,
@@ -479,13 +479,13 @@ impl<'a, 'b> NbtCompoundView<'a, 'b> {
         self.tape.len() - 1 // If no TagEnd found, return the last index
     }
 
-    pub fn get(&self, name: &str) -> Option<NbtTokenView<'a, 'b>> {
+    pub fn get(&self, name: &str) -> Option<NbtTokenView<'a>> {
         self.children
             .get(name)
             .map(|&pos| NbtTokenView::new(self.tape, pos))
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = (&str, NbtTokenView<'a, 'b>)> + '_ {
+    pub fn iter(&self) -> impl Iterator<Item = (&str, NbtTokenView<'a>)> + '_ {
         self.children
             .iter()
             .map(|(&name, &pos)| (name, NbtTokenView::new(self.tape, pos)))
@@ -493,13 +493,15 @@ impl<'a, 'b> NbtCompoundView<'a, 'b> {
 }
 
 #[derive(Debug)]
-pub struct NbtTokenView<'a, 'b> {
-    tape: &'b [NbtToken<'a>],
+pub struct NbtTokenView<'a>
+{
+    tape: &'a [NbtToken<'a>],
     pos: usize,
 }
 
-impl<'a, 'b> NbtTokenView<'a, 'b> {
-    pub fn new(tape: &'b [NbtToken<'a>], pos: usize) -> Self {
+impl<'a> NbtTokenView<'a>
+{
+    pub fn new(tape: &'a [NbtToken<'a>], pos: usize) -> Self {
         NbtTokenView { tape, pos }
     }
 
@@ -507,7 +509,7 @@ impl<'a, 'b> NbtTokenView<'a, 'b> {
         &self.tape[self.pos]
     }
 
-    pub fn as_compound(&self) -> Option<NbtCompoundView<'a, 'b>> {
+    pub fn as_compound(&self) -> Option<NbtCompoundView<'a>> {
         match self.tape[self.pos] {
             NbtToken::TagStart { tag_type: 10, .. } => {
                 Some(NbtCompoundView::new(self.tape, self.pos))
@@ -516,7 +518,7 @@ impl<'a, 'b> NbtTokenView<'a, 'b> {
         }
     }
 
-    pub fn as_list(&self) -> Option<NbtListView<'a, 'b>> {
+    pub fn as_list(&self) -> Option<NbtListView<'a>> {
         match self.tape[self.pos] {
             NbtToken::TagStart { tag_type: 9, .. } => Some(NbtListView::new(self.tape, self.pos)),
             _ => None,
@@ -530,7 +532,7 @@ impl<'a, 'b> NbtTokenView<'a, 'b> {
         }
     }
 
-    pub fn value(&self) -> Option<&NbtToken<'a>> {
+    pub fn value(&self) -> Option<&'a NbtToken<'a>> {
         match &self.tape[self.pos] {
             NbtToken::TagStart { .. } => self.tape.get(self.pos + 1),
             _ => Some(&self.tape[self.pos]),
@@ -538,14 +540,14 @@ impl<'a, 'b> NbtTokenView<'a, 'b> {
     }
 }
 
-pub struct NbtListView<'a, 'b> {
-    tape: &'b [NbtToken<'a>],
+pub struct NbtListView<'a> {
+    tape: &'a [NbtToken<'a>],
     start: usize,
     end: usize,
 }
 
-impl<'a, 'b> NbtListView<'a, 'b> {
-    pub fn new(tape: &'b [NbtToken<'a>], start: usize) -> Self {
+impl<'a> NbtListView<'a> {
+    pub fn new(tape: &'a [NbtToken<'a>], start: usize) -> Self {
         let mut view = NbtListView {
             tape,
             start,
@@ -585,7 +587,7 @@ impl<'a, 'b> NbtListView<'a, 'b> {
         self.tape.len() - 1
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = NbtTokenView<'a, 'b>> + '_ {
+    pub fn iter(&self) -> impl Iterator<Item = NbtTokenView<'a>> + '_ {
         (self.start + 2..self.end).filter_map(move |i| match &self.tape[i] {
             NbtToken::TagStart { .. }
             | NbtToken::Byte(..)
@@ -608,10 +610,10 @@ impl<'a, 'b> NbtListView<'a, 'b> {
 }
 
 pub trait NbtTokenViewExt<'a> {
-    fn to_viewer(self) -> NbtTokenView<'a, 'a>;
+    fn to_viewer(self) -> NbtTokenView<'a>;
 }
 impl<'a> NbtTokenViewExt<'a> for &'a [NbtToken<'a>] {
-    fn to_viewer(self) -> NbtTokenView<'a, 'a> {
+    fn to_viewer(self) -> NbtTokenView<'a> {
         NbtTokenView::new(self, 0)
     }
 }

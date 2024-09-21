@@ -21,7 +21,7 @@ fn bench_ferrumc_nbt(data: &[u8]) {
     let recipes = recipes.as_compound().unwrap();
     let recipes = recipes.get("toBeDisplayed").unwrap();
     // let recipes = recipes.as_list().unwrap();
-    let recipes: Vec<String> = Vec::from_token(&recipes).unwrap();
+    let recipes: Vec<String> = Vec::from_token(recipes).unwrap();
     assert_ne!(recipes.len(), 0);
 }
 
