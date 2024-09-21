@@ -1,5 +1,7 @@
 #![cfg(test)]
 
+use ferrumc_macros::NBTSerialize;
+
 #[test]
 #[ignore]
 fn test_basic_get_functions() {
@@ -15,65 +17,48 @@ fn test_basic_get_functions() {
     println!("{:?}", recipes);
 }
 
-/*#[test]
+#[test]
 #[ignore]
-fn test_the_ai_guy_nbt() {
-    let data = include_bytes!("../../../../.etc/TheAIguy_.nbt");
-    let data = NbtParser::decompress(data).unwrap();
-    let mut parser = NbtParser::new(data.as_slice()).clone();
-
-    let tapes = parser.parse().unwrap();
-
-    let root = NbtCompoundView::new(tapes, 0);
-
-    let dim = root.get("Dimension").unwrap();
-    let dim: String = String::from_token(dim).unwrap();
-
-    dbg!(dim);
+fn test_derive() {
+    #[derive(NBTSerialize)]
+    struct BasicStruct {
+        hello: String,
+        world: Two,
+        list: Vec<Three>
+    }
+    
+    #[derive(NBTSerialize)]
+    struct Two {
+        a: i32,
+        b: i32,
+        list: Vec<i32>
+    }
+    
+    #[derive(NBTSerialize)]
+    struct Three {
+        l: i32,
+    }
+    
+    let some_struct = BasicStruct {
+        hello: "Hello".to_string(),
+        world: Two {
+            a: 1,
+            b: 2,
+            list: vec![1, 2, 3]
+        },
+        list: vec![Three { l: 1 }, Three { l: 2 }]
+    };
+    
+    let mut buffer = Vec::new();
+    
+    some_struct.serialize_with_header(&mut buffer);
+    
+    let base_path = r#"D:\Minecraft\framework\ferrumc\ferrumc-2_0\ferrumc\.etc\tests"#;
+    std::fs::write(format!("{}/test_derive.nbt", base_path), buffer).unwrap();
 }
 
 #[test]
 #[ignore]
-fn hello_world() {
-    let data = include_bytes!("../../../../.etc/hello_world.nbt");
-    let data = NbtParser::decompress(data).unwrap();
-    let mut parser = NbtParser::new(data.as_slice()).clone();
-
-    let tapes = parser.parse().unwrap();
-
-    let root = NbtCompoundView::new(tapes, 0);
-    let name = root.get("name").unwrap();
-    let name: String = String::from_token(name).unwrap();
-    dbg!(name);
+fn basic_ser() {
+    
 }
-
-#[test]
-#[ignore]
-fn bigtest() {
-    let data = include_bytes!("../../../../.etc/bigtest.nbt");
-    let data = NbtParser::decompress(data).unwrap();
-    let mut parser = NbtParser::new(data.as_slice()).clone();
-
-    let tapes = parser.parse().unwrap();
-
-    let root = NbtCompoundView::new(tapes, 0);
-    let name = root.get("listTest (long)").unwrap();
-
-    dbg!(name.value());
-}
-
-#[test]
-#[ignore]
-fn nested_compound() {
-    let data = include_bytes!("../../../../.etc/tests/nested_compound.nbt");
-    let data = NbtParser::decompress(data).unwrap();
-    let mut parser = NbtParser::new(data.as_slice()).clone();
-
-    let tapes = parser.parse().unwrap();
-
-    let root = NbtCompoundView::new(tapes, 0);
-    let name = root.get("test").unwrap();
-
-    dbg!(name.value());
-}
-*/

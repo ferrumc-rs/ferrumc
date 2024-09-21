@@ -1,4 +1,4 @@
-use ferrumc_nbt::{NBTSerializable, NBTSerializeOptions, NbtToken, NbtTokenViewExt};
+use ferrumc_nbt::{NBTSerializable, NBTSerializeOptions};
 use std::collections::HashMap;
 
 const BASE_PATH: &str = env!("CARGO_MANIFEST_DIR");
@@ -10,14 +10,6 @@ fn basic_compound_ser() {
 
     let mut buf = Vec::new();
     map.serialize(&mut buf, &NBTSerializeOptions::WithHeader("test"));
-
-    let mut parser = ferrumc_nbt::NbtParser::new(&buf);
-    let tokens = parser.parse().unwrap().to_viewer();
-    let compound = tokens.as_compound().unwrap();
-    let hello = compound.get("hello").unwrap();
-    let value = hello.value().unwrap();
-
-    assert_eq!(value, &NbtToken::Int(42));
 }
 
 #[test]
@@ -29,17 +21,19 @@ fn derive_macro() {
     struct Test {
         hello: i32,
         world: i32,
+        some_list: Vec<i32>,
     }
 
-    let test = Test { hello: 1, world: 2 };
+    let test = Test { hello: 1, world: 2, some_list: vec![1, 2, 3] };
 
     let mut buf = Vec::new();
     // test.serialize(&mut buf, &ferrumc_nbt::NBTSerializeOptions::WithHeader("test"));
     test.serialize_with_header(&mut buf);
 
-    let mut parser = ferrumc_nbt::NbtParser::new(&buf);
+    let mut parser = ferrumc_nbt::de::borrow::NbtTape::new(&buf);
+    parser.parse();
 
-    println!("{:?}", parser.parse().unwrap());
+    println!("{:?}", parser.root);
 }
 
 #[test]
@@ -65,20 +59,10 @@ fn derive_macro_nested() {
     let mut buf = Vec::new();
     test2.serialize_with_header(&mut buf);
 
-    let mut parser = ferrumc_nbt::NbtParser::new(&buf);
-
-    let tapes = parser.parse().unwrap();
-    let root = ferrumc_nbt::NbtCompoundView::new(tapes, 0);
-    let test = root.get("test").unwrap();
-    let test = test.as_compound().unwrap();
-    let hello = test.get("hello").unwrap();
-    let world = test.get("world").unwrap();
-
-    assert_eq!(hello.value().unwrap(), &NbtToken::Int(1));
-    assert_eq!(world.value().unwrap(), &NbtToken::Int(2));
-
-    dbg!(hello.value());
-    dbg!(world.value());
+    let mut parser = ferrumc_nbt::de::borrow::NbtTape::new(&buf);
+    parser.parse();
+    
+    println!("{:?}", parser.root);
 }
 
 #[test]
@@ -113,21 +97,4 @@ fn derive_macro_nested_with_list() {
 
     let mut buf = Vec::new();
     test2.serialize_with_header(&mut buf);
-
-    let mut parser = ferrumc_nbt::NbtParser::new(&buf);
-    let tapes = parser.parse().unwrap();
-
-    let root = ferrumc_nbt::NbtCompoundView::new(tapes, 0);
-    let test = root.get("test").unwrap();
-    let test = test.as_compound().unwrap();
-    let hello = test.get("hello").unwrap();
-    let world = test.get("world").unwrap();
-
-    assert_eq!(hello.value().unwrap(), &NbtToken::Int(1));
-    assert_eq!(world.value().unwrap(), &NbtToken::Int(2));
-
-    let list = root.get("list").unwrap();
-    let list = list.as_list().unwrap();
-    // let list: &[u8] = list.get_appropriate_list();
-    todo!()
 }

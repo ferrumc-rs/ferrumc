@@ -47,7 +47,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
 
         impl #name {
             pub fn serialize_with_header(&self, writer: &mut Vec<u8>) {
-                self.serialize(writer, &::ferrumc_nbt::NBTSerializeOptions::WithHeader(stringify!(#name)));
+                <#name as ::ferrumc_nbt::NBTSerializable>::serialize(self, writer, &::ferrumc_nbt::NBTSerializeOptions::WithHeader(stringify!(#name)));
             }
         }
     };
