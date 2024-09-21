@@ -4,9 +4,7 @@
 use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::event_handler;
 
-pub mod test {
-    
-}
+pub mod test {}
 
 #[tokio::main]
 async fn main() {

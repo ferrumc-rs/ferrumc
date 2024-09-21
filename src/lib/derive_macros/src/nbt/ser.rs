@@ -14,7 +14,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
             <#ty as ::ferrumc_nbt::NBTSerializable>::serialize(&self.#ident, writer, &::ferrumc_nbt::NBTSerializeOptions::WithHeader(#field_name));
         }
     });
-    
+
     let name = &input.ident;
 
     let expanded = quote! {
@@ -28,9 +28,9 @@ pub fn derive(input: TokenStream) -> TokenStream {
                     }
                     ::ferrumc_nbt::NBTSerializeOptions::None => {}
                 }
-                
+
                 #(#fields)*
-                
+
                 match options {
                     ::ferrumc_nbt::NBTSerializeOptions::WithHeader(_) => {
                         // ending tag
@@ -39,19 +39,18 @@ pub fn derive(input: TokenStream) -> TokenStream {
                     ::ferrumc_nbt::NBTSerializeOptions::None => {}
                 }
             }
-            
+
             fn id() -> u8 {
                 10
             }
         }
-        
+
         impl #name {
             pub fn serialize_with_header(&self, writer: &mut Vec<u8>) {
                 self.serialize(writer, &::ferrumc_nbt::NBTSerializeOptions::WithHeader(stringify!(#name)));
             }
         }
     };
-
 
     TokenStream::from(expanded)
 }

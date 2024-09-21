@@ -1,9 +1,21 @@
 #![cfg(test)]
 
-use ferrumc_nbt::{NbtCompoundView, NbtParser};
-use ferrumc_nbt::de::owned::FromNbtToken;
-
 #[test]
+#[ignore]
+fn test_basic_get_functions() {
+    let data = include_bytes!("../../../../.etc/TheAIguy_.nbt");
+    let data = ferrumc_nbt::decompress_gzip(data).unwrap();
+
+    let mut parser = ferrumc_nbt::de::borrow::NbtTape::new(data.as_slice());
+    parser.parse();
+
+    let recipe_book = parser.get("recipeBook").unwrap();
+    let recipes = recipe_book.get_element("recipes").unwrap();
+    let recipes: Vec<String> = recipes.as_list(&parser).unwrap();
+    println!("{:?}", recipes);
+}
+
+/*#[test]
 #[ignore]
 fn test_the_ai_guy_nbt() {
     let data = include_bytes!("../../../../.etc/TheAIguy_.nbt");
@@ -13,10 +25,10 @@ fn test_the_ai_guy_nbt() {
     let tapes = parser.parse().unwrap();
 
     let root = NbtCompoundView::new(tapes, 0);
-    
+
     let dim = root.get("Dimension").unwrap();
-    let dim : String = String::from_token(dim).unwrap();
-    
+    let dim: String = String::from_token(dim).unwrap();
+
     dbg!(dim);
 }
 
@@ -46,7 +58,7 @@ fn bigtest() {
 
     let root = NbtCompoundView::new(tapes, 0);
     let name = root.get("listTest (long)").unwrap();
-    
+
     dbg!(name.value());
 }
 
@@ -61,7 +73,7 @@ fn nested_compound() {
 
     let root = NbtCompoundView::new(tapes, 0);
     let name = root.get("test").unwrap();
-    
-    
+
     dbg!(name.value());
 }
+*/

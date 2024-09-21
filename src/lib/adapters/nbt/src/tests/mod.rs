@@ -1,41 +1,14 @@
 #![cfg(test)]
 
-use crate::errors::NBTError;
-use crate::{NbtCompoundView, NbtParser};
-
-mod ser;
-
 #[test]
-fn bigtest() -> Result<(), NBTError> {
-    let data = include_bytes!("../../../../../../.etc/bigtest.nbt");
-    let data = NbtParser::decompress(data)?;
-    let data = data.as_slice();
+fn basic_parsing() {
+    let data: Vec<u8> = vec![
+        10, 0, 3, b'H', b'i', b'i', // TagCompound("Hii")
+        1, 0, 3, b'K', b'e', b'y', 1, // TagByte("Key", 1)
+        3, 0, 3, b'd', b'a', b't', 0, 0, 0, 0, // TagInt("dat", 0)
+        0, // End
+    ];
 
-    let mut parser = NbtParser::new(data);
-    let tape = parser.parse()?;
-
-    let root_view = NbtCompoundView::new(tape, 0);
-
-    // println!("{root_view:?}");
-
-    let nested_compound = root_view.get("nested compound test").unwrap();
-
-    println!("{:?}", nested_compound.value());
-
-    Ok(())
-}
-
-#[test]
-fn the_algui() {
-    let data = include_bytes!("../../../../../../.etc/TheAIguy_.nbt");
-    let data = NbtParser::decompress(data).unwrap();
-
-    let data = data.as_slice();
-
-    let mut parser = NbtParser::new(data);
-    let tape = parser.parse().unwrap();
-
-    let root_view = NbtCompoundView::new(tape, 0);
-
-    println!("{root_view:?}");
+    let mut parser = crate::de::borrow::NbtTape::new(data.as_slice());
+    parser.parse();
 }
