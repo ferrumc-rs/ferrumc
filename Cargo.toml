@@ -55,14 +55,14 @@ infinite_loop = "deny"
 
 #================= Profile =================#
 [profile.release]
-#lto = true
-#strip = "symbols"
-#codegen-units = 1
-#opt-level = 3
-#debug = false
-#debug-assertions = false
-#overflow-checks = false
-#panic = "abort"
+lto = true
+strip = "symbols"
+codegen-units = 1
+opt-level = 3
+debug = false
+debug-assertions = false
+overflow-checks = false
+panic = "abort"
 
 [profile.dev]
 lto = false
@@ -128,6 +128,7 @@ dashmap = "6.1.0"
 lazy_static = "1.5.0"
 quote = "1.0.37"
 syn = "2.0.77"
+proc-macro2 = "1.0.86"
 
 # Magic ("life-before-main" initialization, __attribute__((constructor)))
 ctor = "0.2.8"

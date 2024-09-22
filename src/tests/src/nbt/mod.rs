@@ -1,2 +1,2 @@
-mod ser;
 mod de;
+mod ser;

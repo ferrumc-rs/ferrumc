@@ -2,41 +2,24 @@
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
 use fastnbt::Value;
-use ferrumc_nbt::{FromNbtToken, NbtCompoundView, NbtParser};
 use nbt as hematite_nbt;
 use std::io::Cursor;
-use simdnbt::borrow::NbtTag;
 
 fn bench_ferrumc_nbt(data: &[u8]) {
-    let mut parser = NbtParser::new(data);
-    let tapes = parser.parse().unwrap();
+    let mut parser = ferrumc_nbt::de::borrow::NbtTape::new(data);
+    parser.parse();
 
-    let root = NbtCompoundView::new(tapes, 0);
-
-    /*let dim = root.get("Dimension").unwrap();
-    let dim : String = String::from_token(&dim).unwrap();
-
-    assert_eq!(dim, "minecraft:overworld");*/
-    let recipes = root.get("recipeBook").unwrap();
-    let recipes = recipes.as_compound().unwrap();
-    let recipes = recipes.get("toBeDisplayed").unwrap();
-    // let recipes = recipes.as_list().unwrap();
-    let recipes: Vec<String> = Vec::from_token(&recipes).unwrap();
-    assert_ne!(recipes.len(), 0);
+    black_box(parser);
 }
 
 fn bench_simdnbt(data: &[u8]) {
     let nbt = simdnbt::borrow::read(&mut Cursor::new(data)).unwrap();
-    let nbt = nbt.unwrap();
-    let dim = nbt.get("Dimension").unwrap();
-    assert!(dim.string().is_some());
+    assert!(nbt.is_some());
 }
 
 fn bench_simdnbt_owned(data: &[u8]) {
     let nbt = simdnbt::owned::read(&mut Cursor::new(data)).unwrap();
-    let nbt = nbt.unwrap();
-    let dim = nbt.get("Dimension").unwrap();
-    assert!(dim.string().is_some());
+    assert!(nbt.is_some());
 }
 
 fn ussr_nbt_borrow(data: &[u8]) {
@@ -66,7 +49,7 @@ fn hematite_nbt(data: &[u8]) {
 
 fn criterion_benchmark(c: &mut Criterion) {
     let data = include_bytes!("../../../../../.etc/TheAIguy_.nbt");
-    let data = NbtParser::decompress(data).unwrap();
+    let data = ferrumc_nbt::decompress_gzip(data).unwrap();
     let data = data.as_slice();
 
     let mut group = c.benchmark_group("NBT Parsing");

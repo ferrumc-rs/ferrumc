@@ -31,16 +31,16 @@ const TAG_INT_ARRAY: u8 = 11;
 const TAG_LONG_ARRAY: u8 = 12;
 
 impl_ser_primitives!(
-    i8  | u8  > TAG_BYTE,
+    i8 | u8 > TAG_BYTE,
     i16 | u16 > TAG_SHORT,
     i32 | u32 > TAG_INT,
     i64 | u64 > TAG_LONG,
-    f32       > TAG_FLOAT, 
-    f64       > TAG_DOUBLE
+    f32 > TAG_FLOAT,
+    f64 > TAG_DOUBLE
 );
 
 impl NBTSerializable for bool {
-    fn serialize(&self, buf: &mut Vec<u8>, options: & NBTSerializeOptions<'_> ) {
+    fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
         write_header::<Self>(buf, options);
         buf.push(if *self { 1 } else { 0 });
     }
@@ -51,7 +51,7 @@ impl NBTSerializable for bool {
 }
 
 impl NBTSerializable for String {
-    fn serialize(&self, buf: &mut Vec<u8>, options: & NBTSerializeOptions<'_> ) {
+    fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
         self.as_str().serialize(buf, options);
     }
 
@@ -60,9 +60,8 @@ impl NBTSerializable for String {
     }
 }
 
-
 impl NBTSerializable for &str {
-    fn serialize(&self, buf: &mut Vec<u8>, options: & NBTSerializeOptions<'_> ) {
+    fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
         write_header::<Self>(buf, options);
         let bytes = self.as_bytes();
         (bytes.len() as u16).serialize(buf, &NBTSerializeOptions::None);
@@ -74,25 +73,41 @@ impl NBTSerializable for &str {
     }
 }
 
-impl<T: NBTSerializable> NBTSerializable for Vec<T> {
-    fn serialize(&self, buf: &mut Vec<u8>, options: & NBTSerializeOptions<'_> ) {
+impl<T: NBTSerializable +std::fmt::Debug> NBTSerializable for Vec<T> {
+    fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
         write_header::<Self>(buf, options);
+
+        let is_special = [TAG_BYTE_ARRAY, TAG_INT_ARRAY, TAG_LONG_ARRAY].contains(&Self::id());
         
-        let is_special = [TAG_BYTE_ARRAY, TAG_INT_ARRAY, TAG_LONG_ARRAY].contains(&T::id());
         if !is_special {
             buf.push(T::id());
         }
 
-        (self.len() as i32).serialize(buf, options);
+        (self.len() as i32).serialize(buf, &NBTSerializeOptions::None);
 
         if is_special {
-            // T is i8, u8 ... f64 , therefore we can just serialize the whole slice
-            let bytes = unsafe {
-                std::slice::from_raw_parts(self.as_ptr() as *const u8, self.len() * size_of::<T>())
-            };
-            buf.extend_from_slice(bytes);
-        } 
-        else {
+            match Self::id() {
+                TAG_BYTE_ARRAY => {
+                    let bytes = unsafe {
+                        std::slice::from_raw_parts(self.as_ptr() as *const u8, self.len())
+                    };
+                    buf.extend_from_slice(bytes);
+                }
+                TAG_INT_ARRAY => {
+                    let bytes = unsafe {crate::simd_utils::u32_slice_to_u8_be(
+                        std::slice::from_raw_parts(self.as_ptr() as *const u32, self.len())
+                    )};
+                    buf.extend_from_slice(bytes.as_slice());
+                }
+                TAG_LONG_ARRAY => {
+                    let bytes = unsafe {crate::simd_utils::u64_slice_to_u8_be(
+                        std::slice::from_raw_parts(self.as_ptr() as *const u64, self.len())
+                    )};
+                    buf.extend_from_slice(&bytes);
+                }
+                _ => unreachable!(),
+            }
+        } else {
             for item in self {
                 item.serialize(buf, options);
             }
@@ -111,7 +126,7 @@ impl<T: NBTSerializable> NBTSerializable for Vec<T> {
 }
 
 impl<T: NBTSerializable> NBTSerializable for Option<T> {
-    fn serialize(&self, buf: &mut Vec<u8>, options: & NBTSerializeOptions<'_> ) {
+    fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
         match self {
             Some(value) => {
                 value.serialize(buf, options);
@@ -125,13 +140,12 @@ impl<T: NBTSerializable> NBTSerializable for Option<T> {
     }
 }
 
-
 mod hashmaps {
-    use crate::ser::NBTSerializeOptions;
     use super::*;
+    use crate::ser::NBTSerializeOptions;
     impl<T: NBTSerializable> NBTSerializable for std::collections::HashMap<String, T> {
         //! Equivalent to a COMPOUND tag in NBT.
-        fn serialize(&self, buf: &mut Vec<u8>, options: & NBTSerializeOptions<'_> ) {
+        fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
             write_header::<Self>(buf, options);
 
             for (key, value) in self {
@@ -140,7 +154,7 @@ mod hashmaps {
                 key.serialize(buf, &NBTSerializeOptions::None);
                 value.serialize(buf, &NBTSerializeOptions::None);
             }
- 
+
             // compounds need an ending tag too
             if let NBTSerializeOptions::WithHeader(_) = options {
                 // end tag
@@ -153,9 +167,11 @@ mod hashmaps {
         }
     }
 }
-fn write_header<T: NBTSerializable>(buf: &mut Vec<u8>, opts: & NBTSerializeOptions<'_>) {
+fn write_header<T: NBTSerializable>(buf: &mut Vec<u8>, opts: &NBTSerializeOptions<'_>) {
     // tag type ; name length; name
-    let NBTSerializeOptions::WithHeader(name) = opts else { return };
+    let NBTSerializeOptions::WithHeader(name) = opts else {
+        return;
+    };
 
     T::id().serialize(buf, &NBTSerializeOptions::None);
     name.serialize(buf, &NBTSerializeOptions::None);

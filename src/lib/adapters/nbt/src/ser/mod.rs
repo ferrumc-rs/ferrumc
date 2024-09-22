@@ -1,7 +1,7 @@
 mod r#impl;
 
 pub trait NBTSerializable {
-    fn serialize(&self, buf: &mut Vec<u8>, options: & NBTSerializeOptions<'_> );
+    fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>);
     fn id() -> u8;
 }
 

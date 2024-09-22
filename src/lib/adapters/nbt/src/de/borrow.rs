@@ -1,662 +1,609 @@
-use crate::errors::NBTError;
-use std::arch::x86_64::{
-    __m128i, _mm_loadu_si128, _mm_setr_epi8, _mm_shuffle_epi8, _mm_storeu_si128,
-};
-use std::collections::HashMap;
-use std::io::Read;
-use std::str;
+use crate::de::converter::FromNbt;
 
-/// Represents a token in the NBT tape.
+#[repr(u8)]
 #[derive(Debug, PartialEq, Clone)]
-pub enum NbtToken<'a> {
-    TagStart { tag_type: u8, name: Option<&'a str> },
-    TagEnd,
+pub enum NbtTag {
+    End = 0,
+    Byte = 1,
+    Short = 2,
+    Int = 3,
+    Long = 4,
+    Float = 5,
+    Double = 6,
+    ByteArray = 7,
+    String = 8,
+    List = 9,
+    Compound = 10,
+    IntArray = 11,
+    LongArray = 12,
+}
+
+impl From<u8> for NbtTag {
+    fn from(tag: u8) -> Self {
+        match tag {
+            0 => NbtTag::End,
+            1 => NbtTag::Byte,
+            2 => NbtTag::Short,
+            3 => NbtTag::Int,
+            4 => NbtTag::Long,
+            5 => NbtTag::Float,
+            6 => NbtTag::Double,
+            7 => NbtTag::ByteArray,
+            8 => NbtTag::String,
+            9 => NbtTag::List,
+            10 => NbtTag::Compound,
+            11 => NbtTag::IntArray,
+            12 => NbtTag::LongArray,
+            _ => panic!("Invalid NbtTag: {}", tag),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum NbtTapeElement<'a> {
+    End,
     Byte(i8),
     Short(i16),
     Int(i32),
     Long(i64),
     Float(f32),
     Double(f64),
-    ByteArray(&'a [u8]),
+    ByteArray(&'a [i8]),
     String(&'a str),
-    ListStart { element_type: u8, length: usize },
-    ListEnd,
-    IntArray(&'a [i32]),
-    LongArray(&'a [i64]),
+    List {
+        el_type: NbtTag,
+        size: usize,
+        elements_pos: usize,
+    },
+    // For better cache locality. It's way faster than hashmaps.
+    // Although lookups are O(n), the n is very small.
+    // But the data is big so it's worth it.
+    Compound(Vec<(&'a str, NbtTapeElement<'a>)>),
+    // This is owned data because of SIMD
+    IntArray(Vec<i32>),
+    LongArray(Vec<i64>),
 }
 
-/// NBT parser using a tape-based approach.
-/// Please use Clone carefully.
-#[derive(Debug, Clone)]
-pub struct NbtParser<'a> {
+impl NbtTapeElement<'_> {
+    pub const fn nbt_type(&self) -> &'static str {
+        match self {
+            NbtTapeElement::End => "End",
+            NbtTapeElement::Byte(_) => "Byte",
+            NbtTapeElement::Short(_) => "Short",
+            NbtTapeElement::Int(_) => "Int",
+            NbtTapeElement::Long(_) => "Long",
+            NbtTapeElement::Float(_) => "Float",
+            NbtTapeElement::Double(_) => "Double",
+            NbtTapeElement::ByteArray(_) => "ByteArray",
+            NbtTapeElement::String(_) => "String",
+            NbtTapeElement::List { .. } => "List",
+            NbtTapeElement::Compound(_) => "Compound",
+            NbtTapeElement::IntArray(_) => "IntArray",
+            NbtTapeElement::LongArray(_) => "LongArray",
+        }
+    }
+}
+
+pub struct NbtTape<'a> {
     data: &'a [u8],
     pos: usize,
-    tape: Vec<NbtToken<'a>>,
-
+    depth: usize,
+    // => The root tag is always a compound tag.
+    pub root: Option<(&'a str, NbtTapeElement<'a>)>,
 }
 
-impl<'a> NbtParser<'a> {
-    /// Creates a new `NbtParser` from the given data slice.
-    pub fn new(data: &'a [u8]) -> NbtParser<'a> {
-        NbtParser {
+impl<'a> NbtTapeElement<'a> {
+    pub fn get(&self, key: &str) -> Option<&NbtTapeElement<'a>> {
+        match self {
+            NbtTapeElement::Compound(elements) => {
+                for (name, element) in elements {
+                    if name == &key {
+                        return Some(element);
+                    }
+                }
+                None
+            }
+            _ => None,
+        }
+    }
+
+    pub fn as_compound(&self) -> Option<&Vec<(&'a str, NbtTapeElement<'a>)>> {
+        match self {
+            NbtTapeElement::Compound(elements) => Some(elements),
+            _ => None,
+        }
+    }
+
+    /*pub fn as_list<T: NbtDeserializable<'a>>(&self, tape: &NbtTape<'a>) -> Option<Vec<T>> {
+        tape.unpack_list(self)
+    }*/
+    pub fn as_list<T: FromNbt<'a>>(&self, tape: &NbtTape<'a>) -> Option<Vec<T>> {
+        tape.unpack_list(self)
+    }
+}
+
+impl<'a> NbtTape<'a> {
+    // Data must live for atleast 'a
+    pub fn new(data: &'a [u8]) -> Self {
+        Self {
             data,
             pos: 0,
-            tape: Vec::new(),
+            depth: 0,
+            root: None,
         }
     }
 
-    /// Parses the NBT data and returns the tape of tokens.
-    pub fn parse(&'a mut self) -> Result<&[NbtToken<'a>], NBTError> {
-        if Self::is_compressed(self.data) {
-            return Err(NBTError::CompressedData);
-        }
-
-        let tag_type = self.read_u8()?;
-        if tag_type != 10 {
-            return Err(NBTError::InvalidRootCompound(tag_type));
-        }
-        let name = self.parse_string()?;
-        self.tape.push(NbtToken::TagStart {
-            tag_type,
-            name: Some(name),
-        });
-        self.parse_payload(tag_type)?;
-        self.tape.push(NbtToken::TagEnd);
-        Ok(&self.tape)
+    pub fn parse(&mut self) {
+        self.parse_tag();
     }
 
-    /// Decompresses the given NBT data.
-    pub fn decompress(data: &[u8]) -> Result<Vec<u8>, NBTError> {
-        if !Self::is_compressed(data) {
-            return Ok(data.to_vec());
+    fn parse_tag(&mut self) {
+        let tag = NbtTag::from(self.read_byte());
+        if tag != NbtTag::Compound {
+            panic!("Root tag must be a compound tag! Instead got: {:?}", tag);
         }
 
-        let mut decoder = libflate::gzip::Decoder::new(data)?;
-        let mut decompressed = Vec::new();
-        decoder.read_to_end(&mut decompressed)?;
-        Ok(decompressed)
+        let name: &str = <&str>::parse_from_nbt(self, NbtDeserializableOptions::None);
+
+        self.root = Some((
+            name,
+            NbtTapeElement::parse_from_nbt(
+                self,
+                NbtDeserializableOptions::TagType(NbtTag::Compound),
+            ),
+        ));
     }
 
-    pub(crate) fn is_compressed(data: &[u8]) -> bool {
-        data.starts_with(&[0x1F, 0x8B])
-    }
-
-    fn parse_string(&mut self) -> Result<&'a str, NBTError> {
-        let len = self.read_u16()? as usize;
-        if self.pos + len > self.data.len() {
-            return Err(NBTError::UnexpectedEndOfData);
-        }
-
-        // SAFETY: We just checked that the data is long enough.
-        let s = unsafe { str::from_utf8_unchecked(&self.data[self.pos..self.pos + len]) };
-        self.pos += len;
-        Ok(s)
-    }
-
-    fn parse_payload(&mut self, tag_type: u8) -> Result<(), NBTError> {
-        match tag_type {
-            0 => Ok(()),
-            1 => {
-                // TAG_Byte
-                let v = self.read_i8()?;
-                self.tape.push(NbtToken::Byte(v));
-                Ok(())
-            }
-            2 => {
-                // TAG_Short
-                let v = self.read_i16()?;
-                self.tape.push(NbtToken::Short(v));
-                Ok(())
-            }
-            3 => {
-                // TAG_Int
-                let v = self.read_i32()?;
-                self.tape.push(NbtToken::Int(v));
-                Ok(())
-            }
-            4 => {
-                // TAG_Long
-                let v = self.read_i64()?;
-                self.tape.push(NbtToken::Long(v));
-                Ok(())
-            }
-            5 => {
-                // TAG_Float
-                let v = self.read_f32()?;
-                self.tape.push(NbtToken::Float(v));
-                Ok(())
-            }
-            6 => {
-                // TAG_Double
-                let v = self.read_f64()?;
-                self.tape.push(NbtToken::Double(v));
-                Ok(())
-            }
-            7 => {
-                // TAG_Byte_Array
-                let len = self.read_i32()? as usize;
-                if self.pos + len > self.data.len() {
-                    return Err(NBTError::UnexpectedEndOfData);
-                }
-                let v = &self.data[self.pos..self.pos + len];
-                self.pos += len;
-                self.tape.push(NbtToken::ByteArray(v));
-                Ok(())
-            }
-            8 => {
-                // TAG_String
-                let s = self.parse_string()?;
-                self.tape.push(NbtToken::String(s));
-                Ok(())
-            }
-            9 => {
-                // TAG_List
-                let item_type = self.read_u8()?;
-                let len = self.read_i32()? as usize;
-                self.tape.push(NbtToken::ListStart {
-                    element_type: item_type,
-                    length: len,
-                });
-                for _ in 0..len {
-                    self.parse_payload(item_type)?;
-                }
-                self.tape.push(NbtToken::ListEnd);
-                Ok(())
-            }
-            10 => {
-                // TAG_Compound
-                loop {
-                    let tag_type = self.read_u8()?;
-                    if tag_type == 0 {
-                        break;
-                    }
-                    let name = self.parse_string()?;
-                    self.tape.push(NbtToken::TagStart {
-                        tag_type,
-                        name: Some(name),
-                    });
-                    self.parse_payload(tag_type)?;
-                    self.tape.push(NbtToken::TagEnd);
-                }
-                Ok(())
-            }
-            11 => {
-                // TAG_Int_Array
-                let len = self.read_i32()? as usize;
-                let array = self.read_i32_array(len)?;
-                self.tape.push(NbtToken::IntArray(array));
-                Ok(())
-            }
-            12 => {
-                // TAG_Long_Array
-                let len = self.read_i32()? as usize;
-                let array = self.read_i64_array(len)?;
-                self.tape.push(NbtToken::LongArray(array));
-                Ok(())
-            }
-            _ => unreachable!("Invalid tag type: {}", tag_type),
-        }
-    }
-
-    /// Reads an u8 from the data.
-    #[inline(always)]
-    fn read_u8(&mut self) -> Result<u8, NBTError> {
-        if self.pos >= self.data.len() {
-            return Err(NBTError::UnexpectedEndOfData);
-        }
-        let v = unsafe { *self.data.get_unchecked(self.pos) };
+    #[inline]
+    fn read_byte(&mut self) -> u8 {
+        let byte = self.data[self.pos];
         self.pos += 1;
-        Ok(v)
+        byte
     }
 
-    /// Reads an i8 from the data.
-    #[inline(always)]
-    fn read_i8(&mut self) -> Result<i8, NBTError> {
-        Ok(self.read_u8()? as i8)
+    #[inline]
+    fn read_n_bytes(&mut self, n: usize) -> &'a [u8] {
+        let start = self.pos;
+        self.pos += n;
+        &self.data[start..self.pos]
     }
 
-    /// Reads a big-endian u16 from the data.
-    #[inline(always)]
-    fn read_u16(&mut self) -> Result<u16, NBTError> {
-        if self.pos + 2 > self.data.len() {
-            return Err(NBTError::UnexpectedEndOfData);
+    pub fn get(&self, key: &str) -> Option<&NbtTapeElement<'a>> {
+        let res = self
+            .root
+            .as_ref()
+            .map(|(_, element)| element.get(key));
+
+        res.flatten()
+    }
+
+    /*pub fn get_and_unpack_list<T: NbtDeserializable<'a>>(&self, key: &str) -> Option<Vec<T>> {
+        let res = self.get(key)?;
+        self.unpack_list(res)
+    }*/
+
+    pub fn unpack_list<T: FromNbt<'a>>(
+        &self,
+        element: &NbtTapeElement<'a>,
+    ) -> Option<Vec<T>> {
+        match element {
+            NbtTapeElement::List {
+                elements_pos,
+                size,
+                el_type,
+            } => {
+                let mut tape = NbtTape {
+                    data: self.data,
+                    pos: *elements_pos,
+                    depth: 0,
+                    root: None,
+                };
+                let mut elements = vec![];
+                for _ in 0..*size {
+                    /*let element = T::parse_from_nbt(
+                        &mut tape,
+                        NbtDeserializableOptions::TagType(el_type.clone()),
+                    );
+                    elements.push(element);*/
+                    let nbt_element = NbtTapeElement::parse_from_nbt(
+                        &mut tape,
+                        NbtDeserializableOptions::TagType(el_type.clone()),
+                    );
+                    
+                    let element = T::from_nbt(&tape, &nbt_element).unwrap();
+                    
+                    elements.push(element);
+                }
+                Some(elements)
+            }
+            NbtTapeElement::ByteArray(data) => {
+                // I mean you wouldn't want to get the wrong type of data right?
+                let data_vec = (*data).to_vec();
+                let data = unsafe {
+                    std::mem::transmute::<Vec<i8>, Vec<T>>(data_vec)
+                };
+
+                if size_of::<T>() != size_of::<i8>() {
+                    panic!("Invalid type conversion!");
+                }
+
+                // safety: there is none :) jk its a byte array so its fine
+                // todo: revisit and see if this is actually safe
+                // let data = unsafe { 
+                //     std::mem::forget(data);
+                //     Vec::from_raw_parts(data.as_ptr() as *mut T, data.len(), data.len()) 
+                // };
+
+                Some(data)
+            }
+            NbtTapeElement::IntArray(data) => {
+                let data = data.clone();
+                let data = unsafe {
+                    std::mem::transmute::<Vec<i32>, Vec<T>>(data)
+                };
+                Some(data)
+            }
+            NbtTapeElement::LongArray(data) => {
+                let data = data.clone();
+                let data = unsafe {
+                    std::mem::transmute::<Vec<i64>, Vec<T>>(data)
+                };
+                Some(data)
+            }
+            _ => None,
         }
-        let v = unsafe {
-            u16::from_be_bytes([
-                *self.data.get_unchecked(self.pos),
-                *self.data.get_unchecked(self.pos + 1),
+    }
+
+    pub fn unpack_list_sliced<T: NbtDeserializable<'a>>(
+        &self,
+        element: &NbtTapeElement<'a>,
+    ) -> Option<&'a [T]> {
+        match element {
+            NbtTapeElement::ByteArray(data) => {
+                // I mean you wouldn't want to get the wrong type of data right?
+                if size_of::<T>() != size_of::<i8>() {
+                    return None;
+                }
+                let data = unsafe {
+                    std::mem::transmute::<&[i8], &[T]>(data)
+                };
+
+                Some(data)
+            }
+            NbtTapeElement::IntArray(data) => {
+                
+                if size_of::<T>() != size_of::<i32>() {
+                    return None;
+                }
+                
+                let data = data.as_slice();
+                let data = unsafe {
+                    std::mem::transmute::<&[i32], &[T]>(data)
+                };
+
+                Some(data)
+            }
+            NbtTapeElement::LongArray(data) => {
+                
+                if size_of::<T>() != size_of::<i64>() {
+                    return None;
+                }
+                
+                let data = data.as_slice();
+                let data = unsafe {
+                    std::mem::transmute::<&[i64], &[T]>(data)
+                };
+
+                Some(data)
+            }
+            
+            _ => None,
+        }
+    }
+}
+impl<'a> NbtTape<'a> {
+    /// Skips over a single tag based on its type.
+    fn skip_tag(&mut self, tag: u8) -> usize {
+        let start_pos = self.pos;
+        match NbtTag::from(tag) {
+            NbtTag::End => {
+                // End tag has no payload.
+            }
+            NbtTag::Byte => {
+                self.pos += 1;
+            }
+            NbtTag::Short => {
+                self.pos += 2;
+            }
+            NbtTag::Int | NbtTag::Float => {
+                self.pos += 4;
+            }
+            NbtTag::Long | NbtTag::Double => {
+                self.pos += 8;
+            }
+            NbtTag::ByteArray => {
+                // ByteArray: 4-byte length followed by 'length' bytes.
+                let length = i32::parse_from_nbt(self, NbtDeserializableOptions::None) as usize;
+                self.pos += length;
+            }
+            NbtTag::String => {
+                // String: 2-byte length followed by 'length' bytes.
+                let length = u16::parse_from_nbt(self, NbtDeserializableOptions::None) as usize;
+                self.pos += length;
+            }
+            NbtTag::List => {
+                // List: 1-byte element type, 4-byte length, followed by elements.
+                let el_type = self.read_byte();
+                let length = i32::parse_from_nbt(self, NbtDeserializableOptions::None) as usize;
+                self.skip_list(el_type, length);
+            }
+            NbtTag::Compound => {
+                // Compound: Contains named tags until an End tag.
+                self.skip_compound();
+            }
+            NbtTag::IntArray => {
+                // IntArray: 4-byte length followed by 'length' * 4 bytes.
+                let length = i32::parse_from_nbt(self, NbtDeserializableOptions::None) as usize;
+                self.pos += length * 4;
+            }
+            NbtTag::LongArray => {
+                // LongArray: 4-byte length followed by 'length' * 8 bytes.
+                let length = i32::parse_from_nbt(self, NbtDeserializableOptions::None) as usize;
+                self.pos += length * 8;
+            }
+        }
+        self.pos - start_pos
+    }
+
+    /// Skips over a list's elements based on element type and length.
+    fn skip_list(&mut self, el_type: u8, length: usize) -> usize {
+        let start_pos = self.pos;
+        for _ in 0..length {
+            self.skip_tag(el_type);
+        }
+        self.pos - start_pos
+    }
+
+    /// Skips over a compound's elements until an End tag is encountered.
+    fn skip_compound(&mut self) -> usize {
+        let start_pos = self.pos;
+        loop {
+            let tag_byte = self.read_byte();
+            let tag = NbtTag::from(tag_byte);
+            if tag == NbtTag::End {
+                break;
+            }
+            // Skip the name: 2-byte length + name bytes.
+            let name_length = u16::parse_from_nbt(self, NbtDeserializableOptions::None) as usize;
+            self.pos += name_length;
+            // Skip the tag's payload.
+            self.skip_tag(tag as u8);
+        }
+        self.pos - start_pos
+    }
+}
+
+pub enum NbtDeserializableOptions {
+    None,
+    TagType(NbtTag),
+}
+pub trait NbtDeserializable<'a>: Sized {
+    fn parse_from_bytes(data: &'a [u8]) -> Self;
+    fn parse_from_nbt(tape: &mut NbtTape<'a>, _opts: NbtDeserializableOptions) -> Self {
+        //! By default, this function directly reads the bytes
+        //! from the tape and BE deserializes them.
+
+        // Read from current pos ~ pos + size_of::<Self>()
+        Self::parse_from_bytes(tape.read_n_bytes(size_of::<Self>()))
+    }
+}
+
+mod primitives {
+    use super::NbtDeserializable;
+    impl<'a> NbtDeserializable<'a> for i8 {
+        fn parse_from_bytes(data: &[u8]) -> Self {
+            data[0] as i8
+        }
+    }
+    impl<'a> NbtDeserializable<'a> for u8 {
+        fn parse_from_bytes(data: &[u8]) -> Self {
+            u8::from_be_bytes([data[0]])
+        }
+    }
+    impl<'a> NbtDeserializable<'a> for i16 {
+        fn parse_from_bytes(data: &[u8]) -> Self {
+            i16::from_be_bytes([data[0], data[1]])
+        }
+    }
+
+    impl<'a> NbtDeserializable<'a> for u16 {
+        fn parse_from_bytes(data: &[u8]) -> Self {
+            u16::from_be_bytes([data[0], data[1]])
+        }
+    }
+
+    impl<'a> NbtDeserializable<'a> for i32 {
+        fn parse_from_bytes(data: &[u8]) -> Self {
+            i32::from_be_bytes([data[0], data[1], data[2], data[3]])
+        }
+    }
+
+    impl<'a> NbtDeserializable<'a> for u32 {
+        fn parse_from_bytes(data: &[u8]) -> Self {
+            u32::from_be_bytes([data[0], data[1], data[2], data[3]])
+        }
+    }
+
+    impl<'a> NbtDeserializable<'a> for i64 {
+        fn parse_from_bytes(data: &[u8]) -> Self {
+            i64::from_be_bytes([
+                data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7],
             ])
-        };
-        self.pos += 2;
-        Ok(v)
-    }
-
-    /// Reads a big-endian i16 from the data.
-    #[inline(always)]
-    fn read_i16(&mut self) -> Result<i16, NBTError> {
-        Ok(self.read_u16()? as i16)
-    }
-
-    /// Reads a big-endian u32 from the data.
-    #[inline(always)]
-    fn read_u32(&mut self) -> Result<u32, NBTError> {
-        if self.pos + 4 > self.data.len() {
-            return Err(NBTError::UnexpectedEndOfData);
         }
-        let v = unsafe {
-            u32::from_be_bytes([
-                *self.data.get_unchecked(self.pos),
-                *self.data.get_unchecked(self.pos + 1),
-                *self.data.get_unchecked(self.pos + 2),
-                *self.data.get_unchecked(self.pos + 3),
-            ])
-        };
-        self.pos += 4;
-        Ok(v)
     }
 
-    /// Reads a big-endian i32 from the data.
-    #[inline(always)]
-    fn read_i32(&mut self) -> Result<i32, NBTError> {
-        Ok(self.read_u32()? as i32)
-    }
-
-    /// Reads a big-endian u64 from the data.
-    #[inline(always)]
-    fn read_u64(&mut self) -> Result<u64, NBTError> {
-        if self.pos + 8 > self.data.len() {
-            return Err(NBTError::UnexpectedEndOfData);
-        }
-        let v = unsafe {
+    impl<'a> NbtDeserializable<'a> for u64 {
+        fn parse_from_bytes(data: &[u8]) -> Self {
             u64::from_be_bytes([
-                *self.data.get_unchecked(self.pos),
-                *self.data.get_unchecked(self.pos + 1),
-                *self.data.get_unchecked(self.pos + 2),
-                *self.data.get_unchecked(self.pos + 3),
-                *self.data.get_unchecked(self.pos + 4),
-                *self.data.get_unchecked(self.pos + 5),
-                *self.data.get_unchecked(self.pos + 6),
-                *self.data.get_unchecked(self.pos + 7),
+                data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7],
             ])
-        };
-        self.pos += 8;
-        Ok(v)
-    }
-
-    /// Reads a big-endian i64 from the data.
-    #[inline(always)]
-    fn read_i64(&mut self) -> Result<i64, NBTError> {
-        Ok(self.read_u64()? as i64)
-    }
-
-    /// Reads a big-endian f32 from the data.
-    #[inline(always)]
-    fn read_f32(&mut self) -> Result<f32, NBTError> {
-        let bits = self.read_u32()?;
-        Ok(f32::from_bits(bits))
-    }
-
-    /// Reads a big-endian f64 from the data.
-    #[inline(always)]
-    fn read_f64(&mut self) -> Result<f64, NBTError> {
-        let bits = self.read_u64()?;
-        Ok(f64::from_bits(bits))
-    }
-
-
-    /// Reads an array of i32 from the data using SIMD when possible, supporting unaligned data.
-    fn read_i32_array(&mut self, len: usize) -> Result<&'a [i32], NBTError> {
-        let byte_len = len * size_of::<i32>();
-        if self.pos + byte_len > self.data.len() {
-            return Err(NBTError::UnexpectedEndOfData);
         }
-        let bytes = &self.data[self.pos..self.pos + byte_len];
-
-        // Create a new aligned buffer
-        let mut aligned_buffer = vec![0i32; len];
-
-        unsafe {
-            let mut src_pos = 0;
-            let mut dst_pos = 0;
-            let mut remaining = len;
-
-            // Use SIMD for chunks of 4 i32s
-            while remaining >= 4 && src_pos + 16 <= byte_len {
-                #[allow(clippy::cast_ptr_alignment)]
-                let simd_bytes = _mm_loadu_si128(bytes[src_pos..].as_ptr() as *const __m128i);
-                let simd_ints = _mm_shuffle_epi8(
-                    simd_bytes,
-                    _mm_setr_epi8(3, 2, 1, 0, 7, 6, 5, 4, 11, 10, 9, 8, 15, 14, 13, 12),
-                );
-                #[allow(clippy::cast_ptr_alignment)]
-                _mm_storeu_si128(
-                    aligned_buffer[dst_pos..].as_mut_ptr() as *mut __m128i,
-                    simd_ints,
-                );
-                src_pos += 16;
-                dst_pos += 4;
-                remaining -= 4;
-            }
-
-            // Handle remaining elements
-            while remaining > 0 {
-                aligned_buffer[dst_pos] = i32::from_be_bytes([
-                    bytes[src_pos],
-                    bytes[src_pos + 1],
-                    bytes[src_pos + 2],
-                    bytes[src_pos + 3],
-                ]);
-                src_pos += 4;
-                dst_pos += 1;
-                remaining -= 1;
-            }
-        }
-
-        self.pos += byte_len;
-
-        // Convert the Vec<i32> to a &'a [i32]
-        // This is safe because we're leaking the memory, which will live for 'a
-        let leaked_slice = aligned_buffer.leak();
-        Ok(leaked_slice)
     }
 
-    /// Reads an array of i64 from the data using SIMD when possible, supporting unaligned data.
-    fn read_i64_array(&mut self, len: usize) -> Result<&'a [i64], NBTError> {
-        let byte_len = len * size_of::<i64>();
-        if self.pos + byte_len > self.data.len() {
-            return Err(NBTError::UnexpectedEndOfData);
+    impl<'a> NbtDeserializable<'a> for f32 {
+        fn parse_from_bytes(data: &[u8]) -> Self {
+            f32::from_be_bytes([data[0], data[1], data[2], data[3]])
         }
-        let bytes = &self.data[self.pos..self.pos + byte_len];
-
-        // Create a new aligned buffer
-        let mut aligned_buffer = vec![0i64; len];
-
-        unsafe {
-            let mut src_pos = 0;
-            let mut dst_pos = 0;
-            let mut remaining = len;
-
-            // Use SIMD for chunks of 2 i64s
-            while remaining >= 2 && src_pos + 16 <= byte_len {
-                #[allow(clippy::cast_ptr_alignment)]
-                let simd_bytes = _mm_loadu_si128(bytes[src_pos..].as_ptr() as *const __m128i);
-                let simd_longs = _mm_shuffle_epi8(
-                    simd_bytes,
-                    _mm_setr_epi8(7, 6, 5, 4, 3, 2, 1, 0, 15, 14, 13, 12, 11, 10, 9, 8),
-                );
-                #[allow(clippy::cast_ptr_alignment)]
-                _mm_storeu_si128(
-                    aligned_buffer[dst_pos..].as_mut_ptr() as *mut __m128i,
-                    simd_longs,
-                );
-                src_pos += 16;
-                dst_pos += 2;
-                remaining -= 2;
-            }
-
-            // Handle remaining elements
-            while remaining > 0 {
-                aligned_buffer[dst_pos] = i64::from_be_bytes([
-                    bytes[src_pos],
-                    bytes[src_pos + 1],
-                    bytes[src_pos + 2],
-                    bytes[src_pos + 3],
-                    bytes[src_pos + 4],
-                    bytes[src_pos + 5],
-                    bytes[src_pos + 6],
-                    bytes[src_pos + 7],
-                ]);
-                src_pos += 8;
-                dst_pos += 1;
-                remaining -= 1;
-            }
-        }
-
-        self.pos += byte_len;
-
-        // Convert the Vec<i64> to a &'a [i64]
-        // This is safe because we're leaking the memory, which will live for 'a
-        let leaked_slice = aligned_buffer.leak();
-        Ok(leaked_slice)
     }
 
+    impl<'a> NbtDeserializable<'a> for f64 {
+        fn parse_from_bytes(data: &[u8]) -> Self {
+            f64::from_be_bytes([
+                data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7],
+            ])
+        }
+    }
+
+    impl<'a> NbtDeserializable<'a> for bool {
+        fn parse_from_bytes(data: &[u8]) -> Self {
+            data[0] != 0
+        }
+    }
 }
 
-#[derive(Debug)]
-pub struct NbtCompoundView<'a, 'b> {
-    tape: &'b [NbtToken<'a>],
-    start: usize,
-    end: usize,
-    pub(crate) children: HashMap<&'a str, usize>,
-}
+mod taped {
+    use super::*;
 
-impl<'a, 'b> NbtCompoundView<'a, 'b> {
-    pub fn new(tape: &'b [NbtToken<'a>], start: usize) -> Self {
-        let mut view = NbtCompoundView {
-            tape,
-            start,
-            end: tape.len() - 1, // Assume the last TagEnd belongs to this compound
-            children: HashMap::new(),
-        };
-        view.parse();
-        view
-    }
+    impl<'a> NbtDeserializable<'a> for NbtTapeElement<'a> {
+        fn parse_from_bytes(data: &'a [u8]) -> Self {
+            let mut tape = NbtTape::new(data);
+            let opts = NbtDeserializableOptions::TagType(NbtTag::Compound);
+            Self::parse_from_nbt(&mut tape, opts)
+        }
 
-    fn parse(&mut self) {
-        let mut i = self.start + 1; // Start after the TagStart of this compound
-        while i < self.tape.len() {
-            match &self.tape[i] {
-                NbtToken::TagStart {
-                    name: Some(tag_name),
-                    ..
-                } => {
-                    self.children.insert(tag_name, i);
-                    // Skip to the end of this tag
-                    i = self.find_tag_end(i) + 1;
+        fn parse_from_nbt(tape: &mut NbtTape<'a>, opts: NbtDeserializableOptions) -> Self {
+            let tag = match opts {
+                NbtDeserializableOptions::None => panic!("NbtTapeElement must have a tag type!"),
+                NbtDeserializableOptions::TagType(tag) => tag,
+            };
+            match tag {
+                NbtTag::End => NbtTapeElement::End,
+                NbtTag::Byte => {
+                    NbtTapeElement::Byte(i8::parse_from_nbt(tape, NbtDeserializableOptions::None))
                 }
-                NbtToken::TagEnd => {
-                    // This TagEnd might belong to our compound
-                    self.end = i;
-                    break;
+                NbtTag::Short => {
+                    NbtTapeElement::Short(i16::parse_from_nbt(tape, NbtDeserializableOptions::None))
                 }
-                _ => i += 1,
+                NbtTag::Int => {
+                    NbtTapeElement::Int(i32::parse_from_nbt(tape, NbtDeserializableOptions::None))
+                }
+                NbtTag::Long => {
+                    NbtTapeElement::Long(i64::parse_from_nbt(tape, NbtDeserializableOptions::None))
+                }
+                NbtTag::Float => {
+                    NbtTapeElement::Float(f32::parse_from_nbt(tape, NbtDeserializableOptions::None))
+                }
+                NbtTag::Double => NbtTapeElement::Double(f64::parse_from_nbt(
+                    tape,
+                    NbtDeserializableOptions::None,
+                )),
+                NbtTag::ByteArray => {
+                    let len = i32::parse_from_nbt(tape, NbtDeserializableOptions::None) as usize;
+                    let data = tape.read_n_bytes(len);
+                    let data = crate::simd_utils::u8_slice_to_i8(data);
+                    NbtTapeElement::ByteArray(data)
+                }
+                NbtTag::String => {
+                    let len = u16::parse_from_nbt(tape, NbtDeserializableOptions::None) as usize;
+                    let data = tape.read_n_bytes(len);
+                    // SAFETY: The string is of len and is valid utf8
+                    let data = unsafe { std::str::from_utf8_unchecked(data) };
+                    NbtTapeElement::String(data)
+                }
+                NbtTag::List => {
+                    let el_type = tape.read_byte();
+                    let size = i32::parse_from_nbt(tape, NbtDeserializableOptions::None) as usize;
+
+                    let elements_pos = tape.pos;
+
+                    // Skip the list's elements
+                    tape.skip_list(el_type, size);
+
+                    let el_type = NbtTag::from(el_type);
+                    NbtTapeElement::List {
+                        el_type,
+                        size,
+                        elements_pos,
+                    }
+                }
+                NbtTag::Compound => {
+                    tape.depth += 1;
+                    let mut elements = vec![];
+                    loop {
+                        let tag = NbtTag::from(tape.read_byte());
+                        if tag == NbtTag::End {
+                            tape.depth -= 1;
+
+                            return NbtTapeElement::Compound(elements);
+                        }
+
+                        let name = <&str>::parse_from_nbt(tape, NbtDeserializableOptions::None);
+                        let element = NbtTapeElement::parse_from_nbt(
+                            tape,
+                            NbtDeserializableOptions::TagType(tag),
+                        );
+                        elements.push((name, element));
+                    }
+                }
+                NbtTag::IntArray => {
+                    let len = i32::parse_from_nbt(tape, NbtDeserializableOptions::None) as usize;
+                    let data = tape.read_n_bytes(len * size_of::<i32>());
+                    let data = crate::simd_utils::u8_slice_to_i32_be(data);
+                    NbtTapeElement::IntArray(data)
+                }
+                NbtTag::LongArray => {
+                    let len = i32::parse_from_nbt(tape, NbtDeserializableOptions::None) as usize;
+                    let data = tape.read_n_bytes(len * size_of::<i64>());
+                    let data = crate::simd_utils::u8_slice_to_i64_be(data);
+                    NbtTapeElement::LongArray(data)
+                }
             }
         }
     }
+}
 
-    fn find_tag_end(&self, start: usize) -> usize {
-        let mut i = start + 1;
-        while i < self.tape.len() {
-            match &self.tape[i] {
-                NbtToken::TagEnd => return i,
-                NbtToken::TagStart { .. } => {
-                    // Skip nested structures
-                    i = self.find_tag_end(i) + 1;
-                }
-                _ => i += 1,
+mod general {
+    use super::*;
+
+    impl<'a> NbtDeserializable<'a> for String {
+        fn parse_from_bytes(data: &'a [u8]) -> Self {
+            //! Mustn't call this function with length prefixed data. Must only be the string itself.
+            //! Look at the implementation of `<&str>::parse_from_bytes` for more detail!
+            // SAFETY: The string is valid utf8, unless ofc, you mess up the call.
+            unsafe { std::str::from_utf8_unchecked(data) }.to_string()
+        }
+
+        fn parse_from_nbt(tape: &mut NbtTape<'a>, _opts: NbtDeserializableOptions) -> Self {
+            <&str>::parse_from_nbt(tape, NbtDeserializableOptions::None).to_string()
+        }
+    }
+
+    impl<'a> NbtDeserializable<'a> for &'a str {
+        fn parse_from_bytes(data: &'a [u8]) -> Self {
+            // This function must be called with the length buffer exactly of the string.
+            // The data must NOT be length prefixed. Just the plain utf data.
+            // (I don't know why I made it like this lmfao)
+            // SAFETY: The string is valid utf8. Not length prefixed!
+            unsafe { std::str::from_utf8_unchecked(data) }
+        }
+
+        fn parse_from_nbt(tape: &mut NbtTape<'a>, _opts: NbtDeserializableOptions) -> Self {
+            let len = u16::parse_from_nbt(tape, NbtDeserializableOptions::None) as usize;
+            if len == 0 {
+                return "";
             }
-        }
-        self.tape.len() - 1 // If no TagEnd found, return the last index
-    }
-
-    pub fn get(&self, name: &str) -> Option<NbtTokenView<'a, 'b>> {
-        self.children
-            .get(name)
-            .map(|&pos| NbtTokenView::new(self.tape, pos))
-    }
-
-    pub fn iter(&self) -> impl Iterator<Item = (&str, NbtTokenView<'a, 'b>)> + '_ {
-        self.children
-            .iter()
-            .map(|(&name, &pos)| (name, NbtTokenView::new(self.tape, pos)))
-    }
-}
-
-#[derive(Debug)]
-pub struct NbtTokenView<'a, 'b> {
-    tape: &'b [NbtToken<'a>],
-    pos: usize,
-}
-
-impl<'a, 'b> NbtTokenView<'a, 'b> {
-    pub fn new(tape: &'b [NbtToken<'a>], pos: usize) -> Self {
-        NbtTokenView { tape, pos }
-    }
-
-    pub fn token(&self) -> &NbtToken<'a> {
-        &self.tape[self.pos]
-    }
-
-    pub fn as_compound(&self) -> Option<NbtCompoundView<'a, 'b>> {
-        match self.tape[self.pos] {
-            NbtToken::TagStart { tag_type: 10, .. } => {
-                Some(NbtCompoundView::new(self.tape, self.pos))
-            }
-            _ => None,
+            let data = tape.read_n_bytes(len);
+            Self::parse_from_bytes(data)
         }
     }
-
-    pub fn as_list(&self) -> Option<NbtListView<'a, 'b>> {
-        match self.tape[self.pos] {
-            NbtToken::TagStart { tag_type: 9, .. } => Some(NbtListView::new(self.tape, self.pos)),
-            _ => None,
-        }
-    }
-
-    pub fn name(&self) -> Option<&'a str> {
-        match &self.tape[self.pos] {
-            NbtToken::TagStart { name, .. } => name.as_ref().map(|s| *s),
-            _ => None,
-        }
-    }
-
-    pub fn value(&self) -> Option<&NbtToken<'a>> {
-        match &self.tape[self.pos] {
-            NbtToken::TagStart { .. } => self.tape.get(self.pos + 1),
-            _ => Some(&self.tape[self.pos]),
-        }
-    }
-}
-
-pub struct NbtListView<'a, 'b> {
-    tape: &'b [NbtToken<'a>],
-    start: usize,
-    end: usize,
-}
-
-impl<'a, 'b> NbtListView<'a, 'b> {
-    pub fn new(tape: &'b [NbtToken<'a>], start: usize) -> Self {
-        let mut view = NbtListView {
-            tape,
-            start,
-            end: start,
-        };
-        view.parse();
-        view
-    }
-
-    fn parse(&mut self) {
-        let mut i = self.start + 2; // Start after the ListStart
-        while i < self.tape.len() {
-            match &self.tape[i] {
-                NbtToken::ListEnd => {
-                    self.end = i;
-                    break;
-                }
-                NbtToken::TagStart { .. } => {
-                    i = self.find_tag_end(i) + 1;
-                }
-                _ => i += 1,
-            }
-        }
-    }
-
-    fn find_tag_end(&self, start: usize) -> usize {
-        let mut i = start + 1;
-        while i < self.tape.len() {
-            match &self.tape[i] {
-                NbtToken::TagEnd => return i,
-                NbtToken::TagStart { .. } => {
-                    i = self.find_tag_end(i) + 1;
-                }
-                _ => i += 1,
-            }
-        }
-        self.tape.len() - 1
-    }
-
-    pub fn iter(&self) -> impl Iterator<Item = NbtTokenView<'a, 'b>> + '_ {
-        (self.start + 2..self.end).filter_map(move |i| match &self.tape[i] {
-            NbtToken::TagStart { .. }
-            | NbtToken::Byte(..)
-            | NbtToken::Short(..)
-            | NbtToken::Int(..)
-            | NbtToken::Long(..)
-            | NbtToken::Float(..)
-            | NbtToken::Double(..)
-            | NbtToken::String(..)
-            | NbtToken::ByteArray(..)
-            | NbtToken::IntArray(..)
-            | NbtToken::LongArray(..) => Some(NbtTokenView::new(self.tape, i)),
-            _ => None,
-        })
-    }
-
-    pub fn len(&self) -> usize {
-        self.end - self.start - 2
-    }
-}
-
-pub trait NbtTokenViewExt<'a> {
-    fn to_viewer(self) -> NbtTokenView<'a, 'a>;
-}
-impl<'a> NbtTokenViewExt<'a> for &'a [NbtToken<'a>] {
-    fn to_viewer(self) -> NbtTokenView<'a, 'a> {
-        NbtTokenView::new(self, 0)
-    }
-}
-
-
-
-#[cfg(test)]
-#[test]
-#[ignore]
-fn basic_usage() {
-    let bytes = include_bytes!("../../../../../../.etc/hello_world.nbt");
-
-    let mut parser = NbtParser::new(bytes);
-    let root = parser.parse().unwrap().to_viewer();
-
-    for (name, tag) in root.as_compound().unwrap().iter() {
-        println!("{}: {:?}", name, tag.token());
-    }
-}
-
-#[cfg(test)]
-#[test]
-#[ignore]
-fn owned() {
-    #[derive(Debug)]
-    struct ToDeserializeInto {
-        name: String
-    }
-
-    let bytes = include_bytes!("../../../../../../.etc/hello_world.nbt");
-
-    let mut parser = NbtParser::new(bytes);
-    let root = parser.parse().unwrap().to_viewer();
-
-    let compound = root.as_compound().unwrap();
-
-    let name = compound.get("name").unwrap();
-    let name = name.value().unwrap();
-
-    let to_deserialize_into = match name {
-        NbtToken::String(s) => ToDeserializeInto {
-            name: s.to_string()
-        },
-        _ => panic!("Expected a string")
-    };
-
-    println!("{:?}", to_deserialize_into);
 }
