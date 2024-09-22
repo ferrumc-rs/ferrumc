@@ -16,11 +16,11 @@
   - [ ] [Extism???](https://extism.org/)
 
 
-- [ ] Events
-  - [ ] Clean & Nice impl
-  - [ ] Runteim registration (for plugins)
-  - [ ] Light and efficient (heavily relied on)
-  - [ ] Cancellable Events
+- [x] Events
+  - [x] Clean & Nice impl
+  - [x] Runtime registration (for plugins)
+  - [x] Light and efficient (heavily relied on)
+  - [x] Cancellable Events
 
 
 - [ ] ECS
@@ -39,9 +39,9 @@
   - [ ] Support encoding options (omit packet size, compression, etc)
   
 
-- [ ] NBT
-  - [ ] Custom tapes based read + writer
-  - [ ] Implement methods for nbt to be network encoded
+- [x] NBT
+  - [x] Custom tapes based read + writer
+  - [x] Implement methods for nbt to be network encoded
 
 
 - [ ] Database
