@@ -1,4 +1,5 @@
-mod errors;
+pub mod errors;
+mod compressors;
 
 use std::path::PathBuf;
 use crate::errors::StorageError;

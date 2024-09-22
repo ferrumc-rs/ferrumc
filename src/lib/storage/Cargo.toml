@@ -6,3 +6,8 @@ edition = "2021"
 
 [dependencies]
 thiserror = { workspace = true }
+flate2 = { workspace = true }
+tracing = { workspace = true }
+ferrumc-profiling = { workspace = true}
+ferrumc-macros = { workspace = true }
+rand = { workspace = true }
