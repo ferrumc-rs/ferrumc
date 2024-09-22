@@ -12,7 +12,7 @@ pub(crate) mod simd_utils;
 #[cfg(test)]
 mod tests;
 
-pub(crate) type Result<T> = std::result::Result<T, errors::NBTError>;
+pub type Result<T> = std::result::Result<T, errors::NBTError>;
 
 pub use errors::NBTError;
 pub use ser::{NBTSerializable, NBTSerializeOptions};
