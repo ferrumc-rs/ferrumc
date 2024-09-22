@@ -75,10 +75,27 @@ impl NBTSerializable for &str {
 
 impl<T: NBTSerializable +std::fmt::Debug> NBTSerializable for Vec<T> {
     fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
+        self.as_slice().serialize(buf, options);
+
+    }
+
+    #[inline]
+    fn id() -> u8 {
+        match T::id() {
+            TAG_BYTE => TAG_BYTE_ARRAY,
+            TAG_INT => TAG_INT_ARRAY,
+            TAG_LONG => TAG_LONG_ARRAY,
+            _ => TAG_LIST,
+        }
+    }
+}
+
+impl<'a, T: NBTSerializable> NBTSerializable for &'a [T] {
+    fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
         write_header::<Self>(buf, options);
 
         let is_special = [TAG_BYTE_ARRAY, TAG_INT_ARRAY, TAG_LONG_ARRAY].contains(&Self::id());
-        
+
         if !is_special {
             buf.push(T::id());
         }
@@ -108,9 +125,7 @@ impl<T: NBTSerializable +std::fmt::Debug> NBTSerializable for Vec<T> {
                 _ => unreachable!(),
             }
         } else {
-            for item in self {
-                item.serialize(buf, &NBTSerializeOptions::None);
-            }
+            self.iter().for_each(|item| item.serialize(buf, &NBTSerializeOptions::None));
         }
     }
 
