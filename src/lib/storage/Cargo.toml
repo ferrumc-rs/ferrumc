@@ -13,6 +13,7 @@ ferrumc-macros = { workspace = true }
 ferrumc-utils = { workspace = true }
 rand = { workspace = true }
 zstd = { workspace = true }
+brotli = { workspace = true }
 
 
 [dev-dependencies]

@@ -1,6 +1,10 @@
 use criterion::{black_box, criterion_group, criterion_main};
 use ferrumc_storage::Compressor;
+use ferrumc_storage::compressors::brotli::BrotliCompressor;
+use ferrumc_storage::compressors::gzip::GzipCompressor;
 use ferrumc_storage::compressors::zstd::ZstdCompressor;
+use ferrumc_storage::compressors::deflate::DeflateCompressor;
+use ferrumc_storage::compressors::zlib::ZlibCompressor;
 use ferrumc_utils::root;
 
 fn zstd_compress(data: &[u8]) {
@@ -9,20 +13,93 @@ fn zstd_compress(data: &[u8]) {
     black_box(compressed);
 }
 
+fn zstd_decompress(data: &[u8]) {
+    let compressor = ZstdCompressor::new(0);
+    let decompressed = compressor.decompress(data).unwrap();
+    black_box(decompressed);
+}
+
 fn gzip_compress(data: &[u8]) {
-    let compressor = ferrumc_storage::compressors::gzip::GzipCompressor::new(6);
+    let compressor = GzipCompressor::new(6);
     let compressed = compressor.compress(data).unwrap();
     black_box(compressed);
+}
+
+fn gzip_decompress(data: &[u8]) {
+    let compressor = GzipCompressor::new(0);
+    let decompressed = compressor.decompress(data).unwrap();
+    black_box(decompressed);
+}
+
+fn deflate_compress(data: &[u8]) {
+    let compressor = DeflateCompressor::new(6);
+    let compressed = compressor.compress(data).unwrap();
+    black_box(compressed);
+}
+
+fn deflate_decompress(data: &[u8]) {
+    let compressor = DeflateCompressor::new(6);
+    let decompressed = compressor.decompress(data).unwrap();
+    black_box(decompressed);
+}
+
+fn zlib_compress(data: &[u8]) {
+    let compressor = ZlibCompressor::new(6);
+    let compressed = compressor.compress(data).unwrap();
+    black_box(compressed);
+}
+
+fn zlib_decompress(data: &[u8]) {
+    let compressor = ZlibCompressor::new(0);
+    let decompressed = compressor.decompress(data).unwrap();
+    black_box(decompressed);
+}
+
+fn brotli_compress(data: &[u8]) {
+    let compressor = BrotliCompressor::new(6);
+    let compressed = compressor.compress(data).unwrap();
+    black_box(compressed);
+}
+
+fn brotli_decompress(data: &[u8]) {
+    let compressor = BrotliCompressor::new(0);
+    let decompressed = compressor.decompress(data).unwrap();
+    black_box(decompressed);
 }
 
 fn criterion_benchmark(c: &mut criterion::Criterion) {
     let data = std::fs::read(root!(".etc/codec.nbt")).unwrap();
     let data = data.as_slice();
 
-    let mut group = c.benchmark_group("Compression");
-    group.throughput(criterion::Throughput::Bytes(data.len() as u64));
-    group.bench_function("Zstd", |b| b.iter(|| zstd_compress(black_box(data))));
-    group.bench_function("Gzip", |b| b.iter(|| gzip_compress(black_box(data))));
+    let mut compress_group = c.benchmark_group("Compression");
+    compress_group.throughput(criterion::Throughput::Bytes(data.len() as u64));
+    compress_group.bench_function("Zstd", |b| b.iter(|| zstd_compress(black_box(data))));
+    compress_group.bench_function("Gzip", |b| b.iter(|| gzip_compress(black_box(data))));
+    compress_group.bench_function("Deflate", |b| b.iter(|| deflate_compress(black_box(data))));
+    compress_group.bench_function("Zlib", |b| b.iter(|| zlib_compress(black_box(data))));
+    compress_group.bench_function("Brotli", |b| b.iter(|| brotli_compress(black_box(data))));
+    compress_group.finish();
+    
+    let zstd_compressor = ZstdCompressor::new(6);
+    let zstd_compressed = zstd_compressor.compress(data).unwrap();
+    let gzip_compressor = GzipCompressor::new(6);
+    let gzip_compressed = gzip_compressor.compress(data).unwrap();
+    let deflate_compressor = DeflateCompressor::new(6);
+    let deflate_compressed = deflate_compressor.compress(data).unwrap();
+    let zlib_compressor = ZlibCompressor::new(6);
+    let zlib_compressed = zlib_compressor.compress(data).unwrap();
+    let brotli_compressor = BrotliCompressor::new(6);
+    let brotli_compressed = brotli_compressor.compress(data).unwrap();
+    
+    let mut decompress_group = c.benchmark_group("Decompression");
+    decompress_group.throughput(criterion::Throughput::Bytes(data.len() as u64));
+    decompress_group.bench_function("Zstd", |b| b.iter(|| zstd_decompress(black_box(zstd_compressed.as_slice()))));
+    decompress_group.bench_function("Gzip", |b| b.iter(|| gzip_decompress(black_box(gzip_compressed.as_slice()))));
+    decompress_group.bench_function("Deflate", |b| b.iter(|| deflate_decompress(black_box(deflate_compressed.as_slice()))));
+    decompress_group.bench_function("Zlib", |b| b.iter(|| zlib_decompress(black_box(zlib_compressed.as_slice()))));
+    decompress_group.bench_function("Brotli", |b| b.iter(|| brotli_decompress(black_box(brotli_compressed.as_slice()))));
+    decompress_group.finish();
+    
 }
 
 criterion_group!(benches, criterion_benchmark);
