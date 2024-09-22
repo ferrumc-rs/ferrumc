@@ -1,5 +1,5 @@
 pub mod errors;
-mod compressors;
+pub mod compressors;
 
 use std::path::PathBuf;
 use crate::errors::StorageError;

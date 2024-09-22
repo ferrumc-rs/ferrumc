@@ -1,2 +1,2 @@
-mod gzip;
-mod zstd;
+pub mod gzip;
+pub mod zstd;

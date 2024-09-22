@@ -12,4 +12,14 @@ ferrumc-profiling = { workspace = true}
 ferrumc-macros = { workspace = true }
 ferrumc-utils = { workspace = true }
 rand = { workspace = true }
-zstd = "0.13.2"
+zstd = { workspace = true }
+
+
+[dev-dependencies]
+criterion = "0.5.1"
+
+[[bench]]
+name = "storage_bench"
+harness = false
+path = "src/benches/storage.rs"
+
