@@ -195,7 +195,7 @@ We welcome contributions! If you'd like to contribute to FerrumC, please follow 
 ### How does this project differ from:
 
 - **Valence**: Valence is a framework for building your own custom server by pulling in different components of their
-  library. FerrumC aims to be a potential replacement for the vanilla server. It's like
+  library. FerrumC aims to be a replacement for the vanilla server. It's like
   the difference between buying the ingredients to make a meal yourself or just buying a pre-made meal.
 - **Minestom**: Same as Valence, it's a framework to build your own server, which is different to what we are trying to
   do.
