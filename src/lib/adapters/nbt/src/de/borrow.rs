@@ -154,10 +154,6 @@ impl<'a> NbtTape<'a> {
         ));
     }
 
-    fn inspect_n_bytes(&self, start: usize, n: usize) -> &'a [u8] {
-        &self.data[start..start + n]
-    }
-
     #[inline]
     fn read_byte(&mut self) -> u8 {
         let byte = self.data[self.pos];

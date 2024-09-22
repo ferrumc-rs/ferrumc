@@ -1,5 +1,6 @@
 use proc_macro::TokenStream;
 use quote::quote;
+use crate::nbt::helpers::NbtFieldAttribute;
 
 pub fn derive(input: TokenStream) -> TokenStream {
     let input = syn::parse_macro_input!(input as syn::DeriveInput);
@@ -10,8 +11,34 @@ pub fn derive(input: TokenStream) -> TokenStream {
         let ident = field.ident.as_ref().unwrap();
         let ty = &field.ty;
         let field_name = ident.to_string();
+
+        let mut serialize_name = field_name.clone();
+
+        let attributes = NbtFieldAttribute::from_field(&field);
+        
+        let mut skip = false;
+        
+        for attr in attributes {
+            match attr {
+                NbtFieldAttribute::Rename { new_name } => {
+                    serialize_name = new_name;
+                }
+                NbtFieldAttribute::Skip => {
+                    skip = true;
+                }
+                // We don't care about optionals while serialization
+                _ => {}
+            }
+        }
+
+        if skip {
+            return quote! {
+                // Skip field
+            };
+        }
+        
         quote! {
-            <#ty as ::ferrumc_nbt::NBTSerializable>::serialize(&self.#ident, writer, &::ferrumc_nbt::NBTSerializeOptions::WithHeader(#field_name));
+            <#ty as ::ferrumc_nbt::NBTSerializable>::serialize(&self.#ident, writer, &::ferrumc_nbt::NBTSerializeOptions::WithHeader(#serialize_name));
         }
     });
 
@@ -23,7 +50,6 @@ pub fn derive(input: TokenStream) -> TokenStream {
                 match options {
                     ::ferrumc_nbt::NBTSerializeOptions::WithHeader(name) => {
                         <u8 as ferrumc_nbt::NBTSerializable>::serialize(&Self::id(), writer, &::ferrumc_nbt::NBTSerializeOptions::None);
-                        // name.serialize(writer, ::ferrumc_nbt::NBTSerializeOptions::None);
                         <&'_ str as ferrumc_nbt::NBTSerializable>::serialize(name, writer, &::ferrumc_nbt::NBTSerializeOptions::None);
                     }
                     ::ferrumc_nbt::NBTSerializeOptions::None => {}

@@ -1,3 +1,4 @@
+#![allow(dead_code)] // since some structs are there just for testing purposes (fields aren't used and it gives stupid warnings)
 #![cfg(test)]
 
 use ferrumc_macros::{NBTDeserialize, NBTSerialize};
@@ -179,18 +180,92 @@ fn create_derive_outline() {
 
 
 #[test]
-#[ignore]
-fn test_derive_macro() {
-    #[derive(NBTDeserialize, Debug)]
+fn test_basic_derive_macro() {
+    #[derive(NBTSerialize, NBTDeserialize, Debug)]
     struct HelloWorld {
-        hello: i32,
+        hello: Option<i32>,
+        #[nbt(rename = "world69420")]
         world: i32,
     }
-    
-    let data = include_bytes!("../../../../.etc/tests/compound.nbt");
-    
-    let hello_world = HelloWorld::from_bytes(data).unwrap();
-    
-    
+
+    let hello_world = HelloWorld {
+        hello: None,
+        world: 2,
+    };
+
+    let mut buffer = Vec::new();
+    hello_world.serialize_with_header(&mut buffer);
+
+
+    let hello_world = HelloWorld::from_bytes(buffer.as_slice()).unwrap();
+
     println!("{:?}", hello_world);
+}
+
+#[test]
+#[ignore]
+fn test_bigtest_with_derive() {
+    #[derive(NBTDeserialize, Debug)]
+    struct BigTest {
+        byte_test: i8,
+        short_test: i16,
+        int_test: i32,
+        float_test: f32,
+        long_test: i64,
+        double_test: f64,
+        string_test: String,
+        byte_array_test: Vec<i8>,
+        list_test_long: Vec<i64>,
+        nested_compound_test: NestedCompound,
+        list_test_compound: Vec<DatedValue>,
+    }
+
+    #[derive(NBTDeserialize, Debug)]
+    struct NestedCompound{
+        egg: NameValue,
+        ham: NameValue,
+    }
+
+    #[derive(NBTDeserialize, Debug)]
+    struct NameValue {
+        name: String,
+        value: f32,
+    }
+
+    #[derive(NBTDeserialize, Debug)]
+    struct DatedValue {
+        name: String,
+        created_on: i64,
+    }
+
+    let data = include_bytes!("../../../../.etc/bigtest.nbt");
+
+    let big_test = BigTest::from_bytes(data).unwrap();
+
+    println!("{:#?}", big_test);
+}
+
+#[test]
+fn test_skip_field() {
+    #[derive(NBTSerialize, NBTDeserialize, Debug)]
+    struct SkipField {
+        #[nbt(rename = "something else")]
+        hello: i32,
+        #[nbt(skip)]
+        world: i32,
+        some_optional: Option<i32>,
+    }
+
+    let struct_data = SkipField {
+        hello: 1,
+        world: 9372423,
+        some_optional: Some(2),
+    };
+
+    let mut buffer = Vec::new();
+    struct_data.serialize_with_header(&mut buffer);
+
+    let skip_field = SkipField::from_bytes(buffer.as_slice()).unwrap();
+
+    println!("{:#?}", skip_field);
 }

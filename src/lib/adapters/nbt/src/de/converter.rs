@@ -75,4 +75,12 @@ mod primitives {
             }
         }
     }
+
+    // optional
+    impl<'a, T: FromNbt<'a>> FromNbt<'a> for Option<T> {
+        fn from_nbt(tapes: &NbtTape<'a>, element: &NbtTapeElement<'a>) -> Result<Self> {
+            // handle optionals yourself lol (jk they're handled by the derive macro :p)
+            Ok(Some(T::from_nbt(tapes, element)?))
+        }
+    }
 }

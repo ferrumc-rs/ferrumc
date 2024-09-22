@@ -21,12 +21,12 @@ pub fn event_handler(
     events::event_handler_fn(attr, item)
 }
 
-#[proc_macro_derive(NBTDeserialize)]
+#[proc_macro_derive(NBTDeserialize, attributes(nbt))]
 pub fn nbt_ser(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     nbt::de::derive(input)
 }
 
-#[proc_macro_derive(NBTSerialize)]
+#[proc_macro_derive(NBTSerialize, attributes(nbt))]
 pub fn nbt_de(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     nbt::ser::derive(input)
 }
