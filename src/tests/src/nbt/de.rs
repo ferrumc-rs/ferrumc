@@ -1,6 +1,6 @@
 #![cfg(test)]
 
-use ferrumc_macros::NBTSerialize;
+use ferrumc_macros::{NBTDeserialize, NBTSerialize};
 use ferrumc_nbt::de::converter::FromNbt;
 
 #[test]
@@ -175,4 +175,22 @@ fn create_derive_outline() {
     drop(data);
 
     println!("{:#?}", big_test);
+}
+
+
+#[test]
+#[ignore]
+fn test_derive_macro() {
+    #[derive(NBTDeserialize, Debug)]
+    struct HelloWorld {
+        hello: i32,
+        world: i32,
+    }
+    
+    let data = include_bytes!("../../../../.etc/tests/compound.nbt");
+    
+    let hello_world = HelloWorld::from_bytes(data).unwrap();
+    
+    
+    println!("{:?}", hello_world);
 }

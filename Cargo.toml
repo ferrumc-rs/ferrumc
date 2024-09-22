@@ -128,6 +128,7 @@ dashmap = "6.1.0"
 lazy_static = "1.5.0"
 quote = "1.0.37"
 syn = "2.0.77"
+proc-macro2 = "1.0.86"
 
 # Magic ("life-before-main" initialization, __attribute__((constructor)))
 ctor = "0.2.8"
