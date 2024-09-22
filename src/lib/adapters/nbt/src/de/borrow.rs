@@ -177,11 +177,6 @@ impl<'a> NbtTape<'a> {
         res.flatten()
     }
 
-    /*pub fn get_and_unpack_list<T: NbtDeserializable<'a>>(&self, key: &str) -> Option<Vec<T>> {
-        let res = self.get(key)?;
-        self.unpack_list(res)
-    }*/
-
     pub fn unpack_list<T: FromNbt<'a>>(
         &self,
         element: &NbtTapeElement<'a>,
@@ -200,18 +195,13 @@ impl<'a> NbtTape<'a> {
                 };
                 let mut elements = vec![];
                 for _ in 0..*size {
-                    /*let element = T::parse_from_nbt(
-                        &mut tape,
-                        NbtDeserializableOptions::TagType(el_type.clone()),
-                    );
-                    elements.push(element);*/
                     let nbt_element = NbtTapeElement::parse_from_nbt(
                         &mut tape,
                         NbtDeserializableOptions::TagType(el_type.clone()),
                     );
-                    
+
                     let element = T::from_nbt(&tape, &nbt_element).unwrap();
-                    
+
                     elements.push(element);
                 }
                 Some(elements)
@@ -271,11 +261,11 @@ impl<'a> NbtTape<'a> {
                 Some(data)
             }
             NbtTapeElement::IntArray(data) => {
-                
+
                 if size_of::<T>() != size_of::<i32>() {
                     return None;
                 }
-                
+
                 let data = data.as_slice();
                 let data = unsafe {
                     std::mem::transmute::<&[i32], &[T]>(data)
@@ -284,11 +274,11 @@ impl<'a> NbtTape<'a> {
                 Some(data)
             }
             NbtTapeElement::LongArray(data) => {
-                
+
                 if size_of::<T>() != size_of::<i64>() {
                     return None;
                 }
-                
+
                 let data = data.as_slice();
                 let data = unsafe {
                     std::mem::transmute::<&[i64], &[T]>(data)

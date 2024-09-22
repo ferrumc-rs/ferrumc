@@ -109,7 +109,7 @@ impl<T: NBTSerializable +std::fmt::Debug> NBTSerializable for Vec<T> {
             }
         } else {
             for item in self {
-                item.serialize(buf, options);
+                item.serialize(buf, &NBTSerializeOptions::None);
             }
         }
     }

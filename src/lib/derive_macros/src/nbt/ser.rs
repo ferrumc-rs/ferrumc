@@ -57,13 +57,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
 
                 #(#fields)*
 
-                match options {
-                    ::ferrumc_nbt::NBTSerializeOptions::WithHeader(_) => {
-                        // ending tag
-                        <u8 as ferrumc_nbt::NBTSerializable>::serialize(&0u8, writer, &::ferrumc_nbt::NBTSerializeOptions::None);
-                    }
-                    ::ferrumc_nbt::NBTSerializeOptions::None => {}
-                }
+                <u8 as ferrumc_nbt::NBTSerializable>::serialize(&0u8, writer, &::ferrumc_nbt::NBTSerializeOptions::None);
             }
 
             fn id() -> u8 {

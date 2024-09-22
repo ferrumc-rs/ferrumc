@@ -61,10 +61,6 @@ fn test_derive() {
 
 #[test]
 #[ignore]
-fn basic_ser() {}
-
-#[test]
-#[ignore]
 fn create_derive_outline() {
     let data = include_bytes!("../../../../.etc/bigtest.nbt");
     let data = ferrumc_nbt::decompress_gzip(data).unwrap();
@@ -199,7 +195,7 @@ fn test_basic_derive_macro() {
 
     let hello_world = HelloWorld::from_bytes(buffer.as_slice()).unwrap();
 
-    println!("{:?}", hello_world);
+    assert_eq!(hello_world.hello, None);
 }
 
 #[test]
@@ -241,7 +237,7 @@ fn test_bigtest_with_derive() {
     let data = include_bytes!("../../../../.etc/bigtest.nbt");
 
     let big_test = BigTest::from_bytes(data).unwrap();
-
+    
     println!("{:#?}", big_test);
 }
 
@@ -267,5 +263,35 @@ fn test_skip_field() {
 
     let skip_field = SkipField::from_bytes(buffer.as_slice()).unwrap();
 
-    println!("{:#?}", skip_field);
+
+    assert_eq!(skip_field.hello, 1);
+    assert_eq!(skip_field.world, 0);
+}
+
+#[test]
+fn test_list_compound_derive() {
+    #[derive(NBTSerialize, NBTDeserialize, Debug)]
+    struct ListCompound {
+        list: Vec<Compound>,
+    }
+
+    #[derive(NBTSerialize, NBTDeserialize, Debug)]
+    struct Compound {
+        a: i32,
+        b: i32,
+    }
+
+    let list_compound = ListCompound {
+        list: vec![
+            Compound { a: 1, b: 2 },
+            Compound { a: 3, b: 4 },
+        ],
+    };
+
+    let mut buffer = Vec::new();
+    list_compound.serialize_with_header(&mut buffer);
+    
+    let list_compound = ListCompound::from_bytes(buffer.as_slice()).unwrap();
+
+    assert_eq!(list_compound.list.len(), 2);
 }
