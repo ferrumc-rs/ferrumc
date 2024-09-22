@@ -1,44 +1,37 @@
 use std::io::{Cursor, Read};
-use flate2::Compression;
 use crate::Compressor;
-use flate2::read::{GzDecoder, GzEncoder};
-use tracing::error;
-use ferrumc_macros::profile;
 use crate::errors::StorageError;
 
 #[derive(Debug)]
-pub struct GzipCompressor {
-    level: u32,
+pub struct ZstdCompressor {
+    level: i32,
 }
 
-impl Compressor for GzipCompressor {
+impl Compressor for ZstdCompressor {
     fn new(level: i32) -> Self {
         Self {
-            level: level as u32,
+            level,
         }
     }
 
-    #[profile("compress/gzip")]
     fn compress(&self, data: &[u8]) -> Result<Vec<u8>, StorageError> {
-        let mut encoder = GzEncoder::new(data, Compression::new(self.level));
-        let mut compressed = Vec::new();
-        encoder.read_to_end(&mut compressed).map_err(|e| {
-            error!("Error compressing data: {}", e);
+        zstd::encode_all(data, self.level).map_err(|e| {
             StorageError::CompressionError(e.to_string())
-        })?;
-        Ok(compressed)
+        })
     }
 
-    #[profile("decompress/gzip")]
     fn decompress(&self, data: &[u8]) -> Result<Vec<u8>, StorageError> {
-        let mut decoder = GzDecoder::new(Cursor::new(data));
+        let mut decoder = zstd::Decoder::new(Cursor::new(data)).map_err(|e| {
+            StorageError::DecompressionError(e.to_string())
+        })?;
         let mut decompressed = Vec::new();
         decoder.read_to_end(&mut decompressed).map_err(|e| {
-            error!("Error decompressing data: {}", e);
             StorageError::DecompressionError(e.to_string())
         })?;
         Ok(decompressed)
     }
+    
+    
 }
 
 #[cfg(test)]
@@ -50,7 +43,7 @@ mod tests {
 
     #[test]
     fn test_compress_decompress() {
-        let compressor = GzipCompressor::new(6);
+        let compressor = ZstdCompressor::new(6);
         let data = std::fs::read(root!(".etc/codec.nbt")).unwrap();
         let compressed = compressor.compress(data.as_slice()).unwrap();
         let decompressed = compressor.decompress(&compressed).unwrap();
@@ -59,9 +52,10 @@ mod tests {
     
     #[test]
     fn test_positive_compression_ratio() {
-        let compressor = GzipCompressor::new(6);
+        let compressor = ZstdCompressor::new(6);
         let data = std::fs::read(root!(".etc/codec.nbt")).unwrap();
         let compressed = compressor.compress(data.as_slice()).unwrap();
         assert!(data.len() > compressed.len());
     }
 }
+

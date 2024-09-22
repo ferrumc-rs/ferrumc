@@ -136,6 +136,7 @@ ctor = "0.2.8"
 # Compression/Decompression
 libflate = "2.1.0"
 flate2 = "1.0.33"
+zstd = "0.13.2"
 
 
 # Benchmarking

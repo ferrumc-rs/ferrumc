@@ -23,19 +23,11 @@ pub mod errors;
 macro_rules! root {
     ($from_root:literal) => {
         {
-            let depth = if cfg!(windows) {
-                file!().split("\\").count()
-            } else {
-                file!().split("/").count()
-            };
-            
-            let mut root = "../".repeat(depth-2);
-            root.push_str($from_root);
-            if cfg!(windows) {
-                root.replace("/", "\\")
-            } else {
-                root
-            }
+            let delimiter = if cfg!(windows) { "\\" } else { "/" };
+            let root = std::path::absolute(file!()).unwrap().to_str().unwrap().to_string();
+            let root = root.split(delimiter).take_while(|&x| x != "src").collect::<Vec<&str>>().join(delimiter);
+            let path_from_root = std::path::Path::new($from_root);
+            std::path::absolute(root).unwrap().join(path_from_root).to_str().unwrap().to_string()
         }
     };
 }

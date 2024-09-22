@@ -1,1 +1,2 @@
 mod gzip;
+mod zstd;

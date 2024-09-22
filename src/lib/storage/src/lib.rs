@@ -28,9 +28,8 @@ pub trait Compressor {
     /// 
     /// # Returns
     /// 
-    /// The compressed data. No error handling is done here, so it's up to the caller to verify the data.
-    /// If the compressor fails, it should return an empty Vec.
-    fn compress(&self, data: &[u8]) -> Vec<u8>;
+    /// The compressed data or a StorageError
+    fn compress(&self, data: &[u8]) -> Result<Vec<u8>, StorageError>;
     
     /// Decompresses data
     /// 
@@ -40,9 +39,8 @@ pub trait Compressor {
     /// 
     /// # Returns
     /// 
-    /// The decompressed data. No error handling is done here, so it's up to the caller to verify the data.
-    /// If the decompressor fails, it should return an empty Vec.
-    fn decompress(&self, data: &[u8]) -> Vec<u8>;
+    /// The decompressed data or a StorageError
+    fn decompress(&self, data: &[u8]) -> Result<Vec<u8>, StorageError>;
 }
 
 /// A trait for database backends. This is used to abstract away the underlying database implementation.
