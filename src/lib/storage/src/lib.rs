@@ -1,5 +1,7 @@
+#![feature(async_closure)]
 pub mod errors;
 pub mod compressors;
+pub mod backends;
 
 use std::path::PathBuf;
 use crate::errors::StorageError;
@@ -47,18 +49,18 @@ pub trait Compressor {
 /// This allows for easy swapping of databases without changing the rest of the code. These functions are
 /// purely for storage and retrieval of data. Any other functionality such as serialization or caching
 /// should be implemented in a separate layer.
-pub(crate) trait DatabaseBackend {
+#[allow(async_fn_in_trait)]
+pub trait DatabaseBackend {
     /// Initializes the database
     /// 
     /// # Arguments
     /// 
-    /// * `store_path` - The path to the database file
-    /// * `compressor` - The compressor to use
+    /// * `store_path` - An optional path to the database file
     /// 
     /// # Returns
     /// 
     /// A Result containing the initialized database or a StorageError
-    async fn initialize(store_path: PathBuf, compressor: impl Compressor) -> Result<Self, StorageError>
+    async fn initialize(store_path: Option<PathBuf>) -> Result<Self, StorageError>
     where
         Self: Sized;
     
@@ -73,7 +75,7 @@ pub(crate) trait DatabaseBackend {
     /// # Returns
     /// 
     /// A Result containing the inserted key-value pair or a StorageError
-    async fn insert(&mut self, table: &str, key: &str, value: &[u8]) -> Result<(), StorageError>;
+    async fn insert(&mut self, table: String, key: u64, value: Vec<u8>) -> Result<(), StorageError>;
     
     /// Retrieves a value from the database
     /// 
@@ -85,7 +87,7 @@ pub(crate) trait DatabaseBackend {
     /// # Returns
     /// 
     /// A Result containing a possible value or a StorageError
-    async fn get(&mut self, table: &str, key: &str) -> Result<Option<Vec<u8>>, StorageError>;
+    async fn get(&mut self, table: String, key: u64) -> Result<Option<Vec<u8>>, StorageError>;
     
     /// Deletes a key-value pair from the database
     /// 
@@ -96,8 +98,8 @@ pub(crate) trait DatabaseBackend {
     /// 
     /// # Returns
     /// 
-    /// A Result containing the deleted key-value pair or a StorageError
-    async fn delete(&mut self, table: &str, key: &str) -> Result<Vec<u8>, StorageError>;
+    /// A Result containing nothing or a StorageError
+    async fn delete(&mut self, table: String, key: u64) -> Result<(), StorageError>;
     
     /// Updates a key-value pair in the database
     /// 
@@ -109,8 +111,8 @@ pub(crate) trait DatabaseBackend {
     /// 
     /// # Returns
     /// 
-    /// A Result containing the updated key-value pair or a StorageError
-    async fn update(&mut self, table: &str, key: &str, value: &[u8]) -> Result<Vec<u8>, StorageError>;
+    /// A Result containing nothing or a StorageError
+    async fn update(&mut self, table: String, key: u64, value: Vec<u8>) -> Result<(), StorageError>;
     
     /// Upserts a key-value pair in the database
     /// 
@@ -122,8 +124,8 @@ pub(crate) trait DatabaseBackend {
     /// 
     /// # Returns
     /// 
-    /// A Result containing the upserted key-value pair or a StorageError
-    async fn upsert(&mut self, table: &str, key: &str, value: &[u8]) -> Result<Option<Vec<u8>>, StorageError>;
+    /// A Result containing a boolean indicating if the key was inserted or updated or a StorageError
+    async fn upsert(&mut self, table: String, key: u64, value: Vec<u8>) -> Result<bool, StorageError>;
     
     /// Checks if a key exists in the database
     /// 
@@ -135,7 +137,7 @@ pub(crate) trait DatabaseBackend {
     /// # Returns
     /// 
     /// A Result containing a boolean indicating if the key exists or a StorageError
-    async fn exists(&mut self, table: &str, key: &str) -> Result<bool, StorageError>;
+    async fn exists(&mut self, table: String, key: u64) -> Result<bool, StorageError>;
     
     /// Returns some details about the underlying database
     /// 
@@ -146,10 +148,45 @@ pub(crate) trait DatabaseBackend {
     /// A string containing details about the database
     async fn details(&mut self) -> String;
     
+    /// Inserts multiple key-value pairs into the database
+    /// 
+    /// # Arguments
+    /// 
+    /// * `table` - The table to insert the key-value pairs into
+    /// * `data` - A vector of key-value pairs to insert
+    /// 
+    /// # Returns
+    /// 
+    /// A Result containing nothing or a StorageError
+    async fn batch_insert(&mut self, table: String, data: Vec<(u64, Vec<u8>)>) -> Result<(), StorageError>;
+    
+    /// Retrieves multiple values from the database
+    /// 
+    /// # Arguments
+    /// 
+    /// * `table` - The table to retrieve the values from
+    /// * `keys` - A vector of keys to retrieve
+    /// 
+    /// # Returns
+    /// 
+    /// A Result containing the retrieved values or a StorageError
+    async fn batch_get(&mut self, table: String, keys: Vec<u64>) -> Result<Vec<Option<Vec<u8>>>, StorageError>;
+    
     /// Flushes the database
     /// 
     /// Writes all pending changes to disk. This can be used to force all updates to be written to disk
     /// and therefore prevent data loss in the event of a crash. Not all backends will need this
     /// function as they may write changes to disk immediately. In that case, this function can be a no-op.
     async fn flush(&mut self) -> Result<(), StorageError>;
+    
+    /// Creates a new table in the database
+    /// 
+    /// # Arguments
+    /// 
+    /// * `table` - The name of the table to create
+    /// 
+    /// # Returns
+    /// 
+    /// A Result containing nothing or a StorageError
+    async fn create_table(&mut self, table: String) -> Result<(), StorageError>;
 }

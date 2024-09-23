@@ -14,10 +14,17 @@ ferrumc-utils = { workspace = true }
 rand = { workspace = true }
 zstd = { workspace = true }
 brotli = { workspace = true }
+redb = { workspace = true }
+tokio = { workspace = true }
+parking_lot = { workspace = true }
+lazy_static = { workspace = true }
+
+
 
 
 [dev-dependencies]
-criterion = "0.5.1"
+criterion = { workspace = true, features = ["async_tokio", "async_futures"] }
+tempfile = { workspace = true}
 
 [[bench]]
 name = "storage_bench"
