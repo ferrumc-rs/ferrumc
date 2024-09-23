@@ -28,9 +28,7 @@ fn derive_macro() {
         some_list: vec![1, 2, 3],
     };
 
-    let mut buf = Vec::new();
-    // test.serialize(&mut buf, &ferrumc_nbt::NBTSerializeOptions::WithHeader("test"));
-    test.serialize_with_header(&mut buf);
+    let buf = test.serialize_with_header();
 
     let mut parser = ferrumc_nbt::de::borrow::NbtTape::new(&buf);
     parser.parse();
@@ -62,8 +60,7 @@ fn derive_macro_nested() {
 
     let test2 = Test2 { test };
 
-    let mut buf = Vec::new();
-    test2.serialize_with_header(&mut buf);
+    let mut buf = test2.serialize_with_header();
 
     let mut parser = ferrumc_nbt::de::borrow::NbtTape::new(&buf);
     parser.parse();
@@ -71,10 +68,10 @@ fn derive_macro_nested() {
     let test = parser.get("test").unwrap();
     let hello = test.get("hello").unwrap();
     let world = test.get("world").unwrap();
-    
+
     let hello = <i32 as FromNbt>::from_nbt(&parser, &hello).unwrap();
     let world = <i32 as FromNbt>::from_nbt(&parser, &world).unwrap();
-    
+
     assert_eq!(hello, 1);
     assert_eq!(world, 2);
 }
@@ -108,23 +105,22 @@ fn derive_macro_nested_with_list() {
         ],
     };
 
-    let mut buf = Vec::new();
-    test2.serialize_with_header(&mut buf);
-    
+    let mut buf = test2.serialize_with_header();
+
     let mut parser = ferrumc_nbt::de::borrow::NbtTape::new(&buf);
     parser.parse();
-    
+
     let test = parser.get("test").unwrap();
     let hello = test.get("hello").unwrap();
     let world = test.get("world").unwrap();
     let list = parser.get("list").unwrap();
     let another_list = parser.get("another_list").unwrap();
-    
+
     let hello = <i32 as FromNbt>::from_nbt(&parser, &hello).unwrap();
     let world = <i32 as FromNbt>::from_nbt(&parser, &world).unwrap();
     let list = <Vec<i32> as FromNbt>::from_nbt(&parser, &list).unwrap();
     let another_list = <Vec<Test> as FromNbt>::from_nbt(&parser, &another_list).unwrap();
-    
+
     assert_eq!(hello, 1);
     assert_eq!(world, 2);
     assert_eq!(list, vec![1, 2, 3]);
@@ -134,3 +130,29 @@ fn derive_macro_nested_with_list() {
         Test { hello: 5, world: 6 },
     ]);
 }
+
+
+
+#[test]
+fn very_basic_derive() {
+    use ferrumc_macros::NBTSerialize;
+
+    // Define the struct
+    #[derive(NBTSerialize, NBTDeserialize, PartialEq, Debug)]
+    struct Test {
+        hello: i32,
+        world: i32,
+    }
+
+    // Create the struct
+    let test = Test { hello: 1, world: 2 };
+
+    // Serialize the struct
+    let buf = test.serialize_with_header();
+
+    // Deserialize the struct
+    let test = Test::from_bytes(&buf).unwrap();
+
+    assert_eq!(test, Test { hello: 1, world: 2 });
+}
+
