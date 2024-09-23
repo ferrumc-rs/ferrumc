@@ -100,6 +100,36 @@ fn criterion_benchmark(c: &mut criterion::Criterion) {
     decompress_group.bench_function("Brotli", |b| b.iter(|| brotli_decompress(black_box(brotli_compressed.as_slice()))));
     decompress_group.finish();
     
+
+    let mut roundtrip_group = c.benchmark_group("Roundtrip");
+    roundtrip_group.throughput(criterion::Throughput::Bytes(data.len() as u64));
+    roundtrip_group.bench_function("Zstd", |b| b.iter(|| {
+        let compressed = zstd_compressor.compress(data).unwrap();
+        let decompressed = zstd_compressor.decompress(compressed.as_slice()).unwrap();
+        black_box(decompressed);
+    }));
+    roundtrip_group.bench_function("Gzip", |b| b.iter(|| {
+        let compressed = gzip_compressor.compress(data).unwrap();
+        let decompressed = gzip_compressor.decompress(compressed.as_slice()).unwrap();
+        black_box(decompressed);
+    }));
+    roundtrip_group.bench_function("Deflate", |b| b.iter(|| {
+        let compressed = deflate_compressor.compress(data).unwrap();
+        let decompressed = deflate_compressor.decompress(compressed.as_slice()).unwrap();
+        black_box(decompressed);
+    }));
+    roundtrip_group.bench_function("Zlib", |b| b.iter(|| {
+        let compressed = zlib_compressor.compress(data).unwrap();
+        let decompressed = zlib_compressor.decompress(compressed.as_slice()).unwrap();
+        black_box(decompressed);
+    }));
+    roundtrip_group.bench_function("Brotli", |b| b.iter(|| {
+        let compressed = brotli_compressor.compress(data).unwrap();
+        let decompressed = brotli_compressor.decompress(compressed.as_slice()).unwrap();
+        black_box(decompressed);
+    }));
+    roundtrip_group.finish();
+    
 }
 
 criterion_group!(benches, criterion_benchmark);
