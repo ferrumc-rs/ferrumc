@@ -189,4 +189,14 @@ pub trait DatabaseBackend {
     /// 
     /// A Result containing nothing or a StorageError
     async fn create_table(&mut self, table: String) -> Result<(), StorageError>;
+    
+    /// Closes the database
+    /// 
+    /// This is used to close the database and free up any resources. This should be called when the database
+    /// is no longer needed. This can be a no-op for some backends.
+    /// 
+    /// # Returns
+    /// 
+    /// A Result containing nothing or a StorageError
+    async fn close(&mut self) -> Result<(), StorageError>;
 }

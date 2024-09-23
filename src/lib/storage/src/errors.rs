@@ -28,4 +28,6 @@ pub enum StorageError {
     CommitError(String),
     #[error("Failed to flush database: {0}")]
     FlushError(String),
+    #[error("Failed to close database: {0}")]
+    CloseError(String),
 }

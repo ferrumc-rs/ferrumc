@@ -18,6 +18,7 @@ redb = { workspace = true }
 tokio = { workspace = true }
 parking_lot = { workspace = true }
 lazy_static = { workspace = true }
+surrealkv = { workspace = true }
 
 
 

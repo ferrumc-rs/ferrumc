@@ -201,4 +201,8 @@ impl DatabaseBackend for RedbBackend {
         }).await.expect("Failed to create table")?;
         Ok(())
     }
+
+    async fn close(&mut self) -> Result<(), StorageError> {
+        Ok(())
+    }
 }
