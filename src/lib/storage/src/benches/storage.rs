@@ -1,10 +1,14 @@
 use criterion::{black_box, criterion_group, criterion_main};
-use ferrumc_storage::Compressor;
-use ferrumc_storage::compressors::brotli::BrotliCompressor;
-use ferrumc_storage::compressors::gzip::GzipCompressor;
-use ferrumc_storage::compressors::zstd::ZstdCompressor;
-use ferrumc_storage::compressors::deflate::DeflateCompressor;
-use ferrumc_storage::compressors::zlib::ZlibCompressor;
+use ferrumc_storage::{
+    compressors::{
+        brotli::BrotliCompressor,
+        gzip::GzipCompressor,
+        zstd::ZstdCompressor,
+        deflate::DeflateCompressor,
+        zlib::ZlibCompressor,
+    },
+    Compressor,
+};
 use ferrumc_utils::root;
 
 fn zstd_compress(data: &[u8]) {
@@ -79,7 +83,7 @@ fn criterion_benchmark(c: &mut criterion::Criterion) {
     compress_group.bench_function("Zlib", |b| b.iter(|| zlib_compress(black_box(data))));
     compress_group.bench_function("Brotli", |b| b.iter(|| brotli_compress(black_box(data))));
     compress_group.finish();
-    
+
     let zstd_compressor = ZstdCompressor::new(6);
     let zstd_compressed = zstd_compressor.compress(data).unwrap();
     let gzip_compressor = GzipCompressor::new(6);
@@ -90,7 +94,7 @@ fn criterion_benchmark(c: &mut criterion::Criterion) {
     let zlib_compressed = zlib_compressor.compress(data).unwrap();
     let brotli_compressor = BrotliCompressor::new(6);
     let brotli_compressed = brotli_compressor.compress(data).unwrap();
-    
+
     let mut decompress_group = c.benchmark_group("Decompression");
     decompress_group.throughput(criterion::Throughput::Bytes(data.len() as u64));
     decompress_group.bench_function("Zstd", |b| b.iter(|| zstd_decompress(black_box(zstd_compressed.as_slice()))));
@@ -99,7 +103,7 @@ fn criterion_benchmark(c: &mut criterion::Criterion) {
     decompress_group.bench_function("Zlib", |b| b.iter(|| zlib_decompress(black_box(zlib_compressed.as_slice()))));
     decompress_group.bench_function("Brotli", |b| b.iter(|| brotli_decompress(black_box(brotli_compressed.as_slice()))));
     decompress_group.finish();
-    
+
 
     let mut roundtrip_group = c.benchmark_group("Roundtrip");
     roundtrip_group.throughput(criterion::Throughput::Bytes(data.len() as u64));
@@ -129,7 +133,6 @@ fn criterion_benchmark(c: &mut criterion::Criterion) {
         black_box(decompressed);
     }));
     roundtrip_group.finish();
-    
 }
 
 criterion_group!(benches, criterion_benchmark);
