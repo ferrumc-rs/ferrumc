@@ -5,3 +5,4 @@
 Cargo.lock
 config.toml
 .etc
+.DS_Store

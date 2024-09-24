@@ -78,6 +78,7 @@ ferrumc-events = { path = "src/lib/events" }
 ferrumc-net = { path = "src/lib/net" }
 ferrumc-net-encryption = { path = "src/lib/net/encryption" }
 ferrumc-net-packets = { path = "src/lib/net/packets" }
+ferrumc-net-datatypes = { path = "src/lib/net/datatypes" }
 ferrumc-plugins = { path = "src/lib/plugins" }
 ferrumc-storage = { path = "src/lib/storage" }
 ferrumc-utils = { path = "src/lib/utils" }

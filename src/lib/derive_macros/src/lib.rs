@@ -4,6 +4,7 @@ mod events;
 mod helpers;
 mod nbt;
 mod profiling;
+mod net;
 
 #[proc_macro_attribute]
 pub fn profile(
