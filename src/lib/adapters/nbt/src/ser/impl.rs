@@ -73,10 +73,9 @@ impl NBTSerializable for &str {
     }
 }
 
-impl<T: NBTSerializable +std::fmt::Debug> NBTSerializable for Vec<T> {
+impl<T: NBTSerializable + std::fmt::Debug> NBTSerializable for Vec<T> {
     fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
         self.as_slice().serialize(buf, options);
-
     }
 
     #[inline]
@@ -111,21 +110,28 @@ impl<'a, T: NBTSerializable> NBTSerializable for &'a [T] {
                     buf.extend_from_slice(bytes);
                 }
                 TAG_INT_ARRAY => {
-                    let bytes = unsafe {crate::simd_utils::u32_slice_to_u8_be(
-                        std::slice::from_raw_parts(self.as_ptr() as *const u32, self.len())
-                    )};
+                    let bytes = unsafe {
+                        crate::simd_utils::u32_slice_to_u8_be(std::slice::from_raw_parts(
+                            self.as_ptr() as *const u32,
+                            self.len(),
+                        ))
+                    };
                     buf.extend_from_slice(bytes.as_slice());
                 }
                 TAG_LONG_ARRAY => {
-                    let bytes = unsafe {crate::simd_utils::u64_slice_to_u8_be(
-                        std::slice::from_raw_parts(self.as_ptr() as *const u64, self.len())
-                    )};
+                    let bytes = unsafe {
+                        crate::simd_utils::u64_slice_to_u8_be(std::slice::from_raw_parts(
+                            self.as_ptr() as *const u64,
+                            self.len(),
+                        ))
+                    };
                     buf.extend_from_slice(&bytes);
                 }
                 _ => unreachable!(),
             }
         } else {
-            self.iter().for_each(|item| item.serialize(buf, &NBTSerializeOptions::None));
+            self.iter()
+                .for_each(|item| item.serialize(buf, &NBTSerializeOptions::None));
         }
     }
 

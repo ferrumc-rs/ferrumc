@@ -9,10 +9,10 @@ pub(crate) mod simd_utils;
 
 pub type Result<T> = std::result::Result<T, NBTError>;
 
+pub use de::borrow::{NbtTape, NbtTapeElement};
+pub use de::converter::FromNbt;
 pub use errors::NBTError;
 pub use ser::{NBTSerializable, NBTSerializeOptions};
-pub use de::converter::FromNbt;
-pub use de::borrow::{NbtTape, NbtTapeElement};
 
 pub fn decompress_gzip(data: &[u8]) -> Result<Vec<u8>> {
     use libflate::gzip::Decoder;

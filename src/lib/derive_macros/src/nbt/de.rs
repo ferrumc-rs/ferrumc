@@ -1,8 +1,8 @@
+use crate::nbt::helpers::NbtFieldAttribute;
 use proc_macro::TokenStream;
 use proc_macro2::Span;
 use quote::quote;
 use syn::{parse_macro_input, DeriveInput, Lifetime};
-use crate::nbt::helpers::NbtFieldAttribute;
 
 pub fn derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
@@ -17,23 +17,26 @@ pub fn derive(input: TokenStream) -> TokenStream {
     let where_clause = &input.generics.where_clause;
 
     // Introduce a new lifetime 'de for deserialization
-    let has_lifetime = impl_generics.params.iter().any(|param| {
-        match param {
-            syn::GenericParam::Lifetime(_) => true,
-            _ => false,
-        }
+    let has_lifetime = impl_generics.params.iter().any(|param| match param {
+        syn::GenericParam::Lifetime(_) => true,
+        _ => false,
     });
     if !has_lifetime {
         let de_lifetime = Lifetime::new("'de", Span::call_site());
-        impl_generics.params.insert(0, syn::GenericParam::Lifetime(syn::LifetimeParam::new(de_lifetime.clone())));
+        impl_generics.params.insert(
+            0,
+            syn::GenericParam::Lifetime(syn::LifetimeParam::new(de_lifetime.clone())),
+        );
     }
 
-    let lifetime = impl_generics.params.iter().find_map(|param| {
-        match param {
+    let lifetime = impl_generics
+        .params
+        .iter()
+        .find_map(|param| match param {
             syn::GenericParam::Lifetime(lifetime) => Some(lifetime.lifetime.clone()),
             _ => None,
-        }
-    }).unwrap();
+        })
+        .unwrap();
 
     let (impl_generics, _, _) = impl_generics.split_for_impl();
 

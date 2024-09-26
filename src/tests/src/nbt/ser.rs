@@ -1,6 +1,6 @@
+use ferrumc_macros::NBTDeserialize;
 use ferrumc_nbt::{FromNbt, NBTSerializable, NBTSerializeOptions};
 use std::collections::HashMap;
-use ferrumc_macros::NBTDeserialize;
 
 #[test]
 fn basic_compound_ser() {
@@ -36,7 +36,6 @@ fn derive_macro() {
     let some_list = parser.get("some_list").unwrap();
     // let some_list : &[i32] = parser.unpack_list_sliced(some_list).unwrap();
     let some_list: Vec<i32> = parser.unpack_list(&some_list).unwrap();
-
 
     assert_eq!(some_list, vec![1, 2, 3]);
 }
@@ -124,14 +123,15 @@ fn derive_macro_nested_with_list() {
     assert_eq!(hello, 1);
     assert_eq!(world, 2);
     assert_eq!(list, vec![1, 2, 3]);
-    assert_eq!(another_list, vec![
-        Test { hello: 1, world: 2 },
-        Test { hello: 3, world: 4 },
-        Test { hello: 5, world: 6 },
-    ]);
+    assert_eq!(
+        another_list,
+        vec![
+            Test { hello: 1, world: 2 },
+            Test { hello: 3, world: 4 },
+            Test { hello: 5, world: 6 },
+        ]
+    );
 }
-
-
 
 #[test]
 fn very_basic_derive() {
@@ -155,4 +155,3 @@ fn very_basic_derive() {
 
     assert_eq!(test, Test { hello: 1, world: 2 });
 }
-

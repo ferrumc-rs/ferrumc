@@ -169,18 +169,12 @@ impl<'a> NbtTape<'a> {
     }
 
     pub fn get(&self, key: &str) -> Option<&NbtTapeElement<'a>> {
-        let res = self
-            .root
-            .as_ref()
-            .map(|(_, element)| element.get(key));
+        let res = self.root.as_ref().map(|(_, element)| element.get(key));
 
         res.flatten()
     }
 
-    pub fn unpack_list<T: FromNbt<'a>>(
-        &self,
-        element: &NbtTapeElement<'a>,
-    ) -> Option<Vec<T>> {
+    pub fn unpack_list<T: FromNbt<'a>>(&self, element: &NbtTapeElement<'a>) -> Option<Vec<T>> {
         match element {
             NbtTapeElement::List {
                 elements_pos,
@@ -209,9 +203,7 @@ impl<'a> NbtTape<'a> {
             NbtTapeElement::ByteArray(data) => {
                 // I mean you wouldn't want to get the wrong type of data right?
                 let data_vec = (*data).to_vec();
-                let data = unsafe {
-                    std::mem::transmute::<Vec<i8>, Vec<T>>(data_vec)
-                };
+                let data = unsafe { std::mem::transmute::<Vec<i8>, Vec<T>>(data_vec) };
 
                 if size_of::<T>() != size_of::<i8>() {
                     panic!("Invalid type conversion!");
@@ -219,25 +211,21 @@ impl<'a> NbtTape<'a> {
 
                 // safety: there is none :) jk its a byte array so its fine
                 // todo: revisit and see if this is actually safe
-                // let data = unsafe { 
+                // let data = unsafe {
                 //     std::mem::forget(data);
-                //     Vec::from_raw_parts(data.as_ptr() as *mut T, data.len(), data.len()) 
+                //     Vec::from_raw_parts(data.as_ptr() as *mut T, data.len(), data.len())
                 // };
 
                 Some(data)
             }
             NbtTapeElement::IntArray(data) => {
                 let data = data.clone();
-                let data = unsafe {
-                    std::mem::transmute::<Vec<i32>, Vec<T>>(data)
-                };
+                let data = unsafe { std::mem::transmute::<Vec<i32>, Vec<T>>(data) };
                 Some(data)
             }
             NbtTapeElement::LongArray(data) => {
                 let data = data.clone();
-                let data = unsafe {
-                    std::mem::transmute::<Vec<i64>, Vec<T>>(data)
-                };
+                let data = unsafe { std::mem::transmute::<Vec<i64>, Vec<T>>(data) };
                 Some(data)
             }
             _ => None,
@@ -254,39 +242,31 @@ impl<'a> NbtTape<'a> {
                 if size_of::<T>() != size_of::<i8>() {
                     return None;
                 }
-                let data = unsafe {
-                    std::mem::transmute::<&[i8], &[T]>(data)
-                };
+                let data = unsafe { std::mem::transmute::<&[i8], &[T]>(data) };
 
                 Some(data)
             }
             NbtTapeElement::IntArray(data) => {
-
                 if size_of::<T>() != size_of::<i32>() {
                     return None;
                 }
 
                 let data = data.as_slice();
-                let data = unsafe {
-                    std::mem::transmute::<&[i32], &[T]>(data)
-                };
+                let data = unsafe { std::mem::transmute::<&[i32], &[T]>(data) };
 
                 Some(data)
             }
             NbtTapeElement::LongArray(data) => {
-
                 if size_of::<T>() != size_of::<i64>() {
                     return None;
                 }
 
                 let data = data.as_slice();
-                let data = unsafe {
-                    std::mem::transmute::<&[i64], &[T]>(data)
-                };
+                let data = unsafe { std::mem::transmute::<&[i64], &[T]>(data) };
 
                 Some(data)
             }
-            
+
             _ => None,
         }
     }

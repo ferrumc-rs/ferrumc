@@ -2,7 +2,6 @@
 
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-
 /// Entity is a unique identifier for an entity in the ECS.
 /// It is a simple usize.
 /// Always incremented.
@@ -22,10 +21,9 @@ impl EntityManager {
     pub fn create_entity(&self) -> Entity {
         let id = self.new_entity_id.load(Ordering::Relaxed);
         self.new_entity_id.fetch_add(1, Ordering::Relaxed);
-        id as Entity 
+        id as Entity
     }
 }
-
 
 #[cfg(test)]
 mod tests {

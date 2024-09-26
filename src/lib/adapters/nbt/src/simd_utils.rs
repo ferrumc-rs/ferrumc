@@ -16,13 +16,13 @@ fn is_avx2_available() -> bool {
     {
         available = false;
     }
-    
+
     // if debug_assetions
     #[cfg(debug_assertions)]
     if !available {
         tracing::trace!("AVX2 / SIMD Instructions aren't available on this CPU!");
     }
-    
+
     available
 }
 
@@ -33,7 +33,11 @@ pub fn u8_slice_to_i8(input: &[u8]) -> &[i8] {
 
 /// Converts a slice of `u8` to a `Vec<u32>` in big-endian order.
 pub fn u8_slice_to_u32_be(input: &[u8]) -> Vec<u32> {
-    assert_eq!(input.len() % 4, 0, "Input length must be a multiple of 4 for u32 conversion");
+    assert_eq!(
+        input.len() % 4,
+        0,
+        "Input length must be a multiple of 4 for u32 conversion"
+    );
     if is_avx2_available() {
         unsafe { u8_slice_to_u32_be_simd(input) }
     } else {
@@ -62,8 +66,8 @@ unsafe fn u8_slice_to_u32_be_simd(input: &[u8]) -> Vec<u32> {
     let mut i = 0;
 
     let shuffle_mask = _mm256_setr_epi8(
-        3, 2, 1, 0, 7, 6, 5, 4, 11, 10, 9, 8, 15, 14, 13, 12, 19, 18, 17, 16,
-        23, 22, 21, 20, 27, 26, 25, 24, 31, 30, 29, 28,
+        3, 2, 1, 0, 7, 6, 5, 4, 11, 10, 9, 8, 15, 14, 13, 12, 19, 18, 17, 16, 23, 22, 21, 20, 27,
+        26, 25, 24, 31, 30, 29, 28,
     );
 
     while i + 32 <= input.len() {
@@ -86,9 +90,7 @@ unsafe fn u8_slice_to_u32_be_simd(input: &[u8]) -> Vec<u32> {
     }
 
     while i + 4 <= input.len() {
-        let bytes: [u8; 4] = input[i..i + 4]
-            .try_into()
-            .expect("SIMD conversion failed");
+        let bytes: [u8; 4] = input[i..i + 4].try_into().expect("SIMD conversion failed");
         let val = u32::from_be_bytes(bytes);
         output.push(val);
         i += 4;
@@ -103,7 +105,11 @@ pub fn u8_slice_to_i32_be(input: &[u8]) -> Vec<i32> {
 }
 
 pub fn u8_slice_to_u64_be(input: &[u8]) -> Vec<u64> {
-    assert_eq!(input.len() % 8, 0, "Input length must be a multiple of 8 for u64 conversion");
+    assert_eq!(
+        input.len() % 8,
+        0,
+        "Input length must be a multiple of 8 for u64 conversion"
+    );
     if is_avx2_available() {
         unsafe { u8_slice_to_u64_be_simd(input) }
     } else {
@@ -132,7 +138,7 @@ unsafe fn u8_slice_to_u64_be_simd(input: &[u8]) -> Vec<u64> {
     let mut i = 0;
 
     let shuffle_mask = _mm256_setr_epi8(
-        7, 6, 5, 4, 3, 2, 1, 0,       // Reverse first u64
+        7, 6, 5, 4, 3, 2, 1, 0, // Reverse first u64
         15, 14, 13, 12, 11, 10, 9, 8, // Reverse second u64
         23, 22, 21, 20, 19, 18, 17, 16, // Reverse third u64
         31, 30, 29, 28, 27, 26, 25, 24, // Reverse fourth u64
@@ -158,9 +164,7 @@ unsafe fn u8_slice_to_u64_be_simd(input: &[u8]) -> Vec<u64> {
     }
 
     while i + 8 <= input.len() {
-        let bytes: [u8; 8] = input[i..i + 8]
-            .try_into()
-            .expect("SIMD conversion failed");
+        let bytes: [u8; 8] = input[i..i + 8].try_into().expect("SIMD conversion failed");
         let val = u64::from_be_bytes(bytes);
         output.push(val);
         i += 8;
@@ -198,8 +202,8 @@ unsafe fn u32_slice_to_u8_be_simd(input: &[u32]) -> Vec<u8> {
     let mut i = 0;
 
     let shuffle_mask = _mm256_setr_epi8(
-        3, 2, 1, 0, 7, 6, 5, 4, 11, 10, 9, 8, 15, 14, 13, 12,
-        19, 18, 17, 16, 23, 22, 21, 20, 27, 26, 25, 24, 31, 30, 29, 28,
+        3, 2, 1, 0, 7, 6, 5, 4, 11, 10, 9, 8, 15, 14, 13, 12, 19, 18, 17, 16, 23, 22, 21, 20, 27,
+        26, 25, 24, 31, 30, 29, 28,
     );
 
     while i + 8 <= num_elements {
@@ -246,7 +250,7 @@ unsafe fn u64_slice_to_u8_be_simd(input: &[u64]) -> Vec<u8> {
     let mut i = 0;
 
     let shuffle_mask = _mm256_setr_epi8(
-        7, 6, 5, 4, 3, 2, 1, 0,       // Reverse first u64
+        7, 6, 5, 4, 3, 2, 1, 0, // Reverse first u64
         15, 14, 13, 12, 11, 10, 9, 8, // Reverse second u64
         23, 22, 21, 20, 19, 18, 17, 16, // Reverse third u64
         31, 30, 29, 28, 27, 26, 25, 24, // Reverse fourth u64

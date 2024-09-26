@@ -1,10 +1,12 @@
-use std::{any::{Any, TypeId}, sync::Arc};
+use std::{
+    any::{Any, TypeId},
+    sync::Arc,
+};
 
 use dashmap::DashMap;
 use sparse_set::SparseSet;
 
 use crate::entities::Entity;
-
 
 pub mod sparse_set;
 
@@ -23,7 +25,10 @@ impl ComponentStorage {
 
     pub fn insert<T: Component>(&self, entity: Entity, component: T) {
         let type_id = TypeId::of::<T>();
-        let mut components = self.components.entry(type_id).or_insert_with(|| SparseSet::new());
+        let mut components = self
+            .components
+            .entry(type_id)
+            .or_insert_with(|| SparseSet::new());
         components.insert(entity, Arc::new(component));
     }
 

@@ -1,8 +1,7 @@
 pub mod errors;
 
-mod entities;
 mod components;
-
+mod entities;
 
 /// This is the ecs :)
 /// well more of an EC than ECS\

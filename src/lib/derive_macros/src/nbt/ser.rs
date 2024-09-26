@@ -1,9 +1,9 @@
+use crate::nbt::helpers::NbtFieldAttribute;
 use proc_macro::TokenStream;
 use proc_macro2::Span;
 use quote::quote;
-use syn::{Data, Fields};
 use syn::spanned::Spanned;
-use crate::nbt::helpers::NbtFieldAttribute;
+use syn::{Data, Fields};
 
 pub fn derive(input: TokenStream) -> TokenStream {
     let input = syn::parse_macro_input!(input as syn::DeriveInput);

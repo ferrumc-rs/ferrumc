@@ -22,7 +22,7 @@ mod tests {
         let buffer = original.serialize_with_header();
 
         let deserialized = MixedSlices::from_bytes(buffer.as_slice()).unwrap();
-        
+
         assert_eq!(original, deserialized);
     }
 
@@ -48,9 +48,15 @@ mod tests {
 
         let original = NestedStructure {
             data: vec![
-                OptionalData { id: 1, value: Some(100) },
+                OptionalData {
+                    id: 1,
+                    value: Some(100),
+                },
                 OptionalData { id: 2, value: None },
-                OptionalData { id: 3, value: Some(-100) },
+                OptionalData {
+                    id: 3,
+                    value: Some(-100),
+                },
             ],
             metadata: Some(Metadata {
                 created_at: 1632268800,
@@ -64,7 +70,7 @@ mod tests {
 
         assert_eq!(original, deserialized);
     }
-    
+
     #[test]
     fn test_recursive_structure() {
         #[derive(NBTSerialize, NBTDeserialize, Debug, PartialEq)]
@@ -75,7 +81,10 @@ mod tests {
 
         fn create_tree(depth: usize) -> Node {
             if depth == 0 {
-                Node { value: 1, children: vec![] }
+                Node {
+                    value: 1,
+                    children: vec![],
+                }
             } else {
                 Node {
                     value: depth as i32,

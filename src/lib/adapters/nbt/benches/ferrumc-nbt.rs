@@ -7,11 +7,6 @@ use nbt as hematite_nbt;
 use std::io::Cursor;
 
 fn bench_ferrumc_nbt(data: &[u8]) {
-    /*let mut parser = ferrumc_nbt::de::borrow::NbtTape::new(data);
-    parser.parse();
-
-    black_box(parser);*/
-
     #[derive(NBTDeserialize)]
     struct Chunk<'a> {
         #[nbt(rename = "xPos")]
@@ -19,7 +14,7 @@ fn bench_ferrumc_nbt(data: &[u8]) {
         #[nbt(rename = "zPos")]
         z_pos: i32,
         #[nbt(rename = "Heightmaps")]
-        heightmaps: Heightmaps<'a>
+        heightmaps: Heightmaps<'a>,
     }
 
     #[derive(NBTDeserialize)]
@@ -28,7 +23,6 @@ fn bench_ferrumc_nbt(data: &[u8]) {
         motion_blocking: &'a [i64],
     }
 
-
     let chunk = Chunk::from_bytes(data).unwrap();
     assert_eq!(chunk.x_pos, 0);
     assert_eq!(chunk.z_pos, 32);
@@ -36,14 +30,22 @@ fn bench_ferrumc_nbt(data: &[u8]) {
 }
 
 fn bench_simdnbt(data: &[u8]) {
-    let nbt = simdnbt::borrow::read(&mut std::io::Cursor::new(data)).unwrap();
+    let nbt = simdnbt::borrow::read(&mut Cursor::new(data)).unwrap();
 
     let nbt = nbt.unwrap();
     let nbt = nbt.as_compound();
     let x_pos = nbt.get("xPos").unwrap().int().unwrap();
     let z_pos = nbt.get("zPos").unwrap().int().unwrap();
 
-    let motion_blocking = nbt.get("Heightmaps").unwrap().compound().unwrap().get("MOTION_BLOCKING").unwrap().long_array().unwrap();
+    let motion_blocking = nbt
+        .get("Heightmaps")
+        .unwrap()
+        .compound()
+        .unwrap()
+        .get("MOTION_BLOCKING")
+        .unwrap()
+        .long_array()
+        .unwrap();
 
     assert_eq!(x_pos, 0);
     assert_eq!(z_pos, 32);
