@@ -1,10 +1,11 @@
 use crate::errors::StorageError;
 use crate::DatabaseBackend;
 use parking_lot::RwLock;
-use redb::{ReadableTable, TableDefinition};
+use redb::{TableDefinition};
 use std::path::PathBuf;
 use std::sync::Arc;
 
+#[derive(Clone)]
 pub struct RedbBackend {
     db: Arc<RwLock<redb::Database>>
 }

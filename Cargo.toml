@@ -142,7 +142,7 @@ brotli = "6.0.0"
 
 # Databases
 redb = "2.1.3"
-surrealkv = "0.2.0"
+surrealkv = "0.3.6"
 
 # I/O
 tempfile = "3.12.0"

@@ -151,9 +151,10 @@ impl DatabaseBackend for SurrealKVBackend {
         Ok(())
     }
     async fn close(&mut self) -> Result<(), StorageError> {
-        let mut read_guard = self.db.write();
-        let res = read_guard.close().await;
-        drop(read_guard);
+        #[allow(clippy::await_holding_lock)]
+        let write_guard = self.db.write();
+        let res = write_guard.close().await;
+        drop(write_guard);
         res.map_err(|e| StorageError::CloseError(e.to_string()))
     }
 }

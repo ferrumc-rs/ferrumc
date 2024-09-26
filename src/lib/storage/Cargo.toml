@@ -24,7 +24,7 @@ surrealkv = { workspace = true }
 
 
 [dev-dependencies]
-criterion = { workspace = true, features = ["async_tokio", "async_futures"] }
+criterion = { workspace = true, features = ["async_tokio", "async_futures", "tokio", "futures"] }
 tempfile = { workspace = true}
 
 [[bench]]
