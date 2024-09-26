@@ -1,9 +1,11 @@
 #![feature(portable_simd)]
 
+use std::fs::{OpenOptions, Permissions};
 use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
 use fastnbt::Value;
 use nbt as hematite_nbt;
 use std::io::Cursor;
+use fastanvil::Region;
 
 fn bench_ferrumc_nbt(data: &[u8]) {
     let mut parser = ferrumc_nbt::de::borrow::NbtTape::new(data);
@@ -48,7 +50,20 @@ fn hematite_nbt(data: &[u8]) {
 }
 
 fn criterion_benchmark(c: &mut Criterion) {
-    let data = include_bytes!("../../../../../.etc/benches/registry_data.nbt");
+    // let cursor = Cursor::new(include_bytes!("../../../../../.etc/benches/region/r.0.0.mca"));
+    // let file = std::fs::File::open(r#"D:\Minecraft\framework\ferrumc\ferrumc-2_0\ferrumc\.etc\benches\region\r.0.0.mca"#).unwrap();
+    
+    let file = OpenOptions::new()
+        .write(true)
+        .read(true)
+        .open(r#"D:\Minecraft\framework\ferrumc\ferrumc-2_0\ferrumc\.etc\benches\region\r.0.0.mca"#)
+        .unwrap();
+    
+    
+    let mut region = Region::new(file).unwrap();
+    let chunk = region.iter().next().unwrap().unwrap();
+    let data = chunk.data.as_slice();
+    // let data = include_bytes!("../../../../../.etc/benches/registry_data.nbt");
     let data = ferrumc_nbt::decompress_gzip(data).unwrap();
     let data = data.as_slice();
 

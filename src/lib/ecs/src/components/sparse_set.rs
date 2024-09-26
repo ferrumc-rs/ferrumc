@@ -61,7 +61,7 @@ mod tests {
 
     #[test]
     fn insert_get() {
-        let mut entity_manager = EntityManager::new();
+        let entity_manager = EntityManager::new();
         let mut sparse_set = SparseSet::new();
         let entity =  entity_manager.create_entity();
         let component = 42;
@@ -71,7 +71,7 @@ mod tests {
 
     #[test]
     fn insert_get_mut() {
-        let mut entity_manager = EntityManager::new();
+        let entity_manager = EntityManager::new();
         let mut sparse_set = SparseSet::new();
         let entity =  entity_manager.create_entity();
         let component = 42;
@@ -83,7 +83,7 @@ mod tests {
 
     #[test]
     fn remove() {
-        let mut entity_manager = EntityManager::new();
+        let entity_manager = EntityManager::new();
         let mut sparse_set = SparseSet::new();
         let entity =  entity_manager.create_entity();
         let component = 42;
@@ -94,7 +94,7 @@ mod tests {
 
     #[test]
     fn remove_non_existent() {
-        let mut entity_manager = EntityManager::new();
+        let entity_manager = EntityManager::new();
         let mut sparse_set: SparseSet<usize> = SparseSet::new();
         let entity =  entity_manager.create_entity();
         assert_eq!(sparse_set.remove(entity), None);
