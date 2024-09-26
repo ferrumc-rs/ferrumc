@@ -1,16 +1,9 @@
 pub mod errors;
 
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+mod entities;
+mod components;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+/// This is the ecs :)
+/// well more of an EC than ECS\
+struct _EcsDefinition;
