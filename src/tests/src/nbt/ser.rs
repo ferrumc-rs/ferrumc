@@ -60,7 +60,7 @@ fn derive_macro_nested() {
 
     let test2 = Test2 { test };
 
-    let mut buf = test2.serialize_with_header();
+    let buf = test2.serialize_with_header();
 
     let mut parser = ferrumc_nbt::de::borrow::NbtTape::new(&buf);
     parser.parse();
@@ -105,7 +105,7 @@ fn derive_macro_nested_with_list() {
         ],
     };
 
-    let mut buf = test2.serialize_with_header();
+    let buf = test2.serialize_with_header();
 
     let mut parser = ferrumc_nbt::de::borrow::NbtTape::new(&buf);
     parser.parse();

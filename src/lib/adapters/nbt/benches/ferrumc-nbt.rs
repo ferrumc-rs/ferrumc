@@ -48,7 +48,7 @@ fn hematite_nbt(data: &[u8]) {
 }
 
 fn criterion_benchmark(c: &mut Criterion) {
-    let data = include_bytes!("../../../../../.etc/TheAIguy_.nbt");
+    let data = include_bytes!("../../../../../.etc/benches/registry_data.nbt");
     let data = ferrumc_nbt::decompress_gzip(data).unwrap();
     let data = data.as_slice();
 

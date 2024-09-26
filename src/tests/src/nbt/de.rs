@@ -51,9 +51,7 @@ fn test_derive() {
         list: vec![Three { l: 1 }, Three { l: 2 }],
     };
 
-    let mut buffer = Vec::new();
-
-    some_struct.serialize_with_header(&mut buffer);
+    let buffer = some_struct.serialize_with_header();
 
     let base_path = r#"D:\Minecraft\framework\ferrumc\ferrumc-2_0\ferrumc\.etc\tests"#;
     std::fs::write(format!("{}/test_derive.nbt", base_path), buffer).unwrap();
@@ -189,8 +187,7 @@ fn test_basic_derive_macro() {
         world: 2,
     };
 
-    let mut buffer = Vec::new();
-    hello_world.serialize_with_header(&mut buffer);
+    let buffer = hello_world.serialize_with_header();
 
 
     let hello_world = HelloWorld::from_bytes(buffer.as_slice()).unwrap();
@@ -258,8 +255,7 @@ fn test_skip_field() {
         some_optional: Some(2),
     };
 
-    let mut buffer = Vec::new();
-    struct_data.serialize_with_header(&mut buffer);
+    let buffer = struct_data.serialize_with_header();
 
     let skip_field = SkipField::from_bytes(buffer.as_slice()).unwrap();
 
@@ -288,8 +284,7 @@ fn test_list_compound_derive() {
         ],
     };
 
-    let mut buffer = Vec::new();
-    list_compound.serialize_with_header(&mut buffer);
+    let buffer = list_compound.serialize_with_header();
     
     let list_compound = ListCompound::from_bytes(buffer.as_slice()).unwrap();
 

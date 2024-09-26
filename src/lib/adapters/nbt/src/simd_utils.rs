@@ -4,7 +4,6 @@ use std::slice;
 use std::arch::x86_64::*;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 use std::is_x86_feature_detected;
-use tracing::trace;
 
 /// Checks if AVX2 is available on the current CPU.
 fn is_avx2_available() -> bool {
@@ -21,7 +20,7 @@ fn is_avx2_available() -> bool {
     // if debug_assetions
     #[cfg(debug_assertions)]
     if !available {
-        trace!("AVX2 / SIMD Instructions aren't available on this CPU!");
+        tracing::trace!("AVX2 / SIMD Instructions aren't available on this CPU!");
     }
     
     available

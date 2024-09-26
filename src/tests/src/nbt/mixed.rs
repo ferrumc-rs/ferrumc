@@ -19,8 +19,7 @@ mod tests {
             text: "Hello, NBT!",
         };
 
-        let mut buffer = Vec::new();
-        original.serialize_with_header(&mut buffer);
+        let buffer = original.serialize_with_header();
 
         let deserialized = MixedSlices::from_bytes(buffer.as_slice()).unwrap();
         
@@ -59,8 +58,7 @@ mod tests {
             }),
         };
 
-        let mut buffer = Vec::new();
-        original.serialize_with_header(&mut buffer);
+        let buffer = original.serialize_with_header();
 
         let deserialized = NestedStructure::from_bytes(buffer.as_slice()).unwrap();
 
@@ -88,8 +86,7 @@ mod tests {
 
         let original = create_tree(3);
 
-        let mut buffer = Vec::new();
-        original.serialize_with_header(&mut buffer);
+        let buffer = original.serialize_with_header();
 
         let deserialized = Node::from_bytes(buffer.as_slice()).unwrap();
 

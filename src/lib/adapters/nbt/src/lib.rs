@@ -8,8 +8,6 @@ pub mod de;
 pub mod errors;
 pub mod ser;
 pub(crate) mod simd_utils;
-#[cfg(test)]
-mod tests;
 
 pub type Result<T> = std::result::Result<T, NBTError>;
 
