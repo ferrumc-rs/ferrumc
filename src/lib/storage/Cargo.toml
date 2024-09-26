@@ -19,6 +19,8 @@ tokio = { workspace = true }
 parking_lot = { workspace = true }
 lazy_static = { workspace = true }
 surrealkv = { workspace = true }
+sled = { workspace = true }
+rocksdb = { workspace = true }
 
 
 
