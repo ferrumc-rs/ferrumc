@@ -1,7 +1,6 @@
 #![feature(portable_simd)]
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
-use fastanvil::Region;
 use fastnbt::Value;
 use ferrumc_macros::NBTDeserialize;
 use nbt as hematite_nbt;
@@ -85,19 +84,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     // let cursor = Cursor::new(include_bytes!("../../../../../.etc/benches/region/r.0.0.mca"));
     // let file = std::fs::File::open(r#"D:\Minecraft\framework\ferrumc\ferrumc-2_0\ferrumc\.etc\benches\region\r.0.0.mca"#).unwrap();
 
-    let cursor = include_bytes!("../../../../../.etc/benches/region/r.0.1.mca");
-
-    let buf_reader = std::io::Cursor::new(cursor);
-
-    let mut region = Region::from_stream(buf_reader).unwrap();
-    let next = region.read_chunk(0, 0).unwrap().unwrap();
-
-    // let data = chunk.data.as_slice();
-    let data = next.as_slice();
-
-    // let data = include_bytes!("../../../../../.etc/benches/registry_data.nbt");
-    let data = ferrumc_nbt::decompress_gzip(data).unwrap();
-    let data = data.as_slice();
+    let data = include_bytes!("../../../../../.etc/benches/chunk_0-0.nbt");
 
     let mut group = c.benchmark_group("Chunk Data NBT Parsing");
     group.throughput(Throughput::Bytes(data.len() as u64));

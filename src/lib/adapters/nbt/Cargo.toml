@@ -6,7 +6,6 @@ edition = "2021"
 [dependencies]
 
 thiserror = { workspace = true }
-hashbrown = { workspace = true }
 libflate = { workspace = true }
 ferrumc-macros = { workspace = true }
 tracing = { workspace = true }

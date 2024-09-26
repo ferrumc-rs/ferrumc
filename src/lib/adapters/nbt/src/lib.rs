@@ -2,8 +2,6 @@
 #![allow(unsafe_code)]
 extern crate core;
 
-use hashbrown as _;
-
 pub mod de;
 pub mod errors;
 pub mod ser;
