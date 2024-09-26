@@ -1,3 +1,5 @@
+use crate::NbtTape;
+
 mod r#impl;
 
 pub trait NBTSerializable {

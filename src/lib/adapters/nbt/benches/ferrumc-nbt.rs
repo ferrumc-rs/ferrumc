@@ -5,23 +5,47 @@ use fastnbt::Value;
 use ferrumc_macros::NBTDeserialize;
 use nbt as hematite_nbt;
 use std::io::Cursor;
+use crate::structs::{BlockState, Chunk, Palette};
 
-fn bench_ferrumc_nbt(data: &[u8]) {
+mod structs {
+    use super::*;
     #[derive(NBTDeserialize)]
-    struct Chunk<'a> {
+    pub(super) struct Chunk<'a> {
         #[nbt(rename = "xPos")]
-        x_pos: i32,
+        pub(crate) x_pos: i32,
         #[nbt(rename = "zPos")]
-        z_pos: i32,
+        pub(crate) z_pos: i32,
         #[nbt(rename = "Heightmaps")]
-        heightmaps: Heightmaps<'a>,
+        pub(crate) heightmaps: Heightmaps<'a>,
+        sections: Vec<Section<'a>>,
     }
 
     #[derive(NBTDeserialize)]
-    struct Heightmaps<'a> {
+    pub(super) struct Heightmaps<'a> {
         #[nbt(rename = "MOTION_BLOCKING")]
-        motion_blocking: &'a [i64],
+        pub(crate) motion_blocking: &'a [i64],
     }
+
+    #[derive(NBTDeserialize)]
+    pub(super) struct Section<'a> {
+        #[nbt(rename = "Y")]
+        y: i8,
+        block_states: Option<BlockState<'a>>,
+    }
+
+    #[derive(NBTDeserialize)]
+    pub(super) struct BlockState<'a> {
+        pub(crate) data: Option<&'a [i64]>,
+        pub(crate) palette: Vec<Palette<'a>>,
+    }
+
+    #[derive(NBTDeserialize)]
+    pub(super) struct Palette<'a> {
+        #[nbt(rename="Name")]
+        pub(crate) name: &'a str,
+    }
+}
+fn bench_ferrumc_nbt(data: &[u8]) {
 
     let chunk = Chunk::from_bytes(data).unwrap();
     assert_eq!(chunk.x_pos, 0);
@@ -47,9 +71,33 @@ fn bench_simdnbt(data: &[u8]) {
         .long_array()
         .unwrap();
 
+    let sections = nbt.get("sections").unwrap().list().unwrap();
+    let sections = sections.compounds().unwrap().into_iter()
+        .filter_map(|section| {
+            let y = section.get("Y").unwrap().byte().unwrap();
+            let block_states = section.get("block_states")?;
+            let block_states = block_states.compound().unwrap();
+            let data = block_states.get("data")?;
+            let data = data.long_array().unwrap();
+            let data = data.leak();
+            let palette = block_states.get("palette").unwrap().list().unwrap();
+            let palette = palette.compounds().unwrap().into_iter()
+                .map(|palette| {
+                    let name = palette.get("Name").unwrap().string().unwrap();
+                    let str = name.to_str();
+                    let name = str.as_ref();
+                    let name = Box::leak(name.to_string().into_boxed_str());
+                    Palette { name }
+                })
+                .collect();
+            Some(BlockState { data: Some(data), palette })
+        })
+        .collect::<Vec<_>>();
+
     assert_eq!(x_pos, 0);
     assert_eq!(z_pos, 32);
     assert_eq!(motion_blocking.len(), 37);
+    assert!(!sections.is_empty());
 }
 
 fn bench_simdnbt_owned(data: &[u8]) {
