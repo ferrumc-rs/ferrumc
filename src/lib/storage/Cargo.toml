@@ -6,3 +6,31 @@ edition = "2021"
 
 [dependencies]
 thiserror = { workspace = true }
+flate2 = { workspace = true }
+tracing = { workspace = true }
+ferrumc-profiling = { workspace = true}
+ferrumc-macros = { workspace = true }
+ferrumc-utils = { workspace = true }
+rand = { workspace = true }
+zstd = { workspace = true }
+brotli = { workspace = true }
+redb = { workspace = true }
+tokio = { workspace = true }
+parking_lot = { workspace = true }
+lazy_static = { workspace = true }
+surrealkv = { workspace = true }
+sled = { workspace = true }
+rocksdb = { workspace = true }
+
+
+
+
+[dev-dependencies]
+criterion = { workspace = true, features = ["async_tokio", "async_futures", "tokio", "futures"] }
+tempfile = { workspace = true}
+
+[[bench]]
+name = "storage_bench"
+harness = false
+path = "src/benches/storage.rs"
+
