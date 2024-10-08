@@ -1,5 +1,7 @@
 #![feature(proc_macro_quote)]
 
+use proc_macro::TokenStream;
+
 mod events;
 mod helpers;
 mod nbt;
@@ -41,3 +43,15 @@ pub fn net_encode(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 pub fn net_decode(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     net::decode::derive(input)
 }
+
+// #=================== PACKETS ===================#
+#[proc_macro_attribute]
+pub fn packet(args: TokenStream, input: TokenStream) -> TokenStream {
+    net::packets::attribute(args, input)
+}
+
+#[proc_macro]
+pub fn bake_packet_registry(input: TokenStream) -> TokenStream {
+    net::packets::bake_registry(input)
+}
+// #=================== PACKETS ===================#

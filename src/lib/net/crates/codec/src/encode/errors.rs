@@ -3,4 +3,6 @@
 pub enum NetEncodeError {
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
+    #[error("External error: {0}")]
+    ExternalError(#[from] Box<dyn std::error::Error>),
 }

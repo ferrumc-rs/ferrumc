@@ -7,6 +7,7 @@ edition = "2021"
 [dependencies]
 thiserror = { workspace = true }
 ferrumc-net-encryption = { workspace = true }
-ferrumc-net-packets = { workspace = true }
 ferrumc-net-types = { workspace = true }
 ferrumc-net-codec = { workspace = true }
+ferrumc-macros = { workspace = true }
+tracing = { workspace = true }

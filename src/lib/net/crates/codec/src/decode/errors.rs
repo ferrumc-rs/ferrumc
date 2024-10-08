@@ -5,4 +5,6 @@ pub enum NetDecodeError {
     IoError(#[from] std::io::Error),
     #[error("Invalid UTF-8: {0}")]
     Utf8Error(#[from] std::string::FromUtf8Error),
+    #[error("External error: {0}")]
+    ExternalError(#[from] Box<dyn std::error::Error>),
 }

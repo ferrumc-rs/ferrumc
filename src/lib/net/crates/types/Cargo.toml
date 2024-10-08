@@ -1,8 +1,8 @@
 [package]
-name = "ferrumc-net-packets"
+name = "ferrumc-net-types"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 thiserror = { workspace = true }
-ferrumc-net-types = { workspace = true }
+ferrumc-net-codec = { workspace = true }
