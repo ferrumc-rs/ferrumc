@@ -1,7 +1,7 @@
 use ferrumc_net_encryption::errors::NetEncryptionError;
 use ferrumc_net_packets::errors::NetPacketError;
 use thiserror::Error;
-use ferrumc_net_codec::r#mod::errors::NetDecodeError;
+use ferrumc_net_codec::decode::errors::NetDecodeError;
 
 #[derive(Debug, Error)]
 pub enum NetError {
