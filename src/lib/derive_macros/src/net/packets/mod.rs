@@ -14,6 +14,9 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
     path = path.replace("\\", "/");
 
     let dir_path = std::path::Path::new(&path);
+    // get the module path like crate::xxx:xxx from module_path
+    let base_path = module_path.split("\\").collect::<Vec<&str>>()[2..].join("::");
+    let base_path = format!("crate::{}", base_path);
 
     println!("[FERRUMC_MACROS] Parsing packets in {}", dir_path.display());
 
@@ -90,9 +93,11 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
                     "[FERRUMC_MACROS] Found Packet (ID: 0x{:02X}, State: {}, Struct Name: {})",
                     packet_id, state, struct_name
                 );
-
+                
                 let path = format!(
-                    "crate::net::packets::incoming::{}",
+                    // "crate::net::packets::incoming::{}",
+                    "{}::{}",
+                    base_path,
                     file_name.to_string_lossy().replace(".rs", "")
                 );
 

@@ -40,8 +40,8 @@ static CONFIG: OnceLock<ServerConfig> = OnceLock::new();
 /// println!("{:?}", config);
 /// # }
 /// ```
-pub fn get_global_config() -> Result<&'static ServerConfig, ConfigError> {
-    CONFIG.get().ok_or(ConfigError::ConfigLoadError)
+pub fn get_global_config() -> &'static ServerConfig {
+    CONFIG.get_or_init(ServerConfig::default)
 }
 
 /// Sets the global configuration.

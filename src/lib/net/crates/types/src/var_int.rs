@@ -1,14 +1,21 @@
-use std::io::{Cursor, Read, Write};
-use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
 use ferrumc_net_codec::decode::errors::NetDecodeError;
-use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
+use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
 use ferrumc_net_codec::encode::errors::NetEncodeError;
+use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
+use std::io::{Read, Write};
 
+#[derive(Debug)]
 pub struct VarInt {
     /// The value of the VarInt.
     pub val: i32,
     /// The length of the VarInt in bytes.
     pub len: usize,
+}
+
+impl PartialEq for VarInt {
+    fn eq(&self, other: &Self) -> bool {
+        self.val == other.val
+    }
 }
 
 const SEGMENT_BITS: i32 = 0x7F;
@@ -97,7 +104,7 @@ impl NetDecode for VarInt {
 }
 
 impl NetEncode for VarInt {
-    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
+    fn encode<W: Write>(&self, writer: &mut W, _opts: &NetEncodeOpts) -> NetEncodeResult<()> {
         self.write(writer)
             .map_err(|e| NetEncodeError::ExternalError(e.into()))
     }

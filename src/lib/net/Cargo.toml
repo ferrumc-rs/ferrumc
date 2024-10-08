@@ -10,4 +10,5 @@ ferrumc-net-encryption = { workspace = true }
 ferrumc-net-types = { workspace = true }
 ferrumc-net-codec = { workspace = true }
 ferrumc-macros = { workspace = true }
+ferrumc-config = { workspace = true }
 tracing = { workspace = true }
