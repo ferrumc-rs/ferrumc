@@ -8,6 +8,7 @@ edition = "2021"
 thiserror = { workspace = true }
 libflate = { workspace = true }
 ferrumc-net-codec = { workspace = true }
+tracing = { workspace = true}
 
 [lints]
 workspace = true

@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 ferrumc-nbt = { workspace = true }
 ferrumc-macros = { workspace = true }
+ferrumc-net-codec = { workspace = true }
 
 [lints]
 workspace = true

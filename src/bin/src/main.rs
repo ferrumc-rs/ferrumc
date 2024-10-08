@@ -4,6 +4,7 @@
 use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::event_handler;
 
+
 #[tokio::main]
 async fn main() {
     ferrumc_logging::init_logging();
