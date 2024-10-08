@@ -47,32 +47,31 @@ fn parse_priority(args: Punctuated<Meta, Comma>) -> u8 {
     let mut event_priority = 128;
 
     for arg in args.iter() {
-        match arg {
-            Meta::NameValue(nv) => {
-                if !nv.path.is_ident("priority") {
-                    continue;
-                }
-                let value = &nv.value;
+        let Meta::NameValue(nv) = arg else {
+            panic!("Expected a name-value attribute for the event handler");
+        };
 
-                let Expr::Lit(value) = value else {
-                    panic!("Expected a priority attribute for the event handler");
-                };
-
-                let value = &value.lit;
-
-                match value {
-                    Lit::Str(val) => {
-                        let value = val.value();
-                        event_priority = get_priority(&value);
-                    }
-                    Lit::Int(int) => {
-                        event_priority = int.base10_parse::<u8>().expect("Expected a number for the priority attribute");
-                    }
-                    _ => panic!("Expected a string literal for the priority attribute. Possible values are: fastest, fast, normal, slow, slowest, or values between 0 and 255. Where 0 is the fastest and 255 is the slowest")
-                };
-            }
-            _ => {}
+        if !nv.path.is_ident("priority") {
+            continue;
         }
+        let value = &nv.value;
+
+        let Expr::Lit(value) = value else {
+            panic!("Expected a priority attribute for the event handler");
+        };
+
+        let value = &value.lit;
+
+        match value {
+            Lit::Str(val) => {
+                let value = val.value();
+                event_priority = get_priority(&value);
+            }
+            Lit::Int(int) => {
+                event_priority = int.base10_parse::<u8>().expect("Expected a number for the priority attribute");
+            }
+            _ => panic!("Expected a string literal for the priority attribute. Possible values are: fastest, fast, normal, slow, slowest, or values between 0 and 255. Where 0 is the fastest and 255 is the slowest")
+        };
     }
 
     event_priority

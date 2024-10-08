@@ -4,6 +4,7 @@ mod events;
 mod helpers;
 mod nbt;
 mod profiling;
+mod packets;
 
 #[proc_macro_attribute]
 pub fn profile(
@@ -29,4 +30,14 @@ pub fn nbt_ser(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro_derive(NBTSerialize, attributes(nbt))]
 pub fn nbt_de(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     nbt::ser::derive(input)
+}
+
+#[proc_macro_derive(NetEncode, attributes(net))]
+pub fn net_encode(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    packets::encode::derive(input)
+}
+
+#[proc_macro_derive(NetDecode, attributes(net))]
+pub fn net_decode(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    packets::decode::derive(input)
 }
