@@ -16,13 +16,10 @@ members = [
     "src/lib/ecs",
     "src/lib/events",
     "src/lib/net",
-    "src/lib/net/encryption",
-    "src/lib/net/packets",
+    "src/lib/net/encryption", "src/lib/net/packets", "src/lib/net/types", "src/lib/net/codec",
     "src/lib/plugins",
     "src/lib/storage",
-    "src/lib/utils",
-    "src/lib/utils/logging",
-    "src/lib/utils/profiling",
+    "src/lib/utils", "src/lib/utils/logging", "src/lib/utils/profiling",
     "src/lib/world",
     "src/lib/derive_macros",
     "src/lib/adapters/nbt", "src/lib/adapters/mca",
@@ -78,6 +75,8 @@ ferrumc-events = { path = "src/lib/events" }
 ferrumc-net = { path = "src/lib/net" }
 ferrumc-net-encryption = { path = "src/lib/net/encryption" }
 ferrumc-net-packets = { path = "src/lib/net/packets" }
+ferrumc-net-types = { path = "src/lib/net/types" }
+ferrumc-net-codec = { path = "src/lib/net/codec" }
 ferrumc-plugins = { path = "src/lib/plugins" }
 ferrumc-storage = { path = "src/lib/storage" }
 ferrumc-utils = { path = "src/lib/utils" }

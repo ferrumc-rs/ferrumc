@@ -1,16 +1,17 @@
+use ferrumc_net_types::var_int::VarInt;
+use std::io::Cursor;
+
 pub mod errors;
 
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
+pub type NetPacketResult<T> = Result<T, errors::NetPacketError>;
+
+pub struct PacketSkeleton<'a> {
+    pub length: VarInt,
+    pub packet_id: u8,
+    pub payload: &'a [u8],
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+pub fn read_packet_headers<'a>(
+    _reader: &mut Cursor<&'a [u8]>,
+) -> NetPacketResult<PacketSkeleton<'a>> {
+    unimplemented!()
 }
