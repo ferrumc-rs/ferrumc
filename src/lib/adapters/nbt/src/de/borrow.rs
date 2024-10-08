@@ -1,3 +1,5 @@
+use std::io::Write;
+use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
 use crate::de::converter::FromNbt;
 
 #[repr(u8)]
@@ -575,5 +577,16 @@ mod general {
             let data = tape.read_n_bytes(len);
             Self::parse_from_bytes(data)
         }
+    }
+}
+
+
+/// tf, whats the point of this?
+/// the data will probably die?? idk? possibly not? ?? lmao
+impl<'a> NetEncode for NbtTape<'a> {
+    fn encode<W: Write>(&self, writer: &mut W, _opts: &NetEncodeOpts) -> NetEncodeResult<()> {
+        let data = self.data;
+        writer.write_all(data)?;
+        Ok(())
     }
 }
