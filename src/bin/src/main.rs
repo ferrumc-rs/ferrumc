@@ -36,7 +36,7 @@ impl Event for SomeEvent {
 }
 
 #[event_handler(priority = "fastest")]
-async fn some_event_listener(mut event: SomeEvent) -> Result<SomeEvent, SomeEventError> {
+async fn some_event_listener(mut event: SomeEvent) -> Result<SomeEvent, <SomeEvent as Event>::Error> {
     event.data = 10;
     println!("I set the event's data to 10");
     Ok(event)
@@ -50,6 +50,6 @@ async fn some_event_listener2(event: SomeEvent) -> Result<SomeEvent, SomeEventEr
 
 #[event_handler]
 async fn some_event_listener3(event: SomeEvent) -> Result<SomeEvent, SomeEventError> {
-    println!("im just here to listen to the event");
+    println!("im just here to listen to the event, although the data is: {}", event.data);
     Ok(event)
 }

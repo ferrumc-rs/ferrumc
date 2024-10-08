@@ -72,14 +72,14 @@ pub trait Event: Sized + Send + Sync + 'static {
     async fn trigger(event: Self::Data) -> Result<(), Self::Error> {
         EVENTS_LISTENERS
             .read()
-            .unwrap()
+            .expect("Failed to acquire read lock on event listeners. Impossible;")
             .get(Self::name())
             .map(|listeners| {
                 // Convert listeners iterator into Stream
                 stream::iter(listeners.iter())
                     // Filter only listeners we can downcast into the correct type
                     .filter_map(
-                        |dynlist| async move { dynlist.downcast_ref::<EventListener<Self>>() },
+                        |dyn_list| async move { dyn_list.downcast_ref::<EventListener<Self>>() },
                     )
                     // Trigger listeners in a row
                     .fold(Ok(event), |intercepted, listener| async move {
@@ -90,7 +90,7 @@ pub trait Event: Sized + Send + Sync + 'static {
                         }
                     })
             })
-            .unwrap()
+            .expect("Failed to find event listeners. Impossible;")
             .await?;
 
         Ok(())
@@ -137,7 +137,7 @@ pub trait Event: Sized + Send + Sync + 'static {
                 // If one listener fail we return the first error
                 if let Some(err) = joined
                     .into_iter()
-                    .filter_map(|res| res.expect("No task should ever panic!").err())
+                    .filter_map(|res| res.expect("No task should ever panic. Impossible;").err())
                     .next()
                 {
                     return Err(err);

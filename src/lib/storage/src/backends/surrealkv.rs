@@ -52,7 +52,7 @@ impl DatabaseBackend for SurrealKVBackend {
     async fn get(&mut self, table: String, key: u64) -> Result<Option<Vec<u8>>, StorageError> {
         let mut modified_key = table.as_bytes().to_vec();
         modified_key.extend_from_slice(&key.to_be_bytes());
-        let tx = self.db.read().begin().map_err(
+        let mut tx = self.db.read().begin().map_err(
             |e| StorageError::ReadError(e.to_string())
         )?;
         let value = tx.get(&modified_key).map_err(
@@ -97,7 +97,7 @@ impl DatabaseBackend for SurrealKVBackend {
     async fn exists(&mut self, table: String, key: u64) -> Result<bool, StorageError> {
         let mut modified_key = table.as_bytes().to_vec();
         modified_key.extend_from_slice(&key.to_be_bytes());
-        let tx = self.db.read().begin().map_err(
+        let mut tx = self.db.read().begin().map_err(
             |e| StorageError::ReadError(e.to_string())
         )?;
         let value = tx.get(&modified_key).map_err(
@@ -128,7 +128,7 @@ impl DatabaseBackend for SurrealKVBackend {
     }
 
     async fn batch_get(&mut self, table: String, keys: Vec<u64>) -> Result<Vec<Option<Vec<u8>>>, StorageError> {
-        let tx = self.db.read().begin().map_err(
+        let mut tx = self.db.read().begin().map_err(
             |e| StorageError::ReadError(e.to_string())
         )?;
         let mut values = Vec::new();
