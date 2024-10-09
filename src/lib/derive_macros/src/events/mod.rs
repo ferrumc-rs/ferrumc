@@ -1,4 +1,5 @@
 use proc_macro::TokenStream;
+use proc_macro_crate::{crate_name, FoundCrate};
 use quote::{format_ident, quote};
 use syn::punctuated::Punctuated;
 use syn::token::Comma;
@@ -16,7 +17,7 @@ pub fn event_handler_fn(attr: TokenStream, input: TokenStream) -> TokenStream {
 
     let (event_type, state) = extract_event_type(&input);
     let (event_type, state) = (event_type.ty, state.ty);
-    
+
     let output = quote! {
         #input
 
@@ -107,3 +108,35 @@ fn extract_event_type(input: &syn::ItemFn) -> (PatType, PatType) {
 //     ev.data = 10;
 //     println!("I set the event's data to 10");
 // }
+
+pub(crate) fn derive(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as syn::DeriveInput);
+
+    let name = &input.ident;
+
+    // Check if I'm local or external (ferrumc_net)
+    let found_crate = crate_name("ferrumc-net").unwrap();
+
+    let net_crate = match found_crate {
+        FoundCrate::Itself => {
+            quote! {crate}
+        }
+        FoundCrate::Name(name) => {
+            quote! {::#name}
+        }
+    };
+
+    let output = quote! {
+        impl ::ferrumc_events::infrastructure::Event for #name {
+            type Data = Self;
+            type State = #net_crate::GlobalState;
+            type Error = #net_crate::errors::NetError;
+
+            fn name() -> &'static str {
+                stringify!(#name)
+            }
+        }
+    };
+
+    output.into()
+}

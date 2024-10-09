@@ -127,6 +127,7 @@ lazy_static = "1.5.0"
 quote = "1.0.37"
 syn = "2.0.77"
 proc-macro2 = "1.0.86"
+proc-macro-crate = "3.2.0"
 
 # Magic ("life-before-main" initialization, __attribute__((constructor)))
 ctor = "0.2.8"

@@ -1,7 +1,7 @@
 use std::{any::Any, future::Future, pin::Pin, sync::LazyLock};
 
 use dashmap::DashMap;
-use futures::{future, stream, StreamExt};
+use futures::{stream, StreamExt};
 
 /// A Lazily initialized HashMap wrapped in a ShardedLock optimized for reads.
 type LazyRwListenerMap<K, V> = LazyLock<DashMap<K, V>>;

@@ -1,14 +1,13 @@
 use crate::connection::ConnectionState;
-use crate::errors::NetError;
 use crate::packets::IncomingPacket;
 use crate::{GlobalState, NetResult, ServerState};
 use ferrumc_events::infrastructure::Event;
-use ferrumc_macros::{event_handler, packet, NetDecode};
+use ferrumc_macros::{event_handler, packet, Event, NetDecode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::sync::Arc;
 use tracing::info;
 
-#[derive(NetDecode, Debug)]
+#[derive(NetDecode, Debug, Event)]
 #[packet(packet_id = 0x00, state = "handshake")]
 pub struct Handshake {
     pub protocol_version: VarInt,
@@ -35,21 +34,10 @@ impl IncomingPacket for Handshake {
     }
 }
 
-
-impl Event for Handshake {
-    type Data = Self;
-    type State = GlobalState;
-    type Error = NetError;
-
-    fn name() -> &'static str {
-        "handshake"
-    }
-}
-
 #[event_handler]
 async fn handle_handshake(
     handshake: Handshake,
-    state: GlobalState,
+    _state: GlobalState,
 ) -> Result<Handshake, <Handshake as Event>::Error> {
     info!("Handling handshake event: {:?}", handshake);
 
