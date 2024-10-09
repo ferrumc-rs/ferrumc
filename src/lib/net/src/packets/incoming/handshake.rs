@@ -1,10 +1,12 @@
+use crate::connection::ConnectionState;
+use crate::errors::NetError;
 use crate::packets::IncomingPacket;
-use crate::{NetResult, ServerState};
-use ferrumc_macros::{packet, NetDecode};
+use crate::{GlobalState, NetResult, ServerState};
+use ferrumc_events::infrastructure::Event;
+use ferrumc_macros::{event_handler, packet, NetDecode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::sync::Arc;
 use tracing::info;
-use crate::connection::ConnectionState;
 
 #[derive(NetDecode, Debug)]
 #[packet(packet_id = 0x00, state = "handshake")]
@@ -19,16 +21,42 @@ impl IncomingPacket for Handshake {
     async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
         info!("Connection ID: {}", conn_id);
         info!("Handshake packet received: {:?}", self);
-        
+
         let current_state = state
             .universe
             .get::<ConnectionState>(conn_id)?;
 
         info!("Current state: {}", current_state.as_str());
-        
+
+
+        Handshake::trigger(self, state).await?;
+
         Ok(())
     }
 }
+
+
+impl Event for Handshake {
+    type Data = Self;
+    type State = GlobalState;
+    type Error = NetError;
+
+    fn name() -> &'static str {
+        "handshake"
+    }
+}
+
+#[event_handler]
+async fn handle_handshake(
+    handshake: Handshake,
+    state: GlobalState,
+) -> Result<Handshake, <Handshake as Event>::Error> {
+    info!("Handling handshake event: {:?}", handshake);
+
+    Ok(handshake)
+}
+
+
 
 #[cfg(test)]
 mod tests {

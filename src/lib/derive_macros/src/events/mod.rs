@@ -2,7 +2,7 @@ use proc_macro::TokenStream;
 use quote::{format_ident, quote};
 use syn::punctuated::Punctuated;
 use syn::token::Comma;
-use syn::{parse_macro_input, Expr, Lit, Meta};
+use syn::{parse_macro_input, Expr, Lit, Meta, PatType};
 
 pub fn event_handler_fn(attr: TokenStream, input: TokenStream) -> TokenStream {
     let args = parse_macro_input!(attr with Punctuated::<Meta, syn::Token![,]>::parse_terminated);
@@ -14,8 +14,9 @@ pub fn event_handler_fn(attr: TokenStream, input: TokenStream) -> TokenStream {
 
     let register_fn_name = format_ident!("__register_listener_{}", fn_name);
 
-    let event_type = extract_event_type(&input).ty;
-
+    let (event_type, state) = extract_event_type(&input);
+    let (event_type, state) = (event_type.ty, state.ty);
+    
     let output = quote! {
         #input
 
@@ -23,7 +24,7 @@ pub fn event_handler_fn(attr: TokenStream, input: TokenStream) -> TokenStream {
         fn #register_fn_name() {
             // ::ferrumc_events::infrastructure::insert_into_events(
             #event_type ::register(
-                |ev: #event_type| std::boxed::Box::pin(#fn_name(ev)),
+                |ev: #event_type, state: #state| std::boxed::Box::pin(#fn_name(ev, state)),
                 #priority
             );
         }
@@ -77,20 +78,23 @@ fn parse_priority(args: Punctuated<Meta, Comma>) -> u8 {
     event_priority
 }
 
-fn extract_event_type(input: &syn::ItemFn) -> syn::PatType {
+fn extract_event_type(input: &syn::ItemFn) -> (PatType, PatType) {
     let inputs = &input.sig.inputs;
 
-    if inputs.len() != 1 {
-        panic!("Expected the event handler to have exactly one argument (the event)");
+    if inputs.len() != 2 {
+        panic!("Expected the event handler to have exactly 2 arguments (the event, state)");
     }
 
     let syn::FnArg::Typed(pat_type) = &inputs[0] else {
         panic!("Expected the first argument to be a typed pattern");
     };
+    let syn::FnArg::Typed(state) = &inputs[1] else {
+        panic!("Expected the second argument to be a typed pattern");
+    };
 
     // let syn::Path { segments, .. } = &type_path.path;
 
-    pat_type.clone()
+    (pat_type.clone(), state.clone())
 }
 
 // #[ctor::ctor]

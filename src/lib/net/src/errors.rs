@@ -5,7 +5,7 @@ use ferrumc_net_codec::decode::errors::NetDecodeError;
 #[derive(Debug, Error)]
 pub enum NetError {
     #[error("Something failed lol")]
-    Something,
+    Something(),
 
     #[error("Encryption Error: {0}")]
     EncryptionError(#[from] NetEncryptionError),
@@ -21,5 +21,10 @@ pub enum NetError {
     
     #[error("ECS Error: {0}")]
     ECSError(#[from] ferrumc_ecs::errors::ECSError),
+    
+    #[error("Events Error: {0}")]
+    EventsError(#[from] ferrumc_events::errors::EventsError),
+    
+    
 }
 

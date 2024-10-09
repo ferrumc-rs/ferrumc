@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use ferrumc_ecs::Universe;
 use ferrumc_macros::bake_packet_registry;
 
@@ -11,6 +12,8 @@ pub type NetResult<T> = Result<T, errors::NetError>;
 pub struct ServerState {
     universe: Universe
 }
+
+pub type GlobalState = Arc<ServerState>;
 
 impl ServerState {
     pub fn new(universe: Universe) -> Self {

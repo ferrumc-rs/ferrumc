@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use futures::stream::FuturesUnordered;
 use crate::{NetResult, ServerState};
 use ferrumc_config::get_global_config;
 use tokio::net::TcpListener;
@@ -28,6 +29,7 @@ pub async fn create_server_listener() -> NetResult<TcpListener> {
 pub async fn listen(net_state: Arc<ServerState>, tcp_listener: TcpListener) -> NetResult<()> {
     info!("Server is listening on [{}]", tcp_listener.local_addr()?);
 
+    
     loop {
         let (stream, _) = tcp_listener.accept().await?;
         let addy = stream.peer_addr()?;

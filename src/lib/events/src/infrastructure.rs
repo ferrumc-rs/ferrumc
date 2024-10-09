@@ -1,17 +1,16 @@
 use std::{any::Any, future::Future, pin::Pin, sync::LazyLock};
 
-use crossbeam::sync::ShardedLock;
+use dashmap::DashMap;
 use futures::{future, stream, StreamExt};
-use hashbrown::HashMap;
 
 /// A Lazily initialized HashMap wrapped in a ShardedLock optimized for reads.
-type LazyRwListenerMap<K, V> = LazyLock<ShardedLock<HashMap<K, V>>>;
+type LazyRwListenerMap<K, V> = LazyLock<DashMap<K, V>>;
 
 type AsyncEventListener<E> = fn(
     <E as Event>::Data,
-    
+    <E as Event>::State,
 ) -> Pin<
-    Box<dyn Future<Output = Result<<E as Event>::Data, <E as Event>::Error>> + Send>,
+    Box<dyn Future<Output=Result<<E as Event>::Data, <E as Event>::Error>> + Send>,
 >;
 
 /// This is the global map of event listeners.
@@ -24,7 +23,7 @@ type AsyncEventListener<E> = fn(
 ///   "AnotherEvent": [listener3, listener4]
 /// }
 static EVENTS_LISTENERS: LazyRwListenerMap<&'static str, Vec<Box<dyn Any + Send + Sync>>> =
-    LazyLock::new(|| ShardedLock::new(HashMap::new()));
+    LazyLock::new(DashMap::new);
 
 /// An event listener structure that contains a pointer to an asynchronous event listener
 /// and its priority of execution.
@@ -57,9 +56,13 @@ impl<E: Event> Priority for EventListener<E> {
 pub trait Event: Sized + Send + Sync + 'static {
     /// Event data structure
     type Data: Send + Sync;
+    
+    /// State
+    type State: Send + Sync + Clone;
 
     /// Event specific error
     type Error: std::fmt::Debug + Send;
+    
 
     /// Stringified name of the event
     fn name() -> &'static str;
@@ -70,34 +73,35 @@ pub trait Event: Sized + Send + Sync + 'static {
     /// will give its result to the next one with a lesser priority and so on.
     ///
     /// Returns `Ok(())` if the execution succeeded. `Err(EventsError)` ifa listener failed.
-    async fn trigger(event: Self::Data) -> Result<(), Self::Error> {
-        EVENTS_LISTENERS
-            .read()
-            .expect("Failed to acquire read lock on event listeners. Impossible;")
+    async fn trigger(event: Self::Data, state: Self::State) -> Result<(), Self::Error> {
+        let listeners = EVENTS_LISTENERS
             .get(Self::name())
-            .map(|listeners| {
-                // Convert listeners iterator into Stream
-                stream::iter(listeners.iter())
-                    // Filter only listeners we can downcast into the correct type
-                    .filter_map(
-                        |dyn_list| async move { dyn_list.downcast_ref::<EventListener<Self>>() },
-                    )
-                    // Trigger listeners in a row
-                    .fold(Ok(event), |intercepted, listener| async move {
-                        if intercepted.is_err() {
-                            intercepted
-                        } else {
-                            (listener.listener)(intercepted.unwrap()).await
-                        }
-                    })
+            .expect("Failed to find event listeners. Impossible;");
+
+
+        // Convert listeners iterator into Stream
+        stream::iter(listeners.iter())
+            // Filter only listeners we can downcast into the correct type
+            .filter_map(
+                |dyn_list| async { dyn_list.downcast_ref::<EventListener<Self>>() },
+            )
+            // Trigger listeners in a row
+            .fold(Ok(event), |intercepted, listener| {
+                let state = state.clone();
+                async move {
+                    if intercepted.is_err() {
+                        intercepted
+                    } else {
+                        (listener.listener)(intercepted.unwrap(), state).await
+                    }
+                }
             })
-            .expect("Failed to find event listeners. Impossible;")
             .await?;
 
         Ok(())
     }
 
-    /// Trigger the execution of an event with concurrency support
+    /*/// Trigger the execution of an event with concurrency support
     ///
     /// If the event structure supports cloning. This method can be used to execute
     /// listeners of the same priority concurrently (using tokio::task). This imply a
@@ -115,7 +119,7 @@ pub trait Event: Sized + Send + Sync + 'static {
     where
         Self::Data: Clone,
     {
-        let read_guard = EVENTS_LISTENERS.read().unwrap();
+        let read_guard = &EVENTS_LISTENERS;
         let listeners = read_guard.get(Self::name()).unwrap();
 
         // Convert listeners iterator into Stream
@@ -152,17 +156,17 @@ pub trait Event: Sized + Send + Sync + 'static {
 
         Ok(())
     }
-
+*/
     /// Register a a new event listener for this event
     fn register(listener: AsyncEventListener<Self>, priority: u8) {
         // Create the event listener structure
         let listener = EventListener::<Self> { listener, priority };
 
         // Write guard the event listeners global map
-        let mut map = EVENTS_LISTENERS.write().unwrap();
+        let map = &EVENTS_LISTENERS;
 
         // Remove listeners to sort them
-        let event_listeners = map.remove(Self::name()).unwrap_or_default();
+        let event_listeners = map.remove(Self::name()).unwrap_or_default().1;
 
         // Downcast them to access their priority field
         let mut sorted_listeners = event_listeners
