@@ -1,7 +1,10 @@
 // Security or something like that
 #![forbid(unsafe_code)]
 
+use std::sync::Arc;
 use tracing::{error, info};
+use ferrumc_ecs::Universe;
+use ferrumc_net::ServerState;
 
 pub(crate)mod errors;
 
@@ -23,7 +26,10 @@ async fn main() {
 
 async fn entry() -> Result<()> {
     let listener = ferrumc_net::server::create_server_listener().await?;
-    ferrumc_net::server::listen(listener).await?;
+
+    let state = ServerState::new(Universe::new());
+
+    ferrumc_net::server::listen(Arc::new(state), listener).await?;
 
     Ok(())
 }

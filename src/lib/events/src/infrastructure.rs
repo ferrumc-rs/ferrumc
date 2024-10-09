@@ -9,6 +9,7 @@ type LazyRwListenerMap<K, V> = LazyLock<ShardedLock<HashMap<K, V>>>;
 
 type AsyncEventListener<E> = fn(
     <E as Event>::Data,
+    
 ) -> Pin<
     Box<dyn Future<Output = Result<<E as Event>::Data, <E as Event>::Error>> + Send>,
 >;

@@ -1,8 +1,10 @@
-use tracing::info;
+use crate::packets::IncomingPacket;
+use crate::{NetResult, ServerState};
 use ferrumc_macros::{packet, NetDecode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use crate::NetResult;
-use crate::packets::IncomingPacket;
+use std::sync::Arc;
+use tracing::info;
+use crate::connection::ConnectionState;
 
 #[derive(NetDecode, Debug)]
 #[packet(packet_id = 0x00, state = "handshake")]
@@ -14,20 +16,26 @@ pub struct Handshake {
 }
 
 impl IncomingPacket for Handshake {
-    async fn handle(self, conn_id: usize) -> NetResult<()> {
+    async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
         info!("Connection ID: {}", conn_id);
         info!("Handshake packet received: {:?}", self);
+        
+        let current_state = state
+            .universe
+            .get::<ConnectionState>(conn_id)?;
 
+        info!("Current state: {}", current_state.as_str());
+        
         Ok(())
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::io::Cursor;
     use ferrumc_macros::NetDecode;
     use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
     use ferrumc_net_codec::net_types::var_int::VarInt;
+    use std::io::Cursor;
 
     #[tokio::test]
     async fn test_macro_decode() {

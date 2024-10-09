@@ -1,4 +1,5 @@
-use crate::NetResult;
+use std::sync::Arc;
+use crate::{NetResult, ServerState};
 use ferrumc_config::get_global_config;
 use tokio::net::TcpListener;
 use tracing::{debug, error, info, info_span, Instrument};
@@ -24,7 +25,7 @@ pub async fn create_server_listener() -> NetResult<TcpListener> {
     Ok(listener)
 }
 
-pub async fn listen(tcp_listener: TcpListener) -> NetResult<()> {
+pub async fn listen(net_state: Arc<ServerState>, tcp_listener: TcpListener) -> NetResult<()> {
     info!("Server is listening on [{}]", tcp_listener.local_addr()?);
 
     loop {
@@ -32,7 +33,7 @@ pub async fn listen(tcp_listener: TcpListener) -> NetResult<()> {
         let addy = stream.peer_addr()?;
         debug!("Accepted connection from: {}", addy);
         tokio::task::spawn(
-            handle_connection(stream)
+            handle_connection(Arc::clone(&net_state), stream)
                 .instrument(info_span!("conn", %addy).or_current())
         );
     }

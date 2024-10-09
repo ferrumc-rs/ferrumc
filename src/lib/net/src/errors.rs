@@ -18,5 +18,8 @@ pub enum NetError {
     
     #[error("VarInt Error: {0}")]
     TypesError(#[from] ferrumc_net_codec::net_types::NetTypesError),
+    
+    #[error("ECS Error: {0}")]
+    ECSError(#[from] ferrumc_ecs::errors::ECSError),
 }
 
