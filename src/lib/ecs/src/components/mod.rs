@@ -13,8 +13,19 @@ pub mod sparse_set;
 pub trait Component: Any + Send + Sync {}
 impl<T: Any + Send + Sync> Component for T {}
 
+unsafe impl<T> Send for ComponentRef<'_, T> where T: Component {}
+unsafe impl<T> Sync for ComponentRef<'_, T> where T: Component {}
+unsafe impl<T> Send for ComponentRefMut<'_, T> where T: Component {}
+unsafe impl<T> Sync for ComponentRefMut<'_, T> where T: Component {}
+
 pub struct ComponentStorage {
     pub components: DashMap<TypeId, SparseSet<RwLock<Box<dyn Component>>>>,
+}
+
+impl Default for ComponentStorage {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ComponentStorage {

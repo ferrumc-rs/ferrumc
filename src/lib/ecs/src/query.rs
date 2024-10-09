@@ -58,6 +58,18 @@ pub struct Query<'a, Q: QueryItem> {
     _marker: std::marker::PhantomData<Q>,
 }
 
+impl<'a, Q: QueryItem> Clone for Query<'a, Q> {
+    fn clone(&self) -> Self {
+        //! Clones the query, and re-calculates the entities
+        Self {
+            component_storage: self.component_storage,
+            entities: Q::entities(self.component_storage),
+            _marker: std::marker::PhantomData,
+        }
+    }
+}
+
+
 impl<'a, Q: QueryItem> Query<'a, Q> {
     pub fn new(component_storage: &'a ComponentStorage) -> Self {
         Self {
@@ -88,12 +100,10 @@ mod iter_impl {
         }
     }
 
-
     impl<'a, Q> ParallelIterator for Query<'a, Q>
     where
-        Q: QueryItem + Sync + Send + 'a,
-        Q::Item<'a>: Send + 'a,
-        Q: Send + 'a,
+        Q: QueryItem + Send,
+        Q::Item<'a>: Send,
     {
         type Item = Q::Item<'a>;
 
