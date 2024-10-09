@@ -1,8 +1,9 @@
 pub mod errors;
 
-mod components;
-mod entities;
+pub mod components;
+pub mod entities;
+pub mod query;
 
-/// This is the ecs :)
-/// well more of an EC than ECS\
-struct _EcsDefinition;
+#[cfg(test)]
+mod tests;
+pub type ECSResult<T> = Result<T, errors::ECSError>;
