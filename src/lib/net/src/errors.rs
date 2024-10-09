@@ -1,6 +1,7 @@
 use ferrumc_net_encryption::errors::NetEncryptionError;
 use thiserror::Error;
 use ferrumc_net_codec::decode::errors::NetDecodeError;
+use ferrumc_net_codec::encode::errors::NetEncodeError;
 
 #[derive(Debug, Error)]
 pub enum NetError {
@@ -12,6 +13,9 @@ pub enum NetError {
 
     #[error("Decoder Error: {0}")]
     DecoderError(#[from] NetDecodeError),
+    
+    #[error("Encoder Error: {0}")]
+    EncoderError(#[from] NetEncodeError),
 
     #[error("IO Error: {0}")]
     IOError(#[from] std::io::Error),

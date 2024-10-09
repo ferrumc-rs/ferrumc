@@ -1,6 +1,6 @@
-use std::io::Write;
 use crate::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
-
+use crate::net_types::var_int::VarInt;
+use std::io::Write;
 
 macro_rules! impl_for_primitives {
     ($($primitive_type:ty | $alt:ty),*) => {
@@ -41,7 +41,7 @@ impl NetEncode for bool {
 
 impl NetEncode for String {
     fn encode<W: Write>(&self, writer: &mut W, _: &NetEncodeOpts) -> NetEncodeResult<()> {
-        let len = self.len() as u32;
+        let len: VarInt = VarInt::new(self.len() as i32);
         len.encode(writer, &NetEncodeOpts::None)?;
         writer.write_all(self.as_bytes())?;
         Ok(())

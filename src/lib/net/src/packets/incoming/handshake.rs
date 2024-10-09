@@ -7,7 +7,7 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::sync::Arc;
 use tracing::info;
 
-#[derive(NetDecode, Debug, Event)]
+#[derive(NetDecode, Debug)]
 #[packet(packet_id = 0x00, state = "handshake")]
 pub struct Handshake {
     pub protocol_version: VarInt,
@@ -28,9 +28,24 @@ impl IncomingPacket for Handshake {
         info!("Current state: {}", current_state.as_str());
 
 
-        Handshake::trigger(self, state).await?;
+        HandshakeEvent::trigger(HandshakeEvent::new(self, conn_id), state).await?;
 
         Ok(())
+    }
+}
+
+#[derive(Event)]
+pub struct HandshakeEvent {
+    pub handshake: Handshake,
+    pub conn_id: usize,
+}
+
+impl HandshakeEvent {
+    pub fn new(handshake: Handshake, conn_id: usize) -> Self {
+        Self {
+            handshake,
+            conn_id,
+        }
     }
 }
 

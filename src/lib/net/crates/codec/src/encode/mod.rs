@@ -9,6 +9,7 @@ pub type NetEncodeResult<T> = Result<T, errors::NetEncodeError>;
 /// And possibly other stuff in the future.
 pub enum NetEncodeOpts {
     None,
+    WithLength,
 }
 
 pub trait NetEncode: Sized {

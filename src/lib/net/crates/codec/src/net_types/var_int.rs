@@ -27,6 +27,12 @@ mod adapters{
             Self::new(0)
         }
     }
+    
+    impl PartialEq<usize> for VarInt {
+        fn eq(&self, other: &usize) -> bool {
+            self.val == *other as i32
+        }
+    }
 }
 
 impl PartialEq for VarInt {

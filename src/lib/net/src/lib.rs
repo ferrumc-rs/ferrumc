@@ -10,7 +10,7 @@ pub type NetResult<T> = Result<T, errors::NetError>;
 
 
 pub struct ServerState {
-    universe: Universe
+    pub universe: Universe
 }
 
 pub type GlobalState = Arc<ServerState>;
