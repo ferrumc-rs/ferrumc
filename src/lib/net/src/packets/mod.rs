@@ -1,6 +1,7 @@
 use crate::NetResult;
 
 pub mod incoming;
+pub mod outgoing;
 
 #[allow(async_fn_in_trait)]
 pub trait IncomingPacket {

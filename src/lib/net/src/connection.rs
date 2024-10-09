@@ -25,7 +25,7 @@ pub async fn handle_connection(tcp_stream: TcpStream) -> NetResult<()> {
     let (reader, _writer) = tcp_stream.into_split();
     let mut reader = tokio::io::BufReader::new(reader);
 
-    'net: loop {
+    'recv: loop {
         let mut packet_skele = PacketSkeleton::new(&mut reader).await?;
 
         trace!("Received packet: {:?}", packet_skele);
@@ -38,7 +38,7 @@ pub async fn handle_connection(tcp_stream: TcpStream) -> NetResult<()> {
         ).await {
             warn!("Failed to handle packet: {:?}", e);
             // Kick the player (when implemented).
-            break 'net;
+            break 'recv;
         };
     }
 
