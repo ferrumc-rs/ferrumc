@@ -34,17 +34,6 @@ impl IncomingPacket for Handshake {
     }
 }
 
-#[event_handler]
-async fn handle_handshake(
-    handshake: Handshake,
-    _state: GlobalState,
-) -> Result<Handshake, <Handshake as Event>::Error> {
-    info!("Handling handshake event: {:?}", handshake);
-
-    Ok(handshake)
-}
-
-
 
 #[cfg(test)]
 mod tests {

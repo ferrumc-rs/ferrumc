@@ -56,13 +56,13 @@ impl<E: Event> Priority for EventListener<E> {
 pub trait Event: Sized + Send + Sync + 'static {
     /// Event data structure
     type Data: Send + Sync;
-    
+
     /// State
     type State: Send + Sync + Clone;
 
     /// Event specific error
     type Error: std::fmt::Debug + Send;
-    
+
 
     /// Stringified name of the event
     fn name() -> &'static str;

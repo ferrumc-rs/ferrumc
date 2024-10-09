@@ -7,6 +7,7 @@ use ferrumc_ecs::Universe;
 use ferrumc_net::ServerState;
 
 pub(crate)mod errors;
+mod packet_handlers;
 
 pub type Result<T> = std::result::Result<T, errors::BinaryError>;
 
