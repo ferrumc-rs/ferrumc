@@ -1,5 +1,6 @@
 use std::io::Read;
 use crate::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
+use crate::net_types::var_int::VarInt;
 
 macro_rules! impl_for_primitives {
     ($($primitive_type:ty | $alt:ty),*) => {
@@ -41,7 +42,7 @@ impl NetDecode for bool {
 
 impl NetDecode for String {
     fn decode<R: Read>(reader: &mut R, _: &NetDecodeOpts) -> NetDecodeResult<Self> {
-        let len = <u32 as NetDecode>::decode(reader, &NetDecodeOpts::None)? as usize;
+        let len = <VarInt as NetDecode>::decode(reader, &NetDecodeOpts::None)?.val as usize;
         let mut buf = vec![0; len];
         reader.read_exact(&mut buf)?;
         Ok(String::from_utf8(buf)?)

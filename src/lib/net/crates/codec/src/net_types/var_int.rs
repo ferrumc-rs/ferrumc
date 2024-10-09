@@ -1,8 +1,10 @@
-use ferrumc_net_codec::decode::errors::NetDecodeError;
-use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
-use ferrumc_net_codec::encode::errors::NetEncodeError;
-use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
+use crate::decode::errors::NetDecodeError;
+use crate::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
+use crate::encode::errors::NetEncodeError;
+use crate::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
 use std::io::{Read, Write};
+use tokio::io::{AsyncRead, AsyncReadExt};
+use crate::net_types::NetTypesError;
 
 #[derive(Debug)]
 pub struct VarInt {
@@ -10,6 +12,21 @@ pub struct VarInt {
     pub val: i32,
     /// The length of the VarInt in bytes.
     pub len: usize,
+}
+
+mod adapters{
+    use crate::net_types::var_int::VarInt;
+
+    impl From<usize> for VarInt {
+        fn from(value: usize) -> Self {
+            Self::new(value as i32)
+        }
+    }
+    impl Default for VarInt {
+        fn default() -> Self {
+            Self::new(0)
+        }
+    }
 }
 
 impl PartialEq for VarInt {
@@ -43,13 +60,11 @@ impl VarInt {
         }
     }
 
-    pub fn read<R: Read>(cursor: &mut R) -> Result<Self, VarIntError> {
+    pub fn read<R: Read>(cursor: &mut R) -> Result<Self, NetTypesError> {
         let mut val = 0;
         for i in 0..5 {
-            // let mut byte: [u8 ;1] = [0];
-            // cursor.read_exact(&mut byte)?;
             let byte = {
-                let mut buf = [0];
+                let mut buf = [0u8; 1];
                 cursor.read_exact(&mut buf)?;
                 buf[0]
             } as i32;
@@ -60,19 +75,37 @@ impl VarInt {
             }
         }
 
-        Err(VarIntError::InvalidVarInt)
+        Err(NetTypesError::InvalidVarInt)
     }
 
-    pub fn write<W: Write>(&self, cursor: &mut W) -> Result<(), VarIntError> {
+    pub fn write<W: Write>(&self, cursor: &mut W) -> Result<(), NetTypesError> {
         write_varint(self.val, cursor)
+    }
+
+    pub async fn read_async<R: AsyncRead + Unpin>(cursor: &mut R) -> Result<Self, NetTypesError> {
+        let mut val = 0;
+        for i in 0..5 {
+            let byte = {
+                let mut buf = [0];
+                cursor.read_exact(&mut buf).await?;
+                buf[0]
+            } as i32;
+
+            val |= (byte & SEGMENT_BITS) << (7 * i);
+            if byte & CONTINUE_BIT == 0 {
+                return Ok(Self { val, len: i + 1 });
+            }
+        }
+
+        Err(NetTypesError::InvalidVarInt)
     }
 }
 
 pub fn write_varint<W: Write>(
     value: impl TryInto<i32>,
     cursor: &mut W,
-) -> Result<(), VarIntError> {
-    let mut val = value.try_into().map_err(|_| VarIntError::InvalidVarInt)?;
+) -> Result<(), NetTypesError> {
+    let mut val = value.try_into().map_err(|_| NetTypesError::InvalidVarInt)?;
 
     loop {
         if (val & !SEGMENT_BITS) == 0 {
@@ -84,17 +117,6 @@ pub fn write_varint<W: Write>(
         val = ((val as u32) >> 7) as i32; // Rust equivalent of Java's >>> operator
     }
 }
-
-#[derive(thiserror::Error, Debug)]
-pub enum VarIntError {
-    #[error(transparent)]
-    Io(#[from] std::io::Error),
-    #[error("Invalid VarInt")]
-    InvalidVarInt,
-    #[error("I couldn't convert the value into a valid i32")]
-    InvalidInputI32,
-}
-
 
 impl NetDecode for VarInt {
     fn decode<R: Read>(reader: &mut R, _opts: &NetDecodeOpts) -> NetDecodeResult<Self> {

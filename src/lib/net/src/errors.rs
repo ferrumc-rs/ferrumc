@@ -15,5 +15,8 @@ pub enum NetError {
 
     #[error("IO Error: {0}")]
     IOError(#[from] std::io::Error),
+    
+    #[error("VarInt Error: {0}")]
+    TypesError(#[from] ferrumc_net_codec::net_types::NetTypesError),
 }
 

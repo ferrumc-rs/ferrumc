@@ -12,7 +12,7 @@ async fn main() {
     ferrumc_logging::init_logging();
 
     println!("good day to ya. enjoy your time with ferrumc!");
-    
+
     if let Err(e) = entry().await {
         error!("Server exited with the following error;");
         error!("{:?}", e);
@@ -22,8 +22,8 @@ async fn main() {
 }
 
 async fn entry() -> Result<()> {
-    let listener = ferrumc_net::server::create_server_listener()?;
+    let listener = ferrumc_net::server::create_server_listener().await?;
     ferrumc_net::server::listen(listener).await?;
-    
+
     Ok(())
 }
