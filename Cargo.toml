@@ -16,13 +16,10 @@ members = [
     "src/lib/ecs",
     "src/lib/events",
     "src/lib/net",
-    "src/lib/net/encryption",
-    "src/lib/net/packets",
+    "src/lib/net/crates/encryption", "src/lib/net/crates/codec",
     "src/lib/plugins",
     "src/lib/storage",
-    "src/lib/utils",
-    "src/lib/utils/logging",
-    "src/lib/utils/profiling",
+    "src/lib/utils", "src/lib/utils/logging", "src/lib/utils/profiling",
     "src/lib/world",
     "src/lib/derive_macros",
     "src/lib/adapters/nbt", "src/lib/adapters/mca",
@@ -76,8 +73,8 @@ ferrumc-core = { path = "src/lib/core" }
 ferrumc-ecs = { path = "src/lib/ecs" }
 ferrumc-events = { path = "src/lib/events" }
 ferrumc-net = { path = "src/lib/net" }
-ferrumc-net-encryption = { path = "src/lib/net/encryption" }
-ferrumc-net-packets = { path = "src/lib/net/packets" }
+ferrumc-net-encryption = { path = "src/lib/net/crates/encryption" }
+ferrumc-net-codec = { path = "src/lib/net/crates/codec" }
 ferrumc-plugins = { path = "src/lib/plugins" }
 ferrumc-storage = { path = "src/lib/storage" }
 ferrumc-utils = { path = "src/lib/utils" }
@@ -130,6 +127,7 @@ lazy_static = "1.5.0"
 quote = "1.0.37"
 syn = "2.0.77"
 proc-macro2 = "1.0.86"
+proc-macro-crate = "3.2.0"
 
 # Magic ("life-before-main" initialization, __attribute__((constructor)))
 ctor = "0.2.8"

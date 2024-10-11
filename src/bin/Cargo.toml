@@ -14,7 +14,7 @@ ferrumc-ecs = { workspace = true }
 ferrumc-events = { workspace = true }
 ferrumc-net = { workspace = true }
 ferrumc-net-encryption = { workspace = true }
-ferrumc-net-packets = { workspace = true }
+ferrumc-net-codec = { workspace = true }
 ferrumc-plugins = { workspace = true }
 ferrumc-storage = { workspace = true }
 ferrumc-utils = { workspace = true }

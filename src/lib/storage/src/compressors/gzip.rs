@@ -1,10 +1,10 @@
-use std::io::{Cursor, Read};
-use flate2::Compression;
-use crate::Compressor;
-use flate2::read::{GzDecoder, GzEncoder};
-use tracing::error;
-use ferrumc_macros::profile;
 use crate::errors::StorageError;
+use crate::Compressor;
+use ferrumc_macros::profile;
+use flate2::read::{GzDecoder, GzEncoder};
+use flate2::Compression;
+use std::io::{Cursor, Read};
+use tracing::error;
 
 #[derive(Debug)]
 pub struct GzipCompressor {
@@ -46,7 +46,6 @@ mod tests {
     use super::*;
     use crate::Compressor;
     use ferrumc_utils::root;
-    
 
     #[test]
     fn test_compress_decompress() {
@@ -56,7 +55,7 @@ mod tests {
         let decompressed = compressor.decompress(&compressed).unwrap();
         assert_eq!(data, decompressed.as_slice());
     }
-    
+
     #[test]
     fn test_positive_compression_ratio() {
         let compressor = GzipCompressor::new(6);

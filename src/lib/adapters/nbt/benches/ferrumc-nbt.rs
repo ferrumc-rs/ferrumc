@@ -1,11 +1,11 @@
 #![feature(portable_simd)]
 
+use crate::structs::{BlockState, Chunk, Palette};
 use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
 use fastnbt::Value;
 use ferrumc_macros::NBTDeserialize;
 use nbt as hematite_nbt;
 use std::io::Cursor;
-use crate::structs::{BlockState, Chunk, Palette};
 
 mod structs {
     use super::*;
@@ -41,12 +41,11 @@ mod structs {
 
     #[derive(NBTDeserialize)]
     pub(super) struct Palette<'a> {
-        #[nbt(rename="Name")]
+        #[nbt(rename = "Name")]
         pub(crate) name: &'a str,
     }
 }
 fn bench_ferrumc_nbt(data: &[u8]) {
-
     let chunk = Chunk::from_bytes(data).unwrap();
     assert_eq!(chunk.x_pos, 0);
     assert_eq!(chunk.z_pos, 32);
@@ -72,7 +71,10 @@ fn bench_simdnbt(data: &[u8]) {
         .unwrap();
 
     let sections = nbt.get("sections").unwrap().list().unwrap();
-    let sections = sections.compounds().unwrap().into_iter()
+    let sections = sections
+        .compounds()
+        .unwrap()
+        .into_iter()
         .filter_map(|section| {
             let y = section.get("Y").unwrap().byte().unwrap();
             let block_states = section.get("block_states")?;
@@ -81,7 +83,10 @@ fn bench_simdnbt(data: &[u8]) {
             let data = data.long_array().unwrap();
             let data = data.leak();
             let palette = block_states.get("palette").unwrap().list().unwrap();
-            let palette = palette.compounds().unwrap().into_iter()
+            let palette = palette
+                .compounds()
+                .unwrap()
+                .into_iter()
                 .map(|palette| {
                     let name = palette.get("Name").unwrap().string().unwrap();
                     let str = name.to_str();
@@ -90,7 +95,10 @@ fn bench_simdnbt(data: &[u8]) {
                     Palette { name }
                 })
                 .collect();
-            Some(BlockState { data: Some(data), palette })
+            Some(BlockState {
+                data: Some(data),
+                palette,
+            })
         })
         .collect::<Vec<_>>();
 

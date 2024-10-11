@@ -90,7 +90,7 @@ impl ServerConfig {
 
         set_global_config(config)?;
 
-        get_global_config()
+        Ok(get_global_config())
     }
 
     /// Load the configuration from a file without prompting the user to create a new one.
@@ -109,7 +109,7 @@ impl ServerConfig {
 
         set_global_config(config)?;
 
-        get_global_config()
+        Ok(get_global_config())
     }
 
     /// Logic to read the configuration file.
