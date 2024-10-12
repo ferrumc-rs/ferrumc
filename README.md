@@ -10,8 +10,18 @@ To view the roadmap, see [plans.md](assets/plans/plans.md)
 > [!IMPORTANT]
 > Use pull requests instead of direct pushes.
 
-## 📥 Installation
-##### Clone and build the project.
+## 📥 Installation/ 🖥️ Usage
+### Use docker
+
+This method comes with a default world and might be easier assuming you arent doing development and dont have cargo already installed. Just run the following command 
+```bash
+docker run -d -p 25565:25565 -v ferrumc/ferrumc-example:latest
+```
+
+
+// TODO: Throw the images in dockerhub under the ferrumc username.
+
+### Build from Source .
 
 ```bash
 # Clone the repository
@@ -22,9 +32,9 @@ cd ferrumc
 cargo build --release
 ```
 
-#### The binary will be in target/release/
+##### The binary will be in target/release/
 
-## 🖥️ Usage
+Then 
 
 1. Move the FerrumC binary (`ferrumc.exe` or `ferrumc` depending on the OS) to your desired server directory
 2. Open a terminal in that directory
