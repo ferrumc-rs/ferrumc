@@ -9,6 +9,7 @@ pub type NetDecodeResult<T> = Result<T, errors::NetDecodeError>;
 /// And possibly other stuff in the future.
 pub enum NetDecodeOpts {
     None,
+    Compressed,
 }
 
 pub trait NetDecode: Sized {

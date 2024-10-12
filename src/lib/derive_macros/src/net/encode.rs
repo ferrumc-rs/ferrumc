@@ -1,6 +1,5 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use std::io::Write;
 use syn::{parse_macro_input, DeriveInput};
 
 pub(crate) fn derive(input: TokenStream) -> TokenStream {
@@ -63,17 +62,15 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
 
                         #(#compressed_fields)*
 
-                        let data_length = writer.len();
-
                         // if size >= threshold, compress, otherwise, send uncompressed and set Data Length to 0
-                        if data_length >= compression_threshold as usize {
+                        if writer.len() >= compression_threshold as usize {
                             // Packet Length - Uncompressed
                             // Data Length   - Uncompressed
                             // Packet ID     - Compressed
                             // Data          - Compressed
 
                             // Data length is set to uncompressed data length
-                            let data_length: ferrumc_net_codec::net_types::var_int::VarInt = data_length.into();
+                            let data_length: ferrumc_net_codec::net_types::var_int::VarInt = writer.len().into();
 
                             // Compress Packet ID and Data
                             let mut e = flate2::write::ZlibEncoder::new(Vec::new(), flate2::Compression::default());
