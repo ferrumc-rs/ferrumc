@@ -134,7 +134,7 @@ ctor = "0.2.8"
 
 # Compression/Decompression
 libflate = "2.1.0"
-flate2 = { version = "1.0.33" }
+flate2 = { version = "1.0.33", features = ["zlib"] }
 zstd = { version = "0.13.2" }
 brotli = "6.0.0"
 

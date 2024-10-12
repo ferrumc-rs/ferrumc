@@ -12,4 +12,3 @@ syn = { workspace = true, features = ["full"] }
 thiserror = { workspace = true }
 proc-macro2 = { workspace = true }
 proc-macro-crate = { workspace = true }
-ferrumc-config = { workspace = true }

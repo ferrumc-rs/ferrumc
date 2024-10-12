@@ -8,7 +8,6 @@ pub struct OutgoingStatusResponse {
     pub json_response: String,
 }
 
-
 impl OutgoingStatusResponse {
     pub fn new(json_response: String) -> Self {
         Self {
