@@ -97,7 +97,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                             actual_writer.write_all(writer)?;
                         }
                     },
-                    _ => unimplemented!("Unsupported options for NetEncode"),
+                    e => unimplemented!("Unsupported option for NetEncode: {:?}", e),
                 }
 
                 Ok(())
