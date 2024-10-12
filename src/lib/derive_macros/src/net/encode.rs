@@ -20,7 +20,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
             <#field_ty as ferrumc_net_codec::encode::NetEncode>::encode(&self.#field_name, writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)?;
         }
     });
-    
+
     let length_prefixed_fields = encode_fields.clone();
 
     let expanded = quote! {
@@ -36,18 +36,34 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                         let actual_writer = writer;
                         let mut writer = Vec::new();
                         let mut writer = &mut writer;
-                        
+
                         #(#length_prefixed_fields)*
-                        
+
                         // let len = writer.len();
                         // len.encode(actual_writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)?;
                         let len: ferrumc_net_codec::net_types::var_int::VarInt = writer.len().into();
                         <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode(&len, actual_writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)?;
                         actual_writer.write_all(writer)?;
                     }
+                    ferrumc_net_codec::encode::NetEncodeOpts::Compressed => {
+                        // Check https://wiki.vg/Protocol#Packet_format for protocol info
+
+                        // unimplemented!("NetEncodeOpts::Compressed is not yet implemented");
+
+                        let actual_writer = writer;
+                        let mut writer = Vec::new();
+                        let mut writer = &mut writer;
+
+                        // Get compression threshold from config
+                        let compression_threshold = ferrumc_config::get_global_config().compression_threshold;
+
+                        #(#length_prefixed_fields)*
+
+
+                    },
                     _ => unimplemented!("Unsupported options for NetEncode"),
                 }
-                
+
                 Ok(())
             }
         }
