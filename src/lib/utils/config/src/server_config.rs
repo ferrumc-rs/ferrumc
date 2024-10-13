@@ -5,7 +5,7 @@
 use crate::errors::ConfigError;
 use crate::statics::{get_global_config, set_global_config};
 use serde_derive::{Deserialize, Serialize};
-use tracing::{info, warn};
+use tracing::{error, info};
 
 /// The server configuration struct.
 ///
@@ -81,16 +81,17 @@ impl ServerConfig {
     /// let config = ServerConfig::new(Some("./custom_config.toml")).expect("Failed to read configuration file.");
     /// println!("{:?}", config);
     /// # }
-    pub fn new(path: Option<&str>) -> Result<&'static Self, ConfigError> {
+    pub fn new(path: Option<&str>) -> Result<Self, ConfigError> {
         // Default path to "./config.toml" if None.
         let path = path.unwrap_or("./config.toml");
 
         // Load the configuration from the file.
         let config = Self::set_config(path, true)?;
 
-        set_global_config(config)?;
+        Ok(config)
+        /*set_global_config(config)?;
 
-        Ok(get_global_config())
+        Ok(get_global_config())*/
     }
 
     /// Load the configuration from a file without prompting the user to create a new one.
@@ -121,41 +122,64 @@ impl ServerConfig {
     /// - `path`: The path to the configuration file.
     /// - `prompt_user`: Whether to prompt the user to create a new configuration file if the current one is invalid.
     pub(crate) fn set_config(path: &str, prompt_user: bool) -> Result<ServerConfig, ConfigError> {
-        let config = std::fs::read_to_string(path)?;
-
-        // Deserialize the configuration file into a ServerConfig struct.
-        match toml::from_str(&config) {
-            Ok(config) => Ok(config),
+        let config = std::fs::read_to_string(path);
+        let config: &str = match &config {
+            Ok(config) => config,
             Err(e) => {
                 // Check if we can prompt the user to create a new configuration file.
                 if !prompt_user {
-                    return Err(ConfigError::TomlDeError(e));
+                    return Err(ConfigError::ConfigLoadError);
                 }
+                // Config could not be read. Prompt the user to create a new one from ServerConfig::Default.
+                error!("Could not read configuration file: {}", e);
+                error!("Would you like to create a new config file? (y/N): ");
 
+                let user_input = {
+                    let mut input = String::new();
+                    std::io::stdin().read_line(&mut input)?;
+                    input.trim().to_ascii_lowercase()
+                };
+
+                if user_input == "y" {
+                    // Create a new config file
+                    std::fs::write(path, DEFAULT_CONFIG)?;
+
+                    DEFAULT_CONFIG
+                } else {
+                    return Err(ConfigError::ConfigLoadError);
+                }
+            }
+        };
+
+
+        let config: ServerConfig = match toml::from_str(config) {
+            Ok(config) => config,
+            Err(e) => {
                 // Config could not be serialized. Prompt the user to create
                 // a new one from ServerConfig::Default.
-                warn!("Could not read configuration file: {}", e);
-                warn!("Would you like to create a new config file? Your old configuration will be saved as \"config.toml.bak\". (y/N): ");
+                error!("Could not read configuration file: {}", e);
+                error!("Would you like to create a new config file? Your old configuration will be saved as \"config.toml.bak\". (y/N): ");
                 let mut input = String::new();
                 std::io::stdin().read_line(&mut input)?;
 
                 // If the user enters "y", create a new configuration file.
                 if input.trim().to_ascii_lowercase() == "y" {
                     // Backup the old configuration file.
-                    std::fs::rename("./config.toml", "./config.toml.bak")?;
+                    std::fs::rename(path, "config.toml.bak")?;
 
                     // Create new configuration file.
-                    let new_config = ServerConfig::default();
-                    let toml = toml::to_string(&new_config)?;
-                    std::fs::write("./config.toml", toml)?;
+                    std::fs::write(path, DEFAULT_CONFIG)?;
                     info!("Configuration file created.");
-                    Ok(new_config)
                 } else {
                     // User did not enter "y". Return the error.
-                    Err(ConfigError::TomlDeError(e))
+                    return Err(ConfigError::ConfigLoadError);
                 }
+                // Deserialize the configuration file into a ServerConfig struct.
+                toml::from_str(DEFAULT_CONFIG)?
             }
-        }
+        };
+
+        Ok(config)
     }
 }
 
@@ -176,3 +200,17 @@ impl Default for ServerConfig {
         }
     }
 }
+
+const DEFAULT_CONFIG: &str = r#"host = "0.0.0.0"
+port = 25565
+motd = ["A supersonic FerrumC server."]
+max_players = 20
+network_tick_rate = 0
+
+world = "world"
+network_compression_threshold = 256
+
+[database]
+cache_size = 1024
+compression = "fast"
+"#;

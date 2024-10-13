@@ -1,8 +1,8 @@
 use crate::nbt::helpers::NbtFieldAttribute;
 use proc_macro::TokenStream;
-use proc_macro2::Span;
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput, Lifetime};
+use syn::{parse_macro_input, DeriveInput};
+use crate::helpers::StructInfo;
 
 pub fn derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
@@ -11,16 +11,13 @@ pub fn derive(input: TokenStream) -> TokenStream {
         panic!("Only structs are supported!");
     };
 
-    let struct_name = &input.ident;
+    /*let struct_name = &input.ident;
     let mut impl_generics = input.generics.clone();
     let ty_generics = input.generics.split_for_impl().1;
     let where_clause = &input.generics.where_clause;
 
     // Introduce a new lifetime 'de for deserialization
-    let has_lifetime = impl_generics.params.iter().any(|param| match param {
-        syn::GenericParam::Lifetime(_) => true,
-        _ => false,
-    });
+    let has_lifetime = impl_generics.params.iter().any(|param| matches!(param, syn::GenericParam::Lifetime(_)));
     if !has_lifetime {
         let de_lifetime = Lifetime::new("'de", Span::call_site());
         impl_generics.params.insert(
@@ -38,7 +35,14 @@ pub fn derive(input: TokenStream) -> TokenStream {
         })
         .unwrap();
 
-    let (impl_generics, _, _) = impl_generics.split_for_impl();
+    let (impl_generics, _, _) = impl_generics.split_for_impl();*/
+    let StructInfo {
+        struct_name,
+        impl_generics,
+        ty_generics,
+        where_clause,
+        lifetime,
+    } = crate::helpers::extract_struct_info(&input);
 
     let fields = crate::helpers::get_fields(&input);
     let fields_init = fields.iter().map(|field| {
@@ -93,7 +97,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
     });
 
     let expanded = quote! {
-        impl #impl_generics ::ferrumc_nbt::FromNbt<#lifetime> for #struct_name #ty_generics #where_clause {
+        impl #impl_generics ::ferrumc_nbt::FromNbt #lifetime for #struct_name #ty_generics #where_clause {
             fn from_nbt(
                 tapes: &::ferrumc_nbt::NbtTape<#lifetime>,
                 element: &::ferrumc_nbt::NbtTapeElement<#lifetime>

@@ -3,14 +3,14 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 
 
 #[derive(NetEncode)]
-pub struct OutgoingStatusResponse {
+pub struct StatusResponse {
     // #[encode(default = VarInt::from(0x00))]
     pub packet_id: VarInt,
     pub json_response: String,
 }
 
 
-impl OutgoingStatusResponse {
+impl StatusResponse {
     pub fn new(json_response: String) -> Self
     {
         Self {

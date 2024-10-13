@@ -1,5 +1,4 @@
 use tracing::trace;
-use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::event_handler;
 use ferrumc_net::connection::ConnectionState;
 use ferrumc_net::errors::{NetError, PacketError};
@@ -20,6 +19,8 @@ async fn handle_handshake(
         .universe
         .get_mut::<ConnectionState>(handshake_event.conn_id)?;
 
+    trace!("conn state: {} -> {}", connection_state.as_str(), handshake.next_state.val);
+    
     let next_state = handshake.next_state.val as u8;
     *connection_state = match next_state {
         1 => ConnectionState::Status,

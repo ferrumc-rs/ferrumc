@@ -24,7 +24,8 @@ pub fn event_handler_fn(attr: TokenStream, input: TokenStream) -> TokenStream {
         #[ctor::ctor]
         fn #register_fn_name() {
             // ::ferrumc_events::infrastructure::insert_into_events(
-            #event_type ::register(
+            // #event_type ::register(
+            <#event_type as ::ferrumc_events::infrastructure::Event>::register(
                 |ev: #event_type, state: #state| std::boxed::Box::pin(#fn_name(ev, state)),
                 #priority
             );

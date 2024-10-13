@@ -7,6 +7,8 @@ use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use crate::{handle_packet, NetResult, ServerState};
 use crate::packets::incoming::PacketSkeleton;
 
+#[derive(Clone)]
+#[repr(u8)]
 pub enum ConnectionState {
     Handshaking,
     Status,
@@ -73,11 +75,12 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
 
         trace!("Received packet: {:?}", packet_skele);
 
+        let conn_state = state.universe
+            .get::<ConnectionState>(entity)?.clone();
         if let Err(e) = handle_packet(
             packet_skele.id,
             entity,
-            &*state.universe
-                .get::<ConnectionState>(entity)?,
+            &conn_state,
             &mut packet_skele.data,
             Arc::clone(&state),
         ).await {

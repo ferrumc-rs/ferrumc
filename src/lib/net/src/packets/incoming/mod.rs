@@ -5,6 +5,10 @@ use tokio::io::{AsyncRead, AsyncReadExt};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 
 pub mod handshake;
+pub mod login_start;
+pub mod status_request;
+pub mod ping;
+
 
 
 pub struct PacketSkeleton {
@@ -21,8 +25,6 @@ impl Debug for PacketSkeleton {
             .finish()
     }
 }
-
-
 impl PacketSkeleton {
     pub async fn new<R: AsyncRead + Unpin>(reader: &mut R) -> NetResult<Self> {
         let length = VarInt::read_async(reader).await?.val as usize;

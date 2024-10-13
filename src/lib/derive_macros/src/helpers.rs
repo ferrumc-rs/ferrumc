@@ -1,4 +1,6 @@
-use syn::Type;
+use proc_macro2::{TokenStream};
+use quote::quote;
+use syn::{DeriveInput, GenericParam, Type};
 
 /// Retrieves the fields from a struct in a `DeriveInput`.
 ///
@@ -55,4 +57,53 @@ pub(crate) fn is_field_type_optional(field: &syn::Field) -> bool {
         .segments
         .iter()
         .any(|segment| segment.ident.to_string().to_lowercase() == "option")
+}
+
+
+pub struct StructInfo<'a> {
+    pub struct_name: &'a syn::Ident,
+    pub impl_generics: syn::ImplGenerics<'a>,
+    pub ty_generics: syn::TypeGenerics<'a>,
+    pub where_clause: Option<&'a syn::WhereClause>,
+    pub lifetime: TokenStream,
+}
+
+pub(crate) fn extract_struct_info(input: &DeriveInput) -> StructInfo {
+    let struct_name = &input.ident;
+    let impl_generics = input.generics.clone();
+    let ty_generics = input.generics.split_for_impl().1;
+    let where_clause = &input.generics.where_clause;
+
+    /*// Introduce a new lifetime 'de for deserialization
+    let has_lifetime = impl_generics.params.iter().any(|param| matches!(param, GenericParam::Lifetime(_)));
+    /*if !has_lifetime {
+        let de_lifetime = Lifetime::new("'de", Span::call_site());
+        impl_generics.params.insert(
+            0,
+            GenericParam::Lifetime(LifetimeParam::new(de_lifetime.clone())),
+        );
+    }*/*/
+
+    let lifetime = impl_generics
+        .params
+        .iter()
+        .find_map(|param| match param {
+            GenericParam::Lifetime(lifetime) => Some(lifetime.lifetime.clone()),
+            _ => None,
+        });
+
+    let lifetime = match lifetime {
+        Some(lifetime) => quote! { <#lifetime> },
+        None => quote! { },
+    };
+
+    let (impl_generics, _, _) = input.generics.split_for_impl();
+
+    StructInfo {
+        struct_name,
+        impl_generics: impl_generics.clone(),
+        ty_generics,
+        where_clause: where_clause.as_ref(),
+        lifetime,
+    }
 }
