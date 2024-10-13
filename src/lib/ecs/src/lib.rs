@@ -43,6 +43,14 @@ impl Universe {
         self.entities.builder(&self.components)
     }
 
+    pub fn add_component<T: Component>(&self, entity: Entity, component: T) {
+        self.components.insert(entity, component)
+    }
+    
+    pub fn remove_component<T: Component>(&self, entity: Entity) {
+        self.components.remove::<T>(entity)
+    }
+
     pub fn get<'a, T: Component>(&self, entity: Entity) -> ECSResult<ComponentRef<'a, T>> {
         self.components.get::<T>(entity)
     }

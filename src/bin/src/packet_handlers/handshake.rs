@@ -1,4 +1,3 @@
-use tokio::io::AsyncWriteExt;
 use tracing::info;
 use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::event_handler;
@@ -7,7 +6,7 @@ use ferrumc_net::errors::NetError;
 use ferrumc_net::GlobalState;
 use ferrumc_net::packets::incoming::handshake::{HandshakeEvent};
 use ferrumc_net::packets::outgoing::status_response::OutgoingStatusResponse;
-use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
+use ferrumc_net_codec::encode::NetEncodeOpts;
 
 #[event_handler]
 async fn handle_handshake(
@@ -23,12 +22,8 @@ async fn handle_handshake(
     
     // Check if next state is status.
     if handshake_event.handshake.next_state == 1 {
-        // Send status response
         let packet = OutgoingStatusResponse::new(EXAMPLE_JSON.to_string());
-        let mut buf = Vec::new();
-        packet.encode(&mut buf, &NetEncodeOpts::WithLength)?;
-        
-        out_stream.write_all(&buf).await?;
+        out_stream.send_packet(&packet, &NetEncodeOpts::WithLength).await?;
     } else {
         // Send login response
     }

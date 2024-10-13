@@ -1,8 +1,9 @@
-use tokio::io::BufReader;
+use tokio::io::{AsyncWriteExt, BufReader};
 use std::sync::Arc;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tokio::net::TcpStream;
 use tracing::{trace, warn};
+use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use crate::{handle_packet, NetResult, ServerState};
 use crate::packets::incoming::PacketSkeleton;
 
@@ -23,24 +24,45 @@ impl ConnectionState {
     }
 }
 
-/*pub struct ConnectionStream {
-    pub reader: parking_lot::RwLock<BufReader<OwnedReadHalf>>,
-    pub writer: parking_lot::RwLock<OwnedWriteHalf>,
+pub struct StreamReader {
+    pub reader: BufReader<OwnedReadHalf>,
 }
 
-pub type ConnectionStreamWrapper = Arc<ConnectionStream>;*/
+impl StreamReader {
+    pub fn new(reader: BufReader<OwnedReadHalf>) -> Self {
+        Self {
+            reader
+        }
+    }
+}
 
-pub type StreamReader = BufReader<OwnedReadHalf>;
-pub type StreamWriter = OwnedWriteHalf;
+pub struct StreamWriter {
+    pub writer: OwnedWriteHalf,
+}
 
+impl StreamWriter {
+    pub fn new(writer: OwnedWriteHalf) -> Self {
+        Self {
+            writer
+        }
+    }
+
+    pub async fn send_packet(&mut self, packet: &impl NetEncode, net_encode_opts: &NetEncodeOpts) -> NetResult<()> {
+        let mut buf = Vec::new();
+        packet.encode(&mut buf, net_encode_opts)?;
+        self.writer.write_all(buf.as_slice()).await?;
+        
+        Ok(())
+    }
+}
 
 pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -> NetResult<()> {
     let (reader, writer) = tcp_stream.into_split();
 
     let entity = state.universe
         .builder()
-        .with(BufReader::new(reader))
-        .with(writer)
+        .with(StreamReader::new(BufReader::new(reader)))
+        .with(StreamWriter::new(writer))
         .with(ConnectionState::Handshaking)
         .build();
 
@@ -50,7 +72,7 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
         .get_mut::<StreamReader>(entity)?;
 
     'recv: loop {
-        let mut packet_skele = PacketSkeleton::new(&mut *reader).await?;
+        let mut packet_skele = PacketSkeleton::new(&mut reader.reader).await?;
 
         trace!("Received packet: {:?}", packet_skele);
 

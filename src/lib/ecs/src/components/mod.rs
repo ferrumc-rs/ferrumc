@@ -14,9 +14,7 @@ pub trait Component: Any + Send + Sync {}
 impl<T: Any + Send + Sync> Component for T {}
 
 unsafe impl<T> Send for ComponentRef<'_, T> where T: Component {}
-unsafe impl<T> Sync for ComponentRef<'_, T> where T: Component {}
 unsafe impl<T> Send for ComponentRefMut<'_, T> where T: Component {}
-unsafe impl<T> Sync for ComponentRefMut<'_, T> where T: Component {}
 
 pub struct ComponentStorage {
     pub components: DashMap<TypeId, SparseSet<RwLock<Box<dyn Component>>>>,
@@ -54,6 +52,12 @@ impl ComponentStorage {
         };
         
         components.value().entities()
+    }
+    
+    pub fn remove<T: Component>(&self, entity: Entity) {
+        let type_id = TypeId::of::<T>();
+        self.components.get_mut(&type_id)
+            .map(|mut components| components.remove(entity));
     }
 }
 impl ComponentStorage {
