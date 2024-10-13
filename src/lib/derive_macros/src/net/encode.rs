@@ -73,9 +73,13 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                             let data_length: ferrumc_net_codec::net_types::var_int::VarInt = writer.len().into();
 
                             // Compress Packet ID and Data
-                            let mut e = flate2::write::ZlibEncoder::new(Vec::new(), flate2::Compression::default());
-                            e.write_all(writer)?;
-                            let compressed_data = e.finish()?;
+                            let mut compressed_data = Vec::new();
+                            {
+                                // Scope for encoder
+                                let mut e = flate2::write::ZlibEncoder::new(Vec::new(), flate2::Compression::default());
+                                e.write_all(writer)?;
+                                compressed_data = e.finish()?;
+                            }
 
                             let packet_length: ferrumc_net_codec::net_types::var_int::VarInt = (data_length.len + compressed_data.len()).into();
 
