@@ -589,4 +589,10 @@ impl<'a> NetEncode for NbtTape<'a> {
         writer.write_all(data)?;
         Ok(())
     }
+
+    async fn encode_async<W: tokio::io::async_write::AsyncWrite + Unpin>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
+        let data = self.data;
+        writer.write_all(data).await?;
+        Ok(())
+    }
 }

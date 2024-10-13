@@ -1,4 +1,4 @@
-use tokio::io::{AsyncWriteExt, BufReader};
+use tokio::io::{BufReader};
 use std::sync::Arc;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tokio::net::TcpStream;
@@ -48,10 +48,7 @@ impl StreamWriter {
     }
 
     pub async fn send_packet(&mut self, packet: &impl NetEncode, net_encode_opts: &NetEncodeOpts) -> NetResult<()> {
-        let mut buf = Vec::new();
-        packet.encode(&mut buf, net_encode_opts)?;
-        self.writer.write_all(buf.as_slice()).await?;
-        
+        packet.encode_async(&mut self.writer, net_encode_opts).await?;
         Ok(())
     }
 }
@@ -86,6 +83,7 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
         ).await {
             warn!("Failed to handle packet: {:?}", e);
             // Kick the player (when implemented).
+            // Send a disconnect event
             break 'recv;
         };
     }

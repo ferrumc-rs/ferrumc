@@ -1,58 +1,32 @@
-use tracing::info;
+use tracing::trace;
 use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::event_handler;
-use ferrumc_net::connection::StreamWriter;
-use ferrumc_net::errors::NetError;
+use ferrumc_net::connection::ConnectionState;
+use ferrumc_net::errors::{NetError, PacketError};
+use ferrumc_net::errors::NetError::Packet;
 use ferrumc_net::GlobalState;
 use ferrumc_net::packets::incoming::handshake::{HandshakeEvent};
-use ferrumc_net::packets::outgoing::status_response::OutgoingStatusResponse;
-use ferrumc_net_codec::encode::NetEncodeOpts;
 
 #[event_handler]
 async fn handle_handshake(
     handshake_event: HandshakeEvent,
     state: GlobalState,
 ) -> Result<HandshakeEvent, NetError> {
-    info!("Handling handshake event: {:?}", handshake_event.handshake);
+    trace!("Handling handshake event");
+    let handshake = &handshake_event.handshake;
 
-    let mut out_stream = state
+    // set connection state to handshake
+    let mut connection_state = state
         .universe
-        .get_mut::<StreamWriter>(handshake_event.conn_id)?; 
-    
-    
-    // Check if next state is status.
-    if handshake_event.handshake.next_state == 1 {
-        let packet = OutgoingStatusResponse::new(EXAMPLE_JSON.to_string());
-        out_stream.send_packet(&packet, &NetEncodeOpts::WithLength).await?;
-    } else {
-        // Send login response
-    }
-    
+        .get_mut::<ConnectionState>(handshake_event.conn_id)?;
+
+    let next_state = handshake.next_state.val as u8;
+    *connection_state = match next_state {
+        1 => ConnectionState::Status,
+        2 => ConnectionState::Login,
+        s => return Err(Packet(PacketError::InvalidState(s))),
+    };
     
     
     Ok(handshake_event)
 }
-
-
-
-const EXAMPLE_JSON: &str = r#"{
-    "version": {
-        "name": "1.19.4",
-        "protocol": 762
-    },
-    "players": {
-        "max": 100,
-        "online": 5,
-        "sample": [
-            {
-                "name": "thinkofdeath",
-                "id": "4566e69f-c907-48ee-8d71-d7ba5aa00d20"
-            }
-        ]
-    },
-    "description": {
-        "text": "Hello, world!"
-    },
-    "favicon": "data:image/png;base64,<data>",
-    "enforcesSecureChat": false
-}"#;

@@ -3,7 +3,7 @@ use crate::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
 use crate::encode::errors::NetEncodeError;
 use crate::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
 use std::io::{Read, Write};
-use tokio::io::{AsyncRead, AsyncReadExt};
+use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 use crate::net_types::NetTypesError;
 
 #[derive(Debug)]
@@ -84,10 +84,6 @@ impl VarInt {
         Err(NetTypesError::InvalidVarInt)
     }
 
-    pub fn write<W: Write>(&self, cursor: &mut W) -> Result<(), NetTypesError> {
-        write_varint(self.val, cursor)
-    }
-
     pub async fn read_async<R: AsyncRead + Unpin>(cursor: &mut R) -> Result<Self, NetTypesError> {
         let mut val = 0;
         for i in 0..5 {
@@ -105,22 +101,31 @@ impl VarInt {
 
         Err(NetTypesError::InvalidVarInt)
     }
-}
 
-pub fn write_varint<W: Write>(
-    value: impl TryInto<i32>,
-    cursor: &mut W,
-) -> Result<(), NetTypesError> {
-    let mut val = value.try_into().map_err(|_| NetTypesError::InvalidVarInt)?;
+    pub fn write<W: Write>(&self, cursor: &mut W) -> Result<(), NetTypesError> {
+        let mut val = self.val;
+        loop {
+            if (val & !SEGMENT_BITS) == 0 {
+                cursor.write_all(&[val as u8])?;
+                return Ok(());
+            }
 
-    loop {
-        if (val & !SEGMENT_BITS) == 0 {
-            cursor.write_all(&[val as u8])?;
-            return Ok(());
+            cursor.write_all(&[((val & SEGMENT_BITS) | CONTINUE_BIT) as u8])?;
+            val = ((val as u32) >> 7) as i32; // Rust equivalent of Java's >>> operator
         }
+    }
 
-        cursor.write_all(&[((val & SEGMENT_BITS) | CONTINUE_BIT) as u8])?;
-        val = ((val as u32) >> 7) as i32; // Rust equivalent of Java's >>> operator
+    pub async fn write_async<W: AsyncWrite + Unpin>(&self, cursor: &mut W) -> Result<(), NetTypesError> {
+        let mut val = self.val;
+        loop {
+            if (val & !SEGMENT_BITS) == 0 {
+                cursor.write_all(&[val as u8]).await?;
+                return Ok(());
+            }
+
+            cursor.write_all(&[((val & SEGMENT_BITS) | CONTINUE_BIT) as u8]).await?;
+            val = ((val as u32) >> 7) as i32; // Rust equivalent of Java's >>> operator
+        }
     }
 }
 
@@ -134,6 +139,11 @@ impl NetDecode for VarInt {
 impl NetEncode for VarInt {
     fn encode<W: Write>(&self, writer: &mut W, _opts: &NetEncodeOpts) -> NetEncodeResult<()> {
         self.write(writer)
+            .map_err(|e| NetEncodeError::ExternalError(e.into()))
+    }
+
+    async fn encode_async<W: AsyncWrite + Unpin>(&self, writer: &mut W, _opts: &NetEncodeOpts) -> NetEncodeResult<()> {
+        self.write_async(writer).await
             .map_err(|e| NetEncodeError::ExternalError(e.into()))
     }
 }

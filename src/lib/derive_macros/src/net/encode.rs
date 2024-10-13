@@ -12,44 +12,92 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
         unimplemented!("NetEncode can only be derived for structs");
     };
 
-    let encode_fields = fields.iter().map(|field| {
+
+    let sync_encode_fields = fields.iter().map(|field| {
         let field_name = field.ident.as_ref().unwrap();
         let field_ty = &field.ty;
         quote! {
             // TODO: see if we need to pass options here
-            <#field_ty as ferrumc_net_codec::encode::NetEncode>::encode(&self.#field_name, writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)?;
-        }
+                <#field_ty as ferrumc_net_codec::encode::NetEncode>::encode(&self.#field_name, writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)?;
+            }
     });
-    
-    let length_prefixed_fields = encode_fields.clone();
 
-    let expanded = quote! {
-        impl ferrumc_net_codec::encode::NetEncode for #name {
-            // TODO: see if we need to use options here.
+    let sync_impl = {
+        // These exist only because we cannot move value LMAO, they're both the same
+        let normal_fields = sync_encode_fields.clone();
+        let length_prefixed_fields = sync_encode_fields.clone();
+
+        quote! {
             fn encode<W: std::io::Write>(&self, writer: &mut W, opts: &ferrumc_net_codec::encode::NetEncodeOpts) -> ferrumc_net_codec::encode::NetEncodeResult<()> {
                 match opts {
                     ferrumc_net_codec::encode::NetEncodeOpts::None => {
-                        #(#encode_fields)*
+                        #(#normal_fields)*
                     }
                     ferrumc_net_codec::encode::NetEncodeOpts::WithLength => {
-                        // unimplemented!("NetEncodeOpts::WithLength is not yet implemented");
                         let actual_writer = writer;
                         let mut writer = Vec::new();
                         let mut writer = &mut writer;
-                        
+
                         #(#length_prefixed_fields)*
-                        
-                        // let len = writer.len();
-                        // len.encode(actual_writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)?;
+
                         let len: ferrumc_net_codec::net_types::var_int::VarInt = writer.len().into();
                         <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode(&len, actual_writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)?;
                         actual_writer.write_all(writer)?;
                     }
                     _ => unimplemented!("Unsupported options for NetEncode"),
                 }
-                
+
                 Ok(())
             }
+        }
+    };
+
+    let async_impl = {
+        let encode_fields = fields.iter().map(|field| {
+            let field_name = field.ident.as_ref().unwrap();
+            let field_ty = &field.ty;
+            quote! {
+            // TODO: see if we need to pass options here
+                <#field_ty as ferrumc_net_codec::encode::NetEncode>::encode_async(&self.#field_name, writer, &ferrumc_net_codec::encode::NetEncodeOpts::None).await?;
+            }
+        });
+
+        // These are the same. Only because we cannot move value!!
+        let normal_fields = encode_fields.clone();
+        // no await overhead here, since we're writing to a buffer(Vec) first.
+        let length_prefixed_fields = sync_encode_fields.clone();
+
+        quote! {
+            async fn encode_async<W: tokio::io::AsyncWrite + std::marker::Unpin>(&self, writer: &mut W, opts: &ferrumc_net_codec::encode::NetEncodeOpts) -> ferrumc_net_codec::encode::NetEncodeResult<()> {
+                match opts {
+                    ferrumc_net_codec::encode::NetEncodeOpts::None => {
+                        #(#normal_fields)*
+                    }
+                    ferrumc_net_codec::encode::NetEncodeOpts::WithLength => {
+                        // Write to a buffer first, then write the length and the buffer to the actual writer
+                        let actual_writer = writer;
+                        let mut writer = Vec::new();
+                        let mut writer = &mut writer;
+
+                        #(#length_prefixed_fields)*
+
+                        let len: ferrumc_net_codec::net_types::var_int::VarInt = writer.len().into();
+                        <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode_async(&len, actual_writer, &ferrumc_net_codec::encode::NetEncodeOpts::None).await?;
+                        // actual_writer.write_all(writer).await?;
+                        <W as tokio::io::AsyncWriteExt>::write_all(actual_writer, writer).await?;
+                    }
+                    _ => unimplemented!("Unsupported options for NetEncode"),
+                }
+
+                Ok(())
+            }
+        }
+    };
+
+    let expanded = quote! {
+        impl ferrumc_net_codec::encode::NetEncode for #name {
+            #sync_impl
+            #async_impl
         }
     };
 
