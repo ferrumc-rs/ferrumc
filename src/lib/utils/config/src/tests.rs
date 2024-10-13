@@ -73,7 +73,7 @@ fn test_sample_config_toml() {
         .expect("Failed to read configuration file.");
 
     // Test the get_global_config function
-    let global_config = get_global_config().expect("Failed to get global configuration.");
+    let global_config = get_global_config();
     assert_eq!(global_config.host, "127.0.0.1");
     assert_eq!(global_config.port, 25565);
     assert_eq!(global_config.motd, vec!["hi", "bye"]);

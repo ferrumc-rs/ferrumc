@@ -27,7 +27,7 @@ pub struct ServerConfig {
     pub network_tick_rate: u32,
     pub database: DatabaseConfig,
     pub world: String,
-    pub network_compression_threshold: u32,
+    pub network_compression_threshold: i32, // Can be negative
 }
 
 /// The database configuration section from [ServerConfig].

@@ -20,10 +20,13 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
             <#field_ty as ferrumc_net_codec::encode::NetEncode>::encode(&self.#field_name, writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)?;
         }
     });
-    
+
     let length_prefixed_fields = encode_fields.clone();
 
+    let compressed_fields = encode_fields.clone();
+
     let expanded = quote! {
+        use std::io::Write;
         impl ferrumc_net_codec::encode::NetEncode for #name {
             // TODO: see if we need to use options here.
             fn encode<W: std::io::Write>(&self, writer: &mut W, opts: &ferrumc_net_codec::encode::NetEncodeOpts) -> ferrumc_net_codec::encode::NetEncodeResult<()> {
@@ -36,18 +39,71 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                         let actual_writer = writer;
                         let mut writer = Vec::new();
                         let mut writer = &mut writer;
-                        
+
                         #(#length_prefixed_fields)*
-                        
+
                         // let len = writer.len();
                         // len.encode(actual_writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)?;
                         let len: ferrumc_net_codec::net_types::var_int::VarInt = writer.len().into();
                         <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode(&len, actual_writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)?;
                         actual_writer.write_all(writer)?;
                     }
-                    _ => unimplemented!("Unsupported options for NetEncode"),
+                    ferrumc_net_codec::encode::NetEncodeOpts::Compressed => {
+                        // Check https://wiki.vg/Protocol#Packet_format for protocol info
+
+                        // unimplemented!("NetEncodeOpts::Compressed is not yet implemented");
+
+                        let actual_writer = writer;
+                        let mut writer = Vec::new(); // Packet Data including Packet ID
+                        let mut writer = &mut writer;
+
+                        // Get compression threshold from config
+                        let compression_threshold = ferrumc_config::get_global_config().network_compression_threshold;
+
+                        #(#compressed_fields)*
+
+                        // if size >= threshold, compress, otherwise, send uncompressed and set Data Length to 0
+                        if writer.len() >= compression_threshold as usize {
+                            // Packet Length - Uncompressed
+                            // Data Length   - Uncompressed
+                            // Packet ID     - Compressed
+                            // Data          - Compressed
+
+                            // Data length is set to uncompressed data length
+                            let data_length: ferrumc_net_codec::net_types::var_int::VarInt = writer.len().into();
+
+                            // Compress Packet ID and Data
+                            let mut compressed_data = Vec::new();
+                            {
+                                // Scope for encoder
+                                let mut e = flate2::write::ZlibEncoder::new(Vec::new(), flate2::Compression::default());
+                                e.write_all(writer)?;
+                                compressed_data = e.finish()?;
+                            }
+
+                            let packet_length: ferrumc_net_codec::net_types::var_int::VarInt = (data_length.len + compressed_data.len()).into();
+
+                            // Write
+                            <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode(&packet_length, actual_writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)?;
+                            <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode(&data_length, actual_writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)?;
+                            actual_writer.write_all(&compressed_data)?;
+                        } else {
+                            // Everything is uncompressed
+
+                            // Data Length always set to 0
+                            let data_length: ferrumc_net_codec::net_types::var_int::VarInt = 0.into();
+
+                            let packet_length: ferrumc_net_codec::net_types::var_int::VarInt = (data_length.len + writer.len()).into();
+
+                            // Write
+                            <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode(&packet_length, actual_writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)?;
+                            <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode(&data_length, actual_writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)?;
+                            actual_writer.write_all(writer)?;
+                        }
+                    },
+                    e => unimplemented!("Unsupported option for NetEncode: {:?}", e),
                 }
-                
+
                 Ok(())
             }
         }

@@ -7,9 +7,11 @@ pub type NetEncodeResult<T> = Result<T, errors::NetEncodeError>;
 
 /// Sole purpose is for compression compatibility.
 /// And possibly other stuff in the future.
+#[derive(Debug)]
 pub enum NetEncodeOpts {
     None,
     WithLength,
+    Compressed,
 }
 
 pub trait NetEncode: Sized {

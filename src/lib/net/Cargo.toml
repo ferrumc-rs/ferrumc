@@ -17,3 +17,4 @@ tokio = { workspace = true }
 parking_lot = { workspace = true }
 futures = { workspace = true }
 ctor = { workspace = true }
+flate2 = { workspace = true }
