@@ -1,8 +1,7 @@
-use crate::connection::ConnectionState;
 use crate::packets::IncomingPacket;
-use crate::{GlobalState, NetResult, ServerState};
+use crate::{NetResult, ServerState};
 use ferrumc_events::infrastructure::Event;
-use ferrumc_macros::{event_handler, packet, Event, NetDecode};
+use ferrumc_macros::{packet, Event, NetDecode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::sync::Arc;
 use tracing::info;
@@ -21,15 +20,7 @@ impl IncomingPacket for Handshake {
         info!("Connection ID: {}", conn_id);
         info!("Handshake packet received: {:?}", self);
 
-        let current_state = state
-            .universe
-            .get::<ConnectionState>(conn_id)?;
-
-        info!("Current state: {}", current_state.as_str());
-
-
         HandshakeEvent::trigger(HandshakeEvent::new(self, conn_id), state).await?;
-
         Ok(())
     }
 }
