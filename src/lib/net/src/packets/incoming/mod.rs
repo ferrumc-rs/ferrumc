@@ -87,8 +87,8 @@ impl PacketSkeleton {
 
         // Here, guaranteed that data_length >= compression_threshold
         let mut buf = {
-            let mut buf = vec![0; data_length];
-            reader.read_exact(&mut buf).await?;
+            let mut buf = vec![];
+            reader.read_to_end(&mut buf).await?;
 
             Cursor::new(buf)
         };

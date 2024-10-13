@@ -5,7 +5,6 @@ use ferrumc_net::errors::NetError;
 use ferrumc_net::packets::incoming::handshake::HandshakeEvent;
 use ferrumc_net::packets::outgoing::status_response::OutgoingStatusResponse;
 use ferrumc_net::GlobalState;
-use ferrumc_net_codec::encode::NetEncodeOpts;
 use tracing::info;
 
 #[event_handler]
