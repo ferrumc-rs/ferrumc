@@ -26,15 +26,11 @@ impl ConnectionState {
 
 pub struct StreamReader {
     pub reader: BufReader<OwnedReadHalf>,
-    pub compressed: bool,
 }
 
 impl StreamReader {
     pub fn new(reader: BufReader<OwnedReadHalf>) -> Self {
-        Self {
-            reader,
-            compressed: false,
-        }
+        Self { reader }
     }
 }
 
@@ -50,13 +46,34 @@ impl StreamWriter {
     pub async fn send_packet(
         &mut self,
         packet: &impl NetEncode,
-        net_encode_opts: &NetEncodeOpts,
+        state: Arc<ServerState>,
+        entity: usize,
     ) -> NetResult<()> {
         let mut buf = Vec::new();
+        let net_encode_opts = match state.universe.get::<CompressionStatus>(entity)?.enabled {
+            true => &NetEncodeOpts::Compressed,
+            false => &NetEncodeOpts::WithLength,
+        };
         packet.encode(&mut buf, net_encode_opts)?;
         self.writer.write_all(buf.as_slice()).await?;
 
         Ok(())
+    }
+}
+
+pub struct CompressionStatus {
+    pub enabled: bool,
+}
+
+impl CompressionStatus {
+    pub fn new() -> Self {
+        Self { enabled: false }
+    }
+}
+
+impl Default for CompressionStatus {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -69,12 +86,13 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
         .with(StreamReader::new(BufReader::new(reader)))
         .with(StreamWriter::new(writer))
         .with(ConnectionState::Handshaking)
+        .with(CompressionStatus::new())
         .build();
 
     let mut reader = state.universe.get_mut::<StreamReader>(entity)?;
 
     'recv: loop {
-        let compressed = reader.compressed;
+        let compressed = state.universe.get::<CompressionStatus>(entity)?.enabled;
         let mut packet_skele = PacketSkeleton::new(&mut reader.reader, compressed).await?;
 
         trace!("Received packet: {:?}", packet_skele);

@@ -1,12 +1,12 @@
-use tracing::info;
 use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::event_handler;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::errors::NetError;
-use ferrumc_net::GlobalState;
-use ferrumc_net::packets::incoming::handshake::{HandshakeEvent};
+use ferrumc_net::packets::incoming::handshake::HandshakeEvent;
 use ferrumc_net::packets::outgoing::status_response::OutgoingStatusResponse;
+use ferrumc_net::GlobalState;
 use ferrumc_net_codec::encode::NetEncodeOpts;
+use tracing::info;
 
 #[event_handler]
 async fn handle_handshake(
@@ -17,23 +17,20 @@ async fn handle_handshake(
 
     let mut out_stream = state
         .universe
-        .get_mut::<StreamWriter>(handshake_event.conn_id)?; 
-    
-    
+        .get_mut::<StreamWriter>(handshake_event.conn_id)?;
+
     // Check if next state is status.
     if handshake_event.handshake.next_state == 1 {
         let packet = OutgoingStatusResponse::new(EXAMPLE_JSON.to_string());
-        out_stream.send_packet(&packet, &NetEncodeOpts::WithLength).await?;
+        out_stream
+            .send_packet(&packet, state, handshake_event.conn_id)
+            .await?;
     } else {
         // Send login response
     }
-    
-    
-    
+
     Ok(handshake_event)
 }
-
-
 
 const EXAMPLE_JSON: &str = r#"{
     "version": {
