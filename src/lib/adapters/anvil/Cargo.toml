@@ -1,0 +1,12 @@
+[package]
+name = "anvil"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+thiserror = { workspace = true }
+memmap2 = { workspace = true}
+ferrumc-utils = { workspace = true}
+
+[lints]
+workspace = true
