@@ -7,6 +7,12 @@ edition = "2021"
 thiserror = { workspace = true }
 memmap2 = { workspace = true}
 ferrumc-utils = { workspace = true}
+flate2 = { workspace = true}
+lz4_flex = { workspace = true}
+tracing = { workspace = true}
+
+[dev-dependencies]
+fastanvil = "0.31.0"
 
 [lints]
 workspace = true
