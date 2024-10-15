@@ -71,7 +71,8 @@ pub fn database_benchmarks(c: &mut Criterion) {
             temps.push(db_file);
             backend
         });
-
+        
+        #[cfg(feature = "rocksdb")]
         let mut rocksdb_backend = runtime.block_on(async {
             let mut db_file = PathBuf::from("R:/temp/rocksdb");
             if !db_file.exists() {
@@ -124,6 +125,7 @@ pub fn database_benchmarks(c: &mut Criterion) {
                 });
             },
         );
+        #[cfg(feature = "rocksdb")]
         write_group.bench_with_input(
             "RocksDB",
             &("test".to_string(), data.clone()),
@@ -149,6 +151,7 @@ pub fn database_benchmarks(c: &mut Criterion) {
             runtime
                 .block_on(sled_backend.insert("test".to_string(), key, data.clone()))
                 .unwrap();
+            #[cfg(feature = "rocksdb")]
             runtime
                 .block_on(rocksdb_backend.insert("test".to_string(), key, data.clone()))
                 .unwrap();
@@ -190,6 +193,7 @@ pub fn database_benchmarks(c: &mut Criterion) {
                 );
             });
         });
+        #[cfg(feature = "rocksdb")]
         read_group.bench_with_input("RocksDB", &("test".to_string()), |b, (table)| {
             b.iter(|| {
                 let key = keys.choose(&mut rand::thread_rng()).unwrap();
