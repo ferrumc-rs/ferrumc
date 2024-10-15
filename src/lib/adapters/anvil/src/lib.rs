@@ -127,14 +127,20 @@ impl LoadedAnvilFile {
                 Some(decompressed_data)
             }
             2 => {
-                let mut decompressed_data = Vec::new();
-                let mut decoder = flate2::read::ZlibDecoder::new(&chunk_compressed_data[..]);
-                decoder.read_to_end(&mut decompressed_data).unwrap();
-                Some(decompressed_data)
+                let out = yazi::decompress(&chunk_compressed_data[..], yazi::Format::Zlib).ok();
+                match out {
+                    Some(data) => Some(data.0),
+                    None => {
+                        error!("Failed to decompress Zlib data");
+                        None
+                    }
+                }
             }
             3 => Some(chunk_compressed_data),
             4 => {
-                Some(lz4_flex::decompress(&chunk_compressed_data[..], uncompressed_size as usize).unwrap())
+                let mut decompressed_data = vec![0; uncompressed_size as usize];
+                lzzzz::lz4::decompress(&chunk_compressed_data[..], &mut decompressed_data).unwrap();
+                Some(decompressed_data)
             }
             _ => {
                 error!("Unknown compression type: {}", compression_type);

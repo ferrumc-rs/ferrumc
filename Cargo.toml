@@ -137,7 +137,8 @@ libflate = "2.1.0"
 flate2 = { version = "1.0.33" }
 zstd = { version = "0.13.2" }
 brotli = "7.0.0"
-lz4_flex = "0.11.3"
+lzzzz = "1.1.0"
+yazi = "0.2.0"
 
 # Databases
 redb = "2.1.3"
