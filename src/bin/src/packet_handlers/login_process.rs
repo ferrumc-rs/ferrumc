@@ -43,6 +43,6 @@ async fn handle_login_acknowledged(
         .universe
         .get_mut::<ConnectionState>(login_acknowledged_event.conn_id)?;
 
-    connection_state = ConnectionState::Configuration;
+    *connection_state = ConnectionState::Configuration;
     Ok(login_acknowledged_event)
 }
