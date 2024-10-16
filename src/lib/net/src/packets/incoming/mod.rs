@@ -8,7 +8,7 @@ pub mod handshake;
 pub mod login_start;
 pub mod status_request;
 pub mod ping;
-mod login_acknowledged;
+pub mod login_acknowledged;
 
 
 pub struct PacketSkeleton {
