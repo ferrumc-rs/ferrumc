@@ -14,6 +14,7 @@ pub enum ConnectionState {
     Status,
     Login,
     Play,
+    Configuration
 }
 impl ConnectionState {
     pub fn as_str(&self) -> &'static str {
@@ -22,6 +23,7 @@ impl ConnectionState {
             ConnectionState::Status => "status",
             ConnectionState::Login => "login",
             ConnectionState::Play => "play",
+            ConnectionState::Configuration => "configuration"
         }
     }
 }
