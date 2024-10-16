@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use ferrumc_macros::{Event, NetDecode, packet};
-use crate::packets::incoming::login_start::{LoginStartEvent, LoginStartPacket};
+use ferrumc_events::infrastructure::Event;
 use crate::packets::IncomingPacket;
 use crate::{NetResult, ServerState};
 
@@ -14,7 +14,6 @@ pub struct LoginAcknowledgedEvent {
     pub login_acknowledged_packet: LoginAcknowledgedPacket,
     pub conn_id: usize,
 }
-
 impl IncomingPacket for LoginAcknowledgedPacket {
     async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
         LoginAcknowledgedEvent::trigger(LoginAcknowledgedEvent::new(self, conn_id), state).await?;
