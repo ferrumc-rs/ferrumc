@@ -1,8 +1,8 @@
 <img style="width: 100%" src="https://github.com/ferrumc-rs/ferrumc/blob/dev/README/assets/header.svg?raw=true" alt="FerrumC Header">
 <div align="center">
-    <img src="https://img.shields.io/github/license/Sweattypalms/ferrumc?style=for-the-badge&color=red" alt="License">
-    <img src="https://img.shields.io/github/languages/code-size/Sweattypalms/ferrumc?style=for-the-badge&color=red" alt="Code Size">
-    <img src="https://www.aschey.tech/tokei/github.com/Sweattypalms/ferrumc?style=for-the-badge&color=red" alt="Lines of Code">
+    <img src="https://img.shields.io/github/license/ferrumc-rs/ferrumc?style=for-the-badge&color=red" alt="License">
+    <img src="https://img.shields.io/github/languages/code-size/ferrumc-rs/ferrumc?style=for-the-badge&color=red" alt="Code Size">
+    <img src="https://www.aschey.tech/tokei/github.com/ferrumc-rs/ferrumc?style=for-the-badge&color=red" alt="Lines of Code">
     <img src="https://img.shields.io/badge/language-Rust-orange?style=for-the-badge&color=red" alt="Language">
     <a  href="https://discord.gg/qT5J8EMjwk">
     <img alt="Discord" src="https://img.shields.io/discord/1277314213878173726?style=for-the-badge&logo=discord&logoColor=red&color=red&link=https%3A%2F%2Fdiscord.gg%2FqT5J8EMjwk">
@@ -113,7 +113,7 @@ programming language, it is completely multithreaded; and offers high performanc
 
 [//]: # ()
 
-[//]: # (1. Go to the [Releases]&#40;https://github.com/Sweattypalms/ferrumc/releases&#41; page)
+[//]: # (1. Go to the [Releases]&#40;https://github.com/ferrumc-rs/ferrumc/releases&#41; page)
 
 [//]: # (2. Download the latest version for your operating system)
 
@@ -127,7 +127,7 @@ For now, you can either **compile** the server from source or **download** from 
 
 ![Where To Find](https://github.com/ferrumc-rs/ferrumc/blob/dev/README/assets/download_prebuilt.gif?raw=true)
 
-1. Go to the [Actions](https://github.com/sweattypalms/ferrumc/actions) tab
+1. Go to the [Actions](https://github.com/ferrumc-rs/ferrumc/actions) tab
 2. Click on the latest build
 3. Scroll all the way down to the `Artifacts` section
 4. Download the artifact for your operating system (Windows, Linux, or macOS)
@@ -140,7 +140,7 @@ For now, you can either **compile** the server from source or **download** from 
 
 ```bash
 # Clone the repository
-git clone https://github.com/Sweattypalms/ferrumc
+git clone https://github.com/ferrumc-rs/ferrumc
 cd ferrumc
 
 # Build the project
