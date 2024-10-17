@@ -30,9 +30,10 @@ pub fn database_benchmarks(c: &mut Criterion) {
     let _handle = runtime.enter();
     {
         let mut temps = Vec::new();
-
+        
+        #[cfg(feature = "redb")]
         let mut redb_backend = runtime.block_on(async {
-            let mut db_file = PathBuf::from("R:/temp/redb");
+            let mut db_file = PathBuf::from(root!(".temp/redb"));
             if !db_file.exists() {
                 std::fs::create_dir_all(&db_file).unwrap();
             }
@@ -44,9 +45,10 @@ pub fn database_benchmarks(c: &mut Criterion) {
             temps.push(db_file);
             backend
         });
-
+        
+        #[cfg(feature = "surrealkv")]
         let mut surreal_backend = runtime.block_on(async {
-            let mut db_file = PathBuf::from("R:/temp/surreal");
+            let mut db_file = PathBuf::from(root!(".temp/surreal"));
             if !db_file.exists() {
                 std::fs::create_dir_all(&db_file).unwrap();
             }
@@ -58,8 +60,9 @@ pub fn database_benchmarks(c: &mut Criterion) {
             backend
         });
 
+        #[cfg(feature = "sled")]
         let mut sled_backend = runtime.block_on(async {
-            let mut db_file = PathBuf::from("R:/temp/sled");
+            let mut db_file = PathBuf::from(root!(".temp/sled"));
             if !db_file.exists() {
                 std::fs::create_dir_all(&db_file).unwrap();
             }
@@ -92,6 +95,8 @@ pub fn database_benchmarks(c: &mut Criterion) {
         let mut write_group = c.benchmark_group("Write");
         write_group.measurement_time(std::time::Duration::from_secs(5));
         write_group.throughput(criterion::Throughput::Bytes(data.len() as u64));
+        
+        #[cfg(feature = "redb")]
         write_group.bench_with_input(
             "Redb",
             &("test".to_string(), data.clone()),
@@ -103,6 +108,7 @@ pub fn database_benchmarks(c: &mut Criterion) {
                 });
             },
         );
+        #[cfg(feature = "surrealkv")]
         write_group.bench_with_input(
             "SurrealKV",
             &("test".to_string(), data.clone()),
@@ -114,6 +120,7 @@ pub fn database_benchmarks(c: &mut Criterion) {
                 });
             },
         );
+        #[cfg(feature = "sled")]
         write_group.bench_with_input(
             "Sled",
             &("test".to_string(), data.clone()),
@@ -142,12 +149,15 @@ pub fn database_benchmarks(c: &mut Criterion) {
         let mut keys = Vec::new();
         for _ in 0..READ_KEYS {
             let key = random_key();
+            #[cfg(feature = "redb")]
             runtime
                 .block_on(redb_backend.insert("test".to_string(), key, data.clone()))
                 .unwrap();
+            #[cfg(feature = "surrealkv")]
             runtime
                 .block_on(surreal_backend.insert("test".to_string(), key, data.clone()))
                 .unwrap();
+            #[cfg(feature = "sled")]
             runtime
                 .block_on(sled_backend.insert("test".to_string(), key, data.clone()))
                 .unwrap();
@@ -163,7 +173,8 @@ pub fn database_benchmarks(c: &mut Criterion) {
         read_group.throughput(criterion::Throughput::Bytes(data.len() as u64));
         read_group.measurement_time(std::time::Duration::from_secs(10));
 
-        read_group.bench_with_input("Redb", &("test".to_string()), |b, (table)| {
+        #[cfg(feature = "redb")]
+        read_group.bench_with_input("Redb", &("test".to_string()), |b, table| {
             b.iter(|| {
                 let key = keys.choose(&mut rand::thread_rng()).unwrap();
                 black_box(
@@ -173,7 +184,8 @@ pub fn database_benchmarks(c: &mut Criterion) {
                 );
             });
         });
-        read_group.bench_with_input("SurrealKV", &("test".to_string()), |b, (table)| {
+        #[cfg(feature = "surrealkv")]
+        read_group.bench_with_input("SurrealKV", &("test".to_string()), |b, table| {
             b.iter(|| {
                 let key = keys.choose(&mut rand::thread_rng()).unwrap();
                 black_box(
@@ -183,7 +195,8 @@ pub fn database_benchmarks(c: &mut Criterion) {
                 );
             });
         });
-        read_group.bench_with_input("Sled", &("test".to_string()), |b, (table)| {
+        #[cfg(feature = "sled")]
+        read_group.bench_with_input("Sled", &("test".to_string()), |b, table| {
             b.iter(|| {
                 let key = keys.choose(&mut rand::thread_rng()).unwrap();
                 black_box(
@@ -206,8 +219,6 @@ pub fn database_benchmarks(c: &mut Criterion) {
         });
 
         read_group.finish();
-
-        runtime.block_on(surreal_backend.close()).unwrap();
 
         temps.iter().for_each(|temp_dir| {
             let res = match temp_dir.is_dir() {
