@@ -26,7 +26,7 @@ impl<'a> ClientBoundKnownPacksPacket<'a> {
     pub fn new() -> Self {
         Self {
             packet_id: VarInt::from(0x0E),
-            packs: LengthPrefixedVec::new(VarInt::from(1), vec![
+            packs: LengthPrefixedVec::new(vec![
                 Pack::new("minecraft:core", "base", "1.21"),
             ]),
         }

@@ -1,4 +1,4 @@
-use proc_macro2::{TokenStream};
+use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{DeriveInput, GenericParam, Type};
 
@@ -66,23 +66,25 @@ pub struct StructInfo<'a> {
     pub ty_generics: syn::TypeGenerics<'a>,
     pub where_clause: Option<&'a syn::WhereClause>,
     pub lifetime: TokenStream,
+    pub lifetime_without_ident: TokenStream,
+    pub force_created: bool,
 }
 
-pub(crate) fn extract_struct_info(input: &DeriveInput) -> StructInfo {
+pub(crate) fn extract_struct_info<'a>(input: &'a DeriveInput, default_lifetime: Option<&str>) -> StructInfo<'a> {
     let struct_name = &input.ident;
     let impl_generics = input.generics.clone();
     let ty_generics = input.generics.split_for_impl().1;
     let where_clause = &input.generics.where_clause;
 
-    /*// Introduce a new lifetime 'de for deserialization
-    let has_lifetime = impl_generics.params.iter().any(|param| matches!(param, GenericParam::Lifetime(_)));
+    // Introduce a new lifetime 'de for deserialization
+    // let has_lifetime = impl_generics.params.iter().any(|param| matches!(param, GenericParam::Lifetime(_)));
     /*if !has_lifetime {
         let de_lifetime = Lifetime::new("'de", Span::call_site());
         impl_generics.params.insert(
             0,
             GenericParam::Lifetime(LifetimeParam::new(de_lifetime.clone())),
         );
-    }*/*/
+    }*/
 
     let lifetime = impl_generics
         .params
@@ -92,9 +94,20 @@ pub(crate) fn extract_struct_info(input: &DeriveInput) -> StructInfo {
             _ => None,
         });
 
+    let mut force_created = false;
     let lifetime = match lifetime {
-        Some(lifetime) => quote! { <#lifetime> },
-        None => quote! { },
+        Some(lifetime) => quote! { #lifetime },
+        None => {
+            if let Some(default_lifetime) = default_lifetime {
+                force_created = true;
+                let default_lifetime = syn::Lifetime::new(default_lifetime, proc_macro2::Span::call_site());
+                quote! {
+                    #default_lifetime
+                }
+            } else {
+                quote! {}
+            }
+        }
     };
 
     let (impl_generics, _, _) = input.generics.split_for_impl();
@@ -104,10 +117,16 @@ pub(crate) fn extract_struct_info(input: &DeriveInput) -> StructInfo {
         impl_generics: impl_generics.clone(),
         ty_generics,
         where_clause: where_clause.as_ref(),
-        lifetime,
+        lifetime_without_ident: lifetime.clone(),
+        lifetime: if lifetime.is_empty() {
+            quote! {}
+        } else {
+            quote! { <#lifetime> }
+        },
+        force_created
     }
 }
 
-pub (crate) fn get_derive_attributes(input: &DeriveInput, path_name: &str) -> Vec<syn::Attribute> {
+pub(crate) fn get_derive_attributes(input: &DeriveInput, path_name: &str) -> Vec<syn::Attribute> {
     input.attrs.iter().filter(|attr| attr.path().is_ident(path_name)).cloned().collect()
 }

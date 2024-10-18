@@ -1,4 +1,3 @@
-use serde_json::Value;
 use ferrumc_macros::event_handler;
 use ferrumc_net::errors::NetError;
 use ferrumc_net::packets::incoming::login_start::LoginStartEvent;
@@ -9,6 +8,7 @@ use ferrumc_net::packets::incoming::login_acknowledged::{LoginAcknowledgedEvent}
 use ferrumc_net::packets::incoming::server_bound_known_packs::ServerBoundKnownPacksEvent;
 use ferrumc_net::packets::outgoing::client_bound_known_packs::ClientBoundKnownPacksPacket;
 use ferrumc_net::packets::outgoing::login_success::LoginSuccessPacket;
+use ferrumc_net::packets::outgoing::registry_data::{get_registry_packets};
 use ferrumc_net_codec::encode::NetEncodeOpts;
 
 #[event_handler]
@@ -68,21 +68,14 @@ async fn handle_server_bound_known_packs(
 ) -> Result<ServerBoundKnownPacksEvent, NetError> {
     trace!("Handling Server Bound Known Packs event");
 
-    // Send registry data here.
-    let registry_data = register_data::DATA;
-    let json : Value = serde_json::from_str(registry_data).unwrap();
     
     let mut writer = state
         .universe
         .get_mut::<StreamWriter>(server_bound_known_packs_event.conn_id)?;
+
+    let registry_packets = get_registry_packets();
+    writer.send_packet(&registry_packets, &NetEncodeOpts::None).await?;
     
-    json.as_object().map(|map| map.iter().for_each(|(identifier, value)| {
-        
-    }));
 
     Ok(server_bound_known_packs_event)
-}
-
-mod register_data {
-    pub(super) const DATA: &str = include_str!("../../../../.etc/registry.json");
 }

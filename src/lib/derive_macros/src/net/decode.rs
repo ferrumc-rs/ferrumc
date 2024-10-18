@@ -78,7 +78,8 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
             ty_generics,
             where_clause,
             lifetime: _lifetime,
-        } = crate::helpers::extract_struct_info(&input);
+            ..
+        } = crate::helpers::extract_struct_info(&input, None);
 
         let type_cast_handler = match type_cast_handler {
             None => {
@@ -148,7 +149,8 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
         ty_generics,
         where_clause,
         lifetime: _lifetime,
-    } = crate::helpers::extract_struct_info(&input);
+        ..
+    } = crate::helpers::extract_struct_info(&input, None);
 
     let expanded = quote! {
         // impl ferrumc_net_codec::decode::NetDecode for #name {

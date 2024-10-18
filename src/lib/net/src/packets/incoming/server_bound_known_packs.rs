@@ -30,14 +30,14 @@ impl IncomingPacket for ServerBoundKnownPacks {
         let event = ServerBoundKnownPacksEvent {
             conn_id
         };
-        
+
         tokio::spawn(ServerBoundKnownPacksEvent::trigger(event, state));
-        
+
         Ok(())
     }
 }
 
 #[derive(Debug, Event)]
 pub struct ServerBoundKnownPacksEvent {
-    conn_id: usize,
+    pub conn_id: usize,
 }

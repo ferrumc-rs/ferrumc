@@ -13,9 +13,9 @@ pub struct LengthPrefixedVec<T>
 
 impl<T> LengthPrefixedVec<T>
 {
-    pub fn new(length: VarInt, data: Vec<T>) -> Self {
+    pub fn new(data: Vec<T>) -> Self {
         Self {
-            length,
+            length: VarInt::new(data.len() as i32),
             data,
         }
     }
