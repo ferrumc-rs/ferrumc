@@ -9,8 +9,8 @@ pub type NetDecodeResult<T> = Result<T, errors::NetDecodeError>;
 /// And possibly other stuff in the future.
 pub enum NetDecodeOpts {
     None,
+    IsSizePrefixed,
 }
-
 pub trait NetDecode: Sized {
     fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> NetDecodeResult<Self>;
 }

@@ -107,3 +107,7 @@ pub(crate) fn extract_struct_info(input: &DeriveInput) -> StructInfo {
         lifetime,
     }
 }
+
+pub (crate) fn get_derive_attributes(input: &DeriveInput, path_name: &str) -> Vec<syn::Attribute> {
+    input.attrs.iter().filter(|attr| attr.path().is_ident(path_name)).cloned().collect()
+}

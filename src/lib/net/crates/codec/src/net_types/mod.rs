@@ -1,4 +1,5 @@
 pub mod var_int;
+pub mod length_prefixed_vec;
 
 #[derive(Debug, thiserror::Error)]
 pub enum NetTypesError {
