@@ -46,6 +46,7 @@
 pub mod errors;
 pub mod server_config;
 pub mod statics;
+pub mod favicon;
 
 #[cfg(test)]
 mod tests;

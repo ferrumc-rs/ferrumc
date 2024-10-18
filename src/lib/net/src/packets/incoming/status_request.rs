@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use ferrumc_config::favicon::get_favicon_base64;
 use ferrumc_config::get_global_config;
 use ferrumc_macros::{packet, NetDecode};
 use ferrumc_net_codec::encode::NetEncodeOpts;
@@ -71,9 +72,10 @@ fn get_server_status() -> String {
     };
 
 
+    // TODO: Get online players and make players count dynamic
     let players = structs::Players {
         max: config.max_players,
-        online: 5,
+        online: 0,
         sample: vec![structs::Player {
             name: "Sweattypalms",
             id: "00000000-0000-0000-0000-000000000000",
@@ -83,11 +85,13 @@ fn get_server_status() -> String {
         }],
     };
     
+    // TODO: Randomize MOTD
     let description = structs::Description {
         text: config.motd[0].as_str(),
     };
     
-    let favicon = "data:image/png;base64,<data>";
+    let favicon = get_favicon_base64();
+    // let favicon = "data:image/png;base64,<data>";
     
     let status = structs::ServerStatus {
         version,
@@ -98,27 +102,5 @@ fn get_server_status() -> String {
     };
     
     serde_json::to_string(&status).unwrap()
-}/*
-const TEMP_RES: &str = r#"
-{
-    "version": {
-        "name": "1.21.1",
-        "protocol": 767
-    },
-    "players": {
-        "max": 100,
-        "online": 5,
-        "sample": [
-            {
-                "name": "thinkofdeath",
-                "id": "4566e69f-c907-48ee-8d71-d7ba5aa00d20"
-            }
-        ]
-    },
-    "description": {
-        "text": "Hello, world!"
-    },
-    "favicon": "data:image/png;base64,<data>",
-    "enforcesSecureChat": false
 }
-"#;*/
+

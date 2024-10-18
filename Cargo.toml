@@ -19,7 +19,7 @@ members = [
     "src/lib/net/crates/encryption", "src/lib/net/crates/codec",
     "src/lib/plugins",
     "src/lib/storage",
-    "src/lib/utils", "src/lib/utils/logging", "src/lib/utils/profiling",
+    "src/lib/utils", "src/lib/utils/logging", "src/lib/utils/profiling", "src/lib/utils/general_purpose",
     "src/lib/world",
     "src/lib/derive_macros",
     "src/lib/adapters/nbt", "src/lib/adapters/mca",
@@ -81,6 +81,7 @@ ferrumc-utils = { path = "src/lib/utils" }
 ferrumc-profiling = { path = "src/lib/utils/profiling" }
 ferrumc-logging = { path = "src/lib/utils/logging" }
 ferrumc-config = { path = "src/lib/utils/config" }
+ferrumc-general-purpose = { path = "src/lib/utils/general_purpose" }
 ferrumc-macros = { path = "src/lib/derive_macros" }
 ferrumc-world = { path = "src/lib/world" }
 ferrumc-nbt = { path = "src/lib/adapters/nbt" }
@@ -116,6 +117,7 @@ rand = "0.9.0-alpha.2"
 serde = "1.0.210"
 serde_json = "1.0.128"
 serde_derive = "1.0.210"
+base64 = "0.22.1"
 
 # Data types
 hashbrown = "0.15.0"

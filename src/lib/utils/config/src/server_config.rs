@@ -6,6 +6,7 @@ use crate::errors::ConfigError;
 use crate::statics::{get_global_config, set_global_config};
 use serde_derive::{Deserialize, Serialize};
 use tracing::{error, info};
+use ferrumc_general_purpose::paths::get_root_path;
 
 /// The server configuration struct.
 ///
@@ -122,7 +123,8 @@ impl ServerConfig {
     /// - `path`: The path to the configuration file.
     /// - `prompt_user`: Whether to prompt the user to create a new configuration file if the current one is invalid.
     pub(crate) fn set_config(path: &str, prompt_user: bool) -> Result<ServerConfig, ConfigError> {
-        let config = std::fs::read_to_string(path);
+        let path = get_root_path()?.join(path);
+        let config = std::fs::read_to_string(&path);
         let config: &str = match &config {
             Ok(config) => config,
             Err(e) => {
@@ -142,7 +144,7 @@ impl ServerConfig {
 
                 if user_input == "y" {
                     // Create a new config file
-                    std::fs::write(path, DEFAULT_CONFIG)?;
+                    std::fs::write(&path, DEFAULT_CONFIG)?;
 
                     DEFAULT_CONFIG
                 } else {
@@ -165,10 +167,10 @@ impl ServerConfig {
                 // If the user enters "y", create a new configuration file.
                 if input.trim().to_ascii_lowercase() == "y" {
                     // Backup the old configuration file.
-                    std::fs::rename(path, "config.toml.bak")?;
+                    std::fs::rename(&path, "config.toml.bak")?;
 
                     // Create new configuration file.
-                    std::fs::write(path, DEFAULT_CONFIG)?;
+                    std::fs::write(&path, DEFAULT_CONFIG)?;
                     info!("Configuration file created.");
                 } else {
                     // User did not enter "y". Return the error.
