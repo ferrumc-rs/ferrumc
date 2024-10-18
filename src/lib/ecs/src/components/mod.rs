@@ -59,6 +59,11 @@ impl ComponentStorage {
         self.components.get_mut(&type_id)
             .map(|mut components| components.remove(entity));
     }
+
+    pub fn remove_all_components(&self, entity: Entity) {
+        self.components.iter_mut()
+            .for_each(|mut components| { components.remove(entity); });
+    }
 }
 impl ComponentStorage {
     pub fn get<'a, T: Component>(&self, entity: Entity) -> ECSResult<ComponentRef<'a, T>>
