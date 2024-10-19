@@ -4,7 +4,7 @@ use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::{packet, Event, NetDecode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::sync::Arc;
-use tracing::info;
+use tracing::{trace};
 
 #[derive(NetDecode, Debug)]
 #[packet(packet_id = 0x00, state = "handshake")]
@@ -17,8 +17,8 @@ pub struct Handshake {
 
 impl IncomingPacket for Handshake {
     async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
-        info!("Connection ID: {}", conn_id);
-        info!("Handshake packet received: {:?}", self);
+        trace!("Connection ID: {}", conn_id);
+        trace!("Handshake packet received: {:?}", self);
 
         HandshakeEvent::trigger(HandshakeEvent::new(self, conn_id), state).await?;
         Ok(())

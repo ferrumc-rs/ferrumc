@@ -14,14 +14,20 @@ ferrumc-utils = { workspace = true }
 rand = { workspace = true }
 zstd = { workspace = true }
 brotli = { workspace = true }
-redb = { workspace = true }
+redb = { workspace = true, optional = true }
 tokio = { workspace = true }
 parking_lot = { workspace = true }
 lazy_static = { workspace = true }
-surrealkv = { workspace = true }
-sled = { workspace = true }
-rocksdb = { workspace = true }
+surrealkv = { workspace = true, optional = true }
+sled = { workspace = true, optional = true }
+rocksdb = { workspace = true, optional = true }
 
+[features]
+rocksdb = ["dep:rocksdb"]
+sled = ["dep:sled"]
+surrealkv = ["dep:surrealkv"]
+redb = ["dep:redb"]
+default = ["sled", "surrealkv", "redb"]
 
 
 

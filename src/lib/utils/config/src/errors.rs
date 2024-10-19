@@ -23,4 +23,8 @@ pub enum ConfigError {
     /// Error when set_global_config fails.
     #[error("Failed to set configuration file.")]
     ConfigSetError,
+    
+    /// Error when the root path cannot be found.
+    #[error("Failed to get the root path.")]
+    RootPathError(#[from] ferrumc_general_purpose::paths::RootPathError),
 }

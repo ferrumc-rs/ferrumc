@@ -55,6 +55,16 @@ impl NetEncode for bool {
 
 impl NetEncode for String {
     fn encode<W: Write>(&self, writer: &mut W, _: &NetEncodeOpts) -> NetEncodeResult<()> {
+        self.as_str().encode(writer, &NetEncodeOpts::None)
+    }
+    
+    async fn encode_async<W: AsyncWrite + Unpin>(&self, writer: &mut W, _: &NetEncodeOpts) -> NetEncodeResult<()> {
+        self.as_str().encode_async(writer, &NetEncodeOpts::None).await
+    }
+}
+
+impl<'a> NetEncode for &'a str {
+    fn encode<W: Write>(&self, writer: &mut W, _: &NetEncodeOpts) -> NetEncodeResult<()> {
         let len: VarInt = VarInt::new(self.len() as i32);
         len.encode(writer, &NetEncodeOpts::None)?;
         writer.write_all(self.as_bytes())?;

@@ -1,10 +1,11 @@
+use crate::helpers::StructInfo;
+use crate::helpers::StructInfo;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, DeriveInput};
 
 pub(crate) fn derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
-    let name = input.ident;
 
     let fields = if let syn::Data::Struct(data) = &input.data {
         &data.fields
@@ -17,8 +18,8 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
         let field_ty = &field.ty;
         quote! {
             // TODO: see if we need to pass options here
-                <#field_ty as ferrumc_net_codec::encode::NetEncode>::encode(&self.#field_name, writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)?;
-            }
+            <#field_ty as ferrumc_net_codec::encode::NetEncode>::encode(&self.#field_name, writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)?;
+        }
     });
 
     let sync_impl = {
@@ -206,11 +207,18 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
         }
     };
 
+    let StructInfo {
+        struct_name,
+        impl_generics,
+        ty_generics,
+        where_clause,
+        lifetime: _lifetime,
+    } = crate::helpers::extract_struct_info(&input);
+
     let expanded = quote! {
         use std::io::Write;
         use tokio::io::AsyncWriteExt;
-
-        impl ferrumc_net_codec::encode::NetEncode for #name {
+        impl #impl_generics ferrumc_net_codec::encode::NetEncode for #struct_name #ty_generics #where_clause {
             #sync_impl
             #async_impl
         }

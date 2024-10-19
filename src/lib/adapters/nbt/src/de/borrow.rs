@@ -1,7 +1,7 @@
 use crate::de::converter::FromNbt;
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
 use std::io::Write;
-use tokio::io::AsyncWriteExt;
+use tokio::io::{AsyncWrite, AsyncWriteExt};
 
 #[repr(u8)]
 #[derive(Debug, PartialEq, Clone)]
@@ -590,7 +590,7 @@ impl<'a> NetEncode for NbtTape<'a> {
         Ok(())
     }
 
-    async fn encode_async<W: tokio::io::AsyncWrite + Unpin>(
+    async fn encode_async<W: AsyncWrite + Unpin>(
         &self,
         writer: &mut W,
         _opts: &NetEncodeOpts,

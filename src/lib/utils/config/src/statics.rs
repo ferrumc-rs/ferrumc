@@ -41,7 +41,7 @@ static CONFIG: OnceLock<ServerConfig> = OnceLock::new();
 /// # }
 /// ```
 pub fn get_global_config() -> &'static ServerConfig {
-    CONFIG.get_or_init(ServerConfig::default)
+    CONFIG.get_or_init(|| ServerConfig::new(None).expect("Failed to read configuration file."))
 }
 
 /// Sets the global configuration.
@@ -53,3 +53,6 @@ pub fn get_global_config() -> &'static ServerConfig {
 pub(crate) fn set_global_config(config: ServerConfig) -> Result<(), ConfigError> {
     CONFIG.set(config).map_err(|_| ConfigError::ConfigSetError)
 }
+
+
+

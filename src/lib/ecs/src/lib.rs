@@ -50,6 +50,10 @@ impl Universe {
     pub fn remove_component<T: Component>(&self, entity: Entity) {
         self.components.remove::<T>(entity)
     }
+    
+    pub fn remove_all_components(&self, entity: Entity) {
+        self.components.remove_all_components(entity)
+    }
 
     pub fn get<'a, T: Component>(&self, entity: Entity) -> ECSResult<ComponentRef<'a, T>> {
         self.components.get::<T>(entity)
