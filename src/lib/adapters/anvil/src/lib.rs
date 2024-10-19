@@ -16,6 +16,37 @@ pub fn get_chunk(x: u32, z: u32, file_path: PathBuf) -> Option<Vec<u8>> {
     loaded_file.get_chunk(x, z)
 }
 
+/// Memory map the file and return a `LoadedAnvilFile` struct
+/// 
+/// The `LoadedAnvilFile` struct contains the table and the data map and can be used to get chunk data
+/// 
+/// This is pretty fragile when it comes to things like other programs writing to the file while it's open
+/// so be careful when using this and make sure to handle errors gracefully
+/// 
+/// Arguments:
+/// 
+/// * `file_path` - The path to the file
+/// 
+/// Returns:
+/// 
+/// * `Result<LoadedAnvilFile, AnvilError>` - The loaded anvil file
+/// 
+/// # Examples
+/// 
+/// ```no_run
+/// use fastanvil::Region;
+/// use std::path::PathBuf;use anvil::load_anvil_file;
+///
+/// let file_path = PathBuf::from("r.0.0.mca");
+///
+/// let mut fast_file = Region::from_stream(file_path.clone()).unwrap();
+/// let loaded_file = load_anvil_file(file_path).unwrap();
+///
+/// let chunk = loaded_file.get_chunk(0, 0);
+/// let fast_chunk = fast_file.read_chunk(0, 0).unwrap();
+/// 
+/// assert_eq!(chunk, fast_chunk);
+/// ```
 #[allow(unsafe_code)]
 pub fn load_anvil_file(file_path: PathBuf) -> Result<LoadedAnvilFile, AnvilError> {
 
@@ -59,10 +90,11 @@ pub fn load_anvil_file(file_path: PathBuf) -> Result<LoadedAnvilFile, AnvilError
 
 impl LoadedAnvilFile {
     /// Get all the locations from the table
-    /// Useful for finding all the chunks in the file, since you can then use `get_chunk_from_location` to get the chunk data
-    /// Note for using rayon, chunks of 96 seems to be the best for performance
-
-    #[allow(unsafe_code)]
+    /// 
+    /// The locations are 32-bit integers, where the first 24 bits are the offset in the file, and 
+    /// the last 8 bits are the size of the chunk. Generally these aren't useful on their own, but
+    /// can be used to get the chunk data with `get_chunk_from_location`. They are probably in order
+    /// but not guaranteed to be
     pub fn get_locations(&self) -> Vec<u32> {
         (0..1024).map(|i| {
             u32::from(self.table[i * 4]) << 24
@@ -184,6 +216,13 @@ mod tests {
         let mut buf: [u8; 4096] = [0; 4096];
         file.read_exact(&mut buf).unwrap();
         assert_eq!(loaded_file.table, buf);
+    }
+    
+    #[test]
+    fn test_bad_load_fails() {
+        let file_path = PathBuf::from(root!(".etc/codec.nbt"));
+        let result = load_anvil_file(file_path);
+        assert!(result.is_err());
     }
 
     #[test]
