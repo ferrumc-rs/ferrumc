@@ -7,12 +7,11 @@ pub struct LoginSuccessPacket {
     pub uuid: u128,
     pub username: String,
     pub number_of_properties: VarInt,
-    pub strict_error_handling: bool
+    pub strict_error_handling: bool,
 }
 
-impl<'a> LoginSuccessPacket {
-    pub fn new(uuid: u128, username: String) -> Self
-    {
+impl LoginSuccessPacket {
+    pub fn new(uuid: u128, username: String) -> Self {
         Self {
             packet_id: VarInt::from(0x02),
             uuid,

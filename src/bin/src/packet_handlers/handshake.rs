@@ -5,7 +5,6 @@ use ferrumc_net::errors::{NetError, PacketError};
 use ferrumc_net::packets::incoming::handshake::HandshakeEvent;
 use ferrumc_net::GlobalState;
 use tracing::trace;
-use tracing::trace;
 
 #[event_handler]
 async fn handle_handshake(

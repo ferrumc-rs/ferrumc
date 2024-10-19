@@ -4,7 +4,7 @@ use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::{packet, Event, NetDecode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::sync::Arc;
-use tracing::{trace};
+use tracing::trace;
 
 #[derive(NetDecode, Debug)]
 #[packet(packet_id = 0x00, state = "handshake")]
@@ -33,13 +33,9 @@ pub struct HandshakeEvent {
 
 impl HandshakeEvent {
     pub fn new(handshake: Handshake, conn_id: usize) -> Self {
-        Self {
-            handshake,
-            conn_id,
-        }
+        Self { handshake, conn_id }
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -59,7 +55,7 @@ mod tests {
             next_state: VarInt,
         }
         let mut data = Cursor::new(vec![
-            255, 5, 9, 108, 111, 99, 97, 108, 104, 111, 115, 116, 99, 221, 1
+            255, 5, 9, 108, 111, 99, 97, 108, 104, 111, 115, 116, 99, 221, 1,
         ]);
 
         let handshake = Handshake::decode(&mut data, &NetDecodeOpts::None).unwrap();

@@ -7,10 +7,8 @@ pub struct PongPacket {
     pub payload: i64,
 }
 
-
-impl<'a> PongPacket {
-    pub fn new(payload: i64) -> Self
-    {
+impl PongPacket {
+    pub fn new(payload: i64) -> Self {
         Self {
             packet_id: VarInt::from(0x01),
             payload,

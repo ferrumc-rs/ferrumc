@@ -1,5 +1,4 @@
 use crate::helpers::StructInfo;
-use crate::helpers::StructInfo;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, DeriveInput};

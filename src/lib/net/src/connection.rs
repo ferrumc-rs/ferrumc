@@ -1,15 +1,12 @@
 use crate::packets::incoming::PacketSkeleton;
-use crate::packets::incoming::PacketSkeleton;
 use crate::{handle_packet, NetResult, ServerState};
-use crate::{handle_packet, NetResult, ServerState};
-use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
-use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
+use ferrumc_net_codec::encode::NetEncode;
+use ferrumc_net_codec::encode::NetEncodeOpts;
 use std::sync::Arc;
 use tokio::io::BufReader;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tokio::net::TcpStream;
 use tracing::{debug, trace, warn};
-use tracing::{trace, warn};
 
 #[derive(Clone)]
 #[repr(u8)]
