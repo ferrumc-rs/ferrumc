@@ -28,6 +28,9 @@ pub enum NetError {
 
     #[error("Invalid State: {0}")]
     InvalidState(u8),
+
+    #[error("{0}")]
+    Packet(#[from] PacketError),
 }
 
 #[derive(Debug, Error)]

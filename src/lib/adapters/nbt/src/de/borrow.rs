@@ -1,6 +1,7 @@
-use std::io::Write;
-use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
 use crate::de::converter::FromNbt;
+use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
+use std::io::Write;
+use tokio::io::AsyncWriteExt;
 
 #[repr(u8)]
 #[derive(Debug, PartialEq, Clone)]
@@ -580,7 +581,6 @@ mod general {
     }
 }
 
-
 /// tf, whats the point of this?
 /// the data will probably die?? idk? possibly not? ?? lmao
 impl<'a> NetEncode for NbtTape<'a> {
@@ -590,7 +590,11 @@ impl<'a> NetEncode for NbtTape<'a> {
         Ok(())
     }
 
-    async fn encode_async<W: tokio::io::async_write::AsyncWrite + Unpin>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
+    async fn encode_async<W: tokio::io::AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        _opts: &NetEncodeOpts,
+    ) -> NetEncodeResult<()> {
         let data = self.data;
         writer.write_all(data).await?;
         Ok(())
