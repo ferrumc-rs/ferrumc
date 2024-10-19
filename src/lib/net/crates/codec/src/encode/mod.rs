@@ -14,6 +14,8 @@ pub enum NetEncodeOpts {
     Compressed,
 }
 
+#[allow(async_fn_in_trait)]
 pub trait NetEncode: Sized {
     fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()>;
+    async fn encode_async<W: tokio::io::AsyncWrite + Unpin>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()>;
 }

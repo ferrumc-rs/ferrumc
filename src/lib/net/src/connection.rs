@@ -2,7 +2,7 @@ use crate::packets::incoming::PacketSkeleton;
 use crate::{handle_packet, NetResult, ServerState};
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use std::sync::Arc;
-use tokio::io::{AsyncWriteExt, BufReader};
+use tokio::io::BufReader;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tokio::net::TcpStream;
 use tracing::{trace, warn};
@@ -46,17 +46,11 @@ impl StreamWriter {
     pub async fn send_packet(
         &mut self,
         packet: &impl NetEncode,
-        state: Arc<ServerState>,
-        entity: usize,
+        net_encode_opts: &NetEncodeOpts,
     ) -> NetResult<()> {
-        let mut buf = Vec::new();
-        let net_encode_opts = match state.universe.get::<CompressionStatus>(entity)?.enabled {
-            true => &NetEncodeOpts::Compressed,
-            false => &NetEncodeOpts::WithLength,
-        };
-        packet.encode(&mut buf, net_encode_opts)?;
-        self.writer.write_all(buf.as_slice()).await?;
-
+        packet
+            .encode_async(&mut self.writer, net_encode_opts)
+            .await?;
         Ok(())
     }
 }
@@ -108,6 +102,7 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
         {
             warn!("Failed to handle packet: {:?}", e);
             // Kick the player (when implemented).
+            // Send a disconnect event
             break 'recv;
         };
     }

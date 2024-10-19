@@ -9,6 +9,7 @@ thiserror = { workspace = true }
 libflate = { workspace = true }
 ferrumc-net-codec = { workspace = true }
 tracing = { workspace = true}
+tokio = { workspace = true }
 
 [lints]
 workspace = true

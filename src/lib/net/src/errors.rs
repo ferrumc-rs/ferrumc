@@ -25,4 +25,13 @@ pub enum NetError {
 
     #[error("Events Error: {0}")]
     EventsError(#[from] ferrumc_events::errors::EventsError),
+
+    #[error("Invalid State: {0}")]
+    InvalidState(u8),
+}
+
+#[derive(Debug, Error)]
+pub enum PacketError {
+    #[error("Invalid State: {0}")]
+    InvalidState(u8),
 }
