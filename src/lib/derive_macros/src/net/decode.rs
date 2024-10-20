@@ -62,6 +62,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
         (type_cast, type_cast_handler)
     };
 
+
     // So for enums we can simply read the type and then cast it directly.
     if let Some(type_cast) = type_cast {
         let Some(repr_attr) = repr_attr else {

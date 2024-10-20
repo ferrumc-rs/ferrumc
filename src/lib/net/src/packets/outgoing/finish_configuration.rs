@@ -1,13 +1,10 @@
-use ferrumc_macros::NetEncode;
-use ferrumc_net_codec::net_types::var_int::VarInt;
+use ferrumc_macros::{packet, NetEncode};
 use std::io::Write;
 use tokio::io::AsyncWriteExt;
 
 #[derive(NetEncode)]
-pub struct FinishConfigurationPacket {
-    // 0x03
-    pub packet_id: VarInt,
-}
+#[packet(packet_id = 0x03)]
+pub struct FinishConfigurationPacket;
 
 impl Default for FinishConfigurationPacket {
     fn default() -> Self {
@@ -17,8 +14,6 @@ impl Default for FinishConfigurationPacket {
 
 impl FinishConfigurationPacket {
     pub fn new() -> Self {
-        Self {
-            packet_id: VarInt::new(0x03),
-        }
+        Self {}
     }
 }

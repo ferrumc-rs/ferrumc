@@ -1,5 +1,4 @@
-use ferrumc_macros::NetEncode;
-use ferrumc_net_codec::net_types::var_int::VarInt;
+use ferrumc_macros::{packet, NetEncode};
 use std::io::Write;
 use tokio::io::AsyncWriteExt;
 
@@ -17,8 +16,8 @@ mod adapters {
 }
 
 #[derive(NetEncode)]
+#[packet(packet_id = 0x26)]
 pub struct KeepAlivePacket {
-    pub packet_id: VarInt, // 0x26
     pub id: KeepAlive,
 }
 
@@ -35,7 +34,6 @@ impl Default for KeepAlivePacket {
 impl KeepAlivePacket {
     pub fn new(id: i64) -> Self {
         Self {
-            packet_id: VarInt::new(0x26),
             id: KeepAlive::from(id),
         }
     }

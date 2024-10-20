@@ -1,12 +1,11 @@
-use ferrumc_macros::NetEncode;
+use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::Write;
 use tokio::io::AsyncWriteExt;
 
 #[derive(NetEncode)]
+#[packet(packet_id = 0x2B)]
 pub struct LoginPlayPacket<'a> {
-    pub packet_id: VarInt, // = 0x2B
-    // ====================
     pub entity_id: i32,
     pub is_hardcore: bool,
     pub dimension_length: VarInt,
@@ -34,7 +33,6 @@ pub struct LoginPlayPacket<'a> {
 impl<'a> LoginPlayPacket<'a> {
     pub fn new(conn_id: usize) -> Self {
         Self {
-            packet_id: VarInt::from(0x2B),
             entity_id: conn_id as i32,
             is_hardcore: false,
             dimension_length: VarInt::from(1),

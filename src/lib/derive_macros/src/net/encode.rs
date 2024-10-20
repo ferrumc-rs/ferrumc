@@ -1,7 +1,7 @@
-use crate::helpers::StructInfo;
+use crate::helpers::{get_derive_attributes, StructInfo};
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput};
+use syn::{parse_macro_input, DeriveInput, LitInt};
 
 pub(crate) fn derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
@@ -10,6 +10,55 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
         &data.fields
     } else {
         unimplemented!("NetEncode can only be derived for structs");
+    };
+
+    let packet_attr = get_derive_attributes(&input, "packet");
+
+    let (packet_id_snippet, async_packet_id_snippet) = {
+        let mut packet_id = None;
+        packet_attr.iter().for_each(|attr| {
+            attr.parse_nested_meta(|meta| {
+                let Some(ident) = meta.path.get_ident() else {
+                    return Ok(());
+                };
+
+                match ident.to_string().as_str() {
+                    "packet_id" => {
+                        let value = meta.value().expect("value failed");
+                        let value = value.parse::<LitInt>().expect("parse failed");
+                        let n = value.base10_parse::<u8>().expect("base10_parse failed");
+                        packet_id = Some(n);
+                    }
+                    &_ => {
+                        return Ok(());
+                    }
+                }
+
+                Ok(())
+            }).unwrap();
+        });
+
+        let sync_impl = if let Some(packet_id) = packet_id {
+            quote! {
+                // encode a varint of packet_id
+                // varint is at ferrumc_net_codec::net_types::var_int::VarInt
+                <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode(&#packet_id.into(), writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)?;
+            }
+        } else {
+            quote! {  }
+        };
+
+        let async_impl = if let Some(packet_id) = packet_id {
+            quote! {
+                // encode a varint of packet_id
+                // varint is at ferrumc_net_codec::net_types::var_int::VarInt
+                <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode_async(&#packet_id.into(), writer, &ferrumc_net_codec::encode::NetEncodeOpts::None).await?;
+            }
+        } else {
+            quote! {  }
+        };
+
+        (sync_impl, async_impl)
     };
 
     let sync_encode_fields = fields.iter().map(|field| {
@@ -21,6 +70,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
         }
     });
 
+
     let sync_impl = {
         // These exist only because we cannot move value LMAO, they're both the same
         let normal_fields = sync_encode_fields.clone();
@@ -31,6 +81,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
             fn encode<W: std::io::Write>(&self, writer: &mut W, opts: &ferrumc_net_codec::encode::NetEncodeOpts) -> ferrumc_net_codec::encode::NetEncodeResult<()> {
                 match opts {
                     ferrumc_net_codec::encode::NetEncodeOpts::None => {
+                        #packet_id_snippet
                         #(#normal_fields)*
                     }
                     ferrumc_net_codec::encode::NetEncodeOpts::WithLength => {
@@ -39,6 +90,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                         let mut writer = &mut writer;
 
 
+                        #packet_id_snippet
                         #(#length_prefixed_fields)*
 
 
@@ -60,6 +112,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                         // Get compression threshold from config
                         let compression_threshold = ferrumc_config::get_global_config().network_compression_threshold;
 
+                        #packet_id_snippet
                         #(#compressed_fields)*
 
                         // if size >= threshold, compress, otherwise, send uncompressed and set Data Length to 0
@@ -129,6 +182,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
             async fn encode_async<W: tokio::io::AsyncWrite + std::marker::Unpin>(&self, writer: &mut W, opts: &ferrumc_net_codec::encode::NetEncodeOpts) -> ferrumc_net_codec::encode::NetEncodeResult<()> {
                 match opts {
                     ferrumc_net_codec::encode::NetEncodeOpts::None => {
+                        #async_packet_id_snippet
                         #(#normal_fields)*
                     }
                     ferrumc_net_codec::encode::NetEncodeOpts::WithLength => {
@@ -137,6 +191,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                         let mut writer = Vec::new();
                         let mut writer = &mut writer;
 
+                        #async_packet_id_snippet
                         #(#length_prefixed_fields)*
 
                         let len: ferrumc_net_codec::net_types::var_int::VarInt = writer.len().into();
@@ -156,6 +211,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                         // Get compression threshold from config
                         let compression_threshold = ferrumc_config::get_global_config().network_compression_threshold;
 
+                        #async_packet_id_snippet
                         #(#compressed_fields)*
 
                         // if size >= threshold, compress, otherwise, send uncompressed and set Data Length to 0
