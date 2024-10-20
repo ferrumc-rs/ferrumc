@@ -1,9 +1,7 @@
 use ferrumc_macros::NetEncode;
 use ferrumc_nbt::{NBTSerializeOptions, NbtTape};
-use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use tracing::debug;
 
 #[derive(NetEncode)]
 pub struct RegistryDataPacket<'a> {
@@ -80,6 +78,7 @@ pub const fn get_registry_packets() -> &'static [u8] {
 }
 
 
+#[cfg(test)]
 mod tests {
     use crate::packets::outgoing::registry_data::{RegistryDataPacket, RegistryEntry};
     use ferrumc_nbt::NbtTape;

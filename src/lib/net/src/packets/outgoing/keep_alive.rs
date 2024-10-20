@@ -1,5 +1,4 @@
 use ferrumc_macros::NetEncode;
-use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 
 #[derive(Debug, NetEncode)]
