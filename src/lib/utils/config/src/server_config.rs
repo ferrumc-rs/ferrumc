@@ -4,9 +4,9 @@
 
 use crate::errors::ConfigError;
 use crate::statics::{get_global_config, set_global_config};
+use ferrumc_general_purpose::paths::get_root_path;
 use serde_derive::{Deserialize, Serialize};
 use tracing::{error, info};
-use ferrumc_general_purpose::paths::get_root_path;
 
 /// The server configuration struct.
 ///
@@ -87,31 +87,12 @@ impl ServerConfig {
         let path = path.unwrap_or("./config.toml");
 
         // Load the configuration from the file.
-        let config = Self::set_config(path, true)?;
+        let config = Self::set_config(path)?;
 
         Ok(config)
         /*set_global_config(config)?;
 
         Ok(get_global_config())*/
-    }
-
-    /// Load the configuration from a file without prompting the user to create a new one.
-    ///
-    /// Exact same as [ServerConfig::new], but does not prompt the user to create a new configuration file.
-    ///
-    /// Safe for use in automated tests.
-    // Allow dead code since this is only used in tests.
-    #[allow(dead_code)]
-    pub(crate) fn new_no_prompt(path: Option<&str>) -> Result<&'static Self, ConfigError> {
-        // Default path to "./config.toml" if None.
-        let path = path.unwrap_or("./config.toml");
-
-        // Load the configuration from the file.
-        let config = Self::set_config(path, false)?;
-
-        set_global_config(config)?;
-
-        Ok(get_global_config())
     }
 
     /// Logic to read the configuration file.
@@ -121,38 +102,17 @@ impl ServerConfig {
     ///
     /// Arguments:
     /// - `path`: The path to the configuration file.
-    /// - `prompt_user`: Whether to prompt the user to create a new configuration file if the current one is invalid.
-    pub(crate) fn set_config(path: &str, prompt_user: bool) -> Result<ServerConfig, ConfigError> {
+    pub(crate) fn set_config(path: &str) -> Result<ServerConfig, ConfigError> {
         let path = get_root_path()?.join(path);
         let config = std::fs::read_to_string(&path);
         let config: &str = match &config {
             Ok(config) => config,
             Err(e) => {
-                // Check if we can prompt the user to create a new configuration file.
-                if !prompt_user {
-                    return Err(ConfigError::ConfigLoadError);
-                }
-                // Config could not be read. Prompt the user to create a new one from ServerConfig::Default.
-                error!("Could not read configuration file: {}", e);
-                error!("Would you like to create a new config file? (y/N): ");
+                std::fs::write(&path, DEFAULT_CONFIG)?;
 
-                let user_input = {
-                    let mut input = String::new();
-                    std::io::stdin().read_line(&mut input)?;
-                    input.trim().to_ascii_lowercase()
-                };
-
-                if user_input == "y" {
-                    // Create a new config file
-                    std::fs::write(&path, DEFAULT_CONFIG)?;
-
-                    DEFAULT_CONFIG
-                } else {
-                    return Err(ConfigError::ConfigLoadError);
-                }
+                DEFAULT_CONFIG
             }
         };
-
 
         let config: ServerConfig = match toml::from_str(config) {
             Ok(config) => config,
@@ -216,3 +176,4 @@ network_compression_threshold = 256
 cache_size = 1024
 compression = "fast"
 "#;
+
