@@ -15,12 +15,6 @@ impl Default for FinishConfigurationPacket {
     }
 }
 
-impl Default for FinishConfigurationPacket {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl FinishConfigurationPacket {
     pub fn new() -> Self {
         Self {
