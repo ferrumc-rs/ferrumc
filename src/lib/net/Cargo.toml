@@ -13,6 +13,7 @@ ferrumc-config = { workspace = true }
 ferrumc-ecs = { workspace = true }
 ferrumc-events = { workspace = true }
 ferrumc-nbt = { workspace = true }
+ferrumc-core = { workspace = true }
 tracing = { workspace = true }
 tokio = { workspace = true }
 parking_lot = { workspace = true }

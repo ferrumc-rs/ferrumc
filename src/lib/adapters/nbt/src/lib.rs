@@ -5,7 +5,6 @@ extern crate core;
 pub mod de;
 pub mod errors;
 pub mod ser;
-pub(crate) mod simd_utils;
 
 pub type Result<T> = std::result::Result<T, NBTError>;
 

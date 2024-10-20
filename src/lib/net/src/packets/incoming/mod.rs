@@ -6,6 +6,7 @@ pub mod login_start;
 pub mod ping;
 pub mod server_bound_known_packs;
 pub mod server_bound_plugin_message;
+pub mod set_player_position;
 pub mod status_request;
 
 pub mod packet_skeleton;

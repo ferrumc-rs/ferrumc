@@ -6,6 +6,7 @@ use std::arch::x86_64::*;
 use std::is_x86_feature_detected;
 
 /// Checks if AVX2 is available on the current CPU.
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 fn is_avx2_available() -> bool {
     let available: bool;
     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
@@ -49,7 +50,7 @@ pub fn u8_slice_to_u32_be(input: &[u8]) -> Vec<u32> {
     } else {
         u8_slice_to_u32_be_normal(input)
     }
-    
+
     #[cfg(not(any(target_arch = "x86", target_arch = "x86_64")))]
     u8_slice_to_u32_be_normal(input)
 }
@@ -125,7 +126,7 @@ pub fn u8_slice_to_u64_be(input: &[u8]) -> Vec<u64> {
     } else {
         u8_slice_to_u64_be_normal(input)
     }
-    
+
     #[cfg(not(any(target_arch = "x86", target_arch = "x86_64")))]
     u8_slice_to_u64_be_normal(input)
 }
@@ -198,7 +199,7 @@ pub fn u32_slice_to_u8_be(input: &[u32]) -> Vec<u8> {
     } else {
         u32_slice_to_u8_be_normal(input)
     }
-    
+
     #[cfg(not(any(target_arch = "x86", target_arch = "x86_64")))]
     u32_slice_to_u8_be_normal(input)
 }
@@ -250,7 +251,7 @@ pub fn u64_slice_to_u8_be(input: &[u64]) -> Vec<u8> {
     } else {
         u64_slice_to_u8_be_normal(input)
     }
-    
+
     #[cfg(not(any(target_arch = "x86", target_arch = "x86_64")))]
     u64_slice_to_u8_be_normal(input)
 }
