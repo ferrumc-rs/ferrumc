@@ -5,6 +5,15 @@ use std::arch::x86_64::*;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 use std::is_x86_feature_detected;
 
+
+// THIS CODE DOES WORK!!
+// If user is on non-x86_64, then it uses scalar code
+// If user is on x86_64, then it checks if AVX2 is available
+// If it is available, then it uses SIMD (AVX2) code
+// In this case for mask shuffling.
+
+
+
 /// Checks if AVX2 is available on the current CPU.
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 fn is_avx2_available() -> bool {
