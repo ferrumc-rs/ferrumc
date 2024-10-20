@@ -6,6 +6,7 @@ pub mod login_acknowledged;
 pub mod server_bound_plugin_message;
 pub mod client_information;
 pub mod server_bound_known_packs;
+pub mod ack_finish_configuration;
 
 
 pub mod packet_skeleton;

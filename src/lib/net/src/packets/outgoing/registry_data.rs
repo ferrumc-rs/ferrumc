@@ -32,6 +32,7 @@ pub struct RegistryEntry<'a> {
 
 
 impl<'a> RegistryDataPacket<'a> {
+    // TODO: bake this. and make it return just the bytes instead.
     pub fn get_registry_packets() -> Vec<Self> {
         let registry_nbt_buf = include_bytes!("../../../../../../.etc/registry.nbt");
 
@@ -43,42 +44,16 @@ impl<'a> RegistryDataPacket<'a> {
 
         let root = tape.root.as_ref().map(|(_, b)| b).unwrap();
         let root = root.as_compound().unwrap();
-
-        /*let top = root[0].1.as_compound().unwrap();
-        let sub = &top[0].1;
-
-        let data ={
-            let mut buf = vec![];
-            debug!("{:?}", sub);
-            sub.serialize_as_network(&mut serializer_machine, &mut buf)
-                .unwrap_or_else(|_| panic!("Failed to serialize entry for {}", "minecraft:overworld"));
-
-            buf
-        };
-
-        debug!("{:?}", data);
-
-        let entry = RegistryEntry {
-            id: "minecraft:base",
-            has_data: true,
-            data,
-        };
-        let packet = RegistryDataPacket::new("minecraft:banner_pattern", vec![entry]);
-
-        packets.push(packet);*/
-
+        
         let mut packets = vec![];
 
         /*let (name, element) = &root[1];*/
         for (name, element) in root {
             // TOP LEVEL
-            debug!("TOP LEVEL: {name}");
             let element = element.as_compound().unwrap();
 
             let mut entries = vec![];
             for (name, element) in element {
-                debug!("SUB LEVEL: {name}");
-
                 let has_data = true;
                 let mut data = vec![];
                 element.serialize_as_network(&mut serializer_machine, &mut data, &NBTSerializeOptions::Network)
@@ -96,33 +71,6 @@ impl<'a> RegistryDataPacket<'a> {
 
 
         packets
-
-
-
-
-        /*
-                let root = Root::from_bytes(registry_nbt_buf).unwrap();
-        
-                let mut packets = vec![];
-        
-                // dimensions:
-                let dimension_registry = {
-                    let mut entries = vec![];
-                    let name = "minecraft:dimension_type";
-                    let overworld = &root.minecraft_dimension_type.minecraft_overworld;
-        
-                    let overworld_data = overworld.serialize_as_network();
-        
-                    entries.push(RegistryEntry {
-                        id: "minecraft:overworld",
-                        has_data: true,
-                        data: overworld_data,
-                    });
-        
-                    RegistryDataPacket::new(name, entries)
-                };
-        
-                packets.push(dimension_registry);*/
     }
 }
 
