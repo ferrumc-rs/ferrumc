@@ -2,8 +2,6 @@ use ferrumc_macros::NetEncode;
 use ferrumc_nbt::{NBTSerializeOptions, NbtTape};
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use std::io::Write;
-use tokio::io::AsyncWriteExt;
 
 #[derive(NetEncode)]
 pub struct RegistryDataPacket<'a> {
@@ -79,6 +77,7 @@ pub const fn get_registry_packets() -> &'static [u8] {
     include_bytes!("../../../../../../.etc/registry.packet")
 }
 
+#[cfg(test)]
 mod tests {
     use std::io::Write;
 
