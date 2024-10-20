@@ -79,6 +79,7 @@ pub const fn get_registry_packets() -> &'static [u8] {
     include_bytes!("../../../../../../.etc/registry.packet")
 }
 
+#[cfg(test)]
 mod tests {
     use std::io::Write;
 

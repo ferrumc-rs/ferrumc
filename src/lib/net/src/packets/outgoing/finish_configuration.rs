@@ -9,6 +9,18 @@ pub struct FinishConfigurationPacket {
     pub packet_id: VarInt,
 }
 
+impl Default for FinishConfigurationPacket {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Default for FinishConfigurationPacket {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl FinishConfigurationPacket {
     pub fn new() -> Self {
         Self {
