@@ -35,14 +35,14 @@ fn test_encode() {
     result.unwrap();
 }
 
-#[test]
 #[allow(unreachable_code)]
-fn test_compression() -> ! {
+fn _test_compression() -> ! {
     let example = SomeExampleEncStructWithPacketId {
         packet_id: VarInt::from(0x10),
         field1: 42,
         field2: 69,
     };
+    // infinite loop, do not use in cargo test
     loop {
         let mut writer = Vec::<u8>::new();
         example
