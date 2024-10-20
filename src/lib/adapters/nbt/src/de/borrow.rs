@@ -1,7 +1,7 @@
 use crate::de::converter::FromNbt;
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
 use std::io::Write;
-use tokio::io::{AsyncWrite, AsyncWriteExt};
+use crate::{simd_utils, NBTSerializable, NBTSerializeOptions};
 
 #[repr(u8)]
 #[derive(Debug, PartialEq, Clone)]
@@ -607,11 +607,12 @@ impl<'a> NetEncode for NbtTape<'a> {
         Ok(())
     }
 
-    async fn encode_async<W: AsyncWrite + Unpin>(
+    async fn encode_async<W: tokio::io::AsyncWrite + Unpin>(
         &self,
         writer: &mut W,
         _opts: &NetEncodeOpts,
     ) -> NetEncodeResult<()> {
+        use tokio::io::AsyncWriteExt;
         let data = self.data;
         writer.write_all(data).await?;
         Ok(())
@@ -620,64 +621,70 @@ impl<'a> NetEncode for NbtTape<'a> {
 
 
 impl<'a> NbtTapeElement<'a> {
-    pub fn serialize_nbt<W: Write>(&self, tape: &mut NbtTape, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
-        match self {
-            NbtTapeElement::End => {
-                writer.write_all(&[NbtTag::End as u8])?;
-                Ok(())
+    pub fn serialize_as_network(&self, tape: &mut NbtTape, writer: &mut Vec<u8>, opts: &NBTSerializeOptions) -> NetEncodeResult<()> {
+        /*if let NBTSerializeOptions::WithHeader(name) = opts {
+            writer.write_all(&[self.nbt_id()])?;
+            name.serialize(writer, &NBTSerializeOptions::None);
+        }*/
+        
+        match opts {
+            NBTSerializeOptions::None => {}
+            NBTSerializeOptions::WithHeader(name) => {
+                writer.write_all(&[self.nbt_id()])?;
+                name.serialize(writer, &NBTSerializeOptions::None);
             }
+            NBTSerializeOptions::Network => {
+                writer.write_all(&[self.nbt_id()])?;
+            }
+        }
+        
+        
+        match self {
+            NbtTapeElement::End => Ok(()),
             NbtTapeElement::Byte(val) => {
-                writer.write_all(&[NbtTag::Byte as u8, *val as u8])?;
+                writer.write_all(&[*val as u8])?;
                 Ok(())
             }
             NbtTapeElement::Short(val) => {
-                writer.write_all(&[NbtTag::Short as u8])?;
                 writer.write_all(&val.to_be_bytes())?;
                 Ok(())
             }
             NbtTapeElement::Int(val) => {
-                writer.write_all(&[NbtTag::Int as u8])?;
                 writer.write_all(&val.to_be_bytes())?;
                 Ok(())
             }
             NbtTapeElement::Long(val) => {
-                writer.write_all(&[NbtTag::Long as u8])?;
                 writer.write_all(&val.to_be_bytes())?;
                 Ok(())
             }
             NbtTapeElement::Float(val) => {
-                writer.write_all(&[NbtTag::Float as u8])?;
                 writer.write_all(&val.to_be_bytes())?;
                 Ok(())
             }
             NbtTapeElement::Double(val) => {
-                writer.write_all(&[NbtTag::Double as u8])?;
                 writer.write_all(&val.to_be_bytes())?;
                 Ok(())
             }
             NbtTapeElement::ByteArray(data) => {
-                writer.write_all(&[NbtTag::ByteArray as u8])?;
-                (data.len() as i32).encode(writer, opts)?;
-                let data = unsafe {
-                    std::mem::transmute::<&[i8], &[u8]>(data)
-                };
+                (data.len() as i32).serialize(writer, &NBTSerializeOptions::None);
+                let data = unsafe { std::mem::transmute::<&[i8], &[u8]>(data) };
                 writer.write_all(data)?;
                 Ok(())
             }
             NbtTapeElement::String(data) => {
-                writer.write_all(&[NbtTag::String as u8])?;
-                (data.len() as u16).encode(writer, opts)?;
-                writer.write_all(data.as_bytes())?;
+                data.serialize(writer, &NBTSerializeOptions::None);
+                /*let data = data.as_bytes();
+                (data.len() as u16).serialize(writer, &NBTSerializeOptions::None);
+                writer.write_all(data)?;*/
                 Ok(())
             }
-            NbtTapeElement::List {
+            /*NbtTapeElement::List {
                 el_type,
                 size,
                 elements_pos,
             } => {
-                writer.write_all(&[NbtTag::List as u8])?;
                 writer.write_all(&[el_type.clone() as u8])?;
-                (*size as i32).encode(writer, opts)?;
+                (*size as i32).serialize(writer, &NBTSerializeOptions::None);
 
                 let start = *elements_pos;
 
@@ -694,33 +701,54 @@ impl<'a> NbtTapeElement<'a> {
                 writer.write_all(data)?;
 
                 Ok(())
+            }*/
+            NbtTapeElement::List {
+                el_type,
+                size,
+                elements_pos,
+            } => {
+                writer.write_all(&[el_type.clone() as u8])?;
+                (*size as i32).serialize(writer, &NBTSerializeOptions::None);
+
+                // Rewind tape to the start of the list.
+                tape.pos = *elements_pos;
+
+                // For each element in the list, parse and serialize it.
+                for _ in 0..*size {
+                    let element = NbtTapeElement::parse_from_nbt(
+                        tape,
+                        NbtDeserializableOptions::TagType(el_type.clone()),
+                    );
+                    element.serialize_as_network(tape, writer, &NBTSerializeOptions::None)?;
+                }
+
+                Ok(())
             }
             NbtTapeElement::Compound(elements) => {
-                writer.write_all(&[NbtTag::Compound as u8])?;
                 for (name, element) in elements {
                     writer.write_all(&[element.nbt_id()])?;
-                    name.encode(writer, opts)?;
-                    element.serialize_nbt(tape, writer, opts)?;
+                    name.serialize(writer, &NBTSerializeOptions::None);
+                    element.serialize_as_network(tape, writer, &NBTSerializeOptions::None)?;
                 }
                 writer.write_all(&[NbtTag::End as u8])?;
                 Ok(())
             }
             NbtTapeElement::IntArray(data) => {
-                writer.write_all(&[NbtTag::IntArray as u8])?;
-                (data.len() as i32).encode(writer, opts)?;
+                (data.len() as i32).serialize(writer, &NBTSerializeOptions::None);
                 let data = unsafe {
-                    std::mem::transmute::<&[i32], &[u8]>(data)
+                    std::mem::transmute::<&[i32], &[u32]>(data.as_slice())
                 };
-                writer.write_all(data)?;
+                let data = simd_utils::u32_slice_to_u8_be(data);
+                writer.write_all(data.as_slice())?;
                 Ok(())
             }
             NbtTapeElement::LongArray(data) => {
-                writer.write_all(&[NbtTag::LongArray as u8])?;
-                (data.len() as i32).encode(writer, opts)?;
+                (data.len() as i32).serialize(writer, &NBTSerializeOptions::None);
                 let data = unsafe {
-                    std::mem::transmute::<&[i64], &[u8]>(data)
+                    std::mem::transmute::<&[i64], &[u64]>(data.as_slice())
                 };
-                writer.write_all(data)?;
+                let data = simd_utils::u64_slice_to_u8_be(data);
+                writer.write_all(data.as_slice())?;
                 Ok(())
             }
         }

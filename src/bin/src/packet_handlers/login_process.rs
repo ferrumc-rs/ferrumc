@@ -8,8 +8,8 @@ use ferrumc_net::packets::incoming::login_acknowledged::{LoginAcknowledgedEvent}
 use ferrumc_net::packets::incoming::server_bound_known_packs::ServerBoundKnownPacksEvent;
 use ferrumc_net::packets::outgoing::client_bound_known_packs::ClientBoundKnownPacksPacket;
 use ferrumc_net::packets::outgoing::login_success::LoginSuccessPacket;
-use ferrumc_net::packets::outgoing::registry_data::{get_registry_packets};
-use ferrumc_net_codec::encode::NetEncodeOpts;
+use ferrumc_net::packets::outgoing::registry_data::{RegistryDataPacket};
+use ferrumc_net_codec::encode::{NetEncodeOpts};
 
 #[event_handler]
 async fn handle_login_start(
@@ -68,14 +68,16 @@ async fn handle_server_bound_known_packs(
 ) -> Result<ServerBoundKnownPacksEvent, NetError> {
     trace!("Handling Server Bound Known Packs event");
 
-    
+
     let mut writer = state
         .universe
         .get_mut::<StreamWriter>(server_bound_known_packs_event.conn_id)?;
 
-    let registry_packets = get_registry_packets();
-    writer.send_packet(&registry_packets, &NetEncodeOpts::None).await?;
-    
+    let registry_packets = RegistryDataPacket::get_registry_packets();
+
+    for packet in registry_packets {
+        writer.send_packet(&packet, &NetEncodeOpts::WithLength).await?;
+    }
 
     Ok(server_bound_known_packs_event)
 }

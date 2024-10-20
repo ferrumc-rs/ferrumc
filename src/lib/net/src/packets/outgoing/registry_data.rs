@@ -1,17 +1,20 @@
 use ferrumc_macros::NetEncode;
+use ferrumc_nbt::{NBTSerializeOptions, NbtTape};
+use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::var_int::VarInt;
+use tracing::debug;
 
 #[derive(NetEncode)]
-pub struct RegistryDataPacket {
+pub struct RegistryDataPacket<'a> {
     // 0x07 @ "configuration"
     pub packet_id: VarInt,
-    pub registry_id: String,
-    pub entries: LengthPrefixedVec<RegistryEntry>,
+    pub registry_id: &'a str,
+    pub entries: LengthPrefixedVec<RegistryEntry<'a>>,
 }
 
-impl RegistryDataPacket {
-    pub fn new(registry_id: String, entries: Vec<RegistryEntry>) -> Self {
+impl<'a> RegistryDataPacket<'a> {
+    pub fn new(registry_id: &'a str, entries: Vec<RegistryEntry<'a>>) -> Self {
         Self {
             packet_id: VarInt::from(0x07),
             registry_id,
@@ -21,24 +24,121 @@ impl RegistryDataPacket {
 }
 
 #[derive(NetEncode)]
-pub struct RegistryEntry{
-    pub id: String,
+pub struct RegistryEntry<'a> {
+    pub id: &'a str,
     pub has_data: bool,
     pub data: Vec<u8>,
 }
+
+
+impl<'a> RegistryDataPacket<'a> {
+    pub fn get_registry_packets() -> Vec<Self> {
+        let registry_nbt_buf = include_bytes!("../../../../../../.etc/registry.nbt");
+
+
+        let mut tape = NbtTape::new(registry_nbt_buf);
+        tape.parse();
+        let mut serializer_machine = NbtTape::new(registry_nbt_buf);
+        serializer_machine.parse();
+
+        let root = tape.root.as_ref().map(|(_, b)| b).unwrap();
+        let root = root.as_compound().unwrap();
+
+        /*let top = root[0].1.as_compound().unwrap();
+        let sub = &top[0].1;
+
+        let data ={
+            let mut buf = vec![];
+            debug!("{:?}", sub);
+            sub.serialize_as_network(&mut serializer_machine, &mut buf)
+                .unwrap_or_else(|_| panic!("Failed to serialize entry for {}", "minecraft:overworld"));
+
+            buf
+        };
+
+        debug!("{:?}", data);
+
+        let entry = RegistryEntry {
+            id: "minecraft:base",
+            has_data: true,
+            data,
+        };
+        let packet = RegistryDataPacket::new("minecraft:banner_pattern", vec![entry]);
+
+        packets.push(packet);*/
+
+        let mut packets = vec![];
+
+        /*let (name, element) = &root[1];*/
+        for (name, element) in root {
+            // TOP LEVEL
+            debug!("TOP LEVEL: {name}");
+            let element = element.as_compound().unwrap();
+
+            let mut entries = vec![];
+            for (name, element) in element {
+                debug!("SUB LEVEL: {name}");
+
+                let has_data = true;
+                let mut data = vec![];
+                element.serialize_as_network(&mut serializer_machine, &mut data, &NBTSerializeOptions::Network)
+                    .unwrap_or_else(|_| panic!("Failed to serialize entry for {}", name));
+
+                entries.push(RegistryEntry {
+                    id: name,
+                    has_data,
+                    data,
+                });
+            }
+            packets.push(RegistryDataPacket::new(name, entries));
+        }
+        
+
+
+        packets
+
+
+
+
+        /*
+                let root = Root::from_bytes(registry_nbt_buf).unwrap();
+        
+                let mut packets = vec![];
+        
+                // dimensions:
+                let dimension_registry = {
+                    let mut entries = vec![];
+                    let name = "minecraft:dimension_type";
+                    let overworld = &root.minecraft_dimension_type.minecraft_overworld;
+        
+                    let overworld_data = overworld.serialize_as_network();
+        
+                    entries.push(RegistryEntry {
+                        id: "minecraft:overworld",
+                        has_data: true,
+                        data: overworld_data,
+                    });
+        
+                    RegistryDataPacket::new(name, entries)
+                };
+        
+                packets.push(dimension_registry);*/
+    }
+}
+
 
 pub const fn get_registry_packets() -> &'static [u8] {
     include_bytes!("../../../../../../.etc/registry.packet")
 }
 
 
-#[cfg(test)]
 mod tests {
     use crate::packets::outgoing::registry_data::{RegistryDataPacket, RegistryEntry};
-    use ferrumc_nbt::{NbtTape};
+    use ferrumc_nbt::NbtTape;
     use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
     use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
     use std::io::Write;
+    use tracing::debug;
 
     // I had to almost manually type all this shit out. And y'all still hate me. smh.
     pub mod registry_parser {
@@ -1178,20 +1278,22 @@ mod tests {
                 let registry_compound = registry_data.as_compound().unwrap();
 
                 let entries = registry_compound.iter().map(|(name, element)| {
+                    debug!("Serializing entry for {}. ELEMENT: {:#?}", registry_id, element);
+
                     let has_data = true;
                     let mut data = vec![];
-                    element.serialize_nbt(&mut rewind_machine, &mut data, &NetEncodeOpts::None)
+                    element.serialize_as_network(&mut rewind_machine, &mut data)
                         .unwrap_or_else(|_| panic!("Failed to serialize entry for {}", registry_id));
 
                     RegistryEntry {
-                        id: name.to_string(),
+                        id: name,
                         has_data,
                         data,
                     }
                 }).collect::<Vec<_>>();
 
                 RegistryDataPacket::new(
-                    registry_id.to_string(),
+                    registry_id,
                     entries,
                 )
             };
@@ -1200,5 +1302,6 @@ mod tests {
                 .unwrap_or_else(|_| panic!("Failed to encode packet for {}", registry_id));
         }
 
-        std::fs::write(r#"D:\Minecraft\framework\ferrumc\ferrumc-2_0\ferrumc\.etc/registry.packet"#, packets).unwrap();    }
+        std::fs::write(r#"D:\Minecraft\framework\ferrumc\ferrumc-2_0\ferrumc\.etc/registry.packet"#, packets).unwrap();
+    }
 }
