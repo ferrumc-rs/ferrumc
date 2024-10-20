@@ -1,5 +1,7 @@
 use ferrumc_macros::NetEncode;
 use ferrumc_net_codec::encode::NetEncode;
+use std::io::Write;
+use tokio::io::AsyncWriteExt;
 
 #[derive(NetEncode)]
 struct SomeExampleEncStruct {
@@ -14,12 +16,14 @@ fn test_encode() {
         field2: 69,
     };
     let mut writer = Vec::<u8>::new();
-    example.encode(
-        &mut writer,
-        &ferrumc_net_codec::encode::NetEncodeOpts::None
-    ).unwrap();
+    example
+        .encode(&mut writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)
+        .unwrap();
 
     // save in file (.etc/tests)
-    let result = std::fs::write(r#"D:\Minecraft\framework\ferrumc\ferrumc-2_0\ferrumc\.etc\tests/enc_test_encode"#, writer);
+    let result = std::fs::write(
+        r#"D:\Minecraft\framework\ferrumc\ferrumc-2_0\ferrumc\.etc\tests/enc_test_encode"#,
+        writer,
+    );
     result.unwrap();
 }

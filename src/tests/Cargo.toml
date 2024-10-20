@@ -9,6 +9,7 @@ ferrumc-macros = { workspace = true }
 ferrumc-net-codec = { workspace = true }
 ferrumc-config = { workspace = true }
 flate2 = { workspace = true }
+tokio = { workspace = true }
 
 [lints]
 workspace = true

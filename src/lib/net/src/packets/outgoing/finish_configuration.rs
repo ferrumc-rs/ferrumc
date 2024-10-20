@@ -4,16 +4,15 @@ use std::io::Write;
 use tokio::io::AsyncWriteExt;
 
 #[derive(NetEncode)]
-pub struct PongPacket {
+pub struct FinishConfigurationPacket {
+    // 0x03
     pub packet_id: VarInt,
-    pub payload: i64,
 }
 
-impl PongPacket {
-    pub fn new(payload: i64) -> Self {
+impl FinishConfigurationPacket {
+    pub fn new() -> Self {
         Self {
-            packet_id: VarInt::from(0x01),
-            payload,
+            packet_id: VarInt::new(0x03),
         }
     }
 }

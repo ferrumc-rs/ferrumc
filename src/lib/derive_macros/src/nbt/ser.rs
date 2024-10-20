@@ -147,6 +147,9 @@ pub fn derive(input: TokenStream) -> TokenStream {
                         <u8 as ::ferrumc_nbt::NBTSerializable>::serialize(&Self::id(), writer, &::ferrumc_nbt::NBTSerializeOptions::None);
                         <&'_ str as ::ferrumc_nbt::NBTSerializable>::serialize(name, writer, &::ferrumc_nbt::NBTSerializeOptions::None);
                     }
+                    ::ferrumc_nbt::NBTSerializeOptions::Network => {
+                        <u8 as ::ferrumc_nbt::NBTSerializable>::serialize(&Self::id(), writer, &::ferrumc_nbt::NBTSerializeOptions::None);
+                    }
                     ::ferrumc_nbt::NBTSerializeOptions::None => {}
                 }
 
@@ -164,6 +167,18 @@ pub fn derive(input: TokenStream) -> TokenStream {
             pub fn serialize_with_header(&self) -> Vec<u8> {
                 let mut writer = Vec::new();
                 <#name #ty_generics as ::ferrumc_nbt::NBTSerializable>::serialize(self, &mut writer, &::ferrumc_nbt::NBTSerializeOptions::WithHeader(stringify!(#name)));
+                writer
+            }
+        }
+        
+        impl #impl_generics #name #ty_generics #where_clause {
+            pub fn serialize_as_network(&self) -> Vec<u8> {
+                let mut writer = Vec::new();
+                
+                <#name #ty_generics as ::ferrumc_nbt::NBTSerializable>::serialize(self, &mut writer, &::ferrumc_nbt::NBTSerializeOptions::Network);
+                /*<u8 as ::ferrumc_nbt::NBTSerializable>::serialize(&<Self as ::ferrumc_nbt::NBTSerializable>::id(), &mut writer, &::ferrumc_nbt::NBTSerializeOptions::None);
+                <#name #ty_generics as ::ferrumc_nbt::NBTSerializable>::serialize(self, &mut writer, &::ferrumc_nbt::NBTSerializeOptions::None);*/
+                
                 writer
             }
         }

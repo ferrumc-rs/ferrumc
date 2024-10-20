@@ -212,11 +212,12 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
         ty_generics,
         where_clause,
         lifetime: _lifetime,
-    } = crate::helpers::extract_struct_info(&input);
+        ..
+    } = crate::helpers::extract_struct_info(&input, None);
 
     let expanded = quote! {
-        use std::io::Write;
-        use tokio::io::AsyncWriteExt;
+        // use std::io::Write;
+        // use tokio::io::AsyncWriteExt;
         impl #impl_generics ferrumc_net_codec::encode::NetEncode for #struct_name #ty_generics #where_clause {
             #sync_impl
             #async_impl

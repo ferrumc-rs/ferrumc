@@ -13,4 +13,7 @@ pub enum NetDecodeError {
 
     #[error("External error: {0}")]
     ExternalError(#[from] Box<dyn std::error::Error + Send + Sync>),
+
+    #[error("Invalid Enum Variant")]
+    InvalidEnumVariant,
 }

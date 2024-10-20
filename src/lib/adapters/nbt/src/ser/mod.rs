@@ -10,4 +10,5 @@ pub trait NBTSerializable {
 pub enum NBTSerializeOptions<'a> {
     None,
     WithHeader(&'a str),
+    Network
 }

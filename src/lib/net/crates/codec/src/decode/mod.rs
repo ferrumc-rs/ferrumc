@@ -10,8 +10,8 @@ pub type NetDecodeResult<T> = Result<T, errors::NetDecodeError>;
 #[derive(Debug)]
 pub enum NetDecodeOpts {
     None,
+    IsSizePrefixed,
 }
-
 pub trait NetDecode: Sized {
     fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> NetDecodeResult<Self>;
 }

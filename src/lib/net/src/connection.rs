@@ -1,4 +1,4 @@
-use crate::packets::incoming::PacketSkeleton;
+use crate::packets::incoming::packet_skeleton::PacketSkeleton;
 use crate::{handle_packet, NetResult, ServerState};
 use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::encode::NetEncodeOpts;

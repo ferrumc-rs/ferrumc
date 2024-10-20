@@ -1,5 +1,7 @@
 use ferrumc_macros::NetEncode;
 use ferrumc_net_codec::net_types::var_int::VarInt;
+use std::io::Write;
+use tokio::io::AsyncWriteExt;
 
 #[derive(NetEncode)]
 pub struct LoginSuccessPacket {
