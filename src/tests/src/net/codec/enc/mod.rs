@@ -1,10 +1,17 @@
 use ferrumc_macros::NetEncode;
-use ferrumc_net_codec::encode::NetEncode;
+use ferrumc_net_codec::{encode::NetEncode, net_types::var_int::VarInt};
 use std::io::Write;
 use tokio::io::AsyncWriteExt;
 
 #[derive(NetEncode)]
 struct SomeExampleEncStruct {
+    pub field1: u32,
+    pub field2: u32,
+}
+
+#[derive(NetEncode)]
+struct SomeExampleEncStructWithPacketId {
+    pub packet_id: VarInt, // Make this 0x10
     pub field1: u32,
     pub field2: u32,
 }
@@ -26,4 +33,23 @@ fn test_encode() {
         writer,
     );
     result.unwrap();
+}
+
+#[test]
+#[allow(unreachable_code)]
+fn test_compression() -> ! {
+    let example = SomeExampleEncStructWithPacketId {
+        packet_id: VarInt::from(0x10),
+        field1: 42,
+        field2: 69,
+    };
+    loop {
+        let mut writer = Vec::<u8>::new();
+        example
+            .encode(
+                &mut writer,
+                &ferrumc_net_codec::encode::NetEncodeOpts::Compressed,
+            )
+            .unwrap();
+    }
 }
