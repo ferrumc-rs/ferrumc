@@ -42,7 +42,9 @@ pub fn derive(input: TokenStream) -> TokenStream {
         ty_generics,
         where_clause,
         lifetime,
-    } = crate::helpers::extract_struct_info(&input);
+        lifetime_without_ident,
+        force_created
+    } = crate::helpers::extract_struct_info(&input, Some("'de"));
 
     let fields = crate::helpers::get_fields(&input);
     let fields_init = fields.iter().map(|field| {
@@ -81,13 +83,13 @@ pub fn derive(input: TokenStream) -> TokenStream {
         if optional {
             return quote! {
                 #field_name: element.get(#deserialize_name).map_or(Ok(None), |e| {
-                    <#field_ty as ::ferrumc_nbt::FromNbt<#lifetime>>::from_nbt(tapes, e)
+                    <#field_ty as ::ferrumc_nbt::FromNbt #lifetime>::from_nbt(tapes, e)
                 })?,
             };
         }
 
         quote! {
-            #field_name: <#field_ty as ::ferrumc_nbt::FromNbt<#lifetime>>::from_nbt(
+            #field_name: <#field_ty as ::ferrumc_nbt::FromNbt #lifetime>::from_nbt(
                 tapes,
                 element.get(#deserialize_name).ok_or({
                     ::ferrumc_nbt::NBTError::ElementNotFound(#elem_name)
@@ -95,12 +97,18 @@ pub fn derive(input: TokenStream) -> TokenStream {
             )?,
         }
     });
-
+    
+    let impl_generics = if force_created {
+        quote! { <'de> #impl_generics }
+    } else {
+        quote! { #impl_generics }
+    };
+    
     let expanded = quote! {
         impl #impl_generics ::ferrumc_nbt::FromNbt #lifetime for #struct_name #ty_generics #where_clause {
             fn from_nbt(
-                tapes: &::ferrumc_nbt::NbtTape<#lifetime>,
-                element: &::ferrumc_nbt::NbtTapeElement<#lifetime>
+                tapes: &::ferrumc_nbt::NbtTape #lifetime,
+                element: &::ferrumc_nbt::NbtTapeElement #lifetime
             ) -> ::ferrumc_nbt::Result<Self> {
                 Ok(#struct_name {
                     #(#fields_init)*
@@ -109,13 +117,13 @@ pub fn derive(input: TokenStream) -> TokenStream {
         }
 
         impl #impl_generics #struct_name #ty_generics #where_clause {
-            pub fn from_bytes(bytes: &#lifetime [u8]) -> ::ferrumc_nbt::Result<Self> {
+            pub fn from_bytes(bytes: &#lifetime_without_ident [u8]) -> ::ferrumc_nbt::Result<Self> {
                 let mut tape = ::ferrumc_nbt::NbtTape::new(bytes);
                 tape.parse();
                 let root = tape.root.as_ref()
                     .map(|(_, b)| b)
                     .ok_or(::ferrumc_nbt::NBTError::NoRootTag)?;
-                <#struct_name #ty_generics as ::ferrumc_nbt::FromNbt<#lifetime>>::from_nbt(&tape, root)
+                <#struct_name #ty_generics as ::ferrumc_nbt::FromNbt #lifetime>::from_nbt(&tape, root)
             }
         }
     };

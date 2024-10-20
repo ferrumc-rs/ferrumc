@@ -5,7 +5,7 @@ use tokio::net::TcpStream;
 use tracing::{debug, trace, warn};
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use crate::{handle_packet, NetResult, ServerState};
-use crate::packets::incoming::PacketSkeleton;
+use crate::packets::incoming::packet_skeleton::PacketSkeleton;
 
 #[derive(Clone)]
 #[repr(u8)]

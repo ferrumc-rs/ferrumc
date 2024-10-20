@@ -1,6 +1,6 @@
-use std::io::Read;
 use crate::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
 use crate::net_types::var_int::VarInt;
+use std::io::Read;
 
 macro_rules! impl_for_primitives {
     ($($primitive_type:ty | $alt:ty),*) => {
@@ -46,5 +46,35 @@ impl NetDecode for String {
         let mut buf = vec![0; len];
         reader.read_exact(&mut buf)?;
         Ok(String::from_utf8(buf)?)
+    }
+}
+
+impl<T> NetDecode for Vec<T>
+where
+    T: NetDecode,
+{
+    fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> NetDecodeResult<Self> {
+        if matches!(opts, NetDecodeOpts::IsSizePrefixed)
+        {
+            let len = <VarInt as NetDecode>::decode(reader, opts)?.val as usize;
+            let mut vec = Vec::with_capacity(len);
+            for _ in 0..len {
+                vec.push(T::decode(reader, opts)?);
+            }
+            return Ok(vec);
+        }
+
+        // read to end
+        let mut data = Vec::new();
+        R::read_to_end(reader, &mut data)?;
+
+        let mut cursor = std::io::Cursor::new(data);
+
+        let mut vec = Vec::new();
+        while cursor.position() < cursor.get_ref().len() as u64 {
+            vec.push(T::decode(&mut cursor, opts)?);
+        }
+
+        Ok(vec)
     }
 }

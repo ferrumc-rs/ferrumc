@@ -10,6 +10,7 @@ pub type NetEncodeResult<T> = Result<T, errors::NetEncodeError>;
 pub enum NetEncodeOpts {
     None,
     WithLength,
+    SizePrefixed,
 }
 
 #[allow(async_fn_in_trait)]
