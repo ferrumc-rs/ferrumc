@@ -22,6 +22,14 @@ mod adapters{
             Self::new(value as i32)
         }
     }
+    
+    impl From<VarInt> for u8 {
+        fn from(value: VarInt) -> Self {
+            value.val as u8
+        }
+    }
+    
+    
     impl Default for VarInt {
         fn default() -> Self {
             Self::new(0)

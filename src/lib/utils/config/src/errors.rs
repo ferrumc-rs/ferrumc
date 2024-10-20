@@ -17,13 +17,13 @@ pub enum ConfigError {
     TomlSerError(#[from] toml::ser::Error),
 
     /// Error when get_global_config is called before set_global_config.
-    #[error("Failed to read configuration file.")]
-    ConfigLoadError,
+    #[error("Failed to read configuration file: {0}")]
+    ConfigLoadError(String),
 
     /// Error when set_global_config fails.
     #[error("Failed to set configuration file.")]
     ConfigSetError,
-    
+
     /// Error when the root path cannot be found.
     #[error("Failed to get the root path.")]
     RootPathError(#[from] ferrumc_general_purpose::paths::RootPathError),

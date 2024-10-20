@@ -12,11 +12,14 @@ ferrumc-macros = { workspace = true }
 ferrumc-config = { workspace = true }
 ferrumc-ecs = { workspace = true }
 ferrumc-events = { workspace = true }
+ferrumc-nbt = { workspace = true }
+ferrumc-core = { workspace = true }
 tracing = { workspace = true }
 tokio = { workspace = true }
 parking_lot = { workspace = true }
 futures = { workspace = true }
 ctor = { workspace = true }
+flate2 = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 serde_derive = { workspace = true }

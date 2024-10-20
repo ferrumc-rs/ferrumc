@@ -29,11 +29,13 @@ ferrumc-profiling = { workspace = true }
 ferrumc-logging = { workspace = true }
 ferrumc-world = { workspace = true }
 ferrumc-macros = { workspace = true }
+ferrumc-nbt = { workspace = true }
 
 ctor = { workspace = true }
 parking_lot = { workspace = true }
 tracing = { workspace = true }
 tokio = { workspace = true }
+serde_json = { workspace = true }
 
 [[bin]]
 name = "ferrumc"

@@ -1,3 +1,4 @@
+use ferrumc_general_purpose::simd::arrays;
 use super::{NBTSerializable, NBTSerializeOptions};
 
 macro_rules! impl_ser_primitives {
@@ -111,7 +112,7 @@ impl<'a, T: NBTSerializable> NBTSerializable for &'a [T] {
                 }
                 TAG_INT_ARRAY => {
                     let bytes = unsafe {
-                        crate::simd_utils::u32_slice_to_u8_be(std::slice::from_raw_parts(
+                        arrays::u32_slice_to_u8_be(std::slice::from_raw_parts(
                             self.as_ptr() as *const u32,
                             self.len(),
                         ))
@@ -120,7 +121,7 @@ impl<'a, T: NBTSerializable> NBTSerializable for &'a [T] {
                 }
                 TAG_LONG_ARRAY => {
                     let bytes = unsafe {
-                        crate::simd_utils::u64_slice_to_u8_be(std::slice::from_raw_parts(
+                        arrays::u64_slice_to_u8_be(std::slice::from_raw_parts(
                             self.as_ptr() as *const u64,
                             self.len(),
                         ))

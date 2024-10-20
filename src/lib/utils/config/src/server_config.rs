@@ -28,7 +28,7 @@ pub struct ServerConfig {
     pub network_tick_rate: u32,
     pub database: DatabaseConfig,
     pub world: String,
-    pub network_compression_threshold: u32,
+    pub network_compression_threshold: i32, // Can be negative
 }
 
 /// The database configuration section from [ServerConfig].
@@ -119,7 +119,11 @@ impl ServerConfig {
             Err(e) => {
                 // Config could not be serialized. Prompt the user to create
                 // a new one from ServerConfig::Default.
-                error!("Could not read configuration file: {}", e);
+                error!(
+                    "Could not read configuration file \"{}\" : {}",
+                    path.to_string_lossy().to_string(),
+                    e
+                );
                 error!("Would you like to create a new config file? Your old configuration will be saved as \"config.toml.bak\". (y/N): ");
                 let mut input = String::new();
                 std::io::stdin().read_line(&mut input)?;
@@ -134,7 +138,9 @@ impl ServerConfig {
                     info!("Configuration file created.");
                 } else {
                     // User did not enter "y". Return the error.
-                    return Err(ConfigError::ConfigLoadError);
+                    return Err(ConfigError::ConfigLoadError(
+                        path.to_string_lossy().to_string(),
+                    ));
                 }
                 // Deserialize the configuration file into a ServerConfig struct.
                 toml::from_str(DEFAULT_CONFIG)?
@@ -176,4 +182,3 @@ network_compression_threshold = 256
 cache_size = 1024
 compression = "fast"
 "#;
-
