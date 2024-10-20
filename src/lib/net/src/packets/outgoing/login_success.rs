@@ -1,5 +1,7 @@
 use ferrumc_macros::NetEncode;
 use ferrumc_net_codec::net_types::var_int::VarInt;
+use std::io::Write;
+use tokio::io::AsyncWriteExt;
 
 #[derive(NetEncode)]
 pub struct LoginSuccessPacket {
@@ -7,12 +9,11 @@ pub struct LoginSuccessPacket {
     pub uuid: u128,
     pub username: String,
     pub number_of_properties: VarInt,
-    pub strict_error_handling: bool
+    pub strict_error_handling: bool,
 }
 
-impl<'a> LoginSuccessPacket {
-    pub fn new(uuid: u128, username: String) -> Self
-    {
+impl LoginSuccessPacket {
+    pub fn new(uuid: u128, username: String) -> Self {
         Self {
             packet_id: VarInt::from(0x02),
             uuid,

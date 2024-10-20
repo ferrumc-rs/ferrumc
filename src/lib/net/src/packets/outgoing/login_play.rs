@@ -1,5 +1,7 @@
 use ferrumc_macros::NetEncode;
 use ferrumc_net_codec::net_types::var_int::VarInt;
+use std::io::Write;
+use tokio::io::AsyncWriteExt;
 
 #[derive(NetEncode)]
 pub struct LoginPlayPacket<'a> {
@@ -26,9 +28,8 @@ pub struct LoginPlayPacket<'a> {
     pub death_dimension_name: Option<&'a str>,
     pub death_location: Option<u8>, // change this to actual Position. this won't work!!
     pub portal_cooldown: VarInt,
-    pub enforces_secure_chat: bool
+    pub enforces_secure_chat: bool,
 }
-
 
 impl<'a> LoginPlayPacket<'a> {
     pub fn new(conn_id: usize) -> Self {
@@ -55,7 +56,7 @@ impl<'a> LoginPlayPacket<'a> {
             death_dimension_name: None,
             death_location: None,
             portal_cooldown: VarInt::from(0),
-            enforces_secure_chat: false
+            enforces_secure_chat: false,
         }
     }
 }

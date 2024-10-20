@@ -2,6 +2,8 @@ use ferrumc_macros::NetEncode;
 use ferrumc_nbt::{NBTSerializeOptions, NbtTape};
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::var_int::VarInt;
+use std::io::Write;
+use tokio::io::AsyncWriteExt;
 
 #[derive(NetEncode)]
 pub struct RegistryDataPacket<'a> {
@@ -28,12 +30,10 @@ pub struct RegistryEntry<'a> {
     pub data: Vec<u8>,
 }
 
-
 impl<'a> RegistryDataPacket<'a> {
     // TODO: bake this. and make it return just the bytes instead.
     pub fn get_registry_packets() -> Vec<Self> {
         let registry_nbt_buf = include_bytes!("../../../../../../.etc/registry.nbt");
-
 
         let mut tape = NbtTape::new(registry_nbt_buf);
         tape.parse();
@@ -42,7 +42,7 @@ impl<'a> RegistryDataPacket<'a> {
 
         let root = tape.root.as_ref().map(|(_, b)| b).unwrap();
         let root = root.as_compound().unwrap();
-        
+
         let mut packets = vec![];
 
         /*let (name, element) = &root[1];*/
@@ -54,7 +54,12 @@ impl<'a> RegistryDataPacket<'a> {
             for (name, element) in element {
                 let has_data = true;
                 let mut data = vec![];
-                element.serialize_as_network(&mut serializer_machine, &mut data, &NBTSerializeOptions::Network)
+                element
+                    .serialize_as_network(
+                        &mut serializer_machine,
+                        &mut data,
+                        &NBTSerializeOptions::Network,
+                    )
                     .unwrap_or_else(|_| panic!("Failed to serialize entry for {}", name));
 
                 entries.push(RegistryEntry {
@@ -65,27 +70,26 @@ impl<'a> RegistryDataPacket<'a> {
             }
             packets.push(RegistryDataPacket::new(name, entries));
         }
-        
-
 
         packets
     }
 }
 
-
 pub const fn get_registry_packets() -> &'static [u8] {
     include_bytes!("../../../../../../.etc/registry.packet")
 }
 
-
 #[cfg(test)]
 mod tests {
-    use crate::packets::outgoing::registry_data::{RegistryDataPacket, RegistryEntry};
+    use std::io::Write;
+
     use ferrumc_nbt::NbtTape;
     use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
-    use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
-    use std::io::Write;
     use tracing::debug;
+
+    use crate::packets::outgoing::registry_data::RegistryEntry;
+
+    use super::RegistryDataPacket;
 
     // I had to almost manually type all this shit out. And y'all still hate me. smh.
     pub mod registry_parser {
@@ -1181,7 +1185,6 @@ mod tests {
             pub minecraft_worldgen_biome: MinecraftWorldgenBiome,
         }
 
-
         pub fn get_registry_root() -> Root {
             let json = include_str!("../../../../../../.etc/registry.json");
             let serde_json: Root = serde_json::from_str(json).unwrap();
@@ -1224,31 +1227,42 @@ mod tests {
             let registry_packet = {
                 let registry_compound = registry_data.as_compound().unwrap();
 
-                let entries = registry_compound.iter().map(|(name, element)| {
-                    debug!("Serializing entry for {}. ELEMENT: {:#?}", registry_id, element);
+                let entries = registry_compound
+                    .iter()
+                    .map(|(name, element)| {
+                        debug!(
+                            "Serializing entry for {}. ELEMENT: {:#?}",
+                            registry_id, element
+                        );
 
-                    let has_data = true;
-                    let mut data = vec![];
-                    element.serialize_as_network(&mut rewind_machine, &mut data)
-                        .unwrap_or_else(|_| panic!("Failed to serialize entry for {}", registry_id));
+                        let has_data = true;
+                        let mut data = vec![];
+                        element
+                            .serialize_as_network(&mut rewind_machine, &mut data)
+                            .unwrap_or_else(|_| {
+                                panic!("Failed to serialize entry for {}", registry_id)
+                            });
 
-                    RegistryEntry {
-                        id: name,
-                        has_data,
-                        data,
-                    }
-                }).collect::<Vec<_>>();
+                        RegistryEntry {
+                            id: name,
+                            has_data,
+                            data,
+                        }
+                    })
+                    .collect::<Vec<_>>();
 
-                RegistryDataPacket::new(
-                    registry_id,
-                    entries,
-                )
+                RegistryDataPacket::new(registry_id, entries)
             };
 
-            registry_packet.encode(&mut packets, &NetEncodeOpts::WithLength)
+            registry_packet
+                .encode(&mut packets, &NetEncodeOpts::WithLength)
                 .unwrap_or_else(|_| panic!("Failed to encode packet for {}", registry_id));
         }
 
-        std::fs::write(r#"D:\Minecraft\framework\ferrumc\ferrumc-2_0\ferrumc\.etc/registry.packet"#, packets).unwrap();
+        std::fs::write(
+            r#"D:\Minecraft\framework\ferrumc\ferrumc-2_0\ferrumc\.etc/registry.packet"#,
+            packets,
+        )
+        .unwrap();
     }
 }
