@@ -6,6 +6,7 @@ pub mod errors;
 pub mod packets;
 pub mod connection;
 pub mod server;
+pub mod utils;
 pub type NetResult<T> = Result<T, errors::NetError>;
 
 

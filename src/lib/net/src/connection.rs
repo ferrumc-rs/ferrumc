@@ -9,7 +9,6 @@ use tokio::net::TcpStream;
 use tracing::{debug, trace, warn};
 
 #[derive(Clone)]
-#[repr(u8)]
 pub enum ConnectionState {
     Handshaking,
     Status,
