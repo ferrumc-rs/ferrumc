@@ -59,7 +59,6 @@ pub(crate) fn is_field_type_optional(field: &syn::Field) -> bool {
         .any(|segment| segment.ident.to_string().to_lowercase() == "option")
 }
 
-
 pub struct StructInfo<'a> {
     pub struct_name: &'a syn::Ident,
     pub impl_generics: syn::ImplGenerics<'a>,
@@ -70,7 +69,10 @@ pub struct StructInfo<'a> {
     pub force_created: bool,
 }
 
-pub(crate) fn extract_struct_info<'a>(input: &'a DeriveInput, default_lifetime: Option<&str>) -> StructInfo<'a> {
+pub(crate) fn extract_struct_info<'a>(
+    input: &'a DeriveInput,
+    default_lifetime: Option<&str>,
+) -> StructInfo<'a> {
     let struct_name = &input.ident;
     let impl_generics = input.generics.clone();
     let ty_generics = input.generics.split_for_impl().1;
@@ -86,13 +88,10 @@ pub(crate) fn extract_struct_info<'a>(input: &'a DeriveInput, default_lifetime: 
         );
     }*/
 
-    let lifetime = impl_generics
-        .params
-        .iter()
-        .find_map(|param| match param {
-            GenericParam::Lifetime(lifetime) => Some(lifetime.lifetime.clone()),
-            _ => None,
-        });
+    let lifetime = impl_generics.params.iter().find_map(|param| match param {
+        GenericParam::Lifetime(lifetime) => Some(lifetime.lifetime.clone()),
+        _ => None,
+    });
 
     let mut force_created = false;
     let lifetime = match lifetime {
@@ -100,7 +99,8 @@ pub(crate) fn extract_struct_info<'a>(input: &'a DeriveInput, default_lifetime: 
         None => {
             if let Some(default_lifetime) = default_lifetime {
                 force_created = true;
-                let default_lifetime = syn::Lifetime::new(default_lifetime, proc_macro2::Span::call_site());
+                let default_lifetime =
+                    syn::Lifetime::new(default_lifetime, proc_macro2::Span::call_site());
                 quote! {
                     #default_lifetime
                 }
@@ -123,10 +123,15 @@ pub(crate) fn extract_struct_info<'a>(input: &'a DeriveInput, default_lifetime: 
         } else {
             quote! { <#lifetime> }
         },
-        force_created
+        force_created,
     }
 }
 
 pub(crate) fn get_derive_attributes(input: &DeriveInput, path_name: &str) -> Vec<syn::Attribute> {
-    input.attrs.iter().filter(|attr| attr.path().is_ident(path_name)).cloned().collect()
+    input
+        .attrs
+        .iter()
+        .filter(|attr| attr.path().is_ident(path_name))
+        .cloned()
+        .collect()
 }

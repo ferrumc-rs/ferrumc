@@ -5,22 +5,16 @@ use proc_macro::TokenStream;
 mod events;
 mod helpers;
 mod nbt;
-mod profiling;
 mod net;
+mod profiling;
 
 #[proc_macro_attribute]
-pub fn profile(
-    attr: TokenStream,
-    item: TokenStream,
-) -> TokenStream {
+pub fn profile(attr: TokenStream, item: TokenStream) -> TokenStream {
     profiling::profile_fn(attr, item)
 }
 
 #[proc_macro_attribute]
-pub fn event_handler(
-    attr: TokenStream,
-    item: TokenStream,
-) -> TokenStream {
+pub fn event_handler(attr: TokenStream, item: TokenStream) -> TokenStream {
     events::event_handler_fn(attr, item)
 }
 

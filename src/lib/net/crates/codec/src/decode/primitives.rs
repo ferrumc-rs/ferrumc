@@ -54,8 +54,7 @@ where
     T: NetDecode,
 {
     fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> NetDecodeResult<Self> {
-        if matches!(opts, NetDecodeOpts::IsSizePrefixed)
-        {
+        if matches!(opts, NetDecodeOpts::IsSizePrefixed) {
             let len = <VarInt as NetDecode>::decode(reader, opts)?.val as usize;
             let mut vec = Vec::with_capacity(len);
             for _ in 0..len {

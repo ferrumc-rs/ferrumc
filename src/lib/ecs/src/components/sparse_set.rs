@@ -55,7 +55,7 @@ impl<T> SparseSet<T> {
             None
         }
     }
-    
+
     pub fn entities(&self) -> Vec<Entity> {
         self.indices.keys().copied().collect()
     }

@@ -1,12 +1,12 @@
 // Security or something like that
 #![forbid(unsafe_code)]
 
-use std::sync::{atomic::AtomicBool, Arc};
-use tracing::{error, info};
 use ferrumc_ecs::Universe;
 use ferrumc_net::ServerState;
+use std::sync::Arc;
+use tracing::{error, info};
 
-pub(crate)mod errors;
+pub(crate) mod errors;
 mod packet_handlers;
 
 pub type Result<T> = std::result::Result<T, errors::BinaryError>;
@@ -28,7 +28,7 @@ async fn main() {
 async fn entry() -> Result<()> {
     let listener = ferrumc_net::server::create_server_listener().await?;
 
-    let state = ServerState::new(Universe::new(),AtomicBool::new(false));
+    let state = ServerState::new(Universe::new());
 
     ferrumc_net::server::listen(Arc::new(state), listener).await?;
 

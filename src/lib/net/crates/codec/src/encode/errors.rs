@@ -1,4 +1,3 @@
-
 #[derive(Debug, thiserror::Error)]
 pub enum NetEncodeError {
     #[error("IO error: {0}")]

@@ -1,5 +1,5 @@
-use ferrumc_general_purpose::simd::arrays;
 use super::{NBTSerializable, NBTSerializeOptions};
+use ferrumc_general_purpose::simd::arrays;
 
 macro_rules! impl_ser_primitives {
     ($($($ty:ty) | * > $id:expr),*) => {

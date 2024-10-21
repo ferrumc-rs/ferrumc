@@ -11,12 +11,11 @@ struct SomeExampleEncStruct {
 #[test]
 fn test_decode() {
     let file = include_bytes!("../../../../../../.etc/tests/enc_test_encode");
-    
+
     let mut reader = std::io::Cursor::new(file);
-    let example = SomeExampleEncStruct::decode(
-        &mut reader,
-        &ferrumc_net_codec::decode::NetDecodeOpts::None
-    ).unwrap();
-    
+    let example =
+        SomeExampleEncStruct::decode(&mut reader, &ferrumc_net_codec::decode::NetDecodeOpts::None)
+            .unwrap();
+
     println!("{:?}", example);
 }

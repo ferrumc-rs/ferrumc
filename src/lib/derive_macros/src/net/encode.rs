@@ -35,7 +35,8 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                 }
 
                 Ok(())
-            }).unwrap();
+            })
+            .unwrap();
         });
 
         let sync_impl = if let Some(packet_id) = packet_id {
@@ -45,7 +46,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                 <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode(&#packet_id.into(), writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)?;
             }
         } else {
-            quote! {  }
+            quote! {}
         };
 
         let async_impl = if let Some(packet_id) = packet_id {
@@ -55,7 +56,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                 <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode_async(&#packet_id.into(), writer, &ferrumc_net_codec::encode::NetEncodeOpts::None).await?;
             }
         } else {
-            quote! {  }
+            quote! {}
         };
 
         (sync_impl, async_impl)
@@ -69,7 +70,6 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
             <#field_ty as ferrumc_net_codec::encode::NetEncode>::encode(&self.#field_name, writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)?;
         }
     });
-
 
     let sync_impl = {
         // These exist only because we cannot move value LMAO, they're both the same
