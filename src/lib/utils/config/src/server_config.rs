@@ -6,7 +6,7 @@ use crate::errors::ConfigError;
 use crate::statics::{get_global_config, set_global_config};
 use ferrumc_general_purpose::paths::get_root_path;
 use serde_derive::{Deserialize, Serialize};
-use tracing::{error, info};
+use tracing::{error, info, warn};
 
 /// The server configuration struct.
 ///
@@ -135,29 +135,17 @@ impl ServerConfig {
                     ));
                 }
                 // Config could not be read. Prompt the user to create a new one from ServerConfig::Default.
-                error!(
+                warn!(
                     "Could not read configuration file \"{}\" : {}",
                     path.to_string_lossy().to_string(),
                     e
                 );
-                error!("Would you like to create a new config file? (y/N): ");
+                info!("creating new config file!");
 
-                let user_input = {
-                    let mut input = String::new();
-                    std::io::stdin().read_line(&mut input)?;
-                    input.trim().to_ascii_lowercase()
-                };
+                // Create a new config file
+                std::fs::write(&path, DEFAULT_CONFIG)?;
 
-                if user_input == "y" {
-                    // Create a new config file
-                    std::fs::write(&path, DEFAULT_CONFIG)?;
-
-                    DEFAULT_CONFIG
-                } else {
-                    return Err(ConfigError::ConfigLoadError(
-                        path.to_string_lossy().to_string(),
-                    ));
-                }
+                DEFAULT_CONFIG
             }
         };
 

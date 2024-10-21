@@ -29,7 +29,7 @@ async fn handle_login_start(
 
     let uuid = login_start_event.login_start_packet.uuid;
     let username = login_start_event.login_start_packet.username.clone();
-    trace!("Received login start from user with username {}", username);
+    info!("Received login start from user with username {}", username);
 
     //Send a Login Success Response to further the login sequence
     let response = LoginSuccessPacket::new(uuid, username);
