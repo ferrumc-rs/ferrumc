@@ -53,6 +53,3 @@ pub fn get_global_config() -> &'static ServerConfig {
 pub(crate) fn set_global_config(config: ServerConfig) -> Result<(), ConfigError> {
     CONFIG.set(config).map_err(|_| ConfigError::ConfigSetError)
 }
-
-
-

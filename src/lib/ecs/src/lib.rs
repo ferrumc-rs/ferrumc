@@ -12,7 +12,6 @@ pub mod query;
 mod tests;
 pub type ECSResult<T> = Result<T, errors::ECSError>;
 
-
 /// The main struct that holds all the ECS data.
 /// It's called the universe because I didn't want to name it 'World'.
 /// Since it may be confused with the Minecraft world.
@@ -46,11 +45,11 @@ impl Universe {
     pub fn add_component<T: Component>(&self, entity: Entity, component: T) {
         self.components.insert(entity, component)
     }
-    
+
     pub fn remove_component<T: Component>(&self, entity: Entity) {
         self.components.remove::<T>(entity)
     }
-    
+
     pub fn remove_all_components(&self, entity: Entity) {
         self.components.remove_all_components(entity)
     }

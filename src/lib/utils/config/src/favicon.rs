@@ -1,10 +1,9 @@
-use std::sync::OnceLock;
 use base64::Engine;
-use tracing::error;
 use ferrumc_general_purpose::paths::get_root_path;
+use std::sync::OnceLock;
+use tracing::error;
 
 static FAVICON_BASE64: OnceLock<String> = OnceLock::new();
-
 
 /// Get the favicon as a base64 string.
 /// Reads the icon.png file from the same directory as the executable.

@@ -11,10 +11,7 @@ pub struct GameEventPacket {
 
 impl GameEventPacket {
     pub fn new(event_id: u8, value: f32) -> Self {
-        Self {
-            event_id,
-            value,
-        }
+        Self { event_id, value }
     }
 
     pub fn start_waiting_for_level_chunks() -> Self {
