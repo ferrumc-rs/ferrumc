@@ -52,7 +52,6 @@ pub mod favicon;
 mod tests;
 
 // Re-exports
-pub use server_config::DatabaseCompression;
 pub use server_config::DatabaseConfig;
 pub use server_config::ServerConfig;
 pub use statics::get_global_config;
