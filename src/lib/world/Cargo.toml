@@ -9,3 +9,7 @@ thiserror = { workspace = true }
 
 ferrumc-logging = { workspace = true }
 ferrumc-profiling = { workspace = true }
+ferrumc-storage = { workspace = true, features = ["sled", "redb", "surrealkv"] }
+ferrumc-config = { workspace = true}
+tracing = { workspace = true }
+tokio = { workspace = true }
