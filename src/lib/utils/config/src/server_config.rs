@@ -214,7 +214,7 @@ network_tick_rate = 0
 
 world = "world"
 network_compression_threshold = 256
-log_packets = true
+log_packets = false
 
 [database]
 cache_size = 1024
