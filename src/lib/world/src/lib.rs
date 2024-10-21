@@ -61,6 +61,7 @@ impl World {
             error!("Fatal error in database config: {}", e);
             exit(1);
         }
+        // Clones are kinda ok here since this is only run once at startup.
         let backend_string = get_global_config().database.backend.clone().to_lowercase().trim();
         let backend_path = get_global_config().database.world_path.clone();
         let storage_backend: Result<Box<dyn DatabaseBackend>, WorldError> = match backend_string {
@@ -123,7 +124,64 @@ impl World {
             exit(1);
         };
         
+        let compressor_string = get_global_config().database.compression.clone().to_lowercase().trim();
         
+        let compression_algo: Box<dyn Compressor> = match compressor_string {
+            "zstd" => {
+                match ferrumc_storage::compressors::zstd::ZstdCompressor::new(get_global_config().database.compression_level) {
+                    Ok(compressor) => Box::new(compressor),
+                    Err(e) => {
+                        error!("Error initializing Zstd compressor: {}", e);
+                        exit(1);
+                    }
+                }
+            },
+            "brotli" => {
+                match ferrumc_storage::compressors::brotli::BrotliCompressor::new(get_global_config().database.compression_level) {
+                    Ok(compressor) => Box::new(compressor),
+                    Err(e) => {
+                        error!("Error initializing Brotli compressor: {}", e);
+                        exit(1);
+                    }
+                }
+            },
+            "deflate" => {
+                match ferrumc_storage::compressors::deflate::DeflateCompressor::new(get_global_config().database.compression_level) {
+                    Ok(compressor) => Box::new(compressor),
+                    Err(e) => {
+                        error!("Error initializing Deflate compressor: {}", e);
+                        exit(1);
+                    }
+                }
+            },
+            "gzip" => {
+                match ferrumc_storage::compressors::gzip::GzipCompressor::new(get_global_config().database.compression_level) {
+                    Ok(compressor) => Box::new(compressor),
+                    Err(e) => {
+                        error!("Error initializing Gzip compressor: {}", e);
+                        exit(1);
+                    }
+                }
+            },
+            "zlib" => {
+                match ferrumc_storage::compressors::zlib::ZlibCompressor::new(get_global_config().database.compression_level) {
+                    Ok(compressor) => Box::new(compressor),
+                    Err(e) => {
+                        error!("Error initializing Zlib compressor: {}", e);
+                        exit(1);
+                    }
+                }
+            },
+            _ => {
+                error!("Invalid compression algorithm: {}", get_global_config().database.compression);
+                exit(1);
+            }
+        };
+        
+        World {
+            storage_backend,
+            compressor: compression_algo
+        }
         
     }
 }
