@@ -48,7 +48,7 @@ pub struct DatabaseConfig {
     pub cache_size: u32,
     pub compression: String,
     pub backend: String,
-    pub world_path: String,
+    pub db_path: String,
     pub import_path: String,
     pub compression_level: i32,
 }
@@ -203,7 +203,11 @@ impl Default for ServerConfig {
             network_tick_rate: 0,
             database: DatabaseConfig {
                 cache_size: 1024,
-                compression: DatabaseCompression::Fast,
+                compression: "zlib".to_string(),
+                backend: "redb".to_string(),
+                db_path: "./data".to_string(),
+                import_path: "./world".to_string(),
+                compression_level: 5,
             },
             world: "world".to_string(),
             network_compression_threshold: 256,

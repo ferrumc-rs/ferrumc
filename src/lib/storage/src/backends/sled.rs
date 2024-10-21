@@ -2,11 +2,13 @@ use crate::errors::StorageError;
 use crate::DatabaseBackend;
 use std::path::PathBuf;
 use std::sync::Arc;
+use async_trait::async_trait;
 
 pub struct SledBackend {
     db: Arc<sled::Db>,
 }
 
+#[async_trait]
 impl DatabaseBackend for SledBackend {
     async fn initialize(store_path: Option<PathBuf>) -> Result<Self, StorageError>
     where

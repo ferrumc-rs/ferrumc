@@ -5,6 +5,7 @@ pub mod errors;
 
 use crate::errors::StorageError;
 use std::path::PathBuf;
+use async_trait::async_trait;
 
 /// A trait for compressors. This is used to abstract away the compression and decompression of data.
 /// This is primarily used for the database to compress data before writing it to disk, but it can be used
@@ -20,7 +21,7 @@ pub trait Compressor {
     /// # Returns
     ///
     /// The compressor
-    fn new(level: i32) -> Self;
+    fn create(level: i32) -> Self;
 
     /// Compresses data
     ///
@@ -49,7 +50,7 @@ pub trait Compressor {
 /// This allows for easy swapping of databases without changing the rest of the code. These functions are
 /// purely for storage and retrieval of data. Any other functionality such as serialization or caching
 /// should be implemented in a separate layer.
-#[allow(async_fn_in_trait)]
+#[async_trait]
 pub trait DatabaseBackend {
     /// Initializes the database
     ///

@@ -8,7 +8,7 @@ pub struct ZstdCompressor {
 }
 
 impl Compressor for ZstdCompressor {
-    fn new(level: i32) -> Self {
+    fn create(level: i32) -> Self {
         Self { level }
     }
 
@@ -36,7 +36,7 @@ mod tests {
 
     #[test]
     fn test_compress_decompress() {
-        let compressor = ZstdCompressor::new(6);
+        let compressor = ZstdCompressor::create(6);
         let data = std::fs::read(root!(".etc/codec.nbt")).unwrap();
         let compressed = compressor.compress(data.as_slice()).unwrap();
         let decompressed = compressor.decompress(&compressed).unwrap();
@@ -45,7 +45,7 @@ mod tests {
 
     #[test]
     fn test_positive_compression_ratio() {
-        let compressor = ZstdCompressor::new(6);
+        let compressor = ZstdCompressor::create(6);
         let data = std::fs::read(root!(".etc/codec.nbt")).unwrap();
         let compressed = compressor.compress(data.as_slice()).unwrap();
         assert!(data.len() > compressed.len());

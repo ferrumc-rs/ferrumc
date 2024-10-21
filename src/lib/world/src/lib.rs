@@ -1,5 +1,6 @@
 pub mod errors;
 mod importing;
+mod vanilla_chunk_format;
 
 use std::path::{Path, PathBuf};
 use std::process::exit;
@@ -26,18 +27,18 @@ async fn check_config_validity() -> Result<(), WorldError> {
         error!("No backend specified. Please set the backend in the configuration file.");
         return Err(WorldError::InvalidBackend(config.database.backend.clone()));
     }
-    if !Path::new(&config.database.world_path).exists() {
+    if !Path::new(&config.database.db_path).exists() {
         warn!("World path does not exist. Attempting to create it.");
-        if create_dir_all(&config.database.world_path).await.is_err() {
-            error!("Could not create world path: {}", config.database.world_path);
-            return Err(WorldError::InvalidWorldPath(config.database.world_path.clone()));
+        if create_dir_all(&config.database.db_path).await.is_err() {
+            error!("Could not create world path: {}", config.database.db_path);
+            return Err(WorldError::InvalidWorldPath(config.database.db_path.clone()));
         }
     }
-    if Path::new(&config.database.world_path).is_file() {
+    if Path::new(&config.database.db_path).is_file() {
         error!("World path is a file. Please set the world path to a directory.");
-        return Err(WorldError::InvalidWorldPath(config.database.world_path.clone()));
+        return Err(WorldError::InvalidWorldPath(config.database.db_path.clone()));
     }
-    if let Err(e) = Path::new(&config.database.world_path).read_dir() {
+    if let Err(e) = Path::new(&config.database.db_path).read_dir() {
         error!("Could not read world path: {}", e);
         e.into()
     }
@@ -63,7 +64,7 @@ impl World {
         }
         // Clones are kinda ok here since this is only run once at startup.
         let backend_string = get_global_config().database.backend.clone().to_lowercase().trim();
-        let backend_path = get_global_config().database.world_path.clone();
+        let backend_path = get_global_config().database.db_path.clone();
         let storage_backend: Result<Box<dyn DatabaseBackend>, WorldError> = match backend_string {
             "surrealkv" => {
                 #[cfg(feature = "surrealkv")]
@@ -128,49 +129,19 @@ impl World {
         
         let compression_algo: Box<dyn Compressor> = match compressor_string {
             "zstd" => {
-                match ferrumc_storage::compressors::zstd::ZstdCompressor::new(get_global_config().database.compression_level) {
-                    Ok(compressor) => Box::new(compressor),
-                    Err(e) => {
-                        error!("Error initializing Zstd compressor: {}", e);
-                        exit(1);
-                    }
-                }
+                Box::new(ferrumc_storage::compressors::zstd::ZstdCompressor::create(get_global_config().database.compression_level))
             },
             "brotli" => {
-                match ferrumc_storage::compressors::brotli::BrotliCompressor::new(get_global_config().database.compression_level) {
-                    Ok(compressor) => Box::new(compressor),
-                    Err(e) => {
-                        error!("Error initializing Brotli compressor: {}", e);
-                        exit(1);
-                    }
-                }
+                Box::new(ferrumc_storage::compressors::brotli::BrotliCompressor::create(get_global_config().database.compression_level))
             },
             "deflate" => {
-                match ferrumc_storage::compressors::deflate::DeflateCompressor::new(get_global_config().database.compression_level) {
-                    Ok(compressor) => Box::new(compressor),
-                    Err(e) => {
-                        error!("Error initializing Deflate compressor: {}", e);
-                        exit(1);
-                    }
-                }
+                Box::new(ferrumc_storage::compressors::deflate::DeflateCompressor::create(get_global_config().database.compression_level))
             },
             "gzip" => {
-                match ferrumc_storage::compressors::gzip::GzipCompressor::new(get_global_config().database.compression_level) {
-                    Ok(compressor) => Box::new(compressor),
-                    Err(e) => {
-                        error!("Error initializing Gzip compressor: {}", e);
-                        exit(1);
-                    }
-                }
+                Box::new(ferrumc_storage::compressors::gzip::GzipCompressor::create(get_global_config().database.compression_level))
             },
             "zlib" => {
-                match ferrumc_storage::compressors::zlib::ZlibCompressor::new(get_global_config().database.compression_level) {
-                    Ok(compressor) => Box::new(compressor),
-                    Err(e) => {
-                        error!("Error initializing Zlib compressor: {}", e);
-                        exit(1);
-                    }
-                }
+                Box::new(ferrumc_storage::compressors::zlib::ZlibCompressor::create(get_global_config().database.compression_level))
             },
             _ => {
                 error!("Invalid compression algorithm: {}", get_global_config().database.compression);

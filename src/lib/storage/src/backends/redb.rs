@@ -4,12 +4,14 @@ use parking_lot::RwLock;
 use redb::TableDefinition;
 use std::path::PathBuf;
 use std::sync::Arc;
+use async_trait::async_trait;
 
 #[derive(Clone)]
 pub struct RedbBackend {
     db: Arc<RwLock<redb::Database>>,
 }
 
+#[async_trait]
 impl DatabaseBackend for RedbBackend {
     async fn initialize(store_path: Option<PathBuf>) -> Result<Self, StorageError> {
         if let Some(path) = store_path {

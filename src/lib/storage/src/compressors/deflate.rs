@@ -7,7 +7,7 @@ pub struct DeflateCompressor {
 }
 
 impl Compressor for DeflateCompressor {
-    fn new(level: i32) -> Self {
+    fn create(level: i32) -> Self {
         Self {
             level: level as u32,
         }
@@ -41,7 +41,7 @@ mod test {
 
     #[test]
     fn test_compress_decompress() {
-        let compressor = DeflateCompressor::new(6);
+        let compressor = DeflateCompressor::create(6);
         let data = std::fs::read(root!(".etc/codec.nbt")).unwrap();
         let compressed = compressor.compress(data.as_slice()).unwrap();
         let decompressed = compressor.decompress(&compressed).unwrap();
@@ -50,7 +50,7 @@ mod test {
 
     #[test]
     fn test_positive_compression_ratio() {
-        let compressor = DeflateCompressor::new(6);
+        let compressor = DeflateCompressor::create(6);
         let data = std::fs::read(root!(".etc/codec.nbt")).unwrap();
         let compressed = compressor.compress(data.as_slice()).unwrap();
         assert!(data.len() > compressed.len());

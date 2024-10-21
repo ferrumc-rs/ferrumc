@@ -13,6 +13,15 @@ ferrumc-storage = { workspace = true }
 ferrumc-config = { workspace = true}
 tracing = { workspace = true }
 tokio = { workspace = true }
+ferrumc-net-codec = { workspace = true }
+serde = { workspace = true }
+serde_derive = { workspace = true }
+macro_rules_attribute = { workspace = true }
+bitcode_derive = { workspace = true }
+bitcode = { workspace = true }
+deepsize = { workspace = true }
+ferrumc-nbt = { workspace = true }
+ferrumc-macros = { workspace = true }
 
 [features]
 default = ["sled", "surrealkv", "redb"]
