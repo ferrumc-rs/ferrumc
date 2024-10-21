@@ -5,6 +5,7 @@ use ferrumc_net::errors::{NetError, PacketError};
 use ferrumc_net::packets::incoming::handshake::HandshakeEvent;
 use ferrumc_net::GlobalState;
 use tracing::trace;
+use ferrumc_net::utils::ecs_helpers::EntityExt;
 
 #[event_handler]
 async fn handle_handshake(
@@ -15,9 +16,9 @@ async fn handle_handshake(
     let handshake = &handshake_event.handshake;
 
     // set connection state to handshake
-    let mut connection_state = state
-        .universe
-        .get_mut::<ConnectionState>(handshake_event.conn_id)?;
+    let entity = handshake_event.conn_id;
+    let mut connection_state = entity
+        .get_mut::<ConnectionState>(state)?;
 
     trace!(
         "conn state: {} -> {}",

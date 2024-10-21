@@ -1,12 +1,11 @@
-use ferrumc_macros::NetEncode;
+use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::network_position::NetworkPosition;
-use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::Write;
 use tokio::io::AsyncWriteExt;
 
 #[derive(NetEncode)]
+#[packet(packet_id = 0x56)]
 pub struct SetDefaultSpawnPositionPacket {
-    pub packet_id: VarInt, // = 0x56
     pub spawn_position: NetworkPosition,
     pub angle: f32,
 }
@@ -24,7 +23,6 @@ impl Default for SetDefaultSpawnPositionPacket {
 impl SetDefaultSpawnPositionPacket {
     pub fn new() -> Self {
         Self {
-            packet_id: VarInt::new(0x56),
             spawn_position: DEFAULT_SPAWN_POSITION,
             angle: DEFAULT_ANGLE,
         }

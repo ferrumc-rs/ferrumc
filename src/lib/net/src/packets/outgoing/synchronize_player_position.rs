@@ -1,12 +1,12 @@
 use crate::packets::outgoing::set_default_spawn_position::DEFAULT_SPAWN_POSITION;
-use ferrumc_macros::NetEncode;
+use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::Write;
 use tokio::io::AsyncWriteExt;
 
 #[derive(NetEncode)]
+#[packet(packet_id = 0x40)]
 pub struct SynchronizePlayerPositionPacket {
-    pub packet_id: VarInt, // 0x40
     pub x: f64,
     pub y: f64,
     pub z: f64,
@@ -42,7 +42,6 @@ impl SynchronizePlayerPositionPacket {
         teleport_id: VarInt,
     ) -> Self {
         Self {
-            packet_id: VarInt::new(0x40),
             x,
             y,
             z,

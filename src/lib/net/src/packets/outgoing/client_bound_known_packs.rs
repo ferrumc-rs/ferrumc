@@ -1,13 +1,11 @@
-use ferrumc_macros::NetEncode;
+use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
-use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::Write;
 use tokio::io::AsyncWriteExt;
 
 #[derive(NetEncode)]
+#[packet(packet_id = 0x0E)]
 pub struct ClientBoundKnownPacksPacket<'a> {
-    // 0x0E @ "configuration"
-    pub packet_id: VarInt,
     pub packs: LengthPrefixedVec<Pack<'a>>,
 }
 
@@ -27,7 +25,6 @@ impl<'a> Default for ClientBoundKnownPacksPacket<'a> {
 impl<'a> ClientBoundKnownPacksPacket<'a> {
     pub fn new() -> Self {
         Self {
-            packet_id: VarInt::from(0x0E),
             packs: LengthPrefixedVec::new(vec![Pack::new("minecraft", "core", "1.21")]),
         }
     }

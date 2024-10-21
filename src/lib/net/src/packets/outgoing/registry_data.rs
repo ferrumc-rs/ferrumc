@@ -1,14 +1,12 @@
-use ferrumc_macros::NetEncode;
+use ferrumc_macros::{packet, NetEncode};
 use ferrumc_nbt::{NBTSerializeOptions, NbtTape};
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
-use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::Write;
 use tokio::io::AsyncWriteExt;
 
 #[derive(NetEncode)]
+#[packet(packet_id = 0x07)]
 pub struct RegistryDataPacket<'a> {
-    // 0x07 @ "configuration"
-    pub packet_id: VarInt,
     pub registry_id: &'a str,
     pub entries: LengthPrefixedVec<RegistryEntry<'a>>,
 }
@@ -16,7 +14,6 @@ pub struct RegistryDataPacket<'a> {
 impl<'a> RegistryDataPacket<'a> {
     pub fn new(registry_id: &'a str, entries: Vec<RegistryEntry<'a>>) -> Self {
         Self {
-            packet_id: VarInt::from(0x07),
             registry_id,
             entries: LengthPrefixedVec::new(entries),
         }

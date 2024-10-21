@@ -123,6 +123,22 @@ pub struct ComponentRefMut<'a, T: Component> {
     write_guard: RwLockWriteGuard<'a, Box<dyn Component>>,
     _phantom: PhantomData<&'a mut T>,
 }
+mod debug {
+    use std::fmt::Debug;
+    use crate::components::{Component, ComponentRef, ComponentRefMut};
+
+    impl<'a, T: Component + Debug> Debug for ComponentRef<'a, T> {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            Debug::fmt(&**self, f)
+        }
+    }
+    
+    impl<'a, T: Component + Debug> Debug for ComponentRefMut<'a, T> {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            Debug::fmt(&**self, f)
+        }
+    }
+}
 
 impl<'a, T: Component> Deref for ComponentRef<'a, T> {
     type Target = T;
