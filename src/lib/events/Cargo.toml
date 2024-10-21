@@ -13,3 +13,4 @@ hashbrown = { workspace = true }
 tinyvec = { workspace = true }
 thiserror = { workspace = true }
 futures = { workspace = true }
+dashmap = { workspace = true }

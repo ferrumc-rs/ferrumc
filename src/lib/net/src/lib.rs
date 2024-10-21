@@ -1,16 +1,27 @@
-pub mod errors;
+use std::sync::Arc;
+use ferrumc_ecs::Universe;
+use ferrumc_macros::bake_packet_registry;
 
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
+pub mod errors;
+pub mod packets;
+pub mod connection;
+pub mod server;
+pub type NetResult<T> = Result<T, errors::NetError>;
+
+
+pub struct ServerState {
+    pub universe: Universe
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+pub type GlobalState = Arc<ServerState>;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+impl ServerState {
+    pub fn new(universe: Universe) -> Self {
+        Self {
+            universe
+        }
     }
 }
+
+
+bake_packet_registry!("\\src\\packets\\incoming");

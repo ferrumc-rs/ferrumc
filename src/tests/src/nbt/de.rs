@@ -1,4 +1,5 @@
-#![allow(dead_code)] // since some structs are there just for testing purposes (fields aren't used and it gives stupid warnings)
+#![allow(dead_code)]
+// since some structs are there just for testing purposes (fields aren't used and it gives stupid warnings)
 #![cfg(test)]
 
 use ferrumc_macros::{NBTDeserialize, NBTSerialize};
@@ -51,17 +52,11 @@ fn test_derive() {
         list: vec![Three { l: 1 }, Three { l: 2 }],
     };
 
-    let mut buffer = Vec::new();
-
-    some_struct.serialize_with_header(&mut buffer);
+    let buffer = some_struct.serialize_with_header();
 
     let base_path = r#"D:\Minecraft\framework\ferrumc\ferrumc-2_0\ferrumc\.etc\tests"#;
     std::fs::write(format!("{}/test_derive.nbt", base_path), buffer).unwrap();
 }
-
-#[test]
-#[ignore]
-fn basic_ser() {}
 
 #[test]
 #[ignore]
@@ -96,16 +91,30 @@ fn create_derive_outline() {
         impl FromNbt<'_> for BigTest {
             fn from_nbt(tapes: &NbtTape, element: &NbtTapeElement) -> ferrumc_nbt::Result<Self> {
                 let byte_test = <i8 as FromNbt>::from_nbt(tapes, element.get("byteTest").unwrap())?;
-                let short_test = <i16 as FromNbt>::from_nbt(tapes, element.get("shortTest").unwrap())?;
+                let short_test =
+                    <i16 as FromNbt>::from_nbt(tapes, element.get("shortTest").unwrap())?;
                 let int_test = <i32 as FromNbt>::from_nbt(tapes, element.get("intTest").unwrap())?;
-                let float_test = <f32 as FromNbt>::from_nbt(tapes, element.get("floatTest").unwrap())?;
-                let long_test = <i64 as FromNbt>::from_nbt(tapes, element.get("longTest").unwrap())?;
-                let double_test = <f64 as FromNbt>::from_nbt(tapes, element.get("doubleTest").unwrap())?;
-                let string_test = <String as FromNbt>::from_nbt(tapes, element.get("stringTest").unwrap())?;
+                let float_test =
+                    <f32 as FromNbt>::from_nbt(tapes, element.get("floatTest").unwrap())?;
+                let long_test =
+                    <i64 as FromNbt>::from_nbt(tapes, element.get("longTest").unwrap())?;
+                let double_test =
+                    <f64 as FromNbt>::from_nbt(tapes, element.get("doubleTest").unwrap())?;
+                let string_test =
+                    <String as FromNbt>::from_nbt(tapes, element.get("stringTest").unwrap())?;
                 let byte_array_test = <Vec<i8> as FromNbt>::from_nbt(tapes, element.get("byteArrayTest (the first 1000 values of (n*n*255+n*7)%100, starting with n=0 (0, 62, 34, 16, 8, ...))").unwrap())?;
-                let list_test_long = <Vec<i64> as FromNbt>::from_nbt(tapes, element.get("listTest (long)").unwrap())?;
-                let nested_compound_test = <NestedCompound as FromNbt>::from_nbt(tapes, element.get("nested compound test").unwrap())?;
-                let list_test_compound = <Vec<DatedValue> as FromNbt>::from_nbt(tapes, element.get("listTest (compound)").unwrap())?;
+                let list_test_long = <Vec<i64> as FromNbt>::from_nbt(
+                    tapes,
+                    element.get("listTest (long)").unwrap(),
+                )?;
+                let nested_compound_test = <NestedCompound as FromNbt>::from_nbt(
+                    tapes,
+                    element.get("nested compound test").unwrap(),
+                )?;
+                let list_test_compound = <Vec<DatedValue> as FromNbt>::from_nbt(
+                    tapes,
+                    element.get("listTest (compound)").unwrap(),
+                )?;
 
                 Ok(BigTest {
                     byte_test,
@@ -124,7 +133,7 @@ fn create_derive_outline() {
         }
 
         #[derive(Debug)]
-        pub(super) struct NestedCompound{
+        pub(super) struct NestedCompound {
             egg: NameValue,
             ham: NameValue,
         }
@@ -162,7 +171,8 @@ fn create_derive_outline() {
         impl FromNbt<'_> for DatedValue {
             fn from_nbt(tapes: &NbtTape, element: &NbtTapeElement) -> ferrumc_nbt::Result<Self> {
                 let name = <String as FromNbt>::from_nbt(tapes, element.get("name").unwrap())?;
-                let created_on = <i64 as FromNbt>::from_nbt(tapes, element.get("created-on").unwrap())?;
+                let created_on =
+                    <i64 as FromNbt>::from_nbt(tapes, element.get("created-on").unwrap())?;
 
                 Ok(DatedValue { name, created_on })
             }
@@ -178,7 +188,6 @@ fn create_derive_outline() {
     println!("{:#?}", big_test);
 }
 
-
 #[test]
 fn test_basic_derive_macro() {
     #[derive(NBTSerialize, NBTDeserialize, Debug)]
@@ -193,13 +202,11 @@ fn test_basic_derive_macro() {
         world: 2,
     };
 
-    let mut buffer = Vec::new();
-    hello_world.serialize_with_header(&mut buffer);
-
+    let buffer = hello_world.serialize_with_header();
 
     let hello_world = HelloWorld::from_bytes(buffer.as_slice()).unwrap();
 
-    println!("{:?}", hello_world);
+    assert_eq!(hello_world.hello, None);
 }
 
 #[test]
@@ -221,7 +228,7 @@ fn test_bigtest_with_derive() {
     }
 
     #[derive(NBTDeserialize, Debug)]
-    struct NestedCompound{
+    struct NestedCompound {
         egg: NameValue,
         ham: NameValue,
     }
@@ -262,10 +269,34 @@ fn test_skip_field() {
         some_optional: Some(2),
     };
 
-    let mut buffer = Vec::new();
-    struct_data.serialize_with_header(&mut buffer);
+    let buffer = struct_data.serialize_with_header();
 
     let skip_field = SkipField::from_bytes(buffer.as_slice()).unwrap();
 
-    println!("{:#?}", skip_field);
+    assert_eq!(skip_field.hello, 1);
+    assert_eq!(skip_field.world, 0);
+}
+
+#[test]
+fn test_list_compound_derive() {
+    #[derive(NBTSerialize, NBTDeserialize, Debug)]
+    struct ListCompound {
+        list: Vec<Compound>,
+    }
+
+    #[derive(NBTSerialize, NBTDeserialize, Debug)]
+    struct Compound {
+        a: i32,
+        b: i32,
+    }
+
+    let list_compound = ListCompound {
+        list: vec![Compound { a: 1, b: 2 }, Compound { a: 3, b: 4 }],
+    };
+
+    let buffer = list_compound.serialize_with_header();
+
+    let list_compound = ListCompound::from_bytes(buffer.as_slice()).unwrap();
+
+    assert_eq!(list_compound.list.len(), 2);
 }

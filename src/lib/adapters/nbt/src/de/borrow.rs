@@ -1,4 +1,8 @@
 use crate::de::converter::FromNbt;
+use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
+use std::io::Write;
+use crate::{NBTSerializable, NBTSerializeOptions};
+use ferrumc_general_purpose::simd::arrays;
 
 #[repr(u8)]
 #[derive(Debug, PartialEq, Clone)]
@@ -80,6 +84,23 @@ impl NbtTapeElement<'_> {
             NbtTapeElement::Compound(_) => "Compound",
             NbtTapeElement::IntArray(_) => "IntArray",
             NbtTapeElement::LongArray(_) => "LongArray",
+        }
+    }
+    pub const fn nbt_id(&self) -> u8 {
+        match self {
+            NbtTapeElement::End => NbtTag::End as u8,
+            NbtTapeElement::Byte(_) => NbtTag::Byte as u8,
+            NbtTapeElement::Short(_) => NbtTag::Short as u8,
+            NbtTapeElement::Int(_) => NbtTag::Int as u8,
+            NbtTapeElement::Long(_) => NbtTag::Long as u8,
+            NbtTapeElement::Float(_) => NbtTag::Float as u8,
+            NbtTapeElement::Double(_) => NbtTag::Double as u8,
+            NbtTapeElement::ByteArray(_) => NbtTag::ByteArray as u8,
+            NbtTapeElement::String(_) => NbtTag::String as u8,
+            NbtTapeElement::List { .. } => NbtTag::List as u8,
+            NbtTapeElement::Compound(_) => NbtTag::Compound as u8,
+            NbtTapeElement::IntArray(_) => NbtTag::IntArray as u8,
+            NbtTapeElement::LongArray(_) => NbtTag::LongArray as u8,
         }
     }
 }
@@ -169,23 +190,12 @@ impl<'a> NbtTape<'a> {
     }
 
     pub fn get(&self, key: &str) -> Option<&NbtTapeElement<'a>> {
-        let res = self
-            .root
-            .as_ref()
-            .map(|(_, element)| element.get(key));
+        let res = self.root.as_ref().map(|(_, element)| element.get(key));
 
         res.flatten()
     }
 
-    /*pub fn get_and_unpack_list<T: NbtDeserializable<'a>>(&self, key: &str) -> Option<Vec<T>> {
-        let res = self.get(key)?;
-        self.unpack_list(res)
-    }*/
-
-    pub fn unpack_list<T: FromNbt<'a>>(
-        &self,
-        element: &NbtTapeElement<'a>,
-    ) -> Option<Vec<T>> {
+    pub fn unpack_list<T: FromNbt<'a>>(&self, element: &NbtTapeElement<'a>) -> Option<Vec<T>> {
         match element {
             NbtTapeElement::List {
                 elements_pos,
@@ -200,18 +210,13 @@ impl<'a> NbtTape<'a> {
                 };
                 let mut elements = vec![];
                 for _ in 0..*size {
-                    /*let element = T::parse_from_nbt(
-                        &mut tape,
-                        NbtDeserializableOptions::TagType(el_type.clone()),
-                    );
-                    elements.push(element);*/
                     let nbt_element = NbtTapeElement::parse_from_nbt(
                         &mut tape,
                         NbtDeserializableOptions::TagType(el_type.clone()),
                     );
-                    
+
                     let element = T::from_nbt(&tape, &nbt_element).unwrap();
-                    
+
                     elements.push(element);
                 }
                 Some(elements)
@@ -219,9 +224,7 @@ impl<'a> NbtTape<'a> {
             NbtTapeElement::ByteArray(data) => {
                 // I mean you wouldn't want to get the wrong type of data right?
                 let data_vec = (*data).to_vec();
-                let data = unsafe {
-                    std::mem::transmute::<Vec<i8>, Vec<T>>(data_vec)
-                };
+                let data = unsafe { std::mem::transmute::<Vec<i8>, Vec<T>>(data_vec) };
 
                 if size_of::<T>() != size_of::<i8>() {
                     panic!("Invalid type conversion!");
@@ -229,25 +232,21 @@ impl<'a> NbtTape<'a> {
 
                 // safety: there is none :) jk its a byte array so its fine
                 // todo: revisit and see if this is actually safe
-                // let data = unsafe { 
+                // let data = unsafe {
                 //     std::mem::forget(data);
-                //     Vec::from_raw_parts(data.as_ptr() as *mut T, data.len(), data.len()) 
+                //     Vec::from_raw_parts(data.as_ptr() as *mut T, data.len(), data.len())
                 // };
 
                 Some(data)
             }
             NbtTapeElement::IntArray(data) => {
                 let data = data.clone();
-                let data = unsafe {
-                    std::mem::transmute::<Vec<i32>, Vec<T>>(data)
-                };
+                let data = unsafe { std::mem::transmute::<Vec<i32>, Vec<T>>(data) };
                 Some(data)
             }
             NbtTapeElement::LongArray(data) => {
                 let data = data.clone();
-                let data = unsafe {
-                    std::mem::transmute::<Vec<i64>, Vec<T>>(data)
-                };
+                let data = unsafe { std::mem::transmute::<Vec<i64>, Vec<T>>(data) };
                 Some(data)
             }
             _ => None,
@@ -264,39 +263,31 @@ impl<'a> NbtTape<'a> {
                 if size_of::<T>() != size_of::<i8>() {
                     return None;
                 }
-                let data = unsafe {
-                    std::mem::transmute::<&[i8], &[T]>(data)
-                };
+                let data = unsafe { std::mem::transmute::<&[i8], &[T]>(data) };
 
                 Some(data)
             }
             NbtTapeElement::IntArray(data) => {
-                
                 if size_of::<T>() != size_of::<i32>() {
                     return None;
                 }
-                
+
                 let data = data.as_slice();
-                let data = unsafe {
-                    std::mem::transmute::<&[i32], &[T]>(data)
-                };
+                let data = unsafe { std::mem::transmute::<&[i32], &[T]>(data) };
 
                 Some(data)
             }
             NbtTapeElement::LongArray(data) => {
-                
                 if size_of::<T>() != size_of::<i64>() {
                     return None;
                 }
-                
+
                 let data = data.as_slice();
-                let data = unsafe {
-                    std::mem::transmute::<&[i64], &[T]>(data)
-                };
+                let data = unsafe { std::mem::transmute::<&[i64], &[T]>(data) };
 
                 Some(data)
             }
-            
+
             _ => None,
         }
     }
@@ -510,7 +501,7 @@ mod taped {
                 NbtTag::ByteArray => {
                     let len = i32::parse_from_nbt(tape, NbtDeserializableOptions::None) as usize;
                     let data = tape.read_n_bytes(len);
-                    let data = crate::simd_utils::u8_slice_to_i8(data);
+                    let data = arrays::u8_slice_to_i8(data);
                     NbtTapeElement::ByteArray(data)
                 }
                 NbtTag::String => {
@@ -558,13 +549,13 @@ mod taped {
                 NbtTag::IntArray => {
                     let len = i32::parse_from_nbt(tape, NbtDeserializableOptions::None) as usize;
                     let data = tape.read_n_bytes(len * size_of::<i32>());
-                    let data = crate::simd_utils::u8_slice_to_i32_be(data);
+                    let data = arrays::u8_slice_to_i32_be(data);
                     NbtTapeElement::IntArray(data)
                 }
                 NbtTag::LongArray => {
                     let len = i32::parse_from_nbt(tape, NbtDeserializableOptions::None) as usize;
                     let data = tape.read_n_bytes(len * size_of::<i64>());
-                    let data = crate::simd_utils::u8_slice_to_i64_be(data);
+                    let data = arrays::u8_slice_to_i64_be(data);
                     NbtTapeElement::LongArray(data)
                 }
             }
@@ -604,6 +595,163 @@ mod general {
             }
             let data = tape.read_n_bytes(len);
             Self::parse_from_bytes(data)
+        }
+    }
+}
+
+/// tf, whats the point of this?
+/// the data will probably die?? idk? possibly not? ?? lmao
+impl<'a> NetEncode for NbtTape<'a> {
+    fn encode<W: Write>(&self, writer: &mut W, _opts: &NetEncodeOpts) -> NetEncodeResult<()> {
+        let data = self.data;
+        writer.write_all(data)?;
+        Ok(())
+    }
+
+    async fn encode_async<W: tokio::io::AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        _opts: &NetEncodeOpts,
+    ) -> NetEncodeResult<()> {
+        use tokio::io::AsyncWriteExt;
+        let data = self.data;
+        writer.write_all(data).await?;
+        Ok(())
+    }
+}
+
+
+impl<'a> NbtTapeElement<'a> {
+    pub fn serialize_as_network(&self, tape: &mut NbtTape, writer: &mut Vec<u8>, opts: &NBTSerializeOptions) -> NetEncodeResult<()> {
+        /*if let NBTSerializeOptions::WithHeader(name) = opts {
+            writer.write_all(&[self.nbt_id()])?;
+            name.serialize(writer, &NBTSerializeOptions::None);
+        }*/
+        
+        match opts {
+            NBTSerializeOptions::None => {}
+            NBTSerializeOptions::WithHeader(name) => {
+                writer.write_all(&[self.nbt_id()])?;
+                name.serialize(writer, &NBTSerializeOptions::None);
+            }
+            NBTSerializeOptions::Network => {
+                writer.write_all(&[self.nbt_id()])?;
+            }
+        }
+        
+        
+        match self {
+            NbtTapeElement::End => Ok(()),
+            NbtTapeElement::Byte(val) => {
+                writer.write_all(&[*val as u8])?;
+                Ok(())
+            }
+            NbtTapeElement::Short(val) => {
+                writer.write_all(&val.to_be_bytes())?;
+                Ok(())
+            }
+            NbtTapeElement::Int(val) => {
+                writer.write_all(&val.to_be_bytes())?;
+                Ok(())
+            }
+            NbtTapeElement::Long(val) => {
+                writer.write_all(&val.to_be_bytes())?;
+                Ok(())
+            }
+            NbtTapeElement::Float(val) => {
+                writer.write_all(&val.to_be_bytes())?;
+                Ok(())
+            }
+            NbtTapeElement::Double(val) => {
+                writer.write_all(&val.to_be_bytes())?;
+                Ok(())
+            }
+            NbtTapeElement::ByteArray(data) => {
+                (data.len() as i32).serialize(writer, &NBTSerializeOptions::None);
+                let data = unsafe { std::mem::transmute::<&[i8], &[u8]>(data) };
+                writer.write_all(data)?;
+                Ok(())
+            }
+            NbtTapeElement::String(data) => {
+                data.serialize(writer, &NBTSerializeOptions::None);
+                /*let data = data.as_bytes();
+                (data.len() as u16).serialize(writer, &NBTSerializeOptions::None);
+                writer.write_all(data)?;*/
+                Ok(())
+            }
+            /*NbtTapeElement::List {
+                el_type,
+                size,
+                elements_pos,
+            } => {
+                writer.write_all(&[el_type.clone() as u8])?;
+                (*size as i32).serialize(writer, &NBTSerializeOptions::None);
+
+                let start = *elements_pos;
+
+                // rewind tape to the start of the list.
+                tape.pos = start;
+
+                // read the entire list (it returns the entire list)
+                let skipped = tape.skip_list(el_type.clone() as u8, *size);
+
+                let end = start + skipped;
+
+                let data = &tape.data[start..end];
+
+                writer.write_all(data)?;
+
+                Ok(())
+            }*/
+            NbtTapeElement::List {
+                el_type,
+                size,
+                elements_pos,
+            } => {
+                writer.write_all(&[el_type.clone() as u8])?;
+                (*size as i32).serialize(writer, &NBTSerializeOptions::None);
+
+                // Rewind tape to the start of the list.
+                tape.pos = *elements_pos;
+
+                // For each element in the list, parse and serialize it.
+                for _ in 0..*size {
+                    let element = NbtTapeElement::parse_from_nbt(
+                        tape,
+                        NbtDeserializableOptions::TagType(el_type.clone()),
+                    );
+                    element.serialize_as_network(tape, writer, &NBTSerializeOptions::None)?;
+                }
+
+                Ok(())
+            }
+            NbtTapeElement::Compound(elements) => {
+                for (name, element) in elements {
+                    writer.write_all(&[element.nbt_id()])?;
+                    name.serialize(writer, &NBTSerializeOptions::None);
+                    element.serialize_as_network(tape, writer, &NBTSerializeOptions::None)?;
+                }
+                writer.write_all(&[NbtTag::End as u8])?;
+                Ok(())
+            }
+            NbtTapeElement::IntArray(data) => {
+                (data.len() as i32).serialize(writer, &NBTSerializeOptions::None);
+                let data = unsafe {
+                    std::mem::transmute::<&[i32], &[u32]>(data.as_slice())
+                };
+                let data = arrays::u32_slice_to_u8_be(data);
+                writer.write_all(data.as_slice())?;
+                Ok(())
+            }
+            NbtTapeElement::LongArray(data) => {
+                (data.len() as i32).serialize(writer, &NBTSerializeOptions::None);
+                let data = unsafe {
+                    std::mem::transmute::<&[i64], &[u64]>(data.as_slice())
+                };
+                let data = arrays::u64_slice_to_u8_be(data);
+                writer.write_all(data.as_slice())?;
+                Ok(())
+            }
         }
     }
 }

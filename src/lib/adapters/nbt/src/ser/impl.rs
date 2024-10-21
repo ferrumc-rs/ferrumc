@@ -1,3 +1,4 @@
+use ferrumc_general_purpose::simd::arrays;
 use super::{NBTSerializable, NBTSerializeOptions};
 
 macro_rules! impl_ser_primitives {
@@ -73,12 +74,28 @@ impl NBTSerializable for &str {
     }
 }
 
-impl<T: NBTSerializable +std::fmt::Debug> NBTSerializable for Vec<T> {
+impl<T: NBTSerializable + std::fmt::Debug> NBTSerializable for Vec<T> {
+    fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
+        self.as_slice().serialize(buf, options);
+    }
+
+    #[inline]
+    fn id() -> u8 {
+        match T::id() {
+            TAG_BYTE => TAG_BYTE_ARRAY,
+            TAG_INT => TAG_INT_ARRAY,
+            TAG_LONG => TAG_LONG_ARRAY,
+            _ => TAG_LIST,
+        }
+    }
+}
+
+impl<'a, T: NBTSerializable> NBTSerializable for &'a [T] {
     fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
         write_header::<Self>(buf, options);
 
         let is_special = [TAG_BYTE_ARRAY, TAG_INT_ARRAY, TAG_LONG_ARRAY].contains(&Self::id());
-        
+
         if !is_special {
             buf.push(T::id());
         }
@@ -94,23 +111,28 @@ impl<T: NBTSerializable +std::fmt::Debug> NBTSerializable for Vec<T> {
                     buf.extend_from_slice(bytes);
                 }
                 TAG_INT_ARRAY => {
-                    let bytes = unsafe {crate::simd_utils::u32_slice_to_u8_be(
-                        std::slice::from_raw_parts(self.as_ptr() as *const u32, self.len())
-                    )};
+                    let bytes = unsafe {
+                        arrays::u32_slice_to_u8_be(std::slice::from_raw_parts(
+                            self.as_ptr() as *const u32,
+                            self.len(),
+                        ))
+                    };
                     buf.extend_from_slice(bytes.as_slice());
                 }
                 TAG_LONG_ARRAY => {
-                    let bytes = unsafe {crate::simd_utils::u64_slice_to_u8_be(
-                        std::slice::from_raw_parts(self.as_ptr() as *const u64, self.len())
-                    )};
+                    let bytes = unsafe {
+                        arrays::u64_slice_to_u8_be(std::slice::from_raw_parts(
+                            self.as_ptr() as *const u64,
+                            self.len(),
+                        ))
+                    };
                     buf.extend_from_slice(&bytes);
                 }
                 _ => unreachable!(),
             }
         } else {
-            for item in self {
-                item.serialize(buf, options);
-            }
+            self.iter()
+                .for_each(|item| item.serialize(buf, &NBTSerializeOptions::None));
         }
     }
 

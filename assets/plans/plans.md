@@ -16,17 +16,18 @@
   - [ ] [Extism???](https://extism.org/)
 
 
-- [ ] Events
-  - [ ] Clean & Nice impl
-  - [ ] Runteim registration (for plugins)
-  - [ ] Light and efficient (heavily relied on)
-  - [ ] Cancellable Events
+- [x] Events
+  - [x] Clean & Nice impl
+  - [x] Runtime registration (for plugins)
+  - [x] Light and efficient (heavily relied on)
+  - [x] Cancellable Events
 
 
 - [ ] ECS
-  - [ ] Basic impl (components, etc)
-  - [ ] Excellent iterators
-  - [ ] [Tokio](https://github.com/tokio-rs/tokio) for better optimisation?
+  - [x] Basic impl (components, etc)
+  - [x] Excellent iterators
+  - [-] [Tokio](https://github.com/tokio-rs/tokio) for better optimisation?
+  - [x] Rayon parallel iterators on components
 
 
 - [ ] Chunks
@@ -34,14 +35,14 @@
   - [ ] Only read necessary data (tapes) - simdnbt?
 
 
-- [ ] Network Encoding
-  - [ ] Helpful derive macro like `#[derive(NetEncode)]` & `#[derive(NetDecode)]`
-  - [ ] Support encoding options (omit packet size, compression, etc)
+- [x] Network Encoding
+  - [x] Helpful derive macro like `#[derive(NetEncode)]` & `#[derive(NetDecode)]`
+  - [x] Support encoding options (omit packet size, ~~compression~~, etc)
   
 
-- [ ] NBT
-  - [ ] Custom tapes based read + writer
-  - [ ] Implement methods for nbt to be network encoded
+- [x] NBT
+  - [x] Custom tapes based read + writer
+  - [x] Implement methods for nbt to be network encoded
 
 
 - [ ] Database
@@ -51,10 +52,10 @@
 
 - [ ] Packets
   - [ ] Functional API
-  - [ ] use Events system for handling
-    - [ ] Server handles on priority u8::MAX/2
+  - [x] use Events system for handling
+    - [x] Server handles on priority u8::MAX/2
   - [ ] Plugin support (listening, interacting, canceling, etc)
-  - [ ] Auto init with reflections
+  - [x] Auto init with reflections
   - [ ] support multiple versions (map versions packet id etc)
 
 

@@ -1,6 +1,6 @@
-use std::io::Read;
-use crate::Compressor;
 use crate::errors::StorageError;
+use crate::Compressor;
+use std::io::Read;
 
 pub struct BrotliCompressor {
     level: i32,
@@ -8,26 +8,24 @@ pub struct BrotliCompressor {
 
 impl Compressor for BrotliCompressor {
     fn new(level: i32) -> Self {
-        Self {
-            level,
-        }
+        Self { level }
     }
 
     fn compress(&self, data: &[u8]) -> Result<Vec<u8>, StorageError> {
         let mut compressor = brotli::CompressorReader::new(data, 4096, self.level as u32, 22);
         let mut compressed = Vec::new();
-        compressor.read_to_end(&mut compressed).map_err(|e| {
-            StorageError::CompressionError(e.to_string())
-        })?;
+        compressor
+            .read_to_end(&mut compressed)
+            .map_err(|e| StorageError::CompressionError(e.to_string()))?;
         Ok(compressed)
     }
 
     fn decompress(&self, data: &[u8]) -> Result<Vec<u8>, StorageError> {
         let mut decompressor = brotli::Decompressor::new(data, 4096);
         let mut decompressed = Vec::new();
-        decompressor.read_to_end(&mut decompressed).map_err(|e| {
-            StorageError::DecompressionError(e.to_string())
-        })?;
+        decompressor
+            .read_to_end(&mut decompressed)
+            .map_err(|e| StorageError::DecompressionError(e.to_string()))?;
         Ok(decompressed)
     }
 }

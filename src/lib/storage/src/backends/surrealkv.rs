@@ -1,17 +1,17 @@
+use crate::errors::StorageError;
+use crate::DatabaseBackend;
+use parking_lot::RwLock;
 use std::path::PathBuf;
 use std::sync::Arc;
-use parking_lot::RwLock;
-use crate::DatabaseBackend;
-use crate::errors::StorageError;
 
 pub struct SurrealKVBackend {
-    db: Arc<RwLock<surrealkv::Store>>
+    db: Arc<RwLock<surrealkv::Store>>,
 }
 
 impl DatabaseBackend for SurrealKVBackend {
     async fn initialize(store_path: Option<PathBuf>) -> Result<Self, StorageError>
     where
-        Self: Sized
+        Self: Sized,
     {
         if let Some(path) = store_path {
             let options = surrealkv::Options {
@@ -19,64 +19,78 @@ impl DatabaseBackend for SurrealKVBackend {
                 disk_persistence: true,
                 ..Default::default()
             };
-            let db = Arc::new(RwLock::new(surrealkv::Store::new(options).map_err(
-                |e| StorageError::DatabaseInitError(e.to_string())
-            )?));
-            Ok(Self {
-                db
-            })
+            let db = Arc::new(RwLock::new(
+                surrealkv::Store::new(options)
+                    .map_err(|e| StorageError::DatabaseInitError(e.to_string()))?,
+            ));
+            Ok(Self { db })
         } else {
-            Err(StorageError::DatabaseInitError("No path provided".to_string()))
+            Err(StorageError::DatabaseInitError(
+                "No path provided".to_string(),
+            ))
         }
-        
     }
 
-    async fn insert(&mut self, table: String, key: u64, value: Vec<u8>) -> Result<(), StorageError> {
+    async fn insert(
+        &mut self,
+        table: String,
+        key: u64,
+        value: Vec<u8>,
+    ) -> Result<(), StorageError> {
         if self.exists(table.clone(), key).await? {
             return Err(StorageError::KeyExists(key));
         }
         let mut modified_key = table.as_bytes().to_vec();
         modified_key.extend_from_slice(&key.to_be_bytes());
-        let mut tx = self.db.write().begin().map_err(
-            |e| StorageError::WriteError(e.to_string())
-        )?;
-        tx.set(&modified_key, &value).map_err(
-            |e| StorageError::WriteError(e.to_string())
-        )?;
-        tx.commit().await.map_err(
-            |e| StorageError::WriteError(e.to_string())
-        )?;
+        let mut tx = self
+            .db
+            .write()
+            .begin()
+            .map_err(|e| StorageError::WriteError(e.to_string()))?;
+        tx.set(&modified_key, &value)
+            .map_err(|e| StorageError::WriteError(e.to_string()))?;
+        tx.commit()
+            .await
+            .map_err(|e| StorageError::WriteError(e.to_string()))?;
         Ok(())
     }
 
     async fn get(&mut self, table: String, key: u64) -> Result<Option<Vec<u8>>, StorageError> {
         let mut modified_key = table.as_bytes().to_vec();
         modified_key.extend_from_slice(&key.to_be_bytes());
-        let tx = self.db.read().begin().map_err(
-            |e| StorageError::ReadError(e.to_string())
-        )?;
-        let value = tx.get(&modified_key).map_err(
-            |e| StorageError::ReadError(e.to_string())
-        )?;
+        let mut tx = self
+            .db
+            .read()
+            .begin()
+            .map_err(|e| StorageError::ReadError(e.to_string()))?;
+        let value = tx
+            .get(&modified_key)
+            .map_err(|e| StorageError::ReadError(e.to_string()))?;
         Ok(value)
     }
 
     async fn delete(&mut self, table: String, key: u64) -> Result<(), StorageError> {
         let mut modified_key = table.as_bytes().to_vec();
         modified_key.extend_from_slice(&key.to_be_bytes());
-        let mut tx = self.db.write().begin().map_err(
-            |e| StorageError::WriteError(e.to_string())
-        )?;
-        tx.delete(&modified_key).map_err(
-            |e| StorageError::WriteError(e.to_string())
-        )?;
-        tx.commit().await.map_err(
-            |e| StorageError::WriteError(e.to_string())
-        )?;
+        let mut tx = self
+            .db
+            .write()
+            .begin()
+            .map_err(|e| StorageError::WriteError(e.to_string()))?;
+        tx.delete(&modified_key)
+            .map_err(|e| StorageError::WriteError(e.to_string()))?;
+        tx.commit()
+            .await
+            .map_err(|e| StorageError::WriteError(e.to_string()))?;
         Ok(())
     }
 
-    async fn update(&mut self, table: String, key: u64, value: Vec<u8>) -> Result<(), StorageError> {
+    async fn update(
+        &mut self,
+        table: String,
+        key: u64,
+        value: Vec<u8>,
+    ) -> Result<(), StorageError> {
         if self.exists(table.clone(), key).await? {
             self.insert(table, key, value).await
         } else {
@@ -84,7 +98,12 @@ impl DatabaseBackend for SurrealKVBackend {
         }
     }
 
-    async fn upsert(&mut self, table: String, key: u64, value: Vec<u8>) -> Result<bool, StorageError> {
+    async fn upsert(
+        &mut self,
+        table: String,
+        key: u64,
+        value: Vec<u8>,
+    ) -> Result<bool, StorageError> {
         if self.exists(table.clone(), key).await? {
             self.update(table, key, value).await?;
             Ok(false)
@@ -97,12 +116,14 @@ impl DatabaseBackend for SurrealKVBackend {
     async fn exists(&mut self, table: String, key: u64) -> Result<bool, StorageError> {
         let mut modified_key = table.as_bytes().to_vec();
         modified_key.extend_from_slice(&key.to_be_bytes());
-        let tx = self.db.read().begin().map_err(
-            |e| StorageError::ReadError(e.to_string())
-        )?;
-        let value = tx.get(&modified_key).map_err(
-            |e| StorageError::ReadError(e.to_string())
-        )?;
+        let mut tx = self
+            .db
+            .read()
+            .begin()
+            .map_err(|e| StorageError::ReadError(e.to_string()))?;
+        let value = tx
+            .get(&modified_key)
+            .map_err(|e| StorageError::ReadError(e.to_string()))?;
         Ok(value.is_some())
     }
 
@@ -110,34 +131,45 @@ impl DatabaseBackend for SurrealKVBackend {
         "SurrealKV 0.3.6".to_string()
     }
 
-    async fn batch_insert(&mut self, table: String, data: Vec<(u64, Vec<u8>)>) -> Result<(), StorageError> {
-        let mut tx = self.db.write().begin().map_err(
-            |e| StorageError::WriteError(e.to_string())
-        )?;
+    async fn batch_insert(
+        &mut self,
+        table: String,
+        data: Vec<(u64, Vec<u8>)>,
+    ) -> Result<(), StorageError> {
+        let mut tx = self
+            .db
+            .write()
+            .begin()
+            .map_err(|e| StorageError::WriteError(e.to_string()))?;
         for (key, value) in data {
             let mut modified_key = table.as_bytes().to_vec();
             modified_key.extend_from_slice(&key.to_be_bytes());
-            tx.set(&modified_key, &value).map_err(
-                |e| StorageError::WriteError(e.to_string())
-            )?;
+            tx.set(&modified_key, &value)
+                .map_err(|e| StorageError::WriteError(e.to_string()))?;
         }
-        tx.commit().await.map_err(
-            |e| StorageError::WriteError(e.to_string())
-        )?;
+        tx.commit()
+            .await
+            .map_err(|e| StorageError::WriteError(e.to_string()))?;
         Ok(())
     }
 
-    async fn batch_get(&mut self, table: String, keys: Vec<u64>) -> Result<Vec<Option<Vec<u8>>>, StorageError> {
-        let tx = self.db.read().begin().map_err(
-            |e| StorageError::ReadError(e.to_string())
-        )?;
+    async fn batch_get(
+        &mut self,
+        table: String,
+        keys: Vec<u64>,
+    ) -> Result<Vec<Option<Vec<u8>>>, StorageError> {
+        let mut tx = self
+            .db
+            .read()
+            .begin()
+            .map_err(|e| StorageError::ReadError(e.to_string()))?;
         let mut values = Vec::new();
         for key in keys {
             let mut modified_key = table.as_bytes().to_vec();
             modified_key.extend_from_slice(&key.to_be_bytes());
-            let value = tx.get(&modified_key).map_err(
-                |e| StorageError::ReadError(e.to_string())
-            )?;
+            let value = tx 
+                .get(&modified_key)
+                .map_err(|e| StorageError::ReadError(e.to_string()))?;
             values.push(value);
         }
         Ok(values)

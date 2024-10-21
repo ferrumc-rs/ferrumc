@@ -1,13 +1,13 @@
 use crate::de::borrow::{NbtTape, NbtTapeElement};
 use crate::{NBTError, Result};
 
-pub trait FromNbt<'a> : Sized {
+pub trait FromNbt<'a>: Sized {
     fn from_nbt(tapes: &NbtTape<'a>, element: &NbtTapeElement<'a>) -> Result<Self>;
 }
 
 mod primitives {
-    use crate::de::borrow::NbtDeserializable;
     use super::*;
+    use crate::de::borrow::NbtDeserializable;
 
     macro_rules! impl_for_primitives {
         ($($ty:ty) | *, $variant:ident) => {
@@ -34,7 +34,10 @@ mod primitives {
         fn from_nbt(_tapes: &NbtTape, element: &NbtTapeElement) -> Result<Self> {
             match element {
                 NbtTapeElement::Byte(val) => Ok(*val != 0),
-                _ => Err(NBTError::TypeMismatch { expected: "Byte", found: element.nbt_type() }),
+                _ => Err(NBTError::TypeMismatch {
+                    expected: "Byte",
+                    found: element.nbt_type(),
+                }),
             }
         }
     }
@@ -43,17 +46,22 @@ mod primitives {
         fn from_nbt(_tapes: &NbtTape, element: &NbtTapeElement) -> Result<Self> {
             match element {
                 NbtTapeElement::String(val) => Ok(val.to_string()),
-                _ => Err(NBTError::TypeMismatch { expected: "String", found: element.nbt_type() }),
+                _ => Err(NBTError::TypeMismatch {
+                    expected: "String",
+                    found: element.nbt_type(),
+                }),
             }
         }
     }
-
 
     impl<'a> FromNbt<'a> for &'a str {
         fn from_nbt(_tapes: &NbtTape<'a>, element: &NbtTapeElement<'a>) -> Result<Self> {
             match element {
                 NbtTapeElement::String(val) => Ok(val),
-                _ => Err(NBTError::TypeMismatch { expected: "String", found: element.nbt_type() }),
+                _ => Err(NBTError::TypeMismatch {
+                    expected: "String",
+                    found: element.nbt_type(),
+                }),
             }
         }
     }
@@ -62,7 +70,10 @@ mod primitives {
         fn from_nbt(tapes: &NbtTape<'a>, element: &NbtTapeElement<'a>) -> Result<Self> {
             match tapes.unpack_list::<T>(element) {
                 Some(vec) => Ok(vec),
-                None => Err(NBTError::TypeMismatch { expected: "List", found: element.nbt_type() }),
+                None => Err(NBTError::TypeMismatch {
+                    expected: "List",
+                    found: element.nbt_type(),
+                }),
             }
         }
     }
@@ -71,7 +82,10 @@ mod primitives {
         fn from_nbt(tapes: &NbtTape<'a>, element: &NbtTapeElement<'a>) -> Result<Self> {
             match tapes.unpack_list_sliced::<T>(element) {
                 Some(slice) => Ok(slice),
-                None => Err(NBTError::TypeMismatch { expected: "List Slice (T != array type)", found: element.nbt_type() }),
+                None => Err(NBTError::TypeMismatch {
+                    expected: "List Slice (T != array type)",
+                    found: element.nbt_type(),
+                }),
             }
         }
     }

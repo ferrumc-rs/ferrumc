@@ -25,7 +25,10 @@ pub enum NBTError {
     #[error("Invalid NBT tag type (id): {0}")]
     InvalidTagType(u8),
     #[error("Invalid NBT tag name : expected {expected:?} but found (id) {found:?}")]
-    TypeMismatch { expected: &'static str, found: &'static str },
+    TypeMismatch {
+        expected: &'static str,
+        found: &'static str,
+    },
     #[error("No root tag found in NBT data")]
     NoRootTag,
     #[error("Element `{0}` not found in NBT data")]

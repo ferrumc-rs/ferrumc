@@ -6,10 +6,11 @@ edition = "2021"
 [dependencies]
 
 thiserror = { workspace = true }
-hashbrown = { workspace = true }
 libflate = { workspace = true }
-ferrumc-macros = { workspace = true }
-tracing = { workspace = true }
+ferrumc-net-codec = { workspace = true }
+tracing = { workspace = true}
+tokio = { workspace = true }
+ferrumc-general-purpose = {  workspace = true }
 
 [lints]
 workspace = true
@@ -17,11 +18,14 @@ workspace = true
 #================= Benches ==============#
 [dev-dependencies]
 criterion = {  workspace = true }
+ferrumc-macros  = { workspace = true}
 fastnbt = {  version = "2.5.0" }
 simdnbt = {  version = "0.6.1" }
 ussr-nbt = {  version = "0.2.1" }
 crab_nbt = {  version = "0.2.1" }
 hematite-nbt = {  version = "0.5.2" }
+fastanvil = { version = "0.31.0" }
+
 
 [[bench]]
 name = "ferrumc-nbt"
