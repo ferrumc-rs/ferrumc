@@ -7,45 +7,6 @@ use crate::errors::StorageError;
 use std::path::PathBuf;
 use async_trait::async_trait;
 
-/// A trait for compressors. This is used to abstract away the compression and decompression of data.
-/// This is primarily used for the database to compress data before writing it to disk, but it can be used
-/// for other purposes as well.
-pub trait Compressor {
-    /// Sets up a new compressor. For some compressors, this may be a no-op if no setup is required.
-    ///
-    /// # Arguments
-    ///
-    /// * `level` - The compression level to use. This is optional and may be ignored by some compressors.
-    ///     If a compressor does not support compression levels, any level can be passed in, and it will be ignored.
-    ///
-    /// # Returns
-    ///
-    /// The compressor
-    fn create(level: i32) -> Self;
-
-    /// Compresses data
-    ///
-    /// # Arguments
-    ///
-    /// * `data` - The data to compress
-    ///
-    /// # Returns
-    ///
-    /// The compressed data or a StorageError
-    fn compress(&self, data: &[u8]) -> Result<Vec<u8>, StorageError>;
-
-    /// Decompresses data
-    ///
-    /// # Arguments
-    ///
-    /// * `data` - The data to decompress
-    ///
-    /// # Returns
-    ///
-    /// The decompressed data or a StorageError
-    fn decompress(&self, data: &[u8]) -> Result<Vec<u8>, StorageError>;
-}
-
 /// A trait for database backends. This is used to abstract away the underlying database implementation.
 /// This allows for easy swapping of databases without changing the rest of the code. These functions are
 /// purely for storage and retrieval of data. Any other functionality such as serialization or caching

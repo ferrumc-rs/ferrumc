@@ -7,17 +7,13 @@ pub struct ZstdCompressor {
     level: i32,
 }
 
-impl Compressor for ZstdCompressor {
-    fn create(level: i32) -> Self {
-        Self { level }
-    }
 
-    fn compress(&self, data: &[u8]) -> Result<Vec<u8>, StorageError> {
-        zstd::encode_all(data, self.level)
+    pub(crate) fn compress_zstd(level: u32, data: &[u8]) -> Result<Vec<u8>, StorageError> {
+        zstd::encode_all(data, level as i32)
             .map_err(|e| StorageError::CompressionError(e.to_string()))
     }
 
-    fn decompress(&self, data: &[u8]) -> Result<Vec<u8>, StorageError> {
+    pub(crate) fn decompress_zstd(data: &[u8]) -> Result<Vec<u8>, StorageError> {
         let mut decoder = zstd::Decoder::new(Cursor::new(data))
             .map_err(|e| StorageError::DecompressionError(e.to_string()))?;
         let mut decompressed = Vec::new();
@@ -26,17 +22,17 @@ impl Compressor for ZstdCompressor {
             .map_err(|e| StorageError::DecompressionError(e.to_string()))?;
         Ok(decompressed)
     }
-}
+
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::Compressor;
+
     use ferrumc_utils::root;
+    use crate::compressors::{Compressor, CompressorType};
 
     #[test]
     fn test_compress_decompress() {
-        let compressor = ZstdCompressor::create(6);
+        let compressor = Compressor::create(CompressorType::Zstd, 6);
         let data = std::fs::read(root!(".etc/codec.nbt")).unwrap();
         let compressed = compressor.compress(data.as_slice()).unwrap();
         let decompressed = compressor.decompress(&compressed).unwrap();
@@ -45,7 +41,7 @@ mod tests {
 
     #[test]
     fn test_positive_compression_ratio() {
-        let compressor = ZstdCompressor::create(6);
+        let compressor = Compressor::create(CompressorType::Zstd, 6);
         let data = std::fs::read(root!(".etc/codec.nbt")).unwrap();
         let compressed = compressor.compress(data.as_slice()).unwrap();
         assert!(data.len() > compressed.len());

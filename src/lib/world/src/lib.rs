@@ -5,14 +5,15 @@ mod vanilla_chunk_format;
 use std::path::{Path, PathBuf};
 use std::process::exit;
 use tokio::fs::create_dir_all;
-use ferrumc_storage::{Compressor, DatabaseBackend};
+use ferrumc_storage::{DatabaseBackend};
 use ferrumc_config::get_global_config;
 use tracing::{error, warn};
 use crate::errors::WorldError;
+use ferrumc_storage::compressors::Compressor;
 
 pub struct World {
     storage_backend: Box<dyn DatabaseBackend>,
-    compressor: Box<dyn Compressor>,
+    compressor: Compressor,
     // TODO: Cache
 }
 
@@ -127,21 +128,21 @@ impl World {
         
         let compressor_string = get_global_config().database.compression.clone().to_lowercase().trim();
         
-        let compression_algo: Box<dyn Compressor> = match compressor_string {
+        let compression_algo = match compressor_string {
             "zstd" => {
-                Box::new(ferrumc_storage::compressors::zstd::ZstdCompressor::create(get_global_config().database.compression_level))
+                Compressor::create(ferrumc_storage::compressors::CompressorType::Zstd, get_global_config().database.compression_level as u32)
             },
             "brotli" => {
-                Box::new(ferrumc_storage::compressors::brotli::BrotliCompressor::create(get_global_config().database.compression_level))
+                Compressor::create(ferrumc_storage::compressors::CompressorType::Brotli, get_global_config().database.compression_level as u32)
             },
             "deflate" => {
-                Box::new(ferrumc_storage::compressors::deflate::DeflateCompressor::create(get_global_config().database.compression_level))
+                Compressor::create(ferrumc_storage::compressors::CompressorType::Deflate, get_global_config().database.compression_level as u32)
             },
             "gzip" => {
-                Box::new(ferrumc_storage::compressors::gzip::GzipCompressor::create(get_global_config().database.compression_level))
+                Compressor::create(ferrumc_storage::compressors::CompressorType::Gzip, get_global_config().database.compression_level as u32)
             },
             "zlib" => {
-                Box::new(ferrumc_storage::compressors::zlib::ZlibCompressor::create(get_global_config().database.compression_level))
+                Compressor::create(ferrumc_storage::compressors::CompressorType::Zlib, get_global_config().database.compression_level as u32)
             },
             _ => {
                 error!("Invalid compression algorithm: {}", get_global_config().database.compression);
