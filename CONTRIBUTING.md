@@ -64,34 +64,37 @@ If you add a new directory, please add it to the above list along with its purpo
 3. Try to avoid just chaining `../` to get to the root of the project. This makes it harder to move files around and work
 out where a referenced file is. There is a `root!()` macro that can be used to get the root of the project as a string.
 4. Don't be lazy and use `unwrap()`. If you are sure that a value will always be `Some`, use `expect()`. If you are not
-sure, use `match` or `if let`.
-5. New dependencies should be added to the workspace `Cargo.toml` file. This will make it easier to manage dependencies
+sure, use `match` or `if let`. Please also have a more detailed `error!()` message if you are using `expect()`.
+5. Avoid `.clone()`ing data. If you need to clone data, make sure that it is necessary and that the data is not too large.
+Cloning is ok however in sections of code that only need to run once and small performance hits are acceptable (eg, loading
+config files, starting up the database).
+6. New dependencies should be added to the workspace `Cargo.toml` file. This will make it easier to manage dependencies
 and will make sure that all dependencies are of the same version.
-6. If you are adding a new feature that warrants major separation, add it as a new crate and then include it in the
+7. If you are adding a new feature that warrants major separation, add it as a new crate and then include it in the
 workspace `Cargo.toml` file. This will make it easier to manage the code and will make sure that the code is well
 separated.
-7. If you are adding an extra sub-crate, you must create a new set of `thiserror` based error types for that crate. This
+8. If you are adding an extra sub-crate, you must create a new set of `thiserror` based error types for that crate. This
 will make it easier to understand where an error is coming from and will make it easier to handle errors.
-8. Use `cargo clippy` to check for any issues with the code. This will be checked in CI and will cause the build to fail
+9. Use `cargo clippy` to check for any issues with the code. This will be checked in CI and will cause the build to fail
 if there are any issues. There is no excuse for *your* code to fail the lints.
-9. Use `#[expect(lint)]` instead of `#[allow(lint)]` if you are sure that the lint is not an issue. This will make it
+10. Use `#[expect(lint)]` instead of `#[allow(lint)]` if you are sure that the lint is not an issue. This will make it
 easier to find and remove these lints in the future.
-10. Use `#[cfg(test)]` to only include code in tests. This will make the code easier to read and understand.
-11. Where applicable, add doc strings to functions and modules. This will make it easier for others to understand the code.
+11. Use `#[cfg(test)]` to only include code in tests. This will make the code easier to read and understand.
+12. Where applicable, add doc strings to functions and modules. This will make it easier for others to understand the code.
 Check https://doc.rust-lang.org/nightly/rustdoc/how-to-write-documentation.html for more information on how to write good
 documentation.
-12. Unsafe code is ok as long as it is well documented and the reason for the unsafe code is explained. If you are not sure
+13. Unsafe code is ok as long as it is well documented and the reason for the unsafe code is explained. If you are not sure
 if the code is safe, ask in the Discord.
-13. Limit the use of raw instructions as much as possible. This will make the code easier to read and understand. There
+14. Limit the use of raw instructions as much as possible. This will make the code easier to read and understand. There
 are some cases where raw instructions are needed, but these should be kept to a minimum.
-14. You will be asked to fix your PR if folders like `.vscode` or `.idea` are included in the PR. These folders are
+15. You will be asked to fix your PR if folders like `.vscode` or `.idea` are included in the PR. These folders are
 specific to your IDE and should not be included in the PR.
-15. If you are adding a new feature, make sure to add tests for it. This will make sure that the feature works as expected
+16. If you are adding a new feature, make sure to add tests for it. This will make sure that the feature works as expected
 and will help prevent regressions in the future.
-16. If you are fixing a bug, make sure to add a test that reproduces the bug. This will make sure that the bug is fixed
+17. If you are fixing a bug, make sure to add a test that reproduces the bug. This will make sure that the bug is fixed
 and will help prevent regressions in the future.
-17. If your code isn't sufficiently documented, you will be asked to add documentation.
-18. If your code doesn't have tests where it should, you will be asked to add tests.
+18. If your code isn't sufficiently documented, you will be asked to add documentation.
+19. If your code doesn't have tests where it should, you will be asked to add tests.
 
 ## Code of Conduct
 
