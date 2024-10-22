@@ -1,7 +1,7 @@
 // Security or something like that
 #![forbid(unsafe_code)]
 
-use std::sync::Arc;
+use std::sync::{atomic::AtomicBool, Arc};
 use tracing::{error, info};
 use ferrumc_ecs::Universe;
 use ferrumc_net::ServerState;
@@ -28,7 +28,7 @@ async fn main() {
 async fn entry() -> Result<()> {
     let listener = ferrumc_net::server::create_server_listener().await?;
 
-    let state = ServerState::new(Universe::new());
+    let state = ServerState::new(Universe::new(),AtomicBool::new(false));
 
     ferrumc_net::server::listen(Arc::new(state), listener).await?;
 
