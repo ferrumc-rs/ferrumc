@@ -26,14 +26,7 @@ fn test_encode() {
     let mut writer = Vec::<u8>::new();
     example
         .encode(&mut writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)
-        .unwrap();
-
-    // save in file (.etc/tests)
-    let result = std::fs::write(
-        r#"D:\Minecraft\framework\ferrumc\ferrumc-2_0\ferrumc\.etc\tests/enc_test_encode"#,
-        writer,
-    );
-    result.unwrap();
+        .unwrap();;
 }
 
 #[allow(unreachable_code)]

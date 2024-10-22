@@ -20,12 +20,12 @@ static CONFIG: OnceLock<ServerConfig> = OnceLock::new();
 /// # fn main() {
 /// #   use ferrumc_config::{get_global_config, ServerConfig};
 /// // Get config from default path.
-/// ServerConfig::new(None).expect("Failed to read configuration file.");
+/// let _ = ServerConfig::new(None);
 ///
 /// // Do other stuff...
 ///
 /// // Get the global configuration.
-/// let config = get_global_config().expect("Failed to get global configuration.");
+/// let config = get_global_config();
 /// println!("{:?}", config);
 /// # }
 /// ```
@@ -36,7 +36,7 @@ static CONFIG: OnceLock<ServerConfig> = OnceLock::new();
 /// # fn main() {
 /// #   use ferrumc_config::get_global_config;
 /// // Get the global configuration without setting the configuration first.
-/// let config = get_global_config().expect("Failed to get global configuration."); // Error.
+/// let config = get_global_config();
 /// println!("{:?}", config);
 /// # }
 /// ```
