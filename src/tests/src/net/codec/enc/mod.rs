@@ -26,9 +26,9 @@ fn test_encode() {
     let mut writer = Vec::<u8>::new();
     example
         .encode(&mut writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)
-        .unwrap();;
+        .unwrap();
 }
-
+    
 #[allow(unreachable_code)]
 fn _test_compression() -> ! {
     let example = SomeExampleEncStructWithPacketId {
