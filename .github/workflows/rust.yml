@@ -34,13 +34,6 @@ jobs:
         uses: dtolnay/rust-toolchain@nightly
         with:
           targets: ${{ matrix.target }}
-
-      - name: Run Clippy
-        uses: ClementTsang/cargo-action@v0.0.6
-        with:
-          args: -- -Dwarnings
-          command: clippy
-
       - name: Build
         uses: ClementTsang/cargo-action@v0.0.6
         with:
@@ -58,3 +51,11 @@ jobs:
         with:
           name: ferrumc-${{ matrix.os }}
           path: target/${{ matrix.target }}/release/ferrumc*
+  check:
+    steps:
+      - name: Run Clippy
+        uses: ClementTsang/cargo-action@v0.0.6
+        with:
+          args: -- -Dwarnings
+          command: clippy
+
