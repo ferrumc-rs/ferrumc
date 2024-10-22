@@ -1,69 +1,63 @@
 use criterion::black_box;
-use ferrumc_storage::{
-    compressors::{
-        brotli::BrotliCompressor, deflate::DeflateCompressor, gzip::GzipCompressor,
-        zlib::ZlibCompressor, zstd::ZstdCompressor,
-    },
-    Compressor,
-};
+use ferrumc_storage::compressors::{Compressor, CompressorType};
 use ferrumc_utils::root;
 
 fn zstd_compress(data: &[u8]) {
-    let compressor = ZstdCompressor::create(6);
+    let compressor = Compressor::create(CompressorType::Zstd, 6);
     let compressed = compressor.compress(data).unwrap();
     black_box(compressed);
 }
 
 fn zstd_decompress(data: &[u8]) {
-    let compressor = ZstdCompressor::create(0);
+    let compressor = Compressor::create(CompressorType::Zstd, 0);
     let decompressed = compressor.decompress(data).unwrap();
     black_box(decompressed);
 }
 
 fn gzip_compress(data: &[u8]) {
-    let compressor = GzipCompressor::create(6);
+    let compressor = Compressor::create(CompressorType::Gzip, 6);
     let compressed = compressor.compress(data).unwrap();
     black_box(compressed);
 }
 
 fn gzip_decompress(data: &[u8]) {
-    let compressor = GzipCompressor::create(0);
+    let compressor = Compressor::create(CompressorType::Gzip, 0);
     let decompressed = compressor.decompress(data).unwrap();
     black_box(decompressed);
 }
 
 fn deflate_compress(data: &[u8]) {
-    let compressor = DeflateCompressor::create(6);
+    let compressor = Compressor::create(CompressorType::Deflate, 6);
     let compressed = compressor.compress(data).unwrap();
     black_box(compressed);
 }
 
 fn deflate_decompress(data: &[u8]) {
-    let compressor = DeflateCompressor::create(6);
+    let compressor = Compressor::create(CompressorType::Deflate, 0);
     let decompressed = compressor.decompress(data).unwrap();
     black_box(decompressed);
 }
 
 fn zlib_compress(data: &[u8]) {
-    let compressor = ZlibCompressor::create(6);
+    let compressor = Compressor::create(CompressorType::Zlib, 6);
     let compressed = compressor.compress(data).unwrap();
     black_box(compressed);
 }
 
 fn zlib_decompress(data: &[u8]) {
-    let compressor = ZlibCompressor::create(0);
+    let compressor = Compressor::create(CompressorType::Zlib, 0);
     let decompressed = compressor.decompress(data).unwrap();
     black_box(decompressed);
 }
 
 fn brotli_compress(data: &[u8]) {
-    let compressor = BrotliCompressor::create(6);
+    let compressor = Compressor::create(CompressorType::Brotli, 6);
     let compressed = compressor.compress(data).unwrap();
     black_box(compressed);
 }
 
 fn brotli_decompress(data: &[u8]) {
-    let compressor = BrotliCompressor::create(0);
+    let compressor = Compressor::create(CompressorType::Brotli, 0);
     let decompressed = compressor.decompress(data).unwrap();
     black_box(decompressed);
 }
@@ -81,15 +75,15 @@ pub fn compression_benchmarks(c: &mut criterion::Criterion) {
     compress_group.bench_function("Brotli", |b| b.iter(|| brotli_compress(black_box(data))));
     compress_group.finish();
 
-    let zstd_compressor = ZstdCompressor::create(6);
+    let zstd_compressor = Compressor::create(CompressorType::Zstd, 6);
     let zstd_compressed = zstd_compressor.compress(data).unwrap();
-    let gzip_compressor = GzipCompressor::create(6);
+    let gzip_compressor = Compressor::create(CompressorType::Gzip, 6);
     let gzip_compressed = gzip_compressor.compress(data).unwrap();
-    let deflate_compressor = DeflateCompressor::create(6);
+    let deflate_compressor = Compressor::create(CompressorType::Deflate, 6);
     let deflate_compressed = deflate_compressor.compress(data).unwrap();
-    let zlib_compressor = ZlibCompressor::create(6);
+    let zlib_compressor = Compressor::create(CompressorType::Zlib, 6);
     let zlib_compressed = zlib_compressor.compress(data).unwrap();
-    let brotli_compressor = BrotliCompressor::create(6);
+    let brotli_compressor = Compressor::create(CompressorType::Brotli, 6);
     let brotli_compressed = brotli_compressor.compress(data).unwrap();
 
     let mut decompress_group = c.benchmark_group("Decompression");

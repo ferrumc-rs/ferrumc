@@ -3,7 +3,6 @@ use ferrumc_macros::NBTDeserialize;
 use ferrumc_macros::NBTSerialize;
 use macro_rules_attribute::{apply, attribute_alias};
 use serde_derive::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 attribute_alias! {
     #[apply(ChunkDerives)] = #[derive(NBTSerialize, NBTDeserialize,
@@ -102,8 +101,8 @@ pub(crate) struct BlockStates {
 pub(crate) struct Palette {
     #[nbt(rename = "Name")]
     pub name: String,
-    #[nbt(rename = "Properties")]
-    pub properties: Option<HashMap<String, String>>,
+    // #[nbt(rename = "Properties")]
+    // pub properties: Option<HashMap<String, String>>,
 }
 
 #[apply(ChunkDerives)]

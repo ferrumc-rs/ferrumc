@@ -11,6 +11,7 @@ use std::process::exit;
 use tokio::fs::create_dir_all;
 use tracing::{error, warn};
 
+#[expect(dead_code)]
 pub struct World {
     storage_backend: Box<dyn DatabaseBackend>,
     compressor: Compressor,

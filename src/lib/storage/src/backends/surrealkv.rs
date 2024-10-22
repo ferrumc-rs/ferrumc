@@ -184,7 +184,7 @@ impl DatabaseBackend for SurrealKVBackend {
     async fn create_table(&mut self, _: String) -> Result<(), StorageError> {
         Ok(())
     }
-    #[expect(clippy::await_holding_lock)]
+    
     async fn close(&mut self) -> Result<(), StorageError> {
         // I should probably do something here, but I'm just hoping the drop trait will handle it.
         Ok(())

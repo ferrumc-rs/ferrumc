@@ -2,7 +2,6 @@
 //!
 //! Contains unit tests for the configuration utilities.
 
-use crate::server_config::DatabaseCompression;
 use crate::{get_global_config, ServerConfig};
 use std::fs::*;
 use std::io::Write;
@@ -82,10 +81,6 @@ fn test_sample_config_toml() {
     assert_eq!(global_config.world, "default_world");
     assert_eq!(global_config.network_compression_threshold, 512);
     assert_eq!(global_config.database.cache_size, 4096);
-    assert!(matches!(
-        global_config.database.compression,
-        DatabaseCompression::Fast
-    ));
 
     // Test the values in the ServerConfig struct
     assert_eq!(server_config.host, "127.0.0.1");
@@ -96,10 +91,6 @@ fn test_sample_config_toml() {
     assert_eq!(server_config.world, "default_world");
     assert_eq!(server_config.network_compression_threshold, 512);
     assert_eq!(server_config.database.cache_size, 4096);
-    assert!(matches!(
-        server_config.database.compression,
-        DatabaseCompression::Fast
-    ));
 }
 
 /// Test an invalid configuration file in TOML format.
