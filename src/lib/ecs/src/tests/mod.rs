@@ -7,6 +7,7 @@ use rayon::prelude::*;
 
 
 #[derive(Debug)]
+#[expect(dead_code)]
 struct Position {
     x: u32,
     y: u32,
@@ -15,6 +16,7 @@ struct Position {
 unsafe impl Send for Position {}
 
 #[derive(Debug)]
+#[expect(dead_code)]
 struct Player {
     username: String,
 }
@@ -36,7 +38,7 @@ fn test_basic() {
     let query = Query::<(&Player, &mut Position)>::new(&component_storage);
     
     let start = Instant::now();
-    ParallelIterator::for_each(query.into_par_iter(), |(player, position)| {
+    ParallelIterator::for_each(query.into_par_iter(), |(_player, position)| {
         let sleep_duration = Duration::from_millis(100 * (position.x as u64));
         thread::sleep(sleep_duration);
     });

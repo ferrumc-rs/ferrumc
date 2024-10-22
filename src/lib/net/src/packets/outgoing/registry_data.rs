@@ -27,7 +27,7 @@ pub struct RegistryEntry<'a> {
     pub data: Vec<u8>,
 }
 
-impl<'a> RegistryDataPacket<'a> {
+impl RegistryDataPacket<'_> {
     // TODO: bake this. and make it return just the bytes instead.
     pub fn get_registry_packets() -> Vec<Self> {
         let registry_nbt_buf = include_bytes!("../../../../../../.etc/registry.nbt");
@@ -80,7 +80,7 @@ pub const fn get_registry_packets() -> &'static [u8] {
 mod tests {
     use std::io::Write;
 
-    use ferrumc_nbt::NbtTape;
+    use ferrumc_nbt::{NBTSerializeOptions, NbtTape};
     use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
     use tracing::debug;
 
@@ -1235,7 +1235,7 @@ mod tests {
                         let has_data = true;
                         let mut data = vec![];
                         element
-                            .serialize_as_network(&mut rewind_machine, &mut data)
+                            .serialize_as_network(&mut rewind_machine, &mut data, &NBTSerializeOptions::Network)
                             .unwrap_or_else(|_| {
                                 panic!("Failed to serialize entry for {}", registry_id)
                             });

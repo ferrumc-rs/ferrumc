@@ -35,7 +35,7 @@ fn derive_macro() {
 
     let some_list = parser.get("some_list").unwrap();
     // let some_list : &[i32] = parser.unpack_list_sliced(some_list).unwrap();
-    let some_list: Vec<i32> = parser.unpack_list(&some_list).unwrap();
+    let some_list: Vec<i32> = parser.unpack_list(some_list).unwrap();
 
     assert_eq!(some_list, vec![1, 2, 3]);
 }
@@ -68,8 +68,8 @@ fn derive_macro_nested() {
     let hello = test.get("hello").unwrap();
     let world = test.get("world").unwrap();
 
-    let hello = <i32 as FromNbt>::from_nbt(&parser, &hello).unwrap();
-    let world = <i32 as FromNbt>::from_nbt(&parser, &world).unwrap();
+    let hello = <i32 as FromNbt>::from_nbt(&parser, hello).unwrap();
+    let world = <i32 as FromNbt>::from_nbt(&parser, world).unwrap();
 
     assert_eq!(hello, 1);
     assert_eq!(world, 2);
@@ -115,10 +115,10 @@ fn derive_macro_nested_with_list() {
     let list = parser.get("list").unwrap();
     let another_list = parser.get("another_list").unwrap();
 
-    let hello = <i32 as FromNbt>::from_nbt(&parser, &hello).unwrap();
-    let world = <i32 as FromNbt>::from_nbt(&parser, &world).unwrap();
-    let list = <Vec<i32> as FromNbt>::from_nbt(&parser, &list).unwrap();
-    let another_list = <Vec<Test> as FromNbt>::from_nbt(&parser, &another_list).unwrap();
+    let hello = <i32 as FromNbt>::from_nbt(&parser, hello).unwrap();
+    let world = <i32 as FromNbt>::from_nbt(&parser, world).unwrap();
+    let list = <Vec<i32> as FromNbt>::from_nbt(&parser, list).unwrap();
+    let another_list = <Vec<Test> as FromNbt>::from_nbt(&parser, another_list).unwrap();
 
     assert_eq!(hello, 1);
     assert_eq!(world, 2);

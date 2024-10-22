@@ -58,7 +58,7 @@ pub struct Query<'a, Q: QueryItem> {
     _marker: std::marker::PhantomData<Q>,
 }
 
-impl<'a, Q: QueryItem> Clone for Query<'a, Q> {
+impl<Q: QueryItem> Clone for Query<'_, Q> {
     fn clone(&self) -> Self {
         //! Clones the query, and re-calculates the entities
         Self {

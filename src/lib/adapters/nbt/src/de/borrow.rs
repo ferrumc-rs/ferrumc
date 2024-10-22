@@ -292,7 +292,7 @@ impl<'a> NbtTape<'a> {
         }
     }
 }
-impl<'a> NbtTape<'a> {
+impl NbtTape<'_> {
     /// Skips over a single tag based on its type.
     fn skip_tag(&mut self, tag: u8) -> usize {
         let start_pos = self.pos;
@@ -391,41 +391,41 @@ pub trait NbtDeserializable<'a>: Sized {
 
 mod primitives {
     use super::NbtDeserializable;
-    impl<'a> NbtDeserializable<'a> for i8 {
+    impl NbtDeserializable<'_> for i8 {
         fn parse_from_bytes(data: &[u8]) -> Self {
             data[0] as i8
         }
     }
-    impl<'a> NbtDeserializable<'a> for u8 {
+    impl NbtDeserializable<'_> for u8 {
         fn parse_from_bytes(data: &[u8]) -> Self {
             u8::from_be_bytes([data[0]])
         }
     }
-    impl<'a> NbtDeserializable<'a> for i16 {
+    impl NbtDeserializable<'_> for i16 {
         fn parse_from_bytes(data: &[u8]) -> Self {
             i16::from_be_bytes([data[0], data[1]])
         }
     }
 
-    impl<'a> NbtDeserializable<'a> for u16 {
+    impl NbtDeserializable<'_> for u16 {
         fn parse_from_bytes(data: &[u8]) -> Self {
             u16::from_be_bytes([data[0], data[1]])
         }
     }
 
-    impl<'a> NbtDeserializable<'a> for i32 {
+    impl NbtDeserializable<'_> for i32 {
         fn parse_from_bytes(data: &[u8]) -> Self {
             i32::from_be_bytes([data[0], data[1], data[2], data[3]])
         }
     }
 
-    impl<'a> NbtDeserializable<'a> for u32 {
+    impl NbtDeserializable<'_> for u32 {
         fn parse_from_bytes(data: &[u8]) -> Self {
             u32::from_be_bytes([data[0], data[1], data[2], data[3]])
         }
     }
 
-    impl<'a> NbtDeserializable<'a> for i64 {
+    impl NbtDeserializable<'_> for i64 {
         fn parse_from_bytes(data: &[u8]) -> Self {
             i64::from_be_bytes([
                 data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7],
@@ -433,7 +433,7 @@ mod primitives {
         }
     }
 
-    impl<'a> NbtDeserializable<'a> for u64 {
+    impl NbtDeserializable<'_> for u64 {
         fn parse_from_bytes(data: &[u8]) -> Self {
             u64::from_be_bytes([
                 data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7],
@@ -441,13 +441,13 @@ mod primitives {
         }
     }
 
-    impl<'a> NbtDeserializable<'a> for f32 {
+    impl NbtDeserializable<'_> for f32 {
         fn parse_from_bytes(data: &[u8]) -> Self {
             f32::from_be_bytes([data[0], data[1], data[2], data[3]])
         }
     }
 
-    impl<'a> NbtDeserializable<'a> for f64 {
+    impl NbtDeserializable<'_> for f64 {
         fn parse_from_bytes(data: &[u8]) -> Self {
             f64::from_be_bytes([
                 data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7],
@@ -455,7 +455,7 @@ mod primitives {
         }
     }
 
-    impl<'a> NbtDeserializable<'a> for bool {
+    impl NbtDeserializable<'_> for bool {
         fn parse_from_bytes(data: &[u8]) -> Self {
             data[0] != 0
         }
@@ -621,7 +621,7 @@ impl<'a> NetEncode for NbtTape<'a> {
 }
 
 
-impl<'a> NbtTapeElement<'a> {
+impl NbtTapeElement<'_> {
     pub fn serialize_as_network(&self, tape: &mut NbtTape, writer: &mut Vec<u8>, opts: &NBTSerializeOptions) -> NetEncodeResult<()> {
         /*if let NBTSerializeOptions::WithHeader(name) = opts {
             writer.write_all(&[self.nbt_id()])?;
