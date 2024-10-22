@@ -1,10 +1,10 @@
 use crate::errors::StorageError;
 use crate::DatabaseBackend;
+use async_trait::async_trait;
 use parking_lot::RwLock;
 use redb::TableDefinition;
 use std::path::PathBuf;
 use std::sync::Arc;
-use async_trait::async_trait;
 
 #[derive(Clone)]
 pub struct RedbBackend {

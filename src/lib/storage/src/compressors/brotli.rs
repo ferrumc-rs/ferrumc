@@ -21,8 +21,8 @@ pub(crate) fn decompress_brotli(data: &[u8]) -> Result<Vec<u8>, StorageError> {
 
 #[cfg(test)]
 mod test {
-    use ferrumc_utils::root;
     use crate::compressors::{Compressor, CompressorType};
+    use ferrumc_utils::root;
 
     #[test]
     fn test_compress_decompress() {

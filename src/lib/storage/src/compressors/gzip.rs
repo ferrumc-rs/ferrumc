@@ -5,30 +5,30 @@ use flate2::Compression;
 use std::io::{Cursor, Read};
 use tracing::error;
 
-    #[profile("compress/gzip")]
-    pub(crate) fn compress_gzip(level: u32, data: &[u8]) -> Result<Vec<u8>, StorageError> {
-        let mut encoder = GzEncoder::new(data, Compression::new(level));
-        let mut compressed = Vec::new();
-        encoder.read_to_end(&mut compressed).map_err(|e| {
-            error!("Error compressing data: {}", e);
-            StorageError::CompressionError(e.to_string())
-        })?;
-        Ok(compressed)
-    }
-    pub(crate) fn decompress_gzip(data: &[u8]) -> Result<Vec<u8>, StorageError> {
-        let mut decoder = GzDecoder::new(Cursor::new(data));
-        let mut decompressed = Vec::new();
-        decoder.read_to_end(&mut decompressed).map_err(|e| {
-            error!("Error decompressing data: {}", e);
-            StorageError::DecompressionError(e.to_string())
-        })?;
-        Ok(decompressed)
-    }
+#[profile("compress/gzip")]
+pub(crate) fn compress_gzip(level: u32, data: &[u8]) -> Result<Vec<u8>, StorageError> {
+    let mut encoder = GzEncoder::new(data, Compression::new(level));
+    let mut compressed = Vec::new();
+    encoder.read_to_end(&mut compressed).map_err(|e| {
+        error!("Error compressing data: {}", e);
+        StorageError::CompressionError(e.to_string())
+    })?;
+    Ok(compressed)
+}
+pub(crate) fn decompress_gzip(data: &[u8]) -> Result<Vec<u8>, StorageError> {
+    let mut decoder = GzDecoder::new(Cursor::new(data));
+    let mut decompressed = Vec::new();
+    decoder.read_to_end(&mut decompressed).map_err(|e| {
+        error!("Error decompressing data: {}", e);
+        StorageError::DecompressionError(e.to_string())
+    })?;
+    Ok(decompressed)
+}
 
 #[cfg(test)]
 mod tests {
-    use ferrumc_utils::root;
     use crate::compressors::{Compressor, CompressorType};
+    use ferrumc_utils::root;
 
     #[test]
     fn test_compress_decompress() {
@@ -46,7 +46,7 @@ mod tests {
         let compressed = compressor.compress(data.as_slice()).unwrap();
         assert!(data.len() > compressed.len());
     }
-    
+
     #[test]
     fn test_compress_decompress_gzip() {
         let data = std::fs::read(root!(".etc/codec.nbt")).unwrap();

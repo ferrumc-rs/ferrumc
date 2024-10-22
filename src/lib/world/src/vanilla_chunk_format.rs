@@ -1,10 +1,9 @@
 use bitcode::{Decode, Encode};
-use ferrumc_net_codec::net_types::var_int::VarInt;
-use serde_derive::{Deserialize, Serialize};
-use std::collections::{BTreeMap, HashMap};
-use macro_rules_attribute::{apply, attribute_alias};
 use ferrumc_macros::NBTDeserialize;
 use ferrumc_macros::NBTSerialize;
+use macro_rules_attribute::{apply, attribute_alias};
+use serde_derive::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 attribute_alias! {
     #[apply(ChunkDerives)] = #[derive(NBTSerialize, NBTDeserialize,

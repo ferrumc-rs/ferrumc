@@ -1,6 +1,6 @@
+use crate::errors::WorldError::{GenericIOError, PermissionError};
 use std::io::ErrorKind;
 use thiserror::Error;
-use crate::errors::WorldError::{GenericIOError, PermissionError};
 
 #[derive(Debug, Clone, Error)]
 pub enum WorldError {

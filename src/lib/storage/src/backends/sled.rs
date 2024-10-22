@@ -1,8 +1,8 @@
 use crate::errors::StorageError;
 use crate::DatabaseBackend;
+use async_trait::async_trait;
 use std::path::PathBuf;
 use std::sync::Arc;
-use async_trait::async_trait;
 
 pub struct SledBackend {
     db: Arc<sled::Db>,

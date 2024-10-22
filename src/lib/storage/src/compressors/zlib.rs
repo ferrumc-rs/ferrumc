@@ -1,37 +1,28 @@
 use crate::errors::StorageError;
-use crate::Compressor;
 use std::io::Read;
 
-pub struct ZlibCompressor {
-    level: u32,
+pub(crate) fn compress_zlib(level: u32, data: &[u8]) -> Result<Vec<u8>, StorageError> {
+    let mut compressor = flate2::read::ZlibEncoder::new(data, flate2::Compression::new(level));
+    let mut compressed = Vec::new();
+    compressor
+        .read_to_end(&mut compressed)
+        .map_err(|e| StorageError::CompressionError(e.to_string()))?;
+    Ok(compressed)
 }
 
-
-    pub(crate) fn compress_zlib(level: u32, data: &[u8]) -> Result<Vec<u8>, StorageError> {
-        let mut compressor =
-            flate2::read::ZlibEncoder::new(data, flate2::Compression::new(level));
-        let mut compressed = Vec::new();
-        compressor
-            .read_to_end(&mut compressed)
-            .map_err(|e| StorageError::CompressionError(e.to_string()))?;
-        Ok(compressed)
-    }
-
-    pub(crate) fn decompress_zlib(data: &[u8]) -> Result<Vec<u8>, StorageError> {
-        let mut decompressor = flate2::read::ZlibDecoder::new(data);
-        let mut decompressed = Vec::new();
-        decompressor
-            .read_to_end(&mut decompressed)
-            .map_err(|e| StorageError::DecompressionError(e.to_string()))?;
-        Ok(decompressed)
-    }
-
+pub(crate) fn decompress_zlib(data: &[u8]) -> Result<Vec<u8>, StorageError> {
+    let mut decompressor = flate2::read::ZlibDecoder::new(data);
+    let mut decompressed = Vec::new();
+    decompressor
+        .read_to_end(&mut decompressed)
+        .map_err(|e| StorageError::DecompressionError(e.to_string()))?;
+    Ok(decompressed)
+}
 
 #[cfg(test)]
 mod test {
-    use super::*;
-    use ferrumc_utils::root;
     use crate::compressors::{Compressor, CompressorType};
+    use ferrumc_utils::root;
 
     #[test]
     fn test_compress_decompress() {

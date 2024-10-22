@@ -4,8 +4,8 @@ pub mod compressors;
 pub mod errors;
 
 use crate::errors::StorageError;
-use std::path::PathBuf;
 use async_trait::async_trait;
+use std::path::PathBuf;
 
 /// A trait for database backends. This is used to abstract away the underlying database implementation.
 /// This allows for easy swapping of databases without changing the rest of the code. These functions are

@@ -1,9 +1,9 @@
 use crate::errors::StorageError;
 use crate::DatabaseBackend;
+use async_trait::async_trait;
 use parking_lot::RwLock;
 use std::path::PathBuf;
 use std::sync::Arc;
-use async_trait::async_trait;
 
 pub struct SurrealKVBackend {
     db: Arc<RwLock<surrealkv::Store>>,
@@ -169,7 +169,7 @@ impl DatabaseBackend for SurrealKVBackend {
         for key in keys {
             let mut modified_key = table.as_bytes().to_vec();
             modified_key.extend_from_slice(&key.to_be_bytes());
-            let value = tx 
+            let value = tx
                 .get(&modified_key)
                 .map_err(|e| StorageError::ReadError(e.to_string()))?;
             values.push(value);
