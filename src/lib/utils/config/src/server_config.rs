@@ -165,7 +165,7 @@ impl ServerConfig {
                 std::io::stdin().read_line(&mut input)?;
 
                 // If the user enters "y", create a new configuration file.
-                if input.trim().to_ascii_lowercase() == "y" {
+                if input.trim().eq_ignore_ascii_case("y") {
                     // Backup the old configuration file.
                     std::fs::rename(&path, "config.toml.bak")?;
 

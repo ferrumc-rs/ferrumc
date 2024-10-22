@@ -90,7 +90,7 @@ impl<T: NBTSerializable + std::fmt::Debug> NBTSerializable for Vec<T> {
     }
 }
 
-impl<'a, T: NBTSerializable> NBTSerializable for &'a [T] {
+impl<T: NBTSerializable> NBTSerializable for &'_ [T] {
     fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
         write_header::<Self>(buf, options);
 
@@ -149,11 +149,8 @@ impl<'a, T: NBTSerializable> NBTSerializable for &'a [T] {
 
 impl<T: NBTSerializable> NBTSerializable for Option<T> {
     fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
-        match self {
-            Some(value) => {
-                value.serialize(buf, options);
-            }
-            None => {}
+        if let Some(value) = self {
+            value.serialize(buf, options);
         }
     }
 

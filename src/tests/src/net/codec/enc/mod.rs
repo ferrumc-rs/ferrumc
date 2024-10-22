@@ -10,6 +10,7 @@ struct SomeExampleEncStruct {
 }
 
 #[derive(NetEncode)]
+#[expect(dead_code)]
 struct SomeExampleEncStructWithPacketId {
     pub packet_id: VarInt, // Make this 0x10
     pub field1: u32,

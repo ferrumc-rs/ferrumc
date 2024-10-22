@@ -2,9 +2,9 @@ name: Rust
 
 on:
   pull_request:
-    branches: [ "dev" ]
+    branches: [ "dev", "rewrite/v3" ]
   push:
-    branches: [ "dev" ]
+    branches: [ "dev", "rewrite/v3" ]
   workflow_dispatch:
 
 env:
@@ -34,7 +34,6 @@ jobs:
         uses: dtolnay/rust-toolchain@nightly
         with:
           targets: ${{ matrix.target }}
-
       - name: Build
         uses: ClementTsang/cargo-action@v0.0.6
         with:
@@ -52,13 +51,11 @@ jobs:
         with:
           name: ferrumc-${{ matrix.os }}
           path: target/${{ matrix.target }}/release/ferrumc*
+  check:
+    steps:
+      - name: Run Clippy
+        uses: ClementTsang/cargo-action@v0.0.6
+        with:
+          args: -- -Dwarnings
+          command: clippy
 
-      # Uncomment the following block if you want to send a message to Discord:
-      # - name: Send message to Discord
-      #   env:
-      #     DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-      #   uses: Ilshidur/action-discord@master
-      #   with:
-      #     args: 'A new commit has been pushed!
-      #
-      #     {{ EVENT_PAYLOAD.head_commit.url }}'

@@ -30,7 +30,7 @@ pub struct LoginPlayPacket<'a> {
     pub enforces_secure_chat: bool,
 }
 
-impl<'a> LoginPlayPacket<'a> {
+impl LoginPlayPacket<'_> {
     pub fn new(conn_id: usize) -> Self {
         Self {
             entity_id: conn_id as i32,
