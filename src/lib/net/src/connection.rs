@@ -1,5 +1,9 @@
 use crate::packets::incoming::packet_skeleton::PacketSkeleton;
 use crate::{handle_packet, NetResult, ServerState};
+use ferrumc_ecs::components::{ComponentRefMut, ComponentStorage};
+use ferrumc_ecs::entities::Entity;
+use ferrumc_ecs::query::QueryItem;
+use ferrumc_ecs::ECSResult;
 use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use std::sync::Arc;
@@ -58,7 +62,19 @@ impl StreamWriter {
         Ok(())
     }
 }
+impl QueryItem for StreamWriter {
+    type Item<'a> = ComponentRefMut<'a, StreamWriter>;
 
+    /// Fetches a mutable reference to the `StreamWriter` for the given `entity`.
+    fn fetch<'a>(entity: Entity, storage: &ComponentStorage) -> ECSResult<Self::Item<'a>> {
+        storage.get_mut(entity)
+    }
+
+    /// Retrieves a list of entities that possess a `StreamWriter` component.
+    fn entities(storage: &ComponentStorage) -> Vec<Entity> {
+        storage.get_entities_with::<StreamWriter>()
+    }
+}
 pub struct CompressionStatus {
     pub enabled: bool,
 }
@@ -100,6 +116,7 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
         }
 
         let conn_state = state.universe.get::<ConnectionState>(entity)?.clone();
+
         if let Err(e) = handle_packet(
             packet_skele.id,
             entity,
