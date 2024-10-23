@@ -620,19 +620,9 @@ impl<'a> NetEncode for NbtTape<'a> {
     }
 }
 
-<<<<<<< HEAD
-impl NbtTapeElement<'_> {
-    pub fn serialize_as_network(
-        &self,
-        tape: &mut NbtTape,
-        writer: &mut Vec<u8>,
-        opts: &NBTSerializeOptions,
-    ) -> NetEncodeResult<()> {
-=======
 
 impl<'a> NbtTapeElement<'a> {
     pub fn serialize_as_network(&self, tape: &mut NbtTape, writer: &mut Vec<u8>, opts: &NBTSerializeOptions) -> NetEncodeResult<()> {
->>>>>>> parent of 00b9e17 (style: ran cargo fmt)
         /*if let NBTSerializeOptions::WithHeader(name) = opts {
             writer.write_all(&[self.nbt_id()])?;
             name.serialize(writer, &NBTSerializeOptions::None);
@@ -765,3 +755,4 @@ impl<'a> NbtTapeElement<'a> {
         }
     }
 }
+    

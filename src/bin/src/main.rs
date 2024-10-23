@@ -1,21 +1,12 @@
 // Security or something like that
 #![forbid(unsafe_code)]
 
-<<<<<<< HEAD
-use ferrumc_ecs::Universe;
-use ferrumc_events::infrastructure::Event;
-use ferrumc_net::{packets::outgoing::tick_event::TickEvent, ServerState};
-// use ferrumc_world::TickEvent;
-
-use log::debug;
 use std::{sync::Arc, time::Duration};
+use ferrumc_events::infrastructure::Event;
 use tokio::time::Instant;
-=======
-use std::sync::Arc;
->>>>>>> parent of 00b9e17 (style: ran cargo fmt)
-use tracing::{error, info};
+use tracing::{debug, error, info};
 use ferrumc_ecs::Universe;
-use ferrumc_net::ServerState;
+use ferrumc_net::{packets::outgoing::tick_event::TickEvent, ServerState};
 
 pub(crate)mod errors;
 mod packet_handlers;
