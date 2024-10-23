@@ -1,0 +1,11 @@
+[package]
+name = "better_ecs"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+dashmap = "6.1.0"
+parking_lot = "0.12.3"
+
+[lints]
+workspace = true

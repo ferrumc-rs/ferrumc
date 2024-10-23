@@ -25,7 +25,7 @@ members = [
     "src/lib/derive_macros",
     "src/lib/adapters/nbt",
     "src/lib/adapters/mca",
-    "src/tests",
+    "src/tests", "src/lib/better_ecs",
 ]
 
 #================== Lints ==================#
