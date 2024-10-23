@@ -1,18 +1,16 @@
-use ferrumc_macros::NetEncode;
-use ferrumc_net_codec::net_types::var_int::VarInt;
+use ferrumc_macros::{packet, NetEncode};
+use std::io::Write;
+use tokio::io::AsyncWriteExt;
 
 #[derive(NetEncode)]
+#[packet(packet_id = 0x01)]
 pub struct PongPacket {
-    pub packet_id: VarInt,
     pub payload: i64,
 }
 
-
-impl<'a> PongPacket {
-    pub fn new(payload: i64) -> Self
-    {
+impl PongPacket {
+    pub fn new(payload: i64) -> Self {
         Self {
-            packet_id: VarInt::from(0x01),
             payload,
         }
     }

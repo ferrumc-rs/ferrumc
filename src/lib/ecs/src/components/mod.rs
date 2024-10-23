@@ -38,7 +38,7 @@ impl ComponentStorage {
         let mut components = self
             .components
             .entry(type_id)
-            .or_insert_with(SparseSet::new);
+            .or_default();
         components.insert(entity, RwLock::new(Box::new(component)));
     }
 
@@ -58,6 +58,22 @@ impl ComponentStorage {
         let type_id = TypeId::of::<T>();
         self.components.get_mut(&type_id)
             .map(|mut components| components.remove(entity));
+    }
+
+    pub fn remove_all_components(&self, entity: Entity) -> ECSResult<()> {
+        self.components.iter_mut()
+            .for_each(|mut components| {
+                // check if its locked or not
+                if let Some(component) = components.get_mut(entity) {
+                    let lock = component.write();
+                    // basically wait for component to be able to be written to (or have no readers & writers)
+                    drop(lock);
+                    // Remove else-wise
+                    components.remove(entity);
+                }
+            });
+        
+        Ok(())
     }
 }
 impl ComponentStorage {
@@ -118,8 +134,24 @@ pub struct ComponentRefMut<'a, T: Component> {
     write_guard: RwLockWriteGuard<'a, Box<dyn Component>>,
     _phantom: PhantomData<&'a mut T>,
 }
+mod debug {
+    use std::fmt::Debug;
+    use crate::components::{Component, ComponentRef, ComponentRefMut};
 
-impl<'a, T: Component> Deref for ComponentRef<'a, T> {
+    impl<T: Component + Debug> Debug for ComponentRef<'_, T> {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            Debug::fmt(&**self, f)
+        }
+    }
+    
+    impl<T: Component + Debug> Debug for ComponentRefMut<'_, T> {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            Debug::fmt(&**self, f)
+        }
+    }
+}
+
+impl<T: Component> Deref for ComponentRef<'_, T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -127,7 +159,7 @@ impl<'a, T: Component> Deref for ComponentRef<'a, T> {
     }
 }
 
-impl<'a, T: Component> Deref for ComponentRefMut<'a, T> {
+impl<T: Component> Deref for ComponentRefMut<'_, T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -135,7 +167,7 @@ impl<'a, T: Component> Deref for ComponentRefMut<'a, T> {
     }
 }
 
-impl<'a, T: Component> DerefMut for ComponentRefMut<'a, T> {
+impl<T: Component> DerefMut for ComponentRefMut<'_, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { &mut *(&mut **self.write_guard as *mut dyn Component as *mut T) }
     }

@@ -81,6 +81,8 @@ pub trait Event: Sized + Send + Sync + 'static {
 
         // Convert listeners iterator into Stream
         stream::iter(listeners.iter())
+            // TODO: Remove this since it's not possible to have a wrong type in the map of the event???
+            // Maybe some speedup?
             // Filter only listeners we can downcast into the correct type
             .filter_map(
                 |dyn_list| async { dyn_list.downcast_ref::<EventListener<Self>>() },
@@ -157,7 +159,7 @@ pub trait Event: Sized + Send + Sync + 'static {
         Ok(())
     }
 */
-    /// Register a a new event listener for this event
+    /// Register a new event listener for this event
     fn register(listener: AsyncEventListener<Self>, priority: u8) {
         // Create the event listener structure
         let listener = EventListener::<Self> { listener, priority };

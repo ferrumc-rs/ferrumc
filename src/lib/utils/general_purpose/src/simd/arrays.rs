@@ -5,7 +5,17 @@ use std::arch::x86_64::*;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 use std::is_x86_feature_detected;
 
+
+// THIS CODE DOES WORK!!
+// If user is on non-x86_64, then it uses scalar code
+// If user is on x86_64, then it checks if AVX2 is available
+// If it is available, then it uses SIMD (AVX2) code
+// In this case for mask shuffling.
+
+
+
 /// Checks if AVX2 is available on the current CPU.
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 fn is_avx2_available() -> bool {
     let available: bool;
     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
@@ -38,11 +48,20 @@ pub fn u8_slice_to_u32_be(input: &[u8]) -> Vec<u32> {
         0,
         "Input length must be a multiple of 4 for u32 conversion"
     );
+    /*if is_avx2_available() {
+        unsafe { u8_slice_to_u32_be_simd(input) }
+    } else {
+        u8_slice_to_u32_be_normal(input)
+    }*/
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
     if is_avx2_available() {
         unsafe { u8_slice_to_u32_be_simd(input) }
     } else {
         u8_slice_to_u32_be_normal(input)
     }
+
+    #[cfg(not(any(target_arch = "x86", target_arch = "x86_64")))]
+    u8_slice_to_u32_be_normal(input)
 }
 
 fn u8_slice_to_u32_be_normal(input: &[u8]) -> Vec<u32> {
@@ -101,7 +120,7 @@ unsafe fn u8_slice_to_u32_be_simd(input: &[u8]) -> Vec<u32> {
 
 pub fn u8_slice_to_i32_be(input: &[u8]) -> Vec<i32> {
     let u32s = u8_slice_to_u32_be(input);
-    u32s.into_iter().map(|x| x as i32).collect()
+    unsafe { std::mem::transmute::<Vec<u32>, Vec<i32>>(u32s) }
 }
 
 pub fn u8_slice_to_u64_be(input: &[u8]) -> Vec<u64> {
@@ -110,11 +129,15 @@ pub fn u8_slice_to_u64_be(input: &[u8]) -> Vec<u64> {
         0,
         "Input length must be a multiple of 8 for u64 conversion"
     );
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
     if is_avx2_available() {
         unsafe { u8_slice_to_u64_be_simd(input) }
     } else {
         u8_slice_to_u64_be_normal(input)
     }
+
+    #[cfg(not(any(target_arch = "x86", target_arch = "x86_64")))]
+    u8_slice_to_u64_be_normal(input)
 }
 
 fn u8_slice_to_u64_be_normal(input: &[u8]) -> Vec<u64> {
@@ -179,11 +202,15 @@ pub fn u8_slice_to_i64_be(input: &[u8]) -> Vec<i64> {
 }
 
 pub fn u32_slice_to_u8_be(input: &[u32]) -> Vec<u8> {
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
     if is_avx2_available() {
         unsafe { u32_slice_to_u8_be_simd(input) }
     } else {
         u32_slice_to_u8_be_normal(input)
     }
+
+    #[cfg(not(any(target_arch = "x86", target_arch = "x86_64")))]
+    u32_slice_to_u8_be_normal(input)
 }
 
 fn u32_slice_to_u8_be_normal(input: &[u32]) -> Vec<u8> {
@@ -227,11 +254,15 @@ unsafe fn u32_slice_to_u8_be_simd(input: &[u32]) -> Vec<u8> {
 }
 
 pub fn u64_slice_to_u8_be(input: &[u64]) -> Vec<u8> {
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
     if is_avx2_available() {
         unsafe { u64_slice_to_u8_be_simd(input) }
     } else {
         u64_slice_to_u8_be_normal(input)
     }
+
+    #[cfg(not(any(target_arch = "x86", target_arch = "x86_64")))]
+    u64_slice_to_u8_be_normal(input)
 }
 
 fn u64_slice_to_u8_be_normal(input: &[u64]) -> Vec<u8> {

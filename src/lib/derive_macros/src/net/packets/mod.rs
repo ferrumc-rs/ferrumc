@@ -142,7 +142,7 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
 }
 
 
-/// `#[packet]` attribute is used to declare an incoming packet.
+/// `#[packet]` attribute is used to declare an incoming/outgoing packet.
 ///
 /// <b>packet_id</b> => The packet id of the packet. In hexadecimal.
 /// <b>state</b> => The state of the packet. Can be: "handshake", "status", "login", "play".
@@ -158,12 +158,22 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
 ///     pub timestamp: i64,
 /// }
 /// ```
+/// 
+/// ```
+/// use ferrumc_macros::NetEncode;
+/// 
+/// #[derive(NetEncode)]
+/// #[packet(packet_id = 0x05)]
+/// pub struct PacketChatMessage {
+///    pub message: String,
+///    pub timestamp: i64,
+/// }
 pub fn attribute(args: TokenStream, input: TokenStream) -> TokenStream {
     // These are just some checks to make sure the packet attribute is used correctly.
     // This is not actual functionality.
     // The actual functionality is in the `bake_registry` function.
 
-    const E: &str = "packet attribute must have the packet_id and state fields";
+    const E: &str = "packet attribute must have the packet_id and/or state fields. In case of incoming: both. In case of outgoing: only packet_id.";
     if args.is_empty() {
         return TokenStream::from(quote! {
             compile_error!(#E);
@@ -172,7 +182,7 @@ pub fn attribute(args: TokenStream, input: TokenStream) -> TokenStream {
 
     if !&["packet_id", "state"]
         .iter()
-        .all(|x| args.to_string().contains(x))
+        .any(|x| args.to_string().contains(x))
     {
         return TokenStream::from(quote! {
             compile_error!(#E);

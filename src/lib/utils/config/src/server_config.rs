@@ -4,8 +4,9 @@
 
 use crate::errors::ConfigError;
 use crate::statics::{get_global_config, set_global_config};
+use ferrumc_general_purpose::paths::get_root_path;
 use serde_derive::{Deserialize, Serialize};
-use tracing::{error, info};
+use tracing::{error, info, warn};
 
 /// The server configuration struct.
 ///
@@ -27,7 +28,7 @@ pub struct ServerConfig {
     pub network_tick_rate: u32,
     pub database: DatabaseConfig,
     pub world: String,
-    pub network_compression_threshold: u32,
+    pub network_compression_threshold: i32, // Can be negative
 }
 
 /// The database configuration section from [ServerConfig].
@@ -122,57 +123,59 @@ impl ServerConfig {
     /// - `path`: The path to the configuration file.
     /// - `prompt_user`: Whether to prompt the user to create a new configuration file if the current one is invalid.
     pub(crate) fn set_config(path: &str, prompt_user: bool) -> Result<ServerConfig, ConfigError> {
-        let config = std::fs::read_to_string(path);
+        let path = get_root_path()?.join(path);
+        let config = std::fs::read_to_string(&path);
         let config: &str = match &config {
             Ok(config) => config,
             Err(e) => {
                 // Check if we can prompt the user to create a new configuration file.
                 if !prompt_user {
-                    return Err(ConfigError::ConfigLoadError);
+                    return Err(ConfigError::ConfigLoadError(
+                        path.to_string_lossy().to_string(),
+                    ));
                 }
                 // Config could not be read. Prompt the user to create a new one from ServerConfig::Default.
-                error!("Could not read configuration file: {}", e);
-                error!("Would you like to create a new config file? (y/N): ");
+                warn!(
+                    "Could not read configuration file \"{}\" : {}",
+                    path.to_string_lossy().to_string(),
+                    e
+                );
+                info!("Creating new config file!");
 
-                let user_input = {
-                    let mut input = String::new();
-                    std::io::stdin().read_line(&mut input)?;
-                    input.trim().to_ascii_lowercase()
-                };
+                // Create a new config file
+                std::fs::write(&path, DEFAULT_CONFIG)?;
 
-                if user_input == "y" {
-                    // Create a new config file
-                    std::fs::write(path, DEFAULT_CONFIG)?;
-
-                    DEFAULT_CONFIG
-                } else {
-                    return Err(ConfigError::ConfigLoadError);
-                }
+                DEFAULT_CONFIG
             }
         };
-
 
         let config: ServerConfig = match toml::from_str(config) {
             Ok(config) => config,
             Err(e) => {
                 // Config could not be serialized. Prompt the user to create
                 // a new one from ServerConfig::Default.
-                error!("Could not read configuration file: {}", e);
+                error!(
+                    "Could not read configuration file \"{}\" : {}",
+                    path.to_string_lossy().to_string(),
+                    e
+                );
                 error!("Would you like to create a new config file? Your old configuration will be saved as \"config.toml.bak\". (y/N): ");
                 let mut input = String::new();
                 std::io::stdin().read_line(&mut input)?;
 
                 // If the user enters "y", create a new configuration file.
-                if input.trim().to_ascii_lowercase() == "y" {
+                if input.trim().eq_ignore_ascii_case("y") {
                     // Backup the old configuration file.
-                    std::fs::rename(path, "config.toml.bak")?;
+                    std::fs::rename(&path, "config.toml.bak")?;
 
                     // Create new configuration file.
-                    std::fs::write(path, DEFAULT_CONFIG)?;
+                    std::fs::write(&path, DEFAULT_CONFIG)?;
                     info!("Configuration file created.");
                 } else {
                     // User did not enter "y". Return the error.
-                    return Err(ConfigError::ConfigLoadError);
+                    return Err(ConfigError::ConfigLoadError(
+                        path.to_string_lossy().to_string(),
+                    ));
                 }
                 // Deserialize the configuration file into a ServerConfig struct.
                 toml::from_str(DEFAULT_CONFIG)?
@@ -201,7 +204,10 @@ impl Default for ServerConfig {
     }
 }
 
-const DEFAULT_CONFIG: &str = r#"host = "0.0.0.0"
+const DEFAULT_CONFIG: &str = r#"
+# This is the host/ip that the server will bind to. (127.0.0.1 for local, and 0.0.0.0 for public)
+host = "0.0.0.0"
+# This is the port that the server will bind to. (0-65535), 25565 is the default Minecraft port.
 port = 25565
 motd = ["A supersonic FerrumC server."]
 max_players = 20
