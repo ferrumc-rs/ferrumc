@@ -1,9 +1,7 @@
-use std::future::Future;
 use std::sync::Arc;
 
 use ferrumc_ecs::components::ComponentRefMut;
-use ferrumc_ecs::entities::Entity;
-use ferrumc_ecs::query::{Query, QueryItem};
+use ferrumc_ecs::query::Query;
 use ferrumc_macros::event_handler;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::errors::NetError;
@@ -11,9 +9,7 @@ use ferrumc_net::packets::outgoing::tick_event::TickEvent;
 use ferrumc_net::packets::outgoing::update_time::UpdateTimePacket;
 use ferrumc_net::GlobalState;
 use ferrumc_net_codec::encode::NetEncodeOpts;
-use serde_json::Error;
-use tokio::task::JoinHandle;
-use tracing::{debug, error, info};
+use tracing::{debug, error};
 
 pub async fn update_time(
     mut writer: ComponentRefMut<'_, StreamWriter>,

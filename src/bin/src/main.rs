@@ -53,9 +53,11 @@ async fn start_ticking(net_state: Arc<ServerState>) {
 async fn entry() -> Result<()> {
     let listener = ferrumc_net::server::create_server_listener().await?;
 
-    let state = ServerState::new(Universe::new(),AtomicBool::new(false));
+    let state = Arc::new(ServerState::new(Universe::new(),AtomicBool::new(false)));
 
-    ferrumc_net::server::listen(Arc::new(state), listener).await?;
+    tokio::task::spawn(start_ticking(state.clone()));
+
+    ferrumc_net::server::listen(state, listener).await?;
 
     Ok(())
 }

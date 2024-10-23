@@ -12,8 +12,8 @@ pub struct UpdateTimePacket {
 impl UpdateTimePacket {
     pub fn new(world_age: i64, time_of_day: i64) -> UpdateTimePacket {
         Self {
-            world_age: world_age,
-            time_of_day: time_of_day,
+            world_age,
+            time_of_day,
         }
     }
 }
