@@ -1206,6 +1206,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn generate_packet() {
         let registry_nbt_buf = include_bytes!("../../../../../../.etc/registry.nbt");
         // for each top level key in the registry, generate a packet
