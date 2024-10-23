@@ -24,7 +24,7 @@ pub async fn update_time(
         .await
     {
         Ok(_) => {
-            debug!("Sent update time packet");
+            // debug!("Sent update time packet");
         }
         Err(err) => {
             error!("Failed to send update time packet: {}", err);
@@ -34,7 +34,11 @@ pub async fn update_time(
 
 #[event_handler]
 async fn handle_tick(event: TickEvent, state: GlobalState) -> Result<TickEvent, NetError> {
-    // info!("Tick {} ", event.tick);
+    // TODO: Handle tick in terms of game logic here
+    // this should call a function in world which handles the world state and calls the appropriate events which send their respective packets
+
+    ///////
+
     let packet = Arc::new(UpdateTimePacket::new(event.tick, event.tick % 24000));
 
     let entities: Query<'_, StreamWriter> = state.universe.query();
