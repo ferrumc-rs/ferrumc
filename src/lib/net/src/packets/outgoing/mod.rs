@@ -9,3 +9,5 @@ pub mod registry_data;
 pub mod set_default_spawn_position;
 pub mod status_response;
 pub mod synchronize_player_position;
+pub mod tick_event;
+pub mod update_time;
