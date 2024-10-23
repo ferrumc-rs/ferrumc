@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use crate::de::borrow::{NbtTape, NbtTapeElement};
 use crate::{NBTError, Result};
 
@@ -100,28 +99,77 @@ mod primitives {
     }
 }
 
-impl<'a, V: FromNbt<'a>> FromNbt<'a> for HashMap<&'a str, V> {
-    fn from_nbt(tapes: &NbtTape<'a>, element: &NbtTapeElement<'a>) -> Result<Self> {
-        let compound = element.as_compound().ok_or(NBTError::TypeMismatch {
-            expected: "Compound",
-            found: element.nbt_type(),
-        })?;
-        // Compound: &Vec<(&str, NbtTapeElement)>, therefore we can just iterate over it and turn it into a hashmap.
-        compound
-            .iter()
-            .map(|(key, val)| Ok((*key, V::from_nbt(tapes, val)?)))
-            .collect()
+
+mod maps {
+    use std::collections::{BTreeMap, HashMap};
+    use crate::{FromNbt, NBTError, NbtTape, NbtTapeElement, Result};
+
+    impl<'a, V: FromNbt<'a>> FromNbt<'a> for HashMap<String, V> {
+        fn from_nbt(tapes: &NbtTape<'a>, element: &NbtTapeElement<'a>) -> Result<Self> {
+            let compound = element.as_compound().ok_or(NBTError::TypeMismatch {
+                expected: "Compound (from HashMap<String, V>)",
+                found: element.nbt_type(),
+            })?;
+            // Compound: &Vec<(&str, NbtTapeElement)>, therefore we can just iterate over it and turn it into a hashmap.
+            compound
+                .iter()
+                .map(|(key, val)| Ok((key.to_string(), V::from_nbt(tapes, val)?)))
+                .collect()
+        }
+    }
+
+    impl<'a, V: FromNbt<'a>> FromNbt<'a> for HashMap<&'a str, V> {
+        fn from_nbt(tapes: &NbtTape<'a>, element: &NbtTapeElement<'a>) -> Result<Self> {
+            let compound = element.as_compound().ok_or(NBTError::TypeMismatch {
+                expected: "Compound (from HashMap<&str, V>)",
+                found: element.nbt_type(),
+            })?;
+            // Compound: &Vec<(&str, NbtTapeElement)>, therefore we can just iterate over it and turn it into a hashmap.
+            compound
+                .iter()
+                .map(|(key, val)| Ok((*key, V::from_nbt(tapes, val)?)))
+                .collect()
+        }
+    }
+
+    impl<'a, V: FromNbt<'a>> FromNbt<'a> for BTreeMap<&'a str, V> {
+        fn from_nbt(tapes: &NbtTape<'a>, element: &NbtTapeElement<'a>) -> Result<Self> {
+            let compound = element.as_compound().ok_or(NBTError::TypeMismatch {
+                expected: "Compound (from BTreeMap<&str, V>)",
+                found: element.nbt_type(),
+            })?;
+            // Compound: &Vec<(&str, NbtTapeElement)>, therefore we can just iterate over it and turn it into a hashmap.
+
+            compound
+                .iter()
+                .map(|(key, val)| Ok((*key, V::from_nbt(tapes, val)?)))
+                .collect()
+        }
+    }
+    
+    impl<'a, V: FromNbt<'a>> FromNbt<'a> for BTreeMap<String, V> {
+        fn from_nbt(tapes: &NbtTape<'a>, element: &NbtTapeElement<'a>) -> Result<Self> {
+            let compound = element.as_compound().ok_or(NBTError::TypeMismatch {
+                expected: "Compound (from BTreeMap<String, V>)",
+                found: element.nbt_type(),
+            })?;
+            // Compound: &Vec<(&str, NbtTapeElement)>, therefore we can just iterate over it and turn it into a hashmap.
+
+            compound
+                .iter()
+                .map(|(key, val)| Ok((key.to_string(), V::from_nbt(tapes, val)?)))
+                .collect()
+        }
     }
 }
 
-
 #[cfg(test)]
-mod test_hashmap{
-    use std::collections::HashMap;
+mod test_map {
     use crate::{FromNbt, NBTSerializable, NBTSerializeOptions};
+    use std::collections::HashMap;
 
     #[test]
-    fn test_both_ways() {
+    fn test_hashmap_both_ways() {
         let some_hashmap = maplit::hashmap! {
             "key1" => 1,
             "key2" => 2,
@@ -140,5 +188,27 @@ mod test_hashmap{
         let hashmap = HashMap::<&str, i32>::from_nbt(&tapes, root).unwrap();
 
         assert_eq!(some_hashmap, hashmap);
+    }
+    
+    #[test]
+    fn test_btreemap_both_ways() {
+        let some_btreemap = maplit::btreemap! {
+            "key1" => 1,
+            "key2" => 2,
+            "key3" => 3,
+        };
+
+        let data = {
+            let mut buf = Vec::new();
+            some_btreemap.serialize(&mut buf, &NBTSerializeOptions::WithHeader("root"));
+            buf
+        };
+
+        let mut tapes = crate::de::borrow::NbtTape::new(&data);
+        tapes.parse();
+        let root = tapes.root.as_ref().map(|(_, b)| b).unwrap();
+        let btreemap = std::collections::BTreeMap::<&str, i32>::from_nbt(&tapes, root).unwrap();
+
+        assert_eq!(some_btreemap, btreemap);
     }
 }
