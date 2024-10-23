@@ -17,7 +17,7 @@ lazy_static! {
     static ref CONFIG: ServerConfig = create_config();
 }
 fn create_config() -> ServerConfig {
-    let config_location = get_root_path().expect("Could not get root").join("config.json");
+    let config_location = get_root_path().expect("Could not get root").join("config.toml");
     if config_location.exists() {
         let mut file = match File::open(config_location) {
             Ok(file) => file,

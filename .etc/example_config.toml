@@ -1,5 +1,3 @@
-# Server configuration
-[server]
 host = "0.0.0.0"  # IP or hostname where the server will bind
 port = 25565  # Server port (0-65535)
 motd = ["Welcome to the server!", "Have a great time!", "Adventure awaits!"]  # Message of the day
@@ -9,6 +7,6 @@ world = "World"  # The name of the world to load
 network_compression_threshold = 256  # Compression threshold for network packets (can be negative)
 
 # Database configuration
-[server.database]
+[database]
 cache_size = 2048  # Cache size in KB
 compression = "fast" # Compression settings (none, fast, best)
