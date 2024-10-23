@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use ferrumc_general_purpose::simd::arrays;
 use super::{NBTSerializable, NBTSerializeOptions};
 
@@ -159,23 +160,97 @@ impl<T: NBTSerializable> NBTSerializable for Option<T> {
     }
 }
 
+
+/// Serialize multiple values to a buffer.
+/// Order: buf, options, values...
+macro_rules! ser {
+
+    ($buf: expr, $opts: expr, $($value: expr),*) => {
+        $(
+            $value.serialize($buf, &$opts);
+        )*
+    };
+}
+
 mod hashmaps {
+    use std::collections::BTreeMap;
     use super::*;
     use crate::ser::NBTSerializeOptions;
-    impl<T: NBTSerializable> NBTSerializable for std::collections::HashMap<String, T> {
+    impl<T: NBTSerializable> NBTSerializable for HashMap<String, T> {
         //! Equivalent to a COMPOUND tag in NBT.
         fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
             write_header::<Self>(buf, options);
 
             for (key, value) in self {
                 // tag type ; name length; name
-                T::id().serialize(buf, &NBTSerializeOptions::None);
-                key.serialize(buf, &NBTSerializeOptions::None);
-                value.serialize(buf, &NBTSerializeOptions::None);
+                ser!(buf, NBTSerializeOptions::None, T::id(), key, value);
+            }
+
+            if !matches!(options, NBTSerializeOptions::None) {
+                // end tag
+                0u8.serialize(buf, &NBTSerializeOptions::None);
+            }
+        }
+
+        fn id() -> u8 {
+            TAG_COMPOUND
+        }
+    }
+
+    impl<'a, V: NBTSerializable> NBTSerializable for HashMap<&'a str, V> {
+        fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
+            write_header::<Self>(buf, options);
+
+            for (tag_name, value) in self {
+                // tag type ; name length; name
+                ser!(buf, NBTSerializeOptions::None, V::id(), tag_name, value);
             }
 
             // compounds need an ending tag too
-            if let NBTSerializeOptions::WithHeader(_) = options {
+            if !matches!(options, NBTSerializeOptions::None) {
+                // end tag
+                0u8.serialize(buf, &NBTSerializeOptions::None);
+            }
+        }
+
+        fn id() -> u8 {
+            TAG_COMPOUND
+        }
+    }
+
+
+    impl<'a, V: NBTSerializable> NBTSerializable for BTreeMap<&'a str, V> {
+        fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
+            write_header::<Self>(buf, options);
+
+            for (tag_name, value) in self {
+                // tag type ; name length; name
+                ser!(buf, NBTSerializeOptions::None, V::id(), tag_name, value);
+            }
+
+            // compounds need an ending tag too
+            if !matches!(options, NBTSerializeOptions::None) {
+                // end tag
+                0u8.serialize(buf, &NBTSerializeOptions::None);
+            }
+        }
+
+        fn id() -> u8 {
+            TAG_COMPOUND
+        }
+    }
+    
+    impl<V: NBTSerializable> NBTSerializable for BTreeMap<String, V> {
+        fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
+            write_header::<Self>(buf, options);
+
+            for (tag_name, value) in self {
+                // tag type ; name length; name
+                ser!(buf, NBTSerializeOptions::None, V::id(), tag_name, value);
+            }
+
+            // compounds need an ending tag too
+            if !matches!(options, NBTSerializeOptions::None) {
                 // end tag
                 0u8.serialize(buf, &NBTSerializeOptions::None);
             }
@@ -188,10 +263,14 @@ mod hashmaps {
 }
 fn write_header<T: NBTSerializable>(buf: &mut Vec<u8>, opts: &NBTSerializeOptions<'_>) {
     // tag type ; name length; name
-    let NBTSerializeOptions::WithHeader(name) = opts else {
-        return;
-    };
-
-    T::id().serialize(buf, &NBTSerializeOptions::None);
-    name.serialize(buf, &NBTSerializeOptions::None);
+    match opts {
+        NBTSerializeOptions::None => {}
+        NBTSerializeOptions::WithHeader(tag_name) => {
+            T::id().serialize(buf, &NBTSerializeOptions::None);
+            tag_name.serialize(buf, &NBTSerializeOptions::None);
+        }
+        NBTSerializeOptions::Network => {
+            T::id().serialize(buf, &NBTSerializeOptions::None);
+        }
+    }
 }
