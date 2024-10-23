@@ -1,5 +1,5 @@
 use crate::{errors::NetError, NetResult};
-use ferrumc_config::get_global_config;
+use ferrumc_config::statics::get_global_config;
 use ferrumc_net_codec::{decode::errors::NetDecodeError, net_types::var_int::VarInt};
 use std::io::Cursor;
 use std::{fmt::Debug, io::Read};

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use ferrumc_config::favicon::get_favicon_base64;
-use ferrumc_config::get_global_config;
+use ferrumc_config::statics::get_global_config;
 use ferrumc_macros::{packet, NetDecode};
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use crate::packets::IncomingPacket;

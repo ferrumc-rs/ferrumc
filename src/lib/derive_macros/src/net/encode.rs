@@ -110,7 +110,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                         let mut writer = &mut writer;
 
                         // Get compression threshold from config
-                        let compression_threshold = ferrumc_config::get_global_config().network_compression_threshold;
+                        let compression_threshold = ferrumc_config::statics::get_global_config().network_compression_threshold;
 
                         #packet_id_snippet
                         #(#compressed_fields)*
@@ -209,7 +209,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                         let mut writer = &mut writer;
 
                         // Get compression threshold from config
-                        let compression_threshold = ferrumc_config::get_global_config().network_compression_threshold;
+                        let compression_threshold = ferrumc_config::statics::get_global_config().network_compression_threshold;
 
                         #async_packet_id_snippet
                         #(#compressed_fields)*
