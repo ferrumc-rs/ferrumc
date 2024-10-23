@@ -197,7 +197,7 @@ mod hashmaps {
         }
     }
 
-    impl<'a, V: NBTSerializable> NBTSerializable for HashMap<&'a str, V> {
+    impl<V: NBTSerializable> NBTSerializable for HashMap<&str, V> {
         fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
             write_header::<Self>(buf, options);
 
@@ -219,7 +219,7 @@ mod hashmaps {
     }
 
 
-    impl<'a, V: NBTSerializable> NBTSerializable for BTreeMap<&'a str, V> {
+    impl<V: NBTSerializable> NBTSerializable for BTreeMap<&str, V> {
         fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
             write_header::<Self>(buf, options);
 

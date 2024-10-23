@@ -6,7 +6,7 @@ use futures::{stream, StreamExt};
 /// A Lazily initialized HashMap wrapped in a ShardedLock optimized for reads.
 type LazyRwListenerMap<K, V> = LazyLock<DashMap<K, V>>;
 
-type AsyncEventListener<E> = fn(
+pub type AsyncEventListener<E> = fn(
     <E as Event>::Data,
     <E as Event>::State,
 ) -> Pin<
