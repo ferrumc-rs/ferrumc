@@ -9,7 +9,7 @@ use ferrumc_net::packets::outgoing::tick_event::TickEvent;
 use ferrumc_net::packets::outgoing::update_time::UpdateTimePacket;
 use ferrumc_net::GlobalState;
 use ferrumc_net_codec::encode::NetEncodeOpts;
-use tracing::{debug, error};
+use tracing::error;
 
 pub async fn update_time(
     mut writer: ComponentRefMut<'_, StreamWriter>,
