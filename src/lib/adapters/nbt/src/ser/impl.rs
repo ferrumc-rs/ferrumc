@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use ferrumc_general_purpose::simd::arrays;
 use super::{NBTSerializable, NBTSerializeOptions};
 
@@ -156,6 +157,29 @@ impl<T: NBTSerializable> NBTSerializable for Option<T> {
 
     fn id() -> u8 {
         T::id()
+    }
+}
+
+impl<'a, V: NBTSerializable> NBTSerializable for HashMap<&'a str, V> {
+    fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
+        write_header::<Self>(buf, options);
+
+        for (tag_name, value) in self {
+            // tag type ; name length; name
+            V::id().serialize(buf, &NBTSerializeOptions::None);
+            tag_name.serialize(buf, &NBTSerializeOptions::None);
+            value.serialize(buf, &NBTSerializeOptions::None);
+        }
+
+        // compounds need an ending tag too
+        if !matches!(options, NBTSerializeOptions::None) {
+            // end tag
+            0u8.serialize(buf, &NBTSerializeOptions::None);
+        }
+    }
+
+    fn id() -> u8 {
+        TAG_COMPOUND
     }
 }
 

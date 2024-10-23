@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use crate::de::borrow::{NbtTape, NbtTapeElement};
 use crate::{NBTError, Result};
 
@@ -96,5 +97,48 @@ mod primitives {
             // handle optionals yourself lol (jk they're handled by the derive macro :p)
             Ok(Some(T::from_nbt(tapes, element)?))
         }
+    }
+}
+
+impl<'a, V: FromNbt<'a>> FromNbt<'a> for HashMap<&'a str, V> {
+    fn from_nbt(tapes: &NbtTape<'a>, element: &NbtTapeElement<'a>) -> Result<Self> {
+        let compound = element.as_compound().ok_or(NBTError::TypeMismatch {
+            expected: "Compound",
+            found: element.nbt_type(),
+        })?;
+        // Compound: &Vec<(&str, NbtTapeElement)>, therefore we can just iterate over it and turn it into a hashmap.
+        compound
+            .iter()
+            .map(|(key, val)| Ok((*key, V::from_nbt(tapes, val)?)))
+            .collect()
+    }
+}
+
+
+#[cfg(test)]
+mod test_hashmap{
+    use std::collections::HashMap;
+    use crate::{FromNbt, NBTSerializable, NBTSerializeOptions};
+
+    #[test]
+    fn test_both_ways() {
+        let some_hashmap = maplit::hashmap! {
+            "key1" => 1,
+            "key2" => 2,
+            "key3" => 3,
+        };
+
+        let data = {
+            let mut buf = Vec::new();
+            some_hashmap.serialize(&mut buf, &NBTSerializeOptions::WithHeader("root"));
+            buf
+        };
+
+        let mut tapes = crate::de::borrow::NbtTape::new(&data);
+        tapes.parse();
+        let root = tapes.root.as_ref().map(|(_, b)| b).unwrap();
+        let hashmap = HashMap::<&str, i32>::from_nbt(&tapes, root).unwrap();
+
+        assert_eq!(some_hashmap, hashmap);
     }
 }
