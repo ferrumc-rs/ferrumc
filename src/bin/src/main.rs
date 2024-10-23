@@ -1,10 +1,12 @@
 // Security or something like that
 #![forbid(unsafe_code)]
 
-use std::sync::{atomic::AtomicBool, Arc};
-use tracing::{error, info};
+use std::{sync::{atomic::AtomicBool, Arc}, time::Duration};
+use ferrumc_events::infrastructure::Event;
+use tokio::time::Instant;
+use tracing::{debug, error, info};
 use ferrumc_ecs::Universe;
-use ferrumc_net::ServerState;
+use ferrumc_net::{packets::outgoing::tick_event::TickEvent, ServerState};
 
 pub(crate)mod errors;
 mod packet_handlers;
@@ -22,6 +24,29 @@ async fn main() {
         error!("{:?}", e);
     } else {
         info!("Server exited successfully.");
+    }
+}
+
+async fn start_ticking(net_state: Arc<ServerState>) {
+    // is game time saved in a file??
+    let mut tick = 0;
+    loop {
+        let required_end = Instant::now() + Duration::from_millis(50);
+        // TODO handle error
+        let res = TickEvent::trigger(TickEvent::new(tick), net_state.clone()).await;
+
+        if res.is_err() {
+            debug!("error : {:?}", res);
+        }
+        let now = Instant::now();
+        if required_end > now {
+            tokio::time::sleep(required_end - now).await;
+        } else {
+            let time_debt = now - required_end;
+            info!("running behind! by : {}ms", time_debt.as_millis());
+        }
+
+        tick += 1;
     }
 }
 
