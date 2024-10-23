@@ -35,7 +35,7 @@ impl<T> SparseSet<T> {
     pub fn get(&self, entity: Entity) -> Option<&T> {
         self.indices
             .get(&entity)
-            .map(|index| &self.components[*index])
+            .and_then(|index| self.components.get(*index))
     }
 
     /// Get a mutable reference to a component for a specific Entity.
@@ -43,17 +43,30 @@ impl<T> SparseSet<T> {
     pub fn get_mut(&mut self, entity: Entity) -> Option<&mut T> {
         self.indices
             .get(&entity)
-            .map(|index| &mut self.components[*index])
+            .and_then(|index| self.components.get_mut(*index))
     }
 
     /// Remove a component for a specific Entity.
     /// Returns the removed component if it existed.
     pub fn remove(&mut self, entity: Entity) -> Option<T> {
-        if let Some(index) = self.indices.remove(&entity) {
-            Some(self.components.remove(index))
-        } else {
-            None
+        let index = self.indices.remove(&entity)?;
+
+        let last_index = self.components.len() - 1;
+
+        // If we're not removing the last element, swap with the last.
+        if index != last_index {
+            self.components.swap(index, last_index);
+
+            let last_entity = self.indices.iter()
+                .find(|(_, &i)| i == last_index)
+                .map(|(e, _)| *e)
+                .expect("Entity not found. This should never happen.");
+
+            // Update the moved entity's index.
+            self.indices.insert(last_entity, index);
         }
+        
+        self.components.pop()
     }
     
     pub fn entities(&self) -> Vec<Entity> {
