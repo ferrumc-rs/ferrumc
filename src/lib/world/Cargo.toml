@@ -6,6 +6,9 @@ edition = "2021"
 
 [dependencies]
 thiserror = { workspace = true }
-
+ferrumc-macros={workspace =true}
 ferrumc-logging = { workspace = true }
 ferrumc-profiling = { workspace = true }
+ferrumc-net={workspace =true}
+ferrumc-ecs={workspace =true}
+ferrumc-events = { workspace = true }

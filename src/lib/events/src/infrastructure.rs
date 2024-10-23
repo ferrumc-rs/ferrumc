@@ -6,7 +6,7 @@ use futures::{stream, StreamExt};
 /// A Lazily initialized HashMap wrapped in a ShardedLock optimized for reads.
 type LazyRwListenerMap<K, V> = LazyLock<DashMap<K, V>>;
 
-type AsyncEventListener<E> = fn(
+pub type AsyncEventListener<E> = fn(
     <E as Event>::Data,
     <E as Event>::State,
 ) -> Pin<
@@ -159,7 +159,7 @@ pub trait Event: Sized + Send + Sync + 'static {
         Ok(())
     }
 */
-    /// Register a new event listener for this event
+    /// Register a a new event listener for this event
     fn register(listener: AsyncEventListener<Self>, priority: u8) {
         // Create the event listener structure
         let listener = EventListener::<Self> { listener, priority };
