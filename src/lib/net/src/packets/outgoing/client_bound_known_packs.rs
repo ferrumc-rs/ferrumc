@@ -16,13 +16,13 @@ pub struct Pack<'a> {
     pub version: &'a str,
 }
 
-impl<'a> Default for ClientBoundKnownPacksPacket<'a> {
+impl Default for ClientBoundKnownPacksPacket<'_> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<'a> ClientBoundKnownPacksPacket<'a> {
+impl ClientBoundKnownPacksPacket<'_> {
     pub fn new() -> Self {
         Self {
             packs: LengthPrefixedVec::new(vec![Pack::new("minecraft", "core", "1.21")]),

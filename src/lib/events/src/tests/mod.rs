@@ -17,6 +17,7 @@ pub enum SomeEventError {}
 
 impl Event for SomeEvent {
     type Data = Self;
+    type State = ();
 
     type Error = SomeEventError;
 
@@ -29,7 +30,7 @@ impl Event for SomeEvent {
 async fn test_something() {
     let event_data = SomeEvent { data: 0 };
 
-    SomeEvent::trigger(event_data).await.unwrap();
+    SomeEvent::trigger(event_data, ()).await.unwrap();
 }
 
 // #[ctor::ctor]
@@ -56,7 +57,7 @@ async fn test_something() {
 
 #[ctor::ctor]
 fn __register_some_event_listener() {
-    SomeEvent::register(|ev: SomeEvent| Box::pin(some_event_listener(ev)), 0);
+    SomeEvent::register(|ev: SomeEvent, _: ()| Box::pin(some_event_listener(ev)), 0);
 }
 
 async fn some_event_listener(mut event: SomeEvent) -> Result<SomeEvent, SomeEventError> {
@@ -67,7 +68,7 @@ async fn some_event_listener(mut event: SomeEvent) -> Result<SomeEvent, SomeEven
 
 #[ctor::ctor]
 fn __register_some_event_listener2() {
-    SomeEvent::register(|ev: SomeEvent| Box::pin(some_event_listener2(ev)), 255);
+    SomeEvent::register(|ev: SomeEvent, _: ()| Box::pin(some_event_listener2(ev)), 255);
 }
 
 async fn some_event_listener2(event: SomeEvent) -> Result<SomeEvent, SomeEventError> {

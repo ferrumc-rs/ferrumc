@@ -17,7 +17,7 @@ mod structs {
         pub(crate) z_pos: i32,
         #[nbt(rename = "Heightmaps")]
         pub(crate) heightmaps: Heightmaps<'a>,
-        sections: Vec<Section<'a>>,
+        _sections: Vec<Section<'a>>,
     }
 
     #[derive(NBTDeserialize)]
@@ -29,20 +29,20 @@ mod structs {
     #[derive(NBTDeserialize)]
     pub(super) struct Section<'a> {
         #[nbt(rename = "Y")]
-        y: i8,
-        block_states: Option<BlockState<'a>>,
+        _y: i8,
+        _block_states: Option<BlockState<'a>>,
     }
 
     #[derive(NBTDeserialize)]
     pub(super) struct BlockState<'a> {
-        pub(crate) data: Option<&'a [i64]>,
-        pub(crate) palette: Vec<Palette<'a>>,
+        pub(crate) _data: Option<&'a [i64]>,
+        pub(crate) _palette: Vec<Palette<'a>>,
     }
 
     #[derive(NBTDeserialize)]
     pub(super) struct Palette<'a> {
         #[nbt(rename = "Name")]
-        pub(crate) name: &'a str,
+        pub(crate) _name: &'a str,
     }
 }
 fn bench_ferrumc_nbt(data: &[u8]) {
@@ -76,7 +76,7 @@ fn bench_simdnbt(data: &[u8]) {
         .unwrap()
         .into_iter()
         .filter_map(|section| {
-            let y = section.get("Y").unwrap().byte().unwrap();
+            let _ = section.get("Y").unwrap().byte().unwrap();
             let block_states = section.get("block_states")?;
             let block_states = block_states.compound().unwrap();
             let data = block_states.get("data")?;
@@ -92,12 +92,12 @@ fn bench_simdnbt(data: &[u8]) {
                     let str = name.to_str();
                     let name = str.as_ref();
                     let name = Box::leak(name.to_string().into_boxed_str());
-                    Palette { name }
+                    Palette { _name: name }
                 })
                 .collect();
             Some(BlockState {
-                data: Some(data),
-                palette,
+                _data: Some(data),
+                _palette: palette,
             })
         })
         .collect::<Vec<_>>();

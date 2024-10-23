@@ -9,6 +9,12 @@ pub struct SparseSet<T> {
     indices: HashMap<Entity, usize>,
 }
 
+impl<T> Default for SparseSet<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<T> SparseSet<T> {
     pub fn new() -> Self {
         SparseSet {
