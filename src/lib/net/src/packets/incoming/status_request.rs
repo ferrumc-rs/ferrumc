@@ -1,26 +1,28 @@
-use crate::connection::StreamWriter;
-use crate::packets::outgoing::status_response::StatusResponse;
-use crate::packets::IncomingPacket;
-use crate::{NetResult, ServerState};
+use std::sync::Arc;
 use ferrumc_config::favicon::get_favicon_base64;
 use ferrumc_config::get_global_config;
 use ferrumc_macros::{packet, NetDecode};
 use ferrumc_net_codec::encode::NetEncodeOpts;
-use std::sync::Arc;
+use crate::packets::IncomingPacket;
+use crate::{NetResult, ServerState};
+use crate::connection::StreamWriter;
+use crate::packets::outgoing::status_response::StatusResponse;
 
 #[derive(NetDecode, Debug)]
 #[packet(packet_id = 0x00, state = "status")]
-pub struct StatusRequestPacket {}
+pub struct StatusRequestPacket {
+
+}
 
 impl IncomingPacket for StatusRequestPacket {
     async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
         let response = StatusResponse::new(get_server_status());
 
-        let mut writer = state.universe.get_mut::<StreamWriter>(conn_id)?;
+        let mut writer = state
+            .universe
+            .get_mut::<StreamWriter>(conn_id)?;
 
-        writer
-            .send_packet(&response, &NetEncodeOpts::WithLength)
-            .await?;
+        writer.send_packet(&response, &NetEncodeOpts::WithLength).await?;
 
         Ok(())
     }
@@ -38,26 +40,26 @@ fn get_server_status() -> String {
         }
 
         #[derive(serde_derive::Serialize)]
-        pub(super) struct Version<'a> {
+        pub(super)struct Version<'a> {
             pub name: &'a str,
             pub protocol: u16,
         }
 
         #[derive(serde_derive::Serialize)]
-        pub(super) struct Players<'a> {
+        pub(super)struct Players<'a> {
             pub max: u32,
             pub online: u16,
             pub sample: Vec<Player<'a>>,
         }
 
         #[derive(serde_derive::Serialize)]
-        pub(super) struct Player<'a> {
+        pub(super)struct Player<'a> {
             pub name: &'a str,
             pub id: &'a str,
         }
 
         #[derive(serde_derive::Serialize)]
-        pub(super) struct Description<'a> {
+        pub(super)struct Description<'a> {
             pub text: &'a str,
         }
     }
@@ -69,30 +71,28 @@ fn get_server_status() -> String {
         protocol: 767,
     };
 
+
     // TODO: Get online players and make players count dynamic
     let players = structs::Players {
         max: config.max_players,
         online: 0,
-        sample: vec![
-            structs::Player {
-                name: "Sweattypalms",
-                id: "00000000-0000-0000-0000-000000000000",
-            },
-            structs::Player {
-                name: "ReCore_",
-                id: "00000000-0000-0000-0000-000000000000",
-            },
-        ],
+        sample: vec![structs::Player {
+            name: "Sweattypalms",
+            id: "00000000-0000-0000-0000-000000000000",
+        }, structs::Player {
+            name: "ReCore_",
+            id: "00000000-0000-0000-0000-000000000000",
+        }],
     };
-
+    
     // TODO: Randomize MOTD
     let description = structs::Description {
         text: config.motd[0].as_str(),
     };
-
+    
     let favicon = get_favicon_base64();
     // let favicon = "data:image/png;base64,<data>";
-
+    
     let status = structs::ServerStatus {
         version,
         players,
@@ -100,6 +100,7 @@ fn get_server_status() -> String {
         favicon,
         enforces_secure_chat: false,
     };
-
+    
     serde_json::to_string(&status).unwrap()
 }
+

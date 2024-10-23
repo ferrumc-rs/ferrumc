@@ -9,7 +9,7 @@ use syn::{parse_macro_input, LitInt, LitStr};
 pub fn bake_registry(input: TokenStream) -> TokenStream {
     let manifest_dir = env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set");
     let module_path = parse_macro_input!(input as syn::LitStr).value();
-
+    
     let mut path = manifest_dir.add(module_path.as_str());
     path = path.replace("\\", "/");
 
@@ -82,8 +82,7 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
                     }
 
                     Ok(())
-                })
-                .unwrap();
+                }).unwrap();
 
                 let packet_id = packet_id.expect("packet_id not found");
 
@@ -94,7 +93,7 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
                     "[FERRUMC_MACROS] Found Packet (ID: 0x{:02X}, State: {}, Struct Name: {})",
                     packet_id, state, struct_name
                 );
-
+                
                 let path = format!(
                     // "crate::net::packets::incoming::{}",
                     "{}::{}",
@@ -104,8 +103,7 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
 
                 let struct_path = format!("{}::{}", path, struct_name);
 
-                let struct_path =
-                    syn::parse_str::<syn::Path>(&struct_path).expect("parse_str failed");
+                let struct_path = syn::parse_str::<syn::Path>(&struct_path).expect("parse_str failed");
 
                 match_arms.push(quote! {
                     (#packet_id, #state) => {
@@ -128,20 +126,21 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
     );
 
     let match_arms = match_arms.into_iter();
-
+    
     let output = quote! {
         pub async fn handle_packet<R: std::io::Read>(packet_id: u8, conn_id: usize, conn_state: &crate::connection::ConnectionState, cursor: &mut R, state: std::sync::Arc<crate::ServerState>) -> crate::NetResult<()> {
             match (packet_id, conn_state.as_str()) {
                 #(#match_arms)*
                 _ => tracing::warn!("No packet found for ID: 0x{:02X} in state: {}", packet_id, conn_state.as_str()),
             }
-
+            
             Ok(())
         }
     };
-
+    
     TokenStream::from(output)
 }
+
 
 /// `#[packet]` attribute is used to declare an incoming/outgoing packet.
 ///
@@ -159,10 +158,10 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
 ///     pub timestamp: i64,
 /// }
 /// ```
-///
+/// 
 /// ```
 /// use ferrumc_macros::NetEncode;
-///
+/// 
 /// #[derive(NetEncode)]
 /// #[packet(packet_id = 0x05)]
 /// pub struct PacketChatMessage {

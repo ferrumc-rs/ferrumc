@@ -111,9 +111,12 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
             warn!("Failed to read packet. Possibly connection closed.");
             break 'recv;
         };
-        if ferrumc_config::get_global_config().log_packets {
-            trace!("Received packet: {:?}", packet_skele);
+        if ferrumc_config::get_global_config().log_packets{
+        trace!("Received packet: {:?}", packet_skele);
+
+
         }
+
 
         let conn_state = state.universe.get::<ConnectionState>(entity)?.clone();
 

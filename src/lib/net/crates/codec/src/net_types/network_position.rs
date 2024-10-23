@@ -34,15 +34,9 @@ impl NetEncode for NetworkPosition {
         Ok(())
     }
 
-    async fn encode_async<W: AsyncWrite + Unpin>(
-        &self,
-        writer: &mut W,
-        _: &NetEncodeOpts,
-    ) -> NetEncodeResult<()> {
+    async fn encode_async<W: AsyncWrite + Unpin>(&self, writer: &mut W, _: &NetEncodeOpts) -> NetEncodeResult<()> {
         use tokio::io::AsyncWriteExt;
-        writer
-            .write_all(self.as_u64().to_be_bytes().as_ref())
-            .await?;
+        writer.write_all(self.as_u64().to_be_bytes().as_ref()).await?;
         Ok(())
     }
 }

@@ -17,7 +17,9 @@ pub type GlobalState = Arc<ServerState>;
 
 impl ServerState {
     pub fn new(universe: Universe) -> Self {
-        Self { universe }
+        Self {
+            universe
+        }
     }
 }
 

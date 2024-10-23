@@ -1,9 +1,9 @@
-use crate::packets::IncomingPacket;
-use crate::{NetResult, ServerState};
-use ferrumc_macros::{packet, NetDecode};
-use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::sync::Arc;
 use tracing::debug;
+use ferrumc_macros::{packet, NetDecode};
+use ferrumc_net_codec::net_types::var_int::VarInt;
+use crate::packets::IncomingPacket;
+use crate::{NetResult, ServerState};
 
 #[derive(Debug, NetDecode)]
 #[packet(packet_id = 0x00, state = "configuration")]
@@ -15,7 +15,7 @@ pub struct ClientInformation {
     pub displayed_skin_parts: u8,
     pub main_hand: MainHand,
     pub enable_text_filtering: bool,
-    pub allow_server_listings: bool,
+    pub allow_server_listings: bool
 }
 
 #[derive(Debug, NetDecode)]
@@ -24,7 +24,7 @@ pub struct ClientInformation {
 pub enum ChatMode {
     Enabled,
     CommandsOnly,
-    Hidden,
+    Hidden
 }
 
 #[derive(Debug, NetDecode)]
@@ -32,7 +32,7 @@ pub enum ChatMode {
 #[repr(u8)]
 pub enum MainHand {
     Left,
-    Right,
+    Right
 }
 
 impl IncomingPacket for ClientInformation {

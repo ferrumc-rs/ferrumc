@@ -30,7 +30,7 @@ pub fn database_benchmarks(c: &mut Criterion) {
     let _handle = runtime.enter();
     {
         let mut temps = Vec::new();
-
+        
         #[cfg(feature = "redb")]
         let mut redb_backend = runtime.block_on(async {
             let mut db_file = PathBuf::from(root!(".temp/redb"));
@@ -45,7 +45,7 @@ pub fn database_benchmarks(c: &mut Criterion) {
             temps.push(db_file);
             backend
         });
-
+        
         #[cfg(feature = "surrealkv")]
         let mut surreal_backend = runtime.block_on(async {
             let mut db_file = PathBuf::from(root!(".temp/surreal"));
@@ -74,7 +74,7 @@ pub fn database_benchmarks(c: &mut Criterion) {
             temps.push(db_file);
             backend
         });
-
+        
         #[cfg(feature = "rocksdb")]
         let mut rocksdb_backend = runtime.block_on(async {
             let mut db_file = PathBuf::from("R:/temp/rocksdb");
@@ -95,7 +95,7 @@ pub fn database_benchmarks(c: &mut Criterion) {
         let mut write_group = c.benchmark_group("Write");
         write_group.measurement_time(std::time::Duration::from_secs(5));
         write_group.throughput(criterion::Throughput::Bytes(data.len() as u64));
-
+        
         #[cfg(feature = "redb")]
         write_group.bench_with_input(
             "Redb",

@@ -1,8 +1,8 @@
 use crate::de::converter::FromNbt;
-use crate::{NBTSerializable, NBTSerializeOptions};
-use ferrumc_general_purpose::simd::arrays;
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
 use std::io::Write;
+use crate::{NBTSerializable, NBTSerializeOptions};
+use ferrumc_general_purpose::simd::arrays;
 
 #[repr(u8)]
 #[derive(Debug, PartialEq, Clone)]
@@ -620,6 +620,7 @@ impl<'a> NetEncode for NbtTape<'a> {
     }
 }
 
+<<<<<<< HEAD
 impl NbtTapeElement<'_> {
     pub fn serialize_as_network(
         &self,
@@ -627,11 +628,16 @@ impl NbtTapeElement<'_> {
         writer: &mut Vec<u8>,
         opts: &NBTSerializeOptions,
     ) -> NetEncodeResult<()> {
+=======
+
+impl<'a> NbtTapeElement<'a> {
+    pub fn serialize_as_network(&self, tape: &mut NbtTape, writer: &mut Vec<u8>, opts: &NBTSerializeOptions) -> NetEncodeResult<()> {
+>>>>>>> parent of 00b9e17 (style: ran cargo fmt)
         /*if let NBTSerializeOptions::WithHeader(name) = opts {
             writer.write_all(&[self.nbt_id()])?;
             name.serialize(writer, &NBTSerializeOptions::None);
         }*/
-
+        
         match opts {
             NBTSerializeOptions::None => {}
             NBTSerializeOptions::WithHeader(name) => {
@@ -642,7 +648,8 @@ impl NbtTapeElement<'_> {
                 writer.write_all(&[self.nbt_id()])?;
             }
         }
-
+        
+        
         match self {
             NbtTapeElement::End => Ok(()),
             NbtTapeElement::Byte(val) => {
@@ -739,14 +746,18 @@ impl NbtTapeElement<'_> {
             }
             NbtTapeElement::IntArray(data) => {
                 (data.len() as i32).serialize(writer, &NBTSerializeOptions::None);
-                let data = unsafe { std::mem::transmute::<&[i32], &[u32]>(data.as_slice()) };
+                let data = unsafe {
+                    std::mem::transmute::<&[i32], &[u32]>(data.as_slice())
+                };
                 let data = arrays::u32_slice_to_u8_be(data);
                 writer.write_all(data.as_slice())?;
                 Ok(())
             }
             NbtTapeElement::LongArray(data) => {
                 (data.len() as i32).serialize(writer, &NBTSerializeOptions::None);
-                let data = unsafe { std::mem::transmute::<&[i64], &[u64]>(data.as_slice()) };
+                let data = unsafe {
+                    std::mem::transmute::<&[i64], &[u64]>(data.as_slice())
+                };
                 let data = arrays::u64_slice_to_u8_be(data);
                 writer.write_all(data.as_slice())?;
                 Ok(())

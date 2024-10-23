@@ -2,9 +2,9 @@ use crate::decode::errors::NetDecodeError;
 use crate::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
 use crate::encode::errors::NetEncodeError;
 use crate::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
-use crate::net_types::NetTypesError;
 use std::io::{Read, Write};
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
+use crate::net_types::NetTypesError;
 
 #[derive(Debug)]
 pub struct VarInt {
@@ -14,7 +14,7 @@ pub struct VarInt {
     pub len: usize,
 }
 
-mod adapters {
+mod adapters{
     use crate::net_types::var_int::VarInt;
 
     impl From<usize> for VarInt {
@@ -22,31 +22,33 @@ mod adapters {
             Self::new(value as i32)
         }
     }
-
+    
+    
     impl From<VarInt> for u8 {
         fn from(value: VarInt) -> Self {
             value.val as u8
         }
     }
-
+    
     impl From<u8> for VarInt {
         fn from(value: u8) -> Self {
             Self::new(value as i32)
         }
     }
-
+    
     impl From<i32> for VarInt {
         fn from(value: i32) -> Self {
             Self::new(value)
         }
     }
-
+    
+    
     impl Default for VarInt {
         fn default() -> Self {
             Self::new(0)
         }
     }
-
+    
     impl PartialEq<usize> for VarInt {
         fn eq(&self, other: &usize) -> bool {
             self.val == *other as i32
@@ -134,10 +136,7 @@ impl VarInt {
         }
     }
 
-    pub async fn write_async<W: AsyncWrite + Unpin>(
-        &self,
-        cursor: &mut W,
-    ) -> Result<(), NetTypesError> {
+    pub async fn write_async<W: AsyncWrite + Unpin>(&self, cursor: &mut W) -> Result<(), NetTypesError> {
         let mut val = self.val;
         loop {
             if (val & !SEGMENT_BITS) == 0 {
@@ -145,9 +144,7 @@ impl VarInt {
                 return Ok(());
             }
 
-            cursor
-                .write_all(&[((val & SEGMENT_BITS) | CONTINUE_BIT) as u8])
-                .await?;
+            cursor.write_all(&[((val & SEGMENT_BITS) | CONTINUE_BIT) as u8]).await?;
             val = ((val as u32) >> 7) as i32; // Rust equivalent of Java's >>> operator
         }
     }
@@ -155,7 +152,8 @@ impl VarInt {
 
 impl NetDecode for VarInt {
     fn decode<R: Read>(reader: &mut R, _opts: &NetDecodeOpts) -> NetDecodeResult<Self> {
-        VarInt::read(reader).map_err(|e| NetDecodeError::ExternalError(e.into()))
+        VarInt::read(reader)
+            .map_err(|e| NetDecodeError::ExternalError(e.into()))
     }
 }
 
@@ -165,13 +163,8 @@ impl NetEncode for VarInt {
             .map_err(|e| NetEncodeError::ExternalError(e.into()))
     }
 
-    async fn encode_async<W: AsyncWrite + Unpin>(
-        &self,
-        writer: &mut W,
-        _opts: &NetEncodeOpts,
-    ) -> NetEncodeResult<()> {
-        self.write_async(writer)
-            .await
+    async fn encode_async<W: AsyncWrite + Unpin>(&self, writer: &mut W, _opts: &NetEncodeOpts) -> NetEncodeResult<()> {
+        self.write_async(writer).await
             .map_err(|e| NetEncodeError::ExternalError(e.into()))
     }
 }

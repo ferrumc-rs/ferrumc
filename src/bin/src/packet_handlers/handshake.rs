@@ -3,9 +3,9 @@ use ferrumc_net::connection::ConnectionState;
 use ferrumc_net::errors::NetError::Packet;
 use ferrumc_net::errors::{NetError, PacketError};
 use ferrumc_net::packets::incoming::handshake::HandshakeEvent;
-use ferrumc_net::utils::ecs_helpers::EntityExt;
 use ferrumc_net::GlobalState;
 use tracing::trace;
+use ferrumc_net::utils::ecs_helpers::EntityExt;
 
 #[event_handler]
 async fn handle_handshake(
@@ -17,7 +17,8 @@ async fn handle_handshake(
 
     // set connection state to handshake
     let entity = handshake_event.conn_id;
-    let mut connection_state = entity.get_mut::<ConnectionState>(state)?;
+    let mut connection_state = entity
+        .get_mut::<ConnectionState>(state)?;
 
     trace!(
         "conn state: {} -> {}",

@@ -30,7 +30,7 @@ impl EntityManager {
         self.new_entity_id.fetch_add(1, Ordering::Relaxed);
         id as Entity
     }
-
+    
     pub fn builder<'a>(&'a self, component_storage: &'a ComponentStorage) -> EntityBuilder<'a> {
         EntityBuilder::new(self.create_entity(), component_storage)
     }
@@ -43,10 +43,7 @@ pub struct EntityBuilder<'a> {
 
 impl<'a> EntityBuilder<'a> {
     pub fn new(entity: Entity, component_storage: &'a ComponentStorage) -> Self {
-        EntityBuilder {
-            entity,
-            component_storage,
-        }
+        EntityBuilder { entity, component_storage }
     }
 
     pub fn with<T: Component>(self, component: T) -> Self {
@@ -58,6 +55,7 @@ impl<'a> EntityBuilder<'a> {
         self.entity
     }
 }
+
 
 #[cfg(test)]
 mod tests {

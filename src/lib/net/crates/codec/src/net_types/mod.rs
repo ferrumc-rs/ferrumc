@@ -1,6 +1,6 @@
+pub mod var_int;
 pub mod length_prefixed_vec;
 pub mod network_position;
-pub mod var_int;
 
 #[derive(Debug, thiserror::Error)]
 pub enum NetTypesError {

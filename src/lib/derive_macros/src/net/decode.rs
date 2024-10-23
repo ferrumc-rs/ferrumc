@@ -20,8 +20,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                 repr_type = Some(ident.to_string());
 
                 Ok(())
-            })
-            .unwrap();
+            }).unwrap();
         });
 
         repr_type.map(|val| syn::parse_str::<syn::Ident>(&val).expect("Failed to parse repr type"))
@@ -56,19 +55,18 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                 }
 
                 Ok(())
-            })
-            .unwrap();
+            }).unwrap();
+
         });
 
         (type_cast, type_cast_handler)
     };
 
+
     // So for enums we can simply read the type and then cast it directly.
     if let Some(type_cast) = type_cast {
         let Some(repr_attr) = repr_attr else {
-            panic!(
-                "NetDecode with type_cast enabled requires a repr attribute. Example: #[repr(u8)]"
-            );
+            panic!("NetDecode with type_cast enabled requires a repr attribute. Example: #[repr(u8)]");
         };
 
         // in netdecode, read a type of type_cast and then if type_cast_handler exists, use it to do `type_cast_handler(type_cast)`
@@ -89,32 +87,28 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                 quote! { value }
             }
             Some(handler) => {
-                let handler = syn::parse_str::<syn::Expr>(&handler)
-                    .expect("Failed to parse type_cast_handler");
+                let handler = syn::parse_str::<syn::Expr>(&handler).expect("Failed to parse type_cast_handler");
                 quote! { #handler }
             }
         };
 
         let enum_arms = if let syn::Data::Enum(data) = &input.data {
             let mut next_discriminant = 0;
-            data.variants
-                .iter()
-                .map(|variant| {
-                    let variant_name = &variant.ident;
-                    let discriminant = if let Some((_, expr)) = &variant.discriminant {
-                        // Use the explicit discriminant
-                        quote! { #expr }
-                    } else {
-                        // Use the next implicit discriminant
-                        let disc = quote! { #next_discriminant };
-                        next_discriminant += 1;
-                        disc
-                    };
-                    quote! {
-                        #discriminant => Ok(#name::#variant_name),
-                    }
-                })
-                .collect::<Vec<_>>()
+            data.variants.iter().map(|variant| {
+                let variant_name = &variant.ident;
+                let discriminant = if let Some((_, expr)) = &variant.discriminant {
+                    // Use the explicit discriminant
+                    quote! { #expr }
+                } else {
+                    // Use the next implicit discriminant
+                    let disc = quote! { #next_discriminant };
+                    next_discriminant += 1;
+                    disc
+                };
+                quote! {
+                    #discriminant => Ok(#name::#variant_name),
+                }
+            }).collect::<Vec<_>>()
         } else {
             panic!("NetDecode with type_cast enabled can only be derived for enums.");
         };

@@ -1,16 +1,16 @@
-use crate::packets::IncomingPacket;
-use crate::{NetResult, ServerState};
+use std::sync::Arc;
+use tracing::debug;
 use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::{packet, Event, NetDecode};
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
-use std::sync::Arc;
-use tracing::debug;
+use crate::packets::IncomingPacket;
+use crate::{NetResult, ServerState};
 
 #[derive(Debug, NetDecode)]
 #[packet(packet_id = 0x07, state = "configuration")]
 pub struct ServerBoundKnownPacks {
     #[allow(dead_code)]
-    pub packs: LengthPrefixedVec<PackOwned>,
+    pub packs: LengthPrefixedVec<PackOwned>
 }
 
 #[derive(Debug, NetDecode)]
@@ -18,16 +18,18 @@ pub struct ServerBoundKnownPacks {
 pub struct PackOwned {
     namespace: String,
     id: String,
-    version: String,
+    version: String
 }
 
 impl IncomingPacket for ServerBoundKnownPacks {
-    async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
+    async fn handle(self, conn_id: usize,state : Arc<ServerState>) -> NetResult<()> {
         //! No clue what this packet is for, but it's not used in the server.
         //! It's for data packs usually. But we're probably not gonna implement 'em anytime soon.
         debug!("Received known packs: {:#?}", self);
 
-        let event = ServerBoundKnownPacksEvent { conn_id };
+        let event = ServerBoundKnownPacksEvent {
+            conn_id
+        };
 
         tokio::spawn(ServerBoundKnownPacksEvent::trigger(event, state));
 

@@ -170,15 +170,15 @@ pub fn derive(input: TokenStream) -> TokenStream {
                 writer
             }
         }
-
+        
         impl #impl_generics #name #ty_generics #where_clause {
             pub fn serialize_as_network(&self) -> Vec<u8> {
                 let mut writer = Vec::new();
-
+                
                 <#name #ty_generics as ::ferrumc_nbt::NBTSerializable>::serialize(self, &mut writer, &::ferrumc_nbt::NBTSerializeOptions::Network);
                 /*<u8 as ::ferrumc_nbt::NBTSerializable>::serialize(&<Self as ::ferrumc_nbt::NBTSerializable>::id(), &mut writer, &::ferrumc_nbt::NBTSerializeOptions::None);
                 <#name #ty_generics as ::ferrumc_nbt::NBTSerializable>::serialize(self, &mut writer, &::ferrumc_nbt::NBTSerializeOptions::None);*/
-
+                
                 writer
             }
         }

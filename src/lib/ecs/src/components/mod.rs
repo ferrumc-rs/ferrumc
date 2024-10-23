@@ -1,12 +1,12 @@
-use crate::entities::Entity;
-use crate::errors::ECSError;
-use crate::ECSResult;
 use dashmap::DashMap;
 use parking_lot::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use sparse_set::SparseSet;
 use std::any::{Any, TypeId};
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
+use crate::ECSResult;
+use crate::entities::Entity;
+use crate::errors::ECSError;
 
 pub mod sparse_set;
 
@@ -50,33 +50,32 @@ impl ComponentStorage {
                 return Vec::new();
             }
         };
-
+        
         components.value().entities()
     }
-
+    
     pub fn remove<T: Component>(&self, entity: Entity) {
         let type_id = TypeId::of::<T>();
-        self.components
-            .get_mut(&type_id)
+        self.components.get_mut(&type_id)
             .map(|mut components| components.remove(entity));
     }
 
     pub fn remove_all_components(&self, entity: Entity) {
-        self.components.iter_mut().for_each(|mut components| {
-            components.remove(entity);
-        });
+        self.components.iter_mut()
+            .for_each(|mut components| { components.remove(entity); });
     }
 }
 impl ComponentStorage {
-    pub fn get<'a, T: Component>(&self, entity: Entity) -> ECSResult<ComponentRef<'a, T>> {
+    pub fn get<'a, T: Component>(&self, entity: Entity) -> ECSResult<ComponentRef<'a, T>>
+    {
         let type_id = TypeId::of::<T>();
-        let components = self
-            .components
-            .get(&type_id)
+        let components = self.components.get(&type_id)
             .ok_or(ECSError::ComponentNotFound)?;
-        let component = components.get(entity).ok_or(ECSError::ComponentNotFound)?;
+        let component = components.get(entity)
+            .ok_or(ECSError::ComponentNotFound)?;
 
-        let read_guard = component.try_read().ok_or(ECSError::ComponentLocked)?;
+        let read_guard = component.try_read()
+            .ok_or(ECSError::ComponentLocked)?;
 
         let read_guard = unsafe {
             std::mem::transmute::<
@@ -91,15 +90,16 @@ impl ComponentStorage {
         })
     }
 
-    pub fn get_mut<'a, T: Component>(&self, entity: Entity) -> ECSResult<ComponentRefMut<'a, T>> {
+    pub fn get_mut<'a, T: Component>(&self, entity: Entity) -> ECSResult<ComponentRefMut<'a, T>>
+    {
         let type_id = TypeId::of::<T>();
-        let components = self
-            .components
-            .get(&type_id)
+        let components = self.components.get(&type_id)
             .ok_or(ECSError::ComponentNotFound)?;
-        let component = components.get(entity).ok_or(ECSError::ComponentNotFound)?;
+        let component = components.get(entity)
+            .ok_or(ECSError::ComponentNotFound)?;
 
-        let write_guard = component.try_write().ok_or(ECSError::ComponentLocked)?;
+        let write_guard = component.try_write()
+            .ok_or(ECSError::ComponentLocked)?;
 
         let write_guard = unsafe {
             std::mem::transmute::<
@@ -124,8 +124,8 @@ pub struct ComponentRefMut<'a, T: Component> {
     _phantom: PhantomData<&'a mut T>,
 }
 mod debug {
-    use crate::components::{Component, ComponentRef, ComponentRefMut};
     use std::fmt::Debug;
+    use crate::components::{Component, ComponentRef, ComponentRefMut};
 
     impl<T: Component + Debug> Debug for ComponentRef<'_, T> {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -133,7 +133,11 @@ mod debug {
         }
     }
     
+<<<<<<< HEAD
     impl<T: Component + Debug> Debug for ComponentRefMut<'_, T> {
+=======
+    impl<'a, T: Component + Debug> Debug for ComponentRefMut<'a, T> {
+>>>>>>> parent of 00b9e17 (style: ran cargo fmt)
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             Debug::fmt(&**self, f)
         }
@@ -161,6 +165,8 @@ impl<T: Component> DerefMut for ComponentRefMut<'_, T> {
         unsafe { &mut *(&mut **self.write_guard as *mut dyn Component as *mut T) }
     }
 }
+
+
 
 #[cfg(test)]
 mod tests {

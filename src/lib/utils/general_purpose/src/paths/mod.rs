@@ -1,5 +1,5 @@
-use std::env::current_exe;
 use std::path::PathBuf;
+use std::env::current_exe;
 
 #[derive(thiserror::Error, Debug)]
 pub enum RootPathError {

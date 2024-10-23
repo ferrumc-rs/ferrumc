@@ -1,2 +1,2 @@
-mod de;
 mod enc;
+mod de;

@@ -1,8 +1,8 @@
-use crate::packets::IncomingPacket;
-use crate::{NetResult, ServerState};
+use std::sync::Arc;
 use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::{packet, Event, NetDecode};
-use std::sync::Arc;
+use crate::packets::IncomingPacket;
+use crate::{NetResult, ServerState};
 
 #[derive(NetDecode)]
 #[packet(packet_id = 0x1A, state = "play")]
@@ -10,7 +10,7 @@ pub struct SetPlayerPositionPacket {
     pub x: f64,
     pub feet_y: f64,
     pub z: f64,
-    pub on_ground: bool,
+    pub on_ground: bool
 }
 
 impl IncomingPacket for SetPlayerPositionPacket {
@@ -22,14 +22,19 @@ impl IncomingPacket for SetPlayerPositionPacket {
     }
 }
 
+
 #[derive(Event)]
 pub struct SetPlayerPositionEvent {
     pub data: SetPlayerPositionPacket,
-    pub conn_id: usize,
+    pub conn_id: usize
 }
+
 
 impl SetPlayerPositionEvent {
     pub fn new(data: SetPlayerPositionPacket, conn_id: usize) -> Self {
-        Self { data, conn_id }
+        Self {
+            data,
+            conn_id
+        }
     }
 }
