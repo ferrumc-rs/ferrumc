@@ -20,7 +20,7 @@ pub async fn update_time(
         .await
     {
         Ok(_) => {
-            debug!("Sent update time packet");
+            // debug!("Sent update time packet");
         }
         Err(err) => {
             error!("Failed to send update time packet: {}", err);
