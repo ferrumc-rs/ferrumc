@@ -51,7 +51,7 @@ impl Universe {
         self.components.remove::<T>(entity)
     }
     
-    pub fn remove_all_components(&self, entity: Entity) {
+    pub fn remove_all_components(&self, entity: Entity) -> ECSResult<()> {
         self.components.remove_all_components(entity)
     }
 

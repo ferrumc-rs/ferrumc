@@ -141,7 +141,7 @@ impl ServerConfig {
                     path.to_string_lossy().to_string(),
                     e
                 );
-                info!("creating new config file!");
+                info!("Creating new config file!");
 
                 // Create a new config file
                 std::fs::write(&path, DEFAULT_CONFIG)?;
@@ -206,7 +206,10 @@ impl Default for ServerConfig {
     }
 }
 
-const DEFAULT_CONFIG: &str = r#"host = "0.0.0.0"
+const DEFAULT_CONFIG: &str = r#"
+# This is the host/ip that the server will bind to. (127.0.0.1 for local, and 0.0.0.0 for public)
+host = "0.0.0.0"
+# This is the port that the server will bind to. (0-65535), 25565 is the default Minecraft port.
 port = 25565
 motd = ["A supersonic FerrumC server."]
 max_players = 20

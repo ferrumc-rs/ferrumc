@@ -120,7 +120,7 @@ unsafe fn u8_slice_to_u32_be_simd(input: &[u8]) -> Vec<u32> {
 
 pub fn u8_slice_to_i32_be(input: &[u8]) -> Vec<i32> {
     let u32s = u8_slice_to_u32_be(input);
-    u32s.into_iter().map(|x| x as i32).collect()
+    unsafe { std::mem::transmute::<Vec<u32>, Vec<i32>>(u32s) }
 }
 
 pub fn u8_slice_to_u64_be(input: &[u8]) -> Vec<u64> {
