@@ -2,56 +2,61 @@
 //!
 //! Contains the static global configuration and its related functions.
 
-use crate::errors::ConfigError;
+use std::fs::File;
+use std::io::Read;
+use std::process::exit;
 use crate::server_config::ServerConfig;
-use std::sync::OnceLock;
+use lazy_static::lazy_static;
+use ferrumc_general_purpose::paths::get_root_path;
 
-/// The server configuration that is stored in memory.
-static CONFIG: OnceLock<ServerConfig> = OnceLock::new();
+/// The default server configuration that is stored in memory.
+const DEFAULT_CONFIG: &str = include_str!("../../../../../.etc/example_config.toml");
 
-/// Helper function to get the server configuration.
-///
-/// **WARNING:** Configuration [ServerConfig::new] must be called before calling this function.
-/// Otherwise, it will return an error.
-///
-/// Example of proper usage:
-/// ```rust
-/// # #![allow(unused_variables)]
-/// # fn main() {
-/// #   use ferrumc_config::{get_global_config, ServerConfig};
-/// // Get config from default path.
-/// ServerConfig::new(None).expect("Failed to read configuration file.");
-///
-/// // Do other stuff...
-///
-/// // Get the global configuration.
-/// let config = get_global_config().expect("Failed to get global configuration.");
-/// println!("{:?}", config);
-/// # }
-/// ```
-///
-/// Example of improper usage:
-/// ```rust
-/// # #![allow(unused_variables)]
-/// # fn main() {
-/// #   use ferrumc_config::get_global_config;
-/// // Get the global configuration without setting the configuration first.
-/// let config = get_global_config().expect("Failed to get global configuration."); // Error.
-/// println!("{:?}", config);
-/// # }
-/// ```
-pub fn get_global_config() -> &'static ServerConfig {
-    CONFIG.get_or_init(|| ServerConfig::new(None).expect("Failed to read configuration file."))
+lazy_static! {
+    /// The server configuration that is stored in memory.
+    static ref CONFIG: ServerConfig = create_config();
+}
+fn create_config() -> ServerConfig {
+    let config_location = get_root_path().expect("Could not get root").join("config.json");
+    if config_location.exists() {
+        let mut file = match File::open(config_location) {
+            Ok(file) => file,
+            Err(e) => {
+                eprintln!("Could not open configuration file: {}", e);
+                exit(1);
+            }
+        };
+        let mut config_str = String::new();
+        if let Err(e) = file.read_to_string(&mut config_str) {
+            eprintln!("Could not read configuration file: {}",e );
+            exit(1);
+        } else {
+            if config_str.is_empty() {
+                eprintln!("Configuration file is empty.");
+                exit(1);
+            }
+            match toml::from_str(&config_str) {
+                Ok(config) => config,
+                Err(e) => {
+                    eprintln!("Could not parse configuration file: {}", e);
+                    exit(1);
+                }
+            }
+        }
+    } else {
+        println!("Configuration file not found. Using default configuration.");
+        match toml::from_str(DEFAULT_CONFIG) {
+            Ok(config) => config,
+            Err(e) => {
+                eprintln!("Could not parse default configuration: {}", e);
+                exit(1);
+            }
+        }
+    }
 }
 
-/// Sets the global configuration.
-///
-/// This function should be called once before calling `get_global_config()`.
-///
-/// Arguments:
-/// - `config`: The configuration to be set globally.
-pub(crate) fn set_global_config(config: ServerConfig) -> Result<(), ConfigError> {
-    CONFIG.set(config).map_err(|_| ConfigError::ConfigSetError)
+pub fn get_global_config() -> &'static ServerConfig {
+    &CONFIG
 }
 
 
