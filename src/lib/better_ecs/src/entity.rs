@@ -3,7 +3,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 pub type EntityId = usize;
 
 
-struct EntityAllocator {
+pub struct EntityAllocator {
     counter: AtomicUsize
 }
 
@@ -14,7 +14,7 @@ impl EntityAllocator {
         }
     }
 
-    pub fn allocate(&self) -> EntityId {
+    pub fn create(&self) -> EntityId {
         self.counter.fetch_add(1, Ordering::Relaxed)
     }
 }

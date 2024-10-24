@@ -6,6 +6,6 @@ edition = "2021"
 [dependencies]
 dashmap = "6.1.0"
 parking_lot = "0.12.3"
-
-[lints]
-workspace = true
+crossbeam = "0.8.4"
+thiserror = "1.0.65"
+rayon = "1.10.0"
