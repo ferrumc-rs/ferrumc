@@ -1,7 +1,8 @@
 #![allow(dead_code)]
 
-use crate::components::{Component, ComponentStorage};
+use crate::components::{ComponentManager, ComponentStorage};
 use std::sync::atomic::{AtomicUsize, Ordering};
+use crate::components::storage::Component;
 
 /// Entity is a unique identifier for an entity in the ECS.
 /// It is a simple usize.
@@ -31,18 +32,18 @@ impl EntityManager {
         id as Entity
     }
     
-    pub fn builder<'a>(&'a self, component_storage: &'a ComponentStorage) -> EntityBuilder<'a> {
+    pub fn builder<'a>(&'a self, component_storage: &'a ComponentManager) -> EntityBuilder<'a> {
         EntityBuilder::new(self.create_entity(), component_storage)
     }
 }
 
 pub struct EntityBuilder<'a> {
     entity: Entity,
-    component_storage: &'a ComponentStorage,
+    component_storage: &'a ComponentManager,
 }
 
 impl<'a> EntityBuilder<'a> {
-    pub fn new(entity: Entity, component_storage: &'a ComponentStorage) -> Self {
+    pub fn new(entity: Entity, component_storage: &'a ComponentManager) -> Self {
         EntityBuilder { entity, component_storage }
     }
 

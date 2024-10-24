@@ -1,16 +1,17 @@
 use std::collections::HashMap;
 use std::ops::{Deref, DerefMut};
-use crossbeam::sync::ShardedLock;
 use parking_lot::{RwLock, RwLockReadGuard, RwLockWriteGuard};
-use crate::entity::EntityId;
-use super::{Result, ECSError};
+use crate::{ECSResult};
+use crate::errors::ECSError;
 
-pub trait Component: 'static {}
+pub trait Component: 'static + Send + Sync {}
 
-impl<T: 'static> Component for T {}
+unsafe impl<T> Send for ComponentRef<'_, T> where T: Component {}
+unsafe impl<T> Send for ComponentRefMut<'_, T> where T: Component {}
+impl<T: 'static + Send + Sync> Component for T {}
 
 pub struct ComponentSparseSet<C: Component> {
-    // Map of <EntityId, Index>; Using a RwLock since we will be doing a lot of reads than writes (inserts)
+    // Map of <Entity Id, Index>; Using a RwLock since we will be doing a lot of reads than writes (inserts)
     lookup: RwLock<HashMap<usize, usize>>,
     // Vector of components. Each component is wrapped in a RwLock to allow for concurrent interior mutability
     data: RwLock<Vec<RwLock<C>>>,
@@ -29,7 +30,7 @@ impl<T: Component> ComponentSparseSet<T> {
             data: RwLock::new(Vec::new()),
         }
     }
-    pub fn with(entity_id: EntityId, component: T) -> Result<Self> {
+    pub fn with(entity_id: usize, component: T) -> ECSResult<Self> {
         let new_instance = Self::new();
 
         new_instance.insert(entity_id, component)?;
@@ -38,7 +39,7 @@ impl<T: Component> ComponentSparseSet<T> {
         Ok(new_instance)
     }
 
-    pub fn insert(&self, entity_id: EntityId, component: T) -> Result<()> {
+    pub fn insert(&self, entity_id: usize, component: T) -> ECSResult<()> {
         let mut lookup = self.lookup.write();
         let mut data = self.data.write();
 
@@ -50,7 +51,7 @@ impl<T: Component> ComponentSparseSet<T> {
     }
 
 
-    pub fn get<'a, 'b>(&'a self, entity_id: usize) -> Result<ComponentRef<'b, T>>
+    pub fn get<'a, 'b>(&'a self, entity_id: usize) -> ECSResult<ComponentRef<'b, T>>
     where
         'a: 'b, // Self outlives 'b therefore should be safe. And valid till 'b is dropped.
     {
@@ -63,7 +64,7 @@ impl<T: Component> ComponentSparseSet<T> {
         let index = lookup.get(&entity_id).ok_or(ECSError::ComponentRetrievalError)?;
 
         let Some(read_guard) = data[*index].try_read() else {
-            return Err(ECSError::ComponentIsLocked);
+            return Err(ECSError::ComponentLocked);
         };
 
         let component = data[*index].data_ptr();
@@ -81,7 +82,7 @@ impl<T: Component> ComponentSparseSet<T> {
         Ok(component_ref)
     }
 
-    pub fn get_mut<'a, 'b>(&'a self, entity_id: usize) -> Result<ComponentRefMut<'b, T>>
+    pub fn get_mut<'a, 'b>(&'a self, entity_id: usize) -> ECSResult<ComponentRefMut<'b, T>>
     where
         'a: 'b, // Self outlives 'b therefore should be safe. And valid till 'b is dropped.
     {
@@ -92,16 +93,16 @@ impl<T: Component> ComponentSparseSet<T> {
         };
 
         let index = lookup.get(&entity_id).ok_or(ECSError::ComponentRetrievalError)?;
-        
+
         let Some(write_guard) = data[*index].try_write() else {
-            return Err(ECSError::ComponentIsLocked);
+            return Err(ECSError::ComponentLocked);
         };
 
         let write_guard = unsafe {
             // make the write_guard lifetime to be 'b
             std::mem::transmute::<RwLockWriteGuard<'_, T>, RwLockWriteGuard<'b, T>>(write_guard)
         };
-        
+
         let component = data[*index].data_ptr();
 
         let component_ref = ComponentRefMut {
@@ -112,8 +113,8 @@ impl<T: Component> ComponentSparseSet<T> {
 
         Ok(component_ref)
     }
-    
-    pub fn remove(&self, entity_id: usize) -> Result<()> {
+
+    pub fn remove(&self, entity_id: usize) -> ECSResult<()> {
         let mut lookup = self.lookup.write();
         let mut data = self.data.write();
 
@@ -121,6 +122,10 @@ impl<T: Component> ComponentSparseSet<T> {
         data.remove(index);
 
         Ok(())
+    }
+    
+    pub fn entities(&self) -> Vec<usize> {
+        self.lookup.read().keys().copied().collect()
     }
 }
 

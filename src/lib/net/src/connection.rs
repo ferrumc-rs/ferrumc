@@ -120,7 +120,7 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
     debug!("Connection closed for entity: {:?}", entity);
 
     // Remove all components from the entity
-    state.universe.remove_all_components(entity);
+    state.universe.remove_all_components(entity)?;
 
     Ok(())
 }

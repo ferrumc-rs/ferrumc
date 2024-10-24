@@ -1,8 +1,7 @@
 use crate::components::storage::{Component, ComponentRef, ComponentRefMut, ComponentSparseSet};
-use crate::entity::EntityId;
 use dashmap::{DashMap, Entry};
-use std::any::{Any, TypeId};
 use parking_lot::RwLock;
+use std::any::{Any, TypeId};
 
 mod storage;
 
@@ -19,11 +18,12 @@ pub enum ECSError {
     ComponentTypeNotFound,
     #[error("Component is locked")]
     ComponentIsLocked,
+    #[error("Component removal error")]
+    ComponentRemovalError,
 }
 
 
 pub struct ComponentManager {
-    // components: DashMap<TypeId, ComponentSparseSet<Box<dyn Component>>>,
     components: DashMap<TypeId, *const ()>,
     storage: RwLock<Vec<Box<dyn ComponentStorage>>>,
 }
@@ -64,17 +64,17 @@ impl ComponentManager {
                 self.storage.write().push(boxed);
             }
         };
-        
-        
+
+
         Ok(())
     }
-        pub fn get<T: Component>(&self, entity_id: usize) -> Option<ComponentRef<T>> {
-            let type_id = TypeId::of::<T>();
-            let ptr = *self.components.get(&type_id)?;
-            let component_set = unsafe { &*(ptr as *const ComponentSparseSet<T>) };
-            component_set.get(entity_id).ok()
-        }
-    
+    pub fn get<T: Component>(&self, entity_id: usize) -> Option<ComponentRef<T>> {
+        let type_id = TypeId::of::<T>();
+        let ptr = *self.components.get(&type_id)?;
+        let component_set = unsafe { &*(ptr as *const ComponentSparseSet<T>) };
+        component_set.get(entity_id).ok()
+    }
+
     pub fn get_mut<T: Component>(&self, entity_id: usize) -> Option<ComponentRefMut<T>> {
         let type_id = TypeId::of::<T>();
         let ptr = *self.components.get(&type_id)?;
@@ -82,32 +82,11 @@ impl ComponentManager {
         component_set.get_mut(entity_id).ok()
     }
 
-
-    /*pub fn insert<T: Component>(&self, component: T) -> Result<()> {
-        if let Entry::Occupied(occupied) = self.components.entry(TypeId::of::<T>()) {
-            let components = occupied.get();
-            let components = components as *const _ as *const ComponentSparseSet<T>;
-            #[allow(unsafe_code)]
-            let components = unsafe { &*components };
-
-            return components.insert(component);
-        }
-        
-        let storage = unsafe { 
-            std::mem::transmute::<ComponentSparseSet<T>, ComponentSparseSet<Box<dyn Component>>>(ComponentSparseSet::<T>::with(component)?) 
-        };
-        self.components.insert(TypeId::of::<T>(), storage);
-
+    pub fn remove<T: Component>(&self, entity_id: usize) -> Result<()> {
+        let type_id = TypeId::of::<T>();
+        let ptr = *self.components.get(&type_id).ok_or(ECSError::ComponentTypeNotFound)?;
+        let component_set = unsafe { &mut *(ptr as *mut ComponentSparseSet<T>) };
+        component_set.remove(entity_id)?;
         Ok(())
     }
-
-    pub fn get<'a, T: Component>(&self, entity_id: EntityId) -> Result<ComponentRef<'a, T>> {
-        let components = self.components.get(&TypeId::of::<T>())
-            .ok_or(ECSError::ComponentTypeNotFound)?;
-        let components = components.value();
-        let components = components as *const _ as *const ComponentSparseSet<T>;
-        let components = unsafe { &*components };
-        let component_ref = components.get(entity_id)?;
-        Ok(component_ref)
-    }*/
 }

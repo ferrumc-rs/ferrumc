@@ -3,7 +3,7 @@ use ferrumc_net::errors::NetError;
 use ferrumc_net::packets::incoming::login_start::LoginStartEvent;
 use ferrumc_net::GlobalState;
 use tracing::{info, trace};
-use ferrumc_ecs::components::ComponentRefMut;
+use ferrumc_ecs::components::storage::ComponentRefMut;
 use ferrumc_net::connection::{ConnectionState, StreamWriter};
 use ferrumc_net::packets::incoming::ack_finish_configuration::AckFinishConfigurationEvent;
 use ferrumc_net::packets::incoming::login_acknowledged::{LoginAcknowledgedEvent};
