@@ -28,7 +28,7 @@ async fn main() {
 async fn entry() -> Result<()> {
     let listener = ferrumc_net::server::create_server_listener().await?;
 
-    let state = ServerState::new(Universe::new(),AtomicBool::new(false));
+    let state = ServerState::new(Universe::new());
 
     ferrumc_net::server::listen(Arc::new(state), listener).await?;
 
