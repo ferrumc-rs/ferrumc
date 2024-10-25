@@ -14,7 +14,7 @@ use ferrumc_net::packets::outgoing::game_event::GameEventPacket;
 use ferrumc_net::packets::outgoing::keep_alive::{KeepAlive, KeepAlivePacket};
 use ferrumc_net::packets::outgoing::login_play::LoginPlayPacket;
 use ferrumc_net::packets::outgoing::login_success::LoginSuccessPacket;
-use ferrumc_net::packets::outgoing::registry_data::{RegistryDataPacket};
+use ferrumc_net::packets::outgoing::registry_data::{get_registry_packets, RegistryDataPacket};
 use ferrumc_net::packets::outgoing::set_default_spawn_position::SetDefaultSpawnPositionPacket;
 use ferrumc_net::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket;
 use ferrumc_net_codec::encode::{NetEncodeOpts};
@@ -79,13 +79,10 @@ async fn handle_server_bound_known_packs(
     let mut writer = state
         .universe
         .get_mut::<StreamWriter>(server_bound_known_packs_event.conn_id)?;
-
-    let registry_packets = RegistryDataPacket::get_registry_packets();
-
-    for packet in registry_packets {
-        writer.send_packet(&packet, &NetEncodeOpts::WithLength).await?;
-    }
-
+    
+    let registry_packets = get_registry_packets();
+    writer.send_packet(&registry_packets, &NetEncodeOpts::None).await?;
+    
     writer.send_packet(&FinishConfigurationPacket::new(), &NetEncodeOpts::WithLength).await?;
 
     Ok(server_bound_known_packs_event)

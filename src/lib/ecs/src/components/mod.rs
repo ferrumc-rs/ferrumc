@@ -300,6 +300,7 @@ impl ComponentManager {
         let ptr = *self.components.get(&type_id).ok_or(ECSError::ComponentTypeNotFound)?;
         let component_set = unsafe { &mut *(ptr as *mut ComponentSparseSet<T>) };
         component_set.remove(entity_id)?;
+
         Ok(())
     }
 

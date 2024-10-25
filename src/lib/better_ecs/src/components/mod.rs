@@ -1,7 +1,7 @@
 use crate::components::storage::{Component, ComponentRef, ComponentRefMut, ComponentSparseSet};
-use dashmap::{DashMap, Entry};
+use dashmap::{DashMap};
 use parking_lot::RwLock;
-use std::any::{Any, TypeId};
+use std::any::{TypeId};
 
 mod storage;
 
@@ -10,16 +10,10 @@ pub type Result<T> = std::result::Result<T, ECSError>;
 
 #[derive(thiserror::Error, Debug)]
 pub enum ECSError {
-    #[error("Sharded Lock Error")]
-    ShardedLockError,
     #[error("Component retrieval error")]
     ComponentRetrievalError,
-    #[error("Component type not found")]
-    ComponentTypeNotFound,
     #[error("Component is locked")]
     ComponentIsLocked,
-    #[error("Component removal error")]
-    ComponentRemovalError,
 }
 
 
@@ -82,11 +76,18 @@ impl ComponentManager {
         component_set.get_mut(entity_id).ok()
     }
 
+    /*pub fn get_mut<T: Component>(&self, entity_id: usize) -> Option<ComponentRefMut<T>> {
+        let type_id = TypeId::of::<T>();
+        let ptr = *self.components.get(&type_id)?;
+        let component_set = unsafe { &*(ptr as *const ComponentSparseSet<T>) };
+        component_set.get_mut(entity_id).ok()
+    }
+
     pub fn remove<T: Component>(&self, entity_id: usize) -> Result<()> {
         let type_id = TypeId::of::<T>();
         let ptr = *self.components.get(&type_id).ok_or(ECSError::ComponentTypeNotFound)?;
         let component_set = unsafe { &mut *(ptr as *mut ComponentSparseSet<T>) };
         component_set.remove(entity_id)?;
         Ok(())
-    }
+    }*/
 }

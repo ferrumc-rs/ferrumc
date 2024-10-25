@@ -24,5 +24,11 @@ fn main() {
         let immutable_ref = storage.get::<i32>(some_entity);
 
         assert_eq!(immutable_ref.as_deref(), None);
+        
+        drop(mutable_ref);
+        
+        let immutable_ref = storage.get::<i32>(some_entity);
+        
+        assert_eq!(immutable_ref.as_deref(), Some(&5));
     }
 }

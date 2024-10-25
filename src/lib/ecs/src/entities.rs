@@ -2,7 +2,9 @@
 
 use crate::components::{ComponentManager, ComponentStorage};
 use std::sync::atomic::{AtomicUsize, Ordering};
+use tracing::trace;
 use crate::components::storage::Component;
+use crate::ECSResult;
 
 /// Entity is a unique identifier for an entity in the ECS.
 /// It is a simple usize.
@@ -27,8 +29,10 @@ impl EntityManager {
     }
 
     pub fn create_entity(&self) -> Entity {
+        trace!("Creating new entity");
         let id = self.new_entity_id.load(Ordering::Relaxed);
         self.new_entity_id.fetch_add(1, Ordering::Relaxed);
+        trace!("Created entity with id: {}", id);
         id as Entity
     }
     
@@ -47,9 +51,10 @@ impl<'a> EntityBuilder<'a> {
         EntityBuilder { entity, component_storage }
     }
 
-    pub fn with<T: Component>(self, component: T) -> Self {
-        self.component_storage.insert(self.entity, component);
-        self
+    pub fn with<T: Component>(self, component: T) -> ECSResult<Self> {
+        trace!("with component: {:?}", std::any::type_name::<T>());
+        self.component_storage.insert(self.entity, component)?;
+        Ok(self)
     }
 
     pub fn build(self) -> Entity {
