@@ -1,12 +1,13 @@
-use std::sync::Arc;
+use crate::connection::StreamWriter;
+use crate::packets::outgoing::status_response::StatusResponse;
+use crate::packets::IncomingPacket;
+use crate::{NetResult, ServerState};
 use ferrumc_config::favicon::get_favicon_base64;
 use ferrumc_config::statics::get_global_config;
 use ferrumc_macros::{packet, NetDecode};
 use ferrumc_net_codec::encode::NetEncodeOpts;
-use crate::packets::IncomingPacket;
-use crate::{NetResult, ServerState};
-use crate::connection::StreamWriter;
-use crate::packets::outgoing::status_response::StatusResponse;
+use rand::seq::IndexedRandom;
+use std::sync::Arc;
 
 #[derive(NetDecode, Debug)]
 #[packet(packet_id = 0x00, state = "status")]
@@ -35,7 +36,7 @@ fn get_server_status() -> String {
             pub version: Version<'a>,
             pub players: Players<'a>,
             pub description: Description<'a>,
-            pub favicon: &'a str,
+            pub favicon: String,
             pub enforces_secure_chat: bool,
         }
 
@@ -85,9 +86,10 @@ fn get_server_status() -> String {
         }],
     };
     
-    // TODO: Randomize MOTD
+    
+    let motd = config.motd.choose(&mut rand::thread_rng()).unwrap();
     let description = structs::Description {
-        text: config.motd[0].as_str(),
+        text: motd,
     };
     
     let favicon = get_favicon_base64();
