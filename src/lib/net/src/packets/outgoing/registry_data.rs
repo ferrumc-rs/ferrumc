@@ -80,11 +80,7 @@ pub const fn get_registry_packets() -> &'static [u8] {
 mod tests {
     use std::io::Write;
 
-    use ferrumc_nbt::{NBTSerializeOptions, NbtTape};
     use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
-    use tracing::debug;
-
-    use crate::packets::outgoing::registry_data::RegistryEntry;
 
     use super::RegistryDataPacket;
 

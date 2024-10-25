@@ -41,7 +41,6 @@ impl Universe {
     }
 
     pub fn builder(&self) -> EntityBuilder {
-        tracing::trace!("creating builder for universe entity.");
         self.entities.builder(&self.components)
     }
 

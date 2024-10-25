@@ -14,7 +14,7 @@ use ferrumc_net::packets::outgoing::game_event::GameEventPacket;
 use ferrumc_net::packets::outgoing::keep_alive::{KeepAlive, KeepAlivePacket};
 use ferrumc_net::packets::outgoing::login_play::LoginPlayPacket;
 use ferrumc_net::packets::outgoing::login_success::LoginSuccessPacket;
-use ferrumc_net::packets::outgoing::registry_data::{get_registry_packets, RegistryDataPacket};
+use ferrumc_net::packets::outgoing::registry_data::{get_registry_packets};
 use ferrumc_net::packets::outgoing::set_default_spawn_position::SetDefaultSpawnPositionPacket;
 use ferrumc_net::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket;
 use ferrumc_net_codec::encode::{NetEncodeOpts};
@@ -123,7 +123,7 @@ async fn send_keep_alive(conn_id: usize, state: GlobalState, writer: &mut Compon
     
     let id = keep_alive_packet.id;
     
-    state.universe.add_component::<KeepAlive>(conn_id, id);
+    state.universe.add_component::<KeepAlive>(conn_id, id)?;
 
     
     Ok(())

@@ -232,9 +232,9 @@ mod tests {
     }
 }
 */use crate::components::storage::{Component, ComponentRef, ComponentRefMut, ComponentSparseSet};
-use dashmap::{DashMap, Entry};
+use dashmap::{DashMap};
 use parking_lot::RwLock;
-use std::any::{Any, TypeId};
+use std::any::{TypeId};
 use crate::ECSResult;
 use crate::errors::ECSError;
 
@@ -258,6 +258,12 @@ impl<T: Component> ComponentStorage for ComponentSparseSet<T> {
     
     fn remove_component(&self, entity_id: usize) -> ECSResult<()> {
         self.remove(entity_id)
+    }
+}
+
+impl Default for ComponentManager {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

@@ -3,7 +3,6 @@ use crate::{handle_packet, NetResult, ServerState};
 use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use std::sync::Arc;
-use tokio::io::BufReader;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tokio::net::TcpStream;
 use tracing::{debug, trace, warn};
@@ -85,7 +84,8 @@ async fn handle_connection_internal(state: Arc<ServerState>, tcp_stream: TcpStre
     tcp_stream.set_nodelay(true)?;
     let (mut reader, writer) = tcp_stream.into_split();
 
-    debug!("Connection established");
+    trace!("Connection established");
+    
     let entity = state
         .universe
         .builder()
@@ -93,7 +93,8 @@ async fn handle_connection_internal(state: Arc<ServerState>, tcp_stream: TcpStre
         .with(ConnectionState::Handshaking)?
         .with(CompressionStatus::new())?
         .build();
-    debug!("Entity created: {:?}", entity);
+    
+    trace!("Entity created: {:?}", entity);
     
     'recv: loop {
         let compressed = state.universe.get::<CompressionStatus>(entity)?.enabled;

@@ -1,39 +1,15 @@
 use std::slice;
 
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+#[cfg(all(target_arch = "x86_64", target_feature = "avx2", not(target_os = "macos")))]
 use std::arch::x86_64::*;
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+use std::arch::x86_64::{__m256i, _mm256_loadu_si256, _mm256_setr_epi8, _mm256_shuffle_epi8, _mm256_storeu_si256};
+#[cfg(all(target_arch = "x86_64", not(target_os = "macos")))]
 use std::is_x86_feature_detected;
 
-
-// THIS CODE DOES WORK!!
-// If user is on non-x86_64, then it uses scalar code
-// If user is on x86_64, then it checks if AVX2 is available
-// If it is available, then it uses SIMD (AVX2) code
-// In this case for mask shuffling.
-
-
-
-/// Checks if AVX2 is available on the current CPU.
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-fn is_avx2_available() -> bool {
-    let available: bool;
-    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-    {
-        available = is_x86_feature_detected!("avx2");
-    }
-    #[cfg(not(any(target_arch = "x86", target_arch = "x86_64")))]
-    {
-        available = false;
-    }
-
-    // if debug_assetions
-    #[cfg(debug_assertions)]
-    if !available {
-        tracing::trace!("AVX2 / SIMD Instructions aren't available on this CPU!");
-    }
-
-    available
+#[cfg(target_arch = "x86_64")]
+#[inline(always)]
+fn has_avx2() -> bool {
+    is_x86_feature_detected!("avx2")
 }
 
 /// Converts a slice of `u8` to a slice of `i8` without copying.
@@ -48,20 +24,18 @@ pub fn u8_slice_to_u32_be(input: &[u8]) -> Vec<u32> {
         0,
         "Input length must be a multiple of 4 for u32 conversion"
     );
-    /*if is_avx2_available() {
-        unsafe { u8_slice_to_u32_be_simd(input) }
-    } else {
-        u8_slice_to_u32_be_normal(input)
-    }*/
-    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-    if is_avx2_available() {
-        unsafe { u8_slice_to_u32_be_simd(input) }
-    } else {
+
+    #[cfg(all(target_arch = "x86_64", not(target_os = "macos")))]
+    {
+        // unsafe { u8_slice_to_u32_be_simd(input) }
+        if has_avx2() {
+            return unsafe { u8_slice_to_u32_be_simd(input) };
+        }
+    }
+    #[cfg(not(all(target_arch = "x86_64", target_feature = "avx2", not(target_os = "macos"))))]
+    {
         u8_slice_to_u32_be_normal(input)
     }
-
-    #[cfg(not(any(target_arch = "x86", target_arch = "x86_64")))]
-    u8_slice_to_u32_be_normal(input)
 }
 
 fn u8_slice_to_u32_be_normal(input: &[u8]) -> Vec<u32> {
@@ -71,9 +45,11 @@ fn u8_slice_to_u32_be_normal(input: &[u8]) -> Vec<u32> {
         .collect()
 }
 
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+#[cfg(all(target_arch = "x86_64", not(target_os = "macos")))]
 #[target_feature(enable = "avx2")]
 unsafe fn u8_slice_to_u32_be_simd(input: &[u8]) -> Vec<u32> {
+    use std::mem;
+
     debug_assert_eq!(
         input.len() % 4,
         0,
@@ -90,12 +66,11 @@ unsafe fn u8_slice_to_u32_be_simd(input: &[u8]) -> Vec<u32> {
     );
 
     while i + 32 <= input.len() {
-        #[allow(clippy::cast_ptr_alignment)]
         let data = _mm256_loadu_si256(input.as_ptr().add(i) as *const __m256i);
         let shuffled = _mm256_shuffle_epi8(data, shuffle_mask);
-        let mut temp = [0u8; 32];
-        #[allow(clippy::cast_ptr_alignment)]
+        let mut temp = mem::MaybeUninit::<[u8; 32]>::uninit();
         _mm256_storeu_si256(temp.as_mut_ptr() as *mut __m256i, shuffled);
+        let temp = temp.assume_init();
 
         for j in 0..8 {
             let bytes: [u8; 4] = temp[j * 4..(j + 1) * 4]
@@ -129,15 +104,17 @@ pub fn u8_slice_to_u64_be(input: &[u8]) -> Vec<u64> {
         0,
         "Input length must be a multiple of 8 for u64 conversion"
     );
-    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-    if is_avx2_available() {
-        unsafe { u8_slice_to_u64_be_simd(input) }
-    } else {
+
+    #[cfg(all(target_arch = "x86_64", not(target_os = "macos")))]
+    {
+        if has_avx2() {
+            return unsafe { u8_slice_to_u64_be_simd(input) };
+        }
+    }
+    #[cfg(not(all(target_arch = "x86_64", target_feature = "avx2", not(target_os = "macos"))))]
+    {
         u8_slice_to_u64_be_normal(input)
     }
-
-    #[cfg(not(any(target_arch = "x86", target_arch = "x86_64")))]
-    u8_slice_to_u64_be_normal(input)
 }
 
 fn u8_slice_to_u64_be_normal(input: &[u8]) -> Vec<u64> {
@@ -147,9 +124,11 @@ fn u8_slice_to_u64_be_normal(input: &[u8]) -> Vec<u64> {
         .collect()
 }
 
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+#[cfg(all(target_arch = "x86_64", not(target_os = "macos")))]
 #[target_feature(enable = "avx2")]
 unsafe fn u8_slice_to_u64_be_simd(input: &[u8]) -> Vec<u64> {
+    use std::mem;
+
     debug_assert_eq!(
         input.len() % 8,
         0,
@@ -168,12 +147,11 @@ unsafe fn u8_slice_to_u64_be_simd(input: &[u8]) -> Vec<u64> {
     );
 
     while i + 32 <= input.len() {
-        #[allow(clippy::cast_ptr_alignment)]
         let data = _mm256_loadu_si256(input.as_ptr().add(i) as *const __m256i);
         let shuffled = _mm256_shuffle_epi8(data, shuffle_mask);
-        let mut temp = [0u8; 32];
-        #[allow(clippy::cast_ptr_alignment)]
+        let mut temp = mem::MaybeUninit::<[u8; 32]>::uninit();
         _mm256_storeu_si256(temp.as_mut_ptr() as *mut __m256i, shuffled);
+        let temp = temp.assume_init();
 
         for j in 0..4 {
             let bytes: [u8; 8] = temp[j * 8..(j + 1) * 8]
@@ -202,15 +180,16 @@ pub fn u8_slice_to_i64_be(input: &[u8]) -> Vec<i64> {
 }
 
 pub fn u32_slice_to_u8_be(input: &[u32]) -> Vec<u8> {
-    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-    if is_avx2_available() {
-        unsafe { u32_slice_to_u8_be_simd(input) }
-    } else {
+    #[cfg(all(target_arch = "x86_64", not(target_os = "macos")))]
+    {
+        if has_avx2() {
+            return unsafe { u32_slice_to_u8_be_simd(input) };
+        }
+    }
+    #[cfg(not(all(target_arch = "x86_64", target_feature = "avx2", not(target_os = "macos"))))]
+    {
         u32_slice_to_u8_be_normal(input)
     }
-
-    #[cfg(not(any(target_arch = "x86", target_arch = "x86_64")))]
-    u32_slice_to_u8_be_normal(input)
 }
 
 fn u32_slice_to_u8_be_normal(input: &[u32]) -> Vec<u8> {
@@ -221,9 +200,11 @@ fn u32_slice_to_u8_be_normal(input: &[u32]) -> Vec<u8> {
     output
 }
 
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+#[cfg(all(target_arch = "x86_64", not(target_os = "macos")))]
 #[target_feature(enable = "avx2")]
 unsafe fn u32_slice_to_u8_be_simd(input: &[u32]) -> Vec<u8> {
+    use std::mem;
+
     let num_elements = input.len();
     let mut output = Vec::with_capacity(num_elements * 4);
     let mut i = 0;
@@ -234,12 +215,11 @@ unsafe fn u32_slice_to_u8_be_simd(input: &[u32]) -> Vec<u8> {
     );
 
     while i + 8 <= num_elements {
-        #[allow(clippy::cast_ptr_alignment)]
         let data = _mm256_loadu_si256(input.as_ptr().add(i) as *const __m256i);
         let shuffled = _mm256_shuffle_epi8(data, shuffle_mask);
-        let mut temp = [0u8; 32];
-        #[allow(clippy::cast_ptr_alignment)]
+        let mut temp = mem::MaybeUninit::<[u8; 32]>::uninit();
         _mm256_storeu_si256(temp.as_mut_ptr() as *mut __m256i, shuffled);
+        let temp = temp.assume_init();
         output.extend_from_slice(&temp);
         i += 8;
     }
@@ -254,15 +234,16 @@ unsafe fn u32_slice_to_u8_be_simd(input: &[u32]) -> Vec<u8> {
 }
 
 pub fn u64_slice_to_u8_be(input: &[u64]) -> Vec<u8> {
-    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-    if is_avx2_available() {
-        unsafe { u64_slice_to_u8_be_simd(input) }
-    } else {
+    #[cfg(all(target_arch = "x86_64", not(target_os = "macos")))]
+    {
+        if has_avx2() {
+            return unsafe { u64_slice_to_u8_be_simd(input) };
+        }
+    }
+    #[cfg(not(all(target_arch = "x86_64", target_feature = "avx2", not(target_os = "macos"))))]
+    {
         u64_slice_to_u8_be_normal(input)
     }
-
-    #[cfg(not(any(target_arch = "x86", target_arch = "x86_64")))]
-    u64_slice_to_u8_be_normal(input)
 }
 
 fn u64_slice_to_u8_be_normal(input: &[u64]) -> Vec<u8> {
@@ -273,9 +254,11 @@ fn u64_slice_to_u8_be_normal(input: &[u64]) -> Vec<u8> {
     output
 }
 
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+#[cfg(all(target_arch = "x86_64", not(target_os = "macos")))]
 #[target_feature(enable = "avx2")]
 unsafe fn u64_slice_to_u8_be_simd(input: &[u64]) -> Vec<u8> {
+    use std::mem;
+
     let num_elements = input.len();
     let mut output = Vec::with_capacity(num_elements * 8);
     let mut i = 0;
@@ -288,12 +271,11 @@ unsafe fn u64_slice_to_u8_be_simd(input: &[u64]) -> Vec<u8> {
     );
 
     while i + 4 <= num_elements {
-        #[allow(clippy::cast_ptr_alignment)]
         let data = _mm256_loadu_si256(input.as_ptr().add(i) as *const __m256i);
         let shuffled = _mm256_shuffle_epi8(data, shuffle_mask);
-        let mut temp = [0u8; 32];
-        #[allow(clippy::cast_ptr_alignment)]
+        let mut temp = mem::MaybeUninit::<[u8; 32]>::uninit();
         _mm256_storeu_si256(temp.as_mut_ptr() as *mut __m256i, shuffled);
+        let temp = temp.assume_init();
         output.extend_from_slice(&temp);
         i += 4;
     }
@@ -306,3 +288,4 @@ unsafe fn u64_slice_to_u8_be_simd(input: &[u64]) -> Vec<u8> {
 
     output
 }
+

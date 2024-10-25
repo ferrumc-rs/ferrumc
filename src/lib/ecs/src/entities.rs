@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::components::{ComponentManager, ComponentStorage};
+use crate::components::{ComponentManager};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use tracing::trace;
 use crate::components::storage::Component;
@@ -52,7 +52,6 @@ impl<'a> EntityBuilder<'a> {
     }
 
     pub fn with<T: Component>(self, component: T) -> ECSResult<Self> {
-        trace!("with component: {:?}", std::any::type_name::<T>());
         self.component_storage.insert(self.entity, component)?;
         Ok(self)
     }

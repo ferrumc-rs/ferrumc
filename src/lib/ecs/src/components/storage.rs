@@ -14,6 +14,12 @@ pub struct ComponentSparseSet<C: Component> {
 }
 
 
+impl<C: Component> Default for ComponentSparseSet<C> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<C: Component> ComponentSparseSet<C> {
     pub fn new() -> Self {
         Self {
