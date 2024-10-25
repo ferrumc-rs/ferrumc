@@ -1,8 +1,7 @@
 use std::slice;
 
-#[cfg(all(target_arch = "x86_64", target_feature = "avx2", not(target_os = "macos")))]
+#[cfg(all(target_arch = "x86_64", not(target_os = "macos")))]
 use std::arch::x86_64::*;
-use std::arch::x86_64::{__m256i, _mm256_loadu_si256, _mm256_setr_epi8, _mm256_shuffle_epi8, _mm256_storeu_si256};
 #[cfg(all(target_arch = "x86_64", not(target_os = "macos")))]
 use std::is_x86_feature_detected;
 
