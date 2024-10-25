@@ -60,9 +60,20 @@ impl ComponentStorage {
             .map(|mut components| components.remove(entity));
     }
 
-    pub fn remove_all_components(&self, entity: Entity) {
+    pub fn remove_all_components(&self, entity: Entity) -> ECSResult<()> {
         self.components.iter_mut()
-            .for_each(|mut components| { components.remove(entity); });
+            .for_each(|mut components| {
+                // check if its locked or not
+                if let Some(component) = components.get_mut(entity) {
+                    let lock = component.write();
+                    // basically wait for component to be able to be written to (or have no readers & writers)
+                    drop(lock);
+                    // Remove else-wise
+                    components.remove(entity);
+                }
+            });
+        
+        Ok(())
     }
 }
 impl ComponentStorage {

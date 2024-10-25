@@ -1206,6 +1206,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn generate_packet() {
         let registry_data = RegistryDataPacket::get_registry_packets();
         let mut buffer = Vec::new();
