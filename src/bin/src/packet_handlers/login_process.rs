@@ -6,7 +6,7 @@ use tracing::{info, trace};
 use ferrumc_ecs::components::ComponentRefMut;
 use ferrumc_net::connection::{ConnectionState, StreamWriter};
 use ferrumc_net::packets::incoming::ack_finish_configuration::AckFinishConfigurationEvent;
-use ferrumc_net::packets::incoming::login_acknowledged::{LoginAcknowledgedEvent};
+use ferrumc_net::packets::incoming::login_acknowledged::LoginAcknowledgedEvent;
 use ferrumc_net::packets::incoming::server_bound_known_packs::ServerBoundKnownPacksEvent;
 use ferrumc_net::packets::outgoing::client_bound_known_packs::ClientBoundKnownPacksPacket;
 use ferrumc_net::packets::outgoing::finish_configuration::FinishConfigurationPacket;
@@ -14,10 +14,10 @@ use ferrumc_net::packets::outgoing::game_event::GameEventPacket;
 use ferrumc_net::packets::outgoing::keep_alive::{KeepAlive, KeepAlivePacket};
 use ferrumc_net::packets::outgoing::login_play::LoginPlayPacket;
 use ferrumc_net::packets::outgoing::login_success::LoginSuccessPacket;
-use ferrumc_net::packets::outgoing::registry_data::{RegistryDataPacket};
+use ferrumc_net::packets::outgoing::registry_data::RegistryDataPacket;
 use ferrumc_net::packets::outgoing::set_default_spawn_position::SetDefaultSpawnPositionPacket;
 use ferrumc_net::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket;
-use ferrumc_net_codec::encode::{NetEncodeOpts};
+use ferrumc_net_codec::encode::NetEncodeOpts;
 
 #[event_handler]
 async fn handle_login_start(
