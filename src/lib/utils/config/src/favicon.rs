@@ -2,7 +2,6 @@ use std::fs::File;
 use std::io::Read;
 use base64::Engine;
 use lazy_static::lazy_static;
-use tracing::error;
 use ferrumc_general_purpose::paths::get_root_path;
 
 const BAKED_FAVICON: &[u8] = include_bytes!("../../../../../icon-64.png");
