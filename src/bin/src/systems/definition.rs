@@ -2,6 +2,7 @@ use ferrumc_net::{GlobalState, NetResult};
 use futures::stream::FuturesUnordered;
 use tracing::{debug, debug_span, info, Instrument};
 use async_trait::async_trait;
+use crate::systems::keep_alive_system::KeepAliveSystem;
 use crate::systems::tcp_listener_system::TcpListenerSystem;
 
 #[async_trait]
@@ -14,6 +15,7 @@ pub trait System: Send + Sync {
 
 pub static ALL_SYSTEMS: &[&dyn System] = &[
     &TcpListenerSystem,
+    &KeepAliveSystem
 ];
 
 pub async fn start_all_systems(state: GlobalState) -> NetResult<()> {
