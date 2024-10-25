@@ -7,6 +7,7 @@ use ferrumc_ecs::ECSResult;
 use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use std::sync::Arc;
+use std::time::Instant;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tokio::net::TcpStream;
 use tracing::{debug, trace, warn};
@@ -100,6 +101,7 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
         .with(StreamWriter::new(writer))
         .with(ConnectionState::Handshaking)
         .with(CompressionStatus::new())
+        .with(Instant::now())
         .build();
 
     let mut reader = state.universe.get_mut::<StreamReader>(entity)?;

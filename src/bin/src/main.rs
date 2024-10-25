@@ -41,7 +41,6 @@ async fn start_ticking(net_state: Arc<ServerState>) {
         let now = Instant::now();
         if required_end > now {
             tokio::time::sleep(required_end - now).await;
-        } else {
             let time_debt = now - required_end;
             info!("running behind! by : {}ms", time_debt.as_millis());
         }
