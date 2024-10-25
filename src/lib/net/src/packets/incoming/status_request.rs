@@ -36,7 +36,7 @@ fn get_server_status() -> String {
             pub version: Version<'a>,
             pub players: Players<'a>,
             pub description: Description<'a>,
-            pub favicon: String,
+            pub favicon: &'a str,
             pub enforces_secure_chat: bool,
         }
 
