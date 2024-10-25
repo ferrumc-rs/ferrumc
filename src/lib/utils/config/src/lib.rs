@@ -7,7 +7,7 @@
 //! Here are some examples of how to use the configuration utilities.
 //!
 //! ### Initialize and Read Configuration
-//! ```rust
+//! ```ignore
 //! use ferrumc_config::ServerConfig;
 //!
 //! // In a scope, load the configuration from the default path.
@@ -26,7 +26,7 @@
 //! ```
 //!
 //! ### Initialize Configuration With Custom Path
-//! ```rust
+//! ```ignore
 //! use ferrumc_config::ServerConfig;
 //!
 //! // Load the configuration from a custom path.

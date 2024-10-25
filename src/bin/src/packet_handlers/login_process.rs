@@ -3,7 +3,7 @@ use ferrumc_net::errors::NetError;
 use ferrumc_net::packets::incoming::login_start::LoginStartEvent;
 use ferrumc_net::GlobalState;
 use tracing::{info, trace};
-use ferrumc_ecs::components::ComponentRefMut;
+use ferrumc_ecs::components::storage::ComponentRefMut;
 use ferrumc_net::connection::{ConnectionState, StreamWriter};
 use ferrumc_net::packets::incoming::ack_finish_configuration::AckFinishConfigurationEvent;
 use ferrumc_net::packets::incoming::login_acknowledged::{LoginAcknowledgedEvent};
@@ -14,7 +14,7 @@ use ferrumc_net::packets::outgoing::game_event::GameEventPacket;
 use ferrumc_net::packets::outgoing::keep_alive::{KeepAlive, KeepAlivePacket};
 use ferrumc_net::packets::outgoing::login_play::LoginPlayPacket;
 use ferrumc_net::packets::outgoing::login_success::LoginSuccessPacket;
-use ferrumc_net::packets::outgoing::registry_data::{RegistryDataPacket};
+use ferrumc_net::packets::outgoing::registry_data::{get_registry_packets};
 use ferrumc_net::packets::outgoing::set_default_spawn_position::SetDefaultSpawnPositionPacket;
 use ferrumc_net::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket;
 use ferrumc_net_codec::encode::{NetEncodeOpts};
@@ -79,13 +79,10 @@ async fn handle_server_bound_known_packs(
     let mut writer = state
         .universe
         .get_mut::<StreamWriter>(server_bound_known_packs_event.conn_id)?;
-
-    let registry_packets = RegistryDataPacket::get_registry_packets();
-
-    for packet in registry_packets {
-        writer.send_packet(&packet, &NetEncodeOpts::WithLength).await?;
-    }
-
+    
+    let registry_packets = get_registry_packets();
+    writer.send_packet(&registry_packets, &NetEncodeOpts::None).await?;
+    
     writer.send_packet(&FinishConfigurationPacket::new(), &NetEncodeOpts::WithLength).await?;
 
     Ok(server_bound_known_packs_event)
@@ -126,7 +123,7 @@ async fn send_keep_alive(conn_id: usize, state: GlobalState, writer: &mut Compon
     
     let id = keep_alive_packet.id;
     
-    state.universe.add_component::<KeepAlive>(conn_id, id);
+    state.universe.add_component::<KeepAlive>(conn_id, id)?;
 
     
     Ok(())
