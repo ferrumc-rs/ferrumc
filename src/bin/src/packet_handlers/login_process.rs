@@ -2,7 +2,7 @@ use ferrumc_macros::event_handler;
 use ferrumc_net::errors::NetError;
 use ferrumc_net::packets::incoming::login_start::LoginStartEvent;
 use ferrumc_net::GlobalState;
-use tracing::{info, trace};
+use tracing::{debug, trace};
 use ferrumc_ecs::components::ComponentRefMut;
 use ferrumc_net::connection::{ConnectionState, StreamWriter};
 use ferrumc_net::packets::incoming::ack_finish_configuration::AckFinishConfigurationEvent;
@@ -25,11 +25,11 @@ async fn handle_login_start(
     state: GlobalState,
 ) -> Result<LoginStartEvent, NetError> {
 
-    info!("Handling login start event");
+    debug!("Handling login start event");
 
     let uuid = login_start_event.login_start_packet.uuid;
     let username = login_start_event.login_start_packet.username.clone();
-    info!("Received login start from user with username {}", username);
+    debug!("Received login start from user with username {}", username);
 
     //Send a Login Success Response to further the login sequence
     let response = LoginSuccessPacket::new(uuid, username);

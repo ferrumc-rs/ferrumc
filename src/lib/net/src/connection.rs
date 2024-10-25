@@ -91,11 +91,12 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
     'recv: loop {
         let compressed = state.universe.get::<CompressionStatus>(entity)?.enabled;
         let Ok(mut packet_skele) = PacketSkeleton::new(&mut reader.reader, compressed).await else {
-            warn!("Failed to read packet. Possibly connection closed.");
+            trace!("Failed to read packet. Possibly connection closed.");
             break 'recv;
         };
 
-        if state.log_packets.load(std::sync::atomic::Ordering::Relaxed){
+        // Log the packet if the environment variable is set (this env variable is set at compile time not runtime!)
+        if option_env!("FERRUMC_LOG_PACKETS").is_some() {
             trace!("Received packet: {:?}", packet_skele);
         }
 
