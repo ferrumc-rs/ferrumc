@@ -16,7 +16,7 @@ struct TestFile<'a> {
     path: &'a str,
 }
 
-impl<'a> Drop for TestFile<'a> {
+impl Drop for TestFile<'_> {
     fn drop(&mut self) {
         remove_file(self.path).expect("Unable to remove test config file.");
     }

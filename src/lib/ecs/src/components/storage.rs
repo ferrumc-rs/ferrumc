@@ -93,7 +93,7 @@ pub struct ComponentRef<'a, T> {
     guard: Ref<'a, usize, T>
 }
 
-impl<'a, T> Deref for ComponentRef<'a, T> {
+impl<T> Deref for ComponentRef<'_, T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -106,7 +106,7 @@ pub struct ComponentRefMut<'a, T> {
     guard: RefMut<'a, usize, T>
 }
 
-impl<'a, T> Deref for ComponentRefMut<'a, T> {
+impl<T> Deref for ComponentRefMut<'_, T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -115,7 +115,7 @@ impl<'a, T> Deref for ComponentRefMut<'a, T> {
     }
 }
 
-impl<'a, T> DerefMut for ComponentRefMut<'a, T> {
+impl<T> DerefMut for ComponentRefMut<'_, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         #[allow(clippy::explicit_auto_deref)]
         &mut *self.guard
