@@ -148,7 +148,7 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
 /// <b>state</b> => The state of the packet. Can be: "handshake", "status", "login", "play".
 ///
 /// e.g.
-/// ```
+/// ```ignore
 /// use ferrumc_macros::NetDecode;
 ///
 /// #[derive(NetDecode)]
@@ -159,9 +159,9 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
 /// }
 /// ```
 /// 
-/// ```
-/// use ferrumc_macros::NetEncode;
-/// 
+/// ```ignore
+/// use ferrumc_macros::{packet, NetEncode};
+///
 /// #[derive(NetEncode)]
 /// #[packet(packet_id = 0x05)]
 /// pub struct PacketChatMessage {
