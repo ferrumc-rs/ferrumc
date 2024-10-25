@@ -1,14 +1,14 @@
 // Security or something like that
 #![forbid(unsafe_code)]
 
-use std::{sync::{atomic::AtomicBool, Arc}, time::Duration};
+use ferrumc_ecs::Universe;
 use ferrumc_events::infrastructure::Event;
+use ferrumc_net::{packets::outgoing::tick_event::TickEvent, ServerState};
+use std::{sync::Arc, time::Duration};
 use tokio::time::Instant;
 use tracing::{debug, error, info};
-use ferrumc_ecs::Universe;
-use ferrumc_net::{packets::outgoing::tick_event::TickEvent, ServerState};
 
-pub(crate)mod errors;
+pub(crate) mod errors;
 mod packet_handlers;
 
 pub type Result<T> = std::result::Result<T, errors::BinaryError>;
@@ -41,7 +41,6 @@ async fn start_ticking(net_state: Arc<ServerState>) {
         let now = Instant::now();
         if required_end > now {
             tokio::time::sleep(required_end - now).await;
-
         } else {
             let time_debt = now - required_end;
             info!("running behind! by : {}ms", time_debt.as_millis());
