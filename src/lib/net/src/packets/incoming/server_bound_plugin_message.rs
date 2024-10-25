@@ -39,7 +39,7 @@ impl IncomingPacket for ServerBoundPluginMessage {
             let brand = String::from_utf8(self.data)?;
             debug!("Client brand: {}", brand);
             
-            state.universe.add_component(conn_id, ClientMinecraftBrand { brand });
+            state.universe.add_component(conn_id, ClientMinecraftBrand { brand })?;
         }
 
         Ok(())

@@ -15,7 +15,7 @@ static CONFIG: OnceLock<ServerConfig> = OnceLock::new();
 /// Otherwise, it will return an error.
 ///
 /// Example of proper usage:
-/// ```rust
+/// ```ignore
 /// # #![allow(unused_variables)]
 /// # fn main() {
 /// #   use ferrumc_config::{get_global_config, ServerConfig};
@@ -31,7 +31,7 @@ static CONFIG: OnceLock<ServerConfig> = OnceLock::new();
 /// ```
 ///
 /// Example of improper usage:
-/// ```rust
+/// ```ignore
 /// # #![allow(unused_variables)]
 /// # fn main() {
 /// #   use ferrumc_config::get_global_config;

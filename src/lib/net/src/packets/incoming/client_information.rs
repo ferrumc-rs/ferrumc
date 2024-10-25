@@ -39,7 +39,7 @@ impl IncomingPacket for ClientInformation {
     async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
         debug!("Received client information: {:#?}", self);
 
-        state.universe.add_component(conn_id, self);
+        state.universe.add_component(conn_id, self)?;
 
         Ok(())
     }
