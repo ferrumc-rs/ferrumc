@@ -12,3 +12,5 @@ pub mod status_response;
 pub mod synchronize_player_position;
 pub mod tick_event;
 pub mod update_time;
+pub mod keep_alive;
+pub mod game_event;

@@ -29,6 +29,7 @@ pub struct ServerConfig {
     pub database: DatabaseConfig,
     pub world: String,
     pub network_compression_threshold: i32, // Can be negative
+    pub log_packets:bool
 }
 
 /// The database configuration section from [ServerConfig].
@@ -200,6 +201,7 @@ impl Default for ServerConfig {
             },
             world: "world".to_string(),
             network_compression_threshold: 256,
+            log_packets:false
         }
     }
 }
@@ -215,6 +217,7 @@ network_tick_rate = 0
 
 world = "world"
 network_compression_threshold = 256
+log_packets = false
 
 [database]
 cache_size = 1024

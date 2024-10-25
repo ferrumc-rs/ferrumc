@@ -159,7 +159,7 @@ pub trait Event: Sized + Send + Sync + 'static {
         Ok(())
     }
 */
-    /// Register a new event listener for this event
+    /// Register a a new event listener for this event
     fn register(listener: AsyncEventListener<Self>, priority: u8) {
         // Create the event listener structure
         let listener = EventListener::<Self> { listener, priority };
