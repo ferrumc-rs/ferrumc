@@ -13,7 +13,8 @@ who have you discussed this with, etc. If these questions were answered in a con
 you talked with and what consensus was reached. Unexplained PRs will rarely be accepted.
 4. Check again that tests pass.
 5. Check a 3rd time.
-6. Submit PR.
+6. Check that Clippy passes with no issues. `cargo clippy --all-targets -- -Dwarnings` is used on CI.
+7. Submit PR.
 
 ## Project specific guidelines
 Just some rules to try to keep the repo nice and organised
@@ -27,7 +28,7 @@ made to the dev branch. This branch should be branched off of the dev branch.
 #### `fix/fixed-thing`
 This branch is for fixing a bug. Once the bug is fixed, a PR should be made to the dev
 branch. This branch should be branched off of the dev branch.
-#### `refactor/refactored-thing`
+#### `rework/refactored-thing`
 This branch is for refactoring code. Once the code is refactored, a PR should be made to the dev branch.
 #### `housekeeping`
 This branch is for stuff relating to the repo itself. This could be updating the README, adding
