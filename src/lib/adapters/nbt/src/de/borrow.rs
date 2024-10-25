@@ -621,7 +621,7 @@ impl<'a> NetEncode for NbtTape<'a> {
 }
 
 
-impl<'a> NbtTapeElement<'a> {
+impl NbtTapeElement<'_> {
     pub fn serialize_as_network(&self, tape: &mut NbtTape, writer: &mut Vec<u8>, opts: &NBTSerializeOptions) -> NetEncodeResult<()> {
         /*if let NBTSerializeOptions::WithHeader(name) = opts {
             writer.write_all(&[self.nbt_id()])?;
