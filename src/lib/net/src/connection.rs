@@ -112,12 +112,7 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
             warn!("Failed to read packet. Possibly connection closed.");
             break 'recv;
         };
-        if ferrumc_config::get_global_config().log_packets{
         trace!("Received packet: {:?}", packet_skele);
-
-
-        }
-
 
         let conn_state = state.universe.get::<ConnectionState>(entity)?.clone();
 
@@ -128,7 +123,7 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
             &mut packet_skele.data,
             Arc::clone(&state),
         )
-            .await
+        .await
         {
             warn!("Failed to handle packet: {:?}", e);
             // Kick the player (when implemented).
@@ -154,9 +149,8 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
 
 /// Since parking_lot is single-threaded, we use spawn_blocking to remove all components from the entity asynchronously (on another thread).
 async fn remove_all_components_blocking(state: Arc<ServerState>, entity: usize) -> NetResult<()> {
-    let res = tokio::task::spawn_blocking(move || {
-        state.universe.remove_all_components(entity)
-    }).await?;
+    let res =
+        tokio::task::spawn_blocking(move || state.universe.remove_all_components(entity)).await?;
 
     Ok(res?)
 }
