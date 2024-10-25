@@ -5,15 +5,15 @@ use tokio::io::AsyncWriteExt;
 
 #[derive(NetEncode)]
 #[packet(packet_id = 0x02)]
-pub struct LoginSuccessPacket {
+pub struct LoginSuccessPacket<'a> {
     pub uuid: u128,
-    pub username: String,
+    pub username: &'a str,
     pub number_of_properties: VarInt,
     pub strict_error_handling: bool,
 }
 
-impl LoginSuccessPacket {
-    pub fn new(uuid: u128, username: String) -> Self {
+impl<'a> LoginSuccessPacket<'a> {
+    pub fn new(uuid: u128, username: &'a str) -> Self {
         Self {
             uuid,
             username,
