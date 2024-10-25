@@ -16,6 +16,7 @@ ferrumc-nbt = { workspace = true }
 ferrumc-core = { workspace = true }
 tracing = { workspace = true }
 tokio = { workspace = true }
+socket2 = { workspace = true }
 parking_lot = { workspace = true }
 futures = { workspace = true }
 ctor = { workspace = true }

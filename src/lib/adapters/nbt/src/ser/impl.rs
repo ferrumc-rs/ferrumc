@@ -219,7 +219,7 @@ mod hashmaps {
     }
 
 
-    impl<V: NBTSerializable> NBTSerializable for BTreeMap<&'_ str, V> {
+    impl<V: NBTSerializable> NBTSerializable for BTreeMap<&str, V> {
         fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
             write_header::<Self>(buf, options);
 

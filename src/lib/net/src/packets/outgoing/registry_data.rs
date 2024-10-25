@@ -80,11 +80,7 @@ pub const fn get_registry_packets() -> &'static [u8] {
 mod tests {
     use std::io::Write;
 
-    use ferrumc_nbt::{NBTSerializeOptions, NbtTape};
     use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
-    use tracing::debug;
-
-    use crate::packets::outgoing::registry_data::RegistryEntry;
 
     use super::RegistryDataPacket;
 
@@ -1208,58 +1204,14 @@ mod tests {
     #[test]
     #[ignore]
     fn generate_packet() {
-        let registry_nbt_buf = include_bytes!("../../../../../../.etc/registry.nbt");
-        // for each top level key in the registry, generate a packet
-        let mut packets: Vec<u8> = vec![];
-
-        let mut tape = NbtTape::new(registry_nbt_buf);
-        tape.parse();
-
-        let root = tape.root.as_ref().map(|(_, b)| b).unwrap();
-        let root = root.as_compound().unwrap();
-
-        for (registry_id, registry_data) in root.iter() {
-            let mut rewind_machine = NbtTape::new(registry_nbt_buf);
-            rewind_machine.parse();
-
-            let registry_packet = {
-                let registry_compound = registry_data.as_compound().unwrap();
-
-                let entries = registry_compound
-                    .iter()
-                    .map(|(name, element)| {
-                        debug!(
-                            "Serializing entry for {}. ELEMENT: {:#?}",
-                            registry_id, element
-                        );
-
-                        let has_data = true;
-                        let mut data = vec![];
-                        element
-                            .serialize_as_network(&mut rewind_machine, &mut data, &NBTSerializeOptions::Network)
-                            .unwrap_or_else(|_| {
-                                panic!("Failed to serialize entry for {}", registry_id)
-                            });
-
-                        RegistryEntry {
-                            id: name,
-                            has_data,
-                            data,
-                        }
-                    })
-                    .collect::<Vec<_>>();
-
-                RegistryDataPacket::new(registry_id, entries)
-            };
-
-            registry_packet
-                .encode(&mut packets, &NetEncodeOpts::WithLength)
-                .unwrap_or_else(|_| panic!("Failed to encode packet for {}", registry_id));
+        let registry_data = RegistryDataPacket::get_registry_packets();
+        let mut buffer = Vec::new();
+        for packet in registry_data {
+            packet.encode(&mut buffer, &NetEncodeOpts::WithLength).unwrap();
         }
-
         std::fs::write(
             r#"D:\Minecraft\framework\ferrumc\ferrumc-2_0\ferrumc\.etc/registry.packet"#,
-            packets,
+            buffer,
         )
         .unwrap();
     }
