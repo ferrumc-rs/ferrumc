@@ -20,7 +20,7 @@
 //! // In another scope, get the same configuration without loading it again.
 //! {
 //!    // Get the global configuration.
-//!    let config = ferrumc_config::get_global_config().expect("Failed to get global config.");
+//!    let config = ferrumc_config::get_global_config();
 //!    println!("{:?}", config);
 //! }
 //! ```
