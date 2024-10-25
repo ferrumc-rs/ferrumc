@@ -17,11 +17,12 @@ impl System for KeepAliveSystem {
                 break;
             }
 
-            let online_players = state.universe.query::<&PlayerIdentity>().collect::<Vec<_>>();
-            let online_players = online_players.iter().map(|v| v.username.clone()).collect::<Vec<_>>();
+            let online_players = state.universe.query::<&PlayerIdentity>();
+            let online_players = online_players.into_iter().map(|player| player.username.clone()).collect::<Vec<String>>();
             tracing::debug!("Online players: {:?}", online_players);
+            tracing::debug!("Total of {} online players", online_players.len());
 
-            tokio::time::sleep(Duration::from_secs(10)).await;
+            tokio::time::sleep(Duration::from_secs(5)).await;
         }
     }
 

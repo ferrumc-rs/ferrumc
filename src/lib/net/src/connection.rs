@@ -75,22 +75,19 @@ impl Default for CompressionStatus {
 }
 
 pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -> NetResult<()> {
-    let (reader, writer) = tcp_stream.into_split();
+    let (mut reader, writer) = tcp_stream.into_split();
 
     let entity = state
         .universe
         .builder()
-        .with(StreamReader::new(reader))
-        .with(StreamWriter::new(writer))
-        .with(ConnectionState::Handshaking)
-        .with(CompressionStatus::new())
+        .with(StreamWriter::new(writer))?
+        .with(ConnectionState::Handshaking)?
+        .with(CompressionStatus::new())?
         .build();
-
-    let mut reader = state.universe.get_mut::<StreamReader>(entity)?;
 
     'recv: loop {
         let compressed = state.universe.get::<CompressionStatus>(entity)?.enabled;
-        let Ok(mut packet_skele) = PacketSkeleton::new(&mut reader.reader, compressed).await else {
+        let Ok(mut packet_skele) = PacketSkeleton::new(&mut reader, compressed).await else {
             trace!("Failed to read packet. Possibly connection closed.");
             break 'recv;
         };

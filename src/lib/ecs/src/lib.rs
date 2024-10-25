@@ -64,7 +64,6 @@ impl Universe {
     }
 
     pub fn query<Q: QueryItem>(&self) -> Query<Q> {
-        /*Query::new(&self.components)*/
-        unimplemented!()
+        Query::new(&self.components)
     }
 }

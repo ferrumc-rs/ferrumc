@@ -331,7 +331,10 @@ impl ComponentManager {
 
     pub fn get_entities_with<T: Component>(&self) -> Vec<usize> {
         let type_id = TypeId::of::<T>();
-        let ptr = *self.components.get(&type_id).unwrap();
+        let Some(ptr) = self.components.get(&type_id) else {
+            return Vec::new();
+        };
+        let ptr = *ptr;
         let component_set = unsafe { &*(ptr as *const ComponentSparseSet<T>) };
         component_set.entities()
     }
