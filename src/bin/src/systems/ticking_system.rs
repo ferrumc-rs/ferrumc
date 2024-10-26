@@ -7,7 +7,7 @@ use ferrumc_net::GlobalState;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 use tokio::time::Instant;
-use tracing::{debug, info, trace};
+use tracing::{debug, info};
 
 pub struct TickingSystem;
 
@@ -35,7 +35,6 @@ impl System for TickingSystem {
             }
 
             tick += 1;
-            trace!("Tick: {}", tick);
         }
     }
 
