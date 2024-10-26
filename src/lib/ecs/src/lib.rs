@@ -57,10 +57,10 @@ impl Universe {
     }
 
     pub fn get<'a, T: Component>(&self, entity: Entity) -> ECSResult<ComponentRef<'a, T>> {
-        self.components.get::<T>(entity).ok_or(errors::ECSError::ComponentNotFound)
+        self.components.get::<T>(entity)
     }
     pub fn get_mut<'a, T: Component>(&self, entity: Entity) -> ECSResult<ComponentRefMut<'a, T>> {
-        self.components.get_mut::<T>(entity).ok_or(errors::ECSError::ComponentNotFound)
+        self.components.get_mut::<T>(entity)
     }
 
     pub fn query<Q: QueryItem>(&self) -> Query<Q> {

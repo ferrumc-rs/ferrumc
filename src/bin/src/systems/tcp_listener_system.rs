@@ -10,13 +10,13 @@ pub struct TcpListenerSystem;
 
 #[async_trait]
 impl System for TcpListenerSystem {
-    async fn start(&self, state: GlobalState) {
+    async fn start(self: Arc<Self>, state: GlobalState) {
         if let Err(e) = TcpListenerSystem::initiate_loop(state).await {
             error!("TCP listener system failed with error: {:?}", e);
         }
     }
 
-    async fn stop(&self, _state: GlobalState) {
+    async fn stop(self: Arc<Self>, _state: GlobalState) {
         debug!("Stopping TCP listener system...");
     }
 
@@ -40,5 +40,8 @@ impl TcpListenerSystem {
                     .instrument(info_span!("conn", %addy).or_current())
             );
         }
+        
+        #[allow(unreachable_code)]
+        Ok(())
     }
 }

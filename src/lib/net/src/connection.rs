@@ -5,7 +5,7 @@ use ferrumc_net_codec::encode::NetEncodeOpts;
 use std::sync::Arc;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tokio::net::TcpStream;
-use tracing::{debug, trace, warn};
+use tracing::{debug, debug_span, trace, warn, Instrument};
 
 #[derive(Clone)]
 pub enum ConnectionState {
@@ -106,8 +106,10 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
             Arc::clone(&state),
         )
             .await
+            .instrument(debug_span!("eid", %entity))
+            .inner()
         {
-            warn!("Failed to handle packet: {:?}", e);
+            warn!("Failed to handle packet: {:?}. packet_id: {:02X}; conn_state: {}", e, packet_skele.id, conn_state.as_str());
             // Kick the player (when implemented).
             break 'recv;
         };
@@ -124,7 +126,7 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
         warn!("Failed to remove all components from entity: {:?}", e);
     }
 
-    debug!("Dropped all components from entity: {:?}", entity);
+    trace!("Dropped all components from entity: {:?}", entity);
 
     Ok(())
 }
