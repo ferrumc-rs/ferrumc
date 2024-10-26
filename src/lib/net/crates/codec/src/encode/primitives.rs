@@ -1,5 +1,6 @@
 use crate::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
 use crate::net_types::var_int::VarInt;
+use std::collections::HashMap;
 use std::io::Write;
 use tokio::io::{AsyncWrite, AsyncWriteExt};
 
@@ -58,7 +59,7 @@ impl NetEncode for String {
     fn encode<W: Write>(&self, writer: &mut W, _: &NetEncodeOpts) -> NetEncodeResult<()> {
         self.as_str().encode(writer, &NetEncodeOpts::None)
     }
-    
+
     async fn encode_async<W: AsyncWrite + Unpin>(&self, writer: &mut W, _: &NetEncodeOpts) -> NetEncodeResult<()> {
         self.as_str().encode_async(writer, &NetEncodeOpts::None).await
     }
@@ -122,7 +123,7 @@ impl NetEncode for &[u8] {
         writer.write_all(self)?;
         Ok(())
     }
-    
+
     async fn encode_async<W: AsyncWrite + Unpin>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
         if matches!(opts, NetEncodeOpts::SizePrefixed)
         {
@@ -176,5 +177,34 @@ impl<T: NetEncode> NetEncode for Option<T> {
             Some(value) => value.encode_async(writer, opts).await,
             None => Ok(()),
         }
+    }
+}
+
+
+impl<K, V> NetEncode for HashMap<K, V>
+where
+    K: NetEncode,
+    V: NetEncode,
+{
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
+        let len: VarInt = VarInt::new(self.len() as i32);
+        len.encode(writer, opts)?;
+
+        for (key, value) in self {
+            key.encode(writer, opts)?;
+            value.encode(writer, opts)?;
+        }
+        Ok(())
+    }
+
+    async fn encode_async<W: AsyncWrite + Unpin>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
+        let len: VarInt = VarInt::new(self.len() as i32);
+        len.encode_async(writer, opts).await?;
+
+        for (key, value) in self {
+            key.encode_async(writer, opts).await?;
+            value.encode_async(writer, opts).await?;
+        }
+        Ok(())
     }
 }
