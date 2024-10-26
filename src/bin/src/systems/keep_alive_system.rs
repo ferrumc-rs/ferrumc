@@ -18,9 +18,8 @@ impl System for KeepAliveSystem {
             }
 
             let online_players = state.universe.query::<&PlayerIdentity>();
-            let online_players = online_players.into_iter().map(|player| player.username.clone()).collect::<Vec<String>>();
-            tracing::debug!("Online players: {:?}", online_players);
-            tracing::debug!("Total of {} online players", online_players.len());
+            drop(online_players);
+            // tracing::debug!("Total of {} online players", online_players.count());
 
             tokio::time::sleep(Duration::from_secs(5)).await;
         }

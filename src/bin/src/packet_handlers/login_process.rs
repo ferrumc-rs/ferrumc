@@ -18,6 +18,7 @@ use ferrumc_net::packets::outgoing::synchronize_player_position::SynchronizePlay
 use ferrumc_net::GlobalState;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use tracing::{debug, trace};
+use ferrumc_net::packets::outgoing::finish_configuration::FinishConfigurationPacket;
 
 #[event_handler]
 async fn handle_login_start(
@@ -87,7 +88,9 @@ async fn handle_server_bound_known_packs(
 
     let registry_packets = get_registry_packets();
     writer.send_packet(&registry_packets, &NetEncodeOpts::None).await?;
-
+    
+    writer.send_packet(&FinishConfigurationPacket::new(), &NetEncodeOpts::WithLength).await?;
+    
     Ok(server_bound_known_packs_event)
 }
 
