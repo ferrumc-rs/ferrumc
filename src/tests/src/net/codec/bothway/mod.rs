@@ -3,8 +3,12 @@ use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 
 #[test]
 fn hashmaps() {
-    let mut map = std::collections::HashMap::new();
-    map.insert("key".to_string(), "value".to_string());
+    let map = maplit::hashmap! {
+        "key1".to_string() => "value1".to_string(),
+        "key2".to_string() => "value2".to_string(),
+        "key3".to_string() => "value3".to_string(),
+        "key4".to_string() => "value4".to_string(),
+    };
     
     let encoded = {
         let mut buffer = Vec::new();
