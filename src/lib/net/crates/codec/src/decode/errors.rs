@@ -1,4 +1,4 @@
-use ferrumc_config::get_global_config;
+use ferrumc_config::statics::get_global_config;
 
 #[derive(Debug, thiserror::Error)]
 pub enum NetDecodeError {
