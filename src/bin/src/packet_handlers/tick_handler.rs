@@ -25,16 +25,13 @@ async fn handle_tick(event: TickEvent, state: GlobalState) -> Result<TickEvent, 
         .query::<(&mut StreamWriter, &ConnectionState)>();
 
     for (mut writer, connection_state) in query {
-        match *connection_state {
-            ConnectionState::Play => {
-                if let Err(e) = writer
-                    .send_packet(packet.as_ref(), &NetEncodeOpts::WithLength)
-                    .await
-                {
-                    error!("Error sending update_time packet: {}", e);
-                }
+        if let ConnectionState::Play = *connection_state {
+            if let Err(e) = writer
+                .send_packet(packet.as_ref(), &NetEncodeOpts::WithLength)
+                .await
+            {
+                error!("Error sending update_time packet: {}", e);
             }
-            _ => {}
         }
     }
 
