@@ -1,14 +1,12 @@
 // Security or something like that
 #![forbid(unsafe_code)]
 
-#![feature(slice_as_chunks)]
-
 use ferrumc_ecs::Universe;
-use ferrumc_net::ServerState;
-use std::sync::{Arc};
-use tracing::{error, info};
 use ferrumc_net::server::create_server_listener;
+use ferrumc_net::ServerState;
+use std::sync::Arc;
 use systems::definition;
+use tracing::{error, info};
 
 pub(crate) mod errors;
 mod packet_handlers;
@@ -33,18 +31,17 @@ async fn main() {
 async fn entry() -> Result<()> {
     let state = create_state().await?;
     let global_state = Arc::new(state);
-    
+
     let all_systems = tokio::spawn(definition::start_all_systems(Arc::clone(&global_state)));
 
     // Start the systems and wait until all of them are done
     all_systems.await??;
-    
+
     // Stop all systems
     definition::stop_all_systems(global_state).await?;
 
     Ok(())
 }
-
 
 async fn create_state() -> Result<ServerState> {
     let listener = create_server_listener().await?;
