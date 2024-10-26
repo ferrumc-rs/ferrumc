@@ -10,3 +10,4 @@ pub mod set_player_position;
 pub mod status_request;
 
 pub mod packet_skeleton;
+pub mod keep_alive;
