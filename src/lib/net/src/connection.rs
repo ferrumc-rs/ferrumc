@@ -124,7 +124,7 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
         warn!("Failed to remove all components from entity: {:?}", e);
     }
 
-    debug!("Dropped all components from entity: {:?}", entity);
+    trace!("Dropped all components from entity: {:?}", entity);
 
     Ok(())
 }
