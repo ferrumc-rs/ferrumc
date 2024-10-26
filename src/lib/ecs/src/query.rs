@@ -78,6 +78,14 @@ impl<'a, Q: QueryItem> Query<'a, Q> {
             _marker: std::marker::PhantomData,
         }
     }
+    
+    pub fn entities(&self) -> &[Entity] {
+        &self.entities
+    }
+    
+    pub fn into_entities(self) -> Vec<Entity> {
+        self.entities
+    }
 }
 
 

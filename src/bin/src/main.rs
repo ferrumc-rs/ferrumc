@@ -1,6 +1,8 @@
 // Security or something like that
 #![forbid(unsafe_code)]
 
+#![feature(slice_as_chunks)]
+
 use ferrumc_ecs::Universe;
 use ferrumc_net::ServerState;
 use std::sync::{Arc};
