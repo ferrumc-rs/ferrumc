@@ -2,7 +2,6 @@ use crate::systems::definition::System;
 use async_trait::async_trait;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net::connection::{ConnectionState, StreamWriter};
-use ferrumc_net::packets::incoming::keep_alive;
 use ferrumc_net::packets::outgoing::keep_alive::{KeepAlive, KeepAlivePacket};
 use ferrumc_net::GlobalState;
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
@@ -62,7 +61,7 @@ impl System for KeepAliveSystem {
                     }
                 })
                 .collect::<Vec<_>>();
-            if query.len() > 0 {
+            if !query.is_empty() {
                 info!("there are {:?} players to keep alive", query.len());
             }
 
@@ -77,7 +76,7 @@ impl System for KeepAliveSystem {
                 }
                 buffer
             };
-            tokio::spawn(futures::stream::iter(query.into_iter()).fold(
+            tokio::spawn(futures::stream::iter(query).fold(
                 (state.clone(), packet),
                 move |(state, packet), entity| async move {
                     if let Ok(mut writer) = state.universe.get_mut::<StreamWriter>(entity) {

@@ -1,12 +1,8 @@
 use crate::systems::definition::System;
 use async_trait::async_trait;
 use ferrumc_events::infrastructure::Event;
-use ferrumc_net::connection::{ConnectionState, StreamWriter};
-use ferrumc_net::packets::outgoing::keep_alive::{KeepAlive, KeepAlivePacket};
 use ferrumc_net::packets::outgoing::update_time::TickEvent;
 use ferrumc_net::GlobalState;
-use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
-use futures::StreamExt;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
