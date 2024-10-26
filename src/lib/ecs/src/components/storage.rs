@@ -77,11 +77,9 @@ impl<C: Component> ComponentSparseSet<C> {
     }
     
     pub fn remove(&self, entity_id: usize) -> ECSResult<()>{
-        if let TryResult::Locked = self.components.try_get_mut(&entity_id) {
-            return Err(ECSError::ComponentLocked);
-        }
+        //! It will deadlock in the situation of a deadlock.
         self.components.remove(&entity_id);
-        
+
         Ok(())
     }
     pub fn entities(&self) -> Vec<usize> {

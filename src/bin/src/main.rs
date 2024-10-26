@@ -5,6 +5,7 @@ use ferrumc_ecs::Universe;
 use ferrumc_net::ServerState;
 use std::sync::{Arc};
 use tracing::{error, info};
+use ferrumc_net::server::create_server_listener;
 use systems::definition;
 
 pub(crate) mod errors;
@@ -44,10 +45,7 @@ async fn entry() -> Result<()> {
 
 
 async fn create_state() -> Result<ServerState> {
-    let config = ferrumc_config::statics::get_global_config();
-    let addy = format!("{}:{}", config.host, config.port);
-
-    let listener = tokio::net::TcpListener::bind(addy).await?;
+    let listener = create_server_listener().await?;
 
     Ok(ServerState {
         universe: Universe::new(),
