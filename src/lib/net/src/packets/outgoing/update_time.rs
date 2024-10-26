@@ -1,7 +1,6 @@
 use ferrumc_macros::Event;
 use ferrumc_macros::{packet, NetEncode};
 use std::io::Write;
-use tokio::io::AsyncWriteExt;
 
 #[derive(NetEncode)]
 #[packet(packet_id = 0x64)]

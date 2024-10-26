@@ -2,7 +2,6 @@ use crate::packets::outgoing::set_default_spawn_position::DEFAULT_SPAWN_POSITION
 use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::Write;
-use tokio::io::AsyncWriteExt;
 
 #[derive(NetEncode)]
 #[packet(packet_id = 0x40)]

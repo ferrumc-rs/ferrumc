@@ -1,7 +1,8 @@
 use ferrumc_macros::NetEncode;
 use ferrumc_net_codec::{encode::NetEncode, net_types::var_int::VarInt};
 use std::io::Write;
-use tokio::io::AsyncWriteExt;
+
+mod enums;
 
 #[derive(NetEncode)]
 struct SomeExampleEncStruct {
