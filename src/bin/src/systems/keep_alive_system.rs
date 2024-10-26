@@ -81,7 +81,7 @@ impl System for KeepAliveSystem {
                 }
                 buffer
             };
-            tokio::spawn(futures::stream::iter(query).fold(
+            let thread = tokio::spawn(futures::stream::iter(query).fold(
                 (state.clone(), packet),
                 move |(state, packet), entity| async move {
                     if let Ok(mut writer) = state.universe.get_mut::<StreamWriter>(entity) {
@@ -89,7 +89,7 @@ impl System for KeepAliveSystem {
                             .send_packet(&packet.as_slice(), &NetEncodeOpts::None)
                             .await
                         {
-                            error!("Error sending update_time packet: {}", e);
+                            error!("Error sending keep alive packet: {}", e);
                         }
                     }
                     debug!("Sent keep alive packet to {}", entity);
@@ -98,6 +98,9 @@ impl System for KeepAliveSystem {
                     (state, packet)
                 },
             ));
+            if thread.await.is_err() {
+                error!("Error sending keep alive packet");
+            }
         }
     }
 
