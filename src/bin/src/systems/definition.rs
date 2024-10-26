@@ -5,6 +5,8 @@ use async_trait::async_trait;
 use crate::systems::keep_alive_system::KeepAliveSystem;
 use crate::systems::tcp_listener_system::TcpListenerSystem;
 
+use super::ticking_system::TickingSystem;
+
 #[async_trait]
 pub trait System: Send + Sync {
     async fn start(&self, state: GlobalState);
@@ -15,7 +17,8 @@ pub trait System: Send + Sync {
 
 pub static ALL_SYSTEMS: &[&dyn System] = &[
     &TcpListenerSystem,
-    &KeepAliveSystem
+    &KeepAliveSystem,
+    &TickingSystem
 ];
 
 pub async fn start_all_systems(state: GlobalState) -> NetResult<()> {
