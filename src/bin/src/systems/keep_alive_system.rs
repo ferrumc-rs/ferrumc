@@ -2,6 +2,7 @@ use crate::systems::definition::System;
 use async_trait::async_trait;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net::connection::{ConnectionState, StreamWriter};
+use ferrumc_net::packets::incoming::keep_alive;
 use ferrumc_net::packets::outgoing::keep_alive::{KeepAlive, KeepAlivePacket};
 use ferrumc_net::GlobalState;
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
@@ -53,7 +54,7 @@ impl System for KeepAliveSystem {
                     let keep_alive = state.universe.get_mut::<KeepAlive>(entity).ok()?;
 
                     if matches!(*conn_state, ConnectionState::Play)
-                        && (current_time - keep_alive.id) > fifteen_seconds_ms
+                        && (current_time - keep_alive.id) >= fifteen_seconds_ms
                     {
                         Some(entity)
                     } else {
@@ -88,6 +89,8 @@ impl System for KeepAliveSystem {
                         }
                     }
                     debug!("Sent keep alive packet to {}", entity);
+                    let mut keep_alive = state.universe.get_mut::<KeepAlive>(entity).unwrap();
+                    *keep_alive = KeepAlive::from(current_time);
                     (state, packet)
                 }
             ));
