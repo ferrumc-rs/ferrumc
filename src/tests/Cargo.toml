@@ -10,6 +10,8 @@ ferrumc-net-codec = { workspace = true }
 ferrumc-config = { workspace = true }
 ferrumc-ecs = { workspace = true }
 ferrumc-core = { workspace = true }
+ferrumc-events = { workspace = true }
+ferrumc-net = { workspace = true }
 flate2 = { workspace = true }
 tokio = { workspace = true }
 

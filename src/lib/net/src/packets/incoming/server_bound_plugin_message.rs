@@ -1,7 +1,7 @@
 use std::io::Read;
 use std::sync::Arc;
 use tracing::debug;
-use ferrumc_macros::{packet};
+use ferrumc_macros::packet;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
 use crate::packets::IncomingPacket;
 use crate::{NetResult, ServerState};
@@ -39,7 +39,7 @@ impl IncomingPacket for ServerBoundPluginMessage {
             let brand = String::from_utf8(self.data)?;
             debug!("Client brand: {}", brand);
             
-            state.universe.add_component(conn_id, ClientMinecraftBrand { brand });
+            state.universe.add_component(conn_id, ClientMinecraftBrand { brand })?;
         }
 
         Ok(())

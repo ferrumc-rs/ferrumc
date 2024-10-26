@@ -27,15 +27,8 @@ fn test_encode() {
     example
         .encode(&mut writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)
         .unwrap();
-
-    // save in file (.etc/tests)
-    let result = std::fs::write(
-        r#"D:\Minecraft\framework\ferrumc\ferrumc-2_0\ferrumc\.etc\tests/enc_test_encode"#,
-        writer,
-    );
-    result.unwrap();
 }
-
+    
 #[allow(unreachable_code)]
 fn _test_compression() -> ! {
     let example = SomeExampleEncStructWithPacketId {

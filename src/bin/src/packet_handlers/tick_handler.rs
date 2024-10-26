@@ -1,33 +1,19 @@
 use std::sync::Arc;
 
-use ferrumc_ecs::components::ComponentRefMut;
-
+use ferrumc_core::identity::player_identity::PlayerIdentity;
+use ferrumc_ecs::query;
 use ferrumc_ecs::query::Query;
 use ferrumc_macros::event_handler;
+use ferrumc_net::connection;
+use ferrumc_net::connection::ConnectionState;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::errors::NetError;
 use ferrumc_net::packets::outgoing::tick_event::TickEvent;
 use ferrumc_net::packets::outgoing::update_time::UpdateTimePacket;
 use ferrumc_net::GlobalState;
 use ferrumc_net_codec::encode::NetEncodeOpts;
+use tracing::debug;
 use tracing::error;
-
-pub async fn update_time(
-    mut writer: ComponentRefMut<'_, StreamWriter>,
-    packet: Arc<UpdateTimePacket>,
-) {
-    match writer
-        .send_packet(packet.as_ref(), &NetEncodeOpts::WithLength)
-        .await
-    {
-        Ok(_) => {
-            // debug!("Sent update time packet");
-        }
-        Err(err) => {
-            error!("Failed to send update time packet: {}", err);
-        }
-    };
-}
 
 #[event_handler]
 async fn handle_tick(event: TickEvent, state: GlobalState) -> Result<TickEvent, NetError> {
@@ -39,10 +25,22 @@ async fn handle_tick(event: TickEvent, state: GlobalState) -> Result<TickEvent, 
 
     let packet = Arc::new(UpdateTimePacket::new(event.tick, event.tick % 24000));
 
-    let entities: Query<'_, StreamWriter> = state.universe.query();
+    let query = state
+        .universe
+        .query::<(&mut StreamWriter, &ConnectionState)>();
 
-    for writer in entities {
-        update_time(writer, packet.clone()).await; //TODO make this async
+    for (mut writer, connection_state) in query {
+        match *connection_state {
+            ConnectionState::Play => {
+                if let Err(e) = writer
+                    .send_packet(packet.as_ref(), &NetEncodeOpts::WithLength)
+                    .await
+                {
+                    error!("Error sending update_time packet: {}", e);
+                }
+            }
+            _ => {}
+        }
     }
 
     Ok(event)

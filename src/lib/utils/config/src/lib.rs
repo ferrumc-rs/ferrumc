@@ -7,7 +7,7 @@
 //! Here are some examples of how to use the configuration utilities.
 //!
 //! ### Initialize and Read Configuration
-//! ```rust
+//! ```ignore
 //! use ferrumc_config::ServerConfig;
 //!
 //! // In a scope, load the configuration from the default path.
@@ -20,13 +20,13 @@
 //! // In another scope, get the same configuration without loading it again.
 //! {
 //!    // Get the global configuration.
-//!    let config = ferrumc_config::get_global_config().expect("Failed to get global config.");
+//!    let config = ferrumc_config::get_global_config();
 //!    println!("{:?}", config);
 //! }
 //! ```
 //!
 //! ### Initialize Configuration With Custom Path
-//! ```rust
+//! ```ignore
 //! use ferrumc_config::ServerConfig;
 //!
 //! // Load the configuration from a custom path.

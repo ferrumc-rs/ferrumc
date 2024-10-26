@@ -24,6 +24,7 @@ ferrumc-net-codec = { workspace = true }
 ferrumc-plugins = { workspace = true }
 ferrumc-storage = { workspace = true }
 ferrumc-utils = { workspace = true }
+ferrumc-config = { workspace = true }
 ferrumc-profiling = { workspace = true }
 ferrumc-logging = { workspace = true }
 ferrumc-macros = { workspace = true }
@@ -34,9 +35,10 @@ ctor = { workspace = true }
 parking_lot = { workspace = true }
 tracing = { workspace = true }
 tokio = { workspace = true }
+futures = { workspace = true }
 serde_json = { workspace = true }
+async-trait = "0.1.83"
 log = { version = "0.4.22", features = [] }
-
 [[bin]]
 name = "ferrumc"
 path = "src/main.rs"

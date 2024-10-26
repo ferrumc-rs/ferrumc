@@ -1,4 +1,5 @@
-use crate::components::{Component, ComponentRef, ComponentRefMut, ComponentStorage};
+use crate::components::ComponentManager;
+use crate::components::storage::{Component, ComponentRef, ComponentRefMut};
 use crate::entities::{Entity, EntityBuilder, EntityManager};
 use crate::query::{Query, QueryItem};
 
@@ -18,7 +19,7 @@ pub type ECSResult<T> = Result<T, errors::ECSError>;
 /// Since it may be confused with the Minecraft world.
 pub struct Universe {
     entities: EntityManager,
-    components: ComponentStorage,
+    components: ComponentManager,
 }
 
 impl Default for Universe {
@@ -31,7 +32,7 @@ impl Universe {
     pub fn new() -> Self {
         Self {
             entities: EntityManager::new(),
-            components: ComponentStorage::new(),
+            components: ComponentManager::new(),
         }
     }
 
@@ -43,11 +44,11 @@ impl Universe {
         self.entities.builder(&self.components)
     }
 
-    pub fn add_component<T: Component>(&self, entity: Entity, component: T) {
+    pub fn add_component<T: Component>(&self, entity: Entity, component: T) -> ECSResult<()> {
         self.components.insert(entity, component)
     }
     
-    pub fn remove_component<T: Component>(&self, entity: Entity) {
+    pub fn remove_component<T: Component>(&self, entity: Entity) -> ECSResult<()> {
         self.components.remove::<T>(entity)
     }
     
@@ -56,10 +57,10 @@ impl Universe {
     }
 
     pub fn get<'a, T: Component>(&self, entity: Entity) -> ECSResult<ComponentRef<'a, T>> {
-        self.components.get::<T>(entity)
+        self.components.get::<T>(entity).ok_or(errors::ECSError::ComponentNotFound)
     }
     pub fn get_mut<'a, T: Component>(&self, entity: Entity) -> ECSResult<ComponentRefMut<'a, T>> {
-        self.components.get_mut::<T>(entity)
+        self.components.get_mut::<T>(entity).ok_or(errors::ECSError::ComponentNotFound)
     }
 
     pub fn query<Q: QueryItem>(&self) -> Query<Q> {
