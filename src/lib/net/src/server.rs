@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use socket2::{Domain, Protocol, Socket, Type};
 use crate::{NetResult, ServerState};
-use ferrumc_config::get_global_config;
+use ferrumc_config::statics::get_global_config;
 use tokio::net::TcpListener;
 use tracing::{debug, error, info, info_span, Instrument};
 use crate::connection::handle_connection;
