@@ -298,18 +298,18 @@ impl ComponentManager {
 
         Ok(())
     }
-    pub fn get<'a, T: Component>(&self, entity_id: usize) -> Option<ComponentRef<'a, T>> {
+    pub fn get<'a, T: Component>(&self, entity_id: usize) -> ECSResult<ComponentRef<'a, T>> {
         let type_id = TypeId::of::<T>();
-        let ptr = *self.components.get(&type_id)?;
+        let ptr = *self.components.get(&type_id).ok_or(ECSError::ComponentTypeNotFound)?;
         let component_set = unsafe { &*(ptr as *const ComponentSparseSet<T>) };
-        component_set.get(entity_id).ok()
+        component_set.get(entity_id)
     }
 
-    pub fn get_mut<'a, T: Component>(&self, entity_id: usize) -> Option<ComponentRefMut<'a, T>> {
+    pub fn get_mut<'a, T: Component>(&self, entity_id: usize) -> ECSResult<ComponentRefMut<'a, T>> {
         let type_id = TypeId::of::<T>();
-        let ptr = *self.components.get(&type_id)?;
+        let ptr = *self.components.get(&type_id).ok_or(ECSError::ComponentTypeNotFound)?;
         let component_set = unsafe { &*(ptr as *const ComponentSparseSet<T>) };
-        component_set.get_mut(entity_id).ok()
+        component_set.get_mut(entity_id)
     }
 
     pub fn remove<T: Component>(&self, entity_id: usize) -> ECSResult<()> {

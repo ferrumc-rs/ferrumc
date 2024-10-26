@@ -1,7 +1,6 @@
 use std::ops::{Deref, DerefMut};
 use dashmap::DashMap;
 use dashmap::mapref::one::{Ref, RefMut};
-use dashmap::try_result::{TryResult};
 use crate::ECSResult;
 use crate::errors::ECSError;
 
@@ -43,37 +42,15 @@ impl<C: Component> ComponentSparseSet<C> {
 
 
     pub fn get(&self, entity_id: usize) -> ECSResult<ComponentRef<C>> {
-        let components = self.components
-            .try_get(&entity_id);
-
-        match components {
-            TryResult::Present(value) => {
-                Ok(ComponentRef { guard: value })
-            }
-            TryResult::Absent => {
-                Err(ECSError::ComponentRetrievalError)
-            }
-            TryResult::Locked => {
-                Err(ECSError::ComponentLocked)
-            }
-        }
+        self.components.get(&entity_id)
+            .map(|entry| ComponentRef { guard: entry })
+            .ok_or(ECSError::ComponentRetrievalError)
     }
 
     pub fn get_mut(&self, entity_id: usize) -> ECSResult<ComponentRefMut<C>> {
-        let components = self.components
-            .try_get_mut(&entity_id);
-
-        match components {
-            TryResult::Present(value) => {
-                Ok(ComponentRefMut { guard: value })
-            }
-            TryResult::Absent => {
-                Err(ECSError::ComponentRetrievalError)
-            }
-            TryResult::Locked => {
-                Err(ECSError::ComponentLocked)
-            }
-        }
+        self.components.get_mut(&entity_id)
+            .map(|entry| ComponentRefMut { guard: entry })
+            .ok_or(ECSError::ComponentRetrievalError)
     }
     
     pub fn remove(&self, entity_id: usize) -> ECSResult<()>{

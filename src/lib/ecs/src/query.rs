@@ -2,7 +2,6 @@ use crate::components::{ComponentManager};
 use crate::components::storage::{Component, ComponentRef, ComponentRefMut};
 use crate::entities::Entity;
 use crate::ECSResult;
-use crate::errors::ECSError;
 
 #[allow(async_fn_in_trait)]
 pub trait QueryItem {
@@ -27,7 +26,7 @@ impl<T: Component> QueryItem for &T {
         entity: Entity,
         storage: &ComponentManager,
     ) -> ECSResult<Self::Item<'a>> {
-        storage.get(entity).ok_or(ECSError::ComponentNotFound)
+        storage.get(entity)
     }
 
     fn entities(
@@ -43,7 +42,7 @@ impl<T: Component> QueryItem for &mut T {
         entity: Entity,
         storage: &ComponentManager,
     ) -> ECSResult<Self::Item<'a>> {
-        storage.get_mut(entity).ok_or(ECSError::ComponentNotFound)
+        storage.get_mut(entity)
     }
 
     fn entities(

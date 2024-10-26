@@ -1,5 +1,5 @@
 use crate::{NetResult};
-use ferrumc_config::get_global_config;
+use ferrumc_config::statics::get_global_config;
 use tokio::net::TcpListener;
 use tracing::{debug, error};
 
