@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use ferrumc_macros::event_handler;
 use ferrumc_net::connection::ConnectionState;
 use ferrumc_net::connection::StreamWriter;
@@ -18,7 +16,7 @@ async fn handle_tick(event: TickEvent, state: GlobalState) -> Result<TickEvent, 
 
     ///////
 
-    let packet = Arc::new(UpdateTimePacket::new(event.tick, event.tick % 24000));
+    let packet = UpdateTimePacket::new(event.tick, event.tick % 24000);
 
     let query = state
         .universe
@@ -27,7 +25,7 @@ async fn handle_tick(event: TickEvent, state: GlobalState) -> Result<TickEvent, 
     for (mut writer, connection_state) in query {
         if let ConnectionState::Play = *connection_state {
             if let Err(e) = writer
-                .send_packet(packet.as_ref(), &NetEncodeOpts::WithLength)
+                .send_packet(&packet, &NetEncodeOpts::WithLength)
                 .await
             {
                 error!("Error sending update_time packet: {}", e);

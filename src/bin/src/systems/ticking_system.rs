@@ -34,7 +34,7 @@ impl System for TickingSystem {
                 info!("Running behind by {:?}", time_debt);
             }
 
-            tick += 1;
+            tick += 200;
         }
     }
 
