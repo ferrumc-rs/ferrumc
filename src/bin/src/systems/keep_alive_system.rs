@@ -8,7 +8,6 @@ use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use futures::StreamExt;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
-use std::time::Duration;
 use tracing::{debug, error, info};
 
 pub struct KeepAliveSystem {
@@ -26,20 +25,26 @@ impl KeepAliveSystem {
 #[async_trait]
 impl System for KeepAliveSystem {
     async fn start(self: Arc<Self>, state: GlobalState) {
+        let mut last_time = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .expect("Time went backwards")
+            .as_millis() as i64;
         loop {
             if self.shutdown.load(Ordering::Relaxed) {
                 break;
             }
 
             let online_players = state.universe.query::<&PlayerIdentity>();
-            info!("Online players: {}", online_players.count());
-
-            tokio::time::sleep(Duration::from_secs(5)).await;
 
             let current_time = std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .expect("Time went backwards")
                 .as_millis() as i64;
+
+            if current_time - last_time >= 5000 {
+                info!("Online players: {}", online_players.count());
+                last_time = current_time;
+            }
 
             let fifteen_seconds_ms = 15000; // 15 seconds in milliseconds
 
@@ -91,7 +96,7 @@ impl System for KeepAliveSystem {
                     let mut keep_alive = state.universe.get_mut::<KeepAlive>(entity).unwrap();
                     *keep_alive = KeepAlive::from(current_time);
                     (state, packet)
-                }
+                },
             ));
         }
     }
