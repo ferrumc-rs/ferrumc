@@ -69,7 +69,7 @@ fn generate_async_field_encoders(fields: &syn::Fields) -> proc_macro2::TokenStre
 
 // Generate enum variant encoding using static dispatch
 fn generate_enum_encoders(data: &syn::DataEnum) -> (proc_macro2::TokenStream, proc_macro2::TokenStream) {
-    let variants = data.variants.iter().enumerate().map(|(idx, variant)| {
+    let variants = data.variants.iter().enumerate().map(|(_, variant)| {
         let variant_ident = &variant.ident;
 
         match &variant.fields {
