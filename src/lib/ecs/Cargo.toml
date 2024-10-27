@@ -9,3 +9,4 @@ thiserror = { workspace = true }
 dashmap = { workspace = true }
 parking_lot = { workspace = true }
 rayon = { workspace = true }
+tracing = { workspace = true }

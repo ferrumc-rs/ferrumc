@@ -5,7 +5,7 @@ use ferrumc_net_codec::encode::NetEncodeOpts;
 use std::sync::Arc;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tokio::net::TcpStream;
-use tracing::{debug, trace, warn};
+use tracing::{debug, debug_span, trace, warn, Instrument};
 
 #[derive(Clone)]
 pub enum ConnectionState {
@@ -75,27 +75,25 @@ impl Default for CompressionStatus {
 }
 
 pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -> NetResult<()> {
-    let (reader, writer) = tcp_stream.into_split();
+    let (mut reader, writer) = tcp_stream.into_split();
 
     let entity = state
         .universe
         .builder()
-        .with(StreamReader::new(reader))
-        .with(StreamWriter::new(writer))
-        .with(ConnectionState::Handshaking)
-        .with(CompressionStatus::new())
+        .with(StreamWriter::new(writer))?
+        .with(ConnectionState::Handshaking)?
+        .with(CompressionStatus::new())?
         .build();
-
-    let mut reader = state.universe.get_mut::<StreamReader>(entity)?;
 
     'recv: loop {
         let compressed = state.universe.get::<CompressionStatus>(entity)?.enabled;
-        let Ok(mut packet_skele) = PacketSkeleton::new(&mut reader.reader, compressed).await else {
-            warn!("Failed to read packet. Possibly connection closed.");
+        let Ok(mut packet_skele) = PacketSkeleton::new(&mut reader, compressed).await else {
+            trace!("Failed to read packet. Possibly connection closed.");
             break 'recv;
         };
 
-        if state.log_packets.load(std::sync::atomic::Ordering::Relaxed){
+        // Log the packet if the environment variable is set (this env variable is set at compile time not runtime!)
+        if option_env!("FERRUMC_LOG_PACKETS").is_some() {
             trace!("Received packet: {:?}", packet_skele);
         }
 
@@ -108,8 +106,10 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
             Arc::clone(&state),
         )
             .await
+            .instrument(debug_span!("eid", %entity))
+            .inner()
         {
-            warn!("Failed to handle packet: {:?}", e);
+            warn!("Failed to handle packet: {:?}. packet_id: {:02X}; conn_state: {}", e, packet_skele.id, conn_state.as_str());
             // Kick the player (when implemented).
             break 'recv;
         };
@@ -126,7 +126,7 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
         warn!("Failed to remove all components from entity: {:?}", e);
     }
 
-    debug!("Dropped all components from entity: {:?}", entity);
+    trace!("Dropped all components from entity: {:?}", entity);
 
     Ok(())
 }

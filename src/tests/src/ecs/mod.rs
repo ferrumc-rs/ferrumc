@@ -12,8 +12,8 @@ async fn test_1mil_entities() {
     let start = std::time::Instant::now();
     for _ in 0  ..1_000_000 {
         world.builder()
-            .with(Position::from((0.0, 0.0, 0.0)))
-            .with(20f32)
+            .with(Position::from((0.0, 0.0, 0.0))).unwrap()
+            .with(20f32).unwrap()
             .build();
     }
     println!("Time to create 1mil entities: {:?}", start.elapsed());

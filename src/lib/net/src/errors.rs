@@ -16,6 +16,9 @@ pub enum NetError {
 
     #[error("IO Error: {0}")]
     IOError(#[from] std::io::Error),
+    
+    #[error("Addr parse error: {0}")]
+    AddrParseError(#[from] std::net::AddrParseError),
 
     #[error("Task Error: {0}")]
     TaskError(#[from] tokio::task::JoinError),

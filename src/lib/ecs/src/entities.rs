@@ -1,7 +1,10 @@
 #![allow(dead_code)]
 
-use crate::components::{Component, ComponentStorage};
+use crate::components::{ComponentManager};
 use std::sync::atomic::{AtomicUsize, Ordering};
+use tracing::trace;
+use crate::components::storage::Component;
+use crate::ECSResult;
 
 /// Entity is a unique identifier for an entity in the ECS.
 /// It is a simple usize.
@@ -26,29 +29,31 @@ impl EntityManager {
     }
 
     pub fn create_entity(&self) -> Entity {
+        trace!("Creating new entity");
         let id = self.new_entity_id.load(Ordering::Relaxed);
         self.new_entity_id.fetch_add(1, Ordering::Relaxed);
+        trace!("Created entity with id: {}", id);
         id as Entity
     }
     
-    pub fn builder<'a>(&'a self, component_storage: &'a ComponentStorage) -> EntityBuilder<'a> {
+    pub fn builder<'a>(&'a self, component_storage: &'a ComponentManager) -> EntityBuilder<'a> {
         EntityBuilder::new(self.create_entity(), component_storage)
     }
 }
 
 pub struct EntityBuilder<'a> {
     entity: Entity,
-    component_storage: &'a ComponentStorage,
+    component_storage: &'a ComponentManager,
 }
 
 impl<'a> EntityBuilder<'a> {
-    pub fn new(entity: Entity, component_storage: &'a ComponentStorage) -> Self {
+    pub fn new(entity: Entity, component_storage: &'a ComponentManager) -> Self {
         EntityBuilder { entity, component_storage }
     }
 
-    pub fn with<T: Component>(self, component: T) -> Self {
-        self.component_storage.insert(self.entity, component);
-        self
+    pub fn with<T: Component>(self, component: T) -> ECSResult<Self> {
+        self.component_storage.insert(self.entity, component)?;
+        Ok(self)
     }
 
     pub fn build(self) -> Entity {

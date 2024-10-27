@@ -1,6 +1,5 @@
 use ferrumc_macros::{packet, NetEncode};
 use std::io::Write;
-use tokio::io::AsyncWriteExt;
 
 #[derive(Debug, NetEncode)]
 pub struct KeepAlive {

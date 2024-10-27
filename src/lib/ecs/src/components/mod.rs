@@ -1,4 +1,4 @@
-use dashmap::DashMap;
+/*use dashmap::DashMap;
 use parking_lot::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use sparse_set::SparseSet;
 use std::any::{Any, TypeId};
@@ -229,5 +229,113 @@ mod tests {
         let position = component_storage.get_mut::<Position>(entity);
 
         assert!(position.is_err());
+    }
+}
+*/use crate::components::storage::{Component, ComponentRef, ComponentRefMut, ComponentSparseSet};
+use dashmap::{DashMap};
+use parking_lot::RwLock;
+use std::any::{TypeId};
+use crate::ECSResult;
+use crate::errors::ECSError;
+
+pub mod storage;
+
+unsafe impl Send for ComponentManager {}
+unsafe impl Sync for ComponentManager {}
+pub struct ComponentManager {
+    components: DashMap<TypeId, *const ()>,
+    storage: RwLock<Vec<Box<dyn ComponentStorage>>>,
+}
+
+pub trait ComponentStorage {
+    fn as_ptr(&self) -> *const ();
+    fn remove_component(&self, entity_id: usize) -> ECSResult<()>;
+}
+impl<T: Component> ComponentStorage for ComponentSparseSet<T> {
+    fn as_ptr(&self) -> *const () {
+        self as *const Self as *const ()
+    }
+    
+    fn remove_component(&self, entity_id: usize) -> ECSResult<()> {
+        self.remove(entity_id)
+    }
+}
+
+impl Default for ComponentManager {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl ComponentManager {
+    pub fn new() -> Self {
+        Self {
+            components: DashMap::new(),
+            storage: RwLock::new(Vec::new()),
+        }
+    }
+
+    pub fn insert<T: Component>(&self, entity_id: usize, component: T) -> ECSResult<()> {
+        use dashmap::mapref::entry::Entry;
+        let type_id = TypeId::of::<T>();
+
+        match self.components.entry(type_id) {
+            Entry::Occupied(entry) => {
+                let ptr = *entry.get();
+                let component_set = unsafe { &mut *(ptr as *mut ComponentSparseSet<T>) };
+                component_set.insert(entity_id, component)?;
+            }
+            Entry::Vacant(entry) => {
+                let component_set = ComponentSparseSet::<T>::new();
+                component_set.insert(entity_id, component)?;
+                let boxed: Box<dyn ComponentStorage> = Box::new(component_set);
+                let ptr = boxed.as_ptr();
+                entry.insert(ptr);
+                self.storage.write().push(boxed);
+            }
+        };
+
+
+        Ok(())
+    }
+    pub fn get<'a, T: Component>(&self, entity_id: usize) -> ECSResult<ComponentRef<'a, T>> {
+        let type_id = TypeId::of::<T>();
+        let ptr = *self.components.get(&type_id).ok_or(ECSError::ComponentTypeNotFound)?;
+        let component_set = unsafe { &*(ptr as *const ComponentSparseSet<T>) };
+        component_set.get(entity_id)
+    }
+
+    pub fn get_mut<'a, T: Component>(&self, entity_id: usize) -> ECSResult<ComponentRefMut<'a, T>> {
+        let type_id = TypeId::of::<T>();
+        let ptr = *self.components.get(&type_id).ok_or(ECSError::ComponentTypeNotFound)?;
+        let component_set = unsafe { &*(ptr as *const ComponentSparseSet<T>) };
+        component_set.get_mut(entity_id)
+    }
+
+    pub fn remove<T: Component>(&self, entity_id: usize) -> ECSResult<()> {
+        let type_id = TypeId::of::<T>();
+        let ptr = *self.components.get(&type_id).ok_or(ECSError::ComponentTypeNotFound)?;
+        let component_set = unsafe { &mut *(ptr as *mut ComponentSparseSet<T>) };
+        component_set.remove(entity_id)?;
+
+        Ok(())
+    }
+
+    pub fn remove_all_components(&self, entity_id: usize) -> ECSResult<()>{
+        for storage in self.storage.read().iter() {
+            storage.remove_component(entity_id)?;
+        }
+
+        Ok(())
+    }
+
+    pub fn get_entities_with<T: Component>(&self) -> Vec<usize> {
+        let type_id = TypeId::of::<T>();
+        let Some(ptr) = self.components.get(&type_id) else {
+            return Vec::new();
+        };
+        let ptr = *ptr;
+        let component_set = unsafe { &*(ptr as *const ComponentSparseSet<T>) };
+        component_set.entities()
     }
 }

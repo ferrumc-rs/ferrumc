@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+use std::hash::Hash;
 use crate::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
 use crate::net_types::var_int::VarInt;
 use std::io::Read;
@@ -76,5 +78,26 @@ where
         }
 
         Ok(vec)
+    }
+}
+
+
+
+/// This isn't actually a type in the Minecraft Protocol. This is just for saving data/ or for general use.
+/// It was created for saving/reading chunks!
+impl<K, V> NetDecode for HashMap<K, V>
+where
+    K: NetDecode + Eq + Hash,
+    V: NetDecode,
+{
+    fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> NetDecodeResult<Self> {
+        let len = <VarInt as NetDecode>::decode(reader, opts)?.val as usize;
+        let mut map = HashMap::with_capacity(len);
+        for _ in 0..len {
+            let key = K::decode(reader, opts)?;
+            let value = V::decode(reader, opts)?;
+            map.insert(key, value);
+        }
+        Ok(map)
     }
 }
