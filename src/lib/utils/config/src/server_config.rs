@@ -2,11 +2,9 @@
 //!
 //! Contains the server configuration struct and its related functions.
 
-use crate::errors::ConfigError;
-use crate::statics::{get_global_config, set_global_config};
-use ferrumc_general_purpose::paths::get_root_path;
 use serde_derive::{Deserialize, Serialize};
-use tracing::{error, info, warn};
+
+
 
 /// The server configuration struct.
 ///
@@ -53,166 +51,18 @@ pub struct DatabaseConfig {
     pub compression_level: i32,
 }
 
-impl ServerConfig {
-    /// Load the configuration from a file.
-    ///
-    /// This returns a [ConfigError] if the file could not be read or the configuration could not be deserialized.
-    /// If the configuration file does not exist, it will prompt the user to create a new one.
-    ///
-    /// Also sets the global configuration path to the path parameter (or default).
-    ///
-    /// Arguments:
-    /// - `path`: Optional path to the configuration file. If not provided, it will default to "./config.toml".
-    ///
-    /// Example:
-    /// ```rust
-    /// # #![allow(unused_variables)]
-    /// # fn main() {
-    /// #   use ferrumc_config::server_config::ServerConfig;
-    /// // Load the configuration from the default path.
-    /// let config = ServerConfig::new(None).expect("Failed to read configuration file.");
-    /// println!("{:?}", config);
-    ///
-    /// // Load the configuration from a custom path.
-    /// let config = ServerConfig::new(Some("./custom_config.toml")).expect("Failed to read configuration file.");
-    /// println!("{:?}", config);
-    /// # }
-    pub fn new(path: Option<&str>) -> Result<Self, ConfigError> {
-        // Default path to "./config.toml" if None.
-        let path = path.unwrap_or("./config.toml");
-
-        // Load the configuration from the file.
-        let config = Self::set_config(path, true)?;
-
-        Ok(config)
-        /*set_global_config(config)?;
-
-        Ok(get_global_config())*/
-    }
-
-    /// Load the configuration from a file without prompting the user to create a new one.
-    ///
-    /// Exact same as [ServerConfig::new], but does not prompt the user to create a new configuration file.
-    ///
-    /// Safe for use in automated tests.
-    // Allow dead code since this is only used in tests.
-    #[allow(dead_code)]
-    pub(crate) fn new_no_prompt(path: Option<&str>) -> Result<&'static Self, ConfigError> {
-        // Default path to "./config.toml" if None.
-        let path = path.unwrap_or("./config.toml");
-
-        // Load the configuration from the file.
-        let config = Self::set_config(path, false)?;
-
-        set_global_config(config)?;
-
-        Ok(get_global_config())
-    }
-
-    /// Logic to read the configuration file.
-    ///
-    /// Not meant to be called directly. Use [ServerConfig::new] instead.
-    /// This was separated to allow for test cases.
-    ///
-    /// Arguments:
-    /// - `path`: The path to the configuration file.
-    /// - `prompt_user`: Whether to prompt the user to create a new configuration file if the current one is invalid.
-    pub(crate) fn set_config(path: &str, prompt_user: bool) -> Result<ServerConfig, ConfigError> {
-        let path = get_root_path()?.join(path);
-        let config = std::fs::read_to_string(&path);
-        let config: &str = match &config {
-            Ok(config) => config,
-            Err(e) => {
-                // Check if we can prompt the user to create a new configuration file.
-                if !prompt_user {
-                    return Err(ConfigError::ConfigLoadError(
-                        path.to_string_lossy().to_string(),
-                    ));
-                }
-                // Config could not be read. Prompt the user to create a new one from ServerConfig::Default.
-                warn!(
-                    "Could not read configuration file \"{}\" : {}",
-                    path.to_string_lossy().to_string(),
-                    e
-                );
-                info!("creating new config file!");
-
-                // Create a new config file
-                std::fs::write(&path, DEFAULT_CONFIG)?;
-
-                DEFAULT_CONFIG
-            }
-        };
-
-        let config: ServerConfig = match toml::from_str(config) {
-            Ok(config) => config,
-            Err(e) => {
-                // Config could not be serialized. Prompt the user to create
-                // a new one from ServerConfig::Default.
-                error!(
-                    "Could not read configuration file \"{}\" : {}",
-                    path.to_string_lossy().to_string(),
-                    e
-                );
-                error!("Would you like to create a new config file? Your old configuration will be saved as \"config.toml.bak\". (y/N): ");
-                let mut input = String::new();
-                std::io::stdin().read_line(&mut input)?;
-
-                // If the user enters "y", create a new configuration file.
-                if input.trim().eq_ignore_ascii_case("y") {
-                    // Backup the old configuration file.
-                    std::fs::rename(&path, "config.toml.bak")?;
-
-                    // Create new configuration file.
-                    std::fs::write(&path, DEFAULT_CONFIG)?;
-                    info!("Configuration file created.");
-                } else {
-                    // User did not enter "y". Return the error.
-                    return Err(ConfigError::ConfigLoadError(
-                        path.to_string_lossy().to_string(),
-                    ));
-                }
-                // Deserialize the configuration file into a ServerConfig struct.
-                toml::from_str(DEFAULT_CONFIG)?
-            }
-        };
-
-        Ok(config)
-    }
+/// The database compression enum for [DatabaseConfig].
+///
+/// Variants:
+/// - `none`: No compression.
+/// - `fast`: Fast compression.
+/// - `best`: Best compression.
+#[derive(Debug, Deserialize, Serialize, PartialEq)]
+pub enum DatabaseCompression {
+    #[serde(rename = "none")]
+    None,
+    #[serde(rename = "fast")]
+    Fast,
+    #[serde(rename = "best")]
+    Best,
 }
-
-impl Default for ServerConfig {
-    fn default() -> Self {
-        ServerConfig {
-            host: "0.0.0.0".to_string(),
-            port: 25565,
-            motd: vec!["A supersonic FerrumC server.".to_string()],
-            max_players: 20,
-            network_tick_rate: 0,
-            database: DatabaseConfig {
-                cache_size: 1024,
-                compression: "zlib".to_string(),
-                backend: "redb".to_string(),
-                db_path: "./data".to_string(),
-                import_path: "./world".to_string(),
-                compression_level: 5,
-            },
-            world: "world".to_string(),
-            network_compression_threshold: 256,
-        }
-    }
-}
-
-const DEFAULT_CONFIG: &str = r#"host = "0.0.0.0"
-port = 25565
-motd = ["A supersonic FerrumC server."]
-max_players = 20
-network_tick_rate = 0
-
-world = "world"
-network_compression_threshold = 256
-
-[database]
-cache_size = 1024
-compression = "fast"
-"#;

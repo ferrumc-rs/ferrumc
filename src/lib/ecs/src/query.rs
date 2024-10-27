@@ -1,7 +1,7 @@
-use crate::components::{Component, ComponentRef, ComponentRefMut, ComponentStorage};
+use crate::components::{ComponentManager};
+use crate::components::storage::{Component, ComponentRef, ComponentRefMut};
 use crate::entities::Entity;
 use crate::ECSResult;
-
 
 #[allow(async_fn_in_trait)]
 pub trait QueryItem {
@@ -9,14 +9,14 @@ pub trait QueryItem {
 
     fn fetch<'a>(
         entity: Entity,
-        storage: &ComponentStorage,
+        storage: &ComponentManager,
     ) -> ECSResult<Self::Item<'a>>;
 
     /*fn entities(
-        storage: &ComponentStorage,
+        storage: &ComponentManager,
     ) -> Vec<Entity>;*/
     fn entities(
-        storage: &ComponentStorage
+        storage: &ComponentManager
     ) -> Vec<Entity>;
 }
 impl<T: Component> QueryItem for &T {
@@ -24,13 +24,13 @@ impl<T: Component> QueryItem for &T {
 
     fn fetch<'a>(
         entity: Entity,
-        storage: &ComponentStorage,
+        storage: &ComponentManager,
     ) -> ECSResult<Self::Item<'a>> {
         storage.get(entity)
     }
 
     fn entities(
-        storage: &ComponentStorage,
+        storage: &ComponentManager,
     ) -> Vec<Entity> {
         storage.get_entities_with::<T>()
     }
@@ -40,20 +40,20 @@ impl<T: Component> QueryItem for &mut T {
 
     fn fetch<'a>(
         entity: Entity,
-        storage: &ComponentStorage,
+        storage: &ComponentManager,
     ) -> ECSResult<Self::Item<'a>> {
         storage.get_mut(entity)
     }
 
     fn entities(
-        storage: &ComponentStorage,
+        storage: &ComponentManager,
     ) -> Vec<Entity> {
         storage.get_entities_with::<T>()
     }
 }
 
 pub struct Query<'a, Q: QueryItem> {
-    component_storage: &'a ComponentStorage,
+    component_storage: &'a ComponentManager,
     entities: Vec<Entity>,
     _marker: std::marker::PhantomData<Q>,
 }
@@ -71,12 +71,20 @@ impl<Q: QueryItem> Clone for Query<'_, Q> {
 
 
 impl<'a, Q: QueryItem> Query<'a, Q> {
-    pub fn new(component_storage: &'a ComponentStorage) -> Self {
+    pub fn new(component_storage: &'a ComponentManager) -> Self {
         Self {
             component_storage,
             entities: Q::entities(component_storage),
             _marker: std::marker::PhantomData,
         }
+    }
+    
+    pub fn entities(&self) -> &[Entity] {
+        &self.entities
+    }
+    
+    pub fn into_entities(self) -> Vec<Entity> {
+        self.entities
     }
 }
 
@@ -132,13 +140,13 @@ mod multi_impl {
 
             fn fetch<'a>(
                 entity: Entity,
-                storage: &ComponentStorage
+                storage: &ComponentManager
             ) -> ECSResult<Self::Item<'a>> {
                 Ok(($($T::fetch(entity, storage)?,)*))
             }
 
             fn entities(
-                storage: &ComponentStorage,
+                storage: &ComponentManager,
             ) -> Vec<Entity> {
                 let entities = vec![$($T::entities(storage)),*];
 

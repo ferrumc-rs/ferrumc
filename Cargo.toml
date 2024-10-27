@@ -93,6 +93,7 @@ ferrumc-tests = { path = "src/tests" }
 
 # Asynchronous
 tokio = { version = "1.40.0", features = ["full"] }
+socket2 = "0.5.7"
 futures = "0.3.30"
 async-trait = "0.1.82"
 
@@ -134,6 +135,7 @@ quote = "1.0.37"
 syn = "2.0.77"
 proc-macro2 = "1.0.86"
 proc-macro-crate = "3.2.0"
+maplit = "1.0.2"
 macro_rules_attribute = "0.2.0"
 
 # Magic ("life-before-main" initialization, __attribute__((constructor)))

@@ -3,10 +3,9 @@ use crate::{handle_packet, NetResult, ServerState};
 use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use std::sync::Arc;
-use tokio::io::BufReader;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tokio::net::TcpStream;
-use tracing::{debug, trace, warn};
+use tracing::{debug, debug_span, trace, warn, Instrument};
 
 #[derive(Clone)]
 pub enum ConnectionState {
@@ -29,11 +28,11 @@ impl ConnectionState {
 }
 
 pub struct StreamReader {
-    pub reader: BufReader<OwnedReadHalf>,
+    pub reader: OwnedReadHalf,
 }
 
 impl StreamReader {
-    pub fn new(reader: BufReader<OwnedReadHalf>) -> Self {
+    pub fn new(reader: OwnedReadHalf) -> Self {
         Self { reader }
     }
 }
@@ -76,27 +75,25 @@ impl Default for CompressionStatus {
 }
 
 pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -> NetResult<()> {
-    let (reader, writer) = tcp_stream.into_split();
+    let (mut reader, writer) = tcp_stream.into_split();
 
     let entity = state
         .universe
         .builder()
-        .with(StreamReader::new(BufReader::new(reader)))
-        .with(StreamWriter::new(writer))
-        .with(ConnectionState::Handshaking)
-        .with(CompressionStatus::new())
+        .with(StreamWriter::new(writer))?
+        .with(ConnectionState::Handshaking)?
+        .with(CompressionStatus::new())?
         .build();
-
-    let mut reader = state.universe.get_mut::<StreamReader>(entity)?;
 
     'recv: loop {
         let compressed = state.universe.get::<CompressionStatus>(entity)?.enabled;
-        let Ok(mut packet_skele) = PacketSkeleton::new(&mut reader.reader, compressed).await else {
-            warn!("Failed to read packet. Possibly connection closed.");
+        let Ok(mut packet_skele) = PacketSkeleton::new(&mut reader, compressed).await else {
+            trace!("Failed to read packet. Possibly connection closed.");
             break 'recv;
         };
 
-        if state.log_packets.load(std::sync::atomic::Ordering::Relaxed){
+        // Log the packet if the environment variable is set (this env variable is set at compile time not runtime!)
+        if option_env!("FERRUMC_LOG_PACKETS").is_some() {
             trace!("Received packet: {:?}", packet_skele);
         }
 
@@ -108,11 +105,12 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
             &mut packet_skele.data,
             Arc::clone(&state),
         )
-        .await
+            .await
+            .instrument(debug_span!("eid", %entity))
+            .inner()
         {
-            warn!("Failed to handle packet: {:?}", e);
+            warn!("Failed to handle packet: {:?}. packet_id: {:02X}; conn_state: {}", e, packet_skele.id, conn_state.as_str());
             // Kick the player (when implemented).
-            // Send a disconnect event
             break 'recv;
         };
     }
@@ -120,7 +118,24 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
     debug!("Connection closed for entity: {:?}", entity);
 
     // Remove all components from the entity
-    state.universe.remove_all_components(entity);
+
+    drop(reader);
+
+    // Wait until anything that might be using the entity is done
+    if let Err(e) = remove_all_components_blocking(state.clone(), entity).await {
+        warn!("Failed to remove all components from entity: {:?}", e);
+    }
+
+    trace!("Dropped all components from entity: {:?}", entity);
 
     Ok(())
+}
+
+/// Since parking_lot is single-threaded, we use spawn_blocking to remove all components from the entity asynchronously (on another thread).
+async fn remove_all_components_blocking(state: Arc<ServerState>, entity: usize) -> NetResult<()> {
+    let res = tokio::task::spawn_blocking(move || {
+        state.universe.remove_all_components(entity)
+    }).await?;
+
+    Ok(res?)
 }

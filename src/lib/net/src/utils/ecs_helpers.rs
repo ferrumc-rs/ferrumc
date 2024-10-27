@@ -1,4 +1,4 @@
-use ferrumc_ecs::components::{Component, ComponentRef, ComponentRefMut};
+use ferrumc_ecs::components::storage::{Component, ComponentRef, ComponentRefMut};
 use ferrumc_ecs::ECSResult;
 use crate::GlobalState;
 

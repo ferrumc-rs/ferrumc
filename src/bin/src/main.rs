@@ -1,13 +1,18 @@
 // Security or something like that
 #![forbid(unsafe_code)]
 
-use std::sync::{atomic::AtomicBool, Arc};
-use tracing::{error, info};
+#![feature(slice_as_chunks)]
+
 use ferrumc_ecs::Universe;
 use ferrumc_net::ServerState;
+use std::sync::{Arc};
+use tracing::{error, info};
+use ferrumc_net::server::create_server_listener;
+use systems::definition;
 
-pub(crate)mod errors;
+pub(crate) mod errors;
 mod packet_handlers;
+mod systems;
 
 pub type Result<T> = std::result::Result<T, errors::BinaryError>;
 
@@ -26,11 +31,26 @@ async fn main() {
 }
 
 async fn entry() -> Result<()> {
-    let listener = ferrumc_net::server::create_server_listener().await?;
+    let state = create_state().await?;
+    let global_state = Arc::new(state);
+    
+    let all_systems = tokio::spawn(definition::start_all_systems(Arc::clone(&global_state)));
 
-    let state = ServerState::new(Universe::new(),AtomicBool::new(false));
-
-    ferrumc_net::server::listen(Arc::new(state), listener).await?;
+    // Start the systems and wait until all of them are done
+    all_systems.await??;
+    
+    // Stop all systems
+    definition::stop_all_systems(global_state).await?;
 
     Ok(())
+}
+
+
+async fn create_state() -> Result<ServerState> {
+    let listener = create_server_listener().await?;
+
+    Ok(ServerState {
+        universe: Universe::new(),
+        tcp_listener: listener,
+    })
 }

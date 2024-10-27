@@ -16,6 +16,7 @@ ferrumc-nbt = { workspace = true }
 ferrumc-core = { workspace = true }
 tracing = { workspace = true }
 tokio = { workspace = true }
+socket2 = { workspace = true }
 parking_lot = { workspace = true }
 futures = { workspace = true }
 ctor = { workspace = true }
@@ -23,3 +24,4 @@ flate2 = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 serde_derive = { workspace = true }
+rand = { workspace = true }
