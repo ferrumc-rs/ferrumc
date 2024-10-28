@@ -3,7 +3,7 @@ use crate::systems::tcp_listener_system::TcpListenerSystem;
 use crate::systems::ticking_system::TickingSystem;
 use async_trait::async_trait;
 use ferrumc_net::{GlobalState, NetResult};
-use futures::{future::Lazy, stream::FuturesUnordered};
+use futures::stream::FuturesUnordered;
 use std::sync::{Arc, LazyLock};
 use tracing::{debug, debug_span, info, Instrument};
 
