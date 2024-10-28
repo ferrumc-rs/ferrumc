@@ -1,11 +1,11 @@
-use std::sync::Arc;
-use ferrumc_net::{GlobalState, NetResult};
-use futures::stream::FuturesUnordered;
-use tracing::{debug, debug_span, info, Instrument};
-use async_trait::async_trait;
 use crate::systems::keep_alive_system::KeepAliveSystem;
 use crate::systems::tcp_listener_system::TcpListenerSystem;
 use crate::systems::ticking_system::TickingSystem;
+use async_trait::async_trait;
+use ferrumc_net::{GlobalState, NetResult};
+use futures::stream::FuturesUnordered;
+use std::sync::Arc;
+use tracing::{debug, debug_span, info, Instrument};
 
 #[async_trait]
 pub trait System: Send + Sync {
@@ -15,7 +15,6 @@ pub trait System: Send + Sync {
     fn name(&self) -> &'static str;
 }
 
-
 pub fn create_systems() -> Vec<Arc<dyn System>> {
     vec![
         Arc::new(TcpListenerSystem),
@@ -23,9 +22,10 @@ pub fn create_systems() -> Vec<Arc<dyn System>> {
         Arc::new(TickingSystem),
     ]
 }
-pub async fn start_all_systems(state: GlobalState) -> NetResult<()> {
+pub async fn start_all_systems(state: GlobalState) -> NetResult<Vec<Arc<dyn System>>> {
     let systems = create_systems();
     let handles = FuturesUnordered::new();
+    let return_systems = systems.clone(); // all the arcs point to the same values as the original systems
 
     for system in systems {
         let name = system.name();
@@ -40,11 +40,10 @@ pub async fn start_all_systems(state: GlobalState) -> NetResult<()> {
 
     futures::future::join_all(handles).await;
 
-    Ok(())
+    Ok(return_systems)
 }
 
-pub async fn stop_all_systems(state: GlobalState) -> NetResult<()> {
-    let systems = create_systems();
+pub async fn stop_all_systems(state: GlobalState, systems: Vec<Arc<dyn System>>) -> NetResult<()> {
     info!("Stopping all systems...");
 
     for system in systems {
