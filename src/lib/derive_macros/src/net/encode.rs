@@ -69,9 +69,8 @@ fn generate_async_field_encoders(fields: &syn::Fields) -> proc_macro2::TokenStre
 
 // Generate enum variant encoding using static dispatch
 fn generate_enum_encoders(data: &syn::DataEnum) -> (proc_macro2::TokenStream, proc_macro2::TokenStream) {
-    let variants = data.variants.iter().enumerate().map(|(idx, variant)| {
+    let variants = data.variants.iter().map(|variant| {
         let variant_ident = &variant.ident;
-        let variant_idx = idx as u8;
 
         match &variant.fields {
             Fields::Named(fields) => {
@@ -107,7 +106,6 @@ fn generate_enum_encoders(data: &syn::DataEnum) -> (proc_macro2::TokenStream, pr
 
                 (quote! {
                     Self::#variant_ident(#(#field_names),*) => {
-                        <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode(&#variant_idx.into(), writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)?;
                         #(
                             <#field_tys as ferrumc_net_codec::encode::NetEncode>::encode(#field_names, writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)?;
                         )*
@@ -115,7 +113,6 @@ fn generate_enum_encoders(data: &syn::DataEnum) -> (proc_macro2::TokenStream, pr
                 },
                  quote! {
                     Self::#variant_ident(#(#field_names),*) => {
-                        <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode_async(&#variant_idx.into(), writer, &ferrumc_net_codec::encode::NetEncodeOpts::None).await?;
                         #(
                             <#field_tys as ferrumc_net_codec::encode::NetEncode>::encode_async(#field_names, writer, &ferrumc_net_codec::encode::NetEncodeOpts::None).await?;
                         )*
@@ -124,14 +121,10 @@ fn generate_enum_encoders(data: &syn::DataEnum) -> (proc_macro2::TokenStream, pr
             },
             Fields::Unit => (
                 quote! {
-                    Self::#variant_ident => {
-                        <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode(&#variant_idx.into(), writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)?;
-                    }
+                    Self::#variant_ident => {}
                 },
                 quote! {
-                    Self::#variant_ident => {
-                        <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode_async(&#variant_idx.into(), writer, &ferrumc_net_codec::encode::NetEncodeOpts::None).await?;
-                    }
+                    Self::#variant_ident => {}
                 }
             ),
         }
