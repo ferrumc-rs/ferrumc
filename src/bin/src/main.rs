@@ -36,17 +36,10 @@ async fn entry() -> Result<()> {
     let all_system_handles = tokio::spawn(definition::start_all_systems(global_state.clone()));
 
     // Start the systems and wait until all of them are done
-    let result_systems = all_system_handles.await?;
+    all_system_handles.await??;
 
-    match result_systems {
-        Ok(systems) => {
-            definition::stop_all_systems(global_state, systems).await?;
-        }
-        Err(e) => {
-            error!("Something went wrong with the systems: {:?}", e);
-        }
-    }
     // Stop all systems
+    definition::stop_all_systems(global_state).await?;
 
     Ok(())
 }

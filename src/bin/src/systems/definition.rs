@@ -3,8 +3,8 @@ use crate::systems::tcp_listener_system::TcpListenerSystem;
 use crate::systems::ticking_system::TickingSystem;
 use async_trait::async_trait;
 use ferrumc_net::{GlobalState, NetResult};
-use futures::stream::FuturesUnordered;
-use std::sync::Arc;
+use futures::{future::Lazy, stream::FuturesUnordered};
+use std::sync::{Arc, LazyLock};
 use tracing::{debug, debug_span, info, Instrument};
 
 #[async_trait]
@@ -15,6 +15,9 @@ pub trait System: Send + Sync {
     fn name(&self) -> &'static str;
 }
 
+static SYSTEMS: LazyLock<Vec<Arc<dyn System>>> = LazyLock::new(|| {
+    create_systems()
+});
 pub fn create_systems() -> Vec<Arc<dyn System>> {
     vec![
         Arc::new(TcpListenerSystem),
@@ -22,16 +25,15 @@ pub fn create_systems() -> Vec<Arc<dyn System>> {
         Arc::new(TickingSystem),
     ]
 }
-pub async fn start_all_systems(state: GlobalState) -> NetResult<Vec<Arc<dyn System>>> {
-    let systems = create_systems();
+pub async fn start_all_systems(state: GlobalState) -> NetResult<()> {
     let handles = FuturesUnordered::new();
-    let return_systems = systems.clone(); // all the arcs point to the same values as the original systems
 
-    for system in systems {
+    for system in SYSTEMS.iter() {
         let name = system.name();
 
         let handle = tokio::spawn(
             system
+                .clone()
                 .start(state.clone())
                 .instrument(debug_span!("sys", %name)),
         );
@@ -40,15 +42,15 @@ pub async fn start_all_systems(state: GlobalState) -> NetResult<Vec<Arc<dyn Syst
 
     futures::future::join_all(handles).await;
 
-    Ok(return_systems)
+    Ok(())
 }
 
-pub async fn stop_all_systems(state: GlobalState, systems: Vec<Arc<dyn System>>) -> NetResult<()> {
+pub async fn stop_all_systems(state: GlobalState) -> NetResult<()> {
     info!("Stopping all systems...");
 
-    for system in systems {
+    for system in SYSTEMS.iter() {
         debug!("Stopping system: {}", system.name());
-        system.stop(state.clone()).await;
+        system.clone().stop(state.clone()).await;
     }
 
     Ok(())
