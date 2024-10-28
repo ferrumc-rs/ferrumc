@@ -50,6 +50,16 @@ fn zlib_decompress(data: &[u8]) {
     black_box(decompressed);
 }
 
+fn zlib_yazi_compress(data: &[u8]) {
+    let compressed = yazi::compress(data, yazi::Format::Zlib, yazi::CompressionLevel::Default).unwrap();
+    black_box(compressed);
+}
+
+fn zlib_yazi_decompress(data: &[u8]) {
+    let decompressed = yazi::decompress(data, yazi::Format::Zlib).unwrap();
+    black_box(decompressed);
+}
+
 fn brotli_compress(data: &[u8]) {
     let compressor = Compressor::create(CompressorType::Brotli, 6);
     let compressed = compressor.compress(data).unwrap();
@@ -72,6 +82,7 @@ pub fn compression_benchmarks(c: &mut criterion::Criterion) {
     compress_group.bench_function("Gzip", |b| b.iter(|| gzip_compress(black_box(data))));
     compress_group.bench_function("Deflate", |b| b.iter(|| deflate_compress(black_box(data))));
     compress_group.bench_function("Zlib", |b| b.iter(|| zlib_compress(black_box(data))));
+    compress_group.bench_function("Zlib (Yazi)", |b| b.iter(|| zlib_yazi_compress(black_box(data))));
     compress_group.bench_function("Brotli", |b| b.iter(|| brotli_compress(black_box(data))));
     compress_group.finish();
 
@@ -99,6 +110,9 @@ pub fn compression_benchmarks(c: &mut criterion::Criterion) {
     });
     decompress_group.bench_function("Zlib", |b| {
         b.iter(|| zlib_decompress(black_box(zlib_compressed.as_slice())))
+    });
+    decompress_group.bench_function("Zlib (Yazi)", |b| {
+        b.iter(|| zlib_yazi_decompress(black_box(zlib_compressed.as_slice())))
     });
     decompress_group.bench_function("Brotli", |b| {
         b.iter(|| brotli_decompress(black_box(brotli_compressed.as_slice())))
@@ -134,6 +148,13 @@ pub fn compression_benchmarks(c: &mut criterion::Criterion) {
         b.iter(|| {
             let compressed = zlib_compressor.compress(data).unwrap();
             let decompressed = zlib_compressor.decompress(compressed.as_slice()).unwrap();
+            black_box(decompressed);
+        })
+    });
+    roundtrip_group.bench_function("Zlib (Yazi)", |b| {
+        b.iter(|| {
+            let compressed = yazi::compress(data, yazi::Format::Zlib, yazi::CompressionLevel::Default).unwrap();
+            let decompressed = yazi::decompress(compressed.as_slice(), yazi::Format::Zlib).unwrap();
             black_box(decompressed);
         })
     });

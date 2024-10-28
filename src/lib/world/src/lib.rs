@@ -3,13 +3,13 @@ mod importing;
 mod vanilla_chunk_format;
 
 use crate::errors::WorldError;
-use ferrumc_config::get_global_config;
 use ferrumc_storage::compressors::Compressor;
 use ferrumc_storage::DatabaseBackend;
 use std::path::{Path, PathBuf};
 use std::process::exit;
 use tokio::fs::create_dir_all;
 use tracing::{error, warn};
+use ferrumc_config::statics::get_global_config;
 
 #[expect(dead_code)]
 pub struct World {
