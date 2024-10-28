@@ -16,6 +16,7 @@ rayon = { workspace = true}
 [dev-dependencies]
 fastanvil = "0.31.0"
 criterion = { workspace = true }
+ferrumc-logging = { workspace = true }
 
 [lints]
 workspace = true
