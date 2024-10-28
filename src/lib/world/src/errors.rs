@@ -1,6 +1,7 @@
 use crate::errors::WorldError::{GenericIOError, PermissionError};
 use std::io::ErrorKind;
 use thiserror::Error;
+use ferrumc_storage::errors::StorageError;
 
 #[derive(Debug, Clone, Error)]
 pub enum WorldError {
@@ -18,6 +19,14 @@ pub enum WorldError {
     PermissionError(String),
     #[error("Some kind of IO error occurred: {0}")]
     GenericIOError(String),
+    #[error("A database error occurred from the world crate: {0}")]
+    DatabaseError(StorageError),
+    #[error("There was an error with bitcode's decoding: {0}")]
+    BitcodeDecodeError(String),
+    #[error("There was an error with bitcode's encoding: {0}")]
+    BitcodeEncodeError(String),
+    #[error("Chunk not found")]
+    ChunkNotFound,
 }
 
 impl From<std::io::Error> for WorldError {
@@ -27,5 +36,11 @@ impl From<std::io::Error> for WorldError {
             ErrorKind::ReadOnlyFilesystem => PermissionError(err.to_string()),
             _ => GenericIOError(err.to_string()),
         }
+    }
+}
+
+impl From<StorageError> for WorldError {
+    fn from(err: StorageError) -> Self {
+        WorldError::DatabaseError(err)
     }
 }

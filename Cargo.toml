@@ -86,7 +86,7 @@ ferrumc-general-purpose = { path = "src/lib/utils/general_purpose" }
 ferrumc-macros = { path = "src/lib/derive_macros" }
 ferrumc-world = { path = "src/lib/world" }
 ferrumc-nbt = { path = "src/lib/adapters/nbt" }
-ferrumc-mca = { path = "src/lib/adapters/mca" }
+ferrumc-anvil = { path = "src/lib/adapters/anvil" }
 ferrumc-tests = { path = "src/tests" }
 
 
@@ -114,6 +114,7 @@ thiserror = "1.0.63"
 # Cryptography
 rsa = "0.9.6"
 rand = "0.9.0-alpha.2"
+fnv = "1.0.7"
 
 # Encoding/Serialization
 serde = "1.0.210"

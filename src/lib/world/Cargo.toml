@@ -22,6 +22,9 @@ bitcode = { workspace = true }
 deepsize = { workspace = true }
 ferrumc-nbt = { workspace = true }
 ferrumc-macros = { workspace = true }
+ferrumc-anvil = { workspace = true }
+rayon = { workspace = true }
+ferrumc-general-purpose = { workspace = true }
 
 [features]
 default = ["sled", "surrealkv", "redb"]

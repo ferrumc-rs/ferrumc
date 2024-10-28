@@ -13,7 +13,7 @@ attribute_alias! {
     Serialize,
     Decode,
     Deserialize,
-    Eq
+    Eq,
 )];
 }
 
@@ -21,7 +21,7 @@ attribute_alias! {
 #[derive(deepsize::DeepSizeOf)]
 #[nbt(is_root)]
 #[nbt(rename = "")]
-pub(crate) struct Chunk {
+pub(crate) struct VanillaChunk {
     pub dimension: Option<String>,
     #[nbt(rename = "Status")]
     pub status: String,
