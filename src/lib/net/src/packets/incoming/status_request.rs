@@ -8,7 +8,6 @@ use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_macros::{packet, NetDecode};
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use rand::seq::IndexedRandom;
-use std::borrow::Cow;
 use std::sync::Arc;
 
 #[derive(NetDecode, Debug)]
@@ -31,7 +30,6 @@ impl IncomingPacket for StatusRequestPacket {
 
 fn get_server_status(state: &Arc<ServerState>) -> String {
     mod structs {
-
         #[derive(serde_derive::Serialize)]
         pub(super) struct ServerStatus<'a> {
             pub version: Version<'a>,
@@ -56,8 +54,13 @@ fn get_server_status(state: &Arc<ServerState>) -> String {
 
         #[derive(serde_derive::Serialize)]
         pub(super) struct Player<'a> {
-            pub name: super::Cow<'a, str>,
-            pub id: super::Cow<'a, str>,
+            pub name: &'a str,
+            pub id: &'a str,
+        }
+
+        pub(super) struct PlayerData {
+            pub name: String,
+            pub id: String,
         }
 
         #[derive(serde_derive::Serialize)]
@@ -74,19 +77,25 @@ fn get_server_status(state: &Arc<ServerState>) -> String {
     };
 
     let mut online_players = 0u16;
-    let online_players_sample = state
-        .universe
-        .query::<&PlayerIdentity>()
+    let online_players_sample = state.universe.query::<&PlayerIdentity>()
         .map(|player| {
             online_players += 1;
             let id = uuid::Uuid::from_u128(player.uuid).to_string();
 
-            structs::Player {
-                name: Cow::Owned(player.username.to_owned()),
-                id: Cow::Owned(id),
+            structs::PlayerData {
+                name: player.username.to_owned(),
+                id,
             }
         })
         .collect::<Vec<_>>();
+
+    let online_players_sample: Vec<structs::Player<'_>> = online_players_sample
+        .iter()
+        .map(|p| structs::Player {
+            name: p.name.as_str(),
+            id: p.id.as_str(),
+        })
+        .collect();
 
     let players = structs::Players {
         max: config.max_players,
