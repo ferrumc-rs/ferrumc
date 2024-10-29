@@ -25,7 +25,8 @@
 
 > [!WARNING]
 > FerrumC is currently going through a rewrite!\
-> Please see the [v3/rewrite branch](https://github.com/ferrumc-rs/ferrumc/tree/rewrite/v3).
+> Please see the [v3/rewrite branch](https://github.com/ferrumc-rs/ferrumc/tree/rewrite/v3).\
+> The dev branch (default) will not be worked on and PRs will not be accepted. If you wish to contribute, see the v3 branch.
 
 ## 📖 About
 
