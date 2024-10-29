@@ -10,6 +10,11 @@ To view the roadmap, see [plans.md](assets/plans/plans.md)
 > [!IMPORTANT]
 > Use pull requests instead of direct pushes.
 
+## Contributing
+**Want to contribute to FerrumC?**\
+Make sure to check out [CONTRIBUTING.md](CONTRIBUTING.md).\
+We would highly recommend you join our [Discord](https://discord.gg/FqT5J8EMjwk).
+
 ## 📥 Installation/ 🖥️ Usage
 ### Use docker
 
