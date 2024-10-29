@@ -1,4 +1,4 @@
-use ferrumc_macros::NBTDeserialize;
+use ferrumc_macros::{NBTDeserialize, NBTSerialize};
 use ferrumc_nbt::{FromNbt, NBTSerializable, NBTSerializeOptions};
 use std::collections::HashMap;
 
@@ -154,4 +154,34 @@ fn very_basic_derive() {
     let test = Test::from_bytes(&buf).unwrap();
 
     assert_eq!(test, Test { hello: 1, world: 2 });
+}
+
+
+#[test]
+fn test_gstudios() {
+    #[derive(NBTSerialize, Debug)]
+    struct Root<'a> {
+        pub translate: &'a str,
+        pub with: Vec<Sub<'a>>,
+    }
+    
+    #[derive(NBTSerialize, Debug)]
+    struct Sub<'a> {
+        pub text: &'a str,
+    }
+    
+    let root = Root {
+        translate: "chat.type.text",
+        with: vec![
+            Sub { text: "GStudiosX" },
+            Sub { text: "Hi" },
+        ],
+    };
+    
+    let buf = root.serialize_as_network();
+    
+    // print as hex
+    for byte in buf.iter() {
+        print!("{:02x} ", byte);
+    }
 }

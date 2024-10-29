@@ -13,15 +13,12 @@ struct Position {
     y: u32,
 }
 
-unsafe impl Send for Position {}
-
 #[derive(Debug)]
 #[expect(dead_code)]
 struct Player {
     username: String,
 }
 
-unsafe impl Send for Player {}
 
 #[test]
 fn test_basic() {
