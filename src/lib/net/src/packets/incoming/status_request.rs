@@ -8,7 +8,6 @@ use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_macros::{packet, NetDecode};
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use rand::seq::IndexedRandom;
-use std::borrow::Borrow;
 use std::sync::Arc;
 
 #[derive(NetDecode, Debug)]
@@ -59,6 +58,11 @@ fn get_server_status(state: &Arc<ServerState>) -> String {
             pub id: &'a str,
         }
 
+        pub(super) struct PlayerData {
+            pub name: String,
+            pub id: String,
+        }
+
         #[derive(serde_derive::Serialize)]
         pub(super) struct Description<'a> {
             pub text: &'a str,
@@ -72,27 +76,26 @@ fn get_server_status(state: &Arc<ServerState>) -> String {
         protocol: 767,
     };
 
-    let mut player_ids: Vec<(String, String)> = Vec::new(); // to store owned data
-    let mut online_players = 0;
+    let mut online_players = 0u16;
+    let online_players_sample = state.universe.query::<&PlayerIdentity>()
+        .map(|player| {
+            online_players += 1;
+            let id = uuid::Uuid::from_u128(player.uuid).to_string();
 
-    for player in state.universe.query::<&PlayerIdentity>() {
-        online_players += 1;
-        let p = player.borrow();
+            structs::PlayerData {
+                name: player.username.to_owned(),
+                id,
+            }
+        })
+        .collect::<Vec<_>>();
 
-        let name = p.username.to_owned();
-        let id = uuid::Uuid::from_u128(p.uuid).to_string();
-
-        player_ids.push((name, id));
-    }
-
-    let mut online_players_sample: Vec<structs::Player<'_>> = Vec::new();
-
-    for (name, id) in player_ids.iter() {
-        online_players_sample.push(structs::Player {
-            name: name.as_str(),
-            id: id.as_str(),
-        });
-    }
+    let online_players_sample: Vec<structs::Player<'_>> = online_players_sample
+        .iter()
+        .map(|p| structs::Player {
+            name: p.name.as_str(),
+            id: p.id.as_str(),
+        })
+        .collect();
 
     let players = structs::Players {
         max: config.max_players,
