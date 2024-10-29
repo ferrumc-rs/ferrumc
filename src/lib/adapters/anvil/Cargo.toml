@@ -1,0 +1,27 @@
+[package]
+name = "anvil"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+thiserror = { workspace = true }
+memmap2 = { workspace = true}
+ferrumc-utils = { workspace = true}
+flate2 = { workspace = true}
+yazi = { workspace = true}
+lzzzz = { workspace = true}
+tracing = { workspace = true}
+rayon = { workspace = true}
+
+[dev-dependencies]
+fastanvil = "0.31.0"
+criterion = { workspace = true }
+ferrumc-logging = { workspace = true }
+
+[lints]
+workspace = true
+
+[[bench]]
+name = "anvil"
+path = "benches/anvil.rs"
+harness = false
