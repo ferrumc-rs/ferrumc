@@ -80,7 +80,7 @@ fn get_server_status(state: &Arc<ServerState>) -> String {
         let p = player.borrow();
 
         let name = p.username.to_owned();
-        let id = p.uuid.to_string();
+        let id = uuid::Uuid::from_u128(p.uuid).to_string();
 
         player_ids.push((name, id));
     }
