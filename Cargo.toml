@@ -148,6 +148,7 @@ zstd = { version = "0.13.2" }
 brotli = "7.0.0"
 lzzzz = "1.1.0"
 yazi = "0.2.0"
+bzip2 = "0.4.1"
 
 # Misc
 deepsize = "0.2.0"

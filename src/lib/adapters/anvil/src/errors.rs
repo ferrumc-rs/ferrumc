@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 use thiserror::Error;
 
-#[derive(Debug, Error)]
+#[derive(Debug, Error, Clone)]
 pub enum AnvilError {
     #[error("File not found: {0}")]
     FileNotFound(PathBuf),

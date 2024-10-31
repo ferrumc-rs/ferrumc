@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use bitcode::{Decode, Encode};
 use ferrumc_macros::NBTDeserialize;
 use ferrumc_macros::NBTSerialize;
@@ -101,8 +102,8 @@ pub(crate) struct BlockStates {
 pub(crate) struct Palette {
     #[nbt(rename = "Name")]
     pub name: String,
-    // #[nbt(rename = "Properties")]
-    // pub properties: Option<HashMap<String, String>>,
+    #[nbt(rename = "Properties")]
+    pub properties: Option<HashMap<String, String>>,
 }
 
 #[apply(ChunkDerives)]

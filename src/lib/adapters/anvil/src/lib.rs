@@ -1,4 +1,4 @@
-mod errors;
+pub mod errors;
 
 use std::io::Read;
 use std::path::PathBuf;

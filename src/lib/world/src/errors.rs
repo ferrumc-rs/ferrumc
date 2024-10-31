@@ -1,6 +1,8 @@
 use crate::errors::WorldError::{GenericIOError, PermissionError};
 use std::io::ErrorKind;
 use thiserror::Error;
+use errors::AnvilError;
+use ferrumc_anvil::errors;
 use ferrumc_storage::errors::StorageError;
 
 #[derive(Debug, Clone, Error)]
@@ -27,6 +29,8 @@ pub enum WorldError {
     BitcodeEncodeError(String),
     #[error("Chunk not found")]
     ChunkNotFound,
+    #[error("Anvil Decode Error: {0}")]
+    AnvilDecodeError(AnvilError),
 }
 
 impl From<std::io::Error> for WorldError {
@@ -42,5 +46,11 @@ impl From<std::io::Error> for WorldError {
 impl From<StorageError> for WorldError {
     fn from(err: StorageError) -> Self {
         WorldError::DatabaseError(err)
+    }
+}
+
+impl From<AnvilError> for WorldError {
+    fn from(err: errors::AnvilError) -> Self {
+        WorldError::AnvilDecodeError(err)
     }
 }
