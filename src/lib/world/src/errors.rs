@@ -5,7 +5,7 @@ use errors::AnvilError;
 use ferrumc_anvil::errors;
 use ferrumc_storage::errors::StorageError;
 
-#[derive(Debug, Clone, Error)]
+#[derive(Debug, Error)]
 pub enum WorldError {
     #[error("Invalid World Path: {0}")]
     InvalidWorldPath(String),

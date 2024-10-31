@@ -6,3 +6,9 @@
 Cargo.lock
 config.toml
 .temp
+
+.etc/blockstates.json
+
+.etc/blocks.json
+
+.etc/blockmappings.bz2

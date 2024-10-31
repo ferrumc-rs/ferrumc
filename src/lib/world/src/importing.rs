@@ -4,7 +4,6 @@ use crate::errors::WorldError;
 use crate::World;
 use rayon::prelude::*;
 use ferrumc_anvil::load_anvil_file;
-use ferrumc_nbt::FromNbt;
 use crate::vanilla_chunk_format::VanillaChunk;
 
 /// This function is used to check if the import path is valid. It checks if the path exists, if it
@@ -43,11 +42,12 @@ impl World {
     // We can actually have this sync since this is run at startup and the program exits after, so
     // no other task are being run. This also makes it easier to work with rayon since rayon doesn't
     // play very nice with async in my experience.
-    pub fn import(&self, import_dir: PathBuf, database_dir: PathBuf) -> Result<(), WorldError> {
+    pub fn import(&mut self, import_dir: PathBuf, database_dir: PathBuf) -> Result<(), WorldError> {
         // Check if the import path is valid. We can assume the database path is valid since we
         // checked it in the config validity check.
         check_paths_validity(import_dir)?;
         let regions_dir = database_dir.join("region").read_dir()?;
+        let rt = tokio::runtime::Runtime::new()?;
         regions_dir.par_bridge().for_each(|region_file| {
             match region_file {
                 Ok(dir_entry) => {
@@ -65,7 +65,7 @@ impl World {
                                 if let Some(chunk) = anvil_file.get_chunk_from_location(*location) {
                                     match VanillaChunk::from_bytes(&chunk) {
                                         Ok(vanilla_chunk) => {
-                                            self.save_chunk(vanilla_chunk).unwrap()
+                                            rt.block_on(self.save_chunk(vanilla_chunk)).unwrap();
                                         }
                                         Err(e) => {
                                             error!("Could not convert chunk to vanilla format: {}", e);
