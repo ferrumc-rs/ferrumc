@@ -76,30 +76,28 @@ fn get_server_status(state: &Arc<ServerState>) -> String {
         protocol: 767,
     };
 
-    let mut online_players = 0u16;
-    let online_players_sample = state.universe.query::<&PlayerIdentity>()
-        .map(|player| {
-            online_players += 1;
-            let id = uuid::Uuid::from_u128(player.uuid).to_string();
-
-            structs::PlayerData {
-                name: player.username.to_owned(),
-                id,
-            }
+    let online_players = state.universe.query::<&PlayerIdentity>().into_entities();
+    let online_players_sample = online_players
+        .iter()
+        .take(5)
+        .filter_map(|entity| state.universe.get::<PlayerIdentity>(*entity).ok())
+        .map(|player| structs::PlayerData {
+            name: player.username.clone(),
+            id: uuid::Uuid::from_u128(player.uuid).to_string(),
         })
         .collect::<Vec<_>>();
 
-    let online_players_sample: Vec<structs::Player<'_>> = online_players_sample
+    let online_players_sample = online_players_sample
         .iter()
         .map(|p| structs::Player {
             name: p.name.as_str(),
             id: p.id.as_str(),
         })
-        .collect();
+        .collect::<Vec<_>>();
 
     let players = structs::Players {
         max: config.max_players,
-        online: online_players,
+        online: online_players.len() as u16,
         sample: online_players_sample,
     };
 
