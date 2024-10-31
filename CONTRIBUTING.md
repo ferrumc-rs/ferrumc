@@ -18,7 +18,7 @@ you talked with and what consensus was reached. Unexplained PRs will rarely be a
 ## Project specific guidelines
 Just some rules to try to keep the repo nice and organised
 ### Branches
-#### `dev`
+#### `rewrite/v3`
 This branch is the main branch. This is where all PRs should be made to. This branch is the most up to
 date and should only be merged into with completed features.
 #### `feature/feature-name`
