@@ -1,5 +1,6 @@
 // Security or something like that
 #![forbid(unsafe_code)]
+extern crate core;
 
 use ferrumc_ecs::Universe;
 use ferrumc_net::server::create_server_listener;

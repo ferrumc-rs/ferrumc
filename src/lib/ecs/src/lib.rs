@@ -66,4 +66,8 @@ impl Universe {
     pub fn query<Q: QueryItem>(&self) -> Query<Q> {
         Query::new(&self.components)
     }
+    
+    pub fn get_component_manager(&self) -> &ComponentManager {
+        &self.components
+    }
 }
