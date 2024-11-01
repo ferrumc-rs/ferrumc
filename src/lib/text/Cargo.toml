@@ -1,0 +1,24 @@
+[package]
+name = "ferrumc-text"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ferrumc-net-codec = { workspace = true }
+ferrumc-nbt = { workspace = true }
+ferrumc-macros = { workspace = true }
+tracing = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+paste = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]
+ferrumc-config = { workspace = true }
+flate2 = { workspace = true }
+
+valence_text = "=0.2.0-alpha.1"
+
+[lints]
+workspace = true

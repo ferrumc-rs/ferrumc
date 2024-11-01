@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use ferrumc_general_purpose::simd::arrays;
 use super::{NBTSerializable, NBTSerializeOptions};
+use uuid::Uuid;
 
 macro_rules! impl_ser_primitives {
     ($($($ty:ty) | * > $id:expr),*) => {
@@ -41,6 +42,19 @@ impl_ser_primitives!(
     f64 > TAG_DOUBLE
 );
 
+impl<T> NBTSerializable for Box<T>
+where
+    T: NBTSerializable,
+{
+    fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
+        T::serialize(&*self, buf, options);
+    }
+
+    fn id() -> u8 {
+        T::id()
+    }
+}
+
 impl NBTSerializable for bool {
     fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
         write_header::<Self>(buf, options);
@@ -68,6 +82,16 @@ impl NBTSerializable for &str {
         let bytes = self.as_bytes();
         (bytes.len() as u16).serialize(buf, &NBTSerializeOptions::None);
         buf.extend_from_slice(bytes);
+    }
+
+    fn id() -> u8 {
+        TAG_STRING
+    }
+}
+
+impl NBTSerializable for Uuid {
+    fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
+        NBTSerializable::serialize(&self.as_hyphenated().to_string().as_str(), buf, options);
     }
 
     fn id() -> u8 {
@@ -269,7 +293,7 @@ fn write_header<T: NBTSerializable>(buf: &mut Vec<u8>, opts: &NBTSerializeOption
             T::id().serialize(buf, &NBTSerializeOptions::None);
             tag_name.serialize(buf, &NBTSerializeOptions::None);
         }
-        NBTSerializeOptions::Network => {
+        NBTSerializeOptions::Network | NBTSerializeOptions::Flatten => {
             T::id().serialize(buf, &NBTSerializeOptions::None);
         }
     }
