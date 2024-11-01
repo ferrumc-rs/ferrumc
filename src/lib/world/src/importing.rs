@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use tracing::error;
 use crate::errors::WorldError;
 use crate::World;
-use rayon::prelude::*;
+use tokio::task::{futures, JoinSet};
 use ferrumc_anvil::load_anvil_file;
 use crate::vanilla_chunk_format::VanillaChunk;
 
@@ -42,13 +42,13 @@ impl World {
     // We can actually have this sync since this is run at startup and the program exits after, so
     // no other task are being run. This also makes it easier to work with rayon since rayon doesn't
     // play very nice with async in my experience.
-    pub fn import(&mut self, import_dir: PathBuf, database_dir: PathBuf) -> Result<(), WorldError> {
+    pub async fn import(&mut self, import_dir: PathBuf, database_dir: PathBuf) -> Result<(), WorldError> {
         // Check if the import path is valid. We can assume the database path is valid since we
         // checked it in the config validity check.
         check_paths_validity(import_dir)?;
         let regions_dir = database_dir.join("region").read_dir()?;
-        let rt = tokio::runtime::Runtime::new()?;
-        regions_dir.par_bridge().for_each(|region_file| {
+        let mut task_set = JoinSet::new();
+        regions_dir.for_each(|region_file| {
             match region_file {
                 Ok(dir_entry) => {
                     if dir_entry.path().is_dir() {
@@ -56,23 +56,23 @@ impl World {
                     } else {
                         let file_path = dir_entry.path();
                         let Ok(anvil_file) = load_anvil_file(file_path) else {
-                            error!("Could not load region file: {}", file_path.to_string_lossy());
+                            error!("Could not load region file: {}", file_path.display());
                             return;
                         };
                         let locations = anvil_file.get_locations();
-                        locations.chunks(96).par_bridge().for_each(|sub_locations| {
-                            sub_locations.iter().for_each(|location| {
-                                if let Some(chunk) = anvil_file.get_chunk_from_location(*location) {
-                                    match VanillaChunk::from_bytes(&chunk) {
-                                        Ok(vanilla_chunk) => {
-                                            rt.block_on(self.save_chunk(vanilla_chunk)).unwrap();
-                                        }
-                                        Err(e) => {
-                                            error!("Could not convert chunk to vanilla format: {}", e);
-                                        }
+                        locations.into_iter().for_each(|location| {
+                            if let Some(chunk) = anvil_file.get_chunk_from_location(location) {
+                                match VanillaChunk::from_bytes(&chunk) {
+                                    Ok(vanilla_chunk) => {
+                                        task_set.spawn(async move {
+                                            self.save_chunk(vanilla_chunk.to_custom_format().unwrap()).await
+                                        });
+                                    }
+                                    Err(e) => {
+                                        error!("Could not convert chunk to vanilla format: {}", e);
                                     }
                                 }
-                            });
+                            }
                         });
                     }
                 }
@@ -81,6 +81,11 @@ impl World {
                 }
             }
         });
+        while let Some(result) = task_set.join_next().await {
+            if let Err(e) = result {
+                error!("Could not save chunk: {}", e);
+            }
+        }
         Ok(())
     }
 }

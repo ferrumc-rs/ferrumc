@@ -7,3 +7,4 @@ edition = "2021"
 thiserror = { workspace = true }
 tokio = { workspace = true }
 ferrumc-config = { workspace = true }
+bitcode = { workspace = true }

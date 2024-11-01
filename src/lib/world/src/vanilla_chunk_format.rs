@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use bitcode::{Decode, Encode};
 use ferrumc_macros::NBTDeserialize;
 use ferrumc_macros::NBTSerialize;
@@ -98,12 +98,12 @@ pub(crate) struct BlockStates {
 }
 
 #[apply(ChunkDerives)]
-#[derive(deepsize::DeepSizeOf)]
+#[derive(deepsize::DeepSizeOf, Hash)]
 pub(crate) struct Palette {
     #[nbt(rename = "Name")]
     pub name: String,
     #[nbt(rename = "Properties")]
-    pub properties: Option<HashMap<String, String>>,
+    pub properties: Option<BTreeMap<String, String>>,
 }
 
 #[apply(ChunkDerives)]
@@ -126,5 +126,6 @@ pub(crate) struct Properties {
 #[apply(ChunkDerives)]
 #[derive(deepsize::DeepSizeOf)]
 pub(crate) struct Biomes {
+    pub data: Option<Vec<i64>>,
     pub palette: Vec<String>,
 }

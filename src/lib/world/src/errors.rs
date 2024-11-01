@@ -4,6 +4,7 @@ use thiserror::Error;
 use errors::AnvilError;
 use ferrumc_anvil::errors;
 use ferrumc_storage::errors::StorageError;
+use crate::chunk_format::Palette;
 
 #[derive(Debug, Error)]
 pub enum WorldError {
@@ -31,6 +32,8 @@ pub enum WorldError {
     ChunkNotFound,
     #[error("Anvil Decode Error: {0}")]
     AnvilDecodeError(AnvilError),
+    #[error("Missing block mapping: {0}")]
+    MissingBlockMapping(Palette),
 }
 
 impl From<std::io::Error> for WorldError {
