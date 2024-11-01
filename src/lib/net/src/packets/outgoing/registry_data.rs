@@ -2,7 +2,6 @@ use ferrumc_macros::{packet, NetEncode};
 use ferrumc_nbt::{NBTSerializeOptions, NbtTape};
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use std::io::Write;
-use tokio::io::AsyncWriteExt;
 
 #[derive(NetEncode)]
 #[packet(packet_id = 0x07)]

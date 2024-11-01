@@ -32,10 +32,11 @@ async fn entry() -> Result<()> {
     let state = create_state().await?;
     let global_state = Arc::new(state);
 
-    let all_systems = tokio::spawn(definition::start_all_systems(Arc::clone(&global_state)));
+
+    let all_system_handles = tokio::spawn(definition::start_all_systems(global_state.clone()));
 
     // Start the systems and wait until all of them are done
-    all_systems.await??;
+    all_system_handles.await??;
 
     // Stop all systems
     definition::stop_all_systems(global_state).await?;
