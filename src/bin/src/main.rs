@@ -1,6 +1,5 @@
 // Security or something like that
 #![forbid(unsafe_code)]
-#![feature(slice_as_chunks)]
 
 use ferrumc_ecs::Universe;
 use ferrumc_net::server::create_server_listener;
@@ -32,6 +31,7 @@ async fn main() {
 async fn entry() -> Result<()> {
     let state = create_state().await?;
     let global_state = Arc::new(state);
+
 
     let all_system_handles = tokio::spawn(definition::start_all_systems(global_state.clone()));
 
