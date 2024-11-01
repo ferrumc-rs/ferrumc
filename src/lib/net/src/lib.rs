@@ -1,3 +1,5 @@
+extern crate core;
+
 use tokio::net::TcpListener;
 use ferrumc_ecs::Universe;
 use ferrumc_macros::bake_packet_registry;
