@@ -35,7 +35,7 @@ impl DatabaseBackend for RocksDBBackend {
     }
 
     async fn insert(
-        &mut self,
+        &self,
         table: String,
         key: u64,
         value: Vec<u8>,
@@ -53,7 +53,7 @@ impl DatabaseBackend for RocksDBBackend {
         Ok(())
     }
 
-    async fn get(&mut self, table: String, key: u64) -> Result<Option<Vec<u8>>, StorageError> {
+    async fn get(&self, table: String, key: u64) -> Result<Option<Vec<u8>>, StorageError> {
         let db = self.db.clone();
         let result = tokio::task::spawn_blocking(move || {
             let db = db.read();

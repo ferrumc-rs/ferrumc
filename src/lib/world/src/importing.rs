@@ -1,7 +1,9 @@
 use std::path::PathBuf;
+use std::sync::Arc;
 use std::sync::atomic::AtomicU64;
 use indicatif::ProgressBar;
 use rayon::prelude::*;
+use tokio::task::JoinSet;
 use tracing::{error, info};
 use crate::errors::WorldError;
 use crate::World;
@@ -74,9 +76,10 @@ impl World {
         // checked it in the config validity check.
         check_paths_validity(import_dir.clone())?;
         let regions_dir = import_dir.join("region").read_dir()?;
-        let progress_bar = ProgressBar::new(self.get_chunk_count(import_dir)?);
+        let progress_bar = Arc::new(ProgressBar::new(self.get_chunk_count(import_dir)?));
         info!("Importing chunks from import directory...");
         let start = std::time::Instant::now();
+        let mut task_set = JoinSet::new();
         for region_file in regions_dir {
             match region_file {
                 Ok(dir_entry) => {
@@ -93,8 +96,18 @@ impl World {
                             if let Some(chunk) = anvil_file.get_chunk_from_location(location) {
                                 match VanillaChunk::from_bytes(&chunk) {
                                     Ok(vanilla_chunk) => {
-                                        self.save_chunk(vanilla_chunk.to_custom_format()?).await?;
-                                        progress_bar.inc(1);
+                                        let cloned_progress_bar = progress_bar.clone();
+                                        task_set.spawn(async move {
+                                            if let Ok(chunk) = vanilla_chunk.to_custom_format() {
+                                                if let Err(e) = self.save_chunk(chunk).await {
+                                                    error!("Could not save chunk: {}", e);
+                                                } else {
+                                                    cloned_progress_bar.inc(1);
+                                                }
+                                            } else {
+                                                error!("Could not convert chunk to custom format: {:?}", chunk);
+                                            }
+                                        });
                                     }
                                     Err(e) => {
                                         error!("Could not convert chunk to vanilla format: {}", e);
@@ -109,8 +122,9 @@ impl World {
                 }
             }
         };
-        progress_bar.finish();
-        info!("Imported {} chunks in {:?}", progress_bar.position(), start.elapsed());
+        while let Some(_) = task_set.join_next().await {}
+        progress_bar.clone().finish();
+        info!("Imported {} chunks in {:?}", progress_bar.clone().position(), start.elapsed());
         Ok(())
     }
 }

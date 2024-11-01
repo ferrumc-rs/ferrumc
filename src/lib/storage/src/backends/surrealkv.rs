@@ -34,7 +34,7 @@ impl DatabaseBackend for SurrealKVBackend {
     }
 
     async fn insert(
-        &mut self,
+        &self,
         table: String,
         key: u64,
         value: Vec<u8>,
@@ -57,7 +57,7 @@ impl DatabaseBackend for SurrealKVBackend {
         Ok(())
     }
 
-    async fn get(&mut self, table: String, key: u64) -> Result<Option<Vec<u8>>, StorageError> {
+    async fn get(&self, table: String, key: u64) -> Result<Option<Vec<u8>>, StorageError> {
         let mut modified_key = table.as_bytes().to_vec();
         modified_key.extend_from_slice(&key.to_be_bytes());
         let mut tx = self
@@ -71,7 +71,7 @@ impl DatabaseBackend for SurrealKVBackend {
         Ok(value)
     }
 
-    async fn delete(&mut self, table: String, key: u64) -> Result<(), StorageError> {
+    async fn delete(&self, table: String, key: u64) -> Result<(), StorageError> {
         let mut modified_key = table.as_bytes().to_vec();
         modified_key.extend_from_slice(&key.to_be_bytes());
         let mut tx = self
@@ -88,7 +88,7 @@ impl DatabaseBackend for SurrealKVBackend {
     }
 
     async fn update(
-        &mut self,
+        &self,
         table: String,
         key: u64,
         value: Vec<u8>,
@@ -101,7 +101,7 @@ impl DatabaseBackend for SurrealKVBackend {
     }
 
     async fn upsert(
-        &mut self,
+        &self,
         table: String,
         key: u64,
         value: Vec<u8>,
@@ -115,7 +115,7 @@ impl DatabaseBackend for SurrealKVBackend {
         }
     }
 
-    async fn exists(&mut self, table: String, key: u64) -> Result<bool, StorageError> {
+    async fn exists(&self, table: String, key: u64) -> Result<bool, StorageError> {
         let mut modified_key = table.as_bytes().to_vec();
         modified_key.extend_from_slice(&key.to_be_bytes());
         let mut tx = self
@@ -129,12 +129,12 @@ impl DatabaseBackend for SurrealKVBackend {
         Ok(value.is_some())
     }
 
-    async fn details(&mut self) -> String {
+    async fn details(&self) -> String {
         "SurrealKV 0.3.6".to_string()
     }
 
     async fn batch_insert(
-        &mut self,
+        &self,
         table: String,
         data: Vec<(u64, Vec<u8>)>,
     ) -> Result<(), StorageError> {
@@ -156,7 +156,7 @@ impl DatabaseBackend for SurrealKVBackend {
     }
 
     async fn batch_get(
-        &mut self,
+        &self,
         table: String,
         keys: Vec<u64>,
     ) -> Result<Vec<Option<Vec<u8>>>, StorageError> {
@@ -177,15 +177,15 @@ impl DatabaseBackend for SurrealKVBackend {
         Ok(values)
     }
 
-    async fn flush(&mut self) -> Result<(), StorageError> {
+    async fn flush(&self) -> Result<(), StorageError> {
         Ok(())
     }
 
-    async fn create_table(&mut self, _: String) -> Result<(), StorageError> {
+    async fn create_table(&self, _: String) -> Result<(), StorageError> {
         Ok(())
     }
     
-    async fn close(&mut self) -> Result<(), StorageError> {
+    async fn close(&self) -> Result<(), StorageError> {
         // I should probably do something here, but I'm just hoping the drop trait will handle it.
         Ok(())
     }

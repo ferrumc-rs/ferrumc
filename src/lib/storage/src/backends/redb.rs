@@ -31,7 +31,7 @@ impl DatabaseBackend for RedbBackend {
     }
 
     async fn insert(
-        &mut self,
+        &self,
         table: String,
         key: u64,
         value: Vec<u8>,
@@ -66,7 +66,7 @@ impl DatabaseBackend for RedbBackend {
         Ok(())
     }
 
-    async fn get(&mut self, table: String, key: u64) -> Result<Option<Vec<u8>>, StorageError> {
+    async fn get(&self, table: String, key: u64) -> Result<Option<Vec<u8>>, StorageError> {
         let db = self.db.clone();
         let result = tokio::task::spawn_blocking(move || {
             let table_def: TableDefinition<u64, &[u8]> = TableDefinition::new(&table);
@@ -91,7 +91,7 @@ impl DatabaseBackend for RedbBackend {
         Ok(result)
     }
 
-    async fn delete(&mut self, table: String, key: u64) -> Result<(), StorageError> {
+    async fn delete(&self, table: String, key: u64) -> Result<(), StorageError> {
         let db = self.db.clone();
         tokio::task::spawn_blocking(move || {
             let table_def: TableDefinition<u64, &[u8]> = TableDefinition::new(&table);
@@ -123,7 +123,7 @@ impl DatabaseBackend for RedbBackend {
     }
 
     async fn update(
-        &mut self,
+        &self,
         table: String,
         key: u64,
         value: Vec<u8>,
@@ -157,7 +157,7 @@ impl DatabaseBackend for RedbBackend {
     }
 
     async fn upsert(
-        &mut self,
+        &self,
         table: String,
         key: u64,
         value: Vec<u8>,
@@ -190,7 +190,7 @@ impl DatabaseBackend for RedbBackend {
         Ok(result)
     }
 
-    async fn exists(&mut self, table: String, key: u64) -> Result<bool, StorageError> {
+    async fn exists(&self, table: String, key: u64) -> Result<bool, StorageError> {
         let db = self.db.clone();
         let result = tokio::task::spawn_blocking(move || {
             let table_def: TableDefinition<u64, &[u8]> = TableDefinition::new(&table);
@@ -211,12 +211,12 @@ impl DatabaseBackend for RedbBackend {
         Ok(result)
     }
 
-    async fn details(&mut self) -> String {
+    async fn details(&self) -> String {
         "Redb 2.1.3".to_string()
     }
 
     async fn batch_insert(
-        &mut self,
+        &self,
         table: String,
         data: Vec<(u64, Vec<u8>)>,
     ) -> Result<(), StorageError> {
@@ -249,7 +249,7 @@ impl DatabaseBackend for RedbBackend {
     }
 
     async fn batch_get(
-        &mut self,
+        &self,
         table: String,
         keys: Vec<u64>,
     ) -> Result<Vec<Option<Vec<u8>>>, StorageError> {
@@ -281,7 +281,7 @@ impl DatabaseBackend for RedbBackend {
         Ok(result)
     }
 
-    async fn flush(&mut self) -> Result<(), StorageError> {
+    async fn flush(&self) -> Result<(), StorageError> {
         let db = self.db.clone();
         match tokio::task::spawn_blocking(move || {
             db.write()
@@ -296,7 +296,7 @@ impl DatabaseBackend for RedbBackend {
         }
     }
 
-    async fn create_table(&mut self, table: String) -> Result<(), StorageError> {
+    async fn create_table(&self, table: String) -> Result<(), StorageError> {
         let db = self.db.clone();
         tokio::task::spawn_blocking(move || {
             let table_def: TableDefinition<u64, &[u8]> = TableDefinition::new(&table);
@@ -319,7 +319,7 @@ impl DatabaseBackend for RedbBackend {
         Ok(())
     }
 
-    async fn close(&mut self) -> Result<(), StorageError> {
+    async fn close(&self) -> Result<(), StorageError> {
         Ok(())
     }
 }

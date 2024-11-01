@@ -9,13 +9,13 @@ use ferrumc_storage::compressors::Compressor;
 use ferrumc_storage::DatabaseBackend;
 use std::path::{Path, PathBuf};
 use std::process::exit;
+use std::sync::Arc;
 use tokio::fs::create_dir_all;
 use tracing::{error, warn};
 use ferrumc_config::statics::get_global_config;
 
-#[expect(dead_code)]
 pub struct World {
-    storage_backend: Box<dyn DatabaseBackend>,
+    storage_backend: Arc<Box<dyn DatabaseBackend + Send + Sync>>,
     compressor: Compressor,
     // TODO: Cache
 }
@@ -76,7 +76,7 @@ impl World {
         // Clones are kinda ok here since this is only run once at startup.
         let backend_string = get_global_config().database.backend.trim();
         let backend_path = get_global_config().database.db_path.clone();
-        let storage_backend: Result<Box<dyn DatabaseBackend>, WorldError> = match backend_string
+        let storage_backend: Result<Box<dyn DatabaseBackend + Send + Sync>, WorldError> = match backend_string
             .to_lowercase()
             .as_str()
         {
@@ -191,7 +191,7 @@ impl World {
         };
 
         World {
-            storage_backend,
+            storage_backend: Arc::new(storage_backend),
             compressor: compression_algo,
         }
     }

@@ -11,7 +11,7 @@ pub mod gzip;
 pub mod zlib;
 pub mod zstd;
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub enum CompressorType {
     Gzip,
     Zstd,
@@ -20,7 +20,7 @@ pub enum CompressorType {
     Zlib,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct Compressor {
     pub algorithm: CompressorType,
     pub level: u32,
