@@ -28,6 +28,8 @@ ferrumc-general-purpose = { workspace = true }
 lazy_static = { workspace = true }
 bzip2 = { workspace = true }
 serde_json = { workspace = true }
+indicatif = { workspace = true }
+parking_lot = { workspace = true }
 
 [features]
 default = ["sled", "surrealkv", "redb"]

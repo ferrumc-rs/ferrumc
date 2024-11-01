@@ -1,5 +1,3 @@
-# Server configuration
-[server]
 # IP or hostname where the server will bind. Leave as 0.0.0.0 if you want it to be accessible from any IP.
 host = "0.0.0.0"
 # Server port (0-65535). Minecraft's default port is 25565, so you probably want to leave it as is.
@@ -18,7 +16,7 @@ world = "world"
 network_compression_threshold = 64
 
 # Database configuration
-[server.database]
+[database]
 # Cache size in KB
 cache_size = 1024
 # Compression algorithm (brotli, deflate, gzip, zlib, zstd)

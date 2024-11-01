@@ -4,7 +4,7 @@ use thiserror::Error;
 use errors::AnvilError;
 use ferrumc_anvil::errors;
 use ferrumc_storage::errors::StorageError;
-use crate::chunk_format::Palette;
+use crate::vanilla_chunk_format::Palette;
 
 #[derive(Debug, Error)]
 pub enum WorldError {

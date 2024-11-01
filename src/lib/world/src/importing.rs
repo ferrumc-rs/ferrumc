@@ -1,8 +1,10 @@
 use std::path::PathBuf;
-use tracing::error;
+use std::sync::atomic::AtomicU64;
+use indicatif::ProgressBar;
+use rayon::prelude::*;
+use tracing::{error, info};
 use crate::errors::WorldError;
 use crate::World;
-use tokio::task::{futures, JoinSet};
 use ferrumc_anvil::load_anvil_file;
 use crate::vanilla_chunk_format::VanillaChunk;
 
@@ -39,41 +41,24 @@ fn check_paths_validity(import_dir: PathBuf) -> Result<(), WorldError> {
 }
 
 impl World {
-    // We can actually have this sync since this is run at startup and the program exits after, so
-    // no other task are being run. This also makes it easier to work with rayon since rayon doesn't
-    // play very nice with async in my experience.
-    pub async fn import(&mut self, import_dir: PathBuf, database_dir: PathBuf) -> Result<(), WorldError> {
-        // Check if the import path is valid. We can assume the database path is valid since we
-        // checked it in the config validity check.
-        check_paths_validity(import_dir)?;
-        let regions_dir = database_dir.join("region").read_dir()?;
-        let mut task_set = JoinSet::new();
-        regions_dir.for_each(|region_file| {
+    
+    fn get_chunk_count(&self, import_dir: PathBuf) -> Result<u64, WorldError> {
+        info!("Counting chunks in import directory...");
+        let regions_dir = import_dir.join("region").read_dir()?;
+        let chunk_count = AtomicU64::new(0);
+        regions_dir.into_iter().par_bridge().for_each(|region_file| {
             match region_file {
                 Ok(dir_entry) => {
                     if dir_entry.path().is_dir() {
                         error!("Region file is a directory: {}", dir_entry.path().to_string_lossy());
                     } else {
                         let file_path = dir_entry.path();
-                        let Ok(anvil_file) = load_anvil_file(file_path) else {
-                            error!("Could not load region file: {}", file_path.display());
+                        let Ok(anvil_file) = load_anvil_file(file_path.clone()) else {
+                            error!("Could not load region file: {}", file_path.clone().display());
                             return;
                         };
                         let locations = anvil_file.get_locations();
-                        locations.into_iter().for_each(|location| {
-                            if let Some(chunk) = anvil_file.get_chunk_from_location(location) {
-                                match VanillaChunk::from_bytes(&chunk) {
-                                    Ok(vanilla_chunk) => {
-                                        task_set.spawn(async move {
-                                            self.save_chunk(vanilla_chunk.to_custom_format().unwrap()).await
-                                        });
-                                    }
-                                    Err(e) => {
-                                        error!("Could not convert chunk to vanilla format: {}", e);
-                                    }
-                                }
-                            }
-                        });
+                        chunk_count.fetch_add(locations.len() as u64, std::sync::atomic::Ordering::Relaxed);
                     }
                 }
                 Err(e) => {
@@ -81,11 +66,51 @@ impl World {
                 }
             }
         });
-        while let Some(result) = task_set.join_next().await {
-            if let Err(e) = result {
-                error!("Could not save chunk: {}", e);
+        Ok(chunk_count.load(std::sync::atomic::Ordering::Relaxed))
+    }
+    
+    pub async fn import(&mut self, import_dir: PathBuf, _: PathBuf) -> Result<(), WorldError> {
+        // Check if the import path is valid. We can assume the database path is valid since we
+        // checked it in the config validity check.
+        check_paths_validity(import_dir.clone())?;
+        let regions_dir = import_dir.join("region").read_dir()?;
+        let progress_bar = ProgressBar::new(self.get_chunk_count(import_dir)?);
+        info!("Importing chunks from import directory...");
+        let start = std::time::Instant::now();
+        for region_file in regions_dir {
+            match region_file {
+                Ok(dir_entry) => {
+                    if dir_entry.path().is_dir() {
+                        error!("Region file is a directory: {}", dir_entry.path().to_string_lossy());
+                    } else {
+                        let file_path = dir_entry.path();
+                        let Ok(anvil_file) = load_anvil_file(file_path.clone()) else {
+                            error!("Could not load region file: {}", file_path.clone().display());
+                            continue;
+                        };
+                        let locations = anvil_file.get_locations();
+                        for location in locations {
+                            if let Some(chunk) = anvil_file.get_chunk_from_location(location) {
+                                match VanillaChunk::from_bytes(&chunk) {
+                                    Ok(vanilla_chunk) => {
+                                        self.save_chunk(vanilla_chunk.to_custom_format()?).await?;
+                                        progress_bar.inc(1);
+                                    }
+                                    Err(e) => {
+                                        error!("Could not convert chunk to vanilla format: {}", e);
+                                    }
+                                }
+                            }
+                        };
+                    }
+                }
+                Err(e) => {
+                    error!("Could not read region file: {}", e);
+                }
             }
-        }
+        };
+        progress_bar.finish();
+        info!("Imported {} chunks in {:?}", progress_bar.position(), start.elapsed());
         Ok(())
     }
 }

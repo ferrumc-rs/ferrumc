@@ -1,9 +1,10 @@
-use std::collections::{BTreeMap, HashMap};
 use bitcode::{Decode, Encode};
 use ferrumc_macros::NBTDeserialize;
 use ferrumc_macros::NBTSerialize;
 use macro_rules_attribute::{apply, attribute_alias};
 use serde_derive::{Deserialize, Serialize};
+use std::collections::BTreeMap;
+use std::fmt::Display;
 
 attribute_alias! {
     #[apply(ChunkDerives)] = #[derive(NBTSerialize, NBTDeserialize,
@@ -99,11 +100,17 @@ pub(crate) struct BlockStates {
 
 #[apply(ChunkDerives)]
 #[derive(deepsize::DeepSizeOf, Hash)]
-pub(crate) struct Palette {
+pub struct Palette {
     #[nbt(rename = "Name")]
     pub name: String,
     #[nbt(rename = "Properties")]
     pub properties: Option<BTreeMap<String, String>>,
+}
+
+impl Display for Palette {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.name)
+    }
 }
 
 #[apply(ChunkDerives)]

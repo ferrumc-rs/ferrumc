@@ -150,6 +150,10 @@ lzzzz = "1.1.0"
 yazi = "0.2.0"
 bzip2 = "0.4.1"
 
+# CLI
+clap = "4.5.20"
+indicatif = "0.17.8"
+
 # Misc
 deepsize = "0.2.0"
 

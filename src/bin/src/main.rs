@@ -2,12 +2,23 @@
 #![forbid(unsafe_code)]
 #![feature(slice_as_chunks)]
 
+use std::path::PathBuf;
 use ferrumc_ecs::Universe;
 use ferrumc_net::server::create_server_listener;
 use ferrumc_net::ServerState;
 use std::sync::Arc;
+use clap::Parser;
 use systems::definition;
 use tracing::{error, info};
+use ferrumc_config::statics::get_global_config;
+use ferrumc_world::World;
+
+#[derive(clap::Parser)]
+struct CLIArgs {
+    #[clap(long)]
+    import: bool
+}
+
 
 pub(crate) mod errors;
 mod packet_handlers;
@@ -20,6 +31,21 @@ async fn main() {
     ferrumc_logging::init_logging();
 
     println!("good day to ya. enjoy your time with ferrumc!");
+    
+    let cli_args = CLIArgs::parse();
+    
+    if cli_args.import {
+        // Import the world
+        let config = get_global_config();
+        let mut world = World::new().await;
+        let import_path = PathBuf::from(config.database.import_path.clone());
+        let db_path = PathBuf::from(config.database.db_path.clone());
+        if let Err(e) = world.import(import_path, db_path).await {
+            error!("Could not import world: {:?}", e);
+            return;
+        }
+        return;
+    }
 
     if let Err(e) = entry().await {
         error!("Server exited with the following error;");

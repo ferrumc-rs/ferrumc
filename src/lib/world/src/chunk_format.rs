@@ -1,13 +1,12 @@
-use std::collections::{BTreeMap, HashMap};
-use std::io::Read;
-use bitcode_derive::{Decode, Encode};
-use lazy_static::lazy_static;
-use serde_derive::{Deserialize, Serialize};
-use ferrumc_net_codec::net_types::var_int::VarInt;
-use vanilla_chunk_format::Palette;
 use crate::errors::WorldError;
 use crate::vanilla_chunk_format;
 use crate::vanilla_chunk_format::VanillaChunk;
+use bitcode_derive::{Decode, Encode};
+use ferrumc_net_codec::net_types::var_int::VarInt;
+use lazy_static::lazy_static;
+use std::collections::HashMap;
+use std::io::Read;
+use vanilla_chunk_format::Palette;
 
 #[cfg(test)]
 const BLOCKSFILE: &[u8] = &[0];
@@ -68,7 +67,7 @@ fn convert_to_net_palette(vanilla_palettes: Vec<Palette>) -> Result<Vec<VarInt>,
             return Err(WorldError::MissingBlockMapping(palette));
         }
     }
-    todo!()
+    Ok(new_palette)
 }
 
 
