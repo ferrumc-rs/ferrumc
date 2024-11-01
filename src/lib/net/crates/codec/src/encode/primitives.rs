@@ -65,7 +65,7 @@ impl NetEncode for String {
     }
 }
 
-impl<'a> NetEncode for &'a str {
+impl NetEncode for &str {
     fn encode<W: Write>(&self, writer: &mut W, _: &NetEncodeOpts) -> NetEncodeResult<()> {
         let len: VarInt = VarInt::new(self.len() as i32);
         len.encode(writer, &NetEncodeOpts::None)?;
