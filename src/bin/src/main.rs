@@ -98,5 +98,6 @@ async fn create_state() -> Result<ServerState> {
     Ok(ServerState {
         universe: Universe::new(),
         tcp_listener: listener,
+        world: World::new().await,
     })
 }

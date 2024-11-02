@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use std::ops::{Deref, DerefMut};
 use dashmap::DashMap;
 use dashmap::mapref::one::{Ref, RefMut};
@@ -94,5 +95,18 @@ impl<T> DerefMut for ComponentRefMut<'_, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         #[allow(clippy::explicit_auto_deref)]
         &mut *self.guard
+    }
+}
+
+
+impl<T: Debug> Debug for ComponentRef<'_, T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        (*self.guard).fmt(f)
+    }
+}
+
+impl<T: Debug> Debug for ComponentRefMut<'_, T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        (*self.guard).fmt(f)
     }
 }

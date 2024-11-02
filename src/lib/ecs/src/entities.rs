@@ -37,7 +37,8 @@ impl EntityManager {
     }
     
     pub fn builder<'a>(&'a self, component_storage: &'a ComponentManager) -> EntityBuilder<'a> {
-        EntityBuilder::new(self.create_entity(), component_storage)
+        EntityBuilder::
+        new(self.create_entity(), component_storage)
     }
 }
 

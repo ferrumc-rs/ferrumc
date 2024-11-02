@@ -118,7 +118,7 @@ impl World {
                 }
             }
         };
-        while (task_set.join_next().await).is_some() {}
+        while task_set.join_next().await.is_some() {}
         self.sync().await?;
         progress_bar.clone().finish();
         info!("Imported {} chunks in {:?}", progress_bar.clone().position(), start.elapsed());

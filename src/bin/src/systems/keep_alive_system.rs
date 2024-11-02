@@ -6,6 +6,7 @@ use ferrumc_net::packets::outgoing::keep_alive::{KeepAlive, KeepAlivePacket};
 use ferrumc_net::GlobalState;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::time::Duration;
 use tracing::{error, info, trace, warn};
 use ferrumc_net::utils::broadcast::{BroadcastOptions, BroadcastToAll};
 
@@ -85,6 +86,9 @@ impl System for KeepAliveSystem {
                 error!("Error sending keep alive packet: {}", e);
             };
 
+            // A max wait can be 30 seconds. Therefore 2x checking means every player will get kicked with invalid keep alive packet.
+            // It's hard to explain. but yes. you get the idea.
+            tokio::time::sleep(Duration::from_secs(15)).await;
         }
     }
 
