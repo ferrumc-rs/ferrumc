@@ -32,13 +32,13 @@ pub fn database_benchmarks(c: &mut Criterion) {
         let mut temps = Vec::new();
 
         #[cfg(feature = "redb")]
-        let mut redb_backend = runtime.block_on(async {
+        let redb_backend = runtime.block_on(async {
             let mut db_file = PathBuf::from(root!(".temp/redb"));
             if !db_file.exists() {
                 std::fs::create_dir_all(&db_file).unwrap();
             }
             db_file.push("test.db");
-            let mut backend = RedbBackend::initialize(Some(db_file.clone()))
+            let backend = RedbBackend::initialize(Some(db_file.clone()))
                 .await
                 .unwrap();
             backend.create_table("test".to_string()).await.unwrap();
@@ -47,7 +47,7 @@ pub fn database_benchmarks(c: &mut Criterion) {
         });
 
         #[cfg(feature = "surrealkv")]
-        let mut surreal_backend = runtime.block_on(async {
+        let surreal_backend = runtime.block_on(async {
             let mut db_file = PathBuf::from(root!(".temp/surreal"));
             if !db_file.exists() {
                 std::fs::create_dir_all(&db_file).unwrap();
@@ -61,7 +61,7 @@ pub fn database_benchmarks(c: &mut Criterion) {
         });
 
         #[cfg(feature = "sled")]
-        let mut sled_backend = runtime.block_on(async {
+        let sled_backend = runtime.block_on(async {
             let mut db_file = PathBuf::from(root!(".temp/sled"));
             if !db_file.exists() {
                 std::fs::create_dir_all(&db_file).unwrap();

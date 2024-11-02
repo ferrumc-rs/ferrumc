@@ -69,6 +69,10 @@ async fn check_config_validity() -> Result<(), WorldError> {
 }
 
 impl World {
+    /// Creates a new world instance.
+    /// 
+    /// You'd probably want to call this at the start of your program. And then use the returned
+    /// in a state struct or something.
     pub async fn new() -> Self {
         if let Err(e) = check_config_validity().await {
             error!("Fatal error in database config: {}", e);

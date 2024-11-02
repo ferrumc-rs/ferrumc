@@ -103,8 +103,8 @@ impl VanillaChunk {
             
         }
         Ok(Chunk {
-            x: self.x_pos.clone(),
-            z: self.z_pos.clone(),
+            x: self.x_pos,
+            z: self.z_pos,
             dimension: self.clone().dimension.unwrap_or("overworld".to_string()),
             sections,
         })

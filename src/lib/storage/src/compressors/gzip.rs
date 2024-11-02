@@ -1,5 +1,4 @@
 use crate::errors::StorageError;
-use ferrumc_macros::profile;
 use flate2::read::{GzDecoder, GzEncoder};
 use flate2::Compression;
 use std::io::{Cursor, Read};
