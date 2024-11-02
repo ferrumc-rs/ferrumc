@@ -33,11 +33,22 @@ pub struct ServerConfig {
 ///
 /// Fields:
 /// - `cache_size`: The cache size in KB.
-/// - `compression` - [DatabaseCompression]: The compression algorithm to use.
+/// - `compression` - Which compression algorithm to use. Options are `brotli`, `deflate`, `gzip`, `zlib` 
+///     and `zstd`
+/// - `backend` - Which database backend to use. Options are `redb`, `rocksdb`, `sled`, `surrealkv`.
+/// - `world_path`: The path to the world database.
+/// - `import_path`: The path to the world to import. This should point to the folder that contains
+///     directories such as `region`, `poi`, `playerdata`, etc. Usually found at %APPDATA%/.minecraft/saves.
+/// - `compression_level`: The compression level to use. This is a number from 0-22. Not all compressors
+///     support levels, so this will be a no-op for some compressors.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct DatabaseConfig {
     pub cache_size: u32,
-    pub compression: DatabaseCompression,
+    pub compression: String,
+    pub backend: String,
+    pub db_path: String,
+    pub import_path: String,
+    pub compression_level: i32,
 }
 
 /// The database compression enum for [DatabaseConfig].

@@ -1,4 +1,4 @@
-mod errors;
+pub mod errors;
 
 use std::io::Read;
 use std::path::PathBuf;
@@ -37,7 +37,8 @@ pub fn get_chunk(x: u32, z: u32, file_path: PathBuf) -> Option<Vec<u8>> {
 /// ```no_run
 /// use std::fs::File;
 /// use fastanvil::Region;
-/// use std::path::PathBuf;use anvil::load_anvil_file;
+/// use std::path::PathBuf;
+/// use ferrumc_anvil::load_anvil_file;
 ///
 /// let file_path = PathBuf::from("r.0.0.mca");
 ///

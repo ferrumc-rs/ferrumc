@@ -3,10 +3,11 @@ use crate::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
 use crate::encode::errors::NetEncodeError;
 use crate::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
 use std::io::{Read, Write};
+use bitcode::{Decode, Encode};
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 use crate::net_types::NetTypesError;
 
-#[derive(Debug)]
+#[derive(Debug, Encode, Decode)]
 pub struct VarInt {
     /// The value of the VarInt.
     pub val: i32,

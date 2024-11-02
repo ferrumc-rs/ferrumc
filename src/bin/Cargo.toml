@@ -39,7 +39,8 @@ tokio = { workspace = true }
 rayon = { workspace = true }
 futures = { workspace = true }
 serde_json = { workspace = true }
-async-trait = "0.1.83"
+async-trait = { workspace = true }
+clap = { workspace = true, features = ["derive"] }
 
 
 [[bin]]

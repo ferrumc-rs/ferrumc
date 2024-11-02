@@ -35,7 +35,7 @@ impl DatabaseBackend for RocksDBBackend {
     }
 
     async fn insert(
-        &mut self,
+        &self,
         table: String,
         key: u64,
         value: Vec<u8>,
@@ -48,12 +48,12 @@ impl DatabaseBackend for RocksDBBackend {
                 .map_err(|e| StorageError::WriteError(e.to_string()))?;
             Ok::<(), StorageError>(())
         })
-            .await
-            .expect("Failed to insert data into database")?;
+        .await
+        .expect("Failed to insert data into database")?;
         Ok(())
     }
 
-    async fn get(&mut self, table: String, key: u64) -> Result<Option<Vec<u8>>, StorageError> {
+    async fn get(&self, table: String, key: u64) -> Result<Option<Vec<u8>>, StorageError> {
         let db = self.db.clone();
         let result = tokio::task::spawn_blocking(move || {
             let db = db.read();
@@ -67,8 +67,8 @@ impl DatabaseBackend for RocksDBBackend {
                 Ok(None)
             }
         })
-            .await
-            .expect("Failed to get data from database")?;
+        .await
+        .expect("Failed to get data from database")?;
         Ok(result)
     }
 
@@ -81,8 +81,8 @@ impl DatabaseBackend for RocksDBBackend {
                 .map_err(|e| StorageError::WriteError(e.to_string()))?;
             Ok::<(), StorageError>(())
         })
-            .await
-            .expect("Failed to delete data from database")?;
+        .await
+        .expect("Failed to delete data from database")?;
         Ok(())
     }
 
@@ -100,8 +100,8 @@ impl DatabaseBackend for RocksDBBackend {
                 .map_err(|e| StorageError::WriteError(e.to_string()))?;
             Ok::<(), StorageError>(())
         })
-            .await
-            .expect("Failed to update data in database")?;
+        .await
+        .expect("Failed to update data in database")?;
         Ok(())
     }
 
@@ -123,8 +123,8 @@ impl DatabaseBackend for RocksDBBackend {
                 Ok(false)
             }
         })
-            .await
-            .expect("Failed to upsert data in database")?;
+        .await
+        .expect("Failed to upsert data in database")?;
         Ok(result)
     }
 
@@ -138,8 +138,8 @@ impl DatabaseBackend for RocksDBBackend {
                 .map_err(|e| StorageError::ReadError(e.to_string()))?;
             Ok(value.is_some())
         })
-            .await
-            .expect("Failed to check if key exists in database")?;
+        .await
+        .expect("Failed to check if key exists in database")?;
         Ok(result)
     }
 
@@ -164,8 +164,8 @@ impl DatabaseBackend for RocksDBBackend {
                 .map_err(|e| StorageError::WriteError(e.to_string()))?;
             Ok::<(), StorageError>(())
         })
-            .await
-            .expect("Failed to batch insert data into database")?;
+        .await
+        .expect("Failed to batch insert data into database")?;
         Ok(())
     }
 
@@ -191,8 +191,8 @@ impl DatabaseBackend for RocksDBBackend {
             }
             Ok(values)
         })
-            .await
-            .expect("Failed to batch get data from database")?;
+        .await
+        .expect("Failed to batch get data from database")?;
         Ok(result)
     }
 

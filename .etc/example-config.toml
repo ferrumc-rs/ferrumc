@@ -1,0 +1,31 @@
+# IP or hostname where the server will bind. Leave as 0.0.0.0 if you want it to be accessible from any IP.
+host = "0.0.0.0"
+# Server port (0-65535). Minecraft's default port is 25565, so you probably want to leave it as is.
+port = 25565
+# Message of the day. A random one will be selected.
+motd = ["Welcome to the best server ever!", "Rust", "Good luck, have fun!"]
+# Maximum number of players
+max_players = 100
+# How many network updates per second per user
+network_tick_rate = 30
+# World name to load
+world = "world"
+# Network compression threshold (can be negative). This decides how long a packet has to be before it is compressed.
+# Very small packets may actually increase in size when compressed, so setting it to 0 won't be perfect in all situations.
+# Set to -1 to disable compression.
+network_compression_threshold = 64
+
+# Database configuration
+[database]
+# Cache size in KB
+cache_size = 1024
+# Compression algorithm (brotli, deflate, gzip, zlib, zstd)
+compression = "gzip"
+# Database backend (redb, rocksdb, sled, surrealkv)
+backend = "redb"
+# Path to the world database
+db_path = "/path/to/world/database"
+# Path to world import folder (e.g., %APPDATA%/.minecraft/saves/world)
+import_path = "/path/to/import/folder"
+# Compression level (0-22) for the database. Higher values mean less disk space but will take longer to read/write.
+compression_level = 5

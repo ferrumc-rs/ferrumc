@@ -6,3 +6,9 @@
 Cargo.lock
 config.toml
 .temp
+
+.etc/blockstates.json
+
+.etc/blocks.json
+
+flame.svg

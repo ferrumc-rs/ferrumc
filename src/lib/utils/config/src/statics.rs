@@ -10,7 +10,7 @@ use lazy_static::lazy_static;
 use ferrumc_general_purpose::paths::get_root_path;
 
 /// The default server configuration that is stored in memory.
-const DEFAULT_CONFIG: &str = include_str!("../../../../../.etc/example_config.toml");
+const DEFAULT_CONFIG: &str = include_str!("../../../../../.etc/example-config.toml");
 
 lazy_static! {
     /// The server configuration that is stored in memory.
