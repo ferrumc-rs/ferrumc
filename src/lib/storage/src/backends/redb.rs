@@ -5,6 +5,7 @@ use parking_lot::RwLock;
 use redb::TableDefinition;
 use std::path::PathBuf;
 use std::sync::Arc;
+use tracing::debug;
 
 #[derive(Clone)]
 pub struct RedbBackend {
@@ -14,13 +15,14 @@ pub struct RedbBackend {
 #[async_trait]
 impl DatabaseBackend for RedbBackend {
     async fn initialize(store_path: Option<PathBuf>) -> Result<Self, StorageError> {
+        debug!("Initializing Redb backend @ {:?}", store_path);
         if let Some(path) = store_path {
             let db = if path.exists() {
                 redb::Database::open(path)
-                    .map_err(|e| StorageError::DatabaseInitError(e.to_string()))?
+                    .map_err(|e| StorageError::DatabaseInitError(format!("Open error: {}", e.to_string())))?
             } else {
                 redb::Database::create(path)
-                    .map_err(|e| StorageError::DatabaseInitError(e.to_string()))?
+                    .map_err(|e| StorageError::DatabaseInitError(format!("Create error: {}", e.to_string())))?
             };
             Ok(Self {
                 db: Arc::new(RwLock::new(db)),

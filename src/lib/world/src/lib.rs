@@ -36,7 +36,7 @@ async fn check_config_validity() -> Result<(), WorldError> {
     }
     if !Path::new(&db_path).exists() {
         warn!("World path does not exist. Attempting to create it.");
-        if create_dir_all(&config.database.db_path).await.is_err() {
+        if create_dir_all(&db_path).await.is_err() {
             error!("Could not create world path: {}", db_path.display());
             return Err(WorldError::InvalidWorldPath(
                 db_path.to_string_lossy().to_string(),

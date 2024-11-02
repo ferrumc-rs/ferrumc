@@ -34,3 +34,23 @@ pub fn get_root_path() -> PathBuf {
     let exe_dir = exe_location.parent().ok_or(RootPathError::NoParent).expect("Failed to get the parent directory of the executable.");
     exe_dir.to_path_buf()
 }
+
+pub trait BetterPathExt {
+    fn better_display(&self) -> String;
+}
+
+impl BetterPathExt for PathBuf {
+    fn better_display(&self) -> String {
+        //! Returns a string representation of the path that is more readable.
+        //! <br>
+        //! e.g. 
+        //! If the path is `D:\\server\\world\\region\\r.0.0.mca`,
+        //! <br>
+        //! -> `D:/server/world/region/r.0.0.mca`.
+        let path = self.to_string_lossy()
+            .replace(r"\\?\", "")  // Remove Windows extended path prefix
+            .replace(r"\\", r"\");  // Normalize backslashes
+        
+        format!("`{}`", path)
+    }
+}

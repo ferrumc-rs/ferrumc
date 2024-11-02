@@ -2,6 +2,7 @@
 #![forbid(unsafe_code)]
 extern crate core;
 
+use crate::errors::BinaryError;
 use clap::Parser;
 use ferrumc_config::statics::get_global_config;
 use ferrumc_ecs::Universe;
@@ -12,7 +13,6 @@ use ferrumc_world::World;
 use std::sync::Arc;
 use systems::definition;
 use tracing::{error, info};
-use crate::errors::BinaryError;
 
 #[derive(clap::Parser)]
 struct CLIArgs {
@@ -37,15 +37,16 @@ async fn main() {
     println!("good day to ya. enjoy your time with ferrumc!");
 
     if let Err(e) = entry(cli_args).await {
-        error!("Server exited with the following error;");
-        error!("{:?}", e);
+        error!("Server exited with the following error: {}", e.to_string());
     } else {
         info!("Server exited successfully.");
     }
 }
 
 async fn entry(cli_args: CLIArgs) -> Result<()> {
-    handle_import(cli_args.import).await?;
+    if handle_import(cli_args.import).await? {
+        return Ok(());
+    }
 
     let state = create_state().await?;
     let global_state = Arc::new(state);
@@ -62,9 +63,12 @@ async fn entry(cli_args: CLIArgs) -> Result<()> {
     Ok(())
 }
 
-async fn handle_import(import: bool) -> Result<()> {
+
+async fn handle_import(import: bool) -> Result<bool> {
+    //! Handles the import of the world if the `--import` flag is set.
+    //! Returns `true` if program should exit after this function, `false` otherwise.
     if !import {
-        return Ok(());
+        return Ok(false);
     }
 
     info!("`--import` flag detected. Importing world...");
@@ -81,11 +85,11 @@ async fn handle_import(import: bool) -> Result<()> {
     let db_path = root_path.join(database_opts.db_path.clone());
 
     if let Err(e) = world.import(import_path, db_path).await {
-        error!("Could not import world: {:?}", e);
-        return Err(BinaryError::from(e));
+        error!("Could not import world: {}", e.to_string());
+        return Err(BinaryError::Custom("Could not import world.".to_string()));
     }
 
-    Ok(())
+    Ok(true)
 }
 
 async fn create_state() -> Result<ServerState> {
