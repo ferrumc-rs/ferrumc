@@ -12,3 +12,5 @@ config.toml
 .etc/blocks.json
 
 .etc/blockmappings.bz2
+
+flame.svg

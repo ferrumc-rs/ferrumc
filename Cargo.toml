@@ -163,3 +163,18 @@ memmap2 = "0.9.5"
 
 # Benchmarking
 criterion = { version = "0.5.1", features = ["html_reports"] }
+
+
+[profile.profiling]
+inherits = "release"
+debug = true
+
+[profile.hyper]
+inherits = "release"
+lto = true
+opt-level = 3
+debug = false
+debug-assertions = false
+overflow-checks = false
+panic = "abort"
+codegen-units = 1

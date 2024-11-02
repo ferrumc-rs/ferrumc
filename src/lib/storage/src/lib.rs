@@ -12,7 +12,7 @@ use std::path::PathBuf;
 /// purely for storage and retrieval of data. Any other functionality such as serialization or caching
 /// should be implemented in a separate layer.
 #[async_trait]
-pub trait DatabaseBackend: Send + Sync {
+pub trait DatabaseBackend {
     /// Initializes the database
     ///
     /// # Arguments

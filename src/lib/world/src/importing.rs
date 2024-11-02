@@ -8,6 +8,7 @@ use tracing::{error, info};
 use crate::errors::WorldError;
 use crate::World;
 use ferrumc_anvil::load_anvil_file;
+use crate::db_functions::save_chunk_internal;
 use crate::vanilla_chunk_format::VanillaChunk;
 
 /// This function is used to check if the import path is valid. It checks if the path exists, if it
@@ -97,9 +98,10 @@ impl World {
                                 match VanillaChunk::from_bytes(&chunk) {
                                     Ok(vanilla_chunk) => {
                                         let cloned_progress_bar = progress_bar.clone();
+                                        let self_clone = self.clone();
                                         task_set.spawn(async move {
                                             if let Ok(chunk) = vanilla_chunk.to_custom_format() {
-                                                if let Err(e) = self.save_chunk(chunk).await {
+                                                if let Err(e) = save_chunk_internal(&self_clone, chunk).await {
                                                     error!("Could not save chunk: {}", e);
                                                 } else {
                                                     cloned_progress_bar.inc(1);
@@ -122,7 +124,8 @@ impl World {
                 }
             }
         };
-        while let Some(_) = task_set.join_next().await {}
+        while (task_set.join_next().await).is_some() {}
+        self.sync().await?;
         progress_bar.clone().finish();
         info!("Imported {} chunks in {:?}", progress_bar.clone().position(), start.elapsed());
         Ok(())

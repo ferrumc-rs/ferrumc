@@ -5,7 +5,6 @@ use flate2::Compression;
 use std::io::{Cursor, Read};
 use tracing::error;
 
-#[profile("compress/gzip")]
 pub(crate) fn compress_gzip(level: u32, data: &[u8]) -> Result<Vec<u8>, StorageError> {
     let mut encoder = GzEncoder::new(data, Compression::new(level));
     let mut compressed = Vec::new();

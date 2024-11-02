@@ -11,9 +11,10 @@ use std::path::{Path, PathBuf};
 use std::process::exit;
 use std::sync::Arc;
 use tokio::fs::create_dir_all;
-use tracing::{error, warn};
+use tracing::{error, info, warn};
 use ferrumc_config::statics::get_global_config;
 
+#[derive(Clone)]
 pub struct World {
     storage_backend: Arc<Box<dyn DatabaseBackend + Send + Sync>>,
     compressor: Compressor,
@@ -159,6 +160,8 @@ impl World {
         };
 
         let compressor_string = get_global_config().database.compression.trim();
+        
+        info!("Using {} compression algorithm", compressor_string);
 
         let compression_algo = match compressor_string.to_lowercase().as_str() {
             "zstd" => Compressor::create(

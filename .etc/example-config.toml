@@ -20,7 +20,7 @@ network_compression_threshold = 64
 # Cache size in KB
 cache_size = 1024
 # Compression algorithm (brotli, deflate, gzip, zlib, zstd)
-compression = "zstd"
+compression = "gzip"
 # Database backend (redb, rocksdb, sled, surrealkv)
 backend = "redb"
 # Path to the world database
