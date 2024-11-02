@@ -23,7 +23,7 @@ ferrumc-net = { workspace = true }
 ferrumc-net-encryption = { workspace = true }
 ferrumc-net-codec = { workspace = true }
 ferrumc-plugins = { workspace = true }
-ferrumc-storage = { workspace = true }
+ferrumc-storage = { workspace = true, features = ["default"] }
 ferrumc-utils = { workspace = true }
 ferrumc-config = { workspace = true }
 ferrumc-profiling = { workspace = true }
@@ -31,6 +31,7 @@ ferrumc-logging = { workspace = true }
 ferrumc-world = { workspace = true }
 ferrumc-macros = { workspace = true }
 ferrumc-nbt = { workspace = true }
+ferrumc-general-purpose = { workspace = true }
 
 ctor = { workspace = true }
 parking_lot = { workspace = true }

@@ -13,7 +13,7 @@ lazy_static! {
     };
 
     static ref CUSTOM_FAVICON: Option<String> = {
-        let icon_path = get_root_path().ok()?.join("icon.png");
+        let icon_path = get_root_path().join("icon.png");
         if icon_path.exists() {
             let mut file = match File::open(icon_path) {
                 Ok(file) => file,

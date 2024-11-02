@@ -42,4 +42,7 @@ pub enum BinaryError {
     TokioJoinError(#[from] tokio::task::JoinError),
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
+    
+    #[error("Root Path error: {0}")]
+    RootPath(#[from] ferrumc_general_purpose::paths::RootPathError),
 }
