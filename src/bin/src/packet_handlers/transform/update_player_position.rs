@@ -22,8 +22,6 @@ async fn handle_player_move(
             new_position.y,
             new_position.z,
         );
-
-        trace!("updating player position to: {:?}", position);
     }
 
     if let Some(ref new_rotation) = event.rotation {
@@ -34,16 +32,15 @@ async fn handle_player_move(
             new_rotation.pitch,
         );
 
-        trace!("updating player rotation to: {:?}", rotation);
     }
 
     if let Some(new_grounded) = event.on_ground {
         let mut on_ground = conn_id.get_mut::<OnGround>(&state)?;
 
         *on_ground = OnGround(new_grounded);
-        
-        trace!("updating player on_ground to: {:?}", on_ground);
     }
 
+    trace!("player moved -> {:?}", event);
+    
     Ok(event)
 }

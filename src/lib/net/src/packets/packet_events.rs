@@ -2,7 +2,7 @@ use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_macros::Event;
 
-#[derive(Event)]
+#[derive(Event, Debug)]
 pub struct TransformEvent {
     pub conn_id: usize,
     pub position: Option<Position>,
@@ -23,12 +23,12 @@ impl TransformEvent {
         self.position = Some(position);
         self
     }
-    
+
     pub fn rotation(mut self, rotation: Rotation) -> Self {
         self.rotation = Some(rotation);
         self
     }
-    
+
     pub fn on_ground(mut self, on_ground: bool) -> Self {
         self.on_ground = Some(on_ground);
         self
