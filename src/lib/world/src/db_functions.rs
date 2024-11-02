@@ -25,7 +25,7 @@ impl World {
     }
 }
 
-pub async fn save_chunk_internal(
+pub(crate) async fn save_chunk_internal(
     world: &World,
     chunk: Chunk,
 ) -> Result<(), WorldError> {
@@ -35,7 +35,7 @@ pub async fn save_chunk_internal(
     Ok(())
 }
 
-pub async fn load_chunk_internal(
+pub(crate) async fn load_chunk_internal(
     world: &World,
     compressor: &Compressor,
     x: i32,
@@ -52,7 +52,7 @@ pub async fn load_chunk_internal(
     }
 }
 
-pub async fn chunk_exists_internal(
+pub(crate) async fn chunk_exists_internal(
     world: &World,
     x: i32,
     z: i32,
@@ -61,7 +61,7 @@ pub async fn chunk_exists_internal(
     Ok(world.storage_backend.exists("chunks".to_string(), digest).await?)
 }
 
-pub async fn delete_chunk_internal(
+pub(crate) async fn delete_chunk_internal(
     world: &World,
     x: i32,
     z: i32,
@@ -71,7 +71,7 @@ pub async fn delete_chunk_internal(
     Ok(())
 }
 
-pub async fn sync_internal(world: &World) -> Result<(), WorldError> {
+pub(crate) async fn sync_internal(world: &World) -> Result<(), WorldError> {
     world.storage_backend.flush().await?;
     Ok(())
 }
