@@ -2,7 +2,7 @@ use ferrumc_core::transform::position::Position;
 use ferrumc_macros::event_handler;
 use ferrumc_net::errors::NetError;
 use ferrumc_net::packets::incoming::set_player_position::SetPlayerPositionEvent;
-use ferrumc_net::GlobalState;
+use ferrumc_core::state::GlobalState;
 use ferrumc_net::utils::ecs_helpers::EntityExt;
 
 #[event_handler]

@@ -5,12 +5,12 @@ extern crate core;
 use std::path::PathBuf;
 use ferrumc_ecs::Universe;
 use ferrumc_net::server::create_server_listener;
-use ferrumc_net::ServerState;
 use std::sync::Arc;
 use clap::Parser;
 use systems::definition;
 use tracing::{error, info};
 use ferrumc_config::statics::get_global_config;
+use ferrumc_core::state::ServerState;
 use ferrumc_world::World;
 
 #[derive(clap::Parser)]

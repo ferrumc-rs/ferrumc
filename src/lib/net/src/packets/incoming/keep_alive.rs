@@ -1,6 +1,6 @@
 use crate::packets::outgoing::keep_alive::KeepAlive;
 use crate::packets::IncomingPacket;
-use crate::{NetResult, ServerState};
+use crate::NetResult; use ferrumc_core::state::ServerState;
 use ferrumc_macros::{packet, NetDecode};
 use std::sync::Arc;
 use tracing::debug;

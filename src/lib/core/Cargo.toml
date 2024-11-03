@@ -6,3 +6,5 @@ edition = "2021"
 
 [dependencies]
 thiserror = { workspace = true }
+tokio = { workspace = true}
+ferrumc-ecs = {workspace = true}

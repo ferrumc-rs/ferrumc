@@ -4,7 +4,7 @@ use tracing::debug;
 use ferrumc_macros::{packet};
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
 use crate::packets::IncomingPacket;
-use crate::{NetResult, ServerState};
+use crate::NetResult; use ferrumc_core::state::ServerState;
 
 #[derive(Debug)]
 #[packet(packet_id = 0x02, state = "configuration")]

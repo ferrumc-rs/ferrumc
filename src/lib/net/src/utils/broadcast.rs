@@ -5,7 +5,8 @@ use futures::StreamExt;
 use tracing::debug;
 use ferrumc_ecs::entities::Entity;
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
-use crate::{GlobalState, NetResult};
+use crate::NetResult;
+use ferrumc_core::state::GlobalState;
 use crate::connection::StreamWriter;
 
 type AsyncCallbackFn = Box<dyn Fn(Entity, &GlobalState) -> Pin<Box<dyn Future<Output = ()> + Send + '_>> + Send + Sync>;

@@ -2,7 +2,7 @@ use std::sync::Arc;
 use ferrumc_macros::{packet, NetDecode};
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use crate::packets::IncomingPacket;
-use crate::{NetResult, ServerState};
+use crate::NetResult; use ferrumc_core::state::ServerState;
 use crate::connection::StreamWriter;
 use crate::packets::outgoing::ping_response::PongPacket;
 

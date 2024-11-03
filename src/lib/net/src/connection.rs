@@ -1,5 +1,6 @@
 use crate::packets::incoming::packet_skeleton::PacketSkeleton;
-use crate::{handle_packet, NetResult, ServerState};
+use crate::{handle_packet, NetResult};
+use ferrumc_core::state::ServerState;
 use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use std::sync::Arc;

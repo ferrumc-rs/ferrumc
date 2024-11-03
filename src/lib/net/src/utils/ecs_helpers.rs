@@ -1,6 +1,6 @@
 use ferrumc_ecs::components::storage::{Component, ComponentRef, ComponentRefMut};
 use ferrumc_ecs::ECSResult;
-use crate::GlobalState;
+use ferrumc_core::state::GlobalState;
 
 pub trait EntityExt {
     fn get<T: Component>(&self, state: GlobalState) -> ECSResult<ComponentRef<T>>;
