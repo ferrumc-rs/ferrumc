@@ -3,12 +3,12 @@ use async_trait::async_trait;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net::connection::{ConnectionState, StreamWriter};
 use ferrumc_net::packets::outgoing::keep_alive::{KeepAlive, KeepAlivePacket};
+use ferrumc_net::utils::broadcast::{BroadcastOptions, BroadcastToAll};
 use ferrumc_net::GlobalState;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 use tracing::{error, info, trace, warn};
-use ferrumc_net::utils::broadcast::{BroadcastOptions, BroadcastToAll};
 
 pub struct KeepAliveSystem {
     shutdown: AtomicBool,
@@ -25,28 +25,24 @@ impl KeepAliveSystem {
 #[async_trait]
 impl System for KeepAliveSystem {
     async fn start(self: Arc<Self>, state: GlobalState) {
-        let mut last_time = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .expect("Time went backwards")
-            .as_millis() as i64;
         loop {
             if self.shutdown.load(Ordering::Relaxed) {
                 break;
             }
 
-            let online_players = state.universe.query::<&PlayerIdentity>();
+            // Get the times before the queries, since it's possible a query takes more than a millisecond with a lot of entities.
+            let packet = KeepAlivePacket::default();
 
             let current_time = std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .expect("Time went backwards")
                 .as_millis() as i64;
 
-            if current_time - last_time >= 5000 {
-                info!("Online players: {}", online_players.count());
-                last_time = current_time;
-            }
+            let online_players = state.universe.query::<&PlayerIdentity>();
+            info!("Online players: {}", online_players.count());
 
             let fifteen_seconds_ms = 15000; // 15 seconds in milliseconds
+
 
             let entities = state
                 .universe
@@ -70,7 +66,6 @@ impl System for KeepAliveSystem {
                 trace!("there are {:?} players to keep alive", entities.len());
             }
 
-            let packet = KeepAlivePacket::default();
 
             let broadcast_opts = BroadcastOptions::default().only(entities)
                 .with_sync_callback(move |entity, state| {

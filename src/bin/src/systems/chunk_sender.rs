@@ -31,7 +31,7 @@ impl System for ChunkSenderSystem {
             for (_player, _position) in players {
                 // debug!("Sending chunks to player: {player:?} @ {position:?}");
             }
-
+            
             // Do something
             tokio::time::sleep(Duration::from_secs(1)).await;
         }

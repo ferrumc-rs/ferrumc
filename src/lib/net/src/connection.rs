@@ -6,9 +6,6 @@ use std::sync::Arc;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tokio::net::TcpStream;
 use tracing::{debug, debug_span, trace, warn, Instrument};
-use ferrumc_core::transform::grounded::OnGround;
-use ferrumc_core::transform::position::Position;
-use ferrumc_core::transform::rotation::Rotation;
 
 #[derive(Clone)]
 pub enum ConnectionState {
@@ -86,9 +83,6 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
         .with(StreamWriter::new(writer))?
         .with(ConnectionState::Handshaking)?
         .with(CompressionStatus::new())?
-        .with(Position::default())?
-        .with(Rotation::default())?
-        .with(OnGround::default())?
         .build();
 
     'recv: loop {

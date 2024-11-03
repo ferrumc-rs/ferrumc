@@ -18,6 +18,9 @@ use ferrumc_net::packets::outgoing::synchronize_player_position::SynchronizePlay
 use ferrumc_net::GlobalState;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use tracing::{debug, trace};
+use ferrumc_core::transform::grounded::OnGround;
+use ferrumc_core::transform::position::Position;
+use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_net::packets::outgoing::finish_configuration::FinishConfigurationPacket;
 
 #[event_handler]
@@ -108,6 +111,14 @@ async fn handle_ack_finish_configuration(
         .get_mut::<ConnectionState>(conn_id)?;
 
     *conn_state = ConnectionState::Play;
+    
+    // add components to the entity after the connection state has been set to play.
+    // to avoid wasting resources on entities that are fetching stuff like server status etc.
+    state.universe
+        .add_component::<Position>(conn_id, Position::default())?
+        .add_component::<Rotation>(conn_id, Rotation::default())?
+        .add_component::<OnGround>(conn_id, OnGround::default())?;
+    
 
     let mut writer = state
         .universe

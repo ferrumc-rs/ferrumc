@@ -1,4 +1,3 @@
-use tracing::trace;
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
@@ -40,7 +39,5 @@ async fn handle_player_move(
         *on_ground = OnGround(new_grounded);
     }
 
-    trace!("player moved -> {:?}", event);
-    
     Ok(event)
 }

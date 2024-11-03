@@ -29,12 +29,11 @@ impl TcpListenerSystem {
     async fn initiate_loop(state: GlobalState) -> Result<()> {
         let tcp_listener = &state.tcp_listener;
         info!("Server is listening on [{}]", tcp_listener.local_addr()?);
-
-
+        
         loop {
+            info!("Accepting connection");
             let (stream, _) = tcp_listener.accept().await?;
             let addy = stream.peer_addr()?;
-            debug!("Accepted connection from: {}", addy);
             tokio::task::spawn(
                 handle_connection(Arc::clone(&state), stream)
                     .instrument(info_span!("conn", %addy).or_current())
