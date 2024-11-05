@@ -150,32 +150,32 @@ mod tests {
     // test to_bool
     #[test]
     fn test_to_bool() {
-        assert!(!ColorLevel::None.to_bool());
-        assert!(ColorLevel::Basic.to_bool());
-        assert!(ColorLevel::Enhanced.to_bool());
-        assert!(ColorLevel::TrueColor.to_bool());
+        assert!(!ColorLevel::None.to_bool(), "None should not be true");
+        assert!(ColorLevel::Basic.to_bool(), "Basic should be true");
+        assert!(ColorLevel::Enhanced.to_bool(), "Enhanced should be true");
+        assert!(ColorLevel::TrueColor.to_bool(), "TrueColor should be true");
     }
 
     // test new
     #[test]
     fn test_new() {
-        assert_eq!(ColorLevel::None, ColorLevel::new());
+        assert_eq!(ColorLevel::None, ColorLevel::new(), "None should be the default color level");
     }
 
     // test update
     #[test]
     fn test_update() {
-        assert_eq!(ColorLevel::Basic, ColorLevel::None.update(ColorLevel::Basic));
-        assert_eq!(ColorLevel::Enhanced, ColorLevel::Basic.update(ColorLevel::Enhanced));
-        assert_eq!(ColorLevel::TrueColor, ColorLevel::Enhanced.update(ColorLevel::TrueColor));
+        assert_eq!(ColorLevel::Basic, ColorLevel::None.update(ColorLevel::Basic), "Updating from None to Basic should change the color level");
+        assert_eq!(ColorLevel::Enhanced, ColorLevel::Basic.update(ColorLevel::Enhanced), "Updating from Basic to Enhanced should change the color level");
+        assert_eq!(ColorLevel::TrueColor, ColorLevel::Enhanced.update(ColorLevel::TrueColor), "Updating from Enhanced to TrueColor should change the color level");
         // should never downgrade
         // updating to none should not change the color level
-        assert_eq!(ColorLevel::Basic, ColorLevel::Basic.update(ColorLevel::None));
-        assert_eq!(ColorLevel::Enhanced, ColorLevel::Enhanced.update(ColorLevel::None));
-        assert_eq!(ColorLevel::TrueColor, ColorLevel::TrueColor.update(ColorLevel::None));
+        assert_eq!(ColorLevel::Basic, ColorLevel::Basic.update(ColorLevel::None), "Updating from Basic to None should not change the color level");
+        assert_eq!(ColorLevel::Enhanced, ColorLevel::Enhanced.update(ColorLevel::None), "Updating from Enhanced to None should not change the color level");
+        assert_eq!(ColorLevel::TrueColor, ColorLevel::TrueColor.update(ColorLevel::None), "Updating from TrueColor to None should not change the color level");
         // updating to a lower level should not change the color level
-        assert_eq!(ColorLevel::Enhanced, ColorLevel::Enhanced.update(ColorLevel::Basic));
-        assert_eq!(ColorLevel::TrueColor, ColorLevel::TrueColor.update(ColorLevel::Enhanced));
+        assert_eq!(ColorLevel::Enhanced, ColorLevel::Enhanced.update(ColorLevel::Basic), "Updating from Enhanced to Basic should not change the color level");
+        assert_eq!(ColorLevel::TrueColor, ColorLevel::TrueColor.update(ColorLevel::Enhanced), "Updating from TrueColor to Enhanced should not change the color level");
 
     }
 
@@ -234,7 +234,9 @@ mod tests {
             // Check if the color level matches the expected level
             assert_eq!(
                 &ci_color_check().unwrap_or(ColorLevel::None),
-                expected_level
+                expected_level,
+                "Unexpected color level for CI provider {}",
+                provider
             );
 
             // Clean up by removing the provider-specific environment variable
