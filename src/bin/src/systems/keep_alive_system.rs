@@ -24,6 +24,7 @@ impl KeepAliveSystem {
 #[async_trait]
 impl System for KeepAliveSystem {
     async fn start(self: Arc<Self>, state: GlobalState) {
+        info!("Started keep_alive");
         let mut last_time = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .expect("Time went backwards")
@@ -86,10 +87,10 @@ impl System for KeepAliveSystem {
                 error!("Error sending keep alive packet: {}", e);
             };
             // TODO, this should be configurable as some people may have bad network so the clients may end up disconnecting from the server moments before the keep alive is sent
-            tokio::time::sleep(tokio::time::Duration::from_secs(15)).await;
+            tokio::time::sleep(tokio::time::Duration::from_secs(39)).await;
         }
     }
-    
+
     async fn stop(self: Arc<Self>, _state: GlobalState) {
         tracing::debug!("Stopping keep alive system...");
         self.shutdown.store(true, Ordering::Relaxed);
