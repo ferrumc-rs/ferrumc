@@ -5,15 +5,13 @@ use std::ops::Add;
 use syn::{parse_macro_input, LitInt, LitStr};
 use colored::Colorize;
 
-use ferrumc_color::ColorSupport;
+use ferrumc_color::supports_color;
 
 
 /// Essentially, this just reads all the files in the directory and generates a match arm for each packet.
 /// (packet_id, state) => { ... }
 pub fn bake_registry(input: TokenStream) -> TokenStream {
-    let color_support = ColorSupport::new();
-    let color_bool = color_support.supports_color();
-    if color_bool {
+    if supports_color() {
         colored::control::set_override(true);
     }
 
