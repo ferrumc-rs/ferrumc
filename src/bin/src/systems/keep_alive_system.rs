@@ -3,11 +3,11 @@ use async_trait::async_trait;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net::connection::{ConnectionState, StreamWriter};
 use ferrumc_net::packets::outgoing::keep_alive::{KeepAlive, KeepAlivePacket};
+use ferrumc_net::utils::broadcast::{BroadcastOptions, BroadcastToAll};
 use ferrumc_net::GlobalState;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use tracing::{error, info, trace, warn};
-use ferrumc_net::utils::broadcast::{BroadcastOptions, BroadcastToAll};
 
 pub struct KeepAliveSystem {
     shutdown: AtomicBool,
@@ -71,7 +71,8 @@ impl System for KeepAliveSystem {
 
             let packet = KeepAlivePacket::default();
 
-            let broadcast_opts = BroadcastOptions::default().only(entities)
+            let broadcast_opts = BroadcastOptions::default()
+                .only(entities)
                 .with_sync_callback(move |entity, state| {
                     let Ok(mut keep_alive) = state.universe.get_mut::<KeepAlive>(entity) else {
                         warn!("Failed to get <KeepAlive> component for entity {}", entity);
@@ -84,12 +85,11 @@ impl System for KeepAliveSystem {
             if let Err(e) = state.broadcast(&packet, broadcast_opts).await {
                 error!("Error sending keep alive packet: {}", e);
             };
-
-            tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
-
+            // TODO, this should be configurable as some people may have bad network so the clients may end up disconnecting from the server moments before the keep alive is sent
+            tokio::time::sleep(tokio::time::Duration::from_secs(15)).await;
         }
     }
-
+    
     async fn stop(self: Arc<Self>, _state: GlobalState) {
         tracing::debug!("Stopping keep alive system...");
         self.shutdown.store(true, Ordering::Relaxed);
