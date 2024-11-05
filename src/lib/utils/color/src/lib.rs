@@ -197,8 +197,38 @@ mod tests {
     // Test CI color level
     #[test]
     fn test_ci_color_levels() {
-        env::set_var("CI", "GITHUB_ACTIONS");
-        assert_eq!(determine_color_level(), ColorLevel::TrueColor);
+        // Define a list of CI providers and their expected ColorLevel
+        let ci_providers = [
+            ("GITHUB_ACTIONS", ColorLevel::TrueColor),
+            ("GITEA_ACTIONS", ColorLevel::TrueColor),
+            ("TRAVIS", ColorLevel::Basic),
+            ("CIRCLECI", ColorLevel::Basic),
+            ("APPVEYOR", ColorLevel::Basic),
+            ("GITLAB_CI", ColorLevel::Basic),
+            ("BUILDKITE", ColorLevel::Basic),
+            ("DRONE", ColorLevel::Basic),
+            ("codeship", ColorLevel::Basic),
+        ];
+
+        // Outer loop: Set the main "CI" environment variable to enable CI mode
+        env::set_var("CI", "true");
+
+        for (provider, expected_level) in ci_providers.iter() {
+            // Set the specific CI provider environment variable
+            env::set_var(provider, "true");
+
+            // Check if the color level matches the expected level
+            assert_eq!(
+                &ci_color_check().unwrap_or(ColorLevel::None),
+                expected_level
+            );
+
+            // Clean up by removing the provider-specific environment variable
+            env::remove_var(provider);
+        }
+
+        // Remove the "CI" environment variable to clean up
         env::remove_var("CI");
     }
+
 }
