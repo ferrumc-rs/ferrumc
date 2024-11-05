@@ -125,5 +125,74 @@ fn tty_color_check() -> Option<ColorLevel> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::env;
 
+    // test to_bool
+    #[test]
+    fn test_to_bool() {
+        assert!(!ColorLevel::None.to_bool());
+        assert!(ColorLevel::Basic.to_bool());
+        assert!(ColorLevel::Enhanced.to_bool());
+        assert!(ColorLevel::TrueColor.to_bool());
+    }
+
+    // test new
+    #[test]
+    fn test_new() {
+        assert_eq!(ColorLevel::None, ColorLevel::new());
+    }
+
+    // test update
+    #[test]
+    fn test_update() {
+        assert_eq!(ColorLevel::Basic, ColorLevel::None.update(ColorLevel::Basic));
+        assert_eq!(ColorLevel::Enhanced, ColorLevel::Basic.update(ColorLevel::Enhanced));
+        assert_eq!(ColorLevel::TrueColor, ColorLevel::Enhanced.update(ColorLevel::TrueColor));
+        // should never downgrade
+        // updating to none should not change the color level
+        assert_eq!(ColorLevel::Basic, ColorLevel::Basic.update(ColorLevel::None));
+        assert_eq!(ColorLevel::Enhanced, ColorLevel::Enhanced.update(ColorLevel::None));
+        assert_eq!(ColorLevel::TrueColor, ColorLevel::TrueColor.update(ColorLevel::None));
+        // updating to a lower level should not change the color level
+        assert_eq!(ColorLevel::Enhanced, ColorLevel::Enhanced.update(ColorLevel::Basic));
+        assert_eq!(ColorLevel::TrueColor, ColorLevel::TrueColor.update(ColorLevel::Enhanced));
+
+    }
+
+    #[test]
+    fn test_force_color_levels() {
+        use std::env;
+
+        // Define test cases as tuples: (env_var_value, expected_color_level)
+        let test_cases = [
+            ("0", ColorLevel::None),
+            ("1", ColorLevel::Basic),
+            ("2", ColorLevel::Enhanced),
+            ("3", ColorLevel::TrueColor),
+            // Add a case for an invalid test that should fail
+            ("0", ColorLevel::Basic), // this case is intentionally wrong
+        ];
+
+        for (value, expected) in test_cases.iter() {
+            env::set_var("FORCE_COLOR", value);
+            let color_level = determine_color_level();
+
+            // If the expected color level is ColorLevel::Basic, this case should fail
+            if *value == "0" && *expected == ColorLevel::Basic {
+                assert_ne!(color_level, *expected, "Expected failure for FORCE_COLOR = {}", value);
+            } else {
+                assert_eq!(color_level, *expected, "Unexpected color level for FORCE_COLOR = {}", value);
+            }
+
+            env::remove_var("FORCE_COLOR");
+        }
+    }
+
+    // Test CI color level
+    #[test]
+    fn test_ci_color_levels() {
+        env::set_var("CI", "GITHUB_ACTIONS");
+        assert_eq!(determine_color_level(), ColorLevel::TrueColor);
+        env::remove_var("CI");
+    }
 }
