@@ -30,6 +30,12 @@ impl ColorLevel {
     }
 }
 
+impl Default for ColorLevel {
+    fn default() -> Self {
+        Self::None
+    }
+}
+
 impl PartialOrd for ColorLevel {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(match (self, other) {
