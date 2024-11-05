@@ -3,7 +3,7 @@ use async_trait::async_trait;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net::connection::{ConnectionState, StreamWriter};
 use ferrumc_net::packets::outgoing::keep_alive::{KeepAlive, KeepAlivePacket};
-use ferrumc_core::state::GlobalState;
+use ferrumc_state::GlobalState;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use tracing::{error, info, trace, warn};

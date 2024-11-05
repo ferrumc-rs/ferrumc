@@ -27,3 +27,4 @@ serde_derive = { workspace = true }
 rand = { workspace = true }
 uuid = { workspace = true, features = ["v4"] }
 async-trait = { workspace = true }
+ferrumc-state = { workspace = true }

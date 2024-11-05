@@ -1,6 +1,6 @@
 use crate::packets::IncomingPacket;
 use crate::NetResult;
-use ferrumc_core::state::ServerState;
+use ferrumc_state::ServerState;
 use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::{packet, Event, NetDecode};
 use std::sync::Arc;

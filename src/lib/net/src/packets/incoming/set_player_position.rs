@@ -2,7 +2,7 @@ use std::sync::Arc;
 use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::{packet, Event, NetDecode};
 use crate::packets::IncomingPacket;
-use crate::NetResult; use ferrumc_core::state::ServerState;
+use crate::NetResult; use ferrumc_state::ServerState;
 
 #[derive(NetDecode)]
 #[packet(packet_id = 0x1A, state = "play")]

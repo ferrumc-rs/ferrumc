@@ -130,7 +130,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
     let output = quote! {
         impl ::ferrumc_events::infrastructure::Event for #name {
             type Data = Self;
-            type State = ferrumc_core::state::GlobalState;
+            type State = ferrumc_state::GlobalState;
             type Error = #net_crate::errors::NetError;
 
             fn name() -> &'static str {

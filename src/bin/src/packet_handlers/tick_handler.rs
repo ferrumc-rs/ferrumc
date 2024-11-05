@@ -5,7 +5,7 @@ use ferrumc_net::errors::NetError;
 use ferrumc_net::packets::outgoing::update_time::TickEvent;
 use ferrumc_net::packets::outgoing::update_time::UpdateTimePacket;
 use ferrumc_net::utils::broadcast::{BroadcastOptions, BroadcastToAll};
-use ferrumc_core::state::GlobalState;
+use ferrumc_state::GlobalState;
 
 #[event_handler]
 async fn handle_tick(event: TickEvent, state: GlobalState) -> Result<TickEvent, NetError> {

@@ -10,7 +10,7 @@ use clap::Parser;
 use systems::definition;
 use tracing::{error, info};
 use ferrumc_config::statics::get_global_config;
-use ferrumc_core::state::ServerState;
+use ferrumc_state::ServerState;
 use ferrumc_world::World;
 
 #[derive(clap::Parser)]

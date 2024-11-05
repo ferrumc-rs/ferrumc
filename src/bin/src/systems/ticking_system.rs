@@ -2,7 +2,7 @@ use crate::systems::definition::System;
 use async_trait::async_trait;
 use ferrumc_events::infrastructure::Event;
 use ferrumc_net::packets::outgoing::update_time::TickEvent;
-use ferrumc_core::state::GlobalState;
+use ferrumc_state::GlobalState;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
