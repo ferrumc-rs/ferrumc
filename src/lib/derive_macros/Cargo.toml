@@ -8,7 +8,8 @@ proc-macro = true
 
 [dependencies]
 colored = { version = "2.0" }
-supports-color = { version = "2.0" }
+color = { path = "../utils/color" }
+
 quote = { workspace = true }
 syn = { workspace = true, features = ["full"] }
 thiserror = { workspace = true }
