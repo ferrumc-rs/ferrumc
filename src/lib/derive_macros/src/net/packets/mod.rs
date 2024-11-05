@@ -5,7 +5,7 @@ use std::ops::Add;
 use syn::{parse_macro_input, LitInt, LitStr};
 use colored::Colorize;
 
-use color::ColorSupport;
+use ferrumc_color::ColorSupport;
 
 
 /// Essentially, this just reads all the files in the directory and generates a match arm for each packet.

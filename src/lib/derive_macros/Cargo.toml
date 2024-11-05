@@ -7,8 +7,8 @@ edition = "2021"
 proc-macro = true
 
 [dependencies]
-colored = { version = "2.0" }
-color = { path = "../utils/color" }
+colored = { workspace = true }
+ferrumc-color = { workspace = true }
 
 quote = { workspace = true }
 syn = { workspace = true, features = ["full"] }
