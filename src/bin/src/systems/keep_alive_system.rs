@@ -85,6 +85,8 @@ impl System for KeepAliveSystem {
                 error!("Error sending keep alive packet: {}", e);
             };
 
+            tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+
         }
     }
 
