@@ -23,7 +23,7 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
     let base_path = format!("crate::{}", base_path);
 
     println!(
-        "{} {}",
+        "   {} {}",
         "[FERRUMC_MACROS]".blue().bold(),
         format!("Parsing packets in {}", dir_path.display()).white().bold()
     );
@@ -98,7 +98,7 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
                 let struct_name = &item_struct.ident;
 
                 println!(
-                    "{} {} (ID: {}, State: {}, Struct Name: {})",
+                    "   {} {} (ID: {}, State: {}, Struct Name: {})",
                     "[FERRUMC_MACROS]".bold().blue(),
                     "Found Packet".white().bold(),
                     "0x00".cyan(),
@@ -131,12 +131,12 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
 
     let elapsed = start.elapsed();
     println!(
-        "{} {}",
+        "   {} {}",
         "[FERRUMC_MACROS]".bold().blue(),
         format!("Found {} packets", match_arms.len()).purple().bold()
     );
     println!(
-        "{} {}",
+        "   {} {}",
         "[FERRUMC_MACROS]".bold().blue(),
         format!("It took: {:?} to parse all the files and generate the packet registry", elapsed).red().bold()
     );
