@@ -76,6 +76,11 @@ fn determine_color_level() -> ColorLevel {
         return color;
     }
 
+    // Term Program check
+    if let Some(color) = term_program_check() {
+        return color;
+    }
+
     // Final fallback based on whether the stream is a TTY
     if let Some(color) = tty_color_check() {
         return color;
@@ -120,6 +125,15 @@ fn term_color_check() -> Option<ColorLevel> {
         _ => None,
     }
 }
+
+fn term_program_check() -> Option<ColorLevel> {
+    match env::var("TERM_PROGRAM").as_deref() {
+        Ok("iTerm.app") => Some(ColorLevel::TrueColor),
+        Ok("Apple_Terminal") => Some(ColorLevel::Enhanced),
+        _ => None,
+    }
+}
+
 
 fn tty_color_check() -> Option<ColorLevel> {
     if atty::is(atty::Stream::Stdout) {
