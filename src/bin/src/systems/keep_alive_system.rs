@@ -87,7 +87,7 @@ impl System for KeepAliveSystem {
                 error!("Error sending keep alive packet: {}", e);
             };
             // TODO, this should be configurable as some people may have bad network so the clients may end up disconnecting from the server moments before the keep alive is sent
-            tokio::time::sleep(tokio::time::Duration::from_secs(39)).await;
+            tokio::time::sleep(tokio::time::Duration::from_secs(30)).await;
         }
     }
 
