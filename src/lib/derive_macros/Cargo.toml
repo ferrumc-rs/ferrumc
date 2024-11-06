@@ -7,6 +7,9 @@ edition = "2021"
 proc-macro = true
 
 [dependencies]
+colored = { workspace = true }
+ferrumc-color = { workspace = true }
+
 quote = { workspace = true }
 syn = { workspace = true, features = ["full"] }
 thiserror = { workspace = true }
