@@ -55,7 +55,7 @@ impl PartialOrd for ColorLevel {
     }
 }
 
-static COLOR_LEVEL: LazyLock<ColorLevel> = LazyLock::new(|| determine_color_level());
+static COLOR_LEVEL: LazyLock<ColorLevel> = LazyLock::new(determine_color_level);
 
 pub fn supports_color() -> bool {
     COLOR_LEVEL.to_bool()
