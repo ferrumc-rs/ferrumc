@@ -1,5 +1,5 @@
 use std::env;
-
+use std::sync::LazyLock;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum ColorLevel {
@@ -55,10 +55,11 @@ impl PartialOrd for ColorLevel {
     }
 }
 
-pub fn supports_color() -> bool {
-    determine_color_level().to_bool()
-}
+static COLOR_LEVEL: LazyLock<ColorLevel> = LazyLock::new(|| determine_color_level());
 
+pub fn supports_color() -> bool {
+    COLOR_LEVEL.to_bool()
+}
 
 fn determine_color_level() -> ColorLevel {
 
