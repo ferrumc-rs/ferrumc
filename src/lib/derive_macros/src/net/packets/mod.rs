@@ -105,9 +105,9 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
                     "   {} {} (ID: {}, State: {}, Struct Name: {})",
                     "[FERRUMC_MACROS]".bold().blue(),
                     "Found Packet".white().bold(),
-                    "0x00".cyan(),
-                    "status".green(),
-                    "StatusRequestPacket".yellow()
+                    format!("0x{:02X}", packet_id).cyan(),
+                    format!("{}", state).green(),
+                    format!("{}", struct_name).yellow()
                 );
 
                 let path = format!(
