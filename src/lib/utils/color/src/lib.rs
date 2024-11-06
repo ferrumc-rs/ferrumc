@@ -1,6 +1,7 @@
 use std::env;
 
-#[derive(Debug, PartialEq)]
+
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum ColorLevel {
     None,
     Basic,
@@ -90,17 +91,13 @@ fn determine_color_level() -> ColorLevel {
 }
 
 fn force_color_check() -> Option<ColorLevel> {
-    if env::var("FORCE_COLOR").is_ok() {
-        match env::var("FORCE_COLOR").unwrap().as_str() {
-            "0" => Some(ColorLevel::None),
-            "1" => Some(ColorLevel::Basic),
-            "2" => Some(ColorLevel::Enhanced),
-            "3" => Some(ColorLevel::TrueColor),
-            _ => None,
-        }
-    } else {
-        None
-    }
+    env::var("FORCE_COLOR").ok().and_then(|val| match val.as_str() {
+        "0" => Some(ColorLevel::None),
+        "1" => Some(ColorLevel::Basic),
+        "2" => Some(ColorLevel::Enhanced),
+        "3" => Some(ColorLevel::TrueColor),
+        _ => None,
+    })
 }
 
 fn ci_color_check() -> Option<ColorLevel> {
