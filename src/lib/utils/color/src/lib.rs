@@ -68,6 +68,11 @@ fn determine_color_level() -> ColorLevel {
         return color;
     }
 
+    // Windows checks
+    if let Some(color) = windows_color_check() {
+        return color;
+    }
+
     // CI check
     if let Some(color) = ci_color_check() {
         return color;
@@ -101,6 +106,13 @@ fn force_color_check() -> Option<ColorLevel> {
     })
 }
 
+fn windows_color_check() -> Option<ColorLevel> {
+    if std::env::consts::OS == "windows" {
+        return Some(ColorLevel::Basic);
+    }
+    None
+}
+
 fn ci_color_check() -> Option<ColorLevel> {
     if env::var("CI").is_ok() {
         if env::var("GITHUB_ACTIONS").is_ok() || env::var("GITEA_ACTIONS").is_ok() {
@@ -120,6 +132,7 @@ fn term_color_check() -> Option<ColorLevel> {
         Ok("xterm-kitty") | Ok("truecolor") | Ok("ansi") => Some(ColorLevel::TrueColor),
         Ok(term) if term.ends_with("-256color") => Some(ColorLevel::Enhanced),
         Ok(term) if term.starts_with("xterm") || term.starts_with("screen") => Some(ColorLevel::Basic),
+        Ok("cygwin") => Some(ColorLevel::Basic),
         _ => None,
     }
 }
@@ -131,7 +144,6 @@ fn term_program_check() -> Option<ColorLevel> {
         _ => None,
     }
 }
-
 
 fn tty_color_check() -> Option<ColorLevel> {
     if atty::is(atty::Stream::Stdout) {
