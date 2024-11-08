@@ -119,8 +119,6 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
 
     // Remove all components from the entity
 
-    drop(reader);
-
     // Wait until anything that might be using the entity is done
     if let Err(e) = remove_all_components_blocking(state.clone(), entity).await {
         warn!("Failed to remove all components from entity: {:?}", e);
