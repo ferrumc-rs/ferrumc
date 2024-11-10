@@ -99,24 +99,31 @@ impl LoadedAnvilFile {
     /// can be used to get the chunk data with `get_chunk_from_location`. They are probably in order
     /// but not guaranteed to be
     pub fn get_locations(&self) -> Vec<u32> {
-        (0..1024).map(|i| {
-            u32::from(self.table[i * 4]) << 24
+        let mut locations = Vec::with_capacity(1024);
+        for i in 0..1024 {
+            let location = u32::from(self.table[i * 4]) << 24
                 | u32::from(self.table[i * 4 + 1]) << 16
                 | u32::from(self.table[i * 4 + 2]) << 8
-                | u32::from(self.table[i * 4 + 3])
-        })
-            .filter(|&x| x != 0)
-            .collect::<Vec<u32>>()
+                | u32::from(self.table[i * 4 + 3]);
+            if location != 0 {
+                locations.push(location);
+            }
+        }
+        locations
     }
 
     /// Get the data from the mmaped file, given an offset and size
-    #[allow(unsafe_code)]
     fn get_data_from_file(&self, offset: u32, size: u32) -> Result<Vec<u8>, AnvilError> {
-        unsafe {
-            let start = self.data_map.as_ptr().add(offset as usize);
-            let slice = std::slice::from_raw_parts(start, size as usize);
-            Ok(slice.to_vec())
+        let offset = offset as usize;
+        let size = size as usize;
+
+        // Check if the requested range is within bounds
+        if offset + size > self.data_map.len() {
+            return Err(AnvilError::InvalidOffsetOrSize);
         }
+
+        // Clone the data into a Vec<u8> and return it
+        Ok(self.data_map[offset..offset + size].to_vec())
     }
 
     /// Get the chunk data from a location
