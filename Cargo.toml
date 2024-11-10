@@ -155,7 +155,6 @@ bzip2 = "0.4.1"
 clap = "4.5.20"
 indicatif = "0.17.8"
 colored = "2.1.0"
-atty = "0.2.14"
 
 # Misc
 deepsize = "0.2.0"
