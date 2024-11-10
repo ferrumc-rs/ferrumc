@@ -20,7 +20,7 @@ members = [
     "src/lib/net/crates/codec",
     "src/lib/plugins",
     "src/lib/storage",
-    "src/lib/utils", "src/lib/utils/logging", "src/lib/utils/profiling", "src/lib/utils/general_purpose", "src/lib/utils/color",
+    "src/lib/utils", "src/lib/utils/logging", "src/lib/utils/profiling", "src/lib/utils/general_purpose",
     "src/lib/world",
     "src/lib/derive_macros",
     "src/lib/adapters/nbt", "src/lib/adapters/mca",
@@ -83,7 +83,6 @@ ferrumc-profiling = { path = "src/lib/utils/profiling" }
 ferrumc-logging = { path = "src/lib/utils/logging" }
 ferrumc-config = { path = "src/lib/utils/config" }
 ferrumc-general-purpose = { path = "src/lib/utils/general_purpose" }
-ferrumc-color = { path = "src/lib/utils/color" }
 ferrumc-macros = { path = "src/lib/derive_macros" }
 ferrumc-world = { path = "src/lib/world" }
 ferrumc-nbt = { path = "src/lib/adapters/nbt" }
@@ -156,7 +155,6 @@ bzip2 = "0.4.1"
 clap = "4.5.20"
 indicatif = "0.17.8"
 colored = "2.1.0"
-atty = "0.2.14"
 
 # Misc
 deepsize = "0.2.0"
