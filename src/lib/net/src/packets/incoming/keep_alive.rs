@@ -33,12 +33,16 @@ impl IncomingPacket for IncomingKeepAlivePacket {
 
         if result.is_err() {
             let err = result.as_ref().err().unwrap();
-            if matches!(err, ECSError::ComponentTypeNotFound) {
+            if matches!(err, ECSError::ComponentTypeNotFound)
+                || matches!(err, ECSError::ComponentRetrievalError)
+            {
                 state
                     .universe
                     .add_component(conn_id, IncomingKeepAlivePacket { id: self.id })?;
                 let mut last_received_keep_alive = state.universe.get_mut(conn_id)?;
                 *last_received_keep_alive = self;
+                debug!("Added <IncomingKeepAlive> component to entity {}", conn_id);
+                return Ok(());
             } else {
                 warn!(
                     "Failed to get or create <IncomingKeepAlive> component: {:?}",
