@@ -41,7 +41,7 @@ impl World {
     
     fn get_chunk_count(&self, import_dir: PathBuf) -> Result<u64, WorldError> {
         info!("Counting chunks in import directory...");
-        let regions_dir = import_dir.read_dir()?;
+        let regions_dir = import_dir.join("region").read_dir()?;
         let chunk_count = AtomicU64::new(0);
         regions_dir.into_iter().par_bridge().for_each(|region_file| {
             match region_file {
@@ -70,7 +70,7 @@ impl World {
         // Check if the import path is valid. We can assume the database path is valid since we
         // checked it in the config validity check.
         check_paths_validity(import_dir.clone())?;
-        let regions_dir = import_dir.read_dir()?;
+        let regions_dir = import_dir.join("region").read_dir()?;
         let progress_bar = Arc::new(ProgressBar::new(self.get_chunk_count(import_dir)?));
         info!("Importing chunks from import directory...");
         let start = std::time::Instant::now();

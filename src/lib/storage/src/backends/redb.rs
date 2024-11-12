@@ -19,10 +19,10 @@ impl DatabaseBackend for RedbBackend {
         if let Some(path) = store_path {
             let db = if path.exists() {
                 redb::Database::open(path)
-                    .map_err(|e| StorageError::DatabaseInitError(format!("Open error: {}", e.to_string())))?
+                    .map_err(|e| StorageError::DatabaseInitError(format!("Open error: {}", e)))?
             } else {
                 redb::Database::create(path)
-                    .map_err(|e| StorageError::DatabaseInitError(format!("Create error: {}", e.to_string())))?
+                    .map_err(|e| StorageError::DatabaseInitError(format!("Create error: {}", e)))?
             };
             Ok(Self {
                 db: Arc::new(RwLock::new(db)),

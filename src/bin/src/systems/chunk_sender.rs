@@ -4,7 +4,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 use async_trait::async_trait;
-use tracing::{info};
+use tracing::{debug, info};
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::position::Position;
 
@@ -28,8 +28,8 @@ impl System for ChunkSenderSystem {
         while !self.stop.load(Ordering::Relaxed) {
             let players = state.universe.query::<(&PlayerIdentity, &Position)>();
 
-            for (_player, _position) in players {
-                // debug!("Sending chunks to player: {player:?} @ {position:?}");
+            for (player, position) in players {
+                debug!("Sending chunks to player: {player:?} @ {position:?}");
             }
             
             // Do something

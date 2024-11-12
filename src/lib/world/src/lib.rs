@@ -7,7 +7,7 @@ mod chunk_format;
 use crate::errors::WorldError;
 use ferrumc_storage::compressors::Compressor;
 use ferrumc_storage::DatabaseBackend;
-use std::path::{Path};
+use std::path::{Path, PathBuf};
 use std::process::exit;
 use std::sync::Arc;
 use tokio::fs::create_dir_all;
@@ -83,14 +83,10 @@ impl World {
         }
         // Clones are kinda ok here since this is only run once at startup.
         let backend_string = get_global_config().database.backend.trim();
-        let backend_path = {
-            // get_global_config().database.db_path.clone();
-
-            let root_path = get_root_path();
-            let database_opts = &get_global_config().database;
-
-            root_path.join(database_opts.db_path.clone())
-        };
+        let mut backend_path = PathBuf::from(get_global_config().database.db_path.clone());
+        if backend_path.is_relative() {
+            backend_path = get_root_path().join(backend_path);
+        }
         let storage_backend: Result<Box<dyn DatabaseBackend + Send + Sync>, WorldError> = match backend_string
             .to_lowercase()
             .as_str()

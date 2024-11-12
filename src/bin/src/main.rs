@@ -81,8 +81,14 @@ async fn handle_import(import: bool) -> Result<bool> {
     let database_opts = &config.database;
 
 
-    let import_path = root_path.join(database_opts.import_path.clone());
-    let db_path = root_path.join(database_opts.db_path.clone());
+    let mut import_path = root_path.join(database_opts.import_path.clone());
+    if import_path.is_relative() {
+        import_path = root_path.join(import_path);
+    }
+    let mut db_path = root_path.join(database_opts.db_path.clone());
+    if db_path.is_relative() {
+        db_path = root_path.join(db_path);
+    }
 
     if let Err(e) = world.import(import_path, db_path).await {
         error!("Could not import world: {}", e.to_string());
