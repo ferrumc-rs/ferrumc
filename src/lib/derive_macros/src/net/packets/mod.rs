@@ -3,10 +3,14 @@ use quote::quote;
 use std::env;
 use std::ops::Add;
 use syn::{parse_macro_input, LitInt, LitStr};
+use colored::Colorize;
 
 /// Essentially, this just reads all the files in the directory and generates a match arm for each packet.
 /// (packet_id, state) => { ... }
 pub fn bake_registry(input: TokenStream) -> TokenStream {
+    #[cfg(feature = "colors")]
+    colored::control::set_override(true);
+
     let manifest_dir = env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set");
     let module_path = parse_macro_input!(input as syn::LitStr).value();
     
@@ -18,7 +22,11 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
     let base_path = module_path.split("\\").collect::<Vec<&str>>()[2..].join("::");
     let base_path = format!("crate::{}", base_path);
 
-    println!("[FERRUMC_MACROS] Parsing packets in {}", dir_path.display());
+    println!(
+        "   {} {}",
+        "[FERRUMC_MACROS]".blue().bold(),
+        format!("Parsing packets in {}", dir_path.display()).white().bold()
+    );
 
     if !std::fs::metadata(dir_path).unwrap().is_dir() {
         return TokenStream::from(quote! {
@@ -90,17 +98,20 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
                 let struct_name = &item_struct.ident;
 
                 println!(
-                    "[FERRUMC_MACROS] Found Packet (ID: 0x{:02X}, State: {}, Struct Name: {})",
-                    packet_id, state, struct_name
+                    "   {} {} (ID: {}, State: {}, Struct Name: {})",
+                    "[FERRUMC_MACROS]".bold().blue(),
+                    "Found Packet".white().bold(),
+                    format!("0x{:02X}", packet_id).cyan(),
+                    state.green(),
+                    struct_name.to_string().yellow()
                 );
-                
+
                 let path = format!(
                     // "crate::net::packets::incoming::{}",
                     "{}::{}",
                     base_path,
                     file_name.to_string_lossy().replace(".rs", "")
                 );
-
                 let struct_path = format!("{}::{}", path, struct_name);
 
                 let struct_path = syn::parse_str::<syn::Path>(&struct_path).expect("parse_str failed");
@@ -119,10 +130,15 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
     }
 
     let elapsed = start.elapsed();
-    println!("[FERRUMC_MACROS] Found {} packets", match_arms.len());
     println!(
-        "[FERRUMC_MACROS] It took: {:?} to parse all the files and generate the packet registry",
-        elapsed
+        "   {} {}",
+        "[FERRUMC_MACROS]".bold().blue(),
+        format!("Found {} packets", match_arms.len()).purple().bold()
+    );
+    println!(
+        "   {} {}",
+        "[FERRUMC_MACROS]".bold().blue(),
+        format!("It took: {:?} to parse all the files and generate the packet registry", elapsed).red().bold()
     );
 
     let match_arms = match_arms.into_iter();

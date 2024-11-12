@@ -153,12 +153,12 @@ impl NbtFieldAttribute {
                             case: case
                         });
                     }
-                    _ => panic!("Unknown attribute: {}", name),
+                    _ => {}
                 }
 
                 Ok(())
             })
-            .expect("Failed to parse nested meta");
+            .unwrap_or_else(|_| println!("[WARN] Failed to parse nested meta parsing input attributes"));
         }
 
         attributes
