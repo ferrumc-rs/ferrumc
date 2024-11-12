@@ -154,6 +154,7 @@ bzip2 = "0.4.1"
 # CLI
 clap = "4.5.20"
 indicatif = "0.17.8"
+colored = "2.1.0"
 
 # Misc
 deepsize = "0.2.0"

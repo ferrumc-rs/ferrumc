@@ -25,6 +25,11 @@ impl KeepAliveSystem {
 #[async_trait]
 impl System for KeepAliveSystem {
     async fn start(self: Arc<Self>, state: GlobalState) {
+        info!("Started keep_alive");
+        let mut last_time = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .expect("Time went backwards")
+            .as_millis() as i64;
         loop {
             if self.shutdown.load(Ordering::Relaxed) {
                 break;
@@ -67,7 +72,8 @@ impl System for KeepAliveSystem {
             }
 
 
-            let broadcast_opts = BroadcastOptions::default().only(entities)
+            let broadcast_opts = BroadcastOptions::default()
+                .only(entities)
                 .with_sync_callback(move |entity, state| {
                     let Ok(mut keep_alive) = state.universe.get_mut::<KeepAlive>(entity) else {
                         warn!("Failed to get <KeepAlive> component for entity {}", entity);
