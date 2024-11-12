@@ -166,12 +166,12 @@ impl LoadedAnvilFile {
         match compression_type {
             1 => {
                 let mut decompressed_data = Vec::new();
-                let mut decoder = flate2::read::GzDecoder::new(&chunk_compressed_data[..]);
+                let mut decoder = flate2::read::GzDecoder::new(chunk_compressed_data);
                 decoder.read_to_end(&mut decompressed_data).unwrap();
                 Some(decompressed_data)
             }
             2 => {
-                let out = yazi::decompress(&chunk_compressed_data[..], yazi::Format::Zlib).ok();
+                let out = yazi::decompress(chunk_compressed_data, yazi::Format::Zlib).ok();
                 match out {
                     Some(data) => {
                         match data.1 {
@@ -198,7 +198,7 @@ impl LoadedAnvilFile {
             3 => Some(chunk_compressed_data.to_vec()),
             4 => {
                 let mut decompressed_data = vec![];
-                lzzzz::lz4::decompress(&chunk_compressed_data[..], &mut decompressed_data).ok()?;
+                lzzzz::lz4::decompress(chunk_compressed_data, &mut decompressed_data).ok()?;
                 Some(decompressed_data)
             }
             _ => {
@@ -217,10 +217,10 @@ impl LoadedAnvilFile {
         let index = u64::from(4 * ((x & 31) + (z & 31) * 32));
         let base_index = index as usize * 4;
         let chunk_data = [
-            self.table[base_index] as u32,
-            self.table[base_index + 1] as u32,
-            self.table[base_index + 2] as u32,
-            self.table[base_index + 3] as u32,
+            u32::from(self.table[base_index]),
+            u32::from(self.table[base_index + 1]),
+            u32::from(self.table[base_index + 2]),
+            u32::from(self.table[base_index + 3]),
         ];
         let location = (chunk_data[0] << 24) | (chunk_data[1] << 16) | (chunk_data[2] << 8) | chunk_data[3];
         self.get_chunk_from_location(location)
