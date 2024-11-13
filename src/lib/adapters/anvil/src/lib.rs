@@ -99,25 +99,33 @@ impl LoadedAnvilFile {
     /// can be used to get the chunk data with `get_chunk_from_location`. They are probably in order
     /// but not guaranteed to be
     pub fn get_locations(&self) -> Vec<u32> {
-        (0..1024).map(|i| {
-            u32::from(self.table[i * 4]) << 24
+        let mut locations = Vec::with_capacity(1024);
+        for i in 0..1024 {
+            let location = u32::from(self.table[i * 4]) << 24
                 | u32::from(self.table[i * 4 + 1]) << 16
                 | u32::from(self.table[i * 4 + 2]) << 8
-                | u32::from(self.table[i * 4 + 3])
-        })
-            .filter(|&x| x != 0)
-            .collect::<Vec<u32>>()
+                | u32::from(self.table[i * 4 + 3]);
+            if location != 0 {
+                locations.push(location);
+            }
+        }
+        locations
     }
 
     /// Get the data from the mmaped file, given an offset and size
-    #[allow(unsafe_code)]
-    fn get_data_from_file(&self, offset: u32, size: u32) -> Result<Vec<u8>, AnvilError> {
-        unsafe {
-            let start = self.data_map.as_ptr().add(offset as usize);
-            let slice = std::slice::from_raw_parts(start, size as usize);
-            Ok(slice.to_vec())
+    fn get_data_from_file(&self, offset: u32, size: u32) -> Result<&[u8], AnvilError> {
+        let offset = offset as usize;
+        let size = size as usize;
+
+        // Early return if the requested range is out of bounds
+        if offset + size > self.data_map.len() {
+            return Err(AnvilError::InvalidOffsetOrSize);
         }
+
+        // Return a reference to the slice (no allocation needed)
+        Ok(&self.data_map[offset..offset + size])
     }
+
 
     /// Get the chunk data from a location
     ///
@@ -152,17 +160,18 @@ impl LoadedAnvilFile {
         let offset = offset * 4096;
         let size = (location & 0xFF) * 4096;
         let chunk_data = self.get_data_from_file(offset, size).ok()?;
-        let chunk_compressed_data = chunk_data[5..].to_vec();
+        let chunk_compressed_data = &chunk_data[5..]; // No need to clone, just use the slice
         let compression_type = chunk_data[4];
+
         match compression_type {
             1 => {
                 let mut decompressed_data = Vec::new();
-                let mut decoder = flate2::read::GzDecoder::new(&chunk_compressed_data[..]);
+                let mut decoder = flate2::read::GzDecoder::new(chunk_compressed_data);
                 decoder.read_to_end(&mut decompressed_data).unwrap();
                 Some(decompressed_data)
             }
             2 => {
-                let out = yazi::decompress(&chunk_compressed_data[..], yazi::Format::Zlib).ok();
+                let out = yazi::decompress(chunk_compressed_data, yazi::Format::Zlib).ok();
                 match out {
                     Some(data) => {
                         match data.1 {
@@ -186,10 +195,10 @@ impl LoadedAnvilFile {
                     }
                 }
             }
-            3 => Some(chunk_compressed_data),
+            3 => Some(chunk_compressed_data.to_vec()),
             4 => {
                 let mut decompressed_data = vec![];
-                lzzzz::lz4::decompress(&chunk_compressed_data[..], &mut decompressed_data).ok()?;
+                lzzzz::lz4::decompress(chunk_compressed_data, &mut decompressed_data).ok()?;
                 Some(decompressed_data)
             }
             _ => {
@@ -205,11 +214,15 @@ impl LoadedAnvilFile {
     ///
     /// This function will return the decompressed chunk data
     pub fn get_chunk(&self, x: u32, z: u32) -> Option<Vec<u8>> {
-        let index = u64::from(4 * ((x % 32) + (z % 32) * 32));
-        let location = u32::from(self.table[index as usize * 4]) << 24
-            | u32::from(self.table[index as usize * 4 + 1]) << 16
-            | u32::from(self.table[index as usize * 4 + 2]) << 8
-            | u32::from(self.table[index as usize * 4 + 3]);
+        let index = u64::from(4 * ((x & 31) + (z & 31) * 32));
+        let base_index = index as usize * 4;
+        let chunk_data = [
+            u32::from(self.table[base_index]),
+            u32::from(self.table[base_index + 1]),
+            u32::from(self.table[base_index + 2]),
+            u32::from(self.table[base_index + 3]),
+        ];
+        let location = (chunk_data[0] << 24) | (chunk_data[1] << 16) | (chunk_data[2] << 8) | chunk_data[3];
         self.get_chunk_from_location(location)
     }
 }
