@@ -9,7 +9,10 @@ use tracing::{debug, info};
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::position::Position;
 use ferrumc_net::connection::{ConnectionState, StreamWriter};
+use ferrumc_net::errors::NetError;
+use ferrumc_net::errors::NetError::EncoderError;
 use ferrumc_net::packets::outgoing::chunk_and_light_data::ChunkAndLightData;
+use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 
 pub(super) struct ChunkSenderSystem {
@@ -32,13 +35,22 @@ impl System for ChunkSenderSystem {
         while !self.stop.load(Ordering::Relaxed) {
             let players = state.universe.query::<(&PlayerIdentity, &Position, &mut StreamWriter)>();
 
-            for (player, position, conn) in players {
+            for (player, position, mut conn) in players {
                 debug!("Sending chunks to player: {player:?} @ {position:?}");
                 for z in position.z.floor() as i32 - 5..position.z.ceil() as i32 + 5 {
                     for x in position.x.floor() as i32 - 5..position.x.ceil() as i32 + 5 {
                         match state.world.load_chunk(x, z).await {
                             Ok(chunk) => {
-                                todo!("Send chunk to player");
+                                match ChunkAndLightData::from_chunk(&chunk).await {
+                                    Ok(chunk_data) => {
+                                        if let Err(e) = conn.send_packet(&chunk_data, &NetEncodeOpts::WithLength).await {
+                                            debug!("Could not send chunk to player: {e}");
+                                        }
+                                    }
+                                    Err(e) => {
+                                        debug!("Could not convert chunk to chunk and light data: {e}");
+                                    }
+                                }
                             }
                             Err(e) => {
                                 debug!("Could not load chunk at {x}, {z}: {e}");
@@ -52,7 +64,7 @@ impl System for ChunkSenderSystem {
             
             
             
-            tokio::time::sleep(Duration::from_secs(1)).await;
+            tokio::time::sleep(Duration::from_secs(5)).await;
         }
     }
 

@@ -101,9 +101,9 @@ impl VanillaChunk {
             } else {
                 (vec![], vec![])
             };
-            let non_air_blocks = palette.iter().filter(|id| id.name != "air").count() as i16;
+            let non_air_blocks = palette.iter().filter(|id| id.name != "air").count() as u16;
             let block_states = BlockStates {
-                bits_per_block: (palette.len() as f32).log2().ceil() as i8,
+                bits_per_block: (palette.len() as f32).log2().ceil() as u8,
                 non_air_blocks,
                 data: block_data,
                 palette: convert_to_net_palette(palette)?,

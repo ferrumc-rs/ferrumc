@@ -4,11 +4,13 @@ use crate::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
 use crate::net_types::var_int::VarInt;
 
 
+#[derive(Debug, Clone)]
 pub struct BitSet(Vec<u64>);
 
 impl BitSet {
-    pub fn new() -> Self {
-        Self(Vec::new())
+    pub fn new(size: usize) -> Self {
+        let num_blocks = (size + 63) / 64;
+        Self(vec![0; num_blocks])
     }
     
     pub fn set(&mut self, index: usize, is_set: bool) {
@@ -41,6 +43,13 @@ impl BitSet {
         }
         self.0[word_index] ^= 1 << bit_index;
     }
+    
+    pub fn set_all(&mut self, is_set: bool){
+        let value = if is_set { 0xFFFFFFFFFFFFFFFF } else { 0 };
+        for val in &mut self.0 {
+            *val = value;
+        }
+    }
 }
 
 impl NetEncode for BitSet {
@@ -66,13 +75,13 @@ mod tests {
 
     #[test]
     fn test_new() {
-        let bitset = BitSet::new();
+        let bitset = BitSet::new(0);
         assert!(bitset.0.is_empty());
     }
 
     #[test]
     fn test_set_and_get() {
-        let mut bitset = BitSet::new();
+        let mut bitset = BitSet::new(0);
         bitset.set(10, true);
         assert!(bitset.get(10));
         assert!(!bitset.get(9));
@@ -82,7 +91,7 @@ mod tests {
 
     #[test]
     fn test_flip() {
-        let mut bitset = BitSet::new();
+        let mut bitset = BitSet::new(0);
         bitset.flip(5);
         assert!(bitset.get(5));
         bitset.flip(5);
@@ -91,7 +100,7 @@ mod tests {
 
     #[test]
     fn test_resize() {
-        let mut bitset = BitSet::new();
+        let mut bitset = BitSet::new(0);
         bitset.set(128, true);
         assert!(bitset.get(128));
         assert!(!bitset.get(127));

@@ -54,6 +54,6 @@ pub enum PacketError {
 
 #[derive(Debug, Error)]
 pub enum ChunkError {
-    #[error("Invalid Chunk: {0}")]
-    InvalidChunk((i32, i32)),
+    #[error("Invalid Chunk: ({0}, {1})")]
+    InvalidChunk(i32, i32),
 }
