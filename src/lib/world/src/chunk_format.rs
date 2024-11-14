@@ -5,7 +5,10 @@ use bitcode_derive::{Decode, Encode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use lazy_static::lazy_static;
 use std::collections::HashMap;
-use std::io::Read;
+use std::io::{Read, Write};
+use tokio::io::{AsyncWrite, AsyncWriteExt};
+use ferrumc_macros::{NBTDeserialize, NBTSerialize};
+use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
 use vanilla_chunk_format::Palette;
 
 #[cfg(test)]
@@ -41,19 +44,31 @@ pub struct Chunk {
     pub z: i32,
     pub dimension: String,
     pub sections: Vec<Section>,
+    pub heightmaps: Heightmaps,
 }
 
+
+#[derive(Encode, Decode, NBTDeserialize, NBTSerialize)]
+#[nbt(net_encode)]
+pub struct Heightmaps {
+    #[nbt(rename = "MOTION_BLOCKING")]
+    pub motion_blocking: Vec<i64>,
+    #[nbt(rename = "WORLD_SURFACE")]
+    pub world_surface: Vec<i64>,
+}
 #[derive(Encode, Decode)]
 pub struct Section {
     pub y: i8,
     pub block_states: BlockStates,
     pub biome_data: Vec<i64>,
     pub biome_palette: Vec<String>,
+    pub block_light: Vec<u8>,
+    pub sky_light: Vec<u8>,
 }
 #[derive(Encode, Decode)]
 pub struct BlockStates {
-    pub bits_per_block: i8,
-    pub non_air_blocks: i16,
+    pub bits_per_block: u8,
+    pub non_air_blocks: u16,
     pub data: Vec<i64>,
     pub palette: Vec<VarInt>,
 }
@@ -86,27 +101,44 @@ impl VanillaChunk {
             } else {
                 (vec![], vec![])
             };
-           let non_air_blocks= palette.iter().filter(|id| id.name != "air").count() as i16;
+            let non_air_blocks = palette.iter().filter(|id| id.name != "air").count() as i16;
             let block_states = BlockStates {
                 bits_per_block: (palette.len() as f32).log2().ceil() as i8,
                 non_air_blocks,
                 data: block_data,
                 palette: convert_to_net_palette(palette)?,
             };
+            let block_light = section.block_light.clone().unwrap_or(vec![0; 2048]).iter().map(|x| *x as u8).collect();
+            let sky_light = section.sky_light.clone().unwrap_or(vec![0; 2048]).iter().map(|x| *x as u8).collect();
             let section = Section {
                 y,
                 block_states,
                 biome_data,
                 biome_palette,
+                block_light,
+                sky_light,
             };
             sections.push(section);
-            
         }
+        let heightmaps = if let Some(heightmaps) = &self.heightmaps {
+            let motion_blocking = heightmaps.clone().motion_blocking.unwrap_or(vec![]);
+            let world_surface = heightmaps.clone().world_surface.unwrap_or(vec![]);
+            Heightmaps {
+                motion_blocking,
+                world_surface,
+            }
+        } else {
+            Heightmaps {
+                motion_blocking: vec![],
+                world_surface: vec![],
+            }
+        };
         Ok(Chunk {
             x: self.x_pos,
             z: self.z_pos,
             dimension: self.clone().dimension.unwrap_or("overworld".to_string()),
             sections,
+            heightmaps,
         })
     }
 }

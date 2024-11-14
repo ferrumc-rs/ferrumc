@@ -24,7 +24,7 @@ members = [
     "src/lib/world",
     "src/lib/derive_macros",
     "src/lib/adapters/nbt", "src/lib/adapters/mca",
-    "src/tests", "src/lib/adapters/anvil",
+    "src/tests", "src/lib/adapters/anvil"
 ]
 
 #================== Lints ==================#
@@ -158,6 +158,7 @@ colored = "2.1.0"
 
 # Misc
 deepsize = "0.2.0"
+bitreader = "0.3.11"
 
 # I/O
 tempfile = "3.12.0"
