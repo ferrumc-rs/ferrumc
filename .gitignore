@@ -3,7 +3,17 @@
 .vscode
 /crates/lib/dummy_lib/Cargo.lock
 
-Cargo.lock
+# Remove Cargo.lock from gitignore if creating an executable, leave it for libraries
+# More information here https://doc.rust-lang.org/cargo/guide/cargo-toml-vs-cargo-lock.html
+# In the case of this repo which contains a workspace with many libraries , we choose to
+# remove Cargo.lock, since the output is ultimately a binary.
+# See references consulted:
+# * https://doc.rust-lang.org/nightly/cargo/faq.html#why-have-cargolock-in-version-control
+# * https://github.com/rust-lang/cargo/issues/6172
+# * https://stackoverflow.com/questions/75884097/using-cargo-lock-to-effectively-manage-pull-dependency-versions-in-my-crates
+# * https://doc.rust-lang.org/cargo/reference/workspaces.html
+# * https://users.rust-lang.org/t/cargo-lock-workspaces-with-binaries-and-crates-io/65529
+#Cargo.lock
 config.toml
 .temp
 
