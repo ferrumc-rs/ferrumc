@@ -105,12 +105,17 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
             &mut packet_skele.data,
             Arc::clone(&state),
         )
-            .await
-            .instrument(debug_span!("eid", %entity))
-            .inner()
+        .await
+        .instrument(debug_span!("eid", %entity))
+        .inner()
         {
-            warn!("Failed to handle packet: {:?}. packet_id: {:02X}; conn_state: {}", e, packet_skele.id, conn_state.as_str());
-            // Kick the player (when implemented).
+            warn!(
+                "Failed to handle packet: {:?}. packet_id: {:02X}; conn_state: {}",
+                e,
+                packet_skele.id,
+                conn_state.as_str()
+            );
+            // TODO kick player (when implemented)
             break 'recv;
         };
     }
@@ -131,9 +136,8 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
 
 /// Since parking_lot is single-threaded, we use spawn_blocking to remove all components from the entity asynchronously (on another thread).
 async fn remove_all_components_blocking(state: Arc<ServerState>, entity: usize) -> NetResult<()> {
-    let res = tokio::task::spawn_blocking(move || {
-        state.universe.remove_all_components(entity)
-    }).await?;
+    let res =
+        tokio::task::spawn_blocking(move || state.universe.remove_all_components(entity)).await?;
 
     Ok(res?)
 }

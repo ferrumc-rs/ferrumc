@@ -1,11 +1,15 @@
+use crate::connection::StreamWriter;
+use crate::packets::outgoing::disconnect::Disconnect;
 use crate::packets::outgoing::keep_alive::OutgoingKeepAlivePacket;
 use crate::packets::IncomingPacket;
+// use crate::player_ext::PlayerExt;
 use crate::{NetResult, ServerState};
 use ferrumc_ecs::components::storage::ComponentRefMut;
 use ferrumc_ecs::errors::ECSError;
 use ferrumc_macros::{packet, NetDecode};
+use ferrumc_net_codec::encode::NetEncodeOpts;
 use std::sync::Arc;
-use tracing::{debug, warn};
+use tracing::{debug, info, warn};
 
 #[derive(NetDecode)]
 #[packet(packet_id = 0x18, state = "play")]
@@ -17,16 +21,31 @@ impl IncomingPacket for IncomingKeepAlivePacket {
     async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
         // TODO handle errors.
         let last_keep_alive = state.universe.get_mut::<OutgoingKeepAlivePacket>(conn_id)?;
+        let mut writer = state.universe.get_mut::<StreamWriter>(conn_id)?;
 
         if self.id != last_keep_alive.id {
             debug!(
                 "Invalid keep alive packet received from entity {:?} with id {:?} (expected {:?})",
                 conn_id, self.id, last_keep_alive.id
             );
+            let packet = Disconnect::from_string("Invalid Keep Alive".to_string());
+            match writer
+                .send_packet(&packet, &NetEncodeOpts::WithLength)
+                .await
+            {
+                Ok(_) => {
+                    info!(
+                        "Disconnected entity {:?} for an invalid keep alive",
+                        conn_id
+                    )
+                }
+                Err(err) => {
+                    debug!("Failed to disconnect player : {:?}", err)
+                }
+            }
             return NetResult::Err(crate::errors::NetError::Packet(
                 crate::errors::PacketError::InvalidState(0x18),
             ));
-            // TODO Kick player
         }
 
         let result = state.universe.get_mut::<IncomingKeepAlivePacket>(conn_id);

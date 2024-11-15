@@ -34,7 +34,7 @@ async fn handle_login_start(
     // Add the player identity component to the ECS for the entity.
     state.universe.add_component::<PlayerIdentity>(
         login_start_event.conn_id,
-        PlayerIdentity::new(username.to_string(), uuid),
+        PlayerIdentity::new(username.to_string(), uuid, false),
     )?;
 
     //Send a Login Success Response to further the login sequence
