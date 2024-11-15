@@ -37,13 +37,11 @@ impl Cases {
                 for c in str.chars() {
                     if c == '_' {
                         next_word = true;
+                    } else if  next_word {
+                        camel_case.extend(c.to_uppercase());
+                        next_word = false;
                     } else {
-                        if  next_word {
-                            camel_case.extend(c.to_uppercase());
-                            next_word = false;
-                        } else {
-                            camel_case.push(c);
-                        }
+                        camel_case.push(c);
                     }
                 }
                 camel_case
@@ -150,7 +148,7 @@ impl NbtFieldAttribute {
                             .parse::<LitStr>()
                             .expect("Expected case to be a string").value().into();
                         attributes.push(NbtFieldAttribute::RenameAll {
-                            case: case
+                            case
                         });
                     }
                     _ => {}

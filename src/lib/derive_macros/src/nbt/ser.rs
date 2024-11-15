@@ -130,12 +130,9 @@ pub fn derive(input: TokenStream) -> TokenStream {
                     }
                 }
 
-                for attr in NbtFieldAttribute::from_variant(&variant) {
-                    match attr {
-                        NbtFieldAttribute::Rename { new_name } => {
-                            variant_name = new_name.clone();
-                        },
-                        _ => {},
+                for attr in NbtFieldAttribute::from_variant(variant) {
+                    if let NbtFieldAttribute::Rename { new_name } = attr {
+                        variant_name = new_name.clone();
                     }
                 }
 

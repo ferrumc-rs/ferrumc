@@ -129,7 +129,7 @@ async fn test_serialize_to_nbt() {
             .build(),
     ]);
     //println!("{:#?}", component.color);
-    println!("{}", component.to_string());
+    println!("{}", component);
     println!("{}", bytes_to_readable_string(&component.serialize_nbt()[..]));
 
     println!("{}", component.serialize_nbt().len());
