@@ -15,6 +15,11 @@ pub struct ConnectionControl {
     pub should_disconnect: AtomicBool,
 }
 
+impl Default for ConnectionControl{
+    fn default() -> Self {
+        Self::new()
+    }
+}
 impl ConnectionControl {
     pub fn new() -> Self {
         Self {

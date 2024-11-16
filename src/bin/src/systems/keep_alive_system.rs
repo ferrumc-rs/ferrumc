@@ -5,6 +5,7 @@ use ferrumc_net::connection::{ConnectionControl, ConnectionState, StreamWriter};
 use ferrumc_net::packets::incoming::keep_alive::IncomingKeepAlivePacket;
 use ferrumc_net::packets::outgoing::disconnect::Disconnect;
 use ferrumc_net::packets::outgoing::keep_alive::OutgoingKeepAlivePacket;
+
 use ferrumc_net::utils::broadcast::{BroadcastOptions, BroadcastToAll};
 use ferrumc_net::GlobalState;
 use ferrumc_net_codec::encode::NetEncodeOpts;
@@ -35,6 +36,7 @@ impl System for KeepAliveSystem {
         while !self.shutdown.load(Ordering::Relaxed) {
             trace!("starting to check keep alive");
 
+
             let online_players = state.universe.query::<&PlayerIdentity>();
 
             let current_time = std::time::SystemTime::now()
@@ -46,6 +48,7 @@ impl System for KeepAliveSystem {
                 info!("Online players: {}", online_players.count());
                 last_time = current_time;
             }
+
 
             let entities = state
                 .universe
@@ -75,12 +78,12 @@ impl System for KeepAliveSystem {
                         } else {
                             None
                         }
+
                     } else {
                         None
                     }
                 })
                 .collect::<Vec<_>>();
-            // Kick players with failed keep alive
             // Kick players with failed keep alive
             let entities_to_kick = entities
                 .iter()
@@ -163,6 +166,7 @@ impl System for KeepAliveSystem {
             }
             trace!("finished checking keep alives, waiting 15 secs...");
             tokio::time::sleep(tokio::time::Duration::from_secs(15)).await;
+
         }
     }
 
