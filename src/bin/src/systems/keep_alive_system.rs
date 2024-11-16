@@ -1,7 +1,7 @@
 use crate::systems::definition::System;
 use async_trait::async_trait;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
-use ferrumc_net::connection::{ConnectionState, StreamWriter};
+use ferrumc_net::connection::{ConnectionControl, ConnectionState, StreamWriter};
 use ferrumc_net::packets::incoming::keep_alive::IncomingKeepAlivePacket;
 use ferrumc_net::packets::outgoing::disconnect::Disconnect;
 use ferrumc_net::packets::outgoing::keep_alive::OutgoingKeepAlivePacket;
@@ -33,6 +33,8 @@ impl System for KeepAliveSystem {
             .expect("Time went backwards")
             .as_millis() as i64;
         while !self.shutdown.load(Ordering::Relaxed) {
+            trace!("starting to check keep alive");
+
             let online_players = state.universe.query::<&PlayerIdentity>();
 
             let current_time = std::time::SystemTime::now()
@@ -114,8 +116,12 @@ impl System for KeepAliveSystem {
                 {
                     Ok(_) => {
                         trace!("kick packet sent for entity {:?} for timeout", entity);
-                        drop(writer);
-                        debug!("removed all components for entity {:?} for", entity);
+                        if let Ok(control) = state.universe.get_mut::<ConnectionControl>(entity) {
+                            control.should_disconnect.store(true, Ordering::Relaxed);
+                            debug!("Requested disconnect for entity : {:?}", entity);
+                        } else {
+                            debug!("failed to get <ConnectionControl> for entity {:?}", entity);
+                        }
                     }
                     Err(err) => {
                         warn!(
@@ -155,7 +161,7 @@ impl System for KeepAliveSystem {
                     error!("Error sending keep alive packet: {}", e);
                 };
             }
-
+            trace!("finished checking keep alives, waiting 15 secs...");
             tokio::time::sleep(tokio::time::Duration::from_secs(15)).await;
         }
     }

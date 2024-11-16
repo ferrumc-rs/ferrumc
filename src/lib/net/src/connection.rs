@@ -2,10 +2,26 @@ use crate::packets::incoming::packet_skeleton::PacketSkeleton;
 use crate::{handle_packet, NetResult, ServerState};
 use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
+use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
+use std::time::Duration;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tokio::net::TcpStream;
+use tokio::time::timeout;
 use tracing::{debug, debug_span, trace, warn, Instrument};
+
+#[derive(Debug)]
+pub struct ConnectionControl {
+    pub should_disconnect: AtomicBool,
+}
+
+impl ConnectionControl {
+    pub fn new() -> Self {
+        Self {
+            should_disconnect: AtomicBool::new(false),
+        }
+    }
+}
 
 #[derive(Clone)]
 pub enum ConnectionState {
@@ -83,12 +99,39 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
         .with(StreamWriter::new(writer))?
         .with(ConnectionState::Handshaking)?
         .with(CompressionStatus::new())?
+        .with(ConnectionControl::new())?
         .build();
 
     'recv: loop {
+        let should_disconnect = state
+            .universe
+            .get::<ConnectionControl>(entity)?
+            .should_disconnect
+            .load(std::sync::atomic::Ordering::Relaxed);
+
+        if should_disconnect {
+            trace!("Breaking connection loop for entity {:?}", entity);
+            break 'recv;
+        }
         let compressed = state.universe.get::<CompressionStatus>(entity)?.enabled;
-        let Ok(mut packet_skele) = PacketSkeleton::new(&mut reader, compressed).await else {
-            trace!("Failed to read packet. Possibly connection closed.");
+
+        let read_timeout = Duration::from_secs(2);
+        // if the read timeout is exceeded either the packet is too large to read in 2 secs (very unlikely) or
+        // the connection was closed, a potential issue here is that the client gets disconnected immediately if their wifi turns off
+
+        let packet_timeout =
+            timeout(read_timeout, PacketSkeleton::new(&mut reader, compressed)).await;
+
+        let Ok(skele_result) = packet_timeout else {
+            trace!(
+                "Failed to read packet in {:?} continuing connection loop",
+                read_timeout
+            );
+            continue;
+        };
+
+        let Ok(mut packet_skele) = skele_result else {
+            trace!("Failed to read packet. connection probably closed, breaking out of connection loop");
             break 'recv;
         };
 
