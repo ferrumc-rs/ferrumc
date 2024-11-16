@@ -5,6 +5,7 @@ use ferrumc_net::connection::{ConnectionControl, ConnectionState, StreamWriter};
 use ferrumc_net::packets::incoming::keep_alive::IncomingKeepAlivePacket;
 use ferrumc_net::packets::outgoing::disconnect::Disconnect;
 use ferrumc_net::packets::outgoing::keep_alive::OutgoingKeepAlivePacket;
+
 use ferrumc_net::utils::broadcast::{BroadcastOptions, BroadcastToAll};
 use ferrumc_net::GlobalState;
 use ferrumc_net_codec::encode::NetEncodeOpts;
@@ -32,6 +33,7 @@ impl System for KeepAliveSystem {
             .duration_since(std::time::UNIX_EPOCH)
             .expect("Time went backwards")
             .as_millis() as i64;
+
         while !self.shutdown.load(Ordering::Relaxed) {
             trace!("starting to check keep alive");
 
@@ -46,6 +48,8 @@ impl System for KeepAliveSystem {
                 info!("Online players: {}", online_players.count());
                 last_time = current_time;
             }
+
+            let fifteen_seconds_ms = 15000; // 15 seconds in milliseconds
 
             let entities = state
                 .universe
@@ -94,6 +98,7 @@ impl System for KeepAliveSystem {
                     };
                     if ident.failed_keep_alive {
                         Some(*entity)
+                      
                     } else {
                         None
                     }
@@ -139,7 +144,7 @@ impl System for KeepAliveSystem {
                     entities_to_keep_alive.len()
                 );
 
-                let packet = OutgoingKeepAlivePacket { id: current_time };
+            let packet = KeepAlivePacket::default();
 
                 let broadcast_opts = BroadcastOptions::default()
                     .only(entities_to_keep_alive)
@@ -154,8 +159,9 @@ impl System for KeepAliveSystem {
                             return;
                         };
 
-                        *outgoing_keep_alive = OutgoingKeepAlivePacket { id: current_time };
-                    });
+
+                    *keep_alive = KeepAlive::from(current_time);
+                });
 
                 if let Err(e) = state.broadcast(&packet, broadcast_opts).await {
                     error!("Error sending keep alive packet: {}", e);
@@ -163,6 +169,7 @@ impl System for KeepAliveSystem {
             }
             trace!("finished checking keep alives, waiting 15 secs...");
             tokio::time::sleep(tokio::time::Duration::from_secs(15)).await;
+
         }
     }
 

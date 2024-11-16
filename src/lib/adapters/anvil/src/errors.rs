@@ -11,4 +11,6 @@ pub enum AnvilError {
     UnableToReadFile(PathBuf, std::io::Error),
     #[error("Unable to map file {0}: {1}")]
     UnableToMapFile(PathBuf, std::io::Error),
+    #[error("Invalid offset or size")]
+    InvalidOffsetOrSize,
 }
