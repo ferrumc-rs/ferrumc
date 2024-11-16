@@ -79,24 +79,32 @@ impl System for KeepAliveSystem {
                 })
                 .collect::<Vec<_>>();
             // Kick players with failed keep alive
-            let entities_to_kick = entities.iter().filter(|entity| {
-                let Ok(ident) = state.universe.get::<PlayerIdentity>(**entity) else {
-                    warn!(
-                        "Failed to get the <PlayerIdentity> Component for entity with id {:?}",
-                        **entity
-                    );
-                    return false;
-                };
-                ident.failed_keep_alive
-            });
+            // Kick players with failed keep alive
+            let entities_to_kick = entities
+                .iter()
+                .filter_map(|entity| {
+                    let Ok(ident) = state.universe.get::<PlayerIdentity>(*entity) else {
+                        warn!(
+                            "Failed to get the <PlayerIdentity> Component for entity with id {:?}",
+                            *entity
+                        );
+                        return None;
+                    };
+                    if ident.failed_keep_alive {
+                        Some(*entity)
+                    } else {
+                        None
+                    }
+                })
+                .collect::<Vec<_>>();
 
             let kick_packet = Disconnect::from_string("Timeout".to_string());
             for entity in entities_to_kick {
-                debug!("Kicking player with entity id {:?} for a timeout", *entity);
-                let Ok(mut writer) = state.universe.get_mut::<StreamWriter>(*entity) else {
+                debug!("Kicking player with entity id {:?} for a timeout", entity);
+                let Ok(mut writer) = state.universe.get_mut::<StreamWriter>(entity) else {
                     warn!(
                         "Failed to get the <StreamWriter> Component for entity with id {:?}",
-                        *entity
+                        entity
                     );
                     continue;
                 };
@@ -104,11 +112,15 @@ impl System for KeepAliveSystem {
                     .send_packet(&kick_packet, &NetEncodeOpts::WithLength)
                     .await
                 {
-                    Ok(_) => debug!("Kicked entity {:?} for timeout", *entity),
+                    Ok(_) => {
+                        trace!("kick packet sent for entity {:?} for timeout", entity);
+                        drop(writer);
+                        debug!("removed all components for entity {:?} for", entity);
+                    }
                     Err(err) => {
                         warn!(
                             "Failed to kick entity {:?} for timeout\n Error : {:?}",
-                            *entity, err
+                            entity, err
                         );
                         continue;
                     }
