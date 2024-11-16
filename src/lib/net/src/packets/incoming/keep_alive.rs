@@ -11,7 +11,6 @@ use ferrumc_net_codec::encode::NetEncodeOpts;
 use std::sync::Arc;
 use tracing::{debug, info, warn};
 
-
 #[derive(NetDecode)]
 #[packet(packet_id = 0x18, state = "play")]
 pub struct IncomingKeepAlivePacket {
@@ -23,7 +22,6 @@ impl IncomingPacket for IncomingKeepAlivePacket {
         // TODO handle errors.
         let last_keep_alive = state.universe.get_mut::<OutgoingKeepAlivePacket>(conn_id)?;
         let mut writer = state.universe.get_mut::<StreamWriter>(conn_id)?;
-
 
         if self.id != last_keep_alive.id {
             debug!(
@@ -71,8 +69,9 @@ impl IncomingPacket for IncomingKeepAlivePacket {
                 );
                 return Err(crate::errors::NetError::ECSError(result.err().unwrap()));
             }
-
         }
+        let mut last_received_keep_alive = state.universe.get_mut(conn_id)?;
+        *last_received_keep_alive = self;
 
         Ok(())
     }

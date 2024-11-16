@@ -36,7 +36,6 @@ impl System for KeepAliveSystem {
         while !self.shutdown.load(Ordering::Relaxed) {
             trace!("starting to check keep alive");
 
-
             let online_players = state.universe.query::<&PlayerIdentity>();
 
             let current_time = std::time::SystemTime::now()
@@ -48,12 +47,15 @@ impl System for KeepAliveSystem {
                 info!("Online players: {}", online_players.count());
                 last_time = current_time;
             }
-
-
+            trace!("doing query");
             let entities = state
                 .universe
                 .query::<(&mut StreamWriter, &ConnectionState)>()
                 .into_entities();
+
+            trace!("done query");
+
+            trace!("getting entities to keep alive");
 
             let entities_to_keep_alive = entities
                 .iter()
@@ -78,13 +80,17 @@ impl System for KeepAliveSystem {
                         } else {
                             None
                         }
-
                     } else {
                         None
                     }
                 })
                 .collect::<Vec<_>>();
+            trace!("got entities to keep alive");
+
             // Kick players with failed keep alive
+
+            trace!("getting entities to kick");
+
             let entities_to_kick = entities
                 .iter()
                 .filter_map(|entity| {
@@ -102,6 +108,7 @@ impl System for KeepAliveSystem {
                     }
                 })
                 .collect::<Vec<_>>();
+            trace!("got entities to kick");
 
             let kick_packet = Disconnect::from_string("Timeout".to_string());
             for entity in entities_to_kick {
@@ -158,15 +165,22 @@ impl System for KeepAliveSystem {
                         };
 
                         *outgoing_keep_alive = OutgoingKeepAlivePacket { id: current_time };
+                        trace!(
+                            "set outgoing keep alive for entity {:?} to {}",
+                            entity,
+                            current_time
+                        );
                     });
 
                 if let Err(e) = state.broadcast(&packet, broadcast_opts).await {
                     error!("Error sending keep alive packet: {}", e);
-                };
+                } else {
+                    trace!("sent keep alive packets");
+                }
             }
             trace!("finished checking keep alives, waiting 15 secs...");
             tokio::time::sleep(tokio::time::Duration::from_secs(15)).await;
-
+            trace!("done sleeping");
         }
     }
 
