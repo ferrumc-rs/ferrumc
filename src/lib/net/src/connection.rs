@@ -104,28 +104,41 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
         .with(StreamWriter::new(writer))?
         .with(ConnectionState::Handshaking)?
         .with(CompressionStatus::new())?
+        .with(ConnectionControl::new())?
         .build();
 
     'recv: loop {
         let compressed = state.universe.get::<CompressionStatus>(entity)?.enabled;
+        let should_disconnect = state
+            .universe
+            .get::<ConnectionControl>(entity)?
+            .should_disconnect
+            .load(std::sync::atomic::Ordering::Relaxed);
 
-        let packet = timeout(
-            Duration::from_secs(2),
-            PacketSkeleton::new(&mut reader, compressed),
-        )
-        .await;
+        if should_disconnect {
+            debug!(
+                "should_disconnect is true for entity: {}, breaking out of connection loop.",
+                entity
+            );
+            break 'recv;
+        }
 
-        if let Err(err) = packet {
+        let read_timeout = Duration::from_secs(2);
+        let packet_task = timeout(read_timeout, PacketSkeleton::new(&mut reader, compressed)).await;
+
+        if let Err(err) = packet_task {
             trace!(
-                "failed to read packet within two seconds for entity {:?}, err: {:?}
+                "failed to read packet within {:?} for entity {:?}, err: {:?}
             continuing to next iteration",
-                entity, err
+                read_timeout,
+                entity,
+                err
             );
             continue;
         }
 
-        let Ok(Ok(mut packet_skele)) = packet else {
-            trace!("Failed to read packet. Possibly connection closed.");
+        let Ok(Ok(mut packet_skele)) = packet_task else {
+            trace!("Failed to read packet. Possibly connection closed. Breaking out of connection loop");
             break 'recv;
         };
 
@@ -160,8 +173,6 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
     debug!("Connection closed for entity: {:?}", entity);
 
     // Remove all components from the entity
-
-    drop(reader);
 
     // Wait until anything that might be using the entity is done
     if let Err(e) = remove_all_components_blocking(state.clone(), entity).await {
