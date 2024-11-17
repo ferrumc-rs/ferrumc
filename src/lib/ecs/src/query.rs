@@ -113,7 +113,7 @@ mod iter_impl {
         Q: QueryItem + Send,
         Q::Item<'a>: Send,
     {
-        type Item = Q::Item<'a>;
+        type Item = (Entity, Q::Item<'a>);
 
         fn drive_unindexed<C>(self, consumer: C) -> C::Result
         where
@@ -121,7 +121,10 @@ mod iter_impl {
         {
             self.entities
                 .into_par_iter()
-                .filter_map(|entity| Q::fetch(entity, self.component_storage).ok())
+                .filter_map(|entity| {
+                    let item = Q::fetch(entity, self.component_storage);
+                    item.ok().map(|item| (entity, item))
+                })
                 .drive_unindexed(consumer)
         }
     }
