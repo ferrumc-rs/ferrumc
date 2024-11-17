@@ -102,7 +102,6 @@ mod iter_impl {
                 let Ok(item) = Q::fetch(entity, self.component_storage) else {
                     continue;
                 };
-                // return Some(item);
                 return Some((entity, item));
             }
             None
@@ -137,15 +136,13 @@ mod multi_impl {
         where
             $($T: QueryItem,)*
         {
-            // type Item<'a> = ($($T::Item<'a>,)*);
-            type Item<'a> = (Entity, $($T::Item<'a>,)*);
+            type Item<'a> = ($($T::Item<'a>,)*);
 
             fn fetch<'a>(
                 entity: Entity,
                 storage: &ComponentManager
             ) -> ECSResult<Self::Item<'a>> {
-                // Ok(($($T::fetch(entity, storage)?,)*))
-                Ok((entity, $($T::fetch(entity, storage)?,)*))
+                Ok(($($T::fetch(entity, storage)?,)*))
             }
 
             fn entities(
