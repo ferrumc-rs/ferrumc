@@ -2,8 +2,8 @@ use crate::systems::definition::System;
 use async_trait::async_trait;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net::connection::{ConnectionState, StreamWriter};
-use ferrumc_net::packets::incoming::keep_alive::IncomingKeepAlive;
-use ferrumc_net::packets::outgoing::keep_alive::OutgoingKeepAlive;
+use ferrumc_net::packets::incoming::keep_alive::IncomingKeepAlivePacket;
+use ferrumc_net::packets::outgoing::keep_alive::OutgoingKeepAlivePacket;
 use ferrumc_net::utils::broadcast::{BroadcastOptions, BroadcastToAll};
 use ferrumc_net::utils::state::terminate_connection;
 use ferrumc_net::GlobalState;
@@ -55,7 +55,7 @@ impl System for KeepAliveSystem {
                 .into_iter()
                 .filter_map(|entity| {
                     let conn_state = state.universe.get::<ConnectionState>(entity).ok()?;
-                    let keep_alive = state.universe.get_mut::<IncomingKeepAlive>(entity).ok()?;
+                    let keep_alive = state.universe.get_mut::<IncomingKeepAlivePacket>(entity).ok()?;
 
                     if matches!(*conn_state, ConnectionState::Play)
                         && (current_time - keep_alive.timestamp) >= 15000
@@ -73,7 +73,7 @@ impl System for KeepAliveSystem {
                 for entity in entities.iter() {
                     let keep_alive = state
                         .universe
-                        .get_mut::<IncomingKeepAlive>(*entity)
+                        .get_mut::<IncomingKeepAlivePacket>(*entity)
                         .ok()
                         .unwrap();
 
@@ -93,13 +93,13 @@ impl System for KeepAliveSystem {
                         }
                     }
                 }
-                let packet = OutgoingKeepAlive { timestamp: current_time };
+                let packet = OutgoingKeepAlivePacket { timestamp: current_time };
 
                 let broadcast_opts = BroadcastOptions::default()
                     .only(entities)
                     .with_sync_callback(move |entity, state| {
                         let Ok(mut keep_alive) =
-                            state.universe.get_mut::<OutgoingKeepAlive>(entity)
+                            state.universe.get_mut::<OutgoingKeepAlivePacket>(entity)
                         else {
                             warn!(
                                 "Failed to get <OutgoingKeepAlive> component for entity {}",
@@ -112,7 +112,7 @@ impl System for KeepAliveSystem {
                     });
 
                 if let Err(e) = state
-                    .broadcast(&OutgoingKeepAlive { timestamp: current_time }, broadcast_opts)
+                    .broadcast(&OutgoingKeepAlivePacket { timestamp: current_time }, broadcast_opts)
                     .await
                 {
                     error!("Error sending keep alive packet: {}", e);

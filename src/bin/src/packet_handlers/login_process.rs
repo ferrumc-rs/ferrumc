@@ -4,14 +4,14 @@ use ferrumc_macros::event_handler;
 use ferrumc_net::connection::{ConnectionState, StreamWriter};
 use ferrumc_net::errors::NetError;
 use ferrumc_net::packets::incoming::ack_finish_configuration::AckFinishConfigurationEvent;
-use ferrumc_net::packets::incoming::keep_alive::IncomingKeepAlive;
+use ferrumc_net::packets::incoming::keep_alive::IncomingKeepAlivePacket;
 use ferrumc_net::packets::incoming::login_acknowledged::LoginAcknowledgedEvent;
 use ferrumc_net::packets::incoming::login_start::LoginStartEvent;
 use ferrumc_net::packets::incoming::server_bound_known_packs::ServerBoundKnownPacksEvent;
 use ferrumc_net::packets::outgoing::client_bound_known_packs::ClientBoundKnownPacksPacket;
 use ferrumc_net::packets::outgoing::finish_configuration::FinishConfigurationPacket;
 use ferrumc_net::packets::outgoing::game_event::GameEventPacket;
-use ferrumc_net::packets::outgoing::keep_alive::OutgoingKeepAlive;
+use ferrumc_net::packets::outgoing::keep_alive::OutgoingKeepAlivePacket;
 use ferrumc_net::packets::outgoing::login_play::LoginPlayPacket;
 use ferrumc_net::packets::outgoing::login_success::LoginSuccessPacket;
 use ferrumc_net::packets::outgoing::registry_data::get_registry_packets;
@@ -153,7 +153,7 @@ async fn send_keep_alive(
     state: GlobalState,
     writer: &mut ComponentRefMut<'_, StreamWriter>,
 ) -> Result<(), NetError> {
-    let keep_alive_packet = OutgoingKeepAlive::default();
+    let keep_alive_packet = OutgoingKeepAlivePacket::default();
     writer
         .send_packet(&keep_alive_packet, &NetEncodeOpts::WithLength)
         .await?;
@@ -162,10 +162,10 @@ async fn send_keep_alive(
 
     state
         .universe
-        .add_component::<OutgoingKeepAlive>(conn_id, keep_alive_packet)?;
+        .add_component::<OutgoingKeepAlivePacket>(conn_id, keep_alive_packet)?;
     state
         .universe
-        .add_component::<IncomingKeepAlive>(conn_id, IncomingKeepAlive { timestamp })?;
+        .add_component::<IncomingKeepAlivePacket>(conn_id, IncomingKeepAlivePacket { timestamp })?;
 
     Ok(())
 }

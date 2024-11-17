@@ -4,11 +4,11 @@ use std::io::Write;
 
 #[derive(NetEncode)]
 #[packet(packet_id = 0x1D)]
-pub struct Disconnect {
+pub struct DisconnectPacket {
     pub reason: TextComponent,
 }
 
-impl Disconnect {
+impl DisconnectPacket {
     pub fn new(reason: TextComponent) -> Self {
         Self { reason }
     }
@@ -20,7 +20,7 @@ impl Disconnect {
     }
 }
 
-impl Default for Disconnect {
+impl Default for DisconnectPacket {
     fn default() -> Self {
         Self::from_string("FERRUMC-DISCONNECTED".to_string())
     }

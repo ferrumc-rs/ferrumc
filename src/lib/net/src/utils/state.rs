@@ -1,7 +1,7 @@
 use crate::{
     connection::{ConnectionControl, StreamWriter},
     errors::NetError,
-    packets::outgoing::disconnect::Disconnect,
+    packets::outgoing::disconnect::DisconnectPacket,
     GlobalState, NetResult,
 };
 use ferrumc_net_codec::encode::NetEncodeOpts;
@@ -35,7 +35,7 @@ pub async fn terminate_connection(
     };
 
     if let Err(e) = writer
-        .send_packet(&Disconnect::from_string(reason), &NetEncodeOpts::WithLength)
+        .send_packet(&DisconnectPacket::from_string(reason), &NetEncodeOpts::WithLength)
         .await
     {
         warn!(
