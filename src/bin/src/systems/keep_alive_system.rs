@@ -2,8 +2,10 @@ use crate::systems::definition::System;
 use async_trait::async_trait;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net::connection::{ConnectionState, StreamWriter};
-use ferrumc_net::packets::outgoing::keep_alive::{KeepAlive, KeepAlivePacket};
+use ferrumc_net::packets::incoming::keep_alive::IncomingKeepAlivePacket;
+use ferrumc_net::packets::outgoing::keep_alive::OutgoingKeepAlivePacket;
 use ferrumc_net::utils::broadcast::{BroadcastOptions, BroadcastToAll};
+use ferrumc_net::utils::state::terminate_connection;
 use ferrumc_net::GlobalState;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -46,19 +48,17 @@ impl System for KeepAliveSystem {
                 last_time = current_time;
             }
 
-            let fifteen_seconds_ms = 15000; // 15 seconds in milliseconds
-
             let entities = state
                 .universe
-                .query::<(&mut StreamWriter, &ConnectionState, &KeepAlive)>()
+                .query::<(&mut StreamWriter, &ConnectionState)>()
                 .into_entities()
                 .into_iter()
                 .filter_map(|entity| {
                     let conn_state = state.universe.get::<ConnectionState>(entity).ok()?;
-                    let keep_alive = state.universe.get_mut::<KeepAlive>(entity).ok()?;
+                    let keep_alive = state.universe.get_mut::<IncomingKeepAlivePacket>(entity).ok()?;
 
                     if matches!(*conn_state, ConnectionState::Play)
-                        && (current_time - keep_alive.id) >= fifteen_seconds_ms
+                        && (current_time - keep_alive.timestamp) >= 15000
                     {
                         Some(entity)
                     } else {
@@ -68,26 +68,58 @@ impl System for KeepAliveSystem {
                 .collect::<Vec<_>>();
             if !entities.is_empty() {
                 trace!("there are {:?} players to keep alive", entities.len());
+
+                // I know this is the second iteration of the entities vector, but it has to be done since terminate_connection is async
+                for entity in entities.iter() {
+                    let keep_alive = state
+                        .universe
+                        .get_mut::<IncomingKeepAlivePacket>(*entity)
+                        .ok()
+                        .unwrap();
+
+                    if (current_time - keep_alive.timestamp) >= 30000 {
+                        // two iterations missed
+                        if let Err(e) = terminate_connection(
+                            state.clone(),
+                            *entity,
+                            "Keep alive timeout".to_string(),
+                        )
+                        .await
+                        {
+                            warn!(
+                                "Failed to terminate connection for entity {:?} , Err : {:?}",
+                                entity, e
+                            );
+                        }
+                    }
+                }
+                let packet = OutgoingKeepAlivePacket { timestamp: current_time };
+
+                let broadcast_opts = BroadcastOptions::default()
+                    .only(entities)
+                    .with_sync_callback(move |entity, state| {
+                        let Ok(mut keep_alive) =
+                            state.universe.get_mut::<OutgoingKeepAlivePacket>(entity)
+                        else {
+                            warn!(
+                                "Failed to get <OutgoingKeepAlive> component for entity {}",
+                                entity
+                            );
+                            return;
+                        };
+
+                        *keep_alive = packet.clone();
+                    });
+
+                if let Err(e) = state
+                    .broadcast(&OutgoingKeepAlivePacket { timestamp: current_time }, broadcast_opts)
+                    .await
+                {
+                    error!("Error sending keep alive packet: {}", e);
+                };
             }
 
-            let packet = KeepAlivePacket::default();
-
-            let broadcast_opts = BroadcastOptions::default()
-                .only(entities)
-                .with_sync_callback(move |entity, state| {
-                    let Ok(mut keep_alive) = state.universe.get_mut::<KeepAlive>(entity) else {
-                        warn!("Failed to get <KeepAlive> component for entity {}", entity);
-                        return;
-                    };
-
-                    *keep_alive = KeepAlive::from(current_time);
-                });
-
-            if let Err(e) = state.broadcast(&packet, broadcast_opts).await {
-                error!("Error sending keep alive packet: {}", e);
-            };
-            // TODO, this should be configurable as some people may have bad network so the clients may end up disconnecting from the server moments before the keep alive is sent
-            tokio::time::sleep(tokio::time::Duration::from_secs(30)).await;
+            tokio::time::sleep(tokio::time::Duration::from_secs(15)).await;
         }
     }
 

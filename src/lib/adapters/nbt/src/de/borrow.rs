@@ -634,7 +634,7 @@ impl NbtTapeElement<'_> {
                 writer.write_all(&[self.nbt_id()])?;
                 name.serialize(writer, &NBTSerializeOptions::None);
             }
-            NBTSerializeOptions::Network => {
+            NBTSerializeOptions::Network | NBTSerializeOptions::Flatten => {
                 writer.write_all(&[self.nbt_id()])?;
             }
         }

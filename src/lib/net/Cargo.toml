@@ -14,6 +14,7 @@ ferrumc-ecs = { workspace = true }
 ferrumc-events = { workspace = true }
 ferrumc-nbt = { workspace = true }
 ferrumc-core = { workspace = true }
+ferrumc-text = { workspace = true }
 tracing = { workspace = true }
 tokio = { workspace = true }
 socket2 = { workspace = true }
