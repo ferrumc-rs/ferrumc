@@ -158,14 +158,14 @@ async fn send_keep_alive(
         .send_packet(&keep_alive_packet, &NetEncodeOpts::WithLength)
         .await?;
 
-    let id = keep_alive_packet.id;
+    let timestamp = keep_alive_packet.timestamp;
 
     state
         .universe
         .add_component::<OutgoingKeepAlive>(conn_id, keep_alive_packet)?;
     state
         .universe
-        .add_component::<IncomingKeepAlive>(conn_id, IncomingKeepAlive { id })?;
+        .add_component::<IncomingKeepAlive>(conn_id, IncomingKeepAlive { timestamp })?;
 
     Ok(())
 }

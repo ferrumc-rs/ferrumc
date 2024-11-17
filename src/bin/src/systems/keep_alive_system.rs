@@ -58,7 +58,7 @@ impl System for KeepAliveSystem {
                     let keep_alive = state.universe.get_mut::<IncomingKeepAlive>(entity).ok()?;
 
                     if matches!(*conn_state, ConnectionState::Play)
-                        && (current_time - keep_alive.id) >= 15000
+                        && (current_time - keep_alive.timestamp) >= 15000
                     {
                         Some(entity)
                     } else {
@@ -77,7 +77,7 @@ impl System for KeepAliveSystem {
                         .ok()
                         .unwrap();
 
-                    if (current_time - keep_alive.id) >= 30000 {
+                    if (current_time - keep_alive.timestamp) >= 30000 {
                         // two iterations missed
                         if let Err(e) = terminate_connection(
                             state.clone(),
@@ -93,7 +93,7 @@ impl System for KeepAliveSystem {
                         }
                     }
                 }
-                let packet = OutgoingKeepAlive { id: current_time };
+                let packet = OutgoingKeepAlive { timestamp: current_time };
 
                 let broadcast_opts = BroadcastOptions::default()
                     .only(entities)
@@ -112,7 +112,7 @@ impl System for KeepAliveSystem {
                     });
 
                 if let Err(e) = state
-                    .broadcast(&OutgoingKeepAlive { id: current_time }, broadcast_opts)
+                    .broadcast(&OutgoingKeepAlive { timestamp: current_time }, broadcast_opts)
                     .await
                 {
                     error!("Error sending keep alive packet: {}", e);

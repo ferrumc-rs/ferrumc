@@ -9,16 +9,16 @@ use tracing::debug;
 #[derive(NetDecode)]
 #[packet(packet_id = 0x18, state = "play")]
 pub struct IncomingKeepAlive {
-    pub id: i64,
+    pub timestamp: i64,
 }
 
 impl IncomingPacket for IncomingKeepAlive {
     async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
         let last_sent_keep_alive = state.universe.get::<OutgoingKeepAlive>(conn_id)?;
-        if self.id != last_sent_keep_alive.id {
+        if self.timestamp != last_sent_keep_alive.timestamp {
             debug!(
                 "Invalid keep alive packet received from {:?} with id {:?} (expected {:?})",
-                conn_id, self.id, last_sent_keep_alive.id
+                conn_id, self.timestamp, last_sent_keep_alive.timestamp
             );
             if let Err(e) =
                 terminate_connection(state, conn_id, "Invalid keep alive packet".to_string()).await

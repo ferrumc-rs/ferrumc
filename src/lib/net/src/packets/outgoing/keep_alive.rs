@@ -1,10 +1,10 @@
 use ferrumc_macros::{packet, NetEncode};
 use std::io::Write;
 
-#[derive(NetEncode,Clone)]
+#[derive(NetEncode, Clone)]
 #[packet(packet_id = 0x26)]
 pub struct OutgoingKeepAlive {
-    pub id: i64,
+    pub timestamp: i64,
 }
 
 impl Default for OutgoingKeepAlive {
@@ -18,7 +18,7 @@ impl Default for OutgoingKeepAlive {
 }
 
 impl OutgoingKeepAlive {
-    pub fn new(id: i64) -> Self {
-        Self { id }
+    pub fn new(timestamp: i64) -> Self {
+        Self { timestamp }
     }
 }
