@@ -62,11 +62,6 @@ debug-assertions = false
 overflow-checks = false
 panic = "abort"
 
-[profile.dev]
-lto = false
-opt-level = 1
-split-debuginfo = "unpacked"
-
 #=============== Dependencies ==============#
 [workspace.dependencies]
 # Workspace members

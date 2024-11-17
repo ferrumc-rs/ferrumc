@@ -56,14 +56,11 @@ impl System for ChunkSenderSystem {
                                 debug!("Could not load chunk at {x}, {z}: {e}");
                             }
                         }
+                    }
                 }
             }
-            }
-            
-            
-            
-            
-            
+
+
             tokio::time::sleep(Duration::from_secs(5)).await;
         }
     }

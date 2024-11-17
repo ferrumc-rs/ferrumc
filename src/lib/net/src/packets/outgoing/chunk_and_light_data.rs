@@ -2,6 +2,7 @@ use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::{Cursor, Write};
+use std::ops::Not;
 use tokio::io::AsyncWriteExt;
 use tracing::{debug, warn};
 use ferrumc_net_codec::net_types::bitset::BitSet;
@@ -34,6 +35,8 @@ pub struct ChunkAndLightData {
 }
 
 impl ChunkAndLightData {
+    
+    
     pub async fn from_chunk(chunk: &Chunk) -> Result<Self, NetError> {
         let mut data = Cursor::new(Vec::new());
         let mut sky_light_data = Vec::new();
@@ -95,22 +98,46 @@ impl ChunkAndLightData {
             data.write_u8(0).await?;
 
         }
-        let sky_light_arrays = sky_light_data.into_iter().map(LengthPrefixedVec::new).collect();
-        let block_light_arrays = block_light_data.into_iter().map(LengthPrefixedVec::new).collect();
+        const SECTIONS: usize = 24; // Number of sections, adjust for your Y range (-64 to 319)
+        let mut sky_light_mask = BitSet::new(SECTIONS + 2);
+        let mut block_light_mask = BitSet::new(SECTIONS + 2);
 
-        const SECTIONS: usize = 24;
-        let mut bitset = BitSet::new(SECTIONS + 2);
-        bitset.set_all(true);
+        // Populate masks based on light data
+        for (i, section) in chunk.sections.iter().enumerate() {
+            if !section.sky_light.is_empty() && section.sky_light.len() == 2048 {
+                sky_light_mask.set(i, true);
+            }
+            if !section.block_light.is_empty() && section.block_light.len() == 2048 {
+                block_light_mask.set(i, true);
+            }
+        }
+
+        // Invert masks to create empty masks
+        let empty_sky_light_mask = sky_light_mask.clone().not();
+        let empty_block_light_mask = block_light_mask.clone().not();
+
+        // Align light arrays with masks
+        let sky_light_arrays = chunk.sections
+            .iter()
+            .filter(|section| !section.sky_light.is_empty())
+            .map(|section| LengthPrefixedVec::new(section.sky_light.clone()))
+            .collect();
+
+        let block_light_arrays = chunk.sections
+            .iter()
+            .filter(|section| !section.block_light.is_empty())
+            .map(|section| LengthPrefixedVec::new(section.block_light.clone()))
+            .collect();
         Ok(ChunkAndLightData {
             chunk_x: chunk.x,
             chunk_z: chunk.z,
             heightmaps: chunk.heightmaps.serialize_as_network(),
             data: LengthPrefixedVec::new(data.into_inner()),
             block_entities: LengthPrefixedVec::new(Vec::new()),
-            sky_light_mask: bitset.clone(),
-            block_light_mask: bitset.clone(),
-            empty_sky_light_mask: BitSet::new(SECTIONS + 2),
-            empty_block_light_mask: BitSet::new(SECTIONS + 2),
+            sky_light_mask,
+            block_light_mask,
+            empty_sky_light_mask,
+            empty_block_light_mask,
             sky_light_arrays: LengthPrefixedVec::new(sky_light_arrays),
             block_light_arrays: LengthPrefixedVec::new(block_light_arrays),
         })

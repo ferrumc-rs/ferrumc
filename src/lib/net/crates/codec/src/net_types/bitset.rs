@@ -1,4 +1,5 @@
 use std::io::Write;
+use std::ops::Not;
 use tokio::io::{AsyncWrite, AsyncWriteExt};
 use crate::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
 use crate::net_types::var_int::VarInt;
@@ -69,6 +70,19 @@ impl NetEncode for BitSet {
         Ok(())
     }
 }
+
+impl Not for BitSet {
+    type Output = Self;
+
+    fn not(self) -> Self::Output {
+        let mut new = self.clone();
+        for val in &mut new.0 {
+            *val = !*val;
+        }
+        new
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
