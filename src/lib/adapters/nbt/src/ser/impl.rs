@@ -47,7 +47,7 @@ where
     T: NBTSerializable,
 {
     fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
-        T::serialize(&*self, buf, options);
+        T::serialize(self, buf, options);
     }
 
     fn id() -> u8 {
