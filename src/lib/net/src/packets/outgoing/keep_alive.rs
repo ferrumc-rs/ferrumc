@@ -1,26 +1,13 @@
 use ferrumc_macros::{packet, NetEncode};
 use std::io::Write;
 
-#[derive(Debug, NetEncode)]
-pub struct KeepAlive {
+#[derive(NetEncode,Clone)]
+#[packet(packet_id = 0x26)]
+pub struct OutgoingKeepAlive {
     pub id: i64,
 }
 
-mod adapters {
-    impl From<i64> for super::KeepAlive {
-        fn from(id: i64) -> Self {
-            Self { id }
-        }
-    }
-}
-
-#[derive(NetEncode)]
-#[packet(packet_id = 0x26)]
-pub struct KeepAlivePacket {
-    pub id: KeepAlive,
-}
-
-impl Default for KeepAlivePacket {
+impl Default for OutgoingKeepAlive {
     fn default() -> Self {
         let current_ms = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
@@ -30,10 +17,8 @@ impl Default for KeepAlivePacket {
     }
 }
 
-impl KeepAlivePacket {
+impl OutgoingKeepAlive {
     pub fn new(id: i64) -> Self {
-        Self {
-            id: KeepAlive::from(id),
-        }
+        Self { id }
     }
 }

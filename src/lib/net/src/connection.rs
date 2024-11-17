@@ -1,4 +1,5 @@
 use crate::packets::incoming::packet_skeleton::PacketSkeleton;
+use crate::utils::state::terminate_connection;
 use crate::{handle_packet, NetResult, ServerState};
 use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
@@ -166,6 +167,8 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
                 conn_state.as_str()
             );
             // Kick the player (when implemented).
+            terminate_connection(state.clone(), entity, "Failed to handle packet".to_string())
+                .await?;
             break 'recv;
         };
     }
