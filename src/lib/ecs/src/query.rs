@@ -1,5 +1,5 @@
-use crate::components::{ComponentManager};
 use crate::components::storage::{Component, ComponentRef, ComponentRefMut};
+use crate::components::ComponentManager;
 use crate::entities::Entity;
 use crate::ECSResult;
 
@@ -78,11 +78,11 @@ impl<'a, Q: QueryItem> Query<'a, Q> {
             _marker: std::marker::PhantomData,
         }
     }
-    
+
     pub fn entities(&self) -> &[Entity] {
         &self.entities
     }
-    
+
     pub fn into_entities(self) -> Vec<Entity> {
         self.entities
     }
@@ -95,14 +95,15 @@ mod iter_impl {
 
     impl<'a, Q: QueryItem> Iterator for Query<'a, Q>
     {
-        type Item = Q::Item<'a>;
+        type Item = (Entity, Q::Item<'a>);
 
         fn next(&mut self) -> Option<Self::Item> {
             while let Some(entity) = self.entities.pop() {
                 let Ok(item) = Q::fetch(entity, self.component_storage) else {
                     continue;
                 };
-                return Some(item);
+                // return Some(item);
+                return Some((entity, item));
             }
             None
         }
@@ -113,7 +114,7 @@ mod iter_impl {
         Q: QueryItem + Send,
         Q::Item<'a>: Send,
     {
-        type Item = Q::Item<'a>;
+        type Item = (Entity, Q::Item<'a>);
 
         fn drive_unindexed<C>(self, consumer: C) -> C::Result
         where
@@ -121,7 +122,10 @@ mod iter_impl {
         {
             self.entities
                 .into_par_iter()
-                .filter_map(move |entity| Q::fetch(entity, self.component_storage).ok())
+                .filter_map(move |entity| {
+                    let item = Q::fetch(entity, self.component_storage);
+                    item.ok().map(|item| (entity, item))
+                })
                 .drive_unindexed(consumer)
         }
     }
@@ -136,13 +140,15 @@ mod multi_impl {
         where
             $($T: QueryItem,)*
         {
-            type Item<'a> = ($($T::Item<'a>,)*);
+            // type Item<'a> = ($($T::Item<'a>,)*);
+            type Item<'a> = (Entity, $($T::Item<'a>,)*);
 
             fn fetch<'a>(
                 entity: Entity,
                 storage: &ComponentManager
             ) -> ECSResult<Self::Item<'a>> {
-                Ok(($($T::fetch(entity, storage)?,)*))
+                // Ok(($($T::fetch(entity, storage)?,)*))
+                Ok((entity, $($T::fetch(entity, storage)?,)*))
             }
 
             fn entities(
