@@ -46,10 +46,9 @@ pub async fn terminate_connection(
     }
 
     match conn_id.get_mut::<ConnectionControl>(state.clone()) {
-        Ok(control) => {
-            control
-                .should_disconnect
-                .store(true, std::sync::atomic::Ordering::Relaxed);
+        Ok(mut control) => {
+            control.should_disconnect = true;
+
             trace!("Set should_disconnect to true for entity {}", conn_id);
         }
         Err(e) => {

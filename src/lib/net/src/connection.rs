@@ -3,7 +3,6 @@ use crate::utils::state::terminate_connection;
 use crate::{handle_packet, NetResult, ServerState};
 use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
-use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
@@ -13,13 +12,13 @@ use tracing::{debug, debug_span, trace, warn, Instrument};
 
 #[derive(Debug)]
 pub struct ConnectionControl {
-    pub should_disconnect: AtomicBool,
+    pub should_disconnect: bool,
 }
 
 impl ConnectionControl {
     pub fn new() -> Self {
         Self {
-            should_disconnect: AtomicBool::new(false),
+            should_disconnect: false,
         }
     }
 }
@@ -113,8 +112,7 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
         let should_disconnect = state
             .universe
             .get::<ConnectionControl>(entity)?
-            .should_disconnect
-            .load(std::sync::atomic::Ordering::Relaxed);
+            .should_disconnect;
 
         if should_disconnect {
             debug!(
