@@ -27,7 +27,7 @@ pub(crate) mod errors;
 mod packet_handlers;
 mod systems;
 
-pub type Result<T> = std::result::Result<T, errors::BinaryError>;
+pub type Result<T> = std::result::Result<T, BinaryError>;
 
 #[tokio::main]
 async fn main() {

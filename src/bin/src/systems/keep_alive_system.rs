@@ -26,10 +26,6 @@ impl KeepAliveSystem {
 impl System for KeepAliveSystem {
     async fn start(self: Arc<Self>, state: GlobalState) {
         info!("Started keep_alive");
-        let mut last_time = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .expect("Time went backwards")
-            .as_millis() as i64;
         loop {
             if self.shutdown.load(Ordering::Relaxed) {
                 break;

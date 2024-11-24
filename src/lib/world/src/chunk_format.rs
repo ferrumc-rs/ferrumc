@@ -2,20 +2,18 @@ use crate::errors::WorldError;
 use crate::vanilla_chunk_format;
 use crate::vanilla_chunk_format::VanillaChunk;
 use bitcode_derive::{Decode, Encode};
+use ferrumc_macros::{NBTDeserialize, NBTSerialize};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use lazy_static::lazy_static;
 use std::collections::HashMap;
-use std::io::{Read, Write};
-use tokio::io::{AsyncWrite, AsyncWriteExt};
+use std::io::Read;
 use tracing::error;
-use ferrumc_macros::{NBTDeserialize, NBTSerialize};
-use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
 use vanilla_chunk_format::Palette;
 
 #[cfg(test)]
 const BLOCKSFILE: &[u8] = &[0];
 
-// If this file doesn't exist, you'll have to create it yourself. Download the 1.21.3 server from the
+// If this file doesn't exist, you'll have to create it yourself. Download the 1.21.1 server from the
 // minecraft launcher, extract the blocks data (info here https://wiki.vg/Data_Generators#Blocks_report)
 // , put the blocks.json file in the .etc folder, and run the blocks_parser.py script in the scripts
 // folder. This will generate the blockmappings.json file that is compressed with bzip2 and included

@@ -1,19 +1,15 @@
-use std::io::Cursor;
 use crate::systems::definition::System;
+use async_trait::async_trait;
+use ferrumc_core::identity::player_identity::PlayerIdentity;
+use ferrumc_core::transform::position::Position;
+use ferrumc_net::connection::StreamWriter;
+use ferrumc_net::packets::outgoing::chunk_and_light_data::ChunkAndLightData;
 use ferrumc_net::GlobalState;
+use ferrumc_net_codec::encode::NetEncodeOpts;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
-use async_trait::async_trait;
 use tracing::{debug, info};
-use ferrumc_core::identity::player_identity::PlayerIdentity;
-use ferrumc_core::transform::position::Position;
-use ferrumc_net::connection::{ConnectionState, StreamWriter};
-use ferrumc_net::errors::NetError;
-use ferrumc_net::errors::NetError::EncoderError;
-use ferrumc_net::packets::outgoing::chunk_and_light_data::ChunkAndLightData;
-use ferrumc_net_codec::encode::NetEncodeOpts;
-use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 
 pub(super) struct ChunkSenderSystem {
     pub stop: AtomicBool,
@@ -34,11 +30,11 @@ impl System for ChunkSenderSystem {
 
         while !self.stop.load(Ordering::Relaxed) {
             let players = state.universe.query::<(&PlayerIdentity, &Position, &mut StreamWriter)>();
-
+            // TODO: This is so ass. Please fix this.
             for (player, position, mut conn) in players {
                 debug!("Sending chunks to player: {player:?} @ {position:?}");
-                for z in ((position.z.floor() as i32) / 16) - 5 .. (position.z.ceil() as i32 / 16) + 5 {
-                    for x in (position.x.floor() as i32 / 16) - 5 .. (position.x.ceil() as i32 / 16) + 5 {
+                for z in ((position.z.floor() as i32) / 16) - 5..(position.z.ceil() as i32 / 16) + 5 {
+                    for x in (position.x.floor() as i32 / 16) - 5..(position.x.ceil() as i32 / 16) + 5 {
                         match state.world.load_chunk(x, z).await {
                             Ok(chunk) => {
                                 match ChunkAndLightData::from_chunk(&chunk).await {

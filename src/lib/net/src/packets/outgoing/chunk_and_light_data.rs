@@ -4,7 +4,7 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::{Cursor, Write};
 use std::ops::Not;
 use tokio::io::AsyncWriteExt;
-use tracing::{debug, warn};
+use tracing::warn;
 use ferrumc_net_codec::net_types::bitset::BitSet;
 use ferrumc_world::chunk_format::{Chunk, Heightmaps};
 use crate::errors::{NetError};
