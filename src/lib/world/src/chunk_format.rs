@@ -91,15 +91,25 @@ impl VanillaChunk {
         let mut sections = Vec::new();
         for section in self.sections.as_ref().unwrap() {
             let y = section.y;
-            let (block_data, palette) = if let Some(block_states) = &section.block_states {
-                (block_states.data.clone().unwrap_or_default(), block_states.clone().palette.unwrap_or_default())
+            let block_data = if let Some(block_states) = &section.block_states {
+                block_states.data.clone().unwrap_or_default()
             } else {
-                (vec![], vec![])
+                vec![]
             };
-            let (biome_data, biome_palette) = if let Some(biomes) = &section.biomes {
-                (biomes.data.clone().unwrap_or_default(), biomes.clone().palette)
+            let palette = if let Some(block_states) = &section.block_states {
+                block_states.palette.clone().unwrap_or_default()
             } else {
-                (vec![], vec![])
+                vec![]
+            };
+            let biome_data = if let Some(biome_data) = &section.biomes {
+                biome_data.data.clone().unwrap_or_default()
+            } else {
+                vec![]
+            };
+            let biome_palette = if let Some(biome_data) = &section.biomes {
+                biome_data.palette.clone()
+            } else {
+                vec![]
             };
             let non_air_blocks = palette.iter().filter(|id| id.name != "air").count() as u16;
             let block_states = BlockStates {

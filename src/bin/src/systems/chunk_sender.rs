@@ -37,8 +37,8 @@ impl System for ChunkSenderSystem {
 
             for (player, position, mut conn) in players {
                 debug!("Sending chunks to player: {player:?} @ {position:?}");
-                for z in position.z.floor() as i32 - 5..position.z.ceil() as i32 + 5 {
-                    for x in position.x.floor() as i32 - 5..position.x.ceil() as i32 + 5 {
+                for z in ((position.z.floor() as i32) / 16) - 5 .. (position.z.ceil() as i32 / 16) + 5 {
+                    for x in (position.x.floor() as i32 / 16) - 5 .. (position.x.ceil() as i32 / 16) + 5 {
                         match state.world.load_chunk(x, z).await {
                             Ok(chunk) => {
                                 match ChunkAndLightData::from_chunk(&chunk).await {
