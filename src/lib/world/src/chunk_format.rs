@@ -7,6 +7,7 @@ use lazy_static::lazy_static;
 use std::collections::HashMap;
 use std::io::{Read, Write};
 use tokio::io::{AsyncWrite, AsyncWriteExt};
+use tracing::error;
 use ferrumc_macros::{NBTDeserialize, NBTSerialize};
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
 use vanilla_chunk_format::Palette;
@@ -79,10 +80,26 @@ fn convert_to_net_palette(vanilla_palettes: Vec<Palette>) -> Result<Vec<VarInt>,
         if let Some(id) = BLOCK2ID.get(&palette) {
             new_palette.push(VarInt::from(*id));
         } else {
-            return Err(WorldError::MissingBlockMapping(palette));
+            new_palette.push(VarInt::from(0));
+            error!("Could not find block id for palette entry: {:?}", palette);
         }
     }
     Ok(new_palette)
+}
+
+impl Heightmaps {
+    pub fn new() -> Self {
+        Heightmaps {
+            motion_blocking: vec![],
+            world_surface: vec![],
+        }
+    }
+}
+
+impl Default for Heightmaps {
+    fn default() -> Self {
+        Heightmaps::new()
+    }
 }
 
 

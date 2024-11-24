@@ -6,8 +6,11 @@ use std::ops::Not;
 use tokio::io::AsyncWriteExt;
 use tracing::{debug, warn};
 use ferrumc_net_codec::net_types::bitset::BitSet;
-use ferrumc_world::chunk_format::Chunk;
+use ferrumc_world::chunk_format::{Chunk, Heightmaps};
 use crate::errors::{NetError};
+
+
+const SECTIONS: usize = 24; // Number of sections, adjust for your Y range (-64 to 319)
 
 #[derive(NetEncode)]
 pub struct BlockEntity {
@@ -35,6 +38,28 @@ pub struct ChunkAndLightData {
 }
 
 impl ChunkAndLightData {
+    
+    pub async fn empty(chunk_x: i32, chunk_z: i32) -> Self {
+        let sky_light_arrays = (0..SECTIONS).map(|_| LengthPrefixedVec::new(vec![0; 2048])).collect();
+        let block_light_arrays = (0..SECTIONS).map(|_| LengthPrefixedVec::new(vec![0; 2048])).collect();
+        let mut empty_sky_light_mask = BitSet::new(SECTIONS + 2);
+        empty_sky_light_mask.set_all(false);
+        let mut empty_block_light_mask = BitSet::new(SECTIONS + 2);
+        empty_block_light_mask.set_all(false);
+        ChunkAndLightData {
+            chunk_x,
+            chunk_z,
+            heightmaps: Heightmaps::new().serialize_as_network(),
+            data: LengthPrefixedVec::new(vec![0; SECTIONS * 10]),
+            block_entities: LengthPrefixedVec::new(Vec::new()),
+            sky_light_mask: BitSet::new(SECTIONS),
+            block_light_mask: BitSet::new(SECTIONS),
+            empty_sky_light_mask,
+            empty_block_light_mask,
+            sky_light_arrays: LengthPrefixedVec::new(sky_light_arrays),
+            block_light_arrays: LengthPrefixedVec::new(block_light_arrays),
+        }
+    }
     
     
     pub async fn from_chunk(chunk: &Chunk) -> Result<Self, NetError> {
@@ -98,7 +123,6 @@ impl ChunkAndLightData {
             data.write_u8(0).await?;
 
         }
-        const SECTIONS: usize = 24; // Number of sections, adjust for your Y range (-64 to 319)
         let mut sky_light_mask = BitSet::new(SECTIONS + 2);
         let mut block_light_mask = BitSet::new(SECTIONS + 2);
 

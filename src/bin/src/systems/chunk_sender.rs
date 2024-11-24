@@ -49,11 +49,17 @@ impl System for ChunkSenderSystem {
                                     }
                                     Err(e) => {
                                         debug!("Could not convert chunk to chunk and light data: {e}");
+                                        if let Err(e) = conn.send_packet(&ChunkAndLightData::empty(x, z).await, &NetEncodeOpts::WithLength).await {
+                                            debug!("Could not send empty chunk to player: {e}");
+                                        }
                                     }
                                 }
                             }
                             Err(e) => {
                                 debug!("Could not load chunk at {x}, {z}: {e}");
+                                if let Err(e) = conn.send_packet(&ChunkAndLightData::empty(x, z).await, &NetEncodeOpts::WithLength).await {
+                                    debug!("Could not send empty chunk to player: {e}");
+                                }
                             }
                         }
                     }
