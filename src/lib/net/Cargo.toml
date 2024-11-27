@@ -29,4 +29,3 @@ serde_derive = { workspace = true }
 rand = { workspace = true }
 uuid = { workspace = true, features = ["v4"] }
 async-trait = { workspace = true }
-bitreader = { workspace = true }
