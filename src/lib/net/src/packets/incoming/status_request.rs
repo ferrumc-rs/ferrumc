@@ -9,7 +9,6 @@ use ferrumc_macros::{packet, NetDecode};
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use rand::seq::IndexedRandom;
 use std::sync::Arc;
-use rand::thread_rng;
 
 #[derive(NetDecode, Debug)]
 #[packet(packet_id = 0x00, state = "status")]
