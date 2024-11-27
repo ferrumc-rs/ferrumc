@@ -23,7 +23,6 @@ use tracing::{debug, trace};
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
-use ferrumc_net::packets::outgoing::finish_configuration::FinishConfigurationPacket;
 
 #[event_handler]
 async fn handle_login_start(

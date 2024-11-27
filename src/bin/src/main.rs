@@ -34,7 +34,7 @@ async fn main() {
     let cli_args = CLIArgs::parse();
     ferrumc_logging::init_logging(cli_args.log.clone());
 
-    println!("good day to ya. enjoy your time with ferrumc!");
+    info!("Starting server...");
 
     if let Err(e) = entry(cli_args).await {
         error!("Server exited with the following error: {}", e.to_string());

@@ -31,7 +31,7 @@ impl System for ChunkSenderSystem {
         while !self.stop.load(Ordering::Relaxed) {
             let players = state.universe.query::<(&PlayerIdentity, &Position, &mut StreamWriter)>();
             // TODO: This is so ass. Please fix this.
-            for (player, position, mut conn) in players {
+            for (_entity, (player, position, mut conn)) in players {
                 debug!("Sending chunks to player: {player:?} @ {position:?}");
                 for z in ((position.z.floor() as i32) / 16) - 5..(position.z.ceil() as i32 / 16) + 5 {
                     for x in (position.x.floor() as i32 / 16) - 5..(position.x.ceil() as i32 / 16) + 5 {

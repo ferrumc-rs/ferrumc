@@ -139,7 +139,7 @@ maplit = "1.0.2"
 macro_rules_attribute = "0.2.0"
 
 # Magic ("life-before-main" initialization, __attribute__((constructor)))
-ctor = "0.2.8"
+ctor = "0.2.9"
 
 # Compression/Decompression
 libflate = "2.1.0"

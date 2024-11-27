@@ -9,7 +9,6 @@ use ferrumc_net::utils::state::terminate_connection;
 use ferrumc_net::GlobalState;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
-use std::time::Duration;
 use tracing::{error, info, trace, warn};
 
 pub struct KeepAliveSystem {
@@ -34,7 +33,6 @@ impl System for KeepAliveSystem {
             }
 
             // Get the times before the queries, since it's possible a query takes more than a millisecond with a lot of entities.
-            let packet = KeepAlivePacket::default();
 
             let current_time = std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
