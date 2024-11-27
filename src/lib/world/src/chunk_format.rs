@@ -46,7 +46,6 @@ pub struct Chunk {
     pub heightmaps: Heightmaps,
 }
 
-
 #[derive(Encode, Decode, NBTDeserialize, NBTSerialize)]
 #[nbt(net_encode)]
 pub struct Heightmaps {
@@ -100,32 +99,30 @@ impl Default for Heightmaps {
     }
 }
 
-
 impl VanillaChunk {
     pub fn to_custom_format(&self) -> Result<Chunk, WorldError> {
         let mut sections = Vec::new();
         for section in self.sections.as_ref().unwrap() {
             let y = section.y;
-            let block_data = if let Some(block_states) = &section.block_states {
-                block_states.data.clone().unwrap_or_default()
-            } else {
-                vec![]
-            };
-            let palette = if let Some(block_states) = &section.block_states {
-                block_states.palette.clone().unwrap_or_default()
-            } else {
-                vec![]
-            };
-            let biome_data = if let Some(biome_data) = &section.biomes {
-                biome_data.data.clone().unwrap_or_default()
-            } else {
-                vec![]
-            };
-            let biome_palette = if let Some(biome_data) = &section.biomes {
-                biome_data.palette.clone()
-            } else {
-                vec![]
-            };
+            let block_data = section
+                .block_states
+                .as_ref()
+                .and_then(|bs| bs.data.clone())
+                .unwrap_or_default();
+            let palette = section
+                .block_states
+                .as_ref()
+                .and_then(|bs| bs.palette.clone())
+                .unwrap_or_default();
+            let biome_data = section
+                .biomes
+                .as_ref()
+                .and_then(|biome_data| biome_data.data.clone())
+                .unwrap_or_default();
+            let biome_palette = section
+                .biomes
+                .as_ref()
+                .map_or(vec![], |biome_data| biome_data.palette.clone());
             let non_air_blocks = palette.iter().filter(|id| id.name != "air").count() as u16;
             let block_states = BlockStates {
                 bits_per_block: (palette.len() as f32).log2().ceil() as u8,
@@ -133,8 +130,20 @@ impl VanillaChunk {
                 data: block_data,
                 palette: convert_to_net_palette(palette)?,
             };
-            let block_light = section.block_light.clone().unwrap_or(vec![0; 2048]).iter().map(|x| *x as u8).collect();
-            let sky_light = section.sky_light.clone().unwrap_or(vec![0; 2048]).iter().map(|x| *x as u8).collect();
+            let block_light = section
+                .block_light
+                .clone()
+                .unwrap_or(vec![0; 2048])
+                .iter()
+                .map(|x| *x as u8)
+                .collect();
+            let sky_light = section
+                .sky_light
+                .clone()
+                .unwrap_or(vec![0; 2048])
+                .iter()
+                .map(|x| *x as u8)
+                .collect();
             let section = Section {
                 y,
                 block_states,
