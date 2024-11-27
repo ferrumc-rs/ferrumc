@@ -9,6 +9,7 @@ use ferrumc_macros::{packet, NetDecode};
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use rand::seq::IndexedRandom;
 use std::sync::Arc;
+use rand::thread_rng;
 
 #[derive(NetDecode, Debug)]
 #[packet(packet_id = 0x00, state = "status")]
@@ -101,7 +102,7 @@ fn get_server_status(state: &Arc<ServerState>) -> String {
         sample: online_players_sample,
     };
 
-    let motd = config.motd.choose(&mut rand::thread_rng()).unwrap();
+    let motd = config.motd.choose(&mut rand::rng()).unwrap();
     let description = structs::Description { text: motd };
 
     let favicon = get_favicon_base64();

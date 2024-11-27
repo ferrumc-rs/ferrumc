@@ -110,7 +110,7 @@ thiserror = "1.0.63"
 
 # Cryptography
 rsa = "0.9.6"
-rand = "0.9.0-alpha.2"
+rand = "0.9.0-beta.0"
 fnv = "1.0.7"
 
 # Encoding/Serialization
