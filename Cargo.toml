@@ -157,8 +157,6 @@ colored = "2.1.0"
 
 # Misc
 deepsize = "0.2.0"
-bitreader = "0.3.11"
-
 
 # I/O
 tempfile = "3.12.0"

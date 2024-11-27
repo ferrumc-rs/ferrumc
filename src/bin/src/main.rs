@@ -3,7 +3,7 @@
 extern crate core;
 
 use crate::errors::BinaryError;
-use clap::Parser;
+use clap::{ Parser, ValueEnum };
 use ferrumc_config::statics::get_global_config;
 use ferrumc_ecs::Universe;
 use ferrumc_general_purpose::paths::get_root_path;
@@ -12,17 +12,51 @@ use ferrumc_net::ServerState;
 use ferrumc_world::World;
 use std::sync::Arc;
 use systems::definition;
-use tracing::{error, info};
+use tracing::{error, info, Level};
 
 #[derive(clap::Parser)]
 struct CLIArgs {
     #[clap(long)]
     import: bool,
     #[clap(long)]
-    log: Option<String>,
+    #[arg(value_enum, default_value_t = LogLevel(Level::TRACE))]
+    log: LogLevel,
 }
 
+// Wrapper struct for the Level enum
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct LogLevel(Level);
 
+// Implement `ValueEnum` for the wrapper
+impl ValueEnum for LogLevel {
+    fn value_variants<'a>() -> &'a [Self] {
+        static VARIANTS: &[LogLevel] = &[
+            LogLevel(Level::TRACE),
+            LogLevel(Level::DEBUG),
+            LogLevel(Level::INFO),
+            LogLevel(Level::WARN),
+            LogLevel(Level::ERROR),
+        ];
+        VARIANTS
+    }
+
+    fn to_possible_value(&self) -> Option<clap::builder::PossibleValue> {
+        match self.0 {
+            Level::TRACE => Some(clap::builder::PossibleValue::new("trace")),
+            Level::DEBUG => Some(clap::builder::PossibleValue::new("debug")),
+            Level::INFO => Some(clap::builder::PossibleValue::new("info")),
+            Level::WARN => Some(clap::builder::PossibleValue::new("warn")),
+            Level::ERROR => Some(clap::builder::PossibleValue::new("error")),
+        }
+    }
+}
+
+// Add a conversion method to make using the wrapper easier
+impl From<LogLevel> for Level {
+    fn from(log_level: LogLevel) -> Self {
+        log_level.0
+    }
+}
 pub(crate) mod errors;
 mod packet_handlers;
 mod systems;
@@ -32,7 +66,7 @@ pub type Result<T> = std::result::Result<T, BinaryError>;
 #[tokio::main]
 async fn main() {
     let cli_args = CLIArgs::parse();
-    ferrumc_logging::init_logging(cli_args.log.clone());
+    ferrumc_logging::init_logging(cli_args.log.into());
 
     info!("Starting server...");
 
@@ -62,7 +96,6 @@ async fn entry(cli_args: CLIArgs) -> Result<()> {
 
     Ok(())
 }
-
 
 async fn handle_import(import: bool) -> Result<bool> {
     //! Handles the import of the world if the `--import` flag is set.
