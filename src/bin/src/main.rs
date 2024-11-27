@@ -19,7 +19,7 @@ struct CLIArgs {
     #[clap(long)]
     import: bool,
     #[clap(long)]
-    #[arg(value_enum, default_value_t = LogLevel(Level::INFO))]
+    #[arg(value_enum, default_value_t = LogLevel(Level::TRACE))]
     log: LogLevel,
 }
 
