@@ -11,9 +11,10 @@ const LOG_LEVEL: &str = "trace";
 
 pub fn init_logging(log_level: Option<String>) {
     let trace_level = {
-    /*    let trace_level = std::env::args()
+        /*let trace_level = std::env::args()
             .find(|arg| arg.starts_with("--log="))
             .map(|arg| arg.replace("--log=", ""));*/
+        let trace_level = std::env::var("FERRUMC_LOG").ok();
 
         // let trace_level = trace_level.unwrap_or_else(|| LOG_LEVEL.to_string());
         let trace_level = log_level.unwrap_or_else(|| {

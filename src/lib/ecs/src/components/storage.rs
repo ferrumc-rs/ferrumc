@@ -99,14 +99,14 @@ impl<T> DerefMut for ComponentRefMut<'_, T> {
 }
 
 
-impl<T: Debug> Debug for ComponentRef<'_, T> {
+impl<T: Component+Debug> Debug for ComponentRef<'_, T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        (*self.guard).fmt(f)
+        self.guard.fmt(f)
     }
 }
 
-impl<T: Debug> Debug for ComponentRefMut<'_, T> {
+impl<T: Component+Debug> Debug for ComponentRefMut<'_, T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        (*self.guard).fmt(f)
+        self.guard.fmt(f)
     }
 }

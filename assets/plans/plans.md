@@ -46,6 +46,7 @@
 
 
 - [ ] Database
+  - [x] [redb](https://www.redb.org/)
   - [ ] [LMDB](https://en.wikipedia.org/wiki/Lightning_Memory-Mapped_Database) (K/V Store)
   - [ ] Hash(key) => Value
 
@@ -57,7 +58,6 @@
   - [ ] Plugin support (listening, interacting, canceling, etc)
   - [x] Auto init with reflections
   - [ ] support multiple versions (map versions packet id etc)
-
 
 - [ ] Redstone
   - [ ] Compile redstone, lightweight impl (fast & accurate)
