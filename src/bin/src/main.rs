@@ -97,7 +97,6 @@ async fn entry(cli_args: CLIArgs) -> Result<()> {
     Ok(())
 }
 
-
 async fn handle_import(import: bool) -> Result<bool> {
     //! Handles the import of the world if the `--import` flag is set.
     //! Returns `true` if program should exit after this function, `false` otherwise.
