@@ -41,7 +41,10 @@ impl System for ChunkSenderSystem {
                 .query::<(&PlayerIdentity, &Position, &mut StreamWriter)>();
             // TODO: This is so ass. Please fix this.
             for (_entity, (player, position, mut conn)) in players {
-                debug!("Sending chunks to player: {player:?} @ {position:?}");
+                debug!(
+                    "Sending chunks to player: {} @ {:.2},{:.2},{:.2}",
+                    player.username, position.x, position.y, position.z
+                );
                 // Haha SIMD go brrrrt
                 let [chunk_x, chunk_z] = f64x2::from_array([position.x, position.z])
                     .floor()
@@ -109,7 +112,7 @@ impl System for ChunkSenderSystem {
                 }
 
                 debug!(
-                    "Sent {} chunks to player: {} @ {},{} in {:?}",
+                    "Sent {} chunks to player: {} @ {:.2},{:.2} in {:?}",
                     (CHUNK_RADIUS * 2) * 2,
                     player.username,
                     position.x,
