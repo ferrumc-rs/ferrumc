@@ -14,6 +14,8 @@ use ferrumc_net::packets::outgoing::game_event::GameEventPacket;
 use ferrumc_net::packets::outgoing::keep_alive::OutgoingKeepAlivePacket;
 use ferrumc_net::packets::outgoing::login_play::LoginPlayPacket;
 use ferrumc_net::packets::outgoing::login_success::LoginSuccessPacket;
+use ferrumc_net::packets::outgoing::set_center_chunk::SetCenterChunk;
+use ferrumc_net::packets::outgoing::set_render_distance::SetRenderDistance;
 use ferrumc_net::packets::outgoing::registry_data::get_registry_packets;
 use ferrumc_net::packets::outgoing::set_default_spawn_position::SetDefaultSpawnPositionPacket;
 use ferrumc_net::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket;
@@ -133,18 +135,30 @@ async fn handle_ack_finish_configuration(
 
     let mut writer = state.universe.get_mut::<StreamWriter>(conn_id)?;
 
-    writer
+    writer // 21
         .send_packet(&LoginPlayPacket::new(conn_id), &NetEncodeOpts::WithLength)
         .await?;
-    writer
+    writer // 29
         .send_packet(
-            &SetDefaultSpawnPositionPacket::default(),
+            &SynchronizePlayerPositionPacket::default(), // The coordinates here should be used for the center chunk.
             &NetEncodeOpts::WithLength,
         )
         .await?;
-    writer
+    writer // 37
         .send_packet(
-            &SynchronizePlayerPositionPacket::default(),
+            &SetDefaultSpawnPositionPacket::default(), // Player specific, aka. home, bed, where it would respawn.
+            &NetEncodeOpts::WithLength,
+        )
+        .await?;
+    writer // 38
+        .send_packet(
+            &GameEventPacket::start_waiting_for_level_chunks(),
+            &NetEncodeOpts::WithLength,
+        )
+        .await?;
+    writer // 41
+        .send_packet(
+            &SetCenterChunk::new(0, 0), // TODO - Dependent on the player spawn position.
             &NetEncodeOpts::WithLength,
         )
         .await?;

@@ -7,7 +7,6 @@ use ferrumc_net::packets::outgoing::chunk_and_light_data::ChunkAndLightData;
 use ferrumc_net::packets::outgoing::set_center_chunk::SetCenterChunk;
 use ferrumc_net::GlobalState;
 use ferrumc_net_codec::encode::NetEncodeOpts;
-use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::ops::Div;
 use std::simd::num::SimdFloat;
 use std::simd::{f64x2, StdFloat};
@@ -53,10 +52,7 @@ impl System for ChunkSenderSystem {
                     .to_array();
                 if let Err(e) = conn
                     .send_packet(
-                        &SetCenterChunk {
-                            x: VarInt::new(chunk_x),
-                            z: VarInt::new(chunk_z),
-                        },
+                        &SetCenterChunk::new(chunk_x, chunk_z),
                         &NetEncodeOpts::WithLength,
                     )
                     .await
