@@ -162,13 +162,12 @@ async fn handle_ack_finish_configuration(
             &NetEncodeOpts::WithLength,
         )
         .await?;
-    writer
+    writer // other
         .send_packet(
-            &GameEventPacket::start_waiting_for_level_chunks(),
+            &SetRenderDistance::new(5), // TODO
             &NetEncodeOpts::WithLength,
         )
         .await?;
-
     send_keep_alive(conn_id, state, &mut writer).await?;
 
     Ok(ack_finish_configuration_event)
