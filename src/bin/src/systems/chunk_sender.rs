@@ -16,6 +16,8 @@ use std::sync::Arc;
 use std::time::Duration;
 use tracing::{debug, error, info};
 
+const CHUNK_RADIUS: i32 = 12;
+
 pub(super) struct ChunkSenderSystem {
     pub stop: AtomicBool,
 }
@@ -62,46 +64,58 @@ impl System for ChunkSenderSystem {
                     );
                     continue;
                 }
-                for z in chunk_x - 5..chunk_x + 5 {
-                    for x in chunk_z - 5..chunk_z + 5 {
-                        match state.world.load_chunk(x, z).await {
-                            Ok(chunk) => match ChunkAndLightData::from_chunk(&chunk).await {
-                                Ok(chunk_data) => {
-                                    if let Err(e) = conn
-                                        .send_packet(&chunk_data, &NetEncodeOpts::WithLength)
-                                        .await
+                let start = std::time::Instant::now();
+                let mut chunk_range = (chunk_x - CHUNK_RADIUS..chunk_x + CHUNK_RADIUS)
+                    .flat_map(|z| {
+                        (chunk_z - CHUNK_RADIUS..chunk_z + CHUNK_RADIUS).map(move |x| (x, z))
+                    })
+                    .collect::<Vec<_>>();
+
+                chunk_range.sort_by_key(|&(x, z)| {
+                    let dx = x - chunk_x;
+                    let dz = z - chunk_z;
+                    (((dx ^ 2) + (dz ^ 2)) as f64).sqrt() as i32
+                });
+
+                match state.world.load_chunk_batch(chunk_range).await {
+                    Ok(chunks) => {
+                        for chunk in chunks {
+                            match ChunkAndLightData::from_chunk(&chunk).await {
+                                Ok(data) => {
+                                    if let Err(e) =
+                                        conn.send_packet(&data, &NetEncodeOpts::WithLength).await
                                     {
-                                        debug!("Could not send chunk to player: {e}");
+                                        error!(
+                                            "Unable to send chunk data to {} @ {}, {}: {}",
+                                            &player.username, chunk.x, chunk.z, e
+                                        );
                                     }
                                 }
                                 Err(e) => {
-                                    debug!("Could not convert chunk to chunk and light data: {e}");
-                                    if let Err(e) = conn
-                                        .send_packet(
-                                            &ChunkAndLightData::empty(x, z).await,
-                                            &NetEncodeOpts::WithLength,
-                                        )
-                                        .await
-                                    {
-                                        debug!("Could not send empty chunk to player: {e}");
-                                    }
-                                }
-                            },
-                            Err(e) => {
-                                debug!("Could not load chunk at {x}, {z}: {e}");
-                                if let Err(e) = conn
-                                    .send_packet(
-                                        &ChunkAndLightData::empty(x, z).await,
-                                        &NetEncodeOpts::WithLength,
-                                    )
-                                    .await
-                                {
-                                    debug!("Could not send empty chunk to player: {e}");
+                                    error!(
+                                        "Unable to convert chunk to chunk and light data for {} @ {}, {}: {}",
+                                        &player.username, chunk.x, chunk.z, e
+                                    );
                                 }
                             }
                         }
                     }
+                    Err(e) => {
+                        error!(
+                            "Unable to load chunks for {} @ {}, {}: {}",
+                            &player.username, chunk_x, chunk_z, e
+                        );
+                    }
                 }
+
+                debug!(
+                    "Sent {} chunks to player: {} @ {},{} in {:?}",
+                    (CHUNK_RADIUS * 2) * 2,
+                    player.username,
+                    position.x,
+                    position.z,
+                    start.elapsed()
+                );
             }
 
             tokio::time::sleep(Duration::from_secs(5)).await;
