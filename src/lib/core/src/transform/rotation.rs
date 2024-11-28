@@ -48,7 +48,7 @@ impl Default for Rotation {
 
 impl Clone for Rotation {
     fn clone(&self) -> Self {
-        Self::new(self.yaw, self.pitch)
+        *self
     }
 }
 
@@ -59,8 +59,7 @@ impl Debug for Rotation {
         write!(
             f,
             "Rotation {{ yaw: {:.2}°, pitch: {:.2}° (normalized) }}",
-            self.yaw,
-            self.pitch
+            self.yaw, self.pitch
         )
     }
 }
@@ -71,8 +70,8 @@ impl From<(f32, f32)> for Rotation {
     }
 }
 
-impl Into<(f32, f32)> for Rotation {
-    fn into(self) -> (f32, f32) {
-        (self.yaw, self.pitch)
+impl From<Rotation> for (f32, f32) {
+    fn from(rotation: Rotation) -> (f32, f32) {
+        (rotation.yaw, rotation.pitch)
     }
 }

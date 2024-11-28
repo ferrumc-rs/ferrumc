@@ -1,3 +1,4 @@
+#![feature(portable_simd)]
 extern crate core;
 
 use tokio::net::TcpListener;

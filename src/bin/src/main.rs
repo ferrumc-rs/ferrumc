@@ -1,9 +1,9 @@
-// Security or something like that
+#![feature(portable_simd)]
 #![forbid(unsafe_code)]
 extern crate core;
 
 use crate::errors::BinaryError;
-use clap::{ Parser, ValueEnum };
+use clap::{Parser, ValueEnum};
 use ferrumc_config::statics::get_global_config;
 use ferrumc_ecs::Universe;
 use ferrumc_general_purpose::paths::get_root_path;
@@ -85,7 +85,6 @@ async fn entry(cli_args: CLIArgs) -> Result<()> {
     let state = create_state().await?;
     let global_state = Arc::new(state);
 
-
     let all_system_handles = tokio::spawn(definition::start_all_systems(global_state.clone()));
 
     // Start the systems and wait until all of them are done
@@ -112,7 +111,6 @@ async fn handle_import(import: bool) -> Result<bool> {
 
     let root_path = get_root_path();
     let database_opts = &config.database;
-
 
     let mut import_path = root_path.join(database_opts.import_path.clone());
     if import_path.is_relative() {

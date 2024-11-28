@@ -12,3 +12,4 @@ pub mod game_event;
 pub mod update_time;
 pub mod disconnect;
 pub mod chunk_and_light_data;
+pub mod set_center_chunk;
