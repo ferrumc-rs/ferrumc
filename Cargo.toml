@@ -121,6 +121,8 @@ base64 = "0.22.1"
 bitcode = "0.6.3"
 bitcode_derive = "0.6.3"
 
+# Bit manipulation
+byteorder = "1.5.0"
 
 # Data types
 hashbrown = "0.15.0"

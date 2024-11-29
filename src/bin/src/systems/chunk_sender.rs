@@ -79,7 +79,7 @@ impl System for ChunkSenderSystem {
                 match state.world.load_chunk_batch(chunk_range).await {
                     Ok(chunks) => {
                         for chunk in chunks {
-                            match ChunkAndLightData::from_chunk(&chunk).await {
+                            match ChunkAndLightData::from_chunk(&chunk) {
                                 Ok(data) => {
                                     if let Err(e) =
                                         conn.send_packet(&data, &NetEncodeOpts::WithLength).await
@@ -88,6 +88,18 @@ impl System for ChunkSenderSystem {
                                             "Unable to send chunk data to {} @ {}, {}: {}",
                                             &player.username, chunk.x, chunk.z, e
                                         );
+                                        if let Err(e) = conn
+                                            .send_packet(
+                                                &ChunkAndLightData::empty(chunk.x, chunk.z),
+                                                &NetEncodeOpts::WithLength,
+                                            )
+                                            .await
+                                        {
+                                            error!(
+                                                "Unable to send empty chunk data to {} @ {}, {}: {}",
+                                                &player.username, chunk.x, chunk.z, e
+                                            );
+                                        }
                                     }
                                 }
                                 Err(e) => {
@@ -95,6 +107,18 @@ impl System for ChunkSenderSystem {
                                         "Unable to convert chunk to chunk and light data for {} @ {}, {}: {}",
                                         &player.username, chunk.x, chunk.z, e
                                     );
+                                    if let Err(e) = conn
+                                        .send_packet(
+                                            &ChunkAndLightData::empty(chunk.x, chunk.z),
+                                            &NetEncodeOpts::WithLength,
+                                        )
+                                        .await
+                                    {
+                                        error!(
+                                            "Unable to send empty chunk data to {} @ {}, {}: {}",
+                                            &player.username, chunk.x, chunk.z, e
+                                        );
+                                    }
                                 }
                             }
                         }
