@@ -35,14 +35,15 @@ impl System for ChunkSenderSystem {
         info!("Chunk sender system started");
 
         while !self.stop.load(Ordering::Relaxed) {
+            debug!("Sending chunks to players");
             let players = state
                 .universe
                 .query::<(&PlayerIdentity, &Position, &mut StreamWriter)>();
             // TODO: This is so ass. Please fix this.
             for (_entity, (player, position, mut conn)) in players {
                 debug!(
-                    "Sending chunks to player: {} @ {:.2},{:.2},{:.2}",
-                    player.username, position.x, position.y, position.z
+                    "Sending chunks to player: {} @ {}",
+                    player.username, position
                 );
                 // Haha SIMD go brrrrt
                 let [chunk_x, chunk_z] = f64x2::from_array([position.x, position.z])
