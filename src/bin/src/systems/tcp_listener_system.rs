@@ -31,7 +31,7 @@ impl TcpListenerSystem {
         info!("Server is listening on [{}]", tcp_listener.local_addr()?);
         
         loop {
-            info!("Accepting connection");
+            debug!("Accepting connection");
             let (stream, _) = tcp_listener.accept().await?;
             let addy = stream.peer_addr()?;
             tokio::task::spawn(

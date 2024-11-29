@@ -1,9 +1,8 @@
+use crate::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
+use crate::net_types::var_int::VarInt;
 use std::io::Write;
 use std::ops::Not;
 use tokio::io::{AsyncWrite, AsyncWriteExt};
-use crate::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
-use crate::net_types::var_int::VarInt;
-
 
 #[derive(Debug, Clone)]
 pub struct BitSet(Vec<u64>);
@@ -13,7 +12,7 @@ impl BitSet {
         let num_blocks = (size + 63) / 64;
         Self(vec![0; num_blocks])
     }
-    
+
     pub fn set(&mut self, index: usize, is_set: bool) {
         let word_index = index / 64;
         let bit_index = index % 64;
@@ -26,7 +25,7 @@ impl BitSet {
             self.0[word_index] &= !(1 << bit_index);
         }
     }
-    
+
     pub fn get(&self, index: usize) -> bool {
         let word_index = index / 64;
         let bit_index = index % 64;
@@ -35,7 +34,7 @@ impl BitSet {
         }
         self.0[word_index] & (1 << bit_index) != 0
     }
-    
+
     pub fn flip(&mut self, index: usize) {
         let word_index = index / 64;
         let bit_index = index % 64;
@@ -44,8 +43,8 @@ impl BitSet {
         }
         self.0[word_index] ^= 1 << bit_index;
     }
-    
-    pub fn set_all(&mut self, is_set: bool){
+
+    pub fn set_all(&mut self, is_set: bool) {
         let value = if is_set { 0xFFFFFFFFFFFFFFFF } else { 0 };
         for val in &mut self.0 {
             *val = value;
@@ -56,17 +55,25 @@ impl BitSet {
 impl NetEncode for BitSet {
     fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
         VarInt::from(self.0.len()).encode(writer, opts)?;
-        for val in &self.0 {
-            writer.write_all(&val.to_be_bytes())?;
-        }
+        writer.write_all(&ferrumc_general_purpose::simd::arrays::u64_slice_to_u8_be(
+            &self.0,
+        ))?;
         Ok(())
     }
 
-    async fn encode_async<W: AsyncWrite + Unpin>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
-        VarInt::from(self.0.len() as i32).encode_async(writer, opts).await?;
-        for val in &self.0 {
-            writer.write_all(&val.to_be_bytes()).await?;
-        }
+    async fn encode_async<W: AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        opts: &NetEncodeOpts,
+    ) -> NetEncodeResult<()> {
+        VarInt::from(self.0.len() as i32)
+            .encode_async(writer, opts)
+            .await?;
+        writer
+            .write_all(&ferrumc_general_purpose::simd::arrays::u64_slice_to_u8_be(
+                &self.0,
+            ))
+            .await?;
         Ok(())
     }
 }
@@ -74,12 +81,11 @@ impl NetEncode for BitSet {
 impl Not for BitSet {
     type Output = Self;
 
-    fn not(self) -> Self::Output {
-        let mut new = self.clone();
-        for val in &mut new.0 {
+    fn not(mut self) -> Self::Output {
+        for val in &mut self.0 {
             *val = !*val;
         }
-        new
+        self
     }
 }
 
@@ -118,5 +124,59 @@ mod tests {
         bitset.set(128, true);
         assert!(bitset.get(128));
         assert!(!bitset.get(127));
+    }
+
+    #[test]
+    fn test_set_all() {
+        // Test setting all bits to true
+        let mut bitset = BitSet::new(128); // Create a bitset of size 128
+        bitset.set_all(true); // Set all bits to true
+        for i in 0..128 {
+            assert!(bitset.get(i), "Bit at index {} should be set to true", i);
+        }
+
+        // Test setting all bits to false
+        bitset.set_all(false); // Set all bits to false
+        for i in 0..128 {
+            assert!(!bitset.get(i), "Bit at index {} should be set to false", i);
+        }
+    }
+
+    #[test]
+    fn test_not_trait() {
+        let mut bitset = BitSet::new(128); // Create a bitset of size 128
+
+        // Set some bits to true
+        bitset.set(5, true);
+        bitset.set(10, true);
+        bitset.set(20, true);
+
+        // Apply the NOT operation, which should invert the bits
+        let inverted = !bitset;
+
+        // Check that the bits that were set to true are now false and vice versa
+        assert!(
+            !inverted.get(5),
+            "Bit at index 5 should be false after inversion"
+        );
+        assert!(
+            !inverted.get(10),
+            "Bit at index 10 should be false after inversion"
+        );
+        assert!(
+            !inverted.get(20),
+            "Bit at index 20 should be false after inversion"
+        );
+
+        // Check that all other bits are now true
+        for i in 0..128 {
+            if i != 5 && i != 10 && i != 20 {
+                assert!(
+                    inverted.get(i),
+                    "Bit at index {} should be true after inversion",
+                    i
+                );
+            }
+        }
     }
 }
