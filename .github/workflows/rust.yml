@@ -1,15 +1,3 @@
-name: Rust
-
-on:
-  pull_request:
-    branches: [ "master", "rewrite/v3" ]
-  push:
-    branches: [ "master", "rewrite/v3" ]
-  workflow_dispatch:
-
-env:
-  CARGO_TERM_COLOR: always
-
 jobs:
   format:
     name: Check code formatting
@@ -17,6 +5,16 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Restore cargo cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
 
       - name: Install Rust nightly
         uses: dtolnay/rust-toolchain@nightly
@@ -34,14 +32,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Restore cargo cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
       - name: Install Rust nightly
         uses: dtolnay/rust-toolchain@nightly
 
-      - name: Install clippy
-        run: rustup component add clippy
-
       - name: Run Clippy
-        run: cargo clippy --all-targets -- -Dwarnings
+        run: cargo clippy -- -Dwarnings -Dclippy::all
 
   security:
     name: Check for security vulnerabilities
@@ -50,14 +55,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Restore cargo cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
       - name: Install Rust nightly
         uses: dtolnay/rust-toolchain@nightly
 
-      - name: Install audit
+      - name: Install cargo-audit
         run: cargo install cargo-audit
 
       - name: Run cargo audit
-        run: cargo install cargo-audit && cargo audit
+        run: cargo audit
 
   build:
     name: Build project
@@ -76,7 +91,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Cache dependencies
+      - name: Restore cargo and target cache
         uses: actions/cache@v3
         with:
           path: |
@@ -112,7 +127,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Cache dependencies
+      - name: Restore cargo and target cache
         uses: actions/cache@v3
         with:
           path: |
