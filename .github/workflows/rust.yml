@@ -10,8 +10,6 @@ on:
 env:
   CARGO_TERM_COLOR: always
 
-
-
 jobs:
   format:
     name: Check code formatting
@@ -19,16 +17,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Restore cargo cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
 
       - name: Install Rust nightly
         uses: dtolnay/rust-toolchain@nightly
@@ -59,8 +47,11 @@ jobs:
       - name: Install Rust nightly
         uses: dtolnay/rust-toolchain@nightly
 
+      - name: Install clippy
+        run: rustup component add clippy
+
       - name: Run Clippy
-        run: cargo clippy -- -Dwarnings -Dclippy::all
+        run: cargo clippy --all-targets -- -Dwarnings
 
   security:
     name: Check for security vulnerabilities
@@ -69,24 +60,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Restore cargo cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
-
       - name: Install Rust nightly
         uses: dtolnay/rust-toolchain@nightly
 
-      - name: Install cargo-audit
+      - name: Install audit
         run: cargo install cargo-audit
 
       - name: Run cargo audit
-        run: cargo audit
+        run: cargo install cargo-audit && cargo audit
 
   build:
     name: Build project
@@ -105,7 +86,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Restore cargo and target cache
+      - name: Cache dependencies
         uses: actions/cache@v3
         with:
           path: |
@@ -141,7 +122,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Restore cargo and target cache
+      - name: Cache dependencies
         uses: actions/cache@v3
         with:
           path: |
