@@ -21,6 +21,9 @@ jobs:
       - name: Install Rust nightly
         uses: dtolnay/rust-toolchain@nightly
 
+      - name: Install rustfmt
+        run: rustup component add rustfmt
+
       - name: Run cargo fmt
         run: cargo fmt --all -- --check
 
@@ -34,6 +37,9 @@ jobs:
       - name: Install Rust nightly
         uses: dtolnay/rust-toolchain@nightly
 
+      - name: Install clippy
+        run: rustup component add clippy
+
       - name: Run Clippy
         run: cargo clippy --all-targets -- -Dwarnings
 
@@ -46,6 +52,9 @@ jobs:
 
       - name: Install Rust nightly
         uses: dtolnay/rust-toolchain@nightly
+
+      - name: Install audit
+        run: rustup component add cargo-audit
 
       - name: Run cargo audit
         run: cargo install cargo-audit && cargo audit
