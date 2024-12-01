@@ -266,7 +266,6 @@ mod tests {
 
     #[test]
     fn test_get_chunk() {
-        ferrumc_logging::init_logging();
         let file_path = PathBuf::from(root!(".etc/r.0.0.mca"));
         let loaded_file = load_anvil_file(file_path).unwrap();
         let chunk = loaded_file.get_chunk(0, 0);

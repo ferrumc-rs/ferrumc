@@ -23,6 +23,10 @@ impl World {
     pub async fn sync(&self) -> Result<(), WorldError> {
         sync_internal(self).await
     }
+    
+    pub async fn load_chunk_batch(&self, coords: Vec<(i32, i32)>) -> Result<Vec<Chunk>, WorldError> {
+        load_chunk_batch_internal(self, coords).await
+    }
 }
 
 pub(crate) async fn save_chunk_internal(
@@ -50,6 +54,23 @@ pub(crate) async fn load_chunk_internal(
         }
         None => Err(WorldError::ChunkNotFound),
     }
+}
+
+pub(crate) async fn load_chunk_batch_internal(
+    world: &World,
+    coords: Vec<(i32, i32)>,
+) -> Result<Vec<Chunk>, WorldError> {
+    let digests = coords.into_iter().map(|(x, z)| ferrumc_general_purpose::hashing::hash((x, z))).collect();
+    world.storage_backend.batch_get("chunks".to_string(), digests).await?.iter().map(|chunk| {
+        match chunk {
+            Some(compressed) => {
+                let data = world.compressor.decompress(compressed)?;
+                let chunk: Chunk = bitcode::decode(&data).map_err(|e| WorldError::BitcodeDecodeError(e.to_string()))?;
+                Ok(chunk)
+            }
+            None => Err(WorldError::ChunkNotFound),
+        }
+    }).collect()
 }
 
 pub(crate) async fn chunk_exists_internal(

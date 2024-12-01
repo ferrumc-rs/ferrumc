@@ -63,11 +63,6 @@ debug-assertions = false
 overflow-checks = false
 panic = "abort"
 
-[profile.dev]
-lto = false
-opt-level = 1
-split-debuginfo = "unpacked"
-
 #=============== Dependencies ==============#
 [workspace.dependencies]
 # Workspace members
@@ -115,7 +110,7 @@ thiserror = "1.0.63"
 
 # Cryptography
 rsa = "0.9.6"
-rand = "0.9.0-alpha.2"
+rand = "0.9.0-beta.0"
 fnv = "1.0.7"
 
 # Encoding/Serialization
@@ -126,6 +121,8 @@ base64 = "0.22.1"
 bitcode = "0.6.3"
 bitcode_derive = "0.6.3"
 
+# Bit manipulation
+byteorder = "1.5.0"
 
 # Data types
 hashbrown = "0.15.0"
@@ -144,7 +141,7 @@ maplit = "1.0.2"
 macro_rules_attribute = "0.2.0"
 
 # Magic ("life-before-main" initialization, __attribute__((constructor)))
-ctor = "0.2.8"
+ctor = "0.2.9"
 
 # Compression/Decompression
 libflate = "2.1.0"
@@ -162,7 +159,6 @@ colored = "2.1.0"
 
 # Misc
 deepsize = "0.2.0"
-
 
 # I/O
 tempfile = "3.12.0"

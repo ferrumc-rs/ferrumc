@@ -2,7 +2,7 @@ pub mod errors;
 mod importing;
 mod vanilla_chunk_format;
 mod db_functions;
-mod chunk_format;
+pub mod chunk_format;
 
 use crate::errors::WorldError;
 use ferrumc_storage::compressors::Compressor;
@@ -13,6 +13,7 @@ use std::sync::Arc;
 use tokio::fs::create_dir_all;
 use tracing::{error, info, warn};
 use ferrumc_config::statics::get_global_config;
+use ferrumc_general_purpose::paths::get_root_path;
 
 #[derive(Clone)]
 pub struct World {
@@ -27,29 +28,31 @@ async fn check_config_validity() -> Result<(), WorldError> {
     // the importing logic.
 
     let config = get_global_config();
+    let db_path = get_root_path().join(&config.database.db_path);
+
     if config.database.backend.is_empty() {
         error!("No backend specified. Please set the backend in the configuration file.");
         return Err(WorldError::InvalidBackend(config.database.backend.clone()));
     }
-    if !Path::new(&config.database.db_path).exists() {
+    if !Path::new(&db_path).exists() {
         warn!("World path does not exist. Attempting to create it.");
-        if create_dir_all(&config.database.db_path).await.is_err() {
-            error!("Could not create world path: {}", config.database.db_path);
+        if create_dir_all(&db_path).await.is_err() {
+            error!("Could not create world path: {}", db_path.display());
             return Err(WorldError::InvalidWorldPath(
-                config.database.db_path.clone(),
+                db_path.to_string_lossy().to_string(),
             ));
         }
     }
-    if Path::new(&config.database.db_path).is_file() {
+    if Path::new(&db_path).is_file() {
         error!("World path is a file. Please set the world path to a directory.");
         return Err(WorldError::InvalidWorldPath(
-            config.database.db_path.clone(),
+            db_path.to_string_lossy().to_string(),
         ));
     }
-    if let Err(e) = Path::new(&config.database.db_path).read_dir() {
+    if let Err(e) = Path::new(&db_path).read_dir() {
         error!("Could not read world path: {}", e);
         return Err(WorldError::InvalidWorldPath(
-            config.database.db_path.clone(),
+            db_path.to_string_lossy().to_string(),
         ));
     }
 
@@ -80,7 +83,10 @@ impl World {
         }
         // Clones are kinda ok here since this is only run once at startup.
         let backend_string = get_global_config().database.backend.trim();
-        let backend_path = get_global_config().database.db_path.clone();
+        let mut backend_path = PathBuf::from(get_global_config().database.db_path.clone());
+        if backend_path.is_relative() {
+            backend_path = get_root_path().join(backend_path);
+        }
         let storage_backend: Result<Box<dyn DatabaseBackend + Send + Sync>, WorldError> = match backend_string
             .to_lowercase()
             .as_str()
@@ -88,7 +94,7 @@ impl World {
             "surrealkv" => {
                 #[cfg(feature = "surrealkv")]
                 match ferrumc_storage::backends::surrealkv::SurrealKVBackend::initialize(Some(
-                    PathBuf::from(backend_path),
+                    backend_path,
                 ))
                 .await
                 {
@@ -103,9 +109,7 @@ impl World {
             }
             "sled" => {
                 #[cfg(feature = "sled")]
-                match ferrumc_storage::backends::sled::SledBackend::initialize(Some(PathBuf::from(
-                    backend_path,
-                )))
+                match ferrumc_storage::backends::sled::SledBackend::initialize(Some(backend_path))
                 .await
                 {
                     Ok(backend) => Ok(Box::new(backend)),
@@ -119,9 +123,7 @@ impl World {
             }
             "rocksdb" => {
                 #[cfg(feature = "rocksdb")]
-                match ferrumc_storage::backends::rocksdb::RocksDBBackend::initialize(Some(
-                    PathBuf::from(backend_path),
-                ))
+                match ferrumc_storage::backends::rocksdb::RocksDBBackend::initialize(Some(backend_path))
                 .await
                 {
                     Ok(backend) => Ok(Box::new(backend)),
@@ -135,9 +137,7 @@ impl World {
             }
             "redb" => {
                 #[cfg(feature = "redb")]
-                match ferrumc_storage::backends::redb::RedbBackend::initialize(Some(PathBuf::from(
-                    backend_path,
-                )))
+                match ferrumc_storage::backends::redb::RedbBackend::initialize(Some(backend_path))
                 .await
                 {
                     Ok(backend) => Ok(Box::new(backend)),
@@ -157,10 +157,15 @@ impl World {
                 exit(1);
             }
         };
-        let storage_backend = if let Ok(backend) = storage_backend {
-            backend
-        } else {
-            exit(1);
+
+        let storage_backend = match storage_backend {
+            Ok(backend) => {
+                backend
+            }
+            Err(e) => {
+                error!("Could not initialize storage backend: {}", e);
+                exit(1);
+            }
         };
 
         let compressor_string = get_global_config().database.compression.trim();

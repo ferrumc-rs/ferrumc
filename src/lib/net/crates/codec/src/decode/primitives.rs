@@ -1,11 +1,11 @@
-use std::collections::HashMap;
-use std::hash::Hash;
 use crate::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
 use crate::net_types::var_int::VarInt;
+use std::collections::HashMap;
+use std::hash::Hash;
 use std::io::Read;
 
 macro_rules! impl_for_primitives {
-    ($($primitive_type:ty | $alt:ty),*) => {
+    ($($primitive_type:ty $(| $alt:ty)?),*) => {
         $(
             impl NetDecode for $primitive_type {
                 fn decode<R: Read>(reader: &mut R, _: &NetDecodeOpts) -> NetDecodeResult<Self> {
@@ -15,14 +15,16 @@ macro_rules! impl_for_primitives {
                 }
             }
 
-            impl NetDecode for $alt {
-                fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> NetDecodeResult<Self> {
-                    // Basically use the decode method of the primitive type,
-                    // and then convert it to the alternative type.
-                    <$primitive_type as NetDecode>::decode(reader, opts)
-                    .map(|x| x as Self)
+            $(
+                impl NetDecode for $alt {
+                    fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> NetDecodeResult<Self> {
+                        // Basically use the decode method of the primitive type,
+                        // and then convert it to the alternative type.
+                        <$primitive_type as NetDecode>::decode(reader, opts)
+                        .map(|x| x as Self)
+                    }
                 }
-            }
+            )?
         )*
     };
 }
@@ -33,7 +35,8 @@ impl_for_primitives!(
     u32 | i32,
     u64 | i64,
     u128 | i128,
-    f32 | f64
+    f32,
+    f64
 );
 
 impl NetDecode for bool {
@@ -80,7 +83,6 @@ where
         Ok(vec)
     }
 }
-
 
 
 /// This isn't actually a type in the Minecraft Protocol. This is just for saving data/ or for general use.

@@ -6,8 +6,7 @@ use std::arch::x86_64::*;
 #[cfg(target_arch = "x86_64")]
 #[inline(always)]
 fn has_avx2() -> bool {
-    // is_x86_feature_detected!("avx2")
-    false
+    is_x86_feature_detected!("avx2")
 }
 
 /// Converts a slice of `u8` to a slice of `i8` without copying.
@@ -29,7 +28,11 @@ pub fn u8_slice_to_u32_be(input: &[u8]) -> Vec<u32> {
             return unsafe { u8_slice_to_u32_be_simd(input) };
         }
     }
-    #[cfg(not(all(target_arch = "x86_64", target_feature = "avx2", not(target_os = "macos"))))]
+    #[cfg(not(all(
+        target_arch = "x86_64",
+        target_feature = "avx2",
+        not(target_os = "macos")
+    )))]
     {
         u8_slice_to_u32_be_normal(input)
     }
@@ -181,7 +184,11 @@ pub fn u32_slice_to_u8_be(input: &[u32]) -> Vec<u8> {
             return unsafe { u32_slice_to_u8_be_simd(input) };
         }
     }
-    #[cfg(not(all(target_arch = "x86_64", target_feature = "avx2", not(target_os = "macos"))))]
+    #[cfg(not(all(
+        target_arch = "x86_64",
+        target_feature = "avx2",
+        not(target_os = "macos")
+    )))]
     {
         println!("Not using SIMD");
         u32_slice_to_u8_be_normal(input)
@@ -236,7 +243,11 @@ pub fn u64_slice_to_u8_be(input: &[u64]) -> Vec<u8> {
             return unsafe { u64_slice_to_u8_be_simd(input) };
         }
     }
-    #[cfg(not(all(target_arch = "x86_64", target_feature = "avx2", not(target_os = "macos"))))]
+    #[cfg(not(all(
+        target_arch = "x86_64",
+        target_feature = "avx2",
+        not(target_os = "macos")
+    )))]
     {
         u64_slice_to_u8_be_normal(input)
     }
@@ -284,4 +295,3 @@ unsafe fn u64_slice_to_u8_be_simd(input: &[u64]) -> Vec<u8> {
 
     output
 }
-

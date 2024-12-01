@@ -7,29 +7,7 @@ use tracing_subscriber::fmt::Layer;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 
-const LOG_LEVEL: &str = "trace";
-
-pub fn init_logging() {
-    let trace_level = {
-        /*let trace_level = std::env::args()
-            .find(|arg| arg.starts_with("--log="))
-            .map(|arg| arg.replace("--log=", ""));*/
-        let trace_level = std::env::var("FERRUMC_LOG").ok();
-
-        let trace_level = trace_level.unwrap_or_else(|| LOG_LEVEL.to_string());
-
-        let trace_level = match trace_level.trim().parse::<tracing::Level>() {
-            Ok(level) => level,
-            Err(_) => {
-                eprintln!("Invalid log level: {}", trace_level);
-                eprintln!("Possible values: trace, debug, info, warn, error");
-                eprintln!("Using default log level: trace");
-                Level::TRACE
-            }
-        };
-
-        trace_level
-    };
+pub fn init_logging(trace_level: tracing::Level) {
 
     let env_filter = EnvFilter::from_default_env()
             .add_directive(trace_level.into());

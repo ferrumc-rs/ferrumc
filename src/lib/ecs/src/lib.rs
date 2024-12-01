@@ -44,8 +44,9 @@ impl Universe {
         self.entities.builder(&self.components)
     }
 
-    pub fn add_component<T: Component>(&self, entity: Entity, component: T) -> ECSResult<()> {
-        self.components.insert(entity, component)
+    pub fn add_component<T: Component>(&self, entity: Entity, component: T) -> ECSResult<&Self> {
+        self.components.insert(entity, component)?;
+        Ok(self)
     }
     
     pub fn remove_component<T: Component>(&self, entity: Entity) -> ECSResult<()> {

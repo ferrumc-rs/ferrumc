@@ -8,6 +8,7 @@ use tracing::{error, info};
 use crate::errors::WorldError;
 use crate::World;
 use ferrumc_anvil::load_anvil_file;
+use ferrumc_general_purpose::paths::BetterPathExt;
 use crate::db_functions::save_chunk_internal;
 use crate::vanilla_chunk_format::VanillaChunk;
 
@@ -16,29 +17,22 @@ use crate::vanilla_chunk_format::VanillaChunk;
 /// is empty.
 fn check_paths_validity(import_dir: PathBuf) -> Result<(), WorldError> {
     if !import_dir.exists() {
-        error!("Import path does not exist: {}", import_dir.to_string_lossy());
-        return Err(WorldError::InvalidImportPath(import_dir.to_string_lossy().to_string()));
+        error!("Import path does not exist: {}", import_dir.better_display());
+        return Err(WorldError::InvalidImportPath(import_dir.better_display()));
     }
     if import_dir.is_file() {
-        error!("Import path is a file: {}", import_dir.to_string_lossy());
-        return Err(WorldError::InvalidImportPath(import_dir.to_string_lossy().to_string()));
+        error!("Import path is a file: {}", import_dir.better_display());
+        return Err(WorldError::InvalidImportPath(import_dir.better_display()));
     }
-    if !import_dir.join("region").exists() {
-        error!("Import path does not contain a region folder: {}", import_dir.to_string_lossy());
-        return Err(WorldError::InvalidImportPath(import_dir.to_string_lossy().to_string()));
-    }
-    if import_dir.join("region").is_file() {
-        error!("Import path's region folder is a file: {}", import_dir.to_string_lossy());
-        return Err(WorldError::InvalidImportPath(import_dir.to_string_lossy().to_string()));
-    }
-    if let Ok(dir) = import_dir.join("region").read_dir() {
+
+    if let Ok(dir) = import_dir.read_dir() {
         if dir.count() == 0 {
-            error!("Import path's region folder is empty: {}", import_dir.to_string_lossy());
-            return Err(WorldError::InvalidImportPath(import_dir.to_string_lossy().to_string()));
+            error!("Import path's region folder is empty: {}", import_dir.better_display());
+            return Err(WorldError::NoRegionFiles);
         }
     } else {
-        error!("Could not read import path's region folder: {}", import_dir.to_string_lossy());
-        return Err(WorldError::InvalidImportPath(import_dir.to_string_lossy().to_string()));
+        error!("Could not read import path's region folder: {}", import_dir.better_display());
+        return Err(WorldError::InvalidImportPath(import_dir.better_display()));
     }
     Ok(())
 }
@@ -124,7 +118,7 @@ impl World {
                 }
             }
         };
-        while (task_set.join_next().await).is_some() {}
+        while task_set.join_next().await.is_some() {}
         self.sync().await?;
         progress_bar.clone().finish();
         info!("Imported {} chunks in {:?}", progress_bar.clone().position(), start.elapsed());

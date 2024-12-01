@@ -30,7 +30,7 @@ pub(crate) struct VanillaChunk {
     #[nbt(rename = "DataVersion")]
     pub data_version: i32,
     #[nbt(rename = "Heightmaps")]
-    pub heightmaps: Option<Heightmaps>,
+    pub heightmaps: Option<VanillaHeightmaps>,
     #[nbt(rename = "isLightOn")]
     pub is_light_on: Option<i8>,
     #[nbt(rename = "InhabitedTime")]
@@ -50,7 +50,7 @@ pub(crate) struct VanillaChunk {
 #[apply(ChunkDerives)]
 #[derive(deepsize::DeepSizeOf)]
 #[nbt(net_encode)]
-pub(crate) struct Heightmaps {
+pub(crate) struct VanillaHeightmaps {
     // #[nbt(rename = "MOTION_BLOCKING_NO_LEAVES")]
     // pub motion_blocking_no_leaves: Option<Vec<i64>>,
     #[nbt(rename = "MOTION_BLOCKING")]

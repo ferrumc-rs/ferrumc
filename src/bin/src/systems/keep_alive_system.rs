@@ -27,26 +27,20 @@ impl KeepAliveSystem {
 impl System for KeepAliveSystem {
     async fn start(self: Arc<Self>, state: GlobalState) {
         info!("Started keep_alive");
-        let mut last_time = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .expect("Time went backwards")
-            .as_millis() as i64;
         loop {
             if self.shutdown.load(Ordering::Relaxed) {
                 break;
             }
 
-            let online_players = state.universe.query::<&PlayerIdentity>();
+            // Get the times before the queries, since it's possible a query takes more than a millisecond with a lot of entities.
 
             let current_time = std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .expect("Time went backwards")
                 .as_millis() as i64;
 
-            if current_time - last_time >= 5000 {
-                info!("Online players: {}", online_players.count());
-                last_time = current_time;
-            }
+            let online_players = state.universe.query::<&PlayerIdentity>();
+            info!("Online players: {}", online_players.count());
 
             let entities = state
                 .universe

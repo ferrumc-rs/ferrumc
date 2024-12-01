@@ -18,6 +18,8 @@ pub enum WorldError {
     InvalidCacheSize(String),
     #[error("Invalid Import Path: {0}")]
     InvalidImportPath(String),
+    #[error("No region files")]
+    NoRegionFiles,
     #[error("Unable to obtain permission to access file/folder: {0}")]
     PermissionError(String),
     #[error("Some kind of IO error occurred: {0}")]
