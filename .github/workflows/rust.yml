@@ -54,7 +54,7 @@ jobs:
         uses: dtolnay/rust-toolchain@nightly
 
       - name: Install audit
-        run: rustup component add cargo-audit
+        run: cargo install cargo-audit
 
       - name: Run cargo audit
         run: cargo install cargo-audit && cargo audit
