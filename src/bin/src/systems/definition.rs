@@ -17,7 +17,7 @@ pub trait System: Send + Sync {
     fn name(&self) -> &'static str;
 }
 
-static SYSTEMS: LazyLock<Vec<Arc<dyn System>>> = LazyLock::new(|| create_systems());
+static SYSTEMS: LazyLock<Vec<Arc<dyn System>>> = LazyLock::new(create_systems);
 pub fn create_systems() -> Vec<Arc<dyn System>> {
     vec![
         Arc::new(TcpListenerSystem),
