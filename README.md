@@ -29,6 +29,9 @@ FerrumC is a **1.21.1** Minecraft server implementation written from the ground 
 Rust
 programming language, it is completely multithreaded and offers high performance as well as amazing memory efficiency!
 
+[Docs](https://docs.ferrumc.com) are currently under construction, but you can join
+our [Discord server](https://discord.gg/qT5J8EMjwk) for help or to discuss the project!
+
 <img src="https://github.com/ferrumc-rs/ferrumc/assets/README/in_game.png?raw=true" alt="In-game screenshot">
 
 ## ✨ Key Features
