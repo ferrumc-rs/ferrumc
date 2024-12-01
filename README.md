@@ -1,4 +1,4 @@
-<img style="width: 100%" src="https://github.com/ferrumc-rs/ferrumc/blob/dev/README/assets/header.svg?raw=true" alt="FerrumC Header">
+<img style="width: 100%" src="https://github.com/ferrumc-rs/ferrumc/assets/header.svg?raw=true" alt="FerrumC Header">
 <div align="center">
     <img src="https://img.shields.io/github/license/ferrumc-rs/ferrumc?style=for-the-badge&color=red" alt="License">
     <img src="https://img.shields.io/github/languages/code-size/ferrumc-rs/ferrumc?style=for-the-badge&color=red" alt="Code Size">
@@ -29,37 +29,37 @@ FerrumC is a **1.21.1** Minecraft server implementation written from the ground 
 Rust
 programming language, it is completely multithreaded and offers high performance as well as amazing memory efficiency!
 
-<img src="https://github.com/ferrumc-rs/ferrumc/blob/dev/README/assets/in_game.png?raw=true" alt="In-game screenshot">
+<img src="https://github.com/ferrumc-rs/ferrumc/assets/in_game.png?raw=true" alt="In-game screenshot">
 
 ## ✨ Key Features
 
 <ul>
    <li>
      <h4>🛈 Customizable server list</h4>
-     <img src="https://github.com/ferrumc-rs/ferrumc/blob/dev/README/assets/server%20list.png?raw=true" alt="Server list">
+     <img src="https://github.com/ferrumc-rs/ferrumc/assets/server%20list.png?raw=true" alt="Server list">
    </li>
    <li>
      <h4>🚄 Extremely fast and adaptable update speeds</h4>
-     <img src="https://github.com/ferrumc-rs/ferrumc/blob/dev/README/assets/mind%20boggling.gif?raw=true" alt="Mind boggling">
+     <img src="https://github.com/ferrumc-rs/ferrumc/assets/mind%20boggling.gif?raw=true" alt="Mind boggling">
    </li>
    <li>
      <h4>🖥️ Highly efficient memory usage</h4>
-     <img src="https://github.com/ferrumc-rs/ferrumc/blob/dev/README/assets/mem_use.png?raw=true" alt="Low memory usage">
+     <img src="https://github.com/ferrumc-rs/ferrumc/assets/mem_use.png?raw=true" alt="Low memory usage">
    </li>
    <li>
      <h4>🗂️ Customizable configuration</h4>
-     <img src="https://github.com/ferrumc-rs/ferrumc/blob/dev/README/assets/config.png?raw=true" alt="Configuration">
+     <img src="https://github.com/ferrumc-rs/ferrumc/assets/config.png?raw=true" alt="Configuration">
    </li>
    <li>
       <h4>🔄 Can import existing worlds from vanilla minecraft</h4>
-      <img src="https://github.com/ferrumc-rs/ferrumc/blob/dev/README/assets/importing/chunk_importing.gif?raw=true" alt="Configuration">
+      <img src="https://github.com/ferrumc-rs/ferrumc/assets/importing/chunk_importing.gif?raw=true" alt="Configuration">
    </li>
    <li>
       <h4>🌐 Compatible with vanilla Minecraft clients (Currently only 1.21.1)</h4>
    </li>
    <li>
       <h4>💪 Powerful Entity Component System to handle high entity loads</h4>
-      <img src="https://github.com/ferrumc-rs/ferrumc/blob/dev/README/assets/ECSBlockDiagram.png?raw=true" alt="Entity Component System">
+      <img src="https://github.com/ferrumc-rs/ferrumc/assets/ECSBlockDiagram.png?raw=true" alt="Entity Component System">
       <p><i>ECS Block Diagram (credits: <a href="https://docs.unity3d.com/Packages/com.unity.entities@0.1/manual/ecs_core.html">Unity</a>)</i></p>
    </li>
    <li>
@@ -71,7 +71,7 @@ programming language, it is completely multithreaded and offers high performance
    <li>
       <h4>💾 Multiple database options to finetune the server to your needs</h4>
       <i>32 render distance*</i>
-      <img src="https://github.com/ferrumc-rs/ferrumc/blob/dev/README/assets/chunk_loading.gif?raw=true" alt="Chunk Loading DEMO">
+      <img src="https://github.com/ferrumc-rs/ferrumc/assets/chunk_loading.gif?raw=true" alt="Chunk Loading DEMO">
    </li>
 </ul>
 
@@ -120,7 +120,7 @@ For now, you can either **compile** the server from source or **download** from 
 
 ### [Option 1] Download from Github Actions
 
-![Where To Find](https://github.com/ferrumc-rs/ferrumc/blob/dev/README/assets/download_prebuilt.gif?raw=true)
+![Where To Find](https://github.com/ferrumc-rs/ferrumc/assets/download_prebuilt.gif?raw=true)
 
 1. Go to the [Actions](https://github.com/ferrumc-rs/ferrumc/actions) tab
 2. Click on the latest build
