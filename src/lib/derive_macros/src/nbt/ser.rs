@@ -1,9 +1,9 @@
-use crate::nbt::helpers::{NbtFieldAttribute, Cases};
+use crate::nbt::helpers::{Cases, NbtFieldAttribute};
 use proc_macro::TokenStream;
 use proc_macro2::Span;
 use quote::quote;
 use syn::spanned::Spanned;
-use syn::{Data, Fields, Expr, LitStr};
+use syn::{Data, Expr, Fields, LitStr};
 
 pub fn derive(input: TokenStream) -> TokenStream {
     let input = syn::parse_macro_input!(input as syn::DeriveInput);
@@ -27,12 +27,13 @@ pub fn derive(input: TokenStream) -> TokenStream {
                 match attr {
                     NbtFieldAttribute::RenameAll { case } => {
                         variant_case = case.clone();
-                    },
-                    NbtFieldAttribute::TagType { tag } => { tag_type = *tag; },
+                    }
+                    NbtFieldAttribute::TagType { tag } => {
+                        tag_type = *tag;
+                    }
                     _ => {}
                 }
             }
-
 
             let fields = fields.iter().enumerate().map(|(i, field)| {
                 let ident = format!("_{}", i);
@@ -303,15 +304,15 @@ pub fn derive(input: TokenStream) -> TokenStream {
                 writer
             }
         }
-        
+
         impl #impl_generics #name #ty_generics #where_clause {
             pub fn serialize_as_network(&self) -> Vec<u8> {
                 let mut writer = Vec::new();
-                
+
                 <#name #ty_generics as ::ferrumc_nbt::NBTSerializable>::serialize(self, &mut writer, &::ferrumc_nbt::NBTSerializeOptions::Network);
                 /*<u8 as ::ferrumc_nbt::NBTSerializable>::serialize(&<Self as ::ferrumc_nbt::NBTSerializable>::id(), &mut writer, &::ferrumc_nbt::NBTSerializeOptions::None);
                 <#name #ty_generics as ::ferrumc_nbt::NBTSerializable>::serialize(self, &mut writer, &::ferrumc_nbt::NBTSerializeOptions::None);*/
-                
+
                 writer
             }
         }

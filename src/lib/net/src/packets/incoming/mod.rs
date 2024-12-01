@@ -8,8 +8,8 @@ pub mod server_bound_known_packs;
 pub mod server_bound_plugin_message;
 pub mod status_request;
 
-pub mod packet_skeleton;
 pub mod keep_alive;
+pub mod packet_skeleton;
 
 pub mod set_player_position;
 pub mod set_player_position_and_rotation;

@@ -33,12 +33,7 @@ impl DatabaseBackend for SurrealKVBackend {
         }
     }
 
-    async fn insert(
-        &self,
-        table: String,
-        key: u64,
-        value: Vec<u8>,
-    ) -> Result<(), StorageError> {
+    async fn insert(&self, table: String, key: u64, value: Vec<u8>) -> Result<(), StorageError> {
         if self.exists(table.clone(), key).await? {
             return Err(StorageError::KeyExists(key));
         }
@@ -87,12 +82,7 @@ impl DatabaseBackend for SurrealKVBackend {
         Ok(())
     }
 
-    async fn update(
-        &self,
-        table: String,
-        key: u64,
-        value: Vec<u8>,
-    ) -> Result<(), StorageError> {
+    async fn update(&self, table: String, key: u64, value: Vec<u8>) -> Result<(), StorageError> {
         if self.exists(table.clone(), key).await? {
             self.insert(table, key, value).await
         } else {
@@ -100,12 +90,7 @@ impl DatabaseBackend for SurrealKVBackend {
         }
     }
 
-    async fn upsert(
-        &self,
-        table: String,
-        key: u64,
-        value: Vec<u8>,
-    ) -> Result<bool, StorageError> {
+    async fn upsert(&self, table: String, key: u64, value: Vec<u8>) -> Result<bool, StorageError> {
         if self.exists(table.clone(), key).await? {
             self.update(table, key, value).await?;
             Ok(false)
@@ -184,7 +169,7 @@ impl DatabaseBackend for SurrealKVBackend {
     async fn create_table(&self, _: String) -> Result<(), StorageError> {
         Ok(())
     }
-    
+
     async fn close(&self) -> Result<(), StorageError> {
         // I should probably do something here, but I'm just hoping the drop trait will handle it.
         Ok(())

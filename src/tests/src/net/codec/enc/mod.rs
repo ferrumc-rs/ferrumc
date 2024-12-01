@@ -29,7 +29,7 @@ fn test_encode() {
         .encode(&mut writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)
         .unwrap();
 }
-    
+
 #[allow(unreachable_code)]
 fn _test_compression() -> ! {
     let example = SomeExampleEncStructWithPacketId {

@@ -37,8 +37,7 @@ pub trait DatabaseBackend {
     /// # Returns
     ///
     /// A Result containing the inserted key-value pair or a StorageError
-    async fn insert(&self, table: String, key: u64, value: Vec<u8>)
-        -> Result<(), StorageError>;
+    async fn insert(&self, table: String, key: u64, value: Vec<u8>) -> Result<(), StorageError>;
 
     /// Retrieves a value from the database
     ///
@@ -75,8 +74,7 @@ pub trait DatabaseBackend {
     /// # Returns
     ///
     /// A Result containing nothing or a StorageError
-    async fn update(&self, table: String, key: u64, value: Vec<u8>)
-        -> Result<(), StorageError>;
+    async fn update(&self, table: String, key: u64, value: Vec<u8>) -> Result<(), StorageError>;
 
     /// Upserts a key-value pair in the database
     ///
@@ -89,12 +87,7 @@ pub trait DatabaseBackend {
     /// # Returns
     ///
     /// A Result containing a boolean indicating if the key was inserted or updated or a StorageError
-    async fn upsert(
-        &self,
-        table: String,
-        key: u64,
-        value: Vec<u8>,
-    ) -> Result<bool, StorageError>;
+    async fn upsert(&self, table: String, key: u64, value: Vec<u8>) -> Result<bool, StorageError>;
 
     /// Checks if a key exists in the database
     ///

@@ -1,10 +1,8 @@
 use crate::errors::StorageError;
 use std::io::Read;
 
-
 pub(crate) fn compress_deflate(level: u32, data: &[u8]) -> Result<Vec<u8>, StorageError> {
-    let mut compressor =
-        flate2::read::DeflateEncoder::new(data, flate2::Compression::new(level));
+    let mut compressor = flate2::read::DeflateEncoder::new(data, flate2::Compression::new(level));
     let mut compressed = Vec::new();
     compressor
         .read_to_end(&mut compressed)
@@ -21,11 +19,10 @@ pub(crate) fn decompress_deflate(data: &[u8]) -> Result<Vec<u8>, StorageError> {
     Ok(decompressed)
 }
 
-
 #[cfg(test)]
 mod test {
-    use ferrumc_utils::root;
     use crate::compressors::{Compressor, CompressorType};
+    use ferrumc_utils::root;
 
     #[test]
     fn test_compress_decompress() {

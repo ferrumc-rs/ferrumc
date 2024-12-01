@@ -2,16 +2,16 @@
 //!
 //! Contains the static global configuration and its related functions.
 
+use crate::server_config::ServerConfig;
+use ferrumc_general_purpose::paths::get_root_path;
+use lazy_static::lazy_static;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::process::exit;
-use crate::server_config::ServerConfig;
-use lazy_static::lazy_static;
 use tracing::{error, info};
-use ferrumc_general_purpose::paths::get_root_path;
 
 /// The default server configuration that is stored in memory.
-const DEFAULT_CONFIG: &str = include_str!("../../../../../.etc/example-config.toml");
+pub(crate) const DEFAULT_CONFIG: &str = include_str!("../../../../../.etc/example-config.toml");
 
 lazy_static! {
     /// The server configuration that is stored in memory.
@@ -29,7 +29,7 @@ fn create_config() -> ServerConfig {
         };
         let mut config_str = String::new();
         if let Err(e) = file.read_to_string(&mut config_str) {
-            error!("Could not read configuration file: {}",e );
+            error!("Could not read configuration file: {}", e);
             exit(1);
         } else {
             if config_str.is_empty() {
@@ -45,7 +45,10 @@ fn create_config() -> ServerConfig {
             }
         }
     } else {
-        info!("Configuration file not found. Making a default configuration at {}", config_location.display());
+        info!(
+            "Configuration file not found. Making a default configuration at {}",
+            config_location.display()
+        );
         let default_config = DEFAULT_CONFIG;
         // write to the config file
         let mut file = match File::create(config_location) {
@@ -74,6 +77,3 @@ fn create_config() -> ServerConfig {
 pub fn get_global_config() -> &'static ServerConfig {
     &CONFIG
 }
-
-
-

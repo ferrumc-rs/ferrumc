@@ -1,8 +1,8 @@
+use base64::Engine;
+use ferrumc_general_purpose::paths::get_root_path;
+use lazy_static::lazy_static;
 use std::fs::File;
 use std::io::Read;
-use base64::Engine;
-use lazy_static::lazy_static;
-use ferrumc_general_purpose::paths::get_root_path;
 
 const BAKED_FAVICON: &[u8] = include_bytes!("../../../../../icon-64.png");
 
@@ -11,7 +11,6 @@ lazy_static! {
         let encoded = base64::engine::general_purpose::STANDARD.encode(BAKED_FAVICON);
         format!("data:image/png;base64,{}", encoded)
     };
-
     static ref CUSTOM_FAVICON: Option<String> = {
         let icon_path = get_root_path().join("icon.png");
         if icon_path.exists() {
@@ -27,7 +26,10 @@ lazy_static! {
                 eprintln!("Could not read custom favicon file: {}", e);
                 return None;
             }
-            let res = format!("data:image/png;base64,{}", base64::engine::general_purpose::STANDARD.encode(icon));
+            let res = format!(
+                "data:image/png;base64,{}",
+                base64::engine::general_purpose::STANDARD.encode(icon)
+            );
             Some(res)
         } else {
             None

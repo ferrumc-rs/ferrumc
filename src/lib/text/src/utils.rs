@@ -1,6 +1,6 @@
 use crate::*;
-use serde::{Serialize, Deserialize};
 use ferrumc_macros::NBTSerialize;
+use serde::{Deserialize, Serialize};
 
 #[macro_export]
 macro_rules! make_bool_setters {
@@ -119,7 +119,11 @@ impl From<&str> for Font {
 /// The click event of the text component
 ///
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, NBTSerialize)]
-#[serde(tag = "action", content = "value", rename_all(serialize = "snake_case"))]
+#[serde(
+    tag = "action",
+    content = "value",
+    rename_all(serialize = "snake_case")
+)]
 #[nbt(tag = "action", content = "value", rename_all = "snake_case")]
 pub enum ClickEvent {
     /// Opens an URL
@@ -142,7 +146,11 @@ pub enum ClickEvent {
 /// The hover event of the text component
 ///
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, NBTSerialize)]
-#[serde(tag = "action", content = "contents", rename_all(serialize = "snake_case"))]
+#[serde(
+    tag = "action",
+    content = "contents",
+    rename_all(serialize = "snake_case")
+)]
 #[nbt(tag = "action", content = "contents", rename_all = "snake_case")]
 pub enum HoverEvent {
     ShowText(Box<TextComponent>),

@@ -16,13 +16,12 @@ pub enum NetError {
 
     #[error("IO Error: {0}")]
     IOError(#[from] std::io::Error),
-    
+
     #[error("Addr parse error: {0}")]
     AddrParseError(#[from] std::net::AddrParseError),
 
     #[error("Task Error: {0}")]
     TaskError(#[from] tokio::task::JoinError),
-
 
     #[error("UTF8 Error: {0}")]
     UTF8Error(#[from] std::string::FromUtf8Error),
@@ -41,7 +40,7 @@ pub enum NetError {
 
     #[error("{0}")]
     Packet(#[from] PacketError),
-    
+
     #[error("{0}")]
     Chunk(#[from] ChunkError),
 }

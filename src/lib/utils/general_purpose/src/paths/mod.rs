@@ -1,5 +1,5 @@
-use std::path::PathBuf;
 use std::env::current_exe;
+use std::path::PathBuf;
 
 #[derive(thiserror::Error, Debug)]
 pub enum RootPathError {
@@ -31,7 +31,10 @@ pub fn get_root_path() -> PathBuf {
     //! ```
     //!
     let exe_location = current_exe().expect("Failed to get the current executable location.");
-    let exe_dir = exe_location.parent().ok_or(RootPathError::NoParent).expect("Failed to get the parent directory of the executable.");
+    let exe_dir = exe_location
+        .parent()
+        .ok_or(RootPathError::NoParent)
+        .expect("Failed to get the parent directory of the executable.");
     exe_dir.to_path_buf()
 }
 
@@ -43,14 +46,15 @@ impl BetterPathExt for PathBuf {
     fn better_display(&self) -> String {
         //! Returns a string representation of the path that is more readable.
         //! <br>
-        //! e.g. 
+        //! e.g.
         //! If the path is `D:\\server\\world\\region\\r.0.0.mca`,
         //! <br>
         //! -> `D:/server/world/region/r.0.0.mca`.
-        let path = self.to_string_lossy()
-            .replace(r"\\?\", "")  // Remove Windows extended path prefix
-            .replace(r"\\", r"\");  // Normalize backslashes
-        
+        let path = self
+            .to_string_lossy()
+            .replace(r"\\?\", "") // Remove Windows extended path prefix
+            .replace(r"\\", r"\"); // Normalize backslashes
+
         format!("`{}`", path)
     }
 }

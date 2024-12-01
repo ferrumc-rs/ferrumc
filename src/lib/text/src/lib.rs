@@ -1,12 +1,12 @@
 use ferrumc_macros::NBTSerialize;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[cfg(test)]
 mod tests;
 
-mod utils;
 mod builders;
 mod r#impl;
+mod utils;
 
 pub use builders::*;
 pub use utils::*;

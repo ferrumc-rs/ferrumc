@@ -1,11 +1,11 @@
 pub mod errors;
 
+use crate::errors::AnvilError;
+use memmap2::Mmap;
 use std::io::Read;
 use std::path::PathBuf;
-use memmap2::Mmap;
 use tracing::error;
 use yazi::Adler32;
-use crate::errors::AnvilError;
 
 pub struct LoadedAnvilFile {
     pub table: [u8; 4096],
@@ -52,7 +52,6 @@ pub fn get_chunk(x: u32, z: u32, file_path: PathBuf) -> Option<Vec<u8>> {
 /// ```
 #[allow(unsafe_code)]
 pub fn load_anvil_file(file_path: PathBuf) -> Result<LoadedAnvilFile, AnvilError> {
-
     // Check if the file exists
     if !file_path.exists() {
         return Err(AnvilError::FileNotFound(file_path));
@@ -70,13 +69,10 @@ pub fn load_anvil_file(file_path: PathBuf) -> Result<LoadedAnvilFile, AnvilError
         }
     }
 
-    let file = std::fs::File::open(&file_path).map_err(
-        |e| AnvilError::UnableToReadFile(file_path.clone(), e)
-    )?;
+    let file = std::fs::File::open(&file_path)
+        .map_err(|e| AnvilError::UnableToReadFile(file_path.clone(), e))?;
 
-    let res = unsafe { Mmap::map(&file) }.map_err(
-        |e| AnvilError::UnableToMapFile(file_path, e)
-    )?;
+    let res = unsafe { Mmap::map(&file) }.map_err(|e| AnvilError::UnableToMapFile(file_path, e))?;
 
     let table = {
         let mut table = [0; 4096];
@@ -90,11 +86,10 @@ pub fn load_anvil_file(file_path: PathBuf) -> Result<LoadedAnvilFile, AnvilError
     })
 }
 
-
 impl LoadedAnvilFile {
     /// Get all the locations from the table
     ///
-    /// The locations are 32-bit integers, where the first 24 bits are the offset in the file, and 
+    /// The locations are 32-bit integers, where the first 24 bits are the offset in the file, and
     /// the last 8 bits are the size of the chunk. Generally these aren't useful on their own, but
     /// can be used to get the chunk data with `get_chunk_from_location`. They are probably in order
     /// but not guaranteed to be
@@ -125,7 +120,6 @@ impl LoadedAnvilFile {
         // Return a reference to the slice (no allocation needed)
         Ok(&self.data_map[offset..offset + size])
     }
-
 
     /// Get the chunk data from a location
     ///
@@ -173,22 +167,20 @@ impl LoadedAnvilFile {
             2 => {
                 let out = yazi::decompress(chunk_compressed_data, yazi::Format::Zlib).ok();
                 match out {
-                    Some(data) => {
-                        match data.1 {
-                            Some(checksum) => {
-                                if Adler32::from_buf(&data.0).finish() == checksum {
-                                    Some(data.0)
-                                } else {
-                                    error!("Checksum does not match");
-                                    None
-                                }
-                            }
-                            None => {
-                                error!("Failed to decompress Zlib data (No checksum)");
+                    Some(data) => match data.1 {
+                        Some(checksum) => {
+                            if Adler32::from_buf(&data.0).finish() == checksum {
+                                Some(data.0)
+                            } else {
+                                error!("Checksum does not match");
                                 None
                             }
                         }
-                    }
+                        None => {
+                            error!("Failed to decompress Zlib data (No checksum)");
+                            None
+                        }
+                    },
                     None => {
                         error!("Failed to decompress Zlib data");
                         None
@@ -222,20 +214,20 @@ impl LoadedAnvilFile {
             u32::from(self.table[base_index + 2]),
             u32::from(self.table[base_index + 3]),
         ];
-        let location = (chunk_data[0] << 24) | (chunk_data[1] << 16) | (chunk_data[2] << 8) | chunk_data[3];
+        let location =
+            (chunk_data[0] << 24) | (chunk_data[1] << 16) | (chunk_data[2] << 8) | chunk_data[3];
         self.get_chunk_from_location(location)
     }
 }
 
-
 #[cfg(test)]
 mod tests {
-    use std::fs::File;
-    use std::io::Read;
-    use fastanvil::Region;
     use super::*;
+    use fastanvil::Region;
     use ferrumc_utils::root;
     use rayon::prelude::*;
+    use std::fs::File;
+    use std::io::Read;
 
     #[test]
     fn test_load_anvil_file() {
@@ -269,7 +261,10 @@ mod tests {
         let file_path = PathBuf::from(root!(".etc/r.0.0.mca"));
         let loaded_file = load_anvil_file(file_path).unwrap();
         let chunk = loaded_file.get_chunk(0, 0);
-        let fast_chunk = Region::from_stream(File::open(root!(".etc/r.0.0.mca")).unwrap()).unwrap().read_chunk(0, 0).unwrap();
+        let fast_chunk = Region::from_stream(File::open(root!(".etc/r.0.0.mca")).unwrap())
+            .unwrap()
+            .read_chunk(0, 0)
+            .unwrap();
         assert!(chunk.is_some());
         assert!(fast_chunk.is_some());
         assert_eq!(chunk.clone().unwrap(), fast_chunk.unwrap());

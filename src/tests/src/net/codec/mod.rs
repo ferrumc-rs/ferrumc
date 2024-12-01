@@ -1,3 +1,3 @@
-mod enc;
-mod de;
 mod bothway;
+mod de;
+mod enc;

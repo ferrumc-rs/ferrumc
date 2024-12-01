@@ -59,8 +59,7 @@ where
     T: NetDecode,
 {
     fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> NetDecodeResult<Self> {
-        if matches!(opts, NetDecodeOpts::IsSizePrefixed)
-        {
+        if matches!(opts, NetDecodeOpts::IsSizePrefixed) {
             let len = <VarInt as NetDecode>::decode(reader, opts)?.val as usize;
             let mut vec = Vec::with_capacity(len);
             for _ in 0..len {
@@ -83,7 +82,6 @@ where
         Ok(vec)
     }
 }
-
 
 /// This isn't actually a type in the Minecraft Protocol. This is just for saving data/ or for general use.
 /// It was created for saving/reading chunks!

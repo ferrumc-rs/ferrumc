@@ -34,12 +34,7 @@ impl DatabaseBackend for RocksDBBackend {
         }
     }
 
-    async fn insert(
-        &self,
-        table: String,
-        key: u64,
-        value: Vec<u8>,
-    ) -> Result<(), StorageError> {
+    async fn insert(&self, table: String, key: u64, value: Vec<u8>) -> Result<(), StorageError> {
         let db = self.db.clone();
         tokio::task::spawn_blocking(move || {
             let db = db.read();

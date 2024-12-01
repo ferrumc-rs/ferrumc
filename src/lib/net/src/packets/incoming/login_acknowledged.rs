@@ -1,13 +1,13 @@
-use std::sync::Arc;
-use ferrumc_macros::{Event, NetDecode, packet};
-use ferrumc_events::infrastructure::Event;
 use crate::packets::IncomingPacket;
-use crate::NetResult; use ferrumc_state::ServerState;
+use crate::NetResult;
+use ferrumc_events::infrastructure::Event;
+use ferrumc_macros::{packet, Event, NetDecode};
+use ferrumc_state::ServerState;
+use std::sync::Arc;
 
 #[derive(Debug, NetDecode)]
 #[packet(packet_id = 0x03, state = "login")]
-pub struct LoginAcknowledgedPacket {
-}
+pub struct LoginAcknowledgedPacket {}
 
 #[derive(Event)]
 pub struct LoginAcknowledgedEvent {

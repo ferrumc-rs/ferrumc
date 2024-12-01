@@ -99,10 +99,9 @@ mod primitives {
     }
 }
 
-
 mod maps {
-    use std::collections::{BTreeMap, HashMap};
     use crate::{FromNbt, NBTError, NbtTape, NbtTapeElement, Result};
+    use std::collections::{BTreeMap, HashMap};
 
     impl<'a, V: FromNbt<'a>> FromNbt<'a> for HashMap<String, V> {
         fn from_nbt(tapes: &NbtTape<'a>, element: &NbtTapeElement<'a>) -> Result<Self> {
@@ -146,7 +145,7 @@ mod maps {
                 .collect()
         }
     }
-    
+
     impl<'a, V: FromNbt<'a>> FromNbt<'a> for BTreeMap<String, V> {
         fn from_nbt(tapes: &NbtTape<'a>, element: &NbtTapeElement<'a>) -> Result<Self> {
             let compound = element.as_compound().ok_or(NBTError::TypeMismatch {
@@ -189,7 +188,7 @@ mod test_map {
 
         assert_eq!(some_hashmap, hashmap);
     }
-    
+
     #[test]
     fn test_btreemap_both_ways() {
         let some_btreemap = maplit::btreemap! {
