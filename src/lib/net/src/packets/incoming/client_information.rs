@@ -1,9 +1,10 @@
 use std::sync::Arc;
 use tracing::debug;
+use ferrumc_state::ServerState;
 use ferrumc_macros::{packet, NetDecode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use crate::packets::IncomingPacket;
-use crate::{NetResult, ServerState};
+use crate::NetResult;
 
 #[derive(Debug, NetDecode)]
 #[packet(packet_id = 0x00, state = "configuration")]

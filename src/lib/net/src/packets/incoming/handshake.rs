@@ -1,5 +1,5 @@
 use crate::packets::IncomingPacket;
-use crate::{NetResult, ServerState};
+use crate::NetResult; use ferrumc_state::ServerState;
 use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::{packet, Event, NetDecode};
 use ferrumc_net_codec::net_types::var_int::VarInt;

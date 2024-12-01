@@ -1,8 +1,9 @@
 use crate::packets::incoming::packet_skeleton::PacketSkeleton;
 use crate::utils::state::terminate_connection;
-use crate::{handle_packet, NetResult, ServerState};
+use crate::{handle_packet, NetResult};
 use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
+use ferrumc_state::ServerState;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};

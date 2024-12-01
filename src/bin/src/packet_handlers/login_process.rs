@@ -19,7 +19,7 @@ use ferrumc_net::packets::outgoing::set_render_distance::SetRenderDistance;
 use ferrumc_net::packets::outgoing::registry_data::get_registry_packets;
 use ferrumc_net::packets::outgoing::set_default_spawn_position::SetDefaultSpawnPositionPacket;
 use ferrumc_net::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket;
-use ferrumc_net::GlobalState;
+use ferrumc_state::GlobalState;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use tracing::{debug, trace};
 use ferrumc_core::transform::grounded::OnGround;

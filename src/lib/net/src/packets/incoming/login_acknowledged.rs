@@ -2,7 +2,7 @@ use std::sync::Arc;
 use ferrumc_macros::{Event, NetDecode, packet};
 use ferrumc_events::infrastructure::Event;
 use crate::packets::IncomingPacket;
-use crate::{NetResult, ServerState};
+use crate::NetResult; use ferrumc_state::ServerState;
 
 #[derive(Debug, NetDecode)]
 #[packet(packet_id = 0x03, state = "login")]

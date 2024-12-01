@@ -3,7 +3,7 @@ use ferrumc_net::connection::ConnectionState;
 use ferrumc_net::errors::NetError::{Packet};
 use ferrumc_net::errors::{NetError, PacketError};
 use ferrumc_net::packets::incoming::handshake::HandshakeEvent;
-use ferrumc_net::GlobalState;
+use ferrumc_state::GlobalState;
 use tracing::{error, trace};
 use ferrumc_ecs::errors::ECSError;
 use ferrumc_net::utils::ecs_helpers::EntityExt;

@@ -2,7 +2,7 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use tracing::{debug, error, info, info_span, Instrument};
 use ferrumc_net::connection::handle_connection;
-use ferrumc_net::GlobalState;
+use ferrumc_state::GlobalState;
 use crate::systems::definition::System;
 use crate::Result;
 

@@ -1,9 +1,10 @@
-use std::sync::Arc;
+use crate::packets::packet_events::TransformEvent;
+use crate::packets::IncomingPacket;
+use crate::NetResult;
 use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::{packet, NetDecode};
-use crate::packets::IncomingPacket;
-use crate::{NetResult, ServerState};
-use crate::packets::packet_events::TransformEvent;
+use ferrumc_state::ServerState;
+use std::sync::Arc;
 
 #[derive(NetDecode)]
 #[packet(packet_id = 0x1B, state = "play")]
@@ -13,7 +14,7 @@ pub struct SetPlayerPositionAndRotationPacket {
     pub z: f64,
     pub yaw: f32,
     pub pitch: f32,
-    pub on_ground: bool
+    pub on_ground: bool,
 }
 
 impl IncomingPacket for SetPlayerPositionAndRotationPacket {
@@ -24,7 +25,7 @@ impl IncomingPacket for SetPlayerPositionAndRotationPacket {
             .on_ground(self.on_ground);
 
         TransformEvent::trigger(event, state).await?;
-        
+
         Ok(())
     }
 }
