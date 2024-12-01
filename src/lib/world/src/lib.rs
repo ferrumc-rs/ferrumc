@@ -1,10 +1,12 @@
+pub mod chunk_format;
+mod db_functions;
 pub mod errors;
 mod importing;
 mod vanilla_chunk_format;
-mod db_functions;
-pub mod chunk_format;
 
 use crate::errors::WorldError;
+use ferrumc_config::statics::get_global_config;
+use ferrumc_general_purpose::paths::get_root_path;
 use ferrumc_storage::compressors::Compressor;
 use ferrumc_storage::DatabaseBackend;
 use std::path::{Path, PathBuf};
@@ -12,8 +14,6 @@ use std::process::exit;
 use std::sync::Arc;
 use tokio::fs::create_dir_all;
 use tracing::{error, info, warn};
-use ferrumc_config::statics::get_global_config;
-use ferrumc_general_purpose::paths::get_root_path;
 
 #[derive(Clone)]
 pub struct World {
@@ -73,7 +73,7 @@ async fn check_config_validity() -> Result<(), WorldError> {
 
 impl World {
     /// Creates a new world instance.
-    /// 
+    ///
     /// You'd probably want to call this at the start of your program. And then use the returned
     /// in a state struct or something.
     pub async fn new() -> Self {
@@ -87,81 +87,83 @@ impl World {
         if backend_path.is_relative() {
             backend_path = get_root_path().join(backend_path);
         }
-        let storage_backend: Result<Box<dyn DatabaseBackend + Send + Sync>, WorldError> = match backend_string
-            .to_lowercase()
-            .as_str()
-        {
-            "surrealkv" => {
-                #[cfg(feature = "surrealkv")]
-                match ferrumc_storage::backends::surrealkv::SurrealKVBackend::initialize(Some(
-                    backend_path,
-                ))
-                .await
-                {
-                    Ok(backend) => Ok(Box::new(backend)),
-                    Err(e) => Err(WorldError::InvalidBackend(e.to_string())),
+        let storage_backend: Result<Box<dyn DatabaseBackend + Send + Sync>, WorldError> =
+            match backend_string.to_lowercase().as_str() {
+                "surrealkv" => {
+                    #[cfg(feature = "surrealkv")]
+                    match ferrumc_storage::backends::surrealkv::SurrealKVBackend::initialize(Some(
+                        backend_path,
+                    ))
+                    .await
+                    {
+                        Ok(backend) => Ok(Box::new(backend)),
+                        Err(e) => Err(WorldError::InvalidBackend(e.to_string())),
+                    }
+                    #[cfg(not(feature = "surrealkv"))]
+                    {
+                        error!("SurrealKV backend is not enabled. Please enable the 'surrealkv' feature in the Cargo.toml file.");
+                        exit(1);
+                    }
                 }
-                #[cfg(not(feature = "surrealkv"))]
-                {
-                    error!("SurrealKV backend is not enabled. Please enable the 'surrealkv' feature in the Cargo.toml file.");
+                "sled" => {
+                    #[cfg(feature = "sled")]
+                    match ferrumc_storage::backends::sled::SledBackend::initialize(Some(
+                        backend_path,
+                    ))
+                    .await
+                    {
+                        Ok(backend) => Ok(Box::new(backend)),
+                        Err(e) => Err(WorldError::InvalidBackend(e.to_string())),
+                    }
+                    #[cfg(not(feature = "sled"))]
+                    {
+                        error!("Sled backend is not enabled. Please enable the 'sled' feature in the Cargo.toml file.");
+                        exit(1);
+                    }
+                }
+                "rocksdb" => {
+                    #[cfg(feature = "rocksdb")]
+                    match ferrumc_storage::backends::rocksdb::RocksDBBackend::initialize(Some(
+                        backend_path,
+                    ))
+                    .await
+                    {
+                        Ok(backend) => Ok(Box::new(backend)),
+                        Err(e) => Err(WorldError::InvalidBackend(e.to_string())),
+                    }
+                    #[cfg(not(feature = "rocksdb"))]
+                    {
+                        error!("RocksDB backend is not enabled. Please enable the 'rocksdb' feature in the Cargo.toml file.");
+                        exit(1);
+                    }
+                }
+                "redb" => {
+                    #[cfg(feature = "redb")]
+                    match ferrumc_storage::backends::redb::RedbBackend::initialize(Some(
+                        backend_path,
+                    ))
+                    .await
+                    {
+                        Ok(backend) => Ok(Box::new(backend)),
+                        Err(e) => Err(WorldError::InvalidBackend(e.to_string())),
+                    }
+                    #[cfg(not(feature = "redb"))]
+                    {
+                        error!("Redb backend is not enabled. Please enable the 'redb' feature in the Cargo.toml file.");
+                        exit(1);
+                    }
+                }
+                _ => {
+                    error!(
+                        "Invalid storage backend: {}",
+                        get_global_config().database.backend
+                    );
                     exit(1);
                 }
-            }
-            "sled" => {
-                #[cfg(feature = "sled")]
-                match ferrumc_storage::backends::sled::SledBackend::initialize(Some(backend_path))
-                .await
-                {
-                    Ok(backend) => Ok(Box::new(backend)),
-                    Err(e) => Err(WorldError::InvalidBackend(e.to_string())),
-                }
-                #[cfg(not(feature = "sled"))]
-                {
-                    error!("Sled backend is not enabled. Please enable the 'sled' feature in the Cargo.toml file.");
-                    exit(1);
-                }
-            }
-            "rocksdb" => {
-                #[cfg(feature = "rocksdb")]
-                match ferrumc_storage::backends::rocksdb::RocksDBBackend::initialize(Some(backend_path))
-                .await
-                {
-                    Ok(backend) => Ok(Box::new(backend)),
-                    Err(e) => Err(WorldError::InvalidBackend(e.to_string())),
-                }
-                #[cfg(not(feature = "rocksdb"))]
-                {
-                    error!("RocksDB backend is not enabled. Please enable the 'rocksdb' feature in the Cargo.toml file.");
-                    exit(1);
-                }
-            }
-            "redb" => {
-                #[cfg(feature = "redb")]
-                match ferrumc_storage::backends::redb::RedbBackend::initialize(Some(backend_path))
-                .await
-                {
-                    Ok(backend) => Ok(Box::new(backend)),
-                    Err(e) => Err(WorldError::InvalidBackend(e.to_string())),
-                }
-                #[cfg(not(feature = "redb"))]
-                {
-                    error!("Redb backend is not enabled. Please enable the 'redb' feature in the Cargo.toml file.");
-                    exit(1);
-                }
-            }
-            _ => {
-                error!(
-                    "Invalid storage backend: {}",
-                    get_global_config().database.backend
-                );
-                exit(1);
-            }
-        };
+            };
 
         let storage_backend = match storage_backend {
-            Ok(backend) => {
-                backend
-            }
+            Ok(backend) => backend,
             Err(e) => {
                 error!("Could not initialize storage backend: {}", e);
                 exit(1);
@@ -169,7 +171,7 @@ impl World {
         };
 
         let compressor_string = get_global_config().database.compression.trim();
-        
+
         info!("Using {} compression algorithm", compressor_string);
 
         let compression_algo = match compressor_string.to_lowercase().as_str() {

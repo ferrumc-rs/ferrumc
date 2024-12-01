@@ -1,4 +1,4 @@
-use crate::{NetResult};
+use crate::NetResult;
 use ferrumc_config::statics::get_global_config;
 use tokio::net::TcpListener;
 use tracing::{debug, error};
@@ -20,7 +20,6 @@ pub async fn create_server_listener() -> NetResult<TcpListener> {
             return Err(e.into());
         }
     };
-    
 
     Ok(listener)
 }

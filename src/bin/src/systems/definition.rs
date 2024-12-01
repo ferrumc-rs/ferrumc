@@ -1,13 +1,13 @@
+use crate::systems::chunk_sender::ChunkSenderSystem;
 use crate::systems::keep_alive_system::KeepAliveSystem;
 use crate::systems::tcp_listener_system::TcpListenerSystem;
 use crate::systems::ticking_system::TickingSystem;
 use async_trait::async_trait;
-use ferrumc_net::{NetResult};
+use ferrumc_net::NetResult;
 use ferrumc_state::GlobalState;
 use futures::stream::FuturesUnordered;
 use std::sync::{Arc, LazyLock};
 use tracing::{debug, debug_span, info, Instrument};
-use crate::systems::chunk_sender::ChunkSenderSystem;
 
 #[async_trait]
 pub trait System: Send + Sync {
@@ -17,15 +17,13 @@ pub trait System: Send + Sync {
     fn name(&self) -> &'static str;
 }
 
-static SYSTEMS: LazyLock<Vec<Arc<dyn System>>> = LazyLock::new(|| {
-    create_systems()
-});
+static SYSTEMS: LazyLock<Vec<Arc<dyn System>>> = LazyLock::new(|| create_systems());
 pub fn create_systems() -> Vec<Arc<dyn System>> {
     vec![
         Arc::new(TcpListenerSystem),
         Arc::new(KeepAliveSystem::new()),
         Arc::new(TickingSystem),
-        Arc::new(ChunkSenderSystem::new())
+        Arc::new(ChunkSenderSystem::new()),
     ]
 }
 pub async fn start_all_systems(state: GlobalState) -> NetResult<()> {

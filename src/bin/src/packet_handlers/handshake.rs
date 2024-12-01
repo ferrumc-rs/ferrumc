@@ -1,12 +1,12 @@
+use ferrumc_ecs::errors::ECSError;
 use ferrumc_macros::event_handler;
 use ferrumc_net::connection::ConnectionState;
-use ferrumc_net::errors::NetError::{Packet};
+use ferrumc_net::errors::NetError::Packet;
 use ferrumc_net::errors::{NetError, PacketError};
 use ferrumc_net::packets::incoming::handshake::HandshakeEvent;
+use ferrumc_net::utils::ecs_helpers::EntityExt;
 use ferrumc_state::GlobalState;
 use tracing::{error, trace};
-use ferrumc_ecs::errors::ECSError;
-use ferrumc_net::utils::ecs_helpers::EntityExt;
 
 #[event_handler]
 async fn handle_handshake(
@@ -18,8 +18,7 @@ async fn handle_handshake(
 
     // set connection state to handshake
     let entity = handshake_event.conn_id;
-    let Ok(mut connection_state) = entity
-        .get_mut::<ConnectionState>(&state) else {
+    let Ok(mut connection_state) = entity.get_mut::<ConnectionState>(&state) else {
         error!("Failed to get connection state");
         return Err(NetError::ECSError(ECSError::ComponentNotFound));
     };

@@ -1,10 +1,10 @@
-use std::sync::Arc;
-use async_trait::async_trait;
-use tracing::{debug, error, info, info_span, Instrument};
-use ferrumc_net::connection::handle_connection;
-use ferrumc_state::GlobalState;
 use crate::systems::definition::System;
 use crate::Result;
+use async_trait::async_trait;
+use ferrumc_net::connection::handle_connection;
+use ferrumc_state::GlobalState;
+use std::sync::Arc;
+use tracing::{debug, error, info, info_span, Instrument};
 
 pub struct TcpListenerSystem;
 
@@ -29,17 +29,17 @@ impl TcpListenerSystem {
     async fn initiate_loop(state: GlobalState) -> Result<()> {
         let tcp_listener = &state.tcp_listener;
         info!("Server is listening on [{}]", tcp_listener.local_addr()?);
-        
+
         loop {
             debug!("Accepting connection");
             let (stream, _) = tcp_listener.accept().await?;
             let addy = stream.peer_addr()?;
             tokio::task::spawn(
                 handle_connection(Arc::clone(&state), stream)
-                    .instrument(info_span!("conn", %addy).or_current())
+                    .instrument(info_span!("conn", %addy).or_current()),
             );
         }
-        
+
         #[allow(unreachable_code)]
         Ok(())
     }

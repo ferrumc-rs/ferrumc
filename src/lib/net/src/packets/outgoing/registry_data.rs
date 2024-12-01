@@ -1206,7 +1206,9 @@ mod tests {
         let registry_data = RegistryDataPacket::get_registry_packets();
         let mut buffer = Vec::new();
         for packet in registry_data {
-            packet.encode(&mut buffer, &NetEncodeOpts::WithLength).unwrap();
+            packet
+                .encode(&mut buffer, &NetEncodeOpts::WithLength)
+                .unwrap();
         }
         std::fs::write(
             r#"D:\Minecraft\framework\ferrumc\ferrumc-2_0\ferrumc\.etc/registry.packet"#,

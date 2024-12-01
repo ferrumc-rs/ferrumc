@@ -68,7 +68,10 @@ async fn some_event_listener(mut event: SomeEvent) -> Result<SomeEvent, SomeEven
 
 #[ctor::ctor]
 fn __register_some_event_listener2() {
-    SomeEvent::register(|ev: SomeEvent, _: ()| Box::pin(some_event_listener2(ev)), 255);
+    SomeEvent::register(
+        |ev: SomeEvent, _: ()| Box::pin(some_event_listener2(ev)),
+        255,
+    );
 }
 
 async fn some_event_listener2(event: SomeEvent) -> Result<SomeEvent, SomeEventError> {

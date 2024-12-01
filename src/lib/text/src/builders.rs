@@ -4,7 +4,7 @@ use paste::paste;
 /// Build a component (text, translate, keybind).
 ///
 pub struct ComponentBuilder {
-    _private: ()
+    _private: (),
 }
 
 impl ComponentBuilder {
@@ -17,7 +17,7 @@ impl ComponentBuilder {
     pub fn keybind<S: Into<String>>(keybind: S) -> TextComponent {
         TextComponent {
             content: TextContent::Keybind {
-                keybind: keybind.into()
+                keybind: keybind.into(),
             },
             ..Default::default()
         }
@@ -74,7 +74,13 @@ impl TextComponentBuilder {
         }
     }
 
-    make_setters!((Color, color), (Font, font), (String, insertion), (ClickEvent, click_event), (HoverEvent, hover_event));
+    make_setters!(
+        (Color, color),
+        (Font, font),
+        (String, insertion),
+        (ClickEvent, click_event),
+        (HoverEvent, hover_event)
+    );
     make_bool_setters!(bold, italic, underlined, strikethrough, obfuscated);
 
     pub fn space(self) -> Self {
@@ -88,9 +94,7 @@ impl TextComponentBuilder {
 
     pub fn build(self) -> TextComponent {
         TextComponent {
-            content: TextContent::Text {
-                text: self.text,
-            },
+            content: TextContent::Text { text: self.text },
             color: self.color,
             font: self.font,
             bold: self.bold,

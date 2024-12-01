@@ -7,11 +7,8 @@ pub struct StatusResponse {
     pub json_response: String,
 }
 
-
 impl StatusResponse {
     pub fn new(json_response: String) -> Self {
-        Self {
-            json_response,
-        }
+        Self { json_response }
     }
 }

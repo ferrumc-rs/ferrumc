@@ -7,47 +7,32 @@ use crate::ECSResult;
 pub trait QueryItem {
     type Item<'a>;
 
-    fn fetch<'a>(
-        entity: Entity,
-        storage: &ComponentManager,
-    ) -> ECSResult<Self::Item<'a>>;
+    fn fetch<'a>(entity: Entity, storage: &ComponentManager) -> ECSResult<Self::Item<'a>>;
 
     /*fn entities(
         storage: &ComponentManager,
     ) -> Vec<Entity>;*/
-    fn entities(
-        storage: &ComponentManager
-    ) -> Vec<Entity>;
+    fn entities(storage: &ComponentManager) -> Vec<Entity>;
 }
 impl<T: Component> QueryItem for &T {
     type Item<'a> = ComponentRef<'a, T>;
 
-    fn fetch<'a>(
-        entity: Entity,
-        storage: &ComponentManager,
-    ) -> ECSResult<Self::Item<'a>> {
+    fn fetch<'a>(entity: Entity, storage: &ComponentManager) -> ECSResult<Self::Item<'a>> {
         storage.get(entity)
     }
 
-    fn entities(
-        storage: &ComponentManager,
-    ) -> Vec<Entity> {
+    fn entities(storage: &ComponentManager) -> Vec<Entity> {
         storage.get_entities_with::<T>()
     }
 }
 impl<T: Component> QueryItem for &mut T {
     type Item<'a> = ComponentRefMut<'a, T>;
 
-    fn fetch<'a>(
-        entity: Entity,
-        storage: &ComponentManager,
-    ) -> ECSResult<Self::Item<'a>> {
+    fn fetch<'a>(entity: Entity, storage: &ComponentManager) -> ECSResult<Self::Item<'a>> {
         storage.get_mut(entity)
     }
 
-    fn entities(
-        storage: &ComponentManager,
-    ) -> Vec<Entity> {
+    fn entities(storage: &ComponentManager) -> Vec<Entity> {
         storage.get_entities_with::<T>()
     }
 }
@@ -69,7 +54,6 @@ impl<Q: QueryItem> Clone for Query<'_, Q> {
     }
 }
 
-
 impl<'a, Q: QueryItem> Query<'a, Q> {
     pub fn new(component_storage: &'a ComponentManager) -> Self {
         Self {
@@ -88,13 +72,11 @@ impl<'a, Q: QueryItem> Query<'a, Q> {
     }
 }
 
-
 mod iter_impl {
     use super::*;
     use rayon::prelude::*;
 
-    impl<'a, Q: QueryItem> Iterator for Query<'a, Q>
-    {
+    impl<'a, Q: QueryItem> Iterator for Query<'a, Q> {
         type Item = (Entity, Q::Item<'a>);
 
         fn next(&mut self) -> Option<Self::Item> {
@@ -130,7 +112,6 @@ mod iter_impl {
     }
 }
 
-
 mod multi_impl {
     use super::*;
     macro_rules! impl_query_item_tuple {
@@ -165,7 +146,6 @@ mod multi_impl {
     impl_query_item_tuple!(A, B, C, D);
     impl_query_item_tuple!(A, B, C, D, E);
     impl_query_item_tuple!(A, B, C, D, E, F);
-
 
     /// Find the common elements in a vector of vectors
     /// Uses smallest vector as comparator, making it somewhat efficient.

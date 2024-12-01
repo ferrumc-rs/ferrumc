@@ -9,8 +9,6 @@ pub struct PongPacket {
 
 impl PongPacket {
     pub fn new(payload: i64) -> Self {
-        Self {
-            payload,
-        }
+        Self { payload }
     }
 }

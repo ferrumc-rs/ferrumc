@@ -9,18 +9,19 @@ fn hashmaps() {
         "key3".to_string() => "value3".to_string(),
         "key4".to_string() => "value4".to_string(),
     };
-    
+
     let encoded = {
         let mut buffer = Vec::new();
         map.encode(&mut buffer, &NetEncodeOpts::None).unwrap();
-        
+
         buffer
     };
 
     let decoded = {
         let mut buffer = encoded.as_slice();
-        std::collections::HashMap::<String, String>::decode(&mut buffer, &NetDecodeOpts::None).unwrap()
+        std::collections::HashMap::<String, String>::decode(&mut buffer, &NetDecodeOpts::None)
+            .unwrap()
     };
-    
+
     assert_eq!(map, decoded);
 }
