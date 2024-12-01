@@ -2,16 +2,56 @@ name: Rust
 
 on:
   pull_request:
-    branches: [ "dev", "rewrite/v3" ]
+    branches: [ "master", "rewrite/v3" ]
   push:
-    branches: [ "dev", "rewrite/v3" ]
+    branches: [ "master", "rewrite/v3" ]
   workflow_dispatch:
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  format:
+    name: Check code formatting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust nightly
+        uses: dtolnay/rust-toolchain@nightly
+
+      - name: Run cargo fmt
+        run: cargo fmt --all -- --check
+
+  clippy:
+    name: Run Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust nightly
+        uses: dtolnay/rust-toolchain@nightly
+
+      - name: Run Clippy
+        run: cargo clippy --all-targets -- -Dwarnings
+
+  security:
+    name: Check for security vulnerabilities
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust nightly
+        uses: dtolnay/rust-toolchain@nightly
+
+      - name: Run cargo audit
+        run: cargo install cargo-audit && cargo audit
+
   build:
+    name: Build project
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -28,33 +68,56 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Cache dependencies
-        uses: swatinem/rust-cache@v2
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
 
       - name: Install Rust nightly
         uses: dtolnay/rust-toolchain@nightly
         with:
           targets: ${{ matrix.target }}
 
-      - name: Run Clippy
-        uses: ClementTsang/cargo-action@v0.0.6
-        with:
-          args: -- -Dwarnings
-          command: clippy
-
       - name: Build
-        uses: ClementTsang/cargo-action@v0.0.6
+        run: cargo build --release --target ${{ matrix.target }} --verbose
+
+  test:
+    name: Run tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: macos-14
+            target: aarch64-apple-darwin
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
         with:
-          args: --release --target ${{ matrix.target }} --verbose
-          command: build
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Install Rust nightly
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          targets: ${{ matrix.target }}
 
       - name: Run tests
-        uses: ClementTsang/cargo-action@v0.0.6
-        with:
-          args: --target ${{ matrix.target }} --verbose
-          command: test
-
-      - name: Upload executable
-        uses: actions/upload-artifact@v4
-        with:
-          name: ferrumc-${{ matrix.os }}
-          path: target/${{ matrix.target }}/release/ferrumc*
+        run: cargo test --target ${{ matrix.target }} --verbose
