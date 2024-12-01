@@ -19,7 +19,7 @@ async fn handle_handshake(
     // set connection state to handshake
     let entity = handshake_event.conn_id;
     let Ok(mut connection_state) = entity
-        .get_mut::<ConnectionState>(state) else {
+        .get_mut::<ConnectionState>(&state) else {
         error!("Failed to get connection state");
         return Err(NetError::ECSError(ECSError::ComponentNotFound));
     };

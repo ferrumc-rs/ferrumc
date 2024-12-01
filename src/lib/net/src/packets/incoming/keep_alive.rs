@@ -1,4 +1,4 @@
-use crate::packets::outgoing::keep_alive::KeepAlive;
+use crate::packets::outgoing::keep_alive::OutgoingKeepAlivePacket;
 use crate::packets::IncomingPacket;
 use crate::NetResult; use ferrumc_state::ServerState;
 use ferrumc_macros::{packet, NetDecode};
@@ -8,20 +8,25 @@ use tracing::debug;
 #[derive(NetDecode)]
 #[packet(packet_id = 0x18, state = "play")]
 pub struct IncomingKeepAlivePacket {
-    pub id: i64,
+    pub timestamp: i64,
 }
 
 impl IncomingPacket for IncomingKeepAlivePacket {
     async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
-        let mut last_keep_alive = state.universe.get_mut::<KeepAlive>(conn_id)?;
-        if self.id != last_keep_alive.id {
+        let last_sent_keep_alive = state.universe.get::<OutgoingKeepAlivePacket>(conn_id)?;
+        if self.timestamp != last_sent_keep_alive.timestamp {
             debug!(
                 "Invalid keep alive packet received from {:?} with id {:?} (expected {:?})",
-                conn_id, self.id, last_keep_alive.id
+                conn_id, self.timestamp, last_sent_keep_alive.timestamp
             );
-            // TODO Kick player
+            if let Err(e) =
+                terminate_connection(state, conn_id, "Invalid keep alive packet".to_string()).await
+            {
+                debug!("Error terminating connection: {:?}", e);
+            }
         } else {
-            *last_keep_alive = KeepAlive::from(self.id);
+            let mut last_rec_keep_alive = state.universe.get_mut::<IncomingKeepAlivePacket>(conn_id)?;
+            *last_rec_keep_alive = self;
         }
 
         Ok(())

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use ferrumc_events::infrastructure::Event;
-use ferrumc_macros::{packet, Event, NetDecode};
+use ferrumc_macros::{packet, NetDecode};
 use crate::packets::IncomingPacket;
 use crate::NetResult; use ferrumc_state::ServerState;
 
@@ -15,26 +15,12 @@ pub struct SetPlayerPositionPacket {
 
 impl IncomingPacket for SetPlayerPositionPacket {
     async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
-        let event = SetPlayerPositionEvent::new(self, conn_id);
-        tokio::spawn(SetPlayerPositionEvent::trigger(event, state));
+        let transform_event = TransformEvent::new(conn_id)
+            .position((self.x, self.feet_y, self.z).into())
+            .on_ground(self.on_ground);
+
+        TransformEvent::trigger(transform_event, state).await?;
 
         Ok(())
-    }
-}
-
-
-#[derive(Event)]
-pub struct SetPlayerPositionEvent {
-    pub data: SetPlayerPositionPacket,
-    pub conn_id: usize
-}
-
-
-impl SetPlayerPositionEvent {
-    pub fn new(data: SetPlayerPositionPacket, conn_id: usize) -> Self {
-        Self {
-            data,
-            conn_id
-        }
     }
 }

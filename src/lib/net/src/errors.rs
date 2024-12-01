@@ -41,10 +41,19 @@ pub enum NetError {
 
     #[error("{0}")]
     Packet(#[from] PacketError),
+    
+    #[error("{0}")]
+    Chunk(#[from] ChunkError),
 }
 
 #[derive(Debug, Error)]
 pub enum PacketError {
     #[error("Invalid State: {0}")]
     InvalidState(u8),
+}
+
+#[derive(Debug, Error)]
+pub enum ChunkError {
+    #[error("Invalid Chunk: ({0}, {1})")]
+    InvalidChunk(i32, i32),
 }

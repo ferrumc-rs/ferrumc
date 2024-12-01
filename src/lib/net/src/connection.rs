@@ -4,10 +4,30 @@ use ferrumc_state::ServerState;
 use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use std::sync::Arc;
+use std::time::Duration;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tokio::net::TcpStream;
+use tokio::time::timeout;
 use tracing::{debug, debug_span, trace, warn, Instrument};
 
+#[derive(Debug)]
+pub struct ConnectionControl {
+    pub should_disconnect: bool,
+}
+
+impl ConnectionControl {
+    pub fn new() -> Self {
+        Self {
+            should_disconnect: false,
+        }
+    }
+}
+
+impl Default for ConnectionControl {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 #[derive(Clone)]
 pub enum ConnectionState {
     Handshaking,
@@ -84,12 +104,40 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
         .with(StreamWriter::new(writer))?
         .with(ConnectionState::Handshaking)?
         .with(CompressionStatus::new())?
+        .with(ConnectionControl::new())?
         .build();
 
     'recv: loop {
         let compressed = state.universe.get::<CompressionStatus>(entity)?.enabled;
-        let Ok(mut packet_skele) = PacketSkeleton::new(&mut reader, compressed).await else {
-            trace!("Failed to read packet. Possibly connection closed.");
+        let should_disconnect = state
+            .universe
+            .get::<ConnectionControl>(entity)?
+            .should_disconnect;
+
+        if should_disconnect {
+            debug!(
+                "should_disconnect is true for entity: {}, breaking out of connection loop.",
+                entity
+            );
+            break 'recv;
+        }
+
+        let read_timeout = Duration::from_secs(2);
+        let packet_task = timeout(read_timeout, PacketSkeleton::new(&mut reader, compressed)).await;
+
+        if let Err(err) = packet_task {
+            trace!(
+                "failed to read packet within {:?} for entity {:?}, err: {:?}
+            continuing to next iteration",
+                read_timeout,
+                entity,
+                err
+            );
+            continue;
+        }
+
+        let Ok(Ok(mut packet_skele)) = packet_task else {
+            trace!("Failed to read packet. Possibly connection closed. Breaking out of connection loop");
             break 'recv;
         };
 
@@ -106,12 +154,19 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
             &mut packet_skele.data,
             Arc::clone(&state),
         )
-            .await
-            .instrument(debug_span!("eid", %entity))
-            .inner()
+        .await
+        .instrument(debug_span!("eid", %entity))
+        .inner()
         {
-            warn!("Failed to handle packet: {:?}. packet_id: {:02X}; conn_state: {}", e, packet_skele.id, conn_state.as_str());
+            warn!(
+                "Failed to handle packet: {:?}. packet_id: {:02X}; conn_state: {}",
+                e,
+                packet_skele.id,
+                conn_state.as_str()
+            );
             // Kick the player (when implemented).
+            terminate_connection(state.clone(), entity, "Failed to handle packet".to_string())
+                .await?;
             break 'recv;
         };
     }
@@ -119,8 +174,6 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
     debug!("Connection closed for entity: {:?}", entity);
 
     // Remove all components from the entity
-
-    drop(reader);
 
     // Wait until anything that might be using the entity is done
     if let Err(e) = remove_all_components_blocking(state.clone(), entity).await {
@@ -134,9 +187,8 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
 
 /// Since parking_lot is single-threaded, we use spawn_blocking to remove all components from the entity asynchronously (on another thread).
 async fn remove_all_components_blocking(state: Arc<ServerState>, entity: usize) -> NetResult<()> {
-    let res = tokio::task::spawn_blocking(move || {
-        state.universe.remove_all_components(entity)
-    }).await?;
+    let res =
+        tokio::task::spawn_blocking(move || state.universe.remove_all_components(entity)).await?;
 
     Ok(res?)
 }

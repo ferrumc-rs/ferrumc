@@ -37,7 +37,7 @@ fn test_basic() {
     }
     let query = Query::<(&Player, &mut Position)>::new(&component_storage);
     
-    ParallelIterator::for_each(query.into_par_iter(), |(_player, position)| {
+    ParallelIterator::for_each(query.into_par_iter(), |(_eid, (_player, position))| {
         let sleep_duration = Duration::from_millis(100 * (position.x as u64));
         thread::sleep(sleep_duration);
     });

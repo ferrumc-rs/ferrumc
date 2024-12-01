@@ -1,0 +1,26 @@
+use std::sync::Arc;
+use ferrumc_events::infrastructure::Event;
+use ferrumc_macros::{packet, NetDecode};
+use crate::packets::IncomingPacket;
+use crate::{NetResult, ServerState};
+use crate::packets::packet_events::TransformEvent;
+
+#[derive(NetDecode)]
+#[packet(packet_id = 0x1C, state = "play")]
+pub struct SetPlayerRotationPacket {
+    pub yaw: f32,
+    pub pitch: f32,
+    pub on_ground: bool
+}
+
+impl IncomingPacket  for SetPlayerRotationPacket {
+    async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
+        let event = TransformEvent::new(conn_id)
+            .rotation((self.yaw, self.pitch).into())
+            .on_ground(self.on_ground);
+
+        TransformEvent::trigger(event, state).await?;
+
+        Ok(())
+    }
+}

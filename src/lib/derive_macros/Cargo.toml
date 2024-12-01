@@ -3,10 +3,15 @@ name = "ferrumc-macros"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+default = ["colors"]
+colors = []
+
 [lib]
 proc-macro = true
 
 [dependencies]
+colored = { workspace = true }
 quote = { workspace = true }
 syn = { workspace = true, features = ["full"] }
 thiserror = { workspace = true }

@@ -101,7 +101,7 @@ fn get_server_status(state: &Arc<ServerState>) -> String {
         sample: online_players_sample,
     };
 
-    let motd = config.motd.choose(&mut rand::thread_rng()).unwrap();
+    let motd = config.motd.choose(&mut rand::rng()).unwrap();
     let description = structs::Description { text: motd };
 
     let favicon = get_favicon_base64();

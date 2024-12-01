@@ -176,7 +176,7 @@ pub fn database_benchmarks(c: &mut Criterion) {
         #[cfg(feature = "redb")]
         read_group.bench_with_input("Redb", &("test".to_string()), |b, table| {
             b.iter(|| {
-                let key = keys.choose(&mut rand::thread_rng()).unwrap();
+                let key = keys.choose(&mut rand::rng()).unwrap();
                 black_box(
                     runtime
                         .block_on(redb_backend.get(table.clone(), *key))
@@ -187,7 +187,7 @@ pub fn database_benchmarks(c: &mut Criterion) {
         #[cfg(feature = "surrealkv")]
         read_group.bench_with_input("SurrealKV", &("test".to_string()), |b, table| {
             b.iter(|| {
-                let key = keys.choose(&mut rand::thread_rng()).unwrap();
+                let key = keys.choose(&mut rand::rng()).unwrap();
                 black_box(
                     runtime
                         .block_on(surreal_backend.get(table.clone(), *key))
@@ -198,7 +198,7 @@ pub fn database_benchmarks(c: &mut Criterion) {
         #[cfg(feature = "sled")]
         read_group.bench_with_input("Sled", &("test".to_string()), |b, table| {
             b.iter(|| {
-                let key = keys.choose(&mut rand::thread_rng()).unwrap();
+                let key = keys.choose(&mut rand::rng()).unwrap();
                 black_box(
                     runtime
                         .block_on(sled_backend.get(table.clone(), *key))

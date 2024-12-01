@@ -68,3 +68,23 @@ etc. live) by setting an environment variable `FERRUMC_ROOT` to the path of the 
 `set FERRUMC_ROOT=C:\Users\ReCor\Documents\Code\Rust\ferrumc` before running the server. This is useful if you
 can't move the place the binary is executed from (`cargo run` for example).*
 
+---
+
+## Nightly Dev Server
+
+There is a nightly deployed version of rewrite/v3 running at `ferrumc.nimq.xyz`.
+
+## Docs
+
+Documentation for rewrite/v3 can be found at:
+
+- Unsecure https://docs.ferrumc.com/
+- HTTPS https://docs.nimq.xyz/
+
+## Funding / Donations
+
+If you would like to donate to the development of FerrumC, you can do so via the following methods:
+
+- OpenCollective: https://opencollective.com/ferrumc
+
+

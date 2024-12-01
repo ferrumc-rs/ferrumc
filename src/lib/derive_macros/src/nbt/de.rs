@@ -69,6 +69,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
                 NbtFieldAttribute::Skip => {
                     skip = true;
                 }
+                _ => {}
             }
         }
 
