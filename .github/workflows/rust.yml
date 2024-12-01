@@ -1,3 +1,17 @@
+name: Rust
+
+on:
+  pull_request:
+    branches: [ "master", "rewrite/v3" ]
+  push:
+    branches: [ "master", "rewrite/v3" ]
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+
+
 jobs:
   format:
     name: Check code formatting
