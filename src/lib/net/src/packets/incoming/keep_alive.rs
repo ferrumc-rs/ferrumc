@@ -1,7 +1,9 @@
 use crate::packets::outgoing::keep_alive::OutgoingKeepAlivePacket;
 use crate::packets::IncomingPacket;
-use crate::NetResult; use ferrumc_state::ServerState;
+use crate::utils::state::terminate_connection;
+use crate::NetResult;
 use ferrumc_macros::{packet, NetDecode};
+use ferrumc_state::ServerState;
 use std::sync::Arc;
 use tracing::debug;
 
@@ -25,7 +27,8 @@ impl IncomingPacket for IncomingKeepAlivePacket {
                 debug!("Error terminating connection: {:?}", e);
             }
         } else {
-            let mut last_rec_keep_alive = state.universe.get_mut::<IncomingKeepAlivePacket>(conn_id)?;
+            let mut last_rec_keep_alive =
+                state.universe.get_mut::<IncomingKeepAlivePacket>(conn_id)?;
             *last_rec_keep_alive = self;
         }
 

@@ -8,12 +8,11 @@ use ferrumc_config::statics::get_global_config;
 use ferrumc_ecs::Universe;
 use ferrumc_general_purpose::paths::get_root_path;
 use ferrumc_net::server::create_server_listener;
-use std::sync::Arc;
-use systems::definition;
-use tracing::{error, info};
-use ferrumc_config::statics::get_global_config;
 use ferrumc_state::ServerState;
 use ferrumc_world::World;
+use std::sync::Arc;
+use systems::definition;
+use tracing::{error, info, Level};
 
 #[derive(clap::Parser)]
 struct CLIArgs {

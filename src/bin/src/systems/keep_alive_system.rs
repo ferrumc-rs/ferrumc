@@ -2,13 +2,11 @@ use crate::systems::definition::System;
 use async_trait::async_trait;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net::connection::{ConnectionState, StreamWriter};
-use ferrumc_net::packets::outgoing::keep_alive::{KeepAlive, KeepAlivePacket};
-use ferrumc_state::GlobalState;
 use ferrumc_net::packets::incoming::keep_alive::IncomingKeepAlivePacket;
 use ferrumc_net::packets::outgoing::keep_alive::OutgoingKeepAlivePacket;
 use ferrumc_net::utils::broadcast::{BroadcastOptions, BroadcastToAll};
 use ferrumc_net::utils::state::terminate_connection;
-use ferrumc_net::GlobalState;
+use ferrumc_state::GlobalState;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use tracing::{error, info, trace, warn};
@@ -51,7 +49,10 @@ impl System for KeepAliveSystem {
                 .into_iter()
                 .filter_map(|entity| {
                     let conn_state = state.universe.get::<ConnectionState>(entity).ok()?;
-                    let keep_alive = state.universe.get_mut::<IncomingKeepAlivePacket>(entity).ok()?;
+                    let keep_alive = state
+                        .universe
+                        .get_mut::<IncomingKeepAlivePacket>(entity)
+                        .ok()?;
 
                     if matches!(*conn_state, ConnectionState::Play)
                         && (current_time - keep_alive.timestamp) >= 15000
@@ -89,7 +90,9 @@ impl System for KeepAliveSystem {
                         }
                     }
                 }
-                let packet = OutgoingKeepAlivePacket { timestamp: current_time };
+                let packet = OutgoingKeepAlivePacket {
+                    timestamp: current_time,
+                };
 
                 let broadcast_opts = BroadcastOptions::default()
                     .only(entities)
@@ -108,7 +111,12 @@ impl System for KeepAliveSystem {
                     });
 
                 if let Err(e) = state
-                    .broadcast(&OutgoingKeepAlivePacket { timestamp: current_time }, broadcast_opts)
+                    .broadcast(
+                        &OutgoingKeepAlivePacket {
+                            timestamp: current_time,
+                        },
+                        broadcast_opts,
+                    )
                     .await
                 {
                     error!("Error sending keep alive packet: {}", e);
