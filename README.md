@@ -48,7 +48,7 @@ programming language, it is completely multithreaded and offers high performance
    </li>
    <li>
      <h4>🗂️ Customizable configuration</h4>
-     <img src="https://github.com/ferrumc-rs/ferrumc/assets/README/config.png?raw=true" alt="Configuration">
+     <img src="https://github.com/ferrumc-rs/ferrumc/assets/README/config.toml.png?raw=true" alt="Configuration">
    </li>
    <li>
       <h4>🔄 Can import existing worlds from vanilla minecraft</h4>

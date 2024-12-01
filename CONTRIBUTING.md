@@ -125,6 +125,26 @@ If you add a new directory, please add it to the above list along with its purpo
 19. If your code isn't sufficiently documented, you will be asked to add documentation.
 20. If your code doesn't have tests where it should, you will be asked to add tests.
 
+## Notes on formatting
+
+Some IDEs have an automatic formatter that will format the code when you save. It is recommended to use this feature to
+keep the code formatted correctly.
+<br> If you are using VSCode, you can use the `rust-analyzer` extension to format the
+code
+automatically. This [StackOverflow answer](https://stackoverflow.com/a/67861602/15894829) explains how to set this
+up.<br>
+If you are using a JetBrains IDE (Intellij, RustRover, CLion, etc.), you can use the `Rust` plugin to format the code
+automatically (This plugin is not required for RustRover).
+This [Docs page](https://www.jetbrains.com/help/idea/reformat-and-rearrange-code.html#reformat-on-save)
+explains how to set this up. Clippy formatting on the fly is recommended as well, though this can cause a noticeable
+performance hit.
+
+Automatic formatting is highly recommended as it will ensure that the code you write is correctly formatted as you go,
+instead of running `cargo clippy` when you are done and having 400 clippy errors to fix at once. You should still run
+the clippy and fmt commands before submitting a PR to make sure that the code is correctly formatted and passes the
+lints,
+but automatic formatting will help to catch most of these issues as you go.
+
 ## Code of Conduct
 
 Please note we have a code of conduct, please follow it in all your interactions with the project.
