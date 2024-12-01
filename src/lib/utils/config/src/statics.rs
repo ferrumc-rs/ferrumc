@@ -11,7 +11,7 @@ use std::process::exit;
 use tracing::{error, info};
 
 /// The default server configuration that is stored in memory.
-const DEFAULT_CONFIG: &str = include_str!("../../../../../.etc/example-config.toml");
+pub(crate) const DEFAULT_CONFIG: &str = include_str!("../../../../../.etc/example-config.toml");
 
 lazy_static! {
     /// The server configuration that is stored in memory.

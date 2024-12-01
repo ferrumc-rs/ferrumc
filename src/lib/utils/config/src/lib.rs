@@ -14,6 +14,7 @@ pub mod errors;
 pub mod favicon;
 pub mod server_config;
 pub mod statics;
+pub mod setup;
 
 // Re-exports
 pub use server_config::DatabaseConfig;
