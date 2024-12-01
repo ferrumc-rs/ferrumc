@@ -93,8 +93,7 @@ async fn entry(cli_args: CLIArgs) -> Result<()> {
         } else {
             info!("Server setup complete.");
             Ok(())
-        }
-        
+        };
     }
 
     let state = create_state().await?;
