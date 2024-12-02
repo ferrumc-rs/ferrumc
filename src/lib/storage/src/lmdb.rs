@@ -1,5 +1,4 @@
 use crate::errors::StorageError;
-use crate::DatabaseBackend;
 use heed;
 use heed::byteorder::BigEndian;
 use heed::types::{Bytes, U128};
@@ -8,7 +7,7 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LmdbBackend {
     env: Arc<Env>,
 }
@@ -26,7 +25,7 @@ impl From<Error> for StorageError {
 }
 
 impl LmdbBackend {
-    async fn initialize(store_path: Option<PathBuf>) -> Result<Self, StorageError>
+    pub async fn initialize(store_path: Option<PathBuf>) -> Result<Self, StorageError>
     where
         Self: Sized,
     {
@@ -47,7 +46,12 @@ impl LmdbBackend {
         }
     }
 
-    async fn insert(&self, table: String, key: u128, value: Vec<u8>) -> Result<(), StorageError> {
+    pub async fn insert(
+        &self,
+        table: String,
+        key: u128,
+        value: Vec<u8>,
+    ) -> Result<(), StorageError> {
         let env = self.env.clone();
         tokio::task::spawn_blocking(move || {
             let mut rw_txn = env.write_txn()?;
@@ -64,7 +68,7 @@ impl LmdbBackend {
         .expect("Failed to run tokio task")
     }
 
-    async fn get(&self, table: String, key: u128) -> Result<Option<Vec<u8>>, StorageError> {
+    pub async fn get(&self, table: String, key: u128) -> Result<Option<Vec<u8>>, StorageError> {
         let env = self.env.clone();
         tokio::task::spawn_blocking(move || {
             let ro_txn = env.read_txn()?;
@@ -82,12 +86,12 @@ impl LmdbBackend {
         .expect("Failed to run tokio task")
     }
 
-    async fn delete(&self, table: String, key: u128) -> Result<(), StorageError> {
+    pub async fn delete(&self, table: String, key: u128) -> Result<(), StorageError> {
         let env = self.env.clone();
         tokio::task::spawn_blocking(move || {
             let mut rw_txn = env.write_txn()?;
             let db: Database<U128<BigEndian>, Bytes> = env
-                .open_database(&mut rw_txn, Some(&table))?
+                .open_database(&rw_txn, Some(&table))?
                 .ok_or(StorageError::TableError("Table not found".to_string()))?;
             if db.get(&rw_txn, &key)?.is_none() {
                 return Err(StorageError::KeyNotFound(key as u64));
@@ -100,12 +104,17 @@ impl LmdbBackend {
         .expect("Failed to run tokio task")
     }
 
-    async fn update(&self, table: String, key: u128, value: Vec<u8>) -> Result<(), StorageError> {
+    pub async fn update(
+        &self,
+        table: String,
+        key: u128,
+        value: Vec<u8>,
+    ) -> Result<(), StorageError> {
         let env = self.env.clone();
         tokio::task::spawn_blocking(move || {
             let mut rw_txn = env.write_txn()?;
             let db: Database<U128<BigEndian>, Bytes> = env
-                .open_database(&mut rw_txn, Some(&table))?
+                .open_database(&rw_txn, Some(&table))?
                 .ok_or(StorageError::TableError("Table not found".to_string()))?;
             if db.get(&rw_txn, &key)?.is_none() {
                 return Err(StorageError::KeyNotFound(key as u64));
@@ -118,12 +127,17 @@ impl LmdbBackend {
         .expect("Failed to run tokio task")
     }
 
-    async fn upsert(&self, table: String, key: u128, value: Vec<u8>) -> Result<bool, StorageError> {
+    pub async fn upsert(
+        &self,
+        table: String,
+        key: u128,
+        value: Vec<u8>,
+    ) -> Result<bool, StorageError> {
         let env = self.env.clone();
         tokio::task::spawn_blocking(move || {
             let mut rw_txn = env.write_txn()?;
             let db: Database<U128<BigEndian>, Bytes> = env
-                .open_database(&mut rw_txn, Some(&table))?
+                .open_database(&rw_txn, Some(&table))?
                 .ok_or(StorageError::TableError("Table not found".to_string()))?;
             db.put(&mut rw_txn, &key, &value)?;
             rw_txn.commit()?;
@@ -133,7 +147,7 @@ impl LmdbBackend {
         .expect("Failed to run tokio task")
     }
 
-    async fn exists(&self, table: String, key: u128) -> Result<bool, StorageError> {
+    pub async fn exists(&self, table: String, key: u128) -> Result<bool, StorageError> {
         let env = self.env.clone();
         tokio::task::spawn_blocking(move || {
             let ro_txn = env.read_txn()?;
@@ -146,11 +160,11 @@ impl LmdbBackend {
         .expect("Failed to run tokio task")
     }
 
-    async fn details(&self) -> String {
+    pub async fn details(&self) -> String {
         format!("LMDB (heed 0.20.5): {:?}", self.env.info())
     }
 
-    async fn batch_insert(
+    pub async fn batch_insert(
         &self,
         table: String,
         data: Vec<(u128, Vec<u8>)>,
@@ -173,7 +187,7 @@ impl LmdbBackend {
                 if db.get(&rw_txn, &key)?.is_some() {
                     return Err(StorageError::KeyExists(key as u64));
                 }
-                db.put(&mut rw_txn, &key, &keymap[&key])?;
+                db.put(&mut rw_txn, &key, keymap[&key])?;
             }
             rw_txn.commit()?;
             Ok(())
@@ -182,7 +196,7 @@ impl LmdbBackend {
         .expect("Failed to run tokio task")
     }
 
-    async fn batch_get(
+    pub async fn batch_get(
         &self,
         table: String,
         keys: Vec<u128>,
@@ -208,7 +222,7 @@ impl LmdbBackend {
         .expect("Failed to run tokio task")
     }
 
-    async fn flush(&self) -> Result<(), StorageError> {
+    pub async fn flush(&self) -> Result<(), StorageError> {
         let env = self.env.clone();
         tokio::task::spawn_blocking(move || {
             env.clear_stale_readers()?;
@@ -219,7 +233,7 @@ impl LmdbBackend {
         .expect("Failed to run tokio task")
     }
 
-    async fn create_table(&self, table: String) -> Result<(), StorageError> {
+    pub async fn create_table(&self, table: String) -> Result<(), StorageError> {
         let env = self.env.clone();
         tokio::task::spawn_blocking(move || {
             let mut rw_txn = env.write_txn()?;
@@ -231,7 +245,7 @@ impl LmdbBackend {
         .expect("Failed to run tokio task")
     }
 
-    async fn close(&self) -> Result<(), StorageError> {
+    pub async fn close(&self) -> Result<(), StorageError> {
         self.flush().await?;
         Ok(())
     }

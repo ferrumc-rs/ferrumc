@@ -2,22 +2,23 @@ use crate::chunk_format::Chunk;
 use crate::errors::WorldError;
 use crate::World;
 use ferrumc_storage::compressors::Compressor;
+use std::hash::Hasher;
 
 impl World {
     pub async fn save_chunk(&self, chunk: Chunk) -> Result<(), WorldError> {
         save_chunk_internal(self, chunk).await
     }
 
-    pub async fn load_chunk(&self, x: i32, z: i32) -> Result<Chunk, WorldError> {
-        load_chunk_internal(self, &self.compressor, x, z).await
+    pub async fn load_chunk(&self, x: i32, z: i32, dimension: &str) -> Result<Chunk, WorldError> {
+        load_chunk_internal(self, &self.compressor, x, z, dimension).await
     }
 
-    pub async fn chunk_exists(&self, x: i32, z: i32) -> Result<bool, WorldError> {
-        chunk_exists_internal(self, x, z).await
+    pub async fn chunk_exists(&self, x: i32, z: i32, dimension: &str) -> Result<bool, WorldError> {
+        chunk_exists_internal(self, x, z, dimension).await
     }
 
-    pub async fn delete_chunk(&self, x: i32, z: i32) -> Result<(), WorldError> {
-        delete_chunk_internal(self, x, z).await
+    pub async fn delete_chunk(&self, x: i32, z: i32, dimension: &str) -> Result<(), WorldError> {
+        delete_chunk_internal(self, x, z, dimension).await
     }
 
     pub async fn sync(&self) -> Result<(), WorldError> {
@@ -26,7 +27,7 @@ impl World {
 
     pub async fn load_chunk_batch(
         &self,
-        coords: Vec<(i32, i32)>,
+        coords: Vec<(i32, i32, &str)>,
     ) -> Result<Vec<Chunk>, WorldError> {
         load_chunk_batch_internal(self, coords).await
     }
@@ -34,7 +35,7 @@ impl World {
 
 pub(crate) async fn save_chunk_internal(world: &World, chunk: Chunk) -> Result<(), WorldError> {
     let as_bytes = world.compressor.compress(&bitcode::encode(&chunk))?;
-    let digest = ferrumc_general_purpose::hashing::hash((chunk.x, chunk.z));
+    let digest = create_key(chunk.dimension.as_str(), chunk.x, chunk.z);
     world
         .storage_backend
         .upsert("chunks".to_string(), digest, as_bytes)
@@ -47,8 +48,9 @@ pub(crate) async fn load_chunk_internal(
     compressor: &Compressor,
     x: i32,
     z: i32,
+    dimension: &str,
 ) -> Result<Chunk, WorldError> {
-    let digest = ferrumc_general_purpose::hashing::hash((x, z));
+    let digest = create_key(dimension, x, z);
     match world
         .storage_backend
         .get("chunks".to_string(), digest)
@@ -66,11 +68,11 @@ pub(crate) async fn load_chunk_internal(
 
 pub(crate) async fn load_chunk_batch_internal(
     world: &World,
-    coords: Vec<(i32, i32)>,
+    coords: Vec<(i32, i32, &str)>,
 ) -> Result<Vec<Chunk>, WorldError> {
     let digests = coords
         .into_iter()
-        .map(|(x, z)| ferrumc_general_purpose::hashing::hash((x, z)))
+        .map(|(x, z, dim)| create_key(dim, x, z))
         .collect();
     world
         .storage_backend
@@ -93,16 +95,22 @@ pub(crate) async fn chunk_exists_internal(
     world: &World,
     x: i32,
     z: i32,
+    dimension: &str,
 ) -> Result<bool, WorldError> {
-    let digest = ferrumc_general_purpose::hashing::hash((x, z));
+    let digest = create_key(dimension, x, z);
     Ok(world
         .storage_backend
         .exists("chunks".to_string(), digest)
         .await?)
 }
 
-pub(crate) async fn delete_chunk_internal(world: &World, x: i32, z: i32) -> Result<(), WorldError> {
-    let digest = ferrumc_general_purpose::hashing::hash((x, z));
+pub(crate) async fn delete_chunk_internal(
+    world: &World,
+    x: i32,
+    z: i32,
+    dimension: &str,
+) -> Result<(), WorldError> {
+    let digest = create_key(dimension, x, z);
     world
         .storage_backend
         .delete("chunks".to_string(), digest)
@@ -113,4 +121,19 @@ pub(crate) async fn delete_chunk_internal(world: &World, x: i32, z: i32) -> Resu
 pub(crate) async fn sync_internal(world: &World) -> Result<(), WorldError> {
     world.storage_backend.flush().await?;
     Ok(())
+}
+
+fn create_key(dimension: &str, x: i32, z: i32) -> u128 {
+    let mut key = 0u128;
+    let mut hasher = wyhash::WyHash::with_seed(0);
+    hasher.write_str(dimension);
+    let dim_hash = hasher.finish();
+    // Insert the dimension hash into the key as the first 32 bits
+    key |= (dim_hash as u128) << 96;
+    // Convert the x coordinate to a 48 bit integer and insert it into the key
+    key |= ((x as u128) & 0x0000_0000_FFFF_FFFF) << 48;
+    // Convert the z coordinate to a 48 bit integer and insert it into the key
+    key |= (z as u128) & 0x0000_0000_FFFF_FFFF;
+
+    key
 }

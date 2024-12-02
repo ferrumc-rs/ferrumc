@@ -1,7 +1,7 @@
 #![feature(async_closure)]
-pub mod backends;
 pub mod compressors;
 pub mod errors;
+pub mod lmdb;
 
 use crate::errors::StorageError;
 use async_trait::async_trait;
