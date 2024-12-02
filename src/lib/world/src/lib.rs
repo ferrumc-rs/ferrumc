@@ -31,9 +31,9 @@ async fn check_config_validity() -> Result<(), WorldError> {
     let config = get_global_config();
     let db_path = get_root_path().join(&config.database.db_path);
 
-    if config.database.backend.is_empty() {
-        error!("No backend specified. Please set the backend in the configuration file.");
-        return Err(WorldError::InvalidBackend(config.database.backend.clone()));
+    if config.database.map_size == 0 {
+        error!("Map size is set to 0. Please set the map size in the configuration file.");
+        return Err(WorldError::InvalidMapSize(config.database.map_size));
     }
     if !Path::new(&db_path).exists() {
         warn!("World path does not exist. Attempting to create it.");

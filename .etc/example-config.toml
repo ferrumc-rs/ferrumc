@@ -21,11 +21,16 @@ network_compression_threshold = 64
 cache_size = 1024
 # Compression algorithm (brotli, deflate, gzip, zlib, zstd)
 compression = "gzip"
-# Database backend (redb, rocksdb, sled, surrealkv)
-backend = "surrealkv"
 # Path to the world database
 db_path = "world"
 # Path to world import folder (e.g., %APPDATA%/.minecraft/saves/world)
 import_path = "import"
 # Compression level (0-22) for the database. Higher values mean less disk space but will take longer to read/write.
 compression_level = 5
+# Map size
+# The max size of the database's memory map. Basically you need this to be big enough
+# to hold everything before it starts writing to disk. This isn't memory use though, it's just
+# how much we can map into memory if needed, so you can set this to an insane number if you want,
+# but it won't actually use that much memory, it'll just show up as virtual memory use.
+# The default is 1TB, which should be more than enough for most worlds. Set this higher if you have a huge world.
+map_size = 1_000_000_000_000

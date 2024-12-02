@@ -33,20 +33,23 @@ pub struct ServerConfig {
 /// - `cache_size`: The cache size in KB.
 /// - `compression` - Which compression algorithm to use. Options are `brotli`, `deflate`, `gzip`, `zlib`
 ///     and `zstd`
-/// - `backend` - Which database backend to use. Options are `redb`, `rocksdb`, `sled`, `surrealkv`.
 /// - `world_path`: The path to the world database.
 /// - `import_path`: The path to the world to import. This should point to the folder that contains
 ///     directories such as `region`, `poi`, `playerdata`, etc. Usually found at %APPDATA%/.minecraft/saves.
 /// - `compression_level`: The compression level to use. This is a number from 0-22. Not all compressors
 ///     support levels, so this will be a no-op for some compressors.
+/// - `map_size`: The max size of the database's memory map. Basically you need this to be big enough
+///    to hold everything before it starts writing to disk. This isn't memory use though, it's just
+///    how much we can map into memory if needed, so you can set this to an insane number if you want,
+///    but it won't actually use that much memory, it'll just show up as virtual memory use.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct DatabaseConfig {
     pub cache_size: u32,
     pub compression: String,
-    pub backend: String,
     pub db_path: String,
     pub import_path: String,
     pub compression_level: i32,
+    pub map_size: u64,
 }
 
 /// The database compression enum for [DatabaseConfig].
