@@ -6,6 +6,7 @@ pub mod rocksdb;
 #[cfg(feature = "sled")]
 pub mod sled;
 
+pub mod lmdb;
 #[cfg(feature = "surrealkv")]
 pub mod surrealkv;
 
