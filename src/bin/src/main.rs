@@ -3,7 +3,7 @@
 extern crate core;
 
 use crate::errors::BinaryError;
-use clap::{Parser, ValueEnum};
+use clap::Parser;
 use ferrumc_config::statics::get_global_config;
 use ferrumc_ecs::Universe;
 use ferrumc_general_purpose::paths::get_root_path;
@@ -12,54 +12,11 @@ use ferrumc_state::ServerState;
 use ferrumc_world::World;
 use std::sync::Arc;
 use systems::definition;
-use tracing::{error, info, Level};
+use tracing::{error, info};
 
-#[derive(clap::Parser)]
-struct CLIArgs {
-    #[clap(long)]
-    import: bool,
-    #[clap(long)]
-    #[arg(value_enum, default_value_t = LogLevel(Level::TRACE))]
-    log: LogLevel,
-    #[clap(long)]
-    setup: bool,
-}
-
-// Wrapper struct for the Level enum
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct LogLevel(Level);
-
-// Implement `ValueEnum` for the wrapper
-impl ValueEnum for LogLevel {
-    fn value_variants<'a>() -> &'a [Self] {
-        static VARIANTS: &[LogLevel] = &[
-            LogLevel(Level::TRACE),
-            LogLevel(Level::DEBUG),
-            LogLevel(Level::INFO),
-            LogLevel(Level::WARN),
-            LogLevel(Level::ERROR),
-        ];
-        VARIANTS
-    }
-
-    fn to_possible_value(&self) -> Option<clap::builder::PossibleValue> {
-        match self.0 {
-            Level::TRACE => Some(clap::builder::PossibleValue::new("trace")),
-            Level::DEBUG => Some(clap::builder::PossibleValue::new("debug")),
-            Level::INFO => Some(clap::builder::PossibleValue::new("info")),
-            Level::WARN => Some(clap::builder::PossibleValue::new("warn")),
-            Level::ERROR => Some(clap::builder::PossibleValue::new("error")),
-        }
-    }
-}
-
-// Add a conversion method to make using the wrapper easier
-impl From<LogLevel> for Level {
-    fn from(log_level: LogLevel) -> Self {
-        log_level.0
-    }
-}
 pub(crate) mod errors;
+use crate::cli::{CLIArgs, Command};
+mod cli;
 mod packet_handlers;
 mod systems;
 
@@ -70,32 +27,36 @@ async fn main() {
     let cli_args = CLIArgs::parse();
     ferrumc_logging::init_logging(cli_args.log.into());
 
-    info!("Starting server...");
+    match cli_args.command {
+        Some(Command::Setup) => {
+            info!("Starting setup...");
+            if let Err(e) = ferrumc_config::setup::setup() {
+                error!("Could not set up the server: {}", e.to_string());
+            } else {
+                info!("Server setup complete.");
+            }
+        }
 
-    if let Err(e) = entry(cli_args).await {
-        error!("Server exited with the following error: {}", e.to_string());
-    } else {
-        info!("Server exited successfully.");
+        Some(Command::Import) => {
+            info!("Starting import...");
+            if let Err(e) = handle_import().await {
+                error!("Import failed with the following error: {}", e.to_string());
+            } else {
+                info!("Import completed successfully.");
+            }
+        }
+        Some(Command::Run) | None => {
+            info!("Starting server...");
+            if let Err(e) = entry().await {
+                error!("Server exited with the following error: {}", e.to_string());
+            } else {
+                info!("Server exited successfully.");
+            }
+        }
     }
 }
 
-async fn entry(cli_args: CLIArgs) -> Result<()> {
-    if handle_import(cli_args.import).await? {
-        return Ok(());
-    }
-
-    if cli_args.setup {
-        return if let Err(e) = ferrumc_config::setup::setup() {
-            error!("Could not set up the server: {}", e.to_string());
-            Err(BinaryError::Custom(
-                "Could not set up the server.".to_string(),
-            ))
-        } else {
-            info!("Server setup complete.");
-            Ok(())
-        };
-    }
-
+async fn entry() -> Result<()> {
     let state = create_state().await?;
     let global_state = Arc::new(state);
 
@@ -110,16 +71,10 @@ async fn entry(cli_args: CLIArgs) -> Result<()> {
     Ok(())
 }
 
-async fn handle_import(import: bool) -> Result<bool> {
-    //! Handles the import of the world if the `--import` flag is set.
-    //! Returns `true` if program should exit after this function, `false` otherwise.
-    if !import {
-        return Ok(false);
-    }
+async fn handle_import() -> Result<()> {
+    //! Handles the import of the world.
+    info!("Importing world...");
 
-    info!("`--import` flag detected. Importing world...");
-
-    // Import the world
     let config = get_global_config();
     let mut world = World::new().await;
 
@@ -140,7 +95,7 @@ async fn handle_import(import: bool) -> Result<bool> {
         return Err(BinaryError::Custom("Could not import world.".to_string()));
     }
 
-    Ok(true)
+    Ok(())
 }
 
 async fn create_state() -> Result<ServerState> {
