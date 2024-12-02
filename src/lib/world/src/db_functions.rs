@@ -3,25 +3,46 @@ use crate::errors::WorldError;
 use crate::World;
 use ferrumc_storage::compressors::Compressor;
 use std::hash::Hasher;
+use tracing::trace;
 
 impl World {
     pub async fn save_chunk(&self, chunk: Chunk) -> Result<(), WorldError> {
+        self.cache
+            .insert((chunk.x, chunk.z, chunk.dimension.clone()), chunk.clone())
+            .await;
         save_chunk_internal(self, chunk).await
     }
 
     pub async fn load_chunk(&self, x: i32, z: i32, dimension: &str) -> Result<Chunk, WorldError> {
-        load_chunk_internal(self, &self.compressor, x, z, dimension).await
+        if let Some(chunk) = self.cache.get(&(x, z, dimension.to_string())).await {
+            return Ok(chunk);
+        }
+        let chunk = load_chunk_internal(self, &self.compressor, x, z, dimension).await;
+        if let Ok(ref chunk) = chunk {
+            self.cache
+                .insert((x, z, dimension.to_string()), chunk.clone())
+                .await;
+        }
+        chunk
     }
 
     pub async fn chunk_exists(&self, x: i32, z: i32, dimension: &str) -> Result<bool, WorldError> {
+        if self.cache.contains_key(&(x, z, dimension.to_string())) {
+            return Ok(true);
+        }
         chunk_exists_internal(self, x, z, dimension).await
     }
 
     pub async fn delete_chunk(&self, x: i32, z: i32, dimension: &str) -> Result<(), WorldError> {
+        self.cache.remove(&(x, z, dimension.to_string())).await;
         delete_chunk_internal(self, x, z, dimension).await
     }
 
     pub async fn sync(&self) -> Result<(), WorldError> {
+        for (k, v) in self.cache.iter() {
+            trace!("Syncing chunk: {:?}", (k.0, k.1));
+            save_chunk_internal(self, v.clone()).await?;
+        }
         sync_internal(self).await
     }
 
@@ -29,7 +50,37 @@ impl World {
         &self,
         coords: Vec<(i32, i32, &str)>,
     ) -> Result<Vec<Chunk>, WorldError> {
-        load_chunk_batch_internal(self, coords).await
+        let mut found_chunks = Vec::new();
+        let mut missing_chunks = Vec::new();
+        for coord in coords.iter() {
+            if let Some(chunk) = self
+                .cache
+                .get(&(coord.0, coord.1, coord.2.to_string()))
+                .await
+            {
+                found_chunks.push(chunk);
+            } else {
+                missing_chunks.push(*coord);
+            }
+        }
+        let fetched = load_chunk_batch_internal(self, missing_chunks).await?;
+        for chunk in fetched {
+            self.cache
+                .insert((chunk.x, chunk.z, chunk.dimension.clone()), chunk.clone())
+                .await;
+            found_chunks.push(chunk);
+        }
+        Ok(found_chunks)
+    }
+
+    pub async fn pre_cache(&self, coords: Vec<(i32, i32, &str)>) -> Result<(), WorldError> {
+        let chunks = load_chunk_batch_internal(self, coords).await?;
+        for chunk in chunks {
+            self.cache
+                .insert((chunk.x, chunk.z, chunk.dimension.clone()), chunk)
+                .await;
+        }
+        Ok(())
     }
 }
 

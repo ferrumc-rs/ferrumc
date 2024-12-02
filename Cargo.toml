@@ -170,6 +170,7 @@ bzip2 = "0.4.1"
 
 # Database
 heed = "0.20.5"
+moka = "0.12.8"
 
 # CLI
 clap = "4.5.20"

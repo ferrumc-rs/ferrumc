@@ -30,11 +30,5 @@ bzip2 = { workspace = true }
 serde_json = { workspace = true }
 indicatif = { workspace = true }
 wyhash = { workspace = true }
-
-
-[features]
-default = ["sled", "surrealkv", "redb"]
-sled = ["ferrumc-storage/sled"]
-surrealkv = ["ferrumc-storage/surrealkv"]
-redb = ["ferrumc-storage/redb"]
-rocksdb = ["ferrumc-storage/rocksdb"]
+moka = { workspace = true, features = ["future"] }
+log = "0.4.22"

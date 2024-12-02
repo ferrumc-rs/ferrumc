@@ -6,21 +6,26 @@ pub mod errors;
 mod importing;
 mod vanilla_chunk_format;
 
+use crate::chunk_format::Chunk;
 use crate::errors::WorldError;
+use deepsize::DeepSizeOf;
 use ferrumc_config::statics::get_global_config;
 use ferrumc_general_purpose::paths::get_root_path;
 use ferrumc_storage::compressors::Compressor;
 use ferrumc_storage::lmdb::LmdbBackend;
+use moka::future::{Cache, FutureExt};
+use moka::notification::ListenerFuture;
 use std::path::{Path, PathBuf};
 use std::process::exit;
+use std::time::Duration;
 use tokio::fs::create_dir_all;
-use tracing::{error, info, warn};
+use tracing::{error, info, trace, warn};
 
 #[derive(Clone)]
 pub struct World {
     storage_backend: LmdbBackend,
     compressor: Compressor,
-    // TODO: Cache
+    cache: Cache<(i32, i32, String), Chunk>,
 }
 
 async fn check_config_validity() -> Result<(), WorldError> {
@@ -125,9 +130,31 @@ impl World {
             }
         };
 
+        if get_global_config().database.cache_ttl != 0
+            && get_global_config().database.cache_capacity == 0
+        {
+            error!("Cache TTL and capacity must both be set to 0 or both be set to a value greater than 0.");
+            exit(1);
+        }
+
+        let eviction_listener = move |key, _, cause| -> ListenerFuture {
+            async move {
+                trace!("Evicting key: {:?}, cause: {:?}", key, cause);
+            }
+            .boxed()
+        };
+
+        let cache = Cache::builder()
+            .async_eviction_listener(eviction_listener)
+            .weigher(|_k, v: &Chunk| v.deep_size_of() as u32)
+            .time_to_live(Duration::from_secs(get_global_config().database.cache_ttl))
+            .max_capacity(get_global_config().database.cache_capacity * 1024)
+            .build();
+
         World {
             storage_backend,
             compressor: compression_algo,
+            cache,
         }
     }
 }

@@ -2,6 +2,7 @@ use crate::errors::WorldError;
 use crate::vanilla_chunk_format;
 use crate::vanilla_chunk_format::VanillaChunk;
 use bitcode_derive::{Decode, Encode};
+use deepsize::DeepSizeOf;
 use ferrumc_macros::{NBTDeserialize, NBTSerialize};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use lazy_static::lazy_static;
@@ -36,7 +37,7 @@ lazy_static! {
         ID2BLOCK.iter().map(|(k, v)| (v.clone(), *k)).collect();
 }
 
-#[derive(Encode, Decode)]
+#[derive(Encode, Decode, Clone, DeepSizeOf)]
 // This is a placeholder for the actual chunk format
 pub struct Chunk {
     pub x: i32,
@@ -46,7 +47,7 @@ pub struct Chunk {
     pub heightmaps: Heightmaps,
 }
 
-#[derive(Encode, Decode, NBTDeserialize, NBTSerialize)]
+#[derive(Encode, Decode, NBTDeserialize, NBTSerialize, Clone, DeepSizeOf)]
 #[nbt(net_encode)]
 pub struct Heightmaps {
     #[nbt(rename = "MOTION_BLOCKING")]
@@ -54,7 +55,7 @@ pub struct Heightmaps {
     #[nbt(rename = "WORLD_SURFACE")]
     pub world_surface: Vec<i64>,
 }
-#[derive(Encode, Decode)]
+#[derive(Encode, Decode, Clone, DeepSizeOf)]
 pub struct Section {
     pub y: i8,
     pub block_states: BlockStates,
@@ -63,7 +64,7 @@ pub struct Section {
     pub block_light: Vec<u8>,
     pub sky_light: Vec<u8>,
 }
-#[derive(Encode, Decode)]
+#[derive(Encode, Decode, Clone, DeepSizeOf)]
 pub struct BlockStates {
     pub bits_per_block: u8,
     pub non_air_blocks: u16,
