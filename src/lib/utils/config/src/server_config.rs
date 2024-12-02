@@ -4,8 +4,6 @@
 
 use serde_derive::{Deserialize, Serialize};
 
-
-
 /// The server configuration struct.
 ///
 /// Fields:
@@ -33,7 +31,7 @@ pub struct ServerConfig {
 ///
 /// Fields:
 /// - `cache_size`: The cache size in KB.
-/// - `compression` - Which compression algorithm to use. Options are `brotli`, `deflate`, `gzip`, `zlib` 
+/// - `compression` - Which compression algorithm to use. Options are `brotli`, `deflate`, `gzip`, `zlib`
 ///     and `zstd`
 /// - `backend` - Which database backend to use. Options are `redb`, `rocksdb`, `sled`, `surrealkv`.
 /// - `world_path`: The path to the world database.

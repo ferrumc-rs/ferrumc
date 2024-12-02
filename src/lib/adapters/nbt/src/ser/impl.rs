@@ -1,6 +1,6 @@
-use std::collections::HashMap;
-use ferrumc_general_purpose::simd::arrays;
 use super::{NBTSerializable, NBTSerializeOptions};
+use ferrumc_general_purpose::simd::arrays;
+use std::collections::HashMap;
 use uuid::Uuid;
 
 macro_rules! impl_ser_primitives {
@@ -184,7 +184,6 @@ impl<T: NBTSerializable> NBTSerializable for Option<T> {
     }
 }
 
-
 /// Serialize multiple values to a buffer.
 /// Order: buf, options, values...
 macro_rules! ser {
@@ -197,9 +196,9 @@ macro_rules! ser {
 }
 
 mod hashmaps {
-    use std::collections::BTreeMap;
     use super::*;
     use crate::ser::NBTSerializeOptions;
+    use std::collections::BTreeMap;
     impl<T: NBTSerializable> NBTSerializable for HashMap<String, T> {
         //! Equivalent to a COMPOUND tag in NBT.
         fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
@@ -242,7 +241,6 @@ mod hashmaps {
         }
     }
 
-
     impl<V: NBTSerializable> NBTSerializable for BTreeMap<&str, V> {
         fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
             write_header::<Self>(buf, options);
@@ -263,7 +261,7 @@ mod hashmaps {
             TAG_COMPOUND
         }
     }
-    
+
     impl<V: NBTSerializable> NBTSerializable for BTreeMap<String, V> {
         fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
             write_header::<Self>(buf, options);

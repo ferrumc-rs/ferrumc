@@ -1,8 +1,9 @@
 use crate::packets::IncomingPacket;
-use crate::{NetResult, ServerState};
-use ferrumc_macros::{packet, Event, NetDecode};
-use std::sync::Arc;
+use crate::NetResult;
 use ferrumc_events::infrastructure::Event;
+use ferrumc_macros::{packet, Event, NetDecode};
+use ferrumc_state::ServerState;
+use std::sync::Arc;
 
 #[derive(NetDecode)]
 #[packet(packet_id = 0x03, state = "configuration")]
@@ -11,9 +12,9 @@ pub struct AckFinishConfigurationPacket {}
 impl IncomingPacket for AckFinishConfigurationPacket {
     async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
         let event = AckFinishConfigurationEvent::new(self, conn_id);
-        
+
         tokio::spawn(AckFinishConfigurationEvent::trigger(event, state));
-        
+
         Ok(())
     }
 }

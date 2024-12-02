@@ -30,3 +30,4 @@ rand = { workspace = true }
 uuid = { workspace = true, features = ["v4"] }
 async-trait = { workspace = true }
 byteorder = { workspace = true }
+ferrumc-state = { workspace = true }

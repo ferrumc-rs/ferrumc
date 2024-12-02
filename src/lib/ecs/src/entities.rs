@@ -1,10 +1,10 @@
 #![allow(dead_code)]
 
-use crate::components::{ComponentManager};
+use crate::components::storage::Component;
+use crate::components::ComponentManager;
+use crate::ECSResult;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use tracing::trace;
-use crate::components::storage::Component;
-use crate::ECSResult;
 
 /// Entity is a unique identifier for an entity in the ECS.
 /// It is a simple usize.
@@ -35,10 +35,9 @@ impl EntityManager {
         trace!("Created entity with id: {}", id);
         id as Entity
     }
-    
+
     pub fn builder<'a>(&'a self, component_storage: &'a ComponentManager) -> EntityBuilder<'a> {
-        EntityBuilder::
-        new(self.create_entity(), component_storage)
+        EntityBuilder::new(self.create_entity(), component_storage)
     }
 }
 
@@ -49,7 +48,10 @@ pub struct EntityBuilder<'a> {
 
 impl<'a> EntityBuilder<'a> {
     pub fn new(entity: Entity, component_storage: &'a ComponentManager) -> Self {
-        EntityBuilder { entity, component_storage }
+        EntityBuilder {
+            entity,
+            component_storage,
+        }
     }
 
     pub fn with<T: Component>(self, component: T) -> ECSResult<Self> {
@@ -61,7 +63,6 @@ impl<'a> EntityBuilder<'a> {
         self.entity
     }
 }
-
 
 #[cfg(test)]
 mod tests {

@@ -1,5 +1,5 @@
 use crate::helpers::is_field_type_optional;
-use syn::{Variant, Field, LitStr, LitInt, Meta, DeriveInput};
+use syn::{DeriveInput, Field, LitInt, LitStr, Meta, Variant};
 
 #[derive(Debug, Clone)]
 pub enum Cases {
@@ -30,14 +30,14 @@ impl Cases {
                     }
                 }
                 snake_case
-            },
+            }
             Self::CamelCase => {
                 let mut camel_case = String::with_capacity(str.len());
                 let mut next_word = false;
                 for c in str.chars() {
                     if c == '_' {
                         next_word = true;
-                    } else if  next_word {
+                    } else if next_word {
                         camel_case.extend(c.to_uppercase());
                         next_word = false;
                     } else {
@@ -45,7 +45,7 @@ impl Cases {
                     }
                 }
                 camel_case
-            },
+            }
         }
     }
 }
@@ -108,23 +108,13 @@ impl NbtFieldAttribute {
 
                 match name.to_string().as_str() {
                     "tag" => {
-                        let tag = nested_meta
-                            .value()
-                            .expect("Expected tag to have a value");
-                        let tag = tag
-                            .parse::<LitStr>()
-                            .expect("Expected tag to be a string");
-                        attributes.push(NbtFieldAttribute::Tag {
-                            tag: tag.value(),
-                        });
+                        let tag = nested_meta.value().expect("Expected tag to have a value");
+                        let tag = tag.parse::<LitStr>().expect("Expected tag to be a string");
+                        attributes.push(NbtFieldAttribute::Tag { tag: tag.value() });
                     }
                     "tag_type" => {
-                        let tag = nested_meta
-                            .value()
-                            .expect("Expected tag to have a value");
-                        let tag = tag
-                            .parse::<LitInt>()
-                            .expect("Expected tag to be a string");
+                        let tag = nested_meta.value().expect("Expected tag to have a value");
+                        let tag = tag.parse::<LitInt>().expect("Expected tag to be a string");
                         attributes.push(NbtFieldAttribute::TagType {
                             tag: tag.base10_parse::<u8>().expect("Not a valid u8"),
                         });
@@ -141,22 +131,22 @@ impl NbtFieldAttribute {
                         });
                     }
                     "rename_all" => {
-                        let case = nested_meta
-                            .value()
-                            .expect("Expected case to have a value");
+                        let case = nested_meta.value().expect("Expected case to have a value");
                         let case: Cases = case
                             .parse::<LitStr>()
-                            .expect("Expected case to be a string").value().into();
-                        attributes.push(NbtFieldAttribute::RenameAll {
-                            case
-                        });
+                            .expect("Expected case to be a string")
+                            .value()
+                            .into();
+                        attributes.push(NbtFieldAttribute::RenameAll { case });
                     }
                     _ => {}
                 }
 
                 Ok(())
             })
-            .unwrap_or_else(|_| println!("[WARN] Failed to parse nested meta parsing input attributes"));
+            .unwrap_or_else(|_| {
+                println!("[WARN] Failed to parse nested meta parsing input attributes")
+            });
         }
 
         attributes

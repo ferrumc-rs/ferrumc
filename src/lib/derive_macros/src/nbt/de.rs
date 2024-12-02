@@ -1,8 +1,8 @@
+use crate::helpers::StructInfo;
 use crate::nbt::helpers::NbtFieldAttribute;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, DeriveInput};
-use crate::helpers::StructInfo;
 
 pub fn derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
@@ -43,7 +43,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
         where_clause,
         lifetime,
         lifetime_without_ident,
-        force_created
+        force_created,
     } = crate::helpers::extract_struct_info(&input, Some("'de"));
 
     let fields = crate::helpers::get_fields(&input);
@@ -98,13 +98,13 @@ pub fn derive(input: TokenStream) -> TokenStream {
             )?,
         }
     });
-    
+
     let impl_generics = if force_created {
         quote! { <'de> #impl_generics }
     } else {
         quote! { #impl_generics }
     };
-    
+
     let expanded = quote! {
         impl #impl_generics ::ferrumc_nbt::FromNbt #lifetime for #struct_name #ty_generics #where_clause {
             fn from_nbt(

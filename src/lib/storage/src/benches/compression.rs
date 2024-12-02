@@ -51,7 +51,8 @@ fn zlib_decompress(data: &[u8]) {
 }
 
 fn zlib_yazi_compress(data: &[u8]) {
-    let compressed = yazi::compress(data, yazi::Format::Zlib, yazi::CompressionLevel::Default).unwrap();
+    let compressed =
+        yazi::compress(data, yazi::Format::Zlib, yazi::CompressionLevel::Default).unwrap();
     black_box(compressed);
 }
 
@@ -82,7 +83,9 @@ pub fn compression_benchmarks(c: &mut criterion::Criterion) {
     compress_group.bench_function("Gzip", |b| b.iter(|| gzip_compress(black_box(data))));
     compress_group.bench_function("Deflate", |b| b.iter(|| deflate_compress(black_box(data))));
     compress_group.bench_function("Zlib", |b| b.iter(|| zlib_compress(black_box(data))));
-    compress_group.bench_function("Zlib (Yazi)", |b| b.iter(|| zlib_yazi_compress(black_box(data))));
+    compress_group.bench_function("Zlib (Yazi)", |b| {
+        b.iter(|| zlib_yazi_compress(black_box(data)))
+    });
     compress_group.bench_function("Brotli", |b| b.iter(|| brotli_compress(black_box(data))));
     compress_group.finish();
 
@@ -153,7 +156,8 @@ pub fn compression_benchmarks(c: &mut criterion::Criterion) {
     });
     roundtrip_group.bench_function("Zlib (Yazi)", |b| {
         b.iter(|| {
-            let compressed = yazi::compress(data, yazi::Format::Zlib, yazi::CompressionLevel::Default).unwrap();
+            let compressed =
+                yazi::compress(data, yazi::Format::Zlib, yazi::CompressionLevel::Default).unwrap();
             let decompressed = yazi::decompress(compressed.as_slice(), yazi::Format::Zlib).unwrap();
             black_box(decompressed);
         })

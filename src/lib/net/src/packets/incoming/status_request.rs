@@ -1,12 +1,13 @@
 use crate::connection::StreamWriter;
 use crate::packets::outgoing::status_response::StatusResponse;
 use crate::packets::IncomingPacket;
-use crate::{NetResult, ServerState};
+use crate::NetResult;
 use ferrumc_config::favicon::get_favicon_base64;
 use ferrumc_config::statics::get_global_config;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_macros::{packet, NetDecode};
 use ferrumc_net_codec::encode::NetEncodeOpts;
+use ferrumc_state::ServerState;
 use rand::seq::IndexedRandom;
 use std::sync::Arc;
 

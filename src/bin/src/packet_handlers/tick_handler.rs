@@ -5,14 +5,11 @@ use ferrumc_net::errors::NetError;
 use ferrumc_net::packets::outgoing::update_time::TickEvent;
 use ferrumc_net::packets::outgoing::update_time::UpdateTimePacket;
 use ferrumc_net::utils::broadcast::{BroadcastOptions, BroadcastToAll};
-use ferrumc_net::GlobalState;
+use ferrumc_state::GlobalState;
 use tracing::warn;
 
 #[event_handler]
-async fn handle_tick(
-    event: TickEvent,
-    state: GlobalState,
-) -> Result<TickEvent, NetError> {
+async fn handle_tick(event: TickEvent, state: GlobalState) -> Result<TickEvent, NetError> {
     // info!("Tick {} ", event.tick);
     // TODO: Handle tick in terms of game logic here
     // this should call a function in world which handles the world state and calls the appropriate events which send their respective packets
@@ -36,9 +33,11 @@ async fn handle_tick(
         })
         .collect::<Vec<_>>();
 
-
     tokio::spawn(async move {
-        if let Err(e) = state.broadcast(&packet, BroadcastOptions::default().only(entities)).await {
+        if let Err(e) = state
+            .broadcast(&packet, BroadcastOptions::default().only(entities))
+            .await
+        {
             warn!("Failed to broadcast tick packet: {:?}", e);
         }
     });

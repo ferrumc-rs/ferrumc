@@ -3,7 +3,7 @@ use std::fmt::{Debug, Display, Formatter};
 pub struct Position {
     pub x: f64,
     pub y: f64,
-    pub z: f64
+    pub z: f64,
 }
 
 // Helper functions:
@@ -34,7 +34,11 @@ impl From<&(f64, f64, f64)> for Position {
 
 impl Debug for Position {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Position {{ x: {:.2}, y: {:.2}, z: {:.2} }}", self.x, self.y, self.z)
+        write!(
+            f,
+            "Position {{ x: {:.2}, y: {:.2}, z: {:.2} }}",
+            self.x, self.y, self.z
+        )
     }
 }
 

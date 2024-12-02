@@ -12,20 +12,27 @@ resolver = "2"
 #================= Members =================#
 members = [
     "src/bin",
+    "src/lib/adapters/anvil",
+    "src/lib/adapters/anvil",
+    "src/lib/adapters/nbt",
+    "src/lib/adapters/nbt",
     "src/lib/core",
+    "src/lib/core/state",
+    "src/lib/derive_macros",
+    "src/lib/derive_macros",
     "src/lib/ecs",
     "src/lib/events",
     "src/lib/net",
-    "src/lib/net/crates/encryption",
     "src/lib/net/crates/codec",
+    "src/lib/net/crates/encryption",
     "src/lib/plugins",
     "src/lib/storage",
-    "src/lib/utils", "src/lib/utils/logging", "src/lib/utils/profiling", "src/lib/utils/general_purpose",
-    "src/lib/world",
-    "src/lib/derive_macros",
-    "src/lib/adapters/nbt", "src/lib/adapters/mca",
-    "src/tests", "src/lib/adapters/anvil",
     "src/lib/text",
+    "src/lib/utils",
+    "src/lib/utils/general_purpose",
+    "src/lib/utils/logging",
+    "src/lib/utils/profiling",
+    "src/lib/world",
 ]
 
 #================== Lints ==================#
@@ -63,28 +70,38 @@ debug-assertions = false
 overflow-checks = false
 panic = "abort"
 
+[profile.hyper]
+inherits = "release"
+lto = true
+opt-level = 3
+debug = false
+debug-assertions = false
+overflow-checks = false
+panic = "abort"
+codegen-units = 1
+
 #=============== Dependencies ==============#
 [workspace.dependencies]
 # Workspace members
+ferrumc-anvil = { path = "src/lib/adapters/anvil" }
+ferrumc-config = { path = "src/lib/utils/config" }
 ferrumc-core = { path = "src/lib/core" }
 ferrumc-ecs = { path = "src/lib/ecs" }
 ferrumc-events = { path = "src/lib/events" }
-ferrumc-net = { path = "src/lib/net" }
-ferrumc-text = { path = "src/lib/text" }
-ferrumc-net-encryption = { path = "src/lib/net/crates/encryption" }
-ferrumc-net-codec = { path = "src/lib/net/crates/codec" }
-ferrumc-plugins = { path = "src/lib/plugins" }
-ferrumc-storage = { path = "src/lib/storage" }
-ferrumc-utils = { path = "src/lib/utils" }
-ferrumc-profiling = { path = "src/lib/utils/profiling" }
-ferrumc-logging = { path = "src/lib/utils/logging" }
-ferrumc-config = { path = "src/lib/utils/config" }
 ferrumc-general-purpose = { path = "src/lib/utils/general_purpose" }
+ferrumc-logging = { path = "src/lib/utils/logging" }
 ferrumc-macros = { path = "src/lib/derive_macros" }
-ferrumc-world = { path = "src/lib/world" }
 ferrumc-nbt = { path = "src/lib/adapters/nbt" }
-ferrumc-anvil = { path = "src/lib/adapters/anvil" }
-ferrumc-tests = { path = "src/tests" }
+ferrumc-net = { path = "src/lib/net" }
+ferrumc-net-codec = { path = "src/lib/net/crates/codec" }
+ferrumc-net-encryption = { path = "src/lib/net/crates/encryption" }
+ferrumc-plugins = { path = "src/lib/plugins" }
+ferrumc-profiling = { path = "src/lib/utils/profiling" }
+ferrumc-state = { path = "src/lib/core/state" }
+ferrumc-storage = { path = "src/lib/storage" }
+ferrumc-text = { path = "src/lib/text" }
+ferrumc-utils = { path = "src/lib/utils" }
+ferrumc-world = { path = "src/lib/world" }
 
 
 # Asynchronous
@@ -101,15 +118,13 @@ log = "0.4.22"
 # Concurrency/Parallelism
 parking_lot = "0.12.3"
 rayon = "1.10.0"
-crossbeam = "0.8.4"
 
 # Network
 
 # Error handling
-thiserror = "1.0.63"
+thiserror = "2.0.3"
 
 # Cryptography
-rsa = "0.9.6"
 rand = "0.9.0-beta.0"
 fnv = "1.0.7"
 
@@ -167,12 +182,4 @@ memmap2 = "0.9.5"
 # Benchmarking
 criterion = { version = "0.5.1", features = ["html_reports"] }
 
-[profile.hyper]
-inherits = "release"
-lto = true
-opt-level = 3
-debug = false
-debug-assertions = false
-overflow-checks = false
-panic = "abort"
-codegen-units = 1
+

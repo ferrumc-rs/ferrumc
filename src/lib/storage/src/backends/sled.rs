@@ -24,12 +24,7 @@ impl DatabaseBackend for SledBackend {
         }
     }
 
-    async fn insert(
-        &self,
-        table: String,
-        key: u64,
-        value: Vec<u8>,
-    ) -> Result<(), StorageError> {
+    async fn insert(&self, table: String, key: u64, value: Vec<u8>) -> Result<(), StorageError> {
         let db = self.db.clone();
         tokio::task::spawn_blocking(move || {
             let table = db
@@ -81,12 +76,7 @@ impl DatabaseBackend for SledBackend {
         Ok(())
     }
 
-    async fn update(
-        &self,
-        table: String,
-        key: u64,
-        value: Vec<u8>,
-    ) -> Result<(), StorageError> {
+    async fn update(&self, table: String, key: u64, value: Vec<u8>) -> Result<(), StorageError> {
         let db = self.db.clone();
         tokio::task::spawn_blocking(move || {
             let table = db
@@ -102,12 +92,7 @@ impl DatabaseBackend for SledBackend {
         Ok(())
     }
 
-    async fn upsert(
-        &self,
-        table: String,
-        key: u64,
-        value: Vec<u8>,
-    ) -> Result<bool, StorageError> {
+    async fn upsert(&self, table: String, key: u64, value: Vec<u8>) -> Result<bool, StorageError> {
         let db = self.db.clone();
         let result = tokio::task::spawn_blocking(move || {
             let table = db

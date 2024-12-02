@@ -1,4 +1,7 @@
 use ferrumc_core::identity::player_identity::PlayerIdentity;
+use ferrumc_core::transform::grounded::OnGround;
+use ferrumc_core::transform::position::Position;
+use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_ecs::components::storage::ComponentRefMut;
 use ferrumc_macros::event_handler;
 use ferrumc_net::connection::{ConnectionState, StreamWriter};
@@ -14,17 +17,14 @@ use ferrumc_net::packets::outgoing::game_event::GameEventPacket;
 use ferrumc_net::packets::outgoing::keep_alive::OutgoingKeepAlivePacket;
 use ferrumc_net::packets::outgoing::login_play::LoginPlayPacket;
 use ferrumc_net::packets::outgoing::login_success::LoginSuccessPacket;
-use ferrumc_net::packets::outgoing::set_center_chunk::SetCenterChunk;
-use ferrumc_net::packets::outgoing::set_render_distance::SetRenderDistance;
 use ferrumc_net::packets::outgoing::registry_data::get_registry_packets;
+use ferrumc_net::packets::outgoing::set_center_chunk::SetCenterChunk;
 use ferrumc_net::packets::outgoing::set_default_spawn_position::SetDefaultSpawnPositionPacket;
+use ferrumc_net::packets::outgoing::set_render_distance::SetRenderDistance;
 use ferrumc_net::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket;
-use ferrumc_net::GlobalState;
 use ferrumc_net_codec::encode::NetEncodeOpts;
+use ferrumc_state::GlobalState;
 use tracing::{debug, trace};
-use ferrumc_core::transform::grounded::OnGround;
-use ferrumc_core::transform::position::Position;
-use ferrumc_core::transform::rotation::Rotation;
 
 #[event_handler]
 async fn handle_login_start(
@@ -124,14 +124,14 @@ async fn handle_ack_finish_configuration(
     let mut conn_state = state.universe.get_mut::<ConnectionState>(conn_id)?;
 
     *conn_state = ConnectionState::Play;
-    
+
     // add components to the entity after the connection state has been set to play.
     // to avoid wasting resources on entities that are fetching stuff like server status etc.
-    state.universe
+    state
+        .universe
         .add_component::<Position>(conn_id, Position::default())?
         .add_component::<Rotation>(conn_id, Rotation::default())?
         .add_component::<OnGround>(conn_id, OnGround::default())?;
-    
 
     let mut writer = state.universe.get_mut::<StreamWriter>(conn_id)?;
 

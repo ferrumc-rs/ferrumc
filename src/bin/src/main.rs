@@ -8,7 +8,7 @@ use ferrumc_config::statics::get_global_config;
 use ferrumc_ecs::Universe;
 use ferrumc_general_purpose::paths::get_root_path;
 use ferrumc_net::server::create_server_listener;
-use ferrumc_net::ServerState;
+use ferrumc_state::ServerState;
 use ferrumc_world::World;
 use std::sync::Arc;
 use systems::definition;
@@ -21,6 +21,8 @@ struct CLIArgs {
     #[clap(long)]
     #[arg(value_enum, default_value_t = LogLevel(Level::TRACE))]
     log: LogLevel,
+    #[clap(long)]
+    setup: bool,
 }
 
 // Wrapper struct for the Level enum
@@ -80,6 +82,18 @@ async fn main() {
 async fn entry(cli_args: CLIArgs) -> Result<()> {
     if handle_import(cli_args.import).await? {
         return Ok(());
+    }
+
+    if cli_args.setup {
+        return if let Err(e) = ferrumc_config::setup::setup() {
+            error!("Could not set up the server: {}", e.to_string());
+            Err(BinaryError::Custom(
+                "Could not set up the server.".to_string(),
+            ))
+        } else {
+            info!("Server setup complete.");
+            Ok(())
+        };
     }
 
     let state = create_state().await?;

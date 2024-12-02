@@ -1,22 +1,18 @@
 use crate::*;
-use ferrumc_net_codec::encode::{
-    NetEncode, NetEncodeOpts, errors::NetEncodeError
-};
 use ferrumc_nbt::{NBTSerializable, NBTSerializeOptions};
+use ferrumc_net_codec::encode::{errors::NetEncodeError, NetEncode, NetEncodeOpts};
+use paste::paste;
+use std::fmt;
 use std::io::Write;
 use std::marker::Unpin;
-use tokio::io::AsyncWriteExt;
-use std::fmt;
 use std::ops::Add;
 use std::str::FromStr;
-use paste::paste;
+use tokio::io::AsyncWriteExt;
 
 impl From<String> for TextComponent {
     fn from(value: String) -> Self {
         Self {
-            content: TextContent::Text {
-                text: value,
-            },
+            content: TextContent::Text { text: value },
             ..Default::default()
         }
     }
@@ -25,9 +21,7 @@ impl From<String> for TextComponent {
 impl From<&str> for TextComponent {
     fn from(value: &str) -> Self {
         Self {
-            content: TextContent::Text {
-                text: value.into(),
-            },
+            content: TextContent::Text { text: value.into() },
             ..Default::default()
         }
     }
@@ -86,7 +80,13 @@ impl fmt::Display for TextComponent {
 }
 
 impl TextComponent {
-    make_setters!((Color, color), (Font, font), (String, insertion), (ClickEvent, click_event), (HoverEvent, hover_event));
+    make_setters!(
+        (Color, color),
+        (Font, font),
+        (String, insertion),
+        (ClickEvent, click_event),
+        (HoverEvent, hover_event)
+    );
     make_bool_setters!(bold, italic, underlined, strikethrough, obfuscated);
 
     pub fn serialize_nbt(&self) -> Vec<u8> {
@@ -102,7 +102,11 @@ impl NetEncode for TextComponent {
         Ok(())
     }
 
-    async fn encode_async<W: AsyncWriteExt + Unpin>(&self, writer: &mut W, _: &NetEncodeOpts) -> Result<(), NetEncodeError>{
+    async fn encode_async<W: AsyncWriteExt + Unpin>(
+        &self,
+        writer: &mut W,
+        _: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
         writer.write_all(&self.serialize_nbt()[..]).await?;
         Ok(())
     }

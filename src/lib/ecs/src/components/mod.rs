@@ -50,10 +50,10 @@ impl ComponentStorage {
                 return Vec::new();
             }
         };
-        
+
         components.value().entities()
     }
-    
+
     pub fn remove<T: Component>(&self, entity: Entity) {
         let type_id = TypeId::of::<T>();
         self.components.get_mut(&type_id)
@@ -72,7 +72,7 @@ impl ComponentStorage {
                     components.remove(entity);
                 }
             });
-        
+
         Ok(())
     }
 }
@@ -143,7 +143,7 @@ mod debug {
             Debug::fmt(&**self, f)
         }
     }
-    
+
     impl<T: Component + Debug> Debug for ComponentRefMut<'_, T> {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             Debug::fmt(&**self, f)
@@ -231,12 +231,13 @@ mod tests {
         assert!(position.is_err());
     }
 }
-*/use crate::components::storage::{Component, ComponentRef, ComponentRefMut, ComponentSparseSet};
-use dashmap::{DashMap};
-use parking_lot::RwLock;
-use std::any::{TypeId};
-use crate::ECSResult;
+*/
+use crate::components::storage::{Component, ComponentRef, ComponentRefMut, ComponentSparseSet};
 use crate::errors::ECSError;
+use crate::ECSResult;
+use dashmap::DashMap;
+use parking_lot::RwLock;
+use std::any::TypeId;
 
 pub mod storage;
 
@@ -255,7 +256,7 @@ impl<T: Component> ComponentStorage for ComponentSparseSet<T> {
     fn as_ptr(&self) -> *const () {
         self as *const Self as *const ()
     }
-    
+
     fn remove_component(&self, entity_id: usize) -> ECSResult<()> {
         self.remove(entity_id)
     }
@@ -295,33 +296,41 @@ impl ComponentManager {
             }
         };
 
-
         Ok(())
     }
     pub fn get<'a, T: Component>(&self, entity_id: usize) -> ECSResult<ComponentRef<'a, T>> {
         let type_id = TypeId::of::<T>();
-        let ptr = *self.components.get(&type_id).ok_or(ECSError::ComponentTypeNotFound)?;
+        let ptr = *self
+            .components
+            .get(&type_id)
+            .ok_or(ECSError::ComponentTypeNotFound)?;
         let component_set = unsafe { &*(ptr as *const ComponentSparseSet<T>) };
         component_set.get(entity_id)
     }
 
     pub fn get_mut<'a, T: Component>(&self, entity_id: usize) -> ECSResult<ComponentRefMut<'a, T>> {
         let type_id = TypeId::of::<T>();
-        let ptr = *self.components.get(&type_id).ok_or(ECSError::ComponentTypeNotFound)?;
+        let ptr = *self
+            .components
+            .get(&type_id)
+            .ok_or(ECSError::ComponentTypeNotFound)?;
         let component_set = unsafe { &*(ptr as *const ComponentSparseSet<T>) };
         component_set.get_mut(entity_id)
     }
 
     pub fn remove<T: Component>(&self, entity_id: usize) -> ECSResult<()> {
         let type_id = TypeId::of::<T>();
-        let ptr = *self.components.get(&type_id).ok_or(ECSError::ComponentTypeNotFound)?;
+        let ptr = *self
+            .components
+            .get(&type_id)
+            .ok_or(ECSError::ComponentTypeNotFound)?;
         let component_set = unsafe { &mut *(ptr as *mut ComponentSparseSet<T>) };
         component_set.remove(entity_id)?;
 
         Ok(())
     }
 
-    pub fn remove_all_components(&self, entity_id: usize) -> ECSResult<()>{
+    pub fn remove_all_components(&self, entity_id: usize) -> ECSResult<()> {
         for storage in self.storage.read().iter() {
             storage.remove_component(entity_id)?;
         }

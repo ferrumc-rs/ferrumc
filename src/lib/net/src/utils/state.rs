@@ -2,9 +2,10 @@ use crate::{
     connection::{ConnectionControl, StreamWriter},
     errors::NetError,
     packets::outgoing::disconnect::DisconnectPacket,
-    GlobalState, NetResult,
+    NetResult,
 };
 use ferrumc_net_codec::encode::NetEncodeOpts;
+use ferrumc_state::GlobalState;
 use tracing::{trace, warn};
 
 use super::ecs_helpers::EntityExt;
@@ -35,7 +36,10 @@ pub async fn terminate_connection(
     };
 
     if let Err(e) = writer
-        .send_packet(&DisconnectPacket::from_string(reason), &NetEncodeOpts::WithLength)
+        .send_packet(
+            &DisconnectPacket::from_string(reason),
+            &NetEncodeOpts::WithLength,
+        )
         .await
     {
         warn!(

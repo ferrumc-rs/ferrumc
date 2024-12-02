@@ -1,14 +1,14 @@
-use std::fs::File;
-use std::path::PathBuf;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use ferrumc_utils::root;
-use rayon::prelude::*;
 use fastanvil::Region;
 use ferrumc_anvil::load_anvil_file;
+use ferrumc_utils::root;
+use rayon::prelude::*;
+use std::fs::File;
+use std::path::PathBuf;
 
 fn criterion_benchmark(c: &mut Criterion) {
     let mut read_all_group = c.benchmark_group("Read All");
-    
+
     read_all_group.bench_function("FerrumC Rayon", |b| {
         b.iter(|| {
             let file_path = PathBuf::from(root!(".etc/r.0.0.mca"));
@@ -21,7 +21,7 @@ fn criterion_benchmark(c: &mut Criterion) {
             });
         });
     });
-    
+
     read_all_group.bench_function("FerrumC", |b| {
         b.iter(|| {
             let file_path = PathBuf::from(root!(".etc/r.0.0.mca"));
@@ -32,7 +32,7 @@ fn criterion_benchmark(c: &mut Criterion) {
             });
         });
     });
-    
+
     read_all_group.bench_function("FastAnvil", |b| {
         b.iter(|| {
             let file = File::open(root!(".etc/r.0.0.mca")).unwrap();
@@ -42,11 +42,11 @@ fn criterion_benchmark(c: &mut Criterion) {
             });
         });
     });
-    
+
     read_all_group.finish();
-    
+
     let mut read_one_group = c.benchmark_group("Read One");
-    
+
     read_one_group.bench_function("FerrumC", |b| {
         b.iter(|| {
             let file_path = PathBuf::from(root!(".etc/r.0.0.mca"));
@@ -54,7 +54,7 @@ fn criterion_benchmark(c: &mut Criterion) {
             black_box(loaded_file.get_chunk(0, 0));
         });
     });
-    
+
     read_one_group.bench_function("FastAnvil", |b| {
         b.iter(|| {
             let file = File::open(root!(".etc/r.0.0.mca")).unwrap();
@@ -62,11 +62,9 @@ fn criterion_benchmark(c: &mut Criterion) {
             black_box(region.read_chunk(0, 0).unwrap());
         });
     });
-    
+
     read_one_group.finish();
 }
-
-
 
 criterion_group!(benches, criterion_benchmark);
 criterion_main!(benches);

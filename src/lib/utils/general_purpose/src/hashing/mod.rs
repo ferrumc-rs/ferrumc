@@ -1,5 +1,5 @@
-use std::hash::{Hash, Hasher};
 use fnv::FnvHasher;
+use std::hash::{Hash, Hasher};
 
 /// ### DO NOT USE THIS FOR SECURITY PURPOSES
 /// This is a very simple hashing function that is not secure at all. It is only meant to be used
@@ -21,7 +21,10 @@ mod tests {
         let hash1 = hash(data);
         let hash2 = hash(data);
 
-        assert_eq!(hash1, hash2, "FNV should produce consistent results for the same input");
+        assert_eq!(
+            hash1, hash2,
+            "FNV should produce consistent results for the same input"
+        );
     }
 
     #[test]
@@ -31,14 +34,20 @@ mod tests {
         let hash1 = hash(data1);
         let hash2 = hash(data2);
 
-        assert_ne!(hash1, hash2, "FNV should produce different results for different inputs");
+        assert_ne!(
+            hash1, hash2,
+            "FNV should produce different results for different inputs"
+        );
     }
-    
+
     #[test]
     fn test_specific_output() {
         let data = "hello_world";
         let hash = hash(data);
 
-        assert_eq!(hash, 0x768aff4672817d95, "FNV should produce a specific output for a specific input");
+        assert_eq!(
+            hash, 0x768aff4672817d95,
+            "FNV should produce a specific output for a specific input"
+        );
     }
 }

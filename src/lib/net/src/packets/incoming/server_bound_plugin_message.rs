@@ -1,22 +1,22 @@
+use crate::packets::IncomingPacket;
+use crate::NetResult;
+use ferrumc_macros::packet;
+use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
+use ferrumc_state::ServerState;
 use std::io::Read;
 use std::sync::Arc;
 use tracing::debug;
-use ferrumc_macros::{packet};
-use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
-use crate::packets::IncomingPacket;
-use crate::{NetResult, ServerState};
 
 #[derive(Debug)]
 #[packet(packet_id = 0x02, state = "configuration")]
 pub struct ServerBoundPluginMessage {
     channel: String,
-    data: Vec<u8>
+    data: Vec<u8>,
 }
 
 pub struct ClientMinecraftBrand {
-    pub brand: String
+    pub brand: String,
 }
-
 
 impl NetDecode for ServerBoundPluginMessage {
     fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> NetDecodeResult<Self> {
@@ -24,10 +24,7 @@ impl NetDecode for ServerBoundPluginMessage {
         let mut buf = Vec::<u8>::new();
         reader.read_to_end(&mut buf)?;
 
-        Ok(Self {
-            channel,
-            data: buf
-        })
+        Ok(Self { channel, data: buf })
     }
 }
 
@@ -38,8 +35,10 @@ impl IncomingPacket for ServerBoundPluginMessage {
         if self.channel == "minecraft:brand" {
             let brand = String::from_utf8(self.data)?;
             debug!("Client brand: {}", brand);
-            
-            state.universe.add_component(conn_id, ClientMinecraftBrand { brand })?;
+
+            state
+                .universe
+                .add_component(conn_id, ClientMinecraftBrand { brand })?;
         }
 
         Ok(())

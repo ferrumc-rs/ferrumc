@@ -1,5 +1,5 @@
-use crate::components::ComponentManager;
 use crate::components::storage::{Component, ComponentRef, ComponentRefMut};
+use crate::components::ComponentManager;
 use crate::entities::{Entity, EntityBuilder, EntityManager};
 use crate::query::{Query, QueryItem};
 
@@ -12,7 +12,6 @@ pub mod query;
 #[cfg(test)]
 mod tests;
 pub type ECSResult<T> = Result<T, errors::ECSError>;
-
 
 /// The main struct that holds all the ECS data.
 /// It's called the universe because I didn't want to name it 'World'.
@@ -48,11 +47,11 @@ impl Universe {
         self.components.insert(entity, component)?;
         Ok(self)
     }
-    
+
     pub fn remove_component<T: Component>(&self, entity: Entity) -> ECSResult<()> {
         self.components.remove::<T>(entity)
     }
-    
+
     pub fn remove_all_components(&self, entity: Entity) -> ECSResult<()> {
         self.components.remove_all_components(entity)
     }
@@ -67,7 +66,7 @@ impl Universe {
     pub fn query<Q: QueryItem>(&self) -> Query<Q> {
         Query::new(&self.components)
     }
-    
+
     pub fn get_component_manager(&self) -> &ComponentManager {
         &self.components
     }
