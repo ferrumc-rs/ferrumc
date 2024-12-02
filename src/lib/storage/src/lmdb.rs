@@ -39,6 +39,10 @@ impl LmdbBackend {
             Ok(LmdbBackend {
                 env: Arc::new(
                     EnvOpenOptions::new()
+                        .max_dbs(8)
+                        .map_size(8 * 1024 * 1024 * 1024 * 1024)
+                        // Max memory map size is 8TB. This won't actually allocate 8TB of memory,
+                        // but it will allow the database to grow to that size if needed.
                         .open(checked_path)
                         .map_err(|e| StorageError::DatabaseInitError(e.to_string()))?,
                 ),

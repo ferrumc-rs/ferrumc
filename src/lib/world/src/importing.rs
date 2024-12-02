@@ -93,6 +93,9 @@ impl World {
         info!("Importing chunks from import directory...");
         let start = std::time::Instant::now();
         let mut task_set = JoinSet::new();
+        self.storage_backend
+            .create_table("chunks".to_string())
+            .await?;
         for region_file in regions_dir {
             match region_file {
                 Ok(dir_entry) => {
@@ -150,6 +153,8 @@ impl World {
             progress_bar.clone().position(),
             start.elapsed()
         );
+
+        self.storage_backend.flush().await?;
         Ok(())
     }
 }
