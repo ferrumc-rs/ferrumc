@@ -73,13 +73,25 @@ impl World {
         Ok(found_chunks)
     }
 
+    /// Pre-cache a chunk in the cache
+    ///
+    /// This function will load a chunk from the storage backend and insert it into the cache
+    /// without returning the chunk. This is useful for pre-loading chunks into the cache before
+    /// they are needed.
     pub async fn pre_cache(&self, x: i32, z: i32, dimension: &str) -> Result<(), WorldError> {
-        if self.cache.get(&(x, z, dimension.to_string())).await.is_none() {
-            let chunk = load_chunk_internal(self, &self.compressor, x, z, dimension).await?;
-            self.cache
-                .insert((x, z, dimension.to_string()), chunk)
-                .await;
-        }
+        tokio::spawn(async move {
+            if self
+                .cache
+                .get(&(x, z, dimension.to_string()))
+                .await
+                .is_none()
+            {
+                let chunk = load_chunk_internal(self, &self.compressor, x, z, dimension).await?;
+                self.cache
+                    .insert((x, z, dimension.to_string()), chunk)
+                    .await;
+            }
+        });
         Ok(())
     }
 }
