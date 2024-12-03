@@ -7,7 +7,7 @@ use tracing::trace;
 
 impl World {
     /// Save a chunk to the storage backend
-    /// 
+    ///
     /// This function will save a chunk to the storage backend and update the cache with the new
     /// chunk data. If the chunk already exists in the cache, it will be updated with the new data.
     pub async fn save_chunk(&self, chunk: Chunk) -> Result<(), WorldError> {
@@ -83,19 +83,17 @@ impl World {
     /// without returning the chunk. This is useful for preloading chunks into the cache before
     /// they are needed.
     pub async fn pre_cache(&self, x: i32, z: i32, dimension: &str) -> Result<(), WorldError> {
-        tokio::spawn(async move {
-            if self
-                .cache
-                .get(&(x, z, dimension.to_string()))
-                .await
-                .is_none()
-            {
-                let chunk = load_chunk_internal(self, &self.compressor, x, z, dimension).await?;
-                self.cache
-                    .insert((x, z, dimension.to_string()), chunk)
-                    .await;
-            }
-        });
+        if self
+            .cache
+            .get(&(x, z, dimension.to_string()))
+            .await
+            .is_none()
+        {
+            let chunk = load_chunk_internal(self, &self.compressor, x, z, dimension).await?;
+            self.cache
+                .insert((x, z, dimension.to_string()), chunk)
+                .await;
+        }
         Ok(())
     }
 }
