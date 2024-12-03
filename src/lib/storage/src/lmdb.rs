@@ -39,7 +39,8 @@ impl LmdbBackend {
             Ok(LmdbBackend {
                 env: Arc::new(
                     EnvOpenOptions::new()
-                        .max_dbs(8)
+                        // Change this as more tables are needed.
+                        .max_dbs(1)
                         .map_size(
                             ferrumc_config::statics::get_global_config()
                                 .database
