@@ -76,7 +76,7 @@ impl World {
     /// Pre-cache a chunk in the cache
     ///
     /// This function will load a chunk from the storage backend and insert it into the cache
-    /// without returning the chunk. This is useful for pre-loading chunks into the cache before
+    /// without returning the chunk. This is useful for preloading chunks into the cache before
     /// they are needed.
     pub async fn pre_cache(&self, x: i32, z: i32, dimension: &str) -> Result<(), WorldError> {
         tokio::spawn(async move {
