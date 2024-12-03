@@ -6,6 +6,10 @@ use std::hash::Hasher;
 use tracing::trace;
 
 impl World {
+    /// Save a chunk to the storage backend
+    /// 
+    /// This function will save a chunk to the storage backend and update the cache with the new
+    /// chunk data. If the chunk already exists in the cache, it will be updated with the new data.
     pub async fn save_chunk(&self, chunk: Chunk) -> Result<(), WorldError> {
         self.cache
             .insert((chunk.x, chunk.z, chunk.dimension.clone()), chunk.clone())
