@@ -17,6 +17,9 @@ impl World {
         save_chunk_internal(self, chunk).await
     }
 
+    /// Load a chunk from the storage backend. If the chunk is in the cache, it will be returned
+    /// from the cache instead of the storage backend. If the chunk is not in the cache, it will be
+    /// loaded from the storage backend and inserted into the cache.
     pub async fn load_chunk(&self, x: i32, z: i32, dimension: &str) -> Result<Chunk, WorldError> {
         if let Some(chunk) = self.cache.get(&(x, z, dimension.to_string())).await {
             return Ok(chunk);
@@ -30,6 +33,11 @@ impl World {
         chunk
     }
 
+    /// Check if a chunk exists in the storage backend.
+    ///
+    /// It will first check if the chunk is in the cache and if it is, it will return true. If the
+    /// chunk is not in the cache, it will check the storage backend for the chunk, returning true
+    /// if it exists and false if it does not.
     pub async fn chunk_exists(&self, x: i32, z: i32, dimension: &str) -> Result<bool, WorldError> {
         if self.cache.contains_key(&(x, z, dimension.to_string())) {
             return Ok(true);
@@ -37,11 +45,19 @@ impl World {
         chunk_exists_internal(self, x, z, dimension).await
     }
 
+    /// Delete a chunk from the storage backend.
+    ///
+    /// This function will remove the chunk from the cache and delete it from the storage backend.
     pub async fn delete_chunk(&self, x: i32, z: i32, dimension: &str) -> Result<(), WorldError> {
         self.cache.remove(&(x, z, dimension.to_string())).await;
         delete_chunk_internal(self, x, z, dimension).await
     }
 
+    /// Sync the storage backend.
+    ///
+    /// This function will save all chunks in the cache to the storage backend and then sync the
+    /// storage backend. This should be run after inserting or updating a large number of chunks
+    /// to ensure that the data is properly saved to disk.
     pub async fn sync(&self) -> Result<(), WorldError> {
         for (k, v) in self.cache.iter() {
             trace!("Syncing chunk: {:?}", (k.0, k.1));
@@ -50,6 +66,11 @@ impl World {
         sync_internal(self).await
     }
 
+    /// Load a batch of chunks from the storage backend.
+    ///
+    /// This function attempts to load as many chunks as it can find from the cache first, then fetches
+    /// the missing chunks from the storage backend. The chunks are then inserted into the cache and
+    /// returned as a vector.
     pub async fn load_chunk_batch(
         &self,
         coords: Vec<(i32, i32, &str)>,
