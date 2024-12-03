@@ -73,11 +73,11 @@ impl World {
         Ok(found_chunks)
     }
 
-    pub async fn pre_cache(&self, coords: Vec<(i32, i32, &str)>) -> Result<(), WorldError> {
-        let chunks = load_chunk_batch_internal(self, coords).await?;
-        for chunk in chunks {
+    pub async fn pre_cache(&self, x: i32, z: i32, dimension: &str) -> Result<(), WorldError> {
+        if self.cache.get(&(x, z, dimension.to_string())).await.is_none() {
+            let chunk = load_chunk_internal(self, &self.compressor, x, z, dimension).await?;
             self.cache
-                .insert((chunk.x, chunk.z, chunk.dimension.clone()), chunk)
+                .insert((x, z, dimension.to_string()), chunk)
                 .await;
         }
         Ok(())

@@ -179,14 +179,9 @@ impl LmdbBackend {
         let env = self.env.clone();
         tokio::task::spawn_blocking(move || {
             let mut rw_txn = env.write_txn()?;
-            let db: Database<U128<BigEndian>, Bytes> =
-                env.create_database(&mut rw_txn, Some(&table))?;
+            let db = env.create_database::<U128<BigEndian>, Bytes>(&mut rw_txn, Some(&table))?;
 
-            // LMDB is often faster when keys are inserted in sorted order
-            let mut keymap = HashMap::new();
-            data.iter().for_each(|(key, d)| {
-                keymap.insert(*key, d);
-            });
+            let keymap: HashMap<u128, &Vec<u8>> = data.iter().map(|(k, v)| (*k, v)).collect();
             let mut sorted_keys: Vec<u128> = keymap.keys().cloned().collect();
             sorted_keys.sort();
 
