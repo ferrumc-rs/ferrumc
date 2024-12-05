@@ -13,4 +13,16 @@ pub enum AnvilError {
     UnableToMapFile(PathBuf, std::io::Error),
     #[error("Invalid offset or size")]
     InvalidOffsetOrSize,
+    #[error("Checksums don't match")]
+    ChecksumMismatch,
+    #[error("Missing checksum")]
+    MissingChecksum,
+    #[error("Cannot decompress data (probably invalid)")]
+    DecompressionError,
+}
+
+impl From<lzzzz::Error> for AnvilError {
+    fn from(_: lzzzz::Error) -> Self {
+        AnvilError::DecompressionError
+    }
 }
