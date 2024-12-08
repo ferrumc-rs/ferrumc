@@ -42,7 +42,8 @@ async fn handle_login_start(
     state.universe.add_component::<PlayerIdentity>(
         login_start_event.conn_id,
         PlayerIdentity::new(username.to_string(), uuid),
-    )?;
+    )?
+        .add_component::<ChunkReceiver>(login_start_event.conn_id, ChunkReceiver::default())?;
 
     //Send a Login Success Response to further the login sequence
     let mut writer = state
@@ -132,8 +133,7 @@ async fn handle_ack_finish_configuration(
         .universe
         .add_component::<Position>(conn_id, Position::default())?
         .add_component::<Rotation>(conn_id, Rotation::default())?
-        .add_component::<OnGround>(conn_id, OnGround::default())?
-        .add_component::<ChunkReceiver>(conn_id, ChunkReceiver::default())?;
+        .add_component::<OnGround>(conn_id, OnGround::default())?;
 
     let mut writer = state.universe.get_mut::<StreamWriter>(conn_id)?;
 
@@ -170,7 +170,14 @@ async fn handle_ack_finish_configuration(
             &NetEncodeOpts::WithLength,
         )
         .await?;
+
+    let pos = state.universe.get_mut::<Position>(conn_id)?;
+    let mut chunk_recv = state.universe.get_mut::<ChunkReceiver>(conn_id)?;
+    chunk_recv.last_chunk = Some((pos.x as i32, pos.z as i32, String::from("overworld")));
+    chunk_recv.calculate_chunks().await;
+    
     send_keep_alive(conn_id, state, &mut writer).await?;
+    
 
     Ok(ack_finish_configuration_event)
 }

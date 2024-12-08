@@ -1,6 +1,7 @@
 use crate::systems::definition::System;
 use async_trait::async_trait;
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
+use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_ecs::errors::ECSError;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::chunk_and_light_data::ChunkAndLightData;
@@ -9,7 +10,8 @@ use ferrumc_state::GlobalState;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
-use tracing::{debug, error, info};
+use tokio::task::JoinSet;
+use tracing::{debug, error, info, trace};
 
 pub(super) struct ChunkSenderSystem {
     pub stop: AtomicBool,
@@ -29,40 +31,39 @@ impl System for ChunkSenderSystem {
         info!("Chunk sender system started");
 
         while !self.stop.load(Ordering::Relaxed) {
-            debug!("Sending chunks to players");
             let players = state
                 .universe
                 .query::<(&mut ChunkReceiver, &mut StreamWriter)>();
-            let mut task_set: tokio::task::JoinSet<Result<(), ECSError>> =
-                tokio::task::JoinSet::new();
-            for (eid, (_, _)) in players {
+            let mut task_set: JoinSet<Result<(), ECSError>> = JoinSet::new();
+            for (eid, (chunk_recv, mut conn)) in players {
                 let state = state.clone();
-                task_set.spawn(async move {
-                    let chunk_recv = state.universe.get_mut::<&mut ChunkReceiver>(eid)?;
-                    for possible_chunk in chunk_recv.needed_chunks.iter_mut() {
-                        let (key, possible_chunk) = possible_chunk.pair();
+                // task_set.spawn(async move {
+                trace!("Checking chunks for player");
+                for possible_chunk in chunk_recv.needed_chunks.iter_mut() {
+                    let (key, possible_chunk) = possible_chunk.pair();
+                    if let Some(chunk) = possible_chunk {
+                        trace!("Sending chunk: {:?}", key);
                         let _ = chunk_recv.needed_chunks.remove(key);
-                        if let Some(chunk) = possible_chunk {
-                            let packet = &ChunkAndLightData::from_chunk(chunk);
-                            match packet {
-                                Ok(packet) => {
-                                    let mut conn =
-                                        state.universe.get_mut::<&mut StreamWriter>(eid)?;
-                                    if let Err(e) =
-                                        conn.send_packet(packet, &NetEncodeOpts::WithLength).await
-                                    {
-                                        error!("Error sending chunk: {:?}", e);
-                                    }
-                                    return Ok(());
-                                }
-                                Err(e) => {
+                        let packet = &ChunkAndLightData::from_chunk(chunk);
+                        match packet {
+                            Ok(packet) => {
+                                let player = state.universe.get::<PlayerIdentity>(eid).unwrap();
+                                trace!("Sending chunk {}, {} to {}", key.0, key.1, player.username);
+                                if let Err(e) =
+                                    conn.send_packet(packet, &NetEncodeOpts::WithLength).await
+                                {
                                     error!("Error sending chunk: {:?}", e);
                                 }
+                                trace!("Sent chunk {}, {} to {}", key.0, key.1, player.username);
+                            }
+                            Err(e) => {
+                                error!("Error sending chunk: {:?}", e);
                             }
                         }
                     }
-                    Ok(())
-                });
+                }
+                // Ok(())
+                // });
             }
             while let Some(result) = task_set.join_next().await {
                 if let Err(e) = result {
@@ -70,7 +71,7 @@ impl System for ChunkSenderSystem {
                 }
             }
 
-            tokio::time::sleep(Duration::from_secs(5)).await;
+            tokio::time::sleep(Duration::from_millis(200)).await;
         }
     }
 

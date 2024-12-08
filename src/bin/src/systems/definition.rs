@@ -8,6 +8,7 @@ use ferrumc_state::GlobalState;
 use futures::stream::FuturesUnordered;
 use std::sync::{Arc, LazyLock};
 use tracing::{debug, debug_span, info, Instrument};
+use crate::systems::chunk_fetcher::ChunkFetcher;
 
 #[async_trait]
 pub trait System: Send + Sync {
@@ -24,6 +25,7 @@ pub fn create_systems() -> Vec<Arc<dyn System>> {
         Arc::new(KeepAliveSystem::new()),
         Arc::new(TickingSystem),
         Arc::new(ChunkSenderSystem::new()),
+        Arc::new(ChunkFetcher::new()),
     ]
 }
 pub async fn start_all_systems(state: GlobalState) -> NetResult<()> {

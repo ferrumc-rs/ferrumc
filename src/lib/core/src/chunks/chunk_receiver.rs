@@ -1,6 +1,7 @@
 use dashmap::{DashMap, DashSet};
 use ferrumc_world::chunk_format::Chunk;
 use tokio::time::Instant;
+use tracing::trace;
 
 const VIEW_DISTANCE: i32 = 12;
 pub struct ChunkReceiver {
@@ -30,14 +31,22 @@ impl ChunkReceiver {
 impl ChunkReceiver {
     pub async fn calculate_chunks(&mut self) {
         if let Some(last_chunk) = &self.last_chunk {
+            trace!("Calculating chunks");
             self.can_see.clear();
             for x in last_chunk.0 - VIEW_DISTANCE..=last_chunk.0 + VIEW_DISTANCE {
                 for z in last_chunk.1 - VIEW_DISTANCE..=last_chunk.1 + VIEW_DISTANCE {
+                    if self.can_see.contains(&(x, z, last_chunk.2.clone())) {
+                        continue;
+                    }
                     self.needed_chunks
                         .insert((x, z, last_chunk.2.clone()), None);
                     self.can_see.insert((x, z, last_chunk.2.clone()));
                 }
             }
+            trace!(
+                "Calculated chunks: {} chunks queued",
+                self.needed_chunks.len()
+            );
         }
     }
 }
