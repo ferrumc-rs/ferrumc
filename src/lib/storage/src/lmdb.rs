@@ -42,7 +42,8 @@ impl LmdbBackend {
             * 1024
             * 1024
             * 1024;
-        let rounded_map_size = (map_size as f64 / page_size::get() as f64).round() as usize;
+        let rounded_map_size = ((map_size as f64 / page_size::get() as f64).round()
+            * page_size::get() as f64) as usize;
         unsafe {
             Ok(LmdbBackend {
                 env: Arc::new(
