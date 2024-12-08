@@ -62,12 +62,6 @@ async fn check_config_validity() -> Result<(), WorldError> {
             config.database.compression.clone(),
         ));
     }
-    if config.database.import_path.is_empty() {
-        error!("No import path specified. Please set the import path in the configuration file.");
-        return Err(WorldError::InvalidImportPath(
-            config.database.import_path.clone(),
-        ));
-    }
     Ok(())
 }
 
