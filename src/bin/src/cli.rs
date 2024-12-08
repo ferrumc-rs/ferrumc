@@ -12,7 +12,7 @@ pub struct CLIArgs {
 
 #[derive(Subcommand, Clone)]
 pub enum Command {
-    /// Sets up the config, etc.
+    /// Sets up the config
     Setup,
     /// Import the world data
     Import(ImportArgs),
