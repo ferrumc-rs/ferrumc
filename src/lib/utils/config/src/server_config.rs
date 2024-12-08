@@ -45,7 +45,6 @@ pub struct DatabaseConfig {
     pub compression: String,
     pub backend: String,
     pub db_path: String,
-    pub import_path: String,
     pub compression_level: i32,
 }
 

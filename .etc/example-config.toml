@@ -25,7 +25,5 @@ compression = "gzip"
 backend = "surrealkv"
 # Path to the world database
 db_path = "world"
-# Path to world import folder (e.g., %APPDATA%/.minecraft/saves/world)
-import_path = "import"
 # Compression level (0-22) for the database. Higher values mean less disk space but will take longer to read/write.
 compression_level = 5

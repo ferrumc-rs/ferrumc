@@ -15,7 +15,7 @@ use systems::definition;
 use tracing::{error, info};
 
 pub(crate) mod errors;
-use crate::cli::{CLIArgs, Command};
+use crate::cli::{CLIArgs, Command, ImportArgs};
 mod cli;
 mod packet_handlers;
 mod systems;
@@ -37,9 +37,9 @@ async fn main() {
             }
         }
 
-        Some(Command::Import) => {
+        Some(Command::Import(import_args)) => {
             info!("Starting import...");
-            if let Err(e) = handle_import().await {
+            if let Err(e) = handle_import(import_args).await {
                 error!("Import failed with the following error: {}", e.to_string());
             } else {
                 info!("Import completed successfully.");
@@ -71,7 +71,7 @@ async fn entry() -> Result<()> {
     Ok(())
 }
 
-async fn handle_import() -> Result<()> {
+async fn handle_import(import_args: ImportArgs) -> Result<()> {
     //! Handles the import of the world.
     info!("Importing world...");
 
@@ -81,7 +81,7 @@ async fn handle_import() -> Result<()> {
     let root_path = get_root_path();
     let database_opts = &config.database;
 
-    let mut import_path = root_path.join(database_opts.import_path.clone());
+    let mut import_path = root_path.join(import_args.import_path);
     if import_path.is_relative() {
         import_path = root_path.join(import_path);
     }

@@ -15,9 +15,16 @@ pub enum Command {
     /// Sets up the config, etc.
     Setup,
     /// Import the world data
-    Import,
+    Import(ImportArgs),
     /// Start the server
     Run,
+}
+
+#[derive(Debug, Clone, Parser)]
+pub struct ImportArgs {
+    /// Path to world import folder (e.g., %APPDATA%/.minecraft/saves/world)
+    #[clap(long, required = true)]
+    pub import_path: String,
 }
 
 // Wrapper struct for the Level enum
