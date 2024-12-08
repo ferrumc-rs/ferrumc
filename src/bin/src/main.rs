@@ -14,6 +14,8 @@ use std::sync::Arc;
 use systems::definition;
 use tracing::{error, info, Level};
 
+pub const VIEW_DISTANCE: i32 = 12;
+
 #[derive(clap::Parser)]
 struct CLIArgs {
     #[clap(long)]

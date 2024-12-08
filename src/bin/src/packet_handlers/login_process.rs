@@ -25,6 +25,7 @@ use ferrumc_net::packets::outgoing::synchronize_player_position::SynchronizePlay
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::GlobalState;
 use tracing::{debug, trace};
+use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
 
 #[event_handler]
 async fn handle_login_start(
@@ -131,7 +132,8 @@ async fn handle_ack_finish_configuration(
         .universe
         .add_component::<Position>(conn_id, Position::default())?
         .add_component::<Rotation>(conn_id, Rotation::default())?
-        .add_component::<OnGround>(conn_id, OnGround::default())?;
+        .add_component::<OnGround>(conn_id, OnGround::default())?
+        .add_component::<ChunkReceiver>(conn_id, ChunkReceiver::default())?;
 
     let mut writer = state.universe.get_mut::<StreamWriter>(conn_id)?;
 
