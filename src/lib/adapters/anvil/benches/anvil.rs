@@ -16,7 +16,7 @@ fn criterion_benchmark(c: &mut Criterion) {
             let locations = loaded_file.get_locations();
             locations.chunks(96).par_bridge().for_each(|chunk| {
                 chunk.iter().for_each(|location| {
-                    black_box(loaded_file.get_chunk_from_location(*location));
+                    black_box(loaded_file.get_chunk_from_location(*location)).expect("bad chunk");
                 });
             });
         });
@@ -28,7 +28,11 @@ fn criterion_benchmark(c: &mut Criterion) {
             let loaded_file = load_anvil_file(file_path).unwrap();
             let locations = loaded_file.get_locations();
             locations.iter().for_each(|location| {
-                black_box(loaded_file.get_chunk_from_location(*location));
+                black_box(
+                    loaded_file
+                        .get_chunk_from_location(*location)
+                        .expect("bad chunk"),
+                );
             });
         });
     });
@@ -51,7 +55,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         b.iter(|| {
             let file_path = PathBuf::from(root!(".etc/r.0.0.mca"));
             let loaded_file = load_anvil_file(file_path).unwrap();
-            black_box(loaded_file.get_chunk(0, 0));
+            black_box(loaded_file.get_chunk(0, 0).expect("bad chunk"));
         });
     });
 
