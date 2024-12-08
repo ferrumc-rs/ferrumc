@@ -8,5 +8,5 @@ edition = "2021"
 thiserror = { workspace = true }
 tokio = { workspace = true }
 ferrumc-ecs = { workspace = true }
-whirlwind = { workspace = true }
+dashmap = { workspace = true }
 ferrumc-world = { workspace = true }

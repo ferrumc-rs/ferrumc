@@ -54,15 +54,8 @@ async fn handle_player_move(
     }
 
     if calculate_chunks {
-        let chunk_recv = state.universe.get_mut::<ChunkReceiver>(conn_id)?;
-        chunk_recv.can_see.clear().await;
-        let (center_x, center_z, dimension) = chunk_recv.last_chunk.as_ref().unwrap();
-        for x in center_x - crate::VIEW_DISTANCE..=center_x + crate::VIEW_DISTANCE {
-            for z in center_z - crate::VIEW_DISTANCE..=center_z + crate::VIEW_DISTANCE {
-                chunk_recv.needed_chunks.insert((x, z, dimension.clone()), None).await;
-                chunk_recv.can_see.insert((x, z, dimension.clone())).await;
-            }
-        }
+        let mut chunk_recv = state.universe.get_mut::<ChunkReceiver>(conn_id)?;
+        chunk_recv.calculate_chunks().await;
     }
 
     Ok(event)
