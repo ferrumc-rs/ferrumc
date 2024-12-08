@@ -15,6 +15,7 @@ use serde_derive::{Deserialize, Serialize};
 /// - `database` - [DatabaseConfig]: The configuration for the database.
 /// - `world`: The name of the world that the server will load.
 /// - `network_compression_threshold`: The threshold at which the server will compress network packets.
+/// - `whitelist`: Whether the server whitelist is enabled or not.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ServerConfig {
     pub host: String,
@@ -25,6 +26,7 @@ pub struct ServerConfig {
     pub database: DatabaseConfig,
     pub world: String,
     pub network_compression_threshold: i32, // Can be negative
+    pub whitelist: bool
 }
 
 /// The database configuration section from [ServerConfig].

@@ -1,3 +1,4 @@
+use ferrumc_config::statics::{get_global_config, get_whitelist, Player};
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
@@ -15,6 +16,7 @@ use ferrumc_net::packets::outgoing::client_bound_known_packs::ClientBoundKnownPa
 use ferrumc_net::packets::outgoing::finish_configuration::FinishConfigurationPacket;
 use ferrumc_net::packets::outgoing::game_event::GameEventPacket;
 use ferrumc_net::packets::outgoing::keep_alive::OutgoingKeepAlivePacket;
+use ferrumc_net::packets::outgoing::login_disconnect::LoginDisconnectPacket;
 use ferrumc_net::packets::outgoing::login_play::LoginPlayPacket;
 use ferrumc_net::packets::outgoing::login_success::LoginSuccessPacket;
 use ferrumc_net::packets::outgoing::registry_data::get_registry_packets;
@@ -36,6 +38,28 @@ async fn handle_login_start(
     let uuid = login_start_event.login_start_packet.uuid;
     let username = login_start_event.login_start_packet.username.as_str();
     debug!("Received login start from user with username {}", username);
+    
+    let mut writer = state
+        .universe
+        .get_mut::<StreamWriter>(login_start_event.conn_id)?;
+
+    if get_global_config().whitelist
+        && !get_whitelist().contains(&Player {
+            uuid,
+            name: username.to_string(),
+        })
+    {
+        writer
+            .send_packet(
+                &LoginDisconnectPacket::new(
+                    "\"You are not white-listed on this server!\"",
+                ),
+                &NetEncodeOpts::WithLength,
+            )
+            .await?;
+
+        return Ok(login_start_event);
+    };
 
     // Add the player identity component to the ECS for the entity.
     state.universe.add_component::<PlayerIdentity>(
@@ -44,10 +68,6 @@ async fn handle_login_start(
     )?;
 
     //Send a Login Success Response to further the login sequence
-    let mut writer = state
-        .universe
-        .get_mut::<StreamWriter>(login_start_event.conn_id)?;
-
     writer
         .send_packet(
             &LoginSuccessPacket::new(uuid, username),
