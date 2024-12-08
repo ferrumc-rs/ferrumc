@@ -74,6 +74,16 @@ async fn check_config_validity() -> Result<(), WorldError> {
             config.database.import_path.clone(),
         ));
     }
+
+    // Check if doing map_size * 1024^3 would overflow usize. You probably don't need a database
+    // that's 18 exabytes anyway.
+    if config.database.map_size as usize > ((usize::MAX / 1024) / 1024) / 1024 {
+        error!(
+            "Map size is too large, this would exceed the usize limit. You probably don't need a \
+        database this big anyway. Are you sure you have set the map size in GB, not bytes?"
+        );
+        return Err(WorldError::InvalidMapSize(config.database.map_size));
+    }
     Ok(())
 }
 

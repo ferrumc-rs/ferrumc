@@ -46,7 +46,6 @@ pub struct ServerConfig {
 /// - `cache_capacity`: How big the cache can be in kb.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct DatabaseConfig {
-    pub cache_size: u32,
     pub compression: String,
     pub db_path: String,
     pub import_path: String,

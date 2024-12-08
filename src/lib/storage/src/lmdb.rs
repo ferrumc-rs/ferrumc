@@ -35,17 +35,21 @@ impl LmdbBackend {
         if !checked_path.exists() {
             std::fs::create_dir_all(&checked_path)?;
         }
+        // Convert the map size from GB to bytes and round it to the nearest page size.
+        let map_size = ferrumc_config::statics::get_global_config()
+            .database
+            .map_size as usize
+            * 1024
+            * 1024
+            * 1024;
+        let rounded_map_size = (map_size as f64 / page_size::get() as f64).round() as usize;
         unsafe {
             Ok(LmdbBackend {
                 env: Arc::new(
                     EnvOpenOptions::new()
                         // Change this as more tables are needed.
                         .max_dbs(1)
-                        .map_size(
-                            ferrumc_config::statics::get_global_config()
-                                .database
-                                .map_size as usize,
-                        )
+                        .map_size(rounded_map_size)
                         .open(checked_path)
                         .map_err(|e| StorageError::DatabaseInitError(e.to_string()))?,
                 ),
