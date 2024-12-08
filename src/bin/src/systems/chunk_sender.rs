@@ -67,11 +67,12 @@ impl System for ChunkSenderSystem {
                 let start = std::time::Instant::now();
                 let mut chunk_range = (chunk_x - CHUNK_RADIUS..chunk_x + CHUNK_RADIUS)
                     .flat_map(|z| {
-                        (chunk_z - CHUNK_RADIUS..chunk_z + CHUNK_RADIUS).map(move |x| (x, z))
+                        (chunk_z - CHUNK_RADIUS..chunk_z + CHUNK_RADIUS)
+                            .map(move |x| (x, z, "overworld"))
                     })
                     .collect::<Vec<_>>();
 
-                chunk_range.sort_by_key(|&(x, z)| {
+                chunk_range.sort_by_key(|&(x, z, _)| {
                     let dx = x - chunk_x;
                     let dz = z - chunk_z;
                     (((dx ^ 2) + (dz ^ 2)) as f64).sqrt() as i32

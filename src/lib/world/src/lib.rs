@@ -1,25 +1,31 @@
+#![feature(hasher_prefixfree_extras)]
+
 pub mod chunk_format;
 mod db_functions;
 pub mod errors;
 mod importing;
 mod vanilla_chunk_format;
 
+use crate::chunk_format::Chunk;
 use crate::errors::WorldError;
+use deepsize::DeepSizeOf;
 use ferrumc_config::statics::get_global_config;
 use ferrumc_general_purpose::paths::get_root_path;
 use ferrumc_storage::compressors::Compressor;
-use ferrumc_storage::DatabaseBackend;
+use ferrumc_storage::lmdb::LmdbBackend;
+use moka::future::{Cache, FutureExt};
+use moka::notification::ListenerFuture;
 use std::path::{Path, PathBuf};
 use std::process::exit;
-use std::sync::Arc;
+use std::time::Duration;
 use tokio::fs::create_dir_all;
-use tracing::{error, info, warn};
+use tracing::{error, info, trace, warn};
 
 #[derive(Clone)]
 pub struct World {
-    storage_backend: Arc<Box<dyn DatabaseBackend + Send + Sync>>,
+    storage_backend: LmdbBackend,
     compressor: Compressor,
-    // TODO: Cache
+    cache: Cache<(i32, i32, String), Chunk>,
 }
 
 async fn check_config_validity() -> Result<(), WorldError> {
@@ -30,9 +36,9 @@ async fn check_config_validity() -> Result<(), WorldError> {
     let config = get_global_config();
     let db_path = get_root_path().join(&config.database.db_path);
 
-    if config.database.backend.is_empty() {
-        error!("No backend specified. Please set the backend in the configuration file.");
-        return Err(WorldError::InvalidBackend(config.database.backend.clone()));
+    if config.database.map_size == 0 {
+        error!("Map size is set to 0. Please set the map size in the configuration file.");
+        return Err(WorldError::InvalidMapSize(config.database.map_size));
     }
     if !Path::new(&db_path).exists() {
         warn!("World path does not exist. Attempting to create it.");
@@ -62,6 +68,22 @@ async fn check_config_validity() -> Result<(), WorldError> {
             config.database.compression.clone(),
         ));
     }
+    if config.database.import_path.is_empty() {
+        error!("No import path specified. Please set the import path in the configuration file.");
+        return Err(WorldError::InvalidImportPath(
+            config.database.import_path.clone(),
+        ));
+    }
+
+    // Check if doing map_size * 1024^3 would overflow usize. You probably don't need a database
+    // that's 18 exabytes anyway.
+    if config.database.map_size as usize > ((usize::MAX / 1024) / 1024) / 1024 {
+        error!(
+            "Map size is too large, this would exceed the usize limit. You probably don't need a \
+        database this big anyway. Are you sure you have set the map size in GB, not bytes?"
+        );
+        return Err(WorldError::InvalidMapSize(config.database.map_size));
+    }
     Ok(())
 }
 
@@ -76,93 +98,13 @@ impl World {
             exit(1);
         }
         // Clones are kinda ok here since this is only run once at startup.
-        let backend_string = get_global_config().database.backend.trim();
         let mut backend_path = PathBuf::from(get_global_config().database.db_path.clone());
         if backend_path.is_relative() {
             backend_path = get_root_path().join(backend_path);
         }
-        let storage_backend: Result<Box<dyn DatabaseBackend + Send + Sync>, WorldError> =
-            match backend_string.to_lowercase().as_str() {
-                "surrealkv" => {
-                    #[cfg(feature = "surrealkv")]
-                    match ferrumc_storage::backends::surrealkv::SurrealKVBackend::initialize(Some(
-                        backend_path,
-                    ))
-                    .await
-                    {
-                        Ok(backend) => Ok(Box::new(backend)),
-                        Err(e) => Err(WorldError::InvalidBackend(e.to_string())),
-                    }
-                    #[cfg(not(feature = "surrealkv"))]
-                    {
-                        error!("SurrealKV backend is not enabled. Please enable the 'surrealkv' feature in the Cargo.toml file.");
-                        exit(1);
-                    }
-                }
-                "sled" => {
-                    #[cfg(feature = "sled")]
-                    match ferrumc_storage::backends::sled::SledBackend::initialize(Some(
-                        backend_path,
-                    ))
-                    .await
-                    {
-                        Ok(backend) => Ok(Box::new(backend)),
-                        Err(e) => Err(WorldError::InvalidBackend(e.to_string())),
-                    }
-                    #[cfg(not(feature = "sled"))]
-                    {
-                        error!("Sled backend is not enabled. Please enable the 'sled' feature in the Cargo.toml file.");
-                        exit(1);
-                    }
-                }
-                "rocksdb" => {
-                    #[cfg(feature = "rocksdb")]
-                    match ferrumc_storage::backends::rocksdb::RocksDBBackend::initialize(Some(
-                        backend_path,
-                    ))
-                    .await
-                    {
-                        Ok(backend) => Ok(Box::new(backend)),
-                        Err(e) => Err(WorldError::InvalidBackend(e.to_string())),
-                    }
-                    #[cfg(not(feature = "rocksdb"))]
-                    {
-                        error!("RocksDB backend is not enabled. Please enable the 'rocksdb' feature in the Cargo.toml file.");
-                        exit(1);
-                    }
-                }
-                "redb" => {
-                    #[cfg(feature = "redb")]
-                    match ferrumc_storage::backends::redb::RedbBackend::initialize(Some(
-                        backend_path,
-                    ))
-                    .await
-                    {
-                        Ok(backend) => Ok(Box::new(backend)),
-                        Err(e) => Err(WorldError::InvalidBackend(e.to_string())),
-                    }
-                    #[cfg(not(feature = "redb"))]
-                    {
-                        error!("Redb backend is not enabled. Please enable the 'redb' feature in the Cargo.toml file.");
-                        exit(1);
-                    }
-                }
-                _ => {
-                    error!(
-                        "Invalid storage backend: {}",
-                        get_global_config().database.backend
-                    );
-                    exit(1);
-                }
-            };
-
-        let storage_backend = match storage_backend {
-            Ok(backend) => backend,
-            Err(e) => {
-                error!("Could not initialize storage backend: {}", e);
-                exit(1);
-            }
-        };
+        let storage_backend = LmdbBackend::initialize(Some(backend_path))
+            .await
+            .expect("Failed to initialize database");
 
         let compressor_string = get_global_config().database.compression.trim();
 
@@ -198,9 +140,31 @@ impl World {
             }
         };
 
+        if get_global_config().database.cache_ttl != 0
+            && get_global_config().database.cache_capacity == 0
+        {
+            error!("Cache TTL and capacity must both be set to 0 or both be set to a value greater than 0.");
+            exit(1);
+        }
+
+        let eviction_listener = move |key, _, cause| -> ListenerFuture {
+            async move {
+                trace!("Evicting key: {:?}, cause: {:?}", key, cause);
+            }
+            .boxed()
+        };
+
+        let cache = Cache::builder()
+            .async_eviction_listener(eviction_listener)
+            .weigher(|_k, v: &Chunk| v.deep_size_of() as u32)
+            .time_to_live(Duration::from_secs(get_global_config().database.cache_ttl))
+            .max_capacity(get_global_config().database.cache_capacity * 1024)
+            .build();
+
         World {
-            storage_backend: Arc::new(storage_backend),
+            storage_backend,
             compressor: compression_algo,
+            cache,
         }
     }
 }

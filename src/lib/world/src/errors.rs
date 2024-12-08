@@ -36,6 +36,8 @@ pub enum WorldError {
     AnvilDecodeError(AnvilError),
     #[error("Missing block mapping: {0}")]
     MissingBlockMapping(Palette),
+    #[error("Invalid memory map size: {0}")]
+    InvalidMapSize(u64),
 }
 
 impl From<std::io::Error> for WorldError {

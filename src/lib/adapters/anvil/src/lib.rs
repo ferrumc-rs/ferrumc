@@ -12,8 +12,8 @@ pub struct LoadedAnvilFile {
     data_map: Mmap,
 }
 
-pub fn get_chunk(x: u32, z: u32, file_path: PathBuf) -> Option<Vec<u8>> {
-    let loaded_file = load_anvil_file(file_path).ok()?;
+pub fn get_chunk(x: u32, z: u32, file_path: PathBuf) -> Result<Option<Vec<u8>>, AnvilError> {
+    let loaded_file = load_anvil_file(file_path)?;
     loaded_file.get_chunk(x, z)
 }
 
@@ -45,7 +45,7 @@ pub fn get_chunk(x: u32, z: u32, file_path: PathBuf) -> Option<Vec<u8>> {
 /// let mut fast_file = Region::from_stream(File::open(file_path.clone()).unwrap()).unwrap();
 /// let loaded_file = load_anvil_file(file_path).unwrap();
 ///
-/// let chunk = loaded_file.get_chunk(0, 0);
+/// let chunk = loaded_file.get_chunk(0, 0).unwrap();
 /// let fast_chunk = fast_file.read_chunk(0, 0).unwrap();
 ///
 /// assert_eq!(chunk, fast_chunk);
@@ -72,6 +72,10 @@ pub fn load_anvil_file(file_path: PathBuf) -> Result<LoadedAnvilFile, AnvilError
     let file = std::fs::File::open(&file_path)
         .map_err(|e| AnvilError::UnableToReadFile(file_path.clone(), e))?;
 
+    // Memory mapping is inherently unsafe since it's basically telling the os to use the file as,
+    // memory which is exactly as sketchy as it sounds, but it's pretty tried and true. As long as
+    // you don't mess with the file while it's open, you should be fine. Using unsafe here is mandatory
+    // since the mmap crate exposes an unsafe API, and im not writing my own mmap implementation.
     let res = unsafe { Mmap::map(&file) }.map_err(|e| AnvilError::UnableToMapFile(file_path, e))?;
 
     let table = {
@@ -108,6 +112,15 @@ impl LoadedAnvilFile {
     }
 
     /// Get the data from the mmaped file, given an offset and size
+    ///
+    /// Arguments:
+    ///
+    /// * `offset` - The offset in the file
+    /// * `size` - The size of the data
+    ///
+    /// Returns:
+    ///
+    /// * `Result<&[u8], AnvilError>` - The data
     fn get_data_from_file(&self, offset: u32, size: u32) -> Result<&[u8], AnvilError> {
         let offset = offset as usize;
         let size = size as usize;
@@ -138,23 +151,19 @@ impl LoadedAnvilFile {
     ///
     /// The rest of the data is the compressed chunk data
     ///
-    /// This function will return the decompressed chunk data
-    ///
-    /// If the compression type is unknown, it will return None
-    ///
-    /// If the decompression fails, it will return None
-    ///
-    /// If the location is invalid, it will return None
-    pub fn get_chunk_from_location(&self, location: u32) -> Option<Vec<u8>> {
+    /// This function will return the decompressed chunk data, or an error if the data reading
+    /// fails, the compression type is unknown, the checksum is missing, the checksum is invalid,
+    /// or the decompression fails.
+    pub fn get_chunk_from_location(&self, location: u32) -> Result<Option<Vec<u8>>, AnvilError> {
         let offset = (location >> 8) & 0xFFFFFF;
         if u64::from(offset) * 4096 >= u64::from(u32::MAX) {
             error!("Invalid offset: {}", offset);
-            return None;
+            return Err(AnvilError::InvalidOffsetOrSize);
         }
         let offset = offset * 4096;
         let size = (location & 0xFF) * 4096;
-        let chunk_data = self.get_data_from_file(offset, size).ok()?;
-        let chunk_compressed_data = &chunk_data[5..]; // No need to clone, just use the slice
+        let chunk_data = self.get_data_from_file(offset, size)?;
+        let chunk_compressed_data = &chunk_data[5..];
         let compression_type = chunk_data[4];
 
         match compression_type {
@@ -162,7 +171,7 @@ impl LoadedAnvilFile {
                 let mut decompressed_data = Vec::new();
                 let mut decoder = flate2::read::GzDecoder::new(chunk_compressed_data);
                 decoder.read_to_end(&mut decompressed_data).unwrap();
-                Some(decompressed_data)
+                Ok(Some(decompressed_data))
             }
             2 => {
                 let out = yazi::decompress(chunk_compressed_data, yazi::Format::Zlib).ok();
@@ -170,32 +179,25 @@ impl LoadedAnvilFile {
                     Some(data) => match data.1 {
                         Some(checksum) => {
                             if Adler32::from_buf(&data.0).finish() == checksum {
-                                Some(data.0)
+                                Ok(Some(data.0))
                             } else {
-                                error!("Checksum does not match");
-                                None
+                                Err(AnvilError::ChecksumMismatch)
                             }
                         }
-                        None => {
-                            error!("Failed to decompress Zlib data (No checksum)");
-                            None
-                        }
+                        None => Err(AnvilError::MissingChecksum),
                     },
-                    None => {
-                        error!("Failed to decompress Zlib data");
-                        None
-                    }
+                    None => Err(AnvilError::DecompressionError),
                 }
             }
-            3 => Some(chunk_compressed_data.to_vec()),
+            3 => Ok(Some(chunk_compressed_data.to_vec())),
             4 => {
                 let mut decompressed_data = vec![];
-                lzzzz::lz4::decompress(chunk_compressed_data, &mut decompressed_data).ok()?;
-                Some(decompressed_data)
+                lzzzz::lz4::decompress(chunk_compressed_data, &mut decompressed_data)?;
+                Ok(Some(decompressed_data))
             }
             _ => {
                 error!("Unknown compression type: {}", compression_type);
-                None
+                Err(AnvilError::DecompressionError)
             }
         }
     }
@@ -204,8 +206,9 @@ impl LoadedAnvilFile {
     ///
     /// The x and z coordinates are the chunk coordinates
     ///
-    /// This function will return the decompressed chunk data
-    pub fn get_chunk(&self, x: u32, z: u32) -> Option<Vec<u8>> {
+    /// This function will return the decompressed chunk data, or an error if the data reading
+    /// fails for any reason.
+    pub fn get_chunk(&self, x: u32, z: u32) -> Result<Option<Vec<u8>>, AnvilError> {
         let index = u64::from(4 * ((x & 31) + (z & 31) * 32));
         let base_index = index as usize * 4;
         let chunk_data = [
@@ -253,7 +256,7 @@ mod tests {
         let file_path = PathBuf::from(root!(".etc/codec.nbt"));
         let loaded_file = load_anvil_file(file_path).unwrap();
         let chunk = loaded_file.get_chunk(15, 3);
-        assert!(chunk.is_none());
+        assert!(chunk.is_err());
     }
 
     #[test]
@@ -265,6 +268,8 @@ mod tests {
             .unwrap()
             .read_chunk(0, 0)
             .unwrap();
+        assert!(chunk.is_ok());
+        let chunk = chunk.unwrap();
         assert!(chunk.is_some());
         assert!(fast_chunk.is_some());
         assert_eq!(chunk.clone().unwrap(), fast_chunk.unwrap());

@@ -1,6 +1,7 @@
+use std::io;
 use thiserror::Error;
 
-#[derive(Debug, Clone, Error)]
+#[derive(Debug, Error)]
 pub enum StorageError {
     #[error("Error initializing database: {0}")]
     DatabaseInitError(String),
@@ -30,4 +31,14 @@ pub enum StorageError {
     FlushError(String),
     #[error("Failed to close database: {0}")]
     CloseError(String),
+    #[error("IO error: {0}")]
+    GenericIoError(io::Error),
+    #[error("Database error: {0}")]
+    DatabaseError(String),
+}
+
+impl From<io::Error> for StorageError {
+    fn from(err: io::Error) -> Self {
+        StorageError::GenericIoError(err)
+    }
 }
