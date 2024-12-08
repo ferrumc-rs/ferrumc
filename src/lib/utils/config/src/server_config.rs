@@ -35,8 +35,6 @@ pub struct ServerConfig {
 ///     and `zstd`
 /// - `backend` - Which database backend to use. Options are `redb`, `rocksdb`, `sled`, `surrealkv`.
 /// - `world_path`: The path to the world database.
-/// - `import_path`: The path to the world to import. This should point to the folder that contains
-///     directories such as `region`, `poi`, `playerdata`, etc. Usually found at %APPDATA%/.minecraft/saves.
 /// - `compression_level`: The compression level to use. This is a number from 0-22. Not all compressors
 ///     support levels, so this will be a no-op for some compressors.
 #[derive(Debug, Deserialize, Serialize)]

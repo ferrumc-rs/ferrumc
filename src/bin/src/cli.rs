@@ -22,7 +22,9 @@ pub enum Command {
 
 #[derive(Debug, Clone, Parser)]
 pub struct ImportArgs {
-    /// Path to world import folder (e.g., %APPDATA%/.minecraft/saves/world)
+    /// Path to world import folder
+    ///
+    /// This should point to the folder that contains directories such as `region`, `poi`, `playerdata`, etc. Usually found at %APPDATA%/.minecraft/saves.
     #[clap(long, required = true)]
     pub import_path: String,
 }
