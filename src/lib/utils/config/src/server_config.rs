@@ -34,8 +34,6 @@ pub struct ServerConfig {
 /// - `compression` - Which compression algorithm to use. Options are `brotli`, `deflate`, `gzip`, `zlib`
 ///     and `zstd`
 /// - `world_path`: The path to the world database.
-/// - `import_path`: The path to the world to import. This should point to the folder that contains
-///     directories such as `region`, `poi`, `playerdata`, etc. Usually found at %APPDATA%/.minecraft/saves.
 /// - `compression_level`: The compression level to use. This is a number from 0-22. Not all compressors
 ///     support levels, so this will be a no-op for some compressors.
 /// - `map_size`: The max size of the database's memory map. Basically you need this to be big enough
@@ -48,7 +46,6 @@ pub struct ServerConfig {
 pub struct DatabaseConfig {
     pub compression: String,
     pub db_path: String,
-    pub import_path: String,
     pub compression_level: i32,
     pub map_size: u64,
     pub cache_ttl: u64,
