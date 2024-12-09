@@ -44,19 +44,21 @@ impl System for ChunkSenderSystem {
                         .universe
                         .get_mut::<ChunkReceiver>(eid)
                         .expect("ChunkReceiver not found");
+                    if chunk_recv.needed_chunks.is_empty() {
+                        return Ok(());
+                    }
                     let mut conn = state
                         .universe
                         .get_mut::<StreamWriter>(eid)
                         .expect("StreamWriter not found");
                     let mut to_drop = Vec::new();
                     if let Some(last_chunk) = &chunk_recv.last_chunk {
-                        let packet = SetCenterChunk {
-                            x: VarInt::from(last_chunk.0),
-                            z: VarInt::from(last_chunk.1),
-                        };
+                        let packet = SetCenterChunk::new(last_chunk.0, last_chunk.1);
                         if let Err(e) = conn.send_packet(&packet, &NetEncodeOpts::WithLength).await
                         {
                             error!("Error sending chunk: {:?}", e);
+                        } else {
+                            trace!("Sent center chunk as {}, {}", last_chunk.0, last_chunk.1);
                         }
                     } else {
                         debug!("No last chunk found");
