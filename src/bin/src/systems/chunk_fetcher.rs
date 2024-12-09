@@ -38,7 +38,6 @@ impl System for ChunkFetcher {
                     .universe
                     .get::<PlayerIdentity>(eid)
                     .expect("PlayerIdentity not found");
-                trace!("Checking chunks for player: {}", player.username);
                 for mut chunks in chunk_recv.needed_chunks.iter_mut() {
                     let (key, chunk) = chunks.pair_mut();
                     if chunk.is_none() {

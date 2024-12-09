@@ -31,22 +31,17 @@ impl ChunkReceiver {
 impl ChunkReceiver {
     pub async fn calculate_chunks(&mut self) {
         if let Some(last_chunk) = &self.last_chunk {
-            trace!("Calculating chunks");
-            self.can_see.clear();
+            let new_can_see = DashSet::new();
             for x in last_chunk.0 - VIEW_DISTANCE..=last_chunk.0 + VIEW_DISTANCE {
                 for z in last_chunk.1 - VIEW_DISTANCE..=last_chunk.1 + VIEW_DISTANCE {
-                    if self.can_see.contains(&(x, z, last_chunk.2.clone())) {
-                        continue;
+                    if !self.can_see.contains(&(x, z, last_chunk.2.clone())) {
+                        self.needed_chunks
+                            .insert((x, z, last_chunk.2.clone()), None);
                     }
-                    self.needed_chunks
-                        .insert((x, z, last_chunk.2.clone()), None);
-                    self.can_see.insert((x, z, last_chunk.2.clone()));
+                    new_can_see.insert((x, z, last_chunk.2.clone()));
                 }
             }
-            trace!(
-                "Calculated chunks: {} chunks queued",
-                self.needed_chunks.len()
-            );
+            self.can_see = new_can_see;
         }
     }
 }

@@ -1,4 +1,6 @@
+use tracing::trace;
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
+use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
@@ -26,6 +28,8 @@ async fn handle_player_move(
                 String::from("overworld"),
             );
             if *last_chunk != new_chunk {
+                let player = state.universe.get::<PlayerIdentity>(conn_id)?;
+                trace!("Player {} crossed chunk boundary", player.username);
                 chunk_recv.last_chunk = Some(new_chunk);
                 calculate_chunks = true;
             }
