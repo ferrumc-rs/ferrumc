@@ -8,8 +8,11 @@ use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::EnvFilter;
 
 pub fn init_logging(trace_level: Level) {
-    // console_subscriber::init();
-    let env_filter = EnvFilter::from_default_env().add_directive(trace_level.into());
+    let console = console_subscriber::spawn();
+    let env_filter = EnvFilter::from_default_env()
+        .add_directive(trace_level.into())
+        .add_directive("tokio=off".parse().unwrap())
+        .add_directive("runtime=off".parse().unwrap());
 
     let mut fmt_layer = Layer::default();
 
@@ -24,6 +27,7 @@ pub fn init_logging(trace_level: Level) {
     let profiler_layer = ProfilerTracingLayer;
 
     tracing_subscriber::registry()
+        .with(console)
         .with(env_filter)
         .with(profiler_layer)
         .with(fmt_layer)

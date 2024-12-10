@@ -31,27 +31,38 @@ impl System for ChunkFetcher {
             let players = state
                 .universe
                 .query::<(&PlayerIdentity, &mut ChunkReceiver)>();
-            for (_eid, (_, chunk_recv)) in players {
+            for (_eid, (_, _)) in players {
                 let state = state.clone();
-                //taskset.spawn(async move {
-                for mut chunks in chunk_recv.needed_chunks.iter_mut() {
-                    let (key, chunk) = chunks.pair_mut();
-                    if chunk.is_none() {
-                        trace!("Fetching chunk: {:?}", key);
-                        let fetched_chunk = state
-                            .world
-                            .load_chunk(key.0, key.1, &key.2.clone())
-                            .await
-                            .unwrap();
-                        *chunk = Some(fetched_chunk);
+                taskset.spawn(async move {
+                    let chunk_recv = state
+                        .universe
+                        .get_mut::<ChunkReceiver>(_eid)
+                        .expect("ChunkReceiver not found");
+                    for mut chunks in chunk_recv.needed_chunks.iter_mut() {
+                        let (key, chunk) = chunks.pair_mut();
+                        if chunk.is_none() {
+                            trace!("Fetching chunk: {:?}", key);
+                            let fetched_chunk = state
+                                .world
+                                .load_chunk(key.0, key.1, &key.2.clone())
+                                .await
+                                .unwrap();
+                            *chunk = Some(fetched_chunk);
+                        }
                     }
-                }
-                // Ok(())
-                //});
+                    Ok(())
+                });
             }
             while let Some(result) = taskset.join_next().await {
-                if let Err(e) = result {
-                    error!("Error fetching chunk: {:?}", e);
+                match result {
+                    Ok(task_res) => {
+                        if let Err(e) = task_res {
+                            error!("Error fetching chunk: {:?}", e);
+                        }
+                    }
+                    Err(e) => {
+                        error!("Error fetching chunk: {:?}", e);
+                    }
                 }
             }
             tokio::time::sleep(std::time::Duration::from_millis(5)).await;

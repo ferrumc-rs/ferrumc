@@ -1,7 +1,7 @@
 use crate::systems::definition::System;
 use async_trait::async_trait;
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
-use ferrumc_core::identity::player_identity::PlayerIdentity;
+use ferrumc_core::transform::position::Position;
 use ferrumc_ecs::errors::ECSError;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::chunk_and_light_data::ChunkAndLightData;
@@ -12,7 +12,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::task::JoinSet;
-use tracing::{debug, error, info, trace};
+use tracing::{error, info, trace};
 
 pub(super) struct ChunkSenderSystem {
     pub stop: AtomicBool,
@@ -34,9 +34,9 @@ impl System for ChunkSenderSystem {
         while !self.stop.load(Ordering::Relaxed) {
             let players = state
                 .universe
-                .query::<(&mut ChunkReceiver, &mut StreamWriter)>();
+                .query::<(&mut ChunkReceiver, &mut StreamWriter, &Position)>();
             let mut task_set: JoinSet<Result<(), ECSError>> = JoinSet::new();
-            for (eid, (_, _)) in players {
+            for (eid, (_, _, _)) in players {
                 let state = state.clone();
                 task_set.spawn(async move {
                     let chunk_recv = state
@@ -51,16 +51,14 @@ impl System for ChunkSenderSystem {
                         .get_mut::<StreamWriter>(eid)
                         .expect("StreamWriter not found");
                     let mut to_drop = Vec::new();
-                    if let Some(last_chunk) = &chunk_recv.last_chunk {
-                        let packet = SetCenterChunk::new(last_chunk.0, last_chunk.1);
+                    if let Some(chunk) = &chunk_recv.last_chunk {
+                        let packet = SetCenterChunk::new(chunk.0, chunk.1);
                         if let Err(e) = conn.send_packet(&packet, &NetEncodeOpts::WithLength).await
                         {
                             error!("Error sending chunk: {:?}", e);
                         } else {
-                            trace!("Sent center chunk as {}, {}", last_chunk.0, last_chunk.1);
+                            trace!("Sent center chunk as {}, {}", chunk.0, chunk.1);
                         }
-                    } else {
-                        debug!("No last chunk found");
                     }
                     for possible_chunk in chunk_recv.needed_chunks.iter_mut() {
                         if let Some(chunk) = possible_chunk.pair().1 {
@@ -68,13 +66,7 @@ impl System for ChunkSenderSystem {
                             to_drop.push(key.clone());
                             match ChunkAndLightData::from_chunk(&chunk.clone()) {
                                 Ok(packet) => {
-                                    let player = state.universe.get::<PlayerIdentity>(eid).unwrap();
-                                    trace!(
-                                        "Sending chunk {}, {} to {}",
-                                        key.0,
-                                        key.1,
-                                        player.username
-                                    );
+                                    trace!("Sending chunk {}, {} to a player", key.0, key.1,);
                                     if let Err(e) =
                                         conn.send_packet(&packet, &NetEncodeOpts::WithLength).await
                                     {
@@ -94,8 +86,15 @@ impl System for ChunkSenderSystem {
                 });
             }
             while let Some(result) = task_set.join_next().await {
-                if let Err(e) = result {
-                    error!("Error sending chunk: {:?}", e);
+                match result {
+                    Ok(task_res) => {
+                        if let Err(e) = task_res {
+                            error!("Error sending chunk: {:?}", e);
+                        }
+                    }
+                    Err(e) => {
+                        error!("Error sending chunk: {:?}", e);
+                    }
                 }
             }
 

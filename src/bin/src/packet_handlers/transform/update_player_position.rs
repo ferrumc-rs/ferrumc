@@ -28,6 +28,7 @@ async fn handle_player_move(
                 String::from("overworld"),
             );
             if *last_chunk != new_chunk {
+                trace!("Player moved to new chunk");
                 let player = state.universe.get::<PlayerIdentity>(conn_id)?;
                 trace!("Player {} crossed chunk boundary", player.username);
                 chunk_recv.last_chunk = Some(new_chunk);

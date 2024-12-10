@@ -27,6 +27,8 @@ async fn main() {
     let cli_args = CLIArgs::parse();
     ferrumc_logging::init_logging(cli_args.log.into());
 
+    check_deadlocks();
+
     match cli_args.command {
         Some(Command::Setup) => {
             info!("Starting setup...");
@@ -106,4 +108,29 @@ async fn create_state() -> Result<ServerState> {
         tcp_listener: listener,
         world: World::new().await,
     })
+}
+fn check_deadlocks() {
+    {
+        use parking_lot::deadlock;
+        use std::thread;
+        use std::time::Duration;
+
+        // Create a background thread which checks for deadlocks every 10s
+        thread::spawn(move || loop {
+            thread::sleep(Duration::from_secs(10));
+            let deadlocks = deadlock::check_deadlock();
+            if deadlocks.is_empty() {
+                continue;
+            }
+
+            println!("{} deadlocks detected", deadlocks.len());
+            for (i, threads) in deadlocks.iter().enumerate() {
+                println!("Deadlock #{}", i);
+                for t in threads {
+                    println!("Thread Id {:#?}", t.thread_id());
+                    println!("{:#?}", t.backtrace());
+                }
+            }
+        });
+    }
 }
