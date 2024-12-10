@@ -1,3 +1,4 @@
+use crate::systems::chunk_fetcher::ChunkFetcher;
 use crate::systems::chunk_sender::ChunkSenderSystem;
 use crate::systems::keep_alive_system::KeepAliveSystem;
 use crate::systems::tcp_listener_system::TcpListenerSystem;
@@ -8,7 +9,6 @@ use ferrumc_state::GlobalState;
 use futures::stream::FuturesUnordered;
 use std::sync::{Arc, LazyLock};
 use tracing::{debug, debug_span, info, Instrument};
-use crate::systems::chunk_fetcher::ChunkFetcher;
 
 #[async_trait]
 pub trait System: Send + Sync {

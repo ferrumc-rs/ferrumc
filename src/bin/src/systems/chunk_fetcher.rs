@@ -31,13 +31,9 @@ impl System for ChunkFetcher {
             let players = state
                 .universe
                 .query::<(&PlayerIdentity, &mut ChunkReceiver)>();
-            for (eid, (_, chunk_recv)) in players {
+            for (_eid, (_, chunk_recv)) in players {
                 let state = state.clone();
                 //taskset.spawn(async move {
-                let player = state
-                    .universe
-                    .get::<PlayerIdentity>(eid)
-                    .expect("PlayerIdentity not found");
                 for mut chunks in chunk_recv.needed_chunks.iter_mut() {
                     let (key, chunk) = chunks.pair_mut();
                     if chunk.is_none() {

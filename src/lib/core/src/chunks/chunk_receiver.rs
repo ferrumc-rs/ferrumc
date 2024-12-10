@@ -1,7 +1,6 @@
 use dashmap::{DashMap, DashSet};
 use ferrumc_world::chunk_format::Chunk;
 use tokio::time::Instant;
-use tracing::trace;
 
 const VIEW_DISTANCE: i32 = 12;
 pub struct ChunkReceiver {

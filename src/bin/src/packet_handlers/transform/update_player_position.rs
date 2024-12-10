@@ -1,4 +1,3 @@
-use tracing::trace;
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::grounded::OnGround;
@@ -9,6 +8,7 @@ use ferrumc_net::errors::NetError;
 use ferrumc_net::packets::packet_events::TransformEvent;
 use ferrumc_net::utils::ecs_helpers::EntityExt;
 use ferrumc_state::GlobalState;
+use tracing::trace;
 
 #[event_handler]
 async fn handle_player_move(
