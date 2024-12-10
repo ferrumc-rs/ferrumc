@@ -13,14 +13,41 @@ use ferrumc_world::World;
 use std::sync::Arc;
 use systems::definition;
 use tracing::{error, info};
+use ferrumc_core::identity::player_identity::PlayerIdentity;
+use ferrumc_net::packets::outgoing::login_success::LoginSuccessPacket;
+use ferrumc_net::{connection::StreamWriter, NetResult};
+use ferrumc_net_codec::encode::NetEncodeOpts;
 
 pub(crate) mod errors;
 use crate::cli::{CLIArgs, Command, ImportArgs};
 mod cli;
 mod packet_handlers;
 mod systems;
+pub mod events;
+mod velocity;
 
 pub type Result<T> = std::result::Result<T, BinaryError>;
+
+pub async fn send_login_success(state: Arc<ServerState>, conn_id: usize, identity: PlayerIdentity) -> NetResult<()> {
+    //Send a Login Success Response to further the login sequence
+    let mut writer = state
+        .universe
+        .get_mut::<StreamWriter>(conn_id)?;
+
+    writer
+        .send_packet(
+            &LoginSuccessPacket::new(identity.clone()),
+            &NetEncodeOpts::WithLength,
+        )
+        .await?;
+
+    state.universe.add_component::<PlayerIdentity>(
+        conn_id,
+        identity,
+    )?;
+
+    Ok(())
+}
 
 #[tokio::main]
 async fn main() {

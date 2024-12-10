@@ -1,7 +1,7 @@
 use crate::{
-    connection::{ConnectionControl, StreamWriter},
+    connection::{ConnectionControl, ConnectionState, StreamWriter},
     errors::NetError,
-    packets::outgoing::disconnect::DisconnectPacket,
+    packets::outgoing::disconnect::*,
     NetResult,
 };
 use ferrumc_net_codec::encode::NetEncodeOpts;
@@ -25,7 +25,7 @@ use super::ecs_helpers::EntityExt;
 pub async fn terminate_connection(
     state: GlobalState,
     conn_id: usize,
-    reason: String,
+    reason: impl Into<ferrumc_text::TextComponent>,
 ) -> NetResult<()> {
     let mut writer = match conn_id.get_mut::<StreamWriter>(&state.clone()) {
         Ok(writer) => writer,
@@ -35,9 +35,11 @@ pub async fn terminate_connection(
         }
     };
 
+    let conn_state = conn_id.get::<ConnectionState>(&state.clone())?;
+
     if let Err(e) = writer
         .send_packet(
-            &DisconnectPacket::from_string(reason),
+            &DisconnectPacket::from(&conn_state, reason)?,
             &NetEncodeOpts::WithLength,
         )
         .await

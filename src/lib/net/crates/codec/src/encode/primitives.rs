@@ -44,6 +44,16 @@ impl_for_primitives!(
     f64
 );
 
+impl NetEncode for () {
+    fn encode<W: Write>(&self, _writer: &mut W, _: &NetEncodeOpts) -> NetEncodeResult<()> {
+        Ok(())
+    }
+
+    async fn encode_async<W: AsyncWrite + Unpin>(&self, _writer: &mut W, _: &NetEncodeOpts) -> NetEncodeResult<()> {
+        Ok(())
+    }
+}
+
 impl NetEncode for bool {
     fn encode<W: Write>(&self, writer: &mut W, _: &NetEncodeOpts) -> NetEncodeResult<()> {
         (*self as u8).encode(writer, &NetEncodeOpts::None)

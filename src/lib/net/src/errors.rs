@@ -43,6 +43,15 @@ pub enum NetError {
 
     #[error("{0}")]
     Chunk(#[from] ChunkError),
+
+    #[error("{0}")]
+    Kick(ferrumc_text::TextComponent),
+}
+
+impl NetError {
+    pub fn kick(reason: impl Into<ferrumc_text::TextComponent>) -> Self {
+        Self::Kick(reason.into())
+    }
 }
 
 #[derive(Debug, Error)]
