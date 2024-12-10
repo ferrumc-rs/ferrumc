@@ -22,7 +22,6 @@ use tokio::io::AsyncWrite;
 ///     properties: vec![IdentityProperty {
 ///         name: String::from("textures"),
 ///         value: String::from("ewogICJ0aW1lc3RhbXAiIDog..."),
-///         is_signed: false,
 ///         signature: None,
 ///     }],
 /// }
