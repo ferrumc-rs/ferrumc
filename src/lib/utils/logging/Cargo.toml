@@ -9,3 +9,4 @@ tracing-subscriber = { workspace = true }
 tokio = { workspace = true }
 ferrumc-profiling = { workspace = true }
 thiserror = { workspace = true }
+console-subscriber = { workspace = true }
