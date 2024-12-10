@@ -1,4 +1,4 @@
-use ferrumc_config::statics::{get_global_config, get_whitelist, Player};
+use ferrumc_config::statics::{get_global_config, get_whitelist};
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
@@ -36,17 +36,17 @@ async fn handle_login_start(
     debug!("Handling login start event");
 
     let uuid = login_start_event.login_start_packet.uuid;
+    //the packets uuid comes Encoded as an unsigned 128-bit integer
     let username = login_start_event.login_start_packet.username.as_str();
-    debug!("Received login start from user with username {}", username);
     
     let mut writer = state
         .universe
         .get_mut::<StreamWriter>(login_start_event.conn_id)?;
 
     if get_global_config().whitelist
-        && !get_whitelist().contains(&Player {
+        && !get_whitelist().contains(&PlayerIdentity {
             uuid,
-            name: username.to_string(),
+            username: username.to_string(),
         })
     {
         writer
