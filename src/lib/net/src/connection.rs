@@ -1,5 +1,5 @@
 use crate::packets::incoming::packet_skeleton::PacketSkeleton;
-use crate::utils::state::terminate_connection;
+use crate::utils::state::TerminateConnectionPlayerExt;
 use crate::{handle_packet, NetResult, packets::outgoing::disconnect::DISCONNECT_STRING};
 use crate::errors::NetError;
 use ferrumc_net_codec::encode::NetEncode;
@@ -164,7 +164,7 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
         {
             match e {
                 NetError::Kick(msg) => {
-                    terminate_connection(state.clone(), entity, msg.clone())
+                    entity.terminate_connection(state.clone(), msg.clone())
                         .await?;
                 },
                 _ => {
@@ -174,7 +174,7 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
                         packet_skele.id,
                         conn_state.as_str()
                     );
-                    terminate_connection(state.clone(), entity, DISCONNECT_STRING.to_string())
+                    entity.terminate_connection(state.clone(), DISCONNECT_STRING.to_string())
                         .await?;
                 }
             }

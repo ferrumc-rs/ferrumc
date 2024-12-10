@@ -1,6 +1,7 @@
 use crate::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
 use crate::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
 use crate::net_types::var_int::VarInt;
+use std::ops::{Deref, DerefMut};
 use std::io::{Read, Write};
 use tokio::io::AsyncWrite;
 
@@ -13,17 +14,19 @@ impl<T> LengthPrefixedVec<T> {
     pub fn new(data: Vec<T>) -> Self {
         Self { data }
     }
+}
 
-    pub fn push(&mut self, value: T) {
-        self.data.push(value);
+impl<T> Deref for LengthPrefixedVec<T> {
+    type Target = Vec<T>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.data
     }
+}
 
-    pub fn pop(&mut self) -> Option<T> {
-        self.data.pop()
-    }
-
-    pub fn length(&self) -> usize {
-        self.data.len()
+impl<T> DerefMut for LengthPrefixedVec<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.data
     }
 }
 
@@ -32,7 +35,7 @@ where
     T: NetEncode,
 {
     fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
-        VarInt::from(self.length()).encode(writer, opts)?;
+        VarInt::from(self.len()).encode(writer, opts)?;
 
         for item in &self.data {
             item.encode(writer, opts)?;
@@ -46,7 +49,7 @@ where
         writer: &mut W,
         opts: &NetEncodeOpts,
     ) -> NetEncodeResult<()> {
-        VarInt::from(self.length()).encode_async(writer, opts).await?;
+        VarInt::from(self.len()).encode_async(writer, opts).await?;
 
         for item in &self.data {
             item.encode_async(writer, opts).await?;

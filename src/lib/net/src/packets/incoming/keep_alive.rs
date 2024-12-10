@@ -1,6 +1,6 @@
 use crate::packets::outgoing::keep_alive::OutgoingKeepAlivePacket;
 use crate::packets::IncomingPacket;
-use crate::utils::state::terminate_connection;
+use crate::utils::state::TerminateConnectionPlayerExt;
 use crate::NetResult;
 use ferrumc_macros::{packet, NetDecode};
 use ferrumc_state::ServerState;
@@ -22,7 +22,7 @@ impl IncomingPacket for IncomingKeepAlivePacket {
                 conn_id, self.timestamp, last_sent_keep_alive.timestamp
             );
             if let Err(e) =
-                terminate_connection(state, conn_id, "Invalid keep alive packet".to_string()).await
+                conn_id.terminate_connection(state, "Invalid keep alive packet".to_string()).await
             {
                 debug!("Error terminating connection: {:?}", e);
             }

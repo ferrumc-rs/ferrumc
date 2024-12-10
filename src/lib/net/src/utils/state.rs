@@ -10,61 +10,72 @@ use tracing::{trace, warn};
 
 use super::ecs_helpers::EntityExt;
 
-// used codium for this function comment, very useful
+pub trait TerminateConnectionPlayerExt {
+    #[allow(async_fn_in_trait)]
+    async fn terminate_connection(
+        &self,
+        state: GlobalState,
+        reason: impl Into<ferrumc_text::TextComponent>,
+    ) -> NetResult<()>;
+}
 
-/// Terminates the connection of an entity with the given `conn_id`.
-///
-/// Sends a disconnect packet with the given `reason` to the client, and marks the connection as
-/// terminated. This will cause the connection to be dropped on the next tick of the
-/// `ConnectionSystem`.
-///
-/// # Errors
-///
-/// Returns an error if the stream writer or connection control component cannot be accessed for
-/// the given `conn_id`.
-pub async fn terminate_connection(
-    state: GlobalState,
-    conn_id: usize,
-    reason: impl Into<ferrumc_text::TextComponent>,
-) -> NetResult<()> {
-    let mut writer = match conn_id.get_mut::<StreamWriter>(&state.clone()) {
-        Ok(writer) => writer,
-        Err(e) => {
-            warn!("Failed to get stream writer for entity {}: {}", conn_id, e);
-            return Err(NetError::ECSError(e));
-        }
-    };
+impl TerminateConnectionPlayerExt for usize {
+    // used codium for this function comment, very useful
 
-    let conn_state = conn_id.get::<ConnectionState>(&state.clone())?;
+    /// Terminates the connection of an entity with the given `conn_id`.
+    ///
+    /// Sends a disconnect packet with the given `reason` to the client, and marks the connection as
+    /// terminated. This will cause the connection to be dropped on the next tick of the
+    /// `ConnectionSystem`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the stream writer or connection control component cannot be accessed for
+    /// the given `conn_id`.
+    async fn terminate_connection(
+        &self,
+        state: GlobalState,
+        reason: impl Into<ferrumc_text::TextComponent>,
+    ) -> NetResult<()> {
+        let mut writer = match self.get_mut::<StreamWriter>(&state.clone()) {
+            Ok(writer) => writer,
+            Err(e) => {
+                warn!("Failed to get stream writer for entity {}: {}", self, e);
+                return Err(NetError::ECSError(e));
+            }
+        };
 
-    if let Err(e) = writer
-        .send_packet(
-            &DisconnectPacket::from(&conn_state, reason)?,
-            &NetEncodeOpts::WithLength,
-        )
-        .await
-    {
-        warn!(
-            "Failed to send disconnect packet to entity {}: {}",
-            conn_id, e
-        );
-        return Err(e);
-    }
+        let conn_state = self.get::<ConnectionState>(&state.clone())?;
 
-    match conn_id.get_mut::<ConnectionControl>(&state.clone()) {
-        Ok(mut control) => {
-            control.should_disconnect = true;
-
-            trace!("Set should_disconnect to true for entity {}", conn_id);
-        }
-        Err(e) => {
+        if let Err(e) = writer
+            .send_packet(
+                &DisconnectPacket::from(&conn_state, reason)?,
+                &NetEncodeOpts::WithLength,
+            )
+            .await
+        {
             warn!(
-                "Failed to get connection control for entity {}: {}",
-                conn_id, e
+                "Failed to send disconnect packet to entity {}: {}",
+                self, e
             );
-            return Err(NetError::ECSError(e));
+            return Err(e);
         }
-    }
 
-    Ok(())
+        match self.get_mut::<ConnectionControl>(&state.clone()) {
+            Ok(mut control) => {
+                control.should_disconnect = true;
+
+                trace!("Set should_disconnect to true for entity {}", self);
+            }
+            Err(e) => {
+                warn!(
+                    "Failed to get connection control for entity {}: {}",
+                    self, e
+                );
+                return Err(NetError::ECSError(e));
+            }
+        }
+
+        Ok(())
+    }
 }
