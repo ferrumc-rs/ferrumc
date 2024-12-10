@@ -5,8 +5,9 @@ use serde_derive::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::{Read, Write};
 use std::process::exit;
-use std::sync::Mutex;
-use tracing::{error, info};
+use std::sync::{Mutex, MutexGuard};
+use tracing::{debug, error, info};
+use ferrumc_core::identity::player_identity::PlayerIdentity;
 
 /// The default server configuration that is stored in memory.
 pub(crate) const DEFAULT_CONFIG: &str = include_str!("../../../../../.etc/example-config.toml");
@@ -16,7 +17,7 @@ lazy_static! {
     static ref CONFIG: ServerConfig = create_config();
     /// The whitelist of players, wrapped in a Mutex for thread-safe access
     /// assuming commands can come from any thread in future
-    static ref WHITELIST: Mutex<Vec<Player>> = Mutex::new(create_whitelist());
+    static ref WHITELIST: Mutex<Vec<PlayerIdentity>> = Mutex::new(create_whitelist());
 }
 fn create_config() -> ServerConfig {
     let config_location = get_root_path().join("config.toml");
@@ -76,19 +77,18 @@ fn create_config() -> ServerConfig {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct Player {
+pub struct WhitelistEntry {
     pub uuid: u128,
     pub name: String,
 }
 
-fn create_whitelist() -> Vec<Player> {
+fn create_whitelist() -> Vec<PlayerIdentity> {
     let whitelist_location = get_root_path().join("whitelist.json");
-
+    debug!("Checking if whitelist exists at {whitelist_location:?}");
     if !whitelist_location.exists() {
         if let Err(e) = File::create(&whitelist_location).and_then(|mut file| file.write_all(b"[]"))
         {
             error!("Could not create initial white-list file: {e}");
-            error!("White-list disabled");
             return Vec::new();
         }
         return Vec::new();
@@ -98,7 +98,6 @@ fn create_whitelist() -> Vec<Player> {
         Ok(file) => file,
         Err(e) => {
             error!("Could not open white-list file: {e}");
-            error!("White-list disabled");
             return Vec::new();
         }
     };
@@ -106,17 +105,15 @@ fn create_whitelist() -> Vec<Player> {
     let mut whitelist_str = String::new();
     if let Err(e) = file.read_to_string(&mut whitelist_str) {
         error!("Could not read white-list file: {e}");
-        error!("White-list disabled");
         return Vec::new();
     }
 
     if whitelist_str.is_empty() {
         return Vec::new();
     }
-
-    serde_json::from_str::<Vec<Player>>(&whitelist_str).unwrap_or_else(|e| {
+    debug!("Whitelist string: {whitelist_str}");
+    serde_json::from_str::<Vec<PlayerIdentity>>(&whitelist_str).unwrap_or_else(|e| {
         error!("Could not parse white-list JSON: {e}");
-        error!("White-list disabled");
         Vec::new()
     })
 }
@@ -125,13 +122,13 @@ pub fn get_global_config() -> &'static ServerConfig {
     &CONFIG
 }
 
-pub fn get_whitelist() -> Vec<Player> {
+pub fn get_whitelist() -> Vec<PlayerIdentity> {
     WHITELIST.lock().unwrap().clone()
 }
 
 /// Adds a player to the white-list.
 /// Returns `true` if the player was added successfully, `false` otherwise.
-pub fn add_player_to_whitelist(player: Player) -> Result<bool, String> {
+pub fn add_player_to_whitelist(player: PlayerIdentity) -> Result<bool, String> {
     let mut whitelist = WHITELIST
         .lock()
         .map_err(|e| format!("Failed to acquire lock: {e}"))?;
@@ -152,7 +149,7 @@ pub fn add_player_to_whitelist(player: Player) -> Result<bool, String> {
 
 /// Removes a player from the whitelist.
 /// Returns `true` if the player was removed successfully, `false` otherwise.
-pub fn remove_player_from_whitelist(player: Player) -> Result<bool, String> {
+pub fn remove_player_from_whitelist(player: PlayerIdentity) -> Result<bool, String> {
     let mut whitelist = WHITELIST
         .lock()
         .map_err(|e| format!("Failed to acquire lock: {e}"))?;
@@ -172,15 +169,13 @@ pub fn remove_player_from_whitelist(player: Player) -> Result<bool, String> {
     Ok(true)
 }
 
-fn save_whitelist(whitelist: &[Player]) -> Result<(), String> {
+fn save_whitelist(whitelist: &MutexGuard<Vec<PlayerIdentity>>) -> Result<(), String> {
     let whitelist_location = get_root_path().join("whitelist.json");
     let mut file = File::create(&whitelist_location).map_err(|e| {
-        error!("Could not create white-list file for saving: {e}");
         format!("Could not create white-list file for saving: {e}")
     })?;
 
-    serde_json::to_writer(&mut file, whitelist).map_err(|e| {
-        error!("Could not create white-list file for saving: {e}");
+    serde_json::to_writer(&mut file, &get_whitelist()).map_err(|e| {
         format!("Could not write white-list to file: {e}")
     })
 }
