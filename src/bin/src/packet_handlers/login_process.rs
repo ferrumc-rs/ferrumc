@@ -16,7 +16,6 @@ use ferrumc_net::packets::outgoing::finish_configuration::FinishConfigurationPac
 use ferrumc_net::packets::outgoing::game_event::GameEventPacket;
 use ferrumc_net::packets::outgoing::keep_alive::OutgoingKeepAlivePacket;
 use ferrumc_net::packets::outgoing::login_play::LoginPlayPacket;
-use ferrumc_net::packets::outgoing::login_success::LoginSuccessPacket;
 use ferrumc_net::packets::outgoing::registry_data::get_registry_packets;
 use ferrumc_net::packets::outgoing::set_center_chunk::SetCenterChunk;
 use ferrumc_net::packets::outgoing::set_default_spawn_position::SetDefaultSpawnPositionPacket;
@@ -25,6 +24,10 @@ use ferrumc_net::packets::outgoing::synchronize_player_position::SynchronizePlay
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::GlobalState;
 use tracing::{debug, trace};
+use ferrumc_net::packets::outgoing::player_info_update::{PlayerInfoUpdatePacket, PlayerInfo};
+use crate::events::PlayerStartLoginEvent;
+use ferrumc_events::errors::EventsError;
+use ferrumc_events::infrastructure::Event;
 
 #[event_handler]
 async fn handle_login_start(
@@ -38,24 +41,20 @@ async fn handle_login_start(
     debug!("Received login start from user with username {}", username);
 
     // Add the player identity component to the ECS for the entity.
-    state.universe.add_component::<PlayerIdentity>(
-        login_start_event.conn_id,
-        PlayerIdentity::new(username.to_string(), uuid),
-    )?;
+    let event = PlayerStartLoginEvent {
+        entity: login_start_event.conn_id,
+        profile: PlayerIdentity::new(username.to_string(), uuid),
+    };
 
-    //Send a Login Success Response to further the login sequence
-    let mut writer = state
-        .universe
-        .get_mut::<StreamWriter>(login_start_event.conn_id)?;
-
-    writer
-        .send_packet(
-            &LoginSuccessPacket::new(uuid, username),
-            &NetEncodeOpts::WithLength,
-        )
-        .await?;
-
-    Ok(login_start_event)
+    match PlayerStartLoginEvent::trigger(event, state.clone()).await {
+        Err(NetError::Kick(msg)) => Err(NetError::Kick(msg)),
+        Err(NetError::EventsError(EventsError::Cancelled)) => Ok(login_start_event),
+        Ok(event) => {
+            crate::send_login_success(state, login_start_event.conn_id, event.profile).await?;
+            Ok(login_start_event)
+        },
+        e => e.map(|_| login_start_event),
+    }
 }
 
 #[event_handler]
@@ -168,6 +167,14 @@ async fn handle_ack_finish_configuration(
             &NetEncodeOpts::WithLength,
         )
         .await?;
+
+    let profile = state
+        .universe
+        .get::<PlayerIdentity>(ack_finish_configuration_event.conn_id)?;
+    writer.send_packet(&PlayerInfoUpdatePacket::new(vec![
+        PlayerInfo::from(&profile)
+    ]), &NetEncodeOpts::WithLength).await?;
+
     send_keep_alive(conn_id, state, &mut writer).await?;
 
     Ok(ack_finish_configuration_event)

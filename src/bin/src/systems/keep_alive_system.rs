@@ -5,7 +5,7 @@ use ferrumc_net::connection::{ConnectionState, StreamWriter};
 use ferrumc_net::packets::incoming::keep_alive::IncomingKeepAlivePacket;
 use ferrumc_net::packets::outgoing::keep_alive::OutgoingKeepAlivePacket;
 use ferrumc_net::utils::broadcast::{BroadcastOptions, BroadcastToAll};
-use ferrumc_net::utils::state::terminate_connection;
+use ferrumc_net::utils::state::TerminateConnectionPlayerExt;
 use ferrumc_state::GlobalState;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -76,9 +76,8 @@ impl System for KeepAliveSystem {
 
                     if (current_time - keep_alive.timestamp) >= 30000 {
                         // two iterations missed
-                        if let Err(e) = terminate_connection(
+                        if let Err(e) = entity.terminate_connection(
                             state.clone(),
-                            *entity,
                             "Keep alive timeout".to_string(),
                         )
                         .await

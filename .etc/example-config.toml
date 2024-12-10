@@ -34,3 +34,9 @@ map_size = 1_000
 cache_ttl = 60
 # How big the cache can be in kb.
 cache_capacity = 20_000
+
+# Velocity configuration
+[velocity]
+enabled = false
+# The key from forwarding.secret
+secret = ""

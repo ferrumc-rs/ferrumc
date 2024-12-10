@@ -123,6 +123,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
             quote! {crate}
         }
         FoundCrate::Name(name) => {
+            let name = format_ident!("{}", name);
             quote! {::#name}
         }
     };
