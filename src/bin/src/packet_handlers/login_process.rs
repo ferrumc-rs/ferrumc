@@ -38,7 +38,7 @@ async fn handle_login_start(
     let uuid = login_start_event.login_start_packet.uuid;
     //the packets uuid comes Encoded as an unsigned 128-bit integer
     let username = login_start_event.login_start_packet.username.as_str();
-    
+
     let mut writer = state
         .universe
         .get_mut::<StreamWriter>(login_start_event.conn_id)?;
@@ -52,7 +52,7 @@ async fn handle_login_start(
         writer
             .send_packet(
                 &LoginDisconnectPacket::new(
-                    "\"You are not white-listed on this server!\"",
+                    "{\"translate\":\"multiplayer.disconnect.not_whitelisted\"}",
                 ),
                 &NetEncodeOpts::WithLength,
             )
