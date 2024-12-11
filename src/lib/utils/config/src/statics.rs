@@ -1,13 +1,12 @@
 use crate::server_config::ServerConfig;
+use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_general_purpose::paths::get_root_path;
 use lazy_static::lazy_static;
-use serde_derive::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::{Read, Write};
 use std::process::exit;
-use std::sync::{Mutex, MutexGuard};
+use std::sync::Mutex;
 use tracing::{debug, error, info};
-use ferrumc_core::identity::player_identity::PlayerIdentity;
 
 /// The default server configuration that is stored in memory.
 pub(crate) const DEFAULT_CONFIG: &str = include_str!("../../../../../.etc/example-config.toml");
@@ -77,7 +76,6 @@ fn create_config() -> ServerConfig {
 }
 
 fn create_whitelist() -> Vec<PlayerIdentity> {
-    //todo ENCODE THE UUIDS as an unsigned 128-bit integer BEFORE PARSING IT INTO PLAYER IDENTITY
     let whitelist_location = get_root_path().join("whitelist.json");
     debug!("Checking if whitelist exists at {whitelist_location:?}");
     if !whitelist_location.exists() {
@@ -124,7 +122,6 @@ pub fn get_whitelist() -> Vec<PlayerIdentity> {
 /// Adds a player to the white-list.
 /// Returns `true` if the player was added successfully, `false` otherwise.
 pub fn add_player_to_whitelist(player: PlayerIdentity) -> Result<bool, String> {
-    //TODO ENCODE THE UUIDS as an unsigned 128-bit integer BEFORE PARSING IT INTO PLAYER IDENTITY
     let mut whitelist = WHITELIST
         .lock()
         .map_err(|e| format!("Failed to acquire lock: {e}"))?;
@@ -135,7 +132,7 @@ pub fn add_player_to_whitelist(player: PlayerIdentity) -> Result<bool, String> {
 
     whitelist.push(player);
 
-    if let Err(e) = save_whitelist(&whitelist) {
+    if let Err(e) = save_whitelist() {
         error!("Failed to save whitelist: {e}");
         return Err(format!("Failed to save whitelist: {e}"));
     }
@@ -146,7 +143,6 @@ pub fn add_player_to_whitelist(player: PlayerIdentity) -> Result<bool, String> {
 /// Removes a player from the whitelist.
 /// Returns `true` if the player was removed successfully, `false` otherwise.
 pub fn remove_player_from_whitelist(player: PlayerIdentity) -> Result<bool, String> {
-    //TODO ENCODE THE UUIDS as an unsigned 128-bit integer BEFORE PARSING IT INTO PLAYER IDENTITY
     let mut whitelist = WHITELIST
         .lock()
         .map_err(|e| format!("Failed to acquire lock: {e}"))?;
@@ -158,7 +154,7 @@ pub fn remove_player_from_whitelist(player: PlayerIdentity) -> Result<bool, Stri
         return Ok(false);
     }
 
-    if let Err(e) = save_whitelist(&whitelist) {
+    if let Err(e) = save_whitelist() {
         error!("Failed to save whitelist: {e}");
         return Err(format!("Failed to save whitelist: {e}"));
     }
@@ -166,14 +162,11 @@ pub fn remove_player_from_whitelist(player: PlayerIdentity) -> Result<bool, Stri
     Ok(true)
 }
 
-fn save_whitelist(whitelist: &MutexGuard<Vec<PlayerIdentity>>) -> Result<(), String> {
-    //TODO DECODE THE UUIDS FROM an unsigned 128-bit integer BEFORE PARSING IT
+fn save_whitelist() -> Result<(), String> {
     let whitelist_location = get_root_path().join("whitelist.json");
-    let mut file = File::create(&whitelist_location).map_err(|e| {
-        format!("Could not create white-list file for saving: {e}")
-    })?;
+    let mut file = File::create(&whitelist_location)
+        .map_err(|e| format!("Could not create white-list file for saving: {e}"))?;
 
-    serde_json::to_writer(&mut file, &get_whitelist()).map_err(|e| {
-        format!("Could not write white-list to file: {e}")
-    })
+    serde_json::to_writer(&mut file, &get_whitelist())
+        .map_err(|e| format!("Could not write white-list to file: {e}"))
 }
