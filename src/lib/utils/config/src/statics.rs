@@ -16,7 +16,7 @@ lazy_static! {
     static ref CONFIG: ServerConfig = create_config();
     /// The whitelist of players, wrapped in a Mutex for thread-safe access
     /// assuming commands can come from any thread in future
-    static ref WHITELIST: Mutex<Vec<PlayerIdentity>> = Mutex::new(create_whitelist());
+    static ref WHITELIST: Mutex<Vec<PlayerIdentity>> = Mutex::new(create_whitelist()); //should this be an rwlock instead? does it even need to be in statics?
 }
 fn create_config() -> ServerConfig {
     let config_location = get_root_path().join("config.toml");
