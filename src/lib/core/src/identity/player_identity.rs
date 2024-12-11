@@ -1,14 +1,14 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct PlayerIdentity {
     //rename to name
-    #[serde(rename = "name")] //vanilla support (at least in whitelist)
+    #[serde(rename = "name")] //vanilla uses name (at least in whitelist)
     pub username: String,
     #[serde(
-        deserialize_with = "uuid_str_to_u128",
-        serialize_with = "uuid_u128_to_str"
-    )]
+        deserialize_with = "uuid_to_u128_encoded_uuid",
+        serialize_with = "encoded_u128_uuid_to_uuid_str"
+    )] //tested deserializing, not serializing
     pub uuid: u128,
 }
 
@@ -18,13 +18,13 @@ impl PlayerIdentity {
     }
 }
 
-fn uuid_str_to_u128<'de, D>(deserializer: D) -> Result<u128, D::Error>
+fn uuid_to_u128_encoded_uuid<'de, D>(deserializer: D) -> Result<u128, D::Error>
 where
     D: serde::Deserializer<'de>,
 {
     let uuid_str: String = Deserialize::deserialize(deserializer)?;
-    let id = uuid::Uuid::parse_str(&uuid_str)
-        .map_err(|e| serde::de::Error::custom(format!("Failed to parse UUID: {e}")))?;
+    let id = uuid::Uuid::try_parse(&uuid_str)
+        .map_err(|e| serde::de::Error::custom(format!("failed to parse UUID: {e}")))?;
     let bytes = id.as_bytes();
     let mut u = 0u128;
     for &b in bytes {
@@ -33,7 +33,7 @@ where
     Ok(u)
 }
 
-fn uuid_u128_to_str<S>(uuid: &u128, serializer: S) -> Result<S::Ok, S::Error>
+fn encoded_u128_uuid_to_uuid_str<S>(uuid: &u128, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
 {
