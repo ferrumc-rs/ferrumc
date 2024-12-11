@@ -77,7 +77,6 @@ fn create_config() -> ServerConfig {
 
 fn create_whitelist() -> Vec<PlayerIdentity> {
     let whitelist_location = get_root_path().join("whitelist.json");
-    debug!("Checking if whitelist exists at {whitelist_location:?}");
     if !whitelist_location.exists() {
         if let Err(e) = File::create(&whitelist_location).and_then(|mut file| file.write_all(b"[]"))
         {
@@ -104,7 +103,6 @@ fn create_whitelist() -> Vec<PlayerIdentity> {
     if whitelist_str.is_empty() {
         return Vec::new();
     }
-    debug!("Whitelist string: {whitelist_str}");
     serde_json::from_str::<Vec<PlayerIdentity>>(&whitelist_str).unwrap_or_else(|e| {
         error!("Could not parse white-list JSON: {e}");
         Vec::new()

@@ -36,19 +36,14 @@ async fn handle_login_start(
     debug!("Handling login start event");
 
     let uuid = login_start_event.login_start_packet.uuid;
-    //the packets uuid comes Encoded as an unsigned 128-bit integer
     let username = login_start_event.login_start_packet.username.as_str();
+    let player_identity = PlayerIdentity::new(username.to_string(), uuid);
 
     let mut writer = state
         .universe
         .get_mut::<StreamWriter>(login_start_event.conn_id)?;
 
-    if get_global_config().whitelist
-        && !get_whitelist().contains(&PlayerIdentity {
-            uuid,
-            username: username.to_string(),
-        })
-    {
+    if get_global_config().whitelist && !get_whitelist().contains(&player_identity) {
         writer
             .send_packet(
                 &LoginDisconnectPacket::new(
@@ -62,10 +57,9 @@ async fn handle_login_start(
     };
 
     // Add the player identity component to the ECS for the entity.
-    state.universe.add_component::<PlayerIdentity>(
-        login_start_event.conn_id,
-        PlayerIdentity::new(username.to_string(), uuid),
-    )?;
+    state
+        .universe
+        .add_component::<PlayerIdentity>(login_start_event.conn_id, player_identity)?;
 
     //Send a Login Success Response to further the login sequence
     writer
