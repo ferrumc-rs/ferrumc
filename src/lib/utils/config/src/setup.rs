@@ -26,6 +26,10 @@ impl From<std::io::Error> for SetupError {
 }
 
 pub fn setup() -> Result<(), SetupError> {
+    if !std::fs::exists(get_root_path().join("whitelist.json"))? {
+        let mut file = File::create(get_root_path().join("whitelist.json"))?;
+        file.write_all(b"[]")?;
+    }
     if std::fs::exists(get_root_path().join("config.toml"))? {
         return Ok(());
     }

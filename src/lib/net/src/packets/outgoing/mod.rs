@@ -5,6 +5,7 @@ pub mod finish_configuration;
 pub mod game_event;
 pub mod keep_alive;
 pub mod login_play;
+pub mod login_disconnect;
 pub mod login_success;
 pub mod ping_response;
 pub mod registry_data;

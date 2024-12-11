@@ -8,3 +8,5 @@ edition = "2021"
 thiserror = { workspace = true }
 tokio = { workspace = true}
 ferrumc-ecs = {workspace = true}
+serde = { version = "1.0.215", features = ["derive"] }
+uuid = "1.11.0"
