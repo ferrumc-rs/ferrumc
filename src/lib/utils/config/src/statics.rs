@@ -100,7 +100,7 @@ fn create_whitelist() -> DashMap<u128, String> {
 
     //read and split the file, its username:uuid format
     let whitelist: DashMap<u128, String> = DashMap::new();
-    for line in whitelist_str.lines() {
+    for (i, line) in whitelist_str.lines().enumerate() {
         let line = line.trim();
         if line.is_empty() || line.starts_with('#') {
             continue;
@@ -110,7 +110,7 @@ fn create_whitelist() -> DashMap<u128, String> {
         let name = match split.next() {
             Some(name) => name,
             None => {
-                error!("Invalid line in whitelist (missing name): {line}");
+                error!("Invalid line {} in whitelist (missing name): {line}", i + 1);
                 continue;
             }
         };
@@ -118,7 +118,7 @@ fn create_whitelist() -> DashMap<u128, String> {
         let uuid_str = match split.next() {
             Some(uuid_str) => uuid_str,
             None => {
-                error!("Invalid line in whitelist (missing UUID): {line}");
+                error!("Invalid line {} in whitelist (missing UUID): {line}", i + 1);
                 continue;
             }
         };
@@ -126,7 +126,7 @@ fn create_whitelist() -> DashMap<u128, String> {
         let u128_uuid = match Uuid::try_parse(uuid_str) {
             Ok(uuid) => uuid.as_u128(),
             Err(e) => {
-                error!("Invalid uuid in whitelist {line}: {e}");
+                error!("Invalid uuid in whitelist on line {}: {line}: {e}", i + 1);
                 continue;
             }
         };
