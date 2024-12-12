@@ -105,14 +105,26 @@ fn create_whitelist() -> DashMap<u128, String> {
         if line.is_empty() || line.starts_with('#') {
             continue;
         }
+
         let mut split = line.split(':');
-        let name = split.next().unwrap();
-        let uuid_str = split.next().unwrap();
-        let u128_uuid = match Uuid::try_parse(uuid_str) //parse a uuid from the string
-            .map_err(|e| format!("failed to parse UUID: {e}"))
-            .map(|uuid| uuid.as_u128()) //convert to u128 on success
-        {
-            Ok(u128) => u128,
+        let name = match split.next() {
+            Some(name) => name,
+            None => {
+                error!("Invalid line in whitelist (missing name): {line}");
+                continue;
+            }
+        };
+
+        let uuid_str = match split.next() {
+            Some(uuid_str) => uuid_str,
+            None => {
+                error!("Invalid line in whitelist (missing UUID): {line}");
+                continue;
+            }
+        };
+
+        let u128_uuid = match Uuid::try_parse(uuid_str) {
+            Ok(uuid) => uuid.as_u128(),
             Err(e) => {
                 error!("Invalid uuid in whitelist {line}: {e}");
                 continue;
