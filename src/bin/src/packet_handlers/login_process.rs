@@ -1,4 +1,4 @@
-use ferrumc_config::statics::{get_global_config, get_whitelist};
+use ferrumc_config::statics::{get_global_config, get_whitelist, write_whitelist_to_file};
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
@@ -38,23 +38,35 @@ async fn handle_login_start(
     let uuid = login_start_event.login_start_packet.uuid;
     let username = login_start_event.login_start_packet.username.as_str();
     let player_identity = PlayerIdentity::new(username.to_string(), uuid);
+    debug!("Received login start from user with username {}", username);
 
     let mut writer = state
         .universe
         .get_mut::<StreamWriter>(login_start_event.conn_id)?;
 
-    if get_global_config().whitelist && !get_whitelist().contains(&player_identity) {
-        writer
-            .send_packet(
-                &LoginDisconnectPacket::new(
-                    "{\"translate\":\"multiplayer.disconnect.not_whitelisted\"}",
-                ),
-                &NetEncodeOpts::WithLength,
-            )
-            .await?;
+    if get_global_config().whitelist {
+        let whitelist = get_whitelist();
 
-        return Ok(login_start_event);
-    };
+        if let Some(whitelist_entry) = whitelist.get(&uuid) {
+            let stored_name = whitelist_entry.value();
+            if stored_name != username {
+                let old_val = whitelist.insert(uuid, username.to_string());
+                debug!("Username changed from {old_val:?} to {username}");
+                //rewrite the whitelist file to keep usernames up to date
+                write_whitelist_to_file();
+            }
+        } else {
+            writer
+                .send_packet(
+                    &LoginDisconnectPacket::new(
+                        "{\"translate\":\"multiplayer.disconnect.not_whitelisted\"}",
+                    ),
+                    &NetEncodeOpts::WithLength,
+                )
+                .await?;
+            return Ok(login_start_event);
+        }
+    }
 
     // Add the player identity component to the ECS for the entity.
     state
