@@ -1,12 +1,12 @@
 use crate::server_config::ServerConfig;
-use ferrumc_core::identity::player_identity::PlayerIdentity;
+use dashmap::DashMap;
 use ferrumc_general_purpose::paths::get_root_path;
 use lazy_static::lazy_static;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::process::exit;
-use std::sync::Mutex;
-use tracing::{debug, error, info};
+use tracing::{error, info};
+use uuid::Uuid;
 
 /// The default server configuration that is stored in memory.
 pub(crate) const DEFAULT_CONFIG: &str = include_str!("../../../../../.etc/example-config.toml");
@@ -14,9 +14,8 @@ pub(crate) const DEFAULT_CONFIG: &str = include_str!("../../../../../.etc/exampl
 lazy_static! {
     /// The server configuration that is stored in memory.
     static ref CONFIG: ServerConfig = create_config();
-    /// The whitelist of players, wrapped in a Mutex for thread-safe access
-    /// assuming commands can come from any thread in future
-    static ref WHITELIST: Mutex<Vec<PlayerIdentity>> = Mutex::new(create_whitelist()); //should this be an rwlock instead? does it even need to be in statics?
+    /// The whitelist of player uuids.
+    static ref WHITELIST: DashMap<u128, String> = create_whitelist();
 }
 fn create_config() -> ServerConfig {
     let config_location = get_root_path().join("config.toml");
@@ -75,44 +74,82 @@ fn create_config() -> ServerConfig {
     }
 }
 
-fn create_whitelist() -> Vec<PlayerIdentity> {
-    let whitelist_location = get_root_path().join("whitelist.json");
+fn create_whitelist() -> DashMap<u128, String> {
+    let whitelist_location = get_root_path().join("whitelist.txt");
     if !whitelist_location.exists() {
-        if let Err(e) = File::create(&whitelist_location).and_then(|mut file| file.write_all(b"[]"))
-        {
-            error!("Could not create initial white-list file: {e}");
-            return Vec::new();
-        }
-        return Vec::new();
+        write_whitelist_to_file();
     }
 
     let mut file = match File::open(&whitelist_location) {
         Ok(file) => file,
         Err(e) => {
             error!("Could not open white-list file: {e}");
-            return Vec::new();
+            return DashMap::new();
         }
     };
 
     let mut whitelist_str = String::new();
     if let Err(e) = file.read_to_string(&mut whitelist_str) {
         error!("Could not read white-list file: {e}");
-        return Vec::new();
+        return DashMap::new();
     }
 
     if whitelist_str.is_empty() {
-        return Vec::new();
+        return DashMap::new();
     }
-    serde_json::from_str::<Vec<PlayerIdentity>>(&whitelist_str).unwrap_or_else(|e| {
-        error!("Could not parse white-list JSON: {e}");
-        Vec::new()
-    })
+
+    //read and split the file, its username:uuid format
+    let whitelist: DashMap<u128, String> = DashMap::new();
+    for line in whitelist_str.lines() {
+        let line = line.trim();
+        if line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+        let mut split = line.split(':');
+        let name = split.next().unwrap();
+        let uuid_str = split.next().unwrap();
+        let u128_uuid = match Uuid::try_parse(uuid_str) //parse a uuid from the string
+            .map_err(|e| format!("failed to parse UUID: {e}"))
+            .map(|uuid| uuid.as_u128()) //convert to u128 on success
+        {
+            Ok(u128) => u128,
+            Err(e) => {
+                error!("Invalid uuid in whitelist {line}: {e}");
+                continue;
+            }
+        };
+
+        whitelist.insert(u128_uuid, name.to_string());
+    }
+    whitelist
+}
+
+pub fn write_whitelist_to_file() {
+    let whitelist: &DashMap<u128, String> = get_whitelist();
+    let whitelist_location = get_root_path().join("whitelist.txt");
+
+    if let Err(e) = File::create(&whitelist_location).and_then(|mut file| {
+        file.write_all(
+            b"# This is the whitelist file.\n\
+        # Each seperate line is a name and uuid seperated by :\n\
+        # Eg. DefinitelyARealUser:00000000-0000-0000-0000-000000000000\n",
+        )
+        .and_then(|_| {
+            whitelist.iter().try_for_each(|entry| {
+                let uuid_str = Uuid::from_u128(*entry.key()).hyphenated().to_string();
+                let line = format!("{}:{}\n", entry.value(), uuid_str);
+                file.write_all(line.as_bytes())
+            })
+        })
+    }) {
+        error!("Failed to save whitelist: {e}");
+    }
 }
 
 pub fn get_global_config() -> &'static ServerConfig {
     &CONFIG
 }
 
-pub fn get_whitelist() -> Vec<PlayerIdentity> {
-    WHITELIST.lock().unwrap().clone()
+pub fn get_whitelist() -> &'static DashMap<u128, String> {
+    &WHITELIST
 }
