@@ -47,15 +47,7 @@ async fn handle_login_start(
     if get_global_config().whitelist {
         let whitelist = get_whitelist();
 
-        if let Some(whitelist_entry) = whitelist.get(&uuid) {
-            let stored_name = whitelist_entry.value();
-            if stored_name != username {
-                let old_val = whitelist.insert(uuid, username.to_string());
-                debug!("Username changed from {old_val:?} to {username}");
-                //rewrite the whitelist file to keep usernames up to date
-                write_whitelist_to_file();
-            }
-        } else {
+        if whitelist.get(&uuid).is_none() {
             writer
                 .send_packet(
                     &LoginDisconnectPacket::new(
