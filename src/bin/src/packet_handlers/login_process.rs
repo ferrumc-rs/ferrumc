@@ -1,4 +1,4 @@
-use ferrumc_config::statics::{get_global_config, get_whitelist, write_whitelist_to_file};
+use ferrumc_config::statics::{create_blank_whitelist_file, get_global_config, get_whitelist};
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
