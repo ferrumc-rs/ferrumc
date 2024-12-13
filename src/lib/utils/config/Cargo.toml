@@ -17,3 +17,4 @@ ferrumc-core = { workspace = true }
 lazy_static = { workspace = true }
 dashmap = { workspace = true }
 uuid = { workspace = true }
+regex = "1.11.1"
