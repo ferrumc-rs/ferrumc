@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 use tokio::task::JoinSet;
-use tracing::{error, info, trace};
+use tracing::{error, info};
 
 pub struct ChunkFetcher {
     stop: AtomicBool,

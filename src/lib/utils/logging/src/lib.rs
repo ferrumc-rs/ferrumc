@@ -9,10 +9,7 @@ use tracing_subscriber::EnvFilter;
 
 pub fn init_logging(trace_level: Level) {
     //let console = console_subscriber::spawn();
-    let env_filter = EnvFilter::from_default_env()
-        .add_directive(trace_level.into())
-        .add_directive("tokio=off".parse().unwrap())
-        .add_directive("runtime=off".parse().unwrap());
+    let env_filter = EnvFilter::from_default_env().add_directive(trace_level.into());
 
     let mut fmt_layer = Layer::default();
 
