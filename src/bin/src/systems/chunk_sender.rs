@@ -61,8 +61,6 @@ impl System for ChunkSenderSystem {
                                 conn.send_packet(&packet, &NetEncodeOpts::WithLength).await
                             {
                                 error!("Error sending chunk: {:?}", e);
-                            } else {
-                                trace!("Sent center chunk as {}, {}", chunk.0, chunk.1);
                             }
                         }
                         if let Err(e) = conn
@@ -79,7 +77,6 @@ impl System for ChunkSenderSystem {
                             to_drop.push(key.clone());
                             match ChunkAndLightData::from_chunk(&chunk.clone()) {
                                 Ok(packet) => {
-                                    trace!("Sending chunk {}, {} to a player", key.0, key.1,);
                                     let mut conn = state
                                         .universe
                                         .get_mut::<StreamWriter>(eid)
