@@ -2,7 +2,7 @@ use dashmap::{DashMap, DashSet};
 use ferrumc_world::chunk_format::Chunk;
 use tokio::time::Instant;
 
-const VIEW_DISTANCE: i32 = 12;
+const VIEW_DISTANCE: i32 = 8;
 pub struct ChunkReceiver {
     pub needed_chunks: DashMap<(i32, i32, String), Option<Chunk>>,
     pub can_see: DashSet<(i32, i32, String)>,

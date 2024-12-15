@@ -28,15 +28,13 @@ impl System for ChunkFetcher {
 
         while !self.stop.load(std::sync::atomic::Ordering::Relaxed) {
             let mut taskset: JoinSet<Result<(), BinaryError>> = JoinSet::new();
-            let players = state
-                .universe
-                .query::<(&PlayerIdentity, &mut ChunkReceiver)>();
-            for (_eid, (_, _)) in players {
+            let players = state.universe.query::<&mut ChunkReceiver>();
+            for (eid, _) in players {
                 let state = state.clone();
                 taskset.spawn(async move {
                     let chunk_recv = state
                         .universe
-                        .get_mut::<ChunkReceiver>(_eid)
+                        .get_mut::<ChunkReceiver>(eid)
                         .expect("ChunkReceiver not found");
                     for mut chunks in chunk_recv.needed_chunks.iter_mut() {
                         let (key, chunk) = chunks.pair_mut();

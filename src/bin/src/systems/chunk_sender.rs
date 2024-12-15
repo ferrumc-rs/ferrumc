@@ -5,8 +5,11 @@ use ferrumc_core::transform::position::Position;
 use ferrumc_ecs::errors::ECSError;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::chunk_and_light_data::ChunkAndLightData;
+use ferrumc_net::packets::outgoing::chunk_batch_finish::ChunkBatchFinish;
+use ferrumc_net::packets::outgoing::chunk_batch_start::ChunkBatchStart;
 use ferrumc_net::packets::outgoing::set_center_chunk::SetCenterChunk;
 use ferrumc_net_codec::encode::NetEncodeOpts;
+use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalState;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -46,20 +49,30 @@ impl System for ChunkSenderSystem {
                     if chunk_recv.needed_chunks.is_empty() {
                         return Ok(());
                     }
-                    let mut conn = state
-                        .universe
-                        .get_mut::<StreamWriter>(eid)
-                        .expect("StreamWriter not found");
                     let mut to_drop = Vec::new();
-                    if let Some(chunk) = &chunk_recv.last_chunk {
-                        let packet = SetCenterChunk::new(chunk.0, chunk.1);
-                        if let Err(e) = conn.send_packet(&packet, &NetEncodeOpts::WithLength).await
+                    {
+                        let mut conn = state
+                            .universe
+                            .get_mut::<StreamWriter>(eid)
+                            .expect("StreamWriter not found");
+                        if let Some(chunk) = &chunk_recv.last_chunk {
+                            let packet = SetCenterChunk::new(chunk.0, chunk.1);
+                            if let Err(e) =
+                                conn.send_packet(&packet, &NetEncodeOpts::WithLength).await
+                            {
+                                error!("Error sending chunk: {:?}", e);
+                            } else {
+                                trace!("Sent center chunk as {}, {}", chunk.0, chunk.1);
+                            }
+                        }
+                        if let Err(e) = conn
+                            .send_packet(&ChunkBatchStart {}, &NetEncodeOpts::WithLength)
+                            .await
                         {
                             error!("Error sending chunk: {:?}", e);
-                        } else {
-                            trace!("Sent center chunk as {}, {}", chunk.0, chunk.1);
                         }
                     }
+                    let mut sent_chunks = 0;
                     for possible_chunk in chunk_recv.needed_chunks.iter_mut() {
                         if let Some(chunk) = possible_chunk.pair().1 {
                             let key = possible_chunk.pair().0;
@@ -67,16 +80,39 @@ impl System for ChunkSenderSystem {
                             match ChunkAndLightData::from_chunk(&chunk.clone()) {
                                 Ok(packet) => {
                                     trace!("Sending chunk {}, {} to a player", key.0, key.1,);
+                                    let mut conn = state
+                                        .universe
+                                        .get_mut::<StreamWriter>(eid)
+                                        .expect("StreamWriter not found");
                                     if let Err(e) =
                                         conn.send_packet(&packet, &NetEncodeOpts::WithLength).await
                                     {
                                         error!("Error sending chunk: {:?}", e);
+                                    } else {
+                                        sent_chunks += 1;
                                     }
                                 }
                                 Err(e) => {
                                     error!("Error sending chunk: {:?}", e);
                                 }
                             }
+                        }
+                    }
+                    {
+                        let mut conn = state
+                            .universe
+                            .get_mut::<StreamWriter>(eid)
+                            .expect("StreamWriter not found");
+                        if let Err(e) = conn
+                            .send_packet(
+                                &ChunkBatchFinish {
+                                    batch_size: VarInt::from(sent_chunks),
+                                },
+                                &NetEncodeOpts::WithLength,
+                            )
+                            .await
+                        {
+                            error!("Error sending chunk: {:?}", e);
                         }
                     }
                     for key in to_drop {
