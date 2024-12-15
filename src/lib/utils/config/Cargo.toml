@@ -19,3 +19,4 @@ dashmap = { workspace = true }
 uuid = { workspace = true }
 regex = { workspace = true }
 reqwest = { workspace = true }
+futures = { workspace = true }

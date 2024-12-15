@@ -1,12 +1,15 @@
 use crate::errors::ConfigError;
 use crate::statics::WHITELIST;
 use ferrumc_general_purpose::paths::get_root_path;
+use futures::future::join_all;
 use regex::Regex;
+use reqwest::Client;
 use serde_derive::Deserialize;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 use std::io::Write;
+use std::time::Instant;
 use tracing::{debug, error};
 use uuid::Uuid;
 
@@ -46,111 +49,129 @@ pub async fn create_whitelist() {
 ///converts usernames within the whitelist file to uuid, returns a list of all resulting uuids within the file
 async fn convert_whitelist_file() -> Result<Vec<Uuid>, ConfigError> {
     let whitelist_location = get_root_path().join("whitelist.txt");
+    let mut return_uuids: Vec<Uuid> = Vec::new();
+
     if !whitelist_location.exists() {
         create_blank_whitelist_file();
-        return Ok(Vec::new());
+        return Ok(return_uuids);
     }
 
-    let mut file = match File::open(&whitelist_location) {
-        Ok(file) => file,
-        Err(e) => {
-            error!("Could not open whitelist file for conversion: {e}");
-            return Err(ConfigError::IOError(e));
-        }
-    };
+    let mut file = File::open(&whitelist_location).map_err(|e| {
+        error!("Could not open whitelist file: {e}");
+        ConfigError::IOError(e)
+    })?;
 
     let mut whitelist_str = String::new();
-    if let Err(e) = file.read_to_string(&mut whitelist_str) {
-        error!("Could not read whitelist file for conversion: {e}");
-        return Err(ConfigError::IOError(e));
-    }
+    file.read_to_string(&mut whitelist_str).map_err(|e| {
+        error!("Could not read whitelist file: {e}");
+        ConfigError::IOError(e)
+    })?;
+
     let mut lines = whitelist_str
         .lines()
-        .map(|line| line.to_string())
-        .collect::<Vec<String>>();
-
+        .map(|line| line.trim().to_string())
+        .collect::<Vec<_>>();
     if lines.is_empty() {
         create_blank_whitelist_file();
-        return Ok(Vec::new());
+        return Ok(return_uuids);
     }
+    //here we iterate over the lines removing duplicates while keeping the current order
+    let mut seen = std::collections::HashSet::new();
+    lines.retain(|line| {
+        if seen.contains(line) {
+            false
+        } else {
+            seen.insert(line.clone());
+            true
+        }
+    });
 
-    let uuid_regex = Regex::new(
-        r"^(?:[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}|[0-9a-fA-F]{32})$",
-    ) //validates both hyphenated and non hyphenated uuids
-    .unwrap();
+    //validates uuids, hyphenated or not
+    let uuid_regex = Regex::new(r"^(?:[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}|[0-9a-fA-F]{32})$").unwrap();
+    //validates a mojang accepted name
     let valid_name_regex = Regex::new(r"^[a-zA-Z0-9_]{3,16}$").unwrap();
 
-    let mut names_to_convert: HashMap<String, usize> = HashMap::new();
-    let mut uuids_to_convert: HashMap<String, usize> = HashMap::new();
-    let mut valid_lines: Vec<usize> = Vec::new();
+    let mut names_to_convert: HashMap<String, usize> = HashMap::new(); //pure name entries
+    let mut uuids_to_convert: HashMap<Uuid, usize> = HashMap::new(); //pure uuid entries
+    let mut valid_lines = Vec::new(); //lines that dont need changes
+    let mut invalid_lines = Vec::new(); //entry isnt a valid uuid OR name
 
     for (index, line) in lines.iter().enumerate() {
-        let trimmed = line.trim();
-        debug!("Processing line {}: {}", index, trimmed);
-        if trimmed.is_empty() || trimmed.starts_with('#') {
+        if line.is_empty() || line.starts_with('#') {
             valid_lines.push(index);
             continue;
         }
 
-        let (pre_comment, comment) = match trimmed.split_once('#') {
-            Some((p, c)) => (p.trim(), c.trim()),
-            None => (trimmed, ""),
-        };
+        let (uuid_or_name, commented_name) = line
+            .split_once('#')
+            .map_or((line.as_str(), ""), |(pre_hash, post_hash)| {
+                (pre_hash.trim(), post_hash.trim())
+            });
 
-        if !uuid_regex.is_match(pre_comment) {
-            // If it's not a UUID, check if it's a valid username
-            if valid_name_regex.is_match(pre_comment) {
-                names_to_convert.insert(pre_comment.to_string().to_ascii_lowercase(), index);
-                debug!("Found username to convert: {}", pre_comment);
+        if uuid_regex.is_match(uuid_or_name) {
+            if let Ok(uuid) = Uuid::parse_str(uuid_or_name) {
+                if valid_name_regex.is_match(commented_name) {
+                    return_uuids.push(uuid);
+                    valid_lines.push(index);
+                } else {
+                    uuids_to_convert.insert(uuid, index);
+                }
             }
+        } else if valid_name_regex.is_match(uuid_or_name) {
+            names_to_convert.insert(uuid_or_name.to_ascii_lowercase(), index);
         } else {
-            // It's a UUID, check its length to ensure it is valid
-            if !valid_name_regex.is_match(comment) {
-                valid_lines.push(index); // temporary until I can be bothered to do the call for name and validate it below
-                debug!("Found UUID to generate name for: {}", pre_comment);
-            } else {
-                valid_lines.push(index);
-            }
+            invalid_lines.push((index, line.clone()));
         }
     }
 
-    let name_query_input = names_to_convert
+    let name_query_input: Vec<String> = names_to_convert
         .keys()
-        .map(|name| name.as_str())
-        .collect::<Vec<&str>>();
+        .map(|name| name.to_ascii_lowercase())
+        .collect();
+    let uuid_query_input: Vec<&Uuid> = uuids_to_convert.keys().collect();
 
-    // let uuid_query_input = uuids_to_convert
-    //     .keys()
-    //     .map(|name| name.as_str())
-    //     .collect::<Vec<&str>>();
-    //todo, generate names for valid uuids that dont have one attached
+    let start_net_request = Instant::now();
+    let found_usernames = query_mojang_for_usernames(uuid_query_input).await;
+    let found_uuids = query_mojang_for_uuid(name_query_input).await;
+    let net_request_time = start_net_request.elapsed().as_millis();
+    debug!(
+        "Querying Mojang for usernames and uuids took {} ms",
+        net_request_time
+    );
 
-    let found_uuids = query_mojang_for_uuid(&name_query_input).await;
-
-    debug!("Found UUIDs: {:?}", found_uuids);
-    for (name_lcase, profile) in found_uuids {
-        if let Some(index) = names_to_convert.remove(&name_lcase) {
-            let uuid = Uuid::parse_str(&profile.id).unwrap();
+    for profile in found_usernames {
+        if let Some(index) = uuids_to_convert.remove(&Uuid::try_parse(&profile.id).unwrap()) {
+            let uuid = Uuid::try_parse(&profile.id).unwrap();
             lines[index] = format!("{} # {}", uuid.hyphenated(), profile.name);
             valid_lines.push(index);
-            debug!(
-                "Updated line {} to UUID and name: {} # {}",
-                index, profile.id, profile.name
-            );
+            return_uuids.push(uuid);
         }
     }
 
-    let invalid_lines: Vec<usize> = lines
-        .iter()
-        .enumerate()
-        .filter(|(index, _)| !valid_lines.contains(index))
-        .map(|(index, _)| index)
-        .collect();
-    debug!("Invalid line indices: {:?}", invalid_lines);
+    for (name_lcase, profile) in found_uuids {
+        if let Some(index) = names_to_convert.remove(&name_lcase) {
+            let uuid = Uuid::try_parse(&profile.id).unwrap();
+            lines[index] = format!("{} # {}", uuid.hyphenated(), profile.name);
+            valid_lines.push(index);
+            return_uuids.push(uuid);
+        }
+    }
 
-    // comment out invalid lines, can attach a reason if needed
-    for index in invalid_lines {
-        lines[index] = format!("#Invalid Entry: {}", lines[index]);
+    //these are the lines that were not matched to a uuid or name
+    for (name, index) in names_to_convert {
+        //line matched name but mojang returned no uuid
+        lines[index] = format!("# Invalid UUID: {name}");
+    }
+
+    for (uuid, index) in uuids_to_convert {
+        //line matched uuid but mojang returned no name
+        //currently any uuids that dont match a real name get added here and I cant tell why rn
+        lines[index] = format!("# Invalid Username: {uuid}");
+    }
+
+    for (index, line) in invalid_lines {
+        //line didnt match uuid or name regex
+        lines[index] = format!("# Invalid entry: {line}");
     }
 
     let mut updated_whitelist = File::create(&whitelist_location).map_err(|e| {
@@ -159,13 +180,12 @@ async fn convert_whitelist_file() -> Result<Vec<Uuid>, ConfigError> {
     })?;
 
     for line in lines {
-        if let Err(e) = writeln!(updated_whitelist, "{}", line) {
-            error!("Failed to write line to file: {e}");
-            return Err(ConfigError::IOError(e));
-        }
+        writeln!(updated_whitelist, "{}", line).map_err(|e| {
+            error!("Failed to write line: {e}");
+            ConfigError::IOError(e)
+        })?;
     }
-
-    Ok(Vec::new())
+    Ok(return_uuids)
 }
 
 #[derive(Deserialize, Debug)]
@@ -174,47 +194,108 @@ struct MojangProfile {
     name: String,
 }
 /// Queries mojang for the uuids of the given names, returned as a map of lowercase names to the full profile.
-async fn query_mojang_for_uuid(names_to_convert: &[&str]) -> HashMap<String, MojangProfile> {
+async fn query_mojang_for_uuid(names: Vec<String>) -> HashMap<String, MojangProfile> {
     debug!("Querying Mojang for UUIDs");
 
-    if names_to_convert.is_empty() {
+    if names.is_empty() {
         return HashMap::new();
     }
 
-    let client = reqwest::Client::new();
-    let mut result_map = HashMap::new();
+    let client = Client::new();
 
-    for chunk in names_to_convert.chunks(10) {
-        debug!("Querying batch of names: {:?}", chunk);
+    let futures = names.chunks(10).map(|chunk| {
+        let client = &client;
+        async move {
+            let response = client
+                .post("https://api.mojang.com/profiles/minecraft")
+                .json(&chunk)
+                .send()
+                .await;
 
-        let response = client
-            .post("https://api.mojang.com/profiles/minecraft")
-            .json(&chunk)
-            .send()
-            .await;
-
-        let profiles: Vec<MojangProfile> = match response {
-            Ok(response) => match response.json().await {
-                Ok(json) => json,
-                Err(e) => {
-                    debug!("Mojang returned no profiles for names: {chunk:?}");
-                    continue;
+            match response {
+                Ok(response) if response.status().is_success() => {
+                    match response.json::<Vec<MojangProfile>>().await {
+                        Ok(profiles) => profiles,
+                        Err(e) => {
+                            error!("Failed to parse JSON response for names {:?}: {e}", chunk);
+                            Vec::new()
+                        }
+                    }
                 }
-            },
-            Err(e) => {
-                error!("Failed to parse response from Mojang: {e}");
-                continue;
+                Ok(response) => {
+                    error!(
+                        "Mojang API returned HTTP {} for names {:?}",
+                        response.status(),
+                        chunk
+                    );
+                    Vec::new()
+                }
+                Err(e) => {
+                    error!("Failed to query Mojang for names {:?}: {e}", chunk);
+                    Vec::new()
+                }
             }
-        };
+        }
+    });
 
-        debug!("Parsed response from Mojang: {} profiles", profiles.len());
+    let results = join_all(futures).await;
 
+    let mut result_map = HashMap::new();
+    for profiles in results {
         for profile in profiles {
-            debug!("Found UUID for {}: {}", profile.name, profile.id);
             result_map.insert(profile.name.to_ascii_lowercase(), profile);
         }
     }
+
     result_map
+}
+
+async fn query_mojang_for_usernames(uuids: Vec<&Uuid>) -> Vec<MojangProfile> {
+    if uuids.is_empty() {
+        return Vec::new();
+    }
+
+    let client = Client::new();
+
+    let futures = uuids.into_iter().map(|uuid| {
+        let client = &client;
+        async move {
+            let uuid = uuid.as_simple();
+            let response = client
+                .get(format!(
+                    "https://sessionserver.mojang.com/session/minecraft/profile/{uuid}"
+                ))
+                .send()
+                .await;
+
+            match response {
+                Ok(response) if response.status().is_success() => {
+                    match response.json::<MojangProfile>().await {
+                        Ok(parsed_response) => Some(parsed_response),
+                        Err(e) => {
+                            error!("Failed to parse JSON response for UUID {}: {e}", uuid);
+                            None
+                        }
+                    }
+                }
+                Ok(response) => {
+                    error!(
+                        "Mojang API returned HTTP {} for UUID {}",
+                        response.status(),
+                        uuid
+                    );
+                    None
+                }
+                Err(e) => {
+                    error!("Failed to query Mojang for UUID {}: {e}", uuid);
+                    None
+                }
+            }
+        }
+    });
+
+    let results = join_all(futures).await;
+    results.into_iter().flatten().collect()
 }
 
 pub fn add_to_whitelist(uuid: Uuid) {
