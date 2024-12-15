@@ -32,6 +32,7 @@ impl System for ChunkFetcher {
             for (eid, _) in players {
                 let state = state.clone();
                 task_set.spawn(async move {
+                    // Copy the chunks into a new map so we don't lock the component while fetching
                     let mut copied_chunks = {
                         let chunk_recv = state
                             .universe
@@ -46,6 +47,7 @@ impl System for ChunkFetcher {
                         }
                         copied_chunks
                     };
+                    // Fetch the chunks
                     for (key, chunk) in copied_chunks.iter_mut() {
                         let fetched_chunk = state
                             .world
@@ -54,6 +56,7 @@ impl System for ChunkFetcher {
                             .unwrap();
                         *chunk = Some(fetched_chunk);
                     }
+                    // Insert the fetched chunks back into the component
                     {
                         let chunk_recv = state
                             .universe

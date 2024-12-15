@@ -46,9 +46,12 @@ impl System for ChunkSenderSystem {
                         .universe
                         .get_mut::<ChunkReceiver>(eid)
                         .expect("ChunkReceiver not found");
+
                     if chunk_recv.needed_chunks.is_empty() {
                         return Ok(());
                     }
+                    // We can't delete from the map while iterating, so we collect the keys to drop
+                    // and then drop them after sending the chunks
                     let mut to_drop = Vec::new();
                     {
                         let mut conn = state
@@ -131,7 +134,7 @@ impl System for ChunkSenderSystem {
                 }
             }
 
-            tokio::time::sleep(Duration::from_millis(200)).await;
+            tokio::time::sleep(Duration::from_millis(5)).await;
         }
     }
 
