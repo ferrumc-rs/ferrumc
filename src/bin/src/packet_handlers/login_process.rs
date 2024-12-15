@@ -1,4 +1,4 @@
-use ferrumc_config::statics::{create_blank_whitelist_file, get_global_config, get_whitelist};
+use ferrumc_config::statics::{get_global_config, get_whitelist};
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
@@ -33,12 +33,10 @@ async fn handle_login_start(
     login_start_event: LoginStartEvent,
     state: GlobalState,
 ) -> Result<LoginStartEvent, NetError> {
-    debug!("Handling login start event");
-
     let uuid = login_start_event.login_start_packet.uuid;
     let username = login_start_event.login_start_packet.username.as_str();
     let player_identity = PlayerIdentity::new(username.to_string(), uuid);
-    debug!("Received login start from user with username {}", username);
+    debug!("Handling login start event for user: {username}, uuid: {uuid}");
 
     let mut writer = state
         .universe

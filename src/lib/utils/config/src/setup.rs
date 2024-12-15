@@ -1,4 +1,5 @@
-use crate::statics::{create_blank_whitelist_file, DEFAULT_CONFIG};
+use crate::statics::DEFAULT_CONFIG;
+use crate::whitelist::create_blank_whitelist_file;
 use ferrumc_general_purpose::paths::get_root_path;
 use std::fs::File;
 use std::io::Write;
