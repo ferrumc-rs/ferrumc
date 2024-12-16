@@ -77,8 +77,9 @@ async fn convert_whitelist_file() -> Result<Vec<Uuid>, ConfigError> {
     }
     //here we iterate over the lines removing duplicates while keeping the current order
     let mut seen = std::collections::HashSet::new();
+
     lines.retain(|line| {
-        if seen.contains(line) {
+        if line.is_empty() || seen.contains(line) {
             false
         } else {
             seen.insert(line.clone());
@@ -94,7 +95,7 @@ async fn convert_whitelist_file() -> Result<Vec<Uuid>, ConfigError> {
     let mut names_to_convert: HashMap<String, usize> = HashMap::new(); //pure name entries
     let mut uuids_to_convert: HashMap<Uuid, usize> = HashMap::new(); //pure uuid entries
     let mut valid_lines = Vec::new(); //lines that dont need changes
-    let mut invalid_lines = Vec::new(); //entry isnt a valid uuid OR name
+    let mut invalid_lines = Vec::new(); //entry isn't a valid uuid OR name
 
     for (index, line) in lines.iter().enumerate() {
         if line.is_empty() || line.starts_with('#') {
@@ -133,10 +134,9 @@ async fn convert_whitelist_file() -> Result<Vec<Uuid>, ConfigError> {
     let start_net_request = Instant::now();
     let found_usernames = query_mojang_for_usernames(uuid_query_input).await;
     let found_uuids = query_mojang_for_uuid(name_query_input).await;
-    let net_request_time = start_net_request.elapsed().as_millis();
     debug!(
         "Querying Mojang for usernames and uuids took {} ms",
-        net_request_time
+        start_net_request.elapsed().as_millis()
     );
 
     for profile in found_usernames {
@@ -157,27 +157,37 @@ async fn convert_whitelist_file() -> Result<Vec<Uuid>, ConfigError> {
         }
     }
 
-    //these are the lines that were not matched to a uuid or name
+    //these are the lines that were not matched to a name or uuid
     for (name, index) in names_to_convert {
-        //line matched name but mojang returned no uuid
-        lines[index] = format!("# Invalid UUID: {name}");
+        //line matched name regex but mojang returned no uuid
+        lines[index] = format!("# Couldn't Match Name: {name}");
     }
 
     for (uuid, index) in uuids_to_convert {
-        //line matched uuid but mojang returned no name
-        //currently any uuids that dont match a real name get added here and I cant tell why rn
-        lines[index] = format!("# Invalid Username: {uuid}");
+        //line matched uuid regex but mojang returned no name
+        lines[index] = format!("# Couldn't Match UUID: {uuid}");
     }
 
     for (index, line) in invalid_lines {
-        //line didnt match uuid or name regex
-        lines[index] = format!("# Invalid entry: {line}");
+        //line didn't match uuid or name regex
+        lines[index] = format!("# Couldn't Match Name Or UUID: {line}");
     }
 
     let mut updated_whitelist = File::create(&whitelist_location).map_err(|e| {
         error!("Could not write updated whitelist file: {e}");
         ConfigError::IOError(e)
     })?;
+
+    //remove duplicate lines again
+    let mut seen = std::collections::HashSet::new();
+    lines.retain(|line| {
+        if seen.contains(line) {
+            false
+        } else {
+            seen.insert(line.clone());
+            true
+        }
+    });
 
     for line in lines {
         writeln!(updated_whitelist, "{}", line).map_err(|e| {
@@ -213,27 +223,11 @@ async fn query_mojang_for_uuid(names: Vec<String>) -> HashMap<String, MojangProf
                 .await;
 
             match response {
-                Ok(response) if response.status().is_success() => {
-                    match response.json::<Vec<MojangProfile>>().await {
-                        Ok(profiles) => profiles,
-                        Err(e) => {
-                            error!("Failed to parse JSON response for names {:?}: {e}", chunk);
-                            Vec::new()
-                        }
-                    }
-                }
-                Ok(response) => {
-                    error!(
-                        "Mojang API returned HTTP {} for names {:?}",
-                        response.status(),
-                        chunk
-                    );
-                    Vec::new()
-                }
-                Err(e) => {
-                    error!("Failed to query Mojang for names {:?}: {e}", chunk);
-                    Vec::new()
-                }
+                Ok(response) if response.status().is_success() => response
+                    .json::<Vec<MojangProfile>>()
+                    .await
+                    .unwrap_or_else(|_| Vec::new()),
+                _ => Vec::new(),
             }
         }
     });
@@ -272,24 +266,10 @@ async fn query_mojang_for_usernames(uuids: Vec<&Uuid>) -> Vec<MojangProfile> {
                 Ok(response) if response.status().is_success() => {
                     match response.json::<MojangProfile>().await {
                         Ok(parsed_response) => Some(parsed_response),
-                        Err(e) => {
-                            error!("Failed to parse JSON response for UUID {}: {e}", uuid);
-                            None
-                        }
+                        Err(_) => None,
                     }
                 }
-                Ok(response) => {
-                    error!(
-                        "Mojang API returned HTTP {} for UUID {}",
-                        response.status(),
-                        uuid
-                    );
-                    None
-                }
-                Err(e) => {
-                    error!("Failed to query Mojang for UUID {}: {e}", uuid);
-                    None
-                }
+                _ => None,
             }
         }
     });
@@ -298,12 +278,12 @@ async fn query_mojang_for_usernames(uuids: Vec<&Uuid>) -> Vec<MojangProfile> {
     results.into_iter().flatten().collect()
 }
 
-pub fn add_to_whitelist(uuid: Uuid) {
-    WHITELIST.insert(uuid.as_u128());
+pub fn add_to_whitelist(uuid: Uuid) -> bool {
+    WHITELIST.insert(uuid.as_u128())
 }
 
-pub fn remove_from_whitelist(uuid: Uuid) {
-    WHITELIST.remove(&uuid.as_u128());
+pub fn remove_from_whitelist(uuid: Uuid) -> bool {
+    WHITELIST.remove(&uuid.as_u128()).is_some()
 }
 
 pub fn create_blank_whitelist_file() {
