@@ -9,7 +9,7 @@ use lazy_static::lazy_static;
 use std::collections::HashMap;
 use std::io::Read;
 use tracing::error;
-use vanilla_chunk_format::Palette;
+use vanilla_chunk_format::BlockData;
 
 #[cfg(test)]
 const BLOCKSFILE: &[u8] = &[0];
@@ -23,17 +23,17 @@ const BLOCKSFILE: &[u8] = &[0];
 const BLOCKSFILE: &[u8] = include_bytes!("../../../../.etc/blockmappings.bz2");
 
 lazy_static! {
-    static ref ID2BLOCK: HashMap<i32, Palette> = {
+    pub static ref ID2BLOCK: HashMap<i32, BlockData> = {
         let mut bzipreader = bzip2::read::BzDecoder::new(BLOCKSFILE);
         let mut output = String::new();
         bzipreader.read_to_string(&mut output).unwrap();
-        let string_keys: HashMap<String, Palette> = serde_json::from_str(&output).unwrap();
+        let string_keys: HashMap<String, BlockData> = serde_json::from_str(&output).unwrap();
         string_keys
             .iter()
             .map(|(k, v)| (k.parse::<i32>().unwrap(), v.clone()))
             .collect()
     };
-    static ref BLOCK2ID: HashMap<Palette, i32> =
+    pub static ref BLOCK2ID: HashMap<BlockData, i32> =
         ID2BLOCK.iter().map(|(k, v)| (v.clone(), *k)).collect();
 }
 
@@ -72,7 +72,7 @@ pub struct BlockStates {
     pub palette: Vec<VarInt>,
 }
 
-fn convert_to_net_palette(vanilla_palettes: Vec<Palette>) -> Result<Vec<VarInt>, WorldError> {
+fn convert_to_net_palette(vanilla_palettes: Vec<BlockData>) -> Result<Vec<VarInt>, WorldError> {
     let mut new_palette = Vec::new();
     for palette in vanilla_palettes {
         if let Some(id) = BLOCK2ID.get(&palette) {

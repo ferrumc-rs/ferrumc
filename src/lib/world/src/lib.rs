@@ -5,6 +5,7 @@ mod db_functions;
 pub mod errors;
 mod importing;
 mod vanilla_chunk_format;
+pub mod edits;
 
 use crate::chunk_format::Chunk;
 use crate::errors::WorldError;
