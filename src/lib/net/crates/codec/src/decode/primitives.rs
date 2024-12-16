@@ -39,6 +39,12 @@ impl_for_primitives!(
     f64
 );
 
+impl NetDecode for () {
+    fn decode<R: Read>(_reader: &mut R, _: &NetDecodeOpts) -> NetDecodeResult<Self> {
+        Ok(())
+    }
+}
+
 impl NetDecode for bool {
     fn decode<R: Read>(reader: &mut R, _: &NetDecodeOpts) -> NetDecodeResult<Self> {
         Ok(<u8 as NetDecode>::decode(reader, &NetDecodeOpts::None)? != 0)

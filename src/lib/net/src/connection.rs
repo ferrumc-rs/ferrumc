@@ -1,6 +1,7 @@
 use crate::packets::incoming::packet_skeleton::PacketSkeleton;
-use crate::utils::state::terminate_connection;
-use crate::{handle_packet, NetResult};
+use crate::utils::state::TerminateConnectionPlayerExt;
+use crate::{handle_packet, NetResult, packets::outgoing::disconnect::DISCONNECT_STRING};
+use crate::errors::NetError;
 use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::ServerState;
@@ -10,6 +11,8 @@ use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tokio::net::TcpStream;
 use tokio::time::timeout;
 use tracing::{debug, debug_span, trace, warn, Instrument};
+use crate::events::PlayerQuitEvent;
+use ferrumc_events::infrastructure::Event;
 
 #[derive(Debug)]
 pub struct ConnectionControl {
@@ -29,6 +32,7 @@ impl Default for ConnectionControl {
         Self::new()
     }
 }
+
 #[derive(Clone)]
 pub enum ConnectionState {
     Handshaking,
@@ -37,6 +41,7 @@ pub enum ConnectionState {
     Play,
     Configuration,
 }
+
 impl ConnectionState {
     pub fn as_str(&self) -> &'static str {
         match self {
@@ -159,20 +164,32 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
         .instrument(debug_span!("eid", %entity))
         .inner()
         {
-            warn!(
-                "Failed to handle packet: {:?}. packet_id: {:02X}; conn_state: {}",
-                e,
-                packet_skele.id,
-                conn_state.as_str()
-            );
-            // Kick the player (when implemented).
-            terminate_connection(state.clone(), entity, "Failed to handle packet".to_string())
-                .await?;
+            match e {
+                NetError::Kick(msg) => {
+                    entity.terminate_connection(state.clone(), msg.clone())
+                        .await?;
+                },
+                _ => {
+                    warn!(
+                        "Failed to handle packet: {:?}. packet_id: {:02X}; conn_state: {}",
+                        e,
+                        packet_skele.id,
+                        conn_state.as_str()
+                    );
+                    entity.terminate_connection(state.clone(), DISCONNECT_STRING.to_string())
+                        .await?;
+                }
+            }
             break 'recv;
         };
     }
 
     debug!("Connection closed for entity: {:?}", entity);
+
+    let _ = PlayerQuitEvent::trigger(
+        PlayerQuitEvent { entity },
+        state.clone()
+    ).await; // dont care about the result
 
     // Remove all components from the entity
 
