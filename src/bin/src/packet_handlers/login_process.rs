@@ -25,9 +25,13 @@ use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::GlobalState;
 use tracing::{debug, trace};
 use ferrumc_net::packets::outgoing::player_info_update::{PlayerInfoUpdatePacket, PlayerInfo};
+use ferrumc_net::packets::outgoing::spawn_entity::SpawnEntityPacket;
+use ferrumc_net::packets::outgoing::destroy_entity::DestroyEntitiesPacket;
+use ferrumc_net::packets::outgoing::player_info_remove::PlayerInfoRemovePacket;
 use crate::events::PlayerStartLoginEvent;
 use ferrumc_events::errors::EventsError;
 use ferrumc_events::infrastructure::Event;
+use ferrumc_net::{utils::broadcast::*, events::PlayerQuitEvent};
 
 #[event_handler]
 async fn handle_login_start(
@@ -124,12 +128,20 @@ async fn handle_ack_finish_configuration(
 
     *conn_state = ConnectionState::Play;
 
+    let chunk = state.world.load_chunk(0, 0, "overworld").await.ok();
+
+    let y = if let Some(ref chunk) = chunk {
+        (chunk.heightmaps.motion_blocking_height(0, 0)) as f64
+    } else {
+        256.0
+    };
+
     // add components to the entity after the connection state has been set to play.
     // to avoid wasting resources on entities that are fetching stuff like server status etc.
     state
         .universe
-        .add_component::<Position>(conn_id, Position::default())?
-        .add_component::<Rotation>(conn_id, Rotation::default())?
+        .add_component::<Position>(conn_id, Position::new(0.0, y, 0.0))?
+        .add_component::<Rotation>(conn_id, Rotation::new(0.0, 0.0))?
         .add_component::<OnGround>(conn_id, OnGround::default())?;
 
     let mut writer = state.universe.get_mut::<StreamWriter>(conn_id)?;
@@ -139,7 +151,7 @@ async fn handle_ack_finish_configuration(
         .await?;
     writer // 29
         .send_packet(
-            &SynchronizePlayerPositionPacket::default(), // The coordinates here should be used for the center chunk.
+            &SynchronizePlayerPositionPacket::from_player(conn_id, state.clone())?, // The coordinates here should be used for the center chunk.
             &NetEncodeOpts::WithLength,
         )
         .await?;
@@ -168,17 +180,55 @@ async fn handle_ack_finish_configuration(
         )
         .await?;
 
+    send_keep_alive(conn_id, state.clone(), &mut writer).await?;
+
+    if let Some(ref chunk) = chunk {
+        writer.send_packet(&ferrumc_net::packets::outgoing::chunk_and_light_data::ChunkAndLightData::from_chunk(&chunk)?, &NetEncodeOpts::WithLength).await?;
+    }
+
+    for (entity, profile) in state.universe.query::<&PlayerIdentity>() {
+        // spawn all players but ours in server for new connection
+        if entity != conn_id {
+            // send player info update
+            writer.send_packet(&PlayerInfoUpdatePacket::new(vec![
+                PlayerInfo::from(&profile)
+            ]), &NetEncodeOpts::WithLength).await?;
+            // send spawn entity packet
+            writer.send_packet(&SpawnEntityPacket::new(conn_id, state.clone())?, &NetEncodeOpts::WithLength).await?;
+        }
+    }
+
+    drop(writer);
+
+    // broadcast player info update
     let profile = state
         .universe
         .get::<PlayerIdentity>(ack_finish_configuration_event.conn_id)?;
-    writer.send_packet(&PlayerInfoUpdatePacket::new(vec![
-        PlayerInfo::from(&profile)
-    ]), &NetEncodeOpts::WithLength).await?;
 
-    send_keep_alive(conn_id, state, &mut writer).await?;
+    state.broadcast(&PlayerInfoUpdatePacket::new(vec![
+        PlayerInfo::from(&profile)
+    ]), BroadcastOptions::default()).await?;
+
+    // broadcast spawn entity packet for everyone online but current connection
+    state.broadcast(&SpawnEntityPacket::new(conn_id, state.clone())?, BroadcastOptions::default().not(vec![conn_id])).await?;
 
     Ok(ack_finish_configuration_event)
 }
+
+#[event_handler]
+async fn handle_player_quit(
+    event: PlayerQuitEvent,
+    state: GlobalState,
+) -> Result<PlayerQuitEvent, NetError> {
+    let conn_id = event.entity;
+    let profile = state
+        .universe
+        .get::<PlayerIdentity>(conn_id)?;
+    state.broadcast(&PlayerInfoRemovePacket::new(vec![profile.uuid]), BroadcastOptions::default()).await?;
+    state.broadcast(&DestroyEntitiesPacket::new(vec![conn_id]), BroadcastOptions::default().not(vec![conn_id])).await?;
+    Ok(event)
+}
+
 async fn send_keep_alive(
     conn_id: usize,
     state: GlobalState,

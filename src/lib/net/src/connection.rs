@@ -11,6 +11,8 @@ use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tokio::net::TcpStream;
 use tokio::time::timeout;
 use tracing::{debug, debug_span, trace, warn, Instrument};
+use crate::events::PlayerQuitEvent;
+use ferrumc_events::infrastructure::Event;
 
 #[derive(Debug)]
 pub struct ConnectionControl {
@@ -183,6 +185,11 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
     }
 
     debug!("Connection closed for entity: {:?}", entity);
+
+    let _ = PlayerQuitEvent::trigger(
+        PlayerQuitEvent { entity },
+        state.clone()
+    ).await; // dont care about the result
 
     // Remove all components from the entity
 

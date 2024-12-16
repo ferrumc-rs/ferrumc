@@ -1,5 +1,8 @@
 use std::fmt::{Debug, Display, Formatter};
+use ferrumc_macros::NetEncode;
+use std::io::Write;
 
+#[derive(Copy, Clone, NetEncode)]
 pub struct Position {
     pub x: f64,
     pub y: f64,

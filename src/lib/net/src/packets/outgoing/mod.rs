@@ -15,4 +15,7 @@ pub mod status_response;
 pub mod synchronize_player_position;
 pub mod update_time;
 pub mod player_info_update;
+pub mod player_info_remove;
 pub mod client_bound_plugin_message;
+pub mod spawn_entity;
+pub mod destroy_entity;

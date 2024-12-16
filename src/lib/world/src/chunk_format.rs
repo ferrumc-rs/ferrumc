@@ -92,6 +92,15 @@ impl Heightmaps {
             world_surface: vec![],
         }
     }
+
+    pub fn motion_blocking_height(&self, x: usize, z: usize) -> i64 {
+        let bits_per_value = 9; // ceil(log2(383 + 1))
+        let index = ((z % 16) * 16) + (x % 16);
+        let start = (index * bits_per_value) / 64;
+        let offset = (index * bits_per_value) % 64;
+        let value = self.motion_blocking[start] >> offset;
+        ((value & ((1 << bits_per_value) - 1)) as i64) - 64
+    }
 }
 
 impl Default for Heightmaps {

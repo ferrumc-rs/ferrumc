@@ -17,6 +17,7 @@ type SyncCallbackFn = Box<dyn Fn(Entity, &GlobalState) + Send + Sync>;
 #[derive(Default)]
 pub struct BroadcastOptions {
     pub only_entities: Option<Vec<Entity>>,
+    pub not_entities: Option<Vec<Entity>>,
     pub async_callback: Option<AsyncCallbackFn>,
     pub sync_callback: Option<SyncCallbackFn>,
 }
@@ -24,6 +25,11 @@ pub struct BroadcastOptions {
 impl BroadcastOptions {
     pub fn only(mut self, entities: Vec<Entity>) -> Self {
         self.only_entities = Some(entities);
+        self
+    }
+
+    pub fn not(mut self, entities: Vec<Entity>) -> Self {
+        self.not_entities = Some(entities);
         self
     }
 
@@ -61,7 +67,13 @@ pub async fn broadcast(
             .get_component_manager()
             .get_entities_with::<StreamWriter>(),
         Some(entities) => entities,
-    };
+    }.into_iter()
+        .filter(move |entity| {
+            match opts.not_entities.as_ref() {
+                Some(vec) => !vec.contains(entity),
+                None => true,
+            }
+        });
 
     // Pre-encode the packet to save resources.
     let packet = {
@@ -74,7 +86,7 @@ pub async fn broadcast(
     let (state, packet, async_callback, sync_callback) =
         (state, packet, opts.async_callback, opts.sync_callback);
 
-    futures::stream::iter(entities.into_iter())
+    futures::stream::iter(entities)
         .fold(
             (state, packet, async_callback, sync_callback),
             move |(state, packet, async_callback, sync_callback), entity| {
