@@ -87,8 +87,6 @@ async fn convert_whitelist_file() -> Result<Vec<Uuid>, ConfigError> {
         }
     });
 
-    //validates uuids, hyphenated or not
-    let uuid_regex = Regex::new(r"^(?:[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}|[0-9a-fA-F]{32})$").unwrap();
     //validates a mojang accepted name
     let valid_name_regex = Regex::new(r"^[a-zA-Z0-9_]{3,16}$").unwrap();
 
@@ -109,14 +107,12 @@ async fn convert_whitelist_file() -> Result<Vec<Uuid>, ConfigError> {
                 (pre_hash.trim(), post_hash.trim())
             });
 
-        if uuid_regex.is_match(uuid_or_name) {
-            if let Ok(uuid) = Uuid::parse_str(uuid_or_name) {
-                if valid_name_regex.is_match(commented_name) {
-                    return_uuids.push(uuid);
-                    valid_lines.push(index);
-                } else {
-                    uuids_to_convert.insert(uuid, index);
-                }
+        if let Ok(uuid) = Uuid::try_parse(uuid_or_name) {
+            if valid_name_regex.is_match(commented_name) {
+                return_uuids.push(uuid);
+                valid_lines.push(index);
+            } else {
+                uuids_to_convert.insert(uuid, index);
             }
         } else if valid_name_regex.is_match(uuid_or_name) {
             names_to_convert.insert(uuid_or_name.to_ascii_lowercase(), index);
