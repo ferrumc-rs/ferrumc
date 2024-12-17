@@ -177,11 +177,6 @@ async fn handle_ack_finish_configuration(
     let mut chunk_recv = state.universe.get_mut::<ChunkReceiver>(conn_id)?;
     chunk_recv.last_chunk = Some((pos.x as i32, pos.z as i32, String::from("overworld")));
     chunk_recv.calculate_chunks().await;
-
-    debug!(
-        "Block: {}",
-        state.world.get_block(1, 163, 2, "overworld").await.unwrap()
-    );
     send_keep_alive(conn_id, state, &mut writer).await?;
 
     Ok(ack_finish_configuration_event)

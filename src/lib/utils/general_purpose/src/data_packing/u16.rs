@@ -58,7 +58,7 @@ pub fn write_nbit_u16(
         return Err(DataPackingError::NotEnoughBits(size, offset));
     }
     let mask = (1 << size) - 1;
-    *data &= !((mask as u64) << offset);
+    *data &= !((mask) << offset);
     *data |= ((value as u64) & mask) << offset;
     Ok(())
 }

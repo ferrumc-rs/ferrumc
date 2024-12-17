@@ -2,10 +2,10 @@ use crate::errors::WorldError::{GenericIOError, PermissionError};
 use crate::vanilla_chunk_format::BlockData;
 use errors::AnvilError;
 use ferrumc_anvil::errors;
+use ferrumc_general_purpose::data_packing::errors::DataPackingError;
 use ferrumc_storage::errors::StorageError;
 use std::io::ErrorKind;
 use thiserror::Error;
-use ferrumc_general_purpose::data_packing::errors::DataPackingError;
 
 #[derive(Debug, Error)]
 pub enum WorldError {
@@ -41,8 +41,8 @@ pub enum WorldError {
     InvalidMapSize(u64),
     #[error("Section out of bounds: {0}")]
     SectionOutOfBounds(i32),
-    #[error("Invalid block state data: {0}")]
-    InvalidBlockStateData(#[source] DataPackingError),
+    #[error("Invalid block state data")]
+    InvalidBlockStateData(),
 }
 
 impl From<std::io::Error> for WorldError {
@@ -68,7 +68,7 @@ impl From<AnvilError> for WorldError {
 }
 
 impl From<DataPackingError> for WorldError {
-    fn from(err: DataPackingError) -> Self {
-        WorldError::InvalidBlockStateData(err)
+    fn from(_: DataPackingError) -> Self {
+        WorldError::InvalidBlockStateData()
     }
 }

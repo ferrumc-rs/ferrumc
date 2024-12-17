@@ -7,7 +7,7 @@ use ferrumc_net::errors::NetError;
 use ferrumc_net::packets::packet_events::TransformEvent;
 use ferrumc_net::utils::ecs_helpers::EntityExt;
 use ferrumc_state::GlobalState;
-use tracing::trace;
+use tracing::{debug, trace};
 
 #[event_handler]
 async fn handle_player_move(
@@ -16,6 +16,19 @@ async fn handle_player_move(
 ) -> Result<TransformEvent, NetError> {
     let conn_id = event.conn_id;
     if let Some(ref new_position) = event.position {
+        debug!(
+            "Block: {}",
+            state
+                .world
+                .get_block(
+                    new_position.x as i32,
+                    new_position.y as i32 - 1,
+                    new_position.z as i32,
+                    "overworld"
+                )
+                .await
+                .unwrap()
+        );
         trace!("Getting chunk_recv 1 for player move");
         let mut chunk_recv = state.universe.get_mut::<ChunkReceiver>(conn_id)?;
         trace!("Got chunk_recv 1 for player move");

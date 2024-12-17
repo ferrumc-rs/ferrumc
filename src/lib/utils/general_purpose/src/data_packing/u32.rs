@@ -58,7 +58,7 @@ pub fn write_nbit_u32(
         return Err(DataPackingError::NotEnoughBits(size, offset));
     }
     let mask = (1 << size) - 1;
-    *data &= !((mask as u64) << offset);
+    *data &= !((mask) << offset);
     *data |= ((value as u64) & mask) << offset;
     Ok(())
 }
@@ -70,7 +70,7 @@ mod tests {
     /// Tests the `read_nbit_u32` function with various inputs.
     #[test]
     fn test_read_nbit_u32() {
-        let data: u64 = 0b110101011;
+        let data: i64 = 0b110101011;
         assert_eq!(read_nbit_u32(&data, 3, 0).unwrap(), 0b011);
         assert_eq!(read_nbit_u32(&data, 3, 3).unwrap(), 0b101);
         assert_eq!(read_nbit_u32(&data, 3, 6).unwrap(), 0b110);

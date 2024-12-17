@@ -1,3 +1,4 @@
+use crate::chunk_format::ID2BLOCK;
 use crate::errors::WorldError;
 use crate::vanilla_chunk_format::BlockData;
 use crate::World;
@@ -10,21 +11,29 @@ impl World {
         z: i32,
         dimension: &str,
     ) -> Result<BlockData, WorldError> {
-        let chunk_x = x / 16;
-        let chunk_z = z / 16;
+        let chunk_x = x >> 4;
+        let chunk_z = z >> 4;
         let chunk = self.load_chunk(chunk_x, chunk_z, dimension).await?;
         let section = chunk
             .sections
             .iter()
-            .find(|section| section.y == (y / 16) as i8)
-            .ok_or(WorldError::SectionOutOfBounds(y / 16))?;
+            .find(|section| section.y == (y >> 4) as i8)
+            .ok_or(WorldError::SectionOutOfBounds(y >> 4))?;
+        if section.block_states.palette.len() == 1 {
+            return ID2BLOCK
+                .get(&section.block_states.palette[0].val)
+                .cloned()
+                .ok_or(WorldError::ChunkNotFound);
+        }
         let bits_per_block = section.block_states.bits_per_block as usize;
         let data = &section.block_states.data;
-        // for some reason the y is off by one block
-        let index = ((y) % 16) * 256 + (z % 16) * 16 + (x % 16);
-        let i64_index = (index * bits_per_block as i32) as usize / 64;
-        let packed_u64 = data.get(i64_index).ok_or(WorldError::ChunkNotFound)?;
-        let offset = (index as usize * bits_per_block) % 64;
+        let blocks_per_i64 = (64f64 / bits_per_block as f64).floor() as usize;
+        let index = ((y & 0xf) * 256 + (z & 0xf) * 16 + (x & 0xf)) as usize;
+        let i64_index = index / blocks_per_i64;
+        let packed_u64 = data
+            .get(i64_index)
+            .ok_or(WorldError::InvalidBlockStateData())?;
+        let offset = (index % blocks_per_i64) * bits_per_block;
         let id = ferrumc_general_purpose::data_packing::u32::read_nbit_u32(
             packed_u64,
             bits_per_block as u8,
