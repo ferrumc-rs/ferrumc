@@ -6,6 +6,7 @@ use deepsize::DeepSizeOf;
 use ferrumc_macros::{NBTDeserialize, NBTSerialize};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use lazy_static::lazy_static;
+use std::cmp::max;
 use std::collections::HashMap;
 use std::io::Read;
 use tracing::error;
@@ -126,7 +127,7 @@ impl VanillaChunk {
                 .map_or(vec![], |biome_data| biome_data.palette.clone());
             let non_air_blocks = palette.iter().filter(|id| id.name != "air").count() as u16;
             let block_states = BlockStates {
-                bits_per_block: (palette.len() as f32).log2().ceil() as u8,
+                bits_per_block: max((palette.len() as f32).log2().ceil() as u8, 4),
                 non_air_blocks,
                 data: block_data,
                 palette: convert_to_net_palette(palette)?,

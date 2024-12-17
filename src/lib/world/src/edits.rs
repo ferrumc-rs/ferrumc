@@ -4,6 +4,25 @@ use crate::vanilla_chunk_format::BlockData;
 use crate::World;
 
 impl World {
+    /// Asynchronously retrieves the block data at the specified coordinates in the given dimension.
+    ///
+    /// # Arguments
+    ///
+    /// * `x` - The x-coordinate of the block.
+    /// * `y` - The y-coordinate of the block.
+    /// * `z` - The z-coordinate of the block.
+    /// * `dimension` - The dimension in which the block is located.
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(BlockData)` - The block data at the specified coordinates.
+    /// * `Err(WorldError)` - If an error occurs while retrieving the block data.
+    ///
+    /// # Errors
+    ///
+    /// * `WorldError::SectionOutOfBounds` - If the section containing the block is out of bounds.
+    /// * `WorldError::ChunkNotFound` - If the chunk or block data is not found.
+    /// * `WorldError::InvalidBlockStateData` - If the block state data is invalid.
     pub async fn get_block(
         &self,
         x: i32,

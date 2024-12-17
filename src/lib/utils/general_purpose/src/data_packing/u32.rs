@@ -24,7 +24,7 @@ pub fn read_nbit_u32(data: &i64, size: u8, offset: u32) -> Result<u32, DataPacki
     if offset + size as u32 > 64 {
         return Err(DataPackingError::NotEnoughBits(size, offset));
     }
-    Ok(((data >> offset) & ((1 << size) - 1)) as u32)
+    Ok(((*data as u64 >> offset as u64) & ((1u64 << size) - 1u64)) as u32)
 }
 
 /// Writes a specified number of bits to a given offset in a 64-bit unsigned integer.

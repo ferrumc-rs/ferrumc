@@ -21,9 +21,9 @@ async fn handle_player_move(
             state
                 .world
                 .get_block(
-                    new_position.x as i32,
-                    new_position.y as i32 - 1,
-                    new_position.z as i32,
+                    new_position.x.floor() as i32,
+                    new_position.y.floor() as i32 - 1,
+                    new_position.z.floor() as i32,
                     "overworld"
                 )
                 .await
