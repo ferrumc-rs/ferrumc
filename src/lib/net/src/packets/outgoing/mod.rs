@@ -1,4 +1,6 @@
 pub mod chunk_and_light_data;
+pub mod chunk_batch_finish;
+pub mod chunk_batch_start;
 pub mod client_bound_known_packs;
 pub mod disconnect;
 pub mod finish_configuration;

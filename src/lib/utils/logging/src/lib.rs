@@ -7,7 +7,8 @@ use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::EnvFilter;
 
-pub fn init_logging(trace_level: tracing::Level) {
+pub fn init_logging(trace_level: Level) {
+    //let console = console_subscriber::spawn();
     let env_filter = EnvFilter::from_default_env().add_directive(trace_level.into());
 
     let mut fmt_layer = Layer::default();
@@ -23,6 +24,7 @@ pub fn init_logging(trace_level: tracing::Level) {
     let profiler_layer = ProfilerTracingLayer;
 
     tracing_subscriber::registry()
+        //    .with(console)
         .with(env_filter)
         .with(profiler_layer)
         .with(fmt_layer)

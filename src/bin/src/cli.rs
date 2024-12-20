@@ -6,7 +6,7 @@ pub struct CLIArgs {
     #[command(subcommand)]
     pub command: Option<Command>,
     #[clap(long)]
-    #[arg(value_enum, default_value_t = LogLevel(Level::TRACE))]
+    #[arg(value_enum, default_value_t = LogLevel(Level::DEBUG))]
     pub log: LogLevel,
 }
 
