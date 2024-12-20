@@ -6,9 +6,6 @@ edition = "2021"
 
 [dependencies]
 thiserror = { workspace = true }
-
-ferrumc-logging = { workspace = true }
-ferrumc-profiling = { workspace = true }
 ferrumc-storage = { workspace = true }
 ferrumc-config = { workspace = true }
 tracing = { workspace = true }
@@ -31,4 +28,3 @@ serde_json = { workspace = true }
 indicatif = { workspace = true }
 wyhash = { workspace = true }
 moka = { workspace = true, features = ["future"] }
-log = "0.4.22"

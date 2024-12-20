@@ -148,7 +148,6 @@ hashbrown = "0.15.0"
 tinyvec = "1.8.0"
 dashmap = "6.1.0"
 uuid = { version = "1.1", features = ["v4", "v3", "serde"] }
-whirlwind = "0.1.1"
 
 # Macros
 lazy_static = "1.5.0"
@@ -168,12 +167,12 @@ libflate = "2.1.0"
 flate2 = { version = "1.0.33", features = ["zlib"], default-features = false }
 zstd = { version = "0.13.2" }
 brotli = "7.0.0"
-lzzzz = "1.1.0"
+lzzzz = "2.0.0"
 yazi = "0.2.0"
-bzip2 = "0.4.1"
+bzip2 = "0.5.0"
 
 # Database
-heed = "0.20.5"
+heed = "0.21.0"
 moka = "0.12.8"
 
 # CLI
@@ -186,7 +185,6 @@ deepsize = "0.2.0"
 page_size = "0.6.0"
 
 # I/O
-tempfile = "3.12.0"
 memmap2 = "0.9.5"
 
 # Benchmarking

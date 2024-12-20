@@ -71,6 +71,7 @@ pub struct BlockStates {
     pub non_air_blocks: u16,
     pub data: Vec<i64>,
     pub palette: Vec<VarInt>,
+    pub block_counts: HashMap<i32, i32>,
 }
 
 fn convert_to_net_palette(vanilla_palettes: Vec<BlockData>) -> Result<Vec<VarInt>, WorldError> {
@@ -125,9 +126,36 @@ impl VanillaChunk {
                 .biomes
                 .as_ref()
                 .map_or(vec![], |biome_data| biome_data.palette.clone());
-            let non_air_blocks = palette.iter().filter(|id| id.name != "air").count() as u16;
+            let bits_per_block = max((palette.len() as f32).log2().ceil() as u8, 4);
+            let mut block_counts = HashMap::new();
+            for chunk in &block_data {
+                let mut i = 0;
+                while i + bits_per_block < 64 {
+                    let id = ferrumc_general_purpose::data_packing::i32::read_nbit_i32(
+                        chunk,
+                        bits_per_block,
+                        i as u32,
+                    )?;
+                    *block_counts.entry(id).or_insert(0) += 1;
+                    i += bits_per_block;
+                }
+            }
+            if block_data.is_empty() {
+                let single_block = if let Some(block) = palette.first() {
+                    if let Some(id) = BLOCK2ID.get(block) {
+                        *id
+                    } else {
+                        0
+                    }
+                } else {
+                    0
+                };
+                block_counts.insert(single_block, 4096);
+            }
+            let non_air_blocks = 4096 - *block_counts.get(&0).unwrap_or(&0) as u16;
             let block_states = BlockStates {
-                bits_per_block: max((palette.len() as f32).log2().ceil() as u8, 4),
+                bits_per_block,
+                block_counts,
                 non_air_blocks,
                 data: block_data,
                 palette: convert_to_net_palette(palette)?,

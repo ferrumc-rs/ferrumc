@@ -123,15 +123,18 @@ impl World {
                                             let cloned_progress_bar = progress_bar.clone();
                                             let self_clone = self.clone();
                                             task_set.spawn(async move {
-                                                if let Ok(chunk) = vanilla_chunk.to_custom_format() {
+                                            match vanilla_chunk.to_custom_format() {
+                                                Ok(chunk) => {
                                                     if let Err(e) = save_chunk_internal(&self_clone, chunk).await {
                                                         error!("Could not save chunk: {}", e);
                                                     } else {
                                                         cloned_progress_bar.inc(1);
                                                     }
-                                                } else {
-                                                    error!("Could not convert chunk to custom format: {:?}", chunk);
                                                 }
+                                                Err(e) => {
+                                                    error!("Could not convert chunk to custom format: {}", e);
+                                                }
+                                            }
                                             });
                                         }
                                         Err(e) => {
