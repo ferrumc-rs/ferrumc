@@ -72,7 +72,7 @@ impl PacketSkeleton {
 
         let compression_threshold = get_global_config().network_compression_threshold;
 
-        // https://wiki.vg/Protocol#Packet_format
+        // https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol#Packet_format
         // The Notchian server (but not client) rejects compressed packets smaller than the threshold.
         // Uncompressed packets exceeding the threshold, however, are accepted.
         if data_length < compression_threshold as usize {
