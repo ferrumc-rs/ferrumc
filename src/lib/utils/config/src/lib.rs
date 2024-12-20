@@ -15,6 +15,7 @@ pub mod favicon;
 pub mod server_config;
 pub mod setup;
 pub mod statics;
+pub mod whitelist;
 
 // Re-exports
 pub use server_config::DatabaseConfig;
