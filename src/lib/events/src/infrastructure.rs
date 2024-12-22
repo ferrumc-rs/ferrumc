@@ -72,11 +72,13 @@ pub trait Event: Sized + Send + Sync + 'static {
     /// will give its result to the next one with a lesser priority and so on.
     ///
     /// Returns `Ok(())` if the execution succeeded. `Err(EventsError)` ifa listener failed.
-    async fn trigger(event: Self::Data, state: Self::State) -> Result<(), Self::Error> {
-        let listeners = EVENTS_LISTENERS
-            .get(Self::name())
-            .expect("Failed to find event listeners. Impossible;");
-
+    async fn trigger(event: Self::Data, state: Self::State) -> Result<Self::Data, Self::Error> {
+        let listeners = match EVENTS_LISTENERS.get(Self::name()) {
+            Some(listeners) => listeners,
+            None => {
+                return Ok(event);
+            }
+        };
         // Convert listeners iterator into Stream
         stream::iter(listeners.iter())
             // TODO: Remove this since it's not possible to have a wrong type in the map of the event???
@@ -94,9 +96,7 @@ pub trait Event: Sized + Send + Sync + 'static {
                     }
                 }
             })
-            .await?;
-
-        Ok(())
+            .await
     }
 
     /*/// Trigger the execution of an event with concurrency support

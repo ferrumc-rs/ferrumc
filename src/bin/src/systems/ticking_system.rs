@@ -21,8 +21,8 @@ impl System for TickingSystem {
             let required_end = Instant::now() + Duration::from_millis(50);
             // TODO handle error
             let res = TickEvent::trigger(TickEvent::new(tick), state.clone()).await;
-            if res.is_err() {
-                debug!("error handling tick event: {:?}", res);
+            if let Err(e) = res {
+                debug!("error handling tick event: {:?}", e);
             }
             let now = Instant::now();
             if required_end > now {

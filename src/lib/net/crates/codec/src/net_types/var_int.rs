@@ -8,7 +8,7 @@ use deepsize::DeepSizeOf;
 use std::io::{Read, Write};
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 
-#[derive(Debug, Encode, Decode, Clone, DeepSizeOf)]
+#[derive(Debug, Encode, Decode, Clone, DeepSizeOf, Eq)]
 pub struct VarInt {
     /// The value of the VarInt.
     pub val: i32,
