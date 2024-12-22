@@ -1,8 +1,5 @@
-//! # Statics module.
-//!
-//! Contains the static global configuration and its related functions.
-
 use crate::server_config::ServerConfig;
+use dashmap::DashSet;
 use ferrumc_general_purpose::paths::get_root_path;
 use lazy_static::lazy_static;
 use std::fs::File;
@@ -16,6 +13,8 @@ pub(crate) const DEFAULT_CONFIG: &str = include_str!("../../../../../.etc/exampl
 lazy_static! {
     /// The server configuration that is stored in memory.
     static ref CONFIG: ServerConfig = create_config();
+    /// The whitelist of player uuids.
+    pub static ref WHITELIST: DashSet<u128> = DashSet::new();
 }
 fn create_config() -> ServerConfig {
     let config_location = get_root_path().join("config.toml");
@@ -76,4 +75,8 @@ fn create_config() -> ServerConfig {
 
 pub fn get_global_config() -> &'static ServerConfig {
     &CONFIG
+}
+
+pub fn get_whitelist() -> &'static DashSet<u128> {
+    &WHITELIST
 }
