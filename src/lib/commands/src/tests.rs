@@ -7,7 +7,13 @@ use ferrumc_world::World;
 use tokio::net::TcpListener;
 
 use crate::{
-    arg::{parser::int::IntParser, CommandArgument},
+    arg::{
+        parser::{
+            int::IntParser,
+            string::{GreedyStringParser, QuotedStringParser},
+        },
+        CommandArgument,
+    },
     ctx::CommandContext,
     executor,
     infrastructure::{find_command, register_command},
@@ -26,31 +32,42 @@ async fn state() -> GlobalState {
 #[tokio::test]
 async fn arg_parse_test() {
     async fn test_executor(ctx: Arc<CommandContext>) -> CommandResult {
-        let num = ctx.arg::<u32>("number");
-        Ok(TextComponentBuilder::new(num.to_string()).build())
+        let quoted = ctx.arg::<String>("quoted");
+        let greedy = ctx.arg::<String>("greedy");
+
+        Ok(TextComponentBuilder::new(format!("{quoted:?} {greedy}")).build())
     }
 
     let command = crate::Command {
         name: "input_test",
-        args: vec![CommandArgument {
-            name: "number".to_string(),
-            required: true,
-            parser: Box::new(IntParser),
-        }],
+        args: vec![
+            CommandArgument {
+                name: "quoted".to_string(),
+                required: true,
+                parser: Box::new(QuotedStringParser),
+            },
+            CommandArgument {
+                name: "greedy".to_string(),
+                required: true,
+                parser: Box::new(GreedyStringParser),
+            },
+        ],
         executor: executor(test_executor),
     };
     let command = Arc::new(command);
 
     let state = state().await;
 
-    let ctx = CommandContext::new(CommandInput::of("42".to_string()), command.clone(), state);
+    let input = "\"hello\" no no no please no I'm so sorry";
+
+    let ctx = CommandContext::new(CommandInput::of(input.to_string()), command.clone(), state);
 
     let result = command.execute(ctx).await;
     let TextContent::Text { text } = result.unwrap().content else {
         panic!("result is not text")
     };
 
-    assert_eq!(text, "42".to_string());
+    assert_eq!(text, input);
 }
 
 #[tokio::test]
