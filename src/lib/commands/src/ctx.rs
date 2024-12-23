@@ -34,7 +34,7 @@ impl CommandContext {
                         todo!("failed downcasting command argument, change design of this fn");
                     }
                 },
-                Err(_) => unreachable!("arg has already been validated")
+                Err(_) => unreachable!("arg has already been validated"),
             };
         } else {
             todo!();

@@ -12,7 +12,7 @@ impl ArgumentParser for IntParser {
 
         match token.parse::<u32>() {
             Ok(int) => Ok(Box::new(int)),
-            Err(err) => Err(error(err))
+            Err(err) => Err(error(err)),
         }
     }
 
