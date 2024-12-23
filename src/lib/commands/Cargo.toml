@@ -1,0 +1,16 @@
+[package]
+name = "commands"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+thiserror = { workspace = true }
+tracing = { workspace = true }
+dashmap = { workspace = true }
+tokio = { workspace = true }
+ferrumc-text = { workspace = true }
+ferrumc-state = { workspace = true }
+
+[dev-dependencies] # Needed for the ServerState mock... :concern:
+ferrumc-ecs = { workspace = true }
+ferrumc-world = { workspace = true }

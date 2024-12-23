@@ -16,6 +16,7 @@ members = [
     "src/lib/adapters/anvil",
     "src/lib/adapters/nbt",
     "src/lib/adapters/nbt",
+    "src/lib/commands",
     "src/lib/core",
     "src/lib/core/state",
     "src/lib/derive_macros",
@@ -86,6 +87,7 @@ codegen-units = 1
 ferrumc-anvil = { path = "src/lib/adapters/anvil" }
 ferrumc-config = { path = "src/lib/utils/config" }
 ferrumc-core = { path = "src/lib/core" }
+ferrumc-commands = { path = "src/lib/commands" }
 ferrumc-ecs = { path = "src/lib/ecs" }
 ferrumc-events = { path = "src/lib/events" }
 ferrumc-general-purpose = { path = "src/lib/utils/general_purpose" }
@@ -181,5 +183,3 @@ memmap2 = "0.9.5"
 
 # Benchmarking
 criterion = { version = "0.5.1", features = ["html_reports"] }
-
-
