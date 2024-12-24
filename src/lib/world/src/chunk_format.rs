@@ -1,8 +1,10 @@
+use crate::chunk_palette::ChunkPalette;
 use crate::errors::WorldError;
 use crate::vanilla_chunk_format;
 use crate::vanilla_chunk_format::VanillaChunk;
 use bitcode_derive::{Decode, Encode};
 use deepsize::DeepSizeOf;
+use ferrumc_core::transform::position::Position;
 use ferrumc_macros::{NBTDeserialize, NBTSerialize};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use lazy_static::lazy_static;
@@ -55,21 +57,15 @@ pub struct Heightmaps {
     #[nbt(rename = "WORLD_SURFACE")]
     pub world_surface: Vec<i64>,
 }
+
 #[derive(Encode, Decode, Clone, DeepSizeOf)]
-pub struct Section {
+pub struct Section<T: ChunkPalette> {
     pub y: i8,
-    pub block_states: BlockStates,
+    pub palette: T,
     pub biome_data: Vec<i64>,
     pub biome_palette: Vec<String>,
     pub block_light: Vec<u8>,
     pub sky_light: Vec<u8>,
-}
-#[derive(Encode, Decode, Clone, DeepSizeOf)]
-pub struct BlockStates {
-    pub bits_per_block: u8,
-    pub non_air_blocks: u16,
-    pub data: Vec<i64>,
-    pub palette: Vec<VarInt>,
 }
 
 fn convert_to_net_palette(vanilla_palettes: Vec<Palette>) -> Result<Vec<VarInt>, WorldError> {

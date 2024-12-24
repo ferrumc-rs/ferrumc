@@ -6,14 +6,29 @@ use crate::net_types::NetTypesError;
 use bitcode::{Decode, Encode};
 use deepsize::DeepSizeOf;
 use std::io::{Read, Write};
+use std::ops::{Deref, DerefMut};
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 
-#[derive(Debug, Encode, Decode, Clone, DeepSizeOf)]
+#[derive(Debug, Encode, Decode, Clone, Copy, DeepSizeOf)]
 pub struct VarInt {
     /// The value of the VarInt.
     pub val: i32,
     /// The length of the VarInt in bytes.
     pub len: usize,
+}
+
+impl Deref for VarInt {
+    type Target = i32;
+
+    fn deref(&self) -> &Self::Target {
+        &self.val
+    }
+}
+
+impl DerefMut for VarInt {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.val
+    }
 }
 
 mod adapters {
