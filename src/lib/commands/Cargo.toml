@@ -14,3 +14,5 @@ ferrumc-state = { workspace = true }
 [dev-dependencies] # Needed for the ServerState mock... :concern:
 ferrumc-ecs = { workspace = true }
 ferrumc-world = { workspace = true }
+ferrumc-macros = { workspace = true }
+ctor = { workspace = true }

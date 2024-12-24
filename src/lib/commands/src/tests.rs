@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use ferrumc_ecs::Universe;
+use ferrumc_macros::Command;
 use ferrumc_state::{GlobalState, ServerState};
 use ferrumc_text::{TextComponentBuilder, TextContent};
 use ferrumc_world::World;
@@ -102,4 +103,11 @@ async fn parse_test() {
     };
 
     assert_eq!(text, "42".to_string());
+}
+
+#[derive(Command)]
+struct TestCommand {
+    #[sender]
+    sender: String,
+    message: GreedyStringParser,
 }
