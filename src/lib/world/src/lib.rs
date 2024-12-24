@@ -1,6 +1,7 @@
 #![feature(hasher_prefixfree_extras)]
 
 pub mod chunk_format;
+pub mod chunk_palette;
 mod db_functions;
 pub mod errors;
 mod importing;
