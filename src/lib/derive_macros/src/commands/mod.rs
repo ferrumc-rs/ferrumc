@@ -15,6 +15,8 @@ pub fn derive_command(input: TokenStream) -> TokenStream {
         _ => panic!("Command can only be derived for structs"),
     };
 
+    let mut parser_field_names = Vec::new();
+    let mut parser_field_types = Vec::new();
     let mut parser_fields = Vec::new();
     let mut result_fields = Vec::new();
     let mut field_conversions = Vec::new();
@@ -24,11 +26,10 @@ pub fn derive_command(input: TokenStream) -> TokenStream {
         let field_type = &field.ty;
 
         let is_sender = field.attrs.iter().any(|attr| {
-            let Meta::Path(path) = &attr.meta else {
-                return false;
-            };
-
-            path.is_ident("sender")
+            if let Meta::Path(path) = &attr.meta {
+                return path.is_ident("sender");
+            }
+            false
         });
 
         if is_sender {
@@ -36,14 +37,18 @@ pub fn derive_command(input: TokenStream) -> TokenStream {
                 #field_name: #field_type
             });
             field_conversions.push(quote! {
-                #field_name: "" // TODO
+                #field_name: "rad" // TODO: Replace with actual sender retrieval logic
             });
         } else {
             parser_fields.push(quote! {
-                #field_name: Box<dyn ::ferrumc_commands::arg::ArgumentParser>
+                #field_name: Box::new(<#field_type as crate::arg::parser::ArgumentParser>::Output::default())
+            });
+            parser_field_names.push(field_name.clone());
+            parser_field_types.push(quote! {
+                #field_name: Box<dyn crate::arg::ArgumentParser>
             });
             result_fields.push(quote! {
-                #field_name: #field_type
+                #field_name: <#field_type as crate::arg::ArgumentParser>::Output
             });
             field_conversions.push(quote! {
                 #field_name: ctx.arg(stringify!(#field_name))
@@ -51,9 +56,11 @@ pub fn derive_command(input: TokenStream) -> TokenStream {
         }
     }
 
+    let command_name = command_names.first().expect("command has no name");
+
     let expanded = quote! {
         struct #parser_struct_name {
-            #(#parser_fields,)*
+            #(#parser_field_types,)*
         }
 
         struct #struct_name {
@@ -61,56 +68,53 @@ pub fn derive_command(input: TokenStream) -> TokenStream {
         }
 
         impl #struct_name {
-            async fn execute(command: #struct_name) -> ::ferrumc_commands::CommandResult {
-                Ok(TextComponentBuilder::new("").build())
+            async fn execute(command: #struct_name) -> crate::CommandResult {
+                Ok(ferrumc_text::builders::TextComponentBuilder::new("").build())
             }
 
-            #[ctor::ctor]
             fn register() {
-                let command = Arc::new(Command {
-                    name: #(#command_names,)*[0],
-                    args: vec![
-                        #(::ferrumc_commands::arg::CommandArgument {
-                            name: stringify!(#parser_fields).to_string(),
-                            required: true,
-                            parser: self.#parser_fields.clone(),
-                        },)*
-                    ],
-                    executor: executor(|ctx: Arc<::ferrumc_commands::ctx::CommandContext>| async move {
-                        let command = #struct_name {
-                            #(#field_conversions,)*
-                        };
+                static INIT: std::sync::Once = std::sync::Once::new();
+                INIT.call_once(|| {
+                    let command = std::sync::Arc::new(crate::Command {
+                        name: #command_name,
+                        args: vec![
+                            #(crate::arg::CommandArgument {
+                                name: stringify!(#parser_field_names).to_string(),
+                                required: true,
+                                parser: Box::new(#parser_fields),
+                            },)*
+                        ],
+                        executor: crate::executor(|ctx: std::sync::Arc<crate::ctx::CommandContext>| async move {
+                            let command = #struct_name {
+                                #(#field_conversions,)*
+                            };
 
-                        #struct_name::execute(command)
-                    }),
+                            #struct_name::execute(command).await
+                        }),
+                    });
+
+                    for &name in &[#(#command_names,)*] {
+                        crate::infrastructure::register_command(std::sync::Arc::clone(&command));
+                    }
                 });
-
-                for &name in &[#(#command_names,)*] {
-                    ::ferrumc_commands::infrastructure::register_command(Arc::clone(&command));
-                }
             }
         }
     };
+    
+    println!("{expanded}");
 
     TokenStream::from(expanded)
 }
 
-/// Gets the command names, i.e. primary name and aliases from an attribute list
 fn get_command_names(attrs: &[Attribute]) -> Vec<String> {
     for attr in attrs {
-        if let Meta::List(_) = &attr.meta {
-            if attr.path().is_ident("command") {
+        if let Meta::List(meta_list) = &attr.meta {
+            if meta_list.path.is_ident("command") {
                 let mut names = Vec::new();
-
-                if let Err(_) = attr.parse_nested_meta(|meta| {
-                    if let Some(ident) = meta.path.get_ident() {
-                        names.push(ident.to_string());
-                    }
-                    Ok(())
-                }) {
-                    continue;
+                let input = meta_list.clone().tokens.to_string();
+                for name in input.split(", ") {
+                    names.push(name.to_string());
                 }
-
                 return names;
             }
         }

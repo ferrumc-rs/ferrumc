@@ -106,6 +106,7 @@ async fn parse_test() {
 }
 
 #[derive(Command)]
+#[command(test)]
 struct TestCommand {
     #[sender]
     sender: String,
