@@ -2,9 +2,12 @@ use crate::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
 use crate::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
 use crate::net_types::var_int::VarInt;
 use std::io::{Read, Write};
+use std::ops::{Index, IndexMut};
+use bitcode::{Decode, Encode};
+use deepsize::DeepSizeOf;
 use tokio::io::AsyncWrite;
 
-#[derive(Debug)]
+#[derive(Encode, Decode, Debug, Clone, DeepSizeOf)]
 pub struct LengthPrefixedVec<T> {
     pub length: VarInt,
     pub data: Vec<T>,
@@ -17,6 +20,23 @@ impl<T> LengthPrefixedVec<T> {
             data,
         }
     }
+}
+
+impl<T> Index<usize> for LengthPrefixedVec<T> {
+    type Output = T;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.data[index]
+    }
+
+}
+
+impl<T> IndexMut<usize> for LengthPrefixedVec<T> {
+
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.data[index]
+    }
+    
 }
 
 impl<T> NetEncode for LengthPrefixedVec<T>

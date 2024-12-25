@@ -1,4 +1,4 @@
-use crate::chunk_palette::ChunkPalette;
+use crate::chunk_palette::{ChunkPalette, IndirectPalette, PaletteType};
 use crate::errors::WorldError;
 use crate::vanilla_chunk_format;
 use crate::vanilla_chunk_format::VanillaChunk;
@@ -49,6 +49,14 @@ pub struct Chunk {
     pub heightmaps: Heightmaps,
 }
 
+impl Chunk {
+
+    pub fn get_palette(&self) -> &PaletteType {
+        &self.sections[0].palette
+    }
+
+}
+
 #[derive(Encode, Decode, NBTDeserialize, NBTSerialize, Clone, DeepSizeOf)]
 #[nbt(net_encode)]
 pub struct Heightmaps {
@@ -59,9 +67,9 @@ pub struct Heightmaps {
 }
 
 #[derive(Encode, Decode, Clone, DeepSizeOf)]
-pub struct Section<T: ChunkPalette> {
+pub struct Section {
     pub y: i8,
-    pub palette: T,
+    pub palette: PaletteType,
     pub biome_data: Vec<i64>,
     pub biome_palette: Vec<String>,
     pub block_light: Vec<u8>,
@@ -101,11 +109,6 @@ impl VanillaChunk {
         let mut sections = Vec::new();
         for section in self.sections.as_ref().unwrap() {
             let y = section.y;
-            let block_data = section
-                .block_states
-                .as_ref()
-                .and_then(|bs| bs.data.clone())
-                .unwrap_or_default();
             let palette = section
                 .block_states
                 .as_ref()
@@ -121,12 +124,7 @@ impl VanillaChunk {
                 .as_ref()
                 .map_or(vec![], |biome_data| biome_data.palette.clone());
             let non_air_blocks = palette.iter().filter(|id| id.name != "air").count() as u16;
-            let block_states = BlockStates {
-                bits_per_block: (palette.len() as f32).log2().ceil() as u8,
-                non_air_blocks,
-                data: block_data,
-                palette: convert_to_net_palette(palette)?,
-            };
+            let palette = PaletteType::Indirect(IndirectPalette::empty()); // TODO: Update this to make it into Section
             let block_light = section
                 .block_light
                 .clone()
@@ -143,7 +141,7 @@ impl VanillaChunk {
                 .collect();
             let section = Section {
                 y,
-                block_states,
+                palette,
                 biome_data,
                 biome_palette,
                 block_light,
