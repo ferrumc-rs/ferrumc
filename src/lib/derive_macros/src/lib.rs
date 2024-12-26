@@ -62,7 +62,6 @@ pub fn command(attr: TokenStream, input: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
- pub fn arg(attr: TokenStream, input: TokenStream) -> TokenStream {
+pub fn arg(attr: TokenStream, input: TokenStream) -> TokenStream {
     commands::arg(attr, input)
 }
-

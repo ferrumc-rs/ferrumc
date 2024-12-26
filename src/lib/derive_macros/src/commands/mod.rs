@@ -61,10 +61,7 @@ pub fn arg(attr: TokenStream, item: TokenStream) -> TokenStream {
 
     let storage = get_args_storage();
     let mut pending_args = storage.lock().unwrap();
-    pending_args
-        .entry(fn_name)
-        .or_default()
-        .push(arg_attr);
+    pending_args.entry(fn_name).or_default().push(arg_attr);
 
     TokenStream::from(quote!(#input_fn))
 }

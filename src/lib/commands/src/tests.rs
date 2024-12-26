@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use ferrumc_ecs::Universe;
-use ferrumc_macros::{command, arg};
+use ferrumc_macros::{arg, command};
 use ferrumc_state::{GlobalState, ServerState};
 use ferrumc_text::{TextComponent, TextComponentBuilder, TextContent};
 use ferrumc_world::World;
@@ -19,8 +19,7 @@ use crate::{
     executor,
     infrastructure::{find_command, register_command},
     input::CommandInput,
-    CommandResult,
-    Command,
+    Command, CommandResult,
 };
 
 async fn state() -> GlobalState {
@@ -116,7 +115,10 @@ async fn execute_test_command(_ctx: Arc<CommandContext>) -> CommandResult {
 async fn macro_test() {
     let found_command = find_command("test").unwrap();
     assert_eq!(found_command.args.len(), 1);
-    let ctx = CommandContext::new(CommandInput::of("".to_string()), found_command.clone(), state().await);
+    let ctx = CommandContext::new(
+        CommandInput::of("".to_string()),
+        found_command.clone(),
+        state().await,
+    );
     found_command.execute(ctx).await.unwrap();
 }
-
