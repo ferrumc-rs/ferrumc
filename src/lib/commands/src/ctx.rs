@@ -11,21 +11,28 @@ pub struct CommandContext {
     pub input: Arc<Mutex<CommandInput>>,
     pub command: Arc<Command>,
     pub state: GlobalState,
+    pub connection_id: usize,
 }
 
 impl CommandContext {
-    pub fn new(input: CommandInput, command: Arc<Command>, state: GlobalState) -> Arc<Self> {
+    pub fn new(
+        input: CommandInput,
+        command: Arc<Command>,
+        state: GlobalState,
+        connection_id: usize,
+    ) -> Arc<Self> {
         Arc::new(Self {
             input: Arc::new(Mutex::new(input)),
             command,
             state,
+            connection_id,
         })
     }
 
-    pub fn arg<T: Any>(&self, name: &str) -> T {
+    pub fn arg<T: Any>(self: &Arc<Self>, name: &str) -> T {
         if let Some(arg) = self.command.args.iter().find(|a| a.name == name) {
             let input = self.input.clone();
-            let result = arg.parser.parse(Arc::new(self), input);
+            let result = arg.parser.parse(self.clone(), input);
 
             match result {
                 Ok(b) => match b.downcast::<T>() {

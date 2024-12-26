@@ -20,7 +20,7 @@ pub mod input;
 mod tests;
 
 pub type ParserResult = Result<Box<dyn Any + 'static>, TextComponent>;
-pub type CommandResult = Result<TextComponent, TextComponent>;
+pub type CommandResult = Result<(), TextComponent>;
 pub type CommandOutput = Pin<Box<dyn Future<Output = CommandResult> + Send + 'static>>;
 pub type CommandExecutor =
     Arc<dyn for<'a> Fn(Arc<CommandContext>) -> CommandOutput + Send + Sync + 'static>;
@@ -38,8 +38,8 @@ impl Command {
 
     pub fn validate(
         &self,
-        ctx: Arc<&CommandContext>,
-        input: Arc<Mutex<CommandInput>>,
+        ctx: &Arc<CommandContext>,
+        input: &Arc<Mutex<CommandInput>>,
     ) -> Result<(), TextComponent> {
         for arg in &self.args {
             arg.parser.parse(ctx.clone(), input.clone())?;

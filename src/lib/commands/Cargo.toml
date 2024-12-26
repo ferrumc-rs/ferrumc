@@ -11,8 +11,10 @@ tokio = { workspace = true }
 ferrumc-text = { workspace = true }
 ferrumc-state = { workspace = true }
 
-[dev-dependencies] # Needed for the ServerState mock... :concern:
+# Default commands. Should probably be moved into a seperate crate
 ferrumc-ecs = { workspace = true }
-ferrumc-world = { workspace = true }
 ferrumc-macros = { workspace = true }
 ctor = { workspace = true }
+
+[dev-dependencies] # Needed for the ServerState mock... :concern:
+ferrumc-world = { workspace = true }

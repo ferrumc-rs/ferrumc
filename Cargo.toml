@@ -17,6 +17,7 @@ members = [
     "src/lib/adapters/nbt",
     "src/lib/adapters/nbt",
     "src/lib/commands",
+    "src/lib/default_commands",
     "src/lib/core",
     "src/lib/core/state",
     "src/lib/derive_macros",
@@ -87,6 +88,7 @@ codegen-units = 1
 ferrumc-anvil = { path = "src/lib/adapters/anvil" }
 ferrumc-config = { path = "src/lib/utils/config" }
 ferrumc-core = { path = "src/lib/core" }
+ferrumc-default-commands = { path = "src/lib/default_commands" }
 ferrumc-commands = { path = "src/lib/commands" }
 ferrumc-ecs = { path = "src/lib/ecs" }
 ferrumc-events = { path = "src/lib/events" }

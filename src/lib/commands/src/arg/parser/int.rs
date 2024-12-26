@@ -7,7 +7,7 @@ use super::{utils::error, ArgumentParser};
 pub struct IntParser;
 
 impl ArgumentParser for IntParser {
-    fn parse(&self, _ctx: Arc<&CommandContext>, input: Arc<Mutex<CommandInput>>) -> ParserResult {
+    fn parse(&self, _ctx: Arc<CommandContext>, input: Arc<Mutex<CommandInput>>) -> ParserResult {
         let token = input.lock().unwrap().read_string();
 
         match token.parse::<u32>() {

@@ -3,7 +3,6 @@ use std::sync::Arc;
 use ferrumc_ecs::Universe;
 use ferrumc_macros::{arg, command};
 use ferrumc_state::{GlobalState, ServerState};
-use ferrumc_text::{TextComponent, TextComponentBuilder, TextContent};
 use ferrumc_world::World;
 use tokio::net::TcpListener;
 
@@ -36,7 +35,12 @@ async fn arg_parse_test() {
         let quoted = ctx.arg::<String>("quoted");
         let greedy = ctx.arg::<String>("greedy");
 
-        Ok(TextComponentBuilder::new(format!("{quoted:?} {greedy}")).build())
+        assert_eq!(
+            format!("{quoted:?} {greedy}"),
+            ctx.input.lock().unwrap().input
+        );
+
+        Ok(())
     }
 
     let command = crate::Command {
@@ -61,21 +65,22 @@ async fn arg_parse_test() {
 
     let input = "\"hello\" no no no please no I'm so sorry";
 
-    let ctx = CommandContext::new(CommandInput::of(input.to_string()), command.clone(), state);
+    let ctx = CommandContext::new(
+        CommandInput::of(input.to_string()),
+        command.clone(),
+        state,
+        0,
+    );
 
-    let result = command.execute(ctx).await;
-    let TextContent::Text { text } = result.unwrap().content else {
-        panic!("result is not text")
-    };
-
-    assert_eq!(text, input);
+    command.execute(ctx).await.unwrap();
 }
 
 #[tokio::test]
 async fn parse_test() {
     async fn test_executor(ctx: Arc<CommandContext>) -> CommandResult {
         let num = ctx.arg::<u32>("number");
-        Ok(TextComponentBuilder::new(num.to_string()).build())
+        assert_eq!(num.to_string(), ctx.input.lock().unwrap().input);
+        Ok(())
     }
 
     let command = crate::Command {
@@ -91,34 +96,28 @@ async fn parse_test() {
 
     let state = state().await;
 
-    let ctx = CommandContext::new(CommandInput::of("42".to_string()), command.clone(), state);
+    let ctx = CommandContext::new(
+        CommandInput::of("42".to_string()),
+        command.clone(),
+        state,
+        0,
+    );
 
     register_command(command.clone());
 
     let found_command = find_command("input_test 42").unwrap();
 
-    let result = found_command.execute(ctx).await;
-    let TextContent::Text { text } = result.unwrap().content else {
-        panic!("result is not text")
-    };
-
-    assert_eq!(text, "42".to_string());
+    found_command.execute(ctx).await.unwrap();
 }
 
 #[arg("quoted", QuotedStringParser)]
 #[command("test")]
 async fn execute_test_command(_ctx: Arc<CommandContext>) -> CommandResult {
-    Ok(TextComponent::default())
+    Ok(())
 }
 
 #[tokio::test]
 async fn macro_test() {
     let found_command = find_command("test").unwrap();
     assert_eq!(found_command.args.len(), 1);
-    let ctx = CommandContext::new(
-        CommandInput::of("".to_string()),
-        found_command.clone(),
-        state().await,
-    );
-    found_command.execute(ctx).await.unwrap();
 }
