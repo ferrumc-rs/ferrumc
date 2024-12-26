@@ -7,9 +7,7 @@ use super::{utils::parser_error, ArgumentParser};
 pub struct SingleStringParser;
 
 impl ArgumentParser for SingleStringParser {
-    type Output = String;
-    
-    fn parse(&self, _ctx: Arc<&CommandContext>, input: Arc<Mutex<CommandInput>>) -> ParserResult<String> {
+    fn parse(&self, _ctx: Arc<&CommandContext>, input: Arc<Mutex<CommandInput>>) -> ParserResult {
         Ok(Box::new(input.lock().unwrap().read_string()))
     }
 
@@ -24,9 +22,7 @@ impl ArgumentParser for SingleStringParser {
 pub struct GreedyStringParser;
 
 impl ArgumentParser for GreedyStringParser {
-    type Output = String;
-    
-    fn parse(&self, _ctx: Arc<&CommandContext>, input: Arc<Mutex<CommandInput>>) -> ParserResult<String> {
+    fn parse(&self, _ctx: Arc<&CommandContext>, input: Arc<Mutex<CommandInput>>) -> ParserResult {
         let mut result = String::new();
 
         loop {
@@ -55,9 +51,7 @@ impl ArgumentParser for GreedyStringParser {
 pub struct QuotedStringParser;
 
 impl ArgumentParser for QuotedStringParser {
-    type Output = String;
-
-    fn parse(&self, _ctx: Arc<&CommandContext>, input: Arc<Mutex<CommandInput>>) -> ParserResult<String> {
+    fn parse(&self, _ctx: Arc<&CommandContext>, input: Arc<Mutex<CommandInput>>) -> ParserResult {
         let mut input = input.lock().unwrap();
 
         input.skip_whitespace(u32::MAX, false);

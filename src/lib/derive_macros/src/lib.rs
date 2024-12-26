@@ -56,7 +56,13 @@ pub fn bake_packet_registry(input: TokenStream) -> TokenStream {
 }
 // #=================== PACKETS ===================#
 
-#[proc_macro_derive(Command, attributes(command, sender))]
-pub fn derive_command(input: TokenStream) -> TokenStream {
-    commands::derive_command(input)
+#[proc_macro_attribute]
+pub fn command(attr: TokenStream, input: TokenStream) -> TokenStream {
+    commands::command(attr, input)
 }
+
+#[proc_macro_attribute]
+ pub fn arg(attr: TokenStream, input: TokenStream) -> TokenStream {
+    commands::arg(attr, input)
+}
+

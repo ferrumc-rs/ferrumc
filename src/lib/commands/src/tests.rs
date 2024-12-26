@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
 use ferrumc_ecs::Universe;
-use ferrumc_macros::Command;
+use ferrumc_macros::{command, arg};
 use ferrumc_state::{GlobalState, ServerState};
-use ferrumc_text::{TextComponentBuilder, TextContent};
+use ferrumc_text::{TextComponent, TextComponentBuilder, TextContent};
 use ferrumc_world::World;
 use tokio::net::TcpListener;
 
@@ -20,6 +20,7 @@ use crate::{
     infrastructure::{find_command, register_command},
     input::CommandInput,
     CommandResult,
+    Command,
 };
 
 async fn state() -> GlobalState {
@@ -105,10 +106,17 @@ async fn parse_test() {
     assert_eq!(text, "42".to_string());
 }
 
-#[derive(Command)]
-#[command(test)]
-struct TestCommand {
-    #[sender]
-    sender: String,
-    message: GreedyStringParser,
+#[arg("quoted", QuotedStringParser)]
+#[command("test")]
+async fn execute_test_command(_ctx: Arc<CommandContext>) -> CommandResult {
+    Ok(TextComponent::default())
 }
+
+#[tokio::test]
+async fn macro_test() {
+    let found_command = find_command("test").unwrap();
+    assert_eq!(found_command.args.len(), 1);
+    let ctx = CommandContext::new(CommandInput::of("".to_string()), found_command.clone(), state().await);
+    found_command.execute(ctx).await.unwrap();
+}
+

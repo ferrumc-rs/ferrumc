@@ -19,7 +19,7 @@ pub mod input;
 #[cfg(test)]
 mod tests;
 
-pub type ParserResult<T> = Result<Box<T>, TextComponent>;
+pub type ParserResult = Result<Box<dyn Any + 'static>, TextComponent>;
 pub type CommandResult = Result<TextComponent, TextComponent>;
 pub type CommandOutput = Pin<Box<dyn Future<Output = CommandResult> + Send + 'static>>;
 pub type CommandExecutor =
