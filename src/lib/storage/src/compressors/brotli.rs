@@ -1,4 +1,5 @@
 use crate::errors::StorageError;
+use brotli;
 use std::io::Read;
 
 pub(crate) fn compress_brotli(level: u32, data: &[u8]) -> Result<Vec<u8>, StorageError> {

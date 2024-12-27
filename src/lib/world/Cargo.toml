@@ -10,7 +10,7 @@ thiserror = { workspace = true }
 ferrumc-logging = { workspace = true }
 ferrumc-profiling = { workspace = true }
 ferrumc-storage = { workspace = true }
-ferrumc-config = { workspace = true}
+ferrumc-config = { workspace = true }
 tracing = { workspace = true }
 tokio = { workspace = true }
 ferrumc-net-codec = { workspace = true }
@@ -29,12 +29,6 @@ lazy_static = { workspace = true }
 bzip2 = { workspace = true }
 serde_json = { workspace = true }
 indicatif = { workspace = true }
-parking_lot = { workspace = true }
-
-
-[features]
-default = ["sled", "surrealkv", "redb"]
-sled = ["ferrumc-storage/sled"]
-surrealkv = ["ferrumc-storage/surrealkv"]
-redb = ["ferrumc-storage/redb"]
-rocksdb = ["ferrumc-storage/rocksdb"]
+wyhash = { workspace = true }
+moka = { workspace = true, features = ["future"] }
+log = "0.4.22"

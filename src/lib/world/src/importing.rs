@@ -93,6 +93,9 @@ impl World {
         info!("Importing chunks from import directory...");
         let start = std::time::Instant::now();
         let mut task_set = JoinSet::new();
+        self.storage_backend
+            .create_table("chunks".to_string())
+            .await?;
         for region_file in regions_dir {
             match region_file {
                 Ok(dir_entry) => {
@@ -112,26 +115,38 @@ impl World {
                         };
                         let locations = anvil_file.get_locations();
                         for location in locations {
-                            if let Some(chunk) = anvil_file.get_chunk_from_location(location) {
-                                match VanillaChunk::from_bytes(&chunk) {
-                                    Ok(vanilla_chunk) => {
-                                        let cloned_progress_bar = progress_bar.clone();
-                                        let self_clone = self.clone();
-                                        task_set.spawn(async move {
-                                            if let Ok(chunk) = vanilla_chunk.to_custom_format() {
-                                                if let Err(e) = save_chunk_internal(&self_clone, chunk).await {
-                                                    error!("Could not save chunk: {}", e);
+                            // haha match statement go brrrrt
+                            match anvil_file.get_chunk_from_location(location) {
+                                Ok(possible_chunk) => match possible_chunk {
+                                    Some(chunk) => match VanillaChunk::from_bytes(&chunk) {
+                                        Ok(vanilla_chunk) => {
+                                            let cloned_progress_bar = progress_bar.clone();
+                                            let self_clone = self.clone();
+                                            task_set.spawn(async move {
+                                                if let Ok(chunk) = vanilla_chunk.to_custom_format() {
+                                                    if let Err(e) = save_chunk_internal(&self_clone, chunk).await {
+                                                        error!("Could not save chunk: {}", e);
+                                                    } else {
+                                                        cloned_progress_bar.inc(1);
+                                                    }
                                                 } else {
-                                                    cloned_progress_bar.inc(1);
+                                                    error!("Could not convert chunk to custom format: {:?}", chunk);
                                                 }
-                                            } else {
-                                                error!("Could not convert chunk to custom format: {:?}", chunk);
-                                            }
-                                        });
+                                            });
+                                        }
+                                        Err(e) => {
+                                            error!(
+                                                "Could not convert chunk to vanilla format: {}",
+                                                e
+                                            );
+                                        }
+                                    },
+                                    None => {
+                                        error!("Chunk is empty");
                                     }
-                                    Err(e) => {
-                                        error!("Could not convert chunk to vanilla format: {}", e);
-                                    }
+                                },
+                                Err(e) => {
+                                    error!("Could not get chunk from location: {}", e);
                                 }
                             }
                         }
@@ -150,6 +165,8 @@ impl World {
             progress_bar.clone().position(),
             start.elapsed()
         );
+
+        self.storage_backend.flush().await?;
         Ok(())
     }
 }

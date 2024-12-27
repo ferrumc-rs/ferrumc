@@ -6,13 +6,6 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[features]
-rocksdb = ["ferrumc-storage/rocksdb"]
-sled = ["ferrumc-storage/sled"]
-surrealkv = ["ferrumc-storage/surrealkv"]
-redb = ["ferrumc-storage/redb"]
-default = ["sled", "surrealkv", "redb"]
-
 [dependencies]
 thiserror = { workspace = true }
 
@@ -23,7 +16,7 @@ ferrumc-net = { workspace = true }
 ferrumc-net-encryption = { workspace = true }
 ferrumc-net-codec = { workspace = true }
 ferrumc-plugins = { workspace = true }
-ferrumc-storage = { workspace = true, features = ["default"] }
+ferrumc-storage = { workspace = true }
 ferrumc-utils = { workspace = true }
 ferrumc-config = { workspace = true }
 ferrumc-profiling = { workspace = true }
