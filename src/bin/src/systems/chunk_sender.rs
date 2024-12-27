@@ -42,10 +42,10 @@ impl System for ChunkSenderSystem {
                 let state = state.clone();
                 task_set.spawn(async move {
                     trace!("Getting chunk_recv 1 for sender");
-                    let chunk_recv = state
-                        .universe
-                        .get::<ChunkReceiver>(eid)
-                        .expect("ChunkReceiver not found");
+                    let Ok(chunk_recv) = state.universe.get::<ChunkReceiver>(eid) else {
+                        trace!("A player disconnected before we could get the ChunkReceiver");
+                        return Ok(());
+                    };
                     trace!("Got chunk_recv 1 for sender");
                     if chunk_recv.needed_chunks.is_empty() {
                         return Ok(());
@@ -62,10 +62,10 @@ impl System for ChunkSenderSystem {
                             .expect("StreamWriter not found");
                         trace!("Got conn 1 for sender");
                         trace!("Getting chunk_recv 2 for sender");
-                        let chunk_recv = state
-                            .universe
-                            .get::<ChunkReceiver>(eid)
-                            .expect("ChunkReceiver not found");
+                        let Ok(chunk_recv) = state.universe.get::<ChunkReceiver>(eid) else {
+                            trace!("A player disconnected before we could get the ChunkReceiver");
+                            return Ok(());
+                        };
                         trace!("Got chunk_recv 2 for sender");
                         if let Some(chunk) = &chunk_recv.last_chunk {
                             let packet = SetCenterChunk::new(chunk.0, chunk.1);
@@ -160,7 +160,7 @@ impl System for ChunkSenderSystem {
                 }
             }
 
-            tokio::time::sleep(Duration::from_millis(5)).await;
+            tokio::time::sleep(Duration::from_millis(1)).await;
         }
     }
 

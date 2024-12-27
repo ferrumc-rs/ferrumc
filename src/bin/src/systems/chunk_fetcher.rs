@@ -35,10 +35,10 @@ impl System for ChunkFetcher {
                     // Copy the chunks into a new map so we don't lock the component while fetching
                     let mut copied_chunks = {
                         trace!("Getting chunk_recv 1 for fetcher");
-                        let chunk_recv = state
-                            .universe
-                            .get::<ChunkReceiver>(eid)
-                            .expect("ChunkReceiver not found");
+                        let Ok(chunk_recv) = state.universe.get::<ChunkReceiver>(eid) else {
+                            trace!("A player disconnected before we could get the ChunkReceiver");
+                            return Ok(());
+                        };
                         trace!("Got chunk_recv 1 for fetcher");
                         let mut copied_chunks = HashMap::new();
                         for chunk in chunk_recv.needed_chunks.iter() {
@@ -82,7 +82,7 @@ impl System for ChunkFetcher {
                     }
                 }
             }
-            tokio::time::sleep(std::time::Duration::from_millis(5)).await;
+            tokio::time::sleep(std::time::Duration::from_millis(1)).await;
         }
     }
 
