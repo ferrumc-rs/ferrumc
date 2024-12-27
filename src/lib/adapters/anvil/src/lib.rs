@@ -100,10 +100,10 @@ impl LoadedAnvilFile {
     pub fn get_locations(&self) -> Vec<u32> {
         let mut locations = Vec::with_capacity(1024);
         for i in 0..1024 {
-            let location = u32::from(self.table[i * 4]) << 24
-                | u32::from(self.table[i * 4 + 1]) << 16
-                | u32::from(self.table[i * 4 + 2]) << 8
-                | u32::from(self.table[i * 4 + 3]);
+            let location = (u32::from(self.table[i * 4]) << 24)
+                | (u32::from(self.table[i * 4 + 1]) << 16)
+                | (u32::from(self.table[i * 4 + 2]) << 8)
+                | (u32::from(self.table[i * 4 + 3]));
             if location != 0 {
                 locations.push(location);
             }
