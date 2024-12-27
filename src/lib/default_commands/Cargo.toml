@@ -11,3 +11,4 @@ ferrumc-net-codec = { workspace = true }
 ferrumc-macros = { workspace = true }
 ferrumc-text = { workspace = true }
 ctor = { workspace = true }
+tracing = { workspace = true }

@@ -1,4 +1,3 @@
-#![feature(async_closure)]
 pub mod backends;
 pub mod compressors;
 pub mod errors;

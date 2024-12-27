@@ -9,11 +9,11 @@ use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::system_message::SystemMessagePacket;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_text::{NamedColor, TextComponentBuilder};
+use tracing::error;
 
 #[arg("message", GreedyStringParser)]
 #[command("echo")]
 async fn echo(ctx: Arc<CommandContext>) -> CommandResult {
-    println!("Hi");
     let message = ctx.arg::<String>("message");
     let mut writer = match ctx
         .state
@@ -21,13 +21,16 @@ async fn echo(ctx: Arc<CommandContext>) -> CommandResult {
         .get_mut::<StreamWriter>(ctx.connection_id)
     {
         Ok(writer) => writer,
-        Err(e) => {
-            println!("No stream writer :/ {e:#?}");
+        Err(err) => {
+            error!(
+                "failed retrieving stream writer for conn id {}: {err}",
+                ctx.connection_id
+            );
             return Ok(());
         }
     };
 
-    if let Err(e) = writer
+    if let Err(err) = writer
         .send_packet(
             &SystemMessagePacket::new(
                 TextComponentBuilder::new(message)
@@ -39,7 +42,7 @@ async fn echo(ctx: Arc<CommandContext>) -> CommandResult {
         )
         .await
     {
-        println!("Failed sending packet :/ {e:#?}");
+        error!("failed sending packet: {err}");
         return Ok(());
     }
 

@@ -47,7 +47,7 @@ impl IncomingPacket for ChatCommandPacket {
             .strip_prefix(command.name)
             .unwrap_or(&self.command);
         let input = CommandInput::of(input.to_string());
-        let ctx = CommandContext::new(input.clone(), command.clone(), state, conn_id);
+        let ctx = CommandContext::new(input.clone(), command.clone(), state.clone(), conn_id);
         if let Err(err) = command.validate(&ctx, &Arc::new(Mutex::new(input))) {
             writer
                 .send_packet(
@@ -64,7 +64,9 @@ impl IncomingPacket for ChatCommandPacket {
             return Ok(());
         }
 
+        drop(writer); // Avoid deadlocks if the executor accesses the stream writer
         if let Err(err) = command.execute(ctx).await {
+            let mut writer = state.universe.get_mut::<StreamWriter>(conn_id)?;
             writer
                 .send_packet(
                     &SystemMessagePacket::new(
