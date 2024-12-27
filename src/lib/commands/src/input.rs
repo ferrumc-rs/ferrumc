@@ -39,7 +39,7 @@ impl CommandInput {
         let mut i = 0;
         while i < max_spaces
             && self.has_remaining_input()
-            && self.peek().map_or(false, |c| c.is_whitespace())
+            && self.peek().is_some_and(|c| c.is_whitespace())
         {
             self.read(1);
             i += 1;

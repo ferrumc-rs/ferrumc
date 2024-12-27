@@ -23,9 +23,7 @@ impl IncomingPacket for ChatCommandPacket {
         let mut writer = state.universe.get_mut::<StreamWriter>(conn_id)?;
 
         let command = find_command(self.command.as_str());
-        if let None = command {
-            // invalid command TwT, we send a message that the given command
-            // could not be found.
+        if command.is_none() {
             writer
                 .send_packet(
                     &SystemMessagePacket::new(
