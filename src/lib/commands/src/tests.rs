@@ -13,12 +13,7 @@ use crate::{
             string::{GreedyStringParser, QuotedStringParser},
         },
         CommandArgument,
-    },
-    ctx::CommandContext,
-    executor,
-    infrastructure::{find_command, register_command},
-    input::CommandInput,
-    Command, CommandResult,
+    }, ctx::CommandContext, executor, graph::{node::CommandNodeType, CommandGraph}, infrastructure::{find_command, register_command}, input::CommandInput, Command, CommandResult
 };
 
 async fn state() -> GlobalState {
@@ -121,3 +116,25 @@ async fn macro_test() {
     let found_command = find_command("test").unwrap();
     assert_eq!(found_command.args.len(), 1);
 }
+
+#[tokio::test]
+async fn graph_test() {
+    let command = find_command("test").unwrap();
+    let mut graph = CommandGraph::default();
+    graph.push(command);
+
+    for node in &graph.nodes {
+        println!("{node:#?}");
+    }
+
+    assert_eq!(&graph.nodes.len(), &3);
+
+    let literal_node = graph.nodes.get(1).unwrap();
+    let arg_node = graph.nodes.get(2).unwrap();
+
+    assert_eq!(literal_node.node_type(), CommandNodeType::Literal);
+    assert_eq!(arg_node.node_type(), CommandNodeType::Argument);
+    assert!(arg_node.is_executable());
+    assert!(!literal_node.is_executable());
+}
+

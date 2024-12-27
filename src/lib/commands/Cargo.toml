@@ -10,6 +10,7 @@ dashmap = { workspace = true }
 tokio = { workspace = true }
 ferrumc-text = { workspace = true }
 ferrumc-state = { workspace = true }
+enum-ordinalize = { workspace = true }
 
 [dev-dependencies] # Needed for the ServerState mock... :concern:
 ferrumc-ecs = { workspace = true }

@@ -15,6 +15,7 @@ pub mod ctx;
 pub mod errors;
 pub mod infrastructure;
 pub mod input;
+pub mod graph;
 
 #[cfg(test)]
 mod tests;

@@ -184,6 +184,7 @@ colored = "2.1.0"
 # Misc
 deepsize = "0.2.0"
 page_size = "0.6.0"
+enum-ordinalize = "4.3.0"
 
 # I/O
 tempfile = "3.12.0"
