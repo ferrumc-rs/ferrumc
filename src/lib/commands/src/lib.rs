@@ -13,9 +13,9 @@ use input::CommandInput;
 pub mod arg;
 pub mod ctx;
 pub mod errors;
+pub mod graph;
 pub mod infrastructure;
 pub mod input;
-pub mod graph;
 
 #[cfg(test)]
 mod tests;

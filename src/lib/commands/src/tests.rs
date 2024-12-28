@@ -13,7 +13,13 @@ use crate::{
             string::{GreedyStringParser, QuotedStringParser},
         },
         CommandArgument,
-    }, ctx::CommandContext, executor, graph::{node::CommandNodeType, CommandGraph}, infrastructure::{find_command, register_command}, input::CommandInput, Command, CommandResult
+    },
+    ctx::CommandContext,
+    executor,
+    graph::{node::CommandNodeType, CommandGraph},
+    infrastructure::{find_command, register_command},
+    input::CommandInput,
+    Command, CommandResult,
 };
 
 async fn state() -> GlobalState {
@@ -137,4 +143,3 @@ async fn graph_test() {
     assert!(arg_node.is_executable());
     assert!(!literal_node.is_executable());
 }
-

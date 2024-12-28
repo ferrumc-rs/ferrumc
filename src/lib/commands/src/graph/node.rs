@@ -24,7 +24,7 @@ pub enum CommandNodeFlag {
     NodeType(CommandNodeType),
     Executable,
     HasRedirect,
-    HasSuggestionsType
+    HasSuggestionsType,
 }
 
 impl CommandNodeFlag {
@@ -56,7 +56,7 @@ pub struct CommandNode {
     pub name: Option<String>,
     pub parser_id: Option<u32>,
     pub properties: Option<CommandNodeProperties>,
-    pub suggestions_type: Option<String>
+    pub suggestions_type: Option<String>,
 }
 
 // We want to display the actual flags and not the encoded value
@@ -162,6 +162,5 @@ pub enum MinecraftCommandParser {
     TemplateMirror,
     TemplateRotation,
     Heightmap,
-    UUID
+    UUID,
 }
-

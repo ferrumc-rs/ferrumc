@@ -1,5 +1,5 @@
-use std::sync::Arc;
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use node::{CommandNode, CommandNodeFlag, CommandNodeType};
 
@@ -40,17 +40,12 @@ impl CommandGraph {
 
         for (i, part) in command.name.split_whitespace().enumerate() {
             let is_last = i == command.name.split_whitespace().count() - 1;
-            let node_type = if is_last {
-                CommandNodeType::Literal
-            } else {
-                CommandNodeType::Literal
-            };
 
             if let Some(&child_index) = self.node_to_indices.get(part) {
                 current_node_index = child_index;
             } else {
                 let mut node = CommandNode {
-                    flags: CommandNodeFlag::NodeType(node_type).bitmask(),
+                    flags: CommandNodeFlag::NodeType(CommandNodeType::Literal).bitmask(),
                     children: Vec::new(),
                     redirect_node: None,
                     name: Some(part.to_string()),
@@ -59,7 +54,10 @@ impl CommandGraph {
                     suggestions_type: None,
                 };
 
-                if is_last && !command.args.is_empty() && command.args.first().is_some_and(|arg| !arg.required) {
+                if is_last
+                    && !command.args.is_empty()
+                    && command.args.first().is_some_and(|arg| !arg.required)
+                {
                     node.flags |= CommandNodeFlag::Executable.bitmask();
                 }
 
@@ -68,7 +66,9 @@ impl CommandGraph {
                 self.node_to_indices.insert(part.to_string(), node_index);
                 self.root_node.children.push(node_index);
 
-                self.nodes[current_node_index as usize].children.push(node_index);
+                self.nodes[current_node_index as usize]
+                    .children
+                    .push(node_index);
                 current_node_index = node_index;
             }
         }
@@ -90,7 +90,9 @@ impl CommandGraph {
 
             let arg_node_index = self.nodes.len() as u32;
             self.nodes.push(arg_node);
-            self.nodes[current_node_index as usize].children.push(arg_node_index);
+            self.nodes[current_node_index as usize]
+                .children
+                .push(arg_node_index);
         }
     }
 }
