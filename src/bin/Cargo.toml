@@ -28,6 +28,7 @@ ferrumc-general-purpose = { workspace = true }
 ferrumc-state = { workspace = true }
 ferrumc-commands = { workspace = true }
 ferrumc-default-commands = { workspace = true }
+ferrumc-text = { workspace = true }
 
 ctor = { workspace = true }
 parking_lot = { workspace = true }

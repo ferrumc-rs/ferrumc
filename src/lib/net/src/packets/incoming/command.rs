@@ -1,14 +1,11 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
-use ferrumc_commands::{ctx::CommandContext, infrastructure::find_command, input::CommandInput};
-use ferrumc_macros::{packet, NetDecode};
-use ferrumc_net_codec::encode::NetEncodeOpts;
+use ferrumc_events::infrastructure::Event;
+use ferrumc_macros::{packet, Event, NetDecode};
 use ferrumc_state::ServerState;
-use ferrumc_text::{NamedColor, TextComponentBuilder};
 
 use crate::{
-    connection::StreamWriter,
-    packets::{outgoing::system_message::SystemMessagePacket, IncomingPacket},
+    packets::IncomingPacket,
     NetResult,
 };
 
@@ -18,67 +15,20 @@ pub struct ChatCommandPacket {
     command: String,
 }
 
+#[derive(Event)]
+pub struct CommandDispatchEvent {
+    pub command: String,
+    pub conn_id: usize,
+}
+
+impl CommandDispatchEvent {
+    pub fn new(command: String, conn_id: usize) -> Self {
+        Self { command, conn_id }
+    }
+}
+
 impl IncomingPacket for ChatCommandPacket {
     async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
-        let mut writer = state.universe.get_mut::<StreamWriter>(conn_id)?;
-
-        let command = find_command(self.command.as_str());
-        if command.is_none() {
-            writer
-                .send_packet(
-                    &SystemMessagePacket::new(
-                        TextComponentBuilder::new("unknown command")
-                            .color(NamedColor::Red)
-                            .build(),
-                        false,
-                    ),
-                    &NetEncodeOpts::WithLength,
-                )
-                .await?;
-            return Ok(());
-        }
-
-        let command = command.unwrap();
-
-        let input = &self
-            .command
-            .strip_prefix(command.name)
-            .unwrap_or(&self.command);
-        let input = CommandInput::of(input.to_string());
-        let ctx = CommandContext::new(input.clone(), command.clone(), state.clone(), conn_id);
-        if let Err(err) = command.validate(&ctx, &Arc::new(Mutex::new(input))) {
-            writer
-                .send_packet(
-                    &SystemMessagePacket::new(
-                        TextComponentBuilder::new("invalid args: ")
-                            .extra(err)
-                            .color(NamedColor::Red)
-                            .build(),
-                        false,
-                    ),
-                    &NetEncodeOpts::WithLength,
-                )
-                .await?;
-            return Ok(());
-        }
-
-        drop(writer); // Avoid deadlocks if the executor accesses the stream writer
-        if let Err(err) = command.execute(ctx).await {
-            let mut writer = state.universe.get_mut::<StreamWriter>(conn_id)?;
-            writer
-                .send_packet(
-                    &SystemMessagePacket::new(
-                        TextComponentBuilder::new("command error: ")
-                            .extra(err)
-                            .color(NamedColor::Red)
-                            .build(),
-                        false,
-                    ),
-                    &NetEncodeOpts::WithLength,
-                )
-                .await?;
-        };
-
-        Ok(())
+        CommandDispatchEvent::trigger(CommandDispatchEvent::new(self.command, conn_id), state).await
     }
 }
