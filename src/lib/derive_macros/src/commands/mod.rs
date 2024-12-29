@@ -1,13 +1,12 @@
 use std::{
     collections::HashMap,
-    sync::{Mutex, OnceLock},
+    sync::{Arc, Mutex, OnceLock},
 };
 
 use proc_macro::TokenStream;
-use quote::{format_ident, quote};
+use quote::{format_ident, quote, ToTokens};
 use syn::{
-    parse::Parse, parse::ParseStream, parse_macro_input, Ident, ItemFn, LitBool, LitStr,
-    Result as SynResult, Token,
+    parse::{Parse, ParseStream}, parse_macro_input, Expr, Ident, ItemFn, LitBool, LitStr, Result as SynResult, Token
 };
 
 static PENDING_ARGS: OnceLock<Mutex<HashMap<String, Vec<ArgAttr>>>> = OnceLock::new();
@@ -33,7 +32,7 @@ impl Parse for ArgAttr {
     fn parse(input: ParseStream) -> SynResult<Self> {
         let name = input.parse::<LitStr>()?.value();
         input.parse::<Token![,]>()?;
-        let parser = input.parse::<Ident>()?.to_string();
+        let parser = input.parse::<syn::Expr>()?.to_token_stream().to_string();
 
         let required = if input.peek(Token![,]) {
             input.parse::<Token![,]>()?;
@@ -81,8 +80,8 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
     let arg_names = args.iter().map(|arg| &arg.name).collect::<Vec<&String>>();
     let arg_parsers = args
         .iter()
-        .map(|arg| format_ident!("{}", arg.parser))
-        .collect::<Vec<Ident>>();
+        .map(|arg| syn::parse_str(&arg.parser).expect("invalid argument parser"))
+        .collect::<Vec<Expr>>();
     let arg_required = args.iter().map(|arg| arg.required).collect::<Vec<bool>>();
 
     let register_fn_name = format_ident!("__register_{}_command", command_name.replace(" ", "_"));
