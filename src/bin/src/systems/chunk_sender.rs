@@ -37,20 +37,19 @@ impl System for ChunkSenderSystem {
         while !self.stop.load(Ordering::Relaxed) {
             let players = state
                 .universe
-                .query::<(&mut ChunkReceiver, &mut StreamWriter)>();
+                .query::<(&mut ChunkReceiver, &mut StreamWriter)>()
+                .into_entities();
             let mut task_set: JoinSet<Result<(), ECSError>> = JoinSet::new();
-            for (eid, (_, _)) in players {
+            for eid in players {
                 let state = state.clone();
                 task_set.spawn(async move {
                     let mut packets = Vec::new();
                     let mut centre_coords = (0, 0);
-                    trace!("Getting chunk_recv 1 for sender");
                     {
                         let Ok(chunk_recv) = state.universe.get::<ChunkReceiver>(eid) else {
                             trace!("A player disconnected before we could get the ChunkReceiver");
                             return Ok(());
                         };
-                        trace!("Got chunk_recv 1 for sender");
                         if chunk_recv.needed_chunks.is_empty() {
                             return Ok(());
                         }
@@ -59,28 +58,22 @@ impl System for ChunkSenderSystem {
                     // and then drop them after sending the chunks
                     let mut to_drop = Vec::new();
                     {
-                        trace!("Getting chunk_recv 2 for sender");
                         let Ok(chunk_recv) = state.universe.get::<ChunkReceiver>(eid) else {
                             trace!("A player disconnected before we could get the ChunkReceiver");
                             return Ok(());
                         };
-                        trace!("Got chunk_recv 2 for sender");
-                        {
-                            trace!("Getting conn 1 for sender");
-                            trace!("Got conn 1 for sender");
-                            if let Some(chunk) = &chunk_recv.last_chunk {
-                                centre_coords = (chunk.0, chunk.1);
-                            }
+                        // Store the last chunk's coordinates so we can send the SetCenterChunk packet
+                        // This means we don't need to lock the chunk_recv while sending the chunks
+                        if let Some(chunk) = &chunk_recv.last_chunk {
+                            centre_coords = (chunk.0, chunk.1);
                         }
                     }
                     let mut sent_chunks = 0;
-                    trace!("Getting chunk_recv 3 for sender");
                     {
-                        let chunk_recv = state
-                            .universe
-                            .get_mut::<ChunkReceiver>(eid)
-                            .expect("ChunkReceiver not found");
-                        trace!("Got chunk_recv 3 for sender");
+                        let Ok(chunk_recv) = state.universe.get::<ChunkReceiver>(eid) else {
+                            trace!("A player disconnected before we could get the ChunkReceiver");
+                            return Ok(());
+                        };
                         for possible_chunk in chunk_recv.needed_chunks.iter_mut() {
                             if let Some(chunk) = possible_chunk.pair().1 {
                                 let key = possible_chunk.pair().0;
@@ -98,12 +91,10 @@ impl System for ChunkSenderSystem {
                         }
                     }
                     {
-                        trace!("Getting chunk_recv 4 for sender");
-                        let chunk_recv = state
-                            .universe
-                            .get_mut::<ChunkReceiver>(eid)
-                            .expect("ChunkReceiver not found");
-                        trace!("Got chunk_recv 4 for sender");
+                        let Ok(chunk_recv) = state.universe.get::<ChunkReceiver>(eid) else {
+                            trace!("A player disconnected before we could get the ChunkReceiver");
+                            return Ok(());
+                        };
                         for key in to_drop {
                             chunk_recv.needed_chunks.remove(&key);
                         }
@@ -113,12 +104,10 @@ impl System for ChunkSenderSystem {
                         if packets.is_empty() {
                             return Ok(());
                         }
-                        trace!("Getting conn 2 for sender");
                         let Ok(mut conn) = state.universe.get_mut::<StreamWriter>(eid) else {
                             error!("Could not get StreamWriter");
                             return Ok(());
                         };
-                        trace!("Got conn 2 for sender");
                         if let Err(e) = conn
                             .send_packet(
                                 &SetCenterChunk {
@@ -183,6 +172,6 @@ impl System for ChunkSenderSystem {
     }
 
     fn name(&self) -> &'static str {
-        "chunk_sender"
+        "Chunk Sender"
     }
 }
