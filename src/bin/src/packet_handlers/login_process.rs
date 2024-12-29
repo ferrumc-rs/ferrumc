@@ -169,7 +169,10 @@ async fn handle_ack_finish_configuration(
             &NetEncodeOpts::WithLength,
         )
         .await?;
-    println!("{:#?}", CommandsPacket::create());
+    trace!(
+        "Sending command graph: {:#?}",
+        ferrumc_commands::infrastructure::get_graph()
+    );
     writer
         .send_packet(&CommandsPacket::create(), &NetEncodeOpts::WithLength)
         .await?;

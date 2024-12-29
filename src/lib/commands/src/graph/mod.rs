@@ -88,7 +88,7 @@ impl CommandGraph {
                 name: Some(arg.name.clone()),
                 parser_id: Some(VarInt::new(MinecraftCommandParser::String.ordinal() as i32)),
                 properties: Some(node::CommandNodeProperties::String {
-                    behavior: VarInt::new(0),
+                    behavior: VarInt::new(2),
                 }),
                 suggestions_type: None,
             };
@@ -233,9 +233,9 @@ impl CommandGraph {
     pub fn find_command_by_input(&self, input: &str) -> Option<String> {
         let matches = self.find_command(input);
 
-        matches.first().map(|(node_index, _remaining)| {
-            self.get_command_name(*node_index)
-        })
+        matches
+            .first()
+            .map(|(node_index, _remaining)| self.get_command_name(*node_index))
     }
 }
 

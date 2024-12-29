@@ -17,7 +17,7 @@ impl<T> LengthPrefixedVec<T> {
             data,
         }
     }
-    
+
     pub fn push(&mut self, data: T) {
         self.data.push(data);
         self.length = VarInt::new(self.length.val + 1);

@@ -8,7 +8,12 @@ pub struct SingleStringParser;
 
 impl ArgumentParser for SingleStringParser {
     fn parse(&self, _ctx: Arc<CommandContext>, input: Arc<Mutex<CommandInput>>) -> ParserResult {
-        Ok(Box::new(input.lock().unwrap().read_string()))
+        let mut input = input.lock().unwrap();
+        if input.peek_string().is_empty() {
+            return Err(parser_error("input cannot be empty"));
+        }
+
+        Ok(Box::new(input.read_string()))
     }
 
     fn new() -> Self
@@ -23,10 +28,15 @@ pub struct GreedyStringParser;
 
 impl ArgumentParser for GreedyStringParser {
     fn parse(&self, _ctx: Arc<CommandContext>, input: Arc<Mutex<CommandInput>>) -> ParserResult {
+        let mut input = input.lock().unwrap();
         let mut result = String::new();
 
+        if input.peek_string().is_empty() {
+            return Err(parser_error("input cannot be empty"));
+        }
+
         loop {
-            let token = input.lock().unwrap().read_string_skip_whitespace(false);
+            let token = input.read_string_skip_whitespace(false);
 
             if token.is_empty() {
                 break;

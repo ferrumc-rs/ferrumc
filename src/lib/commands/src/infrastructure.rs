@@ -1,7 +1,7 @@
 use dashmap::DashMap;
 use std::sync::{Arc, LazyLock, RwLock};
 
-use crate::{graph::{CommandGraph}, Command};
+use crate::{graph::CommandGraph, Command};
 
 static COMMANDS: LazyLock<DashMap<&'static str, Arc<Command>>> = LazyLock::new(DashMap::new);
 static COMMAND_GRAPH: LazyLock<RwLock<CommandGraph>> =

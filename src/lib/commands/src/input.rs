@@ -46,7 +46,7 @@ impl CommandInput {
         }
     }
     pub fn remaining_input(&self) -> String {
-        self.input[..self.cursor as usize].to_string()
+        self.input[self.cursor as usize..].to_string()
     }
     pub fn peek_string_chars(&self, chars: u32) -> String {
         let remaining = self.remaining_input();
