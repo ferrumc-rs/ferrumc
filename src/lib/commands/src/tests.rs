@@ -140,6 +140,6 @@ async fn graph_test() {
 
     assert_eq!(literal_node.node_type(), CommandNodeType::Literal);
     assert_eq!(arg_node.node_type(), CommandNodeType::Argument);
-    assert!(!arg_node.is_executable());
-    assert!(literal_node.is_executable());
+    assert!(arg_node.is_executable());
+    assert!(!literal_node.is_executable());
 }
