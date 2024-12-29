@@ -238,6 +238,8 @@ use crate::ECSResult;
 use dashmap::DashMap;
 use parking_lot::RwLock;
 use std::any::TypeId;
+use std::hash::{Hash, Hasher};
+use tracing::trace;
 
 pub mod storage;
 
@@ -300,22 +302,96 @@ impl ComponentManager {
     }
     pub fn get<'a, T: Component>(&self, entity_id: usize) -> ECSResult<ComponentRef<'a, T>> {
         let type_id = TypeId::of::<T>();
+        #[cfg(debug_assertions)]
+        {
+            let mut hasher = std::collections::hash_map::DefaultHasher::new();
+            type_id.hash(&mut hasher);
+            let type_hash = hasher.finish();
+            trace!(
+                "Getting static component (ID: {:X}) lock for entity {}",
+                type_hash,
+                entity_id
+            );
+            let locked = matches!(
+                self.components.try_get(&type_id),
+                dashmap::try_result::TryResult::Locked
+            );
+            if locked {
+                trace!(
+                    "Static component (ID: {:X}) lock for entity {} is locked",
+                    type_hash,
+                    entity_id
+                );
+            }
+        }
         let ptr = *self
             .components
             .get(&type_id)
             .ok_or(ECSError::ComponentTypeNotFound)?;
         let component_set = unsafe { &*(ptr as *const ComponentSparseSet<T>) };
-        component_set.get(entity_id)
+        let res = component_set.get(entity_id);
+        #[cfg(debug_assertions)]
+        {
+            let mut hasher = std::collections::hash_map::DefaultHasher::new();
+            type_id.hash(&mut hasher);
+            let type_hash = hasher.finish();
+            if res.is_ok() {
+                trace!(
+                    "Got static component (ID: {:X}) lock for entity {}",
+                    type_hash,
+                    entity_id
+                );
+            }
+            res
+        }
     }
 
     pub fn get_mut<'a, T: Component>(&self, entity_id: usize) -> ECSResult<ComponentRefMut<'a, T>> {
         let type_id = TypeId::of::<T>();
+        #[cfg(debug_assertions)]
+        {
+            let mut hasher = std::collections::hash_map::DefaultHasher::new();
+            type_id.hash(&mut hasher);
+            let type_hash = hasher.finish();
+            trace!(
+                "Getting mutable component (ID: {:X}) lock for entity {}",
+                type_hash,
+                entity_id
+            );
+            let locked = matches!(
+                self.components.try_get_mut(&type_id),
+                dashmap::try_result::TryResult::Locked
+            );
+            if locked {
+                trace!(
+                    "Mutable component (ID: {:X}) lock for entity {} is locked",
+                    type_hash,
+                    entity_id
+                );
+            }
+        }
         let ptr = *self
             .components
             .get(&type_id)
             .ok_or(ECSError::ComponentTypeNotFound)?;
         let component_set = unsafe { &*(ptr as *const ComponentSparseSet<T>) };
-        component_set.get_mut(entity_id)
+        {
+            let res = component_set.get_mut(entity_id);
+            #[cfg(debug_assertions)]
+            {
+                let mut hasher = std::collections::hash_map::DefaultHasher::new();
+                type_id.hash(&mut hasher);
+                let type_hash = hasher.finish();
+                if res.is_ok() {
+                    trace!(
+                        "Got mutable component (ID: {:X}) lock for entity {}",
+                        type_hash,
+                        entity_id
+                    );
+                }
+            }
+            res
+        }
     }
 
     pub fn remove<T: Component>(&self, entity_id: usize) -> ECSResult<()> {

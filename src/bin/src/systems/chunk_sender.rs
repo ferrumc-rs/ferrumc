@@ -36,44 +36,88 @@ impl System for ChunkSenderSystem {
         while !self.stop.load(Ordering::Relaxed) {
             let players = state
                 .universe
-                .query::<(&mut ChunkReceiver, &mut StreamWriter)>();
+                .query::<(&mut ChunkReceiver, &mut StreamWriter)>()
+                .into_entities();
             let mut task_set: JoinSet<Result<(), ECSError>> = JoinSet::new();
-            for (eid, (_, _)) in players {
+            for eid in players {
                 let state = state.clone();
                 task_set.spawn(async move {
-                    trace!("Getting chunk_recv 1 for sender");
-                    let chunk_recv = state
-                        .universe
-                        .get::<ChunkReceiver>(eid)
-                        .expect("ChunkReceiver not found");
-                    trace!("Got chunk_recv 1 for sender");
-                    if chunk_recv.needed_chunks.is_empty() {
-                        return Ok(());
+                    let mut packets = Vec::new();
+                    let mut centre_coords = (0, 0);
+                    {
+                        let Ok(chunk_recv) = state.universe.get::<ChunkReceiver>(eid) else {
+                            trace!("A player disconnected before we could get the ChunkReceiver");
+                            return Ok(());
+                        };
+                        if chunk_recv.needed_chunks.is_empty() {
+                            return Ok(());
+                        }
                     }
-                    drop(chunk_recv);
                     // We can't delete from the map while iterating, so we collect the keys to drop
                     // and then drop them after sending the chunks
                     let mut to_drop = Vec::new();
                     {
-                        trace!("Getting conn 1 for sender");
-                        let mut conn = state
-                            .universe
-                            .get_mut::<StreamWriter>(eid)
-                            .expect("StreamWriter not found");
-                        trace!("Got conn 1 for sender");
-                        trace!("Getting chunk_recv 2 for sender");
-                        let chunk_recv = state
-                            .universe
-                            .get::<ChunkReceiver>(eid)
-                            .expect("ChunkReceiver not found");
-                        trace!("Got chunk_recv 2 for sender");
+                        let Ok(chunk_recv) = state.universe.get::<ChunkReceiver>(eid) else {
+                            trace!("A player disconnected before we could get the ChunkReceiver");
+                            return Ok(());
+                        };
+                        // Store the last chunk's coordinates so we can send the SetCenterChunk packet
+                        // This means we don't need to lock the chunk_recv while sending the chunks
                         if let Some(chunk) = &chunk_recv.last_chunk {
-                            let packet = SetCenterChunk::new(chunk.0, chunk.1);
-                            if let Err(e) =
-                                conn.send_packet(&packet, &NetEncodeOpts::WithLength).await
-                            {
-                                error!("Error sending chunk: {:?}", e);
+                            centre_coords = (chunk.0, chunk.1);
+                        }
+                    }
+                    let mut sent_chunks = 0;
+                    {
+                        let Ok(chunk_recv) = state.universe.get::<ChunkReceiver>(eid) else {
+                            trace!("A player disconnected before we could get the ChunkReceiver");
+                            return Ok(());
+                        };
+                        for possible_chunk in chunk_recv.needed_chunks.iter_mut() {
+                            if let Some(chunk) = possible_chunk.pair().1 {
+                                let key = possible_chunk.pair().0;
+                                to_drop.push(key.clone());
+                                match ChunkAndLightData::from_chunk(&chunk.clone()) {
+                                    Ok(packet) => {
+                                        packets.push(packet);
+                                        sent_chunks += 1;
+                                    }
+                                    Err(e) => {
+                                        error!("Error sending chunk: {:?}", e);
+                                    }
+                                }
                             }
+                        }
+                    }
+                    {
+                        let Ok(chunk_recv) = state.universe.get::<ChunkReceiver>(eid) else {
+                            trace!("A player disconnected before we could get the ChunkReceiver");
+                            return Ok(());
+                        };
+                        for key in to_drop {
+                            chunk_recv.needed_chunks.remove(&key);
+                        }
+                    }
+
+                    {
+                        if packets.is_empty() {
+                            return Ok(());
+                        }
+                        let Ok(mut conn) = state.universe.get_mut::<StreamWriter>(eid) else {
+                            error!("Could not get StreamWriter");
+                            return Ok(());
+                        };
+                        if let Err(e) = conn
+                            .send_packet(
+                                &SetCenterChunk {
+                                    x: VarInt::new(centre_coords.0),
+                                    z: VarInt::new(centre_coords.1),
+                                },
+                                &NetEncodeOpts::WithLength,
+                            )
+                            .await
+                        {
+                            error!("Error sending chunk: {:?}", e);
                         }
                         if let Err(e) = conn
                             .send_packet(&ChunkBatchStart {}, &NetEncodeOpts::WithLength)
@@ -81,52 +125,17 @@ impl System for ChunkSenderSystem {
                         {
                             error!("Error sending chunk: {:?}", e);
                         }
-                    }
-                    let mut sent_chunks = 0;
-                    trace!("Getting chunk_recv 3 for sender");
-                    let chunk_recv = state
-                        .universe
-                        .get_mut::<ChunkReceiver>(eid)
-                        .expect("ChunkReceiver not found");
-                    trace!("Got chunk_recv 3 for sender");
-                    for possible_chunk in chunk_recv.needed_chunks.iter_mut() {
-                        if let Some(chunk) = possible_chunk.pair().1 {
-                            let key = possible_chunk.pair().0;
-                            to_drop.push(key.clone());
-                            match ChunkAndLightData::from_chunk(&chunk.clone()) {
-                                Ok(packet) => {
-                                    trace!("Getting conn 2 for sender");
-                                    let mut conn = state
-                                        .universe
-                                        .get_mut::<StreamWriter>(eid)
-                                        .expect("StreamWriter not found");
-                                    trace!("Got conn 2 for sender");
-                                    if let Err(e) =
-                                        conn.send_packet(&packet, &NetEncodeOpts::WithLength).await
-                                    {
-                                        error!("Error sending chunk: {:?}", e);
-                                    } else {
-                                        sent_chunks += 1;
-                                    }
-                                }
-                                Err(e) => {
-                                    error!("Error sending chunk: {:?}", e);
-                                }
+                        for packet in packets {
+                            if let Err(e) =
+                                conn.send_packet(&packet, &NetEncodeOpts::WithLength).await
+                            {
+                                error!("Error sending chunk: {:?}", e);
                             }
                         }
-                    }
-                    drop(chunk_recv);
-                    {
-                        trace!("Getting conn 3 for sender");
-                        let mut conn = state
-                            .universe
-                            .get_mut::<StreamWriter>(eid)
-                            .expect("StreamWriter not found");
-                        trace!("Got conn 3 for sender");
                         if let Err(e) = conn
                             .send_packet(
                                 &ChunkBatchFinish {
-                                    batch_size: VarInt::from(sent_chunks),
+                                    batch_size: VarInt::new(sent_chunks),
                                 },
                                 &NetEncodeOpts::WithLength,
                             )
@@ -135,15 +144,7 @@ impl System for ChunkSenderSystem {
                             error!("Error sending chunk: {:?}", e);
                         }
                     }
-                    trace!("Getting chunk_recv 4 for sender");
-                    let chunk_recv = state
-                        .universe
-                        .get_mut::<ChunkReceiver>(eid)
-                        .expect("ChunkReceiver not found");
-                    trace!("Got chunk_recv 4 for sender");
-                    for key in to_drop {
-                        chunk_recv.needed_chunks.remove(&key);
-                    }
+
                     Ok(())
                 });
             }
@@ -170,6 +171,6 @@ impl System for ChunkSenderSystem {
     }
 
     fn name(&self) -> &'static str {
-        "chunk_sender"
+        "Chunk Sender"
     }
 }
