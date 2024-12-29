@@ -2,7 +2,13 @@ use std::sync::{Arc, Mutex};
 
 use crate::{ctx::CommandContext, input::CommandInput, ParserResult};
 
-use super::{utils::error, ArgumentParser};
+use super::{
+    utils::error,
+    vanilla::{
+        int::IntParserFlags, MinecraftArgument, MinecraftArgumentProperties, MinecraftArgumentType,
+    },
+    ArgumentParser,
+};
 
 pub struct IntParser;
 
@@ -21,5 +27,12 @@ impl ArgumentParser for IntParser {
         Self: Sized,
     {
         IntParser
+    }
+
+    fn vanilla(&self) -> MinecraftArgument {
+        MinecraftArgument {
+            argument_type: MinecraftArgumentType::Int,
+            props: MinecraftArgumentProperties::Int(IntParserFlags::default()),
+        }
     }
 }

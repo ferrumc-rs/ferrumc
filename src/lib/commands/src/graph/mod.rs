@@ -1,11 +1,10 @@
 use std::sync::Arc;
 use std::{collections::HashMap, io::Write};
 
-use enum_ordinalize::Ordinalize;
 use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use node::{CommandNode, CommandNodeFlag, CommandNodeType, MinecraftCommandParser};
+use node::{CommandNode, CommandNodeFlag, CommandNodeType};
 
 use crate::infrastructure::get_graph;
 use crate::Command;
@@ -50,8 +49,7 @@ impl CommandGraph {
                 current_node_index = child_index;
             } else {
                 let mut node = CommandNode {
-                    flags: CommandNodeFlag::NodeType(CommandNodeType::Literal).bitmask()
-                        | CommandNodeFlag::Executable.bitmask(),
+                    flags: CommandNodeFlag::NodeType(CommandNodeType::Literal).bitmask(),
                     children: LengthPrefixedVec::new(Vec::new()),
                     redirect_node: None,
                     name: Some(part.to_string()),
@@ -61,8 +59,8 @@ impl CommandGraph {
                 };
 
                 if is_last
-                    && !command.args.is_empty()
-                    && command.args.first().is_some_and(|arg| !arg.required)
+                    && (command.args.is_empty()
+                        || command.args.first().is_some_and(|arg| !arg.required))
                 {
                     node.flags |= CommandNodeFlag::Executable.bitmask();
                 }
@@ -70,34 +68,46 @@ impl CommandGraph {
                 let node_index = self.nodes.len() as u32;
                 self.nodes.push(node);
                 self.node_to_indices.insert(part.to_string(), node_index);
-                let node_index_varint = VarInt::new(node_index as i32);
 
-                self.root_node.children.push(node_index_varint.clone());
+                if i == 0 {
+                    self.nodes[0].children.push(VarInt::new(node_index as i32));
+                } else {
+                    let parent_node = self.nodes.get_mut(current_node_index as usize).unwrap();
+                    parent_node.children.push(VarInt::new(node_index as i32));
+                }
 
-                let node = self.nodes.get_mut(current_node_index as usize).unwrap();
-                node.children.push(node_index_varint);
                 current_node_index = node_index;
             }
         }
 
-        for arg in &command.args {
-            let arg_node = CommandNode {
+        let mut prev_node_index = current_node_index;
+
+        for (i, arg) in command.args.iter().enumerate() {
+            let vanilla = arg.parser.vanilla();
+            let is_last = i == command.args.len() - 1;
+
+            let mut arg_node = CommandNode {
                 flags: CommandNodeFlag::NodeType(CommandNodeType::Argument).bitmask(),
                 children: LengthPrefixedVec::new(Vec::new()),
                 redirect_node: None,
                 name: Some(arg.name.clone()),
-                parser_id: Some(VarInt::new(MinecraftCommandParser::String.ordinal() as i32)),
-                properties: Some(node::CommandNodeProperties::String {
-                    behavior: VarInt::new(2),
-                }),
+                parser_id: Some(vanilla.argument_type),
+                properties: Some(vanilla.props),
                 suggestions_type: None,
             };
 
+            if is_last {
+                arg_node.flags |= CommandNodeFlag::Executable.bitmask();
+            }
+
             let arg_node_index = self.nodes.len() as u32;
             self.nodes.push(arg_node);
-            self.nodes[current_node_index as usize]
+
+            self.nodes[prev_node_index as usize]
                 .children
                 .push(VarInt::new(arg_node_index as i32));
+
+            prev_node_index = arg_node_index;
         }
     }
 

@@ -1,8 +1,9 @@
-use std::{collections::HashMap, fmt, io::Write};
+use std::{fmt, io::Write};
 
-use enum_ordinalize::Ordinalize;
 use ferrumc_macros::NetEncode;
 use ferrumc_net_codec::net_types::{length_prefixed_vec::LengthPrefixedVec, var_int::VarInt};
+
+use crate::arg::parser::vanilla::{MinecraftArgumentProperties, MinecraftArgumentType};
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum CommandNodeType {
@@ -42,22 +43,14 @@ impl CommandNodeFlag {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, NetEncode)]
-pub enum CommandNodeProperties {
-    IntRange { min: i32, max: i32 },
-    FloatRange { min: f32, max: f32 },
-    String { behavior: VarInt },
-    Other(HashMap<String, String>),
-}
-
 #[derive(Clone, NetEncode)]
 pub struct CommandNode {
     pub flags: u8,
     pub children: LengthPrefixedVec<VarInt>,
     pub redirect_node: Option<VarInt>,
     pub name: Option<String>,
-    pub parser_id: Option<VarInt>,
-    pub properties: Option<CommandNodeProperties>,
+    pub parser_id: Option<MinecraftArgumentType>,
+    pub properties: Option<MinecraftArgumentProperties>,
     pub suggestions_type: Option<String>,
 }
 
@@ -112,58 +105,4 @@ impl CommandNode {
     pub fn has_suggestions_type(&self) -> bool {
         self.flags & 0x10 != 0
     }
-}
-
-#[derive(Clone, Debug, PartialEq, Ordinalize)]
-pub enum MinecraftCommandParser {
-    Bool,
-    Float,
-    Double,
-    Int,
-    Long,
-    String,
-    Entity,
-    GameProfile,
-    BlockPos,
-    ColumnPos,
-    Vec3,
-    Vec2,
-    BlockState,
-    BlockPredicate,
-    ItemStack,
-    ItemPredicate,
-    Color,
-    Component,
-    Style,
-    Message,
-    Nbt,
-    NbtTag,
-    NbtPath,
-    Objective,
-    ObjectiveCriteria,
-    Operator,
-    Particle,
-    Angle,
-    Rotation,
-    ScoreboardDisplaySlot,
-    ScoreHolder,
-    UpTo3Axes,
-    Team,
-    ItemSlot,
-    ResourceLocation,
-    Function,
-    EntityAnchor,
-    IntRange,
-    FloatRange,
-    Dimension,
-    GameMode,
-    Time,
-    ResourceOrTag,
-    ResourceOrTagKey,
-    Resource,
-    ResourceKey,
-    TemplateMirror,
-    TemplateRotation,
-    Heightmap,
-    UUID,
 }

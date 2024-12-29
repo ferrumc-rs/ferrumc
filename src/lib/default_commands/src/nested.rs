@@ -1,23 +1,46 @@
 use std::sync::Arc;
 
 use ferrumc_commands::{
-    arg::{parser::string::GreedyStringParser, CommandArgument},
+    arg::{
+        parser::{
+            int::IntParser,
+            string::{QuotedStringParser, SingleStringParser},
+        },
+        CommandArgument,
+    },
     ctx::CommandContext,
     executor,
     infrastructure::register_command,
     Command, CommandResult,
 };
 use ferrumc_macros::{arg, command};
+use ferrumc_text::TextComponentBuilder;
 
 #[command("nested")]
-async fn root(_ctx: Arc<CommandContext>) -> CommandResult {
-    println!("Executed root");
+async fn root(ctx: Arc<CommandContext>) -> CommandResult {
+    ctx.reply(TextComponentBuilder::new("Executed /nested").build())
+        .await
+        .unwrap();
     Ok(())
 }
 
-#[arg("message", GreedyStringParser)]
+#[arg("message", QuotedStringParser)]
+#[arg("word", SingleStringParser)]
+#[arg("number", IntParser)]
 #[command("nested abc")]
 async fn abc(ctx: Arc<CommandContext>) -> CommandResult {
-    println!("Executed abc with message {}", ctx.arg::<String>("message"));
+    let message = ctx.arg::<String>("message");
+    let word = ctx.arg::<String>("word");
+    let number = ctx.arg::<u32>("number");
+
+    ctx.reply(
+        TextComponentBuilder::new(format!(
+            "Message: {message:?}, Word: {word:?}, Message: {number}"
+        ))
+        .build(),
+    )
+    .await
+    .unwrap();
+
     Ok(())
 }
