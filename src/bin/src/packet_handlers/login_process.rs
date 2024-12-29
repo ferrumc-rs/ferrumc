@@ -4,6 +4,7 @@ use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_ecs::components::storage::ComponentRefMut;
 use ferrumc_inventory::inventory::{Inventory, InventoryType};
+use ferrumc_inventory::slot::Slot;
 use ferrumc_macros::event_handler;
 use ferrumc_net::connection::{ConnectionState, StreamWriter};
 use ferrumc_net::errors::NetError;
@@ -18,15 +19,12 @@ use ferrumc_net::packets::outgoing::game_event::GameEventPacket;
 use ferrumc_net::packets::outgoing::keep_alive::OutgoingKeepAlivePacket;
 use ferrumc_net::packets::outgoing::login_play::LoginPlayPacket;
 use ferrumc_net::packets::outgoing::login_success::LoginSuccessPacket;
-use ferrumc_net::packets::outgoing::open_screen::OpenScreenPacket;
 use ferrumc_net::packets::outgoing::registry_data::get_registry_packets;
 use ferrumc_net::packets::outgoing::set_center_chunk::SetCenterChunk;
-use ferrumc_net::packets::outgoing::set_container_slot::{SetContainerSlotPacket, Slot};
 use ferrumc_net::packets::outgoing::set_default_spawn_position::SetDefaultSpawnPositionPacket;
 use ferrumc_net::packets::outgoing::set_render_distance::SetRenderDistance;
 use ferrumc_net::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket;
 use ferrumc_net_codec::encode::NetEncodeOpts;
-use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalState;
 use tracing::{debug, trace};
 
@@ -173,7 +171,9 @@ async fn handle_ack_finish_configuration(
         )
         .await?;
 
-    let inventory = Inventory::new(1, "Outspending's Inventory", InventoryType::Chest(4));
+    let mut inventory = Inventory::new(1, "Outspending's Inventory", InventoryType::Chest(4));
+    inventory.set_slot(0, Slot::new(1, 94));
+
     inventory.send_packet(&mut *writer).await?;
 
     send_keep_alive(conn_id, state, &mut writer).await?;

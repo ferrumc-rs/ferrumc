@@ -1,13 +1,12 @@
 use crate::contents::InventoryContents;
+use crate::slot::Slot;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::errors::NetError;
 use ferrumc_net::packets::outgoing::open_screen::OpenScreenPacket;
-use ferrumc_net::packets::outgoing::set_container_slot::{SetContainerSlotPacket, Slot};
+use ferrumc_net::packets::outgoing::set_container_slot::SetContainerSlotPacket;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_text::{TextComponent, TextComponentBuilder};
-use std::ops::Deref;
-use std::sync::Arc;
 
 pub enum InventoryType {
     Chest(i8),
@@ -20,9 +19,10 @@ pub enum InventoryType {
     Furnace,
     Grindstone,
     Hopper,
+    Dispenser,
+    Dropper,
     Lectern,
     Loom,
-    Merchant,
     ShulkerBox,
     SmithingTable,
     Smoker,
@@ -50,9 +50,9 @@ impl InventoryType {
             InventoryType::Furnace => 14,
             InventoryType::Grindstone => 15,
             InventoryType::Hopper => 16,
+            InventoryType::Dispenser | InventoryType::Dropper => 6,
             InventoryType::Lectern => 17,
             InventoryType::Loom => 18,
-            InventoryType::Merchant => 19,
             InventoryType::ShulkerBox => 20,
             InventoryType::SmithingTable => 21,
             InventoryType::Smoker => 22,
@@ -62,12 +62,32 @@ impl InventoryType {
 
         VarInt::new(id)
     }
+
+    pub fn get_size(&self) -> i32 {
+        match self {
+            InventoryType::Chest(i) => *i as i32 * 9,
+            InventoryType::Anvil
+            | InventoryType::BlastFurnace
+            | InventoryType::Furnace
+            | InventoryType::Smoker
+            | InventoryType::Cartography
+            | InventoryType::Grindstone => 2,
+            InventoryType::Stonecutter | InventoryType::EnchantmentTable => 1,
+            InventoryType::Dispenser | InventoryType::Dropper => 8,
+            InventoryType::Loom | InventoryType::SmithingTable => 3,
+            InventoryType::Beacon => 0,
+            InventoryType::Hopper => 4,
+            InventoryType::ShulkerBox => 26,
+            InventoryType::CraftingTable => 9,
+            _ => 0,
+        }
+    }
 }
 
 pub struct Inventory {
     pub id: VarInt,
     pub inventory_type: InventoryType,
-    pub contents: InventoryContents,
+    pub(crate) contents: InventoryContents,
     pub title: TextComponent,
 }
 
@@ -81,6 +101,24 @@ impl Inventory {
         }
     }
 
+    pub fn set_slot(&mut self, slot_id: i32, slot: Slot) -> &mut Self {
+        let size = self.inventory_type.get_size();
+        if size >= 0 && size <= slot_id {
+            self.contents.set_slot(slot_id, slot);
+        }
+
+        self
+    }
+
+    pub fn get_slot(&self, slot_id: i32) -> Option<Slot> {
+        let size = self.inventory_type.get_size();
+        if size >= 0 && size <= slot_id {
+            self.contents.get_slot(slot_id)
+        } else {
+            None
+        }
+    }
+
     pub async fn send_packet(self, writer: &mut StreamWriter) -> Result<(), NetError> {
         let id = self.id;
         let packet = OpenScreenPacket::new(id.clone(), self.inventory_type.get_id(), self.title);
@@ -91,11 +129,8 @@ impl Inventory {
 
         // Temporary until i get container content setup
         for slot in self.contents.contents.iter() {
-            let slot_packet = SetContainerSlotPacket::new(
-                id.clone(),
-                *slot.key() as i16,
-                Slot::with_item(1, *slot.value()),
-            );
+            let slot_packet =
+                SetContainerSlotPacket::new(id.clone(), *slot.key() as i16, slot.to_network_slot());
             writer
                 .send_packet(&slot_packet, &NetEncodeOpts::SizePrefixed)
                 .await?;
