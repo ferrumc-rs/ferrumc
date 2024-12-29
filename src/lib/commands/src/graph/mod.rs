@@ -162,7 +162,7 @@ impl CommandGraph {
                     if !input_words.is_empty() && input_words[0] == name {
                         // we found a match, we continue with the remaining input.
                         let remaining = if input_words.len() > 1 {
-                            &remaining_input[name.len()..].trim_start()
+                            remaining_input[name.len()..].trim_start()
                         } else {
                             ""
                         };
@@ -183,7 +183,7 @@ impl CommandGraph {
                 // for argument nodes, we consume one argument and then continue.
                 if !input_words.is_empty() {
                     let remaining = if input_words.len() > 1 {
-                        &remaining_input[input_words[0].len()..].trim_start()
+                        remaining_input[input_words[0].len()..].trim_start()
                     } else {
                         ""
                     };
