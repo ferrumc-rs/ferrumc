@@ -85,7 +85,7 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
         .collect::<Vec<Ident>>();
     let arg_required = args.iter().map(|arg| arg.required).collect::<Vec<bool>>();
 
-    let register_fn_name = format_ident!("__register_{}_command", command_name);
+    let register_fn_name = format_ident!("__register_{}_command", command_name.replace(" ", "_"));
 
     let expanded = quote! {
         #[ctor::ctor]

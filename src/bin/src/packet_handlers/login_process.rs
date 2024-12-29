@@ -1,3 +1,4 @@
+use ferrumc_commands::graph::CommandsPacket;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
@@ -168,6 +169,11 @@ async fn handle_ack_finish_configuration(
             &NetEncodeOpts::WithLength,
         )
         .await?;
+    println!("{:#?}", CommandsPacket::create());
+    writer
+        .send_packet(&CommandsPacket::create(), &NetEncodeOpts::WithLength)
+        .await?;
+
     send_keep_alive(conn_id, state, &mut writer).await?;
 
     Ok(ack_finish_configuration_event)

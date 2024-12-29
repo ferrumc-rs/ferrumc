@@ -1,6 +1,8 @@
-use std::{collections::HashMap, fmt};
+use std::{collections::HashMap, fmt, io::Write};
 
 use enum_ordinalize::Ordinalize;
+use ferrumc_macros::NetEncode;
+use ferrumc_net_codec::net_types::{length_prefixed_vec::LengthPrefixedVec, var_int::VarInt};
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum CommandNodeType {
@@ -40,21 +42,21 @@ impl CommandNodeFlag {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, NetEncode)]
 pub enum CommandNodeProperties {
     IntRange { min: i32, max: i32 },
     FloatRange { min: f32, max: f32 },
-    String { max_length: u32 },
+    String { behavior: VarInt },
     Other(HashMap<String, String>),
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, NetEncode)]
 pub struct CommandNode {
     pub flags: u8,
-    pub children: Vec<u32>,
-    pub redirect_node: Option<u32>,
+    pub children: LengthPrefixedVec<VarInt>,
+    pub redirect_node: Option<VarInt>,
     pub name: Option<String>,
-    pub parser_id: Option<u32>,
+    pub parser_id: Option<VarInt>,
     pub properties: Option<CommandNodeProperties>,
     pub suggestions_type: Option<String>,
 }
@@ -78,6 +80,7 @@ impl fmt::Debug for CommandNode {
             .field("executable", &executable)
             .field("has_redirect", &has_redirect)
             .field("has_suggestions_type", &has_suggestions_type)
+            .field("flags", &self.flags)
             .field("children", &self.children)
             .field("redirect_node", &self.redirect_node)
             .field("name", &self.name)

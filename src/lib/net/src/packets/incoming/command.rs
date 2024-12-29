@@ -4,10 +4,7 @@ use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::{packet, Event, NetDecode};
 use ferrumc_state::ServerState;
 
-use crate::{
-    packets::IncomingPacket,
-    NetResult,
-};
+use crate::{packets::IncomingPacket, NetResult};
 
 #[derive(NetDecode, Debug, Clone)]
 #[packet(packet_id = 0x04, state = "play")]

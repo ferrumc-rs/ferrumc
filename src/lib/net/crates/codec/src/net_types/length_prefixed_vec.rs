@@ -4,7 +4,7 @@ use crate::net_types::var_int::VarInt;
 use std::io::{Read, Write};
 use tokio::io::AsyncWrite;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LengthPrefixedVec<T> {
     pub length: VarInt,
     pub data: Vec<T>,
@@ -16,6 +16,11 @@ impl<T> LengthPrefixedVec<T> {
             length: VarInt::new(data.len() as i32),
             data,
         }
+    }
+    
+    pub fn push(&mut self, data: T) {
+        self.data.push(data);
+        self.length = VarInt::new(self.length.val + 1);
     }
 }
 
