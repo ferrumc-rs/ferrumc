@@ -83,6 +83,24 @@ where
     }
 }
 
+/// This implementation assumes that the optional was written using PacketByteBuf#writeNullable and has a leading bool.
+impl<T> NetDecode for Option<T>
+where
+    T: NetDecode,
+{
+    fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> NetDecodeResult<Self> {
+        let is_some = <bool as NetDecode>::decode(reader, opts)?;
+
+        if !is_some {
+            return Ok(None);
+        }
+
+        let value = <T as NetDecode>::decode(reader, opts)?;
+
+        Ok(Some(value))
+    }
+}
+
 /// This isn't actually a type in the Minecraft Protocol. This is just for saving data/ or for general use.
 /// It was created for saving/reading chunks!
 impl<K, V> NetDecode for HashMap<K, V>
