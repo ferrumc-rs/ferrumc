@@ -7,10 +7,9 @@ use ferrumc_net::packets::outgoing::chunk_and_light_data::ChunkAndLightData;
 use ferrumc_net::packets::outgoing::chunk_batch_finish::ChunkBatchFinish;
 use ferrumc_net::packets::outgoing::chunk_batch_start::ChunkBatchStart;
 use ferrumc_net::packets::outgoing::set_center_chunk::SetCenterChunk;
-use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
+use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalState;
-use std::io::Cursor;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
@@ -162,7 +161,7 @@ impl System for ChunkSenderSystem {
                 }
             }
 
-            // tokio::time::sleep(Duration::from_nanos(50)).await;
+            tokio::time::sleep(Duration::from_millis(5)).await;
         }
     }
 

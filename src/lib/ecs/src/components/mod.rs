@@ -237,7 +237,7 @@ use crate::errors::ECSError;
 use crate::ECSResult;
 use dashmap::DashMap;
 use parking_lot::RwLock;
-use std::any::{Any, TypeId};
+use std::any::TypeId;
 use std::hash::{Hash, Hasher};
 use tracing::trace;
 

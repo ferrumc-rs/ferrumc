@@ -78,7 +78,7 @@ impl System for ChunkFetcher {
                     }
                 }
             }
-            // tokio::time::sleep(std::time::Duration::from_nanos(50)).await;
+            tokio::time::sleep(std::time::Duration::from_millis(5)).await;
         }
     }
 
