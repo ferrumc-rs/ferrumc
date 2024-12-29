@@ -31,11 +31,11 @@ async fn root(ctx: Arc<CommandContext>) -> CommandResult {
 async fn abc(ctx: Arc<CommandContext>) -> CommandResult {
     let message = ctx.arg::<String>("message");
     let word = ctx.arg::<String>("word");
-    let number = ctx.arg::<u32>("number");
+    let number = ctx.arg::<i32>("number");
 
     ctx.reply(
         TextComponentBuilder::new(format!(
-            "Message: {message:?}, Word: {word:?}, Message: {number}"
+            "Message: {message:?}, Word: {word:?}, Number: {number}"
         ))
         .build(),
     )

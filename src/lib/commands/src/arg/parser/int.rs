@@ -16,7 +16,7 @@ impl ArgumentParser for IntParser {
     fn parse(&self, _ctx: Arc<CommandContext>, input: Arc<Mutex<CommandInput>>) -> ParserResult {
         let token = input.lock().unwrap().read_string();
 
-        match token.parse::<u32>() {
+        match token.parse::<i32>() {
             Ok(int) => Ok(Box::new(int)),
             Err(err) => Err(error(err)),
         }

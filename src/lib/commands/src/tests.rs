@@ -79,7 +79,7 @@ async fn arg_parse_test() {
 #[tokio::test]
 async fn parse_test() {
     async fn test_executor(ctx: Arc<CommandContext>) -> CommandResult {
-        let num = ctx.arg::<u32>("number");
+        let num = ctx.arg::<i32>("number");
         assert_eq!(num.to_string(), ctx.input.lock().unwrap().input);
         Ok(())
     }
