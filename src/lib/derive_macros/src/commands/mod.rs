@@ -1,12 +1,13 @@
 use std::{
     collections::HashMap,
-    sync::{Arc, Mutex, OnceLock},
+    sync::{Mutex, OnceLock},
 };
 
 use proc_macro::TokenStream;
 use quote::{format_ident, quote, ToTokens};
 use syn::{
-    parse::{Parse, ParseStream}, parse_macro_input, Expr, Ident, ItemFn, LitBool, LitStr, Result as SynResult, Token
+    parse::{Parse, ParseStream},
+    parse_macro_input, Expr, ItemFn, LitBool, LitStr, Result as SynResult, Token,
 };
 
 static PENDING_ARGS: OnceLock<Mutex<HashMap<String, Vec<ArgAttr>>>> = OnceLock::new();
