@@ -169,10 +169,6 @@ async fn handle_ack_finish_configuration(
         )
         .await?;
 
-    let mut inventory = Inventory::new(1, "Testing", InventoryType::Chest(6));
-    inventory.set_slot(0, Slot::with_item(9));
-    inventory.add_viewer((conn_id, &mut writer)).await?;
-
     send_keep_alive(conn_id, state, &mut writer).await?;
 
     Ok(ack_finish_configuration_event)
