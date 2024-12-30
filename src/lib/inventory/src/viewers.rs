@@ -1,4 +1,4 @@
-use crate::inventory::Inventory;
+use crate::{inventory::Inventory, slot::Slot};
 use ferrumc_ecs::entities::Entity;
 use ferrumc_ecs::errors::ECSError;
 use ferrumc_net::connection::StreamWriter;
@@ -6,14 +6,15 @@ use ferrumc_net::errors::NetError;
 use ferrumc_net::packets::outgoing::close_container::CloseContainerPacket;
 use ferrumc_net::packets::outgoing::open_screen::OpenScreenPacket;
 use ferrumc_net::packets::outgoing::set_container_slot::SetContainerSlotPacket;
-use ferrumc_net_codec::encode::NetEncodeOpts;
+use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 
+#[derive(Debug, Clone)]
 pub struct InventoryView {
     pub viewers: Vec<Entity>,
 }
 
 impl InventoryView {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             viewers: Vec::new(),
         }
@@ -24,7 +25,7 @@ impl InventoryView {
         inventory: &Inventory,
         mut entity: (Entity, &mut StreamWriter),
     ) -> Result<&mut Self, NetError> {
-        let mut viewers = &self.viewers;
+        let viewers = &self.viewers;
         if viewers.contains(&entity.0) {
             return Ok(self);
         }
@@ -37,9 +38,9 @@ impl InventoryView {
     pub async fn remove_viewer(
         &mut self,
         inventory: &Inventory,
-        mut entity: (Entity, &mut StreamWriter),
+        entity: (Entity, &mut StreamWriter),
     ) -> Result<&mut Self, NetError> {
-        let mut viewers = &mut self.viewers;
+        let viewers = &mut self.viewers;
         if let Some(index) = viewers.iter().position(|&viewer| viewer == entity.0) {
             viewers.remove(index);
             entity
@@ -55,14 +56,30 @@ impl InventoryView {
         }
     }
 
+    pub async fn send_slot_update_packet(
+        &self,
+        inventory: &Inventory,
+        slot: (i16, Slot),
+    ) -> Result<(), NetError> {
+        self.send_packet_to_viewers(&SetContainerSlotPacket::new(
+            inventory.id,
+            slot.0,
+            slot.1.to_network_slot(),
+        ))
+        .await
+    }
+
+    async fn send_packet_to_viewers(&self, _packet: &impl NetEncode) -> Result<(), NetError> {
+        Ok(())
+    }
+
     async fn send_packet(
         &mut self,
         inventory: &Inventory,
         writer: &mut StreamWriter,
     ) -> Result<(), NetError> {
-        let id = &inventory.id;
         let packet = OpenScreenPacket::new(
-            id.clone(),
+            inventory.id,
             inventory.inventory_type.get_id(),
             inventory.title.clone(),
         );
@@ -73,8 +90,11 @@ impl InventoryView {
 
         // Temporary until i get container content setup
         for slot in inventory.contents.contents.iter() {
-            let slot_packet =
-                SetContainerSlotPacket::new(id.clone(), *slot.key() as i16, slot.to_network_slot());
+            let slot_packet = SetContainerSlotPacket::new(
+                inventory.id,
+                *slot.key() as i16,
+                slot.to_network_slot(),
+            );
             writer
                 .send_packet(&slot_packet, &NetEncodeOpts::SizePrefixed)
                 .await?;

@@ -9,7 +9,7 @@ use std::io::{Read, Write};
 use std::ops::{Deref, DerefMut};
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 
-#[derive(Debug, Encode, Decode, Clone, DeepSizeOf)]
+#[derive(Debug, Encode, Decode, Clone, Copy, DeepSizeOf)]
 pub struct VarInt {
     /// The value of the VarInt.
     pub val: i32,

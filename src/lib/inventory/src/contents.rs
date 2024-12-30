@@ -1,6 +1,7 @@
 use crate::slot::Slot;
 use dashmap::DashMap;
 
+#[derive(Debug, Clone)]
 pub struct InventoryContents {
     pub contents: DashMap<i32, Slot>,
 }

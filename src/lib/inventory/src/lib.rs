@@ -1,4 +1,5 @@
 pub mod contents;
 pub mod inventory;
 pub mod slot;
-mod viewers;
+pub mod types;
+pub mod viewers;

@@ -1,14 +1,12 @@
 use crate::contents::InventoryContents;
 use crate::slot::Slot;
 use crate::viewers::InventoryView;
-use ferrumc_net::connection::StreamWriter;
-use ferrumc_net::errors::NetError;
-use ferrumc_net::packets::outgoing::open_screen::OpenScreenPacket;
-use ferrumc_net::packets::outgoing::set_container_slot::SetContainerSlotPacket;
-use ferrumc_net_codec::encode::NetEncodeOpts;
+use dashmap::DashMap;
+use ferrumc_ecs::entities::Entity;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_text::{TextComponent, TextComponentBuilder};
 
+#[derive(Debug, Clone, Copy)]
 pub enum InventoryType {
     Chest(i8),
     Anvil,
@@ -85,7 +83,7 @@ impl InventoryType {
     }
 }
 
-#[derive()]
+#[derive(Debug, Clone)]
 pub struct Inventory {
     pub id: VarInt,
     pub inventory_type: InventoryType,
@@ -120,6 +118,55 @@ impl Inventory {
             self.contents.get_slot(slot_id)
         } else {
             None
+        }
+    }
+
+    pub fn get_viewers(&self) -> &Vec<Entity> {
+        &self.view.viewers
+    }
+
+    pub fn get_contents(&self) -> &DashMap<i32, Slot> {
+        &self.contents.contents
+    }
+
+    pub fn clear(&mut self) {
+        self.get_contents().clear();
+    }
+
+    pub fn contains(&self, item: i32) -> bool {
+        self.get_contents()
+            .iter()
+            .any(|slot| slot.value().item == item)
+    }
+
+    pub fn contains_slot(&self, slot: Slot) -> bool {
+        self.contains(slot.item)
+    }
+
+    pub fn get_first_empty(&self) -> i32 {
+        let contents = self.get_contents();
+        for i in 0..self.get_size() {
+            if let None = contents.get(&i) {
+                return i;
+            }
+        }
+
+        return 0;
+    }
+
+    pub fn get_size(&self) -> i32 {
+        self.inventory_type.get_size()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.get_contents().is_empty()
+    }
+
+    pub fn is_full(&self) -> bool {
+        if self.get_contents().len() == self.get_size() as usize {
+            true
+        } else {
+            false
         }
     }
 }
