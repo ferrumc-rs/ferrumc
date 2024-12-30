@@ -36,6 +36,14 @@ impl ArgumentParser for SingleStringParser {
             props: MinecraftArgumentProperties::String(StringParsingBehavior::default()),
         }
     }
+
+    fn completions(
+        &self,
+        _ctx: Arc<CommandContext>,
+        _input: Arc<Mutex<CommandInput>>,
+    ) -> Vec<String> {
+        vec![]
+    }
 }
 
 pub struct GreedyStringParser;
@@ -78,7 +86,16 @@ impl ArgumentParser for GreedyStringParser {
             props: MinecraftArgumentProperties::String(StringParsingBehavior::Greedy),
         }
     }
+
+    fn completions(
+        &self,
+        _ctx: Arc<CommandContext>,
+        _input: Arc<Mutex<CommandInput>>,
+    ) -> Vec<String> {
+        vec![]
+    }
 }
+
 pub struct QuotedStringParser;
 
 impl ArgumentParser for QuotedStringParser {
@@ -147,5 +164,13 @@ impl ArgumentParser for QuotedStringParser {
             argument_type: MinecraftArgumentType::String,
             props: MinecraftArgumentProperties::String(StringParsingBehavior::Quotable),
         }
+    }
+
+    fn completions(
+        &self,
+        _ctx: Arc<CommandContext>,
+        _input: Arc<Mutex<CommandInput>>,
+    ) -> Vec<String> {
+        vec![]
     }
 }

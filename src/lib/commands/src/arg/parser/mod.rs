@@ -8,7 +8,10 @@ pub mod utils;
 pub mod vanilla;
 
 pub trait ArgumentParser: Send + Sync {
-    fn parse(&self, context: Arc<CommandContext>, input: Arc<Mutex<CommandInput>>) -> ParserResult;
+    fn parse(&self, ctx: Arc<CommandContext>, input: Arc<Mutex<CommandInput>>) -> ParserResult;
+    fn completions(&self, ctx: Arc<CommandContext>, input: Arc<Mutex<CommandInput>>)
+        -> Vec<String>;
+
     fn new() -> Self
     where
         Self: Sized;

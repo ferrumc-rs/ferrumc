@@ -35,4 +35,34 @@ impl ArgumentParser for IntParser {
             props: MinecraftArgumentProperties::Int(IntParserFlags::default()),
         }
     }
+
+    fn completions(
+        &self,
+        _ctx: Arc<CommandContext>,
+        input: Arc<Mutex<CommandInput>>,
+    ) -> Vec<String> {
+        let input = input.lock().unwrap();
+
+        let mut numbers = Vec::new();
+        let token = input.peek_string();
+
+        let input_num = if token == "-" {
+            "-0".to_string()
+        } else if token.is_empty() {
+            "0".to_string()
+        } else {
+            token
+        };
+
+        if input_num.parse::<i32>().is_err() {
+            return numbers;
+        }
+
+        for n in 0..=9 {
+            let n = n.to_string();
+            numbers.push(input_num.clone() + &n);
+        }
+
+        numbers
+    }
 }
