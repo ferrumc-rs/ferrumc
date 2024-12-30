@@ -13,9 +13,5 @@ pub struct PlayerStartLoginEvent {
     pub entity: Entity,
 
     /// This profile can be changed and after the event is finished this will be the new profile.
-    ///
-    /// Be warned that this event can be cancelled or this field can be overriden by other listeners and 
-    /// this could mean your profile will never be used.
-    ///
     pub profile: PlayerIdentity,
 }
