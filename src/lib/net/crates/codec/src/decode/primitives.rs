@@ -35,6 +35,7 @@ impl_for_primitives!(
     u32 | i32,
     u64 | i64,
     u128 | i128,
+    usize | isize,
     f32,
     f64
 );
