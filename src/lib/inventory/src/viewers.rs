@@ -1,5 +1,5 @@
 use crate::inventory::InventoryData;
-use crate::{inventory::Inventory, slot::Slot};
+use crate::slot::Slot;
 use ferrumc_ecs::entities::Entity;
 use ferrumc_ecs::errors::ECSError;
 use ferrumc_net::errors::NetError;
@@ -26,7 +26,7 @@ impl InventoryView {
     pub async fn add_viewer(
         &mut self,
         inventory: &InventoryData,
-        mut entity: (Entity, &mut StreamWriter),
+        entity: (Entity, &mut StreamWriter),
     ) -> Result<&mut Self, NetError> {
         let viewers = &self.viewers;
         if viewers.contains(&entity.0) {
@@ -34,7 +34,7 @@ impl InventoryView {
         }
 
         self.viewers.push(entity.0);
-        self.send_packet(inventory, &mut entity.1).await?;
+        self.send_packet(inventory, entity.1).await?;
         Ok(self)
     }
 
