@@ -194,10 +194,9 @@ impl LmdbBackend {
             rw_txn.commit()?;
             Ok(())
         })
-            .await
-            .expect("Failed to run tokio task")
+        .await
+        .expect("Failed to run tokio task")
     }
-
 
     pub async fn exists(&self, table: String, key: u128) -> Result<bool, StorageError> {
         let env = self.env.clone();

@@ -50,7 +50,6 @@ impl From<AcquireError> for WorldError {
     }
 }
 
-
 impl From<std::io::Error> for WorldError {
     fn from(err: std::io::Error) -> Self {
         match err.kind() {

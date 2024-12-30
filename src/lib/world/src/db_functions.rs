@@ -130,7 +130,10 @@ pub(crate) async fn save_chunk_internal(world: &World, chunk: Chunk) -> Result<(
     Ok(())
 }
 
-pub(crate) async fn save_chunk_internal_batch(world: &World, chunks: Vec<Chunk>) -> Result<(), WorldError> {
+pub(crate) async fn save_chunk_internal_batch(
+    world: &World,
+    chunks: Vec<Chunk>,
+) -> Result<(), WorldError> {
     // Prepare the batch data for the upsert
     let mut batch_data = Vec::new();
 
@@ -144,11 +147,13 @@ pub(crate) async fn save_chunk_internal_batch(world: &World, chunks: Vec<Chunk>)
     }
 
     // Perform the batch upsert
-    world.storage_backend.batch_upsert("chunks".to_string(), batch_data).await?;
+    world
+        .storage_backend
+        .batch_upsert("chunks".to_string(), batch_data)
+        .await?;
 
     Ok(())
 }
-
 
 pub(crate) async fn load_chunk_internal(
     world: &World,

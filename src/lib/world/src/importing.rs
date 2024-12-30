@@ -1,7 +1,7 @@
-use crate::Chunk;
 use crate::db_functions::save_chunk_internal_batch; // Ensure this is the batch save function
 use crate::errors::WorldError;
 use crate::vanilla_chunk_format::VanillaChunk;
+use crate::Chunk;
 use crate::World;
 use ferrumc_anvil::load_anvil_file;
 use ferrumc_general_purpose::paths::BetterPathExt;
@@ -28,17 +28,23 @@ impl World {
         progress: Arc<ProgressBar>,
         processed_since_flush: Arc<AtomicU64>,
     ) -> Result<(), WorldError> {
-        let chunk_objects: Vec<Chunk> = chunks.into_iter().filter_map(|chunk| chunk.to_custom_format().ok()).collect();
+        let chunk_objects: Vec<Chunk> = chunks
+            .into_iter()
+            .filter_map(|chunk| chunk.to_custom_format().ok())
+            .collect();
 
         let mut success_count = 0;
-        if let Ok(()) = save_chunk_internal_batch(self, chunk_objects.clone()/*temp clone*/).await {
+        if let Ok(()) = save_chunk_internal_batch(self, chunk_objects.clone() /*temp clone*/).await
+        {
             success_count = chunk_objects.len(); // Increment by the number of chunks successfully saved
         }
 
         progress.inc(success_count.try_into().unwrap()); // Convert success_count to u64
 
         // Flush logic remains the same
-        let total_processed = processed_since_flush.fetch_add(success_count as u64, Ordering::Relaxed) + success_count as u64;
+        let total_processed = processed_since_flush
+            .fetch_add(success_count as u64, Ordering::Relaxed)
+            + success_count as u64;
         if total_processed >= FLUSH_INTERVAL {
             self.storage_backend.flush().await?;
             processed_since_flush.store(0, Ordering::Relaxed);
@@ -47,7 +53,6 @@ impl World {
 
         Ok(())
     }
-
 
     fn get_chunk_count(&self, import_dir: &PathBuf) -> Result<u64, WorldError> {
         info!("Counting chunks in import directory...");
@@ -63,10 +68,8 @@ impl World {
                 }
 
                 if let Ok(anvil_file) = load_anvil_file(entry.path()) {
-                    chunk_count.fetch_add(
-                        anvil_file.get_locations().len() as u64,
-                        Ordering::Relaxed,
-                    );
+                    chunk_count
+                        .fetch_add(anvil_file.get_locations().len() as u64, Ordering::Relaxed);
                 }
                 Ok(())
             })?;
@@ -114,7 +117,11 @@ impl World {
             let anvil_file = match load_anvil_file(region_entry.path()) {
                 Ok(file) => file,
                 Err(e) => {
-                    error!("Failed to load region file {}: {}", region_entry.path().display(), e);
+                    error!(
+                        "Failed to load region file {}: {}",
+                        region_entry.path().display(),
+                        e
+                    );
                     continue;
                 }
             };
@@ -125,7 +132,10 @@ impl World {
                         current_batch.push(vanilla_chunk);
 
                         if current_batch.len() >= BATCH_SIZE {
-                            let batch = std::mem::replace(&mut current_batch, Vec::with_capacity(BATCH_SIZE));
+                            let batch = std::mem::replace(
+                                &mut current_batch,
+                                Vec::with_capacity(BATCH_SIZE),
+                            );
                             let progress_clone = Arc::clone(&progress);
                             let self_clone = self.clone();
                             let permit = Arc::clone(&semaphore).acquire_owned().await?;
@@ -133,7 +143,14 @@ impl World {
 
                             task_set.spawn(async move {
                                 let _permit = permit; // Keep permit alive for the duration of the task
-                                if let Err(e) = self_clone.process_chunk_batch(batch, progress_clone, processed_since_flush_clone).await {
+                                if let Err(e) = self_clone
+                                    .process_chunk_batch(
+                                        batch,
+                                        progress_clone,
+                                        processed_since_flush_clone,
+                                    )
+                                    .await
+                                {
                                     error!("Batch processing error: {}", e);
                                 }
                             });
@@ -152,7 +169,10 @@ impl World {
 
             task_set.spawn(async move {
                 let _permit = permit;
-                if let Err(e) = self_clone.process_chunk_batch(current_batch, progress_clone, processed_since_flush_clone).await {
+                if let Err(e) = self_clone
+                    .process_chunk_batch(current_batch, progress_clone, processed_since_flush_clone)
+                    .await
+                {
                     error!("Final batch processing error: {}", e);
                 }
             });
