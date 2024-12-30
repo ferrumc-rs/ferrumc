@@ -1,11 +1,13 @@
 use crate::{inventory::Inventory, slot::Slot};
 use ferrumc_ecs::entities::Entity;
 use ferrumc_ecs::errors::ECSError;
-use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::errors::NetError;
 use ferrumc_net::packets::outgoing::close_container::CloseContainerPacket;
 use ferrumc_net::packets::outgoing::open_screen::OpenScreenPacket;
-use ferrumc_net::packets::outgoing::set_container_slot::SetContainerSlotPacket;
+use ferrumc_net::packets::outgoing::set_container_slot::{NetworkSlot, SetContainerSlotPacket};
+use ferrumc_net::{
+    connection::StreamWriter, packets::outgoing::set_container_content::SetContainerContentPacket,
+};
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 
 #[derive(Debug, Clone)]
@@ -88,17 +90,18 @@ impl InventoryView {
             .send_packet(&packet, &NetEncodeOpts::WithLength)
             .await?;
 
-        // Temporary until i get container content setup
-        for slot in inventory.contents.contents.iter() {
-            let slot_packet = SetContainerSlotPacket::new(
-                inventory.id,
-                *slot.key() as i16,
-                slot.to_network_slot(),
-            );
-            writer
-                .send_packet(&slot_packet, &NetEncodeOpts::SizePrefixed)
-                .await?;
-        }
+        let inventory_size = inventory.inventory_type.get_size() as usize;
+        let container_content = inventory.contents.construct_container_vec(inventory_size);
+        writer
+            .send_packet(
+                &SetContainerContentPacket::new(
+                    *inventory.id as u8,
+                    container_content,
+                    NetworkSlot::empty(),
+                ),
+                &NetEncodeOpts::SizePrefixed,
+            )
+            .await?;
 
         Ok(())
     }

@@ -20,6 +20,10 @@ impl NetworkSlot {
         }
     }
 
+    pub fn empty() -> Self {
+        Self::new(0, 0)
+    }
+
     pub fn item_id(&mut self, item_id: VarInt) -> &mut Self {
         self.item_id = Some(item_id);
         self
