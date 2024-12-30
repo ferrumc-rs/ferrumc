@@ -119,7 +119,9 @@ impl ChunkAndLightData {
                         VarInt::new(0).write(&mut data)?;
                         trace!(
                             "No palette entry found for section at {}, {}, {}",
-                            chunk.x, section.y, chunk.z
+                            chunk.x,
+                            section.y,
+                            chunk.z
                         );
                     }
                 }

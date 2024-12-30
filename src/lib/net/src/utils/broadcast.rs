@@ -1,16 +1,16 @@
-use std::collections::HashSet;
 use crate::connection::StreamWriter;
 use crate::NetResult;
 use async_trait::async_trait;
+use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
+use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_ecs::entities::Entity;
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use ferrumc_state::GlobalState;
 use futures::StreamExt;
+use std::collections::HashSet;
 use std::future::Future;
 use std::pin::Pin;
 use tracing::debug;
-use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
-use ferrumc_core::identity::player_identity::PlayerIdentity;
 
 type AsyncCallbackFn = Box<
     dyn Fn(Entity, &GlobalState) -> Pin<Box<dyn Future<Output = ()> + Send + '_>> + Send + Sync,
@@ -28,16 +28,15 @@ pub struct BroadcastOptions {
 impl BroadcastOptions {
     pub fn only<I>(mut self, entities: I) -> Self
     where
-        I: IntoIterator<Item = Entity>
+        I: IntoIterator<Item = Entity>,
     {
-        
         self.only_entities = Some(entities.into_iter().collect());
         self
     }
 
     pub fn except<I>(mut self, entities: I) -> Self
     where
-        I: IntoIterator<Item = Entity>
+        I: IntoIterator<Item = Entity>,
     {
         self.except_entities = Some(entities.into_iter().collect());
         self
@@ -67,7 +66,7 @@ impl BroadcastOptions {
 }
 
 fn get_all_entities(state: &GlobalState) -> HashSet<Entity> {
-    // If it needs a chunk, then it's player!! :) 
+    // If it needs a chunk, then it's player!! :)
     // !!!= === =.>>> if it works dont break it
     state
         .universe

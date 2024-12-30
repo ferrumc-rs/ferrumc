@@ -15,8 +15,10 @@ struct Velocity {
 
 fn create_entity(universe: &Universe) {
     // entity is 0 here;
-    universe.builder()
-        .with(Position { x: 0.0, y: 0.0 }).unwrap()
+    universe
+        .builder()
+        .with(Position { x: 0.0, y: 0.0 })
+        .unwrap()
         .build();
 }
 
@@ -34,10 +36,20 @@ fn get_position_mut(universe: &Universe) {
 
 fn _create_1000_entities_with_pos_and_vel(universe: &Universe) {
     for i in 0..1000 {
-        let builder = universe.builder()
-            .with(Position { x: i as f32, y: i as f32 }).unwrap();
+        let builder = universe
+            .builder()
+            .with(Position {
+                x: i as f32,
+                y: i as f32,
+            })
+            .unwrap();
         if i % 2 == 0 {
-            builder.with(Velocity { x: i as f32, y: i as f32 }).unwrap();
+            builder
+                .with(Velocity {
+                    x: i as f32,
+                    y: i as f32,
+                })
+                .unwrap();
         }
     }
 }
@@ -59,8 +71,10 @@ fn criterion_benchmark(c: &mut Criterion) {
             });
             // Create a new world after bench is done.
             world = Universe::new();
-            world.builder()
-                .with(Position { x: 0.0, y: 0.0 }).unwrap()
+            world
+                .builder()
+                .with(Position { x: 0.0, y: 0.0 })
+                .unwrap()
                 .build();
         })
         .bench_function("get immut", |b| {
