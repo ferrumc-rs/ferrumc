@@ -34,8 +34,8 @@ impl InventoryType {
     pub fn get_id(&self) -> VarInt {
         let id = match self {
             InventoryType::Chest(i) => {
-                let value = *i as i32;
-                if value >= 1 && value <= 6 {
+                let value = i32::from(*i);
+                if (1..=6).contains(&value) {
                     value - 1
                 } else {
                     0 // defaults to 1 row chest
@@ -65,7 +65,7 @@ impl InventoryType {
 
     pub fn get_size(&self) -> i32 {
         match self {
-            InventoryType::Chest(i) => *i as i32 * 9,
+            InventoryType::Chest(i) => i32::from(*i) * 9,
             InventoryType::Anvil
             | InventoryType::BlastFurnace
             | InventoryType::Furnace
@@ -123,7 +123,7 @@ impl Inventory {
 
     pub fn set_slot(&mut self, slot_id: i32, slot: Slot) -> &mut Self {
         let size = self.data.inventory_type.get_size();
-        if size >= 0 && size <= slot_id {
+        if (0..=size).contains(&slot_id) {
             self.data.contents.set_slot(slot_id, slot);
         }
 
@@ -132,7 +132,7 @@ impl Inventory {
 
     pub fn get_slot(&self, slot_id: i32) -> Option<Slot> {
         let size = self.data.inventory_type.get_size();
-        if size >= 0 && size <= slot_id {
+        if (0..=size).contains(&slot_id) {
             self.data.contents.get_slot(slot_id)
         } else {
             None
@@ -180,12 +180,12 @@ impl Inventory {
     pub fn get_first_empty(&self) -> i32 {
         let contents = self.get_contents();
         for i in 0..self.get_size() {
-            if let None = contents.get(&i) {
+            if contents.get(&i).is_none() {
                 return i;
             }
         }
 
-        return 0;
+        0
     }
 
     pub fn get_size(&self) -> i32 {
@@ -197,10 +197,6 @@ impl Inventory {
     }
 
     pub fn is_full(&self) -> bool {
-        if self.get_contents().len() == self.get_size() as usize {
-            true
-        } else {
-            false
-        }
+        self.get_contents().len() == self.get_size() as usize
     }
 }

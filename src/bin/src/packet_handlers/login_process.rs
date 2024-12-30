@@ -3,8 +3,6 @@ use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_ecs::components::storage::ComponentRefMut;
-use ferrumc_inventory::inventory::{Inventory, InventoryType};
-use ferrumc_inventory::slot::Slot;
 use ferrumc_macros::event_handler;
 use ferrumc_net::connection::{ConnectionState, StreamWriter};
 use ferrumc_net::errors::NetError;
