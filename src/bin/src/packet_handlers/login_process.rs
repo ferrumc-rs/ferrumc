@@ -171,11 +171,6 @@ async fn handle_ack_finish_configuration(
         )
         .await?;
 
-    let mut inventory = Inventory::new(1, "Outspending's Inventory", InventoryType::Chest(4));
-    inventory.set_slot(0, Slot::new(1, 94));
-
-    inventory.send_packet(&mut *writer).await?;
-
     send_keep_alive(conn_id, state, &mut writer).await?;
 
     Ok(ack_finish_configuration_event)

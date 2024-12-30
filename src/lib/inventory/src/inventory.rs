@@ -1,5 +1,6 @@
 use crate::contents::InventoryContents;
 use crate::slot::Slot;
+use crate::viewers::InventoryView;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::errors::NetError;
 use ferrumc_net::packets::outgoing::open_screen::OpenScreenPacket;
@@ -84,10 +85,12 @@ impl InventoryType {
     }
 }
 
+#[derive()]
 pub struct Inventory {
     pub id: VarInt,
     pub inventory_type: InventoryType,
     pub(crate) contents: InventoryContents,
+    pub view: InventoryView,
     pub title: TextComponent,
 }
 
@@ -97,6 +100,7 @@ impl Inventory {
             id: VarInt::new(id),
             inventory_type,
             contents: InventoryContents::empty(),
+            view: InventoryView::new(),
             title: TextComponentBuilder::new(title).build(),
         }
     }
@@ -117,25 +121,5 @@ impl Inventory {
         } else {
             None
         }
-    }
-
-    pub async fn send_packet(self, writer: &mut StreamWriter) -> Result<(), NetError> {
-        let id = self.id;
-        let packet = OpenScreenPacket::new(id.clone(), self.inventory_type.get_id(), self.title);
-
-        writer
-            .send_packet(&packet, &NetEncodeOpts::WithLength)
-            .await?;
-
-        // Temporary until i get container content setup
-        for slot in self.contents.contents.iter() {
-            let slot_packet =
-                SetContainerSlotPacket::new(id.clone(), *slot.key() as i16, slot.to_network_slot());
-            writer
-                .send_packet(&slot_packet, &NetEncodeOpts::SizePrefixed)
-                .await?;
-        }
-
-        Ok(())
     }
 }

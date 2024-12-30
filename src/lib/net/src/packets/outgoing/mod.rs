@@ -1,5 +1,6 @@
 pub mod chunk_and_light_data;
 pub mod client_bound_known_packs;
+pub mod close_container;
 pub mod disconnect;
 pub mod finish_configuration;
 pub mod game_event;
