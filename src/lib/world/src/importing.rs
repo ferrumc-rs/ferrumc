@@ -5,7 +5,7 @@ use crate::vanilla_chunk_format::VanillaChunk;
 use crate::World;
 use ferrumc_anvil::load_anvil_file;
 use ferrumc_general_purpose::paths::BetterPathExt;
-use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
+use indicatif::{ProgressBar, ProgressStyle};
 use rayon::prelude::*;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -78,7 +78,6 @@ impl World {
         check_paths_validity(&import_dir)?;
 
         // Set up progress tracking
-        let multi_progress = Arc::new(MultiProgress::new());
         let total_chunks = self.get_chunk_count(&import_dir)?;
         let progress_style = ProgressStyle::default_bar()
             .template("[{elapsed_precise}] {bar:40.cyan/blue} {pos:>7}/{len:7} {msg}")
