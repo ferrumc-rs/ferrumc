@@ -1,4 +1,5 @@
 use ferrumc_config::statics::{get_global_config, get_whitelist};
+use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
@@ -38,6 +39,16 @@ async fn handle_login_start(
     let player_identity = PlayerIdentity::new(username.to_string(), uuid);
     debug!("Handling login start event for user: {username}, uuid: {uuid}");
 
+    // Add the player identity component to the ECS for the entity.
+    state
+        .universe
+        .add_component::<PlayerIdentity>(
+            login_start_event.conn_id,
+            PlayerIdentity::new(username.to_string(), uuid),
+        )?
+        .add_component::<ChunkReceiver>(login_start_event.conn_id, ChunkReceiver::default())?;
+
+    //Send a Login Success Response to further the login sequence
     let mut writer = state
         .universe
         .get_mut::<StreamWriter>(login_start_event.conn_id)?;
@@ -184,6 +195,12 @@ async fn handle_ack_finish_configuration(
             &NetEncodeOpts::WithLength,
         )
         .await?;
+
+    let pos = state.universe.get_mut::<Position>(conn_id)?;
+    let mut chunk_recv = state.universe.get_mut::<ChunkReceiver>(conn_id)?;
+    chunk_recv.last_chunk = Some((pos.x as i32, pos.z as i32, String::from("overworld")));
+    chunk_recv.calculate_chunks().await;
+
     send_keep_alive(conn_id, state, &mut writer).await?;
 
     Ok(ack_finish_configuration_event)
