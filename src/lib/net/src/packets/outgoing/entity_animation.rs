@@ -19,23 +19,6 @@ pub struct EntityAnimationEvent {
     pub packet: EntityAnimationPacket,
 }
 
-#[event_handler]
-async fn entity_animation(
-    event: EntityAnimationEvent,
-    state: GlobalState,
-) -> Result<EntityAnimationEvent, NetError> {
-    //TODO change this global broadcast to a broadcast that affects only players in the view distance
-    //      of the player doing it, but as long as we still cant see other players, this will be fine.
-
-    broadcast(
-        &event.packet,
-        &state,
-        BroadcastOptions::default().except([event.eid.val as usize]),
-    )
-        .await?;
-    Ok(event)
-}
-
 impl EntityAnimationPacket {
     pub fn new(eid: VarInt, animation: u8) -> Self {
         Self { eid, animation }
