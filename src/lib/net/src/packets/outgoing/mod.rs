@@ -11,6 +11,8 @@ pub mod open_screen;
 pub mod ping_response;
 pub mod registry_data;
 pub mod set_center_chunk;
+pub mod set_container_content;
+pub mod set_container_property;
 pub mod set_container_slot;
 pub mod set_default_spawn_position;
 pub mod set_render_distance;
