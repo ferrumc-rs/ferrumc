@@ -187,15 +187,21 @@ impl World {
 
 fn check_paths_validity(import_dir: &Path) -> Result<(), WorldError> {
     if !import_dir.exists() {
-        return Err(WorldError::InvalidImportPath(import_dir.display().to_string()));
+        return Err(WorldError::InvalidImportPath(
+            import_dir.display().to_string(),
+        ));
     }
     if import_dir.is_file() {
-        return Err(WorldError::InvalidImportPath(import_dir.display().to_string()));
+        return Err(WorldError::InvalidImportPath(
+            import_dir.display().to_string(),
+        ));
     }
 
     let region_dir = import_dir.join("region");
     if !region_dir.exists() || !region_dir.is_dir() {
-        return Err(WorldError::InvalidImportPath(import_dir.display().to_string()));
+        return Err(WorldError::InvalidImportPath(
+            import_dir.display().to_string(),
+        ));
     }
 
     match region_dir.read_dir() {
@@ -205,7 +211,9 @@ fn check_paths_validity(import_dir: &Path) -> Result<(), WorldError> {
             }
         }
         Err(_) => {
-            return Err(WorldError::InvalidImportPath(import_dir.display().to_string()));
+            return Err(WorldError::InvalidImportPath(
+                import_dir.display().to_string(),
+            ));
         }
     }
 
