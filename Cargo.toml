@@ -6,6 +6,7 @@
 # - Workspace lints
 # - Workspace dependencies.
 
+
 [workspace]
 resolver = "2"
 
@@ -105,6 +106,7 @@ ferrumc-utils = { path = "src/lib/utils" }
 ferrumc-world = { path = "src/lib/world" }
 
 
+
 # Asynchronous
 tokio = { version = "1.40.0", features = ["full"] }
 socket2 = "0.5.7"
@@ -115,12 +117,14 @@ async-trait = "0.1.82"
 tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 log = "0.4.22"
+console-subscriber = "0.4.1"
 
 # Concurrency/Parallelism
 parking_lot = "0.12.3"
 rayon = "1.10.0"
 
 # Network
+reqwest = { version = "0.12.9", features = ["json"] }
 
 # Error handling
 thiserror = "2.0.3"
@@ -137,6 +141,7 @@ serde_derive = "1.0.210"
 base64 = "0.22.1"
 bitcode = "0.6.3"
 bitcode_derive = "0.6.3"
+toml = "0.8.19"
 
 # Bit manipulation
 byteorder = "1.5.0"
@@ -146,6 +151,7 @@ hashbrown = "0.15.0"
 tinyvec = "1.8.0"
 dashmap = "6.1.0"
 uuid = { version = "1.1", features = ["v4", "v3", "serde"] }
+whirlwind = "0.1.1"
 
 # Macros
 lazy_static = "1.5.0"
@@ -181,6 +187,7 @@ colored = "2.1.0"
 # Misc
 deepsize = "0.2.0"
 page_size = "0.6.0"
+regex = "1.11.1"
 
 # I/O
 tempfile = "3.12.0"

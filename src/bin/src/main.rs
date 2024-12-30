@@ -5,11 +5,15 @@ extern crate core;
 use crate::errors::BinaryError;
 use clap::Parser;
 use ferrumc_config::statics::get_global_config;
+use ferrumc_config::whitelist::create_whitelist;
+use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
 use ferrumc_ecs::Universe;
 use ferrumc_general_purpose::paths::get_root_path;
+use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::server::create_server_listener;
 use ferrumc_state::ServerState;
 use ferrumc_world::World;
+use std::hash::{Hash, Hasher};
 use std::sync::Arc;
 use systems::definition;
 use tracing::{error, info};
@@ -26,6 +30,19 @@ pub type Result<T> = std::result::Result<T, BinaryError>;
 async fn main() {
     let cli_args = CLIArgs::parse();
     ferrumc_logging::init_logging(cli_args.log.into());
+
+    check_deadlocks();
+
+    {
+        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        std::any::TypeId::of::<ChunkReceiver>().hash(&mut hasher);
+        let digest = hasher.finish();
+        println!("ChunkReceiver: {:X}", digest);
+        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        std::any::TypeId::of::<StreamWriter>().hash(&mut hasher);
+        let digest = hasher.finish();
+        println!("StreamWriter: {:X}", digest);
+    }
 
     match cli_args.command {
         Some(Command::Setup) => {
@@ -59,10 +76,11 @@ async fn main() {
 async fn entry() -> Result<()> {
     let state = create_state().await?;
     let global_state = Arc::new(state);
+    create_whitelist().await;
 
     let all_system_handles = tokio::spawn(definition::start_all_systems(global_state.clone()));
 
-    // Start the systems and wait until all of them are done
+    //Start the systems and wait until all of them are done
     all_system_handles.await??;
 
     // Stop all systems
@@ -106,4 +124,29 @@ async fn create_state() -> Result<ServerState> {
         tcp_listener: listener,
         world: World::new().await,
     })
+}
+fn check_deadlocks() {
+    {
+        use parking_lot::deadlock;
+        use std::thread;
+        use std::time::Duration;
+
+        // Create a background thread which checks for deadlocks every 10s
+        thread::spawn(move || loop {
+            thread::sleep(Duration::from_secs(10));
+            let deadlocks = deadlock::check_deadlock();
+            if deadlocks.is_empty() {
+                continue;
+            }
+
+            println!("{} deadlocks detected", deadlocks.len());
+            for (i, threads) in deadlocks.iter().enumerate() {
+                println!("Deadlock #{}", i);
+                for t in threads {
+                    println!("Thread Id {:#?}", t.thread_id());
+                    println!("{:#?}", t.backtrace());
+                }
+            }
+        });
+    }
 }
