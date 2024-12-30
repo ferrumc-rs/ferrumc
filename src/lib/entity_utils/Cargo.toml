@@ -8,4 +8,5 @@ ferrumc-net = { workspace = true }
 ferrumc-net-codec = { workspace = true }
 ferrumc-ecs = { workspace = true }
 ferrumc-text = { workspace = true }
+ferrumc-state = { workspace = true }
 async-trait = { workspace = true }

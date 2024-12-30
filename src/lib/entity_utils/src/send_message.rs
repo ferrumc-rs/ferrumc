@@ -1,21 +1,21 @@
 use async_trait::async_trait;
-use ferrumc_ecs::Universe;
 use ferrumc_net::{
     NetResult, connection::StreamWriter, packets::outgoing::system_message::SystemMessagePacket,
 };
 use ferrumc_net_codec::encode::NetEncodeOpts;
+use ferrumc_state::GlobalState;
 use ferrumc_text::TextComponent;
 
 #[async_trait]
 pub trait SendMessageExt {
-    async fn send_message(&self, message: TextComponent, universe: &Universe) -> NetResult<()>;
-    async fn send_actionbar(&self, message: TextComponent, universe: &Universe) -> NetResult<()>;
+    async fn send_message(&self, message: TextComponent, state: GlobalState) -> NetResult<()>;
+    async fn send_actionbar(&self, message: TextComponent, state: GlobalState) -> NetResult<()>;
 }
 
 #[async_trait]
 impl SendMessageExt for usize {
-    async fn send_message(&self, message: TextComponent, universe: &Universe) -> NetResult<()> {
-        let mut writer = universe.get_mut::<StreamWriter>(*self)?;
+    async fn send_message(&self, message: TextComponent, state: GlobalState) -> NetResult<()> {
+        let mut writer = state.universe.get_mut::<StreamWriter>(*self)?;
         writer
             .send_packet(
                 &SystemMessagePacket::new(message, false),
@@ -24,8 +24,8 @@ impl SendMessageExt for usize {
             .await
     }
 
-    async fn send_actionbar(&self, message: TextComponent, universe: &Universe) -> NetResult<()> {
-        let mut writer = universe.get_mut::<StreamWriter>(*self)?;
+    async fn send_actionbar(&self, message: TextComponent, state: GlobalState) -> NetResult<()> {
+        let mut writer = state.universe.get_mut::<StreamWriter>(*self)?;
         writer
             .send_packet(
                 &SystemMessagePacket::new(message, true),

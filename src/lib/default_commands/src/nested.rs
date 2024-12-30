@@ -22,7 +22,7 @@ async fn root(ctx: Arc<CommandContext>) -> CommandResult {
     ctx.connection_id
         .send_message(
             TextComponentBuilder::new("Executed /nested").build(),
-            &ctx.state.universe,
+            ctx.state.clone(),
         )
         .await
         .expect("failed sending message");
@@ -44,7 +44,7 @@ async fn abc(ctx: Arc<CommandContext>) -> CommandResult {
                 "Message: {message:?}, Word: {word:?}, Number: {number}"
             ))
             .build(),
-            &ctx.state.universe,
+            ctx.state.clone(),
         )
         .await
         .expect("failed sending message");

@@ -30,7 +30,7 @@ async fn echo(ctx: Arc<CommandContext>) -> CommandResult {
             TextComponentBuilder::new(format!("{} said: {message}", identity.username))
                 .color(NamedColor::Green)
                 .build(),
-            &ctx.state.universe,
+            ctx.state.clone(),
         )
         .await
         .expect("failed sending message");
