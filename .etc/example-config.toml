@@ -10,6 +10,8 @@ max_players = 100
 network_tick_rate = 30
 # World name to load
 world = "world"
+# Whether the server should validate players via the whitelist
+whitelist = false
 # Network compression threshold (can be negative). This decides how long a packet has to be before it is compressed.
 # Very small packets may actually increase in size when compressed, so setting it to 0 won't be perfect in all situations.
 # Set to -1 to disable compression.
@@ -34,3 +36,5 @@ map_size = 1_000
 cache_ttl = 60
 # How big the cache can be in kb.
 cache_capacity = 20_000
+
+whitelist = false
