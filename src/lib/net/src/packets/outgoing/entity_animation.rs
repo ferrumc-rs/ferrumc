@@ -1,6 +1,6 @@
+use ferrumc_ecs::entities::Entity;
 use ferrumc_macros::{packet, Event, NetEncode};
 use std::io::Write;
-use ferrumc_ecs::entities::Entity;
 
 #[derive(NetEncode)]
 #[packet(packet_id = 0x03)]
@@ -25,9 +25,9 @@ impl EntityAnimationPacket {
 impl EntityAnimationEvent {
     pub fn new(eid: Entity, animation: u8) -> Self {
         Self {
-            entity: eid.clone(),
-            animation: animation,
-            packet: EntityAnimationPacket::new(eid, animation.clone()),
+            entity: eid,
+            animation,
+            packet: EntityAnimationPacket::new(eid, animation),
         }
     }
 }
