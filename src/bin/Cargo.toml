@@ -31,7 +31,7 @@ ferrumc-default-commands = { workspace = true }
 ferrumc-text = { workspace = true }
 
 ctor = { workspace = true }
-parking_lot = { workspace = true }
+parking_lot = { workspace = true, features = ["deadlock_detection"] }
 tracing = { workspace = true }
 tokio = { workspace = true }
 rayon = { workspace = true }

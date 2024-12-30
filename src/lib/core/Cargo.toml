@@ -6,5 +6,9 @@ edition = "2021"
 
 [dependencies]
 thiserror = { workspace = true }
-tokio = { workspace = true}
-ferrumc-ecs = {workspace = true}
+tokio = { workspace = true }
+ferrumc-ecs = { workspace = true }
+dashmap = { workspace = true }
+ferrumc-world = { workspace = true }
+tracing = { workspace = true }
+log = "0.4.22"
