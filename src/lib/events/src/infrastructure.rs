@@ -99,62 +99,6 @@ pub trait Event: Sized + Send + Sync + 'static {
             .await
     }
 
-    /*/// Trigger the execution of an event with concurrency support
-        ///
-        /// If the event structure supports cloning. This method can be used to execute
-        /// listeners of the same priority concurrently (using tokio::task). This imply a
-        /// cloning cost at each listener execution. See `Event::trigger` for a more
-        /// efficient but more linear approach.
-        ///
-        /// # Mutability policy
-        ///
-        /// The listeners having the same priority being runned concurrently, there are no
-        /// guarantees in the order of mutation of the event data.
-        ///
-        /// It is recommended to ensure listeners of the same priority exclusively update fields
-        /// in the event data that are untouched by other listeners of the same group.
-        async fn trigger_concurrently(event: Self::Data) -> Result<(), Self::Error>
-        where
-            Self::Data: Clone,
-        {
-            let read_guard = &EVENTS_LISTENERS;
-            let listeners = read_guard.get(Self::name()).unwrap();
-
-            // Convert listeners iterator into Stream
-            let mut stream = stream::iter(listeners.iter());
-
-            let mut priority_join_set = Vec::new();
-            let mut current_priority = 0;
-
-            while let Some(Some(listener)) = stream
-                .next()
-                .await
-                .map(|l| l.downcast_ref::<EventListener<Self>>())
-            {
-                if listener.priority == current_priority {
-                    priority_join_set.push(tokio::spawn((listener.listener)(event.clone())));
-                } else {
-                    // Await over all listeners launched
-                    let joined = future::join_all(priority_join_set.iter_mut()).await;
-
-                    // If one listener fail we return the first error
-                    if let Some(err) = joined
-                        .into_iter()
-                        .filter_map(|res| res.expect("No task should ever panic. Impossible;").err())
-                        .next()
-                    {
-                        return Err(err);
-                    }
-
-                    // Update priority to the new listener(s)
-                    current_priority = listener.priority;
-                    priority_join_set.push(tokio::spawn((listener.listener)(event.clone())));
-                }
-            }
-
-            Ok(())
-        }
-    */
     /// Register a new event listener for this event
     fn register(listener: AsyncEventListener<Self>, priority: u8) {
         // Create the event listener structure

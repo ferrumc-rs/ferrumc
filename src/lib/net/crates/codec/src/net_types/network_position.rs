@@ -40,6 +40,7 @@ impl NetEncode for NetworkPosition {
         _: &NetEncodeOpts,
     ) -> NetEncodeResult<()> {
         use tokio::io::AsyncWriteExt;
+
         writer
             .write_all(self.as_u64().to_be_bytes().as_ref())
             .await?;

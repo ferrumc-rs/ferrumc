@@ -1,10 +1,12 @@
 use crate::connection::StreamWriter;
 use crate::NetResult;
 use async_trait::async_trait;
+use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
 use ferrumc_ecs::entities::Entity;
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use ferrumc_state::GlobalState;
 use futures::StreamExt;
+use std::collections::HashSet;
 use std::future::Future;
 use std::pin::Pin;
 use tracing::debug;
@@ -16,20 +18,26 @@ type SyncCallbackFn = Box<dyn Fn(Entity, &GlobalState) + Send + Sync>;
 
 #[derive(Default)]
 pub struct BroadcastOptions {
-    pub only_entities: Option<Vec<Entity>>,
-    pub not_entities: Option<Vec<Entity>>,
+    pub only_entities: Option<HashSet<Entity>>,
+    pub except_entities: Option<HashSet<Entity>>,
     pub async_callback: Option<AsyncCallbackFn>,
     pub sync_callback: Option<SyncCallbackFn>,
 }
 
 impl BroadcastOptions {
-    pub fn only(mut self, entities: Vec<Entity>) -> Self {
-        self.only_entities = Some(entities);
+    pub fn only<I>(mut self, entities: I) -> Self
+    where
+        I: IntoIterator<Item = Entity>,
+    {
+        self.only_entities = Some(entities.into_iter().collect());
         self
     }
 
-    pub fn not(mut self, entities: Vec<Entity>) -> Self {
-        self.not_entities = Some(entities);
+    pub fn except<I>(mut self, entities: I) -> Self
+    where
+        I: IntoIterator<Item = Entity>,
+    {
+        self.except_entities = Some(entities.into_iter().collect());
         self
     }
 
@@ -56,24 +64,36 @@ impl BroadcastOptions {
     }
 }
 
+fn get_all_entities(state: &GlobalState) -> HashSet<Entity> {
+    // If it needs a chunk, then it's player!! :)
+    // !!!= === =.>>> if it works dont break it
+    state
+        .universe
+        .get_component_manager()
+        .get_entities_with::<ChunkReceiver>()
+        .into_iter()
+        .collect()
+}
+
 pub async fn broadcast(
     packet: &impl NetEncode,
     state: &GlobalState,
     opts: BroadcastOptions,
 ) -> NetResult<()> {
-    let entities = match opts.only_entities {
-        None => state
-            .universe
-            .get_component_manager()
-            .get_entities_with::<StreamWriter>(),
+    let mut entities = match opts.only_entities {
+        None => get_all_entities(state),
         Some(entities) => entities,
-    }.into_iter()
-        .filter(move |entity| {
-            match opts.not_entities.as_ref() {
-                Some(vec) => !vec.contains(entity),
-                None => true,
-            }
-        });
+    };
+
+    // Remove excluded entities if any
+    if let Some(except_entities) = opts.except_entities {
+        entities.retain(|entity| !except_entities.contains(entity));
+    }
+
+    // No entities to broadcast to
+    if entities.is_empty() {
+        return Ok(());
+    }
 
     // Pre-encode the packet to save resources.
     let packet = {

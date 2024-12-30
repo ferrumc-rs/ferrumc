@@ -7,9 +7,12 @@ edition = "2021"
 [dependencies]
 thiserror = { workspace = true }
 tokio = { workspace = true}
-ferrumc-ecs = { workspace = true }
+dashmap = { workspace = true }
+tracing = { workspace = true }
+log = "0.4.22"
 
-# this could cause issues
+ferrumc-ecs = { workspace = true }
+ferrumc-world = { workspace = true }
 ferrumc-net-codec = { workspace = true }
 ferrumc-macros = { workspace = true }
 ferrumc-config = { workspace = true }

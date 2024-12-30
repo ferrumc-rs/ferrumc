@@ -1,3 +1,4 @@
+use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
@@ -38,11 +39,9 @@ async fn handle_login_start(
     login_start_event: LoginStartEvent,
     state: GlobalState,
 ) -> Result<LoginStartEvent, NetError> {
-    debug!("Handling login start event");
-
     let uuid = login_start_event.login_start_packet.uuid;
     let username = login_start_event.login_start_packet.username.as_str();
-    debug!("Received login start from user with username {}", username);
+    debug!("Handling login start event for user: {username}, uuid: {uuid}");
 
     // Add the player identity component to the ECS for the entity.
     let event = PlayerStartLoginEvent {
@@ -186,6 +185,9 @@ async fn handle_ack_finish_configuration(
         writer.send_packet(&ferrumc_net::packets::outgoing::chunk_and_light_data::ChunkAndLightData::from_chunk(&chunk)?, &NetEncodeOpts::WithLength).await?;
     }
 
+    // todos in this code below
+    // - fix where sometimes players don't get spawned
+    // - make sure to only spawn players that are in range
     for (entity, profile) in state.universe.query::<&PlayerIdentity>() {
         // spawn all players but ours in server for new connection
         if entity != conn_id {
@@ -200,6 +202,12 @@ async fn handle_ack_finish_configuration(
 
     drop(writer);
 
+    state.universe.add_component::<ChunkReceiver>(conn_id, ChunkReceiver::default())?;
+    let pos = state.universe.get::<Position>(conn_id)?;
+    let mut chunk_recv = state.universe.get_mut::<ChunkReceiver>(conn_id)?;
+    chunk_recv.last_chunk = Some((pos.x as i32, pos.z as i32, String::from("overworld")));
+    chunk_recv.calculate_chunks().await;
+
     // broadcast player info update
     let profile = state
         .universe
@@ -210,7 +218,7 @@ async fn handle_ack_finish_configuration(
     ]), BroadcastOptions::default()).await?;
 
     // broadcast spawn entity packet for everyone online but current connection
-    state.broadcast(&SpawnEntityPacket::new(conn_id, state.clone())?, BroadcastOptions::default().not(vec![conn_id])).await?;
+    state.broadcast(&SpawnEntityPacket::new(conn_id, state.clone())?, BroadcastOptions::default().except(vec![conn_id])).await?;
 
     Ok(ack_finish_configuration_event)
 }
@@ -225,7 +233,7 @@ async fn handle_player_quit(
         .universe
         .get::<PlayerIdentity>(conn_id)?;
     state.broadcast(&PlayerInfoRemovePacket::new(vec![profile.uuid]), BroadcastOptions::default()).await?;
-    state.broadcast(&DestroyEntitiesPacket::new(vec![conn_id]), BroadcastOptions::default().not(vec![conn_id])).await?;
+    state.broadcast(&DestroyEntitiesPacket::new(vec![conn_id]), BroadcastOptions::default().except(vec![conn_id])).await?;
     Ok(event)
 }
 

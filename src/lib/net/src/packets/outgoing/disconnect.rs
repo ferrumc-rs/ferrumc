@@ -4,7 +4,7 @@ use ferrumc_macros::{packet, NetEncode};
 use ferrumc_text::*;
 use std::io::Write;
 
-pub const DISCONNECT_STRING: &str = "&cDisconnected";
+pub const DISCONNECT_STRING: &str = "§cDisconnected";
 
 #[derive(NetEncode)]
 pub enum DisconnectPacket {

@@ -7,7 +7,8 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::time::Instant;
-use tracing::{debug, info};
+use tracing::{debug, info, trace};
+
 pub struct TickingSystem;
 
 static KILLED: AtomicBool = AtomicBool::new(false);
@@ -19,12 +20,18 @@ impl System for TickingSystem {
         let mut tick = 0;
         while !KILLED.load(Ordering::Relaxed) {
             let required_end = Instant::now() + Duration::from_millis(50);
-            // TODO handle error
-            let res = TickEvent::trigger(TickEvent::new(tick), state.clone()).await;
-            if let Err(e) = res {
-                debug!("error handling tick event: {:?}", e);
+            let res = {
+                let start = Instant::now();
+                let res = TickEvent::trigger(TickEvent::new(tick), state.clone()).await;
+                trace!("Tick took {:?}", Instant::now() - start);
+
+                res
+            };
+            if let Err(err) = res {
+                debug!("error handling tick event: {:?}", err);
             }
             let now = Instant::now();
+
             if required_end > now {
                 tokio::time::sleep(required_end - now).await;
             } else {
