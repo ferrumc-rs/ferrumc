@@ -9,6 +9,9 @@ ferrumc-net = { workspace = true }
 ferrumc-net-codec = { workspace = true }
 ferrumc-text = { workspace = true }
 ferrumc-ecs = { workspace = true }
+ferrumc-events = { workspace = true }
+ferrumc-macros = { workspace = true }
+ferrumc-state = { workspace = true }
 dashmap = { workspace = true }
 
 [lints]

@@ -168,7 +168,6 @@ async fn handle_ack_finish_configuration(
             &NetEncodeOpts::WithLength,
         )
         .await?;
-
     send_keep_alive(conn_id, state, &mut writer).await?;
 
     Ok(ack_finish_configuration_event)
