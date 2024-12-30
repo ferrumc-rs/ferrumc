@@ -208,8 +208,7 @@ async fn handle_ack_finish_configuration(
     }
 
     let mut inventory = Inventory::new(1, "Outspending's Inventory", InventoryType::Chest(6));
-    inventory.set_slot(0, Slot::with_item(1));
-    inventory.set_slot(1, Slot::with_item(2));
+    inventory.set_all(Slot::with_item(9));
 
     inventory.add_viewer(state, conn_id).await.unwrap();
 

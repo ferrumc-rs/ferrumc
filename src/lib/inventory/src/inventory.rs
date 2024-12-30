@@ -220,6 +220,12 @@ impl Inventory {
         self.get_contents().clear();
     }
 
+    pub fn set_all(&mut self, slot: Slot) {
+        for i in 0..self.get_size() {
+            self.set_slot(i, slot);
+        }
+    }
+
     pub fn contains(&self, item: i32) -> bool {
         self.get_contents()
             .iter()

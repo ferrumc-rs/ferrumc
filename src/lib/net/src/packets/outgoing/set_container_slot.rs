@@ -1,13 +1,25 @@
 use ferrumc_macros::{packet, NetEncode};
+use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use std::io::Write;
+use std::io::{Read, Write};
 
-#[derive(NetEncode)]
+#[derive(NetEncode, Debug)]
 pub struct NetworkSlot {
     pub item_count: VarInt,
     pub item_id: Option<VarInt>,
     pub num_of_components_to_add: Option<VarInt>,
     pub num_of_components_to_remove: Option<VarInt>,
+}
+
+impl NetDecode for NetworkSlot {
+    fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> NetDecodeResult<Self> {
+        let item_count = VarInt::decode(reader, opts)?;
+        if *item_count == 0 {
+            Ok(Self::empty())
+        } else {
+            Ok(Self::new(item_count.val, *VarInt::decode(reader, opts)?))
+        }
+    }
 }
 
 impl NetworkSlot {
