@@ -5,6 +5,7 @@ extern crate core;
 use crate::errors::BinaryError;
 use clap::Parser;
 use ferrumc_config::statics::get_global_config;
+use ferrumc_config::whitelist::create_whitelist;
 use ferrumc_ecs::Universe;
 use ferrumc_general_purpose::paths::get_root_path;
 use ferrumc_net::server::create_server_listener;
@@ -59,13 +60,14 @@ async fn main() {
 async fn entry() -> Result<()> {
     let state = create_state().await?;
     let global_state = Arc::new(state);
+    create_whitelist().await;
 
     // Needed for some reason because ctor doesn't really want to do ctor things otherwise.
     ferrumc_default_commands::init();
 
     let all_system_handles = tokio::spawn(definition::start_all_systems(global_state.clone()));
 
-    // Start the systems and wait until all of them are done
+    //Start the systems and wait until all of them are done
     all_system_handles.await??;
 
     // Stop all systems

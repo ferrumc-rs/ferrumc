@@ -124,6 +124,7 @@ parking_lot = "0.12.3"
 rayon = "1.10.0"
 
 # Network
+reqwest = { version = "0.12.9", features = ["json"] }
 
 # Error handling
 thiserror = "2.0.3"
@@ -140,6 +141,7 @@ serde_derive = "1.0.210"
 base64 = "0.22.1"
 bitcode = "0.6.3"
 bitcode_derive = "0.6.3"
+toml = "0.8.19"
 
 # Bit manipulation
 byteorder = "1.5.0"
@@ -185,6 +187,7 @@ colored = "2.1.0"
 deepsize = "0.2.0"
 page_size = "0.6.0"
 enum-ordinalize = "4.3.0"
+regex = "1.11.1"
 
 # I/O
 tempfile = "3.12.0"
