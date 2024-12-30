@@ -38,7 +38,18 @@ pub enum WorldError {
     MissingBlockMapping(Palette),
     #[error("Invalid memory map size: {0}")]
     InvalidMapSize(u64),
+    #[error("Task Join Error: {0}")]
+    TaskJoinError(String),
 }
+
+// implemente AcquireError for WorldError
+use tokio::sync::AcquireError;
+impl From<AcquireError> for WorldError {
+    fn from(err: AcquireError) -> Self {
+        WorldError::TaskJoinError(err.to_string())
+    }
+}
+
 
 impl From<std::io::Error> for WorldError {
     fn from(err: std::io::Error) -> Self {
