@@ -6,6 +6,7 @@ use ferrumc_macros::{packet, NetDecode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::ServerState;
 use std::sync::Arc;
+use ferrumc_ecs::entities::Entity;
 
 #[derive(NetDecode)]
 #[packet(packet_id = 0x36, state = "play")]
@@ -14,7 +15,7 @@ pub struct SwingArmPacket {
 }
 
 impl IncomingPacket for SwingArmPacket {
-    async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
+    async fn handle(self, conn_id: Entity, state: Arc<ServerState>) -> NetResult<()> {
         let animation = {
             if self.hand == 0 {
                 0
@@ -22,7 +23,7 @@ impl IncomingPacket for SwingArmPacket {
                 3
             }
         };
-        let event = EntityAnimationEvent::new(VarInt::new(conn_id as i32), animation);
+        let event = EntityAnimationEvent::new(conn_id, animation);
         EntityAnimationEvent::trigger(event, state).await?;
         Ok(())
     }
