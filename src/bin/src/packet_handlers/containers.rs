@@ -1,4 +1,3 @@
-use tracing::info;
 use ferrumc_inventory::inventory::Inventory;
 use ferrumc_macros::event_handler;
 use ferrumc_net::errors::NetError;

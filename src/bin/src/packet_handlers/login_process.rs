@@ -211,7 +211,7 @@ async fn handle_ack_finish_configuration(
     inventory.set_slot(0, Slot::with_item(1));
     inventory.set_slot(1, Slot::with_item(2));
 
-    inventory.add_viewer(state, conn_id).await?;
+    inventory.add_viewer(state, conn_id).await.unwrap();
 
     Ok(ack_finish_configuration_event)
 }

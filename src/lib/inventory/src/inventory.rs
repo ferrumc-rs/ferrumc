@@ -3,6 +3,7 @@ use crate::events::inventory_open::OpenInventoryEvent;
 use crate::slot::Slot;
 use dashmap::DashMap;
 use ferrumc_ecs::entities::Entity;
+use ferrumc_ecs::errors::ECSError;
 use ferrumc_events::infrastructure::Event;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::errors::NetError;
@@ -15,6 +16,7 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::ServerState;
 use ferrumc_text::{TextComponent, TextComponentBuilder};
 use std::sync::Arc;
+use thiserror::Error;
 
 #[derive(Debug, Clone, Copy)]
 pub enum InventoryType {
@@ -93,6 +95,21 @@ impl InventoryType {
     }
 }
 
+#[derive(Error, Debug)]
+pub enum InventoryError {
+    #[error("Entity [{0}] already has an open inventory. Cannot open another one.")]
+    AlreadyOpenedInventory(Entity),
+
+    #[error("Net error: [{0}].")]
+    NetError(#[from] NetError),
+
+    #[error("ECS error: [{0}].")]
+    ECSError(#[from] ECSError),
+
+    #[error("Unknown error occurred with inventories...")]
+    Unknown,
+}
+
 #[derive(Debug, Clone)]
 pub struct Inventory {
     pub id: VarInt,
@@ -133,9 +150,13 @@ impl Inventory {
         self,
         state: Arc<ServerState>,
         entity_id: Entity,
-    ) -> Result<(), NetError> {
+    ) -> Result<(), InventoryError> {
         let universe = &state.universe;
         let mut writer = universe.get_mut::<StreamWriter>(entity_id)?;
+
+        if universe.get::<Inventory>(entity_id).is_ok() {
+            return Err(InventoryError::AlreadyOpenedInventory(entity_id));
+        }
 
         let packet =
             OpenScreenPacket::new(self.id, self.inventory_type.get_id(), self.title.clone());
@@ -173,7 +194,7 @@ impl Inventory {
         &mut self,
         state: Arc<ServerState>,
         entity_id: Entity,
-    ) -> Result<(), NetError> {
+    ) -> Result<(), InventoryError> {
         let universe = &state.universe;
         let mut writer = universe.get_mut::<StreamWriter>(entity_id)?;
         let inventory = universe.get::<Inventory>(entity_id)?;
