@@ -1,8 +1,9 @@
 // I have no clue why it is saving i32 and i16. There is no precision. The actual player position is saved in f32.
 
+use crate::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
 use crate::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
 use std::fmt::Display;
-use std::io::Write;
+use std::io::{Read, Write};
 use tokio::io::AsyncWrite;
 
 /// The definition of a "Position" in the Minecraft protocol.
@@ -46,6 +47,18 @@ impl NetEncode for NetworkPosition {
         Ok(())
     }
 }
+
+impl NetDecode for NetworkPosition {
+    fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> NetDecodeResult<Self> {
+        let value = u64::decode(reader, opts)?;
+        Ok(Self {
+            x: (value >> 38) as i32,
+            y: (value << 54 >> 52) as i16,
+            z: (value << 26 >> 38) as i32,
+        })
+    }
+}
+
 impl NetworkPosition {
     pub fn as_u64(&self) -> u64 {
         ((self.x as u64 & 0x3FFFFFF) << 38)

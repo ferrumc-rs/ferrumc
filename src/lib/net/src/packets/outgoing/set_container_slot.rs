@@ -12,11 +12,20 @@ pub struct NetworkSlot {
 
 impl NetworkSlot {
     pub fn new(item_count: i32, item_id: i32) -> Self {
-        Self {
-            item_count: VarInt::new(item_count),
-            item_id: Some(VarInt::new(item_id)),
-            num_of_components_to_add: Some(VarInt::new(0)),
-            num_of_components_to_remove: Some(VarInt::new(0)),
+        if item_count == 0 {
+            Self {
+                item_count: VarInt::new(0),
+                item_id: None,
+                num_of_components_to_add: None,
+                num_of_components_to_remove: None,
+            }
+        } else {
+            Self {
+                item_count: VarInt::new(item_count),
+                item_id: Some(VarInt::new(item_id)),
+                num_of_components_to_add: Some(VarInt::new(0)),
+                num_of_components_to_remove: Some(VarInt::new(0)),
+            }
         }
     }
 

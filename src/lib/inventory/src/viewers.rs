@@ -4,14 +4,12 @@ use crate::inventory::InventoryData;
 use ferrumc_ecs::entities::Entity;
 use ferrumc_ecs::errors::ECSError;
 use ferrumc_events::infrastructure::Event;
+use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::errors::NetError;
 use ferrumc_net::packets::outgoing::close_container::CloseContainerPacket;
 use ferrumc_net::packets::outgoing::open_screen::OpenScreenPacket;
-use ferrumc_net::packets::outgoing::set_container_slot::NetworkSlot;
-use ferrumc_net::{
-    connection::StreamWriter, packets::outgoing::set_container_content::SetContainerContentPacket,
-};
-use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
+use ferrumc_net::packets::outgoing::set_container_slot::SetContainerSlotPacket;
+use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::ServerState;
 use std::sync::Arc;
 
@@ -33,8 +31,7 @@ impl InventoryView {
         state: Arc<ServerState>,
         entity: Entity,
     ) -> Result<&mut Self, NetError> {
-        let universe = &state.universe;
-        let mut writer = universe.get_mut::<&mut StreamWriter>(entity)?;
+        let mut writer = state.universe.get_mut::<StreamWriter>(entity)?;
 
         let viewers = &self.viewers;
         if viewers.contains(&entity) {
@@ -42,7 +39,8 @@ impl InventoryView {
         }
 
         self.viewers.push(entity);
-        self.send_packet(inventory, *writer).await?;
+        self.send_inventory_data_packets(inventory, &mut writer)
+            .await?;
 
         // handle event
         let event = OpenInventoryEvent::new(entity).inventory_id(*inventory.id);
@@ -58,12 +56,12 @@ impl InventoryView {
         entity: Entity,
     ) -> Result<&mut Self, NetError> {
         let universe = &state.universe;
-        let mut writer = universe.get_mut::<&mut StreamWriter>(entity)?;
+        let mut writer = universe.get_mut::<StreamWriter>(entity)?;
 
         let viewers = &mut self.viewers;
         if let Some(index) = viewers.iter().position(|&viewer| viewer == entity) {
             viewers.remove(index);
-            self.send_close_packet(*inventory.id, *writer).await?;
+            self.send_close_packet(*inventory.id, &mut writer).await?;
 
             // handle event
             let event = CloseInventoryEvent::new(entity).inventory_id(*inventory.id);
@@ -88,11 +86,7 @@ impl InventoryView {
             .await
     }
 
-    async fn send_packet_to_viewers(&self, _packet: &impl NetEncode) -> Result<(), NetError> {
-        Ok(())
-    }
-
-    async fn send_packet(
+    async fn send_inventory_data_packets(
         &mut self,
         inventory: &InventoryData,
         writer: &mut StreamWriter,
@@ -107,19 +101,24 @@ impl InventoryView {
             .send_packet(&packet, &NetEncodeOpts::WithLength)
             .await?;
 
-        let inventory_size = inventory.inventory_type.get_size() as usize;
-        let container_content = inventory.contents.construct_container_vec(inventory_size);
-        writer
-            .send_packet(
-                &SetContainerContentPacket::new(
-                    *inventory.id as u8,
-                    container_content,
-                    NetworkSlot::empty(),
-                ),
-                &NetEncodeOpts::SizePrefixed,
-            )
-            .await?;
+        let contents = &inventory.contents.contents;
+        if contents.is_empty() {
+            Ok(())
+        } else {
+            for slot in contents.iter() {
+                writer
+                    .send_packet(
+                        &SetContainerSlotPacket::new(
+                            inventory.id,
+                            *slot.key() as i16,
+                            slot.value().to_network_slot(),
+                        ),
+                        &NetEncodeOpts::WithLength,
+                    )
+                    .await?;
+            }
 
-        Ok(())
+            Ok(())
+        }
     }
 }
