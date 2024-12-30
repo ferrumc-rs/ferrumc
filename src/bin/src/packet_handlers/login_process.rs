@@ -207,6 +207,7 @@ async fn handle_ack_finish_configuration(
     let mut chunk_recv = state.universe.get_mut::<ChunkReceiver>(conn_id)?;
     chunk_recv.last_chunk = Some((pos.x as i32, pos.z as i32, String::from("overworld")));
     chunk_recv.calculate_chunks().await;
+    drop(chunk_recv);
 
     // broadcast player info update
     let profile = state
