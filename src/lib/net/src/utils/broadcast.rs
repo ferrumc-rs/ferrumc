@@ -2,7 +2,6 @@ use crate::connection::StreamWriter;
 use crate::NetResult;
 use async_trait::async_trait;
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
-use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_ecs::entities::Entity;
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use ferrumc_state::GlobalState;
