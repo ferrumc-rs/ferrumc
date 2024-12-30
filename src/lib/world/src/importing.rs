@@ -14,6 +14,7 @@ use tokio::sync::Semaphore;
 use tokio::task::JoinSet;
 use tracing::{error, info};
 
+/// TODO: dynamically find the best accoring to the system
 const BATCH_SIZE: usize = 1000; // Number of chunks to process before flushing
 const MAX_CONCURRENT_TASKS: usize = 512; // Limit concurrent tasks to prevent memory issues
 const FLUSH_INTERVAL: u64 = 10_000; // Flush every 10,000 chunks
