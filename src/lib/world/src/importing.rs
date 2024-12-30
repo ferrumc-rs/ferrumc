@@ -1,4 +1,4 @@
-use crate::db_functions::save_chunk_internal_batch; // Ensure this is the batch save function
+use crate::db_functions::save_chunk_internal_batch;
 use crate::errors::WorldError;
 use crate::vanilla_chunk_format::VanillaChunk;
 use crate::Chunk;
@@ -7,21 +7,19 @@ use ferrumc_anvil::load_anvil_file;
 use ferrumc_general_purpose::paths::BetterPathExt;
 use indicatif::{ProgressBar, ProgressStyle};
 use rayon::prelude::*;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 use tokio::sync::Semaphore;
 use tokio::task::JoinSet;
 use tracing::{error, info};
 
-/// TODO: dynamically find the best accoring to the system
+/// TODO: dynamically find the best according to the system
 const BATCH_SIZE: usize = 1000; // Number of chunks to process before flushing
 const MAX_CONCURRENT_TASKS: usize = 512; // Limit concurrent tasks to prevent memory issues
 const FLUSH_INTERVAL: u64 = 10_000; // Flush every 10,000 chunks
 
 impl World {
-    // Modify this function to use the batch version
-    // Assuming VanillaChunk implements a method to convert to Chunk, e.g., to_chunk()
     async fn process_chunk_batch(
         &self,
         chunks: Vec<VanillaChunk>,
@@ -34,14 +32,12 @@ impl World {
             .collect();
 
         let mut success_count = 0;
-        if let Ok(()) = save_chunk_internal_batch(self, chunk_objects.clone() /*temp clone*/).await
-        {
-            success_count = chunk_objects.len(); // Increment by the number of chunks successfully saved
+        if let Ok(()) = save_chunk_internal_batch(self, chunk_objects.clone()).await {
+            success_count = chunk_objects.len();
         }
 
-        progress.inc(success_count.try_into().unwrap()); // Convert success_count to u64
+        progress.inc(success_count.try_into().unwrap());
 
-        // Flush logic remains the same
         let total_processed = processed_since_flush
             .fetch_add(success_count as u64, Ordering::Relaxed)
             + success_count as u64;
@@ -54,7 +50,7 @@ impl World {
         Ok(())
     }
 
-    fn get_chunk_count(&self, import_dir: &PathBuf) -> Result<u64, WorldError> {
+    fn get_chunk_count(&self, import_dir: &Path) -> Result<u64, WorldError> {
         info!("Counting chunks in import directory...");
         let regions_dir = import_dir.join("region").read_dir()?;
         let chunk_count = AtomicU64::new(0);
@@ -80,7 +76,6 @@ impl World {
     pub async fn import(&mut self, import_dir: PathBuf, _: PathBuf) -> Result<(), WorldError> {
         check_paths_validity(&import_dir)?;
 
-        // Set up progress tracking
         let total_chunks = self.get_chunk_count(&import_dir)?;
         let progress_style = ProgressStyle::default_bar()
             .template("[{elapsed_precise}] {bar:40.cyan/blue} {pos:>7}/{len:7} {msg}")
@@ -89,7 +84,6 @@ impl World {
         let progress = Arc::new(ProgressBar::new(total_chunks));
         progress.set_style(progress_style);
 
-        // Create chunks table if it doesn't exist
         self.storage_backend
             .create_table("chunks".to_string())
             .await?;
@@ -97,14 +91,11 @@ impl World {
         info!("Starting chunk import...");
         let start = std::time::Instant::now();
 
-        // Set up concurrency control
         let semaphore = Arc::new(Semaphore::new(MAX_CONCURRENT_TASKS));
         let mut task_set = JoinSet::new();
 
-        // Counter for periodic flushing
         let processed_since_flush = Arc::new(AtomicU64::new(0));
 
-        // Process region files
         let regions_dir = import_dir.join("region").read_dir()?;
         let mut current_batch = Vec::with_capacity(BATCH_SIZE);
 
@@ -142,7 +133,7 @@ impl World {
                             let processed_since_flush_clone = Arc::clone(&processed_since_flush);
 
                             task_set.spawn(async move {
-                                let _permit = permit; // Keep permit alive for the duration of the task
+                                let _permit = permit;
                                 if let Err(e) = self_clone
                                     .process_chunk_batch(
                                         batch,
@@ -160,7 +151,6 @@ impl World {
             }
         }
 
-        // Process remaining chunks
         if !current_batch.is_empty() {
             let progress_clone = Arc::clone(&progress);
             let permit = Arc::clone(&semaphore).acquire_owned().await?;
@@ -178,10 +168,8 @@ impl World {
             });
         }
 
-        // Wait for all tasks to complete
         while task_set.join_next().await.is_some() {}
 
-        // Final sync and flush
         self.sync().await?;
         self.storage_backend.flush().await?;
 
@@ -197,17 +185,17 @@ impl World {
     }
 }
 
-fn check_paths_validity(import_dir: &PathBuf) -> Result<(), WorldError> {
+fn check_paths_validity(import_dir: &Path) -> Result<(), WorldError> {
     if !import_dir.exists() {
-        return Err(WorldError::InvalidImportPath(import_dir.better_display()));
+        return Err(WorldError::InvalidImportPath(import_dir.display().to_string()));
     }
     if import_dir.is_file() {
-        return Err(WorldError::InvalidImportPath(import_dir.better_display()));
+        return Err(WorldError::InvalidImportPath(import_dir.display().to_string()));
     }
 
     let region_dir = import_dir.join("region");
     if !region_dir.exists() || !region_dir.is_dir() {
-        return Err(WorldError::InvalidImportPath(import_dir.better_display()));
+        return Err(WorldError::InvalidImportPath(import_dir.display().to_string()));
     }
 
     match region_dir.read_dir() {
@@ -217,7 +205,7 @@ fn check_paths_validity(import_dir: &PathBuf) -> Result<(), WorldError> {
             }
         }
         Err(_) => {
-            return Err(WorldError::InvalidImportPath(import_dir.better_display()));
+            return Err(WorldError::InvalidImportPath(import_dir.display().to_string()));
         }
     }
 
