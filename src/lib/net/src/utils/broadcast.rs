@@ -1,4 +1,3 @@
-use std::collections::HashSet;
 use crate::connection::StreamWriter;
 use crate::NetResult;
 use async_trait::async_trait;
@@ -6,6 +5,7 @@ use ferrumc_ecs::entities::Entity;
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use ferrumc_state::GlobalState;
 use futures::StreamExt;
+use std::collections::HashSet;
 use std::future::Future;
 use std::pin::Pin;
 use tracing::debug;
@@ -26,7 +26,7 @@ pub struct BroadcastOptions {
 impl BroadcastOptions {
     pub fn only<I>(mut self, entities: I) -> Self
     where
-        I: IntoIterator<Item = Entity>
+        I: IntoIterator<Item=Entity>,
     {
         self.only_entities = Some(entities.into_iter().collect());
         self
@@ -34,7 +34,7 @@ impl BroadcastOptions {
 
     pub fn except<I>(mut self, entities: I) -> Self
     where
-        I: IntoIterator<Item = Entity>
+        I: IntoIterator<Item=Entity>,
     {
         self.except_entities = Some(entities.into_iter().collect());
         self
@@ -86,7 +86,7 @@ pub async fn broadcast(
     if let Some(except_entities) = opts.except_entities {
         entities.retain(|entity| !except_entities.contains(entity));
     }
-    
+
     // No entities to broadcast to
     if entities.is_empty() {
         return Ok(());
