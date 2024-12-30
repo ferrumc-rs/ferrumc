@@ -7,7 +7,6 @@ use crate::utils::broadcast::{broadcast, BroadcastOptions};
 
 #[derive(NetEncode)]
 #[packet(packet_id = 0x03)]
-#[derive(Debug)]
 pub struct EntityAnimationPacket {
     pub eid: VarInt,
     pub animation: u8,
