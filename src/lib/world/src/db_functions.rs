@@ -130,6 +130,26 @@ pub(crate) async fn save_chunk_internal(world: &World, chunk: Chunk) -> Result<(
     Ok(())
 }
 
+pub(crate) async fn save_chunk_internal_batch(world: &World, chunks: Vec<Chunk>) -> Result<(), WorldError> {
+    // Prepare the batch data for the upsert
+    let mut batch_data = Vec::new();
+
+    for chunk in chunks.iter() {
+        // Compress the chunk and encode it
+        let as_bytes = world.compressor.compress(&bitcode::encode(chunk))?;
+        // Create the key for the chunk
+        let digest = create_key(chunk.dimension.as_str(), chunk.x, chunk.z);
+        // Collect the key-value pair into the batch data
+        batch_data.push((digest, as_bytes));
+    }
+
+    // Perform the batch upsert
+    world.storage_backend.batch_upsert("chunks".to_string(), batch_data).await?;
+
+    Ok(())
+}
+
+
 pub(crate) async fn load_chunk_internal(
     world: &World,
     compressor: &Compressor,

@@ -1,4 +1,5 @@
-use crate::db_functions::save_chunk_internal;
+use crate::Chunk;
+use crate::db_functions::save_chunk_internal_batch; // Ensure this is the batch save function
 use crate::errors::WorldError;
 use crate::vanilla_chunk_format::VanillaChunk;
 use crate::World;
@@ -9,7 +10,7 @@ use rayon::prelude::*;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
-use tokio::sync::{Semaphore, Mutex};
+use tokio::sync::Semaphore;
 use tokio::task::JoinSet;
 use tracing::{error, info};
 
@@ -18,24 +19,24 @@ const MAX_CONCURRENT_TASKS: usize = 512; // Limit concurrent tasks to prevent me
 const FLUSH_INTERVAL: u64 = 10_000; // Flush every 10,000 chunks
 
 impl World {
+    // Modify this function to use the batch version
+    // Assuming VanillaChunk implements a method to convert to Chunk, e.g., to_chunk()
     async fn process_chunk_batch(
         &self,
         chunks: Vec<VanillaChunk>,
         progress: Arc<ProgressBar>,
         processed_since_flush: Arc<AtomicU64>,
     ) -> Result<(), WorldError> {
+        let chunk_objects: Vec<Chunk> = chunks.into_iter().filter_map(|chunk| chunk.to_custom_format().ok()).collect();
+
         let mut success_count = 0;
-        for chunk in chunks {
-            if let Ok(custom_chunk) = chunk.to_custom_format() {
-                if let Ok(()) = save_chunk_internal(self, custom_chunk).await {
-                    success_count += 1;
-                }
-            }
+        if let Ok(()) = save_chunk_internal_batch(self, chunk_objects.clone()/*temp clone*/).await {
+            success_count = chunk_objects.len(); // Increment by the number of chunks successfully saved
         }
 
-        progress.inc(success_count);
+        progress.inc(success_count.try_into().unwrap()); // Convert success_count to u64
 
-        // Check if we need to flush
+        // Flush logic remains the same
         let total_processed = processed_since_flush.fetch_add(success_count as u64, Ordering::Relaxed) + success_count as u64;
         if total_processed >= FLUSH_INTERVAL {
             self.storage_backend.flush().await?;
@@ -45,6 +46,7 @@ impl World {
 
         Ok(())
     }
+
 
     fn get_chunk_count(&self, import_dir: &PathBuf) -> Result<u64, WorldError> {
         info!("Counting chunks in import directory...");
