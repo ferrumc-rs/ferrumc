@@ -1,15 +1,19 @@
+use crate::events::inventory_close::CloseInventoryEvent;
+use crate::events::inventory_open::OpenInventoryEvent;
 use crate::inventory::InventoryData;
-use crate::slot::Slot;
 use ferrumc_ecs::entities::Entity;
 use ferrumc_ecs::errors::ECSError;
+use ferrumc_events::infrastructure::Event;
 use ferrumc_net::errors::NetError;
 use ferrumc_net::packets::outgoing::close_container::CloseContainerPacket;
 use ferrumc_net::packets::outgoing::open_screen::OpenScreenPacket;
-use ferrumc_net::packets::outgoing::set_container_slot::{NetworkSlot, SetContainerSlotPacket};
+use ferrumc_net::packets::outgoing::set_container_slot::NetworkSlot;
 use ferrumc_net::{
     connection::StreamWriter, packets::outgoing::set_container_content::SetContainerContentPacket,
 };
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
+use ferrumc_state::ServerState;
+use std::sync::Arc;
 
 #[derive(Debug, Clone)]
 pub struct InventoryView {
@@ -26,50 +30,62 @@ impl InventoryView {
     pub async fn add_viewer(
         &mut self,
         inventory: &InventoryData,
-        entity: (Entity, &mut StreamWriter),
+        state: Arc<ServerState>,
+        entity: Entity,
     ) -> Result<&mut Self, NetError> {
+        let universe = &state.universe;
+        let mut writer = universe.get_mut::<&mut StreamWriter>(entity)?;
+
         let viewers = &self.viewers;
-        if viewers.contains(&entity.0) {
+        if viewers.contains(&entity) {
             return Ok(self);
         }
 
-        self.viewers.push(entity.0);
-        self.send_packet(inventory, entity.1).await?;
+        self.viewers.push(entity);
+        self.send_packet(inventory, *writer).await?;
+
+        // handle event
+        let event = OpenInventoryEvent::new(entity).inventory_id(*inventory.id);
+        OpenInventoryEvent::trigger(event, state).await?;
+
         Ok(self)
     }
 
     pub async fn remove_viewer(
         &mut self,
         inventory: &InventoryData,
-        entity: (Entity, &mut StreamWriter),
+        state: Arc<ServerState>,
+        entity: Entity,
     ) -> Result<&mut Self, NetError> {
+        let universe = &state.universe;
+        let mut writer = universe.get_mut::<&mut StreamWriter>(entity)?;
+
         let viewers = &mut self.viewers;
-        if let Some(index) = viewers.iter().position(|&viewer| viewer == entity.0) {
+        if let Some(index) = viewers.iter().position(|&viewer| viewer == entity) {
             viewers.remove(index);
-            entity
-                .1
-                .send_packet(
-                    &CloseContainerPacket::new(*inventory.id as u8),
-                    &NetEncodeOpts::WithLength,
-                )
-                .await?;
+            self.send_close_packet(*inventory.id, *writer).await?;
+
+            // handle event
+            let event = CloseInventoryEvent::new(entity).inventory_id(*inventory.id);
+            CloseInventoryEvent::trigger(event, state).await?;
+
             Ok(self)
         } else {
             Err(NetError::ECSError(ECSError::ComponentNotFound))?
         }
     }
 
-    pub async fn send_slot_update_packet(
+    async fn send_close_packet(
         &self,
-        inventory: &InventoryData,
-        slot: (i16, Slot),
+        inventory_id: i32,
+        writer: &mut StreamWriter,
     ) -> Result<(), NetError> {
-        self.send_packet_to_viewers(&SetContainerSlotPacket::new(
-            inventory.id,
-            slot.0,
-            slot.1.to_network_slot(),
-        ))
-        .await
+        writer
+            .send_packet(
+                &CloseContainerPacket::new(inventory_id as u8),
+                &NetEncodeOpts::WithLength,
+            )
+            .await
     }
 
     async fn send_packet_to_viewers(&self, _packet: &impl NetEncode) -> Result<(), NetError> {

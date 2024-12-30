@@ -1,19 +1,21 @@
 use ferrumc_macros::Event;
-use crate::inventory::Inventory;
 
 #[derive(Event, Debug)]
 pub struct OpenInventoryEvent {
     pub conn_id: usize,
-    pub inventory: Option<Inventory>,
+    pub inventory_id: Option<i32>,
 }
 
 impl OpenInventoryEvent {
     pub fn new(conn_id: usize) -> Self {
-        Self { conn_id, inventory: None }
+        Self {
+            conn_id,
+            inventory_id: None,
+        }
     }
 
-    pub fn inventory(mut self, inventory: Inventory) -> Self {
-        self.inventory = Some(inventory);
+    pub fn inventory_id(mut self, inventory_id: i32) -> Self {
+        self.inventory_id = Some(inventory_id);
         self
     }
 }

@@ -12,6 +12,8 @@ ferrumc-ecs = { workspace = true }
 ferrumc-events = { workspace = true }
 ferrumc-macros = { workspace = true }
 ferrumc-state = { workspace = true }
+
+tokio = {workspace = true }
 dashmap = { workspace = true }
 
 [lints]

@@ -3,9 +3,11 @@ use crate::slot::Slot;
 use crate::viewers::InventoryView;
 use dashmap::DashMap;
 use ferrumc_ecs::entities::Entity;
-use ferrumc_net::{connection::StreamWriter, errors::NetError};
+use ferrumc_net::errors::NetError;
 use ferrumc_net_codec::net_types::var_int::VarInt;
+use ferrumc_state::ServerState;
 use ferrumc_text::{TextComponent, TextComponentBuilder};
+use std::sync::Arc;
 
 #[derive(Debug, Clone, Copy)]
 pub enum InventoryType {
@@ -141,17 +143,19 @@ impl Inventory {
 
     pub async fn add_viewer(
         &mut self,
-        viewer: (Entity, &mut StreamWriter),
+        state: Arc<ServerState>,
+        viewer: Entity,
     ) -> Result<(), NetError> {
-        self.view.add_viewer(&self.data, viewer).await?;
+        self.view.add_viewer(&self.data, state, viewer).await?;
         Ok(())
     }
 
     pub async fn remove_viewer(
         &mut self,
-        viewer: (Entity, &mut StreamWriter),
+        state: Arc<ServerState>,
+        viewer: Entity,
     ) -> Result<(), NetError> {
-        self.view.remove_viewer(&self.data, viewer).await?;
+        self.view.remove_viewer(&self.data, state, viewer).await?;
         Ok(())
     }
 
