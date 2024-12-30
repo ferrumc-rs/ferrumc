@@ -18,7 +18,7 @@ impl Slot {
     pub fn empty() -> Self {
         Self::new(0, 0)
     }
-    
+
     pub fn to_network_slot(&self) -> NetworkSlot {
         NetworkSlot::new(self.count, self.item)
     }

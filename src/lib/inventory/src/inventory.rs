@@ -3,7 +3,7 @@ use crate::slot::Slot;
 use crate::viewers::InventoryView;
 use dashmap::DashMap;
 use ferrumc_ecs::entities::Entity;
-use ferrumc_net::connection::StreamWriter;
+use ferrumc_net::{connection::StreamWriter, errors::NetError};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_text::{TextComponent, TextComponentBuilder};
 
@@ -95,10 +95,10 @@ pub struct InventoryData {
 impl InventoryData {
     fn new(id: VarInt, inventory_type: InventoryType, title: TextComponent) -> Self {
         Self {
-            id, 
+            id,
             inventory_type,
             title,
-            contents: InventoryContents::empty()
+            contents: InventoryContents::empty(),
         }
     }
 }
@@ -112,7 +112,11 @@ pub struct Inventory {
 impl Inventory {
     pub fn new<S: Into<String>>(id: i32, title: S, inventory_type: InventoryType) -> Self {
         Self {
-            data: InventoryData::new(VarInt::new(id), inventory_type, TextComponentBuilder::new(title).build()),
+            data: InventoryData::new(
+                VarInt::new(id),
+                inventory_type,
+                TextComponentBuilder::new(title).build(),
+            ),
             view: InventoryView::new(),
         }
     }
@@ -135,12 +139,20 @@ impl Inventory {
         }
     }
 
-    pub async fn add_viewer(&mut self, viewer: (Entity, &mut StreamWriter)) {
-        self.view.add_viewer(&self.data, viewer).await.unwrap();
+    pub async fn add_viewer(
+        &mut self,
+        viewer: (Entity, &mut StreamWriter),
+    ) -> Result<(), NetError> {
+        self.view.add_viewer(&self.data, viewer).await?;
+        Ok(())
     }
 
-    pub async fn remove_viewer(&mut self, viewer: (Entity, &mut StreamWriter)) {
-        self.view.remove_viewer(&self.data, viewer).await.unwrap();
+    pub async fn remove_viewer(
+        &mut self,
+        viewer: (Entity, &mut StreamWriter),
+    ) -> Result<(), NetError> {
+        self.view.remove_viewer(&self.data, viewer).await?;
+        Ok(())
     }
 
     pub fn get_viewers(&self) -> &Vec<Entity> {
