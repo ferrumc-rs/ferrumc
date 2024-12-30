@@ -4,7 +4,7 @@ use crate::vanilla_chunk_format::VanillaChunk;
 use crate::Chunk;
 use crate::World;
 use ferrumc_anvil::load_anvil_file;
-use ferrumc_general_purpose::paths::BetterPathExt;
+//use ferrumc_general_purpose::paths::BetterPathExt;
 use indicatif::{ProgressBar, ProgressStyle};
 use rayon::prelude::*;
 use std::path::{Path, PathBuf};
