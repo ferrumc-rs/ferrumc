@@ -1,3 +1,4 @@
+use crate::inventory::InventoryData;
 use crate::{inventory::Inventory, slot::Slot};
 use ferrumc_ecs::entities::Entity;
 use ferrumc_ecs::errors::ECSError;
@@ -24,7 +25,7 @@ impl InventoryView {
 
     pub async fn add_viewer(
         &mut self,
-        inventory: &Inventory,
+        inventory: &InventoryData,
         mut entity: (Entity, &mut StreamWriter),
     ) -> Result<&mut Self, NetError> {
         let viewers = &self.viewers;
@@ -39,7 +40,7 @@ impl InventoryView {
 
     pub async fn remove_viewer(
         &mut self,
-        inventory: &Inventory,
+        inventory: &InventoryData,
         entity: (Entity, &mut StreamWriter),
     ) -> Result<&mut Self, NetError> {
         let viewers = &mut self.viewers;
@@ -60,7 +61,7 @@ impl InventoryView {
 
     pub async fn send_slot_update_packet(
         &self,
-        inventory: &Inventory,
+        inventory: &InventoryData,
         slot: (i16, Slot),
     ) -> Result<(), NetError> {
         self.send_packet_to_viewers(&SetContainerSlotPacket::new(
@@ -77,7 +78,7 @@ impl InventoryView {
 
     async fn send_packet(
         &mut self,
-        inventory: &Inventory,
+        inventory: &InventoryData,
         writer: &mut StreamWriter,
     ) -> Result<(), NetError> {
         let packet = OpenScreenPacket::new(

@@ -3,6 +3,7 @@ use crate::slot::Slot;
 use crate::viewers::InventoryView;
 use dashmap::DashMap;
 use ferrumc_ecs::entities::Entity;
+use ferrumc_net::connection::StreamWriter;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_text::{TextComponent, TextComponentBuilder};
 
@@ -84,41 +85,62 @@ impl InventoryType {
 }
 
 #[derive(Debug, Clone)]
-pub struct Inventory {
+pub struct InventoryData {
     pub id: VarInt,
     pub inventory_type: InventoryType,
-    pub(crate) contents: InventoryContents,
-    pub view: InventoryView,
     pub title: TextComponent,
+    pub(crate) contents: InventoryContents,
+}
+
+impl InventoryData {
+    fn new(id: VarInt, inventory_type: InventoryType, title: TextComponent) -> Self {
+        Self {
+            id, 
+            inventory_type,
+            title,
+            contents: InventoryContents::empty()
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Inventory {
+    pub data: InventoryData,
+    pub view: InventoryView,
 }
 
 impl Inventory {
     pub fn new<S: Into<String>>(id: i32, title: S, inventory_type: InventoryType) -> Self {
         Self {
-            id: VarInt::new(id),
-            inventory_type,
-            contents: InventoryContents::empty(),
+            data: InventoryData::new(VarInt::new(id), inventory_type, TextComponentBuilder::new(title).build()),
             view: InventoryView::new(),
-            title: TextComponentBuilder::new(title).build(),
         }
     }
 
     pub fn set_slot(&mut self, slot_id: i32, slot: Slot) -> &mut Self {
-        let size = self.inventory_type.get_size();
+        let size = self.data.inventory_type.get_size();
         if size >= 0 && size <= slot_id {
-            self.contents.set_slot(slot_id, slot);
+            self.data.contents.set_slot(slot_id, slot);
         }
 
         self
     }
 
     pub fn get_slot(&self, slot_id: i32) -> Option<Slot> {
-        let size = self.inventory_type.get_size();
+        let size = self.data.inventory_type.get_size();
         if size >= 0 && size <= slot_id {
-            self.contents.get_slot(slot_id)
+            self.data.contents.get_slot(slot_id)
         } else {
             None
         }
+    }
+
+    pub async fn add_viewer(&mut self, viewer: (Entity, &mut StreamWriter)) {
+        self.view.add_viewer(&self.data, viewer).await.unwrap();
+    }
+
+    pub async fn remove_viewer(&mut self, viewer: (Entity, &mut StreamWriter)) {
+        self.view.remove_viewer(&self.data, viewer).await.unwrap();
     }
 
     pub fn get_viewers(&self) -> &Vec<Entity> {
@@ -126,7 +148,7 @@ impl Inventory {
     }
 
     pub fn get_contents(&self) -> &DashMap<i32, Slot> {
-        &self.contents.contents
+        &self.data.contents.contents
     }
 
     pub fn clear(&mut self) {
@@ -155,7 +177,7 @@ impl Inventory {
     }
 
     pub fn get_size(&self) -> i32 {
-        self.inventory_type.get_size()
+        self.data.inventory_type.get_size()
     }
 
     pub fn is_empty(&self) -> bool {
