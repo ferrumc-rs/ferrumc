@@ -72,7 +72,7 @@ our [Discord server](https://discord.gg/qT5J8EMjwk) for help or to discuss the p
       <h4>📝 Custom made network, NBT and Anvil encoding systems to allow for minimal I/O lag</h4>
    </li>
    <li>
-      <h4>💾 Multiple database options to finetune the server to your needs</h4>
+      <h4>💾 Crazy fast K/V database </h4>
       <i>32 render distance*</i>
       <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/chunk_loading.gif?raw=true" alt="Chunk Loading DEMO">
    </li>
@@ -94,7 +94,7 @@ our [Discord server](https://discord.gg/qT5J8EMjwk) for help or to discuss the p
         <h4>Optimizations</h4>
    </li>
     <li>
-        <h4>Plugin support (JVM currently, other languages will be considered later)</h4>
+        <h4>Plugin support (FFI currently, other languages will be considered later)</h4>
     </li>
 </ul>
 
@@ -148,9 +148,23 @@ cargo build --release
 
 ## 🖥️ Usage
 
+```plaintext
+Usage: ferrumc.exe [OPTIONS] [COMMAND]
+
+Commands:
+setup   Sets up the config
+import  Import the world data
+run     Start the server (default, if no command is given)
+help    Print this message or the help of the given subcommand(s)
+
+Options:
+--log <LOG>  [default: debug] [possible values: trace, debug, info, warn, error]
+-h, --help       Print help
+```
+
 1. Move the FerrumC binary (`ferrumc.exe` or `ferrumc` depending on the OS) to your desired server directory
 2. Open a terminal in that directory
-3. (Optional) Generate a config file: `./ferrumc --setup`
+3. (Optional) Generate a config file: `./ferrumc setup`
     - Edit the generated `config.toml` file to customize your server settings
 4. Import an existing world: Either copy your world files to the server directory or specify the path to the world files
    in the `config.toml` file. This should be the root directory of your world files, containing the `region` directory
@@ -218,10 +232,9 @@ with the vanilla server, but we do plan on implementing some sort of terrain gen
 
 ### Will there be plugins? And how?
 
-We do very much plan to have a plugin system and as of right now, our plan is to leverage the
-JVM to allow for plugins to be written in Kotlin, Java, or any other JVM language. We are also considering other
-languages
-such as Rust, JavaScript and possibly other native languages, but that is a fair way off for now.
+We do very much plan to have a plugin system and as of right now we are planning to use
+some kind of ffi (foreign function interface) to allow for plugins to be written in other languages.
+Not confirmed yet.
 
 ### What does 'FerrumC' mean?
 
