@@ -35,6 +35,7 @@ members = [
     "src/lib/utils/logging",
     "src/lib/utils/profiling",
     "src/lib/world",
+    "src/lib/entity_utils",
 ]
 
 #================== Lints ==================#
@@ -106,7 +107,7 @@ ferrumc-storage = { path = "src/lib/storage" }
 ferrumc-text = { path = "src/lib/text" }
 ferrumc-utils = { path = "src/lib/utils" }
 ferrumc-world = { path = "src/lib/world" }
-
+ferrumc-entity-utils = { path = "src/lib/entity_utils" }
 
 # Asynchronous
 tokio = { version = "1.40.0", features = ["full"] }

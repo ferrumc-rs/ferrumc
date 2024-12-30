@@ -3,12 +3,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use ferrumc_net::{
-    connection::StreamWriter, packets::outgoing::system_message::SystemMessagePacket, NetResult,
-};
-use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::GlobalState;
-use ferrumc_text::TextComponent;
 
 use crate::{input::CommandInput, Command};
 
@@ -51,19 +46,5 @@ impl CommandContext {
         } else {
             todo!();
         }
-    }
-
-    pub async fn reply(&self, text: TextComponent) -> NetResult<()> {
-        let mut stream_writer = self
-            .state
-            .universe
-            .get_mut::<StreamWriter>(self.connection_id)?;
-
-        stream_writer
-            .send_packet(
-                &SystemMessagePacket::new(text, false),
-                &NetEncodeOpts::WithLength,
-            )
-            .await
     }
 }

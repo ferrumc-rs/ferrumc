@@ -1,0 +1,11 @@
+[package]
+name = "ferrumc-entity-utils"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+ferrumc-net = { workspace = true }
+ferrumc-net-codec = { workspace = true }
+ferrumc-ecs = { workspace = true }
+ferrumc-text = { workspace = true }
+async-trait = { workspace = true }

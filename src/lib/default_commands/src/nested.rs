@@ -13,14 +13,19 @@ use ferrumc_commands::{
     infrastructure::register_command,
     Command, CommandResult,
 };
+use ferrumc_entity_utils::send_message::SendMessageExt;
 use ferrumc_macros::{arg, command};
 use ferrumc_text::TextComponentBuilder;
 
 #[command("nested")]
 async fn root(ctx: Arc<CommandContext>) -> CommandResult {
-    ctx.reply(TextComponentBuilder::new("Executed /nested").build())
+    ctx.connection_id
+        .send_message(
+            TextComponentBuilder::new("Executed /nested").build(),
+            &ctx.state.universe,
+        )
         .await
-        .unwrap();
+        .expect("failed sending message");
     Ok(())
 }
 
@@ -33,14 +38,16 @@ async fn abc(ctx: Arc<CommandContext>) -> CommandResult {
     let word = ctx.arg::<String>("word");
     let number = ctx.arg::<i32>("number");
 
-    ctx.reply(
-        TextComponentBuilder::new(format!(
-            "Message: {message:?}, Word: {word:?}, Number: {number}"
-        ))
-        .build(),
-    )
-    .await
-    .unwrap();
+    ctx.connection_id
+        .send_message(
+            TextComponentBuilder::new(format!(
+                "Message: {message:?}, Word: {word:?}, Number: {number}"
+            ))
+            .build(),
+            &ctx.state.universe,
+        )
+        .await
+        .expect("failed sending message");
 
     Ok(())
 }

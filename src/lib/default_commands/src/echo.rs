@@ -11,6 +11,7 @@ use ferrumc_commands::{
     Command, CommandResult,
 };
 use ferrumc_core::identity::player_identity::PlayerIdentity;
+use ferrumc_entity_utils::send_message::SendMessageExt;
 use ferrumc_macros::{arg, command};
 use ferrumc_text::{NamedColor, TextComponentBuilder};
 
@@ -24,15 +25,15 @@ async fn echo(ctx: Arc<CommandContext>) -> CommandResult {
         .get::<PlayerIdentity>(ctx.connection_id)
         .expect("failed to get identity");
 
-    ctx.reply(
-        TextComponentBuilder::new(format!("{} said: {message}", identity.username))
-            .color(NamedColor::Green)
-            .build(),
-    )
-    .await
-    .map_err(|err| {
-        TextComponentBuilder::new(err.to_string())
-            .color(NamedColor::Red)
-            .build()
-    })
+    ctx.connection_id
+        .send_message(
+            TextComponentBuilder::new(format!("{} said: {message}", identity.username))
+                .color(NamedColor::Green)
+                .build(),
+            &ctx.state.universe,
+        )
+        .await
+        .expect("failed sending message");
+
+    Ok(())
 }
