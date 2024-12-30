@@ -26,7 +26,7 @@ pub struct BroadcastOptions {
 impl BroadcastOptions {
     pub fn only<I>(mut self, entities: I) -> Self
     where
-        I: IntoIterator<Item=Entity>,
+        I: IntoIterator<Item = Entity>,
     {
         self.only_entities = Some(entities.into_iter().collect());
         self
@@ -34,7 +34,7 @@ impl BroadcastOptions {
 
     pub fn except<I>(mut self, entities: I) -> Self
     where
-        I: IntoIterator<Item=Entity>,
+        I: IntoIterator<Item = Entity>,
     {
         self.except_entities = Some(entities.into_iter().collect());
         self

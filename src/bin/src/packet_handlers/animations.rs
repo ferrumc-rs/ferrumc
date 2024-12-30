@@ -16,6 +16,6 @@ async fn entity_animation(
         &state,
         BroadcastOptions::default().except([event.entity]),
     )
-        .await?;
+    .await?;
     Ok(event)
 }
