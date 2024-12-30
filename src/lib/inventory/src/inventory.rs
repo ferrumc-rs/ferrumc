@@ -1,9 +1,16 @@
 use crate::contents::InventoryContents;
+use crate::events::inventory_open::OpenInventoryEvent;
 use crate::slot::Slot;
-use crate::viewers::InventoryView;
 use dashmap::DashMap;
 use ferrumc_ecs::entities::Entity;
+use ferrumc_events::infrastructure::Event;
+use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::errors::NetError;
+use ferrumc_net::packets::incoming::close_container::InventoryCloseEvent;
+use ferrumc_net::packets::outgoing::close_container::CloseContainerPacket;
+use ferrumc_net::packets::outgoing::open_screen::OpenScreenPacket;
+use ferrumc_net::packets::outgoing::set_container_slot::SetContainerSlotPacket;
+use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::ServerState;
 use ferrumc_text::{TextComponent, TextComponentBuilder};
@@ -87,84 +94,105 @@ impl InventoryType {
 }
 
 #[derive(Debug, Clone)]
-pub struct InventoryData {
+pub struct Inventory {
     pub id: VarInt,
     pub inventory_type: InventoryType,
     pub title: TextComponent,
     pub(crate) contents: InventoryContents,
 }
 
-impl InventoryData {
-    fn new(id: VarInt, inventory_type: InventoryType, title: TextComponent) -> Self {
-        Self {
-            id,
-            inventory_type,
-            title,
-            contents: InventoryContents::empty(),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Inventory {
-    pub data: InventoryData,
-    pub view: InventoryView,
-}
-
 impl Inventory {
     pub fn new<S: Into<String>>(id: i32, title: S, inventory_type: InventoryType) -> Self {
         Self {
-            data: InventoryData::new(
-                VarInt::new(id),
-                inventory_type,
-                TextComponentBuilder::new(title).build(),
-            ),
-            view: InventoryView::new(),
+            id: VarInt::new(id),
+            inventory_type,
+            title: TextComponentBuilder::new(title).build(),
+            contents: InventoryContents::empty(),
         }
     }
 
     pub fn set_slot(&mut self, slot_id: i32, slot: Slot) -> &mut Self {
-        let size = self.data.inventory_type.get_size();
+        let size = self.inventory_type.get_size();
         if (0..=size).contains(&slot_id) {
-            self.data.contents.set_slot(slot_id, slot);
+            self.contents.set_slot(slot_id, slot);
         }
 
         self
     }
 
     pub fn get_slot(&self, slot_id: i32) -> Option<Slot> {
-        let size = self.data.inventory_type.get_size();
+        let size = self.inventory_type.get_size();
         if (0..=size).contains(&slot_id) {
-            self.data.contents.get_slot(slot_id)
+            self.contents.get_slot(slot_id)
         } else {
             None
         }
     }
 
     pub async fn add_viewer(
-        &mut self,
+        self,
         state: Arc<ServerState>,
-        viewer: Entity,
+        entity_id: Entity,
     ) -> Result<(), NetError> {
-        self.view.add_viewer(&self.data, state, viewer).await?;
+        let universe = &state.universe;
+        let mut writer = universe.get_mut::<StreamWriter>(entity_id)?;
+
+        let packet =
+            OpenScreenPacket::new(self.id, self.inventory_type.get_id(), self.title.clone());
+
+        writer
+            .send_packet(&packet, &NetEncodeOpts::WithLength)
+            .await?;
+
+        let id = self.id;
+        let contents = self.get_contents();
+        if !contents.is_empty() {
+            for slot in contents.iter() {
+                writer
+                    .send_packet(
+                        &SetContainerSlotPacket::new(
+                            id,
+                            *slot.key() as i16,
+                            slot.value().to_network_slot(),
+                        ),
+                        &NetEncodeOpts::WithLength,
+                    )
+                    .await?;
+            }
+        }
+
+        // handle event
+        let event = OpenInventoryEvent::new(entity_id).inventory_id(*id);
+        OpenInventoryEvent::trigger(event, state.clone()).await?;
+
+        universe.add_component::<Inventory>(entity_id, self)?;
         Ok(())
     }
 
     pub async fn remove_viewer(
         &mut self,
         state: Arc<ServerState>,
-        viewer: Entity,
+        entity_id: Entity,
     ) -> Result<(), NetError> {
-        self.view.remove_viewer(&self.data, state, viewer).await?;
+        let universe = &state.universe;
+        let mut writer = universe.get_mut::<StreamWriter>(entity_id)?;
+        let inventory = universe.get::<Inventory>(entity_id)?;
+
+        writer
+            .send_packet(
+                &CloseContainerPacket::new(*self.id as u8),
+                &NetEncodeOpts::WithLength,
+            )
+            .await?;
+
+        // handle event
+        let event = InventoryCloseEvent::new(entity_id, *inventory.id as u8);
+        InventoryCloseEvent::trigger(event, state.clone()).await?;
         Ok(())
     }
 
-    pub fn get_viewers(&self) -> &Vec<Entity> {
-        &self.view.viewers
-    }
-
     pub fn get_contents(&self) -> &DashMap<i32, Slot> {
-        &self.data.contents.contents
+        &self.contents.contents
     }
 
     pub fn clear(&mut self) {
@@ -193,7 +221,7 @@ impl Inventory {
     }
 
     pub fn get_size(&self) -> i32 {
-        self.data.inventory_type.get_size()
+        self.inventory_type.get_size()
     }
 
     pub fn is_empty(&self) -> bool {

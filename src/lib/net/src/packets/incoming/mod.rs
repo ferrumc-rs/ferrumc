@@ -11,6 +11,7 @@ pub mod status_request;
 pub mod keep_alive;
 pub mod packet_skeleton;
 
+pub mod close_container;
 pub mod set_player_position;
 pub mod set_player_position_and_rotation;
 pub mod set_player_rotation;
