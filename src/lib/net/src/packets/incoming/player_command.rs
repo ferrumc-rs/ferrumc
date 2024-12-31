@@ -10,7 +10,7 @@ use ferrumc_events::infrastructure::Event;
 
 // Mojang surely has SOME naming schemes.. commands??
 #[derive(NetDecode)]
-#[packet(packet_id = 0x36, state = "play")]
+#[packet(packet_id = 0x25, state = "play")]
 pub struct PlayerCommandPacket {
     entity_id: VarInt,
     // Originally: Action Id = VarInt Enum

@@ -7,10 +7,31 @@ use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::Write;
 use tokio::io::AsyncWrite;
+use ferrumc_ecs::entities::Entity;
 
 #[derive(NetEncode)]
 #[packet(packet_id = 0x58)]
 pub struct EntityMetadataPacket {
+    entity_id: VarInt,
+    metadata: Vec<EntityMetadata>,
+    terminator: u8
+}
+
+impl EntityMetadataPacket {
+    pub fn new<T>(entity_id: Entity, metadata: T) -> Self
+    where
+        T: IntoIterator<Item = EntityMetadata>,
+    {
+        Self {
+            entity_id: VarInt::new(entity_id as i32),
+            metadata: metadata.into_iter().collect(),
+            terminator: 0xFF
+        }
+    }
+}
+
+#[derive(NetEncode)]
+pub struct EntityMetadata {
     index: u8,
     index_type: EntityMetadataIndexType,
     value: EntityMetadataValue,
@@ -20,9 +41,9 @@ pub mod constructors {
     use crate::packets::outgoing::entity_metadata::extra_data_types::EntityPose;
     use super::*;
 
-    impl EntityMetadataPacket {
+    impl EntityMetadata {
         fn new(index_type: EntityMetadataIndexType, value: EntityMetadataValue) -> Self {
-            EntityMetadataPacket {
+            EntityMetadata {
                 index: value.index(),
                 index_type,
                 value,
@@ -35,6 +56,11 @@ pub mod constructors {
         /// Actual sneaking visual, so you can see the player sneaking
         pub fn entity_sneaking_visual() -> Self {
             Self::new(EntityMetadataIndexType::Pose, EntityMetadataValue::Entity6(EntityPose::Sneaking))
+        }
+        
+        /// Entity in standing pose
+        pub fn entity_standing() -> Self {
+            Self::new(EntityMetadataIndexType::Pose, EntityMetadataValue::Entity6(EntityPose::Standing))
         }
     }
 }
@@ -130,7 +156,7 @@ mod entity_state {
             self.mask |= state.mask();
         }
     }
-    
+
     #[allow(dead_code)]
     pub enum EntityState {
         OnFire,
