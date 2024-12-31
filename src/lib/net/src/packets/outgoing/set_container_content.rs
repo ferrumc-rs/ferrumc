@@ -1,8 +1,8 @@
+use super::set_container_slot::NetworkSlot;
 use ferrumc_macros::{packet, NetEncode};
+use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::net_types::{length_prefixed_vec::LengthPrefixedVec, var_int::VarInt};
 use std::io::Write;
-
-use super::set_container_slot::NetworkSlot;
 
 #[derive(NetEncode)]
 #[packet(packet_id = 0x13)]

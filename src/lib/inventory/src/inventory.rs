@@ -1,7 +1,8 @@
+use std::collections::HashMap;
 use crate::contents::InventoryContents;
 use crate::events::inventory_open::OpenInventoryEvent;
 use crate::slot::Slot;
-use dashmap::DashMap;
+
 use ferrumc_ecs::entities::Entity;
 use ferrumc_ecs::errors::ECSError;
 use ferrumc_events::infrastructure::Event;
@@ -17,6 +18,7 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::ServerState;
 use ferrumc_text::{TextComponent, TextComponentBuilder};
 use std::sync::Arc;
+use tracing::info;
 use thiserror::Error;
 
 #[derive(Debug, Clone, Copy)]
@@ -178,14 +180,15 @@ impl Inventory {
             )
             .await?;
 
+        // let contents = self.get_contents();
         // if !contents.is_empty() {
-        //     for slot in contents.iter() {
+        //     for (&slot_num, &slot) in contents.iter() {
         //         writer
         //             .send_packet(
         //                 &SetContainerSlotPacket::new(
         //                     id,
-        //                     *slot.key() as i16,
-        //                     slot.value().to_network_slot(),
+        //                     slot_num as i16,
+        //                     slot.to_network_slot(),
         //                 ),
         //                 &NetEncodeOpts::WithLength,
         //             )
@@ -223,12 +226,17 @@ impl Inventory {
         Ok(())
     }
 
-    pub fn get_contents(&self) -> &DashMap<i32, Slot> {
+    pub fn get_contents(&self) -> &HashMap<i32, Slot> {
         &self.contents.contents
     }
 
+    pub fn get_contents_mut(&mut self) -> &mut HashMap<i32, Slot> {
+        &mut self.contents.contents
+    }
+
+
     pub fn clear(&mut self) {
-        self.get_contents().clear();
+        self.get_contents_mut().clear();
     }
 
     pub fn set_all(&mut self, slot: Slot) {
@@ -240,7 +248,7 @@ impl Inventory {
     pub fn contains(&self, item: i32) -> bool {
         self.get_contents()
             .iter()
-            .any(|slot| slot.value().item == item)
+            .any(|slot| slot.1.item == item)
     }
 
     pub fn contains_slot(&self, slot: Slot) -> bool {

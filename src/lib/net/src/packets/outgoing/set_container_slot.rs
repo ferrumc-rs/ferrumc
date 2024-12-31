@@ -1,43 +1,28 @@
-use ferrumc_macros::{packet, NetEncode};
+use ferrumc_macros::{packet, NetDecode, NetEncode};
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::{Read, Write};
+use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
 
-#[derive(NetEncode, Debug)]
+#[derive(NetDecode, NetEncode, Debug)]
 pub struct NetworkSlot {
     pub item_count: VarInt,
+    #[net(optional_trigger = *item_count > 0)]
     pub item_id: Option<VarInt>,
+    #[net(optional_trigger = *item_count > 0)]
     pub num_of_components_to_add: Option<VarInt>,
+    #[net(optional_trigger = *item_count > 0)]
     pub num_of_components_to_remove: Option<VarInt>,
-}
-
-impl NetDecode for NetworkSlot {
-    fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> NetDecodeResult<Self> {
-        let item_count = VarInt::decode(reader, opts)?;
-        if *item_count == 0 {
-            Ok(Self::empty())
-        } else {
-            Ok(Self::new(item_count.val, *VarInt::decode(reader, opts)?))
-        }
-    }
 }
 
 impl NetworkSlot {
     pub fn new(item_count: i32, item_id: i32) -> Self {
-        if item_count == 0 {
-            Self {
-                item_count: VarInt::new(0),
-                item_id: None,
-                num_of_components_to_add: None,
-                num_of_components_to_remove: None,
-            }
-        } else {
-            Self {
-                item_count: VarInt::new(item_count),
-                item_id: Some(VarInt::new(item_id)),
-                num_of_components_to_add: Some(VarInt::new(0)),
-                num_of_components_to_remove: Some(VarInt::new(0)),
-            }
+        let components = if item_count == 0 { None } else { Some(VarInt::new(0)) };
+        Self {
+            item_count: VarInt::new(item_count),
+            item_id: if item_count == 0 { None } else { Some(VarInt::new(item_id)) },
+            num_of_components_to_add: components,
+            num_of_components_to_remove: components,
         }
     }
 
