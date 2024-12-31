@@ -1,0 +1,233 @@
+// https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Entity_metadata#Entity_Metadata_Format
+use crate::packets::outgoing::entity_metadata::entity_state::{EntityState, EntityStateMask};
+use crate::packets::outgoing::entity_metadata::index_type::EntityMetadataIndexType;
+use crate::packets::outgoing::entity_metadata::value::EntityMetadataValue;
+use ferrumc_macros::{packet, NetEncode};
+use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
+use ferrumc_net_codec::net_types::var_int::VarInt;
+use std::io::Write;
+use tokio::io::AsyncWrite;
+
+#[derive(NetEncode)]
+#[packet(packet_id = 0x58)]
+pub struct EntityMetadataPacket {
+    index: u8,
+    index_type: EntityMetadataIndexType,
+    value: EntityMetadataValue,
+}
+
+pub mod constructors {
+    use crate::packets::outgoing::entity_metadata::extra_data_types::EntityPose;
+    use super::*;
+
+    impl EntityMetadataPacket {
+        fn new(index_type: EntityMetadataIndexType, value: EntityMetadataValue) -> Self {
+            EntityMetadataPacket {
+                index: value.index(),
+                index_type,
+                value,
+            }
+        }
+        /// To hide the name tag and stuff
+        pub fn entity_sneaking_pressed() -> Self {
+            Self::new(EntityMetadataIndexType::Byte, EntityMetadataValue::Entity0(EntityStateMask::from_state(EntityState::SneakingVisual)))
+        }
+        /// Actual sneaking visual, so you can see the player sneaking
+        pub fn entity_sneaking_visual() -> Self {
+            Self::new(EntityMetadataIndexType::Pose, EntityMetadataValue::Entity6(EntityPose::Sneaking))
+        }
+    }
+}
+
+
+mod index_type {
+    use super::*;
+    pub enum EntityMetadataIndexType {
+        Byte,
+        Pose
+    }
+
+    impl EntityMetadataIndexType {
+        pub fn index(&self) -> VarInt {
+            use EntityMetadataIndexType::*;
+            let val = match self {
+                Byte => 0,
+                Pose => 21,
+            };
+
+            VarInt::new(val)
+        }
+    }
+
+    impl NetEncode for EntityMetadataIndexType {
+        fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
+            self.index().encode(writer, opts)
+        }
+
+        async fn encode_async<W: AsyncWrite + Unpin>(
+            &self,
+            writer: &mut W,
+            opts: &NetEncodeOpts,
+        ) -> NetEncodeResult<()> {
+            self.index().encode_async(writer, opts).await
+        }
+    }
+}
+
+mod value {
+    use crate::packets::outgoing::entity_metadata::extra_data_types::EntityPose;
+    use super::*;
+    /// Couldn't be arsed coming up with the names.
+    /// Read here:
+    /// https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Entity_metadata#Entity
+    ///
+    /// Formatted like:
+    /// {Class Name}{Index}
+    #[derive(NetEncode)]
+    pub enum EntityMetadataValue {
+        Entity0(EntityStateMask),
+        Entity6(EntityPose),
+    }
+
+    impl EntityMetadataValue {
+        pub fn index(&self) -> u8 {
+            use EntityMetadataValue::*;
+            match self {
+                Entity0(_) => 0,
+                Entity6(_) => 6,
+            }
+        }
+    }
+}
+
+mod entity_state {
+    use ferrumc_macros::NetEncode;
+    use std::io::Write;
+
+    #[derive(Debug, NetEncode)]
+    pub struct EntityStateMask {
+        mask: u8,
+    }
+
+    impl Default for EntityStateMask {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+
+    impl EntityStateMask {
+        pub fn new() -> Self {
+            Self { mask: 0 }
+        }
+
+        pub fn from_state(state: EntityState) -> Self {
+            let mut mask = Self::new();
+            mask.set(state);
+            mask
+        }
+
+        pub fn set(&mut self, state: EntityState) {
+            self.mask |= state.mask();
+        }
+    }
+    
+    #[allow(dead_code)]
+    pub enum EntityState {
+        OnFire,
+        SneakingVisual,
+        Sprinting,
+        Swimming,
+        Invisible,
+        Glowing,
+        FlyingWithElytra,
+    }
+
+    impl EntityState {
+        pub fn mask(&self) -> u8 {
+            use EntityState::*;
+            match self {
+                OnFire => 0x01,
+                SneakingVisual => 0x02,
+                Sprinting => 0x08,
+                Swimming => 0x10,
+                Invisible => 0x20,
+                Glowing => 0x40,
+                FlyingWithElytra => 0x80,
+            }
+        }
+    }
+}
+
+mod extra_data_types {
+    use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
+    use ferrumc_net_codec::net_types::var_int::VarInt;
+    use std::io::Write;
+    use tokio::io::AsyncWrite;
+    // STANDING = 0, FALL_FLYING = 1, SLEEPING = 2, SWIMMING = 3, SPIN_ATTACK = 4, SNEAKING = 5, LONG_JUMPING = 6, DYING = 7, CROAKING = 8,
+    // USING_TONGUE = 9, SITTING = 10, ROARING = 11, SNIFFING = 12, EMERGING = 13, DIGGING = 14, (1.21.3: SLIDING = 15, SHOOTING = 16,
+    // INHALING = 17
+
+    #[derive(Debug)]
+    #[allow(dead_code)]
+    pub enum EntityPose {
+        Standing,
+        FallFlying,
+        Sleeping,
+        Swimming,
+        SpinAttack,
+        Sneaking,
+        LongJumping,
+        Dying,
+        Croaking,
+        UsingTongue,
+        Sitting,
+        Roaring,
+        Sniffing,
+        Emerging,
+        Digging,
+        Sliding,
+        Shooting,
+        Inhaling,
+    }
+
+    impl EntityPose {
+        pub fn index(&self) -> VarInt {
+            use EntityPose::*;
+            let val = match self {
+                Standing => 0,
+                FallFlying => 1,
+                Sleeping => 2,
+                Swimming => 3,
+                SpinAttack => 4,
+                Sneaking => 5,
+                LongJumping => 6,
+                Dying => 7,
+                Croaking => 8,
+                UsingTongue => 9,
+                Sitting => 10,
+                Roaring => 11,
+                Sniffing => 12,
+                Emerging => 13,
+                Digging => 14,
+                Sliding => 15,
+                Shooting => 16,
+                Inhaling => 17,
+            };
+            VarInt::new(val)
+        }
+    }
+
+    impl NetEncode for EntityPose {
+        fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
+            self.index().encode(writer, opts)
+        }
+
+        async fn encode_async<W: AsyncWrite + Unpin>(
+            &self,
+            writer: &mut W,
+            opts: &NetEncodeOpts,
+        ) -> NetEncodeResult<()> {
+            self.index().encode_async(writer, opts).await
+        }
+    }
+}
