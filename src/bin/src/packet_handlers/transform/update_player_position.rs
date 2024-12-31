@@ -7,7 +7,7 @@ use ferrumc_net::errors::NetError;
 use ferrumc_net::packets::packet_events::TransformEvent;
 use ferrumc_net::utils::ecs_helpers::EntityExt;
 use ferrumc_state::GlobalState;
-use tracing::{debug, trace};
+use tracing::trace;
 
 #[event_handler]
 async fn handle_player_move(

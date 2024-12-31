@@ -21,7 +21,7 @@ pub struct PlaceBlock {
 }
 
 impl IncomingPacket for PlaceBlock {
-    async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
+    async fn handle(self, _conn_id: usize, _state: Arc<ServerState>) -> NetResult<()> {
         debug!("{:?}", self);
         Ok(())
     }

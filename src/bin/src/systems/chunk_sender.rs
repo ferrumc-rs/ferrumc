@@ -10,12 +10,11 @@ use ferrumc_net::packets::outgoing::set_center_chunk::SetCenterChunk;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalState;
-use rand::random;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::task::JoinSet;
-use tracing::{debug, error, info, trace};
+use tracing::{error, info, trace};
 
 pub(super) struct ChunkSenderSystem {
     pub stop: AtomicBool,

@@ -68,9 +68,15 @@ impl NetworkPosition {
         let mut x = (val >> 38) as i32;
         let mut y = (val << 52 >> 52) as i16;
         let mut z = (val << 26 >> 38) as i32;
-        if x >= 1 << 25 { x -= 1 << 26 }
-        if y >= 1 << 11 { y -= 1 << 12 }
-        if z >= 1 << 25 { z -= 1 << 26 }
+        if x >= 1 << 25 {
+            x -= 1 << 26
+        }
+        if y >= 1 << 11 {
+            y -= 1 << 12
+        }
+        if z >= 1 << 25 {
+            z -= 1 << 26
+        }
         Self { x, y, z }
     }
 }
