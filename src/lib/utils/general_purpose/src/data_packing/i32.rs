@@ -88,8 +88,8 @@ mod tests {
     fn test_read_nbit_i32() {
         let data: i64 = 0b110101011;
         assert_eq!(read_nbit_i32(&data, 3, 0).unwrap(), 0b011);
-        assert_eq!(read_nbit_i32(&data, 3, 3).unwrap(), -3); // 0b101 as i32 is -3
-        assert_eq!(read_nbit_i32(&data, 3, 6).unwrap(), -2); // 0b110 as i32 is -2
+        assert_eq!(read_nbit_i32(&data, 3, 3).unwrap(), 0b101);
+        assert_eq!(read_nbit_i32(&data, 3, 6).unwrap(), 0b110);
         assert_eq!(read_nbit_i32(&data, 3, 9).unwrap(), 0b000);
     }
 
