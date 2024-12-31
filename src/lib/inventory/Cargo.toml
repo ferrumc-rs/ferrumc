@@ -1,0 +1,22 @@
+[package]
+name = "ferrumc-inventory"
+description = "Implements Inventory Capablities to FerrumC"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+ferrumc-net = { workspace = true }
+ferrumc-net-codec = { workspace = true }
+ferrumc-text = { workspace = true }
+ferrumc-ecs = { workspace = true }
+ferrumc-events = { workspace = true }
+ferrumc-macros = { workspace = true }
+ferrumc-state = { workspace = true }
+
+tokio = {workspace = true }
+dashmap = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+
+[lints]
+workspace = true
