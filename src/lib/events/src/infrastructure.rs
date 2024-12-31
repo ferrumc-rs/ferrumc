@@ -73,9 +73,9 @@ pub trait Event: Sized + Send + Sync + 'static {
     ///
     /// Returns `Ok(())` if the execution succeeded. `Err(EventsError)` ifa listener failed.
     async fn trigger(event: Self::Data, state: Self::State) -> Result<(), Self::Error> {
-        let listeners = EVENTS_LISTENERS
-            .get(Self::name())
-            .expect("Failed to find event listeners. Impossible;");
+        let Some(listeners) = EVENTS_LISTENERS.get(Self::name()) else {
+            return Ok(());
+        };
 
         // Convert listeners iterator into Stream
         stream::iter(listeners.iter())

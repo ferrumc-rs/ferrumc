@@ -123,7 +123,8 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
             quote! {crate}
         }
         FoundCrate::Name(name) => {
-            quote! {::#name}
+            let name = syn::Ident::new(&name, proc_macro2::Span::call_site());
+            quote! {#name}
         }
     };
 

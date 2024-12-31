@@ -22,7 +22,7 @@ members = [
     "src/lib/derive_macros",
     "src/lib/derive_macros",
     "src/lib/ecs",
-    "src/lib/events",
+    "src/lib/events", "src/lib/inventory",
     "src/lib/net",
     "src/lib/net/crates/codec",
     "src/lib/net/crates/encryption",
@@ -94,6 +94,7 @@ ferrumc-logging = { path = "src/lib/utils/logging" }
 ferrumc-macros = { path = "src/lib/derive_macros" }
 ferrumc-nbt = { path = "src/lib/adapters/nbt" }
 ferrumc-net = { path = "src/lib/net" }
+ferrumc-inventory = { path = "src/lib/inventory" }
 ferrumc-net-codec = { path = "src/lib/net/crates/codec" }
 ferrumc-net-encryption = { path = "src/lib/net/crates/encryption" }
 ferrumc-plugins = { path = "src/lib/plugins" }
