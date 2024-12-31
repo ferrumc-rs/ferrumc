@@ -1,5 +1,5 @@
 use std::time::Instant;
-use futures::{StreamExt, TryStreamExt};
+use futures::{StreamExt};
 use ferrumc_config::statics::{get_global_config, get_whitelist};
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
@@ -244,9 +244,9 @@ async fn player_info_update_packets(entity_id: Entity, state: &GlobalState) -> N
 
         let start = Instant::now();
         broadcast(&packet, state, BroadcastOptions::default().except([entity_id])).await?;
-        debug!("Broadcasting player info update took: {:?}", start.elapsed());
+        trace!("Broadcasting player info update took: {:?}", start.elapsed());
     }
-    
+
     // Tell the player about all the other players that are already connected.
     {
         let packet = PlayerInfoUpdatePacket::existing_player_info_packet(entity_id, state);
@@ -257,7 +257,7 @@ async fn player_info_update_packets(entity_id: Entity, state: &GlobalState) -> N
         debug!("Sending player info update took: {:?}", start.elapsed());
     }
 
-    
+
     Ok(())
 }
 
@@ -266,7 +266,7 @@ async fn broadcast_spawn_entity_packet(entity_id: Entity, state: &GlobalState) -
 
     let start = Instant::now();
     broadcast(&packet, state, BroadcastOptions::default()).await?;
-    debug!("Broadcasting spawn entity took: {:?}", start.elapsed());
+    trace!("Broadcasting spawn entity took: {:?}", start.elapsed());
 
 
     let writer = state.universe.get_mut::<StreamWriter>(entity_id)?;

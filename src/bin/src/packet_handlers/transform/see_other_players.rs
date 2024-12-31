@@ -29,7 +29,7 @@ async fn handle_player_move(
     
     let start = std::time::Instant::now();
     broadcast(&packet, &state, BroadcastOptions::default().all()).await?;
-    tracing::debug!("broadcasting teleport took {:?}", start.elapsed());
+    tracing::trace!("broadcasting teleport took {:?}", start.elapsed());
 
 
     Ok(event)
