@@ -10,7 +10,8 @@ use ferrumc_net::errors::NetError;
 use ferrumc_net::packets::incoming::close_container::InventoryCloseEvent;
 use ferrumc_net::packets::outgoing::close_container::CloseContainerPacket;
 use ferrumc_net::packets::outgoing::open_screen::OpenScreenPacket;
-use ferrumc_net::packets::outgoing::set_container_slot::SetContainerSlotPacket;
+use ferrumc_net::packets::outgoing::set_container_content::SetContainerContentPacket;
+use ferrumc_net::packets::outgoing::set_container_slot::{NetworkSlot, SetContainerSlotPacket};
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::ServerState;
@@ -124,7 +125,7 @@ impl Inventory {
             id: VarInt::new(id),
             inventory_type,
             title: TextComponentBuilder::new(title).build(),
-            contents: InventoryContents::empty(),
+            contents: InventoryContents::empty(inventory_type.get_size() as usize),
         }
     }
 
@@ -166,21 +167,31 @@ impl Inventory {
             .await?;
 
         let id = self.id;
-        let contents = self.get_contents();
-        if !contents.is_empty() {
-            for slot in contents.iter() {
-                writer
-                    .send_packet(
-                        &SetContainerSlotPacket::new(
-                            id,
-                            *slot.key() as i16,
-                            slot.value().to_network_slot(),
-                        ),
-                        &NetEncodeOpts::WithLength,
-                    )
-                    .await?;
-            }
-        }
+        writer
+            .send_packet(
+                &SetContainerContentPacket::new(
+                    *id as u8,
+                    self.contents.construct_packet_contents(),
+                    NetworkSlot::empty(),
+                ),
+                &NetEncodeOpts::WithLength,
+            )
+            .await?;
+
+        // if !contents.is_empty() {
+        //     for slot in contents.iter() {
+        //         writer
+        //             .send_packet(
+        //                 &SetContainerSlotPacket::new(
+        //                     id,
+        //                     *slot.key() as i16,
+        //                     slot.value().to_network_slot(),
+        //                 ),
+        //                 &NetEncodeOpts::WithLength,
+        //             )
+        //             .await?;
+        //     }
+        // }
 
         // handle event
         let event = OpenInventoryEvent::new(entity_id).inventory_id(*id);
