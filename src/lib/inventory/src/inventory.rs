@@ -3,6 +3,7 @@ use crate::events::inventory_open::OpenInventoryEvent;
 use crate::slot::Slot;
 use std::collections::BTreeMap;
 
+use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
 use ferrumc_ecs::entities::Entity;
 use ferrumc_ecs::errors::ECSError;
 use ferrumc_events::infrastructure::Event;
@@ -148,6 +149,36 @@ impl Inventory {
         }
     }
 
+    pub async fn sync_inventory(&mut self, state: Arc<ServerState>) -> Result<(), InventoryError> {
+        let universe = &state.universe;
+        let query = universe
+            .get_component_manager()
+            .get_entities_with::<ChunkReceiver>();
+
+        for entity_id in query {
+            let inventory_result = universe.get_mut::<Inventory>(entity_id);
+            match inventory_result {
+                Ok(inventory) => {
+                    let mut writer = universe.get_mut::<StreamWriter>(entity_id)?;
+                    let contents = inventory.contents.construct_packet_contents();
+                    writer
+                        .send_packet(
+                            &SetContainerContentPacket::new(
+                                *inventory.id as u8,
+                                contents,
+                                NetworkSlot::empty(),
+                            ),
+                            &NetEncodeOpts::WithLength,
+                        )
+                        .await?;
+                }
+                Err(err) => return Err(InventoryError::ECSError(err)),
+            }
+        }
+
+        Ok(())
+    }
+
     pub async fn add_viewer(
         self,
         state: Arc<ServerState>,
@@ -178,22 +209,6 @@ impl Inventory {
                 &NetEncodeOpts::WithLength,
             )
             .await?;
-
-        // let contents = self.get_contents();
-        // if !contents.is_empty() {
-        //     for (&slot_num, &slot) in contents.iter() {
-        //         writer
-        //             .send_packet(
-        //                 &SetContainerSlotPacket::new(
-        //                     id,
-        //                     slot_num as i16,
-        //                     slot.to_network_slot(),
-        //                 ),
-        //                 &NetEncodeOpts::WithLength,
-        //             )
-        //             .await?;
-        //     }
-        // }
 
         // handle event
         let event = OpenInventoryEvent::new(entity_id).inventory_id(*id);

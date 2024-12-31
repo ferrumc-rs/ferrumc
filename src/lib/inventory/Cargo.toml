@@ -11,6 +11,7 @@ ferrumc-text = { workspace = true }
 ferrumc-ecs = { workspace = true }
 ferrumc-events = { workspace = true }
 ferrumc-macros = { workspace = true }
+ferrumc-core = { workspace = true }
 ferrumc-state = { workspace = true }
 
 tokio = {workspace = true }
