@@ -2,19 +2,19 @@
 use crate::packets::outgoing::entity_metadata::entity_state::{EntityState, EntityStateMask};
 use crate::packets::outgoing::entity_metadata::index_type::EntityMetadataIndexType;
 use crate::packets::outgoing::entity_metadata::value::EntityMetadataValue;
+use ferrumc_ecs::entities::Entity;
 use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::Write;
 use tokio::io::AsyncWrite;
-use ferrumc_ecs::entities::Entity;
 
 #[derive(NetEncode)]
 #[packet(packet_id = 0x58)]
 pub struct EntityMetadataPacket {
     entity_id: VarInt,
     metadata: Vec<EntityMetadata>,
-    terminator: u8
+    terminator: u8,
 }
 
 impl EntityMetadataPacket {
@@ -25,7 +25,7 @@ impl EntityMetadataPacket {
         Self {
             entity_id: VarInt::new(entity_id as i32),
             metadata: metadata.into_iter().collect(),
-            terminator: 0xFF
+            terminator: 0xFF,
         }
     }
 }
@@ -38,8 +38,8 @@ pub struct EntityMetadata {
 }
 
 pub mod constructors {
-    use crate::packets::outgoing::entity_metadata::extra_data_types::EntityPose;
     use super::*;
+    use crate::packets::outgoing::entity_metadata::extra_data_types::EntityPose;
 
     impl EntityMetadata {
         fn new(index_type: EntityMetadataIndexType, value: EntityMetadataValue) -> Self {
@@ -51,26 +51,36 @@ pub mod constructors {
         }
         /// To hide the name tag and stuff
         pub fn entity_sneaking_pressed() -> Self {
-            Self::new(EntityMetadataIndexType::Byte, EntityMetadataValue::Entity0(EntityStateMask::from_state(EntityState::SneakingVisual)))
+            Self::new(
+                EntityMetadataIndexType::Byte,
+                EntityMetadataValue::Entity0(EntityStateMask::from_state(
+                    EntityState::SneakingVisual,
+                )),
+            )
         }
         /// Actual sneaking visual, so you can see the player sneaking
         pub fn entity_sneaking_visual() -> Self {
-            Self::new(EntityMetadataIndexType::Pose, EntityMetadataValue::Entity6(EntityPose::Sneaking))
+            Self::new(
+                EntityMetadataIndexType::Pose,
+                EntityMetadataValue::Entity6(EntityPose::Sneaking),
+            )
         }
-        
+
         /// Entity in standing pose
         pub fn entity_standing() -> Self {
-            Self::new(EntityMetadataIndexType::Pose, EntityMetadataValue::Entity6(EntityPose::Standing))
+            Self::new(
+                EntityMetadataIndexType::Pose,
+                EntityMetadataValue::Entity6(EntityPose::Standing),
+            )
         }
     }
 }
-
 
 mod index_type {
     use super::*;
     pub enum EntityMetadataIndexType {
         Byte,
-        Pose
+        Pose,
     }
 
     impl EntityMetadataIndexType {
@@ -101,8 +111,8 @@ mod index_type {
 }
 
 mod value {
-    use crate::packets::outgoing::entity_metadata::extra_data_types::EntityPose;
     use super::*;
+    use crate::packets::outgoing::entity_metadata::extra_data_types::EntityPose;
     /// Couldn't be arsed coming up with the names.
     /// Read here:
     /// https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Entity_metadata#Entity

@@ -6,7 +6,7 @@ use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalState;
 use std::io::Write;
-use tracing::{debug};
+use tracing::debug;
 
 #[derive(NetEncode)]
 #[packet(packet_id = 0x3E)]

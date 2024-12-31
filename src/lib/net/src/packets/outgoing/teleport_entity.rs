@@ -1,10 +1,10 @@
-use ferrumc_ecs::entities::Entity;
-use ferrumc_macros::{packet, NetEncode};
-use std::io::Write;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
+use ferrumc_ecs::entities::Entity;
+use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::angle::NetAngle;
 use ferrumc_net_codec::net_types::var_int::VarInt;
+use std::io::Write;
 
 #[derive(NetEncode)]
 #[packet(packet_id = 0x70)]
@@ -17,7 +17,6 @@ pub struct TeleportEntityPacket {
     pub pitch: NetAngle,
     pub on_ground: bool,
 }
-
 
 impl TeleportEntityPacket {
     pub fn new(entity_id: Entity, position: &Position, angle: &Rotation, on_ground: bool) -> Self {

@@ -64,7 +64,6 @@ impl BroadcastOptions {
     }
 }
 
-
 /// Get all players in the 'play' state, so the players playing the playable game.
 pub fn get_all_play_players(state: &GlobalState) -> HashSet<Entity> {
     // If it needs a chunk, then it's player!! :)

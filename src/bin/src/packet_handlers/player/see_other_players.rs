@@ -22,23 +22,15 @@ async fn handle_player_move(
     let rot = entity.get::<Rotation>(&state)?;
     let grounded = entity.get::<OnGround>(&state)?;
 
-    let teleport_packet = TeleportEntityPacket::new(
-        entity,
-        &pos,
-        &rot,
-        grounded.0
-    );
-    let head_rot_packet = SetHeadRotationPacket::new(
-        entity as i32,
-        NetAngle::from_degrees(rot.yaw as f64)
-    );
+    let teleport_packet = TeleportEntityPacket::new(entity, &pos, &rot, grounded.0);
+    let head_rot_packet =
+        SetHeadRotationPacket::new(entity as i32, NetAngle::from_degrees(rot.yaw as f64));
 
     let start = std::time::Instant::now();
     broadcast(&teleport_packet, &state, BroadcastOptions::default().all()).await?;
     broadcast(&head_rot_packet, &state, BroadcastOptions::default().all()).await?;
-    
-    tracing::trace!("broadcasting entity move took {:?}", start.elapsed());
 
+    tracing::trace!("broadcasting entity move took {:?}", start.elapsed());
 
     Ok(event)
 }

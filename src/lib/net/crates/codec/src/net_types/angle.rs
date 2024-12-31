@@ -1,7 +1,7 @@
+use crate::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
 use std::f64::consts::PI;
 use std::io::Write;
 use tokio::io::{AsyncWrite, AsyncWriteExt};
-use crate::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
 
 /// Represents a rotation angle in steps of 1/256 of a full turn
 /// Stored as a single byte (0-255)
@@ -21,7 +21,6 @@ impl NetAngle {
         let steps = (wrapped * 256.0 / 360.0).round() as u8;
         NetAngle(steps)
     }
-
 
     /// Creates an Angle from radians
     pub fn from_radians(radians: f64) -> Self {
@@ -64,7 +63,11 @@ impl NetEncode for NetAngle {
         Ok(())
     }
 
-    async fn encode_async<W: AsyncWrite + Unpin>(&self, writer: &mut W, _: &NetEncodeOpts) -> NetEncodeResult<()> {
+    async fn encode_async<W: AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        _: &NetEncodeOpts,
+    ) -> NetEncodeResult<()> {
         writer.write_all(&[self.0]).await?;
         Ok(())
     }

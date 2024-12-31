@@ -1,10 +1,10 @@
-use tracing::{trace};
 use ferrumc_macros::event_handler;
 use ferrumc_net::errors::NetError;
 use ferrumc_net::packets::incoming::player_command::{PlayerCommandAction, PlayerDoActionEvent};
 use ferrumc_net::packets::outgoing::entity_metadata::{EntityMetadata, EntityMetadataPacket};
 use ferrumc_net::utils::broadcast::broadcast;
 use ferrumc_state::GlobalState;
+use tracing::trace;
 
 #[event_handler]
 async fn handle_player_do_action(
@@ -17,18 +17,17 @@ async fn handle_player_do_action(
         PlayerCommandAction::StartSneaking => {
             let packet = EntityMetadataPacket::new(
                 event.entity_id,
-                [EntityMetadata::entity_sneaking_visual(), EntityMetadata::entity_sneaking_pressed()],
+                [
+                    EntityMetadata::entity_sneaking_visual(),
+                    EntityMetadata::entity_sneaking_pressed(),
+                ],
             );
 
             broadcast(&packet, &state, Default::default()).await?;
         }
         PlayerCommandAction::StopSneaking => {
-            let packet = EntityMetadataPacket::new(
-                event.entity_id,
-                [
-                    EntityMetadata::entity_standing()
-                ],
-            );
+            let packet =
+                EntityMetadataPacket::new(event.entity_id, [EntityMetadata::entity_standing()]);
 
             broadcast(&packet, &state, Default::default()).await?;
         }

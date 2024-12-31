@@ -1,10 +1,10 @@
-use tracing::info;
 use ferrumc_macros::event_handler;
 use ferrumc_net::connection::PlayerDisconnectEvent;
 use ferrumc_net::errors::NetError;
 use ferrumc_net::packets::outgoing::remove_entities::RemoveEntitiesPacket;
 use ferrumc_net::utils::broadcast::{broadcast, BroadcastOptions};
 use ferrumc_state::GlobalState;
+use tracing::info;
 
 #[event_handler]
 async fn handle_player_disconnect(
@@ -17,7 +17,12 @@ async fn handle_player_disconnect(
 
     let remove_entity_packet = RemoveEntitiesPacket::from_entities([entity_id]);
 
-    broadcast(&remove_entity_packet, &state, BroadcastOptions::default().all()).await?;
+    broadcast(
+        &remove_entity_packet,
+        &state,
+        BroadcastOptions::default().all(),
+    )
+    .await?;
 
     Ok(event)
 }

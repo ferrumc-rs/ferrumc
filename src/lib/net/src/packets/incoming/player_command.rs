@@ -1,12 +1,11 @@
-
 use crate::packets::IncomingPacket;
 use crate::NetResult;
 use ferrumc_ecs::entities::Entity;
+use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::{packet, Event, NetDecode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::ServerState;
 use std::sync::Arc;
-use ferrumc_events::infrastructure::Event;
 
 // Mojang surely has SOME naming schemes.. commands??
 #[derive(NetDecode)]
@@ -39,7 +38,6 @@ impl IncomingPacket for PlayerCommandPacket {
         Ok(())
     }
 }
-
 
 #[derive(Debug, Event)]
 pub struct PlayerDoActionEvent {

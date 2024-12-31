@@ -1,14 +1,14 @@
-use ferrumc_macros::{packet, NetEncode};
-use std::io::Write;
+use crate::utils::ecs_helpers::EntityExt;
+use crate::NetResult;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_ecs::entities::Entity;
+use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::angle::NetAngle;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalState;
-use crate::NetResult;
-use crate::utils::ecs_helpers::EntityExt;
+use std::io::Write;
 
 #[derive(NetEncode)]
 #[packet(packet_id = 0x01)]
@@ -35,7 +35,6 @@ impl SpawnEntityPacket {
         let player_identity = entity_id.get::<PlayerIdentity>(state)?;
         let position = entity_id.get::<Position>(state)?;
         let rotation = entity_id.get::<Rotation>(state)?;
-
 
         Ok(Self {
             entity_id: VarInt::new(entity_id as i32),

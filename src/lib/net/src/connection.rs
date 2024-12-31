@@ -1,6 +1,8 @@
 use crate::packets::incoming::packet_skeleton::PacketSkeleton;
 use crate::utils::state::terminate_connection;
 use crate::{handle_packet, NetResult};
+use ferrumc_events::infrastructure::Event;
+use ferrumc_macros::Event;
 use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::ServerState;
@@ -10,8 +12,6 @@ use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tokio::net::TcpStream;
 use tokio::time::timeout;
 use tracing::{debug, debug_span, trace, warn, Instrument};
-use ferrumc_events::infrastructure::Event;
-use ferrumc_macros::Event;
 
 #[derive(Debug)]
 pub struct ConnectionControl {
@@ -177,7 +177,9 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
     debug!("Connection closed for entity: {:?}", entity);
 
     // Broadcast the leave server event
-    let _ = PlayerDisconnectEvent::trigger(PlayerDisconnectEvent { entity_id: entity }, state.clone()).await;
+    let _ =
+        PlayerDisconnectEvent::trigger(PlayerDisconnectEvent { entity_id: entity }, state.clone())
+            .await;
 
     // Remove all components from the entity
 
