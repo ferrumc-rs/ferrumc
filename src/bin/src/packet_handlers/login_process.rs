@@ -1,4 +1,5 @@
 use std::time::Instant;
+use futures::{StreamExt, TryStreamExt};
 use ferrumc_config::statics::{get_global_config, get_whitelist};
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
@@ -27,11 +28,13 @@ use ferrumc_net::packets::outgoing::set_center_chunk::SetCenterChunk;
 use ferrumc_net::packets::outgoing::set_default_spawn_position::SetDefaultSpawnPositionPacket;
 use ferrumc_net::packets::outgoing::set_render_distance::SetRenderDistance;
 use ferrumc_net::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket;
-use ferrumc_net::utils::broadcast::{broadcast, BroadcastOptions};
+use ferrumc_net::utils::broadcast::{broadcast, get_all_play_players, BroadcastOptions};
 use ferrumc_net::NetResult;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::GlobalState;
 use tracing::{debug, trace};
+use ferrumc_ecs::entities::Entity;
+use ferrumc_net::packets::outgoing::spawn_entity::SpawnEntityPacket;
 
 #[event_handler]
 async fn handle_login_start(
@@ -149,11 +152,9 @@ async fn handle_ack_finish_configuration(
     state: GlobalState,
 ) -> Result<AckFinishConfigurationEvent, NetError> {
     trace!("Handling Ack Finish Configuration event");
-
+    let entity_id = ack_finish_configuration_event.conn_id;
     {
-        let conn_id = ack_finish_configuration_event.conn_id;
-
-        let mut conn_state = state.universe.get_mut::<ConnectionState>(conn_id)?;
+        let mut conn_state = state.universe.get_mut::<ConnectionState>(entity_id)?;
 
         *conn_state = ConnectionState::Play;
 
@@ -161,14 +162,14 @@ async fn handle_ack_finish_configuration(
         // to avoid wasting resources on entities that are fetching stuff like server status etc.
         state
             .universe
-            .add_component::<Position>(conn_id, Position::default())?
-            .add_component::<Rotation>(conn_id, Rotation::default())?
-            .add_component::<OnGround>(conn_id, OnGround::default())?;
+            .add_component::<Position>(entity_id, Position::default())?
+            .add_component::<Rotation>(entity_id, Rotation::default())?
+            .add_component::<OnGround>(entity_id, OnGround::default())?;
 
-        let mut writer = state.universe.get_mut::<StreamWriter>(conn_id)?;
+        let mut writer = state.universe.get_mut::<StreamWriter>(entity_id)?;
 
         writer // 21
-            .send_packet(&LoginPlayPacket::new(conn_id), &NetEncodeOpts::WithLength)
+            .send_packet(&LoginPlayPacket::new(entity_id), &NetEncodeOpts::WithLength)
             .await?;
         writer // 29
             .send_packet(
@@ -201,15 +202,16 @@ async fn handle_ack_finish_configuration(
             )
             .await?;
 
-        let pos = state.universe.get_mut::<Position>(conn_id)?;
-        let mut chunk_recv = state.universe.get_mut::<ChunkReceiver>(conn_id)?;
+        let pos = state.universe.get_mut::<Position>(entity_id)?;
+        let mut chunk_recv = state.universe.get_mut::<ChunkReceiver>(entity_id)?;
         chunk_recv.last_chunk = Some((pos.x as i32, pos.z as i32, String::from("overworld")));
         chunk_recv.calculate_chunks().await;
 
-        send_keep_alive(conn_id, &state, &mut writer).await?;
+        send_keep_alive(entity_id, &state, &mut writer).await?;
     }
 
-    send_player_info_update(&state).await?;
+    player_info_update_packets(entity_id, &state).await?;
+    broadcast_spawn_entity_packet(entity_id, &state).await?;
 
     Ok(ack_finish_configuration_event)
 }
@@ -235,12 +237,47 @@ async fn send_keep_alive(
     Ok(())
 }
 
-async fn send_player_info_update(state: &GlobalState) -> NetResult<()> {
-    let packet = PlayerInfoUpdatePacket::join_packet(&state);
+async fn player_info_update_packets(entity_id: Entity, state: &GlobalState) -> NetResult<()> {
+    // Broadcasts a player info update packet to all players.
+    {
+        let packet = PlayerInfoUpdatePacket::new_player_join_packet(entity_id, state);
+
+        let start = Instant::now();
+        broadcast(&packet, state, BroadcastOptions::default().except([entity_id])).await?;
+        debug!("Broadcasting player info update took: {:?}", start.elapsed());
+    }
+    
+    // Tell the player about all the other players that are already connected.
+    {
+        let packet = PlayerInfoUpdatePacket::existing_player_info_packet(entity_id, state);
+
+        let start = Instant::now();
+        let mut writer = state.universe.get_mut::<StreamWriter>(entity_id)?;
+        writer.send_packet(&packet, &NetEncodeOpts::WithLength).await?;
+        debug!("Sending player info update took: {:?}", start.elapsed());
+    }
+
+    
+    Ok(())
+}
+
+async fn broadcast_spawn_entity_packet(entity_id: Entity, state: &GlobalState) -> NetResult<()> {
+    let packet = SpawnEntityPacket::player(entity_id, state)?;
 
     let start = Instant::now();
     broadcast(&packet, state, BroadcastOptions::default()).await?;
-    debug!("Broadcasting player info update took: {:?}", start.elapsed());
+    debug!("Broadcasting spawn entity took: {:?}", start.elapsed());
+
+
+    let writer = state.universe.get_mut::<StreamWriter>(entity_id)?;
+    futures::stream::iter(get_all_play_players(state))
+        .fold(writer, |mut writer, entity| async move {
+            if let Ok(packet) = SpawnEntityPacket::player(entity, state) {
+                let _ = writer.send_packet(&packet, &NetEncodeOpts::WithLength).await;
+            }
+            writer
+        })
+        .await;
 
     Ok(())
 }

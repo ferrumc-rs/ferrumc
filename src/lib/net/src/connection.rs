@@ -10,6 +10,8 @@ use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tokio::net::TcpStream;
 use tokio::time::timeout;
 use tracing::{debug, debug_span, trace, warn, Instrument};
+use ferrumc_events::infrastructure::Event;
+use ferrumc_macros::Event;
 
 #[derive(Debug)]
 pub struct ConnectionControl {
@@ -174,6 +176,9 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
 
     debug!("Connection closed for entity: {:?}", entity);
 
+    // Broadcast the leave server event
+    let _ = PlayerDisconnectEvent::trigger(PlayerDisconnectEvent { entity_id: entity }, state.clone()).await;
+
     // Remove all components from the entity
 
     // Wait until anything that might be using the entity is done
@@ -184,6 +189,11 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
     trace!("Dropped all components from entity: {:?}", entity);
 
     Ok(())
+}
+
+#[derive(Event)]
+pub struct PlayerDisconnectEvent {
+    pub entity_id: usize,
 }
 
 /// Since parking_lot is single-threaded, we use spawn_blocking to remove all components from the entity asynchronously (on another thread).
