@@ -159,6 +159,10 @@ impl Inventory {
             let inventory_result = universe.get_mut::<Inventory>(entity_id);
             match inventory_result {
                 Ok(inventory) => {
+                    if *self.id != *inventory.id {
+                        continue;
+                    }
+
                     let mut writer = universe.get_mut::<StreamWriter>(entity_id)?;
                     let contents = inventory.contents.construct_packet_contents();
                     writer
