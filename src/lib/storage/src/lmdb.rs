@@ -18,7 +18,6 @@ impl From<Error> for StorageError {
             Error::Io(e) => StorageError::GenericIoError(e),
             Error::Encoding(e) => StorageError::WriteError(e.to_string()),
             Error::Decoding(e) => StorageError::ReadError(e.to_string()),
-            Error::DatabaseClosing => StorageError::CloseError("Database closing".to_string()),
             _ => StorageError::DatabaseError(err.to_string()),
         }
     }

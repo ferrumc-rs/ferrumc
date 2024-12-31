@@ -2,6 +2,7 @@
 
 pub mod chunk_format;
 mod db_functions;
+pub mod edits;
 pub mod errors;
 mod importing;
 mod vanilla_chunk_format;
