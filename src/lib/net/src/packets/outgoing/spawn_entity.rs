@@ -35,8 +35,8 @@ impl SpawnEntityPacket {
         let player_identity = entity_id.get::<PlayerIdentity>(state)?;
         let position = entity_id.get::<Position>(state)?;
         let rotation = entity_id.get::<Rotation>(state)?;
-        
-        
+
+
         Ok(Self {
             entity_id: VarInt::new(entity_id as i32),
             entity_uuid: player_identity.uuid,

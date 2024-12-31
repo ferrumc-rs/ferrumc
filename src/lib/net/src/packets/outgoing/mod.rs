@@ -24,3 +24,4 @@ pub mod remove_entities;
 pub mod entity_animation;
 pub mod player_info_update;
 pub mod teleport_entity;
+pub mod set_head_rotation;

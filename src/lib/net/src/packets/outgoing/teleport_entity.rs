@@ -1,5 +1,5 @@
 use ferrumc_ecs::entities::Entity;
-use ferrumc_macros::{packet, Event, NetEncode};
+use ferrumc_macros::{packet, NetEncode};
 use std::io::Write;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;

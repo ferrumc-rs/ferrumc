@@ -15,11 +15,13 @@ impl NetAngle {
     }
 
     /// Creates an Angle from degrees
-    pub fn from_degrees(degrees: f64) -> Self {
-        let normalized = degrees % 360.0;
-        let steps = (normalized * 256.0 / 360.0).round() as u8;
+    pub fn from_degrees(deg: f64) -> Self {
+        // This ensures negative angles won't break the `as u8` cast
+        let wrapped = deg.rem_euclid(360.0);
+        let steps = (wrapped * 256.0 / 360.0).round() as u8;
         NetAngle(steps)
     }
+
 
     /// Creates an Angle from radians
     pub fn from_radians(radians: f64) -> Self {

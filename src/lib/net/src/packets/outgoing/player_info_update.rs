@@ -6,7 +6,7 @@ use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalState;
 use std::io::Write;
-use tracing::{debug, trace};
+use tracing::{debug};
 
 #[derive(NetEncode)]
 #[packet(packet_id = 0x3E)]
@@ -41,13 +41,13 @@ impl PlayerInfoUpdatePacket {
             .unwrap();
         let uuid = identity.uuid;
         let name = identity.username.clone();
-        
+
         let player = PlayerWithActions::add_player(uuid, name);
-        
+
         Self::with_players(vec![player])
     }
-    
-    /// The packet to be sent to a new player when they join the server, 
+
+    /// The packet to be sent to a new player when they join the server,
     /// To let them know about all the players that are already connected
     pub fn existing_player_info_packet(new_player_id: Entity, state: &GlobalState) -> Self {
         let players = {
