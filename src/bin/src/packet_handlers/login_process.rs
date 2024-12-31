@@ -53,7 +53,7 @@ async fn handle_login_start(
             login_start_event.conn_id,
             PlayerIdentity::new(username.to_string(), uuid),
         )?
-        .add_component::<ChunkReceiver>(login_start_event.conn_id, ChunkReceiver::default())?;
+        /*.add_component::<ChunkReceiver>(login_start_event.conn_id, ChunkReceiver::default())?*/;
 
     //Send a Login Success Response to further the login sequence
     let mut writer = state
@@ -164,7 +164,8 @@ async fn handle_ack_finish_configuration(
             .universe
             .add_component::<Position>(entity_id, Position::default())?
             .add_component::<Rotation>(entity_id, Rotation::default())?
-            .add_component::<OnGround>(entity_id, OnGround::default())?;
+            .add_component::<OnGround>(entity_id, OnGround::default())?
+            .add_component::<ChunkReceiver>(entity_id, ChunkReceiver::default())?;
 
         let mut writer = state.universe.get_mut::<StreamWriter>(entity_id)?;
 
