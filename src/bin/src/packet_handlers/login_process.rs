@@ -182,7 +182,7 @@ async fn handle_ack_finish_configuration(
     send_keep_alive(conn_id, state.clone(), &mut writer).await?;
 
     if let Some(ref chunk) = chunk {
-        writer.send_packet(&ferrumc_net::packets::outgoing::chunk_and_light_data::ChunkAndLightData::from_chunk(&chunk)?, &NetEncodeOpts::WithLength).await?;
+        writer.send_packet(&ferrumc_net::packets::outgoing::chunk_and_light_data::ChunkAndLightData::from_chunk(chunk)?, &NetEncodeOpts::WithLength).await?;
     }
 
     // todos in this code below

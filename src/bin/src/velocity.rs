@@ -27,7 +27,7 @@ async fn handle_login_start(
 ) -> NetResult<PlayerStartLoginEvent> {
     if get_global_config().velocity.enabled {
         let entity = event.entity;
-        if let Ok(_) = entity.get::<VelocityMessageId>(&state) {
+        if entity.get::<VelocityMessageId>(&state).is_ok() {
             return Ok(event);
         }
 
