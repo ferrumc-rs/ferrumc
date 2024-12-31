@@ -130,21 +130,24 @@ pub(crate) async fn save_chunk_internal(world: &World, chunk: Chunk) -> Result<(
     Ok(())
 }
 
+use rayon::prelude::*;
+
 pub(crate) async fn save_chunk_internal_batch(
     world: &World,
     chunks: Vec<Chunk>,
 ) -> Result<(), WorldError> {
-    // Prepare the batch data for the upsert
-    let mut batch_data = Vec::new();
-
-    for chunk in chunks.iter() {
-        // Compress the chunk and encode it
-        let as_bytes = world.compressor.compress(&bitcode::encode(chunk))?;
-        // Create the key for the chunk
-        let digest = create_key(chunk.dimension.as_str(), chunk.x, chunk.z);
-        // Collect the key-value pair into the batch data
-        batch_data.push((digest, as_bytes));
-    }
+    // Prepare the batch data for the upsert using rayon's parallel iterator
+    let batch_data: Vec<_> = chunks
+        .par_iter()  // parallel iterator over chunks
+        .map(|chunk| {
+            // Compress the chunk and encode it
+            let as_bytes = world.compressor.compress(&bitcode::encode(chunk))?;
+            // Create the key for the chunk
+            let digest = create_key(chunk.dimension.as_str(), chunk.x, chunk.z);
+            // Return the key-value pair
+            Ok((digest, as_bytes))
+        })
+        .collect::<Result<Vec<_>, WorldError>>()?;  // Collect into Result<Vec<_>>
 
     // Perform the batch upsert
     world
