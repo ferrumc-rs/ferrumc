@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 use tokio::task::JoinSet;
-use tracing::{error, info, trace};
+use tracing::{debug, info, trace};
 
 pub struct ChunkFetcher {
     stop: AtomicBool,
@@ -70,11 +70,11 @@ impl System for ChunkFetcher {
                 match result {
                     Ok(task_res) => {
                         if let Err(e) = task_res {
-                            error!("Error fetching chunk: {:?}", e);
+                            debug!("Error fetching chunk: {:?}", e);
                         }
                     }
                     Err(e) => {
-                        error!("Error fetching chunk: {:?}", e);
+                        debug!("Error fetching chunk: {:?}", e);
                     }
                 }
             }
