@@ -39,10 +39,20 @@ pub enum WorldError {
     MissingBlockMapping(BlockData),
     #[error("Invalid memory map size: {0}")]
     InvalidMapSize(u64),
+    #[error("Task Join Error: {0}")]
+    TaskJoinError(String),
     #[error("Section out of bounds: {0}")]
     SectionOutOfBounds(i32),
     #[error("Invalid block state data")]
     InvalidBlockStateData(),
+}
+
+// implemente AcquireError for WorldError
+use tokio::sync::AcquireError;
+impl From<AcquireError> for WorldError {
+    fn from(err: AcquireError) -> Self {
+        WorldError::TaskJoinError(err.to_string())
+    }
 }
 
 impl From<std::io::Error> for WorldError {

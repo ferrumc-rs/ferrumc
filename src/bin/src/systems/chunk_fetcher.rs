@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 use tokio::task::JoinSet;
-use tracing::{error, info, trace};
+use tracing::{debug, info, trace};
 
 pub struct ChunkFetcher {
     stop: AtomicBool,
@@ -28,18 +28,16 @@ impl System for ChunkFetcher {
 
         while !self.stop.load(std::sync::atomic::Ordering::Relaxed) {
             let mut task_set: JoinSet<Result<(), BinaryError>> = JoinSet::new();
-            let players = state.universe.query::<&mut ChunkReceiver>();
-            for (eid, _) in players {
+            let players = state.universe.query::<&mut ChunkReceiver>().into_entities();
+            for eid in players {
                 let state = state.clone();
                 task_set.spawn(async move {
                     // Copy the chunks into a new map so we don't lock the component while fetching
                     let mut copied_chunks = {
-                        trace!("Getting chunk_recv 1 for fetcher");
-                        let chunk_recv = state
-                            .universe
-                            .get::<ChunkReceiver>(eid)
-                            .expect("ChunkReceiver not found");
-                        trace!("Got chunk_recv 1 for fetcher");
+                        let Ok(chunk_recv) = state.universe.get::<ChunkReceiver>(eid) else {
+                            trace!("A player disconnected before we could get the ChunkReceiver");
+                            return Ok(());
+                        };
                         let mut copied_chunks = HashMap::new();
                         for chunk in chunk_recv.needed_chunks.iter() {
                             let (key, chunk) = chunk.pair();
@@ -57,12 +55,10 @@ impl System for ChunkFetcher {
                     }
                     // Insert the fetched chunks back into the component
                     {
-                        trace!("Getting chunk_recv 2 for fetcher");
                         let Ok(chunk_recv) = state.universe.get::<ChunkReceiver>(eid) else {
                             trace!("A player disconnected before we could get the ChunkReceiver");
                             return Ok(());
                         };
-                        trace!("Got chunk_recv 2 for fetcher");
                         for (key, chunk) in copied_chunks.iter() {
                             chunk_recv.needed_chunks.insert(key.clone(), chunk.clone());
                         }
@@ -74,11 +70,11 @@ impl System for ChunkFetcher {
                 match result {
                     Ok(task_res) => {
                         if let Err(e) = task_res {
-                            error!("Error fetching chunk: {:?}", e);
+                            debug!("Error fetching chunk: {:?}", e);
                         }
                     }
                     Err(e) => {
-                        error!("Error fetching chunk: {:?}", e);
+                        debug!("Error fetching chunk: {:?}", e);
                     }
                 }
             }

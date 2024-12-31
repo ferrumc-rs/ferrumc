@@ -30,25 +30,27 @@ async fn handle_player_move(
                 .unwrap()
         );
         trace!("Getting chunk_recv 1 for player move");
-        let mut chunk_recv = state.universe.get_mut::<ChunkReceiver>(conn_id)?;
-        trace!("Got chunk_recv 1 for player move");
-        if let Some(last_chunk) = &chunk_recv.last_chunk {
-            let new_chunk = (
-                new_position.x as i32 / 16,
-                new_position.z as i32 / 16,
-                String::from("overworld"),
-            );
-            if *last_chunk != new_chunk {
-                chunk_recv.last_chunk = Some(new_chunk);
+        {
+            let mut chunk_recv = state.universe.get_mut::<ChunkReceiver>(conn_id)?;
+            trace!("Got chunk_recv 1 for player move");
+            if let Some(last_chunk) = &chunk_recv.last_chunk {
+                let new_chunk = (
+                    new_position.x as i32 / 16,
+                    new_position.z as i32 / 16,
+                    String::from("overworld"),
+                );
+                if *last_chunk != new_chunk {
+                    chunk_recv.last_chunk = Some(new_chunk);
+                    chunk_recv.calculate_chunks().await;
+                }
+            } else {
+                chunk_recv.last_chunk = Some((
+                    new_position.x as i32 / 16,
+                    new_position.z as i32 / 16,
+                    String::from("overworld"),
+                ));
                 chunk_recv.calculate_chunks().await;
             }
-        } else {
-            chunk_recv.last_chunk = Some((
-                new_position.x as i32 / 16,
-                new_position.z as i32 / 16,
-                String::from("overworld"),
-            ));
-            chunk_recv.calculate_chunks().await;
         }
 
         trace!("Getting position 1 for player move");
