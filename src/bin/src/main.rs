@@ -1,5 +1,6 @@
 #![feature(portable_simd)]
 #![forbid(unsafe_code)]
+#![feature(random)]
 extern crate core;
 
 use crate::errors::BinaryError;

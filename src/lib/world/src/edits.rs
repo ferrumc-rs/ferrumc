@@ -51,7 +51,10 @@ impl World {
         let i64_index = index / blocks_per_i64;
         let packed_u64 = data
             .get(i64_index)
-            .ok_or(WorldError::InvalidBlockStateData())?;
+            .ok_or(WorldError::InvalidBlockStateData(format!(
+                "Invalid block state data at index {}",
+                i64_index
+            )))?;
         let offset = (index % blocks_per_i64) * bits_per_block;
         let id = ferrumc_general_purpose::data_packing::u32::read_nbit_u32(
             packed_u64,

@@ -8,6 +8,7 @@ pub struct ChunkReceiver {
     pub can_see: DashSet<(i32, i32, String)>,
     pub last_update: Instant,
     pub last_chunk: Option<(i32, i32, String)>,
+    pub chunks_per_tick: f32,
 }
 
 impl Default for ChunkReceiver {
@@ -23,6 +24,7 @@ impl ChunkReceiver {
             can_see: DashSet::new(),
             last_update: Instant::now(),
             last_chunk: None,
+            chunks_per_tick: 0.0,
         }
     }
 }

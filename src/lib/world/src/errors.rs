@@ -44,7 +44,7 @@ pub enum WorldError {
     #[error("Section out of bounds: {0}")]
     SectionOutOfBounds(i32),
     #[error("Invalid block state data")]
-    InvalidBlockStateData(),
+    InvalidBlockStateData(String),
 }
 
 // implemente AcquireError for WorldError
@@ -78,7 +78,7 @@ impl From<AnvilError> for WorldError {
 }
 
 impl From<DataPackingError> for WorldError {
-    fn from(_: DataPackingError) -> Self {
-        WorldError::InvalidBlockStateData()
+    fn from(e: DataPackingError) -> Self {
+        WorldError::InvalidBlockStateData(e.to_string())
     }
 }

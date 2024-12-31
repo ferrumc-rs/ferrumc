@@ -16,19 +16,6 @@ async fn handle_player_move(
 ) -> Result<TransformEvent, NetError> {
     let conn_id = event.conn_id;
     if let Some(ref new_position) = event.position {
-        debug!(
-            "Block: {}",
-            state
-                .world
-                .get_block(
-                    new_position.x.floor() as i32,
-                    new_position.y.floor() as i32 - 1,
-                    new_position.z.floor() as i32,
-                    "overworld"
-                )
-                .await
-                .unwrap()
-        );
         trace!("Getting chunk_recv 1 for player move");
         {
             let mut chunk_recv = state.universe.get_mut::<ChunkReceiver>(conn_id)?;

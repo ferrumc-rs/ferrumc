@@ -17,22 +17,30 @@ use crate::data_packing::errors::DataPackingError;
 ///
 /// * `DataPackingError::SizeExceedsMaxSize` - If `size` is greater than 32.
 /// * `DataPackingError::NotEnoughBits` - If `offset + size` exceeds 64 bits.
-pub fn read_nbit_i32(data: &i64, size: u8, offset: u32) -> Result<i32, DataPackingError> {
-    if size > 32 {
-        return Err(DataPackingError::SizeExceedsMaxSize(size, 32));
+/// Reads an n-bit integer from a packed `i64`.
+pub fn read_nbit_i32(
+    word: &i64,
+    bit_size: usize,
+    bit_offset: u32,
+) -> Result<i32, DataPackingError> {
+    if bit_size == 0 || bit_size > 32 {
+        return Err(DataPackingError::SizeExceedsMaxSize(bit_size as u8, 32));
     }
-    if offset + size as u32 > 64 {
-        return Err(DataPackingError::NotEnoughBits(size, offset));
+    if bit_offset >= 64 {
+        return Err(DataPackingError::SizeExceedsMaxSize(bit_size as u8, 32));
     }
-    let mask = (1 << size) - 1;
-    let extracted_bits = ((data >> offset) & mask) as i32;
-    // Sign extend if the extracted bits represent a negative number
-    let sign_bit = 1 << (size - 1);
-    if extracted_bits & sign_bit != 0 {
-        Ok(extracted_bits | !mask as i32)
-    } else {
-        Ok(extracted_bits)
+    if bit_offset + bit_size as u32 > 64 {
+        return Err(DataPackingError::NotEnoughBits(bit_size as u8, bit_offset));
     }
+
+    // Create a mask for the n-bit value
+    let mask = (1u64 << bit_size) - 1;
+
+    // Extract the value from the word
+    let value = ((*word as u64) >> bit_offset) & mask;
+
+    // Cast to i32 and return
+    Ok(value as i32)
 }
 
 /// Writes a specified number of bits to a given offset in a 64-bit signed integer.

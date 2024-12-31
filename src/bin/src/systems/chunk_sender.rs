@@ -10,11 +10,12 @@ use ferrumc_net::packets::outgoing::set_center_chunk::SetCenterChunk;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalState;
+use rand::random;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::task::JoinSet;
-use tracing::{error, info, trace};
+use tracing::{debug, error, info, trace};
 
 pub(super) struct ChunkSenderSystem {
     pub stop: AtomicBool,
@@ -67,20 +68,26 @@ impl System for ChunkSenderSystem {
                             centre_coords = (chunk.0, chunk.1);
                         }
                     }
-                    let mut sent_chunks = 0;
                     {
-                        let Ok(chunk_recv) = state.universe.get::<ChunkReceiver>(eid) else {
-                            trace!("A player disconnected before we could get the ChunkReceiver");
-                            return Ok(());
-                        };
-                        for possible_chunk in chunk_recv.needed_chunks.iter_mut() {
-                            if let Some(chunk) = possible_chunk.pair().1 {
-                                let key = possible_chunk.pair().0;
+                        trace!("Getting chunk_recv 3 for sender");
+                        let chunk_recv = state
+                            .universe
+                            .get_mut::<ChunkReceiver>(eid)
+                            .expect("ChunkReceiver not found");
+                        trace!("Got chunk_recv 3 for sender");
+                        for mut possible_chunk in chunk_recv.needed_chunks.iter_mut() {
+                            if let (key, Some(chunk)) = possible_chunk.pair_mut() {
+                                chunk.sections.iter_mut().for_each(|section| {
+                                    // if random::<u8>() < 25 {
+                                    if let Err(e) = section.block_states.resize(8) {
+                                        error!("Error resizing block states: {:?}", e);
+                                    }
+                                    // }
+                                });
                                 to_drop.push(key.clone());
                                 match ChunkAndLightData::from_chunk(&chunk.clone()) {
                                     Ok(packet) => {
                                         packets.push(packet);
-                                        sent_chunks += 1;
                                     }
                                     Err(e) => {
                                         error!("Error sending chunk: {:?}", e);
@@ -125,17 +132,20 @@ impl System for ChunkSenderSystem {
                         {
                             error!("Error sending chunk: {:?}", e);
                         }
+                        let mut count = 0;
                         for packet in packets {
                             if let Err(e) =
                                 conn.send_packet(&packet, &NetEncodeOpts::WithLength).await
                             {
                                 error!("Error sending chunk: {:?}", e);
+                            } else {
+                                count += 1;
                             }
                         }
                         if let Err(e) = conn
                             .send_packet(
                                 &ChunkBatchFinish {
-                                    batch_size: VarInt::new(sent_chunks),
+                                    batch_size: VarInt::new(count),
                                 },
                                 &NetEncodeOpts::WithLength,
                             )
