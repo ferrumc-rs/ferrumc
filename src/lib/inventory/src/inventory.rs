@@ -1,7 +1,7 @@
-use std::collections::HashMap;
 use crate::contents::InventoryContents;
 use crate::events::inventory_open::OpenInventoryEvent;
 use crate::slot::Slot;
+use std::collections::BTreeMap;
 
 use ferrumc_ecs::entities::Entity;
 use ferrumc_ecs::errors::ECSError;
@@ -12,13 +12,12 @@ use ferrumc_net::packets::incoming::close_container::InventoryCloseEvent;
 use ferrumc_net::packets::outgoing::close_container::CloseContainerPacket;
 use ferrumc_net::packets::outgoing::open_screen::OpenScreenPacket;
 use ferrumc_net::packets::outgoing::set_container_content::SetContainerContentPacket;
-use ferrumc_net::packets::outgoing::set_container_slot::{NetworkSlot, SetContainerSlotPacket};
+use ferrumc_net::packets::outgoing::set_container_slot::NetworkSlot;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::ServerState;
 use ferrumc_text::{TextComponent, TextComponentBuilder};
 use std::sync::Arc;
-use tracing::info;
 use thiserror::Error;
 
 #[derive(Debug, Clone, Copy)]
@@ -226,14 +225,13 @@ impl Inventory {
         Ok(())
     }
 
-    pub fn get_contents(&self) -> &HashMap<i32, Slot> {
+    pub fn get_contents(&self) -> &BTreeMap<i32, Slot> {
         &self.contents.contents
     }
 
-    pub fn get_contents_mut(&mut self) -> &mut HashMap<i32, Slot> {
+    pub fn get_contents_mut(&mut self) -> &mut BTreeMap<i32, Slot> {
         &mut self.contents.contents
     }
-
 
     pub fn clear(&mut self) {
         self.get_contents_mut().clear();
@@ -246,9 +244,7 @@ impl Inventory {
     }
 
     pub fn contains(&self, item: i32) -> bool {
-        self.get_contents()
-            .iter()
-            .any(|slot| slot.1.item == item)
+        self.get_contents().iter().any(|slot| slot.1.item == item)
     }
 
     pub fn contains_slot(&self, slot: Slot) -> bool {

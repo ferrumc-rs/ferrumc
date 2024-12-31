@@ -1,18 +1,19 @@
-use std::collections::HashMap;
 use crate::slot::Slot;
-use tracing::info;
 use ferrumc_net::packets::outgoing::set_container_slot::NetworkSlot;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
+use std::collections::BTreeMap;
 
 #[derive(Debug, Clone)]
 pub struct InventoryContents {
-    pub contents: HashMap<i32, Slot>,
+    pub contents: BTreeMap<i32, Slot>,
+    pub size: usize,
 }
 
 impl InventoryContents {
     pub fn empty(size: usize) -> Self {
         let mut empty = Self {
-            contents: HashMap::with_capacity(size),
+            contents: BTreeMap::new(),
+            size,
         };
 
         empty.fill(Slot::empty());
@@ -20,7 +21,7 @@ impl InventoryContents {
     }
 
     pub fn fill(&mut self, slot: Slot) {
-        for i in 0..self.contents.len() as i32 {
+        for i in 0..self.size as i32 {
             self.contents.insert(i, slot);
         }
     }
@@ -31,17 +32,16 @@ impl InventoryContents {
     }
 
     pub fn get_slot(&self, item: i32) -> Option<Slot> {
-        self.contents.get(&item).map(|v| *v)
+        self.contents.get(&item).copied()
     }
 
     pub(crate) fn construct_packet_contents(&self) -> LengthPrefixedVec<NetworkSlot> {
-        let mut contents = LengthPrefixedVec::new(Vec::with_capacity(self.contents.len()));
+        let mut contents = vec![];
         self.contents.iter().for_each(|(_, slot)| {
-            contents.data.push(slot.to_network_slot());
+            contents.push(slot.to_network_slot());
         });
 
-        info!("{:?}", contents);
-        contents
+        LengthPrefixedVec::new(contents)
     }
 
     //to store in chunk metadata: TAG 44: byte

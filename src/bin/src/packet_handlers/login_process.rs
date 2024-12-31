@@ -29,7 +29,7 @@ use ferrumc_net::packets::outgoing::set_render_distance::SetRenderDistance;
 use ferrumc_net::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::GlobalState;
-use tracing::{debug, info, trace};
+use tracing::{debug, trace};
 
 #[event_handler]
 async fn handle_login_start(
@@ -208,10 +208,7 @@ async fn handle_ack_finish_configuration(
     }
 
     let mut inventory = Inventory::new(1, "Outspending's Inventory", InventoryType::Chest(6));
-
     inventory.set_slot(0, Slot::with_item(1));
-
-    info!("{:?}", inventory.get_contents().len());
 
     inventory.add_viewer(state, conn_id).await.unwrap();
 
