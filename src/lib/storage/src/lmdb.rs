@@ -159,6 +159,45 @@ impl LmdbBackend {
         .expect("Failed to run tokio task")
     }
 
+    pub async fn batch_upsert(
+        &self,
+        table: String,
+        data: Vec<(u128, Vec<u8>)>,
+    ) -> Result<(), StorageError> {
+        let env = self.env.clone();
+        tokio::task::spawn_blocking(move || {
+            let mut rw_txn = env.write_txn()?;
+
+            // Open or create the database for the given table
+            let db = env.create_database::<U128<BigEndian>, Bytes>(&mut rw_txn, Some(&table))?;
+
+            // Create a map of keys and their associated values
+            let keymap: HashMap<u128, &Vec<u8>> = data.iter().map(|(k, v)| (*k, v)).collect();
+
+            // Iterate through the keys in sorted order
+            let mut sorted_keys: Vec<u128> = keymap.keys().cloned().collect();
+            sorted_keys.sort();
+
+            // Iterate through the sorted keys to perform upserts
+            for key in sorted_keys {
+                // Check if the key already exists
+                if db.get(&rw_txn, &key)?.is_some() {
+                    // Update the value if it exists (you can modify this logic as needed)
+                    db.put(&mut rw_txn, &key, keymap[&key])?;
+                } else {
+                    // Insert the new key-value pair if the key doesn't exist
+                    db.put(&mut rw_txn, &key, keymap[&key])?;
+                }
+            }
+
+            // Commit the transaction after all upserts are performed
+            rw_txn.commit()?;
+            Ok(())
+        })
+        .await
+        .expect("Failed to run tokio task")
+    }
+
     pub async fn exists(&self, table: String, key: u128) -> Result<bool, StorageError> {
         let env = self.env.clone();
         tokio::task::spawn_blocking(move || {
