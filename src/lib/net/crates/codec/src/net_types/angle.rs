@@ -75,16 +75,13 @@ impl NetEncode for NetAngle {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use std::f64::EPSILON;
-
-    #[test]
+    use super::*;#[test]
     fn test_angle_conversions() {
         let angle = NetAngle::from_degrees(90.0);
-        assert!((angle.to_degrees() - 90.0).abs() < EPSILON);
+        assert!((angle.to_degrees() - 90.0).abs() < f64::EPSILON);
 
         let angle = NetAngle::from_radians(PI / 2.0);
-        assert!((angle.to_radians() - PI / 2.0).abs() < EPSILON);
+        assert!((angle.to_radians() - PI / 2.0).abs() < f64::EPSILON);
     }
 
     #[test]
