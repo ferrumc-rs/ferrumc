@@ -18,4 +18,11 @@ pub mod status_response;
 pub mod synchronize_player_position;
 pub mod update_time;
 
+pub mod remove_entities;
+pub mod spawn_entity;
+
 pub mod entity_animation;
+pub mod entity_metadata;
+pub mod player_info_update;
+pub mod set_head_rotation;
+pub mod teleport_entity;

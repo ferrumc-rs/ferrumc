@@ -9,12 +9,13 @@ use ferrumc_net::utils::ecs_helpers::EntityExt;
 use ferrumc_state::GlobalState;
 use tracing::trace;
 
-#[event_handler]
+#[event_handler(priority = "fastest")]
 async fn handle_player_move(
     event: TransformEvent,
     state: GlobalState,
 ) -> Result<TransformEvent, NetError> {
     let conn_id = event.conn_id;
+
     if let Some(ref new_position) = event.position {
         trace!("Getting chunk_recv 1 for player move");
         {
@@ -43,6 +44,7 @@ async fn handle_player_move(
         trace!("Getting position 1 for player move");
         let mut position = conn_id.get_mut::<Position>(&state)?;
         trace!("Got position 1 for player move");
+
         *position = Position::new(new_position.x, new_position.y, new_position.z);
     }
 
