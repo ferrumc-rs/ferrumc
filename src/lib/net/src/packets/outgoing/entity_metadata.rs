@@ -9,15 +9,32 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::Write;
 use tokio::io::AsyncWrite;
 
+/// Packet for sending entity metadata updates to clients
 #[derive(NetEncode)]
 #[packet(packet_id = 0x58)]
 pub struct EntityMetadataPacket {
     entity_id: VarInt,
     metadata: Vec<EntityMetadata>,
-    terminator: u8,
+    terminator: u8, // Always 0xFF to indicate end of metadata (Simple is Best)
 }
 
 impl EntityMetadataPacket {
+    /// Creates a new metadata packet for the specified entity
+    ///
+    /// # Arguments
+    /// * `entity_id` - The entity ID to update metadata for
+    /// * `metadata` - Iterator of metadata entries to send
+    ///
+    /// # Example
+    /// ```ignored
+    /// let entity_id = ...;
+    /// let metadata = vec![
+    ///                     EntityMetadata::entity_sneaking_pressed(),
+    ///                     EntityMetadata::entity_sneaking_visual(),
+    ///                     EntityMetadata::entity_standing()
+    ///                   ];
+    /// let packet = EntityMetadataPacket::new(entity_id, metadata);
+    /// ```
     pub fn new<T>(entity_id: Entity, metadata: T) -> Self
     where
         T: IntoIterator<Item = EntityMetadata>,
@@ -30,6 +47,7 @@ impl EntityMetadataPacket {
     }
 }
 
+/// Single metadata entry containing an index, type and value
 #[derive(NetEncode)]
 pub struct EntityMetadata {
     index: u8,
@@ -78,9 +96,12 @@ pub mod constructors {
 
 mod index_type {
     use super::*;
+
+    /// Available metadata field types
+    /// See: https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Entity_metadata#Entity_Metadata_Format
     pub enum EntityMetadataIndexType {
-        Byte,
-        Pose,
+        Byte, // (0) Used for bit masks and small numbers
+        Pose, // (21) Used for entity pose
     }
 
     impl EntityMetadataIndexType {
@@ -113,6 +134,8 @@ mod index_type {
 mod value {
     use super::*;
     use crate::packets::outgoing::entity_metadata::extra_data_types::EntityPose;
+    /// Possible metadata values that can be sent
+    ///
     /// Couldn't be arsed coming up with the names.
     /// Read here:
     /// https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Entity_metadata#Entity
@@ -140,6 +163,7 @@ mod entity_state {
     use ferrumc_macros::NetEncode;
     use std::io::Write;
 
+    /// Bit mask for various entity states
     #[derive(Debug, NetEncode)]
     pub struct EntityStateMask {
         mask: u8,
@@ -167,15 +191,17 @@ mod entity_state {
         }
     }
 
+    /// Individual states that can be applied to an entity
+    /// Multiple states can be combined using a bit mask
     #[allow(dead_code)]
     pub enum EntityState {
-        OnFire,
-        SneakingVisual,
-        Sprinting,
-        Swimming,
-        Invisible,
-        Glowing,
-        FlyingWithElytra,
+        OnFire,           // 0x01
+        SneakingVisual,   // 0x02
+        Sprinting,        // 0x08
+        Swimming,         // 0x10
+        Invisible,        // 0x20
+        Glowing,          // 0x40
+        FlyingWithElytra, // 0x80
     }
 
     impl EntityState {
@@ -203,6 +229,7 @@ mod extra_data_types {
     // USING_TONGUE = 9, SITTING = 10, ROARING = 11, SNIFFING = 12, EMERGING = 13, DIGGING = 14, (1.21.3: SLIDING = 15, SHOOTING = 16,
     // INHALING = 17
 
+    /// Possible poses/animations an entity can have
     #[derive(Debug)]
     #[allow(dead_code)]
     pub enum EntityPose {

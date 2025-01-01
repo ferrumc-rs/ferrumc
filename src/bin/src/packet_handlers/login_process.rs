@@ -203,12 +203,12 @@ async fn handle_ack_finish_configuration(
             )
             .await?;
 
+        send_keep_alive(entity_id, &state, &mut writer).await?;
+
         let pos = state.universe.get_mut::<Position>(entity_id)?;
         let mut chunk_recv = state.universe.get_mut::<ChunkReceiver>(entity_id)?;
         chunk_recv.last_chunk = Some((pos.x as i32, pos.z as i32, String::from("overworld")));
         chunk_recv.calculate_chunks().await;
-
-        send_keep_alive(entity_id, &state, &mut writer).await?;
     }
 
     player_info_update_packets(entity_id, &state).await?;
@@ -275,7 +275,12 @@ async fn broadcast_spawn_entity_packet(entity_id: Entity, state: &GlobalState) -
     let packet = SpawnEntityPacket::player(entity_id, state)?;
 
     let start = Instant::now();
-    broadcast(&packet, state, BroadcastOptions::default()).await?;
+    broadcast(
+        &packet,
+        state,
+        BroadcastOptions::default().except([entity_id]),
+    )
+    .await?;
     trace!("Broadcasting spawn entity took: {:?}", start.elapsed());
 
     let writer = state.universe.get_mut::<StreamWriter>(entity_id)?;
