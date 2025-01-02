@@ -1,6 +1,6 @@
 use ferrumc_core::identity::player_identity::*;
-use ferrumc_macros::Event;
 use ferrumc_ecs::entities::Entity;
+use ferrumc_macros::Event;
 
 /// This event is triggered when the player attempts to log on to the server.
 ///

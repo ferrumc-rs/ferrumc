@@ -1,49 +1,55 @@
-use crate::{NetResult, utils::ecs_helpers::EntityExt};
-use ferrumc_state::GlobalState;
-use ferrumc_core::{
-    identity::player_identity::PlayerIdentity,
-    transform::{position::Position, rotation::Rotation}
-};
-use ferrumc_net_codec::net_types::var_int::VarInt;
+use crate::utils::ecs_helpers::EntityExt;
+use crate::NetResult;
+use ferrumc_core::identity::player_identity::PlayerIdentity;
+use ferrumc_core::transform::position::Position;
+use ferrumc_core::transform::rotation::Rotation;
+use ferrumc_ecs::entities::Entity;
 use ferrumc_macros::{packet, NetEncode};
+use ferrumc_net_codec::net_types::angle::NetAngle;
+use ferrumc_net_codec::net_types::var_int::VarInt;
+use ferrumc_state::GlobalState;
 use std::io::Write;
 
 #[derive(NetEncode)]
 #[packet(packet_id = 0x01)]
 pub struct SpawnEntityPacket {
-    pub entity_id: VarInt,
-    pub entity_uuid: u128,
-    pub entity_type: VarInt,
-    pub position: Position,
-    pub pitch: u8,
-    pub yaw: u8,
-    pub head_yaw: u8,
-    pub data: VarInt,
-    pub velocity_x: u16,
-    pub velocity_y: u16,
-    pub velocity_z: u16,
-
+    entity_id: VarInt,
+    entity_uuid: u128,
+    r#type: VarInt,
+    x: f64,
+    y: f64,
+    z: f64,
+    pitch: NetAngle,
+    yaw: NetAngle,
+    head_yaw: NetAngle,
+    data: VarInt,
+    velocity_x: i16,
+    velocity_y: i16,
+    velocity_z: i16,
 }
 
+const PLAYER_ID: u8 = 128;
+
 impl SpawnEntityPacket {
-    pub fn new(id: usize, state: GlobalState) -> NetResult<Self> {
-        // only spawn players for now
-        let identity = id.get::<PlayerIdentity>(&state)?;
-        let position = id.get::<Position>(&state)?;
-        let (yaw, pitch) = id.get::<Rotation>(&state)?.to_angle();
+    pub fn player(entity_id: Entity, state: &GlobalState) -> NetResult<Self> {
+        let player_identity = entity_id.get::<PlayerIdentity>(state)?;
+        let position = entity_id.get::<Position>(state)?;
+        let rotation = entity_id.get::<Rotation>(state)?;
 
         Ok(Self {
-            entity_id: VarInt::from(id),
-            entity_uuid: identity.uuid,
-            entity_type: VarInt::from(128), // hardcoded for now
-            position: *position,
-            pitch,
-            yaw,
-            head_yaw: yaw,
+            entity_id: VarInt::new(entity_id as i32),
+            entity_uuid: player_identity.uuid,
+            r#type: VarInt::new(PLAYER_ID as i32),
+            x: position.x,
+            y: position.y,
+            z: position.z,
+            pitch: NetAngle::from_degrees(rotation.pitch as f64),
+            yaw: NetAngle::from_degrees(rotation.yaw as f64),
+            head_yaw: NetAngle::from_degrees(rotation.yaw as f64),
             data: VarInt::new(0),
-            velocity_x: 0u16,
-            velocity_y: 0u16,
-            velocity_z: 0u16,
+            velocity_x: 0,
+            velocity_y: 0,
+            velocity_z: 0,
         })
     }
 }

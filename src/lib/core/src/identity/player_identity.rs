@@ -1,10 +1,10 @@
-use ferrumc_macros::{NetEncode, NetDecode};
+use ferrumc_macros::{NetDecode, NetEncode};
 use ferrumc_net_codec::{
-    decode::{NetDecode, NetDecodeResult, NetDecodeOpts},
-    encode::{NetEncode, NetEncodeResult, NetEncodeOpts},
-    net_types::length_prefixed_vec::LengthPrefixedVec
+    decode::{NetDecode, NetDecodeOpts, NetDecodeResult},
+    encode::{NetEncode, NetEncodeOpts, NetEncodeResult},
+    net_types::length_prefixed_vec::LengthPrefixedVec,
 };
-use std::io::{Write, Read};
+use std::io::{Read, Write};
 use tokio::io::AsyncWrite;
 
 #[derive(Eq, PartialEq, Clone, Debug, NetEncode, NetDecode)]
@@ -46,7 +46,11 @@ impl NetEncode for Signature {
         Ok(())
     }
 
-    async fn encode_async<W: AsyncWrite + Unpin>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
+    async fn encode_async<W: AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        opts: &NetEncodeOpts,
+    ) -> NetEncodeResult<()> {
         (self.0.is_some()).encode_async(writer, opts).await?;
         (self.0).encode_async(writer, opts).await?;
         Ok(())
@@ -86,7 +90,7 @@ impl PlayerIdentity {
         Self {
             username,
             uuid,
-            properties: LengthPrefixedVec::new(vec![])
+            properties: LengthPrefixedVec::new(vec![]),
         }
     }
 }

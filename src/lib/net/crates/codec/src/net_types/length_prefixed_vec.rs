@@ -1,13 +1,19 @@
 use crate::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
 use crate::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
 use crate::net_types::var_int::VarInt;
-use std::ops::{Deref, DerefMut};
 use std::io::{Read, Write};
+use std::ops::{Deref, DerefMut};
 use tokio::io::AsyncWrite;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LengthPrefixedVec<T> {
     pub data: Vec<T>,
+}
+
+impl<T> Default for LengthPrefixedVec<T> {
+    fn default() -> Self {
+        Self { data: Vec::new() }
+    }
 }
 
 impl<T> LengthPrefixedVec<T> {

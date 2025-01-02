@@ -2,28 +2,28 @@
 #![forbid(unsafe_code)]
 extern crate core;
 
+use crate::cli::{CLIArgs, Command, ImportArgs};
 use crate::errors::BinaryError;
 use clap::Parser;
 use ferrumc_config::statics::get_global_config;
 use ferrumc_config::whitelist::create_whitelist;
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
+use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_ecs::Universe;
 use ferrumc_general_purpose::paths::get_root_path;
+use ferrumc_net::packets::outgoing::login_success::LoginSuccessPacket;
 use ferrumc_net::server::create_server_listener;
+use ferrumc_net::{connection::StreamWriter, NetResult};
+use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::ServerState;
 use ferrumc_world::World;
 use std::hash::{Hash, Hasher};
 use std::sync::Arc;
 use systems::definition;
-use tracing::{error, info};
-use ferrumc_core::identity::player_identity::PlayerIdentity;
-use ferrumc_net::packets::outgoing::login_success::LoginSuccessPacket;
-use ferrumc_net::{connection::StreamWriter, NetResult};
-use ferrumc_net_codec::encode::NetEncodeOpts;
-use crate::cli::{CLIArgs, Command, ImportArgs};
+use tracing::{error, info, trace};
 
-pub(crate) mod errors;
 mod cli;
+pub(crate) mod errors;
 mod packet_handlers;
 mod systems;
 
@@ -34,11 +34,13 @@ mod whitelist;
 
 pub type Result<T> = std::result::Result<T, BinaryError>;
 
-pub async fn send_login_success(state: Arc<ServerState>, conn_id: usize, identity: PlayerIdentity) -> NetResult<()> {
+pub async fn send_login_success(
+    state: Arc<ServerState>,
+    conn_id: usize,
+    identity: PlayerIdentity,
+) -> NetResult<()> {
     //Send a Login Success Response to further the login sequence
-    let mut writer = state
-        .universe
-        .get_mut::<StreamWriter>(conn_id)?;
+    let mut writer = state.universe.get_mut::<StreamWriter>(conn_id)?;
 
     writer
         .send_packet(
@@ -47,7 +49,8 @@ pub async fn send_login_success(state: Arc<ServerState>, conn_id: usize, identit
         )
         .await?;
 
-    state.universe
+    state
+        .universe
         .add_component::<PlayerIdentity>(conn_id, identity)?;
 
     Ok(())
@@ -64,11 +67,11 @@ async fn main() {
         let mut hasher = std::collections::hash_map::DefaultHasher::new();
         std::any::TypeId::of::<ChunkReceiver>().hash(&mut hasher);
         let digest = hasher.finish();
-        println!("ChunkReceiver: {:X}", digest);
+        trace!("ChunkReceiver: {:X}", digest);
         let mut hasher = std::collections::hash_map::DefaultHasher::new();
         std::any::TypeId::of::<StreamWriter>().hash(&mut hasher);
         let digest = hasher.finish();
-        println!("StreamWriter: {:X}", digest);
+        trace!("StreamWriter: {:X}", digest);
     }
 
     match cli_args.command {
@@ -152,6 +155,7 @@ async fn create_state() -> Result<ServerState> {
         world: World::new().await,
     })
 }
+
 fn check_deadlocks() {
     {
         use parking_lot::deadlock;

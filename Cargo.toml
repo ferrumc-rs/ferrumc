@@ -143,7 +143,7 @@ serde_derive = "1.0.210"
 base64 = "0.22.1"
 bitcode = "0.6.3"
 bitcode_derive = "0.6.3"
-bitmask-enum = "2.2.5"
+#bitmask-enum = "2.2.5"
 
 # Bit manipulation
 byteorder = "1.5.0"

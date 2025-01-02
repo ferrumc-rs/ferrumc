@@ -21,8 +21,9 @@ impl IncomingPacket for IncomingKeepAlivePacket {
                 "Invalid keep alive packet received from {:?} with id {:?} (expected {:?})",
                 conn_id, self.timestamp, last_sent_keep_alive.timestamp
             );
-            if let Err(e) =
-                conn_id.terminate_connection(state, "Invalid keep alive packet".to_string()).await
+            if let Err(e) = conn_id
+                .terminate_connection(state, "Invalid keep alive packet".to_string())
+                .await
             {
                 debug!("Error terminating connection: {:?}", e);
             }

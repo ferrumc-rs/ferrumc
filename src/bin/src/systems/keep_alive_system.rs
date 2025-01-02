@@ -76,11 +76,9 @@ impl System for KeepAliveSystem {
 
                     if (current_time - keep_alive.timestamp) >= 30000 {
                         // two iterations missed
-                        if let Err(e) = entity.terminate_connection(
-                            state.clone(),
-                            "Keep alive timeout".to_string(),
-                        )
-                        .await
+                        if let Err(e) = entity
+                            .terminate_connection(state.clone(), "Keep alive timeout".to_string())
+                            .await
                         {
                             warn!(
                                 "Failed to terminate connection for entity {:?} , Err : {:?}",

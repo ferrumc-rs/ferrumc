@@ -1,14 +1,14 @@
-use std::io::Read;
-use std::sync::Arc;
-use tracing::trace;
+use crate::packets::IncomingPacket;
+use crate::NetResult;
+use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::{packet, Event};
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use crate::packets::IncomingPacket;
-use crate::NetResult;
 use ferrumc_state::ServerState;
 use std::fmt::Debug;
-use ferrumc_events::infrastructure::Event;
+use std::io::Read;
+use std::sync::Arc;
+use tracing::trace;
 
 /// This event triggers when a [LoginPluginResponse] is received.
 ///
@@ -36,7 +36,7 @@ pub struct LoginPluginResponse {
 }
 
 pub struct ClientMinecraftBrand {
-    pub brand: String
+    pub brand: String,
 }
 
 impl NetDecode for ServerBoundPluginMessage {
@@ -45,10 +45,7 @@ impl NetDecode for ServerBoundPluginMessage {
         let mut buf = Vec::<u8>::new();
         reader.read_to_end(&mut buf)?;
 
-        Ok(Self {
-            channel,
-            data: buf
-        })
+        Ok(Self { channel, data: buf })
     }
 }
 
@@ -59,8 +56,10 @@ impl IncomingPacket for ServerBoundPluginMessage {
         if self.channel == "minecraft:brand" {
             let brand = String::from_utf8(self.data)?;
             trace!("Client brand: {}", brand);
-            
-            state.universe.add_component(conn_id, ClientMinecraftBrand { brand })?;
+
+            state
+                .universe
+                .add_component(conn_id, ClientMinecraftBrand { brand })?;
         }
 
         Ok(())
@@ -69,7 +68,7 @@ impl IncomingPacket for ServerBoundPluginMessage {
 
 impl NetDecode for LoginPluginResponse {
     fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> NetDecodeResult<Self> {
-        let message_id = <VarInt>::decode(reader, opts)?; 
+        let message_id = <VarInt>::decode(reader, opts)?;
         let success = <bool>::decode(reader, opts)?;
 
         let mut buf = Vec::<u8>::new();
@@ -80,17 +79,21 @@ impl NetDecode for LoginPluginResponse {
         Ok(Self {
             message_id,
             success,
-            data: buf
+            data: buf,
         })
     }
 }
 
 impl IncomingPacket for LoginPluginResponse {
     async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
-        LoginPluginResponseEvent::trigger(LoginPluginResponseEvent {
-            entity: conn_id,
-            packet: self,
-        }, Arc::clone(&state)).await?;
+        LoginPluginResponseEvent::trigger(
+            LoginPluginResponseEvent {
+                entity: conn_id,
+                packet: self,
+            },
+            Arc::clone(&state),
+        )
+        .await?;
 
         Ok(())
     }

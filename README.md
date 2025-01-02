@@ -254,3 +254,10 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE) f
    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=ferrumc-rs/ferrumc&type=Date" />
  </picture>
 </a>
+
+## 📊 Stats
+
+[![Timeline graph](https://images.repography.com/59032276/ferrumc-rs/ferrumc/recent-activity/J6CgGhzs6y3LXRuADz1QpSUriBC3ix9DXnPUbbljruA/O-qGFiSVQmksFEaX7mVQ4jY3lppUTK2xUw4CpqZ3oUk_timeline.svg)](https://github.com/ferrumc-rs/ferrumc/commits)
+[![Issue status graph](https://images.repography.com/59032276/ferrumc-rs/ferrumc/recent-activity/J6CgGhzs6y3LXRuADz1QpSUriBC3ix9DXnPUbbljruA/O-qGFiSVQmksFEaX7mVQ4jY3lppUTK2xUw4CpqZ3oUk_issues.svg)](https://github.com/ferrumc-rs/ferrumc/issues)
+[![Pull request status graph](https://images.repography.com/59032276/ferrumc-rs/ferrumc/recent-activity/J6CgGhzs6y3LXRuADz1QpSUriBC3ix9DXnPUbbljruA/O-qGFiSVQmksFEaX7mVQ4jY3lppUTK2xUw4CpqZ3oUk_prs.svg)](https://github.com/ferrumc-rs/ferrumc/pulls)
+[![Top contributors](https://images.repography.com/59032276/ferrumc-rs/ferrumc/recent-activity/J6CgGhzs6y3LXRuADz1QpSUriBC3ix9DXnPUbbljruA/O-qGFiSVQmksFEaX7mVQ4jY3lppUTK2xUw4CpqZ3oUk_users.svg)](https://github.com/ferrumc-rs/ferrumc/graphs/contributors)

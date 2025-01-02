@@ -1,9 +1,9 @@
 use crate::packets::outgoing::set_default_spawn_position::DEFAULT_SPAWN_POSITION;
-use crate::{NetResult, utils::ecs_helpers::EntityExt};
+use crate::{utils::ecs_helpers::EntityExt, NetResult};
+use ferrumc_core::transform::{position::Position, rotation::Rotation};
 use ferrumc_macros::{packet, NetEncode};
-use ferrumc_state::GlobalState;
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use ferrumc_core::transform::{rotation::Rotation, position::Position};
+use ferrumc_state::GlobalState;
 use std::io::Write;
 
 #[derive(NetEncode)]

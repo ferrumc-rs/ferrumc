@@ -4,7 +4,9 @@ use crate::ECSResult;
 use dashmap::DashMap;
 use parking_lot::RwLock;
 use std::any::TypeId;
+#[cfg(debug_assertions)]
 use std::hash::{Hash, Hasher};
+#[cfg(debug_assertions)]
 use tracing::trace;
 
 pub mod storage;

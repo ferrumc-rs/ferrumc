@@ -1,5 +1,5 @@
-use std::fmt::{Debug, Display, Formatter};
 use ferrumc_macros::NetEncode;
+use std::fmt::{Debug, Display, Formatter};
 use std::io::Write;
 
 #[derive(Copy, Clone, NetEncode)]

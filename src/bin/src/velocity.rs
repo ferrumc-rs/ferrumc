@@ -1,20 +1,20 @@
-use std::io::Cursor;
 use crate::events::*;
-use ferrumc_state::GlobalState;
-use ferrumc_net::packets::outgoing::client_bound_plugin_message::*;
-use ferrumc_net::packets::incoming::server_bound_plugin_message::*;
-use ferrumc_net::{connection::StreamWriter, errors::NetError, NetResult};
-use ferrumc_events::{errors::EventsError, infrastructure::Event};
-use ferrumc_macros::event_handler;
-use ferrumc_net_codec::decode::NetDecode;
-use ferrumc_text::*;
-use ferrumc_net::utils::ecs_helpers::EntityExt;
-use ferrumc_net_codec::{encode::NetEncodeOpts, decode::NetDecodeOpts, net_types::var_int::VarInt};
 use ferrumc_config::statics::get_global_config;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
-use tokio::io::AsyncReadExt;
-use sha2::Sha256;
+use ferrumc_events::{errors::EventsError, infrastructure::Event};
+use ferrumc_macros::event_handler;
+use ferrumc_net::packets::incoming::server_bound_plugin_message::*;
+use ferrumc_net::packets::outgoing::client_bound_plugin_message::*;
+use ferrumc_net::utils::ecs_helpers::EntityExt;
+use ferrumc_net::{connection::StreamWriter, errors::NetError, NetResult};
+use ferrumc_net_codec::decode::NetDecode;
+use ferrumc_net_codec::{decode::NetDecodeOpts, encode::NetEncodeOpts, net_types::var_int::VarInt};
+use ferrumc_state::GlobalState;
+use ferrumc_text::*;
 use hmac::{Hmac, Mac};
+use sha2::Sha256;
+use std::io::Cursor;
+use tokio::io::AsyncReadExt;
 
 type HmacSha256 = Hmac<Sha256>;
 
@@ -32,10 +32,16 @@ async fn handle_login_start(
         }
 
         let id = rand::random::<u32>();
-        let mut writer = entity
-            .get_mut::<StreamWriter>(&state.clone())?;
-        writer.send_packet(&LoginPluginMessagePacket::<()>::new(id, String::from("velocity:player_info"), ()), &NetEncodeOpts::WithLength).await?;
-        state.universe.add_component(entity, VelocityMessageId(id))?;
+        let mut writer = entity.get_mut::<StreamWriter>(&state.clone())?;
+        writer
+            .send_packet(
+                &LoginPluginMessagePacket::<()>::new(id, String::from("velocity:player_info"), ()),
+                &NetEncodeOpts::WithLength,
+            )
+            .await?;
+        state
+            .universe
+            .add_component(entity, VelocityMessageId(id))?;
 
         // this stops the packet handler from doing login success
         Err(NetError::EventsError(EventsError::Cancelled))
@@ -68,20 +74,32 @@ async fn handle_velocity_response(
             let _addr = String::decode(&mut buf, &NetDecodeOpts::None)?;
 
             if version != 1 {
-                return Err(NetError::kick(TextComponentBuilder::new("[FerrumC]")
-                    .color(NamedColor::Blue)
-                    .space()
-                    .extra(ComponentBuilder::text("This velocity modern forwarding version is not supported!")
-                        .color(NamedColor::Red))
-                    .build()));
+                return Err(NetError::kick(
+                    TextComponentBuilder::new("[FerrumC]")
+                        .color(NamedColor::Blue)
+                        .space()
+                        .extra(
+                            ComponentBuilder::text(
+                                "This velocity modern forwarding version is not supported!",
+                            )
+                            .color(NamedColor::Red),
+                        )
+                        .build(),
+                ));
             }
         } else {
-            return Err(NetError::kick(ComponentBuilder::text("[FerrumC]")
-                .color(NamedColor::Blue)
-                .space()
-                    .extra(ComponentBuilder::text("The velocity proxy did not send forwarding information!")
-                        .color(NamedColor::Red))
-                .build()));
+            return Err(NetError::kick(
+                ComponentBuilder::text("[FerrumC]")
+                    .color(NamedColor::Blue)
+                    .space()
+                    .extra(
+                        ComponentBuilder::text(
+                            "The velocity proxy did not send forwarding information!",
+                        )
+                        .color(NamedColor::Red),
+                    )
+                    .build(),
+            ));
         }
 
         let mut key = HmacSha256::new_from_slice(get_global_config().velocity.secret.as_bytes())
@@ -96,18 +114,16 @@ async fn handle_velocity_response(
 
             match PlayerStartLoginEvent::trigger(e, state.clone()).await {
                 Ok(e) => {
-                    state.universe.remove_component::<VelocityMessageId>(event.entity)?;
+                    state
+                        .universe
+                        .remove_component::<VelocityMessageId>(event.entity)?;
 
-                    crate::send_login_success(
-                        state.clone(),
-                        event.entity,
-                        e.profile
-                    ).await?;
+                    crate::send_login_success(state.clone(), event.entity, e.profile).await?;
 
                     Ok(event)
-                },
+                }
                 e => e.map(|_| event),
-            }            
+            }
         } else {
             Err(NetError::kick("Invalid proxy response!".to_string()))
         }

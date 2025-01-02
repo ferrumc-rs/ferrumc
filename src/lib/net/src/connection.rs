@@ -1,7 +1,9 @@
+use crate::errors::NetError;
 use crate::packets::incoming::packet_skeleton::PacketSkeleton;
 use crate::utils::state::TerminateConnectionPlayerExt;
-use crate::{handle_packet, NetResult, packets::outgoing::disconnect::DISCONNECT_STRING};
-use crate::errors::NetError;
+use crate::{handle_packet, packets::outgoing::disconnect::DISCONNECT_STRING, NetResult};
+use ferrumc_events::infrastructure::Event;
+use ferrumc_macros::Event;
 use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::ServerState;
@@ -11,8 +13,6 @@ use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tokio::net::TcpStream;
 use tokio::time::timeout;
 use tracing::{debug, debug_span, trace, warn, Instrument};
-use crate::events::PlayerQuitEvent;
-use ferrumc_events::infrastructure::Event;
 
 #[derive(Debug)]
 pub struct ConnectionControl {
@@ -166,9 +166,10 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
         {
             match e {
                 NetError::Kick(msg) => {
-                    entity.terminate_connection(state.clone(), msg.clone())
+                    entity
+                        .terminate_connection(state.clone(), msg.clone())
                         .await?;
-                },
+                }
                 _ => {
                     warn!(
                         "Failed to handle packet: {:?}. packet_id: {:02X}; conn_state: {}",
@@ -176,7 +177,8 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
                         packet_skele.id,
                         conn_state.as_str()
                     );
-                    entity.terminate_connection(state.clone(), DISCONNECT_STRING.to_string())
+                    entity
+                        .terminate_connection(state.clone(), DISCONNECT_STRING.to_string())
                         .await?;
                 }
             }
@@ -186,10 +188,10 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
 
     debug!("Connection closed for entity: {:?}", entity);
 
-    let _ = PlayerQuitEvent::trigger(
-        PlayerQuitEvent { entity },
-        state.clone()
-    ).await; // dont care about the result
+    // Broadcast the leave server event
+    let _ =
+        PlayerDisconnectEvent::trigger(PlayerDisconnectEvent { entity_id: entity }, state.clone())
+            .await;
 
     // Remove all components from the entity
 
@@ -201,6 +203,11 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
     trace!("Dropped all components from entity: {:?}", entity);
 
     Ok(())
+}
+
+#[derive(Event)]
+pub struct PlayerDisconnectEvent {
+    pub entity_id: usize,
 }
 
 /// Since parking_lot is single-threaded, we use spawn_blocking to remove all components from the entity asynchronously (on another thread).

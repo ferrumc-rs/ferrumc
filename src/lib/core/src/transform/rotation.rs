@@ -6,8 +6,6 @@ pub struct Rotation {
 }
 
 impl Rotation {
-    pub const TURN: f32 = (256.0 / 360.0);
-
     pub fn new(yaw: f32, pitch: f32) -> Self {
         let yaw = yaw % 360.0; // Normalize yaw
         let pitch = pitch.clamp(-90.0, 90.0); // Clamp pitch
@@ -39,10 +37,6 @@ impl Rotation {
         let z = pitch_rad.cos() * yaw_rad.sin();
 
         (x, y, z)
-    }
-
-    pub fn to_angle(&self) -> (u8, u8) {
-        ((self.yaw * Self::TURN) as u8, (self.pitch * Self::TURN) as u8)
     }
 }
 

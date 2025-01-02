@@ -50,7 +50,11 @@ impl NetEncode for () {
         Ok(())
     }
 
-    async fn encode_async<W: AsyncWrite + Unpin>(&self, _writer: &mut W, _: &NetEncodeOpts) -> NetEncodeResult<()> {
+    async fn encode_async<W: AsyncWrite + Unpin>(
+        &self,
+        _writer: &mut W,
+        _: &NetEncodeOpts,
+    ) -> NetEncodeResult<()> {
         Ok(())
     }
 }

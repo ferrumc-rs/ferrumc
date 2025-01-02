@@ -27,15 +27,11 @@ pub struct PlayDisconnectPacket {
 impl DisconnectPacket {
     pub fn from<C: Into<TextComponent>>(state: &ConnectionState, reason: C) -> NetResult<Self> {
         match state {
-            ConnectionState::Login => {
-                Ok(DisconnectPacket::Login(LoginDisconnectPacket::new(reason.into())))
-            }
-            ConnectionState::Play => {
-                Ok(DisconnectPacket::Play(PlayDisconnectPacket::new(reason)))
-            }
-            _ => {
-                Err(NetError::InvalidState(state.clone() as u8))
-            }
+            ConnectionState::Login => Ok(DisconnectPacket::Login(LoginDisconnectPacket::new(
+                reason.into(),
+            ))),
+            ConnectionState::Play => Ok(DisconnectPacket::Play(PlayDisconnectPacket::new(reason))),
+            _ => Err(NetError::InvalidState(state.clone() as u8)),
         }
     }
 }

@@ -54,10 +54,7 @@ impl TerminateConnectionPlayerExt for usize {
             )
             .await
         {
-            warn!(
-                "Failed to send disconnect packet to entity {}: {}",
-                self, e
-            );
+            warn!("Failed to send disconnect packet to entity {}: {}", self, e);
             return Err(e);
         }
 
