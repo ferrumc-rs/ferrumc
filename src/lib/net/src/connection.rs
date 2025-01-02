@@ -1,7 +1,10 @@
 use crate::errors::NetError;
 use crate::packets::incoming::packet_skeleton::PacketSkeleton;
+use crate::packets::outgoing::login_success::LoginSuccessPacket;
 use crate::utils::state::TerminateConnectionPlayerExt;
 use crate::{handle_packet, packets::outgoing::disconnect::DISCONNECT_STRING, NetResult};
+use ferrumc_core::identity::player_identity::PlayerIdentity;
+use ferrumc_ecs::entities::Entity;
 use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::Event;
 use ferrumc_net_codec::encode::NetEncode;
@@ -99,6 +102,27 @@ impl Default for CompressionStatus {
     fn default() -> Self {
         Self::new()
     }
+}
+
+pub async fn send_login_success(
+    state: Arc<ServerState>,
+    conn_id: usize,
+    identity: PlayerIdentity,
+) -> NetResult<()> {
+    let mut writer = state.universe.get_mut::<StreamWriter>(conn_id)?;
+
+    writer
+        .send_packet(
+            &LoginSuccessPacket::new(identity.clone()),
+            &NetEncodeOpts::WithLength,
+        )
+        .await?;
+
+    state
+        .universe
+        .add_component::<PlayerIdentity>(conn_id, identity)?;
+
+    Ok(())
 }
 
 pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -> NetResult<()> {
@@ -208,6 +232,20 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
 #[derive(Event)]
 pub struct PlayerDisconnectEvent {
     pub entity_id: usize,
+}
+
+/// This event is triggered when the player attempts to log on to the server.
+///
+/// Beware that not all components on the entity may be set yet this event is mostly for:
+/// a custom handshaking protocol before the player logs in using login plugin messages/etc.
+///
+#[derive(Event, Clone)]
+pub struct PlayerStartLoginEvent {
+    /// The entity that this event was fired for.
+    pub entity: Entity,
+
+    /// This profile can be changed and after the event is finished this will be the new profile.
+    pub profile: PlayerIdentity,
 }
 
 /// Since parking_lot is single-threaded, we use spawn_blocking to remove all components from the entity asynchronously (on another thread).

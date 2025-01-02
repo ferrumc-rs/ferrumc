@@ -1,4 +1,3 @@
-use crate::events::PlayerStartLoginEvent;
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::grounded::OnGround;
@@ -9,7 +8,7 @@ use ferrumc_ecs::entities::Entity;
 use ferrumc_events::errors::EventsError;
 use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::event_handler;
-use ferrumc_net::connection::{ConnectionState, StreamWriter};
+use ferrumc_net::connection::{ConnectionState, PlayerStartLoginEvent, StreamWriter};
 use ferrumc_net::errors::NetError;
 use ferrumc_net::packets::incoming::ack_finish_configuration::AckFinishConfigurationEvent;
 use ferrumc_net::packets::incoming::keep_alive::IncomingKeepAlivePacket;
@@ -55,7 +54,12 @@ async fn handle_login_start(
         Err(NetError::EventsError(EventsError::Cancelled)) => Ok(login_start_event),
         Ok(event) => {
             // Add the player identity component to the ECS for the entity.
-            crate::send_login_success(state, login_start_event.conn_id, event.profile).await?;
+            ferrumc_net::connection::send_login_success(
+                state,
+                login_start_event.conn_id,
+                event.profile,
+            )
+            .await?;
             Ok(login_start_event)
         }
         e => e.map(|_| login_start_event),

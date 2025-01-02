@@ -8,13 +8,10 @@ use clap::Parser;
 use ferrumc_config::statics::get_global_config;
 use ferrumc_config::whitelist::create_whitelist;
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
-use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_ecs::Universe;
 use ferrumc_general_purpose::paths::get_root_path;
-use ferrumc_net::packets::outgoing::login_success::LoginSuccessPacket;
 use ferrumc_net::server::create_server_listener;
-use ferrumc_net::{connection::StreamWriter, NetResult};
-use ferrumc_net_codec::encode::NetEncodeOpts;
+use ferrumc_net::connection::StreamWriter;
 use ferrumc_state::ServerState;
 use ferrumc_world::World;
 use std::hash::{Hash, Hasher};
@@ -27,34 +24,7 @@ pub(crate) mod errors;
 mod packet_handlers;
 mod systems;
 
-pub mod events;
-
-mod velocity;
-mod whitelist;
-
 pub type Result<T> = std::result::Result<T, BinaryError>;
-
-pub async fn send_login_success(
-    state: Arc<ServerState>,
-    conn_id: usize,
-    identity: PlayerIdentity,
-) -> NetResult<()> {
-    //Send a Login Success Response to further the login sequence
-    let mut writer = state.universe.get_mut::<StreamWriter>(conn_id)?;
-
-    writer
-        .send_packet(
-            &LoginSuccessPacket::new(identity.clone()),
-            &NetEncodeOpts::WithLength,
-        )
-        .await?;
-
-    state
-        .universe
-        .add_component::<PlayerIdentity>(conn_id, identity)?;
-
-    Ok(())
-}
 
 #[tokio::main]
 async fn main() {

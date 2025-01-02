@@ -1,7 +1,6 @@
-use crate::events::*;
 use ferrumc_config::statics::{get_global_config, get_whitelist};
 use ferrumc_macros::event_handler;
-use ferrumc_net::{errors::NetError, NetResult};
+use ferrumc_net::{connection::PlayerStartLoginEvent, errors::NetError, NetResult};
 use ferrumc_state::GlobalState;
 use ferrumc_text::*;
 

@@ -1,4 +1,3 @@
-use crate::events::*;
 use ferrumc_config::statics::get_global_config;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_events::{errors::EventsError, infrastructure::Event};
@@ -6,7 +5,11 @@ use ferrumc_macros::event_handler;
 use ferrumc_net::packets::incoming::server_bound_plugin_message::*;
 use ferrumc_net::packets::outgoing::client_bound_plugin_message::*;
 use ferrumc_net::utils::ecs_helpers::EntityExt;
-use ferrumc_net::{connection::StreamWriter, errors::NetError, NetResult};
+use ferrumc_net::{
+    connection::{PlayerStartLoginEvent, StreamWriter},
+    errors::NetError,
+    NetResult,
+};
 use ferrumc_net_codec::decode::NetDecode;
 use ferrumc_net_codec::{decode::NetDecodeOpts, encode::NetEncodeOpts, net_types::var_int::VarInt};
 use ferrumc_state::GlobalState;
@@ -118,7 +121,12 @@ async fn handle_velocity_response(
                         .universe
                         .remove_component::<VelocityMessageId>(event.entity)?;
 
-                    crate::send_login_success(state.clone(), event.entity, e.profile).await?;
+                    ferrumc_net::connection::send_login_success(
+                        state.clone(),
+                        event.entity,
+                        e.profile,
+                    )
+                    .await?;
 
                     Ok(event)
                 }
