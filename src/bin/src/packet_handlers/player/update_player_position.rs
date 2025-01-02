@@ -70,7 +70,7 @@ async fn handle_player_move(
         trace!("Got rotation 1 for player move");
 
         let new_rotation = Rotation::new(new_rotation.yaw, new_rotation.pitch);
-        new_rot = Some(new_rotation.clone());
+        new_rot = Some(new_rotation);
 
         *rotation = new_rotation;
     }
