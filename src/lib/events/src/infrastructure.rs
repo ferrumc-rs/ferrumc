@@ -73,6 +73,9 @@ pub trait Event: Sized + Send + Sync + 'static {
     ///
     /// Returns `Ok(())` if the execution succeeded. `Err(EventsError)` ifa listener failed.
     async fn trigger(event: Self::Data, state: Self::State) -> Result<(), Self::Error> {
+        #[cfg(debug_assertions)]
+        let start = std::time::Instant::now();
+
         let listeners = EVENTS_LISTENERS
             .get(Self::name())
             .expect("Failed to find event listeners. Impossible;");
@@ -95,6 +98,9 @@ pub trait Event: Sized + Send + Sync + 'static {
                 }
             })
             .await?;
+
+        #[cfg(debug_assertions)]
+        tracing::trace!("Event {} took {:?}", Self::name(), start.elapsed());
 
         Ok(())
     }
