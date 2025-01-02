@@ -1,50 +1,79 @@
-use crate::utils::broadcast::get_all_play_players;
-use ferrumc_core::identity::player_identity::PlayerIdentity;
+use crate::utils::{broadcast::get_all_play_players, ecs_helpers::EntityExt};
+use ferrumc_core::identity::player_identity::*;
 use ferrumc_ecs::entities::Entity;
 use ferrumc_macros::{packet, NetEncode};
-use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
-use ferrumc_net_codec::net_types::var_int::VarInt;
+use ferrumc_net_codec::net_types::{length_prefixed_vec::LengthPrefixedVec, var_int::VarInt};
 use ferrumc_state::GlobalState;
 use std::io::Write;
 use tracing::debug;
 
+#[derive(NetEncode, Debug, Eq, PartialEq, Clone)]
+pub enum PlayerAction {
+    AddPlayer {
+        username: String,
+        properties: LengthPrefixedVec<IdentityProperty>,
+    },
+    InitializeChat {
+        // TODO
+    },
+    UpdateGameMode(VarInt),
+    UpdateListed(bool),
+    UpdateLatency(VarInt),
+    UpdateDisplayName {
+        // TODO
+    },
+}
+
+impl PlayerAction {
+    pub fn flags(&self) -> u8 {
+        match self {
+            Self::AddPlayer { .. } => 0x01,
+            Self::InitializeChat { .. } => 0x02,
+            Self::UpdateGameMode(..) => 0x04,
+            Self::UpdateListed(..) => 0x08,
+            Self::UpdateLatency(..) => 0x10,
+            Self::UpdateDisplayName { .. } => 0x20,
+        }
+    }
+}
+
+#[derive(NetEncode, Debug, Eq, PartialEq)]
+pub struct PlayerInfo {
+    pub uuid: u128,
+    pub actions: Vec<PlayerAction>,
+}
+
 #[derive(NetEncode)]
 #[packet(packet_id = 0x3E)]
 pub struct PlayerInfoUpdatePacket {
-    pub actions: u8,
-    pub numbers_of_players: VarInt,
-    pub players: Vec<PlayerWithActions>,
+    actions: u8,
+    infos: LengthPrefixedVec<PlayerInfo>,
 }
 
 impl PlayerInfoUpdatePacket {
     pub fn with_players<T>(players: T) -> Self
     where
-        T: IntoIterator<Item = PlayerWithActions>,
+        T: IntoIterator<Item = PlayerInfo>,
     {
-        let players: Vec<PlayerWithActions> = players.into_iter().collect();
+        let players: Vec<_> = players.into_iter().collect();
         Self {
             actions: players
                 .iter()
-                .map(|player| player.get_actions_mask())
+                .map(|player| {
+                    player
+                        .actions
+                        .iter()
+                        .fold(0, |acc, action| acc | action.flags())
+                })
                 .fold(0, |acc, x| acc | x),
-            numbers_of_players: VarInt::new(players.len() as i32),
-            players,
+            infos: LengthPrefixedVec::new(players),
         }
     }
 
     /// The packet to be sent to all already connected players when a new player joins the server
     pub fn new_player_join_packet(new_player_id: Entity, state: &GlobalState) -> Self {
-        let identity = state
-            .universe
-            .get_component_manager()
-            .get::<PlayerIdentity>(new_player_id)
-            .unwrap();
-        let uuid = identity.uuid;
-        let name = identity.username.clone();
-
-        let player = PlayerWithActions::add_player(uuid, name);
-
-        Self::with_players(vec![player])
+        let identity = new_player_id.get::<PlayerIdentity>(state).unwrap();
+        Self::with_players(vec![PlayerInfo::from(&identity)])
     }
 
     /// The packet to be sent to a new player when they join the server,
@@ -53,24 +82,13 @@ impl PlayerInfoUpdatePacket {
         let players = {
             let mut players = get_all_play_players(state);
             players.retain(|&player| player != new_player_id);
-
             players
         };
 
         let players = players
             .into_iter()
-            .filter_map(|player| {
-                let identity = state
-                    .universe
-                    .get_component_manager()
-                    .get::<PlayerIdentity>(player)
-                    .ok()?;
-                let uuid = identity.uuid;
-                let name = identity.username.clone();
-
-                Some((uuid, name))
-            })
-            .map(|(uuid, name)| PlayerWithActions::add_player(uuid, name))
+            .filter_map(|player| state.universe.get::<PlayerIdentity>(player).ok())
+            .map(|identity| PlayerInfo::from(&identity))
             .collect::<Vec<_>>();
 
         debug!("Sending PlayerInfoUpdatePacket with {:?} players", players);
@@ -79,46 +97,17 @@ impl PlayerInfoUpdatePacket {
     }
 }
 
-#[derive(NetEncode, Debug)]
-pub struct PlayerWithActions {
-    pub uuid: u128,
-    pub actions: Vec<PlayerAction>,
-}
-
-impl PlayerWithActions {
-    pub fn get_actions_mask(&self) -> u8 {
-        let mut mask = 0;
-        for action in &self.actions {
-            mask |= match action {
-                PlayerAction::AddPlayer { .. } => 0x01,
-            }
-        }
-        mask
-    }
-
-    pub fn add_player(uuid: impl Into<u128>, name: impl Into<String>) -> Self {
+impl PlayerInfo {
+    pub fn from(profile: &PlayerIdentity) -> Self {
         Self {
-            uuid: uuid.into(),
-            actions: vec![PlayerAction::AddPlayer {
-                name: name.into(),
-                properties: LengthPrefixedVec::default(),
-            }],
+            uuid: profile.uuid,
+            actions: vec![
+                PlayerAction::AddPlayer {
+                    username: profile.username.clone(),
+                    properties: profile.properties.clone(),
+                },
+                PlayerAction::UpdateListed(true),
+            ],
         }
     }
-}
-
-#[derive(NetEncode, Debug)]
-pub enum PlayerAction {
-    AddPlayer {
-        name: String,
-        properties: LengthPrefixedVec<PlayerProperty>,
-    },
-}
-
-#[derive(NetEncode, Debug)]
-pub struct PlayerProperty {
-    pub name: String,
-    pub value: String,
-    pub is_signed: bool,
-    pub signature: Option<String>,
 }

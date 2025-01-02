@@ -8,6 +8,7 @@ use std::sync::Arc;
 use std::time::Duration;
 use tokio::time::Instant;
 use tracing::{debug, info, trace};
+
 pub struct TickingSystem;
 
 static KILLED: AtomicBool = AtomicBool::new(false);
@@ -26,8 +27,8 @@ impl System for TickingSystem {
 
                 res
             };
-            if res.is_err() {
-                debug!("error handling tick event: {:?}", res);
+            if let Err(err) = res {
+                debug!("error handling tick event: {:?}", err);
             }
             let now = Instant::now();
 

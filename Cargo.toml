@@ -133,15 +133,18 @@ thiserror = "2.0.3"
 rand = "0.9.0-beta.0"
 fnv = "1.0.7"
 wyhash = "0.5.0"
+sha2 = "=0.10.8"
+hmac = "0.12.1"
 
 # Encoding/Serialization
+toml = "0.8.19"
 serde = { version = "1.0.210", features = ["derive"] }
 serde_json = "1.0.128"
 serde_derive = "1.0.210"
 base64 = "0.22.1"
 bitcode = "0.6.3"
 bitcode_derive = "0.6.3"
-toml = "0.8.19"
+#bitmask-enum = "2.2.5"
 
 # Bit manipulation
 byteorder = "1.5.0"

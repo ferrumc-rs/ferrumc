@@ -1,6 +1,9 @@
 use crate::packets::outgoing::set_default_spawn_position::DEFAULT_SPAWN_POSITION;
+use crate::{utils::ecs_helpers::EntityExt, NetResult};
+use ferrumc_core::transform::{position::Position, rotation::Rotation};
 use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
+use ferrumc_state::GlobalState;
 use std::io::Write;
 
 #[derive(NetEncode)]
@@ -49,5 +52,19 @@ impl SynchronizePlayerPositionPacket {
             flags,
             teleport_id,
         }
+    }
+
+    pub fn from_player(id: usize, state: GlobalState) -> NetResult<Self> {
+        let pos = id.get::<Position>(&state.clone())?;
+        let rot = id.get::<Rotation>(&state.clone())?;
+        Ok(Self::new(
+            pos.x,
+            pos.y,
+            pos.z,
+            rot.yaw,
+            rot.pitch,
+            0,
+            VarInt::new(0),
+        ))
     }
 }

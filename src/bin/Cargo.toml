@@ -26,6 +26,7 @@ ferrumc-macros = { workspace = true }
 ferrumc-nbt = { workspace = true }
 ferrumc-general-purpose = { workspace = true }
 ferrumc-state = { workspace = true }
+ferrumc-text = { workspace = true }
 
 parking_lot = { workspace = true, features = ["deadlock_detection"] }
 tracing = { workspace = true }
@@ -33,9 +34,11 @@ tokio = { workspace = true }
 futures = { workspace = true }
 async-trait = { workspace = true }
 clap = { workspace = true, features = ["derive"] }
+hmac = { workspace = true }
+sha2 = { workspace = true }
+rand = { workspace = true }
 flate2 = { workspace = true }
 ctor = { workspace = true }
-
 
 [[bin]]
 name = "ferrumc"

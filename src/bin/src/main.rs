@@ -2,6 +2,7 @@
 #![forbid(unsafe_code)]
 extern crate core;
 
+use crate::cli::{CLIArgs, Command, ImportArgs};
 use crate::errors::BinaryError;
 use clap::Parser;
 use ferrumc_config::statics::get_global_config;
@@ -18,9 +19,8 @@ use std::sync::Arc;
 use systems::definition;
 use tracing::{error, info, trace};
 
-pub(crate) mod errors;
-use crate::cli::{CLIArgs, Command, ImportArgs};
 mod cli;
+pub(crate) mod errors;
 mod packet_handlers;
 mod systems;
 
@@ -125,6 +125,7 @@ async fn create_state() -> Result<ServerState> {
         world: World::new().await,
     })
 }
+
 fn check_deadlocks() {
     {
         use parking_lot::deadlock;

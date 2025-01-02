@@ -107,7 +107,7 @@ pub async fn broadcast(
     let (state, packet, async_callback, sync_callback) =
         (state, packet, opts.async_callback, opts.sync_callback);
 
-    futures::stream::iter(entities.into_iter())
+    futures::stream::iter(entities)
         .fold(
             (state, packet, async_callback, sync_callback),
             move |(state, packet, async_callback, sync_callback), entity| {
