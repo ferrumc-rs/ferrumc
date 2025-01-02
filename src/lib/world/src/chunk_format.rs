@@ -99,7 +99,7 @@ impl Heightmaps {
         let start = (index * bits_per_value) / 64;
         let offset = (index * bits_per_value) % 64;
         let value = self.motion_blocking[start] >> offset;
-        ((value & ((1 << bits_per_value) - 1))) - 64
+        (value & ((1 << bits_per_value) - 1)) - 64
     }
 }
 
