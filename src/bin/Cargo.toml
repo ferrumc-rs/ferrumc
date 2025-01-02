@@ -28,18 +28,17 @@ ferrumc-general-purpose = { workspace = true }
 ferrumc-state = { workspace = true }
 ferrumc-text = { workspace = true }
 
-rand = { workspace = true }
-ctor = { workspace = true }
 parking_lot = { workspace = true, features = ["deadlock_detection"] }
 tracing = { workspace = true }
 tokio = { workspace = true }
-rayon = { workspace = true }
 futures = { workspace = true }
-serde_json = { workspace = true }
 async-trait = { workspace = true }
 clap = { workspace = true, features = ["derive"] }
 hmac = { workspace = true }
 sha2 = { workspace = true }
+rand = { workspace = true }
+flate2 = { workspace = true }
+ctor = { workspace = true }
 
 [[bin]]
 name = "ferrumc"

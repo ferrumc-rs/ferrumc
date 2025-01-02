@@ -18,10 +18,16 @@ pub mod registry_data;
 pub mod remove_entities;
 pub mod set_center_chunk;
 pub mod set_default_spawn_position;
-pub mod set_head_rotation;
 pub mod set_render_distance;
 pub mod spawn_entity;
 pub mod status_response;
 pub mod synchronize_player_position;
-pub mod teleport_entity;
 pub mod update_time;
+
+// --------- Movement ----------
+pub mod set_head_rotation;
+pub mod teleport_entity;
+pub mod update_entity_position;
+pub mod update_entity_position_and_rotation;
+pub mod update_entity_rotation;
+// -----------------------------

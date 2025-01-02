@@ -67,6 +67,14 @@ pub mod constructors {
                 value,
             }
         }
+
+        pub fn entity_state_none() -> Self {
+            Self::new(
+                EntityMetadataIndexType::Byte,
+                EntityMetadataValue::Entity0(EntityStateMask::new()),
+            )
+        }
+
         /// To hide the name tag and stuff
         pub fn entity_sneaking_pressed() -> Self {
             Self::new(
@@ -76,6 +84,7 @@ pub mod constructors {
                 )),
             )
         }
+
         /// Actual sneaking visual, so you can see the player sneaking
         pub fn entity_sneaking_visual() -> Self {
             Self::new(

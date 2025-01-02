@@ -71,16 +71,20 @@ pub trait Event: Sized + Send + Sync + 'static {
     /// This method will pass the data to the listener with the highest priority which
     /// will give its result to the next one with a lesser priority and so on.
     ///
-    /// Returns `Ok(())` if the execution succeeded. `Err(EventsError)` ifa listener failed.
+    /// Returns `Ok(Self::Data)` if the execution succeeded. `Err(EventsError)` if a listener failed.
     async fn trigger(event: Self::Data, state: Self::State) -> Result<Self::Data, Self::Error> {
+        #[cfg(debug_assertions)]
+        let start = std::time::Instant::now();
+
         let listeners = match EVENTS_LISTENERS.get(Self::name()) {
             Some(listeners) => listeners,
             None => {
                 return Ok(event);
             }
         };
+
         // Convert listeners iterator into Stream
-        stream::iter(listeners.iter())
+        let res = stream::iter(listeners.iter())
             // TODO: Remove this since it's not possible to have a wrong type in the map of the event???
             // Maybe some speedup?
             // Filter only listeners we can downcast into the correct type
@@ -96,7 +100,12 @@ pub trait Event: Sized + Send + Sync + 'static {
                     }
                 }
             })
-            .await
+            .await;
+
+        #[cfg(debug_assertions)]
+        tracing::trace!("Event {} took {:?}", Self::name(), start.elapsed());
+
+        res
     }
 
     /// Register a new event listener for this event

@@ -13,6 +13,7 @@ async fn handle_player_do_action(
 ) -> Result<PlayerDoActionEvent, NetError> {
     trace!("player just did: {:?}", event.action);
 
+    // TODO: replace this with a better system to support multiple actions
     match event.action {
         PlayerCommandAction::StartSneaking => {
             let packet = EntityMetadataPacket::new(
@@ -26,8 +27,13 @@ async fn handle_player_do_action(
             broadcast(&packet, &state, Default::default()).await?;
         }
         PlayerCommandAction::StopSneaking => {
-            let packet =
-                EntityMetadataPacket::new(event.entity_id, [EntityMetadata::entity_standing()]);
+            let packet = EntityMetadataPacket::new(
+                event.entity_id,
+                [
+                    EntityMetadata::entity_state_none(),
+                    EntityMetadata::entity_standing(),
+                ],
+            );
 
             broadcast(&packet, &state, Default::default()).await?;
         }
