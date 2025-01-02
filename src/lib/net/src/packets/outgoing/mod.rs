@@ -24,5 +24,11 @@ pub mod spawn_entity;
 pub mod entity_animation;
 pub mod entity_metadata;
 pub mod player_info_update;
+
+// --------- Movement ----------
 pub mod set_head_rotation;
 pub mod teleport_entity;
+pub mod update_entity_position;
+pub mod update_entity_position_and_rotation;
+pub mod update_entity_rotation;
+// -----------------------------
