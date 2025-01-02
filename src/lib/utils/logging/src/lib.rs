@@ -3,7 +3,7 @@ pub mod errors;
 use ferrumc_general_purpose::paths::get_root_path;
 use ferrumc_profiling::ProfilerTracingLayer;
 use tracing::Level;
-use tracing_appender::rolling::{Rotation};
+use tracing_appender::rolling::Rotation;
 use tracing_subscriber::fmt::{layer, Layer};
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
@@ -15,19 +15,16 @@ pub fn init_logging(trace_level: Level) {
 
     let is_verbose = trace_level > Level::INFO;
 
-
     let file_layer = {
         let file_appender = tracing_appender::rolling::Builder::new()
             .rotation(Rotation::DAILY)
             .filename_prefix("ferrumc")
             .filename_suffix("log.txt")
-            .build( get_root_path().join("logs"))
+            .build(get_root_path().join("logs"))
             .unwrap();
 
         if is_verbose {
-            layer()
-                .with_writer(file_appender)
-                .with_ansi(false)
+            layer().with_writer(file_appender).with_ansi(false)
         } else {
             layer()
                 .with_ansi(false)
