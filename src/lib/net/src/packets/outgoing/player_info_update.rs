@@ -72,7 +72,7 @@ impl PlayerInfoUpdatePacket {
 
     /// The packet to be sent to all already connected players when a new player joins the server
     pub fn new_player_join_packet(new_player_id: Entity, state: &GlobalState) -> Self {
-        let identity = new_player_id.get::<PlayerIdentity>(&state).unwrap();
+        let identity = new_player_id.get::<PlayerIdentity>(state).unwrap();
         Self::with_players(vec![PlayerInfo::from(&identity)])
     }
 
