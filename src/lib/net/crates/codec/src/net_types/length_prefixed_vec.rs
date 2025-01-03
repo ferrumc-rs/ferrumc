@@ -10,6 +10,15 @@ pub struct LengthPrefixedVec<T> {
     pub data: Vec<T>,
 }
 
+impl<T> Default for LengthPrefixedVec<T> {
+    fn default() -> Self {
+        Self {
+            length: VarInt::new(0),
+            data: Vec::new(),
+        }
+    }
+}
+
 impl<T> LengthPrefixedVec<T> {
     pub fn new(data: Vec<T>) -> Self {
         Self {

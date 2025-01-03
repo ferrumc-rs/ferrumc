@@ -16,7 +16,7 @@ use ferrumc_world::World;
 use std::hash::{Hash, Hasher};
 use std::sync::Arc;
 use systems::definition;
-use tracing::{error, info};
+use tracing::{error, info, trace};
 
 pub(crate) mod errors;
 use crate::cli::{CLIArgs, Command, ImportArgs};
@@ -37,11 +37,11 @@ async fn main() {
         let mut hasher = std::collections::hash_map::DefaultHasher::new();
         std::any::TypeId::of::<ChunkReceiver>().hash(&mut hasher);
         let digest = hasher.finish();
-        println!("ChunkReceiver: {:X}", digest);
+        trace!("ChunkReceiver: {:X}", digest);
         let mut hasher = std::collections::hash_map::DefaultHasher::new();
         std::any::TypeId::of::<StreamWriter>().hash(&mut hasher);
         let digest = hasher.finish();
-        println!("StreamWriter: {:X}", digest);
+        trace!("StreamWriter: {:X}", digest);
     }
 
     match cli_args.command {

@@ -17,3 +17,5 @@ pub mod set_player_rotation;
 
 pub mod chat_message;
 pub mod command;
+pub mod player_command;
+pub mod swing_arm;

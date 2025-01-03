@@ -42,7 +42,7 @@ our [Discord server](https://discord.gg/qT5J8EMjwk) for help or to discuss the p
      <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/server%20list.png?raw=true" alt="Server list">
    </li>
    <li>
-     <h4>🚄 Extremely fast and adaptable update speeds</h4>
+     <h4>🚄 Extremely fast </h4>
      <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/mind%20boggling.gif?raw=true" alt="Mind boggling">
    </li>
    <li>
@@ -50,7 +50,7 @@ our [Discord server](https://discord.gg/qT5J8EMjwk) for help or to discuss the p
      <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/mem_use.png?raw=true" alt="Low memory usage">
    </li>
    <li>
-     <h4>🗂️ Customizable configuration</h4>
+     <h4>🗂️ Straightforward Configuration</h4>
      <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/config.toml.png?raw=true" alt="Configuration">
    </li>
    <li>
@@ -58,7 +58,7 @@ our [Discord server](https://discord.gg/qT5J8EMjwk) for help or to discuss the p
       <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/chunk_importing.gif?raw=true" alt="Configuration">
    </li>
    <li>
-      <h4>🌐 Compatible with vanilla Minecraft clients (Currently only 1.21.1)</h4>
+      <h4>🌐 Compatible with vanilla Minecraft clients (Version 1.21.1)</h4>
    </li>
    <li>
       <h4>💪 Powerful Entity Component System to handle high entity loads</h4>
@@ -72,7 +72,7 @@ our [Discord server](https://discord.gg/qT5J8EMjwk) for help or to discuss the p
       <h4>📝 Custom made network, NBT and Anvil encoding systems to allow for minimal I/O lag</h4>
    </li>
    <li>
-      <h4>💾 Multiple database options to finetune the server to your needs</h4>
+      <h4>💾 Crazy fast K/V database </h4>
       <i>32 render distance*</i>
       <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/chunk_loading.gif?raw=true" alt="Chunk Loading DEMO">
    </li>
@@ -82,19 +82,19 @@ our [Discord server](https://discord.gg/qT5J8EMjwk) for help or to discuss the p
 
 <ul>
    <li>
-      <h4>Ability to view other players</h4>
+      <h4>PvE mechanics, and entities.</h4>
    </li>
    <li>
       <h4>World modification (place / break blocks etc)</h4>
    </li>
     <li>
-        <h4>Chat & Command system</h4>
+        <h4>Web based server dashboard</h4>
    </li>
     <li>
         <h4>Optimizations</h4>
    </li>
     <li>
-        <h4>Plugin support (JVM currently, other languages will be considered later)</h4>
+        <h4>Plugin support (FFI currently, other languages will be considered later)</h4>
     </li>
 </ul>
 
@@ -148,9 +148,23 @@ cargo build --release
 
 ## 🖥️ Usage
 
+```plaintext
+Usage: ferrumc.exe [OPTIONS] [COMMAND]
+
+Commands:
+setup   Sets up the config
+import  Import the world data
+run     Start the server (default, if no command is given)
+help    Print this message or the help of the given subcommand(s)
+
+Options:
+--log <LOG>  [default: debug] [possible values: trace, debug, info, warn, error]
+-h, --help       Print help
+```
+
 1. Move the FerrumC binary (`ferrumc.exe` or `ferrumc` depending on the OS) to your desired server directory
 2. Open a terminal in that directory
-3. (Optional) Generate a config file: `./ferrumc --setup`
+3. (Optional) Generate a config file: `./ferrumc setup`
     - Edit the generated `config.toml` file to customize your server settings
 4. Import an existing world: Either copy your world files to the server directory or specify the path to the world files
    in the `config.toml` file. This should be the root directory of your world files, containing the `region` directory
@@ -218,10 +232,9 @@ with the vanilla server, but we do plan on implementing some sort of terrain gen
 
 ### Will there be plugins? And how?
 
-We do very much plan to have a plugin system and as of right now, our plan is to leverage the
-JVM to allow for plugins to be written in Kotlin, Java, or any other JVM language. We are also considering other
-languages
-such as Rust, JavaScript and possibly other native languages, but that is a fair way off for now.
+We do very much plan to have a plugin system and as of right now we are planning to use
+some kind of ffi (foreign function interface) to allow for plugins to be written in other languages.
+Not confirmed yet.
 
 ### What does 'FerrumC' mean?
 
@@ -241,3 +254,10 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE) f
    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=ferrumc-rs/ferrumc&type=Date" />
  </picture>
 </a>
+
+## 📊 Stats
+
+[![Timeline graph](https://images.repography.com/59032276/ferrumc-rs/ferrumc/recent-activity/J6CgGhzs6y3LXRuADz1QpSUriBC3ix9DXnPUbbljruA/O-qGFiSVQmksFEaX7mVQ4jY3lppUTK2xUw4CpqZ3oUk_timeline.svg)](https://github.com/ferrumc-rs/ferrumc/commits)
+[![Issue status graph](https://images.repography.com/59032276/ferrumc-rs/ferrumc/recent-activity/J6CgGhzs6y3LXRuADz1QpSUriBC3ix9DXnPUbbljruA/O-qGFiSVQmksFEaX7mVQ4jY3lppUTK2xUw4CpqZ3oUk_issues.svg)](https://github.com/ferrumc-rs/ferrumc/issues)
+[![Pull request status graph](https://images.repography.com/59032276/ferrumc-rs/ferrumc/recent-activity/J6CgGhzs6y3LXRuADz1QpSUriBC3ix9DXnPUbbljruA/O-qGFiSVQmksFEaX7mVQ4jY3lppUTK2xUw4CpqZ3oUk_prs.svg)](https://github.com/ferrumc-rs/ferrumc/pulls)
+[![Top contributors](https://images.repography.com/59032276/ferrumc-rs/ferrumc/recent-activity/J6CgGhzs6y3LXRuADz1QpSUriBC3ix9DXnPUbbljruA/O-qGFiSVQmksFEaX7mVQ4jY3lppUTK2xUw4CpqZ3oUk_users.svg)](https://github.com/ferrumc-rs/ferrumc/graphs/contributors)
