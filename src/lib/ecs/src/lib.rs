@@ -43,28 +43,28 @@ impl Universe {
         self.entities.builder(&self.components)
     }
 
-    pub fn add_component<T: Component>(&self, entity: Entity, component: T) -> ECSResult<&Self> {
-        self.components.insert(entity, component)?;
+    pub async fn add_component<T: Component + Send + Sync>(&self, entity: Entity, component: T) -> ECSResult<&Self> {
+        self.components.insert(entity, component).await?;
         Ok(self)
     }
 
-    pub fn remove_component<T: Component>(&self, entity: Entity) -> ECSResult<()> {
-        self.components.remove::<T>(entity)
+    pub async fn remove_component<T: Component + Send + Sync>(&self, entity: Entity) -> ECSResult<()> {
+        self.components.remove::<T>(entity).await
     }
 
-    pub fn remove_all_components(&self, entity: Entity) -> ECSResult<()> {
-        self.components.remove_all_components(entity)
+    pub async fn remove_all_components(&self, entity: Entity) -> ECSResult<()> {
+        self.components.remove_all_components(entity).await
     }
 
-    pub fn get<'a, T: Component>(&self, entity: Entity) -> ECSResult<ComponentRef<'a, T>> {
-        self.components.get::<T>(entity)
+    pub async fn get<'a, T: Component + Send + Sync>(&self, entity: &'a Entity) -> ECSResult<ComponentRef<'a, T>> {
+        self.components.get::<T>(entity).await
     }
-    pub fn get_mut<'a, T: Component>(&self, entity: Entity) -> ECSResult<ComponentRefMut<'a, T>> {
-        self.components.get_mut::<T>(entity)
+    pub async fn get_mut<'a, T: Component + Send + Sync>(&self, entity: &'a Entity) -> ECSResult<ComponentRefMut<'a, T>> {
+        self.components.get_mut::<T>(entity).await
     }
 
-    pub fn query<Q: QueryItem>(&self) -> Query<Q> {
-        Query::new(&self.components)
+    pub async fn query<Q: QueryItem>(&self) -> Query<Q> {
+        Query::new(&self.components).await
     }
 
     pub fn get_component_manager(&self) -> &ComponentManager {

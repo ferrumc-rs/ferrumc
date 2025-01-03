@@ -1,39 +1,42 @@
+use async_trait::async_trait;
 use crate::components::storage::{Component, ComponentRef, ComponentRefMut};
 use crate::components::ComponentManager;
 use crate::entities::Entity;
 use crate::ECSResult;
 
-#[allow(async_fn_in_trait)]
+#[async_trait]
 pub trait QueryItem {
     type Item<'a>;
 
-    fn fetch<'a>(entity: Entity, storage: &ComponentManager) -> ECSResult<Self::Item<'a>>;
+    async fn fetch<'a>(entity: &'a Entity, storage: &ComponentManager) -> ECSResult<Self::Item<'a>>;
 
     /*fn entities(
         storage: &ComponentManager,
     ) -> Vec<Entity>;*/
-    fn entities(storage: &ComponentManager) -> Vec<Entity>;
+    async fn entities(storage: &ComponentManager) -> Vec<Entity>;
 }
-impl<T: Component> QueryItem for &T {
+#[async_trait]
+impl<T: Component + Send + Sync> QueryItem for &T {
     type Item<'a> = ComponentRef<'a, T>;
 
-    fn fetch<'a>(entity: Entity, storage: &ComponentManager) -> ECSResult<Self::Item<'a>> {
-        storage.get(entity)
+    async fn fetch<'a>(entity: &'a Entity, storage: &ComponentManager) -> ECSResult<Self::Item<'a>> {
+        storage.get(entity).await
     }
 
-    fn entities(storage: &ComponentManager) -> Vec<Entity> {
-        storage.get_entities_with::<T>()
+    async fn entities(storage: &ComponentManager) -> Vec<Entity> {
+        storage.get_entities_with::<T>().await
     }
 }
-impl<T: Component> QueryItem for &mut T {
+#[async_trait]
+impl<T: Component + Send + Sync> QueryItem for &mut T {
     type Item<'a> = ComponentRefMut<'a, T>;
 
-    fn fetch<'a>(entity: Entity, storage: &ComponentManager) -> ECSResult<Self::Item<'a>> {
-        storage.get_mut(entity)
+    async fn fetch<'a>(entity: &'a Entity, storage: &ComponentManager) -> ECSResult<Self::Item<'a>> {
+        storage.get_mut(entity).await
     }
 
-    fn entities(storage: &ComponentManager) -> Vec<Entity> {
-        storage.get_entities_with::<T>()
+    async fn entities(storage: &ComponentManager) -> Vec<Entity> {
+        storage.get_entities_with::<T>().await
     }
 }
 
@@ -43,7 +46,7 @@ pub struct Query<'a, Q: QueryItem> {
     _marker: std::marker::PhantomData<Q>,
 }
 
-impl<Q: QueryItem> Clone for Query<'_, Q> {
+/*impl<Q: QueryItem> Clone for Query<'_, Q> {
     fn clone(&self) -> Self {
         //! Clones the query, and re-calculates the entities
         Self {
@@ -52,13 +55,13 @@ impl<Q: QueryItem> Clone for Query<'_, Q> {
             _marker: std::marker::PhantomData,
         }
     }
-}
+}*/
 
 impl<'a, Q: QueryItem> Query<'a, Q> {
-    pub fn new(component_storage: &'a ComponentManager) -> Self {
+    pub async fn new(component_storage: &'a ComponentManager) -> Self {
         Self {
             component_storage,
-            entities: Q::entities(component_storage),
+            entities: Q::entities(component_storage).await,
             _marker: std::marker::PhantomData,
         }
     }
@@ -73,24 +76,49 @@ impl<'a, Q: QueryItem> Query<'a, Q> {
 }
 
 mod iter_impl {
+    use std::future::Future;
+    use std::pin::Pin;
+    use std::task::{Context, Poll};
+    use futures::{poll, Stream};
     use super::*;
-    use rayon::prelude::*;
 
-    impl<'a, Q: QueryItem> Iterator for Query<'a, Q> {
+/*    impl<'a, Q: QueryItem> Unpin for Query<'a, Q> {}
+    impl<'a, Q: QueryItem> Stream for Query<'a, Q> {
+        type Item = (&'a Entity, Q::Item<'a>);
+        
+        fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+            let this = self.get_mut();
+            for entity in  this.entities.iter() {
+                // Convert the async fetch into a future and poll it
+                let fetch_future = Q::fetch(entity, this.component_storage);
+                match Pin::new(&mut Box::pin(fetch_future)).poll(cx) {
+                    Poll::Ready(Ok(item)) => return Poll::Ready(Some((entity, item))),
+                    Poll::Ready(Err(_)) => continue,
+                    Poll::Pending => {
+                        // Put the entity back and return Pending
+                        return Poll::Pending;
+                    }
+                }
+            }
+            Poll::Ready(None)
+        }
+    }
+*/
+    /*impl<'a, Q: QueryItem> Iterator for Query<'a, Q> {
         type Item = (Entity, Q::Item<'a>);
 
         fn next(&mut self) -> Option<Self::Item> {
             while let Some(entity) = self.entities.pop() {
-                let Ok(item) = Q::fetch(entity, self.component_storage) else {
+                let Ok(item) = Q::fetch(&entity, self.component_storage).await else {
                     continue;
                 };
                 return Some((entity, item));
             }
             None
         }
-    }
+    }*/
 
-    impl<'a, Q> ParallelIterator for Query<'a, Q>
+    /*impl<'a, Q> ParallelIterator for Query<'a, Q>
     where
         Q: QueryItem + Send,
         Q::Item<'a>: Send,
@@ -109,30 +137,28 @@ mod iter_impl {
                 })
                 .drive_unindexed(consumer)
         }
-    }
+    }*/
 }
 
 mod multi_impl {
     use super::*;
     macro_rules! impl_query_item_tuple {
     ($($T: ident), *) => {
+        #[async_trait]
         impl<$($T),*> QueryItem for ($($T,)*)
         where
             $($T: QueryItem,)*
         {
             type Item<'a> = ($($T::Item<'a>,)*);
 
-            fn fetch<'a>(
-                entity: Entity,
-                storage: &ComponentManager
-            ) -> ECSResult<Self::Item<'a>> {
-                Ok(($($T::fetch(entity, storage)?,)*))
+            async fn fetch<'a>(entity: &'a Entity, storage: &ComponentManager) -> ECSResult<Self::Item<'a>> {
+                Ok(($($T::fetch(entity, storage).await?,)*))
             }
 
-            fn entities(
+            async fn entities(
                 storage: &ComponentManager,
             ) -> Vec<Entity> {
-                let entities = vec![$($T::entities(storage)),*];
+                let entities = vec![$($T::entities(storage).await),*];
 
                 find_common_elements(entities)
             }

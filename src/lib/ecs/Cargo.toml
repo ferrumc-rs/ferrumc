@@ -11,6 +11,8 @@ parking_lot = { workspace = true }
 rayon = { workspace = true }
 tracing = { workspace = true }
 whirlwind = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
 
 [dev-dependencies]
 criterion = { workspace = true}
