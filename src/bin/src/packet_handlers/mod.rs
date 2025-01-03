@@ -1,3 +1,5 @@
+mod chat_message;
+mod commands;
 mod animations;
 mod handshake;
 mod login_process;

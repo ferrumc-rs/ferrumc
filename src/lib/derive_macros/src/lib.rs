@@ -2,6 +2,7 @@
 
 use proc_macro::TokenStream;
 
+mod commands;
 mod events;
 mod helpers;
 mod nbt;
@@ -54,3 +55,13 @@ pub fn bake_packet_registry(input: TokenStream) -> TokenStream {
     net::packets::bake_registry(input)
 }
 // #=================== PACKETS ===================#
+
+#[proc_macro_attribute]
+pub fn command(attr: TokenStream, input: TokenStream) -> TokenStream {
+    commands::command(attr, input)
+}
+
+#[proc_macro_attribute]
+pub fn arg(attr: TokenStream, input: TokenStream) -> TokenStream {
+    commands::arg(attr, input)
+}

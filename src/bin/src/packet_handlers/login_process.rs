@@ -1,3 +1,4 @@
+use ferrumc_commands::graph::CommandsPacket;
 use ferrumc_config::statics::{get_global_config, get_whitelist};
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
@@ -202,6 +203,14 @@ async fn handle_ack_finish_configuration(
                 &NetEncodeOpts::WithLength,
             )
             .await?;
+      
+        trace!(
+            "Sending command graph: {:#?}",
+            ferrumc_commands::infrastructure::get_graph()
+        );
+        writer
+            .send_packet(&CommandsPacket::create(), &NetEncodeOpts::WithLength)
+            .await?;
 
         send_keep_alive(entity_id, &state, &mut writer).await?;
 
@@ -210,9 +219,6 @@ async fn handle_ack_finish_configuration(
         chunk_recv.last_chunk = Some((pos.x as i32, pos.z as i32, String::from("overworld")));
         chunk_recv.calculate_chunks().await;
     }
-
-    player_info_update_packets(entity_id, &state).await?;
-    broadcast_spawn_entity_packet(entity_id, &state).await?;
 
     Ok(ack_finish_configuration_event)
 }

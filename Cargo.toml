@@ -17,6 +17,8 @@ members = [
     "src/lib/adapters/anvil",
     "src/lib/adapters/nbt",
     "src/lib/adapters/nbt",
+    "src/lib/commands",
+    "src/lib/default_commands",
     "src/lib/core",
     "src/lib/core/state",
     "src/lib/derive_macros",
@@ -34,6 +36,7 @@ members = [
     "src/lib/utils/logging",
     "src/lib/utils/profiling",
     "src/lib/world",
+    "src/lib/entity_utils",
 ]
 
 #================== Lints ==================#
@@ -87,6 +90,8 @@ codegen-units = 1
 ferrumc-anvil = { path = "src/lib/adapters/anvil" }
 ferrumc-config = { path = "src/lib/utils/config" }
 ferrumc-core = { path = "src/lib/core" }
+ferrumc-default-commands = { path = "src/lib/default_commands" }
+ferrumc-commands = { path = "src/lib/commands" }
 ferrumc-ecs = { path = "src/lib/ecs" }
 ferrumc-events = { path = "src/lib/events"}
 ferrumc-general-purpose = { path = "src/lib/utils/general_purpose" }
@@ -103,7 +108,7 @@ ferrumc-storage = { path = "src/lib/storage" }
 ferrumc-text = { path = "src/lib/text" }
 ferrumc-utils = { path = "src/lib/utils" }
 ferrumc-world = { path = "src/lib/world" }
-
+ferrumc-entity-utils = { path = "src/lib/entity_utils" }
 
 
 # Asynchronous
@@ -156,7 +161,7 @@ whirlwind = "0.1.1"
 # Macros
 lazy_static = "1.5.0"
 quote = "1.0.37"
-syn = "2.0.77"
+syn = { version = "2.0.77", features = ["full"] }
 proc-macro2 = "1.0.86"
 proc-macro-crate = "3.2.0"
 paste = "1.0.15"
@@ -187,6 +192,7 @@ colored = "2.1.0"
 # Misc
 deepsize = "0.2.0"
 page_size = "0.6.0"
+enum-ordinalize = "4.3.0"
 regex = "1.11.1"
 
 # I/O
@@ -195,5 +201,3 @@ memmap2 = "0.9.5"
 
 # Benchmarking
 criterion = { version = "0.5.1", features = ["html_reports"] }
-
-
