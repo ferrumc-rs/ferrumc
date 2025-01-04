@@ -1,9 +1,33 @@
 use colored::Colorize;
 use proc_macro::TokenStream;
-use quote::quote;
+use quote::{quote, ToTokens};
 use std::env;
 use std::ops::Add;
-use syn::{parse_macro_input, LitInt, LitStr};
+use syn::{parse_macro_input, Attribute, LitInt, LitStr};
+use syn::parse::ParseStream;
+use regex::Regex;
+use crate::static_loading::packets::{get_packet_id, PacketBoundiness};
+
+fn parse_packet_attribute(attr: &Attribute) -> Option<(String, String)> {
+    let attr_str = attr.to_token_stream().to_string();
+    
+    println!("attr_str: {}", attr_str);
+    
+    // This regex matches both formats:
+    // #[packet(state = "play", packet_id = "something")]
+    // #[packet(packet_id = "something", state = "play")]
+    let re = Regex::new(r#"packet_id\s*=\s*((?:0x[\da-fA-F]+|\d+|"[^"]*")),\s*state\s*=\s*"([^"]*)""#).unwrap();
+
+    if let Some(caps) = re.captures(&attr_str) {
+        let packet_id = caps.get(1).map(|m| m.as_str().to_string())?;
+        let state = caps.get(2).map(|m| m.as_str().to_string())?;
+
+        Some((state, packet_id))
+    } else {
+        None
+    }
+}
+
 
 /// Essentially, this just reads all the files in the directory and generates a match arm for each packet.
 /// (packet_id, state) => { ... }
@@ -40,6 +64,7 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
 
     let start = std::time::Instant::now();
 
+
     for entry in std::fs::read_dir(dir_path).expect("read_dir call failed") {
         let entry = entry.expect("entry failed");
         let path = entry.path();
@@ -68,36 +93,14 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
                     continue;
                 }
 
-                attr.parse_nested_meta(|meta| {
-                    let Some(ident) = meta.path.get_ident() else {
-                        return Ok(());
-                    };
+                let (state, packet_id) = parse_packet_attribute(&attr)
+                    .expect("parse_packet_attribute failed\
+                    \nPlease provide the packet_id and state fields in the #[packet(...)] attribute.\
+                    \nExample: #[packet(packet_id = 0x00, state = \"handshake\")]");
 
-                    match ident.to_string().as_str() {
-                        "packet_id" => {
-                            let value = meta.value().expect("value failed");
-                            let value = value.parse::<LitInt>().expect("parse failed");
-                            let n: u8 = value.base10_parse().expect("base10_parse failed");
-                            packet_id = Some(n);
-                        }
-                        "state" => {
-                            let value = meta.value().expect("value failed");
-                            let value = value.parse::<LitStr>().expect("parse failed");
-                            let n = value.value();
-                            state = Some(n);
-                        }
-                        &_ => {
-                            return Ok(());
-                        }
-                    }
 
-                    Ok(())
-                })
-                .unwrap();
+                let packet_id = parse_packet_id(state.as_str(), packet_id).expect("parse_packet_id failed");
 
-                let packet_id = packet_id.expect("packet_id not found");
-
-                let state = state.clone().expect("state not found");
                 let struct_name = &item_struct.ident;
 
                 println!(
@@ -168,6 +171,23 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
     TokenStream::from(output)
 }
 
+
+fn parse_packet_id(state: &str, value: String) -> syn::Result<u8> {
+    //! Sorry to anyone reading this code. The get_packet_id method PANICS if there is any type of error.
+    //! these macros are treated like trash gah damn. they need better care 😔
+
+    // If the user provided a direct integer (like 0x01, or any number) value.
+    if value.starts_with("0x") {
+        let n = u8::from_str_radix(&value[2..], 16).expect("from_str_radix failed");
+        return Ok(n);
+    }
+
+    // If the user provided referencing packet id, then just get that.
+    let n = get_packet_id(state, PacketBoundiness::Clientbound, value.as_str());
+
+    Ok(n)
+}
+
 /// `#[packet]` attribute is used to declare an incoming/outgoing packet.
 ///
 /// <b>packet_id</b> => The packet id of the packet. In hexadecimal.
@@ -217,3 +237,5 @@ pub fn attribute(args: TokenStream, input: TokenStream) -> TokenStream {
 
     input
 }
+
+
