@@ -200,16 +200,13 @@ impl Inventory {
             }
 
             let inventory_result = universe.get_mut::<Inventory>(entity_id);
-            match inventory_result {
-                Ok(inventory) => {
-                    if self.id != inventory.id {
-                        continue;
-                    }
-
-                    let writer = universe.get_mut::<StreamWriter>(entity_id)?;
-                    self.sync_inventory_with(sync_type, writer).await?;
+            if let Ok(inventory) = inventory_result {
+                if self.id != inventory.id {
+                    continue;
                 }
-                _ => {}
+
+                let writer = universe.get_mut::<StreamWriter>(entity_id)?;
+                self.sync_inventory_with(sync_type, writer).await?;
             }
         }
 
@@ -256,13 +253,13 @@ impl Inventory {
 
         writer
             .send_packet(
-                &CloseContainerPacket::new(self.id as u8),
+                &CloseContainerPacket::new(self.id),
                 &NetEncodeOpts::WithLength,
             )
             .await?;
 
         // handle event
-        let event = InventoryCloseEvent::new(entity_id, inventory.id as u8);
+        let event = InventoryCloseEvent::new(entity_id, inventory.id);
         InventoryCloseEvent::trigger(event, state.clone()).await?;
         Ok(())
     }

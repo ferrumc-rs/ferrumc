@@ -40,7 +40,7 @@ async fn handle_container_click(
     if inventory.is_synced {
         match packet.changed_slots.data.as_slice() {
             [changed_slot] => {
-                let slot_num = changed_slot.slot_number as i16;
+                let slot_num = changed_slot.slot_number;
 
                 inventory
                     .set_slot(slot_num, Slot::from_network_slot(changed_slot.slot))
