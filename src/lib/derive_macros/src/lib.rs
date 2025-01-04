@@ -59,14 +59,6 @@ pub fn packet(args: TokenStream, input: TokenStream) -> TokenStream {
 pub fn bake_packet_registry(input: TokenStream) -> TokenStream {
     net::packets::bake_registry(input)
 }
-// #=================== PACKETS ===================#
-
-/// Get a registry entry from the registries.json file.
-/// returns protocol_id (as u64) of the specified entry.
-#[proc_macro]
-pub fn get_registry_entry(input: TokenStream) -> TokenStream {
-    static_loading::registry::get(input)
-}
 
 /// Get a packet entry from the packets.json file.
 /// returns protocol_id (as 0x??) of the specified packet.
@@ -74,4 +66,12 @@ pub fn get_registry_entry(input: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn get_packet_entry(input: TokenStream) -> TokenStream {
     static_loading::packets::get(input)
+}
+// #=================== PACKETS ===================#
+
+/// Get a registry entry from the registries.json file.
+/// returns protocol_id (as u64) of the specified entry.
+#[proc_macro]
+pub fn get_registry_entry(input: TokenStream) -> TokenStream {
+    static_loading::registry::get(input)
 }
