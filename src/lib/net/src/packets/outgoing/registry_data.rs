@@ -4,7 +4,7 @@ use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use std::io::Write;
 
 #[derive(NetEncode)]
-#[packet(packet_id = 0x07, state = "configuration")]
+#[packet(packet_id = "registry_data", state = "configuration")]
 pub struct RegistryDataPacket<'a> {
     pub registry_id: &'a str,
     pub entries: LengthPrefixedVec<RegistryEntry<'a>>,

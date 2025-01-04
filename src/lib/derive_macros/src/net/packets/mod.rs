@@ -12,16 +12,12 @@ fn parse_packet_attribute(attr: &Attribute) -> Option<(String, String)> {
     let attr_str = attr.to_token_stream().to_string();
 
     // This regex matches both formats:
-    // #[packet(state = "play", packet_id = "something")]
     // #[packet(packet_id = "something", state = "play")]
-    let re =
-        Regex::new(r#"packet_id\s*=\s*((?:0x[\da-fA-F]+|\d+|"[^"]*")),\s*state\s*=\s*"([^"]*)""#)
-            .unwrap();
+    let re = Regex::new(r#"packet_id\s*=\s*"([^"]+)"(?:\s*,\s*)?state\s*=\s*"([^"]+)""#).unwrap();
 
     if let Some(caps) = re.captures(&attr_str) {
         let packet_id = caps.get(1).map(|m| m.as_str().to_string())?;
         let state = caps.get(2).map(|m| m.as_str().to_string())?;
-
         Some((state, packet_id))
     } else {
         None
@@ -29,9 +25,7 @@ fn parse_packet_attribute(attr: &Attribute) -> Option<(String, String)> {
 }
 
 /// Returns: (state, packet_id)
-pub(crate) fn get_packet_details_from_attributes(
-    attrs: &[Attribute],
-) -> Option<(String, u8)> {
+pub(crate) fn get_packet_details_from_attributes(attrs: &[Attribute]) -> Option<(String, u8)> {
     let mut val = Option::<(String, String)>::None;
 
     for attr in attrs {

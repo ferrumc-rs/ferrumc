@@ -5,7 +5,7 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::Write;
 
 #[derive(NetEncode)]
-#[packet(packet_id = 0x42, state = "play")]
+#[packet(packet_id = "remove_entities", state = "play")]
 pub struct RemoveEntitiesPacket {
     pub entity_ids: LengthPrefixedVec<VarInt>,
 }

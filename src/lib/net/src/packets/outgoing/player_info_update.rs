@@ -9,7 +9,7 @@ use std::io::Write;
 use tracing::debug;
 
 #[derive(NetEncode)]
-#[packet(packet_id = 0x3E, state = "play")]
+#[packet(packet_id = "player_info_update", state = "play")]
 pub struct PlayerInfoUpdatePacket {
     pub actions: u8,
     pub numbers_of_players: VarInt,

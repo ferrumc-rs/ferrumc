@@ -3,7 +3,7 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::Write;
 
 #[derive(NetEncode)]
-#[packet(packet_id = 0x02, state = "login")]
+#[packet(packet_id = "game_profile", state = "login")]
 pub struct LoginSuccessPacket<'a> {
     pub uuid: u128,
     pub username: &'a str,

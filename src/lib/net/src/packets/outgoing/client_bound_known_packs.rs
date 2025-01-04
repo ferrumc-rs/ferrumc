@@ -3,7 +3,7 @@ use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use std::io::Write;
 
 #[derive(NetEncode)]
-#[packet(packet_id = 0x0E, state = "configuration")]
+#[packet(packet_id = "select_known_packs", state = "configuration")]
 pub struct ClientBoundKnownPacksPacket<'a> {
     pub packs: LengthPrefixedVec<Pack<'a>>,
 }

@@ -2,7 +2,7 @@ use ferrumc_macros::{packet, NetEncode};
 use std::io::Write;
 
 #[derive(NetEncode)]
-#[packet(packet_id = 0x00, state = "status")]
+#[packet(packet_id = "status_response", state = "status")]
 pub struct StatusResponse {
     pub json_response: String,
 }

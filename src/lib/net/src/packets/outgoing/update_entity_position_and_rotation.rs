@@ -6,7 +6,7 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::Write;
 
 #[derive(NetEncode)]
-#[packet(packet_id = 0x2F, state = "play")]
+#[packet(packet_id = "move_entity_pos_rot", state = "play")]
 pub struct UpdateEntityPositionAndRotationPacket {
     pub entity_id: VarInt,
     pub delta_x: i16,
