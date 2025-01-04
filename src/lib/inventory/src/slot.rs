@@ -6,6 +6,12 @@ pub struct Slot {
     pub item: i32,
 }
 
+impl Default for Slot {
+    fn default() -> Self {
+        Self::empty()
+    }
+}
+
 impl Slot {
     pub fn new(count: i32, item: i32) -> Self {
         Self { count, item }
@@ -17,6 +23,13 @@ impl Slot {
 
     pub fn empty() -> Self {
         Self::new(0, 0)
+    }
+
+    pub fn from_network_slot(slot: NetworkSlot) -> Self {
+        match slot.item_id {
+            Some(item) => Self::new(*slot.item_count, *item),
+            None => Self::empty(),
+        }
     }
 
     pub fn to_network_slot(&self) -> NetworkSlot {

@@ -4,8 +4,8 @@ use crate::slot::Slot;
 use std::collections::BTreeMap;
 
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
-use ferrumc_ecs::entities::Entity;
 use ferrumc_ecs::errors::ECSError;
+use ferrumc_ecs::{components::storage::ComponentRefMut, entities::Entity};
 use ferrumc_events::infrastructure::Event;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::errors::NetError;
@@ -13,7 +13,6 @@ use ferrumc_net::packets::incoming::close_container::InventoryCloseEvent;
 use ferrumc_net::packets::outgoing::close_container::CloseContainerPacket;
 use ferrumc_net::packets::outgoing::open_screen::OpenScreenPacket;
 use ferrumc_net::packets::outgoing::set_container_content::SetContainerContentPacket;
-use ferrumc_net::packets::outgoing::set_container_slot::NetworkSlot;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::ServerState;
@@ -103,6 +102,9 @@ pub enum InventoryError {
     #[error("Entity [{0}] already has an open inventory. Cannot open another one.")]
     AlreadyOpenedInventory(Entity),
 
+    #[error("Invalid equipment slot for PlayerInventory")]
+    InvalidEquipmentSlot,
+
     #[error("Net error: [{0}].")]
     NetError(#[from] NetError),
 
@@ -115,38 +117,54 @@ pub enum InventoryError {
 
 #[derive(Debug, Clone)]
 pub struct Inventory {
-    pub id: VarInt,
+    pub id: i32,
     pub inventory_type: InventoryType,
     pub title: TextComponent,
     pub(crate) contents: InventoryContents,
+    pub carried_item: Slot,
 }
 
 impl Inventory {
     pub fn new<S: Into<String>>(id: i32, title: S, inventory_type: InventoryType) -> Self {
         Self {
-            id: VarInt::new(id),
+            id,
             inventory_type,
             title: TextComponentBuilder::new(title).build(),
             contents: InventoryContents::empty(inventory_type.get_size() as usize),
+            carried_item: Slot::empty(),
         }
     }
 
-    pub fn set_slot(&mut self, slot_id: i32, slot: Slot) -> &mut Self {
-        let size = self.inventory_type.get_size();
-        if (0..=size).contains(&slot_id) {
-            self.contents.set_slot(slot_id, slot);
+    pub fn set_carried_item(&mut self, carried_item: u16) {
+        if !(0..=9).contains(&carried_item) {
+            return;
         }
 
-        self
+        let slot = match self.get_slot(36 + i32::from(carried_item)) {
+            Some(slot) => slot,
+            None => Slot::empty(),
+        };
+
+        self.carried_item = slot;
     }
 
-    pub fn get_slot(&self, slot_id: i32) -> Option<Slot> {
-        let size = self.inventory_type.get_size();
-        if (0..=size).contains(&slot_id) {
-            self.contents.get_slot(slot_id)
-        } else {
-            None
-        }
+    pub(crate) async fn send_inventory_content(
+        &self,
+        mut writer: ComponentRefMut<'_, StreamWriter>,
+    ) -> Result<(), InventoryError> {
+        let contents = self.contents.construct_packet_contents();
+        writer
+            .send_packet(
+                &SetContainerContentPacket::new(
+                    self.id as u8,
+                    contents,
+                    self.carried_item.to_network_slot(),
+                ),
+                &NetEncodeOpts::WithLength,
+            )
+            .await?;
+
+        Ok(())
     }
 
     pub async fn sync_inventory(&mut self, state: Arc<ServerState>) -> Result<(), InventoryError> {
@@ -159,22 +177,12 @@ impl Inventory {
             let inventory_result = universe.get_mut::<Inventory>(entity_id);
             match inventory_result {
                 Ok(inventory) => {
-                    if *self.id != *inventory.id {
+                    if self.id != inventory.id {
                         continue;
                     }
 
-                    let mut writer = universe.get_mut::<StreamWriter>(entity_id)?;
-                    let contents = inventory.contents.construct_packet_contents();
-                    writer
-                        .send_packet(
-                            &SetContainerContentPacket::new(
-                                *inventory.id as u8,
-                                contents,
-                                NetworkSlot::empty(),
-                            ),
-                            &NetEncodeOpts::WithLength,
-                        )
-                        .await?;
+                    let writer = universe.get_mut::<StreamWriter>(entity_id)?;
+                    self.send_inventory_content(writer).await?;
                 }
                 Err(err) => return Err(InventoryError::ECSError(err)),
             }
@@ -202,20 +210,10 @@ impl Inventory {
             .send_packet(&packet, &NetEncodeOpts::WithLength)
             .await?;
 
-        let id = self.id;
-        writer
-            .send_packet(
-                &SetContainerContentPacket::new(
-                    *id as u8,
-                    self.contents.construct_packet_contents(),
-                    NetworkSlot::empty(),
-                ),
-                &NetEncodeOpts::WithLength,
-            )
-            .await?;
+        self.send_inventory_content(writer).await?;
 
         // handle event
-        let event = OpenInventoryEvent::new(entity_id).inventory_id(*id);
+        let event = OpenInventoryEvent::new(entity_id).inventory_id(self.id);
         OpenInventoryEvent::trigger(event, state.clone()).await?;
 
         universe.add_component::<Inventory>(entity_id, self)?;
@@ -233,15 +231,33 @@ impl Inventory {
 
         writer
             .send_packet(
-                &CloseContainerPacket::new(*self.id as u8),
+                &CloseContainerPacket::new(self.id as u8),
                 &NetEncodeOpts::WithLength,
             )
             .await?;
 
         // handle event
-        let event = InventoryCloseEvent::new(entity_id, *inventory.id as u8);
+        let event = InventoryCloseEvent::new(entity_id, inventory.id as u8);
         InventoryCloseEvent::trigger(event, state.clone()).await?;
         Ok(())
+    }
+
+    pub fn set_slot(&mut self, slot_id: i32, slot: Slot) -> &mut Self {
+        let size = self.inventory_type.get_size();
+        if (0..=size).contains(&slot_id) {
+            self.contents.set_slot(slot_id, slot);
+        }
+
+        self
+    }
+
+    pub fn get_slot(&self, slot_id: i32) -> Option<Slot> {
+        let size = self.inventory_type.get_size();
+        if (0..=size).contains(&slot_id) {
+            self.contents.get_slot(slot_id)
+        } else {
+            None
+        }
     }
 
     pub fn get_contents(&self) -> &BTreeMap<i32, Slot> {
@@ -256,7 +272,7 @@ impl Inventory {
         self.get_contents_mut().clear();
     }
 
-    pub fn set_all(&mut self, slot: Slot) {
+    pub fn fill(&mut self, slot: Slot) {
         for i in 0..self.get_size() {
             self.set_slot(i, slot);
         }
@@ -266,8 +282,15 @@ impl Inventory {
         self.get_contents().iter().any(|slot| slot.1.item == item)
     }
 
-    pub fn contains_slot(&self, slot: Slot) -> bool {
-        self.contains(slot.item)
+    pub fn contains_atleast(&self, item: i32, amount: usize) -> bool {
+        let mut container_amount = 0;
+        self.get_contents().iter().for_each(|(_, slot)| {
+            if slot.item == item {
+                container_amount += slot.count;
+            }
+        });
+
+        container_amount >= amount as i32
     }
 
     pub fn get_first_empty(&self) -> i32 {

@@ -19,4 +19,6 @@ pub mod swing_arm;
 
 pub mod click_container;
 pub mod close_container;
+pub mod set_creative_mode_slot;
+pub mod set_held_item;
 pub mod use_item_on;

@@ -7,6 +7,7 @@ use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::ServerState;
 use std::sync::Arc;
+use tracing::info;
 
 #[derive(NetDecode, Debug)]
 pub struct ChangedSlots {
@@ -34,6 +35,8 @@ pub struct ClickContainerPacket {
 
 impl IncomingPacket for ClickContainerPacket {
     async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
+        info!("Clicked Container: {:#?}", self);
+
         let event = InventoryClickEvent::new(conn_id, self);
         InventoryClickEvent::trigger(event, state).await?;
         Ok(())

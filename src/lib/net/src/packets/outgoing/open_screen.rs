@@ -12,19 +12,19 @@ pub struct OpenScreenPacket {
 }
 
 impl OpenScreenPacket {
-    pub fn new(window_id: VarInt, window_type: VarInt, window_title: TextComponent) -> Self {
+    pub fn new(window_id: i32, window_type: VarInt, window_title: TextComponent) -> Self {
         Self {
-            window_id,
+            window_id: VarInt::new(window_id),
             window_type,
             window_title,
         }
     }
 
-    pub fn with_empty_title(window_id: VarInt, window_type: VarInt) -> Self {
+    pub fn with_empty_title(window_id: i32, window_type: VarInt) -> Self {
         Self::new(
             window_id,
             window_type,
-            TextComponentBuilder::new("Inventory").build(),
+            TextComponentBuilder::new("").build(),
         )
     }
 }

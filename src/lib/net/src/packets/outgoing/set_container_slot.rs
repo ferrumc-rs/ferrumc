@@ -2,7 +2,7 @@ use ferrumc_macros::{packet, NetDecode, NetEncode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::Write;
 
-#[derive(NetDecode, NetEncode, Debug)]
+#[derive(NetDecode, NetEncode, Debug, Clone, Copy)]
 pub struct NetworkSlot {
     pub item_count: VarInt,
     #[net(optional_trigger = *item_count > 0)]
