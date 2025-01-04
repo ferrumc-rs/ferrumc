@@ -13,6 +13,7 @@ use ferrumc_net::packets::incoming::close_container::InventoryCloseEvent;
 use ferrumc_net::packets::outgoing::close_container::CloseContainerPacket;
 use ferrumc_net::packets::outgoing::open_screen::OpenScreenPacket;
 use ferrumc_net::packets::outgoing::set_container_content::SetContainerContentPacket;
+use ferrumc_net::packets::outgoing::set_container_slot::SetContainerSlotPacket;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::ServerState;
@@ -105,6 +106,9 @@ pub enum InventoryError {
     #[error("Invalid equipment slot for PlayerInventory")]
     InvalidEquipmentSlot,
 
+    #[error("Invalid slot id in Inventory")]
+    InvalidSlot,
+
     #[error("Net error: [{0}].")]
     NetError(#[from] NetError),
 
@@ -148,7 +152,32 @@ impl Inventory {
         self.carried_item = slot;
     }
 
-    pub(crate) async fn send_inventory_content(
+    pub async fn send_inventory_slot_content(
+        &self,
+        slot_num: i16,
+        mut writer: ComponentRefMut<'_, StreamWriter>,
+    ) -> Result<(), InventoryError> {
+        let slot = if let Some(slot) = self.get_slot(i32::from(slot_num)) {
+            slot
+        } else {
+            return Err(InventoryError::InvalidSlot);
+        };
+
+        writer
+            .send_packet(
+                &SetContainerSlotPacket::new(
+                    VarInt::new(self.id),
+                    slot_num,
+                    slot.to_network_slot(),
+                ),
+                &NetEncodeOpts::WithLength,
+            )
+            .await?;
+
+        Ok(())
+    }
+
+    pub async fn send_inventory_content(
         &self,
         mut writer: ComponentRefMut<'_, StreamWriter>,
     ) -> Result<(), InventoryError> {
