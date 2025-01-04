@@ -220,6 +220,9 @@ async fn handle_ack_finish_configuration(
         chunk_recv.calculate_chunks().await;
     }
 
+    player_info_update_packets(entity_id, &state).await?;
+    broadcast_spawn_entity_packet(entity_id, &state).await?;
+
     Ok(ack_finish_configuration_event)
 }
 async fn send_keep_alive(
