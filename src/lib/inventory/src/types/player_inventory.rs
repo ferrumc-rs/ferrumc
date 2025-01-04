@@ -3,7 +3,9 @@ use std::ops::{Deref, DerefMut};
 use ferrumc_net::packets::outgoing::set_equipment::EquipmentSlot;
 
 use crate::{
-    inventory::{Inventory, InventoryError, InventoryType},
+    builder::InventoryBuilder,
+    errors::InventoryError,
+    inventory::{Inventory, InventoryType},
     slot::Slot,
 };
 
@@ -50,7 +52,9 @@ impl Default for PlayerInventory {
 impl PlayerInventory {
     pub fn new(equipment_content: EquipmentContent, main_hand: Slot, off_hand: Slot) -> Self {
         Self {
-            inventory: Inventory::new(0, "", InventoryType::Chest(5)),
+            inventory: InventoryBuilder::new(0)
+                .inventory_type(InventoryType::Chest(5))
+                .build(),
             equipment_content,
             main_hand,
             off_hand,

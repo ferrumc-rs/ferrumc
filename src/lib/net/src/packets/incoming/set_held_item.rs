@@ -14,7 +14,7 @@ pub struct IncomingSetHeldItemPacket {
 
 impl IncomingPacket for IncomingSetHeldItemPacket {
     async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
-        let event = ChangeSlotEvent::new(conn_id, self);
+        let event = ChangeSlotEvent::new(conn_id, self.slot);
         ChangeSlotEvent::trigger(event, state).await?;
 
         Ok(())
@@ -24,11 +24,11 @@ impl IncomingPacket for IncomingSetHeldItemPacket {
 #[derive(Event, Debug)]
 pub struct ChangeSlotEvent {
     pub conn_id: usize,
-    pub packet: IncomingSetHeldItemPacket,
+    pub slot: u16,
 }
 
 impl ChangeSlotEvent {
-    pub fn new(conn_id: usize, packet: IncomingSetHeldItemPacket) -> Self {
-        Self { conn_id, packet }
+    pub fn new(conn_id: usize, slot: u16) -> Self {
+        Self { conn_id, slot }
     }
 }

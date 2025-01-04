@@ -12,13 +12,13 @@ use crate::{
 #[derive(NetDecode, Debug)]
 #[packet(packet_id = 0x32, state = "play")]
 pub struct SetCreativeModeSlotPacket {
-    pub slot: u16,
+    pub slot: i16,
     pub clicked_item: NetworkSlot,
 }
 
 impl IncomingPacket for SetCreativeModeSlotPacket {
     async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
-        let event = SetCreativeModeSlotEvent::new(conn_id, self);
+        let event = SetCreativeModeSlotEvent::new(conn_id, self.slot, self.clicked_item);
         SetCreativeModeSlotEvent::trigger(event, state).await?;
         Ok(())
     }
@@ -27,11 +27,16 @@ impl IncomingPacket for SetCreativeModeSlotPacket {
 #[derive(Event, Debug)]
 pub struct SetCreativeModeSlotEvent {
     pub conn_id: usize,
-    pub packet: SetCreativeModeSlotPacket,
+    pub slot: i16,
+    pub clicked_item: NetworkSlot,
 }
 
 impl SetCreativeModeSlotEvent {
-    pub fn new(conn_id: usize, packet: SetCreativeModeSlotPacket) -> Self {
-        Self { conn_id, packet }
+    pub fn new(conn_id: usize, slot: i16, clicked_item: NetworkSlot) -> Self {
+        Self {
+            conn_id,
+            slot,
+            clicked_item,
+        }
     }
 }

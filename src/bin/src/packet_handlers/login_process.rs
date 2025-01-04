@@ -5,9 +5,10 @@ use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_ecs::components::storage::ComponentRefMut;
-use ferrumc_inventory::inventory::{Inventory, InventoryType};
-use ferrumc_inventory::player_inventory::PlayerInventory;
+use ferrumc_inventory::builder::InventoryBuilder;
+use ferrumc_inventory::inventory::InventoryType;
 use ferrumc_inventory::slot::Slot;
+use ferrumc_inventory::types::player_inventory::PlayerInventory;
 use ferrumc_macros::event_handler;
 use ferrumc_net::connection::{ConnectionState, StreamWriter};
 use ferrumc_net::errors::NetError;
@@ -209,9 +210,12 @@ async fn handle_ack_finish_configuration(
         send_keep_alive(conn_id, state.clone(), &mut writer).await?;
     }
 
-    let mut inventory = Inventory::new(1, "Something Stupid", InventoryType::Chest(6));
-    inventory.set_slot(3, Slot::with_item(3));
+    let mut inventory = InventoryBuilder::new(1)
+        .inventory_type(InventoryType::Chest(6))
+        .is_synced(true)
+        .build();
 
+    inventory.set_slot(3, Slot::with_item(3));
     inventory.add_viewer(state, conn_id).await.unwrap();
 
     Ok(ack_finish_configuration_event)

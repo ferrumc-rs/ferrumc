@@ -9,7 +9,7 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::ServerState;
 use std::io::Read;
 use std::sync::Arc;
-use tracing::info;
+use tracing::debug;
 
 #[derive(Debug, Clone, Copy)]
 pub enum InventoryClickActions {
@@ -90,12 +90,12 @@ impl InventoryClickActions {
 
 #[derive(NetDecode, Debug)]
 pub struct ChangedSlots {
-    pub slot_number: u16,
+    pub slot_number: i16,
     pub slot: NetworkSlot,
 }
 
 impl ChangedSlots {
-    pub fn new(slot_number: u16, slot: NetworkSlot) -> Self {
+    pub fn new(slot_number: i16, slot: NetworkSlot) -> Self {
         Self { slot_number, slot }
     }
 }
@@ -136,7 +136,7 @@ impl NetDecode for ClickContainerPacket {
 
 impl IncomingPacket for ClickContainerPacket {
     async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
-        info!("Clicked Container: {:#?}", self);
+        debug!("{:#?}", self);
 
         let event = InventoryClickEvent::new(conn_id, self);
         InventoryClickEvent::trigger(event, state).await?;
@@ -170,7 +170,7 @@ impl ClickContainerPacket {
 pub struct InventoryClickEvent {
     pub conn_id: usize,
     pub packet: ClickContainerPacket,
-    pub is_cancelled: bool,
+    pub is_canceled: bool,
 }
 
 impl InventoryClickEvent {
@@ -178,11 +178,11 @@ impl InventoryClickEvent {
         Self {
             conn_id,
             packet,
-            is_cancelled: false,
+            is_canceled: false,
         }
     }
 
-    pub fn set_cancelled(&mut self, is_cancelled: bool) {
-        self.is_cancelled = is_cancelled;
+    pub fn set_canceled(&mut self, is_cancelled: bool) {
+        self.is_canceled = is_cancelled;
     }
 }

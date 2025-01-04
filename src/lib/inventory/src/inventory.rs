@@ -1,25 +1,22 @@
 use crate::contents::InventoryContents;
-use crate::events::inventory_open::OpenInventoryEvent;
+use crate::errors::InventoryError;
 use crate::slot::Slot;
 use std::collections::BTreeMap;
 
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
-use ferrumc_ecs::errors::ECSError;
 use ferrumc_ecs::{components::storage::ComponentRefMut, entities::Entity};
 use ferrumc_events::infrastructure::Event;
 use ferrumc_net::connection::StreamWriter;
-use ferrumc_net::errors::NetError;
 use ferrumc_net::packets::incoming::close_container::InventoryCloseEvent;
 use ferrumc_net::packets::outgoing::close_container::CloseContainerPacket;
-use ferrumc_net::packets::outgoing::open_screen::OpenScreenPacket;
+use ferrumc_net::packets::outgoing::open_screen::{OpenInventoryEvent, OpenScreenPacket};
 use ferrumc_net::packets::outgoing::set_container_content::SetContainerContentPacket;
 use ferrumc_net::packets::outgoing::set_container_slot::SetContainerSlotPacket;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::ServerState;
-use ferrumc_text::{TextComponent, TextComponentBuilder};
+use ferrumc_text::TextComponent;
 use std::sync::Arc;
-use thiserror::Error;
 
 #[derive(Debug, Clone, Copy)]
 pub enum InventoryType {
@@ -45,8 +42,8 @@ pub enum InventoryType {
 }
 
 impl InventoryType {
-    pub fn get_id(&self) -> VarInt {
-        let id = match self {
+    pub fn get_id(&self) -> i32 {
+        match self {
             InventoryType::Chest(i) => {
                 let value = i32::from(*i);
                 if (1..=6).contains(&value) {
@@ -72,14 +69,12 @@ impl InventoryType {
             InventoryType::Smoker => 22,
             InventoryType::Cartography => 23,
             InventoryType::Stonecutter => 24,
-        };
-
-        VarInt::new(id)
+        }
     }
 
-    pub fn get_size(&self) -> i32 {
+    pub fn get_size(&self) -> i16 {
         match self {
-            InventoryType::Chest(i) => i32::from(*i) * 9,
+            InventoryType::Chest(i) => i16::from(*i) * 9,
             InventoryType::Anvil
             | InventoryType::BlastFurnace
             | InventoryType::Furnace
@@ -98,53 +93,29 @@ impl InventoryType {
     }
 }
 
-#[derive(Error, Debug)]
-pub enum InventoryError {
-    #[error("Entity [{0}] already has an open inventory. Cannot open another one.")]
-    AlreadyOpenedInventory(Entity),
-
-    #[error("Invalid equipment slot for PlayerInventory")]
-    InvalidEquipmentSlot,
-
-    #[error("Invalid slot id in Inventory")]
-    InvalidSlot,
-
-    #[error("Net error: [{0}].")]
-    NetError(#[from] NetError),
-
-    #[error("ECS error: [{0}].")]
-    ECSError(#[from] ECSError),
-
-    #[error("Unknown error occurred with inventories...")]
-    Unknown,
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
+pub enum InventorySyncType {
+    All,
+    Single(i16),
 }
 
 #[derive(Debug, Clone)]
 pub struct Inventory {
-    pub id: i32,
+    pub id: u8,
     pub inventory_type: InventoryType,
     pub title: TextComponent,
     pub(crate) contents: InventoryContents,
     pub carried_item: Slot,
+    pub is_synced: bool,
 }
 
 impl Inventory {
-    pub fn new<S: Into<String>>(id: i32, title: S, inventory_type: InventoryType) -> Self {
-        Self {
-            id,
-            inventory_type,
-            title: TextComponentBuilder::new(title).build(),
-            contents: InventoryContents::empty(inventory_type.get_size() as usize),
-            carried_item: Slot::empty(),
-        }
-    }
-
     pub fn set_carried_item(&mut self, carried_item: u16) {
         if !(0..=9).contains(&carried_item) {
             return;
         }
 
-        let slot = match self.get_slot(36 + i32::from(carried_item)) {
+        let slot = match self.get_slot(36 + (carried_item as i16)) {
             Some(slot) => slot,
             None => Slot::empty(),
         };
@@ -152,41 +123,39 @@ impl Inventory {
         self.carried_item = slot;
     }
 
-    pub async fn send_inventory_slot_content(
+    pub(crate) async fn send_inventory_slot_content(
         &self,
         slot_num: i16,
         mut writer: ComponentRefMut<'_, StreamWriter>,
     ) -> Result<(), InventoryError> {
-        let slot = if let Some(slot) = self.get_slot(i32::from(slot_num)) {
-            slot
-        } else {
+        let Some(slot) = self.get_slot(slot_num) else {
             return Err(InventoryError::InvalidSlot);
         };
 
         writer
             .send_packet(
                 &SetContainerSlotPacket::new(
-                    VarInt::new(self.id),
+                    VarInt::new(i32::from(self.id)),
                     slot_num,
                     slot.to_network_slot(),
                 ),
                 &NetEncodeOpts::WithLength,
             )
-            .await?;
+            .await
+            .unwrap();
 
         Ok(())
     }
 
-    pub async fn send_inventory_content(
+    pub(crate) async fn send_inventory_content(
         &self,
         mut writer: ComponentRefMut<'_, StreamWriter>,
     ) -> Result<(), InventoryError> {
-        let contents = self.contents.construct_packet_contents();
         writer
             .send_packet(
                 &SetContainerContentPacket::new(
-                    self.id as u8,
-                    contents,
+                    self.id,
+                    self.contents.construct_packet_contents(),
                     self.carried_item.to_network_slot(),
                 ),
                 &NetEncodeOpts::WithLength,
@@ -196,13 +165,40 @@ impl Inventory {
         Ok(())
     }
 
-    pub async fn sync_inventory(&mut self, state: Arc<ServerState>) -> Result<(), InventoryError> {
+    pub async fn sync_inventory_with(
+        &mut self,
+        sync_type: &InventorySyncType,
+        writer: ComponentRefMut<'_, StreamWriter>,
+    ) -> Result<(), InventoryError> {
+        match sync_type {
+            InventorySyncType::All => self.send_inventory_content(writer).await?,
+            InventorySyncType::Single(slot_num) => {
+                self.send_inventory_slot_content(*slot_num, writer).await?
+            }
+        }
+        Ok(())
+    }
+
+    pub async fn sync_inventory(
+        &mut self,
+        without_entity: Entity,
+        sync_type: &InventorySyncType,
+        state: Arc<ServerState>,
+    ) -> Result<(), InventoryError> {
+        if !self.is_synced {
+            return Err(InventoryError::SyncingANonSyncedInventory(self.id));
+        }
+
         let universe = &state.universe;
         let query = universe
             .get_component_manager()
             .get_entities_with::<ChunkReceiver>();
 
         for entity_id in query {
+            if entity_id == without_entity {
+                continue;
+            }
+
             let inventory_result = universe.get_mut::<Inventory>(entity_id);
             match inventory_result {
                 Ok(inventory) => {
@@ -211,9 +207,9 @@ impl Inventory {
                     }
 
                     let writer = universe.get_mut::<StreamWriter>(entity_id)?;
-                    self.send_inventory_content(writer).await?;
+                    self.sync_inventory_with(sync_type, writer).await?;
                 }
-                Err(err) => return Err(InventoryError::ECSError(err)),
+                _ => {}
             }
         }
 
@@ -242,7 +238,7 @@ impl Inventory {
         self.send_inventory_content(writer).await?;
 
         // handle event
-        let event = OpenInventoryEvent::new(entity_id).inventory_id(self.id);
+        let event = OpenInventoryEvent::new(entity_id, self.id);
         OpenInventoryEvent::trigger(event, state.clone()).await?;
 
         universe.add_component::<Inventory>(entity_id, self)?;
@@ -271,7 +267,7 @@ impl Inventory {
         Ok(())
     }
 
-    pub fn set_slot(&mut self, slot_id: i32, slot: Slot) -> &mut Self {
+    pub fn set_slot(&mut self, slot_id: i16, slot: Slot) -> &mut Self {
         let size = self.inventory_type.get_size();
         if (0..=size).contains(&slot_id) {
             self.contents.set_slot(slot_id, slot);
@@ -280,7 +276,15 @@ impl Inventory {
         self
     }
 
-    pub fn get_slot(&self, slot_id: i32) -> Option<Slot> {
+    pub fn set_slots(&mut self, slots: Vec<(i16, Slot)>) -> &mut Self {
+        for (slot_num, slot) in slots {
+            self.set_slot(slot_num, slot);
+        }
+
+        self
+    }
+
+    pub fn get_slot(&self, slot_id: i16) -> Option<Slot> {
         let size = self.inventory_type.get_size();
         if (0..=size).contains(&slot_id) {
             self.contents.get_slot(slot_id)
@@ -289,11 +293,11 @@ impl Inventory {
         }
     }
 
-    pub fn get_contents(&self) -> &BTreeMap<i32, Slot> {
+    pub fn get_contents(&self) -> &BTreeMap<i16, Slot> {
         &self.contents.contents
     }
 
-    pub fn get_contents_mut(&mut self) -> &mut BTreeMap<i32, Slot> {
+    pub fn get_contents_mut(&mut self) -> &mut BTreeMap<i16, Slot> {
         &mut self.contents.contents
     }
 
@@ -311,7 +315,7 @@ impl Inventory {
         self.get_contents().iter().any(|slot| slot.1.item == item)
     }
 
-    pub fn contains_atleast(&self, item: i32, amount: usize) -> bool {
+    pub fn contains_atleast(&self, item: i32, amount: i32) -> bool {
         let mut container_amount = 0;
         self.get_contents().iter().for_each(|(_, slot)| {
             if slot.item == item {
@@ -319,10 +323,10 @@ impl Inventory {
             }
         });
 
-        container_amount >= amount as i32
+        container_amount >= amount
     }
 
-    pub fn get_first_empty(&self) -> i32 {
+    pub fn get_first_empty(&self) -> i16 {
         let contents = self.get_contents();
         for i in 0..self.get_size() {
             if contents.get(&i).is_none() {
@@ -333,7 +337,7 @@ impl Inventory {
         0
     }
 
-    pub fn get_size(&self) -> i32 {
+    pub fn get_size(&self) -> i16 {
         self.inventory_type.get_size()
     }
 

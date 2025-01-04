@@ -1,37 +1,37 @@
-use crate::slot::Slot;
+use crate::{inventory::InventoryType, slot::Slot};
 use ferrumc_net::packets::outgoing::set_container_slot::NetworkSlot;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone)]
 pub struct InventoryContents {
-    pub contents: BTreeMap<i32, Slot>,
-    pub size: usize,
+    pub contents: BTreeMap<i16, Slot>,
+    pub size: i16,
 }
 
 impl InventoryContents {
-    pub fn empty(size: usize) -> Self {
-        let mut empty = Self {
-            contents: BTreeMap::new(),
-            size,
-        };
-
+    pub fn empty(inventory_type: InventoryType) -> Self {
+        let mut empty = Self::new(inventory_type.get_size(), BTreeMap::new());
         empty.fill(Slot::empty());
         empty
     }
 
+    pub fn new(size: i16, contents: BTreeMap<i16, Slot>) -> Self {
+        Self { contents, size }
+    }
+
     pub fn fill(&mut self, slot: Slot) {
-        for i in 0..self.size as i32 {
+        for i in 0..self.size {
             self.contents.insert(i, slot);
         }
     }
 
-    pub fn set_slot(&mut self, slot_id: i32, slot: Slot) -> &mut Self {
+    pub fn set_slot(&mut self, slot_id: i16, slot: Slot) -> &mut Self {
         self.contents.insert(slot_id, slot);
         self
     }
 
-    pub fn get_slot(&self, item: i32) -> Option<Slot> {
+    pub fn get_slot(&self, item: i16) -> Option<Slot> {
         self.contents.get(&item).copied()
     }
 
