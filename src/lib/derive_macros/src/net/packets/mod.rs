@@ -25,7 +25,10 @@ fn parse_packet_attribute(attr: &Attribute) -> Option<(String, String)> {
 }
 
 /// Returns: (state, packet_id)
-pub(crate) fn get_packet_details_from_attributes(attrs: &[Attribute], bound_to: PacketBoundiness) -> Option<(String, u8)> {
+pub(crate) fn get_packet_details_from_attributes(
+    attrs: &[Attribute],
+    bound_to: PacketBoundiness,
+) -> Option<(String, u8)> {
     let mut val = Option::<(String, String)>::None;
 
     for attr in attrs {
@@ -38,7 +41,8 @@ pub(crate) fn get_packet_details_from_attributes(attrs: &[Attribute], bound_to: 
 
     let (state, packet_id) = val?;
 
-    let packet_id = parse_packet_id(state.as_str(), packet_id, bound_to).expect("parse_packet_id failed");
+    let packet_id =
+        parse_packet_id(state.as_str(), packet_id, bound_to).expect("parse_packet_id failed");
 
     Some((state, packet_id))
 }
@@ -85,11 +89,12 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
         let path = entry.path();
         let file_name = path.file_name().expect("file_name failed").to_os_string();
 
-
         println!(
             "   {} {}",
             "[FERRUMC_MACROS]".bold().blue(),
-            format!("Parsing file: {}", file_name.to_string_lossy()).white().bold()
+            format!("Parsing file: {}", file_name.to_string_lossy())
+                .white()
+                .bold()
         );
 
         if !path.is_file() {
@@ -105,12 +110,20 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
             };
 
             // If the struct does not have the #[packet(...)] attribute, then skip it.
-            if !item_struct.attrs.iter().any(|attr| attr.path().is_ident("packet")) {
+            if !item_struct
+                .attrs
+                .iter()
+                .any(|attr| attr.path().is_ident("packet"))
+            {
                 continue;
             }
 
             // format: #[packet(packet_id = 0x00, state = "handshake")]
-            let (state, packet_id) = get_packet_details_from_attributes(&item_struct.attrs, PacketBoundiness::Serverbound).expect(
+            let (state, packet_id) = get_packet_details_from_attributes(
+                &item_struct.attrs,
+                PacketBoundiness::Serverbound,
+            )
+            .expect(
                 "parse_packet_attribute failed\
                 \nPlease provide the packet_id and state fields in the #[packet(...)] attribute.\
                 \nExample: #[packet(packet_id = 0x00, state = \"handshake\")]",

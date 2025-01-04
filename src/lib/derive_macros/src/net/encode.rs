@@ -1,9 +1,9 @@
 use crate::helpers::{get_derive_attributes, StructInfo};
 use crate::net::packets::get_packet_details_from_attributes;
+use crate::static_loading::packets::PacketBoundiness;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, DeriveInput, Fields};
-use crate::static_loading::packets::PacketBoundiness;
 
 // Generate packet ID encoding snippets
 fn generate_packet_id_snippets(
@@ -136,8 +136,11 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
     let packet_attr = get_derive_attributes(&input, "packet");
-    let (packet_id_snippet, async_packet_id_snippet) =
-        generate_packet_id_snippets(get_packet_details_from_attributes(packet_attr.as_slice(), PacketBoundiness::Clientbound).unzip().1);
+    let (packet_id_snippet, async_packet_id_snippet) = generate_packet_id_snippets(
+        get_packet_details_from_attributes(packet_attr.as_slice(), PacketBoundiness::Clientbound)
+            .unzip()
+            .1,
+    );
 
     let (sync_impl, async_impl) = match &input.data {
         syn::Data::Struct(data) => {

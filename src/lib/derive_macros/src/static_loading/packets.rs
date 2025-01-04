@@ -1,7 +1,7 @@
+use proc_macro2::TokenStream;
 use quote::quote;
 use std::fmt::Display;
 use std::sync::LazyLock;
-use proc_macro2::TokenStream;
 use syn::parse::Parse;
 use syn::{parse_macro_input, LitStr, Token};
 
@@ -10,7 +10,11 @@ pub(crate) static PACKETS_JSON: LazyLock<serde_json::Value> = LazyLock::new(|| {
     serde_json::from_str(json_str).unwrap()
 });
 
-pub(crate) fn get_packet_id(state: impl Into<PacketState>, bound: PacketBoundiness, packet_name: &str) -> u8 {
+pub(crate) fn get_packet_id(
+    state: impl Into<PacketState>,
+    bound: PacketBoundiness,
+    packet_name: &str,
+) -> u8 {
     let mut current_value = &*PACKETS_JSON;
 
     // remove `"` from start and end of the packet_name:

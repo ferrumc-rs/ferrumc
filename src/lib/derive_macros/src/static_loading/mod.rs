@@ -1,3 +1,2 @@
-
-pub(crate) mod registry;
 pub(crate) mod packets;
+pub(crate) mod registry;
