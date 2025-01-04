@@ -7,6 +7,7 @@ mod helpers;
 mod nbt;
 mod net;
 mod profiling;
+mod registry;
 
 #[proc_macro_attribute]
 pub fn profile(attr: TokenStream, item: TokenStream) -> TokenStream {
@@ -54,3 +55,10 @@ pub fn bake_packet_registry(input: TokenStream) -> TokenStream {
     net::packets::bake_registry(input)
 }
 // #=================== PACKETS ===================#
+
+/// Get a registry entry from the registries.json file.
+/// returns protocol_id (as u64) of the specified entry.
+#[proc_macro]
+pub fn get_registry_entry(input: TokenStream) -> TokenStream {
+    registry::get_entry::get(input)
+}

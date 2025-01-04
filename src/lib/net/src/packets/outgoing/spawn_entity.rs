@@ -4,7 +4,7 @@ use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_ecs::entities::Entity;
-use ferrumc_macros::{packet, NetEncode};
+use ferrumc_macros::{get_registry_entry, packet, NetEncode};
 use ferrumc_net_codec::net_types::angle::NetAngle;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalState;
@@ -28,7 +28,7 @@ pub struct SpawnEntityPacket {
     velocity_z: i16,
 }
 
-const PLAYER_ID: u8 = 128;
+const PLAYER_ID: u64 = get_registry_entry!("minecraft:entity_type.entries.minecraft:player");
 
 impl SpawnEntityPacket {
     pub fn player(entity_id: Entity, state: &GlobalState) -> NetResult<Self> {
