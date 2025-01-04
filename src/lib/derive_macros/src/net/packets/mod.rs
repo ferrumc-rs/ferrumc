@@ -25,7 +25,7 @@ fn parse_packet_attribute(attr: &Attribute) -> Option<(String, String)> {
 }
 
 /// Returns: (state, packet_id)
-pub(crate) fn get_packet_details_from_attributes(attrs: &[Attribute]) -> Option<(String, u8)> {
+pub(crate) fn get_packet_details_from_attributes(attrs: &[Attribute], bound_to: PacketBoundiness) -> Option<(String, u8)> {
     let mut val = Option::<(String, String)>::None;
 
     for attr in attrs {
@@ -38,7 +38,7 @@ pub(crate) fn get_packet_details_from_attributes(attrs: &[Attribute]) -> Option<
 
     let (state, packet_id) = val?;
 
-    let packet_id = parse_packet_id(state.as_str(), packet_id).expect("parse_packet_id failed");
+    let packet_id = parse_packet_id(state.as_str(), packet_id, bound_to).expect("parse_packet_id failed");
 
     Some((state, packet_id))
 }
@@ -78,10 +78,19 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
 
     let start = std::time::Instant::now();
 
-    for entry in std::fs::read_dir(dir_path).expect("read_dir call failed") {
+    let entries = std::fs::read_dir(dir_path).expect("read_dir call failed");
+
+    for entry in entries {
         let entry = entry.expect("entry failed");
         let path = entry.path();
         let file_name = path.file_name().expect("file_name failed").to_os_string();
+
+
+        println!(
+            "   {} {}",
+            "[FERRUMC_MACROS]".bold().blue(),
+            format!("Parsing file: {}", file_name.to_string_lossy()).white().bold()
+        );
 
         if !path.is_file() {
             continue;
@@ -95,8 +104,13 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
                 continue;
             };
 
+            // If the struct does not have the #[packet(...)] attribute, then skip it.
+            if !item_struct.attrs.iter().any(|attr| attr.path().is_ident("packet")) {
+                continue;
+            }
+
             // format: #[packet(packet_id = 0x00, state = "handshake")]
-            let (state, packet_id) = get_packet_details_from_attributes(&item_struct.attrs).expect(
+            let (state, packet_id) = get_packet_details_from_attributes(&item_struct.attrs, PacketBoundiness::Serverbound).expect(
                 "parse_packet_attribute failed\
                 \nPlease provide the packet_id and state fields in the #[packet(...)] attribute.\
                 \nExample: #[packet(packet_id = 0x00, state = \"handshake\")]",
@@ -169,18 +183,19 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
     TokenStream::from(output)
 }
 
-fn parse_packet_id(state: &str, value: String) -> syn::Result<u8> {
+fn parse_packet_id(state: &str, value: String, bound_to: PacketBoundiness) -> syn::Result<u8> {
     //! Sorry to anyone reading this code. The get_packet_id method PANICS if there is any type of error.
     //! these macros are treated like trash gah damn. they need better care 😔
 
     // If the user provided a direct integer (like 0x01, or any number) value.
     if value.starts_with("0x") {
-        let n = u8::from_str_radix(&value[2..], 16).expect("from_str_radix failed");
+        let value = value.strip_prefix("0x").expect("strip_prefix failed");
+        let n = u8::from_str_radix(value, 16).expect("from_str_radix failed");
         return Ok(n);
     }
 
     // If the user provided referencing packet id, then just get that.
-    let n = get_packet_id(state, PacketBoundiness::Clientbound, value.as_str());
+    let n = get_packet_id(state, bound_to, value.as_str());
 
     Ok(n)
 }

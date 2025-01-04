@@ -7,7 +7,7 @@ use ferrumc_state::ServerState;
 use std::sync::Arc;
 
 #[derive(NetDecode)]
-#[packet(packet_id = 0x1C, state = "play")]
+#[packet(packet_id = "move_player_rot", state = "play")]
 pub struct SetPlayerRotationPacket {
     pub yaw: f32,
     pub pitch: f32,

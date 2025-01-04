@@ -8,7 +8,7 @@ use ferrumc_state::ServerState;
 use std::sync::Arc;
 
 #[derive(NetDecode, Debug)]
-#[packet(packet_id = 0x01, state = "status")]
+#[packet(packet_id = "ping_request", state = "status")]
 pub struct PingPacket {
     payload: i64,
 }
