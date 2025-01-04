@@ -2,7 +2,7 @@ use ferrumc_macros::{packet, NetEncode};
 use std::io::Write;
 
 #[derive(NetEncode)]
-#[packet(packet_id = 0x00)]
+#[packet(packet_id = 0x00, state = "login")]
 pub struct LoginDisconnectPacket<'a> {
     pub reason: &'a str,
 }

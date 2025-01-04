@@ -2,7 +2,7 @@ use ferrumc_macros::{packet, NetEncode};
 use std::io::Write;
 
 #[derive(NetEncode)]
-#[packet(packet_id = 0x01)]
+#[packet(packet_id = 0x01, state = "status")]
 pub struct PongPacket {
     pub payload: i64,
 }

@@ -2,7 +2,7 @@ use ferrumc_macros::{packet, NetEncode};
 use std::io::Write;
 
 #[derive(NetEncode, Clone)]
-#[packet(packet_id = 0x26)]
+#[packet(packet_id = 0x26, state = "play")]
 pub struct OutgoingKeepAlivePacket {
     pub timestamp: i64,
 }

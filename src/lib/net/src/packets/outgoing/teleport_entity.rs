@@ -7,7 +7,7 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::Write;
 
 #[derive(NetEncode)]
-#[packet(packet_id = 0x70)]
+#[packet(packet_id = 0x70, state = "play")]
 pub struct TeleportEntityPacket {
     pub entity_id: VarInt,
     pub x: f64,

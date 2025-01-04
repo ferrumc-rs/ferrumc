@@ -1,22 +1,22 @@
+use crate::static_loading::packets::{get_packet_id, PacketBoundiness};
 use colored::Colorize;
 use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
+use regex::Regex;
 use std::env;
 use std::ops::Add;
-use syn::{parse_macro_input, Attribute, LitInt, LitStr};
-use syn::parse::ParseStream;
-use regex::Regex;
-use crate::static_loading::packets::{get_packet_id, PacketBoundiness};
+use syn::{parse_macro_input, Attribute};
 
+/// Returns: (state, packet_id)
 fn parse_packet_attribute(attr: &Attribute) -> Option<(String, String)> {
     let attr_str = attr.to_token_stream().to_string();
-    
-    println!("attr_str: {}", attr_str);
-    
+
     // This regex matches both formats:
     // #[packet(state = "play", packet_id = "something")]
     // #[packet(packet_id = "something", state = "play")]
-    let re = Regex::new(r#"packet_id\s*=\s*((?:0x[\da-fA-F]+|\d+|"[^"]*")),\s*state\s*=\s*"([^"]*)""#).unwrap();
+    let re =
+        Regex::new(r#"packet_id\s*=\s*((?:0x[\da-fA-F]+|\d+|"[^"]*")),\s*state\s*=\s*"([^"]*)""#)
+            .unwrap();
 
     if let Some(caps) = re.captures(&attr_str) {
         let packet_id = caps.get(1).map(|m| m.as_str().to_string())?;
@@ -28,6 +28,26 @@ fn parse_packet_attribute(attr: &Attribute) -> Option<(String, String)> {
     }
 }
 
+/// Returns: (state, packet_id)
+pub(crate) fn get_packet_details_from_attributes(
+    attrs: &[Attribute],
+) -> Option<(String, u8)> {
+    let mut val = Option::<(String, String)>::None;
+
+    for attr in attrs {
+        if !attr.path().is_ident("packet") {
+            continue;
+        }
+
+        val = parse_packet_attribute(attr);
+    }
+
+    let (state, packet_id) = val?;
+
+    let packet_id = parse_packet_id(state.as_str(), packet_id).expect("parse_packet_id failed");
+
+    Some((state, packet_id))
+}
 
 /// Essentially, this just reads all the files in the directory and generates a match arm for each packet.
 /// (packet_id, state) => { ... }
@@ -64,7 +84,6 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
 
     let start = std::time::Instant::now();
 
-
     for entry in std::fs::read_dir(dir_path).expect("read_dir call failed") {
         let entry = entry.expect("entry failed");
         let path = entry.path();
@@ -83,47 +102,33 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
             };
 
             // format: #[packet(packet_id = 0x00, state = "handshake")]
+            let (state, packet_id) = get_packet_details_from_attributes(&item_struct.attrs).expect(
+                "parse_packet_attribute failed\
+                \nPlease provide the packet_id and state fields in the #[packet(...)] attribute.\
+                \nExample: #[packet(packet_id = 0x00, state = \"handshake\")]",
+            );
 
-            let mut packet_id: Option<u8> = None;
-            let mut state: Option<String> = None;
+            let struct_name = &item_struct.ident;
 
-            for attr in item_struct.attrs {
-                // #[packet(...)] part.
-                if !attr.path().is_ident("packet") {
-                    continue;
-                }
+            println!(
+                "   {} {} (ID: {}, State: {}, Struct Name: {})",
+                "[FERRUMC_MACROS]".bold().blue(),
+                "Found Packet".white().bold(),
+                format!("0x{:02X}", packet_id).cyan(),
+                state.green(),
+                struct_name.to_string().yellow()
+            );
 
-                let (state, packet_id) = parse_packet_attribute(&attr)
-                    .expect("parse_packet_attribute failed\
-                    \nPlease provide the packet_id and state fields in the #[packet(...)] attribute.\
-                    \nExample: #[packet(packet_id = 0x00, state = \"handshake\")]");
+            let path = format!(
+                "{}::{}",
+                base_path,
+                file_name.to_string_lossy().replace(".rs", "")
+            );
+            let struct_path = format!("{}::{}", path, struct_name);
 
+            let struct_path = syn::parse_str::<syn::Path>(&struct_path).expect("parse_str failed");
 
-                let packet_id = parse_packet_id(state.as_str(), packet_id).expect("parse_packet_id failed");
-
-                let struct_name = &item_struct.ident;
-
-                println!(
-                    "   {} {} (ID: {}, State: {}, Struct Name: {})",
-                    "[FERRUMC_MACROS]".bold().blue(),
-                    "Found Packet".white().bold(),
-                    format!("0x{:02X}", packet_id).cyan(),
-                    state.green(),
-                    struct_name.to_string().yellow()
-                );
-
-                let path = format!(
-                    // "crate::net::packets::incoming::{}",
-                    "{}::{}",
-                    base_path,
-                    file_name.to_string_lossy().replace(".rs", "")
-                );
-                let struct_path = format!("{}::{}", path, struct_name);
-
-                let struct_path =
-                    syn::parse_str::<syn::Path>(&struct_path).expect("parse_str failed");
-
-                match_arms.push(quote! {
+            match_arms.push(quote! {
                     (#packet_id, #state) => {
                         // let packet= #struct_path::net_decode(cursor).await?;
                         let packet = <#struct_path as ferrumc_net_codec::decode::NetDecode>::decode(cursor, &ferrumc_net_codec::decode::NetDecodeOpts::None)?;
@@ -132,7 +137,6 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
                         // tracing::debug!("Received packet: {:?}", packet);
                     },
                 });
-            }
         }
     }
 
@@ -170,7 +174,6 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
 
     TokenStream::from(output)
 }
-
 
 fn parse_packet_id(state: &str, value: String) -> syn::Result<u8> {
     //! Sorry to anyone reading this code. The get_packet_id method PANICS if there is any type of error.
@@ -228,7 +231,7 @@ pub fn attribute(args: TokenStream, input: TokenStream) -> TokenStream {
 
     if !&["packet_id", "state"]
         .iter()
-        .any(|x| args.to_string().contains(x))
+        .all(|x| args.to_string().contains(x))
     {
         return TokenStream::from(quote! {
             compile_error!(#E);
@@ -237,5 +240,3 @@ pub fn attribute(args: TokenStream, input: TokenStream) -> TokenStream {
 
     input
 }
-
-

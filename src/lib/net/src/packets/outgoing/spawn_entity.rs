@@ -11,7 +11,7 @@ use ferrumc_state::GlobalState;
 use std::io::Write;
 
 #[derive(NetEncode)]
-#[packet(packet_id = 0x01)]
+#[packet(packet_id = 0x01, state = "play")]
 pub struct SpawnEntityPacket {
     entity_id: VarInt,
     entity_uuid: u128,

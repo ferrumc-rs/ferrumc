@@ -4,7 +4,7 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::Write;
 
 #[derive(NetEncode)]
-#[packet(packet_id = 0x03)]
+#[packet(packet_id = 0x03, state = "play")]
 pub struct EntityAnimationPacket {
     pub eid: VarInt,
     pub animation: u8,

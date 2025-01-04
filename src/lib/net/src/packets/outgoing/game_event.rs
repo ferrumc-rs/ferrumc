@@ -2,7 +2,7 @@ use ferrumc_macros::{packet, NetEncode};
 use std::io::Write;
 
 #[derive(NetEncode)]
-#[packet(packet_id = 0x22)]
+#[packet(packet_id = 0x22, state = "play")]
 pub struct GameEventPacket {
     pub event_id: u8,
     pub value: f32,

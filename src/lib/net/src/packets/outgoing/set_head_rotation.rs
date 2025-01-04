@@ -4,7 +4,7 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::Write;
 
 #[derive(Debug, NetEncode)]
-#[packet(packet_id = 0x48)]
+#[packet(packet_id = 0x48, state = "play")]
 pub struct SetHeadRotationPacket {
     pub entity_id: VarInt,
     pub head_yaw: NetAngle,

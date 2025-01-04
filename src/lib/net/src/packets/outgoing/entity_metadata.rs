@@ -11,7 +11,7 @@ use tokio::io::AsyncWrite;
 
 /// Packet for sending entity metadata updates to clients
 #[derive(NetEncode)]
-#[packet(packet_id = 0x58)]
+#[packet(packet_id = 0x58, state = "play")]
 pub struct EntityMetadataPacket {
     entity_id: VarInt,
     metadata: Vec<EntityMetadata>,

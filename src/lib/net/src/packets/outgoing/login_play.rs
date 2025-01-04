@@ -3,7 +3,7 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::Write;
 
 #[derive(NetEncode)]
-#[packet(packet_id = 0x2B)]
+#[packet(packet_id = 0x2B, state = "play")]
 pub struct LoginPlayPacket<'a> {
     pub entity_id: i32,
     pub is_hardcore: bool,
