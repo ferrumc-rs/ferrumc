@@ -1,4 +1,4 @@
-use crate::connection::StreamWriter;
+use crate::connection::PacketWriter;
 use crate::NetResult;
 use async_trait::async_trait;
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
@@ -112,7 +112,7 @@ pub async fn broadcast(
             (state, packet, async_callback, sync_callback),
             move |(state, packet, async_callback, sync_callback), entity| {
                 async move {
-                    let Ok(mut writer) = state.universe.get_mut::<StreamWriter>(entity) else {
+                    let Ok(mut writer) = state.universe.get_mut::<PacketWriter>(entity) else {
                         return (state, packet, async_callback, sync_callback);
                     };
 

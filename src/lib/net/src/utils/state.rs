@@ -1,5 +1,5 @@
 use crate::{
-    connection::{ConnectionControl, StreamWriter},
+    connection::{ConnectionControl, PacketWriter},
     errors::NetError,
     packets::outgoing::disconnect::DisconnectPacket,
     NetResult,
@@ -27,7 +27,7 @@ pub async fn terminate_connection(
     conn_id: usize,
     reason: String,
 ) -> NetResult<()> {
-    let mut writer = match conn_id.get_mut::<StreamWriter>(&state.clone()) {
+    let mut writer = match conn_id.get_mut::<PacketWriter>(&state.clone()) {
         Ok(writer) => writer,
         Err(e) => {
             warn!("Failed to get stream writer for entity {}: {}", conn_id, e);

@@ -1,3 +1,4 @@
+
 use crate::errors::NetError;
 use byteorder::{BigEndian, WriteBytesExt};
 use ferrumc_macros::{packet, NetEncode};

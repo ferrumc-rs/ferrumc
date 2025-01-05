@@ -1,6 +1,6 @@
 use ferrumc_macros::event_handler;
 use ferrumc_net::connection::ConnectionState;
-use ferrumc_net::connection::StreamWriter;
+use ferrumc_net::connection::PacketWriter;
 use ferrumc_net::errors::NetError;
 use ferrumc_net::packets::outgoing::update_time::TickEvent;
 use ferrumc_net::packets::outgoing::update_time::UpdateTimePacket;
@@ -20,7 +20,7 @@ async fn handle_tick(event: TickEvent, state: GlobalState) -> Result<TickEvent, 
 
     let entities = state
         .universe
-        .query::<(&mut StreamWriter, &ConnectionState)>()
+        .query::<(&mut PacketWriter, &ConnectionState)>()
         .into_entities()
         .into_iter()
         .filter_map(|entity| {

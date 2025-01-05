@@ -61,13 +61,17 @@ impl StreamReader {
     }
 }
 
-pub struct StreamWriter {
+pub struct PacketWriter {
     pub writer: OwnedWriteHalf,
+    pub compression_enabled: bool,
 }
 
-impl StreamWriter {
+impl PacketWriter {
     pub fn new(writer: OwnedWriteHalf) -> Self {
-        Self { writer }
+        Self {
+            writer,
+            compression_enabled: false,
+        }
     }
 
     pub async fn send_packet(
@@ -75,26 +79,13 @@ impl StreamWriter {
         packet: &impl NetEncode,
         net_encode_opts: &NetEncodeOpts,
     ) -> NetResult<()> {
-        packet
-            .encode_async(&mut self.writer, net_encode_opts)
-            .await?;
+        let opts = if matches!(net_encode_opts, NetEncodeOpts::WithLength) && self.compression_enabled {
+            &NetEncodeOpts::Compressed
+        } else {
+            net_encode_opts
+        };
+        packet.encode_async(&mut self.writer, opts).await?;
         Ok(())
-    }
-}
-
-pub struct CompressionStatus {
-    pub enabled: bool,
-}
-
-impl CompressionStatus {
-    pub fn new() -> Self {
-        Self { enabled: false }
-    }
-}
-
-impl Default for CompressionStatus {
-    fn default() -> Self {
-        Self::new()
     }
 }
 
@@ -104,14 +95,13 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
     let entity = state
         .universe
         .builder()
-        .with(StreamWriter::new(writer))?
+        .with(PacketWriter::new(writer))?
         .with(ConnectionState::Handshaking)?
-        .with(CompressionStatus::new())?
         .with(ConnectionControl::new())?
         .build();
 
     'recv: loop {
-        let compressed = state.universe.get::<CompressionStatus>(entity)?.enabled;
+        let compressed = state.universe.get::<PacketWriter>(entity)?.compression_enabled;
         let should_disconnect = state
             .universe
             .get::<ConnectionControl>(entity)?

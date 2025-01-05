@@ -1,7 +1,7 @@
 use crate::systems::definition::System;
 use async_trait::async_trait;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
-use ferrumc_net::connection::{ConnectionState, StreamWriter};
+use ferrumc_net::connection::{ConnectionState, PacketWriter};
 use ferrumc_net::packets::incoming::keep_alive::IncomingKeepAlivePacket;
 use ferrumc_net::packets::outgoing::keep_alive::OutgoingKeepAlivePacket;
 use ferrumc_net::utils::broadcast::{BroadcastOptions, BroadcastToAll};
@@ -44,7 +44,7 @@ impl System for KeepAliveSystem {
 
             let entities = state
                 .universe
-                .query::<(&mut StreamWriter, &ConnectionState)>()
+                .query::<(&mut PacketWriter, &ConnectionState)>()
                 .into_entities()
                 .into_iter()
                 .filter_map(|entity| {

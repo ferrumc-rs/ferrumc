@@ -7,7 +7,7 @@ use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_ecs::components::storage::ComponentRefMut;
 use ferrumc_ecs::entities::Entity;
 use ferrumc_macros::event_handler;
-use ferrumc_net::connection::{ConnectionState, StreamWriter};
+use ferrumc_net::connection::{ConnectionState, PacketWriter};
 use ferrumc_net::errors::NetError;
 use ferrumc_net::packets::incoming::ack_finish_configuration::AckFinishConfigurationEvent;
 use ferrumc_net::packets::incoming::keep_alive::IncomingKeepAlivePacket;
@@ -58,7 +58,7 @@ async fn handle_login_start(
     //Send a Login Success Response to further the login sequence
     let mut writer = state
         .universe
-        .get_mut::<StreamWriter>(login_start_event.conn_id)?;
+        .get_mut::<PacketWriter>(login_start_event.conn_id)?;
 
     if get_global_config().whitelist {
         let whitelist = get_whitelist();
@@ -111,7 +111,7 @@ async fn handle_login_acknowledged(
 
     let mut writer = state
         .universe
-        .get_mut::<StreamWriter>(login_acknowledged_event.conn_id)?;
+        .get_mut::<PacketWriter>(login_acknowledged_event.conn_id)?;
 
     writer
         .send_packet(&client_bound_known_packs, &NetEncodeOpts::WithLength)
@@ -129,7 +129,7 @@ async fn handle_server_bound_known_packs(
 
     let mut writer = state
         .universe
-        .get_mut::<StreamWriter>(server_bound_known_packs_event.conn_id)?;
+        .get_mut::<PacketWriter>(server_bound_known_packs_event.conn_id)?;
 
     let registry_packets = get_registry_packets();
     writer
@@ -167,7 +167,7 @@ async fn handle_ack_finish_configuration(
             .add_component::<OnGround>(entity_id, OnGround::default())?
             .add_component::<ChunkReceiver>(entity_id, ChunkReceiver::default())?;
 
-        let mut writer = state.universe.get_mut::<StreamWriter>(entity_id)?;
+        let mut writer = state.universe.get_mut::<PacketWriter>(entity_id)?;
 
         writer // 21
             .send_packet(&LoginPlayPacket::new(entity_id), &NetEncodeOpts::WithLength)
@@ -219,7 +219,7 @@ async fn handle_ack_finish_configuration(
 async fn send_keep_alive(
     conn_id: usize,
     state: &GlobalState,
-    writer: &mut ComponentRefMut<'_, StreamWriter>,
+    writer: &mut ComponentRefMut<'_, PacketWriter>,
 ) -> Result<(), NetError> {
     let keep_alive_packet = OutgoingKeepAlivePacket::default();
     writer
@@ -261,7 +261,7 @@ async fn player_info_update_packets(entity_id: Entity, state: &GlobalState) -> N
         let packet = PlayerInfoUpdatePacket::existing_player_info_packet(entity_id, state);
 
         let start = Instant::now();
-        let mut writer = state.universe.get_mut::<StreamWriter>(entity_id)?;
+        let mut writer = state.universe.get_mut::<PacketWriter>(entity_id)?;
         writer
             .send_packet(&packet, &NetEncodeOpts::WithLength)
             .await?;
@@ -283,7 +283,7 @@ async fn broadcast_spawn_entity_packet(entity_id: Entity, state: &GlobalState) -
     .await?;
     trace!("Broadcasting spawn entity took: {:?}", start.elapsed());
 
-    let writer = state.universe.get_mut::<StreamWriter>(entity_id)?;
+    let writer = state.universe.get_mut::<PacketWriter>(entity_id)?;
     futures::stream::iter(get_all_play_players(state))
         .fold(writer, |mut writer, entity| async move {
             if let Ok(packet) = SpawnEntityPacket::player(entity, state) {

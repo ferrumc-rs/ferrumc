@@ -2,7 +2,7 @@ use crate::systems::definition::System;
 use async_trait::async_trait;
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
 use ferrumc_ecs::errors::ECSError;
-use ferrumc_net::connection::StreamWriter;
+use ferrumc_net::connection::PacketWriter;
 use ferrumc_net::packets::outgoing::chunk_and_light_data::ChunkAndLightData;
 use ferrumc_net::packets::outgoing::chunk_batch_finish::ChunkBatchFinish;
 use ferrumc_net::packets::outgoing::chunk_batch_start::ChunkBatchStart;
@@ -36,7 +36,7 @@ impl System for ChunkSenderSystem {
         while !self.stop.load(Ordering::Relaxed) {
             let players = state
                 .universe
-                .query::<(&mut ChunkReceiver, &mut StreamWriter)>()
+                .query::<(&mut ChunkReceiver, &mut PacketWriter)>()
                 .into_entities();
             let mut task_set: JoinSet<Result<(), ECSError>> = JoinSet::new();
             for eid in players {
@@ -103,7 +103,7 @@ impl System for ChunkSenderSystem {
                         if packets.is_empty() {
                             return Ok(());
                         }
-                        let Ok(mut conn) = state.universe.get_mut::<StreamWriter>(eid) else {
+                        let Ok(mut conn) = state.universe.get_mut::<PacketWriter>(eid) else {
                             error!("Could not get StreamWriter");
                             return Ok(());
                         };

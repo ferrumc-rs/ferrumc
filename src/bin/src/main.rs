@@ -9,7 +9,7 @@ use ferrumc_config::whitelist::create_whitelist;
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
 use ferrumc_ecs::Universe;
 use ferrumc_general_purpose::paths::get_root_path;
-use ferrumc_net::connection::StreamWriter;
+use ferrumc_net::connection::PacketWriter;
 use ferrumc_net::server::create_server_listener;
 use ferrumc_state::ServerState;
 use ferrumc_world::World;
@@ -39,7 +39,7 @@ async fn main() {
         let digest = hasher.finish();
         trace!("ChunkReceiver: {:X}", digest);
         let mut hasher = std::collections::hash_map::DefaultHasher::new();
-        std::any::TypeId::of::<StreamWriter>().hash(&mut hasher);
+        std::any::TypeId::of::<PacketWriter>().hash(&mut hasher);
         let digest = hasher.finish();
         trace!("StreamWriter: {:X}", digest);
     }
