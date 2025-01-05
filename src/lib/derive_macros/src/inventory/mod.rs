@@ -106,8 +106,7 @@ pub fn create(input: TokenStream) -> TokenStream {
         }
 
         // Generate the `new` method
-        let new_method = if let Some(expr) = inventory_type_expr {
-            Some(quote! {
+        let new_method = inventory_type_expr.map(|expr| quote! {
                 pub fn new(id: u8) -> Self {
                     Self {
                         inventory: #net_crate::builder::InventoryBuilder::new(id)
@@ -116,10 +115,7 @@ pub fn create(input: TokenStream) -> TokenStream {
                         #(#default_statements)*
                     }
                 }
-            })
-        } else {
-            None
-        };
+            });
 
         // Generate the complete implementation block
         // Wacky ass code because rust is retarded

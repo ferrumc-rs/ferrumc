@@ -2,7 +2,7 @@ use ferrumc_macros::{Inventory, inventory_type};
 
 use crate::inventory::Inventory;
 
-#[derive(Inventory)]
+#[derive(Inventory, Debug)]
 #[inventory_type(value = Beacon)]
 pub struct BeaconInventory {
     inventory: Inventory,

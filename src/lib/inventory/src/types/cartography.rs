@@ -1,13 +1,14 @@
+use crate::inventory::Inventory;
 use ferrumc_macros::{Inventory, inventory_type};
 
-use crate::inventory::Inventory;
-
 #[derive(Inventory, Debug)]
-#[inventory_type(value = EnchantmentTable)]
+#[inventory_type(value = Cartography)]
 pub struct EnchantingInventory {
     inventory: Inventory,
     #[slot(id = 0, default_value = 0)]
-    pub item: i32,
+    pub map: i32,
     #[slot(id = 1, default_value = 0)]
-    pub secondary: i32,
+    pub paper: i32,
+    #[slot(id = 2, default_value = 0)]
+    pub output: i32,
 }

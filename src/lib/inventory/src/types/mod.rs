@@ -1,3 +1,10 @@
+mod anvil;
 pub mod beacon;
+mod cartography;
 pub mod enchanting;
+mod furnace;
+mod grindstone;
+mod loom;
 pub mod player;
+mod smithing_table;
+mod stonecutter;

@@ -117,7 +117,7 @@ impl Inventory {
 
         let slot = self
             .get_slot(36 + (carried_item as i16))
-            .unwrap_or_else(|| Slot::empty());
+            .unwrap_or_else(Slot::empty);
 
         self.carried_item = slot;
     }
