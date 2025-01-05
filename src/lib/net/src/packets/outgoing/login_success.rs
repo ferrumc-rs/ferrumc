@@ -3,7 +3,7 @@ use ferrumc_macros::{packet, NetEncode};
 use std::io::Write;
 
 #[derive(NetEncode)]
-#[packet(packet_id = 0x02)]
+#[packet(packet_id = "game_profile", state = "login")]
 pub struct LoginSuccessPacket {
     pub identity: PlayerIdentity,
     pub strict_error_handling: bool,

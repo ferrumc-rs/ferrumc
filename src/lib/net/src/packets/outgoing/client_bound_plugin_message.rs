@@ -3,7 +3,7 @@ use ferrumc_net_codec::{encode::NetEncode, net_types::var_int::VarInt};
 use std::io::Write;
 
 #[derive(NetEncode)]
-#[packet(packet_id = 0x01)]
+#[packet(packet_id = "custom_payload", state = "configuration")]
 pub struct ConfigurationPluginMessagePacket<T>
 where
     T: NetEncode,
@@ -13,7 +13,7 @@ where
 }
 
 #[derive(NetEncode)]
-#[packet(packet_id = 0x19)]
+#[packet(packet_id = "custom_payload", state = "play")]
 pub struct PlayPluginMessagePacket<T>
 where
     T: NetEncode,
@@ -23,7 +23,7 @@ where
 }
 
 #[derive(NetEncode, Clone)]
-#[packet(packet_id = 0x04)]
+#[packet(packet_id = "custom_query", state = "login")]
 pub struct LoginPluginMessagePacket<T>
 where
     T: NetEncode,

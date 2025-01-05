@@ -21,14 +21,14 @@ pub struct LoginPluginResponseEvent {
 }
 
 #[derive(Debug)]
-#[packet(packet_id = 0x02, state = "configuration")]
+#[packet(packet_id = "custom_payload", state = "configuration")]
 pub struct ServerBoundPluginMessage {
     pub channel: String,
     pub data: Vec<u8>,
 }
 
 #[derive(Debug, Clone)]
-#[packet(packet_id = 0x02, state = "login")]
+#[packet(packet_id = "custom_query_answer", state = "login")]
 pub struct LoginPluginResponse {
     pub message_id: VarInt,
     pub success: bool,

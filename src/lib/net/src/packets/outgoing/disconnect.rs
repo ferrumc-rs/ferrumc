@@ -13,13 +13,13 @@ pub enum DisconnectPacket {
 }
 
 #[derive(NetEncode)]
-#[packet(packet_id = 0x00)]
+#[packet(packet_id = "login_disconnect", state = "login")]
 pub struct LoginDisconnectPacket {
     pub reason: JsonTextComponent,
 }
 
 #[derive(NetEncode)]
-#[packet(packet_id = 0x1D)]
+#[packet(packet_id = "disconnect", state = "play")]
 pub struct PlayDisconnectPacket {
     pub reason: TextComponent,
 }

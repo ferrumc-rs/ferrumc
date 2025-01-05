@@ -3,7 +3,7 @@ use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use std::io::Write;
 
 #[derive(NetEncode)]
-#[packet(packet_id = 0x3D)]
+#[packet(packet_id = "player_info_remove", state = "play")]
 pub struct PlayerInfoRemovePacket {
     pub player_uuids: LengthPrefixedVec<u128>,
 }

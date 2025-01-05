@@ -44,7 +44,7 @@ pub struct PlayerInfo {
 }
 
 #[derive(NetEncode)]
-#[packet(packet_id = 0x3E)]
+#[packet(packet_id = "player_info_update", state = "play")]
 pub struct PlayerInfoUpdatePacket {
     actions: u8,
     infos: LengthPrefixedVec<PlayerInfo>,

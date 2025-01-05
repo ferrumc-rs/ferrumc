@@ -8,7 +8,7 @@ use std::sync::Arc;
 use tracing::debug;
 
 #[derive(NetDecode)]
-#[packet(packet_id = 0x18, state = "play")]
+#[packet(packet_id = "keep_alive", state = "play")]
 pub struct IncomingKeepAlivePacket {
     pub timestamp: i64,
 }
