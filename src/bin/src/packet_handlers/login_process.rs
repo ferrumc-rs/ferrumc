@@ -35,12 +35,15 @@ use ferrumc_state::GlobalState;
 use futures::StreamExt;
 use std::time::Instant;
 use tracing::{debug, trace};
+use ferrumc_net::packets::outgoing::set_compression::SetCompressionPacket;
 
 #[event_handler]
 async fn handle_login_start(
     login_start_event: LoginStartEvent,
     state: GlobalState,
 ) -> Result<LoginStartEvent, NetError> {
+    let config = get_global_config();
+
     let uuid = login_start_event.login_start_packet.uuid;
     let username = login_start_event.login_start_packet.username.as_str();
     let player_identity = PlayerIdentity::new(username.to_string(), uuid);
@@ -60,7 +63,7 @@ async fn handle_login_start(
         .universe
         .get_mut::<PacketWriter>(login_start_event.conn_id)?;
 
-    if get_global_config().whitelist {
+    if config.whitelist {
         let whitelist = get_whitelist();
 
         if whitelist.get(&uuid).is_none() {
@@ -80,6 +83,18 @@ async fn handle_login_start(
     state
         .universe
         .add_component::<PlayerIdentity>(login_start_event.conn_id, player_identity)?;
+
+    let compression_threshold = config.network_compression_threshold;
+
+    writer
+        .send_packet(
+            &SetCompressionPacket::new(compression_threshold),
+            &NetEncodeOpts::WithLength,
+        )
+        .await?;
+
+    // This is so the further messages sent using `PacketWriter::send_packet` will be compressed or not properly.
+    writer.compression_enabled = compression_threshold >= 0;
 
     //Send a Login Success Response to further the login sequence
     writer

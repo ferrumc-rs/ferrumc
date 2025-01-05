@@ -1,6 +1,6 @@
 use crate::static_loading::packets::{get_packet_id, PacketBoundiness};
 use colored::Colorize;
-use proc_macro::TokenStream;
+use proc_macro::{TokenStream};
 use quote::{quote, ToTokens};
 use regex::Regex;
 use std::env;
@@ -8,8 +8,8 @@ use std::ops::Add;
 use syn::{parse_macro_input, Attribute};
 
 /// Returns: (state, packet_id)
-fn parse_packet_attribute(attr: &Attribute) -> Option<(String, String)> {
-    let attr_str = attr.to_token_stream().to_string();
+fn parse_packet_attribute(attr: &str) -> Option<(String, String)> {
+    let attr_str = attr;
 
     // This regex matches both formats:
     // #[packet(packet_id = "something", state = "play")]
@@ -36,7 +36,7 @@ pub(crate) fn get_packet_details_from_attributes(
             continue;
         }
 
-        val = parse_packet_attribute(attr);
+        val = parse_packet_attribute(attr.to_token_stream().to_string().as_str());
     }
 
     let (state, packet_id) = val?;
@@ -88,14 +88,6 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
         let entry = entry.expect("entry failed");
         let path = entry.path();
         let file_name = path.file_name().expect("file_name failed").to_os_string();
-
-        println!(
-            "   {} {}",
-            "[FERRUMC_MACROS]".bold().blue(),
-            format!("Parsing file: {}", file_name.to_string_lossy())
-                .white()
-                .bold()
-        );
 
         if !path.is_file() {
             continue;
@@ -210,7 +202,13 @@ fn parse_packet_id(state: &str, value: String, bound_to: PacketBoundiness) -> sy
     // If the user provided referencing packet id, then just get that.
     let n = get_packet_id(state, bound_to, value.as_str());
 
-    Ok(n)
+    n.ok_or(syn::Error::new(
+        proc_macro2::Span::call_site(),
+        format!(
+            "Failed to get packet id for state: {}, packet: {}",
+            state, value
+        ),
+    ))
 }
 
 /// `#[packet]` attribute is used to declare an incoming/outgoing packet.
@@ -240,10 +238,8 @@ fn parse_packet_id(state: &str, value: String, bound_to: PacketBoundiness) -> sy
 ///    pub timestamp: i64,
 /// }
 pub fn attribute(args: TokenStream, input: TokenStream) -> TokenStream {
+    let input = proc_macro2::TokenStream::from(input);
     // These are just some checks to make sure the packet attribute is used correctly.
-    // This is not actual functionality.
-    // The actual functionality is in the `bake_registry` function.
-
     const E: &str = "packet attribute must have the packet_id and/or state fields. In case of incoming: both. In case of outgoing: only packet_id.";
     if args.is_empty() {
         return TokenStream::from(quote! {
@@ -259,6 +255,42 @@ pub fn attribute(args: TokenStream, input: TokenStream) -> TokenStream {
             compile_error!(#E);
         });
     }
+    
+    let args = args.to_string();
+    let (state, packet_id) = parse_packet_attribute(args.as_str())
+        .expect("parse_packet_attribute failed");
 
-    input
+    let mut tokens = proc_macro2::TokenStream::new();
+
+    // Parse the input as a struct
+
+        // Try to get packet details for both directions
+    let serverbound = get_packet_id(
+        state.as_str(),
+        PacketBoundiness::Serverbound,
+        packet_id.as_str(),
+    );
+
+    let clientbound = get_packet_id(
+        state.as_str(),
+        PacketBoundiness::Clientbound,
+        packet_id.as_str(),
+    );
+
+    let final_id = serverbound.or(clientbound);
+
+    // Generate the packet ID hints as compile-time notes
+    if let Some(packet_id) = final_id {
+        tokens.extend(quote! {
+            #[doc = concat!("Packet ID: ", stringify!(#packet_id))]
+        });
+    }
+
+    // Combine our documentation with the original input
+    let expanded = quote! {
+        #tokens
+        #input
+    };
+
+    TokenStream::from(expanded)
 }

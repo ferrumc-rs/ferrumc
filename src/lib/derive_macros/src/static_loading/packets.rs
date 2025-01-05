@@ -14,7 +14,7 @@ pub(crate) fn get_packet_id(
     state: impl Into<PacketState>,
     bound: PacketBoundiness,
     packet_name: &str,
-) -> u8 {
+) -> Option<u8> {
     let mut current_value = &*PACKETS_JSON;
 
     // remove `"` from start and end of the packet_name:
@@ -22,22 +22,18 @@ pub(crate) fn get_packet_id(
 
     let state = state.into();
     current_value = current_value
-        .get(state.to_string())
-        .unwrap_or_else(|| panic!("Could not find key: {}.", state));
+        .get(state.to_string())?;
 
     current_value = current_value
-        .get(bound.to_string())
-        .unwrap_or_else(|| panic!("Could not find key: {}", bound));
+        .get(bound.to_string())?;
 
-    current_value = current_value.get(format!("minecraft:{}", packet_name))
-        .unwrap_or_else(|| panic!("Could not find key: `minecraft:{}` in the packet registry. Example: `add_entity`, would be 0x01 in the 1.21.1 protocol", packet_name));
+    current_value = current_value.get(format!("minecraft:{}", packet_name))?;
 
     let protocol_id = current_value
         .get("protocol_id")
-        .and_then(|v| v.as_u64())
-        .unwrap_or_else(|| panic!("Could not find key: {}", "protocol_id"));
+        .and_then(|v| v.as_u64())?;
 
-    protocol_id as u8
+    Some(protocol_id as u8)
 }
 
 struct PacketTypeInput {
@@ -131,7 +127,8 @@ impl Parse for PacketTypeInput {
 pub(crate) fn get(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as PacketTypeInput);
 
-    let protocol_id = get_packet_id(input.state, input.bound, &input.packet_name);
+    let protocol_id = get_packet_id(input.state, input.bound, &input.packet_name)
+        .expect("Packet not found in packets.json");
 
     let hex_id = {
         let str_value = format!("0x{:02X}", protocol_id);

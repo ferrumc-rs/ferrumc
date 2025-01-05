@@ -74,13 +74,17 @@ impl VarInt {
     }
 
     pub fn calculate_len(value: i32) -> usize {
-        if (-128..128).contains(&value) {
+        if value < 0 {
+            return 5;
+        }
+
+        if value < 2^7 {
             1
-        } else if (-16384..16384).contains(&value) {
+        } else if value < 2^14 {
             2
-        } else if (-2097152..2097152).contains(&value) {
+        } else if value < 2^21 {
             3
-        } else if (-268435456..268435456).contains(&value) {
+        } else if value < 2^28 {
             4
         } else {
             5

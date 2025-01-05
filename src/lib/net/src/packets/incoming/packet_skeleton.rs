@@ -47,7 +47,7 @@ impl PacketSkeleton {
         })
     }
 
-    #[inline(always)]
+    /*#[inline(always)]
     async fn read_compressed<R: AsyncRead + Unpin>(reader: &mut R) -> NetResult<Self> {
         let packet_length = VarInt::read_async(reader).await?.val as usize;
         let data_length = VarInt::read_async(reader).await?.val as usize;
@@ -94,6 +94,69 @@ impl PacketSkeleton {
         }
 
         let mut buf = Cursor::new(decompressed);
+        let id = VarInt::read(&mut buf)?;
+
+        Ok(Self {
+            length: packet_length,
+            id: id.val as u8,
+            data: buf,
+        })
+    }*/
+
+    #[inline(always)]
+    async fn read_compressed<R: AsyncRead + Unpin>(reader: &mut R) -> NetResult<Self> {
+        let packet_length = VarInt::read_async(reader).await?.val as usize;
+        let data_length = VarInt::read_async(reader).await?.val as usize;
+
+        // Uncompressed packet when data length is 0
+        if data_length == 0 {
+            let mut buf = {
+                let mut buf = vec![0; packet_length];
+                reader.read_exact(&mut buf).await?;
+
+                Cursor::new(buf)
+            };
+
+            let id = VarInt::read(&mut buf)?;
+
+            return Ok(Self {
+                length: packet_length,
+                id: id.val as u8,
+                data: buf,
+            });
+        }
+
+        let compression_threshold = get_global_config().network_compression_threshold;
+
+        // https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol#Packet_format
+        // The Notchian server (but not client) rejects compressed packets smaller than the threshold.
+        // Uncompressed packets exceeding the threshold, however, are accepted.
+        if data_length < compression_threshold as usize {
+            // Compressed packet smaller than threshold
+            // Reject packet
+            return NetResult::Err(NetError::DecoderError(
+                NetDecodeError::CompressedPacketTooSmall(data_length),
+            ));
+        }
+
+        // Here, guaranteed that data_length >= compression_threshold
+        let mut buf = {
+            let mut buf = vec![];
+            reader.read_to_end(&mut buf).await?;
+
+            Cursor::new(buf)
+        };
+
+        // Decompress data
+        let mut decompressed = Vec::new();
+        {
+            // Scope for decoder
+            let mut decoder = flate2::read::ZlibDecoder::new(&mut buf);
+            decoder.read_to_end(&mut decompressed)?;
+        }
+
+        let mut buf = Cursor::new(decompressed);
+
         let id = VarInt::read(&mut buf)?;
 
         Ok(Self {
