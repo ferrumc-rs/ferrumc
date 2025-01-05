@@ -5,6 +5,7 @@ use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_ecs::components::storage::ComponentRefMut;
+use ferrumc_inventory::types::player::PlayerInventory;
 use ferrumc_macros::event_handler;
 use ferrumc_net::connection::{ConnectionState, StreamWriter};
 use ferrumc_net::errors::NetError;
@@ -158,7 +159,8 @@ async fn handle_ack_finish_configuration(
         .universe
         .add_component::<Position>(conn_id, Position::default())?
         .add_component::<Rotation>(conn_id, Rotation::default())?
-        .add_component::<OnGround>(conn_id, OnGround::default())?;
+        .add_component::<OnGround>(conn_id, OnGround::default())?
+        .add_component::<PlayerInventory>(conn_id, PlayerInventory::default())?;
 
     let mut writer = state.universe.get_mut::<StreamWriter>(conn_id)?;
 
