@@ -2,6 +2,8 @@ use ferrumc_macros::{Inventory, inventory};
 
 use crate::{inventory::Inventory, slot::Slot};
 
+pub mod player;
+
 #[derive(Inventory, Debug, Clone)]
 #[inventory(inventory_type = Anvil)]
 pub struct AnvilInventory {
