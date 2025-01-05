@@ -6,7 +6,7 @@ use ferrumc_state::ServerState;
 use std::sync::Arc;
 
 #[derive(Debug, NetDecode)]
-#[packet(packet_id = 0x00, state = "login")]
+#[packet(packet_id = "hello", state = "login")]
 pub struct LoginStartPacket {
     pub username: String,
     pub uuid: u128,

@@ -8,7 +8,7 @@ use std::sync::Arc;
 use tracing::debug;
 
 #[derive(Debug)]
-#[packet(packet_id = 0x02, state = "configuration")]
+#[packet(packet_id = "custom_payload", state = "configuration")]
 pub struct ServerBoundPluginMessage {
     channel: String,
     data: Vec<u8>,

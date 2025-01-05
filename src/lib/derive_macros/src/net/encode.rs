@@ -1,28 +1,9 @@
 use crate::helpers::{get_derive_attributes, StructInfo};
+use crate::net::packets::get_packet_details_from_attributes;
+use crate::static_loading::packets::PacketBoundiness;
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, Attribute, DeriveInput, Fields, LitInt};
-
-// Helper function to extract packet ID from attributes
-fn extract_packet_id(packet_attr: Vec<Attribute>) -> Option<u8> {
-    let mut packet_id = None;
-    packet_attr.iter().for_each(|attr| {
-        attr.parse_nested_meta(|meta| {
-            let Some(ident) = meta.path.get_ident() else {
-                return Ok(());
-            };
-
-            if ident == "packet_id" {
-                let value = meta.value().expect("value failed");
-                let value = value.parse::<LitInt>().expect("parse failed");
-                packet_id = Some(value.base10_parse::<u8>().expect("base10_parse failed"));
-            }
-            Ok(())
-        })
-        .unwrap();
-    });
-    packet_id
-}
+use syn::{parse_macro_input, DeriveInput, Fields};
 
 // Generate packet ID encoding snippets
 fn generate_packet_id_snippets(
@@ -155,8 +136,11 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
     let packet_attr = get_derive_attributes(&input, "packet");
-    let (packet_id_snippet, async_packet_id_snippet) =
-        generate_packet_id_snippets(extract_packet_id(packet_attr));
+    let (packet_id_snippet, async_packet_id_snippet) = generate_packet_id_snippets(
+        get_packet_details_from_attributes(packet_attr.as_slice(), PacketBoundiness::Clientbound)
+            .unzip()
+            .1,
+    );
 
     let (sync_impl, async_impl) = match &input.data {
         syn::Data::Struct(data) => {

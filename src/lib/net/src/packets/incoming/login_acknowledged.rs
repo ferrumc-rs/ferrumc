@@ -6,7 +6,7 @@ use ferrumc_state::ServerState;
 use std::sync::Arc;
 
 #[derive(Debug, NetDecode)]
-#[packet(packet_id = 0x03, state = "login")]
+#[packet(packet_id = "login_acknowledged", state = "login")]
 pub struct LoginAcknowledgedPacket {}
 
 #[derive(Event)]

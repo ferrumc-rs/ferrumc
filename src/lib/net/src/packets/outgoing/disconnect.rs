@@ -3,7 +3,7 @@ use ferrumc_text::{ComponentBuilder, TextComponent};
 use std::io::Write;
 
 #[derive(NetEncode)]
-#[packet(packet_id = 0x1D)]
+#[packet(packet_id = "disconnect", state = "play")]
 pub struct DisconnectPacket {
     pub reason: TextComponent,
 }
