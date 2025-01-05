@@ -3,7 +3,7 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::Write;
 
 #[derive(NetEncode)]
-#[packet(packet_id = 0x54)]
+#[packet(packet_id = "set_chunk_cache_center", state = "play")]
 pub struct SetCenterChunk {
     pub x: VarInt,
     pub z: VarInt,

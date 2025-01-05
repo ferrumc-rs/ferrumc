@@ -20,7 +20,7 @@ pub struct BlockEntity {
 }
 
 #[derive(NetEncode)]
-#[packet(packet_id = 0x27)]
+#[packet(packet_id = "level_chunk_with_light", state = "play")]
 pub struct ChunkAndLightData {
     pub chunk_x: i32,
     pub chunk_z: i32,

@@ -7,7 +7,7 @@ use std::sync::Arc;
 use tracing::debug;
 
 #[derive(Debug, NetDecode)]
-#[packet(packet_id = 0x00, state = "configuration")]
+#[packet(packet_id = "client_information", state = "configuration")]
 pub struct ClientInformation {
     pub locale: String,
     pub view_distance: u8,

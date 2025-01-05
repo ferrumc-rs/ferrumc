@@ -7,7 +7,7 @@ use ferrumc_state::ServerState;
 use std::sync::Arc;
 
 #[derive(NetDecode)]
-#[packet(packet_id = 0x1A, state = "play")]
+#[packet(packet_id = "move_player_pos", state = "play")]
 pub struct SetPlayerPositionPacket {
     pub x: f64,
     pub feet_y: f64,
