@@ -8,7 +8,7 @@ use std::sync::Arc;
 use tracing::trace;
 
 #[derive(NetDecode, Debug)]
-#[packet(packet_id = 0x00, state = "handshake")]
+#[packet(packet_id = "intention", state = "handshake")]
 pub struct Handshake {
     pub protocol_version: VarInt,
     pub server_address: String,

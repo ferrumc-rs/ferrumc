@@ -4,7 +4,7 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::Write;
 
 #[derive(NetEncode)]
-#[packet(packet_id = 0x40)]
+#[packet(packet_id = "player_position", state = "play")]
 pub struct SynchronizePlayerPositionPacket {
     pub x: f64,
     pub y: f64,

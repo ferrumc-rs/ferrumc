@@ -6,7 +6,7 @@ use ferrumc_state::ServerState;
 use std::sync::Arc;
 
 #[derive(NetDecode)]
-#[packet(packet_id = 0x03, state = "configuration")]
+#[packet(packet_id = "finish_configuration", state = "configuration")]
 pub struct AckFinishConfigurationPacket {}
 
 impl IncomingPacket for AckFinishConfigurationPacket {
