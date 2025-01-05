@@ -43,7 +43,7 @@ impl NetworkSlot {
 }
 
 #[derive(NetEncode)]
-#[packet(packet_id = 0x15)]
+#[packet(packet_id = "container_set_slot", state_id = "play")]
 pub struct SetContainerSlotPacket {
     pub window_id: VarInt,
     pub state_id: VarInt,

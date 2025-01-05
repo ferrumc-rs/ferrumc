@@ -2,7 +2,7 @@ use ferrumc_macros::{packet, NetEncode};
 use std::io::Write;
 
 #[derive(NetEncode)]
-#[packet(packet_id = 0x14)]
+#[packet(packet_id = "container_set_data", state_id = "play")]
 pub struct SetContainerPropertyPacket {
     pub window_id: u8,
     pub property: u16,

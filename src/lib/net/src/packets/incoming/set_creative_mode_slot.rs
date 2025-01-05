@@ -10,7 +10,7 @@ use crate::{
 };
 
 #[derive(NetDecode, Debug)]
-#[packet(packet_id = 0x32, state = "play")]
+#[packet(packet_id = "set_creative_mode_slot", state = "play")]
 pub struct SetCreativeModeSlotPacket {
     pub slot: i16,
     pub clicked_item: NetworkSlot,

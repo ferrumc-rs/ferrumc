@@ -4,7 +4,7 @@ use ferrumc_net_codec::net_types::{length_prefixed_vec::LengthPrefixedVec, var_i
 use std::io::Write;
 
 #[derive(NetEncode, Debug)]
-#[packet(packet_id = 0x13)]
+#[packet(packet_id = "container_set_content", state_id = "play")]
 pub struct SetContainerContentPacket {
     pub window_id: u8,
     pub state_id: VarInt,

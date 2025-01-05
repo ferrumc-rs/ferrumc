@@ -7,7 +7,7 @@ use ferrumc_state::ServerState;
 use crate::{packets::IncomingPacket, NetResult};
 
 #[derive(NetDecode, Debug)]
-#[packet(packet_id = 0x2F, state = "play")]
+#[packet(packet_id = "set_carried_item", state = "play")]
 pub struct IncomingSetHeldItemPacket {
     pub slot: u16,
 }

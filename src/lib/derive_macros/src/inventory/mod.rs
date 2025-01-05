@@ -151,10 +151,10 @@ pub fn create(input: TokenStream) -> TokenStream {
     }
 }
 
-pub fn inventory_type(args: TokenStream, input: TokenStream) -> TokenStream {
+pub fn inventory_type(_args: TokenStream, input: TokenStream) -> TokenStream {
     input
 }
 
-pub fn slot(args: TokenStream, input: TokenStream) -> TokenStream {
+pub fn slot(_args: TokenStream, input: TokenStream) -> TokenStream {
     input
 }

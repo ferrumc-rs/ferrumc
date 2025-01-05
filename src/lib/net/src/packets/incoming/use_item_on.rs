@@ -8,7 +8,7 @@ use ferrumc_state::ServerState;
 use std::sync::Arc;
 
 #[derive(NetDecode, Debug)]
-#[packet(packet_id = 0x38, state = "play")]
+#[packet(packet_id = "use_item_on", state = "play")]
 pub struct UseItemOnPacket {
     pub hand: VarInt,
     pub location: NetworkPosition,

@@ -101,7 +101,7 @@ impl ChangedSlots {
 }
 
 #[derive(Debug)]
-#[packet(packet_id = 0x0E, state = "play")]
+#[packet(packet_id = "container_click", state = "play")]
 pub struct ClickContainerPacket {
     pub window_id: u8,
     pub state_id: VarInt,

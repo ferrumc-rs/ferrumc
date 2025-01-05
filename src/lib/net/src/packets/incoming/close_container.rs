@@ -6,7 +6,7 @@ use ferrumc_state::ServerState;
 use std::sync::Arc;
 
 #[derive(NetDecode, Debug)]
-#[packet(packet_id = 0x0F, state = "play")]
+#[packet(packet_id = "container_close", state = "play")]
 pub struct IncomingCloseContainerPacket {
     pub window_id: u8,
 }

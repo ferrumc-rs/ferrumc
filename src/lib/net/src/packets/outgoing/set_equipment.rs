@@ -53,7 +53,7 @@ pub struct Equipment {
 }
 
 #[derive(NetEncode)]
-#[packet(packet_id = 0x5B)]
+#[packet(packet_id = "set_equipment", state_id = "play")]
 pub struct SetEquipmentPacket {
     pub conn_id: VarInt,
     pub equipment: Vec<Equipment>,

@@ -4,7 +4,7 @@ use ferrumc_text::{TextComponent, TextComponentBuilder};
 use std::io::Write;
 
 #[derive(NetEncode)]
-#[packet(packet_id = 0x33)]
+#[packet(packet_id = "open_screen", state_id = "play")]
 pub struct OpenScreenPacket {
     pub window_id: VarInt,
     pub window_type: VarInt,
