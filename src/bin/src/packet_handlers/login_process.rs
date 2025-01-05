@@ -8,7 +8,7 @@ use ferrumc_ecs::components::storage::ComponentRefMut;
 use ferrumc_inventory::builder::InventoryBuilder;
 use ferrumc_inventory::inventory::InventoryType;
 use ferrumc_inventory::slot::Slot;
-use ferrumc_inventory::types::player_inventory::PlayerInventory;
+use ferrumc_inventory::types::player::PlayerInventory;
 use ferrumc_macros::event_handler;
 use ferrumc_net::connection::{ConnectionState, StreamWriter};
 use ferrumc_net::errors::NetError;

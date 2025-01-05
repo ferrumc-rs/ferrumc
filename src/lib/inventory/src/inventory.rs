@@ -49,7 +49,7 @@ impl InventoryType {
                 if (1..=6).contains(&value) {
                     value - 1
                 } else {
-                    0 // defaults to 1 row chest
+                    1 // defaults to 1 row chest
                 }
             }
             InventoryType::Anvil => 8,
@@ -115,10 +115,9 @@ impl Inventory {
             return;
         }
 
-        let slot = match self.get_slot(36 + (carried_item as i16)) {
-            Some(slot) => slot,
-            None => Slot::empty(),
-        };
+        let slot = self
+            .get_slot(36 + (carried_item as i16))
+            .unwrap_or_else(|| Slot::empty());
 
         self.carried_item = slot;
     }
@@ -141,8 +140,7 @@ impl Inventory {
                 ),
                 &NetEncodeOpts::WithLength,
             )
-            .await
-            .unwrap();
+            .await?;
 
         Ok(())
     }

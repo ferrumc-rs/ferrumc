@@ -1,6 +1,6 @@
 use ferrumc_inventory::inventory::{Inventory, InventorySyncType};
 use ferrumc_inventory::slot::Slot;
-use ferrumc_inventory::types::player_inventory::PlayerInventory;
+use ferrumc_inventory::types::player::PlayerInventory;
 use ferrumc_macros::event_handler;
 use ferrumc_net::errors::NetError;
 use ferrumc_net::packets::incoming::click_container::InventoryClickEvent;

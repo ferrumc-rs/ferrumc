@@ -4,6 +4,7 @@ use proc_macro::TokenStream;
 
 mod events;
 mod helpers;
+mod inventory;
 mod nbt;
 mod net;
 mod profiling;
@@ -54,3 +55,20 @@ pub fn bake_packet_registry(input: TokenStream) -> TokenStream {
     net::packets::bake_registry(input)
 }
 // #=================== PACKETS ===================#
+
+// #=================== INVENTORY ===================#
+#[proc_macro_attribute]
+pub fn slot(args: TokenStream, input: TokenStream) -> TokenStream {
+    inventory::slot(args, input)
+}
+
+#[proc_macro_attribute]
+pub fn inventory_type(args: TokenStream, input: TokenStream) -> TokenStream {
+    inventory::inventory_type(args, input)
+}
+
+#[proc_macro_derive(Inventory, attributes(slot))]
+pub fn inventory_create(input: TokenStream) -> TokenStream {
+    inventory::create(input)
+}
+// #=================== INVENTORY ===================#
