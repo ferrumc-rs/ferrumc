@@ -658,22 +658,29 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                                 #async_field_encoders
 
                                 if compression_threshold > 0 && writer.len() >= compression_threshold as usize {
-                                    println!("<ASYNC> compressing data path taken");
-                                    let data_length: ferrumc_net_codec::net_types::var_int::VarInt = (writer.len()).into();
-
-                                    let mut compressed_data = Vec::new();
-                                    {
+                                    use ferrumc_net_codec::net_types::var_int::VarInt;
+                                    use ferrumc_net_codec::encode::NetEncode;
+                                    // To do `.map_err` on the result of `tokio::task::spawn_blocking`
+                                    use futures::TryFutureExt;
+                                    let data_length: VarInt = writer.len().into();
+                                    let writer_clone = writer.to_vec();
+                                    
+                                    let compressed_data = tokio::task::spawn_blocking(move || {
+                                        let mut compressed = Vec::new();
                                         let mut e = flate2::write::ZlibEncoder::new(Vec::new(), flate2::Compression::default());
-                                        e.write_all(writer)?;
-                                        compressed_data = e.finish()?;
-                                    }
-
-                                    let packet_length: ferrumc_net_codec::net_types::var_int::VarInt = (data_length.len + compressed_data.len()).into();
-
-                                    <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode_async(&packet_length, actual_writer, &ferrumc_net_codec::encode::NetEncodeOpts::None).await?;
-                                     <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode_async(&data_length, actual_writer, &ferrumc_net_codec::encode::NetEncodeOpts::None).await?;
-                                    // actual_writer.write_all(&compressed_data).await?;
-                                     <W as tokio::io::AsyncWriteExt>::write_all(actual_writer, &compressed_data).await?;
+                                        e.write_all(&writer_clone)?;
+                                        compressed = e.finish()?;
+                                        Ok::<_, std::io::Error>(compressed)
+                                    }).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e)).await??;
+                                    
+                                    let packet_length: VarInt = (data_length.len + compressed_data.len()).into();
+                                    
+                                    <VarInt as NetEncode>::encode_async(&packet_length, actual_writer, &ferrumc_net_codec::encode::NetEncodeOpts::None).await?;
+                                    <VarInt as NetEncode>::encode_async(&data_length, actual_writer, &ferrumc_net_codec::encode::NetEncodeOpts::None).await?;
+                                    
+                                    println!("<ASYNC> Compressed data length: {}", compressed_data.len());
+                                    
+                                    <W as tokio::io::AsyncWriteExt>::write_all(actual_writer, &compressed_data).await?;
                                 } else {
                                     let data_length: ferrumc_net_codec::net_types::var_int::VarInt = 0.into();
                                     let packet_length: ferrumc_net_codec::net_types::var_int::VarInt = (data_length.len + writer.len()).into();

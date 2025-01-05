@@ -77,7 +77,7 @@ impl System for ChunkSenderSystem {
                             if let Some(chunk) = possible_chunk.1 {
                                 let key = possible_chunk.0;
                                 to_drop.push(key.clone());
-                                match ChunkAndLightData::from_chunk(&chunk.clone()) {
+                                match ChunkAndLightData::from_chunk(chunk) {
                                     Ok(packet) => {
                                         packets.push(packet);
                                         sent_chunks += 1;
