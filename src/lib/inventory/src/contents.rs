@@ -43,8 +43,4 @@ impl InventoryContents {
 
         LengthPrefixedVec::new(contents)
     }
-
-    //to store in chunk metadata: TAG 44: byte
-    //to show: starts at slot 0 ALWAYS - > 26/53 smalll/large.
-    //other inventories are to be implemented after.
 }

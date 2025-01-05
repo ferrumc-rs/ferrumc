@@ -106,9 +106,9 @@ pub fn create(input: TokenStream) -> TokenStream {
                 let setter_name =
                     syn::Ident::new(&format!("set_{}", field_name), field_name.span());
                 field_statements.push(quote! {
-                    pub fn #setter_name(&mut self, #field_name: #field_ty) {
-                        self.#field_name = #field_name;
-                        self.set_slot(#id, #net_crate::slot::Slot::with_item(#field_name));
+                    pub fn #setter_name<S: Into<Slot> + Copy>(&mut self, #field_name: S) {
+                        self.#field_name = #field_name.into();
+                        self.set_slot(#id, #field_name);
                     }
                 });
             }
