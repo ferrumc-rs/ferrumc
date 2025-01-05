@@ -69,7 +69,6 @@ pub fn create(input: TokenStream) -> TokenStream {
         // Process fields
         for field in &data_struct.fields {
             let field_name = &field.ident.clone().expect("Missing field");
-            let field_ty = &field.ty;
 
             let mut id_expr = None;
             let mut value_expr = None;
