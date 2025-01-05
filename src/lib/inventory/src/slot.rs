@@ -12,6 +12,18 @@ impl Default for Slot {
     }
 }
 
+impl From<i32> for Slot {
+    fn from(value: i32) -> Self {
+        Self::with_item(value)
+    }
+}
+
+impl From<(i32, i32)> for Slot {
+    fn from(value: (i32, i32)) -> Self {
+        Self::new(value.0, value.1)
+    }
+}
+
 impl Slot {
     pub fn new(count: i32, item: i32) -> Self {
         Self { count, item }

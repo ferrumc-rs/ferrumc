@@ -91,6 +91,7 @@ impl PlayerWithActions {
         for action in &self.actions {
             mask |= match action {
                 PlayerAction::AddPlayer { .. } => 0x01,
+                PlayerAction::UpdateListed { .. } => 0x08,
             }
         }
         mask
@@ -112,6 +113,9 @@ pub enum PlayerAction {
     AddPlayer {
         name: String,
         properties: LengthPrefixedVec<PlayerProperty>,
+    },
+    UpdateListed {
+        listed: bool,
     },
 }
 

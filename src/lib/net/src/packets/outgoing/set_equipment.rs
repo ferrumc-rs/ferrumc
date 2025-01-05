@@ -52,9 +52,24 @@ pub struct Equipment {
     pub slot: NetworkSlot,
 }
 
+impl Equipment {
+    pub fn new(equipment: EquipmentSlot, slot: NetworkSlot) -> Self {
+        Self { equipment, slot }
+    }
+}
+
 #[derive(NetEncode)]
 #[packet(packet_id = "set_equipment", state_id = "play")]
 pub struct SetEquipmentPacket {
     pub conn_id: VarInt,
     pub equipment: Vec<Equipment>,
+}
+
+impl SetEquipmentPacket {
+    pub fn new(conn_id: usize, equipment: Vec<Equipment>) -> Self {
+        Self {
+            conn_id: VarInt::new(conn_id as i32),
+            equipment,
+        }
+    }
 }

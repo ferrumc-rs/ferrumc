@@ -84,12 +84,7 @@ pub fn create_inventory(input: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
-pub fn slot(args: TokenStream, input: TokenStream) -> TokenStream {
-    inventory::slot(args, input)
-}
-
-#[proc_macro_attribute]
-pub fn inventory_type(args: TokenStream, input: TokenStream) -> TokenStream {
+pub fn inventory(args: TokenStream, input: TokenStream) -> TokenStream {
     inventory::inventory_type(args, input)
 }
 // #=================== INVENTORY ===================#

@@ -7,6 +7,8 @@ use ferrumc_net::packets::incoming::click_container::InventoryClickEvent;
 use ferrumc_net::packets::incoming::close_container::InventoryCloseEvent;
 use ferrumc_net::packets::incoming::set_creative_mode_slot::SetCreativeModeSlotEvent;
 use ferrumc_net::packets::incoming::set_held_item::ChangeSlotEvent;
+use ferrumc_net::packets::outgoing::set_equipment::{Equipment, EquipmentSlot, SetEquipmentPacket};
+use ferrumc_net::utils::broadcast::{broadcast, BroadcastOptions};
 use ferrumc_state::GlobalState;
 
 #[event_handler]
@@ -92,6 +94,18 @@ async fn handle_carried_item(
 
     let mut inventory = state.universe.get_mut::<PlayerInventory>(conn_id)?;
     inventory.set_carried_item(change_slot_event.slot);
+
+    let equipment = Equipment::new(
+        EquipmentSlot::MainHand,
+        Slot::with_item(change_slot_event.slot as i32).to_network_slot(),
+    );
+
+    broadcast(
+        &SetEquipmentPacket::new(conn_id, vec![equipment]),
+        &state,
+        BroadcastOptions::default().except([conn_id]),
+    )
+    .await?;
 
     Ok(change_slot_event)
 }

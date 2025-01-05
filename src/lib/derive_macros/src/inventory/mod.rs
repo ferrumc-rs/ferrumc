@@ -23,25 +23,46 @@ pub fn create(input: TokenStream) -> TokenStream {
             }
         };
 
-        let mut inventory_type_expr: Option<syn::Expr> = None;
+        let mut inventory_type_creator = quote! {};
 
         // Extract inventory_type attribute
         for attr in &input.attrs {
-            if attr.path().is_ident("inventory_type") {
+            if attr.path().is_ident("inventory") {
                 attr.parse_nested_meta(|meta| {
                     if let Some(ident) = meta.path.get_ident() {
-                        if ident.to_string().as_str() == "value" {
-                            let value = meta.value().expect("Missing value for inventory_type");
-
-                            let value = value
-                                .parse::<syn::Expr>()
-                                .expect("Failed to parse value in inventory_type");
-                            inventory_type_expr = Some(value);
+                        let ident_str = ident.to_string();
+                        let ident_str_ident = syn::Ident::new(&ident_str, proc_macro2::Span::call_site());
+                        match ident_str.as_str() {
+                            "inventory_type" => {
+                                if let Some(ident) = handle_meta("inventory_type", &meta, true) {
+                                    inventory_type_creator = quote! {
+                                        #inventory_type_creator
+                                        .#ident_str_ident(#net_crate::inventory::InventoryType::#ident)
+                                    };
+                                }
+                            },
+                            "is_synced" => {
+                                if let Some(expr) = handle_meta("is_synced", &meta, false) {
+                                    inventory_type_creator = quote! {
+                                        #inventory_type_creator
+                                        .#ident_str_ident(#expr)
+                                    };
+                                }
+                            },
+                            "title" => {
+                                if let Some(expr) = handle_meta("title", &meta, false) {
+                                    inventory_type_creator = quote! {
+                                        #inventory_type_creator
+                                        .#ident_str_ident(ferrumc_text::TextComponent::new(#expr).build())
+                                    };
+                                }
+                            }
+                            _ => {},
                         }
                     }
                     Ok(())
                 })
-                .unwrap();
+                    .unwrap();
             }
         }
 
@@ -58,25 +79,13 @@ pub fn create(input: TokenStream) -> TokenStream {
                     if attr.path().is_ident("slot") {
                         attr.parse_nested_meta(|meta| {
                             if let Some(ident) = meta.path.get_ident() {
-                                match ident.to_string().as_str() {
+                                let ident_str = ident.to_string();
+                                match ident_str.as_str() {
                                     "id" => {
-                                        let value = meta.value().expect("Missing value for slot");
-
-                                        let value = value
-                                            .parse::<syn::Expr>()
-                                            .expect("Failed to parse value in slot");
-
-                                        id_expr = Some(value);
+                                        id_expr = handle_meta("id", &meta, true);
                                     }
                                     "default_value" => {
-                                        let value =
-                                            meta.value().expect("Missing default_value for slot");
-
-                                        let value = value
-                                            .parse::<syn::Expr>()
-                                            .expect("Failed to parse default_value in slot");
-
-                                        value_expr = Some(value);
+                                        value_expr = handle_meta("default_value", &meta, true);
                                     }
                                     _ => {}
                                 }
@@ -106,18 +115,16 @@ pub fn create(input: TokenStream) -> TokenStream {
         }
 
         // Generate the `new` method
-        let new_method = inventory_type_expr.map(|expr| {
-            quote! {
-                pub fn new(id: u8) -> Self {
-                    Self {
-                        inventory: #net_crate::builder::InventoryBuilder::new(id)
-                            .inventory_type(#net_crate::inventory::InventoryType::#expr)
-                            .build(),
-                        #(#default_statements)*
-                    }
+        let new_method = quote! {
+            pub fn new(id: u8) -> Self {
+                Self {
+                    inventory: #net_crate::builder::InventoryBuilder::new(id)
+                        #inventory_type_creator
+                        .build(),
+                    #(#default_statements)*
                 }
             }
-        });
+        };
 
         // Generate the complete implementation block
         // Wacky ass code because rust is retarded
@@ -149,10 +156,31 @@ pub fn create(input: TokenStream) -> TokenStream {
     }
 }
 
-pub fn inventory_type(_args: TokenStream, input: TokenStream) -> TokenStream {
-    input
+fn handle_meta(
+    name: &str,
+    meta: &syn::meta::ParseNestedMeta,
+    is_required: bool,
+) -> Option<syn::Expr> {
+    match meta.value() {
+        Ok(value) => {
+            if let Ok(value) = value.parse::<syn::Expr>() {
+                Some(value)
+            } else if is_required {
+                panic!("Failed to parse value for attribute '{}'", name);
+            } else {
+                None
+            }
+        }
+        Err(_) => {
+            if is_required {
+                panic!("Missing required attribute '{}'", name);
+            }
+
+            None
+        }
+    }
 }
 
-pub fn slot(_args: TokenStream, input: TokenStream) -> TokenStream {
+pub fn inventory_type(_args: TokenStream, input: TokenStream) -> TokenStream {
     input
 }

@@ -1,10 +1,10 @@
 #![warn(dead_code)]
 
 use crate::inventory::Inventory;
-use ferrumc_macros::{Inventory, inventory_type};
+use ferrumc_macros::{Inventory, inventory};
 
-#[derive(Inventory, Debug)]
-#[inventory_type(value = Furnace)]
+#[derive(Inventory, Debug, Clone)]
+#[inventory(inventory_type = Furnace)]
 pub struct FurnaceInventory {
     inventory: Inventory,
     #[slot(id = 0, default_value = 0)]
@@ -15,8 +15,8 @@ pub struct FurnaceInventory {
     pub output: i32,
 }
 
-#[derive(Inventory, Debug)]
-#[inventory_type(value = BlastFurnace)]
+#[derive(Inventory, Debug, Clone)]
+#[inventory(inventory_type = BlastFurnace)]
 pub struct BlastFurnaceInventory {
     inventory: Inventory,
     #[slot(id = 0, default_value = 0)]
@@ -27,8 +27,8 @@ pub struct BlastFurnaceInventory {
     pub output: i32,
 }
 
-#[derive(Inventory, Debug)]
-#[inventory_type(value = Smoker)]
+#[derive(Inventory, Debug, Clone)]
+#[inventory(inventory_type = Smoker)]
 pub struct SmokerInventory {
     inventory: Inventory,
     #[slot(id = 0, default_value = 0)]

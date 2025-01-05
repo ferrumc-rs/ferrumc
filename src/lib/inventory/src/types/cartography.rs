@@ -1,9 +1,9 @@
 #![warn(dead_code)]
 use crate::inventory::Inventory;
-use ferrumc_macros::{Inventory, inventory_type};
+use ferrumc_macros::{Inventory, inventory};
 
-#[derive(Inventory, Debug)]
-#[inventory_type(value = Cartography)]
+#[derive(Inventory, Debug, Clone)]
+#[inventory(inventory_type = Cartography)]
 pub struct EnchantingInventory {
     inventory: Inventory,
     #[slot(id = 0, default_value = 0)]

@@ -1,10 +1,10 @@
 #![warn(dead_code)]
 
 use crate::inventory::Inventory;
-use ferrumc_macros::{Inventory, inventory_type};
+use ferrumc_macros::{Inventory, inventory};
 
-#[derive(Inventory, Debug)]
-#[inventory_type(value = SmithingTable)]
+#[derive(Inventory, Debug, Clone)]
+#[inventory(inventory_type = SmithingTable)]
 pub struct SmithingTableInventory {
     inventory: Inventory,
     #[slot(id = 0, default_value = 0)]

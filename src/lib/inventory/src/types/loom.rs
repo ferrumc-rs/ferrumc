@@ -1,10 +1,10 @@
 #![warn(dead_code)]
 
 use crate::inventory::Inventory;
-use ferrumc_macros::{Inventory, inventory_type};
+use ferrumc_macros::{Inventory, inventory};
 
 #[derive(Inventory, Debug)]
-#[inventory_type(value = Loom)]
+#[inventory(inventory_type = Loom)]
 pub struct LoomInventory {
     inventory: Inventory,
     #[slot(id = 0, default_value = 0)]

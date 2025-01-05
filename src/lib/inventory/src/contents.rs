@@ -20,14 +20,14 @@ impl InventoryContents {
         Self { contents, size }
     }
 
-    pub fn fill(&mut self, slot: Slot) {
+    pub fn fill<S: Into<Slot> + Copy>(&mut self, slot: S) {
         for i in 0..self.size {
-            self.contents.insert(i, slot);
+            self.contents.insert(i, slot.into());
         }
     }
 
-    pub fn set_slot(&mut self, slot_id: i16, slot: Slot) -> &mut Self {
-        self.contents.insert(slot_id, slot);
+    pub fn set_slot<S: Into<Slot>>(&mut self, slot_id: i16, slot: S) -> &mut Self {
+        self.contents.insert(slot_id, slot.into());
         self
     }
 

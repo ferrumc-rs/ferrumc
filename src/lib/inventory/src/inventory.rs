@@ -11,6 +11,9 @@ use ferrumc_net::packets::incoming::close_container::InventoryCloseEvent;
 use ferrumc_net::packets::outgoing::close_container::CloseContainerPacket;
 use ferrumc_net::packets::outgoing::open_screen::{OpenInventoryEvent, OpenScreenPacket};
 use ferrumc_net::packets::outgoing::set_container_content::SetContainerContentPacket;
+use ferrumc_net::packets::outgoing::set_container_property::{
+    ContainerProperty, SetContainerPropertyPacket,
+};
 use ferrumc_net::packets::outgoing::set_container_slot::SetContainerSlotPacket;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_net_codec::net_types::var_int::VarInt;
@@ -122,7 +125,24 @@ impl Inventory {
         self.carried_item = slot;
     }
 
-    pub(crate) async fn send_inventory_slot_content(
+    pub async fn send_inventory_properties(
+        &self,
+        properties: Vec<ContainerProperty>,
+        mut writer: ComponentRefMut<'_, StreamWriter>,
+    ) -> Result<(), InventoryError> {
+        for property in properties {
+            writer
+                .send_packet(
+                    &SetContainerPropertyPacket::new(self.id, property),
+                    &NetEncodeOpts::WithLength,
+                )
+                .await?;
+        }
+
+        Ok(())
+    }
+
+    pub async fn send_inventory_slot_content(
         &self,
         slot_num: i16,
         mut writer: ComponentRefMut<'_, StreamWriter>,
@@ -145,7 +165,7 @@ impl Inventory {
         Ok(())
     }
 
-    pub(crate) async fn send_inventory_content(
+    pub async fn send_inventory_content(
         &self,
         mut writer: ComponentRefMut<'_, StreamWriter>,
     ) -> Result<(), InventoryError> {
@@ -212,7 +232,7 @@ impl Inventory {
     }
 
     pub async fn add_viewer(
-        self,
+        &self,
         state: Arc<ServerState>,
         entity_id: Entity,
     ) -> Result<(), InventoryError> {
@@ -236,7 +256,7 @@ impl Inventory {
         let event = OpenInventoryEvent::new(entity_id, self.id);
         OpenInventoryEvent::trigger(event, state.clone()).await?;
 
-        universe.add_component::<Inventory>(entity_id, self)?;
+        universe.add_component::<Inventory>(entity_id, self.clone())?;
         Ok(())
     }
 
@@ -262,7 +282,7 @@ impl Inventory {
         Ok(())
     }
 
-    pub fn set_slot(&mut self, slot_id: i16, slot: Slot) -> &mut Self {
+    pub fn set_slot<S: Into<Slot> + Copy>(&mut self, slot_id: i16, slot: S) -> &mut Self {
         let size = self.inventory_type.get_size();
         if (0..=size).contains(&slot_id) {
             self.contents.set_slot(slot_id, slot);
@@ -271,7 +291,7 @@ impl Inventory {
         self
     }
 
-    pub fn set_slots(&mut self, slots: Vec<(i16, Slot)>) -> &mut Self {
+    pub fn set_slots<S: Into<Slot> + Copy>(&mut self, slots: Vec<(i16, S)>) -> &mut Self {
         for (slot_num, slot) in slots {
             self.set_slot(slot_num, slot);
         }
@@ -300,10 +320,8 @@ impl Inventory {
         self.get_contents_mut().clear();
     }
 
-    pub fn fill(&mut self, slot: Slot) {
-        for i in 0..self.get_size() {
-            self.set_slot(i, slot);
-        }
+    pub fn fill<S: Into<Slot> + Copy>(&mut self, slot: S) {
+        self.contents.fill(slot);
     }
 
     pub fn contains(&self, item: i32) -> bool {
