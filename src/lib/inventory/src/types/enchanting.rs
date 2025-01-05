@@ -1,3 +1,5 @@
+#![warn(dead_code)]
+
 use ferrumc_macros::{Inventory, inventory_type};
 
 use crate::inventory::Inventory;
