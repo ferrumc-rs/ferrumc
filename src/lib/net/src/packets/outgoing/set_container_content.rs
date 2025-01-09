@@ -1,7 +1,8 @@
-use super::set_container_slot::NetworkSlot;
 use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::{length_prefixed_vec::LengthPrefixedVec, var_int::VarInt};
 use std::io::Write;
+
+use crate::slot::NetworkSlot;
 
 #[derive(NetEncode, Debug)]
 #[packet(packet_id = "container_set_content", state_id = "play")]

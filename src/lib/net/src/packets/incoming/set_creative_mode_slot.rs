@@ -4,10 +4,7 @@ use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::{packet, Event, NetDecode};
 use ferrumc_state::ServerState;
 
-use crate::{
-    packets::{outgoing::set_container_slot::NetworkSlot, IncomingPacket},
-    NetResult,
-};
+use crate::{packets::IncomingPacket, slot::NetworkSlot, NetResult};
 
 #[derive(NetDecode, Debug)]
 #[packet(packet_id = "set_creative_mode_slot", state = "play")]

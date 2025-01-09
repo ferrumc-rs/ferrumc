@@ -45,7 +45,7 @@ async fn handle_container_click(
                 let slot_num = changed_slot.slot_number;
 
                 inventory
-                    .set_slot(slot_num, Slot::from_network_slot(changed_slot.slot))
+                    .set_slot(slot_num, Slot::from_network_slot(&changed_slot.slot))
                     .sync_inventory(conn_id, &InventorySyncType::Single(slot_num), state)
                     .await
                     .map_err(|err| NetError::Other(err.to_string()))?;
@@ -54,7 +54,7 @@ async fn handle_container_click(
                 changed_slots.iter().for_each(|changed_slot| {
                     inventory.set_slot(
                         changed_slot.slot_number,
-                        Slot::from_network_slot(changed_slot.slot),
+                        Slot::from_network_slot(&changed_slot.slot),
                     );
                 });
 
@@ -79,7 +79,7 @@ async fn set_creative_mode_slot(
     let mut inventory = state.universe.get_mut::<PlayerInventory>(conn_id)?;
     inventory.set_slot(
         creative_mode_slot.slot,
-        Slot::from_network_slot(creative_mode_slot.clicked_item),
+        Slot::from_network_slot(&creative_mode_slot.clicked_item),
     );
 
     Ok(creative_mode_slot)

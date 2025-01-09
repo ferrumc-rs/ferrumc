@@ -5,7 +5,7 @@ use ferrumc_net_codec::{
 };
 use std::io::Write;
 
-use super::set_container_slot::NetworkSlot;
+use crate::slot::NetworkSlot;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum EquipmentSlot {

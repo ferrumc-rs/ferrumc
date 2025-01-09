@@ -1,5 +1,5 @@
-use crate::packets::outgoing::set_container_slot::NetworkSlot;
 use crate::packets::IncomingPacket;
+use crate::slot::NetworkSlot;
 use crate::NetResult;
 use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::{packet, Event, NetDecode};

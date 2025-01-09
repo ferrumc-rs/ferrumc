@@ -1,4 +1,4 @@
-use ferrumc_net::packets::outgoing::set_container_slot::NetworkSlot;
+use ferrumc_net::slot::NetworkSlot;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Slot {
@@ -37,7 +37,7 @@ impl Slot {
         Self::new(0, 0)
     }
 
-    pub fn from_network_slot(slot: NetworkSlot) -> Self {
+    pub fn from_network_slot(slot: &NetworkSlot) -> Self {
         match slot.item_id {
             Some(item) => Self::new(*slot.item_count, *item),
             None => Self::empty(),

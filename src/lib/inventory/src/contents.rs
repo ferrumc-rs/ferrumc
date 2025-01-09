@@ -1,5 +1,5 @@
 use crate::{inventory::InventoryType, slot::Slot};
-use ferrumc_net::packets::outgoing::set_container_slot::NetworkSlot;
+use ferrumc_net::slot::NetworkSlot;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use std::collections::BTreeMap;
 
