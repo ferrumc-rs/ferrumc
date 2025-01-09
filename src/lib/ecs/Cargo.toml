@@ -17,3 +17,7 @@ async-iterator = { workspace = true }
 [dev-dependencies]
 criterion = { workspace = true }
 rand = { workspace = true }
+
+[[bench]]
+name = "ecs_bench"
+harness = false
