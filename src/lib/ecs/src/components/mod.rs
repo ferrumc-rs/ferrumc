@@ -1,20 +1,19 @@
 use crate::components::storage::{Component, ComponentRef, ComponentRefMut, ComponentSparseSet};
 use crate::errors::ECSError;
 use crate::ECSResult;
-use dashmap::DashMap;
-use parking_lot::RwLock;
+use scc::HashMap;
 use std::any::TypeId;
 #[cfg(debug_assertions)]
 use std::hash::{Hash, Hasher};
-#[cfg(debug_assertions)]
-use tracing::trace;
+use std::ops::Deref;
+use tokio::sync::RwLock;
 
 pub mod storage;
 
 unsafe impl Send for ComponentManager {}
 unsafe impl Sync for ComponentManager {}
 pub struct ComponentManager {
-    components: DashMap<TypeId, *const ()>,
+    components: HashMap<TypeId, *const ()>,
     storage: RwLock<Vec<Box<dyn ComponentStorage>>>,
 }
 
@@ -41,16 +40,16 @@ impl Default for ComponentManager {
 impl ComponentManager {
     pub fn new() -> Self {
         Self {
-            components: DashMap::new(),
+            components: HashMap::new(),
             storage: RwLock::new(Vec::new()),
         }
     }
 
-    pub fn insert<T: Component>(&self, entity_id: usize, component: T) -> ECSResult<()> {
-        use dashmap::mapref::entry::Entry;
+    pub async fn insert<T: Component>(&self, entity_id: usize, component: T) -> ECSResult<()> {
+        use scc::hash_map::Entry;
         let type_id = TypeId::of::<T>();
 
-        match self.components.entry(type_id) {
+        match self.components.entry_async(type_id).await {
             Entry::Occupied(entry) => {
                 let ptr = *entry.get();
                 let component_set = unsafe { &mut *(ptr as *mut ComponentSparseSet<T>) };
@@ -61,112 +60,45 @@ impl ComponentManager {
                 component_set.insert(entity_id, component)?;
                 let boxed: Box<dyn ComponentStorage> = Box::new(component_set);
                 let ptr = boxed.as_ptr();
-                entry.insert(ptr);
-                self.storage.write().push(boxed);
+                entry.insert_entry(ptr);
+                self.storage.write().await.push(boxed);
             }
         };
 
         Ok(())
     }
-    pub fn get<'a, T: Component>(&self, entity_id: usize) -> ECSResult<ComponentRef<'a, T>> {
+    pub async fn get<'a, T: Component>(&self, entity_id: usize) -> ECSResult<ComponentRef<'a, T>> {
         let type_id = TypeId::of::<T>();
-        #[cfg(debug_assertions)]
-        {
-            let mut hasher = std::collections::hash_map::DefaultHasher::new();
-            type_id.hash(&mut hasher);
-            let type_hash = hasher.finish();
-            trace!(
-                "Getting static component (ID: {:X}) lock for entity {}",
-                type_hash,
-                entity_id
-            );
-            let locked = matches!(
-                self.components.try_get(&type_id),
-                dashmap::try_result::TryResult::Locked
-            );
-            if locked {
-                trace!(
-                    "Static component (ID: {:X}) lock for entity {} is locked",
-                    type_hash,
-                    entity_id
-                );
-            }
-        }
-        let ptr = *self
+        let ptr = self
             .components
-            .get(&type_id)
+            .read_async(&type_id, |_k, v| v.clone())
+            .await
             .ok_or(ECSError::ComponentTypeNotFound)?;
         let component_set = unsafe { &*(ptr as *const ComponentSparseSet<T>) };
         let res = component_set.get(entity_id);
-        #[cfg(debug_assertions)]
-        {
-            let mut hasher = std::collections::hash_map::DefaultHasher::new();
-            type_id.hash(&mut hasher);
-            let type_hash = hasher.finish();
-            if res.is_ok() {
-                trace!(
-                    "Got static component (ID: {:X}) lock for entity {}",
-                    type_hash,
-                    entity_id
-                );
-            }
-        }
         res
     }
 
-    pub fn get_mut<'a, T: Component>(&self, entity_id: usize) -> ECSResult<ComponentRefMut<'a, T>> {
+    pub async fn get_mut<'a, T: Component>(
+        &self,
+        entity_id: usize,
+    ) -> ECSResult<ComponentRefMut<'a, T>> {
         let type_id = TypeId::of::<T>();
-        #[cfg(debug_assertions)]
-        {
-            let mut hasher = std::collections::hash_map::DefaultHasher::new();
-            type_id.hash(&mut hasher);
-            let type_hash = hasher.finish();
-            trace!(
-                "Getting mutable component (ID: {:X}) lock for entity {}",
-                type_hash,
-                entity_id
-            );
-            let locked = matches!(
-                self.components.try_get_mut(&type_id),
-                dashmap::try_result::TryResult::Locked
-            );
-            if locked {
-                trace!(
-                    "Mutable component (ID: {:X}) lock for entity {} is locked",
-                    type_hash,
-                    entity_id
-                );
-            }
-        }
-        let ptr = *self
+        let ptr = self
             .components
-            .get(&type_id)
+            .read_async(&type_id, |_k, v| v.clone())
+            .await
             .ok_or(ECSError::ComponentTypeNotFound)?;
         let component_set = unsafe { &*(ptr as *const ComponentSparseSet<T>) };
-        {
-            let res = component_set.get_mut(entity_id);
-            #[cfg(debug_assertions)]
-            {
-                let mut hasher = std::collections::hash_map::DefaultHasher::new();
-                type_id.hash(&mut hasher);
-                let type_hash = hasher.finish();
-                if res.is_ok() {
-                    trace!(
-                        "Got mutable component (ID: {:X}) lock for entity {}",
-                        type_hash,
-                        entity_id
-                    );
-                }
-            }
-            res
-        }
+        component_set.get_mut(entity_id)
     }
 
-    pub fn remove<T: Component>(&self, entity_id: usize) -> ECSResult<()> {
+    pub async fn remove<T: Component>(&self, entity_id: usize) -> ECSResult<()> {
         let type_id = TypeId::of::<T>();
-        let ptr = *self
+        let ptr = self
             .components
-            .get(&type_id)
+            .read_async(&type_id, |_k, v| v.clone())
+            .await
             .ok_or(ECSError::ComponentTypeNotFound)?;
         let component_set = unsafe { &mut *(ptr as *mut ComponentSparseSet<T>) };
         component_set.remove(entity_id)?;
@@ -174,17 +106,17 @@ impl ComponentManager {
         Ok(())
     }
 
-    pub fn remove_all_components(&self, entity_id: usize) -> ECSResult<()> {
-        for storage in self.storage.read().iter() {
+    pub async fn remove_all_components(&self, entity_id: usize) -> ECSResult<()> {
+        for storage in self.storage.read().await.iter() {
             storage.remove_component(entity_id)?;
         }
 
         Ok(())
     }
 
-    pub fn get_entities_with<T: Component>(&self) -> Vec<usize> {
+    pub async fn get_entities_with<T: Component>(&self) -> Vec<usize> {
         let type_id = TypeId::of::<T>();
-        let Some(ptr) = self.components.get(&type_id) else {
+        let Some(ptr) = self.components.get_async(&type_id).await else {
             return Vec::new();
         };
         let ptr = *ptr;
