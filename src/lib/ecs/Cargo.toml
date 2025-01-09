@@ -12,6 +12,7 @@ rayon = { workspace = true }
 tracing = { workspace = true }
 tokio = { workspace = true }
 scc = { workspace = true }
+async-iterator = { workspace = true }
 
 [dev-dependencies]
 criterion = { workspace = true }

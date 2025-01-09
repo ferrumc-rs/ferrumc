@@ -111,6 +111,7 @@ tokio = { version = "1.40.0", features = ["full"] }
 socket2 = "0.5.7"
 futures = "0.3.30"
 async-trait = "0.1.82"
+async-iterator = "2.3.0"
 
 # Logging
 tracing = "0.1.40"

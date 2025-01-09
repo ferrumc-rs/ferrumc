@@ -54,8 +54,8 @@ impl<'a> EntityBuilder<'a> {
         }
     }
 
-    pub fn with<T: Component>(self, component: T) -> ECSResult<Self> {
-        self.component_storage.insert(self.entity, component)?;
+    pub async fn with<T: Component>(self, component: T) -> ECSResult<Self> {
+        self.component_storage.insert(self.entity, component).await?;
         Ok(self)
     }
 
