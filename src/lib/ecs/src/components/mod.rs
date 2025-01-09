@@ -71,7 +71,7 @@ impl ComponentManager {
         let type_id = TypeId::of::<T>();
         let ptr = self
             .components
-            .read_async(&type_id, |_k, v| v.clone())
+            .read_async(&type_id, |_k, v| *v)
             .await
             .ok_or(ECSError::ComponentTypeNotFound)?;
         let component_set = unsafe { &*(ptr as *const ComponentSparseSet<T>) };
@@ -86,7 +86,7 @@ impl ComponentManager {
         let type_id = TypeId::of::<T>();
         let ptr = self
             .components
-            .read_async(&type_id, |_k, v| v.clone())
+            .read_async(&type_id, |_k, v| *v)
             .await
             .ok_or(ECSError::ComponentTypeNotFound)?;
         let component_set = unsafe { &*(ptr as *const ComponentSparseSet<T>) };
@@ -97,7 +97,7 @@ impl ComponentManager {
         let type_id = TypeId::of::<T>();
         let ptr = self
             .components
-            .read_async(&type_id, |_k, v| v.clone())
+            .read_async(&type_id, |_k, v| *v)
             .await
             .ok_or(ECSError::ComponentTypeNotFound)?;
         let component_set = unsafe { &mut *(ptr as *mut ComponentSparseSet<T>) };

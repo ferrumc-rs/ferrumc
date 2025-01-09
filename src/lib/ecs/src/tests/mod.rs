@@ -1,11 +1,10 @@
 use crate::components::ComponentManager;
 use crate::entities::EntityManager;
 use crate::query::Query;
-use rayon::prelude::*;
-use std::thread;
-use std::time::Duration;
+use std::collections::HashSet;
+use std::iter::Iterator;
 
-#[derive(Debug)]
+#[derive(Debug, Eq, Hash, PartialEq)]
 #[expect(dead_code)]
 struct Position {
     x: u32,
@@ -14,7 +13,7 @@ struct Position {
 
 unsafe impl Send for Position {}
 
-#[derive(Debug)]
+#[derive(Debug, Eq, Hash, PartialEq)]
 #[expect(dead_code)]
 struct Player {
     username: String,
@@ -22,8 +21,8 @@ struct Player {
 
 unsafe impl Send for Player {}
 
-#[test]
-fn test_basic() {
+#[tokio::test]
+async fn test_basic() {
     let entity_manager = EntityManager::new();
     let component_storage = ComponentManager::new();
 
@@ -31,25 +30,88 @@ fn test_basic() {
         entity_manager
             .builder(&component_storage)
             .with(Position { x, y: x * 2 })
+            .await
             .unwrap()
             .with(Player {
                 username: format!("Player{}", x),
             })
+            .await
             .unwrap()
             .build();
     }
-    let query = Query::<(&Player, &mut Position)>::new(&component_storage);
+    let mut query = Query::<(&Player, &mut Position)>::new(&component_storage).await;
 
-    ParallelIterator::for_each(query.into_par_iter(), |(_eid, (_player, position))| {
-        let sleep_duration = Duration::from_millis(100 * (position.x as u64));
-        thread::sleep(sleep_duration);
-    });
+    let mut count = 0;
 
-    /*   let duration = start.elapsed();
+    while let Some((player, position)) = query.next().await {
+        count += 1;
+    }
 
-    // Should be true, since we're running all branches in parallel, therefore,
-    // at-most it should take the time of the longest branch,
-    // which is 100 * 9, which is 900ms. So with some buffer, it should be less than 1000ms.
+    assert_eq!(count, 10);
+}
 
-    assert!(duration.as_millis() < 1000);*/
+#[tokio::test]
+async fn test_query() {
+    let entity_manager = EntityManager::new();
+    let component_storage = ComponentManager::new();
+
+    let mut test_values: HashSet<((u32, u32), String)> = HashSet::new();
+
+    let values: Vec<(Position, Player)> = (0..10)
+        .map(|x| {
+            (
+                Position { x, y: x * 2 },
+                Player {
+                    username: format!("Player{}", x),
+                },
+            )
+        })
+        .collect();
+    for (position, player) in &values {
+        test_values.insert(((position.x, position.y), player.username.clone()));
+    }
+
+    for (position, player) in values {
+        entity_manager
+            .builder(&component_storage)
+            .with(position)
+            .await
+            .unwrap()
+            .with(player)
+            .await
+            .unwrap()
+            .build();
+    }
+
+    let mut query = Query::<(&Player, &Position)>::new(&component_storage).await;
+
+    while let Some((eid, (player, position))) = query.next().await {
+        assert!(test_values.contains(&((position.x, position.y), player.username.clone())));
+    }
+}
+
+#[tokio::test]
+async fn test_fetch() {
+    let universe = crate::Universe::new();
+    universe
+        .builder()
+        .with(Position { x: 0, y: 50 })
+        .await
+        .unwrap()
+        .build();
+    let mut q = universe.query::<&Position>().await;
+    let res = q.next().await;
+    assert!(res.is_some());
+    let (eid, pos) = res.unwrap();
+    assert_eq!(pos.x, 0);
+    assert_eq!(pos.y, 50);
+}
+
+#[tokio::test]
+async fn test_false_fetch() {
+    let universe = crate::Universe::new();
+    universe.builder().build();
+    let mut q = universe.query::<&Player>().await;
+    let res = q.next().await;
+    assert!(res.is_none());
 }

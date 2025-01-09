@@ -1,4 +1,5 @@
 #![feature(async_iterator)]
+#![feature(inherent_associated_types)]
 
 use crate::components::storage::{Component, ComponentRef, ComponentRefMut};
 use crate::components::ComponentManager;

@@ -77,12 +77,11 @@ impl<'a, Q: QueryItem> Query<'a, Q> {
 
 mod iter_impl {
     use super::*;
-    use async_iterator::Iterator;
 
-    impl<'a, Q: QueryItem> Iterator for Query<'a, Q> {
-        type Item = (Entity, Q::Item<'a>);
+    impl<'a, Q: QueryItem> Query<'a, Q> {
+        pub type Item = (Entity, Q::Item<'a>);
 
-        async fn next(&mut self) -> Option<Self::Item> {
+        pub async fn next(&mut self) -> Option<Self::Item> {
             while let Some(entity) = self.entities.pop() {
                 let Ok(item) = Q::fetch(entity, self.component_storage).await else {
                     continue;
