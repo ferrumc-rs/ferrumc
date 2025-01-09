@@ -1,3 +1,4 @@
+use criterion::async_executor::AsyncExecutor;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use ferrumc_ecs::Universe;
 
@@ -13,28 +14,29 @@ struct Velocity {
     y: f32,
 }
 
-fn create_entity(universe: &Universe) {
+async fn create_entity(universe: &Universe) {
     // entity is 0 here;
     universe
         .builder()
         .with(Position { x: 0.0, y: 0.0 })
+        .await
         .unwrap()
         .build();
 }
 
-fn get_position_immut(universe: &Universe) {
-    let position = universe.get::<Position>(0).unwrap();
+async fn get_position_immut(universe: &Universe) {
+    let position = universe.get::<Position>(0).await.unwrap();
     assert_eq!(position.x, 0.0);
     assert_eq!(position.y, 0.0);
 }
 
-fn get_position_mut(universe: &Universe) {
-    let position = universe.get_mut::<Position>(0).unwrap();
+async fn get_position_mut(universe: &Universe) {
+    let position = universe.get_mut::<Position>(0).await.unwrap();
     assert_eq!(position.x, 0.0);
     assert_eq!(position.y, 0.0);
 }
 
-fn _create_1000_entities_with_pos_and_vel(universe: &Universe) {
+async fn _create_1000_entities_with_pos_and_vel(universe: &Universe) {
     for i in 0..1000 {
         let builder = universe
             .builder()
@@ -42,6 +44,7 @@ fn _create_1000_entities_with_pos_and_vel(universe: &Universe) {
                 x: i as f32,
                 y: i as f32,
             })
+            .await
             .unwrap();
         if i % 2 == 0 {
             builder
@@ -49,14 +52,15 @@ fn _create_1000_entities_with_pos_and_vel(universe: &Universe) {
                     x: i as f32,
                     y: i as f32,
                 })
+                .await
                 .unwrap();
         }
     }
 }
 
-fn query_10k_entities(universe: &Universe) {
-    let query = universe.query::<(&Position, &Velocity)>();
-    for (_, (position, velocity)) in query {
+async fn query_10k_entities(universe: &Universe) {
+    let mut query = universe.query::<(&Position, &Velocity)>().await;
+    while let Some((_, (position, velocity))) = query.next().await {
         assert_eq!(position.x, velocity.x);
         assert_eq!(position.y, velocity.y);
     }
@@ -64,34 +68,48 @@ fn query_10k_entities(universe: &Universe) {
 
 fn criterion_benchmark(c: &mut Criterion) {
     let mut world = Universe::new();
+    let rt = tokio::runtime::Runtime::new().unwrap();
     c.benchmark_group("entity")
         .bench_function("create_entity", |b| {
             b.iter(|| {
-                create_entity(black_box(&world));
+                rt.block_on(async {
+                    create_entity(black_box(&world)).await;
+                });
             });
             // Create a new world after bench is done.
             world = Universe::new();
-            world
-                .builder()
-                .with(Position { x: 0.0, y: 0.0 })
-                .unwrap()
-                .build();
+            rt.block_on(async {
+                world
+                    .builder()
+                    .with(Position { x: 0.0, y: 0.0 })
+                    .await
+                    .unwrap()
+                    .build();
+            });
         })
         .bench_function("get immut", |b| {
             b.iter(|| {
-                get_position_immut(black_box(&world));
+                rt.block_on(async {
+                    get_position_immut(black_box(&world)).await;
+                });
             });
         })
         .bench_function("get mut", |b| {
             b.iter(|| {
-                get_position_mut(black_box(&world));
+                rt.block_on(async {
+                    get_position_mut(black_box(&world)).await;
+                });
             });
         })
         .bench_function("query 10k entities", |b| {
             let universe = Universe::new();
-            _create_1000_entities_with_pos_and_vel(&universe);
+            rt.block_on(async {
+                _create_1000_entities_with_pos_and_vel(&universe).await;
+            });
             b.iter(|| {
-                query_10k_entities(black_box(&world));
+                rt.block_on(async {
+                    query_10k_entities(black_box(&universe)).await;
+                });
             });
         });
 }
