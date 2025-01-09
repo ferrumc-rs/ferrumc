@@ -6,15 +6,17 @@ use std::any::TypeId;
 #[cfg(debug_assertions)]
 use std::hash::{Hash, Hasher};
 use std::ops::Deref;
+use std::sync::Arc;
 use tokio::sync::RwLock;
 
 pub mod storage;
 
 unsafe impl Send for ComponentManager {}
 unsafe impl Sync for ComponentManager {}
+
 pub struct ComponentManager {
-    components: HashMap<TypeId, *const ()>,
-    storage: RwLock<Vec<Box<dyn ComponentStorage>>>,
+    components: Arc<HashMap<TypeId, *const ()>>,
+    storage: Arc<RwLock<Vec<Box<dyn ComponentStorage>>>>,
 }
 
 pub trait ComponentStorage {
@@ -40,8 +42,8 @@ impl Default for ComponentManager {
 impl ComponentManager {
     pub fn new() -> Self {
         Self {
-            components: HashMap::new(),
-            storage: RwLock::new(Vec::new()),
+            components: Arc::default(),
+            storage: Arc::default(),
         }
     }
 

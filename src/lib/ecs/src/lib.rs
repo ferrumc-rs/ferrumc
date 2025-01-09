@@ -1,5 +1,6 @@
 #![feature(async_iterator)]
 #![feature(inherent_associated_types)]
+#![feature(random)]
 
 use crate::components::storage::{Component, ComponentRef, ComponentRefMut};
 use crate::components::ComponentManager;
@@ -14,6 +15,7 @@ pub mod query;
 
 #[cfg(test)]
 mod tests;
+
 pub type ECSResult<T> = Result<T, errors::ECSError>;
 
 /// The main struct that holds all the ECS data.

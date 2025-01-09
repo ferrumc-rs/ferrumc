@@ -2,7 +2,8 @@ use crate::components::ComponentManager;
 use crate::entities::EntityManager;
 use crate::query::Query;
 use std::collections::HashSet;
-use std::iter::Iterator;
+use std::random::random;
+use std::sync::Arc;
 
 #[derive(Debug, Eq, Hash, PartialEq)]
 #[expect(dead_code)]
@@ -114,4 +115,26 @@ async fn test_false_fetch() {
     let mut q = universe.query::<&Player>().await;
     let res = q.next().await;
     assert!(res.is_none());
+}
+
+#[tokio::test]
+async fn test_concurrent_contention() {
+    let universe = Arc::new(crate::Universe::new());
+    for _ in (0..10_000) {
+        universe
+            .builder()
+            .with(Position {
+                x: random(),
+                y: random(),
+            })
+            .await
+            .unwrap()
+            .build();
+    }
+    for _ in (0..500) {
+        let universe = universe.clone();
+        tokio::spawn(async move {
+            let mut q = universe.query::<&Position>().await;
+        });
+    }
 }

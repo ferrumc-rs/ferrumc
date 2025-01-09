@@ -46,16 +46,16 @@ pub struct Query<'a, Q: QueryItem> {
 // Async clone isn't a thing. Also, costly function calls in a clone impl is a terrible idea.
 // Don't do it.
 
-// impl<Q: QueryItem> Clone for Query<'_, Q> {
-//     fn clone(&self) -> Self {
-//         //! Clones the query, and re-calculates the entities
-//         Self {
-//             component_storage: self.component_storage,
-//             entities: Q::entities(self.component_storage),
-//             _marker: std::marker::PhantomData,
-//         }
-//     }
-// }
+impl<Q: QueryItem> Clone for Query<'_, Q> {
+    fn clone(&self) -> Self {
+        //! Clones the query, and re-calculates the entities
+        Self {
+            component_storage: self.component_storage,
+            entities: self.entities.clone(),
+            _marker: std::marker::PhantomData,
+        }
+    }
+}
 
 impl<'a, Q: QueryItem> Query<'a, Q> {
     pub async fn new(component_storage: &'a ComponentManager) -> Self {
