@@ -1,5 +1,7 @@
-use criterion::async_executor::AsyncExecutor;
+use std::sync::Arc;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use rand::prelude::SliceRandom;
+use rand::Rng;
 use ferrumc_ecs::Universe;
 
 #[allow(dead_code)]
@@ -34,6 +36,27 @@ async fn get_position_mut(universe: &Universe) {
     let position = universe.get_mut::<Position>(0).await.unwrap();
     assert_eq!(position.x, 0.0);
     assert_eq!(position.y, 0.0);
+}
+
+async fn query_over_tasks(universe: Arc<Universe>) {
+    let mut joinset = tokio::task::JoinSet::new();
+    let test_fn = async |universe: Arc<Universe>| {
+        let mut entities = universe.query::<&Position>().await.into_entities();
+        entities.shuffle( &mut rand::rng());
+        for eid in entities {
+            let mut pos = universe.get_mut::<Position>(eid).await.expect("Failed to get position");
+            pos.x = rand::rng().random();
+            pos.y = rand::rng().random();
+        }
+    };
+    for _ in (1..500) {
+        let universe = universe.clone();
+        joinset.spawn(async move{
+            test_fn(universe.clone()).await;
+        });
+    }
+    
+    joinset.join_all().await;
 }
 
 async fn _create_1000_entities_with_pos_and_vel(universe: &Universe) {
@@ -71,11 +94,8 @@ fn criterion_benchmark(c: &mut Criterion) {
     let rt = tokio::runtime::Runtime::new().unwrap();
     c.benchmark_group("entity")
         .bench_function("create_entity", |b| {
-            b.iter(|| {
-                rt.block_on(async {
-                    create_entity(black_box(&world)).await;
-                });
-            });
+            b.to_async(tokio::runtime::Runtime::new().unwrap())
+                .iter(|| async { create_entity(&world).await });
             // Create a new world after bench is done.
             world = Universe::new();
             rt.block_on(async {
@@ -88,30 +108,34 @@ fn criterion_benchmark(c: &mut Criterion) {
             });
         })
         .bench_function("get immut", |b| {
-            b.iter(|| {
-                rt.block_on(async {
+            b.to_async(tokio::runtime::Runtime::new().unwrap())
+                .iter(async || {
                     get_position_immut(black_box(&world)).await;
                 });
-            });
         })
         .bench_function("get mut", |b| {
-            b.iter(|| {
-                rt.block_on(async {
+            b.to_async(tokio::runtime::Runtime::new().unwrap())
+                .iter(async || {
                     get_position_mut(black_box(&world)).await;
                 });
-            });
         })
         .bench_function("query 10k entities", |b| {
             let universe = Universe::new();
             rt.block_on(async {
                 _create_1000_entities_with_pos_and_vel(&universe).await;
             });
-            b.iter(|| {
-                rt.block_on(async {
-                    query_10k_entities(black_box(&universe)).await;
-                });
+            b.to_async(tokio::runtime::Runtime::new().unwrap())
+                .iter(|| async { query_10k_entities(&universe).await });
+        })
+        .bench_function("query over tasks", |b| {
+            let universe = Arc::new(Universe::new());
+            rt.block_on(async {
+                _create_1000_entities_with_pos_and_vel(&universe).await;
             });
+            b.to_async(tokio::runtime::Runtime::new().unwrap())
+                .iter(|| async { query_over_tasks(universe.clone()).await });
         });
+    ;
 }
 
 criterion_group!(benches, criterion_benchmark);

@@ -15,7 +15,7 @@ scc = { workspace = true }
 async-iterator = { workspace = true }
 
 [dev-dependencies]
-criterion = { workspace = true }
+criterion = { workspace = true, features = ["async_tokio"] }
 rand = { workspace = true }
 
 [[bench]]

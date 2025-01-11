@@ -86,7 +86,8 @@ impl ComponentManager {
         match self.components.entry_async(type_id).await {
             Entry::Occupied(entry) => {
                 let ptr = entry.get();
-                let component_set = unsafe { ptr.0.cast::<ComponentSparseSet<T>>().as_ref() }.expect("ComponentSparseSet is null");
+                let component_set = unsafe { ptr.0.cast::<ComponentSparseSet<T>>().as_ref() }
+                    .expect("ComponentSparseSet is null");
                 component_set.insert(entity_id, component)?;
             }
             Entry::Vacant(entry) => {
@@ -123,7 +124,7 @@ impl ComponentManager {
             .read_async(&type_id, |_k, v| *v)
             .await
             .ok_or(ECSError::ComponentTypeNotFound)?;
-        let component_set = unsafe { &*(ptr.0 as *const ComponentSparseSet<T>) };
+        let component_set = unsafe { &*(ptr.0 as *mut ComponentSparseSet<T>) };
         component_set.get_mut(entity_id)
     }
 
