@@ -2,12 +2,12 @@ use crate::components::ComponentManager;
 use crate::entities::EntityManager;
 use crate::query::Query;
 use crate::Universe;
+use rand::seq::SliceRandom;
+use rand::Rng;
 use std::collections::HashSet;
 use std::random::random;
-use std::sync::Arc;
 use std::sync::atomic::AtomicU16;
-use rand::{rng, Rng};
-use rand::seq::SliceRandom;
+use std::sync::Arc;
 
 #[derive(Debug, Eq, Hash, PartialEq)]
 #[expect(dead_code)]
@@ -124,7 +124,7 @@ async fn test_false_fetch() {
 #[tokio::test]
 async fn test_concurrent_contention() {
     let universe = Arc::new(crate::Universe::new());
-    for _ in (0..1_000) {
+    for _ in 0..1_000 {
         universe
             .builder()
             .with(Position {
@@ -138,23 +138,26 @@ async fn test_concurrent_contention() {
 
     let test_fn = async |universe: Arc<Universe>| {
         let mut entities = universe.query::<&Position>().await.into_entities();
-        entities.shuffle( &mut rand::rng());
+        entities.shuffle(&mut rand::rng());
         for eid in entities {
-            let mut pos = universe.get_mut::<Position>(eid).await.expect("Failed to get position");
+            let mut pos = universe
+                .get_mut::<Position>(eid)
+                .await
+                .expect("Failed to get position");
             pos.x = rand::rng().random();
             pos.y = rand::rng().random();
         }
     };
 
     let mut join_set = tokio::task::JoinSet::new();
-    for _ in (0..100) {
+    for _ in 0..100 {
         let universe = universe.clone();
         join_set.spawn(async move {
             test_fn(universe.clone()).await;
         });
     }
     let threads_running = Arc::new(AtomicU16::new(100));
-    for _ in (0..100) {
+    for _ in 0..100 {
         let universe = universe.clone();
         let threads_running = threads_running.clone();
         std::thread::spawn(move || {

@@ -12,8 +12,6 @@ use crate::errors::ECSError;
 use crate::ECSResult;
 use scc::HashMap;
 use std::any::TypeId;
-#[cfg(debug_assertions)]
-use std::hash::{Hash, Hasher};
 use std::ops::Deref;
 use std::sync::Arc;
 use tokio::sync::RwLock;
