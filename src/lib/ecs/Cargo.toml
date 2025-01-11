@@ -17,6 +17,7 @@ async-iterator = { workspace = true }
 [dev-dependencies]
 criterion = { workspace = true, features = ["async_tokio"] }
 rand = { workspace = true }
+tokio-test = { workspace = true }
 
 [[bench]]
 name = "ecs_bench"

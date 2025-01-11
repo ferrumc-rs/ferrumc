@@ -54,6 +54,8 @@ impl<C: Component> ComponentSparseSet<C> {
 
     pub fn remove(&self, entity_id: usize) -> ECSResult<()> {
         //! It will deadlock in the situation of a deadlock.
+
+        //! Yeah, no shit dude
         self.components.remove(&entity_id);
 
         Ok(())

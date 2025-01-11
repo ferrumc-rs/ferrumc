@@ -25,9 +25,6 @@ impl ChunkReceiver {
             last_chunk: None,
         }
     }
-}
-
-impl ChunkReceiver {
     pub async fn calculate_chunks(&mut self) {
         if let Some(last_chunk) = &self.last_chunk {
             let new_can_see = DashSet::new();

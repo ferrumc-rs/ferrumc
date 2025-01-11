@@ -1,3 +1,12 @@
+/// How does the ECS work? Barely
+///
+/// ok but this is how it works.
+///
+/// You've got 2 layers of maps: You got a map for mapping a type to a storage mapping, which in 
+/// turn maps an entity ID to its component of that type. You can kinda think of it as a 
+/// `HashMap<TypeID, HashMap<entity_id, component>>` except with more borrow checker abuse. Also
+/// sparse sets are in there somewhere, but idfk how those work, i think they are just an optimised
+/// hashmap? Ask Sweatty.
 use crate::components::storage::{Component, ComponentRef, ComponentRefMut, ComponentSparseSet};
 use crate::errors::ECSError;
 use crate::ECSResult;
@@ -11,9 +20,13 @@ use tokio::sync::RwLock;
 
 pub mod storage;
 
+
 unsafe impl Send for ComponentManager {}
 unsafe impl Sync for ComponentManager {}
 
+/// A sketchy wrapper over pointers so we can convince the borrow checker the pointer is Send+Sync
+///
+/// It's probably not but shhhh
 pub struct PtrWrapper(*mut ());
 
 impl Deref for PtrWrapper {
@@ -37,7 +50,7 @@ impl From<PtrWrapper> for *mut () {
 
 impl Clone for PtrWrapper {
     fn clone(&self) -> Self {
-        PtrWrapper(self.0)
+        *self
     }
 }
 
@@ -79,10 +92,14 @@ impl ComponentManager {
         }
     }
 
+    /// Inserts a component into the component manager
+    ///
+    /// You probably don't want to be using this function directly.
     pub async fn insert<T: Component>(&self, entity_id: usize, component: T) -> ECSResult<()> {
         use scc::hash_map::Entry;
         let type_id = TypeId::of::<T>();
-
+        // Get the entry directly and modify, instead of using `.contains()` and`.insert()`, since
+        // that can cause data races if the value is added/removed between the two calls.
         match self.components.entry_async(type_id).await {
             Entry::Occupied(entry) => {
                 let ptr = entry.get();
@@ -90,6 +107,9 @@ impl ComponentManager {
                     .expect("ComponentSparseSet is null");
                 component_set.insert(entity_id, component)?;
             }
+            // A vacant entry can be thought of as the place where the value would be if it existed.
+            // So by getting the lock for a vacant entry, we ensure that we have exclusive access to
+            // where the value would be if it existed, and can insert it without any data race issues.
             Entry::Vacant(entry) => {
                 let component_set = ComponentSparseSet::<T>::new();
                 component_set.insert(entity_id, component)?;
@@ -102,6 +122,9 @@ impl ComponentManager {
 
         Ok(())
     }
+    /// Gets a component from the component manager
+    ///
+    /// You probably don't want to be using this function directly.
     pub async fn get<'a, T: Component>(&self, entity_id: usize) -> ECSResult<ComponentRef<'a, T>> {
         let type_id = TypeId::of::<T>();
         let ptr = self
@@ -114,6 +137,9 @@ impl ComponentManager {
         res
     }
 
+    /// Gets a mutable reference to a component from the component manager
+    /// 
+    /// You probably don't want to be using this function directly.
     pub async fn get_mut<'a, T: Component>(
         &self,
         entity_id: usize,
@@ -121,6 +147,9 @@ impl ComponentManager {
         let type_id = TypeId::of::<T>();
         let ptr = self
             .components
+            // Since we are just getting a pointer from the hashmap and then unsafely casting it,
+            // we can just get a read lock on the hashmap, since we are not modifying the hashmap
+            // itself.
             .read_async(&type_id, |_k, v| *v)
             .await
             .ok_or(ECSError::ComponentTypeNotFound)?;
@@ -128,6 +157,9 @@ impl ComponentManager {
         component_set.get_mut(entity_id)
     }
 
+    /// Removes a component from the component manager
+    /// 
+    /// You probably don't want to be using this function directly.
     pub async fn remove<T: Component>(&self, entity_id: usize) -> ECSResult<()> {
         let type_id = TypeId::of::<T>();
         let ptr = self
@@ -141,6 +173,9 @@ impl ComponentManager {
         Ok(())
     }
 
+    /// Removes all components from an entity
+    /// 
+    /// You probably don't want to be using this function directly.
     pub async fn remove_all_components(&self, entity_id: usize) -> ECSResult<()> {
         for storage in self.storage.read().await.iter() {
             storage.remove_component(entity_id)?;
@@ -149,6 +184,9 @@ impl ComponentManager {
         Ok(())
     }
 
+    /// Gets all entities with a component of type `T`
+    /// 
+    /// You probably don't want to be using this function directly.
     pub async fn get_entities_with<T: Component>(&self) -> Vec<usize> {
         let type_id = TypeId::of::<T>();
         let Some(ptr) = self.components.get_async(&type_id).await else {
