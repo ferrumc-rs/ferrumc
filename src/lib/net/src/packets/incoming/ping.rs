@@ -17,7 +17,7 @@ impl IncomingPacket for PingPacket {
     async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
         let response = PongPacket::new(self.payload);
 
-        let mut writer = state.universe.get_mut::<StreamWriter>(conn_id)?;
+        let mut writer = state.universe.get_mut::<StreamWriter>(conn_id).await?;
 
         writer
             .send_packet(&response, &NetEncodeOpts::WithLength)

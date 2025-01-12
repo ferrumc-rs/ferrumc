@@ -27,7 +27,7 @@ pub async fn terminate_connection(
     conn_id: usize,
     reason: String,
 ) -> NetResult<()> {
-    let mut writer = match conn_id.get_mut::<StreamWriter>(&state.clone()) {
+    let mut writer = match conn_id.get_mut::<StreamWriter>(&state.clone()).await {
         Ok(writer) => writer,
         Err(e) => {
             warn!("Failed to get stream writer for entity {}: {}", conn_id, e);
@@ -49,7 +49,7 @@ pub async fn terminate_connection(
         return Err(e);
     }
 
-    match conn_id.get_mut::<ConnectionControl>(&state.clone()) {
+    match conn_id.get_mut::<ConnectionControl>(&state.clone()).await {
         Ok(mut control) => {
             control.should_disconnect = true;
 

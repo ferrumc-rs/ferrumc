@@ -33,12 +33,13 @@ impl PlayerInfoUpdatePacket {
     }
 
     /// The packet to be sent to all already connected players when a new player joins the server
-    pub fn new_player_join_packet(new_player_id: Entity, state: &GlobalState) -> Self {
+    pub async fn new_player_join_packet(new_player_id: Entity, state: &GlobalState) -> Self {
         let identity = state
             .universe
             .get_component_manager()
             .get::<PlayerIdentity>(new_player_id)
-            .unwrap();
+            .await
+            .expect("PlayerIdentity not found");
         let uuid = identity.uuid;
         let name = identity.username.clone();
 
@@ -49,29 +50,28 @@ impl PlayerInfoUpdatePacket {
 
     /// The packet to be sent to a new player when they join the server,
     /// To let them know about all the players that are already connected
-    pub fn existing_player_info_packet(new_player_id: Entity, state: &GlobalState) -> Self {
+    pub async fn existing_player_info_packet(new_player_id: Entity, state: &GlobalState) -> Self {
         let players = {
-            let mut players = get_all_play_players(state);
+            let mut players = get_all_play_players(state).await;
             players.retain(|&player| player != new_player_id);
 
             players
         };
 
-        let players = players
-            .into_iter()
-            .filter_map(|player| {
-                let identity = state
-                    .universe
-                    .get_component_manager()
-                    .get::<PlayerIdentity>(player)
-                    .ok()?;
+        let mut player_list = Vec::new();
+        for player in players {
+            if let Ok(identity) = state
+                .universe
+                .get_component_manager()
+                .get::<PlayerIdentity>(player)
+                .await
+            {
                 let uuid = identity.uuid;
                 let name = identity.username.clone();
-
-                Some((uuid, name))
-            })
-            .map(|(uuid, name)| PlayerWithActions::add_player(uuid, name))
-            .collect::<Vec<_>>();
+                player_list.push(PlayerWithActions::add_player(uuid, name));
+            }
+        }
+        let players = player_list;
 
         debug!("Sending PlayerInfoUpdatePacket with {:?} players", players);
 

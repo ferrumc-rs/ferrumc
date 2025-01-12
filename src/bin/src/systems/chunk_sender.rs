@@ -37,6 +37,7 @@ impl System for ChunkSenderSystem {
             let players = state
                 .universe
                 .query::<(&mut ChunkReceiver, &mut StreamWriter)>()
+                .await
                 .into_entities();
             let mut task_set: JoinSet<Result<(), ECSError>> = JoinSet::new();
             for eid in players {
@@ -45,7 +46,7 @@ impl System for ChunkSenderSystem {
                     let mut packets = Vec::new();
                     let mut centre_coords = (0, 0);
                     {
-                        let Ok(chunk_recv) = state.universe.get::<ChunkReceiver>(eid) else {
+                        let Ok(chunk_recv) = state.universe.get::<ChunkReceiver>(eid).await else {
                             trace!("A player disconnected before we could get the ChunkReceiver");
                             return Ok(());
                         };
@@ -57,7 +58,7 @@ impl System for ChunkSenderSystem {
                     // and then drop them after sending the chunks
                     let mut to_drop = Vec::new();
                     {
-                        let Ok(chunk_recv) = state.universe.get::<ChunkReceiver>(eid) else {
+                        let Ok(chunk_recv) = state.universe.get::<ChunkReceiver>(eid).await else {
                             trace!("A player disconnected before we could get the ChunkReceiver");
                             return Ok(());
                         };
@@ -69,7 +70,7 @@ impl System for ChunkSenderSystem {
                     }
                     let mut sent_chunks = 0;
                     {
-                        let Ok(chunk_recv) = state.universe.get::<ChunkReceiver>(eid) else {
+                        let Ok(chunk_recv) = state.universe.get::<ChunkReceiver>(eid).await else {
                             trace!("A player disconnected before we could get the ChunkReceiver");
                             return Ok(());
                         };
@@ -90,7 +91,7 @@ impl System for ChunkSenderSystem {
                         }
                     }
                     {
-                        let Ok(chunk_recv) = state.universe.get::<ChunkReceiver>(eid) else {
+                        let Ok(chunk_recv) = state.universe.get::<ChunkReceiver>(eid).await else {
                             trace!("A player disconnected before we could get the ChunkReceiver");
                             return Ok(());
                         };
@@ -103,7 +104,7 @@ impl System for ChunkSenderSystem {
                         if packets.is_empty() {
                             return Ok(());
                         }
-                        let Ok(mut conn) = state.universe.get_mut::<StreamWriter>(eid) else {
+                        let Ok(mut conn) = state.universe.get_mut::<StreamWriter>(eid).await else {
                             error!("Could not get StreamWriter");
                             return Ok(());
                         };

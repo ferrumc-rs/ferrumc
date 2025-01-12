@@ -8,10 +8,6 @@ pub trait QueryItem {
     type Item<'a>;
 
     async fn fetch<'a>(entity: Entity, storage: &ComponentManager) -> ECSResult<Self::Item<'a>>;
-
-    /*fn entities(
-        storage: &ComponentManager,
-    ) -> Vec<Entity>;*/
     async fn entities(storage: &ComponentManager) -> Vec<Entity>;
 }
 impl<T: Component> QueryItem for &T {
@@ -41,15 +37,15 @@ impl<T: Component> QueryItem for &mut T {
 ///
 /// The query is a way to iterate over entities that have a specific set of components. This is the
 /// primary way to interact with the ECS.
-/// 
-/// There are 2 main ways to use the query: iterating the components directly, or iterating 
+///
+/// There are 2 main ways to use the query: iterating the components directly, or iterating
 /// the entities and looking up the components.
 ///
-/// Generally you will want to iterate the components directly, as it is more efficient. It does 
+/// Generally you will want to iterate the components directly, as it is more efficient. It does
 /// however lock the component for the duration of the iteration, so if you need to do something
 /// that could take a while (database access, network access, etc) you should iterate the entities
 /// and look up the components as needed to ensure you aren't holding the locks longer than needed.
-/// 
+///
 /// ### Example
 /// Single component query:
 /// ```
@@ -68,14 +64,14 @@ impl<T: Component> QueryItem for &mut T {
 /// universe.builder().with(
 ///     Position { x: 0.0, y: 0.0 }
 /// ).await.unwrap().build();
-/// 
+///
 /// let mut query = universe.query::<&Position>().await;
-/// 
+///
 /// while let Some((entity, position)) = query.next().await {
 ///    println!("Entity: {}, Position: ({}, {})", entity, position.x, position.y);
 /// }
 /// # });
-/// 
+///
 /// ```
 /// Multiple component query:
 /// ```
@@ -84,50 +80,50 @@ impl<T: Component> QueryItem for &mut T {
 /// use ferrumc_ecs::Universe;
 ///  
 /// let universe = Universe::new();
-/// 
+///
 /// struct Position {
 ///     x: f32,
 ///     y: f32,
 /// }
-/// 
+///
 /// struct Velocity {
 ///     x: f32,
 ///     y: f32,
 /// }
-/// 
+///
 /// universe.builder().with(
 ///     Position { x: 0.0, y: 0.0 }
 /// ).await.unwrap().with(
 ///     Velocity { x: 1.0, y: 1.0 }
 /// ).await.unwrap().build();
-/// 
+///
 /// let mut query = universe.query::<(&Position, &Velocity)>().await;
-/// 
+///
 /// while let Some((entity, (position, velocity))) = query.next().await {
 ///    println!("Entity: {}, Position: ({}, {}), Velocity: ({}, {})", entity, position.x, position.y, velocity.x, velocity.y);
 /// }
 /// # });
 /// ```
-/// 
+///
 /// Look up components as needed:
 /// ```
 /// # use tokio_test;
 /// # tokio_test::block_on(async {
 /// use ferrumc_ecs::Universe;
-/// 
+///
 /// let universe = Universe::new();
-/// 
+///
 /// struct Position {
 ///    x: f32,
 ///   y: f32,
 /// }
-/// 
+///
 /// universe.builder().with(
 ///    Position { x: 0.0, y: 0.0 }
 /// ).await.unwrap().build();
-/// 
+///
 /// let mut query = universe.query::<&Position>().await.into_entities();
-/// 
+///
 /// for entity in query {
 ///     let (mut x, mut y) = (100f32, 100f32);
 ///     {
@@ -139,8 +135,8 @@ impl<T: Component> QueryItem for &mut T {
 ///    println!("Entity: {}, Position: ({}, {})", entity, x, y);   
 /// }
 /// # });
-/// ``` 
-/// 
+/// ```
+///
 /// An important note is that you have to query the ecs with a reference to the component you want to query,
 /// So`universe.query::<Position>()` will not work, you have to use `universe.query::<&Position>()`.
 pub struct Query<'a, Q: QueryItem> {
@@ -248,7 +244,7 @@ mod multi_impl {
             }
         }
     };
-}
+    }
 
     impl_query_item_tuple!(A);
     impl_query_item_tuple!(A, B);

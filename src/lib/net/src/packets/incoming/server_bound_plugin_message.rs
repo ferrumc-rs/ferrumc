@@ -38,7 +38,8 @@ impl IncomingPacket for ServerBoundPluginMessage {
 
             state
                 .universe
-                .add_component(conn_id, ClientMinecraftBrand { brand })?;
+                .add_component(conn_id, ClientMinecraftBrand { brand })
+                .await?;
         }
 
         Ok(())

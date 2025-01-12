@@ -18,20 +18,19 @@ async fn handle_tick(event: TickEvent, state: GlobalState) -> Result<TickEvent, 
 
     let packet = UpdateTimePacket::new(event.tick, event.tick % 24000);
 
-    let entities = state
+    let mut entities = Vec::new();
+    let query_result = state
         .universe
         .query::<(&mut StreamWriter, &ConnectionState)>()
-        .into_entities()
-        .into_iter()
-        .filter_map(|entity| {
-            let conn_state = state.universe.get::<ConnectionState>(entity).ok()?;
+        .await;
+
+    for entity in query_result.into_entities() {
+        if let Ok(conn_state) = state.universe.get::<ConnectionState>(entity).await {
             if matches!(*conn_state, ConnectionState::Play) {
-                Some(entity)
-            } else {
-                None
+                entities.push(entity);
             }
-        })
-        .collect::<Vec<_>>();
+        }
+    }
 
     tokio::spawn(async move {
         if let Err(e) = state

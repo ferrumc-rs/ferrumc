@@ -2,8 +2,8 @@
 ///
 /// ok but this is how it works.
 ///
-/// You've got 2 layers of maps: You got a map for mapping a type to a storage mapping, which in 
-/// turn maps an entity ID to its component of that type. You can kinda think of it as a 
+/// You've got 2 layers of maps: You got a map for mapping a type to a storage mapping, which in
+/// turn maps an entity ID to its component of that type. You can kinda think of it as a
 /// `HashMap<TypeID, HashMap<entity_id, component>>` except with more borrow checker abuse. Also
 /// sparse sets are in there somewhere, but idfk how those work, i think they are just an optimised
 /// hashmap? Ask Sweatty.
@@ -17,7 +17,6 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 
 pub mod storage;
-
 
 unsafe impl Send for ComponentManager {}
 unsafe impl Sync for ComponentManager {}
@@ -62,7 +61,7 @@ pub struct ComponentManager {
     storage: Arc<RwLock<Vec<Box<dyn ComponentStorage>>>>,
 }
 
-pub trait ComponentStorage {
+pub trait ComponentStorage: Send + Sync {
     fn as_ptr(&self) -> *const ();
     fn remove_component(&self, entity_id: usize) -> ECSResult<()>;
 }
@@ -136,7 +135,7 @@ impl ComponentManager {
     }
 
     /// Gets a mutable reference to a component from the component manager
-    /// 
+    ///
     /// You probably don't want to be using this function directly.
     pub async fn get_mut<'a, T: Component>(
         &self,
@@ -156,7 +155,7 @@ impl ComponentManager {
     }
 
     /// Removes a component from the component manager
-    /// 
+    ///
     /// You probably don't want to be using this function directly.
     pub async fn remove<T: Component>(&self, entity_id: usize) -> ECSResult<()> {
         let type_id = TypeId::of::<T>();
@@ -172,7 +171,7 @@ impl ComponentManager {
     }
 
     /// Removes all components from an entity
-    /// 
+    ///
     /// You probably don't want to be using this function directly.
     pub async fn remove_all_components(&self, entity_id: usize) -> ECSResult<()> {
         for storage in self.storage.read().await.iter() {
@@ -183,7 +182,7 @@ impl ComponentManager {
     }
 
     /// Gets all entities with a component of type `T`
-    /// 
+    ///
     /// You probably don't want to be using this function directly.
     pub async fn get_entities_with<T: Component>(&self) -> Vec<usize> {
         let type_id = TypeId::of::<T>();

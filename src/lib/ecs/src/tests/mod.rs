@@ -10,7 +10,6 @@ use std::sync::atomic::AtomicU16;
 use std::sync::Arc;
 
 #[derive(Debug, Eq, Hash, PartialEq)]
-#[expect(dead_code)]
 struct Position {
     x: u32,
     y: u32,
@@ -19,7 +18,6 @@ struct Position {
 unsafe impl Send for Position {}
 
 #[derive(Debug, Eq, Hash, PartialEq)]
-#[expect(dead_code)]
 struct Player {
     username: String,
 }
@@ -48,7 +46,7 @@ async fn test_basic() {
 
     let mut count = 0;
 
-    while let Some((player, position)) = query.next().await {
+    while let Some((_player, _position)) = query.next().await {
         count += 1;
     }
 
@@ -90,7 +88,7 @@ async fn test_query() {
 
     let mut query = Query::<(&Player, &Position)>::new(&component_storage).await;
 
-    while let Some((eid, (player, position))) = query.next().await {
+    while let Some((_eid, (player, position))) = query.next().await {
         assert!(test_values.contains(&((position.x, position.y), player.username.clone())));
     }
 }
@@ -107,7 +105,7 @@ async fn test_fetch() {
     let mut q = universe.query::<&Position>().await;
     let res = q.next().await;
     assert!(res.is_some());
-    let (eid, pos) = res.unwrap();
+    let (_eid, pos) = res.unwrap();
     assert_eq!(pos.x, 0);
     assert_eq!(pos.y, 50);
 }

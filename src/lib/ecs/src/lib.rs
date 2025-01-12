@@ -1,5 +1,7 @@
+#![allow(incomplete_features)]
 #![feature(async_iterator)]
 #![feature(random)]
+#![feature(inherent_associated_types)]
 //! Ferrumc's ECS.
 //!
 //! The easiest way to use it is with queries, check out the docs for [query::Query] for more info.
@@ -55,13 +57,14 @@ impl Universe {
     /// let entity = universe.create_entity();
     ///
     /// # });
+    /// ```
     pub fn create_entity(&self) -> Entity {
         self.entities.create_entity()
     }
 
     /// The primary way to create entities.
     ///
-    /// The is the best way to create entities, as it will ensure that the entity is created correctly.
+    /// This is the best way to create entities, as it will ensure that the entity is created correctly.
     ///
     /// ### Example
     ///

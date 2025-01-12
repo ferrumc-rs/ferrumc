@@ -1,8 +1,8 @@
-use std::sync::Arc;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use ferrumc_ecs::Universe;
 use rand::prelude::SliceRandom;
 use rand::Rng;
-use ferrumc_ecs::Universe;
+use std::sync::Arc;
 
 #[allow(dead_code)]
 struct Position {
@@ -42,20 +42,23 @@ async fn query_over_tasks(universe: Arc<Universe>) {
     let mut joinset = tokio::task::JoinSet::new();
     let test_fn = async |universe: Arc<Universe>| {
         let mut entities = universe.query::<&Position>().await.into_entities();
-        entities.shuffle( &mut rand::rng());
+        entities.shuffle(&mut rand::rng());
         for eid in entities {
-            let mut pos = universe.get_mut::<Position>(eid).await.expect("Failed to get position");
+            let mut pos = universe
+                .get_mut::<Position>(eid)
+                .await
+                .expect("Failed to get position");
             pos.x = rand::rng().random();
             pos.y = rand::rng().random();
         }
     };
-    for _ in (1..500) {
+    for _ in 1..500 {
         let universe = universe.clone();
-        joinset.spawn(async move{
+        joinset.spawn(async move {
             test_fn(universe.clone()).await;
         });
     }
-    
+
     joinset.join_all().await;
 }
 
@@ -135,7 +138,6 @@ fn criterion_benchmark(c: &mut Criterion) {
             b.to_async(tokio::runtime::Runtime::new().unwrap())
                 .iter(|| async { query_over_tasks(universe.clone()).await });
         });
-    ;
 }
 
 criterion_group!(benches, criterion_benchmark);

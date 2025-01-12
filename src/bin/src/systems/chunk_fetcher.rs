@@ -28,13 +28,17 @@ impl System for ChunkFetcher {
 
         while !self.stop.load(std::sync::atomic::Ordering::Relaxed) {
             let mut task_set: JoinSet<Result<(), BinaryError>> = JoinSet::new();
-            let players = state.universe.query::<&mut ChunkReceiver>().into_entities();
+            let players = state
+                .universe
+                .query::<&mut ChunkReceiver>()
+                .await
+                .into_entities();
             for eid in players {
                 let state = state.clone();
                 task_set.spawn(async move {
                     // Copy the chunks into a new map so we don't lock the component while fetching
                     let mut copied_chunks = {
-                        let Ok(chunk_recv) = state.universe.get::<ChunkReceiver>(eid) else {
+                        let Ok(chunk_recv) = state.universe.get::<ChunkReceiver>(eid).await else {
                             trace!("A player disconnected before we could get the ChunkReceiver");
                             return Ok(());
                         };
@@ -55,7 +59,7 @@ impl System for ChunkFetcher {
                     }
                     // Insert the fetched chunks back into the component
                     {
-                        let Ok(chunk_recv) = state.universe.get::<ChunkReceiver>(eid) else {
+                        let Ok(chunk_recv) = state.universe.get::<ChunkReceiver>(eid).await else {
                             trace!("A player disconnected before we could get the ChunkReceiver");
                             return Ok(());
                         };
