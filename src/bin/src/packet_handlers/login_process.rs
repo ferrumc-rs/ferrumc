@@ -5,7 +5,6 @@ use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_ecs::components::storage::ComponentRefMut;
 use ferrumc_ecs::entities::Entity;
-use ferrumc_events::errors::EventsError;
 use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::event_handler;
 use ferrumc_net::connection::{ConnectionState, PlayerStartLoginEvent, StreamWriter};
@@ -47,19 +46,21 @@ async fn handle_login_start(
     let event = PlayerStartLoginEvent {
         entity: login_start_event.conn_id,
         profile: PlayerIdentity::new(username.to_string(), uuid),
+        cancelled: false,
     };
 
     match PlayerStartLoginEvent::trigger(event, state.clone()).await {
         Err(NetError::Kick(msg)) => Err(NetError::Kick(msg)),
-        Err(NetError::EventsError(EventsError::Cancelled)) => Ok(login_start_event),
         Ok(event) => {
-            // Add the player identity component to the ECS for the entity.
-            ferrumc_net::connection::send_login_success(
-                state,
-                login_start_event.conn_id,
-                event.profile,
-            )
-            .await?;
+            if !event.is_cancelled() {
+                // Add the player identity component to the ECS for the entity.
+                ferrumc_net::connection::send_login_success(
+                    state,
+                    login_start_event.conn_id,
+                    event.profile,
+                )
+                .await?;
+            }
             Ok(login_start_event)
         }
         e => e.map(|_| login_start_event),

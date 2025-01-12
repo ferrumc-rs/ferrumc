@@ -1,7 +1,7 @@
 use std::{any::Any, future::Future, pin::Pin, sync::LazyLock};
 
 use dashmap::DashMap;
-use futures::{stream, StreamExt};
+use futures::{stream, StreamExt, TryStreamExt};
 
 /// A Lazily initialized HashMap wrapped in a ShardedLock optimized for reads.
 type LazyRwListenerMap<K, V> = LazyLock<DashMap<K, V>>;
@@ -52,10 +52,15 @@ impl<E: Event> Priority for EventListener<E> {
     }
 }
 
+enum EventTryError<Data, Error> {
+    Acc(Data),
+    Err(Error),
+}
+
 #[allow(async_fn_in_trait)]
 pub trait Event: Sized + Send + Sync + 'static {
     /// Event data structure
-    type Data: Send + Sync;
+    type Data: Event;
 
     /// State
     type State: Send + Sync + Clone;
@@ -65,6 +70,14 @@ pub trait Event: Sized + Send + Sync + 'static {
 
     /// Stringified name of the event
     fn name() -> &'static str;
+
+    fn is_cancelled(&self) -> bool {
+        false
+    }
+
+    fn cancel(&mut self, _value: bool) {
+        unimplemented!();
+    }
 
     /// Trigger an event execution
     ///
@@ -89,14 +102,20 @@ pub trait Event: Sized + Send + Sync + 'static {
             // Maybe some speedup?
             // Filter only listeners we can downcast into the correct type
             .filter_map(|dyn_list| async { dyn_list.downcast_ref::<EventListener<Self>>() })
+            .map(Ok)
             // Trigger listeners in a row
-            .fold(Ok(event), |intercepted, listener| {
+            .try_fold(Ok(event), |intercepted, listener| {
                 let state = state.clone();
                 async move {
-                    if intercepted.is_err() {
-                        intercepted
-                    } else {
-                        (listener.listener)(intercepted.unwrap(), state).await
+                    match intercepted {
+                        Ok(event) => {
+                            if !event.is_cancelled() {
+                                Ok((listener.listener)(event, state).await)
+                            } else {
+                                Err(EventTryError::Acc(event))
+                            }
+                        }
+                        Err(e) => Err(EventTryError::Err(e)),
                     }
                 }
             })
@@ -105,7 +124,10 @@ pub trait Event: Sized + Send + Sync + 'static {
         #[cfg(debug_assertions)]
         tracing::trace!("Event {} took {:?}", Self::name(), start.elapsed());
 
-        res
+        match res {
+            Ok(Ok(event)) | Err(EventTryError::Acc(event)) => Ok(event),
+            Ok(Err(e)) | Err(EventTryError::Err(e)) => Err(e),
+        }
     }
 
     /// Register a new event listener for this event

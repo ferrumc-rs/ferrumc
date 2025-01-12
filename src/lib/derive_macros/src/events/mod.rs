@@ -128,6 +128,32 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
         }
     };
 
+    let mut cancellable = false;
+
+    for attr in crate::helpers::get_derive_attributes(&input, "event") {
+        attr.parse_nested_meta(|meta| {
+            if meta.path.is_ident("cancellable") {
+                cancellable = true;
+                return Ok(());
+            }
+
+            Err(meta.error("unrecognized attributes"))
+        })
+        .unwrap();
+    }
+
+    let cancellable_impl = cancellable.then(|| {
+        quote! {
+            fn is_cancelled(&self) -> bool {
+                self.cancelled
+            }
+
+            fn cancel(&mut self, value: bool) {
+                self.cancelled = value;
+            }
+        }
+    });
+
     let output = quote! {
         impl ::ferrumc_events::infrastructure::Event for #name {
             type Data = Self;
@@ -137,6 +163,8 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
             fn name() -> &'static str {
                 stringify!(#name)
             }
+
+            #cancellable_impl
         }
     };
 

@@ -240,12 +240,15 @@ pub struct PlayerDisconnectEvent {
 /// a custom handshaking protocol before the player logs in using login plugin messages/etc.
 ///
 #[derive(Event, Clone)]
+#[event(cancellable)]
 pub struct PlayerStartLoginEvent {
     /// The entity that this event was fired for.
     pub entity: Entity,
 
     /// This profile can be changed and after the event is finished this will be the new profile.
     pub profile: PlayerIdentity,
+
+    pub cancelled: bool,
 }
 
 /// Since parking_lot is single-threaded, we use spawn_blocking to remove all components from the entity asynchronously (on another thread).

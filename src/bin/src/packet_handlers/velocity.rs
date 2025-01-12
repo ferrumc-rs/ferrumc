@@ -1,9 +1,10 @@
 use ferrumc_config::statics::get_global_config;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
-use ferrumc_events::{errors::EventsError, infrastructure::Event};
+use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::event_handler;
 use ferrumc_net::packets::incoming::server_bound_plugin_message::*;
 use ferrumc_net::packets::outgoing::client_bound_plugin_message::*;
+use ferrumc_net::packets::outgoing::disconnect::DISCONNECT_STRING;
 use ferrumc_net::utils::ecs_helpers::EntityExt;
 use ferrumc_net::{
     connection::{PlayerStartLoginEvent, StreamWriter},
@@ -25,7 +26,7 @@ struct VelocityMessageId(u32);
 
 #[event_handler]
 async fn handle_login_start(
-    event: PlayerStartLoginEvent,
+    mut event: PlayerStartLoginEvent,
     state: GlobalState,
 ) -> NetResult<PlayerStartLoginEvent> {
     if get_global_config().velocity.enabled {
@@ -47,7 +48,9 @@ async fn handle_login_start(
             .add_component(entity, VelocityMessageId(id))?;
 
         // this stops the packet handler from doing login success
-        Err(NetError::EventsError(EventsError::Cancelled))
+        event.cancel(true);
+
+        Ok(event)
     } else {
         Ok(event)
     }
@@ -113,10 +116,15 @@ async fn handle_velocity_response(
             let e = PlayerStartLoginEvent {
                 entity: event.entity,
                 profile: PlayerIdentity::decode(&mut buf, &NetDecodeOpts::None)?,
+                cancelled: false,
             };
 
             match PlayerStartLoginEvent::trigger(e, state.clone()).await {
                 Ok(e) => {
+                    if e.is_cancelled() {
+                        return Err(NetError::kick(DISCONNECT_STRING.to_string()));
+                    }
+
                     state
                         .universe
                         .remove_component::<VelocityMessageId>(event.entity)?;
