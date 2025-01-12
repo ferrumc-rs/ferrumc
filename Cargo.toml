@@ -88,7 +88,7 @@ ferrumc-anvil = { path = "src/lib/adapters/anvil" }
 ferrumc-config = { path = "src/lib/utils/config" }
 ferrumc-core = { path = "src/lib/core" }
 ferrumc-ecs = { path = "src/lib/ecs" }
-ferrumc-events = { path = "src/lib/events"}
+ferrumc-events = { path = "src/lib/events" }
 ferrumc-general-purpose = { path = "src/lib/utils/general_purpose" }
 ferrumc-logging = { path = "src/lib/utils/logging" }
 ferrumc-macros = { path = "src/lib/derive_macros" }
@@ -111,6 +111,8 @@ tokio = { version = "1.40.0", features = ["full"] }
 socket2 = "0.5.7"
 futures = "0.3.30"
 async-trait = "0.1.82"
+async-iterator = "2.3.0"
+tokio-test = "0.4.4"
 
 # Logging
 tracing = "0.1.40"
@@ -152,6 +154,7 @@ tinyvec = "1.8.0"
 dashmap = "6.1.0"
 uuid = { version = "1.1", features = ["v4", "v3", "serde"] }
 whirlwind = "0.1.1"
+scc = "2.2.5"
 
 # Macros
 lazy_static = "1.5.0"

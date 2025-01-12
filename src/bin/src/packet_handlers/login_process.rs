@@ -52,13 +52,14 @@ async fn handle_login_start(
         .add_component::<PlayerIdentity>(
             login_start_event.conn_id,
             PlayerIdentity::new(username.to_string(), uuid),
-        )?
+        ).await?
         /*.add_component::<ChunkReceiver>(login_start_event.conn_id, ChunkReceiver::default())?*/;
 
     //Send a Login Success Response to further the login sequence
     let mut writer = state
         .universe
-        .get_mut::<StreamWriter>(login_start_event.conn_id)?;
+        .get_mut::<StreamWriter>(login_start_event.conn_id)
+        .await?;
 
     if get_global_config().whitelist {
         let whitelist = get_whitelist();
@@ -79,7 +80,8 @@ async fn handle_login_start(
     // Add the player identity component to the ECS for the entity.
     state
         .universe
-        .add_component::<PlayerIdentity>(login_start_event.conn_id, player_identity)?;
+        .add_component::<PlayerIdentity>(login_start_event.conn_id, player_identity)
+        .await?;
 
     //Send a Login Success Response to further the login sequence
     writer
@@ -99,19 +101,23 @@ async fn handle_login_acknowledged(
 ) -> Result<LoginAcknowledgedEvent, NetError> {
     trace!("Handling Login Acknowledged event");
 
-    //Set the connection State to Configuration
-    let mut connection_state = state
-        .universe
-        .get_mut::<ConnectionState>(login_acknowledged_event.conn_id)?;
+    {
+        //Set the connection State to Configuration
+        let mut connection_state = state
+            .universe
+            .get_mut::<ConnectionState>(login_acknowledged_event.conn_id)
+            .await?;
 
-    *connection_state = ConnectionState::Configuration;
+        *connection_state = ConnectionState::Configuration;
+    }
 
     // Send packets packet
     let client_bound_known_packs = ClientBoundKnownPacksPacket::new();
 
     let mut writer = state
         .universe
-        .get_mut::<StreamWriter>(login_acknowledged_event.conn_id)?;
+        .get_mut::<StreamWriter>(login_acknowledged_event.conn_id)
+        .await?;
 
     writer
         .send_packet(&client_bound_known_packs, &NetEncodeOpts::WithLength)
@@ -129,7 +135,8 @@ async fn handle_server_bound_known_packs(
 
     let mut writer = state
         .universe
-        .get_mut::<StreamWriter>(server_bound_known_packs_event.conn_id)?;
+        .get_mut::<StreamWriter>(server_bound_known_packs_event.conn_id)
+        .await?;
 
     let registry_packets = get_registry_packets();
     writer
@@ -154,20 +161,26 @@ async fn handle_ack_finish_configuration(
     trace!("Handling Ack Finish Configuration event");
     let entity_id = ack_finish_configuration_event.conn_id;
     {
-        let mut conn_state = state.universe.get_mut::<ConnectionState>(entity_id)?;
+        {
+            let mut conn_state = state.universe.get_mut::<ConnectionState>(entity_id).await?;
 
-        *conn_state = ConnectionState::Play;
+            *conn_state = ConnectionState::Play;
+        }
 
         // add components to the entity after the connection state has been set to play.
         // to avoid wasting resources on entities that are fetching stuff like server status etc.
         state
             .universe
-            .add_component::<Position>(entity_id, Position::default())?
-            .add_component::<Rotation>(entity_id, Rotation::default())?
-            .add_component::<OnGround>(entity_id, OnGround::default())?
-            .add_component::<ChunkReceiver>(entity_id, ChunkReceiver::default())?;
+            .add_component::<Position>(entity_id, Position::default())
+            .await?
+            .add_component::<Rotation>(entity_id, Rotation::default())
+            .await?
+            .add_component::<OnGround>(entity_id, OnGround::default())
+            .await?
+            .add_component::<ChunkReceiver>(entity_id, ChunkReceiver::default())
+            .await?;
 
-        let mut writer = state.universe.get_mut::<StreamWriter>(entity_id)?;
+        let mut writer = state.universe.get_mut::<StreamWriter>(entity_id).await?;
 
         writer // 21
             .send_packet(&LoginPlayPacket::new(entity_id), &NetEncodeOpts::WithLength)
@@ -205,8 +218,8 @@ async fn handle_ack_finish_configuration(
 
         send_keep_alive(entity_id, &state, &mut writer).await?;
 
-        let pos = state.universe.get_mut::<Position>(entity_id)?;
-        let mut chunk_recv = state.universe.get_mut::<ChunkReceiver>(entity_id)?;
+        let pos = state.universe.get_mut::<Position>(entity_id).await?;
+        let mut chunk_recv = state.universe.get_mut::<ChunkReceiver>(entity_id).await?;
         chunk_recv.last_chunk = Some((pos.x as i32, pos.z as i32, String::from("overworld")));
         chunk_recv.calculate_chunks().await;
     }
@@ -230,10 +243,12 @@ async fn send_keep_alive(
 
     state
         .universe
-        .add_component::<OutgoingKeepAlivePacket>(conn_id, keep_alive_packet)?;
+        .add_component::<OutgoingKeepAlivePacket>(conn_id, keep_alive_packet)
+        .await?;
     state
         .universe
-        .add_component::<IncomingKeepAlivePacket>(conn_id, IncomingKeepAlivePacket { timestamp })?;
+        .add_component::<IncomingKeepAlivePacket>(conn_id, IncomingKeepAlivePacket { timestamp })
+        .await?;
 
     Ok(())
 }
@@ -241,7 +256,7 @@ async fn send_keep_alive(
 async fn player_info_update_packets(entity_id: Entity, state: &GlobalState) -> NetResult<()> {
     // Broadcasts a player info update packet to all players.
     {
-        let packet = PlayerInfoUpdatePacket::new_player_join_packet(entity_id, state);
+        let packet = PlayerInfoUpdatePacket::new_player_join_packet(entity_id, state).await;
 
         let start = Instant::now();
         broadcast(
@@ -258,10 +273,10 @@ async fn player_info_update_packets(entity_id: Entity, state: &GlobalState) -> N
 
     // Tell the player about all the other players that are already connected.
     {
-        let packet = PlayerInfoUpdatePacket::existing_player_info_packet(entity_id, state);
+        let packet = PlayerInfoUpdatePacket::existing_player_info_packet(entity_id, state).await;
 
         let start = Instant::now();
-        let mut writer = state.universe.get_mut::<StreamWriter>(entity_id)?;
+        let mut writer = state.universe.get_mut::<StreamWriter>(entity_id).await?;
         writer
             .send_packet(&packet, &NetEncodeOpts::WithLength)
             .await?;
@@ -272,7 +287,7 @@ async fn player_info_update_packets(entity_id: Entity, state: &GlobalState) -> N
 }
 
 async fn broadcast_spawn_entity_packet(entity_id: Entity, state: &GlobalState) -> NetResult<()> {
-    let packet = SpawnEntityPacket::player(entity_id, state)?;
+    let packet = SpawnEntityPacket::player(entity_id, state).await?;
 
     let start = Instant::now();
     broadcast(
@@ -283,10 +298,10 @@ async fn broadcast_spawn_entity_packet(entity_id: Entity, state: &GlobalState) -
     .await?;
     trace!("Broadcasting spawn entity took: {:?}", start.elapsed());
 
-    let writer = state.universe.get_mut::<StreamWriter>(entity_id)?;
-    futures::stream::iter(get_all_play_players(state))
+    let writer = state.universe.get_mut::<StreamWriter>(entity_id).await?;
+    futures::stream::iter(get_all_play_players(state).await)
         .fold(writer, |mut writer, entity| async move {
-            if let Ok(packet) = SpawnEntityPacket::player(entity, state) {
+            if let Ok(packet) = SpawnEntityPacket::player(entity, state).await {
                 let _ = writer
                     .send_packet(&packet, &NetEncodeOpts::WithLength)
                     .await;

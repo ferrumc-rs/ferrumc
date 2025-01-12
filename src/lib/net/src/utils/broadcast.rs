@@ -65,13 +65,14 @@ impl BroadcastOptions {
 }
 
 /// Get all players in the 'play' state, so the players playing the playable game.
-pub fn get_all_play_players(state: &GlobalState) -> HashSet<Entity> {
+pub async fn get_all_play_players(state: &GlobalState) -> HashSet<Entity> {
     // If it needs a chunk, then it's player!! :)
     // !!!= === =.>>> if it works dont break it
     state
         .universe
         .get_component_manager()
         .get_entities_with::<ChunkReceiver>()
+        .await
         .into_iter()
         .collect()
 }
@@ -82,7 +83,7 @@ pub async fn broadcast(
     opts: BroadcastOptions,
 ) -> NetResult<()> {
     let mut entities = match opts.only_entities {
-        None => get_all_play_players(state),
+        None => get_all_play_players(state).await,
         Some(entities) => entities,
     };
 
@@ -112,7 +113,8 @@ pub async fn broadcast(
             (state, packet, async_callback, sync_callback),
             move |(state, packet, async_callback, sync_callback), entity| {
                 async move {
-                    let Ok(mut writer) = state.universe.get_mut::<StreamWriter>(entity) else {
+                    let Ok(mut writer) = state.universe.get_mut::<StreamWriter>(entity).await
+                    else {
                         return (state, packet, async_callback, sync_callback);
                     };
 

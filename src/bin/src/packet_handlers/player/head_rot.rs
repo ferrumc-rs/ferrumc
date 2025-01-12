@@ -16,7 +16,7 @@ async fn handle_player_move(
     let entity = event.conn_id;
 
     // let pos = entity.get::<Position>(&state)?;
-    let rot = entity.get::<Rotation>(&state)?;
+    let rot = entity.get::<Rotation>(&state).await?;
     // let grounded = entity.get::<OnGround>(&state)?;
 
     // let teleport_packet = TeleportEntityPacket::new(entity, &pos, &rot, grounded.0);

@@ -39,30 +39,35 @@ impl System for KeepAliveSystem {
                 .expect("Time went backwards")
                 .as_millis() as i64;
 
-            let online_players = state.universe.query::<&PlayerIdentity>();
-            info!("Online players: {}", online_players.count());
+            let online_players = state
+                .universe
+                .query::<&PlayerIdentity>()
+                .await
+                .into_entities();
+            info!("Online players: {}", online_players.len());
 
-            let entities = state
+            let mut entities = Vec::new();
+            let query_result = state
                 .universe
                 .query::<(&mut StreamWriter, &ConnectionState)>()
-                .into_entities()
-                .into_iter()
-                .filter_map(|entity| {
-                    let conn_state = state.universe.get::<ConnectionState>(entity).ok()?;
-                    let keep_alive = state
+                .await
+                .into_entities();
+
+            for entity in query_result {
+                if let Ok(conn_state) = state.universe.get::<ConnectionState>(entity).await {
+                    if let Ok(keep_alive) = state
                         .universe
                         .get_mut::<IncomingKeepAlivePacket>(entity)
-                        .ok()?;
-
-                    if matches!(*conn_state, ConnectionState::Play)
-                        && (current_time - keep_alive.timestamp) >= 15000
+                        .await
                     {
-                        Some(entity)
-                    } else {
-                        None
+                        if matches!(*conn_state, ConnectionState::Play)
+                            && (current_time - keep_alive.timestamp) >= 15000
+                        {
+                            entities.push(entity);
+                        }
                     }
-                })
-                .collect::<Vec<_>>();
+                }
+            }
             if !entities.is_empty() {
                 trace!("there are {:?} players to keep alive", entities.len());
 
@@ -71,6 +76,7 @@ impl System for KeepAliveSystem {
                     let keep_alive = state
                         .universe
                         .get_mut::<IncomingKeepAlivePacket>(*entity)
+                        .await
                         .ok()
                         .unwrap();
 
@@ -96,18 +102,24 @@ impl System for KeepAliveSystem {
 
                 let broadcast_opts = BroadcastOptions::default()
                     .only(entities)
-                    .with_sync_callback(move |entity, state| {
-                        let Ok(mut keep_alive) =
-                            state.universe.get_mut::<OutgoingKeepAlivePacket>(entity)
-                        else {
-                            warn!(
-                                "Failed to get <OutgoingKeepAlive> component for entity {}",
-                                entity
-                            );
-                            return;
-                        };
+                    .with_async_callback(move |entity, state| {
+                        let state = state.clone();
+                        let packet = packet.clone();
+                        async move {
+                            let Ok(mut keep_alive) = state
+                                .universe
+                                .get_mut::<OutgoingKeepAlivePacket>(entity)
+                                .await
+                            else {
+                                warn!(
+                                    "Failed to get <OutgoingKeepAlive> component for entity {}",
+                                    entity
+                                );
+                                return;
+                            };
 
-                        *keep_alive = packet.clone();
+                            *keep_alive = packet.clone();
+                        }
                     });
 
                 if let Err(e) = state

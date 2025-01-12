@@ -1,4 +1,5 @@
 #![feature(proc_macro_quote)]
+#![feature(proc_macro_totokens)]
 
 use proc_macro::TokenStream;
 

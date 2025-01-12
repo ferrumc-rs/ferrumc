@@ -17,9 +17,9 @@ pub struct StatusRequestPacket {}
 
 impl IncomingPacket for StatusRequestPacket {
     async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
-        let response = StatusResponse::new(get_server_status(&state));
+        let response = StatusResponse::new(get_server_status(&state).await);
 
-        let mut writer = state.universe.get_mut::<StreamWriter>(conn_id)?;
+        let mut writer = state.universe.get_mut::<StreamWriter>(conn_id).await?;
 
         writer
             .send_packet(&response, &NetEncodeOpts::WithLength)
@@ -29,7 +29,7 @@ impl IncomingPacket for StatusRequestPacket {
     }
 }
 
-fn get_server_status(state: &Arc<ServerState>) -> String {
+async fn get_server_status(state: &Arc<ServerState>) -> String {
     mod structs {
         #[derive(serde_derive::Serialize)]
         pub(super) struct ServerStatus<'a> {
@@ -77,16 +77,20 @@ fn get_server_status(state: &Arc<ServerState>) -> String {
         protocol: 767,
     };
 
-    let online_players = state.universe.query::<&PlayerIdentity>().into_entities();
-    let online_players_sample = online_players
-        .iter()
-        .take(5)
-        .filter_map(|entity| state.universe.get::<PlayerIdentity>(*entity).ok())
-        .map(|player| structs::PlayerData {
-            name: player.username.clone(),
-            id: uuid::Uuid::from_u128(player.uuid).to_string(),
-        })
-        .collect::<Vec<_>>();
+    let online_players = state
+        .universe
+        .query::<&PlayerIdentity>()
+        .await
+        .into_entities();
+    let mut online_players_sample = Vec::new();
+    for entity in online_players.iter().take(5) {
+        if let Ok(player) = state.universe.get::<PlayerIdentity>(*entity).await {
+            online_players_sample.push(structs::PlayerData {
+                name: player.username.clone(),
+                id: uuid::Uuid::from_u128(player.uuid).to_string(),
+            });
+        }
+    }
 
     let online_players_sample = online_players_sample
         .iter()

@@ -148,7 +148,7 @@ where
     S: Subscriber + for<'lookup> LookupSpan<'lookup>,
 {
     fn on_new_span(&self, _: &Attributes<'_>, id: &Id, ctx: Context<'_, S>) {
-        if RUNNING_PROFILERS.read().len() >= 1 {
+        if !RUNNING_PROFILERS.read().is_empty() {
             match ctx.span(id) {
                 None => {
                     error!("No span found")
@@ -162,7 +162,7 @@ where
         }
     }
     fn on_close(&self, id: Id, ctx: Context<'_, S>) {
-        if RUNNING_PROFILERS.read().len() >= 1 {
+        if !RUNNING_PROFILERS.read().is_empty() {
             let instant = match ctx.span(&id) {
                 None => {
                     error!("No span found");

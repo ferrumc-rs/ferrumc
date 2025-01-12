@@ -104,17 +104,26 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
     let entity = state
         .universe
         .builder()
-        .with(StreamWriter::new(writer))?
-        .with(ConnectionState::Handshaking)?
-        .with(CompressionStatus::new())?
-        .with(ConnectionControl::new())?
+        .with(StreamWriter::new(writer))
+        .await?
+        .with(ConnectionState::Handshaking)
+        .await?
+        .with(CompressionStatus::new())
+        .await?
+        .with(ConnectionControl::new())
+        .await?
         .build();
 
     'recv: loop {
-        let compressed = state.universe.get::<CompressionStatus>(entity)?.enabled;
+        let compressed = state
+            .universe
+            .get::<CompressionStatus>(entity)
+            .await?
+            .enabled;
         let should_disconnect = state
             .universe
-            .get::<ConnectionControl>(entity)?
+            .get::<ConnectionControl>(entity)
+            .await?
             .should_disconnect;
 
         if should_disconnect {
@@ -149,7 +158,7 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
             trace!("Received packet: {:?}", packet_skele);
         }
 
-        let conn_state = state.universe.get::<ConnectionState>(entity)?.clone();
+        let conn_state = state.universe.get::<ConnectionState>(entity).await?.clone();
         if let Err(e) = handle_packet(
             packet_skele.id,
             entity,
@@ -184,7 +193,12 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
     // Remove all components from the entity
 
     // Wait until anything that might be using the entity is done
-    if let Err(e) = remove_all_components_blocking(state.clone(), entity).await {
+    if let Err(e) = state
+        .universe
+        .get_component_manager()
+        .remove_all_components(entity)
+        .await
+    {
         warn!("Failed to remove all components from entity: {:?}", e);
     }
 
@@ -196,12 +210,4 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
 #[derive(Event)]
 pub struct PlayerDisconnectEvent {
     pub entity_id: usize,
-}
-
-/// Since parking_lot is single-threaded, we use spawn_blocking to remove all components from the entity asynchronously (on another thread).
-async fn remove_all_components_blocking(state: Arc<ServerState>, entity: usize) -> NetResult<()> {
-    let res =
-        tokio::task::spawn_blocking(move || state.universe.remove_all_components(entity)).await?;
-
-    Ok(res?)
 }

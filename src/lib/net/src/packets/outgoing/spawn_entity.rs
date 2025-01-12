@@ -31,10 +31,10 @@ pub struct SpawnEntityPacket {
 const PLAYER_ID: u64 = get_registry_entry!("minecraft:entity_type.entries.minecraft:player");
 
 impl SpawnEntityPacket {
-    pub fn player(entity_id: Entity, state: &GlobalState) -> NetResult<Self> {
-        let player_identity = entity_id.get::<PlayerIdentity>(state)?;
-        let position = entity_id.get::<Position>(state)?;
-        let rotation = entity_id.get::<Rotation>(state)?;
+    pub async fn player(entity_id: Entity, state: &GlobalState) -> NetResult<Self> {
+        let player_identity = entity_id.get::<PlayerIdentity>(state).await?;
+        let position = entity_id.get::<Position>(state).await?;
+        let rotation = entity_id.get::<Rotation>(state).await?;
 
         Ok(Self {
             entity_id: VarInt::new(entity_id as i32),

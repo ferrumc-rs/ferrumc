@@ -9,6 +9,9 @@ pub trait Component: 'static {}
 
 impl<T: 'static> Component for T {}
 
+unsafe impl<C: Component> Send for ComponentSparseSet<C> {}
+unsafe impl<C: Component> Sync for ComponentSparseSet<C> {}
+
 pub struct ComponentSparseSet<C: Component> {
     components: DashMap<usize, C>,
 }
@@ -54,6 +57,8 @@ impl<C: Component> ComponentSparseSet<C> {
 
     pub fn remove(&self, entity_id: usize) -> ECSResult<()> {
         //! It will deadlock in the situation of a deadlock.
+
+        //! Yeah, no shit dude
         self.components.remove(&entity_id);
 
         Ok(())

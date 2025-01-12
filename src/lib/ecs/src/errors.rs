@@ -12,4 +12,6 @@ pub enum ECSError {
     ComponentRetrievalError,
     #[error("Component removal error")]
     ComponentRemovalError,
+    #[error("Component insertion error")]
+    ComponentInsertionError,
 }

@@ -35,7 +35,7 @@ impl TcpListenerSystem {
             let (stream, _) = tcp_listener.accept().await?;
             let addy = stream.peer_addr()?;
             tokio::task::spawn(
-                handle_connection(Arc::clone(&state), stream)
+                handle_connection(state.clone(), stream)
                     .instrument(info_span!("conn", %addy).or_current()),
             );
         }

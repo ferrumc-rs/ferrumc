@@ -29,7 +29,7 @@ async fn handle_player_move(
     if let Some(ref new_position) = event.position {
         trace!("Getting chunk_recv 1 for player move");
         {
-            let mut chunk_recv = state.universe.get_mut::<ChunkReceiver>(conn_id)?;
+            let mut chunk_recv = state.universe.get_mut::<ChunkReceiver>(conn_id).await?;
             trace!("Got chunk_recv 1 for player move");
             if let Some(last_chunk) = &chunk_recv.last_chunk {
                 let new_chunk = (
@@ -52,7 +52,7 @@ async fn handle_player_move(
         }
 
         trace!("Getting position 1 for player move");
-        let mut position = conn_id.get_mut::<Position>(&state)?;
+        let mut position = conn_id.get_mut::<Position>(&state).await?;
         trace!("Got position 1 for player move");
 
         delta_pos = Some((
@@ -66,7 +66,7 @@ async fn handle_player_move(
 
     if let Some(ref new_rotation) = event.rotation {
         trace!("Getting rotation 1 for player move");
-        let mut rotation = conn_id.get_mut::<Rotation>(&state)?;
+        let mut rotation = conn_id.get_mut::<Rotation>(&state).await?;
         trace!("Got rotation 1 for player move");
 
         let new_rotation = Rotation::new(new_rotation.yaw, new_rotation.pitch);
@@ -77,7 +77,7 @@ async fn handle_player_move(
 
     if let Some(new_grounded) = event.on_ground {
         trace!("Getting on_ground 1 for player move");
-        let mut on_ground = conn_id.get_mut::<OnGround>(&state)?;
+        let mut on_ground = conn_id.get_mut::<OnGround>(&state).await?;
         trace!("Got on_ground 1 for player move");
 
         *on_ground = OnGround(new_grounded);
@@ -102,7 +102,7 @@ async fn update_pos_for_all(
     new_rot: Option<Rotation>,
     state: &GlobalState,
 ) -> NetResult<()> {
-    let is_grounded = entity_id.get::<OnGround>(state)?.0;
+    let is_grounded = entity_id.get::<OnGround>(state).await?.0;
 
     // If any delta of (x|y|z) exceeds 7.5, then it's "not recommended" to use this packet
     // As docs say: "If the movement exceeds these limits, Teleport Entity should be sent instead."
@@ -116,9 +116,9 @@ async fn update_pos_for_all(
     };
 
     let packet: BroadcastMovementPacket = if delta_exceeds_threshold {
-        let pos = entity_id.get::<Position>(state)?;
-        let rot = entity_id.get::<Rotation>(state)?;
-        let grounded = entity_id.get::<OnGround>(state)?.0;
+        let pos = entity_id.get::<Position>(state).await?;
+        let rot = entity_id.get::<Rotation>(state).await?;
+        let grounded = entity_id.get::<OnGround>(state).await?.0;
 
         BroadcastMovementPacket::TeleportEntity(TeleportEntityPacket::new(
             entity_id, &pos, &rot, grounded,
