@@ -12,7 +12,7 @@ use tokio::io::AsyncWriteExt;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tokio::net::TcpStream;
 use tokio::time::timeout;
-use tracing::{debug, debug_span, info, trace, warn, Instrument};
+use tracing::{debug, debug_span, trace, warn, Instrument};
 
 #[derive(Debug)]
 pub struct ConnectionControl {
