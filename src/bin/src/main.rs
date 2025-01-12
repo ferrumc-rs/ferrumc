@@ -15,6 +15,7 @@ use ferrumc_state::ServerState;
 use ferrumc_world::World;
 use std::hash::{Hash, Hasher};
 use std::sync::Arc;
+use tokio::runtime::Handle;
 use systems::definition;
 use tracing::{error, info, trace};
 
@@ -26,7 +27,8 @@ mod systems;
 
 pub type Result<T> = std::result::Result<T, BinaryError>;
 
-#[tokio::main]
+// #[tokio::main(flavor = "current_thread")]
+#[tokio::main(flavor = "multi_thread")]
 async fn main() {
     let cli_args = CLIArgs::parse();
     ferrumc_logging::init_logging(cli_args.log.into());
@@ -43,6 +45,10 @@ async fn main() {
         let digest = hasher.finish();
         trace!("StreamWriter: {:X}", digest);
     }
+
+    let current_active_threads = Handle::current().metrics().num_workers();
+    
+    info!("FERRUMC IS USING {} THREAD(s)", current_active_threads);
 
     match cli_args.command {
         Some(Command::Setup) => {

@@ -109,37 +109,37 @@ impl System for ChunkSenderSystem {
                         };
                         if let Err(e) = conn
                             .send_packet(
-                                &SetCenterChunk {
+                                SetCenterChunk {
                                     x: VarInt::new(centre_coords.0),
                                     z: VarInt::new(centre_coords.1),
                                 },
                                 &NetEncodeOpts::WithLength,
                             )
-                            .await
+                            
                         {
                             error!("Error sending chunk: {:?}", e);
                         }
                         if let Err(e) = conn
-                            .send_packet(&ChunkBatchStart {}, &NetEncodeOpts::WithLength)
-                            .await
+                            .send_packet(ChunkBatchStart {}, &NetEncodeOpts::WithLength)
+                            
                         {
                             error!("Error sending chunk: {:?}", e);
                         }
                         for packet in packets {
                             if let Err(e) =
-                                conn.send_packet(&packet, &NetEncodeOpts::WithLength).await
+                                conn.send_packet(packet, &NetEncodeOpts::WithLength)
                             {
                                 error!("Error sending chunk: {:?}", e);
                             }
                         }
                         if let Err(e) = conn
                             .send_packet(
-                                &ChunkBatchFinish {
+                                ChunkBatchFinish {
                                     batch_size: VarInt::new(sent_chunks),
                                 },
                                 &NetEncodeOpts::WithLength,
                             )
-                            .await
+                            
                         {
                             error!("Error sending chunk: {:?}", e);
                         }

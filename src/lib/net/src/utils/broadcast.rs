@@ -116,7 +116,7 @@ pub async fn broadcast(
                         return (state, packet, async_callback, sync_callback);
                     };
 
-                    if let Err(e) = writer.send_packet(&packet, &NetEncodeOpts::None).await {
+                    if let Err(e) = writer.send_packet(packet.clone(), &NetEncodeOpts::None) {
                         debug!("Error sending packet: {}", e);
                     }
 

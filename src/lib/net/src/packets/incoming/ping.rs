@@ -20,8 +20,7 @@ impl IncomingPacket for PingPacket {
         let mut writer = state.universe.get_mut::<StreamWriter>(conn_id)?;
 
         writer
-            .send_packet(&response, &NetEncodeOpts::WithLength)
-            .await?;
+            .send_packet(response, &NetEncodeOpts::WithLength)?;
 
         Ok(())
     }
