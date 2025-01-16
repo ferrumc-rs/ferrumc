@@ -71,7 +71,6 @@ impl StreamWriter {
         // Spawn a background thread
 
         tokio::spawn(async move {
-            
             while let Some(bytes) = receiver.recv().await {
                 if let Err(e) = writer.write_all(&bytes).await {
                     warn!("Failed to write to writer: {:?}", e);
