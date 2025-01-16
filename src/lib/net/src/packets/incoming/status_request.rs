@@ -21,8 +21,7 @@ impl IncomingPacket for StatusRequestPacket {
 
         let mut writer = state.universe.get_mut::<StreamWriter>(conn_id)?;
 
-        writer
-            .send_packet(response, &NetEncodeOpts::WithLength)?;
+        writer.send_packet(response, &NetEncodeOpts::WithLength)?;
 
         Ok(())
     }

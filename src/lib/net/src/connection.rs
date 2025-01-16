@@ -87,16 +87,15 @@ impl StreamWriter {
         packet: impl NetEncode + Send,
         net_encode_opts: &NetEncodeOpts,
     ) -> NetResult<()> {
-
         let bytes = {
             let mut buffer = Vec::new();
             packet.encode(&mut buffer, net_encode_opts)?;
             buffer
         };
 
-        self.sender.send(bytes).map_err(|e| {
-            std::io::Error::new(std::io::ErrorKind::Other, e)
-        })?;
+        self.sender
+            .send(bytes)
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
         Ok(())
     }
 }

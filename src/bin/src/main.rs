@@ -15,8 +15,8 @@ use ferrumc_state::ServerState;
 use ferrumc_world::World;
 use std::hash::{Hash, Hasher};
 use std::sync::Arc;
-use tokio::runtime::Handle;
 use systems::definition;
+use tokio::runtime::Handle;
 use tracing::{error, info, trace};
 
 pub(crate) mod errors;
@@ -47,7 +47,7 @@ async fn main() {
     }
 
     let current_active_threads = Handle::current().metrics().num_workers();
-    
+
     info!("FERRUMC IS USING {} THREAD(s)", current_active_threads);
 
     match cli_args.command {
