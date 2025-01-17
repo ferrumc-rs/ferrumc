@@ -40,7 +40,7 @@ impl System for ChunkFetcher {
                         };
                         let mut copied_chunks = HashMap::new();
                         for chunk in chunk_recv.needed_chunks.iter() {
-                            let (key, chunk) = chunk.pair();
+                            let (key, chunk) = chunk;
                             if chunk.is_none() {
                                 copied_chunks.insert(key.clone(), None);
                             }
@@ -55,7 +55,7 @@ impl System for ChunkFetcher {
                     }
                     // Insert the fetched chunks back into the component
                     {
-                        let Ok(chunk_recv) = state.universe.get::<ChunkReceiver>(eid) else {
+                        let Ok(mut chunk_recv) = state.universe.get_mut::<ChunkReceiver>(eid) else {
                             trace!("A player disconnected before we could get the ChunkReceiver");
                             return Ok(());
                         };
