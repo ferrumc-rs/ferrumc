@@ -55,7 +55,8 @@ impl System for ChunkFetcher {
                     }
                     // Insert the fetched chunks back into the component
                     {
-                        let Ok(mut chunk_recv) = state.universe.get_mut::<ChunkReceiver>(eid) else {
+                        let Ok(mut chunk_recv) = state.universe.get_mut::<ChunkReceiver>(eid)
+                        else {
                             trace!("A player disconnected before we could get the ChunkReceiver");
                             return Ok(());
                         };

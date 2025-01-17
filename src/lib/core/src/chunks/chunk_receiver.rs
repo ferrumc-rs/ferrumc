@@ -1,6 +1,6 @@
-use std::collections::{HashMap, HashSet};
 use dashmap::{DashMap, DashSet};
 use ferrumc_world::chunk_format::Chunk;
+use std::collections::{HashMap, HashSet};
 use tokio::time::Instant;
 
 const VIEW_DISTANCE: i32 = 8;

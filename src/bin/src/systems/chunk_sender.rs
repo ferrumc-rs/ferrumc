@@ -69,7 +69,8 @@ impl System for ChunkSenderSystem {
                     }
                     let mut sent_chunks = 0;
                     {
-                        let Ok(mut chunk_recv) = state.universe.get_mut::<ChunkReceiver>(eid) else {
+                        let Ok(mut chunk_recv) = state.universe.get_mut::<ChunkReceiver>(eid)
+                        else {
                             trace!("A player disconnected before we could get the ChunkReceiver");
                             return Ok(());
                         };
@@ -90,7 +91,8 @@ impl System for ChunkSenderSystem {
                         }
                     }
                     {
-                        let Ok(mut chunk_recv) = state.universe.get_mut::<ChunkReceiver>(eid) else {
+                        let Ok(mut chunk_recv) = state.universe.get_mut::<ChunkReceiver>(eid)
+                        else {
                             trace!("A player disconnected before we could get the ChunkReceiver");
                             return Ok(());
                         };
