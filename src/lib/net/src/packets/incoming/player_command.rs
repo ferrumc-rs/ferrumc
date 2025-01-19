@@ -9,7 +9,7 @@ use std::sync::Arc;
 
 // Mojang surely has SOME naming schemes.. commands??
 #[derive(NetDecode)]
-#[packet(packet_id = 0x25, state = "play")]
+#[packet(packet_id = "player_command", state = "play")]
 pub struct PlayerCommandPacket {
     entity_id: VarInt,
     // Originally: Action Id = VarInt Enum

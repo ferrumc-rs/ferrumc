@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use ferrumc_net::{
-    NetResult, connection::StreamWriter, packets::outgoing::system_message::SystemMessagePacket,
+    connection::StreamWriter, packets::outgoing::system_message::SystemMessagePacket, NetResult,
 };
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::GlobalState;

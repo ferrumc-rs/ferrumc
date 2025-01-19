@@ -9,7 +9,7 @@ use ferrumc_state::ServerState;
 use std::sync::Arc;
 
 #[derive(NetDecode)]
-#[packet(packet_id = 0x36, state = "play")]
+#[packet(packet_id = "swing", state = "play")]
 pub struct SwingArmPacket {
     hand: VarInt,
 }

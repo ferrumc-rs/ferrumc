@@ -2,7 +2,7 @@ use ferrumc_macros::{packet, NetEncode};
 use std::io::Write;
 
 #[derive(NetEncode)]
-#[packet(packet_id = 0x03)]
+#[packet(packet_id = "finish_configuration", state = "configuration")]
 pub struct FinishConfigurationPacket;
 
 impl Default for FinishConfigurationPacket {

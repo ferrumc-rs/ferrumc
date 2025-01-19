@@ -203,7 +203,7 @@ async fn handle_ack_finish_configuration(
                 &NetEncodeOpts::WithLength,
             )
             .await?;
-      
+
         trace!(
             "Sending command graph: {:#?}",
             ferrumc_commands::infrastructure::get_graph()
