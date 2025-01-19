@@ -1,5 +1,5 @@
 use proc_macro::TokenStream;
-use quote::{ToTokens, quote};
+use quote::{quote, ToTokens};
 
 #[allow(unused_variables)]
 pub fn profile_fn(attr: TokenStream, item: TokenStream) -> TokenStream {
