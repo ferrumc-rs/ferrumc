@@ -2,6 +2,7 @@
 
 use proc_macro::TokenStream;
 
+mod commands;
 mod events;
 mod helpers;
 mod nbt;
@@ -68,6 +69,16 @@ pub fn get_packet_entry(input: TokenStream) -> TokenStream {
     static_loading::packets::get(input)
 }
 // #=================== PACKETS ===================#
+
+#[proc_macro_attribute]
+pub fn command(attr: TokenStream, input: TokenStream) -> TokenStream {
+    commands::command(attr, input)
+}
+
+#[proc_macro_attribute]
+pub fn arg(attr: TokenStream, input: TokenStream) -> TokenStream {
+    commands::arg(attr, input)
+}
 
 /// Get a registry entry from the registries.json file.
 /// returns protocol_id (as u64) of the specified entry.

@@ -78,6 +78,9 @@ async fn entry() -> Result<()> {
     let global_state = Arc::new(state);
     create_whitelist().await;
 
+    // Needed for some reason because ctor doesn't really want to do ctor things otherwise.
+    ferrumc_default_commands::init();
+
     let all_system_handles = tokio::spawn(definition::start_all_systems(global_state.clone()));
 
     //Start the systems and wait until all of them are done

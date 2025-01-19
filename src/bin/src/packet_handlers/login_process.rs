@@ -1,3 +1,4 @@
+use ferrumc_commands::graph::CommandsPacket;
 use ferrumc_config::statics::{get_global_config, get_whitelist};
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
@@ -201,6 +202,14 @@ async fn handle_ack_finish_configuration(
                 &SetRenderDistance::new(5), // TODO
                 &NetEncodeOpts::WithLength,
             )
+            .await?;
+
+        trace!(
+            "Sending command graph: {:#?}",
+            ferrumc_commands::infrastructure::get_graph()
+        );
+        writer
+            .send_packet(&CommandsPacket::create(), &NetEncodeOpts::WithLength)
             .await?;
 
         send_keep_alive(entity_id, &state, &mut writer).await?;
