@@ -89,13 +89,6 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
         let path = entry.path();
         let file_name = path.file_name().expect("file_name failed").to_os_string();
 
-        println!(
-            "   {} {}",
-            "[FERRUMC_MACROS]".bold().blue(),
-            format!("Parsing file: {}", file_name.to_string_lossy())
-                .white()
-                .bold()
-        );
 
         if !path.is_file() {
             continue;

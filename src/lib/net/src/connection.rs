@@ -7,6 +7,7 @@ use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::ServerState;
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 use tokio::io::AsyncWriteExt;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
@@ -64,22 +65,39 @@ impl StreamReader {
 
 pub struct StreamWriter {
     sender: tokio::sync::mpsc::UnboundedSender<Vec<u8>>,
+    running: Arc<AtomicBool>
+}
+impl Drop for StreamWriter {
+    fn drop(&mut self) {
+        self.running.store(false, Ordering::Relaxed);
+    }
 }
 impl StreamWriter {
     pub fn new(mut writer: OwnedWriteHalf) -> Self {
         let (sender, mut receiver) = tokio::sync::mpsc::unbounded_channel::<Vec<u8>>();
-        // Spawn a background thread
+        let running = Arc::new(AtomicBool::new(true));
 
-        tokio::spawn(async move {
-            while let Some(bytes) = receiver.recv().await {
-                if let Err(e) = writer.write_all(&bytes).await {
-                    warn!("Failed to write to writer: {:?}", e);
-                    break;
+        // Spawn a task to write to the writer using the channel
+        tokio::spawn({
+            let running = Arc::clone(&running);
+            async move {
+                while running.load(Ordering::Relaxed) {
+                    let Some(bytes) = receiver.recv().await else {
+                        break;
+                    };
+
+                    if let Err(e) = writer.write_all(&bytes).await {
+                        warn!("Failed to write to writer: {:?}", e);
+                        break;
+                    }
                 }
             }
         });
 
-        Self { sender }
+        Self {
+            sender,
+            running
+        }
     }
 
     pub fn send_packet(
