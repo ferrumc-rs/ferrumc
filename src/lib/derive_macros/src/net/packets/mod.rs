@@ -89,7 +89,6 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
         let path = entry.path();
         let file_name = path.file_name().expect("file_name failed").to_os_string();
 
-
         if !path.is_file() {
             continue;
         }

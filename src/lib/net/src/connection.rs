@@ -6,8 +6,8 @@ use ferrumc_macros::Event;
 use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::ServerState;
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 use std::time::Duration;
 use tokio::io::AsyncWriteExt;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
@@ -65,7 +65,7 @@ impl StreamReader {
 
 pub struct StreamWriter {
     sender: tokio::sync::mpsc::UnboundedSender<Vec<u8>>,
-    running: Arc<AtomicBool>
+    running: Arc<AtomicBool>,
 }
 impl Drop for StreamWriter {
     fn drop(&mut self) {
@@ -94,10 +94,7 @@ impl StreamWriter {
             }
         });
 
-        Self {
-            sender,
-            running
-        }
+        Self { sender, running }
     }
 
     pub fn send_packet(
