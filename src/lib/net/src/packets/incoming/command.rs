@@ -7,7 +7,7 @@ use ferrumc_state::ServerState;
 use crate::{packets::IncomingPacket, NetResult};
 
 #[derive(NetDecode, Debug, Clone)]
-#[packet(packet_id = 0x04, state = "play")]
+#[packet(packet_id = "chat_command", state = "play")]
 pub struct ChatCommandPacket {
     command: String,
 }

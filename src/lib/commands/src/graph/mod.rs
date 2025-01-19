@@ -250,7 +250,7 @@ impl CommandGraph {
 }
 
 #[derive(NetEncode, Debug)]
-#[packet(packet_id = 0x11)]
+#[packet(packet_id = "commands", state = "play")]
 pub struct CommandsPacket {
     pub graph: LengthPrefixedVec<CommandNode>,
     pub root_idx: VarInt,

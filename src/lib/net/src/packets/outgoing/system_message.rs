@@ -3,7 +3,7 @@ use ferrumc_text::TextComponent;
 use std::io::Write;
 
 #[derive(NetEncode, Debug, Clone)]
-#[packet(packet_id = 0x6c)]
+#[packet(packet_id = "system_chat", state = "play")]
 pub struct SystemMessagePacket {
     message: TextComponent,
     overlay: bool,
