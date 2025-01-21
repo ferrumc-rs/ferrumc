@@ -1,0 +1,28 @@
+name: Run nix checks on prs
+
+on:
+  pull_request:
+    branches: [ "master", "rewrite/v3" ]
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  check:
+    name: Check Nix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - name: Check flake.lock
+        uses: DeterminateSystems/flake-checker-action@main
+        with:
+          fail-mode: true
+      - name: Check Nix formatting 
+        run: nix flake check
