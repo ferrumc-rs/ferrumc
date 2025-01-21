@@ -66,7 +66,6 @@ pub fn write_nbit_u32(
     Ok(())
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;

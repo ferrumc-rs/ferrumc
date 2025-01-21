@@ -4,6 +4,7 @@ use crate::errors::WorldError::InvalidBlockStateData;
 use crate::vanilla_chunk_format::BlockData;
 use crate::World;
 use std::cmp::max;
+use tracing::debug;
 
 impl World {
     /// Asynchronously retrieves the block data at the specified coordinates in the given dimension.
@@ -103,8 +104,10 @@ impl World {
             .get_mut(&old_block)
             .expect("Block not found");
         *old_block_count -= 1;
-        if *old_block_count == 0 {
+        let mut remove_old_block = false;
+        if *old_block_count <= 0 {
             section.block_states.block_counts.remove(&old_block);
+            remove_old_block = true;
         }
         let block_id = BLOCK2ID
             .get(&block)
@@ -115,30 +118,18 @@ impl World {
         } else {
             section.block_states.block_counts.insert(block, 1);
         }
-        // Check if we need to resize bits_per_block
-        let new_bits_per_block = max(
-            (section.block_states.block_counts.len() as f32)
-                .log2()
-                .ceil() as u8,
-            4,
-        );
-        if new_bits_per_block != bits_per_block {
-            section.block_states.resize(new_bits_per_block as usize)?;
-            bits_per_block = new_bits_per_block;
-        }
         // Get block index
-        let mut block_palette_index = -1i16;
-        for (index, palette) in section.block_states.palette.iter().enumerate() {
-            if palette.val == *block_id {
-                block_palette_index = index as i16;
-                break;
-            }
-        }
-        // Add block to palette if it doesn't exist
-        if block_palette_index == -1 {
-            block_palette_index = section.block_states.palette.len() as i16;
-            section.block_states.palette.push((*block_id).into());
-        }
+        let block_palette_index = section
+            .block_states
+            .palette
+            .iter()
+            .position(|p| p.val == *block_id)
+            .unwrap_or_else(|| {
+                // Add block to palette if it doesn't exist
+                let index = section.block_states.palette.len() as i16;
+                section.block_states.palette.push((*block_id).into());
+                index as usize
+            });
         // Set block
         let blocks_per_i64 = (64f64 / bits_per_block as f64).floor() as usize;
         let index = ((y & 0xf) * 256 + (z & 0xf) * 16 + (x & 0xf)) as usize;
@@ -164,9 +155,55 @@ impl World {
                 e
             )));
         }
+        // Remove empty palette entries
+        if remove_old_block {
+            debug!("Removing empty palette entry");
+            // remove old block from palette
+            let old_block_id = BLOCK2ID.get(&old_block).unwrap();
+            let old_block_palette_index = section
+                .block_states
+                .palette
+                .iter()
+                .position(|p| p.val == *old_block_id)
+                .expect("Old block not found in palette");
+            section.block_states.palette.remove(old_block_palette_index);
+            // go through the block data and decrement the index of all blocks greater than the one we removed
+            for data in &mut section.block_states.data {
+                let mut i = 0;
+                while (i + bits_per_block as usize) < 64 {
+                    let block_index = ferrumc_general_purpose::data_packing::u32::read_nbit_u32(
+                        data,
+                        bits_per_block as u8,
+                        i as u32,
+                    )?;
+                    if block_index > old_block_palette_index as u32 {
+                        ferrumc_general_purpose::data_packing::u32::write_nbit_u32(
+                            data,
+                            i as u32,
+                            block_index - 1,
+                            bits_per_block,
+                        )?;
+                    }
+                    i += bits_per_block as usize;
+                }
+            }
+        }
+
+        // Check if we need to resize bits_per_block
+        let new_bits_per_block = max(
+            (section.block_states.block_counts.len() as f32)
+                .log2()
+                .ceil() as u8,
+            4,
+        );
+        if new_bits_per_block != bits_per_block {
+            section.block_states.resize(new_bits_per_block as usize)?;
+            bits_per_block = new_bits_per_block;
+        }
+        section.block_states.bits_per_block = bits_per_block;
+
         // Save chunk
         self.save_chunk(chunk).await?;
-        // TODO: Remove empty palette entries
         Ok(())
     }
 }

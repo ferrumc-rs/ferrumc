@@ -19,3 +19,5 @@ pub mod set_player_rotation;
 pub mod swing_arm;
 
 pub mod chunk_batch_ack;
+
+pub mod player_action;

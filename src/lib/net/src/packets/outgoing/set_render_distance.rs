@@ -8,7 +8,7 @@ pub struct SetRenderDistance {
     pub distance: VarInt,
 }
 
-const DEFAULT_RENDER_DISTANCE: u8 = 18;
+const DEFAULT_RENDER_DISTANCE: u8 = 5;
 
 impl Default for SetRenderDistance {
     fn default() -> Self {

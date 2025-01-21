@@ -3,11 +3,11 @@ use crate::packets::outgoing::synchronize_player_position::SynchronizePlayerPosi
 use crate::packets::IncomingPacket;
 use crate::NetResult;
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
+use ferrumc_core::transform::position::Position;
 use ferrumc_macros::{packet, NetDecode};
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::ServerState;
 use std::sync::Arc;
-use ferrumc_core::transform::position::Position;
 
 #[derive(NetDecode)]
 #[packet(packet_id = "chunk_batch_received", state = "play")]
@@ -44,7 +44,6 @@ impl IncomingPacket for ChunkBatchAck {
             if head_block.name == "minecraft:air" {
                 move_to_spawn = false;
             }
-            
         }
         if move_to_spawn {
             let mut conn = state.universe.get_mut::<StreamWriter>(conn_id)?;
