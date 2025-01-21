@@ -1,4 +1,4 @@
-use proc_macro::{TokenStream};
+use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
 
 #[allow(unused_variables)]

@@ -88,9 +88,7 @@ async fn handle_login_acknowledged(
         .universe
         .get_mut::<StreamWriter>(login_acknowledged_event.conn_id)?;
 
-    writer
-        .send_packet(&client_bound_known_packs, &NetEncodeOpts::WithLength)
-        .await?;
+    writer.send_packet(client_bound_known_packs, &NetEncodeOpts::WithLength)?;
 
     Ok(login_acknowledged_event)
 }
@@ -107,16 +105,9 @@ async fn handle_server_bound_known_packs(
         .get_mut::<StreamWriter>(server_bound_known_packs_event.conn_id)?;
 
     let registry_packets = get_registry_packets();
-    writer
-        .send_packet(&registry_packets, &NetEncodeOpts::None)
-        .await?;
+    writer.send_packet(registry_packets, &NetEncodeOpts::None)?;
 
-    writer
-        .send_packet(
-            &FinishConfigurationPacket::new(),
-            &NetEncodeOpts::WithLength,
-        )
-        .await?;
+    writer.send_packet(FinishConfigurationPacket::new(), &NetEncodeOpts::WithLength)?;
 
     Ok(server_bound_known_packs_event)
 }
@@ -152,44 +143,32 @@ async fn handle_ack_finish_configuration(
 
         let mut writer = state.universe.get_mut::<StreamWriter>(entity_id)?;
 
-        writer // 21
-            .send_packet(&LoginPlayPacket::new(entity_id), &NetEncodeOpts::WithLength)
-            .await?;
-        writer // 29
-            .send_packet(
-                &SynchronizePlayerPositionPacket::from_player(entity_id, state.clone())?, // The coordinates here should be used for the center chunk.
-                &NetEncodeOpts::WithLength,
-            )
-            .await?;
-        writer // 37
-            .send_packet(
-                &SetDefaultSpawnPositionPacket::default(), // Player specific, aka. home, bed, where it would respawn.
-                &NetEncodeOpts::WithLength,
-            )
-            .await?;
-        writer // 38
-            .send_packet(
-                &GameEventPacket::start_waiting_for_level_chunks(),
-                &NetEncodeOpts::WithLength,
-            )
-            .await?;
-        writer // 41
-            .send_packet(
-                &SetCenterChunk::new(0, 0), // TODO - Dependent on the player spawn position.
-                &NetEncodeOpts::WithLength,
-            )
-            .await?;
-        writer // other
-            .send_packet(
-                &SetRenderDistance::new(5), // TODO
-                &NetEncodeOpts::WithLength,
-            )
-            .await?;
+        writer.send_packet(LoginPlayPacket::new(entity_id), &NetEncodeOpts::WithLength)?;
+        writer.send_packet(
+            SynchronizePlayerPositionPacket::from_player(entity_id, state.clone())?, // The coordinates here should be used for the center chunk.
+            &NetEncodeOpts::WithLength,
+        )?;
+        writer.send_packet(
+            SetDefaultSpawnPositionPacket::default(), // Player specific, aka. home, bed, where it would respawn.
+            &NetEncodeOpts::WithLength,
+        )?;
+        writer.send_packet(
+            GameEventPacket::start_waiting_for_level_chunks(),
+            &NetEncodeOpts::WithLength,
+        )?;
+        writer.send_packet(
+            SetCenterChunk::new(0, 0), // TODO - Dependent on the player spawn position.
+            &NetEncodeOpts::WithLength,
+        )?;
+        writer.send_packet(
+            SetRenderDistance::new(5), // TODO
+            &NetEncodeOpts::WithLength,
+        )?;
 
         send_keep_alive(entity_id, &state, &mut writer).await?;
 
         if let Some(ref chunk) = chunk {
-            writer.send_packet(&ferrumc_net::packets::outgoing::chunk_and_light_data::ChunkAndLightData::from_chunk(chunk)?, &NetEncodeOpts::WithLength).await?;
+            writer.send_packet(ferrumc_net::packets::outgoing::chunk_and_light_data::ChunkAndLightData::from_chunk(chunk)?, &NetEncodeOpts::WithLength)?;
         }
     }
 
@@ -211,9 +190,7 @@ async fn send_keep_alive(
     writer: &mut ComponentRefMut<'_, StreamWriter>,
 ) -> Result<(), NetError> {
     let keep_alive_packet = OutgoingKeepAlivePacket::default();
-    writer
-        .send_packet(&keep_alive_packet, &NetEncodeOpts::WithLength)
-        .await?;
+    writer.send_packet(keep_alive_packet.clone(), &NetEncodeOpts::WithLength)?;
 
     let timestamp = keep_alive_packet.timestamp;
 
@@ -246,9 +223,7 @@ async fn player_info_update_packets(entity_id: Entity, state: &GlobalState) -> N
 
         let start = Instant::now();
         let mut writer = state.universe.get_mut::<StreamWriter>(entity_id)?;
-        writer
-            .send_packet(&packet, &NetEncodeOpts::WithLength)
-            .await?;
+        writer.send_packet(packet, &NetEncodeOpts::WithLength)?;
         debug!("Sending player info update took: {:?}", start.elapsed());
     }
 
@@ -272,9 +247,7 @@ async fn broadcast_spawn_entity_packet(entity_id: Entity, state: &GlobalState) -
         .fold(writer, |mut writer, entity| async move {
             if entity != entity_id {
                 if let Ok(packet) = SpawnEntityPacket::player(entity, state) {
-                    let _ = writer
-                        .send_packet(&packet, &NetEncodeOpts::WithLength)
-                        .await;
+                    let _ = writer.send_packet(packet, &NetEncodeOpts::WithLength);
                 }
             }
             writer

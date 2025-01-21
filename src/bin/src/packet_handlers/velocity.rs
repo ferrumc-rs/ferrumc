@@ -37,12 +37,10 @@ async fn handle_login_start(
 
         let id = rand::random::<u32>();
         let mut writer = entity.get_mut::<StreamWriter>(&state.clone())?;
-        writer
-            .send_packet(
-                &LoginPluginMessagePacket::<()>::new(id, String::from("velocity:player_info"), ()),
-                &NetEncodeOpts::WithLength,
-            )
-            .await?;
+        writer.send_packet(
+            LoginPluginMessagePacket::<()>::new(id, String::from("velocity:player_info"), ()),
+            &NetEncodeOpts::WithLength,
+        )?;
         state
             .universe
             .add_component(entity, VelocityMessageId(id))?;

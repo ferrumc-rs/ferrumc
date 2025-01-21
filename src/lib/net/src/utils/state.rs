@@ -47,13 +47,10 @@ impl TerminateConnectionPlayerExt for usize {
 
         let conn_state = self.get::<ConnectionState>(&state.clone())?;
 
-        if let Err(e) = writer
-            .send_packet(
-                &DisconnectPacket::from(&conn_state, reason)?,
-                &NetEncodeOpts::WithLength,
-            )
-            .await
-        {
+        if let Err(e) = writer.send_packet(
+            DisconnectPacket::from(&conn_state, reason)?,
+            &NetEncodeOpts::WithLength,
+        ) {
             warn!("Failed to send disconnect packet to entity {}: {}", self, e);
             return Err(e);
         }

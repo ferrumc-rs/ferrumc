@@ -109,40 +109,31 @@ impl System for ChunkSenderSystem {
                             error!("Could not get StreamWriter");
                             return Ok(());
                         };
-                        if let Err(e) = conn
-                            .send_packet(
-                                &SetCenterChunk {
-                                    x: VarInt::new(centre_coords.0),
-                                    z: VarInt::new(centre_coords.1),
-                                },
-                                &NetEncodeOpts::WithLength,
-                            )
-                            .await
-                        {
+                        if let Err(e) = conn.send_packet(
+                            SetCenterChunk {
+                                x: VarInt::new(centre_coords.0),
+                                z: VarInt::new(centre_coords.1),
+                            },
+                            &NetEncodeOpts::WithLength,
+                        ) {
                             error!("Error sending chunk: {:?}", e);
                         }
-                        if let Err(e) = conn
-                            .send_packet(&ChunkBatchStart {}, &NetEncodeOpts::WithLength)
-                            .await
+                        if let Err(e) =
+                            conn.send_packet(ChunkBatchStart {}, &NetEncodeOpts::WithLength)
                         {
                             error!("Error sending chunk: {:?}", e);
                         }
                         for packet in packets {
-                            if let Err(e) =
-                                conn.send_packet(&packet, &NetEncodeOpts::WithLength).await
-                            {
+                            if let Err(e) = conn.send_packet(packet, &NetEncodeOpts::WithLength) {
                                 error!("Error sending chunk: {:?}", e);
                             }
                         }
-                        if let Err(e) = conn
-                            .send_packet(
-                                &ChunkBatchFinish {
-                                    batch_size: VarInt::new(sent_chunks),
-                                },
-                                &NetEncodeOpts::WithLength,
-                            )
-                            .await
-                        {
+                        if let Err(e) = conn.send_packet(
+                            ChunkBatchFinish {
+                                batch_size: VarInt::new(sent_chunks),
+                            },
+                            &NetEncodeOpts::WithLength,
+                        ) {
                             error!("Error sending chunk: {:?}", e);
                         }
                     }
