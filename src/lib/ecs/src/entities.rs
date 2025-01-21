@@ -35,7 +35,6 @@ impl EntityManager {
         trace!("Created entity with id: {}", id);
         id as Entity
     }
-
     pub fn builder<'a>(&'a self, component_storage: &'a ComponentManager) -> EntityBuilder<'a> {
         EntityBuilder::new(self.create_entity(), component_storage)
     }

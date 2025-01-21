@@ -1,3 +1,4 @@
+use criterion::async_executor::FuturesExecutor;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use ferrumc_ecs::Universe;
 use rand::prelude::SliceRandom;
@@ -97,7 +98,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     let rt = tokio::runtime::Runtime::new().unwrap();
     c.benchmark_group("entity")
         .bench_function("create_entity", |b| {
-            b.to_async(tokio::runtime::Runtime::new().unwrap())
+            b.to_async(FuturesExecutor)
                 .iter(|| async { create_entity(&world).await });
             // Create a new world after bench is done.
             world = Universe::new();
@@ -111,23 +112,21 @@ fn criterion_benchmark(c: &mut Criterion) {
             });
         })
         .bench_function("get immut", |b| {
-            b.to_async(tokio::runtime::Runtime::new().unwrap())
-                .iter(async || {
-                    get_position_immut(black_box(&world)).await;
-                });
+            b.to_async(FuturesExecutor).iter(async || {
+                get_position_immut(black_box(&world)).await;
+            });
         })
         .bench_function("get mut", |b| {
-            b.to_async(tokio::runtime::Runtime::new().unwrap())
-                .iter(async || {
-                    get_position_mut(black_box(&world)).await;
-                });
+            b.to_async(FuturesExecutor).iter(async || {
+                get_position_mut(black_box(&world)).await;
+            });
         })
         .bench_function("query 10k entities", |b| {
             let universe = Universe::new();
             rt.block_on(async {
                 _create_1000_entities_with_pos_and_vel(&universe).await;
             });
-            b.to_async(tokio::runtime::Runtime::new().unwrap())
+            b.to_async(FuturesExecutor)
                 .iter(|| async { query_10k_entities(&universe).await });
         })
         .bench_function("query over tasks", |b| {
