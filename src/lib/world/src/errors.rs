@@ -45,6 +45,8 @@ pub enum WorldError {
     SectionOutOfBounds(i32),
     #[error("Invalid block state data")]
     InvalidBlockStateData(String),
+    #[error("Invalid block: {0}")]
+    InvalidBlock(BlockData),
 }
 
 // implemente AcquireError for WorldError

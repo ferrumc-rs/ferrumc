@@ -7,6 +7,7 @@ use ferrumc_macros::{packet, NetDecode};
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::ServerState;
 use std::sync::Arc;
+use ferrumc_core::transform::position::Position;
 
 #[derive(NetDecode)]
 #[packet(packet_id = "chunk_batch_received", state = "play")]
@@ -32,6 +33,18 @@ impl IncomingPacket for ChunkBatchAck {
                     .has_loaded
                     .store(true, std::sync::atomic::Ordering::Relaxed);
             }
+        }
+        {
+            // If they aren't underground, don't move them to spawn
+            let pos = state.universe.get_mut::<Position>(conn_id)?;
+            let head_block = state
+                .world
+                .get_block(pos.x as i32, pos.y as i32 - 1, pos.z as i32, "overworld")
+                .await?;
+            if head_block.name == "minecraft:air" {
+                move_to_spawn = false;
+            }
+            
         }
         if move_to_spawn {
             let mut conn = state.universe.get_mut::<StreamWriter>(conn_id)?;

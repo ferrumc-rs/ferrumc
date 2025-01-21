@@ -46,22 +46,26 @@ pub fn read_nbit_u32(data: &i64, size: u8, offset: u32) -> Result<u32, DataPacki
 /// * `DataPackingError::SizeExceedsMaxSize` - If `size` is greater than 32.
 /// * `DataPackingError::NotEnoughBits` - If `offset + size` exceeds 64 bits.
 pub fn write_nbit_u32(
-    data: &mut u64,
+    data: &mut i64,
     offset: u32,
     value: u32,
     size: u8,
 ) -> Result<(), DataPackingError> {
+    if size == 0 {
+        return Ok(()); // Nothing to do for 0 bits
+    }
     if size > 32 {
         return Err(DataPackingError::SizeExceedsMaxSize(size, 32));
     }
-    if offset + size as u32 > 64 {
+    if offset >= 64 || offset + size as u32 > 64 {
         return Err(DataPackingError::NotEnoughBits(size, offset));
     }
-    let mask = (1 << size) - 1;
-    *data &= !((mask) << offset);
-    *data |= ((value as u64) & mask) << offset;
+    let mask = ((1u64 << size) - 1) as i64; // Use u64 to avoid overflow
+    *data &= !(mask << offset); // Clear the target bits
+    *data |= ((value as i64) & mask) << offset; // Write the new value
     Ok(())
 }
+
 
 #[cfg(test)]
 mod tests {
@@ -80,7 +84,7 @@ mod tests {
     /// Tests the `write_nbit_u32` function with various inputs.
     #[test]
     fn test_write_nbit_u32() {
-        let mut data: u64 = 0;
+        let mut data: i64 = 0;
         write_nbit_u32(&mut data, 0, 0b011, 3).unwrap();
         assert_eq!(data, 0b011);
         write_nbit_u32(&mut data, 3, 0b101, 3).unwrap();

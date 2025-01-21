@@ -30,6 +30,10 @@ impl ChunkReceiver {
             has_loaded: AtomicBool::new(false),
         }
     }
+    
+    pub fn queue_chunk_resend(&mut self, x: i32, z: i32, dimension: String) {
+        self.needed_chunks.insert((x, z, dimension), None);
+    }
 }
 
 impl ChunkReceiver {

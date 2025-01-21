@@ -72,7 +72,7 @@ pub struct BlockStates {
     pub non_air_blocks: u16,
     pub data: Vec<i64>,
     pub palette: Vec<VarInt>,
-    pub block_counts: HashMap<i32, i32>,
+    pub block_counts: HashMap<BlockData, i32>,
 }
 
 fn convert_to_net_palette(vanilla_palettes: Vec<BlockData>) -> Result<Vec<VarInt>, WorldError> {
@@ -132,24 +132,25 @@ impl VanillaChunk {
             for chunk in &block_data {
                 let mut i = 0;
                 while i + bits_per_block < 64 {
-                    let id = read_nbit_i32(chunk, bits_per_block as usize, i as u32)?;
-                    *block_counts.entry(id).or_insert(0) += 1;
+                    let palette_index = read_nbit_i32(chunk, bits_per_block as usize, i as u32)?;
+                    let block = palette
+                        .get(palette_index as usize)
+                        .unwrap_or(&BlockData::default())
+                        .clone();
+                    *block_counts.entry(block).or_insert(0) += 1;
                     i += bits_per_block;
                 }
             }
             if block_data.is_empty() {
                 let single_block = if let Some(block) = palette.first() {
-                    if let Some(id) = BLOCK2ID.get(block) {
-                        *id
-                    } else {
-                        0
-                    }
+                    block
                 } else {
-                    0
+                    &BlockData::default()
                 };
-                block_counts.insert(single_block, 4096);
+                block_counts.insert(single_block.clone(), 4096);
             }
-            let non_air_blocks = 4096 - *block_counts.get(&0).unwrap_or(&0) as u16;
+            let non_air_blocks =
+                4096 - *block_counts.get(&BlockData::default()).unwrap_or(&0) as u16;
             let block_states = BlockStates {
                 bits_per_block,
                 block_counts,
