@@ -173,7 +173,7 @@ impl World {
                 while (i + bits_per_block as usize) < 64 {
                     let block_index = ferrumc_general_purpose::data_packing::u32::read_nbit_u32(
                         data,
-                        bits_per_block as u8,
+                        bits_per_block,
                         i as u32,
                     )?;
                     if block_index > old_block_palette_index as u32 {
