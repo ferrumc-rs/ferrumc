@@ -8,7 +8,7 @@ use ferrumc_state::ServerState;
 use std::sync::Arc;
 
 #[derive(NetDecode)]
-#[packet(packet_id = ++id++, state = "play")]
+#[packet(packet_id = "++id++", state = "play")]
 pub struct ++name++ {
 }
 
@@ -24,7 +24,7 @@ use ferrumc_macros::{packet, NetEncode};\
 use std::io::Write;
 
 #[derive(NetEncode)]
-#[packet(packet_id = ++id++)]
+#[packet(packet_id = "++id++")]
 pub struct ++name++ {}
 """
 
@@ -50,7 +50,8 @@ else:
 packet_name = input("Packet name: ")
 packets_dir = os.path.join(os.path.join(os.path.dirname(__file__), ".."), "src/lib/net/src/packets")
 
-packet_id = input("Packet ID (formatted like 0x01): ")
+packet_id = input(
+    "Packet ID (formatted as snake case, look on https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol if you need to get the id): ")
 packet_id = packet_id[:-2] + packet_id[-2:].upper()
 
 with open(f"{packets_dir}/{packet_type}/{to_snake_case(packet_name)}.rs", "x") as f:

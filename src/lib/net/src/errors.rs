@@ -38,11 +38,14 @@ pub enum NetError {
     #[error("Invalid State: {0}")]
     InvalidState(u8),
 
-    #[error("{0}")]
+    #[error("Packet error: {0}")]
     Packet(#[from] PacketError),
 
-    #[error("{0}")]
+    #[error("Chunk error: {0}")]
     Chunk(#[from] ChunkError),
+
+    #[error("World error: {0}")]
+    World(#[from] ferrumc_world::errors::WorldError),
 }
 
 #[derive(Debug, Error)]

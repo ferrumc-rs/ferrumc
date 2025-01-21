@@ -8,7 +8,7 @@ use std::sync::Arc;
 use tracing::debug;
 
 #[derive(NetDecode, Debug)]
-#[packet(packet_id = 0x38, state = "play")]
+#[packet(packet_id = "use_item_on", state = "play")]
 pub struct PlaceBlock {
     pub hand: VarInt,
     pub position: NetworkPosition,
@@ -21,8 +21,17 @@ pub struct PlaceBlock {
 }
 
 impl IncomingPacket for PlaceBlock {
-    async fn handle(self, _conn_id: usize, _state: Arc<ServerState>) -> NetResult<()> {
-        debug!("{:?}", self);
+    async fn handle(self, _conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
+        let block_clicked = state
+            .world
+            .get_block(
+                self.position.x,
+                self.position.y as i32,
+                self.position.z,
+                "overworld",
+            )
+            .await?;
+        debug!("Block clicked: {:?}", block_clicked);
         Ok(())
     }
 }

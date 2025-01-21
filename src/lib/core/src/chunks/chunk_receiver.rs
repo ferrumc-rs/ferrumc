@@ -1,5 +1,6 @@
 use ferrumc_world::chunk_format::Chunk;
 use std::collections::{HashMap, HashSet};
+use std::sync::atomic::AtomicBool;
 use tokio::time::Instant;
 
 const VIEW_DISTANCE: i32 = 8;
@@ -9,6 +10,7 @@ pub struct ChunkReceiver {
     pub last_update: Instant,
     pub last_chunk: Option<(i32, i32, String)>,
     pub chunks_per_tick: f32,
+    pub has_loaded: AtomicBool,
 }
 
 impl Default for ChunkReceiver {
@@ -25,6 +27,7 @@ impl ChunkReceiver {
             last_update: Instant::now(),
             last_chunk: None,
             chunks_per_tick: 0.0,
+            has_loaded: AtomicBool::new(false),
         }
     }
 }

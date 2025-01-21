@@ -118,7 +118,7 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
             .expect(
                 "parse_packet_attribute failed\
                 \nPlease provide the packet_id and state fields in the #[packet(...)] attribute.\
-                \nExample: #[packet(packet_id = 0x00, state = \"handshake\")]",
+                \nExample: #[packet(packet_id = \"example_packet\", state = \"handshake\")]",
             );
 
             let struct_name = &item_struct.ident;

@@ -69,13 +69,13 @@ impl System for ChunkSenderSystem {
                     }
                     {
                         trace!("Getting chunk_recv 3 for sender");
-                        let chunk_recv = state
+                        let mut chunk_recv = state
                             .universe
                             .get_mut::<ChunkReceiver>(eid)
                             .expect("ChunkReceiver not found");
                         trace!("Got chunk_recv 3 for sender");
-                        for mut possible_chunk in chunk_recv.needed_chunks.iter_mut() {
-                            if let (key, Some(chunk)) = possible_chunk.pair_mut() {
+                        for (key, chunk) in chunk_recv.needed_chunks.iter_mut() {
+                            if let Some(chunk) = chunk {
                                 chunk.sections.iter_mut().for_each(|section| {
                                     // if random::<u8>() < 25 {
                                     if let Err(e) = section.block_states.resize(8) {
@@ -138,7 +138,7 @@ impl System for ChunkSenderSystem {
                         }
                         if let Err(e) = conn.send_packet(
                             ChunkBatchFinish {
-                                batch_size: VarInt::new(sent_chunks),
+                                batch_size: VarInt::new(count),
                             },
                             &NetEncodeOpts::WithLength,
                         ) {
