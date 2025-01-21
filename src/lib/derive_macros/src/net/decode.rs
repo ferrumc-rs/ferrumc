@@ -154,6 +154,8 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
     let mut decode_statements = Vec::new();
     let mut field_names = Vec::new();
 
+    let optional_type_regex = regex::Regex::new(r"Option\s*<\s*(.+?)\s*>").unwrap();
+
     for field in fields {
         let field_name = field
             .ident
@@ -168,24 +170,16 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
         // Check the `net(...)` attributes on this field
         for attr in &field.attrs {
             if attr.path().is_ident("net") {
-                // e.g., #[net(optional_trigger = { some_field == true })]
-
                 attr.parse_nested_meta(|meta| {
                     if let Some(ident) = meta.path.get_ident() {
                         if ident.to_string().as_str() == "optional_trigger" {
-                            meta.parse_nested_meta(|meta| {
-                                if let Some(expr) = meta.path.get_ident() {
-                                    let val = syn::parse_str::<syn::Expr>(&expr.to_string())
-                                        .expect("Failed to parse optional_trigger expression");
+                            let value = meta.value().expect("Missing optional_trigger value");
 
-                                    optional_trigger_expr = Some(val);
-                                } else {
-                                    panic!("Expected an expression for optional_trigger");
-                                }
+                            let value = value
+                                .parse::<syn::Expr>()
+                                .expect("Failed to parse optional_trigger");
 
-                                Ok(())
-                            })
-                            .expect("Failed to parse optional_trigger expression");
+                            optional_trigger_expr = Some(value);
                         }
                     }
                     Ok(())
@@ -196,9 +190,16 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
 
         // Generate decoding code depending on whether there's an optional trigger
         if let Some(expr) = optional_trigger_expr {
-            // For an optional field, we decode it only if `expr` is true at runtime.
-            // We'll store the result in a local variable `field_name` which will be an Option<T>.
-            // Then at the end, we can build the struct using those local variables.
+            let field_type = quote! { #field_ty }.to_string();
+
+            let inner = optional_type_regex
+                .captures(&field_type)
+                .expect("Field must be Option<T>")
+                .get(1)
+                .unwrap()
+                .as_str();
+            let field_ty = syn::parse_str::<syn::Type>(inner).expect("Failed to parse field type");
+
             decode_statements.push(quote! {
                 let #field_name = {
                     if #expr {

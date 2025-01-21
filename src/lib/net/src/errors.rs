@@ -43,6 +43,9 @@ pub enum NetError {
 
     #[error("{0}")]
     Chunk(#[from] ChunkError),
+
+    #[error("NetError: {0}")]
+    Other(String),
 }
 
 #[derive(Debug, Error)]

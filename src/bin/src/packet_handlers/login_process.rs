@@ -6,6 +6,7 @@ use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_ecs::components::storage::ComponentRefMut;
 use ferrumc_ecs::entities::Entity;
+use ferrumc_inventory::types::player::PlayerInventory;
 use ferrumc_macros::event_handler;
 use ferrumc_net::connection::{ConnectionState, StreamWriter};
 use ferrumc_net::errors::NetError;
@@ -53,7 +54,7 @@ async fn handle_login_start(
             login_start_event.conn_id,
             PlayerIdentity::new(username.to_string(), uuid),
         )?
-        /*.add_component::<ChunkReceiver>(login_start_event.conn_id, ChunkReceiver::default())?*/;
+    /*.add_component::<ChunkReceiver>(login_start_event.conn_id, ChunkReceiver::default())?*/;
 
     //Send a Login Success Response to further the login sequence
     let mut writer = state
@@ -152,7 +153,8 @@ async fn handle_ack_finish_configuration(
             .add_component::<Position>(entity_id, Position::default())?
             .add_component::<Rotation>(entity_id, Rotation::default())?
             .add_component::<OnGround>(entity_id, OnGround::default())?
-            .add_component::<ChunkReceiver>(entity_id, ChunkReceiver::default())?;
+            .add_component::<ChunkReceiver>(entity_id, ChunkReceiver::default())?
+            .add_component::<PlayerInventory>(entity_id, PlayerInventory::default())?;
 
         let mut writer = state.universe.get_mut::<StreamWriter>(entity_id)?;
 

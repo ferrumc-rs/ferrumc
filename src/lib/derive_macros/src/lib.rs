@@ -4,6 +4,7 @@ use proc_macro::TokenStream;
 
 mod events;
 mod helpers;
+mod inventory;
 mod nbt;
 mod net;
 mod profiling;
@@ -75,3 +76,15 @@ pub fn get_packet_entry(input: TokenStream) -> TokenStream {
 pub fn get_registry_entry(input: TokenStream) -> TokenStream {
     static_loading::registry::get(input)
 }
+
+// #=================== INVENTORY ===================#
+#[proc_macro_derive(Inventory, attributes(slot))]
+pub fn create_inventory(input: TokenStream) -> TokenStream {
+    inventory::create(input)
+}
+
+#[proc_macro_attribute]
+pub fn inventory(args: TokenStream, input: TokenStream) -> TokenStream {
+    inventory::inventory_type(args, input)
+}
+// #=================== INVENTORY ===================#
