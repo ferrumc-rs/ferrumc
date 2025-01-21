@@ -69,13 +69,14 @@ impl System for ChunkSenderSystem {
                     }
                     let mut sent_chunks = 0;
                     {
-                        let Ok(chunk_recv) = state.universe.get::<ChunkReceiver>(eid) else {
+                        let Ok(mut chunk_recv) = state.universe.get_mut::<ChunkReceiver>(eid)
+                        else {
                             trace!("A player disconnected before we could get the ChunkReceiver");
                             return Ok(());
                         };
                         for possible_chunk in chunk_recv.needed_chunks.iter_mut() {
-                            if let Some(chunk) = possible_chunk.pair().1 {
-                                let key = possible_chunk.pair().0;
+                            if let Some(chunk) = possible_chunk.1 {
+                                let key = possible_chunk.0;
                                 to_drop.push(key.clone());
                                 match ChunkAndLightData::from_chunk(&chunk.clone()) {
                                     Ok(packet) => {
@@ -90,7 +91,8 @@ impl System for ChunkSenderSystem {
                         }
                     }
                     {
-                        let Ok(chunk_recv) = state.universe.get::<ChunkReceiver>(eid) else {
+                        let Ok(mut chunk_recv) = state.universe.get_mut::<ChunkReceiver>(eid)
+                        else {
                             trace!("A player disconnected before we could get the ChunkReceiver");
                             return Ok(());
                         };
@@ -107,40 +109,31 @@ impl System for ChunkSenderSystem {
                             error!("Could not get StreamWriter");
                             return Ok(());
                         };
-                        if let Err(e) = conn
-                            .send_packet(
-                                &SetCenterChunk {
-                                    x: VarInt::new(centre_coords.0),
-                                    z: VarInt::new(centre_coords.1),
-                                },
-                                &NetEncodeOpts::WithLength,
-                            )
-                            .await
-                        {
+                        if let Err(e) = conn.send_packet(
+                            SetCenterChunk {
+                                x: VarInt::new(centre_coords.0),
+                                z: VarInt::new(centre_coords.1),
+                            },
+                            &NetEncodeOpts::WithLength,
+                        ) {
                             error!("Error sending chunk: {:?}", e);
                         }
-                        if let Err(e) = conn
-                            .send_packet(&ChunkBatchStart {}, &NetEncodeOpts::WithLength)
-                            .await
+                        if let Err(e) =
+                            conn.send_packet(ChunkBatchStart {}, &NetEncodeOpts::WithLength)
                         {
                             error!("Error sending chunk: {:?}", e);
                         }
                         for packet in packets {
-                            if let Err(e) =
-                                conn.send_packet(&packet, &NetEncodeOpts::WithLength).await
-                            {
+                            if let Err(e) = conn.send_packet(packet, &NetEncodeOpts::WithLength) {
                                 error!("Error sending chunk: {:?}", e);
                             }
                         }
-                        if let Err(e) = conn
-                            .send_packet(
-                                &ChunkBatchFinish {
-                                    batch_size: VarInt::new(sent_chunks),
-                                },
-                                &NetEncodeOpts::WithLength,
-                            )
-                            .await
-                        {
+                        if let Err(e) = conn.send_packet(
+                            ChunkBatchFinish {
+                                batch_size: VarInt::new(sent_chunks),
+                            },
+                            &NetEncodeOpts::WithLength,
+                        ) {
                             error!("Error sending chunk: {:?}", e);
                         }
                     }

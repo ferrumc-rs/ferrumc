@@ -6,8 +6,10 @@ use ferrumc_macros::Event;
 use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::ServerState;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
+use tokio::io::AsyncWriteExt;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tokio::net::TcpStream;
 use tokio::time::timeout;
@@ -62,22 +64,53 @@ impl StreamReader {
 }
 
 pub struct StreamWriter {
-    pub writer: OwnedWriteHalf,
+    sender: tokio::sync::mpsc::UnboundedSender<Vec<u8>>,
+    running: Arc<AtomicBool>,
 }
-
+impl Drop for StreamWriter {
+    fn drop(&mut self) {
+        self.running.store(false, Ordering::Relaxed);
+    }
+}
 impl StreamWriter {
-    pub fn new(writer: OwnedWriteHalf) -> Self {
-        Self { writer }
+    pub fn new(mut writer: OwnedWriteHalf) -> Self {
+        let (sender, mut receiver) = tokio::sync::mpsc::unbounded_channel::<Vec<u8>>();
+        let running = Arc::new(AtomicBool::new(true));
+
+        // Spawn a task to write to the writer using the channel
+        tokio::spawn({
+            let running = Arc::clone(&running);
+            async move {
+                while running.load(Ordering::Relaxed) {
+                    let Some(bytes) = receiver.recv().await else {
+                        break;
+                    };
+
+                    if let Err(e) = writer.write_all(&bytes).await {
+                        warn!("Failed to write to writer: {:?}", e);
+                        break;
+                    }
+                }
+            }
+        });
+
+        Self { sender, running }
     }
 
-    pub async fn send_packet(
+    pub fn send_packet(
         &mut self,
-        packet: &impl NetEncode,
+        packet: impl NetEncode + Send,
         net_encode_opts: &NetEncodeOpts,
     ) -> NetResult<()> {
-        packet
-            .encode_async(&mut self.writer, net_encode_opts)
-            .await?;
+        let bytes = {
+            let mut buffer = Vec::new();
+            packet.encode(&mut buffer, net_encode_opts)?;
+            buffer
+        };
+
+        self.sender
+            .send(bytes)
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
         Ok(())
     }
 }

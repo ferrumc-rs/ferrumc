@@ -110,7 +110,12 @@ async fn update_pos_for_all(
     const MAX_DELTA: i16 = (7.5 * 4096f32) as i16;
     let delta_exceeds_threshold = match delta_pos {
         Some((delta_x, delta_y, delta_z)) => {
-            delta_x.abs() > MAX_DELTA || delta_y.abs() > MAX_DELTA || delta_z.abs() > MAX_DELTA
+            // Prevent int overflow, since abs of i16::MIN would overflow?
+            if delta_x == i16::MIN || delta_y == i16::MIN || delta_z == i16::MIN {
+                true
+            } else {
+                delta_x.abs() > MAX_DELTA || delta_y.abs() > MAX_DELTA || delta_z.abs() > MAX_DELTA
+            }
         }
         None => false,
     };

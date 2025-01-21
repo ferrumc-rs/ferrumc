@@ -64,14 +64,12 @@ async fn handle_login_start(
         let whitelist = get_whitelist();
 
         if whitelist.get(&uuid).is_none() {
-            writer
-                .send_packet(
-                    &LoginDisconnectPacket::new(
-                        "{\"translate\":\"multiplayer.disconnect.not_whitelisted\"}",
-                    ),
-                    &NetEncodeOpts::WithLength,
-                )
-                .await?;
+            writer.send_packet(
+                LoginDisconnectPacket::new(
+                    "{\"translate\":\"multiplayer.disconnect.not_whitelisted\"}",
+                ),
+                &NetEncodeOpts::WithLength,
+            )?;
             return Ok(login_start_event);
         }
     }
@@ -82,12 +80,10 @@ async fn handle_login_start(
         .add_component::<PlayerIdentity>(login_start_event.conn_id, player_identity)?;
 
     //Send a Login Success Response to further the login sequence
-    writer
-        .send_packet(
-            &LoginSuccessPacket::new(uuid, username),
-            &NetEncodeOpts::WithLength,
-        )
-        .await?;
+    writer.send_packet(
+        LoginSuccessPacket::new(uuid, username),
+        &NetEncodeOpts::WithLength,
+    )?;
 
     Ok(login_start_event)
 }
@@ -113,9 +109,7 @@ async fn handle_login_acknowledged(
         .universe
         .get_mut::<StreamWriter>(login_acknowledged_event.conn_id)?;
 
-    writer
-        .send_packet(&client_bound_known_packs, &NetEncodeOpts::WithLength)
-        .await?;
+    writer.send_packet(client_bound_known_packs, &NetEncodeOpts::WithLength)?;
 
     Ok(login_acknowledged_event)
 }
@@ -132,16 +126,9 @@ async fn handle_server_bound_known_packs(
         .get_mut::<StreamWriter>(server_bound_known_packs_event.conn_id)?;
 
     let registry_packets = get_registry_packets();
-    writer
-        .send_packet(&registry_packets, &NetEncodeOpts::None)
-        .await?;
+    writer.send_packet(registry_packets, &NetEncodeOpts::None)?;
 
-    writer
-        .send_packet(
-            &FinishConfigurationPacket::new(),
-            &NetEncodeOpts::WithLength,
-        )
-        .await?;
+    writer.send_packet(FinishConfigurationPacket::new(), &NetEncodeOpts::WithLength)?;
 
     Ok(server_bound_known_packs_event)
 }
@@ -170,38 +157,32 @@ async fn handle_ack_finish_configuration(
         let mut writer = state.universe.get_mut::<StreamWriter>(entity_id)?;
 
         writer // 21
-            .send_packet(&LoginPlayPacket::new(entity_id), &NetEncodeOpts::WithLength)
-            .await?;
+            .send_packet(LoginPlayPacket::new(entity_id), &NetEncodeOpts::WithLength)?;
         writer // 29
             .send_packet(
-                &SynchronizePlayerPositionPacket::default(), // The coordinates here should be used for the center chunk.
+                SynchronizePlayerPositionPacket::default(), // The coordinates here should be used for the center chunk.
                 &NetEncodeOpts::WithLength,
-            )
-            .await?;
+            )?;
         writer // 37
             .send_packet(
-                &SetDefaultSpawnPositionPacket::default(), // Player specific, aka. home, bed, where it would respawn.
+                SetDefaultSpawnPositionPacket::default(), // Player specific, aka. home, bed, where it would respawn.
                 &NetEncodeOpts::WithLength,
-            )
-            .await?;
+            )?;
         writer // 38
             .send_packet(
-                &GameEventPacket::start_waiting_for_level_chunks(),
+                GameEventPacket::start_waiting_for_level_chunks(),
                 &NetEncodeOpts::WithLength,
-            )
-            .await?;
+            )?;
         writer // 41
             .send_packet(
-                &SetCenterChunk::new(0, 0), // TODO - Dependent on the player spawn position.
+                SetCenterChunk::new(0, 0), // TODO - Dependent on the player spawn position.
                 &NetEncodeOpts::WithLength,
-            )
-            .await?;
+            )?;
         writer // other
             .send_packet(
-                &SetRenderDistance::new(5), // TODO
+                SetRenderDistance::new(5), // TODO
                 &NetEncodeOpts::WithLength,
-            )
-            .await?;
+            )?;
 
         send_keep_alive(entity_id, &state, &mut writer).await?;
 
@@ -222,9 +203,7 @@ async fn send_keep_alive(
     writer: &mut ComponentRefMut<'_, StreamWriter>,
 ) -> Result<(), NetError> {
     let keep_alive_packet = OutgoingKeepAlivePacket::default();
-    writer
-        .send_packet(&keep_alive_packet, &NetEncodeOpts::WithLength)
-        .await?;
+    writer.send_packet(keep_alive_packet.clone(), &NetEncodeOpts::WithLength)?;
 
     let timestamp = keep_alive_packet.timestamp;
 
@@ -262,9 +241,7 @@ async fn player_info_update_packets(entity_id: Entity, state: &GlobalState) -> N
 
         let start = Instant::now();
         let mut writer = state.universe.get_mut::<StreamWriter>(entity_id)?;
-        writer
-            .send_packet(&packet, &NetEncodeOpts::WithLength)
-            .await?;
+        writer.send_packet(packet, &NetEncodeOpts::WithLength)?;
         debug!("Sending player info update took: {:?}", start.elapsed());
     }
 
@@ -287,9 +264,7 @@ async fn broadcast_spawn_entity_packet(entity_id: Entity, state: &GlobalState) -
     futures::stream::iter(get_all_play_players(state))
         .fold(writer, |mut writer, entity| async move {
             if let Ok(packet) = SpawnEntityPacket::player(entity, state) {
-                let _ = writer
-                    .send_packet(&packet, &NetEncodeOpts::WithLength)
-                    .await;
+                let _ = writer.send_packet(packet, &NetEncodeOpts::WithLength);
             }
             writer
         })
