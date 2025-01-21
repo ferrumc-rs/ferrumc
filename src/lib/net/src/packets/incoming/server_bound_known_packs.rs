@@ -8,7 +8,7 @@ use std::sync::Arc;
 use tracing::debug;
 
 #[derive(Debug, NetDecode)]
-#[packet(packet_id = 0x07, state = "configuration")]
+#[packet(packet_id = "select_known_packs", state = "configuration")]
 pub struct ServerBoundKnownPacks {
     #[allow(dead_code)]
     pub packs: LengthPrefixedVec<PackOwned>,

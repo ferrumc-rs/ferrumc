@@ -62,17 +62,10 @@ infinite_loop = "deny"
 
 #================= Profile =================#
 [profile.release]
-lto = true
-strip = "symbols"
-codegen-units = 1
-opt-level = 3
-debug = false
-debug-assertions = false
-overflow-checks = false
-panic = "abort"
 
 [profile.hyper]
 inherits = "release"
+strip = "symbols"
 lto = true
 opt-level = 3
 debug = false
@@ -88,7 +81,7 @@ ferrumc-anvil = { path = "src/lib/adapters/anvil" }
 ferrumc-config = { path = "src/lib/utils/config" }
 ferrumc-core = { path = "src/lib/core" }
 ferrumc-ecs = { path = "src/lib/ecs" }
-ferrumc-events = { path = "src/lib/events" }
+ferrumc-events = { path = "src/lib/events"}
 ferrumc-general-purpose = { path = "src/lib/utils/general_purpose" }
 ferrumc-logging = { path = "src/lib/utils/logging" }
 ferrumc-macros = { path = "src/lib/derive_macros" }
@@ -115,6 +108,7 @@ async-trait = "0.1.82"
 # Logging
 tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
+tracing-appender = "0.2.3"
 log = "0.4.22"
 console-subscriber = "0.4.1"
 

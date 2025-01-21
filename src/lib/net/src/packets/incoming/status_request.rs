@@ -12,7 +12,7 @@ use rand::seq::IndexedRandom;
 use std::sync::Arc;
 
 #[derive(NetDecode, Debug)]
-#[packet(packet_id = 0x00, state = "status")]
+#[packet(packet_id = "status_request", state = "status")]
 pub struct StatusRequestPacket {}
 
 impl IncomingPacket for StatusRequestPacket {
@@ -21,9 +21,7 @@ impl IncomingPacket for StatusRequestPacket {
 
         let mut writer = state.universe.get_mut::<StreamWriter>(conn_id)?;
 
-        writer
-            .send_packet(&response, &NetEncodeOpts::WithLength)
-            .await?;
+        writer.send_packet(response, &NetEncodeOpts::WithLength)?;
 
         Ok(())
     }

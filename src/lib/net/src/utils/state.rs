@@ -35,13 +35,10 @@ pub async fn terminate_connection(
         }
     };
 
-    if let Err(e) = writer
-        .send_packet(
-            &DisconnectPacket::from_string(reason),
-            &NetEncodeOpts::WithLength,
-        )
-        .await
-    {
+    if let Err(e) = writer.send_packet(
+        DisconnectPacket::from_string(reason),
+        &NetEncodeOpts::WithLength,
+    ) {
         warn!(
             "Failed to send disconnect packet to entity {}: {}",
             conn_id, e

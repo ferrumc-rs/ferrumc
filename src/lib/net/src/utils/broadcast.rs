@@ -64,7 +64,8 @@ impl BroadcastOptions {
     }
 }
 
-fn get_all_entities(state: &GlobalState) -> HashSet<Entity> {
+/// Get all players in the 'play' state, so the players playing the playable game.
+pub fn get_all_play_players(state: &GlobalState) -> HashSet<Entity> {
     // If it needs a chunk, then it's player!! :)
     // !!!= === =.>>> if it works dont break it
     state
@@ -81,7 +82,7 @@ pub async fn broadcast(
     opts: BroadcastOptions,
 ) -> NetResult<()> {
     let mut entities = match opts.only_entities {
-        None => get_all_entities(state),
+        None => get_all_play_players(state),
         Some(entities) => entities,
     };
 
@@ -115,7 +116,7 @@ pub async fn broadcast(
                         return (state, packet, async_callback, sync_callback);
                     };
 
-                    if let Err(e) = writer.send_packet(&packet, &NetEncodeOpts::None).await {
+                    if let Err(e) = writer.send_packet(packet.clone(), &NetEncodeOpts::None) {
                         debug!("Error sending packet: {}", e);
                     }
 

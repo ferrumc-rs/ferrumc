@@ -17,4 +17,5 @@ pub mod set_player_rotation;
 
 pub mod chunks_per_tick;
 pub mod place_block;
+pub mod player_command;
 pub mod swing_arm;

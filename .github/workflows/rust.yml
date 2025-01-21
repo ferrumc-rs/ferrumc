@@ -1,91 +1,66 @@
-name: Rust
-
+name: Rust CI
 on:
   pull_request:
     branches: [ "master", "rewrite/v3" ]
   push:
     branches: [ "master", "rewrite/v3" ]
   workflow_dispatch:
-
 env:
   CARGO_TERM_COLOR: always
-
+defaults:
+  run:
+    shell: bash
 jobs:
   format:
-    name: Check code formatting
+    name: Check Code Formatting
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
       - name: Install Rust nightly
         uses: dtolnay/rust-toolchain@nightly
-
-      - name: Install rustfmt
-        run: rustup component add rustfmt
-
+        with:
+          components: rustfmt
       - name: Run cargo fmt
         run: cargo fmt --all -- --check
-
   clippy:
     name: Run Clippy
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Restore cargo cache
+      - name: Cache dependencies
         uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
+            target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
-
       - name: Install Rust nightly
         uses: dtolnay/rust-toolchain@nightly
-
-      - name: Install clippy
-        run: rustup component add clippy
-
+        with:
+          components: clippy
       - name: Run Clippy
-        run: cargo clippy --all-targets -- -Dwarnings
-
+        run: cargo clippy --all-targets -- -D warnings
   security:
-    name: Check for security vulnerabilities
+    name: Check Security Vulnerabilities
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Install Rust nightly
-        uses: dtolnay/rust-toolchain@nightly
-
-      - name: Install audit
-        run: cargo install cargo-audit
-
-      - name: Run cargo audit
-        run: cargo install cargo-audit && cargo audit
-
-  build:
-    name: Build project
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - os: macos-14
-            target: aarch64-apple-darwin
-          - os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
       - name: Cache dependencies
         uses: actions/cache@v3
         with:
@@ -96,17 +71,16 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
-
       - name: Install Rust nightly
         uses: dtolnay/rust-toolchain@nightly
-        with:
-          targets: ${{ matrix.target }}
-
-      - name: Build
-        run: cargo build --release --target ${{ matrix.target }} --verbose
-
+      - name: Install and Run Cargo Audit
+        run: |
+          if ! command -v cargo-audit &> /dev/null; then
+            cargo install cargo-audit
+          fi
+          cargo audit
   test:
-    name: Run tests
+    name: Run Tests
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -117,11 +91,9 @@ jobs:
             target: x86_64-unknown-linux-gnu
           - os: windows-latest
             target: x86_64-pc-windows-msvc
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Cache dependencies
         uses: actions/cache@v3
         with:
@@ -129,14 +101,12 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ matrix.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
-            ${{ runner.os }}-cargo-
-
+            ${{ matrix.os }}-cargo-
       - name: Install Rust nightly
         uses: dtolnay/rust-toolchain@nightly
         with:
           targets: ${{ matrix.target }}
-
-      - name: Run tests
+      - name: Run Tests
         run: cargo test --target ${{ matrix.target }} --verbose

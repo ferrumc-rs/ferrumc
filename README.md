@@ -42,7 +42,7 @@ our [Discord server](https://discord.gg/qT5J8EMjwk) for help or to discuss the p
      <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/server%20list.png?raw=true" alt="Server list">
    </li>
    <li>
-     <h4>🚄 Extremely fast and adaptable update speeds</h4>
+     <h4>🚄 Extremely fast </h4>
      <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/mind%20boggling.gif?raw=true" alt="Mind boggling">
    </li>
    <li>
@@ -50,7 +50,7 @@ our [Discord server](https://discord.gg/qT5J8EMjwk) for help or to discuss the p
      <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/mem_use.png?raw=true" alt="Low memory usage">
    </li>
    <li>
-     <h4>🗂️ Customizable configuration</h4>
+     <h4>🗂️ Straightforward Configuration</h4>
      <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/config.toml.png?raw=true" alt="Configuration">
    </li>
    <li>
@@ -58,7 +58,7 @@ our [Discord server](https://discord.gg/qT5J8EMjwk) for help or to discuss the p
       <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/chunk_importing.gif?raw=true" alt="Configuration">
    </li>
    <li>
-      <h4>🌐 Compatible with vanilla Minecraft clients (Currently only 1.21.1)</h4>
+      <h4>🌐 Compatible with vanilla Minecraft clients (Version 1.21.1)</h4>
    </li>
    <li>
       <h4>💪 Powerful Entity Component System to handle high entity loads</h4>
@@ -82,13 +82,13 @@ our [Discord server](https://discord.gg/qT5J8EMjwk) for help or to discuss the p
 
 <ul>
    <li>
-      <h4>Ability to view other players</h4>
+      <h4>PvE mechanics, and entities.</h4>
    </li>
    <li>
       <h4>World modification (place / break blocks etc)</h4>
    </li>
     <li>
-        <h4>Chat & Command system</h4>
+        <h4>Web based server dashboard</h4>
    </li>
     <li>
         <h4>Optimizations</h4>
@@ -254,3 +254,10 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE) f
    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=ferrumc-rs/ferrumc&type=Date" />
  </picture>
 </a>
+
+## 📊 Stats
+
+[![Timeline graph](https://images.repography.com/59032276/ferrumc-rs/ferrumc/recent-activity/J6CgGhzs6y3LXRuADz1QpSUriBC3ix9DXnPUbbljruA/O-qGFiSVQmksFEaX7mVQ4jY3lppUTK2xUw4CpqZ3oUk_timeline.svg)](https://github.com/ferrumc-rs/ferrumc/commits)
+[![Issue status graph](https://images.repography.com/59032276/ferrumc-rs/ferrumc/recent-activity/J6CgGhzs6y3LXRuADz1QpSUriBC3ix9DXnPUbbljruA/O-qGFiSVQmksFEaX7mVQ4jY3lppUTK2xUw4CpqZ3oUk_issues.svg)](https://github.com/ferrumc-rs/ferrumc/issues)
+[![Pull request status graph](https://images.repography.com/59032276/ferrumc-rs/ferrumc/recent-activity/J6CgGhzs6y3LXRuADz1QpSUriBC3ix9DXnPUbbljruA/O-qGFiSVQmksFEaX7mVQ4jY3lppUTK2xUw4CpqZ3oUk_prs.svg)](https://github.com/ferrumc-rs/ferrumc/pulls)
+[![Top contributors](https://images.repography.com/59032276/ferrumc-rs/ferrumc/recent-activity/J6CgGhzs6y3LXRuADz1QpSUriBC3ix9DXnPUbbljruA/O-qGFiSVQmksFEaX7mVQ4jY3lppUTK2xUw4CpqZ3oUk_users.svg)](https://github.com/ferrumc-rs/ferrumc/graphs/contributors)

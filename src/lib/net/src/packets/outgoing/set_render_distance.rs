@@ -3,7 +3,7 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::Write;
 
 #[derive(NetEncode)]
-#[packet(packet_id = 0x55)]
+#[packet(packet_id = "set_chunk_cache_radius", state = "play")]
 pub struct SetRenderDistance {
     pub distance: VarInt,
 }

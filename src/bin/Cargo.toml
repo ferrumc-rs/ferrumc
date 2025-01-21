@@ -27,16 +27,14 @@ ferrumc-nbt = { workspace = true }
 ferrumc-general-purpose = { workspace = true }
 ferrumc-state = { workspace = true }
 
-ctor = { workspace = true }
 parking_lot = { workspace = true, features = ["deadlock_detection"] }
 tracing = { workspace = true }
 tokio = { workspace = true }
-rayon = { workspace = true }
 futures = { workspace = true }
-serde_json = { workspace = true }
 async-trait = { workspace = true }
 clap = { workspace = true, features = ["derive"] }
-rand = "0.9.0-beta.1"
+flate2 = { workspace = true }
+ctor = { workspace = true }
 
 
 [[bin]]
