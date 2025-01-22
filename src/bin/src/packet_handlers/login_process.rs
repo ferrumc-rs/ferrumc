@@ -1,5 +1,6 @@
 use ferrumc_config::statics::{get_global_config, get_whitelist};
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
+use ferrumc_core::collisions::bounds::CollisionBounds;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
@@ -152,7 +153,18 @@ async fn handle_ack_finish_configuration(
             .add_component::<Position>(entity_id, Position::default())?
             .add_component::<Rotation>(entity_id, Rotation::default())?
             .add_component::<OnGround>(entity_id, OnGround::default())?
-            .add_component::<ChunkReceiver>(entity_id, ChunkReceiver::default())?;
+            .add_component::<ChunkReceiver>(entity_id, ChunkReceiver::default())?
+            .add_component::<CollisionBounds>(
+                entity_id,
+                CollisionBounds {
+                    x_offset_start: -0.3,
+                    x_offset_end: 0.3,
+                    y_offset_start: -0.5,
+                    y_offset_end: 1.5,
+                    z_offset_start: -0.3,
+                    z_offset_end: 0.3,
+                },
+            )?;
 
         let mut writer = state.universe.get_mut::<StreamWriter>(entity_id)?;
 

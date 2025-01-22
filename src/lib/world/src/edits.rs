@@ -98,6 +98,7 @@ impl World {
         let mut bits_per_block = section.block_states.bits_per_block;
         // Remove old block
         let old_block = self.get_block(x, y, z, dimension).await?;
+        debug!("Old block: {:?}", old_block);
         let old_block_count = section
             .block_states
             .block_counts
@@ -116,7 +117,19 @@ impl World {
         if let Some(e) = section.block_states.block_counts.get(&block) {
             section.block_states.block_counts.insert(block, e + 1);
         } else {
+            debug!("Adding block to block counts");
             section.block_states.block_counts.insert(block, 1);
+        }
+        let new_bits_per_block = max(
+            (section.block_states.block_counts.len() as f32)
+                .log2()
+                .ceil() as u8,
+            4,
+        );
+        if new_bits_per_block != bits_per_block {
+            debug!("Resizing block states to {}", new_bits_per_block);
+            section.block_states.resize(new_bits_per_block as usize)?;
+            bits_per_block = new_bits_per_block;
         }
         // Get block index
         let block_palette_index = section
@@ -197,6 +210,7 @@ impl World {
             4,
         );
         if new_bits_per_block != bits_per_block {
+            debug!("Resizing block states to {}", new_bits_per_block);
             section.block_states.resize(new_bits_per_block as usize)?;
             bits_per_block = new_bits_per_block;
         }
