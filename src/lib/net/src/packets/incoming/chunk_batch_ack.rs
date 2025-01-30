@@ -39,7 +39,7 @@ impl IncomingPacket for ChunkBatchAck {
             let pos = state.universe.get_mut::<Position>(conn_id)?;
             let head_block = state
                 .world
-                .get_block(pos.x as i32, pos.y as i32 - 1, pos.z as i32, "overworld")
+                .get_block_and_fetch(pos.x as i32, pos.y as i32 - 1, pos.z as i32, "overworld")
                 .await?;
             if head_block.name == "minecraft:air" {
                 move_to_spawn = false;

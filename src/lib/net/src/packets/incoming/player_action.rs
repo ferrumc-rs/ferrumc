@@ -23,7 +23,7 @@ impl IncomingPacket for PlayerAction {
             0 => {
                 state
                     .world
-                    .set_block(
+                    .set_block_and_fetch(
                         self.location.x,
                         self.location.y as i32,
                         self.location.z,

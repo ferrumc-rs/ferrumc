@@ -52,7 +52,6 @@ packets_dir = os.path.join(os.path.join(os.path.dirname(__file__), ".."), "src/l
 
 packet_id = input(
     "Packet ID (formatted as snake case, look on https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol if you need to get the id): ")
-packet_id = packet_id[:-2] + packet_id[-2:].upper()
 
 with open(f"{packets_dir}/{packet_type}/{to_snake_case(packet_name)}.rs", "x") as f:
     if packet_type == "incoming":

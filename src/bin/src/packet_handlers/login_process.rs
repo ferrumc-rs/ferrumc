@@ -159,7 +159,7 @@ async fn handle_ack_finish_configuration(
                 CollisionBounds {
                     x_offset_start: -0.3,
                     x_offset_end: 0.3,
-                    y_offset_start: -0.5,
+                    y_offset_start: 0.0,
                     y_offset_end: 1.5,
                     z_offset_start: -0.3,
                     z_offset_end: 0.3,

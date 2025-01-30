@@ -1,4 +1,5 @@
 use crate::errors::WorldError;
+use crate::errors::WorldError::InvalidBlockStateData;
 use crate::vanilla_chunk_format;
 use crate::vanilla_chunk_format::VanillaChunk;
 use bitcode_derive::{Decode, Encode};
@@ -10,7 +11,7 @@ use lazy_static::lazy_static;
 use std::cmp::max;
 use std::collections::HashMap;
 use std::io::Read;
-use tracing::error;
+use tracing::{debug, error, warn};
 use vanilla_chunk_format::BlockData;
 
 #[cfg(test)]
@@ -133,11 +134,14 @@ impl VanillaChunk {
                 let mut i = 0;
                 while i + bits_per_block < 64 {
                     let palette_index = read_nbit_i32(chunk, bits_per_block as usize, i as u32)?;
-                    let block = palette
-                        .get(palette_index as usize)
-                        .unwrap_or(&BlockData::default())
-                        .clone();
-                    *block_counts.entry(block).or_insert(0) += 1;
+                    let block = match palette.get(palette_index as usize) {
+                        Some(block) => block,
+                        None => {
+                            error!("Could not find block for palette index: {}", palette_index);
+                            &BlockData::default()
+                        }
+                    };
+                    *block_counts.entry(block.clone()).or_insert(0) += 1;
                     i += bits_per_block;
                 }
             }
@@ -149,6 +153,7 @@ impl VanillaChunk {
                 };
                 block_counts.insert(single_block.clone(), 4096);
             }
+            // TODO: Void and cave air blocks are also counted as air blocks
             let non_air_blocks =
                 4096 - *block_counts.get(&BlockData::default()).unwrap_or(&0) as u16;
             let block_states = BlockStates {
@@ -207,6 +212,10 @@ impl VanillaChunk {
 
 impl BlockStates {
     pub fn resize(&mut self, new_bit_size: usize) -> Result<(), WorldError> {
+        debug!(
+            "Resizing block states from {} to {} bits per block",
+            self.bits_per_block, new_bit_size
+        );
         let max_int_value = (1 << new_bit_size) - 1;
 
         if self.data.is_empty() {
@@ -289,6 +298,245 @@ impl BlockStates {
         // Update the chunk with the new packed data and bit size
         self.data = new_data;
         self.bits_per_block = new_bit_size as u8;
+
+        Ok(())
+    }
+}
+
+impl Chunk {
+    /// Sets the block at the specified coordinates to the specified block data.
+    /// If the block is the same as the old block, nothing happens.
+    /// If the block is not in the palette, it is added.
+    /// If the palette is in single block mode, it is converted to palette'd mode.
+    ///
+    /// # Arguments
+    ///
+    /// * `x` - The x-coordinate of the block.
+    /// * `y` - The y-coordinate of the block.
+    /// * `z` - The z-coordinate of the block.
+    /// * `block` - The block data to set the block to.
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(())` - If the block was successfully set.
+    /// * `Err(WorldError)` - If an error occurs while setting the block.
+    ///
+    /// ### Note
+    /// The positions are modulo'd by 16 to get the block index in the section anyway, so converting
+    /// the coordinates to section coordinates isn't really necessary, but you should probably do it
+    /// anyway for readability's sake.
+    pub fn set_block(
+        &mut self,
+        x: i32,
+        y: i32,
+        z: i32,
+        block: BlockData,
+    ) -> Result<(), WorldError> {
+        // Get old block
+        let old_block = self.get_block(x, y, z)?;
+        if old_block == block {
+            debug!("Block is the same as the old block");
+            return Ok(());
+        }
+        // Get section
+        let section = self
+            .sections
+            .iter_mut()
+            .find(|section| section.y == (y >> 4) as i8)
+            .ok_or(WorldError::SectionOutOfBounds(y >> 4))?;
+        // Since we've already checked if the blocks are the same, if the palette is in single block
+        // mode, we need to convert to palette'd mode
+        if section.block_states.palette.len() == 1 {
+            section.block_states.resize(4)?;
+        }
+        let bits_per_block = section.block_states.bits_per_block;
+        let block_counts = &mut section.block_states.block_counts;
+        match block_counts.get_mut(&old_block) {
+            Some(e) => {
+                if *e <= 0 {
+                    return Err(WorldError::InvalidBlock(old_block));
+                }
+                *e -= 1;
+            }
+            None => {
+                warn!("Block not found in block counts: {:?}", old_block);
+            }
+        }
+        let block_id = BLOCK2ID
+            .get(&block)
+            .ok_or(WorldError::InvalidBlock(block.clone()))?;
+        // Add new block
+        if let Some(e) = section.block_states.block_counts.get(&block) {
+            section.block_states.block_counts.insert(block, e + 1);
+        } else {
+            debug!("Adding block to block counts");
+            section.block_states.block_counts.insert(block, 1);
+        }
+        // Get block index
+        let block_palette_index = section
+            .block_states
+            .palette
+            .iter()
+            .position(|p| p.val == *block_id)
+            .unwrap_or_else(|| {
+                // Add block to palette if it doesn't exist
+                let index = section.block_states.palette.len() as i16;
+                section.block_states.palette.push((*block_id).into());
+                index as usize
+            });
+        // Set block
+        let blocks_per_i64 = (64f64 / bits_per_block as f64).floor() as usize;
+        let index = ((y & 0xf) * 256 + (z & 0xf) * 16 + (x & 0xf)) as usize;
+        let i64_index = index / blocks_per_i64;
+        let packed_u64 =
+            section
+                .block_states
+                .data
+                .get_mut(i64_index)
+                .ok_or(InvalidBlockStateData(format!(
+                    "Invalid block state data at index {}",
+                    i64_index
+                )))?;
+        let offset = (index % blocks_per_i64) * bits_per_block as usize;
+        if let Err(e) = ferrumc_general_purpose::data_packing::u32::write_nbit_u32(
+            packed_u64,
+            offset as u32,
+            block_palette_index as u32,
+            bits_per_block,
+        ) {
+            return Err(InvalidBlockStateData(format!(
+                "Failed to write block: {}",
+                e
+            )));
+        }
+        section.block_states.bits_per_block = bits_per_block;
+        Ok(())
+    }
+
+    /// Gets the block at the specified coordinates.
+    ///
+    /// # Arguments
+    ///
+    /// * `x` - The x-coordinate of the block.
+    /// * `y` - The y-coordinate of the block.
+    /// * `z` - The z-coordinate of the block.
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(BlockData)` - The block data at the specified coordinates.
+    /// * `Err(WorldError)` - If an error occurs while retrieving the block data.
+    ///
+    /// ### Note
+    /// The positions are modulo'd by 16 to get the block index in the section anyway, so converting
+    /// the coordinates to section coordinates isn't really necessary, but you should probably do it
+    /// anyway for readability's sake.
+    pub fn get_block(&self, x: i32, y: i32, z: i32) -> Result<BlockData, WorldError> {
+        let section = self
+            .sections
+            .iter()
+            .find(|section| section.y == (y >> 4) as i8)
+            .ok_or(WorldError::SectionOutOfBounds(y >> 4))?;
+        if section.block_states.palette.len() == 1 {
+            return ID2BLOCK
+                .get(&section.block_states.palette[0].val)
+                .cloned()
+                .ok_or(WorldError::ChunkNotFound);
+        }
+        let bits_per_block = section.block_states.bits_per_block as usize;
+        let data = &section.block_states.data;
+        let blocks_per_i64 = (64f64 / bits_per_block as f64).floor() as usize;
+        let index = ((y & 0xf) * 256 + (z & 0xf) * 16 + (x & 0xf)) as usize;
+        let i64_index = index / blocks_per_i64;
+        let packed_u64 = data
+            .get(i64_index)
+            .ok_or(WorldError::InvalidBlockStateData(format!(
+                "Invalid block state data at index {}",
+                i64_index
+            )))?;
+        let offset = (index % blocks_per_i64) * bits_per_block;
+        let id = ferrumc_general_purpose::data_packing::u32::read_nbit_u32(
+            packed_u64,
+            bits_per_block as u8,
+            offset as u32,
+        )?;
+        let palette_id = section
+            .block_states
+            .palette
+            .get(id as usize)
+            .ok_or(WorldError::ChunkNotFound)?;
+        Ok(crate::chunk_format::ID2BLOCK
+            .get(&palette_id.val)
+            .unwrap_or(&BlockData::default())
+            .clone())
+    }
+}
+
+impl Section {
+    /// This function trims out unnecessary data from the section. Primarily it does 2 things:
+    ///
+    /// 1. Removes any palette entries that are not used in the block states data.
+    ///
+    /// 2. If there is only one block in the palette, it converts the palette to single block mode.
+    pub fn optimise(&mut self) -> Result<(), WorldError> {
+        {
+            // Remove empty blocks from palette
+            let mut remove_indexes = Vec::new();
+            for (block, count) in &self.block_states.block_counts {
+                if *count <= 0 {
+                    let block_id = BLOCK2ID
+                        .get(block)
+                        .ok_or(WorldError::InvalidBlock(block.clone()))?;
+                    let index = self
+                        .block_states
+                        .palette
+                        .iter()
+                        .position(|p| p.val == *block_id);
+                    if let Some(index) = index {
+                        remove_indexes.push(index);
+                    } else {
+                        return Err(WorldError::InvalidBlock(block.clone()));
+                    }
+                }
+            }
+            for index in remove_indexes {
+                // Decrement any data entries that are higher than the removed index
+                for data in &mut self.block_states.data {
+                    let mut i = 0;
+                    while (i + self.block_states.bits_per_block as usize) < 64 {
+                        let block_index =
+                            ferrumc_general_purpose::data_packing::u32::read_nbit_u32(
+                                data,
+                                self.block_states.bits_per_block,
+                                i as u32,
+                            )?;
+                        if block_index > index as u32 {
+                            ferrumc_general_purpose::data_packing::u32::write_nbit_u32(
+                                data,
+                                i as u32,
+                                block_index - 1,
+                                self.block_states.bits_per_block,
+                            )?;
+                        }
+                        i += self.block_states.bits_per_block as usize;
+                    }
+                }
+            }
+        }
+        {
+            // If there is only one block in the palette, remove the palette and set the block to the first entry
+            if self.block_states.palette.len() == 1 {
+                let block_id = self.block_states.palette[0].val;
+                let block = ID2BLOCK
+                    .get(&block_id)
+                    .cloned()
+                    .unwrap_or(BlockData::default());
+                self.block_states.palette.clear();
+                self.block_states.palette.push(VarInt::from(block_id));
+                self.block_states.data.clear();
+                self.block_states.block_counts.clear();
+                self.block_states.block_counts.insert(block, 4096);
+            }
+        }
 
         Ok(())
     }

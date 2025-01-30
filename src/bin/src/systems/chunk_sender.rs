@@ -76,13 +76,6 @@ impl System for ChunkSenderSystem {
                         trace!("Got chunk_recv 3 for sender");
                         for (key, chunk) in chunk_recv.needed_chunks.iter_mut() {
                             if let Some(chunk) = chunk {
-                                chunk.sections.iter_mut().for_each(|section| {
-                                    // if random::<u8>() < 25 {
-                                    if let Err(e) = section.block_states.resize(8) {
-                                        error!("Error resizing block states: {:?}", e);
-                                    }
-                                    // }
-                                });
                                 to_drop.push(key.clone());
                                 match ChunkAndLightData::from_chunk(&chunk.clone()) {
                                     Ok(packet) => {

@@ -1,9 +1,12 @@
+use crate::connection::StreamWriter;
+use crate::packets::outgoing::block_change_ack::BlockChangeAck;
 use crate::packets::IncomingPacket;
 use crate::NetResult;
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
 use ferrumc_core::collisions::bounds::CollisionBounds;
 use ferrumc_core::transform::position::Position;
 use ferrumc_macros::{packet, NetDecode};
+use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_net_codec::net_types::network_position::NetworkPosition;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::ServerState;
@@ -25,14 +28,14 @@ pub struct PlaceBlock {
 }
 
 impl IncomingPacket for PlaceBlock {
-    async fn handle(self, _conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
+    async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
         match self.hand.val {
             0 => {
                 debug!("Placing block at {:?}", self.position);
                 let block_clicked = state
                     .clone()
                     .world
-                    .get_block(
+                    .get_block_and_fetch(
                         self.position.x,
                         self.position.y as i32,
                         self.position.z,
@@ -74,12 +77,22 @@ impl IncomingPacket for PlaceBlock {
                     })
                 };
                 if does_collide {
-                    debug!("Block placement collided with entity");
+                    trace!("Block placement collided with entity");
                     return Ok(());
+                }
+                {
+                    if let Ok(mut conn) = state.universe.get_mut::<StreamWriter>(conn_id) {
+                        let packet = BlockChangeAck {
+                            sequence: self.sequence.clone(),
+                        };
+                        conn.send_packet(packet, &NetEncodeOpts::WithLength)?;
+                    } else {
+                        debug!("Could not get StreamWriter");
+                    }
                 }
                 state
                     .world
-                    .set_block(
+                    .set_block_and_fetch(
                         x,
                         y as i32,
                         z,
@@ -96,7 +109,7 @@ impl IncomingPacket for PlaceBlock {
                 }
             }
             1 => {
-                debug!("Offhand block placement not implemented");
+                trace!("Offhand block placement not implemented");
             }
             _ => {
                 debug!("Invalid hand");
