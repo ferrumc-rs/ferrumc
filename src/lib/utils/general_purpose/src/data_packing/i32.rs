@@ -17,7 +17,7 @@ use crate::data_packing::errors::DataPackingError;
 ///
 /// * `DataPackingError::SizeExceedsMaxSize` - If `size` is greater than 32.
 /// * `DataPackingError::NotEnoughBits` - If `offset + size` exceeds 64 bits.
-///    Reads an n-bit integer from a packed `i64`.
+///   Reads an n-bit integer from a packed `i64`.
 pub fn read_nbit_i32(
     word: &i64,
     bit_size: usize,

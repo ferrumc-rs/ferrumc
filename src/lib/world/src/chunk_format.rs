@@ -219,7 +219,7 @@ impl BlockStates {
         let max_int_value = (1 << new_bit_size) - 1;
 
         if self.data.is_empty() {
-            let data_size = (4096 * new_bit_size + 63) / 64;
+            let data_size = (4096 * new_bit_size).div_ceil(64);
             self.data = vec![0; data_size];
             self.bits_per_block = new_bit_size as u8;
             return Ok(());
@@ -240,7 +240,7 @@ impl BlockStates {
                 // Extract value at the current bit offset
                 let value = read_nbit_i32(&long, self.bits_per_block as usize, bit_offset as u32)?;
                 if value > max_int_value {
-                    return Err(WorldError::InvalidBlockStateData(format!(
+                    return Err(InvalidBlockStateData(format!(
                         "Value {} exceeds maximum value for {}-bit block state",
                         value, new_bit_size
                     )));
@@ -259,7 +259,7 @@ impl BlockStates {
 
         // Check if we read exactly 4096 block states
         if normalised_ints.len() != 4096 {
-            return Err(WorldError::InvalidBlockStateData(format!(
+            return Err(InvalidBlockStateData(format!(
                 "Expected 4096 block states, but got {}",
                 normalised_ints.len()
             )));
@@ -287,9 +287,9 @@ impl BlockStates {
         }
 
         // Verify the size of the new data matches expectations
-        let expected_size = (4096 * new_bit_size + 63) / 64;
+        let expected_size = (4096 * new_bit_size).div_ceil(64);
         if new_data.len() != expected_size {
-            return Err(WorldError::InvalidBlockStateData(format!(
+            return Err(InvalidBlockStateData(format!(
                 "Expected packed data size of {}, but got {}",
                 expected_size,
                 new_data.len()
@@ -447,12 +447,10 @@ impl Chunk {
         let blocks_per_i64 = (64f64 / bits_per_block as f64).floor() as usize;
         let index = ((y & 0xf) * 256 + (z & 0xf) * 16 + (x & 0xf)) as usize;
         let i64_index = index / blocks_per_i64;
-        let packed_u64 = data
-            .get(i64_index)
-            .ok_or(WorldError::InvalidBlockStateData(format!(
-                "Invalid block state data at index {}",
-                i64_index
-            )))?;
+        let packed_u64 = data.get(i64_index).ok_or(InvalidBlockStateData(format!(
+            "Invalid block state data at index {}",
+            i64_index
+        )))?;
         let offset = (index % blocks_per_i64) * bits_per_block;
         let id = ferrumc_general_purpose::data_packing::u32::read_nbit_u32(
             packed_u64,
