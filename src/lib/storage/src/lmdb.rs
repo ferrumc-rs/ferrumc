@@ -210,7 +210,7 @@ impl LmdbBackend {
         .await
         .expect("Failed to run tokio task")
     }
-    
+
     pub async fn table_exists(&self, table: String) -> Result<bool, StorageError> {
         let env = self.env.clone();
         tokio::task::spawn_blocking(move || {

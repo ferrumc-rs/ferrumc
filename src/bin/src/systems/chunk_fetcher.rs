@@ -4,7 +4,6 @@ use async_trait::async_trait;
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
 use ferrumc_state::GlobalState;
 use ferrumc_world::chunk_format::Chunk;
-use ferrumc_world::errors::WorldError;
 use ferrumc_world::vanilla_chunk_format::BlockData;
 use std::collections::{BTreeMap, HashMap};
 use std::sync::atomic::AtomicBool;
@@ -67,7 +66,10 @@ impl System for ChunkFetcher {
                                     section,
                                     BlockData {
                                         name: "minecraft:grass_block".to_string(),
-                                        properties: Some(BTreeMap::from([("snowy".to_string(), "false".to_string())])),
+                                        properties: Some(BTreeMap::from([(
+                                            "snowy".to_string(),
+                                            "false".to_string(),
+                                        )])),
                                     },
                                 )?;
                             }
