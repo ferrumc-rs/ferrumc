@@ -62,8 +62,7 @@ pub struct Heightmaps {
 pub struct Section {
     pub y: i8,
     pub block_states: BlockStates,
-    pub biome_data: Vec<i64>,
-    pub biome_palette: Vec<String>,
+    pub biome_states: BiomeStates,
     pub block_light: Vec<u8>,
     pub sky_light: Vec<u8>,
 }
@@ -74,6 +73,13 @@ pub struct BlockStates {
     pub data: Vec<i64>,
     pub palette: Vec<VarInt>,
     pub block_counts: HashMap<BlockData, i32>,
+}
+
+#[derive(Encode, Decode, Clone, DeepSizeOf)]
+pub struct BiomeStates {
+    pub bits_per_biome: u8,
+    pub data: Vec<i64>,
+    pub palette: Vec<VarInt>,
 }
 
 fn convert_to_net_palette(vanilla_palettes: Vec<BlockData>) -> Result<Vec<VarInt>, WorldError> {
@@ -119,15 +125,6 @@ impl VanillaChunk {
                 .as_ref()
                 .and_then(|bs| bs.palette.clone())
                 .unwrap_or_default();
-            let biome_data = section
-                .biomes
-                .as_ref()
-                .and_then(|biome_data| biome_data.data.clone())
-                .unwrap_or_default();
-            let biome_palette = section
-                .biomes
-                .as_ref()
-                .map_or(vec![], |biome_data| biome_data.palette.clone());
             let bits_per_block = max((palette.len() as f32).log2().ceil() as u8, 4);
             let mut block_counts = HashMap::new();
             for chunk in &block_data {
@@ -153,9 +150,21 @@ impl VanillaChunk {
                 };
                 block_counts.insert(single_block.clone(), 4096);
             }
-            // TODO: Void and cave air blocks are also counted as air blocks
-            let non_air_blocks =
-                4096 - *block_counts.get(&BlockData::default()).unwrap_or(&0) as u16;
+            // Count the number of blocks that are either air, void air, or cave air
+            let mut air_blocks = *block_counts.get(&BlockData::default()).unwrap_or(&0) as u16;
+            air_blocks += *block_counts
+                .get(&BlockData {
+                    name: "minecraft:void_air".to_string(),
+                    properties: None,
+                })
+                .unwrap_or(&0) as u16;
+            air_blocks += *block_counts
+                .get(&BlockData {
+                    name: "minecraft:cave_air".to_string(),
+                    properties: None,
+                })
+                .unwrap_or(&0) as u16;
+            let non_air_blocks = 4096 - air_blocks;
             let block_states = BlockStates {
                 bits_per_block,
                 block_counts,
@@ -177,11 +186,16 @@ impl VanillaChunk {
                 .iter()
                 .map(|x| *x as u8)
                 .collect();
+            let biome_states = BiomeStates {
+                // TODO: Implement biome states properly
+                bits_per_biome: 4,
+                data: vec![],
+                palette: vec![VarInt::from(0); 1],
+            };
             let section = Section {
                 y,
                 block_states,
-                biome_data,
-                biome_palette,
+                biome_states,
                 block_light,
                 sky_light,
             };
@@ -346,7 +360,7 @@ impl Chunk {
             .ok_or(WorldError::SectionOutOfBounds(y >> 4))?;
         // Since we've already checked if the blocks are the same, if the palette is in single block
         // mode, we need to convert to palette'd mode
-        if section.block_states.palette.len() == 1 {
+        if section.block_states.palette.len() == 1 || section.block_states.bits_per_block == 0 {
             section.block_states.resize(4)?;
         }
         let bits_per_block = section.block_states.bits_per_block;
@@ -436,13 +450,13 @@ impl Chunk {
             .iter()
             .find(|section| section.y == (y >> 4) as i8)
             .ok_or(WorldError::SectionOutOfBounds(y >> 4))?;
-        if section.block_states.palette.len() == 1 {
+        let bits_per_block = section.block_states.bits_per_block as usize;
+        if section.block_states.palette.len() == 1 || bits_per_block == 0 {
             return ID2BLOCK
                 .get(&section.block_states.palette[0].val)
                 .cloned()
                 .ok_or(WorldError::ChunkNotFound);
         }
-        let bits_per_block = section.block_states.bits_per_block as usize;
         let data = &section.block_states.data;
         let blocks_per_i64 = (64f64 / bits_per_block as f64).floor() as usize;
         let index = ((y & 0xf) * 256 + (z & 0xf) * 16 + (x & 0xf)) as usize;
@@ -467,9 +481,107 @@ impl Chunk {
             .unwrap_or(&BlockData::default())
             .clone())
     }
+
+    pub fn new(x: i32, z: i32, dimension: String) -> Self {
+        let mut sections: Vec<Section> = (0..24)
+            .map(|y| Section {
+                y: y as i8,
+                block_states: BlockStates {
+                    bits_per_block: 4,
+                    non_air_blocks: 0,
+                    data: vec![0; 256],
+                    palette: vec![VarInt::from(0)],
+                    block_counts: HashMap::from([(BlockData::default(), 4096)]),
+                },
+                biome_states: BiomeStates {
+                    bits_per_biome: 4,
+                    data: vec![],
+                    palette: vec![VarInt::from(0)],
+                },
+                block_light: vec![255; 2048],
+                sky_light: vec![255; 2048],
+            })
+            .collect();
+        for section in &mut sections {
+            section.optimise().expect("Failed to optimise section");
+        }
+        debug!(seclen = sections.len());
+        Chunk {
+            x,
+            z,
+            dimension,
+            sections,
+            heightmaps: Heightmaps::new(),
+        }
+    }
+
+    /// Sets the section at the specified index to the specified block data.
+    /// If the section is out of bounds, an error is returned.
+    ///
+    /// # Arguments
+    ///
+    /// * `section` - The index of the section to set.
+    /// * `block` - The block data to set the section to.
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(())` - If the section was successfully set.
+    /// * `Err(WorldError)` - If an error occurs while setting the section.
+    pub fn set_section(&mut self, section: u8, block: BlockData) -> Result<(), WorldError> {
+        if let Some(section) = self.sections.get_mut(section as usize) {
+            section.fill(block)
+        } else {
+            Err(WorldError::SectionOutOfBounds(section as i32))
+        }
+    }
+
+    /// Fills the chunk with the specified block.
+    ///
+    /// # Arguments
+    ///
+    /// * `block` - The block data to fill the chunk with.
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(())` - If the chunk was successfully filled.
+    /// * `Err(WorldError)` - If an error occurs while filling the chunk.
+    pub fn fill(&mut self, block: BlockData) -> Result<(), WorldError> {
+        for section in &mut self.sections {
+            section.fill(block.clone())?;
+        }
+        Ok(())
+    }
 }
 
 impl Section {
+    /// Fills the section with the specified block.
+    ///
+    /// # Arguments
+    ///
+    /// * `block` - The block data to fill the section with.
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(())` - If the section was successfully filled.
+    /// * `Err(WorldError)` - If an error occurs while filling the section.
+    pub fn fill(&mut self, block: BlockData) -> Result<(), WorldError> {
+        let block_id = BLOCK2ID
+            .get(&block)
+            .ok_or(WorldError::InvalidBlock(block.clone()))?;
+        self.block_states.palette = vec![VarInt::from(*block_id)];
+        self.block_states.data = vec![0; 256];
+        self.block_states.block_counts = HashMap::from([(block.clone(), 4096)]);
+        if ["minecraft:air", "minecraft:void_air", "minecraft:cave_air"]
+            .contains(&block.name.as_str())
+        {
+            self.block_states.non_air_blocks = 0;
+        } else {
+            self.block_states.non_air_blocks = 4096;
+        }
+        self.block_states.bits_per_block = 4;
+        Ok(())
+    }
+
     /// This function trims out unnecessary data from the section. Primarily it does 2 things:
     ///
     /// 1. Removes any palette entries that are not used in the block states data.

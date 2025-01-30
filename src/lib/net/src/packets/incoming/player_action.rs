@@ -10,6 +10,7 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::ServerState;
 use std::sync::Arc;
 use tracing::debug;
+use ferrumc_world::vanilla_chunk_format::BlockData;
 
 #[derive(NetDecode)]
 #[packet(packet_id = "player_action", state = "play")]
@@ -25,24 +26,28 @@ impl IncomingPacket for PlayerAction {
         // https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol?oldid=2773393#Player_Action
         match self.status.val {
             0 => {
-                state
+                let mut chunk = state
+                    .clone()
                     .world
-                    .set_block_and_fetch(
-                        self.location.x,
-                        self.location.y as i32,
-                        self.location.z,
+                    .load_chunk(
+                        self.location.x >> 4,
+                        self.location.z >> 4,
                         "overworld",
-                        ferrumc_world::vanilla_chunk_format::BlockData {
-                            name: "minecraft:air".to_string(),
-                            properties: None,
-                        },
-                    )
-                    .await?;
+                    ).await?;
+                chunk.set_block(
+                    self.location.x,
+                    self.location.y as i32,
+                    self.location.z,
+                    BlockData::default(),
+                )?;
+                state.world.save_chunk(
+                    chunk
+                ).await?;
                 {
                     let packet = BlockChangeAck {
                         sequence: self.sequence,
                     };
-                    if let Ok(mut conn) = state.universe.get_mut::<&mut StreamWriter>(conn_id) {
+                    if let Ok(mut conn) = state.universe.get_mut::<StreamWriter>(conn_id) {
                         conn.send_packet(packet, &NetEncodeOpts::WithLength)?;
                     } else {
                         debug!(

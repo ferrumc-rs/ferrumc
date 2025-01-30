@@ -3,7 +3,10 @@ use crate::systems::definition::System;
 use async_trait::async_trait;
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
 use ferrumc_state::GlobalState;
-use std::collections::HashMap;
+use ferrumc_world::chunk_format::Chunk;
+use ferrumc_world::errors::WorldError;
+use ferrumc_world::vanilla_chunk_format::BlockData;
+use std::collections::{BTreeMap, HashMap};
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 use tokio::task::JoinSet;
@@ -49,8 +52,28 @@ impl System for ChunkFetcher {
                     };
                     // Fetch the chunks
                     for (key, chunk) in copied_chunks.iter_mut() {
-                        let fetched_chunk =
-                            state.world.load_chunk(key.0, key.1, &key.2.clone()).await?;
+                        let fetched_chunk = if state
+                            .world
+                            .chunk_exists(key.0, key.1, &key.2.clone())
+                            .await?
+                        {
+                            debug!("Chunk found, loading chunk");
+                            state.world.load_chunk(key.0, key.1, &key.2.clone()).await?
+                        } else {
+                            debug!("Chunk not found, creating new chunk");
+                            let mut new_chunk = Chunk::new(key.0, key.1, key.2.clone());
+                            for section in 0..8 {
+                                new_chunk.set_section(
+                                    section,
+                                    BlockData {
+                                        name: "minecraft:grass_block".to_string(),
+                                        properties: Some(BTreeMap::from([("snowy".to_string(), "false".to_string())])),
+                                    },
+                                )?;
+                            }
+                            state.world.save_chunk(new_chunk.clone()).await?;
+                            new_chunk
+                        };
                         *chunk = Some(fetched_chunk);
                     }
                     // Insert the fetched chunks back into the component

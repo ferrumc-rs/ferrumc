@@ -90,19 +90,18 @@ impl IncomingPacket for PlaceBlock {
                         debug!("Could not get StreamWriter");
                     }
                 }
-                state
-                    .world
-                    .set_block_and_fetch(
-                        x,
-                        y as i32,
-                        z,
-                        "overworld",
-                        BlockData {
-                            name: "minecraft:stone".to_string(),
-                            properties: None,
-                        },
-                    )
-                    .await?;
+                let mut chunk = state.world.load_chunk(x >> 4, z >> 4, "overworld").await?;
+
+                chunk.set_block(
+                    x & 0xF,
+                    y as i32,
+                    z & 0xF,
+                    BlockData {
+                        name: "minecraft:stone".to_string(),
+                        properties: None,
+                    },
+                )?;
+                state.world.save_chunk(chunk).await?;
                 let q = state.universe.query::<&mut ChunkReceiver>();
                 for (_, mut chunk_recv) in q {
                     chunk_recv.queue_chunk_resend(x >> 4, z >> 4, "overworld".to_string());
