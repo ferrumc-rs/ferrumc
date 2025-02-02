@@ -9,6 +9,7 @@ use ferrumc_macros::{NBTDeserialize, NBTSerialize};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use lazy_static::lazy_static;
 use std::cmp::max;
+use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::io::Read;
 use tracing::{debug, error, warn};
@@ -40,7 +41,7 @@ lazy_static! {
         ID2BLOCK.iter().map(|(k, v)| (v.clone(), *k)).collect();
 }
 
-#[derive(Encode, Decode, Clone, DeepSizeOf)]
+#[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq)]
 // This is a placeholder for the actual chunk format
 pub struct Chunk {
     pub x: i32,
@@ -52,13 +53,14 @@ pub struct Chunk {
 
 #[derive(Encode, Decode, NBTDeserialize, NBTSerialize, Clone, DeepSizeOf)]
 #[nbt(net_encode)]
+#[derive(Eq, PartialEq)]
 pub struct Heightmaps {
     #[nbt(rename = "MOTION_BLOCKING")]
     pub motion_blocking: Vec<i64>,
     #[nbt(rename = "WORLD_SURFACE")]
     pub world_surface: Vec<i64>,
 }
-#[derive(Encode, Decode, Clone, DeepSizeOf)]
+#[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq)]
 pub struct Section {
     pub y: i8,
     pub block_states: BlockStates,
@@ -66,14 +68,14 @@ pub struct Section {
     pub block_light: Vec<u8>,
     pub sky_light: Vec<u8>,
 }
-#[derive(Encode, Decode, Clone, DeepSizeOf)]
+#[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq)]
 pub struct BlockStates {
     pub non_air_blocks: u16,
     pub block_data: PaletteType,
     pub block_counts: HashMap<BlockData, i32>,
 }
 
-#[derive(Encode, Decode, Clone, DeepSizeOf)]
+#[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq)]
 pub enum PaletteType {
     Single(VarInt),
     Indirect {
@@ -87,7 +89,7 @@ pub enum PaletteType {
     },
 }
 
-#[derive(Encode, Decode, Clone, DeepSizeOf)]
+#[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq)]
 pub struct BiomeStates {
     pub bits_per_biome: u8,
     pub data: Vec<i64>,
@@ -127,7 +129,7 @@ impl VanillaChunk {
         let mut sections = Vec::new();
         for section in self.sections.as_ref().unwrap() {
             let y = section.y;
-            let mut block_data: PaletteType;
+            let block_data: PaletteType;
             let raw_block_data = section
                 .block_states
                 .as_ref()
@@ -277,7 +279,7 @@ impl BlockStates {
 
                         // Extract value at the current bit offset
                         let value =
-                            read_nbit_i32(&long, *bits_per_block as usize, bit_offset as u32)?;
+                            read_nbit_i32(long, *bits_per_block as usize, bit_offset as u32)?;
                         let max_int_value = (1 << new_bit_size) - 1;
                         if value > max_int_value {
                             return Err(InvalidBlockStateData(format!(
@@ -391,6 +393,7 @@ impl Chunk {
             .iter_mut()
             .find(|section| section.y == (y >> 4) as i8)
             .ok_or(WorldError::SectionOutOfBounds(y >> 4))?;
+        // Do different things based on the palette type
         match &mut section.block_states.block_data {
             PaletteType::Single(val) => {
                 debug!("Converting single block to indirect palette");
@@ -408,15 +411,17 @@ impl Chunk {
                 palette,
             } => {
                 let block_counts = &mut section.block_states.block_counts;
-                match block_counts.get_mut(&old_block) {
-                    Some(e) => {
-                        if *e <= 0 {
+                match block_counts.entry(old_block.clone()) {
+                    Entry::Occupied(mut occ_entry) => {
+                        let count = occ_entry.get_mut();
+                        if *count <= 0 {
                             return Err(WorldError::InvalidBlock(old_block));
                         }
-                        *e -= 1;
+                        *count -= 1;
                     }
-                    None => {
+                    Entry::Vacant(empty_entry) => {
                         warn!("Block not found in block counts: {:?}", old_block);
+                        empty_entry.insert(0);
                     }
                 }
                 let block_id = BLOCK2ID
@@ -536,12 +541,16 @@ impl Chunk {
     }
 
     pub fn new(x: i32, z: i32, dimension: String) -> Self {
-        let mut sections: Vec<Section> = (0..24)
+        let sections: Vec<Section> = (0..24)
             .map(|y| Section {
                 y: y as i8,
                 block_states: BlockStates {
                     non_air_blocks: 0,
-                    block_data: PaletteType::Single(VarInt::from(0)),
+                    block_data: PaletteType::Indirect {
+                        bits_per_block: 4,
+                        data: vec![0; 256],
+                        palette: vec![VarInt::from(0)],
+                    },
                     block_counts: HashMap::from([(BlockData::default(), 4096)]),
                 },
                 biome_states: BiomeStates {
@@ -579,7 +588,7 @@ impl Chunk {
     /// * `Err(WorldError)` - If an error occurs while setting the section.
     pub fn set_section(&mut self, section: u8, block: BlockData) -> Result<(), WorldError> {
         if let Some(section) = self.sections.get_mut(section as usize) {
-            section.fill(block)
+            section.fill(block.clone())
         } else {
             Err(WorldError::SectionOutOfBounds(section as i32))
         }

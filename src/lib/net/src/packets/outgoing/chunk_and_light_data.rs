@@ -7,7 +7,7 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_world::chunk_format::{Chunk, Heightmaps, PaletteType};
 use std::io::{Cursor, Write};
 use std::ops::Not;
-use tracing::{debug, trace, warn};
+use tracing::{debug, warn};
 
 const SECTIONS: usize = 24; // Number of sections, adjust for your Y range (-64 to 319)
 
@@ -64,6 +64,7 @@ impl ChunkAndLightData {
     }
 
     pub fn from_chunk(chunk: &Chunk) -> Result<Self, NetError> {
+        debug!("Serializing chunk at {}, {}", chunk.x, chunk.z);
         let mut raw_data = Cursor::new(Vec::new());
         let mut sky_light_data = Vec::new();
         let mut block_light_data = Vec::new();
@@ -93,7 +94,7 @@ impl ChunkAndLightData {
 
             match &section.block_states.block_data {
                 PaletteType::Single(val) => {
-                    debug!("Single palette type: {:?}", (chunk.x, chunk.z));
+                    // debug!("Single palette type: {:?}", (chunk.x, chunk.z));
                     raw_data.write_u8(0)?;
                     val.write(&mut raw_data)?;
                     VarInt::new(0).write(&mut raw_data)?;
@@ -103,7 +104,7 @@ impl ChunkAndLightData {
                     data,
                     palette,
                 } => {
-                    debug!("Indirect palette type: {:?}", (chunk.x, chunk.z));
+                    // debug!("Indirect palette type: {:?}", (chunk.x, chunk.z));
                     raw_data.write_u8(*bits_per_block)?;
                     VarInt::new(palette.len() as i32).write(&mut raw_data)?;
                     for palette_entry in palette {

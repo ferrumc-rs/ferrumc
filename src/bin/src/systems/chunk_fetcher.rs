@@ -2,6 +2,7 @@ use crate::errors::BinaryError;
 use crate::systems::definition::System;
 use async_trait::async_trait;
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
+use ferrumc_core::chunks::chunk_receiver::ChunkSendState::{Fetching, Sending};
 use ferrumc_state::GlobalState;
 use ferrumc_world::chunk_format::Chunk;
 use ferrumc_world::vanilla_chunk_format::BlockData;
@@ -43,7 +44,7 @@ impl System for ChunkFetcher {
                         let mut copied_chunks = HashMap::new();
                         for chunk in chunk_recv.needed_chunks.iter() {
                             let (key, chunk) = chunk;
-                            if chunk.is_none() {
+                            if let Fetching = chunk {
                                 copied_chunks.insert(key.clone(), None);
                             }
                         }
@@ -85,8 +86,10 @@ impl System for ChunkFetcher {
                             trace!("A player disconnected before we could get the ChunkReceiver");
                             return Ok(());
                         };
-                        for (key, chunk) in copied_chunks.iter() {
-                            chunk_recv.needed_chunks.insert(key.clone(), chunk.clone());
+                        for (key, chunk) in copied_chunks {
+                            if let Some(chunk) = chunk {
+                                chunk_recv.needed_chunks.insert(key.clone(), Sending(chunk));
+                            }
                         }
                     }
                     Ok(())

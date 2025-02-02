@@ -1,6 +1,7 @@
 use crate::systems::definition::System;
 use async_trait::async_trait;
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
+use ferrumc_core::chunks::chunk_receiver::ChunkSendState::{Sending, Sent};
 use ferrumc_ecs::errors::ECSError;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::chunk_and_light_data::ChunkAndLightData;
@@ -14,7 +15,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::task::JoinSet;
-use tracing::{error, info, trace};
+use tracing::{debug, error, info, trace};
 
 pub(super) struct ChunkSenderSystem {
     pub stop: AtomicBool,
@@ -55,7 +56,6 @@ impl System for ChunkSenderSystem {
                     }
                     // We can't delete from the map while iterating, so we collect the keys to drop
                     // and then drop them after sending the chunks
-                    let mut to_drop = Vec::new();
                     {
                         let Ok(chunk_recv) = state.universe.get::<ChunkReceiver>(eid) else {
                             trace!("A player disconnected before we could get the ChunkReceiver");
@@ -75,28 +75,20 @@ impl System for ChunkSenderSystem {
                             .expect("ChunkReceiver not found");
                         trace!("Got chunk_recv 3 for sender");
                         for (key, chunk) in chunk_recv.needed_chunks.iter_mut() {
-                            if let Some(chunk) = chunk {
-                                to_drop.push(key.clone());
-                                match ChunkAndLightData::from_chunk(&chunk.clone()) {
+                            if let Sending(confirmed_chunk) = chunk {
+                                match ChunkAndLightData::from_chunk(&confirmed_chunk.clone()) {
                                     Ok(packet) => {
+                                        debug!("Queuing chunk for sending");
                                         packets.push(packet);
                                     }
                                     Err(e) => {
                                         error!("Error sending chunk: {:?}", e);
                                     }
                                 }
+                                *chunk = Sent;
                             }
                         }
-                    }
-                    {
-                        let Ok(mut chunk_recv) = state.universe.get_mut::<ChunkReceiver>(eid)
-                        else {
-                            trace!("A player disconnected before we could get the ChunkReceiver");
-                            return Ok(());
-                        };
-                        for key in to_drop {
-                            chunk_recv.needed_chunks.remove(&key);
-                        }
+                        chunk_recv.needed_chunks.retain(|_, v| v != &Sent);
                     }
 
                     {

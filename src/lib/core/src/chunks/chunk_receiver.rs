@@ -5,7 +5,7 @@ use tokio::time::Instant;
 
 const VIEW_DISTANCE: i32 = 8;
 pub struct ChunkReceiver {
-    pub needed_chunks: HashMap<(i32, i32, String), Option<Chunk>>,
+    pub needed_chunks: HashMap<(i32, i32, String), ChunkSendState>,
     pub can_see: HashSet<(i32, i32, String)>,
     pub last_update: Instant,
     pub last_chunk: Option<(i32, i32, String)>,
@@ -17,6 +17,13 @@ impl Default for ChunkReceiver {
     fn default() -> Self {
         Self::new()
     }
+}
+
+#[derive(Clone, Eq, PartialEq)]
+pub enum ChunkSendState {
+    Fetching,
+    Sending(Chunk),
+    Sent,
 }
 
 impl ChunkReceiver {
@@ -35,7 +42,7 @@ impl ChunkReceiver {
         if self.can_see.contains(&(x, z, dimension.clone())) {
             let entry = self.needed_chunks.get_mut(&(x, z, dimension.clone()));
             if let Some(entry) = entry {
-                *entry = None;
+                *entry = ChunkSendState::Fetching;
             }
         }
     }
@@ -49,7 +56,7 @@ impl ChunkReceiver {
                 for z in last_chunk.1 - VIEW_DISTANCE..=last_chunk.1 + VIEW_DISTANCE {
                     if !self.can_see.contains(&(x, z, last_chunk.2.clone())) {
                         self.needed_chunks
-                            .insert((x, z, last_chunk.2.clone()), None);
+                            .insert((x, z, last_chunk.2.clone()), ChunkSendState::Fetching);
                     }
                     new_can_see.insert((x, z, last_chunk.2.clone()));
                 }
