@@ -33,7 +33,10 @@ impl ChunkReceiver {
 
     pub fn queue_chunk_resend(&mut self, x: i32, z: i32, dimension: String) {
         if self.can_see.contains(&(x, z, dimension.clone())) {
-            self.needed_chunks.insert((x, z, dimension), None);
+            let entry = self.needed_chunks.get_mut(&(x, z, dimension.clone()));
+            if let Some(entry) = entry {
+                *entry = None;
+            }
         }
     }
 }

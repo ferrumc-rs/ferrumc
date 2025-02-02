@@ -31,6 +31,9 @@ impl IncomingPacket for PlayerAction {
                     .world
                     .load_chunk(self.location.x >> 4, self.location.z >> 4, "overworld")
                     .await?;
+                let block =
+                    chunk.get_block(self.location.x, self.location.y as i32, self.location.z)?;
+                debug!("Block: {:?}", block);
                 chunk.set_block(
                     self.location.x,
                     self.location.y as i32,
@@ -53,6 +56,7 @@ impl IncomingPacket for PlayerAction {
                 {
                     let q = state.universe.query::<&mut ChunkReceiver>();
                     for (_, mut chunk_receiver) in q {
+                        debug!("Queueing chunk resend");
                         chunk_receiver.queue_chunk_resend(
                             self.location.x >> 4,
                             self.location.z >> 4,

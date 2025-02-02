@@ -4,10 +4,10 @@ use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::bitset::BitSet;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use ferrumc_world::chunk_format::{Chunk, Heightmaps};
+use ferrumc_world::chunk_format::{Chunk, Heightmaps, PaletteType};
 use std::io::{Cursor, Write};
 use std::ops::Not;
-use tracing::{trace, warn};
+use tracing::{debug, trace, warn};
 
 const SECTIONS: usize = 24; // Number of sections, adjust for your Y range (-64 to 319)
 
@@ -64,7 +64,7 @@ impl ChunkAndLightData {
     }
 
     pub fn from_chunk(chunk: &Chunk) -> Result<Self, NetError> {
-        let mut data = Cursor::new(Vec::new());
+        let mut raw_data = Cursor::new(Vec::new());
         let mut sky_light_data = Vec::new();
         let mut block_light_data = Vec::new();
         for section in &chunk.sections {
@@ -89,49 +89,40 @@ impl ChunkAndLightData {
             };
             block_light_data.push(section_block_light_data);
 
-            data.write_u16::<BigEndian>(section.block_states.non_air_blocks)?;
+            raw_data.write_u16::<BigEndian>(section.block_states.non_air_blocks)?;
 
-            let bits_per_block = section.block_states.bits_per_block;
-            data.write_u8(bits_per_block)?;
-            // If bits_per_block is 0, the section is using the single-value palette format
-            // If bits_per_block is greater than 0, the section is using the indirect palette format
-            if bits_per_block > 0 {
-                // Write the palette
-                VarInt::new(section.block_states.palette.len() as i32).write(&mut data)?;
-                for palette_entry in &section.block_states.palette {
-                    palette_entry.write(&mut data)?;
+            match &section.block_states.block_data {
+                PaletteType::Single(val) => {
+                    debug!("Single palette type: {:?}", (chunk.x, chunk.z));
+                    raw_data.write_u8(0)?;
+                    val.write(&mut raw_data)?;
+                    VarInt::new(0).write(&mut raw_data)?;
                 }
-
-                // Write the data
-                VarInt::new(section.block_states.data.len() as i32).write(&mut data)?;
-                for data_entry in &section.block_states.data {
-                    data.write_i64::<BigEndian>(*data_entry)?;
-                }
-            } else {
-                // The 0s for air blocks and bits_per_block are already written
-                // Get the only palette entry
-                match section.block_states.palette.first() {
-                    Some(palette_entry) => {
-                        palette_entry.write(&mut data)?;
+                PaletteType::Indirect {
+                    bits_per_block,
+                    data,
+                    palette,
+                } => {
+                    debug!("Indirect palette type: {:?}", (chunk.x, chunk.z));
+                    raw_data.write_u8(*bits_per_block)?;
+                    VarInt::new(palette.len() as i32).write(&mut raw_data)?;
+                    for palette_entry in palette {
+                        palette_entry.write(&mut raw_data)?;
                     }
-                    // If there is no palette entry, write a 0 (air) and log a warning
-                    None => {
-                        VarInt::new(0).write(&mut data)?;
-                        trace!(
-                            "No palette entry found for section at {}, {}, {}",
-                            chunk.x,
-                            section.y,
-                            chunk.z
-                        );
+                    VarInt::new(data.len() as i32).write(&mut raw_data)?;
+                    for data_entry in data {
+                        raw_data.write_i64::<BigEndian>(*data_entry)?;
                     }
                 }
-                // Write the empty data section's length (0)
-                VarInt::new(0).write(&mut data)?;
+                PaletteType::Direct { .. } => {
+                    todo!("Direct palette type")
+                }
             }
+
             // Empty biome data for now
-            data.write_u8(0)?;
-            data.write_u8(0)?;
-            data.write_u8(0)?;
+            raw_data.write_u8(0)?;
+            raw_data.write_u8(0)?;
+            raw_data.write_u8(0)?;
         }
         let mut sky_light_mask = BitSet::new(SECTIONS + 2);
         let mut block_light_mask = BitSet::new(SECTIONS + 2);
@@ -168,7 +159,7 @@ impl ChunkAndLightData {
             chunk_x: chunk.x,
             chunk_z: chunk.z,
             heightmaps: chunk.heightmaps.serialize_as_network(),
-            data: LengthPrefixedVec::new(data.into_inner()),
+            data: LengthPrefixedVec::new(raw_data.into_inner()),
             block_entities: LengthPrefixedVec::new(Vec::new()),
             sky_light_mask,
             block_light_mask,
