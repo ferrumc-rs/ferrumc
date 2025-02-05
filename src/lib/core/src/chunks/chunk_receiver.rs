@@ -46,6 +46,15 @@ impl ChunkReceiver {
             }
         }
     }
+
+    pub fn queue_from_chunk(&mut self, chunk: Chunk) {
+        let key = (chunk.x, chunk.z, chunk.dimension.clone());
+
+        if self.can_see.contains(&key) {
+            self.needed_chunks
+                .insert(key, ChunkSendState::Sending(chunk));
+        }
+    }
 }
 
 impl ChunkReceiver {

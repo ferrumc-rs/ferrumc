@@ -15,7 +15,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::task::JoinSet;
-use tracing::{debug, error, info, trace};
+use tracing::{error, info, trace};
 
 pub(super) struct ChunkSenderSystem {
     pub stop: AtomicBool,
@@ -74,11 +74,10 @@ impl System for ChunkSenderSystem {
                             .get_mut::<ChunkReceiver>(eid)
                             .expect("ChunkReceiver not found");
                         trace!("Got chunk_recv 3 for sender");
-                        for (key, chunk) in chunk_recv.needed_chunks.iter_mut() {
+                        for (_key, chunk) in chunk_recv.needed_chunks.iter_mut() {
                             if let Sending(confirmed_chunk) = chunk {
                                 match ChunkAndLightData::from_chunk(&confirmed_chunk.clone()) {
                                     Ok(packet) => {
-                                        debug!("Queuing chunk for sending");
                                         packets.push(packet);
                                     }
                                     Err(e) => {

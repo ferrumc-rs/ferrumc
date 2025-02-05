@@ -6,7 +6,7 @@ use ferrumc_core::chunks::chunk_receiver::ChunkSendState::{Fetching, Sending};
 use ferrumc_state::GlobalState;
 use ferrumc_world::chunk_format::Chunk;
 use ferrumc_world::vanilla_chunk_format::BlockData;
-use std::collections::{BTreeMap, HashMap};
+use std::collections::HashMap;
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 use tokio::task::JoinSet;
@@ -14,6 +14,22 @@ use tracing::{debug, info, trace};
 
 pub struct ChunkFetcher {
     stop: AtomicBool,
+}
+
+fn generate_chunk(x: i32, z: i32) -> Chunk {
+    let mut new_chunk = Chunk::new(x, z, "overworld".to_string());
+    for y in 0..10 {
+        new_chunk
+            .set_section(
+                y,
+                BlockData {
+                    name: "minecraft:stone".to_string(),
+                    properties: None,
+                },
+            )
+            .unwrap()
+    }
+    new_chunk
 }
 
 impl ChunkFetcher {
@@ -61,24 +77,14 @@ impl System for ChunkFetcher {
                             state.world.load_chunk(key.0, key.1, &key.2.clone()).await?
                         } else {
                             debug!("Chunk not found, creating new chunk");
-                            let mut new_chunk = Chunk::new(key.0, key.1, key.2.clone());
-                            for section in 0..8 {
-                                new_chunk.set_section(
-                                    section,
-                                    BlockData {
-                                        name: "minecraft:grass_block".to_string(),
-                                        properties: Some(BTreeMap::from([(
-                                            "snowy".to_string(),
-                                            "false".to_string(),
-                                        )])),
-                                    },
-                                )?;
-                            }
+                            let new_chunk = generate_chunk(key.0, key.1);
+
                             state.world.save_chunk(new_chunk.clone()).await?;
                             new_chunk
                         };
                         *chunk = Some(fetched_chunk);
                     }
+                    state.world.sync().await?;
                     // Insert the fetched chunks back into the component
                     {
                         let Ok(mut chunk_recv) = state.universe.get_mut::<ChunkReceiver>(eid)

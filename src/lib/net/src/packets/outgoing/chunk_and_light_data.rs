@@ -7,7 +7,7 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_world::chunk_format::{Chunk, Heightmaps, PaletteType};
 use std::io::{Cursor, Write};
 use std::ops::Not;
-use tracing::{debug, warn};
+use tracing::warn;
 
 const SECTIONS: usize = 24; // Number of sections, adjust for your Y range (-64 to 319)
 
@@ -64,7 +64,6 @@ impl ChunkAndLightData {
     }
 
     pub fn from_chunk(chunk: &Chunk) -> Result<Self, NetError> {
-        debug!("Serializing chunk at {}, {}", chunk.x, chunk.z);
         let mut raw_data = Cursor::new(Vec::new());
         let mut sky_light_data = Vec::new();
         let mut block_light_data = Vec::new();

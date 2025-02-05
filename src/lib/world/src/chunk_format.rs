@@ -12,7 +12,7 @@ use std::cmp::max;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::io::Read;
-use tracing::{debug, error, warn};
+use tracing::{error, warn};
 use vanilla_chunk_format::BlockData;
 
 #[cfg(test)]
@@ -41,7 +41,7 @@ lazy_static! {
         ID2BLOCK.iter().map(|(k, v)| (v.clone(), *k)).collect();
 }
 
-#[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq)]
+#[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug)]
 // This is a placeholder for the actual chunk format
 pub struct Chunk {
     pub x: i32,
@@ -51,7 +51,7 @@ pub struct Chunk {
     pub heightmaps: Heightmaps,
 }
 
-#[derive(Encode, Decode, NBTDeserialize, NBTSerialize, Clone, DeepSizeOf)]
+#[derive(Encode, Decode, NBTDeserialize, NBTSerialize, Clone, DeepSizeOf, Debug)]
 #[nbt(net_encode)]
 #[derive(Eq, PartialEq)]
 pub struct Heightmaps {
@@ -60,7 +60,7 @@ pub struct Heightmaps {
     #[nbt(rename = "WORLD_SURFACE")]
     pub world_surface: Vec<i64>,
 }
-#[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq)]
+#[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug)]
 pub struct Section {
     pub y: i8,
     pub block_states: BlockStates,
@@ -68,14 +68,14 @@ pub struct Section {
     pub block_light: Vec<u8>,
     pub sky_light: Vec<u8>,
 }
-#[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq)]
+#[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug)]
 pub struct BlockStates {
     pub non_air_blocks: u16,
     pub block_data: PaletteType,
     pub block_counts: HashMap<BlockData, i32>,
 }
 
-#[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq)]
+#[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug)]
 pub enum PaletteType {
     Single(VarInt),
     Indirect {
@@ -89,7 +89,7 @@ pub enum PaletteType {
     },
 }
 
-#[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq)]
+#[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug)]
 pub struct BiomeStates {
     pub bits_per_biome: u8,
     pub data: Vec<i64>,
@@ -384,7 +384,7 @@ impl Chunk {
         // Get old block
         let old_block = self.get_block(x, y, z)?;
         if old_block == block {
-            debug!("Block is the same as the old block");
+            // debug!("Block is the same as the old block");
             return Ok(());
         }
         // Get section
@@ -393,25 +393,39 @@ impl Chunk {
             .iter_mut()
             .find(|section| section.y == (y >> 4) as i8)
             .ok_or(WorldError::SectionOutOfBounds(y >> 4))?;
+
+        let mut converted = false;
+        let mut new_contents = PaletteType::Indirect {
+            bits_per_block: 4,
+            data: vec![],
+            palette: vec![],
+        };
+
+        if let PaletteType::Single(val) = &section.block_states.block_data {
+            new_contents = PaletteType::Indirect {
+                bits_per_block: 4,
+                data: vec![0; 255],
+                palette: vec![val.clone()],
+            };
+            converted = true;
+        }
+
+        if converted {
+            section.block_states.block_data = new_contents;
+        }
+
         // Do different things based on the palette type
         match &mut section.block_states.block_data {
-            PaletteType::Single(val) => {
-                debug!("Converting single block to indirect palette");
-                // If it's a single block, convert it to indirect then re-run the function
-                section.block_states.block_data = PaletteType::Indirect {
-                    bits_per_block: 4,
-                    data: vec![0; 256],
-                    palette: vec![val.clone()],
-                };
-                self.set_block(x, y, z, block)?;
+            PaletteType::Single(_val) => {
+                panic!("Single palette type should have been converted to indirect palette type");
             }
             PaletteType::Indirect {
                 bits_per_block,
                 data,
                 palette,
             } => {
-                let block_counts = &mut section.block_states.block_counts;
-                match block_counts.entry(old_block.clone()) {
+                // debug!("Indirect mode");
+                match section.block_states.block_counts.entry(old_block.clone()) {
                     Entry::Occupied(mut occ_entry) => {
                         let count = occ_entry.get_mut();
                         if *count <= 0 {
@@ -431,9 +445,13 @@ impl Chunk {
                 if let Some(e) = section.block_states.block_counts.get(&block) {
                     section.block_states.block_counts.insert(block, e + 1);
                 } else {
-                    debug!("Adding block to block counts");
+                    // debug!("Adding block to block counts");
                     section.block_states.block_counts.insert(block, 1);
                 }
+                // let required_bits = max((palette.len() as f32).log2().ceil() as u8, 4);
+                // if *bits_per_block != required_bits {
+                //     section.block_states.resize(required_bits as usize)?;
+                // }
                 // Get block index
                 let block_palette_index = palette
                     .iter()
@@ -546,11 +564,7 @@ impl Chunk {
                 y: y as i8,
                 block_states: BlockStates {
                     non_air_blocks: 0,
-                    block_data: PaletteType::Indirect {
-                        bits_per_block: 4,
-                        data: vec![0; 256],
-                        palette: vec![VarInt::from(0)],
-                    },
+                    block_data: PaletteType::Single(VarInt::from(0)),
                     block_counts: HashMap::from([(BlockData::default(), 4096)]),
                 },
                 biome_states: BiomeStates {

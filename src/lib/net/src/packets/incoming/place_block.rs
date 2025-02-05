@@ -102,6 +102,7 @@ impl IncomingPacket for PlaceBlock {
                     },
                 )?;
                 state.world.save_chunk(chunk).await?;
+                state.world.sync().await?;
                 let q = state.universe.query::<&mut ChunkReceiver>();
                 for (_, mut chunk_recv) in q {
                     chunk_recv.queue_chunk_resend(x >> 4, z >> 4, "overworld".to_string());
