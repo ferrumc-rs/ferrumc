@@ -2,7 +2,10 @@ use crate::errors::BinaryError;
 use crate::systems::definition::System;
 use async_trait::async_trait;
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
+use ferrumc_core::chunks::chunk_receiver::ChunkSendState::{Fetching, Sending};
 use ferrumc_state::GlobalState;
+use ferrumc_world::chunk_format::Chunk;
+use ferrumc_world::vanilla_chunk_format::BlockData;
 use std::collections::HashMap;
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
@@ -11,6 +14,22 @@ use tracing::{debug, info, trace};
 
 pub struct ChunkFetcher {
     stop: AtomicBool,
+}
+
+fn generate_chunk(x: i32, z: i32) -> Chunk {
+    let mut new_chunk = Chunk::new(x, z, "overworld".to_string());
+    for y in 0..10 {
+        new_chunk
+            .set_section(
+                y,
+                BlockData {
+                    name: "minecraft:stone".to_string(),
+                    properties: None,
+                },
+            )
+            .unwrap()
+    }
+    new_chunk
 }
 
 impl ChunkFetcher {
@@ -41,7 +60,7 @@ impl System for ChunkFetcher {
                         let mut copied_chunks = HashMap::new();
                         for chunk in chunk_recv.needed_chunks.iter() {
                             let (key, chunk) = chunk;
-                            if chunk.is_none() {
+                            if let Fetching = chunk {
                                 copied_chunks.insert(key.clone(), None);
                             }
                         }
@@ -49,10 +68,23 @@ impl System for ChunkFetcher {
                     };
                     // Fetch the chunks
                     for (key, chunk) in copied_chunks.iter_mut() {
-                        let fetched_chunk =
-                            state.world.load_chunk(key.0, key.1, &key.2.clone()).await?;
+                        let fetched_chunk = if state
+                            .world
+                            .chunk_exists(key.0, key.1, &key.2.clone())
+                            .await?
+                        {
+                            debug!("Chunk found, loading chunk");
+                            state.world.load_chunk(key.0, key.1, &key.2.clone()).await?
+                        } else {
+                            debug!("Chunk not found, creating new chunk");
+                            let new_chunk = generate_chunk(key.0, key.1);
+
+                            state.world.save_chunk(new_chunk.clone()).await?;
+                            new_chunk
+                        };
                         *chunk = Some(fetched_chunk);
                     }
+                    state.world.sync().await?;
                     // Insert the fetched chunks back into the component
                     {
                         let Ok(mut chunk_recv) = state.universe.get_mut::<ChunkReceiver>(eid)
@@ -60,8 +92,10 @@ impl System for ChunkFetcher {
                             trace!("A player disconnected before we could get the ChunkReceiver");
                             return Ok(());
                         };
-                        for (key, chunk) in copied_chunks.iter() {
-                            chunk_recv.needed_chunks.insert(key.clone(), chunk.clone());
+                        for (key, chunk) in copied_chunks {
+                            if let Some(chunk) = chunk {
+                                chunk_recv.needed_chunks.insert(key.clone(), Sending(chunk));
+                            }
                         }
                     }
                     Ok(())
@@ -79,7 +113,7 @@ impl System for ChunkFetcher {
                     }
                 }
             }
-            tokio::time::sleep(std::time::Duration::from_millis(5)).await;
+            tokio::time::sleep(std::time::Duration::from_millis(45)).await;
         }
     }
 

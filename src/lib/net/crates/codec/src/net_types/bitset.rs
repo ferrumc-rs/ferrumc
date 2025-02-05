@@ -9,7 +9,7 @@ pub struct BitSet(Vec<u64>);
 
 impl BitSet {
     pub fn new(size: usize) -> Self {
-        let num_blocks = (size + 63) / 64;
+        let num_blocks = size.div_ceil(64);
         Self(vec![0; num_blocks])
     }
 

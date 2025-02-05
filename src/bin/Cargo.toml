@@ -35,6 +35,7 @@ async-trait = { workspace = true }
 clap = { workspace = true, features = ["derive"] }
 flate2 = { workspace = true }
 ctor = { workspace = true }
+rand = { workspace = true }
 
 
 [[bin]]

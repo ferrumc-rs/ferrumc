@@ -1,6 +1,7 @@
 use crate::systems::definition::System;
 use async_trait::async_trait;
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
+use ferrumc_core::chunks::chunk_receiver::ChunkSendState::{Sending, Sent};
 use ferrumc_ecs::errors::ECSError;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::chunk_and_light_data::ChunkAndLightData;
@@ -55,7 +56,6 @@ impl System for ChunkSenderSystem {
                     }
                     // We can't delete from the map while iterating, so we collect the keys to drop
                     // and then drop them after sending the chunks
-                    let mut to_drop = Vec::new();
                     {
                         let Ok(chunk_recv) = state.universe.get::<ChunkReceiver>(eid) else {
                             trace!("A player disconnected before we could get the ChunkReceiver");
@@ -67,38 +67,27 @@ impl System for ChunkSenderSystem {
                             centre_coords = (chunk.0, chunk.1);
                         }
                     }
-                    let mut sent_chunks = 0;
                     {
-                        let Ok(mut chunk_recv) = state.universe.get_mut::<ChunkReceiver>(eid)
-                        else {
-                            trace!("A player disconnected before we could get the ChunkReceiver");
-                            return Ok(());
-                        };
-                        for possible_chunk in chunk_recv.needed_chunks.iter_mut() {
-                            if let Some(chunk) = possible_chunk.1 {
-                                let key = possible_chunk.0;
-                                to_drop.push(key.clone());
-                                match ChunkAndLightData::from_chunk(&chunk.clone()) {
+                        trace!("Getting chunk_recv 3 for sender");
+                        let mut chunk_recv = state
+                            .universe
+                            .get_mut::<ChunkReceiver>(eid)
+                            .expect("ChunkReceiver not found");
+                        trace!("Got chunk_recv 3 for sender");
+                        for (_key, chunk) in chunk_recv.needed_chunks.iter_mut() {
+                            if let Sending(confirmed_chunk) = chunk {
+                                match ChunkAndLightData::from_chunk(&confirmed_chunk.clone()) {
                                     Ok(packet) => {
                                         packets.push(packet);
-                                        sent_chunks += 1;
                                     }
                                     Err(e) => {
                                         error!("Error sending chunk: {:?}", e);
                                     }
                                 }
+                                *chunk = Sent;
                             }
                         }
-                    }
-                    {
-                        let Ok(mut chunk_recv) = state.universe.get_mut::<ChunkReceiver>(eid)
-                        else {
-                            trace!("A player disconnected before we could get the ChunkReceiver");
-                            return Ok(());
-                        };
-                        for key in to_drop {
-                            chunk_recv.needed_chunks.remove(&key);
-                        }
+                        chunk_recv.needed_chunks.retain(|_, v| v != &Sent);
                     }
 
                     {
@@ -123,14 +112,17 @@ impl System for ChunkSenderSystem {
                         {
                             error!("Error sending chunk: {:?}", e);
                         }
+                        let mut count = 0;
                         for packet in packets {
                             if let Err(e) = conn.send_packet(packet, &NetEncodeOpts::WithLength) {
                                 error!("Error sending chunk: {:?}", e);
+                            } else {
+                                count += 1;
                             }
                         }
                         if let Err(e) = conn.send_packet(
                             ChunkBatchFinish {
-                                batch_size: VarInt::new(sent_chunks),
+                                batch_size: VarInt::new(count),
                             },
                             &NetEncodeOpts::WithLength,
                         ) {
@@ -154,7 +146,7 @@ impl System for ChunkSenderSystem {
                 }
             }
 
-            tokio::time::sleep(Duration::from_millis(5)).await;
+            tokio::time::sleep(Duration::from_millis(45)).await;
         }
     }
 

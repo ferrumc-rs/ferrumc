@@ -186,10 +186,7 @@ async fn query_mojang_for_usernames(uuids: Vec<&Uuid>) -> Vec<MojangProfile> {
 
             match response {
                 Ok(response) if response.status().is_success() => {
-                    match response.json::<MojangProfile>().await {
-                        Ok(parsed_response) => Some(parsed_response),
-                        Err(_) => None,
-                    }
+                    response.json::<MojangProfile>().await.ok()
                 }
                 _ => None,
             }
