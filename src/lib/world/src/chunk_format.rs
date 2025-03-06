@@ -490,6 +490,16 @@ impl Chunk {
             }
         }
 
+        section.block_states.non_air_blocks = section
+            .block_states
+            .block_counts
+            .iter()
+            .filter(|(block, _)| {
+                !["minecraft:air", "minecraft:void_air", "minecraft:cave_air"]
+                    .contains(&block.name.as_str())
+            })
+            .map(|(_, count)| *count as u16)
+            .sum();
         Ok(())
     }
 
