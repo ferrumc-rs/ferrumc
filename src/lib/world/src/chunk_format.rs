@@ -465,7 +465,7 @@ impl Chunk {
                 // Set block
                 let blocks_per_i64 = (64f64 / *bits_per_block as f64).floor() as usize;
                 let index = ((y & 0xf) * 256 + (z & 0xf) * 16 + (x & 0xf)) as usize;
-                let i64_index = index / blocks_per_i64;
+                let i64_index = (index / blocks_per_i64) - 1;
                 let packed_u64 = data
                     .get_mut(i64_index)
                     .ok_or(InvalidBlockStateData(format!(
@@ -537,7 +537,7 @@ impl Chunk {
                 }
                 let blocks_per_i64 = (64f64 / *bits_per_block as f64).floor() as usize;
                 let index = ((y & 0xf) * 256 + (z & 0xf) * 16 + (x & 0xf)) as usize;
-                let i64_index = index / blocks_per_i64;
+                let i64_index = (index / blocks_per_i64) - 1;
                 let packed_u64 = data.get(i64_index).ok_or(InvalidBlockStateData(format!(
                     "Invalid block state data at index {}",
                     i64_index
