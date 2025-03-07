@@ -108,9 +108,7 @@ impl StreamWriter {
             buffer
         };
 
-        self.sender
-            .send(bytes)
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+        self.sender.send(bytes).map_err(std::io::Error::other)?;
         Ok(())
     }
 }
