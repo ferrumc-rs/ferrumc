@@ -18,16 +18,25 @@ pub struct ChunkFetcher {
 
 fn generate_chunk(x: i32, z: i32) -> Chunk {
     let mut new_chunk = Chunk::new(x, z, "overworld".to_string());
-    for y in 0..10 {
-        new_chunk
-            .set_section(
-                y,
-                BlockData {
-                    name: "minecraft:stone".to_string(),
-                    properties: None,
-                },
-            )
-            .unwrap()
+    for x in 0..16 {
+        for z in 0..16 {
+            let mut base_y = (x as f64).sin() / 32.0;
+            base_y += (z as f64).cos() / 32.0;
+            let scaled_y = ((base_y + 1.0) * 64.0) as i32;
+            for y in 0..scaled_y {
+                new_chunk
+                    .set_block(
+                        x,
+                        y,
+                        z,
+                        BlockData {
+                            name: "minecraft:stone".to_string(),
+                            properties: None,
+                        },
+                    )
+                    .unwrap();
+            }
+        }
     }
     new_chunk
 }

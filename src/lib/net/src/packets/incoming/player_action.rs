@@ -1,13 +1,15 @@
 use crate::connection::StreamWriter;
 use crate::packets::outgoing::block_change_ack::BlockChangeAck;
-use crate::packets::outgoing::chunk_and_light_data::ChunkAndLightData;
+use crate::packets::outgoing::block_update::BlockUpdate;
 use crate::packets::IncomingPacket;
 use crate::NetResult;
+use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
 use ferrumc_macros::{packet, NetDecode};
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_net_codec::net_types::network_position::NetworkPosition;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::ServerState;
+use ferrumc_world::chunk_format::BLOCK2ID;
 use ferrumc_world::vanilla_chunk_format::BlockData;
 use std::sync::Arc;
 use tracing::debug;
@@ -39,35 +41,57 @@ impl IncomingPacket for PlayerAction {
                     self.location.y as i32,
                     self.location.z & 0xF,
                 );
-                chunk.set_block(relative_x, relative_y, relative_z, BlockData::default())?;
-                // debug!(chunk = ?chunk, "Chunk after block placement");
+                chunk.set_block(
+                    relative_x & 0xf,
+                    relative_y,
+                    relative_z & 0xf,
+                    BlockData::default(),
+                )?;
+                // Save the chunk to disk
                 state.world.save_chunk(chunk.clone()).await?;
                 state.world.sync().await?;
                 {
-                    let ack_packet = BlockChangeAck {
-                        sequence: self.sequence,
-                    };
-                    if let Ok(mut conn) = state.universe.get_mut::<StreamWriter>(conn_id) {
-                        let chunk_packet = ChunkAndLightData::from_chunk(&chunk)?;
-                        conn.send_packet(chunk_packet, &NetEncodeOpts::WithLength)?;
-                        conn.send_packet(ack_packet, &NetEncodeOpts::WithLength)?;
-                    } else {
-                        debug!(
-                            "Player disconnected before we could send the BlockChangeAck packet"
-                        );
+                    // Send the block update packet to all players
+                    let query = state
+                        .universe
+                        .query::<(&mut StreamWriter, &mut ChunkReceiver)>()
+                        .into_entities();
+                    for entity_id in query {
+                        if let Ok(mut connection) = state.universe.get_mut::<StreamWriter>(conn_id)
+                        {
+                            // Don't send the block update packet if the player can't see the chunk
+                            if let Ok(chunk_recv) = state.universe.get::<ChunkReceiver>(entity_id) {
+                                if chunk_recv.can_see.contains(&(
+                                    self.location.x >> 4,
+                                    self.location.z >> 4,
+                                    "overworld".to_string(),
+                                )) {
+                                    let block_update_packet = BlockUpdate {
+                                        location: self.location.clone(),
+                                        block_id: VarInt::from(*BLOCK2ID.get(&BlockData::default()).expect(
+                                            "BlockData::default() should always have a corresponding block ID",
+                                        )),
+                                    };
+                                    connection.send_packet(
+                                        block_update_packet,
+                                        &NetEncodeOpts::WithLength,
+                                    )?;
+                                }
+                            }
+
+                            // If the player is the one who placed the block, send the BlockChangeAck packet
+                            // We do this here to avoid locking the streamwriter multiple times
+                            if entity_id == conn_id {
+                                let ack_packet = BlockChangeAck {
+                                    sequence: self.sequence.clone(),
+                                };
+                                connection.send_packet(ack_packet, &NetEncodeOpts::WithLength)?;
+                            }
+                        } else {
+                            debug!("Player disconnected before we could send the BlockChangeAck packet");
+                        }
                     }
                 }
-                // {
-                //     let q = state.universe.query::<&mut ChunkReceiver>();
-                //     for (_, mut chunk_receiver) in q {
-                //         debug!("Queueing chunk resend");
-                //         chunk_receiver.queue_chunk_resend(
-                //             self.location.x >> 4,
-                //             self.location.z >> 4,
-                //             "overworld".to_string(),
-                //         );
-                //     }
-                // }
             }
             1 => {
                 debug!("You shouldn't be seeing this in creative mode.");

@@ -12,7 +12,7 @@ use std::cmp::max;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::io::Read;
-use tracing::{error, warn};
+use tracing::{debug, error, warn};
 use vanilla_chunk_format::BlockData;
 
 #[cfg(test)]
@@ -384,7 +384,7 @@ impl Chunk {
         // Get old block
         let old_block = self.get_block(x, y, z)?;
         if old_block == block {
-            // debug!("Block is the same as the old block");
+            debug!("Block is the same as the old block");
             return Ok(());
         }
         // Get section
@@ -404,7 +404,7 @@ impl Chunk {
         if let PaletteType::Single(val) = &section.block_states.block_data {
             new_contents = PaletteType::Indirect {
                 bits_per_block: 4,
-                data: vec![0; 255],
+                data: vec![0; 256],
                 palette: vec![val.clone()],
             };
             converted = true;
@@ -464,8 +464,9 @@ impl Chunk {
                     });
                 // Set block
                 let blocks_per_i64 = (64f64 / *bits_per_block as f64).floor() as usize;
-                let index = ((y & 0xf) * 256 + (z & 0xf) * 16 + (x & 0xf)) as usize;
-                let i64_index = (index / blocks_per_i64) - 1;
+                let index =
+                    ((y.abs() & 0xf) * 256 + (z.abs() & 0xf) * 16 + (x.abs() & 0xf)) as usize;
+                let i64_index = index / blocks_per_i64;
                 let packed_u64 = data
                     .get_mut(i64_index)
                     .ok_or(InvalidBlockStateData(format!(
@@ -500,6 +501,10 @@ impl Chunk {
             })
             .map(|(_, count)| *count as u16)
             .sum();
+
+        self.sections
+            .iter_mut()
+            .for_each(|section| section.optimise().unwrap());
         Ok(())
     }
 
@@ -524,10 +529,11 @@ impl Chunk {
         let section = self
             .sections
             .iter()
-            .find(|section| section.y == (y >> 4) as i8)
+            .find(|section| section.y == y.div_floor(16) as i8)
             .ok_or(WorldError::SectionOutOfBounds(y >> 4))?;
         match &section.block_states.block_data {
             PaletteType::Single(val) => {
+                debug!(x, y, z, "Single palette type");
                 let block_id = val.val;
                 ID2BLOCK
                     .get(&block_id)
@@ -547,7 +553,7 @@ impl Chunk {
                 }
                 let blocks_per_i64 = (64f64 / *bits_per_block as f64).floor() as usize;
                 let index = ((y & 0xf) * 256 + (z & 0xf) * 16 + (x & 0xf)) as usize;
-                let i64_index = (index / blocks_per_i64) - 1;
+                let i64_index = index / blocks_per_i64;
                 let packed_u64 = data.get(i64_index).ok_or(InvalidBlockStateData(format!(
                     "Invalid block state data at index {}",
                     i64_index
@@ -569,7 +575,7 @@ impl Chunk {
     }
 
     pub fn new(x: i32, z: i32, dimension: String) -> Self {
-        let sections: Vec<Section> = (0..24)
+        let sections: Vec<Section> = (-4..20)
             .map(|y| Section {
                 y: y as i8,
                 block_states: BlockStates {
