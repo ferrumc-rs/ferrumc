@@ -26,8 +26,9 @@ ferrumc-macros = { workspace = true }
 ferrumc-nbt = { workspace = true }
 ferrumc-general-purpose = { workspace = true }
 ferrumc-state = { workspace = true }
+ferrumc-world-gen = { workspace = true }
 
-parking_lot = { workspace = true, features = ["deadlock_detection"] }
+rayon = { workspace = true }
 tracing = { workspace = true }
 tokio = { workspace = true }
 futures = { workspace = true }
@@ -36,6 +37,7 @@ clap = { workspace = true, features = ["derive"] }
 flate2 = { workspace = true }
 ctor = { workspace = true }
 rand = { workspace = true }
+log = "0.4.22"
 
 
 [[bin]]

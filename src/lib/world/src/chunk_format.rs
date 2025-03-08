@@ -12,7 +12,7 @@ use std::cmp::max;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::io::Read;
-use tracing::{debug, error, warn};
+use tracing::{error, warn};
 use vanilla_chunk_format::BlockData;
 
 #[cfg(test)]
@@ -384,7 +384,7 @@ impl Chunk {
         // Get old block
         let old_block = self.get_block(x, y, z)?;
         if old_block == block {
-            debug!("Block is the same as the old block");
+            // debug!("Block is the same as the old block");
             return Ok(());
         }
         // Get section
@@ -533,7 +533,6 @@ impl Chunk {
             .ok_or(WorldError::SectionOutOfBounds(y >> 4))?;
         match &section.block_states.block_data {
             PaletteType::Single(val) => {
-                debug!(x, y, z, "Single palette type");
                 let block_id = val.val;
                 ID2BLOCK
                     .get(&block_id)
@@ -616,11 +615,15 @@ impl Chunk {
     ///
     /// * `Ok(())` - If the section was successfully set.
     /// * `Err(WorldError)` - If an error occurs while setting the section.
-    pub fn set_section(&mut self, section: u8, block: BlockData) -> Result<(), WorldError> {
-        if let Some(section) = self.sections.get_mut(section as usize) {
+    pub fn set_section(&mut self, section_y: i8, block: BlockData) -> Result<(), WorldError> {
+        if let Some(section) = self
+            .sections
+            .iter_mut()
+            .find(|section| section.y == section_y)
+        {
             section.fill(block.clone())
         } else {
-            Err(WorldError::SectionOutOfBounds(section as i32))
+            Err(WorldError::SectionOutOfBounds(section_y as i32))
         }
     }
 

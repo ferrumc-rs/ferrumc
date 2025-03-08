@@ -1,5 +1,5 @@
+use crate::errors::BinaryError;
 use crate::systems::definition::System;
-use crate::Result;
 use async_trait::async_trait;
 use ferrumc_net::connection::handle_connection;
 use ferrumc_state::GlobalState;
@@ -26,7 +26,7 @@ impl System for TcpListenerSystem {
 }
 
 impl TcpListenerSystem {
-    async fn initiate_loop(state: GlobalState) -> Result<()> {
+    async fn initiate_loop(state: GlobalState) -> Result<(), BinaryError> {
         let tcp_listener = &state.tcp_listener;
         info!("Server is listening on [{}]", tcp_listener.local_addr()?);
 
