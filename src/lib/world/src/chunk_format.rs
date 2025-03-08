@@ -15,15 +15,15 @@ use std::io::Read;
 use tracing::{error, warn};
 use vanilla_chunk_format::BlockData;
 
-#[cfg(test)]
-const BLOCKSFILE: &[u8] = &[0];
+// #[cfg(test)]
+// const BLOCKSFILE: &[u8] = &[0];
 
 // If this file doesn't exist, you'll have to create it yourself. Download the 1.21.1 server from the
 // minecraft launcher, extract the blocks data (info here https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Data_Generators#Blocks_report)
 // , put the blocks.json file in the .etc folder, and run the blocks_parser.py script in the scripts
 // folder. This will generate the blockmappings.json file that is compressed with bzip2 and included
 // in the binary.
-#[cfg(not(test))]
+// #[cfg(not(test))]
 const BLOCKSFILE: &[u8] = include_bytes!("../../../../.etc/blockmappings.bz2");
 
 lazy_static! {
@@ -746,5 +746,92 @@ impl Section {
         };
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_chunk_set_block() {
+        let mut chunk = Chunk::new(0, 0, "overworld".to_string());
+        let block = BlockData {
+            name: "minecraft:stone".to_string(),
+            properties: None,
+        };
+        chunk.set_block(0, 0, 0, block.clone()).unwrap();
+        assert_eq!(chunk.get_block(0, 0, 0).unwrap(), block);
+    }
+
+    #[test]
+    fn test_chunk_fill() {
+        let mut chunk = Chunk::new(0, 0, "overworld".to_string());
+        let stone_block = BlockData {
+            name: "minecraft:stone".to_string(),
+            properties: None,
+        };
+        chunk.fill(stone_block.clone()).unwrap();
+        for section in &chunk.sections {
+            for (block, count) in &section.block_states.block_counts {
+                assert_eq!(*block, stone_block);
+                assert_eq!(count, &4096);
+            }
+        }
+    }
+
+    #[test]
+    fn test_section_fill() {
+        let mut section = Section {
+            y: 0,
+            block_states: BlockStates {
+                non_air_blocks: 0,
+                block_data: PaletteType::Single(VarInt::from(0)),
+                block_counts: HashMap::from([(BlockData::default(), 4096)]),
+            },
+            biome_states: BiomeStates {
+                bits_per_biome: 0,
+                data: vec![],
+                palette: vec![VarInt::from(0)],
+            },
+            block_light: vec![255; 2048],
+            sky_light: vec![255; 2048],
+        };
+        let stone_block = BlockData {
+            name: "minecraft:stone".to_string(),
+            properties: None,
+        };
+        section.fill(stone_block.clone()).unwrap();
+        assert_eq!(
+            section.block_states.block_data,
+            PaletteType::Single(VarInt::from(1))
+        );
+        assert_eq!(
+            section.block_states.block_counts.get(&stone_block).unwrap(),
+            &4096
+        );
+    }
+
+    #[test]
+    fn test_false_positive() {
+        let mut chunk = Chunk::new(0, 0, "overworld".to_string());
+        let block = BlockData {
+            name: "minecraft:stone".to_string(),
+            properties: None,
+        };
+        chunk.set_block(0, 0, 0, block.clone()).unwrap();
+        assert_ne!(chunk.get_block(0, 1, 0).unwrap(), block);
+    }
+
+    #[test]
+    fn test_doesnt_fail() {
+        let mut chunk = Chunk::new(0, 0, "overworld".to_string());
+        let block = BlockData {
+            name: "minecraft:stone".to_string(),
+            properties: None,
+        };
+        assert!(chunk.set_block(0, 0, 0, block.clone()).is_ok());
+        assert!(chunk.set_block(0, 0, 0, block.clone()).is_ok());
+        assert!(chunk.get_block(0, 0, 0).is_ok());
     }
 }
