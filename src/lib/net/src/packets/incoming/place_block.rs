@@ -3,7 +3,6 @@ use crate::packets::outgoing::block_change_ack::BlockChangeAck;
 use crate::packets::outgoing::chunk_and_light_data::ChunkAndLightData;
 use crate::packets::IncomingPacket;
 use crate::NetResult;
-use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
 use ferrumc_core::collisions::bounds::CollisionBounds;
 use ferrumc_core::transform::position::Position;
 use ferrumc_macros::{packet, NetDecode};

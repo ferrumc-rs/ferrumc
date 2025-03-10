@@ -36,7 +36,7 @@ use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::GlobalState;
 use futures::StreamExt;
 use std::time::Instant;
-use tracing::{debug, error, trace, warn};
+use tracing::{debug, error, trace};
 
 #[event_handler]
 async fn handle_login_start(
