@@ -45,4 +45,7 @@ pub enum BinaryError {
 
     #[error("Root Path error: {0}")]
     RootPath(#[from] ferrumc_general_purpose::paths::RootPathError),
+
+    #[error("WorldGen error: {0}")]
+    WorldGen(#[from] ferrumc_world_gen::errors::WorldGenError),
 }

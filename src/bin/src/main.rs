@@ -22,6 +22,7 @@ use tracing::{error, info};
 
 pub(crate) mod errors;
 use crate::cli::{CLIArgs, Command, ImportArgs};
+mod chunk_sending;
 mod cli;
 mod packet_handlers;
 mod systems;

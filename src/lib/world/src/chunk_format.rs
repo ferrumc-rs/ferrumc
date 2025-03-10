@@ -574,7 +574,7 @@ impl Chunk {
     }
 
     pub fn new(x: i32, z: i32, dimension: String) -> Self {
-        let sections: Vec<Section> = (-4..20)
+        let mut sections: Vec<Section> = (-4..20)
             .map(|y| Section {
                 y: y as i8,
                 block_states: BlockStates {
@@ -591,9 +591,9 @@ impl Chunk {
                 sky_light: vec![255; 2048],
             })
             .collect();
-        // for section in &mut sections {
-        //     section.optimise().expect("Failed to optimise section");
-        // }
+        for section in &mut sections {
+            section.optimise().expect("Failed to optimise section");
+        }
         Chunk {
             x,
             z,

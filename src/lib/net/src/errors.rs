@@ -46,6 +46,9 @@ pub enum NetError {
 
     #[error("World error: {0}")]
     World(#[from] ferrumc_world::errors::WorldError),
+
+    #[error("Misc error: {0}")]
+    Misc(String),
 }
 
 #[derive(Debug, Error)]
