@@ -56,6 +56,8 @@ pub async fn send_chunks(state: GlobalState, eid: usize) -> Result<(), BinaryErr
         };
         let packet = ChunkAndLightData::from_chunk(&chunk)?;
         conn.send_packet(packet, &NetEncodeOpts::WithLength)?;
+        // This never actually gets emptied out so if someone goes to enough new chunks and doesn't
+        // leave the server, this will eventually run out of memory. Should probably be fixed.
         recv.seen.insert((x, z, "overworld".to_string()));
         chunks_sent += 1;
     }

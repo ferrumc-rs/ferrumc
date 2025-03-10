@@ -9,7 +9,7 @@ use ferrumc_config::whitelist::create_whitelist;
 use ferrumc_ecs::Universe;
 use ferrumc_general_purpose::paths::get_root_path;
 use ferrumc_net::server::create_server_listener;
-use ferrumc_state::ServerState;
+use ferrumc_state::{GlobalState, ServerState};
 use ferrumc_world::chunk_format::Chunk;
 use ferrumc_world::World;
 use ferrumc_world_gen::errors::WorldGenError;
@@ -66,40 +66,45 @@ async fn main() {
     }
 }
 
+async fn generate_chunks(state: GlobalState) -> Result<(), BinaryError> {
+    info!("No overworld spawn chunk found, generating spawn chunks...");
+    // Generate a 12x12 chunk area around the spawn point
+    let mut chunks = Vec::new();
+    for x in -12..12 {
+        for z in -12..12 {
+            chunks.push((x, z));
+        }
+    }
+    let generated_chunks: Vec<Result<Chunk, WorldGenError>> = chunks
+        .chunks(72)
+        .par_bridge()
+        .map(|chunk_coord_arr| {
+            let mut generated_chunks = Vec::new();
+            for (x, z) in chunk_coord_arr {
+                let state = state.clone();
+                generated_chunks.push(state.terrain_generator.generate_chunk(*x, *z));
+            }
+            generated_chunks
+        })
+        .flatten()
+        .collect();
+    for chunk in generated_chunks {
+        let chunk = chunk.map_err(|e| {
+            error!("Error generating chunk: {:?}", e);
+            BinaryError::Custom("Error generating chunk".to_string())
+        })?;
+        state.world.save_chunk(chunk).await?;
+    }
+    info!("Finished generating spawn chunks...");
+    Ok(())
+}
+
 async fn entry() -> Result<(), BinaryError> {
     let state = create_state().await?;
     let global_state = Arc::new(state);
     create_whitelist().await;
     if !global_state.world.chunk_exists(0, 0, "overworld").await? {
-        info!("No overworld spawn chunk found, generating spawn chunks...");
-        // Generate a 12x12 chunk area around the spawn point
-        let mut chunks = Vec::new();
-        for x in -12..12 {
-            for z in -12..12 {
-                chunks.push((x, z));
-            }
-        }
-        let generated_chunks: Vec<Result<Chunk, WorldGenError>> = chunks
-            .chunks(72)
-            .par_bridge()
-            .map(|chunk_coord_arr| {
-                let mut generated_chunks = Vec::new();
-                for (x, z) in chunk_coord_arr {
-                    let state = global_state.clone();
-                    generated_chunks.push(state.terrain_generator.generate_chunk(*x, *z));
-                }
-                generated_chunks
-            })
-            .flatten()
-            .collect();
-        for chunk in generated_chunks {
-            let chunk = chunk.map_err(|e| {
-                error!("Error generating chunk: {:?}", e);
-                BinaryError::Custom("Error generating chunk".to_string())
-            })?;
-            global_state.world.save_chunk(chunk).await?;
-        }
-        info!("Finished generating spawn chunks...");
+        generate_chunks(global_state.clone()).await?;
     }
 
     let all_system_handles = tokio::spawn(definition::start_all_systems(global_state.clone()));
