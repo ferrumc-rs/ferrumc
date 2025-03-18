@@ -127,8 +127,8 @@ impl Default for Heightmaps {
 impl From<VanillaHeightmaps> for Heightmaps {
     fn from(value: VanillaHeightmaps) -> Self {
         Self {
-            motion_blocking: value.motion_blocking.unwrap_or(vec![]),
-            world_surface: value.world_surface.unwrap_or(vec![]),
+            motion_blocking: value.motion_blocking.unwrap_or_default(),
+            world_surface: value.world_surface.unwrap_or_default(),
         }
     }
 }
@@ -162,11 +162,11 @@ impl VanillaChunk {
                         }
                     };
 
-                    block_counts
-                        .raw_entry_mut()
-                        .from_key(block)
-                        .and_modify(|_k, v| *v += 1)
-                        .or_insert_with(|| (block.clone(), 0));
+                    if let Some(count) = block_counts.get_mut(block) {
+                        *count += 1;
+                    } else {
+                        block_counts.insert(block.clone(), 0);
+                    }
 
                     i += bits_per_block;
                 }

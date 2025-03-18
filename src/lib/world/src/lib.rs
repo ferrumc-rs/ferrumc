@@ -1,4 +1,3 @@
-#![feature(hash_raw_entry)]
 #![feature(hasher_prefixfree_extras)]
 #![feature(int_roundings)]
 
