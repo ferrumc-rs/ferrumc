@@ -116,12 +116,8 @@ impl World {
                             let self_clone = self.clone();
 
                             task_set.spawn(async move {
-                                if let Err(e) = self_clone
-                                    .process_chunk_batch(
-                                        batch,
-                                        progress_clone,
-                                    )
-                                    .await
+                                if let Err(e) =
+                                    self_clone.process_chunk_batch(batch, progress_clone).await
                                 {
                                     error!("Batch processing error: {}", e);
                                 }
@@ -144,10 +140,7 @@ impl World {
 
             task_set.spawn(async move {
                 if let Err(e) = self_clone
-                    .process_chunk_batch(
-                        current_batch,
-                        progress_clone,
-                    )
+                    .process_chunk_batch(current_batch, progress_clone)
                     .await
                 {
                     error!("Final batch processing error: {}", e);
