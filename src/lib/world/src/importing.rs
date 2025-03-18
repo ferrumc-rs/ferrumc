@@ -4,27 +4,19 @@ use crate::vanilla_chunk_format::VanillaChunk;
 use crate::Chunk;
 use crate::World;
 use ferrumc_anvil::load_anvil_file;
-//use ferrumc_general_purpose::paths::BetterPathExt;
 use indicatif::{ProgressBar, ProgressStyle};
 use rayon::prelude::*;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
-use tokio::sync::Semaphore;
 use tokio::task::JoinSet;
 use tracing::{error, info};
-
-/// TODO: dynamically find the best according to the system
-const BATCH_SIZE: usize = 1000; // Number of chunks to process before flushing
-const MAX_CONCURRENT_TASKS: usize = 512; // Limit concurrent tasks to prevent memory issues
-const FLUSH_INTERVAL: u64 = 10_000; // Flush every 10,000 chunks
 
 impl World {
     async fn process_chunk_batch(
         &self,
         chunks: Vec<VanillaChunk>,
         progress: Arc<ProgressBar>,
-        processed_since_flush: Arc<AtomicU64>,
     ) -> Result<(), WorldError> {
         let chunk_objects: Vec<Chunk> = chunks
             .into_iter()
@@ -32,20 +24,11 @@ impl World {
             .collect();
 
         let mut success_count = 0;
-        if let Ok(()) = save_chunk_internal_batch(self, chunk_objects.clone()).await {
+        if let Ok(()) = save_chunk_internal_batch(self, &chunk_objects).await {
             success_count = chunk_objects.len();
         }
 
         progress.inc(success_count.try_into().unwrap());
-
-        let total_processed = processed_since_flush
-            .fetch_add(success_count as u64, Ordering::Relaxed)
-            + success_count as u64;
-        if total_processed >= FLUSH_INTERVAL {
-            self.storage_backend.flush().await?;
-            processed_since_flush.store(0, Ordering::Relaxed);
-            info!("Performed periodic flush after {} chunks", total_processed);
-        }
 
         Ok(())
     }
@@ -73,12 +56,17 @@ impl World {
         Ok(chunk_count.load(Ordering::Relaxed))
     }
 
-    pub async fn import(&mut self, import_dir: PathBuf, _: PathBuf) -> Result<(), WorldError> {
+    pub async fn import(
+        &mut self,
+        import_dir: PathBuf,
+        batch_size: usize,
+        max_concurrent_tasks: usize,
+    ) -> Result<(), WorldError> {
         check_paths_validity(&import_dir)?;
 
         let total_chunks = self.get_chunk_count(&import_dir)?;
         let progress_style = ProgressStyle::default_bar()
-            .template("[{elapsed_precise}] {bar:40.cyan/blue} {pos:>7}/{len:7} {msg}")
+            .template("[{elapsed_precise}/{eta_precise} eta] {bar:40.cyan/blue} {percent}%, {pos:>7}/{len:7}, {per_sec}, {msg}")
             .unwrap();
 
         let progress = Arc::new(ProgressBar::new(total_chunks));
@@ -91,13 +79,10 @@ impl World {
         info!("Starting chunk import...");
         let start = std::time::Instant::now();
 
-        let semaphore = Arc::new(Semaphore::new(MAX_CONCURRENT_TASKS));
         let mut task_set = JoinSet::new();
 
-        let processed_since_flush = Arc::new(AtomicU64::new(0));
-
         let regions_dir = import_dir.join("region").read_dir()?;
-        let mut current_batch = Vec::with_capacity(BATCH_SIZE);
+        let mut current_batch = Vec::with_capacity(batch_size);
 
         for region_result in regions_dir {
             let region_entry = region_result?;
@@ -122,29 +107,31 @@ impl World {
                     if let Ok(vanilla_chunk) = VanillaChunk::from_bytes(&chunk_data) {
                         current_batch.push(vanilla_chunk);
 
-                        if current_batch.len() >= BATCH_SIZE {
+                        if current_batch.len() >= batch_size {
                             let batch = std::mem::replace(
                                 &mut current_batch,
-                                Vec::with_capacity(BATCH_SIZE),
+                                Vec::with_capacity(batch_size),
                             );
                             let progress_clone = Arc::clone(&progress);
                             let self_clone = self.clone();
-                            let permit = Arc::clone(&semaphore).acquire_owned().await?;
-                            let processed_since_flush_clone = Arc::clone(&processed_since_flush);
 
                             task_set.spawn(async move {
-                                let _permit = permit;
                                 if let Err(e) = self_clone
                                     .process_chunk_batch(
                                         batch,
                                         progress_clone,
-                                        processed_since_flush_clone,
                                     )
                                     .await
                                 {
                                     error!("Batch processing error: {}", e);
                                 }
                             });
+
+                            while task_set.len() >= max_concurrent_tasks {
+                                task_set.join_next().await;
+                            }
+
+                            progress.set_message(format!("tasks: {}", task_set.len()));
                         }
                     }
                 }
@@ -153,14 +140,14 @@ impl World {
 
         if !current_batch.is_empty() {
             let progress_clone = Arc::clone(&progress);
-            let permit = Arc::clone(&semaphore).acquire_owned().await?;
             let self_clone = self.clone();
-            let processed_since_flush_clone = Arc::clone(&processed_since_flush);
 
             task_set.spawn(async move {
-                let _permit = permit;
                 if let Err(e) = self_clone
-                    .process_chunk_batch(current_batch, progress_clone, processed_since_flush_clone)
+                    .process_chunk_batch(
+                        current_batch,
+                        progress_clone,
+                    )
                     .await
                 {
                     error!("Final batch processing error: {}", e);
@@ -171,7 +158,6 @@ impl World {
         while task_set.join_next().await.is_some() {}
 
         self.sync().await?;
-        self.storage_backend.flush().await?;
 
         progress.finish();
 

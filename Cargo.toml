@@ -61,6 +61,10 @@ redundant_type_annotations = "deny"
 infinite_loop = "deny"
 
 #================= Profile =================#
+[profile.profiling]
+inherits = "release"
+debug = true
+
 [profile.release]
 
 [profile.hyper]
@@ -188,5 +192,3 @@ memmap2 = "0.9.5"
 
 # Benchmarking
 criterion = { version = "0.5.1", features = ["html_reports"] }
-
-

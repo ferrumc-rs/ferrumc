@@ -4,7 +4,6 @@ extern crate core;
 
 use crate::errors::BinaryError;
 use clap::Parser;
-use ferrumc_config::statics::get_global_config;
 use ferrumc_config::whitelist::create_whitelist;
 use ferrumc_ecs::Universe;
 use ferrumc_general_purpose::paths::get_root_path;
@@ -27,9 +26,17 @@ mod cli;
 mod packet_handlers;
 mod systems;
 
+
+#[cfg(feature = "dhat")]
+#[global_allocator]
+static ALLOC: dhat::Alloc = dhat::Alloc;
+
 // #[tokio::main(flavor = "current_thread")]
 #[tokio::main(flavor = "multi_thread")]
 async fn main() {
+    #[cfg(feature = "dhat")]
+    let _profiler = dhat::Profiler::new_heap();
+
     let cli_args = CLIArgs::parse();
     ferrumc_logging::init_logging(cli_args.log.into());
 
@@ -122,22 +129,15 @@ async fn handle_import(import_args: ImportArgs) -> Result<(), BinaryError> {
     //! Handles the import of the world.
     info!("Importing world...");
 
-    let config = get_global_config();
     let mut world = World::new().await;
 
     let root_path = get_root_path();
-    let database_opts = &config.database;
-
     let mut import_path = root_path.join(import_args.import_path);
     if import_path.is_relative() {
         import_path = root_path.join(import_path);
     }
-    let mut db_path = root_path.join(database_opts.db_path.clone());
-    if db_path.is_relative() {
-        db_path = root_path.join(db_path);
-    }
 
-    if let Err(e) = world.import(import_path, db_path).await {
+    if let Err(e) = world.import(import_path, import_args.batch_size, import_args.max_concurrent_tasks).await {
         error!("Could not import world: {}", e.to_string());
         return Err(BinaryError::Custom("Could not import world.".to_string()));
     }
