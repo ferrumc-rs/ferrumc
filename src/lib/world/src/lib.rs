@@ -1,10 +1,12 @@
 #![feature(hasher_prefixfree_extras)]
+#![feature(int_roundings)]
 
 pub mod chunk_format;
 mod db_functions;
+pub mod edits;
 pub mod errors;
 mod importing;
-mod vanilla_chunk_format;
+pub mod vanilla_chunk_format;
 
 use crate::chunk_format::Chunk;
 use crate::errors::WorldError;

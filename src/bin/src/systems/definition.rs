@@ -1,5 +1,3 @@
-use crate::systems::chunk_fetcher::ChunkFetcher;
-use crate::systems::chunk_sender::ChunkSenderSystem;
 use crate::systems::keep_alive_system::KeepAliveSystem;
 use crate::systems::tcp_listener_system::TcpListenerSystem;
 use crate::systems::ticking_system::TickingSystem;
@@ -24,8 +22,6 @@ pub fn create_systems() -> Vec<Arc<dyn System>> {
         Arc::new(TcpListenerSystem),
         Arc::new(KeepAliveSystem::new()),
         Arc::new(TickingSystem),
-        Arc::new(ChunkSenderSystem::new()),
-        Arc::new(ChunkFetcher::new()),
     ]
 }
 pub async fn start_all_systems(state: GlobalState) -> NetResult<()> {

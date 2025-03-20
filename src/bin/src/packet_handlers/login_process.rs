@@ -1,5 +1,7 @@
+use crate::chunk_sending::send_chunks;
 use ferrumc_config::statics::{get_global_config, get_whitelist};
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
+use ferrumc_core::collisions::bounds::CollisionBounds;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
@@ -34,7 +36,7 @@ use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::GlobalState;
 use futures::StreamExt;
 use std::time::Instant;
-use tracing::{debug, trace};
+use tracing::{debug, error, trace};
 
 #[event_handler]
 async fn handle_login_start(
@@ -152,44 +154,67 @@ async fn handle_ack_finish_configuration(
             .add_component::<Position>(entity_id, Position::default())?
             .add_component::<Rotation>(entity_id, Rotation::default())?
             .add_component::<OnGround>(entity_id, OnGround::default())?
-            .add_component::<ChunkReceiver>(entity_id, ChunkReceiver::default())?;
-
-        let mut writer = state.universe.get_mut::<StreamWriter>(entity_id)?;
-
-        writer // 21
-            .send_packet(LoginPlayPacket::new(entity_id), &NetEncodeOpts::WithLength)?;
-        writer // 29
-            .send_packet(
-                SynchronizePlayerPositionPacket::default(), // The coordinates here should be used for the center chunk.
-                &NetEncodeOpts::WithLength,
-            )?;
-        writer // 37
-            .send_packet(
-                SetDefaultSpawnPositionPacket::default(), // Player specific, aka. home, bed, where it would respawn.
-                &NetEncodeOpts::WithLength,
-            )?;
-        writer // 38
-            .send_packet(
-                GameEventPacket::start_waiting_for_level_chunks(),
-                &NetEncodeOpts::WithLength,
-            )?;
-        writer // 41
-            .send_packet(
-                SetCenterChunk::new(0, 0), // TODO - Dependent on the player spawn position.
-                &NetEncodeOpts::WithLength,
-            )?;
-        writer // other
-            .send_packet(
-                SetRenderDistance::new(5), // TODO
-                &NetEncodeOpts::WithLength,
+            .add_component::<ChunkReceiver>(entity_id, ChunkReceiver::default())?
+            .add_component::<CollisionBounds>(
+                entity_id,
+                CollisionBounds {
+                    x_offset_start: -0.3,
+                    x_offset_end: 0.3,
+                    y_offset_start: 0.0,
+                    y_offset_end: 1.5,
+                    z_offset_start: -0.3,
+                    z_offset_end: 0.3,
+                },
             )?;
 
-        send_keep_alive(entity_id, &state, &mut writer).await?;
+        {
+            let mut writer = state.universe.get_mut::<StreamWriter>(entity_id)?;
 
-        let pos = state.universe.get_mut::<Position>(entity_id)?;
-        let mut chunk_recv = state.universe.get_mut::<ChunkReceiver>(entity_id)?;
-        chunk_recv.last_chunk = Some((pos.x as i32, pos.z as i32, String::from("overworld")));
-        chunk_recv.calculate_chunks().await;
+            writer // 21
+                .send_packet(LoginPlayPacket::new(entity_id), &NetEncodeOpts::WithLength)?;
+            writer // 29
+                .send_packet(
+                    SynchronizePlayerPositionPacket::default(), // The coordinates here should be used for the center chunk.
+                    &NetEncodeOpts::WithLength,
+                )?;
+            writer // 37
+                .send_packet(
+                    SetDefaultSpawnPositionPacket::default(), // Player specific, aka. home, bed, where it would respawn.
+                    &NetEncodeOpts::WithLength,
+                )?;
+            writer // 38
+                .send_packet(
+                    GameEventPacket::start_waiting_for_level_chunks(),
+                    &NetEncodeOpts::WithLength,
+                )?;
+            writer // 41
+                .send_packet(
+                    SetCenterChunk::new(0, 0), // TODO - Dependent on the player spawn position.
+                    &NetEncodeOpts::WithLength,
+                )?;
+            writer // other
+                .send_packet(
+                    SetRenderDistance::new(5), // TODO
+                    &NetEncodeOpts::WithLength,
+                )?;
+
+            send_keep_alive(entity_id, &state, &mut writer).await?;
+        }
+        {
+            let pos = state.universe.get::<Position>(entity_id)?;
+            let mut chunk_recv = state.universe.get_mut::<ChunkReceiver>(entity_id)?;
+            chunk_recv.last_chunk = (pos.x as i32, pos.z as i32, String::from("overworld"));
+            chunk_recv.can_see.clear();
+            for x in pos.x as i32 - 5..pos.x as i32 + 5 {
+                for z in pos.z as i32 - 5..pos.z as i32 + 5 {
+                    chunk_recv.can_see.insert((x, z, "overworld".to_string()));
+                }
+            }
+        }
+        send_chunks(state.clone(), entity_id).await.map_err(|e| {
+            error!("Failed to send chunks: {:?}", e);
+            NetError::Misc(e.to_string())
+        })?;
     }
 
     player_info_update_packets(entity_id, &state).await?;

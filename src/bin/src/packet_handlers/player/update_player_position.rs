@@ -1,4 +1,5 @@
-use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
+use crate::chunk_sending::send_chunks;
+use ferrumc_core::chunks::chunk_receiver::{ChunkReceiver, VIEW_DISTANCE};
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
@@ -14,7 +15,7 @@ use ferrumc_net::utils::broadcast::{broadcast, BroadcastOptions};
 use ferrumc_net::utils::ecs_helpers::EntityExt;
 use ferrumc_net::NetResult;
 use ferrumc_state::GlobalState;
-use tracing::trace;
+use tracing::{trace, warn};
 
 #[event_handler(priority = "fastest")]
 async fn handle_player_move(
@@ -28,27 +29,39 @@ async fn handle_player_move(
 
     if let Some(ref new_position) = event.position {
         trace!("Getting chunk_recv 1 for player move");
+        let mut chunks_need_sending = false;
         {
             let mut chunk_recv = state.universe.get_mut::<ChunkReceiver>(conn_id)?;
-            trace!("Got chunk_recv 1 for player move");
-            if let Some(last_chunk) = &chunk_recv.last_chunk {
-                let new_chunk = (
-                    new_position.x as i32 / 16,
-                    new_position.z as i32 / 16,
-                    String::from("overworld"),
+            if (new_position.x / 16.0).floor() != chunk_recv.last_chunk.0 as f64
+                || (new_position.z / 16.0).floor() != chunk_recv.last_chunk.1 as f64
+            {
+                let (old_x, old_z) = (chunk_recv.last_chunk.0, chunk_recv.last_chunk.1);
+                let (new_x, new_z) = (
+                    (new_position.x / 16.0).floor() as i32,
+                    (new_position.z / 16.0).floor() as i32,
                 );
-                if *last_chunk != new_chunk {
-                    chunk_recv.last_chunk = Some(new_chunk);
-                    chunk_recv.calculate_chunks().await;
+                {
+                    if (old_x, old_z) != (new_x, new_z) {
+                        chunk_recv.last_chunk = (new_x, new_z, String::from("overworld"));
+                    } else {
+                        warn!("Player crossed chunk but old and new chunks are the same");
+                        return Ok(event);
+                    }
+                    chunk_recv.can_see.clear();
+                    for x in new_x - VIEW_DISTANCE..new_x + VIEW_DISTANCE {
+                        for z in new_z - VIEW_DISTANCE..new_z + VIEW_DISTANCE {
+                            chunk_recv.can_see.insert((x, z, "overworld".to_string()));
+                        }
+                    }
+                    chunks_need_sending = true;
                 }
-            } else {
-                chunk_recv.last_chunk = Some((
-                    new_position.x as i32 / 16,
-                    new_position.z as i32 / 16,
-                    String::from("overworld"),
-                ));
-                chunk_recv.calculate_chunks().await;
             }
+        }
+
+        if chunks_need_sending {
+            send_chunks(state.clone(), conn_id)
+                .await
+                .map_err(|e| NetError::Misc(format!("Failed to send chunks to player: {:?}", e)))?;
         }
 
         trace!("Getting position 1 for player move");

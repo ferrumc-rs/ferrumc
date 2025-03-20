@@ -7,3 +7,4 @@ edition = "2021"
 tokio = { workspace = true }
 ferrumc-ecs = { workspace = true }
 ferrumc-world = { workspace = true }
+ferrumc-world-gen = { workspace = true }

@@ -8,7 +8,7 @@ use deepsize::DeepSizeOf;
 use std::io::{Read, Write};
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 
-#[derive(Debug, Encode, Decode, Clone, DeepSizeOf)]
+#[derive(Debug, Encode, Decode, Clone, DeepSizeOf, Eq)]
 pub struct VarInt {
     /// The value of the VarInt.
     pub val: i32,
@@ -18,6 +18,8 @@ pub struct VarInt {
 
 mod adapters {
     use crate::net_types::var_int::VarInt;
+    use std::ops::Add;
+    use std::ops::Sub;
 
     impl From<usize> for VarInt {
         fn from(value: usize) -> Self {
@@ -52,6 +54,22 @@ mod adapters {
     impl PartialEq<usize> for VarInt {
         fn eq(&self, other: &usize) -> bool {
             self.val == *other as i32
+        }
+    }
+
+    impl Add<Self> for VarInt {
+        type Output = Self;
+
+        fn add(self, other: Self) -> Self {
+            Self::new(self.val + other.val)
+        }
+    }
+
+    impl Sub<Self> for VarInt {
+        type Output = Self;
+
+        fn sub(self, other: Self) -> Self {
+            Self::new(self.val - other.val)
         }
     }
 }

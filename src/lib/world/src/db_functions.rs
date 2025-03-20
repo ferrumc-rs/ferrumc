@@ -121,6 +121,16 @@ impl World {
 }
 
 pub(crate) async fn save_chunk_internal(world: &World, chunk: Chunk) -> Result<(), WorldError> {
+    if !world
+        .storage_backend
+        .table_exists("chunks".to_string())
+        .await?
+    {
+        world
+            .storage_backend
+            .create_table("chunks".to_string())
+            .await?;
+    }
     let as_bytes = world.compressor.compress(&bitcode::encode(&chunk))?;
     let digest = create_key(chunk.dimension.as_str(), chunk.x, chunk.z);
     world
@@ -209,6 +219,13 @@ pub(crate) async fn chunk_exists_internal(
     z: i32,
     dimension: &str,
 ) -> Result<bool, WorldError> {
+    if !world
+        .storage_backend
+        .table_exists("chunks".to_string())
+        .await?
+    {
+        return Ok(false);
+    }
     let digest = create_key(dimension, x, z);
     Ok(world
         .storage_backend

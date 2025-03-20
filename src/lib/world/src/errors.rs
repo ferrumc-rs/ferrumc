@@ -1,7 +1,8 @@
 use crate::errors::WorldError::{GenericIOError, PermissionError};
-use crate::vanilla_chunk_format::Palette;
+use crate::vanilla_chunk_format::BlockData;
 use errors::AnvilError;
 use ferrumc_anvil::errors;
+use ferrumc_general_purpose::data_packing::errors::DataPackingError;
 use ferrumc_storage::errors::StorageError;
 use std::io::ErrorKind;
 use thiserror::Error;
@@ -35,11 +36,17 @@ pub enum WorldError {
     #[error("Anvil Decode Error: {0}")]
     AnvilDecodeError(AnvilError),
     #[error("Missing block mapping: {0}")]
-    MissingBlockMapping(Palette),
+    MissingBlockMapping(BlockData),
     #[error("Invalid memory map size: {0}")]
     InvalidMapSize(u64),
     #[error("Task Join Error: {0}")]
     TaskJoinError(String),
+    #[error("Section out of bounds: {0}")]
+    SectionOutOfBounds(i32),
+    #[error("Invalid block state data")]
+    InvalidBlockStateData(String),
+    #[error("Invalid block: {0}")]
+    InvalidBlock(BlockData),
 }
 
 // implemente AcquireError for WorldError
@@ -69,5 +76,11 @@ impl From<StorageError> for WorldError {
 impl From<AnvilError> for WorldError {
     fn from(err: errors::AnvilError) -> Self {
         WorldError::AnvilDecodeError(err)
+    }
+}
+
+impl From<DataPackingError> for WorldError {
+    fn from(e: DataPackingError) -> Self {
+        WorldError::InvalidBlockStateData(e.to_string())
     }
 }

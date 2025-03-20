@@ -18,7 +18,6 @@ impl From<Error> for StorageError {
             Error::Io(e) => StorageError::GenericIoError(e),
             Error::Encoding(e) => StorageError::WriteError(e.to_string()),
             Error::Decoding(e) => StorageError::ReadError(e.to_string()),
-            Error::DatabaseClosing => StorageError::CloseError("Database closing".to_string()),
             _ => StorageError::DatabaseError(err.to_string()),
         }
     }
@@ -45,7 +44,7 @@ impl LmdbBackend {
         let rounded_map_size = ((map_size as f64 / page_size::get() as f64).round()
             * page_size::get() as f64) as usize;
         unsafe {
-            Ok(LmdbBackend {
+            let backend = LmdbBackend {
                 env: Arc::new(
                     EnvOpenOptions::new()
                         // Change this as more tables are needed.
@@ -54,7 +53,8 @@ impl LmdbBackend {
                         .open(checked_path)
                         .map_err(|e| StorageError::DatabaseInitError(e.to_string()))?,
                 ),
-            })
+            };
+            Ok(backend)
         }
     }
 
@@ -206,6 +206,17 @@ impl LmdbBackend {
                 .open_database(&ro_txn, Some(&table))?
                 .ok_or(StorageError::TableError("Table not found".to_string()))?;
             Ok(db.get(&ro_txn, &key)?.is_some())
+        })
+        .await
+        .expect("Failed to run tokio task")
+    }
+
+    pub async fn table_exists(&self, table: String) -> Result<bool, StorageError> {
+        let env = self.env.clone();
+        tokio::task::spawn_blocking(move || {
+            let ro_txn = env.read_txn()?;
+            let db = env.open_database::<U128<BigEndian>, Bytes>(&ro_txn, Some(&table))?;
+            Ok(db.is_some())
         })
         .await
         .expect("Failed to run tokio task")
