@@ -5,7 +5,7 @@ use ferrumc_net::utils::broadcast::{broadcast, BroadcastOptions};
 use ferrumc_state::GlobalState;
 
 #[event_handler]
-async fn entity_animation(
+fn entity_animation(
     event: EntityAnimationEvent,
     state: GlobalState,
 ) -> Result<EntityAnimationEvent, NetError> {
@@ -16,6 +16,6 @@ async fn entity_animation(
         &state,
         BroadcastOptions::default().except([event.entity]),
     )
-    .await?;
+        ?;
     Ok(event)
 }

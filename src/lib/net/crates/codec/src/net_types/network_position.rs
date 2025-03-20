@@ -4,7 +4,6 @@ use crate::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
 use crate::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
 use std::fmt::Display;
 use std::io::{Read, Write};
-use tokio::io::AsyncWrite;
 
 /// The definition of a "Position" in the Minecraft protocol.
 #[derive(Clone, Debug)]
@@ -32,19 +31,6 @@ impl NetworkPosition {
 impl NetEncode for NetworkPosition {
     fn encode<W: Write>(&self, writer: &mut W, _: &NetEncodeOpts) -> NetEncodeResult<()> {
         writer.write_all(self.as_u64().to_be_bytes().as_ref())?;
-        Ok(())
-    }
-
-    async fn encode_async<W: AsyncWrite + Unpin>(
-        &self,
-        writer: &mut W,
-        _: &NetEncodeOpts,
-    ) -> NetEncodeResult<()> {
-        use tokio::io::AsyncWriteExt;
-
-        writer
-            .write_all(self.as_u64().to_be_bytes().as_ref())
-            .await?;
         Ok(())
     }
 }

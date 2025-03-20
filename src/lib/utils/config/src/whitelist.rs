@@ -8,10 +8,12 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 use std::io::Write;
+use futures::StreamExt;
 use tracing::error;
 use uuid::Uuid;
+use rayon::prelude::*;
 
-pub async fn create_whitelist() {
+pub fn create_whitelist() {
     let whitelist_location = get_root_path().join("whitelist.txt");
     if !whitelist_location.exists() {
         create_blank_whitelist_file();
@@ -35,7 +37,7 @@ pub async fn create_whitelist() {
         return;
     }
 
-    let uuids: Vec<Uuid> = match convert_whitelist_file().await {
+    let uuids: Vec<Uuid> = match convert_whitelist_file() {
         Ok(uuids) => uuids,
         Err(_e) => return,
     };
@@ -45,7 +47,7 @@ pub async fn create_whitelist() {
 }
 
 ///converts usernames within the whitelist file to uuid, returns a list of all resulting uuids within the file
-async fn convert_whitelist_file() -> Result<Vec<Uuid>, ConfigError> {
+fn convert_whitelist_file() -> Result<Vec<Uuid>, ConfigError> {
     let whitelist_location = get_root_path().join("whitelist.txt");
     let mut return_uuids: Vec<Uuid> = Vec::new();
 
@@ -114,7 +116,7 @@ async fn convert_whitelist_file() -> Result<Vec<Uuid>, ConfigError> {
     }
 
     let uuid_query_input: Vec<&Uuid> = uuids_to_convert.keys().collect();
-    let found_usernames = query_mojang_for_usernames(uuid_query_input).await;
+    let found_usernames = query_mojang_for_usernames(uuid_query_input);
 
     for profile in found_usernames {
         if let Some(index) = uuids_to_convert.remove(&Uuid::try_parse(&profile.id).unwrap()) {
@@ -166,35 +168,23 @@ struct MojangProfile {
     name: String,
 }
 
-async fn query_mojang_for_usernames(uuids: Vec<&Uuid>) -> Vec<MojangProfile> {
+fn query_mojang_for_usernames(uuids: Vec<&Uuid>) -> Vec<MojangProfile> {
     if uuids.is_empty() {
         return Vec::new();
     }
 
-    let client = Client::new();
+    uuids.into_iter().par_bridge().map(|uuid| {
+        let uuid = uuid.as_simple();
+        let response = ureq::get(format!(
+            "https://sessionserver.mojang.com/session/minecraft/profile/{uuid}"
+        ))
+        .call();
 
-    let futures = uuids.into_iter().map(|uuid| {
-        let client = &client;
-        async move {
-            let uuid = uuid.as_simple();
-            let response = client
-                .get(format!(
-                    "https://sessionserver.mojang.com/session/minecraft/profile/{uuid}"
-                ))
-                .send()
-                .await;
-
-            match response {
-                Ok(response) if response.status().is_success() => {
-                    response.json::<MojangProfile>().await.ok()
-                }
-                _ => None,
-            }
+        match response {
+            Ok(mut response) => Some(response.body_mut().read_json()),
+            _ => None,
         }
-    });
-
-    let results = join_all(futures).await;
-    results.into_iter().flatten().collect()
+    }).flatten().filter(|profile| profile.is_ok()).map(|profile| profile.unwrap()).collect()
 }
 
 pub fn add_to_whitelist(uuid: Uuid) -> bool {

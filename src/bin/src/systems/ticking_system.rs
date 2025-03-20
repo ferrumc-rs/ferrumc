@@ -14,14 +14,14 @@ static KILLED: AtomicBool = AtomicBool::new(false);
 
 #[async_trait]
 impl System for TickingSystem {
-    async fn start(self: Arc<Self>, state: GlobalState) {
+    fn start(self: Arc<Self>, state: GlobalState) {
         // TODO game time must be loaded from a file
         let mut tick = 0;
         while !KILLED.load(Ordering::Relaxed) {
             let required_end = Instant::now() + Duration::from_millis(50);
             let res = {
                 let start = Instant::now();
-                let res = TickEvent::trigger(TickEvent::new(tick), state.clone()).await;
+                let res = TickEvent::trigger(TickEvent::new(tick), state.clone());
                 trace!("Tick took {:?}", Instant::now() - start);
 
                 res
@@ -32,7 +32,7 @@ impl System for TickingSystem {
             let now = Instant::now();
 
             if required_end > now {
-                tokio::time::sleep(required_end - now).await;
+                tokio::time::sleep(required_end - now);
             } else {
                 let time_debt = now - required_end;
                 info!("Running behind by {:?}", time_debt);
@@ -42,7 +42,7 @@ impl System for TickingSystem {
         }
     }
 
-    async fn stop(self: Arc<Self>, _state: GlobalState) {
+    fn stop(self: Arc<Self>, _state: GlobalState) {
         debug!("Stopping ticking system...");
         KILLED.store(true, Ordering::Relaxed);
     }

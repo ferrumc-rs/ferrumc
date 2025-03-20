@@ -13,8 +13,8 @@ pub struct LoginStartPacket {
 }
 
 impl IncomingPacket for LoginStartPacket {
-    async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
-        LoginStartEvent::trigger(LoginStartEvent::new(self, conn_id), state).await?;
+    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
+        LoginStartEvent::trigger(LoginStartEvent::new(self, conn_id), state)?;
         Ok(())
     }
 }

@@ -24,7 +24,7 @@ pub struct PlayerAction {
 }
 
 impl IncomingPacket for PlayerAction {
-    async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
+    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
         // https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol?oldid=2773393#Player_Action
         match self.status.val {
             0 => {
@@ -32,7 +32,7 @@ impl IncomingPacket for PlayerAction {
                     .clone()
                     .world
                     .load_chunk(self.location.x >> 4, self.location.z >> 4, "overworld")
-                    .await?;
+                    ?;
                 let block =
                     chunk.get_block(self.location.x, self.location.y as i32, self.location.z)?;
                 debug!("Block: {:?}", block);
@@ -48,8 +48,8 @@ impl IncomingPacket for PlayerAction {
                     BlockData::default(),
                 )?;
                 // Save the chunk to disk
-                state.world.save_chunk(chunk.clone()).await?;
-                state.world.sync().await?;
+                state.world.save_chunk(chunk.clone())?;
+                state.world.sync()?;
                 {
                     // Send the block update packet to all players
                     let query = state

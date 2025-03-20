@@ -10,8 +10,8 @@ use tracing::{debug, debug_span, info, Instrument};
 
 #[async_trait]
 pub trait System: Send + Sync {
-    async fn start(self: Arc<Self>, state: GlobalState);
-    async fn stop(self: Arc<Self>, state: GlobalState);
+    fn start(self: Arc<Self>, state: GlobalState);
+    fn stop(self: Arc<Self>, state: GlobalState);
 
     fn name(&self) -> &'static str;
 }
@@ -24,7 +24,7 @@ pub fn create_systems() -> Vec<Arc<dyn System>> {
         Arc::new(TickingSystem),
     ]
 }
-pub async fn start_all_systems(state: GlobalState) -> NetResult<()> {
+pub fn start_all_systems(state: GlobalState) -> NetResult<()> {
     let handles = FuturesUnordered::new();
 
     for system in SYSTEMS.iter() {
@@ -39,17 +39,17 @@ pub async fn start_all_systems(state: GlobalState) -> NetResult<()> {
         handles.push(handle);
     }
 
-    futures::future::join_all(handles).await;
+    futures::future::join_all(handles);
 
     Ok(())
 }
 
-pub async fn stop_all_systems(state: GlobalState) -> NetResult<()> {
+pub fn stop_all_systems(state: GlobalState) -> NetResult<()> {
     info!("Stopping all systems...");
 
     for system in SYSTEMS.iter() {
         debug!("Stopping system: {}", system.name());
-        system.clone().stop(state.clone()).await;
+        system.clone().stop(state.clone());
     }
 
     Ok(())

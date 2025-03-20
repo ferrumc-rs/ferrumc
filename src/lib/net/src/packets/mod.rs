@@ -6,7 +6,7 @@ pub mod packet_events;
 
 #[allow(async_fn_in_trait)]
 pub trait IncomingPacket {
-    async fn handle(
+    fn handle(
         self,
         conn_id: usize,
         state: std::sync::Arc<ferrumc_state::ServerState>,

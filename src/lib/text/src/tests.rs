@@ -64,7 +64,7 @@ fn test_to_string() {
             .into_text()
             .underlined()
             .on_hover_show_text("boo"))
-        .to_string()
+            .to_string()
     );
     let component = ComponentBuilder::text("This is a test!")
         .underlined()
@@ -77,7 +77,7 @@ fn test_to_string() {
             .underlined()
             .bold()
             .on_hover_show_text("boo"))
-        .to_string()
+            .to_string()
     );
     let component = ComponentBuilder::keybind("key.jump");
     assert_eq!(component.to_string(), Text::keybind("key.jump").to_string());
@@ -103,7 +103,7 @@ struct TestPacket {
 
 #[tokio::test]
 #[ignore]
-async fn test_serialize_to_nbt() {
+fn test_serialize_to_nbt() {
     let component = ComponentBuilder::translate(
         "chat.type.text",
         vec![
@@ -155,8 +155,8 @@ async fn test_serialize_to_nbt() {
         &mut cursor,
         &NetEncodeOpts::WithLength,
     )
-    .await
-    .unwrap();
+
+        .unwrap();
 
     println!("\n{}\n", bytes_to_string(&cursor.get_ref()[..]));
 

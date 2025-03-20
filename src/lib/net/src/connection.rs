@@ -82,11 +82,11 @@ impl StreamWriter {
             let running = Arc::clone(&running);
             async move {
                 while running.load(Ordering::Relaxed) {
-                    let Some(bytes) = receiver.recv().await else {
+                    let Some(bytes) = receiver.recv() else {
                         break;
                     };
 
-                    if let Err(e) = writer.write_all(&bytes).await {
+                    if let Err(e) = writer.write_all(&bytes) {
                         warn!("Failed to write to writer: {:?}", e);
                         break;
                     }
@@ -129,7 +129,7 @@ impl Default for CompressionStatus {
     }
 }
 
-pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -> NetResult<()> {
+pub fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -> NetResult<()> {
     let (mut reader, writer) = tcp_stream.into_split();
 
     let entity = state
@@ -157,7 +157,7 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
         }
 
         let read_timeout = Duration::from_secs(2);
-        let packet_task = timeout(read_timeout, PacketSkeleton::new(&mut reader, compressed)).await;
+        let packet_task = timeout(read_timeout, PacketSkeleton::new(&mut reader, compressed));
 
         if let Err(err) = packet_task {
             trace!(
@@ -188,9 +188,9 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
             &mut packet_skele.data,
             Arc::clone(&state),
         )
-        .await
-        .instrument(debug_span!("eid", %entity))
-        .inner()
+
+            .instrument(debug_span!("eid", %entity))
+            .inner()
         {
             warn!(
                 "Failed to handle packet: {:?}. packet_id: {:02X}; conn_state: {}",
@@ -200,7 +200,7 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
             );
             // Kick the player (when implemented).
             terminate_connection(state.clone(), entity, "Failed to handle packet".to_string())
-                .await?;
+                ?;
             break 'recv;
         };
     }
@@ -210,12 +210,12 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
     // Broadcast the leave server event
     let _ =
         PlayerDisconnectEvent::trigger(PlayerDisconnectEvent { entity_id: entity }, state.clone())
-            .await;
+        ;
 
     // Remove all components from the entity
 
     // Wait until anything that might be using the entity is done
-    if let Err(e) = remove_all_components_blocking(state.clone(), entity).await {
+    if let Err(e) = remove_all_components_blocking(state.clone(), entity) {
         warn!("Failed to remove all components from entity: {:?}", e);
     }
 
@@ -230,9 +230,9 @@ pub struct PlayerDisconnectEvent {
 }
 
 /// Since parking_lot is single-threaded, we use spawn_blocking to remove all components from the entity asynchronously (on another thread).
-async fn remove_all_components_blocking(state: Arc<ServerState>, entity: usize) -> NetResult<()> {
+fn remove_all_components_blocking(state: Arc<ServerState>, entity: usize) -> NetResult<()> {
     let res =
-        tokio::task::spawn_blocking(move || state.universe.remove_all_components(entity)).await?;
+        tokio::task::spawn_blocking(move || state.universe.remove_all_components(entity))?;
 
     Ok(res?)
 }

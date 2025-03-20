@@ -18,7 +18,7 @@ use ferrumc_state::GlobalState;
 use tracing::{trace, warn};
 
 #[event_handler(priority = "fastest")]
-async fn handle_player_move(
+fn handle_player_move(
     event: TransformEvent,
     state: GlobalState,
 ) -> Result<TransformEvent, NetError> {
@@ -60,7 +60,7 @@ async fn handle_player_move(
 
         if chunks_need_sending {
             send_chunks(state.clone(), conn_id)
-                .await
+
                 .map_err(|e| NetError::Misc(format!("Failed to send chunks to player: {:?}", e)))?;
         }
 
@@ -96,7 +96,7 @@ async fn handle_player_move(
         *on_ground = OnGround(new_grounded);
     }
 
-    update_pos_for_all(conn_id, delta_pos, new_rot, &state).await?;
+    update_pos_for_all(conn_id, delta_pos, new_rot, &state)?;
 
     Ok(event)
 }
@@ -109,7 +109,7 @@ enum BroadcastMovementPacket {
     TeleportEntity(TeleportEntityPacket),
 }
 
-async fn update_pos_for_all(
+fn update_pos_for_all(
     entity_id: Entity,
     delta_pos: Option<(i16, i16, i16)>,
     new_rot: Option<Rotation>,
@@ -165,7 +165,7 @@ async fn update_pos_for_all(
         }
     };
 
-    broadcast(&packet, state, BroadcastOptions::default().all()).await?;
+    broadcast(&packet, state, BroadcastOptions::default().all())?;
 
     Ok(())
 }

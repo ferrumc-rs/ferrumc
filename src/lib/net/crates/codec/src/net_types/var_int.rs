@@ -123,24 +123,6 @@ impl VarInt {
         Err(NetTypesError::InvalidVarInt)
     }
 
-    pub async fn read_async<R: AsyncRead + Unpin>(cursor: &mut R) -> Result<Self, NetTypesError> {
-        let mut val = 0;
-        for i in 0..5 {
-            let byte = {
-                let mut buf = [0];
-                cursor.read_exact(&mut buf).await?;
-                buf[0]
-            } as i32;
-
-            val |= (byte & SEGMENT_BITS) << (7 * i);
-            if byte & CONTINUE_BIT == 0 {
-                return Ok(Self { val, len: i + 1 });
-            }
-        }
-
-        Err(NetTypesError::InvalidVarInt)
-    }
-
     pub fn write<W: Write>(&self, cursor: &mut W) -> Result<(), NetTypesError> {
         let mut val = self.val;
         loop {
@@ -150,24 +132,6 @@ impl VarInt {
             }
 
             cursor.write_all(&[((val & SEGMENT_BITS) | CONTINUE_BIT) as u8])?;
-            val = ((val as u32) >> 7) as i32; // Rust equivalent of Java's >>> operator
-        }
-    }
-
-    pub async fn write_async<W: AsyncWrite + Unpin>(
-        &self,
-        cursor: &mut W,
-    ) -> Result<(), NetTypesError> {
-        let mut val = self.val;
-        loop {
-            if (val & !SEGMENT_BITS) == 0 {
-                cursor.write_all(&[val as u8]).await?;
-                return Ok(());
-            }
-
-            cursor
-                .write_all(&[((val & SEGMENT_BITS) | CONTINUE_BIT) as u8])
-                .await?;
             val = ((val as u32) >> 7) as i32; // Rust equivalent of Java's >>> operator
         }
     }
@@ -182,16 +146,6 @@ impl NetDecode for VarInt {
 impl NetEncode for VarInt {
     fn encode<W: Write>(&self, writer: &mut W, _opts: &NetEncodeOpts) -> NetEncodeResult<()> {
         self.write(writer)
-            .map_err(|e| NetEncodeError::ExternalError(e.into()))
-    }
-
-    async fn encode_async<W: AsyncWrite + Unpin>(
-        &self,
-        writer: &mut W,
-        _opts: &NetEncodeOpts,
-    ) -> NetEncodeResult<()> {
-        self.write_async(writer)
-            .await
             .map_err(|e| NetEncodeError::ExternalError(e.into()))
     }
 }

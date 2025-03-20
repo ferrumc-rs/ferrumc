@@ -55,7 +55,7 @@ async fn main() {
 
         Some(Command::Import(import_args)) => {
             info!("Starting import...");
-            if let Err(e) = handle_import(import_args).await {
+            if let Err(e) = handle_import(import_args) {
                 error!("Import failed with the following error: {}", e.to_string());
             } else {
                 info!("Import completed successfully.");
@@ -63,7 +63,7 @@ async fn main() {
         }
         Some(Command::Run) | None => {
             info!("Starting server...");
-            if let Err(e) = entry().await {
+            if let Err(e) = entry() {
                 error!("Server exited with the following error: {}", e.to_string());
             } else {
                 info!("Server exited successfully.");
@@ -72,7 +72,7 @@ async fn main() {
     }
 }
 
-async fn generate_chunks(state: GlobalState) -> Result<(), BinaryError> {
+fn generate_chunks(state: GlobalState) -> Result<(), BinaryError> {
     info!("No overworld spawn chunk found, generating spawn chunks...");
     // Generate a 12x12 chunk area around the spawn point
     let mut chunks = Vec::new();
@@ -99,36 +99,37 @@ async fn generate_chunks(state: GlobalState) -> Result<(), BinaryError> {
             error!("Error generating chunk: {:?}", e);
             BinaryError::Custom("Error generating chunk".to_string())
         })?;
-        state.world.save_chunk(chunk).await?;
+        state.world.save_chunk(chunk)?;
     }
     info!("Finished generating spawn chunks...");
     Ok(())
 }
 
-async fn entry() -> Result<(), BinaryError> {
-    let state = create_state().await?;
+fn entry() -> Result<(), BinaryError> {
+    let state = create_state()?;
     let global_state = Arc::new(state);
-    create_whitelist().await;
-    if !global_state.world.chunk_exists(0, 0, "overworld").await? {
-        generate_chunks(global_state.clone()).await?;
+    create_whitelist();
+    if !global_state.world.chunk_exists(0, 0, "overworld")? {
+        generate_chunks(global_state.clone())?;
     }
 
     let all_system_handles = tokio::spawn(definition::start_all_systems(global_state.clone()));
 
     //Start the systems and wait until all of them are done
-    all_system_handles.await??;
+    all_system_handles??;
 
     // Stop all systems
-    definition::stop_all_systems(global_state).await?;
+    definition::stop_all_systems(global_state)?;
 
     Ok(())
 }
 
-async fn handle_import(import_args: ImportArgs) -> Result<(), BinaryError> {
+fn handle_import(import_args: ImportArgs) -> Result<(), BinaryError> {
     //! Handles the import of the world.
     info!("Importing world...");
 
-    let mut world = World::new().await;
+    let config = get_global_config();
+    let mut world = World::new();
 
     let root_path = get_root_path();
     let mut import_path = root_path.join(import_args.import_path);
@@ -151,13 +152,13 @@ async fn handle_import(import_args: ImportArgs) -> Result<(), BinaryError> {
     Ok(())
 }
 
-async fn create_state() -> Result<ServerState, BinaryError> {
-    let listener = create_server_listener().await?;
+fn create_state() -> Result<ServerState, BinaryError> {
+    let listener = create_server_listener()?;
 
     Ok(ServerState {
         universe: Universe::new(),
         tcp_listener: listener,
-        world: World::new().await,
+        world: World::new(),
         terrain_generator: WorldGenerator::new(0),
     })
 }

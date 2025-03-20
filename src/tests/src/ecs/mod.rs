@@ -3,10 +3,10 @@ use ferrumc_ecs::Universe;
 
 #[tokio::test]
 #[ignore]
-async fn test_1mil_entities() {
+fn test_1mil_entities() {
     let world = Universe::new();
 
-    tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+    tokio::time::sleep(std::time::Duration::from_secs(5));
 
     let start = std::time::Instant::now();
     for _ in 0..1_000_000 {
@@ -20,5 +20,5 @@ async fn test_1mil_entities() {
     }
     println!("Time to create 1mil entities: {:?}", start.elapsed());
 
-    tokio::time::sleep(std::time::Duration::from_secs(15)).await;
+    tokio::time::sleep(std::time::Duration::from_secs(15));
 }

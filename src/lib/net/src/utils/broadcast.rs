@@ -12,7 +12,7 @@ use std::pin::Pin;
 use tracing::debug;
 
 type AsyncCallbackFn = Box<
-    dyn Fn(Entity, &GlobalState) -> Pin<Box<dyn Future<Output = ()> + Send + '_>> + Send + Sync,
+    dyn Fn(Entity, &GlobalState) -> Pin<Box<dyn Future<Output=()> + Send + '_>> + Send + Sync,
 >;
 type SyncCallbackFn = Box<dyn Fn(Entity, &GlobalState) + Send + Sync>;
 
@@ -27,7 +27,7 @@ pub struct BroadcastOptions {
 impl BroadcastOptions {
     pub fn only<I>(mut self, entities: I) -> Self
     where
-        I: IntoIterator<Item = Entity>,
+        I: IntoIterator<Item=Entity>,
     {
         self.only_entities = Some(entities.into_iter().collect());
         self
@@ -35,7 +35,7 @@ impl BroadcastOptions {
 
     pub fn except<I>(mut self, entities: I) -> Self
     where
-        I: IntoIterator<Item = Entity>,
+        I: IntoIterator<Item=Entity>,
     {
         self.except_entities = Some(entities.into_iter().collect());
         self
@@ -49,7 +49,7 @@ impl BroadcastOptions {
     pub fn with_async_callback<F, Fut>(mut self, f: F) -> Self
     where
         F: Fn(Entity, &GlobalState) -> Fut + Send + Sync + 'static,
-        Fut: Future<Output = ()> + Send + 'static,
+        Fut: Future<Output=()> + Send + 'static,
     {
         self.async_callback = Some(Box::new(move |entity, state| Box::pin(f(entity, state))));
         self
@@ -76,7 +76,7 @@ pub fn get_all_play_players(state: &GlobalState) -> HashSet<Entity> {
         .collect()
 }
 
-pub async fn broadcast(
+pub fn broadcast(
     packet: &impl NetEncode,
     state: &GlobalState,
     opts: BroadcastOptions,
@@ -127,21 +127,21 @@ pub async fn broadcast(
 
                     // Then execute async callback if it exists
                     if let Some(ref callback) = async_callback {
-                        callback(entity, state).await;
+                        callback(entity, state);
                     }
 
                     (state, packet, async_callback, sync_callback)
                 }
             },
         )
-        .await;
+    ;
 
     Ok(())
 }
 
 #[async_trait]
 pub trait BroadcastToAll {
-    async fn broadcast(
+    fn broadcast(
         &self,
         packet: &(impl NetEncode + Sync),
         opts: BroadcastOptions,
@@ -150,11 +150,11 @@ pub trait BroadcastToAll {
 
 #[async_trait]
 impl BroadcastToAll for GlobalState {
-    async fn broadcast(
+    fn broadcast(
         &self,
         packet: &(impl NetEncode + Sync),
         opts: BroadcastOptions,
     ) -> NetResult<()> {
-        broadcast(packet, self, opts).await
+        broadcast(packet, self, opts)
     }
 }

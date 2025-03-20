@@ -39,7 +39,7 @@ use std::time::Instant;
 use tracing::{debug, error, trace};
 
 #[event_handler]
-async fn handle_login_start(
+fn handle_login_start(
     login_start_event: LoginStartEvent,
     state: GlobalState,
 ) -> Result<LoginStartEvent, NetError> {
@@ -55,7 +55,7 @@ async fn handle_login_start(
             login_start_event.conn_id,
             PlayerIdentity::new(username.to_string(), uuid),
         )?
-        /*.add_component::<ChunkReceiver>(login_start_event.conn_id, ChunkReceiver::default())?*/;
+    /*.add_component::<ChunkReceiver>(login_start_event.conn_id, ChunkReceiver::default())?*/;
 
     //Send a Login Success Response to further the login sequence
     let mut writer = state
@@ -91,7 +91,7 @@ async fn handle_login_start(
 }
 
 #[event_handler]
-async fn handle_login_acknowledged(
+fn handle_login_acknowledged(
     login_acknowledged_event: LoginAcknowledgedEvent,
     state: GlobalState,
 ) -> Result<LoginAcknowledgedEvent, NetError> {
@@ -117,7 +117,7 @@ async fn handle_login_acknowledged(
 }
 
 #[event_handler]
-async fn handle_server_bound_known_packs(
+fn handle_server_bound_known_packs(
     server_bound_known_packs_event: ServerBoundKnownPacksEvent,
     state: GlobalState,
 ) -> Result<ServerBoundKnownPacksEvent, NetError> {
@@ -136,7 +136,7 @@ async fn handle_server_bound_known_packs(
 }
 
 #[event_handler]
-async fn handle_ack_finish_configuration(
+fn handle_ack_finish_configuration(
     ack_finish_configuration_event: AckFinishConfigurationEvent,
     state: GlobalState,
 ) -> Result<AckFinishConfigurationEvent, NetError> {
@@ -198,7 +198,7 @@ async fn handle_ack_finish_configuration(
                     &NetEncodeOpts::WithLength,
                 )?;
 
-            send_keep_alive(entity_id, &state, &mut writer).await?;
+            send_keep_alive(entity_id, &state, &mut writer)?;
         }
         {
             let pos = state.universe.get::<Position>(entity_id)?;
@@ -211,18 +211,18 @@ async fn handle_ack_finish_configuration(
                 }
             }
         }
-        send_chunks(state.clone(), entity_id).await.map_err(|e| {
+        send_chunks(state.clone(), entity_id).map_err(|e| {
             error!("Failed to send chunks: {:?}", e);
             NetError::Misc(e.to_string())
         })?;
     }
 
-    player_info_update_packets(entity_id, &state).await?;
-    broadcast_spawn_entity_packet(entity_id, &state).await?;
+    player_info_update_packets(entity_id, &state)?;
+    broadcast_spawn_entity_packet(entity_id, &state)?;
 
     Ok(ack_finish_configuration_event)
 }
-async fn send_keep_alive(
+fn send_keep_alive(
     conn_id: usize,
     state: &GlobalState,
     writer: &mut ComponentRefMut<'_, StreamWriter>,
@@ -242,7 +242,7 @@ async fn send_keep_alive(
     Ok(())
 }
 
-async fn player_info_update_packets(entity_id: Entity, state: &GlobalState) -> NetResult<()> {
+fn player_info_update_packets(entity_id: Entity, state: &GlobalState) -> NetResult<()> {
     // Broadcasts a player info update packet to all players.
     {
         let packet = PlayerInfoUpdatePacket::new_player_join_packet(entity_id, state);
@@ -253,7 +253,7 @@ async fn player_info_update_packets(entity_id: Entity, state: &GlobalState) -> N
             state,
             BroadcastOptions::default().except([entity_id]),
         )
-        .await?;
+            ?;
         trace!(
             "Broadcasting player info update took: {:?}",
             start.elapsed()
@@ -273,7 +273,7 @@ async fn player_info_update_packets(entity_id: Entity, state: &GlobalState) -> N
     Ok(())
 }
 
-async fn broadcast_spawn_entity_packet(entity_id: Entity, state: &GlobalState) -> NetResult<()> {
+fn broadcast_spawn_entity_packet(entity_id: Entity, state: &GlobalState) -> NetResult<()> {
     let packet = SpawnEntityPacket::player(entity_id, state)?;
 
     let start = Instant::now();
@@ -282,7 +282,7 @@ async fn broadcast_spawn_entity_packet(entity_id: Entity, state: &GlobalState) -
         state,
         BroadcastOptions::default().except([entity_id]),
     )
-    .await?;
+        ?;
     trace!("Broadcasting spawn entity took: {:?}", start.elapsed());
 
     let writer = state.universe.get_mut::<StreamWriter>(entity_id)?;
@@ -293,7 +293,7 @@ async fn broadcast_spawn_entity_packet(entity_id: Entity, state: &GlobalState) -
             }
             writer
         })
-        .await;
+    ;
 
     Ok(())
 }

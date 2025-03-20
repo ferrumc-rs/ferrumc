@@ -7,7 +7,7 @@ use ferrumc_state::GlobalState;
 use tracing::trace;
 
 #[event_handler]
-async fn handle_player_do_action(
+fn handle_player_do_action(
     event: PlayerDoActionEvent,
     state: GlobalState,
 ) -> Result<PlayerDoActionEvent, NetError> {
@@ -23,13 +23,13 @@ async fn handle_player_do_action(
                 ],
             );
 
-            broadcast(&packet, &state, Default::default()).await?;
+            broadcast(&packet, &state, Default::default())?;
         }
         PlayerCommandAction::StopSneaking => {
             let packet =
                 EntityMetadataPacket::new(event.entity_id, [EntityMetadata::entity_standing()]);
 
-            broadcast(&packet, &state, Default::default()).await?;
+            broadcast(&packet, &state, Default::default())?;
         }
         _ => {}
     }

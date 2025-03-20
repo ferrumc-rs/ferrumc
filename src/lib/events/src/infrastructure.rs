@@ -1,17 +1,14 @@
 use std::{any::Any, future::Future, pin::Pin, sync::LazyLock};
 
+use crate::infrastructure;
 use dashmap::DashMap;
 use futures::{stream, StreamExt};
 
 /// A Lazily initialized HashMap wrapped in a ShardedLock optimized for reads.
 type LazyRwListenerMap<K, V> = LazyLock<DashMap<K, V>>;
 
-type AsyncEventListener<E> = fn(
-    <E as Event>::Data,
-    <E as Event>::State,
-) -> Pin<
-    Box<dyn Future<Output = Result<<E as Event>::Data, <E as Event>::Error>> + Send>,
->;
+type EventListenerEvent<E> =
+    fn(<E as Event>::Data, <E as Event>::State) -> Result<<E as Event>::Data, <E as Event>::Error>;
 
 /// This is the global map of event listeners.
 /// It is lazily initialized at runtime.
@@ -29,7 +26,7 @@ static EVENTS_LISTENERS: LazyRwListenerMap<&'static str, Vec<Box<dyn Any + Send 
 /// and its priority of execution.
 pub struct EventListener<E: Event> {
     /// An asynchronous event listener which returns a result with a potentially modified data or error.
-    listener: AsyncEventListener<E>,
+    listener: EventListenerEvent<E>,
     /// Priority of this listener
     priority: u8,
 }
@@ -72,7 +69,11 @@ pub trait Event: Sized + Send + Sync + 'static {
     /// will give its result to the next one with a lesser priority and so on.
     ///
     /// Returns `Ok(())` if the execution succeeded. `Err(EventsError)` ifa listener failed.
-    async fn trigger(event: Self::Data, state: Self::State) -> Result<(), Self::Error> {
+    fn trigger(event: Self::Data, state: Self::State) -> Result<(), Self::Error>
+    where
+        <Self as Event>::Data: std::fmt::Debug,
+        <Self as Event>::Error: From<Result<<Self as Event>::Data, <Self as Event>::Error>>,
+    {
         #[cfg(debug_assertions)]
         let start = std::time::Instant::now();
 
@@ -81,23 +82,23 @@ pub trait Event: Sized + Send + Sync + 'static {
             .expect("Failed to find event listeners. Impossible;");
 
         // Convert listeners iterator into Stream
-        stream::iter(listeners.iter())
+        listeners
+            .iter()
             // TODO: Remove this since it's not possible to have a wrong type in the map of the event???
             // Maybe some speedup?
             // Filter only listeners we can downcast into the correct type
-            .filter_map(|dyn_list| async { dyn_list.downcast_ref::<EventListener<Self>>() })
+            .filter_map(|dyn_list| dyn_list.downcast_ref::<EventListener<Self>>())
             // Trigger listeners in a row
             .fold(Ok(event), |intercepted, listener| {
                 let state = state.clone();
-                async move {
+                {
                     if intercepted.is_err() {
                         intercepted
                     } else {
-                        (listener.listener)(intercepted.unwrap(), state).await
+                        Err((listener.listener)(intercepted.unwrap(), state))
                     }
                 }
-            })
-            .await?;
+            })?;
 
         #[cfg(debug_assertions)]
         tracing::trace!("Event {} took {:?}", Self::name(), start.elapsed());
@@ -106,7 +107,7 @@ pub trait Event: Sized + Send + Sync + 'static {
     }
 
     /// Register a new event listener for this event
-    fn register(listener: AsyncEventListener<Self>, priority: u8) {
+    fn register(listener: EventListenerEvent<Self>, priority: u8) {
         // Create the event listener structure
         let listener = EventListener::<Self> { listener, priority };
 

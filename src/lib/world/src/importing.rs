@@ -13,7 +13,7 @@ use tokio::task::JoinSet;
 use tracing::{error, info};
 
 impl World {
-    async fn process_chunk_batch(
+    fn process_chunk_batch(
         &self,
         chunks: Vec<VanillaChunk>,
         progress: Arc<ProgressBar>,
@@ -72,9 +72,7 @@ impl World {
         let progress = Arc::new(ProgressBar::new(total_chunks));
         progress.set_style(progress_style);
 
-        self.storage_backend
-            .create_table("chunks".to_string())
-            .await?;
+        self.storage_backend.create_table("chunks".to_string())?;
 
         info!("Starting chunk import...");
         let start = std::time::Instant::now();
@@ -83,6 +81,8 @@ impl World {
 
         let regions_dir = import_dir.join("region").read_dir()?;
         let mut current_batch = Vec::with_capacity(batch_size);
+
+        let mut threadpool = threadpool::ThreadPool::new(4);
 
         for region_result in regions_dir {
             let region_entry = region_result?;
@@ -148,7 +148,7 @@ impl World {
             });
         }
 
-        while task_set.join_next().await.is_some() {}
+        while task_set.join_next().is_some() {}
 
         self.sync().await?;
 

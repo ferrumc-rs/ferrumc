@@ -16,12 +16,12 @@ pub struct SetPlayerPositionPacket {
 }
 
 impl IncomingPacket for SetPlayerPositionPacket {
-    async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
+    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
         let transform_event = TransformEvent::new(conn_id)
             .position((self.x, self.feet_y, self.z).into())
             .on_ground(self.on_ground);
 
-        TransformEvent::trigger(transform_event, state).await?;
+        TransformEvent::trigger(transform_event, state)?;
 
         Ok(())
     }

@@ -2,7 +2,6 @@ use crate::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
 use crate::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
 use crate::net_types::var_int::VarInt;
 use std::io::{Read, Write};
-use tokio::io::AsyncWrite;
 
 #[derive(Debug)]
 pub struct LengthPrefixedVec<T> {
@@ -37,20 +36,6 @@ where
 
         for item in &self.data {
             item.encode(writer, opts)?;
-        }
-
-        Ok(())
-    }
-
-    async fn encode_async<W: AsyncWrite + Unpin>(
-        &self,
-        writer: &mut W,
-        opts: &NetEncodeOpts,
-    ) -> NetEncodeResult<()> {
-        self.length.encode_async(writer, opts).await?;
-
-        for item in &self.data {
-            item.encode_async(writer, opts).await?;
         }
 
         Ok(())

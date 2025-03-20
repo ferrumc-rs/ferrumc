@@ -21,19 +21,19 @@ impl Debug for PacketSkeleton {
 }
 
 impl PacketSkeleton {
-    pub async fn new<R: AsyncRead + Unpin>(reader: &mut R, compressed: bool) -> NetResult<Self> {
+    pub fn new<R: AsyncRead + Unpin>(reader: &mut R, compressed: bool) -> NetResult<Self> {
         match compressed {
-            true => Self::read_compressed(reader).await,
-            false => Self::read_uncompressed(reader).await,
+            true => Self::read_compressed(reader),
+            false => Self::read_uncompressed(reader),
         }
     }
 
     #[inline(always)]
-    async fn read_uncompressed<R: AsyncRead + Unpin>(reader: &mut R) -> NetResult<Self> {
-        let length = VarInt::read_async(reader).await?.val as usize;
+    fn read_uncompressed<R: AsyncRead + Unpin>(reader: &mut R) -> NetResult<Self> {
+        let length = VarInt::read_async(reader)?.val as usize;
         let mut buf = {
             let mut buf = vec![0; length];
-            reader.read_exact(&mut buf).await?;
+            reader.read_exact(&mut buf)?;
 
             Cursor::new(buf)
         };
@@ -48,15 +48,15 @@ impl PacketSkeleton {
     }
 
     #[inline(always)]
-    async fn read_compressed<R: AsyncRead + Unpin>(reader: &mut R) -> NetResult<Self> {
-        let packet_length = VarInt::read_async(reader).await?.val as usize;
-        let data_length = VarInt::read_async(reader).await?.val as usize;
+    fn read_compressed<R: AsyncRead + Unpin>(reader: &mut R) -> NetResult<Self> {
+        let packet_length = VarInt::read_async(reader)?.val as usize;
+        let data_length = VarInt::read_async(reader)?.val as usize;
 
         // Uncompressed packet when data length is 0
         if data_length == 0 {
             let mut buf = {
                 let mut buf = vec![0; packet_length];
-                reader.read_exact(&mut buf).await?;
+                reader.read_exact(&mut buf)?;
 
                 Cursor::new(buf)
             };
@@ -86,7 +86,7 @@ impl PacketSkeleton {
         // Here, guaranteed that data_length >= compression_threshold
         let mut buf = {
             let mut buf = vec![];
-            reader.read_to_end(&mut buf).await?;
+            reader.read_to_end(&mut buf)?;
 
             Cursor::new(buf)
         };

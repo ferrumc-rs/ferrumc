@@ -9,7 +9,7 @@ use ferrumc_net_codec::net_types::angle::NetAngle;
 use ferrumc_state::GlobalState;
 
 #[event_handler(priority = "normal")]
-async fn handle_player_move(
+fn handle_player_move(
     event: TransformEvent,
     state: GlobalState,
 ) -> Result<TransformEvent, NetError> {
@@ -24,8 +24,8 @@ async fn handle_player_move(
         SetHeadRotationPacket::new(entity as i32, NetAngle::from_degrees(rot.yaw as f64));
 
     let start = std::time::Instant::now();
-    // broadcast(&teleport_packet, &state, BroadcastOptions::default().all()).await?;
-    broadcast(&head_rot_packet, &state, BroadcastOptions::default().all()).await?;
+    // broadcast(&teleport_packet, &state, BroadcastOptions::default().all())?;
+    broadcast(&head_rot_packet, &state, BroadcastOptions::default().all())?;
 
     tracing::trace!("broadcasting entity move took {:?}", start.elapsed());
 

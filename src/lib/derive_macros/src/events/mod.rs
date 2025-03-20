@@ -104,7 +104,7 @@ fn extract_event_type(input: &syn::ItemFn) -> (PatType, PatType) {
 //     insert_into_events(|ev: Arc<RwLock<SomeEvent>>| Box::pin(some_event_listener(ev)), 0);
 // }
 //
-// async fn some_event_listener(event: Arc<RwLock<SomeEvent>>) {
+// fn some_event_listener(event: Arc<RwLock<SomeEvent>>) {
 //     let mut ev = event.write();
 //     ev.data = 10;
 //     println!("I set the event's data to 10");

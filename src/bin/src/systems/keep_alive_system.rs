@@ -25,7 +25,7 @@ impl KeepAliveSystem {
 
 #[async_trait]
 impl System for KeepAliveSystem {
-    async fn start(self: Arc<Self>, state: GlobalState) {
+    fn start(self: Arc<Self>, state: GlobalState) {
         info!("Started keep_alive");
         loop {
             if self.shutdown.load(Ordering::Relaxed) {
@@ -81,7 +81,6 @@ impl System for KeepAliveSystem {
                             *entity,
                             "Keep alive timeout".to_string(),
                         )
-                        .await
                         {
                             warn!(
                                 "Failed to terminate connection for entity {:?} , Err : {:?}",
@@ -117,17 +116,16 @@ impl System for KeepAliveSystem {
                         },
                         broadcast_opts,
                     )
-                    .await
                 {
                     error!("Error sending keep alive packet: {}", e);
                 };
             }
 
-            tokio::time::sleep(tokio::time::Duration::from_secs(15)).await;
+            tokio::time::sleep(tokio::time::Duration::from_secs(15));
         }
     }
 
-    async fn stop(self: Arc<Self>, _state: GlobalState) {
+    fn stop(self: Arc<Self>, _state: GlobalState) {
         tracing::debug!("Stopping keep alive system...");
         self.shutdown.store(true, Ordering::Relaxed);
     }

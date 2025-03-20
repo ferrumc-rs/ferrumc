@@ -26,7 +26,7 @@ impl World {
     /// * `WorldError::SectionOutOfBounds` - If the section containing the block is out of bounds.
     /// * `WorldError::ChunkNotFound` - If the chunk or block data is not found.
     /// * `WorldError::InvalidBlockStateData` - If the block state data is invalid.
-    pub async fn get_block_and_fetch(
+    pub fn get_block_and_fetch(
         &self,
         x: i32,
         y: i32,
@@ -35,7 +35,7 @@ impl World {
     ) -> Result<BlockData, WorldError> {
         let chunk_x = x >> 4;
         let chunk_z = z >> 4;
-        let chunk = self.load_chunk(chunk_x, chunk_z, dimension).await?;
+        let chunk = self.load_chunk(chunk_x, chunk_z, dimension)?;
         chunk.get_block(x, y, z)
     }
 
@@ -55,7 +55,7 @@ impl World {
     ///
     /// * `Ok(())` - If the block data is successfully set.
     /// * `Err(WorldError)` - If an error occurs while setting the block data.
-    pub async fn set_block_and_fetch(
+    pub fn set_block_and_fetch(
         &self,
         x: i32,
         y: i32,
@@ -69,7 +69,7 @@ impl World {
         // Get chunk
         let chunk_x = x >> 4;
         let chunk_z = z >> 4;
-        let mut chunk = self.load_chunk(chunk_x, chunk_z, dimension).await?;
+        let mut chunk = self.load_chunk(chunk_x, chunk_z, dimension)?;
 
         debug!("Chunk: {}, {}", chunk_x, chunk_z);
 
@@ -79,7 +79,7 @@ impl World {
         }
 
         // Save chunk
-        self.save_chunk(chunk).await?;
+        self.save_chunk(chunk)?;
         Ok(())
     }
 }

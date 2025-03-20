@@ -115,11 +115,11 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
                 &item_struct.attrs,
                 PacketBoundiness::Serverbound,
             )
-            .expect(
-                "parse_packet_attribute failed\
+                .expect(
+                    "parse_packet_attribute failed\
                 \nPlease provide the packet_id and state fields in the #[packet(...)] attribute.\
                 \nExample: #[packet(packet_id = \"example_packet\", state = \"handshake\")]",
-            );
+                );
 
             let struct_name = &item_struct.ident;
 
@@ -143,10 +143,10 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
 
             match_arms.push(quote! {
                     (#packet_id, #state) => {
-                        // let packet= #struct_path::net_decode(cursor).await?;
+                        // let packet= #struct_path::net_decode(cursor)?;
                         let packet = <#struct_path as ferrumc_net_codec::decode::NetDecode>::decode(cursor, &ferrumc_net_codec::decode::NetDecodeOpts::None)?;
-                        // packet.handle(conn_id, state).await?;
-                        <#struct_path as crate::packets::IncomingPacket>::handle(packet, conn_id, state).await?;
+                        // packet.handle(conn_id, state)?;
+                        <#struct_path as crate::packets::IncomingPacket>::handle(packet, conn_id, state)?;
                         // tracing::debug!("Received packet: {:?}", packet);
                     },
                 });
@@ -168,14 +168,14 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
             "It took: {:?} to parse all the files and generate the packet registry",
             elapsed
         )
-        .red()
-        .bold()
+            .red()
+            .bold()
     );
 
     let match_arms = match_arms.into_iter();
 
     let output = quote! {
-        pub async fn handle_packet<R: std::io::Read>(packet_id: u8, conn_id: usize, conn_state: &crate::connection::ConnectionState, cursor: &mut R, state: std::sync::Arc<ferrumc_state::ServerState>) -> crate::NetResult<()> {
+        pub fn handle_packet<R: std::io::Read>(packet_id: u8, conn_id: usize, conn_state: &crate::connection::ConnectionState, cursor: &mut R, state: std::sync::Arc<ferrumc_state::ServerState>) -> crate::NetResult<()> {
             match (packet_id, conn_state.as_str()) {
                 #(#match_arms)*
                 _ => tracing::debug!("No packet found for ID: 0x{:02X} in state: {}", packet_id, conn_state.as_str()),

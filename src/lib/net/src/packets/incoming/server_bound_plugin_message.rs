@@ -29,7 +29,7 @@ impl NetDecode for ServerBoundPluginMessage {
 }
 
 impl IncomingPacket for ServerBoundPluginMessage {
-    async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
+    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
         debug!("Received plugin message: {:?}", self);
 
         if self.channel == "minecraft:brand" {

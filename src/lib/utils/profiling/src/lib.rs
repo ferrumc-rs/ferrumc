@@ -111,14 +111,14 @@ fn generate_final_result(kv: HashMap<String, Vec<SingleProfileResult>>) -> Vec<F
     final_results
 }
 
-pub async fn start_profiler() -> u64 {
+pub fn start_profiler() -> u64 {
     let key = rand::random();
     let mut profilers = RUNNING_PROFILERS.write();
     profilers.push(key);
     key
 }
 
-pub async fn stop_profiling(key: u64) -> Vec<FinalProfileResult> {
+pub fn stop_profiling(key: u64) -> Vec<FinalProfileResult> {
     let mut raw_results = HashMap::new();
     RESULTS_MAP.iter().for_each(|x| {
         x.value()
@@ -236,20 +236,20 @@ mod tests {
     }
 
     #[profile("nested/test2")]
-    async fn dummy_func4() {
+    fn dummy_func4() {
         // Sleep for 2 seconds
-        tokio::time::sleep(Duration::from_millis(200)).await;
+        tokio::time::sleep(Duration::from_millis(200));
     }
 
     #[tokio::test]
-    async fn test_profiler() {
+    fn test_profiler() {
         init_logging();
-        let profile_key = start_profiler().await;
+        let profile_key = start_profiler();
         dummy_func1();
         dummy_func2();
         dummy_func3();
-        dummy_func4().await;
-        let results = stop_profiling(profile_key).await;
+        dummy_func4();
+        let results = stop_profiling(profile_key);
         let json = serde_json::to_string(&results).unwrap();
         assert_ne!(json, "[]");
         assert!(json.contains("test1"));

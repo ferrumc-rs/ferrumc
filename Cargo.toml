@@ -120,9 +120,11 @@ console-subscriber = "0.4.1"
 # Concurrency/Parallelism
 parking_lot = "0.12.3"
 rayon = "1.10.0"
+threadpool = "1.8.1"
 
 # Network
 reqwest = { version = "0.12.9", features = ["json"] }
+ureq = "3.0.10"
 
 # Error handling
 thiserror = "2.0.3"

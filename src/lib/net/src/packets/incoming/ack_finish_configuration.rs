@@ -10,7 +10,7 @@ use std::sync::Arc;
 pub struct AckFinishConfigurationPacket {}
 
 impl IncomingPacket for AckFinishConfigurationPacket {
-    async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
+    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
         let event = AckFinishConfigurationEvent::new(self, conn_id);
 
         tokio::spawn(AckFinishConfigurationEvent::trigger(event, state));

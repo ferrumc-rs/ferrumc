@@ -37,7 +37,7 @@ impl EntityMetadataPacket {
     /// ```
     pub fn new<T>(entity_id: Entity, metadata: T) -> Self
     where
-        T: IntoIterator<Item = EntityMetadata>,
+        T: IntoIterator<Item=EntityMetadata>,
     {
         Self {
             entity_id: VarInt::new(entity_id as i32),
@@ -121,12 +121,12 @@ mod index_type {
             self.index().encode(writer, opts)
         }
 
-        async fn encode_async<W: AsyncWrite + Unpin>(
+        fn encode_async<W: AsyncWrite + Unpin>(
             &self,
             writer: &mut W,
             opts: &NetEncodeOpts,
         ) -> NetEncodeResult<()> {
-            self.index().encode_async(writer, opts).await
+            self.index().encode_async(writer, opts)
         }
     }
 }
@@ -285,12 +285,12 @@ mod extra_data_types {
             self.index().encode(writer, opts)
         }
 
-        async fn encode_async<W: AsyncWrite + Unpin>(
+        fn encode_async<W: AsyncWrite + Unpin>(
             &self,
             writer: &mut W,
             opts: &NetEncodeOpts,
         ) -> NetEncodeResult<()> {
-            self.index().encode_async(writer, opts).await
+            self.index().encode_async(writer, opts)
         }
     }
 }

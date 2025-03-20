@@ -23,7 +23,7 @@ pub struct PackOwned {
 }
 
 impl IncomingPacket for ServerBoundKnownPacks {
-    async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
+    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
         //! No clue what this packet is for, but it's not used in the server.
         //! It's for data packs usually. But we're probably not gonna implement 'em anytime soon.
         debug!("Received known packs: {:#?}", self);

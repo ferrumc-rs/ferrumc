@@ -28,7 +28,7 @@ pub struct PlaceBlock {
 }
 
 impl IncomingPacket for PlaceBlock {
-    async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
+    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
         match self.hand.val {
             0 => {
                 debug!("Placing block at {:?}", self.position);
@@ -41,7 +41,7 @@ impl IncomingPacket for PlaceBlock {
                         self.position.z,
                         "overworld",
                     )
-                    .await?;
+                    ?;
                 trace!("Block clicked: {:?}", block_clicked);
                 // Use the face to determine the offset of the block to place
                 let (x_block_offset, y_block_offset, z_block_offset) = match self.face.val {
@@ -90,7 +90,7 @@ impl IncomingPacket for PlaceBlock {
                         debug!("Could not get StreamWriter");
                     }
                 }
-                let mut chunk = state.world.load_chunk(x >> 4, z >> 4, "overworld").await?;
+                let mut chunk = state.world.load_chunk(x >> 4, z >> 4, "overworld")?;
 
                 chunk.set_block(
                     x & 0xF,
@@ -109,8 +109,8 @@ impl IncomingPacket for PlaceBlock {
                 conn.send_packet(chunk_packet, &NetEncodeOpts::WithLength)?;
                 conn.send_packet(ack_packet, &NetEncodeOpts::WithLength)?;
 
-                state.world.save_chunk(chunk).await?;
-                state.world.sync().await?;
+                state.world.save_chunk(chunk)?;
+                state.world.sync()?;
             }
             1 => {
                 trace!("Offhand block placement not implemented");
