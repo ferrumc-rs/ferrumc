@@ -1,7 +1,7 @@
-use crate::errors::WorldError;
 use crate::errors::WorldError::InvalidBlockStateData;
 use crate::vanilla_chunk_format;
 use crate::vanilla_chunk_format::VanillaChunk;
+use crate::{errors::WorldError, vanilla_chunk_format::VanillaHeightmaps};
 use bitcode_derive::{Decode, Encode};
 use deepsize::DeepSizeOf;
 use ferrumc_general_purpose::data_packing::i32::read_nbit_i32;
@@ -124,12 +124,20 @@ impl Default for Heightmaps {
     }
 }
 
+impl From<VanillaHeightmaps> for Heightmaps {
+    fn from(value: VanillaHeightmaps) -> Self {
+        Self {
+            motion_blocking: value.motion_blocking.unwrap_or_default(),
+            world_surface: value.world_surface.unwrap_or_default(),
+        }
+    }
+}
+
 impl VanillaChunk {
     pub fn to_custom_format(&self) -> Result<Chunk, WorldError> {
         let mut sections = Vec::new();
         for section in self.sections.as_ref().unwrap() {
             let y = section.y;
-            let block_data: PaletteType;
             let raw_block_data = section
                 .block_states
                 .as_ref()
@@ -153,21 +161,26 @@ impl VanillaChunk {
                             &BlockData::default()
                         }
                     };
-                    *block_counts.entry(block.clone()).or_insert(0) += 1;
+
+                    if let Some(count) = block_counts.get_mut(block) {
+                        *count += 1;
+                    } else {
+                        block_counts.insert(block.clone(), 0);
+                    }
+
                     i += bits_per_block;
                 }
             }
-            if raw_block_data.is_empty() {
-                let single_block = BlockData::default();
-                block_data = PaletteType::Single(VarInt::from(0));
-                block_counts.insert(single_block.clone(), 4096);
+            let block_data = if raw_block_data.is_empty() {
+                block_counts.insert(BlockData::default(), 4096);
+                PaletteType::Single(VarInt::from(0))
             } else {
-                block_data = PaletteType::Indirect {
+                PaletteType::Indirect {
                     bits_per_block,
                     data: raw_block_data,
                     palette: convert_to_net_palette(palette)?,
-                };
-            }
+                }
+            };
             // Count the number of blocks that are either air, void air, or cave air
             let mut air_blocks = *block_counts.get(&BlockData::default()).unwrap_or(&0) as u16;
             air_blocks += *block_counts
@@ -190,17 +203,17 @@ impl VanillaChunk {
             };
             let block_light = section
                 .block_light
-                .clone()
-                .unwrap_or(vec![0; 2048])
+                .as_ref()
+                .unwrap_or(&vec![0; 2048])
                 .iter()
-                .map(|x| *x as u8)
+                .map(|&x| x as u8)
                 .collect();
             let sky_light = section
                 .sky_light
-                .clone()
-                .unwrap_or(vec![0; 2048])
+                .as_ref()
+                .unwrap_or(&vec![0; 2048])
                 .iter()
-                .map(|x| *x as u8)
+                .map(|&x| x as u8)
                 .collect();
             let biome_states = BiomeStates {
                 // TODO: Implement biome states properly
@@ -217,23 +230,15 @@ impl VanillaChunk {
             };
             sections.push(section);
         }
-        let heightmaps = if let Some(heightmaps) = &self.heightmaps {
-            let motion_blocking = heightmaps.clone().motion_blocking.unwrap_or(vec![]);
-            let world_surface = heightmaps.clone().world_surface.unwrap_or(vec![]);
-            Heightmaps {
-                motion_blocking,
-                world_surface,
-            }
-        } else {
-            Heightmaps {
-                motion_blocking: vec![],
-                world_surface: vec![],
-            }
-        };
+
+        let dimension = self.dimension.clone().unwrap_or("overworld".to_string());
+
+        let heightmaps: Heightmaps = self.heightmaps.clone().map(Into::into).unwrap_or_default();
+
         Ok(Chunk {
             x: self.x_pos,
             z: self.z_pos,
-            dimension: self.clone().dimension.unwrap_or("overworld".to_string()),
+            dimension,
             sections,
             heightmaps,
         })

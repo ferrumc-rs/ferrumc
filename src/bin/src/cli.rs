@@ -27,6 +27,12 @@ pub struct ImportArgs {
     /// This should point to the folder that contains directories such as `region`, `poi`, `playerdata`, etc. Usually found at %APPDATA%/.minecraft/saves.
     #[clap(long, required = true)]
     pub import_path: String,
+    /// Number of chunks to process at a time
+    #[clap(env, default_value_t = 1000)]
+    pub batch_size: usize,
+    /// Number of concurrent tasks (limits memory spending)
+    #[clap(env, default_value_t = 512)]
+    pub max_concurrent_tasks: usize,
 }
 
 // Wrapper struct for the Level enum

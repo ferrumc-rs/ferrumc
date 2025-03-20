@@ -33,12 +33,15 @@ tracing = { workspace = true }
 tokio = { workspace = true }
 futures = { workspace = true }
 async-trait = { workspace = true }
-clap = { workspace = true, features = ["derive"] }
+clap = { workspace = true, features = ["derive", "env"] }
 flate2 = { workspace = true }
 ctor = { workspace = true }
 rand = { workspace = true }
 log = "0.4.22"
+dhat = "0.3.3"
 
+[features]
+dhat = []
 
 [[bin]]
 name = "ferrumc"

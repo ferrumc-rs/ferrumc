@@ -12,10 +12,11 @@ impl World {
     /// This function will save a chunk to the storage backend and update the cache with the new
     /// chunk data. If the chunk already exists in the cache, it will be updated with the new data.
     pub async fn save_chunk(&self, chunk: Chunk) -> Result<(), WorldError> {
+        let ret = save_chunk_internal(self, &chunk).await;
         self.cache
-            .insert((chunk.x, chunk.z, chunk.dimension.clone()), chunk.clone())
+            .insert((chunk.x, chunk.z, chunk.dimension.clone()), chunk)
             .await;
-        save_chunk_internal(self, chunk).await
+        ret
     }
 
     /// Load a chunk from the storage backend. If the chunk is in the cache, it will be returned
@@ -62,7 +63,7 @@ impl World {
     pub async fn sync(&self) -> Result<(), WorldError> {
         for (k, v) in self.cache.iter() {
             trace!("Syncing chunk: {:?}", (k.0, k.1));
-            save_chunk_internal(self, v.clone()).await?;
+            save_chunk_internal(self, &v).await?;
         }
         sync_internal(self).await
     }
@@ -120,7 +121,7 @@ impl World {
     }
 }
 
-pub(crate) async fn save_chunk_internal(world: &World, chunk: Chunk) -> Result<(), WorldError> {
+pub(crate) async fn save_chunk_internal(world: &World, chunk: &Chunk) -> Result<(), WorldError> {
     if !world
         .storage_backend
         .table_exists("chunks".to_string())
@@ -131,7 +132,7 @@ pub(crate) async fn save_chunk_internal(world: &World, chunk: Chunk) -> Result<(
             .create_table("chunks".to_string())
             .await?;
     }
-    let as_bytes = world.compressor.compress(&bitcode::encode(&chunk))?;
+    let as_bytes = world.compressor.compress(&bitcode::encode(chunk))?;
     let digest = create_key(chunk.dimension.as_str(), chunk.x, chunk.z);
     world
         .storage_backend
@@ -142,7 +143,7 @@ pub(crate) async fn save_chunk_internal(world: &World, chunk: Chunk) -> Result<(
 
 pub(crate) async fn save_chunk_internal_batch(
     world: &World,
-    chunks: Vec<Chunk>,
+    chunks: &[Chunk],
 ) -> Result<(), WorldError> {
     // Prepare the batch data for the upsert
     let mut batch_data = Vec::new();
