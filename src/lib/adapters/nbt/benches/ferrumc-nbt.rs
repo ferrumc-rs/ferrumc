@@ -17,6 +17,7 @@ mod structs {
         pub(crate) z_pos: i32,
         #[nbt(rename = "Heightmaps")]
         pub(crate) heightmaps: Heightmaps<'a>,
+        #[nbt(rename = "sections")]
         _sections: Vec<Section<'a>>,
     }
 
