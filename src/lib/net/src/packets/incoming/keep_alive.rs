@@ -14,7 +14,7 @@ pub struct IncomingKeepAlivePacket {
 }
 
 impl IncomingPacket for IncomingKeepAlivePacket {
-    async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
+    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
         let last_sent_keep_alive = state.universe.get::<OutgoingKeepAlivePacket>(conn_id)?;
         if self.timestamp != last_sent_keep_alive.timestamp {
             debug!(
@@ -22,7 +22,7 @@ impl IncomingPacket for IncomingKeepAlivePacket {
                 conn_id, self.timestamp, last_sent_keep_alive.timestamp
             );
             if let Err(e) =
-                terminate_connection(state, conn_id, "Invalid keep alive packet".to_string()).await
+                terminate_connection(state, conn_id, "Invalid keep alive packet".to_string())
             {
                 debug!("Error terminating connection: {:?}", e);
             }

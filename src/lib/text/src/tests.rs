@@ -101,9 +101,9 @@ struct TestPacket {
     overlay: bool,
 }
 
-#[tokio::test]
+#[test]
 #[ignore]
-async fn test_serialize_to_nbt() {
+fn test_serialize_to_nbt() {
     let component = ComponentBuilder::translate(
         "chat.type.text",
         vec![
@@ -145,7 +145,7 @@ async fn test_serialize_to_nbt() {
     file.write_all(&component.serialize_nbt()[..]).unwrap();
 
     let mut cursor = Cursor::new(Vec::new());
-    TestPacket::encode_async(
+    TestPacket::encode(
         &TestPacket {
             message: TextComponentBuilder::new("test")
                 .color(NamedColor::Blue)
@@ -155,7 +155,6 @@ async fn test_serialize_to_nbt() {
         &mut cursor,
         &NetEncodeOpts::WithLength,
     )
-    .await
     .unwrap();
 
     println!("\n{}\n", bytes_to_string(&cursor.get_ref()[..]));

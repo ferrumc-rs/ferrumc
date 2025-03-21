@@ -9,7 +9,7 @@ use ferrumc_state::GlobalState;
 use tracing::{error, trace};
 
 #[event_handler]
-async fn handle_handshake(
+fn handle_handshake(
     handshake_event: HandshakeEvent,
     state: GlobalState,
 ) -> Result<HandshakeEvent, NetError> {

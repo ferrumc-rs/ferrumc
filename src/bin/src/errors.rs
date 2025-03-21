@@ -38,8 +38,6 @@ pub enum BinaryError {
     #[error("{0}")]
     Custom(String),
 
-    #[error("Tokio Join Error")]
-    TokioJoinError(#[from] tokio::task::JoinError),
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
 

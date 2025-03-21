@@ -17,11 +17,11 @@ pub struct Handshake {
 }
 
 impl IncomingPacket for Handshake {
-    async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
+    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
         trace!("Connection ID: {}", conn_id);
         trace!("Handshake packet received: {:?}", self);
 
-        HandshakeEvent::trigger(HandshakeEvent::new(self, conn_id), state).await?;
+        HandshakeEvent::trigger(HandshakeEvent::new(self, conn_id), state)?;
         Ok(())
     }
 }
@@ -45,8 +45,8 @@ mod tests {
     use ferrumc_net_codec::net_types::var_int::VarInt;
     use std::io::Cursor;
 
-    #[tokio::test]
-    async fn test_macro_decode() {
+    #[test]
+    fn test_macro_decode() {
         #[derive(NetDecode, Default)]
         #[allow(unused)]
         struct Handshake {
