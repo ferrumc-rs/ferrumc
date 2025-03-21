@@ -6,6 +6,7 @@ use ferrumc_net::packets::outgoing::update_time::TickEvent;
 use ferrumc_net::packets::outgoing::update_time::UpdateTimePacket;
 use ferrumc_net::utils::broadcast::{BroadcastOptions, BroadcastToAll};
 use ferrumc_state::GlobalState;
+use std::thread;
 use tracing::warn;
 
 #[event_handler]
@@ -33,10 +34,8 @@ fn handle_tick(event: TickEvent, state: GlobalState) -> Result<TickEvent, NetErr
         })
         .collect::<Vec<_>>();
 
-    tokio::spawn(async move {
-        if let Err(e) = state
-            .broadcast(&packet, BroadcastOptions::default().only(entities))
-        {
+    thread::spawn(move || {
+        if let Err(e) = state.broadcast(&packet, BroadcastOptions::default().only(entities)) {
             warn!("Failed to broadcast tick packet: {:?}", e);
         }
     });

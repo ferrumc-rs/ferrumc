@@ -121,6 +121,7 @@ console-subscriber = "0.4.1"
 parking_lot = "0.12.3"
 rayon = "1.10.0"
 threadpool = "1.8.1"
+crossbeam-channel = "0.5.14"
 
 # Network
 reqwest = { version = "0.12.9", features = ["json"] }

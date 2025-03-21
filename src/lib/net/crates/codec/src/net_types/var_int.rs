@@ -6,7 +6,6 @@ use crate::net_types::NetTypesError;
 use bitcode::{Decode, Encode};
 use deepsize::DeepSizeOf;
 use std::io::{Read, Write};
-use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 
 #[derive(Debug, Encode, Decode, Clone, DeepSizeOf, Eq)]
 pub struct VarInt {

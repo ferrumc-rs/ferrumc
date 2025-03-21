@@ -1,7 +1,6 @@
 use crate::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
 use std::f64::consts::PI;
 use std::io::Write;
-use tokio::io::{AsyncWrite, AsyncWriteExt};
 
 /// Represents a rotation angle in steps of 1/256 of a full turn
 /// Stored as a single byte (0-255)

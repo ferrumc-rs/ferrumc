@@ -3,7 +3,6 @@ use crate::components::ComponentManager;
 use crate::entities::Entity;
 use crate::ECSResult;
 
-#[allow(async_fn_in_trait)]
 pub trait QueryItem {
     type Item<'a>;
 

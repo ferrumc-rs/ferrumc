@@ -3,7 +3,6 @@ use ferrumc_config::statics::get_global_config;
 use ferrumc_net_codec::{decode::errors::NetDecodeError, net_types::var_int::VarInt};
 use std::io::Cursor;
 use std::{fmt::Debug, io::Read};
-use tokio::io::{AsyncRead, AsyncReadExt};
 
 pub struct PacketSkeleton {
     pub length: usize,
@@ -21,7 +20,7 @@ impl Debug for PacketSkeleton {
 }
 
 impl PacketSkeleton {
-    pub fn new<R: AsyncRead + Unpin>(reader: &mut R, compressed: bool) -> NetResult<Self> {
+    pub fn new<R: Read + Unpin>(reader: &mut R, compressed: bool) -> NetResult<Self> {
         match compressed {
             true => Self::read_compressed(reader),
             false => Self::read_uncompressed(reader),
@@ -29,8 +28,8 @@ impl PacketSkeleton {
     }
 
     #[inline(always)]
-    fn read_uncompressed<R: AsyncRead + Unpin>(reader: &mut R) -> NetResult<Self> {
-        let length = VarInt::read_async(reader)?.val as usize;
+    fn read_uncompressed<R: Read + Unpin>(reader: &mut R) -> NetResult<Self> {
+        let length = VarInt::read(reader)?.val as usize;
         let mut buf = {
             let mut buf = vec![0; length];
             reader.read_exact(&mut buf)?;
@@ -48,9 +47,9 @@ impl PacketSkeleton {
     }
 
     #[inline(always)]
-    fn read_compressed<R: AsyncRead + Unpin>(reader: &mut R) -> NetResult<Self> {
-        let packet_length = VarInt::read_async(reader)?.val as usize;
-        let data_length = VarInt::read_async(reader)?.val as usize;
+    fn read_compressed<R: Read + Unpin>(reader: &mut R) -> NetResult<Self> {
+        let packet_length = VarInt::read(reader)?.val as usize;
+        let data_length = VarInt::read(reader)?.val as usize;
 
         // Uncompressed packet when data length is 0
         if data_length == 0 {

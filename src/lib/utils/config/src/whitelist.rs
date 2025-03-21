@@ -1,17 +1,15 @@
 use crate::errors::ConfigError;
 use crate::statics::WHITELIST;
 use ferrumc_general_purpose::paths::get_root_path;
-use futures::future::join_all;
+use rayon::prelude::*;
 use reqwest::Client;
 use serde_derive::Deserialize;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 use std::io::Write;
-use futures::StreamExt;
 use tracing::error;
 use uuid::Uuid;
-use rayon::prelude::*;
 
 pub fn create_whitelist() {
     let whitelist_location = get_root_path().join("whitelist.txt");
@@ -173,18 +171,25 @@ fn query_mojang_for_usernames(uuids: Vec<&Uuid>) -> Vec<MojangProfile> {
         return Vec::new();
     }
 
-    uuids.into_iter().par_bridge().map(|uuid| {
-        let uuid = uuid.as_simple();
-        let response = ureq::get(format!(
-            "https://sessionserver.mojang.com/session/minecraft/profile/{uuid}"
-        ))
-        .call();
+    uuids
+        .into_iter()
+        .par_bridge()
+        .map(|uuid| {
+            let uuid = uuid.as_simple();
+            let response = ureq::get(format!(
+                "https://sessionserver.mojang.com/session/minecraft/profile/{uuid}"
+            ))
+            .call();
 
-        match response {
-            Ok(mut response) => Some(response.body_mut().read_json()),
-            _ => None,
-        }
-    }).flatten().filter(|profile| profile.is_ok()).map(|profile| profile.unwrap()).collect()
+            match response {
+                Ok(mut response) => Some(response.body_mut().read_json()),
+                _ => None,
+            }
+        })
+        .flatten()
+        .filter(|profile| profile.is_ok())
+        .map(|profile| profile.unwrap())
+        .collect()
 }
 
 pub fn add_to_whitelist(uuid: Uuid) -> bool {

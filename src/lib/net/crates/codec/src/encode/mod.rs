@@ -15,7 +15,6 @@ pub enum NetEncodeOpts {
     SizePrefixed,
 }
 
-#[allow(async_fn_in_trait)]
 pub trait NetEncode {
     fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()>;
 }

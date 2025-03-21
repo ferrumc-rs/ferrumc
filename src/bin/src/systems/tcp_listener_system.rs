@@ -1,14 +1,13 @@
 use crate::errors::BinaryError;
 use crate::systems::definition::System;
-use async_trait::async_trait;
 use ferrumc_net::connection::handle_connection;
 use ferrumc_state::GlobalState;
 use std::sync::Arc;
+use std::thread;
 use tracing::{debug, error, info, info_span, Instrument};
 
 pub struct TcpListenerSystem;
 
-#[async_trait]
 impl System for TcpListenerSystem {
     fn start(self: Arc<Self>, state: GlobalState) {
         if let Err(e) = TcpListenerSystem::initiate_loop(state) {
@@ -34,10 +33,13 @@ impl TcpListenerSystem {
             debug!("Accepting connection");
             let (stream, _) = tcp_listener.accept()?;
             let addy = stream.peer_addr()?;
-            tokio::task::spawn(
-                handle_connection(Arc::clone(&state), stream)
-                    .instrument(info_span!("conn", %addy).or_current()),
-            );
+            thread::spawn({
+                let state = Arc::clone(&state);
+                move || {
+                    let _ = handle_connection(Arc::clone(&state), stream)
+                        .instrument(info_span!("conn", %addy).or_current());
+                }
+            });
         }
 
         #[allow(unreachable_code)]

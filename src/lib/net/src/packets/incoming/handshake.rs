@@ -45,7 +45,7 @@ mod tests {
     use ferrumc_net_codec::net_types::var_int::VarInt;
     use std::io::Cursor;
 
-    #[tokio::test]
+    #[test]
     fn test_macro_decode() {
         #[derive(NetDecode, Default)]
         #[allow(unused)]

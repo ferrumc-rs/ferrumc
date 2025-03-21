@@ -11,11 +11,10 @@ impl World {
     ///
     /// This function will save a chunk to the storage backend and update the cache with the new
     /// chunk data. If the chunk already exists in the cache, it will be updated with the new data.
-    pub async fn save_chunk(&self, chunk: Chunk) -> Result<(), WorldError> {
-        let ret = save_chunk_internal(self, &chunk).await;
+    pub fn save_chunk(&self, chunk: Chunk) -> Result<(), WorldError> {
+        let ret = save_chunk_internal(self, &chunk);
         self.cache
-            .insert((chunk.x, chunk.z, chunk.dimension.clone()), chunk)
-            .await;
+            .insert((chunk.x, chunk.z, chunk.dimension.clone()), chunk);
         ret
     }
 
@@ -29,8 +28,7 @@ impl World {
         let chunk = load_chunk_internal(self, &self.compressor, x, z, dimension);
         if let Ok(ref chunk) = chunk {
             self.cache
-                .insert((x, z, dimension.to_string()), chunk.clone())
-            ;
+                .insert((x, z, dimension.to_string()), chunk.clone());
         }
         chunk
     }
@@ -63,7 +61,7 @@ impl World {
     pub fn sync(&self) -> Result<(), WorldError> {
         for (k, v) in self.cache.iter() {
             trace!("Syncing chunk: {:?}", (k.0, k.1));
-            save_chunk_internal(self, &v).await?;
+            save_chunk_internal(self, &v)?;
         }
         sync_internal(self)
     }
@@ -80,10 +78,7 @@ impl World {
         let mut found_chunks = Vec::new();
         let mut missing_chunks = Vec::new();
         for coord in coords.iter() {
-            if let Some(chunk) = self
-                .cache
-                .get(&(coord.0, coord.1, coord.2.to_string()))
-            {
+            if let Some(chunk) = self.cache.get(&(coord.0, coord.1, coord.2.to_string())) {
                 found_chunks.push(chunk);
             } else {
                 missing_chunks.push(*coord);
@@ -92,8 +87,7 @@ impl World {
         let fetched = load_chunk_batch_internal(self, missing_chunks)?;
         for chunk in fetched {
             self.cache
-                .insert((chunk.x, chunk.z, chunk.dimension.clone()), chunk.clone())
-            ;
+                .insert((chunk.x, chunk.z, chunk.dimension.clone()), chunk.clone());
             found_chunks.push(chunk);
         }
         Ok(found_chunks)
@@ -105,45 +99,27 @@ impl World {
     /// without returning the chunk. This is useful for preloading chunks into the cache before
     /// they are needed.
     pub fn pre_cache(&self, x: i32, z: i32, dimension: &str) -> Result<(), WorldError> {
-        if self
-            .cache
-            .get(&(x, z, dimension.to_string()))
-
-            .is_none()
-        {
+        if self.cache.get(&(x, z, dimension.to_string())).is_none() {
             let chunk = load_chunk_internal(self, &self.compressor, x, z, dimension)?;
-            self.cache
-                .insert((x, z, dimension.to_string()), chunk)
-            ;
+            self.cache.insert((x, z, dimension.to_string()), chunk);
         }
         Ok(())
     }
 }
 
-pub(crate) async fn save_chunk_internal(world: &World, chunk: &Chunk) -> Result<(), WorldError> {
-    if !world
-        .storage_backend
-        .table_exists("chunks".to_string())
-        ?
-    {
-        world
-            .storage_backend
-            .create_table("chunks".to_string())
-            ?;
+pub(crate) fn save_chunk_internal(world: &World, chunk: &Chunk) -> Result<(), WorldError> {
+    if !world.storage_backend.table_exists("chunks".to_string())? {
+        world.storage_backend.create_table("chunks".to_string())?;
     }
     let as_bytes = world.compressor.compress(&bitcode::encode(chunk))?;
     let digest = create_key(chunk.dimension.as_str(), chunk.x, chunk.z);
     world
         .storage_backend
-        .upsert("chunks".to_string(), digest, as_bytes)
-        ?;
+        .upsert("chunks".to_string(), digest, as_bytes)?;
     Ok(())
 }
 
-pub(crate) fn save_chunk_internal_batch(
-    world: &World,
-    chunks: &[Chunk],
-) -> Result<(), WorldError> {
+pub(crate) fn save_chunk_internal_batch(world: &World, chunks: &[Chunk]) -> Result<(), WorldError> {
     // Prepare the batch data for the upsert
     let mut batch_data = Vec::new();
 
@@ -159,8 +135,7 @@ pub(crate) fn save_chunk_internal_batch(
     // Perform the batch upsert
     world
         .storage_backend
-        .batch_upsert("chunks".to_string(), batch_data)
-        ?;
+        .batch_upsert("chunks".to_string(), batch_data)?;
 
     Ok(())
 }
@@ -173,11 +148,7 @@ pub(crate) fn load_chunk_internal(
     dimension: &str,
 ) -> Result<Chunk, WorldError> {
     let digest = create_key(dimension, x, z);
-    match world
-        .storage_backend
-        .get("chunks".to_string(), digest)
-        ?
-    {
+    match world.storage_backend.get("chunks".to_string(), digest)? {
         Some(compressed) => {
             let data = compressor.decompress(&compressed)?;
             let chunk: Chunk = bitcode::decode(&data)
@@ -198,8 +169,7 @@ pub(crate) fn load_chunk_batch_internal(
         .collect();
     world
         .storage_backend
-        .batch_get("chunks".to_string(), digests)
-        ?
+        .batch_get("chunks".to_string(), digests)?
         .iter()
         .map(|chunk| match chunk {
             Some(compressed) => {
@@ -219,18 +189,11 @@ pub(crate) fn chunk_exists_internal(
     z: i32,
     dimension: &str,
 ) -> Result<bool, WorldError> {
-    if !world
-        .storage_backend
-        .table_exists("chunks".to_string())
-        ?
-    {
+    if !world.storage_backend.table_exists("chunks".to_string())? {
         return Ok(false);
     }
     let digest = create_key(dimension, x, z);
-    Ok(world
-        .storage_backend
-        .exists("chunks".to_string(), digest)
-        ?)
+    Ok(world.storage_backend.exists("chunks".to_string(), digest)?)
 }
 
 pub(crate) fn delete_chunk_internal(
@@ -240,10 +203,7 @@ pub(crate) fn delete_chunk_internal(
     dimension: &str,
 ) -> Result<(), WorldError> {
     let digest = create_key(dimension, x, z);
-    world
-        .storage_backend
-        .delete("chunks".to_string(), digest)
-        ?;
+    world.storage_backend.delete("chunks".to_string(), digest)?;
     Ok(())
 }
 

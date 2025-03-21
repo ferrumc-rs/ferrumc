@@ -7,9 +7,9 @@ use ferrumc_anvil::load_anvil_file;
 use indicatif::{ProgressBar, ProgressStyle};
 use rayon::prelude::*;
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::atomic::{AtomicU16, AtomicU32, AtomicU64, Ordering};
 use std::sync::Arc;
-use tokio::task::JoinSet;
+use std::thread;
 use tracing::{error, info};
 
 impl World {
@@ -24,7 +24,7 @@ impl World {
             .collect();
 
         let mut success_count = 0;
-        if let Ok(()) = save_chunk_internal_batch(self, &chunk_objects).await {
+        if let Ok(()) = save_chunk_internal_batch(self, &chunk_objects) {
             success_count = chunk_objects.len();
         }
 
@@ -56,7 +56,7 @@ impl World {
         Ok(chunk_count.load(Ordering::Relaxed))
     }
 
-    pub async fn import(
+    pub fn import(
         &mut self,
         import_dir: PathBuf,
         batch_size: usize,
@@ -77,12 +77,10 @@ impl World {
         info!("Starting chunk import...");
         let start = std::time::Instant::now();
 
-        let mut task_set = JoinSet::new();
-
         let regions_dir = import_dir.join("region").read_dir()?;
         let mut current_batch = Vec::with_capacity(batch_size);
 
-        let mut threadpool = threadpool::ThreadPool::new(4);
+        let remaining_tasks = Arc::new(AtomicU32::new(0));
 
         for region_result in regions_dir {
             let region_entry = region_result?;
@@ -103,6 +101,7 @@ impl World {
             };
 
             for location in anvil_file.get_locations() {
+                let remaining_tasks_clone = remaining_tasks.clone();
                 if let Ok(Some(chunk_data)) = anvil_file.get_chunk_from_location(location) {
                     if let Ok(vanilla_chunk) = VanillaChunk::from_bytes(&chunk_data) {
                         current_batch.push(vanilla_chunk);
@@ -115,19 +114,21 @@ impl World {
                             let progress_clone = Arc::clone(&progress);
                             let self_clone = self.clone();
 
-                            task_set.spawn(async move {
+                            let remaining_tasks_clone = remaining_tasks_clone.clone();
+
+                            std::thread::spawn(move || {
+                                remaining_tasks_clone.fetch_add(1, Ordering::Relaxed);
                                 if let Err(e) =
-                                    self_clone.process_chunk_batch(batch, progress_clone).await
+                                    self_clone.process_chunk_batch(batch, progress_clone)
                                 {
                                     error!("Batch processing error: {}", e);
                                 }
                             });
 
-                            while task_set.len() >= max_concurrent_tasks {
-                                task_set.join_next().await;
-                            }
-
-                            progress.set_message(format!("tasks: {}", task_set.len()));
+                            progress.set_message(format!(
+                                "tasks: {}",
+                                remaining_tasks.clone().load(Ordering::Relaxed)
+                            ));
                         }
                     }
                 }
@@ -137,20 +138,25 @@ impl World {
         if !current_batch.is_empty() {
             let progress_clone = Arc::clone(&progress);
             let self_clone = self.clone();
+            let remaining_tasks_clone = remaining_tasks.clone();
 
-            task_set.spawn(async move {
-                if let Err(e) = self_clone
-                    .process_chunk_batch(current_batch, progress_clone)
-                    .await
-                {
+            std::thread::spawn(move || {
+                remaining_tasks_clone.fetch_add(1, Ordering::Relaxed);
+                if let Err(e) = self_clone.process_chunk_batch(current_batch, progress_clone) {
                     error!("Final batch processing error: {}", e);
                 }
             });
         }
 
-        while task_set.join_next().is_some() {}
+        while remaining_tasks.load(Ordering::Relaxed) > 0 {
+            progress.set_message(format!(
+                "tasks: {}",
+                remaining_tasks.clone().load(Ordering::Relaxed)
+            ));
+            thread::sleep(std::time::Duration::from_secs(1));
+        }
 
-        self.sync().await?;
+        self.sync()?;
 
         progress.finish();
 

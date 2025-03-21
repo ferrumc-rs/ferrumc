@@ -26,7 +26,7 @@ impl Event for SomeEvent {
     }
 }
 
-#[tokio::test]
+#[test]
 fn test_something() {
     let event_data = SomeEvent { data: 0 };
 

@@ -1,14 +1,12 @@
 use crate::systems::keep_alive_system::KeepAliveSystem;
 use crate::systems::tcp_listener_system::TcpListenerSystem;
 use crate::systems::ticking_system::TickingSystem;
-use async_trait::async_trait;
 use ferrumc_net::NetResult;
 use ferrumc_state::GlobalState;
-use futures::stream::FuturesUnordered;
+use rayon::prelude::*;
 use std::sync::{Arc, LazyLock};
 use tracing::{debug, debug_span, info, Instrument};
 
-#[async_trait]
 pub trait System: Send + Sync {
     fn start(self: Arc<Self>, state: GlobalState);
     fn stop(self: Arc<Self>, state: GlobalState);
@@ -25,21 +23,13 @@ pub fn create_systems() -> Vec<Arc<dyn System>> {
     ]
 }
 pub fn start_all_systems(state: GlobalState) -> NetResult<()> {
-    let handles = FuturesUnordered::new();
-
-    for system in SYSTEMS.iter() {
+    SYSTEMS.iter().par_bridge().for_each(|system| {
         let name = system.name();
-
-        let handle = tokio::spawn(
-            system
-                .clone()
-                .start(state.clone())
-                .instrument(debug_span!("sys", %name)),
-        );
-        handles.push(handle);
-    }
-
-    futures::future::join_all(handles);
+        let _ = system
+            .clone()
+            .start(state.clone())
+            .instrument(debug_span!("sys", %name));
+    });
 
     Ok(())
 }

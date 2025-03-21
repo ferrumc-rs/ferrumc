@@ -1,6 +1,6 @@
 use crate::NetResult;
 use ferrumc_config::statics::get_global_config;
-use tokio::net::TcpListener;
+use std::net::TcpListener;
 use tracing::{debug, error};
 
 pub fn create_server_listener() -> NetResult<TcpListener> {

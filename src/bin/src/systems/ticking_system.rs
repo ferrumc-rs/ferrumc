@@ -1,18 +1,16 @@
 use crate::systems::definition::System;
-use async_trait::async_trait;
 use ferrumc_events::infrastructure::Event;
 use ferrumc_net::packets::outgoing::update_time::TickEvent;
 use ferrumc_state::GlobalState;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
-use std::time::Duration;
-use tokio::time::Instant;
+use std::thread;
+use std::time::{Duration, Instant};
 use tracing::{debug, info, trace};
 pub struct TickingSystem;
 
 static KILLED: AtomicBool = AtomicBool::new(false);
 
-#[async_trait]
 impl System for TickingSystem {
     fn start(self: Arc<Self>, state: GlobalState) {
         // TODO game time must be loaded from a file
@@ -32,7 +30,7 @@ impl System for TickingSystem {
             let now = Instant::now();
 
             if required_end > now {
-                tokio::time::sleep(required_end - now);
+                thread::sleep(required_end - now);
             } else {
                 let time_debt = now - required_end;
                 info!("Running behind by {:?}", time_debt);

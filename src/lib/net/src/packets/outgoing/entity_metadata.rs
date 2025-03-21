@@ -7,7 +7,6 @@ use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::Write;
-use tokio::io::AsyncWrite;
 
 /// Packet for sending entity metadata updates to clients
 #[derive(NetEncode)]
@@ -37,7 +36,7 @@ impl EntityMetadataPacket {
     /// ```
     pub fn new<T>(entity_id: Entity, metadata: T) -> Self
     where
-        T: IntoIterator<Item=EntityMetadata>,
+        T: IntoIterator<Item = EntityMetadata>,
     {
         Self {
             entity_id: VarInt::new(entity_id as i32),
@@ -119,14 +118,6 @@ mod index_type {
     impl NetEncode for EntityMetadataIndexType {
         fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
             self.index().encode(writer, opts)
-        }
-
-        fn encode_async<W: AsyncWrite + Unpin>(
-            &self,
-            writer: &mut W,
-            opts: &NetEncodeOpts,
-        ) -> NetEncodeResult<()> {
-            self.index().encode_async(writer, opts)
         }
     }
 }
@@ -224,7 +215,6 @@ mod extra_data_types {
     use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
     use ferrumc_net_codec::net_types::var_int::VarInt;
     use std::io::Write;
-    use tokio::io::AsyncWrite;
     // STANDING = 0, FALL_FLYING = 1, SLEEPING = 2, SWIMMING = 3, SPIN_ATTACK = 4, SNEAKING = 5, LONG_JUMPING = 6, DYING = 7, CROAKING = 8,
     // USING_TONGUE = 9, SITTING = 10, ROARING = 11, SNIFFING = 12, EMERGING = 13, DIGGING = 14, (1.21.3: SLIDING = 15, SHOOTING = 16,
     // INHALING = 17
@@ -283,14 +273,6 @@ mod extra_data_types {
     impl NetEncode for EntityPose {
         fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
             self.index().encode(writer, opts)
-        }
-
-        fn encode_async<W: AsyncWrite + Unpin>(
-            &self,
-            writer: &mut W,
-            opts: &NetEncodeOpts,
-        ) -> NetEncodeResult<()> {
-            self.index().encode_async(writer, opts)
         }
     }
 }

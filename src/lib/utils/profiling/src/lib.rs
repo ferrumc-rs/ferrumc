@@ -238,10 +238,10 @@ mod tests {
     #[profile("nested/test2")]
     fn dummy_func4() {
         // Sleep for 2 seconds
-        tokio::time::sleep(Duration::from_millis(200));
+        sleep(Duration::from_millis(200));
     }
 
-    #[tokio::test]
+    #[test]
     fn test_profiler() {
         init_logging();
         let profile_key = start_profiler();

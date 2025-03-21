@@ -34,7 +34,6 @@ use ferrumc_net::utils::broadcast::{broadcast, get_all_play_players, BroadcastOp
 use ferrumc_net::NetResult;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::GlobalState;
-use futures::StreamExt;
 use std::time::Instant;
 use tracing::{debug, error, trace};
 
@@ -252,8 +251,7 @@ fn player_info_update_packets(entity_id: Entity, state: &GlobalState) -> NetResu
             &packet,
             state,
             BroadcastOptions::default().except([entity_id]),
-        )
-            ?;
+        )?;
         trace!(
             "Broadcasting player info update took: {:?}",
             start.elapsed()
@@ -281,19 +279,18 @@ fn broadcast_spawn_entity_packet(entity_id: Entity, state: &GlobalState) -> NetR
         &packet,
         state,
         BroadcastOptions::default().except([entity_id]),
-    )
-        ?;
+    )?;
     trace!("Broadcasting spawn entity took: {:?}", start.elapsed());
 
     let writer = state.universe.get_mut::<StreamWriter>(entity_id)?;
-    futures::stream::iter(get_all_play_players(state))
-        .fold(writer, |mut writer, entity| async move {
+    get_all_play_players(state)
+        .into_iter()
+        .fold(writer, |mut writer, entity| {
             if let Ok(packet) = SpawnEntityPacket::player(entity, state) {
                 let _ = writer.send_packet(packet, &NetEncodeOpts::WithLength);
             }
             writer
-        })
-    ;
+        });
 
     Ok(())
 }

@@ -13,7 +13,7 @@ impl IncomingPacket for AckFinishConfigurationPacket {
     fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
         let event = AckFinishConfigurationEvent::new(self, conn_id);
 
-        tokio::spawn(AckFinishConfigurationEvent::trigger(event, state));
+        AckFinishConfigurationEvent::trigger(event, state)?;
 
         Ok(())
     }

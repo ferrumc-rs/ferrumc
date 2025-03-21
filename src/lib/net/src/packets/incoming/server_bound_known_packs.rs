@@ -30,7 +30,7 @@ impl IncomingPacket for ServerBoundKnownPacks {
 
         let event = ServerBoundKnownPacksEvent { conn_id };
 
-        tokio::spawn(ServerBoundKnownPacksEvent::trigger(event, state));
+        ServerBoundKnownPacksEvent::trigger(event, state)?;
 
         Ok(())
     }

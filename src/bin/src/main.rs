@@ -4,6 +4,7 @@ extern crate core;
 
 use crate::errors::BinaryError;
 use clap::Parser;
+use ferrumc_config::statics::get_global_config;
 use ferrumc_config::whitelist::create_whitelist;
 use ferrumc_ecs::Universe;
 use ferrumc_general_purpose::paths::get_root_path;
@@ -15,8 +16,8 @@ use ferrumc_world_gen::errors::WorldGenError;
 use ferrumc_world_gen::WorldGenerator;
 use rayon::prelude::*;
 use std::sync::Arc;
+use std::thread;
 use systems::definition;
-use tokio::runtime::Handle;
 use tracing::{error, info};
 
 pub(crate) mod errors;
@@ -30,16 +31,14 @@ mod systems;
 #[global_allocator]
 static ALLOC: dhat::Alloc = dhat::Alloc;
 
-// #[tokio::main(flavor = "current_thread")]
-#[tokio::main(flavor = "multi_thread")]
-async fn main() {
+fn main() {
     #[cfg(feature = "dhat")]
     let _profiler = dhat::Profiler::new_heap();
 
     let cli_args = CLIArgs::parse();
     ferrumc_logging::init_logging(cli_args.log.into());
 
-    let current_active_threads = Handle::current().metrics().num_workers();
+    let current_active_threads = rayon::current_num_threads();
 
     info!("FERRUMC IS USING {} THREAD(s)", current_active_threads);
 
@@ -113,10 +112,10 @@ fn entry() -> Result<(), BinaryError> {
         generate_chunks(global_state.clone())?;
     }
 
-    let all_system_handles = tokio::spawn(definition::start_all_systems(global_state.clone()));
+    let all_system_handles = definition::start_all_systems(global_state.clone());
 
     //Start the systems and wait until all of them are done
-    all_system_handles??;
+    all_system_handles?;
 
     // Stop all systems
     definition::stop_all_systems(global_state)?;
@@ -137,14 +136,11 @@ fn handle_import(import_args: ImportArgs) -> Result<(), BinaryError> {
         import_path = root_path.join(import_path);
     }
 
-    if let Err(e) = world
-        .import(
-            import_path,
-            import_args.batch_size,
-            import_args.max_concurrent_tasks,
-        )
-        .await
-    {
+    if let Err(e) = world.import(
+        import_path,
+        import_args.batch_size,
+        import_args.max_concurrent_tasks,
+    ) {
         error!("Could not import world: {}", e.to_string());
         return Err(BinaryError::Custom("Could not import world.".to_string()));
     }

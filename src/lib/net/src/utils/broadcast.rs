@@ -1,33 +1,27 @@
 use crate::connection::StreamWriter;
 use crate::NetResult;
-use async_trait::async_trait;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_ecs::entities::Entity;
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use ferrumc_state::GlobalState;
-use futures::StreamExt;
 use std::collections::HashSet;
 use std::future::Future;
 use std::pin::Pin;
 use tracing::debug;
 
-type AsyncCallbackFn = Box<
-    dyn Fn(Entity, &GlobalState) -> Pin<Box<dyn Future<Output=()> + Send + '_>> + Send + Sync,
->;
 type SyncCallbackFn = Box<dyn Fn(Entity, &GlobalState) + Send + Sync>;
 
 #[derive(Default)]
 pub struct BroadcastOptions {
     pub only_entities: Option<HashSet<Entity>>,
     pub except_entities: Option<HashSet<Entity>>,
-    pub async_callback: Option<AsyncCallbackFn>,
     pub sync_callback: Option<SyncCallbackFn>,
 }
 
 impl BroadcastOptions {
     pub fn only<I>(mut self, entities: I) -> Self
     where
-        I: IntoIterator<Item=Entity>,
+        I: IntoIterator<Item = Entity>,
     {
         self.only_entities = Some(entities.into_iter().collect());
         self
@@ -35,7 +29,7 @@ impl BroadcastOptions {
 
     pub fn except<I>(mut self, entities: I) -> Self
     where
-        I: IntoIterator<Item=Entity>,
+        I: IntoIterator<Item = Entity>,
     {
         self.except_entities = Some(entities.into_iter().collect());
         self
@@ -46,16 +40,7 @@ impl BroadcastOptions {
         self
     }
 
-    pub fn with_async_callback<F, Fut>(mut self, f: F) -> Self
-    where
-        F: Fn(Entity, &GlobalState) -> Fut + Send + Sync + 'static,
-        Fut: Future<Output=()> + Send + 'static,
-    {
-        self.async_callback = Some(Box::new(move |entity, state| Box::pin(f(entity, state))));
-        self
-    }
-
-    pub fn with_sync_callback<F>(mut self, f: F) -> Self
+    pub fn with_callback<F>(mut self, f: F) -> Self
     where
         F: Fn(Entity, &GlobalState) + Send + Sync + 'static,
     {
@@ -104,57 +89,37 @@ pub fn broadcast(
         buffer
     };
 
-    let (state, packet, async_callback, sync_callback) =
-        (state, packet, opts.async_callback, opts.sync_callback);
+    let (state, packet, sync_callback) = (state, packet, opts.sync_callback);
 
-    futures::stream::iter(entities.into_iter())
-        .fold(
-            (state, packet, async_callback, sync_callback),
-            move |(state, packet, async_callback, sync_callback), entity| {
-                async move {
-                    let Ok(mut writer) = state.universe.get_mut::<StreamWriter>(entity) else {
-                        return (state, packet, async_callback, sync_callback);
-                    };
+    entities.into_iter().fold(
+        (state, packet, sync_callback),
+        move |(state, packet, sync_callback), entity| {
+            let Ok(mut writer) = state.universe.get_mut::<StreamWriter>(entity) else {
+                return (state, packet, sync_callback);
+            };
 
-                    if let Err(e) = writer.send_packet(packet.clone(), &NetEncodeOpts::None) {
-                        debug!("Error sending packet: {}", e);
-                    }
+            if let Err(e) = writer.send_packet(packet.clone(), &NetEncodeOpts::None) {
+                debug!("Error sending packet: {}", e);
+            }
 
-                    // Execute sync callback first if it exists
-                    if let Some(ref callback) = sync_callback {
-                        callback(entity, state);
-                    }
+            // Execute sync callback first if it exists
+            if let Some(ref callback) = sync_callback {
+                callback(entity, state);
+            }
 
-                    // Then execute async callback if it exists
-                    if let Some(ref callback) = async_callback {
-                        callback(entity, state);
-                    }
-
-                    (state, packet, async_callback, sync_callback)
-                }
-            },
-        )
-    ;
+            (state, packet, sync_callback)
+        },
+    );
 
     Ok(())
 }
 
-#[async_trait]
 pub trait BroadcastToAll {
-    fn broadcast(
-        &self,
-        packet: &(impl NetEncode + Sync),
-        opts: BroadcastOptions,
-    ) -> NetResult<()>;
+    fn broadcast(&self, packet: &(impl NetEncode + Sync), opts: BroadcastOptions) -> NetResult<()>;
 }
 
-#[async_trait]
 impl BroadcastToAll for GlobalState {
-    fn broadcast(
-        &self,
-        packet: &(impl NetEncode + Sync),
-        opts: BroadcastOptions,
-    ) -> NetResult<()> {
+    fn broadcast(&self, packet: &(impl NetEncode + Sync), opts: BroadcastOptions) -> NetResult<()> {
         broadcast(packet, self, opts)
     }
 }
