@@ -4,7 +4,6 @@ extern crate core;
 
 use crate::errors::BinaryError;
 use clap::Parser;
-use ferrumc_config::statics::get_global_config;
 use ferrumc_config::whitelist::create_whitelist;
 use ferrumc_ecs::Universe;
 use ferrumc_general_purpose::paths::get_root_path;
@@ -16,7 +15,6 @@ use ferrumc_world_gen::errors::WorldGenError;
 use ferrumc_world_gen::WorldGenerator;
 use rayon::prelude::*;
 use std::sync::Arc;
-use std::thread;
 use systems::definition;
 use tracing::{error, info};
 
@@ -127,7 +125,7 @@ fn handle_import(import_args: ImportArgs) -> Result<(), BinaryError> {
     //! Handles the import of the world.
     info!("Importing world...");
 
-    let config = get_global_config();
+    // let config = get_global_config();
     let mut world = World::new();
 
     let root_path = get_root_path();
@@ -139,7 +137,7 @@ fn handle_import(import_args: ImportArgs) -> Result<(), BinaryError> {
     if let Err(e) = world.import(
         import_path,
         import_args.batch_size,
-        import_args.max_concurrent_tasks,
+        // import_args.max_concurrent_tasks,
     ) {
         error!("Could not import world: {}", e.to_string());
         return Err(BinaryError::Custom("Could not import world.".to_string()));

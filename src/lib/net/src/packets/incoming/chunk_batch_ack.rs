@@ -37,10 +37,12 @@ impl IncomingPacket for ChunkBatchAck {
         {
             // If they aren't underground, don't move them to spawn
             let pos = state.universe.get_mut::<Position>(conn_id)?;
-            let head_block = state
-                .world
-                .get_block_and_fetch(pos.x as i32, pos.y as i32 - 1, pos.z as i32, "overworld")
-                ?;
+            let head_block = state.world.get_block_and_fetch(
+                pos.x as i32,
+                pos.y as i32 - 1,
+                pos.z as i32,
+                "overworld",
+            )?;
             if head_block.name == "minecraft:air" {
                 move_to_spawn = false;
             }

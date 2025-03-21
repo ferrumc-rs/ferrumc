@@ -15,7 +15,6 @@ use ferrumc_config::statics::get_global_config;
 use ferrumc_general_purpose::paths::get_root_path;
 use ferrumc_storage::compressors::Compressor;
 use ferrumc_storage::lmdb::LmdbBackend;
-use moka::notification::ListenerFuture;
 use moka::sync::Cache;
 use std::fs::create_dir_all;
 use std::path::{Path, PathBuf};
@@ -81,6 +80,12 @@ fn check_config_validity() -> Result<(), WorldError> {
         return Err(WorldError::InvalidMapSize(config.database.map_size));
     }
     Ok(())
+}
+
+impl Default for World {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl World {

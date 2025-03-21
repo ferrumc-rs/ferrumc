@@ -32,16 +32,12 @@ impl IncomingPacket for PlaceBlock {
         match self.hand.val {
             0 => {
                 debug!("Placing block at {:?}", self.position);
-                let block_clicked = state
-                    .clone()
-                    .world
-                    .get_block_and_fetch(
-                        self.position.x,
-                        self.position.y as i32,
-                        self.position.z,
-                        "overworld",
-                    )
-                    ?;
+                let block_clicked = state.clone().world.get_block_and_fetch(
+                    self.position.x,
+                    self.position.y as i32,
+                    self.position.z,
+                    "overworld",
+                )?;
                 trace!("Block clicked: {:?}", block_clicked);
                 // Use the face to determine the offset of the block to place
                 let (x_block_offset, y_block_offset, z_block_offset) = match self.face.val {

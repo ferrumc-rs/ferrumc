@@ -28,11 +28,11 @@ impl IncomingPacket for PlayerAction {
         // https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol?oldid=2773393#Player_Action
         match self.status.val {
             0 => {
-                let mut chunk = state
-                    .clone()
-                    .world
-                    .load_chunk(self.location.x >> 4, self.location.z >> 4, "overworld")
-                    ?;
+                let mut chunk = state.clone().world.load_chunk(
+                    self.location.x >> 4,
+                    self.location.z >> 4,
+                    "overworld",
+                )?;
                 let block =
                     chunk.get_block(self.location.x, self.location.y as i32, self.location.z)?;
                 debug!("Block: {:?}", block);

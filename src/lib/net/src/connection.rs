@@ -75,7 +75,7 @@ impl Drop for StreamWriter {
 }
 impl StreamWriter {
     pub fn new(mut writer: TcpStream) -> Self {
-        let (sender, mut receiver): (Sender<Vec<u8>>, Receiver<Vec<u8>>) =
+        let (sender, receiver): (Sender<Vec<u8>>, Receiver<Vec<u8>>) =
             crossbeam_channel::unbounded();
         let running = Arc::new(AtomicBool::new(true));
 
@@ -131,7 +131,7 @@ impl Default for CompressionStatus {
     }
 }
 
-pub fn handle_connection(state: Arc<ServerState>, mut tcp_stream: TcpStream) -> NetResult<()> {
+pub fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -> NetResult<()> {
     let entity = state
         .universe
         .builder()
@@ -212,10 +212,8 @@ pub fn handle_connection(state: Arc<ServerState>, mut tcp_stream: TcpStream) -> 
 
     // Broadcast the leave server event
 
-    // TODO: Fix events
-
-    // let _ =
-    //     PlayerDisconnectEvent::trigger(PlayerDisconnectEvent { entity_id: entity }, state.clone());
+    let _ =
+        PlayerDisconnectEvent::trigger(PlayerDisconnectEvent { entity_id: entity }, state.clone());
 
     // Remove all components from the entity
 

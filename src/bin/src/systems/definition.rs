@@ -25,10 +25,10 @@ pub fn create_systems() -> Vec<Arc<dyn System>> {
 pub fn start_all_systems(state: GlobalState) -> NetResult<()> {
     SYSTEMS.iter().par_bridge().for_each(|system| {
         let name = system.name();
-        let _ = system
-            .clone()
-            .start(state.clone())
-            .instrument(debug_span!("sys", %name));
+        let _ = {
+            system.clone().start(state.clone());
+            ().instrument(debug_span!("sys", %name))
+        };
     });
 
     Ok(())

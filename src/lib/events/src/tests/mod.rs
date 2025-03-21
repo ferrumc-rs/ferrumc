@@ -57,7 +57,7 @@ fn test_something() {
 
 #[ctor::ctor]
 fn __register_some_event_listener() {
-    SomeEvent::register(|ev: SomeEvent, _: ()| Box::pin(some_event_listener(ev)), 0);
+    SomeEvent::register(|ev: SomeEvent, _: ()| (some_event_listener(ev)), 0);
 }
 
 fn some_event_listener(mut event: SomeEvent) -> Result<SomeEvent, SomeEventError> {
@@ -68,10 +68,7 @@ fn some_event_listener(mut event: SomeEvent) -> Result<SomeEvent, SomeEventError
 
 #[ctor::ctor]
 fn __register_some_event_listener2() {
-    SomeEvent::register(
-        |ev: SomeEvent, _: ()| Box::pin(some_event_listener2(ev)),
-        255,
-    );
+    SomeEvent::register(|ev: SomeEvent, _: ()| some_event_listener2(ev), 255);
 }
 
 fn some_event_listener2(event: SomeEvent) -> Result<SomeEvent, SomeEventError> {

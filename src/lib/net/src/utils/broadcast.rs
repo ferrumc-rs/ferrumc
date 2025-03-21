@@ -5,8 +5,6 @@ use ferrumc_ecs::entities::Entity;
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use ferrumc_state::GlobalState;
 use std::collections::HashSet;
-use std::future::Future;
-use std::pin::Pin;
 use tracing::debug;
 
 type SyncCallbackFn = Box<dyn Fn(Entity, &GlobalState) + Send + Sync>;

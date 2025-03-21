@@ -21,8 +21,7 @@ fn handle_player_disconnect(
         &remove_entity_packet,
         &state,
         BroadcastOptions::default().all(),
-    )
-        ?;
+    )?;
 
     Ok(event)
 }

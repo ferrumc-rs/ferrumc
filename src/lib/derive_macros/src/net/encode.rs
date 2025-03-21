@@ -6,18 +6,14 @@ use quote::quote;
 use syn::{parse_macro_input, DeriveInput, Fields};
 
 // Generate packet ID encoding snippets
-fn generate_packet_id_snippets(
-    packet_id: Option<u8>,
-) -> proc_macro2::TokenStream {
-    let sync_snippet = if let Some(id) = packet_id {
+fn generate_packet_id_snippets(packet_id: Option<u8>) -> proc_macro2::TokenStream {
+    if let Some(id) = packet_id {
         quote! {
             <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode(&#id.into(), writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)?;
         }
     } else {
         quote! {}
-    };
-
-    sync_snippet
+    }
 }
 
 // Generate field encoding expressions for structs
@@ -33,9 +29,7 @@ fn generate_field_encoders(fields: &syn::Fields) -> proc_macro2::TokenStream {
 }
 
 // Generate enum variant encoding using static dispatch
-fn generate_enum_encoders(
-    data: &syn::DataEnum,
-) -> proc_macro2::TokenStream {
+fn generate_enum_encoders(data: &syn::DataEnum) -> proc_macro2::TokenStream {
     let variants: Vec<proc_macro2::TokenStream> = data.variants.iter().map(|variant| {
         let variant_ident = &variant.ident;
 

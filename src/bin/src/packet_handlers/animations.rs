@@ -15,7 +15,6 @@ fn entity_animation(
         &event.packet,
         &state,
         BroadcastOptions::default().except([event.entity]),
-    )
-        ?;
+    )?;
     Ok(event)
 }

@@ -60,7 +60,6 @@ fn handle_player_move(
 
         if chunks_need_sending {
             send_chunks(state.clone(), conn_id)
-
                 .map_err(|e| NetError::Misc(format!("Failed to send chunks to player: {:?}", e)))?;
         }
 

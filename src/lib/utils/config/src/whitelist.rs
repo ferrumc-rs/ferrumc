@@ -2,7 +2,6 @@ use crate::errors::ConfigError;
 use crate::statics::WHITELIST;
 use ferrumc_general_purpose::paths::get_root_path;
 use rayon::prelude::*;
-use reqwest::Client;
 use serde_derive::Deserialize;
 use std::collections::HashMap;
 use std::fs::File;

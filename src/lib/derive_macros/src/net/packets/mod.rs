@@ -115,11 +115,11 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
                 &item_struct.attrs,
                 PacketBoundiness::Serverbound,
             )
-                .expect(
-                    "parse_packet_attribute failed\
+            .expect(
+                "parse_packet_attribute failed\
                 \nPlease provide the packet_id and state fields in the #[packet(...)] attribute.\
                 \nExample: #[packet(packet_id = \"example_packet\", state = \"handshake\")]",
-                );
+            );
 
             let struct_name = &item_struct.ident;
 
@@ -168,8 +168,8 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
             "It took: {:?} to parse all the files and generate the packet registry",
             elapsed
         )
-            .red()
-            .bold()
+        .red()
+        .bold()
     );
 
     let match_arms = match_arms.into_iter();

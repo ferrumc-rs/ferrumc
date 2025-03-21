@@ -7,7 +7,7 @@ use ferrumc_anvil::load_anvil_file;
 use indicatif::{ProgressBar, ProgressStyle};
 use rayon::prelude::*;
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicU16, AtomicU32, AtomicU64, Ordering};
+use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use std::sync::Arc;
 use std::thread;
 use tracing::{error, info};
@@ -60,7 +60,7 @@ impl World {
         &mut self,
         import_dir: PathBuf,
         batch_size: usize,
-        max_concurrent_tasks: usize,
+        // max_concurrent_tasks: usize,
     ) -> Result<(), WorldError> {
         check_paths_validity(&import_dir)?;
 
@@ -116,7 +116,7 @@ impl World {
 
                             let remaining_tasks_clone = remaining_tasks_clone.clone();
 
-                            std::thread::spawn(move || {
+                            thread::spawn(move || {
                                 remaining_tasks_clone.fetch_add(1, Ordering::Relaxed);
                                 if let Err(e) =
                                     self_clone.process_chunk_batch(batch, progress_clone)
@@ -140,7 +140,7 @@ impl World {
             let self_clone = self.clone();
             let remaining_tasks_clone = remaining_tasks.clone();
 
-            std::thread::spawn(move || {
+            thread::spawn(move || {
                 remaining_tasks_clone.fetch_add(1, Ordering::Relaxed);
                 if let Err(e) = self_clone.process_chunk_batch(current_batch, progress_clone) {
                     error!("Final batch processing error: {}", e);
