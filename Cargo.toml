@@ -176,7 +176,7 @@ yazi = "0.2.0"
 bzip2 = "0.5.0"
 
 # Database
-heed = "0.21.0"
+heed = "0.22.0"
 moka = "0.12.8"
 
 # CLI
@@ -192,6 +192,7 @@ noise = "0.9.0"
 
 # I/O
 memmap2 = "0.9.5"
+tempdir = "0.3.7"
 
 # Benchmarking
 criterion = { version = "0.5.1", features = ["html_reports"] }

@@ -22,6 +22,7 @@ page_size = { workspace = true }
 
 [dev-dependencies]
 criterion = { workspace = true, features = ["async_tokio", "async_futures", "tokio", "futures"] }
+tempdir = { workspace = true }
 
 [[bench]]
 name = "storage_bench"

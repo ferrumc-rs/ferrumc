@@ -48,7 +48,7 @@ impl LmdbBackend {
                 env: Arc::new(
                     EnvOpenOptions::new()
                         // Change this as more tables are needed.
-                        .max_dbs(1)
+                        .max_dbs(2)
                         .map_size(rounded_map_size)
                         .open(checked_path)
                         .map_err(|e| StorageError::DatabaseInitError(e.to_string()))?,
