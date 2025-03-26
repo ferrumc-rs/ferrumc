@@ -15,8 +15,8 @@ pub struct LoginAcknowledgedEvent {
     pub conn_id: usize,
 }
 impl IncomingPacket for LoginAcknowledgedPacket {
-    async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
-        LoginAcknowledgedEvent::trigger(LoginAcknowledgedEvent::new(self, conn_id), state).await?;
+    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
+        LoginAcknowledgedEvent::trigger(LoginAcknowledgedEvent::new(self, conn_id), state)?;
         Ok(())
     }
 }

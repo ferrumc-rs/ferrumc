@@ -4,10 +4,8 @@ use ferrumc_net_codec::encode::{errors::NetEncodeError, NetEncode, NetEncodeOpts
 use paste::paste;
 use std::fmt;
 use std::io::Write;
-use std::marker::Unpin;
 use std::ops::Add;
 use std::str::FromStr;
-use tokio::io::AsyncWriteExt;
 
 impl From<String> for TextComponent {
     fn from(value: String) -> Self {
@@ -99,15 +97,6 @@ impl TextComponent {
 impl NetEncode for TextComponent {
     fn encode<W: Write>(&self, writer: &mut W, _: &NetEncodeOpts) -> Result<(), NetEncodeError> {
         writer.write_all(&self.serialize_nbt()[..])?;
-        Ok(())
-    }
-
-    async fn encode_async<W: AsyncWriteExt + Unpin>(
-        &self,
-        writer: &mut W,
-        _: &NetEncodeOpts,
-    ) -> Result<(), NetEncodeError> {
-        writer.write_all(&self.serialize_nbt()[..]).await?;
         Ok(())
     }
 }

@@ -20,7 +20,7 @@ use ferrumc_state::GlobalState;
 ///
 /// * `Ok(())` - If the chunks are successfully sent.
 /// * `Err(BinaryError)` - If an error occurs while sending the chunks.
-pub async fn send_chunks(state: GlobalState, eid: usize) -> Result<(), BinaryError> {
+pub fn send_chunks(state: GlobalState, eid: usize) -> Result<(), BinaryError> {
     let mut recv = state.universe.get_mut::<ChunkReceiver>(eid)?;
     let mut chunk_coords = Vec::new();
     for (x, z, _) in recv.can_see.iter() {
@@ -46,12 +46,12 @@ pub async fn send_chunks(state: GlobalState, eid: usize) -> Result<(), BinaryErr
     let mut chunks_sent = 0;
 
     for (x, z) in chunk_coords {
-        let chunk = if state.world.chunk_exists(x, z, "overworld").await? {
-            state.world.load_chunk(x, z, "overworld").await?
+        let chunk = if state.world.chunk_exists(x, z, "overworld")? {
+            state.world.load_chunk(x, z, "overworld")?
         } else {
             let generated_chunk = state.terrain_generator.generate_chunk(x, z)?;
             // TODO: Remove this clone
-            state.world.save_chunk(generated_chunk.clone()).await?;
+            state.world.save_chunk(generated_chunk.clone())?;
             generated_chunk
         };
         let packet = ChunkAndLightData::from_chunk(&chunk)?;

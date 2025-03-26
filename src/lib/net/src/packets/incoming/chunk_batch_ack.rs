@@ -16,7 +16,7 @@ pub struct ChunkBatchAck {
 }
 
 impl IncomingPacket for ChunkBatchAck {
-    async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
+    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
         // The first chunk batch should be the ones sent when the player first joins the server.
         // This just moves them to their spawn position when all their chunks are done loading,
         // preventing them from falling into the floor.
@@ -37,10 +37,12 @@ impl IncomingPacket for ChunkBatchAck {
         {
             // If they aren't underground, don't move them to spawn
             let pos = state.universe.get_mut::<Position>(conn_id)?;
-            let head_block = state
-                .world
-                .get_block_and_fetch(pos.x as i32, pos.y as i32 - 1, pos.z as i32, "overworld")
-                .await?;
+            let head_block = state.world.get_block_and_fetch(
+                pos.x as i32,
+                pos.y as i32 - 1,
+                pos.z as i32,
+                "overworld",
+            )?;
             if head_block.name == "minecraft:air" {
                 move_to_spawn = false;
             }

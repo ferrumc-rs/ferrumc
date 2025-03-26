@@ -607,17 +607,6 @@ impl NetEncode for NbtTape<'_> {
         writer.write_all(data)?;
         Ok(())
     }
-
-    async fn encode_async<W: tokio::io::AsyncWrite + Unpin>(
-        &self,
-        writer: &mut W,
-        _opts: &NetEncodeOpts,
-    ) -> NetEncodeResult<()> {
-        use tokio::io::AsyncWriteExt;
-        let data = self.data;
-        writer.write_all(data).await?;
-        Ok(())
-    }
 }
 
 impl NbtTapeElement<'_> {

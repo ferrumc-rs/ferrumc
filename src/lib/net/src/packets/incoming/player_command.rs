@@ -33,8 +33,8 @@ pub enum PlayerCommandAction {
 }
 
 impl IncomingPacket for PlayerCommandPacket {
-    async fn handle(self, _: Entity, state: Arc<ServerState>) -> NetResult<()> {
-        PlayerDoActionEvent::trigger(PlayerDoActionEvent::from(self), state).await?;
+    fn handle(self, _: Entity, state: Arc<ServerState>) -> NetResult<()> {
+        PlayerDoActionEvent::trigger(PlayerDoActionEvent::from(self), state)?;
         Ok(())
     }
 }

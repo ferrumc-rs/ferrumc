@@ -15,7 +15,7 @@ pub struct SwingArmPacket {
 }
 
 impl IncomingPacket for SwingArmPacket {
-    async fn handle(self, conn_id: Entity, state: Arc<ServerState>) -> NetResult<()> {
+    fn handle(self, conn_id: Entity, state: Arc<ServerState>) -> NetResult<()> {
         let animation = {
             if self.hand == 0 {
                 0
@@ -24,7 +24,7 @@ impl IncomingPacket for SwingArmPacket {
             }
         };
         let event = EntityAnimationEvent::new(conn_id, animation);
-        EntityAnimationEvent::trigger(event, state).await?;
+        EntityAnimationEvent::trigger(event, state)?;
         Ok(())
     }
 }

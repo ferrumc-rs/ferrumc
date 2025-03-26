@@ -16,7 +16,7 @@ use std::sync::Arc;
 pub struct StatusRequestPacket {}
 
 impl IncomingPacket for StatusRequestPacket {
-    async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
+    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
         let response = StatusResponse::new(get_server_status(&state));
 
         let mut writer = state.universe.get_mut::<StreamWriter>(conn_id)?;

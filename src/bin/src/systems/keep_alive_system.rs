@@ -1,5 +1,4 @@
 use crate::systems::definition::System;
-use async_trait::async_trait;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net::connection::{ConnectionState, StreamWriter};
 use ferrumc_net::packets::incoming::keep_alive::IncomingKeepAlivePacket;
@@ -9,6 +8,7 @@ use ferrumc_net::utils::state::terminate_connection;
 use ferrumc_state::GlobalState;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::thread;
 use tracing::{error, info, trace, warn};
 
 pub struct KeepAliveSystem {
@@ -23,9 +23,8 @@ impl KeepAliveSystem {
     }
 }
 
-#[async_trait]
 impl System for KeepAliveSystem {
-    async fn start(self: Arc<Self>, state: GlobalState) {
+    fn start(self: Arc<Self>, state: GlobalState) {
         info!("Started keep_alive");
         loop {
             if self.shutdown.load(Ordering::Relaxed) {
@@ -80,9 +79,7 @@ impl System for KeepAliveSystem {
                             state.clone(),
                             *entity,
                             "Keep alive timeout".to_string(),
-                        )
-                        .await
-                        {
+                        ) {
                             warn!(
                                 "Failed to terminate connection for entity {:?} , Err : {:?}",
                                 entity, e
@@ -94,9 +91,8 @@ impl System for KeepAliveSystem {
                     timestamp: current_time,
                 };
 
-                let broadcast_opts = BroadcastOptions::default()
-                    .only(entities)
-                    .with_sync_callback(move |entity, state| {
+                let broadcast_opts = BroadcastOptions::default().only(entities).with_callback(
+                    move |entity, state| {
                         let Ok(mut keep_alive) =
                             state.universe.get_mut::<OutgoingKeepAlivePacket>(entity)
                         else {
@@ -108,26 +104,24 @@ impl System for KeepAliveSystem {
                         };
 
                         *keep_alive = packet.clone();
-                    });
+                    },
+                );
 
-                if let Err(e) = state
-                    .broadcast(
-                        &OutgoingKeepAlivePacket {
-                            timestamp: current_time,
-                        },
-                        broadcast_opts,
-                    )
-                    .await
-                {
+                if let Err(e) = state.broadcast(
+                    &OutgoingKeepAlivePacket {
+                        timestamp: current_time,
+                    },
+                    broadcast_opts,
+                ) {
                     error!("Error sending keep alive packet: {}", e);
                 };
             }
 
-            tokio::time::sleep(tokio::time::Duration::from_secs(15)).await;
+            thread::sleep(std::time::Duration::from_secs(15));
         }
     }
 
-    async fn stop(self: Arc<Self>, _state: GlobalState) {
+    fn stop(self: Arc<Self>, _state: GlobalState) {
         tracing::debug!("Stopping keep alive system...");
         self.shutdown.store(true, Ordering::Relaxed);
     }

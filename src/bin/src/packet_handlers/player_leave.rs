@@ -7,7 +7,7 @@ use ferrumc_state::GlobalState;
 use tracing::info;
 
 #[event_handler]
-async fn handle_player_disconnect(
+fn handle_player_disconnect(
     event: PlayerDisconnectEvent,
     state: GlobalState,
 ) -> Result<PlayerDisconnectEvent, NetError> {
@@ -21,8 +21,7 @@ async fn handle_player_disconnect(
         &remove_entity_packet,
         &state,
         BroadcastOptions::default().all(),
-    )
-    .await?;
+    )?;
 
     Ok(event)
 }
