@@ -28,3 +28,13 @@ serde_json = { workspace = true }
 indicatif = { workspace = true }
 wyhash = { workspace = true }
 moka = { workspace = true, features = ["future"] }
+rand = { workspace = true }
+ahash = { workspace = true, features = ["serde"] }
+
+[[bench]]
+name = "world_bench"
+harness = false
+path = "src/benches/world.rs"
+
+[dev-dependencies]
+criterion = { workspace = true }

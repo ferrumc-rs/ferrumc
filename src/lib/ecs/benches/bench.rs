@@ -69,7 +69,7 @@ fn criterion_benchmark(c: &mut Criterion) {
             b.iter(|| {
                 create_entity(black_box(&world));
             });
-            // Create a new world after bench is done.
+            // Create a new world after benches is done.
             world = Universe::new();
             world
                 .builder()
