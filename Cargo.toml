@@ -78,6 +78,9 @@ overflow-checks = false
 panic = "abort"
 codegen-units = 1
 
+[profile.bench]
+debug = true
+
 #=============== Dependencies ==============#
 [workspace.dependencies]
 # Workspace members
@@ -131,6 +134,7 @@ thiserror = "2.0.3"
 rand = "0.9.0-beta.0"
 fnv = "1.0.7"
 wyhash = "0.5.0"
+ahash = "0.8.11"
 
 # Encoding/Serialization
 serde = { version = "1.0.210", features = ["derive"] }
@@ -173,7 +177,7 @@ yazi = "0.2.0"
 bzip2 = "0.5.0"
 
 # Database
-heed = "0.21.0"
+heed = "0.22.0"
 moka = "0.12.8"
 
 # CLI
