@@ -29,11 +29,13 @@ use std::hash::{Hash, Hasher};
 /// # Note
 /// This is much faster than calling `set_block` for each block individually, but slower than filling
 /// entire sections with the same block type. If you need to fill a section with the same block type, use
-/// `Chunk::set_section` instead.
+/// `Chunk::set_section` instead. However, there is a small amount of memory overhead for setting
+/// up the batch, so if you only need to set one or two blocks, it's better to just call `set_block`
 pub struct EditBatch<'a> {
     pub(crate) edits: Vec<Edit>,
     chunk: &'a mut Chunk,
     tmp_palette_map: AHashMap<i32, usize>,
+    used: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -55,22 +57,42 @@ fn get_palette_hash(palette: &[VarInt]) -> i32 {
 }
 
 impl<'a> EditBatch<'a> {
+    /// Creates a new `EditBatch` for the given chunk.
+    ///
+    /// This doesn't return the modified chunk, as the edits are applied in place.
+    /// This means you should create the batch, add edits, apply and then use the original chunk
+    /// you passed in.
     pub fn new(chunk: &'a mut Chunk) -> Self {
         let map_capacity = 64;
         Self {
             edits: Vec::new(),
             chunk,
             tmp_palette_map: AHashMap::with_capacity(map_capacity),
+            used: false,
         }
     }
 
+    /// Sets a block at the given chunk-relative coordinates.
+    ///
+    /// This won't have any effect until `apply()` is called.
     pub fn set_block(&mut self, x: i32, y: i32, z: i32, block: BlockData) {
         self.edits.push(Edit { x, y, z, block });
     }
 
+    /// Applies all edits in the batch to the chunk.
+    ///
+    /// This will modify the chunk in place and clear the batch.
+    /// Will return an error if the batch has already been used or if there are no edits.
     pub fn apply(&mut self) -> Result<(), WorldError> {
+        if self.used {
+            return Err(WorldError::InvalidBatchingOperation(
+                "EditBatch has already been used".to_string(),
+            ));
+        }
         if self.edits.is_empty() {
-            return Ok(());
+            return Err(WorldError::InvalidBatchingOperation(
+                "No edits to apply".to_string(),
+            ));
         }
 
         let mut section_edits: AHashMap<i8, Vec<Option<&Edit>>> = AHashMap::new();
@@ -104,12 +126,12 @@ impl<'a> EditBatch<'a> {
                 continue;
             }
             let section_maybe = self.chunk.sections.iter_mut().find(|s| s.y == section_y);
-            let first_edit = edits_vec
-                .iter()
-                .find(|e| e.is_some())
-                .expect("Section should have at least one edit")
-                .as_ref()
-                .unwrap();
+            // let first_edit = edits_vec
+            //     .iter()
+            //     .find(|e| e.is_some())
+            //     .expect("Section should have at least one edit")
+            //     .as_ref()
+            //     .unwrap();
             let mut block_count_adds = AHashMap::new();
             let mut block_count_removes = AHashMap::new();
 
@@ -145,26 +167,26 @@ impl<'a> EditBatch<'a> {
                 },
             };
 
-            // check if all the edits in 1 section are the same
-            let all_same = edits_vec
-                .iter()
-                .flatten()
-                .all(|edit| edit.block == first_edit.block);
-            // Check if applying all edits would result in a section full of the same block
-            if all_same {
-                if section
-                    .block_states
-                    .block_counts
-                    .get(&first_edit.block)
-                    .unwrap_or(&0)
-                    + edits_vec.len() as i32
-                    == 4096
-                {
-                    // If all blocks are the same, we can just set the whole section to that block
-                    section.fill(first_edit.block.clone())?;
-                }
-                continue;
-            }
+            // // check if all the edits in 1 section are the same
+            // let all_same = edits_vec
+            //     .iter()
+            //     .flatten()
+            //     .all(|edit| edit.block == first_edit.block);
+            // // Check if applying all edits would result in a section full of the same block
+            // if all_same {
+            //     if section
+            //         .block_states
+            //         .block_counts
+            //         .get(&first_edit.block)
+            //         .unwrap_or(&0)
+            //         + edits_vec.len() as i32
+            //         == 4096
+            //     {
+            //         // If all blocks are the same, we can just set the whole section to that block
+            //         section.fill(first_edit.block.clone())?;
+            //     }
+            //     continue;
+            // }
 
             // Convert from Single to Indirect palette if needed to support multiple block types
             if let PaletteType::Single(val) = &section.block_states.block_data {
@@ -298,6 +320,10 @@ impl<'a> EditBatch<'a> {
                 section.optimise()?;
             }
         }
+
+        // Clear edits after applying
+        self.edits.clear();
+        self.used = true;
 
         Ok(())
     }
