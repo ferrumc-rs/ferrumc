@@ -9,7 +9,6 @@ use ferrumc_ecs::Universe;
 use ferrumc_general_purpose::paths::get_root_path;
 use ferrumc_net::server::create_server_listener;
 use ferrumc_state::{GlobalState, ServerState};
-use ferrumc_utils::root;
 use ferrumc_world::chunk_format::Chunk;
 use ferrumc_world::World;
 use ferrumc_world_gen::errors::WorldGenError;
@@ -17,7 +16,6 @@ use ferrumc_world_gen::WorldGenerator;
 use rayon::prelude::*;
 use std::sync::Arc;
 use systems::definition;
-use tokio::io::AsyncWriteExt;
 use tokio::runtime::Handle;
 use tracing::{error, info};
 
