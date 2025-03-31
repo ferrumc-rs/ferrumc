@@ -26,6 +26,10 @@ use std::hash::{Hash, Hasher};
 /// ```
 ///
 /// `EditBatch` is single-use. After `apply()`, reuse it by creating a new one.
+/// # Note
+/// This is much faster than calling `set_block` for each block individually, but slower than filling
+/// entire sections with the same block type. If you need to fill a section with the same block type, use
+/// `Chunk::set_section` instead.
 pub struct EditBatch<'a> {
     pub(crate) edits: Vec<Edit>,
     chunk: &'a mut Chunk,
