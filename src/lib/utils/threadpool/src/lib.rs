@@ -12,6 +12,7 @@ pub struct ThreadPool {
 }
 
 /// A batch of tasks to be executed in the thread pool.
+// DO NOT IMPLEMENT `Clone` FOR THIS STRUCTURE, SEE THE `ThreadPoolBatch::execute_unchecked` FOR WHY
 pub struct ThreadPoolBatch<'a, R: Send + 'static> {
     pool: &'a Arc<rusty_pool::ThreadPool>,
     handles: Vec<JoinHandle<Box<R>>>,
@@ -52,21 +53,77 @@ impl ThreadPool {
             starting_thread: self.starting_thread.load(Relaxed),
         }
     }
+
+    /// Executes a single task in the thread pool and returns its result.
+    ///
+    /// # Arguments
+    /// * `func` - A function to be executed.
+    ///
+    /// # Returns
+    /// The result of the executed function.
+    pub fn oneshot<F, R>(&self, func: F) -> R
+    where
+        F: FnOnce() -> R + Send + 'static,
+        R: Send + 'static,
+    {
+        if self.starting_thread.load(Relaxed) != std::thread::current().id().as_u64().get() {
+            panic!("Thread pool has been moved to a different thread");
+        }
+        let boxed = move || Box::new(func());
+        let handle = self.pool.evaluate(boxed);
+        let result = handle.await_complete();
+        *result
+    }
 }
 
 impl<'a, R: Send + 'static> ThreadPoolBatch<'a, R> {
     /// Executes a task in the thread pool batch.
     ///
     /// # Arguments
-    /// * `f` - A function to be executed.
-    pub fn execute<F>(&mut self, f: F)
+    /// * `func` - A function to be executed.
+    pub fn execute<F>(&mut self, func: F)
     where
         F: FnOnce() -> R + Send + 'static,
     {
         if self.starting_thread != std::thread::current().id().as_u64().get() {
             panic!("Thread pool has been moved to a different thread");
         }
-        let boxed = move || Box::new(f());
+        let boxed = move || Box::new(func());
+        let handle = self.pool.evaluate(boxed);
+        self.handles.push(handle);
+    }
+
+    /// Executes a task in the thread pool batch without checking for thread safety.
+    ///
+    /// # Safety
+    /// This function does the same as `execute`, but does not check if the thread pool has been
+    /// moved to a different thread. When the threadpool is full, if those threads try spawn things
+    /// on the threadpool it can deadlock.
+    ///
+    /// Imagine we have a threadpool with only 1 thread and 2
+    /// tasks to complete, A and B. If A is run on the threadpool and then tries to spawn B on the
+    /// threadpool, B can't start until A finishes, but A can't finish until B completes. This
+    /// scenario is less likely to happen with a threadpool with more threads, but it can still
+    /// happen, so don't use this function unless you absolutely need to.
+    ///
+    /// This function is unsafe because it allows you to bypass the thread safety checks that are
+    /// normally enforced by the `execute` method. Use it only if you are sure that the thread pool
+    /// has not been moved to a different thread and that it is safe to execute the task.
+    ///
+    /// You generally won't be able to move the threadpool to a different thread due to borrow
+    /// checker nonsense, but if you figure out a way, you can use this function to bypass the
+    /// panic that would happen in `execute`.
+    ///
+    /// # Arguments
+    /// * `func` - A function to be executed.
+    ///
+    /// # Returns
+    /// The result of the executed function.
+    pub unsafe fn execute_unchecked<F>(&mut self, func: F)
+    where
+        F: FnOnce() -> R + Send + 'static,
+    {
+        let boxed = move || Box::new(func());
         let handle = self.pool.evaluate(boxed);
         self.handles.push(handle);
     }
@@ -90,6 +147,21 @@ impl<'a, R: Send + 'static> ThreadPoolBatch<'a, R> {
         }
         self.completed = true;
         results
+    }
+
+    /// Waits for the next task in the batch to complete and returns its result.
+    ///
+    /// # Returns
+    /// An `Option` containing the result of the completed task, or `None` if there are no more tasks.
+    pub fn wait_next(&mut self) -> Option<R> {
+        self.completed = true;
+
+        if let Some(handle) = self.handles.pop() {
+            let result = handle.await_complete();
+            Some(*result)
+        } else {
+            None
+        }
     }
 }
 
