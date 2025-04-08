@@ -34,6 +34,7 @@ members = [
     "src/lib/utils/logging",
     "src/lib/utils/profiling",
     "src/lib/world", "src/lib/world_gen",
+    "src/lib/utils/threadpool",
 ]
 
 #================== Lints ==================#
@@ -101,11 +102,12 @@ ferrumc-text = { path = "src/lib/text" }
 ferrumc-utils = { path = "src/lib/utils" }
 ferrumc-world = { path = "src/lib/world" }
 ferrumc-world-gen = { path = "src/lib/world_gen" }
+ferrumc-threadpool = { path = "src/lib/utils/threadpool" }
 
 
 
 # Asynchronous
-tokio = { version = "1.40.0", features = ["full"] }
+tokio = { version = "1.41.1", features = ["full"] }
 socket2 = "0.5.7"
 futures = "0.3.30"
 async-trait = "0.1.82"
@@ -122,6 +124,7 @@ parking_lot = "0.12.3"
 rayon = "1.10.0"
 threadpool = "1.8.1"
 crossbeam-channel = "0.5.14"
+rusty_pool = "0.7.0"
 
 # Network
 reqwest = { version = "0.12.9", features = ["json"] }
@@ -134,6 +137,7 @@ thiserror = "2.0.3"
 rand = "0.9.0-beta.0"
 fnv = "1.0.7"
 wyhash = "0.5.0"
+ahash = "0.8.11"
 
 # Encoding/Serialization
 serde = { version = "1.0.210", features = ["derive"] }
