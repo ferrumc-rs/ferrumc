@@ -134,7 +134,7 @@ impl Default for CompressionStatus {
 
 pub fn handle_connection(
     state: Arc<ServerState>,
-    tcp_stream: TcpStream,
+    mut tcp_stream: TcpStream,
     packet_queue: Arc<Mutex<Vec<(Box<dyn IncomingPacket + Send + 'static>, usize)>>>,
 ) -> NetResult<()> {
     let entity = state
@@ -161,26 +161,35 @@ pub fn handle_connection(
             break 'recv;
         }
 
-        let read_timeout = Duration::from_secs(2);
-        let (tx, rx) = crossbeam_channel::bounded(1);
-        thread::spawn({
-            let mut tcp_stream = tcp_stream.try_clone().expect("Unable to clone tcp stream");
-            move || tx.send(PacketSkeleton::new(&mut tcp_stream, compressed))
-        });
-        let res = rx.recv_timeout(read_timeout);
+        if state.shut_down.load(Ordering::Relaxed) {
+            debug!(
+                "Server is shutting down, breaking out of connection loop for entity: {}",
+                entity
+            );
+            break 'recv;
+        }
+
+        // let read_timeout = Duration::from_secs(2);
+        // let (tx, rx) = crossbeam_channel::bounded(1);
+        // thread::spawn({
+        //     let mut tcp_stream = tcp_stream.try_clone().expect("Unable to clone tcp stream");
+        //     move || tx.send(PacketSkeleton::new(&mut tcp_stream, compressed))
+        // });
+        // let res = rx.recv_timeout(read_timeout);
+
+        let res = PacketSkeleton::new(&mut tcp_stream, compressed);
 
         if let Err(err) = res {
             trace!(
-                "failed to read packet within {:?} for entity {:?}, err: {:?}
+                "failed to read packet for entity {:?}, err: {:?}
             continuing to next iteration",
-                read_timeout,
                 entity,
                 err
             );
             continue;
         }
 
-        let Ok(Ok(mut packet_skele)) = res else {
+        let Ok(mut packet_skele) = res else {
             trace!("Failed to read packet. Possibly connection closed. Breaking out of connection loop");
             break 'recv;
         };

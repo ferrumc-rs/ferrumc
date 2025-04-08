@@ -3,6 +3,7 @@ use ferrumc_config::statics::get_global_config;
 use ferrumc_net_codec::{decode::errors::NetDecodeError, net_types::var_int::VarInt};
 use std::io::Cursor;
 use std::{fmt::Debug, io::Read};
+use tracing::info;
 
 pub struct PacketSkeleton {
     pub length: usize,
@@ -27,7 +28,7 @@ impl PacketSkeleton {
         }
     }
 
-    #[inline(always)]
+    // #[inline(always)]
     fn read_uncompressed<R: Read + Unpin>(reader: &mut R) -> NetResult<Self> {
         let length = VarInt::read(reader)?.val as usize;
         let mut buf = {
@@ -38,6 +39,11 @@ impl PacketSkeleton {
         };
 
         let id = VarInt::read(&mut buf)?;
+
+        info!(
+            "Uncompressed packet: length: {}, id: {}",
+            length, id.val as u8
+        );
 
         Ok(Self {
             length,

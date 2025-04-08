@@ -5,8 +5,10 @@ use ferrumc_net::connection::handle_connection;
 use ferrumc_net::packets::IncomingPacket;
 use ferrumc_state::GlobalState;
 use ferrumc_threadpool::ThreadPool;
+use std::error::Error;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
+use thiserror::__private::AsDynError;
 use tracing::{info, info_span, trace, warn, Instrument};
 
 const NS_PER_SECOND: u64 = 1_000_000_000;
@@ -39,6 +41,11 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
         run_systems(global_state.clone(), &threadpool, &systems)?;
 
         // Process incoming packets
+        process_packets(
+            global_state.clone(),
+            &threadpool,
+            Arc::clone(&queued_packets),
+        );
 
         // Sleep to maintain the tick rate
         let elapsed_time = start_time.elapsed();
@@ -49,9 +56,10 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
         };
 
         if sleep_duration > Duration::ZERO {
-            info!(
+            trace!(
                 "Server tick took {:?}, sleeping for {:?}",
-                elapsed_time, sleep_duration
+                elapsed_time,
+                sleep_duration
             );
             std::thread::sleep(sleep_duration);
         } else {
@@ -98,7 +106,7 @@ fn run_systems(
 
 fn process_packets(
     state: GlobalState,
-    thread_pool: ThreadPool,
+    thread_pool: &ThreadPool,
     packet_queue: Arc<Mutex<Vec<(Box<dyn IncomingPacket + Send + 'static>, usize)>>>,
 ) {
     // Move all the packets to a temporary vector so we don't hold the lock while processing
@@ -114,7 +122,10 @@ fn process_packets(
         let state = Arc::clone(&state);
         batch.execute(move || {
             let (packet, id) = packet;
-            let result = packet.handle(id, state);
+            let result = packet
+                .handle(id, state)
+                .instrument(info_span!("packet_handle", conn = id))
+                .into_inner();
             if let Err(e) = result {
                 warn!("Error processing packet: {:?}", e);
             };
@@ -127,19 +138,23 @@ fn tcp_conn_accepter(
     state: GlobalState,
     packet_queue: Arc<Mutex<Vec<(Box<dyn IncomingPacket + Send + 'static>, usize)>>>,
 ) -> Result<(), BinaryError> {
-    let tcp_listener = &state.tcp_listener;
-    while !state.shut_down.load(std::sync::atomic::Ordering::Relaxed) {
-        let (stream, _) = tcp_listener.accept()?;
-        let addy = stream.peer_addr()?;
-        std::thread::spawn({
-            let state = Arc::clone(&state);
-            let packet_queue = Arc::clone(&packet_queue);
-            move || {
-                let _ = handle_connection(state, stream, packet_queue)
-                    .instrument(info_span!("conn", %addy).or_current());
-            }
-        });
-        info!("Accepted connection from {}", addy);
-    }
+    std::thread::spawn(move || {
+        let tcp_listener = &state.tcp_listener;
+        while !state.shut_down.load(std::sync::atomic::Ordering::Relaxed) {
+            let (stream, _) = tcp_listener.accept()?;
+            let addy = stream.peer_addr()?;
+            std::thread::spawn({
+                let state = Arc::clone(&state);
+                let packet_queue = Arc::clone(&packet_queue);
+                move || {
+                    let _ = handle_connection(state, stream, packet_queue)
+                        .instrument(info_span!("conn", %addy).or_current());
+                }
+            });
+            info!("Accepted connection from {}", addy);
+        }
+        info!("Shutting down TCP connection accepter");
+        Ok::<(), BinaryError>(())
+    });
     Ok(())
 }

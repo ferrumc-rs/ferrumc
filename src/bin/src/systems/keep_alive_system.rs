@@ -29,9 +29,6 @@ impl System for KeepAliveSystem {
             .expect("Time went backwards")
             .as_millis() as i64;
 
-        let online_players = state.universe.query::<&PlayerIdentity>();
-        info!("Online players: {}", online_players.count());
-
         let entities = state
             .universe
             .query::<(&mut StreamWriter, &ConnectionState)>()
