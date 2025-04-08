@@ -1,4 +1,5 @@
 use crate::packets::incoming::packet_skeleton::PacketSkeleton;
+use crate::packets::IncomingPacket;
 use crate::utils::state::terminate_connection;
 use crate::{handle_packet, NetResult};
 use crossbeam_channel::{Receiver, Sender};
@@ -11,7 +12,7 @@ use parking_lot::RwLock;
 use std::io::Write;
 use std::net::TcpStream;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 use tracing::{debug, debug_span, trace, warn, Instrument};
@@ -131,7 +132,11 @@ impl Default for CompressionStatus {
     }
 }
 
-pub fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -> NetResult<()> {
+pub fn handle_connection(
+    state: Arc<ServerState>,
+    tcp_stream: TcpStream,
+    packet_queue: Arc<Mutex<Vec<(Box<dyn IncomingPacket + Send + 'static>, usize)>>>,
+) -> NetResult<()> {
     let entity = state
         .universe
         .builder()
@@ -186,7 +191,7 @@ pub fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -> NetR
         }
 
         let conn_state = state.universe.get::<ConnectionState>(entity)?.clone();
-        if let Err(e) = handle_packet(
+        match handle_packet(
             packet_skele.id,
             entity,
             &conn_state,
@@ -194,17 +199,29 @@ pub fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -> NetR
             Arc::clone(&state),
         )
         .instrument(debug_span!("eid", %entity))
-        .inner()
+        .into_inner()
         {
-            warn!(
-                "Failed to handle packet: {:?}. packet_id: {:02X}; conn_state: {}",
-                e,
-                packet_skele.id,
-                conn_state.as_str()
-            );
-            // Kick the player (when implemented).
-            terminate_connection(state.clone(), entity, "Failed to handle packet".to_string())?;
-            break 'recv;
+            Ok(Some(pak)) => packet_queue.lock().unwrap().push((pak, entity)),
+            Ok(None) => {
+                // No packet found for the given ID and state
+                debug!(
+                    "No packet found for ID: 0x{:02X} in state: {}",
+                    packet_skele.id,
+                    conn_state.as_str()
+                );
+            }
+            Err(e) => {
+                // Failed to handle the packet
+                debug!(
+                    "Failed to handle packet: {:?}. packet_id: {:02X}; conn_state: {}",
+                    e,
+                    packet_skele.id,
+                    conn_state.as_str()
+                );
+                // Kick the player (when implemented).
+                terminate_connection(state.clone(), entity, "Failed to handle packet".to_string())?;
+                break 'recv;
+            }
         };
     }
 

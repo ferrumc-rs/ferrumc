@@ -1,3 +1,4 @@
+use crate::errors::BinaryError;
 use crate::systems::definition::System;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net::connection::{ConnectionState, StreamWriter};
@@ -11,88 +12,80 @@ use std::sync::Arc;
 use std::thread;
 use tracing::{error, info, trace, warn};
 
-pub struct KeepAliveSystem {
-    shutdown: AtomicBool,
-}
+pub struct KeepAliveSystem {}
 
 impl KeepAliveSystem {
     pub const fn new() -> Self {
-        Self {
-            shutdown: AtomicBool::new(false),
-        }
+        Self {}
     }
 }
 
 impl System for KeepAliveSystem {
-    fn start(self: Arc<Self>, state: GlobalState) {
-        info!("Started keep_alive");
-        loop {
-            if self.shutdown.load(Ordering::Relaxed) {
-                break;
-            }
+    fn run(self: Arc<Self>, state: GlobalState) -> Result<(), BinaryError> {
+        // Get the times before the queries, since it's possible a query takes more than a millisecond with a lot of entities.
 
-            // Get the times before the queries, since it's possible a query takes more than a millisecond with a lot of entities.
+        let current_time = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .expect("Time went backwards")
+            .as_millis() as i64;
 
-            let current_time = std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .expect("Time went backwards")
-                .as_millis() as i64;
+        let online_players = state.universe.query::<&PlayerIdentity>();
+        info!("Online players: {}", online_players.count());
 
-            let online_players = state.universe.query::<&PlayerIdentity>();
-            info!("Online players: {}", online_players.count());
+        let entities = state
+            .universe
+            .query::<(&mut StreamWriter, &ConnectionState)>()
+            .into_entities()
+            .into_iter()
+            .filter_map(|entity| {
+                let conn_state = state.universe.get::<ConnectionState>(entity).ok()?;
+                let keep_alive = state
+                    .universe
+                    .get_mut::<IncomingKeepAlivePacket>(entity)
+                    .ok()?;
 
-            let entities = state
-                .universe
-                .query::<(&mut StreamWriter, &ConnectionState)>()
-                .into_entities()
-                .into_iter()
-                .filter_map(|entity| {
-                    let conn_state = state.universe.get::<ConnectionState>(entity).ok()?;
-                    let keep_alive = state
-                        .universe
-                        .get_mut::<IncomingKeepAlivePacket>(entity)
-                        .ok()?;
+                if matches!(*conn_state, ConnectionState::Play)
+                    && (current_time - keep_alive.timestamp) >= 15000
+                {
+                    Some(entity)
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<_>>();
+        if !entities.is_empty() {
+            trace!("there are {:?} players to keep alive", entities.len());
 
-                    if matches!(*conn_state, ConnectionState::Play)
-                        && (current_time - keep_alive.timestamp) >= 15000
-                    {
-                        Some(entity)
-                    } else {
-                        None
-                    }
-                })
-                .collect::<Vec<_>>();
-            if !entities.is_empty() {
-                trace!("there are {:?} players to keep alive", entities.len());
+            // I know this is the second iteration of the entities vector, but it has to be done since terminate_connection is async
+            for entity in entities.iter() {
+                let keep_alive = state
+                    .universe
+                    .get_mut::<IncomingKeepAlivePacket>(*entity)
+                    .ok()
+                    .unwrap();
 
-                // I know this is the second iteration of the entities vector, but it has to be done since terminate_connection is async
-                for entity in entities.iter() {
-                    let keep_alive = state
-                        .universe
-                        .get_mut::<IncomingKeepAlivePacket>(*entity)
-                        .ok()
-                        .unwrap();
-
-                    if (current_time - keep_alive.timestamp) >= 30000 {
-                        // two iterations missed
-                        if let Err(e) = terminate_connection(
-                            state.clone(),
-                            *entity,
-                            "Keep alive timeout".to_string(),
-                        ) {
-                            warn!(
-                                "Failed to terminate connection for entity {:?} , Err : {:?}",
-                                entity, e
-                            );
-                        }
+                if (current_time - keep_alive.timestamp) >= 30000 {
+                    // two iterations missed
+                    if let Err(e) = terminate_connection(
+                        state.clone(),
+                        *entity,
+                        "Keep alive timeout".to_string(),
+                    ) {
+                        warn!(
+                            "Failed to terminate connection for entity {:?} , Err : {:?}",
+                            entity, e
+                        );
                     }
                 }
-                let packet = OutgoingKeepAlivePacket {
-                    timestamp: current_time,
-                };
+            }
+            let packet = OutgoingKeepAlivePacket {
+                timestamp: current_time,
+            };
 
-                let broadcast_opts = BroadcastOptions::default().only(entities).with_callback(
-                    move |entity, state| {
+            let broadcast_opts =
+                BroadcastOptions::default()
+                    .only(entities)
+                    .with_callback(move |entity, state| {
                         let Ok(mut keep_alive) =
                             state.universe.get_mut::<OutgoingKeepAlivePacket>(entity)
                         else {
@@ -104,26 +97,18 @@ impl System for KeepAliveSystem {
                         };
 
                         *keep_alive = packet.clone();
-                    },
-                );
+                    });
 
-                if let Err(e) = state.broadcast(
-                    &OutgoingKeepAlivePacket {
-                        timestamp: current_time,
-                    },
-                    broadcast_opts,
-                ) {
-                    error!("Error sending keep alive packet: {}", e);
-                };
-            }
-
-            thread::sleep(std::time::Duration::from_secs(15));
+            if let Err(e) = state.broadcast(
+                &OutgoingKeepAlivePacket {
+                    timestamp: current_time,
+                },
+                broadcast_opts,
+            ) {
+                error!("Error sending keep alive packet: {}", e);
+            };
         }
-    }
-
-    fn stop(self: Arc<Self>, _state: GlobalState) {
-        tracing::debug!("Stopping keep alive system...");
-        self.shutdown.store(true, Ordering::Relaxed);
+        Ok(())
     }
 
     fn name(&self) -> &'static str {

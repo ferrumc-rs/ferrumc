@@ -11,7 +11,7 @@ use serde_derive::{Deserialize, Serialize};
 /// - `port`: The port that the server will bind to. (0-65535)
 /// - `motd`: The message of the day that is displayed to clients. It will randomly select one from the list.
 /// - `max_players`: The maximum number of players that can be connected to the server.
-/// - `network_tick_rate`: How many network updates to process per second per user.
+/// - `tps`: The ticks per second that the server will run at.
 /// - `database` - [DatabaseConfig]: The configuration for the database.
 /// - `world`: The name of the world that the server will load.
 /// - `network_compression_threshold`: The threshold at which the server will compress network packets.
@@ -22,7 +22,7 @@ pub struct ServerConfig {
     pub port: u16, // 0-65535
     pub motd: Vec<String>,
     pub max_players: u32,
-    pub network_tick_rate: u32,
+    pub tps: u32,
     pub database: DatabaseConfig,
     pub world: String,
     pub network_compression_threshold: i32, // Can be negative

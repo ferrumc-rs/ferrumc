@@ -22,6 +22,7 @@ pub(crate) mod errors;
 use crate::cli::{CLIArgs, Command, ImportArgs};
 mod chunk_sending;
 mod cli;
+mod game_loop;
 mod packet_handlers;
 mod systems;
 
@@ -110,13 +111,18 @@ fn entry() -> Result<(), BinaryError> {
         generate_chunks(global_state.clone())?;
     }
 
-    let all_system_handles = definition::start_all_systems(global_state.clone());
+    ctrlc::set_handler({
+        let global_state = global_state.clone();
+        move || {
+            info!("Shutting down server...");
+            global_state
+                .shut_down
+                .store(true, std::sync::atomic::Ordering::Relaxed);
+        }
+    })
+    .expect("Error setting Ctrl-C handler");
 
-    //Start the systems and wait until all of them are done
-    all_system_handles?;
-
-    // Stop all systems
-    definition::stop_all_systems(global_state)?;
+    game_loop::start_game_loop(global_state.clone())?;
 
     Ok(())
 }
@@ -154,5 +160,6 @@ fn create_state() -> Result<ServerState, BinaryError> {
         tcp_listener: listener,
         world: World::new(),
         terrain_generator: WorldGenerator::new(0),
+        shut_down: false.into(),
     })
 }

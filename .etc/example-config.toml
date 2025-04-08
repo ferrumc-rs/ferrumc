@@ -6,8 +6,8 @@ port = 25565
 motd = ["Welcome to the best server ever!", "Rust", "Good luck, have fun!"]
 # Maximum number of players
 max_players = 100
-# How many network updates per second per user
-network_tick_rate = 30
+# How many ticks per second the server should run at. This is the same as Minecraft's default.
+tps = 20
 # World name to load
 world = "world"
 # Whether the server should validate players via the whitelist
