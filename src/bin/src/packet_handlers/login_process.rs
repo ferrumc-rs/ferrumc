@@ -94,7 +94,7 @@ fn handle_login_acknowledged(
     login_acknowledged_event: LoginAcknowledgedEvent,
     state: GlobalState,
 ) -> Result<LoginAcknowledgedEvent, NetError> {
-    trace!("Handling Login Acknowledged event");
+    debug!("Handling Login Acknowledged event");
 
     //Set the connection State to Configuration
     let mut connection_state = state

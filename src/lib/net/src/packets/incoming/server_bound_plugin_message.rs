@@ -5,6 +5,7 @@ use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
 use ferrumc_state::ServerState;
 use std::io::Read;
 use std::sync::Arc;
+use tokio::io::AsyncReadExt;
 use tracing::debug;
 
 #[derive(Debug)]
@@ -23,6 +24,17 @@ impl NetDecode for ServerBoundPluginMessage {
         let channel = <String>::decode(reader, opts)?;
         let mut buf = Vec::<u8>::new();
         reader.read_to_end(&mut buf)?;
+
+        Ok(Self { channel, data: buf })
+    }
+
+    async fn decode_async<R: tokio::io::AsyncRead + Unpin>(
+        reader: &mut R,
+        opts: &NetDecodeOpts,
+    ) -> NetDecodeResult<Self> {
+        let channel = <String>::decode_async(reader, opts).await?;
+        let mut buf = Vec::<u8>::new();
+        reader.read_to_end(&mut buf).await?;
 
         Ok(Self { channel, data: buf })
     }

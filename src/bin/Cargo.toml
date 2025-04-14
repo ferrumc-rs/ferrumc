@@ -34,6 +34,7 @@ flate2 = { workspace = true }
 ctor = { workspace = true }
 dhat = { workspace = true }
 ctrlc = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
 
 [features]
 dhat = []
