@@ -76,7 +76,7 @@ impl VarInt {
         Self(value)
     }
 
-    #[allow(clippy::len_without_is_empty)]
+    #[expect(clippy::len_without_is_empty)]
     pub const fn len(&self) -> usize {
         match self.0 {
             -128..128 => 1,

@@ -10,12 +10,11 @@ use tracing::debug;
 #[derive(Debug, NetDecode)]
 #[packet(packet_id = "select_known_packs", state = "configuration")]
 pub struct ServerBoundKnownPacks {
-    #[allow(dead_code)]
     pub packs: LengthPrefixedVec<PackOwned>,
 }
 
 #[derive(Debug, NetDecode)]
-#[allow(dead_code)]
+#[expect(dead_code)]
 pub struct PackOwned {
     namespace: String,
     id: String,

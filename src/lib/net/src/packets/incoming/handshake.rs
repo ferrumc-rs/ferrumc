@@ -48,7 +48,6 @@ mod tests {
     #[test]
     fn test_macro_decode() {
         #[derive(NetDecode, Default)]
-        #[allow(unused)]
         struct Handshake {
             protocol_version: VarInt,
             server_address: String,

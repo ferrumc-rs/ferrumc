@@ -34,7 +34,6 @@ pub enum BinaryError {
     #[error("World error: {0}")]
     World(#[from] WorldError),
 
-    #[allow(dead_code)]
     #[error("{0}")]
     Custom(String),
 

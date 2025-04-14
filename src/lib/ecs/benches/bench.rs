@@ -1,13 +1,11 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use ferrumc_ecs::Universe;
 
-#[allow(dead_code)]
 struct Position {
     x: f32,
     y: f32,
 }
 
-#[allow(dead_code)]
 struct Velocity {
     x: f32,
     y: f32,
