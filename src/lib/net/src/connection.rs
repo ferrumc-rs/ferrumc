@@ -1,5 +1,5 @@
 use crate::packets::incoming::packet_skeleton::PacketSkeleton;
-use crate::packets::IncomingPacket;
+use crate::packets::{AnyIncomingPacket, IncomingPacket};
 use crate::utils::state::terminate_connection;
 use crate::{handle_packet, NetResult};
 use crossbeam_channel::{Receiver, Sender};
@@ -135,7 +135,7 @@ impl Default for CompressionStatus {
 pub fn handle_connection(
     state: Arc<ServerState>,
     tcp_stream: TcpStream,
-    packet_queue: Arc<Mutex<Vec<(Box<dyn IncomingPacket + Send + 'static>, usize)>>>,
+    packet_queue: Arc<Mutex<Vec<(AnyIncomingPacket, usize)>>>,
 ) -> NetResult<()> {
     let entity = state
         .universe

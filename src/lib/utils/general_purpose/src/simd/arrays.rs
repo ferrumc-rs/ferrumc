@@ -23,19 +23,10 @@ pub fn u8_slice_to_u32_be(input: &[u8]) -> Vec<u32> {
     );
 
     #[cfg(all(target_arch = "x86_64", not(target_os = "macos")))]
-    {
-        if has_avx2() {
-            return unsafe { u8_slice_to_u32_be_simd(input) };
-        }
+    if has_avx2() {
+        return unsafe { u8_slice_to_u32_be_simd(input) };
     }
-    #[cfg(not(all(
-        target_arch = "x86_64",
-        target_feature = "avx2",
-        not(target_os = "macos")
-    )))]
-    {
-        u8_slice_to_u32_be_normal(input)
-    }
+    u8_slice_to_u32_be_normal(input)
 }
 
 fn u8_slice_to_u32_be_normal(input: &[u8]) -> Vec<u32> {
@@ -46,7 +37,6 @@ fn u8_slice_to_u32_be_normal(input: &[u8]) -> Vec<u32> {
 }
 
 #[cfg(all(target_arch = "x86_64", not(target_os = "macos")))]
-#[target_feature(enable = "avx2")]
 unsafe fn u8_slice_to_u32_be_simd(input: &[u8]) -> Vec<u32> {
     use std::mem;
 
@@ -178,21 +168,10 @@ pub fn u8_slice_to_i64_be(input: &[u8]) -> Vec<i64> {
 
 pub fn u32_slice_to_u8_be(input: &[u32]) -> Vec<u8> {
     #[cfg(all(target_arch = "x86_64", not(target_os = "macos")))]
-    {
-        if has_avx2() {
-            println!("Using SIMD");
-            return unsafe { u32_slice_to_u8_be_simd(input) };
-        }
+    if has_avx2() {
+        return unsafe { u32_slice_to_u8_be_simd(input) };
     }
-    #[cfg(not(all(
-        target_arch = "x86_64",
-        target_feature = "avx2",
-        not(target_os = "macos")
-    )))]
-    {
-        println!("Not using SIMD");
-        u32_slice_to_u8_be_normal(input)
-    }
+    u32_slice_to_u8_be_normal(input)
 }
 
 fn u32_slice_to_u8_be_normal(input: &[u32]) -> Vec<u8> {
@@ -238,19 +217,10 @@ unsafe fn u32_slice_to_u8_be_simd(input: &[u32]) -> Vec<u8> {
 
 pub fn u64_slice_to_u8_be(input: &[u64]) -> Vec<u8> {
     #[cfg(all(target_arch = "x86_64", not(target_os = "macos")))]
-    {
-        if has_avx2() {
-            return unsafe { u64_slice_to_u8_be_simd(input) };
-        }
+    if has_avx2() {
+        return unsafe { u64_slice_to_u8_be_simd(input) };
     }
-    #[cfg(not(all(
-        target_arch = "x86_64",
-        target_feature = "avx2",
-        not(target_os = "macos")
-    )))]
-    {
-        u64_slice_to_u8_be_normal(input)
-    }
+    u64_slice_to_u8_be_normal(input)
 }
 
 fn u64_slice_to_u8_be_normal(input: &[u64]) -> Vec<u8> {

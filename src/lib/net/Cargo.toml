@@ -32,3 +32,4 @@ async-trait = { workspace = true }
 byteorder = { workspace = true }
 ferrumc-state = { workspace = true }
 crossbeam-channel = { workspace = true }
+enum_delegate.workspace = true

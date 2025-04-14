@@ -12,29 +12,30 @@ resolver = "2"
 
 #================= Members =================#
 members = [
-    "src/bin",
-    "src/lib/adapters/anvil",
-    "src/lib/adapters/anvil",
-    "src/lib/adapters/nbt",
-    "src/lib/adapters/nbt",
-    "src/lib/core",
-    "src/lib/core/state",
-    "src/lib/derive_macros",
-    "src/lib/derive_macros",
-    "src/lib/ecs",
-    "src/lib/events",
-    "src/lib/net",
-    "src/lib/net/crates/codec",
-    "src/lib/net/crates/encryption",
-    "src/lib/plugins",
-    "src/lib/storage",
-    "src/lib/text",
-    "src/lib/utils",
-    "src/lib/utils/general_purpose",
-    "src/lib/utils/logging",
-    "src/lib/utils/profiling",
-    "src/lib/world", "src/lib/world_gen",
-    "src/lib/utils/threadpool",
+  "src/bin",
+  "src/lib/adapters/anvil",
+  "src/lib/adapters/anvil",
+  "src/lib/adapters/nbt",
+  "src/lib/adapters/nbt",
+  "src/lib/core",
+  "src/lib/core/state",
+  "src/lib/derive_macros",
+  "src/lib/derive_macros",
+  "src/lib/ecs",
+  "src/lib/events",
+  "src/lib/net",
+  "src/lib/net/crates/codec",
+  "src/lib/net/crates/encryption",
+  "src/lib/plugins",
+  "src/lib/storage",
+  "src/lib/text",
+  "src/lib/utils",
+  "src/lib/utils/general_purpose",
+  "src/lib/utils/logging",
+  "src/lib/utils/profiling",
+  "src/lib/world",
+  "src/lib/world_gen",
+  "src/lib/utils/threadpool",
 ]
 
 #================== Lints ==================#
@@ -105,7 +106,6 @@ ferrumc-world-gen = { path = "src/lib/world_gen" }
 ferrumc-threadpool = { path = "src/lib/utils/threadpool" }
 
 
-
 # Asynchronous
 tokio = { version = "1.41.1", features = ["full"] }
 socket2 = "0.5.7"
@@ -165,6 +165,7 @@ proc-macro-crate = "3.2.0"
 paste = "1.0.15"
 maplit = "1.0.2"
 macro_rules_attribute = "0.2.0"
+enum_delegate = "0.2.0"
 
 # Magic ("life-before-main" initialization, __attribute__((constructor)))
 ctor = "0.4.0"
@@ -201,3 +202,4 @@ tempdir = "0.3.7"
 
 # Benchmarking
 criterion = { version = "0.5.1", features = ["html_reports"] }
+

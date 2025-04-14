@@ -148,7 +148,7 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
                         // packet.handle(conn_id, state)?;
                         // <#struct_path as crate::packets::IncomingPacket>::handle(packet, conn_id, state)?;
                         // tracing::debug!("Received packet: {:?}", packet);
-                        Ok(Some(Box::from(packet) as Box<dyn crate::packets::IncomingPacket + Send + 'static>))
+                        Ok(Some(crate::packets::AnyIncomingPacket::from(packet)))
                     },
                 });
         }
@@ -176,7 +176,7 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
     let match_arms = match_arms.into_iter();
 
     let output = quote! {
-        pub fn handle_packet<R: std::io::Read>(packet_id: u8, conn_id: usize, conn_state: &crate::connection::ConnectionState, cursor: &mut R, state: std::sync::Arc<ferrumc_state::ServerState>) -> crate::NetResult<Option<Box<dyn crate::packets::IncomingPacket + Send + 'static>>> {
+        pub fn handle_packet<R: std::io::Read>(packet_id: u8, conn_id: usize, conn_state: &crate::connection::ConnectionState, cursor: &mut R, state: std::sync::Arc<ferrumc_state::ServerState>) -> crate::NetResult<Option<crate::packets::AnyIncomingPacket>> {
             match (packet_id, conn_state.as_str()) {
                 #(#match_arms)*
                 _ => {tracing::debug!("No packet found for ID: 0x{:02X} in state: {}", packet_id, conn_state.as_str()); NetResult::Ok(None)},

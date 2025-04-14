@@ -1,9 +1,9 @@
 #![feature(thread_id_value)]
 
 use rusty_pool::JoinHandle;
+use std::sync::Arc;
 use std::sync::atomic::AtomicU64;
 use std::sync::atomic::Ordering::Relaxed;
-use std::sync::Arc;
 
 /// A thread pool for managing and executing tasks concurrently.
 pub struct ThreadPool {
