@@ -33,9 +33,14 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
         let start_time = std::time::Instant::now();
 
         // Run the game systems
-        run_systems(global_state.clone(), &threadpool, &systems)?;
+        run_systems(global_state.clone(), &threadpool, &systems, tick)?;
 
         // Process incoming packets
+        process_packets(
+            global_state.clone(),
+            &threadpool,
+            Arc::clone(&queued_packets),
+        );
 
         // Sleep to maintain the tick rate
         let elapsed_time = start_time.elapsed();
@@ -46,9 +51,10 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
         };
 
         if sleep_duration > Duration::ZERO {
-            info!(
+            trace!(
                 "Server tick took {:?}, sleeping for {:?}",
-                elapsed_time, sleep_duration
+                elapsed_time,
+                sleep_duration
             );
             std::thread::sleep(sleep_duration);
         } else {
@@ -68,6 +74,7 @@ fn run_systems(
     global_state: GlobalState,
     thread_pool: &ThreadPool,
     systems: &[Arc<dyn System>],
+    tick: u128,
 ) -> Result<(), BinaryError> {
     // Run each system in the thread pool
     let mut batch: ferrumc_threadpool::ThreadPoolBatch<'_, Result<_, BinaryError>> =
@@ -78,7 +85,7 @@ fn run_systems(
         batch.execute(move || {
             let sys_name = system.name().to_string();
             system
-                .run(state)
+                .run(state, tick)
                 .instrument(info_span!("system ", name = sys_name))
                 .into_inner()?;
             Ok(())
@@ -111,7 +118,10 @@ fn process_packets(
         let state = Arc::clone(&state);
         batch.execute(move || {
             let (packet, id) = packet;
-            let result = packet.handle(id, state);
+            let result = packet
+                .handle(id, state)
+                .instrument(info_span!("packet_handle", conn = id))
+                .into_inner();
             if let Err(e) = result {
                 warn!("Error processing packet: {:?}", e);
             };
@@ -120,23 +130,67 @@ fn process_packets(
     }
 }
 
+// This is the bit where we bridge to async
 fn tcp_conn_accepter(
     state: GlobalState,
     packet_queue: Arc<Mutex<Vec<(AnyIncomingPacket, usize)>>>,
 ) -> Result<(), BinaryError> {
-    let tcp_listener = &state.tcp_listener;
-    while !state.shut_down.load(std::sync::atomic::Ordering::Relaxed) {
-        let (stream, _) = tcp_listener.accept()?;
-        let addy = stream.peer_addr()?;
-        std::thread::spawn({
-            let state = Arc::clone(&state);
-            let packet_queue = Arc::clone(&packet_queue);
-            move || {
-                let _ = handle_connection(state, stream, packet_queue)
-                    .instrument(info_span!("conn", %addy).or_current());
-            }
-        });
-        info!("Accepted connection from {}", addy);
-    }
+    let named_thread = std::thread::Builder::new().name("TokioNetworkThread".to_string());
+    named_thread.spawn(move || {
+        let caught_panic = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            debug!("Created TCP connection accepter thread");
+            let async_runtime = tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .thread_name("Tokio-Async-Network")
+                .build()?;
+            async_runtime.block_on({
+                let state = Arc::clone(&state);
+                async move {
+                    let Ok(listener) = create_server_listener().await else {
+                        error!("Failed to create TCP listener");
+                        return Err::<(), BinaryError>(BinaryError::Custom(
+                            "Failed to create TCP listener".to_string(),
+                        ));
+                    };
+                    while !state.shut_down.load(std::sync::atomic::Ordering::Relaxed) {
+                        debug!("Waiting for TCP connection...");
+                        let (stream, _) = listener
+                            .accept()
+                            .await
+                            .expect("Failed to accept TCP connection");
+                        let addy = stream.peer_addr()?;
+                        debug!("Got TCP connection from {}", addy);
+                        tokio::spawn({
+                            let state = Arc::clone(&state);
+                            let packet_queue = Arc::clone(&packet_queue);
+                            async move {
+                                let _ = handle_connection(state, stream, packet_queue)
+                                    .instrument(info_span!("conn", %addy).or_current())
+                                    .await;
+                            }
+                        });
+                        info!("Accepted connection from {}", addy);
+                    }
+                    debug!("Shutting down TCP connection accepter thread");
+                    Ok(())
+                }
+            })?;
+            info!("Shutting down TCP connection accepter");
+            Ok::<(), BinaryError>(())
+        }));
+        if let Err(e) = caught_panic {
+            error!("TCP connection accepter thread panicked: {:?}", e);
+            // If we get here, the thread panicked
+            state
+                .shut_down
+                .store(true, std::sync::atomic::Ordering::Relaxed);
+            return Err::<(), BinaryError>(BinaryError::Custom(
+                "TCP connection accepter thread panicked".to_string(),
+            ));
+        }
+        Err(BinaryError::Custom(
+            "TCP connection accepter thread panicked".to_string(),
+        ))
+    })?;
     Ok(())
 }

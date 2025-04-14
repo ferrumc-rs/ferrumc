@@ -119,6 +119,14 @@ mod index_type {
         fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
             self.index().encode(writer, opts)
         }
+
+        async fn encode_async<W: tokio::io::AsyncWrite + Unpin>(
+            &self,
+            writer: &mut W,
+            opts: &NetEncodeOpts,
+        ) -> NetEncodeResult<()> {
+            self.index().encode_async(writer, opts).await
+        }
     }
 }
 
@@ -273,6 +281,14 @@ mod extra_data_types {
     impl NetEncode for EntityPose {
         fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
             self.index().encode(writer, opts)
+        }
+
+        async fn encode_async<W: tokio::io::AsyncWrite + Unpin>(
+            &self,
+            writer: &mut W,
+            opts: &NetEncodeOpts,
+        ) -> NetEncodeResult<()> {
+            self.index().encode_async(writer, opts).await
         }
     }
 }

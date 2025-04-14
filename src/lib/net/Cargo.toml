@@ -18,17 +18,13 @@ ferrumc-text = { workspace = true }
 ferrumc-world = { workspace = true }
 tracing = { workspace = true }
 tokio = { workspace = true }
-socket2 = { workspace = true }
 parking_lot = { workspace = true }
-futures = { workspace = true }
-ctor = { workspace = true }
 flate2 = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 serde_derive = { workspace = true }
 rand = { workspace = true }
 uuid = { workspace = true, features = ["v4"] }
-async-trait = { workspace = true }
 byteorder = { workspace = true }
 ferrumc-state = { workspace = true }
 crossbeam-channel = { workspace = true }

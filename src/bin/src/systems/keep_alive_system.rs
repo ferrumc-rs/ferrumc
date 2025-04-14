@@ -1,16 +1,13 @@
 use crate::errors::BinaryError;
 use crate::systems::definition::System;
-use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net::connection::{ConnectionState, StreamWriter};
 use ferrumc_net::packets::incoming::keep_alive::IncomingKeepAlivePacket;
 use ferrumc_net::packets::outgoing::keep_alive::OutgoingKeepAlivePacket;
 use ferrumc_net::utils::broadcast::{BroadcastOptions, BroadcastToAll};
 use ferrumc_net::utils::state::terminate_connection;
 use ferrumc_state::GlobalState;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
-use std::thread;
-use tracing::{error, info, trace, warn};
+use tracing::{error, trace, warn};
 
 pub struct KeepAliveSystem {}
 
@@ -21,16 +18,13 @@ impl KeepAliveSystem {
 }
 
 impl System for KeepAliveSystem {
-    fn run(self: Arc<Self>, state: GlobalState) -> Result<(), BinaryError> {
+    fn run(self: Arc<Self>, state: GlobalState, _tick: u128) -> Result<(), BinaryError> {
         // Get the times before the queries, since it's possible a query takes more than a millisecond with a lot of entities.
 
         let current_time = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .expect("Time went backwards")
             .as_millis() as i64;
-
-        let online_players = state.universe.query::<&PlayerIdentity>();
-        info!("Online players: {}", online_players.count());
 
         let entities = state
             .universe

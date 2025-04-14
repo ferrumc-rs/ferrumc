@@ -4,7 +4,7 @@ use ferrumc_state::GlobalState;
 use std::sync::Arc;
 
 pub trait System: Send + Sync {
-    fn run(self: Arc<Self>, state: GlobalState) -> Result<(), BinaryError>;
+    fn run(self: Arc<Self>, state: GlobalState, tick: u128) -> Result<(), BinaryError>;
 
     fn name(&self) -> &'static str;
 }

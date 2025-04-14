@@ -1,4 +1,5 @@
 use std::io::Read;
+use tokio::io::AsyncRead;
 
 pub mod errors;
 mod primitives;
@@ -14,4 +15,10 @@ pub enum NetDecodeOpts {
 }
 pub trait NetDecode: Sized {
     fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> NetDecodeResult<Self>;
+
+    #[expect(async_fn_in_trait)]
+    async fn decode_async<R: AsyncRead + Unpin>(
+        reader: &mut R,
+        opts: &NetDecodeOpts,
+    ) -> NetDecodeResult<Self>;
 }

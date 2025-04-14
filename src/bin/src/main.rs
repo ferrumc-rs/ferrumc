@@ -7,7 +7,6 @@ use clap::Parser;
 use ferrumc_config::whitelist::create_whitelist;
 use ferrumc_ecs::Universe;
 use ferrumc_general_purpose::paths::get_root_path;
-use ferrumc_net::server::create_server_listener;
 use ferrumc_state::{GlobalState, ServerState};
 use ferrumc_world::chunk_format::Chunk;
 use ferrumc_world::World;
@@ -15,7 +14,6 @@ use ferrumc_world_gen::errors::WorldGenError;
 use ferrumc_world_gen::WorldGenerator;
 use rayon::prelude::*;
 use std::sync::Arc;
-use systems::definition;
 use tracing::{error, info};
 
 pub(crate) mod errors;
@@ -153,11 +151,8 @@ fn handle_import(import_args: ImportArgs) -> Result<(), BinaryError> {
 }
 
 fn create_state() -> Result<ServerState, BinaryError> {
-    let listener = create_server_listener()?;
-
     Ok(ServerState {
         universe: Universe::new(),
-        tcp_listener: listener,
         world: World::new(),
         terrain_generator: WorldGenerator::new(0),
         shut_down: false.into(),

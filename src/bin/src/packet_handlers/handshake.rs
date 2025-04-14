@@ -6,14 +6,14 @@ use ferrumc_net::errors::{NetError, PacketError};
 use ferrumc_net::packets::incoming::handshake::HandshakeEvent;
 use ferrumc_net::utils::ecs_helpers::EntityExt;
 use ferrumc_state::GlobalState;
-use tracing::{error, trace};
+use tracing::{debug, error, trace};
 
 #[event_handler]
 fn handle_handshake(
     handshake_event: HandshakeEvent,
     state: GlobalState,
 ) -> Result<HandshakeEvent, NetError> {
-    trace!("Handling handshake event");
+    debug!("Handling handshake event");
     let handshake = &handshake_event.handshake;
 
     // set connection state to handshake
