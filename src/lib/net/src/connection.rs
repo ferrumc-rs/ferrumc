@@ -231,7 +231,7 @@ fn disconnect(state: Arc<ServerState>, entity: usize) {
 
     // Broadcast the leave server event
 
-    let _ =
+    _ =
         PlayerDisconnectEvent::trigger(PlayerDisconnectEvent { entity_id: entity }, state.clone());
 
     // Remove all components from the entity

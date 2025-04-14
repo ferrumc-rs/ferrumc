@@ -282,7 +282,7 @@ mod tests {
         let locations = loaded_file.get_locations();
         locations.chunks(96).par_bridge().for_each(|chunk| {
             chunk.iter().for_each(|location| {
-                let _ = loaded_file.get_chunk_from_location(*location);
+                _ = loaded_file.get_chunk_from_location(*location);
             });
         });
     }

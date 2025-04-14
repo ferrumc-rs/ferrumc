@@ -287,7 +287,7 @@ fn broadcast_spawn_entity_packet(entity_id: Entity, state: &GlobalState) -> NetR
         .into_iter()
         .fold(writer, |mut writer, entity| {
             if let Ok(packet) = SpawnEntityPacket::player(entity, state) {
-                let _ = writer.send_packet(packet, &NetEncodeOpts::WithLength);
+                _ = writer.send_packet(packet, &NetEncodeOpts::WithLength);
             }
             writer
         });

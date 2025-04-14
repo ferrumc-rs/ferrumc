@@ -165,7 +165,7 @@ fn tcp_conn_accepter(
                             let state = Arc::clone(&state);
                             let packet_queue = Arc::clone(&packet_queue);
                             async move {
-                                let _ = handle_connection(state, stream, packet_queue)
+                                _ = handle_connection(state, stream, packet_queue)
                                     .instrument(info_span!("conn", %addy).or_current())
                                     .await;
                             }
