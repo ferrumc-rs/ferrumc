@@ -12,3 +12,4 @@ futures = { workspace = true }
 dashmap = { workspace = true }
 tracing = { workspace = true }
 rayon = { workspace = true }
+

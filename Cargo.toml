@@ -198,8 +198,7 @@ ctrlc = "3.4.6"
 
 # I/O
 memmap2 = "0.9.5"
-tempdir = "0.3.7"
+tempfile = "3.19.1"
 
 # Benchmarking
 criterion = { version = "0.5.1", features = ["html_reports"] }
-

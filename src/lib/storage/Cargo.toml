@@ -19,13 +19,16 @@ heed = { workspace = true }
 page_size = { workspace = true }
 
 
-
 [dev-dependencies]
-criterion = { workspace = true, features = ["async_tokio", "async_futures", "tokio", "futures"] }
-tempdir = { workspace = true }
+criterion = { workspace = true, features = [
+  "async_tokio",
+  "async_futures",
+  "tokio",
+  "futures",
+] }
+tempfile = { workspace = true }
 
 [[bench]]
 name = "storage_bench"
 harness = false
 path = "src/benches/storage.rs"
-
