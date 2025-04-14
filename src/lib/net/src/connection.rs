@@ -1,5 +1,5 @@
 use crate::packets::incoming::packet_skeleton::PacketSkeleton;
-use crate::packets::{AnyIncomingPacket, IncomingPacket};
+use crate::packets::AnyIncomingPacket;
 use crate::utils::state::terminate_connection;
 use crate::{handle_packet, NetResult};
 use ferrumc_events::infrastructure::Event;

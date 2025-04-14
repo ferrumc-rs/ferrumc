@@ -20,7 +20,7 @@ pub struct ClientInformation {
 }
 
 #[derive(Debug, NetDecode)]
-#[net(type_cast = "VarInt", type_cast_handler = "value.val as u8")]
+#[net(type_cast = "VarInt", type_cast_handler = "value.0 as u8")]
 #[repr(u8)]
 pub enum ChatMode {
     Enabled,
@@ -29,7 +29,7 @@ pub enum ChatMode {
 }
 
 #[derive(Debug, NetDecode)]
-#[net(type_cast = "VarInt", type_cast_handler = "value.val as u8")]
+#[net(type_cast = "VarInt", type_cast_handler = "value.0 as u8")]
 #[repr(u8)]
 pub enum MainHand {
     Left,

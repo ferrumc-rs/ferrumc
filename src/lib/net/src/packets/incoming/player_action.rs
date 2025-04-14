@@ -26,7 +26,7 @@ pub struct PlayerAction {
 impl IncomingPacket for PlayerAction {
     fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
         // https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol?oldid=2773393#Player_Action
-        match self.status.val {
+        match self.status.0 {
             0 => {
                 let mut chunk = state.clone().world.load_chunk(
                     self.location.x >> 4,

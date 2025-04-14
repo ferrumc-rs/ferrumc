@@ -3,11 +3,12 @@ use crate::systems::definition::{create_systems, System};
 use ferrumc_config::statics::get_global_config;
 use ferrumc_net::connection::handle_connection;
 use ferrumc_net::packets::{AnyIncomingPacket, IncomingPacket};
+use ferrumc_net::server::create_server_listener;
 use ferrumc_state::GlobalState;
 use ferrumc_threadpool::ThreadPool;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
-use tracing::{info, info_span, warn, Instrument};
+use tracing::{debug, error, info, info_span, trace, warn, Instrument};
 
 const NS_PER_SECOND: u64 = 1_000_000_000;
 
@@ -102,7 +103,7 @@ fn run_systems(
 
 fn process_packets(
     state: GlobalState,
-    thread_pool: ThreadPool,
+    thread_pool: &ThreadPool,
     packet_queue: Arc<Mutex<Vec<(AnyIncomingPacket, usize)>>>,
 ) {
     // Move all the packets to a temporary vector so we don't hold the lock while processing
