@@ -1,4 +1,3 @@
-#![feature(once_cell_try)]
 //! # FerrumC Configuration Utilities
 //!
 //! This crate provides utilities for reading and storing server configurations.

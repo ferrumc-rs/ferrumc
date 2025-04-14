@@ -1,5 +1,3 @@
-#![feature(portable_simd)]
-
 use crate::structs::{BlockState, Chunk, Palette};
 use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
 use fastnbt::Value;

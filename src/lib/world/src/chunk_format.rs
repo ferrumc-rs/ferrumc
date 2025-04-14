@@ -534,7 +534,7 @@ impl Chunk {
         let section = self
             .sections
             .iter()
-            .find(|section| section.y == y.div_floor(16) as i8)
+            .find(|section| section.y == (y / 16) as i8)
             .ok_or(WorldError::SectionOutOfBounds(y >> 4))?;
         match &section.block_states.block_data {
             PaletteType::Single(val) => {

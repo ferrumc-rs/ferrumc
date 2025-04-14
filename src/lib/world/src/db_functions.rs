@@ -215,7 +215,8 @@ pub(crate) fn sync_internal(world: &World) -> Result<(), WorldError> {
 fn create_key(dimension: &str, x: i32, z: i32) -> u128 {
     let mut key = 0u128;
     let mut hasher = wyhash::WyHash::with_seed(0);
-    hasher.write_str(dimension);
+    hasher.write(dimension.as_bytes());
+    hasher.write_u8(0xFF);
     let dim_hash = hasher.finish();
     // Insert the dimension hash into the key as the first 32 bits
     key |= (dim_hash as u128) << 96;

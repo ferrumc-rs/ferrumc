@@ -1,7 +1,3 @@
-#![feature(portable_simd)]
-#![feature(random)]
-extern crate core;
-
 use crate::errors::BinaryError;
 use clap::Parser;
 use ferrumc_config::whitelist::create_whitelist;
