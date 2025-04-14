@@ -107,27 +107,23 @@ ferrumc-threadpool = { path = "src/lib/utils/threadpool" }
 
 
 # Asynchronous
-tokio = { version = "1.41.1", features = ["full"] }
-socket2 = "0.5.7"
-futures = "0.3.30"
-async-trait = "0.1.82"
+tokio = { version = "1.41.2", features = ["full"] }
 
 # Logging
-tracing = "0.1.40"
-tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 tracing-appender = "0.2.3"
-log = "0.4.22"
+log = "0.4.27"
 console-subscriber = "0.4.1"
 
 # Concurrency/Parallelism
 parking_lot = "0.12.3"
 rayon = "1.10.0"
-threadpool = "1.8.1"
-crossbeam-channel = "0.5.14"
+crossbeam-channel = "0.5.15"
 rusty_pool = "0.7.0"
 
 # Network
-reqwest = { version = "0.12.9", features = ["json"] }
+reqwest = { version = "0.12.15", features = ["json"] }
 ureq = "3.0.10"
 
 # Error handling
@@ -139,54 +135,52 @@ fnv = "1.0.7"
 wyhash = "0.5.0"
 
 # Encoding/Serialization
-serde = { version = "1.0.210", features = ["derive"] }
-serde_json = "1.0.128"
-serde_derive = "1.0.210"
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
+serde_derive = "1.0.219"
 base64 = "0.22.1"
-bitcode = "0.6.3"
-bitcode_derive = "0.6.3"
-toml = "0.8.19"
+bitcode = "0.6.6"
+bitcode_derive = "0.6.5"
+toml = "0.8.20"
 
 # Bit manipulation
 byteorder = "1.5.0"
 
 # Data types
-hashbrown = "0.15.0"
-tinyvec = "1.8.0"
 dashmap = "6.1.0"
-uuid = { version = "1.1", features = ["v4", "v3", "serde"] }
+uuid = { version = "1.16", features = ["v4", "v3", "serde"] }
 
 # Macros
 lazy_static = "1.5.0"
-quote = "1.0.37"
-syn = "2.0.77"
-proc-macro2 = "1.0.86"
-proc-macro-crate = "3.2.0"
+quote = "1.0.40"
+syn = "2.0.100"
+proc-macro2 = "1.0.94"
+proc-macro-crate = "3.3.0"
 paste = "1.0.15"
 maplit = "1.0.2"
 macro_rules_attribute = "0.2.0"
 enum_delegate = "0.2.0"
 
 # Magic ("life-before-main" initialization, __attribute__((constructor)))
-ctor = "0.4.0"
+ctor = "0.4.1"
 dhat = "0.3.3"
 
 # Compression/Decompression
 libflate = "2.1.0"
-flate2 = { version = "1.0.33", features = ["zlib"], default-features = false }
-zstd = { version = "0.13.2" }
+flate2 = { version = "1.1.1", features = ["zlib"], default-features = false }
+zstd = { version = "0.13.3" }
 brotli = "7.0.0"
 lzzzz = "2.0.0"
-yazi = "0.2.0"
-bzip2 = "0.5.0"
+yazi = "0.2.1"
+bzip2 = "0.5.2"
 
 # Database
 heed = "0.22.0"
-moka = "0.12.8"
+moka = "0.12.10"
 
 # CLI
-clap = "4.5.20"
-indicatif = "0.17.8"
+clap = "4.5.36"
+indicatif = "0.17.11"
 colored = "3.0.0"
 
 # Misc
