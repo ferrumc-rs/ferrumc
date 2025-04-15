@@ -18,7 +18,7 @@ pub struct PlayerCommandPacket {
 }
 
 #[derive(Debug, NetDecode)]
-#[net(type_cast = "VarInt", type_cast_handler = "value.val as u8")]
+#[net(type_cast = "VarInt", type_cast_handler = "value.0 as u8")]
 #[repr(u8)]
 pub enum PlayerCommandAction {
     StartSneaking = 0,
@@ -49,9 +49,9 @@ pub struct PlayerDoActionEvent {
 impl From<PlayerCommandPacket> for PlayerDoActionEvent {
     fn from(packet: PlayerCommandPacket) -> Self {
         Self {
-            entity_id: packet.entity_id.val as Entity,
+            entity_id: packet.entity_id.0 as Entity,
             action: packet.action,
-            jump_boost: packet.jump_boost.val,
+            jump_boost: packet.jump_boost.0,
         }
     }
 }

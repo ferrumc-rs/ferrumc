@@ -26,7 +26,7 @@ fn select_random<T: Clone + Copy>(choices: Vec<T>) -> T {
 
 pub(crate) fn db_benches(c: &mut criterion::Criterion) {
     let mut used_keys = HashSet::new();
-    let tempdir = tempdir::TempDir::new("DB_test").unwrap().into_path();
+    let tempdir = tempfile::TempDir::new().unwrap().into_path();
 
     let db = LmdbBackend::initialize(Some(tempdir)).unwrap();
 

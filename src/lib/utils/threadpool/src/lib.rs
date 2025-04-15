@@ -1,14 +1,11 @@
-#![feature(thread_id_value)]
-
 use rusty_pool::JoinHandle;
-use std::sync::atomic::AtomicU64;
-use std::sync::atomic::Ordering::Relaxed;
 use std::sync::Arc;
+use std::thread::ThreadId;
 
 /// A thread pool for managing and executing tasks concurrently.
 pub struct ThreadPool {
     pool: Arc<rusty_pool::ThreadPool>,
-    starting_thread: AtomicU64,
+    starting_thread: ThreadId,
 }
 
 /// A batch of tasks to be executed in the thread pool.
@@ -17,7 +14,7 @@ pub struct ThreadPoolBatch<'a, R: Send + 'static> {
     pool: &'a Arc<rusty_pool::ThreadPool>,
     handles: Vec<JoinHandle<Box<R>>>,
     completed: bool,
-    starting_thread: u64,
+    starting_thread: ThreadId,
 }
 
 impl Default for ThreadPool {
@@ -31,7 +28,7 @@ impl ThreadPool {
     /// Creates a new `ThreadPool`.
     pub fn new() -> Self {
         let pool = Arc::new(rusty_pool::ThreadPool::default());
-        let starting_thread = std::thread::current().id().as_u64().get().into();
+        let starting_thread = std::thread::current().id();
         Self {
             pool,
             starting_thread,
@@ -50,7 +47,7 @@ impl ThreadPool {
             pool: &self.pool,
             handles: vec![],
             completed: false,
-            starting_thread: self.starting_thread.load(Relaxed),
+            starting_thread: self.starting_thread,
         }
     }
 
@@ -66,7 +63,7 @@ impl ThreadPool {
         F: FnOnce() -> R + Send + 'static,
         R: Send + 'static,
     {
-        if self.starting_thread.load(Relaxed) != std::thread::current().id().as_u64().get() {
+        if self.starting_thread != std::thread::current().id() {
             panic!("Thread pool has been moved to a different thread");
         }
         let boxed = move || Box::new(func());
@@ -85,7 +82,7 @@ impl<'a, R: Send + 'static> ThreadPoolBatch<'a, R> {
     where
         F: FnOnce() -> R + Send + 'static,
     {
-        if self.starting_thread != std::thread::current().id().as_u64().get() {
+        if self.starting_thread != std::thread::current().id() {
             panic!("Thread pool has been moved to a different thread");
         }
         let boxed = move || Box::new(func());

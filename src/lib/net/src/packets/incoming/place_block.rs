@@ -29,7 +29,7 @@ pub struct PlaceBlock {
 
 impl IncomingPacket for PlaceBlock {
     fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
-        match self.hand.val {
+        match self.hand.0 {
             0 => {
                 debug!("Placing block at {:?}", self.position);
                 let block_clicked = state.clone().world.get_block_and_fetch(
@@ -40,7 +40,7 @@ impl IncomingPacket for PlaceBlock {
                 )?;
                 trace!("Block clicked: {:?}", block_clicked);
                 // Use the face to determine the offset of the block to place
-                let (x_block_offset, y_block_offset, z_block_offset) = match self.face.val {
+                let (x_block_offset, y_block_offset, z_block_offset) = match self.face.0 {
                     0 => (0, -1, 0),
                     1 => (0, 1, 0),
                     2 => (0, 0, -1),

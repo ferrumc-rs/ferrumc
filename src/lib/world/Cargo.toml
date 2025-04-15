@@ -28,4 +28,3 @@ serde_json = { workspace = true }
 indicatif = { workspace = true }
 wyhash = { workspace = true }
 moka = { workspace = true, features = ["sync"] }
-threadpool = { workspace = true }

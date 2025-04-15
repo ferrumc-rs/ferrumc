@@ -2,7 +2,7 @@ use ferrumc_macros::NetDecode;
 use ferrumc_net_codec::decode::NetDecode;
 
 #[derive(NetDecode, Debug)]
-#[allow(dead_code)]
+#[expect(dead_code)]
 struct SomeExampleEncStruct {
     pub field1: u32,
     pub field2: u32,

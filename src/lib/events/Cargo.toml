@@ -8,7 +8,6 @@ edition = "2021"
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 ctor = { workspace = true }
 thiserror = { workspace = true }
-futures = { workspace = true }
 dashmap = { workspace = true }
 tracing = { workspace = true }
 rayon = { workspace = true }

@@ -168,9 +168,9 @@ fn test_serialize_to_nbt() {
 
     println!(
         "id: {}, length: {}, left: {}",
-        id.val,
-        length.val,
-        length.val as u64 - cursor.position()
+        id.0,
+        length.0,
+        length.0 as u64 - cursor.position()
     );
     println!(
         "{}",

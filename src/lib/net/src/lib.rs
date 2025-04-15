@@ -1,6 +1,3 @@
-#![feature(portable_simd)]
-extern crate core;
-
 use ferrumc_macros::bake_packet_registry;
 
 pub mod connection;

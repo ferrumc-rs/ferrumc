@@ -1,10 +1,10 @@
 pub mod errors;
 
 use dashmap::DashMap;
-use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use parking_lot::RwLock;
 use serde_derive::Serialize;
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tracing::span::Attributes;

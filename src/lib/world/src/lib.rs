@@ -1,6 +1,3 @@
-#![feature(hasher_prefixfree_extras)]
-#![feature(int_roundings)]
-
 pub mod chunk_format;
 mod db_functions;
 pub mod edits;

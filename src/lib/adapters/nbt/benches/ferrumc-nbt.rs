@@ -1,5 +1,3 @@
-#![feature(portable_simd)]
-
 use crate::structs::{BlockState, Chunk, Palette};
 use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
 use fastnbt::Value;
@@ -77,7 +75,7 @@ fn bench_simdnbt(data: &[u8]) {
         .unwrap()
         .into_iter()
         .filter_map(|section| {
-            let _ = section.get("Y").unwrap().byte().unwrap();
+            _ = section.get("Y").unwrap().byte().unwrap();
             let block_states = section.get("block_states")?;
             let block_states = block_states.compound().unwrap();
             let data = block_states.get("data")?;

@@ -10,7 +10,6 @@ pub async fn create_server_listener() -> NetResult<TcpListener> {
 
     debug!("Trying to bind to {}", server_addy);
 
-    // Spawning a runtime isn't ideal, but we need to do it here
     let listener = match TcpListener::bind(server_addy).await {
         Ok(l) => Ok::<TcpListener, std::io::Error>(l),
         Err(e) => {

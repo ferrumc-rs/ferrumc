@@ -1,5 +1,5 @@
 use crate::packets::incoming::packet_skeleton::PacketSkeleton;
-use crate::packets::IncomingPacket;
+use crate::packets::AnyIncomingPacket;
 use crate::utils::state::terminate_connection;
 use crate::{handle_packet, NetResult};
 use ferrumc_events::infrastructure::Event;
@@ -133,7 +133,7 @@ impl Default for CompressionStatus {
 pub async fn handle_connection(
     state: Arc<ServerState>,
     tcp_stream: TcpStream,
-    packet_queue: Arc<Mutex<Vec<(Box<dyn IncomingPacket + Send + 'static>, usize)>>>,
+    packet_queue: Arc<Mutex<Vec<(AnyIncomingPacket, usize)>>>,
 ) -> NetResult<()> {
     let (mut tcp_reader, tcp_writer) = tcp_stream.into_split();
 
@@ -231,7 +231,7 @@ fn disconnect(state: Arc<ServerState>, entity: usize) {
 
     // Broadcast the leave server event
 
-    let _ =
+    _ =
         PlayerDisconnectEvent::trigger(PlayerDisconnectEvent { entity_id: entity }, state.clone());
 
     // Remove all components from the entity

@@ -26,10 +26,10 @@ fn handle_handshake(
     trace!(
         "conn state: {} -> {}",
         connection_state.as_str(),
-        handshake.next_state.val
+        handshake.next_state.0
     );
 
-    let next_state = handshake.next_state.val as u8;
+    let next_state = handshake.next_state.0 as u8;
     *connection_state = match next_state {
         1 => ConnectionState::Status,
         2 => ConnectionState::Login,

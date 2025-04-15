@@ -250,7 +250,7 @@ impl BlockStates {
         match &mut self.block_data {
             PaletteType::Single(val) => {
                 let block = ID2BLOCK
-                    .get(&val.val)
+                    .get(&val.0)
                     .cloned()
                     .unwrap_or(BlockData::default());
                 let mut new_palette = vec![VarInt::from(0); 1];
@@ -460,7 +460,7 @@ impl Chunk {
                 // Get block index
                 let block_palette_index = palette
                     .iter()
-                    .position(|p| p.val == *block_id)
+                    .position(|p| p.0 == *block_id)
                     .unwrap_or_else(|| {
                         // Add block to palette if it doesn't exist
                         let index = palette.len() as i16;
@@ -534,11 +534,11 @@ impl Chunk {
         let section = self
             .sections
             .iter()
-            .find(|section| section.y == y.div_floor(16) as i8)
+            .find(|section| section.y == (y / 16) as i8)
             .ok_or(WorldError::SectionOutOfBounds(y >> 4))?;
         match &section.block_states.block_data {
             PaletteType::Single(val) => {
-                let block_id = val.val;
+                let block_id = val.0;
                 ID2BLOCK
                     .get(&block_id)
                     .cloned()
@@ -551,7 +551,7 @@ impl Chunk {
             } => {
                 if palette.len() == 1 || *bits_per_block == 0 {
                     return ID2BLOCK
-                        .get(&palette[0].val)
+                        .get(&palette[0].0)
                         .cloned()
                         .ok_or(WorldError::ChunkNotFound);
                 }
@@ -570,7 +570,7 @@ impl Chunk {
                 )?;
                 let palette_id = palette.get(id as usize).ok_or(WorldError::ChunkNotFound)?;
                 Ok(crate::chunk_format::ID2BLOCK
-                    .get(&palette_id.val)
+                    .get(&palette_id.0)
                     .unwrap_or(&BlockData::default())
                     .clone())
             }
@@ -700,7 +700,7 @@ impl Section {
                         let block_id = BLOCK2ID
                             .get(block)
                             .ok_or(WorldError::InvalidBlock(block.clone()))?;
-                        let index = palette.iter().position(|p| p.val == *block_id);
+                        let index = palette.iter().position(|p| p.0 == *block_id);
                         if let Some(index) = index {
                             remove_indexes.push(index);
                         } else {
@@ -736,7 +736,7 @@ impl Section {
                     // If there is only one block in the palette, convert to single block mode
                     if palette.len() == 1 {
                         let block = ID2BLOCK
-                            .get(&palette[0].val)
+                            .get(&palette[0].0)
                             .cloned()
                             .unwrap_or(BlockData::default());
                         self.block_states.block_data = PaletteType::Single(palette[0].clone());

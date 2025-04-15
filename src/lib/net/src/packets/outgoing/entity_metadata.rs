@@ -192,7 +192,7 @@ mod entity_state {
 
     /// Individual states that can be applied to an entity
     /// Multiple states can be combined using a bit mask
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     pub enum EntityState {
         OnFire,           // 0x01
         SneakingVisual,   // 0x02
@@ -229,7 +229,7 @@ mod extra_data_types {
 
     /// Possible poses/animations an entity can have
     #[derive(Debug)]
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     pub enum EntityPose {
         Standing,
         FallFlying,

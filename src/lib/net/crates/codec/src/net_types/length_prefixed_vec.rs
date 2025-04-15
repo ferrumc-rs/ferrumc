@@ -64,7 +64,7 @@ where
         let length = VarInt::decode(reader, opts)?;
 
         let mut data = Vec::new();
-        for _ in 0..length.val {
+        for _ in 0..length.0 {
             data.push(T::decode(reader, opts)?);
         }
 
@@ -78,7 +78,7 @@ where
         let length = VarInt::decode_async(reader, opts).await?;
 
         let mut data = Vec::new();
-        for _ in 0..length.val {
+        for _ in 0..length.0 {
             data.push(T::decode_async(reader, opts).await?);
         }
 

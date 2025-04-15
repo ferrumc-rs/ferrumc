@@ -69,7 +69,7 @@ impl NetDecode for bool {
 
 impl NetDecode for String {
     fn decode<R: Read>(reader: &mut R, _: &NetDecodeOpts) -> NetDecodeResult<Self> {
-        let len = <VarInt as NetDecode>::decode(reader, &NetDecodeOpts::None)?.val as usize;
+        let len = <VarInt as NetDecode>::decode(reader, &NetDecodeOpts::None)?.0 as usize;
         let mut buf = vec![0; len];
         reader.read_exact(&mut buf)?;
         Ok(String::from_utf8(buf)?)
@@ -81,7 +81,7 @@ impl NetDecode for String {
     ) -> NetDecodeResult<Self> {
         let len = <VarInt as NetDecode>::decode_async(reader, &NetDecodeOpts::None)
             .await?
-            .val as usize;
+            .0 as usize;
         let mut buf = vec![0; len];
         reader.read_exact(&mut buf).await?;
         Ok(String::from_utf8(buf)?)
@@ -94,7 +94,7 @@ where
 {
     fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> NetDecodeResult<Self> {
         if matches!(opts, NetDecodeOpts::IsSizePrefixed) {
-            let len = <VarInt as NetDecode>::decode(reader, opts)?.val as usize;
+            let len = <VarInt as NetDecode>::decode(reader, opts)?.0 as usize;
             let mut vec = Vec::with_capacity(len);
             for _ in 0..len {
                 vec.push(T::decode(reader, opts)?);
@@ -121,7 +121,7 @@ where
         opts: &NetDecodeOpts,
     ) -> NetDecodeResult<Self> {
         if matches!(opts, NetDecodeOpts::IsSizePrefixed) {
-            let len = <VarInt as NetDecode>::decode_async(reader, opts).await?.val as usize;
+            let len = <VarInt as NetDecode>::decode_async(reader, opts).await?.0 as usize;
             let mut vec = Vec::with_capacity(len);
             for _ in 0..len {
                 vec.push(T::decode_async(reader, opts).await?);
@@ -152,7 +152,7 @@ where
     V: NetDecode,
 {
     fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> NetDecodeResult<Self> {
-        let len = <VarInt as NetDecode>::decode(reader, opts)?.val as usize;
+        let len = <VarInt as NetDecode>::decode(reader, opts)?.0 as usize;
         let mut map = HashMap::with_capacity(len);
         for _ in 0..len {
             let key = K::decode(reader, opts)?;
@@ -166,7 +166,7 @@ where
         reader: &mut R,
         opts: &NetDecodeOpts,
     ) -> NetDecodeResult<Self> {
-        let len = <VarInt as NetDecode>::decode_async(reader, opts).await?.val as usize;
+        let len = <VarInt as NetDecode>::decode_async(reader, opts).await?.0 as usize;
         let mut map = HashMap::with_capacity(len);
         for _ in 0..len {
             let key = K::decode_async(reader, opts).await?;

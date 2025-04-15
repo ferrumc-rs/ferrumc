@@ -45,7 +45,7 @@ impl PacketSkeleton {
     // #[inline(always)]
     async fn read_uncompressed<R: AsyncRead + Unpin>(reader: &mut R) -> NetResult<Self> {
         debug!("Got a packet");
-        let length = VarInt::read_async(reader).await?.val as usize;
+        let length = VarInt::read_async(reader).await?.0 as usize;
         let mut buf = {
             let mut buf = vec![0; length];
             reader.read_exact(&mut buf).await?;
@@ -57,20 +57,20 @@ impl PacketSkeleton {
 
         info!(
             "Uncompressed packet: length: {}, id: {}",
-            length, id.val as u8
+            length, id.0 as u8
         );
 
         Ok(Self {
             length,
-            id: id.val as u8,
+            id: id.0 as u8,
             data: buf,
         })
     }
 
     #[inline(always)]
     async fn read_compressed<R: AsyncRead + Unpin>(reader: &mut R) -> NetResult<Self> {
-        let packet_length = VarInt::read_async(reader).await?.val as usize;
-        let data_length = VarInt::read_async(reader).await?.val as usize;
+        let packet_length = VarInt::read_async(reader).await?.0 as usize;
+        let data_length = VarInt::read_async(reader).await?.0 as usize;
 
         // Uncompressed packet when data length is 0
         if data_length == 0 {
@@ -85,7 +85,7 @@ impl PacketSkeleton {
 
             return Ok(Self {
                 length: packet_length,
-                id: id.val as u8,
+                id: id.0 as u8,
                 data: buf,
             });
         }
@@ -125,7 +125,7 @@ impl PacketSkeleton {
 
         Ok(Self {
             length: packet_length,
-            id: id.val as u8,
+            id: id.0 as u8,
             data: buf,
         })
     }

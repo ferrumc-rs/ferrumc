@@ -2,7 +2,7 @@ use crate::errors::BinaryError;
 use crate::systems::definition::{create_systems, System};
 use ferrumc_config::statics::get_global_config;
 use ferrumc_net::connection::handle_connection;
-use ferrumc_net::packets::IncomingPacket;
+use ferrumc_net::packets::{AnyIncomingPacket, IncomingPacket};
 use ferrumc_net::server::create_server_listener;
 use ferrumc_state::GlobalState;
 use ferrumc_threadpool::ThreadPool;
@@ -21,10 +21,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
 
     let threadpool = ThreadPool::new();
 
-    let queued_packets = Arc::new(Mutex::new(Vec::<(
-        Box<dyn IncomingPacket + Send + 'static>,
-        usize,
-    )>::new()));
+    let queued_packets: Arc<Mutex<Vec<(AnyIncomingPacket, usize)>>> = Default::default();
 
     // Start the TCP connection accepter
     let packet_queue = Arc::clone(&queued_packets);
@@ -107,7 +104,7 @@ fn run_systems(
 fn process_packets(
     state: GlobalState,
     thread_pool: &ThreadPool,
-    packet_queue: Arc<Mutex<Vec<(Box<dyn IncomingPacket + Send + 'static>, usize)>>>,
+    packet_queue: Arc<Mutex<Vec<(AnyIncomingPacket, usize)>>>,
 ) {
     // Move all the packets to a temporary vector so we don't hold the lock while processing
     let mut packets = Vec::new();
@@ -137,7 +134,7 @@ fn process_packets(
 // This is the bit where we bridge to async
 fn tcp_conn_accepter(
     state: GlobalState,
-    packet_queue: Arc<Mutex<Vec<(Box<dyn IncomingPacket + Send + 'static>, usize)>>>,
+    packet_queue: Arc<Mutex<Vec<(AnyIncomingPacket, usize)>>>,
 ) -> Result<(), BinaryError> {
     let named_thread = std::thread::Builder::new().name("TokioNetworkThread".to_string());
     named_thread.spawn(move || {
@@ -168,7 +165,7 @@ fn tcp_conn_accepter(
                             let state = Arc::clone(&state);
                             let packet_queue = Arc::clone(&packet_queue);
                             async move {
-                                let _ = handle_connection(state, stream, packet_queue)
+                                _ = handle_connection(state, stream, packet_queue)
                                     .instrument(info_span!("conn", %addy).or_current())
                                     .await;
                             }
