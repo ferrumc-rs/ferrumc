@@ -56,7 +56,7 @@ unsafe fn u8_slice_to_u32_be_simd(input: &[u8]) -> Vec<u32> {
         let data = _mm256_loadu_si256(chunk.as_ptr().cast());
         let shuffled = _mm256_shuffle_epi8(data, shuffle_mask);
         _mm256_storeu_si256(out, shuffled);
-        output.set_len((i + 1) * 32);
+        output.set_len((i + 1) * 8);
     }
 
     let input = input.remainder();
@@ -85,10 +85,8 @@ pub fn u8_slice_to_u64_be(input: &[u8]) -> Vec<u64> {
     );
 
     #[cfg(all(target_arch = "x86_64", not(target_os = "macos")))]
-    {
-        if has_avx2() {
-            return unsafe { u8_slice_to_u64_be_simd(input) };
-        }
+    if has_avx2() {
+        return unsafe { u8_slice_to_u64_be_simd(input) };
     }
     u8_slice_to_u64_be_normal(input)
 }
@@ -126,7 +124,7 @@ unsafe fn u8_slice_to_u64_be_simd(input: &[u8]) -> Vec<u64> {
         let data = _mm256_loadu_si256(chunk.as_ptr().cast());
         let shuffled = _mm256_shuffle_epi8(data, shuffle_mask);
         _mm256_storeu_si256(out, shuffled);
-        output.set_len((i + 1) * 32);
+        output.set_len((i + 1) * 4);
     }
     let input = input.remainder();
 
@@ -174,7 +172,7 @@ unsafe fn u32_slice_to_u8_be_simd(input: &[u32]) -> Vec<u8> {
         let data = _mm256_loadu_si256(chunk.as_ptr().cast());
         let shuffled = _mm256_shuffle_epi8(data, shuffle_mask);
         _mm256_storeu_si256(out, shuffled);
-        output.set_len((i + 1) * 8);
+        output.set_len((i + 1) * 32);
     }
 
     let input = input.remainder();
@@ -219,6 +217,7 @@ unsafe fn u64_slice_to_u8_be_simd(input: &[u64]) -> Vec<u8> {
         let data = _mm256_loadu_si256(chunk.as_ptr().cast());
         let shuffled = _mm256_shuffle_epi8(data, shuffle_mask);
         _mm256_storeu_si256(out, shuffled);
+        output.set_len((i + 1) * 32);
     }
 
     for val in input.remainder() {

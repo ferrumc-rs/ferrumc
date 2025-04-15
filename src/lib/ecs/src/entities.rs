@@ -30,8 +30,7 @@ impl EntityManager {
 
     pub fn create_entity(&self) -> Entity {
         trace!("Creating new entity");
-        let id = self.new_entity_id.load(Ordering::Relaxed);
-        self.new_entity_id.fetch_add(1, Ordering::Relaxed);
+        let id = self.new_entity_id.fetch_add(1, Ordering::Relaxed);
         trace!("Created entity with id: {}", id);
         id as Entity
     }
