@@ -1,11 +1,38 @@
 use proc_macro2::TokenStream;
 use quote::quote;
+use serde::Deserialize;
+use std::collections::HashMap;
 use std::fmt::Display;
 use std::sync::LazyLock;
 use syn::parse::Parse;
 use syn::{parse_macro_input, LitStr, Token};
 
-pub(crate) static PACKETS_JSON: LazyLock<serde_json::Value> = LazyLock::new(|| {
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct PacketId {
+    protocol_id: u8,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct PacketDirection {
+    #[serde(default)]
+    pub clientbound: HashMap<String, PacketId>,
+    #[serde(default)]
+    pub serverbound: HashMap<String, PacketId>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct Packets {
+    pub configuration: PacketDirection,
+    pub handshake: PacketDirection,
+    pub login: PacketDirection,
+    pub play: PacketDirection,
+    pub status: PacketDirection,
+}
+
+pub(crate) static PACKETS_JSON: LazyLock<Packets> = LazyLock::new(|| {
     let json_str = include_str!("../../../../../assets/data/packets.json");
     serde_json::from_str(json_str).unwrap()
 });
@@ -15,29 +42,27 @@ pub(crate) fn get_packet_id(
     bound: PacketBoundiness,
     packet_name: &str,
 ) -> u8 {
-    let mut current_value = &*PACKETS_JSON;
+    let packets = &*PACKETS_JSON;
 
     // remove `"` from start and end of the packet_name:
     let packet_name = packet_name.trim_matches('"');
 
     let state = state.into();
-    current_value = current_value
-        .get(state.to_string())
-        .unwrap_or_else(|| panic!("Could not find key: {}.", state));
-
-    current_value = current_value
-        .get(bound.to_string())
-        .unwrap_or_else(|| panic!("Could not find key: {}", bound));
-
-    current_value = current_value.get(format!("minecraft:{}", packet_name))
+    let packets = match state {
+        PacketState::Play => &packets.play,
+        PacketState::Login => &packets.login,
+        PacketState::Status => &packets.status,
+        PacketState::Handshake => &packets.handshake,
+        PacketState::Configuration => &packets.configuration,
+    };
+    let packets = match bound {
+        PacketBoundiness::Clientbound => &packets.clientbound,
+        PacketBoundiness::Serverbound => &packets.serverbound,
+    };
+    let id = packets.get(&format!("minecraft:{}", packet_name))
         .unwrap_or_else(|| panic!("Could not find key: `minecraft:{}` in the packet registry. Example: `add_entity`, would be 0x01 in the 1.21.1 protocol", packet_name));
 
-    let protocol_id = current_value
-        .get("protocol_id")
-        .and_then(|v| v.as_u64())
-        .unwrap_or_else(|| panic!("Could not find key: {}", "protocol_id"));
-
-    protocol_id as u8
+    id.protocol_id
 }
 
 struct PacketTypeInput {
