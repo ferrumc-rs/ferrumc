@@ -3,7 +3,7 @@ use crate::packets::incoming::ping::PingPacket;
 use crate::packets::incoming::status_request::StatusRequestPacket;
 use crate::packets::outgoing::ping_response::PongPacket;
 use crate::packets::outgoing::status_response::StatusResponse;
-use crate::trim_packet_head;
+use crate::{send_packet, trim_packet_head};
 use ferrumc_config::favicon::get_favicon_base64;
 use ferrumc_config::statics::get_global_config;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
@@ -24,20 +24,15 @@ pub(super) async fn status(
     trim_packet_head!(conn_read, 0x00);
 
     // Wait for a status request packet
-    let _ = StatusRequestPacket::decode_async(&mut conn_read, &NetDecodeOpts::None).await?;
+    let _status_req =
+        StatusRequestPacket::decode_async(&mut conn_read, &NetDecodeOpts::None).await?;
 
     // Send a status response packet
-    let sr_packet = StatusResponse {
+    let status_response = StatusResponse {
         json_response: get_server_status(&state),
     };
 
-    let mut packet_buffer = vec![];
-
-    sr_packet
-        .encode_async(&mut packet_buffer, &NetEncodeOpts::WithLength)
-        .await?;
-
-    conn_write.write_all(&packet_buffer).await?;
+    send_packet!(conn_write, status_response);
 
     trim_packet_head!(conn_read, 0x01);
 
@@ -49,13 +44,7 @@ pub(super) async fn status(
         payload: ping_req.payload,
     };
 
-    let mut packet_buffer = vec![];
-
-    pong_packet
-        .encode_async(&mut packet_buffer, &NetEncodeOpts::WithLength)
-        .await?;
-
-    conn_write.write_all(&packet_buffer).await?;
+    send_packet!(conn_write, pong_packet);
 
     Ok(true)
 }

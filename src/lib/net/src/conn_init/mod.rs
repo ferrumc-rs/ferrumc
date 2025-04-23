@@ -21,6 +21,18 @@ macro_rules! trim_packet_head {
         assert_eq!(val.0, $value);
     }};
 }
+
+#[macro_export]
+macro_rules! send_packet {
+    ($conn:ident, $packet:ident) => {{
+        let mut packet_buffer = vec![];
+        $packet
+            .encode_async(&mut packet_buffer, &NetEncodeOpts::WithLength)
+            .await?;
+        $conn.write_all(&packet_buffer).await?;
+        $conn.flush().await?;
+    }};
+}
 pub const PROTOCOL_VERSION_1_21_1: i32 = 767;
 
 // Todo: Make this function return encryption and compression settings

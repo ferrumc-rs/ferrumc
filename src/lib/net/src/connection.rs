@@ -217,7 +217,6 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
         match handle_packet(
             packet_skele.id,
             entity,
-            &conn_state,
             &mut packet_skele.data,
             Arc::clone(&state),
         )

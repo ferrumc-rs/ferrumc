@@ -1,11 +1,180 @@
+use crate::conn_init::NetDecodeOpts;
+use crate::conn_init::VarInt;
 use crate::errors::NetError;
+use crate::{send_packet, trim_packet_head};
+use ferrumc_net_codec::decode::NetDecode;
+use ferrumc_net_codec::encode::NetEncode;
+use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::GlobalState;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
+use tracing::{debug, error};
 
 pub(super) async fn login(
     mut conn_read: &mut OwnedReadHalf,
     conn_write: &mut OwnedWriteHalf,
     state: GlobalState,
 ) -> Result<bool, NetError> {
-    Ok(true)
+    // =============================================================================================
+    trim_packet_head!(conn_read, 0x00);
+
+    let login_start = crate::packets::incoming::login_start::LoginStartPacket::decode_async(
+        &mut conn_read,
+        &NetDecodeOpts::None,
+    )
+    .await?;
+
+    // =============================================================================================
+
+    let login_success = crate::packets::outgoing::login_success::LoginSuccessPacket {
+        uuid: login_start.uuid,
+        username: &login_start.username,
+        number_of_properties: VarInt::from(0),
+        strict_error_handling: false,
+    };
+
+    send_packet!(conn_write, login_success);
+
+    // =============================================================================================
+
+    trim_packet_head!(conn_read, 0x03);
+
+    // The login ack packet doesn't contain any data, so we just need to read it
+    let _ = crate::packets::incoming::login_acknowledged::LoginAcknowledgedPacket::decode_async(
+        &mut conn_read,
+        &NetDecodeOpts::None,
+    )
+    .await?;
+
+    // =============================================================================================
+
+    // The server bound plugin message packet is a bit special, since the inner fields aren't length
+    // prefixed, so we need to read the length prefix first, and then read the rest of the packet
+
+    let len = VarInt::decode_async(&mut conn_read, &NetDecodeOpts::None).await?;
+    let id = VarInt::decode_async(&mut conn_read, &NetDecodeOpts::None).await?;
+    assert_eq!(id.0, 0x02);
+    let mut buf = vec![0; len.0 as usize - id.len()];
+    conn_read.read_exact(&mut buf).await?;
+
+    // =============================================================================================
+
+    trim_packet_head!(conn_read, 0x00);
+
+    let client_info =
+        crate::packets::incoming::client_information::ClientInformation::decode_async(
+            &mut conn_read,
+            &NetDecodeOpts::None,
+        )
+        .await?;
+
+    debug!(
+        "Client information: {{ locale: {}, view_distance: {}, chat_mode: {}, chat_colors: {}, displayed_skin_parts: {} }}",
+        client_info.locale,
+        client_info.view_distance,
+        client_info.chat_mode,
+        client_info.chat_colors,
+        client_info.displayed_skin_parts
+    );
+
+    // =============================================================================================
+
+    let client_bound_known_packs =
+        crate::packets::outgoing::client_bound_known_packs::ClientBoundKnownPacksPacket::default();
+
+    send_packet!(conn_write, client_bound_known_packs);
+
+    // =============================================================================================
+
+    trim_packet_head!(conn_read, 0x07);
+
+    // What are we supposed to do with this packet?
+    let _server_bound_known_packs =
+        crate::packets::incoming::server_bound_known_packs::ServerBoundKnownPacks::decode_async(
+            &mut conn_read,
+            &NetDecodeOpts::None,
+        )
+        .await?;
+
+    // =============================================================================================
+
+    let finish_config_packet =
+        crate::packets::outgoing::finish_configuration::FinishConfigurationPacket;
+
+    send_packet!(conn_write, finish_config_packet);
+
+    // =============================================================================================
+
+    trim_packet_head!(conn_read, 0x03);
+
+    let _finish_config_ack =
+        crate::packets::incoming::ack_finish_configuration::AckFinishConfigurationPacket::decode_async(
+            &mut conn_read,
+            &NetDecodeOpts::None,
+        )
+        .await?;
+
+    // =============================================================================================
+
+    // Todo: Slot in an actual UID
+    let login_play = crate::packets::outgoing::login_play::LoginPlayPacket::new(0);
+
+    send_packet!(conn_write, login_play);
+
+    // =============================================================================================
+
+    let teleport_id_i32 = rand::random();
+
+    let sync_player_pos =
+        crate::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket {
+            teleport_id: VarInt::new(teleport_id_i32),
+            ..Default::default()
+        };
+
+    send_packet!(conn_write, sync_player_pos);
+
+    // =============================================================================================
+
+    trim_packet_head!(conn_read, 0x00);
+
+    let confirm_player_teleport =
+        crate::packets::incoming::confirm_player_teleport::ConfirmPlayerTeleport::decode_async(
+            &mut conn_read,
+            &NetDecodeOpts::None,
+        )
+        .await?;
+
+    if confirm_player_teleport.teleport_id.0 != teleport_id_i32 {
+        error!(
+            "Teleport ID mismatch: expected {}, got {}",
+            teleport_id_i32, confirm_player_teleport.teleport_id.0
+        )
+    }
+
+    // =============================================================================================
+
+    let center_chunk = crate::packets::outgoing::set_center_chunk::SetCenterChunk::new(0, 0);
+
+    send_packet!(conn_write, center_chunk);
+
+    // =============================================================================================
+
+    for x in -8..8 {
+        for z in -8..8 {
+            let chunk = match state.world.load_chunk(x, z, "overworld") {
+                Ok(chunk) => chunk,
+                Err(e) => {
+                    error!("Failed to load chunk {} {}: {}", x, z, e);
+                    continue;
+                }
+            };
+            let chunk_data =
+                crate::packets::outgoing::chunk_and_light_data::ChunkAndLightData::from_chunk(
+                    &chunk,
+                )?;
+            send_packet!(conn_write, chunk_data);
+        }
+    }
+
+    Ok(false)
 }

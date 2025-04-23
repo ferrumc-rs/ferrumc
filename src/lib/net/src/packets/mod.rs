@@ -36,4 +36,5 @@ pub enum AnyIncomingPacket {
     StatusRequestPacket(status_request::StatusRequestPacket),
     SetPlayerRotationPacket(set_player_rotation::SetPlayerRotationPacket),
     PlayerCommandPacket(player_command::PlayerCommandPacket),
+    ConfirmPlayerTeleport(confirm_player_teleport::ConfirmPlayerTeleport),
 }
