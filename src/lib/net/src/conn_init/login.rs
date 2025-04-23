@@ -98,6 +98,15 @@ pub(super) async fn login(
 
     // =============================================================================================
 
+    let registry_packets =
+        crate::packets::outgoing::registry_data::RegistryDataPacket::get_registry_packets();
+
+    for packet in registry_packets {
+        send_packet!(conn_write, packet);
+    }
+
+    // =============================================================================================
+
     let finish_config_packet =
         crate::packets::outgoing::finish_configuration::FinishConfigurationPacket;
 
@@ -150,6 +159,16 @@ pub(super) async fn login(
             teleport_id_i32, confirm_player_teleport.teleport_id.0
         )
     }
+
+    // =============================================================================================
+
+    trim_packet_head!(conn_read, 0x1B);
+
+    let _player_pos_and_rot =
+        crate::packets::incoming::set_player_position_and_rotation::SetPlayerPositionAndRotationPacket::decode_async(
+            &mut conn_read,
+            &NetDecodeOpts::None,
+        ).await?;
 
     // =============================================================================================
 
