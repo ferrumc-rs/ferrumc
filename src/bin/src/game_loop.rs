@@ -21,11 +21,8 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
 
     let threadpool = ThreadPool::new();
 
-    let queued_packets: Arc<Mutex<Vec<(AnyIncomingPacket, usize)>>> = Default::default();
-
     // Start the TCP connection accepter
-    let packet_queue = Arc::clone(&queued_packets);
-    tcp_conn_accepter(global_state.clone(), packet_queue)?;
+    tcp_conn_accepter(global_state.clone())?;
 
     while !global_state
         .shut_down
@@ -37,11 +34,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
         run_systems(global_state.clone(), &threadpool, &systems, tick)?;
 
         // Process incoming packets
-        process_packets(
-            global_state.clone(),
-            &threadpool,
-            Arc::clone(&queued_packets),
-        );
+        process_packets(global_state.clone(), &threadpool);
 
         // Sleep to maintain the tick rate
         let elapsed_time = start_time.elapsed();
@@ -101,41 +94,46 @@ fn run_systems(
     Ok(())
 }
 
-fn process_packets(
-    state: GlobalState,
-    thread_pool: &ThreadPool,
-    packet_queue: Arc<Mutex<Vec<(AnyIncomingPacket, usize)>>>,
-) {
+fn process_packets(state: GlobalState, thread_pool: &ThreadPool) {
     // Move all the packets to a temporary vector so we don't hold the lock while processing
     let mut packets = Vec::new();
     {
-        let mut queue = packet_queue.lock().unwrap();
-        std::mem::swap(&mut packets, &mut *queue);
+        let query = state
+            .universe
+            .query::<&ferrumc_net::connection::LocalPacketQueue>();
+        for (eid, queue) in query {
+            let mut local_packets = vec![];
+            while let Some(packet) = queue.queue.pop() {
+                local_packets.push(packet);
+            }
+            if !local_packets.is_empty() {
+                packets.push((local_packets, eid));
+            }
+        }
     }
 
     let mut batch: ferrumc_threadpool::ThreadPoolBatch<'_, Result<_, BinaryError>> =
         thread_pool.batch();
-    for packet in packets {
+    for packet_set in packets {
         let state = Arc::clone(&state);
         batch.execute(move || {
-            let (packet, id) = packet;
-            let result = packet
-                .handle(id, state)
-                .instrument(info_span!("packet_handle", conn = id))
-                .into_inner();
-            if let Err(e) = result {
-                warn!("Error processing packet: {:?}", e);
-            };
+            let (packet_collection, id) = packet_set;
+            for packet in packet_collection {
+                let result = packet
+                    .handle(id, state.clone())
+                    .instrument(info_span!("packet_handle", conn = id))
+                    .into_inner();
+                if let Err(e) = result {
+                    warn!("Error processing packet: {:?}", e);
+                };
+            }
             Ok(())
         });
     }
 }
 
 // This is the bit where we bridge to async
-fn tcp_conn_accepter(
-    state: GlobalState,
-    packet_queue: Arc<Mutex<Vec<(AnyIncomingPacket, usize)>>>,
-) -> Result<(), BinaryError> {
+fn tcp_conn_accepter(state: GlobalState) -> Result<(), BinaryError> {
     let named_thread = std::thread::Builder::new().name("TokioNetworkThread".to_string());
     named_thread.spawn(move || {
         let caught_panic = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
@@ -163,9 +161,8 @@ fn tcp_conn_accepter(
                         debug!("Got TCP connection from {}", addy);
                         tokio::spawn({
                             let state = Arc::clone(&state);
-                            let packet_queue = Arc::clone(&packet_queue);
                             async move {
-                                _ = handle_connection(state, stream, packet_queue)
+                                _ = handle_connection(state, stream)
                                     .instrument(info_span!("conn", %addy).or_current())
                                     .await;
                             }

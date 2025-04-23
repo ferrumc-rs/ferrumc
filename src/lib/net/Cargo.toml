@@ -28,4 +28,5 @@ uuid = { workspace = true, features = ["v4"] }
 byteorder = { workspace = true }
 ferrumc-state = { workspace = true }
 crossbeam-channel = { workspace = true }
-enum_delegate.workspace = true
+enum_delegate = { workspace = true }
+crossbeam-queue = { workspace = true }

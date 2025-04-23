@@ -1,13 +1,15 @@
 use crate::packets::incoming::packet_skeleton::PacketSkeleton;
-use crate::packets::AnyIncomingPacket;
+use crate::packets::{AnyIncomingPacket, IncomingPacket};
 use crate::utils::state::terminate_connection;
 use crate::{handle_packet, NetResult};
+use crossbeam_queue::SegQueue;
 use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::Event;
 use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::ServerState;
 use parking_lot::RwLock;
+use std::cmp::PartialEq;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use tokio::io::AsyncWriteExt;
@@ -19,6 +21,11 @@ use tracing::{debug, debug_span, trace, warn, Instrument};
 #[derive(Debug)]
 pub struct ConnectionControl {
     pub should_disconnect: bool,
+}
+
+#[derive(Debug)]
+pub struct LocalPacketQueue {
+    pub queue: SegQueue<AnyIncomingPacket>,
 }
 
 impl ConnectionControl {
@@ -34,7 +41,7 @@ impl Default for ConnectionControl {
         Self::new()
     }
 }
-#[derive(Clone)]
+#[derive(Clone, Eq, PartialEq)]
 pub enum ConnectionState {
     Handshaking,
     Status,
@@ -130,11 +137,7 @@ impl Default for CompressionStatus {
     }
 }
 
-pub async fn handle_connection(
-    state: Arc<ServerState>,
-    tcp_stream: TcpStream,
-    packet_queue: Arc<Mutex<Vec<(AnyIncomingPacket, usize)>>>,
-) -> NetResult<()> {
+pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -> NetResult<()> {
     let (mut tcp_reader, tcp_writer) = tcp_stream.into_split();
 
     let entity = state
@@ -144,6 +147,9 @@ pub async fn handle_connection(
         .with(ConnectionState::Handshaking)?
         .with(CompressionStatus::new())?
         .with(ConnectionControl::new())?
+        .with(LocalPacketQueue {
+            queue: SegQueue::new(),
+        })?
         .build();
 
     'recv: loop {
@@ -163,10 +169,7 @@ pub async fn handle_connection(
         }
 
         let mut packet_skele = match PacketSkeleton::new(&mut tcp_reader, compressed).await {
-            Ok(packet_skele) => {
-                // Log the packet if the environment variable is set (this env variable is set at compile time not runtime!)
-                packet_skele
-            }
+            Ok(packet_skele) => packet_skele,
             Err(err) => {
                 // Handle the error
                 debug!(
@@ -188,7 +191,15 @@ pub async fn handle_connection(
         .instrument(debug_span!("eid", %entity))
         .into_inner()
         {
-            Ok(Some(pak)) => packet_queue.lock().unwrap().push((pak, entity)),
+            Ok(Some(pak)) => {
+                if conn_state == ConnectionState::Play {
+                    let queue = state.universe.get::<LocalPacketQueue>(entity)?;
+                    queue.queue.push(pak);
+                } else {
+                    // If we aren't in play state, we can handle the packet immediately
+                    pak.handle(entity, state.clone())?;
+                }
+            }
             Ok(None) => {
                 // No packet found for the given ID and state
                 debug!(
@@ -231,8 +242,7 @@ fn disconnect(state: Arc<ServerState>, entity: usize) {
 
     // Broadcast the leave server event
 
-    _ =
-        PlayerDisconnectEvent::trigger(PlayerDisconnectEvent { entity_id: entity }, state.clone());
+    _ = PlayerDisconnectEvent::trigger(PlayerDisconnectEvent { entity_id: entity }, state.clone());
 
     // Remove all components from the entity
 
