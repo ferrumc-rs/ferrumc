@@ -1,3 +1,5 @@
+use crate::conn_init::handle_handshake;
+use crate::errors::NetError::HandshakeTimeout;
 use crate::packets::incoming::packet_skeleton::PacketSkeleton;
 use crate::packets::{AnyIncomingPacket, IncomingPacket};
 use crate::utils::state::terminate_connection;
@@ -11,12 +13,17 @@ use ferrumc_state::ServerState;
 use parking_lot::RwLock;
 use std::cmp::PartialEq;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
+use std::time::Duration;
 use tokio::io::AsyncWriteExt;
 use tokio::net::tcp::OwnedWriteHalf;
 use tokio::net::TcpStream;
 use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
-use tracing::{debug, debug_span, trace, warn, Instrument};
+use tokio::time::timeout;
+use tracing::{debug, debug_span, error, trace, warn, Instrument};
+
+/// The maximum time to wait for a handshake to complete
+const MAX_HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(10);
 
 #[derive(Debug)]
 pub struct ConnectionControl {
@@ -138,7 +145,33 @@ impl Default for CompressionStatus {
 }
 
 pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -> NetResult<()> {
-    let (mut tcp_reader, tcp_writer) = tcp_stream.into_split();
+    let (mut tcp_reader, mut tcp_writer) = tcp_stream.into_split();
+
+    let handshake_result = timeout(
+        MAX_HANDSHAKE_TIMEOUT,
+        handle_handshake(&mut tcp_reader, &mut tcp_writer, state.clone()),
+    )
+    .await;
+
+    match handshake_result {
+        Ok(res) => match res {
+            Ok(false) => {
+                debug!("Handshake successful");
+            }
+            Ok(true) => {
+                debug!("Handshake successful, killing connection");
+                return Ok(());
+            }
+            Err(err) => {
+                error!("Handshake error: {:?}", err);
+                return Err(err);
+            }
+        },
+        Err(err) => {
+            error!("Handshake timed out: {:?}", err);
+            return Err(HandshakeTimeout);
+        }
+    }
 
     let entity = state
         .universe

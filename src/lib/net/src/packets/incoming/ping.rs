@@ -10,7 +10,7 @@ use std::sync::Arc;
 #[derive(NetDecode, Debug)]
 #[packet(packet_id = "ping_request", state = "status")]
 pub struct PingPacket {
-    payload: i64,
+    pub payload: i64,
 }
 
 impl IncomingPacket for PingPacket {

@@ -35,6 +35,12 @@ pub enum NetError {
     #[error("Invalid State: {0}")]
     InvalidState(u8),
 
+    #[error("Mismatched Protocol Version: {0} != {1}")]
+    MismatchedProtocolVersion(i32, i32),
+
+    #[error("Handshake timeout")]
+    HandshakeTimeout,
+
     #[error("Packet error: {0}")]
     Packet(#[from] PacketError),
 
