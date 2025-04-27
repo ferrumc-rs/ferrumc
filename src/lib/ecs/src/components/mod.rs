@@ -95,7 +95,7 @@ impl ComponentManager {
         let ptr = *self
             .components
             .get(&type_id)
-            .ok_or(ECSError::ComponentTypeNotFound)?;
+            .ok_or(ECSError::ComponentTypeNotFound(T::type_name()))?;
         let component_set = unsafe { &*(ptr as *const ComponentSparseSet<T>) };
         let res = component_set.get(entity_id);
         #[cfg(debug_assertions)]
@@ -141,7 +141,7 @@ impl ComponentManager {
         let ptr = *self
             .components
             .get(&type_id)
-            .ok_or(ECSError::ComponentTypeNotFound)?;
+            .ok_or(ECSError::ComponentTypeNotFound(T::type_name()))?;
         let component_set = unsafe { &*(ptr as *const ComponentSparseSet<T>) };
         {
             let res = component_set.get_mut(entity_id);
@@ -167,7 +167,7 @@ impl ComponentManager {
         let ptr = *self
             .components
             .get(&type_id)
-            .ok_or(ECSError::ComponentTypeNotFound)?;
+            .ok_or(ECSError::ComponentTypeNotFound(T::type_name()))?;
         let component_set = unsafe { &mut *(ptr as *mut ComponentSparseSet<T>) };
         component_set.remove(entity_id)?;
 

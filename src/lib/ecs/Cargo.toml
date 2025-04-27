@@ -10,6 +10,7 @@ dashmap = { workspace = true }
 parking_lot = { workspace = true }
 rayon = { workspace = true }
 tracing = { workspace = true }
+typename = { workspace = true }
 
 [dev-dependencies]
-criterion = { workspace = true}
+criterion = { workspace = true }

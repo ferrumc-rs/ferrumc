@@ -6,8 +6,9 @@ use ferrumc_state::ServerState;
 use std::fmt::Display;
 use std::sync::Arc;
 use tracing::debug;
+use typename::TypeName;
 
-#[derive(Debug, NetDecode)]
+#[derive(TypeName, Debug, NetDecode)]
 #[packet(packet_id = "client_information", state = "configuration")]
 pub struct ClientInformation {
     pub locale: String,

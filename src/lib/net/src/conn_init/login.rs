@@ -144,6 +144,11 @@ pub(super) async fn login(
 
     // =============================================================================================
 
+    let len = VarInt::decode_async(&mut conn_read, &NetDecodeOpts::None).await?;
+    let id = VarInt::decode_async(&mut conn_read, &NetDecodeOpts::None).await?;
+    let mut buf = vec![0; len.0 as usize - id.len()];
+    conn_read.read_exact(&mut buf).await?;
+
     trim_packet_head!(conn_read, 0x00);
 
     let confirm_player_teleport =
@@ -169,6 +174,12 @@ pub(super) async fn login(
             &mut conn_read,
             &NetDecodeOpts::None,
         ).await?;
+
+    // =============================================================================================
+
+    let game_event = crate::packets::outgoing::game_event::GameEventPacket::new(13, 0.0);
+
+    send_packet!(conn_write, game_event);
 
     // =============================================================================================
 

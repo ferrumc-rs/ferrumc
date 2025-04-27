@@ -7,6 +7,7 @@ use std::io::Read;
 use std::sync::Arc;
 use tokio::io::AsyncReadExt;
 use tracing::debug;
+use typename::TypeName;
 
 #[derive(Debug)]
 #[packet(packet_id = "custom_payload", state = "configuration")]
@@ -14,7 +15,7 @@ pub struct ServerBoundPluginMessage {
     channel: String,
     data: Vec<u8>,
 }
-
+#[derive(TypeName)]
 pub struct ClientMinecraftBrand {
     pub brand: String,
 }

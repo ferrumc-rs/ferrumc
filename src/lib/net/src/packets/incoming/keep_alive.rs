@@ -6,8 +6,9 @@ use ferrumc_macros::{packet, NetDecode};
 use ferrumc_state::ServerState;
 use std::sync::Arc;
 use tracing::debug;
+use typename::TypeName;
 
-#[derive(NetDecode)]
+#[derive(TypeName, NetDecode)]
 #[packet(packet_id = "keep_alive", state = "play")]
 pub struct IncomingKeepAlivePacket {
     pub timestamp: i64,

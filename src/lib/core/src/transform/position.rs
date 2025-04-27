@@ -1,5 +1,7 @@
 use std::fmt::{Debug, Display, Formatter};
+use typename::TypeName;
 
+#[derive(TypeName)]
 pub struct Position {
     pub x: f64,
     pub y: f64,

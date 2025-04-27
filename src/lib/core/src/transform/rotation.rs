@@ -1,5 +1,7 @@
 use std::fmt::Debug;
+use typename::TypeName;
 
+#[derive(TypeName)]
 pub struct Rotation {
     pub yaw: f32,
     pub pitch: f32,

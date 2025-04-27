@@ -12,6 +12,7 @@ dashmap = { workspace = true }
 ferrumc-world = { workspace = true }
 tracing = { workspace = true }
 log = "0.4.27"
+typename = { workspace = true }
 
 [dev-dependencies]
 criterion = { workspace = true }

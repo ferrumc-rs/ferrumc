@@ -5,6 +5,10 @@ use crate::packets::{AnyIncomingPacket, IncomingPacket};
 use crate::utils::state::terminate_connection;
 use crate::{handle_packet, NetResult};
 use crossbeam_queue::SegQueue;
+use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
+use ferrumc_core::transform::grounded::OnGround;
+use ferrumc_core::transform::position::Position;
+use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::Event;
 use ferrumc_net_codec::encode::NetEncode;
@@ -21,16 +25,15 @@ use tokio::net::TcpStream;
 use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
 use tokio::time::timeout;
 use tracing::{debug, debug_span, error, trace, warn, Instrument};
+use typename::TypeName;
 
 /// The maximum time to wait for a handshake to complete
 const MAX_HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(10);
-
-#[derive(Debug)]
+#[derive(TypeName, Debug)]
 pub struct ConnectionControl {
     pub should_disconnect: bool,
 }
-
-#[derive(Debug)]
+#[derive(TypeName, Debug)]
 pub struct LocalPacketQueue {
     pub queue: SegQueue<AnyIncomingPacket>,
 }
@@ -48,26 +51,7 @@ impl Default for ConnectionControl {
         Self::new()
     }
 }
-#[derive(Clone, Eq, PartialEq)]
-pub enum ConnectionState {
-    Handshaking,
-    Status,
-    Login,
-    Play,
-    Configuration,
-}
-impl ConnectionState {
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            ConnectionState::Handshaking => "handshake",
-            ConnectionState::Status => "status",
-            ConnectionState::Login => "login",
-            ConnectionState::Play => "play",
-            ConnectionState::Configuration => "configuration",
-        }
-    }
-}
-
+#[derive(TypeName)]
 pub struct StreamReader {
     pub reader: Arc<RwLock<TcpStream>>,
 }
@@ -78,6 +62,7 @@ impl StreamReader {
     }
 }
 
+#[derive(TypeName)]
 pub struct StreamWriter {
     sender: UnboundedSender<Vec<u8>>,
     running: Arc<AtomicBool>,
@@ -100,10 +85,10 @@ impl StreamWriter {
                 let Some(bytes) = receiver.recv().await else {
                     break;
                 };
-                debug!("Got bytes from remote");
 
                 if let Err(e) = writer.write_all(&bytes).await {
                     warn!("Failed to write to writer: {:?}", e);
+                    running_clone.store(false, Ordering::Relaxed);
                     break;
                 }
             }
@@ -122,12 +107,11 @@ impl StreamWriter {
             packet.encode(&mut buffer, net_encode_opts)?;
             buffer
         };
-        debug!("Sending packet to recv task");
         self.sender.send(bytes).map_err(std::io::Error::other)?;
         Ok(())
     }
 }
-
+#[derive(TypeName)]
 pub struct CompressionStatus {
     pub enabled: bool,
 }
@@ -173,17 +157,25 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
         }
     }
 
+    // The player has successfully connected, so we can start the connection properly
     let entity = state
         .universe
         .builder()
-        .with(StreamWriter::new(tcp_writer))?
-        .with(ConnectionState::Handshaking)?
+        .with(StreamWriter::new(tcp_writer).await)?
         .with(CompressionStatus::new())?
         .with(ConnectionControl::new())?
         .with(LocalPacketQueue {
             queue: SegQueue::new(),
         })?
+        .with(ChunkReceiver::new())?
+        .with(Position::default())?
+        .with(OnGround(false))?
+        .with(Rotation::default())?
         .build();
+
+    {
+        let chunk_recv = state.universe.get::<&mut ChunkReceiver>(entity)?;
+    }
 
     'recv: loop {
         let compressed = state.universe.get::<CompressionStatus>(entity)?.enabled;
@@ -213,7 +205,6 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
             }
         };
 
-        let conn_state = state.universe.get::<ConnectionState>(entity)?.clone();
         match handle_packet(
             packet_skele.id,
             entity,
@@ -224,29 +215,18 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
         .into_inner()
         {
             Ok(Some(pak)) => {
-                if conn_state == ConnectionState::Play {
-                    let queue = state.universe.get::<LocalPacketQueue>(entity)?;
-                    queue.queue.push(pak);
-                } else {
-                    // If we aren't in play state, we can handle the packet immediately
-                    pak.handle(entity, state.clone())?;
-                }
+                let queue = state.universe.get::<LocalPacketQueue>(entity)?;
+                queue.queue.push(pak);
             }
             Ok(None) => {
                 // No packet found for the given ID and state
-                debug!(
-                    "No packet found for ID: 0x{:02X} in state: {}",
-                    packet_skele.id,
-                    conn_state.as_str()
-                );
+                debug!("No packet found for ID: 0x{:02X}", packet_skele.id);
             }
             Err(e) => {
                 // Failed to handle the packet
                 debug!(
-                    "Failed to handle packet: {:?}. packet_id: {:02X}; conn_state: {}",
-                    e,
-                    packet_skele.id,
-                    conn_state.as_str()
+                    "Failed to handle packet: {:?}. packet_id: {:02X}",
+                    e, packet_skele.id
                 );
 
                 disconnect(state.clone(), entity);

@@ -1,6 +1,6 @@
 use crate::errors::BinaryError;
 use crate::systems::definition::System;
-use ferrumc_net::connection::{ConnectionState, StreamWriter};
+use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::incoming::keep_alive::IncomingKeepAlivePacket;
 use ferrumc_net::packets::outgoing::keep_alive::OutgoingKeepAlivePacket;
 use ferrumc_net::utils::broadcast::{BroadcastOptions, BroadcastToAll};
@@ -28,19 +28,16 @@ impl System for KeepAliveSystem {
 
         let entities = state
             .universe
-            .query::<(&mut StreamWriter, &ConnectionState)>()
+            .query::<&mut StreamWriter>()
             .into_entities()
             .into_iter()
             .filter_map(|entity| {
-                let conn_state = state.universe.get::<ConnectionState>(entity).ok()?;
                 let keep_alive = state
                     .universe
                     .get_mut::<IncomingKeepAlivePacket>(entity)
                     .ok()?;
 
-                if matches!(*conn_state, ConnectionState::Play)
-                    && (current_time - keep_alive.timestamp) >= 15000
-                {
+                if current_time - keep_alive.timestamp >= 15000 {
                     Some(entity)
                 } else {
                     None

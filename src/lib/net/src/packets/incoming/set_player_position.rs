@@ -1,7 +1,7 @@
-use crate::packets::packet_events::TransformEvent;
 use crate::packets::IncomingPacket;
 use crate::NetResult;
-use ferrumc_events::infrastructure::Event;
+use ferrumc_core::transform::grounded::OnGround;
+use ferrumc_core::transform::position::Position;
 use ferrumc_macros::{packet, NetDecode};
 use ferrumc_state::ServerState;
 use std::sync::Arc;
@@ -17,11 +17,22 @@ pub struct SetPlayerPositionPacket {
 
 impl IncomingPacket for SetPlayerPositionPacket {
     fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
-        let transform_event = TransformEvent::new(conn_id)
-            .position((self.x, self.feet_y, self.z).into())
-            .on_ground(self.on_ground);
+        // let transform_event = TransformEvent::new(conn_id)
+        //     .position((self.x, self.feet_y, self.z).into())
+        //     .on_ground(self.on_ground);
+        //
+        // TransformEvent::trigger(transform_event, state)?;
 
-        TransformEvent::trigger(transform_event, state)?;
+        {
+            let mut pos = state.universe.get_mut::<&mut Position>(conn_id)?;
+            pos.x = self.x;
+            pos.y = self.feet_y;
+            pos.z = self.z;
+        }
+        {
+            let mut on_ground = state.universe.get_mut::<&mut OnGround>(conn_id)?;
+            on_ground.0 = self.on_ground;
+        }
 
         Ok(())
     }

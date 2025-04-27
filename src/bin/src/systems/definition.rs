@@ -1,5 +1,6 @@
 use crate::errors::BinaryError;
 use crate::systems::keep_alive_system::KeepAliveSystem;
+use crate::systems::send_chunks::ChunkSender;
 use ferrumc_state::GlobalState;
 use std::sync::Arc;
 
@@ -10,5 +11,5 @@ pub trait System: Send + Sync {
 }
 
 pub fn create_systems() -> Vec<Arc<dyn System>> {
-    vec![Arc::new(KeepAliveSystem::new())]
+    vec![Arc::new(KeepAliveSystem::new()), Arc::new(ChunkSender)]
 }

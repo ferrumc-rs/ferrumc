@@ -1,4 +1,6 @@
-#[derive(Debug, Default)]
+use typename::TypeName;
+
+#[derive(TypeName, Debug, Default)]
 pub struct OnGround(pub bool);
 
 impl From<bool> for OnGround {

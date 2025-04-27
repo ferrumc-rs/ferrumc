@@ -1,4 +1,4 @@
-use crate::chunk_sending::send_chunks;
+use crate::systems::send_chunks::send_chunks;
 use ferrumc_core::chunks::chunk_receiver::{ChunkReceiver, VIEW_DISTANCE};
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
@@ -15,13 +15,14 @@ use ferrumc_net::utils::broadcast::{broadcast, BroadcastOptions};
 use ferrumc_net::utils::ecs_helpers::EntityExt;
 use ferrumc_net::NetResult;
 use ferrumc_state::GlobalState;
-use tracing::{trace, warn};
+use tracing::{debug, trace, warn};
 
 #[event_handler(priority = "fastest")]
 fn handle_player_move(
     event: TransformEvent,
     state: GlobalState,
 ) -> Result<TransformEvent, NetError> {
+    debug!("Handle player move event fired");
     let conn_id = event.conn_id;
 
     let mut delta_pos = None::<(i16, i16, i16)>;

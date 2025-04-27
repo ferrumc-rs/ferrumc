@@ -1,8 +1,11 @@
 use ferrumc_world::chunk_format::Chunk;
 use std::collections::HashSet;
 use std::sync::atomic::AtomicBool;
+use typename::TypeName;
 
 pub const VIEW_DISTANCE: i32 = 8;
+
+#[derive(TypeName)]
 pub struct ChunkReceiver {
     pub can_see: HashSet<(i32, i32, String)>,
     pub seen: HashSet<(i32, i32, String)>,
@@ -15,13 +18,6 @@ impl Default for ChunkReceiver {
     fn default() -> Self {
         Self::new()
     }
-}
-
-#[derive(Clone, Eq, PartialEq)]
-pub enum ChunkSendState {
-    Fetching,
-    Sending(Chunk),
-    Sent,
 }
 
 impl ChunkReceiver {

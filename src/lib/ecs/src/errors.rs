@@ -6,8 +6,8 @@ pub enum ECSError {
     ComponentNotFound,
     #[error("Component is locked")]
     ComponentLocked,
-    #[error("Component type not found")]
-    ComponentTypeNotFound,
+    #[error("Component type not found: {0}")]
+    ComponentTypeNotFound(String),
     #[error("Component retrieval error")]
     ComponentRetrievalError,
     #[error("Component removal error")]

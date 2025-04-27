@@ -1,4 +1,6 @@
-#[derive(Debug)]
+use typename::TypeName;
+
+#[derive(TypeName, Debug)]
 pub struct PlayerIdentity {
     pub username: String,
     pub uuid: u128,

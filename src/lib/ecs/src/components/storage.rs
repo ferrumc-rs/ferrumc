@@ -4,10 +4,11 @@ use dashmap::mapref::one::{Ref, RefMut};
 use dashmap::DashMap;
 use std::fmt::{Debug, Display};
 use std::ops::{Deref, DerefMut};
+use typename::TypeName;
 
-pub trait Component: 'static {}
+pub trait Component: 'static + TypeName {}
 
-impl<T: 'static> Component for T {}
+impl<T: 'static + TypeName> Component for T {}
 
 pub struct ComponentSparseSet<C: Component> {
     components: DashMap<usize, C>,
