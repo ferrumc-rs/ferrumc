@@ -1,5 +1,5 @@
+use crate::errors::NetError;
 use crate::packets::IncomingPacket;
-use crate::NetResult;
 use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::{packet, Event, NetDecode};
 use ferrumc_state::ServerState;
@@ -10,7 +10,7 @@ use std::sync::Arc;
 pub struct AckFinishConfigurationPacket {}
 
 impl IncomingPacket for AckFinishConfigurationPacket {
-    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
+    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> Result<(), NetError> {
         let event = AckFinishConfigurationEvent::new(self, conn_id);
 
         AckFinishConfigurationEvent::trigger(event, state)?;

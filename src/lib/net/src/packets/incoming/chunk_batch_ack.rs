@@ -1,7 +1,8 @@
 use crate::connection::StreamWriter;
+use crate::errors::NetError;
 use crate::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket;
 use crate::packets::IncomingPacket;
-use crate::NetResult;
+
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
 use ferrumc_core::transform::position::Position;
 use ferrumc_macros::{packet, NetDecode};
@@ -16,7 +17,7 @@ pub struct ChunkBatchAck {
 }
 
 impl IncomingPacket for ChunkBatchAck {
-    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
+    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> Result<(), NetError> {
         // The first chunk batch should be the ones sent when the player first joins the server.
         // This just moves them to their spawn position when all their chunks are done loading,
         // preventing them from falling into the floor.

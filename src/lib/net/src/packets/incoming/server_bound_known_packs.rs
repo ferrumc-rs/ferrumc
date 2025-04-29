@@ -1,5 +1,6 @@
 use crate::packets::IncomingPacket;
-use crate::NetResult;
+
+use crate::errors::NetError;
 use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::{packet, Event, NetDecode};
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
@@ -22,7 +23,7 @@ pub struct PackOwned {
 }
 
 impl IncomingPacket for ServerBoundKnownPacks {
-    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
+    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> Result<(), NetError> {
         //! No clue what this packet is for, but it's not used in the server.
         //! It's for data packs usually. But we're probably not gonna implement 'em anytime soon.
         debug!("Received known packs: {:#?}", self);

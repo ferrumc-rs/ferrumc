@@ -1,5 +1,3 @@
-use crate::systems::send_chunks::send_chunks;
-use ferrumc_core::chunks::chunk_receiver::{ChunkReceiver, VIEW_DISTANCE};
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
@@ -13,56 +11,41 @@ use ferrumc_net::packets::outgoing::update_entity_rotation::UpdateEntityRotation
 use ferrumc_net::packets::packet_events::TransformEvent;
 use ferrumc_net::utils::broadcast::{broadcast, BroadcastOptions};
 use ferrumc_net::utils::ecs_helpers::EntityExt;
-use ferrumc_net::NetResult;
 use ferrumc_state::GlobalState;
-use tracing::{debug, trace, warn};
+use tracing::trace;
 
 #[event_handler(priority = "fastest")]
 fn handle_player_move(
     event: TransformEvent,
     state: GlobalState,
 ) -> Result<TransformEvent, NetError> {
-    debug!("Handle player move event fired");
     let conn_id = event.conn_id;
 
     let mut delta_pos = None::<(i16, i16, i16)>;
     let mut new_rot = None::<Rotation>;
 
     if let Some(ref new_position) = event.position {
-        trace!("Getting chunk_recv 1 for player move");
-        let mut chunks_need_sending = false;
-        {
-            let mut chunk_recv = state.universe.get_mut::<ChunkReceiver>(conn_id)?;
-            if (new_position.x / 16.0).floor() != chunk_recv.last_chunk.0 as f64
-                || (new_position.z / 16.0).floor() != chunk_recv.last_chunk.1 as f64
-            {
-                let (old_x, old_z) = (chunk_recv.last_chunk.0, chunk_recv.last_chunk.1);
-                let (new_x, new_z) = (
-                    (new_position.x / 16.0).floor() as i32,
-                    (new_position.z / 16.0).floor() as i32,
-                );
-                {
-                    if (old_x, old_z) != (new_x, new_z) {
-                        chunk_recv.last_chunk = (new_x, new_z, String::from("overworld"));
-                    } else {
-                        warn!("Player crossed chunk but old and new chunks are the same");
-                        return Ok(event);
-                    }
-                    chunk_recv.can_see.clear();
-                    for x in new_x - VIEW_DISTANCE..new_x + VIEW_DISTANCE {
-                        for z in new_z - VIEW_DISTANCE..new_z + VIEW_DISTANCE {
-                            chunk_recv.can_see.insert((x, z, "overworld".to_string()));
-                        }
-                    }
-                    chunks_need_sending = true;
-                }
-            }
-        }
-
-        if chunks_need_sending {
-            send_chunks(state.clone(), conn_id)
-                .map_err(|e| NetError::Misc(format!("Failed to send chunks to player: {:?}", e)))?;
-        }
+        // trace!("Getting chunk_recv 1 for player move");
+        // {
+        //     let mut chunk_recv = state.universe.get_mut::<ChunkReceiver>(conn_id)?;
+        //     if (new_position.x / 16.0).floor() != chunk_recv.last_chunk.0 as f64
+        //         || (new_position.z / 16.0).floor() != chunk_recv.last_chunk.1 as f64
+        //     {
+        //         let (old_x, old_z, _) = chunk_recv.last_chunk;
+        //         let (new_x, new_z) = (
+        //             (new_position.x / 16.0).floor() as i32,
+        //             (new_position.z / 16.0).floor() as i32,
+        //         );
+        //         {
+        //             if (old_x, old_z) != (new_x, new_z) {
+        //                 // chunk_recv.last_chunk = (new_x, new_z, String::from("overworld"));
+        //             } else {
+        //                 warn!("Player crossed chunk but old and new chunks are the same");
+        //                 return Ok(event);
+        //             }
+        //         }
+        //     }
+        // }
 
         trace!("Getting position 1 for player move");
         let mut position = conn_id.get_mut::<Position>(&state)?;
@@ -114,7 +97,7 @@ fn update_pos_for_all(
     delta_pos: Option<(i16, i16, i16)>,
     new_rot: Option<Rotation>,
     state: &GlobalState,
-) -> NetResult<()> {
+) -> Result<(), NetError> {
     let is_grounded = entity_id.get::<OnGround>(state)?.0;
 
     // If any delta of (x|y|z) exceeds 7.5, then it's "not recommended" to use this packet

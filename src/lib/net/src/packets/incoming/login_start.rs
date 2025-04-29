@@ -1,5 +1,6 @@
 use crate::packets::IncomingPacket;
-use crate::NetResult;
+
+use crate::errors::NetError;
 use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::{packet, Event, NetDecode};
 use ferrumc_state::ServerState;
@@ -13,7 +14,7 @@ pub struct LoginStartPacket {
 }
 
 impl IncomingPacket for LoginStartPacket {
-    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
+    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> Result<(), NetError> {
         LoginStartEvent::trigger(LoginStartEvent::new(self, conn_id), state)?;
         Ok(())
     }

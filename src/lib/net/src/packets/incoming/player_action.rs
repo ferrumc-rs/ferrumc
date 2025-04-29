@@ -1,8 +1,9 @@
 use crate::connection::StreamWriter;
+use crate::errors::NetError;
 use crate::packets::outgoing::block_change_ack::BlockChangeAck;
 use crate::packets::outgoing::block_update::BlockUpdate;
 use crate::packets::IncomingPacket;
-use crate::NetResult;
+
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
 use ferrumc_macros::{packet, NetDecode};
 use ferrumc_net_codec::encode::NetEncodeOpts;
@@ -24,7 +25,7 @@ pub struct PlayerAction {
 }
 
 impl IncomingPacket for PlayerAction {
-    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
+    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> Result<(), NetError> {
         // https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol?oldid=2773393#Player_Action
         match self.status.0 {
             0 => {
@@ -61,7 +62,7 @@ impl IncomingPacket for PlayerAction {
                         {
                             // Don't send the block update packet if the player can't see the chunk
                             if let Ok(chunk_recv) = state.universe.get::<ChunkReceiver>(entity_id) {
-                                if chunk_recv.can_see.contains(&(
+                                if chunk_recv.needs_reload.contains(&(
                                     self.location.x >> 4,
                                     self.location.z >> 4,
                                     "overworld".to_string(),

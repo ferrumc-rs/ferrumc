@@ -1,5 +1,6 @@
+use crate::errors::NetError;
 use crate::utils::ecs_helpers::EntityExt;
-use crate::NetResult;
+
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
@@ -31,7 +32,7 @@ pub struct SpawnEntityPacket {
 const PLAYER_ID: u64 = get_registry_entry!("minecraft:entity_type.entries.minecraft:player");
 
 impl SpawnEntityPacket {
-    pub fn player(entity_id: Entity, state: &GlobalState) -> NetResult<Self> {
+    pub fn player(entity_id: Entity, state: &GlobalState) -> Result<Self, NetError> {
         let player_identity = entity_id.get::<PlayerIdentity>(state)?;
         let position = entity_id.get::<Position>(state)?;
         let rotation = entity_id.get::<Rotation>(state)?;

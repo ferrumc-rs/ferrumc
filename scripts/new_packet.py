@@ -3,7 +3,7 @@ import re
 
 incoming_template = """
 use crate::packets::IncomingPacket;
-use crate::NetResult;
+
 use ferrumc_macros::{packet, NetDecode};
 use ferrumc_state::ServerState;
 use std::sync::Arc;
@@ -14,7 +14,7 @@ pub struct ++name++ {
 }
 
 impl IncomingPacket for ++name++ {
-    async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
+    async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> Result<(), NetError> {
         todo!()
     }
 }

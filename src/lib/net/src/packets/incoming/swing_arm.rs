@@ -1,6 +1,7 @@
+use crate::errors::NetError;
 use crate::packets::outgoing::entity_animation::EntityAnimationEvent;
 use crate::packets::IncomingPacket;
-use crate::NetResult;
+
 use ferrumc_ecs::entities::Entity;
 use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::{packet, NetDecode};
@@ -15,7 +16,7 @@ pub struct SwingArmPacket {
 }
 
 impl IncomingPacket for SwingArmPacket {
-    fn handle(self, conn_id: Entity, state: Arc<ServerState>) -> NetResult<()> {
+    fn handle(self, conn_id: Entity, state: Arc<ServerState>) -> Result<(), NetError> {
         let animation = {
             if self.hand == 0 {
                 0

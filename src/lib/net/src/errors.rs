@@ -15,7 +15,10 @@ pub enum NetError {
     EncoderError(#[from] NetEncodeError),
 
     #[error("IO Error: {0}")]
-    IOError(#[from] std::io::Error),
+    IOError(std::io::Error),
+
+    #[error("Connection Dropped")]
+    ConnectionDropped,
 
     #[error("Addr parse error: {0}")]
     AddrParseError(#[from] std::net::AddrParseError),
@@ -64,4 +67,14 @@ pub enum PacketError {
 pub enum ChunkError {
     #[error("Invalid Chunk: ({0}, {1})")]
     InvalidChunk(i32, i32),
+}
+
+impl From<std::io::Error> for NetError {
+    fn from(err: std::io::Error) -> Self {
+        use std::io::ErrorKind::*;
+        match err.kind() {
+            ConnectionAborted | ConnectionReset | UnexpectedEof => NetError::ConnectionDropped,
+            _ => NetError::IOError(err),
+        }
+    }
 }

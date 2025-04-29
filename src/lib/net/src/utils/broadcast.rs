@@ -1,5 +1,6 @@
 use crate::connection::StreamWriter;
-use crate::NetResult;
+use crate::errors::NetError;
+
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_ecs::entities::Entity;
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
@@ -63,7 +64,7 @@ pub fn broadcast(
     packet: &impl NetEncode,
     state: &GlobalState,
     opts: BroadcastOptions,
-) -> NetResult<()> {
+) -> Result<(), NetError> {
     let mut entities = match opts.only_entities {
         None => get_all_play_players(state),
         Some(entities) => entities,
@@ -113,11 +114,19 @@ pub fn broadcast(
 }
 
 pub trait BroadcastToAll {
-    fn broadcast(&self, packet: &(impl NetEncode + Sync), opts: BroadcastOptions) -> NetResult<()>;
+    fn broadcast(
+        &self,
+        packet: &(impl NetEncode + Sync),
+        opts: BroadcastOptions,
+    ) -> Result<(), NetError>;
 }
 
 impl BroadcastToAll for GlobalState {
-    fn broadcast(&self, packet: &(impl NetEncode + Sync), opts: BroadcastOptions) -> NetResult<()> {
+    fn broadcast(
+        &self,
+        packet: &(impl NetEncode + Sync),
+        opts: BroadcastOptions,
+    ) -> Result<(), NetError> {
         broadcast(packet, self, opts)
     }
 }

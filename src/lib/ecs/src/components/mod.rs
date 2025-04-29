@@ -5,8 +5,6 @@ use dashmap::DashMap;
 use parking_lot::RwLock;
 use std::any::TypeId;
 #[cfg(debug_assertions)]
-use std::hash::{Hash, Hasher};
-#[cfg(debug_assertions)]
 use tracing::trace;
 
 pub mod storage;
@@ -72,12 +70,10 @@ impl ComponentManager {
         let type_id = TypeId::of::<T>();
         #[cfg(debug_assertions)]
         {
-            let mut hasher = std::collections::hash_map::DefaultHasher::new();
-            type_id.hash(&mut hasher);
-            let type_hash = hasher.finish();
+            let type_name = T::type_name();
             trace!(
-                "Getting static component (ID: {:X}) lock for entity {}",
-                type_hash,
+                "Getting static component (ID: {}) lock for entity {}",
+                type_name,
                 entity_id
             );
             let locked = matches!(
@@ -86,8 +82,8 @@ impl ComponentManager {
             );
             if locked {
                 trace!(
-                    "Static component (ID: {:X}) lock for entity {} is locked",
-                    type_hash,
+                    "Static component (ID: {}) lock for entity {} is locked",
+                    type_name,
                     entity_id
                 );
             }
@@ -100,12 +96,10 @@ impl ComponentManager {
         let res = component_set.get(entity_id);
         #[cfg(debug_assertions)]
         {
-            let mut hasher = std::collections::hash_map::DefaultHasher::new();
-            type_id.hash(&mut hasher);
-            let type_hash = hasher.finish();
+            let type_hash = T::type_name();
             if res.is_ok() {
                 trace!(
-                    "Got static component (ID: {:X}) lock for entity {}",
+                    "Got static component (ID: {}) lock for entity {}",
                     type_hash,
                     entity_id
                 );
@@ -118,12 +112,10 @@ impl ComponentManager {
         let type_id = TypeId::of::<T>();
         #[cfg(debug_assertions)]
         {
-            let mut hasher = std::collections::hash_map::DefaultHasher::new();
-            type_id.hash(&mut hasher);
-            let type_hash = hasher.finish();
+            let type_name = T::type_name();
             trace!(
-                "Getting mutable component (ID: {:X}) lock for entity {}",
-                type_hash,
+                "Getting mutable component (ID: {}) lock for entity {}",
+                type_name,
                 entity_id
             );
             let locked = matches!(
@@ -132,8 +124,8 @@ impl ComponentManager {
             );
             if locked {
                 trace!(
-                    "Mutable component (ID: {:X}) lock for entity {} is locked",
-                    type_hash,
+                    "Mutable component (ID: {}) lock for entity {} is locked",
+                    type_name,
                     entity_id
                 );
             }
@@ -147,13 +139,11 @@ impl ComponentManager {
             let res = component_set.get_mut(entity_id);
             #[cfg(debug_assertions)]
             {
-                let mut hasher = std::collections::hash_map::DefaultHasher::new();
-                type_id.hash(&mut hasher);
-                let type_hash = hasher.finish();
+                let type_name = T::type_name();
                 if res.is_ok() {
                     trace!(
-                        "Got mutable component (ID: {:X}) lock for entity {}",
-                        type_hash,
+                        "Got mutable component (ID: {}) lock for entity {}",
+                        type_name,
                         entity_id
                     );
                 }

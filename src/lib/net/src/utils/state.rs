@@ -2,7 +2,6 @@ use crate::{
     connection::{ConnectionControl, StreamWriter},
     errors::NetError,
     packets::outgoing::disconnect::DisconnectPacket,
-    NetResult,
 };
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::GlobalState;
@@ -22,7 +21,11 @@ use super::ecs_helpers::EntityExt;
 ///
 /// Returns an error if the stream writer or connection control component cannot be accessed for
 /// the given `conn_id`.
-pub fn terminate_connection(state: GlobalState, conn_id: usize, reason: String) -> NetResult<()> {
+pub fn terminate_connection(
+    state: GlobalState,
+    conn_id: usize,
+    reason: String,
+) -> Result<(), NetError> {
     let mut writer = match conn_id.get_mut::<StreamWriter>(&state.clone()) {
         Ok(writer) => writer,
         Err(e) => {

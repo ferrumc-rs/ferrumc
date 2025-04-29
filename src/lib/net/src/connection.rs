@@ -1,9 +1,10 @@
 use crate::conn_init::handle_handshake;
+use crate::errors::NetError;
 use crate::errors::NetError::HandshakeTimeout;
+use crate::handle_packet;
 use crate::packets::incoming::packet_skeleton::PacketSkeleton;
 use crate::packets::{AnyIncomingPacket, IncomingPacket};
 use crate::utils::state::terminate_connection;
-use crate::{handle_packet, NetResult};
 use crossbeam_queue::SegQueue;
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
 use ferrumc_core::transform::grounded::OnGround;
@@ -35,7 +36,7 @@ pub struct ConnectionControl {
 }
 #[derive(TypeName, Debug)]
 pub struct LocalPacketQueue {
-    pub queue: SegQueue<AnyIncomingPacket>,
+    pub queue: Arc<SegQueue<AnyIncomingPacket>>,
 }
 
 impl ConnectionControl {
@@ -101,7 +102,7 @@ impl StreamWriter {
         &mut self,
         packet: impl NetEncode + Send,
         net_encode_opts: &NetEncodeOpts,
-    ) -> NetResult<()> {
+    ) -> Result<(), NetError> {
         let bytes = {
             let mut buffer = Vec::new();
             packet.encode(&mut buffer, net_encode_opts)?;
@@ -128,7 +129,10 @@ impl Default for CompressionStatus {
     }
 }
 
-pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -> NetResult<()> {
+pub async fn handle_connection(
+    state: Arc<ServerState>,
+    tcp_stream: TcpStream,
+) -> Result<(), NetError> {
     let (mut tcp_reader, mut tcp_writer) = tcp_stream.into_split();
 
     let handshake_result = timeout(
@@ -165,7 +169,7 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
         .with(CompressionStatus::new())?
         .with(ConnectionControl::new())?
         .with(LocalPacketQueue {
-            queue: SegQueue::new(),
+            queue: Arc::new(SegQueue::new()),
         })?
         .with(ChunkReceiver::new())?
         .with(Position::default())?
@@ -173,20 +177,18 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
         .with(Rotation::default())?
         .build();
 
-    {
-        let chunk_recv = state.universe.get::<&mut ChunkReceiver>(entity)?;
-    }
-
     'recv: loop {
         let compressed = state.universe.get::<CompressionStatus>(entity)?.enabled;
-        let should_disconnect = state
-            .universe
-            .get::<ConnectionControl>(entity)?
-            .should_disconnect;
+        {
+            let should_disconnect = state
+                .universe
+                .get::<ConnectionControl>(entity)?
+                .should_disconnect;
 
-        if should_disconnect {
-            trace!("Conn for entity {:?} is marked for disconnection", entity);
-            break 'recv;
+            if should_disconnect {
+                trace!("Conn for entity {:?} is marked for disconnection", entity);
+                break 'recv;
+            }
         }
 
         if state.shut_down.load(Ordering::Relaxed) {
@@ -196,12 +198,9 @@ pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -
         let mut packet_skele = match PacketSkeleton::new(&mut tcp_reader, compressed).await {
             Ok(packet_skele) => packet_skele,
             Err(err) => {
-                // Handle the error
-                debug!(
-                    "Failed to read packet for entity {:?}, err: {:?}. Continuing to next iteration",
-                    entity, err
-                );
-                continue 'recv;
+                debug!("Connection dropped for entity {:?}", entity);
+                disconnect(state.clone(), entity);
+                break 'recv;
             }
         };
 
@@ -243,7 +242,7 @@ pub struct PlayerDisconnectEvent {
     pub entity_id: usize,
 }
 
-fn remove_all_components_blocking(state: Arc<ServerState>, entity: usize) -> NetResult<()> {
+fn remove_all_components_blocking(state: Arc<ServerState>, entity: usize) -> Result<(), NetError> {
     let res = state.universe.remove_all_components(entity);
 
     Ok(res?)

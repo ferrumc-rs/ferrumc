@@ -1,5 +1,6 @@
 use crate::packets::IncomingPacket;
-use crate::NetResult;
+
+use crate::errors::NetError;
 use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::{packet, Event, NetDecode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
@@ -17,7 +18,7 @@ pub struct Handshake {
 }
 
 impl IncomingPacket for Handshake {
-    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
+    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> Result<(), NetError> {
         trace!("Connection ID: {}", conn_id);
         trace!("Handshake packet received: {:?}", self);
 

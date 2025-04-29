@@ -1,5 +1,3 @@
-use crate::NetResult;
-
 pub mod incoming;
 pub mod outgoing;
 pub mod packet_events;
@@ -10,9 +8,10 @@ pub trait IncomingPacket {
         self,
         conn_id: usize,
         state: std::sync::Arc<ferrumc_state::ServerState>,
-    ) -> NetResult<()>;
+    ) -> Result<(), NetError>;
 }
 
+use crate::errors::NetError;
 use incoming::*;
 #[enum_delegate::implement(IncomingPacket)]
 pub enum AnyIncomingPacket {

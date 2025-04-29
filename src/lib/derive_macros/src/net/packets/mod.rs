@@ -177,10 +177,10 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
     let match_arms = match_arms.into_iter();
 
     let output = quote! {
-        pub fn handle_packet<R: std::io::Read>(packet_id: u8, conn_id: usize, cursor: &mut R, state: std::sync::Arc<ferrumc_state::ServerState>) -> crate::NetResult<Option<crate::packets::AnyIncomingPacket>> {
+        pub fn handle_packet<R: std::io::Read>(packet_id: u8, conn_id: usize, cursor: &mut R, state: std::sync::Arc<ferrumc_state::ServerState>) -> Result<Option<crate::packets::AnyIncomingPacket>, crate::errors::NetError> {
             match (packet_id) {
                 #(#match_arms)*
-                _ => {tracing::debug!("No packet found for ID: 0x{:02X}", packet_id); NetResult::Ok(None)},
+                _ => {tracing::debug!("No packet found for ID: 0x{:02X}", packet_id); Result::Ok(None)},
             }
         }
     };

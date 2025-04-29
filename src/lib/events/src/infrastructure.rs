@@ -1,6 +1,7 @@
 use std::{any::Any, sync::LazyLock};
 
 use dashmap::DashMap;
+use tracing::debug;
 
 /// A Lazily initialized HashMap wrapped in a ShardedLock optimized for reads.
 type LazyRwListenerMap<K, V> = LazyLock<DashMap<K, V>>;
@@ -90,7 +91,7 @@ pub trait Event: Sized + Send + Sync + 'static {
                     Ok(intercepted) => (listener.listener)(intercepted, state),
                 }
             })
-            .expect("Failed to trigger event listeners");
+            .unwrap_or_else(|_| panic!("Failed to trigger event listener: {}", Self::name()));
         #[cfg(debug_assertions)]
         tracing::trace!("Event {} took {:?}", Self::name(), start.elapsed());
 

@@ -1,5 +1,6 @@
 use crate::packets::IncomingPacket;
-use crate::NetResult;
+
+use crate::errors::NetError;
 use ferrumc_macros::packet;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
 use ferrumc_state::ServerState;
@@ -42,7 +43,7 @@ impl NetDecode for ServerBoundPluginMessage {
 }
 
 impl IncomingPacket for ServerBoundPluginMessage {
-    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
+    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> Result<(), NetError> {
         debug!("Received plugin message: {:?}", self);
 
         if self.channel == "minecraft:brand" {

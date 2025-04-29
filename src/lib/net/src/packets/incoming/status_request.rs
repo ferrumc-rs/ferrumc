@@ -1,7 +1,8 @@
 use crate::connection::StreamWriter;
 use crate::packets::outgoing::status_response::StatusResponse;
 use crate::packets::IncomingPacket;
-use crate::NetResult;
+
+use crate::errors::NetError;
 use ferrumc_config::favicon::get_favicon_base64;
 use ferrumc_config::statics::get_global_config;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
@@ -16,7 +17,7 @@ use std::sync::Arc;
 pub struct StatusRequestPacket {}
 
 impl IncomingPacket for StatusRequestPacket {
-    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
+    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> Result<(), NetError> {
         let response = StatusResponse::new(get_server_status(&state));
 
         let mut writer = state.universe.get_mut::<StreamWriter>(conn_id)?;

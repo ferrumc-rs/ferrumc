@@ -1,5 +1,6 @@
+use crate::errors::NetError;
 use crate::packets::IncomingPacket;
-use crate::NetResult;
+
 use ferrumc_macros::{packet, NetDecode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::ServerState;
@@ -12,7 +13,7 @@ pub struct ConfirmPlayerTeleport {
 }
 
 impl IncomingPacket for ConfirmPlayerTeleport {
-    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
-        todo!()
+    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> Result<(), NetError> {
+        Ok(())
     }
 }

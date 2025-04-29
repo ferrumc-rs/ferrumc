@@ -1,5 +1,6 @@
 use crate::packets::IncomingPacket;
-use crate::NetResult;
+
+use crate::errors::NetError;
 use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::{packet, Event, NetDecode};
 use ferrumc_state::ServerState;
@@ -15,7 +16,7 @@ pub struct LoginAcknowledgedEvent {
     pub conn_id: usize,
 }
 impl IncomingPacket for LoginAcknowledgedPacket {
-    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
+    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> Result<(), NetError> {
         LoginAcknowledgedEvent::trigger(LoginAcknowledgedEvent::new(self, conn_id), state)?;
         Ok(())
     }

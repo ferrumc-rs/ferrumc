@@ -25,6 +25,7 @@ impl System for ChunkSender {
             .into_entities();
 
         for eid in query {
+            let mut chunks_to_send = vec![];
             {
                 let pos = state.universe.get_mut::<Position>(eid)?;
                 let mut recv = state.universe.get_mut::<ChunkReceiver>(eid)?;
@@ -34,17 +35,30 @@ impl System for ChunkSender {
                     "overworld".to_string(),
                 );
                 recv.last_chunk = current_chunk.clone();
+
                 for x in -CHUNK_RADIUS..=CHUNK_RADIUS {
                     for z in -CHUNK_RADIUS..=CHUNK_RADIUS {
-                        recv.can_see.insert((
+                        chunks_to_send.push((
                             current_chunk.0 + x,
                             current_chunk.1 + z,
                             "overworld".to_string(),
                         ));
                     }
                 }
+                // recv.seen.retain(|(x, z, _)| {
+                //     let dx = (current_chunk.0 - x).abs();
+                //     let dz = (current_chunk.1 - z).abs();
+                //     dx <= CHUNK_RADIUS && dz <= CHUNK_RADIUS
+                // });
+                chunks_to_send.retain(|(x, z, dim)| {
+                    !recv.seen.contains(&(*x, *z, dim.clone()))
+                        || recv.needs_reload.contains(&(*x, *z, dim.clone()))
+                });
             }
-            send_chunks(state.clone(), eid)?
+            if !chunks_to_send.is_empty() {
+                debug!("ChunkSender: {} needs {} chunks", eid, chunks_to_send.len());
+                send_chunks(state.clone(), eid, chunks_to_send)?;
+            }
         }
         Ok(())
     }
@@ -65,28 +79,21 @@ impl System for ChunkSender {
 ///
 /// * `Ok(())` - If the chunks are successfully sent.
 /// * `Err(BinaryError)` - If an error occurs while sending the chunks.
-pub fn send_chunks(state: GlobalState, eid: usize) -> Result<(), BinaryError> {
-    let mut chunk_coords = Vec::new();
-
+pub fn send_chunks(
+    state: GlobalState,
+    eid: usize,
+    mut chunk_coords: Vec<(i32, i32, String)>,
+) -> Result<(), BinaryError> {
     let mut recv = state.universe.get_mut::<ChunkReceiver>(eid)?;
-    for (x, z, _) in recv.can_see.iter() {
-        chunk_coords.push((*x, *z));
-    }
-    chunk_coords.retain(|(x, z)| !recv.seen.contains(&(*x, *z, "overworld".to_string())));
+
     let (center_x, center_z, _) = recv.last_chunk;
 
     // Sort the chunks by distance from the center
-    chunk_coords.sort_by(|(x1, z1), (x2, z2)| {
+    chunk_coords.sort_by(|(x1, z1, _), (x2, z2, _)| {
         let dist1 = (((center_x - x1).pow(2) + (center_z - z1).pow(2)) as f64).sqrt();
         let dist2 = (((center_x - x2).pow(2) + (center_z - z2).pow(2)) as f64).sqrt();
         (dist1 as i32).cmp(&(dist2 as i32))
     });
-
-    debug!(
-        "ChunkSender: Sending {} chunks to player {}",
-        chunk_coords.len(),
-        eid
-    );
 
     let center_chunk_packet = SetCenterChunk::new(center_x, center_z);
     let mut conn = state.universe.get_mut::<StreamWriter>(eid)?;
@@ -97,9 +104,9 @@ pub fn send_chunks(state: GlobalState, eid: usize) -> Result<(), BinaryError> {
 
     let mut chunks_sent = 0;
 
-    for (x, z) in chunk_coords {
-        let chunk = if state.world.chunk_exists(x, z, "overworld")? {
-            state.world.load_chunk(x, z, "overworld")?
+    for (x, z, dim) in chunk_coords.clone() {
+        let chunk = if state.world.chunk_exists(x, z, &dim)? {
+            state.world.load_chunk(x, z, &dim)?
         } else {
             let generated_chunk = state.terrain_generator.generate_chunk(x, z)?;
             // TODO: Remove this clone
@@ -110,9 +117,12 @@ pub fn send_chunks(state: GlobalState, eid: usize) -> Result<(), BinaryError> {
         conn.send_packet(packet, &NetEncodeOpts::WithLength)?;
         // This never actually gets emptied out so if someone goes to enough new chunks and doesn't
         // leave the server, this will eventually run out of memory. Should probably be fixed.
-        recv.seen.insert((x, z, "overworld".to_string()));
+        recv.seen.insert((x, z, dim.clone()));
+        recv.needs_reload.remove(&(x, z, dim));
         chunks_sent += 1;
     }
+
+    debug!("Chunks sent {}", chunks_sent);
 
     let batch_end_packet = ChunkBatchFinish {
         batch_size: VarInt::new(chunks_sent),

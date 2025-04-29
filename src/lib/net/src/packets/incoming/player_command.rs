@@ -1,5 +1,6 @@
 use crate::packets::IncomingPacket;
-use crate::NetResult;
+
+use crate::errors::NetError;
 use ferrumc_ecs::entities::Entity;
 use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::{packet, Event, NetDecode};
@@ -33,7 +34,7 @@ pub enum PlayerCommandAction {
 }
 
 impl IncomingPacket for PlayerCommandPacket {
-    fn handle(self, _: Entity, state: Arc<ServerState>) -> NetResult<()> {
+    fn handle(self, _: Entity, state: Arc<ServerState>) -> Result<(), NetError> {
         PlayerDoActionEvent::trigger(PlayerDoActionEvent::from(self), state)?;
         Ok(())
     }

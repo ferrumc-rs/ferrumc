@@ -7,7 +7,7 @@ pub const VIEW_DISTANCE: i32 = 8;
 
 #[derive(TypeName)]
 pub struct ChunkReceiver {
-    pub can_see: HashSet<(i32, i32, String)>,
+    pub needs_reload: HashSet<(i32, i32, String)>,
     pub seen: HashSet<(i32, i32, String)>,
     pub last_chunk: (i32, i32, String),
     pub chunks_per_tick: f32,
@@ -23,7 +23,7 @@ impl Default for ChunkReceiver {
 impl ChunkReceiver {
     pub fn new() -> Self {
         Self {
-            can_see: HashSet::new(),
+            needs_reload: HashSet::new(),
             seen: HashSet::new(),
             last_chunk: (0, 0, "overworld".to_string()),
             chunks_per_tick: 0.0,

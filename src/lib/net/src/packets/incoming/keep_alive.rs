@@ -1,7 +1,8 @@
 use crate::packets::outgoing::keep_alive::OutgoingKeepAlivePacket;
 use crate::packets::IncomingPacket;
 use crate::utils::state::terminate_connection;
-use crate::NetResult;
+
+use crate::errors::NetError;
 use ferrumc_macros::{packet, NetDecode};
 use ferrumc_state::ServerState;
 use std::sync::Arc;
@@ -15,7 +16,7 @@ pub struct IncomingKeepAlivePacket {
 }
 
 impl IncomingPacket for IncomingKeepAlivePacket {
-    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
+    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> Result<(), NetError> {
         let last_sent_keep_alive = state.universe.get::<OutgoingKeepAlivePacket>(conn_id)?;
         if self.timestamp != last_sent_keep_alive.timestamp {
             debug!(

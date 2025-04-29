@@ -2,7 +2,8 @@ use crate::connection::StreamWriter;
 use crate::packets::outgoing::block_change_ack::BlockChangeAck;
 use crate::packets::outgoing::chunk_and_light_data::ChunkAndLightData;
 use crate::packets::IncomingPacket;
-use crate::NetResult;
+
+use crate::errors::NetError;
 use ferrumc_core::collisions::bounds::CollisionBounds;
 use ferrumc_core::transform::position::Position;
 use ferrumc_macros::{packet, NetDecode};
@@ -28,7 +29,7 @@ pub struct PlaceBlock {
 }
 
 impl IncomingPacket for PlaceBlock {
-    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
+    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> Result<(), NetError> {
         match self.hand.0 {
             0 => {
                 debug!("Placing block at {:?}", self.position);

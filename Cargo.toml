@@ -170,7 +170,7 @@ dhat = "0.3.3"
 libflate = "2.1.0"
 flate2 = { version = "1.1.1", features = ["zlib"], default-features = false }
 zstd = { version = "0.13.3" }
-brotli = "7.0.0"
+brotli = "8.0.0"
 lzzzz = "2.0.0"
 yazi = "0.2.1"
 bzip2 = "0.5.2"

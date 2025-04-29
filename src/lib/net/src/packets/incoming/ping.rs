@@ -1,7 +1,8 @@
 use crate::connection::StreamWriter;
 use crate::packets::outgoing::ping_response::PongPacket;
 use crate::packets::IncomingPacket;
-use crate::NetResult;
+
+use crate::errors::NetError;
 use ferrumc_macros::{packet, NetDecode};
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::ServerState;
@@ -14,7 +15,7 @@ pub struct PingPacket {
 }
 
 impl IncomingPacket for PingPacket {
-    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
+    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> Result<(), NetError> {
         let response = PongPacket::new(self.payload);
 
         let mut writer = state.universe.get_mut::<StreamWriter>(conn_id)?;

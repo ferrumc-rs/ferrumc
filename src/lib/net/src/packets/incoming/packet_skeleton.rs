@@ -1,4 +1,4 @@
-use crate::{errors::NetError, NetResult};
+use crate::errors::NetError;
 use ferrumc_config::statics::get_global_config;
 use ferrumc_net_codec::{decode::errors::NetDecodeError, net_types::var_int::VarInt};
 use std::io::Cursor;
@@ -23,7 +23,10 @@ impl Debug for PacketSkeleton {
 }
 
 impl PacketSkeleton {
-    pub async fn new<R: AsyncRead + Unpin>(reader: &mut R, compressed: bool) -> NetResult<Self> {
+    pub async fn new<R: AsyncRead + Unpin>(
+        reader: &mut R,
+        compressed: bool,
+    ) -> Result<Self, NetError> {
         let pak = match compressed {
             true => Self::read_compressed(reader).await,
             false => Self::read_uncompressed(reader).await,
@@ -43,8 +46,7 @@ impl PacketSkeleton {
     }
 
     // #[inline(always)]
-    async fn read_uncompressed<R: AsyncRead + Unpin>(reader: &mut R) -> NetResult<Self> {
-        debug!("Got a packet");
+    async fn read_uncompressed<R: AsyncRead + Unpin>(reader: &mut R) -> Result<Self, NetError> {
         let length = VarInt::read_async(reader).await?.0 as usize;
         let mut buf = {
             let mut buf = vec![0; length];
@@ -55,11 +57,6 @@ impl PacketSkeleton {
 
         let id = VarInt::read_async(&mut buf).await?;
 
-        info!(
-            "Uncompressed packet: length: {}, id: {}",
-            length, id.0 as u8
-        );
-
         Ok(Self {
             length,
             id: id.0 as u8,
@@ -68,7 +65,7 @@ impl PacketSkeleton {
     }
 
     #[inline(always)]
-    async fn read_compressed<R: AsyncRead + Unpin>(reader: &mut R) -> NetResult<Self> {
+    async fn read_compressed<R: AsyncRead + Unpin>(reader: &mut R) -> Result<Self, NetError> {
         let packet_length = VarInt::read_async(reader).await?.0 as usize;
         let data_length = VarInt::read_async(reader).await?.0 as usize;
 
@@ -98,7 +95,7 @@ impl PacketSkeleton {
         if data_length < compression_threshold as usize {
             // Compressed packet smaller than threshold
             // Reject packet
-            return NetResult::Err(NetError::DecoderError(
+            return Err(NetError::DecoderError(
                 NetDecodeError::CompressedPacketTooSmall(data_length),
             ));
         }
