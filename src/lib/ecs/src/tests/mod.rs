@@ -4,8 +4,9 @@ use crate::query::Query;
 use rayon::prelude::*;
 use std::thread;
 use std::time::Duration;
+use typename::TypeName;
 
-#[derive(Debug)]
+#[derive(Debug, TypeName)]
 #[expect(dead_code)]
 struct Position {
     x: u32,
@@ -14,7 +15,7 @@ struct Position {
 
 unsafe impl Send for Position {}
 
-#[derive(Debug)]
+#[derive(Debug, TypeName)]
 #[expect(dead_code)]
 struct Player {
     username: String,
@@ -33,7 +34,7 @@ fn test_basic() {
             .with(Position { x, y: x * 2 })
             .unwrap()
             .with(Player {
-                username: format!("Player{}", x),
+                username: format!("Player{x}"),
             })
             .unwrap()
             .build();

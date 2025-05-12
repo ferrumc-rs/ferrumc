@@ -1,11 +1,14 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use typename::TypeName;
 use ferrumc_ecs::Universe;
 
+#[derive(TypeName)]
 struct Position {
     x: f32,
     y: f32,
 }
 
+#[derive(TypeName)]
 struct Velocity {
     x: f32,
     y: f32,
