@@ -1,7 +1,8 @@
+use bevy_ecs::prelude::Component;
 use std::fmt::{Debug, Display, Formatter};
 use typename::TypeName;
 
-#[derive(TypeName)]
+#[derive(TypeName, Component)]
 pub struct Position {
     pub x: f64,
     pub y: f64,

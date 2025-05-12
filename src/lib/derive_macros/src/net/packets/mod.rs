@@ -249,7 +249,7 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
     let match_arms = match_arms.into_iter();
 
     let output = quote! {
-        pub fn handle_packet<R: std::io::Read>(packet_id: u8, entity: bevy_ecs::entity::Entity, cursor: &mut R, packet_sender: &PacketSender) -> Result<(), crate::errors::NetError> {
+        pub fn handle_packet<R: std::io::Read>(packet_id: u8, entity: bevy_ecs::entity::Entity, cursor: &mut R, packet_sender: Arc<PacketSender>) -> Result<(), crate::errors::NetError> {
             match (packet_id) {
                 #(#match_arms)*
                 _ => {tracing::debug!("No packet found for ID: 0x{:02X} (from {})", packet_id, entity); crate::errors::PacketError::InvalidPacket(packet_id).into()},
