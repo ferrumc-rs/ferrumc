@@ -55,7 +55,7 @@ pub fn packet(args: TokenStream, input: TokenStream) -> TokenStream {
 
 #[proc_macro]
 pub fn setup_packet_handling(input: TokenStream) -> TokenStream {
-    net::packets::bake_registry(input)
+    net::packets::setup_packet_handling(input)
 }
 
 /// Get a packet entry from the packets.json file.

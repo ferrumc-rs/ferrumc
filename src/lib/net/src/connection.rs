@@ -82,7 +82,7 @@ pub async fn handle_connection(
     state: Arc<ServerState>,
     tcp_stream: TcpStream,
     packet_sender: Arc<PacketSender>,
-    new_join_sender: Sender<NewConnection>,
+    new_join_sender: Arc<Sender<NewConnection>>,
 ) -> Result<(), NetError> {
     let (mut tcp_reader, mut tcp_writer) = tcp_stream.into_split();
 
@@ -129,6 +129,9 @@ pub async fn handle_connection(
         })
         .map_err(|_| NetError::Misc("Failed to send new connection".to_string()))?;
 
+    // Wait for the entity ID to be sent back, use timeout so we can't hang if nothing is sent
+    // TODO: Make the delay scale based on the server tick rate since the entity ID is sent back
+    // in a system which could run at less than 1 tps
     let entity = match timeout(Duration::from_secs(1), entity_recv).await {
         Ok(res) => match res {
             Ok(entity) => {

@@ -1,18 +1,29 @@
 use crate::errors::BinaryError;
 use crate::systems::definition::{create_systems, System};
+use crate::systems::new_connections::NewConnectionRecv;
+use bevy_ecs::prelude::World;
+use crossbeam_channel::Sender;
 use ferrumc_config::statics::get_global_config;
-use ferrumc_net::connection::handle_connection;
+use ferrumc_net::connection::{handle_connection, NewConnection};
 use ferrumc_net::packets::{AnyIncomingPacket, IncomingPacket};
 use ferrumc_net::server::create_server_listener;
+use ferrumc_net::PacketSender;
 use ferrumc_state::GlobalState;
 use ferrumc_threadpool::ThreadPool;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
+use tokio::sync::mpsc::UnboundedSender;
 use tracing::{debug, error, info, info_span, trace, warn, Instrument};
 
 const NS_PER_SECOND: u64 = 1_000_000_000;
 
 pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
+    // Setup channels and stuff for new connections
+    let mut ecs_world = World::new();
+    let sender_struct = Arc::new(ferrumc_net::create_packet_senders(&mut ecs_world));
+    let (new_conn_send, new_conn_recv) = crossbeam_channel::unbounded();
+    ecs_world.insert_resource(NewConnectionRecv(new_conn_recv));
+
     let mut tick = 0u128;
 
     let ns_per_tick = Duration::from_nanos(NS_PER_SECOND / get_global_config().tps as u64);
@@ -22,7 +33,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     let threadpool = ThreadPool::new();
 
     // Start the TCP connection accepter
-    tcp_conn_accepter(global_state.clone())?;
+    tcp_conn_accepter(global_state.clone(), sender_struct, Arc::new(new_conn_send))?;
 
     while !global_state
         .shut_down
@@ -133,7 +144,7 @@ fn process_packets(state: GlobalState, thread_pool: &ThreadPool) {
 }
 
 // This is the bit where we bridge to async
-fn tcp_conn_accepter(state: GlobalState) -> Result<(), BinaryError> {
+fn tcp_conn_accepter(state: GlobalState, packet_sender: Arc<PacketSender>, sender: Arc<Sender<NewConnection>>) -> Result<(), BinaryError> {
     let named_thread = std::thread::Builder::new().name("TokioNetworkThread".to_string());
     named_thread.spawn(move || {
         let caught_panic = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
@@ -162,7 +173,7 @@ fn tcp_conn_accepter(state: GlobalState) -> Result<(), BinaryError> {
                         tokio::spawn({
                             let state = Arc::clone(&state);
                             async move {
-                                _ = handle_connection(state, stream)
+                                _ = handle_connection(state, stream, packet_sender.clone(), sender.clone())
                                     .instrument(info_span!("conn", %addy).or_current())
                                     .await;
                             }

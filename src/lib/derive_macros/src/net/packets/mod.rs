@@ -80,7 +80,7 @@ fn to_snake_case(s: &str) -> String {
 
 /// Essentially, this just reads all the files in the directory and generates a match arm for each packet.
 /// (packet_id, state) => { ... }
-pub fn bake_registry(input: TokenStream) -> TokenStream {
+pub fn setup_packet_handling(input: TokenStream) -> TokenStream {
     #[cfg(feature = "colors")]
     colored::control::set_override(true);
 
@@ -262,7 +262,7 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
             #(#sender_mega_struct_fields)*
         }
 
-        fn create_packet_senders(world: &mut World) -> PacketSender {
+        pub fn create_packet_senders(world: &mut World) -> PacketSender {
             #(#send_recv_pairs)*
             let mut packet_senders = PacketSender {
                 #(#build_mega_struct)*

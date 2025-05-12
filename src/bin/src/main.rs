@@ -1,7 +1,6 @@
 use crate::errors::BinaryError;
 use clap::Parser;
 use ferrumc_config::whitelist::create_whitelist;
-use ferrumc_ecs::Universe;
 use ferrumc_general_purpose::paths::get_root_path;
 use ferrumc_state::{GlobalState, ServerState};
 use ferrumc_world::chunk_format::Chunk;
@@ -114,7 +113,7 @@ fn entry() -> Result<(), BinaryError> {
                 .store(true, std::sync::atomic::Ordering::Relaxed);
         }
     })
-    .expect("Error setting Ctrl-C handler");
+        .expect("Error setting Ctrl-C handler");
 
     game_loop::start_game_loop(global_state.clone())?;
 

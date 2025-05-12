@@ -1,4 +1,4 @@
 pub(crate) mod definition;
 mod keep_alive_system;
 pub mod send_chunks;
-mod new_connections;
+pub mod new_connections;
