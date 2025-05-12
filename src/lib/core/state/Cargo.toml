@@ -5,6 +5,6 @@ edition = "2021"
 
 [dependencies]
 tokio = { workspace = true }
-bevy_ecs = { workplace = true}
+bevy_ecs = { workspace = true}
 ferrumc-world = { workspace = true }
 ferrumc-world-gen = { workspace = true }

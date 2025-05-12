@@ -10,8 +10,8 @@ ferrumc-net-encryption = { workspace = true }
 ferrumc-net-codec = { workspace = true }
 ferrumc-macros = { workspace = true }
 ferrumc-config = { workspace = true }
-bevy_ecs = { workplace = true}
-ferrumc-events = { workspace = true }
+bevy_ecs = { workspace = true}
+
 ferrumc-nbt = { workspace = true }
 ferrumc-core = { workspace = true }
 ferrumc-text = { workspace = true }

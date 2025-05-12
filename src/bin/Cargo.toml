@@ -10,8 +10,8 @@ edition = "2021"
 thiserror = { workspace = true }
 
 ferrumc-core = { workspace = true }
-bevy_ecs = { workplace = true}
-ferrumc-events = { workspace = true }
+bevy_ecs = { workspace = true}
+
 ferrumc-net = { workspace = true }
 ferrumc-net-codec = { workspace = true }
 ferrumc-plugins = { workspace = true }
@@ -32,7 +32,6 @@ tracing = { workspace = true }
 clap = { workspace = true, features = ["derive", "env"] }
 flate2 = { workspace = true }
 ctor = { workspace = true }
-dhat = { workspace = true }
 ctrlc = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 
