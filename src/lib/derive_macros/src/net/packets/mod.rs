@@ -173,19 +173,20 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
                 );
                 let struct_path = format!("{}::{}", path, struct_name);
 
-                packet_channel_structs.push((struct_name, struct_path.clone()));
+                packet_channel_structs.push((struct_name.clone(), struct_path.clone()));
 
                 let struct_path =
                     syn::parse_str::<syn::Path>(&struct_path).expect("parse_str failed");
+
+                let field_name = syn::parse_str::<syn::Ident>(&to_snake_case(&struct_name.to_string()))
+                    .expect("to_snake_case failed");
 
                 match_arms.push(quote! {
                         (#packet_id) => {
                             // let packet= #struct_path::net_decode(cursor)?;
                             let packet = <#struct_path as ferrumc_net_codec::decode::NetDecode>::decode(cursor, &ferrumc_net_codec::decode::NetDecodeOpts::None)?;
-                            // packet.handle(conn_id, state)?;
-                            // <#struct_path as crate::packets::IncomingPacket>::handle(packet, conn_id, state)?;
-                            // tracing::debug!("Received packet: {:?}", packet);
-                            Ok(Some(crate::packets::AnyIncomingPacket::from(packet)))
+                            packet_sender.#field_name.send((packet, entity)).expect("Failed to send packet");
+                            Ok(())
                         },
                     });
             }
@@ -226,7 +227,7 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
                     .expect("to_snake_case failed");
             let struct_path = syn::parse_str::<syn::Path>(path).expect("parse_str failed");
             sender_mega_struct_fields.push(quote! {
-                pub #snake_case_name: Sender<#struct_path>,
+                pub #snake_case_name: Sender<(#struct_path, bevy_ecs::entity::Entity)>,
             });
             let sender_name = format_ident!("{}_sender", snake_case_name);
             let receiver_name = format_ident!("{}_receiver", snake_case_name);
@@ -241,17 +242,17 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
             });
             receiver_structs.push(quote! {
                 #[derive(Resource)]
-                pub struct #appended_name(Receiver<#struct_path>);
+                pub struct #appended_name(Receiver<(#struct_path, bevy_ecs::entity::Entity)>);
             });
         });
 
     let match_arms = match_arms.into_iter();
 
     let output = quote! {
-        pub fn handle_packet<R: std::io::Read>(packet_id: u8, conn_id: usize, cursor: &mut R, state: std::sync::Arc<ferrumc_state::ServerState>) -> Result<Option<crate::packets::AnyIncomingPacket>, crate::errors::NetError> {
+        pub fn handle_packet<R: std::io::Read>(packet_id: u8, entity: bevy_ecs::entity::Entity, cursor: &mut R, packet_sender: &PacketSender) -> Result<(), crate::errors::NetError> {
             match (packet_id) {
                 #(#match_arms)*
-                _ => {tracing::debug!("No packet found for ID: 0x{:02X}", packet_id); Result::Ok(None)},
+                _ => {tracing::debug!("No packet found for ID: 0x{:02X} (from {})", packet_id, entity); crate::errors::PacketError::InvalidPacket(packet_id).into()},
             }
         }
 

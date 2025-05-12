@@ -30,10 +30,7 @@ pub enum NetError {
     TypesError(#[from] ferrumc_net_codec::net_types::NetTypesError),
 
     #[error("ECS Error: {0}")]
-    ECSError(#[from] ferrumc_ecs::errors::ECSError),
-
-    #[error("Events Error: {0}")]
-    EventsError(#[from] ferrumc_events::errors::EventsError),
+    ECSError(#[from] bevy_ecs::error::BevyError),
 
     #[error("Invalid State: {0}")]
     InvalidState(u8),
@@ -61,6 +58,8 @@ pub enum NetError {
 pub enum PacketError {
     #[error("Invalid State: {0}")]
     InvalidState(u8),
+    #[error("Invalid Packet: {0:02X}")]
+    InvalidPacket(u8),
 }
 
 #[derive(Debug, Error)]
