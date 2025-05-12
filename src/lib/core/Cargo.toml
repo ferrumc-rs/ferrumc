@@ -7,7 +7,7 @@ edition = "2021"
 [dependencies]
 thiserror = { workspace = true }
 tokio = { workspace = true }
-ferrumc-ecs = { workspace = true }
+bevy_ecs = { workplace = true}
 dashmap = { workspace = true }
 ferrumc-world = { workspace = true }
 tracing = { workspace = true }

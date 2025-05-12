@@ -21,8 +21,6 @@ members = [
     "src/lib/core/state",
     "src/lib/derive_macros",
     "src/lib/derive_macros",
-    "src/lib/ecs",
-    "src/lib/events",
     "src/lib/net",
     "src/lib/net/crates/codec",
     "src/lib/net/crates/encryption",
@@ -86,8 +84,6 @@ codegen-units = 1
 ferrumc-anvil = { path = "src/lib/adapters/anvil" }
 ferrumc-config = { path = "src/lib/utils/config" }
 ferrumc-core = { path = "src/lib/core" }
-ferrumc-ecs = { path = "src/lib/ecs" }
-ferrumc-events = { path = "src/lib/events" }
 ferrumc-general-purpose = { path = "src/lib/utils/general_purpose" }
 ferrumc-logging = { path = "src/lib/utils/logging" }
 ferrumc-macros = { path = "src/lib/derive_macros" }
@@ -107,7 +103,7 @@ ferrumc-threadpool = { path = "src/lib/utils/threadpool" }
 
 
 # Asynchronous
-tokio = { version = "1.41.2", features = ["full"] }
+tokio = { version = "1.45.0", features = ["full"] }
 
 # Logging
 tracing = "0.1.41"
@@ -125,13 +121,13 @@ crossbeam-queue = "0.3.12"
 
 # Network
 reqwest = { version = "0.12.15", features = ["json"] }
-ureq = "3.0.10"
+ureq = "3.0.11"
 
 # Error handling
-thiserror = "2.0.3"
+thiserror = "2.0.12"
 
 # Cryptography
-rand = "0.9.0-beta.0"
+rand = "0.9.1"
 fnv = "1.0.7"
 wyhash = "0.5.0"
 
@@ -142,20 +138,20 @@ serde_derive = "1.0.219"
 base64 = "0.22.1"
 bitcode = "0.6.6"
 bitcode_derive = "0.6.5"
-toml = "0.8.20"
+toml = "0.8.22"
 
 # Bit manipulation
 byteorder = "1.5.0"
 
 # Data types
-dashmap = "6.1.0"
-uuid = { version = "1.16", features = ["v4", "v3", "serde"] }
+dashmap = "7.0.0-rc2"
+uuid = { version = "1.16.0", features = ["v4", "v3", "serde"] }
 
 # Macros
 lazy_static = "1.5.0"
 quote = "1.0.40"
-syn = "2.0.100"
-proc-macro2 = "1.0.94"
+syn = "2.0.101"
+proc-macro2 = "1.0.95"
 proc-macro-crate = "3.3.0"
 paste = "1.0.15"
 maplit = "1.0.2"
@@ -163,14 +159,14 @@ macro_rules_attribute = "0.2.0"
 enum_delegate = "0.2.0"
 
 # Magic ("life-before-main" initialization, __attribute__((constructor)))
-ctor = "0.4.1"
+ctor = "0.4.2"
 dhat = "0.3.3"
 
 # Compression/Decompression
 libflate = "2.1.0"
 flate2 = { version = "1.1.1", features = ["zlib"], default-features = false }
 zstd = { version = "0.13.3" }
-brotli = "8.0.0"
+brotli = "8.0.1"
 lzzzz = "2.0.0"
 yazi = "0.2.1"
 bzip2 = "0.5.2"
@@ -180,7 +176,7 @@ heed = "0.22.0"
 moka = "0.12.10"
 
 # CLI
-clap = "4.5.36"
+clap = "4.5.38"
 indicatif = "0.17.11"
 colored = "3.0.0"
 
@@ -189,12 +185,13 @@ deepsize = "0.2.0"
 page_size = "0.6.0"
 regex = "1.11.1"
 noise = "0.9.0"
-ctrlc = "3.4.6"
+ctrlc = "3.4.7"
 typename = "0.1.2"
+bevy_ecs = "0.16.0"
 
 # I/O
 memmap2 = "0.9.5"
-tempfile = "3.19.1"
+tempfile = "3.20.0"
 
 # Benchmarking
 criterion = { version = "0.5.1", features = ["html_reports"] }

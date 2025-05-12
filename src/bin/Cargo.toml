@@ -10,7 +10,7 @@ edition = "2021"
 thiserror = { workspace = true }
 
 ferrumc-core = { workspace = true }
-ferrumc-ecs = { workspace = true }
+bevy_ecs = { workplace = true}
 ferrumc-events = { workspace = true }
 ferrumc-net = { workspace = true }
 ferrumc-net-codec = { workspace = true }
