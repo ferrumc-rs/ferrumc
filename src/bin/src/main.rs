@@ -9,10 +9,7 @@ use ferrumc_world::World;
 use ferrumc_world_gen::errors::WorldGenError;
 use ferrumc_world_gen::WorldGenerator;
 use rayon::prelude::*;
-use std::process::exit;
 use std::sync::Arc;
-use std::thread;
-use std::time::Duration;
 use tracing::{error, info};
 
 pub(crate) mod errors;
@@ -107,10 +104,6 @@ fn entry() -> Result<(), BinaryError> {
     if !global_state.world.chunk_exists(0, 0, "overworld")? {
         generate_chunks(global_state.clone())?;
     }
-    // thread::spawn(|| {
-    //     thread::sleep(Duration::from_secs(20));
-    //     exit(0);
-    // });
 
     ctrlc::set_handler({
         let global_state = global_state.clone();
