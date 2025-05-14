@@ -1,9 +1,9 @@
-use ferrumc_ecs::entities::Entity;
-use ferrumc_macros::{packet, Event, NetEncode};
+use bevy_ecs::prelude::{Entity, Event};
+use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::Write;
 
-#[derive(NetEncode)]
+#[derive(NetEncode, Clone)]
 #[packet(packet_id = "animate", state = "play")]
 pub struct EntityAnimationPacket {
     pub eid: VarInt,
@@ -18,20 +18,20 @@ pub struct EntityAnimationEvent {
 }
 
 impl EntityAnimationPacket {
-    pub fn new(eid: Entity, animation: u8) -> Self {
+    pub fn new(eid: VarInt, animation: u8) -> Self {
         Self {
-            eid: VarInt::new(eid as i32),
+            eid,
             animation,
         }
     }
 }
 
 impl EntityAnimationEvent {
-    pub fn new(eid: Entity, animation: u8) -> Self {
+    pub fn new(eid: Entity, animation: u8, game_id: VarInt) -> Self {
         Self {
             entity: eid,
             animation,
-            packet: EntityAnimationPacket::new(eid, animation),
+            packet: EntityAnimationPacket::new(game_id, animation),
         }
     }
 }

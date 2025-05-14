@@ -6,7 +6,6 @@ use ferrumc_net::utils::broadcast::{broadcast, BroadcastOptions};
 use ferrumc_state::GlobalState;
 use tracing::info;
 
-#[event_handler]
 fn handle_player_disconnect(
     event: PlayerDisconnectEvent,
     state: GlobalState,

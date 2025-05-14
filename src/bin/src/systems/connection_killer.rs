@@ -1,21 +1,21 @@
-use bevy_ecs::prelude::{Commands, EventReader, Query};
+use bevy_ecs::prelude::{Commands, Entity, EventReader, Query};
 use ferrumc_core::conn::conn_kill_event::ConnectionKillEvent;
 use ferrumc_net::connection::StreamWriter;
-use tracing::trace;
 
 pub fn connection_killer(
     mut events: EventReader<ConnectionKillEvent>,
-    mut query: Query<&mut StreamWriter>,
+    mut query: Query<(Entity, &mut StreamWriter)>,
     mut cmd: Commands,
 ) {
     for event in events.read() {
         let reason = event.reason.clone().unwrap_or_else(|| "Unknown reason".to_string());
-        if let Ok(mut conn) = query.get(event.entity) {
-            conn.kill(Some(reason)).unwrap()
-        } else {
-            tracing::error!("Could not find StreamWriter for entity {:?}", event.entity);
+        for (entity, conn) in query.iter() {
+            if entity == event.entity {
+                conn.kill(Some(reason.clone())).unwrap();
+            } else {
+                // TODO: Send a message to all other players
+            }
         }
-        trace!("Connection killed entity {:?}", event.entity);
         cmd.entity(event.entity).despawn();
     }
 }

@@ -1,14 +1,13 @@
 use crate::errors::NetError;
 use crate::utils::ecs_helpers::EntityExt;
 
+use bevy_ecs::prelude::{Entity, Query};
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
-use ferrumc_ecs::entities::Entity;
 use ferrumc_macros::{get_registry_entry, packet, NetEncode};
 use ferrumc_net_codec::net_types::angle::NetAngle;
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use ferrumc_state::GlobalState;
 use std::io::Write;
 
 #[derive(NetEncode)]
@@ -32,14 +31,18 @@ pub struct SpawnEntityPacket {
 const PLAYER_ID: u64 = get_registry_entry!("minecraft:entity_type.entries.minecraft:player");
 
 impl SpawnEntityPacket {
-    pub fn player(entity_id: Entity, state: &GlobalState) -> Result<Self, NetError> {
-        let player_identity = entity_id.get::<PlayerIdentity>(state)?;
-        let position = entity_id.get::<Position>(state)?;
-        let rotation = entity_id.get::<Rotation>(state)?;
+    pub fn player(entity_id: Entity, query: Query<(&PlayerIdentity, &Position, &Rotation)>) -> Result<Self, NetError> {
+        let (player_identity, position, rotation) = query
+            .get(entity_id)
+            .expect(
+                format!(
+                    "Failed to get player identity, position, and rotation for entity ID: {:?}",
+                    entity_id).as_str()
+            );
 
         Ok(Self {
-            entity_id: VarInt::new(entity_id as i32),
-            entity_uuid: player_identity.uuid,
+            entity_id: VarInt::new(player_identity.short_uuid),
+            entity_uuid: player_identity.uuid as u128,
             r#type: VarInt::new(PLAYER_ID as i32),
             x: position.x,
             y: position.y,

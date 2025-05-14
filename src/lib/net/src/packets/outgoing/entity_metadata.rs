@@ -2,7 +2,6 @@
 use crate::packets::outgoing::entity_metadata::entity_state::{EntityState, EntityStateMask};
 use crate::packets::outgoing::entity_metadata::index_type::EntityMetadataIndexType;
 use crate::packets::outgoing::entity_metadata::value::EntityMetadataValue;
-use ferrumc_ecs::entities::Entity;
 use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
 use ferrumc_net_codec::net_types::var_int::VarInt;
@@ -34,12 +33,12 @@ impl EntityMetadataPacket {
     ///                   ];
     /// let packet = EntityMetadataPacket::new(entity_id, metadata);
     /// ```
-    pub fn new<T>(entity_id: Entity, metadata: T) -> Self
+    pub fn new<T>(entity_id: VarInt, metadata: T) -> Self
     where
         T: IntoIterator<Item=EntityMetadata>,
     {
         Self {
-            entity_id: VarInt::new(entity_id as i32),
+            entity_id,
             metadata: metadata.into_iter().collect(),
             terminator: 0xFF,
         }
@@ -47,7 +46,7 @@ impl EntityMetadataPacket {
 }
 
 /// Single metadata entry containing an index, type and value
-#[derive(NetEncode)]
+#[derive(NetEncode, Clone)]
 pub struct EntityMetadata {
     index: u8,
     index_type: EntityMetadataIndexType,
@@ -98,6 +97,7 @@ mod index_type {
 
     /// Available metadata field types
     /// See: https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Entity_metadata#Entity_Metadata_Format
+    #[derive(Debug, Clone, Copy)]
     pub enum EntityMetadataIndexType {
         Byte, // (0) Used for bit masks and small numbers
         Pose, // (21) Used for entity pose
@@ -141,7 +141,7 @@ mod value {
     ///
     /// Formatted like:
     /// {Class Name}{Index}
-    #[derive(NetEncode)]
+    #[derive(NetEncode, Clone)]
     pub enum EntityMetadataValue {
         Entity0(EntityStateMask),
         Entity6(EntityPose),
@@ -163,7 +163,7 @@ mod entity_state {
     use std::io::Write;
 
     /// Bit mask for various entity states
-    #[derive(Debug, NetEncode)]
+    #[derive(Debug, NetEncode, Clone)]
     pub struct EntityStateMask {
         mask: u8,
     }
@@ -228,7 +228,7 @@ mod extra_data_types {
     // INHALING = 17
 
     /// Possible poses/animations an entity can have
-    #[derive(Debug)]
+    #[derive(Debug, Clone)]
     #[expect(dead_code)]
     pub enum EntityPose {
         Standing,
