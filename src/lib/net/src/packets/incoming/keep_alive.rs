@@ -14,26 +14,3 @@ use typename::TypeName;
 pub struct IncomingKeepAlivePacket {
     pub timestamp: i64,
 }
-
-impl IncomingPacket for IncomingKeepAlivePacket {
-    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> Result<(), NetError> {
-        let last_sent_keep_alive = state.universe.get::<OutgoingKeepAlivePacket>(conn_id)?;
-        if self.timestamp != last_sent_keep_alive.timestamp {
-            debug!(
-                "Invalid keep alive packet received from {:?} with id {:?} (expected {:?})",
-                conn_id, self.timestamp, last_sent_keep_alive.timestamp
-            );
-            if let Err(e) =
-                terminate_connection(state, conn_id, "Invalid keep alive packet".to_string())
-            {
-                debug!("Error terminating connection: {:?}", e);
-            }
-        } else {
-            let mut last_rec_keep_alive =
-                state.universe.get_mut::<IncomingKeepAlivePacket>(conn_id)?;
-            *last_rec_keep_alive = self;
-        }
-
-        Ok(())
-    }
-}

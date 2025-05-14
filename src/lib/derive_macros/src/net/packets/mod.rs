@@ -242,7 +242,7 @@ pub fn setup_packet_handling(input: TokenStream) -> TokenStream {
             });
             receiver_structs.push(quote! {
                 #[derive(Resource)]
-                pub struct #appended_name(Receiver<(#struct_path, bevy_ecs::entity::Entity)>);
+                pub struct #appended_name(pub Receiver<(#struct_path, bevy_ecs::entity::Entity)>);
             });
         });
 

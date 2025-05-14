@@ -34,10 +34,9 @@ impl Drop for StreamWriter {
     }
 }
 impl StreamWriter {
-    pub async fn new(mut writer: OwnedWriteHalf) -> Self {
+    pub async fn new(mut writer: OwnedWriteHalf, running: Arc<AtomicBool>) -> Self {
         let (sender, mut receiver): (UnboundedSender<Vec<u8>>, UnboundedReceiver<Vec<u8>>) =
             tokio::sync::mpsc::unbounded_channel();
-        let running = Arc::new(AtomicBool::new(true));
         let running_clone = running.clone();
 
         // Spawn a task to write to the writer using the channel
@@ -48,7 +47,7 @@ impl StreamWriter {
                 };
 
                 if let Err(e) = writer.write_all(&bytes).await {
-                    warn!("Failed to write to writer: {:?}", e);
+                    error!("Failed to write to writer: {:?}", e);
                     running_clone.store(false, Ordering::Relaxed);
                     break;
                 }
@@ -59,7 +58,7 @@ impl StreamWriter {
     }
 
     pub fn send_packet(
-        &mut self,
+        &self,
         packet: impl NetEncode + Send,
         net_encode_opts: &NetEncodeOpts,
     ) -> Result<(), NetError> {
@@ -115,9 +114,9 @@ pub async fn handle_connection(
     // The player has successfully connected, so we can start the connection properly
 
     let compressed = false;
-    let mut should_disconnect = false;
+    let running = Arc::new(AtomicBool::new(true));
 
-    let stream = StreamWriter::new(tcp_writer).await;
+    let stream = StreamWriter::new(tcp_writer, running.clone()).await;
 
     // Send the streamwriter to the main thread
     let (entity_return, entity_recv) = oneshot::channel();
@@ -150,7 +149,7 @@ pub async fn handle_connection(
     };
 
     'recv: loop {
-        if should_disconnect {
+        if running.load(Ordering::Relaxed) {
             trace!("Conn for entity {:?} is marked for disconnection", entity);
             break 'recv;
         }
@@ -162,8 +161,9 @@ pub async fn handle_connection(
         let mut packet_skele = match PacketSkeleton::new(&mut tcp_reader, compressed).await {
             Ok(packet_skele) => packet_skele,
             Err(err) => {
+                error!("Failed to read packet skeleton: {:?}", err);
                 debug!("Connection dropped for entity {:?}", entity);
-                should_disconnect = true;
+                running.store(false, Ordering::Relaxed);
                 break 'recv;
             }
         };
@@ -186,13 +186,29 @@ pub async fn handle_connection(
             }
             Err(err) => {
                 debug!("Failed to handle packet: {:?}", err);
-                should_disconnect = true;
+                running.store(false, Ordering::Relaxed);
                 break 'recv;
             }
         }
     }
 
     Ok(())
+}
+
+impl StreamWriter {
+    /// Kills the connection and sends a disconnect packet to the client
+    ///
+    /// !!! This won't delete the entity, you should do that with the connection killer system
+    pub fn kill(&self, reason: Option<String>) -> Result<(), NetError> {
+        self.send_packet(
+            crate::packets::outgoing::disconnect::DisconnectPacket {
+                reason: reason.unwrap_or_else(|| "Disconnected".to_string()).parse().unwrap(),
+            },
+            &NetEncodeOpts::WithLength,
+        )?;
+        self.running.store(false, Ordering::Relaxed);
+        Ok(())
+    }
 }
 
 // fn disconnect(state: Arc<ServerState>, entity: usize) {

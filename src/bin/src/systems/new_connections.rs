@@ -1,6 +1,7 @@
 use bevy_ecs::prelude::{Commands, Res, Resource};
 use crossbeam_channel::Receiver;
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
+use ferrumc_core::conn::keepalive::KeepAliveTracker;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_net::connection::NewConnection;
@@ -16,13 +17,14 @@ pub fn accept_new_connections(
     if new_connections.0.is_empty() {
         return;
     }
-    while let Ok(new_connection) = new_connections.0.try_recv() {
+    for new_connection in new_connections.0.iter() {
         let return_sender = new_connection.entity_return;
         let entity = cmd.spawn((
             new_connection.stream,
             Position::default(),
             ChunkReceiver::default(),
-            Rotation::default()
+            Rotation::default(),
+            KeepAliveTracker::default()
         ));
         if let Err(err) = return_sender.send(entity.id()) {
             error!("Failed to send entity ID back to the networking thread: {:?}", err);
