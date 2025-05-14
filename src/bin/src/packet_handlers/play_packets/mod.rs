@@ -5,6 +5,7 @@ mod confirm_player_teleport;
 mod keep_alive;
 mod place_block;
 mod player_action;
+mod player_command;
 
 pub fn register_packet_handlers(schedule: &mut Schedule) {
     schedule.add_system((
@@ -13,5 +14,6 @@ pub fn register_packet_handlers(schedule: &mut Schedule) {
         keep_alive::handle,
         place_block::handle,
         player_action::handle,
+        player_command::handle,
     ));
 }

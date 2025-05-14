@@ -9,7 +9,7 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::Write;
 
 /// Packet for sending entity metadata updates to clients
-#[derive(NetEncode)]
+#[derive(NetEncode, Clone)]
 #[packet(packet_id = "set_entity_data", state = "play")]
 pub struct EntityMetadataPacket {
     entity_id: VarInt,
