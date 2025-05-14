@@ -30,7 +30,7 @@ pub enum NetError {
     TypesError(#[from] ferrumc_net_codec::net_types::NetTypesError),
 
     #[error("ECS Error: {0}")]
-    ECSError(#[from] bevy_ecs::error::BevyError),
+    ECSError(bevy_ecs::error::BevyError),
 
     #[error("Invalid State: {0}")]
     InvalidState(u8),
@@ -42,7 +42,7 @@ pub enum NetError {
     HandshakeTimeout,
 
     #[error("Packet error: {0}")]
-    Packet(#[from] PacketError),
+    Packet(PacketError),
 
     #[error("Chunk error: {0}")]
     Chunk(#[from] ChunkError),
@@ -77,3 +77,10 @@ impl From<std::io::Error> for NetError {
         }
     }
 }
+
+impl From<PacketError> for NetError {
+    fn from(err: PacketError) -> Self {
+        NetError::Packet(err)
+    }
+}
+

@@ -10,9 +10,8 @@ use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use ferrumc_state::{GlobalState, ServerState};
+use ferrumc_state::GlobalState;
 use rand::prelude::IndexedRandom;
-use std::sync::Arc;
 use tokio::io::AsyncWriteExt;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 
@@ -49,7 +48,7 @@ pub(super) async fn status(
     Ok(true)
 }
 
-fn get_server_status(state: &Arc<ServerState>) -> String {
+fn get_server_status() -> String {
     mod structs {
         #[derive(serde_derive::Serialize)]
         pub(super) struct ServerStatus<'a> {

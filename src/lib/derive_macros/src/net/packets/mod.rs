@@ -252,7 +252,7 @@ pub fn setup_packet_handling(input: TokenStream) -> TokenStream {
         pub fn handle_packet<R: std::io::Read>(packet_id: u8, entity: bevy_ecs::entity::Entity, cursor: &mut R, packet_sender: Arc<PacketSender>) -> Result<(), crate::errors::NetError> {
             match (packet_id) {
                 #(#match_arms)*
-                _ => {tracing::debug!("No packet found for ID: 0x{:02X} (from {})", packet_id, entity); crate::errors::PacketError::InvalidPacket(packet_id).into()},
+                _ => {tracing::debug!("No packet found for ID: 0x{:02X} (from {})", packet_id, entity); Err(crate::errors::PacketError::InvalidPacket(packet_id).into())},
             }
         }
 
