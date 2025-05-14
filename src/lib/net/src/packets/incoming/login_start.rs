@@ -1,10 +1,10 @@
 use crate::packets::IncomingPacket;
 
 use crate::errors::NetError;
-use ferrumc_events::infrastructure::Event;
-use ferrumc_macros::{packet, Event, NetDecode};
+use ferrumc_macros::{packet, NetDecode};
 use ferrumc_state::ServerState;
 use std::sync::Arc;
+use tracing::debug;
 
 #[derive(Debug, NetDecode)]
 #[packet(packet_id = "hello", state = "login")]
@@ -15,22 +15,7 @@ pub struct LoginStartPacket {
 
 impl IncomingPacket for LoginStartPacket {
     fn handle(self, conn_id: usize, state: Arc<ServerState>) -> Result<(), NetError> {
-        LoginStartEvent::trigger(LoginStartEvent::new(self, conn_id), state)?;
+        debug!("{} Is logging in with username {}", conn_id, self.username);
         Ok(())
-    }
-}
-
-#[derive(Event)]
-pub struct LoginStartEvent {
-    pub login_start_packet: LoginStartPacket,
-    pub conn_id: usize,
-}
-
-impl LoginStartEvent {
-    pub fn new(login_start_packet: LoginStartPacket, conn_id: usize) -> Self {
-        Self {
-            login_start_packet,
-            conn_id,
-        }
     }
 }

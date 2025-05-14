@@ -12,7 +12,7 @@ use ferrumc_state::ServerState;
 use std::sync::Arc;
 use tracing::{debug, error};
 
-pub fn handle(events: IncomingKeepAlivePacketReceiver, mut query: Query<&mut KeepAliveTracker>, conn_kill: EventWriter<ConnectionKillEvent>) {
+pub fn handle(events: IncomingKeepAlivePacketReceiver, mut query: Query<&mut KeepAliveTracker>, mut conn_kill: EventWriter<ConnectionKillEvent>) {
     for (event, eid) in events.0 {
         let Ok(last_sent_keep_alive) = query.get_mut(eid) else {
             error!("Could not get keep alive tracker for entity {:?}", eid);
@@ -23,11 +23,12 @@ pub fn handle(events: IncomingKeepAlivePacketReceiver, mut query: Query<&mut Kee
                     "Invalid keep alive packet received from {:?} with id {:?} (expected {:?})",
                     eid, event.timestamp, last_sent_keep_alive.last_sent_keep_alive
                 );
-            if let Err(e) =
-                terminate_connection(state, conn_id, "Invalid keep alive packet".to_string())
-            {
-                debug!("Error terminating connection: {:?}", e);
-            }
+            conn_kill.write(
+                ConnectionKillEvent {
+                    reason: Some("Invalid keep alive packet".to_string()),
+                    entity: eid,
+                }
+            );
         }
     }
 }

@@ -1,3 +1,3 @@
-pub fn confirm_player_teleport() {
+pub fn handle() {
     // TODO
 }
