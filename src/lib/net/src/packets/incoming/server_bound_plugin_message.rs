@@ -41,19 +41,9 @@ impl NetDecode for ServerBoundPluginMessage {
         Ok(Self { channel, data: buf })
     }
 }
-
 impl IncomingPacket for ServerBoundPluginMessage {
-    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> Result<(), NetError> {
+    fn handle(self, _: usize, _: Arc<ServerState>) -> Result<(), NetError> {
         debug!("Received plugin message: {:?}", self);
-
-        if self.channel == "minecraft:brand" {
-            let brand = String::from_utf8(self.data)?;
-            debug!("Client brand: {}", brand);
-
-            state
-                .universe
-                .add_component(conn_id, ClientMinecraftBrand { brand })?;
-        }
 
         Ok(())
     }

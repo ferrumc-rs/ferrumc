@@ -1,10 +1,10 @@
-use std::sync::Arc;
-use tracing::debug;
+use crate::errors::NetError;
+use crate::packets::IncomingPacket;
 use ferrumc_macros::{packet, Event, NetDecode};
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_state::ServerState;
-use crate::errors::NetError;
-use crate::packets::IncomingPacket;
+use std::sync::Arc;
+use tracing::debug;
 
 #[derive(Debug, NetDecode)]
 #[packet(packet_id = "select_known_packs", state = "configuration")]

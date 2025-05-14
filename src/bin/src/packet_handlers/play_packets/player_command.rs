@@ -1,8 +1,8 @@
 use bevy_ecs::prelude::Query;
+use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::incoming::player_command::PlayerCommandAction;
 use ferrumc_net::packets::outgoing::entity_metadata::{EntityMetadata, EntityMetadataPacket};
-use ferrumc_net::{PlayerCommandPacketReceiver};
-use ferrumc_net::connection::StreamWriter;
+use ferrumc_net::PlayerCommandPacketReceiver;
 
 pub fn handle(events: PlayerCommandPacketReceiver, query: Query<StreamWriter>) {
     for (event, entity) in events.0 {

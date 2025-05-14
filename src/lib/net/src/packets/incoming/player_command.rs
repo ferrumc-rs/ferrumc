@@ -1,4 +1,4 @@
-use ferrumc_macros::{packet, Event, NetDecode};
+use ferrumc_macros::{packet, NetDecode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 
 // Mojang surely has SOME naming schemes.. commands??

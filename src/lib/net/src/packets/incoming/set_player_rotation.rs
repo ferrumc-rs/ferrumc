@@ -1,11 +1,4 @@
-use crate::errors::NetError;
-use crate::packets::packet_events::TransformEvent;
-use crate::packets::IncomingPacket;
-
-use ferrumc_events::infrastructure::Event;
 use ferrumc_macros::{packet, NetDecode};
-use ferrumc_state::ServerState;
-use std::sync::Arc;
 
 #[derive(NetDecode)]
 #[packet(packet_id = "move_player_rot", state = "play")]
@@ -15,14 +8,3 @@ pub struct SetPlayerRotationPacket {
     pub on_ground: bool,
 }
 
-impl IncomingPacket for SetPlayerRotationPacket {
-    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> Result<(), NetError> {
-        let event = TransformEvent::new(conn_id)
-            .rotation((self.yaw, self.pitch).into())
-            .on_ground(self.on_ground);
-
-        TransformEvent::trigger(event, state)?;
-
-        Ok(())
-    }
-}

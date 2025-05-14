@@ -6,6 +6,9 @@ mod keep_alive;
 mod place_block;
 mod player_action;
 mod player_command;
+mod set_player_position;
+mod set_player_position_and_rotation;
+mod set_player_rotation;
 
 pub fn register_packet_handlers(schedule: &mut Schedule) {
     schedule.add_system((
@@ -15,5 +18,8 @@ pub fn register_packet_handlers(schedule: &mut Schedule) {
         place_block::handle,
         player_action::handle,
         player_command::handle,
+        set_player_position::handle,
+        set_player_position_and_rotation::handle,
+        set_player_rotation::handle,
     ));
 }
