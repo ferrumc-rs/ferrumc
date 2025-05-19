@@ -1,3 +1,4 @@
+use crate::errors;
 use crate::errors::NetError;
 use ferrumc_config::statics::get_global_config;
 use ferrumc_net_codec::{decode::errors::NetDecodeError, net_types::var_int::VarInt};
@@ -5,7 +6,7 @@ use std::io::Cursor;
 use std::{fmt::Debug, io::Read};
 use tokio::io::AsyncRead;
 use tokio::io::AsyncReadExt;
-use tracing::{info, trace};
+use tracing::{debug, info, trace};
 
 pub struct PacketSkeleton {
     pub length: usize,
@@ -39,7 +40,14 @@ impl PacketSkeleton {
                 Ok(p)
             }
             Err(e) => {
-                info!("Error reading packet: {:?}", e);
+                if !matches!(e, NetError::ConnectionDropped) {
+                    // Don't log connection dropped errors
+                    // They are expected when the client disconnects
+                    trace!("Error reading packet: {:?}", e);
+                } else {
+                    // Log connection dropped errors
+                    debug!("Connection dropped: {:?}", e);
+                }
                 Err(e)
             }
         }

@@ -10,7 +10,7 @@ pub fn connection_killer(
     for event in events.read() {
         let reason = event.reason.clone().unwrap_or_else(|| "Unknown reason".to_string());
         for (entity, conn) in query.iter() {
-            if entity == event.entity {
+            if entity == event.entity || !conn.running.load(std::sync::atomic::Ordering::Relaxed) {
                 conn.kill(Some(reason.clone())).unwrap();
             } else {
                 // TODO: Send a message to all other players

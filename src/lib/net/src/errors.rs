@@ -27,7 +27,7 @@ pub enum NetError {
     UTF8Error(#[from] std::string::FromUtf8Error),
 
     #[error("VarInt Error: {0}")]
-    TypesError(#[from] ferrumc_net_codec::net_types::NetTypesError),
+    TypesError(ferrumc_net_codec::net_types::NetTypesError),
 
     #[error("ECS Error: {0}")]
     ECSError(bevy_ecs::error::BevyError),
@@ -75,6 +75,19 @@ impl From<std::io::Error> for NetError {
             ConnectionAborted | ConnectionReset | UnexpectedEof => NetError::ConnectionDropped,
             _ => NetError::IOError(err),
         }
+    }
+}
+impl From<ferrumc_net_codec::net_types::NetTypesError> for NetError {
+    fn from(err: ferrumc_net_codec::net_types::NetTypesError) -> Self {
+        use ferrumc_net_codec::net_types::NetTypesError;
+        use std::io::ErrorKind;
+
+        if let NetTypesError::Io(io_err) = &err {
+            if io_err.kind() == ErrorKind::UnexpectedEof {
+                return NetError::ConnectionDropped;
+            }
+        }
+        NetError::TypesError(err)
     }
 }
 

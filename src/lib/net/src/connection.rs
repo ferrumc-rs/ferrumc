@@ -28,7 +28,7 @@ const MAX_HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(10);
 #[derive(TypeName, Component)]
 pub struct StreamWriter {
     sender: UnboundedSender<Vec<u8>>,
-    running: Arc<AtomicBool>,
+    pub running: Arc<AtomicBool>,
 }
 impl Drop for StreamWriter {
     fn drop(&mut self) {
@@ -185,14 +185,22 @@ pub async fn handle_connection(
         let mut packet_skele = match PacketSkeleton::new(&mut tcp_reader, compressed).await {
             Ok(packet_skele) => packet_skele,
             Err(err) => {
+                match err {
+                    NetError::ConnectionDropped => {
+                        trace!("Connection dropped for entity {:?}", entity);
+                        running.store(false, Ordering::Relaxed);
+                        break 'recv;
+                    }
+                    _ => {
+                        debug!("Failed to read packet: {:?}", err);
+                    }
+                }
                 error!("Failed to read packet skeleton: {:?}", err);
                 debug!("Connection dropped for entity {:?}", entity);
                 running.store(false, Ordering::Relaxed);
                 break 'recv;
             }
         };
-
-        debug!("Got a packet");
 
         match handle_packet(
             packet_skele.id,
