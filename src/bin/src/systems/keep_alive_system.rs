@@ -24,17 +24,12 @@ pub fn keep_alive_system(
     for (entity, keep_alive_tracker, stream_writer) in query {
         // If it's been more than 15 seconds since the last keep alive packet was received, kill the connection
         if current_time - keep_alive_tracker.last_received_keep_alive > 15_000 {
-            warn!("Killing connection for {:?}", entity);
+            warn!("Killing connection for {:?}, it's been {} since last keepalive response", entity,
+                current_time - keep_alive_tracker.last_received_keep_alive);
             connection_kill_event.write(ConnectionKillEvent {
                 reason: Some("Keep alive timeout".to_string()),
                 entity,
             });
-        } else if current_time - keep_alive_tracker.last_sent_keep_alive > 1000 {
-            trace!("Sending keep alive packet to {:?}", entity);
-            let packet = OutgoingKeepAlivePacket::new(keep_alive_tracker.last_sent_keep_alive);
-            if let Err(err) = stream_writer.send_packet(packet) {
-                error!("Failed to send keep alive packet to {:?}: {:?}", entity, err);
-            }
         }
     }
 }

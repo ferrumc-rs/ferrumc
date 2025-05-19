@@ -6,6 +6,9 @@ use ferrumc_net::PlayerCommandPacketReceiver;
 use tracing::error;
 
 pub fn handle(events: Res<PlayerCommandPacketReceiver>, query: Query<&StreamWriter>) {
+    if events.0.is_empty() {
+        return;
+    }
     for (event, entity) in &events.0 {
         match event.action {
             PlayerCommandAction::StartSneaking => {

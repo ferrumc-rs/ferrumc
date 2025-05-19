@@ -19,6 +19,9 @@ pub fn handle(
     mut pos_query: Query<(&mut Position, &mut OnGround, &Rotation, &PlayerIdentity)>,
     pass_conn_query: Query<&StreamWriter>,
 ) {
+    if events.0.is_empty() {
+        return;
+    }
     for (event, eid) in &events.0 {
         let new_rot = None::<Rotation>;
 

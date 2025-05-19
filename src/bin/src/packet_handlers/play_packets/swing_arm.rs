@@ -10,6 +10,9 @@ use std::sync::Arc;
 use tracing::error;
 
 pub fn handle(events: Res<SwingArmPacketReceiver>, query: Query<&PlayerIdentity>, conn_query: Query<&StreamWriter>) {
+    if events.0.is_empty() {
+        return;
+    }
     for (event, eid) in &events.0 {
         let animation = {
             if event.hand == 0 {

@@ -19,6 +19,9 @@ pub fn handle(
     state: Res<GlobalStateResource>,
     query: Query<(Entity, &StreamWriter, &ChunkReceiver)>,
 ) {
+    if events.0.is_empty() {
+        return;
+    }
     // https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol?oldid=2773393#Player_Action
     for (event, trigger_eid) in &events.0 {
         let res: Result<(), BinaryError> = try {

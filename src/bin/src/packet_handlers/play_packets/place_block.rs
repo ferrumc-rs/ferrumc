@@ -17,6 +17,9 @@ pub fn handle(
     conn_q: Query<&StreamWriter>,
     pos_q: Query<(&Position, &CollisionBounds)>,
 ) {
+    if events.0.is_empty() {
+        return;
+    }
     'ev_loop: for (event, eid) in &events.0 {
         let res: Result<(), BinaryError> = try {
             let Ok(conn) = conn_q.get(eid) else {

@@ -140,7 +140,7 @@ pub async fn handle_connection(
     // Wait for the entity ID to be sent back, use timeout so we can't hang if nothing is sent
     // TODO: Make the delay scale based on the server tick rate since the entity ID is sent back
     // in a system which could run at less than 1 tps
-    let entity = match timeout(Duration::from_secs(5), entity_recv).await {
+    let entity = match timeout(Duration::from_secs(1), entity_recv).await {
         Ok(res) => match res {
             Ok(entity) => {
                 debug!("Entity ID received: {:?}", entity);
@@ -158,7 +158,7 @@ pub async fn handle_connection(
     };
 
     'recv: loop {
-        if running.load(Ordering::Relaxed) {
+        if !running.load(Ordering::Relaxed) {
             trace!("Conn for entity {:?} is marked for disconnection", entity);
             break 'recv;
         }
@@ -176,6 +176,8 @@ pub async fn handle_connection(
                 break 'recv;
             }
         };
+
+        debug!("Got a packet");
 
         match handle_packet(
             packet_skele.id,
@@ -211,7 +213,7 @@ impl StreamWriter {
     pub fn kill(&self, reason: Option<String>) -> Result<(), NetError> {
         self.send_packet(
             crate::packets::outgoing::disconnect::DisconnectPacket {
-                reason: reason.unwrap_or_else(|| "Disconnected".to_string()).parse().unwrap(),
+                reason: ferrumc_text::TextComponent::from(reason.unwrap_or_else(|| "Disconnected".to_string()))
             }
         )?;
         self.running.store(false, Ordering::Relaxed);

@@ -9,6 +9,9 @@ use ferrumc_state::GlobalStateResource;
 use tracing::error;
 
 pub fn handle(events: Res<ChunkBatchAckReceiver>, state: Res<GlobalStateResource>, mut query: Query<(&mut ChunkReceiver, &mut Position, &mut StreamWriter)>) {
+    if events.0.is_empty() {
+        return;
+    }
     for (event, eid) in &events.0 {
         let res: Result<(), BinaryError> = try {
             // The first chunk batch should be the ones sent when the player first joins the server.

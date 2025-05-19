@@ -2,13 +2,7 @@ use bevy_ecs::prelude::{EventWriter, Res};
 use bevy_ecs::system::Query;
 use ferrumc_core::conn::conn_kill_event::ConnectionKillEvent;
 use ferrumc_core::conn::keepalive::KeepAliveTracker;
-use ferrumc_net::connection::StreamWriter;
-use ferrumc_net::errors::NetError;
-use ferrumc_net::packets::incoming::keep_alive::IncomingKeepAlivePacket;
-use ferrumc_net::packets::outgoing::keep_alive::OutgoingKeepAlivePacket;
 use ferrumc_net::IncomingKeepAlivePacketReceiver;
-use ferrumc_state::ServerState;
-use std::sync::Arc;
 use tracing::{debug, error};
 
 pub fn handle(
@@ -16,6 +10,9 @@ pub fn handle(
     mut query: Query<&mut KeepAliveTracker>,
     mut conn_kill: EventWriter<ConnectionKillEvent>,
 ) {
+    if events.0.is_empty() {
+        return;
+    }
     for (event, eid) in &events.0 {
         let Ok(mut last_sent_keep_alive) = query.get_mut(eid) else {
             error!("Could not get keep alive tracker for entity {:?}", eid);
