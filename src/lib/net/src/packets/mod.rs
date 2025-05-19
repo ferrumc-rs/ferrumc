@@ -4,7 +4,7 @@ pub mod incoming;
 pub mod outgoing;
 pub mod packet_events;
 
-#[enum_delegate::register]
+// #[enum_delegate::register]
 pub trait IncomingPacket {
     fn handle(
         self,

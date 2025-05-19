@@ -8,7 +8,7 @@ use ferrumc_net::connection::NewConnection;
 use tracing::error;
 
 #[derive(Resource)]
-pub struct NewConnectionRecv(Receiver<NewConnection>);
+pub struct NewConnectionRecv(pub Receiver<NewConnection>);
 
 pub fn accept_new_connections(
     mut cmd: Commands,

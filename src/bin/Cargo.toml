@@ -35,6 +35,7 @@ ctor = { workspace = true }
 ctrlc = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 crossbeam-channel = { workspace = true }
+dashmap = { workspace = true }
 
 [features]
 dhat = []

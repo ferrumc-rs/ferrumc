@@ -1,5 +1,4 @@
 use crate::errors::NetError;
-use crate::utils::ecs_helpers::EntityExt;
 
 use bevy_ecs::prelude::{Entity, Query};
 use ferrumc_core::identity::player_identity::PlayerIdentity;

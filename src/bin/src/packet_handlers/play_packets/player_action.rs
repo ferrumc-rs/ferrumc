@@ -1,5 +1,5 @@
 use crate::errors::BinaryError;
-use bevy_ecs::prelude::{Entity, Query};
+use bevy_ecs::prelude::{Entity, Query, Res};
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::errors::NetError;
@@ -8,23 +8,23 @@ use ferrumc_net::packets::outgoing::block_update::BlockUpdate;
 use ferrumc_net::PlayerActionReceiver;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use ferrumc_state::ServerState;
+use ferrumc_state::{GlobalStateResource, ServerState};
 use ferrumc_world::chunk_format::BLOCK2ID;
 use ferrumc_world::vanilla_chunk_format::BlockData;
 use std::sync::Arc;
 use tracing::{debug, error};
 
 pub fn handle(
-    events: PlayerActionReceiver,
-    state: Arc<ServerState>,
-    query: &mut Query<(Entity, &StreamWriter, &ChunkReceiver)>,
+    events: Res<PlayerActionReceiver>,
+    state: Res<GlobalStateResource>,
+    query: Query<(Entity, &StreamWriter, &ChunkReceiver)>,
 ) {
     // https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol?oldid=2773393#Player_Action
-    for (event, trigger_eid) in events.0 {
+    for (event, trigger_eid) in &events.0 {
         let res: Result<(), BinaryError> = try {
             match event.status.0 {
                 0 => {
-                    let mut chunk = state.clone().world.load_chunk(
+                    let mut chunk = state.0.clone().world.load_chunk(
                         event.location.x >> 4,
                         event.location.z >> 4,
                         "overworld",
@@ -44,33 +44,31 @@ pub fn handle(
                         BlockData::default(),
                     )?;
                     // Save the chunk to disk
-                    state.world.save_chunk(chunk.clone())?;
-                    state.world.sync()?;
-                    {
-                        for (eid, conn, chunk_recv) in query {
-                            // Don't send the block update packet if the player can't see the chunk
-                            if chunk_recv.needs_reload.contains(&(
-                                event.location.x >> 4,
-                                event.location.z >> 4,
-                                "overworld".to_string(),
-                            )) {
-                                let block_update_packet = BlockUpdate {
-                                    location: event.location.clone(),
-                                    block_id: VarInt::from(*BLOCK2ID.get(&BlockData::default()).expect(
-                                        "BlockData::default() should always have a corresponding block ID",
-                                    )),
-                                };
-                                conn.send_packet(block_update_packet, &NetEncodeOpts::WithLength)?;
-                            }
+                    state.0.world.save_chunk(chunk.clone())?;
+                    state.0.world.sync()?;
+                    for (eid, conn, chunk_recv) in query {
+                        // Don't send the block update packet if the player can't see the chunk
+                        if chunk_recv.needs_reload.contains(&(
+                            event.location.x >> 4,
+                            event.location.z >> 4,
+                            "overworld".to_string(),
+                        )) {
+                            let block_update_packet = BlockUpdate {
+                                location: event.location.clone(),
+                                block_id: VarInt::from(*BLOCK2ID.get(&BlockData::default()).expect(
+                                    "BlockData::default() should always have a corresponding block ID",
+                                )),
+                            };
+                            conn.send_packet(block_update_packet)?;
+                        }
 
-                            // If the player is the one who placed the block, send the BlockChangeAck packet
-                            // We do this here to avoid locking the streamwriter multiple times
-                            if trigger_eid == eid {
-                                let ack_packet = BlockChangeAck {
-                                    sequence: event.sequence.clone(),
-                                };
-                                conn.send_packet(ack_packet, &NetEncodeOpts::WithLength)?;
-                            }
+                        // If the player is the one who placed the block, send the BlockChangeAck packet
+                        // We do this here to avoid locking the streamwriter multiple times
+                        if trigger_eid == eid {
+                            let ack_packet = BlockChangeAck {
+                                sequence: event.sequence.clone(),
+                            };
+                            conn.send_packet(ack_packet)?;
                         }
                     }
                 }

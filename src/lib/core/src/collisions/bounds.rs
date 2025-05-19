@@ -1,6 +1,7 @@
+use bevy_ecs::prelude::Component;
 use typename::TypeName;
 
-#[derive(TypeName)]
+#[derive(TypeName, Component)]
 pub struct CollisionBounds {
     // Given a start position, where the bounding box starts on the x-axis.
     pub x_offset_start: f64,

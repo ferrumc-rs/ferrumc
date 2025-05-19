@@ -1,5 +1,7 @@
+#![feature(try_blocks)]
 use crate::errors::BinaryError;
 use clap::Parser;
+use dashmap::DashMap;
 use ferrumc_config::whitelist::create_whitelist;
 use ferrumc_general_purpose::paths::get_root_path;
 use ferrumc_state::{GlobalState, ServerState};
@@ -147,9 +149,9 @@ fn handle_import(import_args: ImportArgs) -> Result<(), BinaryError> {
 
 fn create_state() -> Result<ServerState, BinaryError> {
     Ok(ServerState {
-        universe: Universe::new(),
         world: World::new(),
         terrain_generator: WorldGenerator::new(0),
         shut_down: false.into(),
+        players: DashMap::default(),
     })
 }

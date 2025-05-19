@@ -10,7 +10,7 @@ ferrumc-net-encryption = { workspace = true }
 ferrumc-net-codec = { workspace = true }
 ferrumc-macros = { workspace = true }
 ferrumc-config = { workspace = true }
-bevy_ecs = { workspace = true}
+bevy_ecs = { workspace = true }
 
 ferrumc-nbt = { workspace = true }
 ferrumc-core = { workspace = true }
@@ -18,7 +18,7 @@ ferrumc-text = { workspace = true }
 ferrumc-world = { workspace = true }
 tracing = { workspace = true }
 tokio = { workspace = true }
-parking_lot = { workspace = true }
+dashmap = { workspace = true }
 flate2 = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

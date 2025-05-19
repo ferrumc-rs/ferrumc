@@ -1,6 +1,7 @@
+use bevy_ecs::prelude::Component;
 use typename::TypeName;
 
-#[derive(TypeName, Debug, Default)]
+#[derive(TypeName, Debug, Default, Component)]
 pub struct OnGround(pub bool);
 
 impl From<bool> for OnGround {

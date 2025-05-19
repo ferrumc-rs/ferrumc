@@ -57,7 +57,16 @@ impl StreamWriter {
         Self { sender, running }
     }
 
+    // Sends the packet to the client with the default options. You probably want to use this instead
+    // of send_packet_with_opts()
     pub fn send_packet(
+        &self,
+        packet: impl NetEncode + Send,
+    ) -> Result<(), NetError> {
+        self.send_packet_with_opts(packet, &NetEncodeOpts::WithLength)
+    }
+
+    pub fn send_packet_with_opts(
         &self,
         packet: impl NetEncode + Send,
         net_encode_opts: &NetEncodeOpts,
@@ -203,8 +212,7 @@ impl StreamWriter {
         self.send_packet(
             crate::packets::outgoing::disconnect::DisconnectPacket {
                 reason: reason.unwrap_or_else(|| "Disconnected".to_string()).parse().unwrap(),
-            },
-            &NetEncodeOpts::WithLength,
+            }
         )?;
         self.running.store(false, Ordering::Relaxed);
         Ok(())

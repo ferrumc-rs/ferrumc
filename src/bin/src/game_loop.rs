@@ -5,14 +5,13 @@ use bevy_ecs::prelude::World;
 use crossbeam_channel::Sender;
 use ferrumc_config::statics::get_global_config;
 use ferrumc_net::connection::{handle_connection, NewConnection};
-use ferrumc_net::packets::{AnyIncomingPacket, IncomingPacket};
+use ferrumc_net::packets::IncomingPacket;
 use ferrumc_net::server::create_server_listener;
 use ferrumc_net::PacketSender;
-use ferrumc_state::GlobalState;
+use ferrumc_state::{GlobalState, GlobalStateResource};
 use ferrumc_threadpool::ThreadPool;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use std::time::Duration;
-use tokio::sync::mpsc::UnboundedSender;
 use tracing::{debug, error, info, info_span, trace, warn, Instrument};
 
 const NS_PER_SECOND: u64 = 1_000_000_000;
@@ -23,6 +22,8 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     let sender_struct = Arc::new(ferrumc_net::create_packet_senders(&mut ecs_world));
     let (new_conn_send, new_conn_recv) = crossbeam_channel::unbounded();
     ecs_world.insert_resource(NewConnectionRecv(new_conn_recv));
+    let global_state_res = GlobalStateResource(global_state.clone());
+    ecs_world.insert_resource(global_state_res);
 
     let mut tick = 0u128;
 
@@ -45,7 +46,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
         run_systems(global_state.clone(), &threadpool, &systems, tick)?;
 
         // Process incoming packets
-        process_packets(global_state.clone(), &threadpool);
+        // process_packets(global_state.clone(), &threadpool);
 
         // Sleep to maintain the tick rate
         let elapsed_time = start_time.elapsed();
@@ -105,43 +106,43 @@ fn run_systems(
     Ok(())
 }
 
-fn process_packets(state: GlobalState, thread_pool: &ThreadPool) {
-    // Move all the packets to a temporary vector so we don't hold the lock while processing
-    let mut packets = Vec::new();
-    {
-        let query = state
-            .universe
-            .query::<&ferrumc_net::connection::LocalPacketQueue>();
-        for (eid, queue) in query {
-            let mut local_packets = vec![];
-            while let Some(packet) = queue.queue.pop() {
-                local_packets.push(packet);
-            }
-            if !local_packets.is_empty() {
-                packets.push((local_packets, eid));
-            }
-        }
-    }
-
-    let mut batch: ferrumc_threadpool::ThreadPoolBatch<'_, Result<_, BinaryError>> =
-        thread_pool.batch();
-    for packet_set in packets {
-        let state = Arc::clone(&state);
-        batch.execute(move || {
-            let (packet_collection, id) = packet_set;
-            for packet in packet_collection {
-                let result = packet
-                    .handle(id, state.clone())
-                    .instrument(info_span!("packet_handle", conn = id))
-                    .into_inner();
-                if let Err(e) = result {
-                    warn!("Error processing packet: {:?}", e);
-                };
-            }
-            Ok(())
-        });
-    }
-}
+// fn process_packets(state: GlobalState, thread_pool: &ThreadPool) {
+//     // Move all the packets to a temporary vector so we don't hold the lock while processing
+//     let mut packets = Vec::new();
+//     {
+//         let query = state
+//             .universe
+//             .query::<&ferrumc_net::connection::LocalPacketQueue>();
+//         for (eid, queue) in query {
+//             let mut local_packets = vec![];
+//             while let Some(packet) = queue.queue.pop() {
+//                 local_packets.push(packet);
+//             }
+//             if !local_packets.is_empty() {
+//                 packets.push((local_packets, eid));
+//             }
+//         }
+//     }
+// 
+//     let mut batch: ferrumc_threadpool::ThreadPoolBatch<'_, Result<_, BinaryError>> =
+//         thread_pool.batch();
+//     for packet_set in packets {
+//         let state = Arc::clone(&state);
+//         batch.execute(move || {
+//             let (packet_collection, id) = packet_set;
+//             for packet in packet_collection {
+//                 let result = packet
+//                     .handle(id, state.clone())
+//                     .instrument(info_span!("packet_handle", conn = id))
+//                     .into_inner();
+//                 if let Err(e) = result {
+//                     warn!("Error processing packet: {:?}", e);
+//                 };
+//             }
+//             Ok(())
+//         });
+//     }
+// }
 
 // This is the bit where we bridge to async
 fn tcp_conn_accepter(state: GlobalState, packet_sender: Arc<PacketSender>, sender: Arc<Sender<NewConnection>>) -> Result<(), BinaryError> {
@@ -172,8 +173,10 @@ fn tcp_conn_accepter(state: GlobalState, packet_sender: Arc<PacketSender>, sende
                         debug!("Got TCP connection from {}", addy);
                         tokio::spawn({
                             let state = Arc::clone(&state);
+                            let packet_sender = Arc::clone(&packet_sender);
+                            let sender = Arc::clone(&sender);
                             async move {
-                                _ = handle_connection(state, stream, packet_sender.clone(), sender.clone())
+                                _ = handle_connection(state, stream, packet_sender, sender)
                                     .instrument(info_span!("conn", %addy).or_current())
                                     .await;
                             }

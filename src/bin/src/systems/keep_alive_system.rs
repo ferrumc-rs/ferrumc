@@ -3,17 +3,15 @@ use crate::systems::definition::System;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::incoming::keep_alive::IncomingKeepAlivePacket;
 use ferrumc_net::packets::outgoing::keep_alive::OutgoingKeepAlivePacket;
-use ferrumc_net::utils::broadcast::{BroadcastOptions, BroadcastToAll};
-use ferrumc_net::utils::state::terminate_connection;
 use ferrumc_state::GlobalState;
 use std::sync::Arc;
 use tracing::{error, trace, warn};
 
-pub struct KeepAliveSystem {}
+pub struct KeepAliveSystem;
 
 impl KeepAliveSystem {
     pub const fn new() -> Self {
-        Self {}
+        Self
     }
 }
 

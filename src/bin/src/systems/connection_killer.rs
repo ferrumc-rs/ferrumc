@@ -4,7 +4,7 @@ use ferrumc_net::connection::StreamWriter;
 
 pub fn connection_killer(
     mut events: EventReader<ConnectionKillEvent>,
-    mut query: Query<(Entity, &mut StreamWriter)>,
+    query: Query<(Entity, &StreamWriter)>,
     mut cmd: Commands,
 ) {
     for event in events.read() {

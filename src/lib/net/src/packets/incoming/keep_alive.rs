@@ -1,6 +1,5 @@
 use crate::packets::outgoing::keep_alive::OutgoingKeepAlivePacket;
 use crate::packets::IncomingPacket;
-use crate::utils::state::terminate_connection;
 
 use crate::errors::NetError;
 use ferrumc_macros::{packet, NetDecode};

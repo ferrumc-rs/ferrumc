@@ -1,6 +1,5 @@
+use bevy_ecs::query::QueryEntityError;
 use ferrumc_core::errors::CoreError;
-use ferrumc_ecs::errors::ECSError;
-use ferrumc_events::errors::EventsError;
 use ferrumc_net::errors::NetError;
 use ferrumc_plugins::errors::PluginsError;
 use ferrumc_storage::errors::StorageError;
@@ -13,11 +12,8 @@ pub enum BinaryError {
     #[error("Core error: {0}")]
     Core(#[from] CoreError),
 
-    #[error("ECS error: {0}")]
-    Ecs(#[from] ECSError),
-
-    #[error("Events error: {0}")]
-    Events(#[from] EventsError),
+    #[error("QueryError error: {0}")]
+    QueryError(#[from] QueryEntityError),
 
     #[error("Net error: {0}")]
     Net(#[from] NetError),

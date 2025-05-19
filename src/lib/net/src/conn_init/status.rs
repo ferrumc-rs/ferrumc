@@ -6,7 +6,6 @@ use crate::packets::outgoing::status_response::StatusResponse;
 use crate::{send_packet, trim_packet_head};
 use ferrumc_config::favicon::get_favicon_base64;
 use ferrumc_config::statics::get_global_config;
-use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use ferrumc_net_codec::net_types::var_int::VarInt;
@@ -48,7 +47,7 @@ pub(super) async fn status(
     Ok(true)
 }
 
-fn get_server_status() -> String {
+fn get_server_status(state: &GlobalState) -> String {
     mod structs {
         #[derive(serde_derive::Serialize)]
         pub(super) struct ServerStatus<'a> {
@@ -96,14 +95,12 @@ fn get_server_status() -> String {
         protocol: crate::conn_init::PROTOCOL_VERSION_1_21_1 as u16,
     };
 
-    let online_players = state.universe.query::<&PlayerIdentity>().into_entities();
-    let online_players_sample = online_players
+    let online_players_sample = state.players
         .iter()
         .take(5)
-        .filter_map(|entity| state.universe.get::<PlayerIdentity>(*entity).ok())
-        .map(|player| structs::PlayerData {
-            name: player.username.clone(),
-            id: uuid::Uuid::from_u128(player.uuid).to_string(),
+        .map(|player_data| structs::PlayerData {
+            name: player_data.value().clone(),
+            id: uuid::Uuid::from_u128(*player_data.key()).to_string(),
         })
         .collect::<Vec<_>>();
 
@@ -117,7 +114,7 @@ fn get_server_status() -> String {
 
     let players = structs::Players {
         max: config.max_players,
-        online: online_players.len() as u16,
+        online: online_players_sample.len() as u16,
         sample: online_players_sample,
     };
 

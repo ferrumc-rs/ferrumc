@@ -1,11 +1,12 @@
-use bevy_ecs::prelude::Query;
+use bevy_ecs::prelude::{Query, Res};
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::incoming::player_command::PlayerCommandAction;
 use ferrumc_net::packets::outgoing::entity_metadata::{EntityMetadata, EntityMetadataPacket};
 use ferrumc_net::PlayerCommandPacketReceiver;
+use tracing::error;
 
-pub fn handle(events: PlayerCommandPacketReceiver, query: Query<StreamWriter>) {
-    for (event, entity) in events.0 {
+pub fn handle(events: Res<PlayerCommandPacketReceiver>, query: Query<&StreamWriter>) {
+    for (event, entity) in &events.0 {
         match event.action {
             PlayerCommandAction::StartSneaking => {
                 let packet = EntityMetadataPacket::new(
@@ -17,16 +18,20 @@ pub fn handle(events: PlayerCommandPacketReceiver, query: Query<StreamWriter>) {
                 );
 
                 // TODO: Don't clone
-                for stream in query.iter() {
-                    stream.send(packet.clone())?;
+                for stream in query {
+                    if let Err(err) = stream.send_packet(packet.clone()) {
+                        error!("Failed to send packet: {:?}", err);
+                    }
                 }
             }
             PlayerCommandAction::StopSneaking => {
                 let packet =
                     EntityMetadataPacket::new(event.entity_id, [EntityMetadata::entity_standing()]);
 
-                for stream in query.iter() {
-                    stream.send(packet.clone())?;
+                for stream in query {
+                    if let Err(err) = stream.send_packet(packet.clone()) {
+                        error!("Failed to send packet: {:?}", err);
+                    }
                 }
             }
             _ => {}
