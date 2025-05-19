@@ -140,7 +140,7 @@ pub async fn handle_connection(
     // Wait for the entity ID to be sent back, use timeout so we can't hang if nothing is sent
     // TODO: Make the delay scale based on the server tick rate since the entity ID is sent back
     // in a system which could run at less than 1 tps
-    let entity = match timeout(Duration::from_secs(1), entity_recv).await {
+    let entity = match timeout(Duration::from_secs(5), entity_recv).await {
         Ok(res) => match res {
             Ok(entity) => {
                 debug!("Entity ID received: {:?}", entity);

@@ -16,21 +16,19 @@ use ferrumc_net::packets::outgoing::update_entity_rotation::UpdateEntityRotation
 
 pub fn handle(
     events: Res<SetPlayerPositionPacketReceiver>,
-    mut pos_query: Query<(&mut Position, &mut OnGround)>,
-    pass_pos_query: Query<(&Position, &Rotation, &OnGround, &PlayerIdentity)>,
+    mut pos_query: Query<(&mut Position, &mut OnGround, &Rotation, &PlayerIdentity)>,
     pass_conn_query: Query<&StreamWriter>,
 ) {
     for (event, eid) in &events.0 {
-        let mut delta_pos = None::<(i16, i16, i16)>;
         let new_rot = None::<Rotation>;
 
         let new_position = Position::new(event.x, event.feet_y, event.z);
 
-        let (mut position, mut on_ground) = pos_query.get_mut(eid).expect(
+        let (mut position, mut on_ground, _, _) = pos_query.get_mut(eid).expect(
             "Failed to get position and on_ground components",
         );
 
-        delta_pos = Some((
+        let delta_pos = Some((
             ((new_position.x * 4096.0) - (position.x * 4096.0)) as i16,
             ((new_position.y * 4096.0) - (position.y * 4096.0)) as i16,
             ((new_position.z * 4096.0) - (position.z * 4096.0)) as i16,
@@ -41,7 +39,7 @@ pub fn handle(
 
         *on_ground = OnGround(event.on_ground);
 
-        update_pos_for_all(eid, delta_pos, new_rot, &pass_pos_query, &pass_conn_query).expect(
+        update_pos_for_all(eid, delta_pos, new_rot, &pos_query, &pass_conn_query).expect(
             "Failed to update position for all players",
         );
     }
@@ -59,11 +57,10 @@ fn update_pos_for_all(
     entity_id: Entity,
     delta_pos: Option<(i16, i16, i16)>,
     new_rot: Option<Rotation>,
-    pos_query: &Query<(&Position, &Rotation, &OnGround, &PlayerIdentity)>,
+    pos_query: &Query<(&mut Position, &mut OnGround, &Rotation, &PlayerIdentity)>,
     conn_query: &Query<&StreamWriter>,
 ) -> Result<(), BinaryError> {
-    let (pos, rot, grounded, identity) = pos_query.get(entity_id)?;
-    let identity = identity.clone();
+    let (pos, grounded, rot, identity) = pos_query.get(entity_id)?;
 
     // If any delta of (x|y|z) exceeds 7.5, then it's "not recommended" to use this packet
     // As docs say: "If the movement exceeds these limits, Teleport Entity should be sent instead."
@@ -83,7 +80,7 @@ fn update_pos_for_all(
 
     let packet: BroadcastMovementPacket = if delta_exceeds_threshold {
         BroadcastMovementPacket::TeleportEntity(TeleportEntityPacket::new(
-            identity, &pos, &rot, grounded.0,
+            identity, pos, rot, grounded.0,
         ))
     } else {
         match (delta_pos, new_rot) {

@@ -20,6 +20,7 @@ mod cli;
 mod game_loop;
 mod packet_handlers;
 mod systems;
+mod register_events;
 
 #[cfg(feature = "dhat")]
 #[global_allocator]

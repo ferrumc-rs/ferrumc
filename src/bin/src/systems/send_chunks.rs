@@ -15,7 +15,7 @@ const CHUNK_RADIUS: i32 = 8;
 
 pub struct ChunkSender;
 
-fn run(query: Query<(Entity, &mut ChunkReceiver, &Position, &mut StreamWriter)>, state: Res<GlobalStateResource>) -> Result<(), BinaryError> {
+pub fn chunk_sender_system(query: Query<(Entity, &mut ChunkReceiver, &Position, &mut StreamWriter)>, state: Res<GlobalStateResource>) {
     for (eid, mut recv, pos, mut conn) in query {
         let mut chunks_to_send = vec![];
         {
@@ -47,10 +47,11 @@ fn run(query: Query<(Entity, &mut ChunkReceiver, &Position, &mut StreamWriter)>,
         }
         if !chunks_to_send.is_empty() {
             debug!("ChunkSender: {} needs {} chunks", eid, chunks_to_send.len());
-            send_chunks(state.clone(), chunks_to_send, &mut conn, &mut recv)?;
+            if let Err(err) = send_chunks(state.clone(), chunks_to_send, &mut conn, &mut recv) {
+                debug!("ChunkSender: Failed to send chunks to {}: {:?}", eid, err);
+            }
         }
     }
-    Ok(())
 }
 
 /// Fetches and sends chunks to the client

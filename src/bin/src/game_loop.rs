@@ -1,6 +1,8 @@
 use crate::errors::BinaryError;
-use crate::packet_handlers::register_systems;
+use crate::packet_handlers::{play_packets, register_player_systems};
+use crate::register_events::register_events;
 use crate::systems::new_connections::NewConnectionRecv;
+use crate::systems::register_game_systems;
 use bevy_ecs::prelude::World;
 use crossbeam_channel::Sender;
 use ferrumc_config::statics::get_global_config;
@@ -10,6 +12,7 @@ use ferrumc_net::server::create_server_listener;
 use ferrumc_net::PacketSender;
 use ferrumc_state::{GlobalState, GlobalStateResource};
 use ferrumc_threadpool::ThreadPool;
+use play_packets::register_packet_handlers;
 use std::sync::Arc;
 use std::time::Duration;
 use tracing::{debug, error, info, info_span, trace, warn, Instrument};
@@ -27,7 +30,11 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
 
     let mut schedule = bevy_ecs::schedule::Schedule::default();
 
-    register_systems(&mut schedule);
+    register_events(&mut ecs_world);
+
+    register_packet_handlers(&mut schedule);
+    register_player_systems(&mut schedule);
+    register_game_systems(&mut schedule);
 
     let mut tick = 0u128;
 

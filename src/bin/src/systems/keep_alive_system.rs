@@ -7,22 +7,13 @@ use ferrumc_net::packets::incoming::keep_alive::IncomingKeepAlivePacket;
 use ferrumc_net::packets::outgoing::keep_alive::OutgoingKeepAlivePacket;
 use ferrumc_state::GlobalState;
 use std::ops::Add;
-use std::sync::Arc;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tracing::{error, trace, warn};
 
-pub struct KeepAliveSystem;
 
-impl KeepAliveSystem {
-    pub const fn new() -> Self {
-        Self
-    }
-}
-
-fn run(
+pub fn keep_alive_system(
     query: Query<(Entity, &KeepAliveTracker, &StreamWriter)>,
     mut connection_kill_event: EventWriter<ConnectionKillEvent>,
-) -> Result<(), BinaryError> {
+) {
     // Get the times before the queries, since it's possible a query takes more than a millisecond with a lot of entities.
 
     let current_time = std::time::SystemTime::now()
@@ -41,8 +32,9 @@ fn run(
         } else if current_time - keep_alive_tracker.last_sent_keep_alive > 1000 {
             trace!("Sending keep alive packet to {:?}", entity);
             let packet = OutgoingKeepAlivePacket::new(keep_alive_tracker.last_sent_keep_alive);
-            stream_writer.send_packet(packet)?;
+            if let Err(err) = stream_writer.send_packet(packet) {
+                error!("Failed to send keep alive packet to {:?}: {:?}", entity, err);
+            }
         }
     }
-    Ok(())
 }
