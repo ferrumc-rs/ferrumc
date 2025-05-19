@@ -11,23 +11,31 @@ use ferrumc_state::ServerState;
 use std::sync::Arc;
 use tracing::{debug, error};
 
-pub fn handle(events: Res<IncomingKeepAlivePacketReceiver>, mut query: Query<&mut KeepAliveTracker>, mut conn_kill: EventWriter<ConnectionKillEvent>) {
+pub fn handle(
+    events: Res<IncomingKeepAlivePacketReceiver>,
+    mut query: Query<&mut KeepAliveTracker>,
+    mut conn_kill: EventWriter<ConnectionKillEvent>,
+) {
     for (event, eid) in &events.0 {
-        let Ok(last_sent_keep_alive) = query.get_mut(eid) else {
+        let Ok(mut last_sent_keep_alive) = query.get_mut(eid) else {
             error!("Could not get keep alive tracker for entity {:?}", eid);
             continue;
         };
         if event.timestamp != last_sent_keep_alive.last_sent_keep_alive {
             debug!(
-                    "Invalid keep alive packet received from {:?} with id {:?} (expected {:?})",
-                    eid, event.timestamp, last_sent_keep_alive.last_sent_keep_alive
-                );
-            conn_kill.write(
-                ConnectionKillEvent {
-                    reason: Some("Invalid keep alive packet".to_string()),
-                    entity: eid,
-                }
+                "Invalid keep alive packet received from {:?} with id {:?} (expected {:?})",
+                eid, event.timestamp, last_sent_keep_alive.last_sent_keep_alive
             );
+            conn_kill.write(ConnectionKillEvent {
+                reason: Some("Invalid keep alive packet".to_string()),
+                entity: eid,
+            });
+        } else {
+            last_sent_keep_alive.last_received_keep_alive = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .expect("Time went backwards. oh no")
+                .as_millis() as i64;
+            debug!("Keep alive packet received from {:?}", eid);
         }
     }
 }

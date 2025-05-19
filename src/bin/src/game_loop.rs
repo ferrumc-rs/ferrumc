@@ -1,5 +1,5 @@
 use crate::errors::BinaryError;
-use crate::systems::definition::{create_systems, System};
+use crate::packet_handlers::register_systems;
 use crate::systems::new_connections::NewConnectionRecv;
 use bevy_ecs::prelude::World;
 use crossbeam_channel::Sender;
@@ -25,13 +25,15 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     let global_state_res = GlobalStateResource(global_state.clone());
     ecs_world.insert_resource(global_state_res);
 
+    let mut schedule = bevy_ecs::schedule::Schedule::default();
+
+    register_systems(&mut schedule);
+
     let mut tick = 0u128;
 
     let ns_per_tick = Duration::from_nanos(NS_PER_SECOND / get_global_config().tps as u64);
 
-    let systems = create_systems();
-
-    let threadpool = ThreadPool::new();
+    // let threadpool = ThreadPool::new();
 
     // Start the TCP connection accepter
     tcp_conn_accepter(global_state.clone(), sender_struct, Arc::new(new_conn_send))?;
@@ -42,8 +44,11 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     {
         let start_time = std::time::Instant::now();
 
+        // Run the ECS schedule
+        schedule.run(&mut ecs_world);
+
         // Run the game systems
-        run_systems(global_state.clone(), &threadpool, &systems, tick)?;
+        // run_systems(global_state.clone(), &threadpool, &tick)?;
 
         // Process incoming packets
         // process_packets(global_state.clone(), &threadpool);
@@ -76,35 +81,35 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     Ok(())
 }
 
-fn run_systems(
-    global_state: GlobalState,
-    thread_pool: &ThreadPool,
-    systems: &[Arc<dyn System>],
-    tick: u128,
-) -> Result<(), BinaryError> {
-    // Run each system in the thread pool
-    let mut batch: ferrumc_threadpool::ThreadPoolBatch<'_, Result<_, BinaryError>> =
-        thread_pool.batch();
-    for system in systems {
-        let system = Arc::clone(system);
-        let state = Arc::clone(&global_state);
-        batch.execute(move || {
-            let sys_name = system.name().to_string();
-            system
-                .run(state, tick)
-                .instrument(info_span!("system ", name = sys_name))
-                .into_inner()?;
-            Ok(())
-        });
-    }
-    let results = batch.wait();
-    for result in results {
-        if let Err(e) = result {
-            warn!("System error: {:?}", e);
-        }
-    }
-    Ok(())
-}
+// fn run_systems(
+//     global_state: GlobalState,
+//     thread_pool: &ThreadPool,
+//     systems: &[Arc<dyn System>],
+//     tick: u128,
+// ) -> Result<(), BinaryError> {
+//     // Run each system in the thread pool
+//     let mut batch: ferrumc_threadpool::ThreadPoolBatch<'_, Result<_, BinaryError>> =
+//         thread_pool.batch();
+//     for system in systems {
+//         let system = Arc::clone(system);
+//         let state = Arc::clone(&global_state);
+//         batch.execute(move || {
+//             let sys_name = system.name().to_string();
+//             system
+//                 .run(state, tick)
+//                 .instrument(info_span!("system ", name = sys_name))
+//                 .into_inner()?;
+//             Ok(())
+//         });
+//     }
+//     let results = batch.wait();
+//     for result in results {
+//         if let Err(e) = result {
+//             warn!("System error: {:?}", e);
+//         }
+//     }
+//     Ok(())
+// }
 
 // fn process_packets(state: GlobalState, thread_pool: &ThreadPool) {
 //     // Move all the packets to a temporary vector so we don't hold the lock while processing

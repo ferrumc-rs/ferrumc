@@ -14,5 +14,5 @@ pub struct ServerState {
 
 pub type GlobalState = Arc<ServerState>;
 
-#[derive(Resource)]
+#[derive(Resource, Clone)]
 pub struct GlobalStateResource(pub GlobalState);
