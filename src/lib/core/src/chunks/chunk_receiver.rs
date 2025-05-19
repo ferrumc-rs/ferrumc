@@ -1,5 +1,4 @@
 use bevy_ecs::prelude::Component;
-use ferrumc_world::chunk_format::Chunk;
 use std::collections::HashSet;
 use std::sync::atomic::AtomicBool;
 use typename::TypeName;

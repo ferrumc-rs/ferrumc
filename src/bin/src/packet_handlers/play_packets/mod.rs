@@ -12,6 +12,8 @@ mod set_player_rotation;
 mod swing_arm;
 
 pub fn register_packet_handlers(schedule: &mut Schedule) {
+    // Added separately so if we mess up the signature of one of the systems we can know exactly 
+    // which one
     schedule.add_systems(chunk_batch_ack::handle);
     schedule.add_systems(confirm_player_teleport::handle);
     schedule.add_systems(keep_alive::handle);

@@ -1,11 +1,6 @@
-use crate::errors::NetError;
-use crate::packets::IncomingPacket;
 use ferrumc_macros::{packet, NetDecode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use ferrumc_state::ServerState;
 use std::fmt::Display;
-use std::sync::Arc;
-use tracing::debug;
 use typename::TypeName;
 
 #[derive(TypeName, Debug, NetDecode)]

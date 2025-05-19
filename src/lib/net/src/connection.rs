@@ -17,7 +17,7 @@ use tokio::net::TcpStream;
 use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
 use tokio::sync::oneshot;
 use tokio::time::timeout;
-use tracing::{debug, debug_span, error, trace, warn, Instrument};
+use tracing::{debug, debug_span, error, trace, Instrument};
 use typename::TypeName;
 
 /// The maximum time to wait for a handshake to complete

@@ -1,6 +1,6 @@
 use crate::errors::NetError;
 use crate::packets::IncomingPacket;
-use ferrumc_macros::{packet, Event, NetDecode};
+use ferrumc_macros::{packet, NetDecode};
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_state::ServerState;
 use std::sync::Arc;

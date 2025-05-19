@@ -5,7 +5,7 @@ use std::io::Cursor;
 use std::{fmt::Debug, io::Read};
 use tokio::io::AsyncRead;
 use tokio::io::AsyncReadExt;
-use tracing::{debug, info, trace};
+use tracing::{info, trace};
 
 pub struct PacketSkeleton {
     pub length: usize,
