@@ -2,6 +2,7 @@ use crate::conn_init::NetDecodeOpts;
 use crate::conn_init::VarInt;
 use crate::errors::NetError;
 use crate::{send_packet, trim_packet_head};
+use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net_codec::decode::NetDecode;
 use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
@@ -14,7 +15,7 @@ pub(super) async fn login(
     mut conn_read: &mut OwnedReadHalf,
     conn_write: &mut OwnedWriteHalf,
     state: GlobalState,
-) -> Result<bool, NetError> {
+) -> Result<(bool, Option<PlayerIdentity>), NetError> {
     // =============================================================================================
     trim_packet_head!(conn_read, 0x00);
 
@@ -22,7 +23,7 @@ pub(super) async fn login(
         &mut conn_read,
         &NetDecodeOpts::None,
     )
-    .await?;
+        .await?;
 
     // =============================================================================================
 
@@ -35,6 +36,12 @@ pub(super) async fn login(
 
     send_packet!(conn_write, login_success);
 
+    let player_identity = PlayerIdentity {
+        uuid: login_start.uuid,
+        username: login_start.username.clone(),
+        short_uuid: login_start.uuid as i32,
+    };
+
     // =============================================================================================
 
     trim_packet_head!(conn_read, 0x03);
@@ -44,7 +51,7 @@ pub(super) async fn login(
         &mut conn_read,
         &NetDecodeOpts::None,
     )
-    .await?;
+        .await?;
 
     // =============================================================================================
 
@@ -66,7 +73,7 @@ pub(super) async fn login(
             &mut conn_read,
             &NetDecodeOpts::None,
         )
-        .await?;
+            .await?;
 
     debug!(
         "Client information: {{ locale: {}, view_distance: {}, chat_mode: {}, chat_colors: {}, displayed_skin_parts: {} }}",
@@ -94,7 +101,7 @@ pub(super) async fn login(
             &mut conn_read,
             &NetDecodeOpts::None,
         )
-        .await?;
+            .await?;
 
     // =============================================================================================
 
@@ -121,7 +128,7 @@ pub(super) async fn login(
             &mut conn_read,
             &NetDecodeOpts::None,
         )
-        .await?;
+            .await?;
 
     // =============================================================================================
 
@@ -156,7 +163,7 @@ pub(super) async fn login(
             &mut conn_read,
             &NetDecodeOpts::None,
         )
-        .await?;
+            .await?;
 
     if confirm_player_teleport.teleport_id.0 != teleport_id_i32 {
         error!(
@@ -206,5 +213,5 @@ pub(super) async fn login(
         }
     }
 
-    Ok(false)
+    Ok((false, Some(player_identity)))
 }

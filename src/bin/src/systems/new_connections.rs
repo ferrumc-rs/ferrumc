@@ -26,6 +26,7 @@ pub fn accept_new_connections(
             ChunkReceiver::default(),
             Rotation::default(),
             OnGround::default(),
+            new_connection.player_identity,
             KeepAliveTracker {
                 last_sent_keep_alive: 0,
                 last_received_keep_alive: std::time::SystemTime::now()

@@ -1,10 +1,12 @@
 use crate::conn_init::handle_handshake;
 use crate::errors::NetError;
 use crate::errors::NetError::HandshakeTimeout;
+use crate::errors::PacketError::InvalidPacket;
 use crate::packets::incoming::packet_skeleton::PacketSkeleton;
 use crate::{handle_packet, PacketSender};
 use bevy_ecs::prelude::{Component, Entity};
 use crossbeam_channel::Sender;
+use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::ServerState;
@@ -83,6 +85,7 @@ impl StreamWriter {
 
 pub struct NewConnection {
     pub stream: StreamWriter,
+    pub player_identity: PlayerIdentity,
     pub entity_return: oneshot::Sender<Entity>,
 }
 
@@ -100,12 +103,23 @@ pub async fn handle_connection(
     )
         .await;
 
+    let mut player_identity = PlayerIdentity::default();
+
     match handshake_result {
         Ok(res) => match res {
-            Ok(false) => {
+            Ok((false, returned_player_identity)) => {
                 debug!("Handshake successful");
+                match returned_player_identity {
+                    Some(returned_player_identity) => {
+                        debug!("Player identity: {:?}", returned_player_identity);
+                        player_identity = returned_player_identity;
+                    }
+                    None => {
+                        error!("Player identity not found");
+                    }
+                }
             }
-            Ok(true) => {
+            Ok((true, _)) => {
                 debug!("Handshake successful, killing connection");
                 return Ok(());
             }
@@ -133,6 +147,7 @@ pub async fn handle_connection(
     new_join_sender
         .send(NewConnection {
             stream,
+            player_identity,
             entity_return,
         })
         .map_err(|_| NetError::Misc("Failed to send new connection".to_string()))?;
@@ -196,9 +211,16 @@ pub async fn handle_connection(
                 );
             }
             Err(err) => {
-                debug!("Failed to handle packet: {:?}", err);
-                running.store(false, Ordering::Relaxed);
-                break 'recv;
+                match &err {
+                    NetError::Packet(InvalidPacket(id)) => {
+                        trace!("Packet 0x{:02X} received, no handler implemented yet", id);
+                    }
+                    _ => {
+                        debug!("Failed to handle packet: {:?}", err);
+                        running.store(false, Ordering::Relaxed);
+                        break 'recv;
+                    }
+                }
             }
         }
     }

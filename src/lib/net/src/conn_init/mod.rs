@@ -5,6 +5,7 @@ use crate::conn_init::login::login;
 use crate::conn_init::status::status;
 use crate::errors::NetError;
 use crate::packets::incoming::handshake::Handshake;
+use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalState;
@@ -49,7 +50,7 @@ pub async fn handle_handshake(
     mut conn_read: &mut OwnedReadHalf,
     conn_write: &mut OwnedWriteHalf,
     state: GlobalState,
-) -> Result<bool, NetError> {
+) -> Result<(bool, Option<PlayerIdentity>), NetError> {
     trim_packet_head!(conn_read, 0x00);
 
     // Get incoming handshake packet
@@ -64,7 +65,7 @@ pub async fn handle_handshake(
     }
 
     match hs_packet.next_state.0 {
-        1 => status(conn_read, conn_write, state).await,
+        1 => status(conn_read, conn_write, state).await.map(|_| (true, None)),
         2 => login(conn_read, conn_write, state).await,
         3 => unimplemented!(),
         _ => Err(NetError::InvalidState(hs_packet.next_state.0 as u8)),

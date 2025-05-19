@@ -1,7 +1,7 @@
 use bevy_ecs::prelude::Component;
 use typename::TypeName;
 
-#[derive(TypeName, Debug, Component)]
+#[derive(TypeName, Debug, Component, Default)]
 pub struct PlayerIdentity {
     pub username: String,
     pub uuid: u128,
