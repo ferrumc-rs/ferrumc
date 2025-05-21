@@ -18,7 +18,6 @@ pub fn chunk_sender_system(
     state: Res<GlobalStateResource>,
 ) {
     for (eid, mut recv, pos, mut conn) in &mut query {
-        debug!("ChunkSender: Sending chunks to {}", eid);
         let mut chunks_to_send = vec![];
         let current_chunk = (
             pos.x as i32 >> 4,
@@ -58,17 +57,6 @@ pub fn chunk_sender_system(
     }
 }
 
-/// Fetches and sends chunks to the client
-///
-/// # Arguments
-///
-/// * `state` - The global state of the server.
-/// * `eid` - The entity ID of the player.
-///
-/// # Returns
-///
-/// * `Ok(())` - If the chunks are successfully sent.
-/// * `Err(BinaryError)` - If an error occurs while sending the chunks.
 pub fn send_chunks(
     state: GlobalStateResource,
     mut chunk_coords: Vec<(i32, i32, String)>,

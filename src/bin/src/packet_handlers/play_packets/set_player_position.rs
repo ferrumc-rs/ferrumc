@@ -1,7 +1,7 @@
-use bevy_ecs::prelude::{Entity, Query, Res};
+use bevy_ecs::prelude::{Entity, EventWriter, Query, Res};
+use ferrumc_core::chunks::cross_chunk_boundary_event::CrossChunkBoundaryEvent;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net::SetPlayerPositionPacketReceiver;
-
 
 use crate::errors::BinaryError;
 use ferrumc_core::transform::grounded::OnGround;
@@ -18,6 +18,7 @@ pub fn handle(
     events: Res<SetPlayerPositionPacketReceiver>,
     mut pos_query: Query<(&mut Position, &mut OnGround, &Rotation, &PlayerIdentity)>,
     pass_conn_query: Query<&StreamWriter>,
+    mut cross_chunk_events: EventWriter<CrossChunkBoundaryEvent>,
 ) {
     if events.0.is_empty() {
         return;
@@ -27,9 +28,9 @@ pub fn handle(
 
         let new_position = Position::new(event.x, event.feet_y, event.z);
 
-        let (mut position, mut on_ground, _, _) = pos_query.get_mut(eid).expect(
-            "Failed to get position and on_ground components",
-        );
+        let (mut position, mut on_ground, _, _) = pos_query
+            .get_mut(eid)
+            .expect("Failed to get position and on_ground components");
 
         let delta_pos = Some((
             ((new_position.x * 4096.0) - (position.x * 4096.0)) as i16,
@@ -37,14 +38,24 @@ pub fn handle(
             ((new_position.z * 4096.0) - (position.z * 4096.0)) as i16,
         ));
 
-        *position = Position::new(new_position.x, new_position.y, new_position.z);
+        let old_chunk = ((position.x as i32 >> 4), (position.z as i32 >> 4));
 
+        let new_chunk = ((new_position.x as i32 >> 4), (new_position.z as i32 >> 4));
+
+        if old_chunk != new_chunk {
+            cross_chunk_events.write(CrossChunkBoundaryEvent {
+                player: eid,
+                old_chunk,
+                new_chunk,
+            });
+        }
+
+        *position = Position::new(new_position.x, new_position.y, new_position.z);
 
         *on_ground = OnGround(event.on_ground);
 
-        update_pos_for_all(eid, delta_pos, new_rot, &pos_query, &pass_conn_query).expect(
-            "Failed to update position for all players",
-        );
+        update_pos_for_all(eid, delta_pos, new_rot, &pos_query, &pass_conn_query)
+            .expect("Failed to update position for all players");
     }
 }
 

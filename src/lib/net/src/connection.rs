@@ -19,7 +19,7 @@ use tokio::net::TcpStream;
 use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
 use tokio::sync::oneshot;
 use tokio::time::timeout;
-use tracing::{debug, debug_span, error, trace, Instrument};
+use tracing::{debug, debug_span, error, trace, warn, Instrument};
 use typename::TypeName;
 
 /// The maximum time to wait for a handshake to complete
@@ -73,6 +73,10 @@ impl StreamWriter {
         packet: impl NetEncode + Send,
         net_encode_opts: &NetEncodeOpts,
     ) -> Result<(), NetError> {
+        if !self.running.load(Ordering::Relaxed) {
+            #[cfg(debug_assertions)]
+            warn!("StreamWriter is not running, not sending packet");
+        }
         let bytes = {
             let mut buffer = Vec::new();
             packet.encode(&mut buffer, net_encode_opts)?;

@@ -16,6 +16,14 @@ pub fn connection_killer(
                 // TODO: Send a message to all other players
             }
         }
-        cmd.entity(event.entity).despawn();
+        match cmd.get_entity(event.entity) {
+            Ok(_) => {
+                cmd.entity(event.entity).despawn();
+            }
+            Err(_) => {
+                // Entity does not exist, do nothing
+                // Probably means multiple systems are trying to kill the same entity
+            }
+        }
     }
 }

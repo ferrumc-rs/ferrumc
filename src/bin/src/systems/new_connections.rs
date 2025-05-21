@@ -6,6 +6,7 @@ use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_net::connection::NewConnection;
+use std::time::SystemTime;
 use tracing::{debug, error};
 
 #[derive(Resource)]
@@ -29,10 +30,7 @@ pub fn accept_new_connections(
             new_connection.player_identity,
             KeepAliveTracker {
                 last_sent_keep_alive: 0,
-                last_received_keep_alive: std::time::SystemTime::now()
-                    .duration_since(std::time::UNIX_EPOCH)
-                    .expect("Time went backwards")
-                    .as_millis() as i64,
+                last_received_keep_alive: SystemTime::now(),
             }
         ));
         debug!("Spawned entity for new connection: {:?}", entity.id());
