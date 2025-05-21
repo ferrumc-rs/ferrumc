@@ -266,7 +266,7 @@ impl BlockStates {
         match &mut self.block_data {
             PaletteType::Single(val) => {
                 let block = ID2BLOCK
-                    .get(&val.0)
+                    .get(val.0 as usize)
                     .cloned()
                     .unwrap_or(BlockData::default());
                 let mut new_palette = vec![VarInt::from(0); 1];
@@ -562,7 +562,7 @@ impl Chunk {
             } => {
                 if palette.len() == 1 || *bits_per_block == 0 {
                     return ID2BLOCK
-                        .get(&palette[0].0)
+                        .get(palette[0].0 as usize)
                         .cloned()
                         .ok_or(WorldError::ChunkNotFound);
                 }
@@ -580,7 +580,7 @@ impl Chunk {
                 )?;
                 let palette_id = palette.get(id as usize).ok_or(WorldError::ChunkNotFound)?;
                 Ok(crate::chunk_format::ID2BLOCK
-                    .get(&palette_id.0)
+                    .get(palette_id.0 as usize)
                     .unwrap_or(&BlockData::default())
                     .clone())
             }
@@ -746,7 +746,7 @@ impl Section {
                     // If there is only one block in the palette, convert to single block mode
                     if palette.len() == 1 {
                         let block = ID2BLOCK
-                            .get(&palette[0].0)
+                            .get(palette[0].0 as usize)
                             .cloned()
                             .unwrap_or(BlockData::default());
                         self.block_states.block_data = PaletteType::Single(palette[0].clone());

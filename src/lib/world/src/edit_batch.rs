@@ -50,7 +50,7 @@ fn get_palette_hash(palette: &[VarInt]) -> i32 {
     let mut rolling = 0;
     let mut hasher = AHasher::default();
     for block in palette.iter() {
-        (rolling + block.val).hash(&mut hasher);
+        (rolling + block.0).hash(&mut hasher);
         rolling = hasher.finish() as i32;
     }
     rolling
@@ -214,7 +214,7 @@ impl<'a> EditBatch<'a> {
             // Rebuild temporary palette index lookup (block ID -> palette index)
             self.tmp_palette_map.clear();
             for (i, p) in palette.iter().enumerate() {
-                self.tmp_palette_map.insert(p.val, i);
+                self.tmp_palette_map.insert(p.0, i);
             }
 
             // Determine how many blocks fit into each i64 (based on bits per block)
@@ -251,7 +251,7 @@ impl<'a> EditBatch<'a> {
                 // get old block
                 let old_block_index =
                     read_nbit_i32(packed, *bits_per_block as usize, offset as u32).map_err(
-                        |e| WorldError::InvalidBlockStateData(format!("Unpacking error: {}", e)),
+                        |e| WorldError::InvalidBlockStateData(format!("Unpacking error: {e}")),
                     )?;
                 // If the block is the same, skip
                 if old_block_index == palette_index as i32 {
@@ -259,10 +259,10 @@ impl<'a> EditBatch<'a> {
                 }
 
                 if let Some(old_block_id) = palette.get(old_block_index as usize) {
-                    if let Some(count) = block_count_removes.get_mut(&old_block_id.val) {
+                    if let Some(count) = block_count_removes.get_mut(&old_block_id.0) {
                         *count -= 1;
                     } else {
-                        block_count_removes.insert(old_block_id.val, 1);
+                        block_count_removes.insert(old_block_id.0, 1);
                     }
                 }
 
@@ -274,7 +274,7 @@ impl<'a> EditBatch<'a> {
 
                 write_nbit_u32(packed, offset as u32, palette_index as u32, *bits_per_block)
                     .map_err(|e| {
-                        WorldError::InvalidBlockStateData(format!("Packing error: {}", e))
+                        WorldError::InvalidBlockStateData(format!("Packing error: {e}"))
                     })?;
             }
 
@@ -286,7 +286,7 @@ impl<'a> EditBatch<'a> {
                     .block_counts
                     .entry(
                         ID2BLOCK
-                            .get(block_data.val as usize)
+                            .get(block_data.0 as usize)
                             .expect("Block id not valid")
                             .clone(),
                     )
@@ -301,7 +301,7 @@ impl<'a> EditBatch<'a> {
                     .block_counts
                     .entry(
                         ID2BLOCK
-                            .get(block_data.val as usize)
+                            .get(block_data.0 as usize)
                             .expect("Block id not valid")
                             .clone(),
                     )

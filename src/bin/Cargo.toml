@@ -27,7 +27,7 @@ ferrumc-state = { workspace = true }
 ferrumc-world-gen = { workspace = true }
 ferrumc-threadpool = { workspace = true }
 
-rayon = { workspace = true }
+
 tracing = { workspace = true }
 clap = { workspace = true, features = ["derive", "env"] }
 flate2 = { workspace = true }
@@ -36,8 +36,6 @@ ctrlc = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 crossbeam-channel = { workspace = true }
 dashmap = { workspace = true }
-ctor = { workspace = true }
-bitcode = { workspace = true }
 dhat = "0.3.3"
 
 [features]
