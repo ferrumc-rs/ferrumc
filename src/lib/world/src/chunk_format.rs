@@ -2,6 +2,7 @@ use crate::errors::WorldError::InvalidBlockStateData;
 use crate::vanilla_chunk_format;
 use crate::vanilla_chunk_format::VanillaChunk;
 use crate::{errors::WorldError, vanilla_chunk_format::VanillaHeightmaps};
+use ahash::RandomState;
 use bitcode_derive::{Decode, Encode};
 use deepsize::DeepSizeOf;
 use ferrumc_general_purpose::data_packing::i32::read_nbit_i32;
@@ -12,6 +13,7 @@ use std::cmp::max;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::io::Read;
+use std::process::exit;
 use tracing::{error, warn};
 use vanilla_chunk_format::BlockData;
 
@@ -27,18 +29,32 @@ use vanilla_chunk_format::BlockData;
 const BLOCKSFILE: &[u8] = include_bytes!("../../../../.etc/blockmappings.bz2");
 
 lazy_static! {
-    pub static ref ID2BLOCK: HashMap<i32, BlockData> = {
+    pub static ref ID2BLOCK: Vec<BlockData> = {
         let mut bzipreader = bzip2::read::BzDecoder::new(BLOCKSFILE);
         let mut output = String::new();
         bzipreader.read_to_string(&mut output).unwrap();
-        let string_keys: HashMap<String, BlockData> = serde_json::from_str(&output).unwrap();
+        let string_keys: HashMap<String, BlockData, RandomState> =
+            serde_json::from_str(&output).unwrap();
+        if string_keys.len() != 26684 {
+            // Edit this number if the block mappings file changes
+            error!("Block mappings file is not the correct length");
+            exit(1);
+        }
+        let mut id2block = Vec::with_capacity(26684);
+        for _ in 0..26684 {
+            id2block.push(BlockData::default());
+        }
         string_keys
             .iter()
             .map(|(k, v)| (k.parse::<i32>().unwrap(), v.clone()))
-            .collect()
+            .for_each(|(k, v)| id2block[k as usize] = v);
+        id2block
     };
-    pub static ref BLOCK2ID: HashMap<BlockData, i32> =
-        ID2BLOCK.iter().map(|(k, v)| (v.clone(), *k)).collect();
+    pub static ref BLOCK2ID: HashMap<BlockData, i32, RandomState> = ID2BLOCK
+        .iter()
+        .enumerate()
+        .map(|(k, v)| (v.clone(), k as i32))
+        .collect();
 }
 
 #[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug)]
@@ -535,7 +551,7 @@ impl Chunk {
             PaletteType::Single(val) => {
                 let block_id = val.0;
                 ID2BLOCK
-                    .get(&block_id)
+                    .get(block_id as usize)
                     .cloned()
                     .ok_or(WorldError::ChunkNotFound)
             }

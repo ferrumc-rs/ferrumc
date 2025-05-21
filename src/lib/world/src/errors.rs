@@ -47,6 +47,8 @@ pub enum WorldError {
     InvalidBlockStateData(String),
     #[error("Invalid block: {0}")]
     InvalidBlock(BlockData),
+    #[error("Invalid batching operation: {0}")]
+    InvalidBatchingOperation(String),
 }
 
 impl From<std::io::Error> for WorldError {

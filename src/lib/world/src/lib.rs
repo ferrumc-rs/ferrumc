@@ -1,5 +1,6 @@
 pub mod chunk_format;
 mod db_functions;
+pub mod edit_batch;
 pub mod edits;
 pub mod errors;
 mod importing;
