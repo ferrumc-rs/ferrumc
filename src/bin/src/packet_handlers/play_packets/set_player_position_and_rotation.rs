@@ -6,7 +6,7 @@ pub fn handle(events: Res<SetPlayerPositionAndRotationPacketReceiver>, mut trans
     if events.0.is_empty() {
         return;
     }
-    for (event, eid) in &events.0 {
+    for (event, eid) in events.0.try_iter() {
         let transform_event = TransformEvent::new(eid)
             .position((event.x, event.feet_y, event.z).into())
             .rotation((event.yaw, event.pitch).into())

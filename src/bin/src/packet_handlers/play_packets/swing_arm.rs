@@ -13,7 +13,7 @@ pub fn handle(events: Res<SwingArmPacketReceiver>, query: Query<&PlayerIdentity>
     if events.0.is_empty() {
         return;
     }
-    for (event, eid) in &events.0 {
+    for (event, eid) in events.0.try_iter() {
         let animation = {
             if event.hand == 0 {
                 0

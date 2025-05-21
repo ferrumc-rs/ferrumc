@@ -13,7 +13,7 @@ pub fn handle(
     if events.0.is_empty() {
         return;
     }
-    for (event, eid) in &events.0 {
+    for (event, eid) in events.0.try_iter() {
         let Ok(mut last_sent_keep_alive) = query.get_mut(eid) else {
             error!("Could not get keep alive tracker for entity {:?}", eid);
             continue;

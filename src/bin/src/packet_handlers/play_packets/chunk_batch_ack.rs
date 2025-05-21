@@ -12,7 +12,7 @@ pub fn handle(events: Res<ChunkBatchAckReceiver>, state: Res<GlobalStateResource
     if events.0.is_empty() {
         return;
     }
-    for (event, eid) in &events.0 {
+    for (event, eid) in events.0.try_iter() {
         let res: Result<(), BinaryError> = try {
             // The first chunk batch should be the ones sent when the player first joins the server.
             // This just moves them to their spawn position when all their chunks are done loading,

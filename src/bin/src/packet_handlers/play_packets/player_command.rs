@@ -9,7 +9,7 @@ pub fn handle(events: Res<PlayerCommandPacketReceiver>, query: Query<&StreamWrit
     if events.0.is_empty() {
         return;
     }
-    for (event, entity) in &events.0 {
+    for (event, entity) in events.0.try_iter() {
         match event.action {
             PlayerCommandAction::StartSneaking => {
                 let packet = EntityMetadataPacket::new(

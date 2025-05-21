@@ -20,7 +20,7 @@ pub fn handle(
     if events.0.is_empty() {
         return;
     }
-    'ev_loop: for (event, eid) in &events.0 {
+    'ev_loop: for (event, eid) in events.0.try_iter() {
         let res: Result<(), BinaryError> = try {
             let Ok(conn) = conn_q.get(eid) else {
                 debug!("Could not get connection for entity {:?}", eid);

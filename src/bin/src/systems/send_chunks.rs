@@ -13,41 +13,45 @@ use tracing::debug;
 
 const CHUNK_RADIUS: i32 = 8;
 
-pub struct ChunkSender;
-
-pub fn chunk_sender_system(query: Query<(Entity, &mut ChunkReceiver, &Position, &mut StreamWriter)>, state: Res<GlobalStateResource>) {
-    for (eid, mut recv, pos, mut conn) in query {
+pub fn chunk_sender_system(
+    mut query: Query<(Entity, &mut ChunkReceiver, &Position, &mut StreamWriter)>,
+    state: Res<GlobalStateResource>,
+) {
+    for (eid, mut recv, pos, mut conn) in &mut query {
+        debug!("ChunkSender: Sending chunks to {}", eid);
         let mut chunks_to_send = vec![];
-        {
-            let current_chunk = (
-                pos.x as i32 >> 4,
-                pos.z as i32 >> 4,
-                "overworld".to_string(),
-            );
-            recv.last_chunk = current_chunk.clone();
+        let current_chunk = (
+            pos.x as i32 >> 4,
+            pos.z as i32 >> 4,
+            "overworld".to_string(),
+        );
+        recv.last_chunk = current_chunk.clone();
 
-            for x in -CHUNK_RADIUS..=CHUNK_RADIUS {
-                for z in -CHUNK_RADIUS..=CHUNK_RADIUS {
-                    chunks_to_send.push((
-                        current_chunk.0 + x,
-                        current_chunk.1 + z,
-                        "overworld".to_string(),
-                    ));
-                }
+        for x in -CHUNK_RADIUS..=CHUNK_RADIUS {
+            for z in -CHUNK_RADIUS..=CHUNK_RADIUS {
+                chunks_to_send.push((
+                    current_chunk.0 + x,
+                    current_chunk.1 + z,
+                    "overworld".to_string(),
+                ));
             }
-            // recv.seen.retain(|(x, z, _)| {
-            //     let dx = (current_chunk.0 - x).abs();
-            //     let dz = (current_chunk.1 - z).abs();
-            //     dx <= CHUNK_RADIUS && dz <= CHUNK_RADIUS
-            // });
-            chunks_to_send.retain(|(x, z, dim)| {
-                !recv.seen.contains(&(*x, *z, dim.clone()))
-                    || recv.needs_reload.contains(&(*x, *z, dim.clone()))
-            });
         }
+        recv.seen.retain(|(x, z, _)| {
+            let dx = (current_chunk.0 - x).abs();
+            let dz = (current_chunk.1 - z).abs();
+            dx <= CHUNK_RADIUS && dz <= CHUNK_RADIUS
+        });
+        chunks_to_send.retain(|(x, z, dim)| {
+            !recv.seen.contains(&(*x, *z, dim.clone()))
+                || recv.needs_reload.contains(&(*x, *z, dim.clone()))
+        });
         if !chunks_to_send.is_empty() {
             debug!("ChunkSender: {} needs {} chunks", eid, chunks_to_send.len());
-            if let Err(err) = send_chunks(state.clone(), chunks_to_send, &mut conn, &mut recv) {
+            let center_chunk = (
+                current_chunk.0,
+                current_chunk.1,
+            );
+            if let Err(err) = send_chunks(state.clone(), chunks_to_send, &mut conn, &mut recv, center_chunk) {
                 debug!("ChunkSender: Failed to send chunks to {}: {:?}", eid, err);
             }
         }
@@ -70,8 +74,10 @@ pub fn send_chunks(
     mut chunk_coords: Vec<(i32, i32, String)>,
     conn: &mut Mut<StreamWriter>,
     recv: &mut Mut<ChunkReceiver>,
+    center_chunk: (i32, i32),
 ) -> Result<(), BinaryError> {
-    let (center_x, center_z, _) = recv.last_chunk;
+    let (center_x, center_z) = center_chunk;
+    debug!("Sending chunks for {}x{}", center_x, center_z);
 
     // Sort the chunks by distance from the center
     chunk_coords.sort_by(|(x1, z1, _), (x2, z2, _)| {

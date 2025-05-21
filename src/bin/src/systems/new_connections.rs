@@ -6,7 +6,7 @@ use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_net::connection::NewConnection;
-use tracing::error;
+use tracing::{debug, error};
 
 #[derive(Resource)]
 pub struct NewConnectionRecv(pub Receiver<NewConnection>);
@@ -35,6 +35,7 @@ pub fn accept_new_connections(
                     .as_millis() as i64,
             }
         ));
+        debug!("Spawned entity for new connection: {:?}", entity.id());
         if let Err(err) = return_sender.send(entity.id()) {
             error!("Failed to send entity ID back to the networking thread: {:?}", err);
         }

@@ -22,7 +22,7 @@ pub fn handle(
     if events.0.is_empty() {
         return;
     }
-    for (event, eid) in &events.0 {
+    for (event, eid) in events.0.try_iter() {
         let new_rot = None::<Rotation>;
 
         let new_position = Position::new(event.x, event.feet_y, event.z);
