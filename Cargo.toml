@@ -190,7 +190,7 @@ regex = "1.11.1"
 noise = "0.9.0"
 ctrlc = "3.4.7"
 typename = "0.1.2"
-bevy_ecs = "0.16.0"
+bevy_ecs = { version = "0.16.0", features = ["multi_threaded", "trace"] }
 
 # I/O
 memmap2 = "0.9.5"

@@ -7,32 +7,33 @@ use crate::errors::NetError;
 use crate::packets::incoming::handshake::Handshake;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
+use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalState;
+use tokio::io::AsyncWriteExt;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 
 // A small utility to remove the packet length and packet id from the stream, since we are pretty
 // sure we are going to get the right packet id and length, and we don't need to check it
 // We still do debug asserts on the ID though, just to be sure
-#[macro_export]
-macro_rules! trim_packet_head {
-    ($conn:ident,  $value:literal) => {{
-        let _ = VarInt::decode_async(&mut $conn, &NetDecodeOpts::None).await?;
-        let val = VarInt::decode_async(&mut $conn, &NetDecodeOpts::None).await?;
-        assert_eq!(val.0, $value);
-    }};
+pub(crate) async fn trim_packet_head(conn: &mut OwnedReadHalf, value: u8) -> Result<(), NetError> {
+    let _ = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
+    let val = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
+    assert_eq!(val.0, value as i32);
+    Ok(())
 }
 
-#[macro_export]
-macro_rules! send_packet {
-    ($conn:ident, $packet:ident) => {{
-        let mut packet_buffer = vec![];
-        $packet
-            .encode_async(&mut packet_buffer, &NetEncodeOpts::WithLength)
-            .await?;
-        $conn.write_all(&packet_buffer).await?;
-        $conn.flush().await?;
-    }};
+pub(crate) async fn send_packet(
+    conn: &mut OwnedWriteHalf,
+    packet: impl NetEncode,
+) -> Result<(), NetError> {
+    let mut packet_buffer = vec![];
+    packet
+        .encode_async(&mut packet_buffer, &NetEncodeOpts::WithLength)
+        .await?;
+    conn.write_all(&packet_buffer).await?;
+    conn.flush().await?;
+    Ok(())
 }
 pub const PROTOCOL_VERSION_1_21_1: i32 = 767;
 
@@ -51,7 +52,7 @@ pub async fn handle_handshake(
     conn_write: &mut OwnedWriteHalf,
     state: GlobalState,
 ) -> Result<(bool, Option<PlayerIdentity>), NetError> {
-    trim_packet_head!(conn_read, 0x00);
+    trim_packet_head(conn_read, 0x00).await?;
 
     // Get incoming handshake packet
     let hs_packet = Handshake::decode_async(&mut conn_read, &NetDecodeOpts::None).await?;

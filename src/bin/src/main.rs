@@ -20,11 +20,19 @@ mod cli;
 mod game_loop;
 mod packet_handlers;
 mod register_events;
+mod register_resources;
 mod systems;
 
 #[cfg(feature = "dhat")]
 #[global_allocator]
 static ALLOC: dhat::Alloc = dhat::Alloc;
+
+// fn kill_in_20() {
+//     std::thread::spawn(move || {
+//         std::thread::sleep(std::time::Duration::from_secs(20));
+//         std::process::exit(1);
+//     });
+// }
 
 fn main() {
     #[cfg(feature = "dhat")]
@@ -32,6 +40,8 @@ fn main() {
 
     let cli_args = CLIArgs::parse();
     ferrumc_logging::init_logging(cli_args.log.into());
+
+    // kill_in_20();
 
     match cli_args.command {
         Some(Command::Setup) => {

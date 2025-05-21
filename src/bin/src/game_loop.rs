@@ -1,7 +1,7 @@
 use crate::errors::BinaryError;
 use crate::packet_handlers::{play_packets, register_player_systems};
 use crate::register_events::register_events;
-use crate::systems::new_connections::NewConnectionRecv;
+use crate::register_resources::register_resources;
 use crate::systems::register_game_systems;
 use bevy_ecs::prelude::World;
 use bevy_ecs::schedule::ExecutorKind;
@@ -23,15 +23,14 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     let mut ecs_world = World::new();
     let sender_struct = Arc::new(ferrumc_net::create_packet_senders(&mut ecs_world));
     let (new_conn_send, new_conn_recv) = crossbeam_channel::unbounded();
-    ecs_world.insert_resource(NewConnectionRecv(new_conn_recv));
+
     let global_state_res = GlobalStateResource(global_state.clone());
-    ecs_world.insert_resource(global_state_res);
 
     let mut schedule = bevy_ecs::schedule::Schedule::default();
     schedule.set_executor_kind(ExecutorKind::MultiThreaded);
 
     register_events(&mut ecs_world);
-
+    register_resources(&mut ecs_world, new_conn_recv, global_state_res);
     register_packet_handlers(&mut schedule);
     register_player_systems(&mut schedule);
     register_game_systems(&mut schedule);

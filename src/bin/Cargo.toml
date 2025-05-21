@@ -36,7 +36,7 @@ ctrlc = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 crossbeam-channel = { workspace = true }
 dashmap = { workspace = true }
-dhat = "0.3.3"
+dhat = { workspace = true }
 
 [features]
 dhat = []

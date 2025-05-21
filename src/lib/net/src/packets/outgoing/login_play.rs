@@ -31,9 +31,9 @@ pub struct LoginPlayPacket<'a> {
 }
 
 impl LoginPlayPacket<'_> {
-    pub fn new(conn_id: usize) -> Self {
+    pub fn new(conn_id: i32) -> Self {
         Self {
-            entity_id: conn_id as i32,
+            entity_id: conn_id,
             is_hardcore: false,
             dimension_length: VarInt::from(1),
             dimension_names: &["minecraft:overworld"],

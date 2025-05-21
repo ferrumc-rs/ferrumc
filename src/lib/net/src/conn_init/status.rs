@@ -1,17 +1,14 @@
+use crate::conn_init::{send_packet, trim_packet_head};
 use crate::errors::NetError;
 use crate::packets::incoming::ping::PingPacket;
 use crate::packets::incoming::status_request::StatusRequestPacket;
 use crate::packets::outgoing::ping_response::PongPacket;
 use crate::packets::outgoing::status_response::StatusResponse;
-use crate::{send_packet, trim_packet_head};
 use ferrumc_config::favicon::get_favicon_base64;
 use ferrumc_config::statics::get_global_config;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
-use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
-use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalState;
 use rand::prelude::IndexedRandom;
-use tokio::io::AsyncWriteExt;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 
 pub(super) async fn status(
@@ -19,7 +16,7 @@ pub(super) async fn status(
     conn_write: &mut OwnedWriteHalf,
     state: GlobalState,
 ) -> Result<bool, NetError> {
-    trim_packet_head!(conn_read, 0x00);
+    trim_packet_head(conn_read, 0x00).await?;
 
     // Wait for a status request packet
     let _status_req =
@@ -30,9 +27,9 @@ pub(super) async fn status(
         json_response: get_server_status(&state),
     };
 
-    send_packet!(conn_write, status_response);
+    send_packet(conn_write, status_response).await?;
 
-    trim_packet_head!(conn_read, 0x01);
+    trim_packet_head(conn_read, 0x01).await?;
 
     // Wait for a ping request packet
     let ping_req = PingPacket::decode_async(&mut conn_read, &NetDecodeOpts::None).await?;
@@ -42,7 +39,7 @@ pub(super) async fn status(
         payload: ping_req.payload,
     };
 
-    send_packet!(conn_write, pong_packet);
+    send_packet(conn_write, pong_packet).await?;
 
     Ok(true)
 }
