@@ -17,6 +17,9 @@ whitelist = false
 # Set to -1 to disable compression.
 network_compression_threshold = 64
 
+# Chunk render distance. This is the distance in chunks that the server will load around the player.
+chunk_render_distance = 12
+
 # Database configuration
 [database]
 # Compression algorithm (brotli, deflate, gzip, zlib, zstd)

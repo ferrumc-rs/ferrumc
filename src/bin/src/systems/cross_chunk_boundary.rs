@@ -1,8 +1,17 @@
-use bevy_ecs::prelude::EventReader;
+use crate::systems::send_chunks::send_chunks;
+use bevy_ecs::prelude::{EventReader, Query, Res};
+use ferrumc_config::statics::get_global_config;
 use ferrumc_core::chunks::cross_chunk_boundary_event::CrossChunkBoundaryEvent;
+use ferrumc_net::connection::StreamWriter;
+use ferrumc_state::GlobalStateResource;
+use std::collections::HashSet;
 use tracing::debug;
 
-pub fn cross_chunk_boundary(mut events: EventReader<CrossChunkBoundaryEvent>) {
+pub fn cross_chunk_boundary(
+    mut events: EventReader<CrossChunkBoundaryEvent>,
+    mut query: Query<&mut StreamWriter>,
+    state: Res<GlobalStateResource>,
+) {
     if events.is_empty() {
         return;
     }
@@ -12,5 +21,42 @@ pub fn cross_chunk_boundary(mut events: EventReader<CrossChunkBoundaryEvent>) {
             "Player {:?} crossed chunk boundary from {:?} to {:?}",
             event.player, event.old_chunk, event.new_chunk
         );
+
+        let radius = get_global_config().chunk_render_distance;
+
+        let mut old_chunk_seen = HashSet::new();
+        for x in event.old_chunk.0 - radius as i32..event.old_chunk.0 + radius as i32 {
+            for z in event.old_chunk.1 - radius as i32..event.old_chunk.1 + radius as i32 {
+                old_chunk_seen.insert((x, z));
+            }
+        }
+        let mut new_chunk_seen = HashSet::new();
+        for x in event.new_chunk.0 - radius as i32..event.new_chunk.0 + radius as i32 {
+            for z in event.new_chunk.1 - radius as i32..event.new_chunk.1 + radius as i32 {
+                new_chunk_seen.insert((x, z));
+            }
+        }
+        let needed_chunks: Vec<_> = new_chunk_seen
+            .iter()
+            .filter(|chunk| !old_chunk_seen.contains(chunk))
+            .map(|chunk| {
+                let (x, z) = *chunk;
+                (x, z, "overworld".to_string())
+            })
+            .collect();
+        debug!("Needed chunks: {:?}", needed_chunks.len());
+        let center_chunk = (
+            event.new_chunk.0,
+            event.new_chunk.1,
+        );
+        let mut stream_writer = query.get_mut(event.player).unwrap();
+        send_chunks(
+            state.0.clone(),
+            needed_chunks,
+            &mut stream_writer,
+            center_chunk,
+        ).expect(
+            "Failed to send chunks",
+        )
     }
 }

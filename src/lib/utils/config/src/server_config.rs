@@ -16,6 +16,8 @@ use serde_derive::{Deserialize, Serialize};
 /// - `world`: The name of the world that the server will load.
 /// - `network_compression_threshold`: The threshold at which the server will compress network packets.
 /// - `whitelist`: Whether the server whitelist is enabled or not.
+/// - `chunk_render_distance`: The render distance of the chunks. This is the number of chunks that will be
+///   loaded around the player.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ServerConfig {
     pub host: String,
@@ -27,6 +29,7 @@ pub struct ServerConfig {
     pub world: String,
     pub network_compression_threshold: i32, // Can be negative
     pub whitelist: bool,
+    pub chunk_render_distance: u32,
 }
 
 /// The database configuration section from [ServerConfig].

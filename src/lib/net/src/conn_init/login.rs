@@ -2,6 +2,7 @@ use crate::conn_init::NetDecodeOpts;
 use crate::conn_init::VarInt;
 use crate::errors::NetError;
 use crate::{send_packet, trim_packet_head};
+use ferrumc_config::statics::get_global_config;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net_codec::decode::NetDecode;
 use ferrumc_net_codec::encode::NetEncode;
@@ -196,8 +197,10 @@ pub(super) async fn login(
 
     // =============================================================================================
 
-    for x in -8..8 {
-        for z in -8..8 {
+    let radius = get_global_config().chunk_render_distance as i32;
+
+    for x in -radius..=radius {
+        for z in -radius..=radius {
             let chunk = match state.world.load_chunk(x, z, "overworld") {
                 Ok(chunk) => chunk,
                 Err(e) => {

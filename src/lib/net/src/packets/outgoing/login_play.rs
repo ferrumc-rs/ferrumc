@@ -1,3 +1,4 @@
+use ferrumc_config::statics::get_global_config;
 use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::Write;
@@ -36,9 +37,9 @@ impl LoginPlayPacket<'_> {
             is_hardcore: false,
             dimension_length: VarInt::from(1),
             dimension_names: &["minecraft:overworld"],
-            max_players: VarInt::from(20),
-            view_distance: VarInt::from(2),
-            simulation_distance: VarInt::from(2),
+            max_players: VarInt::from(get_global_config().max_players as i32),
+            view_distance: VarInt::from(get_global_config().chunk_render_distance as i32),
+            simulation_distance: VarInt::from(get_global_config().chunk_render_distance as i32),
             reduced_debug_info: false,
             enable_respawn_screen: true,
             do_limited_crafting: false,

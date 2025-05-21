@@ -2,6 +2,7 @@
 use crate::errors::BinaryError;
 use clap::Parser;
 use dashmap::DashMap;
+use ferrumc_config::statics::get_global_config;
 use ferrumc_config::whitelist::create_whitelist;
 use ferrumc_general_purpose::paths::get_root_path;
 use ferrumc_state::{GlobalState, ServerState};
@@ -70,8 +71,9 @@ fn generate_chunks(state: GlobalState) -> Result<(), BinaryError> {
     info!("No overworld spawn chunk found, generating spawn chunks...");
     // Generate a 12x12 chunk area around the spawn point
     let mut chunks = Vec::new();
-    for x in -12..12 {
-        for z in -12..12 {
+    let radius = get_global_config().chunk_render_distance as i32;
+    for x in -radius..radius {
+        for z in -radius..radius {
             chunks.push((x, z));
         }
     }
