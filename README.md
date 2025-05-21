@@ -53,40 +53,43 @@ our [Discord server](https://discord.gg/qT5J8EMjwk) for help or to discuss the p
 ## ✨ Key Features
 
 <ul>
-   <li>
-     <h4>🛈 Customizable server list</h4>
-     <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/server%20list.png?raw=true" alt="Server list">
-   </li>
-   <li>
-     <h4>🚄 Extremely fast </h4>
-     <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/mind%20boggling.gif?raw=true" alt="Mind boggling">
-   </li>
-   <li>
-     <h4>🖥️ Highly efficient memory usage</h4>
-     <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/mem_use.png?raw=true" alt="Low memory usage">
-   </li>
-   <li>
-     <h4>🗂️ Straightforward Configuration</h4>
-     <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/config.toml.png?raw=true" alt="Configuration">
-   </li>
-   <li>
+    <li>
+        <h4>🛈 Customizable server list</h4>
+        <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/server%20list.png?raw=true" alt="Server list">
+    </li>
+    <li>
+        <h4>🚄 Extremely fast </h4>
+        <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/mind%20boggling.gif?raw=true" alt="Mind boggling">
+    </li>
+    <li>
+        <h4>🖥️ Highly efficient memory usage</h4>
+        <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/mem_use.png?raw=true" alt="Low memory usage">
+    </li>
+    <li>
+        <h4>🗂️ Straightforward Configuration</h4>
+        <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/config.toml.png?raw=true" alt="Configuration">
+    </li>
+    <li>
       <h4>🔄 Can import existing worlds from vanilla minecraft</h4>
       <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/chunk_importing.gif?raw=true" alt="Configuration">
-   </li>
-   <li>
+    </li>
+    <li>
       <h4>🌐 Compatible with vanilla Minecraft clients (Version 1.21.1)</h4>
-   </li>
-   <li>
+    </li>
+    <li>
       <h4>📦 Fully multithreaded; Utilizes all available CPU cores, instead of a single "main" thread</h4>
-   </li>
-   <li>
+    </li>
+    <li>
       <h4>📝 Custom made network, NBT and Anvil encoding systems to allow for minimal I/O lag</h4>
-   </li>
-   <li>
-      <h4>💾 Crazy fast K/V database </h4>
-      <i>32 render distance*</i>
-      <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/chunk_loading.gif?raw=true" alt="Chunk Loading DEMO">
-   </li>
+    </li>
+    <li>
+        <h4>💾 Crazy fast K/V database </h4>
+        <i>32 render distance*</i>
+        <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/chunk_loading.gif?raw=true" alt="Chunk Loading DEMO">
+    </li>
+    <li>
+        <h4>🎮 Bevy ECS for smart, lockless concurrency driven by a massive community</h4>
+    </li>
 </ul>
 
 <h2>✅ Upcoming features</h2>
