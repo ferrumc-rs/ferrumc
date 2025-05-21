@@ -22,17 +22,17 @@ pub fn cross_chunk_boundary(
             event.player, event.old_chunk, event.new_chunk
         );
 
-        let radius = get_global_config().chunk_render_distance;
+        let radius = get_global_config().chunk_render_distance as i32;
 
         let mut old_chunk_seen = HashSet::new();
-        for x in event.old_chunk.0 - radius as i32..event.old_chunk.0 + radius as i32 {
-            for z in event.old_chunk.1 - radius as i32..event.old_chunk.1 + radius as i32 {
+        for x in event.old_chunk.0 - radius..event.old_chunk.0 + radius {
+            for z in event.old_chunk.1 - radius..event.old_chunk.1 + radius {
                 old_chunk_seen.insert((x, z));
             }
         }
         let mut new_chunk_seen = HashSet::new();
-        for x in event.new_chunk.0 - radius as i32..event.new_chunk.0 + radius as i32 {
-            for z in event.new_chunk.1 - radius as i32..event.new_chunk.1 + radius as i32 {
+        for x in event.new_chunk.0 - radius..event.new_chunk.0 + radius {
+            for z in event.new_chunk.1 - radius..event.new_chunk.1 + radius {
                 new_chunk_seen.insert((x, z));
             }
         }
@@ -45,18 +45,14 @@ pub fn cross_chunk_boundary(
             })
             .collect();
         debug!("Needed chunks: {:?}", needed_chunks.len());
-        let center_chunk = (
-            event.new_chunk.0,
-            event.new_chunk.1,
-        );
+        let center_chunk = (event.new_chunk.0, event.new_chunk.1);
         let mut stream_writer = query.get_mut(event.player).unwrap();
         send_chunks(
             state.0.clone(),
             needed_chunks,
             &mut stream_writer,
             center_chunk,
-        ).expect(
-            "Failed to send chunks",
         )
+            .expect("Failed to send chunks")
     }
 }

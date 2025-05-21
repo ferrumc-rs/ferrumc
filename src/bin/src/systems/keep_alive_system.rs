@@ -2,7 +2,7 @@ use bevy_ecs::prelude::{Entity, EventWriter, Query};
 use ferrumc_core::conn::conn_kill_event::ConnectionKillEvent;
 use ferrumc_core::conn::keepalive::KeepAliveTracker;
 use ferrumc_net::connection::StreamWriter;
-use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tracing::warn;
 
 
@@ -26,7 +26,7 @@ pub fn keep_alive_system(
                 reason: Some("Keep alive timeout".to_string()),
                 entity,
             });
-        } else if time_diff >= Duration::from_secs(10) {
+        } else if time_diff >= Duration::from_secs(10) && keep_alive_tracker.has_received_keep_alive {
             // If it's been more than 10 seconds since the last keep alive packet was sent, send a new one
             let time_stamp = rand::random();
             let keep_alive_packet = ferrumc_net::packets::outgoing::keep_alive::OutgoingKeepAlivePacket {
@@ -36,6 +36,7 @@ pub fn keep_alive_system(
                 warn!("Failed to send keep alive packet to {}: {:?}", entity, err);
             }
             keep_alive_tracker.last_sent_keep_alive = time_stamp;
+            keep_alive_tracker.has_received_keep_alive = false;
         }
     }
 }

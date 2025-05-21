@@ -72,8 +72,8 @@ fn generate_chunks(state: GlobalState) -> Result<(), BinaryError> {
     // Generate a 12x12 chunk area around the spawn point
     let mut chunks = Vec::new();
     let radius = get_global_config().chunk_render_distance as i32;
-    for x in -radius..radius {
-        for z in -radius..radius {
+    for x in -radius..=radius {
+        for z in -radius..=radius {
             chunks.push((x, z));
         }
     }

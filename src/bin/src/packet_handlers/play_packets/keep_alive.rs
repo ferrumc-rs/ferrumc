@@ -31,6 +31,7 @@ pub fn handle(
             });
         } else {
             keep_alive_tracker.last_received_keep_alive = SystemTime::now();
+            keep_alive_tracker.has_received_keep_alive = true;
             debug!("Keep alive packet received from {:?}", eid);
         }
     }

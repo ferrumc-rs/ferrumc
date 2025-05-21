@@ -31,6 +31,7 @@ pub fn accept_new_connections(
             KeepAliveTracker {
                 last_sent_keep_alive: 0,
                 last_received_keep_alive: SystemTime::now(),
+                has_received_keep_alive: true,
             }
         ));
         debug!("Spawned entity for new connection: {:?}", entity.id());
