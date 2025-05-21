@@ -1,4 +1,3 @@
-
 use ferrumc_macros::{packet, NetDecode};
 use typename::TypeName;
 

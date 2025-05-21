@@ -35,7 +35,7 @@ impl EntityMetadataPacket {
     /// ```
     pub fn new<T>(entity_id: VarInt, metadata: T) -> Self
     where
-        T: IntoIterator<Item=EntityMetadata>,
+        T: IntoIterator<Item = EntityMetadata>,
     {
         Self {
             entity_id,

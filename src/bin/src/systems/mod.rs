@@ -1,8 +1,8 @@
-mod keep_alive_system;
-pub mod send_chunks;
-pub mod new_connections;
 mod connection_killer;
 mod cross_chunk_boundary;
+mod keep_alive_system;
+pub mod new_connections;
+pub mod send_chunks;
 
 pub fn register_game_systems(schedule: &mut bevy_ecs::schedule::Schedule) {
     schedule.add_systems(keep_alive_system::keep_alive_system);

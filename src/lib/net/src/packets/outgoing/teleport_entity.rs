@@ -19,7 +19,12 @@ pub struct TeleportEntityPacket {
 }
 
 impl TeleportEntityPacket {
-    pub fn new(entity_id: &PlayerIdentity, position: &Position, angle: &Rotation, on_ground: bool) -> Self {
+    pub fn new(
+        entity_id: &PlayerIdentity,
+        position: &Position,
+        angle: &Rotation,
+        on_ground: bool,
+    ) -> Self {
         Self {
             entity_id: VarInt::new(entity_id.short_uuid),
             x: position.x,

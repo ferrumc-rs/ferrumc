@@ -2,7 +2,10 @@ use bevy_ecs::prelude::{EventWriter, Res};
 use ferrumc_net::packets::packet_events::TransformEvent;
 use ferrumc_net::SetPlayerRotationPacketReceiver;
 
-pub fn handle(events: Res<SetPlayerRotationPacketReceiver>, mut event_writer: EventWriter<TransformEvent>) {
+pub fn handle(
+    events: Res<SetPlayerRotationPacketReceiver>,
+    mut event_writer: EventWriter<TransformEvent>,
+) {
     if events.0.is_empty() {
         return;
     }

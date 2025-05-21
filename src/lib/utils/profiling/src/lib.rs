@@ -74,6 +74,7 @@ fn generate_final_result(kv: HashMap<String, Vec<SingleProfileResult>>) -> Vec<F
         .collect::<Vec<FinalProfileResult>>();
     // Using recursion to build the tree from all the nodes that have children
     // Basically we just cut off the first part of the string and use it as the parent node
+    #[expect(clippy::unnecessary_to_owned)]
     root_nodes.iter().for_each(|x| {
         let mut map = HashMap::new();
 

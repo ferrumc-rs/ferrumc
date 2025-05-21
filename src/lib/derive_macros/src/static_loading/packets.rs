@@ -59,8 +59,8 @@ pub(crate) fn get_packet_id(
         PacketBoundiness::Clientbound => &packets.clientbound,
         PacketBoundiness::Serverbound => &packets.serverbound,
     };
-    let id = packets.get(&format!("minecraft:{}", packet_name))
-        .unwrap_or_else(|| panic!("Could not find key: `minecraft:{}` in the packet registry. Example: `add_entity`, would be 0x01 in the 1.21.1 protocol", packet_name));
+    let id = packets.get(&format!("minecraft:{packet_name}"))
+        .unwrap_or_else(|| panic!("Could not find key: `minecraft:{packet_name}` in the packet registry. Example: `add_entity`, would be 0x01 in the 1.21.1 protocol"));
 
     id.protocol_id
 }
@@ -87,7 +87,7 @@ impl From<&str> for PacketState {
             "login" => PacketState::Login,
             "play" => PacketState::Play,
             "status" => PacketState::Status,
-            wrong => panic!("Invalid state: {}. Must be: `configuration`, `handshake`, `login`, `play`, or `status`", wrong),
+            wrong => panic!("Invalid state: {wrong}. Must be: `configuration`, `handshake`, `login`, `play`, or `status`"),
         }
     }
 }
@@ -128,7 +128,7 @@ impl Parse for PacketTypeInput {
             "login" => PacketState::Login,
             "play" => PacketState::Play,
             "status" => PacketState::Status,
-            wrong => panic!("Invalid state: {}. Must be: `configuration`, `handshake`, `login`, `play`, or `status`", wrong),
+            wrong => panic!("Invalid state: {wrong}. Must be: `configuration`, `handshake`, `login`, `play`, or `status`"),
         };
 
         input.parse::<Token![,]>()?;
@@ -136,10 +136,7 @@ impl Parse for PacketTypeInput {
         let bound = match input.parse::<LitStr>()?.value().as_str() {
             "clientbound" => PacketBoundiness::Clientbound,
             "serverbound" => PacketBoundiness::Serverbound,
-            wrong => panic!(
-                "Invalid bound: {}. Must be: `clientbound` or `serverbound` ",
-                wrong
-            ),
+            wrong => panic!("Invalid bound: {wrong}. Must be: `clientbound` or `serverbound` "),
         };
 
         input.parse::<Token![,]>()?;
@@ -159,7 +156,7 @@ pub(crate) fn get(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let protocol_id = get_packet_id(input.state, input.bound, &input.packet_name);
 
     let hex_id = {
-        let str_value = format!("0x{:02X}", protocol_id);
+        let str_value = format!("0x{protocol_id:02X}");
         str_value.parse::<TokenStream>().unwrap()
     };
 

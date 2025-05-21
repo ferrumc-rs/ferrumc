@@ -151,7 +151,7 @@ fn convert_whitelist_file() -> Result<Vec<Uuid>, ConfigError> {
     });
 
     for line in lines {
-        writeln!(updated_whitelist, "{}", line).map_err(|e| {
+        writeln!(updated_whitelist, "{line}").map_err(|e| {
             error!("Failed to write line: {e}");
             ConfigError::IOError(e)
         })?;

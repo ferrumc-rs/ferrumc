@@ -10,6 +10,10 @@ pub struct PlayerIdentity {
 
 impl PlayerIdentity {
     pub fn new(username: String, uuid: u128) -> Self {
-        Self { username, uuid, short_uuid: uuid as i32 }
+        Self {
+            username,
+            uuid,
+            short_uuid: uuid as i32,
+        }
     }
 }

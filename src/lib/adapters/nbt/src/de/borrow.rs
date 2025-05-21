@@ -39,7 +39,7 @@ impl From<u8> for NbtTag {
             10 => NbtTag::Compound,
             11 => NbtTag::IntArray,
             12 => NbtTag::LongArray,
-            _ => panic!("Invalid NbtTag: {}", tag),
+            _ => panic!("Invalid NbtTag: {tag}"),
         }
     }
 }
@@ -162,7 +162,7 @@ impl<'a> NbtTape<'a> {
     fn parse_tag(&mut self) {
         let tag = NbtTag::from(self.read_byte());
         if tag != NbtTag::Compound {
-            panic!("Root tag must be a compound tag! Instead got: {:?}", tag);
+            panic!("Root tag must be a compound tag! Instead got: {tag:?}");
         }
 
         let name: &str = <&str>::parse_from_nbt(self, NbtDeserializableOptions::None);

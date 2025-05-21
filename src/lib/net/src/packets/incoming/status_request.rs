@@ -14,44 +14,44 @@ pub struct StatusRequestPacket {}
 //             pub favicon: &'a str,
 //             pub enforces_secure_chat: bool,
 //         }
-// 
+//
 //         #[derive(serde_derive::Serialize)]
 //         pub(super) struct Version<'a> {
 //             pub name: &'a str,
 //             pub protocol: u16,
 //         }
-// 
+//
 //         #[derive(serde_derive::Serialize)]
 //         pub(super) struct Players<'a> {
 //             pub max: u32,
 //             pub online: u16,
 //             pub sample: Vec<Player<'a>>,
 //         }
-// 
+//
 //         #[derive(serde_derive::Serialize)]
 //         pub(super) struct Player<'a> {
 //             pub name: &'a str,
 //             pub id: &'a str,
 //         }
-// 
+//
 //         pub(super) struct PlayerData {
 //             pub name: String,
 //             pub id: String,
 //         }
-// 
+//
 //         #[derive(serde_derive::Serialize)]
 //         pub(super) struct Description<'a> {
 //             pub text: &'a str,
 //         }
 //     }
-// 
+//
 //     let config = get_global_config();
-// 
+//
 //     let version = structs::Version {
 //         name: "1.21.1",
 //         protocol: 767,
 //     };
-// 
+//
 //     let online_players = state.universe.query::<&PlayerIdentity>().into_entities();
 //     let online_players_sample = online_players
 //         .iter()
@@ -62,7 +62,7 @@ pub struct StatusRequestPacket {}
 //             id: uuid::Uuid::from_u128(player.uuid).to_string(),
 //         })
 //         .collect::<Vec<_>>();
-// 
+//
 //     let online_players_sample = online_players_sample
 //         .iter()
 //         .map(|p| structs::Player {
@@ -70,19 +70,19 @@ pub struct StatusRequestPacket {}
 //             id: p.id.as_str(),
 //         })
 //         .collect::<Vec<_>>();
-// 
+//
 //     let players = structs::Players {
 //         max: config.max_players,
 //         online: online_players.len() as u16,
 //         sample: online_players_sample,
 //     };
-// 
+//
 //     let motd = config.motd.choose(&mut rand::rng()).unwrap();
 //     let description = structs::Description { text: motd };
-// 
+//
 //     let favicon = get_favicon_base64();
 //     // let favicon = "data:image/png;base64,<data>";
-// 
+//
 //     let status = structs::ServerStatus {
 //         version,
 //         players,
@@ -90,6 +90,6 @@ pub struct StatusRequestPacket {}
 //         favicon,
 //         enforces_secure_chat: false,
 //     };
-// 
+//
 //     serde_json::to_string(&status).unwrap()
 // }

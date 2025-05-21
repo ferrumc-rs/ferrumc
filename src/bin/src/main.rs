@@ -107,7 +107,7 @@ fn entry() -> Result<(), BinaryError> {
                 .store(true, std::sync::atomic::Ordering::Relaxed);
         }
     })
-        .expect("Error setting Ctrl-C handler");
+    .expect("Error setting Ctrl-C handler");
 
     game_loop::start_game_loop(global_state.clone())?;
 

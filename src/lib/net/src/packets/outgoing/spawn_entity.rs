@@ -30,18 +30,18 @@ pub struct SpawnEntityPacket {
 const PLAYER_ID: u64 = get_registry_entry!("minecraft:entity_type.entries.minecraft:player");
 
 impl SpawnEntityPacket {
-    pub fn player(entity_id: Entity, query: Query<(&PlayerIdentity, &Position, &Rotation)>) -> Result<Self, NetError> {
+    pub fn player(
+        entity_id: Entity,
+        query: Query<(&PlayerIdentity, &Position, &Rotation)>,
+    ) -> Result<Self, NetError> {
         let (player_identity, position, rotation) = query
             .get(entity_id)
-            .expect(
-                format!(
-                    "Failed to get player identity, position, and rotation for entity ID: {:?}",
-                    entity_id).as_str()
-            );
+            .unwrap_or_else(|_| panic!("Failed to get player identity, position, and rotation for entity ID: {entity_id:?}"
+            ));
 
         Ok(Self {
             entity_id: VarInt::new(player_identity.short_uuid),
-            entity_uuid: player_identity.uuid as u128,
+            entity_uuid: player_identity.uuid,
             r#type: VarInt::new(PLAYER_ID as i32),
             x: position.x,
             y: position.y,

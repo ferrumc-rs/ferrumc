@@ -17,8 +17,10 @@ pub fn handle_player_move(
         let entity = event.entity;
 
         let (rot, identity) = query.get(entity).unwrap();
-        let head_rot_packet =
-            SetHeadRotationPacket::new(identity.uuid as i32, NetAngle::from_degrees(rot.yaw as f64));
+        let head_rot_packet = SetHeadRotationPacket::new(
+            identity.uuid as i32,
+            NetAngle::from_degrees(rot.yaw as f64),
+        );
 
         #[cfg(debug_assertions)]
         let start = std::time::Instant::now();

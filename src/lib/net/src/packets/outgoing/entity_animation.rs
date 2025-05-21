@@ -19,10 +19,7 @@ pub struct EntityAnimationEvent {
 
 impl EntityAnimationPacket {
     pub fn new(eid: VarInt, animation: u8) -> Self {
-        Self {
-            eid,
-            animation,
-        }
+        Self { eid, animation }
     }
 }
 

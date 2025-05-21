@@ -51,11 +51,11 @@ impl PlayerInfoUpdatePacket {
 
         let players = players
             .into_iter()
-            .filter_map(|player| {
+            .map(|player| {
                 let uuid = player.short_uuid;
                 let name = player.username.clone();
 
-                Some((uuid, name))
+                (uuid, name)
             })
             .map(|(uuid, name)| PlayerWithActions::add_player(uuid, name))
             .collect::<Vec<_>>();

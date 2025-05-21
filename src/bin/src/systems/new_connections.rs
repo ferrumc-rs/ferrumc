@@ -12,10 +12,7 @@ use tracing::{debug, error};
 #[derive(Resource)]
 pub struct NewConnectionRecv(pub Receiver<NewConnection>);
 
-pub fn accept_new_connections(
-    mut cmd: Commands,
-    new_connections: Res<NewConnectionRecv>,
-) {
+pub fn accept_new_connections(mut cmd: Commands, new_connections: Res<NewConnectionRecv>) {
     if new_connections.0.is_empty() {
         return;
     }
@@ -32,11 +29,14 @@ pub fn accept_new_connections(
                 last_sent_keep_alive: 0,
                 last_received_keep_alive: SystemTime::now(),
                 has_received_keep_alive: true,
-            }
+            },
         ));
         debug!("Spawned entity for new connection: {:?}", entity.id());
         if let Err(err) = return_sender.send(entity.id()) {
-            error!("Failed to send entity ID back to the networking thread: {:?}", err);
+            error!(
+                "Failed to send entity ID back to the networking thread: {:?}",
+                err
+            );
         }
     }
 }

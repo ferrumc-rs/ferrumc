@@ -183,7 +183,7 @@ impl NbtFieldAttribute {
                             new_name: rename.value(),
                         });
                     }
-                    _ => panic!("Unknown attribute: {}", name),
+                    _ => panic!("Unknown attribute: {name}"),
                 }
 
                 Ok(())
@@ -242,7 +242,7 @@ impl NbtFieldAttribute {
                     "flatten" => {
                         attributes.push(NbtFieldAttribute::Flatten);
                     }
-                    _ => panic!("Unknown attribute: {}", name),
+                    _ => panic!("Unknown attribute: {name}"),
                 }
 
                 Ok(())

@@ -76,9 +76,12 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     Ok(())
 }
 
-
 // This is the bit where we bridge to async
-fn tcp_conn_accepter(state: GlobalState, packet_sender: Arc<PacketSender>, sender: Arc<Sender<NewConnection>>) -> Result<(), BinaryError> {
+fn tcp_conn_accepter(
+    state: GlobalState,
+    packet_sender: Arc<PacketSender>,
+    sender: Arc<Sender<NewConnection>>,
+) -> Result<(), BinaryError> {
     let named_thread = std::thread::Builder::new().name("TokioNetworkThread".to_string());
     named_thread.spawn(move || {
         let caught_panic = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {

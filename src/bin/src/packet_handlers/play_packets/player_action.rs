@@ -29,8 +29,11 @@ pub fn handle(
                         event.location.z >> 4,
                         "overworld",
                     )?;
-                    let block =
-                        chunk.get_block(event.location.x, event.location.y as i32, event.location.z)?;
+                    let block = chunk.get_block(
+                        event.location.x,
+                        event.location.y as i32,
+                        event.location.z,
+                    )?;
                     debug!("Block: {:?}", block);
                     let (relative_x, relative_y, relative_z) = (
                         event.location.x & 0xF,

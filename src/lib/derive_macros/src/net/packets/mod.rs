@@ -75,7 +75,7 @@ pub fn setup_packet_handling(input: TokenStream) -> TokenStream {
     let dir_path = std::path::Path::new(&path);
     // get the module path like crate::xxx:xxx from module_path
     let base_path = module_path.split("\\").collect::<Vec<&str>>()[2..].join("::");
-    let base_path = format!("crate::{}", base_path);
+    let base_path = format!("crate::{base_path}");
 
     println!(
         "   {} {}",
@@ -130,11 +130,11 @@ pub fn setup_packet_handling(input: TokenStream) -> TokenStream {
                 &item_struct.attrs,
                 PacketBoundiness::Serverbound,
             )
-                .expect(
-                    "parse_packet_attribute failed\
+            .expect(
+                "parse_packet_attribute failed\
                 \nPlease provide the packet_id and state fields in the #[packet(...)] attribute.\
                 \nExample: #[packet(packet_id = \"example_packet\", state = \"handshake\")]",
-                );
+            );
 
             if state == "play" {
                 let struct_name = item_struct.ident;
@@ -143,7 +143,7 @@ pub fn setup_packet_handling(input: TokenStream) -> TokenStream {
                     "   {} {} (ID: {}, State: {}, Struct Name: {})",
                     "[FERRUMC_MACROS]".bold().blue(),
                     "Found Packet".white().bold(),
-                    format!("0x{:02X}", packet_id).cyan(),
+                    format!("0x{packet_id:02X}").cyan(),
                     state.green(),
                     struct_name.to_string().yellow()
                 );
@@ -153,15 +153,16 @@ pub fn setup_packet_handling(input: TokenStream) -> TokenStream {
                     base_path,
                     file_name.to_string_lossy().replace(".rs", "")
                 );
-                let struct_path = format!("{}::{}", path, struct_name);
+                let struct_path = format!("{path}::{struct_name}");
 
                 packet_channel_structs.push((struct_name.clone(), struct_path.clone()));
 
                 let struct_path =
                     syn::parse_str::<syn::Path>(&struct_path).expect("parse_str failed");
 
-                let field_name = syn::parse_str::<syn::Ident>(&to_snake_case(&struct_name.to_string()))
-                    .expect("to_snake_case failed");
+                let field_name =
+                    syn::parse_str::<syn::Ident>(&to_snake_case(&struct_name.to_string()))
+                        .expect("to_snake_case failed");
 
                 match_arms.push(quote! {
                         (#packet_id) => {
@@ -186,10 +187,7 @@ pub fn setup_packet_handling(input: TokenStream) -> TokenStream {
     println!(
         "   {} {}",
         "[FERRUMC_MACROS]".bold().blue(),
-        format!(
-            "It took: {:?} to parse all the files and generate the packet registry",
-            elapsed
-        )
+        format!("It took: {elapsed:?} to parse all the files and generate the packet registry")
             .red()
             .bold()
     );

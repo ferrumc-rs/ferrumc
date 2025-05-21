@@ -7,4 +7,3 @@ pub struct SetPlayerRotationPacket {
     pub pitch: f32,
     pub on_ground: bool,
 }
-

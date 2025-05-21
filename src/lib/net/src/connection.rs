@@ -61,10 +61,7 @@ impl StreamWriter {
 
     // Sends the packet to the client with the default options. You probably want to use this instead
     // of send_packet_with_opts()
-    pub fn send_packet(
-        &self,
-        packet: impl NetEncode + Send,
-    ) -> Result<(), NetError> {
+    pub fn send_packet(&self, packet: impl NetEncode + Send) -> Result<(), NetError> {
         self.send_packet_with_opts(packet, &NetEncodeOpts::WithLength)
     }
 
@@ -105,7 +102,7 @@ pub async fn handle_connection(
         MAX_HANDSHAKE_TIMEOUT,
         handle_handshake(&mut tcp_reader, &mut tcp_writer, state.clone()),
     )
-        .await;
+    .await;
 
     let mut player_identity = PlayerIdentity::default();
 
@@ -212,8 +209,8 @@ pub async fn handle_connection(
             &mut packet_skele.data,
             packet_sender.clone(),
         )
-            .instrument(debug_span!("eid", %entity))
-            .into_inner()
+        .instrument(debug_span!("eid", %entity))
+        .into_inner()
         {
             Ok(()) => {
                 trace!(
@@ -222,18 +219,16 @@ pub async fn handle_connection(
                     entity
                 );
             }
-            Err(err) => {
-                match &err {
-                    NetError::Packet(InvalidPacket(id)) => {
-                        trace!("Packet 0x{:02X} received, no handler implemented yet", id);
-                    }
-                    _ => {
-                        debug!("Failed to handle packet: {:?}", err);
-                        running.store(false, Ordering::Relaxed);
-                        break 'recv;
-                    }
+            Err(err) => match &err {
+                NetError::Packet(InvalidPacket(id)) => {
+                    trace!("Packet 0x{:02X} received, no handler implemented yet", id);
                 }
-            }
+                _ => {
+                    debug!("Failed to handle packet: {:?}", err);
+                    running.store(false, Ordering::Relaxed);
+                    break 'recv;
+                }
+            },
         }
     }
 
@@ -245,11 +240,11 @@ impl StreamWriter {
     ///
     /// !!! This won't delete the entity, you should do that with the connection killer system
     pub fn kill(&self, reason: Option<String>) -> Result<(), NetError> {
-        self.send_packet(
-            crate::packets::outgoing::disconnect::DisconnectPacket {
-                reason: ferrumc_text::TextComponent::from(reason.unwrap_or_else(|| "Disconnected".to_string()))
-            }
-        )?;
+        self.send_packet(crate::packets::outgoing::disconnect::DisconnectPacket {
+            reason: ferrumc_text::TextComponent::from(
+                reason.unwrap_or_else(|| "Disconnected".to_string()),
+            ),
+        })?;
         self.running.store(false, Ordering::Relaxed);
         Ok(())
     }

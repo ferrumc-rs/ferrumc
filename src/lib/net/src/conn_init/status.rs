@@ -95,7 +95,8 @@ fn get_server_status(state: &GlobalState) -> String {
         protocol: crate::conn_init::PROTOCOL_VERSION_1_21_1 as u16,
     };
 
-    let online_players_sample = state.players
+    let online_players_sample = state
+        .players
         .iter()
         .take(5)
         .map(|player_data| structs::PlayerData {

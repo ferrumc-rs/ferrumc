@@ -27,7 +27,10 @@ impl NetDecode for ServerBoundPluginMessage {
         let mut buf = Vec::<u8>::new();
         reader.read_to_end(&mut buf)?;
 
-        Ok(Self { _channel: channel, _data: buf })
+        Ok(Self {
+            _channel: channel,
+            _data: buf,
+        })
     }
 
     async fn decode_async<R: tokio::io::AsyncRead + Unpin>(
@@ -38,7 +41,10 @@ impl NetDecode for ServerBoundPluginMessage {
         let mut buf = Vec::<u8>::new();
         reader.read_to_end(&mut buf).await?;
 
-        Ok(Self { _channel: channel, _data: buf })
+        Ok(Self {
+            _channel: channel,
+            _data: buf,
+        })
     }
 }
 impl IncomingPacket for ServerBoundPluginMessage {

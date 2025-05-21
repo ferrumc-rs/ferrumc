@@ -14,7 +14,11 @@ pub struct UpdateEntityPositionPacket {
 }
 
 impl UpdateEntityPositionPacket {
-    pub fn new(entity_id: &PlayerIdentity, delta_positions: (i16, i16, i16), on_ground: bool) -> Self {
+    pub fn new(
+        entity_id: &PlayerIdentity,
+        delta_positions: (i16, i16, i16),
+        on_ground: bool,
+    ) -> Self {
         Self {
             entity_id: VarInt::new(entity_id.short_uuid),
             delta_x: delta_positions.0,

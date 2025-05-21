@@ -96,4 +96,3 @@ impl From<PacketError> for NetError {
         NetError::Packet(err)
     }
 }
-

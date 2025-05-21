@@ -288,8 +288,7 @@ impl BlockStates {
                         let max_int_value = (1 << new_bit_size) - 1;
                         if value > max_int_value {
                             return Err(InvalidBlockStateData(format!(
-                                "Value {} exceeds maximum value for {}-bit block state",
-                                value, new_bit_size
+                                "Value {value} exceeds maximum value for {new_bit_size}-bit block state"
                             )));
                         }
                         normalised_ints.push(value);
@@ -475,8 +474,7 @@ impl Chunk {
                 let packed_u64 = data
                     .get_mut(i64_index)
                     .ok_or(InvalidBlockStateData(format!(
-                        "Invalid block state data at index {}",
-                        i64_index
+                        "Invalid block state data at index {i64_index}"
                     )))?;
                 let offset = (index % blocks_per_i64) * *bits_per_block as usize;
                 if let Err(e) = ferrumc_general_purpose::data_packing::u32::write_nbit_u32(
@@ -485,10 +483,7 @@ impl Chunk {
                     block_palette_index as u32,
                     *bits_per_block,
                 ) {
-                    return Err(InvalidBlockStateData(format!(
-                        "Failed to write block: {}",
-                        e
-                    )));
+                    return Err(InvalidBlockStateData(format!("Failed to write block: {e}")));
                 }
             }
             PaletteType::Direct { .. } => {
@@ -559,8 +554,7 @@ impl Chunk {
                 let index = ((y & 0xf) * 256 + (z & 0xf) * 16 + (x & 0xf)) as usize;
                 let i64_index = index / blocks_per_i64;
                 let packed_u64 = data.get(i64_index).ok_or(InvalidBlockStateData(format!(
-                    "Invalid block state data at index {}",
-                    i64_index
+                    "Invalid block state data at index {i64_index}"
                 )))?;
                 let offset = (index % blocks_per_i64) * *bits_per_block as usize;
                 let id = ferrumc_general_purpose::data_packing::u32::read_nbit_u32(

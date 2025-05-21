@@ -8,7 +8,11 @@ use ferrumc_net::ChunkBatchAckReceiver;
 use ferrumc_state::GlobalStateResource;
 use tracing::error;
 
-pub fn handle(events: Res<ChunkBatchAckReceiver>, state: Res<GlobalStateResource>, mut query: Query<(&mut ChunkReceiver, &mut Position, &mut StreamWriter)>) {
+pub fn handle(
+    events: Res<ChunkBatchAckReceiver>,
+    state: Res<GlobalStateResource>,
+    mut query: Query<(&mut ChunkReceiver, &mut Position, &mut StreamWriter)>,
+) {
     if events.0.is_empty() {
         return;
     }
@@ -42,9 +46,7 @@ pub fn handle(events: Res<ChunkBatchAckReceiver>, state: Res<GlobalStateResource
                 move_to_spawn = false;
             }
             if move_to_spawn {
-                conn.send_packet(
-                    SynchronizePlayerPositionPacket::default()
-                )?;
+                conn.send_packet(SynchronizePlayerPositionPacket::default())?;
             }
         };
         if let Err(e) = &res {

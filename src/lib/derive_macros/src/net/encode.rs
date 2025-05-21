@@ -81,10 +81,10 @@ fn generate_enum_encoders(
                         )*
                     }
                 })
-            },
+            }
             Fields::Unnamed(fields) => {
                 let field_names: Vec<_> = (0..fields.unnamed.len())
-                    .map(|i| syn::Ident::new(&format!("field{}", i), proc_macro2::Span::call_site()))
+                    .map(|i| syn::Ident::new(&format!("field{i}"), proc_macro2::Span::call_site()))
                     .collect();
                 let field_tys: Vec<_> = fields.unnamed.iter()
                     .map(|f| &f.ty)
@@ -104,7 +104,7 @@ fn generate_enum_encoders(
                         )*
                     }
                 })
-            },
+            }
             Fields::Unit => (
                 quote! {
                     Self::#variant_ident => {}

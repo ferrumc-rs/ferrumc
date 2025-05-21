@@ -5,7 +5,6 @@ use ferrumc_net::connection::StreamWriter;
 use std::time::{Duration, SystemTime};
 use tracing::warn;
 
-
 pub fn keep_alive_system(
     query: Query<(Entity, &mut KeepAliveTracker, &StreamWriter)>,
     mut connection_kill_event: EventWriter<ConnectionKillEvent>,
@@ -16,22 +15,26 @@ pub fn keep_alive_system(
 
     for (entity, mut keep_alive_tracker, stream_writer) in query {
         // If it's been more than 15 seconds since the last keep alive packet was received, kill the connection
-        let time_diff = current_time.duration_since(keep_alive_tracker.last_received_keep_alive).expect(
-            "SystemTime::duration_since failed, this should never happen",
-        );
+        let time_diff = current_time
+            .duration_since(keep_alive_tracker.last_received_keep_alive)
+            .expect("SystemTime::duration_since failed, this should never happen");
         if time_diff > Duration::from_secs(15) {
-            warn!("Killing connection for {}, it's been {:?} since last keepalive response", entity, time_diff
-                );
+            warn!(
+                "Killing connection for {}, it's been {:?} since last keepalive response",
+                entity, time_diff
+            );
             connection_kill_event.write(ConnectionKillEvent {
                 reason: Some("Keep alive timeout".to_string()),
                 entity,
             });
-        } else if time_diff >= Duration::from_secs(10) && keep_alive_tracker.has_received_keep_alive {
+        } else if time_diff >= Duration::from_secs(10) && keep_alive_tracker.has_received_keep_alive
+        {
             // If it's been more than 10 seconds since the last keep alive packet was sent, send a new one
             let time_stamp = rand::random();
-            let keep_alive_packet = ferrumc_net::packets::outgoing::keep_alive::OutgoingKeepAlivePacket {
-                timestamp: time_stamp,
-            };
+            let keep_alive_packet =
+                ferrumc_net::packets::outgoing::keep_alive::OutgoingKeepAlivePacket {
+                    timestamp: time_stamp,
+                };
             if let Err(err) = stream_writer.send_packet(keep_alive_packet) {
                 warn!("Failed to send keep alive packet to {}: {:?}", entity, err);
             }

@@ -71,7 +71,7 @@ impl From<TextComponent> for String {
 impl fmt::Display for TextComponent {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Ok(value) = serde_json::to_string(self) {
-            write!(f, "{}", value)
+            write!(f, "{value}")
         } else {
             write!(f, "Couldn't convert to String")
         }

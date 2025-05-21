@@ -1,8 +1,9 @@
 use crate::structs::{BlockState, Chunk, Palette};
-use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
+use criterion::{criterion_group, criterion_main, Criterion, Throughput};
 use fastnbt::Value;
 use ferrumc_macros::NBTDeserialize;
 use nbt as hematite_nbt;
+use std::hint::black_box;
 use std::io::Cursor;
 
 mod structs {

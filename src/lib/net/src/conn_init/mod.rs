@@ -65,7 +65,9 @@ pub async fn handle_handshake(
     }
 
     match hs_packet.next_state.0 {
-        1 => status(conn_read, conn_write, state).await.map(|_| (true, None)),
+        1 => status(conn_read, conn_write, state)
+            .await
+            .map(|_| (true, None)),
         2 => login(conn_read, conn_write, state).await,
         3 => unimplemented!(),
         _ => Err(NetError::InvalidState(hs_packet.next_state.0 as u8)),

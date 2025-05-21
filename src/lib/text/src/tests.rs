@@ -8,7 +8,7 @@ fn bytes_to_readable_string(bytes: &[u8]) -> String {
             if byte.is_ascii_graphic() || byte == b' ' {
                 (byte as char).to_string()
             } else {
-                format!("{:02X}", byte)
+                format!("{byte:02X}")
             }
         })
         .collect::<Vec<String>>()
@@ -18,7 +18,7 @@ fn bytes_to_readable_string(bytes: &[u8]) -> String {
 fn bytes_to_string(bytes: &[u8]) -> String {
     bytes
         .iter()
-        .map(|&byte| format!("{:02X}", byte))
+        .map(|&byte| format!("{byte:02X}"))
         .collect::<Vec<String>>()
         .join(" ")
 }
@@ -123,7 +123,7 @@ fn test_serialize_to_nbt() {
         ],
     );
     //println!("{:#?}", component.color);
-    println!("{}", component);
+    println!("{component}");
     println!(
         "{}",
         bytes_to_readable_string(&component.serialize_nbt()[..])

@@ -13,7 +13,7 @@ pub struct RemoveEntitiesPacket {
 impl RemoveEntitiesPacket {
     pub fn from_entities<T>(entity_ids: T) -> Self
     where
-        T: IntoIterator<Item=PlayerIdentity>,
+        T: IntoIterator<Item = PlayerIdentity>,
     {
         let entity_ids: Vec<VarInt> = entity_ids
             .into_iter()
