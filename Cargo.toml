@@ -158,8 +158,7 @@ maplit = "1.0.2"
 macro_rules_attribute = "0.2.0"
 enum_delegate = "0.2.0"
 
-# Magic ("life-before-main" initialization, __attribute__((constructor)))
-ctor = "0.4.2"
+# Magic
 dhat = "0.3.3"
 
 # Compression/Decompression
@@ -194,4 +193,4 @@ memmap2 = "0.9.5"
 tempfile = "3.20.0"
 
 # Benchmarking
-criterion = { version = "0.5.1", features = ["html_reports"] }
+criterion = { version = "0.6.0", features = ["html_reports"] }

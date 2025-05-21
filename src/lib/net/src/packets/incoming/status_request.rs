@@ -1,19 +1,8 @@
-use crate::packets::IncomingPacket;
-
-use crate::errors::NetError;
 use ferrumc_macros::{packet, NetDecode};
-use ferrumc_state::ServerState;
-use std::sync::Arc;
 
 #[derive(NetDecode, Debug)]
 #[packet(packet_id = "status_request", state = "status")]
 pub struct StatusRequestPacket {}
-
-impl IncomingPacket for StatusRequestPacket {
-    fn handle(self, conn_id: usize, state: Arc<ServerState>) -> Result<(), NetError> {
-        Ok(())
-    }
-}
 
 // fn get_server_status(state: &Arc<ServerState>) -> String {
 //     mod structs {

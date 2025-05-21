@@ -8,11 +8,9 @@ use bevy_ecs::schedule::ExecutorKind;
 use crossbeam_channel::Sender;
 use ferrumc_config::statics::get_global_config;
 use ferrumc_net::connection::{handle_connection, NewConnection};
-use ferrumc_net::packets::IncomingPacket;
 use ferrumc_net::server::create_server_listener;
 use ferrumc_net::PacketSender;
 use ferrumc_state::{GlobalState, GlobalStateResource};
-use ferrumc_threadpool::ThreadPool;
 use play_packets::register_packet_handlers;
 use std::sync::Arc;
 use std::time::Duration;
@@ -38,11 +36,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     register_player_systems(&mut schedule);
     register_game_systems(&mut schedule);
 
-    let mut tick = 0u128;
-
     let ns_per_tick = Duration::from_nanos(NS_PER_SECOND / get_global_config().tps as u64);
-
-    // let threadpool = ThreadPool::new();
 
     // Start the TCP connection accepter
     tcp_conn_accepter(global_state.clone(), sender_struct, Arc::new(new_conn_send))?;
@@ -77,8 +71,6 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
                 elapsed_time, ns_per_tick
             );
         }
-        // Increment the tick
-        tick += 1;
     }
 
     Ok(())

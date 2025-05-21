@@ -2,16 +2,13 @@ use crate::errors::BinaryError;
 use bevy_ecs::prelude::{Entity, Query, Res};
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
 use ferrumc_net::connection::StreamWriter;
-use ferrumc_net::errors::NetError;
 use ferrumc_net::packets::outgoing::block_change_ack::BlockChangeAck;
 use ferrumc_net::packets::outgoing::block_update::BlockUpdate;
 use ferrumc_net::PlayerActionReceiver;
-use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use ferrumc_state::{GlobalStateResource, ServerState};
+use ferrumc_state::GlobalStateResource;
 use ferrumc_world::chunk_format::BLOCK2ID;
 use ferrumc_world::vanilla_chunk_format::BlockData;
-use std::sync::Arc;
 use tracing::{debug, error};
 
 pub fn handle(

@@ -1,12 +1,9 @@
-use bevy_ecs::prelude::{Entity, Query, Res};
+use bevy_ecs::prelude::{Query, Res};
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net::connection::StreamWriter;
-use ferrumc_net::errors::NetError;
-use ferrumc_net::packets::outgoing::entity_animation::{EntityAnimationEvent, EntityAnimationPacket};
+use ferrumc_net::packets::outgoing::entity_animation::EntityAnimationPacket;
 use ferrumc_net::SwingArmPacketReceiver;
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use ferrumc_state::ServerState;
-use std::sync::Arc;
 use tracing::error;
 
 pub fn handle(events: Res<SwingArmPacketReceiver>, query: Query<&PlayerIdentity>, conn_query: Query<&StreamWriter>) {

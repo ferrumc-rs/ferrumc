@@ -6,9 +6,8 @@ use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::block_change_ack::BlockChangeAck;
 use ferrumc_net::packets::outgoing::chunk_and_light_data::ChunkAndLightData;
 use ferrumc_net::PlaceBlockReceiver;
-use ferrumc_state::{GlobalStateResource, ServerState};
+use ferrumc_state::GlobalStateResource;
 use ferrumc_world::vanilla_chunk_format::BlockData;
-use std::sync::Arc;
 use tracing::{debug, trace};
 
 pub fn handle(

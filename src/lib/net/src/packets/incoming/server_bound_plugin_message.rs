@@ -13,8 +13,8 @@ use typename::TypeName;
 #[derive(Debug)]
 #[packet(packet_id = "custom_payload", state = "configuration")]
 pub struct ServerBoundPluginMessage {
-    channel: String,
-    data: Vec<u8>,
+    _channel: String,
+    _data: Vec<u8>,
 }
 #[derive(TypeName)]
 pub struct ClientMinecraftBrand {
@@ -27,7 +27,7 @@ impl NetDecode for ServerBoundPluginMessage {
         let mut buf = Vec::<u8>::new();
         reader.read_to_end(&mut buf)?;
 
-        Ok(Self { channel, data: buf })
+        Ok(Self { _channel: channel, _data: buf })
     }
 
     async fn decode_async<R: tokio::io::AsyncRead + Unpin>(
@@ -38,7 +38,7 @@ impl NetDecode for ServerBoundPluginMessage {
         let mut buf = Vec::<u8>::new();
         reader.read_to_end(&mut buf).await?;
 
-        Ok(Self { channel, data: buf })
+        Ok(Self { _channel: channel, _data: buf })
     }
 }
 impl IncomingPacket for ServerBoundPluginMessage {

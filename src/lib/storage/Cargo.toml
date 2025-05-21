@@ -13,19 +13,13 @@ ferrumc-utils = { workspace = true }
 rand = { workspace = true }
 zstd = { workspace = true }
 brotli = { workspace = true }
-tokio = { workspace = true }
 yazi = { workspace = true }
 heed = { workspace = true }
 page_size = { workspace = true }
 
 
 [dev-dependencies]
-criterion = { workspace = true, features = [
-  "async_tokio",
-  "async_futures",
-  "tokio",
-  "futures",
-] }
+criterion = { workspace = true }
 tempfile = { workspace = true }
 
 [[bench]]

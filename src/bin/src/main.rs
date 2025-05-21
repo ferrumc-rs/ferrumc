@@ -10,7 +10,6 @@ use ferrumc_world::chunk_format::Chunk;
 use ferrumc_world::World;
 use ferrumc_world_gen::errors::WorldGenError;
 use ferrumc_world_gen::WorldGenerator;
-use rayon::prelude::*;
 use std::sync::Arc;
 use tracing::{error, info};
 
@@ -20,8 +19,8 @@ mod chunk_sending;
 mod cli;
 mod game_loop;
 mod packet_handlers;
-mod systems;
 mod register_events;
+mod systems;
 
 #[cfg(feature = "dhat")]
 #[global_allocator]
@@ -33,10 +32,6 @@ fn main() {
 
     let cli_args = CLIArgs::parse();
     ferrumc_logging::init_logging(cli_args.log.into());
-
-    let current_active_threads = rayon::current_num_threads();
-
-    info!("FERRUMC IS USING {} THREAD(s)", current_active_threads);
 
     match cli_args.command {
         Some(Command::Setup) => {
@@ -78,17 +73,11 @@ fn generate_chunks(state: GlobalState) -> Result<(), BinaryError> {
         }
     }
     let generated_chunks: Vec<Result<Chunk, WorldGenError>> = chunks
-        .chunks(72)
-        .par_bridge()
-        .map(|chunk_coord_arr| {
-            let mut generated_chunks = Vec::new();
-            for (x, z) in chunk_coord_arr {
-                let state = state.clone();
-                generated_chunks.push(state.terrain_generator.generate_chunk(*x, *z));
-            }
-            generated_chunks
+        .iter()
+        .map(|(x, z)| {
+            let state = state.clone();
+            state.terrain_generator.generate_chunk(*x, *z)
         })
-        .flatten()
         .collect();
     for chunk in generated_chunks {
         let chunk = chunk.map_err(|e| {

@@ -1,5 +1,5 @@
 use crate::errors::BinaryError;
-use bevy_ecs::prelude::{Mut, Query, Res};
+use bevy_ecs::prelude::Mut;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::chunk_and_light_data::ChunkAndLightData;
 use ferrumc_net::packets::outgoing::chunk_batch_finish::ChunkBatchFinish;
