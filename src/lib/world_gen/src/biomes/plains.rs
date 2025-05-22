@@ -47,7 +47,14 @@ impl BiomeGenerator for PlainsBiome {
                 let global_z = i64::from(z) * 16 + chunk_z;
                 let height = noise.get_noise(global_x as f64, global_z as f64);
                 let height = (height * 64.0) as i32 + 64;
-                heights.push((global_x, global_z, height));
+                // if less than 64, smooth it out and bring closer to 64
+                if height < 64 {
+                    let new_height = (height as f32 * (0.9 + (64.0 - height as f32) / 64.0)) as i32;
+                    heights.push((global_x, global_z, new_height));
+                } else {
+                    // Otherwise just add the height
+                    heights.push((global_x, global_z, height));
+                }
             }
         }
 

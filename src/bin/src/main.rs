@@ -83,11 +83,28 @@ fn generate_chunks(state: GlobalState) -> Result<(), BinaryError> {
         }
     }
     let generated_chunks: Vec<Result<Chunk, WorldGenError>> = chunks
-        .iter()
-        .map(|(x, z)| {
+        .chunks(72)
+        .map(|chunk_batch| {
             let state = state.clone();
-            state.terrain_generator.generate_chunk(*x, *z)
+            let chunk_batch = chunk_batch.to_vec();
+            std::thread::spawn(move || {
+                let mut results = Vec::new();
+                for (x, z) in chunk_batch {
+                    let chunk = state
+                        .terrain_generator
+                        .generate_chunk(x, z);
+                    match chunk {
+                        Ok(chunk) => results.push(Ok(chunk.clone())),
+                        Err(e) => {
+                            error!("Error generating chunk {} {}: {:?}", x, z, e);
+                            results.push(Err(e));
+                        }
+                    }
+                }
+                results
+            })
         })
+        .flat_map(|chunk_batch| chunk_batch.join().unwrap())
         .collect();
     for chunk in generated_chunks {
         let chunk = chunk.map_err(|e| {
@@ -117,7 +134,7 @@ fn entry() -> Result<(), BinaryError> {
                 .store(true, std::sync::atomic::Ordering::Relaxed);
         }
     })
-    .expect("Error setting Ctrl-C handler");
+        .expect("Error setting Ctrl-C handler");
 
     game_loop::start_game_loop(global_state.clone())?;
 

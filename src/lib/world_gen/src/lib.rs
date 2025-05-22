@@ -40,12 +40,15 @@ impl NoiseGenerator {
     }
 
     pub fn get_noise(&self, x: f64, z: f64) -> f64 {
+        let mut amplitude = 1.0;
+        let mut frequency = 0.01;
         let mut noise = 0.0;
-        for (c, layer) in self.layers.iter().enumerate() {
-            let scale = 64.0_f64.powi(c as i32 + 1);
-            noise += layer.get([x / scale, z / scale]);
+        for layer in &self.layers {
+            noise += layer.get([x * frequency, z * frequency]) * amplitude;
+            frequency *= 2.0;
+            amplitude *= 0.5;
         }
-        noise / (self.layers.len() as f64 / 2.0)
+        noise
     }
 }
 
