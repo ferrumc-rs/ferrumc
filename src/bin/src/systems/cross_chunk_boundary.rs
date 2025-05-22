@@ -45,6 +45,6 @@ pub fn cross_chunk_boundary(
             &mut stream_writer,
             center_chunk,
         )
-            .expect("Failed to send chunks")
+        .expect("Failed to send chunks")
     }
 }
