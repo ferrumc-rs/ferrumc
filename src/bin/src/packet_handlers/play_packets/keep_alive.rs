@@ -4,7 +4,7 @@ use ferrumc_core::conn::conn_kill_event::ConnectionKillEvent;
 use ferrumc_core::conn::keepalive::KeepAliveTracker;
 use ferrumc_net::IncomingKeepAlivePacketReceiver;
 use std::time::SystemTime;
-use tracing::{debug, error};
+use tracing::{debug, error, warn};
 
 pub fn handle(
     events: Res<IncomingKeepAlivePacketReceiver>,
@@ -15,13 +15,12 @@ pub fn handle(
         return;
     }
     for (event, eid) in events.0.try_iter() {
-        debug!("Possible keep alive packet received from {:?}", eid);
         let Ok(mut keep_alive_tracker) = query.get_mut(eid) else {
             error!("Could not get keep alive tracker for entity {:?}", eid);
             continue;
         };
         if event.timestamp != keep_alive_tracker.last_sent_keep_alive {
-            debug!(
+            warn!(
                 "Invalid keep alive packet received from {:?} with id {:?} (expected {:?})",
                 eid, event.timestamp, keep_alive_tracker.last_sent_keep_alive
             );
@@ -32,7 +31,6 @@ pub fn handle(
         } else {
             keep_alive_tracker.last_received_keep_alive = SystemTime::now();
             keep_alive_tracker.has_received_keep_alive = true;
-            debug!("Keep alive packet received from {:?}", eid);
         }
     }
 }
