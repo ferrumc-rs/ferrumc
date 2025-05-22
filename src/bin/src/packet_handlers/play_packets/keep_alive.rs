@@ -4,7 +4,7 @@ use ferrumc_core::conn::conn_kill_event::ConnectionKillEvent;
 use ferrumc_core::conn::keepalive::KeepAliveTracker;
 use ferrumc_net::IncomingKeepAlivePacketReceiver;
 use std::time::SystemTime;
-use tracing::{debug, error, warn};
+use tracing::{error, warn};
 
 pub fn handle(
     events: Res<IncomingKeepAlivePacketReceiver>,
