@@ -9,6 +9,7 @@ use ferrumc_state::{GlobalState, ServerState};
 use ferrumc_world::chunk_format::Chunk;
 use ferrumc_world::World;
 use ferrumc_world_gen::errors::WorldGenError;
+use ferrumc_world_gen::errors::WorldGenError::WorldError;
 use ferrumc_world_gen::WorldGenerator;
 use std::sync::Arc;
 use tracing::{error, info};
@@ -82,30 +83,27 @@ fn generate_chunks(state: GlobalState) -> Result<(), BinaryError> {
             chunks.push((x, z));
         }
     }
-    let generated_chunks: Vec<Result<Chunk, WorldGenError>> = chunks
-        .chunks(72)
-        .map(|chunk_batch| {
+    let start = std::time::Instant::now();
+    let pool = ferrumc_threadpool::ThreadPool::new();
+    let mut chunk_gen_batch = pool.batch();
+    for chunk_coords in chunks {
+        chunk_gen_batch.execute({
             let state = state.clone();
-            let chunk_batch = chunk_batch.to_vec();
-            std::thread::spawn(move || {
-                let mut results = Vec::new();
-                for (x, z) in chunk_batch {
-                    let chunk = state
-                        .terrain_generator
-                        .generate_chunk(x, z);
-                    match chunk {
-                        Ok(chunk) => results.push(Ok(chunk.clone())),
-                        Err(e) => {
-                            error!("Error generating chunk {} {}: {:?}", x, z, e);
-                            results.push(Err(e));
-                        }
+            move || {
+                let (x, z) = chunk_coords;
+                match state.terrain_generator.generate_chunk(x, z) {
+                    Ok(chunk) => {
+                        Ok(chunk)
+                    }
+                    Err(e) => {
+                        error!("Error generating chunk ({}, {}): {:?}", x, z, e);
+                        Err(WorldGenError::ChunkGenerationError(e.to_string()))
                     }
                 }
-                results
-            })
+            }
         })
-        .flat_map(|chunk_batch| chunk_batch.join().unwrap())
-        .collect();
+    }
+    let generated_chunks = chunk_gen_batch.wait();
     for chunk in generated_chunks {
         let chunk = chunk.map_err(|e| {
             error!("Error generating chunk: {:?}", e);
@@ -113,7 +111,8 @@ fn generate_chunks(state: GlobalState) -> Result<(), BinaryError> {
         })?;
         state.world.save_chunk(chunk)?;
     }
-    info!("Finished generating spawn chunks...");
+    pool.close();
+    info!("Finished generating spawn chunks in {:?}", start.elapsed());
     Ok(())
 }
 

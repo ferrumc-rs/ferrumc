@@ -8,7 +8,7 @@ ferrumc-world = { workspace = true }
 thiserror = { workspace = true }
 noise = { workspace = true }
 rand = { workspace = true }
-simdnoise = { workspace = true }
+tracing = { workspace = true }
 
 [lints]
 workspace = true

@@ -1,3 +1,4 @@
+use crate::edit_batch::EditBatch;
 use crate::errors::WorldError::InvalidBlockStateData;
 use crate::vanilla_chunk_format;
 use crate::vanilla_chunk_format::VanillaChunk;
@@ -16,7 +17,6 @@ use std::io::Read;
 use std::process::exit;
 use tracing::{error, warn};
 use vanilla_chunk_format::BlockData;
-
 // #[cfg(test)]
 // const BLOCKSFILE: &[u8] = &[0];
 
@@ -65,6 +65,7 @@ pub struct Chunk {
     pub dimension: String,
     pub sections: Vec<Section>,
     pub heightmaps: Heightmaps,
+    pub real_heightmap: [[i16; 16]; 16],
 }
 
 #[derive(Encode, Decode, NBTDeserialize, NBTSerialize, Clone, DeepSizeOf, Debug)]
@@ -131,6 +132,20 @@ impl Heightmaps {
             motion_blocking: vec![],
             world_surface: vec![],
         }
+    }
+}
+
+impl Chunk {
+    pub fn get_min_y(&self) -> i16 {
+        let mut min_y = 0;
+        for x in self.real_heightmap {
+            for z in x {
+                if z < min_y {
+                    min_y = z;
+                }
+            }
+        }
+        min_y
     }
 }
 
@@ -257,6 +272,7 @@ impl VanillaChunk {
             dimension,
             sections,
             heightmaps,
+            real_heightmap: [[0; 16]; 16],
         })
     }
 }
@@ -615,6 +631,7 @@ impl Chunk {
             dimension,
             sections,
             heightmaps: Heightmaps::new(),
+            real_heightmap: [[0; 16]; 16],
         }
     }
 

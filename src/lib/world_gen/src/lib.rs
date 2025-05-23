@@ -1,5 +1,6 @@
 mod biomes;
 pub mod errors;
+mod height_gen;
 
 use crate::errors::WorldGenError;
 use ferrumc_world::chunk_format::Chunk;
@@ -11,62 +12,51 @@ use noise::{Clamp, NoiseFn, OpenSimplex};
 pub(crate) trait BiomeGenerator {
     fn _biome_id(&self) -> u8;
     fn _biome_name(&self) -> String;
-    fn generate_chunk(
-        &self,
-        x: i32,
-        z: i32,
-        noise: &NoiseGenerator,
-    ) -> Result<Chunk, WorldGenError>;
-}
-
-pub(crate) struct NoiseGenerator {
-    pub(crate) layers: Vec<Clamp<f64, OpenSimplex, 2>>,
+    fn decorate(&self, chunk: &mut Chunk) -> Result<(), WorldGenError>;
 }
 
 pub struct WorldGenerator {
     _seed: u64,
-    noise_generator: NoiseGenerator,
-}
-
-impl NoiseGenerator {
-    pub fn new(seed: u64) -> Self {
-        let mut layers = Vec::new();
-        for i in 0..4 {
-            let open_simplex = OpenSimplex::new((seed + i) as u32);
-            let clamp = Clamp::new(open_simplex).set_bounds(-1.0, 1.0);
-            layers.push(clamp);
-        }
-        Self { layers }
-    }
-
-    pub fn get_noise(&self, x: f64, z: f64) -> f64 {
-        let mut amplitude = 1.0;
-        let mut frequency = 0.01;
-        let mut noise = 0.0;
-        for layer in &self.layers {
-            noise += layer.get([x * frequency, z * frequency]) * amplitude;
-            frequency *= 2.0;
-            amplitude *= 0.5;
-        }
-        noise
-    }
+    noise_layers: Vec<Clamp<f64, OpenSimplex, 2>>,
 }
 
 impl WorldGenerator {
     pub fn new(seed: u64) -> Self {
+        let noise_layers = (1..=4)
+            .map(|i| {
+                let noise = OpenSimplex::new(seed as u32 * i);
+                Clamp::new(noise)
+                    .set_lower_bound(-1.0)
+                    .set_upper_bound(1.0)
+            })
+            .collect::<Vec<_>>();
         Self {
             _seed: seed,
-            noise_generator: NoiseGenerator::new(seed),
+            noise_layers,
         }
     }
 
-    fn get_biome(&self, _x: i32, _z: i32) -> Box<dyn BiomeGenerator> {
+    fn get_biome(&self, y: i16) -> Box<dyn BiomeGenerator> {
         // Implement biome selection here
         Box::new(biomes::plains::PlainsBiome)
     }
 
+    fn get_noise(&self, x: i64, z: i64) -> f64 {
+        let mut amplitude = 1.0;
+        let mut frequency = 0.005;
+        let mut noise = 0.0;
+        for layer in &self.noise_layers {
+            noise += layer.get([x as f64 * frequency, z as f64 * frequency]) * amplitude;
+            amplitude *= 0.5;
+            frequency *= 2.0;
+        }
+        noise
+    }
+
     pub fn generate_chunk(&self, x: i32, z: i32) -> Result<Chunk, WorldGenError> {
-        let biome = self.get_biome(x, z);
-        biome.generate_chunk(x, z, &self.noise_generator)
+        let mut chunk = self.height_gen(x, z)?;
+        let biome = self.get_biome(chunk.get_min_y());
+        biome.decorate(&mut chunk)?;
+        Ok(chunk)
     }
 }

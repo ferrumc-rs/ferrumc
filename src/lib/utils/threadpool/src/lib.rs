@@ -71,6 +71,10 @@ impl ThreadPool {
         let result = handle.await_complete();
         *result
     }
+
+    pub fn close(self) {
+        <rusty_pool::ThreadPool as Clone>::clone(&self.pool).shutdown();
+    }
 }
 
 impl<'a, R: Send + 'static> ThreadPoolBatch<'a, R> {

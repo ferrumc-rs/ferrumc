@@ -7,6 +7,7 @@ use ferrumc_general_purpose::data_packing::u32::write_nbit_u32;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
+use tracing::trace;
 
 /// A batched block editing utility for a single Minecraft chunk.
 ///
@@ -90,9 +91,8 @@ impl<'a> EditBatch<'a> {
             ));
         }
         if self.edits.is_empty() {
-            return Err(WorldError::InvalidBatchingOperation(
-                "No edits to apply".to_string(),
-            ));
+            trace!("EditBatch is empty, nothing to apply");
+            return Ok(());
         }
 
         let mut section_edits: AHashMap<i8, Vec<Option<&Edit>>> = AHashMap::new();
