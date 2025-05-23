@@ -21,7 +21,10 @@ impl WorldGenerator {
                 let global_x = i64::from(x) * 16 + local_x;
                 let global_z = i64::from(z) * 16 + local_z;
                 let height_scaler = self.get_noise(global_x, global_z);
-                let height = (height_scaler * 50.0) as i32 + 70;
+                let height_scaler = self.spline.sample(height_scaler).expect(
+                    "Failed to sample height from spline",
+                );
+                let height = (height_scaler * 120.0) as i32;
                 if height < min {
                     min = height;
                     min_section = (height >> 4) as i16;
@@ -53,7 +56,7 @@ impl WorldGenerator {
         edit_batch.apply()?;
 
         // Fill the sections below the lowest section with stone
-        for section_y in min_section..=0 {
+        for section_y in -4..min_section {
             chunk.set_section(
                 section_y as i8,
                 BlockData {
@@ -62,6 +65,8 @@ impl WorldGenerator {
                 },
             )?;
         }
+
+        chunk.real_heightmap = heights;
 
         Ok(chunk)
     }

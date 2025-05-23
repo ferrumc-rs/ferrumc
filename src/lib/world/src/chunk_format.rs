@@ -137,11 +137,11 @@ impl Heightmaps {
 
 impl Chunk {
     pub fn get_min_y(&self) -> i16 {
-        let mut min_y = 0;
-        for x in self.real_heightmap {
-            for z in x {
-                if z < min_y {
-                    min_y = z;
+        let mut min_y = i16::MAX;
+        for row in self.real_heightmap {
+            for y in row {
+                if y < min_y {
+                    min_y = y;
                 }
             }
         }
