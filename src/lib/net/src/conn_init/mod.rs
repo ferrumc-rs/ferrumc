@@ -10,7 +10,7 @@ use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalState;
-use tokio::io::AsyncWriteExt;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tracing::{trace, warn};
 
@@ -22,7 +22,8 @@ pub(crate) async fn trim_packet_head(conn: &mut OwnedReadHalf, value: u8) -> Res
     let id = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
     if id.0 != value as i32 {
         warn!("Expected packet ID {:02X}, got {:02X}", value, id.0);
-        let packet_data = vec![0; len.0 as usize - id.len()];
+        let mut packet_data = vec![0; len.0 as usize - id.len()];
+        conn.read_exact(&mut packet_data).await?;
         trace!("Packet data: {:?}", &packet_data);
         Box::pin(trim_packet_head(conn, value)).await?
     };
