@@ -5,7 +5,6 @@ use ferrumc_core::chunks::cross_chunk_boundary_event::CrossChunkBoundaryEvent;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_state::GlobalStateResource;
 use std::collections::HashSet;
-use tracing::debug;
 
 pub fn cross_chunk_boundary(
     mut events: EventReader<CrossChunkBoundaryEvent>,
@@ -16,12 +15,6 @@ pub fn cross_chunk_boundary(
         return;
     }
     for event in events.read() {
-        // Handle the cross chunk boundary event
-        debug!(
-            "Player {:?} crossed chunk boundary from {:?} to {:?}",
-            event.player, event.old_chunk, event.new_chunk
-        );
-
         let radius = get_global_config().chunk_render_distance as i32;
 
         let mut old_chunk_seen = HashSet::new();
@@ -44,7 +37,6 @@ pub fn cross_chunk_boundary(
                 (x, z, "overworld".to_string())
             })
             .collect();
-        debug!("Needed chunks: {:?}", needed_chunks.len());
         let center_chunk = (event.new_chunk.0, event.new_chunk.1);
         let mut stream_writer = query.get_mut(event.player).unwrap();
         send_chunks(
