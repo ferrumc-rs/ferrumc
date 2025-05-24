@@ -1,8 +1,9 @@
 import os.path
+import re
 
 incoming_template = """
 use crate::packets::IncomingPacket;
-use crate::NetResult;
+
 use ferrumc_macros::{packet, NetDecode};
 use ferrumc_state::ServerState;
 use std::sync::Arc;
@@ -13,7 +14,7 @@ pub struct ++name++ {
 }
 
 impl IncomingPacket for ++name++ {
-    async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
+    async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> Result<(), NetError> {
         todo!()
     }
 }
@@ -48,17 +49,41 @@ else:
     exit()
 
 packet_name = input("Packet name: ")
-packets_dir = os.path.join(os.path.join(os.path.dirname(__file__), ".."), "src/lib/net/src/packets")
+packets_dir = os.path.join(
+    os.path.join(os.path.dirname(__file__), ".."), "src/lib/net/src/packets"
+)
 
 packet_id = input(
-    "Packet ID (formatted as snake case, look on https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol if you need to get the id): ")
+    "Packet ID (formatted as snake case,\
+look on https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol if you need to get the id): "
+)
 
 with open(f"{packets_dir}/{packet_type}/{to_snake_case(packet_name)}.rs", "x") as f:
     if packet_type == "incoming":
-        f.write(incoming_template.replace("++name++", to_camel_case(packet_name)).replace("++id++", packet_id))
+        f.write(
+            incoming_template.replace("++name++", to_camel_case(packet_name)).replace(
+                "++id++", packet_id
+            )
+        )
         with open(f"{packets_dir}/incoming/mod.rs", "a") as modfile:
             modfile.write(f"\npub mod {to_snake_case(packet_name)};")
+
+        with open(f"{packets_dir}/mod.rs", "r+") as registry:
+            content = registry.read()
+            content = re.sub(
+                "pub enum Packet {\n",
+                "pub enum Packet {\n    "
+                + f"{to_camel_case(packet_name)}({to_snake_case(packet_name)}::{to_camel_case(packet_name)}),\n",
+                content,
+                flags=re.M,
+            )
+            registry.seek(0)
+            registry.write(content)
     else:
-        f.write(outgoing_template.replace("++name++", to_camel_case(packet_name)).replace("++id++", packet_id))
+        f.write(
+            outgoing_template.replace("++name++", to_camel_case(packet_name)).replace(
+                "++id++", packet_id
+            )
+        )
         with open(f"{packets_dir}/outgoing/mod.rs", "a") as modfile:
             modfile.write(f"\npub mod {to_snake_case(packet_name)};")

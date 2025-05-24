@@ -8,9 +8,9 @@ edition = "2021"
 thiserror = { workspace = true }
 libflate = { workspace = true }
 ferrumc-net-codec = { workspace = true }
-tracing = { workspace = true}
+tracing = { workspace = true }
 tokio = { workspace = true }
-ferrumc-general-purpose = {  workspace = true }
+ferrumc-general-purpose = { workspace = true }
 uuid = { workspace = true }
 
 [lints]
@@ -18,13 +18,13 @@ workspace = true
 
 #================= Benches ==============#
 [dev-dependencies]
-criterion = {  workspace = true }
-ferrumc-macros  = { workspace = true}
-fastnbt = {  version = "2.5.0" }
-simdnbt = {  version = "0.6.1" }
-ussr-nbt = {  version = "0.2.1" }
-crab_nbt = {  version = "0.2.1" }
-hematite-nbt = {  version = "0.5.2" }
+criterion = { workspace = true }
+ferrumc-macros = { workspace = true }
+fastnbt = { version = "2.5.0" }
+simdnbt = { version = "0.7.1" }
+ussr-nbt = { version = "0.2.1" }
+crab_nbt = { version = "0.2.1" }
+hematite-nbt = { version = "0.5.2" }
 fastanvil = { version = "0.31.0" }
 maplit = "1.0.2"
 

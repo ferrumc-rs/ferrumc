@@ -1,9 +1,11 @@
-use crate::{errors::NetError, NetResult};
+use crate::errors::NetError;
 use ferrumc_config::statics::get_global_config;
 use ferrumc_net_codec::{decode::errors::NetDecodeError, net_types::var_int::VarInt};
 use std::io::Cursor;
 use std::{fmt::Debug, io::Read};
-use tokio::io::{AsyncRead, AsyncReadExt};
+use tokio::io::AsyncRead;
+use tokio::io::AsyncReadExt;
+use tracing::{debug, trace};
 
 pub struct PacketSkeleton {
     pub length: usize,
@@ -21,16 +23,38 @@ impl Debug for PacketSkeleton {
 }
 
 impl PacketSkeleton {
-    pub async fn new<R: AsyncRead + Unpin>(reader: &mut R, compressed: bool) -> NetResult<Self> {
-        match compressed {
+    pub async fn new<R: AsyncRead + Unpin>(
+        reader: &mut R,
+        compressed: bool,
+    ) -> Result<Self, NetError> {
+        let pak = match compressed {
             true => Self::read_compressed(reader).await,
             false => Self::read_uncompressed(reader).await,
+        };
+        match pak {
+            Ok(p) => {
+                if option_env!("FERRUMC_LOG_PACKETS").is_some() {
+                    trace!("Received packet: {:?}", p);
+                }
+                Ok(p)
+            }
+            Err(e) => {
+                if !matches!(e, NetError::ConnectionDropped) {
+                    // Don't log connection dropped errors
+                    // They are expected when the client disconnects
+                    trace!("Error reading packet: {:?}", e);
+                } else {
+                    // Log connection dropped errors
+                    debug!("Connection dropped: {:?}", e);
+                }
+                Err(e)
+            }
         }
     }
 
-    #[inline(always)]
-    async fn read_uncompressed<R: AsyncRead + Unpin>(reader: &mut R) -> NetResult<Self> {
-        let length = VarInt::read_async(reader).await?.val as usize;
+    // #[inline(always)]
+    async fn read_uncompressed<R: AsyncRead + Unpin>(reader: &mut R) -> Result<Self, NetError> {
+        let length = VarInt::read_async(reader).await?.0 as usize;
         let mut buf = {
             let mut buf = vec![0; length];
             reader.read_exact(&mut buf).await?;
@@ -38,19 +62,19 @@ impl PacketSkeleton {
             Cursor::new(buf)
         };
 
-        let id = VarInt::read(&mut buf)?;
+        let id = VarInt::read_async(&mut buf).await?;
 
         Ok(Self {
             length,
-            id: id.val as u8,
+            id: id.0 as u8,
             data: buf,
         })
     }
 
     #[inline(always)]
-    async fn read_compressed<R: AsyncRead + Unpin>(reader: &mut R) -> NetResult<Self> {
-        let packet_length = VarInt::read_async(reader).await?.val as usize;
-        let data_length = VarInt::read_async(reader).await?.val as usize;
+    async fn read_compressed<R: AsyncRead + Unpin>(reader: &mut R) -> Result<Self, NetError> {
+        let packet_length = VarInt::read_async(reader).await?.0 as usize;
+        let data_length = VarInt::read_async(reader).await?.0 as usize;
 
         // Uncompressed packet when data length is 0
         if data_length == 0 {
@@ -61,11 +85,11 @@ impl PacketSkeleton {
                 Cursor::new(buf)
             };
 
-            let id = VarInt::read(&mut buf)?;
+            let id = VarInt::read_async(&mut buf).await?;
 
             return Ok(Self {
                 length: packet_length,
-                id: id.val as u8,
+                id: id.0 as u8,
                 data: buf,
             });
         }
@@ -78,7 +102,7 @@ impl PacketSkeleton {
         if data_length < compression_threshold as usize {
             // Compressed packet smaller than threshold
             // Reject packet
-            return NetResult::Err(NetError::DecoderError(
+            return Err(NetError::DecoderError(
                 NetDecodeError::CompressedPacketTooSmall(data_length),
             ));
         }
@@ -101,11 +125,11 @@ impl PacketSkeleton {
 
         let mut buf = Cursor::new(decompressed);
 
-        let id = VarInt::read(&mut buf)?;
+        let id = VarInt::read_async(&mut buf).await?;
 
         Ok(Self {
             length: packet_length,
-            id: id.val as u8,
+            id: id.0 as u8,
             data: buf,
         })
     }

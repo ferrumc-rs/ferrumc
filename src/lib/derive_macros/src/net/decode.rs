@@ -129,6 +129,24 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                         _ => Err(ferrumc_net_codec::decode::errors::NetDecodeError::InvalidEnumVariant),
                     }
                 }
+
+                async fn decode_async<R: tokio::io::AsyncRead + Unpin>(
+                    reader: &mut R,
+                    opts: &ferrumc_net_codec::decode::NetDecodeOpts
+                ) -> ferrumc_net_codec::decode::NetDecodeResult<Self> {
+                    // Decode the initial numeric value
+                    let value = <#type_cast_ty as ferrumc_net_codec::decode::NetDecode>::decode_async(reader, opts).await?;
+                    // Possibly transform via the handler
+                    let value = #cast_handler_expr;
+                    // Cast to the repr type
+                    let value = value as #repr_ident;
+
+                    // Match against the known variant discriminants
+                    match (value as i32) {
+                        #(#enum_arms)*
+                        _ => Err(ferrumc_net_codec::decode::errors::NetDecodeError::InvalidEnumVariant),
+                    }
+                }
             }
         };
         return TokenStream::from(expanded);
@@ -152,6 +170,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
     // them in local variables named the same as the field, so the subsequent fields
     // can use them in the optional triggers if needed.
     let mut decode_statements = Vec::new();
+    let mut async_decode_statements = Vec::new();
     let mut field_names = Vec::new();
 
     for field in fields {
@@ -208,6 +227,17 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                     }
                 };
             });
+
+            // For async decoding, we need to handle the async case as well.
+            async_decode_statements.push(quote! {
+                let #field_name = {
+                    if #expr {
+                        Some(<#field_ty as ferrumc_net_codec::decode::NetDecode>::decode_async(reader, opts).await?)
+                    } else {
+                        None
+                    }
+                };
+            });
         } else {
             // Check if the field is an Option<T> and handle it accordingly.
             let is_optional = {
@@ -219,12 +249,20 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                 decode_statements.push(quote! {
                     compile_error!("Optional fields must have an `optional_trigger` attribute\n\
                         Example: #[net(optional_trigger = { some_field == true })]");
-                })
+                });
+                async_decode_statements.push(quote! {
+                    compile_error!("Optional fields must have an `optional_trigger` attribute\n\
+                        Example: #[net(optional_trigger = { some_field == true })]");
+                });
             }
 
             // Normal (non-optional) field decode:
             decode_statements.push(quote! {
                 let #field_name = <#field_ty as ferrumc_net_codec::decode::NetDecode>::decode(reader, opts)?;
+            });
+
+            async_decode_statements.push(quote! {
+                let #field_name = <#field_ty as ferrumc_net_codec::decode::NetDecode>::decode_async(reader, opts).await?;
             });
         }
 
@@ -248,6 +286,15 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                 opts: &ferrumc_net_codec::decode::NetDecodeOpts
             ) -> ferrumc_net_codec::decode::NetDecodeResult<Self> {
                 #(#decode_statements)*
+
+                #build_struct
+            }
+
+            async fn decode_async<R: tokio::io::AsyncRead + Unpin>(
+                reader: &mut R,
+                opts: &ferrumc_net_codec::decode::NetDecodeOpts
+            ) -> ferrumc_net_codec::decode::NetDecodeResult<Self> {
+                #(#async_decode_statements)*
 
                 #build_struct
             }

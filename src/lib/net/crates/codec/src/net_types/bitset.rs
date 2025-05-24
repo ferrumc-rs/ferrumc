@@ -2,7 +2,8 @@ use crate::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
 use crate::net_types::var_int::VarInt;
 use std::io::Write;
 use std::ops::Not;
-use tokio::io::{AsyncWrite, AsyncWriteExt};
+use tokio::io::AsyncWrite;
+use tokio::io::AsyncWriteExt;
 
 #[derive(Debug, Clone)]
 pub struct BitSet(Vec<u64>);
@@ -66,7 +67,7 @@ impl NetEncode for BitSet {
         writer: &mut W,
         opts: &NetEncodeOpts,
     ) -> NetEncodeResult<()> {
-        VarInt::from(self.0.len() as i32)
+        VarInt::from(self.0.len())
             .encode_async(writer, opts)
             .await?;
         writer
@@ -132,13 +133,13 @@ mod tests {
         let mut bitset = BitSet::new(128); // Create a bitset of size 128
         bitset.set_all(true); // Set all bits to true
         for i in 0..128 {
-            assert!(bitset.get(i), "Bit at index {} should be set to true", i);
+            assert!(bitset.get(i), "Bit at index {i} should be set to true");
         }
 
         // Test setting all bits to false
         bitset.set_all(false); // Set all bits to false
         for i in 0..128 {
-            assert!(!bitset.get(i), "Bit at index {} should be set to false", i);
+            assert!(!bitset.get(i), "Bit at index {i} should be set to false");
         }
     }
 
@@ -173,8 +174,7 @@ mod tests {
             if i != 5 && i != 10 && i != 20 {
                 assert!(
                     inverted.get(i),
-                    "Bit at index {} should be true after inversion",
-                    i
+                    "Bit at index {i} should be true after inversion"
                 );
             }
         }

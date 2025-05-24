@@ -50,7 +50,7 @@ pub fn get_chunk(x: u32, z: u32, file_path: PathBuf) -> Result<Option<Vec<u8>>, 
 ///
 /// assert_eq!(chunk, fast_chunk);
 /// ```
-#[allow(unsafe_code)]
+#[expect(unsafe_code)]
 pub fn load_anvil_file(file_path: PathBuf) -> Result<LoadedAnvilFile, AnvilError> {
     // Check if the file exists
     if !file_path.exists() {
@@ -282,7 +282,7 @@ mod tests {
         let locations = loaded_file.get_locations();
         locations.chunks(96).par_bridge().for_each(|chunk| {
             chunk.iter().for_each(|location| {
-                let _ = loaded_file.get_chunk_from_location(*location);
+                _ = loaded_file.get_chunk_from_location(*location);
             });
         });
     }

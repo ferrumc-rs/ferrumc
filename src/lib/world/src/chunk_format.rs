@@ -266,7 +266,7 @@ impl BlockStates {
         match &mut self.block_data {
             PaletteType::Single(val) => {
                 let block = ID2BLOCK
-                    .get(val.val as usize)
+                    .get(val.0 as usize)
                     .cloned()
                     .unwrap_or(BlockData::default());
                 let mut new_palette = vec![VarInt::from(0); 1];
@@ -304,8 +304,7 @@ impl BlockStates {
                         let max_int_value = (1 << new_bit_size) - 1;
                         if value > max_int_value {
                             return Err(InvalidBlockStateData(format!(
-                                "Value {} exceeds maximum value for {}-bit block state",
-                                value, new_bit_size
+                                "Value {value} exceeds maximum value for {new_bit_size}-bit block state"
                             )));
                         }
                         normalised_ints.push(value);
@@ -476,7 +475,7 @@ impl Chunk {
                 // Get block index
                 let block_palette_index = palette
                     .iter()
-                    .position(|p| p.val == *block_id)
+                    .position(|p| p.0 == *block_id)
                     .unwrap_or_else(|| {
                         // Add block to palette if it doesn't exist
                         let index = palette.len() as i16;
@@ -491,8 +490,7 @@ impl Chunk {
                 let packed_u64 = data
                     .get_mut(i64_index)
                     .ok_or(InvalidBlockStateData(format!(
-                        "Invalid block state data at index {}",
-                        i64_index
+                        "Invalid block state data at index {i64_index}"
                     )))?;
                 let offset = (index % blocks_per_i64) * *bits_per_block as usize;
                 if let Err(e) = ferrumc_general_purpose::data_packing::u32::write_nbit_u32(
@@ -501,10 +499,7 @@ impl Chunk {
                     block_palette_index as u32,
                     *bits_per_block,
                 ) {
-                    return Err(InvalidBlockStateData(format!(
-                        "Failed to write block: {}",
-                        e
-                    )));
+                    return Err(InvalidBlockStateData(format!("Failed to write block: {e}")));
                 }
             }
             PaletteType::Direct { .. } => {
@@ -550,11 +545,11 @@ impl Chunk {
         let section = self
             .sections
             .iter()
-            .find(|section| section.y == y.div_floor(16) as i8)
+            .find(|section| section.y == (y / 16) as i8)
             .ok_or(WorldError::SectionOutOfBounds(y >> 4))?;
         match &section.block_states.block_data {
             PaletteType::Single(val) => {
-                let block_id = val.val;
+                let block_id = val.0;
                 ID2BLOCK
                     .get(block_id as usize)
                     .cloned()
@@ -567,7 +562,7 @@ impl Chunk {
             } => {
                 if palette.len() == 1 || *bits_per_block == 0 {
                     return ID2BLOCK
-                        .get(palette[0].val as usize)
+                        .get(palette[0].0 as usize)
                         .cloned()
                         .ok_or(WorldError::ChunkNotFound);
                 }
@@ -575,8 +570,7 @@ impl Chunk {
                 let index = ((y & 0xf) * 256 + (z & 0xf) * 16 + (x & 0xf)) as usize;
                 let i64_index = index / blocks_per_i64;
                 let packed_u64 = data.get(i64_index).ok_or(InvalidBlockStateData(format!(
-                    "Invalid block state data at index {}",
-                    i64_index
+                    "Invalid block state data at index {i64_index}"
                 )))?;
                 let offset = (index % blocks_per_i64) * *bits_per_block as usize;
                 let id = ferrumc_general_purpose::data_packing::u32::read_nbit_u32(
@@ -586,7 +580,7 @@ impl Chunk {
                 )?;
                 let palette_id = palette.get(id as usize).ok_or(WorldError::ChunkNotFound)?;
                 Ok(crate::chunk_format::ID2BLOCK
-                    .get(palette_id.val as usize)
+                    .get(palette_id.0 as usize)
                     .unwrap_or(&BlockData::default())
                     .clone())
             }
@@ -716,7 +710,7 @@ impl Section {
                         let block_id = BLOCK2ID
                             .get(block)
                             .ok_or(WorldError::InvalidBlock(block.clone()))?;
-                        let index = palette.iter().position(|p| p.val == *block_id);
+                        let index = palette.iter().position(|p| p.0 == *block_id);
                         if let Some(index) = index {
                             remove_indexes.push(index);
                         } else {
@@ -752,7 +746,7 @@ impl Section {
                     // If there is only one block in the palette, convert to single block mode
                     if palette.len() == 1 {
                         let block = ID2BLOCK
-                            .get(palette[0].val as usize)
+                            .get(palette[0].0 as usize)
                             .cloned()
                             .unwrap_or(BlockData::default());
                         self.block_states.block_data = PaletteType::Single(palette[0].clone());

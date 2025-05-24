@@ -56,7 +56,7 @@ impl RegistryDataPacket<'_> {
                         &mut data,
                         &NBTSerializeOptions::Network,
                     )
-                    .unwrap_or_else(|_| panic!("Failed to serialize entry for {}", name));
+                    .unwrap_or_else(|_| panic!("Failed to serialize entry for {name}"));
 
                 entries.push(RegistryEntry {
                     id: name,

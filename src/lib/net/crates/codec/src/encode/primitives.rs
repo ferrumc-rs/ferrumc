@@ -1,8 +1,9 @@
+use crate::encode::AsyncWrite;
 use crate::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
 use crate::net_types::var_int::VarInt;
 use std::collections::HashMap;
 use std::io::Write;
-use tokio::io::{AsyncWrite, AsyncWriteExt};
+use tokio::io::AsyncWriteExt;
 
 macro_rules! impl_for_primitives {
     ($($primitive_type:ty $(| $alt:ty)?),*) => {
@@ -12,7 +13,6 @@ macro_rules! impl_for_primitives {
                     writer.write_all(&self.to_be_bytes())?;
                     Ok(())
                 }
-
                 async fn encode_async<W: tokio::io::AsyncWrite + Unpin>(&self, writer: &mut W, _: &NetEncodeOpts) -> NetEncodeResult<()> {
                     writer.write_all(&self.to_be_bytes()).await?;
                     Ok(())
@@ -24,8 +24,7 @@ macro_rules! impl_for_primitives {
                     fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
                         (*self as $primitive_type).encode(writer, opts)
                     }
-
-                    async fn encode_async<W: tokio::io::AsyncWrite + Unpin>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
+                    async fn encode_async<W: AsyncWrite + Unpin>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
                         (*self as $primitive_type).encode_async(writer, opts).await
                     }
                 }
@@ -49,13 +48,14 @@ impl NetEncode for bool {
     fn encode<W: Write>(&self, writer: &mut W, _: &NetEncodeOpts) -> NetEncodeResult<()> {
         (*self as u8).encode(writer, &NetEncodeOpts::None)
     }
-
     async fn encode_async<W: AsyncWrite + Unpin>(
         &self,
         writer: &mut W,
-        opts: &NetEncodeOpts,
+        _: &NetEncodeOpts,
     ) -> NetEncodeResult<()> {
-        (*self as u8).encode_async(writer, opts).await
+        (*self as u8)
+            .encode_async(writer, &NetEncodeOpts::None)
+            .await
     }
 }
 
@@ -63,7 +63,6 @@ impl NetEncode for String {
     fn encode<W: Write>(&self, writer: &mut W, _: &NetEncodeOpts) -> NetEncodeResult<()> {
         self.as_str().encode(writer, &NetEncodeOpts::None)
     }
-
     async fn encode_async<W: AsyncWrite + Unpin>(
         &self,
         writer: &mut W,
@@ -82,7 +81,6 @@ impl NetEncode for &str {
         writer.write_all(self.as_bytes())?;
         Ok(())
     }
-
     async fn encode_async<W: AsyncWrite + Unpin>(
         &self,
         writer: &mut W,
@@ -110,7 +108,6 @@ where
         }
         Ok(())
     }
-
     async fn encode_async<W: AsyncWrite + Unpin>(
         &self,
         writer: &mut W,
@@ -138,7 +135,6 @@ impl NetEncode for &[u8] {
         writer.write_all(self)?;
         Ok(())
     }
-
     async fn encode_async<W: AsyncWrite + Unpin>(
         &self,
         writer: &mut W,
@@ -166,7 +162,6 @@ impl NetEncode for &[&str] {
         }
         Ok(())
     }
-
     async fn encode_async<W: AsyncWrite + Unpin>(
         &self,
         writer: &mut W,
@@ -191,7 +186,6 @@ impl<T: NetEncode> NetEncode for Option<T> {
             None => Ok(()),
         }
     }
-
     async fn encode_async<W: AsyncWrite + Unpin>(
         &self,
         writer: &mut W,
@@ -219,7 +213,6 @@ where
         }
         Ok(())
     }
-
     async fn encode_async<W: AsyncWrite + Unpin>(
         &self,
         writer: &mut W,

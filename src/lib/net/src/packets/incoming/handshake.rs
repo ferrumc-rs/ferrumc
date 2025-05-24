@@ -1,7 +1,7 @@
 use crate::packets::IncomingPacket;
-use crate::NetResult;
-use ferrumc_events::infrastructure::Event;
-use ferrumc_macros::{packet, Event, NetDecode};
+
+use crate::errors::NetError;
+use ferrumc_macros::{packet, NetDecode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::ServerState;
 use std::sync::Arc;
@@ -17,24 +17,10 @@ pub struct Handshake {
 }
 
 impl IncomingPacket for Handshake {
-    async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
+    fn handle(self, conn_id: usize, _: Arc<ServerState>) -> Result<(), NetError> {
         trace!("Connection ID: {}", conn_id);
         trace!("Handshake packet received: {:?}", self);
-
-        HandshakeEvent::trigger(HandshakeEvent::new(self, conn_id), state).await?;
         Ok(())
-    }
-}
-
-#[derive(Event)]
-pub struct HandshakeEvent {
-    pub handshake: Handshake,
-    pub conn_id: usize,
-}
-
-impl HandshakeEvent {
-    pub fn new(handshake: Handshake, conn_id: usize) -> Self {
-        Self { handshake, conn_id }
     }
 }
 
@@ -45,10 +31,9 @@ mod tests {
     use ferrumc_net_codec::net_types::var_int::VarInt;
     use std::io::Cursor;
 
-    #[tokio::test]
-    async fn test_macro_decode() {
+    #[test]
+    fn test_macro_decode() {
         #[derive(NetDecode, Default)]
-        #[allow(unused)]
         struct Handshake {
             protocol_version: VarInt,
             server_address: String,

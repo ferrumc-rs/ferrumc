@@ -1,5 +1,8 @@
+use bevy_ecs::prelude::Component;
 use std::fmt::Debug;
+use typename::TypeName;
 
+#[derive(TypeName, Component)]
 pub struct Rotation {
     pub yaw: f32,
     pub pitch: f32,

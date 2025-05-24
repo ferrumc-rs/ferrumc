@@ -44,7 +44,7 @@ impl ComponentBuilder {
 ///
 /// ```rust
 /// # use ferrumc_text::*;
-/// let _ = ComponentBuilder::text("Hello,")
+/// _ = ComponentBuilder::text("Hello,")
 ///     .color(NamedColor::Red)
 ///     .space()
 ///     .extra(ComponentBuilder::text("World!"))

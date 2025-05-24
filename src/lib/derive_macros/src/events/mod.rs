@@ -26,7 +26,7 @@ pub fn event_handler_fn(attr: TokenStream, input: TokenStream) -> TokenStream {
             // ::ferrumc_events::infrastructure::insert_into_events(
             // #event_type ::register(
             <#event_type as ::ferrumc_events::infrastructure::Event>::register(
-                |ev: #event_type, state: #state| std::boxed::Box::pin(#fn_name(ev, state)),
+                |ev: #event_type, state: #state| #fn_name(ev, state),
                 #priority
             );
         }
@@ -104,7 +104,7 @@ fn extract_event_type(input: &syn::ItemFn) -> (PatType, PatType) {
 //     insert_into_events(|ev: Arc<RwLock<SomeEvent>>| Box::pin(some_event_listener(ev)), 0);
 // }
 //
-// async fn some_event_listener(event: Arc<RwLock<SomeEvent>>) {
+// fn some_event_listener(event: Arc<RwLock<SomeEvent>>) {
 //     let mut ev = event.write();
 //     ev.data = 10;
 //     println!("I set the event's data to 10");

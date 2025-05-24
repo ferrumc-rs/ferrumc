@@ -55,6 +55,6 @@ impl BetterPathExt for PathBuf {
             .replace(r"\\?\", "") // Remove Windows extended path prefix
             .replace(r"\\", r"\"); // Normalize backslashes
 
-        format!("`{}`", path)
+        format!("`{path}`")
     }
 }

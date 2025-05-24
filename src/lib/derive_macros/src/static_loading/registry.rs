@@ -17,7 +17,7 @@ pub(crate) fn get(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         // current_value = &current_value[part];
         current_value = current_value
             .get(part)
-            .unwrap_or_else(|| panic!("Could not find key: {}", part));
+            .unwrap_or_else(|| panic!("Could not find key: {part}"));
     }
 
     let protocol_id = current_value

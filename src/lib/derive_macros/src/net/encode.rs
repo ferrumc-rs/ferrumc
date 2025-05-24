@@ -81,10 +81,10 @@ fn generate_enum_encoders(
                         )*
                     }
                 })
-            },
+            }
             Fields::Unnamed(fields) => {
                 let field_names: Vec<_> = (0..fields.unnamed.len())
-                    .map(|i| syn::Ident::new(&format!("field{}", i), proc_macro2::Span::call_site()))
+                    .map(|i| syn::Ident::new(&format!("field{i}"), proc_macro2::Span::call_site()))
                     .collect();
                 let field_tys: Vec<_> = fields.unnamed.iter()
                     .map(|f| &f.ty)
@@ -104,7 +104,7 @@ fn generate_enum_encoders(
                         )*
                     }
                 })
-            },
+            }
             Fields::Unit => (
                 quote! {
                     Self::#variant_ident => {}
@@ -187,14 +187,14 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                                         compressed_data = e.finish()?;
                                     }
 
-                                    let packet_length: ferrumc_net_codec::net_types::var_int::VarInt = (data_length.len + compressed_data.len()).into();
+                                    let packet_length: ferrumc_net_codec::net_types::var_int::VarInt = (data_length.len() + compressed_data.len()).into();
 
                                     <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode(&packet_length, actual_writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)?;
                                     <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode(&data_length, actual_writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)?;
                                     actual_writer.write_all(&compressed_data)?;
                                 } else {
                                     let data_length: ferrumc_net_codec::net_types::var_int::VarInt = 0.into();
-                                    let packet_length: ferrumc_net_codec::net_types::var_int::VarInt = (data_length.len + writer.len()).into();
+                                    let packet_length: ferrumc_net_codec::net_types::var_int::VarInt = (data_length.len() + writer.len()).into();
 
                                     <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode(&packet_length, actual_writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)?;
                                     <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode(&data_length, actual_writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)?;
@@ -245,7 +245,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                                         compressed_data = e.finish()?;
                                     }
 
-                                    let packet_length: ferrumc_net_codec::net_types::var_int::VarInt = (data_length.len + compressed_data.len()).into();
+                                    let packet_length: ferrumc_net_codec::net_types::var_int::VarInt = (data_length.len() + compressed_data.len()).into();
 
                                     <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode_async(&packet_length, actual_writer, &ferrumc_net_codec::encode::NetEncodeOpts::None).await?;
                                      <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode_async(&data_length, actual_writer, &ferrumc_net_codec::encode::NetEncodeOpts::None).await?;
@@ -253,7 +253,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                                      <W as tokio::io::AsyncWriteExt>::write_all(actual_writer, &compressed_data).await?;
                                 } else {
                                     let data_length: ferrumc_net_codec::net_types::var_int::VarInt = 0.into();
-                                    let packet_length: ferrumc_net_codec::net_types::var_int::VarInt = (data_length.len + writer.len()).into();
+                                    let packet_length: ferrumc_net_codec::net_types::var_int::VarInt = (data_length.len() + writer.len()).into();
 
                                     <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode_async(&packet_length, actual_writer, &ferrumc_net_codec::encode::NetEncodeOpts::None).await?;
                                     <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode_async(&data_length, actual_writer, &ferrumc_net_codec::encode::NetEncodeOpts::None).await?;
@@ -311,14 +311,14 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                                         compressed_data = e.finish()?;
                                     }
 
-                                    let packet_length: ferrumc_net_codec::net_types::var_int::VarInt = (data_length.len + compressed_data.len()).into();
+                                    let packet_length: ferrumc_net_codec::net_types::var_int::VarInt = (data_length.len() + compressed_data.len()).into();
 
                                     <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode(&packet_length, actual_writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)?;
                                     <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode(&data_length, actual_writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)?;
                                     actual_writer.write_all(&compressed_data)?;
                                 } else {
                                     let data_length: ferrumc_net_codec::net_types::var_int::VarInt = 0.into();
-                                    let packet_length: ferrumc_net_codec::net_types::var_int::VarInt = (data_length.len + writer.len()).into();
+                                    let packet_length: ferrumc_net_codec::net_types::var_int::VarInt = (data_length.len() + writer.len()).into();
 
                                     <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode(&packet_length, actual_writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)?;
                                     <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode(&data_length, actual_writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)?;
@@ -369,14 +369,14 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                                         compressed_data = e.finish()?;
                                     }
 
-                                    let packet_length: ferrumc_net_codec::net_types::var_int::VarInt = (data_length.len + compressed_data.len()).into();
+                                    let packet_length: ferrumc_net_codec::net_types::var_int::VarInt = (data_length.len() + compressed_data.len()).into();
 
                                     <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode_async(&packet_length, actual_writer, &ferrumc_net_codec::encode::NetEncodeOpts::None).await?;
                                     <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode_async(&data_length, actual_writer, &ferrumc_net_codec::encode::NetEncodeOpts::None).await?;
                                      <W as tokio::io::AsyncWriteExt>::write_all(actual_writer, &compressed_data).await?;
                                 } else {
                                     let data_length: ferrumc_net_codec::net_types::var_int::VarInt = 0.into();
-                                    let packet_length: ferrumc_net_codec::net_types::var_int::VarInt = (data_length.len + writer.len()).into();
+                                    let packet_length: ferrumc_net_codec::net_types::var_int::VarInt = (data_length.len() + writer.len()).into();
 
                                     <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode_async(&packet_length, actual_writer, &ferrumc_net_codec::encode::NetEncodeOpts::None).await?;
                                     <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode_async(&data_length, actual_writer, &ferrumc_net_codec::encode::NetEncodeOpts::None).await?;

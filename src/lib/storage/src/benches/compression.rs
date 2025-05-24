@@ -1,6 +1,6 @@
-use criterion::black_box;
 use ferrumc_storage::compressors::{Compressor, CompressorType};
 use ferrumc_utils::root;
+use std::hint::black_box;
 
 fn zstd_compress(data: &[u8]) {
     let compressor = Compressor::create(CompressorType::Zstd, 6);

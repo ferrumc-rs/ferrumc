@@ -1,7 +1,7 @@
 use crate::static_loading::packets::{get_packet_id, PacketBoundiness};
 use colored::Colorize;
 use proc_macro::TokenStream;
-use quote::{quote, ToTokens};
+use quote::{format_ident, quote, ToTokens};
 use regex::Regex;
 use std::env;
 use std::ops::Add;
@@ -47,9 +47,22 @@ pub(crate) fn get_packet_details_from_attributes(
     Some((state, packet_id))
 }
 
+fn to_snake_case(s: &str) -> String {
+    let mut result = String::new();
+
+    for (i, c) in s.chars().enumerate() {
+        if c.is_uppercase() && i != 0 {
+            result.push('_');
+        }
+        result.push(c.to_ascii_lowercase());
+    }
+
+    result
+}
+
 /// Essentially, this just reads all the files in the directory and generates a match arm for each packet.
 /// (packet_id, state) => { ... }
-pub fn bake_registry(input: TokenStream) -> TokenStream {
+pub fn setup_packet_handling(input: TokenStream) -> TokenStream {
     #[cfg(feature = "colors")]
     colored::control::set_override(true);
 
@@ -62,7 +75,7 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
     let dir_path = std::path::Path::new(&path);
     // get the module path like crate::xxx:xxx from module_path
     let base_path = module_path.split("\\").collect::<Vec<&str>>()[2..].join("::");
-    let base_path = format!("crate::{}", base_path);
+    let base_path = format!("crate::{base_path}");
 
     println!(
         "   {} {}",
@@ -83,6 +96,8 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
     let start = std::time::Instant::now();
 
     let entries = std::fs::read_dir(dir_path).expect("read_dir call failed");
+
+    let mut packet_channel_structs = vec![];
 
     for entry in entries {
         let entry = entry.expect("entry failed");
@@ -121,35 +136,43 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
                 \nExample: #[packet(packet_id = \"example_packet\", state = \"handshake\")]",
             );
 
-            let struct_name = &item_struct.ident;
+            if state == "play" {
+                let struct_name = item_struct.ident;
 
-            println!(
-                "   {} {} (ID: {}, State: {}, Struct Name: {})",
-                "[FERRUMC_MACROS]".bold().blue(),
-                "Found Packet".white().bold(),
-                format!("0x{:02X}", packet_id).cyan(),
-                state.green(),
-                struct_name.to_string().yellow()
-            );
+                println!(
+                    "   {} {} (ID: {}, State: {}, Struct Name: {})",
+                    "[FERRUMC_MACROS]".bold().blue(),
+                    "Found Packet".white().bold(),
+                    format!("0x{packet_id:02X}").cyan(),
+                    state.green(),
+                    struct_name.to_string().yellow()
+                );
 
-            let path = format!(
-                "{}::{}",
-                base_path,
-                file_name.to_string_lossy().replace(".rs", "")
-            );
-            let struct_path = format!("{}::{}", path, struct_name);
+                let path = format!(
+                    "{}::{}",
+                    base_path,
+                    file_name.to_string_lossy().replace(".rs", "")
+                );
+                let struct_path = format!("{path}::{struct_name}");
 
-            let struct_path = syn::parse_str::<syn::Path>(&struct_path).expect("parse_str failed");
+                packet_channel_structs.push((struct_name.clone(), struct_path.clone()));
 
-            match_arms.push(quote! {
-                    (#packet_id, #state) => {
-                        // let packet= #struct_path::net_decode(cursor).await?;
-                        let packet = <#struct_path as ferrumc_net_codec::decode::NetDecode>::decode(cursor, &ferrumc_net_codec::decode::NetDecodeOpts::None)?;
-                        // packet.handle(conn_id, state).await?;
-                        <#struct_path as crate::packets::IncomingPacket>::handle(packet, conn_id, state).await?;
-                        // tracing::debug!("Received packet: {:?}", packet);
-                    },
-                });
+                let struct_path =
+                    syn::parse_str::<syn::Path>(&struct_path).expect("parse_str failed");
+
+                let field_name =
+                    syn::parse_str::<syn::Ident>(&to_snake_case(&struct_name.to_string()))
+                        .expect("to_snake_case failed");
+
+                match_arms.push(quote! {
+                        (#packet_id) => {
+                            // let packet= #struct_path::net_decode(cursor)?;
+                            let packet = <#struct_path as ferrumc_net_codec::decode::NetDecode>::decode(cursor, &ferrumc_net_codec::decode::NetDecodeOpts::None)?;
+                            packet_sender.#field_name.send((packet, entity)).expect("Failed to send packet");
+                            Ok(())
+                        },
+                    });
+            }
         }
     }
 
@@ -164,24 +187,68 @@ pub fn bake_registry(input: TokenStream) -> TokenStream {
     println!(
         "   {} {}",
         "[FERRUMC_MACROS]".bold().blue(),
-        format!(
-            "It took: {:?} to parse all the files and generate the packet registry",
-            elapsed
-        )
-        .red()
-        .bold()
+        format!("It took: {elapsed:?} to parse all the files and generate the packet registry")
+            .red()
+            .bold()
     );
+
+    let mut sender_mega_struct_fields = vec![];
+    let mut send_recv_pairs = vec![];
+    let mut build_mega_struct = vec![];
+    let mut register_structs = vec![];
+    let mut receiver_structs = vec![];
+
+    packet_channel_structs
+        .iter()
+        .for_each(|(struct_name, path)| {
+            let appended_name = format_ident!("{}Receiver", struct_name);
+            let snake_case_name =
+                syn::parse_str::<syn::Ident>(&to_snake_case(&struct_name.to_string()))
+                    .expect("to_snake_case failed");
+            let struct_path = syn::parse_str::<syn::Path>(path).expect("parse_str failed");
+            sender_mega_struct_fields.push(quote! {
+                pub #snake_case_name: Sender<(#struct_path, bevy_ecs::entity::Entity)>,
+            });
+            let sender_name = format_ident!("{}_sender", snake_case_name);
+            let receiver_name = format_ident!("{}_receiver", snake_case_name);
+            send_recv_pairs.push(quote! {
+                let (#sender_name, #receiver_name) = crossbeam_channel::unbounded();
+            });
+            build_mega_struct.push(quote! {
+                #snake_case_name: #sender_name,
+            });
+            register_structs.push(quote! {
+                world.insert_resource(#appended_name(#receiver_name));
+            });
+            receiver_structs.push(quote! {
+                #[derive(Resource)]
+                pub struct #appended_name(pub Receiver<(#struct_path, bevy_ecs::entity::Entity)>);
+            });
+        });
 
     let match_arms = match_arms.into_iter();
 
     let output = quote! {
-        pub async fn handle_packet<R: std::io::Read>(packet_id: u8, conn_id: usize, conn_state: &crate::connection::ConnectionState, cursor: &mut R, state: std::sync::Arc<ferrumc_state::ServerState>) -> crate::NetResult<()> {
-            match (packet_id, conn_state.as_str()) {
+        pub fn handle_packet<R: std::io::Read>(packet_id: u8, entity: bevy_ecs::entity::Entity, cursor: &mut R, packet_sender: Arc<PacketSender>) -> Result<(), crate::errors::NetError> {
+            match (packet_id) {
                 #(#match_arms)*
-                _ => tracing::debug!("No packet found for ID: 0x{:02X} in state: {}", packet_id, conn_state.as_str()),
+                _ => {tracing::debug!("No packet found for ID: 0x{:02X} (from {})", packet_id, entity); Err(crate::errors::PacketError::InvalidPacket(packet_id).into())},
             }
+        }
 
-            Ok(())
+        #(#receiver_structs)*
+
+        pub struct PacketSender {
+            #(#sender_mega_struct_fields)*
+        }
+
+        pub fn create_packet_senders(world: &mut World) -> PacketSender {
+            #(#send_recv_pairs)*
+            let mut packet_senders = PacketSender {
+                #(#build_mega_struct)*
+            };
+            #(#register_structs)*
+            packet_senders
         }
     };
 

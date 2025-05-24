@@ -10,10 +10,9 @@ edition = "2021"
 thiserror = { workspace = true }
 
 ferrumc-core = { workspace = true }
-ferrumc-ecs = { workspace = true }
-ferrumc-events = { workspace = true }
+bevy_ecs = { workspace = true }
+
 ferrumc-net = { workspace = true }
-ferrumc-net-encryption = { workspace = true }
 ferrumc-net-codec = { workspace = true }
 ferrumc-plugins = { workspace = true }
 ferrumc-storage = { workspace = true }
@@ -23,21 +22,21 @@ ferrumc-profiling = { workspace = true }
 ferrumc-logging = { workspace = true }
 ferrumc-world = { workspace = true }
 ferrumc-macros = { workspace = true }
-ferrumc-nbt = { workspace = true }
 ferrumc-general-purpose = { workspace = true }
 ferrumc-state = { workspace = true }
 ferrumc-world-gen = { workspace = true }
+ferrumc-threadpool = { workspace = true }
 
-rayon = { workspace = true }
+
 tracing = { workspace = true }
-tokio = { workspace = true }
-futures = { workspace = true }
-async-trait = { workspace = true }
 clap = { workspace = true, features = ["derive", "env"] }
 flate2 = { workspace = true }
-ctor = { workspace = true }
-bitcode = { workspace = true }
-dhat = "0.3.3"
+rand = { workspace = true }
+ctrlc = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+crossbeam-channel = { workspace = true }
+dashmap = { workspace = true }
+dhat = { workspace = true }
 
 [features]
 dhat = []

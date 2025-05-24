@@ -9,7 +9,6 @@ thiserror = { workspace = true }
 ferrumc-storage = { workspace = true }
 ferrumc-config = { workspace = true }
 tracing = { workspace = true }
-tokio = { workspace = true }
 ferrumc-net-codec = { workspace = true }
 serde = { workspace = true }
 serde_derive = { workspace = true }
@@ -27,9 +26,9 @@ bzip2 = { workspace = true }
 serde_json = { workspace = true }
 indicatif = { workspace = true }
 wyhash = { workspace = true }
-moka = { workspace = true, features = ["future"] }
+moka = { workspace = true, features = ["sync"] }
+ahash = { workspace = true }
 rand = { workspace = true }
-ahash = { workspace = true, features = ["serde"] }
 
 [[bench]]
 name = "world_bench"

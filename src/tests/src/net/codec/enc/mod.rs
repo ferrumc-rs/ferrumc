@@ -30,7 +30,7 @@ fn test_encode() {
         .unwrap();
 }
 
-#[allow(unreachable_code)]
+#[expect(unreachable_code)]
 fn _test_compression() -> ! {
     let example = SomeExampleEncStructWithPacketId {
         packet_id: VarInt::from(0x10),

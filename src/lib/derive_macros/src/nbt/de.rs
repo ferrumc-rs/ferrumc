@@ -73,7 +73,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
             }
         }
 
-        let elem_name = format!("{} (field: {})", deserialize_name, field_name);
+        let elem_name = format!("{deserialize_name} (field: {field_name})");
 
         if skip {
             return quote! {

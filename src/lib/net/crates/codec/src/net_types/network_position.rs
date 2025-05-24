@@ -4,7 +4,8 @@ use crate::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
 use crate::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
 use std::fmt::Display;
 use std::io::{Read, Write};
-use tokio::io::AsyncWrite;
+use tokio::io::AsyncReadExt;
+use tokio::io::AsyncWriteExt;
 
 /// The definition of a "Position" in the Minecraft protocol.
 #[derive(Clone, Debug)]
@@ -34,14 +35,11 @@ impl NetEncode for NetworkPosition {
         writer.write_all(self.as_u64().to_be_bytes().as_ref())?;
         Ok(())
     }
-
-    async fn encode_async<W: AsyncWrite + Unpin>(
+    async fn encode_async<W: tokio::io::AsyncWrite + Unpin>(
         &self,
         writer: &mut W,
         _: &NetEncodeOpts,
     ) -> NetEncodeResult<()> {
-        use tokio::io::AsyncWriteExt;
-
         writer
             .write_all(self.as_u64().to_be_bytes().as_ref())
             .await?;
@@ -53,6 +51,14 @@ impl NetDecode for NetworkPosition {
     fn decode<R: Read>(reader: &mut R, _: &NetDecodeOpts) -> NetDecodeResult<Self> {
         let mut buf = [0u8; 8];
         reader.read_exact(&mut buf)?;
+        Ok(NetworkPosition::from_u64(u64::from_be_bytes(buf)))
+    }
+    async fn decode_async<R: tokio::io::AsyncRead + Unpin>(
+        reader: &mut R,
+        _: &NetDecodeOpts,
+    ) -> NetDecodeResult<Self> {
+        let mut buf = [0u8; 8];
+        reader.read_exact(&mut buf).await?;
         Ok(NetworkPosition::from_u64(u64::from_be_bytes(buf)))
     }
 }
