@@ -9,7 +9,7 @@ pub mod send_chunks;
 
 pub fn register_game_systems(schedule: &mut bevy_ecs::schedule::Schedule) {
     schedule.add_systems(
-        keep_alive_system::keep_alive_system.after(connection_killer::connection_killer),
+        keep_alive_system::keep_alive_system.before(connection_killer::connection_killer),
     );
     schedule.add_systems(
         new_connections::accept_new_connections.before(connection_killer::connection_killer),

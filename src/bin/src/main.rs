@@ -27,12 +27,12 @@ mod systems;
 #[global_allocator]
 static ALLOC: dhat::Alloc = dhat::Alloc;
 
-// fn kill_in_20() {
-//     std::thread::spawn(move || {
-//         std::thread::sleep(std::time::Duration::from_secs(20));
-//         std::process::exit(1);
-//     });
-// }
+fn kill_in_20() {
+    std::thread::spawn(move || {
+        std::thread::sleep(std::time::Duration::from_secs(20));
+        std::process::exit(1);
+    });
+}
 
 fn main() {
     #[cfg(feature = "dhat")]

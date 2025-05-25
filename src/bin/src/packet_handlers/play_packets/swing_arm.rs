@@ -28,6 +28,9 @@ pub fn handle(
             if entity == eid {
                 continue; // Skip sending to the player who triggered the event
             }
+            if !conn.running.load(std::sync::atomic::Ordering::Relaxed) {
+                continue;
+            }
             if let Err(e) = conn.send_packet(packet.clone()) {
                 error!("Failed to send packet: {}", e);
             }

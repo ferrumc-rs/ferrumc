@@ -43,6 +43,9 @@ pub fn handle(
                     // Save the chunk to disk
                     state.0.world.save_chunk(chunk.clone())?;
                     for (eid, conn) in query {
+                        if !conn.running.load(std::sync::atomic::Ordering::Relaxed) {
+                            continue;
+                        }
                         // If the player is the one who placed the block, send the BlockChangeAck packet
                         let block_update_packet = BlockUpdate {
                             location: event.location.clone(),

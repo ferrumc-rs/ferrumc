@@ -19,7 +19,7 @@ use tokio::net::TcpStream;
 use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
 use tokio::sync::oneshot;
 use tokio::time::timeout;
-use tracing::{debug, debug_span, error, trace, warn, Instrument};
+use tracing::{debug_span, error, trace, warn, Instrument};
 use typename::TypeName;
 
 /// The maximum time to wait for a handshake to complete
@@ -110,10 +110,10 @@ pub async fn handle_connection(
     match handshake_result {
         Ok(res) => match res {
             Ok((false, returned_player_identity)) => {
-                debug!("Handshake successful");
+                trace!("Handshake successful");
                 match returned_player_identity {
                     Some(returned_player_identity) => {
-                        debug!("Player identity: {:?}", returned_player_identity);
+                        trace!("Player identity: {:?}", returned_player_identity);
                         player_identity = returned_player_identity;
                     }
                     None => {
@@ -122,7 +122,7 @@ pub async fn handle_connection(
                 }
             }
             Ok((true, _)) => {
-                debug!("Handshake successful, killing connection");
+                trace!("Handshake successful, killing connection");
                 return Ok(());
             }
             Err(err) => {
@@ -154,22 +154,11 @@ pub async fn handle_connection(
         })
         .map_err(|_| NetError::Misc("Failed to send new connection".to_string()))?;
 
-    // Wait for the entity ID to be sent back, use timeout so we can't hang if nothing is sent
-    // TODO: Make the delay scale based on the server tick rate since the entity ID is sent back
-    // in a system which could run at less than 1 tps
-    let entity = match timeout(Duration::from_secs(1), entity_recv).await {
-        Ok(res) => match res {
-            Ok(entity) => {
-                debug!("Entity ID received: {:?}", entity);
-                entity
-            }
-            Err(err) => {
-                error!("Failed to receive entity ID: {:?}", err);
-                return Err(NetError::Misc("Failed to receive entity ID".to_string()));
-            }
-        },
+    // Wait for the entity ID to be sent back
+    let entity = match entity_recv.await {
+        Ok(entity) => entity,
         Err(err) => {
-            error!("Entity return timed out: {:?}", err);
+            error!("Failed to receive entity ID: {:?}", err);
             return Err(NetError::Misc("Failed to receive entity ID".to_string()));
         }
     };
@@ -187,18 +176,12 @@ pub async fn handle_connection(
         let mut packet_skele = match PacketSkeleton::new(&mut tcp_reader, compressed).await {
             Ok(packet_skele) => packet_skele,
             Err(err) => {
-                match err {
-                    NetError::ConnectionDropped => {
-                        trace!("Connection dropped for entity {:?}", entity);
-                        running.store(false, Ordering::Relaxed);
-                        break 'recv;
-                    }
-                    _ => {
-                        debug!("Failed to read packet: {:?}", err);
-                    }
+                if let NetError::ConnectionDropped = err {
+                    trace!("Connection dropped for entity {:?}", entity);
+                    running.store(false, Ordering::Relaxed);
+                    break 'recv;
                 }
-                error!("Failed to read packet skeleton: {:?}", err);
-                debug!("Connection dropped for entity {:?}", entity);
+                error!("Failed to read packet skeleton: {:?} for {:?}", err, entity);
                 running.store(false, Ordering::Relaxed);
                 break 'recv;
             }
@@ -225,7 +208,7 @@ pub async fn handle_connection(
                     trace!("Packet 0x{:02X} received, no handler implemented yet", id);
                 }
                 _ => {
-                    debug!("Failed to handle packet: {:?}", err);
+                    warn!("Failed to handle packet: {:?}", err);
                     running.store(false, Ordering::Relaxed);
                     break 'recv;
                 }
@@ -243,12 +226,10 @@ impl StreamWriter {
     pub fn kill(&self, reason: Option<String>) -> Result<(), NetError> {
         self.running.store(false, Ordering::Relaxed);
         if let Err(err) = self.send_packet(crate::packets::outgoing::disconnect::DisconnectPacket {
-            reason: ferrumc_text::TextComponent::from(
-                reason.unwrap_or_else(|| "Disconnected".to_string()),
-            ),
+            reason: ferrumc_text::TextComponent::from(reason.unwrap_or("Disconnected".to_string())),
         }) {
             if matches!(err, NetError::ConnectionDropped) {
-                debug!("Connection already dropped, not sending disconnect packet");
+                trace!("Connection already dropped, not sending disconnect packet");
             } else {
                 error!("Failed to send disconnect packet: {:?}", err);
                 return Err(err);
@@ -257,23 +238,3 @@ impl StreamWriter {
         Ok(())
     }
 }
-
-// fn disconnect(state: Arc<ServerState>, entity: usize) {
-//     debug!("Connection closed for entity: {:?}", entity);
-//
-//     // Broadcast the leave server event
-//
-//     _ = PlayerDisconnectEvent::trigger(PlayerDisconnectEvent { entity_id: entity }, state.clone());
-//
-//     // Remove all components from the entity
-//
-//     terminate_connection(state.clone(), entity, "Failed to handle packet".to_string())
-//         .expect("Failed to terminate connection");
-//
-//     // Wait until anything that might be using the entity is done
-//     if let Err(e) = remove_all_components_blocking(state.clone(), entity) {
-//         warn!("Failed to remove all components from entity: {:?}", e);
-//     }
-//
-//     trace!("Dropped all components from entity: {:?}", entity);
-// }
