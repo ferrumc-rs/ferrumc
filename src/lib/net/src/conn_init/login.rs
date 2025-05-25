@@ -18,11 +18,13 @@ pub(super) async fn login(
     // =============================================================================================
     trim_packet_head(conn_read, 0x00).await?;
 
+    debug!("Starting login sequence...");
+
     let login_start = crate::packets::incoming::login_start::LoginStartPacket::decode_async(
         &mut conn_read,
         &NetDecodeOpts::None,
     )
-    .await?;
+        .await?;
 
     // =============================================================================================
 
@@ -50,7 +52,7 @@ pub(super) async fn login(
         &mut conn_read,
         &NetDecodeOpts::None,
     )
-    .await?;
+        .await?;
 
     // =============================================================================================
 
@@ -67,12 +69,14 @@ pub(super) async fn login(
 
     trim_packet_head(conn_read, 0x00).await?;
 
+    debug!("Starting configuration...");
+
     let client_info =
         crate::packets::incoming::client_information::ClientInformation::decode_async(
             &mut conn_read,
             &NetDecodeOpts::None,
         )
-        .await?;
+            .await?;
 
     debug!(
         "Client information: {{ locale: {}, view_distance: {}, chat_mode: {}, chat_colors: {}, displayed_skin_parts: {} }}",
@@ -100,7 +104,7 @@ pub(super) async fn login(
             &mut conn_read,
             &NetDecodeOpts::None,
         )
-        .await?;
+            .await?;
 
     // =============================================================================================
 
@@ -150,11 +154,6 @@ pub(super) async fn login(
 
     // =============================================================================================
 
-    let len = VarInt::decode_async(&mut conn_read, &NetDecodeOpts::None).await?;
-    let id = VarInt::decode_async(&mut conn_read, &NetDecodeOpts::None).await?;
-    let mut buf = vec![0; len.0 as usize - id.len()];
-    conn_read.read_exact(&mut buf).await?;
-
     trim_packet_head(conn_read, 0x00).await?;
 
     let confirm_player_teleport =
@@ -162,7 +161,7 @@ pub(super) async fn login(
             &mut conn_read,
             &NetDecodeOpts::None,
         )
-        .await?;
+            .await?;
 
     if confirm_player_teleport.teleport_id.0 != teleport_id_i32 {
         error!(

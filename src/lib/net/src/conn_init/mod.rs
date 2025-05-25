@@ -12,21 +12,23 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalState;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
-use tracing::{trace, warn};
+use tracing::{debug, trace, warn};
 
 // A small utility to remove the packet length and packet id from the stream, since we are pretty
 // sure we are going to get the right packet id and length, and we don't need to check it
 // We still do debug asserts on the ID though, just to be sure
 pub(crate) async fn trim_packet_head(conn: &mut OwnedReadHalf, value: u8) -> Result<(), NetError> {
-    let len = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
-    let id = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
-    if id.0 != value as i32 {
-        warn!("Expected packet ID {:02X}, got {:02X}", value, id.0);
+    let mut len = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
+    let mut id = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
+    while id.0 == 0x12 {
+        debug!("Serverbound plugin message packet detected");
         let mut packet_data = vec![0; len.0 as usize - id.len()];
         conn.read_exact(&mut packet_data).await?;
         trace!("Packet data: {:?}", &packet_data);
-        Box::pin(trim_packet_head(conn, value)).await?
-    };
+        len = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
+        id = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
+    }
+    assert_eq!(id.0, value as i32);
     Ok(())
 }
 
