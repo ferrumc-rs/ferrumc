@@ -12,11 +12,12 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalState;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
-use tracing::{debug, trace, warn};
+use tracing::{debug, trace};
 
 // A small utility to remove the packet length and packet id from the stream, since we are pretty
 // sure we are going to get the right packet id and length, and we don't need to check it
-// We still do debug asserts on the ID though, just to be sure
+// If we get a packet with the id 0x12, we will skip it, since it is a serverbound plugin message packet
+// They have stupid formatting, and we don't want to deal with it
 pub(crate) async fn trim_packet_head(conn: &mut OwnedReadHalf, value: u8) -> Result<(), NetError> {
     let mut len = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
     let mut id = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;

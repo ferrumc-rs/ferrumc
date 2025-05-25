@@ -73,6 +73,7 @@ impl StreamWriter {
         if !self.running.load(Ordering::Relaxed) {
             #[cfg(debug_assertions)]
             warn!("StreamWriter is not running, not sending packet");
+            return Err(NetError::ConnectionDropped);
         }
         let bytes = {
             let mut buffer = Vec::new();
@@ -240,12 +241,19 @@ impl StreamWriter {
     ///
     /// !!! This won't delete the entity, you should do that with the connection killer system
     pub fn kill(&self, reason: Option<String>) -> Result<(), NetError> {
-        self.send_packet(crate::packets::outgoing::disconnect::DisconnectPacket {
+        self.running.store(false, Ordering::Relaxed);
+        if let Err(err) = self.send_packet(crate::packets::outgoing::disconnect::DisconnectPacket {
             reason: ferrumc_text::TextComponent::from(
                 reason.unwrap_or_else(|| "Disconnected".to_string()),
             ),
-        })?;
-        self.running.store(false, Ordering::Relaxed);
+        }) {
+            if matches!(err, NetError::ConnectionDropped) {
+                debug!("Connection already dropped, not sending disconnect packet");
+            } else {
+                error!("Failed to send disconnect packet: {:?}", err);
+                return Err(err);
+            }
+        }
         Ok(())
     }
 }

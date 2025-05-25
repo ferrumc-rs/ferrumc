@@ -27,7 +27,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     let global_state_res = GlobalStateResource(global_state.clone());
 
     let mut schedule = bevy_ecs::schedule::Schedule::default();
-    schedule.set_executor_kind(ExecutorKind::MultiThreaded);
+    schedule.set_executor_kind(ExecutorKind::SingleThreaded);
 
     register_events(&mut ecs_world);
     register_resources(&mut ecs_world, new_conn_recv, global_state_res);

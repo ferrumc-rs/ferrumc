@@ -9,7 +9,7 @@ pub struct SetDefaultSpawnPositionPacket {
     pub angle: f32,
 }
 
-pub const DEFAULT_SPAWN_POSITION: NetworkPosition = NetworkPosition { x: 0, y: 256, z: 0 };
+pub const DEFAULT_SPAWN_POSITION: NetworkPosition = NetworkPosition { x: 0, y: 100, z: 0 };
 
 const DEFAULT_ANGLE: f32 = 0.0;
 
