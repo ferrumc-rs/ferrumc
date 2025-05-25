@@ -27,12 +27,12 @@ mod systems;
 #[global_allocator]
 static ALLOC: dhat::Alloc = dhat::Alloc;
 
-fn kill_in_20() {
-    std::thread::spawn(move || {
-        std::thread::sleep(std::time::Duration::from_secs(20));
-        std::process::exit(1);
-    });
-}
+// fn kill_in_20() {
+//     std::thread::spawn(move || {
+//         std::thread::sleep(std::time::Duration::from_secs(20));
+//         std::process::exit(1);
+//     });
+// }
 
 fn main() {
     #[cfg(feature = "dhat")]
@@ -115,12 +115,13 @@ fn entry() -> Result<(), BinaryError> {
             global_state
                 .shut_down
                 .store(true, std::sync::atomic::Ordering::Relaxed);
-            global_state.world.sync().expect(
-                "Failed to sync world before shutdown",
-            )
+            global_state
+                .world
+                .sync()
+                .expect("Failed to sync world before shutdown")
         }
     })
-        .expect("Error setting Ctrl-C handler");
+    .expect("Error setting Ctrl-C handler");
 
     game_loop::start_game_loop(global_state.clone())?;
 

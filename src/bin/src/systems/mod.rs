@@ -21,9 +21,7 @@ pub fn register_game_systems(schedule: &mut bevy_ecs::schedule::Schedule) {
     schedule.add_systems(
         player_count_update::player_count_updater.before(connection_killer::connection_killer),
     );
-    schedule.add_systems(
-        world_sync::sync_world,
-    );
+    schedule.add_systems(world_sync::sync_world);
 
     // Should always be last
     schedule.add_systems(connection_killer::connection_killer);
