@@ -50,6 +50,13 @@ pub fn handle(
                     state.0.world.save_chunk(chunk.clone())?;
                     state.0.world.sync()?;
                     for (eid, conn, chunk_recv) in query {
+                        // If the player is the one who placed the block, send the BlockChangeAck packet
+                        if trigger_eid == eid {
+                            let ack_packet = BlockChangeAck {
+                                sequence: event.sequence.clone(),
+                            };
+                            conn.send_packet(ack_packet)?;
+                        }
                         // Don't send the block update packet if the player can't see the chunk
                         if chunk_recv.needs_reload.contains(&(
                             event.location.x >> 4,
@@ -63,15 +70,6 @@ pub fn handle(
                                 )),
                             };
                             conn.send_packet(block_update_packet)?;
-                        }
-
-                        // If the player is the one who placed the block, send the BlockChangeAck packet
-                        // We do this here to avoid locking the streamwriter multiple times
-                        if trigger_eid == eid {
-                            let ack_packet = BlockChangeAck {
-                                sequence: event.sequence.clone(),
-                            };
-                            conn.send_packet(ack_packet)?;
                         }
                     }
                 }
