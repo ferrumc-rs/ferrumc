@@ -73,10 +73,4 @@ pub fn handle(
             error!("Error handling player action: {:?}", res);
         }
     }
-
-    state
-        .0
-        .world
-        .sync()
-        .expect("Failed to sync world after handling player actions");
 }

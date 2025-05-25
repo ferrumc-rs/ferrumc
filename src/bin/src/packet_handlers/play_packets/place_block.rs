@@ -99,7 +99,6 @@ pub fn handle(
                     conn.send_packet(ack_packet)?;
 
                     state.0.world.save_chunk(chunk)?;
-                    state.0.world.sync()?;
                 }
                 1 => {
                     trace!("Offhand block placement not implemented");
