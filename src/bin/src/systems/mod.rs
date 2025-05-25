@@ -6,6 +6,7 @@ mod keep_alive_system;
 pub mod new_connections;
 mod player_count_update;
 pub mod send_chunks;
+mod world_sync;
 
 pub fn register_game_systems(schedule: &mut bevy_ecs::schedule::Schedule) {
     schedule.add_systems(
@@ -19,6 +20,9 @@ pub fn register_game_systems(schedule: &mut bevy_ecs::schedule::Schedule) {
     );
     schedule.add_systems(
         player_count_update::player_count_updater.before(connection_killer::connection_killer),
+    );
+    schedule.add_systems(
+        world_sync::sync_world,
     );
 
     // Should always be last
