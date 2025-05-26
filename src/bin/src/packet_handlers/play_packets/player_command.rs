@@ -21,9 +21,12 @@ pub fn handle(events: Res<PlayerCommandPacketReceiver>, query: Query<&StreamWrit
                 );
 
                 // TODO: Don't clone
-                for stream in query {
-                    if let Err(err) = stream.send_packet(packet.clone()) {
-                        error!("Failed to send packet: {:?}", err);
+                for conn in query {
+                    if !conn.running.load(std::sync::atomic::Ordering::Relaxed) {
+                        continue;
+                    }
+                    if let Err(err) = conn.send_packet(packet.clone()) {
+                        error!("Failed to send start sneaking packet: {:?}", err);
                     }
                 }
             }
@@ -31,9 +34,12 @@ pub fn handle(events: Res<PlayerCommandPacketReceiver>, query: Query<&StreamWrit
                 let packet =
                     EntityMetadataPacket::new(event.entity_id, [EntityMetadata::entity_standing()]);
 
-                for stream in query {
-                    if let Err(err) = stream.send_packet(packet.clone()) {
-                        error!("Failed to send packet: {:?}", err);
+                for conn in query {
+                    if !conn.running.load(std::sync::atomic::Ordering::Relaxed) {
+                        continue;
+                    }
+                    if let Err(err) = conn.send_packet(packet.clone()) {
+                        error!("Failed to send stop sneaking packet: {:?}", err);
                     }
                 }
             }

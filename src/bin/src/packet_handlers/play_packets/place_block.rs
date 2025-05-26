@@ -25,6 +25,10 @@ pub fn handle(
                 debug!("Could not get connection for entity {:?}", eid);
                 continue;
             };
+            if !conn.running.load(std::sync::atomic::Ordering::Relaxed) {
+                debug!("Connection for entity {:?} is not running", eid);
+                continue;
+            }
             match event.hand.0 {
                 0 => {
                     debug!("Placing block at {:?}", event.position);
@@ -71,12 +75,10 @@ pub fn handle(
                         trace!("Block placement collided with entity");
                         continue 'ev_loop;
                     }
-                    {
-                        let packet = BlockChangeAck {
-                            sequence: event.sequence.clone(),
-                        };
-                        conn.send_packet(packet)?;
-                    }
+                    let packet = BlockChangeAck {
+                        sequence: event.sequence.clone(),
+                    };
+                    conn.send_packet(packet)?;
                     let mut chunk = state.0.world.load_chunk(x >> 4, z >> 4, "overworld")?;
 
                     chunk.set_block(
@@ -97,7 +99,6 @@ pub fn handle(
                     conn.send_packet(ack_packet)?;
 
                     state.0.world.save_chunk(chunk)?;
-                    state.0.world.sync()?;
                 }
                 1 => {
                     trace!("Offhand block placement not implemented");

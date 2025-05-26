@@ -38,7 +38,7 @@ pub fn handle(
             // If they aren't underground, don't move them to spawn
             let head_block = state.0.world.get_block_and_fetch(
                 pos.x as i32,
-                pos.y as i32 - 1,
+                pos.y as i32 + 1,
                 pos.z as i32,
                 "overworld",
             )?;

@@ -8,7 +8,7 @@ use ferrumc_net_codec::decode::NetDecode;
 use ferrumc_state::GlobalState;
 use tokio::io::AsyncReadExt;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
-use tracing::{debug, error};
+use tracing::{error, trace};
 
 pub(super) async fn login(
     mut conn_read: &mut OwnedReadHalf,
@@ -74,7 +74,7 @@ pub(super) async fn login(
         )
         .await?;
 
-    debug!(
+    trace!(
         "Client information: {{ locale: {}, view_distance: {}, chat_mode: {}, chat_colors: {}, displayed_skin_parts: {} }}",
         client_info.locale,
         client_info.view_distance,
@@ -149,11 +149,6 @@ pub(super) async fn login(
     send_packet(conn_write, sync_player_pos).await?;
 
     // =============================================================================================
-
-    let len = VarInt::decode_async(&mut conn_read, &NetDecodeOpts::None).await?;
-    let id = VarInt::decode_async(&mut conn_read, &NetDecodeOpts::None).await?;
-    let mut buf = vec![0; len.0 as usize - id.len()];
-    conn_read.read_exact(&mut buf).await?;
 
     trim_packet_head(conn_read, 0x00).await?;
 

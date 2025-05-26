@@ -26,6 +26,9 @@ pub fn handle_player_move(
         let start = std::time::Instant::now();
 
         for writer in broadcast_query.iter() {
+            if !writer.running.load(std::sync::atomic::Ordering::Relaxed) {
+                continue;
+            }
             if let Err(err) = writer.send_packet(head_rot_packet.clone()) {
                 error!("Failed to send head rotation packet: {:?}", err);
             }

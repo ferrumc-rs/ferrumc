@@ -131,6 +131,10 @@ fn entry() -> Result<(), BinaryError> {
             global_state
                 .shut_down
                 .store(true, std::sync::atomic::Ordering::Relaxed);
+            global_state
+                .world
+                .sync()
+                .expect("Failed to sync world before shutdown")
         }
     })
         .expect("Error setting Ctrl-C handler");

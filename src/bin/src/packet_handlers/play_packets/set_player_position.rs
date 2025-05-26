@@ -118,6 +118,9 @@ fn update_pos_for_all(
     };
 
     for writer in conn_query.iter() {
+        if !writer.running.load(std::sync::atomic::Ordering::Relaxed) {
+            continue;
+        }
         writer.send_packet(packet.clone())?;
     }
 

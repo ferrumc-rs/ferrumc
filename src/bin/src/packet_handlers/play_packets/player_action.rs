@@ -1,6 +1,5 @@
 use crate::errors::BinaryError;
 use bevy_ecs::prelude::{Entity, Query, Res};
-use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::block_change_ack::BlockChangeAck;
 use ferrumc_net::packets::outgoing::block_update::BlockUpdate;
@@ -14,7 +13,7 @@ use tracing::{debug, error};
 pub fn handle(
     events: Res<PlayerActionReceiver>,
     state: Res<GlobalStateResource>,
-    query: Query<(Entity, &StreamWriter, &ChunkReceiver)>,
+    query: Query<(Entity, &StreamWriter)>,
 ) {
     if events.0.is_empty() {
         return;
@@ -36,38 +35,26 @@ pub fn handle(
                     )?;
                     debug!("Block: {:?}", block);
                     let (relative_x, relative_y, relative_z) = (
-                        event.location.x & 0xF,
+                        event.location.x.abs() % 16,
                         event.location.y as i32,
-                        event.location.z & 0xF,
+                        event.location.z.abs() % 16,
                     );
-                    chunk.set_block(
-                        relative_x & 0xf,
-                        relative_y,
-                        relative_z & 0xf,
-                        BlockData::default(),
-                    )?;
+                    chunk.set_block(relative_x, relative_y, relative_z, BlockData::default())?;
                     // Save the chunk to disk
                     state.0.world.save_chunk(chunk.clone())?;
-                    state.0.world.sync()?;
-                    for (eid, conn, chunk_recv) in query {
-                        // Don't send the block update packet if the player can't see the chunk
-                        if chunk_recv.needs_reload.contains(&(
-                            event.location.x >> 4,
-                            event.location.z >> 4,
-                            "overworld".to_string(),
-                        )) {
-                            let block_update_packet = BlockUpdate {
-                                location: event.location.clone(),
-                                block_id: VarInt::from(*BLOCK2ID.get(&BlockData::default()).expect(
-                                    "BlockData::default() should always have a corresponding block ID",
-                                )),
-                            };
-                            conn.send_packet(block_update_packet)?;
+                    for (eid, conn) in query {
+                        if !conn.running.load(std::sync::atomic::Ordering::Relaxed) {
+                            continue;
                         }
-
                         // If the player is the one who placed the block, send the BlockChangeAck packet
-                        // We do this here to avoid locking the streamwriter multiple times
-                        if trigger_eid == eid {
+                        let block_update_packet = BlockUpdate {
+                            location: event.location.clone(),
+                            block_id: VarInt::from(*BLOCK2ID.get(&BlockData::default()).expect(
+                                "BlockData::default() should always have a corresponding block ID",
+                            )),
+                        };
+                        conn.send_packet(block_update_packet)?;
+                        if eid == trigger_eid {
                             let ack_packet = BlockChangeAck {
                                 sequence: event.sequence.clone(),
                             };

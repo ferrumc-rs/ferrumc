@@ -14,6 +14,12 @@ pub fn keep_alive_system(
     let current_time = SystemTime::now();
 
     for (entity, mut keep_alive_tracker, stream_writer) in query {
+        if !stream_writer
+            .running
+            .load(std::sync::atomic::Ordering::Relaxed)
+        {
+            continue;
+        }
         // If it's been more than 15 seconds since the last keep alive packet was received, kill the connection
         let time_diff = current_time
             .duration_since(keep_alive_tracker.last_received_keep_alive)
