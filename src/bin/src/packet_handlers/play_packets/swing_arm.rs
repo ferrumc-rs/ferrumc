@@ -11,9 +11,6 @@ pub fn handle(
     query: Query<&PlayerIdentity>,
     conn_query: Query<(Entity, &StreamWriter)>,
 ) {
-    if events.0.is_empty() {
-        return;
-    }
     for (event, eid) in events.0.try_iter() {
         let animation = {
             if event.hand == 0 {

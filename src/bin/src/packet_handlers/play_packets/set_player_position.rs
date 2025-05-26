@@ -20,9 +20,6 @@ pub fn handle(
     pass_conn_query: Query<&StreamWriter>,
     mut cross_chunk_events: EventWriter<CrossChunkBoundaryEvent>,
 ) {
-    if events.0.is_empty() {
-        return;
-    }
     for (event, eid) in events.0.try_iter() {
         let new_rot = None::<Rotation>;
 

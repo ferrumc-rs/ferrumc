@@ -6,9 +6,6 @@ pub fn handle(
     events: Res<SetPlayerRotationPacketReceiver>,
     mut event_writer: EventWriter<TransformEvent>,
 ) {
-    if events.0.is_empty() {
-        return;
-    }
     for (event, eid) in events.0.try_iter() {
         let transform_event = TransformEvent::new(eid)
             .rotation((event.yaw, event.pitch).into())

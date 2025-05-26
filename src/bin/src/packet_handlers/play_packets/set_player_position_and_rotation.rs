@@ -6,9 +6,6 @@ pub fn handle(
     events: Res<SetPlayerPositionAndRotationPacketReceiver>,
     mut transform_event_writer: EventWriter<TransformEvent>,
 ) {
-    if events.0.is_empty() {
-        return;
-    }
     for (event, eid) in events.0.try_iter() {
         let transform_event = TransformEvent::new(eid)
             .position((event.x, event.feet_y, event.z).into())
