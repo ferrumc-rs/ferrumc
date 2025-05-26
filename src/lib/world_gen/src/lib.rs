@@ -37,8 +37,8 @@ impl WorldGenerator {
             Key::new(-0.5, -0.55, Interpolation::Linear),
             Key::new(-0.3, -0.2, Interpolation::Linear),
             Key::new(0.0, 0.0, Interpolation::Linear),
+            Key::new(0.3, 0.1, Interpolation::Linear),
             Key::new(0.4, 0.2, Interpolation::Linear),
-            Key::new(0.6, 0.6, Interpolation::Linear),
             Key::new(0.8, 0.75, Interpolation::Linear),
             end,
         ]);

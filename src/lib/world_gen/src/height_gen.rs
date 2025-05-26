@@ -24,7 +24,7 @@ impl WorldGenerator {
                 let height_scaler = self.spline.sample(height_scaler).expect(
                     "Failed to sample height from spline",
                 );
-                let height = (height_scaler * 50.0) as i32 + 40;
+                let height = (height_scaler * 50.0) as i32 + 25;
                 if height < min {
                     min = height;
                     min_section = (height >> 4) as i16;
