@@ -38,13 +38,11 @@ pub fn cross_chunk_boundary(
             })
             .collect();
         let center_chunk = (event.new_chunk.0, event.new_chunk.1);
-        let mut stream_writer = query.get_mut(event.player).unwrap();
-        send_chunks(
-            state.0.clone(),
-            needed_chunks,
-            &mut stream_writer,
-            center_chunk,
-        )
-        .expect("Failed to send chunks")
+        let mut conn = query.get_mut(event.player).expect("Player does not exist");
+        if !conn.running.load(std::sync::atomic::Ordering::Relaxed) {
+            continue;
+        }
+        send_chunks(state.0.clone(), needed_chunks, &mut conn, center_chunk)
+            .expect("Failed to send chunks")
     }
 }

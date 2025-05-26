@@ -22,6 +22,9 @@ pub fn handle(
             // If we upgrade to 1.21.5 there should be a packet for this
             let mut move_to_spawn = false;
             let (mut chunk_recv, pos, conn) = query.get_mut(eid)?;
+            if !conn.running.load(std::sync::atomic::Ordering::Relaxed) {
+                continue;
+            }
             chunk_recv.chunks_per_tick = event.chunks_per_tick;
             if !chunk_recv
                 .has_loaded
