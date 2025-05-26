@@ -30,13 +30,18 @@ impl WorldGenerator {
                 Clamp::new(noise).set_lower_bound(-1.0).set_upper_bound(1.0)
             })
             .collect::<Vec<_>>();
-        let start = Key::new(-1.0, -1.0, Interpolation::Linear);
-        let sea_level = Key::new(-0.8, -0.4, Interpolation::Linear);
-        let plains_base = Key::new(0.0, 0.0, Interpolation::Linear);
-        let plains_top = Key::new(0.4, 0.4, Interpolation::Linear);
-        let mountain = Key::new(0.5, 0.8, Interpolation::Linear);
-        let end = Key::new(1.0, 1.0, Interpolation::Linear);
-        let spline = Spline::from_vec(vec![start, sea_level, plains_base, plains_top, mountain, end]);
+        let start = Key::new(-1.0, -0.7, Interpolation::Linear);
+        let end = Key::new(1.0, 0.8, Interpolation::Linear);
+        let spline = Spline::from_vec(vec![
+            start,
+            Key::new(-0.5, -0.55, Interpolation::Linear),
+            Key::new(-0.3, -0.2, Interpolation::Linear),
+            Key::new(0.0, 0.0, Interpolation::Linear),
+            Key::new(0.4, 0.2, Interpolation::Linear),
+            Key::new(0.6, 0.6, Interpolation::Linear),
+            Key::new(0.8, 0.75, Interpolation::Linear),
+            end,
+        ]);
         Self {
             _seed: seed,
             noise_layers,
