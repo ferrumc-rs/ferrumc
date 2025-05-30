@@ -1,11 +1,11 @@
 use rusty_pool::JoinHandle;
+use std::cmp::max;
 use std::sync::Arc;
-use std::thread::ThreadId;
+use std::time::Duration;
 
 /// A thread pool for managing and executing tasks concurrently.
 pub struct ThreadPool {
     pool: Arc<rusty_pool::ThreadPool>,
-    starting_thread: ThreadId,
 }
 
 /// A batch of tasks to be executed in the thread pool.
@@ -14,7 +14,6 @@ pub struct ThreadPoolBatch<'a, R: Send + 'static> {
     pool: &'a Arc<rusty_pool::ThreadPool>,
     handles: Vec<JoinHandle<Box<R>>>,
     completed: bool,
-    starting_thread: ThreadId,
 }
 
 impl Default for ThreadPool {
@@ -27,12 +26,15 @@ impl Default for ThreadPool {
 impl ThreadPool {
     /// Creates a new `ThreadPool`.
     pub fn new() -> Self {
-        let pool = Arc::new(rusty_pool::ThreadPool::default());
-        let starting_thread = std::thread::current().id();
-        Self {
-            pool,
-            starting_thread,
-        }
+        // Use all but 3 cores for the thread pool. 1 core is for the main thread, 1 for the network thread and 1 for the control-c handler.
+        let core_count = max(1, num_cpus::get() as i32 - 3) as usize;
+        let pool = Arc::new(rusty_pool::ThreadPool::new_named(
+            "ferrumc_threadpool".to_string(),
+            core_count,
+            core_count,
+            Duration::from_secs(60),
+        ));
+        Self { pool }
     }
 
     /// Creates a new batch of tasks to be executed in the thread pool.
@@ -47,7 +49,6 @@ impl ThreadPool {
             pool: &self.pool,
             handles: vec![],
             completed: false,
-            starting_thread: self.starting_thread,
         }
     }
 
@@ -63,8 +64,12 @@ impl ThreadPool {
         F: FnOnce() -> R + Send + 'static,
         R: Send + 'static,
     {
-        if self.starting_thread != std::thread::current().id() {
-            panic!("Thread pool has been moved to a different thread");
+        if std::thread::current()
+            .name()
+            .unwrap()
+            .contains("ferrumc_threadpool")
+        {
+            panic!("Thread pool is trying to run a task on itself, this is not allowed");
         }
         let boxed = move || Box::new(func());
         let handle = self.pool.evaluate(boxed);
@@ -82,8 +87,12 @@ impl<'a, R: Send + 'static> ThreadPoolBatch<'a, R> {
     where
         F: FnOnce() -> R + Send + 'static,
     {
-        if self.starting_thread != std::thread::current().id() {
-            panic!("Thread pool has been moved to a different thread");
+        if std::thread::current()
+            .name()
+            .unwrap()
+            .contains("ferrumc_threadpool")
+        {
+            panic!("Thread pool is trying to run a task on itself, this is not allowed");
         }
         let boxed = move || Box::new(func());
         let handle = self.pool.evaluate(boxed);
