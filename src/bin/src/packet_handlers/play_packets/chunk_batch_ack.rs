@@ -42,7 +42,8 @@ pub fn handle(
                 pos.z as i32,
                 "overworld",
             )?;
-            if head_block.name == "minecraft:air" {
+            // Check if air
+            if head_block.0 == 0 {
                 move_to_spawn = false;
             }
             if move_to_spawn {

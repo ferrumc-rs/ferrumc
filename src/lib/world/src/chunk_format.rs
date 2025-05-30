@@ -1,22 +1,16 @@
-use crate::errors::WorldError::InvalidBlockStateData;
+use crate::block_id::{BlockId, BLOCK2ID};
 use crate::vanilla_chunk_format;
 use crate::vanilla_chunk_format::VanillaChunk;
 use crate::{errors::WorldError, vanilla_chunk_format::VanillaHeightmaps};
-use ahash::RandomState;
 use bitcode_derive::{Decode, Encode};
 use deepsize::DeepSizeOf;
 use ferrumc_general_purpose::data_packing::i32::read_nbit_i32;
 use ferrumc_macros::{NBTDeserialize, NBTSerialize};
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use lazy_static::lazy_static;
 use std::cmp::max;
-use std::collections::hash_map::Entry;
 use std::collections::HashMap;
-use std::io::Read;
-use std::process::exit;
-use tracing::{error, warn};
+use tracing::error;
 use vanilla_chunk_format::BlockData;
-
 // #[cfg(test)]
 // const BLOCKSFILE: &[u8] = &[0];
 
@@ -26,36 +20,7 @@ use vanilla_chunk_format::BlockData;
 // folder. This will generate the blockmappings.json file that is compressed with bzip2 and included
 // in the binary.
 // #[cfg(not(test))]
-const BLOCKSFILE: &[u8] = include_bytes!("../../../../.etc/blockmappings.bz2");
 
-lazy_static! {
-    pub static ref ID2BLOCK: Vec<BlockData> = {
-        let mut bzipreader = bzip2::read::BzDecoder::new(BLOCKSFILE);
-        let mut output = String::new();
-        bzipreader.read_to_string(&mut output).unwrap();
-        let string_keys: HashMap<String, BlockData, RandomState> =
-            serde_json::from_str(&output).unwrap();
-        if string_keys.len() != 26684 {
-            // Edit this number if the block mappings file changes
-            error!("Block mappings file is not the correct length");
-            exit(1);
-        }
-        let mut id2block = Vec::with_capacity(26684);
-        for _ in 0..26684 {
-            id2block.push(BlockData::default());
-        }
-        string_keys
-            .iter()
-            .map(|(k, v)| (k.parse::<i32>().unwrap(), v.clone()))
-            .for_each(|(k, v)| id2block[k as usize] = v);
-        id2block
-    };
-    pub static ref BLOCK2ID: HashMap<BlockData, i32, RandomState> = ID2BLOCK
-        .iter()
-        .enumerate()
-        .map(|(k, v)| (v.clone(), k as i32))
-        .collect();
-}
 
 #[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug)]
 // This is a placeholder for the actual chunk format
@@ -88,7 +53,7 @@ pub struct Section {
 pub struct BlockStates {
     pub non_air_blocks: u16,
     pub block_data: PaletteType,
-    pub block_counts: HashMap<BlockData, i32>,
+    pub block_counts: HashMap<BlockId, i32>,
 }
 
 #[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug)]
@@ -178,17 +143,17 @@ impl VanillaChunk {
                         }
                     };
 
-                    if let Some(count) = block_counts.get_mut(block) {
+                    if let Some(count) = block_counts.get_mut(&block.to_block_id()) {
                         *count += 1;
                     } else {
-                        block_counts.insert(block.clone(), 0);
+                        block_counts.insert(block.to_block_id(), 0);
                     }
 
                     i += bits_per_block;
                 }
             }
             let block_data = if raw_block_data.is_empty() {
-                block_counts.insert(BlockData::default(), 4096);
+                block_counts.insert(BlockId::default(), 4096);
                 PaletteType::Single(VarInt::from(0))
             } else {
                 PaletteType::Indirect {
@@ -198,18 +163,18 @@ impl VanillaChunk {
                 }
             };
             // Count the number of blocks that are either air, void air, or cave air
-            let mut air_blocks = *block_counts.get(&BlockData::default()).unwrap_or(&0) as u16;
+            let mut air_blocks = *block_counts.get(&BlockId::default()).unwrap_or(&0) as u16;
             air_blocks += *block_counts
                 .get(&BlockData {
                     name: "minecraft:void_air".to_string(),
                     properties: None,
-                })
+                }.to_block_id())
                 .unwrap_or(&0) as u16;
             air_blocks += *block_counts
                 .get(&BlockData {
                     name: "minecraft:cave_air".to_string(),
                     properties: None,
-                })
+                }.to_block_id())
                 .unwrap_or(&0) as u16;
             let non_air_blocks = 4096 - air_blocks;
             let block_states = BlockStates {
@@ -269,7 +234,7 @@ impl Chunk {
                 block_states: BlockStates {
                     non_air_blocks: 0,
                     block_data: PaletteType::Single(VarInt::from(0)),
-                    block_counts: HashMap::from([(BlockData::default(), 4096)]),
+                    block_counts: HashMap::from([(BlockId::default(), 4096)]),
                 },
                 biome_states: BiomeStates {
                     bits_per_biome: 0,
@@ -304,7 +269,7 @@ mod tests {
         let block = BlockData {
             name: "minecraft:stone".to_string(),
             properties: None,
-        };
+        }.to_block_id();
         chunk.set_block(0, 0, 0, block.clone()).unwrap();
         assert_eq!(chunk.get_block(0, 0, 0).unwrap(), block);
     }
@@ -319,7 +284,7 @@ mod tests {
         chunk.fill(stone_block.clone()).unwrap();
         for section in &chunk.sections {
             for (block, count) in &section.block_states.block_counts {
-                assert_eq!(*block, stone_block);
+                assert_eq!(*block, stone_block.to_block_id());
                 assert_eq!(count, &4096);
             }
         }
@@ -332,7 +297,7 @@ mod tests {
             block_states: BlockStates {
                 non_air_blocks: 0,
                 block_data: PaletteType::Single(VarInt::from(0)),
-                block_counts: HashMap::from([(BlockData::default(), 4096)]),
+                block_counts: HashMap::from([(BlockId::default(), 4096)]),
             },
             biome_states: BiomeStates {
                 bits_per_biome: 0,
@@ -352,7 +317,7 @@ mod tests {
             PaletteType::Single(VarInt::from(1))
         );
         assert_eq!(
-            section.block_states.block_counts.get(&stone_block).unwrap(),
+            section.block_states.block_counts.get(&stone_block.to_block_id()).unwrap(),
             &4096
         );
     }
@@ -363,7 +328,7 @@ mod tests {
         let block = BlockData {
             name: "minecraft:stone".to_string(),
             properties: None,
-        };
+        }.to_block_id();
         chunk.set_block(0, 0, 0, block.clone()).unwrap();
         assert_ne!(chunk.get_block(0, 1, 0).unwrap(), block);
     }

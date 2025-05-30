@@ -1,6 +1,6 @@
-use crate::chunk_format::{BiomeStates, BlockStates, Chunk, Heightmaps, PaletteType, Section, BLOCK2ID, ID2BLOCK};
+use crate::block_id::{BlockId, BLOCK2ID, ID2BLOCK};
+use crate::chunk_format::{BiomeStates, BlockStates, Chunk, Heightmaps, PaletteType, Section};
 use crate::errors::WorldError;
-use crate::errors::WorldError::InvalidBlockStateData;
 use crate::vanilla_chunk_format::BlockData;
 use crate::World;
 use ferrumc_general_purpose::data_packing::i32::read_nbit_i32;
@@ -37,7 +37,7 @@ impl World {
         y: i32,
         z: i32,
         dimension: &str,
-    ) -> Result<BlockData, WorldError> {
+    ) -> Result<BlockId, WorldError> {
         let chunk_x = x >> 4;
         let chunk_z = z >> 4;
         let chunk = self.load_chunk(chunk_x, chunk_z, dimension)?;
@@ -66,10 +66,11 @@ impl World {
         y: i32,
         z: i32,
         dimension: &str,
-        block: BlockData,
+        block: impl Into<BlockId>,
     ) -> Result<(), WorldError> {
-        if !BLOCK2ID.contains_key(&block) {
-            return Err(WorldError::InvalidBlock(block));
+        let block = block.into();
+        if ID2BLOCK.get(block.0 as usize).is_none() {
+            return Err(WorldError::InvalidBlockId(block.0));
         };
         // Get chunk
         let chunk_x = x >> 4;
@@ -131,7 +132,7 @@ impl BlockStates {
                             read_nbit_i32(long, *bits_per_block as usize, bit_offset as u32)?;
                         let max_int_value = (1 << new_bit_size) - 1;
                         if value > max_int_value {
-                            return Err(InvalidBlockStateData(format!(
+                            return Err(WorldError::InvalidBlockStateData(format!(
                                 "Value {value} exceeds maximum value for {new_bit_size}-bit block state"
                             )));
                         }
@@ -149,7 +150,7 @@ impl BlockStates {
 
                 // Check if we read exactly 4096 block states
                 if normalised_ints.len() != 4096 {
-                    return Err(InvalidBlockStateData(format!(
+                    return Err(WorldError::InvalidBlockStateData(format!(
                         "Expected 4096 block states, but got {}",
                         normalised_ints.len()
                     )));
@@ -179,7 +180,7 @@ impl BlockStates {
                 // Verify the size of the new data matches expectations
                 let expected_size = (4096 * new_bit_size).div_ceil(64);
                 if new_data.len() != expected_size {
-                    return Err(InvalidBlockStateData(format!(
+                    return Err(WorldError::InvalidBlockStateData(format!(
                         "Expected packed data size of {}, but got {}",
                         expected_size,
                         new_data.len()
@@ -227,8 +228,9 @@ impl Chunk {
         x: i32,
         y: i32,
         z: i32,
-        block: BlockData,
+        block: impl Into<BlockId>,
     ) -> Result<(), WorldError> {
+        let block = block.into();
         // Get old block
         let old_block = self.get_block(x, y, z)?;
         if old_block == block {
@@ -277,7 +279,22 @@ impl Chunk {
                     Entry::Occupied(mut occ_entry) => {
                         let count = occ_entry.get_mut();
                         if *count <= 0 {
-                            return Err(WorldError::InvalidBlock(old_block));
+                            return match old_block.to_block_data() {
+                                Some(block_data) => {
+                                    error!("Block count is zero for block: {:?}", block_data);
+                                    Err(WorldError::InvalidBlockStateData(format!(
+                                        "Block count is zero for block: {:?}",
+                                        block_data
+                                    )))
+                                }
+                                None => {
+                                    error!(
+                                        "Block count is zero for unknown block ID: {}",
+                                        old_block.0
+                                    );
+                                    Err(WorldError::InvalidBlockId(old_block.0))
+                                }
+                            };
                         }
                         *count -= 1;
                     }
@@ -286,9 +303,6 @@ impl Chunk {
                         empty_entry.insert(0);
                     }
                 }
-                let block_id = BLOCK2ID
-                    .get(&block)
-                    .ok_or(WorldError::InvalidBlock(block.clone()))?;
                 // Add new block
                 if let Some(e) = section.block_states.block_counts.get(&block) {
                     section.block_states.block_counts.insert(block, e + 1);
@@ -303,11 +317,11 @@ impl Chunk {
                 // Get block index
                 let block_palette_index = palette
                     .iter()
-                    .position(|p| p.0 == *block_id)
+                    .position(|p| *p == block.to_varint())
                     .unwrap_or_else(|| {
                         // Add block to palette if it doesn't exist
                         let index = palette.len() as i16;
-                        palette.push((*block_id).into());
+                        palette.push(block.to_varint());
                         index as usize
                     });
                 // Set block
@@ -315,11 +329,11 @@ impl Chunk {
                 let index =
                     ((y.abs() & 0xf) * 256 + (z.abs() & 0xf) * 16 + (x.abs() & 0xf)) as usize;
                 let i64_index = index / blocks_per_i64;
-                let packed_u64 = data
-                    .get_mut(i64_index)
-                    .ok_or(InvalidBlockStateData(format!(
-                        "Invalid block state data at index {i64_index}"
-                    )))?;
+                let packed_u64 =
+                    data.get_mut(i64_index)
+                        .ok_or(WorldError::InvalidBlockStateData(format!(
+                            "Invalid block state data at index {i64_index}"
+                        )))?;
                 let offset = (index % blocks_per_i64) * *bits_per_block as usize;
                 if let Err(e) = ferrumc_general_purpose::data_packing::u32::write_nbit_u32(
                     packed_u64,
@@ -327,7 +341,9 @@ impl Chunk {
                     block_palette_index as u32,
                     *bits_per_block,
                 ) {
-                    return Err(InvalidBlockStateData(format!("Failed to write block: {e}")));
+                    return Err(WorldError::InvalidBlockStateData(format!(
+                        "Failed to write block: {e}"
+                    )));
                 }
             }
             PaletteType::Direct { .. } => {
@@ -340,8 +356,8 @@ impl Chunk {
             .block_counts
             .iter()
             .filter(|(block, _)| {
-                !["minecraft:air", "minecraft:void_air", "minecraft:cave_air"]
-                    .contains(&block.name.as_str())
+                // Air, void air and cave air respectively
+                ![0, 12958, 12959].contains(&block.0)
             })
             .map(|(_, count)| *count as u16)
             .sum();
@@ -369,37 +385,30 @@ impl Chunk {
     /// The positions are modulo'd by 16 to get the block index in the section anyway, so converting
     /// the coordinates to section coordinates isn't really necessary, but you should probably do it
     /// anyway for readability's sake.
-    pub fn get_block(&self, x: i32, y: i32, z: i32) -> Result<BlockData, WorldError> {
+    pub fn get_block(&self, x: i32, y: i32, z: i32) -> Result<BlockId, WorldError> {
         let section = self
             .sections
             .iter()
             .find(|section| section.y == (y / 16) as i8)
             .ok_or(WorldError::SectionOutOfBounds(y >> 4))?;
         match &section.block_states.block_data {
-            PaletteType::Single(val) => {
-                let block_id = val.0;
-                ID2BLOCK
-                    .get(block_id as usize)
-                    .cloned()
-                    .ok_or(WorldError::ChunkNotFound)
-            }
+            PaletteType::Single(val) => Ok(BlockId::from_varint(*val)),
             PaletteType::Indirect {
                 bits_per_block,
                 data,
                 palette,
             } => {
                 if palette.len() == 1 || *bits_per_block == 0 {
-                    return ID2BLOCK
-                        .get(palette[0].0 as usize)
-                        .cloned()
-                        .ok_or(WorldError::ChunkNotFound);
+                    return Ok(BlockId::from_varint(palette[0]));
                 }
                 let blocks_per_i64 = (64f64 / *bits_per_block as f64).floor() as usize;
                 let index = ((y & 0xf) * 256 + (z & 0xf) * 16 + (x & 0xf)) as usize;
                 let i64_index = index / blocks_per_i64;
-                let packed_u64 = data.get(i64_index).ok_or(InvalidBlockStateData(format!(
-                    "Invalid block state data at index {i64_index}"
-                )))?;
+                let packed_u64 = data
+                    .get(i64_index)
+                    .ok_or(WorldError::InvalidBlockStateData(format!(
+                        "Invalid block state data at index {i64_index}"
+                    )))?;
                 let offset = (index % blocks_per_i64) * *bits_per_block as usize;
                 let id = ferrumc_general_purpose::data_packing::u32::read_nbit_u32(
                     packed_u64,
@@ -407,10 +416,7 @@ impl Chunk {
                     offset as u32,
                 )?;
                 let palette_id = palette.get(id as usize).ok_or(WorldError::ChunkNotFound)?;
-                Ok(crate::chunk_format::ID2BLOCK
-                    .get(palette_id.0 as usize)
-                    .unwrap_or(&BlockData::default())
-                    .clone())
+                Ok(BlockId::from_varint(*palette_id))
             }
             &PaletteType::Direct { .. } => todo!("Implement direct palette for get_block"),
         }
@@ -469,15 +475,12 @@ impl Section {
     ///
     /// * `Ok(())` - If the section was successfully filled.
     /// * `Err(WorldError)` - If an error occurs while filling the section.
-    pub fn fill(&mut self, block: BlockData) -> Result<(), WorldError> {
-        let block_id = BLOCK2ID
-            .get(&block)
-            .ok_or(WorldError::InvalidBlock(block.clone()))?;
-        self.block_states.block_data = PaletteType::Single(VarInt::from(*block_id));
+    pub fn fill(&mut self, block: impl Into<BlockId>) -> Result<(), WorldError> {
+        let block = block.into();
+        self.block_states.block_data = PaletteType::Single(block.to_varint());
         self.block_states.block_counts = HashMap::from([(block.clone(), 4096)]);
-        if ["minecraft:air", "minecraft:void_air", "minecraft:cave_air"]
-            .contains(&block.name.as_str())
-        {
+        // Air, void air and cave air respectively
+        if [0, 12958, 12959].contains(&block.0) {
             self.block_states.non_air_blocks = 0;
         } else {
             self.block_states.non_air_blocks = 4096;
@@ -505,14 +508,11 @@ impl Section {
                 let mut remove_indexes = Vec::new();
                 for (block, count) in &self.block_states.block_counts {
                     if *count <= 0 {
-                        let block_id = BLOCK2ID
-                            .get(block)
-                            .ok_or(WorldError::InvalidBlock(block.clone()))?;
-                        let index = palette.iter().position(|p| p.0 == *block_id);
+                        let index = palette.iter().position(|p| *p == block.to_varint());
                         if let Some(index) = index {
                             remove_indexes.push(index);
                         } else {
-                            return Err(WorldError::InvalidBlock(block.clone()));
+                            return Err(WorldError::InvalidBlockId(block.0));
                         }
                     }
                 }
@@ -543,10 +543,7 @@ impl Section {
                 {
                     // If there is only one block in the palette, convert to single block mode
                     if palette.len() == 1 {
-                        let block = ID2BLOCK
-                            .get(palette[0].0 as usize)
-                            .cloned()
-                            .unwrap_or(BlockData::default());
+                        let block = BlockId::from(palette[0]);
                         self.block_states.block_data = PaletteType::Single(palette[0].clone());
                         self.block_states.block_counts.clear();
                         self.block_states.block_counts.insert(block, 4096);

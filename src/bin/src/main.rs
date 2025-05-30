@@ -121,7 +121,7 @@ fn entry() -> Result<(), BinaryError> {
                 .expect("Failed to sync world before shutdown")
         }
     })
-    .expect("Error setting Ctrl-C handler");
+        .expect("Error setting Ctrl-C handler");
 
     game_loop::start_game_loop(global_state.clone())?;
 
@@ -133,7 +133,7 @@ fn handle_import(import_args: ImportArgs) -> Result<(), BinaryError> {
     info!("Importing world...");
 
     // let config = get_global_config();
-    let mut world = World::new();
+    let mut world = World::new(get_global_config().database.db_path.clone().into());
 
     let root_path = get_root_path();
     let mut import_path = root_path.join(import_args.import_path);
@@ -155,7 +155,7 @@ fn handle_import(import_args: ImportArgs) -> Result<(), BinaryError> {
 
 fn create_state() -> Result<ServerState, BinaryError> {
     Ok(ServerState {
-        world: World::new(),
+        world: World::new(get_global_config().database.db_path.clone().into()),
         terrain_generator: WorldGenerator::new(0),
         shut_down: false.into(),
         players: DashMap::default(),

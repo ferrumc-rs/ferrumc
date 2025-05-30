@@ -10,7 +10,7 @@ use tokio::io::AsyncRead;
 use tokio::io::AsyncWriteExt;
 use tokio::io::{AsyncReadExt, AsyncWrite};
 
-#[derive(Debug, Encode, Decode, Clone, DeepSizeOf, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Encode, Decode, Clone, DeepSizeOf, PartialEq, Eq, PartialOrd, Ord, Copy)]
 pub struct VarInt(pub i32);
 
 mod adapters {
