@@ -1,5 +1,5 @@
 use crate::block_id::{BlockId, BLOCK2ID, ID2BLOCK};
-use crate::chunk_format::{BiomeStates, BlockStates, Chunk, Heightmaps, PaletteType, Section};
+use crate::chunk_format::{BlockStates, Chunk, PaletteType, Section};
 use crate::errors::WorldError;
 use crate::vanilla_chunk_format::BlockData;
 use crate::World;
@@ -10,9 +10,9 @@ use std::collections::HashMap;
 use tracing::{debug, error, warn};
 
 impl World {
-    /// Asynchronously retrieves the block data at the specified coordinates in the given dimension.
+    /// Retrieves the block data at the specified coordinates in the given dimension.
     /// Under the hood, this function just fetches the chunk containing the block and then calls
-    /// [`crate::chunk_format::Chunk::get_block`] on it.
+    /// [`Chunk::get_block`] on it.
     ///
     /// # Arguments
     ///
@@ -44,9 +44,9 @@ impl World {
         chunk.get_block(x, y, z)
     }
 
-    /// Asynchronously sets the block data at the specified coordinates in the given dimension.
+    /// Sets the block data at the specified coordinates in the given dimension.
     /// Under the hood, this function just fetches the chunk containing the block and then calls
-    /// [`crate::chunk_format::Chunk::set_block`] on it.
+    /// [`Chunk::set_block`] on it.
     ///
     /// # Arguments
     ///
@@ -186,7 +186,7 @@ impl BlockStates {
                         new_data.len()
                     )));
                 }
-                // Update the chunk with the new packed data and bit size
+                // Update the chunk with the new packed data and a bit size
                 self.block_data = PaletteType::Indirect {
                     bits_per_block: new_bit_size as u8,
                     data: new_data,
@@ -255,7 +255,7 @@ impl Chunk {
             new_contents = PaletteType::Indirect {
                 bits_per_block: 4,
                 data: vec![0; 256],
-                palette: vec![val.clone()],
+                palette: vec![*val],
             };
             converted = true;
         }
@@ -275,7 +275,7 @@ impl Chunk {
                 palette,
             } => {
                 // debug!("Indirect mode");
-                match section.block_states.block_counts.entry(old_block.clone()) {
+                match section.block_states.block_counts.entry(old_block) {
                     Entry::Occupied(mut occ_entry) => {
                         let count = occ_entry.get_mut();
                         if *count <= 0 {
@@ -283,8 +283,7 @@ impl Chunk {
                                 Some(block_data) => {
                                     error!("Block count is zero for block: {:?}", block_data);
                                     Err(WorldError::InvalidBlockStateData(format!(
-                                        "Block count is zero for block: {:?}",
-                                        block_data
+                                        "Block count is zero for block: {block_data:?}"
                                     )))
                                 }
                                 None => {
@@ -478,7 +477,7 @@ impl Section {
     pub fn fill(&mut self, block: impl Into<BlockId>) -> Result<(), WorldError> {
         let block = block.into();
         self.block_states.block_data = PaletteType::Single(block.to_varint());
-        self.block_states.block_counts = HashMap::from([(block.clone(), 4096)]);
+        self.block_states.block_counts = HashMap::from([(block, 4096)]);
         // Air, void air and cave air respectively
         if [0, 12958, 12959].contains(&block.0) {
             self.block_states.non_air_blocks = 0;
@@ -544,7 +543,7 @@ impl Section {
                     // If there is only one block in the palette, convert to single block mode
                     if palette.len() == 1 {
                         let block = BlockId::from(palette[0]);
-                        self.block_states.block_data = PaletteType::Single(palette[0].clone());
+                        self.block_states.block_data = PaletteType::Single(palette[0]);
                         self.block_states.block_counts.clear();
                         self.block_states.block_counts.insert(block, 4096);
                     }

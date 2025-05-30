@@ -2,14 +2,14 @@ use crate::errors::StorageError;
 use heed;
 use heed::byteorder::BigEndian;
 use heed::types::{Bytes, U128};
-use heed::{Database, Env, EnvOpenOptions, Error};
+use heed::{Database, Env, EnvOpenOptions, Error, WithoutTls};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
 
 #[derive(Debug, Clone)]
 pub struct LmdbBackend {
-    env: Arc<Env>,
+    env: Arc<Env<WithoutTls>>,
 }
 
 impl From<Error> for StorageError {
@@ -46,7 +46,8 @@ impl LmdbBackend {
         unsafe {
             let backend = LmdbBackend {
                 env: Arc::new(
-                    EnvOpenOptions::new()
+                    EnvOpenOptions::new().
+                        read_txn_without_tls()
                         // Change this as more tables are needed.
                         .max_dbs(2)
                         .map_size(rounded_map_size)

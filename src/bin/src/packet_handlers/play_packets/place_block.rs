@@ -29,11 +29,21 @@ pub fn handle(
             match event.hand.0 {
                 0 => {
                     debug!("Placing block at {:?}", event.position);
-                    let block_clicked = state.0.clone().world.get_block_and_fetch(
+                    let mut chunk = match state.0.world.load_chunk(
+                        event.position.x >> 4,
+                        event.position.z >> 4,
+                        "overworld",
+                    ) {
+                        Ok(chunk) => chunk,
+                        Err(e) => {
+                            debug!("Failed to load chunk: {:?}", e);
+                            continue 'ev_loop;
+                        }
+                    };
+                    let block_clicked = chunk.get_block(
                         event.position.x,
                         event.position.y as i32,
                         event.position.z,
-                        "overworld",
                     )?;
                     trace!("Block clicked: {:?}", block_clicked);
                     // Use the face to determine the offset of the block to place
@@ -73,10 +83,9 @@ pub fn handle(
                         continue 'ev_loop;
                     }
                     let packet = BlockChangeAck {
-                        sequence: event.sequence.clone(),
+                        sequence: event.sequence,
                     };
                     conn.send_packet(packet)?;
-                    let mut chunk = state.0.world.load_chunk(x >> 4, z >> 4, "overworld")?;
 
                     chunk.set_block(
                         x & 0xF,
@@ -88,7 +97,7 @@ pub fn handle(
                         },
                     )?;
                     let ack_packet = BlockChangeAck {
-                        sequence: event.sequence.clone(),
+                        sequence: event.sequence,
                     };
                     // Make this use the much more efficient block change packet
                     let chunk_packet = ChunkAndLightData::from_chunk(&chunk)?;

@@ -7,7 +7,8 @@ use ferrumc_net::packets::outgoing::chunk_batch_start::ChunkBatchStart;
 use ferrumc_net::packets::outgoing::set_center_chunk::SetCenterChunk;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalState;
-use tracing::trace;
+use ferrumc_world_gen::errors::WorldGenError::WorldError;
+use tracing::{error, trace};
 
 pub fn send_chunks(
     state: GlobalState,
@@ -33,25 +34,43 @@ pub fn send_chunks(
 
     let mut chunks_sent = 0;
 
+    let mut batch = state.thread_pool.batch();
+
     for (x, z, dim) in chunk_coords {
-        let chunk = if state.world.chunk_exists(x, z, &dim)? {
-            state.world.load_chunk(x, z, &dim)?
-        } else {
-            trace!("Generating chunk {}x{} in dimension {}", x, z, dim);
-            let generated_chunk = state.terrain_generator.generate_chunk(x, z)?;
-            // TODO: Remove this clone
-            state.world.save_chunk(generated_chunk.clone())?;
-            generated_chunk
-        };
-        assert_eq!(chunk.x, x);
-        assert_eq!(chunk.z, z);
-        let packet = ChunkAndLightData::from_chunk(&chunk)?;
-        conn.send_packet(packet)?;
-        // This never actually gets emptied out so if someone goes to enough new chunks and doesn't
-        // leave the server, this will eventually run out of memory. Should probably be fixed.
-        // recv.seen.insert((x, z, dim.clone()));
-        // recv.needs_reload.remove(&(x, z, dim));
-        chunks_sent += 1;
+        let state_clone = state.clone();
+        batch.execute(move || {
+            let chunk = if state_clone.world.chunk_exists(x, z, &dim).unwrap_or(false) {
+                state_clone
+                    .world
+                    .load_chunk(x, z, &dim)
+                    .map_err(WorldError)?
+            } else {
+                trace!("Generating chunk {}x{} in dimension {}", x, z, dim);
+                // Don't bother saving the chunk if it hasn't been edited yet
+                state_clone.terrain_generator.generate_chunk(x, z)?
+            };
+            Ok((ChunkAndLightData::from_chunk(&chunk), x, z))
+        })
+    }
+
+    let packets = batch.wait();
+
+    for packet in packets {
+        match packet {
+            Ok((packet, x, z)) => {
+                trace!("Sending chunk data for chunk at coordinates ({}, {})", x, z);
+                conn.send_packet(packet?)?;
+                chunks_sent += 1;
+            }
+            Err(WorldError(e)) => {
+                error!("Failed to generate or load chunk: {:?}", e);
+                continue;
+            }
+            Err(e) => {
+                error!("Unexpected error while processing chunk: {:?}", e);
+                continue;
+            }
+        }
     }
 
     let batch_end_packet = ChunkBatchFinish {
