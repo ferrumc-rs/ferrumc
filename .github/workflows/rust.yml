@@ -135,4 +135,4 @@ jobs:
         with:
           targets: ${{ matrix.target }}
       - name: Run Tests
-        run: cargo nextest run --target ${{ matrix.target }} --all-targets --all-features
+        run: cargo nextest run --target ${{ matrix.target }} --all-targets --all-features -E "not kind(bench)"
