@@ -10,6 +10,7 @@ use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalState;
+use ferrumc_text::{ComponentBuilder, NamedColor, TextComponent};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tracing::{error, trace};
@@ -65,7 +66,7 @@ pub async fn handle_handshake(
     trim_packet_head(conn_read, 0x00).await?;
 
     // Get incoming handshake packet
-    let hs_packet = Handshake::decode_async(&mut conn_read, &NetDecodeOpts::None).await?;    // Check protocol version and send appropriate disconnect packet if mismatched
+    let hs_packet = Handshake::decode_async(&mut conn_read, &NetDecodeOpts::None).await?; // Check protocol version and send appropriate disconnect packet if mismatched
 
     if hs_packet.protocol_version.0 != PROTOCOL_VERSION_1_21_1 {
         trace!(
@@ -106,34 +107,33 @@ async fn handle_version_mismatch(
             // Status request - handle gracefully by proceeding to status
             // Status response will show the correct version
             trace!(
-                    "Protocol version mismatch during status request: {} != {}",
-                    hs_packet.protocol_version.0,
-                    PROTOCOL_VERSION_1_21_1
-                );
+                "Protocol version mismatch during status request: {} != {}",
+                hs_packet.protocol_version.0,
+                PROTOCOL_VERSION_1_21_1
+            );
             status(conn_read, conn_write, state)
                 .await
                 .map(|_| (true, None))
-        }
-        // If it was login, we need to send a login disconnect packet with a specific message
+        } // If it was login, we need to send a login disconnect packet with a specific message
         2 => {
             // Login request - send login disconnect packet
-            let disconnect_reason = format!(
-                "Incompatible protocol version. Server supports protocol: {} (Minecraft 1.21.1), but client uses protocol {}.",
-                PROTOCOL_VERSION_1_21_1,
-                hs_packet.protocol_version.0
-            );
 
-            let login_disconnect = crate::packets::outgoing::login_disconnect::LoginDisconnectPacket::new(disconnect_reason.as_str());
+            let disconnect_reason = get_mismatched_version_message(hs_packet.protocol_version.0);
+
+            let login_disconnect =
+                crate::packets::outgoing::login_disconnect::LoginDisconnectPacket::new(
+                    disconnect_reason,
+                );
 
             if let Err(send_err) = send_packet(conn_write, login_disconnect).await {
                 error!("Failed to send login disconnect packet {:?}", send_err);
             }
 
             trace!(
-                    "Sent login disconnect due to protocol version mismatch: {} != {}",
-                    hs_packet.protocol_version.0,
-                    PROTOCOL_VERSION_1_21_1
-                );
+                "Sent login disconnect due to protocol version mismatch: {} != {}",
+                hs_packet.protocol_version.0,
+                PROTOCOL_VERSION_1_21_1
+            );
 
             Err(NetError::MismatchedProtocolVersion(
                 hs_packet.protocol_version.0,
@@ -148,4 +148,47 @@ async fn handle_version_mismatch(
             ))
         }
     }
+}
+
+/// Generates a disconnect message for clients with mismatched protocol versions.
+/// Format:
+/// ```text
+/// Your client is outdated!
+/// Please use Minecraft version 1.21.1 to connect to this server.
+/// Server Version: 767 | Your Version: 47
+///```
+fn get_mismatched_version_message(
+    client_version: i32,
+) -> TextComponent {
+    ComponentBuilder::text("")
+        .color(NamedColor::Yellow)
+        .extra(
+            ComponentBuilder::text("Your client is outdated!")
+                .color(NamedColor::Red)
+                .bold(),
+        )
+        .extra(ComponentBuilder::text("\n\n"))
+        .extra(
+            ComponentBuilder::text("Please use Minecraft version ").color(NamedColor::Gray),
+        )
+        .extra(
+            ComponentBuilder::text("1.21.1")
+                .color(NamedColor::Green)
+                .bold(),
+        )
+        .extra(
+            ComponentBuilder::text(" to connect to this server.").color(NamedColor::Gray),
+        )
+        .extra(ComponentBuilder::text("\n\n"))
+        .extra(ComponentBuilder::text("Server Version: ").color(NamedColor::DarkGray))
+        .extra(
+            ComponentBuilder::text(PROTOCOL_VERSION_1_21_1.to_string())
+                .color(NamedColor::Aqua),
+        )
+        .extra(ComponentBuilder::text(" | Your Version: ").color(NamedColor::DarkGray))
+        .extra(
+            ComponentBuilder::text(client_version.to_string())
+                .color(NamedColor::Red),
+        )
+    .build()
 }

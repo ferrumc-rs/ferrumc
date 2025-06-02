@@ -10,7 +10,6 @@ pub struct LoginDisconnectPacket{
 
 impl LoginDisconnectPacket {
     pub fn new(reason: impl Into<TextComponent>) -> Self {
-        let reason = reason.into().to_string();
-        Self { reason }
+        Self { reason: reason.into().to_string() }
     }
 }
