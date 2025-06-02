@@ -110,7 +110,7 @@ ferrumc-world-gen = { path = "src/lib/world_gen" }
 ferrumc-threadpool = { path = "src/lib/utils/threadpool" }
 
 # Asynchronous
-tokio = { version = "1.45.0", features = ["full"] }
+tokio = { version = "1.45.1", features = ["full"] }
 
 # Logging
 tracing = "0.1.41"
@@ -120,14 +120,14 @@ log = "0.4.27"
 console-subscriber = "0.4.1"
 
 # Concurrency/Parallelism
-parking_lot = "0.12.3"
+parking_lot = "0.12.4"
 rayon = "1.10.0"
 crossbeam-channel = "0.5.15"
 rusty_pool = "0.7.0"
 crossbeam-queue = "0.3.12"
 
 # Network
-reqwest = { version = "0.12.15", features = ["json"] }
+reqwest = { version = "0.12.19", features = ["json"] }
 ureq = "3.0.11"
 
 # Error handling
@@ -136,8 +136,8 @@ thiserror = "2.0.12"
 # Cryptography
 rand = "0.9.1"
 fnv = "1.0.7"
-wyhash = "0.5.0"
-ahash = "0.8.11"
+wyhash = "0.6.0"
+ahash = "0.8.12"
 
 # Encoding/Serialization
 serde = { version = "1.0.219", features = ["derive"] }
@@ -153,7 +153,7 @@ byteorder = "1.5.0"
 
 # Data types
 dashmap = "7.0.0-rc2"
-uuid = { version = "1.16.0", features = ["v4", "v3", "serde"] }
+uuid = { version = "1.17.0", features = ["v4", "v3", "serde"] }
 
 # Macros
 lazy_static = "1.5.0"
@@ -163,7 +163,7 @@ proc-macro2 = "1.0.95"
 proc-macro-crate = "3.3.0"
 paste = "1.0.15"
 maplit = "1.0.2"
-macro_rules_attribute = "0.2.0"
+macro_rules_attribute = "0.2.2"
 enum_delegate = "0.2.0"
 
 # Magic
@@ -184,7 +184,7 @@ heed = "0.22.0"
 moka = "0.12.10"
 
 # CLI
-clap = "4.5.38"
+clap = "4.5.39"
 indicatif = "0.17.11"
 colored = "3.0.0"
 
@@ -195,9 +195,9 @@ enum-ordinalize = "4.3.0"
 regex = "1.11.1"
 noise = "0.9.0"
 ctrlc = "3.4.7"
-num_cpus = "1.16.0"
+num_cpus = "1.17.0"
 typename = "0.1.2"
-bevy_ecs = { version = "0.16.0", features = ["multi_threaded", "trace"] }
+bevy_ecs = { version = "0.16.1", features = ["multi_threaded", "trace"] }
 
 # I/O
 memmap2 = "0.9.5"
