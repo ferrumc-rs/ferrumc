@@ -1,3 +1,4 @@
+pub mod block_id;
 pub mod chunk_format;
 mod db_functions;
 pub mod edit_batch;
@@ -80,24 +81,18 @@ fn check_config_validity() -> Result<(), WorldError> {
     Ok(())
 }
 
-impl Default for World {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl World {
     /// Creates a new world instance.
     ///
     /// You'd probably want to call this at the start of your program. And then use the returned
     /// in a state struct or something.
-    pub fn new() -> Self {
+    pub fn new(backend_path: PathBuf) -> Self {
         if let Err(e) = check_config_validity() {
             error!("Fatal error in database config: {}", e);
             exit(1);
         }
+        let mut backend_path = backend_path;
         // Clones are kinda ok here since this is only run once at startup.
-        let mut backend_path = PathBuf::from(get_global_config().database.db_path.clone());
         if backend_path.is_relative() {
             backend_path = get_root_path().join(backend_path);
         }
@@ -161,5 +156,26 @@ impl World {
             compressor: compression_algo,
             cache,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[ignore]
+    fn dump_chunk() {
+        let world = World::new(
+            std::env::current_dir()
+                .unwrap()
+                .join("../../../target/debug/world"),
+        );
+        let chunk = world.load_chunk(1, 1, "overworld").expect(
+            "Failed to load chunk. If it's a bitcode error, chances are the chunk format \
+             has changed since last generating a world so you'll need to regenerate",
+        );
+        let encoded = bitcode::encode(&chunk);
+        std::fs::write("../../../.etc/raw_chunk.dat", encoded).unwrap();
     }
 }

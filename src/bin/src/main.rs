@@ -6,11 +6,11 @@ use ferrumc_config::statics::get_global_config;
 use ferrumc_config::whitelist::create_whitelist;
 use ferrumc_general_purpose::paths::get_root_path;
 use ferrumc_state::{GlobalState, ServerState};
-use ferrumc_world::chunk_format::Chunk;
+use ferrumc_threadpool::ThreadPool;
 use ferrumc_world::World;
-use ferrumc_world_gen::errors::WorldGenError;
 use ferrumc_world_gen::WorldGenerator;
 use std::sync::Arc;
+use std::time::Instant;
 use tracing::{error, info};
 
 pub(crate) mod errors;
@@ -76,27 +76,30 @@ fn generate_chunks(state: GlobalState) -> Result<(), BinaryError> {
     info!("No overworld spawn chunk found, generating spawn chunks...");
     // Generate a 12x12 chunk area around the spawn point
     let mut chunks = Vec::new();
+    let start = Instant::now();
     let radius = get_global_config().chunk_render_distance as i32;
     for x in -radius..=radius {
         for z in -radius..=radius {
             chunks.push((x, z));
         }
     }
-    let generated_chunks: Vec<Result<Chunk, WorldGenError>> = chunks
-        .iter()
-        .map(|(x, z)| {
-            let state = state.clone();
-            state.terrain_generator.generate_chunk(*x, *z)
-        })
-        .collect();
-    for chunk in generated_chunks {
-        let chunk = chunk.map_err(|e| {
-            error!("Error generating chunk: {:?}", e);
-            BinaryError::Custom("Error generating chunk".to_string())
-        })?;
-        state.world.save_chunk(chunk)?;
+    let mut batch = state.thread_pool.batch();
+    for (x, z) in chunks {
+        let state_clone = state.clone();
+        batch.execute(move || {
+            let chunk = state_clone.terrain_generator.generate_chunk(x, z);
+            if let Err(e) = chunk {
+                error!("Error generating chunk ({}, {}): {:?}", x, z, e);
+            } else {
+                let chunk = chunk.unwrap();
+                if let Err(e) = state_clone.world.save_chunk(chunk) {
+                    error!("Error saving chunk ({}, {}): {:?}", x, z, e);
+                }
+            }
+        });
     }
-    info!("Finished generating spawn chunks...");
+    batch.wait();
+    info!("Finished generating spawn chunks in {:?}", start.elapsed());
     Ok(())
 }
 
@@ -133,7 +136,7 @@ fn handle_import(import_args: ImportArgs) -> Result<(), BinaryError> {
     info!("Importing world...");
 
     // let config = get_global_config();
-    let mut world = World::new();
+    let mut world = World::new(get_global_config().database.db_path.clone().into());
 
     let root_path = get_root_path();
     let mut import_path = root_path.join(import_args.import_path);
@@ -155,9 +158,10 @@ fn handle_import(import_args: ImportArgs) -> Result<(), BinaryError> {
 
 fn create_state() -> Result<ServerState, BinaryError> {
     Ok(ServerState {
-        world: World::new(),
+        world: World::new(get_global_config().database.db_path.clone().into()),
         terrain_generator: WorldGenerator::new(0),
         shut_down: false.into(),
         players: DashMap::default(),
+        thread_pool: ThreadPool::new(),
     })
 }
