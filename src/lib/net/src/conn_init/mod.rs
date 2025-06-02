@@ -157,9 +157,7 @@ async fn handle_version_mismatch(
 /// Please use Minecraft version 1.21.1 to connect to this server.
 /// Server Version: 767 | Your Version: 47
 ///```
-fn get_mismatched_version_message(
-    client_version: i32,
-) -> TextComponent {
+fn get_mismatched_version_message(client_version: i32) -> TextComponent {
     ComponentBuilder::text("")
         .color(NamedColor::Yellow)
         .extra(
@@ -168,27 +166,17 @@ fn get_mismatched_version_message(
                 .bold(),
         )
         .extra(ComponentBuilder::text("\n\n"))
-        .extra(
-            ComponentBuilder::text("Please use Minecraft version ").color(NamedColor::Gray),
-        )
+        .extra(ComponentBuilder::text("Please use Minecraft version ").color(NamedColor::Gray))
         .extra(
             ComponentBuilder::text("1.21.1")
                 .color(NamedColor::Green)
                 .bold(),
         )
-        .extra(
-            ComponentBuilder::text(" to connect to this server.").color(NamedColor::Gray),
-        )
+        .extra(ComponentBuilder::text(" to connect to this server.").color(NamedColor::Gray))
         .extra(ComponentBuilder::text("\n\n"))
         .extra(ComponentBuilder::text("Server Version: ").color(NamedColor::DarkGray))
-        .extra(
-            ComponentBuilder::text(PROTOCOL_VERSION_1_21_1.to_string())
-                .color(NamedColor::Aqua),
-        )
+        .extra(ComponentBuilder::text(PROTOCOL_VERSION_1_21_1.to_string()).color(NamedColor::Aqua))
         .extra(ComponentBuilder::text(" | Your Version: ").color(NamedColor::DarkGray))
-        .extra(
-            ComponentBuilder::text(client_version.to_string())
-                .color(NamedColor::Red),
-        )
-    .build()
+        .extra(ComponentBuilder::text(client_version.to_string()).color(NamedColor::Red))
+        .build()
 }

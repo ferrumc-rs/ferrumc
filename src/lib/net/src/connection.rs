@@ -124,7 +124,8 @@ pub async fn handle_connection(
             Ok((true, _)) => {
                 trace!("Handshake successful, killing connection");
                 return Ok(());
-            }            Err(err) => {
+            }
+            Err(err) => {
                 match &err {
                     NetError::MismatchedProtocolVersion(client_version, server_version) => {
                         warn!(
