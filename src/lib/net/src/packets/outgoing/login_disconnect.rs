@@ -1,14 +1,17 @@
 use ferrumc_macros::{packet, NetEncode};
+use ferrumc_text::TextComponent;
 use std::io::Write;
 
 #[derive(NetEncode)]
 #[packet(packet_id = "login_disconnect", state = "login")]
-pub struct LoginDisconnectPacket<'a> {
-    pub reason: &'a str,
+pub struct LoginDisconnectPacket {
+    pub reason: String,
 }
 
-impl<'a> LoginDisconnectPacket<'a> {
-    pub fn new(reason: &'a str) -> Self {
-        Self { reason }
+impl LoginDisconnectPacket {
+    pub fn new(reason: impl Into<TextComponent>) -> Self {
+        Self {
+            reason: reason.into().to_string(),
+        }
     }
 }

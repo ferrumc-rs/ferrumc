@@ -126,7 +126,20 @@ pub async fn handle_connection(
                 return Ok(());
             }
             Err(err) => {
-                error!("Handshake error: {:?}", err);
+                match &err {
+                    NetError::MismatchedProtocolVersion(client_version, server_version) => {
+                        warn!(
+                            "Client connected with incompatible protocol version {} (server supports {})",
+                            client_version, server_version
+                        );
+                    }
+                    NetError::InvalidState(state) => {
+                        warn!("Client sent invalid handshake state: {}", state);
+                    }
+                    _ => {
+                        error!("Handshake error: {:?}", err);
+                    }
+                }
                 return Err(err);
             }
         },
