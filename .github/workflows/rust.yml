@@ -95,12 +95,12 @@ jobs:
           key: ${{ runner.os }}-rust-nightly-${{ hashFiles('rust-toolchain.toml') }}
           restore-keys: |
             ${{ runner.os }}-rust-nightly-
-      - name: Install cargo-binstall
-        run: curl -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall.sh | bash
-      - name: Install and Run Cargo Audit
-        run: |
-          cargo binstall --no-confirm cargo-audit
-          cargo audit
+      - name: Install cargo-audit
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-audit
+      - name: Run Cargo Audit
+        run: cargo audit
 
   test:
     name: Run Tests
@@ -126,10 +126,10 @@ jobs:
           key: ${{ runner.os }}-rust-nightly-${{ hashFiles('rust-toolchain.toml') }}
           restore-keys: |
             ${{ runner.os }}-rust-nightly-
-      - name: Install cargo-binstall
-        run: curl -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall.sh | bash
-      - name: Install nextest
-        run: cargo binstall --no-confirm cargo-nextest
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest
       - name: Install Rust nightly
         uses: dtolnay/rust-toolchain@nightly
         with:
