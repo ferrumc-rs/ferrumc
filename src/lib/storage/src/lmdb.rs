@@ -2,22 +2,23 @@ use crate::errors::StorageError;
 use heed;
 use heed::byteorder::BigEndian;
 use heed::types::{Bytes, U128};
-use heed::{Database, Env, EnvOpenOptions, Error, WithoutTls};
+use heed::{Database, Env, EnvOpenOptions, WithoutTls};
+use parking_lot::Mutex;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
 
 #[derive(Debug, Clone)]
 pub struct LmdbBackend {
-    env: Arc<Env<WithoutTls>>,
+    env: Arc<Mutex<Env<WithoutTls>>>,
 }
 
-impl From<Error> for StorageError {
+impl From<heed::Error> for StorageError {
     fn from(err: heed::Error) -> Self {
         match err {
-            Error::Io(e) => StorageError::GenericIoError(e),
-            Error::Encoding(e) => StorageError::WriteError(e.to_string()),
-            Error::Decoding(e) => StorageError::ReadError(e.to_string()),
+            heed::Error::Io(e) => StorageError::GenericIoError(e),
+            heed::Error::Encoding(e) => StorageError::WriteError(e.to_string()),
+            heed::Error::Decoding(e) => StorageError::ReadError(e.to_string()),
             _ => StorageError::DatabaseError(err.to_string()),
         }
     }
@@ -45,22 +46,22 @@ impl LmdbBackend {
             * page_size::get() as f64) as usize;
         unsafe {
             let backend = LmdbBackend {
-                env: Arc::new(
-                    EnvOpenOptions::new().
-                        read_txn_without_tls()
+                env: Arc::new(Mutex::new(
+                    EnvOpenOptions::new()
+                        .read_txn_without_tls()
                         // Change this as more tables are needed.
                         .max_dbs(2)
                         .map_size(rounded_map_size)
                         .open(checked_path)
                         .map_err(|e| StorageError::DatabaseInitError(e.to_string()))?,
-                ),
+                )),
             };
             Ok(backend)
         }
     }
 
     pub fn insert(&self, table: String, key: u128, value: Vec<u8>) -> Result<(), StorageError> {
-        let env = self.env.clone();
+        let env = self.env.lock();
         let mut rw_txn = env.write_txn()?;
         let db: Database<U128<BigEndian>, Bytes> =
             env.create_database(&mut rw_txn, Some(&table))?;
@@ -73,11 +74,11 @@ impl LmdbBackend {
     }
 
     pub fn get(&self, table: String, key: u128) -> Result<Option<Vec<u8>>, StorageError> {
-        let ro_txn = self.env.read_txn()?;
-        let db: Database<U128<BigEndian>, Bytes> =
-            self.env
-                .open_database(&ro_txn, Some(&table))?
-                .ok_or(StorageError::TableError("Table not found".to_string()))?;
+        let env = self.env.lock();
+        let ro_txn = env.read_txn()?;
+        let db: Database<U128<BigEndian>, Bytes> = env
+            .open_database(&ro_txn, Some(&table))?
+            .ok_or(StorageError::TableError("Table not found".to_string()))?;
         let value = db.get(&ro_txn, &key)?;
         if let Some(v) = value {
             Ok(Some(v.to_vec()))
@@ -87,11 +88,11 @@ impl LmdbBackend {
     }
 
     pub fn delete(&self, table: String, key: u128) -> Result<(), StorageError> {
-        let mut rw_txn = self.env.write_txn()?;
-        let db: Database<U128<BigEndian>, Bytes> =
-            self.env
-                .open_database(&rw_txn, Some(&table))?
-                .ok_or(StorageError::TableError("Table not found".to_string()))?;
+        let env = self.env.lock();
+        let mut rw_txn = env.write_txn()?;
+        let db: Database<U128<BigEndian>, Bytes> = env
+            .open_database(&rw_txn, Some(&table))?
+            .ok_or(StorageError::TableError("Table not found".to_string()))?;
         if db.get(&rw_txn, &key)?.is_none() {
             return Err(StorageError::KeyNotFound(key as u64));
         }
@@ -101,11 +102,11 @@ impl LmdbBackend {
     }
 
     pub fn update(&self, table: String, key: u128, value: Vec<u8>) -> Result<(), StorageError> {
-        let mut rw_txn = self.env.write_txn()?;
-        let db: Database<U128<BigEndian>, Bytes> =
-            self.env
-                .open_database(&rw_txn, Some(&table))?
-                .ok_or(StorageError::TableError("Table not found".to_string()))?;
+        let env = self.env.lock();
+        let mut rw_txn = env.write_txn()?;
+        let db: Database<U128<BigEndian>, Bytes> = env
+            .open_database(&rw_txn, Some(&table))?
+            .ok_or(StorageError::TableError("Table not found".to_string()))?;
         if db.get(&rw_txn, &key)?.is_none() {
             return Err(StorageError::KeyNotFound(key as u64));
         }
@@ -115,11 +116,11 @@ impl LmdbBackend {
     }
 
     pub fn upsert(&self, table: String, key: u128, value: Vec<u8>) -> Result<bool, StorageError> {
-        let mut rw_txn = self.env.write_txn()?;
-        let db: Database<U128<BigEndian>, Bytes> =
-            self.env
-                .open_database(&rw_txn, Some(&table))?
-                .ok_or(StorageError::TableError("Table not found".to_string()))?;
+        let env = self.env.lock();
+        let mut rw_txn = env.write_txn()?;
+        let db: Database<U128<BigEndian>, Bytes> = env
+            .open_database(&rw_txn, Some(&table))?
+            .ok_or(StorageError::TableError("Table not found".to_string()))?;
         db.put(&mut rw_txn, &key, &value)?;
         rw_txn.commit()?;
         Ok(true)
@@ -130,12 +131,11 @@ impl LmdbBackend {
         table: String,
         data: Vec<(u128, Vec<u8>)>,
     ) -> Result<(), StorageError> {
-        let mut rw_txn = self.env.write_txn()?;
+        let env = self.env.lock();
+        let mut rw_txn = env.write_txn()?;
 
         // Open or create the database for the given table
-        let db = self
-            .env
-            .create_database::<U128<BigEndian>, Bytes>(&mut rw_txn, Some(&table))?;
+        let db = env.create_database::<U128<BigEndian>, Bytes>(&mut rw_txn, Some(&table))?;
 
         // Create a map of keys and their associated values
         let keymap: HashMap<u128, &Vec<u8>> = data.iter().map(|(k, v)| (*k, v)).collect();
@@ -162,24 +162,23 @@ impl LmdbBackend {
     }
 
     pub fn exists(&self, table: String, key: u128) -> Result<bool, StorageError> {
-        let ro_txn = self.env.read_txn()?;
-        let db: Database<U128<BigEndian>, Bytes> =
-            self.env
-                .open_database(&ro_txn, Some(&table))?
-                .ok_or(StorageError::TableError("Table not found".to_string()))?;
+        let env = self.env.lock();
+        let ro_txn = env.read_txn()?;
+        let db: Database<U128<BigEndian>, Bytes> = env
+            .open_database(&ro_txn, Some(&table))?
+            .ok_or(StorageError::TableError("Table not found".to_string()))?;
         Ok(db.get(&ro_txn, &key)?.is_some())
     }
 
     pub fn table_exists(&self, table: String) -> Result<bool, StorageError> {
-        let ro_txn = self.env.read_txn()?;
-        let db = self
-            .env
-            .open_database::<U128<BigEndian>, Bytes>(&ro_txn, Some(&table))?;
+        let env = self.env.lock();
+        let ro_txn = env.read_txn()?;
+        let db = env.open_database::<U128<BigEndian>, Bytes>(&ro_txn, Some(&table))?;
         Ok(db.is_some())
     }
 
     pub fn details(&self) -> String {
-        format!("LMDB (heed 0.20.5): {:?}", self.env.info())
+        format!("LMDB (heed 0.20.5): {:?}", self.env.lock().info())
     }
 
     pub fn batch_insert(
@@ -187,10 +186,9 @@ impl LmdbBackend {
         table: String,
         data: Vec<(u128, Vec<u8>)>,
     ) -> Result<(), StorageError> {
-        let mut rw_txn = self.env.write_txn()?;
-        let db = self
-            .env
-            .create_database::<U128<BigEndian>, Bytes>(&mut rw_txn, Some(&table))?;
+        let env = self.env.lock();
+        let mut rw_txn = env.write_txn()?;
+        let db = env.create_database::<U128<BigEndian>, Bytes>(&mut rw_txn, Some(&table))?;
 
         let keymap: HashMap<u128, &Vec<u8>> = data.iter().map(|(k, v)| (*k, v)).collect();
         let mut sorted_keys: Vec<u128> = keymap.keys().cloned().collect();
@@ -211,11 +209,11 @@ impl LmdbBackend {
         table: String,
         keys: Vec<u128>,
     ) -> Result<Vec<Option<Vec<u8>>>, StorageError> {
-        let ro_txn = self.env.read_txn()?;
-        let db: Database<U128<BigEndian>, Bytes> =
-            self.env
-                .open_database(&ro_txn, Some(&table))?
-                .ok_or(StorageError::TableError("Table not found".to_string()))?;
+        let env = self.env.lock();
+        let ro_txn = env.read_txn()?;
+        let db: Database<U128<BigEndian>, Bytes> = env
+            .open_database(&ro_txn, Some(&table))?
+            .ok_or(StorageError::TableError("Table not found".to_string()))?;
         let mut values = Vec::new();
         for key in keys {
             let value = db.get(&ro_txn, &key)?;
@@ -229,15 +227,16 @@ impl LmdbBackend {
     }
 
     pub fn flush(&self) -> Result<(), StorageError> {
-        self.env.clear_stale_readers()?;
-        self.env.force_sync()?;
+        let env = self.env.lock();
+        env.clear_stale_readers()?;
+        env.force_sync()?;
         Ok(())
     }
 
     pub fn create_table(&self, table: String) -> Result<(), StorageError> {
-        let mut rw_txn = self.env.write_txn()?;
-        self.env
-            .create_database::<U128<BigEndian>, Bytes>(&mut rw_txn, Some(&table))?;
+        let env = self.env.lock();
+        let mut rw_txn = env.write_txn()?;
+        env.create_database::<U128<BigEndian>, Bytes>(&mut rw_txn, Some(&table))?;
         rw_txn.commit()?;
         Ok(())
     }
