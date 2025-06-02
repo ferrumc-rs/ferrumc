@@ -1,5 +1,3 @@
-use crate::packets::IncomingPacket;
-
 use ferrumc_macros::{packet, NetDecode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 
