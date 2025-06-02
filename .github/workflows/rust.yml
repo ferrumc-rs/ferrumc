@@ -16,8 +16,8 @@ defaults:
   run:
     shell: bash
 jobs:
-  format:
-    name: Check Code Formatting
+  formatting_and_security:
+    name: Formatting and Security
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -44,57 +44,11 @@ jobs:
       - name: Install Rust nightly
         uses: dtolnay/rust-toolchain@nightly
         with:
-          components: rustfmt
+          components: rustfmt, clippy
       - name: Run cargo fmt
         run: cargo fmt --all -- --check
-
-  clippy:
-    name: Run Clippy
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
-      - name: Cache Rust toolchain
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.rustup
-            ~/.cargo/bin
-          key: ${{ runner.os }}-rust-nightly-${{ hashFiles('rust-toolchain.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-rust-nightly-
-      - name: Install Rust nightly
-        uses: dtolnay/rust-toolchain@nightly
-        with:
-          components: clippy
       - name: Run Clippy
         run: cargo clippy --all-targets -- -D warnings
-
-  security:
-    name: Check Security Vulnerabilities
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Cache Rust toolchain
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.rustup
-            ~/.cargo/bin
-          key: ${{ runner.os }}-rust-nightly-${{ hashFiles('rust-toolchain.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-rust-nightly-
       - name: Install cargo-audit
         uses: taiki-e/install-action@v2
         with:
