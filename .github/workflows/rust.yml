@@ -1,18 +1,23 @@
 name: Rust CI
 on:
   pull_request:
-    branches: [ "master", "rewrite/v3" ]
+    branches: [ "master" ]
   push:
-    branches: [ "master", "rewrite/v3" ]
+    branches: [ "master" ]
   workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
 env:
   CARGO_TERM_COLOR: always
 defaults:
   run:
     shell: bash
 jobs:
-  format:
-    name: Check Code Formatting
+  formatting_and_security:
+    name: Formatting and Security
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -27,58 +32,28 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
+      - name: Cache cargo bin tools
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/bin
+          key: ${{ runner.os }}-cargo-bin-${{ hashFiles('rust-toolchain.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-bin-
       - name: Install Rust nightly
         uses: dtolnay/rust-toolchain@nightly
         with:
-          components: rustfmt
+          components: rustfmt, clippy
       - name: Run cargo fmt
         run: cargo fmt --all -- --check
-  clippy:
-    name: Run Clippy
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
-      - name: Install Rust nightly
-        uses: dtolnay/rust-toolchain@nightly
-        with:
-          components: clippy
       - name: Run Clippy
         run: cargo clippy --all-targets -- -D warnings
-  security:
-    name: Check Security Vulnerabilities
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Cache dependencies
-        uses: actions/cache@v3
+      - name: Install cargo-audit
+        uses: taiki-e/install-action@v2
         with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
-      - name: Install Rust nightly
-        uses: dtolnay/rust-toolchain@nightly
-      - name: Install and Run Cargo Audit
-        run: |
-          if ! command -v cargo-audit &> /dev/null; then
-            cargo install cargo-audit
-          fi
-          cargo audit
+          tool: cargo-audit
+      - name: Run Cargo Audit
+        run: cargo audit
+
   test:
     name: Run Tests
     runs-on: ${{ matrix.os }}
@@ -94,19 +69,30 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Cache dependencies
+      - name: Install Rust nightly
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          targets: ${{ matrix.target }}
+      - name: Cache Rust dependencies and build
         uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: ${{ matrix.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-${{ matrix.target }}-rust-${{ hashFiles('rust-toolchain.toml') }}-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
-            ${{ matrix.os }}-cargo-
-      - name: Install Rust nightly
-        uses: dtolnay/rust-toolchain@nightly
+            ${{ runner.os }}-${{ matrix.target }}-rust-
+      - name: Cache cargo bin tools
+        uses: actions/cache@v3
         with:
-          targets: ${{ matrix.target }}
+          path: ~/.cargo/bin
+          key: ${{ runner.os }}-cargo-bin-${{ hashFiles('rust-toolchain.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-bin-
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest
       - name: Run Tests
-        run: cargo test --target ${{ matrix.target }} --verbose
+        run: cargo nextest run --target ${{ matrix.target }} --all-targets --all-features -E "not kind(bench)"

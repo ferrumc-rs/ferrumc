@@ -36,7 +36,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
             }
 
             let fields = fields.iter().enumerate().map(|(i, field)| {
-                let ident = format!("_{}", i);
+                let ident = format!("_{i}");
                 let ident = syn::Ident::new(&ident, field.span());
                 let ident = field.ident.as_ref().unwrap_or(&ident);
                 let ty = &field.ty;
@@ -116,7 +116,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
                     match attr {
                         NbtFieldAttribute::RenameAll { case } => {
                             variant_case = case.clone();
-                        },
+                        }
                         NbtFieldAttribute::Tag { tag } => {
                             tagged = Some(LitStr::new(tag.as_str(), Span::call_site()));
                             if tag.as_str() == "untagged" {
@@ -126,7 +126,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
                         NbtFieldAttribute::Content { content } => {
                             variant_content = LitStr::new(content.as_str(), Span::call_site());
                         }
-                        NbtFieldAttribute::TagType { tag } => { tag_type = *tag; },
+                        NbtFieldAttribute::TagType { tag } => { tag_type = *tag; }
                         _ => {}
                     }
                 }
@@ -177,8 +177,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
 
                         let fields = quote! { #(#fields)* };
                         let tagged = if let Some(tag) = tagged {
-                            if untagged { fields }
-                            else {
+                            if untagged { fields } else {
                                 quote! {
                                     <&'_ str as ::ferrumc_nbt::NBTSerializable>::serialize(&#tag_name, writer, &::ferrumc_nbt::NBTSerializeOptions::WithHeader(#tag));
                                     <u8 as ::ferrumc_nbt::NBTSerializable>::serialize(&10, writer, &::ferrumc_nbt::NBTSerializeOptions::None);
@@ -197,7 +196,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
                     }
                     Fields::Unnamed(fields_unnamed) => {
                         let fields = fields_unnamed.unnamed.iter().enumerate().map(|(i, field)| {
-                            let ident = syn::Ident::new(&format!("_{}", i), field.span());
+                            let ident = syn::Ident::new(&format!("_{i}"), field.span());
                             let ty = &field.ty;
 
                             if !untagged && tagged.is_some() {
@@ -215,12 +214,11 @@ pub fn derive(input: TokenStream) -> TokenStream {
                             }
                         });
 
-                        let idents = (0..fields_unnamed.unnamed.len()).map(|i| syn::Ident::new(&format!("_{}", i), Span::call_site()));
+                        let idents = (0..fields_unnamed.unnamed.len()).map(|i| syn::Ident::new(&format!("_{i}"), Span::call_site()));
 
                         let fields = quote! { #(#fields)* };
                         let tagged = if let Some(tag) = tagged {
-                            if untagged { fields }
-                            else {
+                            if untagged { fields } else {
                                 quote! {
                                     <&'_ str as ::ferrumc_nbt::NBTSerializable>::serialize(&#tag_name, writer, &::ferrumc_nbt::NBTSerializeOptions::WithHeader(#tag));
                                     #fields
@@ -249,7 +247,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
                                     }
                                 }
                             }
-                        },
+                        }
                         None => quote! {
                              => {}
                         },

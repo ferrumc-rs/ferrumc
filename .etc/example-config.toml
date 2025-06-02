@@ -6,8 +6,8 @@ port = 25565
 motd = ["Welcome to the best server ever!", "Rust", "Good luck, have fun!"]
 # Maximum number of players
 max_players = 100
-# How many network updates per second per user
-network_tick_rate = 30
+# How many ticks per second the server should run at. This is the same as Minecraft's default.
+tps = 20
 # World name to load
 world = "world"
 # Whether the server should validate players via the whitelist
@@ -16,6 +16,9 @@ whitelist = false
 # Very small packets may actually increase in size when compressed, so setting it to 0 won't be perfect in all situations.
 # Set to -1 to disable compression.
 network_compression_threshold = 64
+
+# Chunk render distance. This is the distance in chunks that the server will load around the player.
+chunk_render_distance = 12
 
 # Database configuration
 [database]
@@ -38,3 +41,4 @@ cache_ttl = 60
 cache_capacity = 20_000
 
 whitelist = false
+

@@ -1,6 +1,5 @@
+use bevy_ecs::query::QueryEntityError;
 use ferrumc_core::errors::CoreError;
-use ferrumc_ecs::errors::ECSError;
-use ferrumc_events::errors::EventsError;
 use ferrumc_net::errors::NetError;
 use ferrumc_plugins::errors::PluginsError;
 use ferrumc_storage::errors::StorageError;
@@ -13,11 +12,8 @@ pub enum BinaryError {
     #[error("Core error: {0}")]
     Core(#[from] CoreError),
 
-    #[error("ECS error: {0}")]
-    Ecs(#[from] ECSError),
-
-    #[error("Events error: {0}")]
-    Events(#[from] EventsError),
+    #[error("QueryError error: {0}")]
+    QueryError(#[from] QueryEntityError),
 
     #[error("Net error: {0}")]
     Net(#[from] NetError),
@@ -34,15 +30,15 @@ pub enum BinaryError {
     #[error("World error: {0}")]
     World(#[from] WorldError),
 
-    #[allow(dead_code)]
     #[error("{0}")]
     Custom(String),
 
-    #[error("Tokio Join Error")]
-    TokioJoinError(#[from] tokio::task::JoinError),
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
 
     #[error("Root Path error: {0}")]
     RootPath(#[from] ferrumc_general_purpose::paths::RootPathError),
+
+    #[error("WorldGen error: {0}")]
+    WorldGen(#[from] ferrumc_world_gen::errors::WorldGenError),
 }

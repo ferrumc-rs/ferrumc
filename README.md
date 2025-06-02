@@ -9,25 +9,41 @@
     </a>
 </div>
 
-<div align="center">
-    <a href="#-about">About</a>
-    •
-    <a href="#-key-features">Features</a>
-    •
-    <a href="#-getting-started">Getting Started</a>
-    •
-    <a href="#%EF%B8%8F-development">Development</a>
-    •
-    <a href="#-license">License</a>
-    •
-    <a href="#-faq">FAQ</a>
-</div>
+[//]: # (<div align="center">)
+
+[//]: # (    <a href="#-about">About</a>)
+
+[//]: # (    •)
+
+[//]: # (    <a href="#-key-features">Features</a>)
+
+[//]: # (    •)
+
+[//]: # (    <a href="#-getting-started">Getting Started</a>)
+
+[//]: # (    •)
+
+[//]: # (    <a href="#-goals">Goals</a>)
+
+[//]: # (    •)
+
+[//]: # (    <a href="#%EF%B8%8F-development">Development</a>)
+
+[//]: # (    •)
+
+[//]: # (    <a href="#-license">License</a>)
+
+[//]: # (    •)
+
+[//]: # (    <a href="#-faq">FAQ</a>)
+
+[//]: # (</div>)
 
 ## 📖 About
 
 FerrumC is a **1.21.1** Minecraft server implementation written from the ground up in Rust. Leveraging the power of the
-Rust
-programming language, it is completely multithreaded and offers high performance as well as amazing memory efficiency!
+Rust programming language, it is completely multithreaded and offers high performance as well as amazing memory
+efficiency!
 
 [Docs](https://docs.ferrumc.com) are currently under construction, but you can join
 our [Discord server](https://discord.gg/qT5J8EMjwk) for help or to discuss the project!
@@ -37,55 +53,50 @@ our [Discord server](https://discord.gg/qT5J8EMjwk) for help or to discuss the p
 ## ✨ Key Features
 
 <ul>
-   <li>
-     <h4>🛈 Customizable server list</h4>
-     <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/server%20list.png?raw=true" alt="Server list">
-   </li>
-   <li>
-     <h4>🚄 Extremely fast </h4>
-     <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/mind%20boggling.gif?raw=true" alt="Mind boggling">
-   </li>
-   <li>
-     <h4>🖥️ Highly efficient memory usage</h4>
-     <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/mem_use.png?raw=true" alt="Low memory usage">
-   </li>
-   <li>
-     <h4>🗂️ Straightforward Configuration</h4>
-     <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/config.toml.png?raw=true" alt="Configuration">
-   </li>
-   <li>
+    <li>
+        <h4>🛈 Customizable server list</h4>
+        <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/server%20list.png?raw=true" alt="Server list">
+    </li>
+    <li>
+        <h4>🚄 Extremely fast </h4>
+        <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/mind%20boggling.gif?raw=true" alt="Mind boggling">
+    </li>
+    <li>
+        <h4>🖥️ Highly efficient memory usage</h4>
+        <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/mem_use.png?raw=true" alt="Low memory usage">
+    </li>
+    <li>
+        <h4>🗂️ Straightforward Configuration</h4>
+        <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/config.toml.png?raw=true" alt="Configuration">
+    </li>
+    <li>
       <h4>🔄 Can import existing worlds from vanilla minecraft</h4>
       <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/chunk_importing.gif?raw=true" alt="Configuration">
-   </li>
-   <li>
+    </li>
+    <li>
       <h4>🌐 Compatible with vanilla Minecraft clients (Version 1.21.1)</h4>
-   </li>
-   <li>
-      <h4>💪 Powerful Entity Component System to handle high entity loads</h4>
-      <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/ECSBlockDiagram.png?raw=true" alt="Entity Component System">
-      <p><i>ECS Block Diagram (credits: <a href="https://docs.unity3d.com/Packages/com.unity.entities@0.1/manual/ecs_core.html">Unity</a>)</i></p>
-   </li>
-   <li>
+    </li>
+    <li>
       <h4>📦 Fully multithreaded; Utilizes all available CPU cores, instead of a single "main" thread</h4>
-   </li>
-   <li>
+    </li>
+    <li>
       <h4>📝 Custom made network, NBT and Anvil encoding systems to allow for minimal I/O lag</h4>
-   </li>
-   <li>
-      <h4>💾 Crazy fast K/V database </h4>
-      <i>32 render distance*</i>
-      <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/chunk_loading.gif?raw=true" alt="Chunk Loading DEMO">
-   </li>
+    </li>
+    <li>
+        <h4>💾 Crazy fast K/V database </h4>
+        <i>32 render distance*</i>
+        <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/chunk_loading.gif?raw=true" alt="Chunk Loading DEMO">
+    </li>
+    <li>
+        <h4>🎮 Bevy ECS for smart, lockless concurrency driven by a massive community</h4>
+    </li>
 </ul>
 
-<h1>✅ Upcoming features</h1>
+<h2>✅ Upcoming features</h2>
 
 <ul>
    <li>
       <h4>PvE mechanics, and entities.</h4>
-   </li>
-   <li>
-      <h4>World modification (place / break blocks etc)</h4>
    </li>
     <li>
         <h4>Web based server dashboard</h4>
@@ -94,9 +105,30 @@ our [Discord server](https://discord.gg/qT5J8EMjwk) for help or to discuss the p
         <h4>Optimizations</h4>
    </li>
     <li>
-        <h4>Plugin support (FFI currently, other languages will be considered later)</h4>
+        <h4>Plugin support (Rust via FFI currently, other languages will be considered later)</h4>
     </li>
 </ul>
+
+## Goals
+
+- **Performance**: FerrumC aims to be the fastest Minecraft server implementation available, with a focus on low latency
+  and high throughput.
+- **Memory Efficiency**: FerrumC is designed to use as little memory as possible while still providing a full-featured
+  server experience.
+- **Not just a faster replacement**: FerrumC is not intended to be a perfect match for the vanilla server. We aim to
+  improve on the original server in ways other than just performance. This includes things like setup and usage,
+  configurability,
+  plugins, gameplay mechanics like mob AI, terrain generation and more. Simply speeding up the server feels like a waste
+  of the opportunity to do something new and exciting.
+- **Ease of Use**: While it will certainly possible to run FerrumC as the backend for highly complex servers such as
+  Hypixel through the use of plugins, the main intended audience is the average user who wants to run a server for their
+  friends
+  and family. We want to make it as easy as possible to set up and run a server, while still allowing the flexibility
+  and power that advanced users need.
+- **Not taking the easy route**: We aren't scared of a little unsafe Rust or some raw SIMD instructions. If we need
+  to take some risks to get the performance we want, or need to write our own versions of libraries to get the features
+  we need, we will do it. We already have custom-made Anvil and NBT libraries that use experimental APIs and some raw
+  assembly because the existing ones just weren't up to scratch.
 
 ## 🚀 Getting Started
 
@@ -214,27 +246,34 @@ Also have a look at our [CONTRIBUTING.md](CONTRIBUTING.md) file for more informa
 ### How does this project differ from:
 
 - **Valence**: Valence is a framework for building your own custom server by pulling in different components of their
-  library. FerrumC aims to be a full replacement for the vanilla server. It's like
-  the difference between buying the ingredients to make a meal yourself or just buying a pre-made meal.
+  library. FerrumC aims to be a full replacement for the vanilla server. It's like the difference between buying the
+  ingredients to make a meal yourself or just buying a pre-made meal.
 - **Minestom**: Same as Valence, it's a framework to build your own server, which is different to what we are trying to
   do.
 - **Paper/Spigot/Bukkit**: These are all great tools and have undoubtedly set the groundwork for projects like this to
   exist, but ultimately they are still somewhat bound to the original server implementation. We aim to write the entire
   server from the ground up, hopefully giving us a leg up.
-- **Pumpkin**: It really doesn't differ that much. We are both trying to achieve the same thing. It's also not a
-  competition, we are both aware of each other's progress and to be honest the Pumpkin team are doing really well. We
-  won't tolerate any disrespect towards them as they are also undertaking the same monumental task.
+- **Pumpkin**: Pumpkin are a lot more focused on matching the vanilla server as close as possible, only improving the
+  performance.
+  We are trying to improve most aspects of the game, including ease of use, performance, memory usage and extensibility.
+  That being said, we are trying to achieve similar things, and it's not a competition, we are both aware of each
+  other's
+  progress and to be honest the Pumpkin team are doing really well. We won't tolerate any disrespect towards them as
+  they are also undertaking the same monumental task.
 
 ### Will we be implementing terrain generation?
 
-Yes! Not currently on our list of priorities and it's very unlikely that we will be able to have 1:1 terrain generation
-with the vanilla server, but we do plan on implementing some sort of terrain generation as soon as we can.
+Yes! We currently have some very rudimentary terrain generation, but we are working on improving it. We are not going to
+be attempting to match the vanilla generation exactly since it would be a *lot* of work for little gain and frankly, we
+see it as kinda boring. What's the fun in just translating decompiled code to Rust? We are going to be implementing our
+own custom system that can generate (hopefully) more interesting worlds.
 
 ### Will there be plugins? And how?
 
 We do very much plan to have a plugin system and as of right now we are planning to use
-some kind of ffi (foreign function interface) to allow for plugins to be written in other languages.
-Not confirmed yet.
+some kind of FFI (foreign function interface) to allow for plugins to be written in Rust. From there it would be
+possible
+to write plugins that can allow for other languages to be used, but we are not going to be focusing on that for a while.
 
 ### What does 'FerrumC' mean?
 

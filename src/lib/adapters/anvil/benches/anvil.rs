@@ -1,9 +1,10 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{criterion_group, criterion_main, Criterion};
 use fastanvil::Region;
 use ferrumc_anvil::load_anvil_file;
 use ferrumc_utils::root;
 use rayon::prelude::*;
 use std::fs::File;
+use std::hint::black_box;
 use std::path::PathBuf;
 
 fn criterion_benchmark(c: &mut Criterion) {

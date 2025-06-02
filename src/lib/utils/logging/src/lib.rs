@@ -45,6 +45,10 @@ pub fn init_logging(trace_level: Level) {
             .with_thread_ids(false)
             .with_thread_names(false);
     }
+    #[cfg(debug_assertions)]
+    {
+        fmt_layer = fmt_layer.with_file(true).with_line_number(true);
+    }
 
     let profiler_layer = ProfilerTracingLayer;
 

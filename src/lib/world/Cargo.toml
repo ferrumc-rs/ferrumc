@@ -6,13 +6,9 @@ edition = "2021"
 
 [dependencies]
 thiserror = { workspace = true }
-
-ferrumc-logging = { workspace = true }
-ferrumc-profiling = { workspace = true }
 ferrumc-storage = { workspace = true }
 ferrumc-config = { workspace = true }
 tracing = { workspace = true }
-tokio = { workspace = true }
 ferrumc-net-codec = { workspace = true }
 serde = { workspace = true }
 serde_derive = { workspace = true }
@@ -30,5 +26,14 @@ bzip2 = { workspace = true }
 serde_json = { workspace = true }
 indicatif = { workspace = true }
 wyhash = { workspace = true }
-moka = { workspace = true, features = ["future"] }
-log = "0.4.22"
+moka = { workspace = true, features = ["sync"] }
+ahash = { workspace = true }
+rand = { workspace = true }
+
+[[bench]]
+name = "world_bench"
+harness = false
+path = "src/benches/world.rs"
+
+[dev-dependencies]
+criterion = { workspace = true }

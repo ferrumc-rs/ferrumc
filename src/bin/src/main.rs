@@ -1,48 +1,47 @@
-#![feature(portable_simd)]
-#![forbid(unsafe_code)]
-extern crate core;
-
+#![feature(try_blocks)]
 use crate::errors::BinaryError;
 use clap::Parser;
+use dashmap::DashMap;
 use ferrumc_config::statics::get_global_config;
 use ferrumc_config::whitelist::create_whitelist;
-use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
-use ferrumc_ecs::Universe;
 use ferrumc_general_purpose::paths::get_root_path;
-use ferrumc_net::connection::StreamWriter;
-use ferrumc_net::server::create_server_listener;
-use ferrumc_state::ServerState;
+use ferrumc_state::{GlobalState, ServerState};
+use ferrumc_threadpool::ThreadPool;
 use ferrumc_world::World;
-use std::hash::{Hash, Hasher};
+use ferrumc_world_gen::WorldGenerator;
 use std::sync::Arc;
-use systems::definition;
-use tracing::{error, info, trace};
+use std::time::Instant;
+use tracing::{error, info};
 
 pub(crate) mod errors;
 use crate::cli::{CLIArgs, Command, ImportArgs};
+mod chunk_sending;
 mod cli;
+mod game_loop;
 mod packet_handlers;
+mod register_events;
+mod register_resources;
 mod systems;
 
-pub type Result<T> = std::result::Result<T, BinaryError>;
+#[cfg(feature = "dhat")]
+#[global_allocator]
+static ALLOC: dhat::Alloc = dhat::Alloc;
 
-#[tokio::main]
-async fn main() {
+// fn kill_in_20() {
+//     std::thread::spawn(move || {
+//         std::thread::sleep(std::time::Duration::from_secs(20));
+//         std::process::exit(1);
+//     });
+// }
+
+fn main() {
+    #[cfg(feature = "dhat")]
+    let _profiler = dhat::Profiler::new_heap();
+
     let cli_args = CLIArgs::parse();
     ferrumc_logging::init_logging(cli_args.log.into());
 
-    check_deadlocks();
-
-    {
-        let mut hasher = std::collections::hash_map::DefaultHasher::new();
-        std::any::TypeId::of::<ChunkReceiver>().hash(&mut hasher);
-        let digest = hasher.finish();
-        trace!("ChunkReceiver: {:X}", digest);
-        let mut hasher = std::collections::hash_map::DefaultHasher::new();
-        std::any::TypeId::of::<StreamWriter>().hash(&mut hasher);
-        let digest = hasher.finish();
-        trace!("StreamWriter: {:X}", digest);
-    }
+    // kill_in_20();
 
     match cli_args.command {
         Some(Command::Setup) => {
@@ -56,7 +55,7 @@ async fn main() {
 
         Some(Command::Import(import_args)) => {
             info!("Starting import...");
-            if let Err(e) = handle_import(import_args).await {
+            if let Err(e) = handle_import(import_args) {
                 error!("Import failed with the following error: {}", e.to_string());
             } else {
                 info!("Import completed successfully.");
@@ -64,7 +63,7 @@ async fn main() {
         }
         Some(Command::Run) | None => {
             info!("Starting server...");
-            if let Err(e) = entry().await {
+            if let Err(e) = entry() {
                 error!("Server exited with the following error: {}", e.to_string());
             } else {
                 info!("Server exited successfully.");
@@ -73,45 +72,83 @@ async fn main() {
     }
 }
 
-async fn entry() -> Result<()> {
-    let state = create_state().await?;
+fn generate_chunks(state: GlobalState) -> Result<(), BinaryError> {
+    info!("No overworld spawn chunk found, generating spawn chunks...");
+    // Generate a 12x12 chunk area around the spawn point
+    let mut chunks = Vec::new();
+    let start = Instant::now();
+    let radius = get_global_config().chunk_render_distance as i32;
+    for x in -radius..=radius {
+        for z in -radius..=radius {
+            chunks.push((x, z));
+        }
+    }
+    let mut batch = state.thread_pool.batch();
+    for (x, z) in chunks {
+        let state_clone = state.clone();
+        batch.execute(move || {
+            let chunk = state_clone.terrain_generator.generate_chunk(x, z);
+            if let Err(e) = chunk {
+                error!("Error generating chunk ({}, {}): {:?}", x, z, e);
+            } else {
+                let chunk = chunk.unwrap();
+                if let Err(e) = state_clone.world.save_chunk(chunk) {
+                    error!("Error saving chunk ({}, {}): {:?}", x, z, e);
+                }
+            }
+        });
+    }
+    batch.wait();
+    info!("Finished generating spawn chunks in {:?}", start.elapsed());
+    Ok(())
+}
+
+fn entry() -> Result<(), BinaryError> {
+    let state = create_state()?;
     let global_state = Arc::new(state);
-    create_whitelist().await;
+    create_whitelist();
+    if !global_state.world.chunk_exists(0, 0, "overworld")? {
+        generate_chunks(global_state.clone())?;
+    }
 
-    // Needed for some reason because ctor doesn't really want to do ctor things otherwise.
-    ferrumc_default_commands::init();
+    ctrlc::set_handler({
+        let global_state = global_state.clone();
+        move || {
+            info!("Shutting down server...");
+            global_state
+                .shut_down
+                .store(true, std::sync::atomic::Ordering::Relaxed);
+            global_state
+                .world
+                .sync()
+                .expect("Failed to sync world before shutdown")
+        }
+    })
+    .expect("Error setting Ctrl-C handler");
 
-    let all_system_handles = tokio::spawn(definition::start_all_systems(global_state.clone()));
-
-    //Start the systems and wait until all of them are done
-    all_system_handles.await??;
-
-    // Stop all systems
-    definition::stop_all_systems(global_state).await?;
+    game_loop::start_game_loop(global_state.clone())?;
 
     Ok(())
 }
 
-async fn handle_import(import_args: ImportArgs) -> Result<()> {
+fn handle_import(import_args: ImportArgs) -> Result<(), BinaryError> {
     //! Handles the import of the world.
     info!("Importing world...");
 
-    let config = get_global_config();
-    let mut world = World::new().await;
+    // let config = get_global_config();
+    let mut world = World::new(get_global_config().database.db_path.clone().into());
 
     let root_path = get_root_path();
-    let database_opts = &config.database;
-
     let mut import_path = root_path.join(import_args.import_path);
     if import_path.is_relative() {
         import_path = root_path.join(import_path);
     }
-    let mut db_path = root_path.join(database_opts.db_path.clone());
-    if db_path.is_relative() {
-        db_path = root_path.join(db_path);
-    }
 
-    if let Err(e) = world.import(import_path, db_path).await {
+    if let Err(e) = world.import(
+        import_path,
+        import_args.batch_size,
+        // import_args.max_concurrent_tasks,
+    ) {
         error!("Could not import world: {}", e.to_string());
         return Err(BinaryError::Custom("Could not import world.".to_string()));
     }
@@ -119,37 +156,12 @@ async fn handle_import(import_args: ImportArgs) -> Result<()> {
     Ok(())
 }
 
-async fn create_state() -> Result<ServerState> {
-    let listener = create_server_listener().await?;
-
+fn create_state() -> Result<ServerState, BinaryError> {
     Ok(ServerState {
-        universe: Universe::new(),
-        tcp_listener: listener,
-        world: World::new().await,
+        world: World::new(get_global_config().database.db_path.clone().into()),
+        terrain_generator: WorldGenerator::new(0),
+        shut_down: false.into(),
+        players: DashMap::default(),
+        thread_pool: ThreadPool::new(),
     })
-}
-fn check_deadlocks() {
-    {
-        use parking_lot::deadlock;
-        use std::thread;
-        use std::time::Duration;
-
-        // Create a background thread which checks for deadlocks every 10s
-        thread::spawn(move || loop {
-            thread::sleep(Duration::from_secs(10));
-            let deadlocks = deadlock::check_deadlock();
-            if deadlocks.is_empty() {
-                continue;
-            }
-
-            println!("{} deadlocks detected", deadlocks.len());
-            for (i, threads) in deadlocks.iter().enumerate() {
-                println!("Deadlock #{}", i);
-                for t in threads {
-                    println!("Thread Id {:#?}", t.thread_id());
-                    println!("{:#?}", t.backtrace());
-                }
-            }
-        });
-    }
 }

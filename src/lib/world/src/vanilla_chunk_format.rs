@@ -95,21 +95,30 @@ pub(crate) struct Section {
 #[derive(deepsize::DeepSizeOf)]
 pub(crate) struct BlockStates {
     pub data: Option<Vec<i64>>,
-    pub palette: Option<Vec<Palette>>,
+    pub palette: Option<Vec<BlockData>>,
 }
 
 #[apply(ChunkDerives)]
 #[derive(deepsize::DeepSizeOf, Hash)]
-pub struct Palette {
+pub struct BlockData {
     #[nbt(rename = "Name")]
     pub name: String,
     #[nbt(rename = "Properties")]
     pub properties: Option<BTreeMap<String, String>>,
 }
 
-impl Display for Palette {
+impl Display for BlockData {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.name)
+    }
+}
+
+impl Default for BlockData {
+    fn default() -> Self {
+        BlockData {
+            name: String::from("minecraft:air"),
+            properties: None,
+        }
     }
 }
 

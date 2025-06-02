@@ -1,4 +1,5 @@
 use std::io::Write;
+use tokio::io::AsyncWrite;
 
 pub mod errors;
 mod primitives;
@@ -7,7 +8,7 @@ pub type NetEncodeResult<T> = Result<T, errors::NetEncodeError>;
 
 /// Sole purpose is for compression compatibility.
 /// And possibly other stuff in the future.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum NetEncodeOpts {
     None,
     WithLength,
@@ -15,10 +16,11 @@ pub enum NetEncodeOpts {
     SizePrefixed,
 }
 
-#[allow(async_fn_in_trait)]
-pub trait NetEncode: Sized {
+pub trait NetEncode {
     fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()>;
-    async fn encode_async<W: tokio::io::AsyncWrite + Unpin>(
+
+    #[expect(async_fn_in_trait)]
+    async fn encode_async<W: AsyncWrite + Unpin>(
         &self,
         writer: &mut W,
         opts: &NetEncodeOpts,

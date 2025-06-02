@@ -23,8 +23,6 @@ members = [
     "src/lib/core/state",
     "src/lib/derive_macros",
     "src/lib/derive_macros",
-    "src/lib/ecs",
-    "src/lib/events",
     "src/lib/net",
     "src/lib/net/crates/codec",
     "src/lib/net/crates/encryption",
@@ -37,6 +35,8 @@ members = [
     "src/lib/utils/profiling",
     "src/lib/world",
     "src/lib/entity_utils",
+    "src/lib/world_gen",
+    "src/lib/utils/threadpool",
 ]
 
 #================== Lints ==================#
@@ -64,18 +64,15 @@ redundant_type_annotations = "deny"
 infinite_loop = "deny"
 
 #================= Profile =================#
+[profile.profiling]
+inherits = "release"
+debug = true
+
 [profile.release]
-lto = true
-strip = "symbols"
-codegen-units = 1
-opt-level = 3
-debug = false
-debug-assertions = false
-overflow-checks = false
-panic = "abort"
 
 [profile.hyper]
 inherits = "release"
+strip = "symbols"
 lto = true
 opt-level = 3
 debug = false
@@ -83,6 +80,9 @@ debug-assertions = false
 overflow-checks = false
 panic = "abort"
 codegen-units = 1
+
+[profile.bench]
+debug = true
 
 #=============== Dependencies ==============#
 [workspace.dependencies]
@@ -109,95 +109,101 @@ ferrumc-text = { path = "src/lib/text" }
 ferrumc-utils = { path = "src/lib/utils" }
 ferrumc-world = { path = "src/lib/world" }
 ferrumc-entity-utils = { path = "src/lib/entity_utils" }
-
+ferrumc-world-gen = { path = "src/lib/world_gen" }
+ferrumc-threadpool = { path = "src/lib/utils/threadpool" }
 
 # Asynchronous
-tokio = { version = "1.40.0", features = ["full"] }
-socket2 = "0.5.7"
-futures = "0.3.30"
-async-trait = "0.1.82"
+tokio = { version = "1.45.0", features = ["full"] }
 
 # Logging
-tracing = "0.1.40"
-tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 tracing-appender = "0.2.3"
-log = "0.4.22"
+log = "0.4.27"
 console-subscriber = "0.4.1"
 
 # Concurrency/Parallelism
 parking_lot = "0.12.3"
 rayon = "1.10.0"
+crossbeam-channel = "0.5.15"
+rusty_pool = "0.7.0"
+crossbeam-queue = "0.3.12"
 
 # Network
-reqwest = { version = "0.12.9", features = ["json"] }
+reqwest = { version = "0.12.15", features = ["json"] }
+ureq = "3.0.11"
 
 # Error handling
-thiserror = "2.0.3"
+thiserror = "2.0.12"
 
 # Cryptography
-rand = "0.9.0-beta.0"
+rand = "0.9.1"
 fnv = "1.0.7"
 wyhash = "0.5.0"
+ahash = "0.8.11"
 
 # Encoding/Serialization
-serde = { version = "1.0.210", features = ["derive"] }
-serde_json = "1.0.128"
-serde_derive = "1.0.210"
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
+serde_derive = "1.0.219"
 base64 = "0.22.1"
-bitcode = "0.6.3"
-bitcode_derive = "0.6.3"
-toml = "0.8.19"
+bitcode = "0.6.6"
+bitcode_derive = "0.6.5"
+toml = "0.8.22"
 
 # Bit manipulation
 byteorder = "1.5.0"
 
 # Data types
-hashbrown = "0.15.0"
-tinyvec = "1.8.0"
-dashmap = "6.1.0"
-uuid = { version = "1.1", features = ["v4", "v3", "serde"] }
-whirlwind = "0.1.1"
+dashmap = "7.0.0-rc2"
+uuid = { version = "1.16.0", features = ["v4", "v3", "serde"] }
 
 # Macros
 lazy_static = "1.5.0"
-quote = "1.0.37"
-syn = { version = "2.0.77", features = ["full"] }
-proc-macro2 = "1.0.86"
-proc-macro-crate = "3.2.0"
+quote = "1.0.40"
+syn = "2.0.101"
+proc-macro2 = "1.0.95"
+proc-macro-crate = "3.3.0"
 paste = "1.0.15"
 maplit = "1.0.2"
 macro_rules_attribute = "0.2.0"
+enum_delegate = "0.2.0"
 
-# Magic ("life-before-main" initialization, __attribute__((constructor)))
-ctor = "0.2.9"
+# Magic
+dhat = "0.3.3"
 
 # Compression/Decompression
 libflate = "2.1.0"
-flate2 = { version = "1.0.33", features = ["zlib"], default-features = false }
-zstd = { version = "0.13.2" }
-brotli = "7.0.0"
-lzzzz = "1.1.0"
-yazi = "0.2.0"
-bzip2 = "0.4.1"
+flate2 = { version = "1.1.1", features = ["zlib"], default-features = false }
+zstd = { version = "0.13.3" }
+brotli = "8.0.1"
+lzzzz = "2.0.0"
+yazi = "0.2.1"
+bzip2 = "0.5.2"
 
 # Database
-heed = "0.20.5"
-moka = "0.12.8"
+heed = "0.22.0"
+moka = "0.12.10"
 
 # CLI
-clap = "4.5.20"
-indicatif = "0.17.8"
-colored = "2.1.0"
+clap = "4.5.38"
+indicatif = "0.17.11"
+colored = "3.0.0"
 
 # Misc
 deepsize = "0.2.0"
 page_size = "0.6.0"
 enum-ordinalize = "4.3.0"
 regex = "1.11.1"
+noise = "0.9.0"
+ctrlc = "3.4.7"
+num_cpus = "1.16.0"
+typename = "0.1.2"
+bevy_ecs = { version = "0.16.0", features = ["multi_threaded", "trace"] }
 
 # I/O
-tempfile = "3.12.0"
 memmap2 = "0.9.5"
+tempfile = "3.20.0"
 
 # Benchmarking
-criterion = { version = "0.5.1", features = ["html_reports"] }
+criterion = { version = "0.6.0", features = ["html_reports"] }

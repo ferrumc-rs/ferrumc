@@ -1,10 +1,9 @@
-#![feature(portable_simd)]
-
 use crate::structs::{BlockState, Chunk, Palette};
-use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
+use criterion::{criterion_group, criterion_main, Criterion, Throughput};
 use fastnbt::Value;
 use ferrumc_macros::NBTDeserialize;
 use nbt as hematite_nbt;
+use std::hint::black_box;
 use std::io::Cursor;
 
 mod structs {
@@ -17,6 +16,7 @@ mod structs {
         pub(crate) z_pos: i32,
         #[nbt(rename = "Heightmaps")]
         pub(crate) heightmaps: Heightmaps<'a>,
+        #[nbt(rename = "sections")]
         _sections: Vec<Section<'a>>,
     }
 
@@ -76,7 +76,7 @@ fn bench_simdnbt(data: &[u8]) {
         .unwrap()
         .into_iter()
         .filter_map(|section| {
-            let _ = section.get("Y").unwrap().byte().unwrap();
+            _ = section.get("Y").unwrap().byte().unwrap();
             let block_states = section.get("block_states")?;
             let block_states = block_states.compound().unwrap();
             let data = block_states.get("data")?;
