@@ -160,6 +160,20 @@ where
 
         Ok(Some(value))
     }
+
+    async fn decode_async<R: AsyncRead + Unpin>(
+        reader: &mut R,
+        opts: &NetDecodeOpts,
+    ) -> NetDecodeResult<Self> {
+        let is_some = <bool as NetDecode>::decode_async(reader, opts).await?;
+        if !is_some {
+            return Ok(None);
+        }
+
+        let value = <T as NetDecode>::decode_async(reader, opts).await?;
+
+        Ok(Some(value))
+    }
 }
 
 /// This isn't actually a type in the Minecraft Protocol. This is just for saving data/ or for general use.

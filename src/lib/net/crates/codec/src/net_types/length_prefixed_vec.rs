@@ -29,7 +29,7 @@ impl<T> LengthPrefixedVec<T> {
 
     pub fn push(&mut self, data: T) {
         self.data.push(data);
-        self.length = VarInt::new(self.length.val + 1);
+        self.length = VarInt::new(self.length.0 + 1);
     }
 }
 

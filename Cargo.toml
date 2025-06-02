@@ -34,7 +34,6 @@ members = [
     "src/lib/utils/logging",
     "src/lib/utils/profiling",
     "src/lib/world",
-    "src/lib/entity_utils",
     "src/lib/world_gen",
     "src/lib/utils/threadpool",
 ]
@@ -92,7 +91,6 @@ ferrumc-config = { path = "src/lib/utils/config" }
 ferrumc-core = { path = "src/lib/core" }
 ferrumc-default-commands = { path = "src/lib/default_commands" }
 ferrumc-commands = { path = "src/lib/commands" }
-ferrumc-ecs = { path = "src/lib/ecs" }
 ferrumc-events = { path = "src/lib/events"}
 ferrumc-general-purpose = { path = "src/lib/utils/general_purpose" }
 ferrumc-logging = { path = "src/lib/utils/logging" }
@@ -108,7 +106,6 @@ ferrumc-storage = { path = "src/lib/storage" }
 ferrumc-text = { path = "src/lib/text" }
 ferrumc-utils = { path = "src/lib/utils" }
 ferrumc-world = { path = "src/lib/world" }
-ferrumc-entity-utils = { path = "src/lib/entity_utils" }
 ferrumc-world-gen = { path = "src/lib/world_gen" }
 ferrumc-threadpool = { path = "src/lib/utils/threadpool" }
 
@@ -171,6 +168,7 @@ enum_delegate = "0.2.0"
 
 # Magic
 dhat = "0.3.3"
+ctor = "0.4.2"
 
 # Compression/Decompression
 libflate = "2.1.0"

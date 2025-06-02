@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
-use ferrumc_events::infrastructure::Event;
-use ferrumc_macros::{packet, Event, NetDecode};
+use bevy_ecs::prelude::Event;
+use ferrumc_macros::{packet, NetDecode};
 use ferrumc_state::ServerState;
 
-use crate::{packets::IncomingPacket, NetResult};
+use crate::{errors::NetError, packets::IncomingPacket, NetResult};
 
 #[derive(NetDecode, Debug, Clone)]
 #[packet(packet_id = "chat_command", state = "play")]
@@ -24,8 +24,3 @@ impl CommandDispatchEvent {
     }
 }
 
-impl IncomingPacket for ChatCommandPacket {
-    async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> NetResult<()> {
-        CommandDispatchEvent::trigger(CommandDispatchEvent::new(self.command, conn_id), state).await
-    }
-}

@@ -1,11 +1,11 @@
 use std::sync::Arc;
 
-use ferrumc_events::infrastructure::Event;
-use ferrumc_macros::{packet, Event, NetDecode};
+use ferrumc_macros::{packet, NetDecode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::ServerState;
+use bevy_ecs::prelude::Event;
 
-use crate::packets::IncomingPacket;
+use crate::{errors::NetError, packets::IncomingPacket};
 
 #[derive(NetDecode, Debug, Clone)]
 #[packet(packet_id = "chat", state = "play")]
@@ -17,12 +17,6 @@ pub struct ChatMessagePacket {
     pub signature: Option<Vec<u64>>,
     pub message_count: VarInt,
     pub acknowledged: Vec<u8>,
-}
-
-impl IncomingPacket for ChatMessagePacket {
-    async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> crate::NetResult<()> {
-        ChatMessageEvent::trigger(ChatMessageEvent::new(conn_id, self.message), state).await
-    }
 }
 
 #[derive(Debug, Event, Clone)]

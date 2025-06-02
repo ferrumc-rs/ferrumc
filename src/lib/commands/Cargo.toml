@@ -12,13 +12,12 @@ ferrumc-text = { workspace = true }
 ferrumc-state = { workspace = true }
 enum-ordinalize = { workspace = true }
 ferrumc-macros = { workspace = true }
-
+bevy_ecs = { workspace = true }
 ferrumc-net-codec = { workspace = true }
 ferrumc-net = { workspace = true }
 ferrumc-config = { workspace = true }
 flate2 = { workspace = true }
 
 [dev-dependencies] # Needed for the ServerState mock... :concern:
-ferrumc-ecs = { workspace = true }
 ferrumc-world = { workspace = true }
 ctor = { workspace = true }

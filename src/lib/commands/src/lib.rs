@@ -16,6 +16,7 @@ pub mod errors;
 pub mod graph;
 pub mod infrastructure;
 pub mod input;
+pub mod events;
 
 #[cfg(test)]
 mod tests;
