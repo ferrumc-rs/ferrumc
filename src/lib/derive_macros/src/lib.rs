@@ -1,6 +1,4 @@
 use proc_macro::TokenStream;
-
-mod events;
 mod helpers;
 mod nbt;
 mod net;
@@ -10,16 +8,6 @@ mod static_loading;
 #[proc_macro_attribute]
 pub fn profile(attr: TokenStream, item: TokenStream) -> TokenStream {
     profiling::profile_fn(attr, item)
-}
-
-#[proc_macro_attribute]
-pub fn event_handler(attr: TokenStream, item: TokenStream) -> TokenStream {
-    events::event_handler_fn(attr, item)
-}
-
-#[proc_macro_derive(Event, attributes(event))]
-pub fn event(input: TokenStream) -> TokenStream {
-    events::derive(input)
 }
 
 #[proc_macro_derive(NBTDeserialize, attributes(nbt))]
