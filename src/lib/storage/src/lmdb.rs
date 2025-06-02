@@ -246,3 +246,120 @@ impl LmdbBackend {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs::remove_dir_all;
+    use std::hash::Hasher;
+    use tempfile::tempdir;
+
+    fn hash_2_to_u128(a: u64, b: u64) -> u128 {
+        let mut hasher = wyhash::WyHash::with_seed(0);
+        hasher.write_u64(a);
+        hasher.write_u64(b);
+        hasher.finish() as u128
+    }
+
+    #[test]
+    fn test_write() {
+        let path = tempdir().unwrap().keep();
+        {
+            let backend = LmdbBackend::initialize(Some(path.clone())).unwrap();
+            backend.create_table("test_table".to_string()).unwrap();
+            let key = 12345678901234567890u128;
+            let value = vec![1, 2, 3, 4, 5];
+            backend
+                .insert("test_table".to_string(), key, value.clone())
+                .unwrap();
+            let retrieved_value = backend.get("test_table".to_string(), key).unwrap();
+            assert_eq!(retrieved_value, Some(value));
+        }
+        remove_dir_all(path).unwrap();
+    }
+
+    #[test]
+    fn test_batch_insert() {
+        let path = tempdir().unwrap().keep();
+        {
+            let backend = LmdbBackend::initialize(Some(path.clone())).unwrap();
+            backend.create_table("test_table".to_string()).unwrap();
+            let data = vec![
+                (12345678901234567890u128, vec![1, 2, 3]),
+                (12345678901234567891u128, vec![4, 5, 6]),
+            ];
+            backend
+                .batch_insert("test_table".to_string(), data.clone())
+                .unwrap();
+            for (key, value) in data {
+                let retrieved_value = backend.get("test_table".to_string(), key).unwrap();
+                assert_eq!(retrieved_value, Some(value));
+            }
+        }
+        remove_dir_all(path).unwrap();
+    }
+
+    #[test]
+    fn test_concurrent_write() {
+        let path = tempdir().unwrap().keep();
+        {
+            let backend = LmdbBackend::initialize(Some(path.clone())).unwrap();
+            backend.create_table("test_table".to_string()).unwrap();
+            let mut threads = vec![];
+            for thread_iter in 0..10 {
+                let handle = std::thread::spawn({
+                    let backend = backend.clone();
+                    move || {
+                        for iter in 0..100 {
+                            let key = hash_2_to_u128(iter, thread_iter);
+                            let value = vec![rand::random::<u8>(); 10];
+                            backend
+                                .insert("test_table".to_string(), key, value)
+                                .unwrap();
+                        }
+                    }
+                });
+                threads.push(handle);
+            }
+            for handle in threads {
+                handle.join().unwrap();
+            }
+        }
+        remove_dir_all(path).unwrap();
+    }
+
+    #[test]
+    fn test_concurrent_read() {
+        let path = tempdir().unwrap().keep();
+        {
+            let backend = LmdbBackend::initialize(Some(path.clone())).unwrap();
+            backend.create_table("test_table".to_string()).unwrap();
+            for thread_iter in 0..10 {
+                for iter in 0..100 {
+                    let value = vec![rand::random::<u8>(); 10];
+                    let key = hash_2_to_u128(iter, thread_iter);
+                    backend
+                        .insert("test_table".to_string(), key, value)
+                        .unwrap();
+                }
+            }
+            let mut threads = vec![];
+            for thread_iter in 0..10 {
+                let handle = std::thread::spawn({
+                    let backend = backend.clone();
+                    move || {
+                        for iter in 0..100 {
+                            let key = hash_2_to_u128(iter, thread_iter);
+                            let _ = backend.get("test_table".to_string(), key).unwrap();
+                        }
+                    }
+                });
+                threads.push(handle);
+            }
+            for handle in threads {
+                handle.join().unwrap();
+            }
+        }
+        remove_dir_all(path).unwrap();
+    }
+}

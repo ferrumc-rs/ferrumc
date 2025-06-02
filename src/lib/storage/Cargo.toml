@@ -22,6 +22,7 @@ parking_lot = { workspace = true }
 [dev-dependencies]
 criterion = { workspace = true }
 tempfile = { workspace = true }
+wyhash = { workspace = true }
 
 [[bench]]
 name = "storage_bench"
