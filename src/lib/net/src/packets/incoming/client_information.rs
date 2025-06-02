@@ -51,13 +51,3 @@ impl Display for MainHand {
         }
     }
 }
-
-// impl IncomingPacket for ClientInformation {
-//     fn handle(self, conn_id: usize, state: Arc<ServerState>) -> Result<(), NetError> {
-//         debug!("Received client information: {:#?}", self);
-//
-//         state.universe.add_component(conn_id, self)?;
-//
-//         Ok(())
-//     }
-// }
