@@ -32,15 +32,13 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
-      - name: Cache Rust toolchain
+      - name: Cache cargo bin tools
         uses: actions/cache@v3
         with:
-          path: |
-            ~/.rustup
-            ~/.cargo/bin
-          key: ${{ runner.os }}-rust-nightly-${{ hashFiles('rust-toolchain.toml') }}
+          path: ~/.cargo/bin
+          key: ${{ runner.os }}-cargo-bin-${{ hashFiles('rust-toolchain.toml') }}
           restore-keys: |
-            ${{ runner.os }}-rust-nightly-
+            ${{ runner.os }}-cargo-bin-
       - name: Install Rust nightly
         uses: dtolnay/rust-toolchain@nightly
         with:
@@ -85,15 +83,13 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.target }}-rust-${{ hashFiles('rust-toolchain.toml') }}-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.target }}-rust-
-      - name: Cache Rust toolchain
+      - name: Cache cargo bin tools
         uses: actions/cache@v3
         with:
-          path: |
-            ~/.rustup
-            ~/.cargo/bin
-          key: ${{ runner.os }}-rust-nightly-${{ hashFiles('rust-toolchain.toml') }}
+          path: ~/.cargo/bin
+          key: ${{ runner.os }}-cargo-bin-${{ hashFiles('rust-toolchain.toml') }}
           restore-keys: |
-            ${{ runner.os }}-rust-nightly-
+            ${{ runner.os }}-cargo-bin-
       - name: Install cargo-nextest
         uses: taiki-e/install-action@v2
         with:
