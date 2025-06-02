@@ -28,10 +28,11 @@ pub fn handle(
                         Ok(chunk) => chunk,
                         Err(e) => {
                             trace!("Chunk not found, generating new chunk: {:?}", e);
-                            state.0.clone().terrain_generator.generate_chunk(
-                                event.location.x >> 4,
-                                event.location.z >> 4,
-                            )?
+                            state
+                                .0
+                                .clone()
+                                .terrain_generator
+                                .generate_chunk(event.location.x >> 4, event.location.z >> 4)?
                         }
                     };
                     let block = chunk.get_block(

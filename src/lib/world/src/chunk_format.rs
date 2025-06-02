@@ -21,7 +21,6 @@ use vanilla_chunk_format::BlockData;
 // in the binary.
 // #[cfg(not(test))]
 
-
 #[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug)]
 // This is a placeholder for the actual chunk format
 pub struct Chunk {
@@ -165,16 +164,22 @@ impl VanillaChunk {
             // Count the number of blocks that are either air, void air, or cave air
             let mut air_blocks = *block_counts.get(&BlockId::default()).unwrap_or(&0) as u16;
             air_blocks += *block_counts
-                .get(&BlockData {
-                    name: "minecraft:void_air".to_string(),
-                    properties: None,
-                }.to_block_id())
+                .get(
+                    &BlockData {
+                        name: "minecraft:void_air".to_string(),
+                        properties: None,
+                    }
+                    .to_block_id(),
+                )
                 .unwrap_or(&0) as u16;
             air_blocks += *block_counts
-                .get(&BlockData {
-                    name: "minecraft:cave_air".to_string(),
-                    properties: None,
-                }.to_block_id())
+                .get(
+                    &BlockData {
+                        name: "minecraft:cave_air".to_string(),
+                        properties: None,
+                    }
+                    .to_block_id(),
+                )
                 .unwrap_or(&0) as u16;
             let non_air_blocks = 4096 - air_blocks;
             let block_states = BlockStates {
@@ -258,7 +263,6 @@ impl Chunk {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -269,8 +273,9 @@ mod tests {
         let block = BlockData {
             name: "minecraft:stone".to_string(),
             properties: None,
-        }.to_block_id();
-        chunk.set_block(0, 0, 0, block.clone()).unwrap();
+        }
+        .to_block_id();
+        chunk.set_block(0, 0, 0, block).unwrap();
         assert_eq!(chunk.get_block(0, 0, 0).unwrap(), block);
     }
 
@@ -317,7 +322,11 @@ mod tests {
             PaletteType::Single(VarInt::from(1))
         );
         assert_eq!(
-            section.block_states.block_counts.get(&stone_block.to_block_id()).unwrap(),
+            section
+                .block_states
+                .block_counts
+                .get(&stone_block.to_block_id())
+                .unwrap(),
             &4096
         );
     }
@@ -328,8 +337,9 @@ mod tests {
         let block = BlockData {
             name: "minecraft:stone".to_string(),
             properties: None,
-        }.to_block_id();
-        chunk.set_block(0, 0, 0, block.clone()).unwrap();
+        }
+        .to_block_id();
+        chunk.set_block(0, 0, 0, block).unwrap();
         assert_ne!(chunk.get_block(0, 1, 0).unwrap(), block);
     }
 

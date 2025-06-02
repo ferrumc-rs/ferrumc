@@ -76,7 +76,12 @@ impl<'a> EditBatch<'a> {
     ///
     /// This won't have any effect until `apply()` is called.
     pub fn set_block(&mut self, x: i32, y: i32, z: i32, block: impl Into<BlockId>) {
-        self.edits.push(Edit { x, y, z, block: block.into() });
+        self.edits.push(Edit {
+            x,
+            y,
+            z,
+            block: block.into(),
+        });
     }
 
     /// Applies all edits in the batch to the chunk.
@@ -248,7 +253,9 @@ impl<'a> EditBatch<'a> {
                 }
 
                 if let Some(old_block_id) = palette.get(old_block_index as usize) {
-                    if let Some(count) = block_count_removes.get_mut(&BlockId::from_varint(*old_block_id)) {
+                    if let Some(count) =
+                        block_count_removes.get_mut(&BlockId::from_varint(*old_block_id))
+                    {
                         *count -= 1;
                     } else {
                         block_count_removes.insert(BlockId::from_varint(*old_block_id), 1);
@@ -272,9 +279,7 @@ impl<'a> EditBatch<'a> {
                 let current_count = section
                     .block_states
                     .block_counts
-                    .entry(
-                        block_id,
-                    )
+                    .entry(block_id)
                     .or_insert(0);
                 *current_count += count;
             }
@@ -283,9 +288,7 @@ impl<'a> EditBatch<'a> {
                 let current_count = section
                     .block_states
                     .block_counts
-                    .entry(
-                        block_id,
-                    )
+                    .entry(block_id)
                     .or_insert(0);
                 *current_count -= count;
             }
@@ -320,7 +323,8 @@ mod tests {
         BlockData {
             name: name.to_string(),
             properties: None,
-        }.to_block_id()
+        }
+        .to_block_id()
     }
 
     #[test]
@@ -346,11 +350,7 @@ mod tests {
         for x in 0..4 {
             for y in 0..4 {
                 for z in 0..4 {
-                    let block = if (x + y + z) % 2 == 0 {
-                        stone
-                    } else {
-                        dirt
-                    };
+                    let block = if (x + y + z) % 2 == 0 { stone } else { dirt };
                     batch.set_block(x, y, z, block);
                 }
             }

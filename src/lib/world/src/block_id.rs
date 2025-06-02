@@ -57,9 +57,7 @@ impl BlockId {
     /// Given a block ID, return a BlockData. Will clone, so don't use in hot loops.
     /// If the ID is not found, returns None.
     pub fn to_block_data(&self) -> Option<BlockData> {
-        ID2BLOCK
-            .get(self.0 as usize)
-            .cloned()
+        ID2BLOCK.get(self.0 as usize).cloned()
     }
 
     pub fn from_varint(var_int: VarInt) -> Self {
@@ -79,7 +77,9 @@ impl BlockData {
 
     /// Converts a BlockId to a BlockData. Will panic if the ID is not found.
     pub fn from_block_id(block_id: BlockId) -> BlockData {
-        block_id.to_block_data().expect("Block ID not found in block mappings file")
+        block_id
+            .to_block_data()
+            .expect("Block ID not found in block mappings file")
     }
 }
 impl From<BlockData> for BlockId {
@@ -90,7 +90,9 @@ impl From<BlockData> for BlockId {
 impl From<BlockId> for BlockData {
     /// Converts a BlockId to a BlockData. Will panic if the ID is not found.
     fn from(block_id: BlockId) -> Self {
-        block_id.to_block_data().expect("Block ID not found in block mappings file")
+        block_id
+            .to_block_data()
+            .expect("Block ID not found in block mappings file")
     }
 }
 

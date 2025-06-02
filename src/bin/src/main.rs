@@ -124,7 +124,7 @@ fn entry() -> Result<(), BinaryError> {
                 .expect("Failed to sync world before shutdown")
         }
     })
-        .expect("Error setting Ctrl-C handler");
+    .expect("Error setting Ctrl-C handler");
 
     game_loop::start_game_loop(global_state.clone())?;
 

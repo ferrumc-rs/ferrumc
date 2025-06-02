@@ -171,9 +171,10 @@ mod tests {
                 .unwrap()
                 .join("../../../target/debug/world"),
         );
-        let chunk = world.load_chunk(1, 1, "overworld").
-            expect("Failed to load chunk. If it's a bitcode error, chances are the chunk format \
-             has changed since last generating a world so you'll need to regenerate");
+        let chunk = world.load_chunk(1, 1, "overworld").expect(
+            "Failed to load chunk. If it's a bitcode error, chances are the chunk format \
+             has changed since last generating a world so you'll need to regenerate",
+        );
         let encoded = bitcode::encode(&chunk);
         std::fs::write("../../../.etc/raw_chunk.dat", encoded).unwrap();
     }
