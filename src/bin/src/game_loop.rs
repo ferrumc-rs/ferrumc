@@ -37,8 +37,8 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
 
     let ns_per_tick = Duration::from_nanos(NS_PER_SECOND / get_global_config().tps as u64);
 
-    // Start the TCP connection accepter
-    tcp_conn_accepter(global_state.clone(), sender_struct, Arc::new(new_conn_send))?;
+    // Start the TCP connection acceptor
+    tcp_conn_acceptor(global_state.clone(), sender_struct, Arc::new(new_conn_send))?;
 
     while !global_state
         .shut_down
@@ -76,7 +76,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
 }
 
 // This is the bit where we bridge to async
-fn tcp_conn_accepter(
+fn tcp_conn_acceptor(
     state: GlobalState,
     packet_sender: Arc<PacketSender>,
     sender: Arc<Sender<NewConnection>>,
@@ -84,7 +84,7 @@ fn tcp_conn_accepter(
     let named_thread = std::thread::Builder::new().name("TokioNetworkThread".to_string());
     named_thread.spawn(move || {
         let caught_panic = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            debug!("Created TCP connection accepter thread");
+            debug!("Created TCP connection acceptor thread");
             let async_runtime = tokio::runtime::Builder::new_current_thread()
                 .enable_all()
                 .thread_name("Tokio-Async-Network")
@@ -118,25 +118,25 @@ fn tcp_conn_accepter(
                         });
                         info!("Accepted connection from {}", addy);
                     }
-                    debug!("Shutting down TCP connection accepter thread");
+                    debug!("Shutting down TCP connection acceptor thread");
                     Ok(())
                 }
             })?;
-            info!("Shutting down TCP connection accepter");
+            info!("Shutting down TCP connection acceptor");
             Ok::<(), BinaryError>(())
         }));
         if let Err(e) = caught_panic {
-            error!("TCP connection accepter thread panicked: {:?}", e);
+            error!("TCP connection acceptor thread panicked: {:?}", e);
             // If we get here, the thread panicked
             state
                 .shut_down
                 .store(true, std::sync::atomic::Ordering::Relaxed);
             return Err::<(), BinaryError>(BinaryError::Custom(
-                "TCP connection accepter thread panicked".to_string(),
+                "TCP connection acceptor thread panicked".to_string(),
             ));
         }
         Err(BinaryError::Custom(
-            "TCP connection accepter thread panicked".to_string(),
+            "TCP connection acceptor thread panicked".to_string(),
         ))
     })?;
     Ok(())
