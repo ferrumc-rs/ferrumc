@@ -1,0 +1,9 @@
+[package]
+name = "ferrumc-threadpool"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+rusty_pool = { workspace = true }
+dashmap = { workspace = true }
+rand = { workspace = true }

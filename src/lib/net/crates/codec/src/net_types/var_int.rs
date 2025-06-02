@@ -6,15 +6,12 @@ use crate::net_types::NetTypesError;
 use bitcode::{Decode, Encode};
 use deepsize::DeepSizeOf;
 use std::io::{Read, Write};
-use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
+use tokio::io::AsyncRead;
+use tokio::io::AsyncWriteExt;
+use tokio::io::{AsyncReadExt, AsyncWrite};
 
-#[derive(Debug, Encode, Decode, Clone, DeepSizeOf, Eq)]
-pub struct VarInt {
-    /// The value of the VarInt.
-    pub val: i32,
-    /// The length of the VarInt in bytes.
-    pub len: usize,
-}
+#[derive(Debug, Encode, Decode, Clone, DeepSizeOf, PartialEq, Eq, PartialOrd, Ord)]
+pub struct VarInt(pub i32);
 
 mod adapters {
     use crate::net_types::var_int::VarInt;
@@ -24,12 +21,6 @@ mod adapters {
     impl From<usize> for VarInt {
         fn from(value: usize) -> Self {
             Self::new(value as i32)
-        }
-    }
-
-    impl From<VarInt> for u8 {
-        fn from(value: VarInt) -> Self {
-            value.val as u8
         }
     }
 
@@ -53,7 +44,10 @@ mod adapters {
 
     impl PartialEq<usize> for VarInt {
         fn eq(&self, other: &usize) -> bool {
-            self.val == *other as i32
+            let Ok(other) = i32::try_from(*other) else {
+                return false;
+            };
+            self.0 == other
         }
     }
 
@@ -61,7 +55,7 @@ mod adapters {
         type Output = Self;
 
         fn add(self, other: Self) -> Self {
-            Self::new(self.val + other.val)
+            Self::new(self.0 + other.0)
         }
     }
 
@@ -69,14 +63,8 @@ mod adapters {
         type Output = Self;
 
         fn sub(self, other: Self) -> Self {
-            Self::new(self.val - other.val)
+            Self::new(self.0 - other.0)
         }
-    }
-}
-
-impl PartialEq for VarInt {
-    fn eq(&self, other: &Self) -> bool {
-        self.val == other.val
     }
 }
 
@@ -84,24 +72,18 @@ const SEGMENT_BITS: i32 = 0x7F;
 const CONTINUE_BIT: i32 = 0x80;
 
 impl VarInt {
-    pub fn new(value: i32) -> Self {
-        Self {
-            val: value,
-            len: Self::calculate_len(value),
-        }
+    pub const fn new(value: i32) -> Self {
+        Self(value)
     }
 
-    pub fn calculate_len(value: i32) -> usize {
-        if (-128..128).contains(&value) {
-            1
-        } else if (-16384..16384).contains(&value) {
-            2
-        } else if (-2097152..2097152).contains(&value) {
-            3
-        } else if (-268435456..268435456).contains(&value) {
-            4
-        } else {
-            5
+    #[expect(clippy::len_without_is_empty)]
+    pub const fn len(&self) -> usize {
+        match self.0 {
+            -128..128 => 1,
+            -16384..16384 => 2,
+            -2097152..2097152 => 3,
+            -268435456..268435456 => 4,
+            _ => 5,
         }
     }
 
@@ -116,7 +98,7 @@ impl VarInt {
 
             val |= (byte & SEGMENT_BITS) << (7 * i);
             if byte & CONTINUE_BIT == 0 {
-                return Ok(Self { val, len: i + 1 });
+                return Ok(Self::new(val));
             }
         }
 
@@ -127,14 +109,14 @@ impl VarInt {
         let mut val = 0;
         for i in 0..5 {
             let byte = {
-                let mut buf = [0];
+                let mut buf = [0u8; 1];
                 cursor.read_exact(&mut buf).await?;
                 buf[0]
             } as i32;
 
             val |= (byte & SEGMENT_BITS) << (7 * i);
             if byte & CONTINUE_BIT == 0 {
-                return Ok(Self { val, len: i + 1 });
+                return Ok(Self::new(val));
             }
         }
 
@@ -142,7 +124,7 @@ impl VarInt {
     }
 
     pub fn write<W: Write>(&self, cursor: &mut W) -> Result<(), NetTypesError> {
-        let mut val = self.val;
+        let VarInt(mut val) = self;
         loop {
             if (val & !SEGMENT_BITS) == 0 {
                 cursor.write_all(&[val as u8])?;
@@ -150,7 +132,7 @@ impl VarInt {
             }
 
             cursor.write_all(&[((val & SEGMENT_BITS) | CONTINUE_BIT) as u8])?;
-            val = ((val as u32) >> 7) as i32; // Rust equivalent of Java's >>> operator
+            val = ((val as u32) >> 7) as i32;
         }
     }
 
@@ -158,7 +140,7 @@ impl VarInt {
         &self,
         cursor: &mut W,
     ) -> Result<(), NetTypesError> {
-        let mut val = self.val;
+        let VarInt(mut val) = self;
         loop {
             if (val & !SEGMENT_BITS) == 0 {
                 cursor.write_all(&[val as u8]).await?;
@@ -176,6 +158,14 @@ impl VarInt {
 impl NetDecode for VarInt {
     fn decode<R: Read>(reader: &mut R, _opts: &NetDecodeOpts) -> NetDecodeResult<Self> {
         VarInt::read(reader).map_err(|e| NetDecodeError::ExternalError(e.into()))
+    }
+    async fn decode_async<R: AsyncRead + Unpin>(
+        reader: &mut R,
+        _opts: &NetDecodeOpts,
+    ) -> NetDecodeResult<Self> {
+        VarInt::read_async(reader)
+            .await
+            .map_err(|e| NetDecodeError::ExternalError(e.into()))
     }
 }
 

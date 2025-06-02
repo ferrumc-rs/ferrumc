@@ -4,7 +4,6 @@ use ferrumc_net_codec::encode::{errors::NetEncodeError, NetEncode, NetEncodeOpts
 use paste::paste;
 use std::fmt;
 use std::io::Write;
-use std::marker::Unpin;
 use std::ops::Add;
 use std::str::FromStr;
 use tokio::io::AsyncWriteExt;
@@ -72,7 +71,7 @@ impl From<TextComponent> for String {
 impl fmt::Display for TextComponent {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Ok(value) = serde_json::to_string(self) {
-            write!(f, "{}", value)
+            write!(f, "{value}")
         } else {
             write!(f, "Couldn't convert to String")
         }
@@ -101,8 +100,7 @@ impl NetEncode for TextComponent {
         writer.write_all(&self.serialize_nbt()[..])?;
         Ok(())
     }
-
-    async fn encode_async<W: AsyncWriteExt + Unpin>(
+    async fn encode_async<W: tokio::io::AsyncWrite + Unpin>(
         &self,
         writer: &mut W,
         _: &NetEncodeOpts,

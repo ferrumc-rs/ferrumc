@@ -1,8 +1,12 @@
+use crate::conn_init::handle_handshake;
+use crate::errors::NetError;
+use crate::errors::NetError::HandshakeTimeout;
+use crate::errors::PacketError::InvalidPacket;
 use crate::packets::incoming::packet_skeleton::PacketSkeleton;
-use crate::utils::state::terminate_connection;
-use crate::{handle_packet, NetResult};
-use ferrumc_events::infrastructure::Event;
-use ferrumc_macros::Event;
+use crate::{handle_packet, PacketSender};
+use bevy_ecs::prelude::{Component, Entity};
+use crossbeam_channel::Sender;
+use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::ServerState;
@@ -10,62 +14,21 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::io::AsyncWriteExt;
-use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
+use tokio::net::tcp::OwnedWriteHalf;
 use tokio::net::TcpStream;
+use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
+use tokio::sync::oneshot;
 use tokio::time::timeout;
-use tracing::{debug, debug_span, trace, warn, Instrument};
+use tracing::{debug_span, error, trace, warn, Instrument};
+use typename::TypeName;
 
-#[derive(Debug)]
-pub struct ConnectionControl {
-    pub should_disconnect: bool,
-}
+/// The maximum time to wait for a handshake to complete
+const MAX_HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(10);
 
-impl ConnectionControl {
-    pub fn new() -> Self {
-        Self {
-            should_disconnect: false,
-        }
-    }
-}
-
-impl Default for ConnectionControl {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-#[derive(Clone)]
-pub enum ConnectionState {
-    Handshaking,
-    Status,
-    Login,
-    Play,
-    Configuration,
-}
-impl ConnectionState {
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            ConnectionState::Handshaking => "handshake",
-            ConnectionState::Status => "status",
-            ConnectionState::Login => "login",
-            ConnectionState::Play => "play",
-            ConnectionState::Configuration => "configuration",
-        }
-    }
-}
-
-pub struct StreamReader {
-    pub reader: OwnedReadHalf,
-}
-
-impl StreamReader {
-    pub fn new(reader: OwnedReadHalf) -> Self {
-        Self { reader }
-    }
-}
-
+#[derive(TypeName, Component)]
 pub struct StreamWriter {
-    sender: tokio::sync::mpsc::UnboundedSender<Vec<u8>>,
-    running: Arc<AtomicBool>,
+    sender: UnboundedSender<Vec<u8>>,
+    pub running: Arc<AtomicBool>,
 }
 impl Drop for StreamWriter {
     fn drop(&mut self) {
@@ -73,23 +36,22 @@ impl Drop for StreamWriter {
     }
 }
 impl StreamWriter {
-    pub fn new(mut writer: OwnedWriteHalf) -> Self {
-        let (sender, mut receiver) = tokio::sync::mpsc::unbounded_channel::<Vec<u8>>();
-        let running = Arc::new(AtomicBool::new(true));
+    pub async fn new(mut writer: OwnedWriteHalf, running: Arc<AtomicBool>) -> Self {
+        let (sender, mut receiver): (UnboundedSender<Vec<u8>>, UnboundedReceiver<Vec<u8>>) =
+            tokio::sync::mpsc::unbounded_channel();
+        let running_clone = running.clone();
 
         // Spawn a task to write to the writer using the channel
-        tokio::spawn({
-            let running = Arc::clone(&running);
-            async move {
-                while running.load(Ordering::Relaxed) {
-                    let Some(bytes) = receiver.recv().await else {
-                        break;
-                    };
+        tokio::spawn(async move {
+            while running_clone.load(Ordering::Relaxed) {
+                let Some(bytes) = receiver.recv().await else {
+                    break;
+                };
 
-                    if let Err(e) = writer.write_all(&bytes).await {
-                        warn!("Failed to write to writer: {:?}", e);
-                        break;
-                    }
+                if let Err(e) = writer.write_all(&bytes).await {
+                    error!("Failed to write to writer: {:?}", e);
+                    running_clone.store(false, Ordering::Relaxed);
+                    break;
                 }
             }
         });
@@ -97,142 +59,182 @@ impl StreamWriter {
         Self { sender, running }
     }
 
-    pub fn send_packet(
-        &mut self,
+    // Sends the packet to the client with the default options. You probably want to use this instead
+    // of send_packet_with_opts()
+    pub fn send_packet(&self, packet: impl NetEncode + Send) -> Result<(), NetError> {
+        self.send_packet_with_opts(packet, &NetEncodeOpts::WithLength)
+    }
+
+    pub fn send_packet_with_opts(
+        &self,
         packet: impl NetEncode + Send,
         net_encode_opts: &NetEncodeOpts,
-    ) -> NetResult<()> {
+    ) -> Result<(), NetError> {
+        if !self.running.load(Ordering::Relaxed) {
+            #[cfg(debug_assertions)]
+            warn!("StreamWriter is not running, not sending packet");
+            return Err(NetError::ConnectionDropped);
+        }
         let bytes = {
             let mut buffer = Vec::new();
             packet.encode(&mut buffer, net_encode_opts)?;
             buffer
         };
-
         self.sender.send(bytes).map_err(std::io::Error::other)?;
         Ok(())
     }
 }
 
-pub struct CompressionStatus {
-    pub enabled: bool,
+pub struct NewConnection {
+    pub stream: StreamWriter,
+    pub player_identity: PlayerIdentity,
+    pub entity_return: oneshot::Sender<Entity>,
 }
 
-impl CompressionStatus {
-    pub fn new() -> Self {
-        Self { enabled: false }
+pub async fn handle_connection(
+    state: Arc<ServerState>,
+    tcp_stream: TcpStream,
+    packet_sender: Arc<PacketSender>,
+    new_join_sender: Arc<Sender<NewConnection>>,
+) -> Result<(), NetError> {
+    let (mut tcp_reader, mut tcp_writer) = tcp_stream.into_split();
+
+    let handshake_result = timeout(
+        MAX_HANDSHAKE_TIMEOUT,
+        handle_handshake(&mut tcp_reader, &mut tcp_writer, state.clone()),
+    )
+    .await;
+
+    let mut player_identity = PlayerIdentity::default();
+
+    match handshake_result {
+        Ok(res) => match res {
+            Ok((false, returned_player_identity)) => {
+                trace!("Handshake successful");
+                match returned_player_identity {
+                    Some(returned_player_identity) => {
+                        trace!("Player identity: {:?}", returned_player_identity);
+                        player_identity = returned_player_identity;
+                    }
+                    None => {
+                        error!("Player identity not found");
+                    }
+                }
+            }
+            Ok((true, _)) => {
+                trace!("Handshake successful, killing connection");
+                return Ok(());
+            }
+            Err(err) => {
+                error!("Handshake error: {:?}", err);
+                return Err(err);
+            }
+        },
+        Err(err) => {
+            error!("Handshake timed out: {:?}", err);
+            return Err(HandshakeTimeout);
+        }
     }
-}
 
-impl Default for CompressionStatus {
-    fn default() -> Self {
-        Self::new()
-    }
-}
+    // The player has successfully connected, so we can start the connection properly
 
-pub async fn handle_connection(state: Arc<ServerState>, tcp_stream: TcpStream) -> NetResult<()> {
-    let (mut reader, writer) = tcp_stream.into_split();
+    let compressed = false;
+    let running = Arc::new(AtomicBool::new(true));
 
-    let entity = state
-        .universe
-        .builder()
-        .with(StreamWriter::new(writer))?
-        .with(ConnectionState::Handshaking)?
-        .with(CompressionStatus::new())?
-        .with(ConnectionControl::new())?
-        .build();
+    let stream = StreamWriter::new(tcp_writer, running.clone()).await;
+
+    // Send the streamwriter to the main thread
+    let (entity_return, entity_recv) = oneshot::channel();
+
+    new_join_sender
+        .send(NewConnection {
+            stream,
+            player_identity,
+            entity_return,
+        })
+        .map_err(|_| NetError::Misc("Failed to send new connection".to_string()))?;
+
+    // Wait for the entity ID to be sent back
+    let entity = match entity_recv.await {
+        Ok(entity) => entity,
+        Err(err) => {
+            error!("Failed to receive entity ID: {:?}", err);
+            return Err(NetError::Misc("Failed to receive entity ID".to_string()));
+        }
+    };
 
     'recv: loop {
-        let compressed = state.universe.get::<CompressionStatus>(entity)?.enabled;
-        let should_disconnect = state
-            .universe
-            .get::<ConnectionControl>(entity)?
-            .should_disconnect;
-
-        if should_disconnect {
-            debug!(
-                "should_disconnect is true for entity: {}, breaking out of connection loop.",
-                entity
-            );
+        if !running.load(Ordering::Relaxed) {
+            trace!("Conn for entity {:?} is marked for disconnection", entity);
             break 'recv;
         }
 
-        let read_timeout = Duration::from_secs(2);
-        let packet_task = timeout(read_timeout, PacketSkeleton::new(&mut reader, compressed)).await;
-
-        if let Err(err) = packet_task {
-            trace!(
-                "failed to read packet within {:?} for entity {:?}, err: {:?}
-            continuing to next iteration",
-                read_timeout,
-                entity,
-                err
-            );
-            continue;
+        if state.shut_down.load(Ordering::Relaxed) {
+            break 'recv;
         }
 
-        let Ok(Ok(mut packet_skele)) = packet_task else {
-            trace!("Failed to read packet. Possibly connection closed. Breaking out of connection loop");
-            break 'recv;
+        let mut packet_skele = match PacketSkeleton::new(&mut tcp_reader, compressed).await {
+            Ok(packet_skele) => packet_skele,
+            Err(err) => {
+                if let NetError::ConnectionDropped = err {
+                    trace!("Connection dropped for entity {:?}", entity);
+                    running.store(false, Ordering::Relaxed);
+                    break 'recv;
+                }
+                error!("Failed to read packet skeleton: {:?} for {:?}", err, entity);
+                running.store(false, Ordering::Relaxed);
+                break 'recv;
+            }
         };
 
-        // Log the packet if the environment variable is set (this env variable is set at compile time not runtime!)
-        if option_env!("FERRUMC_LOG_PACKETS").is_some() {
-            trace!("Received packet: {:?}", packet_skele);
-        }
-
-        let conn_state = state.universe.get::<ConnectionState>(entity)?.clone();
-        if let Err(e) = handle_packet(
+        match handle_packet(
             packet_skele.id,
             entity,
-            &conn_state,
             &mut packet_skele.data,
-            Arc::clone(&state),
+            packet_sender.clone(),
         )
-        .await
         .instrument(debug_span!("eid", %entity))
-        .inner()
+        .into_inner()
         {
-            warn!(
-                "Failed to handle packet: {:?}. packet_id: {:02X}; conn_state: {}",
-                e,
-                packet_skele.id,
-                conn_state.as_str()
-            );
-            // Kick the player (when implemented).
-            terminate_connection(state.clone(), entity, "Failed to handle packet".to_string())
-                .await?;
-            break 'recv;
-        };
+            Ok(()) => {
+                trace!(
+                    "Packet {:02X} handled for entity {:?}",
+                    packet_skele.id,
+                    entity
+                );
+            }
+            Err(err) => match &err {
+                NetError::Packet(InvalidPacket(id)) => {
+                    trace!("Packet 0x{:02X} received, no handler implemented yet", id);
+                }
+                _ => {
+                    warn!("Failed to handle packet: {:?}", err);
+                    running.store(false, Ordering::Relaxed);
+                    break 'recv;
+                }
+            },
+        }
     }
-
-    debug!("Connection closed for entity: {:?}", entity);
-
-    // Broadcast the leave server event
-    let _ =
-        PlayerDisconnectEvent::trigger(PlayerDisconnectEvent { entity_id: entity }, state.clone())
-            .await;
-
-    // Remove all components from the entity
-
-    // Wait until anything that might be using the entity is done
-    if let Err(e) = remove_all_components_blocking(state.clone(), entity).await {
-        warn!("Failed to remove all components from entity: {:?}", e);
-    }
-
-    trace!("Dropped all components from entity: {:?}", entity);
 
     Ok(())
 }
 
-#[derive(Event)]
-pub struct PlayerDisconnectEvent {
-    pub entity_id: usize,
-}
-
-/// Since parking_lot is single-threaded, we use spawn_blocking to remove all components from the entity asynchronously (on another thread).
-async fn remove_all_components_blocking(state: Arc<ServerState>, entity: usize) -> NetResult<()> {
-    let res =
-        tokio::task::spawn_blocking(move || state.universe.remove_all_components(entity)).await?;
-
-    Ok(res?)
+impl StreamWriter {
+    /// Kills the connection and sends a disconnect packet to the client
+    ///
+    /// !!! This won't delete the entity, you should do that with the connection killer system
+    pub fn kill(&self, reason: Option<String>) -> Result<(), NetError> {
+        self.running.store(false, Ordering::Relaxed);
+        if let Err(err) = self.send_packet(crate::packets::outgoing::disconnect::DisconnectPacket {
+            reason: ferrumc_text::TextComponent::from(reason.unwrap_or("Disconnected".to_string())),
+        }) {
+            if matches!(err, NetError::ConnectionDropped) {
+                trace!("Connection already dropped, not sending disconnect packet");
+            } else {
+                error!("Failed to send disconnect packet: {:?}", err);
+                return Err(err);
+            }
+        }
+        Ok(())
+    }
 }

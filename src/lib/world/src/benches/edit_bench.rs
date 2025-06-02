@@ -1,7 +1,8 @@
-use criterion::{black_box, Criterion, Throughput};
+use criterion::{Criterion, Throughput};
 use ferrumc_world::chunk_format::Chunk;
 use ferrumc_world::vanilla_chunk_format::BlockData;
 use rand::Rng;
+use std::hint::black_box;
 use std::io::Read;
 
 fn get_rand_in_range(min: i32, max: i32) -> i32 {

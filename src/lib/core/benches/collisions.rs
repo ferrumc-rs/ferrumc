@@ -1,5 +1,6 @@
-use criterion::{black_box, Criterion};
+use criterion::Criterion;
 use ferrumc_core::collisions::bounds::CollisionBounds;
+use std::hint::black_box;
 
 pub fn bench_collides(c: &mut Criterion) {
     let mut g = c.benchmark_group("collisions");

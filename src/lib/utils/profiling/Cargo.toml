@@ -6,12 +6,10 @@ edition = "2021"
 [dependencies]
 rand = { workspace = true }
 lazy_static = { workspace = true }
-hashbrown = { workspace = true }
 dashmap = { workspace = true }
 parking_lot = { workspace = true }
 tracing-subscriber = { workspace = true }
 tracing = { workspace = true }
-tinyvec = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 serde_derive = { workspace = true }

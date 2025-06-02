@@ -51,14 +51,6 @@ pub enum WorldError {
     InvalidBatchingOperation(String),
 }
 
-// implemente AcquireError for WorldError
-use tokio::sync::AcquireError;
-impl From<AcquireError> for WorldError {
-    fn from(err: AcquireError) -> Self {
-        WorldError::TaskJoinError(err.to_string())
-    }
-}
-
 impl From<std::io::Error> for WorldError {
     fn from(err: std::io::Error) -> Self {
         match err.kind() {

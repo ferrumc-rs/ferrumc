@@ -1,12 +1,12 @@
+use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
-use ferrumc_ecs::entities::Entity;
 use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::angle::NetAngle;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::Write;
 
-#[derive(NetEncode)]
+#[derive(NetEncode, Clone)]
 #[packet(packet_id = "teleport_entity", state = "play")]
 pub struct TeleportEntityPacket {
     pub entity_id: VarInt,
@@ -19,9 +19,14 @@ pub struct TeleportEntityPacket {
 }
 
 impl TeleportEntityPacket {
-    pub fn new(entity_id: Entity, position: &Position, angle: &Rotation, on_ground: bool) -> Self {
+    pub fn new(
+        entity_id: &PlayerIdentity,
+        position: &Position,
+        angle: &Rotation,
+        on_ground: bool,
+    ) -> Self {
         Self {
-            entity_id: VarInt::new(entity_id as i32),
+            entity_id: VarInt::new(entity_id.short_uuid),
             x: position.x,
             y: position.y,
             z: position.z,

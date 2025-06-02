@@ -1,10 +1,8 @@
-use crate::utils::broadcast::get_all_play_players;
+use bevy_ecs::prelude::{Component, Entity, Query};
 use ferrumc_core::identity::player_identity::PlayerIdentity;
-use ferrumc_ecs::entities::Entity;
 use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use ferrumc_state::GlobalState;
 use std::io::Write;
 use tracing::debug;
 
@@ -17,10 +15,7 @@ pub struct PlayerInfoUpdatePacket {
 }
 
 impl PlayerInfoUpdatePacket {
-    pub fn with_players<T>(players: T) -> Self
-    where
-        T: IntoIterator<Item = PlayerWithActions>,
-    {
+    pub fn with_players(players: Vec<PlayerWithActions>) -> Self {
         let players: Vec<PlayerWithActions> = players.into_iter().collect();
         Self {
             actions: players
@@ -33,42 +28,34 @@ impl PlayerInfoUpdatePacket {
     }
 
     /// The packet to be sent to all already connected players when a new player joins the server
-    pub fn new_player_join_packet(new_player_id: Entity, state: &GlobalState) -> Self {
-        let identity = state
-            .universe
-            .get_component_manager()
-            .get::<PlayerIdentity>(new_player_id)
-            .unwrap();
-        let uuid = identity.uuid;
-        let name = identity.username.clone();
-
-        let player = PlayerWithActions::add_player(uuid, name);
+    pub fn new_player_join_packet(identity: PlayerIdentity) -> Self {
+        let player = PlayerWithActions::add_player(identity.short_uuid, identity.username);
 
         Self::with_players(vec![player])
     }
 
     /// The packet to be sent to a new player when they join the server,
     /// To let them know about all the players that are already connected
-    pub fn existing_player_info_packet(new_player_id: Entity, state: &GlobalState) -> Self {
-        let players = {
-            let mut players = get_all_play_players(state);
-            players.retain(|&player| player != new_player_id);
-
+    pub fn existing_player_info_packet(
+        new_player_id: Entity,
+        query: Query<(Entity, &PlayerIdentity)>,
+    ) -> Self {
+        let players: Vec<&PlayerIdentity> = {
+            let players = query.iter().collect::<Vec<(_, _)>>();
             players
+                .iter()
+                .filter(|&player| player.0 == new_player_id)
+                .map(|player| player.1)
+                .collect()
         };
 
         let players = players
             .into_iter()
-            .filter_map(|player| {
-                let identity = state
-                    .universe
-                    .get_component_manager()
-                    .get::<PlayerIdentity>(player)
-                    .ok()?;
-                let uuid = identity.uuid;
-                let name = identity.username.clone();
+            .map(|player| {
+                let uuid = player.short_uuid;
+                let name = player.username.clone();
 
-                Some((uuid, name))
+                (uuid, name)
             })
             .map(|(uuid, name)| PlayerWithActions::add_player(uuid, name))
             .collect::<Vec<_>>();
@@ -79,9 +66,9 @@ impl PlayerInfoUpdatePacket {
     }
 }
 
-#[derive(NetEncode, Debug)]
+#[derive(NetEncode, Debug, Component)]
 pub struct PlayerWithActions {
-    pub uuid: u128,
+    pub uuid: i32,
     pub actions: Vec<PlayerAction>,
 }
 
@@ -96,9 +83,9 @@ impl PlayerWithActions {
         mask
     }
 
-    pub fn add_player(uuid: impl Into<u128>, name: impl Into<String>) -> Self {
+    pub fn add_player(uuid: i32, name: impl Into<String>) -> Self {
         Self {
-            uuid: uuid.into(),
+            uuid,
             actions: vec![PlayerAction::AddPlayer {
                 name: name.into(),
                 properties: LengthPrefixedVec::default(),

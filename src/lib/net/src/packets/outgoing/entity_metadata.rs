@@ -2,15 +2,13 @@
 use crate::packets::outgoing::entity_metadata::entity_state::{EntityState, EntityStateMask};
 use crate::packets::outgoing::entity_metadata::index_type::EntityMetadataIndexType;
 use crate::packets::outgoing::entity_metadata::value::EntityMetadataValue;
-use ferrumc_ecs::entities::Entity;
 use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::Write;
-use tokio::io::AsyncWrite;
 
 /// Packet for sending entity metadata updates to clients
-#[derive(NetEncode)]
+#[derive(NetEncode, Clone)]
 #[packet(packet_id = "set_entity_data", state = "play")]
 pub struct EntityMetadataPacket {
     entity_id: VarInt,
@@ -35,12 +33,12 @@ impl EntityMetadataPacket {
     ///                   ];
     /// let packet = EntityMetadataPacket::new(entity_id, metadata);
     /// ```
-    pub fn new<T>(entity_id: Entity, metadata: T) -> Self
+    pub fn new<T>(entity_id: VarInt, metadata: T) -> Self
     where
         T: IntoIterator<Item = EntityMetadata>,
     {
         Self {
-            entity_id: VarInt::new(entity_id as i32),
+            entity_id,
             metadata: metadata.into_iter().collect(),
             terminator: 0xFF,
         }
@@ -48,7 +46,7 @@ impl EntityMetadataPacket {
 }
 
 /// Single metadata entry containing an index, type and value
-#[derive(NetEncode)]
+#[derive(NetEncode, Clone)]
 pub struct EntityMetadata {
     index: u8,
     index_type: EntityMetadataIndexType,
@@ -99,6 +97,7 @@ mod index_type {
 
     /// Available metadata field types
     /// See: https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Entity_metadata#Entity_Metadata_Format
+    #[derive(Debug, Clone, Copy)]
     pub enum EntityMetadataIndexType {
         Byte, // (0) Used for bit masks and small numbers
         Pose, // (21) Used for entity pose
@@ -121,7 +120,7 @@ mod index_type {
             self.index().encode(writer, opts)
         }
 
-        async fn encode_async<W: AsyncWrite + Unpin>(
+        async fn encode_async<W: tokio::io::AsyncWrite + Unpin>(
             &self,
             writer: &mut W,
             opts: &NetEncodeOpts,
@@ -142,7 +141,7 @@ mod value {
     ///
     /// Formatted like:
     /// {Class Name}{Index}
-    #[derive(NetEncode)]
+    #[derive(NetEncode, Clone)]
     pub enum EntityMetadataValue {
         Entity0(EntityStateMask),
         Entity6(EntityPose),
@@ -164,7 +163,7 @@ mod entity_state {
     use std::io::Write;
 
     /// Bit mask for various entity states
-    #[derive(Debug, NetEncode)]
+    #[derive(Debug, NetEncode, Clone)]
     pub struct EntityStateMask {
         mask: u8,
     }
@@ -193,7 +192,7 @@ mod entity_state {
 
     /// Individual states that can be applied to an entity
     /// Multiple states can be combined using a bit mask
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     pub enum EntityState {
         OnFire,           // 0x01
         SneakingVisual,   // 0x02
@@ -224,14 +223,13 @@ mod extra_data_types {
     use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
     use ferrumc_net_codec::net_types::var_int::VarInt;
     use std::io::Write;
-    use tokio::io::AsyncWrite;
     // STANDING = 0, FALL_FLYING = 1, SLEEPING = 2, SWIMMING = 3, SPIN_ATTACK = 4, SNEAKING = 5, LONG_JUMPING = 6, DYING = 7, CROAKING = 8,
     // USING_TONGUE = 9, SITTING = 10, ROARING = 11, SNIFFING = 12, EMERGING = 13, DIGGING = 14, (1.21.3: SLIDING = 15, SHOOTING = 16,
     // INHALING = 17
 
     /// Possible poses/animations an entity can have
-    #[derive(Debug)]
-    #[allow(dead_code)]
+    #[derive(Debug, Clone)]
+    #[expect(dead_code)]
     pub enum EntityPose {
         Standing,
         FallFlying,
@@ -285,7 +283,7 @@ mod extra_data_types {
             self.index().encode(writer, opts)
         }
 
-        async fn encode_async<W: AsyncWrite + Unpin>(
+        async fn encode_async<W: tokio::io::AsyncWrite + Unpin>(
             &self,
             writer: &mut W,
             opts: &NetEncodeOpts,
