@@ -13,6 +13,9 @@ pub struct TeleportEntityPacket {
     pub x: f64,
     pub y: f64,
     pub z: f64,
+    pub vel_x: f64,
+    pub vel_y: f64,
+    pub vel_z: f64,
     pub yaw: NetAngle,
     pub pitch: NetAngle,
     pub on_ground: bool,
@@ -25,11 +28,15 @@ impl TeleportEntityPacket {
         angle: &Rotation,
         on_ground: bool,
     ) -> Self {
+        // Todo: Add velocity parameters if needed
         Self {
             entity_id: VarInt::new(entity_id.short_uuid),
             x: position.x,
             y: position.y,
             z: position.z,
+            vel_x: 0.0, // Placeholder for velocity in x direction
+            vel_y: 0.0, // Placeholder for velocity in y direction
+            vel_z: 0.0, // Placeholder for velocity in z direction
             yaw: NetAngle::from_degrees(angle.yaw as f64),
             pitch: NetAngle::from_degrees(angle.pitch as f64),
             on_ground,

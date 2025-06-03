@@ -89,7 +89,7 @@ fn get_server_status(state: &GlobalState) -> String {
 
     let version = structs::Version {
         name: "1.21.1",
-        protocol: crate::conn_init::PROTOCOL_VERSION_1_21_1 as u16,
+        protocol: crate::conn_init::PROTOCOL_VERSION_1_21_5 as u16,
     };
 
     let online_players_sample = state

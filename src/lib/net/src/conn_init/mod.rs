@@ -46,7 +46,7 @@ pub(crate) async fn send_packet(
     conn.flush().await?;
     Ok(())
 }
-pub const PROTOCOL_VERSION_1_21_1: i32 = 767;
+pub const PROTOCOL_VERSION_1_21_5: i32 = 770;
 
 // Todo: Make this function return encryption and compression settings
 /// Handle the handshake sequence for the server.
@@ -68,11 +68,11 @@ pub async fn handle_handshake(
     // Get incoming handshake packet
     let hs_packet = Handshake::decode_async(&mut conn_read, &NetDecodeOpts::None).await?; // Check protocol version and send appropriate disconnect packet if mismatched
 
-    if hs_packet.protocol_version.0 != PROTOCOL_VERSION_1_21_1 {
+    if hs_packet.protocol_version.0 != PROTOCOL_VERSION_1_21_5 {
         trace!(
             "Protocol version mismatch: {} != {}",
             hs_packet.protocol_version.0,
-            PROTOCOL_VERSION_1_21_1
+            PROTOCOL_VERSION_1_21_5
         );
         return handle_version_mismatch(hs_packet, conn_read, conn_write, state).await;
     }
@@ -109,7 +109,7 @@ async fn handle_version_mismatch(
             trace!(
                 "Protocol version mismatch during status request: {} != {}",
                 hs_packet.protocol_version.0,
-                PROTOCOL_VERSION_1_21_1
+                PROTOCOL_VERSION_1_21_5
             );
             status(conn_read, conn_write, state)
                 .await
@@ -132,19 +132,19 @@ async fn handle_version_mismatch(
             trace!(
                 "Sent login disconnect due to protocol version mismatch: {} != {}",
                 hs_packet.protocol_version.0,
-                PROTOCOL_VERSION_1_21_1
+                PROTOCOL_VERSION_1_21_5
             );
 
             Err(NetError::MismatchedProtocolVersion(
                 hs_packet.protocol_version.0,
-                PROTOCOL_VERSION_1_21_1,
+                PROTOCOL_VERSION_1_21_5,
             ))
         }
         _ => {
             // Unknown state - just return error
             Err(NetError::MismatchedProtocolVersion(
                 hs_packet.protocol_version.0,
-                PROTOCOL_VERSION_1_21_1,
+                PROTOCOL_VERSION_1_21_5,
             ))
         }
     }
@@ -168,14 +168,14 @@ fn get_mismatched_version_message(client_version: i32) -> TextComponent {
         .extra(ComponentBuilder::text("\n\n"))
         .extra(ComponentBuilder::text("Please use Minecraft version ").color(NamedColor::Gray))
         .extra(
-            ComponentBuilder::text("1.21.1")
+            ComponentBuilder::text("1.21.5")
                 .color(NamedColor::Green)
                 .bold(),
         )
         .extra(ComponentBuilder::text(" to connect to this server.").color(NamedColor::Gray))
         .extra(ComponentBuilder::text("\n\n"))
         .extra(ComponentBuilder::text("Server Version: ").color(NamedColor::DarkGray))
-        .extra(ComponentBuilder::text(PROTOCOL_VERSION_1_21_1.to_string()).color(NamedColor::Aqua))
+        .extra(ComponentBuilder::text(PROTOCOL_VERSION_1_21_5.to_string()).color(NamedColor::Aqua))
         .extra(ComponentBuilder::text(" | Your Version: ").color(NamedColor::DarkGray))
         .extra(ComponentBuilder::text(client_version.to_string()).color(NamedColor::Red))
         .build()

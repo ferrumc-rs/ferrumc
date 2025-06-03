@@ -31,7 +31,7 @@ mod tests {
         ]);
 
         let handshake = Handshake::decode(&mut data, &NetDecodeOpts::None).unwrap();
-        assert_eq!(handshake.protocol_version, VarInt::new(767));
+        assert_eq!(handshake.protocol_version, VarInt::new(770));
         assert_eq!(handshake.server_address, "localhost".to_string());
         assert_eq!(handshake.server_port, 25565);
         assert_eq!(handshake.next_state, VarInt::new(1));

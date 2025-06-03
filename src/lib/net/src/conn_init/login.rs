@@ -5,6 +5,7 @@ use crate::errors::NetError;
 use ferrumc_config::statics::get_global_config;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net_codec::decode::NetDecode;
+use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_state::GlobalState;
 use tokio::io::AsyncReadExt;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
@@ -22,15 +23,14 @@ pub(super) async fn login(
         &mut conn_read,
         &NetDecodeOpts::None,
     )
-    .await?;
+        .await?;
 
     // =============================================================================================
 
     let login_success = crate::packets::outgoing::login_success::LoginSuccessPacket {
         uuid: login_start.uuid,
         username: &login_start.username,
-        number_of_properties: VarInt::from(0),
-        strict_error_handling: false,
+        properties: LengthPrefixedVec::default(),
     };
 
     send_packet(conn_write, login_success).await?;
@@ -50,7 +50,7 @@ pub(super) async fn login(
         &mut conn_read,
         &NetDecodeOpts::None,
     )
-    .await?;
+        .await?;
 
     // =============================================================================================
 
@@ -72,7 +72,7 @@ pub(super) async fn login(
             &mut conn_read,
             &NetDecodeOpts::None,
         )
-        .await?;
+            .await?;
 
     trace!(
         "Client information: {{ locale: {}, view_distance: {}, chat_mode: {}, chat_colors: {}, displayed_skin_parts: {} }}",
@@ -100,7 +100,7 @@ pub(super) async fn login(
             &mut conn_read,
             &NetDecodeOpts::None,
         )
-        .await?;
+            .await?;
 
     // =============================================================================================
 
@@ -157,7 +157,7 @@ pub(super) async fn login(
             &mut conn_read,
             &NetDecodeOpts::None,
         )
-        .await?;
+            .await?;
 
     if confirm_player_teleport.teleport_id.0 != teleport_id_i32 {
         error!(

@@ -14,6 +14,7 @@ pub struct ClientInformation {
     pub main_hand: MainHand,
     pub enable_text_filtering: bool,
     pub allow_server_listings: bool,
+    pub particle_status: ParticleStatus,
 }
 
 #[derive(Debug, NetDecode)]
@@ -48,6 +49,25 @@ impl Display for MainHand {
         match self {
             MainHand::Left => write!(f, "Left"),
             MainHand::Right => write!(f, "Right"),
+        }
+    }
+}
+
+#[derive(Debug, NetDecode)]
+#[net(type_cast = "VarInt", type_cast_handler = "value.0 as u8")]
+#[repr(u8)]
+pub enum ParticleStatus {
+    All,
+    Decreased,
+    Minimal,
+}
+
+impl Display for ParticleStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ParticleStatus::All => write!(f, "All"),
+            ParticleStatus::Decreased => write!(f, "Decreased"),
+            ParticleStatus::Minimal => write!(f, "Minimal"),
         }
     }
 }
