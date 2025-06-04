@@ -3,6 +3,7 @@ pub mod bitset;
 pub mod length_prefixed_vec;
 pub mod network_position;
 pub mod var_int;
+pub mod prefixed_optional;
 
 #[derive(Debug, thiserror::Error)]
 pub enum NetTypesError {

@@ -30,3 +30,4 @@ ferrumc-state = { workspace = true }
 crossbeam-channel = { workspace = true }
 craftflow-nbt = { workspace = true }
 typename = { workspace = true }
+bitcode = { workspace = true }
