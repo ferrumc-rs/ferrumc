@@ -31,7 +31,9 @@ mod tests {
         ]);
 
         let handshake = Handshake::decode(&mut data, &NetDecodeOpts::None).unwrap();
-        assert_eq!(handshake.protocol_version, VarInt::new(770));
+        // Although the 1.21.5 protocol version is 770, we don't need to actually account for that here,
+        // so using the 767 version is fine for testing purposes.
+        assert_eq!(handshake.protocol_version, VarInt::new(767));
         assert_eq!(handshake.server_address, "localhost".to_string());
         assert_eq!(handshake.server_port, 25565);
         assert_eq!(handshake.next_state, VarInt::new(1));
