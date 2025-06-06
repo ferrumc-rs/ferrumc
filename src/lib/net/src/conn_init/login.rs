@@ -1,3 +1,4 @@
+use std::cmp::max;
 use crate::conn_init::NetDecodeOpts;
 use crate::conn_init::VarInt;
 use crate::conn_init::{send_packet, trim_packet_head};
@@ -61,7 +62,16 @@ pub(super) async fn login(
     let len = VarInt::decode_async(&mut conn_read, &NetDecodeOpts::None).await?;
     let id = VarInt::decode_async(&mut conn_read, &NetDecodeOpts::None).await?;
     assert_eq!(id.0, 0x02);
-    let mut buf = vec![0; len.0 as usize - id.len()];
+    // Limit the buffer to this max length, so we don't allocate too much memory
+    // The wiki says it can't be larger than 1048576, but we add 64 just to be safe
+    let len = max(len.0, 1048576 + 64);
+    if len < 1 {
+        error!("Received packet with length less than 1: {}", len);
+        return Err(NetError::Packet(crate::errors::PacketError::MalformedPacket(Some(
+            id.0 as u8,
+        ))));
+    }
+    let mut buf = vec![0; len as usize - id.len()];
     conn_read.read_exact(&mut buf).await?;
 
     // =============================================================================================

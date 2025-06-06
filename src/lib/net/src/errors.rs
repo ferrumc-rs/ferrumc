@@ -60,6 +60,8 @@ pub enum PacketError {
     InvalidState(u8),
     #[error("Invalid Packet: {0:02X}")]
     InvalidPacket(u8),
+    #[error("Malformed Packet: {0}")]
+    MalformedPacket(Option<u8>),
 }
 
 #[derive(Debug, Error)]

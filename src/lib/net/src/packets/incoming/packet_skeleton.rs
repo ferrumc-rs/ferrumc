@@ -1,6 +1,7 @@
-use crate::errors::NetError;
+use crate::errors::{NetError, PacketError};
 use ferrumc_config::statics::get_global_config;
 use ferrumc_net_codec::{decode::errors::NetDecodeError, net_types::var_int::VarInt};
+use std::cmp::max;
 use std::io::Cursor;
 use std::{fmt::Debug, io::Read};
 use tokio::io::AsyncRead;
@@ -55,6 +56,14 @@ impl PacketSkeleton {
     // #[inline(always)]
     async fn read_uncompressed<R: AsyncRead + Unpin>(reader: &mut R) -> Result<Self, NetError> {
         let length = VarInt::read_async(reader).await?.0 as usize;
+        if length < 1 {
+            return Err(NetError::Packet(
+                PacketError::MalformedPacket(Some(length as u8)),
+            ));
+        }
+        // Packets can't be longer than 2097151 bytes per https://minecraft.wiki/w/Java_Edition_protocol/Packets#Packet_format
+        let length = max(length, 2097151);
+
         let mut buf = {
             let mut buf = vec![0; length];
             reader.read_exact(&mut buf).await?;
@@ -73,8 +82,26 @@ impl PacketSkeleton {
 
     #[inline(always)]
     async fn read_compressed<R: AsyncRead + Unpin>(reader: &mut R) -> Result<Self, NetError> {
-        let packet_length = VarInt::read_async(reader).await?.0 as usize;
+        let packet_length = VarInt::read_async(reader).await?.0;
+        if packet_length < 1 {
+            return Err(NetError::Packet(
+                PacketError::MalformedPacket(Some(packet_length as u8)),
+            ));
+        }
+        // Packets can't be longer than 2097151 bytes per https://minecraft.wiki/w/Java_Edition_protocol/Packets#Packet_format
+        let packet_length = max(packet_length as usize, 2097151);
         let data_length = VarInt::read_async(reader).await?.0 as usize;
+        if data_length < 1 {
+            return Err(NetError::Packet(
+                PacketError::MalformedPacket(Some(data_length as u8)),
+            ));
+        }
+        // Data length can't be larger than packet length
+        if data_length > packet_length {
+            return Err(NetError::Packet(
+                PacketError::MalformedPacket(Some(data_length as u8)),
+            ));
+        }
 
         // Uncompressed packet when data length is 0
         if data_length == 0 {

@@ -3,7 +3,7 @@ mod status;
 
 use crate::conn_init::login::login;
 use crate::conn_init::status::status;
-use crate::errors::NetError;
+use crate::errors::{NetError, PacketError};
 use crate::packets::incoming::handshake::Handshake;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
@@ -11,6 +11,7 @@ use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalState;
 use ferrumc_text::{ComponentBuilder, NamedColor, TextComponent};
+use std::cmp::max;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tracing::{error, trace};
@@ -22,12 +23,19 @@ use tracing::{error, trace};
 pub(crate) async fn trim_packet_head(conn: &mut OwnedReadHalf, value: u8) -> Result<(), NetError> {
     let mut len = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
     let mut id = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
+    // Packets can't be longer than 2097151 bytes per https://minecraft.wiki/w/Java_Edition_protocol/Packets#Packet_format
+    let mut len = max(len.0, 2097151);
+    if len < 1 {
+        error!("Received packet with length less than 1: {}", len);
+        return Err(NetError::Packet(PacketError::MalformedPacket(Some(id.0 as u8))));
+    }
     while id.0 == 0x14 {
         trace!("Serverbound plugin message packet detected");
         let mut packet_data = vec![0; len.0 as usize - id.len()];
         conn.read_exact(&mut packet_data).await?;
         trace!("Packet data: {:?}", &packet_data);
-        len = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
+        len = VarInt::decode_async(conn, &NetDecodeOpts::None).await?.0;
+        len = max(len, 2097151); // Ensure length is at least 1 to avoid reading zero bytes
         id = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
     }
     assert_eq!(id.0, value as i32);
