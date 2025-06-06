@@ -24,3 +24,4 @@ pub mod player_action;
 
 pub mod confirm_player_teleport;
 pub mod client_tick_end;
+pub mod player_input;
