@@ -33,5 +33,5 @@ pub(crate) fn build_mapping(_: proc_macro::TokenStream) -> proc_macro::TokenStre
             #(#pairs),*
         ])
     }
-        .into()
+    .into()
 }

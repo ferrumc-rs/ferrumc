@@ -10,7 +10,6 @@ use ferrumc_net_codec::net_types::network_position::NetworkPosition;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalStateResource;
 use ferrumc_world::block_id::BlockId;
-use ferrumc_world::vanilla_chunk_format::BlockData;
 use tracing::{debug, trace};
 
 // Cobblestone block ID for testing purposes
@@ -96,7 +95,7 @@ pub fn handle(
                     let ack_packet = BlockChangeAck {
                         sequence: event.sequence,
                     };
-                    
+
                     let chunk_packet = BlockUpdate {
                         location: NetworkPosition { x, y, z },
                         block_id: VarInt::from(DUMMY_BLOCK),

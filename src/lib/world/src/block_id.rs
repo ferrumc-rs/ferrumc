@@ -9,7 +9,6 @@ use std::io::Read;
 use std::process::exit;
 use tracing::error;
 
-
 // The number of block entries in the mappings file
 // Go to the .etc/blockstates.json file, see what the last ID is, and add 1 to it.
 const BLOCK_ENTRIES: usize = 27914;

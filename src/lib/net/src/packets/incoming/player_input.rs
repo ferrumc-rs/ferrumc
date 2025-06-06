@@ -5,4 +5,3 @@ use ferrumc_macros::{packet, NetDecode};
 pub struct PlayerInput {
     pub flags: u8,
 }
-

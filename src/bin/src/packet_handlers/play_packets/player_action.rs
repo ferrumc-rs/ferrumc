@@ -35,11 +35,6 @@ pub fn handle(
                                 .generate_chunk(event.location.x >> 4, event.location.z >> 4)?
                         }
                     };
-                    let block = chunk.get_block(
-                        event.location.x,
-                        event.location.y as i32,
-                        event.location.z,
-                    )?;
                     let (relative_x, relative_y, relative_z) = (
                         event.location.x.abs() % 16,
                         event.location.y as i32,

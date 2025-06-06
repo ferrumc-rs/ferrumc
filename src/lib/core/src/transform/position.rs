@@ -16,16 +16,6 @@ impl From<NetworkPosition> for Position {
     }
 }
 
-impl Into<NetworkPosition> for Position {
-    fn into(self) -> NetworkPosition {
-        NetworkPosition {
-            x: self.x as i32,
-            y: self.y as i16,
-            z: self.z as i32,
-        }
-    }
-}
-
 // Helper functions:
 impl Position {
     pub fn new(x: f64, y: f64, z: f64) -> Self {

@@ -5,8 +5,8 @@ mod helpers;
 mod nbt;
 mod net;
 mod profiling;
-mod static_loading;
 mod registries_packets;
+mod static_loading;
 
 #[proc_macro_attribute]
 pub fn profile(attr: TokenStream, item: TokenStream) -> TokenStream {

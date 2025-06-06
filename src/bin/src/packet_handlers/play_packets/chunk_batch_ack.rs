@@ -10,7 +10,10 @@ pub fn handle(
 ) {
     for (event, eid) in events.0.try_iter() {
         let Ok((mut chunk_recv, conn)) = query.get_mut(eid) else {
-            error!("Failed to get chunk receiver or connection for entity: {:?}", eid);
+            error!(
+                "Failed to get chunk receiver or connection for entity: {:?}",
+                eid
+            );
             continue;
         };
         if !conn.running.load(std::sync::atomic::Ordering::Relaxed) {
