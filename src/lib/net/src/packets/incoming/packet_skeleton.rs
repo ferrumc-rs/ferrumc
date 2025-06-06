@@ -53,7 +53,6 @@ impl PacketSkeleton {
         }
     }
 
-    // #[inline(always)]
     async fn read_uncompressed<R: AsyncRead + Unpin>(reader: &mut R) -> Result<Self, NetError> {
         let length = VarInt::read_async(reader).await?.0 as usize;
         if length < 1 {
@@ -80,7 +79,6 @@ impl PacketSkeleton {
         })
     }
 
-    #[inline(always)]
     async fn read_compressed<R: AsyncRead + Unpin>(reader: &mut R) -> Result<Self, NetError> {
         let packet_length = VarInt::read_async(reader).await?.0;
         if packet_length < 1 {
@@ -96,8 +94,8 @@ impl PacketSkeleton {
                 PacketError::MalformedPacket(Some(data_length as u8)),
             ));
         }
-        // Data length can't be larger than packet length
-        if data_length > packet_length {
+        // Compressed packets can't hold more than 8 MiB of data according to a dude on the protocol discord
+        if data_length > 8388608 {
             return Err(NetError::Packet(
                 PacketError::MalformedPacket(Some(data_length as u8)),
             ));
