@@ -2,7 +2,7 @@ use crate::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
 use crate::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
 use bitcode::{Decode, Encode};
 use std::io::{Read, Write};
-use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt};
+use tokio::io::{AsyncRead, AsyncWrite};
 
 #[derive(Encode, Decode)]
 pub enum PrefixedOptional<T> {

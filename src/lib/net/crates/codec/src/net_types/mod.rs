@@ -4,6 +4,7 @@ pub mod length_prefixed_vec;
 pub mod network_position;
 pub mod var_int;
 pub mod prefixed_optional;
+pub mod teleport_flags;
 
 #[derive(Debug, thiserror::Error)]
 pub enum NetTypesError {

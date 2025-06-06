@@ -144,9 +144,7 @@ impl NbtFieldAttribute {
 
                 Ok(())
             })
-            .unwrap_or_else(|_| {
-                println!("[WARN] Failed to parse nested meta parsing input attributes")
-            });
+                .unwrap_or(());
         }
 
         attributes
@@ -188,7 +186,7 @@ impl NbtFieldAttribute {
 
                 Ok(())
             })
-            .expect("Failed to parse nested meta");
+                .expect("Failed to parse nested meta");
         }
 
         attributes
@@ -247,7 +245,7 @@ impl NbtFieldAttribute {
 
                 Ok(())
             })
-            .expect("Failed to parse nested meta");
+                .expect("Failed to parse nested meta");
         }
 
         let optional = is_field_type_optional(field);

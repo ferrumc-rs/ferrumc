@@ -168,7 +168,7 @@ pub(super) async fn login(
 
     // =============================================================================================
 
-    trim_packet_head(conn_read, 0x1B).await?;
+    trim_packet_head(conn_read, 0x1D).await?;
 
     let _player_pos_and_rot =
         crate::packets::incoming::set_player_position_and_rotation::SetPlayerPositionAndRotationPacket::decode_async(

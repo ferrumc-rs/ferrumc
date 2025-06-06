@@ -22,7 +22,7 @@ use tracing::{error, trace};
 pub(crate) async fn trim_packet_head(conn: &mut OwnedReadHalf, value: u8) -> Result<(), NetError> {
     let mut len = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
     let mut id = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
-    while id.0 == 0x12 {
+    while id.0 == 0x14 {
         trace!("Serverbound plugin message packet detected");
         let mut packet_data = vec![0; len.0 as usize - id.len()];
         conn.read_exact(&mut packet_data).await?;
