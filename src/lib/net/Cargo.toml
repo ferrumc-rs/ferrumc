@@ -31,3 +31,5 @@ crossbeam-channel = { workspace = true }
 craftflow-nbt = { workspace = true }
 typename = { workspace = true }
 bitcode = { workspace = true }
+indexmap = { workspace = true }
+lazy_static = { workspace = true }

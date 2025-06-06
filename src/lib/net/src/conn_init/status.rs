@@ -27,7 +27,7 @@ pub(super) async fn status(
         json_response: get_server_status(&state),
     };
 
-    send_packet(conn_write, status_response).await?;
+    send_packet(conn_write, &status_response).await?;
 
     trim_packet_head(conn_read, 0x01).await?;
 
@@ -39,7 +39,7 @@ pub(super) async fn status(
         payload: ping_req.payload,
     };
 
-    send_packet(conn_write, pong_packet).await?;
+    send_packet(conn_write, &pong_packet).await?;
 
     Ok(true)
 }

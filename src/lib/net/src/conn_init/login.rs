@@ -2,6 +2,7 @@ use crate::conn_init::NetDecodeOpts;
 use crate::conn_init::VarInt;
 use crate::conn_init::{send_packet, trim_packet_head};
 use crate::errors::NetError;
+use crate::packets::outgoing::registry_data::REGISTRY_PACKETS;
 use ferrumc_config::statics::get_global_config;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net_codec::decode::NetDecode;
@@ -33,7 +34,7 @@ pub(super) async fn login(
         properties: LengthPrefixedVec::default(),
     };
 
-    send_packet(conn_write, login_success).await?;
+    send_packet(conn_write, &login_success).await?;
 
     let player_identity = PlayerIdentity {
         uuid: login_start.uuid,
@@ -88,7 +89,7 @@ pub(super) async fn login(
     let client_bound_known_packs =
         crate::packets::outgoing::client_bound_known_packs::ClientBoundKnownPacksPacket::default();
 
-    send_packet(conn_write, client_bound_known_packs).await?;
+    send_packet(conn_write, &client_bound_known_packs).await?;
 
     // =============================================================================================
 
@@ -104,10 +105,7 @@ pub(super) async fn login(
 
     // =============================================================================================
 
-    let registry_packets =
-        crate::packets::outgoing::registry_data::RegistryDataPacket::get_registry_packets();
-
-    for packet in registry_packets {
+    for packet in &*REGISTRY_PACKETS {
         send_packet(conn_write, packet).await?;
     }
 
@@ -116,7 +114,7 @@ pub(super) async fn login(
     let finish_config_packet =
         crate::packets::outgoing::finish_configuration::FinishConfigurationPacket;
 
-    send_packet(conn_write, finish_config_packet).await?;
+    send_packet(conn_write, &finish_config_packet).await?;
 
     // =============================================================================================
 
@@ -134,7 +132,7 @@ pub(super) async fn login(
     let login_play =
         crate::packets::outgoing::login_play::LoginPlayPacket::new(player_identity.short_uuid);
 
-    send_packet(conn_write, login_play).await?;
+    send_packet(conn_write, &login_play).await?;
 
     // =============================================================================================
 
@@ -146,7 +144,7 @@ pub(super) async fn login(
             ..Default::default()
         };
 
-    send_packet(conn_write, sync_player_pos).await?;
+    send_packet(conn_write, &sync_player_pos).await?;
 
     // =============================================================================================
 
@@ -180,13 +178,13 @@ pub(super) async fn login(
 
     let game_event = crate::packets::outgoing::game_event::GameEventPacket::new(13, 0.0);
 
-    send_packet(conn_write, game_event).await?;
+    send_packet(conn_write, &game_event).await?;
 
     // =============================================================================================
 
     let center_chunk = crate::packets::outgoing::set_center_chunk::SetCenterChunk::new(0, 0);
 
-    send_packet(conn_write, center_chunk).await?;
+    send_packet(conn_write, &center_chunk).await?;
 
     // =============================================================================================
 
@@ -205,7 +203,7 @@ pub(super) async fn login(
                 crate::packets::outgoing::chunk_and_light_data::ChunkAndLightData::from_chunk(
                     &chunk,
                 )?;
-            send_packet(conn_write, chunk_data).await?;
+            send_packet(conn_write, &chunk_data).await?;
         }
     }
 

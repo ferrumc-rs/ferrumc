@@ -36,7 +36,7 @@ pub(crate) async fn trim_packet_head(conn: &mut OwnedReadHalf, value: u8) -> Res
 
 pub(crate) async fn send_packet(
     conn: &mut OwnedWriteHalf,
-    packet: impl NetEncode,
+    packet: &impl NetEncode,
 ) -> Result<(), NetError> {
     let mut packet_buffer = vec![];
     packet
@@ -125,7 +125,7 @@ async fn handle_version_mismatch(
                     disconnect_reason,
                 );
 
-            if let Err(send_err) = send_packet(conn_write, login_disconnect).await {
+            if let Err(send_err) = send_packet(conn_write, &login_disconnect).await {
                 error!("Failed to send login disconnect packet {:?}", send_err);
             }
 
