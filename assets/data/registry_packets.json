@@ -2,14 +2,14 @@
   "minecraft:worldgen/biome": {
     "badlands": {
       "has_precipitation": false,
-      "temperature": 2.0,
-      "downfall": 0.0,
+      "temperature": 2,
+      "downfall": 0,
       "effects": {
         "mood_sound": {
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
         "music": [
           {
@@ -22,7 +22,7 @@
             "weight": 1
           }
         ],
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 7254527,
         "foliage_color": 10387789,
         "grass_color": 9470285,
@@ -40,7 +40,7 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
         "music": [
           {
@@ -53,7 +53,7 @@
             "weight": 1
           }
         ],
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 7842047,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -62,14 +62,14 @@
     },
     "basalt_deltas": {
       "has_precipitation": false,
-      "temperature": 2.0,
-      "downfall": 0.0,
+      "temperature": 2,
+      "downfall": 0,
       "effects": {
         "mood_sound": {
           "sound": "minecraft:ambient.basalt_deltas.mood",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
         "additions_sound": {
           "sound": "minecraft:ambient.basalt_deltas.additions",
@@ -86,7 +86,7 @@
             "weight": 1
           }
         ],
-        "music_volume": 1.0,
+        "music_volume": 1,
         "particle": {
           "options": {
             "type": "minecraft:white_ash"
@@ -109,9 +109,9 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 7907327,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -127,7 +127,7 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
         "music": [
           {
@@ -140,7 +140,7 @@
             "weight": 1
           }
         ],
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 8037887,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -156,7 +156,7 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
         "music": [
           {
@@ -169,7 +169,7 @@
             "weight": 1
           }
         ],
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 8103167,
         "foliage_color": 11983713,
         "grass_color": 11983713,
@@ -187,9 +187,9 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 8103167,
         "fog_color": 12638463,
         "water_color": 4020182,
@@ -198,14 +198,14 @@
     },
     "crimson_forest": {
       "has_precipitation": false,
-      "temperature": 2.0,
-      "downfall": 0.0,
+      "temperature": 2,
+      "downfall": 0,
       "effects": {
         "mood_sound": {
           "sound": "minecraft:ambient.crimson_forest.mood",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
         "additions_sound": {
           "sound": "minecraft:ambient.crimson_forest.additions",
@@ -222,7 +222,7 @@
             "weight": 1
           }
         ],
-        "music_volume": 1.0,
+        "music_volume": 1,
         "particle": {
           "options": {
             "type": "minecraft:crimson_spore"
@@ -245,7 +245,7 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
         "music": [
           {
@@ -258,7 +258,7 @@
             "weight": 1
           }
         ],
-        "music_volume": 1.0,
+        "music_volume": 1,
         "grass_color_modifier": "dark_forest",
         "sky_color": 7972607,
         "dry_foliage_color": 8082228,
@@ -276,9 +276,9 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 8103167,
         "fog_color": 12638463,
         "water_color": 4020182,
@@ -294,7 +294,7 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
         "music": [
           {
@@ -307,7 +307,7 @@
             "weight": 1
           }
         ],
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 7907327,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -324,9 +324,9 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 8103167,
         "fog_color": 12638463,
         "water_color": 3750089,
@@ -342,9 +342,9 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 8103167,
         "fog_color": 12638463,
         "water_color": 4566514,
@@ -360,9 +360,9 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 8103167,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -371,14 +371,14 @@
     },
     "desert": {
       "has_precipitation": false,
-      "temperature": 2.0,
-      "downfall": 0.0,
+      "temperature": 2,
+      "downfall": 0,
       "effects": {
         "mood_sound": {
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
         "music": [
           {
@@ -391,7 +391,7 @@
             "weight": 1
           }
         ],
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 7254527,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -407,7 +407,7 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
         "music": [
           {
@@ -420,7 +420,7 @@
             "weight": 1
           }
         ],
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 7907327,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -436,9 +436,9 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 0,
         "fog_color": 10518688,
         "water_color": 4159204,
@@ -454,9 +454,9 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 0,
         "fog_color": 10518688,
         "water_color": 4159204,
@@ -472,9 +472,9 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 0,
         "fog_color": 10518688,
         "water_color": 4159204,
@@ -483,14 +483,14 @@
     },
     "eroded_badlands": {
       "has_precipitation": false,
-      "temperature": 2.0,
-      "downfall": 0.0,
+      "temperature": 2,
+      "downfall": 0,
       "effects": {
         "mood_sound": {
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
         "music": [
           {
@@ -503,7 +503,7 @@
             "weight": 1
           }
         ],
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 7254527,
         "foliage_color": 10387789,
         "grass_color": 9470285,
@@ -521,7 +521,7 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
         "music": [
           {
@@ -534,7 +534,7 @@
             "weight": 1
           }
         ],
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 7972607,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -550,7 +550,7 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
         "music": [
           {
@@ -563,7 +563,7 @@
             "weight": 1
           }
         ],
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 7972607,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -572,7 +572,7 @@
     },
     "frozen_ocean": {
       "has_precipitation": true,
-      "temperature": 0.0,
+      "temperature": 0,
       "temperature_modifier": "frozen",
       "downfall": 0.5,
       "effects": {
@@ -580,9 +580,9 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 8364543,
         "fog_color": 12638463,
         "water_color": 3750089,
@@ -598,7 +598,7 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
         "music": [
           {
@@ -611,7 +611,7 @@
             "weight": 1
           }
         ],
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 8756735,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -620,16 +620,16 @@
     },
     "frozen_river": {
       "has_precipitation": true,
-      "temperature": 0.0,
+      "temperature": 0,
       "downfall": 0.5,
       "effects": {
         "mood_sound": {
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 8364543,
         "fog_color": 12638463,
         "water_color": 3750089,
@@ -645,7 +645,7 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
         "music": [
           {
@@ -658,7 +658,7 @@
             "weight": 1
           }
         ],
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 8495359,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -667,16 +667,16 @@
     },
     "ice_spikes": {
       "has_precipitation": true,
-      "temperature": 0.0,
+      "temperature": 0,
       "downfall": 0.5,
       "effects": {
         "mood_sound": {
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 8364543,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -692,7 +692,7 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
         "music": [
           {
@@ -705,7 +705,7 @@
             "weight": 1
           }
         ],
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 8756735,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -721,7 +721,7 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
         "music": [
           {
@@ -734,7 +734,7 @@
             "weight": 1
           }
         ],
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 7842047,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -750,9 +750,9 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 8103167,
         "fog_color": 12638463,
         "water_color": 4566514,
@@ -768,7 +768,7 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
         "music": [
           {
@@ -781,7 +781,7 @@
             "weight": 1
           }
         ],
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 8103167,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -797,7 +797,7 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
         "music": [
           {
@@ -810,7 +810,7 @@
             "weight": 1
           }
         ],
-        "music_volume": 1.0,
+        "music_volume": 1,
         "grass_color_modifier": "swamp",
         "sky_color": 7907327,
         "foliage_color": 9285927,
@@ -829,7 +829,7 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
         "music": [
           {
@@ -842,7 +842,7 @@
             "weight": 1
           }
         ],
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 8103167,
         "fog_color": 12638463,
         "water_color": 937679,
@@ -852,15 +852,15 @@
     "mushroom_fields": {
       "has_precipitation": true,
       "temperature": 0.9,
-      "downfall": 1.0,
+      "downfall": 1,
       "effects": {
         "mood_sound": {
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 7842047,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -869,14 +869,14 @@
     },
     "nether_wastes": {
       "has_precipitation": false,
-      "temperature": 2.0,
-      "downfall": 0.0,
+      "temperature": 2,
+      "downfall": 0,
       "effects": {
         "mood_sound": {
           "sound": "minecraft:ambient.nether_wastes.mood",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
         "additions_sound": {
           "sound": "minecraft:ambient.nether_wastes.additions",
@@ -893,7 +893,7 @@
             "weight": 1
           }
         ],
-        "music_volume": 1.0,
+        "music_volume": 1,
         "ambient_sound": "minecraft:ambient.nether_wastes.loop",
         "sky_color": 7254527,
         "fog_color": 3344392,
@@ -910,9 +910,9 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 8103167,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -928,7 +928,7 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
         "music": [
           {
@@ -941,7 +941,7 @@
             "weight": 1
           }
         ],
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 8037887,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -957,7 +957,7 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
         "music": [
           {
@@ -970,7 +970,7 @@
             "weight": 1
           }
         ],
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 8168447,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -986,7 +986,7 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
         "music": [
           {
@@ -999,7 +999,7 @@
             "weight": 1
           }
         ],
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 8233983,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -1015,10 +1015,10 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
         "music": [],
-        "music_volume": 0.0,
+        "music_volume": 0,
         "sky_color": 12171705,
         "foliage_color": 8883574,
         "dry_foliage_color": 10528412,
@@ -1037,9 +1037,9 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 7907327,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -1055,9 +1055,9 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 8103167,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -1066,16 +1066,16 @@
     },
     "savanna": {
       "has_precipitation": false,
-      "temperature": 2.0,
-      "downfall": 0.0,
+      "temperature": 2,
+      "downfall": 0,
       "effects": {
         "mood_sound": {
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 7254527,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -1084,16 +1084,16 @@
     },
     "savanna_plateau": {
       "has_precipitation": false,
-      "temperature": 2.0,
-      "downfall": 0.0,
+      "temperature": 2,
+      "downfall": 0,
       "effects": {
         "mood_sound": {
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 7254527,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -1109,9 +1109,9 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 0,
         "fog_color": 10518688,
         "water_color": 4159204,
@@ -1127,9 +1127,9 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 8364543,
         "fog_color": 12638463,
         "water_color": 4020182,
@@ -1138,16 +1138,16 @@
     },
     "snowy_plains": {
       "has_precipitation": true,
-      "temperature": 0.0,
+      "temperature": 0,
       "downfall": 0.5,
       "effects": {
         "mood_sound": {
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 8364543,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -1163,7 +1163,7 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
         "music": [
           {
@@ -1176,7 +1176,7 @@
             "weight": 1
           }
         ],
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 8560639,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -1192,9 +1192,9 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 8625919,
         "fog_color": 12638463,
         "water_color": 4020182,
@@ -1203,14 +1203,14 @@
     },
     "soul_sand_valley": {
       "has_precipitation": false,
-      "temperature": 2.0,
-      "downfall": 0.0,
+      "temperature": 2,
+      "downfall": 0,
       "effects": {
         "mood_sound": {
           "sound": "minecraft:ambient.soul_sand_valley.mood",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
         "additions_sound": {
           "sound": "minecraft:ambient.soul_sand_valley.additions",
@@ -1227,7 +1227,7 @@
             "weight": 1
           }
         ],
-        "music_volume": 1.0,
+        "music_volume": 1,
         "particle": {
           "options": {
             "type": "minecraft:ash"
@@ -1250,7 +1250,7 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
         "music": [
           {
@@ -1263,7 +1263,7 @@
             "weight": 1
           }
         ],
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 7842047,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -1272,14 +1272,14 @@
     },
     "stony_peaks": {
       "has_precipitation": true,
-      "temperature": 1.0,
+      "temperature": 1,
       "downfall": 0.3,
       "effects": {
         "mood_sound": {
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
         "music": [
           {
@@ -1292,7 +1292,7 @@
             "weight": 1
           }
         ],
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 7776511,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -1308,9 +1308,9 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 8233727,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -1326,9 +1326,9 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 7907327,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -1344,7 +1344,7 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
         "music": [
           {
@@ -1357,7 +1357,7 @@
             "weight": 1
           }
         ],
-        "music_volume": 1.0,
+        "music_volume": 1,
         "grass_color_modifier": "swamp",
         "sky_color": 7907327,
         "foliage_color": 6975545,
@@ -1376,9 +1376,9 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 8233983,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -1394,9 +1394,9 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 0,
         "fog_color": 10518688,
         "water_color": 4159204,
@@ -1412,9 +1412,9 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 8103167,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -1430,9 +1430,9 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 8103167,
         "fog_color": 12638463,
         "water_color": 4445678,
@@ -1441,14 +1441,14 @@
     },
     "warped_forest": {
       "has_precipitation": false,
-      "temperature": 2.0,
-      "downfall": 0.0,
+      "temperature": 2,
+      "downfall": 0,
       "effects": {
         "mood_sound": {
           "sound": "minecraft:ambient.warped_forest.mood",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
         "additions_sound": {
           "sound": "minecraft:ambient.warped_forest.additions",
@@ -1465,7 +1465,7 @@
             "weight": 1
           }
         ],
-        "music_volume": 1.0,
+        "music_volume": 1,
         "particle": {
           "options": {
             "type": "minecraft:warped_spore"
@@ -1488,9 +1488,9 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 8233727,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -1506,9 +1506,9 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 8233727,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -1524,9 +1524,9 @@
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 8233727,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -1535,16 +1535,16 @@
     },
     "windswept_savanna": {
       "has_precipitation": false,
-      "temperature": 2.0,
-      "downfall": 0.0,
+      "temperature": 2,
+      "downfall": 0,
       "effects": {
         "mood_sound": {
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 7254527,
         "fog_color": 12638463,
         "water_color": 4159204,
@@ -1553,14 +1553,14 @@
     },
     "wooded_badlands": {
       "has_precipitation": false,
-      "temperature": 2.0,
-      "downfall": 0.0,
+      "temperature": 2,
+      "downfall": 0,
       "effects": {
         "mood_sound": {
           "sound": "minecraft:ambient.cave",
           "tick_delay": 6000,
           "block_search_extent": 8,
-          "offset": 2.0
+          "offset": 2
         },
         "music": [
           {
@@ -1573,7 +1573,7 @@
             "weight": 1
           }
         ],
-        "music_volume": 1.0,
+        "music_volume": 1,
         "sky_color": 7254527,
         "foliage_color": 10387789,
         "grass_color": 9470285,
@@ -2768,7 +2768,7 @@
     "overworld": {
       "infiniburn": "#minecraft:infiniburn_overworld",
       "effects": "minecraft:overworld",
-      "ambient_light": 0.0,
+      "ambient_light": 0,
       "piglin_safe": false,
       "has_raids": true,
       "monster_spawn_light_level": {
@@ -2783,7 +2783,7 @@
       "logical_height": 384,
       "ultrawarm": false,
       "natural": true,
-      "coordinate_scale": 1.0,
+      "coordinate_scale": 1,
       "bed_works": true,
       "has_skylight": true,
       "has_ceiling": false
@@ -2791,7 +2791,7 @@
     "overworld_caves": {
       "infiniburn": "#minecraft:infiniburn_overworld",
       "effects": "minecraft:overworld",
-      "ambient_light": 0.0,
+      "ambient_light": 0,
       "piglin_safe": false,
       "has_raids": true,
       "monster_spawn_light_level": {
@@ -2806,7 +2806,7 @@
       "logical_height": 384,
       "ultrawarm": false,
       "natural": true,
-      "coordinate_scale": 1.0,
+      "coordinate_scale": 1,
       "bed_works": true,
       "has_skylight": true,
       "has_ceiling": true
@@ -2814,7 +2814,7 @@
     "the_end": {
       "infiniburn": "#minecraft:infiniburn_end",
       "effects": "minecraft:the_end",
-      "ambient_light": 0.0,
+      "ambient_light": 0,
       "piglin_safe": false,
       "has_raids": true,
       "monster_spawn_light_level": {
@@ -2829,7 +2829,7 @@
       "logical_height": 256,
       "ultrawarm": false,
       "natural": false,
-      "coordinate_scale": 1.0,
+      "coordinate_scale": 1,
       "bed_works": false,
       "fixed_time": 6000,
       "has_skylight": false,
@@ -2849,7 +2849,7 @@
       "logical_height": 128,
       "ultrawarm": true,
       "natural": false,
-      "coordinate_scale": 8.0,
+      "coordinate_scale": 8,
       "bed_works": false,
       "fixed_time": 18000,
       "has_skylight": false,
@@ -2880,17 +2880,17 @@
       "scaling": "when_caused_by_living_non_player"
     },
     "cramming": {
-      "exhaustion": 0.0,
+      "exhaustion": 0,
       "message_id": "cramming",
       "scaling": "when_caused_by_living_non_player"
     },
     "dragon_breath": {
-      "exhaustion": 0.0,
+      "exhaustion": 0,
       "message_id": "dragonBreath",
       "scaling": "when_caused_by_living_non_player"
     },
     "drown": {
-      "exhaustion": 0.0,
+      "exhaustion": 0,
       "effects": "drowning",
       "message_id": "drown",
       "scaling": "when_caused_by_living_non_player"
@@ -2901,7 +2901,7 @@
       "scaling": "when_caused_by_living_non_player"
     },
     "ender_pearl": {
-      "exhaustion": 0.0,
+      "exhaustion": 0,
       "death_message_type": "fall_variants",
       "message_id": "fall",
       "scaling": "when_caused_by_living_non_player"
@@ -2912,7 +2912,7 @@
       "scaling": "always"
     },
     "fall": {
-      "exhaustion": 0.0,
+      "exhaustion": 0,
       "death_message_type": "fall_variants",
       "message_id": "fall",
       "scaling": "when_caused_by_living_non_player"
@@ -2944,23 +2944,23 @@
       "scaling": "when_caused_by_living_non_player"
     },
     "fly_into_wall": {
-      "exhaustion": 0.0,
+      "exhaustion": 0,
       "message_id": "flyIntoWall",
       "scaling": "when_caused_by_living_non_player"
     },
     "freeze": {
-      "exhaustion": 0.0,
+      "exhaustion": 0,
       "effects": "freezing",
       "message_id": "freeze",
       "scaling": "when_caused_by_living_non_player"
     },
     "generic": {
-      "exhaustion": 0.0,
+      "exhaustion": 0,
       "message_id": "generic",
       "scaling": "when_caused_by_living_non_player"
     },
     "generic_kill": {
-      "exhaustion": 0.0,
+      "exhaustion": 0,
       "message_id": "genericKill",
       "scaling": "when_caused_by_living_non_player"
     },
@@ -2977,12 +2977,12 @@
       "scaling": "when_caused_by_living_non_player"
     },
     "in_wall": {
-      "exhaustion": 0.0,
+      "exhaustion": 0,
       "message_id": "inWall",
       "scaling": "when_caused_by_living_non_player"
     },
     "indirect_magic": {
-      "exhaustion": 0.0,
+      "exhaustion": 0,
       "message_id": "indirectMagic",
       "scaling": "when_caused_by_living_non_player"
     },
@@ -3003,7 +3003,7 @@
       "scaling": "when_caused_by_living_non_player"
     },
     "magic": {
-      "exhaustion": 0.0,
+      "exhaustion": 0,
       "message_id": "magic",
       "scaling": "when_caused_by_living_non_player"
     },
@@ -3023,18 +3023,18 @@
       "scaling": "when_caused_by_living_non_player"
     },
     "on_fire": {
-      "exhaustion": 0.0,
+      "exhaustion": 0,
       "effects": "burning",
       "message_id": "onFire",
       "scaling": "when_caused_by_living_non_player"
     },
     "out_of_world": {
-      "exhaustion": 0.0,
+      "exhaustion": 0,
       "message_id": "outOfWorld",
       "scaling": "when_caused_by_living_non_player"
     },
     "outside_border": {
-      "exhaustion": 0.0,
+      "exhaustion": 0,
       "message_id": "outsideBorder",
       "scaling": "when_caused_by_living_non_player"
     },
@@ -3049,7 +3049,7 @@
       "scaling": "always"
     },
     "sonic_boom": {
-      "exhaustion": 0.0,
+      "exhaustion": 0,
       "message_id": "sonic_boom",
       "scaling": "always"
     },
@@ -3059,12 +3059,12 @@
       "scaling": "when_caused_by_living_non_player"
     },
     "stalagmite": {
-      "exhaustion": 0.0,
+      "exhaustion": 0,
       "message_id": "stalagmite",
       "scaling": "when_caused_by_living_non_player"
     },
     "starve": {
-      "exhaustion": 0.0,
+      "exhaustion": 0,
       "message_id": "starve",
       "scaling": "when_caused_by_living_non_player"
     },
@@ -3107,7 +3107,7 @@
       "scaling": "when_caused_by_living_non_player"
     },
     "wither": {
-      "exhaustion": 0.0,
+      "exhaustion": 0,
       "message_id": "wither",
       "scaling": "when_caused_by_living_non_player"
     },
@@ -3289,2352 +3289,6 @@
     "triangles_top": {
       "asset_id": "minecraft:triangles_top",
       "translation_key": "block.minecraft.banner.triangles_top"
-    }
-  },
-  "minecraft:enchantment": {
-    "aqua_affinity": {
-      "description": {
-        "translate": "enchantment.minecraft.aqua_affinity"
-      },
-      "min_cost": {
-        "base": 1,
-        "per_level_above_first": 0
-      },
-      "max_cost": {
-        "base": 41,
-        "per_level_above_first": 0
-      },
-      "anvil_cost": 4,
-      "slots": [
-        "head"
-      ],
-      "supported_items": "#minecraft:enchantable/head_armor",
-      "weight": 2,
-      "max_level": 1,
-      "effects": {
-        "minecraft:attributes": [
-          {
-            "id": "minecraft:enchantment.aqua_affinity",
-            "attribute": "minecraft:submerged_mining_speed",
-            "amount": {
-              "base": 4.0,
-              "per_level_above_first": 4.0,
-              "type": "minecraft:linear"
-            },
-            "operation": "add_multiplied_total"
-          }
-        ]
-      }
-    },
-    "bane_of_arthropods": {
-      "description": {
-        "translate": "enchantment.minecraft.bane_of_arthropods"
-      },
-      "min_cost": {
-        "base": 5,
-        "per_level_above_first": 8
-      },
-      "max_cost": {
-        "base": 25,
-        "per_level_above_first": 8
-      },
-      "anvil_cost": 2,
-      "slots": [
-        "mainhand"
-      ],
-      "supported_items": "#minecraft:enchantable/weapon",
-      "primary_items": "#minecraft:enchantable/sword",
-      "weight": 5,
-      "max_level": 5,
-      "exclusive_set": "#minecraft:exclusive_set/damage",
-      "effects": {
-        "minecraft:damage": [
-          {
-            "effect": {
-              "value": {
-                "base": 2.5,
-                "per_level_above_first": 2.5,
-                "type": "minecraft:linear"
-              },
-              "type": "minecraft:add"
-            },
-            "requirements": {
-              "predicate": {
-                "type": "#minecraft:sensitive_to_bane_of_arthropods"
-              },
-              "entity": "this",
-              "condition": "minecraft:entity_properties"
-            }
-          }
-        ],
-        "minecraft:post_attack": [
-          {
-            "enchanted": "attacker",
-            "affected": "victim",
-            "effect": {
-              "max_duration": {
-                "base": 1.5,
-                "per_level_above_first": 0.5,
-                "type": "minecraft:linear"
-              },
-              "min_amplifier": 3.0,
-              "max_amplifier": 3.0,
-              "to_apply": "minecraft:slowness",
-              "min_duration": 1.5,
-              "type": "minecraft:apply_mob_effect"
-            },
-            "requirements": {
-              "terms": [
-                {
-                  "predicate": {
-                    "type": "#minecraft:sensitive_to_bane_of_arthropods"
-                  },
-                  "entity": "this",
-                  "condition": "minecraft:entity_properties"
-                },
-                {
-                  "predicate": {
-                    "is_direct": true
-                  },
-                  "condition": "minecraft:damage_source_properties"
-                }
-              ],
-              "condition": "minecraft:all_of"
-            }
-          }
-        ]
-      }
-    },
-    "binding_curse": {
-      "description": {
-        "translate": "enchantment.minecraft.binding_curse"
-      },
-      "min_cost": {
-        "base": 25,
-        "per_level_above_first": 0
-      },
-      "max_cost": {
-        "base": 50,
-        "per_level_above_first": 0
-      },
-      "anvil_cost": 8,
-      "slots": [
-        "armor"
-      ],
-      "supported_items": "#minecraft:enchantable/equippable",
-      "weight": 1,
-      "max_level": 1,
-      "effects": {
-        "minecraft:prevent_armor_change": {}
-      }
-    },
-    "blast_protection": {
-      "description": {
-        "translate": "enchantment.minecraft.blast_protection"
-      },
-      "min_cost": {
-        "base": 5,
-        "per_level_above_first": 8
-      },
-      "max_cost": {
-        "base": 13,
-        "per_level_above_first": 8
-      },
-      "anvil_cost": 4,
-      "slots": [
-        "armor"
-      ],
-      "supported_items": "#minecraft:enchantable/armor",
-      "weight": 2,
-      "max_level": 4,
-      "exclusive_set": "#minecraft:exclusive_set/armor",
-      "effects": {
-        "minecraft:attributes": [
-          {
-            "id": "minecraft:enchantment.blast_protection",
-            "attribute": "minecraft:explosion_knockback_resistance",
-            "amount": {
-              "base": 0.15,
-              "per_level_above_first": 0.15,
-              "type": "minecraft:linear"
-            },
-            "operation": "add_value"
-          }
-        ],
-        "minecraft:damage_protection": [
-          {
-            "effect": {
-              "value": {
-                "base": 2.0,
-                "per_level_above_first": 2.0,
-                "type": "minecraft:linear"
-              },
-              "type": "minecraft:add"
-            },
-            "requirements": {
-              "predicate": {
-                "tags": [
-                  {
-                    "id": "minecraft:is_explosion",
-                    "expected": true
-                  },
-                  {
-                    "id": "minecraft:bypasses_invulnerability",
-                    "expected": false
-                  }
-                ]
-              },
-              "condition": "minecraft:damage_source_properties"
-            }
-          }
-        ]
-      }
-    },
-    "breach": {
-      "description": {
-        "translate": "enchantment.minecraft.breach"
-      },
-      "min_cost": {
-        "base": 15,
-        "per_level_above_first": 9
-      },
-      "max_cost": {
-        "base": 65,
-        "per_level_above_first": 9
-      },
-      "anvil_cost": 4,
-      "slots": [
-        "mainhand"
-      ],
-      "supported_items": "#minecraft:enchantable/mace",
-      "weight": 2,
-      "max_level": 4,
-      "exclusive_set": "#minecraft:exclusive_set/damage",
-      "effects": {
-        "minecraft:armor_effectiveness": [
-          {
-            "effect": {
-              "value": {
-                "base": -0.15,
-                "per_level_above_first": -0.15,
-                "type": "minecraft:linear"
-              },
-              "type": "minecraft:add"
-            }
-          }
-        ]
-      }
-    },
-    "channeling": {
-      "description": {
-        "translate": "enchantment.minecraft.channeling"
-      },
-      "min_cost": {
-        "base": 25,
-        "per_level_above_first": 0
-      },
-      "max_cost": {
-        "base": 50,
-        "per_level_above_first": 0
-      },
-      "anvil_cost": 8,
-      "slots": [
-        "mainhand"
-      ],
-      "supported_items": "#minecraft:enchantable/trident",
-      "weight": 1,
-      "max_level": 1,
-      "effects": {
-        "minecraft:hit_block": [
-          {
-            "effect": {
-              "effects": [
-                {
-                  "entity": "minecraft:lightning_bolt",
-                  "type": "minecraft:summon_entity"
-                },
-                {
-                  "sound": "minecraft:item.trident.thunder",
-                  "volume": 5.0,
-                  "pitch": 1.0,
-                  "type": "minecraft:play_sound"
-                }
-              ],
-              "type": "minecraft:all_of"
-            },
-            "requirements": {
-              "terms": [
-                {
-                  "thundering": true,
-                  "condition": "minecraft:weather_check"
-                },
-                {
-                  "predicate": {
-                    "type": "minecraft:trident"
-                  },
-                  "entity": "this",
-                  "condition": "minecraft:entity_properties"
-                },
-                {
-                  "predicate": {
-                    "can_see_sky": true
-                  },
-                  "condition": "minecraft:location_check"
-                },
-                {
-                  "block": "minecraft:lightning_rod",
-                  "condition": "minecraft:block_state_property"
-                }
-              ],
-              "condition": "minecraft:all_of"
-            }
-          }
-        ],
-        "minecraft:post_attack": [
-          {
-            "enchanted": "attacker",
-            "affected": "victim",
-            "effect": {
-              "effects": [
-                {
-                  "entity": "minecraft:lightning_bolt",
-                  "type": "minecraft:summon_entity"
-                },
-                {
-                  "sound": "minecraft:item.trident.thunder",
-                  "volume": 5.0,
-                  "pitch": 1.0,
-                  "type": "minecraft:play_sound"
-                }
-              ],
-              "type": "minecraft:all_of"
-            },
-            "requirements": {
-              "terms": [
-                {
-                  "thundering": true,
-                  "condition": "minecraft:weather_check"
-                },
-                {
-                  "predicate": {
-                    "location": {
-                      "can_see_sky": true
-                    }
-                  },
-                  "entity": "this",
-                  "condition": "minecraft:entity_properties"
-                },
-                {
-                  "predicate": {
-                    "type": "minecraft:trident"
-                  },
-                  "entity": "direct_attacker",
-                  "condition": "minecraft:entity_properties"
-                }
-              ],
-              "condition": "minecraft:all_of"
-            }
-          }
-        ]
-      }
-    },
-    "density": {
-      "description": {
-        "translate": "enchantment.minecraft.density"
-      },
-      "min_cost": {
-        "base": 5,
-        "per_level_above_first": 8
-      },
-      "max_cost": {
-        "base": 25,
-        "per_level_above_first": 8
-      },
-      "anvil_cost": 2,
-      "slots": [
-        "mainhand"
-      ],
-      "supported_items": "#minecraft:enchantable/mace",
-      "weight": 5,
-      "max_level": 5,
-      "exclusive_set": "#minecraft:exclusive_set/damage",
-      "effects": {
-        "minecraft:smash_damage_per_fallen_block": [
-          {
-            "effect": {
-              "value": {
-                "base": 0.5,
-                "per_level_above_first": 0.5,
-                "type": "minecraft:linear"
-              },
-              "type": "minecraft:add"
-            }
-          }
-        ]
-      }
-    },
-    "depth_strider": {
-      "description": {
-        "translate": "enchantment.minecraft.depth_strider"
-      },
-      "min_cost": {
-        "base": 10,
-        "per_level_above_first": 10
-      },
-      "max_cost": {
-        "base": 25,
-        "per_level_above_first": 10
-      },
-      "anvil_cost": 4,
-      "slots": [
-        "feet"
-      ],
-      "supported_items": "#minecraft:enchantable/foot_armor",
-      "weight": 2,
-      "max_level": 3,
-      "exclusive_set": "#minecraft:exclusive_set/boots",
-      "effects": {
-        "minecraft:attributes": [
-          {
-            "id": "minecraft:enchantment.depth_strider",
-            "attribute": "minecraft:water_movement_efficiency",
-            "amount": {
-              "base": 0.33333334,
-              "per_level_above_first": 0.33333334,
-              "type": "minecraft:linear"
-            },
-            "operation": "add_value"
-          }
-        ]
-      }
-    },
-    "efficiency": {
-      "description": {
-        "translate": "enchantment.minecraft.efficiency"
-      },
-      "min_cost": {
-        "base": 1,
-        "per_level_above_first": 10
-      },
-      "max_cost": {
-        "base": 51,
-        "per_level_above_first": 10
-      },
-      "anvil_cost": 1,
-      "slots": [
-        "mainhand"
-      ],
-      "supported_items": "#minecraft:enchantable/mining",
-      "weight": 10,
-      "max_level": 5,
-      "effects": {
-        "minecraft:attributes": [
-          {
-            "id": "minecraft:enchantment.efficiency",
-            "attribute": "minecraft:mining_efficiency",
-            "amount": {
-              "added": 1.0,
-              "type": "minecraft:levels_squared"
-            },
-            "operation": "add_value"
-          }
-        ]
-      }
-    },
-    "feather_falling": {
-      "description": {
-        "translate": "enchantment.minecraft.feather_falling"
-      },
-      "min_cost": {
-        "base": 5,
-        "per_level_above_first": 6
-      },
-      "max_cost": {
-        "base": 11,
-        "per_level_above_first": 6
-      },
-      "anvil_cost": 2,
-      "slots": [
-        "armor"
-      ],
-      "supported_items": "#minecraft:enchantable/foot_armor",
-      "weight": 5,
-      "max_level": 4,
-      "effects": {
-        "minecraft:damage_protection": [
-          {
-            "effect": {
-              "value": {
-                "base": 3.0,
-                "per_level_above_first": 3.0,
-                "type": "minecraft:linear"
-              },
-              "type": "minecraft:add"
-            },
-            "requirements": {
-              "predicate": {
-                "tags": [
-                  {
-                    "id": "minecraft:is_fall",
-                    "expected": true
-                  },
-                  {
-                    "id": "minecraft:bypasses_invulnerability",
-                    "expected": false
-                  }
-                ]
-              },
-              "condition": "minecraft:damage_source_properties"
-            }
-          }
-        ]
-      }
-    },
-    "fire_aspect": {
-      "description": {
-        "translate": "enchantment.minecraft.fire_aspect"
-      },
-      "min_cost": {
-        "base": 10,
-        "per_level_above_first": 20
-      },
-      "max_cost": {
-        "base": 60,
-        "per_level_above_first": 20
-      },
-      "anvil_cost": 4,
-      "slots": [
-        "mainhand"
-      ],
-      "supported_items": "#minecraft:enchantable/fire_aspect",
-      "primary_items": "#minecraft:enchantable/sword",
-      "weight": 2,
-      "max_level": 2,
-      "effects": {
-        "minecraft:post_attack": [
-          {
-            "enchanted": "attacker",
-            "affected": "victim",
-            "effect": {
-              "duration": {
-                "base": 4.0,
-                "per_level_above_first": 4.0,
-                "type": "minecraft:linear"
-              },
-              "type": "minecraft:ignite"
-            },
-            "requirements": {
-              "predicate": {
-                "is_direct": true
-              },
-              "condition": "minecraft:damage_source_properties"
-            }
-          }
-        ]
-      }
-    },
-    "fire_protection": {
-      "description": {
-        "translate": "enchantment.minecraft.fire_protection"
-      },
-      "min_cost": {
-        "base": 10,
-        "per_level_above_first": 8
-      },
-      "max_cost": {
-        "base": 18,
-        "per_level_above_first": 8
-      },
-      "anvil_cost": 2,
-      "slots": [
-        "armor"
-      ],
-      "supported_items": "#minecraft:enchantable/armor",
-      "weight": 5,
-      "max_level": 4,
-      "exclusive_set": "#minecraft:exclusive_set/armor",
-      "effects": {
-        "minecraft:attributes": [
-          {
-            "id": "minecraft:enchantment.fire_protection",
-            "attribute": "minecraft:burning_time",
-            "amount": {
-              "base": -0.15,
-              "per_level_above_first": -0.15,
-              "type": "minecraft:linear"
-            },
-            "operation": "add_multiplied_base"
-          }
-        ],
-        "minecraft:damage_protection": [
-          {
-            "effect": {
-              "value": {
-                "base": 2.0,
-                "per_level_above_first": 2.0,
-                "type": "minecraft:linear"
-              },
-              "type": "minecraft:add"
-            },
-            "requirements": {
-              "terms": [
-                {
-                  "predicate": {
-                    "tags": [
-                      {
-                        "id": "minecraft:is_fire",
-                        "expected": true
-                      },
-                      {
-                        "id": "minecraft:bypasses_invulnerability",
-                        "expected": false
-                      }
-                    ]
-                  },
-                  "condition": "minecraft:damage_source_properties"
-                }
-              ],
-              "condition": "minecraft:all_of"
-            }
-          }
-        ]
-      }
-    },
-    "flame": {
-      "description": {
-        "translate": "enchantment.minecraft.flame"
-      },
-      "min_cost": {
-        "base": 20,
-        "per_level_above_first": 0
-      },
-      "max_cost": {
-        "base": 50,
-        "per_level_above_first": 0
-      },
-      "anvil_cost": 4,
-      "slots": [
-        "mainhand"
-      ],
-      "supported_items": "#minecraft:enchantable/bow",
-      "weight": 2,
-      "max_level": 1,
-      "effects": {
-        "minecraft:projectile_spawned": [
-          {
-            "effect": {
-              "duration": 100.0,
-              "type": "minecraft:ignite"
-            }
-          }
-        ]
-      }
-    },
-    "fortune": {
-      "description": {
-        "translate": "enchantment.minecraft.fortune"
-      },
-      "min_cost": {
-        "base": 15,
-        "per_level_above_first": 9
-      },
-      "max_cost": {
-        "base": 65,
-        "per_level_above_first": 9
-      },
-      "anvil_cost": 4,
-      "slots": [
-        "mainhand"
-      ],
-      "supported_items": "#minecraft:enchantable/mining_loot",
-      "weight": 2,
-      "max_level": 3,
-      "exclusive_set": "#minecraft:exclusive_set/mining"
-    },
-    "frost_walker": {
-      "description": {
-        "translate": "enchantment.minecraft.frost_walker"
-      },
-      "min_cost": {
-        "base": 10,
-        "per_level_above_first": 10
-      },
-      "max_cost": {
-        "base": 25,
-        "per_level_above_first": 10
-      },
-      "anvil_cost": 4,
-      "slots": [
-        "feet"
-      ],
-      "supported_items": "#minecraft:enchantable/foot_armor",
-      "weight": 2,
-      "max_level": 2,
-      "exclusive_set": "#minecraft:exclusive_set/boots",
-      "effects": {
-        "minecraft:damage_immunity": [
-          {
-            "effect": {},
-            "requirements": {
-              "predicate": {
-                "tags": [
-                  {
-                    "id": "minecraft:burn_from_stepping",
-                    "expected": true
-                  },
-                  {
-                    "id": "minecraft:bypasses_invulnerability",
-                    "expected": false
-                  }
-                ]
-              },
-              "condition": "minecraft:damage_source_properties"
-            }
-          }
-        ],
-        "minecraft:location_changed": [
-          {
-            "effect": {
-              "predicate": {
-                "predicates": [
-                  {
-                    "offset": [
-                      0,
-                      1,
-                      0
-                    ],
-                    "tag": "minecraft:air",
-                    "type": "minecraft:matching_block_tag"
-                  },
-                  {
-                    "blocks": "minecraft:water",
-                    "type": "minecraft:matching_blocks"
-                  },
-                  {
-                    "fluids": "minecraft:water",
-                    "type": "minecraft:matching_fluids"
-                  },
-                  {
-                    "type": "minecraft:unobstructed"
-                  }
-                ],
-                "type": "minecraft:all_of"
-              },
-              "block_state": {
-                "state": {
-                  "Properties": {
-                    "age": "0"
-                  },
-                  "Name": "minecraft:frosted_ice"
-                },
-                "type": "minecraft:simple_state_provider"
-              },
-              "trigger_game_event": "minecraft:block_place",
-              "radius": {
-                "value": {
-                  "base": 3.0,
-                  "per_level_above_first": 1.0,
-                  "type": "minecraft:linear"
-                },
-                "min": 0.0,
-                "max": 16.0,
-                "type": "minecraft:clamped"
-              },
-              "height": 1.0,
-              "offset": [
-                0,
-                -1,
-                0
-              ],
-              "type": "minecraft:replace_disk"
-            },
-            "requirements": {
-              "terms": [
-                {
-                  "predicate": {
-                    "flags": {
-                      "is_on_ground": true
-                    }
-                  },
-                  "entity": "this",
-                  "condition": "minecraft:entity_properties"
-                },
-                {
-                  "term": {
-                    "predicate": {
-                      "vehicle": {}
-                    },
-                    "entity": "this",
-                    "condition": "minecraft:entity_properties"
-                  },
-                  "condition": "minecraft:inverted"
-                }
-              ],
-              "condition": "minecraft:all_of"
-            }
-          }
-        ]
-      }
-    },
-    "impaling": {
-      "description": {
-        "translate": "enchantment.minecraft.impaling"
-      },
-      "min_cost": {
-        "base": 1,
-        "per_level_above_first": 8
-      },
-      "max_cost": {
-        "base": 21,
-        "per_level_above_first": 8
-      },
-      "anvil_cost": 4,
-      "slots": [
-        "mainhand"
-      ],
-      "supported_items": "#minecraft:enchantable/trident",
-      "weight": 2,
-      "max_level": 5,
-      "exclusive_set": "#minecraft:exclusive_set/damage",
-      "effects": {
-        "minecraft:damage": [
-          {
-            "effect": {
-              "value": {
-                "base": 2.5,
-                "per_level_above_first": 2.5,
-                "type": "minecraft:linear"
-              },
-              "type": "minecraft:add"
-            },
-            "requirements": {
-              "predicate": {
-                "type": "#minecraft:sensitive_to_impaling"
-              },
-              "entity": "this",
-              "condition": "minecraft:entity_properties"
-            }
-          }
-        ]
-      }
-    },
-    "infinity": {
-      "description": {
-        "translate": "enchantment.minecraft.infinity"
-      },
-      "min_cost": {
-        "base": 20,
-        "per_level_above_first": 0
-      },
-      "max_cost": {
-        "base": 50,
-        "per_level_above_first": 0
-      },
-      "anvil_cost": 8,
-      "slots": [
-        "mainhand"
-      ],
-      "supported_items": "#minecraft:enchantable/bow",
-      "weight": 1,
-      "max_level": 1,
-      "exclusive_set": "#minecraft:exclusive_set/bow",
-      "effects": {
-        "minecraft:ammo_use": [
-          {
-            "effect": {
-              "value": 0.0,
-              "type": "minecraft:set"
-            },
-            "requirements": {
-              "predicate": {
-                "items": "minecraft:arrow"
-              },
-              "condition": "minecraft:match_tool"
-            }
-          }
-        ]
-      }
-    },
-    "knockback": {
-      "description": {
-        "translate": "enchantment.minecraft.knockback"
-      },
-      "min_cost": {
-        "base": 5,
-        "per_level_above_first": 20
-      },
-      "max_cost": {
-        "base": 55,
-        "per_level_above_first": 20
-      },
-      "anvil_cost": 2,
-      "slots": [
-        "mainhand"
-      ],
-      "supported_items": "#minecraft:enchantable/sword",
-      "weight": 5,
-      "max_level": 2,
-      "effects": {
-        "minecraft:knockback": [
-          {
-            "effect": {
-              "value": {
-                "base": 1.0,
-                "per_level_above_first": 1.0,
-                "type": "minecraft:linear"
-              },
-              "type": "minecraft:add"
-            }
-          }
-        ]
-      }
-    },
-    "looting": {
-      "description": {
-        "translate": "enchantment.minecraft.looting"
-      },
-      "min_cost": {
-        "base": 15,
-        "per_level_above_first": 9
-      },
-      "max_cost": {
-        "base": 65,
-        "per_level_above_first": 9
-      },
-      "anvil_cost": 4,
-      "slots": [
-        "mainhand"
-      ],
-      "supported_items": "#minecraft:enchantable/sword",
-      "weight": 2,
-      "max_level": 3,
-      "effects": {
-        "minecraft:equipment_drops": [
-          {
-            "enchanted": "attacker",
-            "effect": {
-              "value": {
-                "base": 0.01,
-                "per_level_above_first": 0.01,
-                "type": "minecraft:linear"
-              },
-              "type": "minecraft:add"
-            },
-            "requirements": {
-              "predicate": {
-                "type": "minecraft:player"
-              },
-              "entity": "attacker",
-              "condition": "minecraft:entity_properties"
-            }
-          }
-        ]
-      }
-    },
-    "loyalty": {
-      "description": {
-        "translate": "enchantment.minecraft.loyalty"
-      },
-      "min_cost": {
-        "base": 12,
-        "per_level_above_first": 7
-      },
-      "max_cost": {
-        "base": 50,
-        "per_level_above_first": 0
-      },
-      "anvil_cost": 2,
-      "slots": [
-        "mainhand"
-      ],
-      "supported_items": "#minecraft:enchantable/trident",
-      "weight": 5,
-      "max_level": 3,
-      "effects": {
-        "minecraft:trident_return_acceleration": [
-          {
-            "effect": {
-              "value": {
-                "base": 1.0,
-                "per_level_above_first": 1.0,
-                "type": "minecraft:linear"
-              },
-              "type": "minecraft:add"
-            }
-          }
-        ]
-      }
-    },
-    "luck_of_the_sea": {
-      "description": {
-        "translate": "enchantment.minecraft.luck_of_the_sea"
-      },
-      "min_cost": {
-        "base": 15,
-        "per_level_above_first": 9
-      },
-      "max_cost": {
-        "base": 65,
-        "per_level_above_first": 9
-      },
-      "anvil_cost": 4,
-      "slots": [
-        "mainhand"
-      ],
-      "supported_items": "#minecraft:enchantable/fishing",
-      "weight": 2,
-      "max_level": 3,
-      "effects": {
-        "minecraft:fishing_luck_bonus": [
-          {
-            "effect": {
-              "value": {
-                "base": 1.0,
-                "per_level_above_first": 1.0,
-                "type": "minecraft:linear"
-              },
-              "type": "minecraft:add"
-            }
-          }
-        ]
-      }
-    },
-    "lure": {
-      "description": {
-        "translate": "enchantment.minecraft.lure"
-      },
-      "min_cost": {
-        "base": 15,
-        "per_level_above_first": 9
-      },
-      "max_cost": {
-        "base": 65,
-        "per_level_above_first": 9
-      },
-      "anvil_cost": 4,
-      "slots": [
-        "mainhand"
-      ],
-      "supported_items": "#minecraft:enchantable/fishing",
-      "weight": 2,
-      "max_level": 3,
-      "effects": {
-        "minecraft:fishing_time_reduction": [
-          {
-            "effect": {
-              "value": {
-                "base": 5.0,
-                "per_level_above_first": 5.0,
-                "type": "minecraft:linear"
-              },
-              "type": "minecraft:add"
-            }
-          }
-        ]
-      }
-    },
-    "mending": {
-      "description": {
-        "translate": "enchantment.minecraft.mending"
-      },
-      "min_cost": {
-        "base": 25,
-        "per_level_above_first": 25
-      },
-      "max_cost": {
-        "base": 75,
-        "per_level_above_first": 25
-      },
-      "anvil_cost": 4,
-      "slots": [
-        "any"
-      ],
-      "supported_items": "#minecraft:enchantable/durability",
-      "weight": 2,
-      "max_level": 1,
-      "effects": {
-        "minecraft:repair_with_xp": [
-          {
-            "effect": {
-              "factor": 2.0,
-              "type": "minecraft:multiply"
-            }
-          }
-        ]
-      }
-    },
-    "multishot": {
-      "description": {
-        "translate": "enchantment.minecraft.multishot"
-      },
-      "min_cost": {
-        "base": 20,
-        "per_level_above_first": 0
-      },
-      "max_cost": {
-        "base": 50,
-        "per_level_above_first": 0
-      },
-      "anvil_cost": 4,
-      "slots": [
-        "mainhand"
-      ],
-      "supported_items": "#minecraft:enchantable/crossbow",
-      "weight": 2,
-      "max_level": 1,
-      "exclusive_set": "#minecraft:exclusive_set/crossbow",
-      "effects": {
-        "minecraft:projectile_count": [
-          {
-            "effect": {
-              "value": {
-                "base": 2.0,
-                "per_level_above_first": 2.0,
-                "type": "minecraft:linear"
-              },
-              "type": "minecraft:add"
-            }
-          }
-        ],
-        "minecraft:projectile_spread": [
-          {
-            "effect": {
-              "value": {
-                "base": 10.0,
-                "per_level_above_first": 10.0,
-                "type": "minecraft:linear"
-              },
-              "type": "minecraft:add"
-            }
-          }
-        ]
-      }
-    },
-    "piercing": {
-      "description": {
-        "translate": "enchantment.minecraft.piercing"
-      },
-      "min_cost": {
-        "base": 1,
-        "per_level_above_first": 10
-      },
-      "max_cost": {
-        "base": 50,
-        "per_level_above_first": 0
-      },
-      "anvil_cost": 1,
-      "slots": [
-        "mainhand"
-      ],
-      "supported_items": "#minecraft:enchantable/crossbow",
-      "weight": 10,
-      "max_level": 4,
-      "exclusive_set": "#minecraft:exclusive_set/crossbow",
-      "effects": {
-        "minecraft:projectile_piercing": [
-          {
-            "effect": {
-              "value": {
-                "base": 1.0,
-                "per_level_above_first": 1.0,
-                "type": "minecraft:linear"
-              },
-              "type": "minecraft:add"
-            }
-          }
-        ]
-      }
-    },
-    "power": {
-      "description": {
-        "translate": "enchantment.minecraft.power"
-      },
-      "min_cost": {
-        "base": 1,
-        "per_level_above_first": 10
-      },
-      "max_cost": {
-        "base": 16,
-        "per_level_above_first": 10
-      },
-      "anvil_cost": 1,
-      "slots": [
-        "mainhand"
-      ],
-      "supported_items": "#minecraft:enchantable/bow",
-      "weight": 10,
-      "max_level": 5,
-      "effects": {
-        "minecraft:damage": [
-          {
-            "effect": {
-              "value": {
-                "base": 1.0,
-                "per_level_above_first": 0.5,
-                "type": "minecraft:linear"
-              },
-              "type": "minecraft:add"
-            },
-            "requirements": {
-              "predicate": {
-                "type": "#minecraft:arrows"
-              },
-              "entity": "direct_attacker",
-              "condition": "minecraft:entity_properties"
-            }
-          }
-        ]
-      }
-    },
-    "projectile_protection": {
-      "description": {
-        "translate": "enchantment.minecraft.projectile_protection"
-      },
-      "min_cost": {
-        "base": 3,
-        "per_level_above_first": 6
-      },
-      "max_cost": {
-        "base": 9,
-        "per_level_above_first": 6
-      },
-      "anvil_cost": 2,
-      "slots": [
-        "armor"
-      ],
-      "supported_items": "#minecraft:enchantable/armor",
-      "weight": 5,
-      "max_level": 4,
-      "exclusive_set": "#minecraft:exclusive_set/armor",
-      "effects": {
-        "minecraft:damage_protection": [
-          {
-            "effect": {
-              "value": {
-                "base": 2.0,
-                "per_level_above_first": 2.0,
-                "type": "minecraft:linear"
-              },
-              "type": "minecraft:add"
-            },
-            "requirements": {
-              "predicate": {
-                "tags": [
-                  {
-                    "id": "minecraft:is_projectile",
-                    "expected": true
-                  },
-                  {
-                    "id": "minecraft:bypasses_invulnerability",
-                    "expected": false
-                  }
-                ]
-              },
-              "condition": "minecraft:damage_source_properties"
-            }
-          }
-        ]
-      }
-    },
-    "protection": {
-      "description": {
-        "translate": "enchantment.minecraft.protection"
-      },
-      "min_cost": {
-        "base": 1,
-        "per_level_above_first": 11
-      },
-      "max_cost": {
-        "base": 12,
-        "per_level_above_first": 11
-      },
-      "anvil_cost": 1,
-      "slots": [
-        "armor"
-      ],
-      "supported_items": "#minecraft:enchantable/armor",
-      "weight": 10,
-      "max_level": 4,
-      "exclusive_set": "#minecraft:exclusive_set/armor",
-      "effects": {
-        "minecraft:damage_protection": [
-          {
-            "effect": {
-              "value": {
-                "base": 1.0,
-                "per_level_above_first": 1.0,
-                "type": "minecraft:linear"
-              },
-              "type": "minecraft:add"
-            },
-            "requirements": {
-              "predicate": {
-                "tags": [
-                  {
-                    "id": "minecraft:bypasses_invulnerability",
-                    "expected": false
-                  }
-                ]
-              },
-              "condition": "minecraft:damage_source_properties"
-            }
-          }
-        ]
-      }
-    },
-    "punch": {
-      "description": {
-        "translate": "enchantment.minecraft.punch"
-      },
-      "min_cost": {
-        "base": 12,
-        "per_level_above_first": 20
-      },
-      "max_cost": {
-        "base": 37,
-        "per_level_above_first": 20
-      },
-      "anvil_cost": 4,
-      "slots": [
-        "mainhand"
-      ],
-      "supported_items": "#minecraft:enchantable/bow",
-      "weight": 2,
-      "max_level": 2,
-      "effects": {
-        "minecraft:knockback": [
-          {
-            "effect": {
-              "value": {
-                "base": 1.0,
-                "per_level_above_first": 1.0,
-                "type": "minecraft:linear"
-              },
-              "type": "minecraft:add"
-            },
-            "requirements": {
-              "predicate": {
-                "type": "#minecraft:arrows"
-              },
-              "entity": "direct_attacker",
-              "condition": "minecraft:entity_properties"
-            }
-          }
-        ]
-      }
-    },
-    "quick_charge": {
-      "description": {
-        "translate": "enchantment.minecraft.quick_charge"
-      },
-      "min_cost": {
-        "base": 12,
-        "per_level_above_first": 20
-      },
-      "max_cost": {
-        "base": 50,
-        "per_level_above_first": 0
-      },
-      "anvil_cost": 2,
-      "slots": [
-        "mainhand",
-        "offhand"
-      ],
-      "supported_items": "#minecraft:enchantable/crossbow",
-      "weight": 5,
-      "max_level": 3,
-      "effects": {
-        "minecraft:crossbow_charge_time": {
-          "value": {
-            "base": -0.25,
-            "per_level_above_first": -0.25,
-            "type": "minecraft:linear"
-          },
-          "type": "minecraft:add"
-        },
-        "minecraft:crossbow_charging_sounds": [
-          {
-            "start": "minecraft:item.crossbow.quick_charge_1",
-            "end": "minecraft:item.crossbow.loading_end"
-          },
-          {
-            "start": "minecraft:item.crossbow.quick_charge_2",
-            "end": "minecraft:item.crossbow.loading_end"
-          },
-          {
-            "start": "minecraft:item.crossbow.quick_charge_3",
-            "end": "minecraft:item.crossbow.loading_end"
-          }
-        ]
-      }
-    },
-    "respiration": {
-      "description": {
-        "translate": "enchantment.minecraft.respiration"
-      },
-      "min_cost": {
-        "base": 10,
-        "per_level_above_first": 10
-      },
-      "max_cost": {
-        "base": 40,
-        "per_level_above_first": 10
-      },
-      "anvil_cost": 4,
-      "slots": [
-        "head"
-      ],
-      "supported_items": "#minecraft:enchantable/head_armor",
-      "weight": 2,
-      "max_level": 3,
-      "effects": {
-        "minecraft:attributes": [
-          {
-            "id": "minecraft:enchantment.respiration",
-            "attribute": "minecraft:oxygen_bonus",
-            "amount": {
-              "base": 1.0,
-              "per_level_above_first": 1.0,
-              "type": "minecraft:linear"
-            },
-            "operation": "add_value"
-          }
-        ]
-      }
-    },
-    "riptide": {
-      "description": {
-        "translate": "enchantment.minecraft.riptide"
-      },
-      "min_cost": {
-        "base": 17,
-        "per_level_above_first": 7
-      },
-      "max_cost": {
-        "base": 50,
-        "per_level_above_first": 0
-      },
-      "anvil_cost": 4,
-      "slots": [
-        "hand"
-      ],
-      "supported_items": "#minecraft:enchantable/trident",
-      "weight": 2,
-      "max_level": 3,
-      "exclusive_set": "#minecraft:exclusive_set/riptide",
-      "effects": {
-        "minecraft:trident_sound": [
-          "minecraft:item.trident.riptide_1",
-          "minecraft:item.trident.riptide_2",
-          "minecraft:item.trident.riptide_3"
-        ],
-        "minecraft:trident_spin_attack_strength": {
-          "value": {
-            "base": 1.5,
-            "per_level_above_first": 0.75,
-            "type": "minecraft:linear"
-          },
-          "type": "minecraft:add"
-        }
-      }
-    },
-    "sharpness": {
-      "description": {
-        "translate": "enchantment.minecraft.sharpness"
-      },
-      "min_cost": {
-        "base": 1,
-        "per_level_above_first": 11
-      },
-      "max_cost": {
-        "base": 21,
-        "per_level_above_first": 11
-      },
-      "anvil_cost": 1,
-      "slots": [
-        "mainhand"
-      ],
-      "supported_items": "#minecraft:enchantable/sharp_weapon",
-      "primary_items": "#minecraft:enchantable/sword",
-      "weight": 10,
-      "max_level": 5,
-      "exclusive_set": "#minecraft:exclusive_set/damage",
-      "effects": {
-        "minecraft:damage": [
-          {
-            "effect": {
-              "value": {
-                "base": 1.0,
-                "per_level_above_first": 0.5,
-                "type": "minecraft:linear"
-              },
-              "type": "minecraft:add"
-            }
-          }
-        ]
-      }
-    },
-    "silk_touch": {
-      "description": {
-        "translate": "enchantment.minecraft.silk_touch"
-      },
-      "min_cost": {
-        "base": 15,
-        "per_level_above_first": 0
-      },
-      "max_cost": {
-        "base": 65,
-        "per_level_above_first": 0
-      },
-      "anvil_cost": 8,
-      "slots": [
-        "mainhand"
-      ],
-      "supported_items": "#minecraft:enchantable/mining_loot",
-      "weight": 1,
-      "max_level": 1,
-      "exclusive_set": "#minecraft:exclusive_set/mining",
-      "effects": {
-        "minecraft:block_experience": [
-          {
-            "effect": {
-              "value": 0.0,
-              "type": "minecraft:set"
-            }
-          }
-        ]
-      }
-    },
-    "smite": {
-      "description": {
-        "translate": "enchantment.minecraft.smite"
-      },
-      "min_cost": {
-        "base": 5,
-        "per_level_above_first": 8
-      },
-      "max_cost": {
-        "base": 25,
-        "per_level_above_first": 8
-      },
-      "anvil_cost": 2,
-      "slots": [
-        "mainhand"
-      ],
-      "supported_items": "#minecraft:enchantable/weapon",
-      "primary_items": "#minecraft:enchantable/sword",
-      "weight": 5,
-      "max_level": 5,
-      "exclusive_set": "#minecraft:exclusive_set/damage",
-      "effects": {
-        "minecraft:damage": [
-          {
-            "effect": {
-              "value": {
-                "base": 2.5,
-                "per_level_above_first": 2.5,
-                "type": "minecraft:linear"
-              },
-              "type": "minecraft:add"
-            },
-            "requirements": {
-              "predicate": {
-                "type": "#minecraft:sensitive_to_smite"
-              },
-              "entity": "this",
-              "condition": "minecraft:entity_properties"
-            }
-          }
-        ]
-      }
-    },
-    "soul_speed": {
-      "description": {
-        "translate": "enchantment.minecraft.soul_speed"
-      },
-      "min_cost": {
-        "base": 10,
-        "per_level_above_first": 10
-      },
-      "max_cost": {
-        "base": 25,
-        "per_level_above_first": 10
-      },
-      "anvil_cost": 8,
-      "slots": [
-        "feet"
-      ],
-      "supported_items": "#minecraft:enchantable/foot_armor",
-      "weight": 1,
-      "max_level": 3,
-      "effects": {
-        "minecraft:location_changed": [
-          {
-            "effect": {
-              "effects": [
-                {
-                  "id": "minecraft:enchantment.soul_speed",
-                  "attribute": "minecraft:movement_speed",
-                  "amount": {
-                    "base": 0.0405,
-                    "per_level_above_first": 0.0105,
-                    "type": "minecraft:linear"
-                  },
-                  "operation": "add_value",
-                  "type": "minecraft:attribute"
-                },
-                {
-                  "id": "minecraft:enchantment.soul_speed",
-                  "attribute": "minecraft:movement_efficiency",
-                  "amount": 1.0,
-                  "operation": "add_value",
-                  "type": "minecraft:attribute"
-                }
-              ],
-              "type": "minecraft:all_of"
-            },
-            "requirements": {
-              "terms": [
-                {
-                  "term": {
-                    "predicate": {
-                      "vehicle": {}
-                    },
-                    "entity": "this",
-                    "condition": "minecraft:entity_properties"
-                  },
-                  "condition": "minecraft:inverted"
-                },
-                {
-                  "terms": [
-                    {
-                      "terms": [
-                        {
-                          "active": true,
-                          "condition": "minecraft:enchantment_active_check"
-                        },
-                        {
-                          "predicate": {
-                            "flags": {
-                              "is_flying": false
-                            }
-                          },
-                          "entity": "this",
-                          "condition": "minecraft:entity_properties"
-                        },
-                        {
-                          "terms": [
-                            {
-                              "predicate": {
-                                "movement_affected_by": {
-                                  "block": {
-                                    "blocks": "#minecraft:soul_speed_blocks"
-                                  }
-                                }
-                              },
-                              "entity": "this",
-                              "condition": "minecraft:entity_properties"
-                            },
-                            {
-                              "predicate": {
-                                "flags": {
-                                  "is_on_ground": false
-                                }
-                              },
-                              "entity": "this",
-                              "condition": "minecraft:entity_properties"
-                            }
-                          ],
-                          "condition": "minecraft:any_of"
-                        }
-                      ],
-                      "condition": "minecraft:all_of"
-                    },
-                    {
-                      "terms": [
-                        {
-                          "active": false,
-                          "condition": "minecraft:enchantment_active_check"
-                        },
-                        {
-                          "predicate": {
-                            "flags": {
-                              "is_flying": false
-                            },
-                            "movement_affected_by": {
-                              "block": {
-                                "blocks": "#minecraft:soul_speed_blocks"
-                              }
-                            }
-                          },
-                          "entity": "this",
-                          "condition": "minecraft:entity_properties"
-                        }
-                      ],
-                      "condition": "minecraft:all_of"
-                    }
-                  ],
-                  "condition": "minecraft:any_of"
-                }
-              ],
-              "condition": "minecraft:all_of"
-            }
-          },
-          {
-            "effect": {
-              "amount": 1.0,
-              "type": "minecraft:change_item_damage"
-            },
-            "requirements": {
-              "terms": [
-                {
-                  "chance": {
-                    "amount": 0.04,
-                    "type": "minecraft:enchantment_level"
-                  },
-                  "condition": "minecraft:random_chance"
-                },
-                {
-                  "predicate": {
-                    "flags": {
-                      "is_on_ground": true
-                    },
-                    "movement_affected_by": {
-                      "block": {
-                        "blocks": "#minecraft:soul_speed_blocks"
-                      }
-                    }
-                  },
-                  "entity": "this",
-                  "condition": "minecraft:entity_properties"
-                }
-              ],
-              "condition": "minecraft:all_of"
-            }
-          }
-        ],
-        "minecraft:tick": [
-          {
-            "effect": {
-              "horizontal_velocity": {
-                "movement_scale": -0.2
-              },
-              "vertical_velocity": {
-                "base": 0.1
-              },
-              "speed": 1.0,
-              "particle": {
-                "type": "minecraft:soul"
-              },
-              "horizontal_position": {
-                "type": "in_bounding_box"
-              },
-              "vertical_position": {
-                "type": "entity_position",
-                "offset": 0.1
-              },
-              "type": "minecraft:spawn_particles"
-            },
-            "requirements": {
-              "predicate": {
-                "periodic_tick": 5,
-                "flags": {
-                  "is_flying": false,
-                  "is_on_ground": true
-                },
-                "movement": {
-                  "horizontal_speed": {
-                    "min": 9.999999747378752E-6
-                  }
-                },
-                "movement_affected_by": {
-                  "block": {
-                    "blocks": "#minecraft:soul_speed_blocks"
-                  }
-                }
-              },
-              "entity": "this",
-              "condition": "minecraft:entity_properties"
-            }
-          },
-          {
-            "effect": {
-              "sound": "minecraft:particle.soul_escape",
-              "volume": 0.6,
-              "pitch": {
-                "min_inclusive": 0.6,
-                "max_exclusive": 1.0,
-                "type": "minecraft:uniform"
-              },
-              "type": "minecraft:play_sound"
-            },
-            "requirements": {
-              "terms": [
-                {
-                  "chance": 0.35,
-                  "condition": "minecraft:random_chance"
-                },
-                {
-                  "predicate": {
-                    "periodic_tick": 5,
-                    "flags": {
-                      "is_flying": false,
-                      "is_on_ground": true
-                    },
-                    "movement": {
-                      "horizontal_speed": {
-                        "min": 9.999999747378752E-6
-                      }
-                    },
-                    "movement_affected_by": {
-                      "block": {
-                        "blocks": "#minecraft:soul_speed_blocks"
-                      }
-                    }
-                  },
-                  "entity": "this",
-                  "condition": "minecraft:entity_properties"
-                }
-              ],
-              "condition": "minecraft:all_of"
-            }
-          }
-        ]
-      }
-    },
-    "sweeping_edge": {
-      "description": {
-        "translate": "enchantment.minecraft.sweeping_edge"
-      },
-      "min_cost": {
-        "base": 5,
-        "per_level_above_first": 9
-      },
-      "max_cost": {
-        "base": 20,
-        "per_level_above_first": 9
-      },
-      "anvil_cost": 4,
-      "slots": [
-        "mainhand"
-      ],
-      "supported_items": "#minecraft:enchantable/sword",
-      "weight": 2,
-      "max_level": 3,
-      "effects": {
-        "minecraft:attributes": [
-          {
-            "id": "minecraft:enchantment.sweeping_edge",
-            "attribute": "minecraft:sweeping_damage_ratio",
-            "amount": {
-              "numerator": {
-                "base": 1.0,
-                "per_level_above_first": 1.0,
-                "type": "minecraft:linear"
-              },
-              "denominator": {
-                "base": 2.0,
-                "per_level_above_first": 1.0,
-                "type": "minecraft:linear"
-              },
-              "type": "minecraft:fraction"
-            },
-            "operation": "add_value"
-          }
-        ]
-      }
-    },
-    "swift_sneak": {
-      "description": {
-        "translate": "enchantment.minecraft.swift_sneak"
-      },
-      "min_cost": {
-        "base": 25,
-        "per_level_above_first": 25
-      },
-      "max_cost": {
-        "base": 75,
-        "per_level_above_first": 25
-      },
-      "anvil_cost": 8,
-      "slots": [
-        "legs"
-      ],
-      "supported_items": "#minecraft:enchantable/leg_armor",
-      "weight": 1,
-      "max_level": 3,
-      "effects": {
-        "minecraft:attributes": [
-          {
-            "id": "minecraft:enchantment.swift_sneak",
-            "attribute": "minecraft:sneaking_speed",
-            "amount": {
-              "base": 0.15,
-              "per_level_above_first": 0.15,
-              "type": "minecraft:linear"
-            },
-            "operation": "add_value"
-          }
-        ]
-      }
-    },
-    "thorns": {
-      "description": {
-        "translate": "enchantment.minecraft.thorns"
-      },
-      "min_cost": {
-        "base": 10,
-        "per_level_above_first": 20
-      },
-      "max_cost": {
-        "base": 60,
-        "per_level_above_first": 20
-      },
-      "anvil_cost": 8,
-      "slots": [
-        "any"
-      ],
-      "supported_items": "#minecraft:enchantable/armor",
-      "primary_items": "#minecraft:enchantable/chest_armor",
-      "weight": 1,
-      "max_level": 3,
-      "effects": {
-        "minecraft:post_attack": [
-          {
-            "enchanted": "victim",
-            "affected": "attacker",
-            "effect": {
-              "effects": [
-                {
-                  "min_damage": 1.0,
-                  "max_damage": 5.0,
-                  "damage_type": "minecraft:thorns",
-                  "type": "minecraft:damage_entity"
-                },
-                {
-                  "amount": 2.0,
-                  "type": "minecraft:change_item_damage"
-                }
-              ],
-              "type": "minecraft:all_of"
-            },
-            "requirements": {
-              "chance": {
-                "amount": {
-                  "base": 0.15,
-                  "per_level_above_first": 0.15,
-                  "type": "minecraft:linear"
-                },
-                "type": "minecraft:enchantment_level"
-              },
-              "condition": "minecraft:random_chance"
-            }
-          }
-        ]
-      }
-    },
-    "unbreaking": {
-      "description": {
-        "translate": "enchantment.minecraft.unbreaking"
-      },
-      "min_cost": {
-        "base": 5,
-        "per_level_above_first": 8
-      },
-      "max_cost": {
-        "base": 55,
-        "per_level_above_first": 8
-      },
-      "anvil_cost": 2,
-      "slots": [
-        "any"
-      ],
-      "supported_items": "#minecraft:enchantable/durability",
-      "weight": 5,
-      "max_level": 3,
-      "effects": {
-        "minecraft:item_damage": [
-          {
-            "effect": {
-              "chance": {
-                "numerator": {
-                  "base": 2.0,
-                  "per_level_above_first": 2.0,
-                  "type": "minecraft:linear"
-                },
-                "denominator": {
-                  "base": 10.0,
-                  "per_level_above_first": 5.0,
-                  "type": "minecraft:linear"
-                },
-                "type": "minecraft:fraction"
-              },
-              "type": "minecraft:remove_binomial"
-            },
-            "requirements": {
-              "predicate": {
-                "items": "#minecraft:enchantable/armor"
-              },
-              "condition": "minecraft:match_tool"
-            }
-          },
-          {
-            "effect": {
-              "chance": {
-                "numerator": {
-                  "base": 1.0,
-                  "per_level_above_first": 1.0,
-                  "type": "minecraft:linear"
-                },
-                "denominator": {
-                  "base": 2.0,
-                  "per_level_above_first": 1.0,
-                  "type": "minecraft:linear"
-                },
-                "type": "minecraft:fraction"
-              },
-              "type": "minecraft:remove_binomial"
-            },
-            "requirements": {
-              "term": {
-                "predicate": {
-                  "items": "#minecraft:enchantable/armor"
-                },
-                "condition": "minecraft:match_tool"
-              },
-              "condition": "minecraft:inverted"
-            }
-          }
-        ]
-      }
-    },
-    "vanishing_curse": {
-      "description": {
-        "translate": "enchantment.minecraft.vanishing_curse"
-      },
-      "min_cost": {
-        "base": 25,
-        "per_level_above_first": 0
-      },
-      "max_cost": {
-        "base": 50,
-        "per_level_above_first": 0
-      },
-      "anvil_cost": 8,
-      "slots": [
-        "any"
-      ],
-      "supported_items": "#minecraft:enchantable/vanishing",
-      "weight": 1,
-      "max_level": 1,
-      "effects": {
-        "minecraft:prevent_equipment_drop": {}
-      }
-    },
-    "wind_burst": {
-      "description": {
-        "translate": "enchantment.minecraft.wind_burst"
-      },
-      "min_cost": {
-        "base": 15,
-        "per_level_above_first": 9
-      },
-      "max_cost": {
-        "base": 65,
-        "per_level_above_first": 9
-      },
-      "anvil_cost": 4,
-      "slots": [
-        "mainhand"
-      ],
-      "supported_items": "#minecraft:enchantable/mace",
-      "weight": 2,
-      "max_level": 3,
-      "effects": {
-        "minecraft:post_attack": [
-          {
-            "enchanted": "attacker",
-            "affected": "attacker",
-            "effect": {
-              "small_particle": {
-                "type": "minecraft:gust_emitter_small"
-              },
-              "large_particle": {
-                "type": "minecraft:gust_emitter_large"
-              },
-              "sound": "minecraft:entity.wind_charge.wind_burst",
-              "radius": 3.5,
-              "block_interaction": "trigger",
-              "knockback_multiplier": {
-                "values": [
-                  1.2,
-                  1.75,
-                  2.2
-                ],
-                "fallback": {
-                  "base": 1.5,
-                  "per_level_above_first": 0.35,
-                  "type": "minecraft:linear"
-                },
-                "type": "minecraft:lookup"
-              },
-              "immune_blocks": "#minecraft:blocks_wind_charge_explosions",
-              "type": "minecraft:explode"
-            },
-            "requirements": {
-              "predicate": {
-                "flags": {
-                  "is_flying": false
-                },
-                "movement": {
-                  "fall_distance": {
-                    "min": 1.5
-                  }
-                }
-              },
-              "entity": "direct_attacker",
-              "condition": "minecraft:entity_properties"
-            }
-          }
-        ]
-      }
-    }
-  },
-  "minecraft:jukebox_song": {
-    "11": {
-      "sound_event": "minecraft:music_disc.11",
-      "description": {
-        "translate": "jukebox_song.minecraft.11"
-      },
-      "length_in_seconds": 71.0,
-      "comparator_output": 11
-    },
-    "13": {
-      "sound_event": "minecraft:music_disc.13",
-      "description": {
-        "translate": "jukebox_song.minecraft.13"
-      },
-      "length_in_seconds": 178.0,
-      "comparator_output": 1
-    },
-    "5": {
-      "sound_event": "minecraft:music_disc.5",
-      "description": {
-        "translate": "jukebox_song.minecraft.5"
-      },
-      "length_in_seconds": 178.0,
-      "comparator_output": 15
-    },
-    "blocks": {
-      "sound_event": "minecraft:music_disc.blocks",
-      "description": {
-        "translate": "jukebox_song.minecraft.blocks"
-      },
-      "length_in_seconds": 345.0,
-      "comparator_output": 3
-    },
-    "cat": {
-      "sound_event": "minecraft:music_disc.cat",
-      "description": {
-        "translate": "jukebox_song.minecraft.cat"
-      },
-      "length_in_seconds": 185.0,
-      "comparator_output": 2
-    },
-    "chirp": {
-      "sound_event": "minecraft:music_disc.chirp",
-      "description": {
-        "translate": "jukebox_song.minecraft.chirp"
-      },
-      "length_in_seconds": 185.0,
-      "comparator_output": 4
-    },
-    "creator": {
-      "sound_event": "minecraft:music_disc.creator",
-      "description": {
-        "translate": "jukebox_song.minecraft.creator"
-      },
-      "length_in_seconds": 176.0,
-      "comparator_output": 12
-    },
-    "creator_music_box": {
-      "sound_event": "minecraft:music_disc.creator_music_box",
-      "description": {
-        "translate": "jukebox_song.minecraft.creator_music_box"
-      },
-      "length_in_seconds": 73.0,
-      "comparator_output": 11
-    },
-    "far": {
-      "sound_event": "minecraft:music_disc.far",
-      "description": {
-        "translate": "jukebox_song.minecraft.far"
-      },
-      "length_in_seconds": 174.0,
-      "comparator_output": 5
-    },
-    "mall": {
-      "sound_event": "minecraft:music_disc.mall",
-      "description": {
-        "translate": "jukebox_song.minecraft.mall"
-      },
-      "length_in_seconds": 197.0,
-      "comparator_output": 6
-    },
-    "mellohi": {
-      "sound_event": "minecraft:music_disc.mellohi",
-      "description": {
-        "translate": "jukebox_song.minecraft.mellohi"
-      },
-      "length_in_seconds": 96.0,
-      "comparator_output": 7
-    },
-    "otherside": {
-      "sound_event": "minecraft:music_disc.otherside",
-      "description": {
-        "translate": "jukebox_song.minecraft.otherside"
-      },
-      "length_in_seconds": 195.0,
-      "comparator_output": 14
-    },
-    "pigstep": {
-      "sound_event": "minecraft:music_disc.pigstep",
-      "description": {
-        "translate": "jukebox_song.minecraft.pigstep"
-      },
-      "length_in_seconds": 149.0,
-      "comparator_output": 13
-    },
-    "precipice": {
-      "sound_event": "minecraft:music_disc.precipice",
-      "description": {
-        "translate": "jukebox_song.minecraft.precipice"
-      },
-      "length_in_seconds": 299.0,
-      "comparator_output": 13
-    },
-    "relic": {
-      "sound_event": "minecraft:music_disc.relic",
-      "description": {
-        "translate": "jukebox_song.minecraft.relic"
-      },
-      "length_in_seconds": 218.0,
-      "comparator_output": 14
-    },
-    "stal": {
-      "sound_event": "minecraft:music_disc.stal",
-      "description": {
-        "translate": "jukebox_song.minecraft.stal"
-      },
-      "length_in_seconds": 150.0,
-      "comparator_output": 8
-    },
-    "strad": {
-      "sound_event": "minecraft:music_disc.strad",
-      "description": {
-        "translate": "jukebox_song.minecraft.strad"
-      },
-      "length_in_seconds": 188.0,
-      "comparator_output": 9
-    },
-    "wait": {
-      "sound_event": "minecraft:music_disc.wait",
-      "description": {
-        "translate": "jukebox_song.minecraft.wait"
-      },
-      "length_in_seconds": 238.0,
-      "comparator_output": 12
-    },
-    "ward": {
-      "sound_event": "minecraft:music_disc.ward",
-      "description": {
-        "translate": "jukebox_song.minecraft.ward"
-      },
-      "length_in_seconds": 251.0,
-      "comparator_output": 10
-    }
-  },
-  "minecraft:instrument": {
-    "admire_goat_horn": {
-      "sound_event": "minecraft:item.goat_horn.sound.4",
-      "use_duration": 7.0,
-      "range": 256.0,
-      "description": {
-        "translate": "instrument.minecraft.admire_goat_horn"
-      }
-    },
-    "call_goat_horn": {
-      "sound_event": "minecraft:item.goat_horn.sound.5",
-      "use_duration": 7.0,
-      "range": 256.0,
-      "description": {
-        "translate": "instrument.minecraft.call_goat_horn"
-      }
-    },
-    "dream_goat_horn": {
-      "sound_event": "minecraft:item.goat_horn.sound.7",
-      "use_duration": 7.0,
-      "range": 256.0,
-      "description": {
-        "translate": "instrument.minecraft.dream_goat_horn"
-      }
-    },
-    "feel_goat_horn": {
-      "sound_event": "minecraft:item.goat_horn.sound.3",
-      "use_duration": 7.0,
-      "range": 256.0,
-      "description": {
-        "translate": "instrument.minecraft.feel_goat_horn"
-      }
-    },
-    "ponder_goat_horn": {
-      "sound_event": "minecraft:item.goat_horn.sound.0",
-      "use_duration": 7.0,
-      "range": 256.0,
-      "description": {
-        "translate": "instrument.minecraft.ponder_goat_horn"
-      }
-    },
-    "seek_goat_horn": {
-      "sound_event": "minecraft:item.goat_horn.sound.2",
-      "use_duration": 7.0,
-      "range": 256.0,
-      "description": {
-        "translate": "instrument.minecraft.seek_goat_horn"
-      }
-    },
-    "sing_goat_horn": {
-      "sound_event": "minecraft:item.goat_horn.sound.1",
-      "use_duration": 7.0,
-      "range": 256.0,
-      "description": {
-        "translate": "instrument.minecraft.sing_goat_horn"
-      }
-    },
-    "yearn_goat_horn": {
-      "sound_event": "minecraft:item.goat_horn.sound.6",
-      "use_duration": 7.0,
-      "range": 256.0,
-      "description": {
-        "translate": "instrument.minecraft.yearn_goat_horn"
-      }
-    }
-  },
-  "minecraft:test_environment": {
-    "default": {
-      "definitions": [],
-      "type": "minecraft:all_of"
-    }
-  },
-  "minecraft:test_instance": {
-    "always_pass": {
-      "function": "minecraft:always_pass",
-      "max_ticks": 1,
-      "setup_ticks": 1,
-      "required": false,
-      "environment": "minecraft:default",
-      "structure": "minecraft:empty",
-      "type": "minecraft:function"
     }
   }
 }

@@ -99,7 +99,7 @@ mod tests {
     #[test]
     #[ignore]
     fn generate_nbt() {
-        let json_file = include_bytes!("../../../../../../.etc/registry.json");
+        let json_file = include_bytes!("../../../../../../assets/data/registry_packets.json");
         let val: HashMap<String, HashMap<String, Value>> = serde_json::from_slice(json_file).unwrap();
 
         for (key, value_set) in val {
