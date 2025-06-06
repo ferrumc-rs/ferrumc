@@ -51,7 +51,6 @@ pub(crate) async fn send_packet(
         .encode_async(&mut packet_buffer, &NetEncodeOpts::WithLength)
         .await?;
     conn.write_all(&packet_buffer).await?;
-    conn.flush().await?;
     Ok(())
 }
 pub const PROTOCOL_VERSION_1_21_5: i32 = 770;

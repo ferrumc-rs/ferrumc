@@ -1,4 +1,3 @@
-use std::cmp::max;
 use crate::conn_init::NetDecodeOpts;
 use crate::conn_init::VarInt;
 use crate::conn_init::{send_packet, trim_packet_head};
@@ -9,7 +8,8 @@ use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net_codec::decode::NetDecode;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_state::GlobalState;
-use tokio::io::AsyncReadExt;
+use std::cmp::max;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tracing::{error, trace};
 
@@ -25,7 +25,7 @@ pub(super) async fn login(
         &mut conn_read,
         &NetDecodeOpts::None,
     )
-    .await?;
+        .await?;
 
     // =============================================================================================
 
@@ -52,7 +52,7 @@ pub(super) async fn login(
         &mut conn_read,
         &NetDecodeOpts::None,
     )
-    .await?;
+        .await?;
 
     // =============================================================================================
 
@@ -83,7 +83,7 @@ pub(super) async fn login(
             &mut conn_read,
             &NetDecodeOpts::None,
         )
-        .await?;
+            .await?;
 
     trace!(
         "Client information: {{ locale: {}, view_distance: {}, chat_mode: {}, chat_colors: {}, displayed_skin_parts: {} }}",
@@ -111,7 +111,7 @@ pub(super) async fn login(
             &mut conn_read,
             &NetDecodeOpts::None,
         )
-        .await?;
+            .await?;
 
     // =============================================================================================
 
@@ -165,7 +165,7 @@ pub(super) async fn login(
             &mut conn_read,
             &NetDecodeOpts::None,
         )
-        .await?;
+            .await?;
 
     if confirm_player_teleport.teleport_id.0 != teleport_id_i32 {
         error!(
@@ -200,22 +200,34 @@ pub(super) async fn login(
 
     let radius = get_global_config().chunk_render_distance as i32;
 
+    let mut batch = state.thread_pool.batch();
+
     for x in -radius..=radius {
         for z in -radius..=radius {
-            let chunk = match state.world.load_chunk(x, z, "overworld") {
-                Ok(chunk) => chunk,
-                Err(e) => {
-                    error!("Failed to load chunk {} {}: {}", x, z, e);
-                    continue;
+            batch.execute({
+                let state = state.clone();
+                move || {
+                    let chunk = state.world.load_chunk(x, z, "overworld")?;
+                    crate::packets::outgoing::chunk_and_light_data::ChunkAndLightData::from_chunk(
+                        &chunk,
+                    )
                 }
-            };
-            let chunk_data =
-                crate::packets::outgoing::chunk_and_light_data::ChunkAndLightData::from_chunk(
-                    &chunk,
-                )?;
-            send_packet(conn_write, &chunk_data).await?;
+            });
         }
     }
+    let chunks = batch.wait();
+    for chunk in chunks {
+        match chunk {
+            Ok(chunk_data) => {
+                send_packet(conn_write, &chunk_data).await?;
+            }
+            Err(err) => {
+                error!("Failed to send chunk data: {:?}", err);
+            }
+        }
+    }
+
+    conn_write.flush().await?;
 
     Ok((false, Some(player_identity)))
 }
