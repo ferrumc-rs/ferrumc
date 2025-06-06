@@ -9,7 +9,7 @@ use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_macros::NetEncode;
 use ferrumc_net::connection::StreamWriter;
-use ferrumc_net::packets::outgoing::teleport_entity::TeleportEntityPacket;
+use ferrumc_net::packets::outgoing::entity_position_sync::TeleportEntityPacket;
 use ferrumc_net::packets::outgoing::update_entity_position::UpdateEntityPositionPacket;
 use ferrumc_net::packets::outgoing::update_entity_position_and_rotation::UpdateEntityPositionAndRotationPacket;
 use ferrumc_net::packets::outgoing::update_entity_rotation::UpdateEntityRotationPacket;

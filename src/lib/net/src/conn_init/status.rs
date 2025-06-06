@@ -27,7 +27,7 @@ pub(super) async fn status(
         json_response: get_server_status(&state),
     };
 
-    send_packet(conn_write, status_response).await?;
+    send_packet(conn_write, &status_response).await?;
 
     trim_packet_head(conn_read, 0x01).await?;
 
@@ -39,7 +39,7 @@ pub(super) async fn status(
         payload: ping_req.payload,
     };
 
-    send_packet(conn_write, pong_packet).await?;
+    send_packet(conn_write, &pong_packet).await?;
 
     Ok(true)
 }
@@ -89,7 +89,7 @@ fn get_server_status(state: &GlobalState) -> String {
 
     let version = structs::Version {
         name: "1.21.1",
-        protocol: crate::conn_init::PROTOCOL_VERSION_1_21_1 as u16,
+        protocol: crate::conn_init::PROTOCOL_VERSION_1_21_5 as u16,
     };
 
     let online_players_sample = state

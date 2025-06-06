@@ -12,5 +12,6 @@ pub struct PlaceBlock {
     pub cursor_y: f32,
     pub cursor_z: f32,
     pub inside_block: bool,
+    pub world_border_hit: bool,
     pub sequence: VarInt,
 }

@@ -1,8 +1,11 @@
+#![feature(proc_macro_quote)]
+
 use proc_macro::TokenStream;
 mod helpers;
 mod nbt;
 mod net;
 mod profiling;
+mod registries_packets;
 mod static_loading;
 
 #[proc_macro_attribute]
@@ -60,4 +63,9 @@ pub fn get_packet_entry(input: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn get_registry_entry(input: TokenStream) -> TokenStream {
     static_loading::registry::get(input)
+}
+
+#[proc_macro]
+pub fn build_registry_packets(input: TokenStream) -> TokenStream {
+    registries_packets::build_mapping(input)
 }

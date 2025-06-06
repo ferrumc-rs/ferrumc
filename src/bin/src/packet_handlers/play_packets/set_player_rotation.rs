@@ -7,9 +7,7 @@ pub fn handle(
     mut event_writer: EventWriter<TransformEvent>,
 ) {
     for (event, eid) in events.0.try_iter() {
-        let transform_event = TransformEvent::new(eid)
-            .rotation((event.yaw, event.pitch).into())
-            .on_ground(event.on_ground);
+        let transform_event = TransformEvent::new(eid).rotation((event.yaw, event.pitch).into());
         event_writer.write(transform_event);
     }
 }

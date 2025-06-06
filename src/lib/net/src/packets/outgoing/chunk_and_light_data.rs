@@ -4,7 +4,7 @@ use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::bitset::BitSet;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use ferrumc_world::chunk_format::{Chunk, Heightmaps, PaletteType};
+use ferrumc_world::chunk_format::{Chunk, PaletteType};
 use std::io::{Cursor, Write};
 use std::ops::Not;
 use tracing::warn;
@@ -20,12 +20,19 @@ pub struct BlockEntity {
 }
 
 #[derive(NetEncode)]
+pub struct NetHeightmap {
+    // Define the structure of your heightmaps here
+    pub id: VarInt,
+    pub data: LengthPrefixedVec<i64>,
+}
+
+#[derive(NetEncode)]
 #[packet(packet_id = "level_chunk_with_light", state = "play")]
 pub struct ChunkAndLightData {
     pub chunk_x: i32,
     pub chunk_z: i32,
     // The binary nbt data
-    pub heightmaps: Vec<u8>,
+    pub heightmaps: LengthPrefixedVec<NetHeightmap>,
     pub data: LengthPrefixedVec<u8>,
     pub block_entities: LengthPrefixedVec<BlockEntity>,
     pub sky_light_mask: BitSet,
@@ -51,7 +58,7 @@ impl ChunkAndLightData {
         ChunkAndLightData {
             chunk_x,
             chunk_z,
-            heightmaps: Heightmaps::new().serialize_as_network(),
+            heightmaps: LengthPrefixedVec::default(),
             data: LengthPrefixedVec::new(vec![0; SECTIONS * 10]),
             block_entities: LengthPrefixedVec::new(Vec::new()),
             sky_light_mask: BitSet::new(SECTIONS),
@@ -96,7 +103,7 @@ impl ChunkAndLightData {
                     // debug!("Single palette type: {:?}", (chunk.x, chunk.z));
                     raw_data.write_u8(0)?;
                     val.write(&mut raw_data)?;
-                    VarInt::new(0).write(&mut raw_data)?;
+                    // VarInt::new(0).write(&mut raw_data)?;
                 }
                 PaletteType::Indirect {
                     bits_per_block,
@@ -109,7 +116,7 @@ impl ChunkAndLightData {
                     for palette_entry in palette {
                         palette_entry.write(&mut raw_data)?;
                     }
-                    VarInt::new(data.len() as i32).write(&mut raw_data)?;
+                    // VarInt::new(data.len() as i32).write(&mut raw_data)?;
                     for data_entry in data {
                         raw_data.write_i64::<BigEndian>(*data_entry)?;
                     }
@@ -121,8 +128,8 @@ impl ChunkAndLightData {
 
             // Empty biome data for now
             raw_data.write_u8(0)?;
-            raw_data.write_u8(0)?;
-            raw_data.write_u8(0)?;
+            // Forest biome id
+            raw_data.write_u8(21)?;
         }
         let mut sky_light_mask = BitSet::new(SECTIONS + 2);
         let mut block_light_mask = BitSet::new(SECTIONS + 2);
@@ -155,10 +162,21 @@ impl ChunkAndLightData {
             .filter(|section| !section.block_light.is_empty())
             .map(|section| LengthPrefixedVec::new(section.block_light.clone()))
             .collect();
+        let heightmaps = vec![
+            NetHeightmap {
+                id: VarInt::new(1), // Placeholder for heightmap ID
+                data: LengthPrefixedVec::new(chunk.heightmaps.world_surface.clone()),
+            },
+            NetHeightmap {
+                id: VarInt::new(4), // Placeholder for heightmap ID
+                data: LengthPrefixedVec::new(chunk.heightmaps.motion_blocking.clone()),
+            },
+        ];
+
         Ok(ChunkAndLightData {
             chunk_x: chunk.x,
             chunk_z: chunk.z,
-            heightmaps: chunk.heightmaps.serialize_as_network(),
+            heightmaps: LengthPrefixedVec::new(heightmaps),
             data: LengthPrefixedVec::new(raw_data.into_inner()),
             block_entities: LengthPrefixedVec::new(Vec::new()),
             sky_light_mask,

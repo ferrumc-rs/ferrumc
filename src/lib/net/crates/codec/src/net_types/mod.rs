@@ -2,6 +2,8 @@ pub mod angle;
 pub mod bitset;
 pub mod length_prefixed_vec;
 pub mod network_position;
+pub mod prefixed_optional;
+pub mod teleport_flags;
 pub mod var_int;
 
 #[derive(Debug, thiserror::Error)]

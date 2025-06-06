@@ -22,4 +22,8 @@ pub mod chunk_batch_ack;
 
 pub mod player_action;
 
+pub mod client_tick_end;
 pub mod confirm_player_teleport;
+pub mod player_input;
+
+pub mod player_loaded;

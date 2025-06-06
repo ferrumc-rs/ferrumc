@@ -27,6 +27,7 @@ pub struct LoginPlayPacket<'a> {
     pub death_dimension_name: Option<&'a str>,
     pub death_location: Option<u8>, // change this to actual Position. this won't work!!
     pub portal_cooldown: VarInt,
+    pub sea_level: VarInt,
     pub enforces_secure_chat: bool,
 }
 
@@ -54,6 +55,7 @@ impl LoginPlayPacket<'_> {
             death_dimension_name: None,
             death_location: None,
             portal_cooldown: VarInt::from(0),
+            sea_level: VarInt::from(63),
             enforces_secure_chat: false,
         }
     }

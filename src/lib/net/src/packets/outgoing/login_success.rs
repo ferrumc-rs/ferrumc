@@ -1,14 +1,13 @@
 use ferrumc_macros::{packet, NetEncode};
-use ferrumc_net_codec::net_types::var_int::VarInt;
+use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use std::io::Write;
 
 #[derive(NetEncode)]
-#[packet(packet_id = "game_profile", state = "login")]
+#[packet(packet_id = "login_finished", state = "login")]
 pub struct LoginSuccessPacket<'a> {
     pub uuid: u128,
     pub username: &'a str,
-    pub number_of_properties: VarInt,
-    pub strict_error_handling: bool,
+    pub properties: LengthPrefixedVec<LoginSuccessProperties<'a>>,
 }
 
 impl<'a> LoginSuccessPacket<'a> {
@@ -16,8 +15,14 @@ impl<'a> LoginSuccessPacket<'a> {
         Self {
             uuid,
             username,
-            number_of_properties: VarInt::from(0),
-            strict_error_handling: false,
+            properties: LengthPrefixedVec::new(vec![]),
         }
     }
+}
+
+#[derive(NetEncode, Clone)]
+pub struct LoginSuccessProperties<'a> {
+    pub name: &'a str,
+    pub value: &'a str,
+    pub signature: Option<&'a str>,
 }
