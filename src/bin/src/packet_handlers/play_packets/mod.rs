@@ -1,5 +1,3 @@
-use crate::systems::connection_killer;
-use bevy_ecs::prelude::IntoScheduleConfigs;
 use bevy_ecs::schedule::Schedule;
 
 mod chunk_batch_ack;
@@ -12,21 +10,23 @@ mod set_player_position;
 mod set_player_position_and_rotation;
 mod set_player_rotation;
 mod swing_arm;
+mod player_loaded;
 
 pub fn register_packet_handlers(schedule: &mut Schedule) {
     // Added separately so if we mess up the signature of one of the systems we can know exactly
     // which one
-    schedule.add_systems(chunk_batch_ack::handle.before(connection_killer::connection_killer));
+    schedule.add_systems(chunk_batch_ack::handle);
     schedule
-        .add_systems(confirm_player_teleport::handle.before(connection_killer::connection_killer));
-    schedule.add_systems(keep_alive::handle.before(connection_killer::connection_killer));
-    schedule.add_systems(place_block::handle.before(connection_killer::connection_killer));
-    schedule.add_systems(player_action::handle.before(connection_killer::connection_killer));
-    schedule.add_systems(player_command::handle.before(connection_killer::connection_killer));
-    schedule.add_systems(set_player_position::handle.before(connection_killer::connection_killer));
+        .add_systems(confirm_player_teleport::handle);
+    schedule.add_systems(keep_alive::handle);
+    schedule.add_systems(place_block::handle);
+    schedule.add_systems(player_action::handle);
+    schedule.add_systems(player_command::handle);
+    schedule.add_systems(set_player_position::handle);
     schedule.add_systems(
-        set_player_position_and_rotation::handle.before(connection_killer::connection_killer),
+        set_player_position_and_rotation::handle,
     );
-    schedule.add_systems(set_player_rotation::handle.before(connection_killer::connection_killer));
-    schedule.add_systems(swing_arm::handle.before(connection_killer::connection_killer));
+    schedule.add_systems(set_player_rotation::handle);
+    schedule.add_systems(swing_arm::handle);
+    schedule.add_systems(player_loaded::handle);
 }

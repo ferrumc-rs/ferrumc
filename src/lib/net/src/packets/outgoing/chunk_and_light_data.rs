@@ -128,7 +128,8 @@ impl ChunkAndLightData {
 
             // Empty biome data for now
             raw_data.write_u8(0)?;
-            raw_data.write_u8(0)?;
+            // Forest biome id
+            raw_data.write_u8(21)?;
         }
         let mut sky_light_mask = BitSet::new(SECTIONS + 2);
         let mut block_light_mask = BitSet::new(SECTIONS + 2);

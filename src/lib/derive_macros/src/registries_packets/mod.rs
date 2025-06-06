@@ -2,7 +2,7 @@ use indexmap::IndexMap;
 use quote::quote;
 use serde_json::Value;
 
-pub(crate) fn build_mapping(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub(crate) fn build_mapping(_: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let json_file = include_bytes!("../../../../../assets/data/registry_packets.json");
     let val: IndexMap<String, IndexMap<String, Value>> = serde_json::from_slice(json_file).unwrap();
 
