@@ -4,11 +4,17 @@ use ferrumc_core::collisions::bounds::CollisionBounds;
 use ferrumc_core::transform::position::Position;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::block_change_ack::BlockChangeAck;
-use ferrumc_net::packets::outgoing::chunk_and_light_data::ChunkAndLightData;
+use ferrumc_net::packets::outgoing::block_update::BlockUpdate;
 use ferrumc_net::PlaceBlockReceiver;
+use ferrumc_net_codec::net_types::network_position::NetworkPosition;
+use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalStateResource;
+use ferrumc_world::block_id::BlockId;
 use ferrumc_world::vanilla_chunk_format::BlockData;
 use tracing::{debug, trace};
+
+// Cobblestone block ID for testing purposes
+const DUMMY_BLOCK: BlockId = BlockId(14);
 
 pub fn handle(
     events: Res<PlaceBlockReceiver>,
@@ -28,7 +34,6 @@ pub fn handle(
             }
             match event.hand.0 {
                 0 => {
-                    debug!("Placing block at {:?}", event.position);
                     let mut chunk = match state.0.world.load_chunk(
                         event.position.x >> 4,
                         event.position.z >> 4,
@@ -87,20 +92,15 @@ pub fn handle(
                     };
                     conn.send_packet(packet)?;
 
-                    chunk.set_block(
-                        x & 0xF,
-                        y as i32,
-                        z & 0xF,
-                        BlockData {
-                            name: "minecraft:stone".to_string(),
-                            properties: None,
-                        },
-                    )?;
+                    chunk.set_block(x & 0xF, y as i32, z & 0xF, DUMMY_BLOCK)?;
                     let ack_packet = BlockChangeAck {
                         sequence: event.sequence,
                     };
-                    // Make this use the much more efficient block change packet
-                    let chunk_packet = ChunkAndLightData::from_chunk(&chunk)?;
+                    
+                    let chunk_packet = BlockUpdate {
+                        location: NetworkPosition { x, y, z },
+                        block_id: VarInt::from(DUMMY_BLOCK),
+                    };
                     conn.send_packet(chunk_packet)?;
                     conn.send_packet(ack_packet)?;
 

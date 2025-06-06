@@ -6,13 +6,10 @@ edition = "2021"
 
 [dependencies]
 thiserror = { workspace = true }
-tokio = { workspace = true }
-bevy_ecs = { workspace = true}
-dashmap = { workspace = true }
-ferrumc-world = { workspace = true }
+bevy_ecs = { workspace = true }
 tracing = { workspace = true }
-log = "0.4.27"
 typename = { workspace = true }
+ferrumc-net-codec = { workspace = true }
 
 [dev-dependencies]
 criterion = { workspace = true }

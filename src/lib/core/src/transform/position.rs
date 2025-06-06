@@ -1,4 +1,5 @@
 use bevy_ecs::prelude::Component;
+use ferrumc_net_codec::net_types::network_position::NetworkPosition;
 use std::fmt::{Debug, Display, Formatter};
 use typename::TypeName;
 
@@ -7,6 +8,22 @@ pub struct Position {
     pub x: f64,
     pub y: f64,
     pub z: f64,
+}
+
+impl From<NetworkPosition> for Position {
+    fn from(pos: NetworkPosition) -> Self {
+        Self::new(pos.x as f64, pos.y as f64, pos.z as f64)
+    }
+}
+
+impl Into<NetworkPosition> for Position {
+    fn into(self) -> NetworkPosition {
+        NetworkPosition {
+            x: self.x as i32,
+            y: self.y as i16,
+            z: self.z as i32,
+        }
+    }
 }
 
 // Helper functions:

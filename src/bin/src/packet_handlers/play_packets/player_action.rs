@@ -40,7 +40,6 @@ pub fn handle(
                         event.location.y as i32,
                         event.location.z,
                     )?;
-                    debug!("Block: {:?}", block);
                     let (relative_x, relative_y, relative_z) = (
                         event.location.x.abs() % 16,
                         event.location.y as i32,
