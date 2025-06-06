@@ -1,6 +1,5 @@
 use bitcode::{Decode, Encode};
 use ferrumc_macros::{packet, NetEncode};
-use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::prefixed_optional::PrefixedOptional;
 use std::io::Write;
@@ -121,6 +120,10 @@ mod tests {
                 };
                 packets.push(packet);
             }
+            let dump_folder = std::env::current_dir()
+                .unwrap()
+                .join(r#"..\..\..\assets\data\registries"#);
+            std::fs::create_dir_all(&dump_folder).unwrap();
             let dump_path = std::env::current_dir()
                 .unwrap()
                 .join(r#"..\..\..\assets\data\registries"#)
