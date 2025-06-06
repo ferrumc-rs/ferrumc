@@ -1,7 +1,7 @@
 use crate::conn_init::NetDecodeOpts;
 use crate::conn_init::VarInt;
 use crate::conn_init::{send_packet, trim_packet_head};
-use crate::errors::NetError;
+use crate::errors::{NetError, PacketError};
 use crate::packets::outgoing::registry_data::REGISTRY_PACKETS;
 use ferrumc_config::statics::get_global_config;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
@@ -64,14 +64,11 @@ pub(super) async fn login(
     assert_eq!(id.0, 0x02);
     // Limit the buffer to this max length, so we don't allocate too much memory
     // The wiki says it can't be larger than 1048576, but we add 64 just to be safe
-    let len = max(len.0, 1048576 + 64);
-    if len < 1 {
-        error!("Received packet with length less than 1: {}", len);
-        return Err(NetError::Packet(crate::errors::PacketError::MalformedPacket(Some(
-            id.0 as u8,
-        ))));
+    if len.0 < 1 || len.0 > 1048576 + 64 {
+        error!("Received packet with invalid length: {}", len.0);
+        return Err(NetError::Packet(PacketError::MalformedPacket(Some(id.0 as u8))));
     }
-    let mut buf = vec![0; len as usize - id.len()];
+    let mut buf = vec![0; len.0 as usize - id.len()];
     conn_read.read_exact(&mut buf).await?;
 
     // =============================================================================================

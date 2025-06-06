@@ -60,7 +60,8 @@ pub enum PacketError {
     InvalidState(u8),
     #[error("Invalid Packet: {0:02X}")]
     InvalidPacket(u8),
-    #[error("Malformed Packet: {0}")]
+    #[error("Malformed Packet: {inp}", inp = if let Some(id) = .0 { format!("{:02X}", id) } else { "None".to_string() }
+    )]
     MalformedPacket(Option<u8>),
 }
 

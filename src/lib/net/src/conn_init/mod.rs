@@ -24,9 +24,8 @@ pub(crate) async fn trim_packet_head(conn: &mut OwnedReadHalf, value: u8) -> Res
     let mut len = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
     let mut id = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
     // Packets can't be longer than 2097151 bytes per https://minecraft.wiki/w/Java_Edition_protocol/Packets#Packet_format
-    let mut len = max(len.0, 2097151);
-    if len < 1 {
-        error!("Received packet with length less than 1: {}", len);
+    if len.0 < 1 || len.0 > 2097151 {
+        error!("Received packet with invalid length: {}", len.0);
         return Err(NetError::Packet(PacketError::MalformedPacket(Some(id.0 as u8))));
     }
     while id.0 == 0x14 {
@@ -34,8 +33,11 @@ pub(crate) async fn trim_packet_head(conn: &mut OwnedReadHalf, value: u8) -> Res
         let mut packet_data = vec![0; len.0 as usize - id.len()];
         conn.read_exact(&mut packet_data).await?;
         trace!("Packet data: {:?}", &packet_data);
-        len = VarInt::decode_async(conn, &NetDecodeOpts::None).await?.0;
-        len = max(len, 2097151); // Ensure length is at least 1 to avoid reading zero bytes
+        len = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
+        if len.0 < 1 || len.0 > 2097151 {
+            error!("Received packet with invalid length: {}", len.0);
+            return Err(NetError::Packet(PacketError::MalformedPacket(Some(id.0 as u8))));
+        }
         id = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
     }
     assert_eq!(id.0, value as i32);
