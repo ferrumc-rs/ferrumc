@@ -12,8 +12,6 @@ pub fn handle_spawn_zombie(
             transform: ZombieBundle::default().transform, // copy defaults
             ..ZombieBundle::default()                     // other defaults
         }.with_position(ev.position.clone()));                    // see builder below
-
-        tracing::debug!("Spawned zombie at {:?}", ev.position);
     }
 }
 
