@@ -3,7 +3,7 @@ use ferrumc_net_codec::net_types::network_position::NetworkPosition;
 use std::fmt::{Debug, Display, Formatter};
 use typename::TypeName;
 
-#[derive(TypeName, Component)]
+#[derive(TypeName, Component, Clone)]
 pub struct Position {
     pub x: f64,
     pub y: f64,

@@ -33,7 +33,7 @@ members = [
     "src/lib/utils/profiling",
     "src/lib/world",
     "src/lib/world_gen",
-    "src/lib/utils/threadpool",
+    "src/lib/utils/threadpool", "src/lib/entities",
 ]
 
 #================== Lints ==================#
@@ -87,6 +87,7 @@ debug = true
 ferrumc-anvil = { path = "src/lib/adapters/anvil" }
 ferrumc-config = { path = "src/lib/utils/config" }
 ferrumc-core = { path = "src/lib/core" }
+ferrumc-entities = { path = "src/lib/entities" }
 ferrumc-general-purpose = { path = "src/lib/utils/general_purpose" }
 ferrumc-logging = { path = "src/lib/utils/logging" }
 ferrumc-macros = { path = "src/lib/derive_macros" }
@@ -193,7 +194,10 @@ noise = "0.9.0"
 ctrlc = "3.4.7"
 num_cpus = "1.17.0"
 typename = "0.1.2"
+
+# Game Logic
 bevy_ecs = { version = "0.16.1", features = ["multi_threaded", "trace"] }
+glam = "0.30.3"
 
 # I/O
 memmap2 = "0.9.5"
