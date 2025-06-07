@@ -1,10 +1,10 @@
-use tokio::io::AsyncReadExt;
+use ferrumc_macros::{packet, NetDecode};
+use ferrumc_net_codec::decode::errors::NetDecodeError;
+use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
+use ferrumc_net_codec::net_types::{bitset::BitSet, var_int::VarInt};
 use std::io::Read;
 use tokio::io::AsyncRead;
-use ferrumc_macros::{packet, NetDecode};
-use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
-use ferrumc_net_codec::decode::errors::NetDecodeError;
-use ferrumc_net_codec::net_types::{bitset::BitSet, var_int::VarInt};
+use tokio::io::AsyncReadExt;
 
 // According to packets.json, serverbound play chat packet is ID 7.
 // The wiki.vg page for 1.21 protocol also lists "Serverbound Chat Message" as 0x07 in Play state.
@@ -44,10 +44,15 @@ impl NetDecode for ChatSignature {
         let mut signature = [0; 256];
         reader.read_exact(&mut signature)?;
 
-        Ok(ChatSignature { signature: Some(signature) })
+        Ok(ChatSignature {
+            signature: Some(signature),
+        })
     }
 
-    async fn decode_async<R: AsyncRead + Unpin>(reader: &mut R, opts: &NetDecodeOpts) -> NetDecodeResult<Self> {
+    async fn decode_async<R: AsyncRead + Unpin>(
+        reader: &mut R,
+        opts: &NetDecodeOpts,
+    ) -> NetDecodeResult<Self> {
         let has_signature = <bool>::decode_async(reader, opts).await?;
         if !has_signature {
             return Ok(ChatSignature { signature: None });
@@ -56,20 +61,21 @@ impl NetDecode for ChatSignature {
         let mut signature = [0; 256];
         reader.read_exact(&mut signature).await?;
 
-        Ok(ChatSignature { signature: Some(signature) })
+        Ok(ChatSignature {
+            signature: Some(signature),
+        })
     }
 }
-
 
 #[derive(Debug)]
 pub struct ChatAckBitSet {
     /// Fixed BitSet (20).
-    // 
+    //
     // Bit sets of type Fixed BitSet (n) have a fixed length of n bits, encoded as ceil(n / 8) bytes. Note that this is different from BitSet, which uses longs.
     // Field Name 	Field Type 	Meaning
     // Data 	Byte Array (n) 	A packed representation of the bit set as created by BitSet.toByteArray, padded with zeroes at the end to fit the specified length.
-    // 
-    // The ith bit is set when (Data[i / 8] & (1 << (i % 8))) != 0, where i starts at 0. This encoding is not equivalent to the long array in BitSet. 
+    //
+    // The ith bit is set when (Data[i / 8] & (1 << (i % 8))) != 0, where i starts at 0. This encoding is not equivalent to the long array in BitSet.
     bits: Vec<u64>,
 }
 
@@ -99,7 +105,10 @@ impl NetDecode for ChatAckBitSet {
         Ok(ChatAckBitSet { bits })
     }
 
-    async fn decode_async<R: AsyncRead + Unpin>(reader: &mut R, opts: &NetDecodeOpts) -> NetDecodeResult<Self> {
+    async fn decode_async<R: AsyncRead + Unpin>(
+        reader: &mut R,
+        opts: &NetDecodeOpts,
+    ) -> NetDecodeResult<Self> {
         let length = VarInt::decode_async(reader, opts).await?.0 as usize;
         if length % 8 != 0 {
             return Err(NetDecodeError::InvalidLength {

@@ -4,7 +4,7 @@ use ferrumc_macros::get_registry_entry;
 #[derive(Component, Debug, Clone, Copy)]
 pub struct EntityKind {
     /// The id of the entity kind. (Found in the registry under minecraft:entity_type)
-    r#type: u64
+    r#type: u64,
 }
 
 impl EntityKind {

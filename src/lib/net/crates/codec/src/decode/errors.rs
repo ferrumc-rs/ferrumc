@@ -4,7 +4,7 @@ use ferrumc_config::statics::get_global_config;
 pub enum NetDecodeError {
     #[error("IO error: {0}")]
     IoError(#[from] std::io::Error),
-    
+
     #[error("Invalid length: expected {expected}, got {actual}")]
     InvalidLength {
         expected: usize,

@@ -1,11 +1,11 @@
 use bevy_ecs::entity::Entity;
 use bevy_ecs::prelude::{EventWriter, Res};
 use bevy_ecs::system::Query;
-use ferrumc_net::ChatMessageReceiver;
-use tracing::info;
 use ferrumc_core::transform::position::Position;
 use ferrumc_entities::events::SpawnZombieEvent;
 use ferrumc_net::connection::StreamWriter;
+use ferrumc_net::ChatMessageReceiver;
+use tracing::info;
 
 pub fn handle(
     events: Res<ChatMessageReceiver>,
@@ -23,7 +23,7 @@ pub fn handle(
                 continue;
             };
             ev_spawn_zombie.write(SpawnZombieEvent {
-                position: pos.clone()
+                position: pos.clone(),
             });
         }
     }

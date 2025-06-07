@@ -1,15 +1,15 @@
 use crate::errors::NetError;
 
 use bevy_ecs::prelude::{Entity, Query, World};
+use ferrumc_core::entities::entity_kind::EntityKind;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
+use ferrumc_core::transform::Transform;
 use ferrumc_macros::{get_registry_entry, packet, NetEncode};
 use ferrumc_net_codec::net_types::angle::NetAngle;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::Write;
-use ferrumc_core::entities::entity_kind::EntityKind;
-use ferrumc_core::transform::Transform;
 
 #[derive(NetEncode, Clone)]
 #[packet(packet_id = "add_entity", state = "play")]
@@ -62,7 +62,7 @@ impl SpawnEntityPacket {
         entity_id: Entity,
         pos: &Position,
         rot: &Rotation,
-        entity_kind: &EntityKind
+        entity_kind: &EntityKind,
     ) -> Result<Self, NetError> {
         // generate a uuid based on the entity ID
         let entity_uuid = entity_id.index() as u128; // Placeholder, UUIDs are not used for non-player entities

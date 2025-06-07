@@ -4,7 +4,6 @@ pub mod grounded;
 pub mod position;
 pub mod rotation;
 
-
 #[derive(Bundle)]
 pub struct Transform {
     pub position: position::Position,
@@ -12,7 +11,10 @@ pub struct Transform {
     pub grounded: grounded::OnGround,
 }
 impl Transform {
-    pub fn new(position: impl Into<position::Position>, rotation: impl Into<rotation::Rotation>) -> Self {
+    pub fn new(
+        position: impl Into<position::Position>,
+        rotation: impl Into<rotation::Rotation>,
+    ) -> Self {
         Transform {
             position: position.into(),
             rotation: rotation.into(),

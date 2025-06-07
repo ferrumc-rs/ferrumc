@@ -184,7 +184,6 @@ where
     }
 }
 
-
 /// This isn't actually a type in the Minecraft Protocol. This is just for saving data/ or for general use.
 /// It was created for saving/reading chunks!
 impl<K, V> NetDecode for HashMap<K, V>

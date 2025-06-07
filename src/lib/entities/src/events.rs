@@ -3,5 +3,5 @@ use ferrumc_core::transform::position::Position;
 
 #[derive(Clone, Event)]
 pub struct SpawnZombieEvent {
-    pub position: Position
+    pub position: Position,
 }

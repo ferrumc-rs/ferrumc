@@ -13,9 +13,6 @@ impl Health {
     }
     /// New health with the same current and max value
     pub fn new_max(max: f32) -> Self {
-        Self {
-            current: max,
-            max,
-        }
+        Self { current: max, max }
     }
 }

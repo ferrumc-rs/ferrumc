@@ -20,14 +20,18 @@ pub fn broadcast_new_entities(
         let (pos, rot, kind) = transforms
             .get(entity)
             .unwrap_or_else(|_| panic!("Missing transform for {:?}", entity));
-        
+
         let packet = SpawnEntityPacket::entity(entity, pos, rot, kind);
 
         if let Ok(packet) = packet {
             for (player_entity, writer) in players_query.iter() {
                 tracing::debug!("Sending SpawnEntityPacket to player: {:?}", player_entity);
                 if let Err(e) = writer.send_packet(packet.clone()) {
-                    tracing::error!("Failed to send SpawnEntityPacket to player {:?}: {}", player_entity, e);
+                    tracing::error!(
+                        "Failed to send SpawnEntityPacket to player {:?}: {}",
+                        player_entity,
+                        e
+                    );
                 }
             }
         } else {
