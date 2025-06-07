@@ -1,4 +1,5 @@
 pub mod ack_finish_configuration;
+pub mod chat_message;
 pub mod client_information;
 pub mod handshake;
 pub mod login_acknowledged;
