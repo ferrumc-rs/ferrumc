@@ -1,5 +1,4 @@
 use bevy_ecs::prelude::Component;
-use ferrumc_macros::get_registry_entry;
 
 #[derive(Component, Debug, Clone, Copy)]
 pub struct EntityKind {

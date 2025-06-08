@@ -5,7 +5,6 @@ use ferrumc_core::entities::entity_kind::EntityKind;
 use ferrumc_core::entities::health::Health;
 use ferrumc_core::transform::Transform;
 use ferrumc_macros::get_registry_entry;
-use glam::vec3;
 
 #[derive(Bundle)]
 pub struct ZombieBundle {

@@ -1,4 +1,4 @@
-use crate::decode::{errors, NetDecode, NetDecodeOpts, NetDecodeResult};
+use crate::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
 use crate::net_types::var_int::VarInt;
 use std::collections::HashMap;
 use std::hash::Hash;
@@ -166,7 +166,6 @@ where
         Ok(array)
     }
 
-    #[expect(async_fn_in_trait)]
     async fn decode_async<R: AsyncRead + Unpin>(
         reader: &mut R,
         opts: &NetDecodeOpts,

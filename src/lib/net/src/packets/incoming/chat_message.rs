@@ -1,7 +1,7 @@
 use ferrumc_macros::{packet, NetDecode};
 use ferrumc_net_codec::decode::errors::NetDecodeError;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
-use ferrumc_net_codec::net_types::{bitset::BitSet, var_int::VarInt};
+use ferrumc_net_codec::net_types::{var_int::VarInt};
 use std::io::Read;
 use tokio::io::AsyncRead;
 use tokio::io::AsyncReadExt;
@@ -16,6 +16,7 @@ use tokio::io::AsyncReadExt;
 
 #[derive(NetDecode, Debug)]
 #[packet(packet_id = "chat", state = "play")]
+#[allow(unused)]
 pub struct ChatMessage {
     pub message: String,
     timestamp: i64,
@@ -68,6 +69,7 @@ impl NetDecode for ChatSignature {
 }
 
 #[derive(Debug)]
+#[allow(unused)]
 pub struct ChatAckBitSet {
     /// Fixed BitSet (20).
     //
