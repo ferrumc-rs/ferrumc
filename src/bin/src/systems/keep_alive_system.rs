@@ -1,13 +1,13 @@
-use bevy_ecs::prelude::{Entity, EventWriter, Query};
-use ferrumc_core::conn::conn_kill_event::ConnectionKillEvent;
+use bevy_ecs::prelude::{Entity, Query, Res};
 use ferrumc_core::conn::keepalive::KeepAliveTracker;
 use ferrumc_net::connection::StreamWriter;
+use ferrumc_state::GlobalStateResource;
 use std::time::{Duration, SystemTime};
 use tracing::warn;
 
 pub fn keep_alive_system(
     query: Query<(Entity, &mut KeepAliveTracker, &StreamWriter)>,
-    mut connection_kill_event: EventWriter<ConnectionKillEvent>,
+    state: Res<GlobalStateResource>,
 ) {
     // Get the times before the queries, since it's possible a query takes more than a millisecond with a lot of entities.
 
@@ -29,10 +29,7 @@ pub fn keep_alive_system(
                 "Killing connection for {}, it's been {:?} since last keepalive response",
                 entity, time_diff
             );
-            connection_kill_event.write(ConnectionKillEvent {
-                reason: Some("Keep alive timeout".to_string()),
-                entity,
-            });
+            state.0.players.disconnect(entity, Some("Connection timed out".to_string()));
         } else if time_diff >= Duration::from_secs(10) && keep_alive_tracker.has_received_keep_alive
         {
             // If it's been more than 10 seconds since the last keep alive packet was sent, send a new one

@@ -1,7 +1,6 @@
 use crate::errors::{NetError, PacketError};
 use ferrumc_config::statics::get_global_config;
 use ferrumc_net_codec::{decode::errors::NetDecodeError, net_types::var_int::VarInt};
-use std::cmp::max;
 use std::io::Cursor;
 use std::{fmt::Debug, io::Read};
 use tokio::io::AsyncRead;
@@ -56,16 +55,14 @@ impl PacketSkeleton {
     async fn read_uncompressed<R: AsyncRead + Unpin>(reader: &mut R) -> Result<Self, NetError> {
         let length = VarInt::read_async(reader).await?.0 as usize;
         if length < 1 {
-            return Err(NetError::Packet(
-                PacketError::MalformedPacket(Some(length as u8)),
-            ));
+            return Err(NetError::Packet(PacketError::MalformedPacket(Some(
+                length as u8,
+            ))));
         }
         // Packets can't be longer than 2097151 bytes per https://minecraft.wiki/w/Java_Edition_protocol/Packets#Packet_format
         if length > 2097151 {
             let id = VarInt::read_async(reader).await?.0 as u8;
-            return Err(NetError::Packet(
-                PacketError::MalformedPacket(Some(id)),
-            ));
+            return Err(NetError::Packet(PacketError::MalformedPacket(Some(id))));
         }
 
         let mut buf = {
@@ -87,28 +84,26 @@ impl PacketSkeleton {
     async fn read_compressed<R: AsyncRead + Unpin>(reader: &mut R) -> Result<Self, NetError> {
         let packet_length = VarInt::read_async(reader).await?.0;
         if packet_length < 1 {
-            return Err(NetError::Packet(
-                PacketError::MalformedPacket(Some(packet_length as u8)),
-            ));
+            return Err(NetError::Packet(PacketError::MalformedPacket(Some(
+                packet_length as u8,
+            ))));
         }
         let id = VarInt::read_async(reader).await?.0 as u8;
         // Packets can't be longer than 2097151 bytes per https://minecraft.wiki/w/Java_Edition_protocol/Packets#Packet_format
         if packet_length > 2097151 {
-            return Err(NetError::Packet(
-                PacketError::MalformedPacket(Some(id)),
-            ));
+            return Err(NetError::Packet(PacketError::MalformedPacket(Some(id))));
         }
         let data_length = VarInt::read_async(reader).await?.0;
         if data_length < 0 {
-            return Err(NetError::Packet(
-                PacketError::MalformedPacket(Some(data_length as u8)),
-            ));
+            return Err(NetError::Packet(PacketError::MalformedPacket(Some(
+                data_length as u8,
+            ))));
         }
         // Compressed packets can't hold more than 8 MiB of data according to https://minecraft.wiki/w/Java_Edition_protocol/Packets#Packet_format
         if data_length > 8388608 {
-            return Err(NetError::Packet(
-                PacketError::MalformedPacket(Some(data_length as u8)),
-            ));
+            return Err(NetError::Packet(PacketError::MalformedPacket(Some(
+                data_length as u8,
+            ))));
         }
 
         let packet_length = packet_length as usize - id as usize;

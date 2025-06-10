@@ -44,7 +44,7 @@ pub fn handle(
                     // Save the chunk to disk
                     state.0.world.save_chunk(chunk)?;
                     for (eid, conn) in query {
-                        if !conn.running.load(std::sync::atomic::Ordering::Relaxed) {
+                        if !state.0.players.is_connected(eid) {
                             continue;
                         }
                         // If the player is the one who placed the block, send the BlockChangeAck packet

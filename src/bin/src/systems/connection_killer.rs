@@ -1,42 +1,51 @@
-use bevy_ecs::prelude::{Commands, Entity, EventReader, EventWriter, Query};
-use ferrumc_core::conn::conn_kill_event::ConnectionKillEvent;
-use ferrumc_core::conn::force_player_recount_event::ForcePlayerRecountEvent;
+use bevy_ecs::prelude::{Commands, Entity, Query, Res};
+use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net::connection::StreamWriter;
-use tracing::trace;
+use ferrumc_state::GlobalStateResource;
+use ferrumc_text::TextComponent;
+use tracing::{info, trace, warn};
 
 pub fn connection_killer(
-    mut events: EventReader<ConnectionKillEvent>,
-    query: Query<(Entity, &StreamWriter)>,
-    mut force_events: EventWriter<ForcePlayerRecountEvent>,
+    query: Query<(Entity, &StreamWriter, &PlayerIdentity)>,
     mut cmd: Commands,
+    state: Res<GlobalStateResource>,
 ) {
-    let mut force_recount = false;
-    for event in events.read() {
-        let reason = event.reason.clone();
-        for (entity, conn) in query.iter() {
-            if entity == event.entity || !conn.running.load(std::sync::atomic::Ordering::Relaxed) {
-                trace!(
-                    "Killing connection for entity {:?} with reason: {:?}",
-                    entity,
-                    reason
+    while let Some((disconnecting_entity, reason)) = state.0.players.disconnection_queue.pop() {
+        for (entity, conn, player_identity) in query.iter() {
+            if disconnecting_entity == entity {
+                info!(
+                    "Player {} ({}) disconnected: {}",
+                    player_identity.username,
+                    player_identity.uuid,
+                    reason.as_deref().unwrap_or("No reason")
                 );
-                conn.kill(reason.clone()).unwrap();
-                force_recount = true;
+                if conn.running.load(std::sync::atomic::Ordering::Relaxed) {
+                    trace!(
+                        "Sending disconnect packet to player {}",
+                        player_identity.username
+                    );
+                    if let Err(e) = conn.send_packet(
+                        ferrumc_net::packets::outgoing::disconnect::DisconnectPacket {
+                            reason: TextComponent::from(
+                                reason.as_deref().unwrap_or("Disconnected"),
+                            ),
+                        },
+                    ) {
+                        warn!(
+                            "Failed to send disconnect packet to player {}: {:?}",
+                            player_identity.username, e
+                        );
+                    }
+                } else {
+                    trace!(
+                        "Connection for player {} is not running, skipping disconnect packet",
+                        player_identity.username
+                    );
+                }
             } else {
-                // TODO: Send a message to all other players
+                // Broadcast the disconnection to other players
             }
+            cmd.entity(entity).despawn();
         }
-        match cmd.get_entity(event.entity) {
-            Ok(_) => {
-                cmd.entity(event.entity).despawn();
-            }
-            Err(_) => {
-                // Entity does not exist, do nothing
-                // Probably means multiple systems are trying to kill the same entity
-            }
-        }
-    }
-    if force_recount {
-        force_events.write(ForcePlayerRecountEvent);
     }
 }

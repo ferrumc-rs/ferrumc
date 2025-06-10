@@ -11,7 +11,6 @@ use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalState;
 use ferrumc_text::{ComponentBuilder, NamedColor, TextComponent};
-use std::cmp::max;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tracing::{error, trace};
@@ -26,7 +25,9 @@ pub(crate) async fn trim_packet_head(conn: &mut OwnedReadHalf, value: u8) -> Res
     // Packets can't be longer than 2097151 bytes per https://minecraft.wiki/w/Java_Edition_protocol/Packets#Packet_format
     if len.0 < 1 || len.0 > 2097151 {
         error!("Received packet with invalid length: {}", len.0);
-        return Err(NetError::Packet(PacketError::MalformedPacket(Some(id.0 as u8))));
+        return Err(NetError::Packet(PacketError::MalformedPacket(Some(
+            id.0 as u8,
+        ))));
     }
     while id.0 == 0x14 {
         trace!("Serverbound plugin message packet detected");
@@ -36,7 +37,9 @@ pub(crate) async fn trim_packet_head(conn: &mut OwnedReadHalf, value: u8) -> Res
         len = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
         if len.0 < 1 || len.0 > 2097151 {
             error!("Received packet with invalid length: {}", len.0);
-            return Err(NetError::Packet(PacketError::MalformedPacket(Some(id.0 as u8))));
+            return Err(NetError::Packet(PacketError::MalformedPacket(Some(
+                id.0 as u8,
+            ))));
         }
         id = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
     }

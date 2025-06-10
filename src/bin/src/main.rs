@@ -1,10 +1,10 @@
 #![feature(try_blocks)]
 use crate::errors::BinaryError;
 use clap::Parser;
-use dashmap::DashMap;
 use ferrumc_config::statics::get_global_config;
 use ferrumc_config::whitelist::create_whitelist;
 use ferrumc_general_purpose::paths::get_root_path;
+use ferrumc_state::player_list::PlayerList;
 use ferrumc_state::{GlobalState, ServerState};
 use ferrumc_threadpool::ThreadPool;
 use ferrumc_world::World;
@@ -161,7 +161,7 @@ fn create_state() -> Result<ServerState, BinaryError> {
         world: World::new(get_global_config().database.db_path.clone().into()),
         terrain_generator: WorldGenerator::new(0),
         shut_down: false.into(),
-        players: DashMap::default(),
+        players: PlayerList::default(),
         thread_pool: ThreadPool::new(),
     })
 }

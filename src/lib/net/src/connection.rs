@@ -176,9 +176,20 @@ pub async fn handle_connection(
         }
     };
 
+    let mut disconnect_reason = None;
+
     'recv: loop {
         if !running.load(Ordering::Relaxed) {
             trace!("Conn for entity {:?} is marked for disconnection", entity);
+            break 'recv;
+        }
+        // Probably not needed, but just in case
+        if !state.players.is_connected(entity) {
+            trace!(
+                "Entity {:?} is no longer connected, breaking recv loop",
+                entity
+            );
+            running.store(false, Ordering::Relaxed);
             break 'recv;
         }
 
@@ -192,10 +203,12 @@ pub async fn handle_connection(
                 if let NetError::ConnectionDropped = err {
                     trace!("Connection dropped for entity {:?}", entity);
                     running.store(false, Ordering::Relaxed);
+                    disconnect_reason = Some("Connection dropped".to_string());
                     break 'recv;
                 }
                 error!("Failed to read packet skeleton: {:?} for {:?}", err, entity);
                 running.store(false, Ordering::Relaxed);
+                disconnect_reason = Some(format!("Failed to read packet skeleton: {:?}", err));
                 break 'recv;
             }
         };
@@ -223,31 +236,14 @@ pub async fn handle_connection(
                 _ => {
                     warn!("Failed to handle packet: {:?}", err);
                     running.store(false, Ordering::Relaxed);
+                    disconnect_reason = Some(format!("Failed to handle packet: {:?}", err));
                     break 'recv;
                 }
             },
         }
     }
 
-    Ok(())
-}
+    state.players.disconnect(entity, disconnect_reason);
 
-impl StreamWriter {
-    /// Kills the connection and sends a disconnect packet to the client
-    ///
-    /// !!! This won't delete the entity, you should do that with the connection killer system
-    pub fn kill(&self, reason: Option<String>) -> Result<(), NetError> {
-        self.running.store(false, Ordering::Relaxed);
-        if let Err(err) = self.send_packet(crate::packets::outgoing::disconnect::DisconnectPacket {
-            reason: ferrumc_text::TextComponent::from(reason.unwrap_or("Disconnected".to_string())),
-        }) {
-            if matches!(err, NetError::ConnectionDropped) {
-                trace!("Connection already dropped, not sending disconnect packet");
-            } else {
-                error!("Failed to send disconnect packet: {:?}", err);
-                return Err(err);
-            }
-        }
-        Ok(())
-    }
+    Ok(())
 }

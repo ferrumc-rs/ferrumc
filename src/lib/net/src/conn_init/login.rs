@@ -8,7 +8,6 @@ use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net_codec::decode::NetDecode;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_state::GlobalState;
-use std::cmp::max;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tracing::{error, trace};
@@ -25,7 +24,7 @@ pub(super) async fn login(
         &mut conn_read,
         &NetDecodeOpts::None,
     )
-        .await?;
+    .await?;
 
     // =============================================================================================
 
@@ -52,7 +51,7 @@ pub(super) async fn login(
         &mut conn_read,
         &NetDecodeOpts::None,
     )
-        .await?;
+    .await?;
 
     // =============================================================================================
 
@@ -66,7 +65,9 @@ pub(super) async fn login(
     // The wiki says it can't be larger than 1048576, but we add 64 just to be safe
     if len.0 < 1 || len.0 > 1048576 + 64 {
         error!("Received packet with invalid length: {}", len.0);
-        return Err(NetError::Packet(PacketError::MalformedPacket(Some(id.0 as u8))));
+        return Err(NetError::Packet(PacketError::MalformedPacket(Some(
+            id.0 as u8,
+        ))));
     }
     let mut buf = vec![0; len.0 as usize - id.len()];
     conn_read.read_exact(&mut buf).await?;
@@ -80,7 +81,7 @@ pub(super) async fn login(
             &mut conn_read,
             &NetDecodeOpts::None,
         )
-            .await?;
+        .await?;
 
     trace!(
         "Client information: {{ locale: {}, view_distance: {}, chat_mode: {}, chat_colors: {}, displayed_skin_parts: {} }}",
@@ -108,7 +109,7 @@ pub(super) async fn login(
             &mut conn_read,
             &NetDecodeOpts::None,
         )
-            .await?;
+        .await?;
 
     // =============================================================================================
 
@@ -162,7 +163,7 @@ pub(super) async fn login(
             &mut conn_read,
             &NetDecodeOpts::None,
         )
-            .await?;
+        .await?;
 
     if confirm_player_teleport.teleport_id.0 != teleport_id_i32 {
         error!(
