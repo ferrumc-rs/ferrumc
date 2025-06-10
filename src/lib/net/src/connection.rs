@@ -19,7 +19,7 @@ use tokio::net::TcpStream;
 use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
 use tokio::sync::oneshot;
 use tokio::time::timeout;
-use tracing::{debug_span, error, trace, warn, Instrument};
+use tracing::{debug_span, error, info, trace, warn, Instrument};
 use typename::TypeName;
 
 /// The maximum time to wait for a handshake to complete
@@ -175,8 +175,18 @@ pub async fn handle_connection(
             return Err(NetError::Misc("Failed to receive entity ID".to_string()));
         }
     };
+    
+    #[cfg(debug_assertions)]
+    info!("Player {} ({}) connected with entity ID {:?}", 
+          player_identity.username, 
+          player_identity.uuid, 
+          entity);
+    #[cfg(not(debug_assertions))]
+    info!("Player {} ({}) connected", 
+          player_identity.username, 
+          player_identity.uuid);
 
-    state.players.player_list.insert(entity, (player_identity.uuid, player_identity.username));
+    state.players.player_list.insert(entity, (player_identity.uuid.as_u128(), player_identity.username));
 
     let mut disconnect_reason = None;
 

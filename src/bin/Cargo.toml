@@ -36,7 +36,7 @@ rand = { workspace = true }
 ctrlc = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 crossbeam-channel = { workspace = true }
-dashmap = { workspace = true }
+uuid = { workspace = true }
 dhat = { workspace = true }
 
 [features]

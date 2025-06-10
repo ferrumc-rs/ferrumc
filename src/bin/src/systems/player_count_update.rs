@@ -21,7 +21,7 @@ pub fn player_count_updater(
             .0
             .players
             .player_list
-            .insert(entity, (uuid, username.clone()));
+            .insert(entity, (uuid.as_u128(), username.clone()));
     }
     cooldown_tracker.last_update = std::time::Instant::now();
 }

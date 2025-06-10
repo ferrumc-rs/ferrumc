@@ -24,7 +24,7 @@ pub(super) async fn login(
         &mut conn_read,
         &NetDecodeOpts::None,
     )
-    .await?;
+        .await?;
 
     // =============================================================================================
 
@@ -36,11 +36,10 @@ pub(super) async fn login(
 
     send_packet(conn_write, &login_success).await?;
 
-    let player_identity = PlayerIdentity {
-        uuid: login_start.uuid,
-        username: login_start.username.clone(),
-        short_uuid: login_start.uuid as i32,
-    };
+    let player_identity = PlayerIdentity::new(
+        login_start.username.clone(),
+        login_start.uuid,
+    );
 
     // =============================================================================================
 
@@ -51,7 +50,7 @@ pub(super) async fn login(
         &mut conn_read,
         &NetDecodeOpts::None,
     )
-    .await?;
+        .await?;
 
     // =============================================================================================
 
@@ -81,7 +80,7 @@ pub(super) async fn login(
             &mut conn_read,
             &NetDecodeOpts::None,
         )
-        .await?;
+            .await?;
 
     trace!(
         "Client information: {{ locale: {}, view_distance: {}, chat_mode: {}, chat_colors: {}, displayed_skin_parts: {} }}",
@@ -109,7 +108,7 @@ pub(super) async fn login(
             &mut conn_read,
             &NetDecodeOpts::None,
         )
-        .await?;
+            .await?;
 
     // =============================================================================================
 
@@ -163,7 +162,7 @@ pub(super) async fn login(
             &mut conn_read,
             &NetDecodeOpts::None,
         )
-        .await?;
+            .await?;
 
     if confirm_player_teleport.teleport_id.0 != teleport_id_i32 {
         error!(
