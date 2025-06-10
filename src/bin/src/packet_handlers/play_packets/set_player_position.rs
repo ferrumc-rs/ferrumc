@@ -61,7 +61,7 @@ pub fn handle(
             &pass_conn_query,
             state.0.clone(),
         )
-        .expect("Failed to update position for all players");
+            .expect("Failed to update position for all players");
     }
 }
 
@@ -128,7 +128,7 @@ fn update_pos_for_all(
         if !state.players.is_connected(entity) {
             continue;
         }
-        conn.send_packet(packet.clone())?;
+        conn.send_packet(&packet)?;
     }
 
     Ok(())

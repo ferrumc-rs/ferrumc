@@ -29,7 +29,7 @@ pub fn handle_player_move(
             if !writer.running.load(std::sync::atomic::Ordering::Relaxed) {
                 continue;
             }
-            if let Err(err) = writer.send_packet(head_rot_packet.clone()) {
+            if let Err(err) = writer.send_packet(&head_rot_packet) {
                 error!("Failed to send head rotation packet: {:?}", err);
             }
         }

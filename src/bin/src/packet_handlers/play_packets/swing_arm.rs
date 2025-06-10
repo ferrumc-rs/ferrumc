@@ -30,7 +30,7 @@ pub fn handle(
             if !state.0.players.is_connected(entity) {
                 continue; // Skip if the player is not connected
             }
-            if let Err(e) = conn.send_packet(packet.clone()) {
+            if let Err(e) = conn.send_packet(&packet) {
                 error!("Failed to send packet: {}", e);
             }
         }

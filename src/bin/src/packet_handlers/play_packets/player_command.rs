@@ -27,7 +27,7 @@ pub fn handle(
                     if !state.0.players.is_connected(entity) {
                         continue;
                     }
-                    if let Err(err) = conn.send_packet(packet.clone()) {
+                    if let Err(err) = conn.send_packet(&packet) {
                         error!("Failed to send start sneaking packet: {:?}", err);
                     }
                 }
@@ -40,7 +40,7 @@ pub fn handle(
                     if !state.0.players.is_connected(entity) {
                         continue;
                     }
-                    if let Err(err) = conn.send_packet(packet.clone()) {
+                    if let Err(err) = conn.send_packet(&packet) {
                         error!("Failed to send stop sneaking packet: {:?}", err);
                     }
                 }

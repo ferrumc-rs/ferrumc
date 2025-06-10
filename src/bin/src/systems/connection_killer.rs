@@ -25,7 +25,7 @@ pub fn connection_killer(
                         player_identity.username
                     );
                     if let Err(e) = conn.send_packet(
-                        ferrumc_net::packets::outgoing::disconnect::DisconnectPacket {
+                        &ferrumc_net::packets::outgoing::disconnect::DisconnectPacket {
                             reason: TextComponent::from(
                                 reason.as_deref().unwrap_or("Disconnected"),
                             ),

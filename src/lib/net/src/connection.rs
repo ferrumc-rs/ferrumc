@@ -61,13 +61,13 @@ impl StreamWriter {
 
     // Sends the packet to the client with the default options. You probably want to use this instead
     // of send_packet_with_opts()
-    pub fn send_packet(&self, packet: impl NetEncode + Send) -> Result<(), NetError> {
+    pub fn send_packet(&self, packet: &(impl NetEncode + Send)) -> Result<(), NetError> {
         self.send_packet_with_opts(packet, &NetEncodeOpts::WithLength)
     }
 
     pub fn send_packet_with_opts(
         &self,
-        packet: impl NetEncode + Send,
+        packet: &(impl NetEncode + Send),
         net_encode_opts: &NetEncodeOpts,
     ) -> Result<(), NetError> {
         if !self.running.load(Ordering::Relaxed) {
@@ -103,7 +103,7 @@ pub async fn handle_connection(
         MAX_HANDSHAKE_TIMEOUT,
         handle_handshake(&mut tcp_reader, &mut tcp_writer, state.clone()),
     )
-    .await;
+        .await;
 
     let mut player_identity = PlayerIdentity::default();
 
@@ -162,7 +162,7 @@ pub async fn handle_connection(
     new_join_sender
         .send(NewConnection {
             stream,
-            player_identity,
+            player_identity: player_identity.clone(),
             entity_return,
         })
         .map_err(|_| NetError::Misc("Failed to send new connection".to_string()))?;
@@ -175,6 +175,8 @@ pub async fn handle_connection(
             return Err(NetError::Misc("Failed to receive entity ID".to_string()));
         }
     };
+
+    state.players.player_list.insert(entity, (player_identity.uuid, player_identity.username));
 
     let mut disconnect_reason = None;
 
@@ -219,8 +221,8 @@ pub async fn handle_connection(
             &mut packet_skele.data,
             packet_sender.clone(),
         )
-        .instrument(debug_span!("eid", %entity))
-        .into_inner()
+            .instrument(debug_span!("eid", %entity))
+            .into_inner()
         {
             Ok(()) => {
                 trace!(

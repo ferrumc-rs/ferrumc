@@ -52,12 +52,12 @@ pub fn handle(
                             location: event.location.clone(),
                             block_id: VarInt::from(BlockId::default()),
                         };
-                        conn.send_packet(block_update_packet)?;
+                        conn.send_packet(&block_update_packet)?;
                         if eid == trigger_eid {
                             let ack_packet = BlockChangeAck {
                                 sequence: event.sequence,
                             };
-                            conn.send_packet(ack_packet)?;
+                            conn.send_packet(&ack_packet)?;
                         }
                     }
                 }

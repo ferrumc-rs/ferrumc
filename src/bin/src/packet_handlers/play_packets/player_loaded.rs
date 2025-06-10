@@ -50,7 +50,7 @@ pub fn handle(
                 );
                 // Teleport the player to the world center if their head block is not air
                 let packet = SynchronizePlayerPositionPacket::default();
-                if let Err(e) = conn.send_packet(packet) {
+                if let Err(e) = conn.send_packet(&packet) {
                     tracing::error!(
                         "Failed to send synchronize player position packet for player {}: {:?}",
                         player,
