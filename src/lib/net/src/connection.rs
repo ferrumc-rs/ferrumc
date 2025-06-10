@@ -175,7 +175,7 @@ pub async fn handle_connection(
             return Err(NetError::Misc("Failed to receive entity ID".to_string()));
         }
     };
-    
+
     #[cfg(debug_assertions)]
     info!("Player {} ({}) connected with entity ID {:?}", 
           player_identity.username, 
@@ -220,7 +220,7 @@ pub async fn handle_connection(
                 }
                 error!("Failed to read packet skeleton: {:?} for {:?}", err, entity);
                 running.store(false, Ordering::Relaxed);
-                disconnect_reason = Some(format!("Failed to read packet skeleton: {:?}", err));
+                disconnect_reason = Some(format!("Failed to read packet skeleton: {err:?}"));
                 break 'recv;
             }
         };
@@ -248,7 +248,7 @@ pub async fn handle_connection(
                 _ => {
                     warn!("Failed to handle packet: {:?}", err);
                     running.store(false, Ordering::Relaxed);
-                    disconnect_reason = Some(format!("Failed to handle packet: {:?}", err));
+                    disconnect_reason = Some(format!("Failed to handle packet: {err:?}"));
                     break 'recv;
                 }
             },
