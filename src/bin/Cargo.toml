@@ -18,6 +18,7 @@ ferrumc-plugins = { workspace = true }
 ferrumc-storage = { workspace = true }
 ferrumc-utils = { workspace = true }
 ferrumc-config = { workspace = true }
+ferrumc-entities = { workspace = true }
 ferrumc-profiling = { workspace = true }
 ferrumc-logging = { workspace = true }
 ferrumc-world = { workspace = true }

@@ -5,6 +5,13 @@ pub enum NetDecodeError {
     #[error("IO error: {0}")]
     IoError(#[from] std::io::Error),
 
+    #[error("Invalid length: expected {expected}, got {actual}")]
+    InvalidLength {
+        expected: usize,
+        actual: usize,
+        field: String,
+    },
+
     #[error("Invalid UTF-8: {0}")]
     Utf8Error(#[from] std::string::FromUtf8Error),
 
