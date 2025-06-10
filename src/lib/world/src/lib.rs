@@ -19,7 +19,7 @@ use std::fs::create_dir_all;
 use std::path::{Path, PathBuf};
 use std::process::exit;
 use std::time::Duration;
-use tracing::{error, info, trace, warn};
+use tracing::{error, trace, warn};
 
 #[derive(Clone)]
 pub struct World {
@@ -100,8 +100,6 @@ impl World {
             LmdbBackend::initialize(Some(backend_path)).expect("Failed to initialize database");
 
         let compressor_string = get_global_config().database.compression.trim();
-
-        info!("Using {} compression algorithm", compressor_string);
 
         let compression_algo = match compressor_string.to_lowercase().as_str() {
             "zstd" => Compressor::create(

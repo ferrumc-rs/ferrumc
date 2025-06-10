@@ -1,3 +1,5 @@
+#![feature(integer_atomics)]
+
 pub mod player_list;
 
 use crate::player_list::PlayerList;
@@ -7,6 +9,7 @@ use ferrumc_world::World;
 use ferrumc_world_gen::WorldGenerator;
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
+use std::time::Instant;
 
 pub struct ServerState {
     pub world: World,
@@ -14,6 +17,7 @@ pub struct ServerState {
     pub shut_down: AtomicBool,
     pub players: PlayerList, // (UUID, Username)
     pub thread_pool: ThreadPool,
+    pub start_time: Arc<Instant>,
 }
 
 pub type GlobalState = Arc<ServerState>;

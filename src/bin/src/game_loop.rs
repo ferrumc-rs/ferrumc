@@ -11,9 +11,10 @@ use ferrumc_net::connection::{handle_connection, NewConnection};
 use ferrumc_net::server::create_server_listener;
 use ferrumc_net::PacketSender;
 use ferrumc_state::{GlobalState, GlobalStateResource};
+use ferrumc_utils::formatting::format_duration;
 use play_packets::register_packet_handlers;
 use std::sync::Arc;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use tracing::{debug, error, info, info_span, trace, warn, Instrument};
 
 const NS_PER_SECOND: u64 = 1_000_000_000;
@@ -40,17 +41,19 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     // Start the TCP connection acceptor
     tcp_conn_acceptor(global_state.clone(), sender_struct, Arc::new(new_conn_send))?;
 
+    info!("Server is ready in {}", format_duration(Instant::now().duration_since(*global_state.start_time.clone())));
+
     while !global_state
         .shut_down
         .load(std::sync::atomic::Ordering::Relaxed)
     {
-        let start_time = std::time::Instant::now();
+        let tick_start = Instant::now();
 
         // Run the ECS schedule
         schedule.run(&mut ecs_world);
 
         // Sleep to maintain the tick rate
-        let elapsed_time = start_time.elapsed();
+        let elapsed_time = tick_start.elapsed();
         let sleep_duration = if elapsed_time < ns_per_tick {
             ns_per_tick - elapsed_time
         } else {
@@ -84,7 +87,6 @@ fn tcp_conn_acceptor(
     let named_thread = std::thread::Builder::new().name("TokioNetworkThread".to_string());
     named_thread.spawn(move || {
         let caught_panic = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            debug!("Created TCP connection acceptor thread");
             let async_runtime = tokio::runtime::Builder::new_current_thread()
                 .enable_all()
                 .thread_name("Tokio-Async-Network")
@@ -99,7 +101,6 @@ fn tcp_conn_acceptor(
                         ));
                     };
                     while !state.shut_down.load(std::sync::atomic::Ordering::Relaxed) {
-                        debug!("Waiting for TCP connection...");
                         let (stream, _) = listener
                             .accept()
                             .await
@@ -116,7 +117,6 @@ fn tcp_conn_acceptor(
                                     .await;
                             }
                         });
-                        info!("Accepted connection from {}", addy);
                     }
                     debug!("Shutting down TCP connection acceptor thread");
                     Ok(())

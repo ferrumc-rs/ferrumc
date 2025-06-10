@@ -1,4 +1,6 @@
 #![feature(try_blocks)]
+#![feature(integer_atomics)]
+
 use crate::errors::BinaryError;
 use clap::Parser;
 use ferrumc_config::statics::get_global_config;
@@ -27,21 +29,14 @@ mod systems;
 #[global_allocator]
 static ALLOC: dhat::Alloc = dhat::Alloc;
 
-// fn kill_in_20() {
-//     std::thread::spawn(move || {
-//         std::thread::sleep(std::time::Duration::from_secs(20));
-//         std::process::exit(1);
-//     });
-// }
-
 fn main() {
     #[cfg(feature = "dhat")]
     let _profiler = dhat::Profiler::new_heap();
 
+    let start_time = Arc::new(Instant::now());
+
     let cli_args = CLIArgs::parse();
     ferrumc_logging::init_logging(cli_args.log.into());
-
-    // kill_in_20();
 
     match cli_args.command {
         Some(Command::Setup) => {
@@ -63,7 +58,7 @@ fn main() {
         }
         Some(Command::Run) | None => {
             info!("Starting server...");
-            if let Err(e) = entry() {
+            if let Err(e) = entry(start_time) {
                 error!("Server exited with the following error: {}", e.to_string());
             } else {
                 info!("Server exited successfully.");
@@ -103,8 +98,8 @@ fn generate_chunks(state: GlobalState) -> Result<(), BinaryError> {
     Ok(())
 }
 
-fn entry() -> Result<(), BinaryError> {
-    let state = create_state()?;
+fn entry(start_time: Arc<Instant>) -> Result<(), BinaryError> {
+    let state = create_state(start_time)?;
     let global_state = Arc::new(state);
     create_whitelist();
     if !global_state.world.chunk_exists(0, 0, "overworld")? {
@@ -124,7 +119,7 @@ fn entry() -> Result<(), BinaryError> {
                 .expect("Failed to sync world before shutdown")
         }
     })
-    .expect("Error setting Ctrl-C handler");
+        .expect("Error setting Ctrl-C handler");
 
     game_loop::start_game_loop(global_state.clone())?;
 
@@ -156,12 +151,13 @@ fn handle_import(import_args: ImportArgs) -> Result<(), BinaryError> {
     Ok(())
 }
 
-fn create_state() -> Result<ServerState, BinaryError> {
+fn create_state(start_time: Arc<Instant>) -> Result<ServerState, BinaryError> {
     Ok(ServerState {
         world: World::new(get_global_config().database.db_path.clone().into()),
         terrain_generator: WorldGenerator::new(0),
         shut_down: false.into(),
         players: PlayerList::default(),
         thread_pool: ThreadPool::new(),
+        start_time,
     })
 }
