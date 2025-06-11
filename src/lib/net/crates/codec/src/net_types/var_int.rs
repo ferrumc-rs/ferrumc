@@ -1,5 +1,5 @@
 use crate::decode::errors::NetDecodeError;
-use crate::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
+use crate::decode::{NetDecode, NetDecodeOpts};
 use crate::encode::errors::NetEncodeError;
 use crate::encode::{NetEncode, NetEncodeOpts};
 use crate::net_types::NetTypesError;
@@ -156,13 +156,13 @@ impl VarInt {
 }
 
 impl NetDecode for VarInt {
-    fn decode<R: Read>(reader: &mut R, _opts: &NetDecodeOpts) -> NetDecodeResult<Self> {
+    fn decode<R: Read>(reader: &mut R, _opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
         VarInt::read(reader).map_err(|e| NetDecodeError::ExternalError(e.into()))
     }
     async fn decode_async<R: AsyncRead + Unpin>(
         reader: &mut R,
         _opts: &NetDecodeOpts,
-    ) -> NetDecodeResult<Self> {
+    ) -> Result<Self, NetDecodeError> {
         VarInt::read_async(reader)
             .await
             .map_err(|e| NetDecodeError::ExternalError(e.into()))

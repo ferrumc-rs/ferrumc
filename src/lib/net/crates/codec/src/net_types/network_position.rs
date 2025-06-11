@@ -1,6 +1,7 @@
 // I have no clue why it is saving i32 and i16. There is no precision. The actual player position is saved in f32.
 
-use crate::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
+use crate::decode::errors::NetDecodeError;
+use crate::decode::{NetDecode, NetDecodeOpts};
 use crate::encode::errors::NetEncodeError;
 use crate::encode::{NetEncode, NetEncodeOpts};
 use std::fmt::Display;
@@ -49,7 +50,7 @@ impl NetEncode for NetworkPosition {
 }
 
 impl NetDecode for NetworkPosition {
-    fn decode<R: Read>(reader: &mut R, _: &NetDecodeOpts) -> NetDecodeResult<Self> {
+    fn decode<R: Read>(reader: &mut R, _: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
         let mut buf = [0u8; 8];
         reader.read_exact(&mut buf)?;
         Ok(NetworkPosition::from_u64(u64::from_be_bytes(buf)))
@@ -57,7 +58,7 @@ impl NetDecode for NetworkPosition {
     async fn decode_async<R: tokio::io::AsyncRead + Unpin>(
         reader: &mut R,
         _: &NetDecodeOpts,
-    ) -> NetDecodeResult<Self> {
+    ) -> Result<Self, NetDecodeError> {
         let mut buf = [0u8; 8];
         reader.read_exact(&mut buf).await?;
         Ok(NetworkPosition::from_u64(u64::from_be_bytes(buf)))

@@ -1,4 +1,5 @@
-use crate::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
+use crate::decode::errors::NetDecodeError;
+use crate::decode::{NetDecode, NetDecodeOpts};
 use crate::encode::errors::NetEncodeError;
 use crate::encode::{NetEncode, NetEncodeOpts};
 use crate::net_types::var_int::VarInt;
@@ -61,7 +62,7 @@ impl<T> NetDecode for LengthPrefixedVec<T>
 where
     T: NetDecode,
 {
-    fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> NetDecodeResult<Self> {
+    fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
         let length = VarInt::decode(reader, opts)?;
 
         let mut data = Vec::new();
@@ -75,7 +76,7 @@ where
     async fn decode_async<R: AsyncRead + Unpin>(
         reader: &mut R,
         opts: &NetDecodeOpts,
-    ) -> NetDecodeResult<Self> {
+    ) -> Result<Self, NetDecodeError> {
         let length = VarInt::decode_async(reader, opts).await?;
 
         let mut data = Vec::new();
