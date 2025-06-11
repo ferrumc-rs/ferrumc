@@ -3,7 +3,7 @@ use crate::packets::outgoing::entity_metadata::entity_state::{EntityState, Entit
 use crate::packets::outgoing::entity_metadata::index_type::EntityMetadataIndexType;
 use crate::packets::outgoing::entity_metadata::value::EntityMetadataValue;
 use ferrumc_macros::{packet, NetEncode};
-use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
+use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::Write;
 
@@ -35,7 +35,7 @@ impl EntityMetadataPacket {
     /// ```
     pub fn new<T>(entity_id: VarInt, metadata: T) -> Self
     where
-        T: IntoIterator<Item = EntityMetadata>,
+        T: IntoIterator<Item=EntityMetadata>,
     {
         Self {
             entity_id,
@@ -94,6 +94,7 @@ pub mod constructors {
 
 mod index_type {
     use super::*;
+    use ferrumc_net_codec::encode::errors::NetEncodeError;
 
     /// Available metadata field types
     /// See: https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Entity_metadata#Entity_Metadata_Format
@@ -116,7 +117,7 @@ mod index_type {
     }
 
     impl NetEncode for EntityMetadataIndexType {
-        fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
+        fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
             self.index().encode(writer, opts)
         }
 
@@ -124,7 +125,7 @@ mod index_type {
             &self,
             writer: &mut W,
             opts: &NetEncodeOpts,
-        ) -> NetEncodeResult<()> {
+        ) -> Result<(), NetEncodeError> {
             self.index().encode_async(writer, opts).await
         }
     }
@@ -220,7 +221,8 @@ mod entity_state {
 }
 
 mod extra_data_types {
-    use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
+    use ferrumc_net_codec::encode::errors::NetEncodeError;
+    use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
     use ferrumc_net_codec::net_types::var_int::VarInt;
     use std::io::Write;
     // STANDING = 0, FALL_FLYING = 1, SLEEPING = 2, SWIMMING = 3, SPIN_ATTACK = 4, SNEAKING = 5, LONG_JUMPING = 6, DYING = 7, CROAKING = 8,
@@ -279,7 +281,7 @@ mod extra_data_types {
     }
 
     impl NetEncode for EntityPose {
-        fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
+        fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
             self.index().encode(writer, opts)
         }
 
@@ -287,7 +289,7 @@ mod extra_data_types {
             &self,
             writer: &mut W,
             opts: &NetEncodeOpts,
-        ) -> NetEncodeResult<()> {
+        ) -> Result<(), NetEncodeError> {
             self.index().encode_async(writer, opts).await
         }
     }

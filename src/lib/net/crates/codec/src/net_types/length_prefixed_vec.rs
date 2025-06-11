@@ -1,5 +1,6 @@
 use crate::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
-use crate::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
+use crate::encode::errors::NetEncodeError;
+use crate::encode::{NetEncode, NetEncodeOpts};
 use crate::net_types::var_int::VarInt;
 use std::io::{Read, Write};
 use tokio::io::{AsyncRead, AsyncWrite};
@@ -32,7 +33,7 @@ impl<T> NetEncode for LengthPrefixedVec<T>
 where
     T: NetEncode,
 {
-    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
         self.length.encode(writer, opts)?;
 
         for item in &self.data {
@@ -46,7 +47,7 @@ where
         &self,
         writer: &mut W,
         opts: &NetEncodeOpts,
-    ) -> NetEncodeResult<()> {
+    ) -> Result<(), NetEncodeError> {
         self.length.encode_async(writer, opts).await?;
 
         for item in &self.data {

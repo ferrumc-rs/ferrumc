@@ -1,5 +1,6 @@
 use crate::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
-use crate::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
+use crate::encode::errors::NetEncodeError;
+use crate::encode::{NetEncode, NetEncodeOpts};
 use bitcode::{Decode, Encode};
 use std::io::{Read, Write};
 use tokio::io::{AsyncRead, AsyncWrite};
@@ -11,7 +12,7 @@ pub enum PrefixedOptional<T> {
 }
 
 impl<T: NetEncode> NetEncode for PrefixedOptional<T> {
-    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
         match self {
             PrefixedOptional::None => {
                 false.encode(writer, opts)?;
@@ -28,7 +29,7 @@ impl<T: NetEncode> NetEncode for PrefixedOptional<T> {
         &self,
         writer: &mut W,
         opts: &NetEncodeOpts,
-    ) -> NetEncodeResult<()> {
+    ) -> Result<(), NetEncodeError> {
         match self {
             PrefixedOptional::None => {
                 false.encode_async(writer, opts).await?;

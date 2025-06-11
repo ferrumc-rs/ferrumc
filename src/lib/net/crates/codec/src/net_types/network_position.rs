@@ -1,7 +1,8 @@
 // I have no clue why it is saving i32 and i16. There is no precision. The actual player position is saved in f32.
 
 use crate::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
-use crate::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
+use crate::encode::errors::NetEncodeError;
+use crate::encode::{NetEncode, NetEncodeOpts};
 use std::fmt::Display;
 use std::io::{Read, Write};
 use tokio::io::AsyncReadExt;
@@ -31,7 +32,7 @@ impl NetworkPosition {
 }
 
 impl NetEncode for NetworkPosition {
-    fn encode<W: Write>(&self, writer: &mut W, _: &NetEncodeOpts) -> NetEncodeResult<()> {
+    fn encode<W: Write>(&self, writer: &mut W, _: &NetEncodeOpts) -> Result<(), NetEncodeError> {
         writer.write_all(self.as_u64().to_be_bytes().as_ref())?;
         Ok(())
     }
@@ -39,7 +40,7 @@ impl NetEncode for NetworkPosition {
         &self,
         writer: &mut W,
         _: &NetEncodeOpts,
-    ) -> NetEncodeResult<()> {
+    ) -> Result<(), NetEncodeError> {
         writer
             .write_all(self.as_u64().to_be_bytes().as_ref())
             .await?;
