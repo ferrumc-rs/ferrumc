@@ -25,7 +25,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     let mut ecs_world = World::new();
 
     let mut schedule = bevy_ecs::schedule::Schedule::default();
-    schedule.set_executor_kind(ExecutorKind::MultiThreaded);
+    schedule.set_executor_kind(ExecutorKind::SingleThreaded);
 
     // This schedule is ticked once when the server is shutting down
     // If you need to run any cleanup systems, add them to `ferrumc::systems::shutdown_systems::register_shutdown_systems`

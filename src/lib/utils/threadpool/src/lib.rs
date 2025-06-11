@@ -27,13 +27,14 @@ impl ThreadPool {
     /// Creates a new `ThreadPool`.
     pub fn new() -> Self {
         // Use all but 3 cores for the thread pool. 1 core is for the main thread, 1 for the network thread and 1 for the control-c handler.
-        let core_count = max(1, num_cpus::get() as i32 - 3) as usize;
+        let core_count = max(1, num_cpus::get() as i32) as usize;
         let pool = Arc::new(rusty_pool::ThreadPool::new_named(
             "ferrumc_threadpool".to_string(),
             core_count,
             core_count,
             Duration::from_secs(60),
         ));
+        pool.start_core_threads();
         Self { pool }
     }
 
@@ -146,7 +147,7 @@ impl<'a, R: Send + 'static> ThreadPoolBatch<'a, R> {
             panic!("Batch already completed");
         }
 
-        let mut results = vec![];
+        let mut results = Vec::with_capacity(self.handles.len());
         for handle in self.handles {
             let result = handle.await_complete();
             results.push(*result);
