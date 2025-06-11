@@ -10,6 +10,7 @@ use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::ServerState;
+use std::io::BufWriter;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
@@ -76,9 +77,11 @@ impl StreamWriter {
             return Err(NetError::ConnectionDropped);
         }
         let bytes = {
-            let mut buffer = Vec::new();
+            let mut buffer = BufWriter::new(Vec::new());
             packet.encode(&mut buffer, net_encode_opts)?;
-            buffer
+            buffer.into_inner().map_err(|_| {
+                NetError::Misc("Failed to get inner buffer from BufWriter".to_string())
+            })?
         };
         self.sender.send(bytes).map_err(std::io::Error::other)?;
         Ok(())
