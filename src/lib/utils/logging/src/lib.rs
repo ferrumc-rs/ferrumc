@@ -35,7 +35,7 @@ pub fn init_logging(trace_level: Level) {
                 .with_thread_names(false)
                 .with_file(false)
                 .with_line_number(false)
-                .with_level(false)
+                .with_level(true)
                 .with_target(false)
         }
     };
