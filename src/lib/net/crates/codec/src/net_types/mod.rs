@@ -5,6 +5,7 @@ pub mod network_position;
 pub mod prefixed_optional;
 pub mod teleport_flags;
 pub mod var_int;
+pub mod byte_array;
 
 #[derive(Debug, thiserror::Error)]
 pub enum NetTypesError {

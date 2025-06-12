@@ -8,6 +8,7 @@ use ferrumc_world::chunk_format::{Chunk, PaletteType};
 use std::io::{Cursor, Write};
 use std::ops::Not;
 use tracing::warn;
+use ferrumc_net_codec::net_types::byte_array::ByteArray;
 
 const SECTIONS: usize = 24; // Number of sections, adjust for your Y range (-64 to 319)
 
@@ -33,23 +34,23 @@ pub struct ChunkAndLightData {
     pub chunk_z: i32,
     // The binary nbt data
     pub heightmaps: LengthPrefixedVec<NetHeightmap>,
-    pub data: LengthPrefixedVec<u8>,
+    pub data: ByteArray,
     pub block_entities: LengthPrefixedVec<BlockEntity>,
     pub sky_light_mask: BitSet,
     pub block_light_mask: BitSet,
     pub empty_sky_light_mask: BitSet,
     pub empty_block_light_mask: BitSet,
-    pub sky_light_arrays: LengthPrefixedVec<LengthPrefixedVec<u8>>,
-    pub block_light_arrays: LengthPrefixedVec<LengthPrefixedVec<u8>>,
+    pub sky_light_arrays: LengthPrefixedVec<ByteArray>,
+    pub block_light_arrays: LengthPrefixedVec<ByteArray>,
 }
 
 impl ChunkAndLightData {
     pub fn empty(chunk_x: i32, chunk_z: i32) -> Self {
         let sky_light_arrays = (0..SECTIONS)
-            .map(|_| LengthPrefixedVec::new(vec![0; 2048]))
+            .map(|_| ByteArray::new(vec![0; 2048]))
             .collect();
         let block_light_arrays = (0..SECTIONS)
-            .map(|_| LengthPrefixedVec::new(vec![0; 2048]))
+            .map(|_| ByteArray::new(vec![0; 2048]))
             .collect();
         let mut empty_sky_light_mask = BitSet::new(SECTIONS + 2);
         empty_sky_light_mask.set_all(false);
@@ -59,7 +60,7 @@ impl ChunkAndLightData {
             chunk_x,
             chunk_z,
             heightmaps: LengthPrefixedVec::default(),
-            data: LengthPrefixedVec::new(vec![0; SECTIONS * 10]),
+            data: ByteArray::new(vec![0; SECTIONS * 10]),
             block_entities: LengthPrefixedVec::new(Vec::new()),
             sky_light_mask: BitSet::new(SECTIONS),
             block_light_mask: BitSet::new(SECTIONS),
@@ -153,14 +154,14 @@ impl ChunkAndLightData {
             .sections
             .iter()
             .filter(|section| !section.sky_light.is_empty())
-            .map(|section| LengthPrefixedVec::new(section.sky_light.clone()))
+            .map(|section| ByteArray::new(section.sky_light.clone()))
             .collect();
 
         let block_light_arrays = chunk
             .sections
             .iter()
             .filter(|section| !section.block_light.is_empty())
-            .map(|section| LengthPrefixedVec::new(section.block_light.clone()))
+            .map(|section| ByteArray::new(section.block_light.clone()))
             .collect();
         let heightmaps = vec![
             NetHeightmap {
@@ -177,7 +178,7 @@ impl ChunkAndLightData {
             chunk_x: chunk.x,
             chunk_z: chunk.z,
             heightmaps: LengthPrefixedVec::new(heightmaps),
-            data: LengthPrefixedVec::new(raw_data.into_inner()),
+            data: ByteArray::new(raw_data.into_inner()),
             block_entities: LengthPrefixedVec::new(Vec::new()),
             sky_light_mask,
             block_light_mask,
