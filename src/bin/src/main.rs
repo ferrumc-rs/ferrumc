@@ -1,17 +1,19 @@
 #![feature(try_blocks)]
+
 use crate::errors::BinaryError;
 use clap::Parser;
-use dashmap::DashMap;
 use ferrumc_config::statics::get_global_config;
 use ferrumc_config::whitelist::create_whitelist;
 use ferrumc_general_purpose::paths::get_root_path;
+use ferrumc_state::player_list::PlayerList;
 use ferrumc_state::{GlobalState, ServerState};
-use ferrumc_world::chunk_format::Chunk;
+use ferrumc_threadpool::ThreadPool;
 use ferrumc_world::World;
 use ferrumc_world_gen::errors::WorldGenError;
 use ferrumc_world_gen::errors::WorldGenError::WorldError;
 use ferrumc_world_gen::WorldGenerator;
 use std::sync::Arc;
+use std::time::Instant;
 use tracing::{error, info};
 
 pub(crate) mod errors;
@@ -28,21 +30,14 @@ mod systems;
 #[global_allocator]
 static ALLOC: dhat::Alloc = dhat::Alloc;
 
-// fn kill_in_20() {
-//     std::thread::spawn(move || {
-//         std::thread::sleep(std::time::Duration::from_secs(20));
-//         std::process::exit(1);
-//     });
-// }
-
 fn main() {
     #[cfg(feature = "dhat")]
     let _profiler = dhat::Profiler::new_heap();
 
+    let start_time = Arc::new(Instant::now());
+
     let cli_args = CLIArgs::parse();
     ferrumc_logging::init_logging(cli_args.log.into());
-
-    // kill_in_20();
 
     match cli_args.command {
         Some(Command::Setup) => {
@@ -64,7 +59,7 @@ fn main() {
         }
         Some(Command::Run) | None => {
             info!("Starting server...");
-            if let Err(e) = entry() {
+            if let Err(e) = entry(start_time) {
                 error!("Server exited with the following error: {}", e.to_string());
             } else {
                 info!("Server exited successfully.");
@@ -77,6 +72,7 @@ fn generate_chunks(state: GlobalState) -> Result<(), BinaryError> {
     info!("No overworld spawn chunk found, generating spawn chunks...");
     // Generate a 12x12 chunk area around the spawn point
     let mut chunks = Vec::new();
+    let start = Instant::now();
     let radius = get_global_config().chunk_render_distance as i32;
     for x in -radius..=radius {
         for z in -radius..=radius {
@@ -116,8 +112,8 @@ fn generate_chunks(state: GlobalState) -> Result<(), BinaryError> {
     Ok(())
 }
 
-fn entry() -> Result<(), BinaryError> {
-    let state = create_state()?;
+fn entry(start_time: Arc<Instant>) -> Result<(), BinaryError> {
+    let state = create_state(start_time)?;
     let global_state = Arc::new(state);
     create_whitelist();
     if !global_state.world.chunk_exists(0, 0, "overworld")? {
@@ -149,7 +145,7 @@ fn handle_import(import_args: ImportArgs) -> Result<(), BinaryError> {
     info!("Importing world...");
 
     // let config = get_global_config();
-    let mut world = World::new();
+    let mut world = World::new(get_global_config().database.db_path.clone().into());
 
     let root_path = get_root_path();
     let mut import_path = root_path.join(import_args.import_path);
@@ -169,11 +165,13 @@ fn handle_import(import_args: ImportArgs) -> Result<(), BinaryError> {
     Ok(())
 }
 
-fn create_state() -> Result<ServerState, BinaryError> {
+fn create_state(start_time: Arc<Instant>) -> Result<ServerState, BinaryError> {
     Ok(ServerState {
-        world: World::new(),
+        world: World::new(get_global_config().database.db_path.clone().into()),
         terrain_generator: WorldGenerator::new(0),
         shut_down: false.into(),
-        players: DashMap::default(),
+        players: PlayerList::default(),
+        thread_pool: ThreadPool::new(),
+        start_time,
     })
 }

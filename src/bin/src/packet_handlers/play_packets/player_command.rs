@@ -1,14 +1,16 @@
-use bevy_ecs::prelude::{Query, Res};
+use bevy_ecs::prelude::{Entity, Query, Res};
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::incoming::player_command::PlayerCommandAction;
 use ferrumc_net::packets::outgoing::entity_metadata::{EntityMetadata, EntityMetadataPacket};
 use ferrumc_net::PlayerCommandPacketReceiver;
+use ferrumc_state::GlobalStateResource;
 use tracing::error;
 
-pub fn handle(events: Res<PlayerCommandPacketReceiver>, query: Query<&StreamWriter>) {
-    if events.0.is_empty() {
-        return;
-    }
+pub fn handle(
+    events: Res<PlayerCommandPacketReceiver>,
+    query: Query<(Entity, &StreamWriter)>,
+    state: Res<GlobalStateResource>,
+) {
     for (event, _) in events.0.try_iter() {
         match event.action {
             PlayerCommandAction::StartSneaking => {
@@ -21,11 +23,11 @@ pub fn handle(events: Res<PlayerCommandPacketReceiver>, query: Query<&StreamWrit
                 );
 
                 // TODO: Don't clone
-                for conn in query {
-                    if !conn.running.load(std::sync::atomic::Ordering::Relaxed) {
+                for (entity, conn) in query {
+                    if !state.0.players.is_connected(entity) {
                         continue;
                     }
-                    if let Err(err) = conn.send_packet(packet.clone()) {
+                    if let Err(err) = conn.send_packet(&packet) {
                         error!("Failed to send start sneaking packet: {:?}", err);
                     }
                 }
@@ -34,11 +36,11 @@ pub fn handle(events: Res<PlayerCommandPacketReceiver>, query: Query<&StreamWrit
                 let packet =
                     EntityMetadataPacket::new(event.entity_id, [EntityMetadata::entity_standing()]);
 
-                for conn in query {
-                    if !conn.running.load(std::sync::atomic::Ordering::Relaxed) {
+                for (entity, conn) in query {
+                    if !state.0.players.is_connected(entity) {
                         continue;
                     }
-                    if let Err(err) = conn.send_packet(packet.clone()) {
+                    if let Err(err) = conn.send_packet(&packet) {
                         error!("Failed to send stop sneaking packet: {:?}", err);
                     }
                 }

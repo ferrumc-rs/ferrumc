@@ -1,4 +1,5 @@
-use crate::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
+use crate::encode::errors::NetEncodeError;
+use crate::encode::{NetEncode, NetEncodeOpts};
 use crate::net_types::var_int::VarInt;
 use std::io::Write;
 use std::ops::Not;
@@ -54,7 +55,7 @@ impl BitSet {
 }
 
 impl NetEncode for BitSet {
-    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
         VarInt::from(self.0.len()).encode(writer, opts)?;
         writer.write_all(&ferrumc_general_purpose::simd::arrays::u64_slice_to_u8_be(
             &self.0,
@@ -66,7 +67,7 @@ impl NetEncode for BitSet {
         &self,
         writer: &mut W,
         opts: &NetEncodeOpts,
-    ) -> NetEncodeResult<()> {
+    ) -> Result<(), NetEncodeError> {
         VarInt::from(self.0.len())
             .encode_async(writer, opts)
             .await?;

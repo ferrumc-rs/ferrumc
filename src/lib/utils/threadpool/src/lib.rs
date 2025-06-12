@@ -1,11 +1,11 @@
 use rusty_pool::JoinHandle;
+use std::cmp::max;
 use std::sync::Arc;
-use std::thread::ThreadId;
+use std::time::Duration;
 
 /// A thread pool for managing and executing tasks concurrently.
 pub struct ThreadPool {
     pool: Arc<rusty_pool::ThreadPool>,
-    starting_thread: ThreadId,
 }
 
 /// A batch of tasks to be executed in the thread pool.
@@ -14,7 +14,6 @@ pub struct ThreadPoolBatch<'a, R: Send + 'static> {
     pool: &'a Arc<rusty_pool::ThreadPool>,
     handles: Vec<JoinHandle<Box<R>>>,
     completed: bool,
-    starting_thread: ThreadId,
 }
 
 impl Default for ThreadPool {
@@ -27,12 +26,16 @@ impl Default for ThreadPool {
 impl ThreadPool {
     /// Creates a new `ThreadPool`.
     pub fn new() -> Self {
-        let pool = Arc::new(rusty_pool::ThreadPool::default());
-        let starting_thread = std::thread::current().id();
-        Self {
-            pool,
-            starting_thread,
-        }
+        // Use all but 3 cores for the thread pool. 1 core is for the main thread, 1 for the network thread and 1 for the control-c handler.
+        let core_count = max(1, num_cpus::get() as i32) as usize;
+        let pool = Arc::new(rusty_pool::ThreadPool::new_named(
+            "ferrumc_threadpool".to_string(),
+            core_count,
+            core_count,
+            Duration::from_secs(60),
+        ));
+        pool.start_core_threads();
+        Self { pool }
     }
 
     /// Creates a new batch of tasks to be executed in the thread pool.
@@ -47,29 +50,32 @@ impl ThreadPool {
             pool: &self.pool,
             handles: vec![],
             completed: false,
-            starting_thread: self.starting_thread,
         }
     }
 
-    /// Executes a single task in the thread pool and returns its result.
+    /// Executes a single task in the thread pool and returns a `JoinHandle` for the result.
+    ///
+    /// You can either wait for the result, or just drop the handle and let the task run in the background.
     ///
     /// # Arguments
     /// * `func` - A function to be executed.
     ///
     /// # Returns
-    /// The result of the executed function.
-    pub fn oneshot<F, R>(&self, func: F) -> R
+    /// A `JoinHandle` that can be used to await the result of the task.
+    pub fn oneshot<F, R>(&self, func: F) -> JoinHandle<Box<R>>
     where
         F: FnOnce() -> R + Send + 'static,
         R: Send + 'static,
     {
-        if self.starting_thread != std::thread::current().id() {
-            panic!("Thread pool has been moved to a different thread");
+        if std::thread::current()
+            .name()
+            .unwrap()
+            .contains("ferrumc_threadpool")
+        {
+            panic!("Thread pool is trying to run a task on itself, this is not allowed");
         }
         let boxed = move || Box::new(func());
-        let handle = self.pool.evaluate(boxed);
-        let result = handle.await_complete();
-        *result
+        self.pool.evaluate(boxed)
     }
 
     pub fn close(self) {
@@ -86,8 +92,12 @@ impl<'a, R: Send + 'static> ThreadPoolBatch<'a, R> {
     where
         F: FnOnce() -> R + Send + 'static,
     {
-        if self.starting_thread != std::thread::current().id() {
-            panic!("Thread pool has been moved to a different thread");
+        if std::thread::current()
+            .name()
+            .unwrap()
+            .contains("ferrumc_threadpool")
+        {
+            panic!("Thread pool is trying to run a task on itself, this is not allowed");
         }
         let boxed = move || Box::new(func());
         let handle = self.pool.evaluate(boxed);
@@ -141,7 +151,7 @@ impl<'a, R: Send + 'static> ThreadPoolBatch<'a, R> {
             panic!("Batch already completed");
         }
 
-        let mut results = vec![];
+        let mut results = Vec::with_capacity(self.handles.len());
         for handle in self.handles {
             let result = handle.await_complete();
             results.push(*result);

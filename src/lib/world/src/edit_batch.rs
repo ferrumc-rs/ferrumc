@@ -1,5 +1,5 @@
-use crate::chunk_format::{BiomeStates, BlockStates, Chunk, PaletteType, BLOCK2ID, ID2BLOCK};
-use crate::vanilla_chunk_format::BlockData;
+use crate::block_id::BlockId;
+use crate::chunk_format::{BiomeStates, BlockStates, Chunk, PaletteType};
 use crate::WorldError;
 use ahash::{AHashMap, AHashSet, AHasher};
 use ferrumc_general_purpose::data_packing::i32::read_nbit_i32;
@@ -35,7 +35,7 @@ use tracing::trace;
 pub struct EditBatch<'a> {
     pub(crate) edits: Vec<Edit>,
     chunk: &'a mut Chunk,
-    tmp_palette_map: AHashMap<i32, usize>,
+    tmp_palette_map: AHashMap<BlockId, usize>,
     used: bool,
 }
 
@@ -44,7 +44,7 @@ pub(crate) struct Edit {
     pub(crate) x: i32,
     pub(crate) y: i32,
     pub(crate) z: i32,
-    pub(crate) block: BlockData,
+    pub(crate) block: BlockId,
 }
 
 fn get_palette_hash(palette: &[VarInt]) -> i32 {
@@ -76,8 +76,13 @@ impl<'a> EditBatch<'a> {
     /// Sets a block at the given chunk-relative coordinates.
     ///
     /// This won't have any effect until `apply()` is called.
-    pub fn set_block(&mut self, x: i32, y: i32, z: i32, block: BlockData) {
-        self.edits.push(Edit { x, y, z, block });
+    pub fn set_block(&mut self, x: i32, y: i32, z: i32, block: impl Into<BlockId>) {
+        self.edits.push(Edit {
+            x,
+            y,
+            z,
+            block: block.into(),
+        });
     }
 
     /// Applies all edits in the batch to the chunk.
@@ -111,16 +116,6 @@ impl<'a> EditBatch<'a> {
             all_blocks.insert(&edit.block);
         }
 
-        // Build a map of all unique BlockData -> internal numeric block ID
-        let mut block_to_id: AHashMap<BlockData, i32> = AHashMap::new();
-        for block in all_blocks {
-            if let Some(id) = BLOCK2ID.get(block) {
-                block_to_id.insert(block.clone(), *id);
-            } else {
-                return Err(WorldError::InvalidBlock(block.clone()));
-            }
-        }
-
         for (section_y, edits_vec) in section_edits {
             if edits_vec.is_empty() || edits_vec.iter().all(|e| e.is_none()) {
                 continue;
@@ -147,7 +142,7 @@ impl<'a> EditBatch<'a> {
                         block_states: BlockStates {
                             non_air_blocks: 0,
                             block_data: PaletteType::Single(VarInt::default()),
-                            block_counts: HashMap::from([(BlockData::default(), 4096)]),
+                            block_counts: HashMap::from([(BlockId::default(), 4096)]),
                         },
                         // Biomes don't really matter for this, so we can just use empty data
                         biome_states: BiomeStates {
@@ -193,7 +188,7 @@ impl<'a> EditBatch<'a> {
                 section.block_states.block_data = PaletteType::Indirect {
                     bits_per_block: 4,
                     data: vec![0; 256],
-                    palette: vec![val.clone()],
+                    palette: vec![*val],
                 };
             }
 
@@ -214,7 +209,7 @@ impl<'a> EditBatch<'a> {
             // Rebuild temporary palette index lookup (block ID -> palette index)
             self.tmp_palette_map.clear();
             for (i, p) in palette.iter().enumerate() {
-                self.tmp_palette_map.insert(p.0, i);
+                self.tmp_palette_map.insert(BlockId::from_varint(*p), i);
             }
 
             // Determine how many blocks fit into each i64 (based on bits per block)
@@ -224,13 +219,12 @@ impl<'a> EditBatch<'a> {
                 let Some(edit) = maybe_edit else { continue };
                 let index = ((edit.y & 0xf) * 256 + (edit.z & 0xf) * 16 + (edit.x & 0xf)) as usize;
 
-                let block_id = *block_to_id.get(&edit.block).unwrap();
-                let palette_index = if let Some(&idx) = self.tmp_palette_map.get(&block_id) {
+                let palette_index = if let Some(&idx) = self.tmp_palette_map.get(&edit.block) {
                     idx
                 } else {
                     let idx = palette.len();
-                    palette.push(block_id.into());
-                    self.tmp_palette_map.insert(block_id, idx);
+                    palette.push(edit.block.to_varint());
+                    self.tmp_palette_map.insert(edit.block, idx);
                     idx
                 };
 
@@ -259,17 +253,19 @@ impl<'a> EditBatch<'a> {
                 }
 
                 if let Some(old_block_id) = palette.get(old_block_index as usize) {
-                    if let Some(count) = block_count_removes.get_mut(&old_block_id.0) {
+                    if let Some(count) =
+                        block_count_removes.get_mut(&BlockId::from_varint(*old_block_id))
+                    {
                         *count -= 1;
                     } else {
-                        block_count_removes.insert(old_block_id.0, 1);
+                        block_count_removes.insert(BlockId::from_varint(*old_block_id), 1);
                     }
                 }
 
-                if let Some(count) = block_count_adds.get_mut(&block_id) {
+                if let Some(count) = block_count_adds.get_mut(&edit.block) {
                     *count += 1;
                 } else {
-                    block_count_adds.insert(block_id, 1);
+                    block_count_adds.insert(edit.block, 1);
                 }
 
                 write_nbit_u32(packed, offset as u32, palette_index as u32, *bits_per_block)
@@ -280,31 +276,19 @@ impl<'a> EditBatch<'a> {
 
             // Update block counts
             for (block_id, count) in block_count_adds {
-                let block_data = VarInt::new(block_id);
                 let current_count = section
                     .block_states
                     .block_counts
-                    .entry(
-                        ID2BLOCK
-                            .get(block_data.0 as usize)
-                            .expect("Block id not valid")
-                            .clone(),
-                    )
+                    .entry(block_id)
                     .or_insert(0);
                 *current_count += count;
             }
 
             for (block_id, count) in block_count_removes {
-                let block_data = VarInt::new(block_id);
                 let current_count = section
                     .block_states
                     .block_counts
-                    .entry(
-                        ID2BLOCK
-                            .get(block_data.0 as usize)
-                            .expect("Block id not valid")
-                            .clone(),
-                    )
+                    .entry(block_id)
                     .or_insert(0);
                 *current_count -= count;
             }
@@ -312,7 +296,7 @@ impl<'a> EditBatch<'a> {
             section.block_states.non_air_blocks = *section
                 .block_states
                 .block_counts
-                .get(&BlockData::default())
+                .get(&BlockId::default())
                 .unwrap_or(&4096) as u16;
 
             // Only optimise if the palette changed after edits
@@ -333,12 +317,14 @@ impl<'a> EditBatch<'a> {
 mod tests {
     use super::*;
     use crate::chunk_format::Chunk;
+    use crate::vanilla_chunk_format::BlockData;
 
-    fn make_test_block(name: &str) -> BlockData {
+    fn make_test_block(name: &str) -> BlockId {
         BlockData {
             name: name.to_string(),
             properties: None,
         }
+        .to_block_id()
     }
 
     #[test]
@@ -347,7 +333,7 @@ mod tests {
         let block = make_test_block("minecraft:stone");
 
         let mut batch = EditBatch::new(&mut chunk);
-        batch.set_block(1, 1, 1, block.clone());
+        batch.set_block(1, 1, 1, block);
         batch.apply().unwrap();
 
         let got = chunk.get_block(1, 1, 1).unwrap();
@@ -364,11 +350,7 @@ mod tests {
         for x in 0..4 {
             for y in 0..4 {
                 for z in 0..4 {
-                    let block = if (x + y + z) % 2 == 0 {
-                        stone.clone()
-                    } else {
-                        dirt.clone()
-                    };
+                    let block = if (x + y + z) % 2 == 0 { stone } else { dirt };
                     batch.set_block(x, y, z, block);
                 }
             }

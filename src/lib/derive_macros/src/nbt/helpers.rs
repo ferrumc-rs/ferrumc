@@ -144,9 +144,7 @@ impl NbtFieldAttribute {
 
                 Ok(())
             })
-            .unwrap_or_else(|_| {
-                println!("[WARN] Failed to parse nested meta parsing input attributes")
-            });
+            .unwrap_or(());
         }
 
         attributes

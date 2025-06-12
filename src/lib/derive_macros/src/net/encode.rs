@@ -149,7 +149,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
 
             (
                 quote! {
-                    fn encode<W: std::io::Write>(&self, writer: &mut W, opts: &ferrumc_net_codec::encode::NetEncodeOpts) -> ferrumc_net_codec::encode::NetEncodeResult<()> {
+                    fn encode<W: std::io::Write>(&self, writer: &mut W, opts: &ferrumc_net_codec::encode::NetEncodeOpts) -> Result<(),  ferrumc_net_codec::encode::errors::NetEncodeError> {
                         match opts {
                             ferrumc_net_codec::encode::NetEncodeOpts::None => {
                                 #packet_id_snippet
@@ -207,7 +207,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                     }
                 },
                 quote! {
-                    async fn encode_async<W: tokio::io::AsyncWrite + std::marker::Unpin>(&self, writer: &mut W, opts: &ferrumc_net_codec::encode::NetEncodeOpts) -> ferrumc_net_codec::encode::NetEncodeResult<()> {
+                    async fn encode_async<W: tokio::io::AsyncWrite + std::marker::Unpin>(&self, writer: &mut W, opts: &ferrumc_net_codec::encode::NetEncodeOpts) -> Result<(),  ferrumc_net_codec::encode::errors::NetEncodeError> {
                         match opts {
                             ferrumc_net_codec::encode::NetEncodeOpts::None => {
                                 #async_packet_id_snippet
@@ -273,7 +273,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
 
             (
                 quote! {
-                    fn encode<W: std::io::Write>(&self, writer: &mut W, opts: &ferrumc_net_codec::encode::NetEncodeOpts) -> ferrumc_net_codec::encode::NetEncodeResult<()> {
+                    fn encode<W: std::io::Write>(&self, writer: &mut W, opts: &ferrumc_net_codec::encode::NetEncodeOpts) -> Result<(),  ferrumc_net_codec::encode::errors::NetEncodeError> {
                         match opts {
                             ferrumc_net_codec::encode::NetEncodeOpts::None => {
                                 #packet_id_snippet
@@ -331,7 +331,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                     }
                 },
                 quote! {
-                    async fn encode_async<W: tokio::io::AsyncWrite + std::marker::Unpin>(&self, writer: &mut W, opts: &ferrumc_net_codec::encode::NetEncodeOpts) -> ferrumc_net_codec::encode::NetEncodeResult<()> {
+                    async fn encode_async<W: tokio::io::AsyncWrite + std::marker::Unpin>(&self, writer: &mut W, opts: &ferrumc_net_codec::encode::NetEncodeOpts) -> Result<(),  ferrumc_net_codec::encode::errors::NetEncodeError> {
                         match opts {
                             ferrumc_net_codec::encode::NetEncodeOpts::None => {
                                 #async_packet_id_snippet

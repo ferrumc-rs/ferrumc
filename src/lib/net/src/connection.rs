@@ -10,6 +10,7 @@ use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::ServerState;
+use std::io::BufWriter;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
@@ -19,7 +20,7 @@ use tokio::net::TcpStream;
 use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
 use tokio::sync::oneshot;
 use tokio::time::timeout;
-use tracing::{debug_span, error, trace, warn, Instrument};
+use tracing::{debug_span, error, info, trace, warn, Instrument};
 use typename::TypeName;
 
 /// The maximum time to wait for a handshake to complete
@@ -61,13 +62,13 @@ impl StreamWriter {
 
     // Sends the packet to the client with the default options. You probably want to use this instead
     // of send_packet_with_opts()
-    pub fn send_packet(&self, packet: impl NetEncode + Send) -> Result<(), NetError> {
+    pub fn send_packet(&self, packet: &(impl NetEncode + Send)) -> Result<(), NetError> {
         self.send_packet_with_opts(packet, &NetEncodeOpts::WithLength)
     }
 
     pub fn send_packet_with_opts(
         &self,
-        packet: impl NetEncode + Send,
+        packet: &(impl NetEncode + Send),
         net_encode_opts: &NetEncodeOpts,
     ) -> Result<(), NetError> {
         if !self.running.load(Ordering::Relaxed) {
@@ -76,9 +77,11 @@ impl StreamWriter {
             return Err(NetError::ConnectionDropped);
         }
         let bytes = {
-            let mut buffer = Vec::new();
+            let mut buffer = BufWriter::new(Vec::new());
             packet.encode(&mut buffer, net_encode_opts)?;
-            buffer
+            buffer.into_inner().map_err(|_| {
+                NetError::Misc("Failed to get inner buffer from BufWriter".to_string())
+            })?
         };
         self.sender.send(bytes).map_err(std::io::Error::other)?;
         Ok(())
@@ -126,7 +129,20 @@ pub async fn handle_connection(
                 return Ok(());
             }
             Err(err) => {
-                error!("Handshake error: {:?}", err);
+                match &err {
+                    NetError::MismatchedProtocolVersion(client_version, server_version) => {
+                        warn!(
+                            "Client connected with incompatible protocol version {} (server supports {})",
+                            client_version, server_version
+                        );
+                    }
+                    NetError::InvalidState(state) => {
+                        warn!("Client sent invalid handshake state: {}", state);
+                    }
+                    _ => {
+                        error!("Handshake error: {:?}", err);
+                    }
+                }
                 return Err(err);
             }
         },
@@ -149,7 +165,7 @@ pub async fn handle_connection(
     new_join_sender
         .send(NewConnection {
             stream,
-            player_identity,
+            player_identity: player_identity.clone(),
             entity_return,
         })
         .map_err(|_| NetError::Misc("Failed to send new connection".to_string()))?;
@@ -163,9 +179,36 @@ pub async fn handle_connection(
         }
     };
 
+    #[cfg(debug_assertions)]
+    info!(
+        "Player {} ({}) connected with entity ID {:?}",
+        player_identity.username, player_identity.uuid, entity
+    );
+    #[cfg(not(debug_assertions))]
+    info!(
+        "Player {} ({}) connected",
+        player_identity.username, player_identity.uuid
+    );
+
+    state.players.player_list.insert(
+        entity,
+        (player_identity.uuid.as_u128(), player_identity.username),
+    );
+
+    let mut disconnect_reason = None;
+
     'recv: loop {
         if !running.load(Ordering::Relaxed) {
             trace!("Conn for entity {:?} is marked for disconnection", entity);
+            break 'recv;
+        }
+        // Probably not needed, but just in case
+        if !state.players.is_connected(entity) {
+            trace!(
+                "Entity {:?} is no longer connected, breaking recv loop",
+                entity
+            );
+            running.store(false, Ordering::Relaxed);
             break 'recv;
         }
 
@@ -179,10 +222,12 @@ pub async fn handle_connection(
                 if let NetError::ConnectionDropped = err {
                     trace!("Connection dropped for entity {:?}", entity);
                     running.store(false, Ordering::Relaxed);
+                    disconnect_reason = Some("Connection dropped".to_string());
                     break 'recv;
                 }
                 error!("Failed to read packet skeleton: {:?} for {:?}", err, entity);
                 running.store(false, Ordering::Relaxed);
+                disconnect_reason = Some(format!("Failed to read packet skeleton: {err:?}"));
                 break 'recv;
             }
         };
@@ -210,31 +255,14 @@ pub async fn handle_connection(
                 _ => {
                     warn!("Failed to handle packet: {:?}", err);
                     running.store(false, Ordering::Relaxed);
+                    disconnect_reason = Some(format!("Failed to handle packet: {err:?}"));
                     break 'recv;
                 }
             },
         }
     }
 
-    Ok(())
-}
+    state.players.disconnect(entity, disconnect_reason);
 
-impl StreamWriter {
-    /// Kills the connection and sends a disconnect packet to the client
-    ///
-    /// !!! This won't delete the entity, you should do that with the connection killer system
-    pub fn kill(&self, reason: Option<String>) -> Result<(), NetError> {
-        self.running.store(false, Ordering::Relaxed);
-        if let Err(err) = self.send_packet(crate::packets::outgoing::disconnect::DisconnectPacket {
-            reason: ferrumc_text::TextComponent::from(reason.unwrap_or("Disconnected".to_string())),
-        }) {
-            if matches!(err, NetError::ConnectionDropped) {
-                trace!("Connection already dropped, not sending disconnect packet");
-            } else {
-                error!("Failed to send disconnect packet: {:?}", err);
-                return Err(err);
-            }
-        }
-        Ok(())
-    }
+    Ok(())
 }

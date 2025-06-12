@@ -1,11 +1,5 @@
-use crate::packets::IncomingPacket;
-
-use crate::errors::NetError;
 use ferrumc_macros::{packet, NetDecode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use ferrumc_state::ServerState;
-use std::sync::Arc;
-use tracing::trace;
 
 #[derive(NetDecode, Debug)]
 #[packet(packet_id = "intention", state = "handshake")]
@@ -14,14 +8,6 @@ pub struct Handshake {
     pub server_address: String,
     pub server_port: u16,
     pub next_state: VarInt,
-}
-
-impl IncomingPacket for Handshake {
-    fn handle(self, conn_id: usize, _: Arc<ServerState>) -> Result<(), NetError> {
-        trace!("Connection ID: {}", conn_id);
-        trace!("Handshake packet received: {:?}", self);
-        Ok(())
-    }
 }
 
 #[cfg(test)]
@@ -45,6 +31,8 @@ mod tests {
         ]);
 
         let handshake = Handshake::decode(&mut data, &NetDecodeOpts::None).unwrap();
+        // Although the 1.21.5 protocol version is 770, we don't need to actually account for that here,
+        // so using the 767 version is fine for testing purposes.
         assert_eq!(handshake.protocol_version, VarInt::new(767));
         assert_eq!(handshake.server_address, "localhost".to_string());
         assert_eq!(handshake.server_port, 25565);

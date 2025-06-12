@@ -106,7 +106,7 @@ ferrumc-threadpool = { path = "src/lib/utils/threadpool" }
 
 
 # Asynchronous
-tokio = { version = "1.45.0", features = ["full"] }
+tokio = { version = "1.45.1", features = ["full"] }
 
 # Logging
 tracing = "0.1.41"
@@ -116,14 +116,14 @@ log = "0.4.27"
 console-subscriber = "0.4.1"
 
 # Concurrency/Parallelism
-parking_lot = "0.12.3"
+parking_lot = "0.12.4"
 rayon = "1.10.0"
 crossbeam-channel = "0.5.15"
 rusty_pool = "0.7.0"
 crossbeam-queue = "0.3.12"
 
 # Network
-reqwest = { version = "0.12.15", features = ["json"] }
+reqwest = { version = "0.12.19", features = ["json"] }
 ureq = "3.0.11"
 
 # Error handling
@@ -132,8 +132,8 @@ thiserror = "2.0.12"
 # Cryptography
 rand = "0.9.1"
 fnv = "1.0.7"
-wyhash = "0.5.0"
-ahash = "0.8.11"
+wyhash = "0.6.0"
+ahash = "0.8.12"
 
 # Encoding/Serialization
 serde = { version = "1.0.219", features = ["derive"] }
@@ -142,32 +142,33 @@ serde_derive = "1.0.219"
 base64 = "0.22.1"
 bitcode = "0.6.6"
 bitcode_derive = "0.6.5"
-toml = "0.8.22"
+toml = "0.8.23"
+craftflow-nbt = "2.1.0"
 
 # Bit manipulation
 byteorder = "1.5.0"
 
 # Data types
 dashmap = "7.0.0-rc2"
-uuid = { version = "1.16.0", features = ["v4", "v3", "serde"] }
+uuid = { version = "1.17.0", features = ["v4", "v3", "serde"] }
+indexmap = { version = "2.9.0", features = ["serde"] }
 
 # Macros
 lazy_static = "1.5.0"
 quote = "1.0.40"
-syn = "2.0.101"
+syn = "2.0.102"
 proc-macro2 = "1.0.95"
 proc-macro-crate = "3.3.0"
 paste = "1.0.15"
 maplit = "1.0.2"
-macro_rules_attribute = "0.2.0"
-enum_delegate = "0.2.0"
+macro_rules_attribute = "0.2.2"
 
 # Magic
 dhat = "0.3.3"
 
 # Compression/Decompression
 libflate = "2.1.0"
-flate2 = { version = "1.1.1", features = ["zlib"], default-features = false }
+flate2 = { version = "1.1.2", features = ["zlib"], default-features = false }
 zstd = { version = "0.13.3" }
 brotli = "8.0.1"
 lzzzz = "2.0.0"
@@ -179,7 +180,7 @@ heed = "0.22.0"
 moka = "0.12.10"
 
 # CLI
-clap = "4.5.38"
+clap = "4.5.40"
 indicatif = "0.17.11"
 colored = "3.0.0"
 
@@ -188,8 +189,9 @@ deepsize = "0.2.0"
 page_size = "0.6.0"
 regex = "1.11.1"
 ctrlc = "3.4.7"
+num_cpus = "1.17.0"
 typename = "0.1.2"
-bevy_ecs = { version = "0.16.0", features = ["multi_threaded", "trace"] }
+bevy_ecs = { version = "0.16.1", features = ["multi_threaded", "trace"] }
 
 # Maths
 noise = "0.9.0"

@@ -5,5 +5,5 @@ use ferrumc_macros::{packet, NetDecode};
 pub struct SetPlayerRotationPacket {
     pub yaw: f32,
     pub pitch: f32,
-    pub on_ground: bool,
+    pub flags: i8,
 }

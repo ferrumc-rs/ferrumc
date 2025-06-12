@@ -16,11 +16,13 @@ brotli = { workspace = true }
 yazi = { workspace = true }
 heed = { workspace = true }
 page_size = { workspace = true }
+parking_lot = { workspace = true }
 
 
 [dev-dependencies]
 criterion = { workspace = true }
 tempfile = { workspace = true }
+wyhash = { workspace = true }
 
 [[bench]]
 name = "storage_bench"
