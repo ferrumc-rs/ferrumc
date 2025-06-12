@@ -1,6 +1,5 @@
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 use ferrumc_threadpool::ThreadPool;
-use std::hint::black_box;
 use std::time::Duration;
 
 fn bench(c: &mut Criterion) {
@@ -9,9 +8,7 @@ fn bench(c: &mut Criterion) {
         b.iter(|| {
             let mut batch = pool.batch();
             for _ in 0..100 {
-                batch.execute(|| {
-                    std::thread::sleep(Duration::from_millis(10))
-                });
+                batch.execute(|| std::thread::sleep(Duration::from_millis(10)));
             }
             batch.wait();
         })

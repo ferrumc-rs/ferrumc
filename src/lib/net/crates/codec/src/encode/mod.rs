@@ -1,10 +1,9 @@
+use crate::encode::errors::NetEncodeError;
 use std::io::Write;
 use tokio::io::AsyncWrite;
-use crate::encode::errors::NetEncodeError;
 
 pub mod errors;
 mod primitives;
-
 
 /// Sole purpose is for compression compatibility.
 /// And possibly other stuff in the future.

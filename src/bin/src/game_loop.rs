@@ -53,7 +53,13 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     let ns_per_tick = Duration::from_nanos(NS_PER_SECOND / get_global_config().tps as u64);
 
     // Start the TCP connection acceptor
-    tcp_conn_acceptor(global_state.clone(), sender_struct, Arc::new(new_conn_send), shutdown_recv, shutdown_response_send)?;
+    tcp_conn_acceptor(
+        global_state.clone(),
+        sender_struct,
+        Arc::new(new_conn_send),
+        shutdown_recv,
+        shutdown_response_send,
+    )?;
 
     info!(
         "Server is ready in {}",
@@ -96,11 +102,15 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
 
     // tell the TCP connection acceptor to shut down
     trace!("Sending shutdown signal to TCP connection acceptor");
-    shutdown_send.send(()).expect("Failed to send shutdown signal");
+    shutdown_send
+        .send(())
+        .expect("Failed to send shutdown signal");
 
     // Wait until the TCP connection acceptor has shut down
     trace!("Waiting for TCP connection acceptor to shut down");
-    shutdown_response_recv.recv().expect("Failed to receive shutdown response");
+    shutdown_response_recv
+        .recv()
+        .expect("Failed to receive shutdown response");
 
     Ok(())
 }

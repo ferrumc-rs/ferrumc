@@ -35,7 +35,7 @@ impl EntityMetadataPacket {
     /// ```
     pub fn new<T>(entity_id: VarInt, metadata: T) -> Self
     where
-        T: IntoIterator<Item=EntityMetadata>,
+        T: IntoIterator<Item = EntityMetadata>,
     {
         Self {
             entity_id,
@@ -117,7 +117,11 @@ mod index_type {
     }
 
     impl NetEncode for EntityMetadataIndexType {
-        fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+        fn encode<W: Write>(
+            &self,
+            writer: &mut W,
+            opts: &NetEncodeOpts,
+        ) -> Result<(), NetEncodeError> {
             self.index().encode(writer, opts)
         }
 
@@ -281,7 +285,11 @@ mod extra_data_types {
     }
 
     impl NetEncode for EntityPose {
-        fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+        fn encode<W: Write>(
+            &self,
+            writer: &mut W,
+            opts: &NetEncodeOpts,
+        ) -> Result<(), NetEncodeError> {
             self.index().encode(writer, opts)
         }
 

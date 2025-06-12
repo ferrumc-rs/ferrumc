@@ -54,7 +54,7 @@ impl ThreadPool {
     }
 
     /// Executes a single task in the thread pool and returns a `JoinHandle` for the result.
-    /// 
+    ///
     /// You can either wait for the result, or just drop the handle and let the task run in the background.
     ///
     /// # Arguments

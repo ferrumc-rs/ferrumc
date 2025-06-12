@@ -61,7 +61,7 @@ pub fn handle(
             &pass_conn_query,
             state.0.clone(),
         )
-            .expect("Failed to update position for all players");
+        .expect("Failed to update position for all players");
     }
 }
 

@@ -20,7 +20,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                 }
                 Ok(())
             })
-                .unwrap();
+            .unwrap();
         }
         repr_t.map(|val| syn::parse_str::<syn::Ident>(&val).expect("Failed to parse repr type"))
     };
@@ -50,7 +50,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                 }
                 Ok(())
             })
-                .unwrap();
+            .unwrap();
         }
         (cast, cast_handler)
     };
@@ -204,12 +204,12 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
 
                                 Ok(())
                             })
-                                .expect("Failed to parse optional_trigger expression");
+                            .expect("Failed to parse optional_trigger expression");
                         }
                     }
                     Ok(())
                 })
-                    .unwrap();
+                .unwrap();
             }
         }
 

@@ -4,8 +4,8 @@ mod keep_alive_system;
 pub mod new_connections;
 mod player_count_update;
 pub mod send_chunks;
-mod world_sync;
 pub mod shutdown_systems;
+mod world_sync;
 
 pub fn register_game_systems(schedule: &mut bevy_ecs::schedule::Schedule) {
     schedule.add_systems(keep_alive_system::keep_alive_system);

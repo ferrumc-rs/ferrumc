@@ -29,7 +29,10 @@ pub fn keep_alive_system(
                 "Killing connection for {}, it's been {:?} since last keepalive response",
                 entity, time_diff
             );
-            state.0.players.disconnect(entity, Some("Connection timed out".to_string()));
+            state
+                .0
+                .players
+                .disconnect(entity, Some("Connection timed out".to_string()));
         } else if time_diff >= Duration::from_secs(10) && keep_alive_tracker.has_received_keep_alive
         {
             // If it's been more than 10 seconds since the last keep alive packet was sent, send a new one

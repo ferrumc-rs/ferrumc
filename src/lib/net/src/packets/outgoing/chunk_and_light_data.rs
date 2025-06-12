@@ -2,13 +2,13 @@ use crate::errors::NetError;
 use byteorder::{BigEndian, WriteBytesExt};
 use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::bitset::BitSet;
+use ferrumc_net_codec::net_types::byte_array::ByteArray;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_world::chunk_format::{Chunk, PaletteType};
 use std::io::{Cursor, Write};
 use std::ops::Not;
 use tracing::warn;
-use ferrumc_net_codec::net_types::byte_array::ByteArray;
 
 const SECTIONS: usize = 24; // Number of sections, adjust for your Y range (-64 to 319)
 

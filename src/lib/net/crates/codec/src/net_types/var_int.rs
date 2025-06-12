@@ -170,7 +170,11 @@ impl NetDecode for VarInt {
 }
 
 impl NetEncode for VarInt {
-    fn encode<W: Write>(&self, writer: &mut W, _opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+    fn encode<W: Write>(
+        &self,
+        writer: &mut W,
+        _opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
         self.write(writer)
             .map_err(|e| NetEncodeError::ExternalError(e.into()))
     }

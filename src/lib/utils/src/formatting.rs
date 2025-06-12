@@ -19,9 +19,9 @@ fn format_time_small(duration: Duration) -> String {
     let nanos = duration.as_nanos() as f64;
     if nanos < 1_000.0 {
         if nanos % 1.0 == 0.0 {
-            format!("{:.0} ns", nanos)
+            format!("{nanos:.0} ns")
         } else {
-            format!("{:.2} ns", nanos)
+            format!("{nanos:.2} ns")
         }
     } else if nanos < 1_000_000.0 {
         if nanos % 1_000.0 == 0.0 {
@@ -43,13 +43,19 @@ fn format_time_large(duration: Duration) -> String {
     let days = hours / 24;
 
     if days > 0 {
-        format!("{}d {}h {}m {}s", days, hours % 24, minutes % 60, seconds % 60)
+        format!(
+            "{}d {}h {}m {}s",
+            days,
+            hours % 24,
+            minutes % 60,
+            seconds % 60
+        )
     } else if hours > 0 {
         format!("{}h {}m {}s", hours, minutes % 60, seconds % 60)
     } else if minutes > 0 {
         format!("{}m {}s", minutes, seconds % 60)
     } else {
-        format!("{}s", seconds)
+        format!("{seconds}s")
     }
 }
 

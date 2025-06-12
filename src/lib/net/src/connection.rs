@@ -106,7 +106,7 @@ pub async fn handle_connection(
         MAX_HANDSHAKE_TIMEOUT,
         handle_handshake(&mut tcp_reader, &mut tcp_writer, state.clone()),
     )
-        .await;
+    .await;
 
     let mut player_identity = PlayerIdentity::default();
 
@@ -180,16 +180,20 @@ pub async fn handle_connection(
     };
 
     #[cfg(debug_assertions)]
-    info!("Player {} ({}) connected with entity ID {:?}", 
-          player_identity.username, 
-          player_identity.uuid, 
-          entity);
+    info!(
+        "Player {} ({}) connected with entity ID {:?}",
+        player_identity.username, player_identity.uuid, entity
+    );
     #[cfg(not(debug_assertions))]
-    info!("Player {} ({}) connected", 
-          player_identity.username, 
-          player_identity.uuid);
+    info!(
+        "Player {} ({}) connected",
+        player_identity.username, player_identity.uuid
+    );
 
-    state.players.player_list.insert(entity, (player_identity.uuid.as_u128(), player_identity.username));
+    state.players.player_list.insert(
+        entity,
+        (player_identity.uuid.as_u128(), player_identity.username),
+    );
 
     let mut disconnect_reason = None;
 
@@ -234,8 +238,8 @@ pub async fn handle_connection(
             &mut packet_skele.data,
             packet_sender.clone(),
         )
-            .instrument(debug_span!("eid", %entity))
-            .into_inner()
+        .instrument(debug_span!("eid", %entity))
+        .into_inner()
         {
             Ok(()) => {
                 trace!(

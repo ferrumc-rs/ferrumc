@@ -604,7 +604,11 @@ mod general {
 /// tf, whats the point of this?
 /// the data will probably die?? idk? possibly not? ?? lmao
 impl NetEncode for NbtTape<'_> {
-    fn encode<W: Write>(&self, writer: &mut W, _opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+    fn encode<W: Write>(
+        &self,
+        writer: &mut W,
+        _opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
         let data = self.data;
         writer.write_all(data)?;
         Ok(())

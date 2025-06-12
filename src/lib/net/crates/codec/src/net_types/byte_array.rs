@@ -34,7 +34,9 @@ impl NetEncode for ByteArray {
         writer: &mut W,
         opts: &NetEncodeOpts,
     ) -> Result<(), NetEncodeError> {
-        VarInt::new(self.0.len() as i32).encode_async(writer, opts).await?;
+        VarInt::new(self.0.len() as i32)
+            .encode_async(writer, opts)
+            .await?;
         writer.write_all(&self.0).await?;
         Ok(())
     }
