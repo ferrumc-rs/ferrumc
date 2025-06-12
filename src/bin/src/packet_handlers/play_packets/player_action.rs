@@ -44,7 +44,7 @@ pub fn handle(
                     // Save the chunk to disk
                     state.0.world.save_chunk(chunk)?;
                     for (eid, conn) in query {
-                        if !conn.running.load(std::sync::atomic::Ordering::Relaxed) {
+                        if !state.0.players.is_connected(eid) {
                             continue;
                         }
                         // If the player is the one who placed the block, send the BlockChangeAck packet
@@ -52,12 +52,12 @@ pub fn handle(
                             location: event.location.clone(),
                             block_id: VarInt::from(BlockId::default()),
                         };
-                        conn.send_packet(block_update_packet)?;
+                        conn.send_packet(&block_update_packet)?;
                         if eid == trigger_eid {
                             let ack_packet = BlockChangeAck {
                                 sequence: event.sequence,
                             };
-                            conn.send_packet(ack_packet)?;
+                            conn.send_packet(&ack_packet)?;
                         }
                     }
                 }

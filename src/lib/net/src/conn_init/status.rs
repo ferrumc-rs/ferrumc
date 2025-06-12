@@ -88,17 +88,21 @@ fn get_server_status(state: &GlobalState) -> String {
     let config = get_global_config();
 
     let version = structs::Version {
-        name: "1.21.1",
+        name: "1.21.5",
         protocol: crate::conn_init::PROTOCOL_VERSION_1_21_5 as u16,
     };
 
     let online_players_sample = state
         .players
+        .player_list
         .iter()
         .take(5)
-        .map(|player_data| structs::PlayerData {
-            name: player_data.value().clone(),
-            id: uuid::Uuid::from_u128(*player_data.key()).to_string(),
+        .map(|player_data| {
+            let (uuid, name) = player_data.value();
+            structs::PlayerData {
+                name: name.clone(),
+                id: uuid::Uuid::from_u128(*uuid).to_string(),
+            }
         })
         .collect::<Vec<_>>();
 

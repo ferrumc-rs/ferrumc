@@ -1,5 +1,7 @@
-use crate::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
-use crate::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
+use crate::decode::errors::NetDecodeError;
+use crate::decode::{NetDecode, NetDecodeOpts};
+use crate::encode::errors::NetEncodeError;
+use crate::encode::{NetEncode, NetEncodeOpts};
 use bitcode::{Decode, Encode};
 use std::io::{Read, Write};
 use tokio::io::{AsyncRead, AsyncWrite};
@@ -11,7 +13,7 @@ pub enum PrefixedOptional<T> {
 }
 
 impl<T: NetEncode> NetEncode for PrefixedOptional<T> {
-    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
         match self {
             PrefixedOptional::None => {
                 false.encode(writer, opts)?;
@@ -28,7 +30,7 @@ impl<T: NetEncode> NetEncode for PrefixedOptional<T> {
         &self,
         writer: &mut W,
         opts: &NetEncodeOpts,
-    ) -> NetEncodeResult<()> {
+    ) -> Result<(), NetEncodeError> {
         match self {
             PrefixedOptional::None => {
                 false.encode_async(writer, opts).await?;
@@ -67,7 +69,7 @@ impl<T> PrefixedOptional<T> {
 }
 
 impl<T: NetDecode> NetDecode for PrefixedOptional<T> {
-    fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> NetDecodeResult<Self> {
+    fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
         let exists = bool::decode(reader, opts)?;
         if !exists {
             Ok(PrefixedOptional::None)
@@ -80,7 +82,7 @@ impl<T: NetDecode> NetDecode for PrefixedOptional<T> {
     async fn decode_async<R: AsyncRead + Unpin>(
         reader: &mut R,
         opts: &NetDecodeOpts,
-    ) -> NetDecodeResult<Self> {
+    ) -> Result<Self, NetDecodeError> {
         let exists = bool::decode_async(reader, opts).await?;
         if !exists {
             Ok(PrefixedOptional::None)

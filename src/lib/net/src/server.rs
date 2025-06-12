@@ -8,8 +8,6 @@ pub async fn create_server_listener() -> Result<TcpListener, NetError> {
     let server_addy = format!("{}:{}", config.host, config.port);
     let server_addy = server_addy.as_str();
 
-    debug!("Trying to bind to {}", server_addy);
-
     let listener = match TcpListener::bind(server_addy).await {
         Ok(l) => Ok::<TcpListener, std::io::Error>(l),
         Err(e) => {
@@ -19,6 +17,8 @@ pub async fn create_server_listener() -> Result<TcpListener, NetError> {
             Err(e)
         }
     };
+
+    debug!("Server listening on {}", server_addy);
 
     Ok(listener?)
 }

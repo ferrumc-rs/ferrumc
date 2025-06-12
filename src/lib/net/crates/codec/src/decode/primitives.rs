@@ -1,4 +1,5 @@
-use crate::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
+use crate::decode::errors::NetDecodeError;
+use crate::decode::{NetDecode, NetDecodeOpts};
 use crate::net_types::var_int::VarInt;
 use std::collections::HashMap;
 use std::hash::Hash;
@@ -10,12 +11,12 @@ macro_rules! impl_for_primitives {
     ($($primitive_type:ty $(| $alt:ty)?),*) => {
         $(
             impl NetDecode for $primitive_type {
-                fn decode<R: Read>(reader: &mut R, _: &NetDecodeOpts) -> NetDecodeResult<Self> {
+                fn decode<R: Read>(reader: &mut R, _: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
                     let mut buf = [0; std::mem::size_of::<Self>()];
                     reader.read_exact(&mut buf)?;
                     Ok(Self::from_be_bytes(buf))
                 }
-                async fn decode_async<R: AsyncRead + Unpin>(reader: &mut R, _: &NetDecodeOpts) -> NetDecodeResult<Self> {
+                async fn decode_async<R: AsyncRead + Unpin>(reader: &mut R, _: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
                     let mut buf = [0; std::mem::size_of::<Self>()];
                     reader.read_exact(&mut buf).await?;
                     Ok(Self::from_be_bytes(buf))
@@ -24,13 +25,13 @@ macro_rules! impl_for_primitives {
 
             $(
                 impl NetDecode for $alt {
-                    fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> NetDecodeResult<Self> {
+                    fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
                         // Basically use the decode method of the primitive type,
                         // and then convert it to the alternative type.
                         <$primitive_type as NetDecode>::decode(reader, opts)
                         .map(|x| x as Self)
                     }
-                    async fn decode_async<R: AsyncRead + Unpin>(reader: &mut R, opts: &NetDecodeOpts) -> NetDecodeResult<Self> {
+                    async fn decode_async<R: AsyncRead + Unpin>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
                         // Basically use the decode method of the primitive type,
                         // and then convert it to the alternative type.
                         <$primitive_type as NetDecode>::decode_async(reader, opts)
@@ -55,20 +56,20 @@ impl_for_primitives!(
 );
 
 impl NetDecode for bool {
-    fn decode<R: Read>(reader: &mut R, _: &NetDecodeOpts) -> NetDecodeResult<Self> {
+    fn decode<R: Read>(reader: &mut R, _: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
         Ok(<u8 as NetDecode>::decode(reader, &NetDecodeOpts::None)? != 0)
     }
 
     async fn decode_async<R: AsyncRead + Unpin>(
         reader: &mut R,
         _: &NetDecodeOpts,
-    ) -> NetDecodeResult<Self> {
+    ) -> Result<Self, NetDecodeError> {
         Ok(<u8 as NetDecode>::decode_async(reader, &NetDecodeOpts::None).await? != 0)
     }
 }
 
 impl NetDecode for String {
-    fn decode<R: Read>(reader: &mut R, _: &NetDecodeOpts) -> NetDecodeResult<Self> {
+    fn decode<R: Read>(reader: &mut R, _: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
         let len = <VarInt as NetDecode>::decode(reader, &NetDecodeOpts::None)?.0 as usize;
         let mut buf = vec![0; len];
         reader.read_exact(&mut buf)?;
@@ -78,7 +79,7 @@ impl NetDecode for String {
     async fn decode_async<R: AsyncRead + Unpin>(
         reader: &mut R,
         _: &NetDecodeOpts,
-    ) -> NetDecodeResult<Self> {
+    ) -> Result<Self, NetDecodeError> {
         let len = <VarInt as NetDecode>::decode_async(reader, &NetDecodeOpts::None)
             .await?
             .0 as usize;
@@ -92,7 +93,7 @@ impl<T> NetDecode for Vec<T>
 where
     T: NetDecode,
 {
-    fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> NetDecodeResult<Self> {
+    fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
         if matches!(opts, NetDecodeOpts::IsSizePrefixed) {
             let len = <VarInt as NetDecode>::decode(reader, opts)?.0 as usize;
             let mut vec = Vec::with_capacity(len);
@@ -119,7 +120,7 @@ where
     async fn decode_async<R: AsyncRead + Unpin>(
         reader: &mut R,
         opts: &NetDecodeOpts,
-    ) -> NetDecodeResult<Self> {
+    ) -> Result<Self, NetDecodeError> {
         if matches!(opts, NetDecodeOpts::IsSizePrefixed) {
             let len = <VarInt as NetDecode>::decode_async(reader, opts).await?.0 as usize;
             let mut vec = Vec::with_capacity(len);
@@ -151,7 +152,7 @@ where
     K: NetDecode + Eq + Hash,
     V: NetDecode,
 {
-    fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> NetDecodeResult<Self> {
+    fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
         let len = <VarInt as NetDecode>::decode(reader, opts)?.0 as usize;
         let mut map = HashMap::with_capacity(len);
         for _ in 0..len {
@@ -165,7 +166,7 @@ where
     async fn decode_async<R: AsyncRead + Unpin>(
         reader: &mut R,
         opts: &NetDecodeOpts,
-    ) -> NetDecodeResult<Self> {
+    ) -> Result<Self, NetDecodeError> {
         let len = <VarInt as NetDecode>::decode_async(reader, opts).await?.0 as usize;
         let mut map = HashMap::with_capacity(len);
         for _ in 0..len {
