@@ -53,14 +53,16 @@ impl ThreadPool {
         }
     }
 
-    /// Executes a single task in the thread pool and returns its result.
+    /// Executes a single task in the thread pool and returns a `JoinHandle` for the result.
+    /// 
+    /// You can either wait for the result, or just drop the handle and let the task run in the background.
     ///
     /// # Arguments
     /// * `func` - A function to be executed.
     ///
     /// # Returns
-    /// The result of the executed function.
-    pub fn oneshot<F, R>(&self, func: F) -> R
+    /// A `JoinHandle` that can be used to await the result of the task.
+    pub fn oneshot<F, R>(&self, func: F) -> JoinHandle<Box<R>>
     where
         F: FnOnce() -> R + Send + 'static,
         R: Send + 'static,
@@ -73,9 +75,7 @@ impl ThreadPool {
             panic!("Thread pool is trying to run a task on itself, this is not allowed");
         }
         let boxed = move || Box::new(func());
-        let handle = self.pool.evaluate(boxed);
-        let result = handle.await_complete();
-        *result
+        self.pool.evaluate(boxed)
     }
 }
 
