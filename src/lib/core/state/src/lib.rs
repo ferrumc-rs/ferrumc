@@ -1,5 +1,3 @@
-#![feature(integer_atomics)]
-
 pub mod player_list;
 
 use crate::player_list::PlayerList;
