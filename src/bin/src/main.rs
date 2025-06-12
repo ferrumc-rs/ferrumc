@@ -1,5 +1,4 @@
 #![feature(try_blocks)]
-#![feature(integer_atomics)]
 
 use crate::errors::BinaryError;
 use clap::Parser;
@@ -119,7 +118,7 @@ fn entry(start_time: Arc<Instant>) -> Result<(), BinaryError> {
                 .expect("Failed to sync world before shutdown")
         }
     })
-    .expect("Error setting Ctrl-C handler");
+        .expect("Error setting Ctrl-C handler");
 
     game_loop::start_game_loop(global_state.clone())?;
 
