@@ -1,21 +1,13 @@
 use crate::errors::WorldGenError;
+use crate::noise::NoiseGenerator;
 use crate::BiomeGenerator;
 use ferrumc_world::chunk_format::Chunk;
 use ferrumc_world::edit_batch::EditBatch;
-use noise::NoiseFn;
+use splines::Spline;
 use std::collections::BTreeMap;
 
 pub struct OceanBiome {
-    sand_depth_noise: noise::Clamp<f64, noise::OpenSimplex, 2>,
-}
-
-impl Default for OceanBiome {
-    fn default() -> Self {
-        let sand_depth_noise = noise::OpenSimplex::new(0);
-        OceanBiome {
-            sand_depth_noise: noise::Clamp::new(sand_depth_noise).set_lower_bound(1.0).set_upper_bound(4.0),
-        }
-    }
+    sand_depth_noise: NoiseGenerator,
 }
 
 impl BiomeGenerator for OceanBiome {
@@ -34,7 +26,7 @@ impl BiomeGenerator for OceanBiome {
 
         // Add grass blocks to the top layer
         let y = heightmap[x as usize][z as usize];
-        let sand_depth = self.sand_depth_noise.get([f64::from(x), f64::from(z)]);
+        let sand_depth = self.sand_depth_noise.get(f32::from(x), f32::from(z));
         for i in 0..=sand_depth as i32 {
             edit_batch.set_block(
                 i32::from(x),
@@ -61,5 +53,12 @@ impl BiomeGenerator for OceanBiome {
         // Apply the edit batch to the chunk
         edit_batch.apply()?;
         Ok(())
+    }
+
+    fn new(seed: u64) -> Self
+    where
+        Self: Sized,
+    {
+        OceanBiome { sand_depth_noise: NoiseGenerator::new(seed, 0.1, 4, Spline::default()) }
     }
 }

@@ -1,21 +1,13 @@
 use crate::errors::WorldGenError;
+use crate::noise::NoiseGenerator;
 use crate::BiomeGenerator;
 use ferrumc_world::chunk_format::Chunk;
 use ferrumc_world::edit_batch::EditBatch;
-use noise::{Clamp, NoiseFn, OpenSimplex};
+use splines::Spline;
 use std::collections::BTreeMap;
 
 pub(crate) struct PlainsBiome {
-    dirt_depth_noise: Clamp<f64, OpenSimplex, 2>,
-}
-
-impl Default for PlainsBiome {
-    fn default() -> Self {
-        let dirt_depth_noise = OpenSimplex::new(0);
-        PlainsBiome {
-            dirt_depth_noise: Clamp::new(dirt_depth_noise).set_lower_bound(1.0).set_upper_bound(4.0),
-        }
-    }
+    dirt_depth_noise: NoiseGenerator,
 }
 
 impl BiomeGenerator for PlainsBiome {
@@ -43,7 +35,7 @@ impl BiomeGenerator for PlainsBiome {
                 properties: Some(BTreeMap::from([("snowy".to_string(), "false".to_string())])),
             },
         );
-        let dirt_depth = self.dirt_depth_noise.get([f64::from(x), f64::from(z)]);
+        let dirt_depth = self.dirt_depth_noise.get(f32::from(x), f32::from(z));
         for i in 1..=dirt_depth as i32 {
             edit_batch.set_block(
                 i32::from(x),
@@ -58,6 +50,16 @@ impl BiomeGenerator for PlainsBiome {
         // Apply the edit batch to the chunk
         edit_batch.apply()?;
         Ok(())
+    }
+
+    fn new(seed: u64) -> Self
+    where
+        Self: Sized,
+    {
+        let dirt_depth_noise = NoiseGenerator::new(seed, 0.1, 4, Spline::default());
+        PlainsBiome {
+            dirt_depth_noise,
+        }
     }
 }
 

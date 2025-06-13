@@ -1,7 +1,8 @@
 use crate::noise::NoiseGenerator;
-use crate::{WorldGenerator, MAX_GENERATED_HEIGHT};
+use crate::{WorldGenerator, BASELINE_HEIGHT, MAX_GENERATED_HEIGHT};
 use ferrumc_world::edit_batch::EditBatch;
 use ferrumc_world::vanilla_chunk_format::BlockData;
+use splines::{Interpolation, Key, Spline};
 
 impl WorldGenerator {
     pub fn apply_initial_height(&self, chunk: &mut ferrumc_world::chunk_format::Chunk) -> Result<(), crate::errors::WorldGenError> {
@@ -18,8 +19,9 @@ impl WorldGenerator {
                     .height_noise
                     .get(global_x as f32 / 32.0, global_z as f32 / 32.0);
                 height_noise_array[local_x as usize][local_z as usize] = height_noise.to_bits();
-                let height_reduction = (height_noise * 10.0) as i16; // Adjust erosion strength as needed
-                let total_height = MAX_GENERATED_HEIGHT - height_reduction;
+                let height_mod = ((1.0 - height_noise) * 2.0) - 1.0; // Normalize to [-1, 1]
+                let height_mod = (height_mod * 5.0) as i16; // Adjust erosion strength as needed
+                let total_height = BASELINE_HEIGHT - height_mod;
                 new_heightmap[local_x as usize][local_z as usize] = total_height;
                 for y in total_height..=MAX_GENERATED_HEIGHT {
                     edit_batch.set_block(
@@ -44,5 +46,9 @@ impl WorldGenerator {
 
 
 pub fn get_initial_height_noise(seed: u64) -> NoiseGenerator {
-    NoiseGenerator::new(seed, 0.0, 1.0, 0.3, 4)
+    let spline = Spline::from_vec(vec![
+        Key::new(0.0, 0.0, Interpolation::Linear),
+        Key::new(1.0, 1.0, Interpolation::Linear),
+    ]);
+    NoiseGenerator::new(seed, 0.3, 4, spline)
 }

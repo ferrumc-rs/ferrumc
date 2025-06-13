@@ -19,7 +19,7 @@ impl WorldGenerator {
                 let global_z = i64::from(chunk_z) * 16 + i64::from(local_z);
                 let erosion_value = self
                     .erosion_noise
-                    .get(global_x as f32 / 48.0, global_z as f32 / 48.0);
+                    .get(global_x as f32 / 32.0, global_z as f32 / 32.0);
                 erosion_noise_array[local_x as usize][local_z as usize] = erosion_value.to_bits();
                 let height_reduction = (erosion_value * 50.0) as i16; // Adjust erosion strength as needed
                 let total_height = new_heightmap[local_x as usize][local_z as usize] - height_reduction;
@@ -46,5 +46,31 @@ impl WorldGenerator {
 }
 
 pub(crate) fn get_erosion_noise(seed: u64) -> NoiseGenerator {
-    NoiseGenerator::new(seed, 0.0, 1.0, 0.1, 4)
+    let spline = splines::Spline::from_vec(vec![
+        splines::Key::new(0.0, 0.0, splines::Interpolation::Cosine),
+        splines::Key::new(0.1, 0.35, splines::Interpolation::Linear),
+        splines::Key::new(0.2, 0.5, splines::Interpolation::Linear),
+        splines::Key::new(0.8, 0.5, splines::Interpolation::Linear),
+        splines::Key::new(0.9, 0.6, splines::Interpolation::Linear),
+        splines::Key::new(1.0, 1.0, splines::Interpolation::Linear),
+    ]);
+    NoiseGenerator::new(seed, 0.05, 4, spline)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[ignore]
+    fn generate_erosion_image() {
+        let noise = get_erosion_noise(12345);
+        let mut img_buf = image::ImageBuffer::new(256, 256);
+        img_buf.enumerate_pixels_mut().for_each(|(x, y, pixel)| {
+            let noise_value = noise.get(x as f32 / 16.0, y as f32 / 16.0);
+            let color_value = (noise_value * 255.0) as u8;
+            *pixel = image::Rgb([color_value, color_value, color_value]);
+        });
+        img_buf.save("erosion_noise.png").expect("Failed to save image");
+    }
 }
