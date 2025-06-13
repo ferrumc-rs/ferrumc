@@ -32,6 +32,19 @@ pub struct Chunk {
     pub sections: Vec<Section>,
     pub heightmaps: Heightmaps,
     pub real_heightmap: [[i16; 16]; 16],
+    pub noises: Noises,
+}
+
+#[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug, Default)]
+#[derive(Copy)]
+pub struct Noises {
+    // We have to use u32 here because f32s are not Eq, so we convert them to and from u32s with
+    // to_bits() and from_bits() respectively. DO NOT USE `as f32` ON THESE VALUES, YOU WILL BREAK
+    // EVERYTHING.
+    pub humidity_noise: [[u32; 16]; 16],
+    pub temperature_noise: [[u32; 16]; 16],
+    pub height_noise: [[u32; 16]; 16],
+    pub erosion_noise: [[u32; 16]; 16],
 }
 
 #[derive(Encode, Decode, NBTDeserialize, NBTSerialize, Clone, DeepSizeOf, Debug)]
@@ -245,6 +258,7 @@ impl VanillaChunk {
             sections,
             heightmaps,
             real_heightmap: [[0; 16]; 16],
+            noises: Noises::default(),
         })
     }
 }
@@ -278,6 +292,7 @@ impl Chunk {
             sections,
             heightmaps: Heightmaps::new(),
             real_heightmap: [[0; 16]; 16],
+            noises: Noises::default(),
         }
     }
 }

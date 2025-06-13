@@ -1,11 +1,16 @@
 mod biomes;
+mod carving;
 pub mod errors;
-mod height_gen;
+mod noise;
 
+use crate::carving::erosion::get_erosion_noise;
+use crate::carving::initial_height::get_initial_height_noise;
 use crate::errors::WorldGenError;
+use crate::noise::NoiseGenerator;
 use ferrumc_world::chunk_format::Chunk;
-use noise::{Clamp, NoiseFn, OpenSimplex};
-use splines::{Interpolation, Key, Spline};
+use ferrumc_world::vanilla_chunk_format::BlockData;
+
+pub static MAX_GENERATED_HEIGHT: i16 = 192;
 
 /// Trait for generating a biome
 ///
@@ -18,67 +23,60 @@ pub(crate) trait BiomeGenerator {
 
 pub struct WorldGenerator {
     _seed: u64,
-    noise_layers: Vec<Clamp<f64, OpenSimplex, 2>>,
-    spline: Spline<f64, f64>,
+    humidity_noise: NoiseGenerator,
+    temperature_noise: NoiseGenerator,
+    height_noise: NoiseGenerator,
+    erosion_noise: NoiseGenerator,
 }
 
 impl WorldGenerator {
     pub fn new(seed: u64) -> Self {
-        let noise_layers = (1..=4)
-            .map(|i| {
-                let noise = OpenSimplex::new(seed as u32 * i);
-                Clamp::new(noise).set_lower_bound(-1.0).set_upper_bound(1.0)
-            })
-            .collect::<Vec<_>>();
-        let start = Key::new(-1.0, -0.7, Interpolation::Linear);
-        let end = Key::new(1.0, 0.8, Interpolation::Linear);
-        let spline = Spline::from_vec(vec![
-            start,
-            Key::new(-0.5, -0.55, Interpolation::Linear),
-            Key::new(-0.3, -0.2, Interpolation::Linear),
-            Key::new(0.0, 0.0, Interpolation::Linear),
-            Key::new(0.3, 0.1, Interpolation::Linear),
-            Key::new(0.4, 0.2, Interpolation::Linear),
-            Key::new(0.8, 0.75, Interpolation::Linear),
-            end,
-        ]);
-        Self {
+        let humidity_noise = NoiseGenerator::new(seed, 0.0, 1.0, 0.01, 4);
+        let temperature_noise = NoiseGenerator::new(seed + 1, 0.0, 1.0, 0.01, 4);
+        let height_noise = get_initial_height_noise(seed + 2);
+        let erosion_noise = get_erosion_noise(seed + 3);
+
+        WorldGenerator {
             _seed: seed,
-            noise_layers,
-            spline,
+            humidity_noise,
+            temperature_noise,
+            height_noise,
+            erosion_noise,
         }
     }
 
-    fn get_biome(&self, y: i16) -> Box<dyn BiomeGenerator> {
+    fn get_biome(&self, x: i32, z: i32) -> Box<dyn BiomeGenerator> {
         // Implement biome selection here
-        if y > 20 {
-            Box::new(biomes::plains::PlainsBiome::default())
-        } else {
-            Box::new(biomes::ocean::OceanBiome::default())
+        let humidity = self.humidity_noise.get(x as f32, z as f32);
+        let temperature = self.temperature_noise.get(x as f32, z as f32);
+        let height = self.height_noise.get(x as f32, z as f32);
+        if temperature < 0.3 {
+            return Box::new(biomes::ocean::OceanBiome::default());
         }
-    }
-
-    fn get_noise(&self, x: i64, z: i64) -> f64 {
-        let mut amplitude = 1.0;
-        let mut frequency = 0.005;
-        let mut noise = 0.0;
-        for layer in &self.noise_layers {
-            noise += layer.get([x as f64 * frequency, z as f64 * frequency]) * amplitude;
-            amplitude *= 0.5;
-            frequency *= 2.0;
-        }
-        noise
+        Box::new(biomes::plains::PlainsBiome::default())
     }
 
     pub fn generate_chunk(&self, x: i32, z: i32) -> Result<Chunk, WorldGenError> {
-        let mut chunk = self.height_gen(x, z)?;
-        for x in 0..16u8 {
-            for z in 0..16u8 {
-                let y = chunk.real_heightmap[x as usize][z as usize];
-                let biome = self.get_biome(y);
-                biome.decorate(&mut chunk, x, z)?;
+        let mut chunk = Chunk::new(x, z, "overworld".to_string());
+        // Only fill the first 12 sections with stone
+        chunk.sections.iter_mut().for_each(|sec| {
+            if sec.y >= (MAX_GENERATED_HEIGHT / 16) as i8 {
+                return;
             }
-        }
+            sec.fill(BlockData {
+                name: "minecraft:stone".to_string(),
+                properties: None,
+            })
+                .unwrap()
+        });
+        self.carve_chunk(&mut chunk)?;
+        // for x in 0..16u8 {
+        //     for z in 0..16u8 {
+        //         let y = chunk.real_heightmap[x as usize][z as usize];
+        //         let biome = self.get_biome(i32::from(x), i32::from(z));
+        //         biome.decorate(&mut chunk, x, z)?;
+        //     }
+        // }
         Ok(chunk)
     }
 }

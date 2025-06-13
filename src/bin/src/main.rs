@@ -89,7 +89,8 @@ fn generate_chunks(state: GlobalState) -> Result<(), BinaryError> {
                 let (x, z) = chunk_coords;
                 match state.terrain_generator.generate_chunk(x, z) {
                     Ok(chunk) => {
-                        Ok(chunk)
+                        state.world.save_chunk(chunk)?;
+                        Ok(())
                     }
                     Err(e) => {
                         error!("Error generating chunk ({}, {}): {:?}", x, z, e);
@@ -99,23 +100,23 @@ fn generate_chunks(state: GlobalState) -> Result<(), BinaryError> {
             }
         })
     }
-    let generated_chunks = chunk_gen_batch.wait();
-    for chunk in generated_chunks {
-        let chunk = chunk.map_err(|e| {
-            error!("Error generating chunk: {:?}", e);
-            BinaryError::Custom("Error generating chunk".to_string())
-        })?;
-        state.world.save_chunk(chunk)?;
-    }
+    let _generated_chunks = chunk_gen_batch.wait();
     pool.close();
     info!("Finished generating spawn chunks in {:?}", start.elapsed());
     Ok(())
 }
 
 fn entry(start_time: Arc<Instant>) -> Result<(), BinaryError> {
+    let config = get_global_config();
+    let mut db_path = std::env::current_exe()?;
+    db_path.pop(); // Remove the binary name
+    db_path.push(&config.database.db_path);
+    info!("Database path: {}", db_path.display());
+    std::fs::remove_dir_all(db_path)?;
     let state = create_state(start_time)?;
     let global_state = Arc::new(state);
     create_whitelist();
+
     if !global_state.world.chunk_exists(0, 0, "overworld")? {
         generate_chunks(global_state.clone())?;
     }

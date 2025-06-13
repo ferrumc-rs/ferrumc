@@ -7,8 +7,7 @@ edition = "2024"
 ferrumc-world = { workspace = true }
 thiserror = { workspace = true }
 noise = { workspace = true }
-rand = { workspace = true }
-tracing = { workspace = true }
+simdnoise = { workspace = true }
 splines = { workspace = true }
 
 [lints]
