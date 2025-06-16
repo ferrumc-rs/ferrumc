@@ -29,6 +29,7 @@ wyhash = { workspace = true }
 moka = { workspace = true, features = ["sync"] }
 ahash = { workspace = true }
 rand = { workspace = true }
+yazi = { workspace = true }
 
 [[bench]]
 name = "world_bench"

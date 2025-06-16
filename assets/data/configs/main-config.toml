@@ -22,12 +22,10 @@ chunk_render_distance = 12
 
 # Database configuration
 [database]
-# Compression algorithm (brotli, deflate, gzip, zlib, zstd)
-compression = "gzip"
 # Path to the world database
 db_path = "world"
-# Compression level (0-22) for the database. Higher values mean less disk space but will take longer to read/write.
-compression_level = 5
+# Verify chunk data on load. This is a good idea to catch any corruption, but it will slow down loading.
+verify_chunk_data = true
 # Map size
 # The max size of the database's memory map in GB. Basically you need this to be big enough
 # to hold everything before it starts writing to disk. This isn't memory use though, it's just

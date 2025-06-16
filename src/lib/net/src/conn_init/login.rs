@@ -3,7 +3,7 @@ use crate::conn_init::VarInt;
 use crate::conn_init::{send_packet, trim_packet_head};
 use crate::errors::{NetError, PacketError};
 use crate::packets::outgoing::registry_data::REGISTRY_PACKETS;
-use ferrumc_config::statics::get_global_config;
+use ferrumc_config::server_config::get_global_config;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net_codec::decode::NetDecode;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
@@ -24,7 +24,7 @@ pub(super) async fn login(
         &mut conn_read,
         &NetDecodeOpts::None,
     )
-    .await?;
+        .await?;
 
     // =============================================================================================
 
@@ -47,7 +47,7 @@ pub(super) async fn login(
         &mut conn_read,
         &NetDecodeOpts::None,
     )
-    .await?;
+        .await?;
 
     // =============================================================================================
 
@@ -77,7 +77,7 @@ pub(super) async fn login(
             &mut conn_read,
             &NetDecodeOpts::None,
         )
-        .await?;
+            .await?;
 
     trace!(
         "Client information: {{ locale: {}, view_distance: {}, chat_mode: {}, chat_colors: {}, displayed_skin_parts: {} }}",
@@ -105,7 +105,7 @@ pub(super) async fn login(
             &mut conn_read,
             &NetDecodeOpts::None,
         )
-        .await?;
+            .await?;
 
     // =============================================================================================
 
@@ -159,7 +159,7 @@ pub(super) async fn login(
             &mut conn_read,
             &NetDecodeOpts::None,
         )
-        .await?;
+            .await?;
 
     if confirm_player_teleport.teleport_id.0 != teleport_id_i32 {
         error!(

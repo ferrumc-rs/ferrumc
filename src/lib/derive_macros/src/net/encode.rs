@@ -172,7 +172,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                                 let mut writer = Vec::new();
                                 let mut writer = &mut writer;
 
-                                let compression_threshold = ferrumc_config::statics::get_global_config().network_compression_threshold;
+                                let compression_threshold = ferrumc_config::server_config::get_global_config().network_compression_threshold;
 
                                 #packet_id_snippet
                                 #field_encoders
@@ -230,7 +230,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                                 let mut writer = Vec::new();
                                 let mut writer = &mut writer;
 
-                                let compression_threshold = ferrumc_config::statics::get_global_config().network_compression_threshold;
+                                let compression_threshold = ferrumc_config::server_config::get_global_config().network_compression_threshold;
 
                                 #async_packet_id_snippet
                                 #async_field_encoders
@@ -296,7 +296,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                                 let mut writer = Vec::new();
                                 let mut writer = &mut writer;
 
-                                let compression_threshold = ferrumc_config::statics::get_global_config().network_compression_threshold;
+                                let compression_threshold = ferrumc_config::server_config::get_global_config().network_compression_threshold;
 
                                 #packet_id_snippet
                                 #sync_enum_encoder
@@ -354,7 +354,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                                 let mut writer = Vec::new();
                                 let mut writer = &mut writer;
 
-                                let compression_threshold = ferrumc_config::statics::get_global_config().network_compression_threshold;
+                                let compression_threshold = ferrumc_config::server_config::get_global_config().network_compression_threshold;
 
                                 #async_packet_id_snippet
                                 #async_enum_encoder

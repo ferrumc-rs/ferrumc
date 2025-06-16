@@ -2,7 +2,16 @@
 //!
 //! Contains the server configuration struct and its related functions.
 
+use ferrumc_general_purpose::paths::get_root_path;
+use figment::providers::Format;
+use once_cell::sync::OnceCell;
 use serde_derive::{Deserialize, Serialize};
+
+static STATIC_CONFIG: OnceCell<ServerConfig> = OnceCell::new();
+pub(crate) const DEFAULT_CONFIG: &str = include_str!("../../../../../assets/data/configs/main-config.toml");
+pub fn get_global_config() -> &'static ServerConfig {
+    STATIC_CONFIG.get_or_init(create_config)
+}
 
 /// The server configuration struct.
 ///
@@ -35,12 +44,8 @@ pub struct ServerConfig {
 /// The database configuration section from [ServerConfig].
 ///
 /// Fields:
-/// - `cache_size`: The cache size in KB.
-/// - `compression` - Which compression algorithm to use. Options are `brotli`, `deflate`, `gzip`, `zlib`
-///   and `zstd`
-/// - `world_path`: The path to the world database.
-/// - `compression_level`: The compression level to use. This is a number from 0-22. Not all compressors
-///   support levels, so this will be a no-op for some compressors.
+/// - `db_path`: The path to the database. This is relative to the server root path.
+/// - `verify_chunk_data`: Whether to verify chunk data when loading it from the database.
 /// - `map_size`: The max size of the database's memory map. Basically you need this to be big enough
 ///   to hold everything before it starts writing to disk. This isn't memory use though, it's just
 ///   how much we can map into memory if needed, so you can set this to an insane number if you want,
@@ -49,26 +54,24 @@ pub struct ServerConfig {
 /// - `cache_capacity`: How big the cache can be in kb.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct DatabaseConfig {
-    pub compression: String,
     pub db_path: String,
-    pub compression_level: i32,
+    pub verify_chunk_data: bool,
     pub map_size: u64,
     pub cache_ttl: u64,
     pub cache_capacity: u64,
 }
 
-/// The database compression enum for [DatabaseConfig].
-///
-/// Variants:
-/// - `none`: No compression.
-/// - `fast`: Fast compression.
-/// - `best`: Best compression.
-#[derive(Debug, Deserialize, Serialize, PartialEq)]
-pub enum DatabaseCompression {
-    #[serde(rename = "none")]
-    None,
-    #[serde(rename = "fast")]
-    Fast,
-    #[serde(rename = "best")]
-    Best,
+fn create_config() -> ServerConfig {
+    let config_location = get_root_path().join("configs");
+    let main_config_file = config_location.join("config.toml");
+    match figment::Figment::new()
+        .merge(figment::providers::Toml::string(DEFAULT_CONFIG))
+        .merge(figment::providers::Toml::file(main_config_file))
+        .extract() {
+        Ok(config) => config,
+        Err(e) => {
+            eprintln!("Failed to load server configuration: {e}");
+            std::process::exit(1);
+        }
+    }
 }

@@ -10,9 +10,8 @@ pub mod vanilla_chunk_format;
 use crate::chunk_format::Chunk;
 use crate::errors::WorldError;
 use deepsize::DeepSizeOf;
-use ferrumc_config::statics::get_global_config;
+use ferrumc_config::server_config::get_global_config;
 use ferrumc_general_purpose::paths::get_root_path;
-use ferrumc_storage::compressors::Compressor;
 use ferrumc_storage::lmdb::LmdbBackend;
 use moka::sync::Cache;
 use std::fs::create_dir_all;
@@ -24,7 +23,6 @@ use tracing::{error, trace, warn};
 #[derive(Clone)]
 pub struct World {
     storage_backend: LmdbBackend,
-    compressor: Compressor,
     cache: Cache<(i32, i32, String), Chunk>,
 }
 
@@ -62,13 +60,6 @@ fn check_config_validity() -> Result<(), WorldError> {
         ));
     }
 
-    if config.database.compression.is_empty() {
-        error!("No compressor specified. Please set the compressor in the configuration file.");
-        return Err(WorldError::InvalidCompressor(
-            config.database.compression.clone(),
-        ));
-    }
-
     // Check if doing map_size * 1024^3 would overflow usize. You probably don't need a database
     // that's 18 exabytes anyway.
     if config.database.map_size as usize > ((usize::MAX / 1024) / 1024) / 1024 {
@@ -99,38 +90,6 @@ impl World {
         let storage_backend =
             LmdbBackend::initialize(Some(backend_path)).expect("Failed to initialize database");
 
-        let compressor_string = get_global_config().database.compression.trim();
-
-        let compression_algo = match compressor_string.to_lowercase().as_str() {
-            "zstd" => Compressor::create(
-                ferrumc_storage::compressors::CompressorType::Zstd,
-                get_global_config().database.compression_level as u32,
-            ),
-            "brotli" => Compressor::create(
-                ferrumc_storage::compressors::CompressorType::Brotli,
-                get_global_config().database.compression_level as u32,
-            ),
-            "deflate" => Compressor::create(
-                ferrumc_storage::compressors::CompressorType::Deflate,
-                get_global_config().database.compression_level as u32,
-            ),
-            "gzip" => Compressor::create(
-                ferrumc_storage::compressors::CompressorType::Gzip,
-                get_global_config().database.compression_level as u32,
-            ),
-            "zlib" => Compressor::create(
-                ferrumc_storage::compressors::CompressorType::Zlib,
-                get_global_config().database.compression_level as u32,
-            ),
-            _ => {
-                error!(
-                    "Invalid compression algorithm: {}",
-                    get_global_config().database.compression
-                );
-                exit(1);
-            }
-        };
-
         if get_global_config().database.cache_ttl != 0
             && get_global_config().database.cache_capacity == 0
         {
@@ -151,7 +110,6 @@ impl World {
 
         World {
             storage_backend,
-            compressor: compression_algo,
             cache,
         }
     }

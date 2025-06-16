@@ -1,4 +1,4 @@
-use crate::statics::DEFAULT_CONFIG;
+use crate::server_config::DEFAULT_CONFIG;
 use crate::whitelist::create_blank_whitelist_file;
 use ferrumc_general_purpose::paths::get_root_path;
 use std::fs::File;
@@ -30,10 +30,10 @@ pub fn setup() -> Result<(), SetupError> {
     if !std::fs::exists(get_root_path().join("whitelist.txt"))? {
         create_blank_whitelist_file();
     }
-    if std::fs::exists(get_root_path().join("config.toml"))? {
+    if std::fs::exists(get_root_path().join("config").join("config.toml"))? {
         return Ok(());
     }
-    let mut config_file = File::create(get_root_path().join("config.toml"))?;
+    let mut config_file = File::create(get_root_path().join("config").join("config.toml"))?;
     config_file.write_all(DEFAULT_CONFIG.as_bytes())?;
     if !std::fs::exists(get_root_path().join("import"))? {
         std::fs::create_dir(get_root_path().join("import"))?;

@@ -1,10 +1,12 @@
 // db_functions.rs
 use crate::chunk_format::Chunk;
 use crate::errors::WorldError;
+use crate::errors::WorldError::CorruptedChunkData;
 use crate::World;
-use ferrumc_storage::compressors::Compressor;
+use ferrumc_config::server_config::get_global_config;
 use std::hash::Hasher;
-use tracing::trace;
+use tracing::{trace, warn};
+use yazi::CompressionLevel;
 
 impl World {
     /// Save a chunk to the storage backend
@@ -25,7 +27,7 @@ impl World {
         if let Some(chunk) = self.cache.get(&(x, z, dimension.to_string())) {
             return Ok(chunk);
         }
-        let chunk = load_chunk_internal(self, &self.compressor, x, z, dimension);
+        let chunk = load_chunk_internal(self, x, z, dimension);
         if let Ok(ref chunk) = chunk {
             self.cache
                 .insert((x, z, dimension.to_string()), chunk.clone());
@@ -100,7 +102,7 @@ impl World {
     /// they are needed.
     pub fn pre_cache(&self, x: i32, z: i32, dimension: &str) -> Result<(), WorldError> {
         if self.cache.get(&(x, z, dimension.to_string())).is_none() {
-            let chunk = load_chunk_internal(self, &self.compressor, x, z, dimension)?;
+            let chunk = load_chunk_internal(self, x, z, dimension)?;
             self.cache.insert((x, z, dimension.to_string()), chunk);
         }
         Ok(())
@@ -111,7 +113,7 @@ pub(crate) fn save_chunk_internal(world: &World, chunk: &Chunk) -> Result<(), Wo
     if !world.storage_backend.table_exists("chunks".to_string())? {
         world.storage_backend.create_table("chunks".to_string())?;
     }
-    let as_bytes = world.compressor.compress(&bitcode::encode(chunk))?;
+    let as_bytes = yazi::compress(&bitcode::encode(chunk), yazi::Format::Zlib, CompressionLevel::BestSpeed)?;
     let digest = create_key(chunk.dimension.as_str(), chunk.x, chunk.z);
     world
         .storage_backend
@@ -125,7 +127,7 @@ pub(crate) fn save_chunk_internal_batch(world: &World, chunks: &[Chunk]) -> Resu
 
     for chunk in chunks.iter() {
         // Compress the chunk and encode it
-        let as_bytes = world.compressor.compress(&bitcode::encode(chunk))?;
+        let as_bytes = yazi::compress(&bitcode::encode(chunk), yazi::Format::Zlib, CompressionLevel::BestSpeed)?;
         // Create the key for the chunk
         let digest = create_key(chunk.dimension.as_str(), chunk.x, chunk.z);
         // Collect the key-value pair into the batch data
@@ -142,7 +144,6 @@ pub(crate) fn save_chunk_internal_batch(world: &World, chunks: &[Chunk]) -> Resu
 
 pub(crate) fn load_chunk_internal(
     world: &World,
-    compressor: &Compressor,
     x: i32,
     z: i32,
     dimension: &str,
@@ -150,7 +151,17 @@ pub(crate) fn load_chunk_internal(
     let digest = create_key(dimension, x, z);
     match world.storage_backend.get("chunks".to_string(), digest)? {
         Some(compressed) => {
-            let data = compressor.decompress(&compressed)?;
+            let (data, checksum) = yazi::decompress(compressed.as_slice(), yazi::Format::Zlib)?;
+            if get_global_config().database.verify_chunk_data {
+                if let Some(expected_checksum) = checksum {
+                    let real_checksum = yazi::Adler32::from_buf(data.as_slice()).finish();
+                    if real_checksum != expected_checksum {
+                        return Err(CorruptedChunkData(real_checksum, expected_checksum));
+                    }
+                } else {
+                    warn!("Chunk data does not have a checksum, skipping verification.");
+                }
+            }
             let chunk: Chunk = bitcode::decode(&data)
                 .map_err(|e| WorldError::BitcodeDecodeError(e.to_string()))?;
             Ok(chunk)
@@ -173,7 +184,17 @@ pub(crate) fn load_chunk_batch_internal(
         .iter()
         .map(|chunk| match chunk {
             Some(compressed) => {
-                let data = world.compressor.decompress(compressed)?;
+                let (data, checksum) = yazi::decompress(compressed, yazi::Format::Zlib)?;
+                if get_global_config().database.verify_chunk_data {
+                    if let Some(expected_checksum) = checksum {
+                        let real_checksum = yazi::Adler32::from_buf(data.as_slice()).finish();
+                        if real_checksum != expected_checksum {
+                            return Err(CorruptedChunkData(real_checksum, expected_checksum));
+                        }
+                    } else {
+                        warn!("Chunk data does not have a checksum, skipping verification.");
+                    }
+                }
                 let chunk: Chunk = bitcode::decode(&data)
                     .map_err(|e| WorldError::BitcodeDecodeError(e.to_string()))?;
                 Ok(chunk)

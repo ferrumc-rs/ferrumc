@@ -2,7 +2,7 @@
 
 use crate::errors::BinaryError;
 use clap::Parser;
-use ferrumc_config::statics::get_global_config;
+use ferrumc_config::server_config::get_global_config;
 use ferrumc_config::whitelist::create_whitelist;
 use ferrumc_general_purpose::paths::get_root_path;
 use ferrumc_state::player_list::PlayerList;
@@ -118,7 +118,7 @@ fn entry(start_time: Arc<Instant>) -> Result<(), BinaryError> {
                 .expect("Failed to sync world before shutdown")
         }
     })
-    .expect("Error setting Ctrl-C handler");
+        .expect("Error setting Ctrl-C handler");
 
     game_loop::start_game_loop(global_state.clone())?;
 
