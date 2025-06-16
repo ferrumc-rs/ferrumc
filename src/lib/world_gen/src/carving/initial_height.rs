@@ -2,7 +2,6 @@ use crate::noise::NoiseGenerator;
 use crate::{WorldGenerator, BASELINE_HEIGHT, MAX_GENERATED_HEIGHT};
 use ferrumc_world::edit_batch::EditBatch;
 use ferrumc_world::vanilla_chunk_format::BlockData;
-use splines::{Interpolation, Key, Spline};
 
 impl WorldGenerator {
     pub fn apply_initial_height(&self, chunk: &mut ferrumc_world::chunk_format::Chunk) -> Result<(), crate::errors::WorldGenError> {
@@ -46,9 +45,5 @@ impl WorldGenerator {
 
 
 pub fn get_initial_height_noise(seed: u64) -> NoiseGenerator {
-    let spline = Spline::from_vec(vec![
-        Key::new(0.0, 0.0, Interpolation::Linear),
-        Key::new(1.0, 1.0, Interpolation::Linear),
-    ]);
-    NoiseGenerator::new(seed, 0.3, 4, spline)
+    NoiseGenerator::new(seed, 0.3, 4, None)
 }

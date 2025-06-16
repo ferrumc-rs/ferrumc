@@ -9,7 +9,6 @@ use crate::errors::WorldGenError;
 use crate::noise::NoiseGenerator;
 use ferrumc_world::chunk_format::Chunk;
 use ferrumc_world::vanilla_chunk_format::BlockData;
-use splines::Spline;
 
 pub static MAX_GENERATED_HEIGHT: i16 = 192;
 pub static BASELINE_HEIGHT: i16 = 82;
@@ -36,8 +35,8 @@ pub struct WorldGenerator {
 
 impl WorldGenerator {
     pub fn new(seed: u64) -> Self {
-        let humidity_noise = NoiseGenerator::new(seed, 0.01, 4, Spline::default());
-        let temperature_noise = NoiseGenerator::new(seed + 1, 0.01, 4, Spline::default());
+        let humidity_noise = NoiseGenerator::new(seed, 0.01, 4, None);
+        let temperature_noise = NoiseGenerator::new(seed + 1, 0.01, 4, None);
         let height_noise = get_initial_height_noise(seed + 2);
         let erosion_noise = get_erosion_noise(seed + 3);
 
@@ -70,7 +69,7 @@ impl WorldGenerator {
         let mut chunk = Chunk::new(x, z, "overworld".to_string());
         // Only fill the first 12 sections with stone
         chunk.sections.iter_mut().for_each(|sec| {
-            if sec.y >= (MAX_GENERATED_HEIGHT / 16) as i8 {
+            if sec.y >= (f32::from(MAX_GENERATED_HEIGHT) / 16.0).floor() as i8 {
                 return;
             }
             sec.fill(BlockData {

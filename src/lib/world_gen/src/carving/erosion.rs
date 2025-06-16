@@ -54,7 +54,7 @@ pub(crate) fn get_erosion_noise(seed: u64) -> NoiseGenerator {
         splines::Key::new(0.9, 0.6, splines::Interpolation::Linear),
         splines::Key::new(1.0, 1.0, splines::Interpolation::Linear),
     ]);
-    NoiseGenerator::new(seed, 0.05, 4, spline)
+    NoiseGenerator::new(seed, 0.05, 4, Some(spline))
 }
 
 #[cfg(test)]

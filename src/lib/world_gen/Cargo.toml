@@ -9,6 +9,7 @@ thiserror = { workspace = true }
 noise = { workspace = true }
 simdnoise = { workspace = true }
 splines = { workspace = true }
+rand = { workspace = true }
 
 [dev-dependencies]
 image = { workspace = true }

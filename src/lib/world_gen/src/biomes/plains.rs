@@ -3,7 +3,6 @@ use crate::noise::NoiseGenerator;
 use crate::BiomeGenerator;
 use ferrumc_world::chunk_format::Chunk;
 use ferrumc_world::edit_batch::EditBatch;
-use splines::Spline;
 use std::collections::BTreeMap;
 
 pub(crate) struct PlainsBiome {
@@ -35,7 +34,7 @@ impl BiomeGenerator for PlainsBiome {
                 properties: Some(BTreeMap::from([("snowy".to_string(), "false".to_string())])),
             },
         );
-        let dirt_depth = self.dirt_depth_noise.get(f32::from(x), f32::from(z));
+        let dirt_depth = (self.dirt_depth_noise.get(f32::from(x), f32::from(z)) * 5.0) + 3.0;
         for i in 1..=dirt_depth as i32 {
             edit_batch.set_block(
                 i32::from(x),
@@ -56,7 +55,7 @@ impl BiomeGenerator for PlainsBiome {
     where
         Self: Sized,
     {
-        let dirt_depth_noise = NoiseGenerator::new(seed, 0.1, 4, Spline::default());
+        let dirt_depth_noise = NoiseGenerator::new(seed, 0.1, 4, None);
         PlainsBiome {
             dirt_depth_noise,
         }

@@ -4,11 +4,11 @@ pub struct NoiseGenerator {
     seed: u64,
     frequency: f32,
     octaves: u8,
-    spline: Spline<f32, f32>,
+    spline: Option<Spline<f32, f32>>,
 }
 
 impl NoiseGenerator {
-    pub fn new(seed: u64, frequency: f32, octaves: u8, spline: Spline<f32, f32>) -> Self {
+    pub fn new(seed: u64, frequency: f32, octaves: u8, spline: Option<Spline<f32, f32>>) -> Self {
         NoiseGenerator {
             seed,
             frequency,
@@ -26,7 +26,10 @@ impl NoiseGenerator {
             .generate_scaled(0.0, 1.0)
             .first()
             .expect("Failed to generate noise");
-        let splined_value = self.spline.clamped_sample(noise_val);
-        splined_value.unwrap_or_default()
+        if let Some(spline) = &self.spline {
+            spline.clamped_sample(noise_val).unwrap_or_default()
+        } else {
+            noise_val
+        }
     }
 }
