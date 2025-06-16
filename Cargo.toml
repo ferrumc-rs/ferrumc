@@ -85,7 +85,7 @@ debug = true
 [workspace.dependencies]
 # Workspace members
 ferrumc-anvil = { path = "src/lib/adapters/anvil" }
-ferrumc-config = { path = "src/lib/utils/config" }
+ferrumc-config = { path = "src/lib/config" }
 ferrumc-core = { path = "src/lib/core" }
 ferrumc-general-purpose = { path = "src/lib/utils/general_purpose" }
 ferrumc-logging = { path = "src/lib/utils/logging" }

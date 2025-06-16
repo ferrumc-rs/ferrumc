@@ -8,7 +8,7 @@ use once_cell::sync::OnceCell;
 use serde_derive::{Deserialize, Serialize};
 
 static STATIC_CONFIG: OnceCell<ServerConfig> = OnceCell::new();
-pub(crate) const DEFAULT_CONFIG: &str = include_str!("../../../../../assets/data/configs/main-config.toml");
+pub(crate) const DEFAULT_CONFIG: &str = include_str!("../../../../assets/data/configs/main-config.toml");
 pub fn get_global_config() -> &'static ServerConfig {
     STATIC_CONFIG.get_or_init(create_config)
 }
