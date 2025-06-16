@@ -30,6 +30,9 @@ pub fn setup() -> Result<(), SetupError> {
     if !std::fs::exists(get_root_path().join("whitelist.txt"))? {
         create_blank_whitelist_file();
     }
+    if !std::fs::exists(get_root_path().join("config"))? {
+        std::fs::create_dir(get_root_path().join("config"))?;
+    }
     if std::fs::exists(get_root_path().join("config").join("config.toml"))? {
         return Ok(());
     }

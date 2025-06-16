@@ -65,7 +65,9 @@ fn create_config() -> ServerConfig {
     let config_location = get_root_path().join("configs");
     let main_config_file = config_location.join("config.toml");
     match figment::Figment::new()
+        // Load the default configuration
         .merge(figment::providers::Toml::string(DEFAULT_CONFIG))
+        // Then override it with the main config file
         .merge(figment::providers::Toml::file(main_config_file))
         .extract() {
         Ok(config) => config,
