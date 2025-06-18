@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::errors::BinaryError;
 use bevy_ecs::prelude::{Entity, Query, Res};
 use ferrumc_core::collisions::bounds::CollisionBounds;
@@ -33,7 +35,7 @@ pub fn handle(
             }
             match event.hand.0 {
                 0 => {
-                    let mut chunk = match state.0.world.load_chunk(
+                    let mut chunk = match state.0.world.load_chunk_owned(
                         event.position.x >> 4,
                         event.position.z >> 4,
                         "overworld",
@@ -103,7 +105,7 @@ pub fn handle(
                     conn.send_packet(&chunk_packet)?;
                     conn.send_packet(&ack_packet)?;
 
-                    state.0.world.save_chunk(chunk)?;
+                    state.0.world.save_chunk(Arc::new(chunk))?;
                 }
                 1 => {
                     trace!("Offhand block placement not implemented");

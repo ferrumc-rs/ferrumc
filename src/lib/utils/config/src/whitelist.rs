@@ -1,5 +1,5 @@
 use crate::errors::ConfigError;
-use crate::statics::WHITELIST;
+use crate::statics::get_whitelist;
 use ferrumc_general_purpose::paths::get_root_path;
 use rayon::prelude::*;
 use serde_derive::Deserialize;
@@ -39,7 +39,7 @@ pub fn create_whitelist() {
         Err(_e) => return,
     };
     uuids.into_iter().for_each(|uuid| {
-        WHITELIST.insert(uuid.as_u128());
+        get_whitelist().insert(uuid.as_u128());
     });
 }
 
@@ -192,11 +192,11 @@ fn query_mojang_for_usernames(uuids: Vec<&Uuid>) -> Vec<MojangProfile> {
 }
 
 pub fn add_to_whitelist(uuid: Uuid) -> bool {
-    WHITELIST.insert(uuid.as_u128())
+    get_whitelist().insert(uuid.as_u128())
 }
 
 pub fn remove_from_whitelist(uuid: Uuid) -> bool {
-    WHITELIST.remove(&uuid.as_u128()).is_some()
+    get_whitelist().remove(&uuid.as_u128()).is_some()
 }
 
 pub fn create_blank_whitelist_file() {

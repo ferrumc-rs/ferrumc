@@ -63,7 +63,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
 
     info!(
         "Server is ready in {}",
-        format_duration(Instant::now().duration_since(*global_state.start_time.clone()))
+        format_duration(Instant::now().duration_since(global_state.start_time))
     );
 
     while !global_state

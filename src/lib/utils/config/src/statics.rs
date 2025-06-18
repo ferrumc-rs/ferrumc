@@ -14,7 +14,7 @@ lazy_static! {
     /// The server configuration that is stored in memory.
     static ref CONFIG: ServerConfig = create_config();
     /// The whitelist of player uuids.
-    pub static ref WHITELIST: DashSet<u128> = DashSet::new();
+    static ref WHITELIST: DashSet<u128> = DashSet::new();
 }
 fn create_config() -> ServerConfig {
     let config_location = get_root_path().join("config.toml");
