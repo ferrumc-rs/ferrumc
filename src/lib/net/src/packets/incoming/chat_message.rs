@@ -1,11 +1,6 @@
-use std::sync::Arc;
-
+use bevy_ecs::prelude::Event;
 use ferrumc_macros::{packet, NetDecode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use ferrumc_state::ServerState;
-use bevy_ecs::prelude::Event;
-
-use crate::{errors::NetError, packets::IncomingPacket};
 
 #[derive(NetDecode, Debug, Clone)]
 #[packet(packet_id = "chat", state = "play")]

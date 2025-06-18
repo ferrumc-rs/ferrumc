@@ -10,3 +10,4 @@ ferrumc-text = { workspace = true }
 ferrumc-core = { workspace = true }
 ctor = { workspace = true }
 tracing = { workspace = true }
+bevy_ecs = { workspace = true }

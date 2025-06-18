@@ -127,7 +127,7 @@ impl CommandGraph {
         f(current_node, node_index, depth, parent);
 
         for child_index in current_node.children.data.iter() {
-            self.traverse_node(child_index.val as u32, depth + 1, Some(node_index), f);
+            self.traverse_node(child_index.0 as u32, depth + 1, Some(node_index), f);
         }
     }
 
@@ -163,7 +163,7 @@ impl CommandGraph {
             CommandNodeType::Root => {
                 // the root node is the root of all evil.
                 for child_index in current_node.children.data.iter() {
-                    self.find_command_recursive(child_index.val as u32, remaining_input, matches);
+                    self.find_command_recursive(child_index.0 as u32, remaining_input, matches);
                 }
             }
             CommandNodeType::Literal => {
@@ -184,7 +184,7 @@ impl CommandGraph {
 
                         // we continue checking the other children.
                         for child_index in current_node.children.data.iter() {
-                            self.find_command_recursive(child_index.val as u32, remaining, matches);
+                            self.find_command_recursive(child_index.0 as u32, remaining, matches);
                         }
                     }
                 }
@@ -203,7 +203,7 @@ impl CommandGraph {
 
                     // continue checking anyway.
                     for child_index in current_node.children.data.iter() {
-                        self.find_command_recursive(child_index.val as u32, remaining, matches);
+                        self.find_command_recursive(child_index.0 as u32, remaining, matches);
                     }
                 }
             }
@@ -225,7 +225,7 @@ impl CommandGraph {
                 .children
                 .data
                 .iter()
-                .any(|child| child.val as u32 == node_index)
+                .any(|child| child.0 as u32 == node_index)
             {
                 self.collect_command_parts(parent_idx as u32, parts);
                 break;

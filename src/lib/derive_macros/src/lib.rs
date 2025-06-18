@@ -62,10 +62,10 @@ pub fn command(attr: TokenStream, input: TokenStream) -> TokenStream {
     commands::command(attr, input)
 }
 
-#[proc_macro_attribute]
-pub fn arg(attr: TokenStream, input: TokenStream) -> TokenStream {
-    commands::arg(attr, input)
-}
+// #[proc_macro_attribute]
+// pub fn arg(attr: TokenStream, input: TokenStream) -> TokenStream {
+//     commands::arg(attr, input)
+// }
 
 /// Get a registry entry from the registries.json file.
 /// returns protocol_id (as u64) of the specified entry.

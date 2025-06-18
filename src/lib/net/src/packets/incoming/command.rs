@@ -1,10 +1,6 @@
-use std::sync::Arc;
-
 use bevy_ecs::prelude::Event;
 use ferrumc_macros::{packet, NetDecode};
 use ferrumc_state::ServerState;
-
-use crate::{errors::NetError, packets::IncomingPacket, NetResult};
 
 #[derive(NetDecode, Debug, Clone)]
 #[packet(packet_id = "chat_command", state = "play")]
@@ -23,4 +19,3 @@ impl CommandDispatchEvent {
         Self { command, conn_id }
     }
 }
-

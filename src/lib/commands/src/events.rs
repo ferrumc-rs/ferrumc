@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use bevy_ecs::{entity::Entity, prelude::Event};
 
 use crate::{infrastructure, Command};
@@ -14,4 +16,3 @@ impl CommandDispatchEvent {
         infrastructure::find_command(&self.command)
     }
 }
-

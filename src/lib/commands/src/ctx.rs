@@ -3,6 +3,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
+use bevy_ecs::entity::Entity;
 use ferrumc_state::GlobalState;
 
 use crate::{input::CommandInput, Command};
@@ -11,7 +12,7 @@ pub struct CommandContext {
     pub input: Arc<Mutex<CommandInput>>,
     pub command: Arc<Command>,
     pub state: GlobalState,
-    pub connection_id: usize,
+    pub sender: Entity,
 }
 
 impl CommandContext {
@@ -19,13 +20,13 @@ impl CommandContext {
         input: CommandInput,
         command: Arc<Command>,
         state: GlobalState,
-        connection_id: usize,
+        sender: Entity,
     ) -> Arc<Self> {
         Arc::new(Self {
             input: Arc::new(Mutex::new(input)),
             command,
             state,
-            connection_id,
+            sender,
         })
     }
 

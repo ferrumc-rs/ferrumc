@@ -1,16 +1,17 @@
-use std::{
-    collections::HashMap,
-    sync::{Mutex, OnceLock},
-};
-
 use proc_macro::TokenStream;
 use quote::{format_ident, quote, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
-    parse_macro_input, Expr, ItemFn, LitBool, LitStr, Result as SynResult, Token,
+    parse_macro_input, Expr, FnArg, ItemFn, LitStr, Pat, Result as SynResult, Type,
 };
 
-static PENDING_ARGS: OnceLock<Mutex<HashMap<String, Vec<ArgAttr>>>> = OnceLock::new();
+#[derive(Clone, Debug)]
+struct Arg {
+    parser: String,
+    name: String,
+    required: bool,
+    ty: String,
+}
 
 struct CommandAttr {
     name: String,
@@ -24,92 +25,159 @@ impl Parse for CommandAttr {
 }
 
 struct ArgAttr {
-    name: String,
     parser: String,
-    required: bool,
 }
 
 impl Parse for ArgAttr {
     fn parse(input: ParseStream) -> SynResult<Self> {
-        let name = input.parse::<LitStr>()?.value();
-        input.parse::<Token![,]>()?;
-        let parser = input.parse::<syn::Expr>()?.to_token_stream().to_string();
+        let parser = input.parse::<Expr>()?.to_token_stream().to_string();
 
-        let required = if input.peek(Token![,]) {
-            input.parse::<Token![,]>()?;
-            input.parse::<LitBool>()?.value()
-        } else {
-            true
-        };
-
-        Ok(ArgAttr {
-            name,
-            parser,
-            required,
-        })
+        Ok(ArgAttr { parser })
     }
 }
 
-fn get_args_storage() -> &'static Mutex<HashMap<String, Vec<ArgAttr>>> {
-    PENDING_ARGS.get_or_init(|| Mutex::new(HashMap::new()))
-}
-
-pub fn arg(attr: TokenStream, item: TokenStream) -> TokenStream {
-    let arg_attr = parse_macro_input!(attr as ArgAttr);
-    let input_fn = parse_macro_input!(item as ItemFn);
-    let fn_name = input_fn.sig.ident.to_string();
-
-    let storage = get_args_storage();
-    let mut pending_args = storage.lock().unwrap();
-    pending_args.entry(fn_name).or_default().push(arg_attr);
-
-    TokenStream::from(quote!(#input_fn))
-}
-
 pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
-    let input_fn = parse_macro_input!(item as ItemFn);
-    let fn_name = &input_fn.sig.ident;
-    let fn_name_str = fn_name.to_string();
+    let mut input_fn = parse_macro_input!(item as ItemFn);
+    let fn_name = input_fn.clone().sig.ident;
 
     let command_attr = parse_macro_input!(attr as CommandAttr);
-    let command_name = command_attr.name;
 
-    let storage = get_args_storage();
-    let mut pending_args = storage.lock().unwrap();
-    let args = pending_args.remove(&fn_name_str).unwrap_or_default();
+    let mut args = Vec::new();
+    let mut bevy_args = Vec::<(Box<Pat>, Type)>::new();
+    let mut has_sender_arg = false;
 
-    let arg_names = args.iter().map(|arg| &arg.name).collect::<Vec<&String>>();
-    let arg_parsers = args
-        .iter()
-        .map(|arg| syn::parse_str(&arg.parser).expect("invalid argument parser"))
-        .collect::<Vec<Expr>>();
-    let arg_required = args.iter().map(|arg| arg.required).collect::<Vec<bool>>();
+    for fn_arg in &mut input_fn.sig.inputs {
+        let FnArg::Typed(fn_arg) = fn_arg else {
+            return TokenStream::from(quote! {
+                compiler_error!("command handler cannot have receiver");
+            });
+        };
 
-    let register_fn_name = format_ident!("__register_{}_command", command_name.replace(" ", "_"));
-
-    let expanded = quote! {
-        #[ctor::ctor]
-        fn #register_fn_name() {
-            let command = Command {
-                name: #command_name,
-                args: vec![
-                    #(
-                        CommandArgument {
-                            name: #arg_names.to_string(),
-                            required: #arg_required,
-                            parser: Box::new(#arg_parsers),
-                        },
-                    )*
-                ],
-                executor: executor(#fn_name)
-            };
-
-            let command = std::sync::Arc::new(command);
-            register_command(command);
+        if fn_arg.attrs.is_empty() {
+            bevy_args.push((fn_arg.pat.clone(), *fn_arg.ty.clone()));
         }
 
-        #input_fn
+        let mut sender_arg_mismatched_ty = false;
+
+        fn_arg.attrs.retain(|arg| {
+            let is_parser = arg.path().is_ident("parser");
+            let is_sender = arg.path().is_ident("sender");
+
+            if is_parser {
+                let required = match *fn_arg.ty {
+                    Type::Path(ref path) => path
+                        .path
+                        .segments
+                        .iter()
+                        .any(|seg| seg.ident.to_string() == "Option"),
+                    _ => false,
+                };
+
+                args.push(Arg {
+                    parser: arg.parse_args_with(ArgAttr::parse).unwrap().parser,
+                    name: fn_arg.pat.to_token_stream().to_string(),
+                    required,
+                    ty: fn_arg.ty.to_token_stream().to_string(),
+                });
+            }
+
+            if is_sender {
+                match *fn_arg.ty {
+                    Type::Path(ref path) => {
+                        if !path
+                            .path
+                            .segments
+                            .iter()
+                            .any(|seg| seg.ident.to_string() == "Entity")
+                        {
+                            sender_arg_mismatched_ty = true;
+                            return false;
+                        }
+                    }
+
+                    _ => {
+                        sender_arg_mismatched_ty = true;
+                        return false;
+                    }
+                }
+                has_sender_arg = true;
+            }
+
+            !is_parser && !is_sender
+        });
+
+        if sender_arg_mismatched_ty {
+            return TokenStream::from(quote! {
+                compile_error!("invalid type for sender arg - should be Entity");
+            });
+        }
+    }
+
+    let command_struct_name = format_ident!("__command_{}", fn_name);
+    let arg_fields = args
+        .clone()
+        .iter()
+        .map(|arg| {
+            let ty = format_ident!("{}", arg.ty);
+            let name = format_ident!("{}", arg.name);
+
+            quote! { #name: #ty, }
+        })
+        .collect::<Vec<proc_macro2::TokenStream>>();
+
+    let system_name = format_ident!("__{}_handler", fn_name.clone());
+    let system_args = bevy_args
+        .clone()
+        .iter()
+        .map(|arg| {
+            let (pat, ty) = arg;
+            quote! { #pat: #ty, }
+        })
+        .collect::<Vec<proc_macro2::TokenStream>>();
+    let system_arg_pats = bevy_args
+        .clone()
+        .iter()
+        .map(|arg| {
+            let (pat, _) = arg;
+            quote!(#pat)
+        })
+        .collect::<Vec<proc_macro2::TokenStream>>();
+
+    let arg_extractors = args
+        .clone()
+        .iter()
+        .map(|arg| {
+            let name = format_ident!("{}", &arg.name);
+
+            quote! { event.#name, }
+        })
+        .collect::<Vec<proc_macro2::TokenStream>>();
+
+    let sender_param = if has_sender_arg {
+        quote! { event.__sender, }
+    } else {
+        quote! {}
     };
 
-    TokenStream::from(expanded)
+    TokenStream::from(quote! {
+        #[allow(non_camel_case_types)]
+        #[derive(bevy_ecs::prelude::Event, Clone)]
+        struct #command_struct_name {
+            #(#arg_fields)*
+            __sender: bevy_ecs::prelude::Entity,
+            __input: ::ferrumc_commands::input::CommandInput,
+        }
+
+        #[allow(non_snake_case)]
+        #[allow(dead_code)]
+        #input_fn
+
+        #[allow(non_snake_case)]
+        fn #system_name(mut events: bevy_ecs::prelude::EventReader<#command_struct_name>, #(#system_args)*) {
+            for mut event in events.read() {
+                let event = event.clone();
+                #fn_name(#(#arg_extractors)* #sender_param #(#system_arg_pats)*)
+            }
+        }
+    })
 }

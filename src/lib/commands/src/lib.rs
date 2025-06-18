@@ -13,10 +13,10 @@ use input::CommandInput;
 pub mod arg;
 pub mod ctx;
 pub mod errors;
+pub mod events;
 pub mod graph;
 pub mod infrastructure;
 pub mod input;
-pub mod events;
 
 #[cfg(test)]
 mod tests;

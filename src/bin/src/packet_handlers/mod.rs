@@ -1,8 +1,4 @@
-mod animations;
-mod chat_message;
-mod commands;
-mod handshake;
-mod login_process;
+// mod commands;
 pub(crate) mod play_packets;
 mod player;
 
