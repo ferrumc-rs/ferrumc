@@ -15,6 +15,13 @@ pub(crate) fn bench_cache(c: &mut Criterion) {
             criterion::BatchSize::PerIteration,
         );
     });
+    group.bench_function("Load chunk 1,1 uncached, owned", |b| {
+        b.iter_batched(
+            || World::new(&backend_path),
+            |world| world.load_chunk_owned(black_box(1), black_box(1), black_box("overworld")),
+            criterion::BatchSize::PerIteration,
+        );
+    });
     group.bench_function("Load block 1,1 uncached", |b| {
         b.iter_batched(
             || World::new(&backend_path),
@@ -39,6 +46,9 @@ pub(crate) fn bench_cache(c: &mut Criterion) {
     _ = load_chunk();
     group.bench_function("Load chunk 1,1 cached", |b| {
         b.iter(|| world.load_chunk(black_box(1), black_box(1), black_box("overworld")))
+    });
+    group.bench_function("Load chunk 1,1 cached, owned", |b| {
+        b.iter(|| world.load_chunk_owned(black_box(1), black_box(1), black_box("overworld")))
     });
     group.bench_function("Load block 1,1 cached", |b| {
         b.iter(|| {
