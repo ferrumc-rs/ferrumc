@@ -18,8 +18,6 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tracing::{debug, error, info, info_span, trace, warn, Instrument};
 
-const NS_PER_SECOND: u64 = 1_000_000_000;
-
 pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     // Setup the ECS world and schedules
     let mut ecs_world = World::new();
@@ -50,7 +48,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
 
     register_shutdown_systems(&mut shutdown_schedule);
 
-    let ns_per_tick = Duration::from_nanos(NS_PER_SECOND / get_global_config().tps as u64);
+    let time_per_tick = Duration::from_secs(1) / get_global_config().tps;
 
     // Start the TCP connection acceptor
     tcp_conn_acceptor(
@@ -63,7 +61,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
 
     info!(
         "Server is ready in {}",
-        format_duration(Instant::now().duration_since(global_state.start_time))
+        format_duration(global_state.start_time.elapsed())
     );
 
     while !global_state
@@ -71,14 +69,13 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
         .load(std::sync::atomic::Ordering::Relaxed)
     {
         let tick_start = Instant::now();
-
         // Run the ECS schedule
         schedule.run(&mut ecs_world);
 
         // Sleep to maintain the tick rate
         let elapsed_time = tick_start.elapsed();
-        let sleep_duration = if elapsed_time < ns_per_tick {
-            ns_per_tick - elapsed_time
+        let sleep_duration = if elapsed_time < time_per_tick {
+            time_per_tick - elapsed_time
         } else {
             Duration::ZERO
         };
@@ -93,7 +90,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
         } else {
             warn!(
                 "Server tick took too long: {:?}, max {:?}",
-                elapsed_time, ns_per_tick
+                elapsed_time, time_per_tick
             );
         }
     }
