@@ -74,11 +74,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
 
         // Sleep to maintain the tick rate
         let elapsed_time = tick_start.elapsed();
-        let sleep_duration = if elapsed_time < time_per_tick {
-            time_per_tick - elapsed_time
-        } else {
-            Duration::ZERO
-        };
+        let sleep_duration = time_per_tick.saturating_sub(elapsed_time);
 
         if sleep_duration > Duration::ZERO {
             trace!(
