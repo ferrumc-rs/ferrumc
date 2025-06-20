@@ -2,7 +2,7 @@ use crate::helpers::{StructInfo, extract_struct_info, get_derive_attributes};
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{DeriveInput, LitStr, parse_macro_input};
-
+#[allow(clippy::collapsible_if)]
 pub(crate) fn derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 

@@ -36,6 +36,7 @@ fn u8_slice_to_u32_be_normal(input: &[u8]) -> Vec<u32> {
 }
 
 #[cfg(all(target_arch = "x86_64", not(target_os = "macos")))]
+#[allow(unsafe_op_in_unsafe_fn)]
 unsafe fn u8_slice_to_u32_be_simd(input: &[u8]) -> Vec<u32> {
     debug_assert_eq!(
         input.len() % 4,
@@ -99,6 +100,7 @@ fn u8_slice_to_u64_be_normal(input: &[u8]) -> Vec<u64> {
 }
 
 #[cfg(all(target_arch = "x86_64", not(target_os = "macos")))]
+#[allow(unsafe_op_in_unsafe_fn)]
 #[target_feature(enable = "avx2")]
 unsafe fn u8_slice_to_u64_be_simd(input: &[u8]) -> Vec<u64> {
     debug_assert_eq!(
@@ -156,6 +158,7 @@ fn u32_slice_to_u8_be_normal(input: &[u32]) -> Vec<u8> {
 }
 
 #[cfg(all(target_arch = "x86_64", not(target_os = "macos")))]
+#[allow(unsafe_op_in_unsafe_fn)]
 #[target_feature(enable = "avx2")]
 unsafe fn u32_slice_to_u8_be_simd(input: &[u32]) -> Vec<u8> {
     let mut output: Vec<u8> = Vec::new();
@@ -198,6 +201,7 @@ fn u64_slice_to_u8_be_normal(input: &[u64]) -> Vec<u8> {
 }
 
 #[cfg(all(target_arch = "x86_64", not(target_os = "macos")))]
+#[allow(unsafe_op_in_unsafe_fn)]
 #[target_feature(enable = "avx2")]
 unsafe fn u64_slice_to_u8_be_simd(input: &[u64]) -> Vec<u8> {
     let mut output: Vec<u8> = Vec::new();

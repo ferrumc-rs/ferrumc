@@ -80,6 +80,7 @@ impl From<std::io::Error> for NetError {
         }
     }
 }
+#[allow(clippy::collapsible_if)]
 impl From<ferrumc_net_codec::net_types::NetTypesError> for NetError {
     fn from(err: ferrumc_net_codec::net_types::NetTypesError) -> Self {
         use ferrumc_net_codec::net_types::NetTypesError;
