@@ -105,17 +105,17 @@ ferrumc-world-gen = { path = "src/lib/world_gen" }
 ferrumc-threadpool = { path = "src/lib/utils/threadpool" }
 
 
-# Asynchronous
-tokio = { version = "1.45.1", features = ["full"] }
+# Web UI
+axum = "0.8.4"
 
 # Logging
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 tracing-appender = "0.2.3"
-log = "0.4.27"
 console-subscriber = "0.4.1"
 
 # Concurrency/Parallelism
+tokio = { version = "1.45.1", features = ["full"] }
 parking_lot = "0.12.4"
 rayon = "1.10.0"
 crossbeam-channel = "0.5.15"
@@ -123,8 +123,8 @@ rusty_pool = "0.7.0"
 crossbeam-queue = "0.3.12"
 
 # Network
-reqwest = { version = "0.12.19", features = ["json"] }
-ureq = "3.0.11"
+reqwest = { version = "0.12.20", features = ["json"] }
+ureq = "3.0.12"
 
 # Error handling
 thiserror = "2.0.12"
@@ -171,7 +171,7 @@ dhat = "0.3.3"
 flate2 = { version = "1.1.2", features = ["zlib"], default-features = false }
 lzzzz = "2.0.0"
 yazi = "0.2.1"
-bzip2 = "0.5.2"
+bzip2 = "0.6.0"
 
 # Database
 heed = "0.22.0"

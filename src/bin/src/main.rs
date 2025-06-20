@@ -23,6 +23,7 @@ mod packet_handlers;
 mod register_events;
 mod register_resources;
 mod systems;
+mod web_ui;
 
 #[cfg(feature = "dhat")]
 #[global_allocator]
