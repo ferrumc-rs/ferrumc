@@ -209,7 +209,7 @@ pub fn add_to_whitelist(uuid: Uuid) -> bool {
 }
 
 pub fn remove_from_whitelist(uuid: Uuid) -> bool {
-    WHITELIST.get_or_init(create_whitelist).insert(uuid.as_u128())
+    WHITELIST.get_or_init(create_whitelist).remove(&uuid.as_u128()).is_some()
 }
 
 pub fn create_blank_whitelist_file() {

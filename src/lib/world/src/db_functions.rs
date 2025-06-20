@@ -1,13 +1,14 @@
-// db_functions.rs
 use crate::chunk_format::Chunk;
 use crate::errors::WorldError;
 use crate::errors::WorldError::CorruptedChunkData;
+// db_functions.rs
+use crate::warn;
 use crate::World;
 use ferrumc_config::server_config::get_global_config;
 use std::hash::Hasher;
-use yazi::CompressionLevel;
 use std::sync::Arc;
 use tracing::trace;
+use yazi::CompressionLevel;
 
 impl World {
     /// Save a chunk to the storage backend
@@ -31,9 +32,9 @@ impl World {
         let chunk = load_chunk_internal(self, x, z, dimension);
         if let Ok(ref chunk) = chunk {
             self.cache
-                .insert((x, z, dimension.to_string()), chunk.clone());
+                .insert((x, z, dimension.to_string()), Arc::from(chunk.clone()));
         }
-        chunk
+        chunk.map(Arc::new)
     }
 
     pub fn load_chunk_owned(&self, x: i32, z: i32, dimension: &str) -> Result<Chunk, WorldError> {
