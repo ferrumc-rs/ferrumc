@@ -32,7 +32,7 @@ fn main() {
     #[cfg(feature = "dhat")]
     let _profiler = dhat::Profiler::new_heap();
 
-    let start_time = Arc::new(Instant::now());
+    let start_time = Instant::now();
 
     let cli_args = CLIArgs::parse();
     ferrumc_logging::init_logging(cli_args.log.into());
@@ -86,7 +86,10 @@ fn generate_chunks(state: GlobalState) -> Result<(), BinaryError> {
     for (x, z) in chunks {
         let state_clone = state.clone();
         batch.execute(move || {
-            let chunk = state_clone.terrain_generator.generate_chunk(x, z);
+            let chunk = state_clone
+                .terrain_generator
+                .generate_chunk(x, z)
+                .map(Arc::new);
             if let Err(e) = chunk {
                 error!("Error generating chunk ({}, {}): {:?}", x, z, e);
             } else {
@@ -102,7 +105,7 @@ fn generate_chunks(state: GlobalState) -> Result<(), BinaryError> {
     Ok(())
 }
 
-fn entry(start_time: Arc<Instant>) -> Result<(), BinaryError> {
+fn entry(start_time: Instant) -> Result<(), BinaryError> {
     let state = create_state(start_time)?;
     let global_state = Arc::new(state);
     create_whitelist();
@@ -135,7 +138,7 @@ fn handle_import(import_args: ImportArgs) -> Result<(), BinaryError> {
     info!("Importing world...");
 
     // let config = get_global_config();
-    let mut world = World::new(get_global_config().database.db_path.clone().into());
+    let mut world = World::new(&get_global_config().database.db_path);
 
     let root_path = get_root_path();
     let mut import_path = root_path.join(import_args.import_path);
@@ -155,9 +158,9 @@ fn handle_import(import_args: ImportArgs) -> Result<(), BinaryError> {
     Ok(())
 }
 
-fn create_state(start_time: Arc<Instant>) -> Result<ServerState, BinaryError> {
+fn create_state(start_time: Instant) -> Result<ServerState, BinaryError> {
     Ok(ServerState {
-        world: World::new(get_global_config().database.db_path.clone().into()),
+        world: World::new(&get_global_config().database.db_path),
         terrain_generator: WorldGenerator::new(0),
         shut_down: false.into(),
         players: PlayerList::default(),

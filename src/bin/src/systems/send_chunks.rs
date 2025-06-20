@@ -39,17 +39,18 @@ pub fn send_chunks(
     for (x, z, dim) in chunk_coords {
         let state_clone = state.clone();
         batch.execute(move || {
-            let chunk = if state_clone.world.chunk_exists(x, z, &dim).unwrap_or(false) {
-                state_clone
+            if state_clone.world.chunk_exists(x, z, &dim).unwrap_or(false) {
+                let chunk = state_clone
                     .world
                     .load_chunk(x, z, &dim)
-                    .map_err(WorldError)?
+                    .map_err(WorldError)?;
+                Ok((ChunkAndLightData::from_chunk(&chunk), x, z))
             } else {
                 trace!("Generating chunk {}x{} in dimension {}", x, z, dim);
                 // Don't bother saving the chunk if it hasn't been edited yet
-                state_clone.terrain_generator.generate_chunk(x, z)?
-            };
-            Ok((ChunkAndLightData::from_chunk(&chunk), x, z))
+                let chunk = state_clone.terrain_generator.generate_chunk(x, z)?;
+                Ok((ChunkAndLightData::from_chunk(&chunk), x, z))
+            }
         })
     }
 

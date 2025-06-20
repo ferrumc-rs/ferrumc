@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::errors::BinaryError;
 use bevy_ecs::prelude::{Entity, Query, Res};
 use ferrumc_net::connection::StreamWriter;
@@ -20,7 +22,7 @@ pub fn handle(
         let res: Result<(), BinaryError> = try {
             match event.status.0 {
                 0 => {
-                    let mut chunk = match state.0.clone().world.load_chunk(
+                    let mut chunk = match state.0.clone().world.load_chunk_owned(
                         event.location.x >> 4,
                         event.location.z >> 4,
                         "overworld",
@@ -42,7 +44,7 @@ pub fn handle(
                     );
                     chunk.set_block(relative_x, relative_y, relative_z, BlockData::default())?;
                     // Save the chunk to disk
-                    state.0.world.save_chunk(chunk)?;
+                    state.0.world.save_chunk(Arc::new(chunk))?;
                     for (eid, conn) in query {
                         if !state.0.players.is_connected(eid) {
                             continue;
