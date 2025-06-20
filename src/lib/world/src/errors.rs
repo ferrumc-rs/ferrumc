@@ -93,21 +93,13 @@ impl From<DataPackingError> for WorldError {
 impl From<yazi::Error> for WorldError {
     fn from(e: yazi::Error) -> Self {
         match e {
-            Error::Underflow => {
-                CompressionError("Underflow error during compression".to_string())
-            }
+            Error::Underflow => CompressionError("Underflow error during compression".to_string()),
             Error::InvalidBitstream => {
                 CompressionError("Invalid bitstream error during compression".to_string())
             }
-            Error::Overflow => {
-                CompressionError("Overflow error during compression".to_string())
-            }
-            Error::Finished => {
-                CompressionError("Finished error during compression".to_string())
-            }
-            Error::Io(io_err) => {
-                GenericIOError(io_err.to_string())
-            }
+            Error::Overflow => CompressionError("Overflow error during compression".to_string()),
+            Error::Finished => CompressionError("Finished error during compression".to_string()),
+            Error::Io(io_err) => GenericIOError(io_err.to_string()),
         }
     }
 }

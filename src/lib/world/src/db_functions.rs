@@ -121,7 +121,11 @@ pub(crate) fn save_chunk_internal(world: &World, chunk: &Chunk) -> Result<(), Wo
     if !world.storage_backend.table_exists("chunks".to_string())? {
         world.storage_backend.create_table("chunks".to_string())?;
     }
-    let as_bytes = yazi::compress(&bitcode::encode(chunk), yazi::Format::Zlib, CompressionLevel::BestSpeed)?;
+    let as_bytes = yazi::compress(
+        &bitcode::encode(chunk),
+        yazi::Format::Zlib,
+        CompressionLevel::BestSpeed,
+    )?;
     let digest = create_key(chunk.dimension.as_str(), chunk.x, chunk.z);
     world
         .storage_backend
@@ -135,7 +139,11 @@ pub(crate) fn save_chunk_internal_batch(world: &World, chunks: &[Chunk]) -> Resu
 
     for chunk in chunks.iter() {
         // Compress the chunk and encode it
-        let as_bytes = yazi::compress(&bitcode::encode(chunk), yazi::Format::Zlib, CompressionLevel::BestSpeed)?;
+        let as_bytes = yazi::compress(
+            &bitcode::encode(chunk),
+            yazi::Format::Zlib,
+            CompressionLevel::BestSpeed,
+        )?;
         // Create the key for the chunk
         let digest = create_key(chunk.dimension.as_str(), chunk.x, chunk.z);
         // Collect the key-value pair into the batch data
