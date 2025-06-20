@@ -18,6 +18,7 @@ use moka::sync::Cache;
 use std::fs::create_dir_all;
 use std::path::{Path, PathBuf};
 use std::process::exit;
+use std::sync::Arc;
 use std::time::Duration;
 use tracing::{error, trace, warn};
 
@@ -25,7 +26,7 @@ use tracing::{error, trace, warn};
 pub struct World {
     storage_backend: LmdbBackend,
     compressor: Compressor,
-    cache: Cache<(i32, i32, String), Chunk>,
+    cache: Cache<(i32, i32, String), Arc<Chunk>>,
 }
 
 fn check_config_validity() -> Result<(), WorldError> {
@@ -86,12 +87,12 @@ impl World {
     ///
     /// You'd probably want to call this at the start of your program. And then use the returned
     /// in a state struct or something.
-    pub fn new(backend_path: PathBuf) -> Self {
+    pub fn new(backend_path: impl Into<PathBuf>) -> Self {
         if let Err(e) = check_config_validity() {
             error!("Fatal error in database config: {}", e);
             exit(1);
         }
-        let mut backend_path = backend_path;
+        let mut backend_path = backend_path.into();
         // Clones are kinda ok here since this is only run once at startup.
         if backend_path.is_relative() {
             backend_path = get_root_path().join(backend_path);
@@ -144,7 +145,7 @@ impl World {
 
         let cache = Cache::builder()
             .eviction_listener(eviction_listener)
-            .weigher(|_k, v: &Chunk| v.deep_size_of() as u32)
+            .weigher(|_k, v: &Arc<Chunk>| v.deep_size_of() as u32)
             .time_to_live(Duration::from_secs(get_global_config().database.cache_ttl))
             .max_capacity(get_global_config().database.cache_capacity * 1024)
             .build();

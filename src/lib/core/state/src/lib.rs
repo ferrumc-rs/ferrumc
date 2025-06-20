@@ -15,7 +15,7 @@ pub struct ServerState {
     pub shut_down: AtomicBool,
     pub players: PlayerList, // (UUID, Username)
     pub thread_pool: ThreadPool,
-    pub start_time: Arc<Instant>,
+    pub start_time: Instant,
 }
 
 pub type GlobalState = Arc<ServerState>;
