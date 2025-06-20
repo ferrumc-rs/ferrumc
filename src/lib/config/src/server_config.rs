@@ -28,6 +28,8 @@ pub fn get_global_config() -> &'static ServerConfig {
 /// - `whitelist`: Whether the server whitelist is enabled or not.
 /// - `chunk_render_distance`: The render distance of the chunks. This is the number of chunks that will be
 ///   loaded around the player.
+/// - `system_stats_cooldown`: The cooldown in seconds for system stats updates. This is used to prevent
+/// too frequent updates of system stats, which can be expensive.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ServerConfig {
     pub host: String,
@@ -40,6 +42,7 @@ pub struct ServerConfig {
     pub network_compression_threshold: i32, // Can be negative
     pub whitelist: bool,
     pub chunk_render_distance: u32,
+    pub system_stats_cooldown: u32, // Cooldown in seconds for system stats updates
 }
 
 /// The database configuration section from [ServerConfig].

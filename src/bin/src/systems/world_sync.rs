@@ -9,7 +9,6 @@ pub fn sync_world(state: Res<GlobalStateResource>, mut last_synced: ResMut<World
 
     // Check if the world needs to be synced
     if last_synced.last_synced.elapsed().as_secs() >= 15 {
-        tracing::info!("Syncing world...");
         // Fire off a task to sync the world in the thread pool since syncing the world doesn't need
         // to be completed straight away, and we don't want to block the main thread
         let _handle = state.0.thread_pool.oneshot({

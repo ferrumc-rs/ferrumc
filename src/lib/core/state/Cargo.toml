@@ -13,3 +13,4 @@ crossbeam-queue = { workspace = true }
 atomic_float = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 sysinfo = { workspace = true }
+parking_lot = { workspace = true, features = ["serde"] }
