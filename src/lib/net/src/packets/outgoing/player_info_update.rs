@@ -1,6 +1,6 @@
 use bevy_ecs::prelude::{Component, Entity, Query};
 use ferrumc_core::identity::player_identity::PlayerIdentity;
-use ferrumc_macros::{packet, NetEncode};
+use ferrumc_macros::{NetEncode, packet};
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::Write;

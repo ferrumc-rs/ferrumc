@@ -4,9 +4,9 @@ use ferrumc_general_purpose::paths::get_root_path;
 use ferrumc_profiling::ProfilerTracingLayer;
 use tracing::Level;
 use tracing_appender::rolling::Rotation;
+use tracing_subscriber::EnvFilter;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
-use tracing_subscriber::EnvFilter;
 
 pub fn init_logging(trace_level: Level) {
     //let console = console_subscriber::spawn();

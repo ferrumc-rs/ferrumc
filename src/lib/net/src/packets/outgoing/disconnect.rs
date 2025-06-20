@@ -1,4 +1,4 @@
-use ferrumc_macros::{packet, NetEncode};
+use ferrumc_macros::{NetEncode, packet};
 use ferrumc_text::{ComponentBuilder, TextComponent};
 use std::io::Write;
 

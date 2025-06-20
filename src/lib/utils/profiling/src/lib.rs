@@ -7,10 +7,10 @@ use serde_derive::Serialize;
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 use tracing::span::Attributes;
-use tracing::{error, Id, Subscriber};
+use tracing::{Id, Subscriber, error};
+use tracing_subscriber::Layer;
 use tracing_subscriber::layer::Context;
 use tracing_subscriber::registry::LookupSpan;
-use tracing_subscriber::Layer;
 
 lazy_static! {
     static ref RESULTS_MAP: DashMap<String, Vec<SingleProfileResult>> = DashMap::new();

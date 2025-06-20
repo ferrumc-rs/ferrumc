@@ -1,5 +1,5 @@
 use bitcode::{Decode, Encode};
-use ferrumc_macros::{build_registry_packets, packet, NetEncode};
+use ferrumc_macros::{NetEncode, build_registry_packets, packet};
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::prefixed_optional::PrefixedOptional;
 use lazy_static::lazy_static;

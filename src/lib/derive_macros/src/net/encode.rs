@@ -1,9 +1,9 @@
-use crate::helpers::{get_derive_attributes, StructInfo};
+use crate::helpers::{StructInfo, get_derive_attributes};
 use crate::net::packets::get_packet_details_from_attributes;
 use crate::static_loading::packets::PacketBoundiness;
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput, Fields};
+use syn::{DeriveInput, Fields, parse_macro_input};
 
 // Generate packet ID encoding snippets
 fn generate_packet_id_snippets(

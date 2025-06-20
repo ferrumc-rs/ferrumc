@@ -1,5 +1,5 @@
 use proc_macro::TokenStream;
-use quote::{quote, ToTokens};
+use quote::{ToTokens, quote};
 
 pub fn profile_fn(attr: TokenStream, item: TokenStream) -> TokenStream {
     let item: proc_macro2::TokenStream = item.into();

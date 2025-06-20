@@ -2,7 +2,7 @@
 name = "ferrumc-world"
 description = "FerrumC specific world definition and implementation of a Minecraft World and related logic."
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 thiserror = { workspace = true }

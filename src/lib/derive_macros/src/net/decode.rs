@@ -1,8 +1,8 @@
-use crate::helpers::{extract_struct_info, get_derive_attributes, StructInfo};
+use crate::helpers::{StructInfo, extract_struct_info, get_derive_attributes};
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput, LitStr};
-
+use syn::{DeriveInput, LitStr, parse_macro_input};
+#[expect(clippy::collapsible_if)]
 pub(crate) fn derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 

@@ -3,7 +3,7 @@ use crate::errors::NetError;
 use crate::errors::NetError::HandshakeTimeout;
 use crate::errors::PacketError::InvalidPacket;
 use crate::packets::incoming::packet_skeleton::PacketSkeleton;
-use crate::{handle_packet, PacketSender};
+use crate::{PacketSender, handle_packet};
 use bevy_ecs::prelude::{Component, Entity};
 use crossbeam_channel::Sender;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
@@ -11,16 +11,16 @@ use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::ServerState;
 use std::io::BufWriter;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 use tokio::io::AsyncWriteExt;
-use tokio::net::tcp::OwnedWriteHalf;
 use tokio::net::TcpStream;
+use tokio::net::tcp::OwnedWriteHalf;
 use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
 use tokio::sync::oneshot;
 use tokio::time::timeout;
-use tracing::{debug_span, error, info, trace, warn, Instrument};
+use tracing::{Instrument, debug_span, error, info, trace, warn};
 use typename::TypeName;
 
 /// The maximum time to wait for a handshake to complete
@@ -244,8 +244,7 @@ pub async fn handle_connection(
             Ok(()) => {
                 trace!(
                     "Packet {:02X} handled for entity {:?}",
-                    packet_skele.id,
-                    entity
+                    packet_skele.id, entity
                 );
             }
             Err(err) => match &err {

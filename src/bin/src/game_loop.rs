@@ -8,15 +8,15 @@ use bevy_ecs::prelude::World;
 use bevy_ecs::schedule::ExecutorKind;
 use crossbeam_channel::Sender;
 use ferrumc_config::server_config::get_global_config;
-use ferrumc_net::connection::{handle_connection, NewConnection};
-use ferrumc_net::server::create_server_listener;
 use ferrumc_net::PacketSender;
+use ferrumc_net::connection::{NewConnection, handle_connection};
+use ferrumc_net::server::create_server_listener;
 use ferrumc_state::{GlobalState, GlobalStateResource};
 use ferrumc_utils::formatting::format_duration;
 use play_packets::register_packet_handlers;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
-use tracing::{debug, error, info, info_span, trace, warn, Instrument};
+use tracing::{Instrument, debug, error, info, info_span, trace, warn};
 
 pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     // Setup the ECS world and schedules
@@ -79,8 +79,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
         if sleep_duration > Duration::ZERO {
             trace!(
                 "Server tick took {:?}, sleeping for {:?}",
-                elapsed_time,
-                sleep_duration
+                elapsed_time, sleep_duration
             );
             std::thread::sleep(sleep_duration);
         } else {

@@ -94,7 +94,9 @@ impl World {
         if get_global_config().database.cache_ttl != 0
             && get_global_config().database.cache_capacity == 0
         {
-            error!("Cache TTL and capacity must both be set to 0 or both be set to a value greater than 0.");
+            error!(
+                "Cache TTL and capacity must both be set to 0 or both be set to a value greater than 0."
+            );
             exit(1);
         }
 

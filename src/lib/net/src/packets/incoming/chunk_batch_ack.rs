@@ -1,4 +1,4 @@
-use ferrumc_macros::{packet, NetDecode};
+use ferrumc_macros::{NetDecode, packet};
 
 #[derive(NetDecode)]
 #[packet(packet_id = "chunk_batch_received", state = "play")]

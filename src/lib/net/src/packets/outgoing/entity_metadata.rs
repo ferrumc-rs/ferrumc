@@ -2,7 +2,7 @@
 use crate::packets::outgoing::entity_metadata::entity_state::{EntityState, EntityStateMask};
 use crate::packets::outgoing::entity_metadata::index_type::EntityMetadataIndexType;
 use crate::packets::outgoing::entity_metadata::value::EntityMetadataValue;
-use ferrumc_macros::{packet, NetEncode};
+use ferrumc_macros::{NetEncode, packet};
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::Write;

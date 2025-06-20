@@ -1,5 +1,5 @@
 use crate::structs::{BlockState, Chunk, Palette};
-use criterion::{criterion_group, criterion_main, Criterion, Throughput};
+use criterion::{Criterion, Throughput, criterion_group, criterion_main};
 use fastnbt::Value;
 use ferrumc_macros::NBTDeserialize;
 use nbt as hematite_nbt;

@@ -1,6 +1,6 @@
 use quote::quote;
 use std::sync::LazyLock;
-use syn::{parse_macro_input, LitStr};
+use syn::{LitStr, parse_macro_input};
 
 static JSON_CONTENT: LazyLock<serde_json::Value> = LazyLock::new(|| {
     let json_str = include_str!("../../../../../assets/data/registries.json");

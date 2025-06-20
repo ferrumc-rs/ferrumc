@@ -1,4 +1,4 @@
-use ferrumc_macros::{packet, NetDecode};
+use ferrumc_macros::{NetDecode, packet};
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 
 #[derive(Debug, NetDecode)]
