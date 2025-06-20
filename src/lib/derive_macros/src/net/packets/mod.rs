@@ -1,11 +1,11 @@
-use crate::static_loading::packets::{get_packet_id, PacketBoundiness};
+use crate::static_loading::packets::{PacketBoundiness, get_packet_id};
 use colored::Colorize;
 use proc_macro::TokenStream;
-use quote::{format_ident, quote, ToTokens};
+use quote::{ToTokens, format_ident, quote};
 use regex::Regex;
 use std::env;
 use std::ops::Add;
-use syn::{parse_macro_input, Attribute};
+use syn::{Attribute, parse_macro_input};
 
 /// Returns: (state, packet_id)
 fn parse_packet_attribute(attr: &Attribute) -> Option<(String, String)> {

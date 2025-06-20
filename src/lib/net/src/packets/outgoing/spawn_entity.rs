@@ -4,7 +4,7 @@ use bevy_ecs::prelude::{Entity, Query};
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
-use ferrumc_macros::{get_registry_entry, packet, NetEncode};
+use ferrumc_macros::{NetEncode, get_registry_entry, packet};
 use ferrumc_net_codec::net_types::angle::NetAngle;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::Write;
@@ -34,10 +34,11 @@ impl SpawnEntityPacket {
         entity_id: Entity,
         query: Query<(&PlayerIdentity, &Position, &Rotation)>,
     ) -> Result<Self, NetError> {
-        let (player_identity, position, rotation) = query
-            .get(entity_id)
-            .unwrap_or_else(|_| panic!("Failed to get player identity, position, and rotation for entity ID: {entity_id:?}"
-            ));
+        let (player_identity, position, rotation) = query.get(entity_id).unwrap_or_else(|_| {
+            panic!(
+                "Failed to get player identity, position, and rotation for entity ID: {entity_id:?}"
+            )
+        });
 
         Ok(Self {
             entity_id: VarInt::new(player_identity.short_uuid),

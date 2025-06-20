@@ -1,4 +1,4 @@
-use ferrumc_macros::{packet, NetEncode};
+use ferrumc_macros::{NetEncode, packet};
 use std::io::Write;
 use typename::TypeName;
 

@@ -83,7 +83,7 @@ fn test_to_string() {
     assert_eq!(component.to_string(), Text::keybind("key.jump").to_string());
 }
 
-use ferrumc_macros::{packet, NetEncode};
+use ferrumc_macros::{NetEncode, packet};
 use ferrumc_nbt::NBTSerializable;
 use ferrumc_nbt::NBTSerializeOptions;
 use ferrumc_net_codec::{

@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use std::fmt::Display;
 use std::sync::LazyLock;
 use syn::parse::Parse;
-use syn::{parse_macro_input, LitStr, Token};
+use syn::{LitStr, Token, parse_macro_input};
 
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -87,7 +87,9 @@ impl From<&str> for PacketState {
             "login" => PacketState::Login,
             "play" => PacketState::Play,
             "status" => PacketState::Status,
-            wrong => panic!("Invalid state: {wrong}. Must be: `configuration`, `handshake`, `login`, `play`, or `status`"),
+            wrong => panic!(
+                "Invalid state: {wrong}. Must be: `configuration`, `handshake`, `login`, `play`, or `status`"
+            ),
         }
     }
 }
@@ -128,7 +130,9 @@ impl Parse for PacketTypeInput {
             "login" => PacketState::Login,
             "play" => PacketState::Play,
             "status" => PacketState::Status,
-            wrong => panic!("Invalid state: {wrong}. Must be: `configuration`, `handshake`, `login`, `play`, or `status`"),
+            wrong => panic!(
+                "Invalid state: {wrong}. Must be: `configuration`, `handshake`, `login`, `play`, or `status`"
+            ),
         };
 
         input.parse::<Token![,]>()?;

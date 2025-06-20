@@ -5,8 +5,8 @@ use bevy_ecs::prelude::Resource;
 use ferrumc_threadpool::ThreadPool;
 use ferrumc_world::World;
 use ferrumc_world_gen::WorldGenerator;
-use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
+use std::sync::atomic::AtomicBool;
 use std::time::Instant;
 
 pub struct ServerState {

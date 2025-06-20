@@ -83,8 +83,7 @@ pub async fn handle_handshake(
     if hs_packet.protocol_version.0 != PROTOCOL_VERSION_1_21_5 {
         trace!(
             "Protocol version mismatch: {} != {}",
-            hs_packet.protocol_version.0,
-            PROTOCOL_VERSION_1_21_5
+            hs_packet.protocol_version.0, PROTOCOL_VERSION_1_21_5
         );
         return handle_version_mismatch(hs_packet, conn_read, conn_write, state).await;
     }
@@ -120,8 +119,7 @@ async fn handle_version_mismatch(
             // Status response will show the correct version
             trace!(
                 "Protocol version mismatch during status request: {} != {}",
-                hs_packet.protocol_version.0,
-                PROTOCOL_VERSION_1_21_5
+                hs_packet.protocol_version.0, PROTOCOL_VERSION_1_21_5
             );
             status(conn_read, conn_write, state)
                 .await
@@ -143,8 +141,7 @@ async fn handle_version_mismatch(
 
             trace!(
                 "Sent login disconnect due to protocol version mismatch: {} != {}",
-                hs_packet.protocol_version.0,
-                PROTOCOL_VERSION_1_21_5
+                hs_packet.protocol_version.0, PROTOCOL_VERSION_1_21_5
             );
 
             Err(NetError::MismatchedProtocolVersion(

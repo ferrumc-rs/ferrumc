@@ -1,6 +1,6 @@
 use crate::errors::NetError;
 use byteorder::{BigEndian, WriteBytesExt};
-use ferrumc_macros::{packet, NetEncode};
+use ferrumc_macros::{NetEncode, packet};
 use ferrumc_net_codec::net_types::bitset::BitSet;
 use ferrumc_net_codec::net_types::byte_array::ByteArray;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
