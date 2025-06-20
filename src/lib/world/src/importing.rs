@@ -11,7 +11,7 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use std::thread;
 use tracing::{error, info};
-#[allow(clippy::collapsible_if)]
+#[expect(clippy::collapsible_if)]
 impl World {
     fn process_chunk_batch(
         &self,
