@@ -51,7 +51,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     let time_per_tick = Duration::from_secs(1) / get_global_config().tps;
 
     // Start the TCP connection acceptor
-    tcp_conn_acceptor(
+    net_conns(
         global_state.clone(),
         sender_struct,
         Arc::new(new_conn_send),
@@ -109,7 +109,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
 }
 
 // This is the bit where we bridge to async
-fn tcp_conn_acceptor(
+fn net_conns(
     state: GlobalState,
     packet_sender: Arc<PacketSender>,
     sender: Arc<Sender<NewConnection>>,
@@ -138,23 +138,17 @@ fn tcp_conn_acceptor(
                             accept_result = listener.accept() => {
                                 match accept_result {
                                     Ok((stream, _)) => {
-                                        let addy = stream.peer_addr()?;
-                                        debug!("Got TCP connection from {}", addy);
-                                        tokio::spawn({
-                                            let state = Arc::clone(&state);
-                                            let packet_sender = Arc::clone(&packet_sender);
-                                            let sender = Arc::clone(&sender);
-                                            async move {
-                                                _ = handle_connection(state, stream, packet_sender, sender)
-                                                    .instrument(info_span!("conn", %addy).or_current())
-                                                    .await;
-                                            }
-                                        });
+                                        accept_connection(state.clone(), stream, packet_sender.clone(), sender.clone())
+                                            .await?;
                                     }
                                     Err(e) => {
                                         error!("Failed to accept TCP connection: {:?}", e);
                                     }
                                 }
+                            }
+                            _ = crate::web_ui::start_web_ui(state.clone()) => {
+                                // This will run the web UI server in the background
+                                // If it fails, we log the error but continue accepting connections
                             }
                             _ = &mut shutdown_notify => {
                                 trace!("Shutdown signal received on notify channel");
@@ -184,5 +178,26 @@ fn tcp_conn_acceptor(
             "TCP connection acceptor thread panicked".to_string(),
         ))
     })?;
+    Ok(())
+}
+
+async fn accept_connection(
+    state: GlobalState,
+    stream: tokio::net::TcpStream,
+    packet_sender: Arc<PacketSender>,
+    sender: Arc<Sender<NewConnection>>,
+) -> Result<(), BinaryError> {
+    let addy = stream.peer_addr()?;
+    debug!("Got TCP connection from {}", addy);
+    tokio::spawn({
+        let state = Arc::clone(&state);
+        let packet_sender = Arc::clone(&packet_sender);
+        let sender = Arc::clone(&sender);
+        async move {
+            _ = handle_connection(state, stream, packet_sender, sender)
+                .instrument(info_span!("conn", %addy).or_current())
+                .await;
+        }
+    });
     Ok(())
 }
