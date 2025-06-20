@@ -39,6 +39,7 @@ crossbeam-channel = { workspace = true }
 uuid = { workspace = true }
 dhat = { workspace = true }
 axum = { workspace = true, features = ["json"] }
+sysinfo = { workspace = true }
 
 [features]
 dhat = []

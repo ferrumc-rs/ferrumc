@@ -10,3 +10,6 @@ ferrumc-world-gen = { workspace = true }
 dashmap = { workspace = true }
 ferrumc-threadpool = { workspace = true }
 crossbeam-queue = { workspace = true }
+atomic_float = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+sysinfo = { workspace = true }

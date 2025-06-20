@@ -167,5 +167,6 @@ fn create_state(start_time: Instant) -> Result<ServerState, BinaryError> {
         players: PlayerList::default(),
         thread_pool: ThreadPool::new(),
         start_time,
+        stats: Arc::new(ferrumc_state::Stats::default()),
     })
 }
