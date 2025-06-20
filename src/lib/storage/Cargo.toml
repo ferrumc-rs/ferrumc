@@ -6,14 +6,10 @@ edition = "2021"
 
 [dependencies]
 thiserror = { workspace = true }
-flate2 = { workspace = true }
 tracing = { workspace = true }
 ferrumc-config = { workspace = true }
 ferrumc-utils = { workspace = true }
 rand = { workspace = true }
-zstd = { workspace = true }
-brotli = { workspace = true }
-yazi = { workspace = true }
 heed = { workspace = true }
 page_size = { workspace = true }
 parking_lot = { workspace = true }

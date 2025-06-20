@@ -1,6 +1,7 @@
 use crate::errors::ConfigError;
-use crate::statics::get_whitelist;
+use dashmap::DashSet;
 use ferrumc_general_purpose::paths::get_root_path;
+use once_cell::sync::OnceCell;
 use rayon::prelude::*;
 use serde_derive::Deserialize;
 use std::collections::HashMap;
@@ -10,7 +11,13 @@ use std::io::Write;
 use tracing::error;
 use uuid::Uuid;
 
-pub fn create_whitelist() {
+static WHITELIST: OnceCell<DashSet<u128>> = OnceCell::new();
+
+pub fn get_whitelist() -> &'static DashSet<u128> {
+    WHITELIST.get_or_init(create_whitelist)
+}
+
+pub fn create_whitelist() -> DashSet<u128> {
     let whitelist_location = get_root_path().join("whitelist.txt");
     if !whitelist_location.exists() {
         create_blank_whitelist_file();
@@ -20,27 +27,33 @@ pub fn create_whitelist() {
         Ok(file) => file,
         Err(e) => {
             error!("Could not open whitelist file: {e}");
-            return;
+            return DashSet::new();
         }
     };
 
     let mut whitelist_str = String::new();
     if let Err(e) = file.read_to_string(&mut whitelist_str) {
         error!("Could not read whitelist file: {e}");
-        return;
+        return DashSet::new();
     }
 
     if whitelist_str.is_empty() {
-        return;
+        return DashSet::new();
     }
 
     let uuids: Vec<Uuid> = match convert_whitelist_file() {
         Ok(uuids) => uuids,
-        Err(_e) => return,
+        Err(_e) => return DashSet::new(),
     };
-    uuids.into_iter().for_each(|uuid| {
-        get_whitelist().insert(uuid.as_u128());
-    });
+
+    let whitelist_set = DashSet::new();
+    for uuid in uuids {
+        whitelist_set.insert(uuid.as_u128());
+    }
+    if whitelist_set.is_empty() {
+        create_blank_whitelist_file();
+    }
+    whitelist_set
 }
 
 ///converts usernames within the whitelist file to uuid, returns a list of all resulting uuids within the file
@@ -192,11 +205,16 @@ fn query_mojang_for_usernames(uuids: Vec<&Uuid>) -> Vec<MojangProfile> {
 }
 
 pub fn add_to_whitelist(uuid: Uuid) -> bool {
-    get_whitelist().insert(uuid.as_u128())
+    WHITELIST
+        .get_or_init(create_whitelist)
+        .insert(uuid.as_u128())
 }
 
 pub fn remove_from_whitelist(uuid: Uuid) -> bool {
-    get_whitelist().remove(&uuid.as_u128()).is_some()
+    WHITELIST
+        .get_or_init(create_whitelist)
+        .remove(&uuid.as_u128())
+        .is_some()
 }
 
 pub fn create_blank_whitelist_file() {

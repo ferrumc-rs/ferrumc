@@ -85,7 +85,7 @@ debug = true
 [workspace.dependencies]
 # Workspace members
 ferrumc-anvil = { path = "src/lib/adapters/anvil" }
-ferrumc-config = { path = "src/lib/utils/config" }
+ferrumc-config = { path = "src/lib/config" }
 ferrumc-core = { path = "src/lib/core" }
 ferrumc-general-purpose = { path = "src/lib/utils/general_purpose" }
 ferrumc-logging = { path = "src/lib/utils/logging" }
@@ -144,6 +144,7 @@ bitcode = "0.6.6"
 bitcode_derive = "0.6.5"
 toml = "0.8.23"
 craftflow-nbt = "2.1.0"
+figment = { version = "0.10.19", features = ["toml", "env"] }
 
 # Bit manipulation
 byteorder = "1.5.0"
@@ -167,10 +168,7 @@ macro_rules_attribute = "0.2.2"
 dhat = "0.3.3"
 
 # Compression/Decompression
-libflate = "2.1.0"
 flate2 = { version = "1.1.2", features = ["zlib"], default-features = false }
-zstd = { version = "0.13.3" }
-brotli = "8.0.1"
 lzzzz = "2.0.0"
 yazi = "0.2.1"
 bzip2 = "0.5.2"
@@ -193,6 +191,7 @@ ctrlc = "3.4.7"
 num_cpus = "1.17.0"
 typename = "0.1.2"
 bevy_ecs = { version = "0.16.1", features = ["multi_threaded", "trace"] }
+once_cell = "1.21.3"
 
 # I/O
 memmap2 = "0.9.5"

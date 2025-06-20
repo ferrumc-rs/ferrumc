@@ -3,7 +3,7 @@ use crate::conn_init::VarInt;
 use crate::conn_init::{send_packet, trim_packet_head};
 use crate::errors::{NetError, PacketError};
 use crate::packets::outgoing::registry_data::REGISTRY_PACKETS;
-use ferrumc_config::statics::get_global_config;
+use ferrumc_config::server_config::get_global_config;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net_codec::decode::NetDecode;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;

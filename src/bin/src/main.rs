@@ -2,7 +2,7 @@
 
 use crate::errors::BinaryError;
 use clap::Parser;
-use ferrumc_config::statics::get_global_config;
+use ferrumc_config::server_config::get_global_config;
 use ferrumc_config::whitelist::create_whitelist;
 use ferrumc_general_purpose::paths::get_root_path;
 use ferrumc_state::player_list::PlayerList;
@@ -57,6 +57,11 @@ fn main() {
         }
         Some(Command::Run) | None => {
             info!("Starting server...");
+            if let Err(e) = ferrumc_config::setup::setup() {
+                error!("Could not set up the server: {}", e.to_string());
+            } else {
+                info!("Server setup complete.");
+            }
             if let Err(e) = entry(start_time) {
                 error!("Server exited with the following error: {}", e.to_string());
             } else {
