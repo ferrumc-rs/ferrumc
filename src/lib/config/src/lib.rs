@@ -7,13 +7,11 @@
 //! The crate is organized into the following modules:
 //! - [errors](errors/index.html): Error types for the config module.
 //! - [server_config](server_config/index.html): Server configuration struct and functions.
-//! - [statics](statics/index.html): Static global configuration and related functions.
 
 pub mod errors;
 pub mod favicon;
 pub mod server_config;
 pub mod setup;
-pub mod statics;
 pub mod whitelist;
 
 // Re-exports

@@ -1,7 +1,0 @@
-
-        host = "
-        port = 25565
-        motd = ["hi", "bye"]
-        max_players = 100
-        network_tick_rate = 20
-        
