@@ -34,7 +34,6 @@ members = [
     "src/lib/world",
     "src/lib/world_gen",
     "src/lib/utils/threadpool",
-    "src/lib/pdc",
 ]
 
 #================== Lints ==================#
@@ -104,7 +103,6 @@ ferrumc-utils = { path = "src/lib/utils" }
 ferrumc-world = { path = "src/lib/world" }
 ferrumc-world-gen = { path = "src/lib/world_gen" }
 ferrumc-threadpool = { path = "src/lib/utils/threadpool" }
-ferrumc-pdc = { path = "src/lib/pdc" }
 
 
 # Asynchronous
@@ -127,7 +125,6 @@ crossbeam-queue = "0.3.12"
 # Network
 reqwest = { version = "0.12.19", features = ["json"] }
 ureq = "3.0.11"
-libdeflater = "1.24.0"
 
 # Error handling
 thiserror = "2.0.12"
