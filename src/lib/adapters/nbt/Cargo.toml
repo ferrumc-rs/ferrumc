@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 
 thiserror = { workspace = true }
+libflate = { workspace = true }
 ferrumc-net-codec = { workspace = true }
 tracing = { workspace = true }
 tokio = { workspace = true }

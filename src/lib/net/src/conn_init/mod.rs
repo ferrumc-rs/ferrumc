@@ -3,7 +3,7 @@ mod status;
 
 use crate::conn_init::login::login;
 use crate::conn_init::status::status;
-use crate::errors::{NetError, PacketError};
+use crate::errors::NetError;
 use crate::packets::incoming::handshake::Handshake;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
@@ -22,25 +22,12 @@ use tracing::{error, trace};
 pub(crate) async fn trim_packet_head(conn: &mut OwnedReadHalf, value: u8) -> Result<(), NetError> {
     let mut len = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
     let mut id = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
-    // Packets can't be longer than 2097151 bytes per https://minecraft.wiki/w/Java_Edition_protocol/Packets#Packet_format
-    if len.0 < 1 || len.0 > 2097151 {
-        error!("Received packet with invalid length: {}", len.0);
-        return Err(NetError::Packet(PacketError::MalformedPacket(Some(
-            id.0 as u8,
-        ))));
-    }
     while id.0 == 0x14 {
         trace!("Serverbound plugin message packet detected");
         let mut packet_data = vec![0; len.0 as usize - id.len()];
         conn.read_exact(&mut packet_data).await?;
         trace!("Packet data: {:?}", &packet_data);
         len = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
-        if len.0 < 1 || len.0 > 2097151 {
-            error!("Received packet with invalid length: {}", len.0);
-            return Err(NetError::Packet(PacketError::MalformedPacket(Some(
-                id.0 as u8,
-            ))));
-        }
         id = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
     }
     assert_eq!(id.0, value as i32);
@@ -56,6 +43,7 @@ pub(crate) async fn send_packet(
         .encode_async(&mut packet_buffer, &NetEncodeOpts::WithLength)
         .await?;
     conn.write_all(&packet_buffer).await?;
+    conn.flush().await?;
     Ok(())
 }
 pub const PROTOCOL_VERSION_1_21_5: i32 = 770;

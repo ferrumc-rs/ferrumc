@@ -15,12 +15,12 @@ use tracing::{error, info};
 impl World {
     fn process_chunk_batch(
         &self,
-        chunks: &[VanillaChunk],
-        progress: ProgressBar,
+        chunks: Vec<VanillaChunk>,
+        progress: Arc<ProgressBar>,
     ) -> Result<(), WorldError> {
         let chunk_objects: Vec<Chunk> = chunks
-            .iter()
-            .flat_map(|chunk| chunk.to_custom_format())
+            .into_iter()
+            .filter_map(|chunk| chunk.to_custom_format().ok())
             .collect();
 
         let mut success_count = 0;
@@ -69,7 +69,7 @@ impl World {
             .template("[{elapsed_precise}/{eta_precise} eta] {bar:40.cyan/blue} {percent}%, {pos:>7}/{len:7}, {per_sec}, {msg}")
             .unwrap();
 
-        let progress = ProgressBar::new(total_chunks);
+        let progress = Arc::new(ProgressBar::new(total_chunks));
         progress.set_style(progress_style);
 
         self.storage_backend.create_table("chunks".to_string())?;
@@ -107,17 +107,19 @@ impl World {
                         current_batch.push(vanilla_chunk);
 
                         if current_batch.len() >= batch_size {
+                            let batch = std::mem::replace(
+                                &mut current_batch,
+                                Vec::with_capacity(batch_size),
+                            );
+                            let progress_clone = Arc::clone(&progress);
                             let self_clone = self.clone();
-                            let progress_clone = progress.clone();
 
-                            let batch = core::mem::take(&mut current_batch);
-                            current_batch.reserve(batch_size);
                             let remaining_tasks_clone = remaining_tasks_clone.clone();
 
                             thread::spawn(move || {
                                 remaining_tasks_clone.fetch_add(1, Ordering::Relaxed);
                                 if let Err(e) =
-                                    self_clone.process_chunk_batch(&batch, progress_clone)
+                                    self_clone.process_chunk_batch(batch, progress_clone)
                                 {
                                     error!("Batch processing error: {}", e);
                                 }
@@ -134,13 +136,13 @@ impl World {
         }
 
         if !current_batch.is_empty() {
-            let progress = progress.clone();
+            let progress_clone = Arc::clone(&progress);
             let self_clone = self.clone();
             let remaining_tasks_clone = remaining_tasks.clone();
 
             thread::spawn(move || {
                 remaining_tasks_clone.fetch_add(1, Ordering::Relaxed);
-                if let Err(e) = self_clone.process_chunk_batch(&current_batch, progress) {
+                if let Err(e) = self_clone.process_chunk_batch(current_batch, progress_clone) {
                     error!("Final batch processing error: {}", e);
                 }
             });

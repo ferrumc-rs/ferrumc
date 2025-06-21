@@ -9,4 +9,3 @@ ferrumc-world = { workspace = true }
 ferrumc-world-gen = { workspace = true }
 dashmap = { workspace = true }
 ferrumc-threadpool = { workspace = true }
-crossbeam-queue = { workspace = true }

@@ -1,4 +1,4 @@
-use crate::errors::WorldError::{CompressionError, GenericIOError, PermissionError};
+use crate::errors::WorldError::{GenericIOError, PermissionError};
 use crate::vanilla_chunk_format::BlockData;
 use errors::AnvilError;
 use ferrumc_anvil::errors;
@@ -6,7 +6,6 @@ use ferrumc_general_purpose::data_packing::errors::DataPackingError;
 use ferrumc_storage::errors::StorageError;
 use std::io::ErrorKind;
 use thiserror::Error;
-use yazi::Error;
 
 #[derive(Debug, Error)]
 pub enum WorldError {
@@ -54,12 +53,6 @@ pub enum WorldError {
     InvalidBlockId(u32),
     #[error("World generation error: {0}")]
     WorldGenerationError(String),
-    #[error("Compression error: {0}")]
-    CompressionError(String),
-    #[error("Decompression error: {0}")]
-    DecompressionError(String),
-    #[error("Corrupted chunk data: got checksum {0}, expected checksum {1}")]
-    CorruptedChunkData(u32, u32),
 }
 
 impl From<std::io::Error> for WorldError {
@@ -87,19 +80,5 @@ impl From<AnvilError> for WorldError {
 impl From<DataPackingError> for WorldError {
     fn from(e: DataPackingError) -> Self {
         WorldError::InvalidBlockStateData(e.to_string())
-    }
-}
-
-impl From<yazi::Error> for WorldError {
-    fn from(e: yazi::Error) -> Self {
-        match e {
-            Error::Underflow => CompressionError("Underflow error during compression".to_string()),
-            Error::InvalidBitstream => {
-                CompressionError("Invalid bitstream error during compression".to_string())
-            }
-            Error::Overflow => CompressionError("Overflow error during compression".to_string()),
-            Error::Finished => CompressionError("Finished error during compression".to_string()),
-            Error::Io(io_err) => GenericIOError(io_err.to_string()),
-        }
     }
 }

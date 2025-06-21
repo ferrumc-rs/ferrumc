@@ -20,5 +20,3 @@ regex = { workspace = true }
 reqwest = { workspace = true }
 ureq = { workspace = true, features = ["json"] }
 rayon = { workspace = true }
-once_cell = { workspace = true }
-figment = { workspace = true }

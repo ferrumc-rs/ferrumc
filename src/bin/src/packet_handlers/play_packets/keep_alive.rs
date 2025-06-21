@@ -1,15 +1,15 @@
-use bevy_ecs::prelude::Res;
+use bevy_ecs::prelude::{EventWriter, Res};
 use bevy_ecs::system::Query;
+use ferrumc_core::conn::conn_kill_event::ConnectionKillEvent;
 use ferrumc_core::conn::keepalive::KeepAliveTracker;
 use ferrumc_net::IncomingKeepAlivePacketReceiver;
-use ferrumc_state::GlobalStateResource;
 use std::time::SystemTime;
 use tracing::{error, warn};
 
 pub fn handle(
     events: Res<IncomingKeepAlivePacketReceiver>,
     mut query: Query<&mut KeepAliveTracker>,
-    state: Res<GlobalStateResource>,
+    mut conn_kill: EventWriter<ConnectionKillEvent>,
 ) {
     for (event, eid) in events.0.try_iter() {
         let Ok(mut keep_alive_tracker) = query.get_mut(eid) else {
@@ -21,10 +21,10 @@ pub fn handle(
                 "Invalid keep alive packet received from {:?} with id {:?} (expected {:?})",
                 eid, event.timestamp, keep_alive_tracker.last_sent_keep_alive
             );
-            state
-                .0
-                .players
-                .disconnect(eid, Some("Invalid keep alive packet received".to_string()));
+            conn_kill.write(ConnectionKillEvent {
+                reason: Some("Invalid keep alive packet".to_string()),
+                entity: eid,
+            });
         } else {
             keep_alive_tracker.last_received_keep_alive = SystemTime::now();
             keep_alive_tracker.has_received_keep_alive = true;

@@ -19,7 +19,6 @@ ferrumc-storage = { workspace = true }
 ferrumc-utils = { workspace = true }
 ferrumc-config = { workspace = true }
 ferrumc-profiling = { workspace = true }
-ferrumc-text = { workspace = true }
 ferrumc-logging = { workspace = true }
 ferrumc-world = { workspace = true }
 ferrumc-macros = { workspace = true }
@@ -36,7 +35,7 @@ rand = { workspace = true }
 ctrlc = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 crossbeam-channel = { workspace = true }
-uuid = { workspace = true }
+dashmap = { workspace = true }
 dhat = { workspace = true }
 
 [features]

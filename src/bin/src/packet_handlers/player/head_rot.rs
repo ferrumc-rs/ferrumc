@@ -18,7 +18,7 @@ pub fn handle_player_move(
 
         let (rot, identity) = query.get(entity).unwrap();
         let head_rot_packet = SetHeadRotationPacket::new(
-            identity.uuid.as_u128() as i32,
+            identity.uuid as i32,
             NetAngle::from_degrees(rot.yaw as f64),
         );
 
@@ -29,7 +29,7 @@ pub fn handle_player_move(
             if !writer.running.load(std::sync::atomic::Ordering::Relaxed) {
                 continue;
             }
-            if let Err(err) = writer.send_packet(&head_rot_packet) {
+            if let Err(err) = writer.send_packet(head_rot_packet.clone()) {
                 error!("Failed to send head rotation packet: {:?}", err);
             }
         }

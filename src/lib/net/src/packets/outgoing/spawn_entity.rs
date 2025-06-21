@@ -41,7 +41,7 @@ impl SpawnEntityPacket {
 
         Ok(Self {
             entity_id: VarInt::new(player_identity.short_uuid),
-            entity_uuid: player_identity.uuid.as_u128(),
+            entity_uuid: player_identity.uuid,
             r#type: VarInt::new(PLAYER_ID as i32),
             x: position.x,
             y: position.y,

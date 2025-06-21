@@ -1,11 +1,10 @@
 #![feature(try_blocks)]
-
 use crate::errors::BinaryError;
 use clap::Parser;
-use ferrumc_config::server_config::get_global_config;
+use dashmap::DashMap;
+use ferrumc_config::statics::get_global_config;
 use ferrumc_config::whitelist::create_whitelist;
 use ferrumc_general_purpose::paths::get_root_path;
-use ferrumc_state::player_list::PlayerList;
 use ferrumc_state::{GlobalState, ServerState};
 use ferrumc_threadpool::ThreadPool;
 use ferrumc_world::World;
@@ -28,14 +27,21 @@ mod systems;
 #[global_allocator]
 static ALLOC: dhat::Alloc = dhat::Alloc;
 
+// fn kill_in_20() {
+//     std::thread::spawn(move || {
+//         std::thread::sleep(std::time::Duration::from_secs(20));
+//         std::process::exit(1);
+//     });
+// }
+
 fn main() {
     #[cfg(feature = "dhat")]
     let _profiler = dhat::Profiler::new_heap();
 
-    let start_time = Instant::now();
-
     let cli_args = CLIArgs::parse();
     ferrumc_logging::init_logging(cli_args.log.into());
+
+    // kill_in_20();
 
     match cli_args.command {
         Some(Command::Setup) => {
@@ -57,12 +63,7 @@ fn main() {
         }
         Some(Command::Run) | None => {
             info!("Starting server...");
-            if let Err(e) = ferrumc_config::setup::setup() {
-                error!("Could not set up the server: {}", e.to_string());
-            } else {
-                info!("Server setup complete.");
-            }
-            if let Err(e) = entry(start_time) {
+            if let Err(e) = entry() {
                 error!("Server exited with the following error: {}", e.to_string());
             } else {
                 info!("Server exited successfully.");
@@ -86,10 +87,7 @@ fn generate_chunks(state: GlobalState) -> Result<(), BinaryError> {
     for (x, z) in chunks {
         let state_clone = state.clone();
         batch.execute(move || {
-            let chunk = state_clone
-                .terrain_generator
-                .generate_chunk(x, z)
-                .map(Arc::new);
+            let chunk = state_clone.terrain_generator.generate_chunk(x, z);
             if let Err(e) = chunk {
                 error!("Error generating chunk ({}, {}): {:?}", x, z, e);
             } else {
@@ -105,8 +103,8 @@ fn generate_chunks(state: GlobalState) -> Result<(), BinaryError> {
     Ok(())
 }
 
-fn entry(start_time: Instant) -> Result<(), BinaryError> {
-    let state = create_state(start_time)?;
+fn entry() -> Result<(), BinaryError> {
+    let state = create_state()?;
     let global_state = Arc::new(state);
     create_whitelist();
     if !global_state.world.chunk_exists(0, 0, "overworld")? {
@@ -138,7 +136,7 @@ fn handle_import(import_args: ImportArgs) -> Result<(), BinaryError> {
     info!("Importing world...");
 
     // let config = get_global_config();
-    let mut world = World::new(&get_global_config().database.db_path);
+    let mut world = World::new(get_global_config().database.db_path.clone().into());
 
     let root_path = get_root_path();
     let mut import_path = root_path.join(import_args.import_path);
@@ -158,13 +156,12 @@ fn handle_import(import_args: ImportArgs) -> Result<(), BinaryError> {
     Ok(())
 }
 
-fn create_state(start_time: Instant) -> Result<ServerState, BinaryError> {
+fn create_state() -> Result<ServerState, BinaryError> {
     Ok(ServerState {
-        world: World::new(&get_global_config().database.db_path),
+        world: World::new(get_global_config().database.db_path.clone().into()),
         terrain_generator: WorldGenerator::new(0),
         shut_down: false.into(),
-        players: PlayerList::default(),
+        players: DashMap::default(),
         thread_pool: ThreadPool::new(),
-        start_time,
     })
 }

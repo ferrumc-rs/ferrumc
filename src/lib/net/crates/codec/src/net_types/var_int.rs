@@ -1,7 +1,7 @@
 use crate::decode::errors::NetDecodeError;
-use crate::decode::{NetDecode, NetDecodeOpts};
+use crate::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
 use crate::encode::errors::NetEncodeError;
-use crate::encode::{NetEncode, NetEncodeOpts};
+use crate::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
 use crate::net_types::NetTypesError;
 use bitcode::{Decode, Encode};
 use deepsize::DeepSizeOf;
@@ -156,13 +156,13 @@ impl VarInt {
 }
 
 impl NetDecode for VarInt {
-    fn decode<R: Read>(reader: &mut R, _opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
+    fn decode<R: Read>(reader: &mut R, _opts: &NetDecodeOpts) -> NetDecodeResult<Self> {
         VarInt::read(reader).map_err(|e| NetDecodeError::ExternalError(e.into()))
     }
     async fn decode_async<R: AsyncRead + Unpin>(
         reader: &mut R,
         _opts: &NetDecodeOpts,
-    ) -> Result<Self, NetDecodeError> {
+    ) -> NetDecodeResult<Self> {
         VarInt::read_async(reader)
             .await
             .map_err(|e| NetDecodeError::ExternalError(e.into()))
@@ -170,11 +170,7 @@ impl NetDecode for VarInt {
 }
 
 impl NetEncode for VarInt {
-    fn encode<W: Write>(
-        &self,
-        writer: &mut W,
-        _opts: &NetEncodeOpts,
-    ) -> Result<(), NetEncodeError> {
+    fn encode<W: Write>(&self, writer: &mut W, _opts: &NetEncodeOpts) -> NetEncodeResult<()> {
         self.write(writer)
             .map_err(|e| NetEncodeError::ExternalError(e.into()))
     }
@@ -183,7 +179,7 @@ impl NetEncode for VarInt {
         &self,
         writer: &mut W,
         _opts: &NetEncodeOpts,
-    ) -> Result<(), NetEncodeError> {
+    ) -> NetEncodeResult<()> {
         self.write_async(writer)
             .await
             .map_err(|e| NetEncodeError::ExternalError(e.into()))

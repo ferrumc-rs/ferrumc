@@ -1,4 +1,4 @@
-use ferrumc_config::server_config::get_global_config;
+use ferrumc_config::statics::get_global_config;
 use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::Write;

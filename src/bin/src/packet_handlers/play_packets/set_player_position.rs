@@ -13,14 +13,12 @@ use ferrumc_net::packets::outgoing::entity_position_sync::TeleportEntityPacket;
 use ferrumc_net::packets::outgoing::update_entity_position::UpdateEntityPositionPacket;
 use ferrumc_net::packets::outgoing::update_entity_position_and_rotation::UpdateEntityPositionAndRotationPacket;
 use ferrumc_net::packets::outgoing::update_entity_rotation::UpdateEntityRotationPacket;
-use ferrumc_state::{GlobalState, GlobalStateResource};
 
 pub fn handle(
     events: Res<SetPlayerPositionPacketReceiver>,
     mut pos_query: Query<(&mut Position, &mut OnGround, &Rotation, &PlayerIdentity)>,
-    pass_conn_query: Query<(Entity, &StreamWriter)>,
+    pass_conn_query: Query<&StreamWriter>,
     mut cross_chunk_events: EventWriter<CrossChunkBoundaryEvent>,
-    state: Res<GlobalStateResource>,
 ) {
     for (event, eid) in events.0.try_iter() {
         let new_rot = None::<Rotation>;
@@ -53,15 +51,8 @@ pub fn handle(
 
         *on_ground = OnGround(event.on_ground);
 
-        update_pos_for_all(
-            eid,
-            delta_pos,
-            new_rot,
-            &pos_query,
-            &pass_conn_query,
-            state.0.clone(),
-        )
-        .expect("Failed to update position for all players");
+        update_pos_for_all(eid, delta_pos, new_rot, &pos_query, &pass_conn_query)
+            .expect("Failed to update position for all players");
     }
 }
 
@@ -78,8 +69,7 @@ fn update_pos_for_all(
     delta_pos: Option<(i16, i16, i16)>,
     new_rot: Option<Rotation>,
     pos_query: &Query<(&mut Position, &mut OnGround, &Rotation, &PlayerIdentity)>,
-    conn_query: &Query<(Entity, &StreamWriter)>,
-    state: GlobalState,
+    conn_query: &Query<&StreamWriter>,
 ) -> Result<(), BinaryError> {
     let (pos, grounded, rot, identity) = pos_query.get(entity_id)?;
 
@@ -124,11 +114,11 @@ fn update_pos_for_all(
         }
     };
 
-    for (entity, conn) in conn_query.iter() {
-        if !state.players.is_connected(entity) {
+    for writer in conn_query.iter() {
+        if !writer.running.load(std::sync::atomic::Ordering::Relaxed) {
             continue;
         }
-        conn.send_packet(&packet)?;
+        writer.send_packet(packet.clone())?;
     }
 
     Ok(())

@@ -27,10 +27,10 @@ pub fn send_chunks(
     });
 
     let center_chunk_packet = SetCenterChunk::new(center_x, center_z);
-    conn.send_packet(&center_chunk_packet)?;
+    conn.send_packet(center_chunk_packet)?;
 
     let batch_start_packet = ChunkBatchStart {};
-    conn.send_packet(&batch_start_packet)?;
+    conn.send_packet(batch_start_packet)?;
 
     let mut chunks_sent = 0;
 
@@ -39,18 +39,17 @@ pub fn send_chunks(
     for (x, z, dim) in chunk_coords {
         let state_clone = state.clone();
         batch.execute(move || {
-            if state_clone.world.chunk_exists(x, z, &dim).unwrap_or(false) {
-                let chunk = state_clone
+            let chunk = if state_clone.world.chunk_exists(x, z, &dim).unwrap_or(false) {
+                state_clone
                     .world
                     .load_chunk(x, z, &dim)
-                    .map_err(WorldError)?;
-                Ok((ChunkAndLightData::from_chunk(&chunk), x, z))
+                    .map_err(WorldError)?
             } else {
                 trace!("Generating chunk {}x{} in dimension {}", x, z, dim);
                 // Don't bother saving the chunk if it hasn't been edited yet
-                let chunk = state_clone.terrain_generator.generate_chunk(x, z)?;
-                Ok((ChunkAndLightData::from_chunk(&chunk), x, z))
-            }
+                state_clone.terrain_generator.generate_chunk(x, z)?
+            };
+            Ok((ChunkAndLightData::from_chunk(&chunk), x, z))
         })
     }
 
@@ -60,7 +59,7 @@ pub fn send_chunks(
         match packet {
             Ok((packet, x, z)) => {
                 trace!("Sending chunk data for chunk at coordinates ({}, {})", x, z);
-                conn.send_packet(&packet?)?;
+                conn.send_packet(packet?)?;
                 chunks_sent += 1;
             }
             Err(WorldError(e)) => {
@@ -77,7 +76,7 @@ pub fn send_chunks(
     let batch_end_packet = ChunkBatchFinish {
         batch_size: VarInt::new(chunks_sent),
     };
-    conn.send_packet(&batch_end_packet)?;
+    conn.send_packet(batch_end_packet)?;
 
     Ok(())
 }

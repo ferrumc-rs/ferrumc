@@ -4,7 +4,7 @@ use lazy_static::lazy_static;
 use std::fs::File;
 use std::io::Read;
 
-const BAKED_FAVICON: &[u8] = include_bytes!("../../../../assets/data/icon-64.png");
+const BAKED_FAVICON: &[u8] = include_bytes!("../../../../../icon-64.png");
 
 lazy_static! {
     static ref FAVICON_BASE64: String = {

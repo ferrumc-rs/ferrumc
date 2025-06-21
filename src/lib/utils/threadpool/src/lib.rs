@@ -27,14 +27,13 @@ impl ThreadPool {
     /// Creates a new `ThreadPool`.
     pub fn new() -> Self {
         // Use all but 3 cores for the thread pool. 1 core is for the main thread, 1 for the network thread and 1 for the control-c handler.
-        let core_count = max(1, num_cpus::get() as i32) as usize;
+        let core_count = max(1, num_cpus::get() as i32 - 3) as usize;
         let pool = Arc::new(rusty_pool::ThreadPool::new_named(
             "ferrumc_threadpool".to_string(),
             core_count,
             core_count,
             Duration::from_secs(60),
         ));
-        pool.start_core_threads();
         Self { pool }
     }
 
@@ -53,16 +52,14 @@ impl ThreadPool {
         }
     }
 
-    /// Executes a single task in the thread pool and returns a `JoinHandle` for the result.
-    ///
-    /// You can either wait for the result, or just drop the handle and let the task run in the background.
+    /// Executes a single task in the thread pool and returns its result.
     ///
     /// # Arguments
     /// * `func` - A function to be executed.
     ///
     /// # Returns
-    /// A `JoinHandle` that can be used to await the result of the task.
-    pub fn oneshot<F, R>(&self, func: F) -> JoinHandle<Box<R>>
+    /// The result of the executed function.
+    pub fn oneshot<F, R>(&self, func: F) -> R
     where
         F: FnOnce() -> R + Send + 'static,
         R: Send + 'static,
@@ -75,7 +72,9 @@ impl ThreadPool {
             panic!("Thread pool is trying to run a task on itself, this is not allowed");
         }
         let boxed = move || Box::new(func());
-        self.pool.evaluate(boxed)
+        let handle = self.pool.evaluate(boxed);
+        let result = handle.await_complete();
+        *result
     }
 }
 
@@ -147,7 +146,7 @@ impl<'a, R: Send + 'static> ThreadPoolBatch<'a, R> {
             panic!("Batch already completed");
         }
 
-        let mut results = Vec::with_capacity(self.handles.len());
+        let mut results = vec![];
         for handle in self.handles {
             let result = handle.await_complete();
             results.push(*result);

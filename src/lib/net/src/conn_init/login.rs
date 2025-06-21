@@ -1,14 +1,14 @@
 use crate::conn_init::NetDecodeOpts;
 use crate::conn_init::VarInt;
 use crate::conn_init::{send_packet, trim_packet_head};
-use crate::errors::{NetError, PacketError};
+use crate::errors::NetError;
 use crate::packets::outgoing::registry_data::REGISTRY_PACKETS;
-use ferrumc_config::server_config::get_global_config;
+use ferrumc_config::statics::get_global_config;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net_codec::decode::NetDecode;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_state::GlobalState;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::io::AsyncReadExt;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tracing::{error, trace};
 
@@ -36,7 +36,11 @@ pub(super) async fn login(
 
     send_packet(conn_write, &login_success).await?;
 
-    let player_identity = PlayerIdentity::new(login_start.username.clone(), login_start.uuid);
+    let player_identity = PlayerIdentity {
+        uuid: login_start.uuid,
+        username: login_start.username.clone(),
+        short_uuid: login_start.uuid as i32,
+    };
 
     // =============================================================================================
 
@@ -57,14 +61,6 @@ pub(super) async fn login(
     let len = VarInt::decode_async(&mut conn_read, &NetDecodeOpts::None).await?;
     let id = VarInt::decode_async(&mut conn_read, &NetDecodeOpts::None).await?;
     assert_eq!(id.0, 0x02);
-    // Limit the buffer to this max length, so we don't allocate too much memory
-    // The wiki says it can't be larger than 1048576, but we add 64 just to be safe
-    if len.0 < 1 || len.0 > 1048576 + 64 {
-        error!("Received packet with invalid length: {}", len.0);
-        return Err(NetError::Packet(PacketError::MalformedPacket(Some(
-            id.0 as u8,
-        ))));
-    }
     let mut buf = vec![0; len.0 as usize - id.len()];
     conn_read.read_exact(&mut buf).await?;
 
@@ -194,34 +190,22 @@ pub(super) async fn login(
 
     let radius = get_global_config().chunk_render_distance as i32;
 
-    let mut batch = state.thread_pool.batch();
-
     for x in -radius..=radius {
         for z in -radius..=radius {
-            batch.execute({
-                let state = state.clone();
-                move || {
-                    let chunk = state.world.load_chunk(x, z, "overworld")?;
-                    crate::packets::outgoing::chunk_and_light_data::ChunkAndLightData::from_chunk(
-                        &chunk,
-                    )
+            let chunk = match state.world.load_chunk(x, z, "overworld") {
+                Ok(chunk) => chunk,
+                Err(e) => {
+                    error!("Failed to load chunk {} {}: {}", x, z, e);
+                    continue;
                 }
-            });
+            };
+            let chunk_data =
+                crate::packets::outgoing::chunk_and_light_data::ChunkAndLightData::from_chunk(
+                    &chunk,
+                )?;
+            send_packet(conn_write, &chunk_data).await?;
         }
     }
-    let chunks = batch.wait();
-    for chunk in chunks {
-        match chunk {
-            Ok(chunk_data) => {
-                send_packet(conn_write, &chunk_data).await?;
-            }
-            Err(err) => {
-                error!("Failed to send chunk data: {:?}", err);
-            }
-        }
-    }
-
-    conn_write.flush().await?;
 
     Ok((false, Some(player_identity)))
 }

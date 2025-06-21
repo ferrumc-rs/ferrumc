@@ -115,7 +115,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                 fn decode<R: std::io::Read>(
                     reader: &mut R,
                     opts: &ferrumc_net_codec::decode::NetDecodeOpts
-                ) ->Result<Self, ferrumc_net_codec::decode::errors::NetDecodeError> {
+                ) -> ferrumc_net_codec::decode::NetDecodeResult<Self> {
                     // Decode the initial numeric value
                     let value = <#type_cast_ty as ferrumc_net_codec::decode::NetDecode>::decode(reader, opts)?;
                     // Possibly transform via the handler
@@ -133,7 +133,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                 async fn decode_async<R: tokio::io::AsyncRead + Unpin>(
                     reader: &mut R,
                     opts: &ferrumc_net_codec::decode::NetDecodeOpts
-                ) ->Result<Self, ferrumc_net_codec::decode::errors::NetDecodeError> {
+                ) -> ferrumc_net_codec::decode::NetDecodeResult<Self> {
                     // Decode the initial numeric value
                     let value = <#type_cast_ty as ferrumc_net_codec::decode::NetDecode>::decode_async(reader, opts).await?;
                     // Possibly transform via the handler
@@ -284,7 +284,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
             fn decode<R: std::io::Read>(
                 reader: &mut R,
                 opts: &ferrumc_net_codec::decode::NetDecodeOpts
-            ) ->Result<Self, ferrumc_net_codec::decode::errors::NetDecodeError> {
+            ) -> ferrumc_net_codec::decode::NetDecodeResult<Self> {
                 #(#decode_statements)*
 
                 #build_struct
@@ -293,7 +293,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
             async fn decode_async<R: tokio::io::AsyncRead + Unpin>(
                 reader: &mut R,
                 opts: &ferrumc_net_codec::decode::NetDecodeOpts
-            ) ->Result<Self, ferrumc_net_codec::decode::errors::NetDecodeError> {
+            ) -> ferrumc_net_codec::decode::NetDecodeResult<Self> {
                 #(#async_decode_statements)*
 
                 #build_struct

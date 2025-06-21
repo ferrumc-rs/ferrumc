@@ -7,7 +7,6 @@ use ferrumc_general_purpose::data_packing::i32::read_nbit_i32;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
-use std::sync::Arc;
 use tracing::{debug, error, warn};
 
 impl World {
@@ -76,7 +75,7 @@ impl World {
         // Get chunk
         let chunk_x = x >> 4;
         let chunk_z = z >> 4;
-        let mut chunk = self.load_chunk_owned(chunk_x, chunk_z, dimension)?;
+        let mut chunk = self.load_chunk(chunk_x, chunk_z, dimension)?;
 
         debug!("Chunk: {}, {}", chunk_x, chunk_z);
 
@@ -86,7 +85,7 @@ impl World {
         }
 
         // Save chunk
-        self.save_chunk(Arc::new(chunk))?;
+        self.save_chunk(chunk)?;
         Ok(())
     }
 }

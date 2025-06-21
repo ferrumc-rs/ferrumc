@@ -36,7 +36,7 @@ impl LmdbBackend {
             std::fs::create_dir_all(&checked_path)?;
         }
         // Convert the map size from GB to bytes and round it to the nearest page size.
-        let map_size = ferrumc_config::server_config::get_global_config()
+        let map_size = ferrumc_config::statics::get_global_config()
             .database
             .map_size as usize
             * 1024
