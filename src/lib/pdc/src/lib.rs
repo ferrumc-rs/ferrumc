@@ -2,16 +2,22 @@ use std::marker::PhantomData;
 
 use serde::{Serialize, de::DeserializeOwned};
 
+use crate::container::PersistentDataContainer;
+
 pub mod container;
 pub mod errors;
-pub mod load;
-pub mod save;
 
 #[cfg(test)]
 mod tests;
 
 pub trait PersistentContainer: Serialize + DeserializeOwned {}
 impl<T> PersistentContainer for T where T: Serialize + DeserializeOwned {}
+
+pub trait PersistentDataHolder {
+    fn get_persistent_data(&self) -> &PersistentDataContainer;
+
+    fn edit_persistent_data<F: FnOnce(&mut PersistentDataContainer)>(&mut self, func: F);
+}
 
 pub struct PersistentKey<T> {
     pub identifier: String,
