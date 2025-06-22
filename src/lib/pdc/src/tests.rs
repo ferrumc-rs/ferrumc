@@ -1,4 +1,7 @@
-use crate::{PersistentDataHolder, PersistentKey, container::PersistentDataContainer};
+use crate::{
+    PersistentDataHolder, PersistentKey, container::PersistentDataContainer,
+    errors::PersistentDataError,
+};
 
 #[derive(Default)]
 struct PlayerTesting {
@@ -10,22 +13,39 @@ impl PersistentDataHolder for PlayerTesting {
         &self.data
     }
 
-    fn edit_persistent_data<F: FnOnce(&mut PersistentDataContainer)>(&mut self, func: F) {
-        func(&mut self.data);
+    fn edit_persistent_data<
+        F: FnOnce(&mut PersistentDataContainer) -> Result<(), PersistentDataError>,
+    >(
+        &mut self,
+        func: F,
+    ) {
+        func(&mut self.data).expect("Editing Persistent Data failed for PlayerTesting");
+    }
+}
+
+struct TestingKey;
+
+impl PersistentKey for TestingKey {
+    type Value = i32;
+
+    fn key() -> &'static str {
+        "health"
     }
 }
 
 #[test]
-fn something() {
+fn something() -> Result<(), PersistentDataError> {
     let mut testing = PlayerTesting::default();
-    let testing_key = PersistentKey::<i32>::new("minecraft", "testing");
-
     testing.edit_persistent_data(|data| {
-        data.set(&testing_key, 100);
+        data.set::<TestingKey>(100)?;
+
+        Ok(())
     });
 
     let persistent_data = testing.get_persistent_data();
-    if let Ok(grabbed_value) = persistent_data.get(&testing_key) {
+    if let Ok(grabbed_value) = persistent_data.get::<TestingKey>() {
         println!("Testing: {}", grabbed_value);
     }
+
+    Ok(())
 }
