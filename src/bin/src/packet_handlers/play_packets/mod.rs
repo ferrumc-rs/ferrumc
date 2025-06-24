@@ -1,6 +1,7 @@
 use bevy_ecs::schedule::Schedule;
 
 mod chunk_batch_ack;
+mod command;
 mod confirm_player_teleport;
 mod keep_alive;
 mod place_block;
