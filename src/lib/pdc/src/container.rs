@@ -38,66 +38,54 @@ impl PersistentDataContainer {
         }
     }
 
-    pub fn set<K: PersistentKey + 'static>(
+    pub fn set<T: PersistentContainer + 'static>(
         &mut self,
-        value: K::Value,
+        key: &PersistentKey<T>,
+        value: T,
     ) -> Result<(), PersistentDataError> {
-        let json_value =
-            serde_json::to_value(value).map_err(|_| PersistentDataError::DeserializationError)?;
-
-        self.type_map
-            .insert(K::key().to_string(), TypeId::of::<K::Value>());
-        self.data.insert(K::key().to_string(), json_value);
-
+        if let Ok(json_value) = serde_json::to_value(value) {
+            self.type_map
+                .insert(key.identifier.clone(), TypeId::of::<T>());
+            self.data.insert(key.identifier.clone(), json_value);
+        }
         Ok(())
     }
 
-    pub fn get<K: PersistentKey + 'static>(&self) -> Result<K::Value, PersistentDataError> {
-        match self.type_map.get(K::key()) {
-            Some(stored_type) if *stored_type == TypeId::of::<K::Value>() => {
-                let json_value = self
-                    .data
-                    .get(K::key())
-                    .ok_or(PersistentDataError::KeyNotFound)?;
-
-                serde_json::from_value(json_value.clone())
-                    .map_err(|_| PersistentDataError::DeserializationError)
-            }
-            Some(_) => Err(PersistentDataError::TypeMismatch {
-                expected: type_name::<K::Value>(),
-            }),
-            None => Err(PersistentDataError::KeyNotFound),
+    pub fn get<T: PersistentContainer + 'static>(&self, key: &PersistentKey<T>) -> Option<T> {
+        match self.type_map.get(&key.identifier) {
+            Some(stored_type) if *stored_type == TypeId::of::<T>() => self
+                .data
+                .get(&key.identifier)
+                .and_then(|value| serde_json::from_value(value.clone()).ok()),
+            _ => None,
         }
     }
 
-    pub fn get_unchecked<K: PersistentKey + 'static>(&self) -> K::Value {
-        self.get::<K>().unwrap_or_else(|_| {
-            panic!(
-                "PersistentDataContainer::get_unchecked failed for key: {}",
-                K::key()
-            )
-        })
+    pub fn get_unchecked<T: PersistentContainer + 'static>(&self, key: &PersistentKey<T>) -> T {
+        self.get::<T>(key).expect(&format!(
+            "PersistentDataContainer::get_unchecked failed for key: {}",
+            key.identifier
+        ))
     }
 
-    pub fn get_or<K: PersistentKey + 'static>(&self, fallback: K::Value) -> K::Value
-    where
-        K::Value: Clone,
-    {
-        self.get::<K>().unwrap_or(fallback)
+    pub fn get_or<T: PersistentContainer + 'static>(
+        &self,
+        key: &PersistentKey<T>,
+        fallback: T,
+    ) -> T {
+        self.get(key).unwrap_or(fallback)
     }
 
-    pub fn get_or_default<K: PersistentKey + 'static>(&self) -> K::Value
-    where
-        K::Value: Default,
-    {
-        self.get::<K>().unwrap_or_default()
+    pub fn get_or_default<T: PersistentContainer + Default + 'static>(
+        &self,
+        key: &PersistentKey<T>,
+    ) -> T {
+        self.get(key).unwrap_or_default()
     }
 
-    pub fn remove<K: PersistentKey>(&mut self) {
-        let key = K::key();
-
-        self.data.remove(key);
-        self.type_map.remove(key);
+    pub fn remove<T>(&mut self, key: &PersistentKey<T>) {
+        self.data.remove(&key.identifier);
+        self.type_map.remove(&key.identifier);
     }
 
     pub fn clear(&mut self) {
@@ -105,8 +93,8 @@ impl PersistentDataContainer {
         self.type_map.clear();
     }
 
-    pub fn has<K: PersistentKey>(&self) -> bool {
-        self.data.contains_key(K::key())
+    pub fn has<T>(&self, key: &PersistentKey<T>) -> bool {
+        self.data.contains_key(&key.identifier)
     }
 
     pub fn is_empty(&self) -> bool {

@@ -24,8 +24,16 @@ pub trait PersistentDataHolder {
     );
 }
 
-pub trait PersistentKey {
-    type Value: Serialize + for<'de> Deserialize<'de>;
+pub struct PersistentKey<T> {
+    identifier: String,
+    _marker: PhantomData<T>,
+}
 
-    fn key() -> &'static str;
+impl<T> PersistentKey<T> {
+    pub fn new(key: &str) -> Self {
+        Self {
+            identifier: key.to_string(),
+            _marker: PhantomData,
+        }
+    }
 }

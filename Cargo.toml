@@ -106,7 +106,6 @@ ferrumc-world-gen = { path = "src/lib/world_gen" }
 ferrumc-threadpool = { path = "src/lib/utils/threadpool" }
 ferrumc-pdc = { path = "src/lib/pdc" }
 
-
 # Asynchronous
 tokio = { version = "1.45.1", features = ["full"] }
 

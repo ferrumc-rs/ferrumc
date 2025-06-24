@@ -23,27 +23,18 @@ impl PersistentDataHolder for PlayerTesting {
     }
 }
 
-struct TestingKey;
-
-impl PersistentKey for TestingKey {
-    type Value = i32;
-
-    fn key() -> &'static str {
-        "health"
-    }
-}
-
 #[test]
 fn something() -> Result<(), PersistentDataError> {
+    let key = PersistentKey::<i32>::new("testing");
     let mut testing = PlayerTesting::default();
     testing.edit_persistent_data(|data| {
-        data.set::<TestingKey>(100)?;
+        data.set(&key, 100)?;
 
         Ok(())
     });
 
     let persistent_data = testing.get_persistent_data();
-    if let Ok(grabbed_value) = persistent_data.get::<TestingKey>() {
+    if let Some(grabbed_value) = persistent_data.get(&key) {
         println!("Testing: {}", grabbed_value);
     }
 
