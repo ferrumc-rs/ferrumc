@@ -10,6 +10,8 @@ bevy_ecs = { workspace = true }
 tracing = { workspace = true }
 typename = { workspace = true }
 ferrumc-net-codec = { workspace = true }
+glam = { workspace = true}
+ferrumc-macros = { workspace = true }
 
 [dev-dependencies]
 criterion = { workspace = true }

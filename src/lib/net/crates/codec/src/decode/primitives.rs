@@ -1,8 +1,9 @@
-use crate::decode::{NetDecode, NetDecodeOpts, NetDecodeResult};
+use crate::decode::{errors, NetDecode, NetDecodeOpts, NetDecodeResult};
 use crate::net_types::var_int::VarInt;
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::io::Read;
+use std::mem::MaybeUninit;
 use tokio::io::AsyncRead;
 use tokio::io::AsyncReadExt;
 
@@ -141,6 +142,45 @@ where
         }
 
         Ok(vec)
+    }
+}
+
+impl<T, const N: usize> NetDecode for [T; N]
+where
+    T: NetDecode,
+{
+    fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> NetDecodeResult<Self> {
+        // 1) allocate uninitialized array
+        let mut uninit: MaybeUninit<[T; N]> = MaybeUninit::uninit();
+        // 2) get a *mut T to the first element
+        let ptr = uninit.as_mut_ptr() as *mut T;
+        // 3) fill it slot by slot
+        for i in 0..N {
+            let val = T::decode(reader, opts)?;
+            unsafe {
+                ptr.add(i).write(val);
+            }
+        }
+        // 4) all slots are init’d, so we can assume init
+        let array = unsafe { uninit.assume_init() };
+        Ok(array)
+    }
+
+    #[expect(async_fn_in_trait)]
+    async fn decode_async<R: AsyncRead + Unpin>(
+        reader: &mut R,
+        opts: &NetDecodeOpts,
+    ) -> NetDecodeResult<Self> {
+        let mut uninit: MaybeUninit<[T; N]> = MaybeUninit::uninit();
+        let ptr = uninit.as_mut_ptr() as *mut T;
+        for i in 0..N {
+            let val = T::decode_async(reader, opts).await?;
+            unsafe {
+                ptr.add(i).write(val);
+            }
+        }
+        let array = unsafe { uninit.assume_init() };
+        Ok(array)
     }
 }
 
