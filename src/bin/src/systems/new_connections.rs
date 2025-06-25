@@ -6,6 +6,7 @@ use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_net::connection::NewConnection;
+use ferrumc_pdc::container::PersistentDataContainer;
 use std::time::SystemTime;
 use tracing::{error, trace};
 
@@ -24,6 +25,7 @@ pub fn accept_new_connections(mut cmd: Commands, new_connections: Res<NewConnect
             ChunkReceiver::default(),
             Rotation::default(),
             OnGround::default(),
+            PersistentDataContainer::default(),
             new_connection.player_identity,
             KeepAliveTracker {
                 last_sent_keep_alive: 0,

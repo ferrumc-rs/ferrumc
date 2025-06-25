@@ -1,14 +1,12 @@
-use std::{
-    any::{TypeId, type_name},
-    collections::HashMap,
-};
+use std::{any::TypeId, collections::HashMap};
 
+use bevy_ecs::component::Component;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::{PersistentContainer, PersistentKey, errors::PersistentDataError};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Component)]
 pub struct PersistentDataContainer {
     #[serde(skip)]
     type_map: HashMap<String, TypeId>, // Runtime type tracking

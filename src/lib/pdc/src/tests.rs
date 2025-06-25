@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use crate::{
     PersistentDataHolder, PersistentKey, container::PersistentDataContainer,
     errors::PersistentDataError,
@@ -25,6 +27,7 @@ impl PersistentDataHolder for PlayerTesting {
 
 #[test]
 fn something() -> Result<(), PersistentDataError> {
+    let instant = Instant::now();
     let key = PersistentKey::<i32>::new("testing");
     let mut testing = PlayerTesting::default();
     testing.edit_persistent_data(|data| {
@@ -35,8 +38,14 @@ fn something() -> Result<(), PersistentDataError> {
 
     let persistent_data = testing.get_persistent_data();
     if let Some(grabbed_value) = persistent_data.get(&key) {
-        println!("Testing: {}", grabbed_value);
+        println!("Testing 1: {}", grabbed_value);
     }
+
+    // Or
+    println!("Testing 2: {}", persistent_data.get_unchecked(&key));
+    println!("Testing 3: {}", persistent_data.get_or(&key, 150));
+
+    println!("Finished in: {:?}", instant.elapsed());
 
     Ok(())
 }

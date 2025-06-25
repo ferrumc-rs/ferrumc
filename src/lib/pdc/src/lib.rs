@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use serde::{Deserialize, Serialize, de::DeserializeOwned};
+use serde::{Serialize, de::DeserializeOwned};
 
 use crate::{container::PersistentDataContainer, errors::PersistentDataError};
 
