@@ -44,5 +44,11 @@ pub fn setup() -> Result<(), SetupError> {
     if !std::fs::exists(get_root_path().join("world"))? {
         std::fs::create_dir(get_root_path().join("world"))?;
     }
+    if !std::fs::exists(get_root_path().join("data"))? {
+        std::fs::create_dir(get_root_path().join("data"))?;
+    }
+    if !std::fs::exists(get_root_path().join("data").join("persistent"))? {
+        std::fs::create_dir(get_root_path().join("data").join("persistent"))?;
+    }
     Ok(())
 }

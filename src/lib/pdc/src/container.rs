@@ -1,17 +1,13 @@
-use std::{any::TypeId, collections::HashMap};
+use std::collections::HashMap;
 
 use bevy_ecs::component::Component;
-use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use bitcode::{Decode, Encode};
 
-use crate::{PersistentContainer, PersistentKey, errors::PersistentDataError};
+use crate::{PersistentKey, errors::PersistentDataError};
 
-#[derive(Serialize, Deserialize, Component)]
+#[derive(Component)]
 pub struct PersistentDataContainer {
-    #[serde(skip)]
-    type_map: HashMap<String, TypeId>, // Runtime type tracking
-
-    data: HashMap<String, Value>,
+    pub(crate) data: HashMap<String, Vec<u8>>,
 }
 
 impl std::fmt::Debug for PersistentDataContainer {
@@ -31,64 +27,64 @@ impl Default for PersistentDataContainer {
 impl PersistentDataContainer {
     pub fn new() -> Self {
         Self {
-            type_map: HashMap::new(),
             data: HashMap::new(),
         }
     }
 
-    pub fn set<T: PersistentContainer + 'static>(
-        &mut self,
-        key: &PersistentKey<T>,
-        value: T,
-    ) -> Result<(), PersistentDataError> {
-        if let Ok(json_value) = serde_json::to_value(value) {
-            self.type_map
-                .insert(key.identifier.clone(), TypeId::of::<T>());
-            self.data.insert(key.identifier.clone(), json_value);
-        }
+    pub fn set<T>(&mut self, key: &PersistentKey<T>, value: T) -> Result<(), PersistentDataError>
+    where
+        T: Encode + Sync + Send + 'static,
+    {
+        let encoded = bitcode::encode(&value);
+        self.data.insert(key.identifier.clone(), encoded);
+
         Ok(())
     }
 
-    pub fn get<T: PersistentContainer + 'static>(&self, key: &PersistentKey<T>) -> Option<T> {
-        match self.type_map.get(&key.identifier) {
-            Some(stored_type) if *stored_type == TypeId::of::<T>() => self
-                .data
-                .get(&key.identifier)
-                .and_then(|value| serde_json::from_value(value.clone()).ok()),
-            _ => None,
+    pub fn get<T>(&self, key: &PersistentKey<T>) -> Option<T>
+    where
+        T: Clone + for<'de> Decode<'de> + 'static,
+    {
+        let id = &key.identifier;
+        if let Some(raw_bytes) = self.data.get(id) {
+            if let Ok(decoded) = bitcode::decode::<T>(raw_bytes) {
+                return Some(decoded);
+            }
         }
+
+        None
     }
 
-    pub fn get_unchecked<T: PersistentContainer + 'static>(&self, key: &PersistentKey<T>) -> T {
+    pub fn get_unchecked<T>(&self, key: &PersistentKey<T>) -> T
+    where
+        T: Clone + 'static + for<'de> bitcode::Decode<'de>,
+    {
         self.get::<T>(key).expect(&format!(
             "PersistentDataContainer::get_unchecked failed for key: {}",
             key.identifier
         ))
     }
 
-    pub fn get_or<T: PersistentContainer + 'static>(
-        &self,
-        key: &PersistentKey<T>,
-        fallback: T,
-    ) -> T {
+    pub fn get_or<T>(&self, key: &PersistentKey<T>, fallback: T) -> T
+    where
+        T: Clone + 'static + for<'de> bitcode::Decode<'de>,
+    {
         self.get(key).unwrap_or(fallback)
     }
 
-    pub fn get_or_default<T: PersistentContainer + Default + 'static>(
-        &self,
-        key: &PersistentKey<T>,
-    ) -> T {
+    pub fn get_or_default<T>(&self, key: &PersistentKey<T>) -> T
+    where
+        T: Clone + Default + 'static + for<'de> bitcode::Decode<'de>,
+    {
         self.get(key).unwrap_or_default()
     }
 
     pub fn remove<T>(&mut self, key: &PersistentKey<T>) {
         self.data.remove(&key.identifier);
-        self.type_map.remove(&key.identifier);
     }
 
     pub fn clear(&mut self) {
         self.data.clear();
-        self.type_map.clear();
     }
 
     pub fn has<T>(&self, key: &PersistentKey<T>) -> bool {
@@ -103,31 +99,8 @@ impl PersistentDataContainer {
         self.data.keys().cloned().collect()
     }
 
-    pub fn merge(&self, container: &PersistentDataContainer) -> PersistentDataContainer {
-        let mut new_data = self.data.clone();
-        let mut new_type_map = self.type_map.clone();
-
-        for (key, value) in &container.data {
-            new_data.insert(key.clone(), value.clone());
-        }
-
-        for (key, type_id) in &container.type_map {
-            new_type_map.insert(key.clone(), *type_id);
-        }
-
-        PersistentDataContainer {
-            data: new_data,
-            type_map: new_type_map,
-        }
-    }
-
-    pub fn merge_in_place(&mut self, container: &PersistentDataContainer) {
-        for (key, value) in &container.data {
-            self.data.insert(key.clone(), value.clone());
-        }
-
-        for (key, type_id) in &container.type_map {
-            self.type_map.insert(key.clone(), *type_id);
-        }
+    pub fn merge(&mut self, container: &PersistentDataContainer) {
+        self.data
+            .extend(container.data.iter().map(|(k, v)| (k.clone(), v.clone())));
     }
 }

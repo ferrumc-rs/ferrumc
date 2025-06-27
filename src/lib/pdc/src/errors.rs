@@ -11,6 +11,12 @@ pub enum PersistentDataError {
     #[error("Something went wrong with deserialization...")]
     DeserializationError,
 
+    #[error("Failed to open PDC Database...")]
+    FailedToOpenDatabase,
+
+    #[error("Failed to read database")]
+    FailedToReadDatabase,
+
     #[error("Unable to load file from {0}...")]
     UnableToLoadFile(String),
 }

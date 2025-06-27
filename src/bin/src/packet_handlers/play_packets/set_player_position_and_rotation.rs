@@ -1,9 +1,16 @@
+use std::time::Instant;
+
+use bevy_ecs::entity::Entity;
 use bevy_ecs::prelude::{EventWriter, Res};
+use bevy_ecs::system::Query;
 use ferrumc_net::packets::packet_events::TransformEvent;
 use ferrumc_net::SetPlayerPositionAndRotationPacketReceiver;
+use ferrumc_pdc::container::PersistentDataContainer;
+use ferrumc_pdc::PersistentKey;
 
 pub fn handle(
     events: Res<SetPlayerPositionAndRotationPacketReceiver>,
+    mut pdc_query: Query<(&mut PersistentDataContainer, Entity)>,
     mut transform_event_writer: EventWriter<TransformEvent>,
 ) {
     for (event, eid) in events.0.try_iter() {
