@@ -25,7 +25,10 @@ pub fn accept_new_connections(
     while let Ok(new_connection) = new_connections.0.try_recv() {
         let return_sender = new_connection.entity_return;
         let pdc = pdc_db
-            .load(format!("player:{}", new_connection.player_identity.uuid.as_u128()).as_str())
+            .load(format!(
+                "player:{}",
+                new_connection.player_identity.uuid.as_u128()
+            ))
             .unwrap();
 
         debug!("Loaded PDC data from database :)");

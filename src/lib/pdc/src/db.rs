@@ -50,15 +50,15 @@ impl PdcDatabase {
         }
     }
 
-    pub fn save(
+    pub fn save<S: Into<String>>(
         &self,
-        key: &str,
+        key: S,
         pdc: &PersistentDataContainer,
     ) -> Result<(), PersistentDataError> {
         let encoded = bitcode::encode(&pdc.data);
         let mut wtxn = self.env.write_txn()?;
 
-        if let Err(e) = self.db.put(&mut wtxn, key, &encoded) {
+        if let Err(e) = self.db.put(&mut wtxn, key.into().as_str(), &encoded) {
             error!("Failed to add data to database: {}", e)
         }
         wtxn.commit()?;
@@ -66,13 +66,16 @@ impl PdcDatabase {
         Ok(())
     }
 
-    pub fn load(&self, key: &str) -> Result<PersistentDataContainer, PersistentDataError> {
+    pub fn load<S: Into<String>>(
+        &self,
+        key: S,
+    ) -> Result<PersistentDataContainer, PersistentDataError> {
         let rtxn = self
             .env
             .read_txn()
             .map_err(|_| PersistentDataError::FailedToReadDatabase)?;
 
-        match self.db.get(&rtxn, key) {
+        match self.db.get(&rtxn, key.into().as_str()) {
             Ok(Some(bytes)) => {
                 let decoded: HashMap<String, Vec<u8>> = bitcode::decode(bytes)
                     .map_err(|_| PersistentDataError::DeserializationError)?;

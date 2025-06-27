@@ -30,7 +30,7 @@ pub fn connection_killer(
                 pdc_database
                     .database
                     .save(
-                        format!("player:{}", player_identity.uuid.as_u128()).as_str(),
+                        format!("player:{}", player_identity.uuid.as_u128()),
                         persistent_container,
                     )
                     .unwrap();
