@@ -19,4 +19,7 @@ pub enum PersistentDataError {
 
     #[error("Unable to load file from {0}...")]
     UnableToLoadFile(String),
+
+    #[error("Database error: {0}")]
+    HeedError(#[from] heed::Error),
 }

@@ -13,6 +13,20 @@ pub fn handle(
     mut pdc_query: Query<(&mut PersistentDataContainer, Entity)>,
     mut transform_event_writer: EventWriter<TransformEvent>,
 ) {
+    for (mut container, _) in pdc_query.iter_mut() {
+        let instant = Instant::now();
+        let key = PersistentKey::<i32>::new("counter");
+        let grabbed = container.get_or(&key, 0);
+        let counter = grabbed + 1;
+        container.set(&key, counter).unwrap();
+
+        println!(
+            "PDC: Updated counter: {} (Elapsed: {:?})",
+            counter,
+            instant.elapsed()
+        );
+    }
+
     for (event, eid) in events.0.try_iter() {
         let transform_event = TransformEvent::new(eid)
             .position((event.x, event.feet_y, event.z).into())

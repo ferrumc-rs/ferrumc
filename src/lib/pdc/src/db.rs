@@ -28,15 +28,15 @@ impl PdcDatabase {
                 .map_err(|_| PersistentDataError::FailedToOpenDatabase)?;
 
             let db: Database<Str, Bytes> = {
-                let mut rw_txn = env.write_txn().unwrap();
+                let mut rw_txn = env.write_txn()?;
                 match env.create_database(&mut rw_txn, Some("players")) {
                     Ok(db) => {
-                        rw_txn.commit().unwrap();
+                        rw_txn.commit()?;
                         db
                     }
                     Err(heed::Error::Io(_)) => {
-                        let db = env.create_database(&mut rw_txn, Some("players")).unwrap();
-                        rw_txn.commit().unwrap();
+                        let db = env.create_database(&mut rw_txn, Some("players"))?;
+                        rw_txn.commit()?;
                         db
                     }
                     Err(_) => return Err(PersistentDataError::FailedToOpenDatabase),
@@ -56,12 +56,12 @@ impl PdcDatabase {
         pdc: &PersistentDataContainer,
     ) -> Result<(), PersistentDataError> {
         let encoded = bitcode::encode(&pdc.data);
-        let mut wtxn = self.env.write_txn().unwrap();
+        let mut wtxn = self.env.write_txn()?;
 
         if let Err(e) = self.db.put(&mut wtxn, key, &encoded) {
             error!("Failed to add data to database: {}", e)
         }
-        wtxn.commit().unwrap();
+        wtxn.commit()?;
 
         Ok(())
     }
@@ -81,8 +81,7 @@ impl PdcDatabase {
                     ..Default::default()
                 })
             }
-            Ok(None) => Ok(PersistentDataContainer::default()),
-            Err(_) => Ok(PersistentDataContainer::default()),
+            _ => Ok(PersistentDataContainer::default()),
         }
     }
 }
