@@ -27,4 +27,8 @@ pub enum ConfigError {
     /// Error when the root path cannot be found.
     #[error("Failed to get the root path.")]
     RootPathError(#[from] ferrumc_general_purpose::paths::RootPathError),
+
+    /// JSON serialization/deserialization error.
+    #[error("JSON error: {0}")]
+    JsonError(#[from] serde_json::Error),
 }
