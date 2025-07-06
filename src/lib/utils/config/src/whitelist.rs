@@ -69,7 +69,22 @@ pub fn remove_from_whitelist(uuid: Uuid) -> Result<(), ConfigError> {
         WHITELIST.remove(&uuid.as_u128());
     }
 
+        Ok(())
+}
+
+pub fn reload_whitelist() -> Result<(), ConfigError> {
+    let whitelist = read_whitelist()?;
+    WHITELIST.clear();
+    for entry in whitelist {
+        if let Ok(uuid) = Uuid::parse_str(&entry.uuid) {
+            WHITELIST.insert(uuid.as_u128());
+        }
+    }
     Ok(())
+}
+
+pub fn list_whitelist() -> Result<Vec<WhitelistEntry>, ConfigError> {
+    read_whitelist()
 }
 
 fn read_whitelist() -> Result<Vec<WhitelistEntry>, ConfigError> {
