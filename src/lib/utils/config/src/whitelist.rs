@@ -114,5 +114,3 @@ pub fn create_blank_whitelist_file() {
         error!("Failed to save whitelist: {e}");
     }
 }
-
-
