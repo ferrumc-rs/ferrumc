@@ -38,53 +38,53 @@ pub fn create_whitelist() {
 
     for entry in whitelist {
         if let Ok(uuid) = Uuid::parse_str(&entry.uuid) {
-            WHITELIST.insert(uuid.as_u128());
+            WHITELIST.insert(uuid.as_u128(), entry.name);
         }
     }
 }
 
-pub fn add_to_whitelist(uuid: Uuid, name: String) -> Result<(), ConfigError> {
-    let mut whitelist = read_whitelist()?;
-    let uuid_str = uuid.to_string();
-
-    if !whitelist.iter().any(|entry| entry.uuid == uuid_str) {
-        whitelist.push(WhitelistEntry {
-            uuid: uuid_str,
-            name,
-        });
-        write_whitelist(&whitelist)?;
-        WHITELIST.insert(uuid.as_u128());
-    }
-
-    Ok(())
+pub fn add_to_whitelist(uuid: Uuid, name: String) {
+    WHITELIST.insert(uuid.as_u128(), name);
 }
 
-pub fn remove_from_whitelist(uuid: Uuid) -> Result<(), ConfigError> {
-    let mut whitelist = read_whitelist()?;
-    let uuid_str = uuid.to_string();
-
-    if let Some(pos) = whitelist.iter().position(|entry| entry.uuid == uuid_str) {
-        whitelist.remove(pos);
-        write_whitelist(&whitelist)?;
-        WHITELIST.remove(&uuid.as_u128());
-    }
-
-        Ok(())
+pub fn remove_from_whitelist(uuid: Uuid) {
+    WHITELIST.remove(&uuid.as_u128());
 }
 
-pub fn reload_whitelist() -> Result<(), ConfigError> {
+pub fn reload_whitelist(force: bool) -> Result<(), ConfigError> {
+    if !force {
+        let in_memory_whitelist = list_whitelist()?;
+        let on_disk_whitelist = read_whitelist()?;
+
+        let in_memory_json = serde_json::to_string_pretty(&in_memory_whitelist).unwrap_or_default();
+        let on_disk_json = serde_json::to_string_pretty(&on_disk_whitelist).unwrap_or_default();
+
+        if in_memory_json != on_disk_json {
+            return Err(ConfigError::Custom(
+                "Unsaved changes exist in memory. Use --force to discard these changes and reload from disk.".to_string(),
+            ));
+        }
+    }
+
     let whitelist = read_whitelist()?;
     WHITELIST.clear();
     for entry in whitelist {
         if let Ok(uuid) = Uuid::parse_str(&entry.uuid) {
-            WHITELIST.insert(uuid.as_u128());
+            WHITELIST.insert(uuid.as_u128(), entry.name);
         }
     }
     Ok(())
 }
 
 pub fn list_whitelist() -> Result<Vec<WhitelistEntry>, ConfigError> {
-    read_whitelist()
+    let mut whitelist = Vec::new();
+    for item in WHITELIST.iter() {
+        whitelist.push(WhitelistEntry {
+            uuid: Uuid::from_u128(*item.key()).to_string(),
+            name: item.value().clone(),
+        });
+    }
+    Ok(whitelist)
 }
 
 fn read_whitelist() -> Result<Vec<WhitelistEntry>, ConfigError> {
@@ -94,7 +94,9 @@ fn read_whitelist() -> Result<Vec<WhitelistEntry>, ConfigError> {
     serde_json::from_reader(reader).map_err(ConfigError::JsonError)
 }
 
-fn write_whitelist(whitelist: &[WhitelistEntry]) -> Result<(), ConfigError> {
+pub fn flush_whitelist_to_disk() -> Result<(), ConfigError> {
+    let whitelist = list_whitelist()?;
+
     let whitelist_location = get_root_path().join("whitelist.json");
     let file = OpenOptions::new()
         .write(true)
@@ -103,7 +105,7 @@ fn write_whitelist(whitelist: &[WhitelistEntry]) -> Result<(), ConfigError> {
         .open(&whitelist_location)
         .map_err(ConfigError::IOError)?;
     let writer = BufWriter::new(file);
-    serde_json::to_writer_pretty(writer, whitelist).map_err(ConfigError::JsonError)
+    serde_json::to_writer_pretty(writer, &whitelist).map_err(ConfigError::JsonError)
 }
 
 pub fn create_blank_whitelist_file() {
@@ -112,3 +114,5 @@ pub fn create_blank_whitelist_file() {
         error!("Failed to save whitelist: {e}");
     }
 }
+
+

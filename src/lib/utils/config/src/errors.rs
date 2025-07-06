@@ -31,4 +31,8 @@ pub enum ConfigError {
     /// JSON serialization/deserialization error.
     #[error("JSON error: {0}")]
     JsonError(#[from] serde_json::Error),
+
+    /// Custom error message.
+    #[error("{0}")]
+    Custom(String),
 }
