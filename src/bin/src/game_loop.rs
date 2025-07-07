@@ -41,7 +41,9 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     // Start the TCP connection acceptor
     tcp_conn_acceptor(global_state.clone(), sender_struct, Arc::new(new_conn_send))?;
 
-    let flush_interval_ticks = 5 * 60 * get_global_config().tps as u64; // 5 minutes
+    let flush_interval_ticks = 5 * 60 * get_global_config().tps as u64; // 5 minutes, This really
+                                                                        // should not be based on
+                                                                        // tps
     let mut flush_tick_counter: u64 = 0;
 
     while !global_state

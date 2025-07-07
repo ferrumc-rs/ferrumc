@@ -27,7 +27,7 @@ impl From<std::io::Error> for SetupError {
 }
 
 pub fn setup() -> Result<(), SetupError> {
-    if !std::fs::exists(get_root_path().join("whitelist.json"))? {
+    if !std::fs::exists(get_root_path().join("whitelist.yml"))? {
         create_blank_whitelist_file();
     }
     if std::fs::exists(get_root_path().join("config.toml"))? {
