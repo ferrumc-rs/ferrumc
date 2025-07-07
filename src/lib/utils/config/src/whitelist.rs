@@ -2,11 +2,11 @@ use crate::errors::ConfigError;
 use crate::statics::WHITELIST;
 use ferrumc_general_purpose::paths::get_root_path;
 use serde::{Deserialize, Serialize};
+use serde_json;
 use std::fs::{File, OpenOptions};
 use std::io::{BufReader, BufWriter, Write};
 use tracing::{error, info, warn};
 use uuid::Uuid;
-use serde_json;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct WhitelistEntry {
@@ -95,7 +95,9 @@ fn fetch_uuid_from_name(name: &str) -> Result<String, Box<dyn std::error::Error>
 
     let resp: serde_json::Value = response.body_mut().read_json()?;
 
-    let uuid_without_dashes = resp["id"].as_str().ok_or("Invalid response from Mojang API")?;
+    let uuid_without_dashes = resp["id"]
+        .as_str()
+        .ok_or("Invalid response from Mojang API")?;
     let uuid_with_dashes = format!(
         "{}-{}-{}-{}-{}",
         &uuid_without_dashes[0..8],
@@ -116,7 +118,9 @@ fn fetch_name_from_uuid(uuid: &str) -> Result<String, Box<dyn std::error::Error>
 
     let resp: serde_json::Value = response.body_mut().read_json()?;
 
-    let name = resp["name"].as_str().ok_or("Invalid response from Mojang API")?;
+    let name = resp["name"]
+        .as_str()
+        .ok_or("Invalid response from Mojang API")?;
     Ok(name.to_string())
 }
 
@@ -183,12 +187,16 @@ pub fn flush_whitelist_to_disk() -> Result<(), ConfigError> {
     let mut writer = BufWriter::new(&mut file);
 
     // 1. Write the constant header comments FIRST
-    writer.write_all(WHITELIST_FILE_HEADER_COMMENTS.as_bytes()).map_err(ConfigError::IOError)?;
+    writer
+        .write_all(WHITELIST_FILE_HEADER_COMMENTS.as_bytes())
+        .map_err(ConfigError::IOError)?;
     writer.write_all(b"\n").map_err(ConfigError::IOError)?; // Add an extra newline for separation
 
     // 2. Then, serialize the actual whitelist data and write it
     let serialized_data = serde_yaml_ng::to_string(&whitelist).map_err(ConfigError::YamlError)?;
-    writer.write_all(serialized_data.as_bytes()).map_err(ConfigError::IOError)?;
+    writer
+        .write_all(serialized_data.as_bytes())
+        .map_err(ConfigError::IOError)?;
 
     writer.flush().map_err(ConfigError::IOError)?;
     Ok(())
@@ -198,8 +206,8 @@ pub fn create_blank_whitelist_file() {
     let whitelist_location = get_root_path().join("whitelist.yml");
     let initial_content = format!("{}{}\n", WHITELIST_FILE_HEADER_COMMENTS, "[]");
 
-    if let Err(e) =
-        File::create(&whitelist_location).and_then(|mut file| file.write_all(initial_content.as_bytes()))
+    if let Err(e) = File::create(&whitelist_location)
+        .and_then(|mut file| file.write_all(initial_content.as_bytes()))
     {
         error!(
             "Failed to save blank whitelist file to {}: {}",
