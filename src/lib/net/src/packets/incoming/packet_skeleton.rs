@@ -1,6 +1,7 @@
 use crate::errors::NetError;
 use ferrumc_config::statics::get_global_config;
 use ferrumc_net_codec::{decode::errors::NetDecodeError, net_types::var_int::VarInt};
+use ferrumc_net_encryption::ConnectionEncryption;
 use std::io::Cursor;
 use std::{fmt::Debug, io::Read};
 use tokio::io::AsyncRead;
@@ -26,10 +27,11 @@ impl PacketSkeleton {
     pub async fn new<R: AsyncRead + Unpin>(
         reader: &mut R,
         compressed: bool,
+        encryption: &ConnectionEncryption,
     ) -> Result<Self, NetError> {
         let pak = match compressed {
-            true => Self::read_compressed(reader).await,
-            false => Self::read_uncompressed(reader).await,
+            true => Self::read_compressed(reader, encryption).await,
+            false => Self::read_uncompressed(reader, encryption).await,
         };
         match pak {
             Ok(p) => {
@@ -53,7 +55,10 @@ impl PacketSkeleton {
     }
 
     // #[inline(always)]
-    async fn read_uncompressed<R: AsyncRead + Unpin>(reader: &mut R) -> Result<Self, NetError> {
+    async fn read_uncompressed<R: AsyncRead + Unpin>(
+        reader: &mut R,
+        encryption: &ConnectionEncryption,
+    ) -> Result<Self, NetError> {
         let length = VarInt::read_async(reader).await?.0 as usize;
         let mut buf = {
             let mut buf = vec![0; length];
@@ -72,7 +77,10 @@ impl PacketSkeleton {
     }
 
     #[inline(always)]
-    async fn read_compressed<R: AsyncRead + Unpin>(reader: &mut R) -> Result<Self, NetError> {
+    async fn read_compressed<R: AsyncRead + Unpin>(
+        reader: &mut R,
+        encryption: &ConnectionEncryption,
+    ) -> Result<Self, NetError> {
         let packet_length = VarInt::read_async(reader).await?.0 as usize;
         let data_length = VarInt::read_async(reader).await?.0 as usize;
 

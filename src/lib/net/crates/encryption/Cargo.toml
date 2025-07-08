@@ -4,4 +4,15 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+ferrumc-core = { workspace = true }
+
 thiserror = { workspace = true }
+rsa = { workspace = true }
+sha1 = { workspace = true }
+aes = { workspace = true }
+cfb8 = { workspace = true }
+rand = { workspace = true }
+base64 = { workspace = true }
+reqwest = { workspace = true }
+bevy_ecs = { workspace = true }
+once_cell = { workspace = true }

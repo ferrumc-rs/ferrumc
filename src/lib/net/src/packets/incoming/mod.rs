@@ -1,5 +1,6 @@
 pub mod ack_finish_configuration;
 pub mod client_information;
+pub mod encryption_response;
 pub mod handshake;
 pub mod login_acknowledged;
 pub mod login_start;

@@ -14,6 +14,7 @@ bevy_ecs = { workspace = true }
 
 ferrumc-net = { workspace = true }
 ferrumc-net-codec = { workspace = true }
+ferrumc-net-encryption = { workspace = true }
 ferrumc-plugins = { workspace = true }
 ferrumc-storage = { workspace = true }
 ferrumc-utils = { workspace = true }

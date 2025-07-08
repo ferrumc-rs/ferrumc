@@ -106,15 +106,17 @@ pub async fn handle_connection(
     .await;
 
     let mut player_identity = PlayerIdentity::default();
+    let mut player_encryption = None;
 
     match handshake_result {
         Ok(res) => match res {
             Ok((false, returned_player_identity)) => {
                 trace!("Handshake successful");
                 match returned_player_identity {
-                    Some(returned_player_identity) => {
+                    Some((returned_player_encryption, returned_player_identity)) => {
                         trace!("Player identity: {:?}", returned_player_identity);
                         player_identity = returned_player_identity;
+                        player_encryption = Some(returned_player_encryption);
                     }
                     None => {
                         error!("Player identity not found");
@@ -149,87 +151,100 @@ pub async fn handle_connection(
         }
     }
 
-    // The player has successfully connected, so we can start the connection properly
+    match player_encryption {
+        Some(conn_encryption) => {
+            // The player has successfully connected, so we can start the connection properly
 
-    let compressed = false;
-    let running = Arc::new(AtomicBool::new(true));
+            let compressed = false;
+            let running = Arc::new(AtomicBool::new(true));
 
-    let stream = StreamWriter::new(tcp_writer, running.clone()).await;
+            let stream = StreamWriter::new(tcp_writer, running.clone()).await;
 
-    // Send the streamwriter to the main thread
-    let (entity_return, entity_recv) = oneshot::channel();
+            // Send the streamwriter to the main thread
+            let (entity_return, entity_recv) = oneshot::channel();
 
-    new_join_sender
-        .send(NewConnection {
-            stream,
-            player_identity,
-            entity_return,
-        })
-        .map_err(|_| NetError::Misc("Failed to send new connection".to_string()))?;
+            new_join_sender
+                .send(NewConnection {
+                    stream,
+                    player_identity,
+                    entity_return,
+                })
+                .map_err(|_| NetError::Misc("Failed to send new connection".to_string()))?;
 
-    // Wait for the entity ID to be sent back
-    let entity = match entity_recv.await {
-        Ok(entity) => entity,
-        Err(err) => {
-            error!("Failed to receive entity ID: {:?}", err);
-            return Err(NetError::Misc("Failed to receive entity ID".to_string()));
-        }
-    };
+            // Wait for the entity ID to be sent back
+            let entity = match entity_recv.await {
+                Ok(entity) => entity,
+                Err(err) => {
+                    error!("Failed to receive entity ID: {:?}", err);
+                    return Err(NetError::Misc("Failed to receive entity ID".to_string()));
+                }
+            };
 
-    'recv: loop {
-        if !running.load(Ordering::Relaxed) {
-            trace!("Conn for entity {:?} is marked for disconnection", entity);
-            break 'recv;
-        }
-
-        if state.shut_down.load(Ordering::Relaxed) {
-            break 'recv;
-        }
-
-        let mut packet_skele = match PacketSkeleton::new(&mut tcp_reader, compressed).await {
-            Ok(packet_skele) => packet_skele,
-            Err(err) => {
-                if let NetError::ConnectionDropped = err {
-                    trace!("Connection dropped for entity {:?}", entity);
-                    running.store(false, Ordering::Relaxed);
+            'recv: loop {
+                if !running.load(Ordering::Relaxed) {
+                    trace!("Conn for entity {:?} is marked for disconnection", entity);
                     break 'recv;
                 }
-                error!("Failed to read packet skeleton: {:?} for {:?}", err, entity);
-                running.store(false, Ordering::Relaxed);
-                break 'recv;
-            }
-        };
 
-        match handle_packet(
-            packet_skele.id,
-            entity,
-            &mut packet_skele.data,
-            packet_sender.clone(),
-        )
-        .instrument(debug_span!("eid", %entity))
-        .into_inner()
-        {
-            Ok(()) => {
-                trace!(
-                    "Packet {:02X} handled for entity {:?}",
+                if state.shut_down.load(Ordering::Relaxed) {
+                    break 'recv;
+                }
+
+                let mut packet_skele = match PacketSkeleton::new(
+                    &mut tcp_reader,
+                    compressed,
+                    &conn_encryption,
+                )
+                .await
+                {
+                    Ok(packet_skele) => packet_skele,
+                    Err(err) => {
+                        if let NetError::ConnectionDropped = err {
+                            trace!("Connection dropped for entity {:?}", entity);
+                            running.store(false, Ordering::Relaxed);
+                            break 'recv;
+                        }
+                        error!("Failed to read packet skeleton: {:?} for {:?}", err, entity);
+                        running.store(false, Ordering::Relaxed);
+                        break 'recv;
+                    }
+                };
+
+                match handle_packet(
                     packet_skele.id,
-                    entity
-                );
+                    entity,
+                    &mut packet_skele.data,
+                    packet_sender.clone(),
+                )
+                .instrument(debug_span!("eid", %entity))
+                .into_inner()
+                {
+                    Ok(()) => {
+                        trace!(
+                            "Packet {:02X} handled for entity {:?}",
+                            packet_skele.id,
+                            entity
+                        );
+                    }
+                    Err(err) => match &err {
+                        NetError::Packet(InvalidPacket(id)) => {
+                            trace!("Packet 0x{:02X} received, no handler implemented yet", id);
+                        }
+                        _ => {
+                            warn!("Failed to handle packet: {:?}", err);
+                            running.store(false, Ordering::Relaxed);
+                            break 'recv;
+                        }
+                    },
+                }
             }
-            Err(err) => match &err {
-                NetError::Packet(InvalidPacket(id)) => {
-                    trace!("Packet 0x{:02X} received, no handler implemented yet", id);
-                }
-                _ => {
-                    warn!("Failed to handle packet: {:?}", err);
-                    running.store(false, Ordering::Relaxed);
-                    break 'recv;
-                }
-            },
-        }
-    }
 
-    Ok(())
+            Ok(())
+        }
+        None => Err(NetError::Auth(
+            "ConnectionEncryption has failed...".to_string(),
+        )),
+    }
 }
 
 impl StreamWriter {

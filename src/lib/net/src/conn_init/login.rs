@@ -1,22 +1,30 @@
+use std::time::Instant;
+
 use crate::conn_init::NetDecodeOpts;
 use crate::conn_init::VarInt;
 use crate::conn_init::{send_packet, trim_packet_head};
 use crate::errors::NetError;
+use crate::packets::outgoing::encryption_request::EncryptionRequestPacket;
 use crate::packets::outgoing::registry_data::REGISTRY_PACKETS;
 use ferrumc_config::statics::get_global_config;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net_codec::decode::NetDecode;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
+use ferrumc_net_encryption::ConnectionEncryption;
+use ferrumc_net_encryption::ENCRYPTION_KEYS;
 use ferrumc_state::GlobalState;
+use rand::RngCore;
+use rsa::Pkcs1v15Encrypt;
 use tokio::io::AsyncReadExt;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
+use tracing::debug;
 use tracing::{error, trace};
 
 pub(super) async fn login(
     mut conn_read: &mut OwnedReadHalf,
     conn_write: &mut OwnedWriteHalf,
     state: GlobalState,
-) -> Result<(bool, Option<PlayerIdentity>), NetError> {
+) -> Result<(bool, Option<(ConnectionEncryption, PlayerIdentity)>), NetError> {
     // =============================================================================================
     trim_packet_head(conn_read, 0x00).await?;
 
@@ -25,6 +33,52 @@ pub(super) async fn login(
         &NetDecodeOpts::None,
     )
     .await?;
+
+    debug!("Encrypting...");
+
+    let instant = Instant::now();
+    let should_authenticate = get_global_config().online_mode;
+    let mut verify_token = [0u8; 16];
+    rand::rng().fill_bytes(&mut verify_token);
+
+    let encryption_request = EncryptionRequestPacket {
+        server_id: String::new(),
+        public_key: LengthPrefixedVec::new(ENCRYPTION_KEYS.get_public_der()),
+        verify_token: LengthPrefixedVec::new(verify_token.to_vec()),
+        should_authenticate,
+    };
+
+    send_packet(conn_write, &encryption_request).await?;
+
+    trim_packet_head(conn_read, 0x01).await?;
+    let encryption_response =
+        crate::packets::incoming::encryption_response::EncryptionResponsePacket::decode_async(
+            &mut conn_read,
+            &NetDecodeOpts::None,
+        )
+        .await?;
+
+    // Decrypt, this has to be here since the response packet is decrypted differently with other packets
+    // This is because the response doesn't use the shared_key for decryption, since this is the packet that sends it.
+    let decrypted_secret = ENCRYPTION_KEYS
+        .private_key
+        .decrypt(Pkcs1v15Encrypt, &encryption_response.shared_secret.data)
+        .map_err(|_| NetError::Auth("Failed to decrypt shared_key".to_string()))?;
+
+    let decrypted_token = ENCRYPTION_KEYS
+        .private_key
+        .decrypt(Pkcs1v15Encrypt, &encryption_response.verify_token.data)
+        .map_err(|_| NetError::Auth("Failed to decrypt verify_token".to_string()))?;
+
+    if verify_token != decrypted_token.as_slice() {
+        return Err(NetError::Auth(
+            "Verify Token Mismatch, client may not have the correct encryption key...".to_string(),
+        ));
+    }
+
+    // This results in encryption being successful
+    let player_encryption = ConnectionEncryption::new(decrypted_secret);
+    debug!("Encryption Completed... (Took: {:?})", instant.elapsed());
 
     // =============================================================================================
 
@@ -207,5 +261,5 @@ pub(super) async fn login(
         }
     }
 
-    Ok((false, Some(player_identity)))
+    Ok((false, Some((player_encryption, player_identity))))
 }

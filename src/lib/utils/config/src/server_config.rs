@@ -17,6 +17,7 @@ use serde_derive::{Deserialize, Serialize};
 /// - `network_compression_threshold`: The threshold at which the server will compress network packets.
 /// - `whitelist`: Whether the server whitelist is enabled or not.
 /// - `chunk_render_distance`: The render distance of the chunks. This is the number of chunks that will be
+/// - `online_mode`: If the server should authenticate player's while joining
 ///   loaded around the player.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ServerConfig {
@@ -30,6 +31,7 @@ pub struct ServerConfig {
     pub network_compression_threshold: i32, // Can be negative
     pub whitelist: bool,
     pub chunk_render_distance: u32,
+    pub online_mode: bool,
 }
 
 /// The database configuration section from [ServerConfig].

@@ -9,6 +9,7 @@ use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use ferrumc_net_codec::net_types::var_int::VarInt;
+use ferrumc_net_encryption::ConnectionEncryption;
 use ferrumc_state::GlobalState;
 use ferrumc_text::{ComponentBuilder, NamedColor, TextComponent};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -19,7 +20,10 @@ use tracing::{error, trace};
 /// sure we are going to get the right packet id and length, and we don't need to check it
 /// If we get a packet with the id 0x12, we will skip it, since it is a serverbound plugin message packet
 /// They have stupid formatting, and we don't want to deal with it
-pub(crate) async fn trim_packet_head(conn: &mut OwnedReadHalf, value: u8) -> Result<(), NetError> {
+pub(crate) async fn trim_packet_head(
+    conn: &mut OwnedReadHalf,
+    expected_id: u8,
+) -> Result<(), NetError> {
     let mut len = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
     let mut id = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
     while id.0 == 0x14 {
@@ -30,7 +34,7 @@ pub(crate) async fn trim_packet_head(conn: &mut OwnedReadHalf, value: u8) -> Res
         len = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
         id = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
     }
-    assert_eq!(id.0, value as i32);
+    assert_eq!(id.0, expected_id as i32);
     Ok(())
 }
 
@@ -62,7 +66,7 @@ pub async fn handle_handshake(
     mut conn_read: &mut OwnedReadHalf,
     conn_write: &mut OwnedWriteHalf,
     state: GlobalState,
-) -> Result<(bool, Option<PlayerIdentity>), NetError> {
+) -> Result<(bool, Option<(ConnectionEncryption, PlayerIdentity)>), NetError> {
     trim_packet_head(conn_read, 0x00).await?;
 
     // Get incoming handshake packet
@@ -99,7 +103,7 @@ async fn handle_version_mismatch(
     conn_read: &mut OwnedReadHalf,
     conn_write: &mut OwnedWriteHalf,
     state: GlobalState,
-) -> Result<(bool, Option<PlayerIdentity>), NetError> {
+) -> Result<(bool, Option<(ConnectionEncryption, PlayerIdentity)>), NetError> {
     // Send appropriate disconnect packet based on the next state
     match hs_packet.next_state.0 {
         // If it was status, we can just send a status response, and the client will automatically understand the mismatch.
