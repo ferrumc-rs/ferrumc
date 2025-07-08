@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use aes::{cipher::KeyInit, Aes128Dec, Aes128Enc};
 use once_cell::sync::Lazy;
 use rsa::{pkcs8::EncodePublicKey, rand_core::OsRng, RsaPrivateKey, RsaPublicKey};
 
@@ -35,5 +36,32 @@ impl EncryptionKeys {
             .unwrap()
             .as_bytes()
             .to_vec()
+    }
+}
+
+#[derive(Clone)]
+pub struct ConnectionEncryption {
+    pub shared_secret: Vec<u8>,
+    pub decrypt_cipher: Aes128Dec,
+    pub encrypt_cipher: Aes128Enc,
+}
+
+impl ConnectionEncryption {
+    pub fn new(shared_secret: Vec<u8>) -> Self {
+        let decrypt_cipher = Aes128Dec::new_from_slice(&shared_secret).unwrap();
+        let encrypt_cipher = Aes128Enc::new_from_slice(&shared_secret).unwrap();
+        Self {
+            shared_secret,
+            decrypt_cipher,
+            encrypt_cipher,
+        }
+    }
+
+    pub fn encrypt(&mut self, data: &mut [u8]) {
+        self.encrypt_cipher.encrypt(data);
+    }
+
+    pub fn decrypt(&mut self, data: &mut [u8]) {
+        self.decrypt_cipher.decrypt(data);
     }
 }

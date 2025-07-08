@@ -9,6 +9,7 @@ use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use ferrumc_net_codec::net_types::var_int::VarInt;
+use ferrumc_net_encryption::ConnectionEncryption;
 use ferrumc_state::GlobalState;
 use ferrumc_text::{ComponentBuilder, NamedColor, TextComponent};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -65,7 +66,7 @@ pub async fn handle_handshake(
     mut conn_read: &mut OwnedReadHalf,
     conn_write: &mut OwnedWriteHalf,
     state: GlobalState,
-) -> Result<(bool, Option<PlayerIdentity>), NetError> {
+) -> Result<(bool, Option<(ConnectionEncryption, PlayerIdentity)>), NetError> {
     trim_packet_head(conn_read, 0x00).await?;
 
     // Get incoming handshake packet
@@ -102,7 +103,7 @@ async fn handle_version_mismatch(
     conn_read: &mut OwnedReadHalf,
     conn_write: &mut OwnedWriteHalf,
     state: GlobalState,
-) -> Result<(bool, Option<PlayerIdentity>), NetError> {
+) -> Result<(bool, Option<(ConnectionEncryption, PlayerIdentity)>), NetError> {
     // Send appropriate disconnect packet based on the next state
     match hs_packet.next_state.0 {
         // If it was status, we can just send a status response, and the client will automatically understand the mismatch.

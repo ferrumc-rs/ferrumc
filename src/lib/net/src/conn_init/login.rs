@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use crate::conn_init::NetDecodeOpts;
 use crate::conn_init::VarInt;
 use crate::conn_init::{send_packet, trim_packet_head};
@@ -8,6 +10,7 @@ use ferrumc_config::statics::get_global_config;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net_codec::decode::NetDecode;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
+use ferrumc_net_encryption::ConnectionEncryption;
 use ferrumc_net_encryption::ENCRYPTION_KEYS;
 use ferrumc_state::GlobalState;
 use rand::RngCore;
@@ -21,7 +24,7 @@ pub(super) async fn login(
     mut conn_read: &mut OwnedReadHalf,
     conn_write: &mut OwnedWriteHalf,
     state: GlobalState,
-) -> Result<(bool, Option<PlayerIdentity>), NetError> {
+) -> Result<(bool, Option<(ConnectionEncryption, PlayerIdentity)>), NetError> {
     // =============================================================================================
     trim_packet_head(conn_read, 0x00).await?;
 
@@ -31,15 +34,12 @@ pub(super) async fn login(
     )
     .await?;
 
+    debug!("Encrypting...");
+
+    let instant = Instant::now();
     let should_authenticate = get_global_config().online_mode;
     let mut verify_token = [0u8; 16];
     rand::rng().fill_bytes(&mut verify_token);
-
-    debug!(
-        "DER bytes sent to client: {:?}",
-        ENCRYPTION_KEYS.get_public_der()
-    );
-    debug!("Sent verify token: {:?}", verify_token);
 
     let encryption_request = EncryptionRequestPacket {
         server_id: String::new(),
@@ -50,7 +50,6 @@ pub(super) async fn login(
 
     send_packet(conn_write, &encryption_request).await?;
 
-    debug!("Encryption Response pending...");
     trim_packet_head(conn_read, 0x01).await?;
     let encryption_response =
         crate::packets::incoming::encryption_response::EncryptionResponsePacket::decode_async(
@@ -71,10 +70,15 @@ pub(super) async fn login(
         .decrypt(Pkcs1v15Encrypt, &encryption_response.verify_token.data)
         .map_err(|_| NetError::Auth("Failed to decrypt verify_token".to_string()))?;
 
-    debug!(
-        "ENCRYPTION COMPLETED: Secret: {:?}, Token: {:?}",
-        decrypted_secret, decrypted_token
-    );
+    if verify_token != decrypted_token.as_slice() {
+        return Err(NetError::Auth(
+            "Verify Token Mismatch, client may not have the correct encryption key...".to_string(),
+        ));
+    }
+
+    // This results in encryption being successful
+    let player_encryption = ConnectionEncryption::new(decrypted_secret);
+    debug!("Encryption Completed... (Took: {:?})", instant.elapsed());
 
     // =============================================================================================
 
@@ -257,5 +261,5 @@ pub(super) async fn login(
         }
     }
 
-    Ok((false, Some(player_identity)))
+    Ok((false, Some((player_encryption, player_identity))))
 }
