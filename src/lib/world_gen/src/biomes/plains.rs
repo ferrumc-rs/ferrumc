@@ -31,10 +31,13 @@ impl BiomeGenerator for PlainsBiome {
 
         // Fill with water first
         for section_y in -4..4 {
-            chunk.set_section(section_y as i8, BlockData {
-                name: "minecraft:water".to_string(),
-                properties: Some(BTreeMap::from([("level".to_string(), "0".to_string())])),
-            })?;
+            chunk.set_section(
+                section_y as i8,
+                BlockData {
+                    name: "minecraft:water".to_string(),
+                    properties: Some(BTreeMap::from([("level".to_string(), "0".to_string())])),
+                },
+            )?;
         }
 
         // Then generate some heights
