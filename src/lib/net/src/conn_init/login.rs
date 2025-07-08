@@ -2,14 +2,19 @@ use crate::conn_init::NetDecodeOpts;
 use crate::conn_init::VarInt;
 use crate::conn_init::{send_packet, trim_packet_head};
 use crate::errors::NetError;
+use crate::packets::outgoing::encryption_request::EncryptionRequestPacket;
 use crate::packets::outgoing::registry_data::REGISTRY_PACKETS;
 use ferrumc_config::statics::get_global_config;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net_codec::decode::NetDecode;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
+use ferrumc_net_encryption::ENCRYPTION_KEYS;
 use ferrumc_state::GlobalState;
+use rand::RngCore;
+use rsa::Pkcs1v15Encrypt;
 use tokio::io::AsyncReadExt;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
+use tracing::debug;
 use tracing::{error, trace};
 
 pub(super) async fn login(
@@ -25,6 +30,51 @@ pub(super) async fn login(
         &NetDecodeOpts::None,
     )
     .await?;
+
+    let should_authenticate = get_global_config().online_mode;
+    let mut verify_token = [0u8; 16];
+    rand::rng().fill_bytes(&mut verify_token);
+
+    debug!(
+        "DER bytes sent to client: {:?}",
+        ENCRYPTION_KEYS.get_public_der()
+    );
+    debug!("Sent verify token: {:?}", verify_token);
+
+    let encryption_request = EncryptionRequestPacket {
+        server_id: String::new(),
+        public_key: LengthPrefixedVec::new(ENCRYPTION_KEYS.get_public_der()),
+        verify_token: LengthPrefixedVec::new(verify_token.to_vec()),
+        should_authenticate,
+    };
+
+    send_packet(conn_write, &encryption_request).await?;
+
+    debug!("Encryption Response pending...");
+    trim_packet_head(conn_read, 0x01).await?;
+    let encryption_response =
+        crate::packets::incoming::encryption_response::EncryptionResponsePacket::decode_async(
+            &mut conn_read,
+            &NetDecodeOpts::None,
+        )
+        .await?;
+
+    // Decrypt, this has to be here since the response packet is decrypted differently with other packets
+    // This is because the response doesn't use the shared_key for decryption, since this is the packet that sends it.
+    let decrypted_secret = ENCRYPTION_KEYS
+        .private_key
+        .decrypt(Pkcs1v15Encrypt, &encryption_response.shared_secret.data)
+        .map_err(|_| NetError::Auth("Failed to decrypt shared_key".to_string()))?;
+
+    let decrypted_token = ENCRYPTION_KEYS
+        .private_key
+        .decrypt(Pkcs1v15Encrypt, &encryption_response.verify_token.data)
+        .map_err(|_| NetError::Auth("Failed to decrypt verify_token".to_string()))?;
+
+    debug!(
+        "ENCRYPTION COMPLETED: Secret: {:?}, Token: {:?}",
+        decrypted_secret, decrypted_token
+    );
 
     // =============================================================================================
 

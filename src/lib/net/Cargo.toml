@@ -33,3 +33,6 @@ typename = { workspace = true }
 bitcode = { workspace = true }
 indexmap = { workspace = true }
 lazy_static = { workspace = true }
+aes = { workspace = true }
+rsa = { workspace = true }
+cfb8 = { workspace = true }

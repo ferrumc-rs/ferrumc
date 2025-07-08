@@ -50,6 +50,9 @@ pub enum NetError {
     #[error("World error: {0}")]
     World(#[from] ferrumc_world::errors::WorldError),
 
+    #[error("Authentication error: {0}")]
+    Auth(String),
+
     #[error("Misc error: {0}")]
     Misc(String),
 }
