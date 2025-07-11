@@ -1,215 +1,212 @@
 use crate::errors::ConfigError;
 use crate::statics::WHITELIST;
 use ferrumc_general_purpose::paths::get_root_path;
-use rayon::prelude::*;
-use serde_derive::Deserialize;
-use std::collections::HashMap;
-use std::fs::File;
-use std::io::Read;
-use std::io::Write;
-use tracing::error;
+use serde::{Deserialize, Serialize};
+use serde_json;
+use std::fs::{File, OpenOptions};
+use std::io::{BufReader, BufWriter, Write};
+use tracing::{error, info, warn};
 use uuid::Uuid;
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct WhitelistEntry {
+    pub uuid: Option<String>,
+    pub name: Option<String>,
+}
+
+const WHITELIST_FILE_HEADER_COMMENTS: &str = r#"# This file contains the whitelist for the server.
+# Only players on this list will be able to join.
+#
+# Each entry must have a UUID and/or a name.
+# If you provide only one, the server will fetch the other from Mojang's API.
+# You can find a player's UUID from their username using a tool like https://namemc.com/
+#
+# Example with both:
+# - uuid: "069a79f4-44e9-4726-a5be-fca90e38aaf5"
+#   name: "Notch"
+#
+# Example with only username (UUID will be fetched):
+# - name: "jeb_"
+#
+# Example with only UUID (username will be fetched):
+# - uuid: "853c80ef-3c37-49fd-aa49-938b674adae6"
+"#;
+
 pub fn create_whitelist() {
-    let whitelist_location = get_root_path().join("whitelist.txt");
+    let whitelist_location = get_root_path().join("whitelist.yml");
     if !whitelist_location.exists() {
         create_blank_whitelist_file();
     }
 
-    let mut file = match File::open(&whitelist_location) {
-        Ok(file) => file,
+    let whitelist = match read_whitelist() {
+        Ok(whitelist) => whitelist,
         Err(e) => {
-            error!("Could not open whitelist file: {e}");
+            error!("Could not read whitelist file: {}", e);
             return;
         }
     };
-
-    let mut whitelist_str = String::new();
-    if let Err(e) = file.read_to_string(&mut whitelist_str) {
-        error!("Could not read whitelist file: {e}");
-        return;
-    }
-
-    if whitelist_str.is_empty() {
-        return;
-    }
-
-    let uuids: Vec<Uuid> = match convert_whitelist_file() {
-        Ok(uuids) => uuids,
-        Err(_e) => return,
-    };
-    uuids.into_iter().for_each(|uuid| {
-        WHITELIST.insert(uuid.as_u128());
-    });
+    process_whitelist_entries(whitelist);
 }
 
-///converts usernames within the whitelist file to uuid, returns a list of all resulting uuids within the file
-fn convert_whitelist_file() -> Result<Vec<Uuid>, ConfigError> {
-    let whitelist_location = get_root_path().join("whitelist.txt");
-    let mut return_uuids: Vec<Uuid> = Vec::new();
-
-    if !whitelist_location.exists() {
-        create_blank_whitelist_file();
-        return Ok(return_uuids);
-    }
-
-    let mut file = File::open(&whitelist_location).map_err(|e| {
-        error!("Could not open whitelist file: {e}");
-        ConfigError::IOError(e)
-    })?;
-
-    let mut whitelist_str = String::new();
-    file.read_to_string(&mut whitelist_str).map_err(|e| {
-        error!("Could not read whitelist file: {e}");
-        ConfigError::IOError(e)
-    })?;
-
-    let mut lines = whitelist_str
-        .lines()
-        .map(|line| line.trim().to_string())
-        .collect::<Vec<_>>();
-    if lines.is_empty() {
-        create_blank_whitelist_file();
-        return Ok(return_uuids);
-    }
-    //here we iterate over the lines removing duplicates while keeping the current order
-    let mut seen = std::collections::HashSet::new();
-
-    lines.retain(|line| {
-        if line.is_empty() || seen.contains(line) {
-            false
-        } else {
-            seen.insert(line.clone());
-            true
-        }
-    });
-
-    let mut uuids_to_convert: HashMap<Uuid, usize> = HashMap::new(); //pure uuid entries
-    let mut valid_lines = Vec::new(); //lines that dont need changes
-    let mut invalid_lines = Vec::new(); //entry isn't a valid uuid
-
-    for (index, line) in lines.iter().enumerate() {
-        if line.is_empty() || line.starts_with('#') {
-            valid_lines.push(index);
-            continue;
-        }
-
-        let (uuid_or_name, commented_name) = line
-            .split_once('#')
-            .map_or((line.as_str(), ""), |(pre_hash, post_hash)| {
-                (pre_hash.trim(), post_hash.trim())
-            });
-
-        if let Ok(uuid) = Uuid::try_parse(uuid_or_name) {
-            if !commented_name.is_empty() {
-                return_uuids.push(uuid);
-                valid_lines.push(index);
-            } else {
-                uuids_to_convert.insert(uuid, index);
+fn process_whitelist_entries(entries: Vec<WhitelistEntry>) {
+    for entry in entries {
+        let (uuid, name) = match (entry.uuid, entry.name) {
+            (Some(uuid), Some(name)) => (uuid, name),
+            (Some(uuid), None) => {
+                info!("Fetching name for {}", &uuid);
+                match fetch_name_from_uuid(&uuid) {
+                    Ok(name) => (uuid, name),
+                    Err(e) => {
+                        error!("Could not fetch name for {}: {}", uuid, e);
+                        continue;
+                    }
+                }
             }
-        } else {
-            invalid_lines.push((index, line.clone()));
-        }
-    }
-
-    let uuid_query_input: Vec<&Uuid> = uuids_to_convert.keys().collect();
-    let found_usernames = query_mojang_for_usernames(uuid_query_input);
-
-    for profile in found_usernames {
-        if let Some(index) = uuids_to_convert.remove(&Uuid::try_parse(&profile.id).unwrap()) {
-            let uuid = Uuid::try_parse(&profile.id).unwrap();
-            lines[index] = format!("{} # {}", uuid.hyphenated(), profile.name);
-            valid_lines.push(index);
-            return_uuids.push(uuid);
-        }
-    }
-
-    for (uuid, index) in uuids_to_convert {
-        //line matched uuid regex but mojang returned no name
-        lines[index] = format!("# UUID Doesnt Match a Real User: {uuid}");
-    }
-
-    for (index, line) in invalid_lines {
-        //line didn't match a valid uuid format
-        lines[index] = format!("# Invalid UUID: {line}");
-    }
-
-    let mut updated_whitelist = File::create(&whitelist_location).map_err(|e| {
-        error!("Could not write updated whitelist file: {e}");
-        ConfigError::IOError(e)
-    })?;
-
-    //remove duplicate lines again
-    let mut seen = std::collections::HashSet::new();
-    lines.retain(|line| {
-        if seen.contains(line) {
-            false
-        } else {
-            seen.insert(line.clone());
-            true
-        }
-    });
-
-    for line in lines {
-        writeln!(updated_whitelist, "{line}").map_err(|e| {
-            error!("Failed to write line: {e}");
-            ConfigError::IOError(e)
-        })?;
-    }
-    Ok(return_uuids)
-}
-
-#[derive(Deserialize, Debug)]
-struct MojangProfile {
-    id: String,
-    name: String,
-}
-
-fn query_mojang_for_usernames(uuids: Vec<&Uuid>) -> Vec<MojangProfile> {
-    if uuids.is_empty() {
-        return Vec::new();
-    }
-
-    uuids
-        .into_iter()
-        .par_bridge()
-        .map(|uuid| {
-            let uuid = uuid.as_simple();
-            let response = ureq::get(format!(
-                "https://sessionserver.mojang.com/session/minecraft/profile/{uuid}"
-            ))
-            .call();
-
-            match response {
-                Ok(mut response) => Some(response.body_mut().read_json()),
-                _ => None,
+            (None, Some(name)) => {
+                info!("Fetching uuid for {}", &name);
+                match fetch_uuid_from_name(&name) {
+                    Ok(uuid) => (uuid, name),
+                    Err(e) => {
+                        error!("Could not fetch uuid for {}: {}", name, e);
+                        continue;
+                    }
+                }
             }
-        })
-        .flatten()
-        .filter(|profile| profile.is_ok())
-        .map(|profile| profile.unwrap())
-        .collect()
+            (None, None) => {
+                warn!("Skipping empty whitelist entry");
+                continue;
+            }
+        };
+
+        if let Ok(uuid) = Uuid::parse_str(&uuid) {
+            WHITELIST.insert(uuid.as_u128(), name);
+        } else {
+            error!("Invalid UUID format in whitelist: {}", uuid);
+        }
+    }
 }
 
-pub fn add_to_whitelist(uuid: Uuid) -> bool {
-    WHITELIST.insert(uuid.as_u128())
+fn fetch_uuid_from_name(name: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let mut response = ureq::get(&format!("https://api.mojang.com/users/profiles/minecraft/{name}"))
+    .call()?;
+
+    let resp: serde_json::Value = response.body_mut().read_json()?;
+
+    let uuid_without_dashes = resp["id"]
+        .as_str()
+        .ok_or("Invalid response from Mojang API")?;
+    let uuid_with_dashes = format!(
+        "{}-{}-{}-{}-{}",
+        &uuid_without_dashes[0..8],
+        &uuid_without_dashes[8..12],
+        &uuid_without_dashes[12..16],
+        &uuid_without_dashes[16..20],
+        &uuid_without_dashes[20..32]
+    );
+    Ok(uuid_with_dashes)
 }
 
-pub fn remove_from_whitelist(uuid: Uuid) -> bool {
-    WHITELIST.remove(&uuid.as_u128()).is_some()
+fn fetch_name_from_uuid(uuid: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let mut response = ureq::get(&format!("https://sessionserver.mojang.com/session/minecraft/profile/{uuid}"))
+    .call()?;
+
+    let resp: serde_json::Value = response.body_mut().read_json()?;
+
+    let name = resp["name"]
+        .as_str()
+        .ok_or("Invalid response from Mojang API")?;
+    Ok(name.to_string())
+}
+
+pub fn add_to_whitelist(uuid: Uuid, name: String) {
+    WHITELIST.insert(uuid.as_u128(), name);
+}
+
+pub fn remove_from_whitelist(uuid: Uuid) {
+    WHITELIST.remove(&uuid.as_u128());
+}
+
+pub fn reload_whitelist(force: bool) -> Result<(), ConfigError> {
+    if !force {
+        let in_memory_whitelist = list_whitelist()?;
+        let on_disk_whitelist = read_whitelist()?;
+
+        let in_memory_yaml = serde_yaml_ng::to_string(&in_memory_whitelist).unwrap_or_default();
+        let on_disk_yaml = serde_yaml_ng::to_string(&on_disk_whitelist).unwrap_or_default();
+
+        if in_memory_yaml != on_disk_yaml {
+            return Err(ConfigError::Custom(
+                "Unsaved changes exist in memory. Use --force to discard these changes and reload from disk.".to_string(),
+            ));
+        }
+    }
+
+    let whitelist = read_whitelist()?;
+    WHITELIST.clear();
+    process_whitelist_entries(whitelist);
+    Ok(())
+}
+
+pub fn list_whitelist() -> Result<Vec<WhitelistEntry>, ConfigError> {
+    let mut whitelist = Vec::new();
+    for item in WHITELIST.iter() {
+        whitelist.push(WhitelistEntry {
+            uuid: Some(Uuid::from_u128(*item.key()).to_string()),
+            name: Some(item.value().clone()),
+        });
+    }
+    Ok(whitelist)
+}
+
+fn read_whitelist() -> Result<Vec<WhitelistEntry>, ConfigError> {
+    let whitelist_location = get_root_path().join("whitelist.yml");
+    let file = File::open(&whitelist_location).map_err(ConfigError::IOError)?;
+    let reader = BufReader::new(file);
+    match serde_yaml_ng::from_reader(reader) {
+        Ok(list) => Ok(list),
+        Err(e) => Err(ConfigError::YamlError(e)),
+    }
+}
+
+pub fn flush_whitelist_to_disk() -> Result<(), ConfigError> {
+    let whitelist = list_whitelist()?;
+
+    let whitelist_location = get_root_path().join("whitelist.yml");
+    let mut file = OpenOptions::new()
+        .write(true)
+        .truncate(true) // This will clear existing content, including old comments
+        .create(true)
+        .open(&whitelist_location)
+        .map_err(ConfigError::IOError)?;
+    let mut writer = BufWriter::new(&mut file);
+
+    // 1. Write the constant header comments FIRST
+    writer
+        .write_all(WHITELIST_FILE_HEADER_COMMENTS.as_bytes())
+        .map_err(ConfigError::IOError)?;
+    writer.write_all(b"\n").map_err(ConfigError::IOError)?; // Add an extra newline for separation
+
+    // 2. Then, serialize the actual whitelist data and write it
+    let serialized_data = serde_yaml_ng::to_string(&whitelist).map_err(ConfigError::YamlError)?;
+    writer
+        .write_all(serialized_data.as_bytes())
+        .map_err(ConfigError::IOError)?;
+
+    writer.flush().map_err(ConfigError::IOError)?;
+    Ok(())
 }
 
 pub fn create_blank_whitelist_file() {
-    let whitelist_location = get_root_path().join("whitelist.txt");
+    let whitelist_location = get_root_path().join("whitelist.yml");
+    let initial_content = format!("{}{}\n", WHITELIST_FILE_HEADER_COMMENTS, "[]");
 
-    if let Err(e) = File::create(&whitelist_location).and_then(|mut file| {
-        file.write_all(
-            b"# This is the whitelist file.\n\
-        # Each separate line contains a UUID Eg.\n\
-        # 00000000-0000-0000-0000-000000000000\n\
-        # 11111111-1111-1111-1111-111111111111\n",
-        )
-    }) {
-        error!("Failed to save whitelist: {e}");
+    if let Err(e) = File::create(&whitelist_location)
+        .and_then(|mut file| file.write_all(initial_content.as_bytes()))
+    {
+        error!(
+            "Failed to save blank whitelist file to {}: {}",
+            whitelist_location.display(),
+            e
+        );
     }
 }
