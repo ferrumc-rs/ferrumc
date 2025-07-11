@@ -1,5 +1,5 @@
 use crate::errors::NetError;
-use ferrumc_config::statics::get_global_config;
+use ferrumc_config::server_config::get_global_config;
 use tokio::net::TcpListener;
 use tracing::{debug, error};
 
@@ -7,8 +7,6 @@ pub async fn create_server_listener() -> Result<TcpListener, NetError> {
     let config = get_global_config();
     let server_addy = format!("{}:{}", config.host, config.port);
     let server_addy = server_addy.as_str();
-
-    debug!("Trying to bind to {}", server_addy);
 
     let listener = match TcpListener::bind(server_addy).await {
         Ok(l) => Ok::<TcpListener, std::io::Error>(l),
@@ -19,6 +17,8 @@ pub async fn create_server_listener() -> Result<TcpListener, NetError> {
             Err(e)
         }
     };
+
+    debug!("Server listening on {}", server_addy);
 
     Ok(listener?)
 }
