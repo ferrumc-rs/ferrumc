@@ -5,7 +5,6 @@ use lazy_static::lazy_static;
 use parking_lot::RwLock;
 use serde_derive::Serialize;
 use std::collections::HashMap;
-use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tracing::span::Attributes;
 use tracing::{error, Id, Subscriber};
@@ -15,7 +14,7 @@ use tracing_subscriber::Layer;
 
 lazy_static! {
     static ref RESULTS_MAP: DashMap<String, Vec<SingleProfileResult>> = DashMap::new();
-    static ref RUNNING_PROFILERS: Arc<RwLock<Vec<u64>>> = Arc::new(RwLock::new(Vec::new()));
+    static ref RUNNING_PROFILERS: RwLock<Vec<u64>> = RwLock::new(Vec::new());
 }
 
 #[derive(Clone, Serialize)]

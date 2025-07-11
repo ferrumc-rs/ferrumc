@@ -1,5 +1,6 @@
+use crate::encode::errors::NetEncodeError;
 use crate::encode::AsyncWrite;
-use crate::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
+use crate::encode::{NetEncode, NetEncodeOpts};
 use crate::net_types::var_int::VarInt;
 use std::collections::HashMap;
 use std::io::Write;
@@ -9,11 +10,11 @@ macro_rules! impl_for_primitives {
     ($($primitive_type:ty $(| $alt:ty)?),*) => {
         $(
             impl NetEncode for $primitive_type {
-                fn encode<W: Write>(&self, writer: &mut W, _: &NetEncodeOpts) -> NetEncodeResult<()> {
+                fn encode<W: Write>(&self, writer: &mut W, _: &NetEncodeOpts) -> Result<(), NetEncodeError> {
                     writer.write_all(&self.to_be_bytes())?;
                     Ok(())
                 }
-                async fn encode_async<W: tokio::io::AsyncWrite + Unpin>(&self, writer: &mut W, _: &NetEncodeOpts) -> NetEncodeResult<()> {
+                async fn encode_async<W: tokio::io::AsyncWrite + Unpin>(&self, writer: &mut W, _: &NetEncodeOpts) -> Result<(), NetEncodeError> {
                     writer.write_all(&self.to_be_bytes()).await?;
                     Ok(())
                 }
@@ -21,10 +22,10 @@ macro_rules! impl_for_primitives {
 
             $(
                 impl NetEncode for $alt {
-                    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
+                    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
                         (*self as $primitive_type).encode(writer, opts)
                     }
-                    async fn encode_async<W: AsyncWrite + Unpin>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
+                    async fn encode_async<W: AsyncWrite + Unpin>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
                         (*self as $primitive_type).encode_async(writer, opts).await
                     }
                 }
@@ -45,14 +46,14 @@ impl_for_primitives!(
 );
 
 impl NetEncode for bool {
-    fn encode<W: Write>(&self, writer: &mut W, _: &NetEncodeOpts) -> NetEncodeResult<()> {
+    fn encode<W: Write>(&self, writer: &mut W, _: &NetEncodeOpts) -> Result<(), NetEncodeError> {
         (*self as u8).encode(writer, &NetEncodeOpts::None)
     }
     async fn encode_async<W: AsyncWrite + Unpin>(
         &self,
         writer: &mut W,
         _: &NetEncodeOpts,
-    ) -> NetEncodeResult<()> {
+    ) -> Result<(), NetEncodeError> {
         (*self as u8)
             .encode_async(writer, &NetEncodeOpts::None)
             .await
@@ -60,14 +61,14 @@ impl NetEncode for bool {
 }
 
 impl NetEncode for String {
-    fn encode<W: Write>(&self, writer: &mut W, _: &NetEncodeOpts) -> NetEncodeResult<()> {
+    fn encode<W: Write>(&self, writer: &mut W, _: &NetEncodeOpts) -> Result<(), NetEncodeError> {
         self.as_str().encode(writer, &NetEncodeOpts::None)
     }
     async fn encode_async<W: AsyncWrite + Unpin>(
         &self,
         writer: &mut W,
         _: &NetEncodeOpts,
-    ) -> NetEncodeResult<()> {
+    ) -> Result<(), NetEncodeError> {
         self.as_str()
             .encode_async(writer, &NetEncodeOpts::None)
             .await
@@ -75,7 +76,7 @@ impl NetEncode for String {
 }
 
 impl NetEncode for &str {
-    fn encode<W: Write>(&self, writer: &mut W, _: &NetEncodeOpts) -> NetEncodeResult<()> {
+    fn encode<W: Write>(&self, writer: &mut W, _: &NetEncodeOpts) -> Result<(), NetEncodeError> {
         let len: VarInt = VarInt::new(self.len() as i32);
         len.encode(writer, &NetEncodeOpts::None)?;
         writer.write_all(self.as_bytes())?;
@@ -85,7 +86,7 @@ impl NetEncode for &str {
         &self,
         writer: &mut W,
         _: &NetEncodeOpts,
-    ) -> NetEncodeResult<()> {
+    ) -> Result<(), NetEncodeError> {
         let len: VarInt = VarInt::new(self.len() as i32);
         len.encode_async(writer, &NetEncodeOpts::None).await?;
         writer.write_all(self.as_bytes()).await?;
@@ -97,7 +98,7 @@ impl<T> NetEncode for Vec<T>
 where
     T: NetEncode,
 {
-    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
         if matches!(opts, NetEncodeOpts::SizePrefixed) {
             let len: VarInt = VarInt::new(self.len() as i32);
             len.encode(writer, opts)?;
@@ -112,7 +113,7 @@ where
         &self,
         writer: &mut W,
         opts: &NetEncodeOpts,
-    ) -> NetEncodeResult<()> {
+    ) -> Result<(), NetEncodeError> {
         if matches!(opts, NetEncodeOpts::SizePrefixed) {
             let len: VarInt = VarInt::new(self.len() as i32);
             len.encode_async(writer, opts).await?;
@@ -126,7 +127,7 @@ where
 }
 
 impl NetEncode for &[u8] {
-    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
         if matches!(opts, NetEncodeOpts::SizePrefixed) {
             let len: VarInt = VarInt::new(self.len() as i32);
             len.encode(writer, opts)?;
@@ -139,7 +140,7 @@ impl NetEncode for &[u8] {
         &self,
         writer: &mut W,
         opts: &NetEncodeOpts,
-    ) -> NetEncodeResult<()> {
+    ) -> Result<(), NetEncodeError> {
         if matches!(opts, NetEncodeOpts::SizePrefixed) {
             let len: VarInt = VarInt::new(self.len() as i32);
             len.encode_async(writer, opts).await?;
@@ -151,7 +152,7 @@ impl NetEncode for &[u8] {
 }
 
 impl NetEncode for &[&str] {
-    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
         if matches!(opts, NetEncodeOpts::SizePrefixed) {
             let len: VarInt = VarInt::new(self.len() as i32);
             len.encode(writer, opts)?;
@@ -166,7 +167,7 @@ impl NetEncode for &[&str] {
         &self,
         writer: &mut W,
         opts: &NetEncodeOpts,
-    ) -> NetEncodeResult<()> {
+    ) -> Result<(), NetEncodeError> {
         if matches!(opts, NetEncodeOpts::SizePrefixed) {
             let len: VarInt = VarInt::new(self.len() as i32);
             len.encode_async(writer, opts).await?;
@@ -180,7 +181,7 @@ impl NetEncode for &[&str] {
 }
 
 impl<T: NetEncode> NetEncode for Option<T> {
-    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
         match self {
             Some(value) => value.encode(writer, opts),
             None => Ok(()),
@@ -190,7 +191,7 @@ impl<T: NetEncode> NetEncode for Option<T> {
         &self,
         writer: &mut W,
         opts: &NetEncodeOpts,
-    ) -> NetEncodeResult<()> {
+    ) -> Result<(), NetEncodeError> {
         match self {
             Some(value) => value.encode_async(writer, opts).await,
             None => Ok(()),
@@ -203,7 +204,7 @@ where
     K: NetEncode,
     V: NetEncode,
 {
-    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
         let len: VarInt = VarInt::new(self.len() as i32);
         len.encode(writer, opts)?;
 
@@ -217,7 +218,7 @@ where
         &self,
         writer: &mut W,
         opts: &NetEncodeOpts,
-    ) -> NetEncodeResult<()> {
+    ) -> Result<(), NetEncodeError> {
         let len: VarInt = VarInt::new(self.len() as i32);
         len.encode_async(writer, opts).await?;
 

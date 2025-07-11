@@ -149,7 +149,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
 
             (
                 quote! {
-                    fn encode<W: std::io::Write>(&self, writer: &mut W, opts: &ferrumc_net_codec::encode::NetEncodeOpts) -> ferrumc_net_codec::encode::NetEncodeResult<()> {
+                    fn encode<W: std::io::Write>(&self, writer: &mut W, opts: &ferrumc_net_codec::encode::NetEncodeOpts) -> Result<(),  ferrumc_net_codec::encode::errors::NetEncodeError> {
                         match opts {
                             ferrumc_net_codec::encode::NetEncodeOpts::None => {
                                 #packet_id_snippet
@@ -172,7 +172,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                                 let mut writer = Vec::new();
                                 let mut writer = &mut writer;
 
-                                let compression_threshold = ferrumc_config::statics::get_global_config().network_compression_threshold;
+                                let compression_threshold = ferrumc_config::server_config::get_global_config().network_compression_threshold;
 
                                 #packet_id_snippet
                                 #field_encoders
@@ -207,7 +207,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                     }
                 },
                 quote! {
-                    async fn encode_async<W: tokio::io::AsyncWrite + std::marker::Unpin>(&self, writer: &mut W, opts: &ferrumc_net_codec::encode::NetEncodeOpts) -> ferrumc_net_codec::encode::NetEncodeResult<()> {
+                    async fn encode_async<W: tokio::io::AsyncWrite + std::marker::Unpin>(&self, writer: &mut W, opts: &ferrumc_net_codec::encode::NetEncodeOpts) -> Result<(),  ferrumc_net_codec::encode::errors::NetEncodeError> {
                         match opts {
                             ferrumc_net_codec::encode::NetEncodeOpts::None => {
                                 #async_packet_id_snippet
@@ -230,7 +230,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                                 let mut writer = Vec::new();
                                 let mut writer = &mut writer;
 
-                                let compression_threshold = ferrumc_config::statics::get_global_config().network_compression_threshold;
+                                let compression_threshold = ferrumc_config::server_config::get_global_config().network_compression_threshold;
 
                                 #async_packet_id_snippet
                                 #async_field_encoders
@@ -273,7 +273,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
 
             (
                 quote! {
-                    fn encode<W: std::io::Write>(&self, writer: &mut W, opts: &ferrumc_net_codec::encode::NetEncodeOpts) -> ferrumc_net_codec::encode::NetEncodeResult<()> {
+                    fn encode<W: std::io::Write>(&self, writer: &mut W, opts: &ferrumc_net_codec::encode::NetEncodeOpts) -> Result<(),  ferrumc_net_codec::encode::errors::NetEncodeError> {
                         match opts {
                             ferrumc_net_codec::encode::NetEncodeOpts::None => {
                                 #packet_id_snippet
@@ -296,7 +296,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                                 let mut writer = Vec::new();
                                 let mut writer = &mut writer;
 
-                                let compression_threshold = ferrumc_config::statics::get_global_config().network_compression_threshold;
+                                let compression_threshold = ferrumc_config::server_config::get_global_config().network_compression_threshold;
 
                                 #packet_id_snippet
                                 #sync_enum_encoder
@@ -331,7 +331,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                     }
                 },
                 quote! {
-                    async fn encode_async<W: tokio::io::AsyncWrite + std::marker::Unpin>(&self, writer: &mut W, opts: &ferrumc_net_codec::encode::NetEncodeOpts) -> ferrumc_net_codec::encode::NetEncodeResult<()> {
+                    async fn encode_async<W: tokio::io::AsyncWrite + std::marker::Unpin>(&self, writer: &mut W, opts: &ferrumc_net_codec::encode::NetEncodeOpts) -> Result<(),  ferrumc_net_codec::encode::errors::NetEncodeError> {
                         match opts {
                             ferrumc_net_codec::encode::NetEncodeOpts::None => {
                                 #async_packet_id_snippet
@@ -354,7 +354,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                                 let mut writer = Vec::new();
                                 let mut writer = &mut writer;
 
-                                let compression_threshold = ferrumc_config::statics::get_global_config().network_compression_threshold;
+                                let compression_threshold = ferrumc_config::server_config::get_global_config().network_compression_threshold;
 
                                 #async_packet_id_snippet
                                 #async_enum_encoder

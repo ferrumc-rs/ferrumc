@@ -3,7 +3,6 @@ use ferrumc_world::chunk_format::Chunk;
 use ferrumc_world::vanilla_chunk_format::BlockData;
 use rand::Rng;
 use std::hint::black_box;
-use std::io::Read;
 
 fn get_rand_in_range(min: i32, max: i32) -> i32 {
     let mut rng = rand::rng();
@@ -11,9 +10,7 @@ fn get_rand_in_range(min: i32, max: i32) -> i32 {
 }
 
 pub(crate) fn bench_edits(c: &mut Criterion) {
-    let mut chunk_file = std::fs::File::open("../../../.etc/raw_chunk.dat").unwrap();
-    let mut chunk_data = Vec::new();
-    chunk_file.read_to_end(&mut chunk_data).unwrap();
+    let chunk_data = std::fs::read("../../../.etc/raw_chunk.dat").unwrap();
     let chunk: Chunk = bitcode::decode(&chunk_data).unwrap();
 
     let mut read_group = c.benchmark_group("edit_read");
