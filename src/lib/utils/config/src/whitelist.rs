@@ -87,10 +87,7 @@ fn process_whitelist_entries(entries: Vec<WhitelistEntry>) {
 }
 
 fn fetch_uuid_from_name(name: &str) -> Result<String, Box<dyn std::error::Error>> {
-    let mut response = ureq::get(&format!(
-        "https://api.mojang.com/users/profiles/minecraft/{}",
-        name
-    ))
+    let mut response = ureq::get(&format!("https://api.mojang.com/users/profiles/minecraft/{name}"))
     .call()?;
 
     let resp: serde_json::Value = response.body_mut().read_json()?;
@@ -110,10 +107,7 @@ fn fetch_uuid_from_name(name: &str) -> Result<String, Box<dyn std::error::Error>
 }
 
 fn fetch_name_from_uuid(uuid: &str) -> Result<String, Box<dyn std::error::Error>> {
-    let mut response = ureq::get(&format!(
-        "https://sessionserver.mojang.com/session/minecraft/profile/{}",
-        uuid
-    ))
+    let mut response = ureq::get(&format!("https://sessionserver.mojang.com/session/minecraft/profile/{uuid}"))
     .call()?;
 
     let resp: serde_json::Value = response.body_mut().read_json()?;
