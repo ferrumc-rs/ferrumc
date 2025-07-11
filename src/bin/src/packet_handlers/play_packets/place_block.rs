@@ -1,5 +1,7 @@
+use std::sync::Arc;
+
 use crate::errors::BinaryError;
-use bevy_ecs::prelude::{Query, Res};
+use bevy_ecs::prelude::{Entity, Query, Res};
 use ferrumc_core::collisions::bounds::CollisionBounds;
 use ferrumc_core::transform::position::Position;
 use ferrumc_net::connection::StreamWriter;
@@ -18,22 +20,22 @@ const DUMMY_BLOCK: BlockId = BlockId(14);
 pub fn handle(
     events: Res<PlaceBlockReceiver>,
     state: Res<GlobalStateResource>,
-    conn_q: Query<&StreamWriter>,
+    conn_q: Query<(Entity, &StreamWriter)>,
     pos_q: Query<(&Position, &CollisionBounds)>,
 ) {
     'ev_loop: for (event, eid) in events.0.try_iter() {
         let res: Result<(), BinaryError> = try {
-            let Ok(conn) = conn_q.get(eid) else {
+            let Ok((entity, conn)) = conn_q.get(eid) else {
                 debug!("Could not get connection for entity {:?}", eid);
                 continue;
             };
-            if !conn.running.load(std::sync::atomic::Ordering::Relaxed) {
-                debug!("Connection for entity {:?} is not running", eid);
+            if !state.0.players.is_connected(entity) {
+                trace!("Entity {:?} is not connected", entity);
                 continue;
             }
             match event.hand.0 {
                 0 => {
-                    let mut chunk = match state.0.world.load_chunk(
+                    let mut chunk = match state.0.world.load_chunk_owned(
                         event.position.x >> 4,
                         event.position.z >> 4,
                         "overworld",
@@ -89,7 +91,7 @@ pub fn handle(
                     let packet = BlockChangeAck {
                         sequence: event.sequence,
                     };
-                    conn.send_packet(packet)?;
+                    conn.send_packet(&packet)?;
 
                     chunk.set_block(x & 0xF, y as i32, z & 0xF, DUMMY_BLOCK)?;
                     let ack_packet = BlockChangeAck {
@@ -100,10 +102,10 @@ pub fn handle(
                         location: NetworkPosition { x, y, z },
                         block_id: VarInt::from(DUMMY_BLOCK),
                     };
-                    conn.send_packet(chunk_packet)?;
-                    conn.send_packet(ack_packet)?;
+                    conn.send_packet(&chunk_packet)?;
+                    conn.send_packet(&ack_packet)?;
 
-                    state.0.world.save_chunk(chunk)?;
+                    state.0.world.save_chunk(Arc::new(chunk))?;
                 }
                 1 => {
                     trace!("Offhand block placement not implemented");

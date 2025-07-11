@@ -1,7 +1,8 @@
 use crate::de::converter::FromNbt;
 use crate::{NBTSerializable, NBTSerializeOptions};
 use ferrumc_general_purpose::simd::arrays;
-use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
+use ferrumc_net_codec::encode::errors::NetEncodeError;
+use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use std::io::Write;
 use tokio::io::AsyncWrite;
 
@@ -603,7 +604,11 @@ mod general {
 /// tf, whats the point of this?
 /// the data will probably die?? idk? possibly not? ?? lmao
 impl NetEncode for NbtTape<'_> {
-    fn encode<W: Write>(&self, writer: &mut W, _opts: &NetEncodeOpts) -> NetEncodeResult<()> {
+    fn encode<W: Write>(
+        &self,
+        writer: &mut W,
+        _opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
         let data = self.data;
         writer.write_all(data)?;
         Ok(())
@@ -613,7 +618,7 @@ impl NetEncode for NbtTape<'_> {
         &self,
         writer: &mut W,
         _opts: &NetEncodeOpts,
-    ) -> NetEncodeResult<()> {
+    ) -> Result<(), NetEncodeError> {
         use tokio::io::AsyncWriteExt;
         let data = self.data;
         writer.write_all(data).await?;
@@ -627,7 +632,7 @@ impl NbtTapeElement<'_> {
         tape: &mut NbtTape,
         writer: &mut Vec<u8>,
         opts: &NBTSerializeOptions,
-    ) -> NetEncodeResult<()> {
+    ) -> Result<(), NetEncodeError> {
         /*if let NBTSerializeOptions::WithHeader(name) = opts {
             writer.write_all(&[self.nbt_id()])?;
             name.serialize(writer, &NBTSerializeOptions::None);

@@ -1,4 +1,5 @@
-use crate::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
+use crate::encode::errors::NetEncodeError;
+use crate::encode::{NetEncode, NetEncodeOpts};
 use std::f64::consts::PI;
 use std::io::Write;
 use tokio::io::AsyncWriteExt;
@@ -58,7 +59,7 @@ impl From<NetAngle> for u8 {
 }
 
 impl NetEncode for NetAngle {
-    fn encode<W: Write>(&self, writer: &mut W, _: &NetEncodeOpts) -> NetEncodeResult<()> {
+    fn encode<W: Write>(&self, writer: &mut W, _: &NetEncodeOpts) -> Result<(), NetEncodeError> {
         writer.write_all(&[self.0])?;
         Ok(())
     }
@@ -66,7 +67,7 @@ impl NetEncode for NetAngle {
         &self,
         writer: &mut W,
         _: &NetEncodeOpts,
-    ) -> NetEncodeResult<()> {
+    ) -> Result<(), NetEncodeError> {
         writer.write_all(&[self.0]).await?;
         Ok(())
     }
