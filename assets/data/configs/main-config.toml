@@ -40,5 +40,3 @@ cache_ttl = 60
 # How big the cache can be in kb.
 cache_capacity = 20_000
 
-whitelist = false
-

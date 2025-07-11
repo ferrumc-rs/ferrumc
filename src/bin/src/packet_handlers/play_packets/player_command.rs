@@ -22,7 +22,6 @@ pub fn handle(
                     ],
                 );
 
-                // TODO: Don't clone
                 for (entity, conn) in query {
                     if !state.0.players.is_connected(entity) {
                         continue;

@@ -4,7 +4,7 @@ use ferrumc_core::sys::stats_cooldown::StatsCooldown;
 use ferrumc_state::GlobalStateResource;
 use std::sync::atomic::Ordering::Relaxed;
 
-pub fn update_stats(state: Res<GlobalStateResource>, cooldown: ResMut<StatsCooldown>) {
+pub fn update_stats(state: Res<GlobalStateResource>, mut cooldown: ResMut<StatsCooldown>) {
     let stats = &state.0.stats;
 
     if cooldown.last_update.elapsed().as_secs() < get_global_config().system_stats_cooldown as u64 {
@@ -26,4 +26,6 @@ pub fn update_stats(state: Res<GlobalStateResource>, cooldown: ResMut<StatsCoold
     stats.cpu_usage.store(sys.global_cpu_usage(), Relaxed);
 
     stats.cores.store(sys.cpus().len() as u32, Relaxed);
+
+    cooldown.last_update = std::time::Instant::now();
 }
