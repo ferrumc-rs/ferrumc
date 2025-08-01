@@ -5,7 +5,7 @@ use crate::packets::incoming::status_request::StatusRequestPacket;
 use crate::packets::outgoing::ping_response::PongPacket;
 use crate::packets::outgoing::status_response::StatusResponse;
 use ferrumc_config::favicon::get_favicon_base64;
-use ferrumc_config::statics::get_global_config;
+use ferrumc_config::server_config::get_global_config;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_state::GlobalState;
 use rand::prelude::IndexedRandom;
@@ -27,7 +27,7 @@ pub(super) async fn status(
         json_response: get_server_status(&state),
     };
 
-    send_packet(conn_write, status_response).await?;
+    send_packet(conn_write, &status_response).await?;
 
     trim_packet_head(conn_read, 0x01).await?;
 
@@ -39,7 +39,7 @@ pub(super) async fn status(
         payload: ping_req.payload,
     };
 
-    send_packet(conn_write, pong_packet).await?;
+    send_packet(conn_write, &pong_packet).await?;
 
     Ok(true)
 }
@@ -88,17 +88,21 @@ fn get_server_status(state: &GlobalState) -> String {
     let config = get_global_config();
 
     let version = structs::Version {
-        name: "1.21.1",
-        protocol: crate::conn_init::PROTOCOL_VERSION_1_21_1 as u16,
+        name: "1.21.5",
+        protocol: crate::conn_init::PROTOCOL_VERSION_1_21_5 as u16,
     };
 
     let online_players_sample = state
         .players
+        .player_list
         .iter()
         .take(5)
-        .map(|player_data| structs::PlayerData {
-            name: player_data.value().clone(),
-            id: uuid::Uuid::from_u128(*player_data.key()).to_string(),
+        .map(|player_data| {
+            let (uuid, name) = player_data.value();
+            structs::PlayerData {
+                name: name.clone(),
+                id: uuid::Uuid::from_u128(*uuid).to_string(),
+            }
         })
         .collect::<Vec<_>>();
 

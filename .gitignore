@@ -12,3 +12,7 @@ config.toml
 .etc/blocks.json
 
 flame.svg
+
+.direnv
+result
+result-*

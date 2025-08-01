@@ -6,8 +6,9 @@ use crate::packets::outgoing::commands::CommandsPacket;
 use ferrumc_config::statics::get_global_config;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net_codec::decode::NetDecode;
+use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_state::GlobalState;
-use tokio::io::AsyncReadExt;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tracing::{error, trace};
 
@@ -30,17 +31,12 @@ pub(super) async fn login(
     let login_success = crate::packets::outgoing::login_success::LoginSuccessPacket {
         uuid: login_start.uuid,
         username: &login_start.username,
-        number_of_properties: VarInt::from(0),
-        strict_error_handling: false,
+        properties: LengthPrefixedVec::default(),
     };
 
-    send_packet(conn_write, login_success).await?;
+    send_packet(conn_write, &login_success).await?;
 
-    let player_identity = PlayerIdentity {
-        uuid: login_start.uuid,
-        username: login_start.username.clone(),
-        short_uuid: login_start.uuid as i32,
-    };
+    let player_identity = PlayerIdentity::new(login_start.username.clone(), login_start.uuid);
 
     // =============================================================================================
 
@@ -61,6 +57,14 @@ pub(super) async fn login(
     let len = VarInt::decode_async(&mut conn_read, &NetDecodeOpts::None).await?;
     let id = VarInt::decode_async(&mut conn_read, &NetDecodeOpts::None).await?;
     assert_eq!(id.0, 0x02);
+    // Limit the buffer to this max length, so we don't allocate too much memory
+    // The wiki says it can't be larger than 1048576, but we add 64 just to be safe
+    if len.0 < 1 || len.0 > 1048576 + 64 {
+        error!("Received packet with invalid length: {}", len.0);
+        return Err(NetError::Packet(PacketError::MalformedPacket(Some(
+            id.0 as u8,
+        ))));
+    }
     let mut buf = vec![0; len.0 as usize - id.len()];
     conn_read.read_exact(&mut buf).await?;
 
@@ -89,7 +93,7 @@ pub(super) async fn login(
     let client_bound_known_packs =
         crate::packets::outgoing::client_bound_known_packs::ClientBoundKnownPacksPacket::default();
 
-    send_packet(conn_write, client_bound_known_packs).await?;
+    send_packet(conn_write, &client_bound_known_packs).await?;
 
     // =============================================================================================
 
@@ -105,10 +109,7 @@ pub(super) async fn login(
 
     // =============================================================================================
 
-    let registry_packets =
-        crate::packets::outgoing::registry_data::RegistryDataPacket::get_registry_packets();
-
-    for packet in registry_packets {
+    for packet in &*REGISTRY_PACKETS {
         send_packet(conn_write, packet).await?;
     }
 
@@ -117,7 +118,7 @@ pub(super) async fn login(
     let finish_config_packet =
         crate::packets::outgoing::finish_configuration::FinishConfigurationPacket;
 
-    send_packet(conn_write, finish_config_packet).await?;
+    send_packet(conn_write, &finish_config_packet).await?;
 
     // =============================================================================================
 
@@ -135,7 +136,7 @@ pub(super) async fn login(
     let login_play =
         crate::packets::outgoing::login_play::LoginPlayPacket::new(player_identity.short_uuid);
 
-    send_packet(conn_write, login_play).await?;
+    send_packet(conn_write, &login_play).await?;
 
     // =============================================================================================
 
@@ -147,7 +148,7 @@ pub(super) async fn login(
             ..Default::default()
         };
 
-    send_packet(conn_write, sync_player_pos).await?;
+    send_packet(conn_write, &sync_player_pos).await?;
 
     // =============================================================================================
 
@@ -169,7 +170,7 @@ pub(super) async fn login(
 
     // =============================================================================================
 
-    trim_packet_head(conn_read, 0x1B).await?;
+    trim_packet_head(conn_read, 0x1D).await?;
 
     let _player_pos_and_rot =
         crate::packets::incoming::set_player_position_and_rotation::SetPlayerPositionAndRotationPacket::decode_async(
@@ -181,37 +182,49 @@ pub(super) async fn login(
 
     let game_event = crate::packets::outgoing::game_event::GameEventPacket::new(13, 0.0);
 
-    send_packet(conn_write, game_event).await?;
+    send_packet(conn_write, &game_event).await?;
 
     // =============================================================================================
 
     let center_chunk = crate::packets::outgoing::set_center_chunk::SetCenterChunk::new(0, 0);
 
-    send_packet(conn_write, center_chunk).await?;
+    send_packet(conn_write, &center_chunk).await?;
 
     // =============================================================================================
 
     let radius = get_global_config().chunk_render_distance as i32;
 
+    let mut batch = state.thread_pool.batch();
+
     for x in -radius..=radius {
         for z in -radius..=radius {
-            let chunk = match state.world.load_chunk(x, z, "overworld") {
-                Ok(chunk) => chunk,
-                Err(e) => {
-                    error!("Failed to load chunk {} {}: {}", x, z, e);
-                    continue;
+            batch.execute({
+                let state = state.clone();
+                move || {
+                    let chunk = state.world.load_chunk(x, z, "overworld")?;
+                    crate::packets::outgoing::chunk_and_light_data::ChunkAndLightData::from_chunk(
+                        &chunk,
+                    )
                 }
-            };
-            let chunk_data =
-                crate::packets::outgoing::chunk_and_light_data::ChunkAndLightData::from_chunk(
-                    &chunk,
-                )?;
-            send_packet(conn_write, chunk_data).await?;
+            });
+        }
+    }
+    let chunks = batch.wait();
+    for chunk in chunks {
+        match chunk {
+            Ok(chunk_data) => {
+                send_packet(conn_write, &chunk_data).await?;
+            }
+            Err(err) => {
+                error!("Failed to send chunk data: {:?}", err);
+            }
         }
     }
     
     // =============================================================================================
     send_packet(conn_write, CommandsPacket::new()).await?;
+
+    conn_write.flush().await?;
 
     Ok((false, Some(player_identity)))
 }

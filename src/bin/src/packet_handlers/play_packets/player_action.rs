@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::errors::BinaryError;
 use bevy_ecs::prelude::{Entity, Query, Res};
 use ferrumc_net::connection::StreamWriter;
@@ -20,7 +22,7 @@ pub fn handle(
         let res: Result<(), BinaryError> = try {
             match event.status.0 {
                 0 => {
-                    let mut chunk = match state.0.clone().world.load_chunk(
+                    let mut chunk = match state.0.clone().world.load_chunk_owned(
                         event.location.x >> 4,
                         event.location.z >> 4,
                         "overworld",
@@ -35,12 +37,6 @@ pub fn handle(
                                 .generate_chunk(event.location.x >> 4, event.location.z >> 4)?
                         }
                     };
-                    let block = chunk.get_block(
-                        event.location.x,
-                        event.location.y as i32,
-                        event.location.z,
-                    )?;
-                    debug!("Block: {:?}", block);
                     let (relative_x, relative_y, relative_z) = (
                         event.location.x.abs() % 16,
                         event.location.y as i32,
@@ -48,9 +44,9 @@ pub fn handle(
                     );
                     chunk.set_block(relative_x, relative_y, relative_z, BlockData::default())?;
                     // Save the chunk to disk
-                    state.0.world.save_chunk(chunk)?;
+                    state.0.world.save_chunk(Arc::new(chunk))?;
                     for (eid, conn) in query {
-                        if !conn.running.load(std::sync::atomic::Ordering::Relaxed) {
+                        if !state.0.players.is_connected(eid) {
                             continue;
                         }
                         // If the player is the one who placed the block, send the BlockChangeAck packet
@@ -58,12 +54,12 @@ pub fn handle(
                             location: event.location.clone(),
                             block_id: VarInt::from(BlockId::default()),
                         };
-                        conn.send_packet(block_update_packet)?;
+                        conn.send_packet(&block_update_packet)?;
                         if eid == trigger_eid {
                             let ack_packet = BlockChangeAck {
                                 sequence: event.sequence,
                             };
-                            conn.send_packet(ack_packet)?;
+                            conn.send_packet(&ack_packet)?;
                         }
                     }
                 }
