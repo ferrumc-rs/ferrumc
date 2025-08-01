@@ -19,7 +19,7 @@ pub mod input;
 #[cfg(test)]
 mod tests;
 
-pub type ParserResult = Result<Box<dyn Any + 'static>, TextComponent>;
+pub type ParserResult = Result<Box<dyn Any + 'static>, Box<TextComponent>>;
 
 pub struct Command {
     pub name: &'static str,
@@ -31,7 +31,7 @@ impl Command {
         &self,
         ctx: &Arc<CommandContext>,
         input: &Arc<Mutex<CommandInput>>,
-    ) -> Result<(), TextComponent> {
+    ) -> Result<(), Box<TextComponent>> {
         for arg in &self.args {
             arg.parser.parse(ctx.clone(), input.clone())?;
         }

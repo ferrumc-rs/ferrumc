@@ -23,4 +23,3 @@ impl CommandDispatchEvent {
         infrastructure::find_command(&self.command)
     }
 }
-

@@ -1,6 +1,6 @@
 //! TODO:
 //! * Entity
-//! * Double (does rust even have a double type?)
+//! * Double (f64)
 //! * Score Holder
 //! * Time
 //! * Resource or Tag
@@ -13,7 +13,7 @@ use std::io::Write;
 use enum_ordinalize::Ordinalize;
 use ferrumc_macros::NetEncode;
 use ferrumc_net_codec::{
-    encode::{NetEncode, NetEncodeOpts, NetEncodeResult},
+    encode::{errors::NetEncodeError, NetEncode, NetEncodeOpts},
     net_types::var_int::VarInt,
 };
 use float::FloatParserFlags;
@@ -96,7 +96,7 @@ pub enum MinecraftArgumentType {
 }
 
 impl NetEncode for MinecraftArgumentType {
-    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
         VarInt::new(self.ordinal() as i32).encode(writer, opts)
     }
 
@@ -104,7 +104,7 @@ impl NetEncode for MinecraftArgumentType {
         &self,
         writer: &mut W,
         opts: &NetEncodeOpts,
-    ) -> NetEncodeResult<()> {
+    ) -> Result<(), NetEncodeError> {
         VarInt::new(self.ordinal() as i32)
             .encode_async(writer, opts)
             .await

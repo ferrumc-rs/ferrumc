@@ -22,3 +22,9 @@ impl CommandsPacket {
         Self::new_with(ferrumc_commands::infrastructure::get_graph())
     }
 }
+
+impl Default for CommandsPacket {
+    fn default() -> Self {
+        Self::new()
+    }
+}

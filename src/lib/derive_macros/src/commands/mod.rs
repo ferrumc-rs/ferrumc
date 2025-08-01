@@ -82,12 +82,7 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
             if is_sender {
                 match *fn_arg.ty {
                     Type::Path(ref path) => {
-                        if !path
-                            .path
-                            .segments
-                            .iter()
-                            .any(|seg| seg.ident.to_string() == "Entity")
-                        {
+                        if !path.path.segments.iter().any(|seg| seg.ident == "Entity") {
                             sender_arg_mismatched_ty = true;
                             return false;
                         }
@@ -167,7 +162,7 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
             let parser = syn::parse_str::<Expr>(&arg.parser.clone()).expect("invalid parser");
             let name = arg.name.clone();
             let required = arg.required;
-            
+
             quote! {
                 ferrumc_commands::arg::CommandArgument {
                     name: #name.to_string(),

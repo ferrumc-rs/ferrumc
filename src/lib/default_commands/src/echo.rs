@@ -1,5 +1,6 @@
 use bevy_ecs::prelude::*;
-use ferrumc_commands::arg::parser::string::{QuotedStringParser, GreedyStringParser};
+use ferrumc_commands::arg::parser::string::GreedyStringParser;
+use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_macros::command;
 use ferrumc_net::{
     connection::StreamWriter, packets::outgoing::system_message::SystemMessagePacket,
@@ -7,19 +8,16 @@ use ferrumc_net::{
 use ferrumc_text::TextComponentBuilder;
 use tracing::error;
 
-#[command("test")]
+#[command("echo")]
 fn test_command(
-    #[parser(QuotedStringParser)] thing: String,
-    #[parser(GreedyStringParser)] things: String,
+    #[parser(GreedyStringParser)] message: String,
     #[sender] sender: Entity,
-    query: Query<&StreamWriter>,
+    query: Query<(&StreamWriter, &PlayerIdentity)>,
 ) {
-    let writer = query.get(sender).expect("sender has no stream writer");
-    if let Err(err) = writer.send_packet(SystemMessagePacket::new(
-        TextComponentBuilder::new("Thing: ")
-            .extra(TextComponentBuilder::new(thing).build())
-            .extra(", Things: ")
-            .extra(TextComponentBuilder::new(things).build())
+    let (writer, identity) = query.get(sender).expect("sender has no stream writer");
+    if let Err(err) = writer.send_packet(&SystemMessagePacket::new(
+        TextComponentBuilder::new(format!("{} said: ", identity.username))
+            .extra(TextComponentBuilder::new(message).build())
             .build(),
         false,
     )) {

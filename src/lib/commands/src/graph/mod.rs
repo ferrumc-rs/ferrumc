@@ -1,5 +1,5 @@
-use std::sync::Arc;
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::var_int::VarInt;
@@ -246,4 +246,3 @@ impl CommandGraph {
             .map(|(node_index, _remaining)| self.get_command_name(*node_index))
     }
 }
-

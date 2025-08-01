@@ -14,11 +14,7 @@ pub struct CommandContext {
 }
 
 impl CommandContext {
-    pub fn new(
-        input: CommandInput,
-        command: Arc<Command>,
-        sender: Entity,
-    ) -> Arc<Self> {
+    pub fn new(input: CommandInput, command: Arc<Command>, sender: Entity) -> Arc<Self> {
         Arc::new(Self {
             input: Arc::new(Mutex::new(input)),
             command,

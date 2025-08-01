@@ -1,4 +1,3 @@
-
 // #[command("nested")]
 // async fn root(ctx: Arc<CommandContext>) -> CommandResult {
 //     ctx.connection_id

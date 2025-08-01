@@ -8,7 +8,7 @@ use bevy_ecs::prelude::World;
 use bevy_ecs::schedule::ExecutorKind;
 use crossbeam_channel::Sender;
 use ferrumc_commands::infrastructure::register_command_systems;
-use ferrumc_config::statics::get_global_config;
+use ferrumc_config::server_config::get_global_config;
 use ferrumc_net::connection::{handle_connection, NewConnection};
 use ferrumc_net::server::create_server_listener;
 use ferrumc_net::PacketSender;
@@ -39,7 +39,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     let (shutdown_response_send, shutdown_response_recv) = crossbeam_channel::unbounded();
 
     ferrumc_default_commands::init();
-    
+
     let mut schedule = bevy_ecs::schedule::Schedule::default();
     schedule.set_executor_kind(ExecutorKind::MultiThreaded);
 

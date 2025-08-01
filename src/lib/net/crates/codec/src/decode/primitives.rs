@@ -150,7 +150,7 @@ impl<T> NetDecode for Option<T>
 where
     T: NetDecode,
 {
-    fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> NetDecodeResult<Self> {
+    fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
         let is_some = <bool as NetDecode>::decode(reader, opts)?;
 
         if !is_some {
@@ -165,7 +165,7 @@ where
     async fn decode_async<R: AsyncRead + Unpin>(
         reader: &mut R,
         opts: &NetDecodeOpts,
-    ) -> NetDecodeResult<Self> {
+    ) -> Result<Self, NetDecodeError> {
         let is_some = <bool as NetDecode>::decode_async(reader, opts).await?;
         if !is_some {
             return Ok(None);

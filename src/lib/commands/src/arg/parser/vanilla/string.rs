@@ -2,7 +2,7 @@ use std::io::Write;
 
 use enum_ordinalize::Ordinalize;
 use ferrumc_net_codec::{
-    encode::{NetEncode, NetEncodeOpts, NetEncodeResult},
+    encode::{errors::NetEncodeError, NetEncode, NetEncodeOpts},
     net_types::var_int::VarInt,
 };
 use tokio::io::AsyncWrite;
@@ -16,7 +16,7 @@ pub enum StringParsingBehavior {
 }
 
 impl NetEncode for StringParsingBehavior {
-    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
         VarInt::new(self.ordinal() as i32).encode(writer, opts)
     }
 
@@ -24,7 +24,7 @@ impl NetEncode for StringParsingBehavior {
         &self,
         writer: &mut W,
         opts: &NetEncodeOpts,
-    ) -> NetEncodeResult<()> {
+    ) -> Result<(), NetEncodeError> {
         VarInt::new(self.ordinal() as i32)
             .encode_async(writer, opts)
             .await

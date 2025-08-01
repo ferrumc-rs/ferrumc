@@ -1,6 +1,6 @@
 use std::io::Write;
 
-use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts, NetEncodeResult};
+use ferrumc_net_codec::encode::{errors::NetEncodeError, NetEncode, NetEncodeOpts};
 use tokio::io::AsyncWrite;
 
 #[derive(Clone, Debug, PartialEq, Default)]
@@ -10,7 +10,7 @@ pub struct IntParserFlags {
 }
 
 impl NetEncode for IntParserFlags {
-    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> NetEncodeResult<()> {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
         let mut flags = 0u8;
         if self.min.is_some() {
             flags |= 0x01;
@@ -27,7 +27,7 @@ impl NetEncode for IntParserFlags {
         &self,
         writer: &mut W,
         opts: &NetEncodeOpts,
-    ) -> NetEncodeResult<()> {
+    ) -> Result<(), NetEncodeError> {
         let mut flags = 0u8;
         if self.min.is_some() {
             flags |= 0x01;

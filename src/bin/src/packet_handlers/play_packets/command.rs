@@ -18,12 +18,14 @@ use tracing::error;
 fn resolve(
     input: String,
     sender: Entity,
-) -> Result<(Arc<Command>, Arc<CommandContext>), TextComponent> {
+) -> Result<(Arc<Command>, Arc<CommandContext>), Box<TextComponent>> {
     let command = infrastructure::find_command(&input);
     if command.is_none() {
-        return Err(TextComponentBuilder::new("Unknown command")
-            .color(NamedColor::Red)
-            .build());
+        return Err(Box::new(
+            TextComponentBuilder::new("Unknown command")
+                .color(NamedColor::Red)
+                .build(),
+        ));
     }
 
     let command = command.unwrap();
@@ -35,10 +37,12 @@ fn resolve(
     let ctx = CommandContext::new(input.clone(), command.clone(), sender);
 
     if let Err(err) = command.validate(&ctx, &Arc::new(Mutex::new(input))) {
-        return Err(TextComponentBuilder::new("Invalid arguments")
-            .extra(err)
-            .color(NamedColor::Red)
-            .build());
+        return Err(Box::new(
+            TextComponentBuilder::new("Invalid arguments")
+                .extra(*err)
+                .color(NamedColor::Red)
+                .build(),
+        ));
     }
 
     Ok((command, ctx))
@@ -62,15 +66,15 @@ pub fn handle(
                 let writer = query
                     .get(entity)
                     .expect("invalid sender, this should never happen");
-                if let Err(err) = writer.send_packet(SystemMessagePacket::new(err, false)) {
+                if let Err(err) = writer.send_packet(&SystemMessagePacket::new(*err, false)) {
                     error!("failed sending command error to player: {err}");
                 }
             }
-            
+
             Ok((command, ctx)) => {
                 resolved_dispatch_events.write(ResolvedCommandDispatchEvent {
-                    command: command,
-                    ctx: ctx,
+                    command,
+                    ctx,
                     sender: entity,
                 });
             }
