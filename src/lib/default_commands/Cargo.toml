@@ -1,0 +1,14 @@
+[package]
+name = "ferrumc-default-commands"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ferrumc-commands = { workspace = true }
+ferrumc-macros = { workspace = true }
+ferrumc-text = { workspace = true }
+ferrumc-core = { workspace = true }
+ferrumc-net = { workspace = true }
+ctor = { workspace = true }
+tracing = { workspace = true }
+bevy_ecs = { workspace = true }

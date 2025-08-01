@@ -1,6 +1,7 @@
 use bevy_ecs::schedule::Schedule;
 
 mod chunk_batch_ack;
+mod command;
 mod confirm_player_teleport;
 mod keep_alive;
 mod place_block;
@@ -26,4 +27,5 @@ pub fn register_packet_handlers(schedule: &mut Schedule) {
     schedule.add_systems(set_player_rotation::handle);
     schedule.add_systems(swing_arm::handle);
     schedule.add_systems(player_loaded::handle);
+    schedule.add_systems(command::handle);
 }

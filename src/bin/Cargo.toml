@@ -25,9 +25,10 @@ ferrumc-world = { workspace = true }
 ferrumc-macros = { workspace = true }
 ferrumc-general-purpose = { workspace = true }
 ferrumc-state = { workspace = true }
+ferrumc-commands = { workspace = true }
+ferrumc-default-commands = { workspace = true }
 ferrumc-world-gen = { workspace = true }
 ferrumc-threadpool = { workspace = true }
-
 
 tracing = { workspace = true }
 clap = { workspace = true, features = ["derive", "env"] }

@@ -1,8 +1,9 @@
 use crate::conn_init::NetDecodeOpts;
 use crate::conn_init::VarInt;
 use crate::conn_init::{send_packet, trim_packet_head};
-use crate::errors::{NetError, PacketError};
-use crate::packets::outgoing::registry_data::REGISTRY_PACKETS;
+use crate::errors::NetError;
+use crate::errors::PacketError;
+use crate::packets::outgoing::{commands::CommandsPacket, registry_data::REGISTRY_PACKETS};
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net_codec::decode::NetDecode;
@@ -220,6 +221,9 @@ pub(super) async fn login(
             }
         }
     }
+
+    // =============================================================================================
+    send_packet(conn_write, &CommandsPacket::new()).await?;
 
     conn_write.flush().await?;
 
