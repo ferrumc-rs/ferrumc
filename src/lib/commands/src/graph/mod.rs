@@ -1,12 +1,10 @@
 use std::sync::Arc;
-use std::{collections::HashMap, io::Write};
+use std::collections::HashMap;
 
-use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use node::{CommandNode, CommandNodeFlag, CommandNodeType};
 
-use crate::infrastructure::get_graph;
 use crate::Command;
 
 pub mod node;
@@ -249,22 +247,3 @@ impl CommandGraph {
     }
 }
 
-#[derive(NetEncode, Debug)]
-#[packet(packet_id = "commands", state = "play")]
-pub struct CommandsPacket {
-    pub graph: LengthPrefixedVec<CommandNode>,
-    pub root_idx: VarInt,
-}
-
-impl CommandsPacket {
-    pub fn new(graph: CommandGraph) -> Self {
-        Self {
-            graph: LengthPrefixedVec::new(graph.nodes),
-            root_idx: VarInt::new(0),
-        }
-    }
-
-    pub fn create() -> Self {
-        Self::new(get_graph())
-    }
-}

@@ -30,4 +30,5 @@ pub fn register_packet_handlers(schedule: &mut Schedule) {
     );
     schedule.add_systems(set_player_rotation::handle.before(connection_killer::connection_killer));
     schedule.add_systems(swing_arm::handle.before(connection_killer::connection_killer));
+    schedule.add_systems(command::handle.before(connection_killer::connection_killer));
 }

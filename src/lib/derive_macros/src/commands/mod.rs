@@ -65,11 +65,9 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
 
             if is_parser {
                 let required = match *fn_arg.ty {
-                    Type::Path(ref path) => path
-                        .path
-                        .segments
-                        .iter()
-                        .any(|seg| seg.ident.to_string() == "Option"),
+                    Type::Path(ref path) => {
+                        path.path.segments.iter().any(|seg| seg.ident == "Option")
+                    }
                     _ => false,
                 };
 
@@ -118,14 +116,14 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
         .clone()
         .iter()
         .map(|arg| {
-            let ty = format_ident!("{}", arg.ty);
+            let ty = syn::parse_str::<Type>(&arg.ty).expect("invalid arg type");
             let name = format_ident!("{}", arg.name);
 
             quote! { #name: #ty, }
         })
         .collect::<Vec<proc_macro2::TokenStream>>();
 
-    let system_name = format_ident!("__{}_handler", fn_name.clone());
+    let system_name = format_ident!("__{}_handler", command_attr.name.clone());
     let system_args = bevy_args
         .clone()
         .iter()
@@ -147,21 +145,42 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
         .clone()
         .iter()
         .map(|arg| {
-            let name = format_ident!("{}", &arg.name);
+            let name = &arg.name;
+            let ty = syn::parse_str::<Type>(&arg.ty).expect("invalid arg type");
 
-            quote! { event.#name, }
+            quote! { ctx.arg::<#ty>(#name), }
         })
         .collect::<Vec<proc_macro2::TokenStream>>();
 
     let sender_param = if has_sender_arg {
-        quote! { event.__sender, }
+        quote! { sender.clone(), }
     } else {
         quote! {}
     };
 
+    let ctor_fn_name = format_ident!("__{}_register", command_attr.name.clone());
+    let command_name = command_attr.name;
+
+    let command_args = args
+        .iter()
+        .map(|arg| {
+            let parser = syn::parse_str::<Expr>(&arg.parser.clone()).expect("invalid parser");
+            let name = arg.name.clone();
+            let required = arg.required;
+            
+            quote! {
+                ferrumc_commands::arg::CommandArgument {
+                    name: #name.to_string(),
+                    required: #required,
+                    parser: Box::new(#parser),
+                },
+            }
+        })
+        .collect::<Vec<proc_macro2::TokenStream>>();
+
     TokenStream::from(quote! {
         #[allow(non_camel_case_types)]
-        #[derive(bevy_ecs::prelude::Event, Clone)]
+        #[doc(hidden)]
         struct #command_struct_name {
             #(#arg_fields)*
             __sender: bevy_ecs::prelude::Entity,
@@ -170,14 +189,29 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
 
         #[allow(non_snake_case)]
         #[allow(dead_code)]
+        #[doc(hidden)]
         #input_fn
 
         #[allow(non_snake_case)]
-        fn #system_name(mut events: bevy_ecs::prelude::EventReader<#command_struct_name>, #(#system_args)*) {
-            for mut event in events.read() {
-                let event = event.clone();
-                #fn_name(#(#arg_extractors)* #sender_param #(#system_arg_pats)*)
+        #[allow(unused_variables)] // if there is no sender arg
+        #[doc(hidden)]
+        fn #system_name(mut events: bevy_ecs::prelude::EventReader<ferrumc_commands::events::ResolvedCommandDispatchEvent>, #(#system_args)*) {
+            for ferrumc_commands::events::ResolvedCommandDispatchEvent { command, ctx, sender } in events.read() {
+                if command.name == #command_name {
+                    #fn_name(#(#arg_extractors)* #sender_param #(#system_arg_pats)*);
+                }
             }
+        }
+
+        #[ctor::ctor]
+        #[doc(hidden)]
+        fn #ctor_fn_name() {
+            ferrumc_commands::infrastructure::add_system(#system_name);
+
+            ferrumc_commands::infrastructure::register_command(std::sync::Arc::new(ferrumc_commands::Command {
+                name: #command_name,
+                args: vec![#(#command_args)*],
+            }));
         }
     })
 }

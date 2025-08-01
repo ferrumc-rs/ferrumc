@@ -1,7 +1,5 @@
 use std::{
     any::Any,
-    future::Future,
-    pin::Pin,
     sync::{Arc, Mutex},
 };
 
@@ -22,22 +20,13 @@ pub mod input;
 mod tests;
 
 pub type ParserResult = Result<Box<dyn Any + 'static>, TextComponent>;
-pub type CommandResult = Result<(), TextComponent>;
-pub type CommandOutput = Pin<Box<dyn Future<Output = CommandResult> + Send + 'static>>;
-pub type CommandExecutor =
-    Arc<dyn for<'a> Fn(Arc<CommandContext>) -> CommandOutput + Send + Sync + 'static>;
 
 pub struct Command {
     pub name: &'static str,
     pub args: Vec<CommandArgument>,
-    pub executor: CommandExecutor,
 }
 
 impl Command {
-    pub fn execute(&self, ctx: Arc<CommandContext>) -> CommandOutput {
-        (self.executor)(ctx)
-    }
-
     pub fn validate(
         &self,
         ctx: &Arc<CommandContext>,
@@ -49,12 +38,4 @@ impl Command {
 
         Ok(())
     }
-}
-
-pub fn executor<F, Fut>(func: F) -> Arc<dyn Fn(Arc<CommandContext>) -> CommandOutput + Send + Sync>
-where
-    F: Fn(Arc<CommandContext>) -> Fut + Send + Sync + 'static,
-    Fut: Future<Output = CommandResult> + Send + 'static,
-{
-    Arc::new(move |ctx: Arc<CommandContext>| Box::pin(func(ctx)) as CommandOutput)
 }

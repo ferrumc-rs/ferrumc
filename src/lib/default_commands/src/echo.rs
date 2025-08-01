@@ -1,12 +1,30 @@
-use bevy_ecs::entity::Entity;
+use bevy_ecs::prelude::*;
+use ferrumc_commands::arg::parser::string::{QuotedStringParser, GreedyStringParser};
 use ferrumc_macros::command;
+use ferrumc_net::{
+    connection::StreamWriter, packets::outgoing::system_message::SystemMessagePacket,
+};
+use ferrumc_text::TextComponentBuilder;
+use tracing::error;
 
 #[command("test")]
 fn test_command(
-    #[parser(GreedyStringParser)] thing: String,
+    #[parser(QuotedStringParser)] thing: String,
     #[parser(GreedyStringParser)] things: String,
     #[sender] sender: Entity,
+    query: Query<&StreamWriter>,
 ) {
+    let writer = query.get(sender).expect("sender has no stream writer");
+    if let Err(err) = writer.send_packet(SystemMessagePacket::new(
+        TextComponentBuilder::new("Thing: ")
+            .extra(TextComponentBuilder::new(thing).build())
+            .extra(", Things: ")
+            .extra(TextComponentBuilder::new(things).build())
+            .build(),
+        false,
+    )) {
+        error!("failed sending command error to player: {err}");
+    }
 }
 
 // #[arg("message", GreedyStringParser::new())]
