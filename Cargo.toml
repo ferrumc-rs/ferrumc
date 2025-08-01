@@ -91,7 +91,6 @@ ferrumc-config = { path = "src/lib/config" }
 ferrumc-core = { path = "src/lib/core" }
 ferrumc-default-commands = { path = "src/lib/default_commands" }
 ferrumc-commands = { path = "src/lib/commands" }
-ferrumc-events = { path = "src/lib/events"}
 ferrumc-general-purpose = { path = "src/lib/utils/general_purpose" }
 ferrumc-logging = { path = "src/lib/utils/logging" }
 ferrumc-macros = { path = "src/lib/derive_macros" }
