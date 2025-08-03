@@ -1,3 +1,4 @@
+use std::io::{Cursor, Read};
 use crate::conn_init::handle_handshake;
 use crate::errors::NetError;
 use crate::errors::NetError::HandshakeTimeout;
@@ -6,11 +7,11 @@ use crate::packets::incoming::packet_skeleton::PacketSkeleton;
 use crate::{handle_packet, PacketSender};
 use bevy_ecs::prelude::{Component, Entity};
 use crossbeam_channel::Sender;
+use ferrumc_config::server_config::get_global_config;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::ServerState;
-use std::io::BufWriter;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
@@ -20,8 +21,12 @@ use tokio::net::TcpStream;
 use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
 use tokio::sync::oneshot;
 use tokio::time::timeout;
-use tracing::{debug_span, error, info, trace, warn, Instrument};
+use tracing::{debug_span, error, trace, warn, Instrument};
 use typename::TypeName;
+use yazi::{CompressionLevel, Format};
+use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
+use ferrumc_net_codec::net_types::var_int::VarInt;
+use crate::ConnState::Play;
 
 /// The maximum time to wait for a handshake to complete
 const MAX_HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(10);
@@ -30,14 +35,23 @@ const MAX_HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(10);
 pub struct StreamWriter {
     sender: UnboundedSender<Vec<u8>>,
     pub running: Arc<AtomicBool>,
+    pub compress: Arc<AtomicBool>,
 }
 impl Drop for StreamWriter {
     fn drop(&mut self) {
         self.running.store(false, Ordering::Relaxed);
     }
 }
+
+fn get_id(packet: &(impl NetEncode + Send)) -> Result<VarInt, NetError> {
+    let mut buffer = Vec::new();
+    packet.encode(&mut buffer, &NetEncodeOpts::None)?;
+    let id = VarInt::decode(&mut Cursor::new(buffer), &NetDecodeOpts::None)?;
+    Ok(id)
+}
 impl StreamWriter {
     pub async fn new(mut writer: OwnedWriteHalf, running: Arc<AtomicBool>) -> Self {
+        let compress = Arc::new(AtomicBool::new(false)); // Default to no compression
         let (sender, mut receiver): (UnboundedSender<Vec<u8>>, UnboundedReceiver<Vec<u8>>) =
             tokio::sync::mpsc::unbounded_channel();
         let running_clone = running.clone();
@@ -57,12 +71,19 @@ impl StreamWriter {
             }
         });
 
-        Self { sender, running }
+        Self { sender, running, compress }
     }
 
     // Sends the packet to the client with the default options. You probably want to use this instead
     // of send_packet_with_opts()
-    pub fn send_packet(&self, packet: &(impl NetEncode + Send)) -> Result<(), NetError> {
+    pub fn send_packet(&self, packet: impl NetEncode + Send) -> Result<(), NetError> {
+        self.send_packet_with_opts(&packet, &NetEncodeOpts::WithLength)
+    }
+
+    pub fn send_packet_ref(
+        &self,
+        packet: &(impl NetEncode + Send),
+    ) -> Result<(), NetError> {
         self.send_packet_with_opts(packet, &NetEncodeOpts::WithLength)
     }
 
@@ -71,21 +92,88 @@ impl StreamWriter {
         packet: &(impl NetEncode + Send),
         net_encode_opts: &NetEncodeOpts,
     ) -> Result<(), NetError> {
+        use std::io::{Cursor, Read};
+        use std::sync::atomic::Ordering;
+        use yazi::{compress, CompressionLevel, Format};
+
         if !self.running.load(Ordering::Relaxed) {
             #[cfg(debug_assertions)]
             warn!("StreamWriter is not running, not sending packet");
             return Err(NetError::ConnectionDropped);
         }
-        let bytes = {
-            let mut buffer = BufWriter::new(Vec::new());
+
+        // Helper: encode full frame (outer length + id + body), then split into (id_varint, body)
+        fn encode_id_and_body(pkt: &(impl NetEncode + Send)) -> Result<(VarInt, Vec<u8>), NetError> {
+            // Authoritative path: whatever "normal" is for your packets on the wire.
+            let mut full = Vec::new();
+            // This MUST be the same mode your plain/uncompressed path uses.
+            pkt.encode(&mut full, &NetEncodeOpts::WithLength)?;
+
+            // Strip outer length
+            let mut cur = Cursor::new(full);
+            let _outer_len = VarInt::read(&mut cur)?; // discard
+
+            // Read ID (keep the actual VarInt for length calculations if you need)
+            let id_vi = VarInt::read(&mut cur)?;
+
+            // Remaining = body
+            let mut body = Vec::new();
+            cur.read_to_end(&mut body)?;
+            Ok((id_vi, body))
+        }
+
+        let raw_bytes = if self.compress.load(Ordering::Relaxed) {
+            // Build a canonical uncompressed frame (ID + BODY) from the authoritative encode
+            let (id_vi, body) = encode_id_and_body(packet)?;
+
+            let mut uncompressed_frame = Vec::with_capacity(id_vi.len() + body.len());
+            id_vi.encode(&mut uncompressed_frame, &NetEncodeOpts::None)?;
+            uncompressed_frame.extend_from_slice(&body);
+
+            // Compare against threshold using the *uncompressed frame length* (ID+BODY)
+            let threshold = get_global_config().network_compression_threshold as usize;
+
+            // Inner payload = VarInt(uncompressed_len or 0) + (compressed or uncompressed_frame)
+            let mut inner = Vec::new();
+            if uncompressed_frame.len() >= threshold {
+                // compress ID+BODY
+                let compressed = compress(
+                    &uncompressed_frame,
+                    Format::Zlib,
+                    CompressionLevel::Default,
+                )
+                    .map_err(|err| {
+                        error!("Failed to compress packet: {:?}", err);
+                        NetError::CompressionError(format!("Failed to compress packet: {:?}", err))
+                    })?;
+
+                // write uncompressed_length (as VarInt), then compressed bytes
+                VarInt::new(uncompressed_frame.len() as i32)
+                    .encode(&mut inner, &NetEncodeOpts::None)?;
+                inner.extend_from_slice(&compressed);
+            } else {
+                // below threshold: uncompressed; write 0 then ID+BODY
+                VarInt::new(0).encode(&mut inner, &NetEncodeOpts::None)?;
+                inner.extend_from_slice(&uncompressed_frame);
+            }
+
+            // Outer = VarInt(total inner len) + inner
+            let mut final_data = Vec::with_capacity(inner.len() + 5);
+            VarInt::new(inner.len() as i32).encode(&mut final_data, &NetEncodeOpts::None)?;
+            final_data.extend_from_slice(&inner);
+            final_data
+        } else {
+            // No compression path: just do whatever caller asked (likely WithLength).
+            let mut buffer = Vec::new();
             packet.encode(&mut buffer, net_encode_opts)?;
-            buffer.into_inner().map_err(|_| {
-                NetError::Misc("Failed to get inner buffer from BufWriter".to_string())
-            })?
+            buffer
         };
-        self.sender.send(bytes).map_err(std::io::Error::other)?;
+
+        self.sender.send(raw_bytes).map_err(std::io::Error::other)?;
         Ok(())
     }
+
+
 }
 
 pub struct NewConnection {
@@ -100,13 +188,18 @@ pub async fn handle_connection(
     packet_sender: Arc<PacketSender>,
     new_join_sender: Arc<Sender<NewConnection>>,
 ) -> Result<(), NetError> {
-    let (mut tcp_reader, mut tcp_writer) = tcp_stream.into_split();
+    let (mut tcp_reader, tcp_writer) = tcp_stream.into_split();
+
+
+    let running = Arc::new(AtomicBool::new(true));
+
+    let stream = StreamWriter::new(tcp_writer, running.clone()).await;
 
     let handshake_result = timeout(
         MAX_HANDSHAKE_TIMEOUT,
-        handle_handshake(&mut tcp_reader, &mut tcp_writer, state.clone()),
+        handle_handshake(&mut tcp_reader, &stream, state.clone()),
     )
-    .await;
+        .await;
 
     let mut player_identity = PlayerIdentity::default();
 
@@ -140,7 +233,7 @@ pub async fn handle_connection(
                         warn!("Client sent invalid handshake state: {}", state);
                     }
                     _ => {
-                        error!("Handshake error: {:?}", err);
+                        error!("Handshake error: {}", err);
                     }
                 }
                 return Err(err);
@@ -155,9 +248,6 @@ pub async fn handle_connection(
     // The player has successfully connected, so we can start the connection properly
 
     let compressed = false;
-    let running = Arc::new(AtomicBool::new(true));
-
-    let stream = StreamWriter::new(tcp_writer, running.clone()).await;
 
     // Send the streamwriter to the main thread
     let (entity_return, entity_recv) = oneshot::channel();
@@ -165,7 +255,7 @@ pub async fn handle_connection(
     new_join_sender
         .send(NewConnection {
             stream,
-            player_identity: player_identity.clone(),
+            player_identity,
             entity_return,
         })
         .map_err(|_| NetError::Misc("Failed to send new connection".to_string()))?;
@@ -179,36 +269,9 @@ pub async fn handle_connection(
         }
     };
 
-    #[cfg(debug_assertions)]
-    info!(
-        "Player {} ({}) connected with entity ID {:?}",
-        player_identity.username, player_identity.uuid, entity
-    );
-    #[cfg(not(debug_assertions))]
-    info!(
-        "Player {} ({}) connected",
-        player_identity.username, player_identity.uuid
-    );
-
-    state.players.player_list.insert(
-        entity,
-        (player_identity.uuid.as_u128(), player_identity.username),
-    );
-
-    let mut disconnect_reason = None;
-
     'recv: loop {
         if !running.load(Ordering::Relaxed) {
             trace!("Conn for entity {:?} is marked for disconnection", entity);
-            break 'recv;
-        }
-        // Probably not needed, but just in case
-        if !state.players.is_connected(entity) {
-            trace!(
-                "Entity {:?} is no longer connected, breaking recv loop",
-                entity
-            );
-            running.store(false, Ordering::Relaxed);
             break 'recv;
         }
 
@@ -216,18 +279,16 @@ pub async fn handle_connection(
             break 'recv;
         }
 
-        let mut packet_skele = match PacketSkeleton::new(&mut tcp_reader, compressed).await {
+        let mut packet_skele = match PacketSkeleton::new(&mut tcp_reader, compressed, Play).await {
             Ok(packet_skele) => packet_skele,
             Err(err) => {
                 if let NetError::ConnectionDropped = err {
                     trace!("Connection dropped for entity {:?}", entity);
                     running.store(false, Ordering::Relaxed);
-                    disconnect_reason = Some("Connection dropped".to_string());
                     break 'recv;
                 }
                 error!("Failed to read packet skeleton: {:?} for {:?}", err, entity);
                 running.store(false, Ordering::Relaxed);
-                disconnect_reason = Some(format!("Failed to read packet skeleton: {err:?}"));
                 break 'recv;
             }
         };
@@ -238,8 +299,8 @@ pub async fn handle_connection(
             &mut packet_skele.data,
             packet_sender.clone(),
         )
-        .instrument(debug_span!("eid", %entity))
-        .into_inner()
+            .instrument(debug_span!("eid", %entity))
+            .into_inner()
         {
             Ok(()) => {
                 trace!(
@@ -255,14 +316,31 @@ pub async fn handle_connection(
                 _ => {
                     warn!("Failed to handle packet: {:?}", err);
                     running.store(false, Ordering::Relaxed);
-                    disconnect_reason = Some(format!("Failed to handle packet: {err:?}"));
                     break 'recv;
                 }
             },
         }
     }
 
-    state.players.disconnect(entity, disconnect_reason);
-
     Ok(())
+}
+
+impl StreamWriter {
+    /// Kills the connection and sends a disconnect packet to the client
+    ///
+    /// !!! This won't delete the entity, you should do that with the connection killer system
+    pub fn kill(&self, reason: Option<String>) -> Result<(), NetError> {
+        self.running.store(false, Ordering::Relaxed);
+        if let Err(err) = self.send_packet(crate::packets::outgoing::disconnect::DisconnectPacket {
+            reason: ferrumc_text::TextComponent::from(reason.unwrap_or("Disconnected".to_string())),
+        }) {
+            if matches!(err, NetError::ConnectionDropped) {
+                trace!("Connection already dropped, not sending disconnect packet");
+            } else {
+                error!("Failed to send disconnect packet: {:?}", err);
+                return Err(err);
+            }
+        }
+        Ok(())
+    }
 }

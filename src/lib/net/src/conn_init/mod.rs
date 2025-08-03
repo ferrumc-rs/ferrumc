@@ -1,9 +1,11 @@
 mod login;
 mod status;
 
+use std::io::Cursor;
 use crate::conn_init::login::login;
 use crate::conn_init::status::status;
-use crate::errors::{NetError, PacketError};
+use crate::connection::StreamWriter;
+use crate::errors::NetError;
 use crate::packets::incoming::handshake::Handshake;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
@@ -14,6 +16,8 @@ use ferrumc_text::{ComponentBuilder, NamedColor, TextComponent};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tracing::{error, trace};
+use yazi::Format;
+use ferrumc_config::server_config::get_global_config;
 
 /// A small utility to remove the packet length and packet id from the stream, since we are pretty
 /// sure we are going to get the right packet id and length, and we don't need to check it
@@ -22,42 +26,97 @@ use tracing::{error, trace};
 pub(crate) async fn trim_packet_head(conn: &mut OwnedReadHalf, value: u8) -> Result<(), NetError> {
     let mut len = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
     let mut id = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
-    // Packets can't be longer than 2097151 bytes per https://minecraft.wiki/w/Java_Edition_protocol/Packets#Packet_format
-    if len.0 < 1 || len.0 > 2097151 {
-        error!("Received packet with invalid length: {}", len.0);
-        return Err(NetError::Packet(PacketError::MalformedPacket(Some(
-            id.0 as u8,
-        ))));
-    }
     while id.0 == 0x14 {
         trace!("Serverbound plugin message packet detected");
         let mut packet_data = vec![0; len.0 as usize - id.len()];
-        conn.read_exact(&mut packet_data).await?;
+        conn.read_exact(&mut packet_data).await.map_err(|err| {
+            error!("Failed to read packet data: {:?}", err);
+            NetError::ConnectionDropped
+        })?;
         trace!("Packet data: {:?}", &packet_data);
         len = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
-        if len.0 < 1 || len.0 > 2097151 {
-            error!("Received packet with invalid length: {}", len.0);
-            return Err(NetError::Packet(PacketError::MalformedPacket(Some(
-                id.0 as u8,
-            ))));
-        }
         id = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
     }
     assert_eq!(id.0, value as i32);
     Ok(())
 }
 
-pub(crate) async fn send_packet(
-    conn: &mut OwnedWriteHalf,
-    packet: &impl NetEncode,
-) -> Result<(), NetError> {
-    let mut packet_buffer = vec![];
-    packet
-        .encode_async(&mut packet_buffer, &NetEncodeOpts::WithLength)
-        .await?;
-    conn.write_all(&packet_buffer).await?;
-    Ok(())
+pub(crate) async fn read_packet(
+    conn: &mut OwnedReadHalf,
+    compressed: bool,
+) -> Result<Cursor<Vec<u8>>, NetError> {
+    loop {
+        // Step 1: Read outer packet length
+        let packet_length = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
+        let mut length_buf = vec![0; packet_length.0 as usize];
+        conn.read_exact(&mut length_buf).await.map_err(|err| {
+            error!("Failed to read packet data: {:?}", err);
+            err
+        })?;
+
+        let mut cursor = Cursor::new(length_buf);
+
+        let packet_data = if compressed {
+            // Step 2: Read uncompressed length
+            let uncompressed_length = VarInt::decode(&mut cursor, &NetDecodeOpts::None)?;
+
+            if uncompressed_length.0 > get_global_config().network_compression_threshold {
+                // Compressed packet, decompress it
+                let mut compressed_data = Vec::new();
+                cursor.read_to_end(&mut compressed_data).await?;
+
+                let (decompressed_data, checksum) = yazi::decompress(&compressed_data, Format::Zlib)
+                    .map_err(|_| NetError::DecompressionError)?;
+
+                if get_global_config().verify_decompressed_packets {
+                    let Some(actual_checksum) = checksum else {
+                        error!("Missing checksum on decompressed packet");
+                        return Err(NetError::DecompressionError);
+                    };
+
+                    let expected = yazi::Adler32::from_buf(&decompressed_data).finish();
+                    if actual_checksum != expected {
+                        error!(
+                            "Checksum mismatch: expected {}, got {}",
+                            expected, actual_checksum
+                        );
+                        return Err(NetError::DecompressionError);
+                    }
+                }
+
+                if decompressed_data.len() != uncompressed_length.0 as usize {
+                    error!(
+                        "Decompressed length mismatch: expected {}, got {}",
+                        uncompressed_length.0,
+                        decompressed_data.len()
+                    );
+                    return Err(NetError::DecompressionError);
+                }
+
+                Cursor::new(decompressed_data)
+            } else {
+                // Not compressed, just return raw inner
+                let mut uncompressed_data = Vec::new();
+                cursor.read_to_end(&mut uncompressed_data).await?;
+                Cursor::new(uncompressed_data)
+            }
+        } else {
+            // No compression at all, just return the packet
+            cursor
+        };
+
+        // Step 3: Check packet ID and ghost plugin messages 😤
+        let mut peek = packet_data.clone();
+        let id = VarInt::decode(&mut peek, &NetDecodeOpts::None)?;
+        if id.0 == 0x14 {
+            trace!("Skipping serverbound plugin message 💅 (0x14)");
+            continue; // loop again to read the next packet
+        }
+
+        return Ok(packet_data);
+    }
 }
+
 pub const PROTOCOL_VERSION_1_21_5: i32 = 770;
 
 // Todo: Make this function return encryption and compression settings
@@ -72,7 +131,7 @@ pub const PROTOCOL_VERSION_1_21_5: i32 = 770;
 /// should be closed or not after the handshake is complete.
 pub async fn handle_handshake(
     mut conn_read: &mut OwnedReadHalf,
-    conn_write: &mut OwnedWriteHalf,
+    conn_write: &StreamWriter,
     state: GlobalState,
 ) -> Result<(bool, Option<PlayerIdentity>), NetError> {
     trim_packet_head(conn_read, 0x00).await?;
@@ -109,7 +168,7 @@ pub async fn handle_handshake(
 async fn handle_version_mismatch(
     hs_packet: Handshake,
     conn_read: &mut OwnedReadHalf,
-    conn_write: &mut OwnedWriteHalf,
+    conn_write: &StreamWriter,
     state: GlobalState,
 ) -> Result<(bool, Option<PlayerIdentity>), NetError> {
     // Send appropriate disconnect packet based on the next state
@@ -137,7 +196,7 @@ async fn handle_version_mismatch(
                     disconnect_reason,
                 );
 
-            if let Err(send_err) = send_packet(conn_write, &login_disconnect).await {
+            if let Err(send_err) = conn_write.send_packet(login_disconnect) {
                 error!("Failed to send login disconnect packet {:?}", send_err);
             }
 

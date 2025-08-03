@@ -91,7 +91,7 @@ pub fn handle(
                     let packet = BlockChangeAck {
                         sequence: event.sequence,
                     };
-                    conn.send_packet(&packet)?;
+                    conn.send_packet_ref(&packet)?;
 
                     chunk.set_block(x & 0xF, y as i32, z & 0xF, DUMMY_BLOCK)?;
                     let ack_packet = BlockChangeAck {
@@ -102,8 +102,8 @@ pub fn handle(
                         location: NetworkPosition { x, y, z },
                         block_id: VarInt::from(DUMMY_BLOCK),
                     };
-                    conn.send_packet(&chunk_packet)?;
-                    conn.send_packet(&ack_packet)?;
+                    conn.send_packet_ref(&chunk_packet)?;
+                    conn.send_packet_ref(&ack_packet)?;
 
                     state.0.world.save_chunk(Arc::new(chunk))?;
                 }

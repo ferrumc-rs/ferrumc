@@ -38,6 +38,7 @@ pub struct ServerConfig {
     pub database: DatabaseConfig,
     pub world: String,
     pub network_compression_threshold: i32, // Can be negative
+    pub verify_decompressed_packets: bool,
     pub whitelist: bool,
     pub chunk_render_distance: u32,
 }

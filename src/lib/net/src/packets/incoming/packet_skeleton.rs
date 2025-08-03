@@ -5,7 +5,10 @@ use std::io::Cursor;
 use std::{fmt::Debug, io::Read};
 use tokio::io::AsyncRead;
 use tokio::io::AsyncReadExt;
-use tracing::{debug, trace};
+use tracing::{debug, error, trace};
+use yazi::{decompress, Format};
+use ferrumc_macros::lookup_packet;
+use crate::ConnState;
 
 pub struct PacketSkeleton {
     pub length: usize,
@@ -26,10 +29,11 @@ impl PacketSkeleton {
     pub async fn new<R: AsyncRead + Unpin>(
         reader: &mut R,
         compressed: bool,
+        state: ConnState
     ) -> Result<Self, NetError> {
         let pak = match compressed {
-            true => Self::read_compressed(reader).await,
-            false => Self::read_uncompressed(reader).await,
+            true => Self::read_compressed(reader, state).await,
+            false => Self::read_uncompressed(reader, state).await,
         };
         match pak {
             Ok(p) => {
@@ -52,117 +56,148 @@ impl PacketSkeleton {
         }
     }
 
-    async fn read_uncompressed<R: AsyncRead + Unpin>(reader: &mut R) -> Result<Self, NetError> {
-        let length = VarInt::read_async(reader).await?.0 as usize;
-        if length < 1 {
-            return Err(NetError::Packet(PacketError::MalformedPacket(Some(
-                length as u8,
-            ))));
-        }
-        // Packets can't be longer than 2097151 bytes per https://minecraft.wiki/w/Java_Edition_protocol/Packets#Packet_format
-        if length > 2097151 {
-            let id = VarInt::read_async(reader).await?.0 as u8;
-            return Err(NetError::Packet(PacketError::MalformedPacket(Some(id))));
-        }
+    async fn read_uncompressed<R: AsyncRead + Unpin>(reader: &mut R, state: ConnState) -> Result<Self, NetError> {
+        loop {
+            let length = VarInt::read_async(reader).await?.0 as usize;
 
-        let mut buf = {
-            let mut buf = vec![0; length];
-            reader.read_exact(&mut buf).await?;
+            if length < 1 {
+                return Err(NetError::Packet(PacketError::MalformedPacket(Some(length as u8))));
+            }
 
-            Cursor::new(buf)
-        };
+            if length > 2097151 {
+                let id = VarInt::read_async(reader).await?.0 as u8;
+                return Err(NetError::Packet(PacketError::MalformedPacket(Some(id))));
+            }
 
-        let id = VarInt::read_async(&mut buf).await?;
-
-        Ok(Self {
-            length,
-            id: id.0 as u8,
-            data: buf,
-        })
-    }
-
-    async fn read_compressed<R: AsyncRead + Unpin>(reader: &mut R) -> Result<Self, NetError> {
-        let packet_length = VarInt::read_async(reader).await?.0;
-        if packet_length < 1 {
-            return Err(NetError::Packet(PacketError::MalformedPacket(Some(
-                packet_length as u8,
-            ))));
-        }
-        let id = VarInt::read_async(reader).await?.0 as u8;
-        // Packets can't be longer than 2097151 bytes per https://minecraft.wiki/w/Java_Edition_protocol/Packets#Packet_format
-        if packet_length > 2097151 {
-            return Err(NetError::Packet(PacketError::MalformedPacket(Some(id))));
-        }
-        let data_length = VarInt::read_async(reader).await?.0;
-        if data_length < 0 {
-            return Err(NetError::Packet(PacketError::MalformedPacket(Some(
-                data_length as u8,
-            ))));
-        }
-        // Compressed packets can't hold more than 8 MiB of data according to https://minecraft.wiki/w/Java_Edition_protocol/Packets#Packet_format
-        if data_length > 8388608 {
-            return Err(NetError::Packet(PacketError::MalformedPacket(Some(
-                data_length as u8,
-            ))));
-        }
-
-        let packet_length = packet_length as usize - id as usize;
-
-        // Uncompressed packet when data length is 0
-        if data_length == 0 {
             let mut buf = {
-                let mut buf = vec![0; packet_length];
+                let mut buf = vec![0; length];
                 reader.read_exact(&mut buf).await?;
-
                 Cursor::new(buf)
             };
 
             let id = VarInt::read_async(&mut buf).await?;
 
+            if (id.0 == lookup_packet!("play", "serverbound", "custom_payload") && state == ConnState::Play) || 
+                (id.0 == lookup_packet!("configuration", "serverbound", "custom_payload") && state == ConnState::Configuration) {
+                // Ignore Plugin Message and read the next one
+                trace!("Ignored serverbound plugin message (0x14)");
+                continue;
+            }
+
             return Ok(Self {
-                length: packet_length,
+                length,
                 id: id.0 as u8,
                 data: buf,
             });
         }
-
-        let compression_threshold = get_global_config().network_compression_threshold;
-
-        // https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol#Packet_format
-        // The Notchian server (but not client) rejects compressed packets smaller than the threshold.
-        // Uncompressed packets exceeding the threshold, however, are accepted.
-        if data_length < compression_threshold {
-            // Compressed packet smaller than threshold
-            // Reject packet
-            return Err(NetError::DecoderError(
-                NetDecodeError::CompressedPacketTooSmall(data_length as usize),
-            ));
-        }
-
-        // Here, guaranteed that data_length >= compression_threshold
-        let mut buf = {
-            let mut buf = vec![];
-            reader.read_to_end(&mut buf).await?;
-
-            Cursor::new(buf)
-        };
-
-        // Decompress data
-        let mut decompressed = Vec::new();
-        {
-            // Scope for decoder
-            let mut decoder = flate2::read::ZlibDecoder::new(&mut buf);
-            decoder.read_to_end(&mut decompressed)?;
-        }
-
-        let mut buf = Cursor::new(decompressed);
-
-        let id = VarInt::read_async(&mut buf).await?;
-
-        Ok(Self {
-            length: packet_length,
-            id: id.0 as u8,
-            data: buf,
-        })
     }
+
+
+    async fn read_compressed<R: AsyncRead + Unpin>(
+        reader: &mut R,
+        state: ConnState,
+    ) -> Result<Self, NetError> {
+        loop {
+            let packet_length = VarInt::read_async(reader).await?.0;
+
+            if packet_length < 1 {
+                return Err(NetError::Packet(PacketError::MalformedPacket(Some(
+                    packet_length as u8,
+                ))));
+            }
+
+            let data_length = VarInt::read_async(reader).await?.0;
+
+            if data_length < 0 {
+                return Err(NetError::Packet(PacketError::MalformedPacket(Some(
+                    data_length as u8,
+                ))));
+            }
+
+            if packet_length > 2097151 || data_length > 8388608 {
+                return Err(NetError::Packet(PacketError::MalformedPacket(Some(
+                    packet_length.max(data_length) as u8,
+                ))));
+            }
+
+            let remaining_len = packet_length as usize - VarInt::new(data_length).len();
+
+            if data_length == 0 {
+                // Not compressed, just read the inner data
+                let mut buf = vec![0; remaining_len];
+                reader.read_exact(&mut buf).await?;
+                let mut cursor = Cursor::new(buf);
+
+                let id = VarInt::read_async(&mut cursor).await?;
+
+                if (id.0 == lookup_packet!("play", "serverbound", "custom_payload") && state == ConnState::Play) ||
+                    (id.0 == lookup_packet!("configuration", "serverbound", "custom_payload") && state == ConnState::Configuration) {
+                    trace!("Ignored uncompressed serverbound plugin message (0x14)");
+                    continue;
+                }
+
+                return Ok(Self {
+                    length: packet_length as usize,
+                    id: id.0 as u8,
+                    data: cursor,
+                });
+            }
+
+            // Enforce compression threshold
+            let compression_threshold = get_global_config().network_compression_threshold;
+            if data_length < compression_threshold {
+                return Err(NetError::DecoderError(
+                    NetDecodeError::CompressedPacketTooSmall(data_length as usize),
+                ));
+            }
+
+            // Read compressed data
+            let mut compressed_buf = vec![0; remaining_len];
+            reader.read_exact(&mut compressed_buf).await?;
+
+            let (decompressed_data, checksum) = decompress(&compressed_buf, Format::Zlib)
+                .map_err(|_| NetError::DecompressionError)?;
+
+            if get_global_config().verify_decompressed_packets {
+                let Some(actual_checksum) = checksum else {
+                    error!("Missing checksum on decompressed packet");
+                    return Err(NetError::DecompressionError);
+                };
+
+                let expected = yazi::Adler32::from_buf(&decompressed_data).finish();
+                if actual_checksum != expected {
+                    error!(
+                    "Checksum mismatch: expected {}, got {}",
+                    expected, actual_checksum
+                );
+                    return Err(NetError::DecompressionError);
+                }
+            }
+
+            if decompressed_data.len() != data_length as usize {
+                error!(
+                "Decompressed packet length mismatch: expected {}, got {}",
+                data_length,
+                decompressed_data.len()
+            );
+                return Err(NetError::DecompressionError);
+            }
+
+            let mut cursor = Cursor::new(decompressed_data);
+            let id = VarInt::read_async(&mut cursor).await?;
+
+            if id.0 == lookup_packet!("play", "serverbound", "custom_payload") {
+                trace!("Ignored compressed serverbound plugin message (0x14)");
+                continue;
+            }
+
+            return Ok(Self {
+                length: packet_length as usize,
+                id: id.0 as u8,
+                data: cursor,
+            });
+        }
+    }
+
+
 }

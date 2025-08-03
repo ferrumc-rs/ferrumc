@@ -1,4 +1,5 @@
-use crate::conn_init::{send_packet, trim_packet_head};
+use crate::conn_init::trim_packet_head;
+use crate::connection::StreamWriter;
 use crate::errors::NetError;
 use crate::packets::incoming::ping::PingPacket;
 use crate::packets::incoming::status_request::StatusRequestPacket;
@@ -9,11 +10,11 @@ use ferrumc_config::server_config::get_global_config;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_state::GlobalState;
 use rand::prelude::IndexedRandom;
-use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
+use tokio::net::tcp::OwnedReadHalf;
 
 pub(super) async fn status(
     mut conn_read: &mut OwnedReadHalf,
-    conn_write: &mut OwnedWriteHalf,
+    conn_write: &StreamWriter,
     state: GlobalState,
 ) -> Result<bool, NetError> {
     trim_packet_head(conn_read, 0x00).await?;
@@ -27,7 +28,7 @@ pub(super) async fn status(
         json_response: get_server_status(&state),
     };
 
-    send_packet(conn_write, &status_response).await?;
+    conn_write.send_packet(status_response)?;
 
     trim_packet_head(conn_read, 0x01).await?;
 
@@ -39,7 +40,7 @@ pub(super) async fn status(
         payload: ping_req.payload,
     };
 
-    send_packet(conn_write, &pong_packet).await?;
+    conn_write.send_packet(pong_packet)?;
 
     Ok(true)
 }
@@ -88,7 +89,7 @@ fn get_server_status(state: &GlobalState) -> String {
     let config = get_global_config();
 
     let version = structs::Version {
-        name: "1.21.5",
+        name: "1.21.1",
         protocol: crate::conn_init::PROTOCOL_VERSION_1_21_5 as u16,
     };
 
@@ -97,12 +98,9 @@ fn get_server_status(state: &GlobalState) -> String {
         .player_list
         .iter()
         .take(5)
-        .map(|player_data| {
-            let (uuid, name) = player_data.value();
-            structs::PlayerData {
-                name: name.clone(),
-                id: uuid::Uuid::from_u128(*uuid).to_string(),
-            }
+        .map(|player_data| structs::PlayerData {
+            name: player_data.value().1.clone(),
+            id: uuid::Uuid::from_u128(player_data.value().0).to_string(),
         })
         .collect::<Vec<_>>();
 

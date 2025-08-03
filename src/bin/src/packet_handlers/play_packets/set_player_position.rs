@@ -128,7 +128,7 @@ fn update_pos_for_all(
         if !state.players.is_connected(entity) {
             continue;
         }
-        conn.send_packet(&packet)?;
+        conn.send_packet_ref(&packet)?;
     }
 
     Ok(())

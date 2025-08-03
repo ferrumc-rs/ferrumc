@@ -2,6 +2,7 @@ use ferrumc_net_codec::decode::errors::NetDecodeError;
 use ferrumc_net_codec::encode::errors::NetEncodeError;
 use ferrumc_net_encryption::errors::NetEncryptionError;
 use thiserror::Error;
+use crate::ConnState;
 
 #[derive(Debug, Error)]
 pub enum NetError {
@@ -49,6 +50,12 @@ pub enum NetError {
 
     #[error("World error: {0}")]
     World(#[from] ferrumc_world::errors::WorldError),
+    
+    #[error("Decompression error")]
+    DecompressionError,
+    
+    #[error("Compression error: {0}")]
+    CompressionError(String),
 
     #[error("Misc error: {0}")]
     Misc(String),
@@ -63,6 +70,8 @@ pub enum PacketError {
     #[error("Malformed Packet: {inp}", inp = if let Some(id) = .0 { format!("{id:02X}") } else { "None".to_string() }
     )]
     MalformedPacket(Option<u8>),
+    #[error("Unexpected Packet: expected 0X{expected:02X}, received 0X{received:02X} in state {state}")]
+    UnexpectedPacket { expected: u8, received: u8, state: ConnState },
 }
 
 #[derive(Debug, Error)]
