@@ -12,6 +12,8 @@ use tokio::net::tcp::{OwnedReadHalf};
 use tracing::{error, trace};
 use uuid::Uuid;
 use ferrumc_macros::lookup_packet;
+use ferrumc_net_codec::encode::NetEncodeOpts;
+use crate::compression::compress_packet;
 use crate::packets::incoming::packet_skeleton::PacketSkeleton;
 use crate::ConnState::*;
 
@@ -242,21 +244,39 @@ pub(super) async fn login(
     // =============================================================================================
     // Load and send chunks within render distance
     let radius = get_global_config().chunk_render_distance as i32;
+    
+    let mut batch = state.thread_pool.batch();
 
     for x in -radius..=radius {
         for z in -radius..=radius {
-            let chunk = match state.world.load_chunk(x, z, "overworld") {
-                Ok(chunk) => chunk,
-                Err(e) => {
-                    error!("Failed to load chunk {} {}: {}", x, z, e);
-                    continue;
+            batch.execute({
+                let state = state.clone();
+                move || -> Result<Vec<u8>, NetError> {
+                    let chunk = state.world.load_chunk(x, z, "overworld")?;
+                    let chunk_data =
+                        crate::packets::outgoing::chunk_and_light_data::ChunkAndLightData::from_chunk(
+                            &chunk,
+                        )?;
+                    let compressed_packet = compress_packet(&chunk_data, compressed, NetEncodeOpts::WithLength)?;
+                    Ok(compressed_packet)
                 }
-            };
-            let chunk_data =
-                crate::packets::outgoing::chunk_and_light_data::ChunkAndLightData::from_chunk(
-                    &chunk,
-                )?;
-            conn_write.send_packet(chunk_data)?;
+            });
+        }
+    }
+    
+    let packets = batch.wait();
+    
+    for packet in packets {
+        match packet {
+            Ok(data) => {
+                conn_write.send_raw_packet(data)?;
+            }
+            Err(err) => {
+                error!("Failed to send chunk data: {:?}", err);
+                return Err(NetError::Misc(
+                    format!("Failed to send chunk data: {:?}", err),
+                ));
+            }
         }
     }
 
