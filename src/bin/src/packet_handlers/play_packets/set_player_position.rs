@@ -23,6 +23,11 @@ pub fn handle(
     state: Res<GlobalStateResource>,
 ) {
     for (event, eid) in events.0.try_iter() {
+        
+        if !state.0.players.is_connected(eid) {
+            // Player is not connected, skip processing this event
+            continue;
+        }
         let new_rot = None::<Rotation>;
 
         let new_position = Position::new(event.x, event.feet_y, event.z);

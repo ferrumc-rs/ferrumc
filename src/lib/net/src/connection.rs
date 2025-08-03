@@ -203,19 +203,24 @@ pub async fn handle_connection(
 
     let mut player_identity = PlayerIdentity::default();
 
+    // The player has successfully connected, so we can start the connection properly
+
+    let mut compressed = false;
+
     match handshake_result {
         Ok(res) => match res {
-            Ok((false, returned_player_identity)) => {
+            Ok((false, login_result)) => {
                 trace!("Handshake successful");
-                match returned_player_identity {
-                    Some(returned_player_identity) => {
-                        trace!("Player identity: {:?}", returned_player_identity);
-                        player_identity = returned_player_identity;
+                match login_result.player_identity {
+                    Some(given_player_identity) => {
+                        trace!("Player identity: {:?}", given_player_identity);
+                        player_identity = given_player_identity;
                     }
                     None => {
                         error!("Player identity not found");
                     }
                 }
+                compressed = login_result.compression;
             }
             Ok((true, _)) => {
                 trace!("Handshake successful, killing connection");
@@ -244,10 +249,6 @@ pub async fn handle_connection(
             return Err(HandshakeTimeout);
         }
     }
-
-    // The player has successfully connected, so we can start the connection properly
-
-    let compressed = false;
 
     // Send the streamwriter to the main thread
     let (entity_return, entity_recv) = oneshot::channel();

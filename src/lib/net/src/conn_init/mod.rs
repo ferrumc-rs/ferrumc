@@ -41,80 +41,9 @@ pub(crate) async fn trim_packet_head(conn: &mut OwnedReadHalf, value: u8) -> Res
     Ok(())
 }
 
-pub(crate) async fn read_packet(
-    conn: &mut OwnedReadHalf,
-    compressed: bool,
-) -> Result<Cursor<Vec<u8>>, NetError> {
-    loop {
-        // Step 1: Read outer packet length
-        let packet_length = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
-        let mut length_buf = vec![0; packet_length.0 as usize];
-        conn.read_exact(&mut length_buf).await.map_err(|err| {
-            error!("Failed to read packet data: {:?}", err);
-            err
-        })?;
-
-        let mut cursor = Cursor::new(length_buf);
-
-        let packet_data = if compressed {
-            // Step 2: Read uncompressed length
-            let uncompressed_length = VarInt::decode(&mut cursor, &NetDecodeOpts::None)?;
-
-            if uncompressed_length.0 > get_global_config().network_compression_threshold {
-                // Compressed packet, decompress it
-                let mut compressed_data = Vec::new();
-                cursor.read_to_end(&mut compressed_data).await?;
-
-                let (decompressed_data, checksum) = yazi::decompress(&compressed_data, Format::Zlib)
-                    .map_err(|_| NetError::DecompressionError)?;
-
-                if get_global_config().verify_decompressed_packets {
-                    let Some(actual_checksum) = checksum else {
-                        error!("Missing checksum on decompressed packet");
-                        return Err(NetError::DecompressionError);
-                    };
-
-                    let expected = yazi::Adler32::from_buf(&decompressed_data).finish();
-                    if actual_checksum != expected {
-                        error!(
-                            "Checksum mismatch: expected {}, got {}",
-                            expected, actual_checksum
-                        );
-                        return Err(NetError::DecompressionError);
-                    }
-                }
-
-                if decompressed_data.len() != uncompressed_length.0 as usize {
-                    error!(
-                        "Decompressed length mismatch: expected {}, got {}",
-                        uncompressed_length.0,
-                        decompressed_data.len()
-                    );
-                    return Err(NetError::DecompressionError);
-                }
-
-                Cursor::new(decompressed_data)
-            } else {
-                // Not compressed, just return raw inner
-                let mut uncompressed_data = Vec::new();
-                cursor.read_to_end(&mut uncompressed_data).await?;
-                Cursor::new(uncompressed_data)
-            }
-        } else {
-            // No compression at all, just return the packet
-            cursor
-        };
-
-        // Step 3: Check packet ID and ghost plugin messages 😤
-        let mut peek = packet_data.clone();
-        let id = VarInt::decode(&mut peek, &NetDecodeOpts::None)?;
-        if id.0 == 0x14 {
-            trace!("Skipping serverbound plugin message 💅 (0x14)");
-            continue; // loop again to read the next packet
-        }
-
-        return Ok(packet_data);
-    }
+pub(crate) struct LoginResult {
+    pub player_identity: Option<PlayerIdentity>,
+    pub compression: bool,
 }
 
 pub const PROTOCOL_VERSION_1_21_5: i32 = 770;
@@ -133,7 +62,7 @@ pub async fn handle_handshake(
     mut conn_read: &mut OwnedReadHalf,
     conn_write: &StreamWriter,
     state: GlobalState,
-) -> Result<(bool, Option<PlayerIdentity>), NetError> {
+) -> Result<(bool, LoginResult), NetError> {
     trim_packet_head(conn_read, 0x00).await?;
 
     // Get incoming handshake packet
@@ -150,8 +79,7 @@ pub async fn handle_handshake(
 
     match hs_packet.next_state.0 {
         1 => status(conn_read, conn_write, state)
-            .await
-            .map(|_| (true, None)),
+            .await,
         2 => login(conn_read, conn_write, state).await,
         3 => {
             // Transfer state - not implemented yet
@@ -170,7 +98,7 @@ async fn handle_version_mismatch(
     conn_read: &mut OwnedReadHalf,
     conn_write: &StreamWriter,
     state: GlobalState,
-) -> Result<(bool, Option<PlayerIdentity>), NetError> {
+) -> Result<(bool, LoginResult), NetError> {
     // Send appropriate disconnect packet based on the next state
     match hs_packet.next_state.0 {
         // If it was status, we can just send a status response, and the client will automatically understand the mismatch.
@@ -184,7 +112,6 @@ async fn handle_version_mismatch(
             );
             status(conn_read, conn_write, state)
                 .await
-                .map(|_| (true, None))
         } // If it was login, we need to send a login disconnect packet with a specific message
         2 => {
             // Login request - send login disconnect packet

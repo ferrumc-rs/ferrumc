@@ -1,6 +1,5 @@
-use crate::conn_init::{read_packet, NetDecodeOpts};
+use crate::conn_init::{LoginResult, NetDecodeOpts};
 use crate::conn_init::VarInt;
-use crate::conn_init::{trim_packet_head};
 use crate::connection::StreamWriter;
 use crate::errors::{NetError, PacketError};
 use crate::packets::outgoing::registry_data::REGISTRY_PACKETS;
@@ -9,7 +8,6 @@ use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net_codec::decode::NetDecode;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_state::GlobalState;
-use tokio::io::AsyncReadExt;
 use tokio::net::tcp::{OwnedReadHalf};
 use tracing::{error, trace};
 use uuid::Uuid;
@@ -21,7 +19,7 @@ pub(super) async fn login(
     conn_read: &mut OwnedReadHalf,
     conn_write: &StreamWriter,
     state: GlobalState,
-) -> Result<(bool, Option<PlayerIdentity>), NetError> {
+) -> Result<(bool, LoginResult), NetError> {
     let mut compressed = false;
 
     // =============================================================================================
@@ -262,5 +260,8 @@ pub(super) async fn login(
         }
     }
 
-    Ok((false, Some(player_identity)))
+    Ok((false, LoginResult {
+        player_identity: Some(player_identity),
+        compression: compressed,
+    }))
 }

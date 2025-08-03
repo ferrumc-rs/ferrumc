@@ -1,6 +1,6 @@
-use crate::conn_init::trim_packet_head;
+use crate::conn_init::{trim_packet_head, LoginResult};
 use crate::connection::StreamWriter;
-use crate::errors::NetError;
+use crate::errors::{NetError, PacketError};
 use crate::packets::incoming::ping::PingPacket;
 use crate::packets::incoming::status_request::StatusRequestPacket;
 use crate::packets::outgoing::ping_response::PongPacket;
@@ -11,17 +11,30 @@ use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_state::GlobalState;
 use rand::prelude::IndexedRandom;
 use tokio::net::tcp::OwnedReadHalf;
+use ferrumc_macros::lookup_packet;
+use crate::packets::incoming::packet_skeleton::PacketSkeleton;
 
 pub(super) async fn status(
     mut conn_read: &mut OwnedReadHalf,
     conn_write: &StreamWriter,
     state: GlobalState,
-) -> Result<bool, NetError> {
-    trim_packet_head(conn_read, 0x00).await?;
+) -> Result<(bool, LoginResult), NetError> {
+    
+    let mut skel = PacketSkeleton::new(&mut conn_read, false, crate::ConnState::Status).await?;
+    
+    let expected_id = lookup_packet!("status", "serverbound", "status_request");
+    
+    if skel.id != expected_id {
+        return Err(NetError::Packet(PacketError::UnexpectedPacket {
+            expected: expected_id,
+            received: skel.id,
+            state: crate::ConnState::Status,
+        }));
+    }
 
     // Wait for a status request packet
     let _status_req =
-        StatusRequestPacket::decode_async(&mut conn_read, &NetDecodeOpts::None).await?;
+        StatusRequestPacket::decode_async(&mut skel.data, &NetDecodeOpts::None).await?;
 
     // Send a status response packet
     let status_response = StatusResponse {
@@ -29,11 +42,21 @@ pub(super) async fn status(
     };
 
     conn_write.send_packet(status_response)?;
-
-    trim_packet_head(conn_read, 0x01).await?;
+    
+    let mut skel = PacketSkeleton::new(&mut conn_read, false, crate::ConnState::Status).await?;
+    
+    let expected_id = lookup_packet!("status", "serverbound", "ping_request");
+    
+    if skel.id != expected_id {
+        return Err(NetError::Packet(PacketError::UnexpectedPacket {
+            expected: expected_id,
+            received: skel.id,
+            state: crate::ConnState::Status,
+        }));
+    }
 
     // Wait for a ping request packet
-    let ping_req = PingPacket::decode_async(&mut conn_read, &NetDecodeOpts::None).await?;
+    let ping_req = PingPacket::decode_async(&mut skel.data, &NetDecodeOpts::None).await?;
 
     // Send a ping response packet
     let pong_packet = PongPacket {
@@ -42,7 +65,10 @@ pub(super) async fn status(
 
     conn_write.send_packet(pong_packet)?;
 
-    Ok(true)
+    Ok((true, LoginResult {
+        player_identity: None,
+        compression: false,
+    }))
 }
 
 fn get_server_status(state: &GlobalState) -> String {
