@@ -14,6 +14,15 @@ pub fn get_global_config() -> &'static ServerConfig {
     STATIC_CONFIG.get_or_init(create_config)
 }
 
+/// Sets the global server configuration.
+/// You really only want to use this for unit tests, otherwise just use `get_global_config()`
+/// to set the config with the default values or the values from the config file.
+pub fn set_global_config(config: ServerConfig) {
+    if STATIC_CONFIG.set(config).is_err() {
+        eprintln!("Failed to set global server configuration, it has already been initialized.");
+    }
+}
+
 /// The server configuration struct.
 ///
 /// Fields:
@@ -28,7 +37,7 @@ pub fn get_global_config() -> &'static ServerConfig {
 /// - `whitelist`: Whether the server whitelist is enabled or not.
 /// - `chunk_render_distance`: The render distance of the chunks. This is the number of chunks that will be
 ///   loaded around the player.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Default)]
 pub struct ServerConfig {
     pub host: String,
     pub port: u16, // 0-65535
@@ -54,7 +63,7 @@ pub struct ServerConfig {
 ///   but it won't actually use that much memory, it'll just show up as virtual memory use.
 /// - `cache_ttl`: The time to live for cache entries in seconds.
 /// - `cache_capacity`: How big the cache can be in kb.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Default)]
 pub struct DatabaseConfig {
     pub db_path: String,
     pub verify_chunk_data: bool,

@@ -1,5 +1,6 @@
 use crate::compression::compress_packet;
 use crate::conn_init::handle_handshake;
+use crate::errors::CompressionError::GenericCompressionError;
 use crate::errors::NetError;
 use crate::errors::NetError::HandshakeTimeout;
 use crate::errors::PacketError::InvalidPacket;
@@ -113,7 +114,10 @@ impl StreamWriter {
         )
         .map_err(|err| {
             error!("Failed to compress packet: {:?}", err);
-            NetError::CompressionError(format!("Failed to compress packet: {:?}", err))
+            NetError::CompressionError(GenericCompressionError(format!(
+                "Failed to compress packet: {:?}",
+                err
+            )))
         })?;
 
         self.sender.send(raw_bytes).map_err(std::io::Error::other)?;

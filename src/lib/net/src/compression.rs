@@ -16,6 +16,7 @@ use crate::errors::NetError;
 use yazi::{compress, CompressionLevel, Format};
 
 // For error logging
+use crate::errors::CompressionError::GenericCompressionError;
 use tracing::error;
 
 /// Compresses a network packet if compression is enabled and threshold is met.
@@ -86,7 +87,10 @@ pub fn compress_packet(
             )
             .map_err(|err| {
                 error!("Failed to compress packet: {:?}", err);
-                NetError::CompressionError(format!("Failed to compress packet: {:?}", err))
+                NetError::CompressionError(GenericCompressionError(format!(
+                    "Failed to compress packet: {:?}",
+                    err
+                )))
             })?;
 
             // Prepend the uncompressed size as a VarInt
@@ -112,4 +116,240 @@ pub fn compress_packet(
     };
 
     Ok(raw_bytes)
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::compression::compress_packet;
+    use crate::packets::incoming::packet_skeleton::PacketSkeleton;
+    use crate::ConnState;
+    use ferrumc_config::server_config::set_global_config;
+    use ferrumc_config::ServerConfig;
+
+    use crate::errors::NetError;
+    use ferrumc_net_codec::encode::errors::NetEncodeError;
+    use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
+    use ferrumc_net_codec::net_types::var_int::VarInt;
+    use std::io::Cursor;
+
+    struct TestPacket {
+        test_vi: VarInt,
+        body: Vec<u8>,
+    }
+
+    impl NetEncode for TestPacket {
+        fn encode<W: std::io::Write>(
+            &self,
+            writer: &mut W,
+            _opts: &NetEncodeOpts,
+        ) -> Result<(), NetEncodeError> {
+            use std::io::Write;
+            let mut buffer = Cursor::new(Vec::new());
+            // Normally packet id is provided by the macro, but here we manually encode it
+            VarInt(99).encode(&mut buffer, &NetEncodeOpts::None)?;
+            self.test_vi.encode(&mut buffer, &NetEncodeOpts::None)?;
+            buffer.write_all(&self.body)?;
+
+            let inner = buffer.into_inner();
+            // Write the length prefix
+            VarInt::new(inner.len() as i32).encode(writer, &NetEncodeOpts::None)?;
+            // Write the actual data
+            writer.write_all(&inner)?;
+            Ok(())
+        }
+
+        async fn encode_async<W: tokio::io::AsyncWrite + Unpin>(
+            &self,
+            writer: &mut W,
+            _opts: &NetEncodeOpts,
+        ) -> Result<(), NetEncodeError> {
+            use tokio::io::AsyncWriteExt;
+            // Normally packet id is provided by the macro, but here we manually encode it
+            let mut buffer = Cursor::new(Vec::new());
+            VarInt(99).encode(&mut buffer, &NetEncodeOpts::None)?;
+            self.test_vi.encode(&mut buffer, &NetEncodeOpts::None)?;
+            buffer.write_all(&self.body).await?;
+            let inner = buffer.into_inner();
+            // Write the length prefix
+            VarInt::new(inner.len() as i32)
+                .encode_async(writer, &NetEncodeOpts::None)
+                .await?;
+            // Write the actual data
+            writer.write_all(&inner).await?;
+            Ok(())
+        }
+    }
+
+    #[test]
+    fn test_compress_packet() {
+        let packet = TestPacket {
+            test_vi: VarInt::new(42),
+            body: vec![255; 1000], // Large enough to trigger compression
+        };
+        let compressed = compress_packet(&packet, true, &NetEncodeOpts::WithLength);
+        assert!(
+            compressed.is_ok(),
+            "Compression failed: {:?}",
+            compressed.err()
+        );
+        let compressed_data = compressed.unwrap();
+        assert!(
+            !compressed_data.is_empty(),
+            "Compressed data should not be empty"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_decompress() {
+        let compressed = compress_packet(
+            &TestPacket {
+                test_vi: VarInt::new(42),
+                body: vec![255; 1000], // Large enough to trigger compression
+            },
+            true,
+            &NetEncodeOpts::WithLength,
+        )
+        .unwrap();
+
+        let mut async_reader = Cursor::new(compressed);
+
+        let skel = PacketSkeleton::new(&mut async_reader, true, ConnState::Play).await;
+        assert!(
+            skel.is_ok(),
+            "Failed to read packet skeleton: {:?}",
+            skel.err()
+        );
+        let skel = skel.unwrap();
+        assert_eq!(skel.id, 99, "Packet ID mismatch");
+    }
+
+    #[test]
+    fn test_compress_packet_below_threshold() {
+        let packet = TestPacket {
+            test_vi: VarInt::new(42),
+            body: vec![255; 100], // Small enough to not trigger compression
+        };
+        set_global_config(ServerConfig {
+            network_compression_threshold: 512,
+            ..Default::default()
+        });
+        let mut uncompressed_buf = Vec::new();
+        packet
+            .encode(&mut uncompressed_buf, &NetEncodeOpts::None)
+            .unwrap();
+        let compressed = compress_packet(&packet, true, &NetEncodeOpts::WithLength);
+        assert!(
+            compressed.is_ok(),
+            "Compression failed: {:?}",
+            compressed.err()
+        );
+        let compressed_data = compressed.unwrap();
+        assert!(
+            !compressed_data.is_empty(),
+            "Compressed data should not be empty"
+        );
+        // Check that the compressed data isn't smaller than the uncompressed
+        assert!(
+            compressed_data.len() >= uncompressed_buf.len(),
+            "Input data should not be compressed smaller than original"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_decompress_below_threshold() {
+        let packet = TestPacket {
+            test_vi: VarInt::new(42),
+            body: vec![255; 100], // Small enough to not trigger compression
+        };
+        set_global_config(ServerConfig {
+            network_compression_threshold: 512,
+            ..Default::default()
+        });
+        let compressed = compress_packet(&packet, true, &NetEncodeOpts::WithLength).unwrap();
+
+        let mut async_reader = Cursor::new(compressed);
+
+        let skel = PacketSkeleton::new(&mut async_reader, true, ConnState::Play).await;
+        assert!(
+            skel.is_ok(),
+            "Failed to read packet skeleton: {:?}",
+            skel.err()
+        );
+        let skel = skel.unwrap();
+        assert_eq!(skel.id, 99, "Packet ID mismatch");
+    }
+
+    #[tokio::test]
+    async fn test_compress_packet_without_compression() {
+        let packet = TestPacket {
+            test_vi: VarInt::new(42),
+            body: vec![255; 1000], // Large enough to trigger compression
+        };
+        let compressed = compress_packet(&packet, false, &NetEncodeOpts::WithLength);
+        assert!(
+            compressed.is_ok(),
+            "Compression failed: {:?}",
+            compressed.err()
+        );
+        let compressed_data = compressed.unwrap();
+        assert!(
+            !compressed_data.is_empty(),
+            "Compressed data should not be empty"
+        );
+        // Check that the output matches the uncompressed data
+        let mut expected_buf = Vec::new();
+        packet
+            .encode(&mut expected_buf, &NetEncodeOpts::WithLength)
+            .unwrap();
+        assert_eq!(compressed_data, expected_buf);
+    }
+
+    #[tokio::test]
+    async fn test_decompress_without_compression() {
+        let packet = TestPacket {
+            test_vi: VarInt::new(42),
+            body: vec![255; 1000], // Large enough to trigger compression
+        };
+        let compressed = compress_packet(&packet, false, &NetEncodeOpts::WithLength).unwrap();
+
+        let mut async_reader = Cursor::new(compressed);
+
+        let skel = PacketSkeleton::new(&mut async_reader, true, ConnState::Play).await;
+        assert!(
+            skel.is_err(),
+            "Expected error reading uncompressed packet skeleton, got: {:?}",
+            skel
+        );
+        // The error should indicate that the packet is not compressed
+        if !matches!(skel, Err(NetError::CompressionError(_))) {
+            panic!("Expected a decompression error, got: {:?}", skel);
+        }
+    }
+
+    #[tokio::test]
+    async fn test_decompress_bad_data() {
+        // Test with invalid data that doesn't match expected format
+        let bad_data = vec![0x00, 0x01, 0x02, 0x03]; // Not a valid VarInt or packet structure
+        let mut async_reader = Cursor::new(bad_data);
+
+        let skel = PacketSkeleton::new(&mut async_reader, true, ConnState::Play).await;
+        assert!(
+            skel.is_err(),
+            "Expected error reading bad packet data, got: {:?}",
+            skel
+        );
+    }
+
+    #[tokio::test]
+    async fn test_decompress_empty_data() {
+        // Test with empty data, which should fail to read a packet skeleton
+        let empty_data = vec![];
+        let mut async_reader = Cursor::new(empty_data);
+        let skel = PacketSkeleton::new(&mut async_reader, true, ConnState::Play).await;
+        assert!(
+            skel.is_err(),
+            "Expected error reading empty packet data, got: {:?}",
+            skel
+        );
+    }
 }

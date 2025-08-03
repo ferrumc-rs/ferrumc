@@ -1,4 +1,5 @@
 use crate::ConnState;
+use ferrumc_config::server_config::get_global_config;
 use ferrumc_net_codec::decode::errors::NetDecodeError;
 use ferrumc_net_codec::encode::errors::NetEncodeError;
 use ferrumc_net_encryption::errors::NetEncryptionError;
@@ -51,14 +52,33 @@ pub enum NetError {
     #[error("World error: {0}")]
     World(#[from] ferrumc_world::errors::WorldError),
 
-    #[error("Decompression error")]
-    DecompressionError,
-
     #[error("Compression error: {0}")]
-    CompressionError(String),
+    CompressionError(#[from] CompressionError),
 
     #[error("Misc error: {0}")]
     Misc(String),
+}
+
+#[derive(Debug, Error)]
+pub enum CompressionError {
+    #[error("Compressed packet smaller than threshold. 'data_length' = {0}, but threshold is {threshold}", threshold = get_global_config().network_compression_threshold
+    )]
+    CompressedPacketTooSmall(usize),
+
+    #[error("Checksum mismatch: expected {expected:02X}, got {received:02X}")]
+    ChecksumMismatch { expected: u32, received: u32 },
+
+    #[error("Missing checksum in compressed packet")]
+    MissingChecksum,
+
+    #[error("Generic decompression error: {0}")]
+    GenericDecompressionError(String),
+
+    #[error("Generic compression error: {0}")]
+    GenericCompressionError(String),
+
+    #[error("Packet likely uncompressed, but compression is enabled")]
+    PacketUncompressedWithCompressionEnabled,
 }
 
 #[derive(Debug, Error)]

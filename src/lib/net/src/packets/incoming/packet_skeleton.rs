@@ -1,8 +1,11 @@
+use crate::errors::CompressionError::{
+    ChecksumMismatch, CompressedPacketTooSmall, GenericDecompressionError, MissingChecksum,
+};
 use crate::errors::{NetError, PacketError};
 use crate::ConnState;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_macros::lookup_packet;
-use ferrumc_net_codec::{decode::errors::NetDecodeError, net_types::var_int::VarInt};
+use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::fmt::Debug;
 use std::io::Cursor;
 use tokio::io::AsyncRead;
@@ -214,9 +217,9 @@ impl PacketSkeleton {
             // Verify compression threshold to prevent trivial small packets from being compressed
             let compression_threshold = get_global_config().network_compression_threshold;
             if data_length < compression_threshold {
-                return Err(NetError::DecoderError(
-                    NetDecodeError::CompressedPacketTooSmall(data_length as usize),
-                ));
+                return Err(NetError::CompressionError(CompressedPacketTooSmall(
+                    data_length as usize,
+                )));
             }
 
             // Read compressed bytes
@@ -224,14 +227,17 @@ impl PacketSkeleton {
             reader.read_exact(&mut compressed_buf).await?;
 
             // Attempt decompression (Zlib format)
-            let (decompressed_data, checksum) = decompress(&compressed_buf, Format::Zlib)
-                .map_err(|_| NetError::DecompressionError)?;
+            let (decompressed_data, checksum) =
+                decompress(&compressed_buf, Format::Zlib).map_err(|err| {
+                    let msg = format!("Decompression error: {err:?}");
+                    NetError::CompressionError(GenericDecompressionError(msg))
+                })?;
 
             // Verify checksum if server has verification enabled
             if get_global_config().verify_decompressed_packets {
                 let Some(actual_checksum) = checksum else {
                     error!("Missing checksum on decompressed packet");
-                    return Err(NetError::DecompressionError);
+                    return Err(NetError::CompressionError(MissingChecksum));
                 };
 
                 let expected = yazi::Adler32::from_buf(&decompressed_data).finish();
@@ -240,18 +246,24 @@ impl PacketSkeleton {
                         "Checksum mismatch: expected {}, got {}",
                         expected, actual_checksum
                     );
-                    return Err(NetError::DecompressionError);
+                    return Err(NetError::CompressionError(ChecksumMismatch {
+                        expected,
+                        received: actual_checksum,
+                    }));
                 }
             }
 
             // Verify declared decompressed length matches actual size
             if decompressed_data.len() != data_length as usize {
-                error!(
+                let error_msg = format!(
                     "Decompressed packet length mismatch: expected {}, got {}",
                     data_length,
                     decompressed_data.len()
                 );
-                return Err(NetError::DecompressionError);
+                error!(error_msg);
+                return Err(NetError::CompressionError(GenericDecompressionError(
+                    error_msg,
+                )));
             }
 
             // Extract packet ID
