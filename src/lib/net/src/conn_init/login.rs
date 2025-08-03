@@ -17,6 +17,24 @@ use tokio::net::tcp::OwnedReadHalf;
 use tracing::{error, trace};
 use uuid::Uuid;
 
+/// Handles the **login sequence** for a newly connecting client.
+///
+/// This function follows the Minecraft login/configuration handshake:
+/// 1. Reads the initial login packet and authenticates the username/UUID.
+/// 2. Optionally enables network compression.
+/// 3. Sends required handshake completion packets:
+///    - Login success
+///    - Configuration phase packets
+///    - Registry and world data
+/// 4. Spawns the player in the world (initial chunks, teleport confirmation).
+///
+/// # Returns
+/// `(false, LoginResult)` on success, where:
+/// - `false` = keep connection open.
+/// - `LoginResult` contains player identity and compression settings.
+///
+/// # Errors
+/// Returns `NetError` for protocol violations, unexpected packets, or I/O errors.
 pub(super) async fn login(
     conn_read: &mut OwnedReadHalf,
     conn_write: &StreamWriter,
@@ -25,6 +43,7 @@ pub(super) async fn login(
     let mut compressed = false;
 
     // =============================================================================================
+    // 1 Receive initial Login Start packet
     let mut skel = PacketSkeleton::new(conn_read, compressed, Login).await?;
 
     let expected_id = lookup_packet!("login", "serverbound", "hello");
@@ -43,10 +62,11 @@ pub(super) async fn login(
     )?;
 
     // =============================================================================================
+    // 2 Negotiate compression if configured
     if get_global_config().network_compression_threshold > 0 {
         compressed = true;
 
-        // Send SetCompression packet to the client
+        // Notify client to enable compression on subsequent packets
         let compression_packet = crate::packets::outgoing::set_compression::SetCompressionPacket {
             threshold: VarInt::new(get_global_config().network_compression_threshold),
         };
@@ -57,7 +77,7 @@ pub(super) async fn login(
     }
 
     // =============================================================================================
-    // Send login success packet
+    // 3 Send Login Success (UUID and username acknowledgement)
     let login_success = crate::packets::outgoing::login_success::LoginSuccessPacket {
         uuid: login_start.uuid,
         username: &login_start.username,
@@ -66,6 +86,7 @@ pub(super) async fn login(
 
     conn_write.send_packet(login_success)?;
 
+    // Build PlayerIdentity for server-side tracking
     let player_identity = PlayerIdentity {
         uuid: Uuid::from_u128(login_start.uuid),
         username: login_start.username.clone(),
@@ -73,7 +94,7 @@ pub(super) async fn login(
     };
 
     // =============================================================================================
-
+    // 4 Wait for client Login Acknowledged packet
     let mut skel = PacketSkeleton::new(conn_read, compressed, Login).await?;
     let expected_id = lookup_packet!("login", "serverbound", "login_acknowledged");
 
@@ -92,8 +113,7 @@ pub(super) async fn login(
         )?;
 
     // =============================================================================================
-
-    // Read client information packet
+    // 5 Read Client Information (locale, view distance, etc.)
     let mut skel = PacketSkeleton::new(conn_read, compressed, Configuration).await?;
     let expected_id = lookup_packet!("configuration", "serverbound", "client_information");
     if skel.id != expected_id {
@@ -119,13 +139,13 @@ pub(super) async fn login(
     );
 
     // =============================================================================================
-    // Send client_bound_known_packs packet
+    // 6 Send known resource packs list
     let client_bound_known_packs =
         crate::packets::outgoing::client_bound_known_packs::ClientBoundKnownPacksPacket::new();
     conn_write.send_packet(client_bound_known_packs)?;
 
     // =============================================================================================
-    // Read select_known_packs packet
+    // 7 Read client's selected known packs (currently ignored)
     let mut skel = PacketSkeleton::new(conn_read, compressed, Configuration).await?;
     let expected_id = lookup_packet!("configuration", "serverbound", "select_known_packs");
     if skel.id != expected_id {
@@ -136,7 +156,6 @@ pub(super) async fn login(
         }));
     }
 
-    // What to do with this packet? For now, we ignore it
     let _server_bound_known_packs =
         crate::packets::incoming::server_bound_known_packs::ServerBoundKnownPacks::decode(
             &mut skel.data,
@@ -144,19 +163,19 @@ pub(super) async fn login(
         )?;
 
     // =============================================================================================
-    // Send all registry packets
+    // 8 Send server registry data (dimensions, biomes, etc.)
     for packet in &*REGISTRY_PACKETS {
         conn_write.send_packet_ref(packet)?;
     }
 
     // =============================================================================================
-    // Send finish_configuration packet
+    // 9 Signal end of configuration phase
     let finish_config_packet =
         crate::packets::outgoing::finish_configuration::FinishConfigurationPacket;
     conn_write.send_packet(finish_config_packet)?;
 
     // =============================================================================================
-    // Read finish_configuration ack
+    // 10 Wait for client's finish_configuration ack
     let mut skel = PacketSkeleton::new(conn_read, compressed, Configuration).await?;
     let expected_id = lookup_packet!("configuration", "serverbound", "finish_configuration");
     if skel.id != expected_id {
@@ -174,13 +193,13 @@ pub(super) async fn login(
         )?;
 
     // =============================================================================================
-    // Send login/play packet
+    // 11 Send login_play packet to switch to Play state
     let login_play =
         crate::packets::outgoing::login_play::LoginPlayPacket::new(player_identity.short_uuid);
     conn_write.send_packet(login_play)?;
 
     // =============================================================================================
-    // Generate teleport ID and synchronize player position
+    // 12 Send initial player position sync (requires teleport confirmation)
     let teleport_id_i32: i32 = (rand::random::<u32>() & 0x3FFF_FFFF) as i32;
     let sync_player_pos =
         crate::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket {
@@ -190,7 +209,7 @@ pub(super) async fn login(
     conn_write.send_packet(sync_player_pos)?;
 
     // =============================================================================================
-    // Read accept_teleportation packet
+    // 13 Await client's teleport acceptance
     let mut skel = PacketSkeleton::new(conn_read, compressed, Play).await?;
     let expected_id = lookup_packet!("play", "serverbound", "accept_teleportation");
     if skel.id != expected_id {
@@ -215,7 +234,7 @@ pub(super) async fn login(
     }
 
     // =============================================================================================
-    // Read move_player_pos_rot packet
+    // 14 Receive first movement packet from player
     let mut skel = PacketSkeleton::new(conn_read, compressed, Play).await?;
     let expected_id = lookup_packet!("play", "serverbound", "move_player_pos_rot");
     if skel.id != expected_id {
@@ -233,17 +252,17 @@ pub(super) async fn login(
         )?;
 
     // =============================================================================================
-    // Send game event packet
+    // 15 Send initial game event (e.g., "change game mode")
     let game_event = crate::packets::outgoing::game_event::GameEventPacket::new(13, 0.0);
     conn_write.send_packet(game_event)?;
 
     // =============================================================================================
-    // Send center chunk packet
+    // 16 Send center chunk packet (player spawn location)
     let center_chunk = crate::packets::outgoing::set_center_chunk::SetCenterChunk::new(0, 0);
     conn_write.send_packet(center_chunk)?;
 
     // =============================================================================================
-    // Load and send chunks within render distance
+    // 17 Load and send surrounding chunks within render distance
     let radius = get_global_config().chunk_render_distance as i32;
 
     let mut batch = state.thread_pool.batch();
@@ -282,6 +301,8 @@ pub(super) async fn login(
         }
     }
 
+    // =============================================================================================
+    // ✅ Login sequence complete
     Ok((
         false,
         LoginResult {

@@ -14,13 +14,36 @@ use ferrumc_state::GlobalState;
 use rand::prelude::IndexedRandom;
 use tokio::net::tcp::OwnedReadHalf;
 
+/// Handles the Minecraft server "status" state of the handshake.
+///
+/// This function implements the **Server List Ping protocol**:
+/// 1. Reads the incoming **Status Request** packet from the client.
+/// 2. Responds with a **Status Response** packet containing:
+///    - Server version
+///    - Player count and sample list
+///    - MOTD (Message of the Day)
+///    - Favicon
+/// 3. Reads the subsequent **Ping Request** packet.
+/// 4. Responds with a **Pong** packet echoing the received payload.
+///
+/// This is part of the server list query process (when the client pings a server
+/// to display it in the multiplayer menu, before login).
+///
+/// # Returns
+/// A tuple `(true, LoginResult)`:
+/// - `true`: Indicates that the connection should be closed after responding.
+/// - `LoginResult`: Contains no player identity or compression because this is a stateless query.
 pub(super) async fn status(
     mut conn_read: &mut OwnedReadHalf,
     conn_write: &StreamWriter,
     state: GlobalState,
 ) -> Result<(bool, LoginResult), NetError> {
+    // ---- Phase 1: Receive and validate Status Request packet ----
+
+    // Read next incoming packet in "status" connection state
     let mut skel = PacketSkeleton::new(&mut conn_read, false, crate::ConnState::Status).await?;
 
+    // Expected packet ID for a status request
     let expected_id = lookup_packet!("status", "serverbound", "status_request");
 
     if skel.id != expected_id {
@@ -31,16 +54,20 @@ pub(super) async fn status(
         }));
     }
 
-    // Wait for a status request packet
+    // Parse the incoming status request (no fields, acts as a trigger)
     let _status_req =
         StatusRequestPacket::decode_async(&mut skel.data, &NetDecodeOpts::None).await?;
 
-    // Send a status response packet
+    // ---- Phase 2: Send Status Response ----
+
     let status_response = StatusResponse {
         json_response: get_server_status(&state),
     };
 
+    // Send server status information back to client
     conn_write.send_packet(status_response)?;
+
+    // ---- Phase 3: Wait for Ping Request ----
 
     let mut skel = PacketSkeleton::new(&mut conn_read, false, crate::ConnState::Status).await?;
 
@@ -54,16 +81,17 @@ pub(super) async fn status(
         }));
     }
 
-    // Wait for a ping request packet
+    // Parse ping request containing a payload (usually current timestamp)
     let ping_req = PingPacket::decode_async(&mut skel.data, &NetDecodeOpts::None).await?;
 
-    // Send a ping response packet
+    // Respond with Pong containing the same payload (echo test)
     let pong_packet = PongPacket {
         payload: ping_req.payload,
     };
-
     conn_write.send_packet(pong_packet)?;
 
+    // Status flow does not transition to login state.
+    // The connection can be safely closed.
     Ok((
         true,
         LoginResult {
@@ -73,7 +101,18 @@ pub(super) async fn status(
     ))
 }
 
+/// Builds a JSON string describing the server's status.
+///
+/// This data is used in the **Status Response packet** for client pings.
+/// Includes version info, player counts, MOTD, favicon, and secure chat flag.
+///
+/// # Parameters
+/// - `state`: A reference to the global server state, used to retrieve the online player list.
+///
+/// # Returns
+/// A JSON-encoded string containing the server's status.
 fn get_server_status(state: &GlobalState) -> String {
+    // Internal structs serialized to match Minecraft's server list response schema
     mod structs {
         #[derive(serde_derive::Serialize)]
         pub(super) struct ServerStatus<'a> {
@@ -103,6 +142,7 @@ fn get_server_status(state: &GlobalState) -> String {
             pub id: &'a str,
         }
 
+        /// Temporary struct used before borrowing string slices for serialization.
         pub(super) struct PlayerData {
             pub name: String,
             pub id: String,
@@ -116,11 +156,13 @@ fn get_server_status(state: &GlobalState) -> String {
 
     let config = get_global_config();
 
+    // Protocol info
     let version = structs::Version {
         name: "1.21.1",
         protocol: crate::conn_init::PROTOCOL_VERSION_1_21_5 as u16,
     };
 
+    // Collect up to 5 players from the active player list
     let online_players_sample = state
         .players
         .player_list
@@ -132,6 +174,7 @@ fn get_server_status(state: &GlobalState) -> String {
         })
         .collect::<Vec<_>>();
 
+    // Convert owned Strings into &str for serialization
     let online_players_sample = online_players_sample
         .iter()
         .map(|p| structs::Player {
@@ -140,18 +183,21 @@ fn get_server_status(state: &GlobalState) -> String {
         })
         .collect::<Vec<_>>();
 
+    // Player counts and sample
     let players = structs::Players {
         max: config.max_players,
         online: online_players_sample.len() as u16,
         sample: online_players_sample,
     };
 
+    // Randomly choose a MOTD line from the configured list
     let motd = config.motd.choose(&mut rand::rng()).unwrap();
     let description = structs::Description { text: motd };
 
+    // Encode favicon image in base64
     let favicon = get_favicon_base64();
-    // let favicon = "data:image/png;base64,<data>";
 
+    // Construct and serialize status payload
     let status = structs::ServerStatus {
         version,
         players,

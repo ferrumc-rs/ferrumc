@@ -10,9 +10,21 @@ use tokio::io::AsyncReadExt;
 use tracing::{debug, error, trace};
 use yazi::{decompress, Format};
 
+/// Represents a minimal parsed network packet (frame) read from the client.
+///
+/// The `PacketSkeleton` only extracts:
+/// - The total packet length.
+/// - The packet ID (VarInt, downcast to u8 for efficiency).
+/// - The remaining data payload as a readable cursor.
+///
+/// This allows deferred decoding of the packet's contents until
+/// it is dispatched to the appropriate handler.
 pub struct PacketSkeleton {
+    /// Total length of the full packet (prefix + ID + payload).
     pub length: usize,
+    /// Packet ID (VarInt, truncated to `u8`).
     pub id: u8,
+    /// Cursor pointing to the remaining packet bytes for further decoding.
     pub data: Cursor<Vec<u8>>,
 }
 
@@ -26,6 +38,20 @@ impl Debug for PacketSkeleton {
 }
 
 impl PacketSkeleton {
+    /// Constructs a new `PacketSkeleton` by reading from the given async reader.
+    ///
+    /// Supports both compressed and uncompressed packet formats as defined
+    /// by the Minecraft protocol framing rules.
+    ///
+    /// # Parameters
+    /// - `reader`: The asynchronous byte stream to read from.
+    /// - `compressed`: Whether to interpret the packet as compressed.
+    /// - `state`: Current connection state (e.g., Handshake, Play, Configuration).
+    ///
+    /// # Errors
+    /// - Returns `ConnectionDropped` if the socket is closed.
+    /// - Returns `MalformedPacket` if framing data is invalid.
+    /// - Returns `DecompressionError` if compressed payload integrity checks fail.
     pub async fn new<R: AsyncRead + Unpin>(
         reader: &mut R,
         compressed: bool,
@@ -37,6 +63,7 @@ impl PacketSkeleton {
         };
         match pak {
             Ok(p) => {
+                // Optional logging of every packet if `FERRUMC_LOG_PACKETS` env var is set
                 if option_env!("FERRUMC_LOG_PACKETS").is_some() {
                     trace!("Received packet: {:?}", p);
                 }
@@ -44,11 +71,9 @@ impl PacketSkeleton {
             }
             Err(e) => {
                 if !matches!(e, NetError::ConnectionDropped) {
-                    // Don't log connection dropped errors
-                    // They are expected when the client disconnects
+                    // Expected when client disconnects mid-read
                     trace!("Error reading packet: {:?}", e);
                 } else {
-                    // Log connection dropped errors
                     debug!("Connection dropped: {:?}", e);
                 }
                 Err(e)
@@ -56,11 +81,21 @@ impl PacketSkeleton {
         }
     }
 
+    /// Reads an **uncompressed** packet from the client.
+    ///
+    /// Minecraft's packet format:
+    /// ```text
+    /// VarInt(length) | VarInt(packet_id) | [payload bytes...]
+    /// ```
+    ///
+    /// - Filters out `custom_payload` plugin messages (0x14) in Play/Configuration states
+    ///   to ignore unused plugin channels.
     async fn read_uncompressed<R: AsyncRead + Unpin>(
         reader: &mut R,
         state: ConnState,
     ) -> Result<Self, NetError> {
         loop {
+            // Read total packet length (must be >= 1 byte)
             let length = VarInt::read_async(reader).await?.0 as usize;
 
             if length < 1 {
@@ -69,25 +104,28 @@ impl PacketSkeleton {
                 ))));
             }
 
+            // Sanity check to avoid maliciously large frames
             if length > 2097151 {
                 let id = VarInt::read_async(reader).await?.0 as u8;
                 return Err(NetError::Packet(PacketError::MalformedPacket(Some(id))));
             }
 
+            // Read full packet data
             let mut buf = {
                 let mut buf = vec![0; length];
                 reader.read_exact(&mut buf).await?;
                 Cursor::new(buf)
             };
 
+            // Extract packet ID
             let id = VarInt::read_async(&mut buf).await?;
 
+            // Ignore plugin messages (unused channels)
             if (id.0 == lookup_packet!("play", "serverbound", "custom_payload")
                 && state == ConnState::Play)
                 || (id.0 == lookup_packet!("configuration", "serverbound", "custom_payload")
                     && state == ConnState::Configuration)
             {
-                // Ignore Plugin Message and read the next one
                 trace!("Ignored serverbound plugin message (0x14)");
                 continue;
             }
@@ -100,11 +138,26 @@ impl PacketSkeleton {
         }
     }
 
+    /// Reads a **compressed** packet from the client.
+    ///
+    /// Minecraft's packet format under compression:
+    /// ```text
+    /// VarInt(packet_length) |
+    /// VarInt(data_length)   |
+    /// [possibly compressed bytes...]
+    /// ```
+    /// - `data_length = 0`: payload is uncompressed.
+    /// - `data_length > 0`: payload is zlib-compressed to fit into packet_length.
+    ///
+    /// Compression threshold is enforced based on server config to prevent abuse.
+    ///
+    /// - Plugin messages (0x14) are ignored here as well.
     async fn read_compressed<R: AsyncRead + Unpin>(
         reader: &mut R,
         state: ConnState,
     ) -> Result<Self, NetError> {
         loop {
+            // Total length of this packet frame
             let packet_length = VarInt::read_async(reader).await?.0;
 
             if packet_length < 1 {
@@ -113,6 +166,7 @@ impl PacketSkeleton {
                 ))));
             }
 
+            // Declared length of decompressed payload (0 = no compression)
             let data_length = VarInt::read_async(reader).await?.0;
 
             if data_length < 0 {
@@ -121,22 +175,25 @@ impl PacketSkeleton {
                 ))));
             }
 
+            // Sanity checks to avoid huge memory allocations
             if packet_length > 2097151 || data_length > 8388608 {
                 return Err(NetError::Packet(PacketError::MalformedPacket(Some(
                     packet_length.max(data_length) as u8,
                 ))));
             }
 
+            // Remaining bytes to read = total minus size of data_length field
             let remaining_len = packet_length as usize - VarInt::new(data_length).len();
 
+            // Case 1: Uncompressed packet (data_length == 0)
             if data_length == 0 {
-                // Not compressed, just read the inner data
                 let mut buf = vec![0; remaining_len];
                 reader.read_exact(&mut buf).await?;
                 let mut cursor = Cursor::new(buf);
 
                 let id = VarInt::read_async(&mut cursor).await?;
 
+                // Ignore plugin messages
                 if (id.0 == lookup_packet!("play", "serverbound", "custom_payload")
                     && state == ConnState::Play)
                     || (id.0 == lookup_packet!("configuration", "serverbound", "custom_payload")
@@ -153,7 +210,8 @@ impl PacketSkeleton {
                 });
             }
 
-            // Enforce compression threshold
+            // Case 2: Compressed packet
+            // Verify compression threshold to prevent trivial small packets from being compressed
             let compression_threshold = get_global_config().network_compression_threshold;
             if data_length < compression_threshold {
                 return Err(NetError::DecoderError(
@@ -161,13 +219,15 @@ impl PacketSkeleton {
                 ));
             }
 
-            // Read compressed data
+            // Read compressed bytes
             let mut compressed_buf = vec![0; remaining_len];
             reader.read_exact(&mut compressed_buf).await?;
 
+            // Attempt decompression (Zlib format)
             let (decompressed_data, checksum) = decompress(&compressed_buf, Format::Zlib)
                 .map_err(|_| NetError::DecompressionError)?;
 
+            // Verify checksum if server has verification enabled
             if get_global_config().verify_decompressed_packets {
                 let Some(actual_checksum) = checksum else {
                     error!("Missing checksum on decompressed packet");
@@ -184,6 +244,7 @@ impl PacketSkeleton {
                 }
             }
 
+            // Verify declared decompressed length matches actual size
             if decompressed_data.len() != data_length as usize {
                 error!(
                     "Decompressed packet length mismatch: expected {}, got {}",
@@ -193,10 +254,16 @@ impl PacketSkeleton {
                 return Err(NetError::DecompressionError);
             }
 
+            // Extract packet ID
             let mut cursor = Cursor::new(decompressed_data);
             let id = VarInt::read_async(&mut cursor).await?;
 
-            if id.0 == lookup_packet!("play", "serverbound", "custom_payload") {
+            // Ignore plugin messages
+            if (state == ConnState::Play
+                && id.0 == lookup_packet!("play", "serverbound", "custom_payload"))
+                || (state == ConnState::Configuration
+                    && id.0 == lookup_packet!("configuration", "serverbound", "custom_payload"))
+            {
                 trace!("Ignored compressed serverbound plugin message (0x14)");
                 continue;
             }
