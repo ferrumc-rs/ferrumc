@@ -1,12 +1,12 @@
 use ferrumc_macros::{packet, NetDecode};
+use ferrumc_net_codec::decode::errors::NetDecodeError;
+use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::fmt::Display;
 use std::io::Read;
 use tokio::io::AsyncRead;
 use tracing::warn;
 use typename::TypeName;
-use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
-use ferrumc_net_codec::decode::errors::NetDecodeError;
 
 #[derive(TypeName, Debug, NetDecode)]
 #[packet(packet_id = "client_information", state = "configuration")]
@@ -37,20 +37,29 @@ impl NetDecode for ChatMode {
             1 => Ok(ChatMode::CommandsOnly),
             2 => Ok(ChatMode::Hidden),
             _ => {
-                warn!("Received unknown chat mode value: {}, defaulting to Enabled", value.0);
+                warn!(
+                    "Received unknown chat mode value: {}, defaulting to Enabled",
+                    value.0
+                );
                 Ok(ChatMode::Enabled) // Default to Enabled if unknown value
             }
         }
     }
 
-    async fn decode_async<R: AsyncRead + Unpin>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
+    async fn decode_async<R: AsyncRead + Unpin>(
+        reader: &mut R,
+        opts: &NetDecodeOpts,
+    ) -> Result<Self, NetDecodeError> {
         let value = VarInt::decode_async(reader, opts).await?;
         match value.0 as u8 {
             0 => Ok(ChatMode::Enabled),
             1 => Ok(ChatMode::CommandsOnly),
             2 => Ok(ChatMode::Hidden),
             _ => {
-                warn!("Received unknown chat mode value: {}, defaulting to Enabled", value.0);
+                warn!(
+                    "Received unknown chat mode value: {}, defaulting to Enabled",
+                    value.0
+                );
                 Ok(ChatMode::Enabled) // Default to Enabled if unknown value
             }
         }
@@ -80,19 +89,28 @@ impl NetDecode for MainHand {
             0 => Ok(MainHand::Left),
             1 => Ok(MainHand::Right),
             _ => {
-                warn!("Received unknown main hand value: {}, defaulting to Left", value.0);
+                warn!(
+                    "Received unknown main hand value: {}, defaulting to Left",
+                    value.0
+                );
                 Ok(MainHand::Left) // Default to Left if unknown value
             }
         }
     }
 
-    async fn decode_async<R: AsyncRead + Unpin>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
+    async fn decode_async<R: AsyncRead + Unpin>(
+        reader: &mut R,
+        opts: &NetDecodeOpts,
+    ) -> Result<Self, NetDecodeError> {
         let value = VarInt::decode_async(reader, opts).await?;
         match value.0 as u8 {
             0 => Ok(MainHand::Left),
             1 => Ok(MainHand::Right),
             _ => {
-                warn!("Received unknown main hand value: {}, defaulting to Left", value.0);
+                warn!(
+                    "Received unknown main hand value: {}, defaulting to Left",
+                    value.0
+                );
                 Ok(MainHand::Left) // Default to Left if unknown value
             }
         }
@@ -123,20 +141,29 @@ impl NetDecode for ParticleStatus {
             1 => Ok(ParticleStatus::Decreased),
             2 => Ok(ParticleStatus::Minimal),
             _ => {
-                warn!("Received unknown particle status value: {}, defaulting to All", value.0);
+                warn!(
+                    "Received unknown particle status value: {}, defaulting to All",
+                    value.0
+                );
                 Ok(ParticleStatus::All) // Default to All if unknown value
             }
         }
     }
 
-    async fn decode_async<R: AsyncRead + Unpin>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
+    async fn decode_async<R: AsyncRead + Unpin>(
+        reader: &mut R,
+        opts: &NetDecodeOpts,
+    ) -> Result<Self, NetDecodeError> {
         let value = VarInt::decode_async(reader, opts).await?;
         match value.0 as u8 {
             0 => Ok(ParticleStatus::All),
             1 => Ok(ParticleStatus::Decreased),
             2 => Ok(ParticleStatus::Minimal),
             _ => {
-                warn!("Received unknown particle status value: {}, defaulting to All", value.0);
+                warn!(
+                    "Received unknown particle status value: {}, defaulting to All",
+                    value.0
+                );
                 Ok(ParticleStatus::All) // Default to All if unknown value
             }
         }

@@ -1,14 +1,14 @@
 use crate::errors::{NetError, PacketError};
+use crate::ConnState;
 use ferrumc_config::server_config::get_global_config;
+use ferrumc_macros::lookup_packet;
 use ferrumc_net_codec::{decode::errors::NetDecodeError, net_types::var_int::VarInt};
+use std::fmt::Debug;
 use std::io::Cursor;
-use std::{fmt::Debug, io::Read};
 use tokio::io::AsyncRead;
 use tokio::io::AsyncReadExt;
 use tracing::{debug, error, trace};
 use yazi::{decompress, Format};
-use ferrumc_macros::lookup_packet;
-use crate::ConnState;
 
 pub struct PacketSkeleton {
     pub length: usize,
@@ -29,7 +29,7 @@ impl PacketSkeleton {
     pub async fn new<R: AsyncRead + Unpin>(
         reader: &mut R,
         compressed: bool,
-        state: ConnState
+        state: ConnState,
     ) -> Result<Self, NetError> {
         let pak = match compressed {
             true => Self::read_compressed(reader, state).await,
@@ -56,12 +56,17 @@ impl PacketSkeleton {
         }
     }
 
-    async fn read_uncompressed<R: AsyncRead + Unpin>(reader: &mut R, state: ConnState) -> Result<Self, NetError> {
+    async fn read_uncompressed<R: AsyncRead + Unpin>(
+        reader: &mut R,
+        state: ConnState,
+    ) -> Result<Self, NetError> {
         loop {
             let length = VarInt::read_async(reader).await?.0 as usize;
 
             if length < 1 {
-                return Err(NetError::Packet(PacketError::MalformedPacket(Some(length as u8))));
+                return Err(NetError::Packet(PacketError::MalformedPacket(Some(
+                    length as u8,
+                ))));
             }
 
             if length > 2097151 {
@@ -77,8 +82,11 @@ impl PacketSkeleton {
 
             let id = VarInt::read_async(&mut buf).await?;
 
-            if (id.0 == lookup_packet!("play", "serverbound", "custom_payload") && state == ConnState::Play) || 
-                (id.0 == lookup_packet!("configuration", "serverbound", "custom_payload") && state == ConnState::Configuration) {
+            if (id.0 == lookup_packet!("play", "serverbound", "custom_payload")
+                && state == ConnState::Play)
+                || (id.0 == lookup_packet!("configuration", "serverbound", "custom_payload")
+                    && state == ConnState::Configuration)
+            {
                 // Ignore Plugin Message and read the next one
                 trace!("Ignored serverbound plugin message (0x14)");
                 continue;
@@ -91,7 +99,6 @@ impl PacketSkeleton {
             });
         }
     }
-
 
     async fn read_compressed<R: AsyncRead + Unpin>(
         reader: &mut R,
@@ -130,8 +137,11 @@ impl PacketSkeleton {
 
                 let id = VarInt::read_async(&mut cursor).await?;
 
-                if (id.0 == lookup_packet!("play", "serverbound", "custom_payload") && state == ConnState::Play) ||
-                    (id.0 == lookup_packet!("configuration", "serverbound", "custom_payload") && state == ConnState::Configuration) {
+                if (id.0 == lookup_packet!("play", "serverbound", "custom_payload")
+                    && state == ConnState::Play)
+                    || (id.0 == lookup_packet!("configuration", "serverbound", "custom_payload")
+                        && state == ConnState::Configuration)
+                {
                     trace!("Ignored uncompressed serverbound plugin message (0x14)");
                     continue;
                 }
@@ -167,19 +177,19 @@ impl PacketSkeleton {
                 let expected = yazi::Adler32::from_buf(&decompressed_data).finish();
                 if actual_checksum != expected {
                     error!(
-                    "Checksum mismatch: expected {}, got {}",
-                    expected, actual_checksum
-                );
+                        "Checksum mismatch: expected {}, got {}",
+                        expected, actual_checksum
+                    );
                     return Err(NetError::DecompressionError);
                 }
             }
 
             if decompressed_data.len() != data_length as usize {
                 error!(
-                "Decompressed packet length mismatch: expected {}, got {}",
-                data_length,
-                decompressed_data.len()
-            );
+                    "Decompressed packet length mismatch: expected {}, got {}",
+                    data_length,
+                    decompressed_data.len()
+                );
                 return Err(NetError::DecompressionError);
             }
 
@@ -198,6 +208,4 @@ impl PacketSkeleton {
             });
         }
     }
-
-
 }

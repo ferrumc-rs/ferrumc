@@ -1,29 +1,28 @@
-use crate::conn_init::{trim_packet_head, LoginResult};
+use crate::conn_init::LoginResult;
 use crate::connection::StreamWriter;
 use crate::errors::{NetError, PacketError};
+use crate::packets::incoming::packet_skeleton::PacketSkeleton;
 use crate::packets::incoming::ping::PingPacket;
 use crate::packets::incoming::status_request::StatusRequestPacket;
 use crate::packets::outgoing::ping_response::PongPacket;
 use crate::packets::outgoing::status_response::StatusResponse;
 use ferrumc_config::favicon::get_favicon_base64;
 use ferrumc_config::server_config::get_global_config;
+use ferrumc_macros::lookup_packet;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_state::GlobalState;
 use rand::prelude::IndexedRandom;
 use tokio::net::tcp::OwnedReadHalf;
-use ferrumc_macros::lookup_packet;
-use crate::packets::incoming::packet_skeleton::PacketSkeleton;
 
 pub(super) async fn status(
     mut conn_read: &mut OwnedReadHalf,
     conn_write: &StreamWriter,
     state: GlobalState,
 ) -> Result<(bool, LoginResult), NetError> {
-    
     let mut skel = PacketSkeleton::new(&mut conn_read, false, crate::ConnState::Status).await?;
-    
+
     let expected_id = lookup_packet!("status", "serverbound", "status_request");
-    
+
     if skel.id != expected_id {
         return Err(NetError::Packet(PacketError::UnexpectedPacket {
             expected: expected_id,
@@ -42,11 +41,11 @@ pub(super) async fn status(
     };
 
     conn_write.send_packet(status_response)?;
-    
+
     let mut skel = PacketSkeleton::new(&mut conn_read, false, crate::ConnState::Status).await?;
-    
+
     let expected_id = lookup_packet!("status", "serverbound", "ping_request");
-    
+
     if skel.id != expected_id {
         return Err(NetError::Packet(PacketError::UnexpectedPacket {
             expected: expected_id,
@@ -65,10 +64,13 @@ pub(super) async fn status(
 
     conn_write.send_packet(pong_packet)?;
 
-    Ok((true, LoginResult {
-        player_identity: None,
-        compression: false,
-    }))
+    Ok((
+        true,
+        LoginResult {
+            player_identity: None,
+            compression: false,
+        },
+    ))
 }
 
 fn get_server_status(state: &GlobalState) -> String {

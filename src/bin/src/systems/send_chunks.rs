@@ -1,19 +1,18 @@
-use std::sync::atomic::Ordering;
 use crate::errors::BinaryError;
 use bevy_ecs::prelude::Mut;
+use ferrumc_net::compression::compress_packet;
 use ferrumc_net::connection::StreamWriter;
+use ferrumc_net::errors::NetError;
 use ferrumc_net::packets::outgoing::chunk_and_light_data::ChunkAndLightData;
 use ferrumc_net::packets::outgoing::chunk_batch_finish::ChunkBatchFinish;
 use ferrumc_net::packets::outgoing::chunk_batch_start::ChunkBatchStart;
 use ferrumc_net::packets::outgoing::set_center_chunk::SetCenterChunk;
-use ferrumc_net_codec::net_types::var_int::VarInt;
-use ferrumc_state::GlobalState;
-use ferrumc_world_gen::errors::WorldGenError::WorldError;
-use tracing::{error, trace};
-use ferrumc_net::compression::compress_packet;
-use ferrumc_net::errors::NetError;
 use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::encode::NetEncodeOpts::WithLength;
+use ferrumc_net_codec::net_types::var_int::VarInt;
+use ferrumc_state::GlobalState;
+use std::sync::atomic::Ordering;
+use tracing::{error, trace};
 
 pub fn send_chunks(
     state: GlobalState,
@@ -40,7 +39,7 @@ pub fn send_chunks(
     let mut chunks_sent = 0;
 
     let mut batch = state.thread_pool.batch();
-    
+
     let is_compressed = conn.compress.load(Ordering::Relaxed);
 
     for (x, z, dim) in chunk_coords {
@@ -51,11 +50,17 @@ pub fn send_chunks(
                     .world
                     .load_chunk(x, z, &dim)
                     .map_err(|err| NetError::Misc(err.to_string()))?;
-                Ok::<(Result<ChunkAndLightData, NetError>, i32, i32), NetError>((ChunkAndLightData::from_chunk(&chunk), x, z))
+                Ok::<(Result<ChunkAndLightData, NetError>, i32, i32), NetError>((
+                    ChunkAndLightData::from_chunk(&chunk),
+                    x,
+                    z,
+                ))
             } else {
                 trace!("Generating chunk {}x{} in dimension {}", x, z, dim);
                 // Don't bother saving the chunk if it hasn't been edited yet
-                let chunk = state_clone.terrain_generator.generate_chunk(x, z)
+                let chunk = state_clone
+                    .terrain_generator
+                    .generate_chunk(x, z)
                     .map_err(|err| NetError::Misc(err.to_string()))?;
                 Ok((ChunkAndLightData::from_chunk(&chunk), x, z))
             }?;
@@ -67,17 +72,17 @@ pub fn send_chunks(
                         Ok((compressed_packet, x, z))
                     } else {
                         let mut buffer = Vec::new();
-                        packet.encode(&mut buffer, &WithLength)
+                        packet
+                            .encode(&mut buffer, &WithLength)
                             .map_err(|e| NetError::Misc(e.to_string()))?;
                         Ok((buffer, x, z))
                     }
-                },
+                }
                 Err(e) => {
                     error!("Failed to create chunk packet: {:?}", e);
                     Err(e)
                 }
             }
-            
         })
     }
 

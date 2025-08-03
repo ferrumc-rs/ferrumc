@@ -1,15 +1,15 @@
-use std::io::{Cursor, Read};
-use tracing::error;
-use yazi::{compress, CompressionLevel, Format};
+use crate::errors::NetError;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use crate::errors::NetError;
+use std::io::{Cursor, Read};
+use tracing::error;
+use yazi::{compress, CompressionLevel, Format};
 
 pub fn compress_packet(
     packet: &(impl NetEncode + Send),
     compress_packet: bool,
-    net_encode_opts: &NetEncodeOpts
+    net_encode_opts: &NetEncodeOpts,
 ) -> Result<Vec<u8>, NetError> {
     // Helper: encode full frame (outer length + id + body), then split into (id_varint, body)
     fn encode_id_and_body(pkt: &(impl NetEncode + Send)) -> Result<(VarInt, Vec<u8>), NetError> {
@@ -51,10 +51,10 @@ pub fn compress_packet(
                 Format::Zlib,
                 CompressionLevel::BestSpeed,
             )
-                .map_err(|err| {
-                    error!("Failed to compress packet: {:?}", err);
-                    NetError::CompressionError(format!("Failed to compress packet: {:?}", err))
-                })?;
+            .map_err(|err| {
+                error!("Failed to compress packet: {:?}", err);
+                NetError::CompressionError(format!("Failed to compress packet: {:?}", err))
+            })?;
 
             // write uncompressed_length (as VarInt), then compressed bytes
             VarInt::new(uncompressed_frame.len() as i32)
@@ -74,7 +74,7 @@ pub fn compress_packet(
     } else {
         // No compression path: just do whatever caller asked (likely WithLength).
         let mut buffer = Vec::new();
-        packet.encode(&mut buffer, &net_encode_opts)?;
+        packet.encode(&mut buffer, net_encode_opts)?;
         buffer
     };
     Ok(raw_bytes)

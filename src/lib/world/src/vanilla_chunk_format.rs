@@ -124,23 +124,6 @@ impl Default for BlockData {
 
 #[apply(ChunkDerives)]
 #[derive(deepsize::DeepSizeOf)]
-pub(crate) struct Properties {
-    pub snowy: Option<String>,
-    pub level: Option<String>,
-    pub east: Option<String>,
-    pub waterlogged: Option<String>,
-    pub north: Option<String>,
-    pub west: Option<String>,
-    pub up: Option<String>,
-    pub down: Option<String>,
-    pub south: Option<String>,
-    pub drag: Option<String>,
-    pub lit: Option<String>,
-    pub axis: Option<String>,
-}
-
-#[apply(ChunkDerives)]
-#[derive(deepsize::DeepSizeOf)]
 pub(crate) struct Biomes {
     pub data: Option<Vec<i64>>,
     pub palette: Vec<String>,

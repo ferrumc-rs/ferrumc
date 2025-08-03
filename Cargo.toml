@@ -106,7 +106,7 @@ ferrumc-threadpool = { path = "src/lib/utils/threadpool" }
 
 
 # Asynchronous
-tokio = { version = "1.46.1", features = ["macros", "net", "rt", "sync", "time", "io-util", "test-util"], default-features = false }
+tokio = { version = "1.47.1", features = ["macros", "net", "rt", "sync", "time", "io-util", "test-util"], default-features = false }
 
 # Logging
 tracing = "0.1.41"
@@ -137,12 +137,12 @@ ahash = "0.8.12"
 
 # Encoding/Serialization
 serde = { version = "1.0.219", features = ["derive"] }
-serde_json = "1.0.141"
+serde_json = "1.0.142"
 serde_derive = "1.0.219"
 base64 = "0.22.1"
 bitcode = "0.6.6"
 bitcode_derive = "0.6.5"
-toml = "0.9.2"
+toml = "0.9.4"
 craftflow-nbt = "2.1.0"
 figment = { version = "0.10.19", features = ["toml", "env"] }
 
@@ -178,7 +178,7 @@ heed = "0.22.0"
 moka = "0.12.10"
 
 # CLI
-clap = "4.5.41"
+clap = "4.5.42"
 indicatif = "0.18.0"
 colored = "3.0.0"
 
@@ -198,4 +198,4 @@ memmap2 = "0.9.7"
 tempfile = "3.20.0"
 
 # Benchmarking
-criterion = { version = "0.6.0", features = ["html_reports"] }
+criterion = { version = "0.7.0", features = ["html_reports"] }

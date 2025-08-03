@@ -1,7 +1,6 @@
 mod login;
 mod status;
 
-use std::io::Cursor;
 use crate::conn_init::login::login;
 use crate::conn_init::status::status;
 use crate::connection::StreamWriter;
@@ -9,15 +8,12 @@ use crate::errors::NetError;
 use crate::packets::incoming::handshake::Handshake;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
-use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalState;
 use ferrumc_text::{ComponentBuilder, NamedColor, TextComponent};
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
+use tokio::io::AsyncReadExt;
+use tokio::net::tcp::OwnedReadHalf;
 use tracing::{error, trace};
-use yazi::Format;
-use ferrumc_config::server_config::get_global_config;
 
 /// A small utility to remove the packet length and packet id from the stream, since we are pretty
 /// sure we are going to get the right packet id and length, and we don't need to check it
@@ -78,8 +74,7 @@ pub async fn handle_handshake(
     }
 
     match hs_packet.next_state.0 {
-        1 => status(conn_read, conn_write, state)
-            .await,
+        1 => status(conn_read, conn_write, state).await,
         2 => login(conn_read, conn_write, state).await,
         3 => {
             // Transfer state - not implemented yet
@@ -110,8 +105,7 @@ async fn handle_version_mismatch(
                 hs_packet.protocol_version.0,
                 PROTOCOL_VERSION_1_21_5
             );
-            status(conn_read, conn_write, state)
-                .await
+            status(conn_read, conn_write, state).await
         } // If it was login, we need to send a login disconnect packet with a specific message
         2 => {
             // Login request - send login disconnect packet

@@ -1,21 +1,21 @@
-use crate::conn_init::{LoginResult, NetDecodeOpts};
+use crate::compression::compress_packet;
 use crate::conn_init::VarInt;
+use crate::conn_init::{LoginResult, NetDecodeOpts};
 use crate::connection::StreamWriter;
 use crate::errors::{NetError, PacketError};
+use crate::packets::incoming::packet_skeleton::PacketSkeleton;
 use crate::packets::outgoing::registry_data::REGISTRY_PACKETS;
+use crate::ConnState::*;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
+use ferrumc_macros::lookup_packet;
 use ferrumc_net_codec::decode::NetDecode;
+use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_state::GlobalState;
-use tokio::net::tcp::{OwnedReadHalf};
+use tokio::net::tcp::OwnedReadHalf;
 use tracing::{error, trace};
 use uuid::Uuid;
-use ferrumc_macros::lookup_packet;
-use ferrumc_net_codec::encode::NetEncodeOpts;
-use crate::compression::compress_packet;
-use crate::packets::incoming::packet_skeleton::PacketSkeleton;
-use crate::ConnState::*;
 
 pub(super) async fn login(
     conn_read: &mut OwnedReadHalf,
@@ -51,7 +51,9 @@ pub(super) async fn login(
             threshold: VarInt::new(get_global_config().network_compression_threshold),
         };
         conn_write.send_packet(compression_packet)?;
-        conn_write.compress.store(true, std::sync::atomic::Ordering::Relaxed);
+        conn_write
+            .compress
+            .store(true, std::sync::atomic::Ordering::Relaxed);
     }
 
     // =============================================================================================
@@ -69,12 +71,12 @@ pub(super) async fn login(
         username: login_start.username.clone(),
         short_uuid: login_start.uuid as i32,
     };
-    
+
     // =============================================================================================
-    
+
     let mut skel = PacketSkeleton::new(conn_read, compressed, Login).await?;
     let expected_id = lookup_packet!("login", "serverbound", "login_acknowledged");
-    
+
     if skel.id != expected_id {
         return Err(NetError::Packet(PacketError::UnexpectedPacket {
             expected: expected_id,
@@ -82,7 +84,7 @@ pub(super) async fn login(
             state: Login,
         }));
     }
-    
+
     let _login_acknowledged =
         crate::packets::incoming::login_acknowledged::LoginAcknowledgedPacket::decode(
             &mut skel.data,
@@ -90,7 +92,7 @@ pub(super) async fn login(
         )?;
 
     // =============================================================================================
-    
+
     // Read client information packet
     let mut skel = PacketSkeleton::new(conn_read, compressed, Configuration).await?;
     let expected_id = lookup_packet!("configuration", "serverbound", "client_information");
@@ -102,11 +104,10 @@ pub(super) async fn login(
         }));
     }
 
-    let client_info =
-        crate::packets::incoming::client_information::ClientInformation::decode(
-            &mut skel.data,
-            &NetDecodeOpts::None,
-        )?;
+    let client_info = crate::packets::incoming::client_information::ClientInformation::decode(
+        &mut skel.data,
+        &NetDecodeOpts::None,
+    )?;
 
     trace!(
         "Client information: {{ locale: {}, view_distance: {}, chat_mode: {}, chat_colors: {}, displayed_skin_parts: {} }}",
@@ -244,7 +245,7 @@ pub(super) async fn login(
     // =============================================================================================
     // Load and send chunks within render distance
     let radius = get_global_config().chunk_render_distance as i32;
-    
+
     let mut batch = state.thread_pool.batch();
 
     for x in -radius..=radius {
@@ -263,9 +264,9 @@ pub(super) async fn login(
             });
         }
     }
-    
+
     let packets = batch.wait();
-    
+
     for packet in packets {
         match packet {
             Ok(data) => {
@@ -273,15 +274,19 @@ pub(super) async fn login(
             }
             Err(err) => {
                 error!("Failed to send chunk data: {:?}", err);
-                return Err(NetError::Misc(
-                    format!("Failed to send chunk data: {:?}", err),
-                ));
+                return Err(NetError::Misc(format!(
+                    "Failed to send chunk data: {:?}",
+                    err
+                )));
             }
         }
     }
 
-    Ok((false, LoginResult {
-        player_identity: Some(player_identity),
-        compression: compressed,
-    }))
+    Ok((
+        false,
+        LoginResult {
+            player_identity: Some(player_identity),
+            compression: compressed,
+        },
+    ))
 }
