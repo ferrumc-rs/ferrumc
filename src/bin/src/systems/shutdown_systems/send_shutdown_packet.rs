@@ -14,7 +14,7 @@ pub fn handle(
 
     for (entity, conn, identity) in query.iter() {
         if state.0.players.is_connected(entity) {
-            if let Err(e) = conn.send_packet(&packet) {
+            if let Err(e) = conn.send_packet_ref(&packet) {
                 tracing::error!(
                     "Failed to send shutdown packet to player {}: {}",
                     identity.username,

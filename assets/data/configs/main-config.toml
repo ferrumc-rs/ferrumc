@@ -17,6 +17,9 @@ whitelist = false
 # Set to -1 to disable compression.
 network_compression_threshold = 64
 
+# Verify decompressed packets. This is a good idea to catch any corruption, but it will slow down processing.
+verify_decompressed_packets = true
+
 # Chunk render distance. This is the distance in chunks that the server will load around the player.
 chunk_render_distance = 12
 

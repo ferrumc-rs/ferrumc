@@ -35,3 +35,4 @@ pub mod update_entity_rotation;
 pub mod block_change_ack;
 
 pub mod block_update;
+pub(crate) mod set_compression;
