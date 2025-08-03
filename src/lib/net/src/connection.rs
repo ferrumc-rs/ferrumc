@@ -106,7 +106,7 @@ impl StreamWriter {
         let raw_bytes = compress_packet(
             packet,
             self.compress.load(Ordering::Relaxed),
-            net_encode_opts.clone(),
+            net_encode_opts,
         )
             .map_err(|err| {
                 error!("Failed to compress packet: {:?}", err);

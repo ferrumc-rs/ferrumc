@@ -10,7 +10,7 @@ pub mod connection;
 pub mod errors;
 pub mod packets;
 pub mod server;
-mod compression;
+pub mod compression;
 
 setup_packet_handling!("\\src\\packets\\incoming");
 

@@ -6,10 +6,10 @@ use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use crate::errors::NetError;
 
-pub(crate) fn compress_packet(
+pub fn compress_packet(
     packet: &(impl NetEncode + Send),
     compress_packet: bool,
-    net_encode_opts: NetEncodeOpts
+    net_encode_opts: &NetEncodeOpts
 ) -> Result<Vec<u8>, NetError> {
     // Helper: encode full frame (outer length + id + body), then split into (id_varint, body)
     fn encode_id_and_body(pkt: &(impl NetEncode + Send)) -> Result<(VarInt, Vec<u8>), NetError> {
