@@ -1,0 +1,31 @@
+// Project-local debug tasks
+//
+// For more documentation on how to configure debug tasks,
+// see: https://zed.dev/docs/debugger
+[
+  {
+    "adapter": "CodeLLDB",
+    "label": "cargo run",
+    "build": {
+      "label": "cargo run",
+      "command": "cargo",
+      "args": [
+        "run"
+      ],
+      "env": {
+        "RUSTC_TOOLCHAIN": "/home/radsteve/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu"
+      },
+      "cwd": "/home/radsteve/dev/ferrumc",
+      "use_new_terminal": false,
+      "allow_concurrent_runs": false,
+      "reveal": "always",
+      "reveal_target": "dock",
+      "hide": "never",
+      "tags": [],
+      "shell": "system",
+      "show_summary": false,
+      "show_command": false
+    },
+    "sourceLanguages": ["rust"]
+  }
+]

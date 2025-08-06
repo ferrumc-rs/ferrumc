@@ -3,7 +3,7 @@ use std::{fmt, io::Write};
 use ferrumc_macros::NetEncode;
 use ferrumc_net_codec::net_types::{length_prefixed_vec::LengthPrefixedVec, var_int::VarInt};
 
-use crate::arg::parser::vanilla::{MinecraftArgumentProperties, MinecraftArgumentType};
+use crate::arg::primitive::{PrimitiveArgumentFlags, PrimitiveArgumentType};
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum CommandNodeType {
@@ -49,8 +49,8 @@ pub struct CommandNode {
     pub children: LengthPrefixedVec<VarInt>,
     pub redirect_node: Option<VarInt>,
     pub name: Option<String>,
-    pub parser_id: Option<MinecraftArgumentType>,
-    pub properties: Option<MinecraftArgumentProperties>,
+    pub parser_id: Option<PrimitiveArgumentType>,
+    pub properties: Option<PrimitiveArgumentFlags>,
     pub suggestions_type: Option<String>,
 }
 

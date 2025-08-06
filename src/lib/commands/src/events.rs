@@ -13,7 +13,7 @@ pub struct CommandDispatchEvent {
 #[derive(Event)]
 pub struct ResolvedCommandDispatchEvent {
     pub command: Arc<Command>,
-    pub ctx: Arc<CommandContext>,
+    pub ctx: CommandContext,
     pub sender: Entity,
 }
 

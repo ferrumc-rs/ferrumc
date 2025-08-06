@@ -12,7 +12,7 @@ use crate::{
             int::IntParser,
             string::{GreedyStringParser, QuotedStringParser},
         },
-        CommandArgument,
+        CommandArgumentInstance,
     },
     ctx::CommandContext,
     executor,
@@ -47,12 +47,12 @@ async fn arg_parse_test() {
     let command = crate::Command {
         name: "input_test",
         args: vec![
-            CommandArgument {
+            CommandArgumentInstance {
                 name: "quoted".to_string(),
                 required: true,
                 parser: Box::new(QuotedStringParser),
             },
-            CommandArgument {
+            CommandArgumentInstance {
                 name: "greedy".to_string(),
                 required: true,
                 parser: Box::new(GreedyStringParser),
@@ -86,7 +86,7 @@ async fn parse_test() {
 
     let command = crate::Command {
         name: "input_test",
-        args: vec![CommandArgument {
+        args: vec![CommandArgumentInstance {
             name: "number".to_string(),
             required: true,
             parser: Box::new(IntParser),

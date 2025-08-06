@@ -225,6 +225,11 @@ pub(super) async fn login(
     // =============================================================================================
     send_packet(conn_write, &CommandsPacket::new()).await?;
 
+    trace!(
+        "sending command graph {:#?}",
+        ferrumc_commands::infrastructure::get_graph()
+    );
+
     conn_write.flush().await?;
 
     Ok((false, Some(player_identity)))

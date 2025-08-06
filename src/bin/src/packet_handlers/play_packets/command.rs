@@ -1,4 +1,4 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use bevy_ecs::prelude::*;
 use ferrumc_commands::{
@@ -18,7 +18,7 @@ use tracing::error;
 fn resolve(
     input: String,
     sender: Entity,
-) -> Result<(Arc<Command>, Arc<CommandContext>), Box<TextComponent>> {
+) -> Result<(Arc<Command>, CommandContext), Box<TextComponent>> {
     let command = infrastructure::find_command(&input);
     if command.is_none() {
         return Err(Box::new(
@@ -34,16 +34,11 @@ fn resolve(
         .unwrap_or(&input)
         .trim_start();
     let input = CommandInput::of(input.to_string());
-    let ctx = CommandContext::new(input.clone(), command.clone(), sender);
-
-    if let Err(err) = command.validate(&ctx, &Arc::new(Mutex::new(input))) {
-        return Err(Box::new(
-            TextComponentBuilder::new("Invalid arguments")
-                .extra(*err)
-                .color(NamedColor::Red)
-                .build(),
-        ));
-    }
+    let ctx = CommandContext {
+        input: input.clone(),
+        command: command.clone(),
+        sender,
+    };
 
     Ok((command, ctx))
 }

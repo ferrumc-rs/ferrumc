@@ -2,12 +2,11 @@ use proc_macro::TokenStream;
 use quote::{format_ident, quote, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
-    parse_macro_input, Expr, FnArg, ItemFn, LitStr, Pat, Result as SynResult, Type,
+    parse_macro_input, FnArg, ItemFn, LitStr, Pat, Result as SynResult, Type,
 };
 
 #[derive(Clone, Debug)]
 struct Arg {
-    parser: String,
     name: String,
     required: bool,
     ty: String,
@@ -21,18 +20,6 @@ impl Parse for CommandAttr {
     fn parse(input: ParseStream) -> SynResult<Self> {
         let name = input.parse::<LitStr>()?.value();
         Ok(CommandAttr { name })
-    }
-}
-
-struct ArgAttr {
-    parser: String,
-}
-
-impl Parse for ArgAttr {
-    fn parse(input: ParseStream) -> SynResult<Self> {
-        let parser = input.parse::<Expr>()?.to_token_stream().to_string();
-
-        Ok(ArgAttr { parser })
     }
 }
 
@@ -60,10 +47,10 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
         let mut sender_arg_mismatched_ty = false;
 
         fn_arg.attrs.retain(|arg| {
-            let is_parser = arg.path().is_ident("parser");
+            let is_arg = arg.path().is_ident("arg");
             let is_sender = arg.path().is_ident("sender");
 
-            if is_parser {
+            if is_arg {
                 let required = match *fn_arg.ty {
                     Type::Path(ref path) => {
                         path.path.segments.iter().any(|seg| seg.ident == "Option")
@@ -72,7 +59,6 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
                 };
 
                 args.push(Arg {
-                    parser: arg.parse_args_with(ArgAttr::parse).unwrap().parser,
                     name: fn_arg.pat.to_token_stream().to_string(),
                     required,
                     ty: fn_arg.ty.to_token_stream().to_string(),
@@ -96,7 +82,7 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
                 has_sender_arg = true;
             }
 
-            !is_parser && !is_sender
+            !is_arg && !is_sender
         });
 
         if sender_arg_mismatched_ty {
@@ -118,7 +104,7 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
         })
         .collect::<Vec<proc_macro2::TokenStream>>();
 
-    let system_name = format_ident!("__{}_handler", command_attr.name.clone());
+    let system_name = format_ident!("__{}_handler", fn_name);
     let system_args = bevy_args
         .clone()
         .iter()
@@ -143,7 +129,15 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
             let name = &arg.name;
             let ty = syn::parse_str::<Type>(&arg.ty).expect("invalid arg type");
 
-            quote! { ctx.arg::<#ty>(#name), }
+            quote! {
+                match ctx.arg::<#ty>(#name) {
+                    Ok(a) => a,
+                    Err(err) => {
+                        tracing::error!("failed parsing arg {}: {}", #name, err);
+                        return;
+                    }
+                },
+            }
         })
         .collect::<Vec<proc_macro2::TokenStream>>();
 
@@ -153,21 +147,21 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
         quote! {}
     };
 
-    let ctor_fn_name = format_ident!("__{}_register", command_attr.name.clone());
+    let ctor_fn_name = format_ident!("__{}_register", fn_name);
     let command_name = command_attr.name;
 
     let command_args = args
         .iter()
         .map(|arg| {
-            let parser = syn::parse_str::<Expr>(&arg.parser.clone()).expect("invalid parser");
             let name = arg.name.clone();
             let required = arg.required;
+            let ty = format_ident!("{}", &arg.ty);
 
             quote! {
-                ferrumc_commands::arg::CommandArgument {
+                ferrumc_commands::arg::CommandArgumentInstance {
                     name: #name.to_string(),
                     required: #required,
-                    parser: Box::new(#parser),
+                    primitive: <#ty as ferrumc_commands::arg::CommandArgument>::primitive(),
                 },
             }
         })
@@ -190,7 +184,7 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
         #[allow(non_snake_case)]
         #[allow(unused_variables)] // if there is no sender arg
         #[doc(hidden)]
-        fn #system_name(mut events: bevy_ecs::prelude::EventReader<ferrumc_commands::events::ResolvedCommandDispatchEvent>, #(#system_args)*) {
+        fn #system_name(mut events: bevy_ecs::prelude::EventMutator<ferrumc_commands::events::ResolvedCommandDispatchEvent>, #(#system_args)*) {
             for ferrumc_commands::events::ResolvedCommandDispatchEvent { command, ctx, sender } in events.read() {
                 if command.name == #command_name {
                     #fn_name(#(#arg_extractors)* #sender_param #(#system_arg_pats)*);

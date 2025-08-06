@@ -43,45 +43,41 @@ impl CommandGraph {
         for (i, part) in command.name.split_whitespace().enumerate() {
             let is_last = i == command.name.split_whitespace().count() - 1;
 
-            if let Some(&child_index) = self.node_to_indices.get(part) {
-                current_node_index = child_index;
-            } else {
-                let mut node = CommandNode {
-                    flags: CommandNodeFlag::NodeType(CommandNodeType::Literal).bitmask(),
-                    children: LengthPrefixedVec::new(Vec::new()),
-                    redirect_node: None,
-                    name: Some(part.to_string()),
-                    parser_id: None,
-                    properties: None,
-                    suggestions_type: None,
-                };
+            let mut node = CommandNode {
+                flags: CommandNodeFlag::NodeType(CommandNodeType::Literal).bitmask(),
+                children: LengthPrefixedVec::new(Vec::new()),
+                redirect_node: None,
+                name: Some(part.to_string()),
+                parser_id: None,
+                properties: None,
+                suggestions_type: None,
+            };
 
-                if is_last
-                    && (command.args.is_empty()
-                        || command.args.first().is_some_and(|arg| !arg.required))
-                {
-                    node.flags |= CommandNodeFlag::Executable.bitmask();
-                }
-
-                let node_index = self.nodes.len() as u32;
-                self.nodes.push(node);
-                self.node_to_indices.insert(part.to_string(), node_index);
-
-                if i == 0 {
-                    self.nodes[0].children.push(VarInt::new(node_index as i32));
-                } else {
-                    let parent_node = self.nodes.get_mut(current_node_index as usize).unwrap();
-                    parent_node.children.push(VarInt::new(node_index as i32));
-                }
-
-                current_node_index = node_index;
+            if is_last
+                && (command.args.is_empty()
+                    || command.args.first().is_some_and(|arg| !arg.required))
+            {
+                node.flags |= CommandNodeFlag::Executable.bitmask();
             }
+
+            let node_index = self.nodes.len() as u32;
+            self.nodes.push(node);
+            self.node_to_indices.insert(part.to_string(), node_index);
+
+            if i == 0 {
+                self.nodes[0].children.push(VarInt::new(node_index as i32));
+            } else {
+                let parent_node = self.nodes.get_mut(current_node_index as usize).unwrap();
+                parent_node.children.push(VarInt::new(node_index as i32));
+            }
+
+            current_node_index = node_index;
         }
 
         let mut prev_node_index = current_node_index;
 
         for (i, arg) in command.args.iter().enumerate() {
-            let vanilla = arg.parser.vanilla();
+            let primitive = arg.primitive.clone();
             let is_last = i == command.args.len() - 1;
 
             let mut arg_node = CommandNode {
@@ -89,8 +85,8 @@ impl CommandGraph {
                 children: LengthPrefixedVec::new(Vec::new()),
                 redirect_node: None,
                 name: Some(arg.name.clone()),
-                parser_id: Some(vanilla.argument_type),
-                properties: Some(vanilla.props),
+                parser_id: Some(primitive.argument_type),
+                properties: primitive.flags,
                 suggestions_type: None,
             };
 
