@@ -143,6 +143,6 @@ impl CommandArgument for GreedyString {
     }
 
     fn primitive() -> PrimitiveArgument {
-        todo!()
+        PrimitiveArgument::greedy()
     }
 }
