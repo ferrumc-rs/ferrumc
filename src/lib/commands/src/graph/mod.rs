@@ -1,3 +1,5 @@
+//! The command graph.
+
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -9,10 +11,20 @@ use crate::Command;
 
 pub mod node;
 
+/// The command graph of the server or an individual player.
+/// As of now, only one instance of this exists on the entire
+/// server and it is shared between all players. The command
+/// graph holds references to all command nodes and maps them
+/// to their indices, and is later sent to the client on join.
 #[derive(Clone, Debug)]
 pub struct CommandGraph {
+    /// The root node.
     pub root_node: CommandNode,
+
+    /// The root node with all its child nodes.
     pub nodes: Vec<CommandNode>,
+
+    /// A map of command node parts to indices.
     pub node_to_indices: HashMap<String, u32>,
 }
 
@@ -37,8 +49,9 @@ impl Default for CommandGraph {
 }
 
 impl CommandGraph {
+    /// Adds the given `command` onto this command graph.
     pub fn push(&mut self, command: Arc<Command>) {
-        let mut current_node_index = 0;
+        let mut current_node_idx = 0;
 
         for (i, part) in command.name.split_whitespace().enumerate() {
             let is_last = i == command.name.split_whitespace().count() - 1;
@@ -60,21 +73,21 @@ impl CommandGraph {
                 node.flags |= CommandNodeFlag::Executable.bitmask();
             }
 
-            let node_index = self.nodes.len() as u32;
+            let node_idx = self.nodes.len() as u32;
             self.nodes.push(node);
-            self.node_to_indices.insert(part.to_string(), node_index);
+            self.node_to_indices.insert(part.to_string(), node_idx);
 
             if i == 0 {
-                self.nodes[0].children.push(VarInt::new(node_index as i32));
+                self.nodes[0].children.push(VarInt::new(node_idx as i32));
             } else {
-                let parent_node = self.nodes.get_mut(current_node_index as usize).unwrap();
-                parent_node.children.push(VarInt::new(node_index as i32));
+                let parent_node = self.nodes.get_mut(current_node_idx as usize).unwrap();
+                parent_node.children.push(VarInt::new(node_idx as i32));
             }
 
-            current_node_index = node_index;
+            current_node_idx = node_idx;
         }
 
-        let mut prev_node_index = current_node_index;
+        let mut prev_node_idx = current_node_idx;
 
         for (i, arg) in command.args.iter().enumerate() {
             let primitive = arg.primitive.clone();
@@ -94,17 +107,18 @@ impl CommandGraph {
                 arg_node.flags |= CommandNodeFlag::Executable.bitmask();
             }
 
-            let arg_node_index = self.nodes.len() as u32;
+            let arg_node_idx = self.nodes.len() as u32;
             self.nodes.push(arg_node);
 
-            self.nodes[prev_node_index as usize]
+            self.nodes[prev_node_idx as usize]
                 .children
-                .push(VarInt::new(arg_node_index as i32));
+                .push(VarInt::new(arg_node_idx as i32));
 
-            prev_node_index = arg_node_index;
+            prev_node_idx = arg_node_idx;
         }
     }
 
+    /// Traverses the command graph with a given function.
     pub fn traverse<F>(&self, mut f: F)
     where
         F: FnMut(&CommandNode, u32, usize, Option<u32>),
@@ -112,19 +126,21 @@ impl CommandGraph {
         self.traverse_node(0, 0, None, &mut f);
     }
 
-    fn traverse_node<F>(&self, node_index: u32, depth: usize, parent: Option<u32>, f: &mut F)
+    fn traverse_node<F>(&self, node_idx: u32, depth: usize, parent: Option<u32>, f: &mut F)
     where
         F: FnMut(&CommandNode, u32, usize, Option<u32>),
     {
-        let current_node = &self.nodes[node_index as usize];
+        let current_node = &self.nodes[node_idx as usize];
 
-        f(current_node, node_index, depth, parent);
+        f(current_node, node_idx, depth, parent);
 
-        for child_index in current_node.children.data.iter() {
-            self.traverse_node(child_index.0 as u32, depth + 1, Some(node_index), f);
+        for child_idx in current_node.children.data.iter() {
+            self.traverse_node(child_idx.0 as u32, depth + 1, Some(node_idx), f);
         }
     }
 
+    /// Attempts to find the matches to a given `input` string and returns
+    /// a vector of the node index and command name.
     pub fn find_command<'a>(&'a self, input: &'a str) -> Vec<(u32, &'a str)> {
         let mut matches = Vec::new();
         let input = input.trim();
@@ -135,16 +151,16 @@ impl CommandGraph {
 
     fn find_command_recursive<'a>(
         &'a self,
-        node_index: u32,
+        node_idx: u32,
         remaining_input: &'a str,
         matches: &mut Vec<(u32, &'a str)>,
     ) {
-        let current_node = &self.nodes[node_index as usize];
+        let current_node = &self.nodes[node_idx as usize];
         let input_words: Vec<&str> = remaining_input.split_whitespace().collect();
 
         // once the input is empty and the currently selected node is executable, we've found it.
         if remaining_input.is_empty() && current_node.is_executable() {
-            matches.push((node_index, remaining_input));
+            matches.push((node_idx, remaining_input));
             return;
         }
 
@@ -156,8 +172,8 @@ impl CommandGraph {
         match current_node.node_type() {
             CommandNodeType::Root => {
                 // the root node is the root of all evil.
-                for child_index in current_node.children.data.iter() {
-                    self.find_command_recursive(child_index.0 as u32, remaining_input, matches);
+                for child_idx in current_node.children.data.iter() {
+                    self.find_command_recursive(child_idx.0 as u32, remaining_input, matches);
                 }
             }
             CommandNodeType::Literal => {
@@ -173,12 +189,12 @@ impl CommandGraph {
 
                         // once we found a node that is executable and the remaining input is empty, we've found something.
                         if remaining.is_empty() && current_node.is_executable() {
-                            matches.push((node_index, remaining));
+                            matches.push((node_idx, remaining));
                         }
 
                         // we continue checking the other children.
-                        for child_index in current_node.children.data.iter() {
-                            self.find_command_recursive(child_index.0 as u32, remaining, matches);
+                        for child_idx in current_node.children.data.iter() {
+                            self.find_command_recursive(child_idx.0 as u32, remaining, matches);
                         }
                     }
                 }
@@ -193,19 +209,19 @@ impl CommandGraph {
                     };
 
                     // if this node is executable, we add it.
-                    matches.push((node_index, remaining));
+                    matches.push((node_idx, remaining));
 
                     // continue checking anyway.
-                    for child_index in current_node.children.data.iter() {
-                        self.find_command_recursive(child_index.0 as u32, remaining, matches);
+                    for child_idx in current_node.children.data.iter() {
+                        self.find_command_recursive(child_idx.0 as u32, remaining, matches);
                     }
                 }
             }
         }
     }
 
-    fn collect_command_parts(&self, node_index: u32, parts: &mut Vec<String>) {
-        let node = &self.nodes[node_index as usize];
+    fn collect_command_parts(&self, node_idx: u32, parts: &mut Vec<String>) {
+        let node = &self.nodes[node_idx as usize];
 
         if let Some(name) = &node.name {
             if node.node_type() == CommandNodeType::Literal {
@@ -219,7 +235,7 @@ impl CommandGraph {
                 .children
                 .data
                 .iter()
-                .any(|child| child.0 as u32 == node_index)
+                .any(|child| child.0 as u32 == node_idx)
             {
                 self.collect_command_parts(parent_idx as u32, parts);
                 break;
@@ -227,18 +243,20 @@ impl CommandGraph {
         }
     }
 
-    pub fn get_command_name(&self, node_index: u32) -> String {
+    /// Gets the name of a command based off the `node_idx`.
+    pub fn get_command_name(&self, node_idx: u32) -> String {
         let mut parts = Vec::new();
-        self.collect_command_parts(node_index, &mut parts);
+        self.collect_command_parts(node_idx, &mut parts);
         parts.reverse(); // reverse since we want the command name in proper order
         parts.join(" ")
     }
 
+    /// Attempts to find a command from the given `input` and returns the command name.
     pub fn find_command_by_input(&self, input: &str) -> Option<String> {
         let matches = self.find_command(input);
 
         matches
             .first()
-            .map(|(node_index, _remaining)| self.get_command_name(*node_index))
+            .map(|(node_idx, _remaining)| self.get_command_name(*node_idx))
     }
 }

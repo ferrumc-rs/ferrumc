@@ -1,3 +1,5 @@
+//! Command infrastructure
+
 use bevy_ecs::{prelude::*, schedule::ScheduleConfigs, system::ScheduleSystem};
 use dashmap::DashMap;
 use std::{
@@ -15,12 +17,16 @@ thread_local! {
     static SYSTEMS_TO_BE_REGISTERED: RefCell<Vec<ScheduleConfigs<ScheduleSystem>>> = RefCell::new(Vec::new());
 }
 
+/// Internal function. Adds a command system.
+#[doc(hidden)]
 pub fn add_system<M>(system: impl IntoScheduleConfigs<ScheduleSystem, M>) {
     SYSTEMS_TO_BE_REGISTERED.with(|systems| {
         systems.borrow_mut().push(system.into_configs());
     });
 }
 
+/// Internal function. Registers all command systems.
+#[doc(hidden)]
 pub fn register_command_systems(schedule: &mut Schedule) {
     SYSTEMS_TO_BE_REGISTERED.with(|systems| {
         let mut systems = systems.borrow_mut();
@@ -30,6 +36,7 @@ pub fn register_command_systems(schedule: &mut Schedule) {
     });
 }
 
+/// Registers a command.
 pub fn register_command(command: Arc<Command>) {
     COMMANDS.insert(command.name, command.clone());
     if let Ok(mut graph) = COMMAND_GRAPH.write() {
@@ -37,6 +44,7 @@ pub fn register_command(command: Arc<Command>) {
     }
 }
 
+/// Gets the server's command graph.
 pub fn get_graph() -> CommandGraph {
     if let Ok(graph) = COMMAND_GRAPH.read() {
         graph.clone()
@@ -45,10 +53,12 @@ pub fn get_graph() -> CommandGraph {
     }
 }
 
+/// Attempts to find a command by its `name`.
 pub fn get_command_by_name(name: &str) -> Option<Arc<Command>> {
     COMMANDS.get(name).map(|cmd_ref| Arc::clone(&cmd_ref))
 }
 
+/// Attempts to find a command by an `input` string.
 pub fn find_command(input: &str) -> Option<Arc<Command>> {
     let graph = get_graph();
     let name = graph.find_command_by_input(input);

@@ -4,9 +4,9 @@ use ferrumc_net_codec::encode::{errors::NetEncodeError, NetEncode, NetEncodeOpts
 use tokio::io::AsyncWrite;
 
 use crate::{
-    arg::{utils::error, CommandArgument},
+    arg::{utils::error, CommandArgument, ParserResult},
     ctx::CommandContext,
-    wrapper, ParserResult,
+    wrapper,
 };
 
 use super::PrimitiveArgument;

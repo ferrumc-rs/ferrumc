@@ -68,7 +68,7 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
             if is_sender {
                 match *fn_arg.ty {
                     Type::Path(ref path) => {
-                        if !path.path.segments.iter().any(|seg| seg.ident == "Entity") {
+                        if path.path.segments.iter().next_back().unwrap().ident != "Sender" {
                             sender_arg_mismatched_ty = true;
                             return false;
                         }
@@ -87,22 +87,10 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
 
         if sender_arg_mismatched_ty {
             return TokenStream::from(quote! {
-                compile_error!("invalid type for sender arg - should be Entity");
+                compile_error!("invalid type for sender arg - should be Sender");
             });
         }
     }
-
-    let command_struct_name = format_ident!("__command_{}", fn_name);
-    let arg_fields = args
-        .clone()
-        .iter()
-        .map(|arg| {
-            let ty = syn::parse_str::<Type>(&arg.ty).expect("invalid arg type");
-            let name = format_ident!("{}", arg.name);
-
-            quote! { #name: #ty, }
-        })
-        .collect::<Vec<proc_macro2::TokenStream>>();
 
     let system_name = format_ident!("__{}_handler", fn_name);
     let system_args = bevy_args
@@ -158,7 +146,7 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
             let ty = format_ident!("{}", &arg.ty);
 
             quote! {
-                ferrumc_commands::arg::CommandArgumentInstance {
+                ferrumc_commands::arg::CommandArgumentNode {
                     name: #name.to_string(),
                     required: #required,
                     primitive: <#ty as ferrumc_commands::arg::CommandArgument>::primitive(),
@@ -168,14 +156,6 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
         .collect::<Vec<proc_macro2::TokenStream>>();
 
     TokenStream::from(quote! {
-        #[allow(non_camel_case_types)]
-        #[doc(hidden)]
-        struct #command_struct_name {
-            #(#arg_fields)*
-            __sender: bevy_ecs::prelude::Entity,
-            __input: ::ferrumc_commands::input::CommandInput,
-        }
-
         #[allow(non_snake_case)]
         #[allow(dead_code)]
         #[doc(hidden)]

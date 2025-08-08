@@ -6,10 +6,9 @@ use tokio::io::AsyncWrite;
 use crate::{
     arg::{
         utils::{error, parser_error},
-        CommandArgument,
+        CommandArgument, ParserResult,
     },
     ctx::CommandContext,
-    ParserResult,
 };
 
 use super::PrimitiveArgument;

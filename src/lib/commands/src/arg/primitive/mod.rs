@@ -1,12 +1,13 @@
-//! TODO:
-//! * Entity
-//! * Double (f64)
-//! * Score Holder
-//! * Time
-//! * Resource or Tag
-//! * Resource or Tag Key
-//! * Resource
-//! * Resource Key
+//! Primitive command argument types.
+// TODO:
+// * Entity
+// * Double (f64)
+// * Score Holder
+// * Time
+// * Resource or Tag
+// * Resource or Tag Key
+// * Resource
+// * Resource Key
 
 use std::io::Write;
 
@@ -158,6 +159,7 @@ impl NetEncode for PrimitiveArgumentType {
     }
 }
 
+#[doc(hidden)]
 mod utils {
     //! Internal utilities related to command arguments.
 

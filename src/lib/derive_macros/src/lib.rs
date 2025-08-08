@@ -37,7 +37,7 @@ pub fn net_decode(input: TokenStream) -> TokenStream {
 
 // #=================== PACKETS ===================#
 /// You can get the packet_id from:
-/// https://protocol.ferrumc.com,
+/// <https://protocol.ferrumc.com>,
 /// In incoming packets (serverbound),
 /// You should use the 'resource' value referenced in the packet,
 /// e.g. "finish_configuration", which would result in the packet_id being automatically fetched.

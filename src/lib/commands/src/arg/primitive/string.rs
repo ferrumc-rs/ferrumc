@@ -8,9 +8,9 @@ use ferrumc_net_codec::{
 use tokio::io::AsyncWrite;
 
 use crate::{
-    arg::{utils::parser_error, CommandArgument},
+    arg::{utils::parser_error, CommandArgument, ParserResult},
     ctx::CommandContext,
-    wrapper, ParserResult,
+    wrapper,
 };
 
 use super::PrimitiveArgument;

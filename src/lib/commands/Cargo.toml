@@ -9,7 +9,7 @@ tracing = { workspace = true }
 dashmap = { workspace = true }
 tokio = { workspace = true }
 ferrumc-text = { workspace = true }
-ferrumc-state = { workspace = true }
+ferrumc-core = { workspace = true }
 enum-ordinalize = { workspace = true }
 ferrumc-macros = { workspace = true }
 bevy_ecs = { workspace = true }
