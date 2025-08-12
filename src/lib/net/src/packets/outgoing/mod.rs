@@ -16,6 +16,7 @@ pub mod set_default_spawn_position;
 pub mod set_render_distance;
 pub mod status_response;
 pub mod synchronize_player_position;
+pub mod update_time;
 
 pub mod remove_entities;
 pub mod spawn_entity;
