@@ -11,6 +11,7 @@ bevy_ecs = { workspace = true }
 tokio = { workspace = true }
 ferrumc-macros = { workspace = true }
 ferrumc-config = { workspace = true }
+thiserror = { workspace = true }
 
 [lints]
 workspace = true

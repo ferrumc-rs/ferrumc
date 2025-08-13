@@ -9,6 +9,7 @@ use ferrumc_net::connection::NewConnection;
 use ferrumc_state::GlobalStateResource;
 use std::time::SystemTime;
 use tracing::{error, trace};
+use ferrumc_inventories::inventory::Inventory;
 
 #[derive(Resource)]
 pub struct NewConnectionRecv(pub Receiver<NewConnection>);
@@ -31,6 +32,7 @@ pub fn accept_new_connections(mut cmd: Commands, new_connections: Res<NewConnect
                 last_received_keep_alive: SystemTime::now(),
                 has_received_keep_alive: true,
             },
+            Inventory::new(46)
         ));
         trace!("Spawned entity for new connection: {:?}", entity.id());
         // Add the new entity to the global state

@@ -27,6 +27,7 @@ ferrumc-general-purpose = { workspace = true }
 ferrumc-state = { workspace = true }
 ferrumc-world-gen = { workspace = true }
 ferrumc-threadpool = { workspace = true }
+ferrumc-inventories = { workspace = true }
 
 
 tracing = { workspace = true }

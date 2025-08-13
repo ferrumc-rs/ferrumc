@@ -51,37 +51,30 @@ impl NetDecode for InventorySlot {
                 components_to_remove: None,
             })
         } else {
-            let item_id = PrefixedOptional::decode(reader, opts)?
-                .to_option();
-            let components_to_add_count: Option<VarInt> = PrefixedOptional::decode(reader, opts)
-                ?
-                .to_option();
-            let components_to_remove_count: Option<VarInt> = PrefixedOptional::decode(reader, opts)
-                ?
-                .to_option();
-            let components_to_add = if let Some(count) = components_to_add_count {
-                let mut components = Vec::with_capacity(count.0 as usize);
-                for _ in 0..count.0 {
+            let item_id = VarInt::decode(reader, opts)?;
+            let components_to_add_count = VarInt::decode(reader, opts)
+                ?;
+            let components_to_remove_count = VarInt::decode(reader, opts)
+                ?;
+            let components_to_add = {
+                let mut components = Vec::with_capacity(components_to_add_count.0 as usize);
+                for _ in 0..components_to_add_count.0 {
                     components.push(VarInt::decode(reader, opts)?);
                 }
                 Some(components)
-            } else {
-                None
             };
-            let components_to_remove = if let Some(count) = components_to_remove_count {
-                let mut components = Vec::with_capacity(count.0 as usize);
-                for _ in 0..count.0 {
+            let components_to_remove = {
+                let mut components = Vec::with_capacity(components_to_remove_count.0 as usize);
+                for _ in 0..components_to_remove_count.0 {
                     components.push(VarInt::decode(reader, opts)?);
                 }
                 Some(components)
-            } else {
-                None
             };
             Ok(Self {
                 count,
-                item_id,
-                components_to_add_count,
-                components_to_remove_count,
+                item_id: Some(item_id),
+                components_to_add_count: Some(components_to_add_count),
+                components_to_remove_count: Some(components_to_remove_count),
                 components_to_add,
                 components_to_remove,
             })
