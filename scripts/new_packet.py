@@ -12,13 +12,17 @@ use std::sync::Arc;
 #[packet(packet_id = "++id++", state = "play")]
 pub struct ++name++ {
 }
-
-impl IncomingPacket for ++name++ {
-    async fn handle(self, conn_id: usize, state: Arc<ServerState>) -> Result<(), NetError> {
-        todo!()
-    }
-}
 """
+
+handler = """
+use ferrumc_state::GlobalStateResource;
+use bevy_ecs::prelude::Res;
+use ferrumc_net::++name++Receiver;
+
+pub fn handle(
+    events: Res<++name++Receiver>,
+    state: Res<GlobalStateResource>,
+) {}"""
 
 outgoing_template = """
 use ferrumc_macros::{packet, NetEncode};\
@@ -52,6 +56,9 @@ packet_name = input("Packet name: ")
 packets_dir = os.path.join(
     os.path.join(os.path.dirname(__file__), ".."), "src/lib/net/src/packets"
 )
+handler_dir = os.path.join(
+    os.path.join(os.path.dirname(__file__), ".."), "src/bin/src/packet_handlers/play_packets"
+)
 
 packet_id = input(
     "Packet ID (formatted as snake case,\
@@ -79,6 +86,13 @@ with open(f"{packets_dir}/{packet_type}/{to_snake_case(packet_name)}.rs", "x") a
             )
             registry.seek(0)
             registry.write(content)
+
+        with open(f"{handler_dir}/{to_snake_case(packet_name)}.rs", "x") as handler_file:
+            handler_file.write(
+                handler.replace("++name++", to_camel_case(packet_name))
+            )
+        with open(f"{handler_dir}/mod.rs", "a") as modfile:
+            modfile.write(f"\npub mod {to_snake_case(packet_name)};")
     else:
         f.write(
             outgoing_template.replace("++name++", to_camel_case(packet_name)).replace(

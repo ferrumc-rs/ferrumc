@@ -2,6 +2,7 @@ use bevy_ecs::prelude::{Entity, EventWriter, Query, Res};
 use ferrumc_core::chunks::cross_chunk_boundary_event::CrossChunkBoundaryEvent;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net::SetPlayerPositionPacketReceiver;
+use tracing::error;
 
 use crate::errors::BinaryError;
 use ferrumc_core::transform::grounded::OnGround;
@@ -24,6 +25,7 @@ pub fn handle(
 ) {
     for (event, eid) in events.0.try_iter() {
         if !state.0.players.is_connected(eid) {
+            error!("Player {} is not connected, skipping SetPlayerPositionPacket processing", eid);
             // Player is not connected, skip processing this event
             continue;
         }
@@ -41,9 +43,9 @@ pub fn handle(
             ((new_position.z * 4096.0) - (position.z * 4096.0)) as i16,
         ));
 
-        let old_chunk = ((position.x as i32 >> 4), (position.z as i32 >> 4));
+        let old_chunk = (position.x as i32 >> 4, position.z as i32 >> 4);
 
-        let new_chunk = ((new_position.x as i32 >> 4), (new_position.z as i32 >> 4));
+        let new_chunk = (new_position.x as i32 >> 4, new_position.z as i32 >> 4);
 
         if old_chunk != new_chunk {
             cross_chunk_events.write(CrossChunkBoundaryEvent {
@@ -65,7 +67,7 @@ pub fn handle(
             &pass_conn_query,
             state.0.clone(),
         )
-        .expect("Failed to update position for all players");
+            .expect("Failed to update position for all players");
     }
 }
 
@@ -85,6 +87,11 @@ fn update_pos_for_all(
     conn_query: &Query<(Entity, &StreamWriter)>,
     state: GlobalState,
 ) -> Result<(), BinaryError> {
+    if !state.players.is_connected(entity_id) {
+        // Player is not connected, skip processing this update
+        error!("Player {} is not connected, skipping position update", entity_id);
+        return Ok(());
+    }
     let (pos, grounded, rot, identity) = pos_query.get(entity_id)?;
 
     // If any delta of (x|y|z) exceeds 7.5, then it's "not recommended" to use this packet
@@ -130,6 +137,7 @@ fn update_pos_for_all(
 
     for (entity, conn) in conn_query.iter() {
         if !state.players.is_connected(entity) {
+            error!("Player {} is not connected, skipping position update", entity);
             continue;
         }
         conn.send_packet_ref(&packet)?;

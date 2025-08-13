@@ -26,4 +26,7 @@ pub fn register_packet_handlers(schedule: &mut Schedule) {
     schedule.add_systems(set_player_rotation::handle);
     schedule.add_systems(swing_arm::handle);
     schedule.add_systems(player_loaded::handle);
+    schedule.add_systems(set_creative_mode_slot::handle);
 }
+
+pub mod set_creative_mode_slot;

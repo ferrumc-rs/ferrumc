@@ -33,7 +33,7 @@ members = [
     "src/lib/utils/profiling",
     "src/lib/world",
     "src/lib/world_gen",
-    "src/lib/utils/threadpool", 
+    "src/lib/utils/threadpool",
     "src/lib/inventories",
 ]
 
@@ -104,6 +104,7 @@ ferrumc-utils = { path = "src/lib/utils" }
 ferrumc-world = { path = "src/lib/world" }
 ferrumc-world-gen = { path = "src/lib/world_gen" }
 ferrumc-threadpool = { path = "src/lib/utils/threadpool" }
+ferrumc-inventories = { path = "src/lib/inventories" }
 
 
 # Asynchronous
@@ -154,6 +155,7 @@ byteorder = "1.5.0"
 dashmap = "7.0.0-rc2"
 uuid = { version = "1.18.0", features = ["v4", "v3", "serde"] }
 indexmap = { version = "2.10.0", features = ["serde"] }
+tinyvec = "1.9.0"
 
 # Macros
 lazy_static = "1.5.0"

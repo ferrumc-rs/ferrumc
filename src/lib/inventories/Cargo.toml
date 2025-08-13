@@ -6,7 +6,11 @@ edition = "2024"
 [dependencies]
 
 ferrumc-net = { workspace = true }
+ferrumc-net-codec = { workspace = true }
 bevy_ecs = { workspace = true }
+tokio = { workspace = true }
+ferrumc-macros = { workspace = true }
+ferrumc-config = { workspace = true }
 
 [lints]
 workspace = true

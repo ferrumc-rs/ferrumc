@@ -27,3 +27,4 @@ pub mod confirm_player_teleport;
 pub mod player_input;
 
 pub mod player_loaded;
+pub mod set_creative_mode_slot;
