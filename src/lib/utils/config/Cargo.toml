@@ -19,4 +19,6 @@ uuid = { workspace = true }
 regex = { workspace = true }
 reqwest = { workspace = true }
 ureq = { workspace = true, features = ["json"] }
+serde_json = { workspace = true }
+serde_yaml_ng = { workspace = true }
 rayon = { workspace = true }

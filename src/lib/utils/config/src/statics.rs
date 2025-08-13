@@ -1,5 +1,5 @@
 use crate::server_config::ServerConfig;
-use dashmap::DashSet;
+use dashmap::DashMap;
 use ferrumc_general_purpose::paths::get_root_path;
 use lazy_static::lazy_static;
 use std::fs::File;
@@ -13,8 +13,8 @@ pub(crate) const DEFAULT_CONFIG: &str = include_str!("../../../../../.etc/exampl
 lazy_static! {
     /// The server configuration that is stored in memory.
     static ref CONFIG: ServerConfig = create_config();
-    /// The whitelist of player uuids.
-    pub static ref WHITELIST: DashSet<u128> = DashSet::new();
+    /// The whitelist of player uuids to names.
+    pub static ref WHITELIST: DashMap<u128, String> = DashMap::new();
 }
 fn create_config() -> ServerConfig {
     let config_location = get_root_path().join("config.toml");
@@ -77,6 +77,6 @@ pub fn get_global_config() -> &'static ServerConfig {
     &CONFIG
 }
 
-pub fn get_whitelist() -> &'static DashSet<u128> {
+pub fn get_whitelist() -> &'static DashMap<u128, String> {
     &WHITELIST
 }

@@ -27,4 +27,12 @@ pub enum ConfigError {
     /// Error when the root path cannot be found.
     #[error("Failed to get the root path.")]
     RootPathError(#[from] ferrumc_general_purpose::paths::RootPathError),
+
+    /// YAML serialization/deserialization error.
+    #[error("YAML error: {0}")]
+    YamlError(#[from] serde_yaml_ng::Error),
+
+    /// Custom error message.
+    #[error("{0}")]
+    Custom(String),
 }
