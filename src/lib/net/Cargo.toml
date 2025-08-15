@@ -34,6 +34,7 @@ bitcode = { workspace = true }
 indexmap = { workspace = true }
 lazy_static = { workspace = true }
 yazi = { workspace = true }
+ferrumc-inventories = { workspace = true }
 
 
 [dev-dependencies]

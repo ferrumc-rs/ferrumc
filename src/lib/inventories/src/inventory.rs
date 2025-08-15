@@ -1,6 +1,7 @@
 use crate::errors::InventoryError;
-use bevy_ecs::prelude::Component;
-use ferrumc_net::packets::incoming::set_creative_mode_slot::InventorySlot;
+use crate::slot::InventorySlot;
+use crate::{InventoryUpdate, INVENTORY_UPDATES_QUEUE};
+use bevy_ecs::prelude::{Component, Entity};
 
 #[derive(Component)]
 pub struct Inventory {
@@ -44,11 +45,48 @@ impl Inventory {
         Err(InventoryError::InventoryFull)
     }
 
+    pub fn add_item_with_update(
+        &mut self,
+        item: InventorySlot,
+        entity: Entity,
+    ) -> Result<(), InventoryError> {
+        for (index, slot) in self.slots.iter_mut().enumerate() {
+            if slot.is_none() {
+                *slot = Some(item.clone());
+                INVENTORY_UPDATES_QUEUE.push(InventoryUpdate {
+                    slot_index: index as u8,
+                    slot: item,
+                    entity,
+                });
+                return Ok(());
+            }
+        }
+        Err(InventoryError::InventoryFull)
+    }
+
     pub fn set_item(&mut self, index: usize, item: InventorySlot) -> Result<(), InventoryError> {
         if index >= self.slots.len() {
             return Err(InventoryError::InvalidSlotIndex(index));
         }
         self.slots[index] = Some(item);
+        Ok(())
+    }
+
+    pub fn set_item_with_update(
+        &mut self,
+        index: usize,
+        item: InventorySlot,
+        entity: Entity,
+    ) -> Result<(), InventoryError> {
+        if index >= self.slots.len() {
+            return Err(InventoryError::InvalidSlotIndex(index));
+        }
+        self.slots[index] = Some(item.clone());
+        INVENTORY_UPDATES_QUEUE.push(InventoryUpdate {
+            slot_index: index as u8,
+            slot: item,
+            entity,
+        });
         Ok(())
     }
 
@@ -67,6 +105,26 @@ impl Inventory {
             return Err(InventoryError::ItemNotFound);
         }
         self.slots[index] = None;
+        Ok(())
+    }
+
+    pub fn remove_item_with_update(
+        &mut self,
+        index: usize,
+        entity: Entity,
+    ) -> Result<(), InventoryError> {
+        if index >= self.slots.len() {
+            return Err(InventoryError::InvalidSlotIndex(index));
+        }
+        if self.slots[index].is_none() {
+            return Err(InventoryError::ItemNotFound);
+        }
+        self.slots[index] = None;
+        INVENTORY_UPDATES_QUEUE.push(InventoryUpdate {
+            slot_index: index as u8,
+            slot: InventorySlot::default(),
+            entity,
+        });
         Ok(())
     }
 }
