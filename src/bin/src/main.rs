@@ -126,7 +126,7 @@ fn entry(start_time: Instant) -> Result<(), BinaryError> {
                 .expect("Failed to sync world before shutdown")
         }
     })
-    .expect("Error setting Ctrl-C handler");
+        .expect("Error setting Ctrl-C handler");
 
     game_loop::start_game_loop(global_state.clone())?;
 
@@ -148,8 +148,7 @@ fn handle_import(import_args: ImportArgs) -> Result<(), BinaryError> {
 
     if let Err(e) = world.import(
         import_path,
-        import_args.batch_size,
-        // import_args.max_concurrent_tasks,
+        ThreadPool::new(),
     ) {
         error!("Could not import world: {}", e.to_string());
         return Err(BinaryError::Custom("Could not import world.".to_string()));
