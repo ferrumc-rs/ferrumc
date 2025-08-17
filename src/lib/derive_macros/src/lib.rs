@@ -55,8 +55,8 @@ pub fn setup_packet_handling(input: TokenStream) -> TokenStream {
 /// returns protocol_id (as 0x??) of the specified packet.
 /// e.g. get_packet_entry!("play", "clientbound", "add_entity") -> 0x01
 #[proc_macro]
-pub fn get_packet_entry(input: TokenStream) -> TokenStream {
-    static_loading::packets::get(input)
+pub fn lookup_packet(input: TokenStream) -> TokenStream {
+    static_loading::packets::lookup_packet(input)
 }
 // #=================== PACKETS ===================#
 

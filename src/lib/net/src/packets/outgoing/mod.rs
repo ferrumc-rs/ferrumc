@@ -39,3 +39,5 @@ pub mod block_update;
 
 pub mod commands;
 pub mod command_suggestions;
+
+pub(crate) mod set_compression;
