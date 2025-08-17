@@ -1,5 +1,5 @@
 use bevy_ecs::prelude::{Query, Res};
-use ferrumc_inventories::defined_slots::player::{HOTBAR_SLOT_6, HOTBAR_SLOT_9};
+use ferrumc_inventories::defined_slots::player::HOTBAR_SLOT_6;
 use ferrumc_inventories::display::DisplayType;
 use ferrumc_inventories::inventory::Inventory;
 use ferrumc_inventories::slot::InventorySlot;
@@ -14,19 +14,27 @@ pub fn handle(
     mut query: Query<&mut Inventory>,
 ) {
     for (event, entity) in events.0.try_iter() {
-        debug!("Slot {} placed at {} by player {}",
-            event.slot, event.slot_index, entity);
+        debug!(
+            "Slot {} placed at {} by player {}",
+            event.slot, event.slot_index, entity
+        );
         if state.0.players.is_connected(entity) {
             if let Ok(mut inventory) = query.get_mut(entity) {
                 if event.slot.count.0 == 0 {
                     // Clear the slot if the count is zero
                     if let Err(e) = inventory.remove_item(event.slot_index as usize) {
-                        error!("Failed to clear slot {} for player {}: {:?}", event.slot_index, entity, e);
+                        error!(
+                            "Failed to clear slot {} for player {}: {:?}",
+                            event.slot_index, entity, e
+                        );
                     }
                 } else {
                     // Set the item in the specified slot
                     if let Err(e) = inventory.set_item(event.slot_index as usize, event.slot) {
-                        error!("Failed to set item in slot {} for player {}: {:?}", event.slot_index, entity, e);
+                        error!(
+                            "Failed to set item in slot {} for player {}: {:?}",
+                            event.slot_index, entity, e
+                        );
                     }
                 }
                 // Display the updated inventory
@@ -42,7 +50,10 @@ pub fn handle(
                     },
                     entity,
                 ) {
-                    error!("Failed to update creative mode slot for player {}: {:?}", entity, err);
+                    error!(
+                        "Failed to update creative mode slot for player {}: {:?}",
+                        entity, err
+                    );
                 }
                 inventory.display(DisplayType::Player);
             } else {

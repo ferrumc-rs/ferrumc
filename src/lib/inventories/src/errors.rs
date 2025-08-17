@@ -9,5 +9,5 @@ pub enum InventoryError {
     #[error("Invalid slot index: {0}")]
     InvalidSlotIndex(usize),
     #[error("Outside maximum slot range of {0}: {1}")]
-    OutsideMaxSlotRange(usize, usize)
+    OutsideMaxSlotRange(usize, usize),
 }

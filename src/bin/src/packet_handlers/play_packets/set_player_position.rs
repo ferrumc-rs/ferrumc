@@ -2,7 +2,6 @@ use bevy_ecs::prelude::{Entity, EventWriter, Query, Res};
 use ferrumc_core::chunks::cross_chunk_boundary_event::CrossChunkBoundaryEvent;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net::SetPlayerPositionPacketReceiver;
-use std::sync::atomic::Ordering::Relaxed;
 use tracing::{debug, error, warn};
 
 use crate::errors::BinaryError;
@@ -26,7 +25,10 @@ pub fn handle(
 ) {
     for (event, eid) in events.0.try_iter() {
         if !state.0.players.is_connected(eid) {
-            error!("Player {} is not connected, skipping SetPlayerPositionPacket processing", eid);
+            error!(
+                "Player {} is not connected, skipping SetPlayerPositionPacket processing",
+                eid
+            );
             // Player is not connected, skip processing this event
             continue;
         }
@@ -68,7 +70,7 @@ pub fn handle(
             &pass_conn_query,
             state.0.clone(),
         )
-            .expect("Failed to update position for all players");
+        .expect("Failed to update position for all players");
     }
 }
 
@@ -90,7 +92,10 @@ fn update_pos_for_all(
 ) -> Result<(), BinaryError> {
     if !state.players.is_connected(entity_id) {
         // Player is not connected, skip processing this update
-        error!("Player {} is not connected, skipping position update", entity_id);
+        error!(
+            "Player {} is not connected, skipping position update",
+            entity_id
+        );
         return Ok(());
     }
     let (pos, grounded, rot, identity) = pos_query.get(entity_id)?;
@@ -138,7 +143,10 @@ fn update_pos_for_all(
 
     for (entity, conn) in conn_query.iter() {
         if !state.players.is_connected(entity) {
-            warn!("Player {} is not connected, skipping position update", entity);
+            warn!(
+                "Player {} is not connected, skipping position update",
+                entity
+            );
             for player_l in state.players.player_list.iter() {
                 let k = player_l.key();
                 let v = player_l.value();

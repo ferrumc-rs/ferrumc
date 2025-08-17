@@ -1,11 +1,11 @@
 use ferrumc_net_codec::decode::errors::NetDecodeError;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
+use ferrumc_net_codec::encode::errors::NetEncodeError;
+use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::fmt::Display;
 use std::io::{Read, Write};
 use tokio::io::{AsyncRead, AsyncWrite};
-use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
-use ferrumc_net_codec::encode::errors::NetEncodeError;
 
 #[derive(Debug, Clone, Hash, Default)]
 pub struct InventorySlot {
@@ -45,10 +45,8 @@ impl NetDecode for InventorySlot {
             })
         } else {
             let item_id = VarInt::decode(reader, opts)?;
-            let components_to_add_count = VarInt::decode(reader, opts)
-                ?;
-            let components_to_remove_count = VarInt::decode(reader, opts)
-                ?;
+            let components_to_add_count = VarInt::decode(reader, opts)?;
+            let components_to_remove_count = VarInt::decode(reader, opts)?;
             let components_to_add = {
                 let mut components = Vec::with_capacity(components_to_add_count.0 as usize);
                 for _ in 0..components_to_add_count.0 {
@@ -75,8 +73,8 @@ impl NetDecode for InventorySlot {
     }
 
     async fn decode_async<R: AsyncRead + Unpin>(
-        reader: &mut R,
-        opts: &NetDecodeOpts,
+        _reader: &mut R,
+        _opts: &NetDecodeOpts,
     ) -> Result<Self, NetDecodeError> {
         todo!()
     }
@@ -113,7 +111,11 @@ impl NetEncode for InventorySlot {
         Ok(())
     }
 
-    async fn encode_async<W: AsyncWrite + Unpin>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+    async fn encode_async<W: AsyncWrite + Unpin>(
+        &self,
+        _writer: &mut W,
+        _opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
         todo!()
     }
 }

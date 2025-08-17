@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-use crate::errors::BinaryError;
 use bevy_ecs::prelude::{Entity, Query, Res};
 use ferrumc_core::collisions::bounds::CollisionBounds;
 use ferrumc_core::transform::position::Position;
@@ -11,30 +10,60 @@ use ferrumc_net::PlaceBlockReceiver;
 use ferrumc_net_codec::net_types::network_position::NetworkPosition;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalStateResource;
-use ferrumc_world::block_id::BlockId;
-use tracing::{debug, trace};
+use tracing::{debug, error, trace};
 
-// Cobblestone block ID for testing purposes
-const DUMMY_BLOCK: BlockId = BlockId(14);
+use ferrumc_inventories::defined_slots::player::HOTBAR_SLOT_1;
+use ferrumc_inventories::inventory::Inventory;
+use once_cell::sync::Lazy;
+use std::collections::HashMap;
+use std::str::FromStr;
+
+const ITEM_TO_BLOCK_MAPPING_FILE: &str =
+    include_str!("../../../../../assets/data/item_to_block_mapping.json");
+static ITEM_TO_BLOCK_MAPPING: Lazy<HashMap<i32, i32>> = Lazy::new(|| {
+    let str_form: HashMap<String, String> = serde_json::from_str(ITEM_TO_BLOCK_MAPPING_FILE)
+        .expect("Failed to parse item_to_block_mapping.json");
+    str_form
+        .into_iter()
+        .map(|(k, v)| (i32::from_str(&k).unwrap(), i32::from_str(&v).unwrap()))
+        .collect()
+});
 
 pub fn handle(
     events: Res<PlaceBlockReceiver>,
     state: Res<GlobalStateResource>,
-    conn_q: Query<(Entity, &StreamWriter)>,
+    conn_q: Query<(Entity, &StreamWriter, &Inventory)>,
     pos_q: Query<(&Position, &CollisionBounds)>,
 ) {
     'ev_loop: for (event, eid) in events.0.try_iter() {
-        let res: Result<(), BinaryError> = try {
-            let Ok((entity, conn)) = conn_q.get(eid) else {
-                debug!("Could not get connection for entity {:?}", eid);
-                continue;
-            };
-            if !state.0.players.is_connected(entity) {
-                trace!("Entity {:?} is not connected", entity);
-                continue;
-            }
-            match event.hand.0 {
-                0 => {
+        let Ok((entity, conn, inventory)) = conn_q.get(eid) else {
+            debug!("Could not get connection for entity {:?}", eid);
+            continue;
+        };
+        if !state.0.players.is_connected(entity) {
+            trace!("Entity {:?} is not connected", entity);
+            continue;
+        }
+        match event.hand.0 {
+            0 => {
+                let slot_index = HOTBAR_SLOT_1 as usize;
+                let Ok(slot) = inventory.get_item(slot_index) else {
+                    error!("Could not fetch {:?}", eid);
+                    continue 'ev_loop;
+                };
+                if let Some(selected_item) = slot {
+                    let Some(item_id) = selected_item.item_id else {
+                        error!("Selected item has no item ID");
+                        continue 'ev_loop;
+                    };
+                    let Some(mapped_block_id) = ITEM_TO_BLOCK_MAPPING.get(&item_id.0) else {
+                        error!("No block mapping found for item ID: {}", item_id.0);
+                        continue 'ev_loop;
+                    };
+                    debug!(
+                        "Placing block with item ID: {}, mapped to block ID: {}",
+                        item_id.0, mapped_block_id
+                    );
                     let mut chunk = match state.0.world.load_chunk_owned(
                         event.position.x >> 4,
                         event.position.z >> 4,
@@ -46,11 +75,14 @@ pub fn handle(
                             continue 'ev_loop;
                         }
                     };
-                    let block_clicked = chunk.get_block(
+                    let Ok(block_clicked) = chunk.get_block(
                         event.position.x,
                         event.position.y as i32,
                         event.position.z,
-                    )?;
+                    ) else {
+                        debug!("Failed to get block at position: {:?}", event.position);
+                        continue 'ev_loop;
+                    };
                     trace!("Block clicked: {:?}", block_clicked);
                     // Use the face to determine the offset of the block to place
                     let (x_block_offset, y_block_offset, z_block_offset) = match event.face.0 {
@@ -91,32 +123,47 @@ pub fn handle(
                     let packet = BlockChangeAck {
                         sequence: event.sequence,
                     };
-                    conn.send_packet_ref(&packet)?;
+                    if let Err(err) = conn.send_packet_ref(&packet) {
+                        error!("Failed to send block change ack packet: {:?}", err);
+                        continue 'ev_loop;
+                    }
 
-                    chunk.set_block(x & 0xF, y as i32, z & 0xF, DUMMY_BLOCK)?;
+                    if let Err(err) =
+                        chunk.set_block(x & 0xF, y as i32, z & 0xF, VarInt::new(*mapped_block_id))
+                    {
+                        error!("Failed to set block: {:?}", err);
+                        continue 'ev_loop;
+                    }
                     let ack_packet = BlockChangeAck {
                         sequence: event.sequence,
                     };
 
                     let chunk_packet = BlockUpdate {
                         location: NetworkPosition { x, y, z },
-                        block_id: VarInt::from(DUMMY_BLOCK),
+                        block_id: VarInt::from(*mapped_block_id),
                     };
-                    conn.send_packet_ref(&chunk_packet)?;
-                    conn.send_packet_ref(&ack_packet)?;
+                    if let Err(err) = conn.send_packet_ref(&chunk_packet) {
+                        error!("Failed to send block update packet: {:?}", err);
+                        continue 'ev_loop;
+                    }
+                    if let Err(err) = conn.send_packet_ref(&ack_packet) {
+                        error!("Failed to send block change ack packet: {:?}", err);
+                        continue 'ev_loop;
+                    }
 
-                    state.0.world.save_chunk(Arc::new(chunk))?;
-                }
-                1 => {
-                    trace!("Offhand block placement not implemented");
-                }
-                _ => {
-                    debug!("Invalid hand");
+                    if let Err(err) = state.0.world.save_chunk(Arc::from(chunk)) {
+                        error!("Failed to save chunk after block placement: {:?}", err);
+                    } else {
+                        trace!("Block placed at ({}, {}, {})", x, y, z);
+                    }
                 }
             }
-        };
-        if let Err(e) = &res {
-            debug!("Failed to handle place block: {:?}", e);
+            1 => {
+                trace!("Offhand block placement not implemented");
+            }
+            _ => {
+                debug!("Invalid hand");
+            }
         }
     }
 }

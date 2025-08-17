@@ -7,5 +7,3 @@ pub struct SetCreativeModeSlot {
     pub slot_index: i16,
     pub slot: InventorySlot,
 }
-
-

@@ -28,6 +28,8 @@ ferrumc-state = { workspace = true }
 ferrumc-world-gen = { workspace = true }
 ferrumc-threadpool = { workspace = true }
 ferrumc-inventories = { workspace = true }
+once_cell = { workspace = true }
+serde_json = { workspace = true }
 
 
 tracing = { workspace = true }

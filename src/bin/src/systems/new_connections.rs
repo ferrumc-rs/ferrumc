@@ -5,16 +5,20 @@ use ferrumc_core::conn::keepalive::KeepAliveTracker;
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
+use ferrumc_inventories::inventory::Inventory;
 use ferrumc_net::connection::NewConnection;
 use ferrumc_state::GlobalStateResource;
 use std::time::SystemTime;
 use tracing::{error, trace};
-use ferrumc_inventories::inventory::Inventory;
 
 #[derive(Resource)]
 pub struct NewConnectionRecv(pub Receiver<NewConnection>);
 
-pub fn accept_new_connections(mut cmd: Commands, new_connections: Res<NewConnectionRecv>, state: Res<GlobalStateResource>) {
+pub fn accept_new_connections(
+    mut cmd: Commands,
+    new_connections: Res<NewConnectionRecv>,
+    state: Res<GlobalStateResource>,
+) {
     if new_connections.0.is_empty() {
         return;
     }
@@ -32,14 +36,16 @@ pub fn accept_new_connections(mut cmd: Commands, new_connections: Res<NewConnect
                 last_received_keep_alive: SystemTime::now(),
                 has_received_keep_alive: true,
             },
-            Inventory::new(46)
+            Inventory::new(46),
         ));
         trace!("Spawned entity for new connection: {:?}", entity.id());
         // Add the new entity to the global state
         state.0.players.player_list.insert(
             entity.id(),
-            (new_connection.player_identity.uuid.as_u128(),
-             new_connection.player_identity.username),
+            (
+                new_connection.player_identity.uuid.as_u128(),
+                new_connection.player_identity.username,
+            ),
         );
         if let Err(err) = return_sender.send(entity.id()) {
             error!(

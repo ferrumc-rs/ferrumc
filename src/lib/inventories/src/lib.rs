@@ -1,8 +1,8 @@
-pub mod item;
-pub mod inventory;
 pub mod defined_slots;
-pub mod errors;
 pub mod display;
+pub mod errors;
+pub mod inventory;
+pub mod item;
 pub mod slot;
 
 use crate::slot::InventorySlot;

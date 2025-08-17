@@ -3,7 +3,7 @@ use crate::inventory::Inventory;
 mod player;
 
 pub enum DisplayType {
-    Player
+    Player,
 }
 
 impl Inventory {
