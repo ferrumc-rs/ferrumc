@@ -1,6 +1,6 @@
 use crate::errors::InventoryError;
 use crate::slot::InventorySlot;
-use crate::{INVENTORY_UPDATES_QUEUE, InventoryUpdate};
+use crate::{InventoryUpdate, INVENTORY_UPDATES_QUEUE};
 use bevy_ecs::prelude::{Component, Entity};
 
 #[derive(Component)]
@@ -126,5 +126,79 @@ impl Inventory {
             entity,
         });
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ferrumc_net_codec::net_types::var_int::VarInt;
+
+    fn make_slot_with_id(id: i32) -> InventorySlot {
+        InventorySlot {
+            item_id: Some(VarInt::new(id)),
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn test_new_inventory() {
+        let inv = Inventory::new(5);
+        assert_eq!(inv.slots.len(), 5);
+        assert!(inv.slots.iter().all(|s| s.is_none()));
+    }
+
+    #[test]
+    fn test_add_and_get_item() {
+        let mut inv = Inventory::new(2);
+        let slot = make_slot_with_id(1);
+        assert!(inv.add_item(slot.clone()).is_ok());
+        assert!(inv.get_item(0).unwrap().is_some());
+        assert!(inv.get_item(1).unwrap().is_none());
+    }
+
+    #[test]
+    fn test_add_item_full() {
+        let mut inv = Inventory::new(1);
+        let slot = make_slot_with_id(1);
+        inv.add_item(slot).unwrap();
+        let slot2 = make_slot_with_id(2);
+        assert!(matches!(inv.add_item(slot2), Err(InventoryError::InventoryFull)));
+    }
+
+    #[test]
+    fn test_set_and_remove_item() {
+        let mut inv = Inventory::new(1);
+        let slot = make_slot_with_id(1);
+        inv.set_item(0, slot).unwrap();
+        assert!(inv.get_item(0).unwrap().is_some());
+        inv.remove_item(0).unwrap();
+        assert!(inv.get_item(0).unwrap().is_none());
+    }
+
+    #[test]
+    fn test_contains_item() {
+        let mut inv = Inventory::new(2);
+        let slot = make_slot_with_id(42);
+        inv.add_item(slot).unwrap();
+        assert!(inv.contains_item(42));
+        assert!(!inv.contains_item(99));
+    }
+
+    #[test]
+    fn test_clear() {
+        let mut inv = Inventory::new(2);
+        inv.set_item(0, make_slot_with_id(1)).unwrap();
+        inv.set_item(1, make_slot_with_id(2)).unwrap();
+        inv.clear();
+        assert!(inv.slots.iter().all(|s| s.is_none()));
+    }
+
+    #[test]
+    fn test_invalid_index() {
+        let mut inv = Inventory::new(1);
+        assert!(matches!(inv.get_item(2), Err(InventoryError::InvalidSlotIndex(2))));
+        assert!(matches!(inv.set_item(2, make_slot_with_id(1)), Err(InventoryError::InvalidSlotIndex(2))));
+        assert!(matches!(inv.remove_item(2), Err(InventoryError::InvalidSlotIndex(2))));
     }
 }
