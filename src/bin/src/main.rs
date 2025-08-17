@@ -146,11 +146,7 @@ fn handle_import(import_args: ImportArgs) -> Result<(), BinaryError> {
         import_path = root_path.join(import_path);
     }
 
-    if let Err(e) = world.import(
-        import_path,
-        import_args.batch_size,
-        // import_args.max_concurrent_tasks,
-    ) {
+    if let Err(e) = world.import(import_path, ThreadPool::new()) {
         error!("Could not import world: {}", e.to_string());
         return Err(BinaryError::Custom("Could not import world.".to_string()));
     }
