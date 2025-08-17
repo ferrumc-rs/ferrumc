@@ -6,14 +6,30 @@ use simd_json::prelude::ValueArrayAccess;
 // Parse once at startup
 static REGISTRY_BYTES: &[u8] = include_bytes!("../../../../assets/data/registries.json");
 
-pub static LOADED_REGISTRY: Lazy<OwnedValue> = Lazy::new(|| {
+static LOADED_REGISTRY: Lazy<OwnedValue> = Lazy::new(|| {
     // simd-json mutates the buffer during parsing → needs a Vec<u8>
     let mut buf = REGISTRY_BYTES.to_vec();
     simd_json::to_owned_value(&mut buf).expect("parse registries.json")
 });
 
-/// Lookup by a slash-delimited path like:
-/// "minecraft:item/entries/minecraft:cobblestone/protocol_id"
+/// Looks up a value in the loaded JSON registry by a given path.
+///
+/// # Arguments
+/// * `path` - A string slice representing the path to the desired value in the JSON structure.
+///   Path segments are separated by `/`. Numeric segments are treated as array indices.
+///
+/// # Returns
+/// * `Option<&OwnedValue>` - Returns a reference to the value if found, or `None` if the path does not exist.
+///
+/// # Examples
+/// ```
+/// # use simd_json::prelude::{TypedScalarValue, ValueAsScalar};
+/// # use ferrumc_registry::lookup;
+/// let value = lookup("minecraft:item/entries/minecraft:apple/protocol_id");
+/// assert!(value.is_some());
+/// assert!(value.unwrap().is_u64()); // check if the value is a number
+/// assert_eq!(value.unwrap().as_u64().unwrap(), 840);
+/// ```
 pub fn lookup(path: &str) -> Option<&OwnedValue> {
     let mut cur: &OwnedValue = &LOADED_REGISTRY;
 
@@ -32,7 +48,21 @@ pub fn lookup(path: &str) -> Option<&OwnedValue> {
     Some(cur)
 }
 
-/// Optional: owned clone if you really need to move it
+/// Looks up a value in the loaded JSON registry by a given path and returns an owned clone.
+///
+/// # Arguments
+/// * `path` - A string slice representing the path to the desired value in the JSON structure.
+///
+/// # Returns
+/// * `Option<OwnedValue>` - Returns an owned clone of the value if found, or `None` if the path does not exist.
+///
+/// # Examples
+/// ```
+/// # use simd_json::prelude::{TypedScalarValue, ValueAsScalar};
+/// # use ferrumc_registry::lookup_owned;
+/// let value = lookup_owned("minecraft:item/entries/minecraft:apple/protocol_id");
+/// assert_eq!(value.unwrap().as_u64().unwrap(), 840);
+/// ```
 pub fn lookup_owned(path: &str) -> Option<OwnedValue> {
     lookup(path).cloned()
 }
