@@ -56,7 +56,7 @@ pub fn handle(
                         error!("Selected item has no item ID");
                         continue 'ev_loop;
                     };
-                    let Some(mapped_block_id) = ITEM_TO_BLOCK_MAPPING.get(&item_id.0) else {
+                    let Some(mapped_block_id) = ITEM_TO_BLOCK_MAPPING.get(&item_id.0 .0) else {
                         error!("No block mapping found for item ID: {}", item_id.0);
                         continue 'ev_loop;
                     };

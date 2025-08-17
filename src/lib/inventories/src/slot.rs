@@ -1,3 +1,4 @@
+use crate::item::ItemID;
 use ferrumc_net_codec::decode::errors::NetDecodeError;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::encode::errors::NetEncodeError;
@@ -10,7 +11,7 @@ use tokio::io::{AsyncRead, AsyncWrite};
 #[derive(Debug, Clone, Hash, Default)]
 pub struct InventorySlot {
     pub count: VarInt,
-    pub item_id: Option<VarInt>,
+    pub item_id: Option<ItemID>,
     pub components_to_add_count: Option<VarInt>,
     pub components_to_remove_count: Option<VarInt>,
     pub components_to_add: Option<Vec<VarInt>>,
@@ -63,7 +64,7 @@ impl NetDecode for InventorySlot {
             };
             Ok(Self {
                 count,
-                item_id: Some(item_id),
+                item_id: Some(ItemID(item_id)),
                 components_to_add_count: Some(components_to_add_count),
                 components_to_remove_count: Some(components_to_remove_count),
                 components_to_add,

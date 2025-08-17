@@ -25,7 +25,7 @@ impl Inventory {
         self.slots.iter().any(|slot| {
             if let Some(slot) = slot {
                 if let Some(item) = &slot.item_id {
-                    item.0 == item_id
+                    item.0.0 == item_id
                 } else {
                     false
                 }
@@ -132,11 +132,12 @@ impl Inventory {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::item::ItemID;
     use ferrumc_net_codec::net_types::var_int::VarInt;
 
     fn make_slot_with_id(id: i32) -> InventorySlot {
         InventorySlot {
-            item_id: Some(VarInt::new(id)),
+            item_id: Some(ItemID(VarInt::new(id))),
             ..Default::default()
         }
     }

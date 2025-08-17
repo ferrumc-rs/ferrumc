@@ -62,15 +62,21 @@ pub fn handle(
 
         *on_ground = OnGround(event.on_ground);
 
-        update_pos_for_all(
+        if let Err(err) = update_pos_for_all(
             eid,
             delta_pos,
             new_rot,
             &pos_query,
             &pass_conn_query,
             state.0.clone(),
-        )
-        .expect("Failed to update position for all players");
+        ) {
+            error!("Failed to update position for player {}: {}", eid, err);
+        } else {
+            debug!(
+                "Updated position for player {}: ({}, {}, {})",
+                eid, new_position.x, new_position.y, new_position.z
+            );
+        }
     }
 }
 

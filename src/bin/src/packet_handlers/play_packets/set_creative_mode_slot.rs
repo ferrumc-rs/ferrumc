@@ -2,9 +2,9 @@ use bevy_ecs::prelude::{Query, Res};
 use ferrumc_inventories::defined_slots::player::HOTBAR_SLOT_6;
 use ferrumc_inventories::display::DisplayType;
 use ferrumc_inventories::inventory::Inventory;
+use ferrumc_inventories::item::ItemID;
 use ferrumc_inventories::slot::InventorySlot;
 use ferrumc_net::SetCreativeModeSlotReceiver;
-use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalStateResource;
 use tracing::{debug, error};
 
@@ -42,7 +42,7 @@ pub fn handle(
                     HOTBAR_SLOT_6 as usize,
                     InventorySlot {
                         count: 1.into(),
-                        item_id: Some(VarInt::new(872)), // Example item ID for the creative mode slot
+                        item_id: Some(ItemID::new(872)), // Example item ID for the creative mode slot
                         components_to_add_count: None,
                         components_to_remove_count: None,
                         components_to_add: None,
