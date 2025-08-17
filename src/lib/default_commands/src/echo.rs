@@ -2,7 +2,7 @@ use bevy_ecs::prelude::*;
 use ferrumc_commands::{arg::primitive::string::QuotableString, Sender};
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_macros::command;
-use ferrumc_text::TextComponentBuilder;
+use ferrumc_text::{TextComponent, TextComponentBuilder};
 
 #[command("echo")]
 fn test_command(
@@ -21,7 +21,7 @@ fn test_command(
 
     sender.send_message(
         TextComponentBuilder::new(format!("{} said: ", username))
-            .extra(TextComponentBuilder::new(message.clone()).build())
+            .extra(TextComponent::from(message.clone()))
             .build(),
         false,
     );

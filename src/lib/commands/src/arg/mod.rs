@@ -50,6 +50,9 @@ where
 
 /// An instance of a command argument node consisting of a name, optionality and the
 /// underlying [`PrimitiveArgument`] of this argument.
+// The reason we don't implement Eq is because of float argument flags, since
+// floats are not Eq.
+#[derive(Clone, Debug, PartialEq)]
 pub struct CommandArgumentNode {
     /// The name of the argument.
     pub name: String,

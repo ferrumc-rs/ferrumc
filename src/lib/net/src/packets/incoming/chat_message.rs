@@ -1,4 +1,3 @@
-use bevy_ecs::prelude::Event;
 use ferrumc_macros::{packet, NetDecode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 
@@ -12,19 +11,4 @@ pub struct ChatMessagePacket {
     pub signature: Option<Vec<u64>>,
     pub message_count: VarInt,
     pub acknowledged: Vec<u8>,
-}
-
-#[derive(Debug, Event, Clone)]
-pub struct ChatMessageEvent {
-    pub player_conn_id: usize,
-    pub message: String,
-}
-
-impl ChatMessageEvent {
-    pub fn new(player_conn_id: usize, message: String) -> Self {
-        Self {
-            player_conn_id,
-            message,
-        }
-    }
 }

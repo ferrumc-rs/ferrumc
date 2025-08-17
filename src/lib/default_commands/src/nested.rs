@@ -2,7 +2,7 @@ use bevy_ecs::prelude::*;
 use ferrumc_commands::Sender;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_macros::command;
-use ferrumc_text::TextComponentBuilder;
+use ferrumc_text::TextComponent;
 
 #[command("nested")]
 fn nested_command(#[sender] sender: Sender, query: Query<&PlayerIdentity>) {
@@ -16,7 +16,7 @@ fn nested_command(#[sender] sender: Sender, query: Query<&PlayerIdentity>) {
     };
 
     sender.send_message(
-        TextComponentBuilder::new(format!("{} executed /nested", username)).build(),
+        TextComponent::from(format!("{} executed /nested", username)),
         false,
     );
 }
@@ -33,7 +33,7 @@ fn nested_nested_command(#[sender] sender: Sender, query: Query<&PlayerIdentity>
     };
 
     sender.send_message(
-        TextComponentBuilder::new(format!("{} executed /nested nested", username)).build(),
+        TextComponent::from(format!("{} executed /nested nested", username)),
         false,
     );
 }
