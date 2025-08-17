@@ -114,7 +114,7 @@ pub fn handle(
         if let Err(e) = query
             .get(entity)
             .unwrap()
-            .send_packet(&CommandSuggestionsPacket {
+            .send_packet(CommandSuggestionsPacket {
                 transaction_id: request.transaction_id,
                 matches: LengthPrefixedVec::new(
                     suggestions

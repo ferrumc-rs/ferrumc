@@ -18,7 +18,7 @@ pub fn process(query: Query<&StreamWriter>, state: Res<GlobalStateResource>) {
             continue;
         };
 
-        if let Err(err) = writer.send_packet(&SystemMessagePacket {
+        if let Err(err) = writer.send_packet(SystemMessagePacket {
             message: entry.message,
             overlay: entry.overlay,
         }) {

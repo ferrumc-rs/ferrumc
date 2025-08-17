@@ -1,7 +1,7 @@
 use crate::compression::compress_packet;
 use crate::conn_init::VarInt;
 use crate::packets::outgoing::{commands::CommandsPacket, registry_data::REGISTRY_PACKETS};
-use crate::conn_init::{LoginResult, NetDecodeOpts, send_packet, trim_packet_head};
+use crate::conn_init::{LoginResult, NetDecodeOpts};
 use crate::connection::StreamWriter;
 use crate::errors::{NetError, PacketError};
 use crate::packets::incoming::packet_skeleton::PacketSkeleton;
@@ -302,7 +302,7 @@ pub(super) async fn login(
     }
 
     // =============================================================================================
-    send_packet(conn_write, &CommandsPacket::new()).await?;
+    conn_write.send_packet(CommandsPacket::new())?;
 
     trace!(
         "sending command graph {:#?}",
@@ -310,8 +310,6 @@ pub(super) async fn login(
     );
   
     // =============================================================================================
-    conn_write.flush().await?;
-
     // ✅ Login sequence complete
     Ok((
         false,

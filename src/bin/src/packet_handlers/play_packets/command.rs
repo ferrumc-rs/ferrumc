@@ -59,7 +59,7 @@ pub fn handle(
                 let writer = query
                     .get(entity)
                     .expect("invalid sender, this should never happen");
-                if let Err(err) = writer.send_packet(&SystemMessagePacket {
+                if let Err(err) = writer.send_packet(SystemMessagePacket {
                     message: *err,
                     overlay: false,
                 }) {
