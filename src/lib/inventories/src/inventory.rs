@@ -1,6 +1,6 @@
 use crate::errors::InventoryError;
 use crate::slot::InventorySlot;
-use crate::{InventoryUpdate, INVENTORY_UPDATES_QUEUE};
+use crate::{INVENTORY_UPDATES_QUEUE, InventoryUpdate};
 use bevy_ecs::prelude::{Component, Entity};
 
 #[derive(Component)]
@@ -163,7 +163,10 @@ mod tests {
         let slot = make_slot_with_id(1);
         inv.add_item(slot).unwrap();
         let slot2 = make_slot_with_id(2);
-        assert!(matches!(inv.add_item(slot2), Err(InventoryError::InventoryFull)));
+        assert!(matches!(
+            inv.add_item(slot2),
+            Err(InventoryError::InventoryFull)
+        ));
     }
 
     #[test]
@@ -197,8 +200,17 @@ mod tests {
     #[test]
     fn test_invalid_index() {
         let mut inv = Inventory::new(1);
-        assert!(matches!(inv.get_item(2), Err(InventoryError::InvalidSlotIndex(2))));
-        assert!(matches!(inv.set_item(2, make_slot_with_id(1)), Err(InventoryError::InvalidSlotIndex(2))));
-        assert!(matches!(inv.remove_item(2), Err(InventoryError::InvalidSlotIndex(2))));
+        assert!(matches!(
+            inv.get_item(2),
+            Err(InventoryError::InvalidSlotIndex(2))
+        ));
+        assert!(matches!(
+            inv.set_item(2, make_slot_with_id(1)),
+            Err(InventoryError::InvalidSlotIndex(2))
+        ));
+        assert!(matches!(
+            inv.remove_item(2),
+            Err(InventoryError::InvalidSlotIndex(2))
+        ));
     }
 }
