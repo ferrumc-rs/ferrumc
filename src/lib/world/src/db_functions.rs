@@ -133,7 +133,6 @@ pub(crate) fn save_chunk_internal(world: &World, chunk: &Chunk) -> Result<(), Wo
     Ok(())
 }
 
-
 pub(crate) fn load_chunk_internal(
     world: &World,
     x: i32,

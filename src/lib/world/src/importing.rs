@@ -91,8 +91,8 @@ impl World {
                             let self_clone = arc_self.clone();
                             let progress = progress.clone();
                             move || {
-                                let res = self_clone.save_chunk(
-                                    vanilla_chunk.to_custom_format()?.into());
+                                let res =
+                                    self_clone.save_chunk(vanilla_chunk.to_custom_format()?.into());
                                 progress.inc(1);
                                 if index == location_count - 1 {
                                     self_clone.storage_backend.flush()?;
@@ -117,7 +117,6 @@ impl World {
         progress.finish_with_message("Import complete");
 
         arc_self.storage_backend.flush()?;
-
 
         info!(
             "Imported {} chunks in {:?}",
