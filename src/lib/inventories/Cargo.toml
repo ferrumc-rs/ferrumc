@@ -11,6 +11,8 @@ tokio = { workspace = true }
 crossbeam-queue = { workspace = true }
 once_cell = { workspace = true }
 thiserror = { workspace = true }
+ferrumc-registry = { workspace = true }
+simd-json = { workspace = true }
 
 [lints]
 workspace = true
