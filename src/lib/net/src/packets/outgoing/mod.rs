@@ -36,3 +36,7 @@ pub mod block_change_ack;
 
 pub mod block_update;
 pub(crate) mod set_compression;
+
+pub mod set_player_inventory_slot;
+pub mod set_container_content;
+pub mod set_container_slot;

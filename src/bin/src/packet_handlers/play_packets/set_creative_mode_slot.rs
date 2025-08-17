@@ -1,7 +1,10 @@
 use bevy_ecs::prelude::{Query, Res};
+use ferrumc_inventories::defined_slots::player::{HOTBAR_SLOT_6, HOTBAR_SLOT_9};
 use ferrumc_inventories::display::DisplayType;
 use ferrumc_inventories::inventory::Inventory;
+use ferrumc_inventories::slot::InventorySlot;
 use ferrumc_net::SetCreativeModeSlotReceiver;
+use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalStateResource;
 use tracing::{debug, error};
 
@@ -27,6 +30,20 @@ pub fn handle(
                     }
                 }
                 // Display the updated inventory
+                if let Err(err) = inventory.set_item_with_update(
+                    HOTBAR_SLOT_6 as usize,
+                    InventorySlot {
+                        count: 1.into(),
+                        item_id: Some(VarInt::new(872)), // Example item ID for the creative mode slot
+                        components_to_add_count: None,
+                        components_to_remove_count: None,
+                        components_to_add: None,
+                        components_to_remove: None,
+                    },
+                    entity,
+                ) {
+                    error!("Failed to update creative mode slot for player {}: {:?}", entity, err);
+                }
                 inventory.display(DisplayType::Player);
             } else {
                 error!("Could not find inventory for player {}", entity);

@@ -2,8 +2,10 @@ use ferrumc_net_codec::decode::errors::NetDecodeError;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::fmt::Display;
-use std::io::Read;
-use tokio::io::AsyncRead;
+use std::io::{Read, Write};
+use tokio::io::{AsyncRead, AsyncWrite};
+use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
+use ferrumc_net_codec::encode::errors::NetEncodeError;
 
 #[derive(Debug, Clone, Hash, Default)]
 pub struct InventorySlot {
@@ -76,6 +78,42 @@ impl NetDecode for InventorySlot {
         reader: &mut R,
         opts: &NetDecodeOpts,
     ) -> Result<Self, NetDecodeError> {
+        todo!()
+    }
+}
+
+impl NetEncode for InventorySlot {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+        self.count.encode(writer, opts)?;
+        if let Some(item_id) = &self.item_id {
+            item_id.encode(writer, opts)?;
+        } else {
+            VarInt::new(0).encode(writer, opts)?; // Encode 0 for empty slot
+        }
+        if let Some(components_to_add_count) = &self.components_to_add_count {
+            components_to_add_count.encode(writer, opts)?;
+            if let Some(components) = &self.components_to_add {
+                for component in components {
+                    component.encode(writer, opts)?;
+                }
+            }
+        } else {
+            VarInt::new(0).encode(writer, opts)?; // Encode 0 for no components to add
+        }
+        if let Some(components_to_remove_count) = &self.components_to_remove_count {
+            components_to_remove_count.encode(writer, opts)?;
+            if let Some(components) = &self.components_to_remove {
+                for component in components {
+                    component.encode(writer, opts)?;
+                }
+            }
+        } else {
+            VarInt::new(0).encode(writer, opts)?; // Encode 0 for no components to remove
+        }
+        Ok(())
+    }
+
+    async fn encode_async<W: AsyncWrite + Unpin>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
         todo!()
     }
 }
