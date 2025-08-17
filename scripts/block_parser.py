@@ -1,9 +1,9 @@
-import bz2
 import json
 
 
 def dict_reorder(item):
     return {k: dict_reorder(v) if isinstance(v, dict) else v for k, v in sorted(item.items())}
+
 
 out = {}
 
@@ -23,10 +23,5 @@ with open("../.etc/blocks.json") as f:
 
 out = dict_reorder(out)
 
-with open("../.etc/blockstates.json", "w") as bs:
+with open("../assets/data/blockstates.json", "w") as bs:
     json.dump(out, bs, indent=4)
-with open("../.etc/blockmappings.bz2", "wb") as f:
-    as_string = json.dumps(out, separators=(',', ':'))
-    print("Compressing and writing to file...")
-    print("This may take a while.")
-    f.write(bz2.compress(as_string.encode("utf-8")))

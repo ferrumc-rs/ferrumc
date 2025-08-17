@@ -1,5 +1,4 @@
 use ferrumc_macros::{packet, NetEncode};
-use std::io::Write;
 use typename::TypeName;
 
 #[derive(TypeName, NetEncode, Clone)]

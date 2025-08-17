@@ -1,0 +1,18 @@
+[package]
+name = "ferrumc-inventories"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+
+ferrumc-net-codec = { workspace = true }
+bevy_ecs = { workspace = true }
+tokio = { workspace = true }
+crossbeam-queue = { workspace = true }
+once_cell = { workspace = true }
+thiserror = { workspace = true }
+ferrumc-registry = { workspace = true }
+simd-json = { workspace = true }
+
+[lints]
+workspace = true

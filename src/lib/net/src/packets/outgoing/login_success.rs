@@ -1,6 +1,5 @@
 use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
-use std::io::Write;
 
 #[derive(NetEncode)]
 #[packet(packet_id = "login_finished", state = "login")]

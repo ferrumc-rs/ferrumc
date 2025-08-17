@@ -1,6 +1,5 @@
 use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::network_position::NetworkPosition;
-use std::io::Write;
 
 #[derive(NetEncode)]
 #[packet(packet_id = "set_default_spawn_position", state = "play")]

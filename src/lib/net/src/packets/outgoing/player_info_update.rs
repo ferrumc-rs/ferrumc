@@ -3,7 +3,6 @@ use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use std::io::Write;
 use tracing::debug;
 
 #[derive(NetEncode)]

@@ -1,5 +1,6 @@
 use bevy_ecs::query::QueryEntityError;
 use ferrumc_core::errors::CoreError;
+use ferrumc_inventories::errors::InventoryError;
 use ferrumc_net::errors::NetError;
 use ferrumc_plugins::errors::PluginsError;
 use ferrumc_storage::errors::StorageError;
@@ -29,6 +30,9 @@ pub enum BinaryError {
 
     #[error("World error: {0}")]
     World(#[from] WorldError),
+
+    #[error("Inventory error: {0}")]
+    Inventory(#[from] InventoryError),
 
     #[error("{0}")]
     Custom(String),

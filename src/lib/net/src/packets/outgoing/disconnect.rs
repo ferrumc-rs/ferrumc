@@ -1,6 +1,5 @@
 use ferrumc_macros::{packet, NetEncode};
 use ferrumc_text::{ComponentBuilder, TextComponent};
-use std::io::Write;
 
 #[derive(NetEncode)]
 #[packet(packet_id = "disconnect", state = "play")]

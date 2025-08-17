@@ -165,7 +165,6 @@ mod value {
 
 mod entity_state {
     use ferrumc_macros::NetEncode;
-    use std::io::Write;
 
     /// Bit mask for various entity states
     #[derive(Debug, NetEncode, Clone)]

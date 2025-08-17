@@ -3,7 +3,6 @@ use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use std::io::Write;
 
 #[derive(NetEncode, Clone)]
 #[packet(packet_id = "entity_position_sync", state = "play")]

@@ -1,7 +1,6 @@
 use bevy_ecs::prelude::{Entity, Event};
 use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use std::io::Write;
 
 #[derive(NetEncode, Clone)]
 #[packet(packet_id = "animate", state = "play")]

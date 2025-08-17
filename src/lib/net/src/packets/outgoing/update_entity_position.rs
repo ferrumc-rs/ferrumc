@@ -1,7 +1,6 @@
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use std::io::Write;
 
 #[derive(NetEncode, Clone)]
 #[packet(packet_id = "move_entity_pos", state = "play")]

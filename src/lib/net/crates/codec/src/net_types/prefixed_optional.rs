@@ -3,10 +3,11 @@ use crate::decode::{NetDecode, NetDecodeOpts};
 use crate::encode::errors::NetEncodeError;
 use crate::encode::{NetEncode, NetEncodeOpts};
 use bitcode::{Decode, Encode};
+use std::fmt::Display;
 use std::io::{Read, Write};
 use tokio::io::{AsyncRead, AsyncWrite};
 
-#[derive(Encode, Decode)]
+#[derive(Encode, Decode, Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PrefixedOptional<T> {
     None,
     Some(T),
@@ -66,6 +67,20 @@ impl<T> PrefixedOptional<T> {
             PrefixedOptional::None => panic!("Called `unwrap` on a `PrefixedOptional::None`"),
         }
     }
+
+    pub fn unwrap_or(self, default: T) -> T {
+        match self {
+            PrefixedOptional::Some(value) => value,
+            PrefixedOptional::None => default,
+        }
+    }
+
+    pub fn to_option(self) -> Option<T> {
+        match self {
+            PrefixedOptional::Some(value) => Some(value),
+            PrefixedOptional::None => None,
+        }
+    }
 }
 
 impl<T: NetDecode> NetDecode for PrefixedOptional<T> {
@@ -89,6 +104,15 @@ impl<T: NetDecode> NetDecode for PrefixedOptional<T> {
         } else {
             let value = T::decode_async(reader, opts).await?;
             Ok(PrefixedOptional::Some(value))
+        }
+    }
+}
+
+impl<T: Display> Display for PrefixedOptional<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            PrefixedOptional::None => write!(f, "None"),
+            PrefixedOptional::Some(value) => write!(f, "Some({})", value),
         }
     }
 }

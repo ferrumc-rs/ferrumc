@@ -5,12 +5,13 @@ use crate::encode::{NetEncode, NetEncodeOpts};
 use crate::net_types::NetTypesError;
 use bitcode::{Decode, Encode};
 use deepsize::DeepSizeOf;
+use std::fmt::Display;
 use std::io::{Read, Write};
 use tokio::io::AsyncRead;
 use tokio::io::AsyncWriteExt;
 use tokio::io::{AsyncReadExt, AsyncWrite};
 
-#[derive(Debug, Encode, Decode, Clone, DeepSizeOf, PartialEq, Eq, PartialOrd, Ord, Copy)]
+#[derive(Debug, Encode, Decode, Clone, DeepSizeOf, PartialEq, Eq, PartialOrd, Ord, Copy, Hash)]
 pub struct VarInt(pub i32);
 
 mod adapters {
@@ -70,6 +71,12 @@ mod adapters {
 
 const SEGMENT_BITS: i32 = 0x7F;
 const CONTINUE_BIT: i32 = 0x80;
+
+impl Display for VarInt {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
 
 impl VarInt {
     pub const fn new(value: i32) -> Self {

@@ -11,7 +11,6 @@ mod primitives;
 pub enum NetEncodeOpts {
     None,
     WithLength,
-    Compressed,
     SizePrefixed,
 }
 

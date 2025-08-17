@@ -3,7 +3,6 @@ use ferrumc_macros::{build_registry_packets, packet, NetEncode};
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::prefixed_optional::PrefixedOptional;
 use lazy_static::lazy_static;
-use std::io::Write;
 
 #[derive(NetEncode)]
 #[packet(packet_id = "registry_data", state = "configuration")]

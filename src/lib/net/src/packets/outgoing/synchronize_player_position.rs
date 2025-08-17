@@ -2,7 +2,6 @@ use crate::packets::outgoing::set_default_spawn_position::DEFAULT_SPAWN_POSITION
 use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::teleport_flags::TeleportFlags;
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use std::io::Write;
 
 #[derive(NetEncode)]
 #[packet(packet_id = "player_position", state = "play")]
