@@ -94,13 +94,13 @@ impl CommandGraph {
             let is_last = i == command.args.len() - 1;
 
             let mut arg_node = CommandNode {
-                flags: CommandNodeFlag::NodeType(CommandNodeType::Argument).bitmask(),
+                flags: CommandNodeFlag::NodeType(CommandNodeType::Argument).bitmask() | CommandNodeFlag::HasSuggestionsType.bitmask(),
                 children: LengthPrefixedVec::new(Vec::new()),
                 redirect_node: None,
                 name: Some(arg.name.clone()),
                 parser_id: Some(primitive.argument_type),
                 properties: primitive.flags,
-                suggestions_type: None,
+                suggestions_type: Some("ask_server".to_string()),
             };
 
             if is_last {

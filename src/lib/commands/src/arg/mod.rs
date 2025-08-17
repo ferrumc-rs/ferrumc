@@ -3,7 +3,7 @@
 use ferrumc_text::TextComponent;
 use primitive::PrimitiveArgument;
 
-use crate::ctx::CommandContext;
+use crate::{ctx::CommandContext, Suggestion};
 
 pub mod primitive;
 
@@ -26,8 +26,11 @@ where
 
     /// Returns the completion strings sent to the client when typing something.
     /// This is called every time the client enters or removes a character.
-    fn completions(_ctx: &mut CommandContext) -> Option<Vec<String>> {
-        None
+    /// 
+    /// **Make sure to consume the input in here, even if you are not suggesting anything**.
+    fn suggest(ctx: &mut CommandContext) -> Vec<Suggestion> {
+        ctx.input.read_string();
+        vec![]
     }
 }
 
@@ -62,6 +65,9 @@ pub struct CommandArgumentNode {
 
     /// The [`PrimitiveArgument`] of this argument node.
     pub primitive: PrimitiveArgument,
+    
+    /// Suggests autocomplete options for this argument.
+    pub suggester: fn(&mut CommandContext) -> Vec<Suggestion>,
 }
 
 pub mod utils {

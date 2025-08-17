@@ -53,9 +53,9 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
             if is_arg {
                 let required = match *fn_arg.ty {
                     Type::Path(ref path) => {
-                        path.path.segments.iter().any(|seg| seg.ident == "Option")
+                        !path.path.segments.iter().any(|seg| seg.ident == "Option")
                     }
-                    _ => false,
+                    _ => true
                 };
 
                 args.push(Arg {
@@ -150,6 +150,7 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
                     name: #name.to_string(),
                     required: #required,
                     primitive: <#ty as ferrumc_commands::arg::CommandArgument>::primitive(),
+                    suggester: <#ty as ferrumc_commands::arg::CommandArgument>::suggest,
                 },
             }
         })
