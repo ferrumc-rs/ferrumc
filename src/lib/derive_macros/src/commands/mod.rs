@@ -32,8 +32,11 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
     let mut args = Vec::new();
     let mut bevy_args = Vec::<(Box<Pat>, Type)>::new();
     let mut has_sender_arg = false;
+    let mut sender_arg_before_cmd_args = false;
+    let mut sender_arg_index: Option<usize> = None;
+    let mut first_arg_index: Option<usize> = None;
 
-    for fn_arg in &mut input_fn.sig.inputs {
+    for (idx, fn_arg) in input_fn.sig.inputs.iter_mut().enumerate() {
         let FnArg::Typed(fn_arg) = fn_arg else {
             return TokenStream::from(quote! {
                 compiler_error!("command handler cannot have receiver");
@@ -44,6 +47,8 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
             bevy_args.push((fn_arg.pat.clone(), *fn_arg.ty.clone()));
         }
 
+        let mut is_arg_attr = false;
+        let mut is_sender_attr = false;
         let mut sender_arg_mismatched_ty = false;
 
         fn_arg.attrs.retain(|arg| {
@@ -51,11 +56,13 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
             let is_sender = arg.path().is_ident("sender");
 
             if is_arg {
+                is_arg_attr = true;
+
                 let required = match *fn_arg.ty {
                     Type::Path(ref path) => {
                         !path.path.segments.iter().any(|seg| seg.ident == "Option")
                     }
-                    _ => true
+                    _ => true,
                 };
 
                 args.push(Arg {
@@ -66,6 +73,8 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
             }
 
             if is_sender {
+                is_sender_attr = true;
+
                 match *fn_arg.ty {
                     Type::Path(ref path) => {
                         if path.path.segments.iter().next_back().unwrap().ident != "Sender" {
@@ -73,12 +82,12 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
                             return false;
                         }
                     }
-
                     _ => {
                         sender_arg_mismatched_ty = true;
                         return false;
                     }
                 }
+
                 has_sender_arg = true;
             }
 
@@ -89,6 +98,20 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
             return TokenStream::from(quote! {
                 compile_error!("invalid type for sender arg - should be Sender");
             });
+        }
+
+        if is_sender_attr && sender_arg_index.is_none() {
+            sender_arg_index = Some(idx);
+        }
+
+        if is_arg_attr && first_arg_index.is_none() {
+            first_arg_index = Some(idx);
+        }
+    }
+
+    if let (Some(sender_idx), Some(arg_idx)) = (sender_arg_index, first_arg_index) {
+        if sender_idx < arg_idx {
+            sender_arg_before_cmd_args = true;
         }
     }
 
@@ -156,6 +179,20 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
         })
         .collect::<Vec<proc_macro2::TokenStream>>();
 
+    let call = if has_sender_arg && sender_arg_before_cmd_args {
+        quote! {
+            #fn_name(#sender_param #(#arg_extractors)* #(#system_arg_pats)*);
+        }
+    } else if has_sender_arg {
+        quote! {
+            #fn_name(#(#arg_extractors)* #sender_param #(#system_arg_pats)*);
+        }
+    } else {
+        quote! {
+            #fn_name(#(#arg_extractors)* #(#system_arg_pats)*);
+        }
+    };
+
     TokenStream::from(quote! {
         #[allow(non_snake_case)]
         #[allow(dead_code)]
@@ -168,7 +205,7 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
         fn #system_name(mut events: bevy_ecs::prelude::EventMutator<ferrumc_commands::events::ResolvedCommandDispatchEvent>, #(#system_args)*) {
             for ferrumc_commands::events::ResolvedCommandDispatchEvent { command, ctx, sender } in events.read() {
                 if command.name == #command_name {
-                    #fn_name(#(#arg_extractors)* #sender_param #(#system_arg_pats)*);
+                    #call
                 }
             }
         }

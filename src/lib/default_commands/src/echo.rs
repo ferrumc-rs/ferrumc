@@ -23,7 +23,7 @@ impl CommandArgument for TestArg {
 }
 
 #[command("fih")]
-fn fih(#[arg] arg: TestArg, #[sender] sender: Sender) {
+fn fih(#[sender] sender: Sender, #[arg] arg: TestArg) {
     sender.send_message(TextComponent::from(format!("i like {}", arg.0)), false);
 }
 
