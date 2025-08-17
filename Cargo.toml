@@ -34,11 +34,12 @@ members = [
     "src/lib/world",
     "src/lib/world_gen",
     "src/lib/utils/threadpool",
+    "src/lib/registry",
 ]
 
 #================== Lints ==================#
 [workspace.lints.rust]
-unsafe_code = "deny"
+unsafe_code = "allow"
 unused_unsafe = "deny"
 #unsafe_op_in_unsafe_fn = "deny"
 #unused_crate_dependencies = "deny"
@@ -96,13 +97,14 @@ ferrumc-net-codec = { path = "src/lib/net/crates/codec" }
 ferrumc-net-encryption = { path = "src/lib/net/crates/encryption" }
 ferrumc-plugins = { path = "src/lib/plugins" }
 ferrumc-profiling = { path = "src/lib/utils/profiling" }
+ferrumc-registry = { path = "src/lib/registry" }
 ferrumc-state = { path = "src/lib/core/state" }
 ferrumc-storage = { path = "src/lib/storage" }
 ferrumc-text = { path = "src/lib/text" }
+ferrumc-threadpool = { path = "src/lib/utils/threadpool" }
 ferrumc-utils = { path = "src/lib/utils" }
 ferrumc-world = { path = "src/lib/world" }
 ferrumc-world-gen = { path = "src/lib/world_gen" }
-ferrumc-threadpool = { path = "src/lib/utils/threadpool" }
 
 
 # Asynchronous
@@ -145,6 +147,8 @@ bitcode_derive = "0.6.5"
 toml = "0.9.4"
 craftflow-nbt = "2.1.0"
 figment = { version = "0.10.19", features = ["toml", "env"] }
+simd-json = "0.15.1"
+sonic-rs = "0.5.3"
 
 # Bit manipulation
 byteorder = "1.5.0"
