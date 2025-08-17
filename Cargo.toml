@@ -16,7 +16,6 @@ members = [
     "src/lib/adapters/anvil",
     "src/lib/adapters/anvil",
     "src/lib/adapters/nbt",
-    "src/lib/adapters/nbt",
     "src/lib/core",
     "src/lib/core/state",
     "src/lib/derive_macros",
@@ -155,7 +154,6 @@ byteorder = "1.5.0"
 dashmap = "7.0.0-rc2"
 uuid = { version = "1.18.0", features = ["v4", "v3", "serde"] }
 indexmap = { version = "2.10.0", features = ["serde"] }
-tinyvec = "1.9.0"
 
 # Macros
 lazy_static = "1.5.0"

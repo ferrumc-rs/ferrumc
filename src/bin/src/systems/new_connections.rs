@@ -5,6 +5,7 @@ use ferrumc_core::conn::keepalive::KeepAliveTracker;
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
+use ferrumc_inventories::hotbar::Hotbar;
 use ferrumc_inventories::inventory::Inventory;
 use ferrumc_net::connection::NewConnection;
 use ferrumc_state::GlobalStateResource;
@@ -37,6 +38,7 @@ pub fn accept_new_connections(
                 has_received_keep_alive: true,
             },
             Inventory::new(46),
+            Hotbar::default(),
         ));
         trace!("Spawned entity for new connection: {:?}", entity.id());
         // Add the new entity to the global state

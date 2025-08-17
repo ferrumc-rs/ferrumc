@@ -12,7 +12,7 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalStateResource;
 use tracing::{debug, error, trace};
 
-use ferrumc_inventories::defined_slots::player::HOTBAR_SLOT_1;
+use ferrumc_inventories::hotbar::Hotbar;
 use ferrumc_inventories::inventory::Inventory;
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
@@ -32,11 +32,11 @@ static ITEM_TO_BLOCK_MAPPING: Lazy<HashMap<i32, i32>> = Lazy::new(|| {
 pub fn handle(
     events: Res<PlaceBlockReceiver>,
     state: Res<GlobalStateResource>,
-    conn_q: Query<(Entity, &StreamWriter, &Inventory)>,
+    query: Query<(Entity, &StreamWriter, &Inventory, &Hotbar)>,
     pos_q: Query<(&Position, &CollisionBounds)>,
 ) {
     'ev_loop: for (event, eid) in events.0.try_iter() {
-        let Ok((entity, conn, inventory)) = conn_q.get(eid) else {
+        let Ok((entity, conn, inventory, hotbar)) = query.get(eid) else {
             debug!("Could not get connection for entity {:?}", eid);
             continue;
         };
@@ -46,7 +46,7 @@ pub fn handle(
         }
         match event.hand.0 {
             0 => {
-                let slot_index = HOTBAR_SLOT_1 as usize;
+                let slot_index = hotbar.selected_slot as usize;
                 let Ok(slot) = inventory.get_item(slot_index) else {
                     error!("Could not fetch {:?}", eid);
                     continue 'ev_loop;

@@ -19,11 +19,10 @@ workspace = true
 [dev-dependencies]
 criterion = { workspace = true }
 ferrumc-macros = { workspace = true }
-fastnbt = { version = "2.5.0" }
-simdnbt = { git = "https://github.com/azalea-rs/simdnbt", version = "0.7.2" }
-crab_nbt = { version = "0.2.1" }
+fastnbt = { version = "2.6.0" }
+simdnbt = { version = "0.8.0" }
+crab_nbt = { version = "0.2.11" }
 hematite-nbt = { version = "0.5.2" }
-fastanvil = { version = "0.31.0" }
 maplit = "1.0.2"
 
 [[bench]]

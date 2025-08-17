@@ -1,6 +1,7 @@
 pub mod defined_slots;
 pub mod display;
 pub mod errors;
+pub mod hotbar;
 pub mod inventory;
 pub mod item;
 pub mod slot;
