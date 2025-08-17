@@ -1,11 +1,10 @@
 use once_cell::sync::Lazy;
+use simd_json::OwnedValue;
 use simd_json::derived::ValueObjectAccess;
 use simd_json::prelude::ValueArrayAccess;
-use simd_json::OwnedValue;
 
 // Parse once at startup
-static REGISTRY_BYTES: &[u8] =
-    include_bytes!("../../../../assets/data/registries.json");
+static REGISTRY_BYTES: &[u8] = include_bytes!("../../../../assets/data/registries.json");
 
 pub static LOADED_REGISTRY: Lazy<OwnedValue> = Lazy::new(|| {
     // simd-json mutates the buffer during parsing → needs a Vec<u8>
@@ -25,9 +24,9 @@ pub fn lookup(path: &str) -> Option<&OwnedValue> {
     for seg in path.split('/') {
         // allow numeric segments as array indices
         if let Ok(idx) = seg.parse::<usize>() {
-            cur = cur.get_idx(idx)?;        // works if current is an array
+            cur = cur.get_idx(idx)?; // works if current is an array
         } else {
-            cur = cur.get(seg)?;        // works if current is an object
+            cur = cur.get(seg)?; // works if current is an object
         }
     }
     Some(cur)
@@ -37,7 +36,6 @@ pub fn lookup(path: &str) -> Option<&OwnedValue> {
 pub fn lookup_owned(path: &str) -> Option<OwnedValue> {
     lookup(path).cloned()
 }
-
 
 #[cfg(test)]
 mod tests {
