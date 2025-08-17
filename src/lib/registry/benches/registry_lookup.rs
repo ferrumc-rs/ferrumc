@@ -1,4 +1,4 @@
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{criterion_group, criterion_main, Criterion, Throughput};
 use std::hint::black_box;
 
 fn bench_lookup(c: &mut Criterion) {
@@ -8,6 +8,8 @@ fn bench_lookup(c: &mut Criterion) {
     black_box(ferrumc_registry::lookup("minecraft:item/entries/minecraft:cobblestone/protocol_id"));
 
     let mut group = c.benchmark_group("registry_lookup");
+
+    group.throughput(Throughput::Elements(1));
 
     group.bench_function("lookup_cobblestone", |b| {
         b.iter(|| {

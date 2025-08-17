@@ -6,7 +6,6 @@ edition = "2024"
 [dependencies]
 simd-json = { workspace = true }
 once_cell = { workspace = true }
-sonic-rs = { workspace = true }
 
 [lints]
 workspace = true
