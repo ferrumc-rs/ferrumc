@@ -50,8 +50,8 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     register_resources(&mut ecs_world, new_conn_recv, global_state_res);
     register_packet_handlers(&mut schedule);
     register_player_systems(&mut schedule);
-    register_game_systems(&mut schedule);
     register_command_systems(&mut schedule);
+    register_game_systems(&mut schedule);
 
     register_shutdown_systems(&mut shutdown_schedule);
 
