@@ -1,5 +1,6 @@
 use bevy_ecs::schedule::Schedule;
 
+mod chat_message;
 mod chunk_batch_ack;
 mod command;
 mod command_suggestions;
@@ -30,4 +31,5 @@ pub fn register_packet_handlers(schedule: &mut Schedule) {
     schedule.add_systems(player_loaded::handle);
     schedule.add_systems(command::handle);
     schedule.add_systems(command_suggestions::handle);
+    schedule.add_systems(chat_message::handle);
 }

@@ -1,4 +1,4 @@
-use bevy_ecs::system::{Query, Res};
+use bevy_ecs::prelude::*;
 use ferrumc_core::mq;
 use ferrumc_net::{
     connection::StreamWriter, packets::outgoing::system_message::SystemMessagePacket,
@@ -6,23 +6,42 @@ use ferrumc_net::{
 use ferrumc_state::GlobalStateResource;
 use tracing::error;
 
-pub fn process(query: Query<&StreamWriter>, state: Res<GlobalStateResource>) {
+fn send(
+    writer: &StreamWriter,
+    receiver: Entity,
+    state: &GlobalStateResource,
+    entry: ferrumc_core::mq::QueueEntry,
+) {
+    if !state.0.players.is_connected(receiver) {
+        return;
+    }
+
+    if let Err(err) = writer.send_packet(SystemMessagePacket {
+        message: entry.message,
+        overlay: entry.overlay,
+    }) {
+        error!("failed sending queued message to player: {err}");
+    }
+}
+
+pub fn process(query: Query<(Entity, &StreamWriter)>, state: Res<GlobalStateResource>) {
     while !mq::QUEUE.is_empty() {
         let entry = mq::QUEUE.pop().unwrap();
 
-        if !state.0.players.is_connected(entry.receiver) {
-            continue;
-        }
+        match entry.receiver {
+            Some(receiver) => {
+                let Ok((_, writer)) = query.get(receiver) else {
+                    continue;
+                };
 
-        let Ok(writer) = query.get(entry.receiver) else {
-            continue;
-        };
+                send(writer, receiver, &state, entry);
+            }
 
-        if let Err(err) = writer.send_packet(SystemMessagePacket {
-            message: entry.message,
-            overlay: entry.overlay,
-        }) {
-            error!("failed sending queued message to player: {err}");
+            None => {
+                for (receiver, writer) in query {
+                    send(writer, receiver, &state, entry.clone());
+                }
+            }
         }
     }
 }
