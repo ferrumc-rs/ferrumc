@@ -60,6 +60,21 @@ pub fn lookup_packet(input: TokenStream) -> TokenStream {
 }
 // #=================== PACKETS ===================#
 
+/// Creates a command.
+/// 
+/// A command function can take a sender argument, multiple command arguments and bevy system arguments.
+/// 
+/// The optional sender argument is marked with `#[sender]` attribute and command arguments are marked with
+/// the `#[arg]` attribute. Any other argument is treated as a bevy system arg.
+/// 
+/// Usage example:
+/// 
+/// ```
+/// #[command("hello")]
+/// fn command(#[sender] sender: Sender) {
+///     sender.send_message(TextComponent::from("Hello, world!"), false);
+/// }
+/// ```
 #[proc_macro_attribute]
 pub fn command(attr: TokenStream, input: TokenStream) -> TokenStream {
     commands::command(attr, input)
