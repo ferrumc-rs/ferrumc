@@ -23,8 +23,6 @@ impl CommandArgument for char {
     fn suggest(ctx: &mut CommandContext) -> Vec<Suggestion> {
         ctx.input.read_string();
 
-        ('a'..'Z')
-            .map(|c| Suggestion::of(c.to_string()))
-            .collect()
+        ('a'..'Z').map(|c| Suggestion::of(c.to_string())).collect()
     }
 }
