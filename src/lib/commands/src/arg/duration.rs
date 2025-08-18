@@ -47,9 +47,7 @@ impl CommandArgument for Duration {
     fn suggest(ctx: &mut CommandContext) -> Vec<Suggestion> {
         ctx.input.skip_whitespace(u32::MAX, false);
         if !ctx.input.has_remaining_input() {
-            return (0..9)
-                .map(|i| Suggestion::of(i.to_string()))
-                .collect();
+            return (0..9).map(|i| Suggestion::of(i.to_string())).collect();
         };
 
         let input = ctx.input.read_string();
