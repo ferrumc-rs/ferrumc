@@ -1,4 +1,5 @@
 //! FerrumC's Command API.
+#![feature(duration_constructors)]
 
 use std::io::Write;
 use std::sync::{Arc, LazyLock};
@@ -46,7 +47,10 @@ pub struct Suggestion {
 
 impl Suggestion {
     pub fn of(content: impl AsRef<str>) -> Suggestion {
-        Suggestion { content: content.as_ref().to_string(), tooltip: None }
+        Suggestion {
+            content: content.as_ref().to_string(),
+            tooltip: None,
+        }
     }
 }
 

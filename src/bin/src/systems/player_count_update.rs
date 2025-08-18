@@ -9,8 +9,8 @@ pub fn player_count_updater(
     mut cooldown_tracker: ResMut<PlayerCountUpdateCooldown>,
 ) {
     // This list is more than likely to be updated on every join/leave event, but we do a manual
-    // refresh every 10 seconds in case something desyncs
-    if cooldown_tracker.last_update.elapsed().as_secs() < 10 {
+    // refresh every 10 seconds in case something desyncs (FIXME: not happening)
+    if cooldown_tracker.last_update.elapsed().as_secs() < 1 {
         return;
     }
     state.0.players.player_list.clear();

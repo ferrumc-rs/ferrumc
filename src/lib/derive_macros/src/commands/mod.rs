@@ -144,7 +144,7 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
                 match ctx.arg::<#ty>(#name) {
                     Ok(a) => a,
                     Err(err) => {
-                        tracing::error!("failed parsing arg {}: {}", #name, err);
+                        sender.send_message(ferrumc_text::TextComponentBuilder::new(format!("failed parsing {}:", #name)).extra(*err).build(), false);
                         return;
                     }
                 },

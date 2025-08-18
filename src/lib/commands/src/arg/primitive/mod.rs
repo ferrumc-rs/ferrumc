@@ -1,9 +1,8 @@
 //! Primitive command argument types.
+
 // TODO:
 // * Entity
-// * Double (f64)
 // * Score Holder
-// * Time
 // * Resource or Tag
 // * Resource or Tag Key
 // * Resource
@@ -23,6 +22,8 @@ use long::LongArgumentFlags;
 use string::StringArgumentType;
 use tokio::io::AsyncWrite;
 
+pub mod bool;
+pub mod char;
 pub mod float;
 pub mod int;
 pub mod long;
@@ -77,6 +78,13 @@ impl PrimitiveArgument {
                 min,
                 max,
             })),
+        }
+    }
+
+    pub fn bool() -> PrimitiveArgument {
+        PrimitiveArgument {
+            argument_type: PrimitiveArgumentType::Bool,
+            flags: None,
         }
     }
 }

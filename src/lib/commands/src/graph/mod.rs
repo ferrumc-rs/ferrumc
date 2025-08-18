@@ -53,8 +53,8 @@ impl CommandGraph {
     pub fn push(&mut self, command: Arc<Command>) {
         let mut current_node_idx = 0;
 
-        for (i, part) in command.name.split_whitespace().enumerate() {
-            let is_last = i == command.name.split_whitespace().count() - 1;
+        for (idx, part) in command.name.split_whitespace().enumerate() {
+            let is_last = idx == command.name.split_whitespace().count() - 1;
 
             let mut node = CommandNode {
                 flags: CommandNodeFlag::NodeType(CommandNodeType::Literal).bitmask(),
@@ -77,7 +77,7 @@ impl CommandGraph {
             self.nodes.push(node);
             self.node_to_indices.insert(part.to_string(), node_idx);
 
-            if i == 0 {
+            if idx == 0 {
                 self.nodes[0].children.push(VarInt::new(node_idx as i32));
             } else {
                 let parent_node = self.nodes.get_mut(current_node_idx as usize).unwrap();
@@ -89,12 +89,13 @@ impl CommandGraph {
 
         let mut prev_node_idx = current_node_idx;
 
-        for (i, arg) in command.args.iter().enumerate() {
+        for (idx, arg) in command.args.iter().enumerate() {
             let primitive = arg.primitive.clone();
-            let is_last = i == command.args.len() - 1;
+            let is_last = idx == command.args.len() - 1;
 
             let mut arg_node = CommandNode {
-                flags: CommandNodeFlag::NodeType(CommandNodeType::Argument).bitmask() | CommandNodeFlag::HasSuggestionsType.bitmask(),
+                flags: CommandNodeFlag::NodeType(CommandNodeType::Argument).bitmask()
+                    | CommandNodeFlag::HasSuggestionsType.bitmask(),
                 children: LengthPrefixedVec::new(Vec::new()),
                 redirect_node: None,
                 name: Some(arg.name.clone()),

@@ -1,5 +1,13 @@
+use std::time::Duration;
+
 use bevy_ecs::prelude::*;
-use ferrumc_commands::{arg::{primitive::{string::QuotableString, PrimitiveArgument}, CommandArgument, ParserResult}, CommandContext, Sender, Suggestion};
+use ferrumc_commands::{
+    arg::{
+        primitive::{string::QuotableString, PrimitiveArgument},
+        CommandArgument, ParserResult,
+    },
+    CommandContext, Sender, Suggestion,
+};
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_macros::command;
 use ferrumc_text::{TextComponent, TextComponentBuilder};
@@ -14,17 +22,24 @@ impl CommandArgument for TestArg {
     fn primitive() -> PrimitiveArgument {
         PrimitiveArgument::word()
     }
-    
+
     fn suggest(ctx: &mut CommandContext) -> Vec<Suggestion> {
         ctx.input.read_string();
-        
-        vec![Suggestion::of("egg"), Suggestion::of("cheese"), Suggestion::of("fish")]
+
+        vec![
+            Suggestion::of("egg"),
+            Suggestion::of("cheese"),
+            Suggestion::of("fish"),
+        ]
     }
 }
 
-#[command("fih")]
-fn fih(#[sender] sender: Sender, #[arg] arg: TestArg) {
-    sender.send_message(TextComponent::from(format!("i like {}", arg.0)), false);
+#[command("love")]
+fn love(#[sender] sender: Sender, #[arg] arg: TestArg, #[arg] duration: Duration) {
+    sender.send_message(
+        TextComponent::from(format!("i've loved {} for {:?}", arg.0, duration)),
+        false,
+    );
 }
 
 #[command("echo")]

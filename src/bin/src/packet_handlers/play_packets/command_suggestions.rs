@@ -74,7 +74,6 @@ pub fn handle(
         let input = request.input;
 
         let command = find_command(input.clone());
-        dbg!(command.clone());
         let command_arg = input
             .clone()
             .strip_prefix(&format!(
@@ -86,7 +85,6 @@ pub fn handle(
         let mut ctx = create_ctx(command_arg.clone(), command.clone(), Sender::Player(entity));
         let command_arg = command_arg.clone(); // ok borrow checker
         let tokens = command_arg.split(" ").collect::<Vec<&str>>();
-        dbg!(tokens.clone());
         let Some(current_token) = tokens.last() else {
             return; // whitespace
         };
@@ -96,9 +94,7 @@ pub fn handle(
         if let Some(command) = command {
             for arg in command.args.clone() {
                 let arg_suggestions = (arg.suggester)(&mut ctx);
-                dbg!(ctx.input.peek_string());
-                ctx.input.skip_whitespace(u32::MAX, false);
-                dbg!(ctx.input.peek_string());
+                ctx.input.skip_whitespace(u32::MAX, true);
                 if !ctx.input.has_remaining_input() {
                     suggestions = arg_suggestions;
                     break;
@@ -108,8 +104,6 @@ pub fn handle(
 
         let length = input.len();
         let start = length - current_token.len();
-
-        dbg!(suggestions.clone());
 
         if let Err(e) = query
             .get(entity)

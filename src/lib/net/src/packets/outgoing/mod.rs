@@ -37,7 +37,7 @@ pub mod block_change_ack;
 
 pub mod block_update;
 
-pub mod commands;
 pub mod command_suggestions;
+pub mod commands;
 
 pub(crate) mod set_compression;

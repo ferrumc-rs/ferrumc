@@ -5,6 +5,7 @@ use primitive::PrimitiveArgument;
 
 use crate::{ctx::CommandContext, Suggestion};
 
+pub mod duration;
 pub mod primitive;
 
 pub type ParserResult<T> = Result<T, Box<TextComponent>>;
@@ -26,7 +27,7 @@ where
 
     /// Returns the completion strings sent to the client when typing something.
     /// This is called every time the client enters or removes a character.
-    /// 
+    ///
     /// **Make sure to consume the input in here, even if you are not suggesting anything**.
     fn suggest(ctx: &mut CommandContext) -> Vec<Suggestion> {
         ctx.input.read_string();
@@ -55,7 +56,7 @@ where
 /// underlying [`PrimitiveArgument`] of this argument.
 // The reason we don't implement Eq is because of float argument flags, since
 // floats are not Eq.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct CommandArgumentNode {
     /// The name of the argument.
     pub name: String,
@@ -65,9 +66,17 @@ pub struct CommandArgumentNode {
 
     /// The [`PrimitiveArgument`] of this argument node.
     pub primitive: PrimitiveArgument,
-    
+
     /// Suggests autocomplete options for this argument.
     pub suggester: fn(&mut CommandContext) -> Vec<Suggestion>,
+}
+
+impl PartialEq for CommandArgumentNode {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name
+            && self.required == other.required
+            && self.primitive == other.primitive
+    }
 }
 
 pub mod utils {
