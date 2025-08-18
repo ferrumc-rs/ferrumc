@@ -22,9 +22,6 @@ use ferrumc_text::TextComponent;
 pub use input::*;
 pub use sender::*;
 
-#[cfg(test)]
-mod tests;
-
 /// An instance of a command.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Command {

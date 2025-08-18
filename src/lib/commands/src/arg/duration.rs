@@ -48,7 +48,6 @@ impl CommandArgument for Duration {
         ctx.input.skip_whitespace(u32::MAX, false);
         if !ctx.input.has_remaining_input() {
             return (0..9)
-                .into_iter()
                 .map(|i| Suggestion::of(i.to_string()))
                 .collect();
         };
