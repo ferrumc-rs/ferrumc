@@ -7,8 +7,7 @@ use crate::systems::shutdown_systems::register_shutdown_systems;
 use bevy_ecs::prelude::World;
 use bevy_ecs::schedule::ExecutorKind;
 use crossbeam_channel::Sender;
-use ferrumc_config::statics::get_global_config;
-use ferrumc_config::whitelist::flush_whitelist_to_disk;
+use ferrumc_config::server_config::get_global_config;
 use ferrumc_net::connection::{handle_connection, NewConnection};
 use ferrumc_net::server::create_server_listener;
 use ferrumc_net::PacketSender;
@@ -65,10 +64,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
         format_duration(global_state.start_time.elapsed())
     );
 
-    let flush_interval_ticks = 5 * 60 * get_global_config().tps as u64; // 5 minutes, This really
-                                                                        // should not be based on
-                                                                        // tps
-    let mut flush_tick_counter: u64 = 0;
+    
 
     while !global_state
         .shut_down
@@ -77,15 +73,6 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
         let tick_start = Instant::now();
         // Run the ECS schedule
         schedule.run(&mut ecs_world);
-
-        flush_tick_counter += 1;
-        if flush_tick_counter >= flush_interval_ticks {
-            info!("Periodically flushing whitelist to disk...");
-            if let Err(e) = flush_whitelist_to_disk() {
-                error!("Failed to flush whitelist to disk: {}", e);
-            }
-            flush_tick_counter = 0;
-        }
 
         // Sleep to maintain the tick rate
         let elapsed_time = tick_start.elapsed();
@@ -105,10 +92,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
             );
         }
     }
-    info!("Server shutting down, flushing whitelist to disk...");
-    if let Err(e) = flush_whitelist_to_disk() {
-        error!("Failed to perform final whitelist flush: {}", e);
-    }
+
     shutdown_schedule.run(&mut ecs_world);
 
     // tell the TCP connection acceptor to shut down
