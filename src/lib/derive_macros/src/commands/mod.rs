@@ -144,7 +144,10 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
                 match ctx.arg::<#ty>(#name) {
                     Ok(a) => a,
                     Err(err) => {
-                        sender.send_message(ferrumc_text::TextComponentBuilder::new(format!("failed parsing {}:", #name)).extra(*err).build(), false);
+                        sender.send_message(ferrumc_text::TextComponentBuilder::new(format!("failed parsing {}: ", #name))
+                            .extra(*err)
+                            .color(ferrumc_text::NamedColor::Red)
+                            .build(), false);
                         return;
                     }
                 },

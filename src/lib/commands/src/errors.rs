@@ -6,7 +6,7 @@ use thiserror::Error;
 #[derive(Debug, Clone, Error)]
 pub enum CommandError {
     /// An argument parser failed
-    #[error("failed to parse: {0}")]
+    #[error("{0}")]
     ParserError(String),
 
     /// A given argument could not be found.
