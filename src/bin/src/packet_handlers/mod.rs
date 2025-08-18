@@ -1,4 +1,3 @@
-// mod commands;
 pub(crate) mod play_packets;
 mod player;
 

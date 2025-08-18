@@ -5,12 +5,9 @@ use ferrumc_commands::{
     events::{CommandDispatchEvent, ResolvedCommandDispatchEvent},
     infrastructure, Command, CommandContext, CommandInput, Sender,
 };
-use ferrumc_net::{
-    connection::StreamWriter, packets::outgoing::system_message::SystemMessagePacket,
-    ChatCommandPacketReceiver,
-};
+use ferrumc_core::mq;
+use ferrumc_net::ChatCommandPacketReceiver;
 use ferrumc_text::{NamedColor, TextComponent, TextComponentBuilder};
-use tracing::error;
 
 fn resolve(
     input: String,
@@ -42,7 +39,6 @@ fn resolve(
 
 pub fn handle(
     events: Res<ChatCommandPacketReceiver>,
-    query: Query<&StreamWriter>,
     mut dispatch_events: EventWriter<CommandDispatchEvent>,
     mut resolved_dispatch_events: EventWriter<ResolvedCommandDispatchEvent>,
 ) {
@@ -56,15 +52,7 @@ pub fn handle(
         let resolved = resolve(event.command, sender);
         match resolved {
             Err(err) => {
-                let writer = query
-                    .get(entity)
-                    .expect("invalid sender, this should never happen");
-                if let Err(err) = writer.send_packet(SystemMessagePacket {
-                    message: *err,
-                    overlay: false,
-                }) {
-                    error!("failed sending command error to player: {err}");
-                }
+                mq::queue(*err, false, entity);
             }
 
             Ok((command, ctx)) => {

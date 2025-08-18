@@ -40,9 +40,6 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
 
     ferrumc_default_commands::init();
 
-    let mut schedule = bevy_ecs::schedule::Schedule::default();
-    schedule.set_executor_kind(ExecutorKind::MultiThreaded);
-
     // Register systems and resources
     let global_state_res = GlobalStateResource(global_state.clone());
 

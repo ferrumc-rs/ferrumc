@@ -103,7 +103,7 @@ impl LoadedAnvilFile {
             let location = (u32::from(self.table[i * 4]) << 24)
                 | (u32::from(self.table[i * 4 + 1]) << 16)
                 | (u32::from(self.table[i * 4 + 2]) << 8)
-                | (u32::from(self.table[i * 4 + 3]));
+                | u32::from(self.table[i * 4 + 3]);
             if location != 0 {
                 locations.push(location);
             }
