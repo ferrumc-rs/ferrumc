@@ -64,8 +64,6 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
         format_duration(global_state.start_time.elapsed())
     );
 
-    
-
     while !global_state
         .shut_down
         .load(std::sync::atomic::Ordering::Relaxed)
