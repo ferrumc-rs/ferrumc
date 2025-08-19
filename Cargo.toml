@@ -17,6 +17,8 @@ members = [
     "src/lib/adapters/anvil",
     "src/lib/adapters/nbt",
     "src/lib/adapters/nbt",
+    "src/lib/commands",
+    "src/lib/default_commands",
     "src/lib/core",
     "src/lib/core/state",
     "src/lib/derive_macros",
@@ -88,6 +90,8 @@ debug = true
 ferrumc-anvil = { path = "src/lib/adapters/anvil" }
 ferrumc-config = { path = "src/lib/config" }
 ferrumc-core = { path = "src/lib/core" }
+ferrumc-default-commands = { path = "src/lib/default_commands" }
+ferrumc-commands = { path = "src/lib/commands" }
 ferrumc-general-purpose = { path = "src/lib/utils/general_purpose" }
 ferrumc-logging = { path = "src/lib/utils/logging" }
 ferrumc-macros = { path = "src/lib/derive_macros" }
@@ -105,7 +109,6 @@ ferrumc-threadpool = { path = "src/lib/utils/threadpool" }
 ferrumc-utils = { path = "src/lib/utils" }
 ferrumc-world = { path = "src/lib/world" }
 ferrumc-world-gen = { path = "src/lib/world_gen" }
-
 
 # Asynchronous
 tokio = { version = "1.47.1", features = ["macros", "net", "rt", "sync", "time", "io-util", "test-util"], default-features = false }
@@ -171,6 +174,7 @@ macro_rules_attribute = "0.2.2"
 
 # Magic
 dhat = "0.3.3"
+ctor = "0.4.2"
 
 # Compression/Decompression
 flate2 = { version = "1.1.2", features = ["zlib"], default-features = false }
@@ -191,6 +195,7 @@ colored = "3.0.0"
 # Misc
 deepsize = "0.2.0"
 page_size = "0.6.0"
+enum-ordinalize = "4.3.0"
 regex = "1.11.1"
 noise = "0.9.0"
 ctrlc = "3.4.7"

@@ -4,7 +4,7 @@ use crate::conn_init::{LoginResult, NetDecodeOpts};
 use crate::connection::StreamWriter;
 use crate::errors::{NetError, PacketError};
 use crate::packets::incoming::packet_skeleton::PacketSkeleton;
-use crate::packets::outgoing::registry_data::REGISTRY_PACKETS;
+use crate::packets::outgoing::{commands::CommandsPacket, registry_data::REGISTRY_PACKETS};
 use crate::ConnState::*;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
@@ -300,6 +300,14 @@ pub(super) async fn login(
             }
         }
     }
+
+    // =============================================================================================
+    conn_write.send_packet(CommandsPacket::new())?;
+
+    trace!(
+        "sending command graph {:#?}",
+        ferrumc_commands::infrastructure::get_graph()
+    );
 
     // =============================================================================================
     // ✅ Login sequence complete

@@ -7,6 +7,7 @@ use crate::systems::shutdown_systems::register_shutdown_systems;
 use bevy_ecs::prelude::World;
 use bevy_ecs::schedule::ExecutorKind;
 use crossbeam_channel::Sender;
+use ferrumc_commands::infrastructure::register_command_systems;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_net::connection::{handle_connection, NewConnection};
 use ferrumc_net::server::create_server_listener;
@@ -37,6 +38,8 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     let (shutdown_send, shutdown_recv) = tokio::sync::oneshot::channel();
     let (shutdown_response_send, shutdown_response_recv) = crossbeam_channel::unbounded();
 
+    ferrumc_default_commands::init();
+
     // Register systems and resources
     let global_state_res = GlobalStateResource(global_state.clone());
 
@@ -44,6 +47,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     register_resources(&mut ecs_world, new_conn_recv, global_state_res);
     register_packet_handlers(&mut schedule);
     register_player_systems(&mut schedule);
+    register_command_systems(&mut schedule);
     register_game_systems(&mut schedule);
 
     register_shutdown_systems(&mut shutdown_schedule);
