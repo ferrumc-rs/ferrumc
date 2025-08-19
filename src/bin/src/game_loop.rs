@@ -19,6 +19,7 @@ use play_packets::register_packet_handlers;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tracing::{debug, error, info, info_span, trace, warn, Instrument};
+use ferrumc_scheduler::MissedTickBehavior;
 
 pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     // ECS world and schedules
@@ -62,44 +63,43 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     };
 
     let tick_period = Duration::from_secs(1) / get_global_config().tps;
-    timed.register(TimedSchedule::new("tick", tick_period, build_tick));
+    timed.register(
+        TimedSchedule::new("tick", tick_period, build_tick)
+            .with_behavior(MissedTickBehavior::Burst)
+            .with_max_catch_up(5),
+    );
 
     // World sync every 15 seconds (moved out of tick schedule)
     let build_world_sync = |s: &mut Schedule| {
         s.add_systems(crate::systems::world_sync::sync_world);
     };
-    timed.register(TimedSchedule::new(
-        "world_sync",
-        Duration::from_secs(15),
-        build_world_sync,
-    ));
+    timed.register(
+        TimedSchedule::new("world_sync", Duration::from_secs(15), build_world_sync)
+            .with_behavior(MissedTickBehavior::Skip),
+    ); // I set this as skip, because if server is already lagging, doing world sync will add onto that load.
 
     // Player count refresh every 10 seconds (moved out of tick schedule)
     let build_player_count = |s: &mut Schedule| {
         s.add_systems(crate::systems::player_count_update::player_count_updater);
     };
-    timed.register(TimedSchedule::new(
-        "player_count_refresh",
-        Duration::from_secs(10),
-        build_player_count,
-    ));
+    timed.register(
+        TimedSchedule::new("player_count_refresh", Duration::from_secs(10), build_player_count)
+            .with_behavior(MissedTickBehavior::Skip),
+    );
 
     // In game_loop.rs when building schedules
     let build_keepalive = |s: &mut Schedule| {
         s.add_systems(crate::systems::keep_alive_system::keep_alive_system);
     };
-    timed.register(TimedSchedule::new(
-        "keepalive",
-        Duration::from_secs(1), // check once per second
-        build_keepalive,
-    ));
+    timed.register(
+        TimedSchedule::new("keepalive", Duration::from_secs(1), build_keepalive)
+            .with_behavior(MissedTickBehavior::Skip)
+            .with_phase(Duration::from_millis(250)),
+    );
 
     // Any plugin-registered schedules (optional)
     for pending in drain_registered_schedules() {
-        let name = pending.name;
-        let period = pending.period;
-        let builder = pending.builder;
-        timed.register(TimedSchedule::new(name, period, builder));
+        timed.register(pending.into_timed());
     }
 
     // Shutdown systems
@@ -119,42 +119,76 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
         format_duration(global_state.start_time.elapsed())
     );
 
-    // Main loop: always run whichever schedule is due next, then sleep until then
+    // Run all schedules that are due, then sleep until the next one.
+    // Limits how many back-to-back runs we allow to avoid starvation.
+    const MAX_GLOBAL_CATCH_UP: usize = 64;
+
     while !global_state
         .shut_down
         .load(std::sync::atomic::Ordering::Relaxed)
     {
-        let Some((idx, due)) = timed.pop_next_due() else {
-            // Should not happen, but avoid busy spinning
-            std::thread::sleep(Duration::from_millis(1));
-            continue;
-        };
+        let mut ran_any = false;
+        let mut ran_count = 0;
 
-        let now = Instant::now();
-        if now < due {
-            std::thread::sleep(due - now);
-        }
+        loop {
+            if ran_count >= MAX_GLOBAL_CATCH_UP {
+                // Prevent starvation if we're perpetually behind.
+                break;
+            }
 
-        let name = timed.schedules[idx].name.clone();
-        let start = Instant::now();
-        timed.schedules[idx].schedule.run(&mut ecs_world);
-        let elapsed = start.elapsed();
+            let now = Instant::now();
+            let Some((idx, due)) = timed.peek_next_due() else {
+                // No schedules registered; avoid spinning.
+                std::thread::sleep(Duration::from_millis(1));
+                continue;
+            };
 
-        if elapsed > timed.schedules[idx].period {
-            warn!(
+            if due > now {
+                // Nothing due yet; we'll sleep after this inner loop.
+                break;
+            }
+
+            // Pop the same entry we peeked and run it.
+            let (popped_idx, _popped_due) =
+                timed.pop_next_due().expect("scheduler heap changed unexpectedly");
+            debug_assert_eq!(popped_idx, idx);
+
+            let name = timed.schedules[idx].name.clone();
+            let period = timed.schedules[idx].period;
+
+            let start = Instant::now();
+            timed.schedules[idx].schedule.run(&mut ecs_world);
+            let elapsed = start.elapsed();
+
+            if elapsed > period {
+                warn!(
                 "Schedule '{}' overran: took {:?}, budget {:?}",
-                name, elapsed, timed.schedules[idx].period
+                name, elapsed, period
             );
-        } else {
-            trace!(
+            } else {
+                trace!(
                 "Schedule '{}' ran in {:?} (budget {:?})",
                 name,
                 elapsed,
-                timed.schedules[idx].period
+                period
             );
-        }
+            }
 
-        timed.after_run(idx);
+            timed.after_run(idx);
+
+            ran_any = true;
+            ran_count += 1;
+        }
+        
+        if !ran_any {
+            // Sleep until the next due time (or a tiny backoff if none).
+            let sleep_for = timed
+                .time_until_next_due()
+                .unwrap_or(Duration::from_millis(1));
+            if sleep_for > Duration::from_millis(0) {
+                std::thread::sleep(sleep_for);
+            }
+        }
     }
 
     // Run shutdown schedule once
