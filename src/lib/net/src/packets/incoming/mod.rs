@@ -16,6 +16,11 @@ pub mod player_command;
 pub mod set_player_position;
 pub mod set_player_position_and_rotation;
 pub mod set_player_rotation;
+
+pub mod chat_message;
+pub mod command;
+pub mod command_suggestion_request;
+
 pub mod swing_arm;
 
 pub mod chunk_batch_ack;

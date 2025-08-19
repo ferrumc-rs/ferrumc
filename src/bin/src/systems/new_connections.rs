@@ -40,6 +40,15 @@ pub fn accept_new_connections(
             Inventory::new(46),
             Hotbar::default(),
         ));
+
+        state.0.players.player_list.insert(
+            entity.id(),
+            (
+                new_connection.player_identity.uuid.as_u128(),
+                new_connection.player_identity.username.clone(),
+            ),
+        );
+
         trace!("Spawned entity for new connection: {:?}", entity.id());
         // Add the new entity to the global state
         state.0.players.player_list.insert(

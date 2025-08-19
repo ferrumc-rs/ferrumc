@@ -16,6 +16,7 @@ pub mod set_default_spawn_position;
 pub mod set_render_distance;
 pub mod status_response;
 pub mod synchronize_player_position;
+pub mod system_message;
 
 pub mod remove_entities;
 pub mod spawn_entity;
@@ -35,6 +36,10 @@ pub mod update_entity_rotation;
 pub mod block_change_ack;
 
 pub mod block_update;
+
+pub mod command_suggestions;
+pub mod commands;
+
 pub(crate) mod set_compression;
 
 pub mod set_container_content;
