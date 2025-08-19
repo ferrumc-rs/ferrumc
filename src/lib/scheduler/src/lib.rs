@@ -103,6 +103,6 @@ where
 
 pub fn drain_registered_schedules() -> Vec<PendingSchedule> {
     let mut guard = PENDING.lock().expect("pending schedules lock poisoned");
-    
+
     guard.drain(..).collect::<Vec<_>>()
 }
