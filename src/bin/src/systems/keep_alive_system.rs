@@ -41,7 +41,7 @@ pub fn keep_alive_system(
                 ferrumc_net::packets::outgoing::keep_alive::OutgoingKeepAlivePacket {
                     timestamp: time_stamp,
                 };
-            if let Err(err) = stream_writer.send_packet(&keep_alive_packet) {
+            if let Err(err) = stream_writer.send_packet_ref(&keep_alive_packet) {
                 warn!("Failed to send keep alive packet to {}: {:?}", entity, err);
             }
             keep_alive_tracker.last_sent_keep_alive = time_stamp;

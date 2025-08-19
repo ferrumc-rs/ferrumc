@@ -1,0 +1,20 @@
+[package]
+name = "ferrumc-registry"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+simd-json = { workspace = true }
+once_cell = { workspace = true }
+
+[lints]
+workspace = true
+
+
+[dev-dependencies]
+criterion = { workspace = true }
+
+[[bench]]
+name = "registry_bench"
+harness = false
+path = "benches/registry_lookup.rs"

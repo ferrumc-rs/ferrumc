@@ -60,6 +60,8 @@ pub enum WorldError {
     DecompressionError(String),
     #[error("Corrupted chunk data: got checksum {0}, expected checksum {1}")]
     CorruptedChunkData(u32, u32),
+    #[error("NBT data error: {0}")]
+    NBTError(#[from] ferrumc_nbt::errors::NBTError),
 }
 
 impl From<std::io::Error> for WorldError {

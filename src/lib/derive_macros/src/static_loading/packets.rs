@@ -150,7 +150,7 @@ impl Parse for PacketTypeInput {
     }
 }
 
-pub(crate) fn get(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn lookup_packet(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as PacketTypeInput);
 
     let protocol_id = get_packet_id(input.state, input.bound, &input.packet_name);

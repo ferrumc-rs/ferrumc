@@ -30,6 +30,8 @@ moka = { workspace = true, features = ["sync"] }
 ahash = { workspace = true }
 rand = { workspace = true }
 yazi = { workspace = true }
+ferrumc-threadpool = { workspace = true }
+lz4_flex = { workspace = true }
 
 [[bench]]
 name = "world_bench"
