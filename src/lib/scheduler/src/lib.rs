@@ -124,7 +124,7 @@ impl TimedSchedule {
             }
             MissedTickBehavior::Burst => {
                 // Step forward one period (anchored to previous due).
-                self.next_due = self.next_due + self.period;
+                self.next_due += self.period;
 
                 // If we're still behind, burst up to max_catch_up times.
                 if self.next_due <= now {
@@ -146,7 +146,7 @@ impl TimedSchedule {
             }
             MissedTickBehavior::Skip => {
                 // Fixed-rate: jump to next future boundary (drift-free).
-                self.next_due = self.next_due + self.period;
+                self.next_due += self.period;
                 if self.next_due <= now {
                     while self.next_due <= now {
                         self.next_due += self.period;
@@ -169,6 +169,12 @@ pub struct Scheduler {
     /// All registered schedules (index is stable).
     pub schedules: Vec<TimedSchedule>,
     heap: BinaryHeap<HeapEntry>,
+}
+
+impl Default for Scheduler {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Scheduler {
