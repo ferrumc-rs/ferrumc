@@ -108,7 +108,6 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     Ok(())
 }
 
-// This is the bit where we bridge to async
 fn tcp_conn_acceptor(
     state: GlobalState,
     packet_sender: Arc<PacketSender>,
