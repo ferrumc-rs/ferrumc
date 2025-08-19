@@ -53,12 +53,6 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
         register_packet_handlers(s);
         register_player_systems(s);
         register_command_systems(s);
-        // Keep only systems that must run each tick:
-        // - keep_alive_system
-        // - accept_new_connections
-        // - cross_chunk_boundary
-        // - mq::process
-        // - connection_killer
         register_game_systems(s);
     };
 
@@ -69,16 +63,16 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
             .with_max_catch_up(5),
     );
 
-    // World sync every 15 seconds (moved out of tick schedule)
+    // World sync every 15 seconds
     let build_world_sync = |s: &mut Schedule| {
         s.add_systems(crate::systems::world_sync::sync_world);
     };
     timed.register(
         TimedSchedule::new("world_sync", Duration::from_secs(15), build_world_sync)
             .with_behavior(MissedTickBehavior::Skip),
-    ); // I set this as skip, because if server is already lagging, doing world sync will add onto that load.
+    );
 
-    // Player count refresh every 10 seconds (moved out of tick schedule)
+    // Player count refresh every 10 seconds
     let build_player_count = |s: &mut Schedule| {
         s.add_systems(crate::systems::player_count_update::player_count_updater);
     };
@@ -91,7 +85,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
         .with_behavior(MissedTickBehavior::Skip),
     );
 
-    // In game_loop.rs when building schedules
+    // Keepalive every 1 second with phase offset
     let build_keepalive = |s: &mut Schedule| {
         s.add_systems(crate::systems::keep_alive_system::keep_alive_system);
     };
@@ -101,7 +95,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
             .with_phase(Duration::from_millis(250)),
     );
 
-    // Any plugin-registered schedules (optional)
+    // Any plugin-registered schedules
     for pending in drain_registered_schedules() {
         timed.register(pending.into_timed());
     }
@@ -124,7 +118,6 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     );
 
     // Run all schedules that are due, then sleep until the next one.
-    // Limits how many back-to-back runs we allow to avoid starvation.
     const MAX_GLOBAL_CATCH_UP: usize = 64;
 
     while !global_state
@@ -136,23 +129,19 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
 
         loop {
             if ran_count >= MAX_GLOBAL_CATCH_UP {
-                // Prevent starvation if we're perpetually behind.
                 break;
             }
 
             let now = Instant::now();
             let Some((idx, due)) = timed.peek_next_due() else {
-                // No schedules registered; avoid spinning.
                 std::thread::sleep(Duration::from_millis(1));
                 continue;
             };
 
             if due > now {
-                // Nothing due yet; we'll sleep after this inner loop.
                 break;
             }
 
-            // Pop the same entry we peeked and run it.
             let (popped_idx, _popped_due) = timed
                 .pop_next_due()
                 .expect("scheduler heap changed unexpectedly");
@@ -186,13 +175,8 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
         }
 
         if !ran_any {
-            // Sleep until the next due time (or a tiny backoff if none).
-            let sleep_for = timed
-                .time_until_next_due()
-                .unwrap_or(Duration::from_millis(1));
-            if sleep_for > Duration::from_millis(0) {
-                std::thread::sleep(sleep_for);
-            }
+            // ✅ Use new park_until_next_due instead of manual sleep
+            timed.park_until_next_due();
         }
     }
 
