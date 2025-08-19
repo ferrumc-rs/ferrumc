@@ -2,7 +2,7 @@ use bevy_ecs::prelude::{Entity, Query, Res};
 use ferrumc_core::conn::keepalive::KeepAliveTracker;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_state::GlobalStateResource;
-use std::time::{Duration, SystemTime};
+use std::time::Duration;
 use tracing::warn;
 
 pub fn keep_alive_system(

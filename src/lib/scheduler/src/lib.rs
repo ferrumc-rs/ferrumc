@@ -42,6 +42,12 @@ pub struct Scheduler {
     queue: BinaryHeap<(Reverse<Instant>, usize)>,
 }
 
+impl Default for Scheduler {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Scheduler {
     pub fn new() -> Self {
         Scheduler {
@@ -97,6 +103,6 @@ where
 
 pub fn drain_registered_schedules() -> Vec<PendingSchedule> {
     let mut guard = PENDING.lock().expect("pending schedules lock poisoned");
-    let drained = guard.drain(..).collect::<Vec<_>>();
-    drained
+    
+    guard.drain(..).collect::<Vec<_>>()
 }
