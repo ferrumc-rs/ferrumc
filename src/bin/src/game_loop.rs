@@ -33,8 +33,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
 
     // Setup shutdown related channels
     let (shutdown_send, shutdown_recv) = tokio::sync::oneshot::channel();
-    let (shutdown_response_send, shutdown_response_recv) =
-        crossbeam_channel::unbounded();
+    let (shutdown_response_send, shutdown_response_recv) = crossbeam_channel::unbounded();
 
     ferrumc_default_commands::init();
 

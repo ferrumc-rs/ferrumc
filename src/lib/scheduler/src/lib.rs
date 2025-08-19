@@ -52,8 +52,7 @@ impl Scheduler {
 
     pub fn register(&mut self, schedule: TimedSchedule) -> ScheduleId {
         let id = ScheduleId(self.schedules.len());
-        self.queue
-            .push((Reverse(schedule.next_run), id.0));
+        self.queue.push((Reverse(schedule.next_run), id.0));
         self.schedules.push(schedule);
         id
     }
@@ -81,8 +80,7 @@ pub struct PendingSchedule {
     pub builder: ScheduleBuilder,
 }
 
-static PENDING: Lazy<Mutex<Vec<PendingSchedule>>> =
-    Lazy::new(|| Mutex::new(Vec::new()));
+static PENDING: Lazy<Mutex<Vec<PendingSchedule>>> = Lazy::new(|| Mutex::new(Vec::new()));
 
 pub fn register_timed_schedule<N, F>(name: N, period: Duration, builder: F)
 where

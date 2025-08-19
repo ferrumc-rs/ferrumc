@@ -41,9 +41,7 @@ pub fn keep_alive_system(
         if elapsed >= KEEPALIVE_INTERVAL && tracker.has_received_keep_alive {
             let timestamp = rand::random::<i64>(); // or use a counter
             let packet =
-                ferrumc_net::packets::outgoing::keep_alive::OutgoingKeepAlivePacket {
-                    timestamp,
-                };
+                ferrumc_net::packets::outgoing::keep_alive::OutgoingKeepAlivePacket { timestamp };
 
             if let Err(err) = stream_writer.send_packet_ref(&packet) {
                 warn!("Failed to send keep alive packet to {}: {:?}", entity, err);
