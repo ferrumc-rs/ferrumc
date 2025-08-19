@@ -12,6 +12,7 @@ use ferrumc_config::server_config::get_global_config;
 use ferrumc_net::connection::{handle_connection, NewConnection};
 use ferrumc_net::server::create_server_listener;
 use ferrumc_net::PacketSender;
+use ferrumc_scheduler::MissedTickBehavior;
 use ferrumc_scheduler::{drain_registered_schedules, Scheduler, TimedSchedule};
 use ferrumc_state::{GlobalState, GlobalStateResource};
 use ferrumc_utils::formatting::format_duration;
@@ -19,7 +20,6 @@ use play_packets::register_packet_handlers;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tracing::{debug, error, info, info_span, trace, warn, Instrument};
-use ferrumc_scheduler::MissedTickBehavior;
 
 pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     // ECS world and schedules
@@ -83,8 +83,12 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
         s.add_systems(crate::systems::player_count_update::player_count_updater);
     };
     timed.register(
-        TimedSchedule::new("player_count_refresh", Duration::from_secs(10), build_player_count)
-            .with_behavior(MissedTickBehavior::Skip),
+        TimedSchedule::new(
+            "player_count_refresh",
+            Duration::from_secs(10),
+            build_player_count,
+        )
+        .with_behavior(MissedTickBehavior::Skip),
     );
 
     // In game_loop.rs when building schedules
@@ -149,8 +153,9 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
             }
 
             // Pop the same entry we peeked and run it.
-            let (popped_idx, _popped_due) =
-                timed.pop_next_due().expect("scheduler heap changed unexpectedly");
+            let (popped_idx, _popped_due) = timed
+                .pop_next_due()
+                .expect("scheduler heap changed unexpectedly");
             debug_assert_eq!(popped_idx, idx);
 
             let name = timed.schedules[idx].name.clone();
@@ -162,16 +167,16 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
 
             if elapsed > period {
                 warn!(
-                "Schedule '{}' overran: took {:?}, budget {:?}",
-                name, elapsed, period
-            );
+                    "Schedule '{}' overran: took {:?}, budget {:?}",
+                    name, elapsed, period
+                );
             } else {
                 trace!(
-                "Schedule '{}' ran in {:?} (budget {:?})",
-                name,
-                elapsed,
-                period
-            );
+                    "Schedule '{}' ran in {:?} (budget {:?})",
+                    name,
+                    elapsed,
+                    period
+                );
             }
 
             timed.after_run(idx);
@@ -179,7 +184,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
             ran_any = true;
             ran_count += 1;
         }
-        
+
         if !ran_any {
             // Sleep until the next due time (or a tiny backoff if none).
             let sleep_for = timed
