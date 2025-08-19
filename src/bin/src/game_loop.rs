@@ -5,13 +5,14 @@ use crate::register_resources::register_resources;
 use crate::systems::register_game_systems;
 use crate::systems::shutdown_systems::register_shutdown_systems;
 use bevy_ecs::prelude::World;
-use bevy_ecs::schedule::ExecutorKind;
+use bevy_ecs::schedule::{ExecutorKind, Schedule};
 use crossbeam_channel::Sender;
 use ferrumc_commands::infrastructure::register_command_systems;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_net::connection::{handle_connection, NewConnection};
 use ferrumc_net::server::create_server_listener;
 use ferrumc_net::PacketSender;
+use ferrumc_scheduler::{drain_registered_schedules, Scheduler, TimedSchedule};
 use ferrumc_state::{GlobalState, GlobalStateResource};
 use ferrumc_utils::formatting::format_duration;
 use play_packets::register_packet_handlers;
@@ -20,14 +21,10 @@ use std::time::{Duration, Instant};
 use tracing::{debug, error, info, info_span, trace, warn, Instrument};
 
 pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
-    // Setup the ECS world and schedules
+    // ECS world and schedules
     let mut ecs_world = World::new();
 
-    let mut schedule = bevy_ecs::schedule::Schedule::default();
-    schedule.set_executor_kind(ExecutorKind::SingleThreaded);
-
-    // This schedule is ticked once when the server is shutting down
-    // If you need to run any cleanup systems, add them to `ferrumc::systems::shutdown_systems::register_shutdown_systems`
+    // Shutdown schedule runs once on exit
     let mut shutdown_schedule = bevy_ecs::schedule::Schedule::default();
 
     // Setup channels and stuff for new connections
@@ -36,25 +33,80 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
 
     // Setup shutdown related channels
     let (shutdown_send, shutdown_recv) = tokio::sync::oneshot::channel();
-    let (shutdown_response_send, shutdown_response_recv) = crossbeam_channel::unbounded();
+    let (shutdown_response_send, shutdown_response_recv) =
+        crossbeam_channel::unbounded();
 
     ferrumc_default_commands::init();
 
-    // Register systems and resources
+    // Register events/resources (one-time into World)
     let global_state_res = GlobalStateResource(global_state.clone());
 
     register_events(&mut ecs_world);
     register_resources(&mut ecs_world, new_conn_recv, global_state_res);
-    register_packet_handlers(&mut schedule);
-    register_player_systems(&mut schedule);
-    register_command_systems(&mut schedule);
-    register_game_systems(&mut schedule);
 
+    // Build the timed scheduler
+    let mut timed = Scheduler::new();
+
+    // Builder for the "tick" schedule (20 TPS by config)
+    let build_tick = |s: &mut Schedule| {
+        s.set_executor_kind(ExecutorKind::SingleThreaded);
+        register_packet_handlers(s);
+        register_player_systems(s);
+        register_command_systems(s);
+        // Keep only systems that must run each tick:
+        // - keep_alive_system
+        // - accept_new_connections
+        // - cross_chunk_boundary
+        // - mq::process
+        // - connection_killer
+        register_game_systems(s);
+    };
+
+    let tick_period = Duration::from_secs(1) / get_global_config().tps;
+    timed.register(TimedSchedule::new("tick", tick_period, build_tick));
+
+    // World sync every 15 seconds (moved out of tick schedule)
+    let build_world_sync = |s: &mut Schedule| {
+        s.add_systems(crate::systems::world_sync::sync_world);
+    };
+    timed.register(TimedSchedule::new(
+        "world_sync",
+        Duration::from_secs(15),
+        build_world_sync,
+    ));
+
+    // Player count refresh every 10 seconds (moved out of tick schedule)
+    let build_player_count = |s: &mut Schedule| {
+        s.add_systems(crate::systems::player_count_update::player_count_updater);
+    };
+    timed.register(TimedSchedule::new(
+        "player_count_refresh",
+        Duration::from_secs(10),
+        build_player_count,
+    ));
+
+    // In game_loop.rs when building schedules
+    let build_keepalive = |s: &mut Schedule| {
+        s.add_systems(crate::systems::keep_alive_system::keep_alive_system);
+    };
+    timed.register(TimedSchedule::new(
+        "keepalive",
+        Duration::from_secs(1), // check once per second
+        build_keepalive,
+    ));
+
+    // Any plugin-registered schedules (optional)
+    for pending in drain_registered_schedules() {
+        let name = pending.name;
+        let period = pending.period;
+        let builder = pending.builder;
+        timed.register(TimedSchedule::new(name, period, builder));
+    }
+
+    // Shutdown systems
     register_shutdown_systems(&mut shutdown_schedule);
 
-    let time_per_tick = Duration::from_secs(1) / get_global_config().tps;
-
-    // Start the TCP connection acceptor
+    // Start the TCP acceptor thread
     tcp_conn_acceptor(
         global_state.clone(),
         sender_struct,
@@ -68,42 +120,53 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
         format_duration(global_state.start_time.elapsed())
     );
 
+    // Main loop: always run whichever schedule is due next, then sleep until then
     while !global_state
         .shut_down
         .load(std::sync::atomic::Ordering::Relaxed)
     {
-        let tick_start = Instant::now();
-        // Run the ECS schedule
-        schedule.run(&mut ecs_world);
+        let Some((idx, due)) = timed.pop_next_due() else {
+            // Should not happen, but avoid busy spinning
+            std::thread::sleep(Duration::from_millis(1));
+            continue;
+        };
 
-        // Sleep to maintain the tick rate
-        let elapsed_time = tick_start.elapsed();
-        let sleep_duration = time_per_tick.saturating_sub(elapsed_time);
+        let now = Instant::now();
+        if now < due {
+            std::thread::sleep(due - now);
+        }
 
-        if sleep_duration > Duration::ZERO {
-            trace!(
-                "Server tick took {:?}, sleeping for {:?}",
-                elapsed_time,
-                sleep_duration
-            );
-            std::thread::sleep(sleep_duration);
-        } else {
+        let name = timed.schedules[idx].name.clone();
+        let start = Instant::now();
+        timed.schedules[idx].schedule.run(&mut ecs_world);
+        let elapsed = start.elapsed();
+
+        if elapsed > timed.schedules[idx].period {
             warn!(
-                "Server tick took too long: {:?}, max {:?}",
-                elapsed_time, time_per_tick
+                "Schedule '{}' overran: took {:?}, budget {:?}",
+                name, elapsed, timed.schedules[idx].period
+            );
+        } else {
+            trace!(
+                "Schedule '{}' ran in {:?} (budget {:?})",
+                name,
+                elapsed,
+                timed.schedules[idx].period
             );
         }
+
+        timed.after_run(idx);
     }
 
+    // Run shutdown schedule once
     shutdown_schedule.run(&mut ecs_world);
 
-    // tell the TCP connection acceptor to shut down
+    // Tell TCP acceptor to shutdown and wait for it
     trace!("Sending shutdown signal to TCP connection acceptor");
     shutdown_send
         .send(())
         .expect("Failed to send shutdown signal");
 
-    // Wait until the TCP connection acceptor has shut down
     trace!("Waiting for TCP connection acceptor to shut down");
     shutdown_response_recv
         .recv()
@@ -136,7 +199,6 @@ fn tcp_conn_acceptor(
                         ));
                     };
                     while !state.shut_down.load(std::sync::atomic::Ordering::Relaxed) {
-                        // Wait for a new connection or shutdown signal
                         tokio::select! {
                             accept_result = listener.accept() => {
                                 match accept_result {
@@ -175,7 +237,6 @@ fn tcp_conn_acceptor(
         }));
         if let Err(e) = caught_panic {
             error!("TCP connection acceptor thread panicked: {:?}", e);
-            // If we get here, the thread panicked
             state
                 .shut_down
                 .store(true, std::sync::atomic::Ordering::Relaxed);
