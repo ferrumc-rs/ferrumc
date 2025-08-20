@@ -174,8 +174,12 @@ fn build_timed_scheduler() -> Scheduler {
         s.add_systems(crate::systems::player_count_update::player_count_updater);
     };
     timed.register(
-        TimedSchedule::new("player_count_refresh", Duration::from_secs(10), build_player_count)
-            .with_behavior(MissedTickBehavior::Skip),
+        TimedSchedule::new(
+            "player_count_refresh",
+            Duration::from_secs(10),
+            build_player_count,
+        )
+        .with_behavior(MissedTickBehavior::Skip),
     );
 
     // Keepalive
