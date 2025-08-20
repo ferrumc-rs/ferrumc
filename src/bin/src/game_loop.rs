@@ -44,61 +44,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     register_events(&mut ecs_world);
     register_resources(&mut ecs_world, new_conn_recv, global_state_res);
 
-    // Build the timed scheduler
-    let mut timed = Scheduler::new();
-
-    // Builder for the "tick" schedule (20 TPS by config)
-    let build_tick = |s: &mut Schedule| {
-        s.set_executor_kind(ExecutorKind::SingleThreaded);
-        register_packet_handlers(s);
-        register_player_systems(s);
-        register_command_systems(s);
-        register_game_systems(s);
-    };
-
-    let tick_period = Duration::from_secs(1) / get_global_config().tps;
-    timed.register(
-        TimedSchedule::new("tick", tick_period, build_tick)
-            .with_behavior(MissedTickBehavior::Burst)
-            .with_max_catch_up(5),
-    );
-
-    // World sync every 15 seconds
-    let build_world_sync = |s: &mut Schedule| {
-        s.add_systems(crate::systems::world_sync::sync_world);
-    };
-    timed.register(
-        TimedSchedule::new("world_sync", Duration::from_secs(15), build_world_sync)
-            .with_behavior(MissedTickBehavior::Skip),
-    );
-
-    // Player count refresh every 10 seconds
-    let build_player_count = |s: &mut Schedule| {
-        s.add_systems(crate::systems::player_count_update::player_count_updater);
-    };
-    timed.register(
-        TimedSchedule::new(
-            "player_count_refresh",
-            Duration::from_secs(10),
-            build_player_count,
-        )
-        .with_behavior(MissedTickBehavior::Skip),
-    );
-
-    // Keepalive every 1 second with phase offset
-    let build_keepalive = |s: &mut Schedule| {
-        s.add_systems(crate::systems::keep_alive_system::keep_alive_system);
-    };
-    timed.register(
-        TimedSchedule::new("keepalive", Duration::from_secs(1), build_keepalive)
-            .with_behavior(MissedTickBehavior::Skip)
-            .with_phase(Duration::from_millis(250)),
-    );
-
-    // Any plugin-registered schedules
-    for pending in drain_registered_schedules() {
-        timed.register(pending.into_timed());
-    }
+    let mut timed = build_timed_scheduler();
 
     // Shutdown systems
     register_shutdown_systems(&mut shutdown_schedule);
@@ -194,6 +140,60 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
         .expect("Failed to receive shutdown response");
 
     Ok(())
+}
+
+fn build_timed_scheduler() -> Scheduler {
+    let mut timed = Scheduler::new();
+
+    // Tick schedule
+    let build_tick = |s: &mut Schedule| {
+        s.set_executor_kind(ExecutorKind::SingleThreaded);
+        register_packet_handlers(s);
+        register_player_systems(s);
+        register_command_systems(s);
+        register_game_systems(s);
+    };
+    let tick_period = Duration::from_secs(1) / get_global_config().tps;
+    timed.register(
+        TimedSchedule::new("tick", tick_period, build_tick)
+            .with_behavior(MissedTickBehavior::Burst)
+            .with_max_catch_up(5),
+    );
+
+    // World sync
+    let build_world_sync = |s: &mut Schedule| {
+        s.add_systems(crate::systems::world_sync::sync_world);
+    };
+    timed.register(
+        TimedSchedule::new("world_sync", Duration::from_secs(15), build_world_sync)
+            .with_behavior(MissedTickBehavior::Skip),
+    );
+
+    // Player count refresh
+    let build_player_count = |s: &mut Schedule| {
+        s.add_systems(crate::systems::player_count_update::player_count_updater);
+    };
+    timed.register(
+        TimedSchedule::new("player_count_refresh", Duration::from_secs(10), build_player_count)
+            .with_behavior(MissedTickBehavior::Skip),
+    );
+
+    // Keepalive
+    let build_keepalive = |s: &mut Schedule| {
+        s.add_systems(crate::systems::keep_alive_system::keep_alive_system);
+    };
+    timed.register(
+        TimedSchedule::new("keepalive", Duration::from_secs(1), build_keepalive)
+            .with_behavior(MissedTickBehavior::Skip)
+            .with_phase(Duration::from_millis(250)),
+    );
+
+    // Plugin schedules
+    for pending in drain_registered_schedules() {
+        timed.register(pending.into_timed());
+    }
+
+    timed
 }
 
 fn tcp_conn_acceptor(
