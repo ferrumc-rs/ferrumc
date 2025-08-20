@@ -175,20 +175,19 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
         }
 
         if !ran_any {
-            // ✅ Use new park_until_next_due instead of manual sleep
             timed.park_until_next_due();
         }
     }
 
-    // Run shutdown schedule once
     shutdown_schedule.run(&mut ecs_world);
 
-    // Tell TCP acceptor to shutdown and wait for it
+    // tell the TCP connection acceptor to shut down
     trace!("Sending shutdown signal to TCP connection acceptor");
     shutdown_send
         .send(())
         .expect("Failed to send shutdown signal");
 
+    // Wait until the TCP connection acceptor has shut down
     trace!("Waiting for TCP connection acceptor to shut down");
     shutdown_response_recv
         .recv()
@@ -221,6 +220,7 @@ fn tcp_conn_acceptor(
                         ));
                     };
                     while !state.shut_down.load(std::sync::atomic::Ordering::Relaxed) {
+                        // Wait for a new connection or shutdown signal
                         tokio::select! {
                             accept_result = listener.accept() => {
                                 match accept_result {
@@ -259,6 +259,7 @@ fn tcp_conn_acceptor(
         }));
         if let Err(e) = caught_panic {
             error!("TCP connection acceptor thread panicked: {:?}", e);
+            // If we get here, the thread panicked
             state
                 .shut_down
                 .store(true, std::sync::atomic::Ordering::Relaxed);
