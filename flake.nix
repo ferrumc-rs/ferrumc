@@ -1,7 +1,6 @@
 {
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
-    systems.url = "github:nix-systems/default";
     flake-compat.url = "github:edolstra/flake-compat";
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
@@ -11,44 +10,44 @@
       url = "github:hercules-ci/flake-parts";
       inputs.nixpkgs-lib.follows = "nixpkgs";
     };
-    rust-overlay = {
-      url = "github:oxalica/rust-overlay";
+    fenix = {
+      url = "github:nix-community/fenix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  outputs =
-    inputs:
-    inputs.flake-parts.lib.mkFlake { inherit inputs; } {
-      systems = import inputs.systems;
+  outputs = inputs @ {
+    nixpkgs,
+    flake-parts,
+    fenix,
+    ...
+  }:
+    flake-parts.lib.mkFlake {inherit inputs;} {
+      systems = nixpkgs.lib.systems.flakeExposed;
 
       imports = [
         inputs.treefmt-nix.flakeModule
       ];
 
-      perSystem =
-        { pkgs, system, ... }:
-        let
-          overlays = [ inputs.rust-overlay.overlays.default ];
-          rust-toolchain = pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
-        in
-        {
-          _module.args.pkgs = import inputs.nixpkgs {
-            inherit system overlays;
-          };
-
-          treefmt = {
-            projectRootFile = "flake.lock";
-            programs.nixfmt.enable = true;
-          };
-
-          devShells.default = pkgs.mkShell {
-            packages = [
-              rust-toolchain
-              pkgs.pkg-config
-              pkgs.openssl
-            ];
-          };
+      perSystem = {
+        pkgs,
+        system,
+        ...
+      }: let
+        rust-toolchain = fenix.packages.${system}.default.toolchain;
+      in {
+        treefmt = {
+          projectRootFile = "flake.lock";
+          programs.nixfmt.enable = true;
         };
+
+        devShells.default = pkgs.mkShell {
+          nativeBuildInputs = [
+            rust-toolchain
+            pkgs.pkg-config
+            pkgs.openssl
+          ];
+        };
+      };
     };
 }
