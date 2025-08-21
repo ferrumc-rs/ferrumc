@@ -4,17 +4,16 @@ use bevy_ecs::system::Query;
 use ferrumc_core::entities::entity_kind::EntityKind;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
-use ferrumc_entities::components::Zombie;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::spawn_entity::SpawnEntityPacket;
 
 pub fn broadcast_new_entities(
-    query: Query<(Entity, &Zombie), Added<Zombie>>,
+    query: Query<(Entity, &EntityKind), Added<EntityKind>>,
     players_query: Query<(Entity, &mut StreamWriter)>,
     transforms: Query<(&Position, &Rotation, &EntityKind)>,
 ) {
-    for (entity, _zombie) in query.iter() {
-        tracing::info!("New Zombie spawned: Entity {:?}, Zombie", entity);
+    for (entity, kind) in query.iter() {
+        tracing::info!("New entity spawned: Entity {:?}, Kind {:?}", entity, kind);
 
         let (pos, rot, kind) = transforms
             .get(entity)

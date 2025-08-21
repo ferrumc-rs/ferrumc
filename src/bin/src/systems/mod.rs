@@ -14,7 +14,7 @@ pub fn register_game_systems(schedule: &mut bevy_ecs::schedule::Schedule) {
     schedule.add_systems(player_count_update::player_count_updater);
     schedule.add_systems(world_sync::sync_world);
 
-    schedule.add_systems(spawn_entities::spawn_zombie::handle_spawn_zombie);
+    schedule.add_systems(spawn_entities::spawn_entity::handle_spawn_entity);
     schedule.add_systems(spawn_entities::on_new_entity::broadcast_new_entities);
 
     // Should always be last
