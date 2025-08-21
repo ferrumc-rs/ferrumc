@@ -34,7 +34,7 @@
         system,
         ...
       }: let
-        rust-toolchain = fenix.packages.${system}.default.toolchain;
+        rust-toolchain = fenix.packages.${system}.complete.toolchain;
       in {
         treefmt = {
           projectRootFile = "flake.lock";
