@@ -20,6 +20,7 @@ impl Xoroshiro128PlusPlus {
             hi: mix_stafford13(low.wrapping_add(0x9E3779B97F4A7C15u64)), // -7046029254386353131_i64 as u64
         }
     }
+
     pub fn new(lo: u64, hi: u64) -> Self {
         if (lo | hi) == 0 {
             return Self {
@@ -52,16 +53,16 @@ impl Xoroshiro128PlusPlus {
     pub fn next_bounded(&mut self, bound: u32) -> u32 {
         assert_ne!(bound, 0, "Bound must be positive");
         loop {
-            let res = (self.next_u32() as u64).wrapping_mul(bound as u64);
+            let res = u64::from(self.next_u32()).wrapping_mul(bound.into());
             let lo = res as u32;
-            if lo >= bound || lo as u64 >= (!bound as u64 + 1) % bound as u64 {
+            if lo >= bound || lo >= (!bound + 1) % bound {
                 return (res >> 32) as u32;
             }
         }
     }
 
     pub fn next_f64(&mut self) -> f64 {
-        ((self.next_u64() >> 11) as f32 * 1.110223E-16f32) as f64
+        ((self.next_u64() >> 11) as f32 * 1.110223E-16f32).into()
     }
 
     pub fn next_f32(&mut self) -> f32 {

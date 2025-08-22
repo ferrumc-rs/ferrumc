@@ -1,7 +1,4 @@
-use crate::{
-    perlin_noise,
-    random::{PositionalFactory, Xoroshiro128PlusPlus},
-};
+use crate::random::Xoroshiro128PlusPlus;
 
 ///reference: net.minecraft.world.level.levelgen.synth.PerlinNoise
 pub struct PerlinNoise {
@@ -87,8 +84,8 @@ impl ImprovedNoise {
         let zo = random.next_f64() * 256.0;
 
         let mut p = [0u8; 256];
-        for i in 0..256 {
-            p[i] = i as u8;
+        for (i, p) in p.iter_mut().enumerate() {
+            *p = i as u8;
         }
 
         for i in 0..256 {
@@ -107,9 +104,9 @@ impl ImprovedNoise {
         let floor_y = dy.floor() as i32;
         let floor_z = dz.floor() as i32;
 
-        let delta_x = dx - floor_x as f64;
-        let delta_y = dy - floor_y as f64;
-        let delta_z = dz - floor_z as f64;
+        let delta_x = dx - f64::from(floor_x);
+        let delta_y = dy - f64::from(floor_y);
+        let delta_z = dz - f64::from(floor_z);
 
         self.sample_and_lerp(
             floor_x, floor_y, floor_z, delta_x, delta_y, delta_z, delta_y,
@@ -117,7 +114,7 @@ impl ImprovedNoise {
     }
 
     fn p(&self, index: i32) -> i32 {
-        self.p[(index & 0xFF) as usize] as i32
+        self.p[(index & 0xFF) as usize].into()
     }
 
     fn sample_and_lerp(
@@ -126,7 +123,7 @@ impl ImprovedNoise {
         grid_y: i32,
         grid_z: i32,
         delta_x: f64,
-        weird_delta_y: f64,
+        weird_delta_y: f64, //TODO: rename and remove delta_y
         delta_z: f64,
         delta_y: f64,
     ) -> f64 {
@@ -276,7 +273,7 @@ fn test_improved_noise() {
 fn test_perlin_noise() {
     let mut rng = Xoroshiro128PlusPlus::new(0, 0);
 
-    let mut perlin_noise = PerlinNoise::new(&mut rng, 3, vec![0.0, 1.0, -1.0, 0.0, 0.5, 0.0]);
+    let perlin_noise = PerlinNoise::new(&mut rng, 3, vec![0.0, 1.0, -1.0, 0.0, 0.5, 0.0]);
 
     assert_eq!(
         perlin_noise.lowest_freq_input_factor, 8.0,
