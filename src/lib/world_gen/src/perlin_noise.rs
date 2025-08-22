@@ -1,5 +1,6 @@
 use crate::random::Xoroshiro128PlusPlus;
 
+#[allow(dead_code)]
 ///reference: net.minecraft.world.level.levelgen.synth.PerlinNoise
 pub struct PerlinNoise {
     first_octave: i32,
@@ -10,6 +11,7 @@ pub struct PerlinNoise {
     max: f64,
 }
 
+#[allow(dead_code)]
 impl PerlinNoise {
     pub fn new(random: &mut Xoroshiro128PlusPlus, first_octave: i32, amplitudes: Vec<f64>) -> Self {
         let factory = random.fork_positional();
@@ -70,6 +72,7 @@ impl PerlinNoise {
 }
 
 /// reference: net.minecraft.world.level.levelgen.synth.ImprovedNoise
+#[allow(dead_code)]
 pub struct ImprovedNoise {
     p: [u8; 256],
     xo: f64,
@@ -77,6 +80,7 @@ pub struct ImprovedNoise {
     zo: f64,
 }
 
+#[allow(dead_code)]
 impl ImprovedNoise {
     pub fn new(random: &mut Xoroshiro128PlusPlus) -> Self {
         let xo = random.next_f64() * 256.0;
@@ -117,6 +121,7 @@ impl ImprovedNoise {
         self.p[(index & 0xFF) as usize].into()
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn sample_and_lerp(
         &self,
         grid_x: i32,
@@ -215,6 +220,7 @@ pub fn lerp2(delta1: f64, delta2: f64, start1: f64, end1: f64, start2: f64, end2
     )
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn lerp3(
     delta1: f64,
     delta2: f64,

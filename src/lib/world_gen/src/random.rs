@@ -1,3 +1,4 @@
+#[allow(dead_code)]
 #[derive(Debug, Clone, Copy)]
 pub struct Xoroshiro128PlusPlus {
     lo: u64,
@@ -5,6 +6,7 @@ pub struct Xoroshiro128PlusPlus {
 }
 
 /// Reference: net.minecraft.world.level.levelgen.Xoroshiro128PlusPlus
+#[allow(dead_code)]
 impl Xoroshiro128PlusPlus {
     /// Reference: net.minecraft.world.level.levelgen.RandomSupport
     pub fn from_seed(seed: u64) -> Self {
@@ -77,12 +79,14 @@ impl Xoroshiro128PlusPlus {
     }
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Copy)]
 pub struct PositionalFactory {
     lo: u64,
     hi: u64,
 }
 
+#[allow(dead_code)]
 impl PositionalFactory {
     pub fn with_hash(&self, s: &str) -> Xoroshiro128PlusPlus {
         let digest = md5::compute(s.as_bytes());
