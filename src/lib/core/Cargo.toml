@@ -13,6 +13,8 @@ ferrumc-text = { workspace = true }
 ferrumc-net-codec = { workspace = true }
 uuid = { workspace = true }
 crossbeam-queue = { workspace = true }
+serde = { workspace = true }
+bitcode = { workspace = true }
 
 [dev-dependencies]
 criterion = { workspace = true }
