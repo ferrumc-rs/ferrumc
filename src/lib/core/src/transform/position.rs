@@ -1,9 +1,11 @@
 use bevy_ecs::prelude::Component;
+use bitcode::{Decode, Encode};
 use ferrumc_net_codec::net_types::network_position::NetworkPosition;
+use serde::{Deserialize, Serialize};
 use std::fmt::{Debug, Display, Formatter};
 use typename::TypeName;
 
-#[derive(TypeName, Component)]
+#[derive(TypeName, Component, Serialize, Deserialize, Encode, Decode)]
 pub struct Position {
     pub x: f64,
     pub y: f64,

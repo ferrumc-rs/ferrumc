@@ -1,13 +1,13 @@
 [package]
-name = "ferrumc-world"
-description = "FerrumC specific world definition and implementation of a Minecraft World and related logic."
+name = "ferrumc-playerstate"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 thiserror = { workspace = true }
 ferrumc-storage = { workspace = true }
 ferrumc-config = { workspace = true }
+ferrumc-core = { workspace = true }
 tracing = { workspace = true }
 ferrumc-net-codec = { workspace = true }
 serde = { workspace = true }
@@ -32,12 +32,6 @@ rand = { workspace = true }
 yazi = { workspace = true }
 ferrumc-threadpool = { workspace = true }
 lz4_flex = { workspace = true }
-ferrumc-playerstate = { workspace = true }
 
-[[bench]]
-name = "world_bench"
-harness = false
-path = "src/benches/world.rs"
-
-[dev-dependencies]
-criterion = { workspace = true }
+[lints]
+workspace = true
