@@ -63,14 +63,12 @@ pub fn handle(
                     }
                 }
             }
-        } else {
-            if let Err(e) = state.0.world.players_state.save_player_state(&player_data) {
-                tracing::error!(
-                    "Failed to save player state for {}: {:?}",
-                    player_identity.username,
-                    e
-                );
-            }
+        } else if let Err(e) = state.0.world.players_state.save_player_state(&player_data) {
+            tracing::error!(
+                "Failed to save player state for {}: {:?}",
+                player_identity.username,
+                e
+            );
         }
         let head_block = state.0.world.get_block_and_fetch(
             player_data.pos.x as i32,
