@@ -5,13 +5,15 @@ use crate::register_resources::register_resources;
 use crate::systems::register_game_systems;
 use crate::systems::shutdown_systems::register_shutdown_systems;
 use bevy_ecs::prelude::World;
-use bevy_ecs::schedule::ExecutorKind;
+use bevy_ecs::schedule::{ExecutorKind, Schedule};
 use crossbeam_channel::Sender;
 use ferrumc_commands::infrastructure::register_command_systems;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_net::connection::{handle_connection, NewConnection};
 use ferrumc_net::server::create_server_listener;
 use ferrumc_net::PacketSender;
+use ferrumc_scheduler::MissedTickBehavior;
+use ferrumc_scheduler::{drain_registered_schedules, Scheduler, TimedSchedule};
 use ferrumc_state::{GlobalState, GlobalStateResource};
 use ferrumc_utils::formatting::format_duration;
 use play_packets::register_packet_handlers;
@@ -20,14 +22,10 @@ use std::time::{Duration, Instant};
 use tracing::{debug, error, info, info_span, trace, warn, Instrument};
 
 pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
-    // Setup the ECS world and schedules
+    // ECS world and schedules
     let mut ecs_world = World::new();
 
-    let mut schedule = bevy_ecs::schedule::Schedule::default();
-    schedule.set_executor_kind(ExecutorKind::SingleThreaded);
-
-    // This schedule is ticked once when the server is shutting down
-    // If you need to run any cleanup systems, add them to `ferrumc::systems::shutdown_systems::register_shutdown_systems`
+    // Shutdown schedule runs once on exit
     let mut shutdown_schedule = bevy_ecs::schedule::Schedule::default();
 
     // Setup channels and stuff for new connections
@@ -40,21 +38,18 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
 
     ferrumc_default_commands::init();
 
-    // Register systems and resources
+    // Register events/resources (one-time into World)
     let global_state_res = GlobalStateResource(global_state.clone());
 
     register_events(&mut ecs_world);
     register_resources(&mut ecs_world, new_conn_recv, global_state_res);
-    register_packet_handlers(&mut schedule);
-    register_player_systems(&mut schedule);
-    register_command_systems(&mut schedule);
-    register_game_systems(&mut schedule);
 
+    let mut timed = build_timed_scheduler();
+
+    // Shutdown systems
     register_shutdown_systems(&mut shutdown_schedule);
 
-    let time_per_tick = Duration::from_secs(1) / get_global_config().tps;
-
-    // Start the TCP connection acceptor
+    // Start the TCP acceptor thread
     tcp_conn_acceptor(
         global_state.clone(),
         sender_struct,
@@ -68,30 +63,65 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
         format_duration(global_state.start_time.elapsed())
     );
 
+    // Run all schedules that are due, then sleep until the next one.
+    const MAX_GLOBAL_CATCH_UP: usize = 64;
+
     while !global_state
         .shut_down
         .load(std::sync::atomic::Ordering::Relaxed)
     {
-        let tick_start = Instant::now();
-        // Run the ECS schedule
-        schedule.run(&mut ecs_world);
+        let mut ran_any = false;
+        let mut ran_count = 0;
 
-        // Sleep to maintain the tick rate
-        let elapsed_time = tick_start.elapsed();
-        let sleep_duration = time_per_tick.saturating_sub(elapsed_time);
+        loop {
+            if ran_count >= MAX_GLOBAL_CATCH_UP {
+                break;
+            }
 
-        if sleep_duration > Duration::ZERO {
-            trace!(
-                "Server tick took {:?}, sleeping for {:?}",
-                elapsed_time,
-                sleep_duration
-            );
-            std::thread::sleep(sleep_duration);
-        } else {
-            warn!(
-                "Server tick took too long: {:?}, max {:?}",
-                elapsed_time, time_per_tick
-            );
+            let now = Instant::now();
+            let Some((idx, due)) = timed.peek_next_due() else {
+                std::thread::sleep(Duration::from_millis(1));
+                continue;
+            };
+
+            if due > now {
+                break;
+            }
+
+            let (popped_idx, _popped_due) = timed
+                .pop_next_due()
+                .expect("scheduler heap changed unexpectedly");
+            debug_assert_eq!(popped_idx, idx);
+
+            let name = timed.schedules[idx].name.clone();
+            let period = timed.schedules[idx].period;
+
+            let start = Instant::now();
+            timed.schedules[idx].schedule.run(&mut ecs_world);
+            let elapsed = start.elapsed();
+
+            if elapsed > period {
+                warn!(
+                    "Schedule '{}' overran: took {:?}, budget {:?}",
+                    name, elapsed, period
+                );
+            } else {
+                trace!(
+                    "Schedule '{}' ran in {:?} (budget {:?})",
+                    name,
+                    elapsed,
+                    period
+                );
+            }
+
+            timed.after_run(idx);
+
+            ran_any = true;
+            ran_count += 1;
+        }
+
+        if !ran_any {
+            timed.park_until_next_due();
         }
     }
 
@@ -110,6 +140,64 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
         .expect("Failed to receive shutdown response");
 
     Ok(())
+}
+
+fn build_timed_scheduler() -> Scheduler {
+    let mut timed = Scheduler::new();
+
+    // Tick schedule
+    let build_tick = |s: &mut Schedule| {
+        s.set_executor_kind(ExecutorKind::SingleThreaded);
+        register_packet_handlers(s);
+        register_player_systems(s);
+        register_command_systems(s);
+        register_game_systems(s);
+    };
+    let tick_period = Duration::from_secs(1) / get_global_config().tps;
+    timed.register(
+        TimedSchedule::new("tick", tick_period, build_tick)
+            .with_behavior(MissedTickBehavior::Burst)
+            .with_max_catch_up(5),
+    );
+
+    // World sync
+    let build_world_sync = |s: &mut Schedule| {
+        s.add_systems(crate::systems::world_sync::sync_world);
+    };
+    timed.register(
+        TimedSchedule::new("world_sync", Duration::from_secs(15), build_world_sync)
+            .with_behavior(MissedTickBehavior::Skip),
+    );
+
+    // Player count refresh
+    let build_player_count = |s: &mut Schedule| {
+        s.add_systems(crate::systems::player_count_update::player_count_updater);
+    };
+    timed.register(
+        TimedSchedule::new(
+            "player_count_refresh",
+            Duration::from_secs(10),
+            build_player_count,
+        )
+        .with_behavior(MissedTickBehavior::Skip),
+    );
+
+    // Keepalive
+    let build_keepalive = |s: &mut Schedule| {
+        s.add_systems(crate::systems::keep_alive_system::keep_alive_system);
+    };
+    timed.register(
+        TimedSchedule::new("keepalive", Duration::from_secs(1), build_keepalive)
+            .with_behavior(MissedTickBehavior::Skip)
+            .with_phase(Duration::from_millis(250)),
+    );
+
+    // Plugin schedules
+    for pending in drain_registered_schedules() {
+        timed.register(pending.into_timed());
+    }
+
+    timed
 }
 
 fn tcp_conn_acceptor(

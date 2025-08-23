@@ -2,50 +2,53 @@ use bevy_ecs::prelude::{Entity, Query, Res};
 use ferrumc_core::conn::keepalive::KeepAliveTracker;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_state::GlobalStateResource;
-use std::time::{Duration, SystemTime};
+use std::time::Duration;
 use tracing::warn;
 
 pub fn keep_alive_system(
-    query: Query<(Entity, &mut KeepAliveTracker, &StreamWriter)>,
+    mut query: Query<(Entity, &mut KeepAliveTracker, &StreamWriter)>,
     state: Res<GlobalStateResource>,
 ) {
-    // Get the times before the queries, since it's possible a query takes more than a millisecond with a lot of entities.
+    let now = std::time::Instant::now(); // faster than SystemTime for diffs
+    const TIMEOUT: Duration = Duration::from_secs(15);
+    const KEEPALIVE_INTERVAL: Duration = Duration::from_secs(10);
 
-    let current_time = SystemTime::now();
-
-    for (entity, mut keep_alive_tracker, stream_writer) in query {
+    for (entity, mut tracker, stream_writer) in query.iter_mut() {
+        // Skip if connection is already closed
         if !stream_writer
             .running
             .load(std::sync::atomic::Ordering::Relaxed)
         {
             continue;
         }
-        // If it's been more than 15 seconds since the last keep alive packet was received, kill the connection
-        let time_diff = current_time
-            .duration_since(keep_alive_tracker.last_received_keep_alive)
-            .expect("SystemTime::duration_since failed, this should never happen");
-        if time_diff > Duration::from_secs(15) {
+
+        let elapsed = now.duration_since(tracker.last_received_keep_alive);
+
+        // Kill connection if timed out
+        if elapsed > TIMEOUT {
             warn!(
                 "Killing connection for {}, it's been {:?} since last keepalive response",
-                entity, time_diff
+                entity, elapsed
             );
             state
                 .0
                 .players
                 .disconnect(entity, Some("Connection timed out".to_string()));
-        } else if time_diff >= Duration::from_secs(10) && keep_alive_tracker.has_received_keep_alive
-        {
-            // If it's been more than 10 seconds since the last keep alive packet was sent, send a new one
-            let time_stamp = rand::random();
-            let keep_alive_packet =
-                ferrumc_net::packets::outgoing::keep_alive::OutgoingKeepAlivePacket {
-                    timestamp: time_stamp,
-                };
-            if let Err(err) = stream_writer.send_packet_ref(&keep_alive_packet) {
+            continue;
+        }
+
+        // Send keepalive if needed
+        if elapsed >= KEEPALIVE_INTERVAL && tracker.has_received_keep_alive {
+            let timestamp = rand::random::<i64>(); // or use a counter
+            let packet =
+                ferrumc_net::packets::outgoing::keep_alive::OutgoingKeepAlivePacket { timestamp };
+
+            if let Err(err) = stream_writer.send_packet_ref(&packet) {
                 warn!("Failed to send keep alive packet to {}: {:?}", entity, err);
             }
-            keep_alive_tracker.last_sent_keep_alive = time_stamp;
-            keep_alive_tracker.has_received_keep_alive = false;
+
+            tracker.last_sent_keep_alive = timestamp;
+            tracker.has_received_keep_alive = false;
         }
     }
 }

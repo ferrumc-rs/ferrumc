@@ -3,7 +3,7 @@ use bevy_ecs::system::Query;
 use ferrumc_core::conn::keepalive::KeepAliveTracker;
 use ferrumc_net::IncomingKeepAlivePacketReceiver;
 use ferrumc_state::GlobalStateResource;
-use std::time::SystemTime;
+use std::time::Instant;
 use tracing::{error, warn};
 
 pub fn handle(
@@ -26,7 +26,7 @@ pub fn handle(
                 .players
                 .disconnect(eid, Some("Invalid keep alive packet received".to_string()));
         } else {
-            keep_alive_tracker.last_received_keep_alive = SystemTime::now();
+            keep_alive_tracker.last_received_keep_alive = Instant::now();
             keep_alive_tracker.has_received_keep_alive = true;
         }
     }
