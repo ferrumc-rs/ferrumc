@@ -98,6 +98,37 @@ impl PositionalFactory {
     }
 }
 
+#[allow(dead_code)]
+pub struct LegacyRandom {
+    seed: u64,
+}
+
+#[allow(dead_code)]
+impl LegacyRandom {
+    pub fn new(seed: u64) -> Self {
+        Self {
+            seed: (seed ^ 0x5DEECE66D) & ((1 << 48) - 1),
+        }
+    }
+
+    pub fn next(&mut self, bits: u32) -> i32 {
+        self.seed = self.seed.wrapping_mul(0x5DEECE66D).wrapping_add(11) & ((1 << 48) - 1);
+        (self.seed >> (48 - bits)) as i32
+    }
+}
+
+#[test]
+fn test_legacy() {
+    let mut rng = LegacyRandom::new(0);
+
+    let expected: [i32; 5] = [-1268774284, 1362668399, -881149874, 1891536193, -906589512];
+
+    for &exp in &expected {
+        let got = rng.next(48);
+        assert_eq!(got, exp, "Mismatch in sequence");
+    }
+}
+
 #[test]
 fn test_zero() {
     let mut rng = Xoroshiro128PlusPlus::new(0, 0);
