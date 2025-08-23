@@ -1,4 +1,4 @@
-use std::env::current_exe;
+use std::env::current_dir;
 use std::path::PathBuf;
 
 #[derive(thiserror::Error, Debug)]
@@ -30,12 +30,7 @@ pub fn get_root_path() -> PathBuf {
     //! let favicon_path = root_path.join("icon.png");
     //! ```
     //!
-    let exe_location = current_exe().expect("Failed to get the current executable location.");
-    let exe_dir = exe_location
-        .parent()
-        .ok_or(RootPathError::NoParent)
-        .expect("Failed to get the parent directory of the executable.");
-    exe_dir.to_path_buf()
+    current_dir().expect("Failed to get the current working directory")
 }
 
 pub trait BetterPathExt {
