@@ -1,10 +1,10 @@
 use bevy_ecs::prelude::{Commands, Res, Resource};
 use crossbeam_channel::Receiver;
-use ferrumc_core::{chunks::chunk_receiver::ChunkReceiver, data::player::PlayerData};
 use ferrumc_core::conn::keepalive::KeepAliveTracker;
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
+use ferrumc_core::{chunks::chunk_receiver::ChunkReceiver, data::player::PlayerData};
 use ferrumc_net::connection::NewConnection;
 use ferrumc_state::GlobalStateResource;
 use std::time::Instant;
