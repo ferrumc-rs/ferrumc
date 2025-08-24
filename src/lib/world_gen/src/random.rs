@@ -115,6 +115,18 @@ impl LegacyRandom {
         self.seed = self.seed.wrapping_mul(0x5DEECE66D).wrapping_add(11) & ((1 << 48) - 1);
         (self.seed >> (48 - bits)) as i32
     }
+
+    pub fn next_u64(&mut self) -> u64 {
+        ((self.next(32) as u64) << 32) + self.next(32) as u64
+    }
+
+    pub fn next_bounded(&mut self, bound: u32) -> u32 {
+        if (bound & (bound - 1)) == 0 {
+            ((u64::from(bound) * self.next(31) as u64) >> 31) as u32
+        } else {
+            self.next(31) as u32 % bound
+        }
+    }
 }
 
 #[test]
@@ -125,6 +137,27 @@ fn test_legacy() {
 
     for &exp in &expected {
         let got = rng.next(48);
+        assert_eq!(got, exp, "Mismatch in sequence");
+    }
+}
+
+#[test]
+fn test_legacy_bounded() {
+    let mut rng = LegacyRandom::new(0);
+
+    let expected: [u32; 5] = [41360, 5948, 48029, 16447, 43515];
+
+    for &exp in &expected {
+        let got = rng.next_bounded(100000);
+        assert_eq!(got, exp, "Mismatch in sequence");
+    }
+
+    let mut rng = LegacyRandom::new(0);
+
+    let expected: [u32; 5] = [748, 851, 246, 620, 652];
+
+    for &exp in &expected {
+        let got = rng.next_bounded(1024);
         assert_eq!(got, exp, "Mismatch in sequence");
     }
 }
