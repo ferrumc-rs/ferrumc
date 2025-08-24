@@ -8,7 +8,7 @@ ferrumc-world = { workspace = true }
 thiserror = { workspace = true }
 noise = { workspace = true }
 rand = { workspace = true }
-md5 = "0.8.0"
+md5 = { workspace = true }
 
 [lints]
 workspace = true
