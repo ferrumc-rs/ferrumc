@@ -5,7 +5,7 @@ FROM rust:alpine3.20 AS build-stage
 
 WORKDIR /app
 COPY . /app
-RUN apk add --no-cache musl-dev gcc
+RUN apk add --no-cache musl-dev gcc openssl-dev
 RUN cargo build --release -j 10
 RUN strip target/release/ferrumc
 # Stage 2: Runtime environment

@@ -6,7 +6,9 @@ pub struct CLIArgs {
     #[command(subcommand)]
     pub command: Option<Command>,
     #[clap(long)]
-    #[arg(value_enum, default_value_t = LogLevel(Level::DEBUG))]
+    #[arg(value_enum)]
+    #[cfg_attr(debug_assertions, arg(default_value_t = LogLevel(Level::DEBUG)))]
+    #[cfg_attr(not(debug_assertions), arg(default_value_t = LogLevel(Level::INFO)))]
     pub log: LogLevel,
 }
 
