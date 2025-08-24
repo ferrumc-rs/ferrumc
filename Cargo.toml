@@ -188,6 +188,7 @@ lz4_flex = "0.11.5"
 # Database
 heed = "0.22.0"
 moka = "0.12.10"
+rusqlite = { version = "0.37.0", features = ["bundled", "serde_json"] }
 
 # CLI
 clap = "4.5.45"

@@ -2,6 +2,7 @@ use crate::errors::WorldError;
 use crate::vanilla_chunk_format::VanillaChunk;
 use crate::World;
 use ferrumc_anvil::load_anvil_file;
+use ferrumc_storage::database::Database;
 use ferrumc_threadpool::ThreadPool;
 use indicatif::{ProgressBar, ProgressStyle};
 use rayon::prelude::*;
@@ -51,7 +52,7 @@ impl World {
 
         progress.set_message("Setting up database and preparing import...");
 
-        self.storage_backend.create_table("chunks".to_string())?;
+        self.storage_backend.create_table("chunks")?;
 
         let start = std::time::Instant::now();
 
