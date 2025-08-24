@@ -8,9 +8,7 @@ use crate::{database::Database, errors::StorageError};
 // TODO: Implement proper error mapping
 impl From<rusqlite::Error> for StorageError {
     fn from(err: rusqlite::Error) -> Self {
-        match err {
-            _ => StorageError::DatabaseError(err.to_string()),
-        }
+        StorageError::DatabaseError(err.to_string())
     }
 }
 
@@ -148,8 +146,7 @@ where
             return Ok(Vec::new());
         }
         let conn = self.open_conn()?;
-        let placeholders = std::iter::repeat("?")
-            .take(keys.len())
+        let placeholders = std::iter::repeat_n("?", keys.len())
             .collect::<Vec<_>>()
             .join(",");
         let query_sql = format!(
