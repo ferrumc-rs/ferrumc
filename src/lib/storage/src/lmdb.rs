@@ -1,8 +1,9 @@
+use crate::database::Database;
 use crate::errors::StorageError;
 use heed;
 use heed::byteorder::BigEndian;
 use heed::types::{Bytes, U128};
-use heed::{Database, Env, EnvOpenOptions, WithoutTls};
+use heed::{Env, EnvOpenOptions, WithoutTls};
 use parking_lot::Mutex;
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -60,11 +61,57 @@ impl LmdbBackend {
         }
     }
 
-    pub fn insert(&self, table: String, key: u128, value: Vec<u8>) -> Result<(), StorageError> {
+    pub fn exists(&self, table: String, key: u128) -> Result<bool, StorageError> {
+        let env = self.env.lock();
+        let ro_txn = env.read_txn()?;
+        let db: heed::Database<U128<BigEndian>, Bytes> = env
+            .open_database(&ro_txn, Some(&table))?
+            .ok_or(StorageError::TableError("Table not found".to_string()))?;
+        Ok(db.get(&ro_txn, &key)?.is_some())
+    }
+
+    pub fn table_exists(&self, table: String) -> Result<bool, StorageError> {
+        let env = self.env.lock();
+        let ro_txn = env.read_txn()?;
+        let db = env.open_database::<U128<BigEndian>, Bytes>(&ro_txn, Some(&table))?;
+        Ok(db.is_some())
+    }
+
+    pub fn details(&self) -> String {
+        format!("LMDB (heed 0.20.5): {:?}", self.env.lock().info())
+    }
+
+    pub fn flush(&self) -> Result<(), StorageError> {
+        let env = self.env.lock();
+        env.clear_stale_readers()?;
+        env.force_sync()?;
+        Ok(())
+    }
+
+    pub fn close(&self) -> Result<(), StorageError> {
+        self.flush()?;
+        Ok(())
+    }
+}
+
+impl Database for LmdbBackend {
+    type Key = u128;
+    type Value = Vec<u8>;
+
+    fn create_table(&self, table: &str) -> Result<(), StorageError> {
         let env = self.env.lock();
         let mut rw_txn = env.write_txn()?;
-        let db: Database<U128<BigEndian>, Bytes> =
-            env.create_database(&mut rw_txn, Some(&table))?;
+        env.create_database::<U128<BigEndian>, Bytes>(&mut rw_txn, Some(table))?;
+        rw_txn.commit()?;
+        Ok(())
+    }
+
+    fn insert(&self, table: &str, key: Self::Key, value: Self::Value) -> Result<(), StorageError> {
+        let env = self.env.lock();
+        let mut rw_txn = env.write_txn()?;
+        let db: heed::Database<U128<BigEndian>, Bytes> =
+            env.open_database(&rw_txn, Some(table))?
+                .ok_or(StorageError::TableError("Table not found".to_string()))?;
         if db.get(&rw_txn, &key)?.is_some() {
             return Err(StorageError::KeyExists(key as u64));
         }
@@ -73,12 +120,12 @@ impl LmdbBackend {
         Ok(())
     }
 
-    pub fn get(&self, table: String, key: u128) -> Result<Option<Vec<u8>>, StorageError> {
+    fn get(&self, table: &str, key: Self::Key) -> Result<Option<Self::Value>, StorageError> {
         let env = self.env.lock();
         let ro_txn = env.read_txn()?;
-        let db: Database<U128<BigEndian>, Bytes> = env
-            .open_database(&ro_txn, Some(&table))?
-            .ok_or(StorageError::TableError("Table not found".to_string()))?;
+        let db: heed::Database<U128<BigEndian>, Bytes> =
+            env.open_database(&ro_txn, Some(table))?
+                .ok_or(StorageError::TableError("Table not found".to_string()))?;
         let value = db.get(&ro_txn, &key)?;
         if let Some(v) = value {
             Ok(Some(v.to_vec()))
@@ -87,12 +134,12 @@ impl LmdbBackend {
         }
     }
 
-    pub fn delete(&self, table: String, key: u128) -> Result<(), StorageError> {
+    fn delete(&self, table: &str, key: Self::Key) -> Result<(), StorageError> {
         let env = self.env.lock();
         let mut rw_txn = env.write_txn()?;
-        let db: Database<U128<BigEndian>, Bytes> = env
-            .open_database(&rw_txn, Some(&table))?
-            .ok_or(StorageError::TableError("Table not found".to_string()))?;
+        let db: heed::Database<U128<BigEndian>, Bytes> =
+            env.open_database(&rw_txn, Some(table))?
+                .ok_or(StorageError::TableError("Table not found".to_string()))?;
         if db.get(&rw_txn, &key)?.is_none() {
             return Err(StorageError::KeyNotFound(key as u64));
         }
@@ -101,12 +148,12 @@ impl LmdbBackend {
         Ok(())
     }
 
-    pub fn update(&self, table: String, key: u128, value: Vec<u8>) -> Result<(), StorageError> {
+    fn update(&self, table: &str, key: Self::Key, value: Self::Value) -> Result<(), StorageError> {
         let env = self.env.lock();
         let mut rw_txn = env.write_txn()?;
-        let db: Database<U128<BigEndian>, Bytes> = env
-            .open_database(&rw_txn, Some(&table))?
-            .ok_or(StorageError::TableError("Table not found".to_string()))?;
+        let db: heed::Database<U128<BigEndian>, Bytes> =
+            env.open_database(&rw_txn, Some(table))?
+                .ok_or(StorageError::TableError("Table not found".to_string()))?;
         if db.get(&rw_txn, &key)?.is_none() {
             return Err(StorageError::KeyNotFound(key as u64));
         }
@@ -115,27 +162,32 @@ impl LmdbBackend {
         Ok(())
     }
 
-    pub fn upsert(&self, table: String, key: u128, value: Vec<u8>) -> Result<bool, StorageError> {
+    fn upsert(
+        &self,
+        table: &str,
+        key: Self::Key,
+        value: Self::Value,
+    ) -> Result<bool, StorageError> {
         let env = self.env.lock();
         let mut rw_txn = env.write_txn()?;
-        let db: Database<U128<BigEndian>, Bytes> = env
-            .open_database(&rw_txn, Some(&table))?
-            .ok_or(StorageError::TableError("Table not found".to_string()))?;
+        let db: heed::Database<U128<BigEndian>, Bytes> =
+            env.open_database(&rw_txn, Some(table))?
+                .ok_or(StorageError::TableError("Table not found".to_string()))?;
         db.put(&mut rw_txn, &key, &value)?;
         rw_txn.commit()?;
         Ok(true)
     }
 
-    pub fn batch_upsert(
+    fn batch_upsert(
         &self,
-        table: String,
-        data: Vec<(u128, Vec<u8>)>,
+        table: &str,
+        data: Vec<(Self::Key, Self::Value)>,
     ) -> Result<(), StorageError> {
         let env = self.env.lock();
         let mut rw_txn = env.write_txn()?;
 
         // Open or create the database for the given table
-        let db = env.create_database::<U128<BigEndian>, Bytes>(&mut rw_txn, Some(&table))?;
+        let db = env.create_database::<U128<BigEndian>, Bytes>(&mut rw_txn, Some(table))?;
 
         // Create a map of keys and their associated values
         let keymap: HashMap<u128, &Vec<u8>> = data.iter().map(|(k, v)| (*k, v)).collect();
@@ -161,34 +213,14 @@ impl LmdbBackend {
         Ok(())
     }
 
-    pub fn exists(&self, table: String, key: u128) -> Result<bool, StorageError> {
-        let env = self.env.lock();
-        let ro_txn = env.read_txn()?;
-        let db: Database<U128<BigEndian>, Bytes> = env
-            .open_database(&ro_txn, Some(&table))?
-            .ok_or(StorageError::TableError("Table not found".to_string()))?;
-        Ok(db.get(&ro_txn, &key)?.is_some())
-    }
-
-    pub fn table_exists(&self, table: String) -> Result<bool, StorageError> {
-        let env = self.env.lock();
-        let ro_txn = env.read_txn()?;
-        let db = env.open_database::<U128<BigEndian>, Bytes>(&ro_txn, Some(&table))?;
-        Ok(db.is_some())
-    }
-
-    pub fn details(&self) -> String {
-        format!("LMDB (heed 0.20.5): {:?}", self.env.lock().info())
-    }
-
-    pub fn batch_insert(
+    fn batch_insert(
         &self,
-        table: String,
-        data: Vec<(u128, Vec<u8>)>,
+        table: &str,
+        data: Vec<(Self::Key, Self::Value)>,
     ) -> Result<(), StorageError> {
         let env = self.env.lock();
         let mut rw_txn = env.write_txn()?;
-        let db = env.create_database::<U128<BigEndian>, Bytes>(&mut rw_txn, Some(&table))?;
+        let db = env.create_database::<U128<BigEndian>, Bytes>(&mut rw_txn, Some(table))?;
 
         let keymap: HashMap<u128, &Vec<u8>> = data.iter().map(|(k, v)| (*k, v)).collect();
         let mut sorted_keys: Vec<u128> = keymap.keys().cloned().collect();
@@ -204,16 +236,16 @@ impl LmdbBackend {
         Ok(())
     }
 
-    pub fn batch_get(
+    fn batch_get(
         &self,
-        table: String,
-        keys: Vec<u128>,
-    ) -> Result<Vec<Option<Vec<u8>>>, StorageError> {
+        table: &str,
+        keys: Vec<Self::Key>,
+    ) -> Result<Vec<Option<Self::Value>>, StorageError> {
         let env = self.env.lock();
         let ro_txn = env.read_txn()?;
-        let db: Database<U128<BigEndian>, Bytes> = env
-            .open_database(&ro_txn, Some(&table))?
-            .ok_or(StorageError::TableError("Table not found".to_string()))?;
+        let db: heed::Database<U128<BigEndian>, Bytes> =
+            env.open_database(&ro_txn, Some(table))?
+                .ok_or(StorageError::TableError("Table not found".to_string()))?;
         let mut values = Vec::new();
         for key in keys {
             let value = db.get(&ro_txn, &key)?;
@@ -224,26 +256,6 @@ impl LmdbBackend {
             }
         }
         Ok(values)
-    }
-
-    pub fn flush(&self) -> Result<(), StorageError> {
-        let env = self.env.lock();
-        env.clear_stale_readers()?;
-        env.force_sync()?;
-        Ok(())
-    }
-
-    pub fn create_table(&self, table: String) -> Result<(), StorageError> {
-        let env = self.env.lock();
-        let mut rw_txn = env.write_txn()?;
-        env.create_database::<U128<BigEndian>, Bytes>(&mut rw_txn, Some(&table))?;
-        rw_txn.commit()?;
-        Ok(())
-    }
-
-    pub fn close(&self) -> Result<(), StorageError> {
-        self.flush()?;
-        Ok(())
     }
 }
 
@@ -266,13 +278,11 @@ mod tests {
         let path = tempdir().unwrap().keep();
         {
             let backend = LmdbBackend::initialize(Some(path.clone())).unwrap();
-            backend.create_table("test_table".to_string()).unwrap();
+            backend.create_table("test_table").unwrap();
             let key = 12345678901234567890u128;
             let value = vec![1, 2, 3, 4, 5];
-            backend
-                .insert("test_table".to_string(), key, value.clone())
-                .unwrap();
-            let retrieved_value = backend.get("test_table".to_string(), key).unwrap();
+            backend.insert("test_table", key, value.clone()).unwrap();
+            let retrieved_value = backend.get("test_table", key).unwrap();
             assert_eq!(retrieved_value, Some(value));
         }
         remove_dir_all(path).unwrap();
@@ -283,16 +293,14 @@ mod tests {
         let path = tempdir().unwrap().keep();
         {
             let backend = LmdbBackend::initialize(Some(path.clone())).unwrap();
-            backend.create_table("test_table".to_string()).unwrap();
+            backend.create_table("test_table").unwrap();
             let data = vec![
                 (12345678901234567890u128, vec![1, 2, 3]),
                 (12345678901234567891u128, vec![4, 5, 6]),
             ];
-            backend
-                .batch_insert("test_table".to_string(), data.clone())
-                .unwrap();
+            backend.batch_insert("test_table", data.clone()).unwrap();
             for (key, value) in data {
-                let retrieved_value = backend.get("test_table".to_string(), key).unwrap();
+                let retrieved_value = backend.get("test_table", key).unwrap();
                 assert_eq!(retrieved_value, Some(value));
             }
         }
@@ -304,7 +312,7 @@ mod tests {
         let path = tempdir().unwrap().keep();
         {
             let backend = LmdbBackend::initialize(Some(path.clone())).unwrap();
-            backend.create_table("test_table".to_string()).unwrap();
+            backend.create_table("test_table").unwrap();
             let mut threads = vec![];
             for thread_iter in 0..10 {
                 let handle = std::thread::spawn({
@@ -313,9 +321,7 @@ mod tests {
                         for iter in 0..100 {
                             let key = hash_2_to_u128(iter, thread_iter);
                             let value = vec![rand::random::<u8>(); 10];
-                            backend
-                                .insert("test_table".to_string(), key, value)
-                                .unwrap();
+                            backend.insert("test_table", key, value).unwrap();
                         }
                     }
                 });
@@ -333,14 +339,12 @@ mod tests {
         let path = tempdir().unwrap().keep();
         {
             let backend = LmdbBackend::initialize(Some(path.clone())).unwrap();
-            backend.create_table("test_table".to_string()).unwrap();
+            backend.create_table("test_table").unwrap();
             for thread_iter in 0..10 {
                 for iter in 0..100 {
                     let value = vec![rand::random::<u8>(); 10];
                     let key = hash_2_to_u128(iter, thread_iter);
-                    backend
-                        .insert("test_table".to_string(), key, value)
-                        .unwrap();
+                    backend.insert("test_table", key, value).unwrap();
                 }
             }
             let mut threads = vec![];
@@ -350,7 +354,7 @@ mod tests {
                     move || {
                         for iter in 0..100 {
                             let key = hash_2_to_u128(iter, thread_iter);
-                            let _ = backend.get("test_table".to_string(), key).unwrap();
+                            let _ = backend.get("test_table", key).unwrap();
                         }
                     }
                 });
