@@ -5,6 +5,7 @@ use crate::errors::WorldError::CorruptedChunkData;
 use crate::warn;
 use crate::World;
 use ferrumc_config::server_config::get_global_config;
+use ferrumc_storage::database::Database;
 use std::hash::Hasher;
 use std::sync::Arc;
 use tracing::trace;
@@ -119,7 +120,7 @@ impl World {
 
 pub(crate) fn save_chunk_internal(world: &World, chunk: &Chunk) -> Result<(), WorldError> {
     if !world.storage_backend.table_exists("chunks".to_string())? {
-        world.storage_backend.create_table("chunks".to_string())?;
+        world.storage_backend.create_table("chunks")?;
     }
     let as_bytes = yazi::compress(
         &bitcode::encode(chunk),
@@ -127,9 +128,7 @@ pub(crate) fn save_chunk_internal(world: &World, chunk: &Chunk) -> Result<(), Wo
         CompressionLevel::BestSpeed,
     )?;
     let digest = create_key(chunk.dimension.as_str(), chunk.x, chunk.z);
-    world
-        .storage_backend
-        .upsert("chunks".to_string(), digest, as_bytes)?;
+    world.storage_backend.upsert("chunks", digest, as_bytes)?;
     Ok(())
 }
 
@@ -140,7 +139,7 @@ pub(crate) fn load_chunk_internal(
     dimension: &str,
 ) -> Result<Chunk, WorldError> {
     let digest = create_key(dimension, x, z);
-    match world.storage_backend.get("chunks".to_string(), digest)? {
+    match world.storage_backend.get("chunks", digest)? {
         Some(compressed) => {
             let (data, checksum) = yazi::decompress(compressed.as_slice(), yazi::Format::Zlib)?;
             if get_global_config().database.verify_chunk_data {
@@ -171,7 +170,7 @@ pub(crate) fn load_chunk_batch_internal(
         .collect();
     world
         .storage_backend
-        .batch_get("chunks".to_string(), digests)?
+        .batch_get("chunks", digests)?
         .iter()
         .map(|chunk| match chunk {
             Some(compressed) => {
@@ -215,7 +214,7 @@ pub(crate) fn delete_chunk_internal(
     dimension: &str,
 ) -> Result<(), WorldError> {
     let digest = create_key(dimension, x, z);
-    world.storage_backend.delete("chunks".to_string(), digest)?;
+    world.storage_backend.delete("chunks", digest)?;
     Ok(())
 }
 
