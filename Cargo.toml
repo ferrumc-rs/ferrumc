@@ -37,6 +37,7 @@ members = [
     "src/lib/world_gen",
     "src/lib/utils/threadpool",
     "src/lib/registry",
+    "src/lib/player_state",
     "src/lib/scheduler",
 ]
 
@@ -107,6 +108,7 @@ ferrumc-scheduler = { path = "src/lib/scheduler" }
 ferrumc-state = { path = "src/lib/core/state" }
 ferrumc-storage = { path = "src/lib/storage" }
 ferrumc-text = { path = "src/lib/text" }
+ferrumc-playerstate = { path = "src/lib/player_state" }
 ferrumc-threadpool = { path = "src/lib/utils/threadpool" }
 ferrumc-utils = { path = "src/lib/utils" }
 ferrumc-world = { path = "src/lib/world" }
@@ -188,6 +190,7 @@ lz4_flex = "0.11.5"
 # Database
 heed = "0.22.0"
 moka = "0.12.10"
+rusqlite = { version = "0.37.0", features = ["bundled", "serde_json"] }
 
 # CLI
 clap = "4.5.42"

@@ -30,6 +30,7 @@ ferrumc-commands = { workspace = true }
 ferrumc-default-commands = { workspace = true }
 ferrumc-world-gen = { workspace = true }
 ferrumc-threadpool = { workspace = true }
+ferrumc-playerstate = { workspace = true }
 
 tracing = { workspace = true }
 clap = { workspace = true, features = ["derive", "env"] }
