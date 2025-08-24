@@ -1,5 +1,6 @@
 mod biomes;
 pub mod errors;
+mod noise_router;
 
 use crate::errors::WorldGenError;
 use ferrumc_world::{chunk_format::Chunk, pos::ChunkPos};
