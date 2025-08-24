@@ -10,7 +10,9 @@ use tracing_subscriber::EnvFilter;
 
 pub fn init_logging(trace_level: Level) {
     //let console = console_subscriber::spawn();
-    let env_filter = EnvFilter::from_default_env().add_directive(trace_level.into());
+    let env_filter = EnvFilter::builder()
+        .with_default_directive(trace_level.into())
+        .parse_lossy("");
 
     let file_appender = tracing_appender::rolling::Builder::new()
         .rotation(Rotation::DAILY)
