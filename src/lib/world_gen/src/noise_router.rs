@@ -1,5 +1,5 @@
 // Topo-sort this first!!!
-struct MultiNoiseRouter {
+pub struct MultiNoiseRouter {
     pub full_component_stack: Box<[BaseNoiseFunction]>,
     pub temperature: usize,
     pub vegetation: usize,
@@ -12,13 +12,13 @@ struct MultiNoiseRouter {
 impl MultiNoiseRouter {
     fn process(&self) {
         let mut values: Vec<f64> = Vec::with_capacity(self.full_component_stack.len());
-        for (i, node) in self.full_component_stack.iter().enumerate() {
-            values[i] = node.process(&values);
+        for node in &self.full_component_stack {
+            values.push(node.process(&values));
         }
     }
 }
 
-enum BaseNoiseFunction {
+pub enum BaseNoiseFunction {
     // One argument
     Abs { argument: usize },
     Square { argument: usize },
