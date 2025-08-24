@@ -10,21 +10,17 @@ pub enum RootPathError {
 }
 
 pub fn get_root_path() -> PathBuf {
-    //! Returns the root path of the executable.
-    //! e.g.
-    //! - If the executable is located at "D:/server/ferrumc.exe",
-    //!   this function will return "D:/server".
+    //! Returns the current working directory.
     //!
     //!
-    //! # Errors
-    //! - If the current executable location cannot be found. (RootPathError::IoError)
-    //! - If the parent directory of the executable cannot be found. (RootPathError::NoParent)
+    //! # Panics
+    //! - If the current working directory cannot be found.
     //!
     //! # Examples
     //! ```rust
     //! use ferrumc_general_purpose::paths::get_root_path;
     //!
-    //! // Returns a Result<PathBuf, RootPathError>
+    //! // Returns a PathBuf
     //! let root_path = get_root_path();
     //!
     //! let favicon_path = root_path.join("icon.png");
