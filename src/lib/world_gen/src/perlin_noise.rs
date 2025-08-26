@@ -1,3 +1,5 @@
+use std::ops::{Add, Mul, Sub};
+
 use crate::random::Xoroshiro128PlusPlus;
 
 #[allow(dead_code)]
@@ -46,22 +48,13 @@ impl PerlinNoise {
         }
     }
 
-    pub fn get_value(&self, x: f64, y: f64, z: f64) -> f64 {
-        fn wrap(value: f64) -> f64 {
-            value - ((value / 33_554_432.0 + 0.5).floor() * 33_554_432.0)
-        }
-
+    pub fn get_value(&self, point: Point<f64>) -> f64 {
         let mut res = 0.0;
         let mut freq_input_factor = self.lowest_freq_input_factor;
         let mut freq_value_factor = self.lowest_freq_value_factor;
 
         for (noise, amp) in self.noise_levels.iter().zip(self.amplitudes.iter()) {
-            res +=
-                amp * noise.noise(
-                    wrap(x * freq_input_factor),
-                    wrap(y * freq_input_factor),
-                    wrap(z * freq_input_factor),
-                ) * freq_value_factor;
+            res += amp * noise.noise(point.scale(freq_input_factor).wrap()) * freq_value_factor;
 
             freq_input_factor *= 2.0;
             freq_value_factor /= 2.0;
@@ -71,21 +64,108 @@ impl PerlinNoise {
     }
 }
 
+//TODO: this probably should be moved somewhere else
+#[derive(Clone, Copy)]
+pub struct Point<T> {
+    pub x: T,
+    pub y: T,
+    pub z: T,
+}
+
+impl<T: Mul<Output = T> + Add<Output = T>> Mul for Point<T> {
+    type Output = T;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        self.x * rhs.x + self.y * rhs.y + self.z * rhs.z
+    }
+}
+
+impl<T: Sub<Output = T>> Sub for Point<T> {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        Self {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+            z: self.z - rhs.z,
+        }
+    }
+}
+
+impl<T: Add<Output = T>> Add for Point<T> {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Self {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+            z: self.z + rhs.z,
+        }
+    }
+}
+
+impl<T> Point<T> {
+    pub const fn new(x: T, y: T, z: T) -> Self {
+        Self { x, y, z }
+    }
+}
+
+impl Point<f64> {
+    fn random(rng: &mut Xoroshiro128PlusPlus) -> Self {
+        Self {
+            x: rng.next_f64(),
+            y: rng.next_f64(),
+            z: rng.next_f64(),
+        }
+    }
+
+    fn scale(self, scalar: f64) -> Self {
+        Self {
+            x: self.x * scalar,
+            y: self.y * scalar,
+            z: self.z * scalar,
+        }
+    }
+
+    fn floor(self) -> Self {
+        Self {
+            x: self.x.floor(),
+            y: self.y.floor(),
+            z: self.z.floor(),
+        }
+    }
+
+    fn smoothstep(self) -> Self {
+        fn smoothstep(input: f64) -> f64 {
+            input * input * input * (input * (input * 6.0 - 15.0) + 10.0)
+        }
+        Self {
+            x: smoothstep(self.x),
+            y: smoothstep(self.y),
+            z: smoothstep(self.z),
+        }
+    }
+
+    fn wrap(self) -> Self {
+        Self {
+            x: self.x - ((self.x / 33_554_432.0 + 0.5).floor() * 33_554_432.0),
+            y: self.y - ((self.y / 33_554_432.0 + 0.5).floor() * 33_554_432.0),
+            z: self.z - ((self.z / 33_554_432.0 + 0.5).floor() * 33_554_432.0),
+        }
+    }
+}
+
 /// reference: net.minecraft.world.level.levelgen.synth.ImprovedNoise
 #[allow(dead_code)]
 pub struct ImprovedNoise {
     p: [u8; 256],
-    xo: f64,
-    yo: f64,
-    zo: f64,
+    offset: Point<f64>,
 }
 
 #[allow(dead_code)]
 impl ImprovedNoise {
     pub fn new(random: &mut Xoroshiro128PlusPlus) -> Self {
-        let xo = random.next_f64() * 256.0;
-        let yo = random.next_f64() * 256.0;
-        let zo = random.next_f64() * 256.0;
+        let offset = Point::random(random).scale(256.0);
 
         let mut p = [0u8; 256];
         for (i, p) in p.iter_mut().enumerate() {
@@ -96,116 +176,65 @@ impl ImprovedNoise {
             p.swap(i, i + random.next_bounded(256 - i as u32) as usize);
         }
 
-        Self { p, xo, yo, zo }
+        Self { p, offset }
     }
 
-    pub fn noise(&self, x: f64, y: f64, z: f64) -> f64 {
-        let dx = x + self.xo;
-        let dy = y + self.yo;
-        let dz = z + self.zo;
+    pub fn noise(&self, at: Point<f64>) -> f64 {
+        let actual = at + self.offset;
+        let grid = actual.floor();
+        let delta = actual - grid;
+        let grid = Point {
+            x: grid.x as i32,
+            y: grid.y as i32,
+            z: grid.z as i32,
+        };
 
-        let floor_x = dx.floor() as i32;
-        let floor_y = dy.floor() as i32;
-        let floor_z = dz.floor() as i32;
+        let i = self.p(grid.x);
+        let i1 = self.p(grid.x + 1);
+        let i2 = self.p(i + grid.y);
+        let i3 = self.p(i + grid.y + 1);
+        let i4 = self.p(i1 + grid.y);
+        let i5 = self.p(i1 + grid.y + 1);
 
-        let delta_x = dx - f64::from(floor_x);
-        let delta_y = dy - f64::from(floor_y);
-        let delta_z = dz - f64::from(floor_z);
+        let d = grad_dot(self.p(i2 + grid.z), delta);
+        let d1 = grad_dot(self.p(i4 + grid.z), delta - Point::new(1.0, 0.0, 0.0));
+        let d2 = grad_dot(self.p(i3 + grid.z), delta - Point::new(0.0, 1.0, 0.0));
+        let d3 = grad_dot(self.p(i5 + grid.z), delta - Point::new(1.0, 1.0, 0.0));
+        let d4 = grad_dot(self.p(i2 + grid.z + 1), delta - Point::new(0.0, 0.0, 1.0));
+        let d5 = grad_dot(self.p(i4 + grid.z + 1), delta - Point::new(1.0, 0.0, 1.0));
+        let d6 = grad_dot(self.p(i3 + grid.z + 1), delta - Point::new(0.0, 1.0, 1.0));
+        let d7 = grad_dot(self.p(i5 + grid.z + 1), delta - Point::new(1.0, 1.0, 1.0));
 
-        self.sample_and_lerp(
-            floor_x, floor_y, floor_z, delta_x, delta_y, delta_z, delta_y,
-        )
+        let smooth = delta.smoothstep();
+
+        lerp3(smooth, d, d1, d2, d3, d4, d5, d6, d7)
     }
 
     fn p(&self, index: i32) -> i32 {
         self.p[(index & 0xFF) as usize].into()
     }
-
-    #[allow(clippy::too_many_arguments)]
-    fn sample_and_lerp(
-        &self,
-        grid_x: i32,
-        grid_y: i32,
-        grid_z: i32,
-        delta_x: f64,
-        weird_delta_y: f64, //TODO: rename and remove delta_y
-        delta_z: f64,
-        delta_y: f64,
-    ) -> f64 {
-        let i = self.p(grid_x);
-        let i1 = self.p(grid_x + 1);
-        let i2 = self.p(i + grid_y);
-        let i3 = self.p(i + grid_y + 1);
-        let i4 = self.p(i1 + grid_y);
-        let i5 = self.p(i1 + grid_y + 1);
-
-        let d = grad_dot(self.p(i2 + grid_z), delta_x, weird_delta_y, delta_z);
-        let d1 = grad_dot(self.p(i4 + grid_z), delta_x - 1.0, weird_delta_y, delta_z);
-        let d2 = grad_dot(self.p(i3 + grid_z), delta_x, weird_delta_y - 1.0, delta_z);
-        let d3 = grad_dot(
-            self.p(i5 + grid_z),
-            delta_x - 1.0,
-            weird_delta_y - 1.0,
-            delta_z,
-        );
-        let d4 = grad_dot(
-            self.p(i2 + grid_z + 1),
-            delta_x,
-            weird_delta_y,
-            delta_z - 1.0,
-        );
-        let d5 = grad_dot(
-            self.p(i4 + grid_z + 1),
-            delta_x - 1.0,
-            weird_delta_y,
-            delta_z - 1.0,
-        );
-        let d6 = grad_dot(
-            self.p(i3 + grid_z + 1),
-            delta_x,
-            weird_delta_y - 1.0,
-            delta_z - 1.0,
-        );
-        let d7 = grad_dot(
-            self.p(i5 + grid_z + 1),
-            delta_x - 1.0,
-            weird_delta_y - 1.0,
-            delta_z - 1.0,
-        );
-
-        let sx = smoothstep(delta_x);
-        let sy = smoothstep(delta_y);
-        let sz = smoothstep(delta_z);
-
-        lerp3(sx, sy, sz, d, d1, d2, d3, d4, d5, d6, d7)
-    }
 }
 
-fn grad_dot(grad_index: i32, x: f64, y: f64, z: f64) -> f64 {
-    const SIMPLEX_GRADIENT: [[f64; 3]; 16] = [
-        [1.0, 1.0, 0.0],
-        [-1.0, 1.0, 0.0],
-        [1.0, -1.0, 0.0],
-        [-1.0, -1.0, 0.0],
-        [1.0, 0.0, 1.0],
-        [-1.0, 0.0, 1.0],
-        [1.0, 0.0, -1.0],
-        [-1.0, 0.0, -1.0],
-        [0.0, 1.0, 1.0],
-        [0.0, -1.0, 1.0],
-        [0.0, 1.0, -1.0],
-        [0.0, -1.0, -1.0],
-        [1.0, 1.0, 0.0],
-        [0.0, -1.0, 1.0],
-        [-1.0, 1.0, 0.0],
-        [0.0, -1.0, -1.0],
+fn grad_dot(grad_index: i32, p: Point<f64>) -> f64 {
+    const SIMPLEX_GRADIENT: [Point<f64>; 16] = [
+        Point::new(1.0, 1.0, 0.0),
+        Point::new(-1.0, 1.0, 0.0),
+        Point::new(1.0, -1.0, 0.0),
+        Point::new(-1.0, -1.0, 0.0),
+        Point::new(1.0, 0.0, 1.0),
+        Point::new(-1.0, 0.0, 1.0),
+        Point::new(1.0, 0.0, -1.0),
+        Point::new(-1.0, 0.0, -1.0),
+        Point::new(0.0, 1.0, 1.0),
+        Point::new(0.0, -1.0, 1.0),
+        Point::new(0.0, 1.0, -1.0),
+        Point::new(0.0, -1.0, -1.0),
+        Point::new(1.0, 1.0, 0.0),
+        Point::new(0.0, -1.0, 1.0),
+        Point::new(-1.0, 1.0, 0.0),
+        Point::new(0.0, -1.0, -1.0),
     ];
-    let grad = SIMPLEX_GRADIENT[grad_index as usize & 15];
-    grad[0] * x + grad[1] * y + grad[2] * z
-}
-
-fn smoothstep(input: f64) -> f64 {
-    input * input * input * (input * (input * 6.0 - 15.0) + 10.0)
+    p * SIMPLEX_GRADIENT[grad_index as usize & 15]
 }
 
 pub fn lerp(delta: f64, start: f64, end: f64) -> f64 {
@@ -222,9 +251,7 @@ pub fn lerp2(delta1: f64, delta2: f64, start1: f64, end1: f64, start2: f64, end2
 
 #[allow(clippy::too_many_arguments)]
 pub fn lerp3(
-    delta1: f64,
-    delta2: f64,
-    delta3: f64,
+    delta: Point<f64>,
     start1: f64,
     end1: f64,
     start2: f64,
@@ -235,27 +262,10 @@ pub fn lerp3(
     end4: f64,
 ) -> f64 {
     lerp(
-        delta3,
-        lerp2(delta1, delta2, start1, end1, start2, end2),
-        lerp2(delta1, delta2, start3, end3, start4, end4),
+        delta.z,
+        lerp2(delta.x, delta.y, start1, end1, start2, end2),
+        lerp2(delta.x, delta.y, start3, end3, start4, end4),
     )
-}
-
-#[test]
-fn test_sample_and_lerp() {
-    let mut rng = Xoroshiro128PlusPlus::new(0, 0);
-    let noise = ImprovedNoise::new(&mut rng);
-
-    assert_eq!(
-        noise.sample_and_lerp(0, 0, 0, 0.0, 0.0, 0.0, 0.0),
-        0.0,
-        "Mismatch in sample_and_lerp with zeros"
-    );
-    assert_eq!(
-        noise.sample_and_lerp(123, 456, 789, 0.123, 0.456, 0.789, 0.456),
-        -0.6187674359192081,
-        "Mismatch in noise at zero"
-    );
 }
 
 #[test]
@@ -264,12 +274,12 @@ fn test_improved_noise() {
     let noise = ImprovedNoise::new(&mut rng);
 
     assert_eq!(
-        noise.noise(0.0, 0.0, 0.0),
+        noise.noise(Point::new(0.0, 0.0, 0.0)),
         -0.045044799854318,
         "Mismatch in noise at zero"
     );
     assert_eq!(
-        noise.noise(10000.123, 203.5, -20031.78),
+        noise.noise(Point::new(10000.123, 203.5, -20031.78)),
         -0.18708168179464396,
         "Mismatch in noise"
     );
@@ -291,12 +301,12 @@ fn test_perlin_noise() {
     );
     assert_eq!(perlin_noise.max, 0.2857142857142857, "Mismatch in max");
     assert_eq!(
-        perlin_noise.get_value(0.0, 0.0, 0.0),
+        perlin_noise.get_value(Point::new(0.0, 0.0, 0.0)),
         0.11030635847227427,
         "Mismatch in get_value at zero"
     );
     assert_eq!(
-        perlin_noise.get_value(10000.123, 203.5, -20031.78),
+        perlin_noise.get_value(Point::new(10000.123, 203.5, -20031.78)),
         -0.005210683092268373,
         "Mismatch in get_value"
     );

@@ -1,3 +1,5 @@
+const PHI: u64 = 0x9e3779b97f4a7c15;
+
 #[allow(dead_code)]
 #[derive(Debug, Clone, Copy)]
 pub struct Xoroshiro128PlusPlus {
@@ -16,18 +18,18 @@ impl Xoroshiro128PlusPlus {
             seed ^ (seed >> 31)
         }
 
-        let low = seed ^ 7640891576956012809u64; // 0x69C16F48A42B9D5
+        let low = seed ^ 0x6a09e667f3bcc909;
         Self {
             lo: mix_stafford13(low),
-            hi: mix_stafford13(low.wrapping_add(0x9E3779B97F4A7C15u64)), // -7046029254386353131_i64 as u64
+            hi: mix_stafford13(low.wrapping_add(PHI)),
         }
     }
 
     pub fn new(lo: u64, hi: u64) -> Self {
         if (lo | hi) == 0 {
             return Self {
-                lo: 0x9E3779B97F4A7C15, // -7046029254386353131_i64 as u64
-                hi: 0x6a09e667f3bcc909, // 7640891576956012809
+                lo: PHI,
+                hi: 0x6a09e667f3bcc909,
             };
         }
         Self { lo, hi }
@@ -40,10 +42,9 @@ impl Xoroshiro128PlusPlus {
             .rotate_left(17)
             .wrapping_add(self.lo);
 
-        let xor = self.lo ^ self.hi;
-        self.lo = self.lo.rotate_left(49) ^ xor ^ (xor << 21);
-        self.hi = xor.rotate_left(28);
-
+        self.hi ^= self.lo;
+        self.lo = self.lo.rotate_left(49) ^ self.hi ^ (self.hi << 21);
+        self.hi = self.hi.rotate_left(28);
         res
     }
 
