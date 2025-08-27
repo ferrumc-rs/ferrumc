@@ -1,4 +1,5 @@
 mod biomes;
+mod compute_block;
 pub mod errors;
 mod noise_router;
 mod perlin_noise;
