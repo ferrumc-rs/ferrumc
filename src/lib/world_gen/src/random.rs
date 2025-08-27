@@ -1,5 +1,18 @@
 const PHI: u64 = 0x9e3779b97f4a7c15;
 
+pub trait Rng<RF> {
+    fn next_u32(&mut self) -> u32;
+    fn next_u64(&mut self) -> u64;
+    fn next_bounded(&mut self, bound: u32) -> u32;
+
+    fn fork_positional(&mut self) -> RF;
+}
+
+pub trait RngFactory<R> {
+    fn with_hash(&self, s: &str) -> R;
+    fn with_pos(&self, pos: (i32, i32, i32)) -> R;
+}
+
 #[allow(dead_code)]
 #[derive(Debug, Clone, Copy)]
 pub struct Xoroshiro128PlusPlus {
@@ -13,8 +26,8 @@ impl Xoroshiro128PlusPlus {
     /// Reference: net.minecraft.world.level.levelgen.RandomSupport
     pub fn from_seed(seed: u64) -> Self {
         fn mix_stafford13(mut seed: u64) -> u64 {
-            seed = (seed ^ (seed >> 30)).wrapping_mul(0xBF58476D1CE4E5B9u64); // -4658895280553007687_i64 as u64
-            seed = (seed ^ (seed >> 27)).wrapping_mul(0x94D049BB133111EBu64); // -7723592293110705685_i64 as u64
+            seed = (seed ^ (seed >> 30)).wrapping_mul(0xBF58476D1CE4E5B9u64);
+            seed = (seed ^ (seed >> 27)).wrapping_mul(0x94D049BB133111EBu64);
             seed ^ (seed >> 31)
         }
 
@@ -92,10 +105,14 @@ impl PositionalFactory {
     pub fn with_hash(&self, s: &str) -> Xoroshiro128PlusPlus {
         let digest = md5::compute(s.as_bytes());
 
-        Xoroshiro128PlusPlus {
-            lo: u64::from_be_bytes(digest[0..8].try_into().unwrap()) ^ self.lo,
-            hi: u64::from_be_bytes(digest[8..16].try_into().unwrap()) ^ self.hi,
-        }
+        Xoroshiro128PlusPlus::new(
+            u64::from_be_bytes(digest[0..8].try_into().unwrap()) ^ self.lo,
+            u64::from_be_bytes(digest[8..16].try_into().unwrap()) ^ self.hi,
+        )
+    }
+
+    fn at(&self, x: i32, y: i32, z: i32) -> Xoroshiro128PlusPlus {
+        Xoroshiro128PlusPlus::new(seed_at(x, y, z) as u64 ^ self.lo, self.hi)
     }
 }
 
@@ -117,8 +134,20 @@ impl LegacyRandom {
         (self.seed >> (48 - bits)) as i32
     }
 
+    pub fn next_u32(&mut self) -> u32 {
+        self.next(32) as u32
+    }
+
     pub fn next_u64(&mut self) -> u64 {
-        ((self.next(32) as u64) << 32) + self.next(32) as u64
+        ((i64::from(self.next(32)) << 32) + i64::from(self.next(32))) as u64
+    }
+
+    pub fn next_f32(&mut self) -> f32 {
+        self.next(24) as f32 * 5.9604645E-8f32
+    }
+
+    pub fn next_f64(&mut self) -> f64 {
+        f64::from((((self.next(26) as u64) << 27) + self.next(27) as u64) as f32 * 1.110223E-16f32)
     }
 
     pub fn next_bounded(&mut self, bound: u32) -> u32 {
@@ -128,6 +157,79 @@ impl LegacyRandom {
             self.next(31) as u32 % bound
         }
     }
+
+    pub fn fork_positional(&mut self) -> LegacyPositionalFactory {
+        LegacyPositionalFactory {
+            seed: self.next_u64(),
+        }
+    }
+}
+
+#[allow(dead_code)]
+pub struct LegacyPositionalFactory {
+    seed: u64,
+}
+
+#[allow(dead_code)]
+impl LegacyPositionalFactory {
+    pub fn with_hash(&self, s: &str) -> LegacyRandom {
+        LegacyRandom::new((i64::from(java_string_hashcode(s)) ^ self.seed as i64) as u64)
+    }
+
+    pub fn with_pos(&self, x: i32, y: i32, z: i32) -> LegacyRandom {
+        LegacyRandom::new((seed_at(x, y, z) ^ self.seed as i64) as u64)
+    }
+}
+
+fn seed_at(x: i32, y: i32, z: i32) -> i64 {
+    let composition =
+        i64::from(x).wrapping_mul(3129871) ^ i64::from(z).wrapping_mul(116129781) ^ i64::from(y);
+    let shuffle = composition
+        .wrapping_mul(composition)
+        .wrapping_mul(42317861)
+        .wrapping_add(composition.wrapping_mul(11));
+    shuffle >> 16
+}
+
+fn java_string_hashcode(s: &str) -> i32 {
+    let mut hash: i32 = 0;
+    for unit in s.encode_utf16() {
+        hash = hash.wrapping_mul(31).wrapping_add(unit.into());
+    }
+    hash
+}
+
+#[test]
+fn test_java_string_hashcode() {
+    assert_eq!(java_string_hashcode("test"), 3556498);
+    assert_eq!(java_string_hashcode("1234567890"), -2054162789);
+}
+
+#[test]
+fn test_legacy_u64() {
+    let mut rng = LegacyRandom::new(0);
+
+    assert_eq!(rng.next_u64(), -4962768465676381896i64 as u64);
+    assert_eq!(rng.next_u64(), 4437113781045784766);
+}
+
+#[test]
+fn test_legacy_float() {
+    let mut rng = LegacyRandom::new(0);
+
+    assert_eq!(rng.next_f32(), 0.73096776);
+    assert_eq!(rng.next_f64(), 0.8314409852027893);
+}
+
+#[test]
+fn test_legacy_factory() {
+    let mut rng = LegacyRandom::new(0);
+
+    let factory = rng.fork_positional();
+
+    assert_eq!(factory.with_hash("test").seed, 198298808087495);
+    assert_eq!(factory.with_hash("test").next_u64(), 1964728489694604786);
+    assert_eq!(factory.with_pos(1, 1, 1).next_u64(), 6437814084537238339);
 }
 
 #[test]
