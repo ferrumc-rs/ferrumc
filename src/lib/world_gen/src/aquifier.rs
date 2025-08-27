@@ -1,7 +1,7 @@
 use std::ops::{Add, Sub};
 
 use crate::random::{Rng, RngFactory};
-struct Noise; //TODO
+pub(crate) struct Noise; //TODO
 
 #[derive(Clone, Copy)]
 struct ColumnPos {
@@ -52,9 +52,9 @@ impl From<BlockPos> for SectionPos {
 
 #[derive(Clone, Copy)]
 pub struct BlockPos {
-    x: i32,
-    y: i32,
-    z: i32,
+    pub x: i32,
+    pub y: i32,
+    pub z: i32,
 }
 
 impl BlockPos {
@@ -92,7 +92,7 @@ impl From<BlockPos> for (i32, i32, i32) {
 }
 
 impl Noise {
-    fn compute<T: Into<(i32, i32, i32)>>(&self, _pos: T) -> f64 {
+    pub fn compute<T: Into<(i32, i32, i32)>>(&self, _pos: T) -> f64 {
         todo!()
     }
 } //TODO
@@ -442,7 +442,7 @@ fn quantize(value: f64, factor: i32) -> i32 {
     (value / f64::from(factor)).floor() as i32 * factor
 }
 
-fn clamped_map(v: f64, in_min: f64, in_max: f64, out_min: f64, out_max: f64) -> f64 {
+pub(crate) fn clamped_map(v: f64, in_min: f64, in_max: f64, out_min: f64, out_max: f64) -> f64 {
     map(v.clamp(in_min, in_max), in_min, in_max, out_min, out_max)
 }
 
