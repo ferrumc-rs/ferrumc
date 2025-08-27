@@ -3,6 +3,10 @@ const PHI: u64 = 0x9e3779b97f4a7c15;
 pub trait Rng<RF> {
     fn next_u32(&mut self) -> u32;
     fn next_u64(&mut self) -> u64;
+
+    fn next_f32(&mut self) -> f32;
+    fn next_f64(&mut self) -> f64;
+
     fn next_bounded(&mut self, bound: u32) -> u32;
 
     fn fork_positional(&mut self) -> RF;

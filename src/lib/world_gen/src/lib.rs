@@ -1,7 +1,8 @@
+mod aquifier;
 mod biomes;
-mod compute_block;
 pub mod errors;
 mod noise_router;
+mod ore_veins;
 mod perlin_noise;
 mod random;
 use crate::errors::WorldGenError;
