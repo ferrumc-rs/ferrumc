@@ -1,3 +1,5 @@
+use bevy_math::IVec3;
+
 const PHI: u64 = 0x9e3779b97f4a7c15;
 
 pub trait Rng<RF> {
@@ -14,7 +16,7 @@ pub trait Rng<RF> {
 
 pub trait RngFactory<R> {
     fn with_hash(&self, s: &str) -> R;
-    fn with_pos(&self, pos: (i32, i32, i32)) -> R;
+    fn with_pos(&self, pos: IVec3) -> R;
 }
 
 #[allow(dead_code)]
@@ -115,8 +117,8 @@ impl PositionalFactory {
         )
     }
 
-    fn at(&self, x: i32, y: i32, z: i32) -> Xoroshiro128PlusPlus {
-        Xoroshiro128PlusPlus::new(seed_at(x, y, z) as u64 ^ self.lo, self.hi)
+    fn at(&self, pos: IVec3) -> Xoroshiro128PlusPlus {
+        Xoroshiro128PlusPlus::new(seed_at(pos) as u64 ^ self.lo, self.hi)
     }
 }
 
@@ -180,14 +182,15 @@ impl LegacyPositionalFactory {
         LegacyRandom::new((i64::from(java_string_hashcode(s)) ^ self.seed as i64) as u64)
     }
 
-    pub fn with_pos(&self, x: i32, y: i32, z: i32) -> LegacyRandom {
-        LegacyRandom::new((seed_at(x, y, z) ^ self.seed as i64) as u64)
+    pub fn with_pos(&self, pos: IVec3) -> LegacyRandom {
+        LegacyRandom::new((seed_at(pos) ^ self.seed as i64) as u64)
     }
 }
 
-fn seed_at(x: i32, y: i32, z: i32) -> i64 {
-    let composition =
-        i64::from(x).wrapping_mul(3129871) ^ i64::from(z).wrapping_mul(116129781) ^ i64::from(y);
+fn seed_at(pos: IVec3) -> i64 {
+    let composition = i64::from(pos.x).wrapping_mul(3129871)
+        ^ i64::from(pos.z).wrapping_mul(116129781)
+        ^ i64::from(pos.y);
     let shuffle = composition
         .wrapping_mul(composition)
         .wrapping_mul(42317861)
@@ -233,7 +236,10 @@ fn test_legacy_factory() {
 
     assert_eq!(factory.with_hash("test").seed, 198298808087495);
     assert_eq!(factory.with_hash("test").next_u64(), 1964728489694604786);
-    assert_eq!(factory.with_pos(1, 1, 1).next_u64(), 6437814084537238339);
+    assert_eq!(
+        factory.with_pos((1, 1, 1).into()).next_u64(),
+        6437814084537238339
+    );
 }
 
 #[test]
