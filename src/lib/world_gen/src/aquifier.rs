@@ -1,5 +1,7 @@
 use std::ops::Add;
 
+use itertools::Itertools;
+
 use bevy_math::{FloatExt, IVec3};
 
 use crate::random::{Rng, RngFactory};
@@ -94,6 +96,7 @@ pub(crate) fn compute_substance<R: Rng<RF>, RF: RngFactory<R>>(
     if final_density > 0.0 {
         return (None, false);
     }
+    let final_density = -final_density;
 
     if simple_compute_fluid(pos.y, settings.sea_level) == FluidType::Lava {
         return (Some(FluidType::Lava), false);
@@ -101,67 +104,34 @@ pub(crate) fn compute_substance<R: Rng<RF>, RF: RngFactory<R>>(
 
     let section: SectionPos = IVec3::new(pos.x - 5, pos.y + 1, pos.z - 5).into();
 
-    let mut best_dist = i32::MAX;
-    let mut second_best_dist = i32::MAX;
-    let mut third_best_dist = i32::MAX;
-    let mut fourth_best_dist = i32::MAX;
+    let smallest: [(i32, IVec3); 4] = (0..=1)
+        .rev()
+        .cartesian_product((-1..=1).rev())
+        .cartesian_product((0..=1).rev())
+        .map(|((x, y), z)| section + SectionPos::new(x, y, z))
+        .map(|offset_section| {
+            let mut random = rng.with_pos(offset_section.pos); //TODO: perf: cache this
+            let random_pos = offset_section.block(
+                random.next_bounded(10),
+                random.next_bounded(9),
+                random.next_bounded(10),
+            );
+            (random_pos.length_squared(), random_pos)
+        })
+        .k_smallest_by_key(4, |(len, _)| *len)
+        .collect_array()
+        .unwrap();
 
-    let mut nearest_pos = IVec3::new(0, 0, 0);
-    let mut second_nearest_pos = IVec3::new(0, 0, 0);
-    let mut third_nerest_pos = IVec3::new(0, 0, 0);
-    let mut fourth_nearest_pos = IVec3::new(0, 0, 0);
-
-    for xoffset in 0..=1 {
-        for yoffset in -1..=1 {
-            for zoffset in 0..=1 {
-                let offset_section = section + SectionPos::new(xoffset, yoffset, zoffset);
-
-                let mut random = rng.with_pos(offset_section.pos); //TODO: perf: cache this
-                let random_pos = offset_section.block(
-                    random.next_bounded(10),
-                    random.next_bounded(9),
-                    random.next_bounded(10),
-                );
-
-                let dist = random_pos.distance_squared(random_pos);
-
-                if best_dist >= dist {
-                    fourth_nearest_pos = third_nerest_pos;
-                    third_nerest_pos = second_nearest_pos;
-                    second_nearest_pos = nearest_pos;
-                    nearest_pos = random_pos;
-                    fourth_best_dist = third_best_dist;
-                    third_best_dist = second_best_dist;
-                    second_best_dist = best_dist;
-                    best_dist = dist;
-                } else if second_best_dist >= dist {
-                    fourth_nearest_pos = third_nerest_pos;
-                    third_nerest_pos = second_nearest_pos;
-                    second_nearest_pos = random_pos;
-                    fourth_best_dist = third_best_dist;
-                    third_best_dist = second_best_dist;
-                    second_best_dist = dist;
-                } else if third_best_dist >= dist {
-                    fourth_nearest_pos = third_nerest_pos;
-                    third_nerest_pos = random_pos;
-                    fourth_best_dist = third_best_dist;
-                    third_best_dist = dist;
-                } else if fourth_best_dist >= dist {
-                    fourth_nearest_pos = random_pos;
-                    fourth_best_dist = dist;
-                }
-            }
-        }
-    }
-    let nearest_status = compute_fluid(nearest_pos, settings);
+    let nearest_status = compute_fluid(smallest[0].1, settings);
     let block_state = at(nearest_status, pos.y);
-    let similtarity = similarity(best_dist, second_best_dist);
+    let similtarity = similarity(smallest[0].0, smallest[1].0);
 
     if similtarity <= 0.0 {
+        // i believe this is the hot path
         return (
             Some(block_state),
             similtarity >= FLOWING_UPDATE_SIMILARITY
-                && !compute_fluid(second_nearest_pos, settings).eq(&nearest_status),
+                && !compute_fluid(smallest[1].1, settings).eq(&nearest_status),
         );
     }
     if block_state == FluidType::Water
@@ -170,32 +140,24 @@ pub(crate) fn compute_substance<R: Rng<RF>, RF: RngFactory<R>>(
         return (Some(block_state), true);
     }
     let barrier = settings.barrier_noise.compute(pos);
-    let second_nearest_status = compute_fluid(second_nearest_pos, settings);
-    let d1 = similtarity * calculate_pressure(pos, barrier, nearest_status, second_nearest_status);
-
-    if final_density + d1 > 0.0 {
+    let second_nearest_status = compute_fluid(smallest[1].1, settings);
+    if similtarity * pressure(pos, barrier, nearest_status, second_nearest_status) > final_density {
         return (None, false);
     }
-    let third_nearest_status = compute_fluid(third_nerest_pos, settings);
-    let d2 = similarity(best_dist, third_best_dist);
+    let third_nearest_status = compute_fluid(smallest[2].1, settings);
+    let d2 = similarity(smallest[0].0, smallest[2].0);
 
     if d2 > 0.0
-        && final_density
-            + similtarity
-                * d2
-                * calculate_pressure(pos, barrier, nearest_status, third_nearest_status)
-            > 0.0
+        && similtarity * d2 * pressure(pos, barrier, nearest_status, third_nearest_status)
+            > final_density
     {
         return (None, false);
     }
 
-    let d3 = similarity(second_best_dist, third_best_dist);
+    let d3 = similarity(smallest[1].0, smallest[2].0);
     if d3 > 0.0
-        && final_density
-            + similtarity
-                * d3
-                * calculate_pressure(pos, barrier, second_nearest_status, third_nearest_status)
-            > 0.0
+        && similtarity * d3 * pressure(pos, barrier, second_nearest_status, third_nearest_status)
+            > final_density
     {
         return (None, false);
     }
@@ -206,20 +168,20 @@ pub(crate) fn compute_substance<R: Rng<RF>, RF: RngFactory<R>>(
             || (d3 >= FLOWING_UPDATE_SIMILARITY && second_nearest_status != third_nearest_status)
             || (d2 >= FLOWING_UPDATE_SIMILARITY && nearest_status != third_nearest_status)
             || (d2 >= FLOWING_UPDATE_SIMILARITY
-                && similarity(best_dist, fourth_best_dist) >= FLOWING_UPDATE_SIMILARITY
-                && nearest_status != compute_fluid(fourth_nearest_pos, settings)),
+                && similarity(smallest[0].0, smallest[3].0) >= FLOWING_UPDATE_SIMILARITY
+                && nearest_status != compute_fluid(smallest[3].1, settings)),
     )
 }
 
 const fn similarity(first_distance: i32, second_distance: i32) -> f64 {
-    1.0 - ((second_distance - first_distance).abs() as f64) / 25.0
+    1.0 - ((second_distance - first_distance).abs() as f64) / (5.0 * 5.0)
 }
 
 fn at(fluid: (i32, FluidType), y: i32) -> FluidType {
     if y < fluid.0 { fluid.1 } else { FluidType::Air }
 }
 
-fn calculate_pressure(
+fn pressure(
     pos: IVec3,
     barrier: f64,
     first_fluid: (i32, FluidType),

@@ -10,6 +10,7 @@ noise = { workspace = true }
 rand = { workspace = true }
 md5 = { workspace = true }
 bevy_math = { workspace = true }
+itertools = { workspace = true }
 
 [lints]
 workspace = true

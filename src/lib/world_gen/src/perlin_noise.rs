@@ -69,7 +69,7 @@ fn smoothstep(input: f64) -> f64 {
 }
 
 fn wrap(input: f64) -> f64 {
-    input - ((input / 33_554_432.0 + 0.5).floor() * 33_554_432.0)
+    input - ((input / 2f64.powi(25) + 0.5).floor() * 2f64.powi(25))
 }
 
 /// reference: net.minecraft.world.level.levelgen.synth.ImprovedNoise
