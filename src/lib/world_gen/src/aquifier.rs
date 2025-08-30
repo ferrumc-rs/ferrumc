@@ -1,4 +1,6 @@
-use std::ops::{Add, Sub};
+use std::ops::Add;
+
+use bevy_math::{FloatExt, IVec3};
 
 use crate::random::{Rng, RngFactory};
 pub(crate) struct Noise; //TODO
@@ -14,80 +16,50 @@ impl ColumnPos {
         Self { x, z }
     }
 
-    fn block(self, y: i32) -> BlockPos {
-        BlockPos::new(self.x, y, self.z)
+    fn block(self, y: i32) -> IVec3 {
+        IVec3::new(self.x, y, self.z)
     }
 }
 
 /// a 16 by 16 by 12 Region
+#[derive(Clone, Copy)]
 struct SectionPos {
-    x: i32,
-    y: i32,
-    z: i32,
+    pos: IVec3,
 }
 
 impl SectionPos {
     fn new(x: i32, y: i32, z: i32) -> Self {
-        Self { x, y, z }
+        Self {
+            pos: (x, y, z).into(),
+        }
     }
 
-    fn block(self, x: u32, y: u32, z: u32) -> BlockPos {
-        BlockPos::new(
-            self.x * 16 + x as i32,
-            self.y * 12 + y as i32,
-            self.z * 16 + z as i32,
+    fn block(self, x: u32, y: u32, z: u32) -> IVec3 {
+        IVec3::new(
+            self.pos.x * 16 + x as i32,
+            self.pos.y * 12 + y as i32,
+            self.pos.z * 16 + z as i32,
         )
     }
 }
 
-impl From<BlockPos> for SectionPos {
-    fn from(value: BlockPos) -> Self {
+impl Add for SectionPos {
+    type Output = SectionPos;
+
+    fn add(self, rhs: Self) -> Self::Output {
         Self {
-            x: value.x.div_euclid(16),
-            y: value.y.div_euclid(12),
-            z: value.z.div_euclid(16),
+            pos: self.pos + rhs.pos,
         }
     }
 }
 
-#[derive(Clone, Copy)]
-pub struct BlockPos {
-    pub x: i32,
-    pub y: i32,
-    pub z: i32,
-}
-
-impl BlockPos {
-    pub fn new(x: i32, y: i32, z: i32) -> Self {
-        Self { x, y, z }
-    }
-
-    pub fn dist_squared(self, to: Self) -> i32 {
-        (self - to).dist_squared_to_origin()
-    }
-    pub fn dist_squared_to_origin(self) -> i32 {
-        self.x * self.x + self.y * self.y + self.z * self.z
-    }
-}
-
-impl Add for BlockPos {
-    type Output = Self;
-
-    fn add(self, rhs: Self) -> Self::Output {
-        Self::new(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z)
-    }
-}
-impl Sub for BlockPos {
-    type Output = Self;
-
-    fn sub(self, rhs: Self) -> Self::Output {
-        Self::new(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z)
-    }
-}
-
-impl From<BlockPos> for (i32, i32, i32) {
-    fn from(value: BlockPos) -> Self {
-        (value.x, value.y, value.z)
+impl From<IVec3> for SectionPos {
+    fn from(value: IVec3) -> Self {
+        Self::new(
+            value.x.div_euclid(16),
+            value.x.div_euclid(16),
+            value.z.div_euclid(16),
+        )
     }
 }
 
@@ -114,7 +86,7 @@ pub struct SubstanceSettings {
 /// updated
 #[allow(dead_code)]
 pub(crate) fn compute_substance<R: Rng<RF>, RF: RngFactory<R>>(
-    pos: BlockPos,
+    pos: IVec3,
     final_density: f64,
     rng: RF,
     settings: &SubstanceSettings,
@@ -127,35 +99,31 @@ pub(crate) fn compute_substance<R: Rng<RF>, RF: RngFactory<R>>(
         return (Some(FluidType::Lava), false);
     }
 
-    let section: SectionPos = BlockPos::new(pos.x - 5, pos.y + 1, pos.z - 5).into();
+    let section: SectionPos = IVec3::new(pos.x - 5, pos.y + 1, pos.z - 5).into();
 
     let mut best_dist = i32::MAX;
     let mut second_best_dist = i32::MAX;
     let mut third_best_dist = i32::MAX;
     let mut fourth_best_dist = i32::MAX;
 
-    let mut nearest_pos = BlockPos::new(0, 0, 0);
-    let mut second_nearest_pos = BlockPos::new(0, 0, 0);
-    let mut third_nerest_pos = BlockPos::new(0, 0, 0);
-    let mut fourth_nearest_pos = BlockPos::new(0, 0, 0);
+    let mut nearest_pos = IVec3::new(0, 0, 0);
+    let mut second_nearest_pos = IVec3::new(0, 0, 0);
+    let mut third_nerest_pos = IVec3::new(0, 0, 0);
+    let mut fourth_nearest_pos = IVec3::new(0, 0, 0);
 
     for xoffset in 0..=1 {
         for yoffset in -1..=1 {
             for zoffset in 0..=1 {
-                let section = SectionPos::new(
-                    section.x + xoffset,
-                    section.y + yoffset,
-                    section.z + zoffset,
-                );
+                let offset_section = section + SectionPos::new(xoffset, yoffset, zoffset);
 
-                let mut random = rng.with_pos((section.x, section.y, section.z)); //TODO: perf: cache this
-                let random_pos = section.block(
+                let mut random = rng.with_pos(offset_section.pos); //TODO: perf: cache this
+                let random_pos = offset_section.block(
                     random.next_bounded(10),
                     random.next_bounded(9),
                     random.next_bounded(10),
                 );
 
-                let dist = random_pos.dist_squared(random_pos);
+                let dist = random_pos.distance_squared(random_pos);
 
                 if best_dist >= dist {
                     fourth_nearest_pos = third_nerest_pos;
@@ -252,7 +220,7 @@ fn at(fluid: (i32, FluidType), y: i32) -> FluidType {
 }
 
 fn calculate_pressure(
-    pos: BlockPos,
+    pos: IVec3,
     barrier: f64,
     first_fluid: (i32, FluidType),
     second_fluid: (i32, FluidType),
@@ -303,7 +271,7 @@ fn simple_compute_fluid(y: i32, sea_level: (i32, FluidType)) -> FluidType {
 }
 
 //TODO this is cached with just section poses... idk why
-fn compute_fluid(pos: BlockPos, settings: &SubstanceSettings) -> (i32, FluidType) {
+fn compute_fluid(pos: IVec3, settings: &SubstanceSettings) -> (i32, FluidType) {
     const SURFACE_SAMPLING_OFFSETS_IN_CHUNKS: [(i32, i32); 13] = [
         (0, 0),
         (-2, -1),
@@ -376,7 +344,7 @@ fn compute_fluid(pos: BlockPos, settings: &SubstanceSettings) -> (i32, FluidType
     (serface_level.unwrap_or(-64 * 1000), res) //TODO
 }
 
-fn is_lava(pos: BlockPos, settings: &SubstanceSettings) -> bool {
+fn is_lava(pos: IVec3, settings: &SubstanceSettings) -> bool {
     settings
         .lava_noise
         .compute((
@@ -389,7 +357,7 @@ fn is_lava(pos: BlockPos, settings: &SubstanceSettings) -> bool {
 }
 
 fn compute_surface_level(
-    pos: BlockPos,
+    pos: IVec3,
     default_level: i32,
     max_surface_level: i32,
     fluid_present: bool,
@@ -414,8 +382,8 @@ fn compute_surface_level(
         .fluid_level_flodedness
         .compute(pos)
         .clamp(-1.0, 1.0);
-    let d4 = map(d2, 1.0, 0.0, -0.3, 0.8);
-    let d5 = map(d2, 1.0, 0.0, -0.8, 0.4);
+    let d4 = d2.remap(1.0, 0.0, -0.3, 0.8);
+    let d5 = d2.remap(1.0, 0.0, -0.8, 0.4);
 
     if floodedness > d4 {
         Some(default_level)
@@ -426,7 +394,7 @@ fn compute_surface_level(
     }
 }
 
-fn calc_pluid_spread(pos: BlockPos, settings: &SubstanceSettings) -> i32 {
+fn calc_pluid_spread(pos: IVec3, settings: &SubstanceSettings) -> i32 {
     let spread = quantize(
         settings.fluid_level_spread_noise.compute((
             pos.x.div_euclid(16),
@@ -443,14 +411,11 @@ fn quantize(value: f64, factor: i32) -> i32 {
 }
 
 pub(crate) fn clamped_map(v: f64, in_min: f64, in_max: f64, out_min: f64, out_max: f64) -> f64 {
-    map(v.clamp(in_min, in_max), in_min, in_max, out_min, out_max)
+    v.clamp(in_min, in_max)
+        .remap(in_min, in_max, out_min, out_max)
 }
 
-fn map(v: f64, in_min: f64, in_max: f64, out_min: f64, out_max: f64) -> f64 {
-    out_min + (out_max - out_min) * ((v - in_min) / (in_max - in_min))
-}
-
-fn is_deep_dark_region(settings: &SubstanceSettings, pos: BlockPos) -> bool {
+fn is_deep_dark_region(settings: &SubstanceSettings, pos: IVec3) -> bool {
     settings.erosion.compute(pos) < -0.225 && settings.depth.compute(pos) > 0.9
 }
 
