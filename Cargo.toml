@@ -207,6 +207,7 @@ typename = "0.1.2"
 bevy_ecs = { version = "0.16.1", features = ["multi_threaded", "trace"] }
 bevy_math = "0.16.1"
 once_cell = "1.21.3"
+itertools = "0.14.0"
 
 # I/O
 memmap2 = "0.9.7"
