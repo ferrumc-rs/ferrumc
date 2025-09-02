@@ -1,98 +1,163 @@
-use crate::random::PositionalFactory;
+use crate::random::{Random, RandomFactory, Rng, RngFactory};
 use std::mem::MaybeUninit;
 
 use bevy_math::{DVec3, FloatExt};
 
-use crate::random::Xoroshiro128PlusPlus;
-
-pub const RIDGE: ConstNormalNoise<6> = ConstNormalNoise::new(7, [1.0, 2.0, 1.0, 0.0, 0.0, 0.0]);
-pub const SHIFT: ConstNormalNoise<4> = ConstNormalNoise::new(3, [1.0, 1.0, 1.0, 0.0]);
+//reference net.minecraft.world.level.levelgen.Noises
+//only shift and swamp have a different name in the resourcelocation, but we could rename them and
+//do some macro magic (maybe)
+pub const RIDGE: ConstNormalNoise<6> =
+    ConstNormalNoise::new("minecraft:ridge", 7, [1.0, 2.0, 1.0, 0.0, 0.0, 0.0]);
+pub const SHIFT: ConstNormalNoise<4> =
+    ConstNormalNoise::new("minecraft:offset", 3, [1.0, 1.0, 1.0, 0.0]);
 pub const TEMPERATURE: ConstNormalNoise<6> =
-    ConstNormalNoise::new(10, [1.5, 0.0, 1.0, 0.0, 0.0, 0.0]);
-pub const TEMPERATURE_LARGE: ConstNormalNoise<6> =
-    ConstNormalNoise::new(8, [1.5, 0.0, 1.0, 0.0, 0.0, 0.0]);
+    ConstNormalNoise::new("minecraft:temperature", 10, [1.5, 0.0, 1.0, 0.0, 0.0, 0.0]);
+pub const TEMPERATURE_LARGE: ConstNormalNoise<6> = ConstNormalNoise::new(
+    "minecraft:temperature_large",
+    8,
+    [1.5, 0.0, 1.0, 0.0, 0.0, 0.0],
+);
 pub const VEGETATION: ConstNormalNoise<6> =
-    ConstNormalNoise::new(8, [1.0, 1.0, 0.0, 0.0, 0.0, 0.0]);
-pub const VEGETATION_LARGE: ConstNormalNoise<6> =
-    ConstNormalNoise::new(6, [1.0, 1.0, 0.0, 0.0, 0.0, 0.0]);
-pub const CONTINENTALNESS: ConstNormalNoise<9> =
-    ConstNormalNoise::new(9, [1.0, 1.0, 2.0, 2.0, 2.0, 1.0, 1.0, 1.0, 1.0]);
-pub const CONTINENTALNESS_LARGE: ConstNormalNoise<9> =
-    ConstNormalNoise::new(7, [1.0, 1.0, 2.0, 2.0, 2.0, 1.0, 1.0, 1.0, 1.0]);
-pub const EROSION: ConstNormalNoise<5> = ConstNormalNoise::new(9, [1.0, 1.0, 0.0, 1.0, 1.0]);
-pub const EROSION_LARGE: ConstNormalNoise<5> = ConstNormalNoise::new(7, [1.0, 1.0, 0.0, 1.0, 1.0]);
-pub const AQUIFER_BARRIER: ConstNormalNoise<1> = ConstNormalNoise::new(3, [1.0]);
-pub const AQUIFER_FLUID_LEVEL_FLOODEDNESS: ConstNormalNoise<1> = ConstNormalNoise::new(7, [1.0]);
-pub const AQUIFER_LAVA: ConstNormalNoise<1> = ConstNormalNoise::new(1, [1.0]);
-pub const AQUIFER_FLUID_LEVEL_SPREAD: ConstNormalNoise<1> = ConstNormalNoise::new(5, [1.0]);
-pub const PILLAR: ConstNormalNoise<2> = ConstNormalNoise::new(7, [1.0, 1.0]);
-pub const PILLAR_RARENESS: ConstNormalNoise<1> = ConstNormalNoise::new(8, [1.0]);
-pub const PILLAR_THICKNESS: ConstNormalNoise<1> = ConstNormalNoise::new(8, [1.0]);
-pub const SPAGHETTI_2D: ConstNormalNoise<1> = ConstNormalNoise::new(7, [1.0]);
-pub const SPAGHETTI_2D_ELEVATION: ConstNormalNoise<1> = ConstNormalNoise::new(8, [1.0]);
-pub const SPAGHETTI_2D_MODULATOR: ConstNormalNoise<1> = ConstNormalNoise::new(11, [1.0]);
-pub const SPAGHETTI_2D_THICKNESS: ConstNormalNoise<1> = ConstNormalNoise::new(11, [1.0]);
-pub const SPAGHETTI_3D_1: ConstNormalNoise<1> = ConstNormalNoise::new(7, [1.0]);
-pub const SPAGHETTI_3D_2: ConstNormalNoise<1> = ConstNormalNoise::new(7, [1.0]);
-pub const SPAGHETTI_3D_RARITY: ConstNormalNoise<1> = ConstNormalNoise::new(11, [1.0]);
-pub const SPAGHETTI_3D_THICKNESS: ConstNormalNoise<1> = ConstNormalNoise::new(8, [1.0]);
-pub const SPAGHETTI_ROUGHNESS: ConstNormalNoise<1> = ConstNormalNoise::new(5, [1.0]);
-pub const SPAGHETTI_ROUGHNESS_MODULATOR: ConstNormalNoise<1> = ConstNormalNoise::new(8, [1.0]);
-pub const CAVE_ENTRANCE: ConstNormalNoise<3> = ConstNormalNoise::new(7, [0.4, 0.5, 1.0]);
-pub const CAVE_LAYER: ConstNormalNoise<1> = ConstNormalNoise::new(8, [1.0]);
-pub const CAVE_CHEESE: ConstNormalNoise<9> =
-    ConstNormalNoise::new(8, [0.5, 1.0, 2.0, 1.0, 2.0, 1.0, 0.0, 2.0, 0.0]);
-pub const ORE_VEININESS: ConstNormalNoise<1> = ConstNormalNoise::new(8, [1.0]);
-pub const ORE_VEIN_A: ConstNormalNoise<1> = ConstNormalNoise::new(7, [1.0]);
-pub const ORE_VEIN_B: ConstNormalNoise<1> = ConstNormalNoise::new(7, [1.0]);
-pub const ORE_GAP: ConstNormalNoise<1> = ConstNormalNoise::new(5, [1.0]);
-pub const NOODLE: ConstNormalNoise<1> = ConstNormalNoise::new(8, [1.0]);
-pub const NOODLE_THICKNESS: ConstNormalNoise<1> = ConstNormalNoise::new(8, [1.0]);
-pub const NOODLE_RIDGE_A: ConstNormalNoise<1> = ConstNormalNoise::new(7, [1.0]);
-pub const NOODLE_RIDGE_B: ConstNormalNoise<1> = ConstNormalNoise::new(7, [1.0]);
+    ConstNormalNoise::new("minecraft:vegetation", 8, [1.0, 1.0, 0.0, 0.0, 0.0, 0.0]);
+pub const VEGETATION_LARGE: ConstNormalNoise<6> = ConstNormalNoise::new(
+    "minecraft:vegetation_large",
+    6,
+    [1.0, 1.0, 0.0, 0.0, 0.0, 0.0],
+);
+pub const CONTINENTALNESS: ConstNormalNoise<9> = ConstNormalNoise::new(
+    "minecraft:continentalness",
+    9,
+    [1.0, 1.0, 2.0, 2.0, 2.0, 1.0, 1.0, 1.0, 1.0],
+);
+pub const CONTINENTALNESS_LARGE: ConstNormalNoise<9> = ConstNormalNoise::new(
+    "minecraft:continentalness_large",
+    7,
+    [1.0, 1.0, 2.0, 2.0, 2.0, 1.0, 1.0, 1.0, 1.0],
+);
+pub const EROSION: ConstNormalNoise<5> =
+    ConstNormalNoise::new("minecraft:erosion", 9, [1.0, 1.0, 0.0, 1.0, 1.0]);
+pub const EROSION_LARGE: ConstNormalNoise<5> =
+    ConstNormalNoise::new("minecraft:erosion_large", 7, [1.0, 1.0, 0.0, 1.0, 1.0]);
+pub const AQUIFER_BARRIER: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:aquifer_barrier", 3, [1.0]);
+pub const AQUIFER_FLUID_LEVEL_FLOODEDNESS: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:aquifer_fluid_level_floodedness", 7, [1.0]);
+pub const AQUIFER_LAVA: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:aquifer_lava", 1, [1.0]);
+pub const AQUIFER_FLUID_LEVEL_SPREAD: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:aquifer_fluid_level_spread", 5, [1.0]);
+pub const PILLAR: ConstNormalNoise<2> = ConstNormalNoise::new("minecraft:pillar", 7, [1.0, 1.0]);
+pub const PILLAR_RARENESS: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:pillar_rareness", 8, [1.0]);
+pub const PILLAR_THICKNESS: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:pillar_thickness", 8, [1.0]);
+pub const SPAGHETTI_2D: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:spaghetti_2d", 7, [1.0]);
+pub const SPAGHETTI_2D_ELEVATION: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:spaghetti_2d_elevation", 8, [1.0]);
+pub const SPAGHETTI_2D_MODULATOR: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:spaghetti_2d_modulator", 11, [1.0]);
+pub const SPAGHETTI_2D_THICKNESS: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:spaghetti_2d_thickness", 11, [1.0]);
+pub const SPAGHETTI_3D_1: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:spaghetti_3d_1", 7, [1.0]);
+pub const SPAGHETTI_3D_2: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:spaghetti_3d_2", 7, [1.0]);
+pub const SPAGHETTI_3D_RARITY: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:spaghetti_3d_rarity", 11, [1.0]);
+pub const SPAGHETTI_3D_THICKNESS: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:spaghetti_3d_thickness", 8, [1.0]);
+pub const SPAGHETTI_ROUGHNESS: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:spaghetti_roughness", 5, [1.0]);
+pub const SPAGHETTI_ROUGHNESS_MODULATOR: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:spaghetti_roughness_modulator", 8, [1.0]);
+pub const CAVE_ENTRANCE: ConstNormalNoise<3> =
+    ConstNormalNoise::new("minecraft:cave_entrance", 7, [0.4, 0.5, 1.0]);
+pub const CAVE_LAYER: ConstNormalNoise<1> = ConstNormalNoise::new("minecraft:cave_layer", 8, [1.0]);
+pub const CAVE_CHEESE: ConstNormalNoise<9> = ConstNormalNoise::new(
+    "minecraft:cave_cheese",
+    8,
+    [0.5, 1.0, 2.0, 1.0, 2.0, 1.0, 0.0, 2.0, 0.0],
+);
+pub const ORE_VEININESS: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:ore_veininess", 8, [1.0]);
+pub const ORE_VEIN_A: ConstNormalNoise<1> = ConstNormalNoise::new("minecraft:ore_vein_a", 7, [1.0]);
+pub const ORE_VEIN_B: ConstNormalNoise<1> = ConstNormalNoise::new("minecraft:ore_vein_b", 7, [1.0]);
+pub const ORE_GAP: ConstNormalNoise<1> = ConstNormalNoise::new("minecraft:ore_gap", 5, [1.0]);
+pub const NOODLE: ConstNormalNoise<1> = ConstNormalNoise::new("minecraft:noodle", 8, [1.0]);
+pub const NOODLE_THICKNESS: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:noodle_thickness", 8, [1.0]);
+pub const NOODLE_RIDGE_A: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:noodle_ridge_a", 7, [1.0]);
+pub const NOODLE_RIDGE_B: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:noodle_ridge_b", 7, [1.0]);
 pub const JAGGED: ConstNormalNoise<16> = ConstNormalNoise::new(
+    "minecraft:jagged",
     16,
     [
         1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
     ],
 );
-pub const SURFACE: ConstNormalNoise<3> = ConstNormalNoise::new(6, [1.0, 1.0, 1.0]);
-pub const SURFACE_SECONDARY: ConstNormalNoise<4> = ConstNormalNoise::new(6, [1.0, 1.0, 0.0, 1.0]);
-pub const CLAY_BANDS_OFFSET: ConstNormalNoise<1> = ConstNormalNoise::new(8, [1.0]);
-pub const BADLANDS_PILLAR: ConstNormalNoise<4> = ConstNormalNoise::new(2, [1.0, 1.0, 1.0, 1.0]);
-pub const BADLANDS_PILLAR_ROOF: ConstNormalNoise<1> = ConstNormalNoise::new(8, [1.0]);
-pub const BADLANDS_SURFACE: ConstNormalNoise<3> = ConstNormalNoise::new(6, [1.0, 1.0, 1.0]);
-pub const ICEBERG_PILLAR: ConstNormalNoise<4> = ConstNormalNoise::new(6, [1.0, 1.0, 1.0, 1.0]);
-pub const ICEBERG_PILLAR_ROOF: ConstNormalNoise<1> = ConstNormalNoise::new(3, [1.0]);
-pub const ICEBERG_SURFACE: ConstNormalNoise<3> = ConstNormalNoise::new(6, [1.0, 1.0, 1.0]);
-pub const SWAMP: ConstNormalNoise<1> = ConstNormalNoise::new(2, [1.0]);
-pub const CALCITE: ConstNormalNoise<4> = ConstNormalNoise::new(9, [1.0, 1.0, 1.0, 1.0]);
-pub const GRAVEL: ConstNormalNoise<4> = ConstNormalNoise::new(8, [1.0, 1.0, 1.0, 1.0]);
-pub const POWDER_SNOW: ConstNormalNoise<4> = ConstNormalNoise::new(6, [1.0, 1.0, 1.0, 1.0]);
-pub const PACKED_ICE: ConstNormalNoise<4> = ConstNormalNoise::new(7, [1.0, 1.0, 1.0, 1.0]);
-pub const ICE: ConstNormalNoise<4> = ConstNormalNoise::new(4, [1.0, 1.0, 1.0, 1.0]);
+pub const SURFACE: ConstNormalNoise<3> =
+    ConstNormalNoise::new("minecraft:surface", 6, [1.0, 1.0, 1.0]);
+pub const SURFACE_SECONDARY: ConstNormalNoise<4> =
+    ConstNormalNoise::new("minecraft:surface_secondary", 6, [1.0, 1.0, 0.0, 1.0]);
+pub const CLAY_BANDS_OFFSET: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:clay_bands_offset", 8, [1.0]);
+pub const BADLANDS_PILLAR: ConstNormalNoise<4> =
+    ConstNormalNoise::new("minecraft:badlands_pillar", 2, [1.0, 1.0, 1.0, 1.0]);
+pub const BADLANDS_PILLAR_ROOF: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:badlands_pillar_roof", 8, [1.0]);
+pub const BADLANDS_SURFACE: ConstNormalNoise<3> =
+    ConstNormalNoise::new("minecraft:badlands_surface", 6, [1.0, 1.0, 1.0]);
+pub const ICEBERG_PILLAR: ConstNormalNoise<4> =
+    ConstNormalNoise::new("minecraft:iceberg_pillar", 6, [1.0, 1.0, 1.0, 1.0]);
+pub const ICEBERG_PILLAR_ROOF: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:iceberg_pillar_roof", 3, [1.0]);
+pub const ICEBERG_SURFACE: ConstNormalNoise<3> =
+    ConstNormalNoise::new("minecraft:iceberg_surface", 6, [1.0, 1.0, 1.0]);
+pub const SWAMP: ConstNormalNoise<1> = ConstNormalNoise::new("minecraft:surface_swamp", 2, [1.0]);
+pub const CALCITE: ConstNormalNoise<4> =
+    ConstNormalNoise::new("minecraft:calcite", 9, [1.0, 1.0, 1.0, 1.0]);
+pub const GRAVEL: ConstNormalNoise<4> =
+    ConstNormalNoise::new("minecraft:gravel", 8, [1.0, 1.0, 1.0, 1.0]);
+pub const POWDER_SNOW: ConstNormalNoise<4> =
+    ConstNormalNoise::new("minecraft:powder_snow", 6, [1.0, 1.0, 1.0, 1.0]);
+pub const PACKED_ICE: ConstNormalNoise<4> =
+    ConstNormalNoise::new("minecraft:packed_ice", 7, [1.0, 1.0, 1.0, 1.0]);
+pub const ICE: ConstNormalNoise<4> =
+    ConstNormalNoise::new("minecraft:ice", 4, [1.0, 1.0, 1.0, 1.0]);
 pub const SOUL_SAND_LAYER: ConstNormalNoise<9> = ConstNormalNoise::new(
+    "minecraft:soul_sand_layer",
     8,
     [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.013333333333333334],
 );
 pub const GRAVEL_LAYER: ConstNormalNoise<9> = ConstNormalNoise::new(
+    "minecraft:gravel_layer",
     8,
     [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.013333333333333334],
 );
-pub const PATCH: ConstNormalNoise<6> =
-    ConstNormalNoise::new(5, [1.0, 0.0, 0.0, 0.0, 0.0, 0.013333333333333334]);
-pub const NETHERRACK: ConstNormalNoise<4> = ConstNormalNoise::new(3, [1.0, 0.0, 0.0, 0.35]);
-pub const NETHER_WART: ConstNormalNoise<4> = ConstNormalNoise::new(3, [1.0, 0.0, 0.0, 0.9]);
-pub const NETHER_STATE_SELECTOR: ConstNormalNoise<1> = ConstNormalNoise::new(4, [1.0]);
+pub const PATCH: ConstNormalNoise<6> = ConstNormalNoise::new(
+    "minecraft:patch",
+    5,
+    [1.0, 0.0, 0.0, 0.0, 0.0, 0.013333333333333334],
+);
+pub const NETHERRACK: ConstNormalNoise<4> =
+    ConstNormalNoise::new("minecraft:netherrack", 3, [1.0, 0.0, 0.0, 0.35]);
+pub const NETHER_WART: ConstNormalNoise<4> =
+    ConstNormalNoise::new("minecraft:nether_wart", 3, [1.0, 0.0, 0.0, 0.9]);
+pub const NETHER_STATE_SELECTOR: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:nether_state_selector", 4, [1.0]);
 
 pub struct ConstNormalNoise<const N: usize> {
     first: ConstPerlinNoise<N>,
     second: ConstPerlinNoise<N>,
     factor: f64,
+    name: &'static str,
 }
 
 impl<const N: usize> ConstNormalNoise<N> {
-    pub const fn new(first_octave: u32, amplitudes: [f64; N]) -> Self {
+    pub const fn new(name: &'static str, first_octave: u32, amplitudes: [f64; N]) -> Self {
         const fn expected_deviation(octaves: usize) -> f64 {
             0.16666666666666666 / (0.1 * (1.0 + 1.0 / (octaves as f64 + 1.0)))
         }
@@ -116,13 +181,15 @@ impl<const N: usize> ConstNormalNoise<N> {
             }
         }
         Self {
+            name,
             factor: expected_deviation(last_idx - first_idx),
             first: ConstPerlinNoise::new(first_octave, amplitudes),
             second: ConstPerlinNoise::new(first_octave, amplitudes),
         }
     }
 
-    pub fn init(&self, mut rng: Xoroshiro128PlusPlus) -> NormalNoise<N> {
+    pub fn init(&self, random: RandomFactory) -> NormalNoise<N> {
+        let mut rng = random.with_hash(self.name);
         NormalNoise {
             first: self.first.init(rng.fork_positional()),
             second: self.second.init(rng.fork_positional()),
@@ -163,7 +230,7 @@ impl<const N: usize> ConstPerlinNoise<N> {
         }
     }
 
-    pub fn init(&self, factory: PositionalFactory) -> PerlinNoise<N> {
+    pub fn init(&self, factory: RandomFactory) -> PerlinNoise<N> {
         let mut noise_levels: [MaybeUninit<ImprovedNoise>; N] =
             unsafe { MaybeUninit::uninit().assume_init() };
         for (i, noise_level) in noise_levels.iter_mut().enumerate() {
@@ -235,7 +302,7 @@ pub struct ImprovedNoise {
 }
 
 impl ImprovedNoise {
-    pub fn new(mut random: Xoroshiro128PlusPlus) -> Self {
+    pub fn new(mut random: Random) -> Self {
         let offset = DVec3::new(random.next_f64(), random.next_f64(), random.next_f64()) * 256.0;
 
         let mut p = [0u8; 256];
@@ -325,32 +392,34 @@ pub fn lerp3(
     lerp2(delta.x, delta.y, start1, end1, start2, end2)
         .lerp(lerp2(delta.x, delta.y, start3, end3, start4, end4), delta.z)
 }
+
 #[test]
 fn test_normal_noise() {
-    let rng = Xoroshiro128PlusPlus::new(0, 0);
-    let noise = ConstNormalNoise::new(5, [0.0, 2.0, 1.5, 0.1, -1.0, 0.0, 0.0]).init(rng);
+    let rng = Random::Xoroshiro128PlusPlus(crate::random::Xoroshiro128PlusPlus::new(0, 0))
+        .fork_positional();
+    let noise = ConstNormalNoise::new("test", 5, [0.0, 2.0, 1.5, 0.1, -1.0, 0.0, 0.0]).init(rng);
 
     assert_eq!(noise.factor, 1.3333333333333333, "Mismatch in noise factor");
     assert_eq!(
         noise.get_value(DVec3::new(0.0, 0.0, 0.0)),
-        0.3070105188501303,
+        -0.12641617678290623,
         "Mismatch in noise at zero"
     );
     assert_eq!(
         noise.get_value(DVec3::new(1000.0, -10.0, -232.0)),
-        -0.3120632840894116,
+        0.09024440133389773,
         "Mismatch in noise"
     );
     assert_eq!(
         noise.get_value(DVec3::new(10000.123, 203.5, -20031.78)),
-        -0.14363335564194124,
+        -0.29161635943682196,
         "Mismatch in noise"
     );
 }
 
 #[test]
 fn test_improved_noise() {
-    let rng = Xoroshiro128PlusPlus::new(0, 0);
+    let rng = Random::Xoroshiro128PlusPlus(crate::random::Xoroshiro128PlusPlus::new(0, 0));
     let noise = ImprovedNoise::new(rng);
 
     assert_eq!(
@@ -367,10 +436,10 @@ fn test_improved_noise() {
 
 #[test]
 fn test_perlin_noise() {
-    let mut rng = Xoroshiro128PlusPlus::new(0, 0);
+    let rng = Random::Xoroshiro128PlusPlus(crate::random::Xoroshiro128PlusPlus::new(0, 0))
+        .fork_positional();
 
-    let perlin_noise =
-        ConstPerlinNoise::new(3, [0.0, 1.0, -1.0, 0.0, 0.5, 0.0]).init(rng.fork_positional());
+    let perlin_noise = ConstPerlinNoise::new(3, [0.0, 1.0, -1.0, 0.0, 0.5, 0.0]).init(rng);
 
     assert_eq!(
         perlin_noise.lowest_freq_input_factor, 8.0,
