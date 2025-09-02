@@ -116,9 +116,9 @@ pub(crate) fn compute_substance<R: Rng<RF>, RF: RngFactory<R>>(
                 random.next_bounded(9),
                 random.next_bounded(10),
             );
-            (random_pos.length_squared(), random_pos)
+            (random_pos.distance_squared(pos), random_pos)
         })
-        .k_smallest_by_key(4, |(len, _)| *len)
+        .k_smallest_by_key(4, |(dist, _)| *dist)
         .collect_array()
         .unwrap();
 
