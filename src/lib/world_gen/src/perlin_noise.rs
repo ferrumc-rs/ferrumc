@@ -2,6 +2,46 @@ use bevy_math::{DVec3, FloatExt};
 
 use crate::random::Xoroshiro128PlusPlus;
 
+///reference: net.minecraft.world.level.levelgen.synth.NormalNoise
+#[allow(dead_code)]
+pub struct NormalNoise {
+    first: PerlinNoise,
+    second: PerlinNoise,
+    factor: f64,
+}
+
+#[allow(dead_code)]
+impl NormalNoise {
+    pub fn new(mut random: Xoroshiro128PlusPlus, first_octave: i32, amplitudes: Vec<f64>) -> Self {
+        fn expected_deviation(octaves: usize) -> f64 {
+            0.16666666666666666 / (0.1 * (1.0 + 1.0 / (octaves as f64 + 1.0)))
+        }
+        Self {
+            factor: expected_deviation(
+                amplitudes
+                    .iter()
+                    .enumerate()
+                    .rev()
+                    .find(|(_, x)| **x != 0.0)
+                    .unwrap()
+                    .0
+                    - amplitudes
+                        .iter()
+                        .enumerate()
+                        .find(|(_, x)| **x != 0.0)
+                        .unwrap()
+                        .0,
+            ),
+            first: PerlinNoise::new(&mut random, first_octave, amplitudes.clone()),
+            second: PerlinNoise::new(&mut random, first_octave, amplitudes),
+        }
+    }
+
+    pub fn get_value(&self, pos: DVec3) -> f64 {
+        (self.first.get_value(pos) + self.second.get_value(pos * 1.0181268882175227)) * self.factor
+    }
+}
+
 #[allow(dead_code)]
 ///reference: net.minecraft.world.level.levelgen.synth.PerlinNoise
 pub struct PerlinNoise {
@@ -170,6 +210,28 @@ pub fn lerp3(
 ) -> f64 {
     lerp2(delta.x, delta.y, start1, end1, start2, end2)
         .lerp(lerp2(delta.x, delta.y, start3, end3, start4, end4), delta.z)
+}
+#[test]
+fn test_normal_noise() {
+    let rng = Xoroshiro128PlusPlus::new(0, 0);
+    let noise = NormalNoise::new(rng, 5, vec![0.0, 2.0, 1.5, 0.1, -1.0, 0.0, 0.0]);
+
+    assert_eq!(noise.factor, 1.3333333333333333, "Mismatch in noise factor");
+    assert_eq!(
+        noise.get_value(DVec3::new(0.0, 0.0, 0.0)),
+        0.3070105188501303,
+        "Mismatch in noise at zero"
+    );
+    assert_eq!(
+        noise.get_value(DVec3::new(1000.0, -10.0, -232.0)),
+        -0.3120632840894116,
+        "Mismatch in noise"
+    );
+    assert_eq!(
+        noise.get_value(DVec3::new(10000.123, 203.5, -20031.78)),
+        -0.14363335564194124,
+        "Mismatch in noise"
+    );
 }
 
 #[test]
