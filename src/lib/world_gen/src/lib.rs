@@ -1,3 +1,5 @@
+#![feature(maybe_uninit_array_assume_init)]
+
 mod aquifier;
 mod biomes;
 pub mod errors;

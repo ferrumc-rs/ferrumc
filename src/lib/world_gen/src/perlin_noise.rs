@@ -1,18 +1,20 @@
+use crate::random::PositionalFactory;
+use std::mem::MaybeUninit;
+
 use bevy_math::{DVec3, FloatExt};
 
 use crate::random::Xoroshiro128PlusPlus;
 
-///reference: net.minecraft.world.level.levelgen.synth.NormalNoise
 #[allow(dead_code)]
-pub struct NormalNoise {
-    first: PerlinNoise,
-    second: PerlinNoise,
+pub struct ConstNormalNoise<const N: usize> {
+    first: ConstPerlinNoise<N>,
+    second: ConstPerlinNoise<N>,
     factor: f64,
 }
 
 #[allow(dead_code)]
-impl NormalNoise {
-    pub fn new(mut random: Xoroshiro128PlusPlus, first_octave: i32, amplitudes: Vec<f64>) -> Self {
+impl<const N: usize> ConstNormalNoise<N> {
+    pub fn new(first_octave: u32, amplitudes: [f64; N]) -> Self {
         fn expected_deviation(octaves: usize) -> f64 {
             0.16666666666666666 / (0.1 * (1.0 + 1.0 / (octaves as f64 + 1.0)))
         }
@@ -32,11 +34,82 @@ impl NormalNoise {
                         .unwrap()
                         .0,
             ),
-            first: PerlinNoise::new(&mut random, first_octave, amplitudes.clone()),
-            second: PerlinNoise::new(&mut random, first_octave, amplitudes),
+            first: ConstPerlinNoise::new(first_octave, amplitudes),
+            second: ConstPerlinNoise::new(first_octave, amplitudes),
         }
     }
 
+    pub fn init(&self, mut rng: Xoroshiro128PlusPlus) -> NormalNoise<N> {
+        NormalNoise {
+            first: self.first.init(rng.fork_positional()),
+            second: self.second.init(rng.fork_positional()),
+            factor: self.factor,
+        }
+    }
+}
+
+#[allow(dead_code)]
+pub struct ConstPerlinNoise<const N: usize> {
+    first_octave: u32,
+    amplitudes: [f64; N],
+    lowest_freq_input_factor: f64,
+    lowest_freq_value_factor: f64,
+    max: f64,
+}
+
+#[allow(dead_code)]
+impl<const N: usize> ConstPerlinNoise<N> {
+    pub const fn new(first_octave: u32, amplitudes: [f64; N]) -> Self {
+        assert!(!amplitudes.is_empty());
+        let lowest_freq_input_factor = 2u32.pow(first_octave) as f64;
+        let lowest_freq_value_factor = 2u32.pow((amplitudes.len() - 1) as u32) as f64
+            / (2u32.pow(amplitudes.len() as u32) as f64 - 1.0);
+
+        let mut max = 0.0;
+        let mut d1 = lowest_freq_value_factor;
+        let mut i = 0;
+        while i < N {
+            max += amplitudes[i] * 2.0 * d1;
+            d1 /= 2.0;
+            i += 1;
+        }
+        Self {
+            first_octave,
+            amplitudes,
+            lowest_freq_input_factor,
+            lowest_freq_value_factor,
+            max,
+        }
+    }
+
+    pub fn init(&self, factory: PositionalFactory) -> PerlinNoise<N> {
+        let mut noise_levels: [MaybeUninit<ImprovedNoise>; N] =
+            unsafe { MaybeUninit::uninit().assume_init() };
+        for (i, noise_level) in noise_levels.iter_mut().enumerate() {
+            noise_level.write(ImprovedNoise::new(
+                factory.with_hash(&format!("octave_{}", self.first_octave + i as u32)),
+            ));
+        }
+        PerlinNoise {
+            noise_levels: unsafe { MaybeUninit::array_assume_init(noise_levels) },
+            first_octave: self.first_octave,
+            amplitudes: self.amplitudes,
+            lowest_freq_input_factor: self.lowest_freq_input_factor,
+            lowest_freq_value_factor: self.lowest_freq_value_factor,
+            max: self.max,
+        }
+    }
+}
+
+///reference: net.minecraft.world.level.levelgen.synth.NormalNoise
+pub struct NormalNoise<const N: usize> {
+    first: PerlinNoise<N>,
+    second: PerlinNoise<N>,
+    factor: f64,
+}
+
+#[allow(dead_code)]
+impl<const N: usize> NormalNoise<N> {
     pub fn get_value(&self, pos: DVec3) -> f64 {
         (self.first.get_value(pos) + self.second.get_value(pos * 1.0181268882175227)) * self.factor
     }
@@ -44,50 +117,17 @@ impl NormalNoise {
 
 #[allow(dead_code)]
 ///reference: net.minecraft.world.level.levelgen.synth.PerlinNoise
-pub struct PerlinNoise {
-    first_octave: i32,
-    amplitudes: Vec<f64>,
-    noise_levels: Vec<ImprovedNoise>,
+pub struct PerlinNoise<const N: usize> {
+    first_octave: u32,
+    amplitudes: [f64; N],
+    noise_levels: [ImprovedNoise; N],
     lowest_freq_input_factor: f64,
     lowest_freq_value_factor: f64,
     max: f64,
 }
 
 #[allow(dead_code)]
-impl PerlinNoise {
-    pub fn new(random: &mut Xoroshiro128PlusPlus, first_octave: i32, amplitudes: Vec<f64>) -> Self {
-        let factory = random.fork_positional();
-
-        let noise_levels: Vec<ImprovedNoise> = (0..amplitudes.len())
-            .map(|i| {
-                // optional: skip if amp == 0
-                ImprovedNoise::new(
-                    &mut factory.with_hash(&format!("octave_{}", first_octave + i as i32)),
-                )
-            })
-            .collect();
-
-        let lowest_freq_input_factor = 2.0f64.powi(first_octave);
-        let lowest_freq_value_factor = 2.0f64.powi((amplitudes.len() - 1) as i32)
-            / (2.0f64.powi(amplitudes.len() as i32) - 1.0);
-
-        let mut max = 0.0;
-        let mut d1 = lowest_freq_value_factor;
-
-        for &amp in amplitudes.iter() {
-            max += amp * 2.0 * d1;
-            d1 /= 2.0;
-        }
-        PerlinNoise {
-            first_octave,
-            amplitudes,
-            noise_levels,
-            lowest_freq_input_factor,
-            lowest_freq_value_factor,
-            max,
-        }
-    }
-
+impl<const N: usize> PerlinNoise<N> {
     pub fn get_value(&self, point: DVec3) -> f64 {
         let mut res = 0.0;
         let mut freq_input_factor = self.lowest_freq_input_factor;
@@ -121,7 +161,7 @@ pub struct ImprovedNoise {
 
 #[allow(dead_code)]
 impl ImprovedNoise {
-    pub fn new(random: &mut Xoroshiro128PlusPlus) -> Self {
+    pub fn new(mut random: Xoroshiro128PlusPlus) -> Self {
         let offset = DVec3::new(random.next_f64(), random.next_f64(), random.next_f64()) * 256.0;
 
         let mut p = [0u8; 256];
@@ -214,7 +254,7 @@ pub fn lerp3(
 #[test]
 fn test_normal_noise() {
     let rng = Xoroshiro128PlusPlus::new(0, 0);
-    let noise = NormalNoise::new(rng, 5, vec![0.0, 2.0, 1.5, 0.1, -1.0, 0.0, 0.0]);
+    let noise = ConstNormalNoise::new(5, [0.0, 2.0, 1.5, 0.1, -1.0, 0.0, 0.0]).init(rng);
 
     assert_eq!(noise.factor, 1.3333333333333333, "Mismatch in noise factor");
     assert_eq!(
@@ -236,8 +276,8 @@ fn test_normal_noise() {
 
 #[test]
 fn test_improved_noise() {
-    let mut rng = Xoroshiro128PlusPlus::new(0, 0);
-    let noise = ImprovedNoise::new(&mut rng);
+    let rng = Xoroshiro128PlusPlus::new(0, 0);
+    let noise = ImprovedNoise::new(rng);
 
     assert_eq!(
         noise.noise(DVec3::new(0.0, 0.0, 0.0)),
@@ -255,7 +295,8 @@ fn test_improved_noise() {
 fn test_perlin_noise() {
     let mut rng = Xoroshiro128PlusPlus::new(0, 0);
 
-    let perlin_noise = PerlinNoise::new(&mut rng, 3, vec![0.0, 1.0, -1.0, 0.0, 0.5, 0.0]);
+    let perlin_noise =
+        ConstPerlinNoise::new(3, [0.0, 1.0, -1.0, 0.0, 0.5, 0.0]).init(rng.fork_positional());
 
     assert_eq!(
         perlin_noise.lowest_freq_input_factor, 8.0,
