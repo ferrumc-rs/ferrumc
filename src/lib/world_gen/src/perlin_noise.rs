@@ -5,35 +5,118 @@ use bevy_math::{DVec3, FloatExt};
 
 use crate::random::Xoroshiro128PlusPlus;
 
-#[allow(dead_code)]
+pub const RIDGE: ConstNormalNoise<6> = ConstNormalNoise::new(7, [1.0, 2.0, 1.0, 0.0, 0.0, 0.0]);
+pub const SHIFT: ConstNormalNoise<4> = ConstNormalNoise::new(3, [1.0, 1.0, 1.0, 0.0]);
+pub const TEMPERATURE: ConstNormalNoise<6> =
+    ConstNormalNoise::new(10, [1.5, 0.0, 1.0, 0.0, 0.0, 0.0]);
+pub const TEMPERATURE_LARGE: ConstNormalNoise<6> =
+    ConstNormalNoise::new(8, [1.5, 0.0, 1.0, 0.0, 0.0, 0.0]);
+pub const VEGETATION: ConstNormalNoise<6> =
+    ConstNormalNoise::new(8, [1.0, 1.0, 0.0, 0.0, 0.0, 0.0]);
+pub const VEGETATION_LARGE: ConstNormalNoise<6> =
+    ConstNormalNoise::new(6, [1.0, 1.0, 0.0, 0.0, 0.0, 0.0]);
+pub const CONTINENTALNESS: ConstNormalNoise<9> =
+    ConstNormalNoise::new(9, [1.0, 1.0, 2.0, 2.0, 2.0, 1.0, 1.0, 1.0, 1.0]);
+pub const CONTINENTALNESS_LARGE: ConstNormalNoise<9> =
+    ConstNormalNoise::new(7, [1.0, 1.0, 2.0, 2.0, 2.0, 1.0, 1.0, 1.0, 1.0]);
+pub const EROSION: ConstNormalNoise<5> = ConstNormalNoise::new(9, [1.0, 1.0, 0.0, 1.0, 1.0]);
+pub const EROSION_LARGE: ConstNormalNoise<5> = ConstNormalNoise::new(7, [1.0, 1.0, 0.0, 1.0, 1.0]);
+pub const AQUIFER_BARRIER: ConstNormalNoise<1> = ConstNormalNoise::new(3, [1.0]);
+pub const AQUIFER_FLUID_LEVEL_FLOODEDNESS: ConstNormalNoise<1> = ConstNormalNoise::new(7, [1.0]);
+pub const AQUIFER_LAVA: ConstNormalNoise<1> = ConstNormalNoise::new(1, [1.0]);
+pub const AQUIFER_FLUID_LEVEL_SPREAD: ConstNormalNoise<1> = ConstNormalNoise::new(5, [1.0]);
+pub const PILLAR: ConstNormalNoise<2> = ConstNormalNoise::new(7, [1.0, 1.0]);
+pub const PILLAR_RARENESS: ConstNormalNoise<1> = ConstNormalNoise::new(8, [1.0]);
+pub const PILLAR_THICKNESS: ConstNormalNoise<1> = ConstNormalNoise::new(8, [1.0]);
+pub const SPAGHETTI_2D: ConstNormalNoise<1> = ConstNormalNoise::new(7, [1.0]);
+pub const SPAGHETTI_2D_ELEVATION: ConstNormalNoise<1> = ConstNormalNoise::new(8, [1.0]);
+pub const SPAGHETTI_2D_MODULATOR: ConstNormalNoise<1> = ConstNormalNoise::new(11, [1.0]);
+pub const SPAGHETTI_2D_THICKNESS: ConstNormalNoise<1> = ConstNormalNoise::new(11, [1.0]);
+pub const SPAGHETTI_3D_1: ConstNormalNoise<1> = ConstNormalNoise::new(7, [1.0]);
+pub const SPAGHETTI_3D_2: ConstNormalNoise<1> = ConstNormalNoise::new(7, [1.0]);
+pub const SPAGHETTI_3D_RARITY: ConstNormalNoise<1> = ConstNormalNoise::new(11, [1.0]);
+pub const SPAGHETTI_3D_THICKNESS: ConstNormalNoise<1> = ConstNormalNoise::new(8, [1.0]);
+pub const SPAGHETTI_ROUGHNESS: ConstNormalNoise<1> = ConstNormalNoise::new(5, [1.0]);
+pub const SPAGHETTI_ROUGHNESS_MODULATOR: ConstNormalNoise<1> = ConstNormalNoise::new(8, [1.0]);
+pub const CAVE_ENTRANCE: ConstNormalNoise<3> = ConstNormalNoise::new(7, [0.4, 0.5, 1.0]);
+pub const CAVE_LAYER: ConstNormalNoise<1> = ConstNormalNoise::new(8, [1.0]);
+pub const CAVE_CHEESE: ConstNormalNoise<9> =
+    ConstNormalNoise::new(8, [0.5, 1.0, 2.0, 1.0, 2.0, 1.0, 0.0, 2.0, 0.0]);
+pub const ORE_VEININESS: ConstNormalNoise<1> = ConstNormalNoise::new(8, [1.0]);
+pub const ORE_VEIN_A: ConstNormalNoise<1> = ConstNormalNoise::new(7, [1.0]);
+pub const ORE_VEIN_B: ConstNormalNoise<1> = ConstNormalNoise::new(7, [1.0]);
+pub const ORE_GAP: ConstNormalNoise<1> = ConstNormalNoise::new(5, [1.0]);
+pub const NOODLE: ConstNormalNoise<1> = ConstNormalNoise::new(8, [1.0]);
+pub const NOODLE_THICKNESS: ConstNormalNoise<1> = ConstNormalNoise::new(8, [1.0]);
+pub const NOODLE_RIDGE_A: ConstNormalNoise<1> = ConstNormalNoise::new(7, [1.0]);
+pub const NOODLE_RIDGE_B: ConstNormalNoise<1> = ConstNormalNoise::new(7, [1.0]);
+pub const JAGGED: ConstNormalNoise<16> = ConstNormalNoise::new(
+    16,
+    [
+        1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+    ],
+);
+pub const SURFACE: ConstNormalNoise<3> = ConstNormalNoise::new(6, [1.0, 1.0, 1.0]);
+pub const SURFACE_SECONDARY: ConstNormalNoise<4> = ConstNormalNoise::new(6, [1.0, 1.0, 0.0, 1.0]);
+pub const CLAY_BANDS_OFFSET: ConstNormalNoise<1> = ConstNormalNoise::new(8, [1.0]);
+pub const BADLANDS_PILLAR: ConstNormalNoise<4> = ConstNormalNoise::new(2, [1.0, 1.0, 1.0, 1.0]);
+pub const BADLANDS_PILLAR_ROOF: ConstNormalNoise<1> = ConstNormalNoise::new(8, [1.0]);
+pub const BADLANDS_SURFACE: ConstNormalNoise<3> = ConstNormalNoise::new(6, [1.0, 1.0, 1.0]);
+pub const ICEBERG_PILLAR: ConstNormalNoise<4> = ConstNormalNoise::new(6, [1.0, 1.0, 1.0, 1.0]);
+pub const ICEBERG_PILLAR_ROOF: ConstNormalNoise<1> = ConstNormalNoise::new(3, [1.0]);
+pub const ICEBERG_SURFACE: ConstNormalNoise<3> = ConstNormalNoise::new(6, [1.0, 1.0, 1.0]);
+pub const SWAMP: ConstNormalNoise<1> = ConstNormalNoise::new(2, [1.0]);
+pub const CALCITE: ConstNormalNoise<4> = ConstNormalNoise::new(9, [1.0, 1.0, 1.0, 1.0]);
+pub const GRAVEL: ConstNormalNoise<4> = ConstNormalNoise::new(8, [1.0, 1.0, 1.0, 1.0]);
+pub const POWDER_SNOW: ConstNormalNoise<4> = ConstNormalNoise::new(6, [1.0, 1.0, 1.0, 1.0]);
+pub const PACKED_ICE: ConstNormalNoise<4> = ConstNormalNoise::new(7, [1.0, 1.0, 1.0, 1.0]);
+pub const ICE: ConstNormalNoise<4> = ConstNormalNoise::new(4, [1.0, 1.0, 1.0, 1.0]);
+pub const SOUL_SAND_LAYER: ConstNormalNoise<9> = ConstNormalNoise::new(
+    8,
+    [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.013333333333333334],
+);
+pub const GRAVEL_LAYER: ConstNormalNoise<9> = ConstNormalNoise::new(
+    8,
+    [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.013333333333333334],
+);
+pub const PATCH: ConstNormalNoise<6> =
+    ConstNormalNoise::new(5, [1.0, 0.0, 0.0, 0.0, 0.0, 0.013333333333333334]);
+pub const NETHERRACK: ConstNormalNoise<4> = ConstNormalNoise::new(3, [1.0, 0.0, 0.0, 0.35]);
+pub const NETHER_WART: ConstNormalNoise<4> = ConstNormalNoise::new(3, [1.0, 0.0, 0.0, 0.9]);
+pub const NETHER_STATE_SELECTOR: ConstNormalNoise<1> = ConstNormalNoise::new(4, [1.0]);
+
 pub struct ConstNormalNoise<const N: usize> {
     first: ConstPerlinNoise<N>,
     second: ConstPerlinNoise<N>,
     factor: f64,
 }
 
-#[allow(dead_code)]
 impl<const N: usize> ConstNormalNoise<N> {
-    pub fn new(first_octave: u32, amplitudes: [f64; N]) -> Self {
-        fn expected_deviation(octaves: usize) -> f64 {
+    pub const fn new(first_octave: u32, amplitudes: [f64; N]) -> Self {
+        const fn expected_deviation(octaves: usize) -> f64 {
             0.16666666666666666 / (0.1 * (1.0 + 1.0 / (octaves as f64 + 1.0)))
         }
+        let mut first_idx = 0;
+        let mut i = 0;
+        while i < N {
+            if amplitudes[i] != 0.0 {
+                first_idx = i;
+                break;
+            }
+            i += 1;
+        }
+
+        let mut last_idx = 0;
+        let mut i = N;
+        while i > 0 {
+            i -= 1;
+            if amplitudes[i] != 0.0 {
+                last_idx = i;
+                break;
+            }
+        }
         Self {
-            factor: expected_deviation(
-                amplitudes
-                    .iter()
-                    .enumerate()
-                    .rev()
-                    .find(|(_, x)| **x != 0.0)
-                    .unwrap()
-                    .0
-                    - amplitudes
-                        .iter()
-                        .enumerate()
-                        .find(|(_, x)| **x != 0.0)
-                        .unwrap()
-                        .0,
-            ),
+            factor: expected_deviation(last_idx - first_idx),
             first: ConstPerlinNoise::new(first_octave, amplitudes),
             second: ConstPerlinNoise::new(first_octave, amplitudes),
         }
@@ -48,7 +131,6 @@ impl<const N: usize> ConstNormalNoise<N> {
     }
 }
 
-#[allow(dead_code)]
 pub struct ConstPerlinNoise<const N: usize> {
     first_octave: u32,
     amplitudes: [f64; N],
@@ -57,7 +139,6 @@ pub struct ConstPerlinNoise<const N: usize> {
     max: f64,
 }
 
-#[allow(dead_code)]
 impl<const N: usize> ConstPerlinNoise<N> {
     pub const fn new(first_octave: u32, amplitudes: [f64; N]) -> Self {
         assert!(!amplitudes.is_empty());
@@ -92,7 +173,6 @@ impl<const N: usize> ConstPerlinNoise<N> {
         }
         PerlinNoise {
             noise_levels: unsafe { MaybeUninit::array_assume_init(noise_levels) },
-            first_octave: self.first_octave,
             amplitudes: self.amplitudes,
             lowest_freq_input_factor: self.lowest_freq_input_factor,
             lowest_freq_value_factor: self.lowest_freq_value_factor,
@@ -108,17 +188,14 @@ pub struct NormalNoise<const N: usize> {
     factor: f64,
 }
 
-#[allow(dead_code)]
 impl<const N: usize> NormalNoise<N> {
     pub fn get_value(&self, pos: DVec3) -> f64 {
         (self.first.get_value(pos) + self.second.get_value(pos * 1.0181268882175227)) * self.factor
     }
 }
 
-#[allow(dead_code)]
 ///reference: net.minecraft.world.level.levelgen.synth.PerlinNoise
 pub struct PerlinNoise<const N: usize> {
-    first_octave: u32,
     amplitudes: [f64; N],
     noise_levels: [ImprovedNoise; N],
     lowest_freq_input_factor: f64,
@@ -126,7 +203,6 @@ pub struct PerlinNoise<const N: usize> {
     max: f64,
 }
 
-#[allow(dead_code)]
 impl<const N: usize> PerlinNoise<N> {
     pub fn get_value(&self, point: DVec3) -> f64 {
         let mut res = 0.0;
@@ -153,13 +229,11 @@ fn wrap(input: f64) -> f64 {
 }
 
 /// reference: net.minecraft.world.level.levelgen.synth.ImprovedNoise
-#[allow(dead_code)]
 pub struct ImprovedNoise {
     p: [u8; 256],
     offset: DVec3,
 }
 
-#[allow(dead_code)]
 impl ImprovedNoise {
     pub fn new(mut random: Xoroshiro128PlusPlus) -> Self {
         let offset = DVec3::new(random.next_f64(), random.next_f64(), random.next_f64()) * 256.0;
