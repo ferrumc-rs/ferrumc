@@ -1,8 +1,10 @@
 #![feature(maybe_uninit_array_assume_init)]
 
 mod aquifier;
+mod biome;
 mod biomes;
 pub mod errors;
+mod noise_biome_parameters;
 mod noise_router;
 mod ore_veins;
 mod perlin_noise;
