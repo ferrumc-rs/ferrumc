@@ -209,7 +209,7 @@ pub struct ConstPerlinNoise<const N: usize> {
 impl<const N: usize> ConstPerlinNoise<N> {
     pub const fn new(first_octave: u32, amplitudes: [f64; N]) -> Self {
         assert!(!amplitudes.is_empty());
-        let lowest_freq_input_factor = 2u32.pow(first_octave) as f64;
+        let lowest_freq_input_factor = 1.0 / 2i32.pow(first_octave) as f64;
         let lowest_freq_value_factor = 2u32.pow((amplitudes.len() - 1) as u32) as f64
             / (2u32.pow(amplitudes.len() as u32) as f64 - 1.0);
 
@@ -235,7 +235,7 @@ impl<const N: usize> ConstPerlinNoise<N> {
             unsafe { MaybeUninit::uninit().assume_init() };
         for (i, noise_level) in noise_levels.iter_mut().enumerate() {
             noise_level.write(ImprovedNoise::new(
-                factory.with_hash(&format!("octave_{}", self.first_octave + i as u32)),
+                factory.with_hash(&format!("octave_{}", i as i32 - self.first_octave as i32)),
             ));
         }
         PerlinNoise {
@@ -402,17 +402,17 @@ fn test_normal_noise() {
     assert_eq!(noise.factor, 1.3333333333333333, "Mismatch in noise factor");
     assert_eq!(
         noise.get_value(DVec3::new(0.0, 0.0, 0.0)),
-        -0.12641617678290623,
+        -0.006229996496323942,
         "Mismatch in noise at zero"
     );
     assert_eq!(
         noise.get_value(DVec3::new(1000.0, -10.0, -232.0)),
-        0.09024440133389773,
+        0.11302430166656066,
         "Mismatch in noise"
     );
     assert_eq!(
         noise.get_value(DVec3::new(10000.123, 203.5, -20031.78)),
-        -0.29161635943682196,
+        0.18396746296162117,
         "Mismatch in noise"
     );
 }
@@ -442,7 +442,7 @@ fn test_perlin_noise() {
     let perlin_noise = ConstPerlinNoise::new(3, [0.0, 1.0, -1.0, 0.0, 0.5, 0.0]).init(rng);
 
     assert_eq!(
-        perlin_noise.lowest_freq_input_factor, 8.0,
+        perlin_noise.lowest_freq_input_factor, 0.125,
         "Mismatch in lowest_freq_input_factor"
     );
     assert_eq!(
@@ -452,12 +452,12 @@ fn test_perlin_noise() {
     assert_eq!(perlin_noise.max, 0.2857142857142857, "Mismatch in max");
     assert_eq!(
         perlin_noise.get_value(DVec3::new(0.0, 0.0, 0.0)),
-        0.11030635847227427,
+        -0.029485159292249152,
         "Mismatch in get_value at zero"
     );
     assert_eq!(
         perlin_noise.get_value(DVec3::new(10000.123, 203.5, -20031.78)),
-        -0.005210683092268373,
+        0.023009563412224324,
         "Mismatch in get_value"
     );
 }
