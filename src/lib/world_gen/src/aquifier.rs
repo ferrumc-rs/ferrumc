@@ -1,3 +1,7 @@
+use crate::{
+    NoiseGeneratorSettings, NoiseRouter, noise_biome_parameters::is_deep_dark_region,
+    random::RandomState,
+};
 use std::ops::Add;
 
 use itertools::Itertools;
@@ -5,7 +9,6 @@ use itertools::Itertools;
 use bevy_math::{FloatExt, IVec3};
 
 use crate::random::{Rng, RngFactory};
-pub(crate) struct Noise; //TODO
 
 #[derive(Clone, Copy)]
 struct ColumnPos {
@@ -65,36 +68,33 @@ impl From<IVec3> for SectionPos {
     }
 }
 
-impl Noise {
-    pub fn compute<T: Into<(i32, i32, i32)>>(&self, _pos: T) -> f64 {
-        todo!()
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub struct FluidPicker(i32, FluidType);
+
+impl FluidPicker {
+    pub fn new(level: i32, fluid_type: FluidType) -> Self {
+        Self(level, fluid_type)
     }
-} //TODO
-const FLOWING_UPDATE_SIMILARITY: f64 = similarity(10 * 10, 12 * 12);
-pub struct SubstanceSettings {
-    pub sea_level: (i32, FluidType),
-    pub min_y: i32,
-    pub height: i32,
-    pub cell_height: u32,
-    initial_density_no_jaggedness: Noise,
-    erosion: Noise,
-    depth: Noise,
-    fluid_level_flodedness: Noise,
-    fluid_level_spread_noise: Noise,
-    lava_noise: Noise,
-    barrier_noise: Noise,
+
+    fn at(&self, y: i32) -> FluidType {
+        if y < self.0 { self.1 } else { FluidType::Air }
+    }
 }
-/// rng is legacy if not generating overworld, returns optional fluid type and if it should be
-/// updated
+
+const FLOWING_UPDATE_SIMILARITY: f64 = similarity(10 * 10, 12 * 12);
+/// returns optional fluid type and if it should be updated
 #[allow(dead_code)]
-pub(crate) fn compute_substance<R: Rng<RF>, RF: RngFactory<R>>(
+pub(crate) fn compute_substance(
+    random: &RandomState,
+    settings: &NoiseGeneratorSettings,
     pos: IVec3,
-    final_density: f64,
-    rng: RF,
-    settings: &SubstanceSettings,
 ) -> (Option<FluidType>, bool) {
+    let final_density = settings.noise_router.final_density.compute(pos);
     if final_density > 0.0 {
         return (None, false);
+    }
+    if !settings.aquifers_enabled {
+        return (Some(simple_compute_fluid(pos.y, settings.sea_level)), false);
     }
     let final_density = -final_density;
 
@@ -110,7 +110,7 @@ pub(crate) fn compute_substance<R: Rng<RF>, RF: RngFactory<R>>(
         .cartesian_product((0..=1).rev())
         .map(|((x, y), z)| section + SectionPos::new(x, y, z))
         .map(|offset_section| {
-            let mut random = rng.with_pos(offset_section.pos); //TODO: perf: cache this
+            let mut random = random.aquifer_random.with_pos(offset_section.pos); //TODO: perf: cache this
             let random_pos = offset_section.block(
                 random.next_bounded(10),
                 random.next_bounded(9),
@@ -123,7 +123,7 @@ pub(crate) fn compute_substance<R: Rng<RF>, RF: RngFactory<R>>(
         .unwrap();
 
     let nearest_status = compute_fluid(smallest[0].1, settings);
-    let block_state = at(nearest_status, pos.y);
+    let block_state = nearest_status.at(pos.y);
     let similtarity = similarity(smallest[0].0, smallest[1].0);
 
     if similtarity <= 0.0 {
@@ -139,7 +139,7 @@ pub(crate) fn compute_substance<R: Rng<RF>, RF: RngFactory<R>>(
     {
         return (Some(block_state), true);
     }
-    let barrier = settings.barrier_noise.compute(pos);
+    let barrier = settings.noise_router.barrier_noise.compute(pos);
     let second_nearest_status = compute_fluid(smallest[1].1, settings);
     if similtarity * pressure(pos, barrier, nearest_status, second_nearest_status) > final_density {
         return (None, false);
@@ -177,18 +177,9 @@ const fn similarity(first_distance: i32, second_distance: i32) -> f64 {
     1.0 - ((second_distance - first_distance).abs() as f64) / (5.0 * 5.0)
 }
 
-fn at(fluid: (i32, FluidType), y: i32) -> FluidType {
-    if y < fluid.0 { fluid.1 } else { FluidType::Air }
-}
-
-fn pressure(
-    pos: IVec3,
-    barrier: f64,
-    first_fluid: (i32, FluidType),
-    second_fluid: (i32, FluidType),
-) -> f64 {
-    let block_state = at(first_fluid, pos.y);
-    let block_state1 = at(second_fluid, pos.y);
+fn pressure(pos: IVec3, barrier: f64, first_fluid: FluidPicker, second_fluid: FluidPicker) -> f64 {
+    let block_state = first_fluid.at(pos.y);
+    let block_state1 = second_fluid.at(pos.y);
     // Check lava/water mix edge case
     if !((block_state != FluidType::Lava || block_state1 != FluidType::Water)
         && (block_state1 != FluidType::Lava || block_state != FluidType::Water))
@@ -222,7 +213,7 @@ fn pressure(
     2.0 * (d12 + d11)
 }
 
-fn simple_compute_fluid(y: i32, sea_level: (i32, FluidType)) -> FluidType {
+fn simple_compute_fluid(y: i32, sea_level: FluidPicker) -> FluidType {
     if y < sea_level.0.min(-54) {
         FluidType::Lava
     } else if y < sea_level.0 {
@@ -233,7 +224,7 @@ fn simple_compute_fluid(y: i32, sea_level: (i32, FluidType)) -> FluidType {
 }
 
 //TODO this is cached with just section poses... idk why
-fn compute_fluid(pos: IVec3, settings: &SubstanceSettings) -> (i32, FluidType) {
+fn compute_fluid(pos: IVec3, settings: &NoiseGeneratorSettings) -> FluidPicker {
     const SURFACE_SAMPLING_OFFSETS_IN_CHUNKS: [(i32, i32); 13] = [
         (0, 0),
         (-2, -1),
@@ -251,7 +242,7 @@ fn compute_fluid(pos: IVec3, settings: &SubstanceSettings) -> (i32, FluidType) {
     ];
 
     let fluid_status = if pos.y < settings.sea_level.0.min(-54) {
-        (-54, FluidType::Lava)
+        FluidPicker::new(-54, FluidType::Lava)
     } else {
         settings.sea_level
     };
@@ -276,7 +267,7 @@ fn compute_fluid(pos: IVec3, settings: &SubstanceSettings) -> (i32, FluidType) {
         if i1 > i6 || ints.0 == 0 && ints.1 == 0 {
             let pos = (pos.x + (ints.0 << 4), i6, pos.z + (ints.1 << 4));
             let fluid_status1 = if pos.1 < settings.sea_level.0.min(-54) {
-                (-54, FluidType::Lava)
+                FluidPicker::new(-54, FluidType::Lava)
             } else {
                 settings.sea_level
             };
@@ -296,17 +287,19 @@ fn compute_fluid(pos: IVec3, settings: &SubstanceSettings) -> (i32, FluidType) {
         fluid_status.0,
         max_surface_level,
         fluid_present,
-        settings,
+        &settings.noise_router,
     );
-    let res = if serface_level.is_some_and(|surface| surface <= -10) && is_lava(pos, settings) {
+    let res = if serface_level.is_some_and(|surface| surface <= -10)
+        && is_lava(pos, &settings.noise_router)
+    {
         FluidType::Lava
     } else {
         simple_compute_fluid(pos.y, settings.sea_level)
     };
-    (serface_level.unwrap_or(-64 * 1000), res) //TODO
+    FluidPicker::new(serface_level.unwrap_or(-64 * 1000), res) //TODO
 }
 
-fn is_lava(pos: IVec3, settings: &SubstanceSettings) -> bool {
+fn is_lava(pos: IVec3, settings: &NoiseRouter) -> bool {
     settings
         .lava_noise
         .compute((
@@ -323,7 +316,7 @@ fn compute_surface_level(
     default_level: i32,
     max_surface_level: i32,
     fluid_present: bool,
-    settings: &SubstanceSettings,
+    settings: &NoiseRouter,
 ) -> Option<i32> {
     if is_deep_dark_region(settings, pos) {
         return None;
@@ -341,7 +334,7 @@ fn compute_surface_level(
     };
 
     let floodedness = settings
-        .fluid_level_flodedness
+        .fluid_level_floodedness_noise
         .compute(pos)
         .clamp(-1.0, 1.0);
     let d4 = d2.remap(1.0, 0.0, -0.3, 0.8);
@@ -356,7 +349,7 @@ fn compute_surface_level(
     }
 }
 
-fn calc_pluid_spread(pos: IVec3, settings: &SubstanceSettings) -> i32 {
+fn calc_pluid_spread(pos: IVec3, settings: &NoiseRouter) -> i32 {
     let spread = quantize(
         settings.fluid_level_spread_noise.compute((
             pos.x.div_euclid(16),
@@ -377,18 +370,16 @@ pub(crate) fn clamped_map(v: f64, in_min: f64, in_max: f64, out_min: f64, out_ma
         .remap(in_min, in_max, out_min, out_max)
 }
 
-fn is_deep_dark_region(settings: &SubstanceSettings, pos: IVec3) -> bool {
-    settings.erosion.compute(pos) < -0.225 && settings.depth.compute(pos) > 0.9
-}
-
-fn preliminary_surface_level(column: ColumnPos, settings: &SubstanceSettings) -> Option<i32> {
+fn preliminary_surface_level(column: ColumnPos, settings: &NoiseGeneratorSettings) -> Option<i32> {
     let column = ColumnPos::new(column.x & !3, column.z & !3);
-    (settings.min_y..settings.min_y + settings.height)
+    (settings.noise_settings.min_y
+        ..settings.noise_settings.min_y + settings.noise_settings.height as i32)
         .rev()
-        .step_by(settings.cell_height as usize)
+        .step_by(settings.noise_settings.noise_size_vertical as usize)
         .find(|y| {
             settings
-                .initial_density_no_jaggedness
+                .noise_router
+                .initial_density_without_jaggedness
                 .compute(column.block(*y))
                 > 0.390625
         })

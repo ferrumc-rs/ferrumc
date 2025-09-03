@@ -1,6 +1,10 @@
-use crate::biome::Biome;
+use bevy_math::IVec3;
+
+use crate::{
+    NoiseRouter,
+    biome::{Biome, ClimateParameter},
+};
 // reference: net.minecraft.world.level.biome.OverworldBiomeBuilder
-// --- constants ---
 const VALLEY_SIZE: f32 = 0.05;
 const LOW_START: f32 = 0.26666668;
 pub const HIGH_START: f32 = 0.4;
@@ -15,7 +19,6 @@ pub const EROSION_INDEX_2_START: f32 = -0.375;
 const EROSION_DEEP_DARK_DRYNESS_THRESHOLD: f32 = -0.225;
 const DEPTH_DEEP_DARK_DRYNESS_THRESHOLD: f32 = 0.9;
 
-// --- climate parameter ranges ---
 const FULL_RANGE: (f32, f32) = (-1.0, 1.0);
 
 const TEMPERATURES: [(f32, f32); 5] = [
@@ -227,38 +230,6 @@ const SHATTERED_BIOMES: [[Option<Biome>; 5]; 5] = [
     [None, None, None, None, None],
     [None, None, None, None, None],
 ];
-
-pub struct ClimateParameter {
-    temperature: (f32, f32),
-    humidity: (f32, f32),
-    continentalness: (f32, f32),
-    erosion: (f32, f32),
-    depth: (f32, f32),
-    peaks_and_valleys: (f32, f32),
-    biome: Biome,
-}
-
-impl ClimateParameter {
-    fn new(
-        temperature: (f32, f32),
-        humidity: (f32, f32),
-        continentalness: (f32, f32),
-        erosion: (f32, f32),
-        depth: (f32, f32),
-        weirdness: (f32, f32),
-        biome: Biome,
-    ) -> Self {
-        Self {
-            temperature,
-            humidity,
-            continentalness,
-            erosion,
-            depth,
-            peaks_and_valleys: weirdness,
-            biome,
-        }
-    }
-}
 
 pub fn surface(
     temperature: (f32, f32),
@@ -988,4 +959,9 @@ fn pick_shattered_biome(temperature: usize, humidity: usize, pandv: (f32, f32)) 
         Some(biome) => biome,
         None => pick_middle_biome(temperature, humidity, pandv),
     }
+}
+
+pub(crate) fn is_deep_dark_region(noise_router: &NoiseRouter, pos: IVec3) -> bool {
+    noise_router.erosion.compute(pos) < EROSION_DEEP_DARK_DRYNESS_THRESHOLD.into()
+        && noise_router.depth.compute(pos) > DEPTH_DEEP_DARK_DRYNESS_THRESHOLD.into()
 }

@@ -9,16 +9,15 @@ mod noise_router;
 mod ore_veins;
 mod perlin_noise;
 mod random;
-use crate::errors::WorldGenError;
+use crate::{aquifier::FluidPicker, errors::WorldGenError};
 use ferrumc_world::{block_id::BlockId, chunk_format::Chunk};
 use noise::{Clamp, NoiseFn, OpenSimplex};
 
 pub struct NoiseGeneratorSettings {
     noise_settings: NoiseSettings,
     default_block: BlockId,
-    default_fluid: BlockId,
     noise_router: NoiseRouter,
-    sea_level: i32,
+    sea_level: FluidPicker,
     aquifers_enabled: bool,
     ore_veins_enabled: bool,
     use_legacy_random_source: bool,
@@ -27,11 +26,18 @@ pub struct NoiseGeneratorSettings {
 pub struct NoiseSettings {
     min_y: i32,
     height: u32,
+    //cell width
     noise_size_horizontal: i32,
+    //cell height
     noise_size_vertical: i32,
 }
 //TODO
 pub struct DensityFunction;
+impl DensityFunction {
+    pub fn compute<T: Into<(i32, i32, i32)>>(&self, _pos: T) -> f64 {
+        todo!()
+    }
+} //TODO
 pub struct NoiseRouter {
     barrier_noise: DensityFunction,
     fluid_level_floodedness_noise: DensityFunction,

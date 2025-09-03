@@ -1,9 +1,9 @@
 use bevy_math::IVec3;
 
 pub struct RandomState {
-    random: RandomFactory,
-    aquifer_random: RandomFactory,
-    ore_random: RandomFactory,
+    pub random: RandomFactory,
+    pub aquifer_random: RandomFactory,
+    pub ore_random: RandomFactory,
 }
 
 impl RandomState {
