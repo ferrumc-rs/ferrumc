@@ -3,19 +3,18 @@ use std::ops::RangeInclusive;
 use bevy_math::IVec3;
 
 use crate::{
-    aquifier::{Noise, clamped_map},
-    random::{Rng, RngFactory},
+    NoiseRouter,
+    aquifier::clamped_map,
+    random::{RandomState, Rng, RngFactory},
 };
 
 #[allow(dead_code)]
-fn compute_vein_block<R: Rng<RF>, RF: RngFactory<R>>(
+fn compute_vein_block(
+    random: &RandomState,
+    settings: &NoiseRouter,
     pos: IVec3,
-    vein_toggle: Noise,
-    vein_ridged: Noise,
-    vein_gap: Noise,
-    random: &mut RF,
 ) -> Option<VeinBlockType> {
-    let vein_toggle = vein_toggle.compute(pos);
+    let vein_toggle = settings.vein_toggle.compute(pos);
     let vein_type = if vein_toggle > 0.0 { COPPER } else { IRON };
 
     let dist_to_upper = vein_type.3.end() - pos.y;
@@ -36,13 +35,13 @@ fn compute_vein_block<R: Rng<RF>, RF: RngFactory<R>>(
     if vein_toggle_abs + d1 < 0.4 {
         return None;
     }
-    let mut rand = random.with_pos(pos);
-    if rand.next_f32() > 0.7 || vein_ridged.compute(pos) >= 0.0 {
+    let mut rand = random.ore_random.with_pos(pos);
+    if rand.next_f32() > 0.7 || settings.vein_ridged.compute(pos) >= 0.0 {
         return None;
     }
 
     if f64::from(rand.next_f32()) < clamped_map(vein_toggle_abs, 0.4, 0.6, 0.1, 0.3)
-        && vein_gap.compute(pos) > -0.3
+        && settings.vein_gap.compute(pos) > -0.3
     {
         if rand.next_f32() < 0.02 {
             Some(vein_type.1)

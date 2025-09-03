@@ -66,3 +66,35 @@ pub enum Biome {
     SmallEndIslands,
     EndBarrens,
 }
+
+pub(crate) struct ClimateParameter {
+    pub(crate) temperature: (f32, f32),
+    pub(crate) humidity: (f32, f32),
+    pub(crate) continentalness: (f32, f32),
+    pub(crate) erosion: (f32, f32),
+    pub(crate) depth: (f32, f32),
+    pub(crate) peaks_and_valleys: (f32, f32),
+    pub(crate) biome: Biome,
+}
+
+impl ClimateParameter {
+    pub(crate) fn new(
+        temperature: (f32, f32),
+        humidity: (f32, f32),
+        continentalness: (f32, f32),
+        erosion: (f32, f32),
+        depth: (f32, f32),
+        weirdness: (f32, f32),
+        biome: Biome,
+    ) -> Self {
+        Self {
+            temperature,
+            humidity,
+            continentalness,
+            erosion,
+            depth,
+            peaks_and_valleys: weirdness,
+            biome,
+        }
+    }
+}
