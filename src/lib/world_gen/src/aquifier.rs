@@ -6,23 +6,56 @@ use std::ops::Add;
 
 use itertools::Itertools;
 
-use bevy_math::{FloatExt, IVec3};
+use bevy_math::{FloatExt, IVec2, IVec3, Vec2Swizzles};
 
 use crate::random::{Rng, RngFactory};
 
+pub struct ChunkPos {
+    pos: IVec2,
+}
+
+impl From<IVec2> for ChunkPos {
+    fn from(pos: IVec2) -> Self {
+        Self {
+            pos: pos.div_euclid((16, 16).into()) * 16,
+        }
+    }
+}
+
+impl ChunkPos {
+    pub fn column_pos(&self, x: u32, z: u32) -> ColumnPos {
+        (self.pos + IVec2::new(x as i32, z as i32)).into()
+    }
+    pub fn iter_columns(self) -> impl Iterator<Item = ColumnPos> {
+        (self.pos.x..self.pos.x + 16)
+            .zip(self.pos.y..self.pos.y + 16)
+            .map(IVec2::from)
+            .map(ColumnPos::from)
+    }
+}
+
 #[derive(Clone, Copy)]
-struct ColumnPos {
-    x: i32,
-    z: i32,
+pub struct ColumnPos {
+    pub pos: IVec2,
 }
 
 impl ColumnPos {
-    fn new(x: i32, z: i32) -> Self {
-        Self { x, z }
+    pub fn new(x: i32, z: i32) -> Self {
+        Self { pos: (x, z).into() }
     }
 
-    fn block(self, y: i32) -> IVec3 {
-        IVec3::new(self.x, y, self.z)
+    pub fn block(self, y: i32) -> IVec3 {
+        self.pos.xxy().with_y(y)
+    }
+
+    pub fn chunk(self) -> ChunkPos {
+        self.pos.into()
+    }
+}
+
+impl From<IVec2> for ColumnPos {
+    fn from(pos: IVec2) -> Self {
+        Self { pos }
     }
 }
 
@@ -69,14 +102,13 @@ impl From<IVec3> for SectionPos {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-pub struct FluidPicker(i32, FluidType);
+pub struct FluidPicker(pub i32, pub FluidType);
 
 impl FluidPicker {
     pub fn new(level: i32, fluid_type: FluidType) -> Self {
         Self(level, fluid_type)
     }
-
-    fn at(&self, y: i32) -> FluidType {
+    const fn at(&self, y: i32) -> FluidType {
         if y < self.0 { self.1 } else { FluidType::Air }
     }
 }
@@ -256,8 +288,7 @@ fn compute_fluid(pos: IVec3, settings: &NoiseGeneratorSettings) -> FluidPicker {
         let preliminary_surface_level = preliminary_surface_level(
             ColumnPos::new(pos.x + (ints.0 << 4), pos.z + (ints.1 << 4)),
             settings,
-        )
-        .unwrap_or(i32::MAX);
+        );
         let i6 = preliminary_surface_level + 8;
 
         if ints.0 == 0 && ints.1 == 0 && i2 > i6 {
@@ -370,8 +401,11 @@ pub(crate) fn clamped_map(v: f64, in_min: f64, in_max: f64, out_min: f64, out_ma
         .remap(in_min, in_max, out_min, out_max)
 }
 
-fn preliminary_surface_level(column: ColumnPos, settings: &NoiseGeneratorSettings) -> Option<i32> {
-    let column = ColumnPos::new(column.x & !3, column.z & !3);
+pub(crate) fn preliminary_surface_level(
+    column: ColumnPos,
+    settings: &NoiseGeneratorSettings,
+) -> i32 {
+    let column = column.chunk().column_pos(0, 0);
     (settings.noise_settings.min_y
         ..settings.noise_settings.min_y + settings.noise_settings.height as i32)
         .rev()
@@ -383,6 +417,7 @@ fn preliminary_surface_level(column: ColumnPos, settings: &NoiseGeneratorSetting
                 .compute(column.block(*y))
                 > 0.390625
         })
+        .unwrap_or(i32::MAX) //TODO: should this panic?
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]

@@ -67,6 +67,12 @@ pub enum Biome {
     EndBarrens,
 }
 
+impl Biome {
+    pub(crate) fn should_melt_frozen_ocean_iceberg_slightly(&self, sea_level: i32) -> bool {
+        todo!()
+    }
+}
+
 pub(crate) struct ClimateParameter {
     pub(crate) temperature: (f32, f32),
     pub(crate) humidity: (f32, f32),
