@@ -1,6 +1,7 @@
 use std::ops::RangeInclusive;
 
 use bevy_math::IVec3;
+use ferrumc_world::vanilla_chunk_format::BlockData;
 
 use crate::{
     NoiseRouter,
@@ -9,13 +10,43 @@ use crate::{
 };
 
 #[allow(dead_code)]
-fn compute_vein_block(
+pub(crate) fn compute_vein_block(
     random: &RandomState,
     settings: &NoiseRouter,
     pos: IVec3,
-) -> Option<VeinBlockType> {
+) -> Option<BlockData> {
+    let copper: (BlockData, BlockData, BlockData, RangeInclusive<i32>) = (
+        BlockData {
+            name: "minecraft:copper_ore".to_string(),
+            properties: None,
+        },
+        BlockData {
+            name: "minecraft:raw_copper_block".to_string(),
+            properties: None,
+        },
+        BlockData {
+            name: "minecraft:granine".to_string(),
+            properties: None,
+        },
+        (0..=50),
+    );
+    let iron: (BlockData, BlockData, BlockData, RangeInclusive<i32>) = (
+        BlockData {
+            name: "minecraft:deepslate_iron_ore".to_string(),
+            properties: None,
+        },
+        BlockData {
+            name: "minecraft:raw_iron_block".to_string(),
+            properties: None,
+        },
+        BlockData {
+            name: "minecraft:tuff".to_string(),
+            properties: None,
+        },
+        (-60..=-8),
+    );
     let vein_toggle = settings.vein_toggle.compute(pos);
-    let vein_type = if vein_toggle > 0.0 { COPPER } else { IRON };
+    let vein_type = if vein_toggle > 0.0 { copper } else { iron };
 
     let dist_to_upper = vein_type.3.end() - pos.y;
     let dist_to_lower = pos.y - vein_type.3.start();
@@ -51,35 +82,4 @@ fn compute_vein_block(
     } else {
         Some(vein_type.2)
     }
-}
-
-const COPPER: (
-    VeinBlockType,
-    VeinBlockType,
-    VeinBlockType,
-    RangeInclusive<i32>,
-) = (
-    VeinBlockType::CopperOre,
-    VeinBlockType::RawCopperBlock,
-    VeinBlockType::Granite,
-    (0..=50),
-);
-const IRON: (
-    VeinBlockType,
-    VeinBlockType,
-    VeinBlockType,
-    RangeInclusive<i32>,
-) = (
-    VeinBlockType::DeepslateIronOre,
-    VeinBlockType::RawIronBlock,
-    VeinBlockType::Tuff,
-    (-60..=-8),
-);
-enum VeinBlockType {
-    CopperOre,
-    RawCopperBlock,
-    Granite,
-    DeepslateIronOre,
-    RawIronBlock,
-    Tuff,
 }
