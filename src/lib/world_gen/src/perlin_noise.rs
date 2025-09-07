@@ -1,7 +1,7 @@
 use crate::random::{Random, RandomFactory, Rng, RngFactory};
 use std::mem::MaybeUninit;
 
-use bevy_math::{DVec3, FloatExt};
+use bevy_math::{DVec2, DVec3, FloatExt, Vec3Swizzles};
 
 //reference net.minecraft.world.level.levelgen.Noises
 //only shift and swamp have a different name in the resourcelocation, but we could rename them and
@@ -371,10 +371,10 @@ fn grad_dot(grad_index: i32, p: DVec3) -> f64 {
     p.dot(SIMPLEX_GRADIENT[grad_index as usize & 15])
 }
 
-pub fn lerp2(delta1: f64, delta2: f64, start1: f64, end1: f64, start2: f64, end2: f64) -> f64 {
+pub fn lerp2(delta: DVec2, start1: f64, end1: f64, start2: f64, end2: f64) -> f64 {
     start1
-        .lerp(end1, delta1)
-        .lerp(start2.lerp(end2, delta1), delta2)
+        .lerp(end1, delta.x)
+        .lerp(start2.lerp(end2, delta.x), delta.y)
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -389,8 +389,8 @@ pub fn lerp3(
     start4: f64,
     end4: f64,
 ) -> f64 {
-    lerp2(delta.x, delta.y, start1, end1, start2, end2)
-        .lerp(lerp2(delta.x, delta.y, start3, end3, start4, end4), delta.z)
+    lerp2(delta.xy(), start1, end1, start2, end2)
+        .lerp(lerp2(delta.xy(), start3, end3, start4, end4), delta.z)
 }
 
 #[test]

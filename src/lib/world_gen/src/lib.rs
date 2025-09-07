@@ -9,8 +9,9 @@ mod noise_router;
 mod ore_veins;
 mod perlin_noise;
 mod random;
+mod surface;
 use crate::{aquifier::FluidPicker, errors::WorldGenError};
-use ferrumc_world::{block_id::BlockId, chunk_format::Chunk};
+use ferrumc_world::{block_id::BlockId, chunk_format::Chunk, vanilla_chunk_format::BlockData};
 use noise::{Clamp, NoiseFn, OpenSimplex};
 
 pub struct NoiseGeneratorSettings {
@@ -21,6 +22,20 @@ pub struct NoiseGeneratorSettings {
     aquifers_enabled: bool,
     ore_veins_enabled: bool,
     use_legacy_random_source: bool,
+    rule_source: SurfaceRule,
+}
+
+pub struct SurfaceRule {} //TODO
+impl SurfaceRule {
+    fn try_apply(
+        &self,
+        depth: i32,
+        depth_from_stone: i32,
+        fluid_level: Option<i32>,
+        y: bevy_math::IVec3,
+    ) -> Option<BlockData> {
+        todo!()
+    }
 }
 
 pub struct NoiseSettings {
