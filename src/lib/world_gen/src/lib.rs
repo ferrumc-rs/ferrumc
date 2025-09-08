@@ -3,6 +3,7 @@
 mod aquifier;
 mod biome;
 mod biomes;
+mod carver;
 pub mod errors;
 mod noise_biome_parameters;
 mod noise_router;
@@ -10,7 +11,7 @@ mod ore_veins;
 mod perlin_noise;
 mod random;
 mod surface;
-use crate::{aquifier::FluidPicker, errors::WorldGenError};
+use crate::{aquifier::FluidPicker, biome::Biome, errors::WorldGenError};
 use ferrumc_world::{block_id::BlockId, chunk_format::Chunk, vanilla_chunk_format::BlockData};
 use noise::{Clamp, NoiseFn, OpenSimplex};
 
@@ -29,6 +30,7 @@ pub struct SurfaceRule {} //TODO
 impl SurfaceRule {
     fn try_apply(
         &self,
+        biome: Biome,
         depth: i32,
         depth_from_stone: i32,
         fluid_level: Option<i32>,

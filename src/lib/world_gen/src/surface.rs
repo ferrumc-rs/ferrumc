@@ -1,10 +1,8 @@
-use std::collections::BTreeMap;
-
 use bevy_math::IVec3;
 use ferrumc_world::vanilla_chunk_format::BlockData;
 
 use crate::{
-    NoiseGeneratorSettings,
+    NoiseGeneratorSettings, SurfaceRule,
     aquifier::{ColumnPos, FluidType, compute_substance, preliminary_surface_level},
     biome::Biome,
     ore_veins::compute_vein_block,
@@ -122,7 +120,7 @@ pub struct SurfaceNoises {
 
 pub struct BiomeManager {}
 impl BiomeManager {
-    fn get_biome(&self, pos: IVec3) -> Biome {
+    pub fn get_biome(&self, pos: IVec3) -> Biome {
         todo!()
     }
 } //TODO
@@ -138,7 +136,13 @@ pub fn build_surface(
     let mut stone_level = settings.noise_settings.min_y - 1;
     let mut fluid_level = None;
     for y in settings.noise_settings.min_y..settings.noise_settings.height as i32 {
-        let substance = compute_substance(random, settings, pos.block(y)).0; //TODO:
+        let substance = compute_substance(
+            random,
+            settings,
+            pos.block(y),
+            settings.noise_router.final_density.compute(pos.block(y)),
+        )
+        .0; //TODO:
         //update
         if substance.is_none() {
             stone_level = y;
@@ -160,29 +164,19 @@ pub fn build_surface(
         .rev()
         .map(|y| {
             if y < stone_level {
-                let substance = compute_substance(random, settings, pos.block(y)).0; //TODO:
+                let substance = compute_substance(
+                    random,
+                    settings,
+                    pos.block(y),
+                    settings.noise_router.final_density.compute(pos.block(y)),
+                )
+                .0; //TODO:
                 //update
                 if let Some(sub) = substance {
                     if sub != FluidType::Air && fluid_level.is_none() {
                         fluid_level = Some(y);
                     }
-                    return match sub {
-                        FluidType::Air => BlockData::default(),
-                        FluidType::Water => BlockData {
-                            name: "minecraft:water".to_string(),
-                            properties: Some(BTreeMap::from([(
-                                "level".to_string(),
-                                "0".to_string(),
-                            )])),
-                        },
-                        FluidType::Lava => BlockData {
-                            name: "minecraft:lava".to_string(),
-                            properties: Some(BTreeMap::from([(
-                                "level".to_string(),
-                                "0".to_string(),
-                            )])),
-                        },
-                    };
+                    return sub.into();
                 }
             }
             depth += 1;
@@ -194,6 +188,7 @@ pub fn build_surface(
                 .and_then(|()| compute_vein_block(random, &settings.noise_router, pos.block(y)))
                 .or_else(|| {
                     settings.rule_source.try_apply(
+                        biome,
                         depth,
                         depth_from_stone,
                         fluid_level,
@@ -252,8 +247,24 @@ fn min_surface_level(
         + get_surface_depth(pos, surface_noise, random)
         - 8
 }
+
 fn get_surface_depth(pos: ColumnPos, surface_noise: &NormalNoise<3>, random: &RandomState) -> i32 {
     (surface_noise.get_value(pos.block(0).as_dvec3()) * 2.75
         + 3.0
         + random.random.with_pos(pos.block(0)).next_f64() * 0.25) as i32
+}
+
+pub(crate) fn top_material(
+    rule_source: &SurfaceRule,
+    biome: Biome,
+    pos: IVec3,
+    is_fluid: bool,
+) -> Option<BlockData> {
+    rule_source.try_apply(
+        biome,
+        1,
+        1,
+        if is_fluid { Some(pos.y + 1) } else { None },
+        pos,
+    )
 }

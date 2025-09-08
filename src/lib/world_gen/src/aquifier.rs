@@ -2,16 +2,18 @@ use crate::{
     NoiseGeneratorSettings, NoiseRouter, noise_biome_parameters::is_deep_dark_region,
     random::RandomState,
 };
-use std::ops::Add;
+use std::{collections::BTreeMap, ops::Add};
 
+use ferrumc_world::vanilla_chunk_format::BlockData;
 use itertools::Itertools;
 
 use bevy_math::{FloatExt, IVec2, IVec3, Vec2Swizzles};
 
 use crate::random::{Rng, RngFactory};
 
+#[derive(Clone, Copy)]
 pub struct ChunkPos {
-    pos: IVec2,
+    pub pos: IVec2,
 }
 
 impl From<IVec2> for ChunkPos {
@@ -31,6 +33,9 @@ impl ChunkPos {
             .zip(self.pos.y..self.pos.y + 16)
             .map(IVec2::from)
             .map(ColumnPos::from)
+    }
+    pub fn block(&self, x: u32, y: i32, z: u32) -> IVec3 {
+        self.column_pos(x, z).block(y)
     }
 }
 
@@ -120,8 +125,8 @@ pub(crate) fn compute_substance(
     random: &RandomState,
     settings: &NoiseGeneratorSettings,
     pos: IVec3,
+    final_density: f64,
 ) -> (Option<FluidType>, bool) {
-    let final_density = settings.noise_router.final_density.compute(pos);
     if final_density > 0.0 {
         return (None, false);
     }
@@ -425,4 +430,20 @@ pub enum FluidType {
     Air,
     Water,
     Lava,
+}
+
+impl From<FluidType> for BlockData {
+    fn from(value: FluidType) -> Self {
+        match value {
+            FluidType::Air => BlockData::default(),
+            FluidType::Water => BlockData {
+                name: "minecraft:water".to_string(),
+                properties: Some(BTreeMap::from([("level".to_string(), "0".to_string())])),
+            },
+            FluidType::Lava => BlockData {
+                name: "minecraft:lava".to_string(),
+                properties: Some(BTreeMap::from([("level".to_string(), "0".to_string())])),
+            },
+        }
+    }
 }

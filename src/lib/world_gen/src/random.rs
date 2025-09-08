@@ -1,4 +1,8 @@
+use std::ops::Range;
+
 use bevy_math::IVec3;
+
+use crate::aquifier::ChunkPos;
 
 pub struct RandomState {
     pub random: RandomFactory,
@@ -88,6 +92,18 @@ pub trait Rng<RF> {
     fn next_f64(&mut self) -> f64;
 
     fn next_bounded(&mut self, bound: u32) -> u32;
+
+    fn next_i32_range(&mut self, range: Range<i32>) -> i32 {
+        self.next_bounded((range.end - range.start) as u32) as i32 + range.start
+    }
+    fn next_f32_range(&mut self, range: Range<f32>) -> f32 {
+        self.next_f32() * (range.end - range.start) + range.start
+    }
+    fn next_trapezoid(&mut self, min: f32, max: f32, plateau: f32) -> f32 {
+        let size = max - min;
+        let height = (size - plateau) / 2.0;
+        min + self.next_f32() * (size - height) + self.next_f32() * height
+    }
 
     fn fork_positional(&mut self) -> RF;
 }
@@ -206,6 +222,14 @@ pub struct LegacyRandom {
 
 #[allow(dead_code)]
 impl LegacyRandom {
+    pub fn large_features(seed: u64, chunk_pos: ChunkPos) -> Self {
+        let mut random = Self::new(seed);
+        Self::new(
+            (i64::from(chunk_pos.pos.x) as u64 * random.next_u64())
+                ^ (i64::from(chunk_pos.pos.y) as u64 * random.next_u64())
+                ^ seed,
+        )
+    }
     pub fn new(seed: u64) -> Self {
         Self {
             seed: (seed ^ 0x5DEECE66D) & ((1 << 48) - 1),
