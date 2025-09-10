@@ -1,11 +1,12 @@
+use crate::{biome_chunk::BiomeChunk, pos::ColumnPos};
 use bevy_math::IVec3;
 use ferrumc_world::vanilla_chunk_format::BlockData;
 
 use crate::{
     NoiseGeneratorSettings, SurfaceRule,
-    aquifier::{ColumnPos, FluidType, compute_substance, preliminary_surface_level},
+    aquifer::{FluidType, compute_substance, preliminary_surface_level},
     biome::Biome,
-    ore_veins::compute_vein_block,
+    overworld::ore_veins::compute_vein_block,
     perlin_noise::{NormalNoise, lerp2},
     random::{RandomState, Rng, RngFactory},
 };
@@ -40,7 +41,7 @@ fn frozen_ocean_extension(
     let min_surface_level =
         min_surface_level(pos, settings, &surface_noises.surface_noise, noise_random);
     let sea_level = settings.sea_level.0;
-    let min_y = settings.noise_settings.min_y;
+    let min_y = settings.chunk_height.min_y;
     let min = (surface_noises
         .iceberg_surface_noise
         .get_value(pos.block(0).as_dvec3())
@@ -118,29 +119,22 @@ pub struct SurfaceNoises {
     badlands_pillar_roof_noise: NormalNoise<1>,
 }
 
-pub struct BiomeManager {}
-impl BiomeManager {
-    pub fn get_biome(&self, pos: IVec3) -> Biome {
-        todo!()
-    }
-} //TODO
-
 #[allow(dead_code)]
 pub fn build_surface(
     noises: &SurfaceNoises,
     settings: &NoiseGeneratorSettings,
     pos: ColumnPos,
     random: &RandomState,
-    biome_manager: &BiomeManager,
+    biome_manager: &BiomeChunk,
 ) -> Vec<BlockData> {
-    let mut stone_level = settings.noise_settings.min_y - 1;
+    let mut stone_level = settings.chunk_height.min_y - 1;
     let mut fluid_level = None;
-    for y in settings.noise_settings.min_y..settings.noise_settings.height as i32 {
+    for y in settings.chunk_height.iter() {
         let substance = compute_substance(
             random,
             settings,
             pos.block(y),
-            settings.noise_router.final_density.compute(pos.block(y)),
+            settings.final_density.compute(pos.block(y)),
         )
         .0; //TODO:
         //update
@@ -152,7 +146,7 @@ pub fn build_surface(
             fluid_level = Some(y);
         }
     }
-    let biome = biome_manager.get_biome(pos.block(stone_level + 1));
+    let biome = biome_manager.at(pos.block(stone_level + 1));
     let extended_height = if matches!(biome, Biome::ErodedBadlands) && fluid_level.is_none() {
         eroded_badlands_extend_height(pos, noises).unwrap_or(stone_level)
     } else {
@@ -160,7 +154,7 @@ pub fn build_surface(
     };
 
     let mut depth = 0;
-    let mut block_column: Vec<BlockData> = (settings.noise_settings.min_y..=extended_height)
+    let mut block_column: Vec<BlockData> = (settings.chunk_height.min_y..=extended_height)
         .rev()
         .map(|y| {
             if y < stone_level {
@@ -168,7 +162,7 @@ pub fn build_surface(
                     random,
                     settings,
                     pos.block(y),
-                    settings.noise_router.final_density.compute(pos.block(y)),
+                    settings.final_density.compute(pos.block(y)),
                 )
                 .0; //TODO:
                 //update
@@ -182,10 +176,7 @@ pub fn build_surface(
             depth += 1;
             let depth_from_stone = y - extended_height + 1;
 
-            settings
-                .ore_veins_enabled
-                .then_some(())
-                .and_then(|()| compute_vein_block(random, &settings.noise_router, pos.block(y)))
+            compute_vein_block(random, settings.vein_noise.as_ref(), pos.block(y))
                 .or_else(|| {
                     settings.rule_source.try_apply(
                         biome,
@@ -229,18 +220,22 @@ fn min_surface_level(
             .into(),
         f64::from(preliminary_surface_level(
             pos.chunk().column_pos(0, 0),
+            settings.chunk_height,
             settings,
         )),
         f64::from(preliminary_surface_level(
             pos.chunk().column_pos(16, 0),
+            settings.chunk_height,
             settings,
         )),
         f64::from(preliminary_surface_level(
             pos.chunk().column_pos(0, 16),
+            settings.chunk_height,
             settings,
         )),
         f64::from(preliminary_surface_level(
             pos.chunk().column_pos(16, 16),
+            settings.chunk_height,
             settings,
         )),
     ) as i32

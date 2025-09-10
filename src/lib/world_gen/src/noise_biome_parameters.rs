@@ -1,8 +1,8 @@
 use bevy_math::IVec3;
 
 use crate::{
-    NoiseRouter,
-    biome::{Biome, ClimateParameter},
+    biome::Biome,
+    biome_chunk::{BiomeNoise, NoisePoint},
 };
 // reference: net.minecraft.world.level.biome.OverworldBiomeBuilder
 const VALLEY_SIZE: f32 = 0.05;
@@ -238,42 +238,42 @@ pub fn surface(
     erosion: (f32, f32),
     peaks_and_valleys: (f32, f32),
     biome: Biome,
-) -> [ClimateParameter; 2] {
+) -> [(NoisePoint, Biome); 2] {
     [
-        ClimateParameter {
+        NoisePoint::new(
             temperature,
             humidity,
             continentalness,
             erosion,
-            depth: (0.0, 0.0),
+            (0.0, 0.0),
             peaks_and_valleys,
             biome,
-        },
-        ClimateParameter {
+        ),
+        NoisePoint::new(
             temperature,
             humidity,
             continentalness,
             erosion,
-            depth: (1.0, 1.0),
+            (1.0, 1.0),
             peaks_and_valleys,
             biome,
-        },
+        ),
     ]
 }
 
 #[allow(dead_code)]
-pub fn overworld_biomes() -> Vec<ClimateParameter> {
+pub fn overworld_biomes() -> Vec<(NoisePoint, Biome)> {
     let mut vec = add_ocean_biomes();
     vec.extend(add_inland_biomes());
     vec.extend(add_underground_biomes());
     vec
 }
 
-fn add_ocean_biomes() -> Vec<ClimateParameter> {
+fn add_ocean_biomes() -> Vec<(NoisePoint, Biome)> {
     let ocean_surface = |temperature: (f32, f32),
                          continentalness: (f32, f32),
                          biome: Biome|
-     -> [ClimateParameter; 2] {
+     -> [(NoisePoint, Biome); 2] {
         surface(
             temperature,
             FULL_RANGE,
@@ -308,14 +308,14 @@ fn add_ocean_biomes() -> Vec<ClimateParameter> {
         .collect()
 }
 
-fn add_underground_biomes() -> [ClimateParameter; 3] {
+fn add_underground_biomes() -> [(NoisePoint, Biome); 3] {
     let underground = |humidity: (f32, f32),
                        continentalness: (f32, f32),
                        erosion: (f32, f32),
                        depth: (f32, f32),
                        biome: Biome|
-     -> ClimateParameter {
-        ClimateParameter::new(
+     -> (NoisePoint, Biome) {
+        NoisePoint::new(
             FULL_RANGE,
             humidity,
             continentalness,
@@ -350,7 +350,7 @@ fn add_underground_biomes() -> [ClimateParameter; 3] {
     ]
 }
 
-fn add_inland_biomes() -> Vec<ClimateParameter> {
+fn add_inland_biomes() -> Vec<(NoisePoint, Biome)> {
     let mut res = Vec::new();
     add_mid_slice(&mut res, (-1.0, -HIGH_END));
     add_high_slice(&mut res, (-HIGH_END, -PEAK_END));
@@ -367,7 +367,7 @@ fn add_inland_biomes() -> Vec<ClimateParameter> {
     add_mid_slice(&mut res, (HIGH_END, 1.0));
     res
 }
-fn add_peaks(vec: &mut Vec<ClimateParameter>, param: (f32, f32)) {
+fn add_peaks(vec: &mut Vec<(NoisePoint, Biome)>, param: (f32, f32)) {
     for (i, &temperature_param) in TEMPERATURES.iter().enumerate() {
         for (j, &humidity_param) in HUMIDITIES.iter().enumerate() {
             let mut peaks_surface =
@@ -440,7 +440,7 @@ fn add_peaks(vec: &mut Vec<ClimateParameter>, param: (f32, f32)) {
         }
     }
 }
-fn add_high_slice(vec: &mut Vec<ClimateParameter>, param: (f32, f32)) {
+fn add_high_slice(vec: &mut Vec<(NoisePoint, Biome)>, param: (f32, f32)) {
     for (i, &temperature_param) in TEMPERATURES.iter().enumerate() {
         for (j, &humidity_param) in HUMIDITIES.iter().enumerate() {
             let mut high_surface =
@@ -516,7 +516,7 @@ fn add_high_slice(vec: &mut Vec<ClimateParameter>, param: (f32, f32)) {
     }
 }
 
-fn add_mid_slice(vec: &mut Vec<ClimateParameter>, param: (f32, f32)) {
+fn add_mid_slice(vec: &mut Vec<(NoisePoint, Biome)>, param: (f32, f32)) {
     vec.extend(surface(
         FULL_RANGE,
         FULL_RANGE,
@@ -637,7 +637,7 @@ fn add_mid_slice(vec: &mut Vec<ClimateParameter>, param: (f32, f32)) {
     }
 }
 
-fn add_low_slice(vec: &mut Vec<ClimateParameter>, param: (f32, f32)) {
+fn add_low_slice(vec: &mut Vec<(NoisePoint, Biome)>, param: (f32, f32)) {
     // special cases before looping
     vec.extend(surface(
         FULL_RANGE,
@@ -733,7 +733,7 @@ fn add_low_slice(vec: &mut Vec<ClimateParameter>, param: (f32, f32)) {
     }
 }
 
-fn add_valleys(vec: &mut Vec<ClimateParameter>, param: (f32, f32)) {
+fn add_valleys(vec: &mut Vec<(NoisePoint, Biome)>, param: (f32, f32)) {
     let mut valleys_surface = |temperature: (f32, f32),
                                continentalness: (f32, f32),
                                erosion: (f32, f32),
@@ -961,7 +961,7 @@ fn pick_shattered_biome(temperature: usize, humidity: usize, pandv: (f32, f32)) 
     }
 }
 
-pub(crate) fn is_deep_dark_region(noise_router: &NoiseRouter, pos: IVec3) -> bool {
+pub(crate) fn is_deep_dark_region(noise_router: &BiomeNoise, pos: IVec3) -> bool {
     noise_router.erosion.compute(pos) < EROSION_DEEP_DARK_DRYNESS_THRESHOLD.into()
         && noise_router.depth.compute(pos) > DEPTH_DEEP_DARK_DRYNESS_THRESHOLD.into()
 }

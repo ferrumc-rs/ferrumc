@@ -2,7 +2,7 @@ use std::ops::Range;
 
 use bevy_math::IVec3;
 
-use crate::aquifier::ChunkPos;
+use crate::pos::ChunkPos;
 
 pub struct RandomState {
     pub random: RandomFactory,
