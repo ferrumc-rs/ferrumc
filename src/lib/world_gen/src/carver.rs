@@ -12,7 +12,6 @@ use crate::{
     biome_chunk::BiomeChunk,
     pos::{ChunkHeight, ChunkPos},
     random::{LegacyRandom, RandomState, Rng},
-    surface::top_material,
 };
 
 pub struct ChunkAccess {}
@@ -109,7 +108,7 @@ fn carve_ellipsoid(
 
                 if let (Some(carve_state), fluid_update /* TODO */) =
                     settings.aquifer.compute_substance(
-                        &settings.preliminary_surface,
+                        &settings.surface.preliminary_surface,
                         &settings.biome_noise,
                         pos,
                         0.0,
@@ -119,8 +118,7 @@ fn carve_ellipsoid(
                     if surface_reached {
                         let check_pos = pos - IVec3::new(0, 1, 0);
                         if chunk.get_block_state(check_pos).name == "minecraft:dirt"
-                            && let Some(block_state1) = top_material(
-                                &settings.rule_source,
+                            && let Some(block_state1) = settings.surface.top_material(
                                 biome_accessor.at(check_pos),
                                 check_pos,
                                 carve_state != FluidType::Air,
