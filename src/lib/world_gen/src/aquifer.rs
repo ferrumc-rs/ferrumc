@@ -282,7 +282,7 @@ impl Aquifer {
             fluid_status.0,
             max_surface_level,
             fluid_present,
-            &biome_noise,
+            biome_noise,
         );
         let res = if serface_level.is_some_and(|surface| surface <= -10) && self.is_lava(pos) {
             FluidType::Lava

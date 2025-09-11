@@ -29,6 +29,7 @@ pub struct SurfaceNoises {
 
 pub struct Surface {
     pub preliminary_surface: PreliminarySurface,
+    pub aquifer: Aquifer,
     default_block: BlockId,
     final_density: DensityFunction,
     noises: SurfaceNoises,
@@ -41,7 +42,6 @@ impl Surface {
     #[allow(dead_code)]
     pub fn build_surface(
         &self,
-        aquifer: &Aquifer,
         biome_noise: &BiomeNoise,
         biome_manager: &BiomeChunk,
         pos: ColumnPos,
@@ -49,7 +49,8 @@ impl Surface {
         let mut stone_level = self.preliminary_surface.chunk_height.min_y - 1;
         let mut fluid_level = None;
         for y in self.preliminary_surface.chunk_height.iter() {
-            let substance = aquifer
+            let substance = self
+                .aquifer
                 .compute_substance(
                     &self.preliminary_surface,
                     biome_noise,
@@ -80,7 +81,8 @@ impl Surface {
             .rev()
             .map(|y| {
                 if y < stone_level {
-                    let substance = aquifer
+                    let substance = self
+                        .aquifer
                         .compute_substance(
                             &self.preliminary_surface,
                             biome_noise,
@@ -118,7 +120,7 @@ impl Surface {
         //TODO: post processing should maybe be moved
         if matches!(biome, Biome::FrozenOcean | Biome::DeepFrozenOcean) {
             self.frozen_ocean_extension(
-                aquifer.sea_level,
+                self.aquifer.sea_level,
                 pos,
                 biome,
                 &mut block_column,
