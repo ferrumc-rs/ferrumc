@@ -1,17 +1,26 @@
+use crate::DensityFunction;
 use crate::biome_chunk::BiomeNoise;
-use crate::pos::{ChunkHeight, ColumnPos};
-use crate::{
-    AquiferNoise, NoiseGeneratorSettings, noise_biome_parameters::is_deep_dark_region,
-    random::RandomState,
-};
+use crate::noise_biome_parameters::is_deep_dark_region;
+use crate::pos::{ChunkHeight, ChunkPos};
+use crate::random::Xoroshiro128PlusPlusFactory;
 use std::{collections::BTreeMap, ops::Add};
 
 use ferrumc_world::vanilla_chunk_format::BlockData;
 use itertools::Itertools;
 
-use bevy_math::{FloatExt, IVec3};
+use bevy_math::{FloatExt, IVec2, IVec3, Vec3Swizzles};
 
 use crate::random::{Rng, RngFactory};
+
+pub struct Aquifer {
+    pub sea_level: FluidPicker,
+    random: Xoroshiro128PlusPlusFactory,
+    is_overworld: bool,
+    barrier_noise: DensityFunction,
+    fluid_level_floodedness_noise: DensityFunction,
+    fluid_level_spread_noise: DensityFunction,
+    lava_noise: DensityFunction,
+}
 
 /// a 16 by 16 by 12 Region
 #[derive(Clone, Copy)]
@@ -67,138 +76,275 @@ impl FluidPicker {
     }
 }
 
-const FLOWING_UPDATE_SIMILARITY: f64 = similarity(10 * 10, 12 * 12);
 /// returns optional fluid type and if it should be updated
-#[allow(dead_code)]
-pub(crate) fn compute_substance(
-    random: &RandomState,
-    settings: &NoiseGeneratorSettings,
-    pos: IVec3,
-    final_density: f64,
-) -> (Option<FluidType>, bool) {
-    if final_density > 0.0 {
-        return (None, false);
-    }
-    let Some(aquifer) = &settings.noise_router else {
-        return (Some(simple_compute_fluid(pos.y, settings.sea_level)), false);
-    };
-    let final_density = -final_density;
+impl Aquifer {
+    #[allow(dead_code)]
+    pub(crate) fn compute_substance(
+        &self,
+        preliminary_surface: &PreliminarySurface,
+        biome_noise: &BiomeNoise,
+        pos: IVec3,
+        final_density: f64,
+    ) -> (Option<FluidType>, bool) {
+        const FLOWING_UPDATE_SIMILARITY: f64 = similarity(10 * 10, 12 * 12);
+        if final_density > 0.0 {
+            return (None, false);
+        }
+        if !self.is_overworld {
+            return (Some(simple_compute_fluid(pos.y, self.sea_level)), false);
+        }
+        let final_density = -final_density;
 
-    if simple_compute_fluid(pos.y, settings.sea_level) == FluidType::Lava {
-        return (Some(FluidType::Lava), false);
-    }
+        if simple_compute_fluid(pos.y, self.sea_level) == FluidType::Lava {
+            return (Some(FluidType::Lava), false);
+        }
 
-    let section: AquiferSectionPos = IVec3::new(pos.x - 5, pos.y + 1, pos.z - 5).into();
+        let section: AquiferSectionPos = IVec3::new(pos.x - 5, pos.y + 1, pos.z - 5).into();
 
-    let smallest: [(i32, IVec3); 4] = (0..=1)
-        .rev()
-        .cartesian_product((-1..=1).rev())
-        .cartesian_product((0..=1).rev())
-        .map(|((x, y), z)| section + AquiferSectionPos::new(x, y, z))
-        .map(|offset_section| {
-            let mut random = random.aquifer_random.with_pos(offset_section.pos); //TODO: perf: cache this
-            let random_pos = offset_section.block(
-                random.next_bounded(10),
-                random.next_bounded(9),
-                random.next_bounded(10),
+        let smallest: [(i32, IVec3); 4] = (0..=1)
+            .rev()
+            .cartesian_product((-1..=1).rev())
+            .cartesian_product((0..=1).rev())
+            .map(|((x, y), z)| section + AquiferSectionPos::new(x, y, z))
+            .map(|offset_section| {
+                let mut random = self.random.with_pos(offset_section.pos);
+                let random_pos = offset_section.block(
+                    random.next_bounded(10),
+                    random.next_bounded(9),
+                    random.next_bounded(10),
+                );
+                (random_pos.distance_squared(pos), random_pos)
+            })
+            .k_smallest_by_key(4, |(dist, _)| *dist)
+            .collect_array()
+            .unwrap();
+
+        let nearest_status = self.compute_fluid(smallest[0].1, preliminary_surface, biome_noise);
+        let block_state = nearest_status.at(pos.y);
+        let similtarity = similarity(smallest[0].0, smallest[1].0);
+
+        if similtarity <= 0.0 {
+            // i believe this is the hot path
+            return (
+                Some(block_state),
+                similtarity >= FLOWING_UPDATE_SIMILARITY
+                    && !self
+                        .compute_fluid(smallest[1].1, preliminary_surface, biome_noise)
+                        .eq(&nearest_status),
             );
-            (random_pos.distance_squared(pos), random_pos)
-        })
-        .k_smallest_by_key(4, |(dist, _)| *dist)
-        .collect_array()
-        .unwrap();
+        }
+        if block_state == FluidType::Water
+            && simple_compute_fluid(pos.y, self.sea_level) == FluidType::Lava
+        {
+            return (Some(block_state), true);
+        }
+        let barrier = self.barrier_noise.compute(pos);
+        let second_nearest_status =
+            self.compute_fluid(smallest[1].1, preliminary_surface, biome_noise);
+        if similtarity * Self::pressure(pos, barrier, nearest_status, second_nearest_status)
+            > final_density
+        {
+            return (None, false);
+        }
+        let third_nearest_status =
+            self.compute_fluid(smallest[2].1, preliminary_surface, biome_noise);
+        let d2 = similarity(smallest[0].0, smallest[2].0);
 
-    let nearest_status = compute_fluid(smallest[0].1, settings, aquifer);
-    let block_state = nearest_status.at(pos.y);
-    let similtarity = similarity(smallest[0].0, smallest[1].0);
+        if d2 > 0.0
+            && similtarity * d2 * Self::pressure(pos, barrier, nearest_status, third_nearest_status)
+                > final_density
+        {
+            return (None, false);
+        }
 
-    if similtarity <= 0.0 {
-        // i believe this is the hot path
-        return (
+        let d3 = similarity(smallest[1].0, smallest[2].0);
+        if d3 > 0.0
+            && similtarity
+                * d3
+                * Self::pressure(pos, barrier, second_nearest_status, third_nearest_status)
+                > final_density
+        {
+            return (None, false);
+        }
+
+        (
             Some(block_state),
-            similtarity >= FLOWING_UPDATE_SIMILARITY
-                && !compute_fluid(smallest[1].1, settings, aquifer).eq(&nearest_status),
+            (nearest_status != second_nearest_status)
+                || (d3 >= FLOWING_UPDATE_SIMILARITY
+                    && second_nearest_status != third_nearest_status)
+                || (d2 >= FLOWING_UPDATE_SIMILARITY && nearest_status != third_nearest_status)
+                || (d2 >= FLOWING_UPDATE_SIMILARITY
+                    && similarity(smallest[0].0, smallest[3].0) >= FLOWING_UPDATE_SIMILARITY
+                    && nearest_status
+                        != self.compute_fluid(smallest[3].1, preliminary_surface, biome_noise)),
+        )
+    }
+
+    fn pressure(
+        pos: IVec3,
+        barrier: f64,
+        first_fluid: FluidPicker,
+        second_fluid: FluidPicker,
+    ) -> f64 {
+        let block_state = first_fluid.at(pos.y);
+        let block_state1 = second_fluid.at(pos.y);
+        // Check lava/water mix edge case
+        if !((block_state != FluidType::Lava || block_state1 != FluidType::Water)
+            && (block_state1 != FluidType::Lava || block_state != FluidType::Water))
+        {
+            return 2.0;
+        }
+
+        let abs = (first_fluid.0 - second_fluid.0).abs();
+        if abs == 0 {
+            return 0.0;
+        }
+
+        let average = 0.5 * f64::from(first_fluid.0 + second_fluid.0);
+        let d1 = f64::from(pos.y) + 0.5 - average;
+        let d2 = f64::from(abs) / 2.0;
+        let d9 = d2 - d1.abs();
+
+        let d11 = if d1 > 0.0 {
+            if d9 > 0.0 { d9 / 1.5 } else { d9 / 2.5 }
+        } else {
+            let d10 = 3.0 + d9;
+            if d10 > 0.0 { d10 / 3.0 } else { d10 / 10.0 }
+        };
+
+        let d12 = if (-2.0..=2.0).contains(&d11) {
+            barrier
+        } else {
+            0.0
+        };
+
+        2.0 * (d12 + d11)
+    }
+
+    //TODO: this is cached with just section poses... idk why
+    fn compute_fluid(
+        &self,
+        pos: IVec3,
+        preliminary_surface: &PreliminarySurface,
+        biome_noise: &BiomeNoise,
+    ) -> FluidPicker {
+        const SURFACE_SAMPLING_OFFSETS_IN_CHUNKS: [IVec2; 13] = [
+            IVec2::new(0, 0),
+            IVec2::new(-32, -16),
+            IVec2::new(-16, -16),
+            IVec2::new(0, -16),
+            IVec2::new(16, -16),
+            IVec2::new(-3, 0),
+            IVec2::new(-32, 0),
+            IVec2::new(-16, 0),
+            IVec2::new(16, 0),
+            IVec2::new(-32, 16),
+            IVec2::new(-16, 16),
+            IVec2::new(0, 16),
+            IVec2::new(16, 16),
+        ];
+
+        let fluid_status = if pos.y < self.sea_level.0.min(-54) {
+            FluidPicker::new(-54, FluidType::Lava)
+        } else {
+            self.sea_level
+        };
+
+        let mut max_surface_level = i32::MAX;
+        let mut fluid_present = false;
+
+        for offset in SURFACE_SAMPLING_OFFSETS_IN_CHUNKS {
+            let chunk_pos = ChunkPos::from(pos.xz() + offset);
+            let new_y = preliminary_surface.at(chunk_pos) + 8;
+
+            if offset == (0, 0).into() && pos.y - 12 > new_y {
+                return fluid_status;
+            }
+
+            if (pos.y + 12 > new_y || offset == (0, 0).into())
+                && simple_compute_fluid(new_y, self.sea_level) != FluidType::Air
+            {
+                if pos.y + 12 > new_y {
+                    return if new_y < self.sea_level.0.min(-54) {
+                        FluidPicker::new(-54, FluidType::Lava)
+                    } else {
+                        self.sea_level
+                    };
+                }
+                fluid_present = true;
+            }
+
+            max_surface_level = max_surface_level.min(preliminary_surface.at(chunk_pos));
+        }
+
+        let serface_level = self.compute_surface_level(
+            pos,
+            fluid_status.0,
+            max_surface_level,
+            fluid_present,
+            &biome_noise,
         );
-    }
-    if block_state == FluidType::Water
-        && simple_compute_fluid(pos.y, settings.sea_level) == FluidType::Lava
-    {
-        return (Some(block_state), true);
-    }
-    let barrier = aquifer.barrier_noise.compute(pos);
-    let second_nearest_status = compute_fluid(smallest[1].1, settings, aquifer);
-    if similtarity * pressure(pos, barrier, nearest_status, second_nearest_status) > final_density {
-        return (None, false);
-    }
-    let third_nearest_status = compute_fluid(smallest[2].1, settings, aquifer);
-    let d2 = similarity(smallest[0].0, smallest[2].0);
-
-    if d2 > 0.0
-        && similtarity * d2 * pressure(pos, barrier, nearest_status, third_nearest_status)
-            > final_density
-    {
-        return (None, false);
+        let res = if serface_level.is_some_and(|surface| surface <= -10) && self.is_lava(pos) {
+            FluidType::Lava
+        } else {
+            simple_compute_fluid(pos.y, self.sea_level)
+        };
+        FluidPicker::new(serface_level.unwrap_or(-64 * 1000), res) //TODO
     }
 
-    let d3 = similarity(smallest[1].0, smallest[2].0);
-    if d3 > 0.0
-        && similtarity * d3 * pressure(pos, barrier, second_nearest_status, third_nearest_status)
-            > final_density
-    {
-        return (None, false);
+    fn is_lava(&self, pos: IVec3) -> bool {
+        let pos = pos.div_euclid((64, 40, 64).into());
+        self.lava_noise.compute(pos).abs() > 0.3
     }
 
-    (
-        Some(block_state),
-        (nearest_status != second_nearest_status)
-            || (d3 >= FLOWING_UPDATE_SIMILARITY && second_nearest_status != third_nearest_status)
-            || (d2 >= FLOWING_UPDATE_SIMILARITY && nearest_status != third_nearest_status)
-            || (d2 >= FLOWING_UPDATE_SIMILARITY
-                && similarity(smallest[0].0, smallest[3].0) >= FLOWING_UPDATE_SIMILARITY
-                && nearest_status != compute_fluid(smallest[3].1, settings, aquifer)),
-    )
+    fn compute_surface_level(
+        &self,
+        pos: IVec3,
+        default_level: i32,
+        max_surface_level: i32,
+        fluid_present: bool,
+        biome_noise: &BiomeNoise,
+    ) -> Option<i32> {
+        if is_deep_dark_region(biome_noise, pos) {
+            return None;
+        }
+        let d2 = if fluid_present {
+            clamped_map(
+                f64::from(max_surface_level + 8 - pos.y),
+                0.0,
+                64.0,
+                1.0,
+                0.0,
+            )
+        } else {
+            0.0
+        };
+
+        let floodedness = self
+            .fluid_level_floodedness_noise
+            .compute(pos)
+            .clamp(-1.0, 1.0);
+        let d4 = d2.remap(1.0, 0.0, -0.3, 0.8);
+        let d5 = d2.remap(1.0, 0.0, -0.8, 0.4);
+
+        if floodedness > d4 {
+            Some(default_level)
+        } else if floodedness > d5 {
+            Some(self.calc_fluid_spread(pos).min(max_surface_level))
+        } else {
+            None
+        }
+    }
+
+    fn calc_fluid_spread(&self, pos: IVec3) -> i32 {
+        fn quantize(value: f64, factor: i32) -> i32 {
+            (value / f64::from(factor)).floor() as i32 * factor
+        }
+        let pos = pos.div_euclid((16, 40, 16).into());
+        let spread = quantize(self.fluid_level_spread_noise.compute(pos) * 10.0, 3);
+        pos.y * 40 + 20 + spread
+    }
 }
-
-const fn similarity(first_distance: i32, second_distance: i32) -> f64 {
-    1.0 - ((second_distance - first_distance).abs() as f64) / (5.0 * 5.0)
-}
-
-fn pressure(pos: IVec3, barrier: f64, first_fluid: FluidPicker, second_fluid: FluidPicker) -> f64 {
-    let block_state = first_fluid.at(pos.y);
-    let block_state1 = second_fluid.at(pos.y);
-    // Check lava/water mix edge case
-    if !((block_state != FluidType::Lava || block_state1 != FluidType::Water)
-        && (block_state1 != FluidType::Lava || block_state != FluidType::Water))
-    {
-        return 2.0;
-    }
-
-    let abs = (first_fluid.0 - second_fluid.0).abs();
-    if abs == 0 {
-        return 0.0;
-    }
-
-    let average = 0.5 * f64::from(first_fluid.0 + second_fluid.0);
-    let d1 = f64::from(pos.y) + 0.5 - average;
-    let d2 = f64::from(abs) / 2.0;
-    let d9 = d2 - d1.abs();
-
-    let d11 = if d1 > 0.0 {
-        if d9 > 0.0 { d9 / 1.5 } else { d9 / 2.5 }
-    } else {
-        let d10 = 3.0 + d9;
-        if d10 > 0.0 { d10 / 3.0 } else { d10 / 10.0 }
-    };
-
-    let d12 = if (-2.0..=2.0).contains(&d11) {
-        barrier
-    } else {
-        0.0
-    };
-
-    2.0 * (d12 + d11)
-}
-
 fn simple_compute_fluid(y: i32, sea_level: FluidPicker) -> FluidType {
     if y < sea_level.0.min(-54) {
         FluidType::Lava
@@ -208,175 +354,34 @@ fn simple_compute_fluid(y: i32, sea_level: FluidPicker) -> FluidType {
         FluidType::Air
     }
 }
-
-//TODO this is cached with just section poses... idk why
-fn compute_fluid(
-    pos: IVec3,
-    settings: &NoiseGeneratorSettings,
-    aquifer: &AquiferNoise,
-) -> FluidPicker {
-    const SURFACE_SAMPLING_OFFSETS_IN_CHUNKS: [(i32, i32); 13] = [
-        (0, 0),
-        (-2, -1),
-        (-1, -1),
-        (0, -1),
-        (1, -1),
-        (-3, 0),
-        (-2, 0),
-        (-1, 0),
-        (1, 0),
-        (-2, 1),
-        (-1, 1),
-        (0, 1),
-        (1, 1),
-    ];
-
-    let fluid_status = if pos.y < settings.sea_level.0.min(-54) {
-        FluidPicker::new(-54, FluidType::Lava)
-    } else {
-        settings.sea_level
-    };
-
-    let mut max_surface_level = i32::MAX;
-    let i1 = pos.y + 12;
-    let i2 = pos.y - 12;
-    let mut fluid_present = false;
-
-    for ints in SURFACE_SAMPLING_OFFSETS_IN_CHUNKS {
-        let preliminary_surface_level = preliminary_surface_level(
-            ColumnPos::new(pos.x + (ints.0 << 4), pos.z + (ints.1 << 4)),
-            settings.chunk_height,
-            settings,
-        );
-        let i6 = preliminary_surface_level + 8;
-
-        if ints.0 == 0 && ints.1 == 0 && i2 > i6 {
-            return fluid_status;
-        }
-
-        if i1 > i6 || ints.0 == 0 && ints.1 == 0 {
-            let pos = (pos.x + (ints.0 << 4), i6, pos.z + (ints.1 << 4));
-            let fluid_status1 = if pos.1 < settings.sea_level.0.min(-54) {
-                FluidPicker::new(-54, FluidType::Lava)
-            } else {
-                settings.sea_level
-            };
-            if simple_compute_fluid(pos.1, settings.sea_level) != FluidType::Air {
-                if i1 > i6 {
-                    return fluid_status1;
-                }
-                fluid_present = true;
-            }
-        }
-
-        max_surface_level = max_surface_level.min(preliminary_surface_level);
-    }
-
-    let serface_level = compute_surface_level(
-        pos,
-        fluid_status.0,
-        max_surface_level,
-        fluid_present,
-        aquifer,
-        &settings.biome_noise,
-    );
-    let res = if serface_level.is_some_and(|surface| surface <= -10) && is_lava(pos, aquifer) {
-        FluidType::Lava
-    } else {
-        simple_compute_fluid(pos.y, settings.sea_level)
-    };
-    FluidPicker::new(serface_level.unwrap_or(-64 * 1000), res) //TODO
+const fn similarity(first_distance: i32, second_distance: i32) -> f64 {
+    1.0 - ((second_distance - first_distance).abs() as f64) / (5.0 * 5.0)
 }
-
-fn is_lava(pos: IVec3, settings: &AquiferNoise) -> bool {
-    settings
-        .lava_noise
-        .compute((
-            pos.x.div_euclid(64),
-            pos.y.div_euclid(40),
-            pos.z.div_euclid(64),
-        ))
-        .abs()
-        > 0.3
-}
-
-fn compute_surface_level(
-    pos: IVec3,
-    default_level: i32,
-    max_surface_level: i32,
-    fluid_present: bool,
-    settings: &AquiferNoise,
-    biome_noise: &BiomeNoise,
-) -> Option<i32> {
-    if is_deep_dark_region(biome_noise, pos) {
-        return None;
-    }
-    let d2 = if fluid_present {
-        clamped_map(
-            f64::from(max_surface_level + 8 - pos.y),
-            0.0,
-            64.0,
-            1.0,
-            0.0,
-        )
-    } else {
-        0.0
-    };
-
-    let floodedness = settings
-        .fluid_level_floodedness_noise
-        .compute(pos)
-        .clamp(-1.0, 1.0);
-    let d4 = d2.remap(1.0, 0.0, -0.3, 0.8);
-    let d5 = d2.remap(1.0, 0.0, -0.8, 0.4);
-
-    if floodedness > d4 {
-        Some(default_level)
-    } else if floodedness > d5 {
-        Some(calc_pluid_spread(pos, settings).min(max_surface_level))
-    } else {
-        None
-    }
-}
-
-fn calc_pluid_spread(pos: IVec3, settings: &AquiferNoise) -> i32 {
-    let spread = quantize(
-        settings.fluid_level_spread_noise.compute((
-            pos.x.div_euclid(16),
-            pos.y.div_euclid(40),
-            pos.z.div_euclid(16),
-        )) * 10.0,
-        3,
-    );
-    pos.y.div_euclid(40) * 40 + 20 + spread
-}
-
-fn quantize(value: f64, factor: i32) -> i32 {
-    (value / f64::from(factor)).floor() as i32 * factor
-}
-
 pub(crate) fn clamped_map(v: f64, in_min: f64, in_max: f64, out_min: f64, out_max: f64) -> f64 {
     v.clamp(in_min, in_max)
         .remap(in_min, in_max, out_min, out_max)
 }
 
-pub(crate) fn preliminary_surface_level(
-    column: ColumnPos,
+//TODO: move this
+pub struct PreliminarySurface {
     chunk_height: ChunkHeight,
-    settings: &NoiseGeneratorSettings,
-) -> i32 {
-    let column = column.chunk().column_pos(0, 0);
-    chunk_height
-        .iter()
-        .rev()
-        .step_by(settings.noise_size_vertical as usize)
-        .find(|y| {
-            settings
-                .initial_density_without_jaggedness
-                .compute(column.block(*y))
-                > 0.390625
-        })
-        .unwrap_or(i32::MAX) //TODO: should this panic?
+    noise_size_vertical: usize,
+    initial_density_without_jaggedness: DensityFunction,
+}
+impl PreliminarySurface {
+    pub(crate) fn at(&self, chunk: ChunkPos) -> i32 {
+        let column = chunk.column_pos(0, 0);
+        self.chunk_height
+            .iter()
+            .rev()
+            .step_by(self.noise_size_vertical as usize)
+            .find(|y| {
+                self.initial_density_without_jaggedness
+                    .compute(column.block(*y))
+                    > 0.390625
+            })
+            .unwrap_or(i32::MAX) //TODO: should this panic?
+    }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]

@@ -1,10 +1,10 @@
 use crate::{biome_chunk::BiomeChunk, pos::ColumnPos};
-use bevy_math::IVec3;
+use bevy_math::{IVec2, IVec3};
 use ferrumc_world::vanilla_chunk_format::BlockData;
 
 use crate::{
     NoiseGeneratorSettings, SurfaceRule,
-    aquifer::{FluidType, compute_substance, preliminary_surface_level},
+    aquifer::FluidType,
     biome::Biome,
     overworld::ore_veins::compute_vein_block,
     perlin_noise::{NormalNoise, lerp2},
@@ -130,13 +130,15 @@ pub fn build_surface(
     let mut stone_level = settings.chunk_height.min_y - 1;
     let mut fluid_level = None;
     for y in settings.chunk_height.iter() {
-        let substance = compute_substance(
-            random,
-            settings,
-            pos.block(y),
-            settings.final_density.compute(pos.block(y)),
-        )
-        .0; //TODO:
+        let substance = settings
+            .aquifer
+            .compute_substance(
+                &settings.preliminary_surface,
+                &settings.biome_noise,
+                pos.block(y),
+                settings.final_density.compute(pos.block(y)),
+            )
+            .0; //TODO:
         //update
         if substance.is_none() {
             stone_level = y;
@@ -158,13 +160,15 @@ pub fn build_surface(
         .rev()
         .map(|y| {
             if y < stone_level {
-                let substance = compute_substance(
-                    random,
-                    settings,
-                    pos.block(y),
-                    settings.final_density.compute(pos.block(y)),
-                )
-                .0; //TODO:
+                let substance = settings
+                    .aquifer
+                    .compute_substance(
+                        &settings.preliminary_surface,
+                        &settings.biome_noise,
+                        pos.block(y),
+                        settings.final_density.compute(pos.block(y)),
+                    )
+                    .0; //TODO:
                 //update
                 if let Some(sub) = substance {
                     if sub != FluidType::Air && fluid_level.is_none() {
@@ -212,32 +216,29 @@ fn min_surface_level(
     surface_noise: &NormalNoise<3>,
     random: &RandomState,
 ) -> i32 {
+    let chunk = pos.chunk();
     lerp2(
         (
             f64::from(pos.pos.x & 15) / 16.0,
             f64::from(pos.pos.y & 15) / 16.0,
         )
             .into(),
-        f64::from(preliminary_surface_level(
-            pos.chunk().column_pos(0, 0),
-            settings.chunk_height,
-            settings,
-        )),
-        f64::from(preliminary_surface_level(
-            pos.chunk().column_pos(16, 0),
-            settings.chunk_height,
-            settings,
-        )),
-        f64::from(preliminary_surface_level(
-            pos.chunk().column_pos(0, 16),
-            settings.chunk_height,
-            settings,
-        )),
-        f64::from(preliminary_surface_level(
-            pos.chunk().column_pos(16, 16),
-            settings.chunk_height,
-            settings,
-        )),
+        f64::from(settings.preliminary_surface.at(chunk)),
+        f64::from(
+            settings
+                .preliminary_surface
+                .at((chunk.pos + IVec2::new(16, 0)).into()),
+        ),
+        f64::from(
+            settings
+                .preliminary_surface
+                .at((chunk.pos + IVec2::new(0, 16)).into()),
+        ),
+        f64::from(
+            settings
+                .preliminary_surface
+                .at((chunk.pos + IVec2::new(16, 16)).into()),
+        ),
     ) as i32
         + get_surface_depth(pos, surface_noise, random)
         - 8
