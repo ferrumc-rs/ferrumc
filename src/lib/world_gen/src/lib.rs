@@ -12,23 +12,19 @@ mod perlin_noise;
 mod pos;
 mod random;
 mod surface;
-use crate::aquifer::{Aquifer, PreliminarySurface};
+use crate::aquifer::Aquifer;
 use crate::biome_chunk::{BiomeChunk, BiomeNoise, NoisePoint};
 use crate::pos::{ChunkHeight, ChunkPos};
-use crate::{aquifer::FluidPicker, biome::Biome, errors::WorldGenError};
-use ferrumc_world::{block_id::BlockId, chunk_format::Chunk, vanilla_chunk_format::BlockData};
+use crate::surface::Surface;
+use crate::{biome::Biome, errors::WorldGenError};
+use ferrumc_world::{chunk_format::Chunk, vanilla_chunk_format::BlockData};
 
 pub struct NoiseGeneratorSettings {
-    default_block: BlockId,
-    vein_noise: Option<VeinNoise>,
-    sea_level: FluidPicker,
     use_legacy_random_source: bool,
-    preliminary_surface: PreliminarySurface,
-    final_density: DensityFunction,
-    rule_source: SurfaceRule,
     biome_noise: BiomeNoise,
     chunk_height: ChunkHeight,
     aquifer: Aquifer,
+    surface: Surface,
 }
 
 pub struct SurfaceRule {} //TODO
@@ -53,18 +49,13 @@ impl DensityFunction {
     }
 } //TODO
 
-pub struct VeinNoise {
-    vein_toggle: DensityFunction,
-    vein_ridged: DensityFunction,
-    vein_gap: DensityFunction,
-}
-
 pub struct WorldGenerator {
     _seed: u64,
     chunk_height: ChunkHeight,
     biome_noise: BiomeNoise,
     biomes: Vec<(NoisePoint, Biome)>,
     aquifer: Aquifer,
+    surface: Surface,
 }
 
 impl WorldGenerator {

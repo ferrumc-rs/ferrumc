@@ -56,7 +56,7 @@ impl ColumnPos {
         Self { pos: (x, z).into() }
     }
 
-    pub fn block(self, y: i32) -> IVec3 {
+    pub fn block(self, y: i32) -> BlockPos {
         self.pos.xxy().with_y(y)
     }
 

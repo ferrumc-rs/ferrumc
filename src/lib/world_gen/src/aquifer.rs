@@ -1,8 +1,8 @@
-use crate::DensityFunction;
 use crate::biome_chunk::BiomeNoise;
 use crate::noise_biome_parameters::is_deep_dark_region;
-use crate::pos::{ChunkHeight, ChunkPos};
+use crate::pos::ChunkPos;
 use crate::random::Xoroshiro128PlusPlusFactory;
+use crate::{DensityFunction, surface::PreliminarySurface};
 use std::{collections::BTreeMap, ops::Add};
 
 use ferrumc_world::vanilla_chunk_format::BlockData;
@@ -360,28 +360,6 @@ const fn similarity(first_distance: i32, second_distance: i32) -> f64 {
 pub(crate) fn clamped_map(v: f64, in_min: f64, in_max: f64, out_min: f64, out_max: f64) -> f64 {
     v.clamp(in_min, in_max)
         .remap(in_min, in_max, out_min, out_max)
-}
-
-//TODO: move this
-pub struct PreliminarySurface {
-    chunk_height: ChunkHeight,
-    noise_size_vertical: usize,
-    initial_density_without_jaggedness: DensityFunction,
-}
-impl PreliminarySurface {
-    pub(crate) fn at(&self, chunk: ChunkPos) -> i32 {
-        let column = chunk.column_pos(0, 0);
-        self.chunk_height
-            .iter()
-            .rev()
-            .step_by(self.noise_size_vertical as usize)
-            .find(|y| {
-                self.initial_density_without_jaggedness
-                    .compute(column.block(*y))
-                    > 0.390625
-            })
-            .unwrap_or(i32::MAX) //TODO: should this panic?
-    }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
