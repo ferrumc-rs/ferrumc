@@ -1,17 +1,16 @@
+use crate::common::surface::Surface;
+use crate::overworld::aquifer::Aquifer;
+use crate::overworld::ore_veins::Vein;
 use crate::{
-    DensityFunction,
-    aquifer::{Aquifer, FluidPicker},
     biome_chunk::{BiomeChunk, BiomeNoise},
-    overworld::ore_veins::Vein,
-    pos::{ChunkHeight, ChunkPos, ColumnPos},
+    common::aquifer::FluidPicker,
+    pos::ColumnPos,
     random::RandomFactory,
 };
 use bevy_math::{DVec2, IVec2, IVec3};
-use ferrumc_world::{block_id::BlockId, vanilla_chunk_format::BlockData};
+use ferrumc_world::vanilla_chunk_format::BlockData;
 
 use crate::{
-    SurfaceRule,
-    aquifer::FluidType,
     biome::Biome,
     perlin_noise::{NormalNoise, lerp2},
     random::{Rng, RngFactory},
@@ -27,18 +26,15 @@ pub struct SurfaceNoises {
     badlands_pillar_roof_noise: NormalNoise<1>,
 }
 
-pub struct Surface {
-    pub preliminary_surface: PreliminarySurface,
+pub struct OverworldSurface {
+    pub surface: Surface,
     pub aquifer: Aquifer,
-    default_block: BlockId,
-    final_density: DensityFunction,
     noises: SurfaceNoises,
-    rules: SurfaceRule,
     vein: Vein,
     random: RandomFactory,
 }
 
-impl Surface {
+impl OverworldSurface {
     #[allow(dead_code)]
     pub fn build_surface(
         &self,
@@ -46,27 +42,16 @@ impl Surface {
         biome_manager: &BiomeChunk,
         pos: ColumnPos,
     ) -> Vec<BlockData> {
-        let mut stone_level = self.preliminary_surface.chunk_height.min_y - 1;
-        let mut fluid_level = None;
-        for y in self.preliminary_surface.chunk_height.iter() {
-            let substance = self
-                .aquifer
-                .compute_substance(
-                    &self.preliminary_surface,
+        let (stone_level, fluid_level) = self.surface.find_surface(pos, |pos, final_density| {
+            self.aquifer
+                .at(
+                    &self.surface.preliminary_surface,
                     biome_noise,
-                    pos.block(y),
-                    self.final_density.compute(pos.block(y)),
+                    pos,
+                    final_density,
                 )
-                .0; //TODO:
-            //update
-            if substance.is_none() {
-                stone_level = y;
-                break;
-            }
-            if substance.is_some_and(|s| s != FluidType::Air) && fluid_level.is_none() {
-                fluid_level = Some(y);
-            }
-        }
+                .0 //TODO
+        });
         let biome = biome_manager.at(pos.block(stone_level + 1));
         let extended_height = if matches!(biome, Biome::ErodedBadlands) && fluid_level.is_none() {
             self.eroded_badlands_extend_height(pos)
@@ -75,49 +60,27 @@ impl Surface {
             stone_level
         };
 
-        let mut depth = 0;
-        let mut block_column: Vec<BlockData> = (self.preliminary_surface.chunk_height.min_y
-            ..=extended_height)
-            .rev()
-            .map(|y| {
-                if y < stone_level {
-                    let substance = self
-                        .aquifer
-                        .compute_substance(
-                            &self.preliminary_surface,
-                            biome_noise,
-                            pos.block(y),
-                            self.final_density.compute(pos.block(y)),
-                        )
-                        .0; //TODO:
-                    //update
-                    if let Some(sub) = substance {
-                        if sub != FluidType::Air && fluid_level.is_none() {
-                            fluid_level = Some(y);
-                        }
-                        return sub.into();
-                    }
-                }
-                depth += 1;
-                let depth_from_stone = y - extended_height + 1;
+        let mut block_column = self.surface.make_column(
+            extended_height,
+            fluid_level,
+            pos,
+            biome,
+            |pos, final_density| {
+                (pos.y < stone_level).then_some(()).and_then(
+                    |()| {
+                        self.aquifer
+                            .at(
+                                &self.surface.preliminary_surface,
+                                biome_noise,
+                                pos,
+                                final_density,
+                            )
+                            .0
+                    }, //TODO
+                )
+            },
+        ); //TODO: add Vein to rules
 
-                self.vein
-                    .at(pos.block(y))
-                    .or_else(|| {
-                        self.rules.try_apply(
-                            biome,
-                            depth,
-                            depth_from_stone,
-                            fluid_level,
-                            pos.block(y),
-                        )
-                    })
-                    .unwrap_or(self.default_block.to_block_data().unwrap())
-            })
-            .rev()
-            .collect();
-
-        //TODO: post processing should maybe be moved
         if matches!(biome, Biome::FrozenOcean | Biome::DeepFrozenOcean) {
             self.frozen_ocean_extension(
                 self.aquifer.sea_level,
@@ -155,7 +118,7 @@ impl Surface {
     ) {
         let min_surface_level = self.min_surface_level(pos);
         let sea_level = sea_level.0;
-        let min_y = self.preliminary_surface.chunk_height.min_y;
+        let min_y = self.surface.preliminary_surface.chunk_height.min_y;
         let min = (self
             .noises
             .iceberg_surface_noise
@@ -229,17 +192,20 @@ impl Surface {
         let chunk = pos.chunk();
         lerp2(
             DVec2::from(pos.pos & 15) / 16.0,
-            f64::from(self.preliminary_surface.at(chunk)),
+            f64::from(self.surface.preliminary_surface.at(chunk)),
             f64::from(
-                self.preliminary_surface
+                self.surface
+                    .preliminary_surface
                     .at((chunk.pos + IVec2::new(16, 0)).into()),
             ),
             f64::from(
-                self.preliminary_surface
+                self.surface
+                    .preliminary_surface
                     .at((chunk.pos + IVec2::new(0, 16)).into()),
             ),
             f64::from(
-                self.preliminary_surface
+                self.surface
+                    .preliminary_surface
                     .at((chunk.pos + IVec2::new(16, 16)).into()),
             ),
         ) as i32
@@ -260,34 +226,12 @@ impl Surface {
         pos: IVec3,
         is_fluid: bool,
     ) -> Option<BlockData> {
-        self.rules.try_apply(
+        self.surface.rules.try_apply(
             biome,
             1,
             1,
             if is_fluid { Some(pos.y + 1) } else { None },
             pos,
         )
-    }
-}
-
-pub struct PreliminarySurface {
-    pub chunk_height: ChunkHeight,
-    noise_size_vertical: usize,
-    initial_density_without_jaggedness: DensityFunction,
-}
-
-impl PreliminarySurface {
-    pub(crate) fn at(&self, chunk: ChunkPos) -> i32 {
-        let column = chunk.column_pos(0, 0);
-        self.chunk_height
-            .iter()
-            .rev()
-            .step_by(self.noise_size_vertical)
-            .find(|y| {
-                self.initial_density_without_jaggedness
-                    .compute(column.block(*y))
-                    > 0.390625
-            })
-            .unwrap_or(i32::MAX) //TODO: should this panic?
     }
 }
