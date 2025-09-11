@@ -5,7 +5,7 @@ use ferrumc_world::vanilla_chunk_format::BlockData;
 
 use crate::{
     DensityFunction,
-    aquifer::clamped_map,
+    overworld::aquifer::clamped_map,
     random::{Rng, RngFactory, Xoroshiro128PlusPlusFactory},
 };
 
