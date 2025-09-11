@@ -8,7 +8,7 @@ use ferrumc_world::{block_id::BlockId, vanilla_chunk_format::BlockData};
 
 use crate::{
     NoiseGeneratorSettings,
-    aquifer::{FluidType, compute_substance},
+    aquifer::FluidType,
     biome_chunk::BiomeChunk,
     pos::{ChunkHeight, ChunkPos},
     random::{LegacyRandom, RandomState, Rng},
@@ -108,7 +108,12 @@ fn carve_ellipsoid(
                 }
 
                 if let (Some(carve_state), fluid_update /* TODO */) =
-                    compute_substance(random, settings, pos, 0.0)
+                    settings.aquifer.compute_substance(
+                        &settings.preliminary_surface,
+                        &settings.biome_noise,
+                        pos,
+                        0.0,
+                    )
                 {
                     chunk.set_block_state(pos, carve_state.into());
                     if surface_reached {

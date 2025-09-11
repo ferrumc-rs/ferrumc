@@ -12,23 +12,23 @@ mod perlin_noise;
 mod pos;
 mod random;
 mod surface;
+use crate::aquifer::{Aquifer, PreliminarySurface};
 use crate::biome_chunk::{BiomeChunk, BiomeNoise, NoisePoint};
 use crate::pos::{ChunkHeight, ChunkPos};
 use crate::{aquifer::FluidPicker, biome::Biome, errors::WorldGenError};
 use ferrumc_world::{block_id::BlockId, chunk_format::Chunk, vanilla_chunk_format::BlockData};
 
 pub struct NoiseGeneratorSettings {
-    noise_size_vertical: u32,
     default_block: BlockId,
-    noise_router: Option<AquiferNoise>,
     vein_noise: Option<VeinNoise>,
     sea_level: FluidPicker,
     use_legacy_random_source: bool,
-    initial_density_without_jaggedness: DensityFunction,
+    preliminary_surface: PreliminarySurface,
     final_density: DensityFunction,
     rule_source: SurfaceRule,
     biome_noise: BiomeNoise,
     chunk_height: ChunkHeight,
+    aquifer: Aquifer,
 }
 
 pub struct SurfaceRule {} //TODO
@@ -52,15 +52,6 @@ impl DensityFunction {
         todo!()
     }
 } //TODO
-pub struct AquiferNoise {
-    barrier_noise: DensityFunction,
-    fluid_level_floodedness_noise: DensityFunction,
-    fluid_level_spread_noise: DensityFunction,
-    lava_noise: DensityFunction,
-    vein_toggle: DensityFunction,
-    vein_ridged: DensityFunction,
-    vein_gap: DensityFunction,
-}
 
 pub struct VeinNoise {
     vein_toggle: DensityFunction,
@@ -73,6 +64,7 @@ pub struct WorldGenerator {
     chunk_height: ChunkHeight,
     biome_noise: BiomeNoise,
     biomes: Vec<(NoisePoint, Biome)>,
+    aquifer: Aquifer,
 }
 
 impl WorldGenerator {
