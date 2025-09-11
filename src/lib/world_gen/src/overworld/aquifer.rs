@@ -1,11 +1,12 @@
+use crate::DensityFunction;
 use crate::biome_chunk::BiomeNoise;
+use crate::common::aquifer::{FluidPicker, FluidType};
+use crate::common::surface::PreliminarySurface;
 use crate::noise_biome_parameters::is_deep_dark_region;
 use crate::pos::ChunkPos;
 use crate::random::Xoroshiro128PlusPlusFactory;
-use crate::{DensityFunction, surface::PreliminarySurface};
-use std::{collections::BTreeMap, ops::Add};
+use std::ops::Add;
 
-use ferrumc_world::vanilla_chunk_format::BlockData;
 use itertools::Itertools;
 
 use bevy_math::{FloatExt, IVec2, IVec3, Vec3Swizzles};
@@ -64,22 +65,10 @@ impl From<IVec3> for AquiferSectionPos {
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub struct FluidPicker(pub i32, pub FluidType);
-
-impl FluidPicker {
-    pub fn new(level: i32, fluid_type: FluidType) -> Self {
-        Self(level, fluid_type)
-    }
-    const fn at(&self, y: i32) -> FluidType {
-        if y < self.0 { self.1 } else { FluidType::Air }
-    }
-}
-
 /// returns optional fluid type and if it should be updated
 impl Aquifer {
     #[allow(dead_code)]
-    pub(crate) fn compute_substance(
+    pub(crate) fn at(
         &self,
         preliminary_surface: &PreliminarySurface,
         biome_noise: &BiomeNoise,
@@ -357,30 +346,8 @@ fn simple_compute_fluid(y: i32, sea_level: FluidPicker) -> FluidType {
 const fn similarity(first_distance: i32, second_distance: i32) -> f64 {
     1.0 - ((second_distance - first_distance).abs() as f64) / (5.0 * 5.0)
 }
+//TODO: move
 pub(crate) fn clamped_map(v: f64, in_min: f64, in_max: f64, out_min: f64, out_max: f64) -> f64 {
     v.clamp(in_min, in_max)
         .remap(in_min, in_max, out_min, out_max)
-}
-
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum FluidType {
-    Air,
-    Water,
-    Lava,
-}
-
-impl From<FluidType> for BlockData {
-    fn from(value: FluidType) -> Self {
-        match value {
-            FluidType::Air => BlockData::default(),
-            FluidType::Water => BlockData {
-                name: "minecraft:water".to_string(),
-                properties: Some(BTreeMap::from([("level".to_string(), "0".to_string())])),
-            },
-            FluidType::Lava => BlockData {
-                name: "minecraft:lava".to_string(),
-                properties: Some(BTreeMap::from([("level".to_string(), "0".to_string())])),
-            },
-        }
-    }
 }
