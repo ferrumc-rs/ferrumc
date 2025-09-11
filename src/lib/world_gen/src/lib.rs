@@ -12,20 +12,12 @@ mod perlin_noise;
 mod pos;
 mod random;
 mod surface;
-use crate::aquifer::Aquifer;
 use crate::biome_chunk::{BiomeChunk, BiomeNoise, NoisePoint};
+use crate::carver::{CanyonCarver, Caver};
 use crate::pos::{ChunkHeight, ChunkPos};
 use crate::surface::Surface;
 use crate::{biome::Biome, errors::WorldGenError};
 use ferrumc_world::{chunk_format::Chunk, vanilla_chunk_format::BlockData};
-
-pub struct NoiseGeneratorSettings {
-    use_legacy_random_source: bool,
-    biome_noise: BiomeNoise,
-    chunk_height: ChunkHeight,
-    aquifer: Aquifer,
-    surface: Surface,
-}
 
 pub struct SurfaceRule {} //TODO
 impl SurfaceRule {
@@ -50,12 +42,14 @@ impl DensityFunction {
 } //TODO
 
 pub struct WorldGenerator {
-    _seed: u64,
+    seed: u64,
     chunk_height: ChunkHeight,
     biome_noise: BiomeNoise,
     biomes: Vec<(NoisePoint, Biome)>,
-    aquifer: Aquifer,
     surface: Surface,
+    cave_carver: Caver,
+    extra_cave_carver: Caver,
+    canyon_carver: CanyonCarver,
 }
 
 impl WorldGenerator {
