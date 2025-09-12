@@ -6,23 +6,15 @@ mod common;
 mod end;
 pub mod errors;
 mod nether;
-mod noise_biome_parameters;
 mod noise_router;
 mod overworld;
 mod perlin_noise;
 mod pos;
 mod random;
-use crate::errors::WorldGenError;
 use crate::pos::BlockPos;
+use crate::{errors::WorldGenError, overworld::overworld_generator::OverworldGenerator};
+use bevy_math::IVec2;
 use ferrumc_world::{chunk_format::Chunk, vanilla_chunk_format::BlockData};
-
-//TODO
-pub struct DensityFunction;
-impl DensityFunction {
-    pub fn compute<T: Into<(i32, i32, i32)>>(&self, _pos: T) -> f64 {
-        todo!()
-    }
-} //TODO
 
 pub struct ChunkAccess {}
 
@@ -36,16 +28,17 @@ impl ChunkAccess {
     }
 }
 pub struct WorldGenerator {
-    seed: u64,
+    generator: OverworldGenerator,
 }
 
 impl WorldGenerator {
     pub fn new(seed: u64) -> Self {
-        todo!()
-        // Self { _seed: seed }
+        Self {
+            generator: OverworldGenerator::new(seed),
+        }
     }
 
     pub fn generate_chunk(&self, x: i32, z: i32) -> Result<Chunk, WorldGenError> {
-        todo!()
+        Ok(self.generator.generate_chunk(IVec2::new(x, z).into()))
     }
 }

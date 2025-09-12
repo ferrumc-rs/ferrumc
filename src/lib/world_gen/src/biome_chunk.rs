@@ -1,7 +1,6 @@
 use itertools::Itertools;
 
 use crate::{
-    DensityFunction,
     biome::Biome,
     pos::{BlockPos, ChunkHeight, ChunkPos},
 };
@@ -13,7 +12,7 @@ pub struct BiomeChunk {
 
 impl BiomeChunk {
     pub(crate) fn generate(
-        noise: &BiomeNoise,
+        noise: &impl BiomeNoise,
         biomes: &[(NoisePoint, Biome)],
         pos: ChunkPos,
         chunk_height: ChunkHeight,
@@ -49,34 +48,22 @@ impl BiomeChunk {
 fn f32_to_i64(val: f32) -> i64 {
     (val * 10000.0) as i64
 }
-pub(crate) struct BiomeNoise {
-    pub(crate) temperature: DensityFunction,
-    pub(crate) vegetation: DensityFunction,
-    pub(crate) continents: DensityFunction,
-    pub(crate) erosion: DensityFunction,
-    pub(crate) depth: DensityFunction,
-    pub(crate) ridges: DensityFunction,
-}
-
-impl BiomeNoise {
-    pub(crate) fn new() -> Self {
-        Self {
-            temperature: DensityFunction,
-            vegetation: DensityFunction,
-            continents: DensityFunction,
-            erosion: DensityFunction,
-            depth: DensityFunction,
-            ridges: DensityFunction,
-        }
-    }
+pub(crate) trait BiomeNoise {
+    //TODO: internal at
+    fn temperature(&self, pos: BlockPos) -> f64;
+    fn vegetation(&self, pos: BlockPos) -> f64;
+    fn continents(&self, pos: BlockPos) -> f64;
+    fn erosion(&self, pos: BlockPos) -> f64;
+    fn depth(&self, pos: BlockPos) -> f64;
+    fn ridges(&self, pos: BlockPos) -> f64;
     fn at(&self, pos: BlockPos) -> [i64; 6] {
         [
-            f32_to_i64(self.temperature.compute(pos) as f32),
-            f32_to_i64(self.vegetation.compute(pos) as f32),
-            f32_to_i64(self.continents.compute(pos) as f32),
-            f32_to_i64(self.erosion.compute(pos) as f32),
-            f32_to_i64(self.depth.compute(pos) as f32),
-            f32_to_i64(self.ridges.compute(pos) as f32),
+            f32_to_i64(self.temperature(pos) as f32),
+            f32_to_i64(self.vegetation(pos) as f32),
+            f32_to_i64(self.continents(pos) as f32),
+            f32_to_i64(self.erosion(pos) as f32),
+            f32_to_i64(self.depth(pos) as f32),
+            f32_to_i64(self.ridges(pos) as f32),
         ]
     }
 }
