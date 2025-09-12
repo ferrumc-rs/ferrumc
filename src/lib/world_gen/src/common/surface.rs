@@ -23,7 +23,7 @@ impl SurfaceRule {
 pub struct PreliminarySurface {
     pub chunk_height: ChunkHeight,
     noise_size_vertical: usize,
-    initial_density_without_jaggedness: DensityFunction,
+    initial_density_without_jaggedness: fn(BlockPos) -> f64,
 }
 
 impl PreliminarySurface {
@@ -33,11 +33,7 @@ impl PreliminarySurface {
             .iter()
             .rev()
             .step_by(self.noise_size_vertical)
-            .find(|y| {
-                self.initial_density_without_jaggedness
-                    .compute(column.block(*y))
-                    > 0.390625
-            })
+            .find(|y| (self.initial_density_without_jaggedness)(column.block(*y)) > 0.390625)
             .unwrap_or(i32::MAX) //TODO: should this panic?
     }
 }
