@@ -4,29 +4,6 @@ use bevy_math::IVec3;
 
 use crate::pos::ChunkPos;
 
-pub struct RandomState {
-    pub random: RandomFactory,
-    pub aquifer_random: RandomFactory,
-    pub ore_random: RandomFactory,
-}
-
-impl RandomState {
-    pub fn new(seed: u64, legacy: bool) -> Self {
-        let random = if legacy {
-            RandomFactory::Legacy(LegacyRandom::new(seed).fork_positional())
-        } else {
-            RandomFactory::Xoroshiro128PlusPlus(
-                Xoroshiro128PlusPlus::from_seed(seed).fork_positional(),
-            )
-        };
-        Self {
-            aquifer_random: random.with_hash("minecraft:aquifer").fork_positional(),
-            ore_random: random.with_hash("minecraft:ore").fork_positional(),
-            random,
-        }
-    }
-}
-
 pub enum Random {
     Legacy(LegacyRandom),
     Xoroshiro128PlusPlus(Xoroshiro128PlusPlus),
@@ -61,6 +38,7 @@ impl Rng<RandomFactory> for Random {
     }
 }
 
+#[derive(Clone, Copy)]
 pub enum RandomFactory {
     Legacy(LegacyPositionalFactory),
     Xoroshiro128PlusPlus(Xoroshiro128PlusPlusFactory),
@@ -113,8 +91,7 @@ pub trait RngFactory<R> {
     fn with_pos(&self, pos: IVec3) -> R;
 }
 
-#[allow(dead_code)]
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 pub struct Xoroshiro128PlusPlus {
     lo: u64,
     hi: u64,
@@ -272,12 +249,11 @@ impl Rng<LegacyPositionalFactory> for LegacyRandom {
     }
 }
 
-#[allow(dead_code)]
+#[derive(Clone, Copy)]
 pub struct LegacyPositionalFactory {
     seed: u64,
 }
 
-#[allow(dead_code)]
 impl RngFactory<LegacyRandom> for LegacyPositionalFactory {
     fn with_hash(&self, s: &str) -> LegacyRandom {
         LegacyRandom::new((i64::from(java_string_hashcode(s)) ^ self.seed as i64) as u64)

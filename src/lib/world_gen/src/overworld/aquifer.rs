@@ -1,15 +1,17 @@
-use crate::DensityFunction;
 use crate::biome_chunk::BiomeNoise;
 use crate::common::aquifer::{FluidPicker, FluidType};
 use crate::common::surface::PreliminarySurface;
-use crate::noise_biome_parameters::is_deep_dark_region;
+use crate::overworld::noise_biome_parameters::is_deep_dark_region;
+use crate::perlin_noise::{
+    AQUIFER_BARRIER, AQUIFER_FLUID_LEVEL_FLOODEDNESS, AQUIFER_LAVA, NormalNoise,
+};
 use crate::pos::ChunkPos;
-use crate::random::Xoroshiro128PlusPlusFactory;
+use crate::random::{RandomFactory, Xoroshiro128PlusPlusFactory};
 use std::ops::Add;
 
 use itertools::Itertools;
 
-use bevy_math::{FloatExt, IVec2, IVec3, Vec3Swizzles};
+use bevy_math::{DVec3, FloatExt, IVec2, IVec3, Vec3Swizzles};
 
 use crate::random::{Rng, RngFactory};
 
@@ -17,10 +19,10 @@ pub struct Aquifer {
     pub sea_level: FluidPicker,
     random: Xoroshiro128PlusPlusFactory,
     is_overworld: bool,
-    barrier_noise: DensityFunction,
-    fluid_level_floodedness_noise: DensityFunction,
-    fluid_level_spread_noise: DensityFunction,
-    lava_noise: DensityFunction,
+    barrier_noise: NormalNoise<1>,
+    fluid_level_floodedness_noise: NormalNoise<1>,
+    fluid_level_spread_noise: NormalNoise<1>,
+    lava_noise: NormalNoise<1>,
 }
 
 /// a 16 by 16 by 12 Region
@@ -67,11 +69,25 @@ impl From<IVec3> for AquiferSectionPos {
 
 /// returns optional fluid type and if it should be updated
 impl Aquifer {
+    pub fn new(sea_level: FluidPicker, random: Xoroshiro128PlusPlusFactory) -> Self {
+        let random = random.with_hash("minecraft:aquifer").fork_positional();
+        let wrapped = RandomFactory::Xoroshiro128PlusPlus(random);
+        Self {
+            sea_level,
+            random,
+            is_overworld: true,
+            barrier_noise: AQUIFER_BARRIER.init(wrapped),
+            fluid_level_floodedness_noise: AQUIFER_FLUID_LEVEL_FLOODEDNESS.init(wrapped),
+            fluid_level_spread_noise: AQUIFER_FLUID_LEVEL_FLOODEDNESS.init(wrapped),
+            lava_noise: AQUIFER_LAVA.init(wrapped),
+        }
+    }
+
     #[allow(dead_code)]
     pub(crate) fn at(
         &self,
         preliminary_surface: &PreliminarySurface,
-        biome_noise: &BiomeNoise,
+        biome_noise: &impl BiomeNoise,
         pos: IVec3,
         final_density: f64,
     ) -> (Option<FluidType>, bool) {
@@ -127,7 +143,9 @@ impl Aquifer {
         {
             return (Some(block_state), true);
         }
-        let barrier = self.barrier_noise.compute(pos);
+        let barrier = self
+            .barrier_noise
+            .get_value(pos.as_dvec3() * DVec3::new(1.0, 0.5, 1.0));
         let second_nearest_status =
             self.compute_fluid(smallest[1].1, preliminary_surface, biome_noise);
         if similtarity * Self::pressure(pos, barrier, nearest_status, second_nearest_status)
@@ -215,7 +233,7 @@ impl Aquifer {
         &self,
         pos: IVec3,
         preliminary_surface: &PreliminarySurface,
-        biome_noise: &BiomeNoise,
+        biome_noise: &impl BiomeNoise,
     ) -> FluidPicker {
         const SURFACE_SAMPLING_OFFSETS_IN_CHUNKS: [IVec2; 13] = [
             IVec2::new(0, 0),
@@ -283,7 +301,7 @@ impl Aquifer {
 
     fn is_lava(&self, pos: IVec3) -> bool {
         let pos = pos.div_euclid((64, 40, 64).into());
-        self.lava_noise.compute(pos).abs() > 0.3
+        self.lava_noise.get_value(pos.into()).abs() > 0.3
     }
 
     fn compute_surface_level(
@@ -292,7 +310,7 @@ impl Aquifer {
         default_level: i32,
         max_surface_level: i32,
         fluid_present: bool,
-        biome_noise: &BiomeNoise,
+        biome_noise: &impl BiomeNoise,
     ) -> Option<i32> {
         if is_deep_dark_region(biome_noise, pos) {
             return None;
@@ -311,7 +329,7 @@ impl Aquifer {
 
         let floodedness = self
             .fluid_level_floodedness_noise
-            .compute(pos)
+            .get_value(pos * (1.0, 0.67, 1.0).into())
             .clamp(-1.0, 1.0);
         let d4 = d2.remap(1.0, 0.0, -0.3, 0.8);
         let d5 = d2.remap(1.0, 0.0, -0.8, 0.4);
@@ -330,7 +348,12 @@ impl Aquifer {
             (value / f64::from(factor)).floor() as i32 * factor
         }
         let pos = pos.div_euclid((16, 40, 16).into());
-        let spread = quantize(self.fluid_level_spread_noise.compute(pos) * 10.0, 3);
+        let spread = quantize(
+            self.fluid_level_spread_noise
+                .get_value(pos.as_dvec3() * DVec3::new(1.0, 0.7142857142857143, 1.0))
+                * 10.0,
+            3,
+        );
         pos.y * 40 + 20 + spread
     }
 }

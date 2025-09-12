@@ -1,6 +1,9 @@
+use crate::common::aquifer::FluidType;
 use crate::common::surface::Surface;
 use crate::overworld::aquifer::Aquifer;
 use crate::overworld::ore_veins::Vein;
+use crate::pos::ChunkHeight;
+use crate::random::Xoroshiro128PlusPlusFactory;
 use crate::{
     biome_chunk::{BiomeChunk, BiomeNoise},
     common::aquifer::FluidPicker,
@@ -31,14 +34,37 @@ pub struct OverworldSurface {
     pub aquifer: Aquifer,
     noises: SurfaceNoises,
     vein: Vein,
-    random: RandomFactory,
+    random: Xoroshiro128PlusPlusFactory,
 }
 
 impl OverworldSurface {
+    pub fn new(random: Xoroshiro128PlusPlusFactory, chunk_height: ChunkHeight) -> Self {
+        Self {
+            surface: Surface {
+                rules: todo!(),
+                final_density: todo!(),
+                default_block: BlockData {
+                    name: "minecraft:stone".to_string(),
+                    properties: None,
+                }
+                .to_block_id(),
+                preliminary_surface: PreliminarySurface {
+                    chunk_height,
+                    noise_size_vertical: 2 << 2,
+                    initial_density_without_jaggedness: todo!(),
+                },
+            },
+            aquifer: Aquifer::new(FluidPicker(63, FluidType::Water), random),
+            noises: todo!(),
+            vein: Vein::new(random),
+            random,
+        }
+    }
+
     #[allow(dead_code)]
     pub fn build_surface(
         &self,
-        biome_noise: &BiomeNoise,
+        biome_noise: &impl BiomeNoise,
         biome_manager: &BiomeChunk,
         pos: ColumnPos,
     ) -> Vec<BlockData> {

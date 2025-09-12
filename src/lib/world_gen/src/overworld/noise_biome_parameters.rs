@@ -231,7 +231,7 @@ const SHATTERED_BIOMES: [[Option<Biome>; 5]; 5] = [
     [None, None, None, None, None],
 ];
 
-pub fn surface(
+fn surface(
     temperature: (f32, f32),
     humidity: (f32, f32),
     continentalness: (f32, f32),
@@ -961,7 +961,7 @@ fn pick_shattered_biome(temperature: usize, humidity: usize, pandv: (f32, f32)) 
     }
 }
 
-pub(crate) fn is_deep_dark_region(noise_router: &BiomeNoise, pos: IVec3) -> bool {
-    noise_router.erosion.compute(pos) < EROSION_DEEP_DARK_DRYNESS_THRESHOLD.into()
-        && noise_router.depth.compute(pos) > DEPTH_DEEP_DARK_DRYNESS_THRESHOLD.into()
+pub(crate) fn is_deep_dark_region(noise_router: &OverworldBiomeNoise, pos: IVec3) -> bool {
+    noise_router.erosion(pos) < EROSION_DEEP_DARK_DRYNESS_THRESHOLD.into()
+        && noise_router.depth(pos) > DEPTH_DEEP_DARK_DRYNESS_THRESHOLD.into()
 }

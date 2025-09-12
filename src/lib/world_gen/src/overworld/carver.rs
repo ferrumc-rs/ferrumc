@@ -1,9 +1,7 @@
-use std::{
-    f32::consts::{FRAC_PI_2, PI},
-    ops::Range,
-};
+use crate::common::carver::{Caver, can_reach};
+use std::f32::consts::PI;
 
-use bevy_math::{DVec3, IVec3, Vec3Swizzles};
+use bevy_math::{IVec3, Vec3Swizzles};
 use ferrumc_world::block_id::BlockId;
 
 use crate::{
@@ -18,20 +16,16 @@ use crate::{
     random::{LegacyRandom, Rng},
 };
 
-fn can_reach(
-    chunk_pos: ChunkPos,
-    pos: DVec3,
-    branch_index: u32,
-    branch_count: u32,
-    width: f32,
-) -> bool {
-    chunk_pos
-        .column_pos(8, 8)
-        .pos
-        .as_dvec2()
-        .distance_squared(pos.xz())
-        - f64::from((branch_count - branch_index).pow(2))
-        <= f64::from(width) + 2.0 + 16.0
+pub(super) struct OverworldCarver {
+    cave_carver: Caver,
+    extra_cave_carver: Caver,
+    canyon_carver: CanyonCarver,
+} //TODO
+
+impl OverworldCarver {
+    pub fn new() -> Self {
+        todo!()
+    }
 }
 
 fn clear_overworld_cave_block(
@@ -39,7 +33,7 @@ fn clear_overworld_cave_block(
     chunk: &mut ChunkAccess,
     surface: &OverworldSurface,
     biome_accessor: &BiomeChunk,
-    biome_noise: &BiomeNoise,
+    biome_noise: &impl BiomeNoise,
     surface_reached: &mut bool,
     pos: BlockPos,
 ) {
@@ -76,19 +70,10 @@ fn clear_overworld_cave_block(
         }
     };
 }
-pub struct Caver {
-    chunk_height: ChunkHeight,
-    unreplaceable: Vec<BlockId>,
-    probability: f32,
-    y: Range<i32>,
-    horizontal_radius_mul: Range<f32>,
-    vertical_radius_mul: Range<f32>,
-    floor_level: Range<f32>,
-    y_scale: Range<f32>,
-}
+
 impl Caver {
     #[allow(dead_code)]
-    pub(crate) fn carve(
+    fn carve_overworld(
         &self,
         chunk: &mut ChunkAccess,
         biome_accessor: &BiomeChunk,
@@ -96,215 +81,35 @@ impl Caver {
         chunk_pos: ChunkPos,
         carving_mask: &mut CarvingMask,
         surface: &OverworldSurface,
-        biome_noise: &BiomeNoise,
+        biome_noise: &impl BiomeNoise,
     ) {
-        let mut random = LegacyRandom::large_features(seed, chunk_pos);
-        if random.next_f32() > self.probability {
-            return;
-        }
-
-        let block_pos_coord = (4 * 2 - 1) << 4;
-        let bound = random.next_bounded(15 /*TODO: nether*/) + 1;
-        let bound1 = random.next_bounded(bound) + 1;
-        for _ in 0..random.next_bounded(bound1) {
-            let random_pos = chunk_pos.block(
-                random.next_bounded(16),
-                random.next_i32_range(self.y.clone()),
-                random.next_bounded(16),
-            );
-            let horizontal_radius_mul = random.next_f32_range(self.horizontal_radius_mul.clone());
-            let vertical_radius_mul = random.next_f32_range(self.vertical_radius_mul.clone());
-            let floor_level = random.next_f32_range(self.floor_level.clone()).into();
-
-            let tunnels = if random.next_bounded(4) == 0 {
-                let y_scale = f64::from(random.next_f32_range(self.y_scale.clone()));
-                let radius = f64::from(1.0 + random.next_f32() * 6.0);
-                let mut surface_reached = false;
-                for (relative, pos) in carve_ellipsoid(
-                    chunk_pos,
-                    random_pos.as_dvec3() + DVec3::from((1.0, 0.0, 0.0)),
-                    (
-                        1.5 + f64::from((FRAC_PI_2).sin()) * radius,
-                        (1.5 + f64::from((FRAC_PI_2).sin()) * radius) * y_scale,
-                    )
-                        .into(),
-                    self.chunk_height,
-                ) {
-                    if relative.y <= floor_level
-                        || relative.length_squared() >= 1.0
-                        || carving_mask.carve(pos)
-                    {
-                        return;
-                    }
-                    clear_overworld_cave_block(
-                        &self.unreplaceable,
-                        chunk,
-                        surface,
-                        biome_accessor,
-                        biome_noise,
-                        &mut surface_reached,
-                        pos,
-                    )
-                }
-                random.next_bounded(4) + 1
-            } else {
-                1
-            };
-
-            for _ in 0..tunnels {
-                let f1 = random.next_f32() * (PI * 2.0);
-                let f = (random.next_f32() - 0.5) / 4.0;
-                let thickness = random.next_f32() * 2.0//TODO: different in the nether 
+        self.carve(
+            &mut |pos, surface_reached| {
+                clear_overworld_cave_block(
+                    &self.unreplaceable,
+                    chunk,
+                    surface,
+                    biome_accessor,
+                    biome_noise,
+                    surface_reached,
+                    pos,
+                )
+            },
+            |random: &mut LegacyRandom| {
+                random.next_f32() * 2.0//TODO: different in the nether 
                     + random.next_f32()
                         * if random.next_bounded(10) == 0 {
                             random.next_f32() * random.next_f32() * 3.0 + 1.0
                         } else {
                             1.0
-                        };
-                let branch_count = block_pos_coord - random.next_bounded(block_pos_coord / 4);
-
-                let mut tunnler = Tunnler {
-                    caver: self,
-                    surface,
-                    biome_noise,
-                    floor_level,
-                    chunk,
-                    biome_accessor,
-                    chunk_pos,
-                    branch_count,
-                    carving_mask,
-                    horizontal_radius_multiplier: horizontal_radius_mul.into(),
-                    vertical_radius_multiplier: vertical_radius_mul.into(),
-                };
-
-                tunnler.create_tunnel(
-                    random.next_u64(),
-                    random_pos.into(),
-                    thickness,
-                    f1,
-                    f,
-                    0,
-                    1.0, //TODO: 5 in the nether
-                );
-            }
-        }
+                        }
+            },
+            seed,
+            chunk_pos,
+            carving_mask,
+        );
     }
 }
-
-struct Tunnler<'a> {
-    caver: &'a Caver,
-    surface: &'a OverworldSurface,
-    biome_noise: &'a BiomeNoise,
-    floor_level: f64,
-    chunk: &'a mut ChunkAccess,
-    biome_accessor: &'a BiomeChunk,
-    chunk_pos: ChunkPos,
-    branch_count: u32,
-    carving_mask: &'a mut CarvingMask,
-    horizontal_radius_multiplier: f64,
-    vertical_radius_multiplier: f64,
-}
-impl Tunnler<'_> {
-    fn create_tunnel(
-        &mut self,
-        seed: u64,
-        mut pos: DVec3,
-        thickness: f32,
-        mut yaw: f32,
-        mut pitch: f32,
-        branch_index: u32,
-        horizontal_vertical_ratio: f64,
-    ) {
-        let mut random = LegacyRandom::new(seed);
-        let i = random.next_bounded(self.branch_count / 2) + self.branch_count / 4;
-        let more_pitch = random.next_bounded(6) == 0;
-        let mut yaw_mul = 0.0f32;
-        let mut pitch_mul = 0.0f32;
-
-        for curr_branch_idx in branch_index..self.branch_count {
-            let d = 1.5
-                + f64::from((PI * curr_branch_idx as f32 / self.branch_count as f32).sin())
-                    * f64::from(thickness);
-            let cos = pitch.cos();
-            pos.x += f64::from(yaw.cos() * cos);
-            pos.y += f64::from(pitch.sin());
-            pos.z += f64::from(yaw.sin() * cos);
-
-            pitch *= if more_pitch { 0.92 } else { 0.7 };
-            pitch += pitch_mul * 0.1;
-            yaw += yaw_mul * 0.1;
-
-            pitch_mul *= 0.9;
-            yaw_mul *= 0.75;
-
-            pitch_mul += (random.next_f32() - random.next_f32()) * random.next_f32() * 2.0;
-            yaw_mul += (random.next_f32() - random.next_f32()) * random.next_f32() * 4.0;
-
-            if curr_branch_idx == i && thickness > 1.0 {
-                self.create_tunnel(
-                    random.next_u64(),
-                    pos,
-                    random.next_f32() * 0.5 + 0.5,
-                    yaw - FRAC_PI_2,
-                    pitch / 3.0,
-                    curr_branch_idx,
-                    1.0,
-                );
-                self.create_tunnel(
-                    random.next_u64(),
-                    pos,
-                    random.next_f32() * 0.5 + 0.5,
-                    yaw + FRAC_PI_2,
-                    pitch / 3.0,
-                    curr_branch_idx,
-                    1.0,
-                );
-                return;
-            }
-
-            if random.next_bounded(4) != 0 {
-                if !can_reach(
-                    self.chunk_pos,
-                    pos,
-                    curr_branch_idx,
-                    self.branch_count,
-                    thickness,
-                ) {
-                    return;
-                }
-
-                let mut surface_reached = false;
-                for (relative, pos) in carve_ellipsoid(
-                    self.chunk_pos,
-                    pos,
-                    (
-                        d * self.horizontal_radius_multiplier,
-                        d * horizontal_vertical_ratio * self.vertical_radius_multiplier,
-                    )
-                        .into(),
-                    self.caver.chunk_height,
-                ) {
-                    if relative.y <= self.floor_level
-                        || relative.length_squared() >= 1.0
-                        || self.carving_mask.carve(pos)
-                    {
-                        return;
-                    }
-                    clear_overworld_cave_block(
-                        &self.caver.unreplaceable,
-                        self.chunk,
-                        self.surface,
-                        self.biome_accessor,
-                        self.biome_noise,
-                        &mut surface_reached,
-                        pos,
-                    )
-                }
-            }
-        }
-    }
-}
-
 pub struct CanyonCarver {
     unreplaceable: Vec<BlockId>,
     chunk_height: ChunkHeight,
@@ -320,7 +125,7 @@ impl CanyonCarver {
         chunk_pos: ChunkPos,
         carving_mask: &mut CarvingMask,
         surface: &OverworldSurface,
-        biome_noise: &BiomeNoise,
+        biome_noise: &impl BiomeNoise,
     ) {
         const PROBABILITY: f32 = 0.01;
         const WIDTH_SMOOTHNESS: u32 = 3;

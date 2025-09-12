@@ -4,20 +4,33 @@ use bevy_math::IVec3;
 use ferrumc_world::vanilla_chunk_format::BlockData;
 
 use crate::{
-    DensityFunction,
     overworld::aquifer::clamped_map,
-    random::{Rng, RngFactory, Xoroshiro128PlusPlusFactory},
+    perlin_noise::{NormalNoise, ORE_GAP, ORE_VEIN_A, ORE_VEIN_B, ORE_VEININESS},
+    random::{RandomFactory, Rng, RngFactory, Xoroshiro128PlusPlusFactory},
 };
 
 pub struct Vein {
-    vein_toggle: DensityFunction,
-    vein_ridged: DensityFunction,
-    vein_gap: DensityFunction,
+    vein_toggle: NormalNoise<1>,
+    vein_a: NormalNoise<1>,
+    vein_b: NormalNoise<1>,
+    vein_gap: NormalNoise<1>,
     random: Xoroshiro128PlusPlusFactory,
 }
 
 #[allow(dead_code)]
 impl Vein {
+    pub fn new(random: Xoroshiro128PlusPlusFactory) -> Self {
+        let random = random.with_hash("minecraft:ore").fork_positional();
+        let wrapped = RandomFactory::Xoroshiro128PlusPlus(random);
+        Self {
+            vein_toggle: ORE_VEININESS.init(wrapped),
+            vein_a: ORE_VEIN_A.init(wrapped),
+            vein_b: ORE_VEIN_B.init(wrapped),
+            vein_gap: ORE_GAP.init(wrapped),
+            random,
+        }
+    }
+
     pub(crate) fn at(&self, pos: IVec3) -> Option<BlockData> {
         let copper: (BlockData, BlockData, BlockData, RangeInclusive<i32>) = (
             BlockData {
@@ -49,7 +62,7 @@ impl Vein {
             },
             (-60..=-8),
         );
-        let vein_toggle = self.vein_toggle.compute(pos);
+        let vein_toggle = self.vein_toggle.get_value(pos.as_dvec3() * 1.5);
         let vein_type = if vein_toggle > 0.0 { copper } else { iron };
 
         let distance = distance(vein_type.3, pos.y);
@@ -64,12 +77,19 @@ impl Vein {
             return None;
         }
         let mut rand = self.random.with_pos(pos);
-        if rand.next_f32() > 0.7 || self.vein_ridged.compute(pos) >= 0.0 {
+        let vein_pos = pos.as_dvec3() * 4.0;
+        if rand.next_f32() > 0.7
+            || self
+                .vein_a
+                .get_value(vein_pos)
+                .max(self.vein_b.get_value(vein_pos))
+                >= 0.08
+        {
             return None;
         }
 
         if f64::from(rand.next_f32()) < clamped_map(vein_toggle_abs, 0.4, 0.6, 0.1, 0.3)
-            && self.vein_gap.compute(pos) > -0.3
+            && self.vein_gap.get_value(pos.into()) > -0.3
         {
             if rand.next_f32() < 0.02 {
                 Some(vein_type.1)
