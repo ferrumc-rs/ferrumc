@@ -8,12 +8,8 @@ use crate::perlin_noise::{
     ICEBERG_SURFACE, SURFACE,
 };
 use crate::pos::ChunkHeight;
-use crate::random::{RandomFactory, Xoroshiro128PlusPlusFactory};
-use crate::{
-    biome_chunk::{BiomeChunk, BiomeNoise},
-    common::aquifer::FluidPicker,
-    pos::ColumnPos,
-};
+use crate::random::Xoroshiro128PlusPlusFactory;
+use crate::{biome_chunk::BiomeChunk, common::aquifer::FluidPicker, pos::ColumnPos};
 use bevy_math::{DVec2, IVec2, IVec3};
 use ferrumc_world::vanilla_chunk_format::BlockData;
 
@@ -43,7 +39,6 @@ pub struct OverworldSurface {
 
 impl OverworldSurface {
     pub fn new(random: Xoroshiro128PlusPlusFactory, chunk_height: ChunkHeight) -> Self {
-        let wrapped = RandomFactory::Xoroshiro128PlusPlus(random);
         Self {
             surface: Surface::new(
                 PreliminarySurface::new(chunk_height, 2 << 2, |_pos| 0.0),
@@ -56,13 +51,13 @@ impl OverworldSurface {
             ),
             aquifer: Aquifer::new(FluidPicker(63, FluidType::Water), random),
             noises: SurfaceNoises {
-                surface_noise: SURFACE.init(wrapped),
-                iceberg_surface_noise: ICEBERG_SURFACE.init(wrapped),
-                iceberg_pillar_noise: ICEBERG_PILLAR.init(wrapped),
-                iceberg_pillar_roof_noise: ICEBERG_PILLAR_ROOF.init(wrapped),
-                badlands_surface_noise: BADLANDS_SURFACE.init(wrapped),
-                badlands_pillar_noise: BADLANDS_PILLAR.init(wrapped),
-                badlands_pillar_roof_noise: BADLANDS_PILLAR_ROOF.init(wrapped),
+                surface_noise: SURFACE.init(random),
+                iceberg_surface_noise: ICEBERG_SURFACE.init(random),
+                iceberg_pillar_noise: ICEBERG_PILLAR.init(random),
+                iceberg_pillar_roof_noise: ICEBERG_PILLAR_ROOF.init(random),
+                badlands_surface_noise: BADLANDS_SURFACE.init(random),
+                badlands_pillar_noise: BADLANDS_PILLAR.init(random),
+                badlands_pillar_roof_noise: BADLANDS_PILLAR_ROOF.init(random),
             },
             vein: Vein::new(random),
             random,
@@ -129,13 +124,12 @@ impl OverworldSurface {
 
     fn eroded_badlands_extend_height(&self, pos: ColumnPos) -> Option<i32> {
         let pos = pos.block(0).as_dvec3();
-        let surface = (self.noises.badlands_surface_noise.get_value(pos) * 8.25)
+        let surface = (self.noises.badlands_surface_noise.at(pos) * 8.25)
             .abs()
-            .min(self.noises.badlands_pillar_noise.get_value(pos * 0.2) * 15.0);
+            .min(self.noises.badlands_pillar_noise.at(pos * 0.2) * 15.0);
 
         if surface > 0.0 {
-            let pillar_roof =
-                (self.noises.badlands_pillar_roof_noise.get_value(pos * 0.75) * 1.5).abs();
+            let pillar_roof = (self.noises.badlands_pillar_roof_noise.at(pos * 0.75) * 1.5).abs();
             Some((64.0 + (surface * surface * 2.5).min(pillar_roof * 50.0).ceil() + 24.0) as i32)
         } else {
             None
@@ -156,13 +150,13 @@ impl OverworldSurface {
         let min = (self
             .noises
             .iceberg_surface_noise
-            .get_value(pos.block(0).as_dvec3())
+            .at(pos.block(0).as_dvec3())
             * 8.25)
             .abs()
             .min(
                 self.noises
                     .iceberg_pillar_noise
-                    .get_value(pos.block(0).as_dvec3() * 1.28)
+                    .at(pos.block(0).as_dvec3() * 1.28)
                     * 15.0,
             );
 
@@ -170,7 +164,7 @@ impl OverworldSurface {
             let abs = (self
                 .noises
                 .iceberg_pillar_roof_noise
-                .get_value(pos.block(0).as_dvec3() * 1.17)
+                .at(pos.block(0).as_dvec3() * 1.17)
                 * 1.5)
                 .abs();
             let mut iceburg_height = (min * min * 1.2).min(abs * 40.0).ceil() + 14.0;
@@ -249,7 +243,7 @@ impl OverworldSurface {
 
     fn get_surface_depth(&self, pos: ColumnPos) -> i32 {
         let pos = pos.block(0);
-        (self.noises.surface_noise.get_value(pos.as_dvec3()) * 2.75
+        (self.noises.surface_noise.at(pos.as_dvec3()) * 2.75
             + 3.0
             + self.random.with_pos(pos).next_f64() * 0.25) as i32
     }

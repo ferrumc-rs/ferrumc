@@ -4,65 +4,6 @@ use bevy_math::IVec3;
 
 use crate::pos::ChunkPos;
 
-#[deprecated]
-pub enum Random {
-    Legacy(LegacyRandom),
-    Xoroshiro128PlusPlus(Xoroshiro128PlusPlus),
-}
-
-macro_rules! delegate_rng_fn {
-    ($fn_name:ident ( $($arg:ident : $arg_ty:ty),* ) -> $ret:ty) => {
-        fn $fn_name(&mut self, $($arg : $arg_ty),*) -> $ret {
-            match self {
-                Random::Legacy(r) => r.$fn_name($($arg),*),
-                Random::Xoroshiro128PlusPlus(r) => r.$fn_name($($arg),*),
-            }
-        }
-    };
-}
-
-// Usage in an impl:
-impl Rng<RandomFactory> for Random {
-    delegate_rng_fn!(next_u32() -> u32);
-    delegate_rng_fn!(next_u64() -> u64);
-    delegate_rng_fn!(next_f32() -> f32);
-    delegate_rng_fn!(next_f64() -> f64);
-    delegate_rng_fn!(next_bounded(bound: u32) -> u32);
-
-    fn fork_positional(&mut self) -> RandomFactory {
-        match self {
-            Random::Legacy(r) => RandomFactory::Legacy(r.fork_positional()),
-            Random::Xoroshiro128PlusPlus(r) => {
-                RandomFactory::Xoroshiro128PlusPlus(r.fork_positional())
-            }
-        }
-    }
-}
-
-//TODO: remove
-#[deprecated]
-#[derive(Clone, Copy)]
-pub enum RandomFactory {
-    Legacy(LegacyPositionalFactory),
-    Xoroshiro128PlusPlus(Xoroshiro128PlusPlusFactory),
-}
-
-impl RngFactory<Random> for RandomFactory {
-    fn with_hash(&self, s: &str) -> Random {
-        match self {
-            RandomFactory::Legacy(r) => Random::Legacy(r.with_hash(s)),
-            RandomFactory::Xoroshiro128PlusPlus(r) => Random::Xoroshiro128PlusPlus(r.with_hash(s)),
-        }
-    }
-
-    fn with_pos(&self, pos: IVec3) -> Random {
-        match self {
-            RandomFactory::Legacy(r) => Random::Legacy(r.with_pos(pos)),
-            RandomFactory::Xoroshiro128PlusPlus(r) => Random::Xoroshiro128PlusPlus(r.with_pos(pos)),
-        }
-    }
-}
-
 const PHI: u64 = 0x9e3779b97f4a7c15;
 
 pub trait Rng<RF> {
