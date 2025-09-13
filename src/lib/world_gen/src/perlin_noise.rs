@@ -1,4 +1,4 @@
-use crate::random::{Random, RandomFactory, Rng, RngFactory};
+use crate::random::{Rng, RngFactory};
 use std::mem::MaybeUninit;
 
 use bevy_math::{DVec2, DVec3, FloatExt, Vec3Swizzles};
@@ -12,32 +12,15 @@ pub const SHIFT: ConstNormalNoise<4> =
     ConstNormalNoise::new("minecraft:offset", 3, [1.0, 1.0, 1.0, 0.0]);
 pub const TEMPERATURE: ConstNormalNoise<6> =
     ConstNormalNoise::new("minecraft:temperature", 10, [1.5, 0.0, 1.0, 0.0, 0.0, 0.0]);
-pub const TEMPERATURE_LARGE: ConstNormalNoise<6> = ConstNormalNoise::new(
-    "minecraft:temperature_large",
-    8,
-    [1.5, 0.0, 1.0, 0.0, 0.0, 0.0],
-);
 pub const VEGETATION: ConstNormalNoise<6> =
     ConstNormalNoise::new("minecraft:vegetation", 8, [1.0, 1.0, 0.0, 0.0, 0.0, 0.0]);
-pub const VEGETATION_LARGE: ConstNormalNoise<6> = ConstNormalNoise::new(
-    "minecraft:vegetation_large",
-    6,
-    [1.0, 1.0, 0.0, 0.0, 0.0, 0.0],
-);
 pub const CONTINENTALNESS: ConstNormalNoise<9> = ConstNormalNoise::new(
     "minecraft:continentalness",
     9,
     [1.0, 1.0, 2.0, 2.0, 2.0, 1.0, 1.0, 1.0, 1.0],
 );
-pub const CONTINENTALNESS_LARGE: ConstNormalNoise<9> = ConstNormalNoise::new(
-    "minecraft:continentalness_large",
-    7,
-    [1.0, 1.0, 2.0, 2.0, 2.0, 1.0, 1.0, 1.0, 1.0],
-);
 pub const EROSION: ConstNormalNoise<5> =
     ConstNormalNoise::new("minecraft:erosion", 9, [1.0, 1.0, 0.0, 1.0, 1.0]);
-pub const EROSION_LARGE: ConstNormalNoise<5> =
-    ConstNormalNoise::new("minecraft:erosion_large", 7, [1.0, 1.0, 0.0, 1.0, 1.0]);
 pub const AQUIFER_BARRIER: ConstNormalNoise<1> =
     ConstNormalNoise::new("minecraft:aquifer_barrier", 3, [1.0]);
 pub const AQUIFER_FLUID_LEVEL_FLOODEDNESS: ConstNormalNoise<1> =
@@ -188,7 +171,10 @@ impl<const N: usize> ConstNormalNoise<N> {
         }
     }
 
-    pub fn init(&self, random: RandomFactory) -> NormalNoise<N> {
+    pub fn init<R: Rng<RF>, RF: RngFactory<R>>(
+        &self,
+        random: impl RngFactory<R>,
+    ) -> NormalNoise<N> {
         let mut rng = random.with_hash(self.name);
         NormalNoise {
             first: self.first.init(rng.fork_positional()),
@@ -203,7 +189,6 @@ pub struct ConstPerlinNoise<const N: usize> {
     amplitudes: [f64; N],
     lowest_freq_input_factor: f64,
     lowest_freq_value_factor: f64,
-    max: f64,
 }
 
 impl<const N: usize> ConstPerlinNoise<N> {
@@ -213,24 +198,15 @@ impl<const N: usize> ConstPerlinNoise<N> {
         let lowest_freq_value_factor = 2u32.pow((amplitudes.len() - 1) as u32) as f64
             / (2u32.pow(amplitudes.len() as u32) as f64 - 1.0);
 
-        let mut max = 0.0;
-        let mut d1 = lowest_freq_value_factor;
-        let mut i = 0;
-        while i < N {
-            max += amplitudes[i] * 2.0 * d1;
-            d1 /= 2.0;
-            i += 1;
-        }
         Self {
             first_octave,
             amplitudes,
             lowest_freq_input_factor,
             lowest_freq_value_factor,
-            max,
         }
     }
 
-    pub fn init(&self, factory: RandomFactory) -> PerlinNoise<N> {
+    pub fn init<R: Rng<RF>, RF>(&self, factory: impl RngFactory<R>) -> PerlinNoise<N> {
         let mut noise_levels: [MaybeUninit<ImprovedNoise>; N] =
             unsafe { MaybeUninit::uninit().assume_init() };
         for (i, noise_level) in noise_levels.iter_mut().enumerate() {
@@ -243,7 +219,6 @@ impl<const N: usize> ConstPerlinNoise<N> {
             amplitudes: self.amplitudes,
             lowest_freq_input_factor: self.lowest_freq_input_factor,
             lowest_freq_value_factor: self.lowest_freq_value_factor,
-            max: self.max,
         }
     }
 }
@@ -256,7 +231,7 @@ pub struct NormalNoise<const N: usize> {
 }
 
 impl<const N: usize> NormalNoise<N> {
-    pub fn get_value(&self, pos: DVec3) -> f64 {
+    pub fn at(&self, pos: DVec3) -> f64 {
         (self.first.get_value(pos) + self.second.get_value(pos * 1.0181268882175227)) * self.factor
     }
 }
@@ -267,7 +242,6 @@ pub struct PerlinNoise<const N: usize> {
     noise_levels: [ImprovedNoise; N],
     lowest_freq_input_factor: f64,
     lowest_freq_value_factor: f64,
-    max: f64,
 }
 
 impl<const N: usize> PerlinNoise<N> {
@@ -302,7 +276,7 @@ pub struct ImprovedNoise {
 }
 
 impl ImprovedNoise {
-    pub fn new(mut random: Random) -> Self {
+    pub fn new<RF>(mut random: impl Rng<RF>) -> Self {
         let offset = DVec3::new(random.next_f64(), random.next_f64(), random.next_f64()) * 256.0;
 
         let mut p = [0u8; 256];
@@ -395,23 +369,22 @@ pub fn lerp3(
 
 #[test]
 fn test_normal_noise() {
-    let rng = Random::Xoroshiro128PlusPlus(crate::random::Xoroshiro128PlusPlus::new(0, 0))
-        .fork_positional();
+    let rng = crate::random::Xoroshiro128PlusPlus::new(0, 0).fork_positional();
     let noise = ConstNormalNoise::new("test", 5, [0.0, 2.0, 1.5, 0.1, -1.0, 0.0, 0.0]).init(rng);
 
     assert_eq!(noise.factor, 1.3333333333333333, "Mismatch in noise factor");
     assert_eq!(
-        noise.get_value(DVec3::new(0.0, 0.0, 0.0)),
+        noise.at(DVec3::new(0.0, 0.0, 0.0)),
         -0.006229996496323942,
         "Mismatch in noise at zero"
     );
     assert_eq!(
-        noise.get_value(DVec3::new(1000.0, -10.0, -232.0)),
+        noise.at(DVec3::new(1000.0, -10.0, -232.0)),
         0.11302430166656066,
         "Mismatch in noise"
     );
     assert_eq!(
-        noise.get_value(DVec3::new(10000.123, 203.5, -20031.78)),
+        noise.at(DVec3::new(10000.123, 203.5, -20031.78)),
         0.18396746296162117,
         "Mismatch in noise"
     );
@@ -419,7 +392,7 @@ fn test_normal_noise() {
 
 #[test]
 fn test_improved_noise() {
-    let rng = Random::Xoroshiro128PlusPlus(crate::random::Xoroshiro128PlusPlus::new(0, 0));
+    let rng = crate::random::Xoroshiro128PlusPlus::new(0, 0);
     let noise = ImprovedNoise::new(rng);
 
     assert_eq!(
@@ -436,8 +409,7 @@ fn test_improved_noise() {
 
 #[test]
 fn test_perlin_noise() {
-    let rng = Random::Xoroshiro128PlusPlus(crate::random::Xoroshiro128PlusPlus::new(0, 0))
-        .fork_positional();
+    let rng = crate::random::Xoroshiro128PlusPlus::new(0, 0).fork_positional();
 
     let perlin_noise = ConstPerlinNoise::new(3, [0.0, 1.0, -1.0, 0.0, 0.5, 0.0]).init(rng);
 
@@ -449,7 +421,6 @@ fn test_perlin_noise() {
         perlin_noise.lowest_freq_value_factor, 0.5079365079365079,
         "Mismatch in lowest_freq_value_factor"
     );
-    assert_eq!(perlin_noise.max, 0.2857142857142857, "Mismatch in max");
     assert_eq!(
         perlin_noise.get_value(DVec3::new(0.0, 0.0, 0.0)),
         -0.029485159292249152,
