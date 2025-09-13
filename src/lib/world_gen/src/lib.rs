@@ -13,7 +13,6 @@ mod pos;
 mod random;
 use crate::pos::BlockPos;
 use crate::{errors::WorldGenError, overworld::overworld_generator::OverworldGenerator};
-use bevy_math::IVec2;
 use ferrumc_world::{chunk_format::Chunk, vanilla_chunk_format::BlockData};
 
 pub struct ChunkAccess {}
