@@ -1,7 +1,6 @@
 use ferrumc_commands::graph::{node::CommandNode, CommandGraph};
 use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::{length_prefixed_vec::LengthPrefixedVec, var_int::VarInt};
-use std::io::Write;
 
 #[derive(NetEncode, Debug)]
 #[packet(packet_id = "commands", state = "play")]

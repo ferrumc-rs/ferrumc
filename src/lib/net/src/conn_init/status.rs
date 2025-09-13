@@ -158,7 +158,7 @@ fn get_server_status(state: &GlobalState) -> String {
 
     // Protocol info
     let version = structs::Version {
-        name: "1.21.1",
+        name: "1.21.8",
         protocol: crate::conn_init::PROTOCOL_VERSION_1_21_8 as u16,
     };
 

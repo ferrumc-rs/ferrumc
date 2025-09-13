@@ -6,7 +6,7 @@ use ferrumc_net_codec::net_types::byte_array::ByteArray;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_world::chunk_format::{Chunk, PaletteType};
-use std::io::{Cursor, Write};
+use std::io::Cursor;
 use std::ops::Not;
 use tracing::warn;
 

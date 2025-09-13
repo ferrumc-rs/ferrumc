@@ -5,7 +5,6 @@ use deepsize::DeepSizeOf;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use lazy_static::lazy_static;
 use std::collections::HashMap;
-use std::io::Read;
 use std::process::exit;
 use tracing::error;
 
@@ -13,15 +12,12 @@ use tracing::error;
 // Go to the .etc/blockstates.json file, see what the last ID is, and add 1 to it.
 const BLOCK_ENTRIES: usize = 27914;
 
-const BLOCKSFILE: &[u8] = include_bytes!("../../../../.etc/blockmappings.bz2");
+const BLOCKSFILE: &str = include_str!("../../../../assets/data/blockstates.json");
 
 lazy_static! {
     pub static ref ID2BLOCK: Vec<BlockData> = {
-        let mut bzipreader = bzip2::read::BzDecoder::new(BLOCKSFILE);
-        let mut output = String::new();
-        bzipreader.read_to_string(&mut output).unwrap();
         let string_keys: HashMap<String, BlockData, RandomState> =
-            serde_json::from_str(&output).unwrap();
+            serde_json::from_str(BLOCKSFILE).unwrap();
         if string_keys.len() != BLOCK_ENTRIES {
             // Edit this number if the block mappings file changes
             error!("Block mappings file is not the correct length");

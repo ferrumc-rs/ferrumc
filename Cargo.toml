@@ -36,6 +36,7 @@ members = [
     "src/lib/world",
     "src/lib/world_gen",
     "src/lib/utils/threadpool",
+    "src/lib/inventories",
     "src/lib/registry",
     "src/lib/scheduler",
 ]
@@ -111,6 +112,7 @@ ferrumc-threadpool = { path = "src/lib/utils/threadpool" }
 ferrumc-utils = { path = "src/lib/utils" }
 ferrumc-world = { path = "src/lib/world" }
 ferrumc-world-gen = { path = "src/lib/world_gen" }
+ferrumc-inventories = { path = "src/lib/inventories" }
 
 # Asynchronous
 tokio = { version = "1.47.1", features = ["macros", "net", "rt", "sync", "time", "io-util", "test-util"], default-features = false }
@@ -124,17 +126,17 @@ console-subscriber = "0.4.1"
 
 # Concurrency/Parallelism
 parking_lot = "0.12.4"
-rayon = "1.10.0"
+rayon = "1.11.0"
 crossbeam-channel = "0.5.15"
 rusty_pool = "0.7.0"
 crossbeam-queue = "0.3.12"
 
 # Network
 reqwest = { version = "0.12.22", features = ["json"] }
-ureq = "3.0.12"
+ureq = "3.1.0"
 
 # Error handling
-thiserror = "2.0.12"
+thiserror = "2.0.15"
 
 # Cryptography
 rand = "0.9.2"
@@ -148,27 +150,26 @@ serde_json = "1.0.142"
 serde_derive = "1.0.219"
 serde_yaml_ng = "0.9.36"
 base64 = "0.22.1"
-bitcode = "0.6.6"
-bitcode_derive = "0.6.5"
-toml = "0.9.4"
+bitcode = "0.6.7"
+bitcode_derive = "0.6.7"
+toml = "0.9.5"
 craftflow-nbt = "2.1.0"
 figment = { version = "0.10.19", features = ["toml", "env"] }
 simd-json = "0.15.1"
-sonic-rs = "0.5.3"
 
 # Bit manipulation
 byteorder = "1.5.0"
 
 # Data types
 dashmap = "7.0.0-rc2"
-uuid = { version = "1.17.0", features = ["v4", "v3", "serde"] }
+uuid = { version = "1.18.0", features = ["v4", "v3", "serde"] }
 indexmap = { version = "2.10.0", features = ["serde"] }
 
 # Macros
 lazy_static = "1.5.0"
 quote = "1.0.40"
-syn = "2.0.104"
-proc-macro2 = "1.0.95"
+syn = "2.0.106"
+proc-macro2 = "1.0.101"
 proc-macro-crate = "3.3.0"
 paste = "1.0.15"
 maplit = "1.0.2"
@@ -190,7 +191,7 @@ heed = "0.22.0"
 moka = "0.12.10"
 
 # CLI
-clap = "4.5.42"
+clap = "4.5.45"
 indicatif = "0.18.0"
 colored = "3.0.0"
 
