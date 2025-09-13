@@ -65,7 +65,6 @@ impl From<IVec3> for AquiferSectionPos {
     }
 }
 
-/// returns optional fluid type and if it should be updated
 impl Aquifer {
     pub fn new(sea_level: FluidPicker, random: Xoroshiro128PlusPlusFactory) -> Self {
         let random = random.with_hash("minecraft:aquifer").fork_positional();
@@ -80,6 +79,7 @@ impl Aquifer {
     }
 
     #[allow(dead_code)]
+    /// returns optional fluid type and if it should be updated
     pub(crate) fn at(
         &self,
         biome_noise: &OverworldBiomeNoise,
