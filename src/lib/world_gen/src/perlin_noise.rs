@@ -224,14 +224,14 @@ impl BlendedNoise {
             let d13 = wrap(pos.x * weight);
             let d14 = wrap(pos.y * weight);
             let d15 = wrap(pos.z * weight);
-            let d16 = d6 * weight;
+            let y_scale = d6 * weight;
 
             if !flag1 {
-                d8 += n0.legacy_noise((d13, d14, d15).into(), d16, pos.y * weight) / weight;
+                d8 += n0.legacy_noise((d13, d14, d15).into(), y_scale, pos.y * weight) / weight;
             }
 
             if !flag2 {
-                d9 += n1.legacy_noise((d13, d14, d15).into(), d16, pos.y * weight) / weight;
+                d9 += n1.legacy_noise((d13, d14, d15).into(), y_scale, pos.y * weight) / weight;
             }
 
             weight /= 2.0;
@@ -424,11 +424,13 @@ impl ImprovedNoise {
     }
 
     fn legacy_noise(&self, at: DVec3, y_scale: f64, y_max: f64) -> f64 {
-        let actual = at + self.offset;//TODO: big todo; not finishd
+        let actual = at + self.offset; 
         let grid = actual.floor();
         let delta = actual - grid;
 
         let grid = grid.as_ivec3();
+        let mut weird_delta = delta;
+        weird_delta.y = (delta.y.min(y_max) / y_scale + 1.0E-7).floor() * y_scale;
         let i = self.p(grid.x);
         let i1 = self.p(grid.x + 1);
         let i2 = self.p(i + grid.y);
@@ -436,14 +438,26 @@ impl ImprovedNoise {
         let i4 = self.p(i1 + grid.y);
         let i5 = self.p(i1 + grid.y + 1);
 
-        let d = grad_dot(self.p(i2 + grid.z), delta);
-        let d1 = grad_dot(self.p(i4 + grid.z), delta - DVec3::new(1.0, 0.0, 0.0));
-        let d2 = grad_dot(self.p(i3 + grid.z), delta - DVec3::new(0.0, 1.0, 0.0));
-        let d3 = grad_dot(self.p(i5 + grid.z), delta - DVec3::new(1.0, 1.0, 0.0));
-        let d4 = grad_dot(self.p(i2 + grid.z + 1), delta - DVec3::new(0.0, 0.0, 1.0));
-        let d5 = grad_dot(self.p(i4 + grid.z + 1), delta - DVec3::new(1.0, 0.0, 1.0));
-        let d6 = grad_dot(self.p(i3 + grid.z + 1), delta - DVec3::new(0.0, 1.0, 1.0));
-        let d7 = grad_dot(self.p(i5 + grid.z + 1), delta - DVec3::new(1.0, 1.0, 1.0));
+        let d = grad_dot(self.p(i2 + grid.z), weird_delta);
+        let d1 = grad_dot(self.p(i4 + grid.z), weird_delta - DVec3::new(1.0, 0.0, 0.0));
+        let d2 = grad_dot(self.p(i3 + grid.z), weird_delta - DVec3::new(0.0, 1.0, 0.0));
+        let d3 = grad_dot(self.p(i5 + grid.z), weird_delta - DVec3::new(1.0, 1.0, 0.0));
+        let d4 = grad_dot(
+            self.p(i2 + grid.z + 1),
+            weird_delta - DVec3::new(0.0, 0.0, 1.0),
+        );
+        let d5 = grad_dot(
+            self.p(i4 + grid.z + 1),
+            weird_delta - DVec3::new(1.0, 0.0, 1.0),
+        );
+        let d6 = grad_dot(
+            self.p(i3 + grid.z + 1),
+            weird_delta - DVec3::new(0.0, 1.0, 1.0),
+        );
+        let d7 = grad_dot(
+            self.p(i5 + grid.z + 1),
+            weird_delta - DVec3::new(1.0, 1.0, 1.0),
+        );
 
         let smooth = delta.map(smoothstep);
 
