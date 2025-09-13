@@ -2,6 +2,7 @@ use crate::biome_chunk::BiomeNoise;
 use crate::common::aquifer::{FluidPicker, FluidType};
 use crate::common::surface::PreliminarySurface;
 use crate::overworld::noise_biome_parameters::is_deep_dark_region;
+use crate::overworld::overworld_generator::OverworldBiomeNoise;
 use crate::perlin_noise::{
     AQUIFER_BARRIER, AQUIFER_FLUID_LEVEL_FLOODEDNESS, AQUIFER_LAVA, NormalNoise,
 };
@@ -87,7 +88,7 @@ impl Aquifer {
     pub(crate) fn at(
         &self,
         preliminary_surface: &PreliminarySurface,
-        biome_noise: &impl BiomeNoise,
+        biome_noise: &OverworldBiomeNoise,
         pos: IVec3,
         final_density: f64,
     ) -> (Option<FluidType>, bool) {
@@ -233,7 +234,7 @@ impl Aquifer {
         &self,
         pos: IVec3,
         preliminary_surface: &PreliminarySurface,
-        biome_noise: &impl BiomeNoise,
+        biome_noise: &OverworldBiomeNoise,
     ) -> FluidPicker {
         const SURFACE_SAMPLING_OFFSETS_IN_CHUNKS: [IVec2; 13] = [
             IVec2::new(0, 0),
@@ -310,7 +311,7 @@ impl Aquifer {
         default_level: i32,
         max_surface_level: i32,
         fluid_present: bool,
-        biome_noise: &impl BiomeNoise,
+        biome_noise: &OverworldBiomeNoise,
     ) -> Option<i32> {
         if is_deep_dark_region(biome_noise, pos) {
             return None;
@@ -329,7 +330,7 @@ impl Aquifer {
 
         let floodedness = self
             .fluid_level_floodedness_noise
-            .get_value(pos * (1.0, 0.67, 1.0).into())
+            .get_value(pos.as_dvec3() * DVec3::new(1.0, 0.67, 1.0))
             .clamp(-1.0, 1.0);
         let d4 = d2.remap(1.0, 0.0, -0.3, 0.8);
         let d5 = d2.remap(1.0, 0.0, -0.8, 0.4);

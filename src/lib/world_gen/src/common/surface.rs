@@ -1,5 +1,4 @@
 use crate::{
-    DensityFunction,
     biome::Biome,
     common::aquifer::FluidType,
     pos::{BlockPos, ChunkHeight, ChunkPos, ColumnPos},
@@ -27,6 +26,18 @@ pub struct PreliminarySurface {
 }
 
 impl PreliminarySurface {
+    pub fn new(
+        chunk_height: ChunkHeight,
+        noise_size_vertical: usize,
+        initial_density_without_jaggedness: fn(BlockPos) -> f64,
+    ) -> Self {
+        Self {
+            chunk_height,
+            noise_size_vertical,
+            initial_density_without_jaggedness,
+        }
+    }
+
     pub(crate) fn at(&self, chunk: ChunkPos) -> i32 {
         let column = chunk.column_pos(0, 0);
         self.chunk_height
@@ -38,13 +49,24 @@ impl PreliminarySurface {
     }
 }
 pub(crate) struct Surface {
-    pub(crate) preliminary_surface: PreliminarySurface,
+    pub(crate) preliminary_surface: PreliminarySurface, //TODO
     default_block: BlockId,
-    final_density: DensityFunction,
     pub(crate) rules: SurfaceRule,
 }
 
 impl Surface {
+    pub(crate) fn new(
+        preliminary_surface: PreliminarySurface,
+        default_block: BlockId,
+        rules: SurfaceRule,
+    ) -> Self {
+        Self {
+            preliminary_surface,
+            default_block,
+            rules,
+        }
+    }
+
     pub(crate) fn find_surface(
         &self,
         pos: ColumnPos,
@@ -53,7 +75,10 @@ impl Surface {
         let mut stone_level = self.preliminary_surface.chunk_height.min_y - 1;
         let mut fluid_level = None;
         for y in self.preliminary_surface.chunk_height.iter() {
-            let substance = aquifer(pos.block(y), self.final_density.compute(pos.block(y)));
+            let substance = aquifer(
+                pos.block(y),
+                0.0, /* self.final_density.compute(pos.block(y)) TODO */
+            );
             if substance.is_none() {
                 stone_level = y;
                 break;
@@ -77,7 +102,10 @@ impl Surface {
         (self.preliminary_surface.chunk_height.min_y..=stone_level)
             .rev()
             .map(|y| {
-                let substance = aquifer(pos.block(y), self.final_density.compute(pos.block(y)));
+                let substance = aquifer(
+                    pos.block(y),
+                    0.0, /* self.final_density.compute(pos.block(y)) TODO */
+                );
                 if let Some(sub) = substance {
                     if sub != FluidType::Air && fluid_level.is_none() {
                         fluid_level = Some(y);
