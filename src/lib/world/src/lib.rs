@@ -5,15 +5,17 @@ pub mod edit_batch;
 pub mod edits;
 pub mod errors;
 mod importing;
+mod player_state;
 pub mod vanilla_chunk_format;
 
 use crate::chunk_format::Chunk;
 use crate::errors::WorldError;
 use deepsize::DeepSizeOf;
 use ferrumc_config::server_config::get_global_config;
+use ferrumc_core::data::player::PlayerData;
 use ferrumc_general_purpose::paths::get_root_path;
-use ferrumc_playerstate::storage::PlayerStateStorage;
 use ferrumc_storage::lmdb::LmdbBackend;
+use ferrumc_storage::sqlite::SqliteDatabase;
 use moka::sync::Cache;
 use std::fs::create_dir_all;
 use std::path::{Path, PathBuf};
@@ -25,8 +27,8 @@ use tracing::{error, trace, warn};
 #[derive(Clone)]
 pub struct World {
     storage_backend: Arc<LmdbBackend>,
+    player_state_backend: SqliteDatabase<PlayerData>,
     cache: Cache<(i32, i32, String), Arc<Chunk>>,
-    pub players_state: PlayerStateStorage,
 }
 
 fn check_config_validity() -> Result<(), WorldError> {
@@ -91,9 +93,12 @@ impl World {
             backend_path = get_root_path().join(backend_path);
         }
         let storage_backend = Arc::new(
-            LmdbBackend::initialize(Some(backend_path)).expect("Failed to initialize database"),
+            LmdbBackend::initialize(Some(backend_path.clone()))
+                .expect("Failed to initialize database"),
         );
-        let players_state = PlayerStateStorage::new(Arc::clone(&storage_backend));
+
+        let player_state_backend = SqliteDatabase::initialize(Some(backend_path), "playerlist.db")
+            .expect("Failed to initialize storage backend");
 
         if get_global_config().database.cache_ttl != 0
             && get_global_config().database.cache_capacity == 0
@@ -116,7 +121,7 @@ impl World {
         World {
             storage_backend,
             cache,
-            players_state,
+            player_state_backend,
         }
     }
 }

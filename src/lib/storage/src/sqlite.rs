@@ -12,6 +12,7 @@ impl From<rusqlite::Error> for StorageError {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct SqliteDatabase<T> {
     store_path: PathBuf,
     _marker: PhantomData<T>,
@@ -28,8 +29,9 @@ impl<T> SqliteDatabase<T> {
         if !checked_path.exists() {
             std::fs::create_dir_all(&checked_path)?;
         }
+        let checked_path = checked_path.join(storage_name);
         Ok(Self {
-            store_path: checked_path.join(storage_name),
+            store_path: checked_path,
             _marker: PhantomData,
         })
     }
@@ -100,7 +102,7 @@ where
         &self,
         table: &str,
         key: Self::Key,
-        value: Self::Value,
+        value: &Self::Value,
     ) -> Result<bool, StorageError> {
         let conn = self.open_conn()?;
         let json_val: Value =
@@ -215,17 +217,24 @@ mod tests {
     use serde::Deserialize;
     use tempfile::tempdir;
 
-    #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
+    #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
     struct TestData {
-        id: u32,
-        name: String,
+        pub pos: Position,
+        pub dimension: String,
+    }
+
+    #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+    pub struct Position {
+        pub x: f64,
+        pub y: f64,
+        pub z: f64,
     }
 
     fn setup_db() -> (SqliteDatabase<TestData>, String, tempfile::TempDir) {
         let dir = tempdir().unwrap();
-        let db_path = dir.path().join("test.db");
+        let db_path = dir.path();
         let db: SqliteDatabase<TestData> =
-            SqliteDatabase::initialize(Some(db_path.clone()), "test.db").unwrap();
+            SqliteDatabase::initialize(Some(PathBuf::from(db_path)), "test.db").unwrap();
         let table = "test_table".to_string();
         db.create_table(&table).unwrap();
         (db, table, dir)
@@ -234,14 +243,19 @@ mod tests {
     #[test]
     fn test_insert_and_get() {
         let (db, table, db_path) = setup_db();
+        let pos = Position {
+            x: 0.0,
+            y: 64.0,
+            z: 0.0,
+        };
 
         let data1 = TestData {
-            id: 1,
-            name: "Alice".into(),
+            dimension: "Nether".into(),
+            pos: pos.clone(),
         };
         let data2 = TestData {
-            id: 2,
-            name: "Bob".into(),
+            dimension: "Overworld".into(),
+            pos: pos.clone(),
         };
 
         db.insert(&table, 1001, data1.clone()).unwrap();
@@ -258,16 +272,21 @@ mod tests {
     fn test_update() {
         let (db, table, db_path) = setup_db();
 
+        let pos = Position {
+            x: 0.0,
+            y: 64.0,
+            z: 0.0,
+        };
         let data = TestData {
-            id: 1,
-            name: "Alice".into(),
+            dimension: "Nether".into(),
+            pos: pos.clone(),
+        };
+        let updated = TestData {
+            dimension: "Overworld".into(),
+            pos: pos.clone(),
         };
         db.insert(&table, 1001, data.clone()).unwrap();
 
-        let updated = TestData {
-            id: 1,
-            name: "Alice Updated".into(),
-        };
         db.update(&table, 1001, updated.clone()).unwrap();
 
         assert_eq!(db.get(&table, 1001).unwrap(), Some(updated));
@@ -278,18 +297,23 @@ mod tests {
     fn test_upsert() {
         let (db, table, db_path) = setup_db();
 
-        let data = TestData {
-            id: 1,
-            name: "Alice".into(),
+        let pos = Position {
+            x: 0.0,
+            y: 64.0,
+            z: 0.0,
         };
-        db.upsert(&table, 1001, data.clone()).unwrap();
+        let data = TestData {
+            dimension: "Nether".into(),
+            pos: pos.clone(),
+        };
+        let updated = TestData {
+            dimension: "Overworld".into(),
+            pos: pos.clone(),
+        };
+        db.upsert(&table, 1001, &data.clone()).unwrap();
         assert_eq!(db.get(&table, 1001).unwrap(), Some(data.clone()));
 
-        let updated = TestData {
-            id: 1,
-            name: "Alice Upserted".into(),
-        };
-        db.upsert(&table, 1001, updated.clone()).unwrap();
+        db.upsert(&table, 1001, &updated.clone()).unwrap();
         assert_eq!(db.get(&table, 1001).unwrap(), Some(updated));
         remove_dir_all(db_path).unwrap();
     }
@@ -298,11 +322,16 @@ mod tests {
     fn test_delete() {
         let (db, table, db_path) = setup_db();
 
-        let data = TestData {
-            id: 1,
-            name: "Alice".into(),
+        let pos = Position {
+            x: 0.0,
+            y: 64.0,
+            z: 0.0,
         };
-        db.insert(&table, 1001, data.clone()).unwrap();
+        let data = TestData {
+            dimension: "Nether".into(),
+            pos: pos.clone(),
+        };
+        db.insert(&table, 1001, data).unwrap();
 
         db.delete(&table, 1001).unwrap();
         assert_eq!(db.get(&table, 1001).unwrap(), None);

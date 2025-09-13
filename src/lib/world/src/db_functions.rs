@@ -128,7 +128,7 @@ pub(crate) fn save_chunk_internal(world: &World, chunk: &Chunk) -> Result<(), Wo
         CompressionLevel::BestSpeed,
     )?;
     let digest = create_key(chunk.dimension.as_str(), chunk.x, chunk.z);
-    world.storage_backend.upsert("chunks", digest, as_bytes)?;
+    world.storage_backend.upsert("chunks", digest, &as_bytes)?;
     Ok(())
 }
 

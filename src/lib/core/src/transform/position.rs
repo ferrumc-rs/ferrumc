@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt::{Debug, Display, Formatter};
 use typename::TypeName;
 
-#[derive(TypeName, Component, Serialize, Deserialize, Encode, Decode)]
+#[derive(TypeName, Component, Serialize, Deserialize, Encode, Decode, Clone, PartialEq)]
 pub struct Position {
     pub x: f64,
     pub y: f64,
