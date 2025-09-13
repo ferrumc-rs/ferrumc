@@ -38,6 +38,7 @@ members = [
     "src/lib/utils/threadpool",
     "src/lib/inventories",
     "src/lib/registry",
+    "src/lib/scheduler",
 ]
 
 #================== Lints ==================#
@@ -103,6 +104,7 @@ ferrumc-net-encryption = { path = "src/lib/net/crates/encryption" }
 ferrumc-plugins = { path = "src/lib/plugins" }
 ferrumc-profiling = { path = "src/lib/utils/profiling" }
 ferrumc-registry = { path = "src/lib/registry" }
+ferrumc-scheduler = { path = "src/lib/scheduler" }
 ferrumc-state = { path = "src/lib/core/state" }
 ferrumc-storage = { path = "src/lib/storage" }
 ferrumc-text = { path = "src/lib/text" }

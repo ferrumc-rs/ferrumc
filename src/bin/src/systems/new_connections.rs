@@ -9,7 +9,7 @@ use ferrumc_inventories::hotbar::Hotbar;
 use ferrumc_inventories::inventory::Inventory;
 use ferrumc_net::connection::NewConnection;
 use ferrumc_state::GlobalStateResource;
-use std::time::SystemTime;
+use std::time::Instant;
 use tracing::{error, trace};
 
 #[derive(Resource)]
@@ -34,7 +34,7 @@ pub fn accept_new_connections(
             new_connection.player_identity.clone(),
             KeepAliveTracker {
                 last_sent_keep_alive: 0,
-                last_received_keep_alive: SystemTime::now(),
+                last_received_keep_alive: Instant::now(),
                 has_received_keep_alive: true,
             },
             Inventory::new(46),
