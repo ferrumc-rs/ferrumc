@@ -1,14 +1,18 @@
 use crate::common::aquifer::FluidType;
-use crate::common::surface::Surface;
+use crate::common::surface::{PreliminarySurface, Surface};
 use crate::overworld::aquifer::Aquifer;
 use crate::overworld::ore_veins::Vein;
+use crate::overworld::overworld_generator::OverworldBiomeNoise;
+use crate::perlin_noise::{
+    BADLANDS_PILLAR, BADLANDS_PILLAR_ROOF, BADLANDS_SURFACE, ICEBERG_PILLAR, ICEBERG_PILLAR_ROOF,
+    ICEBERG_SURFACE, SURFACE,
+};
 use crate::pos::ChunkHeight;
-use crate::random::Xoroshiro128PlusPlusFactory;
+use crate::random::{RandomFactory, Xoroshiro128PlusPlusFactory};
 use crate::{
     biome_chunk::{BiomeChunk, BiomeNoise},
     common::aquifer::FluidPicker,
     pos::ColumnPos,
-    random::RandomFactory,
 };
 use bevy_math::{DVec2, IVec2, IVec3};
 use ferrumc_world::vanilla_chunk_format::BlockData;
@@ -39,23 +43,27 @@ pub struct OverworldSurface {
 
 impl OverworldSurface {
     pub fn new(random: Xoroshiro128PlusPlusFactory, chunk_height: ChunkHeight) -> Self {
+        let wrapped = RandomFactory::Xoroshiro128PlusPlus(random);
         Self {
-            surface: Surface {
-                rules: todo!(),
-                final_density: todo!(),
-                default_block: BlockData {
+            surface: Surface::new(
+                PreliminarySurface::new(chunk_height, 2 << 2, |_pos| 0.0),
+                BlockData {
                     name: "minecraft:stone".to_string(),
                     properties: None,
                 }
                 .to_block_id(),
-                preliminary_surface: PreliminarySurface {
-                    chunk_height,
-                    noise_size_vertical: 2 << 2,
-                    initial_density_without_jaggedness: todo!(),
-                },
-            },
+                todo!(),
+            ),
             aquifer: Aquifer::new(FluidPicker(63, FluidType::Water), random),
-            noises: todo!(),
+            noises: SurfaceNoises {
+                surface_noise: SURFACE.init(wrapped),
+                iceberg_surface_noise: ICEBERG_SURFACE.init(wrapped),
+                iceberg_pillar_noise: ICEBERG_PILLAR.init(wrapped),
+                iceberg_pillar_roof_noise: ICEBERG_PILLAR_ROOF.init(wrapped),
+                badlands_surface_noise: BADLANDS_SURFACE.init(wrapped),
+                badlands_pillar_noise: BADLANDS_PILLAR.init(wrapped),
+                badlands_pillar_roof_noise: BADLANDS_PILLAR_ROOF.init(wrapped),
+            },
             vein: Vein::new(random),
             random,
         }
@@ -64,7 +72,7 @@ impl OverworldSurface {
     #[allow(dead_code)]
     pub fn build_surface(
         &self,
-        biome_noise: &impl BiomeNoise,
+        biome_noise: &OverworldBiomeNoise,
         biome_manager: &BiomeChunk,
         pos: ColumnPos,
     ) -> Vec<BlockData> {

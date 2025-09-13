@@ -1,4 +1,7 @@
-use crate::common::carver::{Caver, can_reach};
+use crate::{
+    common::carver::{Caver, can_reach},
+    overworld::overworld_generator::OverworldBiomeNoise,
+};
 use std::f32::consts::PI;
 
 use bevy_math::{IVec3, Vec3Swizzles};
@@ -33,7 +36,7 @@ fn clear_overworld_cave_block(
     chunk: &mut ChunkAccess,
     surface: &OverworldSurface,
     biome_accessor: &BiomeChunk,
-    biome_noise: &impl BiomeNoise,
+    biome_noise: &OverworldBiomeNoise,
     surface_reached: &mut bool,
     pos: BlockPos,
 ) {
@@ -81,7 +84,7 @@ impl Caver {
         chunk_pos: ChunkPos,
         carving_mask: &mut CarvingMask,
         surface: &OverworldSurface,
-        biome_noise: &impl BiomeNoise,
+        biome_noise: &OverworldBiomeNoise,
     ) {
         self.carve(
             &mut |pos, surface_reached| {
@@ -125,7 +128,7 @@ impl CanyonCarver {
         chunk_pos: ChunkPos,
         carving_mask: &mut CarvingMask,
         surface: &OverworldSurface,
-        biome_noise: &impl BiomeNoise,
+        biome_noise: &OverworldBiomeNoise,
     ) {
         const PROBABILITY: f32 = 0.01;
         const WIDTH_SMOOTHNESS: u32 = 3;
