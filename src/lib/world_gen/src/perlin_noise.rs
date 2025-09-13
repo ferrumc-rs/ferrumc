@@ -186,6 +186,7 @@ pub struct BlendedNoise {
     smear_scale_multiplier: f64,
 }
 impl BlendedNoise {
+    //TODO: tests
     pub fn at(&self, pos: DVec3) -> f64 {
         let d3 = pos.x / self.xz_factor;
         let d4 = pos.y / self.y_factor;
@@ -424,7 +425,7 @@ impl ImprovedNoise {
     }
 
     fn legacy_noise(&self, at: DVec3, y_scale: f64, y_max: f64) -> f64 {
-        let actual = at + self.offset; 
+        let actual = at + self.offset;
         let grid = actual.floor();
         let delta = actual - grid;
 

@@ -1,5 +1,8 @@
 use crate::biome_chunk::BiomeNoise;
 use crate::overworld::aquifer::clamped_map;
+use crate::overworld::noise_biome_parameters::{
+    DEPTH_DEEP_DARK_DRYNESS_THRESHOLD, EROSION_DEEP_DARK_DRYNESS_THRESHOLD,
+};
 use crate::perlin_noise::{
     BASE_3D_NOISE_OVERWORLD, BlendedNoise, CAVE_CHEESE, CAVE_ENTRANCE, CAVE_LAYER, CONTINENTALNESS,
     EROSION, JAGGED, NOODLE, NOODLE_RIDGE_A, NOODLE_RIDGE_B, NOODLE_THICKNESS, NormalNoise, PILLAR,
@@ -8,9 +11,9 @@ use crate::perlin_noise::{
     SPAGHETTI_3D_RARITY, SPAGHETTI_3D_THICKNESS, SPAGHETTI_ROUGHNESS,
     SPAGHETTI_ROUGHNESS_MODULATOR, TEMPERATURE, VEGETATION,
 };
-use crate::pos::BlockPos;
+use crate::pos::{BlockPos, ChunkHeight, ChunkPos};
 use crate::random::RngFactory;
-use bevy_math::{DVec3, FloatExt, Vec3Swizzles};
+use bevy_math::{DVec3, FloatExt, IVec3, Vec3Swizzles};
 
 use crate::{
     overworld::spline::{CubicSpline, SplinePoint, SplineType},
@@ -27,7 +30,6 @@ fn build_erosion_offset_spline(
     extended: bool,
     use_max_slope: bool,
 ) -> CubicSpline {
-    // Build the intermediate splines
     let cubic = build_mountain_ridge_spline_with_points(0.6.lerp(1.5, magnitude), use_max_slope);
     let cubic1 = build_mountain_ridge_spline_with_points(0.6.lerp(1.0, magnitude), use_max_slope);
     let cubic2 = build_mountain_ridge_spline_with_points(magnitude, use_max_slope);
@@ -49,36 +51,36 @@ fn build_erosion_offset_spline(
     );
     let cubic5 = ridge_spline(f, f3, f3, f1, f2, 0.5);
     let cubic6 = ridge_spline(f, f3, f3, f1, f2, 0.5);
-    let cubic7 = {
-        let pts = vec![
+    let cubic7 = CubicSpline::new(
+        SplineType::RidgesFolded,
+        vec![
             SplinePoint::constant(-1.0, f, 0.0),
-            SplinePoint::spline(-0.4, cubic5.clone(), 0.0),
+            SplinePoint::spline(-0.4, cubic5.clone()),
             SplinePoint::constant(0.0, f2 + 0.07, 0.0),
-        ];
-        CubicSpline::new(SplineType::RidgesFolded, pts)
-    };
-    let cubic8 = ridge_spline(-0.02, f4, f4, f1, f2, 0.0);
-
-    // Build the main spline
+        ],
+    );
     let mut points = vec![
-        SplinePoint::spline(-0.85, cubic, 0.0),
-        SplinePoint::spline(-0.7, cubic1, 0.0),
-        SplinePoint::spline(-0.4, cubic2, 0.0),
-        SplinePoint::spline(-0.35, cubic3, 0.0),
-        SplinePoint::spline(-0.1, cubic4, 0.0),
-        SplinePoint::spline(0.2, cubic5, 0.0),
+        SplinePoint::spline(-0.85, cubic),
+        SplinePoint::spline(-0.7, cubic1),
+        SplinePoint::spline(-0.4, cubic2),
+        SplinePoint::spline(-0.35, cubic3),
+        SplinePoint::spline(-0.1, cubic4),
+        SplinePoint::spline(0.2, cubic5),
     ];
 
     if extended {
         points.extend(vec![
-            SplinePoint::spline(0.4, cubic6.clone(), 0.0),
-            SplinePoint::spline(0.45, cubic7.clone(), 0.0),
-            SplinePoint::spline(0.55, cubic7.clone(), 0.0),
-            SplinePoint::spline(0.58, cubic6.clone(), 0.0),
+            SplinePoint::spline(0.4, cubic6.clone()),
+            SplinePoint::spline(0.45, cubic7.clone()),
+            SplinePoint::spline(0.55, cubic7),
+            SplinePoint::spline(0.58, cubic6),
         ]);
     }
 
-    points.push(SplinePoint::spline(0.7, cubic8, 0.0));
+    points.push(SplinePoint::spline(
+        0.7,
+        ridge_spline(-0.02, f4, f4, f1, f2, 0.0),
+    ));
 
     CubicSpline::new(SplineType::Erosion, points)
 }
@@ -128,20 +130,20 @@ fn build_mountain_ridge_spline_with_points(magnitude: f32, use_max_slope: bool) 
         let f7 = mountain_continentalness(f6, magnitude, -0.7);
         let f8 = -0.75;
         let f9 = mountain_continentalness(f8, magnitude, -0.7);
-        let f10 = calculate_slope(f2, f9, -1.0, f8);
+        let f10 = slope(f2, f9, -1.0, f8);
 
         points.push(SplinePoint::constant(-1.0, f2, f10));
         points.push(SplinePoint::constant(f8, f9, 0.0));
         points.push(SplinePoint::constant(f6, f7, 0.0));
 
         let f11 = mountain_continentalness(f5, magnitude, -0.7);
-        let f12 = calculate_slope(f11, f4, f5, 1.0);
+        let f12 = slope(f11, f4, f5, 1.0);
 
         points.push(SplinePoint::constant(f5 - 0.01, f11, 0.0));
         points.push(SplinePoint::constant(f5, f11, f12));
         points.push(SplinePoint::constant(1.0, f4, f12));
     } else {
-        let f7 = calculate_slope(f2, f4, -1.0, 1.0);
+        let f7 = slope(f2, f4, -1.0, 1.0);
 
         if use_max_slope {
             points.push(SplinePoint::constant(-1.0, f2.max(0.2), 0.0));
@@ -156,8 +158,7 @@ fn build_mountain_ridge_spline_with_points(magnitude: f32, use_max_slope: bool) 
     CubicSpline::new(SplineType::RidgesFolded, points)
 }
 
-// Helper functions
-fn calculate_slope(y1: f32, y2: f32, x1: f32, x2: f32) -> f32 {
+fn slope(y1: f32, y2: f32, x1: f32, x2: f32) -> f32 {
     (y2 - y1) / (x2 - x1)
 }
 pub(super) fn get_offset_spline() -> CubicSpline {
@@ -174,11 +175,11 @@ pub(super) fn get_offset_spline() -> CubicSpline {
             SplinePoint::constant(-0.51, -0.2222, 0.0),
             SplinePoint::constant(-0.44, -0.12, 0.0),
             SplinePoint::constant(-0.18, -0.12, 0.0),
-            SplinePoint::spline(-0.16, cubic.clone(), 0.0),
-            SplinePoint::spline(-0.15, cubic.clone(), 0.0),
-            SplinePoint::spline(-0.10, cubic1.clone(), 0.0),
-            SplinePoint::spline(0.25, cubic2.clone(), 0.0),
-            SplinePoint::spline(1.0, cubic3, 0.0),
+            SplinePoint::spline(-0.16, cubic.clone()),
+            SplinePoint::spline(-0.15, cubic),
+            SplinePoint::spline(-0.10, cubic1),
+            SplinePoint::spline(0.25, cubic2),
+            SplinePoint::spline(1.0, cubic3),
         ],
     )
 }
@@ -188,10 +189,10 @@ pub fn overworld_factor() -> CubicSpline {
         SplineType::Continents,
         vec![
             SplinePoint::constant(-0.19, 3.95, 0.0),
-            SplinePoint::spline(-0.15, get_erosion_factor(6.25, true), 0.0),
-            SplinePoint::spline(-0.1, get_erosion_factor(5.47, true), 0.0),
-            SplinePoint::spline(0.03, get_erosion_factor(5.08, true), 0.0),
-            SplinePoint::spline(0.06, get_erosion_factor(4.69, false), 0.0),
+            SplinePoint::spline(-0.15, get_erosion_factor(6.25, true)),
+            SplinePoint::spline(-0.1, get_erosion_factor(5.47, true)),
+            SplinePoint::spline(0.03, get_erosion_factor(5.08, true)),
+            SplinePoint::spline(0.06, get_erosion_factor(4.69, false)),
         ],
     )
 }
@@ -206,7 +207,7 @@ fn get_erosion_factor(value: f32, higher_values: bool) -> CubicSpline {
     );
 
     let mut points = vec![
-        SplinePoint::spline(-0.6, cubic_spline.clone(), 0.0),
+        SplinePoint::spline(-0.6, cubic_spline.clone()),
         SplinePoint::spline(
             -0.5,
             CubicSpline::new(
@@ -216,10 +217,9 @@ fn get_erosion_factor(value: f32, higher_values: bool) -> CubicSpline {
                     SplinePoint::constant(0.05, 2.67, 0.0),
                 ],
             ),
-            0.0,
         ),
-        SplinePoint::spline(-0.35, cubic_spline.clone(), 0.0),
-        SplinePoint::spline(-0.25, cubic_spline.clone(), 0.0),
+        SplinePoint::spline(-0.35, cubic_spline.clone()),
+        SplinePoint::spline(-0.25, cubic_spline.clone()),
         SplinePoint::spline(
             -0.1,
             CubicSpline::new(
@@ -229,9 +229,8 @@ fn get_erosion_factor(value: f32, higher_values: bool) -> CubicSpline {
                     SplinePoint::constant(0.05, 6.3, 0.0),
                 ],
             ),
-            0.0,
         ),
-        SplinePoint::spline(0.03, cubic_spline.clone(), 0.0),
+        SplinePoint::spline(0.03, cubic_spline.clone()),
     ];
 
     if higher_values {
@@ -247,21 +246,20 @@ fn get_erosion_factor(value: f32, higher_values: bool) -> CubicSpline {
             SplineType::RidgesFolded,
             vec![
                 SplinePoint::constant(-0.9, value, 0.0),
-                SplinePoint::spline(-0.69, cubic_spline1, 0.0),
+                SplinePoint::spline(-0.69, cubic_spline1),
             ],
         );
 
         points.extend(vec![
             SplinePoint::constant(0.35, value, 0.0),
-            SplinePoint::spline(0.45, cubic_spline2.clone(), 0.0),
-            SplinePoint::spline(0.55, cubic_spline2.clone(), 0.0),
+            SplinePoint::spline(0.55, cubic_spline2.clone()),
             SplinePoint::constant(0.62, value, 0.0),
         ]);
     } else {
         let cubic_spline1 = CubicSpline::new(
             SplineType::RidgesFolded,
             vec![
-                SplinePoint::spline(-0.7, cubic_spline.clone(), 0.0),
+                SplinePoint::spline(-0.7, cubic_spline.clone()),
                 SplinePoint::constant(-0.15, 1.37, 0.0),
             ],
         );
@@ -269,16 +267,16 @@ fn get_erosion_factor(value: f32, higher_values: bool) -> CubicSpline {
         let cubic_spline2 = CubicSpline::new(
             SplineType::RidgesFolded,
             vec![
-                SplinePoint::spline(0.45, cubic_spline.clone(), 0.0),
+                SplinePoint::spline(0.45, cubic_spline),
                 SplinePoint::constant(0.7, 1.56, 0.0),
             ],
         );
 
         points.extend(vec![
-            SplinePoint::spline(0.05, cubic_spline2.clone(), 0.0),
-            SplinePoint::spline(0.4, cubic_spline2.clone(), 0.0),
-            SplinePoint::spline(0.45, cubic_spline1.clone(), 0.0),
-            SplinePoint::spline(0.55, cubic_spline1.clone(), 0.0),
+            SplinePoint::spline(0.05, cubic_spline2.clone()),
+            SplinePoint::spline(0.4, cubic_spline2),
+            SplinePoint::spline(0.45, cubic_spline1.clone()),
+            SplinePoint::spline(0.55, cubic_spline1),
             SplinePoint::constant(0.58, value, 0.0),
         ]);
     }
@@ -291,16 +289,8 @@ pub fn overworld_jaggedness() -> CubicSpline {
         SplineType::Continents,
         vec![
             SplinePoint::constant(-0.11, 0.0, 0.0),
-            SplinePoint::spline(
-                0.03,
-                build_erosion_jaggedness_spline(1.0, 0.5, 0.0, 0.0),
-                0.0,
-            ),
-            SplinePoint::spline(
-                0.65,
-                build_erosion_jaggedness_spline(1.0, 1.0, 1.0, 0.0),
-                0.0,
-            ),
+            SplinePoint::spline(0.03, build_erosion_jaggedness_spline(1.0, 0.5, 0.0, 0.0)),
+            SplinePoint::spline(0.65, build_erosion_jaggedness_spline(1.0, 1.0, 1.0, 0.0)),
         ],
     )
 }
@@ -311,8 +301,6 @@ fn build_erosion_jaggedness_spline(
     high_erosion_mid_weirdness: f32,
     low_erosion_mid_weirdness: f32,
 ) -> CubicSpline {
-    let f = -0.5775;
-
     let spline_high =
         build_ridge_jaggedness_spline(high_erosion_high_weirdness, high_erosion_mid_weirdness);
 
@@ -322,23 +310,20 @@ fn build_erosion_jaggedness_spline(
     CubicSpline::new(
         SplineType::RidgesFolded,
         vec![
-            SplinePoint::spline(-1.0, spline_high, 0.0),
-            SplinePoint::spline(-0.78, spline_low.clone(), 0.0),
-            SplinePoint::spline(f, spline_low, 0.0),
+            SplinePoint::spline(-1.0, spline_high),
+            SplinePoint::spline(-0.78, spline_low.clone()),
+            SplinePoint::spline(-0.5775, spline_low),
             SplinePoint::constant(-0.375, 0.0, 0.0),
         ],
     )
 }
 
 fn build_weirdness_jaggedness_spline(magnitude: f32) -> CubicSpline {
-    let f = 0.63 * magnitude;
-    let f1 = 0.3 * magnitude;
-
     CubicSpline::new(
         SplineType::Ridges,
         vec![
-            SplinePoint::constant(-0.01, f, 0.0),
-            SplinePoint::constant(0.01, f1, 0.0),
+            SplinePoint::constant(-0.01, 0.63 * magnitude, 0.0),
+            SplinePoint::constant(0.01, 0.3 * magnitude, 0.0),
         ],
     )
 }
@@ -358,7 +343,6 @@ fn build_ridge_jaggedness_spline(
         SplinePoint::spline(
             f2,
             build_weirdness_jaggedness_spline(mid_weirdness_magnitude),
-            0.0,
         )
     } else {
         SplinePoint::constant(f2, 0.0, 0.0)
@@ -368,7 +352,6 @@ fn build_ridge_jaggedness_spline(
         SplinePoint::spline(
             1.0,
             build_weirdness_jaggedness_spline(high_weirdness_magnitude),
-            0.0,
         )
     } else {
         SplinePoint::constant(1.0, 0.0, 0.0)
@@ -381,6 +364,8 @@ fn build_ridge_jaggedness_spline(
 }
 
 pub struct OverworldBiomeNoise {
+    chunk_height: ChunkHeight,
+    noise_size_vertical: usize,
     offset: CubicSpline,
     jaggedness: CubicSpline,
     factor: CubicSpline,
@@ -416,6 +401,11 @@ pub struct OverworldBiomeNoise {
 impl OverworldBiomeNoise {
     pub(super) fn new(random: Xoroshiro128PlusPlusFactory) -> Self {
         Self {
+            chunk_height: ChunkHeight {
+                min_y: -64,
+                height: 384,
+            },
+            noise_size_vertical: 2 << 2,
             factor: overworld_factor(),
             jaggedness: overworld_jaggedness(),
             offset: get_offset_spline(),
@@ -451,20 +441,26 @@ impl OverworldBiomeNoise {
         }
     }
 
-    pub fn transform(&self, pos: BlockPos) -> DVec3 {
+    fn transform(&self, pos: BlockPos) -> DVec3 {
         let shift_x = self.shift.at(pos.with_y(0).into());
         let shift_z = self.shift.at(pos.with_y(0).zxy().into());
         pos.as_dvec3() * DVec3::new(0.25, 1.0, 0.25) + DVec3::new(shift_x, 0.0, shift_z)
     }
-    pub fn initial_density_without_jaggedness(&self, pos: BlockPos) -> f64 {
-        let transformed_pos = self.transform(pos);
-        let spline_params = self.make_spline_params(transformed_pos);
-        let factor = self.factor(spline_params);
-        let mut factor_depth = factor * self.depth(pos, spline_params);
+    fn initial_density_without_jaggedness(&self, pos: BlockPos) -> f64 {
+        let spline_params = self.make_spline_params(self.transform(pos));
+        let mut factor_depth = self.factor(spline_params) * self.depth(pos, spline_params);
         factor_depth *= if factor_depth > 0.0 { 4.0 } else { 1.0 };
         let density = (factor_depth - 0.703125).clamp(-64.0, 64.0);
         slide(
-            pos.y, density, -64, 384, 80, 64, -0.078125, 0, 24, 0.1171875,
+            pos.y,
+            density,
+            self.chunk_height,
+            80,
+            64,
+            -0.078125,
+            0,
+            24,
+            0.1171875,
         )
     }
 
@@ -603,7 +599,17 @@ impl OverworldBiomeNoise {
             self.underground(sloped_cheese, pos.into(), entrances, spaghetti_roughness)
         };
 
-        let tmp = slide(pos.y, f8, -64, 384, 80, 64, -0.078125, 0, 24, 0.1171875);
+        let tmp = slide(
+            pos.y,
+            f8,
+            self.chunk_height,
+            80,
+            64,
+            -0.078125,
+            0,
+            24,
+            0.1171875,
+        );
 
         let blended = tmp; //TODO: blender.blend_density(pos, tmp); //interpolated
 
@@ -621,7 +627,7 @@ impl OverworldBiomeNoise {
         ))
     }
 
-    pub fn make_spline_params(&self, transformed_pos: DVec3) -> (f64, f64, f64, f64) {
+    fn make_spline_params(&self, transformed_pos: DVec3) -> (f64, f64, f64, f64) {
         let ridges = self.ridges.at(transformed_pos);
         let ridges_folded = ((ridges.abs() - 0.6666666666666666).abs() - 0.3333333333333333) * -3.0;
         let erosion = self.erosion.at(transformed_pos);
@@ -629,47 +635,42 @@ impl OverworldBiomeNoise {
         (ridges, ridges_folded, erosion, continents)
     }
 
+    /// the last param (ridges) is not needed for this spline
     fn offset(&self, spline_params: (f64, f64, f64, f64)) -> f64 {
-        BLEND_OFFSET.lerp(
-            -0.50375
-                + f64::from(self.offset.sample(
-                    spline_params.0 as f32,
-                    spline_params.1 as f32,
-                    spline_params.2 as f32,
-                    spline_params.3 as f32,
-                )),
-            BLEND_ALPHA,
-        )
-    }
-    fn temperature(&self, pos: BlockPos) -> f64 {
-        self.temperature.at(self.transform(pos))
-    }
-    fn vegetation(&self, pos: BlockPos) -> f64 {
-        self.vegetation.at(self.transform(pos))
+        f64::from(self.offset.sample(
+            spline_params.0 as f32,
+            spline_params.1 as f32,
+            spline_params.2 as f32,
+            spline_params.3 as f32,
+        )) - 0.50375
     }
 
-    fn continents(&self, pos: BlockPos) -> f64 {
-        self.continents.at(self.transform(pos))
-    }
-
-    pub fn erosion(&self, pos: BlockPos) -> f64 {
-        self.erosion.at(self.transform(pos))
-    }
-
-    pub fn depth(&self, pos: BlockPos, spline_params: (f64, f64, f64, f64)) -> f64 {
+    /// the last param (ridges) is not needed
+    fn depth(&self, pos: BlockPos, spline_params: (f64, f64, f64, f64)) -> f64 {
         let offset = self.offset(spline_params);
         f64::from(pos.y).remap(-64.0, 320.0, 1.5, -1.5) + offset
     }
 
-    fn ridges(&self, pos: BlockPos) -> f64 {
-        self.ridges.at(self.transform(pos))
+    pub fn prelimintary_surface(&self, chunk: ChunkPos) -> i32 {
+        let column = chunk.column_pos(0, 0);
+        self.chunk_height
+            .iter()
+            .rev()
+            .step_by(self.noise_size_vertical)
+            .find(|y| self.initial_density_without_jaggedness(column.block(*y)) > 0.390625)
+            .unwrap_or(self.chunk_height.min_y)
+    }
+    pub fn is_deep_dark_region(&self, pos: IVec3) -> bool {
+        let transformed_pos = self.transform(pos);
+        self.erosion.at(transformed_pos) < EROSION_DEEP_DARK_DRYNESS_THRESHOLD.into()
+            && self.depth(pos, self.make_spline_params(transformed_pos))
+                > DEPTH_DEEP_DARK_DRYNESS_THRESHOLD.into()
     }
 }
 fn slide(
     y: i32,
     density: f64,
-    min_y: i32,
-    height: i32,
+    chunk_height: ChunkHeight,
     top_start_offset: i32,
     top_end_offset: i32,
     top_delta: f64,
@@ -679,15 +680,15 @@ fn slide(
 ) -> f64 {
     let s = clamped_map(
         f64::from(y),
-        f64::from(min_y + height - top_start_offset),
-        f64::from(min_y + height - top_end_offset),
+        f64::from(chunk_height.max_y() - top_start_offset),
+        f64::from(chunk_height.max_y() - top_end_offset),
         1.0,
         0.0,
     );
     let t = clamped_map(
         f64::from(y),
-        f64::from(min_y + bottom_start_offset),
-        f64::from(min_y + bottom_end_offset),
+        f64::from(chunk_height.min_y + bottom_start_offset),
+        f64::from(chunk_height.min_y + bottom_end_offset),
         0.0,
         1.0,
     );
