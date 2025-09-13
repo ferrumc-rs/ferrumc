@@ -1,6 +1,5 @@
 use bevy_ecs::prelude::{Query, Res};
 use ferrumc_inventories::defined_slots::player::HOTBAR_SLOT_6;
-use ferrumc_inventories::display::DisplayType;
 use ferrumc_inventories::inventory::Inventory;
 use ferrumc_inventories::item::ItemID;
 use ferrumc_inventories::slot::InventorySlot;
@@ -55,7 +54,6 @@ pub fn handle(
                         entity, err
                     );
                 }
-                inventory.display(DisplayType::Player);
             } else {
                 error!("Could not find inventory for player {}", entity);
             }

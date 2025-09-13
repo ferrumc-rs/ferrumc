@@ -1,7 +1,6 @@
 //! FerrumC's Command API.
 #![feature(duration_constructors)]
 
-use std::io::Write;
 use std::sync::{Arc, LazyLock};
 
 use arg::CommandArgumentNode;
