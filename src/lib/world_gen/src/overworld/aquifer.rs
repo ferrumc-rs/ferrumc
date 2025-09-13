@@ -1,7 +1,7 @@
 use crate::common::aquifer::{FluidPicker, FluidType};
 use crate::common::surface::PreliminarySurface;
 use crate::overworld::noise_biome_parameters::is_deep_dark_region;
-use crate::overworld::overworld_generator::OverworldBiomeNoise;
+use crate::overworld::noise_depth::OverworldBiomeNoise;
 use crate::perlin_noise::{
     AQUIFER_BARRIER, AQUIFER_FLUID_LEVEL_FLOODEDNESS, AQUIFER_FLUID_LEVEL_SPREAD, AQUIFER_LAVA,
     NormalNoise,
@@ -110,7 +110,7 @@ impl Aquifer {
             .rev()
             .cartesian_product((-1..=1).rev())
             .cartesian_product((0..=1).rev())
-            .map(|((x, y), z)| section + AquiferSectionPos::new(x, y, z))
+            .map(|((x, y), z)| section + IVec3::new(x, y, z).into())
             .map(|offset_section| {
                 let mut random = self.random.with_pos(offset_section.pos);
                 let random_pos = offset_section.block(

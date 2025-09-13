@@ -1,6 +1,6 @@
 use crate::{
     common::carver::{Caver, can_reach},
-    overworld::overworld_generator::OverworldBiomeNoise,
+    overworld::noise_depth::OverworldBiomeNoise,
 };
 use std::f32::consts::PI;
 
@@ -20,15 +20,15 @@ use crate::{
 };
 
 pub(super) struct OverworldCarver {
-    cave_carver: Caver,
-    extra_cave_carver: Caver,
-    canyon_carver: CanyonCarver,
+    // cave_carver: Caver,
+    // extra_cave_carver: Caver,
+    // canyon_carver: CanyonCarver,
 } //TODO
 
 impl OverworldCarver {
     pub fn new() -> Self {
-        todo!()
-    }
+        Self {}
+    }//TODO
 }
 
 fn clear_overworld_cave_block(
