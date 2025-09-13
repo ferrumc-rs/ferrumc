@@ -3,7 +3,7 @@ use bevy_math::IVec3;
 use crate::{
     biome::Biome,
     biome_chunk::{BiomeNoise, NoisePoint},
-    overworld::overworld_generator::OverworldBiomeNoise,
+    overworld::noise_depth::OverworldBiomeNoise,
 };
 // reference: net.minecraft.world.level.biome.OverworldBiomeBuilder
 const VALLEY_SIZE: f32 = 0.05;

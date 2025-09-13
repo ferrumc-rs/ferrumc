@@ -1,8 +1,8 @@
 use crate::common::aquifer::FluidType;
-use crate::common::surface::{PreliminarySurface, Surface};
+use crate::common::surface::{PreliminarySurface, Surface, SurfaceRule};
 use crate::overworld::aquifer::Aquifer;
+use crate::overworld::noise_depth::OverworldBiomeNoise;
 use crate::overworld::ore_veins::Vein;
-use crate::overworld::overworld_generator::OverworldBiomeNoise;
 use crate::perlin_noise::{
     BADLANDS_PILLAR, BADLANDS_PILLAR_ROOF, BADLANDS_SURFACE, ICEBERG_PILLAR, ICEBERG_PILLAR_ROOF,
     ICEBERG_SURFACE, SURFACE,
@@ -47,7 +47,7 @@ impl OverworldSurface {
                     properties: None,
                 }
                 .to_block_id(),
-                todo!(),
+                SurfaceRule {}, //TODO:
             ),
             aquifer: Aquifer::new(FluidPicker(63, FluidType::Water), random),
             noises: SurfaceNoises {
