@@ -28,10 +28,7 @@ pub fn handle(
         }
 
         // Default player data
-        *player_data = PlayerData::new(
-            Position::default(),
-            "overworld",
-        );
+        *player_data = PlayerData::new(Position::default(), "overworld");
 
         // Save the player's position in the world
         if let Ok(loaded) = state
@@ -52,7 +49,11 @@ pub fn handle(
                     );
                 }
                 None => {
-                    if let Err(e) = state.0.world.save_player_state(player_identity.uuid.as_u128(), &player_data) {
+                    if let Err(e) = state
+                        .0
+                        .world
+                        .save_player_state(player_identity.uuid.as_u128(), &player_data)
+                    {
                         tracing::error!(
                             "Failed to save player state for {} ({}): {:?}",
                             player_identity.username,
@@ -62,7 +63,11 @@ pub fn handle(
                     }
                 }
             }
-        } else if let Err(e) = state.0.world.save_player_state(player_identity.uuid.as_u128(), &player_data) {
+        } else if let Err(e) = state
+            .0
+            .world
+            .save_player_state(player_identity.uuid.as_u128(), &player_data)
+        {
             tracing::error!(
                 "Failed to save player state for {} ({}): {:?}",
                 player_identity.username,

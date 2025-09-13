@@ -9,8 +9,12 @@ pub trait Database {
     fn get(&self, table: &str, key: Self::Key) -> Result<Option<Self::Value>, StorageError>;
     fn delete(&self, table: &str, key: Self::Key) -> Result<(), StorageError>;
     fn update(&self, table: &str, key: Self::Key, value: Self::Value) -> Result<(), StorageError>;
-    fn upsert(&self, table: &str, key: Self::Key, value: &Self::Value)
-        -> Result<bool, StorageError>;
+    fn upsert(
+        &self,
+        table: &str,
+        key: Self::Key,
+        value: &Self::Value,
+    ) -> Result<bool, StorageError>;
     fn batch_insert(
         &self,
         table: &str,
