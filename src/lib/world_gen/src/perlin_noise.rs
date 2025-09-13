@@ -1,4 +1,7 @@
-use crate::random::{Rng, RngFactory};
+use crate::{
+    pos::BlockPos,
+    random::{LegacyRandom, Rng, RngFactory},
+};
 use std::mem::MaybeUninit;
 
 use bevy_math::{DVec2, DVec3, FloatExt, Vec3Swizzles};
@@ -6,6 +9,11 @@ use bevy_math::{DVec2, DVec3, FloatExt, Vec3Swizzles};
 //reference net.minecraft.world.level.levelgen.Noises
 //only shift and swamp have a different name in the resourcelocation, but we could rename them and
 //do some macro magic (maybe)
+pub const NETHER_SHIFT: ConstNormalNoise<1> = ConstNormalNoise::new("minecraft:offset", 0, [0.0]);
+pub const NETHER_TEMPERATURE: ConstNormalNoise<2> =
+    ConstNormalNoise::new("minecraft:temperature", 7, [1.0, 1.0]);
+pub const NETHER_VEGETATION: ConstNormalNoise<2> =
+    ConstNormalNoise::new("minecraft:vegetation", 7, [1.0, 1.0]);
 pub const RIDGE: ConstNormalNoise<6> =
     ConstNormalNoise::new("minecraft:ridge", 7, [1.0, 2.0, 1.0, 0.0, 0.0, 0.0]);
 pub const SHIFT: ConstNormalNoise<4> =
@@ -131,7 +139,106 @@ pub const NETHER_WART: ConstNormalNoise<4> =
     ConstNormalNoise::new("minecraft:nether_wart", 3, [1.0, 0.0, 0.0, 0.9]);
 pub const NETHER_STATE_SELECTOR: ConstNormalNoise<1> =
     ConstNormalNoise::new("minecraft:nether_state_selector", 4, [1.0]);
+pub const BASE_3D_NOISE_OVERWORLD: ConstBlendedNoise =
+    ConstBlendedNoise::new(0.125, 80.0, 160.0, 8.0);
 
+pub struct ConstBlendedNoise {
+    min_limit_noise: ConstPerlinNoise<16>,
+    max_limit_noise: ConstPerlinNoise<16>,
+    main_noise: ConstPerlinNoise<8>,
+    y_scale: f64,
+    xz_factor: f64,
+    y_factor: f64,
+    smear_scale_multiplier: f64,
+}
+impl ConstBlendedNoise {
+    const fn new(y_scale: f64, xz_factor: f64, y_factor: f64, smear_scale_multiplier: f64) -> Self {
+        Self {
+            min_limit_noise: ConstPerlinNoise::new(15, [1.0; 16]),
+            max_limit_noise: ConstPerlinNoise::new(15, [1.0; 16]),
+            main_noise: ConstPerlinNoise::new(7, [1.0; 8]),
+            y_scale,
+            xz_factor,
+            y_factor,
+            smear_scale_multiplier,
+        }
+    }
+    pub fn init<RF>(&self, random: &mut impl Rng<RF>) -> BlendedNoise {
+        BlendedNoise {
+            min_limit_noise: self.min_limit_noise.legacy_init(random),
+            max_limit_noise: self.max_limit_noise.legacy_init(random),
+            main_noise: self.main_noise.legacy_init(random),
+            y_scale: self.y_scale,
+            xz_factor: self.xz_factor,
+            y_factor: self.y_factor,
+            smear_scale_multiplier: self.smear_scale_multiplier,
+        }
+    }
+}
+
+pub struct BlendedNoise {
+    min_limit_noise: PerlinNoise<16>,
+    max_limit_noise: PerlinNoise<16>,
+    main_noise: PerlinNoise<8>,
+    y_scale: f64,
+    xz_factor: f64,
+    y_factor: f64,
+    smear_scale_multiplier: f64,
+}
+impl BlendedNoise {
+    pub fn at(&self, pos: DVec3) -> f64 {
+        let d3 = pos.x / self.xz_factor;
+        let d4 = pos.y / self.y_factor;
+        let d5 = pos.z / self.xz_factor;
+
+        let d6 = self.y_scale * 684.412 * self.smear_scale_multiplier;
+        let d7 = d6 / self.y_factor;
+
+        let mut d8 = 0.0;
+        let mut d9 = 0.0;
+        let mut d10 = 0.0;
+
+        let mut weight = 1.0;
+        for n in self.main_noise.noise_levels.iter().rev() {
+            d10 += n.legacy_noise(
+                (wrap(d3 * weight), wrap(d4 * weight), wrap(d5 * weight)).into(),
+                d7 * weight,
+                d4 * weight,
+            ) / weight;
+            weight /= 2.0;
+        }
+
+        let d12 = (d10 / 10.0 + 1.0) / 2.0;
+        let flag1 = d12 >= 1.0;
+        let flag2 = d12 <= 0.0;
+
+        // ----- Second octave loop -----
+        let mut weight = 1.0;
+        for (n0, n1) in self
+            .min_limit_noise
+            .noise_levels
+            .iter()
+            .zip(self.max_limit_noise.noise_levels.iter())
+            .rev()
+        {
+            let d13 = wrap(pos.x * weight);
+            let d14 = wrap(pos.y * weight);
+            let d15 = wrap(pos.z * weight);
+            let d16 = d6 * weight;
+
+            if !flag1 {
+                d8 += n0.legacy_noise((d13, d14, d15).into(), d16, pos.y * weight) / weight;
+            }
+
+            if !flag2 {
+                d9 += n1.legacy_noise((d13, d14, d15).into(), d16, pos.y * weight) / weight;
+            }
+
+            weight /= 2.0;
+        }
+        (d8 / 512.0).lerp(d9 / 512.0, d12.clamp(d8 / 512.0, d9 / 512.0)) / 128.0
+    }
+}
 pub struct ConstNormalNoise<const N: usize> {
     first: ConstPerlinNoise<N>,
     second: ConstPerlinNoise<N>,
@@ -171,6 +278,14 @@ impl<const N: usize> ConstNormalNoise<N> {
         }
     }
 
+    pub fn legacy_init(&self, seed: u64) -> NormalNoise<N> {
+        let mut random = LegacyRandom::new(seed);
+        NormalNoise {
+            first: self.first.legacy_init(&mut random),
+            second: self.second.legacy_init(&mut random),
+            factor: self.factor,
+        }
+    }
     pub fn init<R: Rng<RF>, RF: RngFactory<R>>(
         &self,
         random: impl RngFactory<R>,
@@ -206,12 +321,29 @@ impl<const N: usize> ConstPerlinNoise<N> {
         }
     }
 
+    pub fn legacy_init<RF>(&self, random: &mut impl Rng<RF>) -> PerlinNoise<N> {
+        let mut noise_levels: [MaybeUninit<ImprovedNoise>; N] =
+            unsafe { MaybeUninit::uninit().assume_init() };
+        for i in (0..=self.first_octave as usize).rev() {
+            let improved_noise = ImprovedNoise::new(random);
+            if let Some(n) = noise_levels.get_mut(i) {
+                n.write(improved_noise);
+            }
+        }
+        PerlinNoise {
+            noise_levels: unsafe { MaybeUninit::array_assume_init(noise_levels) },
+            amplitudes: self.amplitudes,
+            lowest_freq_input_factor: self.lowest_freq_input_factor,
+            lowest_freq_value_factor: self.lowest_freq_value_factor,
+        }
+    }
+
     pub fn init<R: Rng<RF>, RF>(&self, factory: impl RngFactory<R>) -> PerlinNoise<N> {
         let mut noise_levels: [MaybeUninit<ImprovedNoise>; N] =
             unsafe { MaybeUninit::uninit().assume_init() };
         for (i, noise_level) in noise_levels.iter_mut().enumerate() {
             noise_level.write(ImprovedNoise::new(
-                factory.with_hash(&format!("octave_{}", i as i32 - self.first_octave as i32)),
+                &mut factory.with_hash(&format!("octave_{}", i as i32 - self.first_octave as i32)),
             ));
         }
         PerlinNoise {
@@ -276,7 +408,7 @@ pub struct ImprovedNoise {
 }
 
 impl ImprovedNoise {
-    pub fn new<RF>(mut random: impl Rng<RF>) -> Self {
+    pub fn new<RF>(random: &mut impl Rng<RF>) -> Self {
         let offset = DVec3::new(random.next_f64(), random.next_f64(), random.next_f64()) * 256.0;
 
         let mut p = [0u8; 256];
@@ -291,6 +423,32 @@ impl ImprovedNoise {
         Self { p, offset }
     }
 
+    fn legacy_noise(&self, at: DVec3, y_scale: f64, y_max: f64) -> f64 {
+        let actual = at + self.offset;//TODO: big todo; not finishd
+        let grid = actual.floor();
+        let delta = actual - grid;
+
+        let grid = grid.as_ivec3();
+        let i = self.p(grid.x);
+        let i1 = self.p(grid.x + 1);
+        let i2 = self.p(i + grid.y);
+        let i3 = self.p(i + grid.y + 1);
+        let i4 = self.p(i1 + grid.y);
+        let i5 = self.p(i1 + grid.y + 1);
+
+        let d = grad_dot(self.p(i2 + grid.z), delta);
+        let d1 = grad_dot(self.p(i4 + grid.z), delta - DVec3::new(1.0, 0.0, 0.0));
+        let d2 = grad_dot(self.p(i3 + grid.z), delta - DVec3::new(0.0, 1.0, 0.0));
+        let d3 = grad_dot(self.p(i5 + grid.z), delta - DVec3::new(1.0, 1.0, 0.0));
+        let d4 = grad_dot(self.p(i2 + grid.z + 1), delta - DVec3::new(0.0, 0.0, 1.0));
+        let d5 = grad_dot(self.p(i4 + grid.z + 1), delta - DVec3::new(1.0, 0.0, 1.0));
+        let d6 = grad_dot(self.p(i3 + grid.z + 1), delta - DVec3::new(0.0, 1.0, 1.0));
+        let d7 = grad_dot(self.p(i5 + grid.z + 1), delta - DVec3::new(1.0, 1.0, 1.0));
+
+        let smooth = delta.map(smoothstep);
+
+        lerp3(smooth, d, d1, d2, d3, d4, d5, d6, d7)
+    }
     pub fn noise(&self, at: DVec3) -> f64 {
         let actual = at + self.offset;
         let grid = actual.floor();
@@ -392,8 +550,8 @@ fn test_normal_noise() {
 
 #[test]
 fn test_improved_noise() {
-    let rng = crate::random::Xoroshiro128PlusPlus::new(0, 0);
-    let noise = ImprovedNoise::new(rng);
+    let mut rng = crate::random::Xoroshiro128PlusPlus::new(0, 0);
+    let noise = ImprovedNoise::new(&mut rng);
 
     assert_eq!(
         noise.noise(DVec3::new(0.0, 0.0, 0.0)),

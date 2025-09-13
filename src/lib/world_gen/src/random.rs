@@ -156,9 +156,20 @@ impl LegacyRandom {
             seed: (seed ^ 0x5DEECE66D) & ((1 << 48) - 1),
         }
     }
-    pub fn next(&mut self, bits: u32) -> i32 {
+    pub const fn next(&mut self, bits: u32) -> i32 {
         self.seed = self.seed.wrapping_mul(0x5DEECE66D).wrapping_add(11) & ((1 << 48) - 1);
         (self.seed >> (48 - bits)) as i32
+    }
+    pub const fn next_f64(&mut self) -> f64 {
+        ((((self.next(26) as u64) << 27) + self.next(27) as u64) as f32 * 1.110223E-16f32) as f64
+    }
+
+    pub const fn next_bounded(&mut self, bound: u32) -> u32 {
+        if (bound & (bound - 1)) == 0 {
+            ((bound as u64 * self.next(31) as u64) >> 31) as u32
+        } else {
+            self.next(31) as u32 % bound
+        }
     }
 }
 impl Rng<LegacyPositionalFactory> for LegacyRandom {
@@ -175,15 +186,11 @@ impl Rng<LegacyPositionalFactory> for LegacyRandom {
     }
 
     fn next_f64(&mut self) -> f64 {
-        f64::from((((self.next(26) as u64) << 27) + self.next(27) as u64) as f32 * 1.110223E-16f32)
+        self.next_f64()
     }
 
     fn next_bounded(&mut self, bound: u32) -> u32 {
-        if (bound & (bound - 1)) == 0 {
-            ((u64::from(bound) * self.next(31) as u64) >> 31) as u32
-        } else {
-            self.next(31) as u32 % bound
-        }
+        self.next_bounded(bound)
     }
 
     fn fork_positional(&mut self) -> LegacyPositionalFactory {

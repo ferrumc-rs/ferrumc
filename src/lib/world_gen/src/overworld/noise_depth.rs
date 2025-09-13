@@ -1,14 +1,15 @@
 use crate::biome_chunk::BiomeNoise;
 use crate::overworld::aquifer::clamped_map;
 use crate::perlin_noise::{
-    CAVE_CHEESE, CAVE_ENTRANCE, CAVE_LAYER, CONTINENTALNESS, EROSION, JAGGED, NOODLE,
-    NOODLE_RIDGE_A, NOODLE_RIDGE_B, NOODLE_THICKNESS, NormalNoise, PILLAR, PILLAR_RARENESS,
-    PILLAR_THICKNESS, RIDGE, SHIFT, SPAGHETTI_2D, SPAGHETTI_2D_ELEVATION, SPAGHETTI_2D_MODULATOR,
-    SPAGHETTI_2D_THICKNESS, SPAGHETTI_3D_1, SPAGHETTI_3D_2, SPAGHETTI_3D_RARITY,
-    SPAGHETTI_3D_THICKNESS, SPAGHETTI_ROUGHNESS, SPAGHETTI_ROUGHNESS_MODULATOR, TEMPERATURE,
-    VEGETATION,
+    BASE_3D_NOISE_OVERWORLD, BlendedNoise, CAVE_CHEESE, CAVE_ENTRANCE, CAVE_LAYER, CONTINENTALNESS,
+    EROSION, JAGGED, NOODLE, NOODLE_RIDGE_A, NOODLE_RIDGE_B, NOODLE_THICKNESS, NormalNoise, PILLAR,
+    PILLAR_RARENESS, PILLAR_THICKNESS, RIDGE, SHIFT, SPAGHETTI_2D, SPAGHETTI_2D_ELEVATION,
+    SPAGHETTI_2D_MODULATOR, SPAGHETTI_2D_THICKNESS, SPAGHETTI_3D_1, SPAGHETTI_3D_2,
+    SPAGHETTI_3D_RARITY, SPAGHETTI_3D_THICKNESS, SPAGHETTI_ROUGHNESS,
+    SPAGHETTI_ROUGHNESS_MODULATOR, TEMPERATURE, VEGETATION,
 };
 use crate::pos::BlockPos;
+use crate::random::RngFactory;
 use bevy_math::{DVec3, FloatExt, Vec3Swizzles};
 
 use crate::{
@@ -390,7 +391,7 @@ pub struct OverworldBiomeNoise {
     erosion: NormalNoise<5>,
     ridges: NormalNoise<6>,
     jagged: NormalNoise<16>,
-    // base_3d_noise_overworld: todo!(),
+    base_3d_noise_overworld: BlendedNoise,
     spaghetti_3d_rarity: NormalNoise<1>,
     spaghetti_3d_thickness: NormalNoise<1>,
     spaghetti_3d_1: NormalNoise<1>,
@@ -445,7 +446,8 @@ impl OverworldBiomeNoise {
             noodle_thickness: NOODLE_THICKNESS.init(random),
             noodle_ridge_a: NOODLE_RIDGE_A.init(random),
             noodle_ridge_b: NOODLE_RIDGE_B.init(random),
-            // base_3d_noise_overworld: todo!()
+            base_3d_noise_overworld: BASE_3D_NOISE_OVERWORLD
+                .init(&mut random.with_hash("minecraft:terrain")),
         }
     }
 
@@ -587,7 +589,9 @@ impl OverworldBiomeNoise {
         let final_jaggedness = jagged * if jagged > 0.0 { 1.0 } else { 0.5 } * jaggedness;
         let depth =
             self.factor(spline_params) * (self.depth(pos, spline_params) + final_jaggedness);
-        let base_3d_noise_overworld = 0.0; //TODO: self.base_3d_noise_overworld.at(pos);
+        let base_3d_noise_overworld = self
+            .base_3d_noise_overworld
+            .at(pos.as_dvec3() * DVec3::new(0.25, 0.125, 0.25) * 684.412);
         let sloped_cheese = depth * if depth > 0.0 { 4.0 } else { 1.0 } + base_3d_noise_overworld;
 
         let spaghetti_roughness = self.spaghetti_roughness(pos.into());
