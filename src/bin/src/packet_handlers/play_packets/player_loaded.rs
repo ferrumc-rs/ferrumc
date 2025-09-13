@@ -29,7 +29,6 @@ pub fn handle(
 
         // Default player data
         *player_data = PlayerData::new(
-            player_identity.uuid.as_u128(),
             Position::default(),
             "overworld",
         );
@@ -38,7 +37,6 @@ pub fn handle(
         if let Ok(loaded) = state
             .0
             .world
-            .players_state
             .load_player_state(player_identity.uuid.as_u128())
         {
             match loaded {
@@ -46,7 +44,7 @@ pub fn handle(
                     *player_data = loaded_data;
                     tracing::info!(
                         "Loaded player state for {}: position=({}, {}, {}), dimension={}",
-                        player_data.uuid,
+                        player_identity.uuid.as_u128(),
                         player_data.pos.x,
                         player_data.pos.y,
                         player_data.pos.z,
@@ -54,19 +52,21 @@ pub fn handle(
                     );
                 }
                 None => {
-                    if let Err(e) = state.0.world.players_state.save_player_state(&player_data) {
+                    if let Err(e) = state.0.world.save_player_state(player_identity.uuid.as_u128(), &player_data) {
                         tracing::error!(
-                            "Failed to save player state for {}: {:?}",
+                            "Failed to save player state for {} ({}): {:?}",
                             player_identity.username,
+                            player_identity.uuid.as_u128(),
                             e
                         );
                     }
                 }
             }
-        } else if let Err(e) = state.0.world.players_state.save_player_state(&player_data) {
+        } else if let Err(e) = state.0.world.save_player_state(player_identity.uuid.as_u128(), &player_data) {
             tracing::error!(
-                "Failed to save player state for {}: {:?}",
+                "Failed to save player state for {} ({}): {:?}",
                 player_identity.username,
+                player_identity.uuid.as_u128(),
                 e
             );
         }

@@ -166,7 +166,7 @@ impl Database for LmdbBackend {
         &self,
         table: &str,
         key: Self::Key,
-        value: Self::Value,
+        value: &Self::Value,
     ) -> Result<bool, StorageError> {
         let env = self.env.lock();
         let mut rw_txn = env.write_txn()?;
