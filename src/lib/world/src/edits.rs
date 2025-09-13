@@ -8,7 +8,7 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::sync::Arc;
-use tracing::{debug, error, warn};
+use tracing::{debug, error, trace, warn};
 
 impl World {
     /// Retrieves the block data at the specified coordinates in the given dimension.
@@ -233,7 +233,7 @@ impl Chunk {
     ) -> Result<(), WorldError> {
         let block = block.into();
         // Get old block
-        let old_block = self.get_block(x, y, z)?;
+        let old_block = self.get_block(x << 4, y, z << 4)?;
         if old_block == block {
             // debug!("Block is the same as the old block");
             return Ok(());
@@ -278,36 +278,49 @@ impl Chunk {
                 // debug!("Indirect mode");
                 match section.block_states.block_counts.entry(old_block) {
                     Entry::Occupied(mut occ_entry) => {
-                        let count = occ_entry.get_mut();
-                        if *count <= 0 {
-                            return match old_block.to_block_data() {
-                                Some(block_data) => {
-                                    error!("Block count is zero for block: {:?}", block_data);
-                                    Err(WorldError::InvalidBlockStateData(format!(
-                                        "Block count is zero for block: {block_data:?}"
-                                    )))
-                                }
-                                None => {
-                                    error!(
-                                        "Block count is zero for unknown block ID: {}",
-                                        old_block.0
-                                    );
-                                    Err(WorldError::InvalidBlockId(old_block.0))
-                                }
-                            };
+                        let mut clear_entry = false;
+                        {
+                            let count = occ_entry.get_mut();
+                            if *count <= 1 {
+                                return match old_block.to_block_data() {
+                                    Some(block_data) => {
+                                        trace!(
+                                            "Block count is zero for block: {:?}, clearing",
+                                            block_data
+                                        );
+                                        clear_entry = true;
+                                        Ok(())
+                                    }
+                                    None => {
+                                        error!(
+                                            "Block count is zero for unknown block ID: {}",
+                                            old_block.0
+                                        );
+                                        Err(WorldError::InvalidBlockId(old_block.0))
+                                    }
+                                };
+                            } else {
+                                *count -= 1;
+                            }
                         }
-                        *count -= 1;
+                        if clear_entry {
+                            debug!("Clearing block from block counts");
+                            occ_entry.remove();
+                        }
                     }
                     Entry::Vacant(empty_entry) => {
-                        warn!("Block not found in block counts: {:?}", old_block);
-                        empty_entry.insert(0);
+                        // warn!("Block not found in block counts: {:?}", old_block);
+                        // for (block, count) in &section.block_states.block_counts {
+                        //     warn!("Block: {:?}, Count: {}", block, count);
+                        // }
+                        // empty_entry.insert(0);
                     }
                 }
                 // Add new block
                 if let Some(e) = section.block_states.block_counts.get(&block) {
                     section.block_states.block_counts.insert(block, e + 1);
                 } else {
-                    // debug!("Adding block to block counts");
+                    trace!("Adding {} to block counts", block.0);
                     section.block_states.block_counts.insert(block, 1);
                 }
                 // let required_bits = max((palette.len() as f32).log2().ceil() as u8, 4);
@@ -362,9 +375,7 @@ impl Chunk {
             .map(|(_, count)| *count as u16)
             .sum();
 
-        self.sections
-            .iter_mut()
-            .for_each(|section| section.optimise().unwrap());
+        section.optimise().unwrap();
         Ok(())
     }
 
@@ -494,6 +505,7 @@ impl Section {
     ///
     /// 2. If there is only one block in the palette, it converts the palette to single block mode.
     pub fn optimise(&mut self) -> Result<(), WorldError> {
+        let mut convert_to_single = false;
         match &mut self.block_states.block_data {
             PaletteType::Single(_) => {
                 // If the section is already in single block mode, there's nothing to optimise
@@ -504,49 +516,44 @@ impl Section {
                 data,
                 palette,
             } => {
-                // Remove empty blocks from palette
-                let mut remove_indexes = Vec::new();
-                for (block, count) in &self.block_states.block_counts {
-                    if *count <= 0 {
-                        let index = palette.iter().position(|p| *p == block.to_varint());
-                        if let Some(index) = index {
-                            remove_indexes.push(index);
-                        } else {
-                            return Err(WorldError::InvalidBlockId(block.0));
-                        }
-                    }
-                }
-                for index in remove_indexes {
-                    // Decrement any data entries that are higher than the removed index
-                    for data_point in &mut *data {
-                        let mut i = 0;
-                        while (i + *bits_per_block as usize) < 64 {
-                            let block_index =
-                                ferrumc_general_purpose::data_packing::u32::read_nbit_u32(
-                                    data_point,
-                                    *bits_per_block,
-                                    i as u32,
-                                )?;
-                            if block_index > index as u32 {
-                                ferrumc_general_purpose::data_packing::u32::write_nbit_u32(
-                                    data_point,
-                                    i as u32,
-                                    block_index - 1,
-                                    *bits_per_block,
-                                )?;
+                // If there is only one block in the palette, convert to single block mode
+                if palette.len() == 1 {
+                    convert_to_single = true;
+                } else {
+                    // Remove empty blocks from palette
+                    let mut remove_indexes = Vec::new();
+                    for (block, count) in &self.block_states.block_counts {
+                        if *count <= 0 {
+                            let index = palette.iter().position(|p| *p == block.to_varint());
+                            if let Some(index) = index {
+                                remove_indexes.push(index);
+                            } else {
+                                return Err(WorldError::InvalidBlockId(block.0));
                             }
-                            i += *bits_per_block as usize;
                         }
                     }
-                }
-
-                {
-                    // If there is only one block in the palette, convert to single block mode
-                    if palette.len() == 1 {
-                        let block = BlockId::from(palette[0]);
-                        self.block_states.block_data = PaletteType::Single(palette[0]);
-                        self.block_states.block_counts.clear();
-                        self.block_states.block_counts.insert(block, 4096);
+                    for index in remove_indexes {
+                        // Decrement any data entries that are higher than the removed index
+                        for data_point in &mut *data {
+                            let mut i = 0;
+                            while (i + *bits_per_block as usize) < 64 {
+                                let block_index =
+                                    ferrumc_general_purpose::data_packing::u32::read_nbit_u32(
+                                        data_point,
+                                        *bits_per_block,
+                                        i as u32,
+                                    )?;
+                                if block_index > index as u32 {
+                                    ferrumc_general_purpose::data_packing::u32::write_nbit_u32(
+                                        data_point,
+                                        i as u32,
+                                        block_index - 1,
+                                        *bits_per_block,
+                                    )?;
+                                }
+                                i += *bits_per_block as usize;
+                            }
+                        }
                     }
                 }
             }
@@ -554,6 +561,21 @@ impl Section {
                 todo!("Implement optimisation for direct palette");
             }
         };
+
+        if convert_to_single {
+            let palette = match &self.block_states.block_data {
+                PaletteType::Indirect { palette, .. } => palette,
+                _ => {
+                    return Err(WorldError::InvalidBlockStateData(
+                        "Palette is not indirect".to_string(),
+                    ))
+                }
+            };
+            let block = BlockId::from(palette[0]);
+            self.block_states.block_data = PaletteType::Single(palette[0]);
+            self.block_states.block_counts.clear();
+            self.block_states.block_counts.insert(block, 4096);
+        }
 
         Ok(())
     }

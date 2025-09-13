@@ -49,7 +49,7 @@ impl OverworldGenerator {
             name: "minecraft:stone".to_string(),
             properties: None,
         }
-        .to_block_id();
+            .to_block_id();
         let air = BlockData::default().to_block_id();
         ChunkPos::from(IVec2::new(x * 16, z * 16))
             .iter_columns()
@@ -69,7 +69,6 @@ impl OverworldGenerator {
             })
             .find(Result::is_err)
             .unwrap_or(Ok(()))?;
-
         Ok(chunk)
     }
 }
