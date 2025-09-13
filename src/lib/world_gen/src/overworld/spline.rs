@@ -97,11 +97,11 @@ impl SplinePoint {
             slope,
         }
     }
-    pub fn spline(x: f32, y: CubicSpline, slope: f32) -> Self {
+    pub fn spline(x: f32, y: CubicSpline) -> Self {
         Self {
             x,
             y: SplineValue::Spline(y),
-            slope,
+            slope: 0.0,
         }
     }
 }

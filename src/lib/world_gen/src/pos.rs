@@ -16,7 +16,7 @@ impl ChunkHeight {
     pub fn iter(self) -> Range<i32> {
         self.min_y..self.max_y()
     }
-    pub fn max_y(self) -> i32 {
+    pub const fn max_y(self) -> i32 {
         self.min_y + self.height as i32
     }
 }

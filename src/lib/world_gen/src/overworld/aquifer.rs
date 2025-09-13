@@ -1,12 +1,10 @@
 use crate::common::aquifer::{FluidPicker, FluidType};
-use crate::common::surface::PreliminarySurface;
-use crate::overworld::noise_biome_parameters::is_deep_dark_region;
 use crate::overworld::noise_depth::OverworldBiomeNoise;
 use crate::perlin_noise::{
     AQUIFER_BARRIER, AQUIFER_FLUID_LEVEL_FLOODEDNESS, AQUIFER_FLUID_LEVEL_SPREAD, AQUIFER_LAVA,
     NormalNoise,
 };
-use crate::pos::ChunkPos;
+use crate::pos::{BlockPos, ChunkPos};
 use crate::random::Xoroshiro128PlusPlusFactory;
 use std::ops::Add;
 
@@ -19,7 +17,6 @@ use crate::random::{Rng, RngFactory};
 pub struct Aquifer {
     pub sea_level: FluidPicker,
     random: Xoroshiro128PlusPlusFactory,
-    is_overworld: bool,
     barrier_noise: NormalNoise<1>,
     fluid_level_floodedness_noise: NormalNoise<1>,
     fluid_level_spread_noise: NormalNoise<1>,
@@ -75,7 +72,6 @@ impl Aquifer {
         Self {
             sea_level,
             random,
-            is_overworld: true,
             barrier_noise: AQUIFER_BARRIER.init(random),
             fluid_level_floodedness_noise: AQUIFER_FLUID_LEVEL_FLOODEDNESS.init(random),
             fluid_level_spread_noise: AQUIFER_FLUID_LEVEL_SPREAD.init(random),
@@ -86,17 +82,13 @@ impl Aquifer {
     #[allow(dead_code)]
     pub(crate) fn at(
         &self,
-        preliminary_surface: &PreliminarySurface,
         biome_noise: &OverworldBiomeNoise,
-        pos: IVec3,
+        pos: BlockPos,
         final_density: f64,
     ) -> (Option<FluidType>, bool) {
         const FLOWING_UPDATE_SIMILARITY: f64 = similarity(10 * 10, 12 * 12);
         if final_density > 0.0 {
             return (None, false);
-        }
-        if !self.is_overworld {
-            return (Some(simple_compute_fluid(pos.y, self.sea_level)), false);
         }
         let final_density = -final_density;
 
@@ -124,17 +116,16 @@ impl Aquifer {
             .collect_array()
             .unwrap();
 
-        let nearest_status = self.compute_fluid(smallest[0].1, preliminary_surface, biome_noise);
+        let nearest_status = self.compute_fluid(smallest[0].1, biome_noise);
         let block_state = nearest_status.at(pos.y);
         let similtarity = similarity(smallest[0].0, smallest[1].0);
 
         if similtarity <= 0.0 {
-            // i believe this is the hot path
             return (
                 Some(block_state),
                 similtarity >= FLOWING_UPDATE_SIMILARITY
                     && !self
-                        .compute_fluid(smallest[1].1, preliminary_surface, biome_noise)
+                        .compute_fluid(smallest[1].1, biome_noise)
                         .eq(&nearest_status),
             );
         }
@@ -146,15 +137,13 @@ impl Aquifer {
         let barrier = self
             .barrier_noise
             .at(pos.as_dvec3() * DVec3::new(1.0, 0.5, 1.0));
-        let second_nearest_status =
-            self.compute_fluid(smallest[1].1, preliminary_surface, biome_noise);
+        let second_nearest_status = self.compute_fluid(smallest[1].1, biome_noise);
         if similtarity * Self::pressure(pos, barrier, nearest_status, second_nearest_status)
             > final_density
         {
             return (None, false);
         }
-        let third_nearest_status =
-            self.compute_fluid(smallest[2].1, preliminary_surface, biome_noise);
+        let third_nearest_status = self.compute_fluid(smallest[2].1, biome_noise);
         let d2 = similarity(smallest[0].0, smallest[2].0);
 
         if d2 > 0.0
@@ -182,8 +171,7 @@ impl Aquifer {
                 || (d2 >= FLOWING_UPDATE_SIMILARITY && nearest_status != third_nearest_status)
                 || (d2 >= FLOWING_UPDATE_SIMILARITY
                     && similarity(smallest[0].0, smallest[3].0) >= FLOWING_UPDATE_SIMILARITY
-                    && nearest_status
-                        != self.compute_fluid(smallest[3].1, preliminary_surface, biome_noise)),
+                    && nearest_status != self.compute_fluid(smallest[3].1, biome_noise)),
         )
     }
 
@@ -229,12 +217,7 @@ impl Aquifer {
     }
 
     //TODO: this is cached with just section poses... idk why
-    fn compute_fluid(
-        &self,
-        pos: IVec3,
-        preliminary_surface: &PreliminarySurface,
-        biome_noise: &OverworldBiomeNoise,
-    ) -> FluidPicker {
+    fn compute_fluid(&self, pos: IVec3, biome_noise: &OverworldBiomeNoise) -> FluidPicker {
         const SURFACE_SAMPLING_OFFSETS_IN_CHUNKS: [IVec2; 13] = [
             IVec2::new(0, 0),
             IVec2::new(-32, -16),
@@ -262,7 +245,7 @@ impl Aquifer {
 
         for offset in SURFACE_SAMPLING_OFFSETS_IN_CHUNKS {
             let chunk_pos = ChunkPos::from(pos.xz() + offset);
-            let new_y = preliminary_surface.at(chunk_pos) + 8;
+            let new_y = biome_noise.prelimintary_surface(chunk_pos) + 8;
 
             if offset == (0, 0).into() && pos.y - 12 > new_y {
                 return fluid_status;
@@ -281,7 +264,7 @@ impl Aquifer {
                 fluid_present = true;
             }
 
-            max_surface_level = max_surface_level.min(preliminary_surface.at(chunk_pos));
+            max_surface_level = max_surface_level.min(biome_noise.prelimintary_surface(chunk_pos));
         }
 
         let serface_level = self.compute_surface_level(
@@ -312,7 +295,7 @@ impl Aquifer {
         fluid_present: bool,
         biome_noise: &OverworldBiomeNoise,
     ) -> Option<i32> {
-        if is_deep_dark_region(biome_noise, pos) {
+        if biome_noise.is_deep_dark_region(pos) {
             return None;
         }
         let d2 = if fluid_present {

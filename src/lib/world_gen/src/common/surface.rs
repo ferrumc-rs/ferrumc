@@ -13,56 +13,26 @@ impl SurfaceRule {
         depth: i32,
         depth_from_stone: i32,
         fluid_level: Option<i32>,
-        y: bevy_math::IVec3,
+        y: BlockPos,
     ) -> Option<BlockData> {
         todo!()
     }
 }
-
-pub struct PreliminarySurface {
-    pub chunk_height: ChunkHeight,
-    noise_size_vertical: usize,
-    initial_density_without_jaggedness: fn(BlockPos) -> f64,
-}
-
-impl PreliminarySurface {
-    pub fn new(
-        chunk_height: ChunkHeight,
-        noise_size_vertical: usize,
-        initial_density_without_jaggedness: fn(BlockPos) -> f64,
-    ) -> Self {
-        Self {
-            chunk_height,
-            noise_size_vertical,
-            initial_density_without_jaggedness,
-        }
-    }
-
-    pub(crate) fn at(&self, chunk: ChunkPos) -> i32 {
-        let column = chunk.column_pos(0, 0);
-        self.chunk_height
-            .iter()
-            .rev()
-            .step_by(self.noise_size_vertical)
-            .find(|y| (self.initial_density_without_jaggedness)(column.block(*y)) > 0.390625)
-            .unwrap_or(i32::MAX) //TODO: should this panic?
-    }
-}
 pub(crate) struct Surface {
-    pub(crate) preliminary_surface: PreliminarySurface, //TODO
     default_block: BlockId,
+    pub chunk_height: ChunkHeight,
     pub(crate) rules: SurfaceRule,
 }
 
 impl Surface {
     pub(crate) fn new(
-        preliminary_surface: PreliminarySurface,
         default_block: BlockId,
+        chunk_height: ChunkHeight,
         rules: SurfaceRule,
     ) -> Self {
         Self {
-            preliminary_surface,
             default_block,
+            chunk_height,
             rules,
         }
     }
@@ -72,9 +42,9 @@ impl Surface {
         pos: ColumnPos,
         aquifer: impl Fn(BlockPos, f64) -> Option<FluidType>,
     ) -> (i32, Option<i32>) {
-        let mut stone_level = self.preliminary_surface.chunk_height.min_y - 1;
+        let mut stone_level = self.chunk_height.min_y - 1;
         let mut fluid_level = None;
-        for y in self.preliminary_surface.chunk_height.iter() {
+        for y in self.chunk_height.iter() {
             let substance = aquifer(
                 pos.block(y),
                 0.0, /* self.final_density.compute(pos.block(y)) TODO */
@@ -99,7 +69,7 @@ impl Surface {
         aquifer: impl Fn(BlockPos, f64) -> Option<FluidType>,
     ) -> Vec<BlockData> {
         let mut depth = 0;
-        (self.preliminary_surface.chunk_height.min_y..=stone_level)
+        (self.chunk_height.min_y..=stone_level)
             .rev()
             .map(|y| {
                 let substance = aquifer(
@@ -120,10 +90,7 @@ impl Surface {
                     .unwrap_or(self.default_block.to_block_data().unwrap())
             })
             .rev()
-            .chain(
-                (stone_level + 1..self.preliminary_surface.chunk_height.max_y())
-                    .map(|_| Default::default()),
-            )
+            .chain((stone_level + 1..self.chunk_height.max_y()).map(|_| Default::default()))
             .collect()
     }
 }

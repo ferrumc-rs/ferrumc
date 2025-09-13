@@ -1,10 +1,4 @@
-use bevy_math::IVec3;
-
-use crate::{
-    biome::Biome,
-    biome_chunk::{BiomeNoise, NoisePoint},
-    overworld::noise_depth::OverworldBiomeNoise,
-};
+use crate::{biome::Biome, biome_chunk::NoisePoint};
 // reference: net.minecraft.world.level.biome.OverworldBiomeBuilder
 const VALLEY_SIZE: f32 = 0.05;
 const LOW_START: f32 = 0.26666668;
@@ -17,8 +11,8 @@ pub const MID_INLAND_START: f32 = 0.03;
 pub const FAR_INLAND_START: f32 = 0.3;
 pub const EROSION_INDEX_1_START: f32 = -0.78;
 pub const EROSION_INDEX_2_START: f32 = -0.375;
-const EROSION_DEEP_DARK_DRYNESS_THRESHOLD: f32 = -0.225;
-const DEPTH_DEEP_DARK_DRYNESS_THRESHOLD: f32 = 0.9;
+pub const EROSION_DEEP_DARK_DRYNESS_THRESHOLD: f32 = -0.225;
+pub const DEPTH_DEEP_DARK_DRYNESS_THRESHOLD: f32 = 0.9;
 
 const FULL_RANGE: (f32, f32) = (-1.0, 1.0);
 
@@ -960,12 +954,4 @@ fn pick_shattered_biome(temperature: usize, humidity: usize, pandv: (f32, f32)) 
         Some(biome) => biome,
         None => pick_middle_biome(temperature, humidity, pandv),
     }
-}
-
-pub(crate) fn is_deep_dark_region(noise_router: &OverworldBiomeNoise, pos: IVec3) -> bool {
-    noise_router.erosion(pos) < EROSION_DEEP_DARK_DRYNESS_THRESHOLD.into()
-        && noise_router.depth(
-            pos,
-            noise_router.make_spline_params(noise_router.transform(pos)),
-        ) > DEPTH_DEEP_DARK_DRYNESS_THRESHOLD.into()
 }

@@ -50,10 +50,7 @@ fn clear_overworld_cave_block(
         *surface_reached = true;
     }
 
-    if let (Some(carve_state), fluid_update /* TODO */) =
-        surface
-            .aquifer
-            .at(&surface.surface.preliminary_surface, biome_noise, pos, 0.0)
+    if let (Some(carve_state), fluid_update /* TODO */) = surface.aquifer.at(biome_noise, pos, 0.0)
     {
         chunk.set_block_state(pos, carve_state.into());
         if *surface_reached {

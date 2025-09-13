@@ -50,7 +50,6 @@ fn f32_to_i64(val: f32) -> i64 {
 }
 pub(crate) trait BiomeNoise {
     fn at_inner(&self, pos: BlockPos) -> [f64; 6];
-    //TODO: internal at
     fn at(&self, pos: BlockPos) -> [i64; 6] {
         self.at_inner(pos).map(|a| a as f32).map(f32_to_i64)
     }
