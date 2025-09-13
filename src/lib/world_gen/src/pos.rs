@@ -1,4 +1,4 @@
-use std::ops::RangeInclusive;
+use std::ops::Range;
 
 use bevy_math::IVec2;
 use bevy_math::IVec3;
@@ -13,15 +13,15 @@ pub struct ChunkHeight {
 }
 
 impl ChunkHeight {
-    pub fn iter(self) -> RangeInclusive<i32> {
-        self.min_y..=self.max_y()
+    pub fn iter(self) -> Range<i32> {
+        self.min_y..self.max_y()
     }
     pub fn max_y(self) -> i32 {
         self.min_y + self.height as i32
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct ChunkPos {
     pub pos: IVec2,
 }
