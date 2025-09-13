@@ -7,8 +7,8 @@ use crate::overworld::noise_depth::OverworldBiomeNoise;
 use crate::overworld::surface::OverworldSurface;
 use crate::pos::{ChunkHeight, ChunkPos};
 use crate::random::{Rng, Xoroshiro128PlusPlus};
+use bevy_math::IVec2;
 use ferrumc_world::chunk_format::Chunk;
-use ferrumc_world::errors::WorldError;
 use ferrumc_world::vanilla_chunk_format::BlockData;
 use itertools::Itertools;
 
@@ -43,16 +43,16 @@ impl OverworldGenerator {
         BiomeChunk::generate(&self.biome_noise, &self.biomes, pos, self.chunk_height)
     }
 
-    pub fn generate_chunk(&self, pos: ChunkPos) -> Result<Chunk, WorldGenError> {
-        println!("generating {pos:?}");
-        let mut chunk = Chunk::new(pos.pos.x >> 4, pos.pos.y >> 4, "overworld".to_string());
+    pub fn generate_chunk(&self, x: i32, z: i32) -> Result<Chunk, WorldGenError> {
+        let mut chunk = Chunk::new(x, z, "overworld".to_string());
         let stone = BlockData {
             name: "minecraft:stone".to_string(),
             properties: None,
         }
         .to_block_id();
         let air = BlockData::default().to_block_id();
-        pos.iter_columns()
+        ChunkPos::from(IVec2::new(x * 16, z * 16))
+            .iter_columns()
             .cartesian_product(self.chunk_height.iter())
             .map(|(c, y)| c.block(y))
             .map(|pos| {
@@ -69,7 +69,6 @@ impl OverworldGenerator {
             })
             .find(Result::is_err)
             .unwrap_or(Ok(()))?;
-        println!("Generated {pos:?}");
 
         Ok(chunk)
     }

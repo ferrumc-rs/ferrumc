@@ -39,7 +39,6 @@ impl WorldGenerator {
     }
 
     pub fn generate_chunk(&self, x: i32, z: i32) -> Result<Chunk, WorldGenError> {
-        self.generator
-            .generate_chunk(IVec2::new(x << 4, z << 4).into())
+        self.generator.generate_chunk(x, z)
     }
 }

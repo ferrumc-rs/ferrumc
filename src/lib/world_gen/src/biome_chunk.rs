@@ -49,22 +49,10 @@ fn f32_to_i64(val: f32) -> i64 {
     (val * 10000.0) as i64
 }
 pub(crate) trait BiomeNoise {
+    fn at_inner(&self, pos: BlockPos) -> [f64; 6];
     //TODO: internal at
-    fn temperature(&self, pos: BlockPos) -> f64;
-    fn vegetation(&self, pos: BlockPos) -> f64;
-    fn continents(&self, pos: BlockPos) -> f64;
-    fn erosion(&self, pos: BlockPos) -> f64;
-    fn depth(&self, pos: BlockPos) -> f64;
-    fn ridges(&self, pos: BlockPos) -> f64;
     fn at(&self, pos: BlockPos) -> [i64; 6] {
-        [
-            f32_to_i64(self.temperature(pos) as f32),
-            f32_to_i64(self.vegetation(pos) as f32),
-            f32_to_i64(self.continents(pos) as f32),
-            f32_to_i64(self.erosion(pos) as f32),
-            f32_to_i64(self.depth(pos) as f32),
-            f32_to_i64(self.ridges(pos) as f32),
-        ]
+        self.at_inner(pos).map(|a| a as f32).map(f32_to_i64)
     }
 }
 
