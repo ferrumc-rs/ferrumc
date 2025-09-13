@@ -4,6 +4,7 @@ use bevy_math::IVec3;
 
 use crate::pos::ChunkPos;
 
+#[deprecated]
 pub enum Random {
     Legacy(LegacyRandom),
     Xoroshiro128PlusPlus(Xoroshiro128PlusPlus),
@@ -38,6 +39,8 @@ impl Rng<RandomFactory> for Random {
     }
 }
 
+//TODO: remove
+#[deprecated]
 #[derive(Clone, Copy)]
 pub enum RandomFactory {
     Legacy(LegacyPositionalFactory),
