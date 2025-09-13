@@ -237,7 +237,7 @@ impl BlendedNoise {
 
             weight /= 2.0;
         }
-        (d8 / 512.0).lerp(d9 / 512.0, d12.clamp(d8 / 512.0, d9 / 512.0)) / 128.0
+        (d8 / 512.0).lerp(d9 / 512.0, d12.clamp(0.0, 1.0)) / 128.0
     }
 }
 pub struct ConstNormalNoise<const N: usize> {
