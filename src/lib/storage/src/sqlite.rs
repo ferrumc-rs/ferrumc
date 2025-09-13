@@ -106,7 +106,7 @@ where
     ) -> Result<bool, StorageError> {
         let conn = self.open_conn()?;
         let json_val: Value =
-            serde_json::to_value(&value).map_err(|e| StorageError::DatabaseError(e.to_string()))?;
+            serde_json::to_value(value).map_err(|e| StorageError::DatabaseError(e.to_string()))?;
         let sql = format!(
             "INSERT INTO \"{t}\" (key, value) VALUES (?1, ?2)
              ON CONFLICT(key) DO UPDATE SET value = excluded.value",
