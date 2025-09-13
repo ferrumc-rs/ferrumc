@@ -1,6 +1,6 @@
 //! Command graph nodes.
 
-use std::{fmt, io::Write};
+use std::fmt;
 
 use enum_ordinalize::Ordinalize;
 use ferrumc_macros::NetEncode;
@@ -8,7 +8,7 @@ use ferrumc_net_codec::net_types::{length_prefixed_vec::LengthPrefixedVec, var_i
 
 use crate::arg::primitive::{PrimitiveArgumentFlags, PrimitiveArgumentType};
 
-/// The type of a command node.
+/// The type of command node.
 #[derive(Clone, Debug, PartialEq, Ordinalize)]
 pub enum CommandNodeType {
     Root,
