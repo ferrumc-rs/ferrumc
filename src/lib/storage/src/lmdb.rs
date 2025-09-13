@@ -173,7 +173,7 @@ impl Database for LmdbBackend {
         let db: heed::Database<U128<BigEndian>, Bytes> =
             env.open_database(&rw_txn, Some(table))?
                 .ok_or(StorageError::TableError("Table not found".to_string()))?;
-        db.put(&mut rw_txn, &key, &value)?;
+        db.put(&mut rw_txn, &key, value)?;
         rw_txn.commit()?;
         Ok(true)
     }
