@@ -74,7 +74,10 @@ pub fn handle(
         } else {
             trace!(
                 "Updated position for player {}: ({}, {}, {})",
-                eid, new_position.x, new_position.y, new_position.z
+                eid,
+                new_position.x,
+                new_position.y,
+                new_position.z
             );
         }
     }
