@@ -2,7 +2,7 @@ use bevy_ecs::prelude::{Entity, EventWriter, Query, Res};
 use ferrumc_core::chunks::cross_chunk_boundary_event::CrossChunkBoundaryEvent;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net::SetPlayerPositionPacketReceiver;
-use tracing::{debug, error, warn};
+use tracing::{debug, error, trace, warn};
 
 use crate::errors::BinaryError;
 use ferrumc_core::transform::grounded::OnGround;
@@ -72,7 +72,7 @@ pub fn handle(
         ) {
             error!("Failed to update position for player {}: {}", eid, err);
         } else {
-            debug!(
+            trace!(
                 "Updated position for player {}: ({}, {}, {})",
                 eid, new_position.x, new_position.y, new_position.z
             );

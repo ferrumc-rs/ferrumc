@@ -17,3 +17,8 @@ result-*
 
 profile.json.gz
 .DS_Store
+
+world/
+whitelist.txt
+
+logs/
