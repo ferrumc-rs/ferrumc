@@ -57,11 +57,6 @@ impl CubicSpline {
     }
 }
 
-#[inline]
-fn lerp(t: f32, a: f32, b: f32) -> f32 {
-    a + t * (b - a)
-}
-/// What the spline can store at each knot
 #[derive(Clone)]
 pub enum SplineValue {
     Const(f32),

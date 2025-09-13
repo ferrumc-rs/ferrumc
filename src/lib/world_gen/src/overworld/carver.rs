@@ -9,7 +9,7 @@ use ferrumc_world::block_id::BlockId;
 
 use crate::{
     ChunkAccess,
-    biome_chunk::{BiomeChunk, BiomeNoise},
+    biome_chunk::BiomeChunk,
     common::{
         aquifer::FluidType,
         carver::{CarvingMask, carve_ellipsoid},

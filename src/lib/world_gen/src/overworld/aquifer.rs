@@ -1,13 +1,13 @@
-use crate::biome_chunk::BiomeNoise;
 use crate::common::aquifer::{FluidPicker, FluidType};
 use crate::common::surface::PreliminarySurface;
 use crate::overworld::noise_biome_parameters::is_deep_dark_region;
 use crate::overworld::overworld_generator::OverworldBiomeNoise;
 use crate::perlin_noise::{
-    AQUIFER_BARRIER, AQUIFER_FLUID_LEVEL_FLOODEDNESS, AQUIFER_LAVA, NormalNoise,
+    AQUIFER_BARRIER, AQUIFER_FLUID_LEVEL_FLOODEDNESS, AQUIFER_FLUID_LEVEL_SPREAD, AQUIFER_LAVA,
+    NormalNoise,
 };
 use crate::pos::ChunkPos;
-use crate::random::{RandomFactory, Xoroshiro128PlusPlusFactory};
+use crate::random::Xoroshiro128PlusPlusFactory;
 use std::ops::Add;
 
 use itertools::Itertools;
@@ -72,15 +72,14 @@ impl From<IVec3> for AquiferSectionPos {
 impl Aquifer {
     pub fn new(sea_level: FluidPicker, random: Xoroshiro128PlusPlusFactory) -> Self {
         let random = random.with_hash("minecraft:aquifer").fork_positional();
-        let wrapped = RandomFactory::Xoroshiro128PlusPlus(random);
         Self {
             sea_level,
             random,
             is_overworld: true,
-            barrier_noise: AQUIFER_BARRIER.init(wrapped),
-            fluid_level_floodedness_noise: AQUIFER_FLUID_LEVEL_FLOODEDNESS.init(wrapped),
-            fluid_level_spread_noise: AQUIFER_FLUID_LEVEL_FLOODEDNESS.init(wrapped),
-            lava_noise: AQUIFER_LAVA.init(wrapped),
+            barrier_noise: AQUIFER_BARRIER.init(random),
+            fluid_level_floodedness_noise: AQUIFER_FLUID_LEVEL_FLOODEDNESS.init(random),
+            fluid_level_spread_noise: AQUIFER_FLUID_LEVEL_SPREAD.init(random),
+            lava_noise: AQUIFER_LAVA.init(random),
         }
     }
 
@@ -146,7 +145,7 @@ impl Aquifer {
         }
         let barrier = self
             .barrier_noise
-            .get_value(pos.as_dvec3() * DVec3::new(1.0, 0.5, 1.0));
+            .at(pos.as_dvec3() * DVec3::new(1.0, 0.5, 1.0));
         let second_nearest_status =
             self.compute_fluid(smallest[1].1, preliminary_surface, biome_noise);
         if similtarity * Self::pressure(pos, barrier, nearest_status, second_nearest_status)
@@ -302,7 +301,7 @@ impl Aquifer {
 
     fn is_lava(&self, pos: IVec3) -> bool {
         let pos = pos.div_euclid((64, 40, 64).into());
-        self.lava_noise.get_value(pos.into()).abs() > 0.3
+        self.lava_noise.at(pos.into()).abs() > 0.3
     }
 
     fn compute_surface_level(
@@ -330,7 +329,7 @@ impl Aquifer {
 
         let floodedness = self
             .fluid_level_floodedness_noise
-            .get_value(pos.as_dvec3() * DVec3::new(1.0, 0.67, 1.0))
+            .at(pos.as_dvec3() * DVec3::new(1.0, 0.67, 1.0))
             .clamp(-1.0, 1.0);
         let d4 = d2.remap(1.0, 0.0, -0.3, 0.8);
         let d5 = d2.remap(1.0, 0.0, -0.8, 0.4);
@@ -351,7 +350,7 @@ impl Aquifer {
         let pos = pos.div_euclid((16, 40, 16).into());
         let spread = quantize(
             self.fluid_level_spread_noise
-                .get_value(pos.as_dvec3() * DVec3::new(1.0, 0.7142857142857143, 1.0))
+                .at(pos.as_dvec3() * DVec3::new(1.0, 0.7142857142857143, 1.0))
                 * 10.0,
             3,
         );
