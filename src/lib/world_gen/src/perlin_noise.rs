@@ -1,7 +1,4 @@
-use crate::{
-    pos::BlockPos,
-    random::{LegacyRandom, Rng, RngFactory},
-};
+use crate::random::{LegacyRandom, Rng, RngFactory};
 use std::mem::MaybeUninit;
 
 use bevy_math::{DVec2, DVec3, FloatExt, Vec3Swizzles};
@@ -188,28 +185,26 @@ pub struct BlendedNoise {
 impl BlendedNoise {
     //TODO: tests
     pub fn at(&self, pos: DVec3) -> f64 {
-        let d3 = pos.x / self.xz_factor;
-        let d4 = pos.y / self.y_factor;
-        let d5 = pos.z / self.xz_factor;
+        let main_pos = pos / DVec3::new(self.xz_factor, self.y_factor, self.xz_factor);
 
         let d6 = self.y_scale * 684.412 * self.smear_scale_multiplier;
         let d7 = d6 / self.y_factor;
 
         let mut d8 = 0.0;
         let mut d9 = 0.0;
-        let mut d10 = 0.0;
+        let mut main_noise = 0.0;
+        // dbg!(main_pos);
+        // dbg!(&self.min_limit_noise);
 
         let mut weight = 1.0;
         for n in self.main_noise.noise_levels.iter().rev() {
-            d10 += n.legacy_noise(
-                (wrap(d3 * weight), wrap(d4 * weight), wrap(d5 * weight)).into(),
-                d7 * weight,
-                d4 * weight,
-            ) / weight;
+            let curr_pos = (main_pos * weight).map(wrap);
+            main_noise += n.legacy_noise(curr_pos, d7 * weight, main_pos.y * weight) / weight;
+            // dbg!(main_noise);
             weight /= 2.0;
         }
 
-        let d12 = (d10 / 10.0 + 1.0) / 2.0;
+        let d12 = (main_noise / 10.0 + 1.0) / 2.0;
         let flag1 = d12 >= 1.0;
         let flag2 = d12 <= 0.0;
 
@@ -222,17 +217,13 @@ impl BlendedNoise {
             .zip(self.max_limit_noise.noise_levels.iter())
             .rev()
         {
-            let d13 = wrap(pos.x * weight);
-            let d14 = wrap(pos.y * weight);
-            let d15 = wrap(pos.z * weight);
-            let y_scale = d6 * weight;
-
+            let curr_pos = (pos * weight).map(wrap);
             if !flag1 {
-                d8 += n0.legacy_noise((d13, d14, d15).into(), y_scale, pos.y * weight) / weight;
+                d8 += n0.legacy_noise(curr_pos, d6 * weight, pos.y * weight) / weight;
             }
 
             if !flag2 {
-                d9 += n1.legacy_noise((d13, d14, d15).into(), y_scale, pos.y * weight) / weight;
+                d9 += n1.legacy_noise(curr_pos, d6 * weight, pos.y * weight) / weight;
             }
 
             weight /= 2.0;
@@ -370,6 +361,7 @@ impl<const N: usize> NormalNoise<N> {
 }
 
 ///reference: net.minecraft.world.level.levelgen.synth.PerlinNoise
+#[derive(Debug)]
 pub struct PerlinNoise<const N: usize> {
     amplitudes: [f64; N],
     noise_levels: [ImprovedNoise; N],
@@ -403,6 +395,7 @@ fn wrap(input: f64) -> f64 {
 }
 
 /// reference: net.minecraft.world.level.levelgen.synth.ImprovedNoise
+#[derive(Debug)]
 pub struct ImprovedNoise {
     p: [u8; 256],
     offset: DVec3,
@@ -425,13 +418,18 @@ impl ImprovedNoise {
     }
 
     fn legacy_noise(&self, at: DVec3, y_scale: f64, y_max: f64) -> f64 {
+        assert!(y_scale != 0.0);
         let actual = at + self.offset;
         let grid = actual.floor();
         let delta = actual - grid;
 
         let grid = grid.as_ivec3();
-        let mut weird_delta = delta;
-        weird_delta.y = (delta.y.min(y_max) / y_scale + 1.0E-7).floor() * y_scale;
+        let delta_y = if y_max >= 0.0 {
+            delta.y.min(y_max)
+        } else {
+            delta.y
+        };
+        let weird_delta = delta.with_y(delta.y - (delta_y / y_scale + 1.0E-7).floor() * y_scale);
         let i = self.p(grid.x);
         let i1 = self.p(grid.x + 1);
         let i2 = self.p(i + grid.y);
@@ -578,6 +576,11 @@ fn test_improved_noise() {
         -0.18708168179464396,
         "Mismatch in noise"
     );
+    assert_eq!(
+        noise.legacy_noise(DVec3::new(10000.123, 203.5, -20031.78), 0.5, 0.8),
+        -0.31263505222083193,
+        "Mismatch in legacy noise"
+    );
 }
 
 #[test]
@@ -603,5 +606,46 @@ fn test_perlin_noise() {
         perlin_noise.get_value(DVec3::new(10000.123, 203.5, -20031.78)),
         0.023009563412224324,
         "Mismatch in get_value"
+    );
+}
+
+#[test]
+fn test_legacy_perlin_noise() {
+    let mut rng = crate::random::Xoroshiro128PlusPlus::new(0, 0);
+
+    let perlin_noise =
+        ConstPerlinNoise::new(5, [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]).legacy_init(&mut rng);
+
+    assert_eq!(
+        perlin_noise.lowest_freq_input_factor, 0.03125,
+        "Mismatch in lowest_freq_input_factor"
+    );
+    assert_eq!(
+        perlin_noise.lowest_freq_value_factor, 0.5079365079365079,
+        "Mismatch in lowest_freq_value_factor"
+    );
+    assert_eq!(
+        perlin_noise.get_value(DVec3::new(0.0, 0.0, 0.0)),
+        -0.1216347547509511,
+        "Mismatch in get_value at zero"
+    );
+    assert_eq!(
+        perlin_noise.get_value(DVec3::new(10000.123, 203.5, -20031.78)),
+        -0.26298577056858086,
+        "Mismatch in get_value"
+    );
+}
+
+#[test]
+fn test_blended_noise() {
+    let mut rng = crate::random::Xoroshiro128PlusPlus::new(0, 0);
+    let noise = BASE_3D_NOISE_OVERWORLD.init(&mut rng);
+    assert_eq!(
+        noise.at(DVec3::new(0.0, 0.0, 0.0) * DVec3::new(0.25, 1.0, 0.25) * 684.412),
+        0.05283812245734512
+    );
+    assert_eq!(
+        noise.at(DVec3::new(10000.0, 203.0, -20031.0) * DVec3::new(0.25, 1.0, 0.25) * 684.412),
+        -0.021018525929896836
     );
 }
