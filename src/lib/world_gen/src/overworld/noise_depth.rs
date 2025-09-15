@@ -20,6 +20,7 @@ use crate::{
     random::Xoroshiro128PlusPlusFactory,
 };
 
+//TODO: const
 fn build_erosion_offset_spline(
     f: f32,
     f1: f32,
@@ -441,25 +442,25 @@ impl OverworldBiomeNoise {
         }
     }
 
-    fn transform(&self, pos: BlockPos) -> DVec3 {
-        let shift_x = self.shift.at(pos.with_y(0).into());
-        let shift_z = self.shift.at(pos.with_y(0).zxy().into());
-        pos.as_dvec3() * DVec3::new(0.25, 1.0, 0.25) + DVec3::new(shift_x, 0.0, shift_z)
+    fn transform(&self, pos: DVec3) -> DVec3 {
+        let noise_pos = pos.with_y(0.0);
+        let shift_x = self.shift.at(noise_pos);
+        let shift_z = self.shift.at(noise_pos.zxy());
+        pos * DVec3::new(0.25, 0.0, 0.25) + DVec3::new(shift_x, 0.0, shift_z)
     }
     fn initial_density_without_jaggedness(&self, pos: BlockPos) -> f64 {
-        let spline_params = self.make_spline_params(self.transform(pos));
+        let spline_params = self.make_spline_params(self.transform(pos.into()));
         let mut factor_depth = self.factor(spline_params) * self.depth(pos, spline_params);
         factor_depth *= if factor_depth > 0.0 { 4.0 } else { 1.0 };
         let density = (factor_depth - 0.703125).clamp(-64.0, 64.0);
         slide(
-            pos.y,
+            pos.y.into(),
             density,
-            self.chunk_height,
-            80,
-            64,
+            240.0,
+            256.0,
             -0.078125,
-            0,
-            24,
+            -64.0,
+            -40.0,
             0.1171875,
         )
     }
@@ -512,11 +513,8 @@ impl OverworldBiomeNoise {
             3.0
         };
         let spaghetti_2d = self.spaghetti_2d.at(pos / rarity).abs() * rarity;
-        let spaghetti_2d_elevation =
-            self.spaghetti_2d_elevation
-                .at(pos)
-                .remap(-1.0, 1.0, -64f64.div_euclid(8.0), 8.0);
-        let tmp = (spaghetti_2d_elevation + clamped_map(pos.y, -64.0, 320.0, 8.0, -40.0)).abs();
+        let spaghetti_2d_elevation = self.spaghetti_2d_elevation.at(pos.with_y(0.0)) * 8.0;
+        let tmp = (spaghetti_2d_elevation + pos.y.remap(-64.0, 320.0, 8.0, -40.0)).abs();
         let spaghetti_2d_thickness_modulator = self
             .spaghetti_2d_thickness
             .at(pos * DVec3::new(2.0, 1.0, 2.0))
@@ -527,9 +525,9 @@ impl OverworldBiomeNoise {
     }
     fn pillars(&self, pos: DVec3) -> f64 {
         let pillar = self.pillar.at(pos * DVec3::new(25.0, 0.3, 25.0));
-        let pillar_rareness = self.pillar_rareness.at(pos).remap(-1.0, 1.0, 0.0, -2.0);
-        let pillar_thickness = self.pillar_thickness.at(pos).remap(-1.0, 1.0, 0.0, 1.1);
-        pillar_thickness.powi(3) * (pillar * 2.0 + pillar_rareness)
+        let rareness = self.pillar_rareness.at(pos).remap(-1.0, 1.0, 0.0, -2.0);
+        let thickness = self.pillar_thickness.at(pos).remap(-1.0, 1.0, 0.0, 1.1);
+        thickness.powi(3) * (pillar * 2.0 + rareness)
     }
     fn underground(
         &self,
@@ -561,22 +559,18 @@ impl OverworldBiomeNoise {
         (initial_spaghetti_roughness.abs() - 0.4) * spaghetti_roughness_modulator
     }
     fn noodle(&self, pos: DVec3) -> f64 {
-        if pos.y < -60.0 {
+        if pos.y < -60.0 || self.noodle.at(pos) <= 0.0 {
             return 64.0;
         }
-        let noodle = self.noodle.at(pos);
-        let noodle_thickness = self.noodle_thickness.at(pos).remap(-1.0, 1.0, -0.05, -0.1);
-        let noodle_ridge_a = self.noodle_ridge_a.at(pos * 2.6666666666666665);
-        let noodle_ridge_b = self.noodle_ridge_b.at(pos * 2.6666666666666665);
-        let noodle_ridge = noodle_ridge_a.abs().max(noodle_ridge_b.abs()) * 1.5;
-        if noodle <= 0.0 {
-            64.0
-        } else {
-            noodle_thickness + noodle_ridge
-        }
+        let thickness = self.noodle_thickness.at(pos).remap(-1.0, 1.0, -0.05, -0.1);
+        let ridge_pos = pos * 2.6666666666666665;
+        let ridge_a = self.noodle_ridge_a.at(ridge_pos);
+        let ridge_b = self.noodle_ridge_b.at(ridge_pos);
+        let ridge = ridge_a.abs().max(ridge_b.abs()) * 1.5;
+        thickness + ridge
     }
     pub fn final_density(&self, pos: BlockPos) -> f64 {
-        let transformed_pos = self.transform(pos);
+        let transformed_pos = self.transform(pos.into());
         let spline_params = self.make_spline_params(transformed_pos);
         let jaggedness = self.jaggedness(spline_params);
         let jagged = self
@@ -600,18 +594,17 @@ impl OverworldBiomeNoise {
         };
 
         let tmp = slide(
-            pos.y,
+            pos.y.into(),
             f8,
-            self.chunk_height,
-            80,
-            64,
+            240.0,
+            256.0,
             -0.078125,
-            0,
-            24,
+            -64.0,
+            -40.0,
             0.1171875,
         );
 
-        let blended = tmp; //TODO: blender.blend_density(pos, tmp); //interpolated
+        let blended = tmp; //TODO: interpolated
 
         let d = (blended * 0.64).clamp(-1.0, 1.0);
 
@@ -629,7 +622,7 @@ impl OverworldBiomeNoise {
 
     fn make_spline_params(&self, transformed_pos: DVec3) -> (f64, f64, f64, f64) {
         let ridges = self.ridges.at(transformed_pos);
-        let ridges_folded = ((ridges.abs() - 0.6666666666666666).abs() - 0.3333333333333333) * -3.0;
+        let ridges_folded = (ridges.abs() - 0.6666666666666666).abs() * -3.0 + 1.0;
         let erosion = self.erosion.at(transformed_pos);
         let continents = self.continents.at(transformed_pos);
         (ridges, ridges_folded, erosion, continents)
@@ -661,44 +654,30 @@ impl OverworldBiomeNoise {
             .unwrap_or(self.chunk_height.min_y)
     }
     pub fn is_deep_dark_region(&self, pos: IVec3) -> bool {
-        let transformed_pos = self.transform(pos);
+        let transformed_pos = self.transform(pos.into());
         self.erosion.at(transformed_pos) < EROSION_DEEP_DARK_DRYNESS_THRESHOLD.into()
             && self.depth(pos, self.make_spline_params(transformed_pos))
                 > DEPTH_DEEP_DARK_DRYNESS_THRESHOLD.into()
     }
 }
 fn slide(
-    y: i32,
+    y: f64,
     density: f64,
-    chunk_height: ChunkHeight,
-    top_start_offset: i32,
-    top_end_offset: i32,
+    top_start: f64,
+    top_end: f64,
     top_delta: f64,
-    bottom_start_offset: i32,
-    bottom_end_offset: i32,
+    bottom_start: f64,
+    bottom_end: f64,
     bottom_delta: f64,
 ) -> f64 {
-    let s = clamped_map(
-        f64::from(y),
-        f64::from(chunk_height.max_y() - top_start_offset),
-        f64::from(chunk_height.max_y() - top_end_offset),
-        1.0,
-        0.0,
-    );
-    let t = clamped_map(
-        f64::from(y),
-        f64::from(chunk_height.min_y + bottom_start_offset),
-        f64::from(chunk_height.min_y + bottom_end_offset),
-        0.0,
-        1.0,
-    );
+    let s = clamped_map(y, top_start, top_end, 1.0, 0.0);
+    let t = clamped_map(y, bottom_start, bottom_end, 0.0, 1.0);
     bottom_delta.lerp(top_delta.lerp(density, s), t)
 }
-const BLEND_ALPHA: f64 = 1.0;
-const BLEND_OFFSET: f64 = 0.0;
+
 impl BiomeNoise for OverworldBiomeNoise {
     fn at_inner(&self, pos: BlockPos) -> [f64; 6] {
-        let transformed = self.transform(pos);
+        let transformed = self.transform(pos.into());
         let (ridges, ridges_folded, erosion, continents) = self.make_spline_params(transformed);
         [
             self.temperature.at(transformed),
@@ -709,4 +688,14 @@ impl BiomeNoise for OverworldBiomeNoise {
             ridges,
         ]
     }
+}
+
+#[test]
+fn test_offset() {
+    let offset = get_offset_spline();
+    assert_eq!(offset.sample(0.0, 0.0, 0.0, 0.0), 0.007458158);
+    assert_eq!(
+        offset.sample(0.007458158, 0.007458158, 0.007458158, 0.007458158),
+        0.008096008
+    );
 }
