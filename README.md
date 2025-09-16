@@ -9,46 +9,24 @@
     </a>
 </div>
 
-[//]: # (<div align="center">)
-
-[//]: # (    <a href="#-about">About</a>)
-
-[//]: # (    •)
-
-[//]: # (    <a href="#-key-features">Features</a>)
-
-[//]: # (    •)
-
-[//]: # (    <a href="#-getting-started">Getting Started</a>)
-
-[//]: # (    •)
-
-[//]: # (    <a href="#-goals">Goals</a>)
-
-[//]: # (    •)
-
-[//]: # (    <a href="#%EF%B8%8F-development">Development</a>)
-
-[//]: # (    •)
-
-[//]: # (    <a href="#-license">License</a>)
-
-[//]: # (    •)
-
-[//]: # (    <a href="#-faq">FAQ</a>)
-
-[//]: # (</div>)
-
 ## 📖 About
 
 FerrumC is a **1.21.8** Minecraft server implementation written from the ground up in Rust. Leveraging the power of the
 Rust programming language, it is completely multithreaded and offers high performance as well as amazing memory
 efficiency!
 
-[Docs](https://docs.ferrumc.com) are currently under construction, but you can join
-our [Discord server](https://discord.gg/qT5J8EMjwk) for help or to discuss the project!
+Visit **[ferrumc.com](https://www.ferrumc.com)** for more information. The official **[Docs](https://docs.ferrumc.com)** are currently under construction, but you can join our **[Discord server](https://discord.gg/qT5J8EMjwk)** for help or to discuss the project!
 
 <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/in_game.png?raw=true" alt="In-game screenshot">
+
+
+## 🔗 Project Links
+
+* **Official Website:** **[ferrumc.com](https://www.ferrumc.com)**
+* **Documentation:** **[docs.ferrumc.com](https://docs.ferrumc.com)**
+* **Discord Community:** **[Join our Discord](https://discord.gg/qT5J8EMjwk)**
+* **GitHub Repository:** **[ferrumc-rs/ferrumc](https://github.com/ferrumc-rs/ferrumc)**
+
 
 ## ✨ Key Features
 
