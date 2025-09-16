@@ -576,6 +576,7 @@ impl OverworldBiomeNoise {
         let jagged = self
             .jagged
             .at(pos.as_dvec3() * DVec3::new(1500.0, 0.0, 1500.0));
+
         let final_jaggedness = jagged * if jagged > 0.0 { 1.0 } else { 0.5 } * jaggedness;
         let depth =
             self.factor(spline_params) * (self.depth(pos, spline_params) + final_jaggedness);
@@ -586,9 +587,8 @@ impl OverworldBiomeNoise {
 
         let spaghetti_roughness = self.spaghetti_roughness(pos.into());
         let entrances = self.entrances(pos.into(), spaghetti_roughness);
-        let f7 = sloped_cheese.min(5.0 * entrances);
         let f8 = if sloped_cheese < 1.5625 {
-            f7
+            sloped_cheese.min(5.0 * entrances)
         } else {
             self.underground(sloped_cheese, pos.into(), entrances, spaghetti_roughness)
         };

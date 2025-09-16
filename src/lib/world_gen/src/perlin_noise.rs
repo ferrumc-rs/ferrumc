@@ -183,7 +183,6 @@ pub struct BlendedNoise {
     smear_scale_multiplier: f64,
 }
 impl BlendedNoise {
-    //TODO: tests
     pub fn at(&self, pos: DVec3) -> f64 {
         let main_pos = pos / DVec3::new(self.xz_factor, self.y_factor, self.xz_factor);
 
@@ -638,14 +637,19 @@ fn test_legacy_perlin_noise() {
 
 #[test]
 fn test_blended_noise() {
-    let mut rng = crate::random::Xoroshiro128PlusPlus::new(0, 0);
+    let mut rng = crate::random::Xoroshiro128PlusPlus::from_seed(0);
     let noise = BASE_3D_NOISE_OVERWORLD.init(&mut rng);
     assert_eq!(
-        noise.at(DVec3::new(0.0, 0.0, 0.0) * DVec3::new(0.25, 1.0, 0.25) * 684.412),
-        0.05283812245734512
+        noise.min_limit_noise.get_value(DVec3::new(0.0, 0.0, 0.0)),
+        -0.07746838539929846
     );
     assert_eq!(
-        noise.at(DVec3::new(10000.0, 203.0, -20031.0) * DVec3::new(0.25, 1.0, 0.25) * 684.412),
+        noise.main_noise.get_value(DVec3::new(0.0, 0.0, 0.0)),
+        0.08270934059662646
+    );
+    assert_eq!(noise.at(DVec3::new(0.0, 0.0, 0.0)), 0.05283812245734512);
+    assert_eq!(
+        noise.at(DVec3::new(10000.0, 203.0, -20031.0) * DVec3::new(1.0, 0.125, 1.0) * 684.412),
         -0.021018525929896836
     );
 }
