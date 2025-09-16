@@ -3,6 +3,7 @@ use std::ops::Range;
 use bevy_math::IVec2;
 use bevy_math::IVec3;
 use bevy_math::Vec2Swizzles;
+use itertools::Itertools;
 
 pub type BlockPos = IVec3;
 
@@ -40,7 +41,7 @@ impl ChunkPos {
     }
     pub fn iter_columns(self) -> impl Iterator<Item = ColumnPos> {
         (self.pos.x..self.pos.x + 16)
-            .zip(self.pos.y..self.pos.y + 16)
+            .cartesian_product(self.pos.y..self.pos.y + 16)
             .map(IVec2::from)
             .map(ColumnPos::from)
     }
