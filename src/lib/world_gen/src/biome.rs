@@ -1,4 +1,4 @@
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Biome {
     TheVoid,
     Plains,
@@ -69,6 +69,10 @@ pub enum Biome {
 
 impl Biome {
     pub(crate) fn should_melt_frozen_ocean_iceberg_slightly(&self, sea_level: i32) -> bool {
+        todo!()
+    }
+
+    pub(crate) fn cold_enough_to_snow(&self, pos: bevy_math::IVec3) -> bool {
         todo!()
     }
 }

@@ -32,7 +32,7 @@ pub trait Rng<RF> {
 
 pub trait RngFactory<R> {
     fn with_hash(&self, s: &str) -> R;
-    fn with_pos(&self, pos: IVec3) -> R;
+    fn at(&self, pos: IVec3) -> R;
 }
 
 #[derive(Clone, Copy)]
@@ -67,6 +67,9 @@ impl Xoroshiro128PlusPlus {
             };
         }
         Self { lo, hi }
+    }
+    pub fn next_bool(&mut self) -> bool {
+        self.next_u64() & 1 != 0
     }
 }
 impl Rng<Xoroshiro128PlusPlusFactory> for Xoroshiro128PlusPlus {
@@ -131,7 +134,7 @@ impl RngFactory<Xoroshiro128PlusPlus> for Xoroshiro128PlusPlusFactory {
         )
     }
 
-    fn with_pos(&self, pos: IVec3) -> Xoroshiro128PlusPlus {
+    fn at(&self, pos: IVec3) -> Xoroshiro128PlusPlus {
         Xoroshiro128PlusPlus::new(seed_at(pos) as u64 ^ self.lo, self.hi)
     }
 }
@@ -210,7 +213,7 @@ impl RngFactory<LegacyRandom> for LegacyPositionalFactory {
         LegacyRandom::new((i64::from(java_string_hashcode(s)) ^ self.seed as i64) as u64)
     }
 
-    fn with_pos(&self, pos: IVec3) -> LegacyRandom {
+    fn at(&self, pos: IVec3) -> LegacyRandom {
         LegacyRandom::new((seed_at(pos) ^ self.seed as i64) as u64)
     }
 }
@@ -264,10 +267,7 @@ fn test_legacy_factory() {
 
     assert_eq!(factory.with_hash("test").seed, 198298808087495);
     assert_eq!(factory.with_hash("test").next_u64(), 1964728489694604786);
-    assert_eq!(
-        factory.with_pos((1, 1, 1).into()).next_u64(),
-        6437814084537238339
-    );
+    assert_eq!(factory.at((1, 1, 1).into()).next_u64(), 6437814084537238339);
 }
 
 #[test]

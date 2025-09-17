@@ -4,13 +4,14 @@ use crate::overworld::aquifer::Aquifer;
 use crate::overworld::noise_depth::OverworldBiomeNoise;
 use crate::overworld::ore_veins::Vein;
 use crate::perlin_noise::{
-    BADLANDS_PILLAR, BADLANDS_PILLAR_ROOF, BADLANDS_SURFACE, ICEBERG_PILLAR, ICEBERG_PILLAR_ROOF,
-    ICEBERG_SURFACE, SURFACE,
+    BADLANDS_PILLAR, BADLANDS_PILLAR_ROOF, BADLANDS_SURFACE, CALCITE, CLAY_BANDS_OFFSET, GRAVEL,
+    ICE, ICEBERG_PILLAR, ICEBERG_PILLAR_ROOF, ICEBERG_SURFACE, PACKED_ICE, POWDER_SNOW, SURFACE,
+    SURFACE_SECONDARY, SWAMP,
 };
-use crate::pos::ChunkHeight;
-use crate::random::Xoroshiro128PlusPlusFactory;
+use crate::pos::{BlockPos, ChunkHeight};
+use crate::random::{Xoroshiro128PlusPlus, Xoroshiro128PlusPlusFactory};
 use crate::{biome_chunk::BiomeChunk, common::aquifer::FluidPicker, pos::ColumnPos};
-use bevy_math::{DVec2, IVec2, IVec3};
+use bevy_math::{DVec2, FloatExt, IVec2, IVec3};
 use ferrumc_world::vanilla_chunk_format::BlockData;
 
 use crate::{
@@ -20,7 +21,15 @@ use crate::{
 };
 
 pub struct SurfaceNoises {
-    surface_noise: NormalNoise<3>,
+    surface: NormalNoise<3>,
+    surface_secondary: NormalNoise<4>,
+    clay_bands_offset: NormalNoise<1>,
+    swamp: NormalNoise<1>,
+    packed_ice: NormalNoise<4>,
+    ice: NormalNoise<4>,
+    powder_snow: NormalNoise<4>,
+    calcite: NormalNoise<4>,
+    gravel: NormalNoise<4>,
     iceberg_surface_noise: NormalNoise<3>,
     iceberg_pillar_noise: NormalNoise<4>,
     iceberg_pillar_roof_noise: NormalNoise<1>,
@@ -51,7 +60,15 @@ impl OverworldSurface {
             ),
             aquifer: Aquifer::new(FluidPicker(63, FluidType::Water), random),
             noises: SurfaceNoises {
-                surface_noise: SURFACE.init(random),
+                surface: SURFACE.init(random),
+                surface_secondary: SURFACE_SECONDARY.init(random),
+                clay_bands_offset: CLAY_BANDS_OFFSET.init(random),
+                swamp: SWAMP.init(random),
+                packed_ice: PACKED_ICE.init(random),
+                ice: ICE.init(random),
+                powder_snow: POWDER_SNOW.init(random),
+                calcite: CALCITE.init(random),
+                gravel: GRAVEL.init(random),
                 iceberg_surface_noise: ICEBERG_SURFACE.init(random),
                 iceberg_pillar_noise: ICEBERG_PILLAR.init(random),
                 iceberg_pillar_roof_noise: ICEBERG_PILLAR_ROOF.init(random),
@@ -168,7 +185,7 @@ impl OverworldSurface {
                 (0.0, 0.0)
             };
 
-            let mut rng = self.random.with_pos(pos.block(0));
+            let mut rng = self.random.at(pos.block(0));
             let max_snow_blocks = 2 + rng.next_bounded(4);
             let min_snow_block_y = sea_level + 18 + rng.next_bounded(10) as i32;
             let mut snow_blocks = 0;
@@ -202,7 +219,7 @@ impl OverworldSurface {
         }
     }
 
-    fn min_surface_level(&self, noise: &OverworldBiomeNoise, pos: ColumnPos) -> i32 {
+    pub fn min_surface_level(&self, noise: &OverworldBiomeNoise, pos: ColumnPos) -> i32 {
         let chunk = pos.chunk();
         lerp2(
             DVec2::from(pos.pos & 15) / 16.0,
@@ -217,9 +234,9 @@ impl OverworldSurface {
 
     fn get_surface_depth(&self, pos: ColumnPos) -> i32 {
         let pos = pos.block(0);
-        (self.noises.surface_noise.at(pos.as_dvec3()) * 2.75
+        (self.noises.surface.at(pos.as_dvec3()) * 2.75
             + 3.0
-            + self.random.with_pos(pos).next_f64() * 0.25) as i32
+            + self.random.at(pos).next_f64() * 0.25) as i32
     }
 
     pub(crate) fn top_material(
@@ -236,4 +253,519 @@ impl OverworldSurface {
             pos,
         )
     }
+}
+
+struct SurfaceRules {
+    random: Xoroshiro128PlusPlusFactory,
+    bedrock: Xoroshiro128PlusPlusFactory,
+    deepslate: Xoroshiro128PlusPlusFactory,
+    clay_bands: [SurfaceBlock; 192],
+}
+#[derive(Clone, Copy)]
+enum SurfaceBlock {
+    Air,
+    Bedrock,
+    WhiteTerracotta,
+    OrangeTerracotta,
+    Terracotta,
+    YellowTerracotta,
+    BrownTerracotta,
+    RedTerracotta,
+    LightGrayTerracotta,
+    RedSand,
+    RedSandstone,
+    Stone,
+    Deepslate,
+    Dirt,
+    Podzol,
+    CoarseDirt,
+    Mycelium,
+    GrassBlock,
+    Calcite,
+    Gravel,
+    Sand,
+    Sandstone,
+    PackedIce,
+    SnowBlock,
+    Mud,
+    PowderSnow,
+    Ice,
+    Water,
+    Lava,
+    Netherrack,
+    SoulSand,
+    SoulSoil,
+    Basalt,
+    Blackstone,
+    WarpedWartBlock,
+    WarpedNylium,
+    NetherWartBlock,
+    CrimsonNylium,
+    Endstone,
+}
+impl SurfaceRules {
+    fn new(random: Xoroshiro128PlusPlusFactory) -> Self {
+        Self {
+            random,
+            bedrock: random
+                .with_hash("minecraft:bedrock_floor")
+                .fork_positional(),
+            deepslate: random.with_hash("minecraft:deepslate").fork_positional(),
+            clay_bands: badlands_clay(random),
+        }
+    }
+
+    pub fn try_apply(
+        &self,
+        surface: &OverworldSurface,
+        biome_noise: &OverworldBiomeNoise,
+        biome: Biome,
+        depth_above: i32,
+        fluid_level: Option<i32>,
+        pos: BlockPos,
+    ) -> SurfaceBlock {
+        use SurfaceBlock::*;
+        let depth_below = pos.y - depth_above + 1;
+        //bedrock
+        if pos.y == -64
+            || pos.y < -64 + 5
+                && self.bedrock.at(pos).next_f32()
+                    < f64::from(pos.y).remap(-64.0, -64.0 + 5.0, 1.0, 0.0) as f32
+        {
+            return Bedrock;
+        }
+
+        if pos.y >= surface.min_surface_level(biome_noise, pos.into()) {
+            let surface_noise = surface.noises.surface.at(pos.with_y(0).into());
+            let surface_depth =
+                surface_noise * 2.75 + 3.0 + self.random.at(pos.with_y(0)).next_f64() * 0.25;
+
+            if depth_above <= 1 {
+                if biome == Biome::WoodedBadlands && f64::from(pos.y) >= 97.0 + surface_depth * 2.0
+                {
+                    if badlands_noise_condition(surface_noise) {
+                        return CoarseDirt;
+                    }
+                    return if fluid_level.is_none() {
+                        GrassBlock
+                    } else {
+                        Dirt
+                    };
+                }
+                if biome == Biome::Swamp
+                    && pos.y == 62
+                    && surface.noises.swamp.at(pos.into()) >= 0.0
+                {
+                    return Water;
+                }
+                if biome == Biome::MangroveSwamp
+                    && pos.y >= 60
+                    && pos.y < 63
+                    && surface.noises.swamp.at(pos.into()) >= 0.0
+                {
+                    return Water;
+                }
+            }
+            if matches!(
+                biome,
+                Biome::Badlands | Biome::ErodedBadlands | Biome::WoodedBadlands
+            ) {
+                if depth_above <= 1 {
+                    if pos.y >= 256 {
+                        return OrangeTerracotta;
+                    }
+                    if f64::from(pos.y) >= 72.0 + f64::from(depth_above) + surface_depth {
+                        return if badlands_noise_condition(surface_noise) {
+                            Terracotta
+                        } else {
+                            self.get_badlands_clay(surface, pos)
+                        };
+                    }
+                    if fluid_level.is_none() {
+                        return if depth_below <= 1 {
+                            RedSandstone
+                        } else {
+                            RedSand
+                        };
+                    }
+                    if surface_depth > 0.0 {
+                        return OrangeTerracotta;
+                    }
+                    if fluid_level.is_none_or(|f| {
+                        f64::from(pos.y) + f64::from(depth_below)
+                            >= f64::from(f) - 6.0 - surface_depth
+                    }) {
+                        return WhiteTerracotta;
+                    }
+                    return if depth_below <= 1 { Stone } else { Gravel };
+                }
+                if f64::from(pos.y) + f64::from(depth_above) >= 63.0 - surface_depth {
+                    return if pos.y >= 63
+                        && f64::from(pos.y) + f64::from(depth_above) < 74.0 - surface_depth
+                    {
+                        OrangeTerracotta
+                    } else {
+                        self.get_badlands_clay(surface, pos)
+                    };
+                }
+
+                if f64::from(depth_above) <= 1.0 + surface_depth
+                    && fluid_level.is_none_or(|f| {
+                        f64::from(pos.y) + f64::from(depth_below)
+                            >= f64::from(f) - 6.0 - surface_depth
+                    })
+                {
+                    return WhiteTerracotta;
+                }
+            }
+            if depth_above <= 1 && fluid_level.is_none_or(|f| pos.y >= f - 1) {
+                return if matches!(biome, Biome::DeepFrozenOcean | Biome::FrozenOcean)
+                    && surface_depth <= 0.0
+                {
+                    if fluid_level.is_none() {
+                        Air
+                    } else if biome.cold_enough_to_snow(pos) {
+                        Ice
+                    } else {
+                        Water
+                    }
+                } else {
+                    if biome == Biome::FrozenPeaks {
+                        if todo!() {
+                            return PackedIce;
+                        }
+                        if (0.0..=0.2).contains(&surface.noises.packed_ice.at(pos.with_y(0).into()))
+                        {
+                            return PackedIce;
+                        }
+                        if (0.0..=0.025).contains(&surface.noises.ice.at(pos.with_y(0).into())) {
+                            return PackedIce;
+                        }
+                        if fluid_level.is_none() {
+                            return SnowBlock;
+                        }
+                    }
+                    if biome == Biome::SnowySlopes {
+                        if todo!() {
+                            return Stone;
+                        }
+                        if fluid_level.is_none()
+                            && (0.45..=0.58)
+                                .contains(&surface.noises.powder_snow.at(pos.with_y(0).into()))
+                        {
+                            return PowderSnow;
+                        }
+                        if fluid_level.is_none() {
+                            return SnowBlock;
+                        }
+                    }
+                    if biome == Biome::JaggedPeaks {
+                        if todo!() {
+                            return Stone;
+                        }
+                        if fluid_level.is_none() {
+                            return SnowBlock;
+                        }
+                    }
+                    if biome == Biome::Grove {
+                        if fluid_level.is_none()
+                            && (0.45..=0.58)
+                                .contains(&surface.noises.powder_snow.at(pos.with_y(0).into()))
+                        {
+                            return PowderSnow;
+                        }
+                        if fluid_level.is_none() {
+                            return SnowBlock;
+                        }
+                    }
+                    if biome == Biome::WindsweptSavanna {
+                        if surface_noise >= 1.75 / 8.25 {
+                            return Stone;
+                        }
+                        if surface_noise >= -0.5 / 8.25 {
+                            return CoarseDirt;
+                        }
+                    }
+                    if biome == Biome::WindsweptGravellyHills {
+                        return if surface_noise >= 2.0 / 8.25 {
+                            if depth_below <= 1 { Stone } else { Gravel }
+                        } else if surface_noise >= 1.0 / 8.25 {
+                            Stone
+                        } else if surface_noise >= -1.0 / 8.25 {
+                            if fluid_level.is_none() {
+                                GrassBlock
+                            } else {
+                                Dirt
+                            }
+                        } else if depth_below <= 1 {
+                            Stone
+                        } else {
+                            Gravel
+                        };
+                    }
+                    if matches!(
+                        biome,
+                        Biome::OldGrowthPineTaiga | Biome::OldGrowthSpruceTaiga
+                    ) {
+                        if surface_noise >= 1.75 / 8.25 {
+                            return CoarseDirt;
+                        }
+                        if surface_noise >= -0.95 / 8.25 {
+                            return Podzol;
+                        }
+                    }
+                    if biome == Biome::IceSpikes && fluid_level.is_none() {
+                        return SnowBlock;
+                    }
+                    if biome == Biome::MangroveSwamp {
+                        return Mud;
+                    }
+                    if biome == Biome::MushroomFields {
+                        return Mycelium;
+                    }
+                    return if fluid_level.is_none() {
+                        GrassBlock
+                    } else {
+                        Dirt
+                    };
+                };
+            }
+            if fluid_level.is_none_or(|f| {
+                f64::from(pos.y) + f64::from(depth_below) >= f64::from(f) - 6.0 - surface_depth
+            }) {
+                if depth_above <= 1
+                    && matches!(biome, Biome::DeepFrozenOcean | Biome::FrozenOcean)
+                    && surface_depth <= 0.0
+                {
+                    return Water;
+                }
+                if f64::from(depth_above) <= 1.0 + surface_depth {
+                    if biome == Biome::FrozenPeaks {
+                        if todo!() {
+                            return PackedIce;
+                        }
+                        if (-0.5..=0.2)
+                            .contains(&surface.noises.packed_ice.at(pos.with_y(0).into()))
+                        {
+                            return PackedIce;
+                        }
+                        if (-0.0625..=0.025).contains(&surface.noises.ice.at(pos.with_y(0).into()))
+                        {
+                            return PackedIce;
+                        }
+                        if fluid_level.is_none() {
+                            return SnowBlock;
+                        }
+                    }
+                    if biome == Biome::SnowySlopes {
+                        if todo!() {
+                            return Stone;
+                        }
+                        if fluid_level.is_none()
+                            && (0.45..=0.58)
+                                .contains(&surface.noises.powder_snow.at(pos.with_y(0).into()))
+                        {
+                            return PowderSnow;
+                        }
+                        if fluid_level.is_none() {
+                            return SnowBlock;
+                        }
+                    }
+                    if biome == Biome::JaggedPeaks {
+                        return Stone;
+                    }
+                    if biome == Biome::Grove {
+                        return if (0.45..=0.58)
+                            .contains(&surface.noises.powder_snow.at(pos.with_y(0).into()))
+                        {
+                            PowderSnow
+                        } else {
+                            Dirt
+                        };
+                    }
+                    if biome == Biome::StonyPeaks {
+                        return if (-0.0125..=0.0125)
+                            .contains(&surface.noises.calcite.at(pos.with_y(0).into()))
+                        {
+                            Calcite
+                        } else {
+                            Stone
+                        };
+                    }
+                    if biome == Biome::StonyShore {
+                        return if depth_below <= 1
+                            && (-0.05..=0.05)
+                                .contains(&surface.noises.gravel.at(pos.with_y(0).into()))
+                        {
+                            Gravel
+                        } else {
+                            Stone
+                        };
+                    }
+                    if biome == Biome::WindsweptHills && surface_noise >= 1.0 / 8.25 {
+                        return Stone;
+                    }
+                    if matches!(
+                        biome,
+                        Biome::SnowyBeach | Biome::Beach | Biome::WarmOcean | Biome::Desert
+                    ) {
+                        return if depth_below <= 1 { Sandstone } else { Sand };
+                    }
+                    if biome == Biome::DripstoneCaves {
+                        return Stone;
+                    }
+                    if biome == Biome::WindsweptSavanna && surface_noise >= 1.75 / 8.25 {
+                        return Stone;
+                    }
+                    if biome == Biome::WindsweptHills {
+                        return if surface_noise >= 2.0 / 8.25 {
+                            if depth_below <= 1 { Stone } else { Gravel }
+                        } else if surface_noise >= 1.0 / 8.25 {
+                            Stone
+                        } else if surface_noise >= -1.0 / 8.25 {
+                            Dirt
+                        } else if depth_below <= 1 {
+                            Stone
+                        } else {
+                            Gravel
+                        };
+                    }
+                    if biome == Biome::MangroveSwamp {
+                        return Mud;
+                    }
+                    return Dirt;
+                }
+                if matches!(biome, Biome::SnowyBeach | Biome::Beach | Biome::WarmOcean)
+                    && (f64::from(depth_above)
+                        <= 1.0
+                            + surface_depth
+                            + surface
+                                .noises
+                                .surface_secondary
+                                .at(pos.with_y(0).into())
+                                .remap(-1.0, 1.0, 0.0, 6.0)
+                        || f64::from(depth_above)
+                            <= 1.0
+                                + surface_depth
+                                + surface
+                                    .noises
+                                    .surface_secondary
+                                    .at(pos.with_y(0).into())
+                                    .remap(-1.0, 1.0, 0.0, 30.0))
+                {
+                    return Sandstone;
+                }
+            }
+            if depth_above <= 1 {
+                return if matches!(biome, Biome::FrozenPeaks | Biome::JaggedPeaks) {
+                    Stone
+                } else if matches!(
+                    biome,
+                    Biome::WarmOcean | Biome::DeepLukewarmOcean | Biome::LukewarmOcean
+                ) {
+                    if depth_below <= 1 { Sandstone } else { Sand }
+                } else if depth_below <= 1 {
+                    Stone
+                } else {
+                    Gravel
+                };
+            }
+        }
+
+        if pos.y <= 0
+            || pos.y < 8
+                && self.deepslate.at(pos).next_f32()
+                    < f64::from(pos.y).remap(0.0, 8.0, 1.0, 0.0) as f32
+        {
+            return Deepslate;
+        }
+
+        Stone
+    }
+
+    fn get_badlands_clay(&self, surface: &OverworldSurface, pos: BlockPos) -> SurfaceBlock {
+        let i = (surface.noises.clay_bands_offset.at(pos.with_y(0).into()) * 4.0).round(); //TODO:
+        //this rounding is not the same as in java.
+        self.clay_bands
+            [(pos.y as usize + i as usize + self.clay_bands.len()) % self.clay_bands.len()]
+    }
+}
+fn badlands_clay(random: Xoroshiro128PlusPlusFactory) -> [SurfaceBlock; 192] {
+    fn make_bands(
+        rng: &mut Xoroshiro128PlusPlus,
+        output: &mut [SurfaceBlock],
+        min_size: usize,
+        state: SurfaceBlock,
+    ) {
+        // Java: nextIntBetweenInclusive(6, 15)
+        let band_count = rng.next_i32_range(6..16);
+
+        for _ in 0..band_count {
+            // Java: minSize + nextInt(3)
+            let band_len = min_size + rng.next_bounded(3) as usize;
+            // Java: nextInt(output.length)
+            let start = rng.next_bounded(output.len() as u32) as usize;
+
+            for offset in 0..band_len {
+                let idx = start + offset;
+                if idx >= output.len() {
+                    break;
+                }
+                output[idx] = state;
+            }
+        }
+    }
+    let mut random = random.with_hash("minecraft:clay_bands");
+    let mut block_states = [SurfaceBlock::Terracotta; 192];
+
+    let mut i = 1 + random.next_bounded(5) as usize;
+    while i < block_states.len() {
+        block_states[i] = SurfaceBlock::OrangeTerracotta;
+        i += 2 + random.next_bounded(5) as usize;
+    }
+
+    make_bands(
+        &mut random,
+        &mut block_states,
+        1,
+        SurfaceBlock::YellowTerracotta,
+    );
+    make_bands(
+        &mut random,
+        &mut block_states,
+        2,
+        SurfaceBlock::BrownTerracotta,
+    );
+    make_bands(
+        &mut random,
+        &mut block_states,
+        1,
+        SurfaceBlock::RedTerracotta,
+    );
+
+    let ix = random.next_i32_range(9..16);
+    let mut painted = 0;
+    let mut i = 0;
+
+    while painted < ix && i < block_states.len() {
+        block_states[i] = SurfaceBlock::WhiteTerracotta;
+
+        if i > 0 && random.next_bool() {
+            block_states[i - 1] = SurfaceBlock::LightGrayTerracotta;
+        }
+        if i + 1 < block_states.len() && random.next_bool() {
+            block_states[i + 1] = SurfaceBlock::LightGrayTerracotta;
+        }
+
+        painted += 1;
+        i += random.next_bounded(16) as usize + 4;
+    }
+
+    block_states
+}
+
+fn badlands_noise_condition(surface_noise: f64) -> bool {
+    (-0.909..=-0.5454).contains(&surface_noise)
+        || (-0.1818..=0.1818).contains(&surface_noise)
+        || (0.5454..=0.909).contains(&surface_noise)
 }
