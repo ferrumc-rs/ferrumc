@@ -10,6 +10,7 @@ use crate::perlin_noise::{
 };
 use crate::pos::{BlockPos, ChunkHeight};
 use crate::random::{Xoroshiro128PlusPlus, Xoroshiro128PlusPlusFactory};
+use crate::{ChunkAccess, HeightmapType};
 use crate::{biome_chunk::BiomeChunk, common::aquifer::FluidPicker, pos::ColumnPos};
 use bevy_math::{DVec2, FloatExt, IVec2, IVec3};
 use ferrumc_world::vanilla_chunk_format::BlockData;
@@ -317,6 +318,7 @@ impl SurfaceRules {
 
     pub fn try_apply(
         &self,
+        chunk: &ChunkAccess,
         surface: &OverworldSurface,
         biome_noise: &OverworldBiomeNoise,
         biome: Biome,
@@ -431,7 +433,7 @@ impl SurfaceRules {
                     }
                 } else {
                     if biome == Biome::FrozenPeaks {
-                        if todo!() {
+                        if is_steep(pos, chunk) {
                             return PackedIce;
                         }
                         if (0.0..=0.2).contains(&surface.noises.packed_ice.at(pos.with_y(0).into()))
@@ -446,7 +448,7 @@ impl SurfaceRules {
                         }
                     }
                     if biome == Biome::SnowySlopes {
-                        if todo!() {
+                        if is_steep(pos, chunk) {
                             return Stone;
                         }
                         if fluid_level.is_none()
@@ -460,7 +462,7 @@ impl SurfaceRules {
                         }
                     }
                     if biome == Biome::JaggedPeaks {
-                        if todo!() {
+                        if is_steep(pos, chunk) {
                             return Stone;
                         }
                         if fluid_level.is_none() {
@@ -541,7 +543,7 @@ impl SurfaceRules {
                 }
                 if f64::from(depth_above) <= 1.0 + surface_depth {
                     if biome == Biome::FrozenPeaks {
-                        if todo!() {
+                        if is_steep(pos, chunk) {
                             return PackedIce;
                         }
                         if (-0.5..=0.2)
@@ -558,7 +560,7 @@ impl SurfaceRules {
                         }
                     }
                     if biome == Biome::SnowySlopes {
-                        if todo!() {
+                        if is_steep(pos, chunk) {
                             return Stone;
                         }
                         if fluid_level.is_none()
@@ -768,4 +770,27 @@ fn badlands_noise_condition(surface_noise: f64) -> bool {
     (-0.909..=-0.5454).contains(&surface_noise)
         || (-0.1818..=0.1818).contains(&surface_noise)
         || (0.5454..=0.909).contains(&surface_noise)
+}
+
+fn is_steep(pos: BlockPos, chunk: &ChunkAccess) -> bool {
+    let x = pos.x & 15;
+    let z = pos.z & 15;
+
+    let max_z = (z - 1).max(0);
+    let min_z = (z + 1).min(15);
+
+    let height = chunk.get_height(HeightmapType::WorldSurfaceWg, x, max_z);
+    let height1 = chunk.get_height(HeightmapType::WorldSurfaceWg, x, min_z);
+
+    if height1 >= height + 4 {
+        true
+    } else {
+        let max_x = (x - 1).max(0);
+        let min_x = (x + 1).min(15);
+
+        let height2 = chunk.get_height(HeightmapType::WorldSurfaceWg, max_x, z);
+        let height3 = chunk.get_height(HeightmapType::WorldSurfaceWg, min_x, z);
+
+        height2 >= height3 + 4
+    }
 }

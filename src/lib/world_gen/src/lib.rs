@@ -25,6 +25,13 @@ impl ChunkAccess {
     pub fn set_block_state(&mut self, pos: BlockPos, data: BlockData) {
         todo!()
     }
+
+    fn get_height(&self, world_surface_wg: HeightmapType, max_x: i32, z: i32) -> i32 {
+        todo!()
+    }
+}
+pub enum HeightmapType {
+    WorldSurfaceWg,
 }
 pub struct WorldGenerator {
     generator: OverworldGenerator,
