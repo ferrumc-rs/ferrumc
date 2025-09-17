@@ -104,7 +104,7 @@ impl Aquifer {
             .cartesian_product((0..=1).rev())
             .map(|((x, y), z)| section + IVec3::new(x, y, z).into())
             .map(|offset_section| {
-                let mut random = self.random.with_pos(offset_section.pos);
+                let mut random = self.random.at(offset_section.pos);
                 let random_pos = offset_section.block(
                     random.next_bounded(10),
                     random.next_bounded(9),
