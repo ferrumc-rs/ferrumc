@@ -3,6 +3,7 @@ use std::ops::Range;
 use bevy_math::IVec2;
 use bevy_math::IVec3;
 use bevy_math::Vec2Swizzles;
+use bevy_math::Vec3Swizzles;
 use itertools::Itertools;
 
 pub type BlockPos = IVec3;
@@ -72,5 +73,10 @@ impl ColumnPos {
 impl From<IVec2> for ColumnPos {
     fn from(pos: IVec2) -> Self {
         Self { pos }
+    }
+}
+impl From<BlockPos> for ColumnPos {
+    fn from(pos: BlockPos) -> Self {
+        Self { pos: pos.xz() }
     }
 }

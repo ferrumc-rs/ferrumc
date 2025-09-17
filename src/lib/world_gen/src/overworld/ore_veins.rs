@@ -75,7 +75,7 @@ impl Vein {
         if vein_toggle_abs + d1 < 0.4 {
             return None;
         }
-        let mut rand = self.random.with_pos(pos);
+        let mut rand = self.random.at(pos);
         let vein_pos = pos.as_dvec3() * 4.0;
         if rand.next_f32() > 0.7 || self.vein_a.at(vein_pos).max(self.vein_b.at(vein_pos)) >= 0.08 {
             return None;
