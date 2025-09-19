@@ -6,7 +6,7 @@ use ferrumc_world::World;
 pub(crate) fn bench_cache(c: &mut Criterion) {
     let backend_path = std::env::current_dir()
         .unwrap()
-        .join("../../../target/debug/world");
+        .join("../../../world");
     let mut group = c.benchmark_group("world_load");
     group.bench_function("Load chunk 1,1 uncached", |b| {
         b.iter_batched(

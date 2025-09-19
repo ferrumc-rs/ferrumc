@@ -126,7 +126,7 @@ mod tests {
         let world = World::new(
             std::env::current_dir()
                 .unwrap()
-                .join("../../../target/debug/world"),
+                .join("../../../world"),
         );
         let chunk = world.load_chunk(1, 1, "overworld").expect(
             "Failed to load chunk. If it's a bitcode error, chances are the chunk format \
