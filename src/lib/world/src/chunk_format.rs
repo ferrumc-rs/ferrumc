@@ -9,7 +9,6 @@ use ferrumc_macros::{NBTDeserialize, NBTSerialize};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use intmap::IntMap;
 use std::cmp::max;
-use std::collections::HashMap;
 use tracing::error;
 use vanilla_chunk_format::BlockData;
 // #[cfg(test)]
