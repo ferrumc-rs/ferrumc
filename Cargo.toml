@@ -14,14 +14,11 @@ resolver = "2"
 members = [
     "src/bin",
     "src/lib/adapters/anvil",
-    "src/lib/adapters/anvil",
-    "src/lib/adapters/nbt",
     "src/lib/adapters/nbt",
     "src/lib/commands",
     "src/lib/default_commands",
     "src/lib/core",
     "src/lib/core/state",
-    "src/lib/derive_macros",
     "src/lib/derive_macros",
     "src/lib/net",
     "src/lib/net/crates/codec",
@@ -115,11 +112,19 @@ ferrumc-world-gen = { path = "src/lib/world_gen" }
 ferrumc-inventories = { path = "src/lib/inventories" }
 
 # Asynchronous
-tokio = { version = "1.47.1", features = ["macros", "net", "rt", "sync", "time", "io-util", "test-util"], default-features = false }
+tokio = { version = "1.47.1", features = [
+    "macros",
+    "net",
+    "rt",
+    "sync",
+    "time",
+    "io-util",
+    "test-util",
+], default-features = false }
 
 # Logging
 tracing = "0.1.41"
-tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
+tracing-subscriber = { version = ">=0.3.20", features = ["env-filter"] }
 tracing-appender = "0.2.3"
 log = "0.4.27"
 console-subscriber = "0.4.1"
@@ -189,6 +194,7 @@ lz4_flex = "0.11.5"
 # Database
 heed = "0.22.0"
 moka = "0.12.10"
+rusqlite = { version = "0.37.0", features = ["bundled", "serde_json"] }
 
 # CLI
 clap = "4.5.45"

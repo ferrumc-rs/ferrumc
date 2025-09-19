@@ -36,6 +36,8 @@ pub enum WorldError {
     ChunkNotFound,
     #[error("Anvil Decode Error: {0}")]
     AnvilDecodeError(AnvilError),
+    #[error("Player Data Error: {0}")]
+    PlayerDataError(PlayerDataError),
     #[error("Missing block mapping: {0}")]
     MissingBlockMapping(BlockData),
     #[error("Invalid memory map size: {0}")]
@@ -103,5 +105,25 @@ impl From<yazi::Error> for WorldError {
             Error::Finished => CompressionError("Finished error during compression".to_string()),
             Error::Io(io_err) => GenericIOError(io_err.to_string()),
         }
+    }
+}
+
+impl From<PlayerDataError> for WorldError {
+    fn from(e: PlayerDataError) -> Self {
+        WorldError::PlayerDataError(e)
+    }
+}
+
+#[derive(Debug, Error)]
+pub enum PlayerDataError {
+    #[error("A database error occurred from the playerstate crate: {0}")]
+    DatabaseError(StorageError),
+    #[error("Some kind of IO error occurred: {0}")]
+    GenericIOError(String),
+}
+
+impl From<StorageError> for PlayerDataError {
+    fn from(err: StorageError) -> Self {
+        PlayerDataError::DatabaseError(err)
     }
 }
