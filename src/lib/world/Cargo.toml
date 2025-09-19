@@ -22,7 +22,7 @@ ferrumc-anvil = { workspace = true }
 rayon = { workspace = true }
 ferrumc-general-purpose = { workspace = true }
 lazy_static = { workspace = true }
-bzip2 = { workspace = true }
+intmap = { workspace = true }
 serde_json = { workspace = true }
 indicatif = { workspace = true }
 wyhash = { workspace = true }

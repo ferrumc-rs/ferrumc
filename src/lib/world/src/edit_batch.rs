@@ -5,7 +5,7 @@ use ahash::{AHashMap, AHashSet, AHasher};
 use ferrumc_general_purpose::data_packing::i32::read_nbit_i32;
 use ferrumc_general_purpose::data_packing::u32::write_nbit_u32;
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use std::collections::HashMap;
+use intmap::IntMap;
 use std::hash::{Hash, Hasher};
 
 /// A batched block editing utility for a single Minecraft chunk.
@@ -142,7 +142,7 @@ impl<'a> EditBatch<'a> {
                         block_states: BlockStates {
                             non_air_blocks: 0,
                             block_data: PaletteType::Single(VarInt::default()),
-                            block_counts: HashMap::from([(BlockId::default(), 4096)]),
+                            block_counts: IntMap::from([(BlockId::default(), 4096)]),
                         },
                         // Biomes don't really matter for this, so we can just use empty data
                         biome_states: BiomeStates {
@@ -296,7 +296,7 @@ impl<'a> EditBatch<'a> {
             section.block_states.non_air_blocks = *section
                 .block_states
                 .block_counts
-                .get(&BlockId::default())
+                .get(BlockId::default())
                 .unwrap_or(&4096) as u16;
 
             // Only optimise if the palette changed after edits
@@ -324,7 +324,7 @@ mod tests {
             name: name.to_string(),
             properties: None,
         }
-        .to_block_id()
+            .to_block_id()
     }
 
     #[test]

@@ -3,6 +3,7 @@ use ahash::RandomState;
 use bitcode_derive::{Decode, Encode};
 use deepsize::DeepSizeOf;
 use ferrumc_net_codec::net_types::var_int::VarInt;
+use intmap::IntKey;
 use lazy_static::lazy_static;
 use std::collections::HashMap;
 use std::process::exit;
@@ -45,6 +46,15 @@ lazy_static! {
 /// modify or read the block's name/properties directly.
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Encode, Decode, DeepSizeOf)]
 pub struct BlockId(pub u32);
+
+impl IntKey for BlockId {
+    type Int = u32;
+    const PRIME: Self::Int = u32::PRIME;
+
+    fn into_int(self) -> Self::Int {
+        self.0
+    }
+}
 
 impl BlockId {
     /// Given a BlockData, return a BlockId. Does not clone, should be quite fast.

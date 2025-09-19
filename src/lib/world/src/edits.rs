@@ -5,7 +5,7 @@ use crate::vanilla_chunk_format::BlockData;
 use crate::World;
 use ferrumc_general_purpose::data_packing::i32::read_nbit_i32;
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use std::collections::hash_map::Entry;
+use intmap::{Entry, IntMap};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tracing::{debug, error, warn};
@@ -304,7 +304,7 @@ impl Chunk {
                     }
                 }
                 // Add new block
-                if let Some(e) = section.block_states.block_counts.get(&block) {
+                if let Some(e) = section.block_states.block_counts.get(block) {
                     section.block_states.block_counts.insert(block, e + 1);
                 } else {
                     // debug!("Adding block to block counts");
@@ -478,7 +478,7 @@ impl Section {
     pub fn fill(&mut self, block: impl Into<BlockId>) -> Result<(), WorldError> {
         let block = block.into();
         self.block_states.block_data = PaletteType::Single(block.to_varint());
-        self.block_states.block_counts = HashMap::from([(block, 4096)]);
+        self.block_states.block_counts = IntMap::from([(block, 4096)]);
         // Air, void air and cave air respectively
         if [0, 12958, 12959].contains(&block.0) {
             self.block_states.non_air_blocks = 0;

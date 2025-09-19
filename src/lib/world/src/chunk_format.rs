@@ -7,6 +7,7 @@ use deepsize::DeepSizeOf;
 use ferrumc_general_purpose::data_packing::i32::read_nbit_i32;
 use ferrumc_macros::{NBTDeserialize, NBTSerialize};
 use ferrumc_net_codec::net_types::var_int::VarInt;
+use intmap::IntMap;
 use std::cmp::max;
 use std::collections::HashMap;
 use tracing::error;
@@ -52,7 +53,7 @@ pub struct Section {
 pub struct BlockStates {
     pub non_air_blocks: u16,
     pub block_data: PaletteType,
-    pub block_counts: HashMap<BlockId, i32>,
+    pub block_counts: IntMap<BlockId, i32>,
 }
 
 #[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug)]
@@ -129,7 +130,7 @@ impl VanillaChunk {
                 .and_then(|bs| bs.palette.clone())
                 .unwrap_or_default();
             let bits_per_block = max((palette.len() as f32).log2().ceil() as u8, 4);
-            let mut block_counts = HashMap::new();
+            let mut block_counts: IntMap<BlockId, i32> = IntMap::new();
             for chunk in &raw_block_data {
                 let mut i = 0;
                 while i + bits_per_block < 64 {
@@ -142,7 +143,7 @@ impl VanillaChunk {
                         }
                     };
 
-                    if let Some(count) = block_counts.get_mut(&block.to_block_id()) {
+                    if let Some(count) = block_counts.get_mut(block.to_block_id()) {
                         *count += 1;
                     } else {
                         block_counts.insert(block.to_block_id(), 0);
@@ -162,23 +163,23 @@ impl VanillaChunk {
                 }
             };
             // Count the number of blocks that are either air, void air, or cave air
-            let mut air_blocks = *block_counts.get(&BlockId::default()).unwrap_or(&0) as u16;
+            let mut air_blocks = *block_counts.get(BlockId::default()).unwrap_or(&0) as u16;
             air_blocks += *block_counts
                 .get(
-                    &BlockData {
+                    BlockData {
                         name: "minecraft:void_air".to_string(),
                         properties: None,
                     }
-                    .to_block_id(),
+                        .to_block_id(),
                 )
                 .unwrap_or(&0) as u16;
             air_blocks += *block_counts
                 .get(
-                    &BlockData {
+                    BlockData {
                         name: "minecraft:cave_air".to_string(),
                         properties: None,
                     }
-                    .to_block_id(),
+                        .to_block_id(),
                 )
                 .unwrap_or(&0) as u16;
             let non_air_blocks = 4096 - air_blocks;
@@ -234,20 +235,22 @@ impl VanillaChunk {
 impl Chunk {
     pub fn new(x: i32, z: i32, dimension: String) -> Self {
         let mut sections: Vec<Section> = (-4..20)
-            .map(|y| Section {
-                y: y as i8,
-                block_states: BlockStates {
-                    non_air_blocks: 0,
-                    block_data: PaletteType::Single(VarInt::from(0)),
-                    block_counts: HashMap::from([(BlockId::default(), 4096)]),
-                },
-                biome_states: BiomeStates {
-                    bits_per_biome: 0,
-                    data: vec![],
-                    palette: vec![VarInt::from(0)],
-                },
-                block_light: vec![255; 2048],
-                sky_light: vec![255; 2048],
+            .map(|y| {
+                Section {
+                    y: y as i8,
+                    block_states: BlockStates {
+                        non_air_blocks: 0,
+                        block_data: PaletteType::Single(VarInt::from(0)),
+                        block_counts: IntMap::from([(BlockId::default(), 4096)]),
+                    },
+                    biome_states: BiomeStates {
+                        bits_per_biome: 0,
+                        data: vec![],
+                        palette: vec![VarInt::from(0)],
+                    },
+                    block_light: vec![255; 2048],
+                    sky_light: vec![255; 2048],
+                }
             })
             .collect();
         for section in &mut sections {
@@ -274,7 +277,7 @@ mod tests {
             name: "minecraft:stone".to_string(),
             properties: None,
         }
-        .to_block_id();
+            .to_block_id();
         chunk.set_block(0, 0, 0, block).unwrap();
         assert_eq!(chunk.get_block(0, 0, 0).unwrap(), block);
     }
@@ -289,7 +292,7 @@ mod tests {
         chunk.fill(stone_block.clone()).unwrap();
         for section in &chunk.sections {
             for (block, count) in &section.block_states.block_counts {
-                assert_eq!(*block, stone_block.to_block_id());
+                assert_eq!(block, stone_block.to_block_id());
                 assert_eq!(count, &4096);
             }
         }
@@ -302,7 +305,7 @@ mod tests {
             block_states: BlockStates {
                 non_air_blocks: 0,
                 block_data: PaletteType::Single(VarInt::from(0)),
-                block_counts: HashMap::from([(BlockId::default(), 4096)]),
+                block_counts: IntMap::from([(BlockId::default(), 4096)]),
             },
             biome_states: BiomeStates {
                 bits_per_biome: 0,
@@ -325,7 +328,7 @@ mod tests {
             section
                 .block_states
                 .block_counts
-                .get(&stone_block.to_block_id())
+                .get(stone_block.to_block_id())
                 .unwrap(),
             &4096
         );
@@ -338,7 +341,7 @@ mod tests {
             name: "minecraft:stone".to_string(),
             properties: None,
         }
-        .to_block_id();
+            .to_block_id();
         chunk.set_block(0, 0, 0, block).unwrap();
         assert_ne!(chunk.get_block(0, 1, 0).unwrap(), block);
     }
