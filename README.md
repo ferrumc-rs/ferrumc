@@ -15,10 +15,11 @@ FerrumC is a **1.21.8** Minecraft server implementation written from the ground 
 Rust programming language, it is completely multithreaded and offers high performance as well as amazing memory
 efficiency!
 
-Visit **[ferrumc.com](https://www.ferrumc.com)** for more information. The official **[Docs](https://docs.ferrumc.com)** are currently under construction, but you can join our **[Discord server](https://discord.gg/qT5J8EMjwk)** for help or to discuss the project!
+Visit **[ferrumc.com](https://www.ferrumc.com)** for more information. The official **[Docs](https://docs.ferrumc.com)**
+are currently under construction, but you can join our **[Discord server](https://discord.gg/qT5J8EMjwk)** for help or
+to discuss the project!
 
 <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/in_game.png?raw=true" alt="In-game screenshot">
-
 
 ## 🔗 Project Links
 
@@ -26,7 +27,6 @@ Visit **[ferrumc.com](https://www.ferrumc.com)** for more information. The offic
 * **Documentation:** **[docs.ferrumc.com](https://docs.ferrumc.com)**
 * **Discord Community:** **[Join our Discord](https://discord.gg/qT5J8EMjwk)**
 * **GitHub Repository:** **[ferrumc-rs/ferrumc](https://github.com/ferrumc-rs/ferrumc)**
-
 
 ## ✨ Key Features
 
@@ -95,9 +95,8 @@ Visit **[ferrumc.com](https://www.ferrumc.com)** for more information. The offic
   server experience.
 - **Not just a faster replacement**: FerrumC is not intended to be a perfect match for the vanilla server. We aim to
   improve on the original server in ways other than just performance. This includes things like setup and usage,
-  configurability,
-  plugins, gameplay mechanics like mob AI, terrain generation and more. Simply speeding up the server feels like a waste
-  of the opportunity to do something new and exciting.
+  configurability, plugins and more. Simply speeding up the server feels like a waste of the opportunity to do something
+  new and exciting.
 - **Ease of Use**: While it will certainly possible to run FerrumC as the backend for highly complex servers such as
   Hypixel through the use of plugins, the main intended audience is the average user who wants to run a server for their
   friends
@@ -176,25 +175,7 @@ Options:
 2. Open a terminal in that directory
 3. (Optional) Generate a config file: `./ferrumc setup`
     - Edit the generated `config.toml` file to customize your server settings
-4. Import an existing world: Either copy your world files to the server directory or specify the path to the world files
-   in the `config.toml` file. This should be the root directory of your world files, containing the `region` directory
-   as well as other folders like DIM1, playerdata, etc. The default import path is `import` so you should end up with a
-   directory structure like this:
-    ```
-    server_directory
-    ├── config.toml
-    ├── ferrumc.exe
-    ├── import
-    │   ├── region
-    │   │   ├── r.0.0.mca
-    │   │   ├── r.0.1.mca
-    │   │   ├── ...
-    │   ├── DIM1
-    │   ├── playerdata
-    │   ├── ...
-    ```
-    - The location of these files is explained [here](https://minecraft.wiki/w/Region_file_format#Location).
-5. Run the server:
+4. Run the server:
     - Windows: `.\ferrumc.exe`
     - Linux/macOS: `./ferrumc`
     - You can change logging level by using `--log=<level>`:
@@ -241,17 +222,34 @@ Also have a look at our [CONTRIBUTING.md](CONTRIBUTING.md) file for more informa
 
 ### Will we be implementing terrain generation?
 
-Yes! We currently have some very rudimentary terrain generation, but we are working on improving it. We are not going to
-be attempting to match the vanilla generation exactly since it would be a *lot* of work for little gain and frankly, we
-see it as kinda boring. What's the fun in just translating decompiled code to Rust? We are going to be implementing our
-own custom system that can generate (hopefully) more interesting worlds.
+Yes! We currently have some very rudimentary terrain generation and vanilla terrain is currently being worked on.
+However,
+we will be implementing optimizations and cutting corners to improve performance. This could lead to the world not being
+*exactly* the same as vanilla and differences may not be fixed if they would lead to performance issues that we deem to
+outweigh the benefits of vanilla accuracy. That being said, we will try to make it as close to vanilla as possible
+without
+sacrificing performance.
 
 ### Will there be plugins? And how?
 
 We do very much plan to have a plugin system and as of right now we are planning to use
-some kind of FFI (foreign function interface) to allow for plugins to be written in Rust. From there it would be
-possible
-to write plugins that can allow for other languages to be used, but we are not going to be focusing on that for a while.
+some kind of FFI (foreign function interface) to allow for plugins to be written in Rust. Plugins are not our top
+priority
+right now, and we want to make sure the API is designed well before we start implementing it to avoid breaking changes
+later.
+We are open to suggestions and ideas from the community on how to best implement this.
+
+### Will I be able to use plugins or mods from paper/spigot/bukkit/forge/fabric etc.?
+
+No. Even if we did implement a perfect 1:1 API match for the vanilla server, the underlying implementation is still
+completely different.
+Java plugins and mods rely heavily on Java features such as reflection and dynamic class loading, which simply aren't
+possible in Rust.
+If we made a Java translation layer, it would be extremely slow and only the most basic plugins and mods would work. If
+a plugin
+or mod is basic enough to work through a translation layer, it would be much better to just rewrite it in Rust for
+performance
+and compatibility reasons.
 
 ### What does 'FerrumC' mean?
 
