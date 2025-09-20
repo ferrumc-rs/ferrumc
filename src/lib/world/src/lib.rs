@@ -89,7 +89,7 @@ impl World {
             backend_path = get_root_path().join(backend_path);
         }
         let storage_backend =
-            LmdbBackend::initialize(Some(backend_path)).expect("Failed to initialize database");
+            LmdbBackend::initialize(backend_path).expect("Failed to initialize database");
 
         if get_global_config().database.cache_ttl != 0
             && get_global_config().database.cache_capacity == 0

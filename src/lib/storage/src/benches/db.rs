@@ -28,7 +28,7 @@ pub(crate) fn db_benches(c: &mut criterion::Criterion) {
     let mut used_keys = HashSet::new();
     let tempdir = tempfile::TempDir::new().unwrap().keep();
 
-    let db = LmdbBackend::initialize(Some(tempdir)).unwrap();
+    let db = LmdbBackend::initialize(tempdir).unwrap();
 
     db.create_table("insert_test".to_string()).unwrap();
 
@@ -41,7 +41,7 @@ pub(crate) fn db_benches(c: &mut criterion::Criterion) {
                 generate_random_key(&mut used_keys),
                 generate_random_data(512),
             )
-            .unwrap();
+                .unwrap();
         })
     });
 
@@ -52,7 +52,7 @@ pub(crate) fn db_benches(c: &mut criterion::Criterion) {
                 generate_random_key(&mut used_keys),
                 generate_random_data(1024),
             )
-            .unwrap();
+                .unwrap();
         })
     });
 
@@ -63,7 +63,7 @@ pub(crate) fn db_benches(c: &mut criterion::Criterion) {
                 generate_random_key(&mut used_keys),
                 generate_random_data(4096),
             )
-            .unwrap();
+                .unwrap();
         })
     });
 

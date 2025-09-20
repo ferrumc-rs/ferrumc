@@ -7,6 +7,7 @@ use parking_lot::Mutex;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
+use tracing::warn;
 
 #[derive(Debug, Clone)]
 pub struct LmdbBackend {
@@ -25,15 +26,17 @@ impl From<heed::Error> for StorageError {
 }
 
 impl LmdbBackend {
-    pub fn initialize(store_path: Option<PathBuf>) -> Result<Self, StorageError>
+    pub fn initialize(store_path: PathBuf) -> Result<Self, StorageError>
     where
         Self: Sized,
     {
-        let Some(checked_path) = store_path else {
-            return Err(StorageError::InvalidPath);
-        };
-        if !checked_path.exists() {
-            std::fs::create_dir_all(&checked_path)?;
+        if !store_path.exists() {
+            std::fs::create_dir_all(&store_path)?;
+        }
+        if std::env::var_os("FERRUMC_EPHEMERAL_STORAGE").is_some() {
+            warn!("Using ephemeral storage for LMDB");
+            let temp_dir = tempfile::tempdir()?;
+            return Self::initialize(temp_dir.path().to_path_buf());
         }
         // Convert the map size from GB to bytes and round it to the nearest page size.
         let map_size = ferrumc_config::server_config::get_global_config()
@@ -52,7 +55,7 @@ impl LmdbBackend {
                         // Change this as more tables are needed.
                         .max_dbs(2)
                         .map_size(rounded_map_size)
-                        .open(checked_path)
+                        .open(store_path)
                         .map_err(|e| StorageError::DatabaseInitError(e.to_string()))?,
                 )),
             };
@@ -265,7 +268,7 @@ mod tests {
     fn test_write() {
         let path = tempdir().unwrap().keep();
         {
-            let backend = LmdbBackend::initialize(Some(path.clone())).unwrap();
+            let backend = LmdbBackend::initialize(path.clone()).unwrap();
             backend.create_table("test_table".to_string()).unwrap();
             let key = 12345678901234567890u128;
             let value = vec![1, 2, 3, 4, 5];
@@ -282,7 +285,7 @@ mod tests {
     fn test_batch_insert() {
         let path = tempdir().unwrap().keep();
         {
-            let backend = LmdbBackend::initialize(Some(path.clone())).unwrap();
+            let backend = LmdbBackend::initialize(path.clone()).unwrap();
             backend.create_table("test_table".to_string()).unwrap();
             let data = vec![
                 (12345678901234567890u128, vec![1, 2, 3]),
@@ -303,7 +306,7 @@ mod tests {
     fn test_concurrent_write() {
         let path = tempdir().unwrap().keep();
         {
-            let backend = LmdbBackend::initialize(Some(path.clone())).unwrap();
+            let backend = LmdbBackend::initialize(path.clone()).unwrap();
             backend.create_table("test_table".to_string()).unwrap();
             let mut threads = vec![];
             for thread_iter in 0..10 {
@@ -332,7 +335,7 @@ mod tests {
     fn test_concurrent_read() {
         let path = tempdir().unwrap().keep();
         {
-            let backend = LmdbBackend::initialize(Some(path.clone())).unwrap();
+            let backend = LmdbBackend::initialize(path.clone()).unwrap();
             backend.create_table("test_table".to_string()).unwrap();
             for thread_iter in 0..10 {
                 for iter in 0..100 {
