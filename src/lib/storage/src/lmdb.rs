@@ -33,10 +33,12 @@ impl LmdbBackend {
         if !store_path.exists() {
             std::fs::create_dir_all(&store_path)?;
         }
-        if std::env::var_os("FERRUMC_EPHEMERAL_STORAGE").is_some() {
-            warn!("Using ephemeral storage for LMDB");
-            let temp_dir = tempfile::tempdir()?;
-            return Self::initialize(temp_dir.path().to_path_buf());
+        if let Some(val) = std::env::var_os("FERRUMC_EPHEMERAL_STORAGE") {
+            if val.eq_ignore_ascii_case("true") {
+                warn!("Using ephemeral storage for LMDB");
+                let temp_dir = tempfile::tempdir()?;
+                return Self::initialize(temp_dir.path().to_path_buf());
+            }
         }
         // Convert the map size from GB to bytes and round it to the nearest page size.
         let map_size = ferrumc_config::server_config::get_global_config()
