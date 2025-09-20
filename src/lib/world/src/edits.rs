@@ -8,7 +8,7 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::sync::Arc;
-use tracing::{debug, error, trace, warn};
+use tracing::{debug, error, trace};
 
 impl World {
     /// Retrieves the block data at the specified coordinates in the given dimension.
