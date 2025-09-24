@@ -7,6 +7,7 @@ edition = "2024"
 ferrumc-world = { workspace = true }
 thiserror = { workspace = true }
 md5 = { workspace = true }
+sha2 = { workspace = true }
 bevy_math = { workspace = true }
 itertools = { workspace = true }
 
