@@ -11,9 +11,11 @@ use bevy_math::{IVec2, IVec3};
 use ferrumc_world::chunk_format::Chunk;
 use ferrumc_world::vanilla_chunk_format::BlockData;
 use itertools::Itertools;
+use sha2::{Digest, Sha256};
 
 pub struct OverworldGenerator {
     seed: u64,
+    biome_seed: u64,
     chunk_height: ChunkHeight,
     biome_noise: OverworldBiomeNoise,
     biomes: Vec<(NoisePoint, Biome)>,
@@ -31,16 +33,25 @@ impl OverworldGenerator {
         };
         Self {
             seed,
+            biome_seed: u64::from_be_bytes(
+                Sha256::digest(seed.to_be_bytes())[0..8].try_into().unwrap(),
+            ),
             chunk_height,
             biome_noise,
             biomes: overworld_biomes(),
             surface: OverworldSurface::new(random, chunk_height),
-            carver: OverworldCarver::new(),
+            carver: OverworldCarver::new(chunk_height),
         }
     }
 
     fn generate_biomes(&self, pos: ChunkPos) -> BiomeChunk {
-        BiomeChunk::generate(&self.biome_noise, &self.biomes, pos, self.chunk_height)
+        BiomeChunk::generate(
+            &self.biome_noise,
+            self.seed,
+            &self.biomes,
+            pos,
+            self.chunk_height,
+        )
     }
 
     pub fn generate_chunk(&self, x: i32, z: i32) -> Result<Chunk, WorldGenError> {
