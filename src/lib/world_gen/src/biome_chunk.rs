@@ -1,3 +1,4 @@
+use bevy_math::{DVec3, IVec3};
 use itertools::Itertools;
 
 use crate::{
@@ -8,11 +9,13 @@ use crate::{
 pub struct BiomeChunk {
     min_y: i32,
     biomes: Vec<Biome>,
+    seed: u64,
 }
 
 impl BiomeChunk {
     pub(crate) fn generate(
         noise: &impl BiomeNoise,
+        seed: u64,
         biomes: &[(NoisePoint, Biome)],
         pos: ChunkPos,
         chunk_height: ChunkHeight,
@@ -31,17 +34,77 @@ impl BiomeChunk {
             .cartesian_product(chunk_height.iter().step_by(4))
             .map(|((x, z), y)| pos.block(x, y, z))
             .map(|pos| noise.at(pos))
-            .map(|noise| get_best(noise, &biomes))
+            .map(|noise| get_best(noise, biomes))
             .collect();
         let min_y = chunk_height.min_y.div_euclid(4);
 
-        Self { biomes, min_y }
+        Self {
+            biomes,
+            min_y,
+            seed,
+        }
     }
 
-    pub fn at(&self, pos: BlockPos) -> Biome {
-        let pos = pos.div_euclid((4, 4, 4).into());
+    fn intern_at(&self, pos: IVec3) -> Biome {
         let i = pos.x & 3 | (pos.z & 3) << 2 | (pos.y - self.min_y) << 4;
         self.biomes[i as usize]
+    }
+    pub fn at(&self, pos: BlockPos) -> Biome {
+        fn next(left: i64, right: i64) -> i64 {
+            const MULTIPLIER: i64 = 6364136223846793005;
+            const INCREMENT: i64 = 1442695040888963407;
+            left.wrapping_mul(left.wrapping_mul(MULTIPLIER) + INCREMENT)
+                .wrapping_add(right)
+        }
+
+        fn get_fiddle(seed: i64) -> f64 {
+            let d = (((seed >> 24) % 1024 + 1024) % 1024) as f64 / 1024.0;
+            (d - 0.5) * 0.9
+        }
+
+        fn get_fiddled_distance(seed: i64, pos: IVec3, noise: DVec3) -> f64 {
+            let mut l = next(seed, pos.x.into());
+            l = next(l, pos.y.into());
+            l = next(l, pos.z.into());
+            l = next(l, pos.x.into());
+            l = next(l, pos.y.into());
+            l = next(l, pos.z.into());
+
+            let x_fiddle = get_fiddle(l);
+
+            l = next(l, seed);
+            let y_fiddle = get_fiddle(l);
+
+            l = next(l, seed);
+            let z_fiddle = get_fiddle(l);
+
+            (noise + DVec3::new(x_fiddle, y_fiddle, z_fiddle)).length_squared()
+        }
+
+        let i = pos - 2;
+
+        let pos = i >> 2;
+
+        let delta = (i & 3).as_dvec3() / 4.0;
+
+        let mut offset_pos = IVec3::splat(0);
+        let mut dist = f64::INFINITY;
+
+        for i7 in 0..8 {
+            let curr_offset = IVec3::new((i7 & 4) >> 2, (i7 & 2) >> 1, i7 & 1);
+            let curr_offset_pos = pos + curr_offset;
+
+            let curr_noise = delta - curr_offset.as_dvec3();
+
+            let curr_dist = get_fiddled_distance(self.seed as i64, curr_offset_pos, curr_noise);
+
+            if dist > curr_dist {
+                offset_pos = curr_offset_pos;
+                dist = curr_dist;
+            }
+        }
+
+        self.intern_at(offset_pos)
     }
 }
 
@@ -97,6 +160,6 @@ impl NoisePoint {
             .iter()
             .zip(noise)
             .map(|(val, noise)| fitness(*val, noise))
-            .fold(0, |a, b| a + b)
+            .sum()
     }
 }
