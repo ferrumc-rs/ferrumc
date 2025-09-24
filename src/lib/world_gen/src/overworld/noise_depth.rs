@@ -9,7 +9,7 @@ use crate::perlin_noise::{
     PILLAR_RARENESS, PILLAR_THICKNESS, RIDGE, SHIFT, SPAGHETTI_2D, SPAGHETTI_2D_ELEVATION,
     SPAGHETTI_2D_MODULATOR, SPAGHETTI_2D_THICKNESS, SPAGHETTI_3D_1, SPAGHETTI_3D_2,
     SPAGHETTI_3D_RARITY, SPAGHETTI_3D_THICKNESS, SPAGHETTI_ROUGHNESS,
-    SPAGHETTI_ROUGHNESS_MODULATOR, TEMPERATURE, VEGETATION,
+    SPAGHETTI_ROUGHNESS_MODULATOR, TEMPERATURE, VEGETATION, lerp3,
 };
 use crate::pos::{BlockPos, ChunkHeight, ChunkPos};
 use crate::random::RngFactory;
@@ -673,6 +673,31 @@ fn slide(
     let s = clamped_map(y, top_start, top_end, 1.0, 0.0);
     let t = clamped_map(y, bottom_start, bottom_end, 0.0, 1.0);
     bottom_delta.lerp(top_delta.lerp(density, s), t)
+}
+
+fn interpolate(points: [f64; 8]) -> Option<[f64; 4 * 4 * 8]> {
+    if points.iter().all(|f| *f < 0.0) {
+        return None;
+    }
+    let mut res = [0.0; 4 * 4 * 8];
+    for x in 0..4 {
+        for z in 0..4 {
+            for y in 0..8 {
+                res[x + (z << 2) + (y << 4)] = lerp3(
+                    DVec3::new(z as f64 / 4.0, y as f64 / 8.0, x as f64 / 4.0),
+                    points[0b000],
+                    points[0b100],
+                    points[0b010],
+                    points[0b110],
+                    points[0b001],
+                    points[0b101],
+                    points[0b011],
+                    points[0b111],
+                );
+            }
+        }
+    }
+    Some(res)
 }
 
 impl BiomeNoise for OverworldBiomeNoise {
