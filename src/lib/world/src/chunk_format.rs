@@ -1,16 +1,14 @@
-use crate::block_id::{BlockId, BLOCK2ID};
+use crate::block_id::BlockId;
 use crate::vanilla_chunk_format;
 use crate::vanilla_chunk_format::VanillaChunk;
 use crate::{errors::WorldError, vanilla_chunk_format::VanillaHeightmaps};
 use bitcode_derive::{Decode, Encode};
 use deepsize::DeepSizeOf;
 use ferrumc_general_purpose::data_packing::i32::read_nbit_i32;
-use ferrumc_general_purpose::palette::{Palette, PaletteType};
+use ferrumc_general_purpose::palette::Palette;
 use ferrumc_macros::{NBTDeserialize, NBTSerialize};
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use intmap::IntMap;
 use std::cmp::max;
-use tracing::error;
 use vanilla_chunk_format::BlockData;
 // #[cfg(test)]
 // const BLOCKSFILE: &[u8] = &[0];
@@ -55,19 +53,6 @@ pub struct BiomeStates {
     pub bits_per_biome: u8,
     pub data: Vec<i64>,
     pub palette: Vec<VarInt>,
-}
-
-fn convert_to_net_palette(vanilla_palettes: Vec<BlockData>) -> Result<Vec<VarInt>, WorldError> {
-    let mut new_palette = Vec::new();
-    for palette in vanilla_palettes {
-        if let Some(id) = BLOCK2ID.get(&palette) {
-            new_palette.push(VarInt::from(*id));
-        } else {
-            new_palette.push(VarInt::from(0));
-            error!("Could not find block id for palette entry: {:?}", palette);
-        }
-    }
-    Ok(new_palette)
 }
 
 impl Heightmaps {
@@ -157,20 +142,6 @@ impl VanillaChunk {
                 let index = (y as u16) << 8 | (z as u16) << 4 | (x as u16);
                 block_states.set(index as usize, block);
             }
-            // Count the number of blocks that are either air, void air, or cave air
-            let mut air_blocks = block_states.get_count(&BlockId::from(BlockData {
-                name: "minecraft:air".to_string(),
-                properties: None,
-            }));
-            air_blocks += block_states.get_count(&BlockId::from(BlockData {
-                name: "minecraft:void_air".to_string(),
-                properties: None,
-            }));
-            air_blocks += block_states.get_count(&BlockId::from(BlockData {
-                name: "minecraft:cave_air".to_string(),
-                properties: None,
-            }));
-            let non_air_blocks = 4096 - air_blocks;
             let block_light = section
                 .block_light
                 .as_ref()
@@ -219,6 +190,7 @@ impl VanillaChunk {
 mod tests {
     use super::*;
     use bevy_math::{IVec2, IVec3};
+    use ferrumc_general_purpose::palette::PaletteType;
 
     #[test]
     fn test_chunk_set_block() {
@@ -240,7 +212,7 @@ mod tests {
             properties: None,
         }
         .to_block_id();
-        chunk.fill(stone_block.clone());
+        chunk.fill(stone_block);
         for section in &chunk.sections {
             for y in 0..16 {
                 for z in 0..16 {
@@ -263,7 +235,7 @@ mod tests {
             properties: None,
         }
         .to_block_id();
-        section.fill(stone_block.clone());
+        section.fill(stone_block);
         assert_eq!(
             section.block_states.palette_type,
             PaletteType::Single(BlockId::from(1))

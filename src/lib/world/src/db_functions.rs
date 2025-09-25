@@ -6,7 +6,6 @@ use crate::warn;
 use crate::World;
 use bevy_math::IVec2;
 use ferrumc_config::server_config::get_global_config;
-use std::hash::{Hash, Hasher};
 use std::sync::Arc;
 use tracing::trace;
 use yazi::CompressionLevel;
@@ -232,7 +231,6 @@ pub(crate) fn sync_internal(world: &World) -> Result<(), WorldError> {
 }
 
 fn create_key(dimension: &str, pos: IVec2) -> u128 {
-    let mut key = 0u128;
     let mut hasher = simplehash::MurmurHasher128::new(0);
     hasher.write(dimension.as_bytes());
     hasher.write(&pos.x.to_le_bytes());

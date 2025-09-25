@@ -102,15 +102,13 @@ pub(crate) fn bench_edits(c: &mut Criterion) {
     write_group.bench_with_input("Fill", &chunk, |b, chunk| {
         b.iter(|| {
             let mut chunk = chunk.clone();
-            black_box(
-                chunk.fill(
-                    BlockData {
-                        name: "minecraft:bricks".to_string(),
-                        properties: None,
-                    }
-                    .to_block_id(),
-                ),
-            );
+            chunk.fill(black_box(
+                BlockData {
+                    name: "minecraft:bricks".to_string(),
+                    properties: None,
+                }
+                .to_block_id(),
+            ))
         });
     });
 

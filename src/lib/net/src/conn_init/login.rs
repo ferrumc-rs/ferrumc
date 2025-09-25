@@ -259,9 +259,8 @@ pub(super) async fn login(
 
     // =============================================================================================
     // 16 Send center chunk packet (player spawn location)
-    let center_chunk = crate::packets::outgoing::set_center_chunk::SetCenterChunk::new(
-        IVec2::new(0, 0),
-    );
+    let center_chunk =
+        crate::packets::outgoing::set_center_chunk::SetCenterChunk::new(IVec2::new(0, 0));
     conn_write.send_packet(center_chunk)?;
 
     // =============================================================================================

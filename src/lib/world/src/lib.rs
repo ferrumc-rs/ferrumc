@@ -32,8 +32,6 @@ pub fn to_index(pos: IVec3) -> usize {
     (y << 8) | (z << 4) | x
 }
 
-
-
 pub fn get_chunk_coordinates(input: IVec3) -> IVec2 {
     IVec2::new(input.x.div_euclid(16), input.z.div_euclid(16))
 }

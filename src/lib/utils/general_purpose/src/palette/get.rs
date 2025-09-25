@@ -7,15 +7,18 @@ impl<T> Palette<T> {
         }
         match &self.palette_type {
             crate::palette::PaletteType::Single(value) => Some(value),
-            crate::palette::PaletteType::Indirect { bits_per_entry, data, palette } =>
-                {
-                    let bits_per_entry = *bits_per_entry as usize;
-                    let u64_index = (index * bits_per_entry) / 64;
-                    let target_u64 = data.get(u64_index)?;
-                    let bit_offset = (index * bits_per_entry) % 64;
-                    let palette_index = (*target_u64 >> bit_offset) & ((1 << bits_per_entry) - 1);
-                    palette.get(palette_index as usize).map(|x| &x.1)
-                }
+            crate::palette::PaletteType::Indirect {
+                bits_per_entry,
+                data,
+                palette,
+            } => {
+                let bits_per_entry = *bits_per_entry as usize;
+                let u64_index = (index * bits_per_entry) / 64;
+                let target_u64 = data.get(u64_index)?;
+                let bit_offset = (index * bits_per_entry) % 64;
+                let palette_index = (*target_u64 >> bit_offset) & ((1 << bits_per_entry) - 1);
+                palette.get(palette_index as usize).map(|x| &x.1)
+            }
             crate::palette::PaletteType::Direct(values) => values.get(index),
         }
     }

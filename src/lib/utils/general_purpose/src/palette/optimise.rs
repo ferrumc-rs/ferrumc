@@ -35,14 +35,19 @@ impl<T: Clone + PartialEq + Hash + Eq> Palette<T> {
         // Now attempt to downgrade to Single if in indirect mode, or try to downgrade to Indirect if in Direct mode
         let new_palette_type = match &self.palette_type {
             PaletteType::Single(value) => PaletteType::Single(value.clone()),
-            PaletteType::Indirect { bits_per_entry, data, palette } => {
+            PaletteType::Indirect {
+                bits_per_entry,
+                data,
+                palette,
+            } => {
                 if palette.len() == 1 {
                     PaletteType::Single(palette[0].1.clone())
                 } else {
                     let new_bits_per_entry = calculate_bits_per_entry(palette.len());
                     if new_bits_per_entry < *bits_per_entry {
                         // Rebuild data with new bits_per_entry
-                        let mut new_data = vec![0u64; (self.length * new_bits_per_entry as usize).div_ceil(64)];
+                        let mut new_data =
+                            vec![0u64; (self.length * new_bits_per_entry as usize).div_ceil(64)];
                         for i in 0..self.length {
                             let palette_index = read_index(data, *bits_per_entry, i);
                             write_index(&mut new_data, new_bits_per_entry, i, palette_index);
@@ -78,7 +83,8 @@ impl<T: Clone + PartialEq + Hash + Eq> Palette<T> {
                     let bits_per_entry = calculate_bits_per_entry(unique_values.len());
                     let mut data = vec![0u64; (self.length * bits_per_entry as usize).div_ceil(64)];
                     for (i, value) in values.iter().enumerate() {
-                        let palette_index = unique_values.iter().position(|(_, v)| v == value).unwrap();
+                        let palette_index =
+                            unique_values.iter().position(|(_, v)| v == value).unwrap();
                         write_index(&mut data, bits_per_entry, i, palette_index as u64);
                     }
                     PaletteType::Indirect {

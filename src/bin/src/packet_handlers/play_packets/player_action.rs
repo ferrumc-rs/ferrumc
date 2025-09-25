@@ -10,7 +10,6 @@ use ferrumc_net::PlayerActionReceiver;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalStateResource;
 use ferrumc_world::block_id::BlockId;
-use ferrumc_world::vanilla_chunk_format::BlockData;
 use tracing::{debug, error, trace};
 
 pub fn handle(

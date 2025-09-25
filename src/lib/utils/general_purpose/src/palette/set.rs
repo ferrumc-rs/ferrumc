@@ -10,77 +10,107 @@ impl<T: Clone + Eq> Palette<T> {
         }
 
         // Work on a moved-out palette_type to avoid borrow conflicts
-        let new_palette_type = match std::mem::replace(&mut self.palette_type, PaletteType::Direct(Vec::new())) {
-            PaletteType::Single(existing_value) => {
-                if existing_value == new_value {
-                    // No change needed
-                    PaletteType::Single(existing_value)
-                } else {
-                    // Transition to Indirect
-                    let palette = vec![(self.length as u16 - 1, existing_value.clone()), (1, new_value.clone())];
-                    let bits_per_entry = MIN_BITS_PER_ENTRY; // 2 unique values fit in 1 bit
-                    let mut data = vec![0u64; (self.length * bits_per_entry as usize).div_ceil(64)];
-                    for i in 0..self.length {
-                        let palette_index = if i == index { 1 } else { 0 };
-                        write_index(&mut data, bits_per_entry, i, palette_index);
-                    }
-                    PaletteType::Indirect {
-                        bits_per_entry,
-                        data,
-                        palette,
+        let new_palette_type =
+            match std::mem::replace(&mut self.palette_type, PaletteType::Direct(Vec::new())) {
+                PaletteType::Single(existing_value) => {
+                    if existing_value == new_value {
+                        // No change needed
+                        PaletteType::Single(existing_value)
+                    } else {
+                        // Transition to Indirect
+                        let palette = vec![
+                            (self.length as u16 - 1, existing_value.clone()),
+                            (1, new_value.clone()),
+                        ];
+                        let bits_per_entry = MIN_BITS_PER_ENTRY; // 2 unique values fit in 1 bit
+                        let mut data =
+                            vec![0u64; (self.length * bits_per_entry as usize).div_ceil(64)];
+                        for i in 0..self.length {
+                            let palette_index = if i == index { 1 } else { 0 };
+                            write_index(&mut data, bits_per_entry, i, palette_index);
+                        }
+                        PaletteType::Indirect {
+                            bits_per_entry,
+                            data,
+                            palette,
+                        }
                     }
                 }
-            }
-            PaletteType::Indirect { mut bits_per_entry, mut data, mut palette } => {
-                let old_palette_index = read_index(&data, bits_per_entry, index) as usize;
-                if palette[old_palette_index].1 == new_value {
-                    // No change needed
-                    PaletteType::Indirect { bits_per_entry, data, palette }
-                } else if let Some((palette_index, _)) = palette.iter().enumerate().find(|(_, v)| v.1 == new_value) {
-                    // Existing value, just update index
-                    write_index(&mut data, bits_per_entry, index, palette_index as u64);
-                    // Update counts
-                    if let Some(count) = palette.get_mut(old_palette_index) {
-                        count.0 -= 1;
-                    }
-                    if let Some(count) = palette.get_mut(palette_index) {
-                        count.0 += 1;
-                    }
-                    PaletteType::Indirect { bits_per_entry, data, palette }
-                } else {
-                    // New value
-                    let unique_values = palette.len() + 1;
-                    if calculate_bits_per_entry(unique_values) <= 15 {
-                        // Can still fit in Indirect
-                        palette.push((1, new_value.clone()));
-                        write_index(&mut data, bits_per_entry, index, (unique_values - 1) as u64);
+                PaletteType::Indirect {
+                    mut bits_per_entry,
+                    mut data,
+                    mut palette,
+                } => {
+                    let old_palette_index = read_index(&data, bits_per_entry, index) as usize;
+                    if palette[old_palette_index].1 == new_value {
+                        // No change needed
+                        PaletteType::Indirect {
+                            bits_per_entry,
+                            data,
+                            palette,
+                        }
+                    } else if let Some((palette_index, _)) =
+                        palette.iter().enumerate().find(|(_, v)| v.1 == new_value)
+                    {
+                        // Existing value, just update index
+                        write_index(&mut data, bits_per_entry, index, palette_index as u64);
                         // Update counts
                         if let Some(count) = palette.get_mut(old_palette_index) {
                             count.0 -= 1;
                         }
-                        bits_per_entry = calculate_bits_per_entry(unique_values);
-                        PaletteType::Indirect { bits_per_entry, data, palette }
-                    } else {
-                        // Transition to Direct
-                        let mut values = Vec::with_capacity(self.length);
-                        for i in 0..self.length {
-                            let bits_per_entry = calculate_bits_per_entry(palette.len()) as usize;
-                            let u64_index = (i * bits_per_entry) / 64;
-                            let target_u64 = data[u64_index];
-                            let bit_offset = (i * bits_per_entry) % 64;
-                            let palette_index = (target_u64 >> bit_offset) & ((1 << bits_per_entry) - 1);
-                            values.push(palette[palette_index as usize].1.clone());
+                        if let Some(count) = palette.get_mut(palette_index) {
+                            count.0 += 1;
                         }
-                        values[index] = new_value.clone();
-                        PaletteType::Direct(values)
+                        PaletteType::Indirect {
+                            bits_per_entry,
+                            data,
+                            palette,
+                        }
+                    } else {
+                        // New value
+                        let unique_values = palette.len() + 1;
+                        if calculate_bits_per_entry(unique_values) <= 15 {
+                            // Can still fit in Indirect
+                            palette.push((1, new_value.clone()));
+                            write_index(
+                                &mut data,
+                                bits_per_entry,
+                                index,
+                                (unique_values - 1) as u64,
+                            );
+                            // Update counts
+                            if let Some(count) = palette.get_mut(old_palette_index) {
+                                count.0 -= 1;
+                            }
+                            bits_per_entry = calculate_bits_per_entry(unique_values);
+                            PaletteType::Indirect {
+                                bits_per_entry,
+                                data,
+                                palette,
+                            }
+                        } else {
+                            // Transition to Direct
+                            let mut values = Vec::with_capacity(self.length);
+                            for i in 0..self.length {
+                                let bits_per_entry =
+                                    calculate_bits_per_entry(palette.len()) as usize;
+                                let u64_index = (i * bits_per_entry) / 64;
+                                let target_u64 = data[u64_index];
+                                let bit_offset = (i * bits_per_entry) % 64;
+                                let palette_index =
+                                    (target_u64 >> bit_offset) & ((1 << bits_per_entry) - 1);
+                                values.push(palette[palette_index as usize].1.clone());
+                            }
+                            values[index] = new_value.clone();
+                            PaletteType::Direct(values)
+                        }
                     }
                 }
-            }
-            PaletteType::Direct(mut values) => {
-                values[index] = new_value;
-                PaletteType::Direct(values)
-            }
-        };
+                PaletteType::Direct(mut values) => {
+                    values[index] = new_value;
+                    PaletteType::Direct(values)
+                }
+            };
 
         self.palette_type = new_palette_type;
     }
