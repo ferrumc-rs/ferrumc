@@ -1,3 +1,4 @@
+use bevy_math::IVec3;
 use criterion::{Criterion, Throughput};
 use ferrumc_world::chunk_format::Chunk;
 use ferrumc_world::vanilla_chunk_format::BlockData;
@@ -18,20 +19,20 @@ pub(crate) fn bench_edits(c: &mut Criterion) {
     read_group.throughput(Throughput::Elements(1));
 
     read_group.bench_function("Read 0,0,0", |b| {
-        b.iter(|| black_box(chunk.get_block(0, 0, 0)));
+        b.iter(|| black_box(chunk.get_block(IVec3::new(0, 0, 0))));
     });
 
     read_group.bench_function("Read 8,8,150", |b| {
-        b.iter(|| black_box(chunk.get_block(8, 8, 150)));
+        b.iter(|| black_box(chunk.get_block(IVec3::new(8, 8, 150))));
     });
 
     read_group.bench_function("Read rand", |b| {
         b.iter(|| {
-            black_box(chunk.get_block(
+            black_box(chunk.get_block(IVec3::new(
                 get_rand_in_range(0, 15),
                 get_rand_in_range(0, 15),
                 get_rand_in_range(0, 255),
-            ))
+            )))
         });
     });
 
@@ -44,15 +45,16 @@ pub(crate) fn bench_edits(c: &mut Criterion) {
     write_group.bench_with_input("Write 0,0,0", &chunk, |b, chunk| {
         b.iter(|| {
             let mut chunk = chunk.clone();
-            black_box(chunk.set_block(
-                0,
-                0,
-                0,
-                BlockData {
-                    name: "minecraft:bricks".to_string(),
-                    properties: None,
-                },
-            ))
+            black_box(
+                chunk.set_block(
+                    IVec3::new(0, 0, 0),
+                    BlockData {
+                        name: "minecraft:bricks".to_string(),
+                        properties: None,
+                    }
+                    .to_block_id(),
+                ),
+            )
             .unwrap();
         });
     });
@@ -60,15 +62,16 @@ pub(crate) fn bench_edits(c: &mut Criterion) {
     write_group.bench_with_input("Write 8,8,150", &chunk, |b, chunk| {
         b.iter(|| {
             let mut chunk = chunk.clone();
-            black_box(chunk.set_block(
-                8,
-                8,
-                150,
-                BlockData {
-                    name: "minecraft:bricks".to_string(),
-                    properties: None,
-                },
-            ))
+            black_box(
+                chunk.set_block(
+                    IVec3::new(8, 8, 150),
+                    BlockData {
+                        name: "minecraft:bricks".to_string(),
+                        properties: None,
+                    }
+                    .to_block_id(),
+                ),
+            )
             .unwrap();
         });
     });
@@ -76,15 +79,20 @@ pub(crate) fn bench_edits(c: &mut Criterion) {
     write_group.bench_with_input("Write rand", &chunk, |b, chunk| {
         b.iter(|| {
             let mut chunk = chunk.clone();
-            black_box(chunk.set_block(
-                get_rand_in_range(0, 15),
-                get_rand_in_range(0, 15),
-                get_rand_in_range(0, 255),
-                BlockData {
-                    name: "minecraft:bricks".to_string(),
-                    properties: None,
-                },
-            ))
+            black_box(
+                chunk.set_block(
+                    IVec3::new(
+                        get_rand_in_range(0, 15),
+                        get_rand_in_range(0, 15),
+                        get_rand_in_range(0, 255),
+                    ),
+                    BlockData {
+                        name: "minecraft:bricks".to_string(),
+                        properties: None,
+                    }
+                    .to_block_id(),
+                ),
+            )
             .unwrap();
         });
     });
@@ -94,11 +102,15 @@ pub(crate) fn bench_edits(c: &mut Criterion) {
     write_group.bench_with_input("Fill", &chunk, |b, chunk| {
         b.iter(|| {
             let mut chunk = chunk.clone();
-            black_box(chunk.fill(BlockData {
-                name: "minecraft:bricks".to_string(),
-                properties: None,
-            }))
-            .unwrap();
+            black_box(
+                chunk.fill(
+                    BlockData {
+                        name: "minecraft:bricks".to_string(),
+                        properties: None,
+                    }
+                    .to_block_id(),
+                ),
+            );
         });
     });
 
@@ -108,15 +120,16 @@ pub(crate) fn bench_edits(c: &mut Criterion) {
             for x in 0..16 {
                 for y in 0..256 {
                     for z in 0..16 {
-                        black_box(chunk.set_block(
-                            x,
-                            y,
-                            z,
-                            BlockData {
-                                name: "minecraft:bricks".to_string(),
-                                properties: None,
-                            },
-                        ))
+                        black_box(
+                            chunk.set_block(
+                                IVec3::new(x, y, z),
+                                BlockData {
+                                    name: "minecraft:bricks".to_string(),
+                                    properties: None,
+                                }
+                                .to_block_id(),
+                            ),
+                        )
                         .unwrap();
                     }
                 }
@@ -124,56 +137,56 @@ pub(crate) fn bench_edits(c: &mut Criterion) {
         });
     });
 
-    write_group.bench_with_input("Manual batch fill same", &chunk, |b, chunk| {
-        b.iter(|| {
-            let mut chunk = chunk.clone();
-            let mut batch = ferrumc_world::edit_batch::EditBatch::new(&mut chunk);
-            for x in 0..16 {
-                for y in 0..256 {
-                    for z in 0..16 {
-                        batch.set_block(
-                            x,
-                            y,
-                            z,
-                            black_box(BlockData {
-                                name: "minecraft:bricks".to_string(),
-                                properties: None,
-                            }),
-                        );
-                    }
-                }
-            }
-            black_box(batch.apply()).unwrap();
-        });
-    });
-
-    write_group.bench_with_input("Manual batch fill diff", &chunk, |b, chunk| {
-        b.iter(|| {
-            let mut chunk = chunk.clone();
-            let mut batch = ferrumc_world::edit_batch::EditBatch::new(&mut chunk);
-            for x in 0..16 {
-                for y in 0..256 {
-                    for z in 0..16 {
-                        let block = if (x + y + z) % 2 == 0 {
-                            "minecraft:bricks"
-                        } else {
-                            "minecraft:stone"
-                        };
-                        batch.set_block(
-                            x,
-                            y,
-                            z,
-                            black_box(BlockData {
-                                name: block.to_string(),
-                                properties: None,
-                            }),
-                        );
-                    }
-                }
-            }
-            black_box(batch.apply()).unwrap();
-        });
-    });
+    // write_group.bench_with_input("Manual batch fill same", &chunk, |b, chunk| {
+    //     b.iter(|| {
+    //         let mut chunk = chunk.clone();
+    //         let mut batch = ferrumc_world::edit_batch::EditBatch::new(&mut chunk);
+    //         for x in 0..16 {
+    //             for y in 0..256 {
+    //                 for z in 0..16 {
+    //                     batch.set_block(
+    //                         x,
+    //                         y,
+    //                         z,
+    //                         black_box(BlockData {
+    //                             name: "minecraft:bricks".to_string(),
+    //                             properties: None,
+    //                         }),
+    //                     );
+    //                 }
+    //             }
+    //         }
+    //         black_box(batch.apply()).unwrap();
+    //     });
+    // });
+    //
+    // write_group.bench_with_input("Manual batch fill diff", &chunk, |b, chunk| {
+    //     b.iter(|| {
+    //         let mut chunk = chunk.clone();
+    //         let mut batch = ferrumc_world::edit_batch::EditBatch::new(&mut chunk);
+    //         for x in 0..16 {
+    //             for y in 0..256 {
+    //                 for z in 0..16 {
+    //                     let block = if (x + y + z) % 2 == 0 {
+    //                         "minecraft:bricks"
+    //                     } else {
+    //                         "minecraft:stone"
+    //                     };
+    //                     batch.set_block(
+    //                         x,
+    //                         y,
+    //                         z,
+    //                         black_box(BlockData {
+    //                             name: block.to_string(),
+    //                             properties: None,
+    //                         }),
+    //                     );
+    //                 }
+    //             }
+    //         }
+    //         black_box(batch.apply()).unwrap();
+    //     });
+    // });
 
     write_group.finish();
 }

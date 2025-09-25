@@ -121,6 +121,26 @@ impl From<BlockId> for VarInt {
     }
 }
 
+impl From<i32> for BlockId {
+    /// Converts an i32 to a BlockId. Will panic if the ID is negative.
+    fn from(id: i32) -> Self {
+        if id < 0 {
+            panic!("Block ID cannot be negative");
+        }
+        Self(id as u32)
+    }
+}
+
+impl From<BlockId> for i32 {
+    /// Converts a BlockId to an i32. Will panic if the ID is greater than i32::MAX.
+    fn from(block_id: BlockId) -> Self {
+        if block_id.0 > i32::MAX as u32 {
+            panic!("Block ID cannot be greater than i32::MAX");
+        }
+        block_id.0 as i32
+    }
+}
+
 impl Default for BlockId {
     /// Returns a BlockId with ID 0, which is air.
     fn default() -> Self {

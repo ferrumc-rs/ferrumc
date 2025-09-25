@@ -1,7 +1,7 @@
 use crate::errors::WorldGenError;
 use crate::{BiomeGenerator, NoiseGenerator};
+use bevy_math::IVec3;
 use ferrumc_world::chunk_format::Chunk;
-use ferrumc_world::edit_batch::EditBatch;
 use ferrumc_world::vanilla_chunk_format::BlockData;
 use std::collections::BTreeMap;
 
@@ -27,16 +27,18 @@ impl BiomeGenerator for PlainsBiome {
         let stone = BlockData {
             name: "minecraft:stone".to_string(),
             properties: None,
-        };
+        }
+        .to_block_id();
 
         // Fill with water first
         for section_y in -4..4 {
-            chunk.set_section(
+            chunk.fill_section(
                 section_y as i8,
                 BlockData {
                     name: "minecraft:water".to_string(),
                     properties: Some(BTreeMap::from([("level".to_string(), "0".to_string())])),
-                },
+                }
+                .to_block_id(),
             )?;
         }
 
@@ -56,43 +58,46 @@ impl BiomeGenerator for PlainsBiome {
         let y_min = heights.iter().min_by(|a, b| a.2.cmp(&b.2)).unwrap().2;
         let highest_full_section = y_min / 16;
         for section_y in -4..highest_full_section {
-            chunk.set_section(section_y as i8, stone.clone())?;
+            chunk.fill_section(section_y as i8, stone)?;
         }
-        let mut batch = EditBatch::new(&mut chunk);
         let above_filled_sections = (highest_full_section * 16) - 1;
         for (global_x, global_z, height) in heights {
             if height > above_filled_sections {
                 let height = height - above_filled_sections;
                 for y in 0..height {
                     if y + above_filled_sections <= 64 {
-                        batch.set_block(
-                            global_x as i32 & 0xF,
-                            y + above_filled_sections,
-                            global_z as i32 & 0xF,
+                        chunk.set_block(
+                            IVec3::new(
+                                global_x as i32 & 0xF,
+                                y + above_filled_sections,
+                                global_z as i32 & 0xF,
+                            ),
                             BlockData {
                                 name: "minecraft:sand".to_string(),
                                 properties: None,
-                            },
-                        );
+                            }
+                            .to_block_id(),
+                        )?;
                     } else {
-                        batch.set_block(
-                            global_x as i32 & 0xF,
-                            y + above_filled_sections,
-                            global_z as i32 & 0xF,
+                        chunk.set_block(
+                            IVec3::new(
+                                global_x as i32 & 0xF,
+                                y + above_filled_sections,
+                                global_z as i32 & 0xF,
+                            ),
                             BlockData {
                                 name: "minecraft:grass_block".to_string(),
                                 properties: Some(BTreeMap::from([(
                                     "snowy".to_string(),
                                     "false".to_string(),
                                 )])),
-                            },
-                        );
+                            }
+                            .to_block_id(),
+                        )?;
                     }
                 }
             }
         }
-
-        batch.apply()?;
 
         Ok(chunk)
     }

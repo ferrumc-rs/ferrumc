@@ -1,14 +1,17 @@
 pub mod block_id;
 pub mod chunk_format;
+mod chunk_ops;
 mod db_functions;
 pub mod edit_batch;
-pub mod edits;
 pub mod errors;
 mod importing;
+pub mod section_ops;
 pub mod vanilla_chunk_format;
+mod world_ops;
 
 use crate::chunk_format::Chunk;
 use crate::errors::WorldError;
+use bevy_math::IVec3;
 use deepsize::DeepSizeOf;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_general_purpose::paths::get_root_path;
@@ -20,6 +23,14 @@ use std::process::exit;
 use std::sync::Arc;
 use std::time::Duration;
 use tracing::{error, trace, warn};
+
+/// Converts a global block position to an index in a chunk section (0-4095).
+pub fn to_index(pos: IVec3) -> usize {
+    let x = (pos.x & 0xF) as usize;
+    let y = (pos.y & 0xF) as usize;
+    let z = (pos.z & 0xF) as usize;
+    (y << 8) | (z << 4) | x
+}
 
 #[derive(Clone)]
 pub struct World {
@@ -119,20 +130,34 @@ impl World {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use bevy_math::IVec2;
 
     #[test]
     #[ignore]
     fn dump_chunk() {
-        let world = World::new(
-            std::env::current_dir()
-                .unwrap()
-                .join("../../../world"),
-        );
-        let chunk = world.load_chunk(1, 1, "overworld").expect(
+        let world = World::new(std::env::current_dir().unwrap().join("../../../world"));
+        let chunk = world.load_chunk(IVec2::new(0, 0), "overworld").expect(
             "Failed to load chunk. If it's a bitcode error, chances are the chunk format \
              has changed since last generating a world so you'll need to regenerate",
         );
         let encoded = bitcode::encode(&chunk);
         std::fs::write("../../../.etc/raw_chunk.dat", encoded).unwrap();
+    }
+
+    #[test]
+    fn test_to_index_basic() {
+        // (x, y, z) = (0, 0, 0) should map to 0
+        assert_eq!(to_index(IVec3::new(0, 0, 0)), 0);
+
+        // (x, y, z) = (15, 15, 15) should map to the last index in a chunk section
+        assert_eq!(to_index(IVec3::new(15, 15, 15)), 4095);
+
+        // (x, y, z) = (1, 2, 3)
+        let expected = (2 << 8) | (3 << 4) | 1;
+        assert_eq!(to_index(IVec3::new(1, 2, 3)), expected);
+
+        // Values outside 0-15 should be masked
+        assert_eq!(to_index(IVec3::new(16, 16, 16)), 0);
+        assert_eq!(to_index(IVec3::new(17, 18, 19)), (2 << 8) | (3 << 4) | 1);
     }
 }

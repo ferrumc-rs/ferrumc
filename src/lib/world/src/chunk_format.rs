@@ -5,6 +5,7 @@ use crate::{errors::WorldError, vanilla_chunk_format::VanillaHeightmaps};
 use bitcode_derive::{Decode, Encode};
 use deepsize::DeepSizeOf;
 use ferrumc_general_purpose::data_packing::i32::read_nbit_i32;
+use ferrumc_general_purpose::palette::{Palette, PaletteType};
 use ferrumc_macros::{NBTDeserialize, NBTSerialize};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use intmap::IntMap;
@@ -43,30 +44,10 @@ pub struct Heightmaps {
 #[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug)]
 pub struct Section {
     pub y: i8,
-    pub block_states: BlockStates,
+    pub block_states: Palette<BlockId>,
     pub biome_states: BiomeStates,
     pub block_light: Vec<u8>,
     pub sky_light: Vec<u8>,
-}
-#[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug)]
-pub struct BlockStates {
-    pub non_air_blocks: u16,
-    pub block_data: PaletteType,
-    pub block_counts: IntMap<BlockId, i32>,
-}
-
-#[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug)]
-pub enum PaletteType {
-    Single(VarInt),
-    Indirect {
-        bits_per_block: u8,
-        data: Vec<i64>,
-        palette: Vec<VarInt>,
-    },
-    Direct {
-        bits_per_block: u8,
-        data: Vec<i64>,
-    },
 }
 
 #[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug)]
@@ -118,10 +99,14 @@ impl VanillaChunk {
         let mut sections = Vec::new();
         for section in self.sections.as_ref().unwrap() {
             let y = section.y;
-            let raw_block_data = section
+            let raw_block_data: Vec<u64> = section
                 .block_states
                 .as_ref()
-                .and_then(|bs| bs.data.clone())
+                .and_then(|bs| {
+                    bs.data
+                        .clone()
+                        .map(|d| d.iter().map(|&x| x as u64).collect())
+                })
                 .unwrap_or_default();
             let palette = section
                 .block_states
@@ -129,64 +114,63 @@ impl VanillaChunk {
                 .and_then(|bs| bs.palette.clone())
                 .unwrap_or_default();
             let bits_per_block = max((palette.len() as f32).log2().ceil() as u8, 4);
-            let mut block_counts: IntMap<BlockId, i32> = IntMap::new();
+            let mut block_states = Palette::new(4096, BlockId(0));
+
+            let mut blocks: Vec<(u8, u8, u8, BlockId)> = Vec::new();
             for chunk in &raw_block_data {
-                let mut i = 0;
-                while i + bits_per_block < 64 {
-                    let palette_index = read_nbit_i32(chunk, bits_per_block as usize, i as u32)?;
-                    let block = match palette.get(palette_index as usize) {
-                        Some(block) => block,
-                        None => {
-                            error!("Could not find block for palette index: {}", palette_index);
-                            &BlockData::default()
-                        }
-                    };
-
-                    if let Some(count) = block_counts.get_mut(block.to_block_id()) {
-                        *count += 1;
-                    } else {
-                        block_counts.insert(block.to_block_id(), 0);
-                    }
-
-                    i += bits_per_block;
+                // let mut i = 0;
+                // while i + bits_per_block < 64 {
+                //     let palette_index = read_nbit_i32(chunk, bits_per_block as usize, i as u32)?;
+                //     let block = match palette.get(palette_index as usize) {
+                //         Some(block) => block,
+                //         None => {
+                //             error!("Could not find block for palette index: {}", palette_index);
+                //             &BlockData::default()
+                //         }
+                //     };
+                //
+                //     if let Some(count) = block_counts.get_mut(block.to_block_id()) {
+                //         *count += 1;
+                //     } else {
+                //         block_counts.insert(block.to_block_id(), 0);
+                //     }
+                //
+                //     i += bits_per_block;
+                // }
+                for i in 0..4096u16 {
+                    let palette_index = read_nbit_i32(
+                        chunk,
+                        bits_per_block as usize,
+                        (i * bits_per_block as u16) as u32,
+                    )?;
+                    let block_id = palette
+                        .get(palette_index as usize)
+                        .cloned()
+                        .unwrap_or(BlockData::from(BlockId(0)));
+                    let x = (i & 0xF) as u8;
+                    let y = ((i >> 8) & 0xF) as u8;
+                    let z = ((i >> 4) & 0xF) as u8;
+                    blocks.push((x, y, z, BlockId::from(block_id)));
                 }
             }
-            let block_data = if raw_block_data.is_empty() {
-                block_counts.insert(BlockId::default(), 4096);
-                PaletteType::Single(VarInt::from(0))
-            } else {
-                PaletteType::Indirect {
-                    bits_per_block,
-                    data: raw_block_data,
-                    palette: convert_to_net_palette(palette)?,
-                }
-            };
+            for (x, y, z, block) in blocks {
+                let index = (y as u16) << 8 | (z as u16) << 4 | (x as u16);
+                block_states.set(index as usize, block);
+            }
             // Count the number of blocks that are either air, void air, or cave air
-            let mut air_blocks = *block_counts.get(BlockId::default()).unwrap_or(&0) as u16;
-            air_blocks += *block_counts
-                .get(
-                    BlockData {
-                        name: "minecraft:void_air".to_string(),
-                        properties: None,
-                    }
-                        .to_block_id(),
-                )
-                .unwrap_or(&0) as u16;
-            air_blocks += *block_counts
-                .get(
-                    BlockData {
-                        name: "minecraft:cave_air".to_string(),
-                        properties: None,
-                    }
-                        .to_block_id(),
-                )
-                .unwrap_or(&0) as u16;
+            let mut air_blocks = block_states.get_count(&BlockId::from(BlockData {
+                name: "minecraft:air".to_string(),
+                properties: None,
+            }));
+            air_blocks += block_states.get_count(&BlockId::from(BlockData {
+                name: "minecraft:void_air".to_string(),
+                properties: None,
+            }));
+            air_blocks += block_states.get_count(&BlockId::from(BlockData {
+                name: "minecraft:cave_air".to_string(),
+                properties: None,
+            }));
             let non_air_blocks = 4096 - air_blocks;
-            let block_states = BlockStates {
-                block_counts,
-                non_air_blocks,
-                block_data,
-            };
             let block_light = section
                 .block_light
                 .as_ref()
@@ -231,43 +215,10 @@ impl VanillaChunk {
     }
 }
 
-impl Chunk {
-    pub fn new(x: i32, z: i32, dimension: String) -> Self {
-        let mut sections: Vec<Section> = (-4..20)
-            .map(|y| {
-                Section {
-                    y: y as i8,
-                    block_states: BlockStates {
-                        non_air_blocks: 0,
-                        block_data: PaletteType::Single(VarInt::from(0)),
-                        block_counts: IntMap::from([(BlockId::default(), 4096)]),
-                    },
-                    biome_states: BiomeStates {
-                        bits_per_biome: 0,
-                        data: vec![],
-                        palette: vec![VarInt::from(0)],
-                    },
-                    block_light: vec![255; 2048],
-                    sky_light: vec![255; 2048],
-                }
-            })
-            .collect();
-        for section in &mut sections {
-            section.optimise().expect("Failed to optimise section");
-        }
-        Chunk {
-            x,
-            z,
-            dimension,
-            sections,
-            heightmaps: Heightmaps::new(),
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use bevy_math::IVec3;
 
     #[test]
     fn test_chunk_set_block() {
@@ -276,9 +227,9 @@ mod tests {
             name: "minecraft:stone".to_string(),
             properties: None,
         }
-            .to_block_id();
-        chunk.set_block(0, 0, 0, block).unwrap();
-        assert_eq!(chunk.get_block(0, 0, 0).unwrap(), block);
+        .to_block_id();
+        chunk.set_block(IVec3::new(0, 0, 0), block).unwrap();
+        assert_eq!(chunk.get_block(IVec3::new(0, 0, 0)), block);
     }
 
     #[test]
@@ -287,50 +238,37 @@ mod tests {
         let stone_block = BlockData {
             name: "minecraft:stone".to_string(),
             properties: None,
-        };
-        chunk.fill(stone_block.clone()).unwrap();
+        }
+        .to_block_id();
+        chunk.fill(stone_block.clone());
         for section in &chunk.sections {
-            for (block, count) in &section.block_states.block_counts {
-                assert_eq!(block, stone_block.to_block_id());
-                assert_eq!(count, &4096);
+            for y in 0..16 {
+                for z in 0..16 {
+                    for x in 0..16 {
+                        assert_eq!(
+                            chunk.get_block(IVec3::new(x, section.y as i32 * 16 + y, z)),
+                            stone_block
+                        );
+                    }
+                }
             }
         }
     }
 
     #[test]
     fn test_section_fill() {
-        let mut section = Section {
-            y: 0,
-            block_states: BlockStates {
-                non_air_blocks: 0,
-                block_data: PaletteType::Single(VarInt::from(0)),
-                block_counts: IntMap::from([(BlockId::default(), 4096)]),
-            },
-            biome_states: BiomeStates {
-                bits_per_biome: 0,
-                data: vec![],
-                palette: vec![VarInt::from(0)],
-            },
-            block_light: vec![255; 2048],
-            sky_light: vec![255; 2048],
-        };
+        let mut section = Section::new(0);
         let stone_block = BlockData {
             name: "minecraft:stone".to_string(),
             properties: None,
-        };
-        section.fill(stone_block.clone()).unwrap();
+        }
+        .to_block_id();
+        section.fill(stone_block.clone());
         assert_eq!(
-            section.block_states.block_data,
-            PaletteType::Single(VarInt::from(1))
+            section.block_states.palette_type,
+            PaletteType::Single(BlockId::from(1))
         );
-        assert_eq!(
-            section
-                .block_states
-                .block_counts
-                .get(stone_block.to_block_id())
-                .unwrap(),
-            &4096
-        );
+        assert_eq!(section.block_states.get_count(&stone_block), 4096);
     }
 
     #[test]
@@ -340,9 +278,9 @@ mod tests {
             name: "minecraft:stone".to_string(),
             properties: None,
         }
-            .to_block_id();
-        chunk.set_block(0, 0, 0, block).unwrap();
-        assert_ne!(chunk.get_block(0, 1, 0).unwrap(), block);
+        .to_block_id();
+        chunk.set_block(IVec3::new(0, 0, 0), block).unwrap();
+        assert_ne!(chunk.get_block(IVec3::new(0, 0, 0)), BlockId::from(0));
     }
 
     #[test]
@@ -351,9 +289,9 @@ mod tests {
         let block = BlockData {
             name: "minecraft:stone".to_string(),
             properties: None,
-        };
-        assert!(chunk.set_block(0, 0, 0, block.clone()).is_ok());
-        assert!(chunk.set_block(0, 0, 0, block.clone()).is_ok());
-        assert!(chunk.get_block(0, 0, 0).is_ok());
+        }
+        .to_block_id();
+        chunk.set_block(IVec3::new(15, 255, 15), block).unwrap();
+        assert_eq!(chunk.get_block(IVec3::new(15, 255, 15)), block);
     }
 }

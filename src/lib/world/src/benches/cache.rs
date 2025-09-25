@@ -1,24 +1,22 @@
-use std::hint::black_box;
-
+use bevy_math::{IVec2, IVec3};
 use criterion::Criterion;
 use ferrumc_world::World;
+use std::hint::black_box;
 
 pub(crate) fn bench_cache(c: &mut Criterion) {
-    let backend_path = std::env::current_dir()
-        .unwrap()
-        .join("../../../world");
+    let backend_path = std::env::current_dir().unwrap().join("../../../world");
     let mut group = c.benchmark_group("world_load");
     group.bench_function("Load chunk 1,1 uncached", |b| {
         b.iter_batched(
             || World::new(&backend_path),
-            |world| world.load_chunk(black_box(1), black_box(1), black_box("overworld")),
+            |world| world.load_chunk(black_box(IVec2::new(1, 1)), black_box("overworld")),
             criterion::BatchSize::PerIteration,
         );
     });
     group.bench_function("Load chunk 1,1 uncached, owned", |b| {
         b.iter_batched(
             || World::new(&backend_path),
-            |world| world.load_chunk_owned(black_box(1), black_box(1), black_box("overworld")),
+            |world| world.load_chunk_owned(black_box(IVec2::new(1, 1)), black_box("overworld")),
             criterion::BatchSize::PerIteration,
         );
     });
@@ -27,9 +25,8 @@ pub(crate) fn bench_cache(c: &mut Criterion) {
             || World::new(&backend_path),
             |world| {
                 world.get_block_and_fetch(
-                    black_box(1),
-                    black_box(1),
-                    black_box(1),
+                    black_box(IVec2::new(1, 1)),
+                    black_box(IVec3::new(1, 1, 1)),
                     black_box("overworld"),
                 )
             },
@@ -38,24 +35,23 @@ pub(crate) fn bench_cache(c: &mut Criterion) {
     });
     let world = World::new(backend_path);
     let load_chunk = || {
-        world.load_chunk(1, 1, "overworld").expect(
+        world.load_chunk(IVec2::new(1, 1), "overworld").expect(
             "Failed to load chunk. If it's a bitcode error, chances are the chunk format \
              has changed since last generating a world so you'll need to regenerate",
         )
     };
     _ = load_chunk();
     group.bench_function("Load chunk 1,1 cached", |b| {
-        b.iter(|| world.load_chunk(black_box(1), black_box(1), black_box("overworld")))
+        b.iter(|| world.load_chunk(black_box(IVec2::new(1, 1)), black_box("overworld")))
     });
     group.bench_function("Load chunk 1,1 cached, owned", |b| {
-        b.iter(|| world.load_chunk_owned(black_box(1), black_box(1), black_box("overworld")))
+        b.iter(|| world.load_chunk_owned(black_box(IVec2::new(1, 1)), black_box("overworld")))
     });
     group.bench_function("Load block 1,1 cached", |b| {
         b.iter(|| {
             world.get_block_and_fetch(
-                black_box(1),
-                black_box(1),
-                black_box(1),
+                black_box(IVec2::new(1, 1)),
+                black_box(IVec3::new(1, 1, 1)),
                 black_box("overworld"),
             )
         });

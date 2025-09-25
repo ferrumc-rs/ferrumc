@@ -25,12 +25,13 @@ lazy_static = { workspace = true }
 intmap = { workspace = true }
 serde_json = { workspace = true }
 indicatif = { workspace = true }
-wyhash = { workspace = true }
+simplehash = { workspace = true }
 moka = { workspace = true, features = ["sync"] }
 ahash = { workspace = true }
 rand = { workspace = true }
 yazi = { workspace = true }
 ferrumc-threadpool = { workspace = true }
+bevy_math = { workspace = true }
 lz4_flex = { workspace = true }
 
 [[bench]]
