@@ -12,8 +12,10 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalStateResource;
 use tracing::{debug, error, trace};
 
+use bevy_math::{IVec2, IVec3};
 use ferrumc_inventories::hotbar::Hotbar;
 use ferrumc_inventories::inventory::Inventory;
+use ferrumc_world::block_id::BlockId;
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -65,8 +67,7 @@ pub fn handle(
                         item_id.0, mapped_block_id
                     );
                     let mut chunk = match state.0.world.load_chunk_owned(
-                        event.position.x >> 4,
-                        event.position.z >> 4,
+                        IVec2::new(event.position.x >> 4, event.position.z >> 4),
                         "overworld",
                     ) {
                         Ok(chunk) => chunk,
@@ -75,14 +76,11 @@ pub fn handle(
                             continue 'ev_loop;
                         }
                     };
-                    let Ok(block_clicked) = chunk.get_block(
+                    let block_clicked = chunk.get_block(IVec3::new(
                         event.position.x,
                         event.position.y as i32,
                         event.position.z,
-                    ) else {
-                        debug!("Failed to get block at position: {:?}", event.position);
-                        continue 'ev_loop;
-                    };
+                    ));
                     trace!("Block clicked: {:?}", block_clicked);
                     // Use the face to determine the offset of the block to place
                     let (x_block_offset, y_block_offset, z_block_offset) = match event.face.0 {
@@ -128,9 +126,10 @@ pub fn handle(
                         continue 'ev_loop;
                     }
 
-                    if let Err(err) =
-                        chunk.set_block(x & 0xF, y as i32, z & 0xF, VarInt::new(*mapped_block_id))
-                    {
+                    if let Err(err) = chunk.set_block(
+                        IVec3::new(x & 0xF, y as i32, z & 0xF),
+                        BlockId::from(VarInt::new(*mapped_block_id)),
+                    ) {
                         error!("Failed to set block: {:?}", err);
                         continue 'ev_loop;
                     }

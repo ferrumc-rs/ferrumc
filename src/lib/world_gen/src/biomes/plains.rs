@@ -1,6 +1,6 @@
 use crate::errors::WorldGenError;
 use crate::{BiomeGenerator, NoiseGenerator};
-use bevy_math::IVec3;
+use bevy_math::{IVec2, IVec3};
 use ferrumc_world::chunk_format::Chunk;
 use ferrumc_world::vanilla_chunk_format::BlockData;
 use std::collections::BTreeMap;
@@ -16,13 +16,8 @@ impl BiomeGenerator for PlainsBiome {
         "plains".to_string()
     }
 
-    fn generate_chunk(
-        &self,
-        x: i32,
-        z: i32,
-        noise: &NoiseGenerator,
-    ) -> Result<Chunk, WorldGenError> {
-        let mut chunk = Chunk::new(x, z, "overworld".to_string());
+    fn generate_chunk(&self, pos: IVec2, noise: &NoiseGenerator) -> Result<Chunk, WorldGenError> {
+        let mut chunk = Chunk::new(pos, "overworld".to_string());
         let mut heights = vec![];
         let stone = BlockData {
             name: "minecraft:stone".to_string(),
@@ -45,8 +40,8 @@ impl BiomeGenerator for PlainsBiome {
         // Then generate some heights
         for chunk_x in 0..16i64 {
             for chunk_z in 0..16i64 {
-                let global_x = i64::from(x) * 16 + chunk_x;
-                let global_z = i64::from(z) * 16 + chunk_z;
+                let global_x = i64::from(pos.x) * 16 + chunk_x;
+                let global_z = i64::from(pos.y) * 16 + chunk_z;
                 let height = noise.get_noise(global_x as f64, global_z as f64);
                 let height = (height * 64.0) as i32 + 64;
                 heights.push((global_x, global_z, height));
@@ -111,7 +106,7 @@ mod test {
     fn test_is_ok() {
         let generator = PlainsBiome {};
         let noise = NoiseGenerator::new(0);
-        assert!(generator.generate_chunk(0, 0, &noise).is_ok());
+        assert!(generator.generate_chunk(IVec2::new(0, 0), &noise).is_ok());
     }
 
     #[test]
@@ -121,7 +116,7 @@ mod test {
         for _ in 0..100 {
             let x = rand::random::<i32>();
             let z = rand::random::<i32>();
-            assert!(generator.generate_chunk(x, z, &noise).is_ok());
+            assert!(generator.generate_chunk(IVec2::new(x, z), &noise).is_ok());
         }
     }
 
@@ -131,12 +126,12 @@ mod test {
         let noise = NoiseGenerator::new(0);
         assert!(
             generator
-                .generate_chunk(1610612735, 1610612735, &noise)
+                .generate_chunk(IVec2::new(1610612735, 1610612735), &noise)
                 .is_ok()
         );
         assert!(
             generator
-                .generate_chunk(-1610612735, -1610612735, &noise)
+                .generate_chunk(IVec2::new(-1610612735, -1610612735), &noise)
                 .is_ok()
         );
     }
@@ -147,7 +142,7 @@ mod test {
             let generator = PlainsBiome {};
             let seed = rand::random::<u64>();
             let noise = NoiseGenerator::new(seed);
-            assert!(generator.generate_chunk(0, 0, &noise).is_ok());
+            assert!(generator.generate_chunk(IVec2::new(0, 0), &noise).is_ok());
         }
     }
 }

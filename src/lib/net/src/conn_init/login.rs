@@ -6,6 +6,7 @@ use crate::errors::{NetError, PacketError};
 use crate::packets::incoming::packet_skeleton::PacketSkeleton;
 use crate::packets::outgoing::{commands::CommandsPacket, registry_data::REGISTRY_PACKETS};
 use crate::ConnState::*;
+use bevy_math::IVec2;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_macros::lookup_packet;
@@ -258,7 +259,9 @@ pub(super) async fn login(
 
     // =============================================================================================
     // 16 Send center chunk packet (player spawn location)
-    let center_chunk = crate::packets::outgoing::set_center_chunk::SetCenterChunk::new(0, 0);
+    let center_chunk = crate::packets::outgoing::set_center_chunk::SetCenterChunk::new(
+        IVec2::new(0, 0),
+    );
     conn_write.send_packet(center_chunk)?;
 
     // =============================================================================================
@@ -272,7 +275,7 @@ pub(super) async fn login(
             batch.execute({
                 let state = state.clone();
                 move || -> Result<Vec<u8>, NetError> {
-                    let chunk = state.world.load_chunk(x, z, "overworld")?;
+                    let chunk = state.world.load_chunk(IVec2::new(x, z), "overworld")?;
                     let chunk_data =
                         crate::packets::outgoing::chunk_and_light_data::ChunkAndLightData::from_chunk(
                             &chunk,

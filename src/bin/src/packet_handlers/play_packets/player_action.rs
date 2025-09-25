@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use crate::errors::BinaryError;
 use bevy_ecs::prelude::{Entity, Query, Res};
+use bevy_math::{IVec2, IVec3};
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::block_change_ack::BlockChangeAck;
 use ferrumc_net::packets::outgoing::block_update::BlockUpdate;
@@ -23,8 +24,7 @@ pub fn handle(
             match event.status.0 {
                 0 => {
                     let mut chunk = match state.0.clone().world.load_chunk_owned(
-                        event.location.x >> 4,
-                        event.location.z >> 4,
+                        IVec2::new(event.location.x >> 4, event.location.z >> 4),
                         "overworld",
                     ) {
                         Ok(chunk) => chunk,
@@ -34,7 +34,10 @@ pub fn handle(
                                 .0
                                 .clone()
                                 .terrain_generator
-                                .generate_chunk(event.location.x >> 4, event.location.z >> 4)?
+                                .generate_chunk(IVec2::new(
+                                    event.location.x >> 4,
+                                    event.location.z >> 4,
+                                ))?
                         }
                     };
                     let (relative_x, relative_y, relative_z) = (
@@ -42,7 +45,10 @@ pub fn handle(
                         event.location.y as i32,
                         event.location.z.abs() % 16,
                     );
-                    chunk.set_block(relative_x, relative_y, relative_z, BlockData::default())?;
+                    chunk.set_block(
+                        IVec3::new(relative_x, relative_y, relative_z),
+                        BlockId::default(),
+                    )?;
                     // Save the chunk to disk
                     state.0.world.save_chunk(Arc::new(chunk))?;
                     for (eid, conn) in query {

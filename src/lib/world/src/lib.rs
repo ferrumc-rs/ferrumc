@@ -7,11 +7,11 @@ pub mod errors;
 mod importing;
 pub mod section_ops;
 pub mod vanilla_chunk_format;
-mod world_ops;
+pub mod world_ops;
 
 use crate::chunk_format::Chunk;
 use crate::errors::WorldError;
-use bevy_math::IVec3;
+use bevy_math::{IVec2, IVec3};
 use deepsize::DeepSizeOf;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_general_purpose::paths::get_root_path;
@@ -30,6 +30,12 @@ pub fn to_index(pos: IVec3) -> usize {
     let y = (pos.y & 0xF) as usize;
     let z = (pos.z & 0xF) as usize;
     (y << 8) | (z << 4) | x
+}
+
+
+
+pub fn get_chunk_coordinates(input: IVec3) -> IVec2 {
+    IVec2::new(input.x.div_euclid(16), input.z.div_euclid(16))
 }
 
 #[derive(Clone)]

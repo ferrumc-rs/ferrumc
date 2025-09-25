@@ -24,13 +24,13 @@ pub fn handle(
             );
             continue;
         }
-        let head_block = state.0.world.get_block_and_fetch(
-            player_pos.x as i32,
-            player_pos.y as i32,
-            player_pos.z as i32,
-            "overworld",
-        );
-        if let Ok(head_block) = head_block {
+        let chunk_coords = ferrumc_world::get_chunk_coordinates(player_pos.as_vec3());
+        let head_block =
+            state
+                .0
+                .world
+                .get_block_and_fetch(chunk_coords, player_pos.as_vec3(), "overworld");
+        if let Some(head_block) = head_block {
             if head_block == BlockId(0) {
                 tracing::info!(
                     "Player {} loaded at position: ({}, {}, {})",

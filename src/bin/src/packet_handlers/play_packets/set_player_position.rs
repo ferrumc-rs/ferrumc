@@ -1,4 +1,5 @@
 use bevy_ecs::prelude::{Entity, EventWriter, Query, Res};
+use bevy_math::IVec2;
 use ferrumc_core::chunks::cross_chunk_boundary_event::CrossChunkBoundaryEvent;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net::SetPlayerPositionPacketReceiver;
@@ -46,9 +47,9 @@ pub fn handle(
             ((new_position.z * 4096.0) - (position.z * 4096.0)) as i16,
         ));
 
-        let old_chunk = (position.x as i32 >> 4, position.z as i32 >> 4);
+        let old_chunk = IVec2::new(position.x as i32 >> 4, position.z as i32 >> 4);
 
-        let new_chunk = (new_position.x as i32 >> 4, new_position.z as i32 >> 4);
+        let new_chunk = IVec2::new(new_position.x as i32 >> 4, new_position.z as i32 >> 4);
 
         if old_chunk != new_chunk {
             cross_chunk_events.write(CrossChunkBoundaryEvent {

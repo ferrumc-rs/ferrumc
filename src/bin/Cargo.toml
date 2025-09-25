@@ -33,6 +33,7 @@ ferrumc-threadpool = { workspace = true }
 ferrumc-inventories = { workspace = true }
 once_cell = { workspace = true }
 serde_json = { workspace = true }
+bevy_math = { workspace = true }
 
 tracing = { workspace = true }
 clap = { workspace = true, features = ["derive", "env"] }

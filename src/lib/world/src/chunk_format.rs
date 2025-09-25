@@ -218,11 +218,11 @@ impl VanillaChunk {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use bevy_math::IVec3;
+    use bevy_math::{IVec2, IVec3};
 
     #[test]
     fn test_chunk_set_block() {
-        let mut chunk = Chunk::new(0, 0, "overworld".to_string());
+        let mut chunk = Chunk::new(IVec2::new(0, 0), "overworld".to_string());
         let block = BlockData {
             name: "minecraft:stone".to_string(),
             properties: None,
@@ -234,7 +234,7 @@ mod tests {
 
     #[test]
     fn test_chunk_fill() {
-        let mut chunk = Chunk::new(0, 0, "overworld".to_string());
+        let mut chunk = Chunk::new(IVec2::new(0, 0), "overworld".to_string());
         let stone_block = BlockData {
             name: "minecraft:stone".to_string(),
             properties: None,
@@ -273,7 +273,7 @@ mod tests {
 
     #[test]
     fn test_false_positive() {
-        let mut chunk = Chunk::new(0, 0, "overworld".to_string());
+        let mut chunk = Chunk::new(IVec2::new(0, 0), "overworld".to_string());
         let block = BlockData {
             name: "minecraft:stone".to_string(),
             properties: None,
@@ -285,7 +285,7 @@ mod tests {
 
     #[test]
     fn test_doesnt_fail() {
-        let mut chunk = Chunk::new(0, 0, "overworld".to_string());
+        let mut chunk = Chunk::new(IVec2::new(0, 0), "overworld".to_string());
         let block = BlockData {
             name: "minecraft:stone".to_string(),
             properties: None,

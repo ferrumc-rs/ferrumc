@@ -36,6 +36,8 @@ indexmap = { workspace = true }
 lazy_static = { workspace = true }
 yazi = { workspace = true }
 ferrumc-inventories = { workspace = true }
+ferrumc-general-purpose = { workspace = true }
+bevy_math = { workspace = true }
 
 
 [dev-dependencies]
