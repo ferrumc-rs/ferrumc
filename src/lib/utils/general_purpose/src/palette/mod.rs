@@ -3,6 +3,9 @@ use std::cmp::max;
 mod get;
 mod set;
 mod resize;
+mod optimise;
+
+const MIN_BITS_PER_ENTRY: u8 = 4;
 
 pub struct Palette<T> {
     pub palette_type: PaletteType<T>,
@@ -14,7 +17,7 @@ pub enum PaletteType<T> {
     Indirect {
         bits_per_entry: u8,
         data: Vec<u64>,
-        palette: Vec<T>,
+        palette: Vec<(u16, T)>,
     },
     Direct(Vec<T>),
 }
@@ -44,31 +47,23 @@ impl<T: Eq + std::hash::Hash + Clone> From<Vec<T>> for Palette<T> {
             let unique_values = calculate_unique_values(&values);
             if calculate_bits_per_entry(unique_values) <= 15 {
                 let bits_per_entry = calculate_bits_per_entry(unique_values);
-                let palette: Vec<T> = {
-                    use std::collections::HashSet;
-                    let unique_values: HashSet<T> = values.iter().cloned().collect();
-                    unique_values.into_iter().collect()
+                let palette: Vec<(u16, T)> = {
+                    use std::collections::HashMap;
+                    let mut unique_values: HashMap<&T, u16> = HashMap::new();
+                    for value in &values {
+                        *unique_values.entry(value).or_default() += 1;
+                    }
+                    unique_values.into_iter().map(|(v, c)| (c, v.clone())).collect()
                 };
                 let mut data: Vec<u64> = vec![0; (length * bits_per_entry as usize).div_ceil(64)];
                 for (i, value) in values.iter().enumerate() {
                     let palette_index = palette
                         .iter()
-                        .position(|v| v == value)
+                        .position(|v| v.1 == *value)
                         .expect("Value not found in palette") as u64;
-                    let bit_index = i * bits_per_entry as usize;
-                    let array_index = bit_index / 64;
-                    let bit_offset = bit_index % 64;
-
-                    if bit_offset + bits_per_entry as usize <= 64 {
-                        // Value fits within a single u64
-                        data[array_index] |= palette_index << bit_offset;
-                    } else {
-                        // Value spans two u64s
-                        let low_bits = 64 - bit_offset;
-                        let high_bits = bits_per_entry as usize - low_bits;
-                        data[array_index] |= (palette_index & ((1 << low_bits) - 1)) << bit_offset;
-                        data[array_index + 1] |= palette_index >> low_bits;
-                    }
+                    let u64_index = (i * bits_per_entry as usize) / 64;
+                    let bit_offset = (i * bits_per_entry as usize) % 64;
+                    data[u64_index] |= palette_index << bit_offset;
                 }
                 Self {
                     palette_type: PaletteType::Indirect {
@@ -90,7 +85,7 @@ impl<T: Eq + std::hash::Hash + Clone> From<Vec<T>> for Palette<T> {
 
 #[inline]
 pub(crate) fn calculate_bits_per_entry(palette_size: usize) -> u8 {
-    max(4, (palette_size as f64).log2().ceil() as u8)
+    max(MIN_BITS_PER_ENTRY, (palette_size as f64).log2().ceil() as u8)
 }
 
 pub(crate) fn calculate_unique_values<T: Eq + std::hash::Hash>(values: &[T]) -> usize {

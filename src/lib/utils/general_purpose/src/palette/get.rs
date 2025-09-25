@@ -14,7 +14,7 @@ impl<T> Palette<T> {
                     let target_u64 = data.get(u64_index)?;
                     let bit_offset = (index * bits_per_entry) % 64;
                     let palette_index = (*target_u64 >> bit_offset) & ((1 << bits_per_entry) - 1);
-                    palette.get(palette_index as usize)
+                    palette.get(palette_index as usize).map(|x| &x.1)
                 }
             crate::palette::PaletteType::Direct(values) => values.get(index),
         }
@@ -23,24 +23,18 @@ impl<T> Palette<T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::palette::{Palette, PaletteType};
+    use crate::palette::Palette;
 
     #[test]
     fn test_get_single_palette() {
-        let palette = Palette {
-            length: 1,
-            palette_type: PaletteType::Single(42),
-        };
+        let palette = Palette::new(1, 42);
         assert_eq!(palette.get(0), Some(&42));
         assert_eq!(palette.get(1), None);
     }
 
     #[test]
     fn test_get_direct_palette() {
-        let palette = Palette {
-            length: 3,
-            palette_type: PaletteType::Direct(vec![10, 20, 30]),
-        };
+        let palette = Palette::from(vec![10, 20, 30]);
         assert_eq!(palette.get(0), Some(&10));
         assert_eq!(palette.get(1), Some(&20));
         assert_eq!(palette.get(2), Some(&30));
