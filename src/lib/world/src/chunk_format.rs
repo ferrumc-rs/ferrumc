@@ -213,15 +213,10 @@ mod tests {
         }
         .to_block_id();
         chunk.fill(stone_block);
-        for section in &chunk.sections {
-            for y in 0..16 {
-                for z in 0..16 {
-                    for x in 0..16 {
-                        assert_eq!(
-                            chunk.get_block(IVec3::new(x, section.y as i32 * 16 + y, z)),
-                            stone_block
-                        );
-                    }
+        for y in 0..16 {
+            for z in -64..320 {
+                for x in 0..16 {
+                    assert_eq!(chunk.get_block(IVec3::new(x, y, z)), stone_block);
                 }
             }
         }

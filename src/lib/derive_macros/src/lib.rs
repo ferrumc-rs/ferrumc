@@ -69,7 +69,7 @@ pub fn lookup_packet(input: TokenStream) -> TokenStream {
 ///
 /// Usage example:
 ///
-/// ```
+/// ```ignore
 /// #[command("hello")]
 /// fn command(#[sender] sender: Sender) {
 ///     sender.send_message(TextComponent::from("Hello, world!"), false);
