@@ -10,3 +10,6 @@ fnv = { workspace = true }
 deepsize = { workspace = true }
 bitcode = { workspace = true }
 
+[dev-dependencies]
+rand = { workspace = true }
+

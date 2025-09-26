@@ -1,12 +1,12 @@
 use bitcode::{Decode, Encode};
 use deepsize::DeepSizeOf;
-use std::cmp::max;
 
 mod count;
 mod get;
 mod optimise;
 mod resize;
 mod set;
+mod utils;
 
 const MIN_BITS_PER_ENTRY: u8 = 4;
 
@@ -52,9 +52,9 @@ impl<T: Eq + std::hash::Hash + Clone> From<Vec<T>> for Palette<T> {
                 length,
             }
         } else {
-            let unique_values = calculate_unique_values(&values);
-            if calculate_bits_per_entry(unique_values) <= 15 {
-                let bits_per_entry = calculate_bits_per_entry(unique_values);
+            let unique_values = utils::calculate_unique_values(&values);
+            if utils::calculate_bits_per_entry(unique_values) <= 15 {
+                let bits_per_entry = utils::calculate_bits_per_entry(unique_values);
                 let palette: Vec<(u16, T)> = {
                     use std::collections::HashMap;
                     let mut unique_values: HashMap<&T, u16> = HashMap::new();
@@ -93,18 +93,4 @@ impl<T: Eq + std::hash::Hash + Clone> From<Vec<T>> for Palette<T> {
             }
         }
     }
-}
-
-#[inline]
-pub(crate) fn calculate_bits_per_entry(palette_size: usize) -> u8 {
-    max(
-        MIN_BITS_PER_ENTRY,
-        (palette_size as f64).log2().ceil() as u8,
-    )
-}
-
-pub(crate) fn calculate_unique_values<T: Eq + std::hash::Hash>(values: &[T]) -> usize {
-    use std::collections::HashSet;
-    let unique_values: HashSet<&T> = values.iter().collect();
-    unique_values.len()
 }

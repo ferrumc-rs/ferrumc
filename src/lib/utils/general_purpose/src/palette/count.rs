@@ -1,26 +1,40 @@
-use crate::palette::Palette;
+use crate::palette::{Palette, PaletteType};
 
 impl<T> Palette<T> {
+    /// Retrieves the count of a specific value in the palette.
+    ///
+    /// # Arguments
+    /// * `value` - A reference to the value whose count is to be determined.
+    ///
+    /// # Returns
+    /// * `usize` - The count of the specified value in the palette.
+    ///
+    /// # Variants
+    /// The behavior depends on the `PaletteType`:
+    /// - `Single`: Returns the length if the value matches, otherwise 0.
+    /// - `Indirect`: Searches for the value in the palette and returns its count. If not found, returns 0.
+    /// - `Direct`: Counts the occurrences of the value in the list of values.
     pub fn get_count(&self, value: &T) -> usize
     where
         T: Eq,
     {
         match &self.palette_type {
-            crate::palette::PaletteType::Single(v) => {
+            // Single variant: Check if the value matches the stored value.
+            PaletteType::Single(v) => {
                 if v == value {
                     self.length
                 } else {
                     0
                 }
             }
-            crate::palette::PaletteType::Indirect { palette, .. } => palette
+            // Indirect variant: Search for the value in the palette and return its count.
+            PaletteType::Indirect { palette, .. } => palette
                 .iter()
                 .find(|(_, v)| v == value)
                 .map(|(c, _)| *c as usize)
                 .unwrap_or(0),
-            crate::palette::PaletteType::Direct(values) => {
-                values.iter().filter(|v| *v == value).count()
-            }
+            // Direct variant: Count the occurrences of the value in the list of values.
+            PaletteType::Direct(values) => values.iter().filter(|v| *v == value).count(),
         }
     }
 }

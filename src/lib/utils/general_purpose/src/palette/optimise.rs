@@ -1,5 +1,5 @@
-use crate::palette::resize::{read_index, write_index};
-use crate::palette::{calculate_bits_per_entry, Palette, PaletteType};
+use crate::palette::utils::{calculate_bits_per_entry, read_index, write_index};
+use crate::palette::{Palette, PaletteType};
 use std::hash::Hash;
 
 impl<T: Clone + PartialEq + Hash + Eq> Palette<T> {

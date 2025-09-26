@@ -1,13 +1,28 @@
-use super::resize::{read_index, write_index};
-use crate::palette::{calculate_bits_per_entry, Palette, PaletteType, MIN_BITS_PER_ENTRY};
+use crate::palette::utils::{calculate_bits_per_entry, read_index, write_index};
+use crate::palette::{Palette, PaletteType, MIN_BITS_PER_ENTRY};
+use std::hash::Hash;
 
-impl<T: Clone + Eq> Palette<T> {
+impl<T: Clone + Eq + Hash> Palette<T> {
     pub fn set(&mut self, index: usize, new_value: T) {
         // If out of bounds, resize to fit and fill with new_value
         if index >= self.length {
-            self.resize(index + 1, new_value);
-            return;
+            if let PaletteType::Indirect {
+                data,
+                bits_per_entry,
+                ..
+            } = &mut self.palette_type
+            {
+                let entries_per_i64 = (64f64 / *bits_per_entry as f64).floor() as usize;
+                let i64_index = index / entries_per_i64;
+                let extra_u64s_needed = i64_index + 1 - data.len();
+                for _ in 0..extra_u64s_needed {
+                    data.push(0u64);
+                }
+            }
+            self.length = index + 1;
         }
+
+        let existing_count = self.get_count(&new_value);
 
         // Work on a moved-out palette_type to avoid borrow conflicts
         let new_palette_type =
@@ -22,7 +37,7 @@ impl<T: Clone + Eq> Palette<T> {
                             (self.length as u16 - 1, existing_value.clone()),
                             (1, new_value.clone()),
                         ];
-                        let bits_per_entry = MIN_BITS_PER_ENTRY; // 2 unique values fit in 1 bit
+                        let bits_per_entry = MIN_BITS_PER_ENTRY;
                         let mut data =
                             vec![0u64; (self.length * bits_per_entry as usize).div_ceil(64)];
                         for i in 0..self.length {
@@ -49,9 +64,11 @@ impl<T: Clone + Eq> Palette<T> {
                             data,
                             palette,
                         }
-                    } else if let Some((palette_index, _)) =
-                        palette.iter().enumerate().find(|(_, v)| v.1 == new_value)
-                    {
+                    } else if existing_count > 0 {
+                        let palette_index = palette
+                            .iter()
+                            .position(|(_, v)| *v == new_value)
+                            .expect("Value not found in palette");
                         // Existing value, just update index
                         write_index(&mut data, bits_per_entry, index, palette_index as u64);
                         // Update counts
@@ -69,7 +86,7 @@ impl<T: Clone + Eq> Palette<T> {
                     } else {
                         // New value
                         let unique_values = palette.len() + 1;
-                        if calculate_bits_per_entry(unique_values) <= 15 {
+                        if calculate_bits_per_entry(unique_values) < 15 {
                             // Can still fit in Indirect
                             palette.push((1, new_value.clone()));
                             write_index(
@@ -92,14 +109,8 @@ impl<T: Clone + Eq> Palette<T> {
                             // Transition to Direct
                             let mut values = Vec::with_capacity(self.length);
                             for i in 0..self.length {
-                                let bits_per_entry =
-                                    calculate_bits_per_entry(palette.len()) as usize;
-                                let u64_index = (i * bits_per_entry) / 64;
-                                let target_u64 = data[u64_index];
-                                let bit_offset = (i * bits_per_entry) % 64;
-                                let palette_index =
-                                    (target_u64 >> bit_offset) & ((1 << bits_per_entry) - 1);
-                                values.push(palette[palette_index as usize].1.clone());
+                                let index = read_index(&data, bits_per_entry, i);
+                                values.push(palette[index as usize].1.clone());
                             }
                             values[index] = new_value.clone();
                             PaletteType::Direct(values)
@@ -193,6 +204,69 @@ mod tests {
                 assert_eq!(v[0], 999_999);
             }
             _ => panic!("expected Direct"),
+        }
+    }
+
+    #[test]
+    fn test_small_random() {
+        use rand::Rng;
+        let mut p = Palette::new(200, 0u8);
+        if let PaletteType::Single(v) = &p.palette_type {
+            assert_eq!(*v, 0);
+        } else {
+            panic!("expected Single palette type");
+        };
+        let random_values: Vec<u8> = (0..200)
+            .map(|_| rand::rng().random_range(u8::MIN..=200))
+            .collect();
+        for (i, &v) in random_values.iter().enumerate() {
+            p.set(i, v);
+        }
+        assert_eq!(p.length, 200);
+        for (i, &v) in random_values.iter().enumerate() {
+            assert_eq!(p.get(i), Some(&v));
+        }
+    }
+
+    #[test]
+    fn test_large_random() {
+        use rand::Rng;
+        let mut p = Palette::new(5000, 0u16);
+        if let PaletteType::Single(v) = &p.palette_type {
+            assert_eq!(*v, 0);
+        } else {
+            panic!("expected Single palette type");
+        };
+        let random_values: Vec<u16> = (0..5000)
+            .map(|_| rand::rng().random_range(u16::MIN..=u16::MAX))
+            .collect();
+        for (i, &v) in random_values.iter().enumerate() {
+            p.set(i, v);
+        }
+        assert_eq!(p.length, 5000);
+        for (i, &v) in random_values.iter().enumerate() {
+            assert_eq!(p.get(i), Some(&v));
+        }
+    }
+
+    #[test]
+    fn test_massive_random() {
+        use rand::Rng;
+        let mut p = Palette::new(700000, 0u32);
+        if let PaletteType::Single(v) = &p.palette_type {
+            assert_eq!(*v, 0);
+        } else {
+            panic!("expected Single palette type");
+        };
+        let random_values: Vec<u32> = (0..700000)
+            .map(|_| rand::rng().random_range(u32::MIN..=u32::MAX))
+            .collect();
+        for (i, &v) in random_values.iter().enumerate() {
+            p.set(i, v);
+        }
+        assert_eq!(p.length, 700000);
+        for (i, &v) in random_values.iter().enumerate() {
+            assert_eq!(p.get(i), Some(&v));
         }
     }
 }
