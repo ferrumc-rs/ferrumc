@@ -19,7 +19,7 @@ use crate::data_packing::errors::DataPackingError;
 /// * `DataPackingError::NotEnoughBits` - If `offset + size` exceeds 64 bits.
 ///   Reads an n-bit integer from a packed `i64`.
 pub fn read_nbit_i32(
-    word: &i64,
+    word: &u64,
     bit_size: usize,
     bit_offset: u32,
 ) -> Result<i32, DataPackingError> {
@@ -37,7 +37,7 @@ pub fn read_nbit_i32(
     let mask = (1u64 << bit_size) - 1;
 
     // Extract the value from the word
-    let value = ((*word as u64) >> bit_offset) & mask;
+    let value = ((*word) >> bit_offset) & mask;
 
     // Cast to i32 and return
     Ok(value as i32)
@@ -86,7 +86,7 @@ mod tests {
     /// Tests the `read_nbit_i32` function with various inputs.
     #[test]
     fn test_read_nbit_i32() {
-        let data: i64 = 0b110101011;
+        let data: u64 = 0b110101011;
         assert_eq!(read_nbit_i32(&data, 3, 0).unwrap(), 0b011);
         assert_eq!(read_nbit_i32(&data, 3, 3).unwrap(), 0b101);
         assert_eq!(read_nbit_i32(&data, 3, 6).unwrap(), 0b110);

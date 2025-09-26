@@ -10,6 +10,16 @@ pub struct Position {
     pub z: f64,
 }
 
+impl Position {
+    pub fn as_vec3(&self) -> bevy_math::IVec3 {
+        bevy_math::IVec3::new(self.x as i32, self.y as i32, self.z as i32)
+    }
+
+    pub fn from_vec3(vec: bevy_math::IVec3) -> Self {
+        Self::new(vec.x as f64, vec.y as f64, vec.z as f64)
+    }
+}
+
 impl From<NetworkPosition> for Position {
     fn from(pos: NetworkPosition) -> Self {
         Self::new(pos.x as f64, pos.y as f64, pos.z as f64)

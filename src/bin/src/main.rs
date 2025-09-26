@@ -1,6 +1,7 @@
 #![feature(try_blocks)]
 
 use crate::errors::BinaryError;
+use bevy_math::IVec2;
 use clap::Parser;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_config::whitelist::create_whitelist;
@@ -79,23 +80,23 @@ fn generate_chunks(state: GlobalState) -> Result<(), BinaryError> {
     let radius = get_global_config().chunk_render_distance as i32;
     for x in -radius..=radius {
         for z in -radius..=radius {
-            chunks.push((x, z));
+            chunks.push(IVec2::new(x, z));
         }
     }
     let mut batch = state.thread_pool.batch();
-    for (x, z) in chunks {
+    for chunk_pos in chunks {
         let state_clone = state.clone();
         batch.execute(move || {
             let chunk = state_clone
                 .terrain_generator
-                .generate_chunk(x, z)
+                .generate_chunk(chunk_pos)
                 .map(Arc::new);
             if let Err(e) = chunk {
-                error!("Error generating chunk ({}, {}): {:?}", x, z, e);
+                error!("Error generating chunk ({}): {:?}", chunk_pos, e);
             } else {
                 let chunk = chunk.unwrap();
                 if let Err(e) = state_clone.world.save_chunk(chunk) {
-                    error!("Error saving chunk ({}, {}): {:?}", x, z, e);
+                    error!("Error saving chunk ({}): {:?}", chunk_pos, e);
                 }
             }
         });
@@ -109,7 +110,10 @@ fn entry(start_time: Instant) -> Result<(), BinaryError> {
     let state = create_state(start_time)?;
     let global_state = Arc::new(state);
     create_whitelist();
-    if !global_state.world.chunk_exists(0, 0, "overworld")? {
+    if !global_state
+        .world
+        .chunk_exists(IVec2::new(0, 0), "overworld")?
+    {
         generate_chunks(global_state.clone())?;
     }
 

@@ -251,14 +251,13 @@ impl LmdbBackend {
 mod tests {
     use super::*;
     use std::fs::remove_dir_all;
-    use std::hash::Hasher;
     use tempfile::tempdir;
 
     fn hash_2_to_u128(a: u64, b: u64) -> u128 {
-        let mut hasher = wyhash::WyHash::with_seed(0);
-        hasher.write_u64(a);
-        hasher.write_u64(b);
-        hasher.finish() as u128
+        let mut hasher = simplehash::MurmurHasher128::new(0);
+        hasher.write(&a.to_le_bytes());
+        hasher.write(&b.to_be_bytes());
+        hasher.finish_u128()
     }
 
     #[test]

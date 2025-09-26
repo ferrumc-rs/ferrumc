@@ -1,11 +1,13 @@
 use crate::errors::NetError;
 use byteorder::{BigEndian, WriteBytesExt};
+use ferrumc_general_purpose::palette::PaletteType;
 use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::bitset::BitSet;
 use ferrumc_net_codec::net_types::byte_array::ByteArray;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use ferrumc_world::chunk_format::{Chunk, PaletteType};
+use ferrumc_world::block_id::BlockId;
+use ferrumc_world::chunk_format::Chunk;
 use std::io::Cursor;
 use std::ops::Not;
 use tracing::warn;
@@ -97,29 +99,39 @@ impl ChunkAndLightData {
             };
             block_light_data.push(section_block_light_data);
 
-            raw_data.write_u16::<BigEndian>(section.block_states.non_air_blocks)?;
+            let non_air_blocks = {
+                // Air
+                let mut air_blocks = section.block_states.get_count(&BlockId(0));
+                // Cave air
+                air_blocks += section.block_states.get_count(&BlockId(13982));
+                // Void air
+                air_blocks += section.block_states.get_count(&BlockId(13981));
+                4096 - air_blocks as u16
+            };
 
-            match &section.block_states.block_data {
+            raw_data.write_u16::<BigEndian>(non_air_blocks)?;
+
+            match &section.block_states.palette_type {
                 PaletteType::Single(val) => {
                     // debug!("Single palette type: {:?}", (chunk.x, chunk.z));
                     raw_data.write_u8(0)?;
-                    val.write(&mut raw_data)?;
+                    VarInt::from(*val).write(&mut raw_data)?;
                     // VarInt::new(0).write(&mut raw_data)?;
                 }
                 PaletteType::Indirect {
-                    bits_per_block,
+                    bits_per_entry,
                     data,
                     palette,
                 } => {
                     // debug!("Indirect palette type: {:?}", (chunk.x, chunk.z));
-                    raw_data.write_u8(*bits_per_block)?;
+                    raw_data.write_u8(*bits_per_entry)?;
                     VarInt::new(palette.len() as i32).write(&mut raw_data)?;
                     for palette_entry in palette {
-                        palette_entry.write(&mut raw_data)?;
+                        VarInt::from(palette_entry.1).write(&mut raw_data)?;
                     }
                     // VarInt::new(data.len() as i32).write(&mut raw_data)?;
                     for data_entry in data {
-                        raw_data.write_i64::<BigEndian>(*data_entry)?;
+                        raw_data.write_i64::<BigEndian>(*data_entry as i64)?;
                     }
                 }
                 PaletteType::Direct { .. } => {

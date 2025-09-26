@@ -8,6 +8,7 @@ ferrumc-world = { workspace = true }
 thiserror = { workspace = true }
 noise = { workspace = true }
 rand = { workspace = true }
+bevy_math = { workspace = true }
 
 [lints]
 workspace = true

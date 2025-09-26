@@ -1,3 +1,4 @@
+use bevy_math::IVec2;
 use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 
@@ -9,10 +10,10 @@ pub struct SetCenterChunk {
 }
 
 impl SetCenterChunk {
-    pub fn new(x: i32, z: i32) -> Self {
+    pub fn new(pos: IVec2) -> Self {
         Self {
-            x: VarInt::new(x),
-            z: VarInt::new(z),
+            x: VarInt::new(pos.x),
+            z: VarInt::new(pos.y),
         }
     }
 }
