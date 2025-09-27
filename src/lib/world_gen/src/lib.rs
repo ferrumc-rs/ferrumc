@@ -1,8 +1,10 @@
+#![feature(more_float_constants)]
 #![feature(maybe_uninit_array_assume_init)]
 
 mod biome;
 mod biome_chunk;
 mod common;
+mod direction;
 mod end;
 pub mod errors;
 mod nether;
@@ -30,8 +32,11 @@ impl ChunkAccess {
         todo!()
     }
 }
+
+#[derive(Clone, Copy)]
 pub enum HeightmapType {
     WorldSurfaceWg,
+    MotionBlocking,
 }
 pub struct WorldGenerator {
     generator: OverworldGenerator,
