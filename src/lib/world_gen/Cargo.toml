@@ -10,6 +10,7 @@ md5 = { workspace = true }
 sha2 = { workspace = true }
 bevy_math = { workspace = true }
 itertools = { workspace = true }
+unarray = { workspace = true }
 
 [lints]
 workspace = true
