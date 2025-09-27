@@ -6,12 +6,11 @@ use crate::overworld::noise_biome_parameters::overworld_biomes;
 use crate::overworld::noise_depth::OverworldBiomeNoise;
 use crate::overworld::surface::OverworldSurface;
 use crate::pos::{ChunkHeight, ChunkPos};
-use crate::random::{Rng, Xoroshiro128PlusPlus};
-use bevy_math::{IVec2, IVec3};
+use crate::random::Xoroshiro128PlusPlus;
+use bevy_math::IVec2;
 use ferrumc_world::chunk_format::Chunk;
 use ferrumc_world::vanilla_chunk_format::BlockData;
 use itertools::Itertools;
-use sha2::{Digest, Sha256};
 
 pub struct OverworldGenerator {
     seed: u64,
@@ -25,7 +24,7 @@ pub struct OverworldGenerator {
 
 impl OverworldGenerator {
     pub fn new(seed: u64) -> Self {
-        let random = Xoroshiro128PlusPlus::from_seed(seed).fork_positional();
+        let random = Xoroshiro128PlusPlus::from_seed(seed).fork();
         let biome_noise = OverworldBiomeNoise::new(random);
         let chunk_height = ChunkHeight {
             min_y: -64,
@@ -34,7 +33,9 @@ impl OverworldGenerator {
         Self {
             seed,
             biome_seed: u64::from_be_bytes(
-                Sha256::digest(seed.to_be_bytes())[0..8].try_into().unwrap(),
+                cthash::sha2_256(&seed.to_be_bytes())[0..8]
+                    .try_into()
+                    .unwrap(),
             ),
             chunk_height,
             biome_noise,
