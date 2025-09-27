@@ -154,7 +154,7 @@ impl LegacyRandom {
                 ^ seed,
         )
     }
-    pub fn new(seed: u64) -> Self {
+    pub const fn new(seed: u64) -> Self {
         Self {
             seed: (seed ^ 0x5DEECE66D) & ((1 << 48) - 1),
         }
