@@ -1,5 +1,6 @@
 #![feature(more_float_constants)]
-#![feature(maybe_uninit_array_assume_init)]
+#![feature(const_trait_impl)]
+#![feature(new_range_api)]
 
 mod biome;
 mod biome_chunk;

@@ -5,18 +5,17 @@ use crate::perlin_noise::{
     NormalNoise,
 };
 use crate::pos::{BlockPos, ChunkPos};
-use crate::random::Xoroshiro128PlusPlusFactory;
 use std::ops::Add;
 
 use itertools::Itertools;
 
 use bevy_math::{DVec3, FloatExt, IVec2, IVec3, Vec3Swizzles};
 
-use crate::random::{Rng, RngFactory};
+use crate::random::Xoroshiro128PlusPlus;
 
 pub struct Aquifer {
     pub sea_level: FluidPicker,
-    random: Xoroshiro128PlusPlusFactory,
+    factory: Xoroshiro128PlusPlus,
     barrier_noise: NormalNoise<1>,
     fluid_level_floodedness_noise: NormalNoise<1>,
     fluid_level_spread_noise: NormalNoise<1>,
@@ -66,15 +65,15 @@ impl From<IVec3> for AquiferSectionPos {
 }
 
 impl Aquifer {
-    pub fn new(sea_level: FluidPicker, random: Xoroshiro128PlusPlusFactory) -> Self {
-        let random = random.with_hash("minecraft:aquifer").fork_positional();
+    pub fn new(sea_level: FluidPicker, factory: Xoroshiro128PlusPlus) -> Self {
+        let factory = factory.with_hash("minecraft:aquifer").fork();
         Self {
             sea_level,
-            random,
-            barrier_noise: AQUIFER_BARRIER.init(random),
-            fluid_level_floodedness_noise: AQUIFER_FLUID_LEVEL_FLOODEDNESS.init(random),
-            fluid_level_spread_noise: AQUIFER_FLUID_LEVEL_SPREAD.init(random),
-            lava_noise: AQUIFER_LAVA.init(random),
+            factory,
+            barrier_noise: AQUIFER_BARRIER.init(factory),
+            fluid_level_floodedness_noise: AQUIFER_FLUID_LEVEL_FLOODEDNESS.init(factory),
+            fluid_level_spread_noise: AQUIFER_FLUID_LEVEL_SPREAD.init(factory),
+            lava_noise: AQUIFER_LAVA.init(factory),
         }
     }
 
@@ -104,7 +103,7 @@ impl Aquifer {
             .cartesian_product((0..=1).rev())
             .map(|((x, y), z)| section + IVec3::new(x, y, z).into())
             .map(|offset_section| {
-                let mut random = self.random.at(offset_section.pos);
+                let mut random = self.factory.at(offset_section.pos);
                 let random_pos = offset_section.block(
                     random.next_bounded(10),
                     random.next_bounded(9),

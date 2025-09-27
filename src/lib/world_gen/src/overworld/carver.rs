@@ -2,7 +2,7 @@ use crate::{
     common::carver::{Caver, can_reach},
     overworld::noise_depth::OverworldBiomeNoise,
 };
-use std::f32::consts::PI;
+use std::{f32::consts::PI, range::Range};
 
 use bevy_math::{IVec3, Vec3Swizzles};
 
@@ -32,22 +32,22 @@ impl OverworldCarver {
                 1.0,
                 chunk_height,
                 0.15,
-                (-64 + 8)..181,
-                0.7..1.4,
-                0.8..1.3,
-                -1.0..-0.4,
-                0.1..0.9,
+                Range::from((-64 + 8)..181),
+                Range::from(0.7..1.4),
+                Range::from(0.8..1.3),
+                Range::from(-1.0..-0.4),
+                Range::from(0.1..0.9),
             ),
             extra_cave_carver: Caver::new(
                 15,
                 1.0,
                 chunk_height,
                 0.07,
-                (-64 + 8)..48,
-                0.7..1.4,
-                0.8..1.3,
-                -1.0..-0.4,
-                0.1..0.9,
+                Range::from((-64 + 8)..48),
+                Range::from(0.7..1.4),
+                Range::from(0.8..1.3),
+                Range::from(-1.0..-0.4),
+                Range::from(0.1..0.9),
             ),
             canyon_carver: CanyonCarver { chunk_height },
         }
@@ -110,7 +110,7 @@ fn clear_overworld_cave_block(
         *surface_reached = true;
     }
 
-    if let (Some(carve_state), fluid_update /* TODO */) = surface.aquifer.at(biome_noise, pos, 0.0)
+    if let (Some(carve_state), _fluid_update /* TODO */) = surface.aquifer.at(biome_noise, pos, 0.0)
     {
         chunk.set_block_state(pos, carve_state.into());
         if *surface_reached {
@@ -197,17 +197,18 @@ impl CanyonCarver {
         let mut random_pos = chunk_pos
             .block(
                 random.next_bounded(16),
-                random.next_i32_range(10..68),
+                random.next_i32_range(Range::from(10..68)),
                 random.next_bounded(16),
             )
             .as_dvec3();
         let mut yaw = random.next_f32() * (PI * 2.0);
-        let mut pitch = random.next_f32_range(-0.125..0.125);
+        let mut pitch = random.next_f32_range(Range::from(-0.125..0.125));
         let thickness = random.next_trapezoid(0.0, 6.0, 2.0);
-        let branch_count =
-            (f64::from((4 * 2 - 1) * 16) * f64::from(random.next_f32_range(0.75..1.0))) as u32;
+        let branch_count = (f64::from((4 * 2 - 1) * 16)
+            * f64::from(random.next_f32_range(Range::from(0.75..1.0))))
+            as u32;
 
-        let mut random = LegacyRandom::new(random.next_u64());
+        let mut random = random.next_random();
         let mut f = 0.0;
         let width_factors: Vec<f32> = (0..self.chunk_height.height)
             .map(|i| {
@@ -224,7 +225,7 @@ impl CanyonCarver {
             let mut horizontal_radius =
                 1.5 + f64::from((i as f32 * PI / branch_count as f32).sin()) * f64::from(thickness);
 
-            horizontal_radius *= f64::from(random.next_f32_range(0.75..1.0));
+            horizontal_radius *= f64::from(random.next_f32_range(Range::from(0.75..1.0)));
             let vertical_radius = (VERTICAL_RADIUS_DEFAULT_FACTOR
                 + VERTICAL_RADIUS_CENTER_FACTOR
                     * (1.0 - ((0.5 - f64::from(i) / f64::from(branch_count)).abs()) * 2.0))

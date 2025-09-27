@@ -1,7 +1,7 @@
 use crate::{
     biome::Biome,
     common::aquifer::FluidType,
-    pos::{BlockPos, ChunkHeight, ChunkPos, ColumnPos},
+    pos::{BlockPos, ChunkHeight, ColumnPos},
 };
 use ferrumc_world::{block_id::BlockId, vanilla_chunk_format::BlockData};
 

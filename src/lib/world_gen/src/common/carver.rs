@@ -1,11 +1,10 @@
 use std::{
     f32::consts::{FRAC_PI_2, PI},
     iter::empty,
-    ops::Range,
+    range::Range,
 };
 
 use bevy_math::{DVec2, DVec3, IVec3, Vec2Swizzles, Vec3Swizzles};
-use ferrumc_world::block_id::BlockId;
 use itertools::{Either, Itertools};
 
 use crate::{
@@ -124,12 +123,12 @@ impl Caver {
         for _ in 0..random.next_bounded(bound1) {
             let random_pos = chunk_pos.block(
                 random.next_bounded(16),
-                random.next_i32_range(self.y.clone()),
+                random.next_i32_range(self.y),
                 random.next_bounded(16),
             );
-            let horizontal_radius_mul = random.next_f32_range(self.horizontal_radius_mul.clone());
-            let vertical_radius_mul = random.next_f32_range(self.vertical_radius_mul.clone());
-            let floor_level = random.next_f32_range(self.floor_level.clone()).into();
+            let horizontal_radius_mul = random.next_f32_range(self.horizontal_radius_mul);
+            let vertical_radius_mul = random.next_f32_range(self.vertical_radius_mul);
+            let floor_level = random.next_f32_range(self.floor_level).into();
 
             let tunnels = if random.next_bounded(4) == 0 {
                 let y_scale = f64::from(random.next_f32_range(self.y_scale.clone()));
@@ -175,7 +174,7 @@ impl Caver {
 
                 tunnler.create_tunnel(
                     clearer,
-                    random.next_u64(),
+                    random.next_random(),
                     random_pos.into(),
                     thickness,
                     f1,
@@ -201,7 +200,7 @@ impl Tunnler<'_> {
     fn create_tunnel(
         &mut self,
         clearer: &mut impl FnMut(BlockPos, &mut bool),
-        seed: u64,
+        mut random: LegacyRandom,
         mut pos: DVec3,
         thickness: f32,
         mut yaw: f32,
@@ -209,7 +208,6 @@ impl Tunnler<'_> {
         branch_index: u32,
         horizontal_vertical_ratio: f64,
     ) {
-        let mut random = LegacyRandom::new(seed);
         let i = random.next_bounded(self.branch_count / 2) + self.branch_count / 4;
         let more_pitch = random.next_bounded(6) == 0;
         let mut yaw_mul = 0.0f32;
@@ -237,7 +235,7 @@ impl Tunnler<'_> {
             if curr_branch_idx == i && thickness > 1.0 {
                 self.create_tunnel(
                     clearer,
-                    random.next_u64(),
+                    random.next_random(),
                     pos,
                     random.next_f32() * 0.5 + 0.5,
                     yaw - FRAC_PI_2,
@@ -247,7 +245,7 @@ impl Tunnler<'_> {
                 );
                 self.create_tunnel(
                     clearer,
-                    random.next_u64(),
+                    random.next_random(),
                     pos,
                     random.next_f32() * 0.5 + 0.5,
                     yaw + FRAC_PI_2,
