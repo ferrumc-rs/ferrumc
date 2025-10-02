@@ -21,7 +21,7 @@ where
         // Filter out unused entries and build old_index -> new_index map
         let mut index_map: Vec<Option<u16>> = Vec::with_capacity(old_palette.len());
         let mut new_palette = Vec::with_capacity(old_palette.len());
-        for (old_idx, (count, value)) in old_palette.into_iter().enumerate() {
+        for (count, value) in old_palette.into_iter() {
             if count > 0 {
                 let new_idx = new_palette.len() as u16;
                 index_map.push(Some(new_idx));
@@ -34,21 +34,21 @@ where
         // If nothing removed, just restore (but still allow bits_per_entry shrink)
         let removed_any = index_map.iter().any(|m| m.is_none());
         // Extract all old indices
-        let get_index = |data: &[u64], bpe: u8, i: usize| -> u64 {
+        let get_index = |data: &[i64], bpe: u8, i: usize| -> i64 {
             let bpe_usize = bpe as usize;
             let bit_index = i * bpe_usize;
-            let u64_index = bit_index / 64;
+            let i64_index = bit_index / 64;
             let bit_offset = bit_index % 64;
             let mask = if bpe == 64 {
-                u64::MAX
+                i64::MAX
             } else {
-                (1u64 << bpe) - 1
+                (1i64 << bpe) - 1
             };
             if bit_offset + bpe_usize <= 64 {
-                (data[u64_index] >> bit_offset) & mask
+                (data[i64_index] >> bit_offset) & mask
             } else {
-                let low = data[u64_index] >> bit_offset;
-                let high = data[u64_index + 1] << (64 - bit_offset);
+                let low = data[i64_index] >> bit_offset;
+                let high = data[i64_index + 1] << (64 - bit_offset);
                 (low | high) & mask
             }
         };
@@ -81,38 +81,38 @@ where
 
         // Pack new indices
         let total_bits = length * needed_bits as usize;
-        let mut new_data = vec![0u64; (total_bits + 63) / 64];
+        let mut new_data = vec![0i64; total_bits.div_ceil(64)];
 
-        let put_index = |data: &mut [u64], bpe: u8, i: usize, value: u64| {
+        let put_index = |data: &mut [i64], bpe: u8, i: usize, value: i64| {
             let bpe_usize = bpe as usize;
             let bit_index = i * bpe_usize;
-            let u64_index = bit_index / 64;
+            let i64_index = bit_index / 64;
             let bit_offset = bit_index % 64;
             let mask = if bpe == 64 {
-                u64::MAX
+                i64::MAX
             } else {
-                (1u64 << bpe) - 1
+                (1i64 << bpe) - 1
             };
             if bit_offset + bpe_usize <= 64 {
-                data[u64_index] &= !(mask << bit_offset);
-                data[u64_index] |= (value & mask) << bit_offset;
+                data[i64_index] &= !(mask << bit_offset);
+                data[i64_index] |= (value & mask) << bit_offset;
             } else {
                 let low_bits = 64 - bit_offset;
                 let high_bits = bpe_usize - low_bits;
-                let low_mask = (1u64 << low_bits) - 1;
-                let high_mask = (1u64 << high_bits) - 1;
+                let low_mask = (1i64 << low_bits) - 1;
+                let high_mask = (1i64 << high_bits) - 1;
 
-                data[u64_index] &= !(low_mask << bit_offset);
-                data[u64_index] |= (value & low_mask) << bit_offset;
+                data[i64_index] &= !(low_mask << bit_offset);
+                data[i64_index] |= (value & low_mask) << bit_offset;
 
                 let high_part = value >> low_bits;
-                data[u64_index + 1] &= !high_mask;
-                data[u64_index + 1] |= high_part & high_mask;
+                data[i64_index + 1] &= !high_mask;
+                data[i64_index + 1] |= high_part & high_mask;
             }
         };
 
         for (i, &idx) in remapped_indices.iter().enumerate() {
-            put_index(&mut new_data, needed_bits, i, idx as u64);
+            put_index(&mut new_data, needed_bits, i, idx as i64);
         }
 
         if new_palette.len() == 1 {

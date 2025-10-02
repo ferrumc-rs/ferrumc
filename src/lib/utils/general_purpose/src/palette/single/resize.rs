@@ -6,7 +6,7 @@ where
     T: Clone + Default + Eq + Hash,
 {
     pub(crate) fn resize_single(&mut self, new_length: usize) {
-        if let crate::palette::PaletteType::Single(old_value) = &self.palette_type {
+        if let crate::palette::PaletteType::Single(_) = &self.palette_type {
             self.length = new_length;
         } else {
             panic!("resize_single called on non-Single palette");

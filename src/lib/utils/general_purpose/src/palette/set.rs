@@ -110,7 +110,7 @@ mod tests {
 
     #[test]
     fn test_scaling() {
-        for size in (1..100) {
+        for size in 1..100 {
             use rand::Rng;
             let mut p = Palette::new(size, 0u8, INDIRECT_THRESHOLD);
             if let PaletteType::Single(v) = &p.palette_type {

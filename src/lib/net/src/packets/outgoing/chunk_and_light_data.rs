@@ -1,5 +1,5 @@
 use crate::errors::NetError;
-use byteorder::{BigEndian, LittleEndian, WriteBytesExt};
+use byteorder::{BigEndian, WriteBytesExt};
 use ferrumc_general_purpose::palette::PaletteType;
 use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::bitset::BitSet;
@@ -10,7 +10,7 @@ use ferrumc_world::block_id::BlockId;
 use ferrumc_world::chunk_format::Chunk;
 use std::io::Cursor;
 use std::ops::Not;
-use tracing::{debug, warn};
+use tracing::warn;
 
 const SECTIONS: usize = 24; // Number of sections, adjust for your Y range (-64 to 319)
 
@@ -131,7 +131,7 @@ impl ChunkAndLightData {
                     }
                     // VarInt::new(data.len() as i32).write(&mut raw_data)?;
                     for data_entry in data {
-                        raw_data.write_u64::<LittleEndian>(*data_entry)?;
+                        raw_data.write_i64::<BigEndian>(*data_entry)?;
                     }
                 }
                 PaletteType::Direct { .. } => {

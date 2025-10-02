@@ -23,11 +23,11 @@ where
     {
         match &self.palette_type {
             // Single variant: Check if the value matches the stored value.
-            PaletteType::Single(v) => self.count_single(value),
+            PaletteType::Single(_) => self.count_single(value),
             // Indirect variant: Search for the value in the palette and return its count.
-            PaletteType::Indirect { palette, .. } => self.count_indirect(value),
+            PaletteType::Indirect { .. } => self.count_indirect(value),
             // Direct variant: Count the occurrences of the value in the list of values.
-            PaletteType::Direct(values) => self.count_direct(value),
+            PaletteType::Direct(_) => self.count_direct(value),
         }
     }
 }

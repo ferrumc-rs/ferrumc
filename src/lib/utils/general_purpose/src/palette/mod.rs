@@ -28,7 +28,7 @@ pub enum PaletteType<T> {
     Single(T),
     Indirect {
         bits_per_entry: u8,
-        data: Vec<u64>,
+        data: Vec<i64>,
         palette: Vec<(u32, T)>,
     },
     Direct(Vec<T>),
@@ -79,14 +79,14 @@ where
                 let palette: Vec<(u32, T)> =
                     freq.into_iter().map(|(v, c)| (c, v.clone())).collect();
                 let entries_per_u64 = 64 / bits_per_entry as usize;
-                let data_len = (length + entries_per_u64 - 1) / entries_per_u64;
-                let mut data = vec![0u64; data_len];
+                let data_len = length.div_ceil(entries_per_u64);
+                let mut data = vec![0i64; data_len];
                 for (i, value) in values.iter().enumerate() {
                     let palette_index = palette
                         .iter()
                         .position(|p| p.1 == *value)
                         .expect("Value not found in palette")
-                        as u64;
+                        as i64;
                     utils::write_index(&mut data, bits_per_entry, i, palette_index);
                 }
                 Self {

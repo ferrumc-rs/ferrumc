@@ -9,9 +9,9 @@ where
             return None;
         }
         match &self.palette_type {
-            crate::palette::PaletteType::Single(value) => self.get_single(index),
+            crate::palette::PaletteType::Single(_) => self.get_single(index),
             crate::palette::PaletteType::Indirect { .. } => self.get_indirect(index),
-            crate::palette::PaletteType::Direct(values) => self.get_direct(index),
+            crate::palette::PaletteType::Direct(_) => self.get_direct(index),
         }
     }
 }

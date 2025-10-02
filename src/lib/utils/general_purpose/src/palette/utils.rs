@@ -1,23 +1,23 @@
 use crate::palette::MIN_BITS_PER_ENTRY;
 
-pub(in crate::palette) fn read_index(data: &[u64], bits_per_entry: u8, index: usize) -> u64 {
+pub(in crate::palette) fn read_index(data: &[i64], bits_per_entry: u8, index: usize) -> i64 {
     let entries_per_u64 = 64 / bits_per_entry as usize;
     let u64_index = index / entries_per_u64;
     let bit_offset = (index % entries_per_u64) * bits_per_entry as usize;
     let packed = data[u64_index];
-    (packed >> bit_offset) & ((1u64 << bits_per_entry) - 1)
+    (packed >> bit_offset) & ((1i64 << bits_per_entry) - 1)
 }
 
 pub(in crate::palette) fn write_index(
-    data: &mut [u64],
+    data: &mut [i64],
     bits_per_entry: u8,
     index: usize,
-    value: u64,
+    value: i64,
 ) {
     let entries_per_u64 = 64 / bits_per_entry as usize;
     let u64_index = index / entries_per_u64;
     let bit_offset = (index % entries_per_u64) * bits_per_entry as usize;
-    let mask = ((1u64 << bits_per_entry) - 1) << bit_offset;
+    let mask = ((1i64 << bits_per_entry) - 1) << bit_offset;
     data[u64_index] = (data[u64_index] & !mask) | ((value << bit_offset) & mask);
 }
 
@@ -43,12 +43,13 @@ pub(crate) fn calculate_unique_values<T: Eq + std::hash::Hash>(values: &[T]) -> 
     HashSet::<&T>::from_iter(values.iter()).len()
 }
 
-pub(crate) fn pack_indices(indices: &[u16], bits_per_entry: u8) -> Vec<u64> {
+#[allow(dead_code)]
+pub(crate) fn pack_indices(indices: &[u16], bits_per_entry: u8) -> Vec<i64> {
     let entries_per_u64 = 64 / bits_per_entry as usize;
-    let data_len = (indices.len() + entries_per_u64 - 1) / entries_per_u64;
-    let mut data = vec![0u64; data_len];
+    let data_len = indices.len().div_ceil(entries_per_u64);
+    let mut data = vec![0i64; data_len];
     for (i, &idx) in indices.iter().enumerate() {
-        write_index(&mut data, bits_per_entry, i, idx as u64);
+        write_index(&mut data, bits_per_entry, i, idx as i64);
     }
     data
 }

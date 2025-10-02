@@ -6,21 +6,7 @@ where
     T: Clone + Default + PartialEq,
 {
     pub(crate) fn set_indirect(&mut self, index: usize, value: T) {
-        let (bits_per_entry, data_ptr, palette_ref, length, threshold);
-        match &self.palette_type {
-            PaletteType::Indirect {
-                bits_per_entry: b,
-                data,
-                palette,
-            } => {
-                bits_per_entry = *b;
-                data_ptr = data.as_ptr(); // only for length safety reasoning
-                palette_ref = palette;
-                length = self.length;
-                threshold = self.indirect_threshold;
-            }
-            _ => panic!("set_indirect called on non-indirect palette"),
-        }
+        let threshold = self.indirect_threshold;
         if index >= self.length {
             panic!("Index out of bounds");
         }
@@ -32,7 +18,7 @@ where
                 data,
                 palette,
             } => (bits_per_entry, data, palette),
-            _ => unreachable!(),
+            _ => panic!("set_indirect called on non-indirect palette"),
         };
 
         let old_pi = read_index(data, *bits_per_entry_mut, index) as usize;
@@ -53,7 +39,7 @@ where
                 // increment existing
                 palette[existing_pos].0 += 1;
                 // write index
-                write_index(data, *bits_per_entry_mut, index, existing_pos as u64);
+                write_index(data, *bits_per_entry_mut, index, existing_pos as i64);
 
                 // If old entry now zero, remove and remap indices > removed
                 if palette[old_pi].0 == 0 {
@@ -99,13 +85,13 @@ where
         if needed_bits > *bits_per_entry_mut {
             let old_bits = *bits_per_entry_mut;
             let entries_per_u64_new = 64 / needed_bits as usize;
-            let data_len_new = (self.length + entries_per_u64_new - 1) / entries_per_u64_new;
-            let mut new_data = vec![0u64; data_len_new];
+            let data_len_new = self.length.div_ceil(entries_per_u64_new);
+            let mut new_data = vec![0i64; data_len_new];
 
             // Palette index for the new value will be appended (current_unique)
             for i in 0..self.length {
                 if i == index {
-                    write_index(&mut new_data, needed_bits, i, current_unique as u64);
+                    write_index(&mut new_data, needed_bits, i, current_unique as i64);
                 } else {
                     let pi = read_index(data, old_bits, i);
                     write_index(&mut new_data, needed_bits, i, pi);
@@ -137,7 +123,7 @@ where
 
         // Bits unchanged: just append palette entry if still capacity fits
         // Write new index
-        write_index(data, *bits_per_entry_mut, index, current_unique as u64);
+        write_index(data, *bits_per_entry_mut, index, current_unique as i64);
         // Update counts
         palette[old_pi].0 -= 1;
         palette.push((1, value));
@@ -160,7 +146,7 @@ where
 }
 
 fn remove_palette_entry_and_reindex<T: Clone + Default + PartialEq>(
-    data: &mut [u64],
+    data: &mut [i64],
     palette: &mut Vec<(u32, T)>,
     bits_per_entry: u8,
     removed_index: usize,
@@ -168,7 +154,7 @@ fn remove_palette_entry_and_reindex<T: Clone + Default + PartialEq>(
 ) {
     palette.remove(removed_index);
 
-    if palette.len() == 0 {
+    if palette.is_empty() {
         return;
     }
 

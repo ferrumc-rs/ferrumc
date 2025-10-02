@@ -18,15 +18,15 @@ where
             let old_length = self.length;
 
             let entries_per_u64 = 64 / *bits_per_entry as usize;
-            let needed_u64s = (new_length + entries_per_u64 - 1) / entries_per_u64;
+            let needed_i64s = new_length.div_ceil(entries_per_u64);
 
             if new_length < old_length {
-                data.truncate(needed_u64s);
+                data.truncate(needed_i64s);
                 // (Optional future improvement: decrement counts for removed tail entries.)
             } else {
                 // Growing: ensure capacity, newly added indices default to palette index 0.
-                if data.len() < needed_u64s {
-                    data.extend(std::iter::repeat(0u64).take(needed_u64s - data.len()));
+                if data.len() < needed_i64s {
+                    data.extend(std::iter::repeat_n(0i64, needed_i64s - data.len()));
                 }
                 let added = new_length - old_length;
                 if added > 0 {

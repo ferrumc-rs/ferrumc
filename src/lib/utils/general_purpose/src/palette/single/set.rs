@@ -36,13 +36,13 @@ where
             bits_per_entry = MIN_BITS_PER_ENTRY;
         }
 
-        let entries_per_u64 = 64 / bits_per_entry as usize;
-        let data_len = (length + entries_per_u64 - 1) / entries_per_u64;
-        let mut data = vec![0u64; data_len];
+        let entries_per_i64 = 64 / bits_per_entry as usize;
+        let data_len = length.div_ceil(entries_per_i64);
+        let mut data = vec![0i64; data_len];
 
         for i in 0..length {
             let palette_index = if i == index { 1 } else { 0 };
-            write_index(&mut data, bits_per_entry, i, palette_index as u64);
+            write_index(&mut data, bits_per_entry, i, palette_index as i64);
         }
 
         self.palette_type = PaletteType::Indirect {
