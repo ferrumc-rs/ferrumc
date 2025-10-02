@@ -1,3 +1,5 @@
+#![feature(assert_matches)]
+
 pub mod data_packing;
 pub mod hashing;
 pub mod palette;

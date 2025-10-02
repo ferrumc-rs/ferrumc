@@ -2,18 +2,26 @@ use bitcode::{Decode, Encode};
 use deepsize::DeepSizeOf;
 
 mod count;
+mod direct;
 mod get;
+mod indirect;
 mod optimise;
 mod resize;
 mod set;
+mod single;
 mod utils;
 
 const MIN_BITS_PER_ENTRY: u8 = 4;
+const INDIRECT_THRESHOLD: u8 = 15;
 
 #[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug)]
-pub struct Palette<T> {
+pub struct Palette<T>
+where
+    T: Default + PartialEq + Clone,
+{
     pub palette_type: PaletteType<T>,
     pub length: usize,
+    pub indirect_threshold: u8,
 }
 #[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug)]
 pub enum PaletteType<T> {
@@ -21,16 +29,20 @@ pub enum PaletteType<T> {
     Indirect {
         bits_per_entry: u8,
         data: Vec<u64>,
-        palette: Vec<(u16, T)>,
+        palette: Vec<(u32, T)>,
     },
     Direct(Vec<T>),
 }
 
-impl<T> Palette<T> {
-    pub fn new(size: usize, value: T) -> Self {
+impl<T> Palette<T>
+where
+    T: Clone + Default + PartialEq,
+{
+    pub fn new(size: usize, value: T, indirect_threshold: u8) -> Self {
         Self {
             palette_type: PaletteType::Single(value),
             length: size,
+            indirect_threshold,
         }
     }
 
@@ -43,39 +55,39 @@ impl<T> Palette<T> {
     }
 }
 
-impl<T: Eq + std::hash::Hash + Clone> From<Vec<T>> for Palette<T> {
+impl<T: Eq + std::hash::Hash + Clone> From<Vec<T>> for Palette<T>
+where
+    T: Clone + Default + PartialEq,
+{
     fn from(values: Vec<T>) -> Self {
         let length = values.len();
         if length == 1 {
             Self {
                 palette_type: PaletteType::Single(values.into_iter().next().unwrap()),
                 length,
+                indirect_threshold: INDIRECT_THRESHOLD,
             }
         } else {
             let unique_values = utils::calculate_unique_values(&values);
             if utils::calculate_bits_per_entry(unique_values) <= 15 {
                 let bits_per_entry = utils::calculate_bits_per_entry(unique_values);
-                let palette: Vec<(u16, T)> = {
-                    use std::collections::HashMap;
-                    let mut unique_values: HashMap<&T, u16> = HashMap::new();
-                    for value in &values {
-                        *unique_values.entry(value).or_default() += 1;
-                    }
-                    unique_values
-                        .into_iter()
-                        .map(|(v, c)| (c, v.clone()))
-                        .collect()
-                };
-                let mut data: Vec<u64> = vec![0; (length * bits_per_entry as usize).div_ceil(64)];
+                use std::collections::HashMap;
+                let mut freq: HashMap<&T, u32> = HashMap::new();
+                for v in &values {
+                    *freq.entry(v).or_default() += 1;
+                }
+                let palette: Vec<(u32, T)> =
+                    freq.into_iter().map(|(v, c)| (c, v.clone())).collect();
+                let entries_per_u64 = 64 / bits_per_entry as usize;
+                let data_len = (length + entries_per_u64 - 1) / entries_per_u64;
+                let mut data = vec![0u64; data_len];
                 for (i, value) in values.iter().enumerate() {
                     let palette_index = palette
                         .iter()
-                        .position(|v| v.1 == *value)
+                        .position(|p| p.1 == *value)
                         .expect("Value not found in palette")
                         as u64;
-                    let u64_index = (i * bits_per_entry as usize) / 64;
-                    let bit_offset = (i * bits_per_entry as usize) % 64;
-                    data[u64_index] |= palette_index << bit_offset;
+                    utils::write_index(&mut data, bits_per_entry, i, palette_index);
                 }
                 Self {
                     palette_type: PaletteType::Indirect {
@@ -84,13 +96,21 @@ impl<T: Eq + std::hash::Hash + Clone> From<Vec<T>> for Palette<T> {
                         palette,
                     },
                     length,
+                    indirect_threshold: INDIRECT_THRESHOLD,
                 }
             } else {
                 Self {
                     palette_type: PaletteType::Direct(values),
                     length,
+                    indirect_threshold: INDIRECT_THRESHOLD,
                 }
             }
         }
+    }
+}
+
+impl<T: Default> Default for PaletteType<T> {
+    fn default() -> Self {
+        PaletteType::Single(T::default())
     }
 }

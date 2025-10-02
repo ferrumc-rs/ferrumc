@@ -1,6 +1,9 @@
 use crate::palette::{Palette, PaletteType};
 
-impl<T> Palette<T> {
+impl<T> Palette<T>
+where
+    T: Clone + Default + PartialEq,
+{
     /// Retrieves the count of a specific value in the palette.
     ///
     /// # Arguments
@@ -20,34 +23,25 @@ impl<T> Palette<T> {
     {
         match &self.palette_type {
             // Single variant: Check if the value matches the stored value.
-            PaletteType::Single(v) => {
-                if v == value {
-                    self.length
-                } else {
-                    0
-                }
-            }
+            PaletteType::Single(v) => self.count_single(value),
             // Indirect variant: Search for the value in the palette and return its count.
-            PaletteType::Indirect { palette, .. } => palette
-                .iter()
-                .find(|(_, v)| v == value)
-                .map(|(c, _)| *c as usize)
-                .unwrap_or(0),
+            PaletteType::Indirect { palette, .. } => self.count_indirect(value),
             // Direct variant: Count the occurrences of the value in the list of values.
-            PaletteType::Direct(values) => values.iter().filter(|v| *v == value).count(),
+            PaletteType::Direct(values) => self.count_direct(value),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::palette::{Palette, PaletteType};
+    use crate::palette::{Palette, PaletteType, INDIRECT_THRESHOLD};
 
     #[test]
     fn test_single_variant_match() {
         let palette = Palette {
             palette_type: PaletteType::Single(42),
             length: 5,
+            indirect_threshold: INDIRECT_THRESHOLD,
         };
         assert_eq!(palette.get_count(&42), 5);
     }
@@ -57,6 +51,7 @@ mod tests {
         let palette = Palette {
             palette_type: PaletteType::Single(42),
             length: 5,
+            indirect_threshold: INDIRECT_THRESHOLD,
         };
         assert_eq!(palette.get_count(&7), 0);
     }
@@ -74,6 +69,7 @@ mod tests {
         let palette = Palette {
             palette_type: PaletteType::Direct(vec![1, 2, 1, 3]),
             length: 4,
+            indirect_threshold: INDIRECT_THRESHOLD,
         };
         assert_eq!(palette.get_count(&1), 2);
         assert_eq!(palette.get_count(&2), 1);

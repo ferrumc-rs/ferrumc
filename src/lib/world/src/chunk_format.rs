@@ -99,7 +99,7 @@ impl VanillaChunk {
                 .and_then(|bs| bs.palette.clone())
                 .unwrap_or_default();
             let bits_per_block = max((palette.len() as f32).log2().ceil() as u8, 4);
-            let mut block_states = Palette::new(4096, BlockId(0));
+            let mut block_states = Palette::new(4096, BlockId(0), 15);
 
             let mut blocks: Vec<(u8, u8, u8, BlockId)> = Vec::new();
             for chunk in &raw_block_data {

@@ -21,7 +21,7 @@ impl Section {
     pub fn new(level: i8) -> Self {
         Self {
             y: level,
-            block_states: Palette::new(4096, BlockId::default()),
+            block_states: Palette::new(4096, BlockId::default(), 15),
             // Add other fields as necessary
             biome_states: BiomeStates {
                 bits_per_biome: 0,
@@ -121,7 +121,7 @@ impl Section {
     ///     Ok(())
     /// }
     pub fn fill(&mut self, block: BlockId) {
-        self.block_states = Palette::new(4096, block);
+        self.block_states = Palette::new(4096, block, 15);
     }
 
     /// Optimises the section's block state palette.
