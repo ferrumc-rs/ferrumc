@@ -641,7 +641,7 @@ impl OverworldBiomeNoise {
         f64::from(pos.y).remap(-64.0, 320.0, 1.5, -1.5) + offset
     }
 
-    pub fn prelimintary_surface(&self, chunk: ChunkPos) -> i32 {
+    pub fn preliminary_surface(&self, chunk: ChunkPos) -> i32 {
         let column = chunk.column_pos(0, 0);
         self.chunk_height
             .iter()
