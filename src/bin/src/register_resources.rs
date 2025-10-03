@@ -1,3 +1,4 @@
+use crate::systems::lan_pinger::LanPinger;
 use crate::systems::new_connections::NewConnectionRecv;
 use bevy_ecs::prelude::World;
 use crossbeam_channel::Receiver;
@@ -5,6 +6,7 @@ use ferrumc_core::chunks::world_sync_tracker::WorldSyncTracker;
 use ferrumc_core::conn::player_count_update_cooldown::PlayerCountUpdateCooldown;
 use ferrumc_net::connection::NewConnection;
 use ferrumc_state::GlobalStateResource;
+use tracing::error;
 
 pub fn register_resources(
     world: &mut World,
@@ -19,4 +21,10 @@ pub fn register_resources(
     world.insert_resource(WorldSyncTracker {
         last_synced: std::time::Instant::now(),
     });
+    match LanPinger::new() {
+        Ok(p) => world.insert_resource(p),
+        Err(e) => {
+            error!("Failed creating LAN pinger: {e}");
+        }
+    }
 }
