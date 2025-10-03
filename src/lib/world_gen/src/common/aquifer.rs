@@ -6,7 +6,8 @@ use ferrumc_world::vanilla_chunk_format::BlockData;
 pub struct FluidPicker(pub i32, pub FluidType);
 
 impl FluidPicker {
-    pub fn new(level: i32, fluid_type: FluidType) -> Self {
+    pub const EMPTY: FluidPicker = Self::new(-10000, FluidType::Air);
+    pub const fn new(level: i32, fluid_type: FluidType) -> Self {
         Self(level, fluid_type)
     }
     pub const fn at(&self, y: i32) -> FluidType {

@@ -1,12 +1,14 @@
 use std::range::Range;
 
+use bevy_math::{IVec3, UVec3};
+
 use crate::pos::{BlockPos, ChunkPos};
 
-#[const_trait]
 pub trait Rng {
     fn next_f32(&mut self) -> f32;
     fn next_f64(&mut self) -> f64;
 
+    fn next_bool(&mut self) -> bool;
     fn next_bounded(&mut self, bound: u32) -> u32;
 
     fn next_i32_range(&mut self, range: Range<i32>) -> i32 {
@@ -31,6 +33,20 @@ pub trait Rng {
         }
     }
 
+    fn next_idx<T: Copy>(&mut self, array: &mut [T]) -> T {
+        array[self.next_bounded(array.len() as _) as usize]
+    }
+    fn next_spread(&mut self, spread: UVec3) -> IVec3 {
+        self.next_spread_pos(spread).as_ivec3() - self.next_spread_pos(spread).as_ivec3()
+    }
+
+    fn next_spread_pos(&mut self, spread: UVec3) -> UVec3 {
+        UVec3::new(
+            self.next_bounded(spread.x),
+            self.next_bounded(spread.y),
+            self.next_bounded(spread.z),
+        )
+    }
     fn fork(&mut self) -> Self;
     fn with_hash(&self, s: &str) -> Self;
 }
@@ -115,6 +131,7 @@ impl Xoroshiro128PlusPlus {
     }
 
     pub const fn with_hash(&self, s: &str) -> Self {
+        //TODO: assert!(s.starts_with("minecraft:"));
         let a = cthash::md5(s.as_bytes());
         Self::new(
             u64::from_be_bytes([a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]]) ^ self.lo,
@@ -127,7 +144,7 @@ impl Xoroshiro128PlusPlus {
     }
 }
 
-impl const Rng for Xoroshiro128PlusPlus {
+impl Rng for Xoroshiro128PlusPlus {
     fn next_bounded(&mut self, bound: u32) -> u32 {
         self.next_bounded(bound)
     }
@@ -138,6 +155,10 @@ impl const Rng for Xoroshiro128PlusPlus {
 
     fn next_f32(&mut self) -> f32 {
         self.next_f32()
+    }
+
+    fn next_bool(&mut self) -> bool {
+        self.next_bool()
     }
 
     fn fork(&mut self) -> Self {
@@ -184,6 +205,10 @@ impl LegacyRandom {
         }
     }
 
+    pub const fn next_bool(&mut self) -> bool {
+        self.next(1) != 0
+    }
+
     const fn next_u64(&mut self) -> u64 {
         (((self.next(32) as i64) << 32) + (self.next(32) as i64)) as u64
     }
@@ -209,12 +234,15 @@ impl LegacyRandom {
     }
 }
 
-impl const Rng for LegacyRandom {
+impl Rng for LegacyRandom {
     fn next_f32(&mut self) -> f32 {
         self.next_f32()
     }
     fn next_f64(&mut self) -> f64 {
         self.next_f64()
+    }
+    fn next_bool(&mut self) -> bool {
+        self.next_bool()
     }
     fn next_bounded(&mut self, bound: u32) -> u32 {
         self.next_bounded(bound)

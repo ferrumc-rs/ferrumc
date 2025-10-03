@@ -1,5 +1,9 @@
+use std::ops::Add;
+
 use Direction::*;
 use bevy_math::IVec3;
+
+use crate::pos::BlockPos;
 
 pub enum Direction {
     Down,
@@ -8,6 +12,14 @@ pub enum Direction {
     South,
     West,
     East,
+}
+
+impl Add<Direction> for BlockPos {
+    type Output = BlockPos;
+
+    fn add(self, rhs: Direction) -> Self::Output {
+        self + rhs.as_unit()
+    }
 }
 
 impl Direction {
@@ -30,6 +42,16 @@ impl Direction {
             South => IVec3::new(0, 0, 1),
             West => IVec3::new(-1, 0, 0),
             East => IVec3::new(1, 0, 0),
+        }
+    }
+    pub fn to_str(&self) -> &'static str {
+        match self {
+            Down => "down",
+            Up => "up",
+            North => "north",
+            South => "south",
+            West => "west",
+            East => "east",
         }
     }
 }

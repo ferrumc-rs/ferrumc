@@ -1,9 +1,10 @@
 #![feature(more_float_constants)]
-#![feature(const_trait_impl)]
 #![feature(new_range_api)]
 
 mod biome;
 mod biome_chunk;
+pub mod block_can_survive;
+pub mod blocktag;
 mod common;
 mod direction;
 mod end;
@@ -28,6 +29,9 @@ impl ChunkAccess {
     pub fn set_block_state(&mut self, pos: BlockPos, data: BlockData) {
         todo!()
     }
+    pub fn set_block_state_flags(&mut self, pos: BlockPos, data: BlockData, flags: u32) {
+        todo!()
+    }
 
     fn get_height(&self, world_surface_wg: HeightmapType, max_x: i32, z: i32) -> i32 {
         todo!()
@@ -38,6 +42,10 @@ impl ChunkAccess {
 pub enum HeightmapType {
     WorldSurfaceWg,
     MotionBlocking,
+    MotionBlockingNoLeaves,
+    WorldSurface,
+    OceanFloor,
+    OceanFloorWg,
 }
 pub struct WorldGenerator {
     generator: OverworldGenerator,

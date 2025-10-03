@@ -15,6 +15,10 @@ pub struct ChunkHeight {
 }
 
 impl ChunkHeight {
+    pub const fn new(min_y: i32, height: u32) -> Self {
+        Self { min_y, height }
+    }
+
     pub fn iter(self) -> Range<i32> {
         self.min_y..self.max_y()
     }
@@ -67,6 +71,16 @@ impl ColumnPos {
 
     pub fn chunk(self) -> ChunkPos {
         self.pos.into()
+    }
+
+    /// currently not order dependent, so implementation may change in the future
+    pub fn iter_radius(&self, radius: u32) -> impl Iterator<Item = Self> {
+        let radius = radius as i32;
+        ((-radius)..=(radius))
+            .cartesian_product((-radius)..=(radius))
+            .map(|vec| IVec2::from(vec))
+            .filter(move |vec| vec.length_squared() <= radius * radius)
+            .map(|vec| Self::from(self.pos + vec))
     }
 }
 
