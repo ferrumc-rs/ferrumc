@@ -5,35 +5,16 @@ use crate::{
 };
 use ferrumc_world::{block_id::BlockId, vanilla_chunk_format::BlockData};
 
-pub struct SurfaceRule {} //TODO
-impl SurfaceRule {
-    pub fn try_apply(
-        &self,
-        biome: Biome,
-        depth: i32,
-        depth_from_stone: i32,
-        fluid_level: Option<i32>,
-        y: BlockPos,
-    ) -> Option<BlockData> {
-        todo!()
-    }
-}
 pub(crate) struct Surface {
     default_block: BlockId,
     pub chunk_height: ChunkHeight,
-    pub(crate) rules: SurfaceRule,
 }
 
 impl Surface {
-    pub(crate) fn new(
-        default_block: BlockId,
-        chunk_height: ChunkHeight,
-        rules: SurfaceRule,
-    ) -> Self {
+    pub(crate) fn new(default_block: BlockId, chunk_height: ChunkHeight) -> Self {
         Self {
             default_block,
             chunk_height,
-            rules,
         }
     }
 
@@ -66,6 +47,7 @@ impl Surface {
         mut fluid_level: Option<i32>,
         pos: ColumnPos,
         biome: Biome,
+        rules: impl Fn(Biome, i32, i32, Option<i32>, BlockPos) -> Option<BlockData>,
         aquifer: impl Fn(BlockPos, f64) -> Option<FluidType>,
     ) -> Vec<BlockData> {
         let mut depth = 0;
@@ -85,8 +67,7 @@ impl Surface {
                 depth += 1;
                 let depth_from_stone = y - stone_level + 1;
 
-                self.rules
-                    .try_apply(biome, depth, depth_from_stone, fluid_level, pos.block(y))
+                rules(biome, depth, depth_from_stone, fluid_level, pos.block(y))
                     .unwrap_or(self.default_block.to_block_data().unwrap())
             })
             .rev()

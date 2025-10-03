@@ -1,6 +1,6 @@
 use std::range::Range;
 
-use crate::common::surface::{Surface, SurfaceRule};
+use crate::common::surface::Surface;
 use crate::overworld::aquifer::{Aquifer, SEA_LEVEL};
 use crate::overworld::noise_depth::OverworldBiomeNoise;
 use crate::overworld::ore_veins::Vein;
@@ -46,6 +46,7 @@ pub struct OverworldSurface {
     noises: SurfaceNoises,
     vein: Vein,
     factory: Xoroshiro128PlusPlus,
+    rules: SurfaceRules,
 }
 
 impl OverworldSurface {
@@ -58,8 +59,8 @@ impl OverworldSurface {
                 }
                 .to_block_id(),
                 chunk_height,
-                SurfaceRule {}, //TODO:
             ),
+            rules: SurfaceRules::new(factory), //TODO:
             aquifer: Aquifer::new(factory),
             noises: SurfaceNoises {
                 surface: SURFACE.init(factory),
@@ -87,6 +88,7 @@ impl OverworldSurface {
     pub fn build_surface(
         &self,
         biome_noise: &OverworldBiomeNoise,
+        chunk: &ChunkAccess,
         biome_manager: &BiomeChunk,
         pos: ColumnPos,
     ) -> Vec<BlockData> {
@@ -106,6 +108,24 @@ impl OverworldSurface {
             fluid_level,
             pos,
             biome,
+            |biome: Biome,
+             depth_above: i32,
+             depth_below: i32,
+             fluid_level: Option<i32>,
+             pos: BlockPos| {
+                self.rules
+                    .try_apply(
+                        chunk,
+                        self,
+                        biome_noise,
+                        biome,
+                        depth_above,
+                        depth_below,
+                        fluid_level,
+                        pos,
+                    )
+                    .to_block()
+            },
             |pos, final_density| {
                 (pos.y < stone_level).then_some(()).and_then(
                     |()| self.aquifer.at(biome_noise, pos, final_density).0, //TODO
@@ -240,17 +260,24 @@ impl OverworldSurface {
 
     pub(crate) fn top_material(
         &self,
+        chunk: &ChunkAccess,
+        biome_noise: &OverworldBiomeNoise,
         biome: Biome,
         pos: IVec3,
         is_fluid: bool,
     ) -> Option<BlockData> {
-        self.surface.rules.try_apply(
-            biome,
-            1,
-            1,
-            if is_fluid { Some(pos.y + 1) } else { None },
-            pos,
-        )
+        self.rules
+            .try_apply(
+                chunk,
+                self,
+                biome_noise,
+                biome,
+                1,
+                1,
+                if is_fluid { Some(pos.y + 1) } else { None },
+                pos,
+            )
+            .to_block()
     }
 }
 
@@ -260,7 +287,7 @@ struct SurfaceRules {
     deepslate: Xoroshiro128PlusPlus,
     clay_bands: [SurfaceBlock; 192],
 }
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 enum SurfaceBlock {
     Air,
     Bedrock,
@@ -301,6 +328,54 @@ enum SurfaceBlock {
     NetherWartBlock,
     CrimsonNylium,
     Endstone,
+}
+impl SurfaceBlock {
+    fn to_block(self) -> Option<BlockData> {
+        if self == SurfaceBlock::Stone {
+            return None;
+        }
+        Some(match self {
+            SurfaceBlock::Air => todo!(),
+            SurfaceBlock::Bedrock => todo!(),
+            SurfaceBlock::WhiteTerracotta => todo!(),
+            SurfaceBlock::OrangeTerracotta => todo!(),
+            SurfaceBlock::Terracotta => todo!(),
+            SurfaceBlock::YellowTerracotta => todo!(),
+            SurfaceBlock::BrownTerracotta => todo!(),
+            SurfaceBlock::RedTerracotta => todo!(),
+            SurfaceBlock::LightGrayTerracotta => todo!(),
+            SurfaceBlock::RedSand => todo!(),
+            SurfaceBlock::RedSandstone => todo!(),
+            SurfaceBlock::Stone => todo!(),
+            SurfaceBlock::Deepslate => todo!(),
+            SurfaceBlock::Dirt => todo!(),
+            SurfaceBlock::Podzol => todo!(),
+            SurfaceBlock::CoarseDirt => todo!(),
+            SurfaceBlock::Mycelium => todo!(),
+            SurfaceBlock::GrassBlock => todo!(),
+            SurfaceBlock::Calcite => todo!(),
+            SurfaceBlock::Gravel => todo!(),
+            SurfaceBlock::Sand => todo!(),
+            SurfaceBlock::Sandstone => todo!(),
+            SurfaceBlock::PackedIce => todo!(),
+            SurfaceBlock::SnowBlock => todo!(),
+            SurfaceBlock::Mud => todo!(),
+            SurfaceBlock::PowderSnow => todo!(),
+            SurfaceBlock::Ice => todo!(),
+            SurfaceBlock::Water => todo!(),
+            SurfaceBlock::Lava => todo!(),
+            SurfaceBlock::Netherrack => todo!(),
+            SurfaceBlock::SoulSand => todo!(),
+            SurfaceBlock::SoulSoil => todo!(),
+            SurfaceBlock::Basalt => todo!(),
+            SurfaceBlock::Blackstone => todo!(),
+            SurfaceBlock::WarpedWartBlock => todo!(),
+            SurfaceBlock::WarpedNylium => todo!(),
+            SurfaceBlock::NetherWartBlock => todo!(),
+            SurfaceBlock::CrimsonNylium => todo!(),
+            SurfaceBlock::Endstone => todo!(),
+        })
+    }
 }
 impl SurfaceRules {
     fn new(factory: Xoroshiro128PlusPlus) -> Self {

@@ -117,6 +117,8 @@ fn clear_overworld_cave_block(
             let check_pos = pos - IVec3::new(0, 1, 0);
             if chunk.get_block_state(check_pos).name == "minecraft:dirt"
                 && let Some(block_state1) = surface.top_material(
+                    chunk,
+                    biome_noise,
                     biome_accessor.at(check_pos),
                     check_pos,
                     carve_state != FluidType::Air,
