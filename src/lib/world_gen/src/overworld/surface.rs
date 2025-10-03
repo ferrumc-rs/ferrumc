@@ -1,8 +1,7 @@
 use std::range::Range;
 
-use crate::common::aquifer::FluidType;
 use crate::common::surface::{Surface, SurfaceRule};
-use crate::overworld::aquifer::Aquifer;
+use crate::overworld::aquifer::{Aquifer, SEA_LEVEL};
 use crate::overworld::noise_depth::OverworldBiomeNoise;
 use crate::overworld::ore_veins::Vein;
 use crate::perlin_noise::{
@@ -13,7 +12,7 @@ use crate::perlin_noise::{
 use crate::pos::{BlockPos, ChunkHeight};
 use crate::random::Xoroshiro128PlusPlus;
 use crate::{ChunkAccess, HeightmapType};
-use crate::{biome_chunk::BiomeChunk, common::aquifer::FluidPicker, pos::ColumnPos};
+use crate::{biome_chunk::BiomeChunk, pos::ColumnPos};
 use bevy_math::{DVec2, FloatExt, IVec2, IVec3};
 use ferrumc_world::vanilla_chunk_format::BlockData;
 
@@ -61,7 +60,7 @@ impl OverworldSurface {
                 chunk_height,
                 SurfaceRule {}, //TODO:
             ),
-            aquifer: Aquifer::new(FluidPicker(63, FluidType::Water), factory),
+            aquifer: Aquifer::new(factory),
             noises: SurfaceNoises {
                 surface: SURFACE.init(factory),
                 surface_secondary: SURFACE_SECONDARY.init(factory),
@@ -117,7 +116,6 @@ impl OverworldSurface {
         if matches!(biome, Biome::FrozenOcean | Biome::DeepFrozenOcean) {
             self.frozen_ocean_extension(
                 biome_noise,
-                self.aquifer.sea_level,
                 pos,
                 biome,
                 &mut block_column,
@@ -144,14 +142,12 @@ impl OverworldSurface {
     fn frozen_ocean_extension(
         &self,
         noise: &OverworldBiomeNoise,
-        sea_level: FluidPicker,
         pos: ColumnPos,
         biome: Biome,
         block_column: &mut [BlockData],
         height: i32,
     ) {
         let min_surface_level = self.min_surface_level(noise, pos);
-        let sea_level = sea_level.0;
         let min_y = self.surface.chunk_height.min_y;
         let min = (self
             .noises
@@ -175,14 +171,14 @@ impl OverworldSurface {
                 .abs();
             let mut iceburg_height = (min * min * 1.2).min(abs * 40.0).ceil() + 14.0;
 
-            if biome.should_melt_frozen_ocean_iceberg_slightly(sea_level) {
+            if biome.should_melt_frozen_ocean_iceberg_slightly(SEA_LEVEL) {
                 iceburg_height -= 2.0;
             }
 
             let (d3, d4) = if iceburg_height > 2.0 {
                 (
-                    f64::from(sea_level) - iceburg_height - 7.0,
-                    f64::from(sea_level) + iceburg_height,
+                    f64::from(SEA_LEVEL) - iceburg_height - 7.0,
+                    f64::from(SEA_LEVEL) + iceburg_height,
                 )
             } else {
                 (0.0, 0.0)
@@ -190,7 +186,7 @@ impl OverworldSurface {
 
             let mut rng = self.factory.at(pos.block(0));
             let max_snow_blocks = 2 + rng.next_bounded(4);
-            let min_snow_block_y = sea_level + 18 + rng.next_bounded(10) as i32;
+            let min_snow_block_y = SEA_LEVEL + 18 + rng.next_bounded(10) as i32;
             let mut snow_blocks = 0;
 
             for y in (min_surface_level..=height.max(iceburg_height as i32 + 1)).rev() {
@@ -200,7 +196,7 @@ impl OverworldSurface {
                     block.name == "minecraft:air" && f64::from(y) < d4 && rng.next_f64() > 0.01;
                 let cond_water = block.name == "minecraft:water"
                     && f64::from(y) > d3
-                    && y < sea_level
+                    && y < SEA_LEVEL
                     && d3 != 0.0
                     && rng.next_f64() > 0.15;
 
@@ -226,10 +222,10 @@ impl OverworldSurface {
         let chunk = pos.chunk();
         lerp2(
             DVec2::from(pos.pos & 15) / 16.0,
-            f64::from(noise.prelimintary_surface(chunk)),
-            f64::from(noise.prelimintary_surface((chunk.pos + IVec2::new(16, 0)).into())),
-            f64::from(noise.prelimintary_surface((chunk.pos + IVec2::new(0, 16)).into())),
-            f64::from(noise.prelimintary_surface((chunk.pos + IVec2::new(16, 16)).into())),
+            f64::from(noise.preliminary_surface(chunk)),
+            f64::from(noise.preliminary_surface((chunk.pos + IVec2::new(16, 0)).into())),
+            f64::from(noise.preliminary_surface((chunk.pos + IVec2::new(0, 16)).into())),
+            f64::from(noise.preliminary_surface((chunk.pos + IVec2::new(16, 16)).into())),
         ) as i32
             + self.get_surface_depth(pos)
             - 8
