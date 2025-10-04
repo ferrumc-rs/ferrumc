@@ -22,7 +22,6 @@ ferrumc-anvil = { workspace = true }
 rayon = { workspace = true }
 ferrumc-general-purpose = { workspace = true }
 lazy_static = { workspace = true }
-bzip2 = { workspace = true }
 serde_json = { workspace = true }
 indicatif = { workspace = true }
 wyhash = { workspace = true }
@@ -31,7 +30,6 @@ ahash = { workspace = true }
 rand = { workspace = true }
 yazi = { workspace = true }
 ferrumc-threadpool = { workspace = true }
-lz4_flex = { workspace = true }
 
 [[bench]]
 name = "world_bench"
