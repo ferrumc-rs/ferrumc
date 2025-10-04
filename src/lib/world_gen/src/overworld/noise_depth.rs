@@ -14,6 +14,8 @@ use crate::perlin_noise::{
 use crate::pos::{BlockPos, ChunkHeight, ChunkPos};
 use crate::random::Xoroshiro128PlusPlus;
 use bevy_math::{DVec3, FloatExt, IVec3, Vec3Swizzles};
+use ferrumc_world::chunk_format::Chunk;
+use ferrumc_world::vanilla_chunk_format::BlockData;
 
 use crate::overworld::spline::{CubicSpline, SplinePoint, SplineType};
 
@@ -439,6 +441,7 @@ impl OverworldBiomeNoise {
         }
     }
 
+    ///TODO: always returns with y = 0; so we can cache anything that depends on this as input
     fn transform(&self, pos: DVec3) -> DVec3 {
         let noise_pos = pos.with_y(0.0);
         let shift_x = self.shift.at(noise_pos);
@@ -510,6 +513,7 @@ impl OverworldBiomeNoise {
             3.0
         };
         let spaghetti_2d = self.spaghetti_2d.at(pos / rarity).abs() * rarity;
+        //TODO: cache
         let spaghetti_2d_elevation = self.spaghetti_2d_elevation.at(pos.with_y(0.0)) * 8.0;
         let tmp = (spaghetti_2d_elevation + pos.y.remap(-64.0, 320.0, 8.0, -40.0)).abs();
         let spaghetti_2d_thickness_modulator = self
@@ -672,29 +676,90 @@ fn slide(
     bottom_delta.lerp(top_delta.lerp(density, s), t)
 }
 
-fn interpolate(points: [f64; 8]) -> Option<[f64; 4 * 4 * 8]> {
-    if points.iter().all(|f| *f < 0.0) {
-        return None;
+fn generate_interpolation_data(
+    biome_noise: &OverworldBiomeNoise,
+    pos: ChunkPos,
+    chunk: &mut Chunk,
+) {
+    let stone = BlockData {
+        name: "minecraft:stone".to_string(),
+        properties: None,
     }
-    let mut res = [0.0; 4 * 4 * 8];
-    for x in 0..4 {
-        for z in 0..4 {
-            for y in 0..8 {
-                res[x + (z << 2) + (y << 4)] = lerp3(
-                    DVec3::new(z as f64 / 4.0, y as f64 / 8.0, x as f64 / 4.0),
-                    points[0b000],
-                    points[0b100],
-                    points[0b010],
-                    points[0b110],
-                    points[0b001],
-                    points[0b101],
-                    points[0b011],
-                    points[0b111],
-                );
+    .to_block_id();
+    let air = BlockData::default().to_block_id();
+    let mut slice1 = [[0.; 5]; 5];
+    for (x, slice1x) in slice1.iter_mut().enumerate() {
+        for (z, slice1xz) in slice1x.iter_mut().enumerate() {
+            *slice1xz = biome_noise.final_density(pos.block(x as u32 * 4, -64, z as u32 * 4));
+        }
+    }
+    for y in 1..48 {
+        let slice0 = slice1;
+        for z in 0..5 {
+            slice1[0][z] = biome_noise.final_density(pos.block(0, y * 8 - 64, z as u32 * 4));
+        }
+        for x in 1..4 {
+            for z in 1..4 {
+                slice1[x][z] =
+                    biome_noise.final_density(pos.block(x as u32 * 4, y * 8 - 64, z as u32 * 4));
+                let points = [
+                    slice0[x - 1][z - 1],
+                    slice0[x - 1][z],
+                    slice0[x][z - 1],
+                    slice0[x][z],
+                    slice1[x - 1][z - 1],
+                    slice1[x - 1][z],
+                    slice1[x][z - 1],
+                    slice1[x][z],
+                ];
+                if points.iter().all(|f| *f < 0.0) {
+                    for cx in 0..4 {
+                        for cz in 0..4 {
+                            for cy in 0..8 {
+                                chunk
+                                    .set_block(
+                                        cx + (x as i32 - 1) * 4 + pos.pos.x,
+                                        cy + (y - 1) * 8 - 64,
+                                        cz + (z as i32 - 1) * 4 + pos.pos.y,
+                                        stone,
+                                    )
+                                    .unwrap();
+                            }
+                        }
+                    }
+                }
+                for cx in 0..4 {
+                    for cz in 0..4 {
+                        for cy in 0..8 {
+                            let res = lerp3(
+                                DVec3::new(
+                                    f64::from(cx) / 4.0,
+                                    f64::from(cy) / 8.0,
+                                    f64::from(cz) / 4.0,
+                                ),
+                                points[0b000],
+                                points[0b100],
+                                points[0b010],
+                                points[0b110],
+                                points[0b001],
+                                points[0b101],
+                                points[0b011],
+                                points[0b111],
+                            );
+                            chunk
+                                .set_block(
+                                    cz + (x as i32 - 1) * 4 + pos.pos.x,
+                                    cy + (y - 1) * 8 - 64,
+                                    cz + (z as i32 - 1) * 4 + pos.pos.y,
+                                    if res > 0.0 { stone } else { air },
+                                )
+                                .unwrap();
+                        }
+                    }
+                }
             }
         }
     }
-    Some(res)
 }
 
 impl BiomeNoise for OverworldBiomeNoise {

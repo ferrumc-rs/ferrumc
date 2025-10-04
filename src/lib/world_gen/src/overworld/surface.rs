@@ -60,7 +60,7 @@ impl OverworldSurface {
                 .to_block_id(),
                 chunk_height,
             ),
-            rules: SurfaceRules::new(factory), //TODO:
+            rules: SurfaceRules::new(factory),
             aquifer: Aquifer::new(factory),
             noises: SurfaceNoises {
                 surface: SURFACE.init(factory),

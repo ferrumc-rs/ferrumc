@@ -413,11 +413,8 @@ impl ImprovedNoise {
     #[inline]
     fn new(random: &mut impl Rng) -> Self {
         let offset = DVec3::new(random.next_f64(), random.next_f64(), random.next_f64()) * 256.0;
-
         let mut p = from_fn(|i| i as u8);
-
         random.shuffle(&mut p);
-
         Self { p, offset }
     }
 

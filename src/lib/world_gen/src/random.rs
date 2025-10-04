@@ -131,7 +131,6 @@ impl Xoroshiro128PlusPlus {
     }
 
     pub const fn with_hash(&self, s: &str) -> Self {
-        //TODO: assert!(s.starts_with("minecraft:"));
         let a = cthash::md5(s.as_bytes());
         Self::new(
             u64::from_be_bytes([a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]]) ^ self.lo,
@@ -305,6 +304,7 @@ fn test_legacy_factory() {
 
     let factory = rng.fork();
 
+    //TODO: change to minecraft:test
     assert_eq!(factory.with_hash("test").seed, 198298808087495);
     assert_eq!(factory.with_hash("test").next_u64(), 1964728489694604786);
     assert_eq!(factory.at((1, 1, 1).into()).next_u64(), 6437814084537238339);
@@ -379,6 +379,7 @@ fn test_from_seed() {
 #[test]
 fn test_fork_positional_with_hash() {
     let mut rng = Xoroshiro128PlusPlus::new(0, 0);
+    //TODO: change to minecraft:test
     let mut rng = rng.fork().with_hash("test");
 
     assert_eq!(rng.next_u64(), 8856493334125025190, "Mismatch in next_u64");
