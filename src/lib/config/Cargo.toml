@@ -10,14 +10,11 @@ thiserror = { workspace = true }
 serde = { workspace = true }
 serde_derive = { workspace = true }
 tracing = { workspace = true }
-parking_lot = { workspace = true }
 base64 = { workspace = true }
 ferrumc-general-purpose = { workspace = true }
 lazy_static = { workspace = true }
 dashmap = { workspace = true }
 uuid = { workspace = true }
-regex = { workspace = true }
-reqwest = { workspace = true }
 ureq = { workspace = true, features = ["json"] }
 rayon = { workspace = true }
 once_cell = { workspace = true }
