@@ -134,7 +134,6 @@ crossbeam-queue = "0.3.12"
 # Network
 reqwest = { version = "0.12.22", features = ["json"] }
 ureq = "3.1.0"
-local-ip-address = "0.6.5"
 
 # Error handling
 thiserror = "2.0.15"
