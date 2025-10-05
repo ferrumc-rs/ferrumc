@@ -10,7 +10,7 @@ pub struct LanPinger {
 }
 
 impl LanPinger {
-    pub async fn new() -> Result<Self> {
+    pub async fn new() -> std::io::Result<Self> {
         const ADDR: Ipv4Addr = Ipv4Addr::new(224, 0, 2, 60); // mojang's UDP multicast address
         const PORT: u16 = 4445;
 
