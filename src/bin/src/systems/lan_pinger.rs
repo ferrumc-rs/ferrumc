@@ -1,11 +1,9 @@
-use bevy_ecs::prelude::*;
 use ferrumc_config::server_config::get_global_config;
 use rand::prelude::IndexedRandom;
 use std::net::{Ipv4Addr, SocketAddrV4};
 use tokio::net::UdpSocket;
 use tracing::error;
 
-#[derive(Resource)]
 pub struct LanPinger {
     socket: UdpSocket,
     addr: SocketAddrV4,
