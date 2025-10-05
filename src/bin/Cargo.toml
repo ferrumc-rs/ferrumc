@@ -43,7 +43,6 @@ tokio = { workspace = true, features = ["full"] }
 crossbeam-channel = { workspace = true }
 uuid = { workspace = true }
 dhat = { workspace = true }
-local-ip-address = { workspace = true }
 
 [features]
 dhat = []

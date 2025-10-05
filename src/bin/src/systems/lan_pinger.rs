@@ -1,8 +1,7 @@
 use bevy_ecs::prelude::*;
 use ferrumc_config::server_config::get_global_config;
-use local_ip_address::local_ip;
 use rand::prelude::IndexedRandom;
-use std::net::{IpAddr, Ipv4Addr, SocketAddrV4};
+use std::net::{Ipv4Addr, SocketAddrV4};
 use tokio::net::UdpSocket;
 use tracing::error;
 
@@ -10,7 +9,6 @@ use tracing::error;
 pub struct LanPinger {
     socket: UdpSocket,
     addr: SocketAddrV4,
-    local_ip: IpAddr,
 }
 
 impl LanPinger {
@@ -21,17 +19,15 @@ impl LanPinger {
         Ok(Self {
             socket: UdpSocket::bind("0.0.0.0:0").await?,
             addr: SocketAddrV4::new(ADDR, PORT),
-            local_ip: local_ip()?,
         })
     }
 
     pub fn announcement(&self) -> String {
         let cfg = get_global_config();
         let motd = cfg.motd.choose(&mut rand::rng()).unwrap();
-        let addr = self.local_ip;
         let port = cfg.port;
 
-        format!("[MOTD]{motd}[/MOTD][AD]{addr}:{port}[/AD]")
+        format!("[MOTD]{motd}[/MOTD][AD]{port}[/AD]")
     }
 
     pub async fn send(&mut self) {
