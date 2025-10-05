@@ -2,6 +2,7 @@ use crate::errors::BinaryError;
 use crate::packet_handlers::{play_packets, register_player_systems};
 use crate::register_events::register_events;
 use crate::register_resources::register_resources;
+use crate::systems::lan_pinger::LanPinger;
 use crate::systems::register_game_systems;
 use crate::systems::shutdown_systems::register_shutdown_systems;
 use bevy_ecs::prelude::World;
@@ -19,6 +20,7 @@ use ferrumc_utils::formatting::format_duration;
 use play_packets::register_packet_handlers;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
+use tokio::time::sleep;
 use tracing::{debug, error, info, info_span, trace, warn, Instrument};
 
 pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
@@ -214,6 +216,17 @@ fn tcp_conn_acceptor(
                 .enable_all()
                 .thread_name("Tokio-Async-Network")
                 .build()?;
+            async_runtime.spawn(async move {
+                let Ok(mut pinger) = LanPinger::new().await else {
+                    error!("Failed creating LAN pinger");
+                    return
+                };
+
+                loop {
+                    pinger.send().await;
+                    sleep(Duration::from_millis(1500)).await;
+                }
+            });
             async_runtime.block_on({
                 let state = Arc::clone(&state);
                 async move {
