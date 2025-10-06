@@ -192,6 +192,13 @@ impl LegacyRandom {
         (self.seed >> (48 - bits)) as i32
     }
 
+    pub const fn advance(&mut self, num: usize) {
+        let mut i = 0;
+        while i < num {
+            self.seed = self.seed.wrapping_mul(0x5DEECE66D).wrapping_add(11) & ((1 << 48) - 1);
+            i += 1;
+        }
+    }
     pub const fn next_f64(&mut self) -> f64 {
         ((((self.next(26) as u64) << 27) + self.next(27) as u64) as f32 * 1.110223E-16f32) as f64
     }

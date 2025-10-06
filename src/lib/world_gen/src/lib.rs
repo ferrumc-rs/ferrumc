@@ -15,6 +15,7 @@ mod overworld;
 mod perlin_noise;
 mod pos;
 mod random;
+use crate::end::end_generator::EndGenerator;
 use crate::pos::BlockPos;
 use crate::{errors::WorldGenError, overworld::overworld_generator::OverworldGenerator};
 use ferrumc_world::{chunk_format::Chunk, vanilla_chunk_format::BlockData};
@@ -48,13 +49,13 @@ pub enum HeightmapType {
     OceanFloorWg,
 }
 pub struct WorldGenerator {
-    generator: OverworldGenerator,
+    generator: EndGenerator,
 }
 
 impl WorldGenerator {
     pub fn new(seed: u64) -> Self {
         Self {
-            generator: OverworldGenerator::new(seed),
+            generator: EndGenerator::new(seed),
         }
     }
 
