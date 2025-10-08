@@ -2,6 +2,7 @@
 
 use proc_macro::TokenStream;
 
+mod block;
 mod commands;
 mod helpers;
 mod nbt;
@@ -95,4 +96,9 @@ pub fn get_registry_entry(input: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn build_registry_packets(input: TokenStream) -> TokenStream {
     registries_packets::build_mapping(input)
+}
+
+#[proc_macro]
+pub fn block(input: TokenStream) -> TokenStream {
+    block::block(input)
 }

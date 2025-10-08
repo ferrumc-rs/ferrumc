@@ -21,3 +21,4 @@ regex = { workspace = true }
 craftflow-nbt = { workspace = true }
 indexmap = { workspace = true, features = ["serde"] }
 bitcode = { workspace = true }
+simd-json = { workspace = true }

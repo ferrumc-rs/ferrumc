@@ -434,7 +434,7 @@ impl Chunk {
     ///
     /// * `Ok(())` - If the section was successfully set.
     /// * `Err(WorldError)` - If an error occurs while setting the section.
-    pub fn set_section(&mut self, section_y: i8, block: BlockData) -> Result<(), WorldError> {
+    pub fn set_section(&mut self, section_y: i8, block: BlockId) -> Result<(), WorldError> {
         if let Some(section) = self
             .sections
             .iter_mut()
