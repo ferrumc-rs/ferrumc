@@ -9,6 +9,7 @@ thiserror = { workspace = true }
 cthash = { workspace = true }
 bevy_math = { workspace = true }
 itertools = { workspace = true }
+const-str = {workspace = true }
 
 [lints]
 workspace = true
