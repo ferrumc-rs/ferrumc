@@ -46,8 +46,7 @@ pub(crate) fn carve_ellipsoid(
     }
 
     let radii = radii.xyx();
-    let min = ((pos - radii).floor().as_ivec3() - IVec3::splat(1))
-        .max((0, chunk_height.min_y + 1, 0).into());
+    let min = ((pos - radii).floor().as_ivec3() - 1).max((0, chunk_height.min_y + 1, 0).into());
     let max = (pos + radii)
         .floor()
         .as_ivec3()

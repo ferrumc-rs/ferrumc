@@ -62,7 +62,6 @@ impl EndNoise {
 
         let mut res = pos.as_vec2().length() * 8.0;
 
-        // if (pos_div_2.abs() + IVec2::splat(12)).length_squared() > 4096 {
         for dpos in (-12..=12).cartesian_product(-12..=12).map(IVec2::from) {
             let currpos = pos_div_2 + dpos;
             if currpos.length_squared() > 4096
@@ -76,7 +75,6 @@ impl EndNoise {
                 res = res.min(f4);
             }
         }
-        // }
         (100. - res).clamp(-100., 80.)
     }
 
