@@ -46,7 +46,7 @@ jobs:
       - name: Run cargo fmt
         run: cargo fmt --all -- --check
       - name: Run Clippy
-        run: cargo clippy --all-targets --verbose -- -D warnings
+        run: cargo clippy -Z checksum-freshness --all-targets --verbose -- -D warnings
       - name: Install cargo-audit
         uses: taiki-e/install-action@v2
         with:
@@ -95,4 +95,4 @@ jobs:
         with:
           tool: cargo-nextest
       - name: Run Tests
-        run: cargo nextest run --verbose --target ${{ matrix.target }} --all-targets --all-features -E "not kind(bench)"
+        run: cargo nextest run -Z checksum-freshness --cargo-verbose --target ${{ matrix.target }} --all-targets --all-features -E "not kind(bench)"
