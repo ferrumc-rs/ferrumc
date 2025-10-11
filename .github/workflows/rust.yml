@@ -12,8 +12,6 @@ concurrency:
 
 env:
   CARGO_TERM_COLOR: always
-  SCCACHE_GHA_ENABLED: "true"
-  RUSTC_WRAPPER: "sccache"
 defaults:
   run:
     shell: bash
@@ -29,8 +27,6 @@ jobs:
         with:
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
-      - name: Run sccache-cache
-        uses: mozilla-actions/sccache-action@v0.0.9
       - name: Run cargo fmt
         run: cargo fmt --all -- --check
       - name: Run Clippy
@@ -62,8 +58,6 @@ jobs:
         with:
           targets: ${{ matrix.target }}
       - uses: Swatinem/rust-cache@v2
-      - name: Run sccache-cache
-        uses: mozilla-actions/sccache-action@v0.0.9
       - name: Install cargo-nextest
         uses: taiki-e/install-action@v2
         with:
