@@ -42,7 +42,7 @@ pub fn handle(
                         event.location.y as i32,
                         event.location.z.abs() % 16,
                     );
-                    chunk.set_block(relative_x, relative_y, relative_z, BlockData::default())?;
+                    chunk.set_block(relative_x, relative_y, relative_z, BlockId::default())?;
                     // Save the chunk to disk
                     state.0.world.save_chunk(Arc::new(chunk))?;
                     for (eid, conn) in query {

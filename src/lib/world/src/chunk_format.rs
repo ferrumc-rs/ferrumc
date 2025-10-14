@@ -266,15 +266,13 @@ impl Chunk {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::block_id::BlockId;
+    use ferrumc_macros::block;
 
     #[test]
     fn test_chunk_set_block() {
         let mut chunk = Chunk::new(0, 0, "overworld".to_string());
-        let block = BlockData {
-            name: "minecraft:stone".to_string(),
-            properties: None,
-        }
-        .to_block_id();
+        let block = block!("stone");
         chunk.set_block(0, 0, 0, block).unwrap();
         assert_eq!(chunk.get_block(0, 0, 0).unwrap(), block);
     }
@@ -282,14 +280,11 @@ mod tests {
     #[test]
     fn test_chunk_fill() {
         let mut chunk = Chunk::new(0, 0, "overworld".to_string());
-        let stone_block = BlockData {
-            name: "minecraft:stone".to_string(),
-            properties: None,
-        };
-        chunk.fill(stone_block.clone()).unwrap();
+        let stone_block = block!("stone");
+        chunk.fill(stone_block).unwrap();
         for section in &chunk.sections {
             for (block, count) in &section.block_states.block_counts {
-                assert_eq!(*block, stone_block.to_block_id());
+                assert_eq!(*block, stone_block);
                 assert_eq!(count, &4096);
             }
         }
@@ -312,21 +307,14 @@ mod tests {
             block_light: vec![255; 2048],
             sky_light: vec![255; 2048],
         };
-        let stone_block = BlockData {
-            name: "minecraft:stone".to_string(),
-            properties: None,
-        };
-        section.fill(stone_block.clone()).unwrap();
+        let stone_block = block!("stone");
+        section.fill(stone_block).unwrap();
         assert_eq!(
             section.block_states.block_data,
             PaletteType::Single(VarInt::from(1))
         );
         assert_eq!(
-            section
-                .block_states
-                .block_counts
-                .get(&stone_block.to_block_id())
-                .unwrap(),
+            section.block_states.block_counts.get(&stone_block).unwrap(),
             &4096
         );
     }
@@ -346,12 +334,9 @@ mod tests {
     #[test]
     fn test_doesnt_fail() {
         let mut chunk = Chunk::new(0, 0, "overworld".to_string());
-        let block = BlockData {
-            name: "minecraft:stone".to_string(),
-            properties: None,
-        };
-        assert!(chunk.set_block(0, 0, 0, block.clone()).is_ok());
-        assert!(chunk.set_block(0, 0, 0, block.clone()).is_ok());
+        let block = block!("stone");
+        assert!(chunk.set_block(0, 0, 0, block).is_ok());
+        assert!(chunk.set_block(0, 0, 0, block).is_ok());
         assert!(chunk.get_block(0, 0, 0).is_ok());
     }
 }

@@ -67,9 +67,8 @@ impl World {
         y: i32,
         z: i32,
         dimension: &str,
-        block: impl Into<BlockId>,
+        block: BlockId,
     ) -> Result<(), WorldError> {
-        let block = block.into();
         if ID2BLOCK.get(block.0 as usize).is_none() {
             return Err(WorldError::InvalidBlockId(block.0));
         };
@@ -224,13 +223,7 @@ impl Chunk {
     /// The positions are modulo'd by 16 to get the block index in the section anyway, so converting
     /// the coordinates to section coordinates isn't really necessary, but you should probably do it
     /// anyway for readability's sake.
-    pub fn set_block(
-        &mut self,
-        x: i32,
-        y: i32,
-        z: i32,
-        block: impl Into<BlockId>,
-    ) -> Result<(), WorldError> {
+    pub fn set_block(&mut self, x: i32, y: i32, z: i32, block: BlockId) -> Result<(), WorldError> {
         let block = block.into();
         // Get old block
         let old_block = self.get_block(x, y, z)?;
@@ -440,7 +433,7 @@ impl Chunk {
             .iter_mut()
             .find(|section| section.y == section_y)
         {
-            section.fill(block.clone())
+            section.fill(block)
         } else {
             Err(WorldError::SectionOutOfBounds(section_y as i32))
         }
@@ -456,9 +449,9 @@ impl Chunk {
     ///
     /// * `Ok(())` - If the chunk was successfully filled.
     /// * `Err(WorldError)` - If an error occurs while filling the chunk.
-    pub fn fill(&mut self, block: BlockData) -> Result<(), WorldError> {
+    pub fn fill(&mut self, block: BlockId) -> Result<(), WorldError> {
         for section in &mut self.sections {
-            section.fill(block.clone())?;
+            section.fill(block)?;
         }
         Ok(())
     }
@@ -475,8 +468,7 @@ impl Section {
     ///
     /// * `Ok(())` - If the section was successfully filled.
     /// * `Err(WorldError)` - If an error occurs while filling the section.
-    pub fn fill(&mut self, block: impl Into<BlockId>) -> Result<(), WorldError> {
-        let block = block.into();
+    pub fn fill(&mut self, block: BlockId) -> Result<(), WorldError> {
         self.block_states.block_data = PaletteType::Single(block.to_varint());
         self.block_states.block_counts = HashMap::from([(block, 4096)]);
         // Air, void air and cave air respectively

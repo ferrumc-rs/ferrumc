@@ -1,4 +1,5 @@
-use proc_macro::{quote, TokenStream};
+use proc_macro::TokenStream;
+use quote::quote;
 use simd_json::prelude::{ValueAsObject, ValueAsScalar, ValueObjectAccess};
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
@@ -179,7 +180,7 @@ pub fn block(input: TokenStream) -> TokenStream {
             }
         } else {
             let res = matched[0];
-            return quote! { ferrumc_world::block_id::BlockId($res) };
+            quote! { BlockId(#res) }.into()
         }
     } else if filtered_names.len() > 1 {
         syn::Error::new_spanned(
@@ -200,7 +201,7 @@ pub fn block(input: TokenStream) -> TokenStream {
         .into()
     } else {
         let first = filtered_names[0].0;
-        return quote! { ferrumc_world::block_id::BlockId($first) };
+        quote! { BlockId(#first) }.into()
     }
 }
 
@@ -273,27 +274,4 @@ fn pretty_print_given_props(props: Opts) -> String {
         s.push_str(&format!("{}: {}, ", key, value));
     }
     s.trim_end_matches(", ").to_string()
-}
-
-fn get_name_from_id(id: u32) -> Option<String> {
-    let mut buf = JSON_FILE.to_vec();
-    let v = simd_json::to_owned_value(&mut buf).unwrap();
-    let filtered_names = v
-        .as_object()
-        .unwrap()
-        .iter()
-        .filter(|v| {
-            let id_in_json = v.0.parse::<u32>().unwrap();
-            id_in_json == id
-        })
-        .map(|v| v.1)
-        .collect::<Vec<_>>();
-    if let Some(first) = filtered_names.first() {
-        if let Some(obj) = first.as_object() {
-            if let Some(name) = obj.get("name").and_then(|n| n.as_str()) {
-                return Some(name.to_string());
-            }
-        }
-    }
-    None
 }
