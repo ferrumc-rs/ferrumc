@@ -1,5 +1,5 @@
 use crate::biome_chunk::BiomeNoise;
-use crate::overworld::aquifer::clamped_map;
+use crate::common::math::clamped_map;
 use crate::overworld::noise_biome_parameters::{
     DEPTH_DEEP_DARK_DRYNESS_THRESHOLD, EROSION_DEEP_DARK_DRYNESS_THRESHOLD,
 };
@@ -11,7 +11,7 @@ use crate::perlin_noise::{
     SPAGHETTI_3D_RARITY, SPAGHETTI_3D_THICKNESS, SPAGHETTI_ROUGHNESS,
     SPAGHETTI_ROUGHNESS_MODULATOR, TEMPERATURE, VEGETATION,
 };
-use crate::pos::{BlockPos, ChunkHeight, ChunkPos};
+use crate::pos::{BlockPos, ChunkHeight, ChunkPos, ColumnPos};
 use crate::random::Xoroshiro128PlusPlus;
 use bevy_math::{DVec3, FloatExt, IVec3, Vec3Swizzles};
 use ferrumc_world::chunk_format::Chunk;
@@ -447,6 +447,38 @@ impl OverworldBiomeNoise {
         let shift_z = self.shift.at(noise_pos.zxy());
         pos * DVec3::new(0.25, 0.0, 0.25) + DVec3::new(shift_x, 0.0, shift_z)
     }
+    pub fn direct_preliminary_surface(&self, pos: ColumnPos) -> i32 {
+        let spline_params = self.make_spline_params(self.transform(pos.block(0).into()));
+        let factor = self.factor(spline_params) * 4.;
+        let base_density = factor * self.offset(spline_params) - 0.703125;
+        let res = (0.390625 - base_density) / factor;
+
+        // y >= 30 / 8 * 8
+        let y = res.remap(1.5, -1.5, -64., 320.0) as i32 / 8 * 8;
+
+        if y >= 240 + 8 {
+            for y in (240 + 8..=y.min(256 - 8)).rev().step_by(8) {
+                let density = base_density + factor * f64::from(y).remap(-64.0, 320.0, 1.5, -1.5);
+                let final_density = slide(
+                    f64::from(y),
+                    density,
+                    240.0,
+                    256.0,
+                    -0.078125,
+                    -64.0,
+                    -40.0,
+                    0.1171875,
+                );
+                if final_density > 0.390625 {
+                    return y;
+                }
+            }
+            y - 8
+        } else {
+            y
+        }
+    }
+
     pub fn initial_density_without_jaggedness(&self, pos: BlockPos) -> f64 {
         let spline_params = self.make_spline_params(self.transform(pos.into()));
         let mut factor_depth = self.factor(spline_params) * self.depth(pos, spline_params);
@@ -799,6 +831,10 @@ impl BiomeNoise for OverworldBiomeNoise {
 #[test]
 fn test_offset() {
     let offset = get_offset_spline();
+    dbg!(offset.compute_min_max());
+    dbg!(overworld_factor().compute_min_max());
+    dbg!(overworld_jaggedness().compute_min_max());
+    todo!();
     assert_eq!(offset.sample(0.0, 0.0, 0.0, 0.0), 0.007458158);
     assert_eq!(
         offset.sample(0.007458158, 0.007458158, 0.007458158, 0.007458158),

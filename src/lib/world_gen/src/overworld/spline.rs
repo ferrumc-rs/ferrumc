@@ -24,10 +24,9 @@ impl CubicSpline {
                 return Self::linear_extend(
                     x,
                     &self.points[0],
-                    continents,
-                    erosion,
-                    ridges_folded,
-                    ridges,
+                    self.points[0]
+                        .y
+                        .get(continents, erosion, ridges_folded, ridges),
                 );
             }
         };
@@ -37,10 +36,9 @@ impl CubicSpline {
             return Self::linear_extend(
                 x,
                 &self.points[i],
-                continents,
-                erosion,
-                ridges_folded,
-                ridges,
+                self.points[i]
+                    .y
+                    .get(continents, erosion, ridges_folded, ridges),
             );
         }
         let point = &self.points[i];
@@ -58,15 +56,100 @@ impl CubicSpline {
         y0.lerp(y1, t) + t * (1.0 - t) * h1.lerp(h2, t)
     }
 
-    fn linear_extend(
-        x: f32,
-        point: &SplinePoint,
-        continents: f32,
-        erosion: f32,
-        ridges_folded: f32,
-        ridges: f32,
-    ) -> f32 {
-        point.y.get(continents, erosion, ridges_folded, ridges) + point.slope * (x - point.x)
+    fn linear_extend(x: f32, point: &SplinePoint, y: f32) -> f32 {
+        y + point.slope * (x - point.x)
+    }
+
+    pub fn compute_min_max(&self) -> (f32, f32) {
+        let coordinate_min = self.points.first().map(|p| p.x).unwrap_or(0.0);
+        let coordinate_max = self.points.last().map(|p| p.x).unwrap_or(0.0);
+        let points = &self.points;
+        let n = points.len() - 1;
+
+        let mut min_val = f32::INFINITY;
+        let mut max_val = f32::NEG_INFINITY;
+
+        // --- Handle extension below first knot
+        if coordinate_min < points[0].x {
+            let p = &points[0];
+            let (y_min, y_max) = match &p.y {
+                SplineValue::Const(v) => {
+                    let linear_extend = Self::linear_extend(coordinate_min, p, *v);
+                    (linear_extend, linear_extend)
+                }
+                SplineValue::Spline(s) => s.compute_min_max(),
+            };
+            min_val = min_val.min(y_min.min(y_max));
+            max_val = max_val.max(y_min.max(y_max));
+        }
+
+        // --- Handle extension above last knot
+        if coordinate_max > points[n].x {
+            let p = &points[n];
+            let (y_min, y_max) = match &p.y {
+                SplineValue::Const(v) => {
+                    let linear_extend = Self::linear_extend(coordinate_min, p, *v);
+                    (linear_extend, linear_extend)
+                }
+                SplineValue::Spline(s) => s.compute_min_max(),
+            };
+            min_val = min_val.min(y_min.min(y_max));
+            max_val = max_val.max(y_min.max(y_max));
+        }
+
+        // --- Check all sub-splines
+        for p in points {
+            match &p.y {
+                SplineValue::Const(v) => {
+                    min_val = min_val.min(*v);
+                    max_val = max_val.max(*v);
+                }
+                SplineValue::Spline(s) => {
+                    let (min, max) = s.compute_min_max();
+                    min_val = min_val.min(min);
+                    max_val = max_val.max(max);
+                }
+            }
+        }
+
+        // --- Check each interval between points
+        for i in 0..n {
+            let p0 = &points[i];
+            let p1 = &points[i + 1];
+            let dx = p1.x - p0.x;
+            let d0 = p0.slope;
+            let d1 = p1.slope;
+
+            // Nested spline handling
+            let (y0_min, y0_max) = match &p0.y {
+                SplineValue::Const(v) => (*v, *v),
+                SplineValue::Spline(s) => s.compute_min_max(),
+            };
+            let (y1_min, y1_max) = match &p1.y {
+                SplineValue::Const(v) => (*v, *v),
+                SplineValue::Spline(s) => s.compute_min_max(),
+            };
+
+            if d0 != 0.0 || d1 != 0.0 {
+                let d0_scaled = d0 * dx;
+                let d1_scaled = d1 * dx;
+                let min_y = y0_min.min(y1_min);
+                let max_y = y0_max.max(y1_max);
+
+                let f16 = d0_scaled - y1_max + y0_min;
+                let f17 = d0_scaled - y1_min + y0_max;
+                let f18 = -d1_scaled + y1_min - y0_max;
+                let f19 = -d1_scaled + y1_max - y0_min;
+
+                let inner_min = f16.min(f18);
+                let inner_max = f17.max(f19);
+
+                min_val = min_val.min(min_y + 0.25 * inner_min);
+                max_val = max_val.max(max_y + 0.25 * inner_max);
+            }
+        }
+
+        (min_val, max_val)
     }
 }
 

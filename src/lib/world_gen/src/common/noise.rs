@@ -90,17 +90,17 @@ pub fn generate_interpolation_data(
 
                 for cy in 0..HEIGHT {
                     let fy = f64::from(cy) / f64::from(HEIGHT);
-                    let value_xz00 = p010.lerp(p000, fy);
-                    let value_xz10 = p110.lerp(p100, fy);
-                    let value_xz01 = p011.lerp(p001, fy);
-                    let value_xz11 = p111.lerp(p101, fy);
+                    let value_xz00 = p000.lerp(p010, fy);
+                    let value_xz10 = p100.lerp(p110, fy);
+                    let value_xz01 = p001.lerp(p011, fy);
+                    let value_xz11 = p101.lerp(p111, fy);
                     for cx in 0..WIDTH as u32 {
                         let fx = f64::from(cx) / WIDTH as f64;
-                        let value_z0 = value_xz10.lerp(value_xz00, fx);
-                        let value_z1 = value_xz11.lerp(value_xz01, fx);
+                        let value_z0 = value_xz00.lerp(value_xz10, fx);
+                        let value_z1 = value_xz01.lerp(value_xz11, fx);
                         for cz in 0..WIDTH as u32 {
                             let fz = f64::from(cz) / WIDTH as f64;
-                            let value = value_z1.lerp(value_z0, fz);
+                            let value = value_z0.lerp(value_z1, fz);
 
                             let res = post_process(value);
 
