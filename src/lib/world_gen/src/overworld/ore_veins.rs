@@ -1,10 +1,10 @@
+use crate::common::math::clamped_map;
 use std::ops::RangeInclusive;
 
 use bevy_math::IVec3;
 use ferrumc_world::vanilla_chunk_format::BlockData;
 
 use crate::{
-    overworld::aquifer::clamped_map,
     perlin_noise::{NormalNoise, ORE_GAP, ORE_VEIN_A, ORE_VEIN_B, ORE_VEININESS},
     random::Xoroshiro128PlusPlus,
 };

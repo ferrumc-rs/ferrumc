@@ -1,4 +1,5 @@
 use crate::common::aquifer::{FluidPicker, FluidType};
+use crate::common::math::clamped_map;
 use crate::overworld::noise_depth::OverworldBiomeNoise;
 use crate::perlin_noise::{
     AQUIFER_BARRIER, AQUIFER_FLUID_LEVEL_FLOODEDNESS, AQUIFER_FLUID_LEVEL_SPREAD, AQUIFER_LAVA,
@@ -10,7 +11,7 @@ use std::ops::Add;
 
 use itertools::Itertools;
 
-use bevy_math::{DVec3, FloatExt, IVec2, IVec3, Vec3Swizzles};
+use bevy_math::{DVec3, IVec2, IVec3, Vec3Swizzles};
 
 use crate::random::Xoroshiro128PlusPlus;
 
@@ -322,9 +323,4 @@ fn simple_fluid_picker(y: i32) -> FluidPicker {
 
 const fn similarity(first_distance: i32, second_distance: i32) -> f64 {
     1.0 - ((second_distance - first_distance).abs() as f64) / (5.0 * 5.0)
-}
-//TODO: move
-pub(crate) fn clamped_map(v: f64, in_min: f64, in_max: f64, out_min: f64, out_max: f64) -> f64 {
-    v.clamp(in_min, in_max)
-        .remap(in_min, in_max, out_min, out_max)
 }
