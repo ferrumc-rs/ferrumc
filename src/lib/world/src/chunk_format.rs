@@ -5,12 +5,11 @@ use crate::{errors::WorldError, vanilla_chunk_format::VanillaHeightmaps};
 use bitcode_derive::{Decode, Encode};
 use deepsize::DeepSizeOf;
 use ferrumc_general_purpose::data_packing::i32::read_nbit_i32;
-use ferrumc_macros::{NBTDeserialize, NBTSerialize};
+use ferrumc_macros::{block, NBTDeserialize, NBTSerialize};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::cmp::max;
 use std::collections::HashMap;
 use tracing::error;
-use vanilla_chunk_format::BlockData;
 // #[cfg(test)]
 // const BLOCKSFILE: &[u8] = &[0];
 
@@ -76,7 +75,9 @@ pub struct BiomeStates {
     pub palette: Vec<VarInt>,
 }
 
-fn convert_to_net_palette(vanilla_palettes: Vec<BlockData>) -> Result<Vec<VarInt>, WorldError> {
+fn convert_to_net_palette(
+    vanilla_palettes: Vec<vanilla_chunk_format::BlockData>,
+) -> Result<Vec<VarInt>, WorldError> {
     let mut new_palette = Vec::new();
     for palette in vanilla_palettes {
         if let Some(id) = BLOCK2ID.get(&palette) {
@@ -135,17 +136,17 @@ impl VanillaChunk {
                 while i + bits_per_block < 64 {
                     let palette_index = read_nbit_i32(chunk, bits_per_block as usize, i as u32)?;
                     let block = match palette.get(palette_index as usize) {
-                        Some(block) => block,
+                        Some(block) => block.to_block_id(),
                         None => {
                             error!("Could not find block for palette index: {}", palette_index);
-                            &BlockData::default()
+                            BlockId::default()
                         }
                     };
 
-                    if let Some(count) = block_counts.get_mut(&block.to_block_id()) {
+                    if let Some(count) = block_counts.get_mut(&block) {
                         *count += 1;
                     } else {
-                        block_counts.insert(block.to_block_id(), 0);
+                        block_counts.insert(block, 0);
                     }
 
                     i += bits_per_block;
@@ -163,24 +164,8 @@ impl VanillaChunk {
             };
             // Count the number of blocks that are either air, void air, or cave air
             let mut air_blocks = *block_counts.get(&BlockId::default()).unwrap_or(&0) as u16;
-            air_blocks += *block_counts
-                .get(
-                    &BlockData {
-                        name: "minecraft:void_air".to_string(),
-                        properties: None,
-                    }
-                    .to_block_id(),
-                )
-                .unwrap_or(&0) as u16;
-            air_blocks += *block_counts
-                .get(
-                    &BlockData {
-                        name: "minecraft:cave_air".to_string(),
-                        properties: None,
-                    }
-                    .to_block_id(),
-                )
-                .unwrap_or(&0) as u16;
+            air_blocks += *block_counts.get(&block!("void_air")).unwrap_or(&0) as u16;
+            air_blocks += *block_counts.get(&block!("cave_air")).unwrap_or(&0) as u16;
             let non_air_blocks = 4096 - air_blocks;
             let block_states = BlockStates {
                 block_counts,
@@ -253,6 +238,7 @@ impl Chunk {
         for section in &mut sections {
             section.optimise().expect("Failed to optimise section");
         }
+        block!("stone");
         Chunk {
             x,
             z,
@@ -266,7 +252,6 @@ impl Chunk {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::block_id::BlockId;
     use ferrumc_macros::block;
 
     #[test]
@@ -322,11 +307,7 @@ mod tests {
     #[test]
     fn test_false_positive() {
         let mut chunk = Chunk::new(0, 0, "overworld".to_string());
-        let block = BlockData {
-            name: "minecraft:stone".to_string(),
-            properties: None,
-        }
-        .to_block_id();
+        let block = block!("stone");
         chunk.set_block(0, 0, 0, block).unwrap();
         assert_ne!(chunk.get_block(0, 1, 0).unwrap(), block);
     }

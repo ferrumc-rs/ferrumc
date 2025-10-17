@@ -5,6 +5,7 @@ use deepsize::DeepSizeOf;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use lazy_static::lazy_static;
 use std::collections::HashMap;
+use std::fmt::Display;
 use std::process::exit;
 use tracing::error;
 
@@ -67,6 +68,16 @@ impl BlockId {
 
     pub fn to_varint(&self) -> VarInt {
         VarInt(self.0 as i32)
+    }
+}
+
+impl Display for BlockId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if let Some(block_data) = self.to_block_data() {
+            write!(f, "BlockId({}: {:?})", self.0, block_data)
+        } else {
+            write!(f, "BlockId({}: Unknown)", self.0)
+        }
     }
 }
 
