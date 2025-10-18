@@ -98,6 +98,22 @@ pub fn build_registry_packets(input: TokenStream) -> TokenStream {
     registries_packets::build_mapping(input)
 }
 
+/// A macro to lookup block IDs at compile time.
+///
+/// Feed in the block name as a string literal, and an optional set of properties as a map.
+/// It will output a `BlockId` struct with the correct ID for that block and properties.
+/// Usage:
+/// ```ignore
+/// let block_id = block!("stone");
+/// let another_block_id = block!("minecraft:grass_block", {snowy: true});
+/// ```
+/// Unfortunately, due to current limitations in Rust's proc macros, you will need to import the
+/// `BlockId` struct manually.
+///
+/// The `minecraft:` namespace is optional and will be added automatically if not present.
+///
+/// If the block or properties are invalid, a compile-time error will be thrown that should hopefully
+/// explain the issue.
 #[proc_macro]
 pub fn block(input: TokenStream) -> TokenStream {
     block::block(input)

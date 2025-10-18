@@ -44,6 +44,9 @@ lazy_static! {
 
 /// An ID for a block, and it's state in the world. Use this over `BlockData` unless you need to
 /// modify or read the block's name/properties directly.
+///
+/// This should be used over `BlockData` in most cases, as it's much more efficient to store and pass around.
+/// You can also generate a block's id at runtime with the [ferrumc_macros::block!] macro.
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Encode, Decode, DeepSizeOf)]
 pub struct BlockId(pub u32);
 
