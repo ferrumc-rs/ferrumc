@@ -1,5 +1,6 @@
 use bevy_ecs::event::EventReader;
 use bevy_ecs::prelude::Query;
+use ferrumc_core::data::player::PlayerData;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_net::connection::StreamWriter;
@@ -10,13 +11,12 @@ use tracing::error;
 
 pub fn handle_player_move(
     mut events: EventReader<TransformEvent>,
-    query: Query<(&Rotation, &PlayerIdentity)>,
+    mut query: Query<(&Rotation, &PlayerIdentity, &mut PlayerData)>,
     broadcast_query: Query<&StreamWriter>,
 ) {
     for event in events.read() {
         let entity = event.entity;
-
-        let (rot, identity) = query.get(entity).unwrap();
+        let (rot, identity, mut player_data) = query.get_mut(entity).unwrap();
         let head_rot_packet = SetHeadRotationPacket::new(
             identity.uuid.as_u128() as i32,
             NetAngle::from_degrees(rot.yaw as f64),
@@ -24,6 +24,9 @@ pub fn handle_player_move(
 
         #[cfg(debug_assertions)]
         let start = std::time::Instant::now();
+
+        player_data.update_pitch(rot.pitch);
+        player_data.update_yaw(rot.yaw);
 
         for writer in broadcast_query.iter() {
             if !writer.running.load(std::sync::atomic::Ordering::Relaxed) {

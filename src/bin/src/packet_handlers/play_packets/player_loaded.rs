@@ -1,7 +1,6 @@
 use bevy_ecs::prelude::{Entity, Query, Res};
 use ferrumc_core::data::player::PlayerData;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
-use ferrumc_core::transform::position::Position;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket;
 use ferrumc_net::PlayerLoadedReceiver;
@@ -28,7 +27,7 @@ pub fn handle(
         }
 
         // Default player data
-        *player_data = PlayerData::new(Position::default(), "overworld");
+        *player_data = PlayerData::default();
 
         // Save the player's position in the world
         if let Ok(loaded) = state
@@ -63,17 +62,6 @@ pub fn handle(
                     }
                 }
             }
-        } else if let Err(e) = state
-            .0
-            .world
-            .save_player_state(player_identity.uuid.as_u128(), &player_data)
-        {
-            tracing::error!(
-                "Failed to save player state for {} ({}): {:?}",
-                player_identity.username,
-                player_identity.uuid.as_u128(),
-                e
-            );
         }
         let head_block = state.0.world.get_block_and_fetch(
             player_data.pos.x as i32,

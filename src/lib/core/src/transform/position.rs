@@ -28,7 +28,7 @@ impl Position {
 // Implementations:
 impl Default for Position {
     fn default() -> Self {
-        Self::new(0.0, 0.0, 0.0)
+        Self::new(0.0, 100.0, 0.0)
     }
 }
 

@@ -10,6 +10,7 @@ impl World {
     pub fn save_player_state(&self, key: u128, state: &PlayerData) -> Result<(), PlayerDataError> {
         self.player_state_backend.create_table(TABLE_NAME)?;
         self.player_state_backend.upsert(TABLE_NAME, key, state)?;
+        tracing::info!("Saving position {} {} {}", state.pos.x, state.pos.y, state.pos.z);
         Ok(())
     }
 

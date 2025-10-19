@@ -201,11 +201,23 @@ pub(super) async fn login(
     // =============================================================================================
     // 12 Send initial player position sync (requires teleport confirmation)
     let teleport_id_i32: i32 = (rand::random::<u32>() & 0x3FFF_FFFF) as i32;
+
+    let player_data = state
+        .world
+        .load_player_state(player_identity.uuid.as_u128())
+        .ok()
+        .flatten()
+        .unwrap_or_default();
+
     let sync_player_pos =
-        crate::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket {
-            teleport_id: VarInt::new(teleport_id_i32),
-            ..Default::default()
-        };
+        crate::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket::new(
+            (player_data.pos.x, player_data.pos.y, player_data.pos.z),
+            (0.0, 0.0, 0.0),
+            player_data.yaw,
+            player_data.pitch,
+            0,
+            VarInt::new(teleport_id_i32),
+        );
     conn_write.send_packet(sync_player_pos)?;
 
     // =============================================================================================
