@@ -99,7 +99,7 @@ pub fn block(input: TokenStream) -> TokenStream {
             .to_compile_error()
             .into();
         }
-        let first = filtered_names.iter().next().unwrap().0;
+        let first = filtered_names.first().unwrap().0;
         return quote! { BlockId(#first) }.into();
     };
 
