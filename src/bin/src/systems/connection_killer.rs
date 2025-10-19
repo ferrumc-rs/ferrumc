@@ -12,7 +12,8 @@ pub fn connection_killer(
     state: Res<GlobalStateResource>,
 ) {
     while let Some((disconnecting_entity, reason)) = state.0.players.disconnection_queue.pop() {
-        let disconnecting_player: &(Entity, &StreamWriter, &PlayerIdentity) = &query.get(disconnecting_entity).unwrap();
+        let disconnecting_player: &(Entity, &StreamWriter, &PlayerIdentity) =
+            &query.get(disconnecting_entity).unwrap();
 
         for (entity, conn, player_identity) in query.iter() {
             if disconnecting_entity == entity {

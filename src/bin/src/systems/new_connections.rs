@@ -61,8 +61,12 @@ pub fn accept_new_connections(
         );
 
         for player in &state.0.players.player_list {
-            if player.value().0.eq(&new_connection.player_identity.uuid.as_u128()) {
-                continue
+            if player
+                .value()
+                .0
+                .eq(&new_connection.player_identity.uuid.as_u128())
+            {
+                continue;
             }
             system_messages::player_join::handle(&new_connection.player_identity, *player.key());
         }

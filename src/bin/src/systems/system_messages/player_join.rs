@@ -5,7 +5,8 @@ use ferrumc_text::{Color, NamedColor, TextComponent};
 use tracing::debug;
 
 pub fn handle(disconnecting_player: &PlayerIdentity, receiver_player: Entity) {
-    let mut message = TextComponent::from(format!("{} joined the game", disconnecting_player.username));
+    let mut message =
+        TextComponent::from(format!("{} joined the game", disconnecting_player.username));
     let color: Color = Color::Named(NamedColor::Yellow);
     message.color = Some(color);
 
