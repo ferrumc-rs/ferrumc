@@ -8,7 +8,6 @@ edition = "2021"
 thiserror = { workspace = true }
 tracing = { workspace = true }
 ferrumc-config = { workspace = true }
-ferrumc-utils = { workspace = true }
 rand = { workspace = true }
 heed = { workspace = true }
 page_size = { workspace = true }

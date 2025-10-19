@@ -14,8 +14,6 @@ enum-ordinalize = { workspace = true }
 ferrumc-macros = { workspace = true }
 bevy_ecs = { workspace = true }
 ferrumc-net-codec = { workspace = true }
-ferrumc-config = { workspace = true }
-flate2 = { workspace = true }
 regex = { workspace = true }
 
 [dev-dependencies] # Needed for the ServerState mock... :concern:
