@@ -69,8 +69,12 @@ pub fn handle(
         *position = Position::new(new_position.x, new_position.y, new_position.z);
 
         *on_ground = OnGround(event.on_ground);
-        
-        player_data.update_position(Position::new(new_position.x, new_position.y, new_position.z));
+
+        player_data.update_position(Position::new(
+            new_position.x,
+            new_position.y,
+            new_position.z,
+        ));
         player_data.update_on_ground(event.on_ground);
 
         if let Err(err) = update_pos_for_all(
