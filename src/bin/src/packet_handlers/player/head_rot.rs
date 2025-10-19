@@ -16,7 +16,17 @@ pub fn handle_player_move(
     for event in events.read() {
         let entity = event.entity;
 
-        let (rot, identity) = query.get(entity).unwrap();
+        let rot;
+        let identity;
+
+        match query.get(entity) {
+            Ok((_rot, _identity)) => {
+                rot = _rot;
+                identity = _identity;
+            }
+            Err(_) => continue,
+        }
+
         let head_rot_packet = SetHeadRotationPacket::new(
             identity.uuid.as_u128() as i32,
             NetAngle::from_degrees(rot.yaw as f64),
