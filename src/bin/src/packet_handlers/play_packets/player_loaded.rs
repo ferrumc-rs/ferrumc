@@ -1,4 +1,6 @@
 use bevy_ecs::prelude::{Entity, Query, Res};
+use ferrumc_core::data::player::PlayerData;
+use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::position::Position;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket;
@@ -10,10 +12,10 @@ use tracing::warn;
 pub fn handle(
     ev: Res<PlayerLoadedReceiver>,
     state: Res<GlobalStateResource>,
-    query: Query<(Entity, &Position, &StreamWriter)>,
+    mut query: Query<(Entity, &PlayerIdentity, &mut PlayerData, &StreamWriter)>,
 ) {
     for (_, player) in ev.0.try_iter() {
-        let Ok((entity, player_pos, conn)) = query.get(player) else {
+        let Ok((entity, player_identity, mut player_data, conn)) = query.get_mut(player) else {
             warn!("Player position not found in query.");
             continue;
         };
@@ -24,10 +26,56 @@ pub fn handle(
             );
             continue;
         }
+
+        // Default player data
+        *player_data = PlayerData::new(
+            player_identity.uuid.as_u128(),
+            Position::default(),
+            "overworld",
+        );
+
+        // Save the player's position in the world
+        if let Ok(loaded) = state
+            .0
+            .world
+            .players_state
+            .load_player_state(player_identity.uuid.as_u128())
+        {
+            match loaded {
+                Some(loaded_data) => {
+                    *player_data = loaded_data;
+                    tracing::info!(
+                        "Loaded player state for {}: position=({}, {}, {}), dimension={}",
+                        player_data.uuid,
+                        player_data.pos.x,
+                        player_data.pos.y,
+                        player_data.pos.z,
+                        player_data.dimension
+                    );
+                }
+                None => {
+                    if let Err(e) = state.0.world.players_state.save_player_state(&player_data) {
+                        tracing::error!(
+                            "Failed to save player state for {}: {:?}",
+                            player_identity.username,
+                            e
+                        );
+                    }
+                }
+            }
+        } else {
+            if let Err(e) = state.0.world.players_state.save_player_state(&player_data) {
+                tracing::error!(
+                    "Failed to save player state for {}: {:?}",
+                    player_identity.username,
+                    e
+                );
+            }
+        }
         let head_block = state.0.world.get_block_and_fetch(
-            player_pos.x as i32,
-            player_pos.y as i32,
-            player_pos.z as i32,
+            player_data.pos.x as i32,
+            player_data.pos.y as i32,
+            player_data.pos.z as i32,
             "overworld",
         );
         if let Ok(head_block) = head_block {
@@ -35,17 +83,17 @@ pub fn handle(
                 tracing::info!(
                     "Player {} loaded at position: ({}, {}, {})",
                     player,
-                    player_pos.x,
-                    player_pos.y,
-                    player_pos.z
+                    player_data.pos.x,
+                    player_data.pos.y,
+                    player_data.pos.z
                 );
             } else {
                 tracing::info!(
                     "Player {} loaded at position: ({}, {}, {}) with head block: {:?}",
                     player,
-                    player_pos.x,
-                    player_pos.y,
-                    player_pos.z,
+                    player_data.pos.x,
+                    player_data.pos.y,
+                    player_data.pos.z,
                     head_block
                 );
                 // Teleport the player to the world center if their head block is not air
@@ -66,7 +114,7 @@ pub fn handle(
         } else {
             warn!(
                 "Failed to fetch head block for player {} at position: ({}, {}, {})",
-                player, player_pos.x, player_pos.y, player_pos.z
+                player, player_data.pos.x, player_data.pos.y, player_data.pos.z
             );
         }
     }

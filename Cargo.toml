@@ -14,14 +14,11 @@ resolver = "2"
 members = [
     "src/bin",
     "src/lib/adapters/anvil",
-    "src/lib/adapters/anvil",
-    "src/lib/adapters/nbt",
     "src/lib/adapters/nbt",
     "src/lib/commands",
     "src/lib/default_commands",
     "src/lib/core",
     "src/lib/core/state",
-    "src/lib/derive_macros",
     "src/lib/derive_macros",
     "src/lib/net",
     "src/lib/net/crates/codec",
@@ -39,6 +36,7 @@ members = [
     "src/lib/inventories",
     "src/lib/registry",
     "src/lib/scheduler",
+    "src/lib/player_state",
 ]
 
 #================== Lints ==================#
@@ -108,6 +106,7 @@ ferrumc-scheduler = { path = "src/lib/scheduler" }
 ferrumc-state = { path = "src/lib/core/state" }
 ferrumc-storage = { path = "src/lib/storage" }
 ferrumc-text = { path = "src/lib/text" }
+ferrumc-playerstate = { path = "src/lib/player_state" }
 ferrumc-threadpool = { path = "src/lib/utils/threadpool" }
 ferrumc-utils = { path = "src/lib/utils" }
 ferrumc-world = { path = "src/lib/world" }
