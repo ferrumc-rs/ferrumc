@@ -101,11 +101,15 @@ pub fn build_registry_packets(input: TokenStream) -> TokenStream {
 /// A macro to lookup block IDs at compile time.
 ///
 /// Feed in the block name as a string literal, and an optional set of properties as a map.
-/// It will output a `BlockId` struct with the correct ID for that block and properties.
+/// It will output a [`ferrumc_world::block_id::BlockId`] struct with the correct ID for that block and properties.
 /// Usage:
-/// ```ignore
+/// ```
+/// # use ferrumc_world::block_id::BlockId;
+/// # use ferrumc_macros::block;
 /// let block_id = block!("stone");
 /// let another_block_id = block!("minecraft:grass_block", {snowy: true});
+/// assert_eq!(block_id, BlockId(1));
+/// assert_eq!(another_block_id, BlockId(8));
 /// ```
 /// Unfortunately, due to current limitations in Rust's proc macros, you will need to import the
 /// `BlockId` struct manually.
