@@ -47,12 +47,7 @@ pub fn connection_killer(
                     );
                         }
                     } else {
-                        if disconnecting_player.is_some() {
-                            system_messages::player_leave::handle(
-                                disconnecting_player.unwrap().2,
-                                entity,
-                            );
-                        }
+                        system_messages::player_leave::handle(disconnecting_player.2, entity);
                     }
                     cmd.entity(entity).despawn();
                 }
