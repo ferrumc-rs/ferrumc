@@ -11,9 +11,21 @@ pub fn connection_killer(
     mut cmd: Commands,
     state: Res<GlobalStateResource>,
 ) {
+    let mut disconnecting_player: Option<(Entity, &StreamWriter, &PlayerIdentity)> = None;
     while let Some((disconnecting_entity, reason)) = state.0.players.disconnection_queue.pop() {
-        let disconnecting_player: &(Entity, &StreamWriter, &PlayerIdentity) =
-            &query.get(disconnecting_entity).unwrap();
+        if query.contains(disconnecting_entity) && disconnecting_player.is_none() {
+            let entity_result = query.get(disconnecting_entity);
+
+            match entity_result {
+                Ok(player_result) => {
+                    disconnecting_player = Some(player_result);
+                }
+                Err(e) => {
+                    disconnecting_player = None;
+                    trace!("Disconnecting player not in query: {}", e);
+                }
+            }
+        }
 
         for (entity, conn, player_identity) in query.iter() {
             if disconnecting_entity == entity {
@@ -47,7 +59,9 @@ pub fn connection_killer(
                     );
                 }
             } else {
-                system_messages::player_leave::handle(disconnecting_player.2, entity);
+                if disconnecting_player.is_some() {
+                    system_messages::player_leave::handle(disconnecting_player.unwrap().2, entity);
+                }
             }
             cmd.entity(entity).despawn();
         }
