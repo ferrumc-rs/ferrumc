@@ -16,7 +16,9 @@ pub fn handle_player_move(
     for event in events.read() {
         let entity = event.entity;
 
-        let rot;
+        let Ok((rot, identity)) = query.get(entity) else {
+            continue;
+        }
         let identity;
 
         match query.get(entity) {
