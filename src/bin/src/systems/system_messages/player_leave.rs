@@ -2,7 +2,6 @@ use bevy_ecs::entity::Entity;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::mq;
 use ferrumc_text::{Color, NamedColor, TextComponent};
-use tracing::debug;
 
 pub fn handle(joining_player: &PlayerIdentity, receiver_player: Entity) {
     let mut message = TextComponent::from(format!("{} left the game", joining_player.username));
