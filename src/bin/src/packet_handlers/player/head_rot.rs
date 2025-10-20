@@ -18,16 +18,7 @@ pub fn handle_player_move(
 
         let Ok((rot, identity)) = query.get(entity) else {
             continue;
-        }
-        let identity;
-
-        match query.get(entity) {
-            Ok((_rot, _identity)) => {
-                rot = _rot;
-                identity = _identity;
-            }
-            Err(_) => continue,
-        }
+        };
 
         let head_rot_packet = SetHeadRotationPacket::new(
             identity.uuid.as_u128() as i32,
