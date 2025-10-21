@@ -1,3 +1,10 @@
+use bevy_math::Vec3Swizzles;
+
+use crate::{
+    perlin_noise::{BIOME_INFO_NOISE, FROZEN_TEMPERATURE_NOISE, TEMPERATURE_NOISE},
+    pos::BlockPos,
+};
+
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Biome {
     TheVoid,
@@ -68,11 +75,42 @@ pub enum Biome {
 }
 
 impl Biome {
-    pub(crate) fn should_melt_frozen_ocean_iceberg_slightly(&self, sea_level: i32) -> bool {
-        todo!()
+    pub(crate) fn should_melt_frozen_ocean_iceberg_slightly(
+        &self,
+        pos: BlockPos,
+        sea_level: i32,
+    ) -> bool {
+        self.block_temperature(pos, sea_level) > 0.1
     }
 
-    pub(crate) fn cold_enough_to_snow(&self, pos: bevy_math::IVec3) -> bool {
-        todo!()
+    pub(crate) fn cold_enough_to_snow(&self, pos: BlockPos) -> bool {
+        self.block_temperature(pos, 64) < 0.15
+    }
+
+    fn temperature(&self) -> f32 {
+        todo!("we probably want to parse the biome json data for this")
+    }
+
+    pub fn block_temperature(&self, pos: BlockPos, sea_level: i32) -> f32 {
+        let y = pos.y;
+        let pos = pos.xz().as_dvec2();
+        let temp = if *self == Biome::FrozenOcean
+            && FROZEN_TEMPERATURE_NOISE.legacy_simplex_at(pos * 0.05) * 7.
+                + BIOME_INFO_NOISE.legacy_simplex_at(pos * 0.2)
+                < 0.3
+            && BIOME_INFO_NOISE.legacy_simplex_at(pos * 0.09) < 0.8
+        {
+            0.2
+        } else {
+            self.temperature()
+        };
+        if y > sea_level + 17 {
+            temp - ((TEMPERATURE_NOISE.legacy_simplex_at(pos / 8.) * 8.) as f32 + y as f32
+                - (sea_level + 17) as f32)
+                * 0.05
+                / 40.
+        } else {
+            temp
+        }
     }
 }
