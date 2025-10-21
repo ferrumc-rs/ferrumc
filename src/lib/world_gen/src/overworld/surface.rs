@@ -188,7 +188,7 @@ impl OverworldSurface {
                 .abs();
             let mut iceburg_height = (min * min * 1.2).min(abs * 40.0).ceil() + 14.0;
 
-            if biome.should_melt_frozen_ocean_iceberg_slightly(SEA_LEVEL) {
+            if biome.should_melt_frozen_ocean_iceberg_slightly(pos.block(SEA_LEVEL), SEA_LEVEL) {
                 iceburg_height -= 2.0;
             }
 
