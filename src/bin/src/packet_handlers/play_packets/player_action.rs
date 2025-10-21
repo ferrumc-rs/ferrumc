@@ -12,12 +12,14 @@ use ferrumc_world::block_id::BlockId;
 use ferrumc_world::vanilla_chunk_format::BlockData;
 use tracing::{debug, error, trace};
 
+/// Handles the Action the player could do.
+///
+/// Documentation to look up possible events: [https://minecraft.wiki](https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol?oldid=2773393#Player_Action)
 pub fn handle(
     events: Res<PlayerActionReceiver>,
     state: Res<GlobalStateResource>,
     query: Query<(Entity, &StreamWriter)>,
 ) {
-    // https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol?oldid=2773393#Player_Action
     for (event, trigger_eid) in events.0.try_iter() {
         let res: Result<(), BinaryError> = try {
             match event.status.0 {

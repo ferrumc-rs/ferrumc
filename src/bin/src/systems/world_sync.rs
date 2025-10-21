@@ -2,6 +2,7 @@ use bevy_ecs::prelude::{Res, ResMut};
 use ferrumc_core::chunks::world_sync_tracker::WorldSyncTracker;
 use ferrumc_state::GlobalStateResource;
 
+/// Synchronizes the world.
 pub fn sync_world(state: Res<GlobalStateResource>, mut last_synced: ResMut<WorldSyncTracker>) {
     if state.0.shut_down.load(std::sync::atomic::Ordering::Relaxed) {
         return;

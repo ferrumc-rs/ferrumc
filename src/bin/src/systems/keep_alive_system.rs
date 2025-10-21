@@ -5,6 +5,8 @@ use ferrumc_state::GlobalStateResource;
 use std::time::Duration;
 use tracing::warn;
 
+/// The system to regularly send & receive the keep-alive packets,
+/// so the client doesn't disconnect randomly.
 pub fn keep_alive_system(
     mut query: Query<(Entity, &mut KeepAliveTracker, &StreamWriter)>,
     state: Res<GlobalStateResource>,

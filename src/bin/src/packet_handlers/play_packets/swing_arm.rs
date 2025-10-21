@@ -7,6 +7,7 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalStateResource;
 use tracing::error;
 
+/// Makes the player swing their arm.
 pub fn handle(
     events: Res<SwingArmPacketReceiver>,
     query: Query<&PlayerIdentity>,

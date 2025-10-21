@@ -7,6 +7,7 @@ use ferrumc_net::SetCreativeModeSlotReceiver;
 use ferrumc_state::GlobalStateResource;
 use tracing::{debug, error};
 
+/// Handles that the player can get blocks from the creative inventory and add them to the player inventory.
 pub fn handle(
     events: Res<SetCreativeModeSlotReceiver>,
     state: Res<GlobalStateResource>,

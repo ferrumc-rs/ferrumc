@@ -12,9 +12,11 @@ use ferrumc_state::GlobalStateResource;
 use std::time::Instant;
 use tracing::{error, trace};
 
+/// Struct for new Connections
 #[derive(Resource)]
 pub struct NewConnectionRecv(pub Receiver<NewConnection>);
 
+/// Accepts new connection, so they can be handled via bevy ecs correctly.
 pub fn accept_new_connections(
     mut cmd: Commands,
     new_connections: Res<NewConnectionRecv>,

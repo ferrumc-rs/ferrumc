@@ -3,6 +3,7 @@ use ferrumc_core::conn::player_count_update_cooldown::PlayerCountUpdateCooldown;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_state::GlobalStateResource;
 
+/// Updates the player counter shown in the client in the "multiplayer" view.
 pub fn player_count_updater(
     state: Res<GlobalStateResource>,
     query: Query<(Entity, &PlayerIdentity)>,

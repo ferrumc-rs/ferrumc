@@ -13,6 +13,7 @@ use ferrumc_net_codec::net_types::{
 use ferrumc_state::GlobalStateResource;
 use tracing::error;
 
+/// Tries to find possible (registered) commands via a given String.
 fn find_command(input: String) -> Option<Arc<Command>> {
     let mut input = input;
     if input.starts_with("/") {
@@ -47,6 +48,7 @@ fn find_command(input: String) -> Option<Arc<Command>> {
     None
 }
 
+/// Creates the needed Context for the Client to show suggestions.
 fn create_ctx(input: String, command: Option<Arc<Command>>, sender: Sender) -> CommandContext {
     let input = input
         .strip_prefix(command.clone().map(|c| c.name).unwrap_or_default())
@@ -61,6 +63,9 @@ fn create_ctx(input: String, command: Option<Arc<Command>>, sender: Sender) -> C
     }
 }
 
+/// Handles that while the player writes a command,
+/// he gets recommendations about which commands
+/// are possible / fitting with the parts he wrote already.
 pub fn handle(
     events: Res<CommandSuggestionRequestReceiver>,
     query: Query<&StreamWriter>,

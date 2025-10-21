@@ -6,6 +6,7 @@ use ferrumc_net::connection::StreamWriter;
 use ferrumc_state::GlobalStateResource;
 use std::collections::HashSet;
 
+/// Checks if the player moved to a new chunk so new chunks can be sent.
 pub fn cross_chunk_boundary(
     mut events: EventReader<CrossChunkBoundaryEvent>,
     mut query: Query<&mut StreamWriter>,

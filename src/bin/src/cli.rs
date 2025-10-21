@@ -1,10 +1,13 @@
 use clap::{Parser, Subcommand, ValueEnum};
 use tracing::Level;
 
+ /// Parser for command arguments
 #[derive(Parser)]
 pub struct CLIArgs {
+     /// The Subcommands
     #[command(subcommand)]
     pub command: Option<Command>,
+     /// Customizable Logging level
     #[clap(long)]
     #[arg(value_enum)]
     #[cfg_attr(debug_assertions, arg(default_value_t = LogLevel(Level::DEBUG)))]
@@ -12,6 +15,7 @@ pub struct CLIArgs {
     pub log: LogLevel,
 }
 
+/// The subcommands that could be given when executing the application from the binary.
 #[derive(Subcommand, Clone)]
 pub enum Command {
     /// Sets up the config
@@ -22,6 +26,7 @@ pub enum Command {
     Run,
 }
 
+/// Arguments that could be given if the subcommand used was [Command::Import]
 #[derive(Debug, Clone, Parser)]
 pub struct ImportArgs {
     /// Path to world import folder
@@ -37,11 +42,11 @@ pub struct ImportArgs {
     pub max_concurrent_tasks: usize,
 }
 
-// Wrapper struct for the Level enum
+/// Wrapper struct for the Level enum
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct LogLevel(Level);
 
-// Implement `ValueEnum` for the wrapper
+/// Implement [`ValueEnum`] for the wrapper
 impl ValueEnum for LogLevel {
     fn value_variants<'a>() -> &'a [Self] {
         static VARIANTS: &[LogLevel] = &[
@@ -65,7 +70,7 @@ impl ValueEnum for LogLevel {
     }
 }
 
-// Add a conversion method to make using the wrapper easier
+/// Add a conversion method to make using the wrapper easier
 impl From<LogLevel> for Level {
     fn from(log_level: LogLevel) -> Self {
         log_level.0

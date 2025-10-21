@@ -6,6 +6,9 @@ use ferrumc_net::PlayerCommandPacketReceiver;
 use ferrumc_state::GlobalStateResource;
 use tracing::error;
 
+/// Handles actions the player could do with movement. e.g. Sneaking, swimming.
+///
+/// Documentation to look up possible events: [https://minecraft.wiki](https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol?oldid=2773393#Player_Action)
 pub fn handle(
     events: Res<PlayerCommandPacketReceiver>,
     query: Query<(Entity, &StreamWriter)>,

@@ -14,6 +14,8 @@ use ferrumc_state::GlobalState;
 use std::sync::atomic::Ordering;
 use tracing::{error, trace};
 
+/// Sends the chunks correctly to the client and calculates new chunks,
+/// only saving them if they were changed.
 pub fn send_chunks(
     state: GlobalState,
     mut chunk_coords: Vec<(i32, i32, String)>,

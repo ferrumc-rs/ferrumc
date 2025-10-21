@@ -7,6 +7,7 @@ use ferrumc_state::GlobalStateResource;
 use ferrumc_world::block_id::BlockId;
 use tracing::warn;
 
+/// Handles where the player gets loaded in after joining.
 pub fn handle(
     ev: Res<PlayerLoadedReceiver>,
     state: Res<GlobalStateResource>,

@@ -6,6 +6,7 @@ use ferrumc_net::{
 use ferrumc_state::GlobalStateResource;
 use tracing::error;
 
+/// Sends the information to a writer to write the messages to the Client
 fn send(
     writer: &StreamWriter,
     receiver: Entity,
@@ -24,6 +25,7 @@ fn send(
     }
 }
 
+/// Processes the current queue to send the right message to the right persons.
 pub fn process(query: Query<(Entity, &StreamWriter)>, state: Res<GlobalStateResource>) {
     while !mq::QUEUE.is_empty() {
         let entry = mq::QUEUE.pop().unwrap();
