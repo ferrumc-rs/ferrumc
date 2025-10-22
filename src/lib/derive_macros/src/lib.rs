@@ -1,5 +1,6 @@
 #![feature(proc_macro_quote)]
 
+use block::matches;
 use proc_macro::TokenStream;
 
 mod block;
@@ -121,4 +122,23 @@ pub fn build_registry_packets(input: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn block(input: TokenStream) -> TokenStream {
     block::block(input)
+}
+
+/// A macro to check if a block ID matches a given block name at compile time.
+/// Usage:
+/// ```
+/// # use ferrumc_macros::{match_block};
+/// # use ferrumc_world::block_id::BlockId;
+/// let block_id = BlockId(1);
+/// if match_block!("stone", block_id) {
+///     // do something
+/// }
+/// ```
+/// Unfortunately, due to current limitations in Rust's proc macros, you will need to import the
+/// `BlockId` struct manually.
+///
+/// The `minecraft:` namespace is optional and will be added automatically if not present.
+#[proc_macro]
+pub fn match_block(input: TokenStream) -> TokenStream {
+    matches::matches_block(input)
 }

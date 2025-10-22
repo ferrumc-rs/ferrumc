@@ -6,6 +6,8 @@ use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::{braced, Expr, Ident, Lit, LitStr, Result, Token};
 
+pub(crate) mod matches;
+
 const JSON_FILE: &[u8] = include_bytes!("../../../../../assets/data/blockstates.json");
 
 struct Input {

@@ -146,7 +146,6 @@ ahash = "0.8.12"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.145"
 serde_derive = "1.0.228"
-serde_yaml_ng = "0.10.0"
 base64 = "0.22.1"
 
 # When if bitcode's latest version has been changed, see if clippy still complains about
@@ -171,7 +170,6 @@ lazy_static = "1.5.0"
 quote = "1.0.41"
 syn = "2.0.106"
 proc-macro2 = "1.0.101"
-proc-macro-crate = "3.4.0"
 paste = "1.0.15"
 maplit = "1.0.2"
 macro_rules_attribute = "0.2.2"
