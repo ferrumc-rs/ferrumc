@@ -1,8 +1,6 @@
 use bevy_ecs::prelude::{Entity, EventWriter, Query, Res};
+use ferrumc_core::chunks::cross_chunk_boundary_event::CrossChunkBoundaryEvent;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
-use ferrumc_core::{
-    chunks::cross_chunk_boundary_event::CrossChunkBoundaryEvent, data::player::PlayerData,
-};
 use ferrumc_net::SetPlayerPositionPacketReceiver;
 use tracing::{debug, error, trace, warn};
 
@@ -20,13 +18,7 @@ use ferrumc_state::{GlobalState, GlobalStateResource};
 
 pub fn handle(
     events: Res<SetPlayerPositionPacketReceiver>,
-    mut pos_query: Query<(
-        &mut Position,
-        &mut OnGround,
-        &Rotation,
-        &PlayerIdentity,
-        &mut PlayerData,
-    )>,
+    mut pos_query: Query<(&mut Position, &mut OnGround, &Rotation, &PlayerIdentity)>,
     pass_conn_query: Query<(Entity, &StreamWriter)>,
     mut cross_chunk_events: EventWriter<CrossChunkBoundaryEvent>,
     state: Res<GlobalStateResource>,
@@ -44,7 +36,7 @@ pub fn handle(
 
         let new_position = Position::new(event.x, event.feet_y, event.z);
 
-        let (mut position, mut on_ground, _, _, mut player_data) = pos_query
+        let (mut position, mut on_ground, _, _) = pos_query
             .get_mut(eid)
             .expect("Failed to get position and on_ground components");
 
@@ -69,13 +61,6 @@ pub fn handle(
         *position = Position::new(new_position.x, new_position.y, new_position.z);
 
         *on_ground = OnGround(event.on_ground);
-
-        player_data.update_position(Position::new(
-            new_position.x,
-            new_position.y,
-            new_position.z,
-        ));
-        player_data.update_on_ground(event.on_ground);
 
         if let Err(err) = update_pos_for_all(
             eid,
@@ -110,13 +95,7 @@ fn update_pos_for_all(
     entity_id: Entity,
     delta_pos: Option<(i16, i16, i16)>,
     new_rot: Option<Rotation>,
-    pos_query: &Query<(
-        &mut Position,
-        &mut OnGround,
-        &Rotation,
-        &PlayerIdentity,
-        &mut PlayerData,
-    )>,
+    pos_query: &Query<(&mut Position, &mut OnGround, &Rotation, &PlayerIdentity)>,
     conn_query: &Query<(Entity, &StreamWriter)>,
     state: GlobalState,
 ) -> Result<(), BinaryError> {
@@ -128,7 +107,7 @@ fn update_pos_for_all(
         );
         return Ok(());
     }
-    let (pos, grounded, rot, identity, _) = pos_query.get(entity_id)?;
+    let (pos, grounded, rot, identity) = pos_query.get(entity_id)?;
 
     // If any delta of (x|y|z) exceeds 7.5, then it's "not recommended" to use this packet
     // As docs say: "If the movement exceeds these limits, Teleport Entity should be sent instead."

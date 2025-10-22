@@ -213,8 +213,8 @@ pub(super) async fn login(
         crate::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket::new(
             (player_data.pos.x, player_data.pos.y, player_data.pos.z),
             (0.0, 0.0, 0.0),
-            player_data.yaw,
-            player_data.pitch,
+            player_data.rotation.0,
+            player_data.rotation.1,
             0,
             VarInt::new(teleport_id_i32),
         );
