@@ -1,5 +1,9 @@
-use bevy_ecs::prelude::{Entity, Query, Res};
+use bevy_ecs::{
+    event::EventWriter,
+    prelude::{Entity, Query, Res},
+};
 use ferrumc_core::{
+    conn::player_disconnect_event::PlayerDisconnectEvent,
     data::player::PlayerData,
     identity::player_identity::PlayerIdentity,
     transform::{grounded::OnGround, position::Position, rotation::Rotation},
@@ -17,27 +21,20 @@ pub fn handle(
         &OnGround,
         &Rotation,
     )>,
+    mut dispatch_events: EventWriter<PlayerDisconnectEvent>,
     state: Res<GlobalStateResource>,
 ) {
     let packet = ferrumc_net::packets::outgoing::disconnect::DisconnectPacket {
         reason: TextComponent::from("Server is shutting down"),
     };
-
-    for (entity, conn, identity, pos, on_ground, rotation) in query.iter() {
-        // I guess that save player state before sending shutdown packet is important to ensure data integrity and prevent data loss.
-        if let Err(e) = state.0.world.save_player_state(
-            identity.uuid.as_u128(),
-            &PlayerData::new(pos, on_ground.0, "overworld", rotation),
-        ) {
-            tracing::error!(
-                "Failed to save player state for {}: {}",
-                identity.username,
-                e
-            );
-        } else {
-            tracing::info!("Player state saved for {}", identity.username);
-        }
+    for (entity, conn, identity, position, on_ground, rotation) in query.iter() {
         if state.0.players.is_connected(entity) {
+            let player_disconnect = PlayerDisconnectEvent {
+                data: PlayerData::new(position, on_ground.0, "overworld", rotation),
+                identity: identity.to_owned(),
+                entity,
+            };
+            dispatch_events.write(player_disconnect);
             if let Err(e) = conn.send_packet_ref(&packet) {
                 tracing::error!(
                     "Failed to send shutdown packet to player {}: {}",
