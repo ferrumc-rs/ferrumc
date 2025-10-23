@@ -18,7 +18,7 @@ result-*
 profile.json.gz
 .DS_Store
 
-world/
+/world/
 whitelist.txt
 
 logs/
