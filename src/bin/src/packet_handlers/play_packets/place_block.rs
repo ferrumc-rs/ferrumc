@@ -14,6 +14,7 @@ use tracing::{debug, error, trace};
 
 use ferrumc_inventories::hotbar::Hotbar;
 use ferrumc_inventories::inventory::Inventory;
+use ferrumc_world::block_id::BlockId;
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -128,9 +129,12 @@ pub fn handle(
                         continue 'ev_loop;
                     }
 
-                    if let Err(err) =
-                        chunk.set_block(x & 0xF, y as i32, z & 0xF, VarInt::new(*mapped_block_id))
-                    {
+                    if let Err(err) = chunk.set_block(
+                        x & 0xF,
+                        y as i32,
+                        z & 0xF,
+                        BlockId(*mapped_block_id as u32),
+                    ) {
                         error!("Failed to set block: {:?}", err);
                         continue 'ev_loop;
                     }
