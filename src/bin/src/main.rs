@@ -138,7 +138,6 @@ fn entry(start_time: Instant) -> Result<(), BinaryError> {
 
 /// Handles the import of other worlds to the server.
 fn handle_import(import_args: ImportArgs) -> Result<(), BinaryError> {
-    //! Handles the import of the world.
     info!("Importing world...");
 
     // let config = get_global_config();

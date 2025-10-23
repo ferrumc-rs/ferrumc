@@ -1,13 +1,13 @@
 use clap::{Parser, Subcommand, ValueEnum};
 use tracing::Level;
 
- /// Parser for command arguments
+/// Parser for command arguments
 #[derive(Parser)]
 pub struct CLIArgs {
-     /// The Subcommands
+    /// The Subcommands
     #[command(subcommand)]
     pub command: Option<Command>,
-     /// Customizable Logging level
+    /// Customizable Logging level
     #[clap(long)]
     #[arg(value_enum)]
     #[cfg_attr(debug_assertions, arg(default_value_t = LogLevel(Level::DEBUG)))]

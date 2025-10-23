@@ -9,14 +9,13 @@ use ferrumc_core::mq;
 use ferrumc_net::ChatCommandPacketReceiver;
 use ferrumc_text::{NamedColor, TextComponent, TextComponentBuilder};
 
-
 /// Checks if the command sent is valid and exists.
-/// 
-/// # Arguments 
-/// 
+///
+/// # Arguments
+///
 /// * `input`: The command as a String.
 /// * `sender`: The player that sent it.
-/// 
+///
 /// returns: A Result with the information as a ['CommandContext'](ferrumc_commands::CommandContext)
 ///
 /// throws: Error if the command does not exist, with a TextComponent.

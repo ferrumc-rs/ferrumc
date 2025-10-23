@@ -39,7 +39,7 @@ pub enum BinaryError {
     #[error("World error: {0}")]
     World(#[from] WorldError),
 
-    /// An error that gets thrown when an Inventory error happens. 
+    /// An error that gets thrown when an Inventory error happens.
     #[error("Inventory error: {0}")]
     Inventory(#[from] InventoryError),
 
