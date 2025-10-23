@@ -42,6 +42,7 @@ pub struct Suggestion {
 }
 
 impl Suggestion {
+    /// Parses the given string to a suggestion.
     pub fn of(content: impl AsRef<str>) -> Suggestion {
         Suggestion {
             content: content.as_ref().to_string(),
