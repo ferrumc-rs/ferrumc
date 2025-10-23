@@ -1,10 +1,8 @@
-use crate::block_id::{BlockId, BLOCK2ID, ID2BLOCK};
+use crate::block_id::{BlockId, ID2BLOCK};
 use crate::chunk_format::{BlockStates, Chunk, PaletteType, Section};
 use crate::errors::WorldError;
-use crate::vanilla_chunk_format::BlockData;
 use crate::World;
 use ferrumc_general_purpose::data_packing::i32::read_nbit_i32;
-use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -67,9 +65,8 @@ impl World {
         y: i32,
         z: i32,
         dimension: &str,
-        block: impl Into<BlockId>,
+        block: BlockId,
     ) -> Result<(), WorldError> {
-        let block = block.into();
         if ID2BLOCK.get(block.0 as usize).is_none() {
             return Err(WorldError::InvalidBlockId(block.0));
         };
@@ -95,20 +92,10 @@ impl BlockStates {
     pub fn resize(&mut self, new_bit_size: usize) -> Result<(), WorldError> {
         match &mut self.block_data {
             PaletteType::Single(val) => {
-                let block = ID2BLOCK
-                    .get(val.0 as usize)
-                    .cloned()
-                    .unwrap_or(BlockData::default());
-                let mut new_palette = vec![VarInt::from(0); 1];
-                if let Some(id) = BLOCK2ID.get(&block) {
-                    new_palette[0] = VarInt::from(*id);
-                } else {
-                    error!("Could not find block id for palette entry: {:?}", block);
-                }
                 self.block_data = PaletteType::Indirect {
                     bits_per_block: new_bit_size as u8,
                     data: vec![],
-                    palette: new_palette,
+                    palette: vec![*val; 1],
                 }
             }
             PaletteType::Indirect {
@@ -224,14 +211,7 @@ impl Chunk {
     /// The positions are modulo'd by 16 to get the block index in the section anyway, so converting
     /// the coordinates to section coordinates isn't really necessary, but you should probably do it
     /// anyway for readability's sake.
-    pub fn set_block(
-        &mut self,
-        x: i32,
-        y: i32,
-        z: i32,
-        block: impl Into<BlockId>,
-    ) -> Result<(), WorldError> {
-        let block = block.into();
+    pub fn set_block(&mut self, x: i32, y: i32, z: i32, block: BlockId) -> Result<(), WorldError> {
         // Get old block
         let old_block = self.get_block(x, y, z)?;
         if old_block == block {
@@ -434,13 +414,13 @@ impl Chunk {
     ///
     /// * `Ok(())` - If the section was successfully set.
     /// * `Err(WorldError)` - If an error occurs while setting the section.
-    pub fn set_section(&mut self, section_y: i8, block: BlockData) -> Result<(), WorldError> {
+    pub fn set_section(&mut self, section_y: i8, block: BlockId) -> Result<(), WorldError> {
         if let Some(section) = self
             .sections
             .iter_mut()
             .find(|section| section.y == section_y)
         {
-            section.fill(block.clone())
+            section.fill(block)
         } else {
             Err(WorldError::SectionOutOfBounds(section_y as i32))
         }
@@ -456,9 +436,9 @@ impl Chunk {
     ///
     /// * `Ok(())` - If the chunk was successfully filled.
     /// * `Err(WorldError)` - If an error occurs while filling the chunk.
-    pub fn fill(&mut self, block: BlockData) -> Result<(), WorldError> {
+    pub fn fill(&mut self, block: BlockId) -> Result<(), WorldError> {
         for section in &mut self.sections {
-            section.fill(block.clone())?;
+            section.fill(block)?;
         }
         Ok(())
     }
@@ -475,8 +455,7 @@ impl Section {
     ///
     /// * `Ok(())` - If the section was successfully filled.
     /// * `Err(WorldError)` - If an error occurs while filling the section.
-    pub fn fill(&mut self, block: impl Into<BlockId>) -> Result<(), WorldError> {
-        let block = block.into();
+    pub fn fill(&mut self, block: BlockId) -> Result<(), WorldError> {
         self.block_states.block_data = PaletteType::Single(block.to_varint());
         self.block_states.block_counts = HashMap::from([(block, 4096)]);
         // Air, void air and cave air respectively
