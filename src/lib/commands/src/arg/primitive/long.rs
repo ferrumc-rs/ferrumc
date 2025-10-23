@@ -13,6 +13,7 @@ use crate::{
 
 use super::PrimitiveArgument;
 
+/// The long argument flag.
 #[derive(Clone, Debug, PartialEq, Default)]
 pub struct LongArgumentFlags {
     pub min: Option<i64>,
@@ -20,6 +21,7 @@ pub struct LongArgumentFlags {
 }
 
 impl NetEncode for LongArgumentFlags {
+    /// Encodes the type for networking.
     fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
         let mut flags = 0u8;
         if self.min.is_some() {
@@ -33,6 +35,7 @@ impl NetEncode for LongArgumentFlags {
         self.max.encode(writer, opts)
     }
 
+    /// Encodes the type for networing in async.
     async fn encode_async<W: AsyncWrite + Unpin>(
         &self,
         writer: &mut W,

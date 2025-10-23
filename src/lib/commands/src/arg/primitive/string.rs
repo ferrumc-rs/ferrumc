@@ -14,39 +14,32 @@ use crate::{
 };
 
 use super::PrimitiveArgument;
-
+/// Represents the type of string argument a command can accept.
 #[derive(Clone, Debug, PartialEq, Ordinalize, Default)]
 pub enum StringArgumentType {
+    /// A single-word string argument.
     #[default]
     Word,
+    /// A string argument that can be quoted to include spaces.
     Quotable,
+    /// A string argument that consumes the rest of the input.
     Greedy,
-}
-
-impl NetEncode for StringArgumentType {
-    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
-        VarInt::new(self.ordinal() as i32).encode(writer, opts)
-    }
-
-    async fn encode_async<W: AsyncWrite + Unpin>(
-        &self,
-        writer: &mut W,
-        opts: &NetEncodeOpts,
-    ) -> Result<(), NetEncodeError> {
-        VarInt::new(self.ordinal() as i32)
-            .encode_async(writer, opts)
-            .await
-    }
 }
 
 wrapper! {
     /// A single-word string.
+    ///
+    /// Accepts a single word without spaces.
     struct SingleWord(String);
 
-    /// A quotable string, accepting either a single-word string or a quoted multi-word string.
+    /// A quotable string.
+    ///
+    /// Accepts either a single word or a quoted string that may contain spaces.
     struct QuotableString(String);
 
-    /// A greedy string, consuming the rest of the command input.
+    /// A greedy string.
+    ///
+    /// Consumes the remainder of the command input as a single string.
     struct GreedyString(String);
 }
 
@@ -131,7 +124,6 @@ impl CommandArgument for GreedyString {
 
         while input.has_remaining_input() {
             let string = input.read_string();
-
             result.push_str(&string);
         }
 

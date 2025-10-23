@@ -6,6 +6,7 @@ use crate::{
 use super::PrimitiveArgument;
 
 impl CommandArgument for bool {
+    /// Parses the boolean string to a value for the server.
     fn parse(ctx: &mut CommandContext) -> ParserResult<Self> {
         let str = ctx.input.read_string();
 
@@ -18,10 +19,12 @@ impl CommandArgument for bool {
         Ok(value)
     }
 
+    /// Returns the Primitive Argument boolean.
     fn primitive() -> PrimitiveArgument {
         PrimitiveArgument::bool()
     }
 
+    /// Suggests the client what could be written for a bool.
     fn suggest(ctx: &mut CommandContext) -> Vec<Suggestion> {
         ctx.input.read_string();
 

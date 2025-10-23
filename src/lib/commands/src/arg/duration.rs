@@ -1,15 +1,30 @@
+use regex::Regex;
 use std::{sync::LazyLock, time::Duration};
 
-use regex::Regex;
-
+use super::{primitive::PrimitiveArgument, utils::parser_error, CommandArgument, ParserResult};
 use crate::{CommandContext, Suggestion};
 
-use super::{primitive::PrimitiveArgument, utils::parser_error, CommandArgument, ParserResult};
-
+/// Regex pattern for parsing duration strings (e.g., `1d`, `12h`, `30m`, `45s`).
 static PATTERN: LazyLock<Regex> =
     LazyLock::new(|| Regex::new("(([1-9][0-9]+|[1-9])[dhms])").unwrap());
 
+/// Implements `CommandArgument` for `Duration`.
+///
+/// Accepts strings representing time durations, such as:
+/// - `1d` → 1 day
+/// - `2h` → 2 hours
+/// - `30m` → 30 minutes
+/// - `45s` → 45 seconds
+///
+/// Multiple units can be combined, e.g., `1d2h30m`.
 impl CommandArgument for Duration {
+    /// Parses a duration string from the command input.
+    ///
+    /// # Errors
+    /// Returns a parser error if:
+    /// - The string has an invalid number
+    /// - The string has a missing or invalid unit
+    /// - No valid duration is found
     fn parse(ctx: &mut CommandContext) -> ParserResult<Self> {
         let mut duration = Duration::ZERO;
 
@@ -40,15 +55,23 @@ impl CommandArgument for Duration {
         Ok(duration)
     }
 
+    /// Returns the primitive argument type for this parser.
+    ///
+    /// A duration is treated as a simple word string in commands.
     fn primitive() -> PrimitiveArgument {
         PrimitiveArgument::word()
     }
 
+    /// Provides suggestions for partial duration input.
+    ///
+    /// Examples:
+    /// - Input `1` → suggestions: `1d`, `1h`, `1m`, `1s`
+    /// - Input `1h` → suggestions: `1hd`, `1hm`, `1hs` (filters out used units)
     fn suggest(ctx: &mut CommandContext) -> Vec<Suggestion> {
         ctx.input.skip_whitespace(u32::MAX, false);
         if !ctx.input.has_remaining_input() {
             return (0..9).map(|i| Suggestion::of(i.to_string())).collect();
-        };
+        }
 
         let input = ctx.input.read_string();
 
