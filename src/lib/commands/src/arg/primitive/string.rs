@@ -26,6 +26,22 @@ pub enum StringArgumentType {
     Greedy,
 }
 
+impl NetEncode for StringArgumentType {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+        VarInt::new(self.ordinal() as i32).encode(writer, opts)
+    }
+
+    async fn encode_async<W: AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
+        VarInt::new(self.ordinal() as i32)
+            .encode_async(writer, opts)
+            .await
+    }
+}
+
 wrapper! {
     /// A single-word string.
     ///

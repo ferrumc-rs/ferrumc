@@ -81,7 +81,7 @@ impl CommandGraph {
 
             if is_last
                 && (command.args.is_empty()
-                || command.args.first().is_some_and(|arg| !arg.required))
+                    || command.args.first().is_some_and(|arg| !arg.required))
             {
                 node.flags |= CommandNodeFlag::Executable.bitmask();
             }

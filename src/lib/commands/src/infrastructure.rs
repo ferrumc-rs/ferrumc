@@ -16,7 +16,6 @@ static COMMANDS: LazyLock<DashMap<&'static str, Arc<Command>>> = LazyLock::new(D
 static COMMAND_GRAPH: LazyLock<RwLock<CommandGraph>> =
     LazyLock::new(|| RwLock::new(CommandGraph::default()));
 
-/// Thread-local storage for command systems that need to be registered.
 thread_local! {
     static SYSTEMS_TO_BE_REGISTERED: RefCell<Vec<ScheduleConfigs<ScheduleSystem>>> = RefCell::new(Vec::new());
 }
