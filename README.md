@@ -63,7 +63,7 @@ to discuss the project!
     <li>
         <h4>💾 Crazy fast K/V database </h4>
         <i>32 render distance*</i>
-        <img src="https://github.com/ferrumc-rs/ferrumc/blob/master/assets/README/chunk_loading.gif?raw=true" alt="Chunk Loading DEMO">
+        <img src="https://github.com/ferrumc-rs/site/blob/main/public/images/chunk_loading.gif?raw=true" alt="Chunk Loading DEMO">
     </li>
     <li>
         <h4>🎮 Bevy ECS for smart, lockless concurrency driven by a massive community</h4>
