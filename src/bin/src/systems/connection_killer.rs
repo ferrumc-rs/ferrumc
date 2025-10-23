@@ -3,7 +3,7 @@ use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_state::GlobalStateResource;
 use ferrumc_text::TextComponent;
-use tracing::{debug, info, trace, warn};
+use tracing::{info, trace, warn};
 
 pub fn connection_killer(
     query: Query<(Entity, &StreamWriter, &PlayerIdentity)>,
