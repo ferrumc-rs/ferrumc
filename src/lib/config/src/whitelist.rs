@@ -11,12 +11,15 @@ use std::io::Write;
 use tracing::error;
 use uuid::Uuid;
 
+/// The whitelist saved in the memory.
 static WHITELIST: OnceCell<DashSet<u128>> = OnceCell::new();
 
+/// Returns the whitelist.
 pub fn get_whitelist() -> &'static DashSet<u128> {
     WHITELIST.get_or_init(create_whitelist)
 }
 
+/// Creates the whitelist from its file.
 pub fn create_whitelist() -> DashSet<u128> {
     let whitelist_location = get_root_path().join("whitelist.txt");
     if !whitelist_location.exists() {
@@ -172,12 +175,16 @@ fn convert_whitelist_file() -> Result<Vec<Uuid>, ConfigError> {
     Ok(return_uuids)
 }
 
+/// The information needed for the mojang profile.
 #[derive(Deserialize, Debug)]
 struct MojangProfile {
+    /// UUID of the User.
     id: String,
+    /// Username of the User.
     name: String,
 }
 
+/// Requests information from mojang based on the uuid.
 fn query_mojang_for_usernames(uuids: Vec<&Uuid>) -> Vec<MojangProfile> {
     if uuids.is_empty() {
         return Vec::new();
@@ -204,12 +211,14 @@ fn query_mojang_for_usernames(uuids: Vec<&Uuid>) -> Vec<MojangProfile> {
         .collect()
 }
 
+/// Adds someone to the whitelist based on the uuid.
 pub fn add_to_whitelist(uuid: Uuid) -> bool {
     WHITELIST
         .get_or_init(create_whitelist)
         .insert(uuid.as_u128())
 }
 
+/// Removes someone to the whitelist based on the uuid.
 pub fn remove_from_whitelist(uuid: Uuid) -> bool {
     WHITELIST
         .get_or_init(create_whitelist)
@@ -217,6 +226,7 @@ pub fn remove_from_whitelist(uuid: Uuid) -> bool {
         .is_some()
 }
 
+/// Creates the blank whitelist file if there is none.
 pub fn create_blank_whitelist_file() {
     let whitelist_location = get_root_path().join("whitelist.txt");
 

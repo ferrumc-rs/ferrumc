@@ -4,13 +4,17 @@ use lazy_static::lazy_static;
 use std::fs::File;
 use std::io::Read;
 
+/// Favicon for the application
 const BAKED_FAVICON: &[u8] = include_bytes!("../../../../assets/data/icon-64.png");
 
 lazy_static! {
+    /// Favicon in base64
     static ref FAVICON_BASE64: String = {
         let encoded = base64::engine::general_purpose::STANDARD.encode(BAKED_FAVICON);
         format!("data:image/png;base64,{encoded}")
     };
+
+    /// Custom favicon
     static ref CUSTOM_FAVICON: Option<String> = {
         let icon_path = get_root_path().join("icon.png");
         if icon_path.exists() {
@@ -36,6 +40,8 @@ lazy_static! {
         }
     };
 }
+
+/// Returns the favicon as a base64 string.
 pub fn get_favicon_base64() -> &'static str {
     CUSTOM_FAVICON.as_ref().unwrap_or(&*FAVICON_BASE64).as_str()
 }
