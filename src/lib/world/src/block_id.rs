@@ -5,6 +5,7 @@ use deepsize::DeepSizeOf;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use lazy_static::lazy_static;
 use std::collections::HashMap;
+use std::fmt::Display;
 use std::process::exit;
 use tracing::error;
 
@@ -43,6 +44,9 @@ lazy_static! {
 
 /// An ID for a block, and it's state in the world. Use this over `BlockData` unless you need to
 /// modify or read the block's name/properties directly.
+///
+/// This should be used over `BlockData` in most cases, as it's much more efficient to store and pass around.
+/// You can also generate a block's id at runtime with the [ferrumc_macros::block!] macro.
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Encode, Decode, DeepSizeOf)]
 pub struct BlockId(pub u32);
 
@@ -67,6 +71,16 @@ impl BlockId {
 
     pub fn to_varint(&self) -> VarInt {
         VarInt(self.0 as i32)
+    }
+}
+
+impl Display for BlockId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if let Some(block_data) = self.to_block_data() {
+            write!(f, "BlockId({}: {:?})", self.0, block_data)
+        } else {
+            write!(f, "BlockId({}: Unknown)", self.0)
+        }
     }
 }
 
