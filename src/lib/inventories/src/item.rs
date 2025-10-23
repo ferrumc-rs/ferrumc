@@ -49,11 +49,15 @@ impl ItemID {
         })?
     }
 }
+
+/// Item as ID
 impl ItemID {
+    /// Initiates the ITEMID
     pub fn new(id: i32) -> Self {
         Self(VarInt::from(id))
     }
 
+    /// Returns the id as a [u32]
     pub fn as_u32(&self) -> u32 {
         self.0.0 as u32
     }

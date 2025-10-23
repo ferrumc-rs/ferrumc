@@ -8,13 +8,41 @@ use std::fmt::Display;
 use std::io::{Read, Write};
 use tokio::io::{AsyncRead, AsyncWrite};
 
+/// Represents a single inventory slot in a Minecraft player's inventory.
+///
+/// This struct models the server-to-client or client-to-server slot data as defined in the
+/// [Minecraft Protocol](https://minecraft.wiki/w/Java_Edition_protocol/Slot_data).
+///
+/// Each slot can optionally contain an item and additional NBT or component data.
+/// Empty slots are represented by `item_id: None`.
 #[derive(Debug, Clone, Hash, Default)]
 pub struct InventorySlot {
+    /// The number of items in this slot.
+    ///
+    /// Represented as a [`VarInt`] according to the Minecraft protocol.
+    /// Only meaningful if `item_id` is `Some(_)`.
     pub count: VarInt,
+    /// The unique identifier of the item stored in this slot.
+    ///
+    /// `None` means the slot is empty.
     pub item_id: Option<ItemID>,
+    /// The number of item components to add to this item stack.
+    ///
+    /// Present only when the protocol indicates component-based modifications.
     pub components_to_add_count: Option<VarInt>,
+    /// The number of item components to remove from this item stack.
+    ///
+    /// Present only when the protocol indicates component-based modifications.
     pub components_to_remove_count: Option<VarInt>,
+    /// The list of component IDs (as [`VarInt`]) to add to this item.
+    ///
+    /// Each value corresponds to a specific item component or modifier.
+    /// Only present if `components_to_add_count` is `Some(_)`.
     pub components_to_add: Option<Vec<VarInt>>,
+    /// The list of component IDs (as [`VarInt`]) to remove from this item.
+    ///
+    /// Each value corresponds to a specific item component or modifier.
+    /// Only present if `components_to_remove_count` is `Some(_)`.
     pub components_to_remove: Option<Vec<VarInt>>,
     // https://minecraft.wiki/w/Java_Edition_protocol/Slot_data
 }
