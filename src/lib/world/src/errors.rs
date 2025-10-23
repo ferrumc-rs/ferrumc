@@ -1,5 +1,5 @@
+use crate::block_id::BlockId;
 use crate::errors::WorldError::{CompressionError, GenericIOError, PermissionError};
-use crate::vanilla_chunk_format::BlockData;
 use errors::AnvilError;
 use ferrumc_anvil::errors;
 use ferrumc_general_purpose::data_packing::errors::DataPackingError;
@@ -37,7 +37,7 @@ pub enum WorldError {
     #[error("Anvil Decode Error: {0}")]
     AnvilDecodeError(AnvilError),
     #[error("Missing block mapping: {0}")]
-    MissingBlockMapping(BlockData),
+    MissingBlockMapping(BlockId),
     #[error("Invalid memory map size: {0}")]
     InvalidMapSize(u64),
     #[error("Task Join Error: {0}")]
@@ -47,7 +47,7 @@ pub enum WorldError {
     #[error("Invalid block state data")]
     InvalidBlockStateData(String),
     #[error("Invalid block: {0}")]
-    InvalidBlock(BlockData),
+    InvalidBlock(BlockId),
     #[error("Invalid batching operation: {0}")]
     InvalidBatchingOperation(String),
     #[error("Invalid block ID: {0}")]
@@ -68,7 +68,6 @@ impl From<std::io::Error> for WorldError {
     fn from(err: std::io::Error) -> Self {
         match err.kind() {
             ErrorKind::PermissionDenied => PermissionError(err.to_string()),
-            // ErrorKind::ReadOnlyFilesystem => PermissionError(err.to_string()),
             _ => GenericIOError(err.to_string()),
         }
     }
