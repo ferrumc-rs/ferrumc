@@ -42,10 +42,10 @@ pub fn connection_killer(
                         player_identity.username
                     );
                 }
+                cmd.entity(entity).despawn();
             } else {
                 // Broadcast the disconnection to other players
             }
-            cmd.entity(entity).despawn();
         }
     }
 }
