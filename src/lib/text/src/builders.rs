@@ -7,12 +7,15 @@ pub struct ComponentBuilder {
     _private: (),
 }
 
+/// The component builder for Text.
 impl ComponentBuilder {
+    /// a normal text component.
     #[inline]
     pub fn text<S: Into<String>>(value: S) -> TextComponentBuilder {
         TextComponentBuilder::new(value)
     }
 
+    /// The Keybind text.
     #[inline]
     pub fn keybind<S: Into<String>>(keybind: S) -> TextComponent {
         TextComponent {
@@ -23,6 +26,7 @@ impl ComponentBuilder {
         }
     }
 
+    /// Translated text.
     #[inline]
     pub fn translate<S: Into<String>>(translate: S, with: Vec<TextComponent>) -> TextComponent {
         TextComponent {
@@ -34,6 +38,7 @@ impl ComponentBuilder {
         }
     }
 
+    /// Space. yeah thats it. just space.
     #[inline]
     pub fn space() -> TextComponent {
         " ".into()
@@ -52,17 +57,29 @@ impl ComponentBuilder {
 /// ```
 #[derive(Default)]
 pub struct TextComponentBuilder {
+    /// The text.
     pub(crate) text: String,
+    /// Optional Color, defaults to white.
     pub(crate) color: Option<Color>,
+    /// The used font.
     pub(crate) font: Option<Font>,
+    /// If the text is bold.
     pub(crate) bold: Option<bool>,
+    /// If the text is italic.
     pub(crate) italic: Option<bool>,
+    /// If the text is underlined.
     pub(crate) underlined: Option<bool>,
+    /// If the text is struck through.
     pub(crate) strikethrough: Option<bool>,
+    /// If the text is obfuscated.
     pub(crate) obfuscated: Option<bool>,
+    /// If the text is inserted.
     pub(crate) insertion: Option<String>,
+    /// Fires an even to show a click.
     pub(crate) click_event: Option<ClickEvent>,
+    /// Fires an even to show a hover.
     pub(crate) hover_event: Option<HoverEvent>,
+    /// Extras.
     pub(crate) extra: Vec<TextComponent>,
 }
 
@@ -83,15 +100,18 @@ impl TextComponentBuilder {
     );
     make_bool_setters!(bold, italic, underlined, strikethrough, obfuscated);
 
+    /// Adds a space as the extra.
     pub fn space(self) -> Self {
         self.extra(ComponentBuilder::space())
     }
 
+    /// Adds an extra.
     pub fn extra(mut self, component: impl Into<TextComponent>) -> Self {
         self.extra.push(component.into());
         self
     }
 
+    /// Builds the text component.
     pub fn build(self) -> TextComponent {
         TextComponent {
             content: TextContent::Text { text: self.text },
