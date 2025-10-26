@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use bevy_ecs::component::Component;
 use bitcode::{Decode, Encode};
 use serde::{Deserialize, Serialize};
@@ -34,5 +36,15 @@ impl PlayerData {
             dimension: dimension.to_string(),
             rotation: (rotation.yaw, rotation.pitch),
         }
+    }
+}
+
+impl Display for PlayerData {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "(pos: {:?}, on_ground: {}, dimension: {}, rotation: ({:.2}, {:.2}))",
+            self.pos, self.on_ground, self.dimension, self.rotation.0, self.rotation.1
+        )
     }
 }

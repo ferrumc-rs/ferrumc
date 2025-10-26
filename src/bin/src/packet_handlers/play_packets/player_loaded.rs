@@ -38,12 +38,9 @@ pub fn handle(
                     *position =
                         Position::new(loaded_data.pos.x, loaded_data.pos.y, loaded_data.pos.z);
                     tracing::info!(
-                        "Loaded player state for {}: position=({}, {}, {}), dimension={}",
+                        "Loaded player state for {}: {}",
                         player_identity.uuid.as_u128(),
-                        loaded_data.pos.x,
-                        loaded_data.pos.y,
-                        loaded_data.pos.z,
-                        loaded_data.dimension
+                        loaded_data,
                     );
                 }
                 None => {
@@ -54,9 +51,8 @@ pub fn handle(
                     // First time saving player data
                     {
                         tracing::error!(
-                            "Failed to save player state for {} ({}): {:?}",
-                            player_identity.username,
-                            player_identity.uuid.as_u128(),
+                            "Failed to save player state for {:?}: {:?}",
+                            player_identity,
                             e
                         );
                     }
@@ -64,9 +60,8 @@ pub fn handle(
             },
             Err(e) => {
                 tracing::error!(
-                    "Failed to load player state for {} ({}): {:?}",
-                    player_identity.username,
-                    player_identity.uuid.as_u128(),
+                    "Failed to load player state for {:?}: {:?}",
+                    player_identity,
                     e
                 );
                 if let Err(e) = state
@@ -76,9 +71,8 @@ pub fn handle(
                 // First time saving player data
                 {
                     tracing::error!(
-                        "Failed to save player state for {} ({}): {:?}",
-                        player_identity.username,
-                        player_identity.uuid.as_u128(),
+                        "Failed to save player state for {:?}: {:?}",
+                        player_identity,
                         e
                     );
                 }
@@ -92,20 +86,12 @@ pub fn handle(
         );
         if let Ok(head_block) = head_block {
             if head_block == BlockId(0) {
-                tracing::info!(
-                    "Player {} loaded at position: ({}, {}, {})",
-                    player,
-                    position.x,
-                    position.y,
-                    position.z
-                );
+                tracing::info!("Player {} loaded at position: {:?}", player, position);
             } else {
                 tracing::info!(
-                    "Player {} loaded at position: ({}, {}, {}) with head block: {:?}",
+                    "Player {} loaded at position: {:?} with head block: {:?}",
                     player,
-                    position.x,
-                    position.y,
-                    position.z,
+                    position,
                     head_block
                 );
                 // Teleport the player to the world center if their head block is not air
@@ -125,8 +111,8 @@ pub fn handle(
             }
         } else {
             warn!(
-                "Failed to fetch head block for player {} at position: ({}, {}, {})",
-                player, position.x, position.y, position.z
+                "Failed to fetch head block for player {} at position: {:?}",
+                player, position
             );
         }
     }
