@@ -6,7 +6,6 @@ use ferrumc_config::server_config::get_global_config;
 use ferrumc_config::whitelist::create_whitelist;
 use ferrumc_general_purpose::paths::get_root_path;
 use ferrumc_state::player_list::PlayerList;
-use ferrumc_state::player_state::PlayerState;
 use ferrumc_state::{GlobalState, ServerState};
 use ferrumc_threadpool::ThreadPool;
 use ferrumc_world::World;
@@ -160,7 +159,6 @@ fn create_state(start_time: Instant) -> Result<ServerState, BinaryError> {
         world: World::new(&get_global_config().database.db_path),
         terrain_generator: WorldGenerator::new(0),
         shut_down: false.into(),
-        player_state: PlayerState::default(),
         players: PlayerList::default(),
         thread_pool: ThreadPool::new(),
         start_time,
