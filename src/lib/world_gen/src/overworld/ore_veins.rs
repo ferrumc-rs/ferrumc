@@ -1,8 +1,9 @@
 use crate::common::math::clamped_map;
+use ferrumc_macros::block;
+use ferrumc_world::block_id::BlockId;
 use std::ops::RangeInclusive;
 
 use bevy_math::IVec3;
-use ferrumc_world::vanilla_chunk_format::BlockData;
 
 use crate::{
     perlin_noise::{NormalNoise, ORE_GAP, ORE_VEIN_A, ORE_VEIN_B, ORE_VEININESS},
@@ -17,7 +18,6 @@ pub struct Vein {
     factory: Xoroshiro128PlusPlus,
 }
 
-#[allow(dead_code)]
 impl Vein {
     pub fn new(factory: Xoroshiro128PlusPlus) -> Self {
         let factory = factory.with_hash("minecraft:ore").fork();
@@ -30,35 +30,17 @@ impl Vein {
         }
     }
 
-    pub(crate) fn at(&self, pos: IVec3) -> Option<BlockData> {
-        let copper: (BlockData, BlockData, BlockData, RangeInclusive<i32>) = (
-            BlockData {
-                name: "minecraft:copper_ore".to_string(),
-                properties: None,
-            },
-            BlockData {
-                name: "minecraft:raw_copper_block".to_string(),
-                properties: None,
-            },
-            BlockData {
-                name: "minecraft:granine".to_string(),
-                properties: None,
-            },
+    pub(crate) fn at(&self, pos: IVec3) -> Option<BlockId> {
+        let copper: (BlockId, BlockId, BlockId, RangeInclusive<i32>) = (
+            block!("copper_ore"),
+            block!("raw_copper_block"),
+            block!("granite"),
             (0..=50),
         );
-        let iron: (BlockData, BlockData, BlockData, RangeInclusive<i32>) = (
-            BlockData {
-                name: "minecraft:deepslate_iron_ore".to_string(),
-                properties: None,
-            },
-            BlockData {
-                name: "minecraft:raw_iron_block".to_string(),
-                properties: None,
-            },
-            BlockData {
-                name: "minecraft:tuff".to_string(),
-                properties: None,
-            },
+        let iron: (BlockId, BlockId, BlockId, RangeInclusive<i32>) = (
+            block!("deepslate_iron_ore"),
+            block!("raw_iron_block"),
+            block!("tuff"),
             (-60..=-8),
         );
         let vein_toggle = self.vein_toggle.at(pos.as_dvec3() * 1.5);
@@ -66,13 +48,11 @@ impl Vein {
 
         let distance = distance(vein_type.3, pos.y);
 
-        if distance <= 0 {
+        if distance < 0 {
             return None;
         }
-        let d1 = clamped_map(f64::from(distance), 0.0, 20.0, -0.2, 0.0);
 
-        let vein_toggle_abs = vein_toggle.abs();
-        if vein_toggle_abs + d1 < 0.4 {
+        if vein_toggle.abs() < 0.6 - f64::from(distance).clamp(0., 20.) / 10. {
             return None;
         }
         let mut rand = self.factory.at(pos);
@@ -81,7 +61,7 @@ impl Vein {
             return None;
         }
 
-        if f64::from(rand.next_f32()) < clamped_map(vein_toggle_abs, 0.4, 0.6, 0.1, 0.3)
+        if f64::from(rand.next_f32()) < clamped_map(vein_toggle.abs(), 0.4, 0.6, 0.1, 0.3)
             && self.vein_gap.at(pos.into()) > -0.3
         {
             if rand.next_f32() < 0.02 {

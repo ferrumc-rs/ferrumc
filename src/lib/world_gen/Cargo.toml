@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 ferrumc-world = { workspace = true }
+ferrumc-macros = { workspace = true }
 thiserror = { workspace = true }
 cthash = { workspace = true }
 bevy_math = { workspace = true }

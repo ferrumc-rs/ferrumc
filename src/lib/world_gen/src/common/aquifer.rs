@@ -1,6 +1,5 @@
-use std::collections::BTreeMap;
-
-use ferrumc_world::vanilla_chunk_format::BlockData;
+use ferrumc_macros::block;
+use ferrumc_world::block_id::BlockId;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct FluidPicker(pub i32, pub FluidType);
@@ -22,18 +21,12 @@ pub enum FluidType {
     Lava,
 }
 
-impl From<FluidType> for BlockData {
+impl From<FluidType> for BlockId {
     fn from(value: FluidType) -> Self {
         match value {
-            FluidType::Air => BlockData::default(),
-            FluidType::Water => BlockData {
-                name: "minecraft:water".to_string(),
-                properties: Some(BTreeMap::from([("level".to_string(), "0".to_string())])),
-            },
-            FluidType::Lava => BlockData {
-                name: "minecraft:lava".to_string(),
-                properties: Some(BTreeMap::from([("level".to_string(), "0".to_string())])),
-            },
+            FluidType::Air => block!("air"),
+            FluidType::Water => block!("water", {level: 0}),
+            FluidType::Lava => block!("lava", {level: 0}),
         }
     }
 }

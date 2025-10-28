@@ -1,5 +1,7 @@
 use bevy_math::{IVec2, Vec2};
-use ferrumc_world::{chunk_format::Chunk, vanilla_chunk_format::BlockData};
+use ferrumc_macros::block;
+use ferrumc_world::block_id::BlockId;
+use ferrumc_world::chunk_format::Chunk;
 use itertools::Itertools;
 use std::{array::from_fn, f64};
 
@@ -33,11 +35,7 @@ impl EndNoise {
             |pos| self.pre_backed_final_density(islands_cache, pos),
             chunk,
             pos,
-            BlockData {
-                name: "minecraft:end_stone".to_string(),
-                properties: None,
-            }
-            .to_block_id(),
+            block!("end_stone"),
         );
     }
 
