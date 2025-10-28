@@ -1,7 +1,8 @@
+use ferrumc_macros::match_block;
+use ferrumc_world::block_id::BlockId;
 use std::range::{Range, RangeInclusive};
 
 use bevy_math::{IVec2, IVec3, Vec2Swizzles, Vec3Swizzles};
-use ferrumc_world::vanilla_chunk_format::BlockData;
 use itertools::{Itertools, repeat_n};
 
 use crate::{
@@ -15,13 +16,13 @@ use crate::{
 
 //filters
 struct BlockPredicateFilter {
-    block: Vec<BlockData>,
+    block: Vec<BlockId>,
 }
 impl BlockPredicateFilter {
-    fn filter(&self, block: BlockData) -> bool {
+    fn filter(&self, block: BlockId) -> bool {
         self.block.contains(&block)
     }
-    fn apply(&self, pos: BlockPos, block: BlockData) -> impl Iterator<Item = BlockPos> {
+    fn apply(&self, pos: BlockPos, block: BlockId) -> impl Iterator<Item = BlockPos> {
         Some(pos).filter(|_| self.filter(block)).into_iter()
     }
 }
@@ -186,16 +187,15 @@ impl CountOnEveryLayerPlacement {
                     .tuple_windows()
                     .enumerate()
                     .filter(|(_, (a, b))| {
-                        matches!(
-                            a.name.as_str(),
-                            "minecraft:water" | "minecraft:lava" | "minecraft:air"
-                        ) && !matches!(
-                            b.name.as_str(),
-                            "minecraft:water"
-                                | "minecraft:lava"
-                                | "minecraft:air"
-                                | "minecraft:bedrock"
-                        )
+                        let a = *a;
+                        let b = *b;
+                        (match_block!("water", a)
+                            || match_block!("lava", a)
+                            || match_block!("air", a))
+                            && (match_block!("water", b)
+                                || match_block!("lava", b)
+                                || match_block!("air", b)
+                                || match_block!("bedrock", b))
                     })
                     .enumerate()
                     .find(|(i, _)| *i == round)
@@ -210,8 +210,8 @@ impl CountOnEveryLayerPlacement {
 
 struct EnvironmentScanPlacement {
     direction: Direction,
-    target_condition: Vec<BlockData>,
-    allowed_search_condition: Vec<BlockData>,
+    target_condition: Vec<BlockId>,
+    allowed_search_condition: Vec<BlockId>,
     max_steps: usize,
 }
 

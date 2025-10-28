@@ -14,8 +14,9 @@ use crate::perlin_noise::{
 use crate::pos::{BlockPos, ChunkHeight, ChunkPos, ColumnPos};
 use crate::random::Xoroshiro128PlusPlus;
 use bevy_math::{DVec3, FloatExt, IVec3, Vec3Swizzles};
+use ferrumc_macros::block;
+use ferrumc_world::block_id::BlockId;
 use ferrumc_world::chunk_format::Chunk;
-use ferrumc_world::vanilla_chunk_format::BlockData;
 
 use crate::overworld::spline::{CubicSpline, SplinePoint, SplineType};
 
@@ -732,13 +733,6 @@ pub fn generate_interpolation_data(
 ) {
     use std::mem::swap;
 
-    let stone = BlockData {
-        name: "minecraft:stone".to_string(),
-        properties: None,
-    }
-    .to_block_id();
-    let air = BlockData::default().to_block_id();
-
     let mut slice0 = [[0.0; 5]; 5];
     let mut slice1 = [[0.0; 5]; 5];
 
@@ -803,7 +797,16 @@ pub fn generate_interpolation_data(
                             let res = biome_noise.post_process(pos, res);
 
                             chunk
-                                .set_block(pos.x, pos.y, pos.z, if res > 0.0 { stone } else { air })
+                                .set_block(
+                                    pos.x,
+                                    pos.y,
+                                    pos.z,
+                                    if res > 0.0 {
+                                        block!("stone")
+                                    } else {
+                                        block!("air")
+                                    },
+                                )
                                 .unwrap();
                         }
                     }
@@ -831,10 +834,10 @@ impl BiomeNoise for OverworldBiomeNoise {
 #[test]
 fn test_offset() {
     let offset = get_offset_spline();
+    // TODO:
     dbg!(offset.compute_min_max());
     dbg!(overworld_factor().compute_min_max());
     dbg!(overworld_jaggedness().compute_min_max());
-    todo!();
     assert_eq!(offset.sample(0.0, 0.0, 0.0, 0.0), 0.007458158);
     assert_eq!(
         offset.sample(0.007458158, 0.007458158, 0.007458158, 0.007458158),

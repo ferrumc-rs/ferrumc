@@ -4,37 +4,32 @@ use crate::{
     direction::Direction,
     pos::BlockPos,
 };
-use ferrumc_world::vanilla_chunk_format::BlockData;
+use ferrumc_macros::match_block;
+use ferrumc_world::block_id::BlockId;
 
-fn has(block_data: BlockData, key: &str, value: &str) -> bool {
-    block_data
-        .properties
-        .is_some_and(|p| p.get(key).is_some_and(|s| s == value))
+fn has(block: BlockId, key: &str, value: &str) -> bool {
+    todo!()
 }
-fn is(block_data: BlockData, name: &str, key: &str, value: &str) -> bool {
-    block_data.name == name
-        && block_data
-            .properties
-            .is_some_and(|p| p.get(key).is_some_and(|s| s == value))
+fn is(block: BlockId, name: &str, key: &str, value: &str) -> bool {
+    todo!()
 }
 
-pub fn can_survive(block: BlockData, level: &ChunkAccess, pos: BlockPos) -> bool {
+pub fn can_survive(block: BlockId, level: &ChunkAccess, pos: BlockPos) -> bool {
     let below = level.get_block_state(pos + Direction::Down);
-    match block.name.as_str() {
-        "minecraft:small_dripleaf_block" => {
+    match block {
+        _ if match_block!("small_dripleaf", block) => {
             if has(block, "half", "upper") {
-                below.name == "minecraft:small_dripleaf_block" && !has(below, "half", "upper")
+                match_block!("small_dripleaf", below) && !has(below, "half", "upper")
             } else {
-                SMALL_DRIPLEAF_PLACEABLE.contains(&below.to_block_id())
+                SMALL_DRIPLEAF_PLACEABLE.contains(&below)
                     || is(level.get_block_state(pos), "minecraft:water", "level", "0")
-                        && (below.name == "minecraft:farmland"
-                            || DIRT.contains(&below.to_block_id()))
+                        && (match_block!("farmland", below) || DIRT.contains(&below))
             }
         }
-        "minecraft:bamboo" => BAMBOO_PLANTABLE_ON.contains(&below.to_block_id()),
+        _ if match_block!("bamboo", block) => BAMBOO_PLANTABLE_ON.contains(&below),
         _ => true,
     }
 }
 
-pub fn get_block_support_shape(block_data: BlockData, level: &ChunkAccess, pos: BlockPos) {}
-pub fn get_block_collision_shape(block_data: BlockData, level: &ChunkAccess, pos: BlockPos) {}
+pub fn get_block_support_shape(block: BlockId, level: &ChunkAccess, pos: BlockPos) {}
+pub fn get_block_collision_shape(block: BlockId, level: &ChunkAccess, pos: BlockPos) {}

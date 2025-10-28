@@ -3,13 +3,14 @@ use crate::biome_chunk::{BiomeChunk, NoisePoint};
 use crate::errors::WorldGenError;
 use crate::overworld::carver::OverworldCarver;
 use crate::overworld::noise_biome_parameters::overworld_biomes;
-use crate::overworld::noise_depth::{OverworldBiomeNoise, generate_interpolation_data};
+use crate::overworld::noise_depth::OverworldBiomeNoise;
 use crate::overworld::surface::OverworldSurface;
 use crate::pos::{ChunkHeight, ChunkPos};
 use crate::random::Xoroshiro128PlusPlus;
 use bevy_math::IVec2;
+use ferrumc_macros::block;
+use ferrumc_world::block_id::BlockId;
 use ferrumc_world::chunk_format::Chunk;
-use ferrumc_world::vanilla_chunk_format::BlockData;
 use itertools::Itertools;
 
 pub struct OverworldGenerator {
@@ -58,12 +59,6 @@ impl OverworldGenerator {
 
     pub fn generate_chunk(&self, x: i32, z: i32) -> Result<Chunk, WorldGenError> {
         let mut chunk = Chunk::new(x, z, "overworld".to_string());
-        let stone = BlockData {
-            name: "minecraft:stone".to_string(),
-            properties: None,
-        }
-        .to_block_id();
-        let air = BlockData::default().to_block_id();
         if x.abs() < 4 && z.abs() < 4 {
             // generate_interpolation_data(
             //     &self.biome_noise,
@@ -82,7 +77,11 @@ impl OverworldGenerator {
                         pos.x,
                         pos.y,
                         pos.z,
-                        if final_density > 0.0 { stone } else { air },
+                        if final_density > 0.0 {
+                            block!("stone")
+                        } else {
+                            block!("air")
+                        },
                     )
                 })
                 .find(Result::is_err)

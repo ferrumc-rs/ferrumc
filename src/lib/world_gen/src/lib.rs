@@ -16,21 +16,22 @@ mod perlin_noise;
 mod pos;
 mod random;
 use crate::end::end_generator::EndGenerator;
+use crate::errors::WorldGenError;
 use crate::pos::BlockPos;
-use crate::{errors::WorldGenError, overworld::overworld_generator::OverworldGenerator};
-use ferrumc_world::{chunk_format::Chunk, vanilla_chunk_format::BlockData};
+use ferrumc_world::block_id::BlockId;
+use ferrumc_world::chunk_format::Chunk;
 
 pub struct ChunkAccess {}
 
 impl ChunkAccess {
-    pub fn get_block_state(&self, pos: BlockPos) -> BlockData {
+    pub fn get_block_state(&self, pos: BlockPos) -> BlockId {
         todo!()
     }
 
-    pub fn set_block_state(&mut self, pos: BlockPos, data: BlockData) {
+    pub fn set_block_state(&mut self, pos: BlockPos, data: BlockId) {
         todo!()
     }
-    pub fn set_block_state_flags(&mut self, pos: BlockPos, data: BlockData, flags: u32) {
+    pub fn set_block_state_flags(&mut self, pos: BlockPos, data: BlockId, flags: u32) {
         todo!()
     }
 

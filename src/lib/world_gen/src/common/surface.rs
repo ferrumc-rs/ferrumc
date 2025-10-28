@@ -3,7 +3,7 @@ use crate::{
     common::aquifer::FluidType,
     pos::{BlockPos, ChunkHeight, ColumnPos},
 };
-use ferrumc_world::{block_id::BlockId, vanilla_chunk_format::BlockData};
+use ferrumc_world::block_id::BlockId;
 
 pub(crate) struct Surface {
     default_block: BlockId,
@@ -47,9 +47,9 @@ impl Surface {
         mut fluid_level: Option<i32>,
         pos: ColumnPos,
         biome: Biome,
-        rules: impl Fn(Biome, i32, i32, Option<i32>, BlockPos) -> Option<BlockData>,
+        rules: impl Fn(Biome, i32, i32, Option<i32>, BlockPos) -> Option<BlockId>,
         aquifer: impl Fn(BlockPos, f64) -> Option<FluidType>,
-    ) -> Vec<BlockData> {
+    ) -> Vec<BlockId> {
         let mut depth = 0;
         (self.chunk_height.min_y..=stone_level)
             .rev()
@@ -68,7 +68,7 @@ impl Surface {
                 let depth_from_stone = y - stone_level + 1;
 
                 rules(biome, depth, depth_from_stone, fluid_level, pos.block(y))
-                    .unwrap_or(self.default_block.to_block_data().unwrap())
+                    .unwrap_or(self.default_block)
             })
             .rev()
             .chain((stone_level + 1..self.chunk_height.max_y()).map(|_| Default::default()))
