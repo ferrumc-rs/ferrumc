@@ -15,7 +15,8 @@ use crate::random::Xoroshiro128PlusPlus;
 use crate::{ChunkAccess, HeightmapType};
 use crate::{biome_chunk::BiomeChunk, pos::ColumnPos};
 use bevy_math::{DVec2, FloatExt, IVec2, IVec3};
-use ferrumc_world::vanilla_chunk_format::BlockData;
+use ferrumc_macros::{block, match_block};
+use ferrumc_world::block_id::BlockId;
 
 use crate::{biome::Biome, perlin_noise::NormalNoise, random::Rng};
 
@@ -49,14 +50,7 @@ pub struct OverworldSurface {
 impl OverworldSurface {
     pub fn new(factory: Xoroshiro128PlusPlus, chunk_height: ChunkHeight) -> Self {
         Self {
-            surface: Surface::new(
-                BlockData {
-                    name: "minecraft:stone".to_string(),
-                    properties: None,
-                }
-                .to_block_id(),
-                chunk_height,
-            ),
+            surface: Surface::new(block!("stone"), chunk_height),
             rules: SurfaceRules::new(factory),
             aquifer: Aquifer::new(factory),
             noises: SurfaceNoises {
@@ -81,14 +75,13 @@ impl OverworldSurface {
         }
     }
 
-    #[allow(dead_code)]
     pub fn build_surface(
         &self,
         biome_noise: &OverworldBiomeNoise,
         chunk: &ChunkAccess,
         biome_manager: &BiomeChunk,
         pos: ColumnPos,
-    ) -> Vec<BlockData> {
+    ) -> Vec<BlockId> {
         let (stone_level, fluid_level) = self.surface.find_surface(pos, |pos, final_density| {
             self.aquifer.at(biome_noise, pos, final_density).0 //TODO
         });
@@ -161,7 +154,7 @@ impl OverworldSurface {
         noise: &OverworldBiomeNoise,
         pos: ColumnPos,
         biome: Biome,
-        block_column: &mut [BlockData],
+        block_column: &mut [BlockId],
         height: i32,
     ) {
         let min_surface_level = self.min_surface_level(noise, pos);
@@ -207,11 +200,11 @@ impl OverworldSurface {
             let mut snow_blocks = 0;
 
             for y in (min_surface_level..=height.max(iceburg_height as i32 + 1)).rev() {
-                let block = &block_column[(y + min_y) as usize];
+                let block = block_column[(y + min_y) as usize];
 
                 let cond_air =
-                    block.name == "minecraft:air" && f64::from(y) < d4 && rng.next_f64() > 0.01;
-                let cond_water = block.name == "minecraft:water"
+                    match_block!("air", block) && f64::from(y) < d4 && rng.next_f64() > 0.01;
+                let cond_water = match_block!("water", block)
                     && f64::from(y) > d3
                     && y < SEA_LEVEL
                     && d3 != 0.0
@@ -219,16 +212,10 @@ impl OverworldSurface {
 
                 if cond_air || cond_water {
                     if snow_blocks <= max_snow_blocks && y > min_snow_block_y {
-                        block_column[(y + min_y) as usize] = BlockData {
-                            name: "minecraft:snow".to_string(),
-                            properties: None,
-                        };
+                        block_column[(y + min_y) as usize] = block!("snow_block");
                         snow_blocks += 1;
                     } else {
-                        block_column[(y + min_y) as usize] = BlockData {
-                            name: "minecraft:packed_ice".to_string(),
-                            properties: None,
-                        };
+                        block_column[(y + min_y) as usize] = block!("packed_ice");
                     }
                 }
             }
@@ -262,7 +249,7 @@ impl OverworldSurface {
         biome: Biome,
         pos: IVec3,
         is_fluid: bool,
-    ) -> Option<BlockData> {
+    ) -> Option<BlockId> {
         self.rules
             .try_apply(
                 chunk,
@@ -327,7 +314,7 @@ enum SurfaceBlock {
     Endstone,
 }
 impl SurfaceBlock {
-    fn to_block(self) -> Option<BlockData> {
+    fn to_block(self) -> Option<BlockId> {
         if self == SurfaceBlock::Stone {
             return None;
         }

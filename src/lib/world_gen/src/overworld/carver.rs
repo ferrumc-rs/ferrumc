@@ -2,6 +2,8 @@ use crate::{
     common::carver::{Caver, can_reach},
     overworld::noise_depth::OverworldBiomeNoise,
 };
+use ferrumc_macros::{block, match_block};
+use ferrumc_world::block_id::BlockId;
 use std::{f32::consts::PI, range::Range};
 
 use bevy_math::{IVec3, Vec3Swizzles};
@@ -102,11 +104,11 @@ fn clear_overworld_cave_block(
 ) {
     let block = chunk.get_block_state(pos);
 
-    if block.name == "minecraft:bedrock" {
+    if block == block!("bedrock") {
         return;
     }
 
-    if block.name == "minecraft:grass_block" || block.name == "minecraft:mycelium" {
+    if match_block!("grass_block", block) || match_block!("mycelium", block) {
         *surface_reached = true;
     }
 
@@ -115,7 +117,7 @@ fn clear_overworld_cave_block(
         chunk.set_block_state(pos, carve_state.into());
         if *surface_reached {
             let check_pos = pos - IVec3::new(0, 1, 0);
-            if chunk.get_block_state(check_pos).name == "minecraft:dirt"
+            if chunk.get_block_state(check_pos) == block!("dirt")
                 && let Some(block_state1) = surface.top_material(
                     chunk,
                     biome_noise,
