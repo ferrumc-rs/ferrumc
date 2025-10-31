@@ -50,7 +50,7 @@ struct SurfaceRelativeThresholdFilter {
 }
 impl SurfaceRelativeThresholdFilter {
     fn filter(&self, pos: BlockPos, height: i32) -> bool {
-        (height + self.range.start..=height + self.range.end).contains(&pos.y)
+        (height + self.range.start..=height + self.range.last).contains(&pos.y)
     }
     fn apply(&self, pos: BlockPos, height: i32) -> impl Iterator<Item = BlockPos> {
         Some(pos)

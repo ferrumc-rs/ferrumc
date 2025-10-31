@@ -22,6 +22,11 @@ craftflow-nbt = { workspace = true }
 indexmap = { workspace = true, features = ["serde"] }
 bitcode = { workspace = true }
 simd-json = { workspace = true }
+phf = "0.13.1"
 
 [dev-dependencies]
 ferrumc-world = { workspace = true }
+
+[build-dependencies]
+phf_codegen = "0.13.1"
+simd-json = { workspace = true }

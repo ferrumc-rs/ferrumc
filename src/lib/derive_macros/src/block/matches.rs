@@ -1,8 +1,6 @@
-use crate::block::JSON_FILE;
+use crate::block::BLOCK_STATES;
 use proc_macro::TokenStream;
 use quote::quote;
-use simd_json::base::{ValueAsObject, ValueAsScalar};
-use simd_json::derived::ValueObjectAccess;
 
 struct Input {
     name: String,
@@ -25,23 +23,15 @@ impl syn::parse::Parse for Input {
 // match_block!("dirt", block_id); -> "if block_name == BlockId( { ... }
 pub fn matches_block(input: TokenStream) -> TokenStream {
     let input = syn::parse_macro_input!(input as Input);
-    let block_name = &input.name;
-    let block_name = if block_name.starts_with("minecraft:") {
-        block_name.to_string()
-    } else {
-        format!("minecraft:{}", block_name)
-    };
+    let block_name = input
+        .name
+        .split_once("minecraft:")
+        .map(|x| x.1)
+        .unwrap_or(input.name.as_str());
     let block_id_var = &input.id_var;
-    let mut buf = JSON_FILE.to_vec();
-    let v = simd_json::to_owned_value(&mut buf).unwrap();
-    let filtered_names = v
-        .as_object()
-        .unwrap()
-        .iter()
-        .filter(|(_, v)| v.get("name").as_str() == Some(&block_name))
-        .map(|(k, v)| (k.parse::<u32>().unwrap(), v))
-        .collect::<Vec<_>>();
-    if filtered_names.is_empty() {
+
+    let states = BLOCK_STATES.get(block_name);
+    if states.is_none_or(|x| x.is_empty()) {
         return syn::Error::new_spanned(
             &input.id_var,
             format!("Block name '{}' not found in registry", block_name),
@@ -49,14 +39,14 @@ pub fn matches_block(input: TokenStream) -> TokenStream {
         .to_compile_error()
         .into();
     }
-    let mut arms = Vec::new();
-    for (id, _) in filtered_names {
-        arms.push(quote! {
-            #block_id_var == BlockId(#id)
-        });
-    }
-    let joined = quote! {
-        #(#arms)||*
+
+    let &states = states.unwrap();
+
+    let matched = quote! {
+        match #block_id_var {
+            #(BlockId(#states) => true),*,
+            _ => false
+        }
     };
-    joined.into()
+    matched.into()
 }
