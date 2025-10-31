@@ -1,14 +1,14 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use simd_json::prelude::{ValueAsObject, ValueAsScalar, ValueObjectAccess};
-use simd_json::{OwnedValue, StaticNode};
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::{braced, Expr, Ident, Lit, LitStr, Result, Token};
 
 pub(crate) mod matches;
 
-const JSON_FILE: &[u8] = include_bytes!("../../../../../assets/data/blockstates.json");
+// const JSON_FILE: &[u8] = include_bytes!("../../../../../assets/data/blockstates.json");
+
+include!(concat!(env!("OUT_DIR"), "/codegen.rs"));
 
 struct Input {
     name: LitStr,
@@ -63,47 +63,42 @@ impl Parse for Input {
 
 pub fn block(input: TokenStream) -> TokenStream {
     let Input { name, opts } = syn::parse_macro_input!(input as Input);
-
-    let name_str = if name.value().starts_with("minecraft:") {
-        name.value()
+    let name_value = name.value();
+    let name_str = if let Some((_, name)) = name_value.split_once("minecraft:") {
+        name
     } else {
-        format!("minecraft:{}", name.value())
+        &name_value
     };
-    let mut buf = JSON_FILE.to_vec();
-    let v = simd_json::to_owned_value(&mut buf).unwrap();
 
-    let filtered_names = v
-        .as_object()
-        .unwrap()
-        .iter()
-        .filter(|(_, v)| v.get("name").as_str() == Some(&name_str))
-        .map(|(k, v)| (k.parse::<u32>().unwrap(), v))
-        .collect::<Vec<_>>();
+    let states = BLOCK_STATES.get(name_str);
+    if states.is_none_or(|x| x.is_empty()) {
+        return syn::Error::new_spanned(
+            name.clone(),
+            format!("block '{}' not found in blockstates.json", name_value),
+        )
+        .to_compile_error()
+        .into();
+    }
 
-    let Some(opts) = opts else {
-        if filtered_names.is_empty() {
+    let &states = states.unwrap();
+
+    if opts.is_none() {
+        if states.len() > 1 {
             return syn::Error::new_spanned(
-                name.clone(),
-                format!("block '{}' not found in blockstates.json", name_str),
-            )
-            .to_compile_error()
-            .into();
-        }
-        if filtered_names.len() > 1 {
-            let properties = get_properties(&filtered_names);
-            return syn::Error::new_spanned(
-                name_str.clone(),
+                name,
                 format!(
-                    "block '{}' has multiple variants, please specify properties. Available properties: {}",
-                    name_str, pretty_print_props(&properties)
+                    "block '{}' has multiple variants, please specify properties.",
+                    name_value
                 ),
             )
             .to_compile_error()
             .into();
         }
-        let first = filtered_names.first().unwrap().0;
-        return quote! { BlockStateId(#first) }.into();
-    };
+        let id = states[0];
+        return quote! { BlockStateId(#id) }.into();
+    }
+
+    let opts = opts.unwrap();
 
     let props = opts
         .pairs
@@ -130,114 +125,70 @@ pub fn block(input: TokenStream) -> TokenStream {
                 },
             ))
         })
-        .collect::<Result<std::collections::HashMap<String, String>>>();
+        .collect::<Result<Vec<(String, String)>>>();
 
     let props = match props {
         Ok(props) => props,
         Err(err) => return err.to_compile_error().into(),
     };
 
-    let matched = filtered_names
-        .iter()
-        .filter(|(_, v)| {
-            if let Some(map) = v.get("properties").as_object() {
-                // eq impl from halfbwown
-                if map.len() != props.len() {
-                    return false;
+    fn intersect(a: &[u32], b: &[u32]) -> Vec<u32> {
+        let mut v = vec![];
+        let mut i = 0;
+        let mut j = 0;
+        while i < a.len() && j < b.len() {
+            match a[i].cmp(&b[j]) {
+                std::cmp::Ordering::Less => i += 1,
+                std::cmp::Ordering::Equal => {
+                    v.push(a[i]);
+                    i += 1;
+                    j += 1;
                 }
-                return map.iter().all(|(key, value)| {
-                    let converted = match value {
-                        OwnedValue::Static(StaticNode::Bool(v)) => v.to_string(),
-                        OwnedValue::Static(StaticNode::I64(v)) => v.to_string(),
-                        OwnedValue::String(v) => v.to_string(),
-                        _ => return false,
-                    };
-                    props.get(key).is_some_and(|v| *converted == *v)
-                });
+                std::cmp::Ordering::Greater => j += 1,
             }
-            false
-        })
-        .map(|(id, _)| *id)
-        .collect::<Vec<u32>>();
+        }
+        v
+    }
 
-    if matched.is_empty() {
-        let properties = get_properties(&filtered_names);
-        if properties.is_empty() {
+    let mut states = states.to_owned();
+
+    for (k, v) in props {
+        let key = format!("{}:{}", k, v);
+        let prop_states = BLOCK_STATES.get(&key);
+        if prop_states.is_none_or(|x| x.is_empty()) {
             return syn::Error::new_spanned(
-                name_str.clone(),
+                name.clone(),
+                format!("No block has properties '{}'.", key),
+            )
+            .to_compile_error()
+            .into();
+        }
+
+        let &prop_states = prop_states.unwrap();
+        states = intersect(&states, prop_states);
+        if states.is_empty() {
+            return syn::Error::new_spanned(
+                name,
                 format!(
-                    "block '{}' has no properties but the following properties were given: {}",
-                    name_str.clone(),
-                    pretty_print_given_props(opts)
+                    "No variant of block '{}' matches the specified properties.",
+                    name_value
                 ),
             )
             .to_compile_error()
             .into();
-        } else {
-            return syn::Error::new_spanned(
-                    name_str.clone(),
-                    format!(
-                        "no variant of block '{}' matches the specified properties. Available properties: {}",
-                        name_str.clone(), pretty_print_props(&properties)
-                    ),
-                )
-                    .to_compile_error()
-                    .into();
         }
     }
-    if matched.len() > 1 {
+
+    if states.len() > 1 {
         return syn::Error::new_spanned(
-                name_str.clone(),
-                format!("block '{}' with specified properties has multiple variants, please refine properties", name_str),
+                name,
+                format!("Block '{}' with specified properties has multiple variants ({:?}), please refine properties", name_value, states),
             )
                 .to_compile_error()
                 .into();
     }
 
-    let res = matched[0];
-    quote! { BlockStateId(#res) }.into()
-}
+    let id = states[0];
 
-fn get_properties(filtered_names: &[(u32, &OwnedValue)]) -> Vec<(String, String)> {
-    filtered_names
-        .iter()
-        .filter_map(|(_, v)| v.get("properties").and_then(|v| v.as_object()))
-        .flat_map(|v| {
-            v.iter().filter_map(|(k, v)| {
-                let converted = match v {
-                    OwnedValue::Static(StaticNode::Bool(v)) => v.to_string(),
-                    OwnedValue::Static(StaticNode::I64(v)) => v.to_string(),
-                    OwnedValue::String(v) => v.to_string(),
-                    _ => return None,
-                };
-                Some((k.clone(), converted))
-            })
-        })
-        .collect()
-}
-
-fn pretty_print_props(props: &[(String, String)]) -> String {
-    let mut s = String::new();
-    for (k, v) in props {
-        s.push_str(&format!("{}: {}, ", k, v));
-    }
-    s.trim_end_matches(", ").to_string()
-}
-
-fn pretty_print_given_props(props: Opts) -> String {
-    let mut s = String::new();
-    for kv in props.pairs.iter() {
-        let key = kv.key.to_string();
-        let value = match &kv.value {
-            Expr::Lit(v) => match &v.lit {
-                Lit::Str(v) => v.value(),
-                Lit::Bool(v) => v.value.to_string(),
-                Lit::Int(v) => v.base10_digits().to_string(),
-                _ => "unsupported".to_string(),
-            },
-            _ => "unsupported".to_string(),
-        };
-        s.push_str(&format!("{}: {}, ", key, value));
-    }
-    s.trim_end_matches(", ").to_string()
+    quote! { BlockStateId(#id) }.into()
 }
