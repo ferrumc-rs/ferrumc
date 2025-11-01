@@ -10,10 +10,12 @@ pub mod vanilla_chunk_format;
 
 use crate::chunk_format::Chunk;
 use crate::errors::WorldError;
+use crate::player_state::TABLE_NAME;
 use deepsize::DeepSizeOf;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_core::data::player::PlayerData;
 use ferrumc_general_purpose::paths::get_root_path;
+use ferrumc_storage::database::Database;
 use ferrumc_storage::lmdb::LmdbBackend;
 use ferrumc_storage::sqlite::SqliteDatabase;
 use moka::sync::Cache;
@@ -99,6 +101,10 @@ impl World {
 
         let player_state_backend = SqliteDatabase::initialize(Some(backend_path), "playerlist.db")
             .expect("Failed to initialize storage backend");
+        if let Err(e) = player_state_backend.create_table(TABLE_NAME) {
+            error!("Failed to create player data table: {}", e);
+            exit(1);
+        }
 
         if get_global_config().database.cache_ttl != 0
             && get_global_config().database.cache_capacity == 0

@@ -4,11 +4,10 @@ use ferrumc_storage::database::Database;
 use crate::{errors::PlayerDataError, World};
 
 // Table name for player state data in SQLite
-const TABLE_NAME: &str = "playerdata";
+pub const TABLE_NAME: &str = "playerdata";
 
 impl World {
     pub fn save_player_state(&self, key: u128, state: &PlayerData) -> Result<(), PlayerDataError> {
-        self.player_state_backend.create_table(TABLE_NAME)?;
         self.player_state_backend.upsert(TABLE_NAME, key, state)?;
         tracing::info!(
             "Saving position {} {} {}",
