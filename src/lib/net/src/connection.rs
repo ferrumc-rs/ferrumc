@@ -266,11 +266,15 @@ pub async fn handle_connection(
                 Err(err) => {
                     if let NetError::ConnectionDropped = err {
                         trace!("Connection dropped for entity {:?}", entity);
-                        running.store(false, Ordering::Relaxed);
+                        state
+                            .players
+                            .disconnect(entity, Some("Connection dropped".to_string()));
                         break 'recv;
                     }
                     error!("Failed to read packet skeleton: {:?} for {:?}", err, entity);
-                    running.store(false, Ordering::Relaxed);
+                    state
+                        .players
+                        .disconnect(entity, Some("Connection error".to_string()));
                     break 'recv;
                 }
             };
@@ -302,7 +306,9 @@ pub async fn handle_connection(
                 }
                 _ => {
                     warn!("Error handling packet for {:?}: {:?}", entity, err);
-                    running.store(false, Ordering::Relaxed);
+                    state
+                        .players
+                        .disconnect(entity, Some(format!("Packet handling error: {:?}", err)));
                     break 'recv;
                 }
             },

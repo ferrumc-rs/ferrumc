@@ -4,7 +4,7 @@ use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_state::GlobalStateResource;
 use ferrumc_text::TextComponent;
-use tracing::{info, trace, warn};
+use tracing::{info, warn};
 
 pub fn connection_killer(
     query: Query<(Entity, &StreamWriter, &PlayerIdentity)>,
@@ -24,10 +24,6 @@ pub fn connection_killer(
                             reason.as_deref().unwrap_or("No reason")
                         );
                         if conn.running.load(std::sync::atomic::Ordering::Relaxed) {
-                            trace!(
-                                "Sending disconnect packet to player {}",
-                                player_identity.username
-                            );
                             if let Err(e) = conn.send_packet_ref(
                                 &ferrumc_net::packets::outgoing::disconnect::DisconnectPacket {
                                     reason: TextComponent::from(
@@ -40,16 +36,15 @@ pub fn connection_killer(
                                     player_identity.username, e
                                 );
                             }
-                        } else {
-                            trace!(
-                        "Connection for player {} is not running, skipping disconnect packet",
-                        player_identity.username
-                    );
+                            // Mark the connection as closed after sending disconnect packet
+                            conn.running
+                                .store(false, std::sync::atomic::Ordering::Relaxed);
                         }
+                        // Despawn only the disconnecting entity
+                        cmd.entity(disconnecting_entity).despawn();
                     } else {
                         system_messages::player_leave::handle(disconnecting_player.2, entity);
                     }
-                    cmd.entity(entity).despawn();
                 }
             }
             Err(e) => {

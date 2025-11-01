@@ -210,21 +210,28 @@ pub(super) async fn login(
 
     // =============================================================================================
     // 13 Await client's teleport acceptance
-    let mut skel = PacketSkeleton::new(conn_read, compressed, Play).await?;
+    // The client may send other packets (like client_tick_end) before accepting the teleport,
+    // so we loop until we get the accept_teleportation packet
     let expected_id = lookup_packet!("play", "serverbound", "accept_teleportation");
-    if skel.id != expected_id {
-        return Err(NetError::Packet(PacketError::UnexpectedPacket {
-            expected: expected_id,
-            received: skel.id,
-            state: Play,
-        }));
-    }
+    let confirm_player_teleport = loop {
+        let mut skel = PacketSkeleton::new(conn_read, compressed, Play).await?;
 
-    let confirm_player_teleport =
-        crate::packets::incoming::confirm_player_teleport::ConfirmPlayerTeleport::decode(
-            &mut skel.data,
-            &NetDecodeOpts::None,
-        )?;
+        if skel.id == expected_id {
+            // Got the teleport confirmation
+            let confirm =
+                crate::packets::incoming::confirm_player_teleport::ConfirmPlayerTeleport::decode(
+                    &mut skel.data,
+                    &NetDecodeOpts::None,
+                )?;
+            break confirm;
+        } else {
+            // Client sent another packet before confirming teleport - just ignore it
+            trace!(
+                "Ignoring packet 0x{:02X} while waiting for teleport confirmation",
+                skel.id
+            );
+        }
+    };
 
     if confirm_player_teleport.teleport_id.0 != teleport_id_i32 {
         error!(
@@ -235,21 +242,25 @@ pub(super) async fn login(
 
     // =============================================================================================
     // 14 Receive first movement packet from player
-    let mut skel = PacketSkeleton::new(conn_read, compressed, Play).await?;
+    // Similarly, the client may send other packets before the movement packet
     let expected_id = lookup_packet!("play", "serverbound", "move_player_pos_rot");
-    if skel.id != expected_id {
-        return Err(NetError::Packet(PacketError::UnexpectedPacket {
-            expected: expected_id,
-            received: skel.id,
-            state: Play,
-        }));
-    }
+    let _player_pos_and_rot = loop {
+        let mut skel = PacketSkeleton::new(conn_read, compressed, Play).await?;
 
-    let _player_pos_and_rot =
-        crate::packets::incoming::set_player_position_and_rotation::SetPlayerPositionAndRotationPacket::decode(
-            &mut skel.data,
-            &NetDecodeOpts::None,
-        )?;
+        if skel.id == expected_id {
+            let pos_rot = crate::packets::incoming::set_player_position_and_rotation::SetPlayerPositionAndRotationPacket::decode(
+                &mut skel.data,
+                &NetDecodeOpts::None,
+            )?;
+            break pos_rot;
+        } else {
+            // Client sent another packet before movement - ignore it
+            trace!(
+                "Ignoring packet 0x{:02X} while waiting for initial movement packet",
+                skel.id
+            );
+        }
+    };
 
     // =============================================================================================
     // 15 Send initial game event (e.g., "change game mode")
