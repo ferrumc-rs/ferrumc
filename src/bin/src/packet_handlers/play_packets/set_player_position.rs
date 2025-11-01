@@ -10,6 +10,7 @@ use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_macros::NetEncode;
 use ferrumc_net::connection::StreamWriter;
+use ferrumc_net::errors::NetError;
 use ferrumc_net::packets::outgoing::entity_position_sync::TeleportEntityPacket;
 use ferrumc_net::packets::outgoing::update_entity_position::UpdateEntityPositionPacket;
 use ferrumc_net::packets::outgoing::update_entity_position_and_rotation::UpdateEntityPositionAndRotationPacket;
@@ -71,6 +72,7 @@ pub fn handle(
             state.0.clone(),
         ) {
             error!("Failed to update position for player {}: {}", eid, err);
+            state.0.players.disconnection_queue.push((eid, None));
         } else {
             trace!(
                 "Updated position for player {}: ({}, {}, {})",
@@ -163,7 +165,14 @@ fn update_pos_for_all(
             }
             continue;
         }
-        conn.send_packet_ref(&packet)?;
+        match conn.send_packet_ref(&packet) {
+            Ok(_) => {
+                continue;
+            }
+            Err(error) => {
+                return Err(BinaryError::from(error));
+            }
+        }
     }
 
     Ok(())
