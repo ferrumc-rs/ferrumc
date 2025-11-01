@@ -15,13 +15,15 @@ use std::hash::{Hash, Hasher};
 ///
 /// # Example
 /// ```
+/// # use ferrumc_macros::block;
+/// # use ferrumc_world::block_id::BlockId;
 /// # use ferrumc_world::chunk_format::Chunk;
 /// # use ferrumc_world::edit_batch::EditBatch;
 /// # use ferrumc_world::vanilla_chunk_format::BlockData;
 /// # let mut chunk = Chunk::new(0, 0, "overworld".to_string());
 /// let mut batch = EditBatch::new(&mut chunk);
-/// batch.set_block(1, 64, 1, BlockData { name: "minecraft:stone".to_string(), properties: None });
-/// batch.set_block(2, 64, 1, BlockData { name: "minecraft:bricks".to_string(), properties: None });
+/// batch.set_block(1, 64, 1, block!("stone"));
+/// batch.set_block(2, 64, 1, block!("stone"));
 /// batch.apply().unwrap();
 /// ```
 ///
@@ -47,13 +49,9 @@ pub(crate) struct Edit {
 }
 
 fn get_palette_hash(palette: &[VarInt]) -> i32 {
-    let mut rolling = 0;
     let mut hasher = AHasher::default();
-    for block in palette.iter() {
-        (rolling + block.0).hash(&mut hasher);
-        rolling = hasher.finish() as i32;
-    }
-    rolling
+    palette.hash(&mut hasher);
+    hasher.finish() as i32
 }
 
 impl<'a> EditBatch<'a> {
@@ -75,13 +73,8 @@ impl<'a> EditBatch<'a> {
     /// Sets a block at the given chunk-relative coordinates.
     ///
     /// This won't have any effect until `apply()` is called.
-    pub fn set_block(&mut self, x: i32, y: i32, z: i32, block: impl Into<BlockId>) {
-        self.edits.push(Edit {
-            x,
-            y,
-            z,
-            block: block.into(),
-        });
+    pub fn set_block(&mut self, x: i32, y: i32, z: i32, block: BlockId) {
+        self.edits.push(Edit { x, y, z, block });
     }
 
     /// Applies all edits in the batch to the chunk.

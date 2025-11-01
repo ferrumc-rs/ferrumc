@@ -2,6 +2,7 @@ use bevy_ecs::prelude::{Entity, EventWriter, Query, Res};
 use ferrumc_core::chunks::cross_chunk_boundary_event::CrossChunkBoundaryEvent;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net::SetPlayerPositionPacketReceiver;
+use std::sync::atomic::Ordering;
 use tracing::{debug, error, trace, warn};
 
 use crate::errors::BinaryError;
@@ -153,7 +154,7 @@ fn update_pos_for_all(
     };
 
     for (entity, conn) in conn_query.iter() {
-        if !state.players.is_connected(entity) {
+        if !state.players.is_connected(entity) || !conn.running.load(Ordering::Relaxed) {
             warn!(
                 "Player {} is not connected, skipping position update",
                 entity
@@ -163,6 +164,9 @@ fn update_pos_for_all(
                 let v = player_l.value();
                 debug!("Player list: {} - {}", k, v.1);
             }
+            state
+                .players
+                .disconnect(entity, Some(String::from("Player not connected anymore.")));
             continue;
         }
         match conn.send_packet_ref(&packet) {

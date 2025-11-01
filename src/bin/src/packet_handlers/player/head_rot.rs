@@ -6,7 +6,7 @@ use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::set_head_rotation::SetHeadRotationPacket;
 use ferrumc_net::packets::packet_events::TransformEvent;
 use ferrumc_net_codec::net_types::angle::NetAngle;
-use tracing::{error, trace};
+use tracing::error;
 
 pub fn handle_player_move(
     mut events: EventReader<TransformEvent>,
@@ -16,31 +16,28 @@ pub fn handle_player_move(
     for event in events.read() {
         let entity = event.entity;
 
-        match query.get(entity) {
-            Ok((rot, identity)) => {
-                let head_rot_packet = SetHeadRotationPacket::new(
-                    identity.uuid.as_u128() as i32,
-                    NetAngle::from_degrees(rot.yaw as f64),
-                );
+        let Ok((rot, identity)) = query.get(entity) else {
+            continue;
+        };
 
-                #[cfg(debug_assertions)]
-                let start = std::time::Instant::now();
+        let head_rot_packet = SetHeadRotationPacket::new(
+            identity.uuid.as_u128() as i32,
+            NetAngle::from_degrees(rot.yaw as f64),
+        );
 
-                for writer in broadcast_query.iter() {
-                    if !writer.running.load(std::sync::atomic::Ordering::Relaxed) {
-                        continue;
-                    }
-                    if let Err(err) = writer.send_packet_ref(&head_rot_packet) {
-                        error!("Failed to send head rotation packet: {:?}", err);
-                    }
-                }
+        #[cfg(debug_assertions)]
+        let start = std::time::Instant::now();
 
-                #[cfg(debug_assertions)]
-                trace!("broadcasting entity move took {:?}", start.elapsed());
+        for writer in broadcast_query.iter() {
+            if !writer.running.load(std::sync::atomic::Ordering::Relaxed) {
+                continue;
             }
-            Err(_) => {
-                error!("Entity {} not found, cant do head_rot", entity);
+            if let Err(err) = writer.send_packet_ref(&head_rot_packet) {
+                error!("Failed to send head rotation packet: {:?}", err);
             }
         }
+
+        #[cfg(debug_assertions)]
+        tracing::trace!("broadcasting entity move took {:?}", start.elapsed());
     }
 }
