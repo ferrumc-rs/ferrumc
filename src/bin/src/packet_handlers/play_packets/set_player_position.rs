@@ -73,7 +73,6 @@ pub fn handle(
             state.0.clone(),
         ) {
             error!("Failed to update position for player {}: {}", eid, err);
-            state.0.players.disconnection_queue.push((eid, None));
         } else {
             trace!(
                 "Updated position for player {}: ({}, {}, {})",
