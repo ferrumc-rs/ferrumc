@@ -1,3 +1,4 @@
+use crate::systems::system_messages;
 use bevy_ecs::prelude::{Commands, Entity, Query, Res};
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net::connection::{DisconnectHandle, StreamWriter};
@@ -51,10 +52,15 @@ pub fn connection_killer(
                         "Connection for player {} is not running, skipping disconnect packet",
                         player_identity.username
                     );
+                        }
+                    } else {
+                        system_messages::player_leave::handle(disconnecting_player.2, entity);
+                    }
+                    cmd.entity(entity).despawn();
                 }
-                cmd.entity(entity).despawn();
-            } else {
-                // Broadcast the disconnection to other players
+            }
+            Err(e) => {
+                warn!("Player's entity has already been removed: {}", e);
             }
         }
     }
