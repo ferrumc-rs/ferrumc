@@ -168,14 +168,7 @@ fn update_pos_for_all(
                 .disconnect(entity, Some(String::from("Player not connected anymore.")));
             continue;
         }
-        match conn.send_packet_ref(&packet) {
-            Ok(_) => {
-                continue;
-            }
-            Err(error) => {
-                return Err(BinaryError::from(error));
-            }
-        }
+        conn.send_packet_ref(&packet)?;
     }
 
     Ok(())
