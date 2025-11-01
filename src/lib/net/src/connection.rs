@@ -14,7 +14,7 @@ use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::ServerState;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use tokio::io::AsyncWriteExt;
 use tokio::net::tcp::OwnedWriteHalf;
@@ -41,6 +41,8 @@ pub struct StreamWriter {
     sender: UnboundedSender<Vec<u8>>,
     pub running: Arc<AtomicBool>,
     pub compress: Arc<AtomicBool>,
+    pub state: Arc<ServerState>,
+    pub entity: Arc<Mutex<Option<Entity>>>,
 }
 
 impl Drop for StreamWriter {
@@ -55,11 +57,18 @@ impl StreamWriter {
     ///
     /// Spawns a background task that continuously reads from the channel
     /// and writes bytes to the network socket.
-    pub async fn new(mut writer: OwnedWriteHalf, running: Arc<AtomicBool>) -> Self {
+    pub async fn new(
+        mut writer: OwnedWriteHalf,
+        running: Arc<AtomicBool>,
+        state: Arc<ServerState>,
+        entity: Arc<Mutex<Option<Entity>>>,
+    ) -> Self {
         let compress = Arc::new(AtomicBool::new(false)); // Default: no compression
         let (sender, mut receiver): (UnboundedSender<Vec<u8>>, UnboundedReceiver<Vec<u8>>) =
             tokio::sync::mpsc::unbounded_channel();
         let running_clone = running.clone();
+        let entity_clone = entity.clone();
+        let state_clone = state.clone();
 
         // Task: forward packets from channel to socket
         tokio::spawn(async move {
@@ -68,11 +77,24 @@ impl StreamWriter {
                     break;
                 };
 
+                // This handles ONLY if there was a writing error to the client.
                 if let Err(e) = writer.write_all(&bytes).await {
                     error!("Failed to write to client: {:?}", e);
                     running_clone.store(false, Ordering::Relaxed);
+                    if let Some(entity_id) = *entity_clone.lock().unwrap() {
+                        state_clone.players.disconnect(entity_id, None);
+                    }
                     break;
                 }
+            }
+
+            // This handles cases where the channel closes without a write error
+            if let Some(entity_id) = *entity_clone.lock().unwrap() {
+                trace!(
+                    "Write task ending for entity {:?}, ensuring disconnect",
+                    entity_id
+                );
+                state_clone.players.disconnect(entity_id, None);
             }
         });
 
@@ -80,7 +102,15 @@ impl StreamWriter {
             sender,
             running,
             compress,
+            state,
+            entity,
         }
+    }
+
+    /// Sets the entity ID for this stream writer.
+    /// This should be called after the entity is created in the ECS.
+    pub fn set_entity(&self, entity: Entity) {
+        *self.entity.lock().unwrap() = Some(entity);
     }
 
     /// Sends a packet to the client using the default `WithLength` encoding.
@@ -177,9 +207,16 @@ pub async fn handle_connection(
 
     let running = Arc::new(AtomicBool::new(true));
 
-    let stream = StreamWriter::new(tcp_writer, running.clone()).await;
+    let entity_holder: Arc<Mutex<Option<Entity>>> = Arc::new(Mutex::new(None));
 
-    // Perform handshake with timeout guard
+    let stream = StreamWriter::new(
+        tcp_writer,
+        running.clone(),
+        state.clone(),
+        entity_holder.clone(),
+    )
+    .await;
+
     let handshake_result = timeout(
         MAX_HANDSHAKE_TIMEOUT,
         handle_handshake(&mut tcp_reader, &stream, state.clone()),
@@ -256,6 +293,11 @@ pub async fn handle_connection(
         }
     };
 
+    // Sets the entity for the stream writer.
+    *entity_holder.lock().unwrap() = Some(entity);
+
+    trace!("Entity {:?} assigned to connection", entity);
+
     // ---- Packet receive loop ----
     'recv: loop {
         if !running.load(Ordering::Relaxed) {
@@ -279,17 +321,20 @@ pub async fn handle_connection(
                         if let NetError::ConnectionDropped = err {
                             trace!("Connection dropped for entity {:?}", entity);
                             running.store(false, Ordering::Relaxed);
-                            break 'recv;
+                            state.players.disconnect(entity, None);
+                        } else {
+                            error!("Failed to read packet skeleton: {:?} for {:?}", err, entity);
+                            running.store(false, Ordering::Relaxed);
+                            state.players.disconnect(entity, None);
                         }
-                        error!("Failed to read packet skeleton: {:?} for {:?}", err, entity);
-                        running.store(false, Ordering::Relaxed);
                         break 'recv;
                     }
                 }
             }
 
             _ = &mut disconnect_receiver => {
-                debug!("Received disconnect signal");
+                debug!("Received disconnect signal for entity {:?}", entity);
+                running.store(false, Ordering::Relaxed);
                 break 'recv;
             }
         }
@@ -322,6 +367,7 @@ pub async fn handle_connection(
                 _ => {
                     warn!("Error handling packet for {:?}: {:?}", entity, err);
                     running.store(false, Ordering::Relaxed);
+                    state.players.disconnect(entity, None);
                     break 'recv;
                 }
             },

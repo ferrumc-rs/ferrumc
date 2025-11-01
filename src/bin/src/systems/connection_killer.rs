@@ -1,18 +1,13 @@
 use crate::systems::system_messages;
 use bevy_ecs::prelude::{Commands, Entity, Query, Res};
 use ferrumc_core::identity::player_identity::PlayerIdentity;
-use ferrumc_net::connection::{DisconnectHandle, StreamWriter};
+use ferrumc_net::connection::StreamWriter;
 use ferrumc_state::GlobalStateResource;
 use ferrumc_text::TextComponent;
 use tracing::{info, trace, warn};
 
 pub fn connection_killer(
-    mut query: Query<(
-        Entity,
-        &StreamWriter,
-        &PlayerIdentity,
-        &mut DisconnectHandle,
-    )>,
+    query: Query<(Entity, &StreamWriter, &PlayerIdentity)>,
     mut cmd: Commands,
     state: Res<GlobalStateResource>,
 ) {
@@ -20,7 +15,7 @@ pub fn connection_killer(
         let disconnecting_player_identity = query
             .get(disconnecting_entity)
             .ok()
-            .map(|(_, _, identity, _)| identity.clone());
+            .map(|(_, _, identity)| identity.clone());
 
         if disconnecting_player_identity.is_none() {
             warn!("Player's entity has already been removed");
@@ -29,7 +24,7 @@ pub fn connection_killer(
 
         let disconnecting_player_identity = disconnecting_player_identity.unwrap();
 
-        for (entity, conn, player_identity, mut disconnect_handle) in query.iter_mut() {
+        for (entity, conn, player_identity) in query.iter() {
             if disconnecting_entity == entity {
                 info!(
                     "Player {} ({}) disconnected: {}",
@@ -53,11 +48,6 @@ pub fn connection_killer(
                             "Failed to send disconnect packet to player {}: {:?}",
                             player_identity.username, e
                         );
-                    }
-                    if let Some(sender) = disconnect_handle.sender.take() {
-                        if sender.send(()).is_err() {
-                            trace!("Failed to send disconnect signal (receiver already dropped)");
-                        }
                     }
                 } else {
                     trace!(
