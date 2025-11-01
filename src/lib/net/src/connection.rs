@@ -22,7 +22,7 @@ use tokio::net::TcpStream;
 use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
 use tokio::sync::oneshot;
 use tokio::time::timeout;
-use tracing::{debug_span, error, trace, warn, Instrument};
+use tracing::{debug, debug_span, error, trace, warn, Instrument};
 use typename::TypeName;
 
 /// The maximum time allowed for a client to complete its initial handshake.
@@ -143,6 +143,12 @@ pub struct NewConnection {
     pub stream: StreamWriter,
     pub player_identity: PlayerIdentity,
     pub entity_return: oneshot::Sender<Entity>,
+    pub disconnect_handle: oneshot::Sender<()>,
+}
+
+#[derive(Component)]
+pub struct DisconnectHandle {
+    pub sender: Option<oneshot::Sender<()>>,
 }
 
 /// Handles a new incoming client connection.
@@ -230,12 +236,14 @@ pub async fn handle_connection(
 
     // Send the new connection data to ECS world
     let (entity_return, entity_recv) = oneshot::channel();
+    let (disconnect_return, mut disconnect_receiver) = oneshot::channel();
 
     new_join_sender
         .send(NewConnection {
             stream,
             player_identity: login_result.player_identity.unwrap_or_default(),
             entity_return,
+            disconnect_handle: disconnect_return,
         })
         .map_err(|_| NetError::Misc("Failed to register new connection".to_string()))?;
 
@@ -260,20 +268,34 @@ pub async fn handle_connection(
         }
 
         // Read next packet
-        let mut packet_skele =
-            match PacketSkeleton::new(&mut tcp_reader, login_result.compression, Play).await {
-                Ok(packet_skele) => packet_skele,
-                Err(err) => {
-                    if let NetError::ConnectionDropped = err {
-                        trace!("Connection dropped for entity {:?}", entity);
-                        running.store(false, Ordering::Relaxed);
-                        break 'recv;
+        let mut packet_skele;
+        'play_receive: loop {
+            tokio::select! {
+                packet_result = PacketSkeleton::new(&mut tcp_reader, login_result.compression, Play) => {
+                    match packet_result {
+                        Ok(packet) => {
+                                packet_skele = packet;
+                                break 'play_receive
+                            },
+                        Err(err) => {
+                            if let NetError::ConnectionDropped = err {
+                                trace!("Connection dropped for entity {:?}", entity);
+                                running.store(false, Ordering::Relaxed);
+                                break 'recv;
+                            }
+                            error!("Failed to read packet skeleton: {:?} for {:?}", err, entity);
+                            running.store(false, Ordering::Relaxed);
+                            break 'recv;
+                        }
                     }
-                    error!("Failed to read packet skeleton: {:?} for {:?}", err, entity);
-                    running.store(false, Ordering::Relaxed);
+                }
+
+                _ = &mut disconnect_receiver => {
+                    debug!("Received disconnect signal");
                     break 'recv;
                 }
-            };
+            }
+        }
 
         // Dispatch packet to handler
         match handle_packet(

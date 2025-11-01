@@ -23,7 +23,7 @@ pub fn keep_alive_system(
                 state
                     .0
                     .players
-                    .disconnect(entity, Some("Connection timed out".to_string()));
+                    .disconnect(entity, Some("Player disconnected.".to_string()));
             };
             continue;
         }
