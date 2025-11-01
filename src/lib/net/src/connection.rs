@@ -269,31 +269,28 @@ pub async fn handle_connection(
 
         // Read next packet
         let mut packet_skele;
-        'play_receive: loop {
-            tokio::select! {
-                packet_result = PacketSkeleton::new(&mut tcp_reader, login_result.compression, Play) => {
-                    match packet_result {
-                        Ok(packet) => {
-                                packet_skele = packet;
-                                break 'play_receive
-                            },
-                        Err(err) => {
-                            if let NetError::ConnectionDropped = err {
-                                trace!("Connection dropped for entity {:?}", entity);
-                                running.store(false, Ordering::Relaxed);
-                                break 'recv;
-                            }
-                            error!("Failed to read packet skeleton: {:?} for {:?}", err, entity);
+        tokio::select! {
+            packet_result = PacketSkeleton::new(&mut tcp_reader, login_result.compression, Play) => {
+                match packet_result {
+                    Ok(packet) => {
+                        packet_skele = packet;
+                    },
+                    Err(err) => {
+                        if let NetError::ConnectionDropped = err {
+                            trace!("Connection dropped for entity {:?}", entity);
                             running.store(false, Ordering::Relaxed);
                             break 'recv;
                         }
+                        error!("Failed to read packet skeleton: {:?} for {:?}", err, entity);
+                        running.store(false, Ordering::Relaxed);
+                        break 'recv;
                     }
                 }
+            }
 
-                _ = &mut disconnect_receiver => {
-                    debug!("Received disconnect signal");
-                    break 'recv;
-                }
+            _ = &mut disconnect_receiver => {
+                debug!("Received disconnect signal");
+                break 'recv;
             }
         }
 
@@ -332,25 +329,4 @@ pub async fn handle_connection(
     }
 
     Ok(())
-}
-
-impl StreamWriter {
-    /// Gracefully closes the connection, optionally sending a disconnect reason packet.
-    ///
-    /// Note: This does not despawn the associated ECS entity. The caller
-    /// is responsible for removing the entity separately.
-    pub fn kill(&self, reason: Option<String>) -> Result<(), NetError> {
-        self.running.store(false, Ordering::Relaxed);
-        if let Err(err) = self.send_packet(crate::packets::outgoing::disconnect::DisconnectPacket {
-            reason: ferrumc_text::TextComponent::from(reason.unwrap_or("Disconnected".to_string())),
-        }) {
-            if matches!(err, NetError::ConnectionDropped) {
-                trace!("Connection already dropped, skipping disconnect packet");
-            } else {
-                error!("Failed to send disconnect packet: {:?}", err);
-                return Err(err);
-            }
-        }
-        Ok(())
-    }
 }
