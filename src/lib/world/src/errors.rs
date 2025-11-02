@@ -1,4 +1,4 @@
-use crate::block_id::BlockId;
+use crate::block_state_id::BlockStateId;
 use crate::errors::WorldError::{CompressionError, GenericIOError, PermissionError};
 use errors::AnvilError;
 use ferrumc_anvil::errors;
@@ -37,7 +37,7 @@ pub enum WorldError {
     #[error("Anvil Decode Error: {0}")]
     AnvilDecodeError(AnvilError),
     #[error("Missing block mapping: {0}")]
-    MissingBlockMapping(BlockId),
+    MissingBlockMapping(BlockStateId),
     #[error("Invalid memory map size: {0}")]
     InvalidMapSize(u64),
     #[error("Task Join Error: {0}")]
@@ -47,7 +47,7 @@ pub enum WorldError {
     #[error("Invalid block state data")]
     InvalidBlockStateData(String),
     #[error("Invalid block: {0}")]
-    InvalidBlock(BlockId),
+    InvalidBlock(BlockStateId),
     #[error("Invalid batching operation: {0}")]
     InvalidBatchingOperation(String),
     #[error("Invalid block ID: {0}")]

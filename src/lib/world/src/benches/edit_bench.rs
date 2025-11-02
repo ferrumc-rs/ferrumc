@@ -1,6 +1,6 @@
 use criterion::{Criterion, Throughput};
 use ferrumc_macros::block;
-use ferrumc_world::block_id::BlockId;
+use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::chunk_format::Chunk;
 use rand::Rng;
 use std::hint::black_box;

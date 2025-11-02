@@ -14,7 +14,7 @@ use tracing::{debug, error, trace};
 
 use ferrumc_inventories::hotbar::Hotbar;
 use ferrumc_inventories::inventory::Inventory;
-use ferrumc_world::block_id::BlockId;
+use ferrumc_world::block_state_id::BlockStateId;
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -133,7 +133,7 @@ pub fn handle(
                         x & 0xF,
                         y as i32,
                         z & 0xF,
-                        BlockId(*mapped_block_id as u32),
+                        BlockStateId(*mapped_block_id as u32),
                     ) {
                         error!("Failed to set block: {:?}", err);
                         continue 'ev_loop;

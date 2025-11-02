@@ -102,7 +102,7 @@ pub fn block(input: TokenStream) -> TokenStream {
             .into();
         }
         let first = filtered_names.first().unwrap().0;
-        return quote! { BlockId(#first) }.into();
+        return quote! { BlockStateId(#first) }.into();
     };
 
     let props = opts
@@ -195,7 +195,7 @@ pub fn block(input: TokenStream) -> TokenStream {
     }
 
     let res = matched[0];
-    quote! { BlockId(#res) }.into()
+    quote! { BlockStateId(#res) }.into()
 }
 
 fn get_properties(filtered_names: &[(u32, &OwnedValue)]) -> Vec<(String, String)> {

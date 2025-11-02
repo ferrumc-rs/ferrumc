@@ -1,4 +1,4 @@
-pub mod block_id;
+pub mod block_state_id;
 pub mod chunk_format;
 mod db_functions;
 pub mod edit_batch;
