@@ -23,6 +23,7 @@ members = [
     "src/lib/core/state",
     "src/lib/derive_macros",
     "src/lib/derive_macros",
+    "src/lib/entities",
     "src/lib/net",
     "src/lib/net/crates/codec",
     "src/lib/net/crates/encryption",
@@ -93,6 +94,7 @@ ferrumc-anvil = { path = "src/lib/adapters/anvil" }
 ferrumc-config = { path = "src/lib/config" }
 ferrumc-core = { path = "src/lib/core" }
 ferrumc-default-commands = { path = "src/lib/default_commands" }
+ferrumc-entities = { path = "src/lib/entities" }
 ferrumc-commands = { path = "src/lib/commands" }
 ferrumc-general-purpose = { path = "src/lib/utils/general_purpose" }
 ferrumc-logging = { path = "src/lib/utils/logging" }
