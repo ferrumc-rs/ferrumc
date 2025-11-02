@@ -54,4 +54,29 @@ impl SpawnEntityPacket {
             velocity_z: 0,
         })
     }
+
+    /// Create a spawn entity packet for generic entities (mobs, animals, etc.)
+    pub fn entity(
+        entity_id: i32,
+        entity_uuid: u128,
+        entity_type_id: i32,
+        position: &Position,
+        rotation: &Rotation,
+    ) -> Self {
+        Self {
+            entity_id: VarInt::new(entity_id),
+            entity_uuid,
+            r#type: VarInt::new(entity_type_id),
+            x: position.x,
+            y: position.y,
+            z: position.z,
+            pitch: NetAngle::from_degrees(rotation.pitch as f64),
+            yaw: NetAngle::from_degrees(rotation.yaw as f64),
+            head_yaw: NetAngle::from_degrees(rotation.yaw as f64),
+            data: VarInt::new(0),
+            velocity_x: 0,
+            velocity_y: 0,
+            velocity_z: 0,
+        }
+    }
 }

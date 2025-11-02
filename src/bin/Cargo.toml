@@ -12,6 +12,7 @@ thiserror = { workspace = true }
 ferrumc-core = { workspace = true }
 bevy_ecs = { workspace = true }
 ferrumc-scheduler = { workspace = true }
+ferrumc-entities = { workspace = true }
 
 ferrumc-registry = { workspace = true }
 ferrumc-events = { workspace = true }
