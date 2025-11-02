@@ -262,8 +262,7 @@ impl<const N: usize> ConstPerlinNoise<N> {
     pub const fn new(first_octave: u32, mut amplitudes: [f64; N]) -> Self {
         assert!(!amplitudes.is_empty());
         let input_factor = 2i32.pow(first_octave) as f64;
-        let lowest_freq_value_factor =
-            2u32.pow(N as u32 - 1) as f64 / (2u32.pow(N as u32) - 1) as f64;
+        let lowest_freq_value_factor = (1 << (N - 1)) as f64 / ((1 << N) - 1) as f64;
 
         let mut i = 0;
         while i < amplitudes.len() {
