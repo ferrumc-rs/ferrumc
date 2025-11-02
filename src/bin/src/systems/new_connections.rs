@@ -8,7 +8,7 @@ use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_inventories::hotbar::Hotbar;
 use ferrumc_inventories::inventory::Inventory;
-use ferrumc_net::connection::NewConnection;
+use ferrumc_net::connection::{DisconnectHandle, NewConnection};
 use ferrumc_state::GlobalStateResource;
 use std::time::Instant;
 use tracing::{error, trace};
@@ -28,6 +28,9 @@ pub fn accept_new_connections(
         let return_sender = new_connection.entity_return;
         let entity = cmd.spawn((
             new_connection.stream,
+            DisconnectHandle {
+                sender: Some(new_connection.disconnect_handle),
+            },
             Position::default(),
             ChunkReceiver::default(),
             Rotation::default(),
