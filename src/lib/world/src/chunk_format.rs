@@ -84,7 +84,7 @@ fn convert_to_net_palette(
             new_palette.push(VarInt::from(*id));
         } else {
             new_palette.push(VarInt::from(0));
-            error!("Could not find block id for palette entry: {:?}", palette);
+            error!("Could not find block state id for palette entry: {:?}", palette);
         }
     }
     Ok(new_palette)
@@ -136,7 +136,7 @@ impl VanillaChunk {
                 while i + bits_per_block < 64 {
                     let palette_index = read_nbit_i32(chunk, bits_per_block as usize, i as u32)?;
                     let block = match palette.get(palette_index as usize) {
-                        Some(block) => block.to_block_id(),
+                        Some(block) => block.to_block_state_id(),
                         None => {
                             error!("Could not find block for palette index: {}", palette_index);
                             BlockStateId::default()

@@ -68,7 +68,7 @@ impl World {
         block: BlockStateId,
     ) -> Result<(), WorldError> {
         if ID2BLOCK.get(block.0 as usize).is_none() {
-            return Err(WorldError::InvalidBlockId(block.0));
+            return Err(WorldError::InvalidBlockStateId(block.0));
         };
         // Get chunk
         let chunk_x = x >> 4;
@@ -269,10 +269,10 @@ impl Chunk {
                                 }
                                 None => {
                                     error!(
-                                        "Block count is zero for unknown block ID: {}",
+                                        "Block count is zero for unknown block state ID: {}",
                                         old_block.0
                                     );
-                                    Err(WorldError::InvalidBlockId(old_block.0))
+                                    Err(WorldError::InvalidBlockStateId(old_block.0))
                                 }
                             };
                         }
@@ -491,7 +491,7 @@ impl Section {
                         if let Some(index) = index {
                             remove_indexes.push(index);
                         } else {
-                            return Err(WorldError::InvalidBlockId(block.0));
+                            return Err(WorldError::InvalidBlockStateId(block.0));
                         }
                     }
                 }

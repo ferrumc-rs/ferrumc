@@ -51,7 +51,7 @@ pub fn handle(
                         // If the player is the one who placed the block, send the BlockChangeAck packet
                         let block_update_packet = BlockUpdate {
                             location: event.location.clone(),
-                            block_id: VarInt::from(BlockStateId::default()),
+                            block_state_id: VarInt::from(BlockStateId::default()),
                         };
                         conn.send_packet_ref(&block_update_packet)?;
                         if eid == trigger_eid {

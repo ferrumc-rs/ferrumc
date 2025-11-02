@@ -16,7 +16,7 @@ use std::hash::{Hash, Hasher};
 /// # Example
 /// ```
 /// # use ferrumc_macros::block;
-/// # use ferrumc_world::block_id::BlockId;
+/// # use ferrumc_world::block_state_id::BlockStateId;
 /// # use ferrumc_world::chunk_format::Chunk;
 /// # use ferrumc_world::edit_batch::EditBatch;
 /// # use ferrumc_world::vanilla_chunk_format::BlockData;
@@ -199,7 +199,7 @@ impl<'a> EditBatch<'a> {
             // Hash current palette so we can detect changes after edits
             let palette_hash = get_palette_hash(palette);
 
-            // Rebuild temporary palette index lookup (block ID -> palette index)
+            // Rebuild temporary palette index lookup (block state ID -> palette index)
             self.tmp_palette_map.clear();
             for (i, p) in palette.iter().enumerate() {
                 self.tmp_palette_map.insert(BlockStateId::from_varint(*p), i);
@@ -245,13 +245,13 @@ impl<'a> EditBatch<'a> {
                     continue;
                 }
 
-                if let Some(old_block_id) = palette.get(old_block_index as usize) {
+                if let Some(old_block_state_id) = palette.get(old_block_index as usize) {
                     if let Some(count) =
-                        block_count_removes.get_mut(&BlockStateId::from_varint(*old_block_id))
+                        block_count_removes.get_mut(&BlockStateId::from_varint(*old_block_state_id))
                     {
                         *count -= 1;
                     } else {
-                        block_count_removes.insert(BlockStateId::from_varint(*old_block_id), 1);
+                        block_count_removes.insert(BlockStateId::from_varint(*old_block_state_id), 1);
                     }
                 }
 
@@ -268,20 +268,20 @@ impl<'a> EditBatch<'a> {
             }
 
             // Update block counts
-            for (block_id, count) in block_count_adds {
+            for (block_state_id, count) in block_count_adds {
                 let current_count = section
                     .block_states
                     .block_counts
-                    .entry(block_id)
+                    .entry(block_state_id)
                     .or_insert(0);
                 *current_count += count;
             }
 
-            for (block_id, count) in block_count_removes {
+            for (block_state_id, count) in block_count_removes {
                 let current_count = section
                     .block_states
                     .block_counts
-                    .entry(block_id)
+                    .entry(block_state_id)
                     .or_insert(0);
                 *current_count -= count;
             }
@@ -317,7 +317,7 @@ mod tests {
             name: name.to_string(),
             properties: None,
         }
-        .to_block_id()
+        .to_block_state_id()
     }
 
     #[test]
