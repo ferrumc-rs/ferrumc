@@ -202,7 +202,8 @@ impl<'a> EditBatch<'a> {
             // Rebuild temporary palette index lookup (block state ID -> palette index)
             self.tmp_palette_map.clear();
             for (i, p) in palette.iter().enumerate() {
-                self.tmp_palette_map.insert(BlockStateId::from_varint(*p), i);
+                self.tmp_palette_map
+                    .insert(BlockStateId::from_varint(*p), i);
             }
 
             // Determine how many blocks fit into each i64 (based on bits per block)
@@ -251,7 +252,8 @@ impl<'a> EditBatch<'a> {
                     {
                         *count -= 1;
                     } else {
-                        block_count_removes.insert(BlockStateId::from_varint(*old_block_state_id), 1);
+                        block_count_removes
+                            .insert(BlockStateId::from_varint(*old_block_state_id), 1);
                     }
                 }
 

@@ -84,7 +84,10 @@ fn convert_to_net_palette(
             new_palette.push(VarInt::from(*id));
         } else {
             new_palette.push(VarInt::from(0));
-            error!("Could not find block state id for palette entry: {:?}", palette);
+            error!(
+                "Could not find block state id for palette entry: {:?}",
+                palette
+            );
         }
     }
     Ok(new_palette)

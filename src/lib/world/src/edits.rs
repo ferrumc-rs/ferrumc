@@ -211,7 +211,13 @@ impl Chunk {
     /// The positions are modulo'd by 16 to get the block index in the section anyway, so converting
     /// the coordinates to section coordinates isn't really necessary, but you should probably do it
     /// anyway for readability's sake.
-    pub fn set_block(&mut self, x: i32, y: i32, z: i32, block: BlockStateId) -> Result<(), WorldError> {
+    pub fn set_block(
+        &mut self,
+        x: i32,
+        y: i32,
+        z: i32,
+        block: BlockStateId,
+    ) -> Result<(), WorldError> {
         // Get old block
         let old_block = self.get_block(x, y, z)?;
         if old_block == block {
