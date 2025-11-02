@@ -1,4 +1,4 @@
-use crate::block_id::{BlockId, ID2BLOCK};
+use crate::block_state_id::{BlockStateId, ID2BLOCK};
 use crate::chunk_format::{BlockStates, Chunk, PaletteType, Section};
 use crate::errors::WorldError;
 use crate::World;
@@ -36,7 +36,7 @@ impl World {
         y: i32,
         z: i32,
         dimension: &str,
-    ) -> Result<BlockId, WorldError> {
+    ) -> Result<BlockStateId, WorldError> {
         let chunk_x = x >> 4;
         let chunk_z = z >> 4;
         let chunk = self.load_chunk(chunk_x, chunk_z, dimension)?;
@@ -65,10 +65,10 @@ impl World {
         y: i32,
         z: i32,
         dimension: &str,
-        block: BlockId,
+        block: BlockStateId,
     ) -> Result<(), WorldError> {
         if ID2BLOCK.get(block.0 as usize).is_none() {
-            return Err(WorldError::InvalidBlockId(block.0));
+            return Err(WorldError::InvalidBlockStateId(block.0));
         };
         // Get chunk
         let chunk_x = x >> 4;
@@ -211,7 +211,13 @@ impl Chunk {
     /// The positions are modulo'd by 16 to get the block index in the section anyway, so converting
     /// the coordinates to section coordinates isn't really necessary, but you should probably do it
     /// anyway for readability's sake.
-    pub fn set_block(&mut self, x: i32, y: i32, z: i32, block: BlockId) -> Result<(), WorldError> {
+    pub fn set_block(
+        &mut self,
+        x: i32,
+        y: i32,
+        z: i32,
+        block: BlockStateId,
+    ) -> Result<(), WorldError> {
         // Get old block
         let old_block = self.get_block(x, y, z)?;
         if old_block == block {
@@ -269,10 +275,10 @@ impl Chunk {
                                 }
                                 None => {
                                     error!(
-                                        "Block count is zero for unknown block ID: {}",
+                                        "Block count is zero for unknown block state ID: {}",
                                         old_block.0
                                     );
-                                    Err(WorldError::InvalidBlockId(old_block.0))
+                                    Err(WorldError::InvalidBlockStateId(old_block.0))
                                 }
                             };
                         }
@@ -365,21 +371,21 @@ impl Chunk {
     /// The positions are modulo'd by 16 to get the block index in the section anyway, so converting
     /// the coordinates to section coordinates isn't really necessary, but you should probably do it
     /// anyway for readability's sake.
-    pub fn get_block(&self, x: i32, y: i32, z: i32) -> Result<BlockId, WorldError> {
+    pub fn get_block(&self, x: i32, y: i32, z: i32) -> Result<BlockStateId, WorldError> {
         let section = self
             .sections
             .iter()
             .find(|section| section.y == (y / 16) as i8)
             .ok_or(WorldError::SectionOutOfBounds(y >> 4))?;
         match &section.block_states.block_data {
-            PaletteType::Single(val) => Ok(BlockId::from_varint(*val)),
+            PaletteType::Single(val) => Ok(BlockStateId::from_varint(*val)),
             PaletteType::Indirect {
                 bits_per_block,
                 data,
                 palette,
             } => {
                 if palette.len() == 1 || *bits_per_block == 0 {
-                    return Ok(BlockId::from_varint(palette[0]));
+                    return Ok(BlockStateId::from_varint(palette[0]));
                 }
                 let blocks_per_i64 = (64f64 / *bits_per_block as f64).floor() as usize;
                 let index = ((y & 0xf) * 256 + (z & 0xf) * 16 + (x & 0xf)) as usize;
@@ -396,7 +402,7 @@ impl Chunk {
                     offset as u32,
                 )?;
                 let palette_id = palette.get(id as usize).ok_or(WorldError::ChunkNotFound)?;
-                Ok(BlockId::from_varint(*palette_id))
+                Ok(BlockStateId::from_varint(*palette_id))
             }
             &PaletteType::Direct { .. } => todo!("Implement direct palette for get_block"),
         }
@@ -414,7 +420,7 @@ impl Chunk {
     ///
     /// * `Ok(())` - If the section was successfully set.
     /// * `Err(WorldError)` - If an error occurs while setting the section.
-    pub fn set_section(&mut self, section_y: i8, block: BlockId) -> Result<(), WorldError> {
+    pub fn set_section(&mut self, section_y: i8, block: BlockStateId) -> Result<(), WorldError> {
         if let Some(section) = self
             .sections
             .iter_mut()
@@ -436,7 +442,7 @@ impl Chunk {
     ///
     /// * `Ok(())` - If the chunk was successfully filled.
     /// * `Err(WorldError)` - If an error occurs while filling the chunk.
-    pub fn fill(&mut self, block: BlockId) -> Result<(), WorldError> {
+    pub fn fill(&mut self, block: BlockStateId) -> Result<(), WorldError> {
         for section in &mut self.sections {
             section.fill(block)?;
         }
@@ -455,7 +461,7 @@ impl Section {
     ///
     /// * `Ok(())` - If the section was successfully filled.
     /// * `Err(WorldError)` - If an error occurs while filling the section.
-    pub fn fill(&mut self, block: BlockId) -> Result<(), WorldError> {
+    pub fn fill(&mut self, block: BlockStateId) -> Result<(), WorldError> {
         self.block_states.block_data = PaletteType::Single(block.to_varint());
         self.block_states.block_counts = HashMap::from([(block, 4096)]);
         // Air, void air and cave air respectively
@@ -491,7 +497,7 @@ impl Section {
                         if let Some(index) = index {
                             remove_indexes.push(index);
                         } else {
-                            return Err(WorldError::InvalidBlockId(block.0));
+                            return Err(WorldError::InvalidBlockStateId(block.0));
                         }
                     }
                 }
@@ -522,7 +528,7 @@ impl Section {
                 {
                     // If there is only one block in the palette, convert to single block mode
                     if palette.len() == 1 {
-                        let block = BlockId::from(palette[0]);
+                        let block = BlockStateId::from(palette[0]);
                         self.block_states.block_data = PaletteType::Single(palette[0]);
                         self.block_states.block_counts.clear();
                         self.block_states.block_counts.insert(block, 4096);

@@ -1,4 +1,4 @@
-use crate::block_id::{BlockId, BLOCK2ID};
+use crate::block_state_id::{BlockStateId, BLOCK2ID};
 use crate::vanilla_chunk_format;
 use crate::vanilla_chunk_format::VanillaChunk;
 use crate::{errors::WorldError, vanilla_chunk_format::VanillaHeightmaps};
@@ -51,7 +51,7 @@ pub struct Section {
 pub struct BlockStates {
     pub non_air_blocks: u16,
     pub block_data: PaletteType,
-    pub block_counts: HashMap<BlockId, i32>,
+    pub block_counts: HashMap<BlockStateId, i32>,
 }
 
 #[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug)]
@@ -84,7 +84,10 @@ fn convert_to_net_palette(
             new_palette.push(VarInt::from(*id));
         } else {
             new_palette.push(VarInt::from(0));
-            error!("Could not find block id for palette entry: {:?}", palette);
+            error!(
+                "Could not find block state id for palette entry: {:?}",
+                palette
+            );
         }
     }
     Ok(new_palette)
@@ -136,10 +139,10 @@ impl VanillaChunk {
                 while i + bits_per_block < 64 {
                     let palette_index = read_nbit_i32(chunk, bits_per_block as usize, i as u32)?;
                     let block = match palette.get(palette_index as usize) {
-                        Some(block) => block.to_block_id(),
+                        Some(block) => block.to_block_state_id(),
                         None => {
                             error!("Could not find block for palette index: {}", palette_index);
-                            BlockId::default()
+                            BlockStateId::default()
                         }
                     };
 
@@ -153,7 +156,7 @@ impl VanillaChunk {
                 }
             }
             let block_data = if raw_block_data.is_empty() {
-                block_counts.insert(BlockId::default(), 4096);
+                block_counts.insert(BlockStateId::default(), 4096);
                 PaletteType::Single(VarInt::from(0))
             } else {
                 PaletteType::Indirect {
@@ -163,7 +166,7 @@ impl VanillaChunk {
                 }
             };
             // Count the number of blocks that are either air, void air, or cave air
-            let mut air_blocks = *block_counts.get(&BlockId::default()).unwrap_or(&0) as u16;
+            let mut air_blocks = *block_counts.get(&BlockStateId::default()).unwrap_or(&0) as u16;
             air_blocks += *block_counts.get(&block!("void_air")).unwrap_or(&0) as u16;
             air_blocks += *block_counts.get(&block!("cave_air")).unwrap_or(&0) as u16;
             let non_air_blocks = 4096 - air_blocks;
@@ -224,7 +227,7 @@ impl Chunk {
                 block_states: BlockStates {
                     non_air_blocks: 0,
                     block_data: PaletteType::Single(VarInt::from(0)),
-                    block_counts: HashMap::from([(BlockId::default(), 4096)]),
+                    block_counts: HashMap::from([(BlockStateId::default(), 4096)]),
                 },
                 biome_states: BiomeStates {
                     bits_per_biome: 0,
@@ -282,7 +285,7 @@ mod tests {
             block_states: BlockStates {
                 non_air_blocks: 0,
                 block_data: PaletteType::Single(VarInt::from(0)),
-                block_counts: HashMap::from([(BlockId::default(), 4096)]),
+                block_counts: HashMap::from([(BlockStateId::default(), 4096)]),
             },
             biome_states: BiomeStates {
                 bits_per_biome: 0,

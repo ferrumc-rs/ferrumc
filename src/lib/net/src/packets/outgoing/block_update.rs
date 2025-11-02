@@ -6,5 +6,5 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 #[packet(packet_id = "block_update", state = "play")]
 pub struct BlockUpdate {
     pub location: NetworkPosition,
-    pub block_id: VarInt,
+    pub block_state_id: VarInt,
 }

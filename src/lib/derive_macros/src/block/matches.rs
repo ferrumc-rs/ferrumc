@@ -21,8 +21,8 @@ impl syn::parse::Parse for Input {
     }
 }
 
-// match_block!("stone", block_id); -> "if block_id == BlockId(1) { ... }
-// match_block!("dirt", block_id); -> "if block_name == BlockId( { ... }
+// match_block!("stone", block_state_id); -> "if block_state_id == BlockStateId(1) { ... }
+// match_block!("dirt", block_state_id); -> "if block_name == BlockStateId( { ... }
 pub fn matches_block(input: TokenStream) -> TokenStream {
     let input = syn::parse_macro_input!(input as Input);
     let block_name = &input.name;
@@ -31,7 +31,7 @@ pub fn matches_block(input: TokenStream) -> TokenStream {
     } else {
         format!("minecraft:{}", block_name)
     };
-    let block_id_var = &input.id_var;
+    let block_state_id_var = &input.id_var;
     let mut buf = JSON_FILE.to_vec();
     let v = simd_json::to_owned_value(&mut buf).unwrap();
     let filtered_names = v
@@ -52,7 +52,7 @@ pub fn matches_block(input: TokenStream) -> TokenStream {
     let mut arms = Vec::new();
     for (id, _) in filtered_names {
         arms.push(quote! {
-            #block_id_var == BlockId(#id)
+            #block_state_id_var == BlockStateId(#id)
         });
     }
     let joined = quote! {
