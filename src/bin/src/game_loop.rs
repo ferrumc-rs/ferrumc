@@ -23,6 +23,7 @@ use std::time::{Duration, Instant};
 use tokio::time::sleep;
 use tracing::{debug, error, info, info_span, trace, warn, Instrument};
 
+/// Sets up important variables and values needed for the game to run properly.
 pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     // ECS world and schedules
     let mut ecs_world = World::new();
@@ -144,6 +145,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     Ok(())
 }
 
+/// Schedules events that should run at specific times.
 fn build_timed_scheduler() -> Scheduler {
     let mut timed = Scheduler::new();
 
@@ -202,6 +204,7 @@ fn build_timed_scheduler() -> Scheduler {
     timed
 }
 
+/// Accepts the connection from new players and puts them in the bevy ecs app to handle them.
 fn tcp_conn_acceptor(
     state: GlobalState,
     packet_sender: Arc<PacketSender>,

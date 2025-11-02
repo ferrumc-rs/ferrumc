@@ -6,6 +6,7 @@ use ferrumc_core::conn::player_count_update_cooldown::PlayerCountUpdateCooldown;
 use ferrumc_net::connection::NewConnection;
 use ferrumc_state::GlobalStateResource;
 
+/// Registers resources that will be needed later on
 pub fn register_resources(
     world: &mut World,
     new_conn_recv: Receiver<NewConnection>,

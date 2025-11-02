@@ -78,6 +78,7 @@ impl fmt::Display for TextComponent {
     }
 }
 
+/// Textcomponent.
 impl TextComponent {
     make_setters!(
         (Color, color),
@@ -88,6 +89,7 @@ impl TextComponent {
     );
     make_bool_setters!(bold, italic, underlined, strikethrough, obfuscated);
 
+    /// The TextComponent seralized for minecraft nbt.
     pub fn serialize_nbt(&self) -> Vec<u8> {
         let mut vec = Vec::new();
         NBTSerializable::serialize(self, &mut vec, &NBTSerializeOptions::Network);

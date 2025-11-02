@@ -6,6 +6,7 @@ use crate::{
 use super::PrimitiveArgument;
 
 impl CommandArgument for char {
+    /// Parses a string to be only one char from the client to the server.
     fn parse(ctx: &mut CommandContext) -> ParserResult<Self> {
         let str = ctx.input.read_string();
 
@@ -16,10 +17,12 @@ impl CommandArgument for char {
         Ok(str.chars().nth(0).unwrap())
     }
 
+    /// Returns the Primitive Argument character.
     fn primitive() -> PrimitiveArgument {
         PrimitiveArgument::word()
     }
 
+    /// Suggests a possible char.
     fn suggest(ctx: &mut CommandContext) -> Vec<Suggestion> {
         ctx.input.read_string();
 

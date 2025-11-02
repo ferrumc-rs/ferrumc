@@ -2,6 +2,7 @@ use bevy_ecs::prelude::{EventWriter, Res};
 use ferrumc_net::packets::packet_events::TransformEvent;
 use ferrumc_net::SetPlayerRotationPacketReceiver;
 
+/// Handles the rotation of the player.
 pub fn handle(
     events: Res<SetPlayerRotationPacketReceiver>,
     mut event_writer: EventWriter<TransformEvent>,

@@ -7,6 +7,7 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalStateResource;
 use tracing::{debug, error};
 
+/// Handles the inventory for the player from the server.
 pub fn handle_inventory_updates(state: Res<GlobalStateResource>, mut query: Query<&StreamWriter>) {
     while let Some(update) = INVENTORY_UPDATES_QUEUE.pop() {
         if state.0.players.is_connected(update.entity) {

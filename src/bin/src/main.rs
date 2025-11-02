@@ -28,6 +28,7 @@ mod systems;
 #[global_allocator]
 static ALLOC: dhat::Alloc = dhat::Alloc;
 
+/// Main function, should be self-explanatory.
 fn main() {
     #[cfg(feature = "dhat")]
     let _profiler = dhat::Profiler::new_heap();
@@ -71,6 +72,7 @@ fn main() {
     }
 }
 
+/// Generates 12x12 Chunks on start around the world-spawn.
 fn generate_chunks(state: GlobalState) -> Result<(), BinaryError> {
     info!("No overworld spawn chunk found, generating spawn chunks...");
     // Generate a 12x12 chunk area around the spawn point
@@ -105,6 +107,7 @@ fn generate_chunks(state: GlobalState) -> Result<(), BinaryError> {
     Ok(())
 }
 
+/// Starts the gameloop and adds a hook for shutting down.
 fn entry(start_time: Instant) -> Result<(), BinaryError> {
     let state = create_state(start_time)?;
     let global_state = Arc::new(state);
@@ -133,8 +136,8 @@ fn entry(start_time: Instant) -> Result<(), BinaryError> {
     Ok(())
 }
 
+/// Handles the import of other worlds to the server.
 fn handle_import(import_args: ImportArgs) -> Result<(), BinaryError> {
-    //! Handles the import of the world.
     info!("Importing world...");
 
     // let config = get_global_config();
@@ -154,6 +157,7 @@ fn handle_import(import_args: ImportArgs) -> Result<(), BinaryError> {
     Ok(())
 }
 
+/// Creates the first ServerState.
 fn create_state(start_time: Instant) -> Result<ServerState, BinaryError> {
     Ok(ServerState {
         world: World::new(&get_global_config().database.db_path),

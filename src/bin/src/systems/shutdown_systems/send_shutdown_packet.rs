@@ -4,6 +4,8 @@ use ferrumc_net::connection::StreamWriter;
 use ferrumc_state::GlobalStateResource;
 use ferrumc_text::TextComponent;
 
+/// Sends a packet to the player when the player shutdown,
+/// that the client gets disconnected properly.
 pub fn handle(
     query: Query<(Entity, &StreamWriter, &PlayerIdentity)>,
     state: Res<GlobalStateResource>,

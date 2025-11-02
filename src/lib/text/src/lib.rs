@@ -87,16 +87,15 @@ pub struct TextComponent {
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, NBTSerialize)]
 #[serde(untagged)]
 pub enum TextContent {
-    Text {
-        text: String,
-    },
+    /// The normal text.
+    Text { text: String },
+    /// A translated text.
     Translate {
         translate: String,
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         #[nbt(skip_if = "Vec::is_empty")]
         with: Vec<TextComponent>,
     },
-    Keybind {
-        keybind: String,
-    },
+    /// A keybind.
+    Keybind { keybind: String },
 }

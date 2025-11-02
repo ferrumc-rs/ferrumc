@@ -19,8 +19,13 @@ use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::str::FromStr;
 
+/// Givees the file where the items can be mapped to the corresponding blocks.
 const ITEM_TO_BLOCK_MAPPING_FILE: &str =
     include_str!("../../../../../assets/data/item_to_block_mapping.json");
+
+/// Gives a parsed Mapping from the [ITEM_TO_BLOCK_MAPPING_FILE]
+/// - returns hashmap with mapping.
+/// - panics: if the mapping cant be parsed.
 static ITEM_TO_BLOCK_MAPPING: Lazy<HashMap<i32, i32>> = Lazy::new(|| {
     let str_form: HashMap<String, String> = serde_json::from_str(ITEM_TO_BLOCK_MAPPING_FILE)
         .expect("Failed to parse item_to_block_mapping.json");
@@ -30,6 +35,7 @@ static ITEM_TO_BLOCK_MAPPING: Lazy<HashMap<i32, i32>> = Lazy::new(|| {
         .collect()
 });
 
+/// Handles which block is getting places where, when the client wants to.
 pub fn handle(
     events: Res<PlaceBlockReceiver>,
     state: Res<GlobalStateResource>,

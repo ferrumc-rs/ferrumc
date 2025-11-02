@@ -11,6 +11,7 @@ use crate::{
 
 use super::PrimitiveArgument;
 
+/// The float argument flag.
 #[derive(Clone, Debug, PartialEq, Default)]
 pub struct FloatArgumentFlags {
     pub min: Option<f32>,
@@ -18,6 +19,7 @@ pub struct FloatArgumentFlags {
 }
 
 impl NetEncode for FloatArgumentFlags {
+    /// Encodes the type for networking.
     fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
         let mut flags = 0u8;
         if self.min.is_some() {
@@ -31,6 +33,7 @@ impl NetEncode for FloatArgumentFlags {
         self.max.encode(writer, opts)
     }
 
+    /// Encodes the type for networing in async.
     async fn encode_async<W: AsyncWrite + Unpin>(
         &self,
         writer: &mut W,
@@ -57,6 +60,7 @@ wrapper! {
 }
 
 impl CommandArgument for Float {
+    /// Parses the float from the client to an actual float.
     fn parse(ctx: &mut CommandContext) -> ParserResult<Self> {
         let token = ctx.input.read_string();
         let float = match token.parse::<f32>() {
@@ -67,6 +71,7 @@ impl CommandArgument for Float {
         Ok(Float(float))
     }
 
+    /// Gives the primitive type for floats.
     fn primitive() -> PrimitiveArgument {
         PrimitiveArgument::float(None, None)
     }

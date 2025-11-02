@@ -17,6 +17,7 @@ use ferrumc_net::packets::outgoing::update_entity_position_and_rotation::UpdateE
 use ferrumc_net::packets::outgoing::update_entity_rotation::UpdateEntityRotationPacket;
 use ferrumc_state::{GlobalState, GlobalStateResource};
 
+/// Handles when the player moves, where to and in which direction they look.
 pub fn handle(
     events: Res<SetPlayerPositionPacketReceiver>,
     mut pos_query: Query<(&mut Position, &mut OnGround, &Rotation, &PlayerIdentity)>,
@@ -84,14 +85,20 @@ pub fn handle(
     }
 }
 
+/// Enum to describe how the player just moved.
 #[derive(NetEncode, Clone)]
 enum BroadcastMovementPacket {
+    /// Value only for Movement.
     UpdateEntityPosition(UpdateEntityPositionPacket),
+    /// Value for position and rotation.
     UpdateEntityPositionAndRotation(UpdateEntityPositionAndRotationPacket),
+    /// Value for position.
     UpdateEntityRotation(UpdateEntityRotationPacket),
+    /// Value for teleporting players.
     TeleportEntity(TeleportEntityPacket),
 }
 
+/// Updates the position for all players to all players.
 fn update_pos_for_all(
     entity_id: Entity,
     delta_pos: Option<(i16, i16, i16)>,

@@ -6,6 +6,8 @@ use ferrumc_state::GlobalStateResource;
 use ferrumc_text::TextComponent;
 use tracing::{info, trace, warn};
 
+/// Handles that the player gets disconnected offically
+/// from the server when leaving, being kicked or disconnected.
 pub fn connection_killer(
     query: Query<(Entity, &StreamWriter, &PlayerIdentity)>,
     mut cmd: Commands,

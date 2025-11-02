@@ -4,6 +4,7 @@ use ferrumc_net::SetHeldItemReceiver;
 use ferrumc_state::GlobalStateResource;
 use tracing::{debug, error};
 
+/// Handles that the player can have a item in the hand, later that others can see the item currently held.
 pub fn handle(
     events: Res<SetHeldItemReceiver>,
     state: Res<GlobalStateResource>,

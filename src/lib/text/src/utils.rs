@@ -46,11 +46,14 @@ macro_rules! make_setters {
 }
 
 // TODO: better api for custom colors
+/// Possibilities to print in color.
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone, NBTSerialize)]
 #[serde(untagged)]
 #[nbt(tag_type = 8)]
 pub enum Color {
+    /// Names from an [enum of colors](NamedColor)
     Named(NamedColor),
+    /// Color from a hex string.
     Hex(String),
 }
 
@@ -60,25 +63,65 @@ impl From<NamedColor> for Color {
     }
 }
 
+/// An enum representing Minecraft's predefined text colors.
+///
+/// These correspond to the standard Minecraft color codes
+/// (e.g., §0–§f) and their modern hex equivalents.
+///
+/// | Name          | Color Code | Hex Value  |
+/// |----------------|-------------|-------------|
+/// | Black          | §0          | `#000000`   |
+/// | Dark Blue      | §1          | `#0000AA`   |
+/// | Dark Green     | §2          | `#00AA00`   |
+/// | Dark Aqua      | §3          | `#00AAAA`   |
+/// | Dark Red       | §4          | `#AA0000`   |
+/// | Dark Purple    | §5          | `#AA00AA`   |
+/// | Gold           | §6          | `#FFAA00`   |
+/// | Gray           | §7          | `#AAAAAA`   |
+/// | Dark Gray      | §8          | `#555555`   |
+/// | Blue           | §9          | `#5555FF`   |
+/// | Green          | §a          | `#55FF55`   |
+/// | Aqua           | §b          | `#55FFFF`   |
+/// | Red            | §c          | `#FF5555`   |
+/// | Light Purple   | §d          | `#FF55FF`   |
+/// | Yellow         | §e          | `#FFFF55`   |
+/// | White (default)| §f          | `#FFFFFF`   |
+///
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone, Default, NBTSerialize)]
 #[serde(rename_all(serialize = "snake_case"))]
 #[nbt(tag_type = 8, tag = "untagged", rename_all = "snake_case")]
 pub enum NamedColor {
+    /// Black (`#000000`, §0)
     Black,
+    /// Dark Blue (`#0000AA`, §1)
     DarkBlue,
+    /// Dark Green (`#00AA00`, §2)
     DarkGreen,
+    /// Dark Aqua (`#00AAAA`, §3)
     DarkAqua,
+    /// Dark Red (`#AA0000`, §4)
     DarkRed,
+    /// Dark Purple (`#AA00AA`, §5)
     DarkPurple,
+    /// Gold (`#FFAA00`, §6)
     Gold,
+    /// Gray (`#AAAAAA`, §7)
     Gray,
+    /// Dark Gray (`#555555`, §8)
     DarkGray,
+    /// Blue (`#5555FF`, §9)
     Blue,
+    /// Green (`#55FF55`, §a)
     Green,
+    /// Aqua (`#55FFFF`, §b)
     Aqua,
+    /// Red (`#FF5555`, §c)
     Red,
+    /// Light Purple (`#FF55FF`, §d)
     LightPurple,
+    /// Yellow (`#FFFF55`, §e)
     Yellow,
+    /// White (`#FFFFFF`, §f)
     #[default]
     White,
 }
@@ -100,6 +143,7 @@ pub enum Font {
     #[serde(rename = "minecraft:alt")]
     #[nbt(rename = "minecraft:alt")]
     Alt,
+    /// Custom font.
     #[serde(untagged)]
     Custom(String),
 }

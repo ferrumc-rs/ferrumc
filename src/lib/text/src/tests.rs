@@ -1,6 +1,7 @@
 use crate::*;
 use valence_text::{IntoText, Text};
 
+/// Converts bytes to a readable string.
 fn bytes_to_readable_string(bytes: &[u8]) -> String {
     bytes
         .iter()
@@ -15,6 +16,7 @@ fn bytes_to_readable_string(bytes: &[u8]) -> String {
         .join(" ")
 }
 
+/// Converts bytes to strings.
 fn bytes_to_string(bytes: &[u8]) -> String {
     bytes
         .iter()

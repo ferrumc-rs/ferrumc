@@ -14,12 +14,15 @@ use crate::{
 };
 
 use super::PrimitiveArgument;
-
+/// Represents the type of string argument a command can accept.
 #[derive(Clone, Debug, PartialEq, Ordinalize, Default)]
 pub enum StringArgumentType {
+    /// A single-word string argument.
     #[default]
     Word,
+    /// A string argument that can be quoted to include spaces.
     Quotable,
+    /// A string argument that consumes the rest of the input.
     Greedy,
 }
 
@@ -41,12 +44,18 @@ impl NetEncode for StringArgumentType {
 
 wrapper! {
     /// A single-word string.
+    ///
+    /// Accepts a single word without spaces.
     struct SingleWord(String);
 
-    /// A quotable string, accepting either a single-word string or a quoted multi-word string.
+    /// A quotable string.
+    ///
+    /// Accepts either a single word or a quoted string that may contain spaces.
     struct QuotableString(String);
 
-    /// A greedy string, consuming the rest of the command input.
+    /// A greedy string.
+    ///
+    /// Consumes the remainder of the command input as a single string.
     struct GreedyString(String);
 }
 
@@ -131,7 +140,6 @@ impl CommandArgument for GreedyString {
 
         while input.has_remaining_input() {
             let string = input.read_string();
-
             result.push_str(&string);
         }
 

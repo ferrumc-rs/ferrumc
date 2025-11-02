@@ -12,6 +12,7 @@ use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_macros::command;
 use ferrumc_text::{TextComponent, TextComponentBuilder};
 
+/// Test Argument
 struct TestArg(String);
 
 impl CommandArgument for TestArg {
@@ -34,6 +35,7 @@ impl CommandArgument for TestArg {
     }
 }
 
+/// Test Command to say a specific string.
 #[command("love")]
 fn love(#[sender] sender: Sender, #[arg] arg: TestArg, #[arg] duration: Duration) {
     sender.send_message(
@@ -42,6 +44,7 @@ fn love(#[sender] sender: Sender, #[arg] arg: TestArg, #[arg] duration: Duration
     );
 }
 
+/// Test command to echo a message.
 #[command("echo")]
 fn test_command(
     #[arg] message: QuotableString,

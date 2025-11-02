@@ -6,6 +6,7 @@ use ferrumc_state::GlobalStateResource;
 use std::time::Instant;
 use tracing::{error, warn};
 
+/// Handles the keep-alive packets for the user, to keep connections up and alive.
 pub fn handle(
     events: Res<IncomingKeepAlivePacketReceiver>,
     mut query: Query<&mut KeepAliveTracker>,

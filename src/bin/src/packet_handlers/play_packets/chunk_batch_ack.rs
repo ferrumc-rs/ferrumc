@@ -4,6 +4,7 @@ use ferrumc_net::ChunkBatchAckReceiver;
 use ferrumc_state::GlobalStateResource;
 use tracing::{error, warn};
 
+/// Handles that every player gets the chunks they need currently.
 pub fn handle(
     events: Res<ChunkBatchAckReceiver>,
     mut query: Query<(Entity, &mut ChunkReceiver)>,

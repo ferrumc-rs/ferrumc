@@ -8,6 +8,7 @@ use ferrumc_net::packets::packet_events::TransformEvent;
 use ferrumc_net_codec::net_types::angle::NetAngle;
 use tracing::error;
 
+/// Handles the player head rotation
 pub fn handle_player_move(
     mut events: EventReader<TransformEvent>,
     query: Query<(&Rotation, &PlayerIdentity)>,

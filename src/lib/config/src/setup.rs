@@ -5,12 +5,16 @@ use std::fs::File;
 use std::io::Write;
 use thiserror::Error;
 
+/// An error that is get thrown on setting the application up.
 #[derive(Debug, Error)]
 pub enum SetupError {
+    /// A base error for writing to the config file.
     #[error("Could not write the config file: {0}")]
     WriteError(std::io::Error),
+    /// A base error for reading of the config file.
     #[error("Could not read the config file: {0}")]
     ReadError(std::io::Error),
+    /// A base error for IO.
     #[error("IO error: {0}")]
     IoError(std::io::Error),
 }
@@ -26,6 +30,7 @@ impl From<std::io::Error> for SetupError {
     }
 }
 
+/// Sets up the configurations and files.
 pub fn setup() -> Result<(), SetupError> {
     if !std::fs::exists(get_root_path().join("whitelist.txt"))? {
         create_blank_whitelist_file();

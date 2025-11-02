@@ -3,24 +3,29 @@ use crate::slot::InventorySlot;
 use crate::{INVENTORY_UPDATES_QUEUE, InventoryUpdate};
 use bevy_ecs::prelude::{Component, Entity};
 
+/// The inventory.
 #[derive(Component)]
 pub struct Inventory {
+    /// A boc of inventory slots.
     pub slots: Box<[Option<InventorySlot>]>,
 }
 
 impl Inventory {
+    /// Creates a new inventory.
     pub fn new(size: usize) -> Self {
         Self {
             slots: vec![None; size].into_boxed_slice(),
         }
     }
 
+    /// Clears the inventory.
     pub fn clear(&mut self) {
         for slot in &mut self.slots {
             *slot = None;
         }
     }
 
+    /// Checks the inventory for a item.
     pub fn contains_item(&self, item_id: i32) -> bool {
         self.slots.iter().any(|slot| {
             if let Some(slot) = slot {
@@ -35,6 +40,7 @@ impl Inventory {
         })
     }
 
+    /// Adds an item to the inventories via the given slot.
     pub fn add_item(&mut self, item: InventorySlot) -> Result<(), InventoryError> {
         for slot in self.slots.iter_mut() {
             if slot.is_none() {
@@ -45,6 +51,7 @@ impl Inventory {
         Err(InventoryError::InventoryFull)
     }
 
+    /// Adds an item via an update.
     pub fn add_item_with_update(
         &mut self,
         item: InventorySlot,
@@ -64,6 +71,7 @@ impl Inventory {
         Err(InventoryError::InventoryFull)
     }
 
+    /// Sets the item to the inventory.
     pub fn set_item(&mut self, index: usize, item: InventorySlot) -> Result<(), InventoryError> {
         if index >= self.slots.len() {
             return Err(InventoryError::InvalidSlotIndex(index));
@@ -72,6 +80,7 @@ impl Inventory {
         Ok(())
     }
 
+    /// Sets the item to the inventory via an update.
     pub fn set_item_with_update(
         &mut self,
         index: usize,
@@ -90,6 +99,7 @@ impl Inventory {
         Ok(())
     }
 
+    /// Gets an item from the inventory, based on the index.
     pub fn get_item(&self, index: usize) -> Result<Option<&InventorySlot>, InventoryError> {
         if index >= self.slots.len() {
             return Err(InventoryError::InvalidSlotIndex(index));
@@ -97,6 +107,7 @@ impl Inventory {
         Ok(self.slots[index].as_ref())
     }
 
+    /// Removes an item from the inventory, based on the index.
     pub fn remove_item(&mut self, index: usize) -> Result<(), InventoryError> {
         if index >= self.slots.len() {
             return Err(InventoryError::InvalidSlotIndex(index));
@@ -108,6 +119,7 @@ impl Inventory {
         Ok(())
     }
 
+    /// Removes an item from the inventory, based on the index via an update.
     pub fn remove_item_with_update(
         &mut self,
         index: usize,
