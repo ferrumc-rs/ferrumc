@@ -1,3 +1,4 @@
+use crate::biome::Precipitation;
 use crate::common::math::lerp2;
 use std::range::Range;
 
@@ -157,6 +158,13 @@ impl OverworldSurface {
         block_column: &mut [BlockId],
         height: i32,
     ) {
+        fn should_melt_frozen_ocean_iceberg_slightly(
+            biome: Biome,
+            pos: BlockPos,
+            sea_level: i32,
+        ) -> bool {
+            biome.block_temperature(pos, sea_level) > 0.1
+        }
         let min_surface_level = self.min_surface_level(noise, pos);
         let min_y = self.surface.chunk_height.min_y;
         let min = (self
@@ -181,7 +189,7 @@ impl OverworldSurface {
                 .abs();
             let mut iceburg_height = (min * min * 1.2).min(abs * 40.0).ceil() + 14.0;
 
-            if biome.should_melt_frozen_ocean_iceberg_slightly(pos.block(SEA_LEVEL), SEA_LEVEL) {
+            if should_melt_frozen_ocean_iceberg_slightly(biome, pos.block(SEA_LEVEL), SEA_LEVEL) {
                 iceburg_height -= 2.0;
             }
 
@@ -481,7 +489,7 @@ impl SurfaceRules {
                 {
                     if fluid_level.is_none() {
                         Air
-                    } else if biome.cold_enough_to_snow(pos) {
+                    } else if biome.precipitation(pos) == Precipitation::Snow {
                         Ice
                     } else {
                         Water
