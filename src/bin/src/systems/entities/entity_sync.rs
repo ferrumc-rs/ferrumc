@@ -5,7 +5,9 @@ use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_entities::components::*; // Includes SyncedToPlayers
 use ferrumc_entities::types::passive::pig::EntityUuid;
 use ferrumc_net::connection::StreamWriter;
+use ferrumc_net::packets::outgoing::entity_metadata::{EntityMetadata, EntityMetadataPacket};
 use ferrumc_net::packets::outgoing::spawn_entity::SpawnEntityPacket;
+use ferrumc_net_codec::net_types::var_int::VarInt;
 use tracing::{debug, error};
 
 // Type alias to simplify the complex Query type
@@ -46,15 +48,33 @@ pub fn entity_sync_system(
 
             // Create and send spawn packet
             let protocol_id = entity_type.protocol_id();
+
+            // TODO: INVESTIGATE PROTOCOL_ID OFFSET BUG
+            // There is a systematic -1 offset between what we send and what the client displays:
+            // - Registry says Pig=94, Phantom=93
+            // - When sending 94, client displays Phantom (93)
+            // - When sending 95, client displays Pig (94)
+            // Possible causes:
+            // 1. Registry version mismatch (registry for 1.21.7 but client is 1.21.8?)
+            // 2. VarInt encoding issue
+            // 3. Protocol expects 1-based indexing instead of 0-based
+            // For now, adding +1 as a workaround until root cause is found
+            let adjusted_protocol_id = protocol_id + 1;
             debug!(
-                "Spawning {:?} (protocol_id={}) at ({:.2}, {:.2}, {:.2}) for player {:?}",
-                entity_type, protocol_id, pos.x, pos.y, pos.z, player_entity
+                "Spawning {:?} (registry_id={}, sending={}) at ({:.2}, {:.2}, {:.2}) for player {:?}",
+                entity_type, protocol_id, adjusted_protocol_id, pos.x, pos.y, pos.z, player_entity
+            );
+            debug!(
+                "DEBUG: entity_id={}, uuid={}, type_id={}, data=0",
+                entity_id.0,
+                entity_uuid.0.as_u128(),
+                adjusted_protocol_id
             );
 
             let spawn_packet = SpawnEntityPacket::entity(
                 entity_id.0,
                 entity_uuid.0.as_u128(),
-                protocol_id,
+                adjusted_protocol_id,
                 pos,
                 rot,
             );
@@ -64,9 +84,20 @@ pub fn entity_sync_system(
                 continue;
             }
 
-            // TODO: Send EntityMetadataPacket here to properly display the entity
-            // The EntityMetadata constructors are not publicly exported yet
-            // This might be why the pig appears as a phantom!
+            // Send EntityMetadataPacket to properly display the entity
+            // We need to send both entity flags (index 0) and pose (index 6)
+            let metadata_packet = EntityMetadataPacket::new(
+                VarInt::new(entity_id.0),
+                [
+                    EntityMetadata::entity_normal_state(), // Index 0: normal entity state (no special flags)
+                    EntityMetadata::entity_standing(),     // Index 6: standing pose
+                ],
+            );
+
+            if let Err(e) = stream_writer.send_packet(metadata_packet) {
+                error!("Failed to send entity metadata packet: {:?}", e);
+                continue;
+            }
 
             synced.player_entities.push(player_entity);
             debug!(

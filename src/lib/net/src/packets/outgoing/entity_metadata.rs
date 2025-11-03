@@ -65,6 +65,15 @@ pub mod constructors {
                 value,
             }
         }
+
+        /// Entity with normal state (no special flags)
+        pub fn entity_normal_state() -> Self {
+            Self::new(
+                EntityMetadataIndexType::Byte,
+                EntityMetadataValue::Entity0(EntityStateMask::new()),
+            )
+        }
+
         /// To hide the name tag and stuff
         pub fn entity_sneaking_pressed() -> Self {
             Self::new(
