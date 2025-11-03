@@ -78,7 +78,7 @@ pub struct Caver {
     y_scale: Range<f32>,
 }
 impl Caver {
-    pub fn new(
+    pub const fn new(
         bound: u32,
         ratio: f64,
         chunk_height: ChunkHeight,
@@ -102,7 +102,6 @@ impl Caver {
         }
     }
 
-    #[allow(dead_code)]
     pub(crate) fn carve(
         &self,
         clearer: &mut impl FnMut(BlockPos, &mut bool),
@@ -130,7 +129,7 @@ impl Caver {
             let floor_level = random.next_f32_range(self.floor_level).into();
 
             let tunnels = if random.next_bounded(4) == 0 {
-                let y_scale = f64::from(random.next_f32_range(self.y_scale.clone()));
+                let y_scale = f64::from(random.next_f32_range(self.y_scale));
                 let radius = f64::from(1.0 + random.next_f32() * 6.0);
                 let mut surface_reached = false;
                 for (relative, pos) in carve_ellipsoid(

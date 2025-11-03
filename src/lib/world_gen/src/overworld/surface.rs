@@ -1,5 +1,6 @@
 use crate::biome::Precipitation;
 use crate::common::math::lerp2;
+use crate::overworld::overworld_generator::CHUNK_HEIGHT;
 use std::range::Range;
 
 use crate::common::surface::Surface;
@@ -49,9 +50,9 @@ pub struct OverworldSurface {
 }
 
 impl OverworldSurface {
-    pub fn new(factory: Xoroshiro128PlusPlus, chunk_height: ChunkHeight) -> Self {
+    pub fn new(factory: Xoroshiro128PlusPlus) -> Self {
         Self {
-            surface: Surface::new(block!("stone"), chunk_height),
+            surface: Surface::new(block!("stone"), CHUNK_HEIGHT),
             rules: SurfaceRules::new(factory),
             aquifer: Aquifer::new(factory),
             noises: SurfaceNoises {
