@@ -13,10 +13,11 @@ use ferrumc_world::block_id::BlockId;
 use ferrumc_world::chunk_format::Chunk;
 use itertools::Itertools;
 
+pub(super) const CHUNK_HEIGHT: ChunkHeight = ChunkHeight::new(-64, 380);
+
 pub struct OverworldGenerator {
     seed: u64,
     biome_seed: u64,
-    chunk_height: ChunkHeight,
     biome_noise: OverworldBiomeNoise,
     biomes: Vec<(NoisePoint, Biome)>,
     surface: OverworldSurface,
@@ -28,10 +29,6 @@ impl OverworldGenerator {
         let seed = 1;
         let random = Xoroshiro128PlusPlus::from_seed(seed).fork();
         let biome_noise = OverworldBiomeNoise::new(random);
-        let chunk_height = ChunkHeight {
-            min_y: -64,
-            height: 384,
-        };
         Self {
             seed,
             biome_seed: u64::from_be_bytes(
@@ -39,11 +36,10 @@ impl OverworldGenerator {
                     .try_into()
                     .unwrap(),
             ),
-            chunk_height,
             biome_noise,
             biomes: overworld_biomes(),
-            surface: OverworldSurface::new(random, chunk_height),
-            carver: OverworldCarver::new(chunk_height),
+            surface: OverworldSurface::new(random),
+            carver: OverworldCarver::new(),
         }
     }
 
@@ -53,7 +49,7 @@ impl OverworldGenerator {
             self.seed,
             &self.biomes,
             pos,
-            self.chunk_height,
+            CHUNK_HEIGHT,
         )
     }
 
@@ -67,7 +63,7 @@ impl OverworldGenerator {
             // );
             ChunkPos::from(IVec2::new(x * 16, z * 16))
                 .iter_columns()
-                .cartesian_product(self.chunk_height.iter())
+                .cartesian_product(CHUNK_HEIGHT.iter())
                 .map(|(c, y)| c.block(y))
                 .map(|pos| {
                     let final_density = self
