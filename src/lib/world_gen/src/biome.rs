@@ -74,21 +74,56 @@ pub enum Biome {
     EndBarrens,
 }
 
-impl Biome {
-    pub(crate) fn should_melt_frozen_ocean_iceberg_slightly(
-        &self,
-        pos: BlockPos,
-        sea_level: i32,
-    ) -> bool {
-        self.block_temperature(pos, sea_level) > 0.1
-    }
+#[derive(PartialEq, Eq)]
+pub enum Precipitation {
+    None,
+    Snow,
+    Rain,
+}
 
-    pub(crate) fn cold_enough_to_snow(&self, pos: BlockPos) -> bool {
-        self.block_temperature(pos, 64) < 0.15
+impl Biome {
+    pub fn precipitation(&self, pos: BlockPos) -> Precipitation {
+        use Biome::*;
+        if self.temperature() == 2.0
+            || matches!(
+                self,
+                TheEnd | EndHighlands | EndMidlands | SmallEndIslands | EndBarrens | TheVoid
+            )
+        {
+            Precipitation::None
+        } else if self.block_temperature(pos, 64) < 0.15 {
+            Precipitation::Snow
+        } else {
+            Precipitation::Rain
+        }
     }
 
     fn temperature(&self) -> f32 {
-        todo!("we probably want to parse the biome json data for this")
+        use Biome::*;
+        match self {
+            Desert | Savanna | SavannaPlateau | WindsweptSavanna | Badlands | ErodedBadlands
+            | WoodedBadlands => 2.0,
+            StonyPeaks => 1.0,
+            Jungle | SparseJungle | BambooJungle => 0.95,
+            MushroomFields => 0.9,
+            DripstoneCaves | DeepDark | Plains | SunflowerPlains | Swamp | MangroveSwamp
+            | Beach => 0.8,
+            Forest | FlowerForest | PaleGarden | DarkForest => 0.7,
+            BirchForest | OldGrowthBirchForest => 0.6,
+            Meadow | CherryGrove | LushCaves | ColdOcean | DeepColdOcean | Ocean | DeepOcean
+            | LukewarmOcean | DeepLukewarmOcean | WarmOcean | DeepFrozenOcean | River => 0.5,
+            OldGrowthPineTaiga => 0.3,
+            Taiga | OldGrowthSpruceTaiga => 0.25,
+            WindsweptHills | WindsweptGravellyHills | WindsweptForest | StonyShore => 0.2,
+            SnowyBeach => 0.05,
+            SnowyPlains | IceSpikes | FrozenOcean | FrozenRiver => 0.0,
+            Grove => -0.2,
+            SnowySlopes => -0.3,
+            SnowyTaiga => -0.5,
+            FrozenPeaks | JaggedPeaks => -0.7,
+            NetherWastes | WarpedForest | CrimsonForest | SoulSandValley | BasaltDeltas => 2.0,
+            TheEnd | EndHighlands | EndMidlands | SmallEndIslands | EndBarrens | TheVoid => 0.5,
+        }
     }
 
     pub fn block_temperature(&self, pos: BlockPos, sea_level: i32) -> f32 {
