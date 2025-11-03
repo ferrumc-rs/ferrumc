@@ -1,8 +1,5 @@
-
 use bevy_ecs::prelude::*;
-use ferrumc_commands::{
-    Sender, arg::primitive::string::GreedyString
-};
+use ferrumc_commands::{arg::primitive::string::GreedyString, Sender};
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_macros::command;
 use ferrumc_text::{TextComponent, TextComponentBuilder};

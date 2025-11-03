@@ -1,9 +1,8 @@
 use proc_macro::TokenStream;
-use quote::{ToTokens, format_ident, quote};
+use quote::{format_ident, quote, ToTokens};
 use syn::{
-    FnArg, ItemFn, LitStr, Pat, Result as SynResult, Type,
     parse::{Parse, ParseStream},
-    parse_macro_input,
+    parse_macro_input, FnArg, ItemFn, LitStr, Pat, Result as SynResult, Type,
 };
 
 #[derive(Clone, Debug)]
