@@ -115,21 +115,47 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
         }
     }
 
+    if bevy_args.iter().any(|(_, ty)| {
+        if let Type::Reference(refr) = ty {
+            if let Type::Path(path) = *refr.clone().elem {
+                println!("path reference: {:?}", path.path.segments.clone());
+                let is_bevy = path.path.segments.iter().any(|seg| {
+                    println!("{}", &seg.ident.to_string());
+                    &seg.ident.to_string() == "bevy_ecs"
+                });
+                println!("is bevy? {is_bevy}");
+                println!("{}", path.path.is_ident("World"));
+
+                path.path.is_ident("World") && (is_bevy || path.path.segments.len() == 1)
+            } else {
+                false
+            }
+        } else {
+            false
+        }
+    }) {
+        return TokenStream::from(quote! {
+            compile_error!("commands cannot accept bevy world arguments due to bevy restrictions")
+        });
+    }
+
     let system_name = format_ident!("__{}_handler", fn_name);
     let system_args = bevy_args
         .clone()
         .iter()
-        .map(|arg| {
-            let (pat, ty) = arg;
+        .map(|(pat, ty)| {
             quote! { #pat: #ty, }
         })
         .collect::<Vec<proc_macro2::TokenStream>>();
     let system_arg_pats = bevy_args
         .clone()
         .iter()
-        .map(|arg| {
-            let (pat, _) = arg;
-            quote!(#pat)
+        .map(|(pat, _)| match pat.as_ref() {
+            syn::Pat::Ident(pat_ident) => {
+                let ident = &pat_ident.ident;
+                quote!(#ident)
+            }
+            _ => quote!(#pat),
         })
         .collect::<Vec<proc_macro2::TokenStream>>();
 
@@ -205,10 +231,11 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
         #[allow(non_snake_case)]
         #[allow(unused_variables)] // if there is no sender arg
         #[doc(hidden)]
-        fn #system_name(mut events: bevy_ecs::prelude::EventMutator<ferrumc_commands::events::ResolvedCommandDispatchEvent>, #(#system_args)*) {
-            for ferrumc_commands::events::ResolvedCommandDispatchEvent { command, ctx, sender } in events.read() {
-                if command.name == #command_name {
+        fn #system_name(mut __events: bevy_ecs::prelude::EventMutator<ferrumc_commands::events::ResolvedCommandDispatchEvent>, #(#system_args)*) {
+            for ferrumc_commands::events::ResolvedCommandDispatchEvent { command: __command, ctx, sender } in __events.read() {
+                if __command.name == #command_name {
                     #call
+                    return // this is due to ownership issues
                 }
             }
         }
