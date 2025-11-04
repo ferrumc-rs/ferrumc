@@ -4,6 +4,7 @@ use ferrumc_entities::components::SyncedToPlayers;
 use ferrumc_entities::types::passive::pig::PigBundle;
 use ferrumc_entities::SpawnEntityEvent;
 use ferrumc_state::GlobalStateResource;
+use std::sync::atomic::{AtomicI32, Ordering};
 use tracing::info;
 
 /// System that listen spawn event and create entity
@@ -32,12 +33,9 @@ pub fn entity_spawner_system(
     }
 }
 
-// TODO: Implémente true ID generator
-static mut NEXT_ENTITY_ID: i32 = 1000;
+// TODO: Implement true ID generator (for now using atomic counter)
+static NEXT_ENTITY_ID: AtomicI32 = AtomicI32::new(1000);
+
 fn generate_entity_id() -> i32 {
-    unsafe {
-        let id = NEXT_ENTITY_ID;
-        NEXT_ENTITY_ID += 1;
-        id
-    }
+    NEXT_ENTITY_ID.fetch_add(1, Ordering::Relaxed)
 }
