@@ -38,7 +38,7 @@ pub fn send_chunks(
 
     let mut chunks_sent = 0;
 
-    let mut batch = state.thread_pool.batch();
+    let mut batch = state.thread_pools.cpu_pool.batch();
 
     let is_compressed = conn.compress.load(Ordering::Relaxed);
 

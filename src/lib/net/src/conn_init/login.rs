@@ -274,8 +274,8 @@ pub(super) async fn login(
     // =============================================================================================
     // 17 Load and send surrounding chunks within render distance
     let radius = get_global_config().chunk_render_distance as i32;
-
-    let mut batch = state.thread_pool.batch();
+    
+    let mut batch = state.thread_pools.cpu_pool.batch();
 
     for x in -radius..=radius {
         for z in -radius..=radius {

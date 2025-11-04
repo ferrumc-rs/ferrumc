@@ -2,7 +2,7 @@ pub mod player_list;
 
 use crate::player_list::PlayerList;
 use bevy_ecs::prelude::Resource;
-use ferrumc_threadpool::ThreadPool;
+use ferrumc_threadpool::ThreadPoolManager;
 use ferrumc_world::World;
 use ferrumc_world_gen::WorldGenerator;
 use std::sync::atomic::AtomicBool;
@@ -14,7 +14,7 @@ pub struct ServerState {
     pub terrain_generator: WorldGenerator,
     pub shut_down: AtomicBool,
     pub players: PlayerList, // (UUID, Username)
-    pub thread_pool: ThreadPool,
+    pub thread_pools: ThreadPoolManager,
     pub start_time: Instant,
 }
 

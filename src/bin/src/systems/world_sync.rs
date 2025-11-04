@@ -8,7 +8,7 @@ pub fn sync_world(state: Res<GlobalStateResource>, mut last_synced: ResMut<World
     }
 
     // Always schedule a sync; frequency is handled by the schedule period.
-    let _handle = state.0.thread_pool.oneshot({
+    let _handle = state.0.thread_pools.io_pool.oneshot({
         let state = state.0.clone();
         move || {
             state.world.sync().expect("Failed to sync world");

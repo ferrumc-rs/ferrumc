@@ -7,7 +7,7 @@ use ferrumc_config::whitelist::create_whitelist;
 use ferrumc_general_purpose::paths::get_root_path;
 use ferrumc_state::player_list::PlayerList;
 use ferrumc_state::{GlobalState, ServerState};
-use ferrumc_threadpool::ThreadPool;
+use ferrumc_threadpool::ThreadPoolManager;
 use ferrumc_world::World;
 use ferrumc_world_gen::WorldGenerator;
 use std::sync::Arc;
@@ -82,7 +82,7 @@ fn generate_chunks(state: GlobalState) -> Result<(), BinaryError> {
             chunks.push((x, z));
         }
     }
-    let mut batch = state.thread_pool.batch();
+    let mut batch = state.thread_pools.cpu_pool.batch();
     for (x, z) in chunks {
         let state_clone = state.clone();
         batch.execute(move || {
@@ -146,7 +146,7 @@ fn handle_import(import_args: ImportArgs) -> Result<(), BinaryError> {
         import_path = root_path.join(import_path);
     }
 
-    if let Err(e) = world.import(import_path, ThreadPool::new()) {
+    if let Err(e) = world.import(import_path, ThreadPoolManager::new()) {
         error!("Could not import world: {}", e.to_string());
         return Err(BinaryError::Custom("Could not import world.".to_string()));
     }
@@ -160,7 +160,7 @@ fn create_state(start_time: Instant) -> Result<ServerState, BinaryError> {
         terrain_generator: WorldGenerator::new(0),
         shut_down: false.into(),
         players: PlayerList::default(),
-        thread_pool: ThreadPool::new(),
+        thread_pools: ThreadPoolManager::new(),
         start_time,
     })
 }
