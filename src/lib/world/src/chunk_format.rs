@@ -1,16 +1,15 @@
-use crate::block_id::{BlockId, BLOCK2ID};
+use crate::block_state_id::{BlockStateId, BLOCK2ID};
 use crate::vanilla_chunk_format;
 use crate::vanilla_chunk_format::VanillaChunk;
 use crate::{errors::WorldError, vanilla_chunk_format::VanillaHeightmaps};
 use bitcode_derive::{Decode, Encode};
 use deepsize::DeepSizeOf;
 use ferrumc_general_purpose::data_packing::i32::read_nbit_i32;
-use ferrumc_macros::{NBTDeserialize, NBTSerialize};
+use ferrumc_macros::{block, NBTDeserialize, NBTSerialize};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::cmp::max;
 use std::collections::HashMap;
 use tracing::error;
-use vanilla_chunk_format::BlockData;
 // #[cfg(test)]
 // const BLOCKSFILE: &[u8] = &[0];
 
@@ -52,7 +51,7 @@ pub struct Section {
 pub struct BlockStates {
     pub non_air_blocks: u16,
     pub block_data: PaletteType,
-    pub block_counts: HashMap<BlockId, i32>,
+    pub block_counts: HashMap<BlockStateId, i32>,
 }
 
 #[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug)]
@@ -76,14 +75,19 @@ pub struct BiomeStates {
     pub palette: Vec<VarInt>,
 }
 
-fn convert_to_net_palette(vanilla_palettes: Vec<BlockData>) -> Result<Vec<VarInt>, WorldError> {
+fn convert_to_net_palette(
+    vanilla_palettes: Vec<vanilla_chunk_format::BlockData>,
+) -> Result<Vec<VarInt>, WorldError> {
     let mut new_palette = Vec::new();
     for palette in vanilla_palettes {
         if let Some(id) = BLOCK2ID.get(&palette) {
             new_palette.push(VarInt::from(*id));
         } else {
             new_palette.push(VarInt::from(0));
-            error!("Could not find block id for palette entry: {:?}", palette);
+            error!(
+                "Could not find block state id for palette entry: {:?}",
+                palette
+            );
         }
     }
     Ok(new_palette)
@@ -135,24 +139,24 @@ impl VanillaChunk {
                 while i + bits_per_block < 64 {
                     let palette_index = read_nbit_i32(chunk, bits_per_block as usize, i as u32)?;
                     let block = match palette.get(palette_index as usize) {
-                        Some(block) => block,
+                        Some(block) => block.to_block_state_id(),
                         None => {
                             error!("Could not find block for palette index: {}", palette_index);
-                            &BlockData::default()
+                            BlockStateId::default()
                         }
                     };
 
-                    if let Some(count) = block_counts.get_mut(&block.to_block_id()) {
+                    if let Some(count) = block_counts.get_mut(&block) {
                         *count += 1;
                     } else {
-                        block_counts.insert(block.to_block_id(), 0);
+                        block_counts.insert(block, 0);
                     }
 
                     i += bits_per_block;
                 }
             }
             let block_data = if raw_block_data.is_empty() {
-                block_counts.insert(BlockId::default(), 4096);
+                block_counts.insert(BlockStateId::default(), 4096);
                 PaletteType::Single(VarInt::from(0))
             } else {
                 PaletteType::Indirect {
@@ -162,25 +166,9 @@ impl VanillaChunk {
                 }
             };
             // Count the number of blocks that are either air, void air, or cave air
-            let mut air_blocks = *block_counts.get(&BlockId::default()).unwrap_or(&0) as u16;
-            air_blocks += *block_counts
-                .get(
-                    &BlockData {
-                        name: "minecraft:void_air".to_string(),
-                        properties: None,
-                    }
-                    .to_block_id(),
-                )
-                .unwrap_or(&0) as u16;
-            air_blocks += *block_counts
-                .get(
-                    &BlockData {
-                        name: "minecraft:cave_air".to_string(),
-                        properties: None,
-                    }
-                    .to_block_id(),
-                )
-                .unwrap_or(&0) as u16;
+            let mut air_blocks = *block_counts.get(&BlockStateId::default()).unwrap_or(&0) as u16;
+            air_blocks += *block_counts.get(&block!("void_air")).unwrap_or(&0) as u16;
+            air_blocks += *block_counts.get(&block!("cave_air")).unwrap_or(&0) as u16;
             let non_air_blocks = 4096 - air_blocks;
             let block_states = BlockStates {
                 block_counts,
@@ -239,7 +227,7 @@ impl Chunk {
                 block_states: BlockStates {
                     non_air_blocks: 0,
                     block_data: PaletteType::Single(VarInt::from(0)),
-                    block_counts: HashMap::from([(BlockId::default(), 4096)]),
+                    block_counts: HashMap::from([(BlockStateId::default(), 4096)]),
                 },
                 biome_states: BiomeStates {
                     bits_per_biome: 0,
@@ -253,6 +241,7 @@ impl Chunk {
         for section in &mut sections {
             section.optimise().expect("Failed to optimise section");
         }
+        block!("stone");
         Chunk {
             x,
             z,
@@ -266,15 +255,12 @@ impl Chunk {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use ferrumc_macros::block;
 
     #[test]
     fn test_chunk_set_block() {
         let mut chunk = Chunk::new(0, 0, "overworld".to_string());
-        let block = BlockData {
-            name: "minecraft:stone".to_string(),
-            properties: None,
-        }
-        .to_block_id();
+        let block = block!("stone");
         chunk.set_block(0, 0, 0, block).unwrap();
         assert_eq!(chunk.get_block(0, 0, 0).unwrap(), block);
     }
@@ -282,14 +268,11 @@ mod tests {
     #[test]
     fn test_chunk_fill() {
         let mut chunk = Chunk::new(0, 0, "overworld".to_string());
-        let stone_block = BlockData {
-            name: "minecraft:stone".to_string(),
-            properties: None,
-        };
-        chunk.fill(stone_block.clone()).unwrap();
+        let stone_block = block!("stone");
+        chunk.fill(stone_block).unwrap();
         for section in &chunk.sections {
             for (block, count) in &section.block_states.block_counts {
-                assert_eq!(*block, stone_block.to_block_id());
+                assert_eq!(*block, stone_block);
                 assert_eq!(count, &4096);
             }
         }
@@ -302,7 +285,7 @@ mod tests {
             block_states: BlockStates {
                 non_air_blocks: 0,
                 block_data: PaletteType::Single(VarInt::from(0)),
-                block_counts: HashMap::from([(BlockId::default(), 4096)]),
+                block_counts: HashMap::from([(BlockStateId::default(), 4096)]),
             },
             biome_states: BiomeStates {
                 bits_per_biome: 0,
@@ -312,21 +295,14 @@ mod tests {
             block_light: vec![255; 2048],
             sky_light: vec![255; 2048],
         };
-        let stone_block = BlockData {
-            name: "minecraft:stone".to_string(),
-            properties: None,
-        };
-        section.fill(stone_block.clone()).unwrap();
+        let stone_block = block!("stone");
+        section.fill(stone_block).unwrap();
         assert_eq!(
             section.block_states.block_data,
             PaletteType::Single(VarInt::from(1))
         );
         assert_eq!(
-            section
-                .block_states
-                .block_counts
-                .get(&stone_block.to_block_id())
-                .unwrap(),
+            section.block_states.block_counts.get(&stone_block).unwrap(),
             &4096
         );
     }
@@ -334,11 +310,7 @@ mod tests {
     #[test]
     fn test_false_positive() {
         let mut chunk = Chunk::new(0, 0, "overworld".to_string());
-        let block = BlockData {
-            name: "minecraft:stone".to_string(),
-            properties: None,
-        }
-        .to_block_id();
+        let block = block!("stone");
         chunk.set_block(0, 0, 0, block).unwrap();
         assert_ne!(chunk.get_block(0, 1, 0).unwrap(), block);
     }
@@ -346,12 +318,9 @@ mod tests {
     #[test]
     fn test_doesnt_fail() {
         let mut chunk = Chunk::new(0, 0, "overworld".to_string());
-        let block = BlockData {
-            name: "minecraft:stone".to_string(),
-            properties: None,
-        };
-        assert!(chunk.set_block(0, 0, 0, block.clone()).is_ok());
-        assert!(chunk.set_block(0, 0, 0, block.clone()).is_ok());
+        let block = block!("stone");
+        assert!(chunk.set_block(0, 0, 0, block).is_ok());
+        assert!(chunk.set_block(0, 0, 0, block).is_ok());
         assert!(chunk.get_block(0, 0, 0).is_ok());
     }
 }

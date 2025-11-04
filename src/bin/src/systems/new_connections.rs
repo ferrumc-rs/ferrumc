@@ -1,3 +1,4 @@
+use crate::systems::system_messages;
 use bevy_ecs::prelude::{Commands, Res, Resource};
 use crossbeam_channel::Receiver;
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
@@ -7,7 +8,7 @@ use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_inventories::hotbar::Hotbar;
 use ferrumc_inventories::inventory::Inventory;
-use ferrumc_net::connection::NewConnection;
+use ferrumc_net::connection::{DisconnectHandle, NewConnection};
 use ferrumc_state::GlobalStateResource;
 use std::time::Instant;
 use tracing::{error, trace};
@@ -27,6 +28,9 @@ pub fn accept_new_connections(
         let return_sender = new_connection.entity_return;
         let entity = cmd.spawn((
             new_connection.stream,
+            DisconnectHandle {
+                sender: Some(new_connection.disconnect_handle),
+            },
             Position::default(),
             ChunkReceiver::default(),
             Rotation::default(),
@@ -55,9 +59,19 @@ pub fn accept_new_connections(
             entity.id(),
             (
                 new_connection.player_identity.uuid.as_u128(),
-                new_connection.player_identity.username,
+                new_connection.player_identity.username.clone(),
             ),
         );
+
+        for player in &state.0.players.player_list {
+            if player.value().0 != new_connection.player_identity.uuid.as_u128() {
+                system_messages::player_join::handle(
+                    &new_connection.player_identity,
+                    *player.key(),
+                );
+            }
+        }
+
         if let Err(err) = return_sender.send(entity.id()) {
             error!(
                 "Failed to send entity ID back to the networking thread: {:?}",

@@ -15,10 +15,13 @@ colored = { workspace = true }
 quote = { workspace = true }
 syn = { workspace = true, features = ["full"] }
 proc-macro2 = { workspace = true }
-proc-macro-crate = { workspace = true }
 serde_json = { workspace = true }
 serde = { workspace = true }
 regex = { workspace = true }
 craftflow-nbt = { workspace = true }
 indexmap = { workspace = true, features = ["serde"] }
 bitcode = { workspace = true }
+simd-json = { workspace = true }
+
+[dev-dependencies]
+ferrumc-world = { workspace = true }

@@ -19,6 +19,9 @@ pub fn keep_alive_system(
             .running
             .load(std::sync::atomic::Ordering::Relaxed)
         {
+            if state.0.players.is_connected(entity) {
+                state.0.players.disconnect(entity, None);
+            }
             continue;
         }
 

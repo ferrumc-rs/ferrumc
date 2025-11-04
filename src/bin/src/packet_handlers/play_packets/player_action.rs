@@ -8,8 +8,7 @@ use ferrumc_net::packets::outgoing::block_update::BlockUpdate;
 use ferrumc_net::PlayerActionReceiver;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalStateResource;
-use ferrumc_world::block_id::BlockId;
-use ferrumc_world::vanilla_chunk_format::BlockData;
+use ferrumc_world::block_state_id::BlockStateId;
 use tracing::{debug, error, trace};
 
 pub fn handle(
@@ -42,7 +41,7 @@ pub fn handle(
                         event.location.y as i32,
                         event.location.z.abs() % 16,
                     );
-                    chunk.set_block(relative_x, relative_y, relative_z, BlockData::default())?;
+                    chunk.set_block(relative_x, relative_y, relative_z, BlockStateId::default())?;
                     // Save the chunk to disk
                     state.0.world.save_chunk(Arc::new(chunk))?;
                     for (eid, conn) in query {
@@ -52,7 +51,7 @@ pub fn handle(
                         // If the player is the one who placed the block, send the BlockChangeAck packet
                         let block_update_packet = BlockUpdate {
                             location: event.location.clone(),
-                            block_id: VarInt::from(BlockId::default()),
+                            block_state_id: VarInt::from(BlockStateId::default()),
                         };
                         conn.send_packet_ref(&block_update_packet)?;
                         if eid == trigger_eid {

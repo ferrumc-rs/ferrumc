@@ -1,7 +1,9 @@
 #![feature(proc_macro_quote)]
 
+use block::matches;
 use proc_macro::TokenStream;
 
+mod block;
 mod commands;
 mod helpers;
 mod nbt;
@@ -69,7 +71,7 @@ pub fn lookup_packet(input: TokenStream) -> TokenStream {
 ///
 /// Usage example:
 ///
-/// ```
+/// ```ignore
 /// #[command("hello")]
 /// fn command(#[sender] sender: Sender) {
 ///     sender.send_message(TextComponent::from("Hello, world!"), false);
@@ -95,4 +97,48 @@ pub fn get_registry_entry(input: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn build_registry_packets(input: TokenStream) -> TokenStream {
     registries_packets::build_mapping(input)
+}
+
+/// A macro to lookup block state IDs at compile time.
+///
+/// Feed in the block name as a string literal, and an optional set of properties as a map.
+/// It will output a [`ferrumc_world::block_state_id::BlockStateId`] struct with the correct ID for that block and properties.
+/// Usage:
+/// ```
+/// # use ferrumc_world::block_state_id::BlockStateId;
+/// # use ferrumc_macros::block;
+/// let block_state_id = block!("stone");
+/// let another_block_state_id = block!("minecraft:grass_block", {snowy: true});
+/// assert_eq!(block_state_id, BlockStateId(1));
+/// assert_eq!(another_block_state_id, BlockStateId(8));
+/// ```
+/// Unfortunately, due to current limitations in Rust's proc macros, you will need to import the
+/// `BlockStateId` struct manually.
+///
+/// The `minecraft:` namespace is optional and will be added automatically if not present.
+///
+/// If the block or properties are invalid, a compile-time error will be thrown that should hopefully
+/// explain the issue.
+#[proc_macro]
+pub fn block(input: TokenStream) -> TokenStream {
+    block::block(input)
+}
+
+/// A macro to check if a block state ID matches a given block name at compile time.
+/// Usage:
+/// ```
+/// # use ferrumc_macros::{match_block};
+/// # use ferrumc_world::block_state_id::BlockStateId;
+/// let block_state_id = BlockStateId(1);
+/// if match_block!("stone", block_state_id) {
+///     // do something
+/// }
+/// ```
+/// Unfortunately, due to current limitations in Rust's proc macros, you will need to import the
+/// `BlockStateId` struct manually.
+///
+/// The `minecraft:` namespace is optional and will be added automatically if not present.
+#[proc_macro]
+pub fn match_block(input: TokenStream) -> TokenStream {
+    matches::matches_block(input)
 }
