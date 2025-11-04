@@ -1,4 +1,4 @@
-use bevy_ecs::prelude::{Entity, EventWriter, Query, Res};
+use bevy_ecs::prelude::{Entity, MessageWriter, Query, Res};
 use ferrumc_core::chunks::cross_chunk_boundary_event::CrossChunkBoundaryEvent;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net::SetPlayerPositionPacketReceiver;
@@ -21,7 +21,7 @@ pub fn handle(
     events: Res<SetPlayerPositionPacketReceiver>,
     mut pos_query: Query<(&mut Position, &mut OnGround, &Rotation, &PlayerIdentity)>,
     pass_conn_query: Query<(Entity, &StreamWriter)>,
-    mut cross_chunk_events: EventWriter<CrossChunkBoundaryEvent>,
+    mut cross_chunk_events: MessageWriter<CrossChunkBoundaryEvent>,
     state: Res<GlobalStateResource>,
 ) {
     for (event, eid) in events.0.try_iter() {

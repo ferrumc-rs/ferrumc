@@ -1,6 +1,6 @@
-use bevy_ecs::prelude::{Entity, Event};
+use bevy_ecs::prelude::{Message, Event};
 
-#[derive(Event)]
+#[derive(Message)]
 pub struct ConnectionKillEvent {
     pub entity: Entity,
     pub reason: Option<String>,

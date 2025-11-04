@@ -1,6 +1,6 @@
 use crate::errors::BinaryError;
 use crate::packet_handlers::{play_packets, register_player_systems};
-use crate::register_events::register_events;
+use crate::register_messages::register_messages;
 use crate::register_resources::register_resources;
 use crate::systems::lan_pinger::LanPinger;
 use crate::systems::listneners::register_gameplay_listeners;
@@ -44,7 +44,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     // Register events/resources (one-time into World)
     let global_state_res = GlobalStateResource(global_state.clone());
 
-    register_events(&mut ecs_world);
+    register_messages(&mut ecs_world);
     register_resources(&mut ecs_world, new_conn_recv, global_state_res);
 
     let mut timed = build_timed_scheduler();

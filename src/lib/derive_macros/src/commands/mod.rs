@@ -230,10 +230,10 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
 
         #[allow(unused_mut)] // required to use mutable queries without clippy screaming bloody murder
         #[allow(non_snake_case)]
-        #[allow(unused_variables)] // if there is no sender arg
+        #[allow(unused_variables)]
         #[doc(hidden)]
-        fn #system_name(mut __events: bevy_ecs::prelude::EventMutator<ferrumc_commands::events::ResolvedCommandDispatchEvent>, #(#system_args)*) {
-            for ferrumc_commands::events::ResolvedCommandDispatchEvent { command: __command, ctx, sender } in __events.read() {
+        fn #system_name(mut __events: bevy_ecs::prelude::MessageMutator<ferrumc_commands::events::ResolvedCommandDispatched>, #(#system_args)*) {
+            for ferrumc_commands::events::ResolvedCommandDispatched { command: __command, ctx, sender } in __events.read() {
                 if __command.name == #command_name {
                     #call
                     return // this is due to ownership issues

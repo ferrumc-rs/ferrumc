@@ -214,8 +214,12 @@ noise = "0.9.0"
 ctrlc = "3.5.0"
 num_cpus = "1.17.0"
 typename = "0.1.2"
+<<<<<<< HEAD
 bevy_ecs = { version = "0.16.1", features = ["multi_threaded", "trace"] }
 bevy_math = "0.16.1"
+=======
+bevy_ecs = { version = "0.17.2", features = ["multi_threaded", "trace"] }
+>>>>>>> 85685a76 (initial update to bevy 0.17.2)
 once_cell = "1.21.3"
 
 # I/O

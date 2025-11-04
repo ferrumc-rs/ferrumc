@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use bevy_ecs::prelude::*;
 use ferrumc_commands::{
-    events::{CommandDispatchEvent, ResolvedCommandDispatchEvent},
+    events::{CommandDispatched, ResolvedCommandDispatched},
     infrastructure, Command, CommandContext, CommandInput, Sender,
 };
 use ferrumc_core::mq;
@@ -39,12 +39,12 @@ fn resolve(
 
 pub fn handle(
     events: Res<ChatCommandPacketReceiver>,
-    mut dispatch_events: EventWriter<CommandDispatchEvent>,
-    mut resolved_dispatch_events: EventWriter<ResolvedCommandDispatchEvent>,
+    mut dispatch_events: MessageWriter<CommandDispatched>,
+    mut resolved_dispatch_events: MessageWriter<ResolvedCommandDispatched>,
 ) {
     for (event, entity) in events.0.try_iter() {
         let sender = Sender::Player(entity);
-        dispatch_events.write(CommandDispatchEvent {
+        dispatch_events.write(CommandDispatched {
             command: event.command.clone(),
             sender,
         });
@@ -56,7 +56,7 @@ pub fn handle(
             }
 
             Ok((command, ctx)) => {
-                resolved_dispatch_events.write(ResolvedCommandDispatchEvent {
+                resolved_dispatch_events.write(ResolvedCommandDispatched {
                     command,
                     ctx,
                     sender,
