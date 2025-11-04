@@ -1,7 +1,7 @@
 use bevy_ecs::prelude::*;
 use ferrumc_entities::SpawnEntityEvent;
 use ferrumc_state::GlobalStateResource;
-use std::sync::atomic::{AtomicI32, Ordering};
+use std::sync::atomic::Ordering;
 use tracing::info;
 
 /// System that listen spawn event and create entity
@@ -23,8 +23,9 @@ pub fn entity_spawner_system(
 }
 
 // TODO: Implement true ID generator (for now using atomic counter)
-static NEXT_ENTITY_ID: AtomicI32 = AtomicI32::new(1000);
+// Using i64 to reduce collision risk on large servers with many entities
+static NEXT_ENTITY_ID: std::sync::atomic::AtomicI64 = std::sync::atomic::AtomicI64::new(1000);
 
-fn generate_entity_id() -> i32 {
+fn generate_entity_id() -> i64 {
     NEXT_ENTITY_ID.fetch_add(1, Ordering::Relaxed)
 }

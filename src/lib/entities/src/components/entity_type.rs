@@ -61,7 +61,7 @@ impl EntityType {
     }
 
     /// Spawns this entity type with the given ID and position
-    pub fn spawn(&self, commands: &mut Commands, entity_id: i32, position: &Position) {
+    pub fn spawn(&self, commands: &mut Commands, entity_id: i64, position: &Position) {
         use crate::components::SyncedToPlayers;
         use crate::types::passive::pig::PigBundle;
 
