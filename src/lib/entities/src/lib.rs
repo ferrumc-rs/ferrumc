@@ -8,4 +8,4 @@ pub mod types;
 pub use components::{Age, EntityId, EntityType, Health, Persisted, Velocity};
 pub use events::SpawnEntityEvent;
 pub use game_entity::GameEntity;
-pub use spawn_command_queue::{SpawnRequest, drain_spawn_requests, request_spawn};
+pub use spawn_command_queue::{SpawnRequest, pop_spawn_request, request_spawn};

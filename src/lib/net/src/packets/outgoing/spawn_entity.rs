@@ -13,7 +13,7 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 pub struct SpawnEntityPacket {
     entity_id: VarInt,
     entity_uuid: u128,
-    r#type: VarInt,
+    entity_type: VarInt,
     x: f64,
     y: f64,
     z: f64,
@@ -41,7 +41,7 @@ impl SpawnEntityPacket {
         Ok(Self {
             entity_id: VarInt::new(player_identity.short_uuid),
             entity_uuid: player_identity.uuid.as_u128(),
-            r#type: VarInt::new(PLAYER_ID as i32),
+            entity_type: VarInt::new(PLAYER_ID as i32),
             x: position.x,
             y: position.y,
             z: position.z,
@@ -66,7 +66,7 @@ impl SpawnEntityPacket {
         Self {
             entity_id: VarInt::new(entity_id),
             entity_uuid,
-            r#type: VarInt::new(entity_type_id),
+            entity_type: VarInt::new(entity_type_id),
             x: position.x,
             y: position.y,
             z: position.z,
