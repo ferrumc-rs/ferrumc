@@ -203,10 +203,10 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
         #input_fn
 
         #[allow(non_snake_case)]
-        #[allow(unused_variables)] // if there is no sender arg
+        #[allow(unused_variables)]
         #[doc(hidden)]
-        fn #system_name(mut events: bevy_ecs::prelude::EventMutator<ferrumc_commands::events::ResolvedCommandDispatchEvent>, #(#system_args)*) {
-            for ferrumc_commands::events::ResolvedCommandDispatchEvent { command, ctx, sender } in events.read() {
+        fn #system_name(mut events: bevy_ecs::prelude::MessageMutator<ferrumc_commands::events::ResolvedCommandDispatched>, #(#system_args)*) {
+            for ferrumc_commands::events::ResolvedCommandDispatched { command, ctx, sender } in events.read() {
                 if command.name == #command_name {
                     #call
                 }

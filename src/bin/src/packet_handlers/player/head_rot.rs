@@ -1,5 +1,4 @@
-use bevy_ecs::event::EventReader;
-use bevy_ecs::prelude::Query;
+use bevy_ecs::prelude::{MessageReader, Query};
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_net::connection::StreamWriter;
@@ -9,7 +8,7 @@ use ferrumc_net_codec::net_types::angle::NetAngle;
 use tracing::error;
 
 pub fn handle_player_move(
-    mut events: EventReader<TransformEvent>,
+    mut events: MessageReader<TransformEvent>,
     query: Query<(&Rotation, &PlayerIdentity)>,
     broadcast_query: Query<&StreamWriter>,
 ) {

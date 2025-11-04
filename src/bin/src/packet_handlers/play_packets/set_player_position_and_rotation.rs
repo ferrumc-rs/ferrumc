@@ -1,10 +1,10 @@
-use bevy_ecs::prelude::{EventWriter, Res};
+use bevy_ecs::prelude::{MessageWriter, Res};
 use ferrumc_net::packets::packet_events::TransformEvent;
 use ferrumc_net::SetPlayerPositionAndRotationPacketReceiver;
 
 pub fn handle(
     events: Res<SetPlayerPositionAndRotationPacketReceiver>,
-    mut transform_event_writer: EventWriter<TransformEvent>,
+    mut transform_event_writer: MessageWriter<TransformEvent>,
 ) {
     for (event, eid) in events.0.try_iter() {
         let transform_event = TransformEvent::new(eid)

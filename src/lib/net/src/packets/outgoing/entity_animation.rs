@@ -1,4 +1,4 @@
-use bevy_ecs::prelude::{Entity, Event};
+use bevy_ecs::prelude::{Entity, Message};
 use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 
@@ -9,7 +9,7 @@ pub struct EntityAnimationPacket {
     pub animation: u8,
 }
 
-#[derive(Event)]
+#[derive(Message)]
 pub struct EntityAnimationEvent {
     pub entity: Entity,
     pub animation: u8,
