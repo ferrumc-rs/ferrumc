@@ -19,6 +19,7 @@ uuid = { workspace = true }
 rand = { workspace = true }
 typename = { workspace = true }
 once_cell = { workspace = true }
+crossbeam-queue = { workspace = true }
 
 serde = { workspace = true }
 serde_derive = { workspace = true }
