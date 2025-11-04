@@ -7,7 +7,6 @@ use ferrumc_entities::types::passive::pig::EntityUuid;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::entity_metadata::{EntityMetadata, EntityMetadataPacket};
 use ferrumc_net::packets::outgoing::spawn_entity::SpawnEntityPacket;
-use ferrumc_net_codec::net_types::var_int::VarInt;
 use tracing::{debug, error};
 
 // Type alias to simplify the complex Query type
@@ -66,13 +65,13 @@ pub fn entity_sync_system(
             );
             debug!(
                 "DEBUG: entity_id={}, uuid={}, type_id={}, data=0",
-                entity_id.0,
+                entity_id.to_network_id(),
                 entity_uuid.0.as_u128(),
                 adjusted_protocol_id
             );
 
             let spawn_packet = SpawnEntityPacket::entity(
-                entity_id.0,
+                entity_id.to_network_id(),
                 entity_uuid.0.as_u128(),
                 adjusted_protocol_id,
                 pos,
@@ -87,7 +86,7 @@ pub fn entity_sync_system(
             // Send EntityMetadataPacket to properly display the entity
             // We need to send both entity flags (index 0) and pose (index 6)
             let metadata_packet = EntityMetadataPacket::new(
-                VarInt::new(entity_id.0),
+                entity_id.as_varint(),
                 [
                     EntityMetadata::entity_normal_state(), // Index 0: normal entity state (no special flags)
                     EntityMetadata::entity_standing(),     // Index 6: standing pose
@@ -102,7 +101,9 @@ pub fn entity_sync_system(
             synced.player_entities.push(player_entity);
             debug!(
                 "Successfully sent entity {:?} (ID: {}) to player {:?}",
-                entity, entity_id.0, player_entity
+                entity,
+                entity_id.to_network_id(),
+                player_entity
             );
         }
     }

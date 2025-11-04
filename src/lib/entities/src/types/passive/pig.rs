@@ -35,7 +35,7 @@ pub struct PigBundle {
 pub struct EntityUuid(pub Uuid);
 
 impl PigBundle {
-    pub fn new(entity_id: i32, position: Position) -> Self {
+    pub fn new(entity_id: i64, position: Position) -> Self {
         Self {
             // Generic components
             entity_type: EntityType::Pig,
