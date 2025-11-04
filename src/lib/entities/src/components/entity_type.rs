@@ -1,4 +1,5 @@
-use bevy_ecs::prelude::Component;
+use bevy_ecs::prelude::{Commands, Component};
+use ferrumc_core::transform::position::Position;
 use typename::TypeName;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Component, TypeName)]
@@ -57,5 +58,22 @@ impl EntityType {
             self,
             EntityType::Pig | EntityType::Cow | EntityType::Sheep | EntityType::Chicken
         )
+    }
+
+    /// Spawns this entity type with the given ID and position
+    pub fn spawn(&self, commands: &mut Commands, entity_id: i32, position: &Position) {
+        use crate::components::SyncedToPlayers;
+        use crate::types::passive::pig::PigBundle;
+
+        match self {
+            EntityType::Pig => {
+                let pig =
+                    PigBundle::new(entity_id, Position::new(position.x, position.y, position.z));
+                commands.spawn((pig, SyncedToPlayers::default()));
+            }
+            _ => {
+                tracing::warn!("Entity type {:?} not yet implemented for spawning", self);
+            }
+        }
     }
 }
