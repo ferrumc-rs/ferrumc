@@ -1,7 +1,4 @@
 use bevy_ecs::prelude::*;
-use ferrumc_core::transform::position::Position;
-use ferrumc_entities::components::SyncedToPlayers;
-use ferrumc_entities::types::passive::pig::PigBundle;
 use ferrumc_entities::SpawnEntityEvent;
 use ferrumc_state::GlobalStateResource;
 use std::sync::atomic::{AtomicI32, Ordering};
@@ -17,19 +14,11 @@ pub fn entity_spawner_system(
         // Generate new entity ID
         let entity_id = generate_entity_id();
 
-        match event.entity_type {
-            ferrumc_entities::components::EntityType::Pig => {
-                let pig = PigBundle::new(
-                    entity_id,
-                    Position::new(event.position.x, event.position.y, event.position.z),
-                );
-                commands.spawn((pig, SyncedToPlayers::default()));
-                info!("Spawned pig at {:?}", event.position);
-            }
-            _ => {
-                tracing::warn!("Entity type {:?} not yet implemented", event.entity_type);
-            }
-        }
+        // Delegate spawning to EntityType
+        event
+            .entity_type
+            .spawn(&mut commands, entity_id, &event.position);
+        info!("Spawned {:?} at {:?}", event.entity_type, event.position);
     }
 }
 
