@@ -1,5 +1,6 @@
 use bevy_ecs::prelude::{Commands, Component};
 use ferrumc_core::transform::position::Position;
+use ferrumc_macros::get_registry_entry;
 use typename::TypeName;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Component, TypeName)]
@@ -22,28 +23,41 @@ pub enum EntityType {
 }
 
 impl EntityType {
+    /// Returns the protocol ID for this entity type.
+    /// Uses compile-time registry lookups for zero-cost abstraction.
     pub fn protocol_id(&self) -> i32 {
-        use ferrumc_registry::lookup;
-        use simd_json::prelude::ValueAsScalar;
-
-        let path = match self {
-            EntityType::Pig => "minecraft:entity_type/entries/minecraft:pig/protocol_id",
-            EntityType::Cow => "minecraft:entity_type/entries/minecraft:cow/protocol_id",
-            EntityType::Sheep => "minecraft:entity_type/entries/minecraft:sheep/protocol_id",
-            EntityType::Chicken => "minecraft:entity_type/entries/minecraft:chicken/protocol_id",
-            EntityType::Zombie => "minecraft:entity_type/entries/minecraft:zombie/protocol_id",
-            EntityType::Spider => "minecraft:entity_type/entries/minecraft:spider/protocol_id",
-            EntityType::Creeper => "minecraft:entity_type/entries/minecraft:creeper/protocol_id",
-            EntityType::Skeleton => "minecraft:entity_type/entries/minecraft:skeleton/protocol_id",
-            EntityType::ItemEntity => "minecraft:entity_type/entries/minecraft:item/protocol_id",
-            EntityType::ExperienceOrb => {
-                "minecraft:entity_type/entries/minecraft:experience_orb/protocol_id"
+        match self {
+            EntityType::Pig => {
+                get_registry_entry!("minecraft:entity_type.entries.minecraft:pig") as i32
             }
-        };
-
-        lookup(path)
-            .and_then(|v| v.as_i64())
-            .expect("Entity type not found in the registry") as i32
+            EntityType::Cow => {
+                get_registry_entry!("minecraft:entity_type.entries.minecraft:cow") as i32
+            }
+            EntityType::Sheep => {
+                get_registry_entry!("minecraft:entity_type.entries.minecraft:sheep") as i32
+            }
+            EntityType::Chicken => {
+                get_registry_entry!("minecraft:entity_type.entries.minecraft:chicken") as i32
+            }
+            EntityType::Zombie => {
+                get_registry_entry!("minecraft:entity_type.entries.minecraft:zombie") as i32
+            }
+            EntityType::Spider => {
+                get_registry_entry!("minecraft:entity_type.entries.minecraft:spider") as i32
+            }
+            EntityType::Creeper => {
+                get_registry_entry!("minecraft:entity_type.entries.minecraft:creeper") as i32
+            }
+            EntityType::Skeleton => {
+                get_registry_entry!("minecraft:entity_type.entries.minecraft:skeleton") as i32
+            }
+            EntityType::ItemEntity => {
+                get_registry_entry!("minecraft:entity_type.entries.minecraft:item") as i32
+            }
+            EntityType::ExperienceOrb => {
+                get_registry_entry!("minecraft:entity_type.entries.minecraft:experience_orb") as i32
+            }
+        }
     }
 
     pub fn is_hostile(&self) -> bool {

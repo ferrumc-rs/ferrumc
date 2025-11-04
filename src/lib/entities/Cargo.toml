@@ -7,9 +7,9 @@ edition = "2024"
 bevy_ecs = { workspace = true }
 
 ferrumc-core = { workspace = true }
+ferrumc-macros = { workspace = true }
 ferrumc-net = { workspace = true }
 ferrumc-net-codec = { workspace = true }
-ferrumc-registry = { workspace = true }
 ferrumc-state = { workspace = true }
 ferrumc-world = { workspace = true }
 
@@ -18,7 +18,6 @@ tracing = { workspace = true }
 uuid = { workspace = true }
 rand = { workspace = true }
 typename = { workspace = true }
-simd-json = { workspace = true }
 once_cell = { workspace = true }
 
 serde = { workspace = true }
