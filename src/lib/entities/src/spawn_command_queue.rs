@@ -22,11 +22,8 @@ pub fn request_spawn(entity_type: EntityType, player_entity: Entity) {
     });
 }
 
-/// Drain all pending spawn requests from the global queue
-pub fn drain_spawn_requests() -> Vec<SpawnRequest> {
-    let mut requests = Vec::new();
-    while let Some(request) = GLOBAL_SPAWN_QUEUE.pop() {
-        requests.push(request);
-    }
-    requests
+/// Pop a single spawn request from the global queue
+/// Returns None if the queue is empty
+pub fn pop_spawn_request() -> Option<SpawnRequest> {
+    GLOBAL_SPAWN_QUEUE.pop()
 }

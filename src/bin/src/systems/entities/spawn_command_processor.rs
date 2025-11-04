@@ -1,6 +1,6 @@
 use bevy_ecs::prelude::*;
 use ferrumc_core::transform::position::Position;
-use ferrumc_entities::{drain_spawn_requests, SpawnEntityEvent};
+use ferrumc_entities::{pop_spawn_request, SpawnEntityEvent};
 use tracing::{debug, warn};
 
 /// System that processes spawn commands from the queue and sends spawn events
@@ -8,9 +8,8 @@ pub fn spawn_command_processor_system(
     query: Query<&Position>,
     mut spawn_events: EventWriter<SpawnEntityEvent>,
 ) {
-    let requests = drain_spawn_requests();
-
-    for request in requests {
+    // Process all pending spawn requests from the lock-free queue
+    while let Some(request) = pop_spawn_request() {
         // Get player position
         if let Ok(pos) = query.get(request.player_entity) {
             // Spawn entity slightly in front of the player (2 blocks away)
