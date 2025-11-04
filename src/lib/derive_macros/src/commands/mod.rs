@@ -167,7 +167,7 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
             let ty = syn::parse_str::<Type>(&arg.ty).expect("invalid arg type");
 
             quote! {
-                match ctx.arg::<#ty>(#name) {
+                match __ctx.arg::<#ty>(#name) {
                     Ok(a) => a,
                     Err(err) => {
                         sender.send_message(ferrumc_text::TextComponentBuilder::new(format!("failed parsing {}: ", #name))
@@ -232,8 +232,8 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
         #[allow(unused_variables)]
         #[doc(hidden)]
         fn #system_name(mut events: bevy_ecs::prelude::MessageMutator<ferrumc_commands::events::ResolvedCommandDispatched>, #(#system_args)*) {
-            for ferrumc_commands::events::ResolvedCommandDispatched { command: __command, ctx, sender } in events.read() {
-                if _command.name == #command_name {
+            for ferrumc_commands::events::ResolvedCommandDispatched { command: __command, ctx: __ctx, sender } in events.read() {
+                if __command.name == #command_name {
                     #call
                     return // this is due to ownership issues
                 }
