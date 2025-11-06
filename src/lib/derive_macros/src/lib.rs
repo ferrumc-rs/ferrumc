@@ -107,10 +107,16 @@ pub fn build_registry_packets(input: TokenStream) -> TokenStream {
 /// ```
 /// # use ferrumc_world::block_id::BlockId;
 /// # use ferrumc_macros::block;
-/// let block_id = block!("stone");
-/// let another_block_id = block!("minecraft:grass_block", {snowy: true});
-/// assert_eq!(block_id, BlockId(1));
-/// assert_eq!(another_block_id, BlockId(8));
+/// assert_eq!(BlockId(1), block!("stone"));
+/// assert_eq!(BlockId(8) ,block!("minecraft:grass_block", {snowy: true}));
+/// for i in 581..1730 {
+///     assert!(
+///         matches!(
+///             BlockId(i),
+///             block!("note_block", { note: _, powered: _, instrument: _})
+///         )
+///     );
+/// }
 /// ```
 /// Unfortunately, due to current limitations in Rust's proc macros, you will need to import the
 /// `BlockId` struct manually.
@@ -119,6 +125,13 @@ pub fn build_registry_packets(input: TokenStream) -> TokenStream {
 ///
 /// If the block or properties are invalid, a compile-time error will be thrown that should hopefully
 /// explain the issue.
+/// # Static block
+/// gives a single block pat. Mainly used with
+/// `matches!` or `match`. `if let block!("stone" = bs_id) { .. }`,
+/// `match bs_id { block!("stone" => { .. }), }` and `block!(expr)`
+/// are not implemented and will panic at compile time. Panics if block state has any properties.
+/// # Expr with properties
+/// any part of this can be a placeholder or a literal, variables are not allowed. Be careful as this can bloat the code.
 #[proc_macro]
 pub fn block(input: TokenStream) -> TokenStream {
     block::block(input)
@@ -130,8 +143,9 @@ pub fn block(input: TokenStream) -> TokenStream {
 /// # use ferrumc_macros::{match_block};
 /// # use ferrumc_world::block_id::BlockId;
 /// let block_id = BlockId(1);
-/// if match_block!("stone", block_id) {
-///     // do something
+/// assert!(match_block!("stone", block_id));
+/// for i in 581..1730 {
+///     assert!(match_block!("note_block", BlockId(i)));
 /// }
 /// ```
 /// Unfortunately, due to current limitations in Rust's proc macros, you will need to import the

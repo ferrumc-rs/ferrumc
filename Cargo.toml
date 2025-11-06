@@ -14,14 +14,11 @@ resolver = "2"
 members = [
     "src/bin",
     "src/lib/adapters/anvil",
-    "src/lib/adapters/anvil",
-    "src/lib/adapters/nbt",
     "src/lib/adapters/nbt",
     "src/lib/commands",
     "src/lib/default_commands",
     "src/lib/core",
     "src/lib/core/state",
-    "src/lib/derive_macros",
     "src/lib/derive_macros",
     "src/lib/net",
     "src/lib/net/crates/codec",
@@ -39,6 +36,7 @@ members = [
     "src/lib/inventories",
     "src/lib/registry",
     "src/lib/scheduler",
+    "src/tests",
 ]
 
 #================== Lints ==================#
