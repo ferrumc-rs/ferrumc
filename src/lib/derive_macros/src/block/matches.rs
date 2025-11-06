@@ -19,8 +19,6 @@ impl syn::parse::Parse for Input {
     }
 }
 
-// match_block!("stone", block_state_id); -> "if block_state_id == BlockStateId(1) { ... }
-// match_block!("dirt", block_state_id); -> "if block_name == BlockStateId( { ... }
 pub fn matches_block(input: TokenStream) -> TokenStream {
     let input = syn::parse_macro_input!(input as Input);
     let block_name = input
@@ -39,11 +37,12 @@ pub fn matches_block(input: TokenStream) -> TokenStream {
         .to_compile_error()
         .into();
     }
-    let &states = states.unwrap();
+
+    let states = states.unwrap().iter().map(|&x| x as u32);
 
     let matched = quote! {
         match #block_id_var {
-            #(BlockStateId(#states) => true),*,
+            BlockId(#(#states)|*) => true,
             _ => false
         }
     };
