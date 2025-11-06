@@ -18,7 +18,10 @@ pub fn entity_spawner_system(
         event
             .entity_type
             .spawn(&mut commands, entity_id, &event.position);
-        info!("Spawned {:?} at {:?}", event.entity_type, event.position);
+        info!(
+            "Spawned {:?} with ID {} at ({:.2}, {:.2}, {:.2})",
+            event.entity_type, entity_id, event.position.x, event.position.y, event.position.z
+        );
     }
 }
 

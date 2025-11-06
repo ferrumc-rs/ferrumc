@@ -22,6 +22,7 @@ pub struct PigBundle {
     pub age: Age,
     pub on_ground: OnGround,
     pub uuid: EntityUuid,
+    pub last_synced_position: LastSyncedPosition,
 
     // Pig-specific data (implements GameEntity)
     pub pig_data: PigData,
@@ -40,6 +41,7 @@ impl PigBundle {
             // Generic components
             entity_type: EntityType::Pig,
             entity_id: EntityId::new(entity_id),
+            last_synced_position: crate::components::LastSyncedPosition::from_position(&position),
             position,
             rotation: Rotation::default(),
             velocity: Velocity::zero(),
