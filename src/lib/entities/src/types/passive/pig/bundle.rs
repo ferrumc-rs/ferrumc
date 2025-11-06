@@ -1,5 +1,5 @@
 use crate::components::*;
-use crate::types::passive::pig_data::PigData;
+use crate::types::passive::pig::data::PigData;
 use bevy_ecs::prelude::*;
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
