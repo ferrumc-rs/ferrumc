@@ -1,5 +1,5 @@
 use bevy_ecs::prelude::*;
-use ferrumc_entities::SpawnEntityEvent;
+use ferrumc_entities::{EntityNetworkIdIndex, SpawnEntityEvent};
 use ferrumc_state::GlobalStateResource;
 use std::sync::atomic::Ordering;
 use tracing::info;
@@ -8,6 +8,7 @@ use tracing::info;
 pub fn entity_spawner_system(
     mut commands: Commands,
     mut spawn_events: EventReader<SpawnEntityEvent>,
+    mut entity_index: ResMut<EntityNetworkIdIndex>,
     _global_state: Res<GlobalStateResource>,
 ) {
     for event in spawn_events.read() {
@@ -15,13 +16,18 @@ pub fn entity_spawner_system(
         let entity_id = generate_entity_id();
 
         // Delegate spawning to EntityType
-        event
+        if let Some(entity) = event
             .entity_type
-            .spawn(&mut commands, entity_id, &event.position);
-        info!(
-            "Spawned {:?} with ID {} at ({:.2}, {:.2}, {:.2})",
-            event.entity_type, entity_id, event.position.x, event.position.y, event.position.z
-        );
+            .spawn(&mut commands, entity_id, &event.position)
+        {
+            // Add to network ID index for O(1) lookup
+            entity_index.insert(entity_id as i32, entity);
+
+            info!(
+                "Spawned {:?} with ID {} at ({:.2}, {:.2}, {:.2})",
+                event.entity_type, entity_id, event.position.x, event.position.y, event.position.z
+            );
+        }
     }
 }
 

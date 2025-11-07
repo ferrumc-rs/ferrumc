@@ -21,6 +21,7 @@ pub mod chat_message;
 pub mod command;
 pub mod command_suggestion_request;
 
+pub mod interact_entity;
 pub mod swing_arm;
 
 pub mod chunk_batch_ack;

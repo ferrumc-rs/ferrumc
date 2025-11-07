@@ -1,4 +1,4 @@
-use bevy_ecs::prelude::{Commands, Component};
+use bevy_ecs::prelude::{Commands, Component, Entity};
 use ferrumc_core::transform::position::Position;
 use ferrumc_macros::get_registry_entry;
 use typename::TypeName;
@@ -75,7 +75,13 @@ impl EntityType {
     }
 
     /// Spawns this entity type with the given ID and position
-    pub fn spawn(&self, commands: &mut Commands, entity_id: i64, position: &Position) {
+    /// Spawn an entity and return its ECS Entity ID for lookup indexing
+    pub fn spawn(
+        &self,
+        commands: &mut Commands,
+        entity_id: i64,
+        position: &Position,
+    ) -> Option<Entity> {
         use crate::components::SyncedToPlayers;
         use crate::types::passive::pig::PigBundle;
 
@@ -83,10 +89,12 @@ impl EntityType {
             EntityType::Pig => {
                 let pig =
                     PigBundle::new(entity_id, Position::new(position.x, position.y, position.z));
-                commands.spawn((pig, SyncedToPlayers::default()));
+                let entity = commands.spawn((pig, SyncedToPlayers::default())).id();
+                Some(entity)
             }
             _ => {
                 tracing::warn!("Entity type {:?} not yet implemented for spawning", self);
+                None
             }
         }
     }

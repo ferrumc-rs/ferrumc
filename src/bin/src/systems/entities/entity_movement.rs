@@ -1,6 +1,7 @@
 use bevy_ecs::prelude::*;
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
+use ferrumc_entities::collision::{check_collision, BoundingBox};
 use ferrumc_entities::components::*;
 use ferrumc_state::GlobalStateResource;
 
@@ -12,6 +13,9 @@ pub fn entity_physics_system(
     mut query: Query<(&mut Position, &mut Velocity, &OnGround), With<EntityType>>,
     state: Res<GlobalStateResource>,
 ) {
+    // TODO: Make this configurable per entity type
+    let bbox = BoundingBox::PIG;
+
     for (mut pos, mut vel, on_ground) in query.iter_mut() {
         // Apply gravity if not on ground
         if !on_ground.0 {
@@ -29,7 +33,7 @@ pub fn entity_physics_system(
         let new_z = pos.z + vel.z;
 
         // Check collision at the new position (considering all movement)
-        if !check_collision(&state.0, new_x, new_y, new_z) {
+        if !check_collision(&state.0, new_x, new_y, new_z, &bbox) {
             // No collision, move freely
             pos.x = new_x;
             pos.y = new_y;
@@ -38,21 +42,21 @@ pub fn entity_physics_system(
             // Collision detected, try each axis separately
 
             // Try Y movement first (jumping/falling)
-            if !check_collision(&state.0, pos.x, new_y, pos.z) {
+            if !check_collision(&state.0, pos.x, new_y, pos.z, &bbox) {
                 pos.y = new_y;
             } else {
                 vel.y = 0.0;
             }
 
             // Try X movement with updated Y position
-            if !check_collision(&state.0, new_x, pos.y, pos.z) {
+            if !check_collision(&state.0, new_x, pos.y, pos.z, &bbox) {
                 pos.x = new_x;
             } else {
                 vel.x = 0.0;
             }
 
             // Try Z movement with updated X and Y positions
-            if !check_collision(&state.0, pos.x, pos.y, new_z) {
+            if !check_collision(&state.0, pos.x, pos.y, new_z, &bbox) {
                 pos.z = new_z;
             } else {
                 vel.z = 0.0;
@@ -68,74 +72,6 @@ pub fn entity_physics_system(
             vel.z *= 0.98;
         }
     }
-}
-
-/// Check if the entity would collide with a block at the given position
-fn check_collision(state: &ferrumc_state::GlobalState, x: f64, y: f64, z: f64) -> bool {
-    // Pig hitbox is approximately 0.9 x 0.9 x 0.9 blocks
-    let half_width = 0.45;
-    let height = 0.9;
-
-    // Check corners of the bounding box at feet and head level
-    let check_positions = [
-        // Feet level - 4 corners
-        (
-            (x - half_width).floor() as i32,
-            y.floor() as i32,
-            (z - half_width).floor() as i32,
-        ),
-        (
-            (x + half_width).floor() as i32,
-            y.floor() as i32,
-            (z - half_width).floor() as i32,
-        ),
-        (
-            (x - half_width).floor() as i32,
-            y.floor() as i32,
-            (z + half_width).floor() as i32,
-        ),
-        (
-            (x + half_width).floor() as i32,
-            y.floor() as i32,
-            (z + half_width).floor() as i32,
-        ),
-        // Head level - 4 corners
-        (
-            (x - half_width).floor() as i32,
-            (y + height).floor() as i32,
-            (z - half_width).floor() as i32,
-        ),
-        (
-            (x + half_width).floor() as i32,
-            (y + height).floor() as i32,
-            (z - half_width).floor() as i32,
-        ),
-        (
-            (x - half_width).floor() as i32,
-            (y + height).floor() as i32,
-            (z + half_width).floor() as i32,
-        ),
-        (
-            (x + half_width).floor() as i32,
-            (y + height).floor() as i32,
-            (z + half_width).floor() as i32,
-        ),
-    ];
-
-    for (check_x, check_y, check_z) in check_positions {
-        if let Ok(block_state) =
-            state
-                .world
-                .get_block_and_fetch(check_x, check_y, check_z, "overworld")
-        {
-            // If there's a solid block, collision detected
-            if block_state.0 != 0 {
-                return true;
-            }
-        }
-    }
-
-    false
 }
 
 pub fn entity_age_system(mut query: Query<&mut Age, With<EntityType>>) {
