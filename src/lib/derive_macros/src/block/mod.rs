@@ -13,13 +13,100 @@ struct Input {
     opts: Option<Opts>,
 }
 
-struct Opts {
+impl Parse for Input {
+    fn parse(input: ParseStream) -> Result<Self> {
+        let name: LitStr = input.parse()?;
+        let opts = if input.peek(Token![,]) {
+            let _comma: Token![,] = input.parse()?;
+            Some(input.parse::<Opts>()?)
+        } else {
+            None
+        };
+        if !input.is_empty() {
+            return Err(input.error("unexpected tokens after optional { ... }"));
+        }
+        Ok(Self { name, opts })
+    }
+}
+
+impl quote::ToTokens for Input {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        self.name.to_tokens(tokens);
+        if self.opts.is_some() {
+            <Token![,]>::default().to_tokens(tokens);
+        }
+        self.opts.to_tokens(tokens);
+    }
+}
+
+enum Opts {
+    Any(Token![_]),
+    Pairs(Pairs),
+}
+
+impl Parse for Opts {
+    fn parse(input: ParseStream) -> Result<Self> {
+        if input.peek(Token![_]) {
+            return Ok(Self::Any(input.parse()?));
+        }
+        Ok(Self::Pairs(input.parse()?))
+    }
+}
+
+impl quote::ToTokens for Opts {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        match self {
+            Opts::Any(underscore) => underscore.to_tokens(tokens),
+            Opts::Pairs(pairs) => pairs.to_tokens(tokens),
+        }
+    }
+}
+
+struct Pairs {
     _brace: Brace,
     pairs: Punctuated<Kv, Token![,]>,
     _dot2: Option<Token![..]>,
 }
 
-#[derive(Debug)]
+impl Parse for Pairs {
+    fn parse(input: ParseStream) -> Result<Self> {
+        let content;
+        let _brace = braced!(content in input);
+
+        let mut pairs = Punctuated::new();
+        let mut _dot2 = None;
+        while !content.is_empty() {
+            if content.peek(Token![..]) {
+                _dot2 = Some(content.parse()?);
+                break;
+            }
+            pairs.push_value(content.call(Kv::parse)?);
+            if content.is_empty() {
+                break;
+            }
+            let punct: Token![,] = content.parse()?;
+            pairs.push_punct(punct);
+        }
+        Ok(Pairs {
+            _brace,
+            pairs,
+            _dot2,
+        })
+    }
+}
+
+impl quote::ToTokens for Pairs {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        self._brace.surround(tokens, |tokens| {
+            self.pairs.to_tokens(tokens);
+            // NOTE: We need a comma before the dot2 token if it is present.
+            if !self.pairs.empty_or_trailing() && self._dot2.is_some() {
+                <Token![,]>::default().to_tokens(tokens);
+            }
+            self._dot2.to_tokens(tokens);
+        });
+    }
+}
 struct Kv {
     key: Ident,
     _colon: Token![:],
@@ -48,7 +135,24 @@ impl Kv {
     }
 }
 
-#[derive(Debug)]
+impl Parse for Kv {
+    fn parse(input: ParseStream) -> Result<Self> {
+        Ok(Self {
+            key: input.parse()?,
+            _colon: input.parse()?,
+            value: input.parse()?,
+        })
+    }
+}
+
+impl quote::ToTokens for Kv {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        self.key.to_tokens(tokens);
+        self._colon.to_tokens(tokens);
+        self.value.to_tokens(tokens);
+    }
+}
+
 enum Value {
     Static(Lit),
     Any(Token![_]),
@@ -73,91 +177,6 @@ impl Parse for Value {
     }
 }
 
-impl Parse for Kv {
-    fn parse(input: ParseStream) -> Result<Self> {
-        Ok(Self {
-            key: input.parse()?,
-            _colon: input.parse()?,
-            value: input.parse()?,
-        })
-    }
-}
-
-impl Parse for Opts {
-    fn parse(input: ParseStream) -> Result<Self> {
-        let content;
-        let _brace = braced!(content in input);
-
-        let mut pairs = Punctuated::new();
-        let mut _dot2 = None;
-        while !content.is_empty() {
-            if content.peek(Token![..]) {
-                _dot2 = Some(content.parse()?);
-                break;
-            }
-            pairs.push_value(content.call(Kv::parse)?);
-            if content.is_empty() {
-                break;
-            }
-            let punct: Token![,] = content.parse()?;
-            pairs.push_punct(punct);
-        }
-
-        Ok(Self {
-            _brace,
-            pairs,
-            _dot2,
-        })
-    }
-}
-
-impl Parse for Input {
-    fn parse(input: ParseStream) -> Result<Self> {
-        let name: LitStr = input.parse()?;
-        let opts = if input.peek(Token![,]) {
-            let _comma: Token![,] = input.parse()?;
-            Some(input.parse::<Opts>()?)
-        } else {
-            None
-        };
-        if !input.is_empty() {
-            return Err(input.error("unexpected tokens after optional { ... }"));
-        }
-        Ok(Self { name, opts })
-    }
-}
-
-impl quote::ToTokens for Input {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        self.name.to_tokens(tokens);
-        if self.opts.is_some() {
-            <Token![,]>::default().to_tokens(tokens);
-        }
-        self.opts.to_tokens(tokens);
-    }
-}
-
-impl quote::ToTokens for Opts {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        self._brace.surround(tokens, |tokens| {
-            self.pairs.to_tokens(tokens);
-            // NOTE: We need a comma before the dot2 token if it is present.
-            if !self.pairs.empty_or_trailing() && self._dot2.is_some() {
-                <Token![,]>::default().to_tokens(tokens);
-            }
-            self._dot2.to_tokens(tokens);
-        });
-    }
-}
-
-impl quote::ToTokens for Kv {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        self.key.to_tokens(tokens);
-        self._colon.to_tokens(tokens);
-        self.value.to_tokens(tokens);
-    }
-}
-
 impl quote::ToTokens for Value {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         match self {
@@ -174,8 +193,12 @@ pub fn block(input: TokenStream) -> TokenStream {
         Input { name, opts: None } => static_block(name),
         Input {
             name,
-            opts: Some(opts),
-        } => block_with_props(name, opts),
+            opts: Some(Opts::Pairs(pairs)),
+        } => block_with_props(name, pairs),
+        Input {
+            name,
+            opts: Some(Opts::Any(_)),
+        } => block_with_any_props(name),
     };
     match out {
         Ok(v) => v,
@@ -183,24 +206,22 @@ pub fn block(input: TokenStream) -> TokenStream {
     }
 }
 
-fn block_with_props(name: LitStr, opts: Opts) -> Result<TokenStream> {
+fn block_with_props(name: LitStr, opts: Pairs) -> Result<TokenStream> {
     let name_value = parse_name(&name);
-    let props = PROP_PARTS.get(&name_value);
-    if props.is_none() {
-        return Err(Error::new_spanned(
+    let props = PROP_PARTS.get(&name_value).ok_or_else(||
+        Error::new_spanned(
             &name,
             format!(
                 "the block `{name_value}` is not found in the blockstates.json file (PROP_PARTS is not populated)"
-            ),
-        ));
-    }
-    if props.is_some_and(|x| x.is_empty()) {
+            )))?;
+
+    if props.is_empty() {
         return Err(Error::new_spanned(
             &name,
             format!("the block `{name_value}` has no properties"),
         ));
     }
-    let props = props.unwrap().to_vec();
+    let props = props.to_vec();
 
     let opts_strings = opts
         .pairs
@@ -242,7 +263,7 @@ fn block_with_props(name: LitStr, opts: Opts) -> Result<TokenStream> {
 
     let mut block_states = BLOCK_STATES
         .get(&name_value)
-        .expect(&format!("block name {name_value} should be present"))
+        .unwrap_or_else(|| panic!("block name {name_value} should be present"))
         .to_vec();
     for kv in &opts.pairs {
         let k = kv.key_str();
@@ -273,7 +294,7 @@ fn block_with_props(name: LitStr, opts: Opts) -> Result<TokenStream> {
                     .iter()
                     .map(|v| BLOCK_STATES
                         .get(&format!("{k}:{v}"))
-                        .expect(&format!("the key {k}:{v} exists in BLOCK_STATES"))
+                        .unwrap_or_else(|| panic!("the key {k}:{v} exists in BLOCK_STATES"))
                     );
                 let mut combined_block_states = Vec::new();
                 for &bs in vs {
@@ -292,12 +313,12 @@ fn block_with_props(name: LitStr, opts: Opts) -> Result<TokenStream> {
         for k in missing_props {
             let missing_block_states = PROP_PARTS
                 .get(&k)
-                .expect(&format!("the key {k} exists in PROP_PARTS"))
+                .unwrap_or_else(|| panic!("the key {k} exists in PROP_PARTS"))
                 .iter()
                 .map(|v| {
                     BLOCK_STATES
                         .get(&format!("{k}:{v}"))
-                        .expect(&format!("the key {k}:{v} exists in BLOCK_STATES"))
+                        .unwrap_or_else(|| panic!("the key {k}:{v} exists in BLOCK_STATES"))
                 });
             let mut combined = Vec::new();
             for &bs in missing_block_states {
@@ -311,28 +332,34 @@ fn block_with_props(name: LitStr, opts: Opts) -> Result<TokenStream> {
         return Err(Error::new_spanned(
             Input {
                 name,
-                opts: Some(opts),
+                opts: Some(Opts::Pairs(opts)),
             },
             "no block state corresponds to this combination of properties",
         ));
     }
     let block_ids = block_states.iter().map(|x| *x as u32);
-    Ok(quote! {BlockId(#(#block_ids)|*)}.into())
+    Ok(quote! {BlockStateId(#(#block_ids)|*)}.into())
 }
 
+fn block_with_any_props(name: LitStr) -> Result<TokenStream> {
+    let name_value = parse_name(&name);
+    let block_ids = BLOCK_STATES
+        .get(&name_value)
+        .filter(|&&x| !x.is_empty())
+        .ok_or_else(|| Error::new_spanned(&name, format!("the block `{name_value}` is not found in blockstates.json (BLOCK_STATES is not populated)")))?
+        .iter()
+        .map(|&x| x as u32);
+    Ok(quote! {BlockStateId(#(#block_ids)|*)}.into())
+}
 fn static_block(name: LitStr) -> Result<TokenStream> {
     let name_value = parse_name(&name);
-    let props = PROP_PARTS.get(&name_value);
-    if props.is_none() {
-        return Err(Error::new_spanned(
+    let &props = PROP_PARTS.get(&name_value).ok_or_else(||        Error::new_spanned(
             &name,
             format!(
                 "the block `{name_value}` not found in blockstates.json (PROP_PARTS is not populated)",
             ),
-        ));
-    }
-    if props.is_some_and(|x| !x.is_empty()) {
-        let &props = props.unwrap();
+        ))?;
+    if !props.is_empty() {
         return Err(Error::new_spanned(
             &name,
             format!(
@@ -341,16 +368,13 @@ fn static_block(name: LitStr) -> Result<TokenStream> {
             ),
         ));
     }
-    let block_states = BLOCK_STATES.get(&name_value);
-    if block_states.is_none_or(|x| x.is_empty()) {
-        return Err(Error::new_spanned(
+    let &block_states = BLOCK_STATES.get(&name_value).filter(|&&x| !x.is_empty()).ok_or_else(|| Error::new_spanned(
             &name,
             format!(
                 "the block `{name_value}` not found in the blockstates.json file (BLOCK_STATE is not populated)",
             ),
-        ));
-    }
-    let block_states = block_states.unwrap();
+        ))?;
+
     if block_states.len() > 1 {
         return Err(Error::new_spanned(
             name,
@@ -366,7 +390,7 @@ fn static_block(name: LitStr) -> Result<TokenStream> {
     }
 
     let id = block_states[0] as u32;
-    Ok(quote! { BlockId(#id) }.into())
+    Ok(quote! { BlockStateId(#id) }.into())
 }
 
 fn parse_name(name: &LitStr) -> String {

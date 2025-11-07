@@ -27,7 +27,7 @@ fn main() {
             out.push((
                 id.parse::<u16>().unwrap(),
                 format!(
-                    "    assert_eq!(block!(\"{}\", {}), BlockId({}));",
+                    "    assert_eq!(block!(\"{}\", {}), BlockStateId({}));",
                     name,
                     format_props(props),
                     id
@@ -36,7 +36,10 @@ fn main() {
         } else {
             out.push((
                 id.parse::<u16>().unwrap(),
-                format!("    assert_eq!(block!(\"{}\"), BlockId({}));", name, id),
+                format!(
+                    "    assert_eq!(block!(\"{}\"), BlockStateId({}));",
+                    name, id
+                ),
             ));
         }
     }
