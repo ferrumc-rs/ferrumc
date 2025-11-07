@@ -1,6 +1,7 @@
 use bevy_ecs::prelude::*;
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
+use ferrumc_entities::collision::is_solid_block;
 use ferrumc_entities::EntityType;
 use ferrumc_state::GlobalStateResource;
 
@@ -15,20 +16,8 @@ pub fn ground_check_system(
         let block_y = (pos.y - 0.1).floor() as i32; // Slightly below feet
         let block_z = pos.z.floor() as i32;
 
-        match state
-            .0
-            .world
-            .get_block_and_fetch(block_x, block_y, block_z, "overworld")
-        {
-            Ok(block_state) => {
-                // Block ID 0 is air, anything else is solid
-                // TODO: Check for specific non-solid blocks (water, lava, tall grass, etc.)
-                on_ground.0 = block_state.0 != 0;
-            }
-            Err(_) => {
-                // Chunk not loaded, assume in air
-                on_ground.0 = false;
-            }
-        }
+        // Use shared collision helper
+        // TODO: Check for specific non-solid blocks (water, lava, tall grass, etc.)
+        on_ground.0 = is_solid_block(&state.0, block_x, block_y, block_z);
     }
 }
