@@ -1,4 +1,4 @@
 use bevy_ecs::prelude::Message;
 
 #[derive(Message)]
-pub struct ForcePlayerRecountEvent;
+pub struct ForcePlayerRecount;

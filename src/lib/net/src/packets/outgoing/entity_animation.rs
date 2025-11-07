@@ -10,7 +10,7 @@ pub struct EntityAnimationPacket {
 }
 
 #[derive(Message)]
-pub struct EntityAnimationEvent {
+pub struct EntityAnimated {
     pub entity: Entity,
     pub animation: u8,
     pub packet: EntityAnimationPacket,
@@ -22,7 +22,7 @@ impl EntityAnimationPacket {
     }
 }
 
-impl EntityAnimationEvent {
+impl EntityAnimated {
     pub fn new(eid: Entity, animation: u8, game_id: VarInt) -> Self {
         Self {
             entity: eid,

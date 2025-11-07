@@ -232,8 +232,8 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
         #[allow(non_snake_case)]
         #[allow(unused_variables)]
         #[doc(hidden)]
-        fn #system_name(mut events: bevy_ecs::prelude::MessageMutator<ferrumc_commands::events::ResolvedCommandDispatched>, #(#system_args)*) {
-            for ferrumc_commands::events::ResolvedCommandDispatched { command: __command, ctx: __ctx, sender } in events.read() {
+        fn #system_name(mut messages: bevy_ecs::prelude::MessageMutator<ferrumc_commands::messages::ResolvedCommandDispatched>, #(#system_args)*) {
+            for ferrumc_commands::messages::ResolvedCommandDispatched { command: __command, ctx: __ctx, sender } in messages.read() {
                 if __command.name == #command_name {
                     #call
                     return // this is due to ownership issues

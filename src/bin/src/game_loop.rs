@@ -41,7 +41,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
 
     ferrumc_default_commands::init();
 
-    // Register events/resources (one-time into World)
+    // Register messages/resources (one-time into World)
     let global_state_res = GlobalStateResource(global_state.clone());
 
     register_messages(&mut ecs_world);

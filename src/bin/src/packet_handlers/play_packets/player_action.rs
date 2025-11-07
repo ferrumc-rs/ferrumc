@@ -15,14 +15,19 @@ use ferrumc_world::block_state_id::BlockStateId;
 use tracing::{error, trace, warn};
 
 pub fn handle(
-    events: Res<PlayerActionReceiver>,
+    receiver: Res<PlayerActionReceiver>,
     state: Res<GlobalStateResource>,
     broadcast_query: Query<(Entity, &StreamWriter)>,
     player_query: Query<&PlayerAbilities>,
-    mut start_dig_events: EventWriter<PlayerStartDiggingEvent>,
-    mut cancel_dig_events: EventWriter<PlayerCancelDiggingEvent>,
-    mut finish_dig_events: EventWriter<PlayerFinishDiggingEvent>,
+    mut start_dig_events: MessageWriter<PlayerStartDiggingEvent>,
+    mut cancel_dig_events: MessageWriter<PlayerCancelDiggingEvent>,
+    mut finish_dig_events: MessageWriter<PlayerFinishDiggingEvent>,
 ) {
+    // https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol?oldid=2773393#Player_Action
+    for (event, trigger_eid) in receiver.0.try_iter() {
+        let res: Result<(), BinaryError> = try {
+            match event.status.0 {
+                0 => {
     for (event, trigger_eid) in events.0.try_iter() {
         // Get the player's abilities to check their gamemode
         let Ok(abilities) = player_query.get(trigger_eid) else {
