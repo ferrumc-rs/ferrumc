@@ -42,7 +42,7 @@ pub fn matches_block(input: TokenStream) -> TokenStream {
 
     let matched = quote! {
         match #block_id_var {
-            BlockId(#(#states)|*) => true,
+            BlockStateId(#(#states)|*) => true,
             _ => false
         }
     };
