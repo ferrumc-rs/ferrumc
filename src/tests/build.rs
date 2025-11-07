@@ -49,7 +49,7 @@ fn main() {
     for (i, chunk) in out.chunks(40).enumerate() {
         write!(
             &mut file,
-            "#[ignore]\n#[test]\nfn all_the_blocks_{i}() {{\n{}\n}}\n\n",
+            "#[test]\nfn all_the_blocks_{i}() {{\n{}\n}}\n\n",
             chunk.join("\n")
         )
         .expect("able to write to file");
