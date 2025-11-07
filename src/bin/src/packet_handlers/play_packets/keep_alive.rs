@@ -7,11 +7,11 @@ use std::time::Instant;
 use tracing::{error, warn};
 
 pub fn handle(
-    events: Res<IncomingKeepAlivePacketReceiver>,
+    receiver: Res<IncomingKeepAlivePacketReceiver>,
     mut query: Query<&mut KeepAliveTracker>,
     state: Res<GlobalStateResource>,
 ) {
-    for (event, eid) in events.0.try_iter() {
+    for (event, eid) in receiver.0.try_iter() {
         let Ok(mut keep_alive_tracker) = query.get_mut(eid) else {
             error!("Could not get keep alive tracker for entity {:?}", eid);
             continue;

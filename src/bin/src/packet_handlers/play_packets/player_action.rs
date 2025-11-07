@@ -12,12 +12,12 @@ use ferrumc_world::block_state_id::BlockStateId;
 use tracing::{debug, error, trace};
 
 pub fn handle(
-    events: Res<PlayerActionReceiver>,
+    receiver: Res<PlayerActionReceiver>,
     state: Res<GlobalStateResource>,
     query: Query<(Entity, &StreamWriter)>,
 ) {
     // https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol?oldid=2773393#Player_Action
-    for (event, trigger_eid) in events.0.try_iter() {
+    for (event, trigger_eid) in receiver.0.try_iter() {
         let res: Result<(), BinaryError> = try {
             match event.status.0 {
                 0 => {

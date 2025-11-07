@@ -3,16 +3,16 @@ use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::set_head_rotation::SetHeadRotationPacket;
-use ferrumc_net::packets::packet_events::TransformEvent;
+use ferrumc_net::packets::packet_messages::Movement;
 use ferrumc_net_codec::net_types::angle::NetAngle;
 use tracing::error;
 
 pub fn handle_player_move(
-    mut events: MessageReader<TransformEvent>,
+    mut movement_msgs: MessageReader<Movement>,
     query: Query<(&Rotation, &PlayerIdentity)>,
     broadcast_query: Query<&StreamWriter>,
 ) {
-    for event in events.read() {
+    for event in movement_msgs.read() {
         let entity = event.entity;
 
         let Ok((rot, identity)) = query.get(entity) else {

@@ -62,11 +62,11 @@ fn create_ctx(input: String, command: Option<Arc<Command>>, sender: Sender) -> C
 }
 
 pub fn handle(
-    events: Res<CommandSuggestionRequestReceiver>,
+    receiver: Res<CommandSuggestionRequestReceiver>,
     query: Query<&StreamWriter>,
     state: Res<GlobalStateResource>,
 ) {
-    for (request, entity) in events.0.try_iter() {
+    for (request, entity) in receiver.0.try_iter() {
         if !state.0.players.is_connected(entity) {
             return;
         }

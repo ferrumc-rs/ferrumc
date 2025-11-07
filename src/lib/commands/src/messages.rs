@@ -1,4 +1,4 @@
-//! Events related to commmands.
+//! Messages related to commmands.
 
 use std::sync::Arc;
 
