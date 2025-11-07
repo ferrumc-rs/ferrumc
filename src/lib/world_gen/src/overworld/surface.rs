@@ -17,7 +17,7 @@ use crate::random::Xoroshiro128PlusPlus;
 use crate::{ChunkAccess, HeightmapType};
 use crate::{biome_chunk::BiomeChunk, pos::ColumnPos};
 use bevy_math::{DVec2, FloatExt, IVec2, IVec3};
-use ferrumc_macros::{block, match_block};
+use ferrumc_macros::block;
 use ferrumc_world::block_id::BlockId;
 
 use crate::{biome::Biome, perlin_noise::NormalNoise, random::Rng};
@@ -212,8 +212,8 @@ impl OverworldSurface {
                 let block = block_column[(y + min_y) as usize];
 
                 let cond_air =
-                    match_block!("air", block) && f64::from(y) < d4 && rng.next_f64() > 0.01;
-                let cond_water = match_block!("water", block)
+                    matches!(block, block!("air")) && f64::from(y) < d4 && rng.next_f64() > 0.01;
+                let cond_water = matches!(block, block!("water", _))
                     && f64::from(y) > d3
                     && y < SEA_LEVEL
                     && d3 != 0.0

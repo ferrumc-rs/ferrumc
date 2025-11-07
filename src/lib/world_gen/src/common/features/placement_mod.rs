@@ -1,4 +1,4 @@
-use ferrumc_macros::match_block;
+use ferrumc_macros::block;
 use ferrumc_world::block_id::BlockId;
 use std::range::{Range, RangeInclusive};
 
@@ -189,13 +189,14 @@ impl CountOnEveryLayerPlacement {
                     .filter(|(_, (a, b))| {
                         let a = *a;
                         let b = *b;
-                        (match_block!("water", a)
-                            || match_block!("lava", a)
-                            || match_block!("air", a))
-                            && (match_block!("water", b)
-                                || match_block!("lava", b)
-                                || match_block!("air", b)
-                                || match_block!("bedrock", b))
+                        matches!(a, block!("water", _) | block!("lava", _) | block!("air"))
+                            && matches!(
+                                b,
+                                block!("water", _)
+                                    | block!("lava", _)
+                                    | block!("air")
+                                    | block!("bedrock")
+                            )
                     })
                     .enumerate()
                     .find(|(i, _)| *i == round)

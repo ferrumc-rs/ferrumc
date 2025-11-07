@@ -2,7 +2,9 @@ use bevy_math::IVec2;
 use ferrumc_world::chunk_format::Chunk;
 
 use crate::{
-    errors::WorldGenError, nether::noise::NetherNoise, pos::{ChunkHeight, ChunkPos}
+    errors::WorldGenError,
+    nether::noise::NetherNoise,
+    pos::{ChunkHeight, ChunkPos},
 };
 
 pub struct NetherGenerator {

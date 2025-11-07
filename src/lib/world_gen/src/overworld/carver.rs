@@ -3,7 +3,7 @@ use crate::{
     direction::Direction,
     overworld::{noise_depth::OverworldBiomeNoise, overworld_generator::CHUNK_HEIGHT},
 };
-use ferrumc_macros::{block, match_block};
+use ferrumc_macros::block;
 use ferrumc_world::block_id::BlockId;
 use std::{f32::consts::PI, range::Range};
 
@@ -107,7 +107,7 @@ fn clear_overworld_cave_block(
         return;
     }
 
-    if match_block!("grass_block", block) || match_block!("mycelium", block) {
+    if matches!(block, block!("grass_block", _) | block!("mycelium", _)) {
         *surface_reached = true;
     }
 
