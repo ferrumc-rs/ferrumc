@@ -2,7 +2,7 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
-use syn::{braced, Error, Ident, Lit, LitStr, Result, Token};
+use syn::{braced, token::Brace, Error, Ident, Lit, LitStr, Result, Token};
 
 pub(crate) mod matches;
 
@@ -14,8 +14,11 @@ struct Input {
 }
 
 struct Opts {
+    _brace: Brace,
     pairs: Punctuated<Kv, Token![,]>,
+    _dot2: Option<Token![..]>,
 }
+
 #[derive(Debug)]
 struct Kv {
     key: Ident,
@@ -24,25 +27,27 @@ struct Kv {
 }
 
 impl Kv {
-    fn to_string_pair(&self) -> (String, String) {
-        (
-            match &self.key.to_string() {
-                v if v.starts_with("r#") => v.split_once("r#").unwrap().1.to_string(),
-                v => v.clone(),
+    fn key_str(&self) -> String {
+        match &self.key.to_string() {
+            v if v.starts_with("r#") => v.split_once("r#").unwrap().1.to_string(),
+            v => v.clone(),
+        }
+    }
+
+    fn value_str(&self) -> String {
+        match &self.value {
+            Value::Static(v) => match v {
+                Lit::Str(v) => v.value(),
+                Lit::Bool(v) => v.value.to_string(),
+                Lit::Int(v) => v.base10_digits().to_string(),
+                _ => unreachable!(),
             },
-            match &self.value {
-                Value::Static(v) => match v {
-                    Lit::Str(v) => v.value(),
-                    Lit::Bool(v) => v.value.to_string(),
-                    Lit::Int(v) => v.base10_digits().to_string(),
-                    _ => unreachable!(),
-                },
-                Value::Any(_) => "_".into(),
-                Value::Ident(v) => v.to_string(),
-            },
-        )
+            Value::Any(_) => "_".into(),
+            Value::Ident(v) => v.to_string(),
+        }
     }
 }
+
 #[derive(Debug)]
 enum Value {
     Static(Lit),
@@ -81,9 +86,27 @@ impl Parse for Kv {
 impl Parse for Opts {
     fn parse(input: ParseStream) -> Result<Self> {
         let content;
-        braced!(content in input);
+        let _brace = braced!(content in input);
+
+        let mut pairs = Punctuated::new();
+        let mut _dot2 = None;
+        while !content.is_empty() {
+            if content.peek(Token![..]) {
+                _dot2 = Some(content.parse()?);
+                break;
+            }
+            pairs.push_value(content.call(Kv::parse)?);
+            if content.is_empty() {
+                break;
+            }
+            let punct: Token![,] = content.parse()?;
+            pairs.push_punct(punct);
+        }
+
         Ok(Self {
-            pairs: content.parse_terminated(Kv::parse, Token![,])?,
+            _brace,
+            pairs,
+            _dot2,
         })
     }
 }
@@ -107,13 +130,23 @@ impl Parse for Input {
 impl quote::ToTokens for Input {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         self.name.to_tokens(tokens);
+        if self.opts.is_some() {
+            <Token![,]>::default().to_tokens(tokens);
+        }
         self.opts.to_tokens(tokens);
     }
 }
 
 impl quote::ToTokens for Opts {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        self.pairs.to_tokens(tokens);
+        self._brace.surround(tokens, |tokens| {
+            self.pairs.to_tokens(tokens);
+            // NOTE: We need a comma before the dot2 token if it is present.
+            if !self.pairs.empty_or_trailing() && self._dot2.is_some() {
+                <Token![,]>::default().to_tokens(tokens);
+            }
+            self._dot2.to_tokens(tokens);
+        });
     }
 }
 
@@ -156,15 +189,14 @@ fn block_with_props(name: LitStr, opts: Opts) -> Result<TokenStream> {
         return Err(Error::new_spanned(
             &name,
             format!(
-                "the block `{}` is not found in the blockstates.json file (PROP_PARTS is not populated)",
-                name_value
+                "the block `{name_value}` is not found in the blockstates.json file (PROP_PARTS is not populated)"
             ),
         ));
     }
     if props.is_some_and(|x| x.is_empty()) {
         return Err(Error::new_spanned(
             &name,
-            format!("the block `{}` has no properties", name_value),
+            format!("the block `{name_value}` has no properties"),
         ));
     }
     let props = props.unwrap().to_vec();
@@ -172,33 +204,34 @@ fn block_with_props(name: LitStr, opts: Opts) -> Result<TokenStream> {
     let opts_strings = opts
         .pairs
         .iter()
-        .map(Kv::to_string_pair)
+        .map(Kv::key_str)
         .zip(opts.pairs.iter())
         .collect::<Vec<_>>();
     let mut unknown_props = Vec::new();
-    let mut missing_props = Vec::new();
-    for prop in &props {
-        if !opts_strings.iter().any(|((k, _), _)| k == prop) {
-            missing_props.push(prop.to_string());
-        }
-    }
-    for ((k, _), _) in &opts_strings {
+    for (k, _) in &opts_strings {
         if !props.contains(&k.as_str()) {
             unknown_props.push(k.clone());
         }
     }
     if !unknown_props.is_empty() {
         return Err(Error::new_spanned(
-            &name,
+            &opts,
             format!(
-                "the block {name_value} has no properties with names: [{}]",
+                "the block `{name_value}` has no properties with names: [{}]",
                 unknown_props.join(", ")
             ),
         ));
     }
-    if !missing_props.is_empty() {
+
+    let mut missing_props = Vec::new();
+    for prop in &props {
+        if !opts_strings.iter().any(|(k, _)| k == prop) {
+            missing_props.push(prop.to_string());
+        }
+    }
+    if opts._dot2.is_none() && !missing_props.is_empty() {
         return Err(Error::new_spanned(
-            name,
+            opts,
             format!(
                 "the block `{name_value}` is missing these properties: [{}]",
                 missing_props.join(", ")
@@ -210,16 +243,18 @@ fn block_with_props(name: LitStr, opts: Opts) -> Result<TokenStream> {
         .get(&name_value)
         .expect(&format!("block name {name_value} should be present"))
         .to_vec();
-    for ((k, v), kv) in &opts_strings {
+    for kv in &opts.pairs {
+        let k = kv.key_str();
+        let v = kv.value_str();
         let property_filter = match &kv.value {
             Value::Static(_) => BLOCK_STATES
                 .get(&format!("{k}:{v}"))
-                .ok_or(Error::new_spanned(
+                .ok_or_else(|| Error::new_spanned(
                     kv,
                     format!(
                         "the value `{v}` is not a valid value for the property `{k}`, available values: [{}]",
                         PROP_PARTS
-                            .get(k)
+                            .get(&k)
                             .expect("the key `{k}` exists in PROP_PARTS")
                             .join(", ")
                     ),
@@ -227,8 +262,8 @@ fn block_with_props(name: LitStr, opts: Opts) -> Result<TokenStream> {
                 .to_vec(),
             Value::Any(_) => {
                 let vs = PROP_PARTS
-                    .get(k)
-                    .ok_or(
+                    .get(&k)
+                    .ok_or_else(||
                         Error::new_spanned(
                             &kv.key,
                             format!("the property `{k}` is not present in the blockstates.json file (PROP_PARTS is not populated)")
@@ -237,18 +272,10 @@ fn block_with_props(name: LitStr, opts: Opts) -> Result<TokenStream> {
                     .iter()
                     .map(|v| BLOCK_STATES
                         .get(&format!("{k}:{v}"))
-                        .ok_or(
-                            Error::new_spanned(
-                                kv,
-                                format!("the value `{v}` is not a valid value for the property `{k}`, available values: [{}]", PROP_PARTS
-                                    .get(k)
-                                    .expect(&format!("the key `{k}` exists in PROP_PARTS")).join(", ")
-                                )
-                        ))
-                    )
-                    .collect::<Result<Vec<_>>>()?;
+                        .expect(&format!("the key {k}:{v} exists in BLOCK_STATES"))
+                    );
                 let mut combined_block_states = Vec::new();
-                for bs in vs {
+                for &bs in vs {
                     combined_block_states = combine(&combined_block_states, bs);
                 }
                 combined_block_states
@@ -258,6 +285,25 @@ fn block_with_props(name: LitStr, opts: Opts) -> Result<TokenStream> {
             }
         };
         block_states = intersect(&block_states, &property_filter);
+    }
+
+    if opts._dot2.is_some() {
+        for k in missing_props {
+            let missing_block_states = PROP_PARTS
+                .get(&k)
+                .expect(&format!("the key {k} exists in PROP_PARTS"))
+                .iter()
+                .map(|v| {
+                    BLOCK_STATES
+                        .get(&format!("{k}:{v}"))
+                        .expect(&format!("the key {k}:{v} exists in BLOCK_STATES"))
+                });
+            let mut combined = Vec::new();
+            for &bs in missing_block_states {
+                combined = combine(&combined, bs);
+            }
+            block_states = intersect(&block_states, &combined);
+        }
     }
 
     if block_states.is_empty() {
