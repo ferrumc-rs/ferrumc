@@ -7,10 +7,12 @@ use bevy_math::{DVec3, IVec3, Vec3Swizzles};
 use ferrumc_world::{block_id::BlockId, vanilla_chunk_format::BlockData};
 
 use crate::{
-    NoiseGeneratorSettings, NoiseSettings,
-    aquifier::{ChunkPos, FluidType, compute_substance},
+    NoiseGeneratorSettings,
+    aquifer::{FluidType, compute_substance},
+    biome_chunk::BiomeChunk,
+    pos::{ChunkHeight, ChunkPos},
     random::{LegacyRandom, RandomState, Rng},
-    surface::{BiomeManager, top_material},
+    surface::top_material,
 };
 
 pub struct ChunkAccess {}
@@ -30,10 +32,10 @@ pub(crate) struct CarvingMask {
     min_y: i32,
 }
 impl CarvingMask {
-    pub(crate) fn new(settengs: &NoiseSettings) -> Self {
+    pub(crate) fn new(chunk_height: ChunkHeight) -> Self {
         Self {
-            min_y: settengs.min_y,
-            carved: vec![false; ((settengs.height as i32 - settengs.min_y) * 16 * 16) as usize],
+            min_y: chunk_height.min_y,
+            carved: vec![false; (chunk_height.height * 16 * 16) as usize],
         }
     }
     fn carve(&mut self, pos: IVec3) -> bool {
@@ -49,7 +51,7 @@ fn carve_ellipsoid(
     settings: &NoiseGeneratorSettings,
     chunk_pos: ChunkPos,
     chunk: &mut ChunkAccess,
-    biome_accessor: &BiomeManager,
+    biome_accessor: &BiomeChunk,
     pos: DVec3,
     horizontal_radius: f64,
     vertical_radius: f64,
@@ -69,10 +71,9 @@ fn carve_ellipsoid(
 
     let max = ((pos.x - horizontal_radius).floor() as i32 - min_block.pos.x - 1).max(0);
     let min = ((pos.x + horizontal_radius).floor() as i32 - min_block.pos.x).min(15);
-    let max1 =
-        ((pos.y - vertical_radius).floor() as i32 - 1).max(settings.noise_settings.min_y + 1);
+    let max1 = ((pos.y - vertical_radius).floor() as i32 - 1).max(settings.chunk_height.min_y + 1);
     let min1 = ((pos.y + vertical_radius).floor() as i32 + 1)
-        .min(settings.noise_settings.min_y + settings.noise_settings.height as i32 - 1 - 7);
+        .min(settings.chunk_height.min_y + settings.chunk_height.height as i32 - 1 - 7);
     let max2 = ((pos.z - horizontal_radius).floor() as i32 - min_block.pos.y - 1).max(0);
     let min2 = ((pos.z + horizontal_radius).floor() as i32 - min_block.pos.y).min(15);
 
@@ -115,7 +116,7 @@ fn carve_ellipsoid(
                         if chunk.get_block_state(check_pos).name == "minecraft:dirt"
                             && let Some(block_state1) = top_material(
                                 &settings.rule_source,
-                                biome_accessor.get_biome(check_pos),
+                                biome_accessor.at(check_pos),
                                 check_pos,
                                 carve_state != FluidType::Air,
                             )
@@ -149,6 +150,7 @@ fn can_reach(
 }
 
 pub(crate) struct CarveSettings {
+    probability: f32,
     y: Range<i32>,
     horizontal_radius_mul: Range<f32>,
     vertical_radius_mul: Range<f32>,
@@ -162,13 +164,17 @@ pub(crate) fn carve(
     settings: &NoiseGeneratorSettings,
     unreplaceable: &[BlockId],
     chunk: &mut ChunkAccess,
-    biome_accessor: &BiomeManager,
+    biome_accessor: &BiomeChunk,
     seed: u64,
     chunk_pos: ChunkPos,
     carving_mask: &mut CarvingMask,
     carve_settings: CarveSettings,
 ) {
     let mut random = LegacyRandom::large_features(seed, chunk_pos);
+    if random.next_f32() > carve_settings.probability {
+        return;
+    }
+
     let block_pos_coord = (4 * 2 - 1) << 4;
     let bound = random.next_bounded(16) + 1;
     let bound1 = random.next_bounded(bound);
@@ -250,7 +256,7 @@ fn create_tunnel(
     random_state: &RandomState,
     settings: &NoiseGeneratorSettings,
     chunk: &mut ChunkAccess,
-    biome_accessor: &BiomeManager,
+    biome_accessor: &BiomeChunk,
     seed: u64,
     chunk_pos: ChunkPos,
     mut pos: DVec3,
@@ -369,17 +375,21 @@ pub(crate) fn carve_canyon(
     random_state: &RandomState,
     settings: &NoiseGeneratorSettings,
     chunk: &mut ChunkAccess,
-    biome_accessor: &BiomeManager,
+    biome_accessor: &BiomeChunk,
     seed: u64,
     chunk_pos: ChunkPos,
     carving_mask: &mut CarvingMask,
     unreplaceable: &[BlockId],
 ) {
+    const PROBABILITY: f32 = 0.01;
     const WIDTH_SMOOTHNESS: u32 = 3;
     const VERTICAL_RADIUS_DEFAULT_FACTOR: f64 = 1.0;
     const VERTICAL_RADIUS_CENTER_FACTOR: f64 = 0.0;
     const Y_SCALE: f64 = 3.0;
     let mut random = LegacyRandom::large_features(seed, chunk_pos);
+    if random.next_f32() > PROBABILITY {
+        return;
+    }
     let mut random_pos = chunk_pos
         .block(
             random.next_bounded(16),
@@ -394,7 +404,7 @@ pub(crate) fn carve_canyon(
         (f64::from((4 * 2 - 1) * 16) * f64::from(random.next_f32_range(0.75..1.0))) as u32;
 
     let mut random = LegacyRandom::new(random.next_u64());
-    let gen_depth = settings.noise_settings.height;
+    let gen_depth = settings.chunk_height.height;
     let mut width_factors = vec![0.0; gen_depth as usize];
     let mut f = 1.0f32;
 
@@ -456,7 +466,7 @@ pub(crate) fn carve_canyon(
                 &|relative_x, relative_y, relative_z, skip_y| {
                     (relative_x * relative_x + relative_z * relative_z)
                         * f64::from(
-                            width_factors[(skip_y - settings.noise_settings.min_y) as usize - 1],
+                            width_factors[(skip_y - settings.chunk_height.min_y) as usize - 1],
                         )
                         + relative_y * relative_y / 6.0
                         >= 1.0
