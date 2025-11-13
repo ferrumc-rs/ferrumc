@@ -5,7 +5,6 @@ use crate::{
 use std::f32::consts::PI;
 
 use bevy_math::{IVec3, Vec3Swizzles};
-use ferrumc_world::block_id::BlockId;
 
 use crate::{
     ChunkAccess,
@@ -20,19 +19,80 @@ use crate::{
 };
 
 pub(super) struct OverworldCarver {
-    // cave_carver: Caver,
-    // extra_cave_carver: Caver,
-    // canyon_carver: CanyonCarver,
-} //TODO
+    cave_carver: Caver,
+    extra_cave_carver: Caver,
+    canyon_carver: CanyonCarver,
+}
 
 impl OverworldCarver {
-    pub fn new() -> Self {
-        Self {}
-    }//TODO
+    pub fn new(chunk_height: ChunkHeight) -> Self {
+        Self {
+            cave_carver: Caver::new(
+                15,
+                1.0,
+                chunk_height,
+                0.15,
+                (-64 + 8)..181,
+                0.7..1.4,
+                0.8..1.3,
+                -1.0..-0.4,
+                0.1..0.9,
+            ),
+            extra_cave_carver: Caver::new(
+                15,
+                1.0,
+                chunk_height,
+                0.07,
+                (-64 + 8)..48,
+                0.7..1.4,
+                0.8..1.3,
+                -1.0..-0.4,
+                0.1..0.9,
+            ),
+            canyon_carver: CanyonCarver { chunk_height },
+        }
+    }
+    pub fn carve(
+        &self,
+        chunk: &mut ChunkAccess,
+        biome_accessor: &BiomeChunk,
+        seed: u64,
+        chunk_pos: ChunkPos,
+        carving_mask: &mut CarvingMask,
+        surface: &OverworldSurface,
+        biome_noise: &OverworldBiomeNoise,
+    ) {
+        self.cave_carver.carve_overworld(
+            chunk,
+            biome_accessor,
+            seed,
+            chunk_pos,
+            carving_mask,
+            surface,
+            biome_noise,
+        );
+        self.extra_cave_carver.carve_overworld(
+            chunk,
+            biome_accessor,
+            seed,
+            chunk_pos,
+            carving_mask,
+            surface,
+            biome_noise,
+        );
+        self.canyon_carver.carve_canyon(
+            chunk,
+            biome_accessor,
+            seed,
+            chunk_pos,
+            carving_mask,
+            surface,
+            biome_noise,
+        );
+    }
 }
 
 fn clear_overworld_cave_block(
-    unreplaceable: &[BlockId],
     chunk: &mut ChunkAccess,
     surface: &OverworldSurface,
     biome_accessor: &BiomeChunk,
@@ -42,7 +102,7 @@ fn clear_overworld_cave_block(
 ) {
     let block = chunk.get_block_state(pos);
 
-    if unreplaceable.contains(&block.to_block_id()) {
+    if block.name == "minecraft:bedrock" {
         return;
     }
 
@@ -86,7 +146,6 @@ impl Caver {
         self.carve(
             &mut |pos, surface_reached| {
                 clear_overworld_cave_block(
-                    &self.unreplaceable,
                     chunk,
                     surface,
                     biome_accessor,
@@ -111,7 +170,6 @@ impl Caver {
     }
 }
 pub struct CanyonCarver {
-    unreplaceable: Vec<BlockId>,
     chunk_height: ChunkHeight,
 }
 
@@ -207,7 +265,6 @@ impl CanyonCarver {
                         continue;
                     }
                     clear_overworld_cave_block(
-                        &self.unreplaceable,
                         chunk,
                         surface,
                         biome_accessor,

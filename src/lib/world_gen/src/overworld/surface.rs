@@ -323,11 +323,11 @@ impl SurfaceRules {
         biome_noise: &OverworldBiomeNoise,
         biome: Biome,
         depth_above: i32,
+        depth_below: i32,
         fluid_level: Option<i32>,
         pos: BlockPos,
     ) -> SurfaceBlock {
         use SurfaceBlock::*;
-        let depth_below = pos.y - depth_above + 1;
         //bedrock
         if pos.y == -64
             || pos.y < -64 + 5
