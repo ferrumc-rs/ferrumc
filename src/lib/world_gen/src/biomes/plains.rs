@@ -30,7 +30,7 @@ impl BiomeGenerator for PlainsBiome {
             i32::from(x),
             i32::from(y),
             i32::from(z),
-            block!("grass_block", {snowy: true}),
+            block!("grass_block", {snowy: false}),
         );
         let dirt_depth = (self.dirt_depth_noise.get(f32::from(x), f32::from(z)) * 5.0) + 3.0;
         for i in 1..=dirt_depth as i32 {
