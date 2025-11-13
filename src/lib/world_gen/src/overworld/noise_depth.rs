@@ -15,7 +15,7 @@ use crate::pos::{BlockPos, ChunkHeight, ChunkPos, ColumnPos};
 use crate::random::Xoroshiro128PlusPlus;
 use bevy_math::{DVec3, FloatExt, IVec3, Vec3Swizzles};
 use ferrumc_macros::block;
-use ferrumc_world::block_id::BlockId;
+use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::chunk_format::Chunk;
 
 use crate::overworld::spline::{CubicSpline, SplinePoint, SplineType};

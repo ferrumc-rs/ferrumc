@@ -1,6 +1,6 @@
 use crate::common::math::clamped_map;
 use ferrumc_macros::block;
-use ferrumc_world::block_id::BlockId;
+use ferrumc_world::block_state_id::BlockStateId;
 use std::ops::RangeInclusive;
 
 use bevy_math::IVec3;
@@ -30,14 +30,24 @@ impl Vein {
         }
     }
 
-    pub(crate) fn at(&self, pos: IVec3) -> Option<BlockId> {
-        let copper: (BlockId, BlockId, BlockId, RangeInclusive<i32>) = (
+    pub(crate) fn at(&self, pos: IVec3) -> Option<BlockStateId> {
+        let copper: (
+            BlockStateId,
+            BlockStateId,
+            BlockStateId,
+            RangeInclusive<i32>,
+        ) = (
             block!("copper_ore"),
             block!("raw_copper_block"),
             block!("granite"),
             (0..=50),
         );
-        let iron: (BlockId, BlockId, BlockId, RangeInclusive<i32>) = (
+        let iron: (
+            BlockStateId,
+            BlockStateId,
+            BlockStateId,
+            RangeInclusive<i32>,
+        ) = (
             block!("deepslate_iron_ore"),
             block!("raw_iron_block"),
             block!("tuff"),

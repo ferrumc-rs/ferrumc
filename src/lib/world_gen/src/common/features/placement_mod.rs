@@ -1,5 +1,5 @@
 use ferrumc_macros::match_block;
-use ferrumc_world::block_id::BlockId;
+use ferrumc_world::block_state_id::BlockStateId;
 use std::range::{Range, RangeInclusive};
 
 use bevy_math::{IVec2, IVec3, Vec2Swizzles, Vec3Swizzles};
@@ -16,13 +16,13 @@ use crate::{
 
 //filters
 struct BlockPredicateFilter {
-    block: Vec<BlockId>,
+    block: Vec<BlockStateId>,
 }
 impl BlockPredicateFilter {
-    fn filter(&self, block: BlockId) -> bool {
+    fn filter(&self, block: BlockStateId) -> bool {
         self.block.contains(&block)
     }
-    fn apply(&self, pos: BlockPos, block: BlockId) -> impl Iterator<Item = BlockPos> {
+    fn apply(&self, pos: BlockPos, block: BlockStateId) -> impl Iterator<Item = BlockPos> {
         Some(pos).filter(|_| self.filter(block)).into_iter()
     }
 }
@@ -210,8 +210,8 @@ impl CountOnEveryLayerPlacement {
 
 struct EnvironmentScanPlacement {
     direction: Direction,
-    target_condition: Vec<BlockId>,
-    allowed_search_condition: Vec<BlockId>,
+    target_condition: Vec<BlockStateId>,
+    allowed_search_condition: Vec<BlockStateId>,
     max_steps: usize,
 }
 

@@ -18,20 +18,20 @@ mod random;
 use crate::end::end_generator::EndGenerator;
 use crate::errors::WorldGenError;
 use crate::pos::BlockPos;
-use ferrumc_world::block_id::BlockId;
+use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::chunk_format::Chunk;
 
 pub struct ChunkAccess {}
 
 impl ChunkAccess {
-    pub fn get_block_state(&self, pos: BlockPos) -> BlockId {
+    pub fn get_block_state(&self, pos: BlockPos) -> BlockStateId {
         todo!()
     }
 
-    pub fn set_block_state(&mut self, pos: BlockPos, data: BlockId) {
+    pub fn set_block_state(&mut self, pos: BlockPos, data: BlockStateId) {
         todo!()
     }
-    pub fn set_block_state_flags(&mut self, pos: BlockPos, data: BlockId, flags: u32) {
+    pub fn set_block_state_flags(&mut self, pos: BlockPos, data: BlockStateId, flags: u32) {
         todo!()
     }
 

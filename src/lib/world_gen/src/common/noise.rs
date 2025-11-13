@@ -1,7 +1,7 @@
 use std::mem::swap;
 
 use bevy_math::FloatExt;
-use ferrumc_world::{block_id::BlockId, chunk_format::Chunk};
+use ferrumc_world::{block_state_id::BlockStateId, chunk_format::Chunk};
 
 use crate::{
     common::math::clamped_map,
@@ -32,7 +32,7 @@ pub fn generate_interpolation_data(
     get: impl Fn(BlockPos) -> f64,
     chunk: &mut Chunk,
     pos: ChunkPos,
-    filler: BlockId,
+    filler: BlockStateId,
 ) {
     const WIDTH: usize = 8;
     const HEIGHT: i32 = 4;

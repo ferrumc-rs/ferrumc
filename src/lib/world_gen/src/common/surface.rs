@@ -3,15 +3,15 @@ use crate::{
     common::aquifer::FluidType,
     pos::{BlockPos, ChunkHeight, ColumnPos},
 };
-use ferrumc_world::block_id::BlockId;
+use ferrumc_world::block_state_id::BlockStateId;
 
 pub(crate) struct Surface {
-    default_block: BlockId,
+    default_block: BlockStateId,
     pub chunk_height: ChunkHeight,
 }
 
 impl Surface {
-    pub(crate) fn new(default_block: BlockId, chunk_height: ChunkHeight) -> Self {
+    pub(crate) fn new(default_block: BlockStateId, chunk_height: ChunkHeight) -> Self {
         Self {
             default_block,
             chunk_height,
@@ -47,9 +47,9 @@ impl Surface {
         mut fluid_level: Option<i32>,
         pos: ColumnPos,
         biome: Biome,
-        rules: impl Fn(Biome, i32, i32, Option<i32>, BlockPos) -> Option<BlockId>,
+        rules: impl Fn(Biome, i32, i32, Option<i32>, BlockPos) -> Option<BlockStateId>,
         aquifer: impl Fn(BlockPos, f64) -> Option<FluidType>,
-    ) -> Vec<BlockId> {
+    ) -> Vec<BlockStateId> {
         let mut depth = 0;
         (self.chunk_height.min_y..=stone_level)
             .rev()
