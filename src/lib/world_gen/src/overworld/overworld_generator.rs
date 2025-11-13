@@ -7,7 +7,7 @@ use crate::overworld::noise_depth::OverworldBiomeNoise;
 use crate::overworld::surface::OverworldSurface;
 use crate::pos::{ChunkHeight, ChunkPos};
 use crate::random::{Rng, Xoroshiro128PlusPlus};
-use bevy_math::IVec2;
+use bevy_math::{IVec2, IVec3};
 use ferrumc_world::chunk_format::Chunk;
 use ferrumc_world::vanilla_chunk_format::BlockData;
 use itertools::Itertools;
@@ -51,25 +51,23 @@ impl OverworldGenerator {
         }
         .to_block_id();
         let air = BlockData::default().to_block_id();
-        ChunkPos::from(IVec2::new(x * 16, z * 16))
-            .iter_columns()
-            .cartesian_product(self.chunk_height.iter())
-            .map(|(c, y)| c.block(y))
-            .map(|pos| {
-                chunk.set_block(
-                    pos.x,
-                    pos.y,
-                    pos.z,
-                    if self.biome_noise.final_density(pos) > 0.0 {
-                        stone
-                    } else {
-                        air
-                    },
-                )
-            })
-            .find(Result::is_err)
-            .unwrap_or(Ok(()))?;
-
+        if x.abs() < 4 && z.abs() < 4 {
+            ChunkPos::from(IVec2::new(x * 16, z * 16))
+                .iter_columns()
+                .cartesian_product(self.chunk_height.iter())
+                .map(|(c, y)| c.block(y))
+                .map(|pos| {
+                    let final_density = self.biome_noise.final_density(pos);
+                    chunk.set_block(
+                        pos.x,
+                        pos.y,
+                        pos.z,
+                        if final_density > 0.0 { stone } else { air },
+                    )
+                })
+                .find(Result::is_err)
+                .unwrap_or(Ok(()))?;
+        }
         Ok(chunk)
     }
 }
