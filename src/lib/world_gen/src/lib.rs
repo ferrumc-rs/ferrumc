@@ -1,7 +1,8 @@
 mod biomes;
 pub mod errors;
 mod noise_router;
-
+mod perlin_noise;
+mod random;
 use crate::errors::WorldGenError;
 use ferrumc_world::chunk_format::Chunk;
 use noise::{Clamp, NoiseFn, OpenSimplex};
