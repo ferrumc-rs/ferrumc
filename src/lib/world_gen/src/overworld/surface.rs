@@ -1,3 +1,4 @@
+use crate::common::math::lerp2;
 use std::range::Range;
 
 use crate::common::surface::Surface;
@@ -16,11 +17,7 @@ use crate::{biome_chunk::BiomeChunk, pos::ColumnPos};
 use bevy_math::{DVec2, FloatExt, IVec2, IVec3};
 use ferrumc_world::vanilla_chunk_format::BlockData;
 
-use crate::{
-    biome::Biome,
-    perlin_noise::{NormalNoise, lerp2},
-    random::Rng,
-};
+use crate::{biome::Biome, perlin_noise::NormalNoise, random::Rng};
 
 pub struct SurfaceNoises {
     surface: NormalNoise<3>,

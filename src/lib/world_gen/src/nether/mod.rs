@@ -1,2 +1,3 @@
 mod carver;
-mod generator;
+pub mod nether_generator;
+mod noise;
