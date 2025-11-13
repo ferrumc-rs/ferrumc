@@ -18,7 +18,7 @@ use crate::{ChunkAccess, HeightmapType};
 use crate::{biome_chunk::BiomeChunk, pos::ColumnPos};
 use bevy_math::{DVec2, FloatExt, IVec2, IVec3};
 use ferrumc_macros::{block, match_block};
-use ferrumc_world::block_id::BlockId;
+use ferrumc_world::block_state_id::BlockStateId;
 
 use crate::{biome::Biome, perlin_noise::NormalNoise, random::Rng};
 
@@ -83,7 +83,7 @@ impl OverworldSurface {
         chunk: &ChunkAccess,
         biome_manager: &BiomeChunk,
         pos: ColumnPos,
-    ) -> Vec<BlockId> {
+    ) -> Vec<BlockStateId> {
         let (stone_level, fluid_level) = self.surface.find_surface(pos, |pos, final_density| {
             self.aquifer.at(biome_noise, pos, final_density).0 //TODO
         });
@@ -156,7 +156,7 @@ impl OverworldSurface {
         noise: &OverworldBiomeNoise,
         pos: ColumnPos,
         biome: Biome,
-        block_column: &mut [BlockId],
+        block_column: &mut [BlockStateId],
         height: i32,
     ) {
         fn should_melt_frozen_ocean_iceberg_slightly(
@@ -258,7 +258,7 @@ impl OverworldSurface {
         biome: Biome,
         pos: IVec3,
         is_fluid: bool,
-    ) -> Option<BlockId> {
+    ) -> Option<BlockStateId> {
         self.rules
             .try_apply(
                 chunk,
@@ -323,7 +323,7 @@ enum SurfaceBlock {
     Endstone,
 }
 impl SurfaceBlock {
-    fn to_block(self) -> Option<BlockId> {
+    fn to_block(self) -> Option<BlockStateId> {
         if self == SurfaceBlock::Stone {
             return None;
         }

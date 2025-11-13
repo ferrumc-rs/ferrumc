@@ -5,16 +5,16 @@ use crate::{
     pos::BlockPos,
 };
 use ferrumc_macros::match_block;
-use ferrumc_world::block_id::BlockId;
+use ferrumc_world::block_state_id::BlockStateId;
 
-fn has(block: BlockId, key: &str, value: &str) -> bool {
+fn has(block: BlockStateId, key: &str, value: &str) -> bool {
     todo!()
 }
-fn is(block: BlockId, name: &str, key: &str, value: &str) -> bool {
+fn is(block: BlockStateId, name: &str, key: &str, value: &str) -> bool {
     todo!()
 }
 
-pub fn can_survive(block: BlockId, level: &ChunkAccess, pos: BlockPos) -> bool {
+pub fn can_survive(block: BlockStateId, level: &ChunkAccess, pos: BlockPos) -> bool {
     let below = level.get_block_state(pos + Direction::Down);
     match block {
         _ if match_block!("small_dripleaf", block) => {
@@ -31,5 +31,5 @@ pub fn can_survive(block: BlockId, level: &ChunkAccess, pos: BlockPos) -> bool {
     }
 }
 
-pub fn get_block_support_shape(block: BlockId, level: &ChunkAccess, pos: BlockPos) {}
-pub fn get_block_collision_shape(block: BlockId, level: &ChunkAccess, pos: BlockPos) {}
+pub fn get_block_support_shape(block: BlockStateId, level: &ChunkAccess, pos: BlockPos) {}
+pub fn get_block_collision_shape(block: BlockStateId, level: &ChunkAccess, pos: BlockPos) {}

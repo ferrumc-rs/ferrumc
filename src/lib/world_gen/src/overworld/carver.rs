@@ -4,7 +4,7 @@ use crate::{
     overworld::{noise_depth::OverworldBiomeNoise, overworld_generator::CHUNK_HEIGHT},
 };
 use ferrumc_macros::{block, match_block};
-use ferrumc_world::block_id::BlockId;
+use ferrumc_world::block_state_id::BlockStateId;
 use std::{f32::consts::PI, range::Range};
 
 use bevy_math::Vec3Swizzles;

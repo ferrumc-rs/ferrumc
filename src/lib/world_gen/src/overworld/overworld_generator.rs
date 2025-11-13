@@ -9,7 +9,7 @@ use crate::pos::{ChunkHeight, ChunkPos};
 use crate::random::Xoroshiro128PlusPlus;
 use bevy_math::IVec2;
 use ferrumc_macros::block;
-use ferrumc_world::block_id::BlockId;
+use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::chunk_format::Chunk;
 use itertools::Itertools;
 

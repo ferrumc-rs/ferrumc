@@ -1,5 +1,5 @@
 use ferrumc_macros::block;
-use ferrumc_world::block_id::BlockId;
+use ferrumc_world::block_state_id::BlockStateId;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct FluidPicker(pub i32, pub FluidType);
@@ -21,7 +21,7 @@ pub enum FluidType {
     Lava,
 }
 
-impl From<FluidType> for BlockId {
+impl From<FluidType> for BlockStateId {
     fn from(value: FluidType) -> Self {
         match value {
             FluidType::Air => block!("air"),
