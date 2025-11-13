@@ -72,7 +72,6 @@ pub struct Caver {
     bound: u32,
     ratio: f64,
     chunk_height: ChunkHeight,
-    pub(crate) unreplaceable: Vec<BlockId>,
     probability: f32,
     y: Range<i32>,
     horizontal_radius_mul: Range<f32>,
@@ -81,6 +80,30 @@ pub struct Caver {
     y_scale: Range<f32>,
 }
 impl Caver {
+    pub fn new(
+        bound: u32,
+        ratio: f64,
+        chunk_height: ChunkHeight,
+        probability: f32,
+        y: Range<i32>,
+        horizontal_radius_mul: Range<f32>,
+        vertical_radius_mul: Range<f32>,
+        floor_level: Range<f32>,
+        y_scale: Range<f32>,
+    ) -> Self {
+        Self {
+            bound,
+            ratio,
+            chunk_height,
+            probability,
+            y,
+            horizontal_radius_mul,
+            vertical_radius_mul,
+            floor_level,
+            y_scale,
+        }
+    }
+
     #[allow(dead_code)]
     pub(crate) fn carve(
         &self,
