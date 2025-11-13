@@ -2,6 +2,8 @@ use bevy_ecs::prelude::{Entity, EventWriter, Query, Res};
 use ferrumc_core::chunks::cross_chunk_boundary_event::CrossChunkBoundaryEvent;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net::SetPlayerPositionPacketReceiver;
+use std::sync::atomic::Ordering;
+use tracing::{debug, error, trace, warn};
 
 use crate::errors::BinaryError;
 use ferrumc_core::transform::grounded::OnGround;
@@ -23,6 +25,14 @@ pub fn handle(
     state: Res<GlobalStateResource>,
 ) {
     for (event, eid) in events.0.try_iter() {
+        if !state.0.players.is_connected(eid) {
+            error!(
+                "Player {} is not connected, skipping SetPlayerPositionPacket processing",
+                eid
+            );
+            // Player is not connected, skip processing this event
+            continue;
+        }
         let new_rot = None::<Rotation>;
 
         let new_position = Position::new(event.x, event.feet_y, event.z);
@@ -37,9 +47,9 @@ pub fn handle(
             ((new_position.z * 4096.0) - (position.z * 4096.0)) as i16,
         ));
 
-        let old_chunk = ((position.x as i32 >> 4), (position.z as i32 >> 4));
+        let old_chunk = (position.x as i32 >> 4, position.z as i32 >> 4);
 
-        let new_chunk = ((new_position.x as i32 >> 4), (new_position.z as i32 >> 4));
+        let new_chunk = (new_position.x as i32 >> 4, new_position.z as i32 >> 4);
 
         if old_chunk != new_chunk {
             cross_chunk_events.write(CrossChunkBoundaryEvent {
@@ -53,15 +63,24 @@ pub fn handle(
 
         *on_ground = OnGround(event.on_ground);
 
-        update_pos_for_all(
+        if let Err(err) = update_pos_for_all(
             eid,
             delta_pos,
             new_rot,
             &pos_query,
             &pass_conn_query,
             state.0.clone(),
-        )
-        .expect("Failed to update position for all players");
+        ) {
+            error!("Failed to update position for player {}: {}", eid, err);
+        } else {
+            trace!(
+                "Updated position for player {}: ({}, {}, {})",
+                eid,
+                new_position.x,
+                new_position.y,
+                new_position.z
+            );
+        }
     }
 }
 
@@ -81,6 +100,14 @@ fn update_pos_for_all(
     conn_query: &Query<(Entity, &StreamWriter)>,
     state: GlobalState,
 ) -> Result<(), BinaryError> {
+    if !state.players.is_connected(entity_id) {
+        // Player is not connected, skip processing this update
+        error!(
+            "Player {} is not connected, skipping position update",
+            entity_id
+        );
+        return Ok(());
+    }
     let (pos, grounded, rot, identity) = pos_query.get(entity_id)?;
 
     // If any delta of (x|y|z) exceeds 7.5, then it's "not recommended" to use this packet
@@ -125,10 +152,22 @@ fn update_pos_for_all(
     };
 
     for (entity, conn) in conn_query.iter() {
-        if !state.players.is_connected(entity) {
+        if !state.players.is_connected(entity) || !conn.running.load(Ordering::Relaxed) {
+            warn!(
+                "Player {} is not connected, skipping position update",
+                entity
+            );
+            for player_l in state.players.player_list.iter() {
+                let k = player_l.key();
+                let v = player_l.value();
+                debug!("Player list: {} - {}", k, v.1);
+            }
+            state
+                .players
+                .disconnect(entity, Some(String::from("Player not connected anymore.")));
             continue;
         }
-        conn.send_packet(&packet)?;
+        conn.send_packet_ref(&packet)?;
     }
 
     Ok(())

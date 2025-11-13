@@ -7,8 +7,6 @@ Cargo.lock
 config.toml
 .temp
 
-.etc/blockstates.json
-
 .etc/blocks.json
 
 flame.svg
@@ -16,3 +14,11 @@ flame.svg
 .direnv
 result
 result-*
+
+profile.json.gz
+.DS_Store
+
+/world
+whitelist.txt
+
+logs/

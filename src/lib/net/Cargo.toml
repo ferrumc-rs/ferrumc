@@ -10,6 +10,7 @@ ferrumc-net-encryption = { workspace = true }
 ferrumc-net-codec = { workspace = true }
 ferrumc-macros = { workspace = true }
 ferrumc-config = { workspace = true }
+ferrumc-commands = { workspace = true }
 bevy_ecs = { workspace = true }
 
 ferrumc-nbt = { workspace = true }
@@ -33,6 +34,8 @@ typename = { workspace = true }
 bitcode = { workspace = true }
 indexmap = { workspace = true }
 lazy_static = { workspace = true }
+yazi = { workspace = true }
+ferrumc-inventories = { workspace = true }
 
 
 [dev-dependencies]

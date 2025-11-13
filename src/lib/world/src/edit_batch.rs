@@ -1,4 +1,4 @@
-use crate::block_id::BlockId;
+use crate::block_state_id::BlockStateId;
 use crate::chunk_format::{BiomeStates, BlockStates, Chunk, PaletteType};
 use crate::WorldError;
 use ahash::{AHashMap, AHashSet, AHasher};
@@ -16,13 +16,15 @@ use tracing::trace;
 ///
 /// # Example
 /// ```
+/// # use ferrumc_macros::block;
+/// # use ferrumc_world::block_state_id::BlockStateId;
 /// # use ferrumc_world::chunk_format::Chunk;
 /// # use ferrumc_world::edit_batch::EditBatch;
 /// # use ferrumc_world::vanilla_chunk_format::BlockData;
 /// # let mut chunk = Chunk::new(0, 0, "overworld".to_string());
 /// let mut batch = EditBatch::new(&mut chunk);
-/// batch.set_block(1, 64, 1, BlockData { name: "minecraft:stone".to_string(), properties: None });
-/// batch.set_block(2, 64, 1, BlockData { name: "minecraft:bricks".to_string(), properties: None });
+/// batch.set_block(1, 64, 1, block!("stone"));
+/// batch.set_block(2, 64, 1, block!("stone"));
 /// batch.apply().unwrap();
 /// ```
 ///
@@ -35,7 +37,7 @@ use tracing::trace;
 pub struct EditBatch<'a> {
     pub(crate) edits: Vec<Edit>,
     chunk: &'a mut Chunk,
-    tmp_palette_map: AHashMap<BlockId, usize>,
+    tmp_palette_map: AHashMap<BlockStateId, usize>,
     used: bool,
 }
 
@@ -44,17 +46,13 @@ pub(crate) struct Edit {
     pub(crate) x: i32,
     pub(crate) y: i32,
     pub(crate) z: i32,
-    pub(crate) block: BlockId,
+    pub(crate) block: BlockStateId,
 }
 
 fn get_palette_hash(palette: &[VarInt]) -> i32 {
-    let mut rolling = 0;
     let mut hasher = AHasher::default();
-    for block in palette.iter() {
-        (rolling + block.0).hash(&mut hasher);
-        rolling = hasher.finish() as i32;
-    }
-    rolling
+    palette.hash(&mut hasher);
+    hasher.finish() as i32
 }
 
 impl<'a> EditBatch<'a> {
@@ -76,13 +74,8 @@ impl<'a> EditBatch<'a> {
     /// Sets a block at the given chunk-relative coordinates.
     ///
     /// This won't have any effect until `apply()` is called.
-    pub fn set_block(&mut self, x: i32, y: i32, z: i32, block: impl Into<BlockId>) {
-        self.edits.push(Edit {
-            x,
-            y,
-            z,
-            block: block.into(),
-        });
+    pub fn set_block(&mut self, x: i32, y: i32, z: i32, block: BlockStateId) {
+        self.edits.push(Edit { x, y, z, block });
     }
 
     /// Applies all edits in the batch to the chunk.
@@ -142,7 +135,7 @@ impl<'a> EditBatch<'a> {
                         block_states: BlockStates {
                             non_air_blocks: 0,
                             block_data: PaletteType::Single(VarInt::default()),
-                            block_counts: HashMap::from([(BlockId::default(), 4096)]),
+                            block_counts: HashMap::from([(BlockStateId::default(), 4096)]),
                         },
                         // Biomes don't really matter for this, so we can just use empty data
                         biome_states: BiomeStates {
@@ -206,10 +199,11 @@ impl<'a> EditBatch<'a> {
             // Hash current palette so we can detect changes after edits
             let palette_hash = get_palette_hash(palette);
 
-            // Rebuild temporary palette index lookup (block ID -> palette index)
+            // Rebuild temporary palette index lookup (block state ID -> palette index)
             self.tmp_palette_map.clear();
             for (i, p) in palette.iter().enumerate() {
-                self.tmp_palette_map.insert(BlockId::from_varint(*p), i);
+                self.tmp_palette_map
+                    .insert(BlockStateId::from_varint(*p), i);
             }
 
             // Determine how many blocks fit into each i64 (based on bits per block)
@@ -252,13 +246,14 @@ impl<'a> EditBatch<'a> {
                     continue;
                 }
 
-                if let Some(old_block_id) = palette.get(old_block_index as usize) {
+                if let Some(old_block_state_id) = palette.get(old_block_index as usize) {
                     if let Some(count) =
-                        block_count_removes.get_mut(&BlockId::from_varint(*old_block_id))
+                        block_count_removes.get_mut(&BlockStateId::from_varint(*old_block_state_id))
                     {
                         *count -= 1;
                     } else {
-                        block_count_removes.insert(BlockId::from_varint(*old_block_id), 1);
+                        block_count_removes
+                            .insert(BlockStateId::from_varint(*old_block_state_id), 1);
                     }
                 }
 
@@ -275,20 +270,20 @@ impl<'a> EditBatch<'a> {
             }
 
             // Update block counts
-            for (block_id, count) in block_count_adds {
+            for (block_state_id, count) in block_count_adds {
                 let current_count = section
                     .block_states
                     .block_counts
-                    .entry(block_id)
+                    .entry(block_state_id)
                     .or_insert(0);
                 *current_count += count;
             }
 
-            for (block_id, count) in block_count_removes {
+            for (block_state_id, count) in block_count_removes {
                 let current_count = section
                     .block_states
                     .block_counts
-                    .entry(block_id)
+                    .entry(block_state_id)
                     .or_insert(0);
                 *current_count -= count;
             }
@@ -296,7 +291,7 @@ impl<'a> EditBatch<'a> {
             section.block_states.non_air_blocks = *section
                 .block_states
                 .block_counts
-                .get(&BlockId::default())
+                .get(&BlockStateId::default())
                 .unwrap_or(&4096) as u16;
 
             // Only optimise if the palette changed after edits
@@ -319,12 +314,12 @@ mod tests {
     use crate::chunk_format::Chunk;
     use crate::vanilla_chunk_format::BlockData;
 
-    fn make_test_block(name: &str) -> BlockId {
+    fn make_test_block(name: &str) -> BlockStateId {
         BlockData {
             name: name.to_string(),
             properties: None,
         }
-        .to_block_id()
+        .to_block_state_id()
     }
 
     #[test]

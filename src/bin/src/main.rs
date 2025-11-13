@@ -2,7 +2,7 @@
 
 use crate::errors::BinaryError;
 use clap::Parser;
-use ferrumc_config::statics::get_global_config;
+use ferrumc_config::server_config::get_global_config;
 use ferrumc_config::whitelist::create_whitelist;
 use ferrumc_general_purpose::paths::get_root_path;
 use ferrumc_state::player_list::PlayerList;
@@ -33,7 +33,7 @@ fn main() {
     #[cfg(feature = "dhat")]
     let _profiler = dhat::Profiler::new_heap();
 
-    let start_time = Arc::new(Instant::now());
+    let start_time = Instant::now();
 
     let cli_args = CLIArgs::parse();
     ferrumc_logging::init_logging(cli_args.log.into());
@@ -58,6 +58,11 @@ fn main() {
         }
         Some(Command::Run) | None => {
             info!("Starting server...");
+            if let Err(e) = ferrumc_config::setup::setup() {
+                error!("Could not set up the server: {}", e.to_string());
+            } else {
+                info!("Server setup complete.");
+            }
             if let Err(e) = entry(start_time) {
                 error!("Server exited with the following error: {}", e.to_string());
             } else {
@@ -78,23 +83,20 @@ fn generate_chunks(state: GlobalState) -> Result<(), BinaryError> {
             chunks.push((x, z));
         }
     }
-    let start = std::time::Instant::now();
-    let pool = ferrumc_threadpool::ThreadPool::new();
-    let mut chunk_gen_batch = pool.batch();
-    for chunk_coords in chunks {
-        chunk_gen_batch.execute({
-            let state = state.clone();
-            move || {
-                let (x, z) = chunk_coords;
-                match state.terrain_generator.generate_chunk(x, z) {
-                    Ok(chunk) => {
-                        state.world.save_chunk(chunk)?;
-                        Ok(())
-                    }
-                    Err(e) => {
-                        error!("Error generating chunk ({}, {}): {:?}", x, z, e);
-                        Err(WorldGenError::ChunkGenerationError(e.to_string()))
-                    }
+    let mut batch = state.thread_pool.batch();
+    for (x, z) in chunks {
+        let state_clone = state.clone();
+        batch.execute(move || {
+            let chunk = state_clone
+                .terrain_generator
+                .generate_chunk(x, z)
+                .map(Arc::new);
+            if let Err(e) = chunk {
+                error!("Error generating chunk ({}, {}): {:?}", x, z, e);
+            } else {
+                let chunk = chunk.unwrap();
+                if let Err(e) = state_clone.world.save_chunk(chunk) {
+                    error!("Error saving chunk ({}, {}): {:?}", x, z, e);
                 }
             }
         })
@@ -105,13 +107,7 @@ fn generate_chunks(state: GlobalState) -> Result<(), BinaryError> {
     Ok(())
 }
 
-fn entry(start_time: Arc<Instant>) -> Result<(), BinaryError> {
-    let config = get_global_config();
-    let mut db_path = std::env::current_exe()?;
-    db_path.pop(); // Remove the binary name
-    db_path.push(&config.database.db_path);
-    info!("Database path: {}", db_path.display());
-    std::fs::remove_dir_all(db_path)?;
+fn entry(start_time: Instant) -> Result<(), BinaryError> {
     let state = create_state(start_time)?;
     let global_state = Arc::new(state);
     create_whitelist();
@@ -145,7 +141,7 @@ fn handle_import(import_args: ImportArgs) -> Result<(), BinaryError> {
     info!("Importing world...");
 
     // let config = get_global_config();
-    let mut world = World::new(get_global_config().database.db_path.clone().into());
+    let mut world = World::new(&get_global_config().database.db_path);
 
     let root_path = get_root_path();
     let mut import_path = root_path.join(import_args.import_path);
@@ -153,11 +149,7 @@ fn handle_import(import_args: ImportArgs) -> Result<(), BinaryError> {
         import_path = root_path.join(import_path);
     }
 
-    if let Err(e) = world.import(
-        import_path,
-        import_args.batch_size,
-        // import_args.max_concurrent_tasks,
-    ) {
+    if let Err(e) = world.import(import_path, ThreadPool::new()) {
         error!("Could not import world: {}", e.to_string());
         return Err(BinaryError::Custom("Could not import world.".to_string()));
     }
@@ -165,9 +157,9 @@ fn handle_import(import_args: ImportArgs) -> Result<(), BinaryError> {
     Ok(())
 }
 
-fn create_state(start_time: Arc<Instant>) -> Result<ServerState, BinaryError> {
+fn create_state(start_time: Instant) -> Result<ServerState, BinaryError> {
     Ok(ServerState {
-        world: World::new(get_global_config().database.db_path.clone().into()),
+        world: World::new(&get_global_config().database.db_path),
         terrain_generator: WorldGenerator::new(0),
         shut_down: false.into(),
         players: PlayerList::default(),

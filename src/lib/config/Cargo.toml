@@ -1,0 +1,21 @@
+[package]
+name = "ferrumc-config"
+version = "0.1.0"
+edition = "2021"
+description = "FerrumC configuration utilities"
+
+[dependencies]
+toml = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+serde_derive = { workspace = true }
+tracing = { workspace = true }
+base64 = { workspace = true }
+ferrumc-general-purpose = { workspace = true }
+lazy_static = { workspace = true }
+dashmap = { workspace = true }
+uuid = { workspace = true }
+ureq = { workspace = true, features = ["json"] }
+rayon = { workspace = true }
+once_cell = { workspace = true }
+figment = { workspace = true }

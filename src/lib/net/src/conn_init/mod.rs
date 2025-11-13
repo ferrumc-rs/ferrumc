@@ -3,99 +3,102 @@ mod status;
 
 use crate::conn_init::login::login;
 use crate::conn_init::status::status;
+use crate::connection::StreamWriter;
 use crate::errors::{NetError, PacketError};
 use crate::packets::incoming::handshake::Handshake;
+use crate::packets::incoming::packet_skeleton::PacketSkeleton;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
+use ferrumc_macros::lookup_packet;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
-use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalState;
 use ferrumc_text::{ComponentBuilder, NamedColor, TextComponent};
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
+use std::sync::atomic::Ordering;
+use tokio::net::tcp::OwnedReadHalf;
 use tracing::{error, trace};
 
-/// A small utility to remove the packet length and packet id from the stream, since we are pretty
-/// sure we are going to get the right packet id and length, and we don't need to check it
-/// If we get a packet with the id 0x12, we will skip it, since it is a serverbound plugin message packet
-/// They have stupid formatting, and we don't want to deal with it
-pub(crate) async fn trim_packet_head(conn: &mut OwnedReadHalf, value: u8) -> Result<(), NetError> {
-    let mut len = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
-    let mut id = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
-    // Packets can't be longer than 2097151 bytes per https://minecraft.wiki/w/Java_Edition_protocol/Packets#Packet_format
-    if len.0 < 1 || len.0 > 2097151 {
-        error!("Received packet with invalid length: {}", len.0);
-        return Err(NetError::Packet(PacketError::MalformedPacket(Some(
-            id.0 as u8,
-        ))));
-    }
-    while id.0 == 0x14 {
-        trace!("Serverbound plugin message packet detected");
-        let mut packet_data = vec![0; len.0 as usize - id.len()];
-        conn.read_exact(&mut packet_data).await?;
-        trace!("Packet data: {:?}", &packet_data);
-        len = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
-        if len.0 < 1 || len.0 > 2097151 {
-            error!("Received packet with invalid length: {}", len.0);
-            return Err(NetError::Packet(PacketError::MalformedPacket(Some(
-                id.0 as u8,
-            ))));
-        }
-        id = VarInt::decode_async(conn, &NetDecodeOpts::None).await?;
-    }
-    assert_eq!(id.0, value as i32);
-    Ok(())
+/// Represents the result of a login attempt after the handshake process.
+///
+/// - `player_identity`: Populated when login is successful and a player is identified.
+/// - `compression`: Indicates whether network compression should be enabled for this connection.
+pub(crate) struct LoginResult {
+    pub player_identity: Option<PlayerIdentity>,
+    pub compression: bool,
 }
 
-pub(crate) async fn send_packet(
-    conn: &mut OwnedWriteHalf,
-    packet: &impl NetEncode,
-) -> Result<(), NetError> {
-    let mut packet_buffer = vec![];
-    packet
-        .encode_async(&mut packet_buffer, &NetEncodeOpts::WithLength)
-        .await?;
-    conn.write_all(&packet_buffer).await?;
-    Ok(())
-}
-pub const PROTOCOL_VERSION_1_21_5: i32 = 770;
+/// Protocol version supported by this server implementation (Minecraft 1.21.8).
+/// Used for rejecting clients with mismatched versions during handshake.
+pub const PROTOCOL_VERSION_1_21_8: i32 = 772;
 
-// Todo: Make this function return encryption and compression settings
-/// Handle the handshake sequence for the server.
+/// Handles the initial handshake sequence from a connecting client.
 ///
-/// This function is responsible for processing the initial handshake sequence
-/// from the client. It reads the handshake packet, verifies the protocol version,
-/// and determines the next state of the connection (status, login, etc.).
+/// This function performs:
+/// - Reading the first packet (handshake) from the client.
+/// - Validating the packet type (expected handshake intent packet).
+/// - Verifying that the client's protocol version matches the server's supported version.
+/// - Transitioning the connection state to one of:
+///   - **Status**: For server list ping requests (NextState = 1).
+///   - **Login**: For actual login attempts (NextState = 2).
+///   - **Transfer**: (NextState = 3) – not implemented yet.
 ///
-/// It returns a `Result<bool, NetError>` indicating whether the handshake was successful
-/// or not. If the handshake returns an Ok value, the inner bool indicates whether the connection
-/// should be closed or not after the handshake is complete.
+/// # Parameters
+/// - `conn_read`: Read half of the TCP stream for incoming data.
+/// - `conn_write`: Writer for sending packets back to the client.
+/// - `state`: Shared global server state.
+///
+/// # Returns
+/// - `(bool, LoginResult)`:
+///   - `bool`: Whether the connection should be closed after the handshake.
+///   - `LoginResult`: Information about the login state and compression.
+///
+/// # Errors
+/// Returns `NetError` if:
+/// - An unexpected packet is received.
+/// - Protocol version mismatches and cannot be gracefully handled.
+/// - An invalid or unsupported handshake state is encountered.
 pub async fn handle_handshake(
     mut conn_read: &mut OwnedReadHalf,
-    conn_write: &mut OwnedWriteHalf,
+    conn_write: &StreamWriter,
     state: GlobalState,
-) -> Result<(bool, Option<PlayerIdentity>), NetError> {
-    trim_packet_head(conn_read, 0x00).await?;
+) -> Result<(bool, LoginResult), NetError> {
+    // Build a PacketSkeleton from the first inbound packet.
+    // This handles framing, reading packet ID and payload.
+    let mut skel = PacketSkeleton::new(
+        &mut conn_read,
+        conn_write.compress.load(Ordering::Relaxed),
+        crate::ConnState::Handshake,
+    )
+    .await?;
 
-    // Get incoming handshake packet
-    let hs_packet = Handshake::decode_async(&mut conn_read, &NetDecodeOpts::None).await?; // Check protocol version and send appropriate disconnect packet if mismatched
+    // Ensure the packet ID matches the expected handshake packet.
+    let expected_id = lookup_packet!("handshake", "serverbound", "intention");
+    if skel.id != expected_id {
+        return Err(NetError::Packet(PacketError::UnexpectedPacket {
+            expected: expected_id,
+            received: skel.id,
+            state: crate::ConnState::Handshake,
+        }));
+    }
 
-    if hs_packet.protocol_version.0 != PROTOCOL_VERSION_1_21_5 {
+    // Decode the handshake packet (protocol version, server address, next state, etc.).
+    let hs_packet = Handshake::decode_async(&mut skel.data, &NetDecodeOpts::None).await?;
+
+    // If protocol version is mismatched, handle gracefully or disconnect client.
+    if hs_packet.protocol_version.0 != PROTOCOL_VERSION_1_21_8 {
         trace!(
             "Protocol version mismatch: {} != {}",
             hs_packet.protocol_version.0,
-            PROTOCOL_VERSION_1_21_5
+            PROTOCOL_VERSION_1_21_8
         );
         return handle_version_mismatch(hs_packet, conn_read, conn_write, state).await;
     }
 
+    // Branch based on the next connection state requested by the client.
     match hs_packet.next_state.0 {
-        1 => status(conn_read, conn_write, state)
-            .await
-            .map(|_| (true, None)),
+        1 => status(conn_read, conn_write, state).await,
         2 => login(conn_read, conn_write, state).await,
         3 => {
-            // Transfer state - not implemented yet
+            // Placeholder for a potential server transfer state (not supported yet).
             trace!("Transfer state (3) not implemented");
             Err(NetError::InvalidState(hs_packet.next_state.0 as u8))
         }
@@ -106,30 +109,38 @@ pub async fn handle_handshake(
     }
 }
 
+/// Handles protocol version mismatches detected during handshake.
+///
+/// Sends an appropriate disconnect message or status response based on the
+/// client's requested next state.
+/// - Status requests: proceeds with status flow (client will see version info).
+/// - Login requests: sends an explicit disconnect message describing the mismatch.
+///
+/// # Parameters
+/// - `hs_packet`: The original handshake packet from the client.
+/// - `conn_read`, `conn_write`: The connection's read/write halves.
+/// - `state`: Shared global server state.
+///
+/// # Returns
+/// Always returns `Err(NetError::MismatchedProtocolVersion)` to signal the mismatch.
 async fn handle_version_mismatch(
     hs_packet: Handshake,
     conn_read: &mut OwnedReadHalf,
-    conn_write: &mut OwnedWriteHalf,
+    conn_write: &StreamWriter,
     state: GlobalState,
-) -> Result<(bool, Option<PlayerIdentity>), NetError> {
-    // Send appropriate disconnect packet based on the next state
+) -> Result<(bool, LoginResult), NetError> {
     match hs_packet.next_state.0 {
-        // If it was status, we can just send a status response, and the client will automatically understand the mismatch.
+        // Status: let the client query the server's supported version without disconnecting.
         1 => {
-            // Status request - handle gracefully by proceeding to status
-            // Status response will show the correct version
             trace!(
                 "Protocol version mismatch during status request: {} != {}",
                 hs_packet.protocol_version.0,
-                PROTOCOL_VERSION_1_21_5
+                PROTOCOL_VERSION_1_21_8
             );
-            status(conn_read, conn_write, state)
-                .await
-                .map(|_| (true, None))
-        } // If it was login, we need to send a login disconnect packet with a specific message
+            status(conn_read, conn_write, state).await
+        }
+        // Login: actively disconnect with a descriptive message.
         2 => {
-            // Login request - send login disconnect packet
-
             let disconnect_reason = get_mismatched_version_message(hs_packet.protocol_version.0);
 
             let login_disconnect =
@@ -137,38 +148,40 @@ async fn handle_version_mismatch(
                     disconnect_reason,
                 );
 
-            if let Err(send_err) = send_packet(conn_write, &login_disconnect).await {
+            if let Err(send_err) = conn_write.send_packet(login_disconnect) {
                 error!("Failed to send login disconnect packet {:?}", send_err);
             }
 
             trace!(
                 "Sent login disconnect due to protocol version mismatch: {} != {}",
                 hs_packet.protocol_version.0,
-                PROTOCOL_VERSION_1_21_5
+                PROTOCOL_VERSION_1_21_8
             );
 
             Err(NetError::MismatchedProtocolVersion(
                 hs_packet.protocol_version.0,
-                PROTOCOL_VERSION_1_21_5,
+                PROTOCOL_VERSION_1_21_8,
             ))
         }
-        _ => {
-            // Unknown state - just return error
-            Err(NetError::MismatchedProtocolVersion(
-                hs_packet.protocol_version.0,
-                PROTOCOL_VERSION_1_21_5,
-            ))
-        }
+        // Unknown or unsupported state: just return a generic mismatch error.
+        _ => Err(NetError::MismatchedProtocolVersion(
+            hs_packet.protocol_version.0,
+            PROTOCOL_VERSION_1_21_8,
+        )),
     }
 }
 
-/// Generates a disconnect message for clients with mismatched protocol versions.
-/// Format:
+/// Builds a Minecraft chat component describing a protocol version mismatch.
+///
+/// # Format
 /// ```text
 /// Your client is outdated!
-/// Please use Minecraft version 1.21.1 to connect to this server.
-/// Server Version: 767 | Your Version: 47
-///```
+/// Please use Minecraft version 1.21.8 to connect to this server.
+/// Server Version: 772 | Your Version: <client_version>
+/// ```
+///
+/// This message is used in disconnect packets for login attempts with an
+/// unsupported client protocol version.
 fn get_mismatched_version_message(client_version: i32) -> TextComponent {
     ComponentBuilder::text("")
         .color(NamedColor::Yellow)
@@ -180,14 +193,14 @@ fn get_mismatched_version_message(client_version: i32) -> TextComponent {
         .extra(ComponentBuilder::text("\n\n"))
         .extra(ComponentBuilder::text("Please use Minecraft version ").color(NamedColor::Gray))
         .extra(
-            ComponentBuilder::text("1.21.5")
+            ComponentBuilder::text("1.21.8")
                 .color(NamedColor::Green)
                 .bold(),
         )
         .extra(ComponentBuilder::text(" to connect to this server.").color(NamedColor::Gray))
         .extra(ComponentBuilder::text("\n\n"))
         .extra(ComponentBuilder::text("Server Version: ").color(NamedColor::DarkGray))
-        .extra(ComponentBuilder::text(PROTOCOL_VERSION_1_21_5.to_string()).color(NamedColor::Aqua))
+        .extra(ComponentBuilder::text(PROTOCOL_VERSION_1_21_8.to_string()).color(NamedColor::Aqua))
         .extra(ComponentBuilder::text(" | Your Version: ").color(NamedColor::DarkGray))
         .extra(ComponentBuilder::text(client_version.to_string()).color(NamedColor::Red))
         .build()

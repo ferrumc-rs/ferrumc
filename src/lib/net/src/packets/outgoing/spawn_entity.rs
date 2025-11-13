@@ -7,7 +7,6 @@ use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_macros::{get_registry_entry, packet, NetEncode};
 use ferrumc_net_codec::net_types::angle::NetAngle;
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use std::io::Write;
 
 #[derive(NetEncode)]
 #[packet(packet_id = "add_entity", state = "play")]

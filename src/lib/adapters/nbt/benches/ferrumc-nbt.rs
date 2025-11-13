@@ -113,16 +113,6 @@ fn bench_simdnbt_owned(data: &[u8]) {
     assert!(nbt.is_some());
 }
 
-fn ussr_nbt_borrow(data: &[u8]) {
-    let nbt = black_box(ussr_nbt::borrow::Nbt::read(&mut Cursor::new(data)).unwrap());
-    black_box(nbt);
-}
-
-fn ussr_nbt_owned(data: &[u8]) {
-    let nbt = black_box(ussr_nbt::owned::Nbt::read(&mut Cursor::new(data)).unwrap());
-    black_box(nbt);
-}
-
 fn fastnbt(data: &[u8]) {
     let nbt: Value = black_box(fastnbt::from_reader(&mut Cursor::new(data)).unwrap());
     black_box(nbt);
@@ -156,12 +146,6 @@ fn criterion_benchmark(c: &mut Criterion) {
         b.iter(|| bench_simdnbt_owned(black_box(data)))
     });
     group.bench_function("fastnbt", |b| b.iter(|| fastnbt(black_box(data))));
-    group.bench_function("ussr_nbt owned", |b| {
-        b.iter(|| ussr_nbt_owned(black_box(data)))
-    });
-    group.bench_function("ussr_nbt borrow", |b| {
-        b.iter(|| ussr_nbt_borrow(black_box(data)))
-    });
     group.bench_function("crab_nbt", |b| b.iter(|| crab_nbt(black_box(data))));
     group.bench_function("hematite_nbt", |b| b.iter(|| hematite_nbt(black_box(data))));
     group.finish();

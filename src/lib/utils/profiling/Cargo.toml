@@ -15,6 +15,5 @@ serde_json = { workspace = true }
 serde_derive = { workspace = true }
 
 log = { workspace = true }
-tokio = { workspace = true }
 ferrumc-macros = { workspace = true }
 thiserror = { workspace = true }

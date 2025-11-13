@@ -1,11 +1,12 @@
-use crate::errors::WorldError::{GenericIOError, PermissionError};
-use crate::vanilla_chunk_format::BlockData;
+use crate::block_state_id::BlockStateId;
+use crate::errors::WorldError::{CompressionError, GenericIOError, PermissionError};
 use errors::AnvilError;
 use ferrumc_anvil::errors;
 use ferrumc_general_purpose::data_packing::errors::DataPackingError;
 use ferrumc_storage::errors::StorageError;
 use std::io::ErrorKind;
 use thiserror::Error;
+use yazi::Error;
 
 #[derive(Debug, Error)]
 pub enum WorldError {
@@ -36,7 +37,7 @@ pub enum WorldError {
     #[error("Anvil Decode Error: {0}")]
     AnvilDecodeError(AnvilError),
     #[error("Missing block mapping: {0}")]
-    MissingBlockMapping(BlockData),
+    MissingBlockMapping(BlockStateId),
     #[error("Invalid memory map size: {0}")]
     InvalidMapSize(u64),
     #[error("Task Join Error: {0}")]
@@ -46,20 +47,27 @@ pub enum WorldError {
     #[error("Invalid block state data")]
     InvalidBlockStateData(String),
     #[error("Invalid block: {0}")]
-    InvalidBlock(BlockData),
+    InvalidBlock(BlockStateId),
     #[error("Invalid batching operation: {0}")]
     InvalidBatchingOperation(String),
-    #[error("Invalid block ID: {0}")]
-    InvalidBlockId(u32),
+    #[error("Invalid block state ID: {0}")]
+    InvalidBlockStateId(u32),
     #[error("World generation error: {0}")]
     WorldGenerationError(String),
+    #[error("Compression error: {0}")]
+    CompressionError(String),
+    #[error("Decompression error: {0}")]
+    DecompressionError(String),
+    #[error("Corrupted chunk data: got checksum {0}, expected checksum {1}")]
+    CorruptedChunkData(u32, u32),
+    #[error("NBT data error: {0}")]
+    NBTError(#[from] ferrumc_nbt::errors::NBTError),
 }
 
 impl From<std::io::Error> for WorldError {
     fn from(err: std::io::Error) -> Self {
         match err.kind() {
             ErrorKind::PermissionDenied => PermissionError(err.to_string()),
-            // ErrorKind::ReadOnlyFilesystem => PermissionError(err.to_string()),
             _ => GenericIOError(err.to_string()),
         }
     }
@@ -80,5 +88,19 @@ impl From<AnvilError> for WorldError {
 impl From<DataPackingError> for WorldError {
     fn from(e: DataPackingError) -> Self {
         WorldError::InvalidBlockStateData(e.to_string())
+    }
+}
+
+impl From<yazi::Error> for WorldError {
+    fn from(e: yazi::Error) -> Self {
+        match e {
+            Error::Underflow => CompressionError("Underflow error during compression".to_string()),
+            Error::InvalidBitstream => {
+                CompressionError("Invalid bitstream error during compression".to_string())
+            }
+            Error::Overflow => CompressionError("Overflow error during compression".to_string()),
+            Error::Finished => CompressionError("Finished error during compression".to_string()),
+            Error::Io(io_err) => GenericIOError(io_err.to_string()),
+        }
     }
 }

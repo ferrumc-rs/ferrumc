@@ -1,0 +1,42 @@
+# IP or hostname where the server will bind. Leave as 0.0.0.0 if you want it to be accessible from any IP.
+host = "0.0.0.0"
+# Server port (0-65535). Minecraft's default port is 25565, so you probably want to leave it as is.
+port = 25565
+# Message of the day. A random one will be selected.
+motd = ["Welcome to the best server ever!", "Rust", "Good luck, have fun!"]
+# Maximum number of players
+max_players = 100
+# How many ticks per second the server should run at. This is the same as Minecraft's default.
+tps = 20
+# World name to load
+world = "world"
+# Whether the server should validate players via the whitelist
+whitelist = false
+# Network compression threshold (can be negative). This decides how long a packet has to be before it is compressed.
+# Very small packets may actually increase in size when compressed, so setting it to 0 won't be perfect in all situations.
+# Set to -1 to disable compression.
+network_compression_threshold = 64
+
+# Verify decompressed packets. This is a good idea to catch any corruption, but it will slow down processing.
+verify_decompressed_packets = true
+
+# Chunk render distance. This is the distance in chunks that the server will load around the player.
+chunk_render_distance = 12
+
+# Database configuration
+[database]
+# Path to the world database
+db_path = "world"
+# Verify chunk data on load. This is a good idea to catch any corruption, but it will slow down loading.
+verify_chunk_data = true
+# Map size
+# The max size of the database's memory map in GB. Basically you need this to be big enough
+# to hold everything before it starts writing to disk. This isn't memory use though, it's just
+# how much we can map into memory if needed, so you can set this to an insane number if you want,
+# but it won't actually use that much memory, it'll just show up as virtual memory use.
+# The default is 1TB, which should be more than enough for most worlds. Set this higher if you have a huge world.
+map_size = 1_000
+# The time to live for cache entries in seconds.
+cache_ttl = 60
+# How big the cache can be in kb.
+cache_capacity = 20_000

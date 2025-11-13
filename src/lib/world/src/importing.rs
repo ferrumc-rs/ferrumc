@@ -1,38 +1,16 @@
-use crate::db_functions::save_chunk_internal_batch;
 use crate::errors::WorldError;
 use crate::vanilla_chunk_format::VanillaChunk;
-use crate::Chunk;
 use crate::World;
 use ferrumc_anvil::load_anvil_file;
+use ferrumc_threadpool::ThreadPool;
 use indicatif::{ProgressBar, ProgressStyle};
 use rayon::prelude::*;
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
-use std::thread;
 use tracing::{error, info};
 
 impl World {
-    fn process_chunk_batch(
-        &self,
-        chunks: Vec<VanillaChunk>,
-        progress: Arc<ProgressBar>,
-    ) -> Result<(), WorldError> {
-        let chunk_objects: Vec<Chunk> = chunks
-            .into_iter()
-            .filter_map(|chunk| chunk.to_custom_format().ok())
-            .collect();
-
-        let mut success_count = 0;
-        if let Ok(()) = save_chunk_internal_batch(self, &chunk_objects) {
-            success_count = chunk_objects.len();
-        }
-
-        progress.inc(success_count.try_into().unwrap());
-
-        Ok(())
-    }
-
     fn get_chunk_count(&self, import_dir: &Path) -> Result<u64, WorldError> {
         info!("Counting chunks in import directory...");
         let regions_dir = import_dir.join("region").read_dir()?;
@@ -59,28 +37,31 @@ impl World {
     pub fn import(
         &mut self,
         import_dir: PathBuf,
-        batch_size: usize,
-        // max_concurrent_tasks: usize,
+        threadpool: ThreadPool,
     ) -> Result<(), WorldError> {
         check_paths_validity(&import_dir)?;
 
         let total_chunks = self.get_chunk_count(&import_dir)?;
         let progress_style = ProgressStyle::default_bar()
-            .template("[{elapsed_precise}/{eta_precise} eta] {bar:40.cyan/blue} {percent}%, {pos:>7}/{len:7}, {per_sec}, {msg}")
+            .template("[{elapsed_precise}/{eta_precise} eta] {bar:40.cyan/blue} {percent}%, {pos:>7}/{len:7}, {msg}")
             .unwrap();
 
-        let progress = Arc::new(ProgressBar::new(total_chunks));
+        let progress = ProgressBar::new(total_chunks);
         progress.set_style(progress_style);
+
+        progress.set_message("Setting up database and preparing import...");
 
         self.storage_backend.create_table("chunks".to_string())?;
 
-        info!("Starting chunk import...");
         let start = std::time::Instant::now();
 
         let regions_dir = import_dir.join("region").read_dir()?;
-        let mut current_batch = Vec::with_capacity(batch_size);
 
-        let remaining_tasks = Arc::new(AtomicU32::new(0));
+        let mut batch = threadpool.batch();
+
+        let arc_self = Arc::new(self.clone());
+
+        progress.set_message("Importing chunks...");
 
         for region_result in regions_dir {
             let region_entry = region_result?;
@@ -100,65 +81,42 @@ impl World {
                 }
             };
 
-            for location in anvil_file.get_locations() {
-                let remaining_tasks_clone = remaining_tasks.clone();
-                if let Ok(Some(chunk_data)) = anvil_file.get_chunk_from_location(location) {
+            let locations = anvil_file.get_locations();
+            let location_count = locations.len();
+
+            for (index, location) in locations.iter().enumerate() {
+                if let Ok(Some(chunk_data)) = anvil_file.get_chunk_from_location(*location) {
                     if let Ok(vanilla_chunk) = VanillaChunk::from_bytes(&chunk_data) {
-                        current_batch.push(vanilla_chunk);
-
-                        if current_batch.len() >= batch_size {
-                            let batch = std::mem::replace(
-                                &mut current_batch,
-                                Vec::with_capacity(batch_size),
-                            );
-                            let progress_clone = Arc::clone(&progress);
-                            let self_clone = self.clone();
-
-                            let remaining_tasks_clone = remaining_tasks_clone.clone();
-
-                            thread::spawn(move || {
-                                remaining_tasks_clone.fetch_add(1, Ordering::Relaxed);
-                                if let Err(e) =
-                                    self_clone.process_chunk_batch(batch, progress_clone)
-                                {
-                                    error!("Batch processing error: {}", e);
+                        batch.execute({
+                            let self_clone = arc_self.clone();
+                            let progress = progress.clone();
+                            move || {
+                                let res =
+                                    self_clone.save_chunk(vanilla_chunk.to_custom_format()?.into());
+                                progress.inc(1);
+                                if index == location_count - 1 {
+                                    self_clone.storage_backend.flush()?;
                                 }
-                            });
-
-                            progress.set_message(format!(
-                                "tasks: {}",
-                                remaining_tasks.clone().load(Ordering::Relaxed)
-                            ));
-                        }
+                                res
+                            }
+                        })
                     }
                 }
             }
         }
 
-        if !current_batch.is_empty() {
-            let progress_clone = Arc::clone(&progress);
-            let self_clone = self.clone();
-            let remaining_tasks_clone = remaining_tasks.clone();
-
-            thread::spawn(move || {
-                remaining_tasks_clone.fetch_add(1, Ordering::Relaxed);
-                if let Err(e) = self_clone.process_chunk_batch(current_batch, progress_clone) {
-                    error!("Final batch processing error: {}", e);
+        for result in batch.wait() {
+            match result {
+                Ok(_) => {}
+                Err(e) => {
+                    error!("Error saving chunk: {}", e);
                 }
-            });
+            }
         }
 
-        while remaining_tasks.load(Ordering::Relaxed) > 0 {
-            progress.set_message(format!(
-                "tasks: {}",
-                remaining_tasks.clone().load(Ordering::Relaxed)
-            ));
-            thread::sleep(std::time::Duration::from_secs(1));
-        }
+        progress.finish_with_message("Import complete");
 
-        self.sync()?;
-
-        progress.finish();
+        arc_self.storage_backend.flush()?;
 
         info!(
             "Imported {} chunks in {:?}",

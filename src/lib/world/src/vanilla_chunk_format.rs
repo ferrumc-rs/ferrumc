@@ -98,6 +98,11 @@ pub(crate) struct BlockStates {
     pub palette: Option<Vec<BlockData>>,
 }
 
+/// Information about a block's name and properties.
+///
+/// This should be used sparingly, as it's much more efficient to use [BlockId] where possible.
+///
+/// If you want to use it as a literal and the convert to a BlockId, use the [ferrumc_macros::block_data!] macro.
 #[apply(ChunkDerives)]
 #[derive(deepsize::DeepSizeOf, Hash)]
 pub struct BlockData {
@@ -120,23 +125,6 @@ impl Default for BlockData {
             properties: None,
         }
     }
-}
-
-#[apply(ChunkDerives)]
-#[derive(deepsize::DeepSizeOf)]
-pub(crate) struct Properties {
-    pub snowy: Option<String>,
-    pub level: Option<String>,
-    pub east: Option<String>,
-    pub waterlogged: Option<String>,
-    pub north: Option<String>,
-    pub west: Option<String>,
-    pub up: Option<String>,
-    pub down: Option<String>,
-    pub south: Option<String>,
-    pub drag: Option<String>,
-    pub lit: Option<String>,
-    pub axis: Option<String>,
 }
 
 #[apply(ChunkDerives)]

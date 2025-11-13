@@ -1,3 +1,4 @@
+use crate::systems::system_messages;
 use bevy_ecs::prelude::{Commands, Entity, Query, Res};
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net::connection::StreamWriter;
@@ -11,6 +12,18 @@ pub fn connection_killer(
     state: Res<GlobalStateResource>,
 ) {
     while let Some((disconnecting_entity, reason)) = state.0.players.disconnection_queue.pop() {
+        let disconnecting_player_identity = query
+            .get(disconnecting_entity)
+            .ok()
+            .map(|(_, _, identity)| identity.clone());
+
+        if disconnecting_player_identity.is_none() {
+            warn!("Player's entity has already been removed");
+            continue;
+        }
+
+        let disconnecting_player_identity = disconnecting_player_identity.unwrap();
+
         for (entity, conn, player_identity) in query.iter() {
             if disconnecting_entity == entity {
                 info!(
@@ -24,7 +37,7 @@ pub fn connection_killer(
                         "Sending disconnect packet to player {}",
                         player_identity.username
                     );
-                    if let Err(e) = conn.send_packet(
+                    if let Err(e) = conn.send_packet_ref(
                         &ferrumc_net::packets::outgoing::disconnect::DisconnectPacket {
                             reason: TextComponent::from(
                                 reason.as_deref().unwrap_or("Disconnected"),
@@ -42,10 +55,10 @@ pub fn connection_killer(
                         player_identity.username
                     );
                 }
+                cmd.entity(entity).despawn();
             } else {
-                // Broadcast the disconnection to other players
+                system_messages::player_leave::handle(&disconnecting_player_identity, entity);
             }
-            cmd.entity(entity).despawn();
         }
     }
 }

@@ -4,7 +4,7 @@ use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket;
 use ferrumc_net::PlayerLoadedReceiver;
 use ferrumc_state::GlobalStateResource;
-use ferrumc_world::block_id::BlockId;
+use ferrumc_world::block_state_id::BlockStateId;
 use tracing::warn;
 
 pub fn handle(
@@ -41,7 +41,7 @@ pub fn handle(
             player_pos.z as i32 % 16,
         );
         if let Ok(head_block) = head_block {
-            if head_block == BlockId(0) {
+            if head_block == BlockStateId(0) {
                 tracing::info!(
                     "Player {} loaded at position: ({}, {}, {})",
                     player,
@@ -63,9 +63,8 @@ pub fn handle(
                 let lowest_y = chunk.real_heightmap[player_pos.x.abs() as usize % 16][player_pos.z.abs() as usize % 16];
 
                 // Teleport the player to the world center if their head block is not air
-                let mut packet = SynchronizePlayerPositionPacket::default();
-                packet.y = lowest_y as f64 + 1.0; // Adjusting y to be above the ground
-                if let Err(e) = conn.send_packet(&packet) {
+                let packet = SynchronizePlayerPositionPacket::default();
+                if let Err(e) = conn.send_packet_ref(&packet) {
                     tracing::error!(
                         "Failed to send synchronize player position packet for player {}: {:?}",
                         player,

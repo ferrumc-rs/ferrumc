@@ -1,9 +1,9 @@
 use criterion::{Criterion, Throughput};
+use ferrumc_macros::block;
+use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::chunk_format::Chunk;
-use ferrumc_world::vanilla_chunk_format::BlockData;
 use rand::Rng;
 use std::hint::black_box;
-use std::io::Read;
 
 fn get_rand_in_range(min: i32, max: i32) -> i32 {
     let mut rng = rand::rng();
@@ -11,9 +11,7 @@ fn get_rand_in_range(min: i32, max: i32) -> i32 {
 }
 
 pub(crate) fn bench_edits(c: &mut Criterion) {
-    let mut chunk_file = std::fs::File::open("../../../.etc/raw_chunk.dat").unwrap();
-    let mut chunk_data = Vec::new();
-    chunk_file.read_to_end(&mut chunk_data).unwrap();
+    let chunk_data = std::fs::read("../../../.etc/raw_chunk.dat").unwrap();
     let chunk: Chunk = bitcode::decode(&chunk_data).unwrap();
 
     let mut read_group = c.benchmark_group("edit_read");
@@ -47,32 +45,14 @@ pub(crate) fn bench_edits(c: &mut Criterion) {
     write_group.bench_with_input("Write 0,0,0", &chunk, |b, chunk| {
         b.iter(|| {
             let mut chunk = chunk.clone();
-            black_box(chunk.set_block(
-                0,
-                0,
-                0,
-                BlockData {
-                    name: "minecraft:bricks".to_string(),
-                    properties: None,
-                },
-            ))
-            .unwrap();
+            black_box(chunk.set_block(0, 0, 0, block!("bricks"))).unwrap();
         });
     });
 
     write_group.bench_with_input("Write 8,8,150", &chunk, |b, chunk| {
         b.iter(|| {
             let mut chunk = chunk.clone();
-            black_box(chunk.set_block(
-                8,
-                8,
-                150,
-                BlockData {
-                    name: "minecraft:bricks".to_string(),
-                    properties: None,
-                },
-            ))
-            .unwrap();
+            black_box(chunk.set_block(8, 8, 150, block!("bricks"))).unwrap();
         });
     });
 
@@ -83,10 +63,7 @@ pub(crate) fn bench_edits(c: &mut Criterion) {
                 get_rand_in_range(0, 15),
                 get_rand_in_range(0, 15),
                 get_rand_in_range(0, 255),
-                BlockData {
-                    name: "minecraft:bricks".to_string(),
-                    properties: None,
-                },
+                block!("bricks"),
             ))
             .unwrap();
         });
@@ -97,11 +74,7 @@ pub(crate) fn bench_edits(c: &mut Criterion) {
     write_group.bench_with_input("Fill", &chunk, |b, chunk| {
         b.iter(|| {
             let mut chunk = chunk.clone();
-            black_box(chunk.fill(BlockData {
-                name: "minecraft:bricks".to_string(),
-                properties: None,
-            }))
-            .unwrap();
+            black_box(chunk.fill(block!("bricks"))).unwrap();
         });
     });
 
@@ -111,16 +84,7 @@ pub(crate) fn bench_edits(c: &mut Criterion) {
             for x in 0..16 {
                 for y in 0..256 {
                     for z in 0..16 {
-                        black_box(chunk.set_block(
-                            x,
-                            y,
-                            z,
-                            BlockData {
-                                name: "minecraft:bricks".to_string(),
-                                properties: None,
-                            },
-                        ))
-                        .unwrap();
+                        black_box(chunk.set_block(x, y, z, block!("bricks"))).unwrap();
                     }
                 }
             }
@@ -134,15 +98,7 @@ pub(crate) fn bench_edits(c: &mut Criterion) {
             for x in 0..16 {
                 for y in 0..256 {
                     for z in 0..16 {
-                        batch.set_block(
-                            x,
-                            y,
-                            z,
-                            black_box(BlockData {
-                                name: "minecraft:bricks".to_string(),
-                                properties: None,
-                            }),
-                        );
+                        batch.set_block(x, y, z, black_box(block!("bricks")));
                     }
                 }
             }
@@ -158,19 +114,11 @@ pub(crate) fn bench_edits(c: &mut Criterion) {
                 for y in 0..256 {
                     for z in 0..16 {
                         let block = if (x + y + z) % 2 == 0 {
-                            "minecraft:bricks"
+                            block!("bricks")
                         } else {
-                            "minecraft:stone"
+                            block!("stone")
                         };
-                        batch.set_block(
-                            x,
-                            y,
-                            z,
-                            black_box(BlockData {
-                                name: block.to_string(),
-                                properties: None,
-                            }),
-                        );
+                        batch.set_block(x, y, z, black_box(block));
                     }
                 }
             }
