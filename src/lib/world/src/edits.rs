@@ -103,6 +103,10 @@ impl BlockStates {
                 data,
                 palette,
             } => {
+                if *bits_per_block as usize == new_bit_size {
+                    // No need to resize if the bit size is the same
+                    return Ok(());
+                }
                 // Step 1: Read existing packed data into a list of normal integers
                 let mut normalised_ints = Vec::with_capacity(4096);
                 let mut values_read = 0;
@@ -266,6 +270,7 @@ impl Chunk {
                     Entry::Occupied(mut occ_entry) => {
                         let count = occ_entry.get_mut();
                         if *count <= 0 {
+                            occ_entry.remove();
                             return match old_block.to_block_data() {
                                 Some(block_data) => {
                                     error!("Block count is zero for block: {:?}", block_data);
@@ -286,15 +291,18 @@ impl Chunk {
                     }
                     Entry::Vacant(empty_entry) => {
                         warn!("Block not found in block counts: {:?}", old_block);
-                        empty_entry.insert(0);
+                        // empty_entry.insert(0);
                     }
                 }
                 // Add new block
-                if let Some(e) = section.block_states.block_counts.get(&block) {
-                    section.block_states.block_counts.insert(block, e + 1);
-                } else {
-                    // debug!("Adding block to block counts");
-                    section.block_states.block_counts.insert(block, 1);
+                match section.block_states.block_counts.entry(block) {
+                    Entry::Occupied(mut occ_entry) => {
+                        let count = occ_entry.get_mut();
+                        *count += 1;
+                    }
+                    Entry::Vacant(empty_entry) => {
+                        empty_entry.insert(1);
+                    }
                 }
                 // let required_bits = max((palette.len() as f32).log2().ceil() as u8, 4);
                 // if *bits_per_block != required_bits {

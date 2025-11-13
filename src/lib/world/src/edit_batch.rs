@@ -1,12 +1,15 @@
 use crate::block_state_id::BlockStateId;
-use crate::chunk_format::{BiomeStates, BlockStates, Chunk, PaletteType};
+use crate::chunk_format::{Chunk, PaletteType};
 use crate::WorldError;
-use ahash::{AHashMap, AHashSet, AHasher};
+use ahash::AHashMap;
 use ferrumc_general_purpose::data_packing::i32::read_nbit_i32;
 use ferrumc_general_purpose::data_packing::u32::write_nbit_u32;
+use ferrumc_macros::block;
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use std::collections::HashMap;
-use std::hash::{Hash, Hasher};
+use std::cmp::max;
+use std::collections::hash_map::Entry;
+use std::hash::Hash;
+use tracing::warn;
 
 /// A batched block editing utility for a single Minecraft chunk.
 ///
@@ -36,7 +39,6 @@ use std::hash::{Hash, Hasher};
 pub struct EditBatch<'a> {
     pub(crate) edits: Vec<Edit>,
     chunk: &'a mut Chunk,
-    tmp_palette_map: AHashMap<BlockStateId, usize>,
     used: bool,
 }
 
@@ -48,12 +50,6 @@ pub(crate) struct Edit {
     pub(crate) block: BlockStateId,
 }
 
-fn get_palette_hash(palette: &[VarInt]) -> i32 {
-    let mut hasher = AHasher::default();
-    palette.hash(&mut hasher);
-    hasher.finish() as i32
-}
-
 impl<'a> EditBatch<'a> {
     /// Creates a new `EditBatch` for the given chunk.
     ///
@@ -61,11 +57,9 @@ impl<'a> EditBatch<'a> {
     /// This means you should create the batch, add edits, apply and then use the original chunk
     /// you passed in.
     pub fn new(chunk: &'a mut Chunk) -> Self {
-        let map_capacity = 64;
         Self {
             edits: Vec::new(),
             chunk,
-            tmp_palette_map: AHashMap::with_capacity(map_capacity),
             used: false,
         }
     }
@@ -93,97 +87,88 @@ impl<'a> EditBatch<'a> {
             ));
         }
 
-        let mut section_edits: AHashMap<i8, Vec<Option<&Edit>>> = AHashMap::new();
-        let mut all_blocks = AHashSet::new();
-
-        // Convert edits into per-section sparse arrays (Vec<Option<&Edit>>),
-        // using block index (0..4095) as the key instead of hashing 3D coords
+        // Removed duplicates, last edit wins
+        let mut unique_edits: AHashMap<(i32, i32, i32), BlockStateId> =
+            AHashMap::with_capacity(self.edits.len());
         for edit in &self.edits {
-            let section_index = (edit.y >> 4) as i8;
-            // Compute linear index within section (16x16x16 = 4096 blocks)
-            let index = ((edit.y & 0xf) * 256 + (edit.z & 0xf) * 16 + (edit.x & 0xf)) as usize;
-            let section_vec = section_edits
-                .entry(section_index)
-                .or_insert_with(|| vec![None; 4096]);
-            section_vec[index] = Some(edit);
-            all_blocks.insert(&edit.block);
+            unique_edits.insert((edit.x, edit.y, edit.z), edit.block);
         }
 
-        for (section_y, edits_vec) in section_edits {
-            if edits_vec.is_empty() || edits_vec.iter().all(|e| e.is_none()) {
-                continue;
-            }
-            let section_maybe = self.chunk.sections.iter_mut().find(|s| s.y == section_y);
-            // let first_edit = edits_vec
-            //     .iter()
-            //     .find(|e| e.is_some())
-            //     .expect("Section should have at least one edit")
-            //     .as_ref()
-            //     .unwrap();
-            let mut block_count_adds = AHashMap::new();
-            let mut block_count_removes = AHashMap::new();
+        // Figure out which sections are affected
+        let edited_sections: Vec<i8> = self
+            .chunk
+            .sections
+            .iter()
+            .filter(|section| {
+                let section_y = section.y as i32 * 16;
+                unique_edits
+                    .keys()
+                    .any(|&(_, y, _)| y >= section_y && y < section_y + 16)
+            })
+            .map(|section| section.y)
+            .collect();
 
-            let section = match section_maybe {
-                Some(section) => {
-                    // If the section exists, we can just use it
-                    section
+        // Apply edits to each affected section
+        for &section_y in &edited_sections {
+            let section = self
+                .chunk
+                .sections
+                .iter_mut()
+                .find(|s| s.y == section_y)
+                .expect("Section should exist");
+
+            let mut format_changed = false;
+            let mut new_format = None;
+
+            if let PaletteType::Single(block_data) = section.block_states.block_data {
+                // If we have more than one unique block, we need to change format
+                if unique_edits.len() > 1 {
+                    format_changed = true;
+                    new_format = Some(PaletteType::Indirect {
+                        bits_per_block: 4, // Start with 4 bits per block
+                        data: vec![0; 256],
+                        palette: vec![VarInt(block_data.0)],
+                    });
+                } else {
+                    // Check if the single block is different
+                    let only_edit = unique_edits.values().next().unwrap();
+                    if *only_edit != BlockStateId::from(block_data) {
+                        // Change the single block
+                        new_format = Some(PaletteType::Single(VarInt::from(*only_edit)));
+                    }
                 }
-                None => &mut {
-                    // If the section doesn't exist, create it
-                    let new_section = crate::chunk_format::Section {
-                        y: section_y,
-                        block_states: BlockStates {
-                            non_air_blocks: 0,
-                            block_data: PaletteType::Single(VarInt::default()),
-                            block_counts: HashMap::from([(BlockStateId::default(), 4096)]),
-                        },
-                        // Biomes don't really matter for this, so we can just use empty data
-                        biome_states: BiomeStates {
-                            bits_per_biome: 0,
-                            data: vec![],
-                            palette: vec![],
-                        },
-                        block_light: vec![255; 2048],
-                        sky_light: vec![255; 2048],
-                    };
-                    self.chunk.sections.push(new_section);
-                    self.chunk
-                        .sections
-                        .iter_mut()
-                        .find(|s| s.y == section_y)
-                        .expect("Section should exist after push")
-                },
+            }
+
+            if format_changed {
+                section.block_states.block_data = new_format.unwrap();
+            }
+
+            let section_edits: Vec<(&(i32, i32, i32), &BlockStateId)> = unique_edits
+                .iter()
+                .filter(|&(&(_, y, _), _)| {
+                    let sec_y = section.y as i32 * 16;
+                    y >= sec_y && y < sec_y + 16
+                })
+                .collect();
+
+            // Build new palette
+            let mut new_palette: Vec<VarInt> = match &section.block_states.block_data {
+                PaletteType::Single(block_data) => vec![*block_data],
+                PaletteType::Indirect { palette, .. } => palette.clone(),
+                PaletteType::Direct { .. } => {
+                    unimplemented!("Direct palette not implemented in EditBatch")
+                }
             };
 
-            // // check if all the edits in 1 section are the same
-            // let all_same = edits_vec
-            //     .iter()
-            //     .flatten()
-            //     .all(|edit| edit.block == first_edit.block);
-            // // Check if applying all edits would result in a section full of the same block
-            // if all_same {
-            //     if section
-            //         .block_states
-            //         .block_counts
-            //         .get(&first_edit.block)
-            //         .unwrap_or(&0)
-            //         + edits_vec.len() as i32
-            //         == 4096
-            //     {
-            //         // If all blocks are the same, we can just set the whole section to that block
-            //         section.fill(first_edit.block.clone())?;
-            //     }
-            //     continue;
-            // }
-
-            // Convert from Single to Indirect palette if needed to support multiple block types
-            if let PaletteType::Single(val) = &section.block_states.block_data {
-                section.block_states.block_data = PaletteType::Indirect {
-                    bits_per_block: 4,
-                    data: vec![0; 256],
-                    palette: vec![*val],
-                };
+            for &(_, block) in &section_edits {
+                let var_int = VarInt::from(*block);
+                if !new_palette.contains(&var_int) {
+                    new_palette.push(var_int);
+                }
             }
+
+            let bpe = max((new_palette.len() as f32).log2().ceil() as usize, 4);
+            section.block_states.resize(bpe)?;
 
             let PaletteType::Indirect {
                 bits_per_block,
@@ -192,112 +177,87 @@ impl<'a> EditBatch<'a> {
             } = &mut section.block_states.block_data
             else {
                 return Err(WorldError::InvalidBlockStateData(
-                    "Unsupported palette type".to_string(),
+                    "Expected Indirect palette after resizing".to_string(),
                 ));
             };
 
-            // Hash current palette so we can detect changes after edits
-            let palette_hash = get_palette_hash(palette);
+            *bits_per_block = bpe as u8;
+            *palette = new_palette;
 
-            // Rebuild temporary palette index lookup (block state ID -> palette index)
-            self.tmp_palette_map.clear();
-            for (i, p) in palette.iter().enumerate() {
-                self.tmp_palette_map
-                    .insert(BlockStateId::from_varint(*p), i);
-            }
+            // Apply edits
+            let blocks_per_i64 = (64f64 / bpe as f64).floor() as usize;
 
-            // Determine how many blocks fit into each i64 (based on bits per block)
-            let blocks_per_i64 = (64f64 / *bits_per_block as f64).floor() as usize;
-
-            for maybe_edit in edits_vec.iter() {
-                let Some(edit) = maybe_edit else { continue };
-                let index = ((edit.y & 0xf) * 256 + (edit.z & 0xf) * 16 + (edit.x & 0xf)) as usize;
-
-                let palette_index = if let Some(&idx) = self.tmp_palette_map.get(&edit.block) {
-                    idx
-                } else {
-                    let idx = palette.len();
-                    palette.push(edit.block.to_varint());
-                    self.tmp_palette_map.insert(edit.block, idx);
-                    idx
-                };
-
-                // Calculate i64 slot and bit offset for packed storage
+            for &(&(x, y, z), block) in &section_edits {
+                let index =
+                    ((y.abs() & 0xf) * 256 + (z.abs() & 0xf) * 16 + (x.abs() & 0xf)) as usize;
                 let i64_index = index / blocks_per_i64;
-                let offset = (index % blocks_per_i64) * (*bits_per_block as usize);
-
-                debug_assert!(
-                    i64_index < data.len(),
-                    "i64_index {} out of bounds for data (len {})",
-                    i64_index,
-                    data.len()
-                );
-
-                // Unsafe is safe here because i64_index is verified by debug_assert
-                let packed = unsafe { data.get_unchecked_mut(i64_index) };
-
-                // get old block
-                let old_block_index =
-                    read_nbit_i32(packed, *bits_per_block as usize, offset as u32).map_err(
-                        |e| WorldError::InvalidBlockStateData(format!("Unpacking error: {e}")),
-                    )?;
-                // If the block is the same, skip
-                if old_block_index == palette_index as i32 {
-                    continue;
+                let packed_u64 =
+                    data.get_mut(i64_index)
+                        .ok_or(WorldError::InvalidBlockStateData(format!(
+                            "Invalid block state data at index {i64_index}"
+                        )))?;
+                let offset = (index % blocks_per_i64) * *bits_per_block as usize;
+                let block_palette_index = palette
+                    .iter()
+                    .position(|&b| b == VarInt::from(*block))
+                    .ok_or(WorldError::InvalidBlockStateData(format!(
+                    "Block {:?} not found in palette",
+                    block
+                )))?;
+                let old_value = read_nbit_i32(packed_u64, *bits_per_block as usize, offset as u32)
+                    .map_err(|e| {
+                        WorldError::InvalidBlockStateData(format!(
+                            "Failed to read old block value: {e}"
+                        ))
+                    })?;
+                if let Err(e) = write_nbit_u32(
+                    packed_u64,
+                    offset as u32,
+                    block_palette_index as u32,
+                    *bits_per_block,
+                ) {
+                    return Err(WorldError::InvalidBlockStateData(format!(
+                        "Failed to write block: {e}"
+                    )));
                 }
 
-                if let Some(old_block_state_id) = palette.get(old_block_index as usize) {
-                    if let Some(count) =
-                        block_count_removes.get_mut(&BlockStateId::from_varint(*old_block_state_id))
-                    {
-                        *count -= 1;
-                    } else {
-                        block_count_removes
-                            .insert(BlockStateId::from_varint(*old_block_state_id), 1);
+                // Update block counts
+                let old_block_state_id = if let Some(old_block) = palette.get(old_value as usize) {
+                    BlockStateId::from(*old_block)
+                } else {
+                    continue; // Skip if old block not found
+                };
+                match section.block_states.block_counts.entry(old_block_state_id) {
+                    Entry::Occupied(v) => {
+                        let count = v.into_mut();
+                        *count = count.saturating_sub(1);
+                        if *count == 0 {
+                            section
+                                .block_states
+                                .block_counts
+                                .remove(&old_block_state_id);
+                        }
+                    }
+                    Entry::Vacant(_) => {
+                        warn!(
+                            "Tried to decrement block count for {:?} but it was not found",
+                            old_block_state_id
+                        );
                     }
                 }
-
-                if let Some(count) = block_count_adds.get_mut(&edit.block) {
-                    *count += 1;
-                } else {
-                    block_count_adds.insert(edit.block, 1);
-                }
-
-                write_nbit_u32(packed, offset as u32, palette_index as u32, *bits_per_block)
-                    .map_err(|e| {
-                        WorldError::InvalidBlockStateData(format!("Packing error: {e}"))
-                    })?;
+                *section.block_states.block_counts.entry(*block).or_insert(0) += 1;
             }
-
-            // Update block counts
-            for (block_state_id, count) in block_count_adds {
-                let current_count = section
-                    .block_states
-                    .block_counts
-                    .entry(block_state_id)
-                    .or_insert(0);
-                *current_count += count;
-            }
-
-            for (block_state_id, count) in block_count_removes {
-                let current_count = section
-                    .block_states
-                    .block_counts
-                    .entry(block_state_id)
-                    .or_insert(0);
-                *current_count -= count;
-            }
-
-            section.block_states.non_air_blocks = *section
+            // Calculate non-air block count
+            section.block_states.non_air_blocks = section
                 .block_states
                 .block_counts
-                .get(&BlockStateId::default())
-                .unwrap_or(&4096) as u16;
-
-            // Only optimise if the palette changed after edits
-            if get_palette_hash(palette) != palette_hash {
-                section.optimise()?;
-            }
+                .iter()
+                .filter(|(&block, _)| {
+                    ![block!("air"), block!("cave_air"), block!("void_air")].contains(&block)
+                })
+                .map(|(_, &count)| count as u16)
+                .sum();
+            // section.optimise()?;
         }
 
         // Clear edits after applying
@@ -312,20 +272,12 @@ impl<'a> EditBatch<'a> {
 mod tests {
     use super::*;
     use crate::chunk_format::Chunk;
-    use crate::vanilla_chunk_format::BlockData;
-
-    fn make_test_block(name: &str) -> BlockStateId {
-        BlockData {
-            name: name.to_string(),
-            properties: None,
-        }
-        .to_block_state_id()
-    }
+    use ferrumc_macros::block;
 
     #[test]
     fn test_single_block_edit() {
         let mut chunk = Chunk::new(0, 0, "overworld".to_string());
-        let block = make_test_block("minecraft:stone");
+        let block = block!("minecraft:stone");
 
         let mut batch = EditBatch::new(&mut chunk);
         batch.set_block(1, 1, 1, block);
@@ -338,8 +290,8 @@ mod tests {
     #[test]
     fn test_multi_block_edits() {
         let mut chunk = Chunk::new(0, 0, "overworld".to_string());
-        let stone = make_test_block("minecraft:stone");
-        let dirt = make_test_block("minecraft:dirt");
+        let stone = block!("minecraft:stone");
+        let dirt = block!("minecraft:dirt");
 
         let mut batch = EditBatch::new(&mut chunk);
         for x in 0..4 {
