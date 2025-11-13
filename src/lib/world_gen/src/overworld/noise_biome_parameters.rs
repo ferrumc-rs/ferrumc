@@ -964,5 +964,8 @@ fn pick_shattered_biome(temperature: usize, humidity: usize, pandv: (f32, f32)) 
 
 pub(crate) fn is_deep_dark_region(noise_router: &OverworldBiomeNoise, pos: IVec3) -> bool {
     noise_router.erosion(pos) < EROSION_DEEP_DARK_DRYNESS_THRESHOLD.into()
-        && noise_router.depth(pos) > DEPTH_DEEP_DARK_DRYNESS_THRESHOLD.into()
+        && noise_router.depth(
+            pos,
+            noise_router.make_spline_params(noise_router.transform(pos)),
+        ) > DEPTH_DEEP_DARK_DRYNESS_THRESHOLD.into()
 }
