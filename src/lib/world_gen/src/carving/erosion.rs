@@ -1,9 +1,10 @@
 use crate::errors::WorldGenError;
 use crate::noise::NoiseGenerator;
 use crate::{WorldGenerator, MAX_GENERATED_HEIGHT};
+use ferrumc_macros::block;
+use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::chunk_format::Chunk;
 use ferrumc_world::edit_batch::EditBatch;
-use ferrumc_world::vanilla_chunk_format::BlockData;
 
 impl WorldGenerator {
     #[inline(never)]
@@ -22,17 +23,15 @@ impl WorldGenerator {
                     .get(global_x as f32 / 32.0, global_z as f32 / 32.0);
                 erosion_noise_array[local_x as usize][local_z as usize] = erosion_value.to_bits();
                 let height_reduction = (erosion_value * 50.0) as i16; // Adjust erosion strength as needed
-                let total_height = new_heightmap[local_x as usize][local_z as usize] - height_reduction;
+                let total_height =
+                    new_heightmap[local_x as usize][local_z as usize] - height_reduction;
                 new_heightmap[local_x as usize][local_z as usize] = total_height;
                 for y in total_height..=MAX_GENERATED_HEIGHT {
                     edit_batch.set_block(
                         i32::from(local_x),
                         i32::from(y),
                         i32::from(local_z),
-                        BlockData {
-                            name: "minecraft:air".to_string(),
-                            properties: None,
-                        },
+                        block!("air"),
                     );
                 }
             }
@@ -55,22 +54,4 @@ pub(crate) fn get_erosion_noise(seed: u64) -> NoiseGenerator {
         splines::Key::new(1.0, 1.0, splines::Interpolation::Linear),
     ]);
     NoiseGenerator::new(seed, 0.05, 4, Some(spline))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    #[ignore]
-    fn generate_erosion_image() {
-        let noise = get_erosion_noise(12345);
-        let mut img_buf = image::ImageBuffer::new(256, 256);
-        img_buf.enumerate_pixels_mut().for_each(|(x, y, pixel)| {
-            let noise_value = noise.get(x as f32 / 16.0, y as f32 / 16.0);
-            let color_value = (noise_value * 255.0) as u8;
-            *pixel = image::Rgb([color_value, color_value, color_value]);
-        });
-        img_buf.save("erosion_noise.png").expect("Failed to save image");
-    }
 }

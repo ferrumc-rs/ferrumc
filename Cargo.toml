@@ -198,12 +198,10 @@ deepsize = "0.2.0"
 page_size = "0.6.0"
 enum-ordinalize = "4.3.0"
 regex = "1.12.2"
-noise = "0.9.0"
 ctrlc = "3.5.0"
 num_cpus = "1.17.0"
 typename = "0.1.2"
 bevy_ecs = { version = "0.16.1", features = ["multi_threaded", "trace"] }
-once_cell = "1.21.3"
 
 # Maths
 noise = "0.9.0"

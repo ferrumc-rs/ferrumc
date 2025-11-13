@@ -1,11 +1,12 @@
 use crate::errors::WorldGenError;
 use crate::noise::NoiseGenerator;
 use crate::{BiomeGenerator, BASELINE_HEIGHT};
+use ferrumc_macros::block;
+use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::chunk_format::Chunk;
 use ferrumc_world::edit_batch::EditBatch;
 use rand::Rng;
 use rand::SeedableRng;
-use std::collections::BTreeMap;
 
 pub struct OceanBiome {
     sand_depth_noise: NoiseGenerator,
@@ -30,17 +31,13 @@ impl BiomeGenerator for OceanBiome {
         // Add grass blocks to the top layer
         let y = heightmap[x as usize][z as usize];
         let sand_depth = (self.sand_depth_noise.get(f32::from(x), f32::from(z)) * 3.0) + 3.0; // Scale the depth
-        let sand_stone_depth = (self.sand_height_offset_noise.get(f32::from(x), f32::from(z)) * 2.0) as i32 + 5; // Offset for sandstone
+        let sand_stone_depth = (self
+            .sand_height_offset_noise
+            .get(f32::from(x), f32::from(z))
+            * 2.0) as i32
+            + 5; // Offset for sandstone
         for i in 0..=sand_depth as i32 {
-            edit_batch.set_block(
-                i32::from(x),
-                i32::from(y) - i,
-                i32::from(z),
-                ferrumc_world::vanilla_chunk_format::BlockData {
-                    name: "minecraft:sand".to_string(),
-                    properties: None,
-                },
-            );
+            edit_batch.set_block(i32::from(x), i32::from(y) - i, i32::from(z), block!("sand"));
         }
         // Set sandstone below the sand layer
         for i in 1..=sand_stone_depth {
@@ -48,10 +45,7 @@ impl BiomeGenerator for OceanBiome {
                 i32::from(x),
                 i32::from(y) - sand_depth as i32 - i,
                 i32::from(z),
-                ferrumc_world::vanilla_chunk_format::BlockData {
-                    name: "minecraft:sandstone".to_string(),
-                    properties: None,
-                },
+                block!("sandstone"),
             );
         }
         // Add water blocks to the top layer
@@ -60,10 +54,7 @@ impl BiomeGenerator for OceanBiome {
                 i32::from(x),
                 i32::from(i),
                 i32::from(z),
-                ferrumc_world::vanilla_chunk_format::BlockData {
-                    name: "minecraft:water".to_string(),
-                    properties: Some(BTreeMap::from([("level".to_string(), "0".to_string())])),
-                },
+                block!("water", {level: 0}),
             );
         }
         // Apply the edit batch to the chunk

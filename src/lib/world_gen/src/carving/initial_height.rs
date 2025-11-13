@@ -1,10 +1,14 @@
 use crate::noise::NoiseGenerator;
 use crate::{WorldGenerator, BASELINE_HEIGHT, MAX_GENERATED_HEIGHT};
+use ferrumc_macros::block;
+use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::edit_batch::EditBatch;
-use ferrumc_world::vanilla_chunk_format::BlockData;
 
 impl WorldGenerator {
-    pub fn apply_initial_height(&self, chunk: &mut ferrumc_world::chunk_format::Chunk) -> Result<(), crate::errors::WorldGenError> {
+    pub fn apply_initial_height(
+        &self,
+        chunk: &mut ferrumc_world::chunk_format::Chunk,
+    ) -> Result<(), crate::errors::WorldGenError> {
         let mut new_heightmap = [[0i16; 16]; 16];
         let mut height_noise_array = chunk.noises.height_noise;
         let chunk_x = chunk.x;
@@ -27,10 +31,7 @@ impl WorldGenerator {
                         i32::from(local_x),
                         i32::from(y),
                         i32::from(local_z),
-                        BlockData {
-                            name: "minecraft:air".to_string(),
-                            properties: None,
-                        },
+                        block!("air"),
                     );
                 }
             }
@@ -42,7 +43,6 @@ impl WorldGenerator {
         Ok(())
     }
 }
-
 
 pub fn get_initial_height_noise(seed: u64) -> NoiseGenerator {
     NoiseGenerator::new(seed, 0.3, 4, None)

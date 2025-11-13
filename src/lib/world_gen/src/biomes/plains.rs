@@ -2,8 +2,6 @@ use crate::errors::WorldGenError;
 use crate::{BiomeGenerator, NoiseGenerator};
 use ferrumc_macros::block;
 use ferrumc_world::block_state_id::BlockStateId;
-use crate::noise::NoiseGenerator;
-use crate::BiomeGenerator;
 use ferrumc_world::chunk_format::Chunk;
 use ferrumc_world::edit_batch::EditBatch;
 use std::collections::BTreeMap;
@@ -32,10 +30,7 @@ impl BiomeGenerator for PlainsBiome {
             i32::from(x),
             i32::from(y),
             i32::from(z),
-            ferrumc_world::vanilla_chunk_format::BlockData {
-                name: "minecraft:grass_block".to_string(),
-                properties: Some(BTreeMap::from([("snowy".to_string(), "false".to_string())])),
-            },
+            block!("grass_block", {snowy: true}),
         );
         let dirt_depth = (self.dirt_depth_noise.get(f32::from(x), f32::from(z)) * 5.0) + 3.0;
         for i in 1..=dirt_depth as i32 {
@@ -43,10 +38,7 @@ impl BiomeGenerator for PlainsBiome {
                 i32::from(x),
                 i32::from(y) - i,
                 i32::from(z),
-                ferrumc_world::vanilla_chunk_format::BlockData {
-                    name: "minecraft:dirt".to_string(),
-                    properties: None,
-                },
+                block!("dirt"),
             );
         }
         // Apply the edit batch to the chunk

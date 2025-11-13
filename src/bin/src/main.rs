@@ -101,8 +101,7 @@ fn generate_chunks(state: GlobalState) -> Result<(), BinaryError> {
             }
         })
     }
-    let _generated_chunks = chunk_gen_batch.wait();
-    pool.close();
+    let _generated_chunks = batch.wait();
     info!("Finished generating spawn chunks in {:?}", start.elapsed());
     Ok(())
 }
@@ -129,7 +128,7 @@ fn entry(start_time: Instant) -> Result<(), BinaryError> {
                 .expect("Failed to sync world before shutdown")
         }
     })
-        .expect("Error setting Ctrl-C handler");
+    .expect("Error setting Ctrl-C handler");
 
     game_loop::start_game_loop(global_state.clone())?;
 

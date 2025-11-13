@@ -13,9 +13,7 @@ rand = { workspace = true }
 ferrumc-macros = { workspace = true }
 
 [dev-dependencies]
-image = { workspace = true }
 rayon = { workspace = true }
-once_cell = { workspace = true }
 dashmap = { workspace = true }
 
 [lints]
