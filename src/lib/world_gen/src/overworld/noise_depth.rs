@@ -9,7 +9,7 @@ use crate::perlin_noise::{
     PILLAR_RARENESS, PILLAR_THICKNESS, RIDGE, SHIFT, SPAGHETTI_2D, SPAGHETTI_2D_ELEVATION,
     SPAGHETTI_2D_MODULATOR, SPAGHETTI_2D_THICKNESS, SPAGHETTI_3D_1, SPAGHETTI_3D_2,
     SPAGHETTI_3D_RARITY, SPAGHETTI_3D_THICKNESS, SPAGHETTI_ROUGHNESS,
-    SPAGHETTI_ROUGHNESS_MODULATOR, TEMPERATURE, VEGETATION, lerp3,
+    SPAGHETTI_ROUGHNESS_MODULATOR, TEMPERATURE, VEGETATION,
 };
 use crate::pos::{BlockPos, ChunkHeight, ChunkPos};
 use crate::random::Xoroshiro128PlusPlus;
@@ -27,7 +27,6 @@ fn build_erosion_offset_spline(
     magnitude: f32,
     f3: f32,
     f4: f32,
-    extended: bool,
     use_max_slope: bool,
 ) -> CubicSpline {
     let cubic = build_mountain_ridge_spline_with_points(0.6.lerp(1.5, magnitude), use_max_slope);
@@ -68,7 +67,7 @@ fn build_erosion_offset_spline(
         SplinePoint::spline(0.2, cubic5),
     ];
 
-    if extended {
+    if use_max_slope {
         points.extend(vec![
             SplinePoint::spline(0.4, cubic6.clone()),
             SplinePoint::spline(0.45, cubic7.clone()),
@@ -162,10 +161,10 @@ fn slope(y1: f32, y2: f32, x1: f32, x2: f32) -> f32 {
     (y2 - y1) / (x2 - x1)
 }
 pub(super) fn get_offset_spline() -> CubicSpline {
-    let cubic = build_erosion_offset_spline(-0.15, 0.0, 0.0, 0.1, 0.0, -0.03, false, false);
-    let cubic1 = build_erosion_offset_spline(-0.1, 0.03, 0.1, 0.1, 0.01, -0.03, false, false);
-    let cubic2 = build_erosion_offset_spline(-0.1, 0.03, 0.1, 0.7, 0.01, -0.03, true, true);
-    let cubic3 = build_erosion_offset_spline(-0.05, 0.03, 0.1, 1.0, 0.01, 0.01, true, true);
+    let cubic = build_erosion_offset_spline(-0.15, 0.0, 0.0, 0.1, 0.0, -0.03, false);
+    let cubic1 = build_erosion_offset_spline(-0.1, 0.03, 0.1, 0.1, 0.01, -0.03, false);
+    let cubic2 = build_erosion_offset_spline(-0.1, 0.03, 0.1, 0.7, 0.01, -0.03, true);
+    let cubic3 = build_erosion_offset_spline(-0.05, 0.03, 0.1, 1.0, 0.01, 0.01, true);
 
     CubicSpline::new(
         SplineType::Continents,
@@ -448,7 +447,7 @@ impl OverworldBiomeNoise {
         let shift_z = self.shift.at(noise_pos.zxy());
         pos * DVec3::new(0.25, 0.0, 0.25) + DVec3::new(shift_x, 0.0, shift_z)
     }
-    fn initial_density_without_jaggedness(&self, pos: BlockPos) -> f64 {
+    pub fn initial_density_without_jaggedness(&self, pos: BlockPos) -> f64 {
         let spline_params = self.make_spline_params(self.transform(pos.into()));
         let mut factor_depth = self.factor(spline_params) * self.depth(pos, spline_params);
         factor_depth *= if factor_depth > 0.0 { 4.0 } else { 1.0 };
@@ -570,7 +569,7 @@ impl OverworldBiomeNoise {
         let ridge = ridge_a.abs().max(ridge_b.abs()) * 1.5;
         thickness + ridge
     }
-    pub fn final_density(&self, pos: BlockPos) -> f64 {
+    pub fn pre_baked_final_density(&self, pos: BlockPos) -> f64 {
         let transformed_pos = self.transform(pos.into());
         let spline_params = self.make_spline_params(transformed_pos);
         let jaggedness = self.jaggedness(spline_params);
@@ -594,7 +593,7 @@ impl OverworldBiomeNoise {
             self.underground(sloped_cheese, pos.into(), entrances, spaghetti_roughness)
         };
 
-        let tmp = slide(
+        slide(
             pos.y.into(),
             f8,
             240.0,
@@ -603,12 +602,11 @@ impl OverworldBiomeNoise {
             -64.0,
             -40.0,
             0.1171875,
-        );
+        )
+    }
 
-        let blended = tmp; //TODO: interpolated
-
-        let d = (blended * 0.64).clamp(-1.0, 1.0);
-
+    pub fn post_process(&self, pos: BlockPos, interpolated: f64) -> f64 {
+        let d = (interpolated * 0.64).clamp(-1.0, 1.0);
         (d / 2.0 - d * d * d / 24.0).min(self.noodle(pos.into()))
     }
 
@@ -675,84 +673,105 @@ fn slide(
     let t = clamped_map(y, bottom_start, bottom_end, 0.0, 1.0);
     bottom_delta.lerp(top_delta.lerp(density, s), t)
 }
+pub fn lerp3(
+    delta: DVec3,
+    c000: f64,
+    c100: f64,
+    c010: f64,
+    c110: f64,
+    c001: f64,
+    c101: f64,
+    c011: f64,
+    c111: f64,
+) -> f64 {
+    let c00 = c000.lerp(c100, delta.x);
+    let c10 = c010.lerp(c110, delta.x);
+    let c01 = c001.lerp(c101, delta.x);
+    let c11 = c011.lerp(c111, delta.x);
+    let c0 = c00.lerp(c10, delta.y);
+    let c1 = c01.lerp(c11, delta.y);
+    c0.lerp(c1, delta.z)
+}
 
-fn generate_interpolation_data(
+pub fn generate_interpolation_data(
     biome_noise: &OverworldBiomeNoise,
     pos: ChunkPos,
     chunk: &mut Chunk,
 ) {
+    use std::mem::swap;
+
     let stone = BlockData {
         name: "minecraft:stone".to_string(),
         properties: None,
     }
     .to_block_id();
     let air = BlockData::default().to_block_id();
-    let mut slice1 = [[0.; 5]; 5];
+
+    let mut slice0 = [[0.0; 5]; 5];
+    let mut slice1 = [[0.0; 5]; 5];
+
+    // initial base layer
     for (x, slice1x) in slice1.iter_mut().enumerate() {
         for (z, slice1xz) in slice1x.iter_mut().enumerate() {
-            *slice1xz = biome_noise.final_density(pos.block(x as u32 * 4, -64, z as u32 * 4));
+            *slice1xz =
+                biome_noise.pre_baked_final_density(pos.block(x as u32 * 4, -64, z as u32 * 4));
         }
     }
+
     for y in 1..48 {
-        let slice0 = slice1;
+        swap(&mut slice0, &mut slice1);
+
         for z in 0..5 {
-            slice1[0][z] = biome_noise.final_density(pos.block(0, y * 8 - 64, z as u32 * 4));
+            slice1[0][z] =
+                biome_noise.pre_baked_final_density(pos.block(0, y * 8 - 64, z as u32 * 4));
         }
+
         for x in 1..4 {
             for z in 1..4 {
-                slice1[x][z] =
-                    biome_noise.final_density(pos.block(x as u32 * 4, y * 8 - 64, z as u32 * 4));
-                let points = [
-                    slice0[x - 1][z - 1],
-                    slice0[x - 1][z],
-                    slice0[x][z - 1],
-                    slice0[x][z],
-                    slice1[x - 1][z - 1],
-                    slice1[x - 1][z],
-                    slice1[x][z - 1],
-                    slice1[x][z],
-                ];
-                if points.iter().all(|f| *f < 0.0) {
+                slice1[x][z] = biome_noise.pre_baked_final_density(pos.block(
+                    x as u32 * 4,
+                    y * 8 - 64,
+                    z as u32 * 4,
+                ));
+
+                let p000 = slice0[x - 1][z - 1];
+                let p100 = slice0[x][z - 1];
+                let p010 = slice0[x - 1][z];
+                let p110 = slice0[x][z];
+                let p001 = slice1[x - 1][z - 1];
+                let p101 = slice1[x][z - 1];
+                let p011 = slice1[x - 1][z];
+                let p111 = slice1[x][z];
+
+                for cy in 0..8 {
+                    let fy = f64::from(cy) / 8.0;
+
+                    // interpolate along Y for the bottom and top cubes
+                    let bottom_y00 = p000.lerp(p010, fy);
+                    let bottom_y10 = p100.lerp(p110, fy);
+                    let top_y00 = p001.lerp(p011, fy);
+                    let top_y10 = p101.lerp(p111, fy);
+
                     for cx in 0..4 {
+                        let fx = f64::from(cx) / 4.0;
+
+                        // interpolate along X for bottom/top surfaces
+                        let bottom_xy = bottom_y00.lerp(bottom_y10, fx);
+                        let top_xy = top_y00.lerp(top_y10, fx);
+
                         for cz in 0..4 {
-                            for cy in 0..8 {
-                                chunk
-                                    .set_block(
-                                        cx + (x as i32 - 1) * 4 + pos.pos.x,
-                                        cy + (y - 1) * 8 - 64,
-                                        cz + (z as i32 - 1) * 4 + pos.pos.y,
-                                        stone,
-                                    )
-                                    .unwrap();
-                            }
-                        }
-                    }
-                }
-                for cx in 0..4 {
-                    for cz in 0..4 {
-                        for cy in 0..8 {
-                            let res = lerp3(
-                                DVec3::new(
-                                    f64::from(cx) / 4.0,
-                                    f64::from(cy) / 8.0,
-                                    f64::from(cz) / 4.0,
-                                ),
-                                points[0b000],
-                                points[0b100],
-                                points[0b010],
-                                points[0b110],
-                                points[0b001],
-                                points[0b101],
-                                points[0b011],
-                                points[0b111],
+                            let fz = f64::from(cz) / 4.0;
+                            let res = bottom_xy.lerp(top_xy, fz);
+
+                            let pos = BlockPos::new(
+                                cx + (x as i32 - 1) * 4 + pos.pos.x,
+                                cy + (y - 1) * 8 - 64,
+                                cz + (z as i32 - 1) * 4 + pos.pos.y,
                             );
+                            let res = biome_noise.post_process(pos, res);
+
                             chunk
-                                .set_block(
-                                    cz + (x as i32 - 1) * 4 + pos.pos.x,
-                                    cy + (y - 1) * 8 - 64,
-                                    cz + (z as i32 - 1) * 4 + pos.pos.y,
-                                    if res > 0.0 { stone } else { air },
-                                )
+                                .set_block(pos.x, pos.y, pos.z, if res > 0.0 { stone } else { air })
                                 .unwrap();
                         }
                     }
