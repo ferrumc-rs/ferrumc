@@ -138,6 +138,8 @@ pub const NETHER_STATE_SELECTOR: ConstNormalNoise<1> =
     ConstNormalNoise::new("minecraft:nether_state_selector", 4, [1.0]);
 pub const BASE_3D_NOISE_OVERWORLD: ConstBlendedNoise =
     ConstBlendedNoise::new(0.125, DVec3::new(80.0, 160.0, 80.0), 8.0);
+pub const BASE_3D_NOISE_END: ConstBlendedNoise =
+    ConstBlendedNoise::new(0.25, DVec3::new(80.0, 160.0, 80.0), 4.0);
 pub static BIOME_INFO_NOISE: LazyLock<PerlinNoise<1>> =
     LazyLock::new(|| ConstPerlinNoise::new(0, [1.0]).legacy_init(&mut LegacyRandom::new(2345))); //TODO:
 //make const
@@ -411,7 +413,7 @@ pub struct ImprovedNoise {
 
 impl ImprovedNoise {
     #[inline]
-    fn new(random: &mut impl Rng) -> Self {
+    pub fn new(random: &mut impl Rng) -> Self {
         let offset = DVec3::new(random.next_f64(), random.next_f64(), random.next_f64()) * 256.0;
         let mut p = from_fn(|i| i as u8);
         random.shuffle(&mut p);
@@ -423,7 +425,7 @@ impl ImprovedNoise {
         (offset - point.length_squared()).max(0.0).powi(4) * self.grad_dot(index % 12, point)
     }
     #[inline]
-    fn legacy_simplex_at(&self, at: DVec2) -> f64 {
+    pub fn legacy_simplex_at(&self, at: DVec2) -> f64 {
         const F2: f64 = 0.5 * (SQRT_3 - 1.0);
         const G2: f64 = (3.0 - SQRT_3) / 6.0;
 

@@ -3,7 +3,7 @@ use crate::biome_chunk::{BiomeChunk, NoisePoint};
 use crate::errors::WorldGenError;
 use crate::overworld::carver::OverworldCarver;
 use crate::overworld::noise_biome_parameters::overworld_biomes;
-use crate::overworld::noise_depth::OverworldBiomeNoise;
+use crate::overworld::noise_depth::{OverworldBiomeNoise, generate_interpolation_data};
 use crate::overworld::surface::OverworldSurface;
 use crate::pos::{ChunkHeight, ChunkPos};
 use crate::random::Xoroshiro128PlusPlus;
@@ -23,7 +23,8 @@ pub struct OverworldGenerator {
 }
 
 impl OverworldGenerator {
-    pub fn new(seed: u64) -> Self {
+    pub fn new(_seed: u64) -> Self {
+        let seed = 1;
         let random = Xoroshiro128PlusPlus::from_seed(seed).fork();
         let biome_noise = OverworldBiomeNoise::new(random);
         let chunk_height = ChunkHeight {
@@ -64,12 +65,19 @@ impl OverworldGenerator {
         .to_block_id();
         let air = BlockData::default().to_block_id();
         if x.abs() < 4 && z.abs() < 4 {
+            // generate_interpolation_data(
+            //     &self.biome_noise,
+            //     ChunkPos::from(IVec2::new(x * 16, z * 16)),
+            //     &mut chunk,
+            // );
             ChunkPos::from(IVec2::new(x * 16, z * 16))
                 .iter_columns()
                 .cartesian_product(self.chunk_height.iter())
                 .map(|(c, y)| c.block(y))
                 .map(|pos| {
-                    let final_density = self.biome_noise.final_density(pos);
+                    let final_density = self
+                        .biome_noise
+                        .post_process(pos, self.biome_noise.pre_baked_final_density(pos));
                     chunk.set_block(
                         pos.x,
                         pos.y,
