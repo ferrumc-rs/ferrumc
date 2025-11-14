@@ -1,3 +1,4 @@
+use ferrumc_core::abilities::player_abilities::PlayerAbilities as PlayerAbilitiesComponent;
 use ferrumc_macros::{packet, NetEncode};
 
 #[derive(NetEncode)]
@@ -14,3 +15,18 @@ pub struct PlayerAbilities {
 // Flying:          0x02
 // Allow Flying:    0x04
 // Creative Mode:   0x08
+
+impl PlayerAbilities {
+    pub fn from_abilities(abilities: &PlayerAbilitiesComponent) -> Self {
+        let flags = (abilities.invulnerable as u8 * 0x01)
+            | (abilities.flying as u8 * 0x02)
+            | (abilities.may_fly as u8 * 0x04)
+            | (abilities.creative_mode as u8 * 0x08);
+
+        Self {
+            flags,
+            flying_speed: abilities.flying_speed,
+            field_of_view_modifier: abilities.walking_speed,
+        }
+    }
+}

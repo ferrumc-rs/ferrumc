@@ -4,7 +4,6 @@ use crate::conn_init::{LoginResult, NetDecodeOpts};
 use crate::connection::StreamWriter;
 use crate::errors::{NetError, PacketError};
 use crate::packets::incoming::packet_skeleton::PacketSkeleton;
-use crate::packets::outgoing::player_abilities::PlayerAbilities as OutgoingPlayerAbilities;
 use crate::packets::outgoing::{commands::CommandsPacket, registry_data::REGISTRY_PACKETS};
 use crate::ConnState::*;
 use ferrumc_config::server_config::get_global_config;
@@ -205,18 +204,12 @@ pub(super) async fn login(
     // We send this to sync the client with the server's default abilities
 
     let default_abilities = PlayerAbilities::default();
+    // TODO: Save and retreive player specific ability values
 
-    let outgoing_flags = (default_abilities.invulnerable as u8 * 0x01)
-        | (default_abilities.flying as u8 * 0x02)
-        | (default_abilities.may_fly as u8 * 0x04)
-        | (default_abilities.creative_mode as u8 * 0x08);
-
-    let abilities_packet = crate::packets::outgoing::player_abilities {
-        flags: outgoing_flags,
-        flying_speed: default_abilities.flying_speed,
-        field_of_view_modifier: default_abilities.walking_speed,
-    };
-
+    let abilities_packet =
+        crate::packets::outgoing::player_abilities::PlayerAbilities::from_abilities(
+            &default_abilities,
+        );
     conn_write.send_packet(abilities_packet)?;
 
     // =============================================================================================
