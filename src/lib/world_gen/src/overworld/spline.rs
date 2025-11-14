@@ -1,5 +1,24 @@
 use bevy_math::FloatExt;
 
+#[derive(Clone, Copy)]
+pub struct SplineCoord {
+    pub continents: f64,
+    pub erosion: f64,
+    pub ridges_folded: f64,
+    pub ridges: f64,
+}
+
+impl SplineCoord {
+    pub fn new(continents: f64, erosion: f64, ridges_folded: f64, ridges: f64) -> Self {
+        Self {
+            continents,
+            erosion,
+            ridges_folded,
+            ridges,
+        }
+    }
+}
+
 impl CubicSpline {
     pub fn new(spline_type: SplineType, points: Vec<SplinePoint>) -> Self {
         Self {
@@ -8,44 +27,32 @@ impl CubicSpline {
         }
     }
 
-    pub fn sample(&self, continents: f32, erosion: f32, ridges_folded: f32, ridges: f32) -> f32 {
+    pub fn sample(&self, coord: SplineCoord) -> f32 {
         let x = match self.spline_type {
-            SplineType::RidgesFolded => ridges_folded,
-            SplineType::Ridges => ridges,
-            SplineType::Continents => continents,
-            SplineType::Erosion => erosion,
-        };
+            SplineType::RidgesFolded => coord.ridges_folded,
+            SplineType::Ridges => coord.ridges,
+            SplineType::Continents => coord.continents,
+            SplineType::Erosion => coord.erosion,
+        } as f32;
         let n = self.points.len();
         assert!(n > 0);
         let i = match self.points.iter().rposition(|v| v.x <= x) {
             Some(idx) => idx,
             None => {
                 // x is before the first point → extend linearly from 0
-                return Self::linear_extend(
-                    x,
-                    &self.points[0],
-                    self.points[0]
-                        .y
-                        .get(continents, erosion, ridges_folded, ridges),
-                );
+                return Self::linear_extend(x, &self.points[0], self.points[0].y.get(coord));
             }
         };
 
         if i == self.points.len() - 1 {
             // x is after the last point → extend from last
-            return Self::linear_extend(
-                x,
-                &self.points[i],
-                self.points[i]
-                    .y
-                    .get(continents, erosion, ridges_folded, ridges),
-            );
+            return Self::linear_extend(x, &self.points[i], self.points[i].y.get(coord));
         }
         let point = &self.points[i];
 
         let point2 = &self.points[i + 1];
-        let y0 = point.y.get(continents, erosion, ridges_folded, ridges);
-        let y1 = point2.y.get(continents, erosion, ridges_folded, ridges);
+        let y0 = point.y.get(coord);
+        let y1 = point2.y.get(coord);
         let dx = point2.x - point.x;
         let t = (x - point.x) / dx;
 
@@ -160,12 +167,10 @@ pub enum SplineValue {
 }
 
 impl SplineValue {
-    fn get(&self, continents: f32, erosion: f32, ridges_folded: f32, ridges: f32) -> f32 {
+    fn get(&self, coord: SplineCoord) -> f32 {
         match self {
             SplineValue::Const(res) => *res,
-            SplineValue::Spline(cubic_spline) => {
-                cubic_spline.sample(continents, erosion, ridges_folded, ridges)
-            }
+            SplineValue::Spline(cubic_spline) => cubic_spline.sample(coord),
         }
     }
 }
@@ -231,5 +236,5 @@ fn test_spline() {
             SplinePoint::spline(1.0, cubic3),
         ],
     );
-    assert_eq!(spline.sample(0.0, 0.0, 0.0, 0.0), -0.12)
+    assert_eq!(spline.sample(SplineCoord::new(0.0, 0.0, 0.0, 0.0)), -0.12)
 }

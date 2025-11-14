@@ -2,7 +2,9 @@ use bevy_math::IVec2;
 use ferrumc_world::chunk_format::Chunk;
 
 use crate::{
-    errors::WorldGenError, nether::noise::NetherNoise, pos::{ChunkHeight, ChunkPos}
+    errors::WorldGenError,
+    nether::noise::NetherNoise,
+    pos::{ChunkHeight, ChunkPos},
 };
 
 pub struct NetherGenerator {
@@ -35,7 +37,7 @@ impl NetherGenerator {
     pub fn generate_chunk(&self, x: i32, z: i32) -> Result<Chunk, WorldGenError> {
         let mut chunk = Chunk::new(x, z, "overworld".to_string());
         self.noise
-            .generate_chunk(ChunkPos::from(IVec2::new(x * 16, z * 16)), &mut chunk);
+            .generate_chunk(ChunkPos::new(x * 16, z * 16), &mut chunk);
 
         Ok(chunk)
     }

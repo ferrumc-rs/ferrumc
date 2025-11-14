@@ -12,11 +12,11 @@ use crate::perlin_noise::{
     ICE, ICEBERG_PILLAR, ICEBERG_PILLAR_ROOF, ICEBERG_SURFACE, PACKED_ICE, POWDER_SNOW, SURFACE,
     SURFACE_SECONDARY, SWAMP,
 };
-use crate::pos::{BlockPos, ChunkHeight};
+use crate::pos::{BlockPos, ChunkColumnPos};
 use crate::random::Xoroshiro128PlusPlus;
 use crate::{ChunkAccess, HeightmapType};
 use crate::{biome_chunk::BiomeChunk, pos::ColumnPos};
-use bevy_math::{DVec2, FloatExt, IVec2, IVec3};
+use bevy_math::FloatExt;
 use ferrumc_macros::{block, match_block};
 use ferrumc_world::block_state_id::BlockStateId;
 
@@ -234,11 +234,11 @@ impl OverworldSurface {
     pub fn min_surface_level(&self, noise: &OverworldBiomeNoise, pos: ColumnPos) -> i32 {
         let chunk = pos.chunk();
         lerp2(
-            DVec2::from(pos.pos & 15) / 16.0,
+            ChunkColumnPos::from(pos).pos.as_dvec2() / 16.0,
             f64::from(noise.preliminary_surface(chunk)),
-            f64::from(noise.preliminary_surface((chunk.pos + IVec2::new(16, 0)).into())),
-            f64::from(noise.preliminary_surface((chunk.pos + IVec2::new(0, 16)).into())),
-            f64::from(noise.preliminary_surface((chunk.pos + IVec2::new(16, 16)).into())),
+            f64::from(noise.preliminary_surface(chunk + (1, 0))),
+            f64::from(noise.preliminary_surface(chunk + (0, 1))),
+            f64::from(noise.preliminary_surface(chunk + (16, 16))),
         ) as i32
             + self.get_surface_depth(pos)
             - 8
@@ -256,7 +256,7 @@ impl OverworldSurface {
         chunk: &ChunkAccess,
         biome_noise: &OverworldBiomeNoise,
         biome: Biome,
-        pos: IVec3,
+        pos: BlockPos,
         is_fluid: bool,
     ) -> Option<BlockStateId> {
         self.rules

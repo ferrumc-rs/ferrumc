@@ -30,17 +30,23 @@ impl EndNoise {
     }
     pub fn generate_chunk(&self, pos: ChunkPos, chunk: &mut Chunk) {
         let islands_cache: [[f64; 3]; 3] =
-            from_fn(|x| from_fn(|z| self.islands(pos.column_pos(x as u32 * 8, z as u32 * 8))));
+            from_fn(|x| from_fn(|z| self.islands(pos.column_offset(x as i32 * 8, z as i32 * 8))));
         generate_interpolation_data(
-            |pos| self.pre_backed_final_density(islands_cache, pos),
+            |block| self.pre_backed_final_density(islands_cache, pos, block),
             chunk,
             pos,
             block!("end_stone"),
         );
     }
 
-    fn pre_backed_final_density(&self, islands_cache: [[f64; 3]; 3], pos: BlockPos) -> f64 {
-        let sloped_cheese = islands_cache[(pos.x as usize & 15) / 8][(pos.z as usize & 15) / 8]
+    fn pre_backed_final_density(
+        &self,
+        islands_cache: [[f64; 3]; 3],
+        chunk: ChunkPos,
+        pos: BlockPos,
+    ) -> f64 {
+        let cache_pos = (pos - chunk.origin().block(0)) / 8;
+        let sloped_cheese = islands_cache[cache_pos.x as usize][cache_pos.z as usize]
             + self.base_noise.at(pos.as_dvec3() * 0.25 * 684.412);
         slide(
             pos.y.into(),

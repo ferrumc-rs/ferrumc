@@ -1,7 +1,10 @@
+use std::ops::Add;
 use std::ops::Range;
 
+use bevy_math::I16Vec3;
 use bevy_math::IVec2;
 use bevy_math::IVec3;
+use bevy_math::U8Vec2;
 use bevy_math::Vec2Swizzles;
 use bevy_math::Vec3Swizzles;
 use itertools::Itertools;
@@ -32,26 +35,108 @@ pub struct ChunkPos {
     pub pos: IVec2,
 }
 
-impl From<IVec2> for ChunkPos {
-    fn from(pos: IVec2) -> Self {
+impl ChunkPos {
+    pub fn new(x: i32, z: i32) -> Self {
         Self {
-            pos: pos.div_euclid((16, 16).into()) * 16,
+            pos: IVec2::new(x.div_euclid(16) * 16, z.div_euclid(16) * 16),
         }
     }
-}
 
-impl ChunkPos {
-    pub fn column_pos(&self, x: u32, z: u32) -> ColumnPos {
-        (self.pos + IVec2::new(x as i32, z as i32)).into()
+    pub fn of(pos: BlockPos) -> Self {
+        Self::new(pos.x, pos.z)
     }
+
+    pub fn center(&self) -> ColumnPos {
+        self.column_pos((8, 8).into())
+    }
+
+    pub fn origin(&self) -> ColumnPos {
+        self.column_pos((0, 0).into())
+    }
+
+    pub fn column_pos(&self, pos: ChunkColumnPos) -> ColumnPos {
+        (self.pos + pos.pos.as_ivec2()).into()
+    }
+
+    #[deprecated]
     pub fn iter_columns(self) -> impl Iterator<Item = ColumnPos> {
         (self.pos.x..self.pos.x + 16)
             .cartesian_product(self.pos.y..self.pos.y + 16)
             .map(IVec2::from)
             .map(ColumnPos::from)
     }
-    pub fn block(&self, x: u32, y: i32, z: u32) -> BlockPos {
-        self.column_pos(x, z).block(y)
+    pub fn chunk_block(&self, x: u8, y: i32, z: u8) -> BlockPos {
+        self.column_pos((x, z).into()).block(y)
+    }
+
+    pub fn block_offset(&self, x: i32, y: i32, z: i32) -> BlockPos {
+        ColumnPos::from(self.pos + IVec2::new(x, z)).block(y)
+    }
+    pub fn column_offset(&self, x: i32, z: i32) -> ColumnPos {
+        ColumnPos::from(self.pos + IVec2::new(x, z))
+    }
+}
+
+impl Add<(i32, i32)> for ChunkPos {
+    type Output = ChunkPos;
+
+    fn add(self, rhs: (i32, i32)) -> Self::Output {
+        let pos = self.pos + IVec2::from(rhs) * 16;
+        Self::Output { pos }
+    }
+}
+
+pub struct ChunkColumnPos {
+    pub pos: U8Vec2,
+}
+
+impl ChunkColumnPos {
+    pub const fn new(x: u8, z: u8) -> Self {
+        assert!(x < 16);
+        assert!(z < 16);
+        Self {
+            pos: U8Vec2::new(x, z),
+        }
+    }
+}
+
+impl From<ColumnPos> for ChunkColumnPos {
+    fn from(pos: ColumnPos) -> Self {
+        Self {
+            pos: pos.pos.rem_euclid((16, 16).into()).as_u8vec2(),
+        }
+    }
+}
+
+impl From<(u8, u8)> for ChunkColumnPos {
+    fn from(pos: (u8, u8)) -> Self {
+        assert!(pos.0 < 16);
+        assert!(pos.1 < 16);
+        Self { pos: pos.into() }
+    }
+}
+
+pub struct ChunkBlockPos {
+    pub pos: I16Vec3,
+}
+
+impl From<BlockPos> for ChunkBlockPos {
+    fn from(pos: BlockPos) -> Self {
+        Self::new(
+            pos.x.rem_euclid(16) as u8,
+            pos.y as i16,
+            pos.z.rem_euclid(16) as u8,
+        )
+    }
+}
+
+impl ChunkBlockPos {
+    pub const fn new(x: u8, y: i16, z: u8) -> Self {
+        assert!(x < 16);
+        assert!(z < 16);
+        Self {
+            pos: I16Vec3::new(x as i16, y, z as i16),
+        }
     }
 }
 
@@ -61,6 +146,7 @@ pub struct ColumnPos {
 }
 
 impl ColumnPos {
+    #[deprecated]
     pub fn new(x: i32, z: i32) -> Self {
         Self { pos: (x, z).into() }
     }
@@ -70,7 +156,7 @@ impl ColumnPos {
     }
 
     pub fn chunk(self) -> ChunkPos {
-        self.pos.into()
+        ChunkPos::new(self.pos.x, self.pos.y)
     }
 
     /// currently not order dependent, so implementation may change in the future

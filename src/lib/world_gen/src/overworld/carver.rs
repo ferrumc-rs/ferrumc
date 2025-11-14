@@ -191,10 +191,10 @@ fn carve_canyon(
         return;
     }
     let mut random_pos = chunk_pos
-        .block(
-            random.next_bounded(16),
+        .chunk_block(
+            random.next_bounded(16) as u8,
             random.next_i32_range(Range::from(10..68)),
-            random.next_bounded(16),
+            random.next_bounded(16) as u8,
         )
         .as_dvec3();
     let mut yaw = random.next_f32() * (PI * 2.0);

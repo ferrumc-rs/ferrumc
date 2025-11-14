@@ -5,7 +5,7 @@ use crate::perlin_noise::{
     AQUIFER_BARRIER, AQUIFER_FLUID_LEVEL_FLOODEDNESS, AQUIFER_FLUID_LEVEL_SPREAD, AQUIFER_LAVA,
     NormalNoise,
 };
-use crate::pos::BlockPos;
+use crate::pos::{BlockPos, ChunkPos};
 use core::f64;
 use std::ops::Add;
 
@@ -224,31 +224,20 @@ impl Aquifer {
     ///per section.
     ///TODO: cache this if faster
     fn compute_fluid(&self, pos: BlockPos, biome_noise: &OverworldBiomeNoise) -> FluidPicker {
-        const SAPMLING_OFFSETS: [IVec2; 12] = [
-            IVec2::new(-32, -16),
-            IVec2::new(-16, -16),
-            IVec2::new(0, -16),
-            IVec2::new(16, -16),
-            IVec2::new(-48, 0),
-            IVec2::new(-32, 0),
-            IVec2::new(-16, 0),
-            IVec2::new(16, 0),
-            IVec2::new(-32, 16),
-            IVec2::new(-16, 16),
-            IVec2::new(0, 16),
-            IVec2::new(16, 16),
-        ];
-
-        let mut min_prelim_surface = biome_noise.preliminary_surface(pos.xz().into());
+        let chunk = ChunkPos::of(pos);
+        let mut min_prelim_surface = biome_noise.preliminary_surface(chunk);
         if pos.y - 12 > min_prelim_surface + 8 {
             return simple_fluid_picker(pos.y);
         }
-        for offset in SAPMLING_OFFSETS {
-            let preliminary_surface = biome_noise.preliminary_surface((pos.xz() + offset).into());
-            if (pos.y + 12 > preliminary_surface + 8) && preliminary_surface + 8 < SEA_LEVEL {
-                return simple_fluid_picker(preliminary_surface + 8);
+        for y in -1..=1 {
+            for x in -2..=1 {
+                let preliminary_surface = biome_noise
+                    .preliminary_surface(chunk + (x - if y == 0 && x < 1 { 1 } else { 0 }, y));
+                if (pos.y + 12 > preliminary_surface + 8) && preliminary_surface + 8 < SEA_LEVEL {
+                    return simple_fluid_picker(preliminary_surface + 8);
+                }
+                min_prelim_surface = min_prelim_surface.min(preliminary_surface);
             }
-            min_prelim_surface = min_prelim_surface.min(preliminary_surface);
         }
 
         if biome_noise.is_deep_dark_region(pos) {
