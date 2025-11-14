@@ -4,7 +4,6 @@ use crate::conn_init::{LoginResult, NetDecodeOpts};
 use crate::connection::StreamWriter;
 use crate::errors::{NetError, PacketError};
 use crate::packets::incoming::packet_skeleton::PacketSkeleton;
-use crate::packets::outgoing::login_play::LoginPlayPacket;
 use crate::packets::outgoing::player_abilities::PlayerAbilities as OutgoingPlayerAbilities;
 use crate::packets::outgoing::{commands::CommandsPacket, registry_data::REGISTRY_PACKETS};
 use crate::ConnState::*;
@@ -212,7 +211,7 @@ pub(super) async fn login(
         | (default_abilities.may_fly as u8 * 0x04)
         | (default_abilities.creative_mode as u8 * 0x08);
 
-    let abilities_packet = OutgoingPlayerAbilities {
+    let abilities_packet = crate::packets::outgoing::player_abilities {
         flags: outgoing_flags,
         flying_speed: default_abilities.flying_speed,
         field_of_view_modifier: default_abilities.walking_speed,
