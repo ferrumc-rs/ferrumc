@@ -36,23 +36,8 @@ impl EndGenerator {
 
     pub fn generate_chunk(&self, x: i32, z: i32) -> Result<Chunk, WorldGenError> {
         let mut chunk = Chunk::new(x, z, "overworld".to_string());
-        self.biome_noise
-            .generate_chunk(ChunkPos::from(IVec2::new(x * 16, z * 16)), &mut chunk);
-        // .iter_columns()
-        // .cartesian_product(self.chunk_height.iter())
-        // .map(|(c, y)| c.block(y))
-        // .map(|pos| {
-        //     let final_density = self.biome_noise.final_density(pos);
-        //     chunk.set_block(
-        //         pos.x,
-        //         pos.y,
-        //         pos.z,
-        //         if final_density > 0.0 { stone } else { air },
-        //     )
-        // })
-        // .find(Result::is_err)
-        // .unwrap_or(Ok(()))?;
-
+        let pos = ChunkPos::new(x * 16, z * 16);
+        self.biome_noise.generate_chunk(pos, &mut chunk);
         Ok(chunk)
     }
 }

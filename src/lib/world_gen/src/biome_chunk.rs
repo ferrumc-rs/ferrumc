@@ -32,7 +32,7 @@ impl BiomeChunk {
             .step_by(4)
             .cartesian_product((0..16).step_by(4))
             .cartesian_product(chunk_height.iter().step_by(4))
-            .map(|((x, z), y)| pos.block(x, y, z))
+            .map(|((x, z), y)| pos.chunk_block(x, y, z))
             .map(|pos| noise.at(pos))
             .map(|noise| get_best(noise, biomes))
             .collect();

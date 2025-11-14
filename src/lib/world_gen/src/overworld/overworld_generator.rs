@@ -61,7 +61,7 @@ impl OverworldGenerator {
             //     ChunkPos::from(IVec2::new(x * 16, z * 16)),
             //     &mut chunk,
             // );
-            ChunkPos::from(IVec2::new(x * 16, z * 16))
+            ChunkPos::new(x * 16, z * 16)
                 .iter_columns()
                 .cartesian_product(CHUNK_HEIGHT.iter())
                 .map(|(c, y)| c.block(y))

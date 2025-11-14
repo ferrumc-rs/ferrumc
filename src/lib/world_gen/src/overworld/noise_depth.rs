@@ -18,7 +18,7 @@ use ferrumc_macros::block;
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::chunk_format::Chunk;
 
-use crate::overworld::spline::{CubicSpline, SplinePoint, SplineType};
+use crate::overworld::spline::{CubicSpline, SplineCoord, SplinePoint, SplineType};
 
 //TODO: const
 fn build_erosion_offset_spline(
@@ -497,13 +497,8 @@ impl OverworldBiomeNoise {
         )
     }
 
-    fn factor(&self, spline_params: (f64, f64, f64, f64)) -> f64 {
-        f64::from(self.factor.sample(
-            spline_params.0 as f32,
-            spline_params.1 as f32,
-            spline_params.2 as f32,
-            spline_params.3 as f32,
-        ))
+    fn factor(&self, spline_params: SplineCoord) -> f64 {
+        f64::from(self.factor.sample(spline_params))
     }
     fn entrances(&self, pos: DVec3, spaghetti_roughness: f64) -> f64 {
         let rarity = self.spaghetti_3d_rarity.at(pos * DVec3::new(2.0, 1.0, 2.0));
@@ -643,41 +638,31 @@ impl OverworldBiomeNoise {
         (d / 2.0 - d * d * d / 24.0).min(self.noodle(pos.into()))
     }
 
-    fn jaggedness(&self, spline_params: (f64, f64, f64, f64)) -> f64 {
-        f64::from(self.jaggedness.sample(
-            spline_params.0 as f32,
-            spline_params.1 as f32,
-            spline_params.2 as f32,
-            spline_params.3 as f32,
-        ))
+    fn jaggedness(&self, spline_params: SplineCoord) -> f64 {
+        f64::from(self.jaggedness.sample(spline_params))
     }
 
-    fn make_spline_params(&self, transformed_pos: DVec3) -> (f64, f64, f64, f64) {
+    fn make_spline_params(&self, transformed_pos: DVec3) -> SplineCoord {
         let ridges = self.ridges.at(transformed_pos);
         let ridges_folded = (ridges.abs() - 0.6666666666666666).abs() * -3.0 + 1.0;
         let erosion = self.erosion.at(transformed_pos);
         let continents = self.continents.at(transformed_pos);
-        (ridges, ridges_folded, erosion, continents)
+        SplineCoord::new(ridges, ridges_folded, erosion, continents)
     }
 
     /// the last param (ridges) is not needed for this spline
-    fn offset(&self, spline_params: (f64, f64, f64, f64)) -> f64 {
-        f64::from(self.offset.sample(
-            spline_params.0 as f32,
-            spline_params.1 as f32,
-            spline_params.2 as f32,
-            spline_params.3 as f32,
-        )) - 0.50375
+    fn offset(&self, spline_params: SplineCoord) -> f64 {
+        f64::from(self.offset.sample(spline_params)) - 0.50375
     }
 
     /// the last param (ridges) is not needed
-    fn depth(&self, pos: BlockPos, spline_params: (f64, f64, f64, f64)) -> f64 {
+    fn depth(&self, pos: BlockPos, spline_params: SplineCoord) -> f64 {
         let offset = self.offset(spline_params);
         f64::from(pos.y).remap(-64.0, 320.0, 1.5, -1.5) + offset
     }
 
     pub fn preliminary_surface(&self, chunk: ChunkPos) -> i32 {
-        let column = chunk.column_pos(0, 0);
+        let column = chunk.origin();
         self.chunk_height
             .iter()
             .rev()
@@ -739,8 +724,11 @@ pub fn generate_interpolation_data(
     // initial base layer
     for (x, slice1x) in slice1.iter_mut().enumerate() {
         for (z, slice1xz) in slice1x.iter_mut().enumerate() {
-            *slice1xz =
-                biome_noise.pre_baked_final_density(pos.block(x as u32 * 4, -64, z as u32 * 4));
+            *slice1xz = biome_noise.pre_baked_final_density(pos.block_offset(
+                x as i32 * 4,
+                -64,
+                z as i32 * 4,
+            ));
         }
     }
 
@@ -749,15 +737,15 @@ pub fn generate_interpolation_data(
 
         for z in 0..5 {
             slice1[0][z] =
-                biome_noise.pre_baked_final_density(pos.block(0, y * 8 - 64, z as u32 * 4));
+                biome_noise.pre_baked_final_density(pos.block_offset(0, y * 8 - 64, z as i32 * 4));
         }
 
         for x in 1..4 {
             for z in 1..4 {
-                slice1[x][z] = biome_noise.pre_baked_final_density(pos.block(
-                    x as u32 * 4,
+                slice1[x][z] = biome_noise.pre_baked_final_density(pos.block_offset(
+                    x as i32 * 4,
                     y * 8 - 64,
-                    z as u32 * 4,
+                    z as i32 * 4,
                 ));
 
                 let p000 = slice0[x - 1][z - 1];
@@ -819,14 +807,14 @@ pub fn generate_interpolation_data(
 impl BiomeNoise for OverworldBiomeNoise {
     fn at_inner(&self, pos: BlockPos) -> [f64; 6] {
         let transformed = self.transform(pos.into());
-        let (ridges, ridges_folded, erosion, continents) = self.make_spline_params(transformed);
+        let spline_coord = self.make_spline_params(transformed);
         [
             self.temperature.at(transformed),
             self.vegetation.at(transformed),
-            continents,
-            erosion,
-            self.depth(pos, (ridges, ridges_folded, erosion, continents)),
-            ridges,
+            spline_coord.continents,
+            spline_coord.erosion,
+            self.depth(pos, spline_coord),
+            spline_coord.ridges,
         ]
     }
 }
@@ -838,9 +826,17 @@ fn test_offset() {
     dbg!(offset.compute_min_max());
     dbg!(overworld_factor().compute_min_max());
     dbg!(overworld_jaggedness().compute_min_max());
-    assert_eq!(offset.sample(0.0, 0.0, 0.0, 0.0), 0.007458158);
     assert_eq!(
-        offset.sample(0.007458158, 0.007458158, 0.007458158, 0.007458158),
+        offset.sample(SplineCoord::new(0.0, 0.0, 0.0, 0.0)),
+        0.007458158
+    );
+    assert_eq!(
+        offset.sample(SplineCoord::new(
+            0.007458158,
+            0.007458158,
+            0.007458158,
+            0.007458158
+        )),
         0.008096008
     );
 }

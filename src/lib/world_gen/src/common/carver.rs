@@ -37,7 +37,7 @@ pub(crate) fn carve_ellipsoid(
     radii: DVec2,
     chunk_height: ChunkHeight,
 ) -> impl Iterator<Item = (DVec3, IVec3)> {
-    if (chunk_pos.column_pos(8, 8).pos.as_dvec2() - pos.xz())
+    if (chunk_pos.center().pos.as_dvec2() - pos.xz())
         .abs()
         .max_element()
         > 16.0 + radii.x * 2.0
@@ -119,10 +119,10 @@ impl Caver {
         let bound = random.next_bounded(self.bound) + 1;
         let bound1 = random.next_bounded(bound) + 1;
         for _ in 0..random.next_bounded(bound1) {
-            let random_pos = chunk_pos.block(
-                random.next_bounded(16),
+            let random_pos = chunk_pos.chunk_block(
+                random.next_bounded(16) as u8,
                 random.next_i32_range(self.y),
-                random.next_bounded(16),
+                random.next_bounded(16) as u8,
             );
             let horizontal_radius_mul = random.next_f32_range(self.horizontal_radius_mul);
             let vertical_radius_mul = random.next_f32_range(self.vertical_radius_mul);
@@ -294,11 +294,7 @@ pub(crate) fn can_reach(
     branch_count: u32,
     width: f32,
 ) -> bool {
-    chunk_pos
-        .column_pos(8, 8)
-        .pos
-        .as_dvec2()
-        .distance_squared(pos.xz())
+    chunk_pos.center().pos.as_dvec2().distance_squared(pos.xz())
         - f64::from((branch_count - branch_index).pow(2))
         <= f64::from(width) + 2.0 + 16.0
 }
