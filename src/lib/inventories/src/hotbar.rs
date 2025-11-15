@@ -6,9 +6,6 @@ use crate::item::ItemID;
 use crate::slot::InventorySlot;
 use bevy_ecs::prelude::Entity;
 
-const HOTBAR_START_INDEX: usize = 36;
-const HOTBAR_SIZE: usize = 9;
-
 #[derive(Component, Default)]
 pub struct Hotbar {
     /// The currently selected hotbar slot (0-8).
@@ -16,21 +13,24 @@ pub struct Hotbar {
 }
 
 impl Hotbar {
+    const HOTBAR_START_INDEX: usize = 36;
+    const HOTBAR_SIZE: usize = 9;
+
     /// Returns the actual inventory slot index (36-44) for a given hotbar slot (0-8).
     /// This performs the (36 + slot) translation.
     pub fn get_inventory_index(&self, hotbar_slot: u8) -> Result<usize, InventoryError> {
         let slot = hotbar_slot as usize;
-        if slot >= HOTBAR_SIZE {
+        if slot >= Self::HOTBAR_SIZE {
             // Return an error if the hotbar slot is > 8
             return Err(InventoryError::InvalidSlotIndex(slot));
         }
-        Ok(HOTBAR_START_INDEX + slot)
+        Ok(Self::HOTBAR_START_INDEX + slot)
     }
 
     /// Returns the actual inventory slot index (36-44) for the *selected* hotbar slot.
     pub fn get_selected_inventory_index(&self) -> usize {
         // This should be safe, assuming selected_slot is always 0-8
-        HOTBAR_START_INDEX + self.selected_slot as usize
+        Self::HOTBAR_START_INDEX + self.selected_slot as usize
     }
 
     /// Gets an item from a specific hotbar slot (0-8).
@@ -101,7 +101,7 @@ impl Hotbar {
     /// Finds an item within the 9 hotbar slots.
     /// Returns the hotbar index (0-8) if found.
     pub fn find_item(&self, inventory: &Inventory, item_id: ItemID) -> Option<u8> {
-        for i in 0..HOTBAR_SIZE {
+        for i in 0..Self::HOTBAR_SIZE {
             // We can use our own helper to get the real index
             if let Ok(index) = self.get_inventory_index(i as u8)
                 && let Some(Some(slot)) = inventory.slots.get(index)
