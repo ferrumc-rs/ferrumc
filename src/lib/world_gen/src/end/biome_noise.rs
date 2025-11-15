@@ -7,8 +7,8 @@ use std::{array::from_fn, f64};
 
 use crate::{
     common::noise::{generate_interpolation_data, slide},
-    perlin_noise::{BASE_3D_NOISE_END, BlendedNoise, ImprovedNoise},
-    pos::{BlockPos, ChunkPos, ColumnPos},
+    perlin_noise::{BlendedNoise, ImprovedNoise, BASE_3D_NOISE_END},
+    pos::{BlockPos, ChunkBlockPos, ChunkPos, ColumnPos},
     random::LegacyRandom,
 };
 use std::f32;
@@ -33,9 +33,21 @@ impl EndNoise {
             from_fn(|x| from_fn(|z| self.islands(pos.column_offset(x as i32 * 8, z as i32 * 8))));
         generate_interpolation_data(
             |block| self.pre_backed_final_density(islands_cache, pos, block),
-            chunk,
             pos,
-            block!("end_stone"),
+            |pos, res| {
+                let pos = ChunkBlockPos::from(pos);
+
+                if res > 0.0 {
+                    chunk
+                        .set_block(
+                            i32::from(pos.pos.x),
+                            i32::from(pos.pos.y),
+                            i32::from(pos.pos.z),
+                            block!("end_stone"),
+                        )
+                        .unwrap();
+                }
+            },
         );
     }
 

@@ -1,7 +1,6 @@
 use std::mem::swap;
 
 use bevy_math::FloatExt;
-use ferrumc_world::{block_state_id::BlockStateId, chunk_format::Chunk};
 
 use crate::{
     common::math::clamped_map,
@@ -29,12 +28,11 @@ pub fn slide(
 }
 pub fn generate_interpolation_data(
     noise: impl Fn(BlockPos) -> f64,
-    chunk: &mut Chunk,
     pos: ChunkPos,
-    filler: BlockStateId,
+    mut action: impl FnMut(BlockPos, f64),
 ) {
-    const WIDTH: usize = 8;
-    const HEIGHT: i32 = 4;
+    const WIDTH: usize = 4;
+    const HEIGHT: i32 = 8;
     const MIN_Y: i32 = 0;
     const CHUNK_HEIGHT: i32 = 256;
     const CHUNK_WIDTH: usize = 16;
@@ -81,7 +79,7 @@ pub fn generate_interpolation_data(
                 let block_x = (x as u8 - 1) * WIDTH as u8;
                 let block_y = (y - 1) * HEIGHT + MIN_Y;
                 let block_z = (z as u8 - 1) * WIDTH as u8;
-                let base_pos = pos.chunk_block(block_x, block_y, block_z);
+                let base_pos = pos.chunk_block((block_x, block_y as i16, block_z).into());
                 for cy in 0..HEIGHT {
                     let fy = f64::from(cy) / f64::from(HEIGHT);
                     let value_xz00 = p000.lerp(p010, fy);
@@ -96,26 +94,13 @@ pub fn generate_interpolation_data(
                             let fz = f64::from(cz) / WIDTH as f64;
                             let value = value_z0.lerp(value_z1, fz);
 
-                            // let res = post_process(value);
-                            let res = value;
-                            if cy == 0 && cx == 0 && cz == 0 {
-                                assert_eq!(res, p000);
-                            }
+                            let res = post_process(value);
 
                             let curr_pos = ChunkBlockPos::from(
                                 base_pos + BlockPos::new(cx as i32, cy, cz as i32),
                             );
 
-                            if res > 0.0 {
-                                chunk
-                                    .set_block(
-                                        i32::from(curr_pos.pos.x),
-                                        i32::from(curr_pos.pos.y),
-                                        i32::from(curr_pos.pos.z),
-                                        filler,
-                                    )
-                                    .unwrap();
-                            }
+                            action(pos.chunk_block(curr_pos), res);
                         }
                     }
                 }

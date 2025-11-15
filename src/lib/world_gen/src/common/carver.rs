@@ -120,9 +120,12 @@ impl Caver {
         let bound1 = random.next_bounded(bound) + 1;
         for _ in 0..random.next_bounded(bound1) {
             let random_pos = chunk_pos.chunk_block(
-                random.next_bounded(16) as u8,
-                random.next_i32_range(self.y),
-                random.next_bounded(16) as u8,
+                (
+                    random.next_bounded(16) as u8,
+                    random.next_i32_range(self.y) as i16,
+                    random.next_bounded(16) as u8,
+                )
+                    .into(),
             );
             let horizontal_radius_mul = random.next_f32_range(self.horizontal_radius_mul);
             let vertical_radius_mul = random.next_f32_range(self.vertical_radius_mul);
