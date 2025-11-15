@@ -33,7 +33,8 @@ pub fn handle(
                                 .0
                                 .clone()
                                 .terrain_generator
-                                .generate_chunk(event.location.x >> 4, event.location.z >> 4)?
+                                .generate_chunk(event.location.x >> 4, event.location.z >> 4)
+                                .map_err(BinaryError::WorldGen)?
                         }
                     };
                     let (relative_x, relative_y, relative_z) = (
@@ -41,9 +42,15 @@ pub fn handle(
                         event.location.y as i32,
                         event.location.z.abs() % 16,
                     );
-                    chunk.set_block(relative_x, relative_y, relative_z, BlockStateId::default())?;
+                    chunk
+                        .set_block(relative_x, relative_y, relative_z, BlockStateId::default())
+                        .map_err(BinaryError::World)?;
                     // Save the chunk to disk
-                    state.0.world.save_chunk(Arc::new(chunk))?;
+                    state
+                        .0
+                        .world
+                        .save_chunk(Arc::new(chunk))
+                        .map_err(BinaryError::World)?;
                     for (eid, conn) in query {
                         if !state.0.players.is_connected(eid) {
                             continue;
@@ -53,12 +60,14 @@ pub fn handle(
                             location: event.location.clone(),
                             block_state_id: VarInt::from(BlockStateId::default()),
                         };
-                        conn.send_packet_ref(&block_update_packet)?;
+                        conn.send_packet_ref(&block_update_packet)
+                            .map_err(BinaryError::Net)?;
                         if eid == trigger_eid {
                             let ack_packet = BlockChangeAck {
                                 sequence: event.sequence,
                             };
-                            conn.send_packet_ref(&ack_packet)?;
+                            conn.send_packet_ref(&ack_packet)
+                                .map_err(BinaryError::Net)?;
                         }
                     }
                 }
