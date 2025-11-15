@@ -6,6 +6,7 @@ mod chunk_batch_ack;
 mod command;
 mod command_suggestions;
 mod confirm_player_teleport;
+mod interact_entity;
 mod keep_alive;
 mod place_block;
 mod player_abilities;
@@ -22,6 +23,7 @@ pub fn register_packet_handlers(schedule: &mut Schedule) {
     // which one
     schedule.add_systems(chunk_batch_ack::handle);
     schedule.add_systems(confirm_player_teleport::handle);
+    schedule.add_systems(interact_entity::handle);
     schedule.add_systems(keep_alive::handle);
     schedule.add_systems(place_block::handle);
     schedule.add_systems(player_action::handle);
