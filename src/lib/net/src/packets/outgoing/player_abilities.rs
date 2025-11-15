@@ -1,4 +1,4 @@
-use ferrumc_core::abilities::player_abilities::PlayerAbilities as PlayerAbilitiesComponent;
+use ferrumc_core::player::abilities::PlayerAbilities as PlayerAbilitiesComponent;
 use ferrumc_macros::{packet, NetEncode};
 
 #[derive(NetEncode)]
