@@ -67,6 +67,10 @@ impl Debug for Position {
 
 impl Display for Position {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "({:.2}, {:.2}, {:.2})", self.coords.x, self.coords.y, self.coords.z)
+        write!(
+            f,
+            "({:.2}, {:.2}, {:.2})",
+            self.coords.x, self.coords.y, self.coords.z
+        )
     }
 }
