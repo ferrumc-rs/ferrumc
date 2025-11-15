@@ -91,26 +91,8 @@ pub fn handle(
         // 4. Search the inventory for `ItemID`
         let found_slot_index = inventory.find_item(item_id);
 
-        // 5. If found...
-        if let Some(inventory_slot_index) = found_slot_index {
-            info!(
-                "Found item in slot {}. Swapping with hotbar slot {}.",
-                inventory_slot_index, hotbar.selected_slot
-            );
-
-            // Check if the item is already in the selected hotbar slot.
-            if inventory_slot_index == hotbar.get_selected_inventory_index() {
-                continue; // Nothing to do
-            }
-
-            if let Err(e) =
-                hotbar.swap_with_inventory_slot(&mut inventory, inventory_slot_index, entity)
-            {
-                warn!("Failed to swap slots: {:?}", e);
-            }
-        }
-        // 6. If not found AND creative mode
-        else if abilities.creative_mode {
+        // 5. if in creative mode
+        if abilities.creative_mode {
             info!("Item not found. Creating stack for creative player.");
 
             let new_slot = InventorySlot {
@@ -126,6 +108,24 @@ pub fn handle(
 
             if let Err(e) = hotbar.set_selected_item(&mut inventory, new_slot, entity) {
                 warn!("Failed to set creative item in hotbar: {:?}", e);
+            }
+        }
+        // 6. If found AND in survival...
+        else if let Some(inventory_slot_index) = found_slot_index {
+            info!(
+                "Found item in slot {}. Swapping with hotbar slot {}.",
+                inventory_slot_index, hotbar.selected_slot
+            );
+
+            // Check if the item is already in the selected hotbar slot.
+            if inventory_slot_index == hotbar.get_selected_inventory_index() {
+                continue; // Nothing to do
+            }
+
+            if let Err(e) =
+                hotbar.swap_with_inventory_slot(&mut inventory, inventory_slot_index, entity)
+            {
+                warn!("Failed to swap slots: {:?}", e);
             }
         }
         // 7. If not found AND survival...
