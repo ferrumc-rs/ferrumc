@@ -194,8 +194,17 @@ pub(super) async fn login(
 
     // =============================================================================================
     // 11 Send login_play packet to switch to Play state
-    let login_play =
-        crate::packets::outgoing::login_play::LoginPlayPacket::new(player_identity.short_uuid);
+
+    let gamemode_to_send = state
+        .player_cache
+        .get(&player_identity.uuid)
+        .map(|data| data.gamemode)
+        .unwrap_or_default();
+
+    let login_play = crate::packets::outgoing::login_play::LoginPlayPacket::new(
+        player_identity.short_uuid,
+        gamemode_to_send as u8,
+    );
     conn_write.send_packet(login_play)?;
 
     // =============================================================================================
@@ -204,7 +213,7 @@ pub(super) async fn login(
 
     let abilities_to_send = state
         .player_cache
-        .get(&player_identity.uuid) // Use your new DashMap getter
+        .get(&player_identity.uuid)
         .map(|data| data.abilities.clone())
         .unwrap_or_default();
 

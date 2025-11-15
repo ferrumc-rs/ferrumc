@@ -1,17 +1,23 @@
 use dashmap::DashMap;
 use ferrumc_core::player::abilities::PlayerAbilities;
+use ferrumc_core::player::gamemode::{GameMode, GameModeComponent};
 use uuid::Uuid;
 
 /// A struct to hold all component data for an offline player.
 #[derive(Clone, Debug)]
 pub struct OfflinePlayerData {
     pub abilities: PlayerAbilities,
+    pub gamemode: GameMode,
     // TODO: Add other necessary components to cache here like gamemode
 }
 
 impl OfflinePlayerData {
-    pub fn new(abilities: PlayerAbilities) -> Self {
-        Self { abilities }
+    /// Creates a new OfflinePlayerData bundle from a set of components
+    pub fn new(abilities: PlayerAbilities, gamemode: GameModeComponent) -> Self {
+        Self {
+            abilities,
+            gamemode: gamemode.0, // Store the inner enum
+        }
     }
 }
 
