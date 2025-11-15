@@ -5,11 +5,11 @@ use ferrumc_state::GlobalStateResource;
 use tracing::{error, warn};
 
 pub fn handle(
-    events: Res<ChunkBatchAckReceiver>,
+    receiver: Res<ChunkBatchAckReceiver>,
     mut query: Query<(Entity, &mut ChunkReceiver)>,
     state: Res<GlobalStateResource>,
 ) {
-    for (event, eid) in events.0.try_iter() {
+    for (event, eid) in receiver.0.try_iter() {
         let Ok((eid, mut chunk_recv)) = query.get_mut(eid) else {
             error!(
                 "Failed to get chunk receiver or connection for entity: {:?}",

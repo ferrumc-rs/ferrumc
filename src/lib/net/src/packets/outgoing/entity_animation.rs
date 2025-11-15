@@ -1,4 +1,4 @@
-use bevy_ecs::prelude::{Entity, Event};
+use bevy_ecs::prelude::{Entity, Message};
 use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 
@@ -9,8 +9,8 @@ pub struct EntityAnimationPacket {
     pub animation: u8,
 }
 
-#[derive(Event)]
-pub struct EntityAnimationEvent {
+#[derive(Message)]
+pub struct EntityAnimated {
     pub entity: Entity,
     pub animation: u8,
     pub packet: EntityAnimationPacket,
@@ -22,7 +22,7 @@ impl EntityAnimationPacket {
     }
 }
 
-impl EntityAnimationEvent {
+impl EntityAnimated {
     pub fn new(eid: Entity, animation: u8, game_id: VarInt) -> Self {
         Self {
             entity: eid,

@@ -31,12 +31,12 @@ static ITEM_TO_BLOCK_MAPPING: Lazy<HashMap<i32, i32>> = Lazy::new(|| {
 });
 
 pub fn handle(
-    events: Res<PlaceBlockReceiver>,
+    receiver: Res<PlaceBlockReceiver>,
     state: Res<GlobalStateResource>,
     query: Query<(Entity, &StreamWriter, &Inventory, &Hotbar)>,
     pos_q: Query<(&Position, &CollisionBounds)>,
 ) {
-    'ev_loop: for (event, eid) in events.0.try_iter() {
+    'ev_loop: for (event, eid) in receiver.0.try_iter() {
         let Ok((entity, conn, inventory, hotbar)) = query.get(eid) else {
             debug!("Could not get connection for entity {:?}", eid);
             continue;

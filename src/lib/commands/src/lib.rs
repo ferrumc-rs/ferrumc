@@ -8,10 +8,10 @@ use arg::CommandArgumentNode;
 pub mod arg;
 mod ctx;
 pub mod errors;
-pub mod events;
 pub mod graph;
 pub mod infrastructure;
 mod input;
+pub mod messages;
 mod sender;
 
 // Re-export under main module to avoid clutter.

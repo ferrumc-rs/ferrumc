@@ -1,20 +1,20 @@
 use crate::systems::send_chunks::send_chunks;
-use bevy_ecs::prelude::{EventReader, Query, Res};
+use bevy_ecs::prelude::{MessageReader, Query, Res};
 use ferrumc_config::server_config::get_global_config;
-use ferrumc_core::chunks::cross_chunk_boundary_event::CrossChunkBoundaryEvent;
+use ferrumc_core::chunks::cross_chunk_boundary_event::ChunkBoundaryCrossed;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_state::GlobalStateResource;
 use std::collections::HashSet;
 
 pub fn cross_chunk_boundary(
-    mut events: EventReader<CrossChunkBoundaryEvent>,
+    mut messages: MessageReader<ChunkBoundaryCrossed>,
     mut query: Query<&mut StreamWriter>,
     state: Res<GlobalStateResource>,
 ) {
-    if events.is_empty() {
+    if messages.is_empty() {
         return;
     }
-    for event in events.read() {
+    for event in messages.read() {
         if !state.0.players.is_connected(event.player) {
             continue; // Skip if the player is not connected
         }

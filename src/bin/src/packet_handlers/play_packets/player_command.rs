@@ -7,11 +7,11 @@ use ferrumc_state::GlobalStateResource;
 use tracing::error;
 
 pub fn handle(
-    events: Res<PlayerCommandPacketReceiver>,
+    receiver: Res<PlayerCommandPacketReceiver>,
     query: Query<(Entity, &StreamWriter)>,
     state: Res<GlobalStateResource>,
 ) {
-    for (event, _) in events.0.try_iter() {
+    for (event, _) in receiver.0.try_iter() {
         match event.action {
             PlayerCommandAction::StartSneaking => {
                 let packet = EntityMetadataPacket::new(

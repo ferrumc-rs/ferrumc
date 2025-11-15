@@ -1,14 +1,14 @@
-//! Events related to commmands.
+//! Messages related to commmands.
 
 use std::sync::Arc;
 
-use bevy_ecs::prelude::Event;
+use bevy_ecs::message::Message;
 
-use crate::{ctx::CommandContext, infrastructure, sender::Sender, Command};
+use crate::{ctx::CommandContext, sender::Sender, Command};
 
-/// A command has been dispatched.
-#[derive(Event)]
-pub struct CommandDispatchEvent {
+/// A command has been dispatched
+#[derive(Message)]
+pub struct CommandDispatched {
     /// The command string.
     pub command: String,
 
@@ -19,8 +19,8 @@ pub struct CommandDispatchEvent {
 /// A command has been dispatched and resolved.
 /// At this point in time, the command has not been executed
 /// yet. This is up to the server or plugins to handle.
-#[derive(Event)]
-pub struct ResolvedCommandDispatchEvent {
+#[derive(Message)]
+pub struct ResolvedCommandDispatched {
     /// The command.
     pub command: Arc<Command>,
 
@@ -29,11 +29,4 @@ pub struct ResolvedCommandDispatchEvent {
 
     /// The sender of the command.
     pub sender: Sender,
-}
-
-impl CommandDispatchEvent {
-    /// Attempts to find the command that was dispatched.
-    pub fn lookup(&self) -> Option<Arc<Command>> {
-        infrastructure::find_command(&self.command)
-    }
 }

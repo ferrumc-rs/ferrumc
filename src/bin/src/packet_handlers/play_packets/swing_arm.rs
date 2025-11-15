@@ -8,12 +8,12 @@ use ferrumc_state::GlobalStateResource;
 use tracing::error;
 
 pub fn handle(
-    events: Res<SwingArmPacketReceiver>,
+    receiver: Res<SwingArmPacketReceiver>,
     query: Query<&PlayerIdentity>,
     conn_query: Query<(Entity, &StreamWriter)>,
     state: Res<GlobalStateResource>,
 ) {
-    for (event, eid) in events.0.try_iter() {
+    for (event, eid) in receiver.0.try_iter() {
         let animation = {
             if event.hand == 0 {
                 0

@@ -2,7 +2,7 @@ use crate::errors::NetError;
 
 pub mod incoming;
 pub mod outgoing;
-pub mod packet_events;
+pub mod packet_messages;
 
 // #[enum_delegate::register]
 pub trait IncomingPacket {
