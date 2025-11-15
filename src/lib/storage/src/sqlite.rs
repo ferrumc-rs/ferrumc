@@ -1,6 +1,4 @@
-use rusqlite::{params, params_from_iter, Connection};
-use serde::{de::DeserializeOwned, Serialize};
-use serde_json::Value;
+use rusqlite::{params, params_from_iter, Connection, Row};
 use std::{collections::HashMap, marker::PhantomData, path::PathBuf};
 
 use crate::errors::StorageError;
@@ -10,6 +8,32 @@ impl From<rusqlite::Error> for StorageError {
     fn from(err: rusqlite::Error) -> Self {
         StorageError::DatabaseError(err.to_string())
     }
+}
+
+/// Trait that types must implement to be stored in SqliteDatabase
+/// This defines how the type maps to SQL columns
+pub trait SqlStorable: Sized {
+    /// Returns the SQL schema for creating the table (without CREATE TABLE and table name)
+    /// Example: "key TEXT PRIMARY KEY, x REAL, y REAL, z REAL"
+    fn schema() -> &'static str;
+
+    /// Returns the column names for INSERT/UPDATE (excluding key)
+    /// Example: "x, y, z"
+    fn columns() -> &'static str;
+
+    /// Returns the placeholder string for VALUES clause
+    /// Example: "?1, ?2, ?3" for 3 columns (key is always ?1)
+    fn value_placeholders() -> &'static str;
+
+    /// Binds the values to a statement (starting from index 2, since 1 is the key)
+    fn bind_values(
+        &self,
+        stmt: &mut rusqlite::Statement,
+        start_idx: usize,
+    ) -> Result<(), StorageError>;
+
+    /// Reads a row from the database and constructs Self
+    fn from_row(row: &Row) -> Result<Self, StorageError>;
 }
 
 #[derive(Debug, Clone)]
@@ -43,37 +67,38 @@ impl<T> SqliteDatabase<T> {
 
 impl<T> SqliteDatabase<T>
 where
-    T: Serialize + DeserializeOwned,
+    T: SqlStorable,
 {
     pub fn create_table(&self, table: &str) -> Result<(), StorageError> {
         let conn = self.open_conn()?;
-        let sql = format!(
-            "CREATE TABLE IF NOT EXISTS \"{}\" (key TEXT PRIMARY KEY, value JSON NOT NULL)",
-            table
-        );
+        let sql = format!("CREATE TABLE IF NOT EXISTS \"{}\" ({})", table, T::schema());
         conn.execute(&sql, [])?;
         Ok(())
     }
 
     pub fn insert(&self, table: &str, key: u128, value: T) -> Result<(), StorageError> {
         let conn = self.open_conn()?;
-        let json_val: Value =
-            serde_json::to_value(&value).map_err(|e| StorageError::DatabaseError(e.to_string()))?;
-        let sql = format!("INSERT INTO \"{}\" (key, value) VALUES (?1, ?2)", table);
-        conn.execute(&sql, params![key.to_string(), json_val])?;
+        let sql = format!(
+            "INSERT INTO \"{}\" (key, {}) VALUES (?1, {})",
+            table,
+            T::columns(),
+            T::value_placeholders()
+        );
+        let mut stmt = conn.prepare(&sql)?;
+        stmt.raw_bind_parameter(1, key.to_string())?;
+        value.bind_values(&mut stmt, 2)?;
+        stmt.raw_execute()?;
         Ok(())
     }
 
     pub fn get(&self, table: &str, key: u128) -> Result<Option<T>, StorageError> {
         let conn = self.open_conn()?;
-        let sql = format!("SELECT value FROM \"{}\" WHERE key = ?1 LIMIT 1", table);
+        let sql = format!("SELECT * FROM \"{}\" WHERE key = ?1 LIMIT 1", table);
         let mut stmt = conn.prepare(&sql)?;
         let mut rows = stmt.query(params![key.to_string()])?;
         if let Some(row) = rows.next()? {
-            let json_val: Value = row.get(0)?;
-            let v: T = serde_json::from_value(json_val)
-                .map_err(|e| StorageError::DatabaseError(e.to_string()))?;
-            Ok(Some(v))
+            let value = T::from_row(row)?;
+            Ok(Some(value))
         } else {
             Ok(None)
         }
@@ -88,23 +113,49 @@ where
 
     pub fn update(&self, table: &str, key: u128, value: T) -> Result<(), StorageError> {
         let conn = self.open_conn()?;
-        let json_val: Value =
-            serde_json::to_value(&value).map_err(|e| StorageError::DatabaseError(e.to_string()))?;
-        let sql = format!("UPDATE \"{}\" SET value = ?1 WHERE key = ?2", table);
-        conn.execute(&sql, params![json_val, key.to_string()])?;
+
+        // Build SET clause dynamically based on columns
+        let columns = T::columns();
+        let column_list: Vec<&str> = columns.split(',').map(|s| s.trim()).collect();
+        let set_clause = column_list
+            .iter()
+            .enumerate()
+            .map(|(i, col)| format!("{} = ?{}", col, i + 2))
+            .collect::<Vec<_>>()
+            .join(", ");
+
+        let sql = format!("UPDATE \"{}\" SET {} WHERE key = ?1", table, set_clause);
+        let mut stmt = conn.prepare(&sql)?;
+        stmt.raw_bind_parameter(1, key.to_string())?;
+        value.bind_values(&mut stmt, 2)?;
+        stmt.raw_execute()?;
         Ok(())
     }
 
     pub fn upsert(&self, table: &str, key: u128, value: &T) -> Result<bool, StorageError> {
         let conn = self.open_conn()?;
-        let json_val: Value =
-            serde_json::to_value(value).map_err(|e| StorageError::DatabaseError(e.to_string()))?;
+
+        // Build SET clause for UPDATE part
+        let columns = T::columns();
+        let column_list: Vec<&str> = columns.split(',').map(|s| s.trim()).collect();
+        let set_clause = column_list
+            .iter()
+            .map(|col| format!("{} = excluded.{}", col, col))
+            .collect::<Vec<_>>()
+            .join(", ");
+
         let sql = format!(
-            "INSERT INTO \"{t}\" (key, value) VALUES (?1, ?2)
-             ON CONFLICT(key) DO UPDATE SET value = excluded.value",
-            t = table
+            "INSERT INTO \"{}\" (key, {}) VALUES (?1, {})
+             ON CONFLICT(key) DO UPDATE SET {}",
+            table,
+            T::columns(),
+            T::value_placeholders(),
+            set_clause
         );
-        conn.execute(&sql, params![key.to_string(), json_val])?;
+        let mut stmt = conn.prepare(&sql)?;
+        stmt.raw_bind_parameter(1, key.to_string())?;
+        value.bind_values(&mut stmt, 2)?;
+        stmt.raw_execute()?;
         Ok(true)
     }
 
@@ -114,13 +165,18 @@ where
         }
         let mut conn = self.open_conn()?;
         let tx = conn.transaction()?;
-        let sql = format!("INSERT INTO \"{}\" (key, value) VALUES (?1, ?2)", table);
+        let sql = format!(
+            "INSERT INTO \"{}\" (key, {}) VALUES (?1, {})",
+            table,
+            T::columns(),
+            T::value_placeholders()
+        );
         {
-            let mut stmt = tx.prepare(&sql)?;
             for (k, v) in data {
-                let json_val: Value = serde_json::to_value(&v)
-                    .map_err(|e| StorageError::DatabaseError(e.to_string()))?;
-                stmt.execute(params![k.to_string(), json_val])?;
+                let mut stmt = tx.prepare(&sql)?;
+                stmt.raw_bind_parameter(1, k.to_string())?;
+                v.bind_values(&mut stmt, 2)?;
+                stmt.raw_execute()?;
             }
         }
         tx.commit()?;
@@ -136,27 +192,25 @@ where
             .collect::<Vec<_>>()
             .join(",");
         let query_sql = format!(
-            "SELECT key, value FROM \"{}\" WHERE key IN ({})",
+            "SELECT * FROM \"{}\" WHERE key IN ({})",
             table, placeholders
         );
         let mut stmt = conn.prepare(&query_sql)?;
         let key_strings = keys.iter().map(|k| k.to_string());
         let mut rows = stmt.query(params_from_iter(key_strings))?;
 
-        let mut found: HashMap<String, serde_json::Value> = HashMap::new();
+        let mut found: HashMap<String, T> = HashMap::new();
         while let Some(row) = rows.next()? {
             let key_str: String = row.get(0)?;
-            let json_val: serde_json::Value = row.get(1)?;
-            found.insert(key_str, json_val);
+            let value = T::from_row(row)?;
+            found.insert(key_str, value);
         }
 
         let mut result = Vec::with_capacity(keys.len());
         for k in keys {
             let ks = k.to_string();
-            if let Some(json_val) = found.remove(&ks) {
-                let v: T = serde_json::from_value(json_val)
-                    .map_err(|e| StorageError::DatabaseError(e.to_string()))?;
-                result.push(Some(v));
+            if let Some(value) = found.remove(&ks) {
+                result.push(Some(value));
             } else {
                 result.push(None);
             }
@@ -171,17 +225,30 @@ where
         }
         let mut conn = self.open_conn()?;
         let tx = conn.transaction()?;
+
+        // Build SET clause for UPDATE part
+        let columns = T::columns();
+        let column_list: Vec<&str> = columns.split(',').map(|s| s.trim()).collect();
+        let set_clause = column_list
+            .iter()
+            .map(|col| format!("{} = excluded.{}", col, col))
+            .collect::<Vec<_>>()
+            .join(", ");
+
         let sql = format!(
-            "INSERT INTO \"{t}\" (key, value) VALUES (?1, ?2)
-             ON CONFLICT(key) DO UPDATE SET value = excluded.value",
-            t = table
+            "INSERT INTO \"{}\" (key, {}) VALUES (?1, {})
+             ON CONFLICT(key) DO UPDATE SET {}",
+            table,
+            T::columns(),
+            T::value_placeholders(),
+            set_clause
         );
         {
-            let mut stmt = tx.prepare(&sql)?;
             for (k, v) in data {
-                let json_val: Value = serde_json::to_value(&v)
-                    .map_err(|e| StorageError::DatabaseError(e.to_string()))?;
-                stmt.execute(params![k.to_string(), json_val])?;
+                let mut stmt = tx.prepare(&sql)?;
+                stmt.raw_bind_parameter(1, k.to_string())?;
+                v.bind_values(&mut stmt, 2)?;
+                stmt.raw_execute()?;
             }
         }
         tx.commit()?;
@@ -194,20 +261,57 @@ mod tests {
     use std::fs::remove_dir_all;
 
     use super::*;
-    use serde::Deserialize;
+    use rusqlite::Row;
     use tempfile::tempdir;
 
-    #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+    #[derive(Debug, PartialEq, Clone)]
     struct TestData {
         pub pos: Position,
         pub dimension: String,
     }
 
-    #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+    #[derive(Debug, PartialEq, Clone)]
     pub struct Position {
         pub x: f64,
         pub y: f64,
         pub z: f64,
+    }
+
+    impl SqlStorable for TestData {
+        fn schema() -> &'static str {
+            "key TEXT PRIMARY KEY, pos_x REAL NOT NULL, pos_y REAL NOT NULL, pos_z REAL NOT NULL, dimension TEXT NOT NULL"
+        }
+
+        fn columns() -> &'static str {
+            "pos_x, pos_y, pos_z, dimension"
+        }
+
+        fn value_placeholders() -> &'static str {
+            "?2, ?3, ?4, ?5"
+        }
+
+        fn bind_values(
+            &self,
+            stmt: &mut rusqlite::Statement,
+            start_idx: usize,
+        ) -> Result<(), StorageError> {
+            stmt.raw_bind_parameter(start_idx, self.pos.x)?;
+            stmt.raw_bind_parameter(start_idx + 1, self.pos.y)?;
+            stmt.raw_bind_parameter(start_idx + 2, self.pos.z)?;
+            stmt.raw_bind_parameter(start_idx + 3, self.dimension.as_str())?;
+            Ok(())
+        }
+
+        fn from_row(row: &Row) -> Result<Self, StorageError> {
+            Ok(TestData {
+                pos: Position {
+                    x: row.get(1)?,
+                    y: row.get(2)?,
+                    z: row.get(3)?,
+                },
+                dimension: row.get(4)?,
+            })
+        }
     }
 
     fn setup_db() -> (SqliteDatabase<TestData>, String, tempfile::TempDir) {

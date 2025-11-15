@@ -3,19 +3,27 @@ use bevy_ecs::{
     prelude::{Query, Res},
     system::Commands,
 };
-use ferrumc_core::conn::player_disconnect_event::PlayerDisconnectEvent;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::{grounded::OnGround, position::Position, rotation::Rotation};
+use ferrumc_core::{
+    conn::player_disconnect_event::PlayerDisconnectEvent, player::gamemode::GameModeComponent,
+};
 use ferrumc_state::GlobalStateResource;
 
 pub fn handle(
     mut cmd: Commands,
     mut events: EventReader<PlayerDisconnectEvent>,
     state: Res<GlobalStateResource>,
-    query: Query<(&PlayerIdentity, &Position, &OnGround, &Rotation)>,
+    query: Query<(
+        &PlayerIdentity,
+        &Position,
+        &OnGround,
+        &Rotation,
+        &GameModeComponent,
+    )>,
 ) {
     for event in events.read() {
-        if let Ok((identity, position, on_ground, rotation)) = query.get(event.entity) {
+        if let Ok((identity, position, on_ground, rotation, game_mode)) = query.get(event.entity) {
             let uuid = identity.uuid.as_u128();
             let username = &identity.username;
 
@@ -24,6 +32,7 @@ pub fn handle(
                 on_ground.0,
                 "overworld",
                 rotation,
+                game_mode.0,
             );
 
             if let Err(e) = state.0.world.save_player_state(uuid, &player_data) {
