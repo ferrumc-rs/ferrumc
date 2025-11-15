@@ -30,6 +30,7 @@ ahash = { workspace = true }
 rand = { workspace = true }
 yazi = { workspace = true }
 ferrumc-threadpool = { workspace = true }
+ferrumc-core = { workspace = true }
 
 [[bench]]
 name = "world_bench"

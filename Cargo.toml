@@ -14,14 +14,11 @@ resolver = "2"
 members = [
     "src/bin",
     "src/lib/adapters/anvil",
-    "src/lib/adapters/anvil",
-    "src/lib/adapters/nbt",
     "src/lib/adapters/nbt",
     "src/lib/commands",
     "src/lib/default_commands",
     "src/lib/core",
     "src/lib/core/state",
-    "src/lib/derive_macros",
     "src/lib/derive_macros",
     "src/lib/net",
     "src/lib/net/crates/codec",
@@ -186,6 +183,7 @@ yazi = "0.2.1"
 # Database
 heed = "0.22.0"
 moka = "0.12.11"
+rusqlite = { version = "0.37.0", features = ["bundled", "serde_json"] }
 
 # CLI
 clap = "4.5.49"

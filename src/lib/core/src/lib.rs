@@ -4,6 +4,7 @@ pub mod errors;
 pub mod chunks;
 pub mod collisions;
 pub mod conn;
+pub mod data;
 pub mod identity;
 pub mod mq;
 pub mod player;
