@@ -228,6 +228,7 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
         #[doc(hidden)]
         #input_fn
 
+        #[allow(unused_mut)] // required to use mutable queries without clippy screaming bloody murder
         #[allow(non_snake_case)]
         #[allow(unused_variables)] // if there is no sender arg
         #[doc(hidden)]
