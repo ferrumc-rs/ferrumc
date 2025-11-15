@@ -54,25 +54,7 @@ fn gamemode_command(
     gamemode.0 = new_gamemode;
 
     // 4. Update PlayerAbilities to match the new gamemode
-    match new_gamemode {
-        GameMode::Survival | GameMode::Adventure => {
-            abilities.may_fly = false;
-            abilities.flying = false;
-            abilities.invulnerable = false;
-            abilities.creative_mode = false;
-        }
-        GameMode::Creative => {
-            abilities.may_fly = true;
-            abilities.invulnerable = true;
-            abilities.creative_mode = true;
-        }
-        GameMode::Spectator => {
-            abilities.may_fly = true;
-            abilities.flying = true; // Spectators are always flying
-            abilities.invulnerable = true;
-            abilities.creative_mode = false;
-        }
-    }
+    new_gamemode.update_abilities(&mut abilities);
 
     // 5. Send packets to sync the client
 
