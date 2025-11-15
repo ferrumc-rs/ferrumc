@@ -1,5 +1,6 @@
 use bevy_ecs::schedule::Schedule;
 
+mod change_game_mode;
 mod chat_message;
 mod chunk_batch_ack;
 mod command;
@@ -7,6 +8,7 @@ mod command_suggestions;
 mod confirm_player_teleport;
 mod keep_alive;
 mod place_block;
+mod player_abilities;
 mod player_action;
 mod player_command;
 mod player_loaded;
@@ -34,6 +36,8 @@ pub fn register_packet_handlers(schedule: &mut Schedule) {
     schedule.add_systems(chat_message::handle);
     schedule.add_systems(set_creative_mode_slot::handle);
     schedule.add_systems(set_held_item::handle);
+    schedule.add_systems(player_abilities::handle);
+    schedule.add_systems(change_game_mode::handle);
 }
 
 pub mod set_creative_mode_slot;

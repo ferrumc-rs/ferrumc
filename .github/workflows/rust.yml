@@ -37,6 +37,37 @@ jobs:
           tool: cargo-audit
       - name: Run Cargo Audit
         run: cargo audit
+  build:
+    name: Build and Upload Artifacts
+    if: github.ref == 'refs/heads/master'
+    runs-on: ${{ matrix.os }}
+    needs: [formatting_and_security, test]
+    strategy:
+      matrix:
+        include:
+          - os: macos-14
+            target: aarch64-apple-darwin
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Upload executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: ferrumc-${{ matrix.os }}
+          path: target/${{ matrix.target }}/release/ferrumc*
 
   test:
     name: Run Tests
