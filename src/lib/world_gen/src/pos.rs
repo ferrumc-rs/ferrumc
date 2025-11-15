@@ -58,15 +58,9 @@ impl ChunkPos {
         (self.pos + pos.pos.as_ivec2()).into()
     }
 
-    #[deprecated]
-    pub fn iter_columns(self) -> impl Iterator<Item = ColumnPos> {
-        (self.pos.x..self.pos.x + 16)
-            .cartesian_product(self.pos.y..self.pos.y + 16)
-            .map(IVec2::from)
-            .map(ColumnPos::from)
-    }
-    pub fn chunk_block(&self, x: u8, y: i32, z: u8) -> BlockPos {
-        self.column_pos((x, z).into()).block(y)
+    pub fn chunk_block(&self, pos: ChunkBlockPos) -> BlockPos {
+        self.column_pos(pos.pos.xz().as_u8vec2().into())
+            .block(i32::from(pos.pos.y))
     }
 
     pub fn block_offset(&self, x: i32, y: i32, z: i32) -> BlockPos {
@@ -108,6 +102,14 @@ impl From<ColumnPos> for ChunkColumnPos {
     }
 }
 
+impl From<U8Vec2> for ChunkColumnPos {
+    fn from(pos: U8Vec2) -> Self {
+        assert!(pos.x < 16);
+        assert!(pos.y < 16);
+        Self { pos }
+    }
+}
+
 impl From<(u8, u8)> for ChunkColumnPos {
     fn from(pos: (u8, u8)) -> Self {
         assert!(pos.0 < 16);
@@ -127,6 +129,12 @@ impl From<BlockPos> for ChunkBlockPos {
             pos.y as i16,
             pos.z.rem_euclid(16) as u8,
         )
+    }
+}
+
+impl From<(u8, i16, u8)> for ChunkBlockPos {
+    fn from(pos: (u8, i16, u8)) -> Self {
+        Self::new(pos.0, pos.1, pos.2)
     }
 }
 
@@ -164,7 +172,7 @@ impl ColumnPos {
         let radius = radius as i32;
         ((-radius)..=(radius))
             .cartesian_product((-radius)..=(radius))
-            .map(|vec| IVec2::from(vec))
+            .map(IVec2::from)
             .filter(move |vec| vec.length_squared() <= radius * radius)
             .map(|vec| Self::from(self.pos + vec))
     }

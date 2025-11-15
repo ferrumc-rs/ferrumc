@@ -5,6 +5,7 @@ mod biome;
 mod biome_chunk;
 pub mod block_can_survive;
 pub mod blocktag;
+mod cache;
 mod common;
 mod direction;
 mod end;
@@ -15,9 +16,9 @@ mod overworld;
 mod perlin_noise;
 mod pos;
 mod random;
-mod cache;
 use crate::end::end_generator::EndGenerator;
 use crate::errors::WorldGenError;
+use crate::overworld::overworld_generator::OverworldGenerator;
 use crate::pos::BlockPos;
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::chunk_format::Chunk;
@@ -51,13 +52,13 @@ pub enum HeightmapType {
     OceanFloorWg,
 }
 pub struct WorldGenerator {
-    generator: EndGenerator,
+    generator: OverworldGenerator,
 }
 
 impl WorldGenerator {
     pub fn new(seed: u64) -> Self {
         Self {
-            generator: EndGenerator::new(seed),
+            generator: OverworldGenerator::new(seed),
         }
     }
 

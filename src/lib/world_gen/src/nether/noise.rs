@@ -23,12 +23,8 @@ impl NetherNoise {
         }
     }
     pub fn generate_chunk(&self, pos: ChunkPos, chunk: &mut Chunk) {
-        generate_interpolation_data(
-            |pos| self.pre_backed_final_density(pos),
-            chunk,
-            pos,
-            block!("end_stone"),
-        );
+        todo!();
+        // generate_interpolation_data(|pos| self.pre_backed_final_density(pos), pos, todo!());
     }
 
     fn pre_backed_final_density(&self, pos: BlockPos) -> f64 {
