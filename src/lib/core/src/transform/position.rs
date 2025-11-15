@@ -51,6 +51,30 @@ impl From<&(f64, f64, f64)> for Position {
     }
 }
 
+impl From<DVec3> for Position {
+    fn from(vec: DVec3) -> Self {
+        Self::new(vec.x, vec.y, vec.z)
+    }
+}
+
+impl From<&DVec3> for Position {
+    fn from(vec: &DVec3) -> Self {
+        Self::new(vec.x, vec.y, vec.z)
+    }
+}
+
+impl From<Position> for DVec3 {
+    fn from(pos: Position) -> Self {
+        DVec3::new(pos.x, pos.y, pos.z)
+    }
+}
+
+impl From<&Position> for DVec3 {
+    fn from(pos: &Position) -> Self {
+        DVec3::new(pos.x, pos.y, pos.z)
+    }
+}
+
 impl Debug for Position {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
