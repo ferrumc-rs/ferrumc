@@ -1,4 +1,3 @@
-use crate::database::Database;
 use crate::errors::StorageError;
 use heed;
 use heed::byteorder::BigEndian;
@@ -94,11 +93,8 @@ impl LmdbBackend {
     }
 }
 
-impl Database for LmdbBackend {
-    type Key = u128;
-    type Value = Vec<u8>;
-
-    fn create_table(&self, table: &str) -> Result<(), StorageError> {
+impl LmdbBackend {
+    pub fn create_table(&self, table: &str) -> Result<(), StorageError> {
         let env = self.env.lock();
         let mut rw_txn = env.write_txn()?;
         env.create_database::<U128<BigEndian>, Bytes>(&mut rw_txn, Some(table))?;
@@ -106,7 +102,7 @@ impl Database for LmdbBackend {
         Ok(())
     }
 
-    fn insert(&self, table: &str, key: Self::Key, value: Self::Value) -> Result<(), StorageError> {
+    pub fn insert(&self, table: &str, key: u128, value: Vec<u8>) -> Result<(), StorageError> {
         let env = self.env.lock();
         let mut rw_txn = env.write_txn()?;
         let db: heed::Database<U128<BigEndian>, Bytes> =
@@ -120,7 +116,7 @@ impl Database for LmdbBackend {
         Ok(())
     }
 
-    fn get(&self, table: &str, key: Self::Key) -> Result<Option<Self::Value>, StorageError> {
+    pub fn get(&self, table: &str, key: u128) -> Result<Option<Vec<u8>>, StorageError> {
         let env = self.env.lock();
         let ro_txn = env.read_txn()?;
         let db: heed::Database<U128<BigEndian>, Bytes> =
@@ -134,7 +130,7 @@ impl Database for LmdbBackend {
         }
     }
 
-    fn delete(&self, table: &str, key: Self::Key) -> Result<(), StorageError> {
+    pub fn delete(&self, table: &str, key: u128) -> Result<(), StorageError> {
         let env = self.env.lock();
         let mut rw_txn = env.write_txn()?;
         let db: heed::Database<U128<BigEndian>, Bytes> =
@@ -148,7 +144,7 @@ impl Database for LmdbBackend {
         Ok(())
     }
 
-    fn update(&self, table: &str, key: Self::Key, value: Self::Value) -> Result<(), StorageError> {
+    pub fn update(&self, table: &str, key: u128, value: Vec<u8>) -> Result<(), StorageError> {
         let env = self.env.lock();
         let mut rw_txn = env.write_txn()?;
         let db: heed::Database<U128<BigEndian>, Bytes> =
@@ -162,12 +158,7 @@ impl Database for LmdbBackend {
         Ok(())
     }
 
-    fn upsert(
-        &self,
-        table: &str,
-        key: Self::Key,
-        value: &Self::Value,
-    ) -> Result<bool, StorageError> {
+    pub fn upsert(&self, table: &str, key: u128, value: &[u8]) -> Result<bool, StorageError> {
         let env = self.env.lock();
         let mut rw_txn = env.write_txn()?;
         let db: heed::Database<U128<BigEndian>, Bytes> =
@@ -178,10 +169,10 @@ impl Database for LmdbBackend {
         Ok(true)
     }
 
-    fn batch_upsert(
+    pub fn batch_upsert(
         &self,
         table: &str,
-        data: Vec<(Self::Key, Self::Value)>,
+        data: Vec<(u128, Vec<u8>)>,
     ) -> Result<(), StorageError> {
         let env = self.env.lock();
         let mut rw_txn = env.write_txn()?;
@@ -213,10 +204,10 @@ impl Database for LmdbBackend {
         Ok(())
     }
 
-    fn batch_insert(
+    pub fn batch_insert(
         &self,
         table: &str,
-        data: Vec<(Self::Key, Self::Value)>,
+        data: Vec<(u128, Vec<u8>)>,
     ) -> Result<(), StorageError> {
         let env = self.env.lock();
         let mut rw_txn = env.write_txn()?;
@@ -236,11 +227,11 @@ impl Database for LmdbBackend {
         Ok(())
     }
 
-    fn batch_get(
+    pub fn batch_get(
         &self,
         table: &str,
-        keys: Vec<Self::Key>,
-    ) -> Result<Vec<Option<Self::Value>>, StorageError> {
+        keys: Vec<u128>,
+    ) -> Result<Vec<Option<Vec<u8>>>, StorageError> {
         let env = self.env.lock();
         let ro_txn = env.read_txn()?;
         let db: heed::Database<U128<BigEndian>, Bytes> =

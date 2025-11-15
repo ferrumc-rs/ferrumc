@@ -1,10 +1,8 @@
 use crate::systems::system_messages;
-use bevy_ecs::{
-    event::EventWriter,
-    prelude::{Entity, Query, Res},
-};
+use bevy_ecs::prelude::{Commands, Entity, Query, Res};
+use ferrumc_core::player::abilities::PlayerAbilities;
 use ferrumc_core::{
-    conn::player_disconnect_event::PlayerDisconnectEvent, identity::player_identity::PlayerIdentity,
+    identity::player_identity::PlayerIdentity, player::gamemode::GameModeComponent,
 };
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_state::player_cache::OfflinePlayerData;
@@ -13,8 +11,14 @@ use ferrumc_text::TextComponent;
 use tracing::{info, trace, warn};
 
 pub fn connection_killer(
-    query: Query<(Entity, &StreamWriter, &PlayerIdentity)>,
-    mut dispatch_events: EventWriter<PlayerDisconnectEvent>,
+    query: Query<(
+        &PlayerIdentity,
+        Entity,
+        &StreamWriter,
+        &PlayerAbilities,
+        &GameModeComponent,
+    )>,
+    mut cmd: Commands,
     state: Res<GlobalStateResource>,
 ) {
     while let Some((disconnecting_entity, reason)) = state.0.players.disconnection_queue.pop() {
@@ -60,12 +64,6 @@ pub fn connection_killer(
                         "Connection for player {} is not running, skipping disconnect packet",
                         player_identity.username
                     );
-                        }
-                    } else {
-                        system_messages::player_leave::handle(disconnecting_player.2, entity);
-                    }
-                    let player_disconnect = PlayerDisconnectEvent { entity };
-                    dispatch_events.write(player_disconnect);
                 }
 
                 // --- Save player data to the cache --

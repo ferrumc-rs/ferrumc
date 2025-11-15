@@ -11,3 +11,4 @@ dashmap = { workspace = true }
 ferrumc-threadpool = { workspace = true }
 crossbeam-queue = { workspace = true }
 ferrumc-core = { workspace = true }
+uuid = { workspace = true }

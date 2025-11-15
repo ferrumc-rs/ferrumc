@@ -3,7 +3,7 @@ use serde::{de::DeserializeOwned, Serialize};
 use serde_json::Value;
 use std::{collections::HashMap, marker::PhantomData, path::PathBuf};
 
-use crate::{database::Database, errors::StorageError};
+use crate::errors::StorageError;
 
 // TODO: Implement proper error mapping
 impl From<rusqlite::Error> for StorageError {
@@ -41,14 +41,11 @@ impl<T> SqliteDatabase<T> {
     }
 }
 
-impl<T> Database for SqliteDatabase<T>
+impl<T> SqliteDatabase<T>
 where
     T: Serialize + DeserializeOwned,
 {
-    type Key = u128;
-    type Value = T;
-
-    fn create_table(&self, table: &str) -> Result<(), StorageError> {
+    pub fn create_table(&self, table: &str) -> Result<(), StorageError> {
         let conn = self.open_conn()?;
         let sql = format!(
             "CREATE TABLE IF NOT EXISTS \"{}\" (key TEXT PRIMARY KEY, value JSON NOT NULL)",
@@ -58,7 +55,7 @@ where
         Ok(())
     }
 
-    fn insert(&self, table: &str, key: Self::Key, value: Self::Value) -> Result<(), StorageError> {
+    pub fn insert(&self, table: &str, key: u128, value: T) -> Result<(), StorageError> {
         let conn = self.open_conn()?;
         let json_val: Value =
             serde_json::to_value(&value).map_err(|e| StorageError::DatabaseError(e.to_string()))?;
@@ -67,7 +64,7 @@ where
         Ok(())
     }
 
-    fn get(&self, table: &str, key: Self::Key) -> Result<Option<Self::Value>, StorageError> {
+    pub fn get(&self, table: &str, key: u128) -> Result<Option<T>, StorageError> {
         let conn = self.open_conn()?;
         let sql = format!("SELECT value FROM \"{}\" WHERE key = ?1 LIMIT 1", table);
         let mut stmt = conn.prepare(&sql)?;
@@ -82,14 +79,14 @@ where
         }
     }
 
-    fn delete(&self, table: &str, key: Self::Key) -> Result<(), StorageError> {
+    pub fn delete(&self, table: &str, key: u128) -> Result<(), StorageError> {
         let conn = self.open_conn()?;
         let sql = format!("DELETE FROM \"{}\" WHERE key = ?1", table);
         conn.execute(&sql, params![key.to_string()])?;
         Ok(())
     }
 
-    fn update(&self, table: &str, key: Self::Key, value: Self::Value) -> Result<(), StorageError> {
+    pub fn update(&self, table: &str, key: u128, value: T) -> Result<(), StorageError> {
         let conn = self.open_conn()?;
         let json_val: Value =
             serde_json::to_value(&value).map_err(|e| StorageError::DatabaseError(e.to_string()))?;
@@ -98,12 +95,7 @@ where
         Ok(())
     }
 
-    fn upsert(
-        &self,
-        table: &str,
-        key: Self::Key,
-        value: &Self::Value,
-    ) -> Result<bool, StorageError> {
+    pub fn upsert(&self, table: &str, key: u128, value: &T) -> Result<bool, StorageError> {
         let conn = self.open_conn()?;
         let json_val: Value =
             serde_json::to_value(value).map_err(|e| StorageError::DatabaseError(e.to_string()))?;
@@ -116,11 +108,7 @@ where
         Ok(true)
     }
 
-    fn batch_insert(
-        &self,
-        table: &str,
-        data: Vec<(Self::Key, Self::Value)>,
-    ) -> Result<(), StorageError> {
+    pub fn batch_insert(&self, table: &str, data: Vec<(u128, T)>) -> Result<(), StorageError> {
         if data.is_empty() {
             return Ok(());
         }
@@ -139,11 +127,7 @@ where
         Ok(())
     }
 
-    fn batch_get(
-        &self,
-        table: &str,
-        keys: Vec<Self::Key>,
-    ) -> Result<Vec<Option<Self::Value>>, StorageError> {
+    pub fn batch_get(&self, table: &str, keys: Vec<u128>) -> Result<Vec<Option<T>>, StorageError> {
         if keys.is_empty() {
             return Ok(Vec::new());
         }
@@ -181,11 +165,7 @@ where
         Ok(result)
     }
 
-    fn batch_upsert(
-        &self,
-        table: &str,
-        data: Vec<(Self::Key, Self::Value)>,
-    ) -> Result<(), StorageError> {
+    pub fn batch_upsert(&self, table: &str, data: Vec<(u128, T)>) -> Result<(), StorageError> {
         if data.is_empty() {
             return Ok(());
         }

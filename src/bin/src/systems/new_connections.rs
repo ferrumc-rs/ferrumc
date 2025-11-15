@@ -5,7 +5,10 @@ use ferrumc_core::conn::keepalive::KeepAliveTracker;
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
-use ferrumc_core::{chunks::chunk_receiver::ChunkReceiver, data::player::PlayerData, player::gamemode::GameModeComponent};
+use ferrumc_core::{
+    chunks::chunk_receiver::ChunkReceiver, data::player::PlayerData,
+    player::gamemode::GameModeComponent,
+};
 use ferrumc_inventories::hotbar::Hotbar;
 use ferrumc_inventories::inventory::Inventory;
 use ferrumc_net::connection::{DisconnectHandle, NewConnection};

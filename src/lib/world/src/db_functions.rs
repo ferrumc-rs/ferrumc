@@ -5,7 +5,7 @@ use crate::errors::WorldError::CorruptedChunkData;
 use crate::warn;
 use crate::World;
 use ferrumc_config::server_config::get_global_config;
-use ferrumc_storage::database::Database;
+
 use std::hash::Hasher;
 use std::sync::Arc;
 use tracing::trace;

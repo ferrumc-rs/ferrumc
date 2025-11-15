@@ -1,4 +1,4 @@
-use ferrumc_storage::{database::Database, lmdb::LmdbBackend};
+use ferrumc_storage::lmdb::LmdbBackend;
 use rand::Rng;
 use std::collections::HashSet;
 

@@ -2,7 +2,7 @@ use crate::errors::WorldError;
 use crate::vanilla_chunk_format::VanillaChunk;
 use crate::World;
 use ferrumc_anvil::load_anvil_file;
-use ferrumc_storage::database::Database;
+
 use ferrumc_threadpool::ThreadPool;
 use indicatif::{ProgressBar, ProgressStyle};
 use rayon::prelude::*;

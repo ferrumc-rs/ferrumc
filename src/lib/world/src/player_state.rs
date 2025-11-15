@@ -1,5 +1,4 @@
 use ferrumc_core::data::player::PlayerData;
-use ferrumc_storage::database::Database;
 
 use crate::{errors::PlayerDataError, World};
 

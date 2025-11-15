@@ -85,7 +85,7 @@ pub fn handle(
             "overworld",
         );
         if let Ok(head_block) = head_block {
-            if head_block == BlockId(0) {
+            if head_block == BlockStateId(0) {
                 tracing::info!("Player {} loaded at position: {:?}", player, position);
             } else {
                 tracing::info!(
