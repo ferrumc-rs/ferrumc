@@ -6,9 +6,7 @@ use typename::TypeName;
 
 #[derive(TypeName, Component)]
 pub struct Position {
-    pub x: f64,
-    pub y: f64,
-    pub z: f64,
+    pub coords: DVec3,
 }
 
 impl From<NetworkPosition> for Position {
@@ -20,7 +18,9 @@ impl From<NetworkPosition> for Position {
 // Helper functions:
 impl Position {
     pub fn new(x: f64, y: f64, z: f64) -> Self {
-        Self { x, y, z }
+        Self {
+            coords: DVec3::new(x, y, z),
+        }
     }
 }
 
@@ -51,7 +51,7 @@ impl From<DVec3> for Position {
 
 impl From<Position> for DVec3 {
     fn from(pos: Position) -> Self {
-        DVec3::new(pos.x, pos.y, pos.z)
+        DVec3::new(pos.coords.x, pos.coords.y, pos.coords.z)
     }
 }
 
@@ -60,13 +60,13 @@ impl Debug for Position {
         write!(
             f,
             "Position {{ x: {:.2}, y: {:.2}, z: {:.2} }}",
-            self.x, self.y, self.z
+            self.coords.x, self.coords.y, self.coords.z
         )
     }
 }
 
 impl Display for Position {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "({:.2}, {:.2}, {:.2})", self.x, self.y, self.z)
+        write!(f, "({:.2}, {:.2}, {:.2})", self.coords.x, self.coords.y, self.coords.z)
     }
 }

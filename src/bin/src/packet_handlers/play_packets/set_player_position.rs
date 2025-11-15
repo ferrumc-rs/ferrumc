@@ -42,14 +42,14 @@ pub fn handle(
             .expect("Failed to get position and on_ground components");
 
         let delta_pos = Some((
-            ((new_position.x * 4096.0) - (position.x * 4096.0)) as i16,
-            ((new_position.y * 4096.0) - (position.y * 4096.0)) as i16,
-            ((new_position.z * 4096.0) - (position.z * 4096.0)) as i16,
+            ((new_position.coords.x * 4096.0) - (position.coords.x * 4096.0)) as i16,
+            ((new_position.coords.y * 4096.0) - (position.coords.y * 4096.0)) as i16,
+            ((new_position.coords.z * 4096.0) - (position.coords.z * 4096.0)) as i16,
         ));
 
-        let old_chunk = (position.x as i32 >> 4, position.z as i32 >> 4);
+        let old_chunk = (position.coords.x as i32 >> 4, position.coords.z as i32 >> 4);
 
-        let new_chunk = (new_position.x as i32 >> 4, new_position.z as i32 >> 4);
+        let new_chunk = (new_position.coords.x as i32 >> 4, new_position.coords.z as i32 >> 4);
 
         if old_chunk != new_chunk {
             cross_chunk_events.write(CrossChunkBoundaryEvent {
@@ -59,7 +59,7 @@ pub fn handle(
             });
         }
 
-        *position = Position::new(new_position.x, new_position.y, new_position.z);
+        *position = Position::new(new_position.coords.x, new_position.coords.y, new_position.coords.z);
 
         *on_ground = OnGround(event.on_ground);
 
@@ -76,9 +76,9 @@ pub fn handle(
             trace!(
                 "Updated position for player {}: ({}, {}, {})",
                 eid,
-                new_position.x,
-                new_position.y,
-                new_position.z
+                new_position.coords.x,
+                new_position.coords.y,
+                new_position.coords.z
             );
         }
     }

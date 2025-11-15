@@ -105,7 +105,7 @@ pub fn handle(
                     let does_collide = {
                         pos_q.into_iter().any(|(pos, bounds)| {
                             bounds.collides(
-                                (pos.x, pos.y, pos.z),
+                                (pos.coords.x, pos.coords.y, pos.coords.z),
                                 &CollisionBounds {
                                     x_offset_start: 0.0,
                                     x_offset_end: 1.0,

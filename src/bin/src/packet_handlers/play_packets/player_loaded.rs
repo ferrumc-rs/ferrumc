@@ -25,9 +25,9 @@ pub fn handle(
             continue;
         }
         let head_block = state.0.world.get_block_and_fetch(
-            player_pos.x as i32,
-            player_pos.y as i32,
-            player_pos.z as i32,
+            player_pos.coords.x as i32,
+            player_pos.coords.y as i32,
+            player_pos.coords.z as i32,
             "overworld",
         );
         if let Ok(head_block) = head_block {
@@ -35,17 +35,17 @@ pub fn handle(
                 tracing::info!(
                     "Player {} loaded at position: ({}, {}, {})",
                     player,
-                    player_pos.x,
-                    player_pos.y,
-                    player_pos.z
+                    player_pos.coords.x,
+                    player_pos.coords.y,
+                    player_pos.coords.z
                 );
             } else {
                 tracing::info!(
                     "Player {} loaded at position: ({}, {}, {}) with head block: {:?}",
                     player,
-                    player_pos.x,
-                    player_pos.y,
-                    player_pos.z,
+                    player_pos.coords.x,
+                    player_pos.coords.y,
+                    player_pos.coords.z,
                     head_block
                 );
                 // Teleport the player to the world center if their head block is not air
@@ -66,7 +66,7 @@ pub fn handle(
         } else {
             warn!(
                 "Failed to fetch head block for player {} at position: ({}, {}, {})",
-                player, player_pos.x, player_pos.y, player_pos.z
+                player, player_pos.coords.x, player_pos.coords.y, player_pos.coords.z
             );
         }
     }

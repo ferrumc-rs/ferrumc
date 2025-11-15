@@ -29,9 +29,9 @@ impl TeleportEntityPacket {
         // Todo: Add velocity parameters if needed
         Self {
             entity_id: VarInt::new(entity_id.short_uuid),
-            x: position.x,
-            y: position.y,
-            z: position.z,
+            x: position.coords.x,
+            y: position.coords.y,
+            z: position.coords.z,
             vel_x: 0.0, // Placeholder for velocity in x direction
             vel_y: 0.0, // Placeholder for velocity in y direction
             vel_z: 0.0, // Placeholder for velocity in z direction
