@@ -7,7 +7,6 @@ use crate::packets::incoming::packet_skeleton::PacketSkeleton;
 use crate::packets::outgoing::{commands::CommandsPacket, registry_data::REGISTRY_PACKETS};
 use crate::ConnState::*;
 use ferrumc_config::server_config::get_global_config;
-use ferrumc_core::abilities::player_abilities::PlayerAbilities;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_macros::lookup_packet;
 use ferrumc_net_codec::decode::NetDecode;
@@ -201,14 +200,17 @@ pub(super) async fn login(
 
     // =============================================================================================
     // 12 Send initial Player Abilities packet
-    // We send this to sync the client with the server's default abilities
+    // We send this to sync the client with the cached player's abilities
 
-    let default_abilities = PlayerAbilities::default();
-    // TODO: Save and retreive player specific ability values
+    let abilities_to_send = state
+        .player_cache
+        .get(&player_identity.uuid) // Use your new DashMap getter
+        .map(|data| data.abilities.clone())
+        .unwrap_or_default();
 
     let abilities_packet =
         crate::packets::outgoing::player_abilities::PlayerAbilities::from_abilities(
-            &default_abilities,
+            &abilities_to_send,
         );
     conn_write.send_packet(abilities_packet)?;
 
