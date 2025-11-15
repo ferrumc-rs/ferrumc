@@ -1,4 +1,5 @@
 use crate::errors::InventoryError;
+use crate::item::ItemID;
 use crate::slot::InventorySlot;
 use crate::{INVENTORY_UPDATES_QUEUE, InventoryUpdate};
 use bevy_ecs::prelude::{Component, Entity};
@@ -125,6 +126,55 @@ impl Inventory {
             slot: InventorySlot::default(),
             entity,
         });
+        Ok(())
+    }
+
+    /// Searches the inventory for the first slot containing the given ItemID.
+    ///
+    /// Returns `Some(index)` if found, `None` otherwise.
+    pub fn find_item(&self, item_id: ItemID) -> Option<usize> {
+        self.slots.iter().position(|slot| match slot {
+            Some(inventory_slot) => inventory_slot.item_id == Some(item_id),
+            None => false,
+        })
+    }
+
+    /// Swaps the contents of two slots and sends updates to the client.
+    pub fn swap_slots_with_update(
+        &mut self,
+        index_a: usize,
+        index_b: usize,
+        entity: Entity,
+    ) -> Result<(), InventoryError> {
+        if index_a >= self.slots.len() {
+            return Err(InventoryError::InvalidSlotIndex(index_a));
+        }
+        if index_b >= self.slots.len() {
+            return Err(InventoryError::InvalidSlotIndex(index_b));
+        }
+        if index_a == index_b {
+            return Ok(()); // Nothing to do
+        }
+
+        // Swap the slots in the server's memory
+        self.slots.swap(index_a, index_b);
+
+        // Send an update for the first slot
+        INVENTORY_UPDATES_QUEUE.push(InventoryUpdate {
+            slot_index: index_a as u8,
+            // Clone the data that is *now* in slot A
+            slot: self.slots[index_a].clone().unwrap_or_default(),
+            entity,
+        });
+
+        // Send an update for the second slot
+        INVENTORY_UPDATES_QUEUE.push(InventoryUpdate {
+            slot_index: index_b as u8,
+            // Clone the data that is *now* in slot B
+            slot: self.slots[index_b].clone().unwrap_or_default(),
+            entity,
+        });
+
         Ok(())
     }
 }

@@ -3,6 +3,7 @@ use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::encode::errors::NetEncodeError;
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use ferrumc_net_codec::net_types::var_int::VarInt;
+use ferrumc_world::block_state_id::BlockStateId;
 use simd_json::base::ValueAsScalar;
 use simd_json::prelude::ValueAsObject;
 use simd_json::prelude::ValueObjectAccess;
@@ -20,6 +21,34 @@ impl Display for ItemID {
 }
 
 impl ItemID {
+    /// Creates an `ItemID` from a `BlockStateId` by mapping it through the registry.
+    ///
+    /// This is a general solution for finding the item associated with a block.
+    ///
+    /// Note: This won't work for blocks that drop a different item
+    /// (e.g., stone dropping cobblestone), that's a loot table.
+    pub fn from_block_state(block_state_id: BlockStateId) -> Option<Self> {
+        // 1. Convert BlockStateId to its raw protocol ID.
+        let protocol_id = VarInt::from(block_state_id).0;
+
+        // 2. 0 is "air", which has no item.
+        if protocol_id == 0 {
+            return None;
+        }
+
+        // 3. Look up the block state in the registry using its ID.
+        // save protocol_id from being borrowed by lookup
+        let lookup_key = format!("minecraft:block/entries/{}", protocol_id);
+        let entry = ferrumc_registry::lookup(lookup_key.as_str())?;
+
+        // 4. Get the "name" field from the entry (e.g., "minecraft:stone").
+        let block_name = entry.get("name")?.as_str()?;
+
+        // 5. Use the existing `from_name` to get the ItemID
+        // (This handles blocks and items having the same name)
+        ItemID::from_name(block_name)
+    }
+
     /// Creates an `ItemID` from a name, e.g. "minecraft:stone" or "stone".
     /// Is somewhat expensive, as it queries the registry.
     pub fn from_name(name: &str) -> Option<Self> {
