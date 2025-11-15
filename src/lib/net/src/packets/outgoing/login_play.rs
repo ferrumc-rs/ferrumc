@@ -46,7 +46,7 @@ impl LoginPlayPacket<'_> {
             dimension_type: VarInt::new(0),
             dimension_name: "minecraft:overworld",
             seed_hash: 0,
-            gamemode: 0,
+            gamemode: 1,
             previous_gamemode: -1,
             is_debug: false,
             is_flat: false,
