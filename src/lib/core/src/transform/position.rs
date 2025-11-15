@@ -1,7 +1,10 @@
 use bevy_ecs::prelude::Component;
 use bevy_math::DVec3;
 use ferrumc_net_codec::net_types::network_position::NetworkPosition;
-use std::{fmt::{Debug, Display, Formatter}, ops::Deref};
+use std::{
+    fmt::{Debug, Display, Formatter},
+    ops::Deref,
+};
 use typename::TypeName;
 
 #[derive(TypeName, Component)]
