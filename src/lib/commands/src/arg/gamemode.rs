@@ -28,11 +28,10 @@ impl CommandArgument for GameMode {
     }
 
     fn suggest(ctx: &mut CommandContext) -> Vec<Suggestion> {
-        let input = ctx.input.read_string();
+        ctx.input.read_string();
 
         ["survival", "creative", "adventure", "spectator"]
             .into_iter()
-            .filter(move |s| s.starts_with(&input))
             .map(Suggestion::of)
             .collect()
     }
