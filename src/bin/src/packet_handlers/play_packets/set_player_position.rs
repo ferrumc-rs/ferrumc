@@ -49,10 +49,7 @@ pub fn handle(
 
         let old_chunk = (position.x as i32 >> 4, position.z as i32 >> 4);
 
-        let new_chunk = (
-            new_position.x as i32 >> 4,
-            new_position.z as i32 >> 4,
-        );
+        let new_chunk = (new_position.x as i32 >> 4, new_position.z as i32 >> 4);
 
         if old_chunk != new_chunk {
             cross_chunk_events.write(CrossChunkBoundaryEvent {
@@ -62,11 +59,7 @@ pub fn handle(
             });
         }
 
-        *position = Position::new(
-            new_position.x,
-            new_position.y,
-            new_position.z,
-        );
+        *position = Position::new(new_position.x, new_position.y, new_position.z);
 
         *on_ground = OnGround(event.on_ground);
 

@@ -1,7 +1,10 @@
 use bevy_ecs::prelude::Component;
 use bevy_math::DVec3;
 use ferrumc_net_codec::net_types::network_position::NetworkPosition;
-use std::{fmt::{Debug, Display, Formatter}, ops::Deref};
+use std::{
+    fmt::{Debug, Display, Formatter},
+    ops::Deref,
+};
 use typename::TypeName;
 
 #[derive(TypeName, Component)]
@@ -75,10 +78,6 @@ impl Debug for Position {
 
 impl Display for Position {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "({:.2}, {:.2}, {:.2})",
-            self.x, self.y, self.z
-        )
+        write!(f, "({:.2}, {:.2}, {:.2})", self.x, self.y, self.z)
     }
 }
