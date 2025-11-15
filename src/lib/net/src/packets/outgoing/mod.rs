@@ -22,6 +22,7 @@ pub mod remove_entities;
 pub mod spawn_entity;
 
 pub mod entity_animation;
+pub mod entity_event;
 pub mod entity_metadata;
 pub mod player_info_update;
 
