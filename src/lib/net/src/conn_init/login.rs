@@ -7,6 +7,7 @@ use crate::packets::incoming::packet_skeleton::PacketSkeleton;
 use crate::packets::outgoing::{commands::CommandsPacket, registry_data::REGISTRY_PACKETS};
 use crate::ConnState::*;
 use ferrumc_config::server_config::get_global_config;
+use ferrumc_core::abilities::player_abilities::PlayerAbilities;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_macros::lookup_packet;
 use ferrumc_net_codec::decode::NetDecode;
@@ -199,7 +200,20 @@ pub(super) async fn login(
     conn_write.send_packet(login_play)?;
 
     // =============================================================================================
-    // 12 Send initial player position sync (requires teleport confirmation)
+    // 12 Send initial Player Abilities packet
+    // We send this to sync the client with the server's default abilities
+
+    let default_abilities = PlayerAbilities::default();
+    // TODO: Save and retreive player specific ability values
+
+    let abilities_packet =
+        crate::packets::outgoing::player_abilities::PlayerAbilities::from_abilities(
+            &default_abilities,
+        );
+    conn_write.send_packet(abilities_packet)?;
+
+    // =============================================================================================
+    // 13 Send initial player position sync (requires teleport confirmation)
     let teleport_id_i32: i32 = (rand::random::<u32>() & 0x3FFF_FFFF) as i32;
     let sync_player_pos =
         crate::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket {
@@ -209,7 +223,7 @@ pub(super) async fn login(
     conn_write.send_packet(sync_player_pos)?;
 
     // =============================================================================================
-    // 13 Await client's teleport acceptance
+    // 14 Await client's teleport acceptance
     // The client may send other packets (like client_tick_end) before accepting the teleport,
     // so we loop until we get the accept_teleportation packet
     let expected_id = lookup_packet!("play", "serverbound", "accept_teleportation");
@@ -240,7 +254,7 @@ pub(super) async fn login(
     }
 
     // =============================================================================================
-    // 14 Receive first movement packet from player
+    // 15 Receive first movement packet from player
     // Similarly, the client may send other packets before the movement packet
     let expected_id = lookup_packet!("play", "serverbound", "move_player_pos_rot");
     let _player_pos_and_rot = loop {
@@ -262,17 +276,17 @@ pub(super) async fn login(
     };
 
     // =============================================================================================
-    // 15 Send initial game event (e.g., "change game mode")
+    // 16 Send initial game event (e.g., "change game mode")
     let game_event = crate::packets::outgoing::game_event::GameEventPacket::new(13, 0.0);
     conn_write.send_packet(game_event)?;
 
     // =============================================================================================
-    // 16 Send center chunk packet (player spawn location)
+    // 17 Send center chunk packet (player spawn location)
     let center_chunk = crate::packets::outgoing::set_center_chunk::SetCenterChunk::new(0, 0);
     conn_write.send_packet(center_chunk)?;
 
     // =============================================================================================
-    // 17 Load and send surrounding chunks within render distance
+    // 18 Load and send surrounding chunks within render distance
     let radius = get_global_config().chunk_render_distance as i32;
 
     let mut batch = state.thread_pool.batch();

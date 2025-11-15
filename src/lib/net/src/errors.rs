@@ -85,11 +85,14 @@ pub enum CompressionError {
 pub enum PacketError {
     #[error("Invalid State: {0}")]
     InvalidState(u8),
+
     #[error("Invalid Packet: {0:02X}")]
     InvalidPacket(u8),
+
     #[error("Malformed Packet: {inp}", inp = if let Some(id) = .0 { format!("{id:02X}") } else { "None".to_string() }
     )]
     MalformedPacket(Option<u8>),
+
     #[error(
         "Unexpected Packet: expected 0X{expected:02X}, received 0X{received:02X} in state {state}"
     )]
