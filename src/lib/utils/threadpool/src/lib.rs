@@ -8,6 +8,50 @@ pub struct ThreadPool {
     pool: Arc<rusty_pool::ThreadPool>,
 }
 
+/// Manages separate thread pools for CPU-bound and I/O-bound operations.
+///
+/// This separation prevents blocking I/O operations from starving CPU-intensive tasks
+/// and vice versa. It also helps prevent LMDB write contention by isolating database
+/// operations to a dedicated pool.
+///
+/// # Pool Usage Guidelines
+///
+/// ## CPU Pool (Multi-threaded)
+/// Use for compute-intensive operations:
+/// - Terrain generation
+/// - Chunk compression/decompression
+/// - Encryption/decryption
+/// - Pathfinding
+/// - Heavy data processing
+///
+/// ## I/O Pool (Single-threaded)
+/// Use for I/O-bound operations:
+/// - Database writes (LMDB requires serialized writes)
+/// - Database reads (when not cached)
+/// - File operations
+/// - Network I/O coordination
+///
+/// # Example
+/// ```rust,ignore
+/// let pools = ThreadPoolManager::new();
+///
+/// // CPU-intensive work
+/// pools.cpu_pool.oneshot(|| {
+///     generate_terrain(x, z)
+/// });
+///
+/// // I/O work (database write)
+/// pools.io_pool.oneshot(|| {
+///     world.save_chunk(chunk)
+/// });
+/// ```
+pub struct ThreadPoolManager {
+    /// Thread pool for CPU-intensive operations (uses all available cores)
+    pub cpu_pool: ThreadPool,
+    /// Thread pool for I/O operations (single-threaded to avoid LMDB contention)
+    pub io_pool: ThreadPool,
+}
+
 /// A batch of tasks to be executed in the thread pool.
 // DO NOT IMPLEMENT `Clone` FOR THIS STRUCTURE, SEE THE `ThreadPoolBatch::execute_unchecked` FOR WHY
 pub struct ThreadPoolBatch<'a, R: Send + 'static> {
@@ -32,6 +76,22 @@ impl ThreadPool {
             "ferrumc_threadpool".to_string(),
             core_count,
             core_count,
+            Duration::from_secs(60),
+        ));
+        pool.start_core_threads();
+        Self { pool }
+    }
+
+    /// Creates a new `ThreadPool` with a specific number of threads.
+    ///
+    /// # Arguments
+    /// * `name` - Name prefix for the pool threads
+    /// * `thread_count` - Number of threads in the pool
+    pub fn new_with_size(name: String, thread_count: usize) -> Self {
+        let pool = Arc::new(rusty_pool::ThreadPool::new_named(
+            name,
+            thread_count,
+            thread_count,
             Duration::from_secs(60),
         ));
         pool.start_core_threads();
@@ -233,5 +293,34 @@ mod tests {
         let batch: ThreadPoolBatch<()> = pool.batch();
         let results = batch.wait();
         assert!(results.is_empty());
+    }
+}
+
+impl ThreadPoolManager {
+    /// Creates a new `ThreadPoolManager` with default settings.
+    ///
+    /// The CPU pool uses all available cores for compute-intensive tasks.
+    /// The I/O pool uses a single thread to serialize database operations.
+    pub fn new() -> Self {
+        let core_count = max(1, num_cpus::get() as i32) as usize;
+
+        Self {
+            cpu_pool: ThreadPool::new_with_size("ferrumc_cpu_pool".to_string(), core_count),
+            io_pool: ThreadPool::new_with_size("ferrumc_io_pool".to_string(), 1),
+        }
+    }
+}
+
+impl Default for ThreadPoolManager {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Clone for ThreadPool {
+    fn clone(&self) -> Self {
+        Self {
+            pool: Arc::clone(&self.pool),
+        }
     }
 }

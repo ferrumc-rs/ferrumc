@@ -2,7 +2,7 @@ use crate::errors::WorldError;
 use crate::vanilla_chunk_format::VanillaChunk;
 use crate::World;
 use ferrumc_anvil::load_anvil_file;
-use ferrumc_threadpool::ThreadPool;
+use ferrumc_threadpool::ThreadPoolManager;
 use indicatif::{ProgressBar, ProgressStyle};
 use rayon::prelude::*;
 use std::path::{Path, PathBuf};
@@ -37,7 +37,7 @@ impl World {
     pub fn import(
         &mut self,
         import_dir: PathBuf,
-        threadpool: ThreadPool,
+        threadpools: ThreadPoolManager,
     ) -> Result<(), WorldError> {
         check_paths_validity(&import_dir)?;
 
@@ -56,8 +56,8 @@ impl World {
         let start = std::time::Instant::now();
 
         let regions_dir = import_dir.join("region").read_dir()?;
-
-        let mut batch = threadpool.batch();
+        
+        let mut batch = threadpools.cpu_pool.batch();
 
         let arc_self = Arc::new(self.clone());
 
