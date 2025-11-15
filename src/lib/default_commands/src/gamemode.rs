@@ -79,7 +79,6 @@ fn gamemode_command(
 
     // 5a. Send the Game Event packet (this changes the UI)
     let gamemode_packet = GameEventPacket::new(3, new_gamemode as u8 as f32);
-    // --- FIX 2: Use `send_packet_ref` ---
     if let Err(e) = writer.send_packet_ref(&gamemode_packet) {
         error!(
             "Failed to send gamemode change packet to {}: {:?}",
@@ -89,7 +88,6 @@ fn gamemode_command(
 
     // 5b. Send the Abilities packet (this allows/disallows flight)
     let abilities_packet = OutgoingPlayerAbilities::from_abilities(&abilities);
-    // --- FIX 3: Use `send_packet_ref` ---
     if let Err(e) = writer.send_packet_ref(&abilities_packet) {
         error!(
             "Failed to send abilities sync packet to {}: {:?}",
