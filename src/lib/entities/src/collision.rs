@@ -16,12 +16,32 @@ impl BoundingBox {
     };
 }
 
+/// Check if a block is water
+pub fn is_water_block(state: &GlobalState, x: i32, y: i32, z: i32) -> bool {
+    state
+        .world
+        .get_block_and_fetch(x, y, z, "overworld")
+        .map(|block_state| {
+            let id = block_state.0;
+            // Water is 86-101
+            (86..=101).contains(&id)
+        })
+        .unwrap_or(false)
+}
+
 /// Check if there's a solid block at the given position
+///
+/// Excludes water (86-101) and lava (102-117) as they are not solid for collision purposes.
+/// Entities should fall through these blocks.
 pub fn is_solid_block(state: &GlobalState, x: i32, y: i32, z: i32) -> bool {
     state
         .world
         .get_block_and_fetch(x, y, z, "overworld")
-        .map(|block_state| block_state.0 != 0)
+        .map(|block_state| {
+            let id = block_state.0;
+            // Air is 0, water is 86-101, lava is 102-117
+            id != 0 && !(86..=117).contains(&id)
+        })
         .unwrap_or(false)
 }
 
@@ -118,6 +138,29 @@ pub fn check_obstacle_ahead(
         if is_solid_block(state, check_x, check_y, check_z) {
             return true;
         }
+    }
+
+    false
+}
+
+/// Check if an entity is submerged in water
+///
+/// Checks if the entity's body (from feet to head) is in water
+pub fn is_in_water(state: &GlobalState, x: f64, y: f64, z: f64, bbox: &BoundingBox) -> bool {
+    // Check center of the entity at feet and mid-body level
+    let block_x = x.floor() as i32;
+    let block_z = z.floor() as i32;
+
+    // Check feet level
+    let feet_y = y.floor() as i32;
+    if is_water_block(state, block_x, feet_y, block_z) {
+        return true;
+    }
+
+    // Check mid-body level (waist height)
+    let mid_y = (y + bbox.height * 0.5).floor() as i32;
+    if is_water_block(state, block_x, mid_y, block_z) {
+        return true;
     }
 
     false

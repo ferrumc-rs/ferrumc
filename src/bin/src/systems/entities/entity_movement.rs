@@ -1,12 +1,14 @@
 use bevy_ecs::prelude::*;
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
-use ferrumc_entities::collision::{check_collision, BoundingBox};
+use ferrumc_entities::collision::{check_collision, is_in_water, BoundingBox};
 use ferrumc_entities::components::*;
 use ferrumc_state::GlobalStateResource;
 
 const GRAVITY: f64 = -0.08; // Blocks per tick^2
 const TERMINAL_VELOCITY: f64 = -3.92; // Max fall speed
+const WATER_BUOYANCY: f64 = 0.10; // Upward force in water (stronger than gravity to make entities float)
+const WATER_DRAG: f64 = 0.8; // Water friction multiplier
 
 /// System that apply basic physics to entity
 pub fn entity_physics_system(
@@ -17,11 +19,19 @@ pub fn entity_physics_system(
     let bbox = BoundingBox::PIG;
 
     for (mut pos, mut vel, on_ground) in query.iter_mut() {
-        // Apply gravity if not on ground
-        if !on_ground.0 {
+        // Check if entity is in water
+        let in_water = is_in_water(&state.0, pos.x, pos.y, pos.z, &bbox);
+
+        // Apply gravity and buoyancy
+        if in_water {
+            // In water: buoyancy force is stronger than gravity, so entities float up
+            vel.y += GRAVITY + WATER_BUOYANCY;
+            // Net force: -0.08 + 0.10 = +0.02 (upward), causing floating
+        } else if !on_ground.0 {
+            // In air: normal gravity
             vel.y = (vel.y + GRAVITY).max(TERMINAL_VELOCITY);
         } else {
-            // Reset velocity Y if on ground
+            // On ground: reset downward velocity
             if vel.y < 0.0 {
                 vel.y = 0.0;
             }
@@ -63,11 +73,18 @@ pub fn entity_physics_system(
             }
         }
 
-        if on_ground.0 {
-            // Less friction on ground for better movement (was 0.6)
+        // Apply friction based on environment
+        if in_water {
+            // Water drag - slows movement significantly
+            vel.x *= WATER_DRAG;
+            vel.z *= WATER_DRAG;
+            vel.y *= 0.95; // Vertical water drag
+        } else if on_ground.0 {
+            // Ground friction
             vel.x *= 0.85;
             vel.z *= 0.85;
         } else {
+            // Air resistance
             vel.x *= 0.98;
             vel.z *= 0.98;
         }
