@@ -70,8 +70,6 @@ infinite_loop = "deny"
 inherits = "release"
 debug = true
 
-[profile.release]
-
 [profile.hyper]
 inherits = "release"
 strip = "symbols"
@@ -171,7 +169,6 @@ quote = "1.0.41"
 syn = "2.0.106"
 proc-macro2 = "1.0.101"
 paste = "1.0.15"
-maplit = "1.0.2"
 macro_rules_attribute = "0.2.2"
 
 # Magic

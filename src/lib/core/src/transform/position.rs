@@ -1,7 +1,7 @@
 use bevy_ecs::prelude::Component;
 use bevy_math::DVec3;
 use ferrumc_net_codec::net_types::network_position::NetworkPosition;
-use std::fmt::{Debug, Display, Formatter};
+use std::{fmt::{Debug, Display, Formatter}, ops::Deref};
 use typename::TypeName;
 
 #[derive(TypeName, Component)]
@@ -21,6 +21,14 @@ impl Position {
         Self {
             coords: DVec3::new(x, y, z),
         }
+    }
+}
+
+impl Deref for Position {
+    type Target = DVec3;
+
+    fn deref(&self) -> &Self::Target {
+        &self.coords
     }
 }
 
@@ -51,7 +59,7 @@ impl From<DVec3> for Position {
 
 impl From<Position> for DVec3 {
     fn from(pos: Position) -> Self {
-        DVec3::new(pos.coords.x, pos.coords.y, pos.coords.z)
+        DVec3::new(pos.x, pos.y, pos.z)
     }
 }
 
@@ -60,7 +68,7 @@ impl Debug for Position {
         write!(
             f,
             "Position {{ x: {:.2}, y: {:.2}, z: {:.2} }}",
-            self.coords.x, self.coords.y, self.coords.z
+            self.x, self.y, self.z
         )
     }
 }
@@ -70,7 +78,7 @@ impl Display for Position {
         write!(
             f,
             "({:.2}, {:.2}, {:.2})",
-            self.coords.x, self.coords.y, self.coords.z
+            self.x, self.y, self.z
         )
     }
 }
