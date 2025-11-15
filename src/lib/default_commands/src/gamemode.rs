@@ -55,7 +55,6 @@ fn gamemode_command(
 
     // 4. Update PlayerAbilities to match the new gamemode
     match new_gamemode {
-        // Use `new_gamemode` directly
         GameMode::Survival | GameMode::Adventure => {
             abilities.may_fly = false;
             abilities.flying = false;
@@ -97,7 +96,6 @@ fn gamemode_command(
 
     // 6. Send a confirmation message
     let mode_name = match new_gamemode {
-        // Use `new_gamemode` directly
         GameMode::Survival => "Survival",
         GameMode::Creative => "Creative",
         GameMode::Adventure => "Adventure",
