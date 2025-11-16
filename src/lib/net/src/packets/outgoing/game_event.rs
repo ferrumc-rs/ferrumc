@@ -70,6 +70,9 @@ impl GameEventPacket {
     /// - `f32` from `0-1` indicating the thunder intensity.
     pub const THUNDER_LEVEL_CHANGE: u8 = 8;
 
+    /// GameEvent packet ID to play the pufferfish sting sound effect.
+    pub const PLAY_PUFFERFISH_STING_SOUND: u8 = 9;
+
     pub fn new(event_id: u8, value: f32) -> Self {
         Self { event_id, value }
     }
