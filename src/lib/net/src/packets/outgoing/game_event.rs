@@ -31,6 +31,18 @@ impl GameEventPacket {
     /// - 3: Spectator
     pub const CHANGE_GAME_MODE: u8 = 3;
 
+    /// GameEvent packet ID to indicate that the player has won the game.  
+    /// Value options:
+    /// - 0: Respawn player without credits screen
+    /// - 1: Show credits screen and then respawn player  
+    ///
+    /// A value of `1` should be sent if the player has NOT yet recieved the
+    /// 'The end?' advancement (or any other check to see if they have killed
+    /// the dragon).  
+    /// > Raisers of this packet most likely will not be implemented for a long
+    /// > time.
+    pub const WIN_GAME: u8 = 4;
+
     pub fn new(event_id: u8, value: f32) -> Self {
         Self { event_id, value }
     }
