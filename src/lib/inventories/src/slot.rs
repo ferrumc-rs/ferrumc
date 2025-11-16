@@ -115,19 +115,21 @@ impl NetEncode for InventorySlot {
 
         // 6. Encode components_to_add list (if any)
         if add_count.0 > 0
-            && let Some(components) = &self.components_to_add {
-                for component in components {
-                    component.encode(writer, opts)?;
-                }
+            && let Some(components) = &self.components_to_add
+        {
+            for component in components {
+                component.encode(writer, opts)?;
             }
+        }
 
         // 7. Encode components_to_remove list (if any)
         if remove_count.0 > 0
-            && let Some(components) = &self.components_to_remove {
-                for component in components {
-                    component.encode(writer, opts)?;
-                }
+            && let Some(components) = &self.components_to_remove
+        {
+            for component in components {
+                component.encode(writer, opts)?;
             }
+        }
 
         Ok(())
     }
