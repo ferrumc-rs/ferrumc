@@ -1,5 +1,5 @@
-use crate::events::player_join_event::PlayerJoinEvent;
-use crate::events::player_leave_event::PlayerLeaveEvent;
+use crate::events::player_join::PlayerJoinEvent;
+use crate::events::player_leave::PlayerLeaveEvent;
 use bevy_ecs::event::EventRegistry;
 use bevy_ecs::prelude::World;
 use ferrumc_commands::events::{CommandDispatchEvent, ResolvedCommandDispatchEvent};

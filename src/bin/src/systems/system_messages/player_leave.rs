@@ -1,4 +1,4 @@
-use crate::events::player_leave_event::PlayerLeaveEvent;
+use crate::events::player_leave::PlayerLeaveEvent;
 use bevy_ecs::prelude::{Entity, EventReader, Query};
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::mq;

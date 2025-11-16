@@ -1,4 +1,4 @@
-use crate::events::player_join_event::PlayerJoinEvent;
+use crate::events::player_join::PlayerJoinEvent;
 use bevy_ecs::{
     event::EventWriter,
     prelude::{Commands, Res, Resource},

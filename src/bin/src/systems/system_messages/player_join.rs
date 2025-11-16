@@ -3,7 +3,7 @@ use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::mq;
 use ferrumc_text::{Color, NamedColor, TextComponent};
 
-use crate::events::player_join_event::PlayerJoinEvent;
+use crate::events::player_join::PlayerJoinEvent;
 
 use tracing::trace;
 

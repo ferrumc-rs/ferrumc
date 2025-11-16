@@ -1,4 +1,4 @@
-use crate::events::player_leave_event::PlayerLeaveEvent;
+use crate::events::player_leave::PlayerLeaveEvent;
 use bevy_ecs::prelude::{Commands, Entity, EventWriter, Query, Res}; // Added EventWriter
 use ferrumc_components::active_effects::ActiveEffects;
 use ferrumc_components::health::Health;
@@ -34,7 +34,7 @@ type PlayerCacheQuery<'a> = (
 );
 
 pub fn connection_killer(
-    query: Query<PlayerCacheQuery>, // <-- 2. Use the clean alias here
+    query: Query<PlayerCacheQuery>,
     mut cmd: Commands,
     state: Res<GlobalStateResource>,
     mut leave_events: EventWriter<PlayerLeaveEvent>,
