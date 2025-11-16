@@ -18,6 +18,11 @@ impl GameEventPacket {
     /// To stop the rain, use [`END_RAINING`].
     pub const BEGIN_RAINING: u8 = 1;
 
+    /// GameEvent packet ID to end raining.
+    /// The rest of the rain generation is handled client-side.  
+    /// To start the rain, use [`BEGIN_RAINING`].
+    pub const END_RAINING: u8 = 2;
+
     pub fn new(event_id: u8, value: f32) -> Self {
         Self { event_id, value }
     }
