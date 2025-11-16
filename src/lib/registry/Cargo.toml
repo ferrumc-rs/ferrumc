@@ -8,7 +8,6 @@ build = "build.rs"
 simd-json = { workspace = true }
 once_cell = { workspace = true }
 tracing = { workspace = true }
-phf = { workspace = true }
 
 [dev-dependencies]
 criterion = { workspace = true }
@@ -16,7 +15,8 @@ criterion = { workspace = true }
 [build-dependencies]
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-phf_codegen = { workspace = true }
+phf = { workspace = true }
+phf_codegen = { version = "0.11" }
 
 [lints]
 workspace = true
