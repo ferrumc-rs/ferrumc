@@ -30,11 +30,10 @@ pub fn handle(
             match player_inv_query.get_mut(sender_entity) {
                 Ok(data) => data,
                 Err(e) => {
-                    warn!(
+                    panic!(
                     "PickItemFromBlock: Recieved packet from entity {:?} without components {:?}",
                     sender_entity, e
                 );
-                    continue;
                 }
             };
 
