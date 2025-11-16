@@ -1,7 +1,7 @@
-use crate::events::player_leave::PlayerLeaveEvent;
 use bevy_ecs::prelude::{Entity, EventReader, Query};
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::mq;
+use ferrumc_events::player_leave::PlayerLeaveEvent;
 use ferrumc_text::{Color, NamedColor, TextComponent};
 
 use tracing::trace; // We only need trace, mq will handle errors

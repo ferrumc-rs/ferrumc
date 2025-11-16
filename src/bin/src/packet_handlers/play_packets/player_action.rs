@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
 use crate::errors::BinaryError;
-use crate::events::player_digging::*;
 use bevy_ecs::prelude::{Entity, EventWriter, Query, Res};
 use ferrumc_components::player::abilities::PlayerAbilities;
+use ferrumc_events::player_digging::*;
 
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::block_change_ack::BlockChangeAck;

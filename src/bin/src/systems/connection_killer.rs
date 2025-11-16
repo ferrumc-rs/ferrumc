@@ -1,4 +1,3 @@
-use crate::events::player_leave::PlayerLeaveEvent;
 use bevy_ecs::prelude::{Commands, Entity, EventWriter, Query, Res}; // Added EventWriter
 use ferrumc_components::active_effects::ActiveEffects;
 use ferrumc_components::health::Health;
@@ -10,6 +9,7 @@ use ferrumc_components::player::hunger::Hunger;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
+use ferrumc_events::player_leave::PlayerLeaveEvent;
 use ferrumc_inventories::inventory::Inventory;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_state::player_cache::OfflinePlayerData;

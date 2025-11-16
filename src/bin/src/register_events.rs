@@ -1,9 +1,9 @@
-use crate::events::*;
 use bevy_ecs::event::EventRegistry;
 use bevy_ecs::prelude::World;
 use ferrumc_commands::events::{CommandDispatchEvent, ResolvedCommandDispatchEvent};
 use ferrumc_core::chunks::cross_chunk_boundary_event::CrossChunkBoundaryEvent;
 use ferrumc_core::conn::force_player_recount_event::ForcePlayerRecountEvent;
+use ferrumc_events::*;
 use ferrumc_net::packets::packet_events::TransformEvent;
 
 pub fn register_events(world: &mut World) {
@@ -23,4 +23,5 @@ pub fn register_events(world: &mut World) {
     EventRegistry::register_event::<PlayerEatEvent>(world);
     EventRegistry::register_event::<PlayerXPGainEvent>(world);
     EventRegistry::register_event::<PlayerLevelUpEvent>(world);
+    EventRegistry::register_event::<ChangeGameModeEvent>(world);
 }

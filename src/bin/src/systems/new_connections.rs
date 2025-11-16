@@ -1,9 +1,9 @@
-use crate::events::player_join::PlayerJoinEvent;
 use bevy_ecs::{
     event::EventWriter,
     prelude::{Commands, Res, Resource},
 };
 use crossbeam_channel::Receiver;
+use ferrumc_events::player_join::PlayerJoinEvent;
 
 use ferrumc_components::player::gamemode::GameModeComponent;
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
