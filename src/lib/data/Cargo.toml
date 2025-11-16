@@ -1,0 +1,26 @@
+[package]
+name = "ferrumc-data"
+version = "0.1.0"
+edition = "2021"
+build = "build/build.rs"
+
+[dependencies]
+phf = { version = "0.13.1", features = ["macros"] }
+serde = "1.0.228"
+serde_json = "1.0.145"
+crc-fast = "1.6.0"
+heck = "0.5"
+proc-macro2 = "1.0"
+quote = "1.0"
+syn = "2.0"
+rayon = "1.11.0"
+
+[build-dependencies]
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.145"
+serde_json5 = "0.2.1"
+heck = "0.5"
+proc-macro2 = "1.0"
+quote = "1.0"
+syn = { version = "2.0", features = ["extra-traits"] }
+rayon = "1.11.0"
