@@ -12,18 +12,6 @@ use ferrumc_state::GlobalStateResource;
 use ferrumc_net::PickItemFromBlockReceiver;
 use tracing::{debug, error, warn};
 
-/// 1. Get Player's abilities, inventory, and hotbar
-/// 2. Get the block at `packet.location` from the world
-/// 3. Convert the `BlockStateId` to and `ItemId`
-/// 4. Search the inventory for this `ItemId`
-/// 5. If found:
-///      - Swap the item with the player's currently held item
-///      - Send `SetContainerSlot` packets to sync the client
-/// 6. If not found AND the player is in creative:
-///      - Create a new item stack (with NBT if `packet.include_data`) TODO
-///      - Set the player's current hotbar slot to this item
-/// 7. If not found AND player is in survival
-///      - Do nothing.
 pub fn handle(
     events: Res<PickItemFromBlockReceiver>, // Packet queue
     state: Res<GlobalStateResource>,
@@ -133,6 +121,7 @@ pub fn handle(
         }
         // 6. If not found AND in creative mode
         else if abilities.creative_mode {
+            // TODO: Possible bug with using creative_mode ability instead of creative Gamemode
             debug!("Item not found. Creating stack for creative player.");
 
             let new_slot = InventorySlot {
@@ -146,8 +135,17 @@ pub fn handle(
                 warn!("PickBlock: NBT data request (include_data=true is not implemented yet.");
             }
 
-            if let Err(e) = hotbar.set_selected_item(&mut inventory, new_slot, entity) {
-                warn!("Failed to set creative item in hotbar: {:?}", e);
+            if let Some(new_index) = hotbar.get_lowest_open_slot(&inventory) {
+                if let Err(e) =
+                    hotbar.set_item_with_update(&mut inventory, new_index, new_slot, entity)
+                {
+                    warn!("Failed to set creative item in hotbar: {:?}", e);
+                } else {
+                    let packet = SetHeldItem { slot: new_index };
+                    if let Err(e) = writer.send_packet_ref(&packet) {
+                        error!("Failed to send SetHeldItem packet: {:?}", e);
+                    }
+                }
             }
         }
         // 7. If not found AND survival...

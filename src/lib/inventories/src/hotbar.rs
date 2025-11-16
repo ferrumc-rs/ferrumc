@@ -112,4 +112,39 @@ impl Hotbar {
         }
         None
     }
+
+    /// Finds the lowest-index open (empty) hotbar slot.
+    ///
+    /// Returns the hotbar index (0-8) if an empty slot is found.
+    pub fn get_lowest_open_slot(&self, inventory: &Inventory) -> Option<u8> {
+        // Loop from 0 to 8
+        for i in 0..Self::HOTBAR_SIZE {
+            let hotbar_slot = i as u8;
+
+            // Get the real inventory index (e.g., 36, 37, ...)
+            // We use get_inventory_index, not get_item, because we need the raw index
+            let inventory_index = match self.get_inventory_index(hotbar_slot) {
+                Ok(index) => index,
+                Err(_) => continue, // Should be impossible if i is 0-8
+            };
+
+            // Check the main inventory at that index
+            match inventory.get_item(inventory_index) {
+                Ok(Some(_slot)) => {
+                    // Slot is occupied, continue to the next one
+                }
+                Ok(None) => {
+                    // This slot is empty. We found a slot.
+                    return Some(hotbar_slot);
+                }
+                Err(_) => {
+                    // This should also be impossible, but we'll skip it
+                    continue;
+                }
+            }
+        }
+
+        // If the loop finishes, all hotbar slots are full
+        None
+    }
 }
