@@ -94,6 +94,13 @@ impl GameEventPacket {
     /// - 1: Enable limited crafting mode.
     pub const LIMITED_CRAFTING: u8 = 12;
 
+    /// GameEvent packet ID to indicate that the client should start waiting
+    /// for level chunks to be sent from the server. This is used during the
+    /// initial connection to the server, but also if the world has been
+    /// reloaded (e.g. when changing dimensions) or possibly also when exploring
+    /// the terrain.
+    pub const START_WAITING_FOR_LEVEL_CHUNKS: u8 = 13;
+
     pub fn new(event_id: u8, value: f32) -> Self {
         Self { event_id, value }
     }
