@@ -8,6 +8,11 @@ pub struct GameEventPacket {
 }
 
 impl GameEventPacket {
+    /// GameEvent packet ID to indicate no respawn block is available.  
+    /// This displays this message to the user:
+    /// > "You have no home bed or charged respawn anchor, or it was obstructed"
+    pub const NO_RESPAWN_BLOCK_AVAILABLE: u8 = 0;
+
     pub fn new(event_id: u8, value: f32) -> Self {
         Self { event_id, value }
     }
