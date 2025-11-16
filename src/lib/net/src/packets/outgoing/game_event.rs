@@ -76,6 +76,16 @@ impl GameEventPacket {
     /// GameEvent packet ID to play the elder guardian mob appearance sound effect.
     pub const PLAY_ELDER_GUARDIAN_MOB_APPEARANCE: u8 = 10;
 
+    /// GameEvent packet ID to enable the respawn screen when the player dies.
+    /// This is used when changing the `doImmediateRespawn` gamerule.
+    /// Possible values:
+    /// - 0: Enable respawn screen.
+    /// - 1: Disable respawn screen (immediate respawn).
+    ///
+    /// Why a value of `0` actually *enables* the respawn screen... no idea.
+    /// That's just how the Minecraft protocol works.
+    pub const ENABLE_RESPAWN_SCREEN: u8 = 11;
+
     pub fn new(event_id: u8, value: f32) -> Self {
         Self { event_id, value }
     }
