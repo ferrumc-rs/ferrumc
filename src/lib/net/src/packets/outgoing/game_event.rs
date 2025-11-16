@@ -23,6 +23,14 @@ impl GameEventPacket {
     /// To start the rain, use [`BEGIN_RAINING`].
     pub const END_RAINING: u8 = 2;
 
+    /// GameEvent packet ID to change the gamemode of a player.  
+    /// Value options:
+    /// - 0: Survival
+    /// - 1: Creative
+    /// - 2: Adventure
+    /// - 3: Spectator
+    pub const CHANGE_GAME_MODE: u8 = 3;
+
     pub fn new(event_id: u8, value: f32) -> Self {
         Self { event_id, value }
     }
