@@ -73,6 +73,9 @@ impl GameEventPacket {
     /// GameEvent packet ID to play the pufferfish sting sound effect.
     pub const PLAY_PUFFERFISH_STING_SOUND: u8 = 9;
 
+    /// GameEvent packet ID to play the elder guardian mob appearance sound effect.
+    pub const PLAY_ELDER_GUARDIAN_MOB_APPEARANCE: u8 = 10;
+
     pub fn new(event_id: u8, value: f32) -> Self {
         Self { event_id, value }
     }
