@@ -19,7 +19,7 @@ pub fn handle(
 
         // 2. Build the "Player <player> joined the game" message
         let mut message =
-            TextComponent::from(format!("{} left the game", player_who_left.username));
+            TextComponent::from(format!("{} joined the game", player_who_left.username));
         message.color = Some(Color::Named(NamedColor::Yellow));
 
         // 3. Loop through all players on the server
