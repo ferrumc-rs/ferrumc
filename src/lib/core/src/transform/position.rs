@@ -7,7 +7,7 @@ use std::{
 };
 use typename::TypeName;
 
-#[derive(TypeName, Component, Serialize, Deserialize, Encode, Decode, Clone, PartialEq)]
+#[derive(TypeName, Component)]
 pub struct Position {
     pub coords: DVec3,
 }

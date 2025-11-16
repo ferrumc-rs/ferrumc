@@ -1,8 +1,7 @@
 use std::fmt::Display;
 
 use bevy_ecs::component::Component;
-use bitcode::{Decode, Encode};
-use serde::{Deserialize, Serialize};
+use bevy_math::DVec3;
 
 use crate::player::gamemode::GameMode;
 use crate::transform::{position::Position, rotation::Rotation};
@@ -11,11 +10,9 @@ use ferrumc_storage::errors::StorageError;
 use ferrumc_storage::sqlite::SqlStorable;
 
 // https://minecraft.fandom.com/wiki/Player.dat_format
-#[derive(
-    Serialize, Deserialize, Clone, Debug, Encode, Decode, Component, typename::TypeName, PartialEq,
-)]
+#[derive(Debug, Component, typename::TypeName, Clone)]
 pub struct PlayerData {
-    pub pos: Position,
+    pub pos: DVec3,
     pub on_ground: bool,
     pub dimension: String,
     pub rotation: (f32, f32),
@@ -24,30 +21,14 @@ pub struct PlayerData {
 
 impl Default for PlayerData {
     fn default() -> Self {
-        Self::new(
-            &Position::default(),
-            false,
-            "overworld",
-            &Rotation::default(),
-            GameMode::Survival,
-        )
-    }
-}
-
-impl PlayerData {
-    pub fn new(
-        pos: &Position,
-        on_ground: bool,
-        dimension: &str,
-        rotation: &Rotation,
-        gamemode: GameMode,
-    ) -> Self {
+        let rot = Rotation::default();
+        let pos = Position::default();
         Self {
-            pos: pos.to_owned(),
-            on_ground,
-            dimension: dimension.to_string(),
-            rotation: (rotation.yaw, rotation.pitch),
-            player_game_type: gamemode as u8,
+            pos: pos.into(),
+            on_ground: false,
+            dimension: "overworld".to_string(),
+            rotation: (rot.yaw, rot.pitch),
+            player_game_type: GameMode::Survival as u8,
         }
     }
 }
@@ -93,11 +74,7 @@ impl SqlStorable for PlayerData {
 
     fn from_row(row: &rusqlite::Row) -> Result<Self, StorageError> {
         Ok(PlayerData {
-            pos: Position {
-                x: row.get(1)?,
-                y: row.get(2)?,
-                z: row.get(3)?,
-            },
+            pos: DVec3::new(row.get(1)?, row.get(2)?, row.get(3)?),
             on_ground: row.get::<_, i32>(4)? != 0,
             dimension: row.get(5)?,
             rotation: (row.get(6)?, row.get(7)?),

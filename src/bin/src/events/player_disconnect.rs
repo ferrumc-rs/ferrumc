@@ -27,13 +27,13 @@ pub fn handle(
             let uuid = identity.uuid.as_u128();
             let username = &identity.username;
 
-            let player_data = ferrumc_core::data::player::PlayerData::new(
-                position,
-                on_ground.0,
-                "overworld",
-                rotation,
-                game_mode.0,
-            );
+            let player_data = ferrumc_core::data::player::PlayerData {
+                pos: position.into(),
+                on_ground: on_ground.0,
+                dimension: "overworld".to_string(),
+                rotation: (rotation.yaw, rotation.pitch),
+                player_game_type: game_mode.0 as u8,
+            };
 
             if let Err(e) = state.0.world.save_player_state(uuid, &player_data) {
                 tracing::error!("Failed to save player state for {}: {}", username, e);
