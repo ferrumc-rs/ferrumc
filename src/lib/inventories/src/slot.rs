@@ -179,12 +179,8 @@ mod tests {
 
     #[test]
     fn test_slot_encode_decode_roundtrip() {
-        // ... (Test Case 1: The Empty Slot is correct) ...
+        // --- Test Case 1: The Empty Slot ---
 
-        // --- Test Case 2: The Simple Item Slot (THE FIX) ---
-        // This is what a "simple slot" *really* looks like
-        // when it's decoded. `None` is not a valid state for
-        // component counts on a non-empty slot.
         let simple_slot = InventorySlot {
             count: VarInt::new(10),
             item_id: Some(ItemID::new(1)),
@@ -194,14 +190,10 @@ mod tests {
             components_to_remove: Some(vec![]),
         };
 
-        // This test will now pass, because `NetEncode` will
-        // correctly write 0s (from Some(0)) and `NetDecode` will
-        // correctly read them back as `Some(0)` and `Some([])`.
         let decoded_simple = run_roundtrip_test(&simple_slot);
         assert_eq!(simple_slot, decoded_simple, "Simple slot roundtrip failed");
 
-        // --- Test Case 3: The Full NBT/Component Slot ---
-        // This one was already correct
+        // --- Test Case 2: The Full NBT/Component Slot ---
         let complex_slot = InventorySlot {
             count: VarInt::new(1),
             item_id: Some(ItemID::new(872)),

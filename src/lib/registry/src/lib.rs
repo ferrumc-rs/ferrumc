@@ -91,7 +91,6 @@ pub fn lookup_blockstate(protocol_id: &str) -> Option<&OwnedValue> {
     LOADED_BLOCKSTATES.get(protocol_id)
 }
 
-// --- ADD THIS NEW FUNCTION ---
 /// Looks up a block state ID from an item ID in `item_to_block_mapping.json`.
 pub fn lookup_item_to_block(item_id: &str) -> Option<&OwnedValue> {
     LOADED_ITEM_TO_BLOCK.get(item_id)
