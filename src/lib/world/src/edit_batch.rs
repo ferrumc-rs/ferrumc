@@ -37,7 +37,6 @@ pub struct EditBatch<'a> {
     pub(crate) edits: Vec<Edit>,
     chunk: &'a mut Chunk,
     tmp_palette_map: AHashMap<BlockStateId, usize>,
-    tmp_palette_map: AHashMap<BlockStateId, usize>,
     used: bool,
 }
 
@@ -46,7 +45,6 @@ pub(crate) struct Edit {
     pub(crate) x: i32,
     pub(crate) y: i32,
     pub(crate) z: i32,
-    pub(crate) block: BlockStateId,
     pub(crate) block: BlockStateId,
 }
 
@@ -75,7 +73,6 @@ impl<'a> EditBatch<'a> {
     /// Sets a block at the given chunk-relative coordinates.
     ///
     /// This won't have any effect until `apply()` is called.
-    pub fn set_block(&mut self, x: i32, y: i32, z: i32, block: BlockStateId) {
     pub fn set_block(&mut self, x: i32, y: i32, z: i32, block: BlockStateId) {
         self.edits.push(Edit { x, y, z, block });
     }
@@ -317,12 +314,10 @@ mod tests {
     use crate::vanilla_chunk_format::BlockData;
 
     fn make_test_block(name: &str) -> BlockStateId {
-    fn make_test_block(name: &str) -> BlockStateId {
         BlockData {
             name: name.to_string(),
             properties: None,
         }
-        .to_block_state_id()
         .to_block_state_id()
     }
 
