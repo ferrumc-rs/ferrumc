@@ -1,9 +1,9 @@
-use std::collections::BTreeMap;
-use std::fs;
 use heck::ToShoutySnakeCase;
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote};
 use serde::Deserialize;
+use std::collections::BTreeMap;
+use std::fs;
 use syn::{LitBool, LitInt};
 
 #[derive(Deserialize, Clone, Debug)]
@@ -38,26 +38,30 @@ pub(crate) fn build() -> TokenStream {
         let const_ident = format_ident!("{}", name.to_shouty_snake_case());
         let id_lit = LitInt::new(&potion.id.to_string(), Span::call_site());
         let base_name = &potion.base_name;
-        
-        let effects = potion.effects.iter().map(|effect| {
-            let effect_type = &effect.effect_type;
-            let duration = LitInt::new(&effect.duration.to_string(), Span::call_site());
-            let amplifier = LitInt::new(&effect.amplifier.to_string(), Span::call_site());
-            let ambient = LitBool::new(effect.ambient, Span::call_site());
-            let show_particles = LitBool::new(effect.show_particles, Span::call_site());
-            let show_icon = LitBool::new(effect.show_icon, Span::call_site());
 
-            quote! {
-                PotionEffect {
-                    effect_type: #effect_type,
-                    duration: #duration,
-                    amplifier: #amplifier,
-                    ambient: #ambient,
-                    show_particles: #show_particles,
-                    show_icon: #show_icon,
+        let effects = potion
+            .effects
+            .iter()
+            .map(|effect| {
+                let effect_type = &effect.effect_type;
+                let duration = LitInt::new(&effect.duration.to_string(), Span::call_site());
+                let amplifier = LitInt::new(&effect.amplifier.to_string(), Span::call_site());
+                let ambient = LitBool::new(effect.ambient, Span::call_site());
+                let show_particles = LitBool::new(effect.show_particles, Span::call_site());
+                let show_icon = LitBool::new(effect.show_icon, Span::call_site());
+
+                quote! {
+                    PotionEffect {
+                        effect_type: #effect_type,
+                        duration: #duration,
+                        amplifier: #amplifier,
+                        ambient: #ambient,
+                        show_particles: #show_particles,
+                        show_icon: #show_icon,
+                    }
                 }
-            }
-        }).collect::<Vec<_>>();
+            })
+            .collect::<Vec<_>>();
 
         constants.extend(quote! {
             pub const #const_ident: Potion = Potion {

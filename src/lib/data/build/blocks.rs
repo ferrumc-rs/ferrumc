@@ -1,14 +1,12 @@
 use heck::{ToShoutySnakeCase, ToUpperCamelCase};
 use proc_macro2::{Span, TokenStream};
-use quote::{ToTokens, format_ident, quote};
+use quote::{format_ident, quote, ToTokens};
 use serde::Deserialize;
 use std::{
     collections::{BTreeMap, HashSet},
     fs,
 };
 use syn::{Ident, LitInt, LitStr};
-
-
 
 // Takes an array of tuples containing indices paired with values
 // Outputs an array with the values in the appropriate index, gaps filled with None
@@ -561,7 +559,7 @@ impl Block {
         let mut default_state = default_state_ref.clone();
         default_state.id = default_state_ref.id;
         let default_state = default_state.to_tokens();
-        
+
         let flammable = match &self.flammable {
             Some(flammable) => {
                 let flammable_tokens = flammable.to_token_stream();
@@ -569,7 +567,7 @@ impl Block {
             }
             None => quote! { None },
         };
-        
+
         tokens.extend(quote! {
             Block {
                 id: #id,
@@ -680,7 +678,7 @@ pub(crate) fn build() -> TokenStream {
     let mut property_collection_map: BTreeMap<Vec<i32>, PropertyCollectionData> = BTreeMap::new();
     // Validator that we have no `enum` collisions.
     let mut optimized_blocks: Vec<Block> = Vec::new();
-    
+
     for block in blocks_assets.blocks.clone() {
         optimized_blocks.push(block.clone());
 
@@ -784,7 +782,7 @@ pub(crate) fn build() -> TokenStream {
             #type_lit,
         });
     }
-    
+
     let state_from_state_id_array = fill_state_array(state_from_state_id_array);
     let max_state_id_2 = state_from_state_id_array.len();
     for token in state_from_state_id_array {

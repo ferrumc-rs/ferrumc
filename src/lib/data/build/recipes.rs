@@ -1,11 +1,10 @@
-
-use std::fs;
 use heck::ToShoutySnakeCase;
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote};
 use serde::Deserialize;
-use syn::{LitInt, LitFloat};
 use serde_json::Value;
+use std::fs;
+use syn::{LitFloat, LitInt};
 
 fn deserialize_pattern<'de, D>(deserializer: D) -> Result<Option<Vec<String>>, D::Error>
 where
@@ -18,7 +17,11 @@ where
         Value::Array(arr) => {
             let strings: Result<Vec<String>, _> = arr
                 .into_iter()
-                .map(|v| v.as_str().map(|s| s.to_string()).ok_or_else(|| serde::de::Error::custom("Expected string")))
+                .map(|v| {
+                    v.as_str()
+                        .map(|s| s.to_string())
+                        .ok_or_else(|| serde::de::Error::custom("Expected string"))
+                })
                 .collect();
             Ok(Some(strings?))
         }
@@ -51,9 +54,10 @@ pub struct Recipe {
 pub(crate) fn build() -> TokenStream {
     println!("cargo:rerun-if-changed=../../../assets/extracted/recipes.json");
 
-    let recipes: Vec<Recipe> =
-        serde_json::from_str(&fs::read_to_string("../../../assets/extracted/recipes.json").unwrap())
-            .expect("Failed to parse recipes.json");
+    let recipes: Vec<Recipe> = serde_json::from_str(
+        &fs::read_to_string("../../../assets/extracted/recipes.json").unwrap(),
+    )
+    .expect("Failed to parse recipes.json");
 
     let mut constants = TokenStream::new();
     let mut type_from_name = TokenStream::new();
@@ -61,7 +65,7 @@ pub(crate) fn build() -> TokenStream {
     for (index, recipe) in recipes.iter().enumerate() {
         let name = format!("recipe_{}", index);
         let const_ident = format_ident!("{}", name.to_shouty_snake_case());
-        
+
         let recipe_type = &recipe.recipe_type;
         let group = match &recipe.group {
             Some(group) => {
@@ -69,7 +73,7 @@ pub(crate) fn build() -> TokenStream {
             }
             None => quote! { None },
         };
-        
+
         let category = match &recipe.category {
             Some(category) => {
                 quote! { Some(#category) }

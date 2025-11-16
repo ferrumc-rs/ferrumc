@@ -38,7 +38,12 @@ members = [
     "src/lib/scheduler",
     "src/lib/components",
     "src/lib/events"
+    "src/lib/data",
 ]
+
+[workspace.package]
+edition = "2021"
+version = "0.1.0"
 
 #================== Lints ==================#
 [workspace.lints.rust]
@@ -114,6 +119,7 @@ ferrumc-world-gen = { path = "src/lib/world_gen" }
 ferrumc-inventories = { path = "src/lib/inventories" }
 ferrumc-components = { path = "src/lib/components"}
 ferrumc-events = { path = "src/lib/events"}
+ferrumc-data = { path = "src/lib/data" }
 
 # Asynchronous
 tokio = { version = "1.48.0", features = ["macros", "net", "rt", "sync", "time", "io-util", "test-util"], default-features = false }

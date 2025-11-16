@@ -1,19 +1,20 @@
-use std::fs;
 use heck::ToPascalCase;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
+use std::fs;
 
 use crate::array_to_tokenstream;
 
 pub(crate) fn build() -> TokenStream {
     println!("cargo:rerun-if-changed=../../../assets/extracted/particles.json");
 
-    let particles: Vec<String> =
-        serde_json::from_str(&fs::read_to_string("../../../assets/extracted/particles.json").unwrap())
-            .expect("Failed to parse particles.json");
-    
+    let particles: Vec<String> = serde_json::from_str(
+        &fs::read_to_string("../../../assets/extracted/particles.json").unwrap(),
+    )
+    .expect("Failed to parse particles.json");
+
     let variants = array_to_tokenstream(&particles);
-    
+
     let type_from_name = &particles
         .iter()
         .map(|particle| {
@@ -25,7 +26,7 @@ pub(crate) fn build() -> TokenStream {
             }
         })
         .collect::<TokenStream>();
-        
+
     let type_to_name = &particles
         .iter()
         .map(|particle| {
@@ -37,7 +38,7 @@ pub(crate) fn build() -> TokenStream {
             }
         })
         .collect::<TokenStream>();
-        
+
     quote! {
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
         pub enum Particle {
@@ -53,7 +54,7 @@ pub(crate) fn build() -> TokenStream {
                     _ => None
                 }
             }
-            
+
             pub const fn to_name(&self) -> &'static str {
                 match self {
                     #type_to_name

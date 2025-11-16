@@ -1,8 +1,8 @@
-use std::{collections::BTreeMap, fs};
 use heck::ToShoutySnakeCase;
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote, ToTokens};
 use serde::Deserialize;
+use std::{collections::BTreeMap, fs};
 use syn::{Ident, LitBool, LitFloat, LitInt, LitStr};
 
 fn _true() -> bool {
@@ -56,7 +56,7 @@ impl ToTokens for ItemComponents {
                 size: #max_stack_size,
             }),
         });
-        
+
         if let Some(playable) = &self.jukebox_playable {
             let song = LitStr::new(playable, Span::call_site());
             tokens.extend(quote! {
@@ -127,9 +127,9 @@ impl ToTokens for ItemComponents {
         };
 
         if let Some(tool) = &self.tool {
-let rules_code = tool.rules.iter().map(|rule| {
-            quote! { #rule }
-        });
+            let rules_code = tool.rules.iter().map(|rule| {
+                quote! { #rule }
+            });
             let damage_per_block = {
                 let speed = LitInt::new(&tool.damage_per_block.to_string(), Span::call_site());
                 quote! { #speed }

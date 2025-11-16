@@ -7,10 +7,10 @@ mod tests {
         // Test that we can access some block data
         let air = blocks::AIR;
         assert_eq!(air.id, 0);
-        
+
         let stone = blocks::STONE;
         assert_eq!(stone.id, 1);
-        
+
         // Test instrument enum
         use blocks::Instrument;
         let instrument = Instrument::HARP;
