@@ -5,6 +5,7 @@ use bevy_ecs::prelude::{Entity, Event};
 /// Fired by: Orb collection system, command handler.
 /// Listened for by: An `experience_system` to update the `Experience` component.
 #[derive(Event)]
+#[allow(unused)]
 pub struct PlayerXPGainEvent {
     pub player: Entity,
     pub amount: u32,
@@ -15,6 +16,7 @@ pub struct PlayerXPGainEvent {
 /// Fired by: `experience_system`.
 /// Listened for by: `sound_system` (to play the *ding*), UI systems.
 #[derive(Event)]
+#[allow(unused)]
 pub struct PlayerLevelUpEvent {
     pub player: Entity,
     pub new_level: u32,

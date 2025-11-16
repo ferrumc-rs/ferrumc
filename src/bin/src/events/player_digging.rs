@@ -6,6 +6,7 @@ use ferrumc_net_codec::net_types::network_position::NetworkPosition;
 /// Fired by: `player_action` packet handler.
 /// Listened for by: A new `digging_system`.
 #[derive(Event)]
+#[allow(unused)]
 pub struct PlayerStartDiggingEvent {
     pub player: Entity,
     pub position: NetworkPosition,
@@ -16,6 +17,7 @@ pub struct PlayerStartDiggingEvent {
 /// Fired by: `player_action` packet handler.
 /// Listened for by: `digging_system` (to remove the `PlayerDigging` component).
 #[derive(Event)]
+#[allow(unused)]
 pub struct PlayerCancelDiggingEvent {
     pub player: Entity,
 }
@@ -25,6 +27,7 @@ pub struct PlayerCancelDiggingEvent {
 /// Fired by: `player_action` packet handler.
 /// Listened for by: `digging_system` (to check time, break the block, and spawn items).
 #[derive(Event)]
+#[allow(unused)]
 pub struct PlayerFinishDiggingEvent {
     pub player: Entity,
     pub position: NetworkPosition,

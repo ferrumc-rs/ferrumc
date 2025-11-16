@@ -6,4 +6,5 @@ use ferrumc_core::identity::player_identity::PlayerIdentity;
 /// Fired by: `new_connection`.
 /// Listened for by: `system_messages` to broadcast join and leave messages
 #[derive(Event, Clone)]
+#[allow(unused)]
 pub struct PlayerJoinEvent(pub PlayerIdentity);
