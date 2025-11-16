@@ -140,6 +140,35 @@ impl Inventory {
         Ok(())
     }
 
+    /// Clears an inventory slot, regardless of its current state, and sends an update.
+    /// This is idempotent and will not error if the slot is already empty.
+    pub fn clear_slot_with_update(
+        &mut self,
+        index: usize,
+        entity: Entity,
+    ) -> Result<(), InventoryError> {
+        if index >= self.slots.len() {
+            return Err(InventoryError::InvalidSlotIndex(index));
+        }
+
+        // If the slot is already empty, we don't need to do anything
+        // except send the update (which is good practice).
+        if self.slots[index].is_none() {
+            // Fall through to send the update
+        }
+
+        // Set the server's state to empty
+        self.slots[index] = None;
+
+        // Queue the update to tell the client the slot is now empty
+        INVENTORY_UPDATES_QUEUE.push(InventoryUpdate {
+            slot_index: index as u8,
+            slot: InventorySlot::default(), // An empty slot (count: 0)
+            entity,
+        });
+        Ok(())
+    }
+
     /// Searches the inventory for the first slot containing the given ItemID.
     ///
     /// Returns `Some(index)` if found, `None` otherwise.
@@ -173,7 +202,7 @@ impl Inventory {
         // Send an update for the first slot
         INVENTORY_UPDATES_QUEUE.push(InventoryUpdate {
             slot_index: index_a as u8,
-            // Clone the data that is *now* in slot A
+            // Clone the data that is now in slot A
             slot: self.slots[index_a].clone().unwrap_or_default(),
             entity,
         });
@@ -181,7 +210,7 @@ impl Inventory {
         // Send an update for the second slot
         INVENTORY_UPDATES_QUEUE.push(InventoryUpdate {
             slot_index: index_b as u8,
-            // Clone the data that is *now* in slot B
+            // Clone the data that is now in slot B
             slot: self.slots[index_b].clone().unwrap_or_default(),
             entity,
         });

@@ -18,7 +18,7 @@ pub fn handle(
             if let Ok(mut inventory) = query.get_mut(entity) {
                 if event.slot.count.0 == 0 {
                     if let Err(e) =
-                        inventory.remove_item_with_update(event.slot_index as usize, entity)
+                        inventory.clear_slot_with_update(event.slot_index as usize, entity)
                     {
                         error!(
                             "Failed to clear slot {} for player {}: {:?}",
