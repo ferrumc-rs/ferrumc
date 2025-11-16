@@ -129,7 +129,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
 
     shutdown_schedule.run(&mut ecs_world);
 
-    // tell the TCP connection acceptor to shut down
+    // Tell the TCP connection acceptor to shut down
     trace!("Sending shutdown signal to TCP connection acceptor");
     shutdown_send
         .send(())

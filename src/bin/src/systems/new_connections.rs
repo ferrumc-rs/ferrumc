@@ -1,12 +1,16 @@
-use crate::systems::system_messages;
-use bevy_ecs::prelude::{Commands, Res, Resource};
+use crate::events::player_join::PlayerJoinEvent;
+use bevy_ecs::{
+    event::EventWriter,
+    prelude::{Commands, Res, Resource},
+};
 use crossbeam_channel::Receiver;
 
+use ferrumc_components::player::gamemode::GameModeComponent;
+use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
 use ferrumc_core::conn::keepalive::KeepAliveTracker;
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
-use ferrumc_core::{chunks::chunk_receiver::ChunkReceiver, player::gamemode::GameModeComponent};
 use ferrumc_inventories::hotbar::Hotbar;
 use ferrumc_inventories::inventory::Inventory;
 use ferrumc_net::connection::{DisconnectHandle, NewConnection};
@@ -21,6 +25,7 @@ pub fn accept_new_connections(
     mut cmd: Commands,
     new_connections: Res<NewConnectionRecv>,
     state: Res<GlobalStateResource>,
+    mut join_events: EventWriter<PlayerJoinEvent>,
 ) {
     if new_connections.0.is_empty() {
         return;
@@ -53,7 +58,7 @@ pub fn accept_new_connections(
                 last_received_keep_alive: Instant::now(),
                 has_received_keep_alive: true,
             },
-            Inventory::new(46),
+            Inventory::default(),
             Hotbar::default(),
             abilities,
             GameModeComponent(gamemode),
@@ -77,14 +82,8 @@ pub fn accept_new_connections(
             ),
         );
 
-        for player in &state.0.players.player_list {
-            if player.value().0 != new_connection.player_identity.uuid.as_u128() {
-                system_messages::player_join::handle(
-                    &new_connection.player_identity,
-                    *player.key(),
-                );
-            }
-        }
+        // Fire PlayerJoinEvent
+        join_events.write(PlayerJoinEvent(new_connection.player_identity.clone()));
 
         if let Err(err) = return_sender.send(entity.id()) {
             error!(

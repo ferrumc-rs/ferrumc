@@ -3,6 +3,7 @@ use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::encode::errors::NetEncodeError;
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use ferrumc_net_codec::net_types::var_int::VarInt;
+use ferrumc_world::block_state_id::BlockStateId;
 use simd_json::base::ValueAsScalar;
 use simd_json::prelude::ValueAsObject;
 use simd_json::prelude::ValueObjectAccess;
@@ -20,6 +21,34 @@ impl Display for ItemID {
 }
 
 impl ItemID {
+    /// Creates an `ItemID` from a `BlockStateId` by mapping it through the registry.
+    ///
+    /// This is a general solution for finding the item associated with a block.
+    ///
+    /// Note: This won't work for blocks that drop a different item
+    /// (e.g., stone dropping cobblestone), that's a loot table.
+    pub fn from_block_state(block_state_id: BlockStateId) -> Option<Self> {
+        // 1. Convert BlockStateId to its raw protocol ID.
+        let protocol_id = VarInt::from(block_state_id).0;
+
+        // 2. 0 is "air", which has no item.
+        if protocol_id == 0 {
+            return None;
+        }
+
+        // 3. Convert the ID to a string key.
+        let id_key = protocol_id.to_string();
+
+        // 4. Call your new, dedicated registry function
+        let entry = ferrumc_registry::lookup_blockstate(&id_key)?;
+
+        // 5. Get the "name" field from the entry (e.g., "minecraft:stone").
+        let block_name = entry.get("name")?.as_str()?;
+
+        // 6. Use the existing `from_name` to get the ItemID.
+        ItemID::from_name(block_name)
+    }
+
     /// Creates an `ItemID` from a name, e.g. "minecraft:stone" or "stone".
     /// Is somewhat expensive, as it queries the registry.
     pub fn from_name(name: &str) -> Option<Self> {
@@ -127,5 +156,59 @@ mod tests {
         assert_eq!(item_id.0.0, i32::MAX);
         let name = item_id.to_name();
         assert!(name.is_none());
+    }
+
+    #[test]
+    fn test_item_id_from_block_state_stone() {
+        // BlockStateId(1) is "minecraft:stone"
+        let block_state_id = BlockStateId(1);
+
+        let item_id = ItemID::from_block_state(block_state_id);
+        assert!(
+            item_id.is_some(),
+            "ItemID::from_block_state returned None for Stone (ID 1)"
+        );
+
+        // The item for "minecraft:stone" is "minecraft:stone"
+        let expected_item_id = ItemID::from_name("minecraft:stone");
+        assert!(
+            expected_item_id.is_some(),
+            "ItemID::from_name failed for stone"
+        );
+
+        assert_eq!(item_id.unwrap(), expected_item_id.unwrap());
+    }
+
+    #[test]
+    fn test_item_id_from_block_state_grass() {
+        // BlockStateId(9) is "minecraft:grass_block" with snowy=false
+        let block_state_id = BlockStateId(9);
+
+        let item_id = ItemID::from_block_state(block_state_id);
+        assert!(
+            item_id.is_some(),
+            "ItemID::from_block_state returned None for Grass (ID 9)"
+        );
+
+        // The item for "minecraft:grass_block" is "minecraft:grass_block"
+        let expected_item_id = ItemID::from_name("minecraft:grass_block");
+        assert!(
+            expected_item_id.is_some(),
+            "ItemID::from_name failed for grass_block"
+        );
+
+        assert_eq!(item_id.unwrap(), expected_item_id.unwrap());
+    }
+
+    #[test]
+    fn test_item_id_from_block_state_air() {
+        // BlockStateId(0) is "minecraft:air"
+        let block_state_id = BlockStateId(0);
+
+        let item_id = ItemID::from_block_state(block_state_id);
+        assert!(
+            item_id.is_none(),
+            "ItemID::from_block_state returned Some for Air (ID 0)"
+        );
     }
 }

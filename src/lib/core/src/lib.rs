@@ -6,6 +6,5 @@ pub mod collisions;
 pub mod conn;
 pub mod identity;
 pub mod mq;
-pub mod player;
 pub mod state;
 pub mod transform;
