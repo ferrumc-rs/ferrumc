@@ -43,6 +43,16 @@ impl GameEventPacket {
     /// > time.
     pub const WIN_GAME: u8 = 4;
 
+    /// GameEvent packet ID to trigger demo events.
+    /// *Copied from https://minecraft.wiki/w/Java_Edition_protocol/Packets*  
+    /// Possible values:
+    /// - 0: Show welcome to demo screen.
+    /// - 101: Tell movement controls.
+    /// - 102: Tell jump control.
+    /// - 103: Tell inventory control.
+    /// - 104: Tell that the demo is over and print a message about how to take a screenshot.
+    pub const DEMO_EVENT: u8 = 5;
+
     pub fn new(event_id: u8, value: f32) -> Self {
         Self { event_id, value }
     }
