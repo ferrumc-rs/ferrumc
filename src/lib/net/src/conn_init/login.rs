@@ -214,7 +214,7 @@ pub(super) async fn login(
     let abilities_to_send = state
         .player_cache
         .get(&player_identity.uuid)
-        .map(|data| data.abilities.clone())
+        .map(|data| data.abilities)
         .unwrap_or_default();
 
     let abilities_packet =
