@@ -37,6 +37,7 @@ pub struct EditBatch<'a> {
     pub(crate) edits: Vec<Edit>,
     chunk: &'a mut Chunk,
     tmp_palette_map: AHashMap<BlockStateId, usize>,
+    tmp_palette_map: AHashMap<BlockStateId, usize>,
     used: bool,
 }
 
@@ -45,6 +46,7 @@ pub(crate) struct Edit {
     pub(crate) x: i32,
     pub(crate) y: i32,
     pub(crate) z: i32,
+    pub(crate) block: BlockStateId,
     pub(crate) block: BlockStateId,
 }
 
@@ -73,6 +75,7 @@ impl<'a> EditBatch<'a> {
     /// Sets a block at the given chunk-relative coordinates.
     ///
     /// This won't have any effect until `apply()` is called.
+    pub fn set_block(&mut self, x: i32, y: i32, z: i32, block: BlockStateId) {
     pub fn set_block(&mut self, x: i32, y: i32, z: i32, block: BlockStateId) {
         self.edits.push(Edit { x, y, z, block });
     }
@@ -184,8 +187,11 @@ impl<'a> EditBatch<'a> {
             let palette_hash = get_palette_hash(palette);
 
             // Rebuild temporary palette index lookup (block state ID -> palette index)
+            // Rebuild temporary palette index lookup (block state ID -> palette index)
             self.tmp_palette_map.clear();
             for (i, p) in palette.iter().enumerate() {
+                self.tmp_palette_map
+                    .insert(BlockStateId::from_varint(*p), i);
                 self.tmp_palette_map
                     .insert(BlockStateId::from_varint(*p), i);
             }
@@ -231,11 +237,15 @@ impl<'a> EditBatch<'a> {
                 }
 
                 if let Some(old_block_state_id) = palette.get(old_block_index as usize) {
+                if let Some(old_block_state_id) = palette.get(old_block_index as usize) {
                     if let Some(count) =
+                        block_count_removes.get_mut(&BlockStateId::from_varint(*old_block_state_id))
                         block_count_removes.get_mut(&BlockStateId::from_varint(*old_block_state_id))
                     {
                         *count -= 1;
                     } else {
+                        block_count_removes
+                            .insert(BlockStateId::from_varint(*old_block_state_id), 1);
                         block_count_removes
                             .insert(BlockStateId::from_varint(*old_block_state_id), 1);
                     }
@@ -255,18 +265,22 @@ impl<'a> EditBatch<'a> {
 
             // Update block counts
             for (block_state_id, count) in block_count_adds {
+            for (block_state_id, count) in block_count_adds {
                 let current_count = section
                     .block_states
                     .block_counts
+                    .entry(block_state_id)
                     .entry(block_state_id)
                     .or_insert(0);
                 *current_count += count;
             }
 
             for (block_state_id, count) in block_count_removes {
+            for (block_state_id, count) in block_count_removes {
                 let current_count = section
                     .block_states
                     .block_counts
+                    .entry(block_state_id)
                     .entry(block_state_id)
                     .or_insert(0);
                 *current_count -= count;
@@ -275,6 +289,7 @@ impl<'a> EditBatch<'a> {
             section.block_states.non_air_blocks = *section
                 .block_states
                 .block_counts
+                .get(&BlockStateId::default())
                 .get(&BlockStateId::default())
                 .unwrap_or(&4096) as u16;
 
@@ -302,10 +317,12 @@ mod tests {
     use crate::vanilla_chunk_format::BlockData;
 
     fn make_test_block(name: &str) -> BlockStateId {
+    fn make_test_block(name: &str) -> BlockStateId {
         BlockData {
             name: name.to_string(),
             properties: None,
         }
+        .to_block_state_id()
         .to_block_state_id()
     }
 
