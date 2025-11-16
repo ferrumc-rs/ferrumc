@@ -2,6 +2,7 @@ use crate::vanilla_chunk_format::BlockData;
 use ahash::RandomState;
 use bitcode_derive::{Decode, Encode};
 use deepsize::DeepSizeOf;
+use ferrumc_macros::block;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use lazy_static::lazy_static;
 use std::collections::HashMap;
@@ -59,6 +60,12 @@ impl BlockId {
         BlockId(*id as u32)
     }
 
+    pub(crate) fn is_non_air(&self) -> bool {
+        !matches!(
+            self,
+            block!("air") | block!("cave_air") | block!("void_air")
+        )
+    }
     /// Given a block ID, return a BlockData. Will clone, so don't use in hot loops.
     /// If the ID is not found, returns None.
     pub fn to_block_data(&self) -> Option<BlockData> {
@@ -112,14 +119,14 @@ impl From<BlockId> for BlockData {
 }
 
 impl From<VarInt> for BlockId {
-    /// Converts a VarInt to a BlockId. Probably a no-op, but included for completeness.
+    /// Converts a VarInt to a BlockId.
     fn from(var_int: VarInt) -> Self {
         Self(var_int.0 as u32)
     }
 }
 
 impl From<BlockId> for VarInt {
-    /// Converts a BlockId to a VarInt. Probably a no-op, but included for completeness.
+    /// Converts a BlockId to a VarInt.
     fn from(block_id: BlockId) -> Self {
         VarInt(block_id.0 as i32)
     }
@@ -129,5 +136,17 @@ impl Default for BlockId {
     /// Returns a BlockId with ID 0, which is air.
     fn default() -> Self {
         Self(0)
+    }
+}
+
+impl From<u32> for BlockId {
+    fn from(value: u32) -> Self {
+        Self(value)
+    }
+}
+
+impl From<u16> for BlockId {
+    fn from(value: u16) -> Self {
+        Self(value as u32)
     }
 }

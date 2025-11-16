@@ -1,13 +1,14 @@
 use bitcode::{Decode, Encode};
-use ferrumc_macros::NBTDeserialize;
-use ferrumc_macros::NBTSerialize;
+use ferrumc_macros::{NBTDeserialize, NBTSerialize};
 use macro_rules_attribute::{apply, attribute_alias};
 use serde_derive::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt::Display;
 
 attribute_alias! {
-    #[apply(ChunkDerives)] = #[derive(NBTSerialize, NBTDeserialize,
+    #[apply(ChunkDerives)] = #[derive(
+    NBTSerialize,
+    NBTDeserialize,
     Debug,
     Clone,
     PartialEq,
@@ -20,7 +21,6 @@ attribute_alias! {
 }
 
 #[apply(ChunkDerives)]
-#[derive(deepsize::DeepSizeOf)]
 #[nbt(is_root)]
 #[nbt(rename = "")]
 pub(crate) struct VanillaChunk {
@@ -48,7 +48,6 @@ pub(crate) struct VanillaChunk {
 }
 
 #[apply(ChunkDerives)]
-#[derive(deepsize::DeepSizeOf)]
 #[nbt(net_encode)]
 pub(crate) struct VanillaHeightmaps {
     // #[nbt(rename = "MOTION_BLOCKING_NO_LEAVES")]
@@ -62,7 +61,6 @@ pub(crate) struct VanillaHeightmaps {
 }
 
 #[apply(ChunkDerives)]
-#[derive(deepsize::DeepSizeOf)]
 pub(crate) struct Structures {
     pub starts: Starts,
     #[nbt(rename = "References")]
@@ -70,15 +68,12 @@ pub(crate) struct Structures {
 }
 
 #[apply(ChunkDerives)]
-#[derive(deepsize::DeepSizeOf)]
 pub(crate) struct Starts {}
 
 #[apply(ChunkDerives)]
-#[derive(deepsize::DeepSizeOf)]
 pub(crate) struct References {}
 
 #[apply(ChunkDerives)]
-#[derive(deepsize::DeepSizeOf)]
 pub(crate) struct Section {
     #[nbt(rename = "block_states")]
     pub block_states: Option<BlockStates>,
@@ -92,7 +87,6 @@ pub(crate) struct Section {
 }
 
 #[apply(ChunkDerives)]
-#[derive(deepsize::DeepSizeOf)]
 pub(crate) struct BlockStates {
     pub data: Option<Vec<i64>>,
     pub palette: Option<Vec<BlockData>>,
@@ -104,7 +98,7 @@ pub(crate) struct BlockStates {
 ///
 /// If you want to use it as a literal and the convert to a BlockId, use the [ferrumc_macros::block_data!] macro.
 #[apply(ChunkDerives)]
-#[derive(deepsize::DeepSizeOf, Hash)]
+#[derive(Hash)]
 pub struct BlockData {
     #[nbt(rename = "Name")]
     pub name: String,
@@ -128,7 +122,6 @@ impl Default for BlockData {
 }
 
 #[apply(ChunkDerives)]
-#[derive(deepsize::DeepSizeOf)]
 pub(crate) struct Biomes {
     pub data: Option<Vec<i64>>,
     pub palette: Vec<String>,

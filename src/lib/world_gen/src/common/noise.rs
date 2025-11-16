@@ -111,7 +111,7 @@ pub fn generate_interpolation_data(
                             );
 
                             if res > 0.0 {
-                                chunk.set_block(pos.x, pos.y, pos.z, filler).unwrap();
+                                chunk.set_block(pos, filler).unwrap();
                             }
                         }
                     }

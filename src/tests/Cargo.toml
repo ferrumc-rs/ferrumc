@@ -13,6 +13,7 @@ ferrumc-core = { workspace = true }
 flate2 = { workspace = true }
 tokio = { workspace = true }
 maplit = { workspace = true }
+ferrumc-world-gen = { workspace = true }
 
 [lints]
 workspace = true

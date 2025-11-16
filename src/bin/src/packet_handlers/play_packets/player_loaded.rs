@@ -25,9 +25,12 @@ pub fn handle(
             continue;
         }
         let head_block = state.0.world.get_block_and_fetch(
-            player_pos.x as i32,
-            player_pos.y as i32,
-            player_pos.z as i32,
+            (
+                player_pos.x as i32,
+                player_pos.y as i32,
+                player_pos.z as i32,
+            )
+                .into(),
             "overworld",
         );
         if let Ok(head_block) = head_block {

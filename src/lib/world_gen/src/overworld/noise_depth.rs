@@ -399,7 +399,7 @@ pub struct OverworldBiomeNoise {
     noodle_ridge_b: NormalNoise<1>,
 }
 impl OverworldBiomeNoise {
-    pub(super) fn new(factory: Xoroshiro128PlusPlus) -> Self {
+    pub fn new(factory: Xoroshiro128PlusPlus) -> Self {
         Self {
             chunk_height: ChunkHeight {
                 min_y: -64,
@@ -798,9 +798,7 @@ pub fn generate_interpolation_data(
 
                             chunk
                                 .set_block(
-                                    pos.x,
-                                    pos.y,
-                                    pos.z,
+                                    pos,
                                     if res > 0.0 {
                                         block!("stone")
                                     } else {

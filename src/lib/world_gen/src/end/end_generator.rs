@@ -1,5 +1,5 @@
 use bevy_math::IVec2;
-use ferrumc_world::chunk_format::Chunk;
+use ferrumc_world::chunk_format::{Chunk, Section};
 
 use crate::{
     end::biome_noise::EndNoise,
@@ -35,23 +35,18 @@ impl EndGenerator {
     }
 
     pub fn generate_chunk(&self, x: i32, z: i32) -> Result<Chunk, WorldGenError> {
-        let mut chunk = Chunk::new(x, z, "overworld".to_string());
+        let mut chunk = Chunk::new(
+            x,
+            z,
+            "overworld".to_string(),
+            self.chunk_height
+                .iter()
+                .step_by(16)
+                .map(|y| Section::empty((y >> 4) as i8))
+                .collect(),
+        );
         self.biome_noise
             .generate_chunk(ChunkPos::from(IVec2::new(x * 16, z * 16)), &mut chunk);
-        // .iter_columns()
-        // .cartesian_product(self.chunk_height.iter())
-        // .map(|(c, y)| c.block(y))
-        // .map(|pos| {
-        //     let final_density = self.biome_noise.final_density(pos);
-        //     chunk.set_block(
-        //         pos.x,
-        //         pos.y,
-        //         pos.z,
-        //         if final_density > 0.0 { stone } else { air },
-        //     )
-        // })
-        // .find(Result::is_err)
-        // .unwrap_or(Ok(()))?;
 
         Ok(chunk)
     }

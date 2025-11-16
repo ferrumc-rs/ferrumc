@@ -1,5 +1,5 @@
 use bevy_math::IVec2;
-use ferrumc_world::chunk_format::Chunk;
+use ferrumc_world::chunk_format::{Chunk, Section};
 
 use crate::{
     errors::WorldGenError,
@@ -35,7 +35,16 @@ impl NetherGenerator {
     }
 
     pub fn generate_chunk(&self, x: i32, z: i32) -> Result<Chunk, WorldGenError> {
-        let mut chunk = Chunk::new(x, z, "overworld".to_string());
+        let mut chunk = Chunk::new(
+            x,
+            z,
+            "overworld".to_string(),
+            self.chunk_height
+                .iter()
+                .step_by(16)
+                .map(|y| Section::empty((y as i8))
+                .collect(),
+        );
         self.noise
             .generate_chunk(ChunkPos::from(IVec2::new(x * 16, z * 16)), &mut chunk);
 

@@ -1,27 +1,21 @@
-use crate::block_id::{BlockId, BLOCK2ID};
-use crate::vanilla_chunk_format;
-use crate::vanilla_chunk_format::VanillaChunk;
-use crate::{errors::WorldError, vanilla_chunk_format::VanillaHeightmaps};
+use crate::block_id::BlockId;
+use crate::errors::WorldError;
+use crate::vanilla_chunk_format::{VanillaChunk, VanillaHeightmaps};
 use bitcode_derive::{Decode, Encode};
-use deepsize::DeepSizeOf;
 use ferrumc_general_purpose::data_packing::i32::read_nbit_i32;
 use ferrumc_macros::{block, NBTDeserialize, NBTSerialize};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::cmp::max;
 use std::collections::HashMap;
 use tracing::error;
-// #[cfg(test)]
-// const BLOCKSFILE: &[u8] = &[0];
 
 // If this file doesn't exist, you'll have to create it yourself. Download the 1.21.1 server from the
 // minecraft launcher, extract the blocks data (info here https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Data_Generators#Blocks_report)
 // , put the blocks.json file in the .etc folder, and run the blocks_parser.py script in the scripts
 // folder. This will generate the blockmappings.json file that is compressed with bzip2 and included
 // in the binary.
-// #[cfg(not(test))]
 
-#[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug)]
-// This is a placeholder for the actual chunk format
+#[derive(Encode, Decode, Clone, Eq, PartialEq, Debug)]
 pub struct Chunk {
     pub x: i32,
     pub z: i32,
@@ -30,67 +24,41 @@ pub struct Chunk {
     pub heightmaps: Heightmaps,
 }
 
-#[derive(Encode, Decode, NBTDeserialize, NBTSerialize, Clone, DeepSizeOf, Debug)]
+impl Chunk {
+    /// Creates a new chunk
+    pub fn new(x: i32, z: i32, dimension: String, sections: Vec<Section>) -> Self {
+        Chunk {
+            x,
+            z,
+            dimension,
+            sections,
+            heightmaps: Heightmaps::new(),
+        }
+    }
+    /// Get deep size in bytes for the chunk
+    pub fn deep_size(&self) -> usize {
+        size_of::<Self>()
+            + size_of_val(&self.dimension)
+            + self.dimension.capacity()
+            + size_of_val(&self.sections)
+            + self.sections.capacity() * size_of::<Section>()
+            + size_of_val(&self.heightmaps)
+            + self.heightmaps.motion_blocking.capacity() * size_of::<i64>()
+            + self.heightmaps.world_surface.capacity() * size_of::<i64>()
+    }
+}
+
+#[derive(Encode, Decode, NBTDeserialize, NBTSerialize, Clone, Debug, Eq, PartialEq)]
 #[nbt(net_encode)]
-#[derive(Eq, PartialEq)]
 pub struct Heightmaps {
     #[nbt(rename = "MOTION_BLOCKING")]
     pub motion_blocking: Vec<i64>,
     #[nbt(rename = "WORLD_SURFACE")]
     pub world_surface: Vec<i64>,
 }
-#[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug)]
-pub struct Section {
-    pub y: i8,
-    pub block_states: BlockStates,
-    pub biome_states: BiomeStates,
-    pub block_light: Vec<u8>,
-    pub sky_light: Vec<u8>,
-}
-#[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug)]
-pub struct BlockStates {
-    pub non_air_blocks: u16,
-    pub block_data: PaletteType,
-    pub block_counts: HashMap<BlockId, i32>,
-}
-
-#[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug)]
-pub enum PaletteType {
-    Single(VarInt),
-    Indirect {
-        bits_per_block: u8,
-        data: Vec<i64>,
-        palette: Vec<VarInt>,
-    },
-    Direct {
-        bits_per_block: u8,
-        data: Vec<i64>,
-    },
-}
-
-#[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug)]
-pub struct BiomeStates {
-    pub bits_per_biome: u8,
-    pub data: Vec<i64>,
-    pub palette: Vec<VarInt>,
-}
-
-fn convert_to_net_palette(
-    vanilla_palettes: Vec<vanilla_chunk_format::BlockData>,
-) -> Result<Vec<VarInt>, WorldError> {
-    let mut new_palette = Vec::new();
-    for palette in vanilla_palettes {
-        if let Some(id) = BLOCK2ID.get(&palette) {
-            new_palette.push(VarInt::from(*id));
-        } else {
-            new_palette.push(VarInt::from(0));
-            error!("Could not find block id for palette entry: {:?}", palette);
-        }
-    }
-    Ok(new_palette)
-}
 
 impl Heightmaps {
+    /// Creates an empty Heightmaps
     pub fn new() -> Self {
         Heightmaps {
             motion_blocking: vec![],
@@ -114,6 +82,178 @@ impl From<VanillaHeightmaps> for Heightmaps {
     }
 }
 
+#[derive(Encode, Decode, Clone, Eq, PartialEq, Debug)]
+pub struct Section {
+    pub y: i8,
+    pub block_states: BlockStates,
+    pub biome_states: BiomeStates,
+    pub block_light: Vec<u8>,
+    pub sky_light: Vec<u8>,
+}
+impl Section {
+    /// Creates an empty Section with heigth y
+    pub fn empty(y: i8) -> Self {
+        Self {
+            y,
+            block_states: BlockStates::new(),
+            biome_states: BiomeStates {
+                bits_per_biome: 0,
+                data: vec![],
+                palette: vec![0.into()],
+            },
+            block_light: vec![255; 2048],
+            sky_light: vec![255; 2048],
+        }
+    }
+}
+#[derive(Encode, Decode, Clone, Eq, PartialEq, Debug)]
+pub struct BlockStates {
+    pub non_air_blocks: u16,
+    pub block_data: PaletteType,
+    pub block_counts: HashMap<BlockId, i32>,
+}
+
+impl<'a> FromIterator<&'a BlockId> for BlockStates {
+    fn from_iter<T: IntoIterator<Item = &'a BlockId>>(iter: T) -> Self {
+        let mut section = Section::empty(0);
+        for (index, &block) in iter.into_iter().enumerate() {
+            section.set_block_by_index(index, block).unwrap();
+        }
+        let block_states = section.block_states;
+        block_states
+    }
+}
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub struct BlockStatesIter<'a> {
+    block_states: &'a BlockStates,
+    index: usize,
+}
+
+impl<'a> Iterator for BlockStatesIter<'a> {
+    type Item = &'a BlockId;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.index >= 4096 {
+            None
+        } else {
+            let block = self.block_states.get_block_by_index(self.index);
+            self.index += 1;
+            Some(block)
+        }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (4096, Some(4096))
+    }
+
+    fn count(self) -> usize
+    where
+        Self: Sized,
+    {
+        4096
+    }
+
+    fn last(self) -> Option<Self::Item>
+    where
+        Self: Sized,
+    {
+        Some(self.block_states.get_block_by_index(4095))
+    }
+}
+
+impl BlockStates {
+    pub fn iter(&self) -> BlockStatesIter<'_> {
+        BlockStatesIter {
+            block_states: &self,
+            index: 0,
+        }
+    }
+
+    fn new() -> Self {
+        Self {
+            non_air_blocks: 0,
+            block_data: PaletteType::Empty,
+            block_counts: HashMap::from([(BlockId::default(), 4096)]),
+        }
+    }
+    /// Palette filled with single block
+    pub fn from_single(block_id: BlockId) -> Self {
+        if matches!(block_id, block!("air")) {
+            Self::new()
+        } else {
+            let mut out = Self::new();
+            out.non_air_blocks = if block_id.is_non_air() { 4096 } else { 0 };
+            out.block_counts.clear();
+            out.block_counts.insert(block_id, 4096);
+            out.block_data = PaletteType::Paleted(Box::new(Paletted::U4 {
+                palette: {
+                    let mut palette = [BlockId::default(); 16];
+                    palette[0] = block_id;
+                    palette
+                },
+                last: 1,
+                data: [0; _],
+            }));
+            out
+        }
+    }
+}
+/// This enum represents the block data of the BlockStates of the Section.
+#[derive(Encode, Decode, Clone, Eq, PartialEq, Debug)]
+pub enum PaletteType {
+    Empty,
+    Paleted(Box<Paletted>),
+}
+impl PaletteType {
+    /// Construct a U4 empty palett
+    pub fn empty_u4() -> Self {
+        Self::Paleted(Box::new(Paletted::U4 {
+            palette: [BlockId::default(); _],
+            last: 1,
+            data: [0; _],
+        }))
+    }
+    /// Construct a U8 empty palette
+    pub fn empty_u8() -> Self {
+        Self::Paleted(Box::new(Paletted::U8 {
+            palette: [BlockId::default(); _],
+            last: 1,
+            data: [0; _],
+        }))
+    }
+    /// Construct a direct empty palette
+    pub fn empty_direct() -> Self {
+        Self::Paleted(Box::new(Paletted::Direct {
+            data: Box::new([BlockId::default(); _]),
+        }))
+    }
+}
+/// This enum represents the non-empty paletted blockstates
+#[derive(Encode, Decode, Clone, Eq, PartialEq, Debug)]
+pub enum Paletted {
+    /// palettes with bits per block &le; 4
+    U4 {
+        palette: [BlockId; 16],
+        last: u8,
+        data: [u8; 2048],
+    },
+    /// palettes with bits per block &le; 8
+    U8 {
+        palette: [BlockId; 256],
+        last: u8,
+        data: [u8; 4096],
+    },
+    /// direct blockstates
+    Direct { data: Box<[BlockId; 4096]> },
+}
+
+#[derive(Encode, Decode, Clone, Eq, PartialEq, Debug)]
+pub struct BiomeStates {
+    pub bits_per_biome: u8,
+    pub data: Vec<i64>,
+    pub palette: Vec<VarInt>,
+}
+
 impl VanillaChunk {
     pub fn to_custom_format(&self) -> Result<Chunk, WorldError> {
         let mut sections = Vec::new();
@@ -130,7 +270,7 @@ impl VanillaChunk {
                 .and_then(|bs| bs.palette.clone())
                 .unwrap_or_default();
             let bits_per_block = max((palette.len() as f32).log2().ceil() as u8, 4);
-            let mut block_counts = HashMap::new();
+            let mut blocks = Vec::with_capacity(4096);
             for chunk in &raw_block_data {
                 let mut i = 0;
                 while i + bits_per_block < 64 {
@@ -142,36 +282,11 @@ impl VanillaChunk {
                             BlockId::default()
                         }
                     };
-
-                    if let Some(count) = block_counts.get_mut(&block) {
-                        *count += 1;
-                    } else {
-                        block_counts.insert(block, 0);
-                    }
-
+                    blocks.push(block);
                     i += bits_per_block;
                 }
             }
-            let block_data = if raw_block_data.is_empty() {
-                block_counts.insert(BlockId::default(), 4096);
-                PaletteType::Single(VarInt::from(0))
-            } else {
-                PaletteType::Indirect {
-                    bits_per_block,
-                    data: raw_block_data,
-                    palette: convert_to_net_palette(palette)?,
-                }
-            };
-            // Count the number of blocks that are either air, void air, or cave air
-            let mut air_blocks = *block_counts.get(&BlockId::default()).unwrap_or(&0) as u16;
-            air_blocks += *block_counts.get(&block!("void_air")).unwrap_or(&0) as u16;
-            air_blocks += *block_counts.get(&block!("cave_air")).unwrap_or(&0) as u16;
-            let non_air_blocks = 4096 - air_blocks;
-            let block_states = BlockStates {
-                block_counts,
-                non_air_blocks,
-                block_data,
-            };
+            let block_states = blocks.iter().collect();
             let block_light = section
                 .block_light
                 .as_ref()
@@ -215,61 +330,26 @@ impl VanillaChunk {
         })
     }
 }
-
-impl Chunk {
-    pub fn new(x: i32, z: i32, dimension: String) -> Self {
-        let mut sections: Vec<Section> = (-4..20)
-            .map(|y| Section {
-                y: y as i8,
-                block_states: BlockStates {
-                    non_air_blocks: 0,
-                    block_data: PaletteType::Single(VarInt::from(0)),
-                    block_counts: HashMap::from([(BlockId::default(), 4096)]),
-                },
-                biome_states: BiomeStates {
-                    bits_per_biome: 0,
-                    data: vec![],
-                    palette: vec![VarInt::from(0)],
-                },
-                block_light: vec![255; 2048],
-                sky_light: vec![255; 2048],
-            })
-            .collect();
-        for section in &mut sections {
-            section.optimise().expect("Failed to optimise section");
-        }
-        block!("stone");
-        Chunk {
-            x,
-            z,
-            dimension,
-            sections,
-            heightmaps: Heightmaps::new(),
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use bevy_math::IVec3;
     use ferrumc_macros::block;
-
     #[test]
     fn test_chunk_set_block() {
-        let mut chunk = Chunk::new(0, 0, "overworld".to_string());
+        let mut chunk = Chunk::new(0, 0, "overworld".to_string(), vec![Section::empty(0)]);
         let block = block!("stone");
-        chunk.set_block(0, 0, 0, block).unwrap();
-        assert_eq!(chunk.get_block(0, 0, 0).unwrap(), block);
+        chunk.set_block(IVec3::ZERO, block).unwrap();
+        assert_eq!(chunk.get_block(IVec3::ZERO).unwrap(), &block);
     }
 
     #[test]
     fn test_chunk_fill() {
-        let mut chunk = Chunk::new(0, 0, "overworld".to_string());
-        let stone_block = block!("stone");
-        chunk.fill(stone_block).unwrap();
+        let mut chunk = Chunk::new(0, 0, "overworld".to_string(), vec![Section::empty(0)]);
+        chunk.fill(block!("stone"));
         for section in &chunk.sections {
             for (block, count) in &section.block_states.block_counts {
-                assert_eq!(*block, stone_block);
+                assert_eq!(block, &block!("stone"));
                 assert_eq!(count, &4096);
             }
         }
@@ -277,47 +357,52 @@ mod tests {
 
     #[test]
     fn test_section_fill() {
-        let mut section = Section {
-            y: 0,
-            block_states: BlockStates {
-                non_air_blocks: 0,
-                block_data: PaletteType::Single(VarInt::from(0)),
-                block_counts: HashMap::from([(BlockId::default(), 4096)]),
-            },
-            biome_states: BiomeStates {
-                bits_per_biome: 0,
-                data: vec![],
-                palette: vec![VarInt::from(0)],
-            },
-            block_light: vec![255; 2048],
-            sky_light: vec![255; 2048],
-        };
-        let stone_block = block!("stone");
-        section.fill(stone_block).unwrap();
+        let mut section = Section::empty(0);
+        section.fill(block!("stone"));
         assert_eq!(
             section.block_states.block_data,
-            PaletteType::Single(VarInt::from(1))
+            PaletteType::Paleted(Box::new(Paletted::U4 {
+                last: 1,
+                palette: {
+                    let mut palette = [BlockId::default(); 16];
+                    palette[0] = block!("stone");
+                    palette
+                },
+                data: [0; _]
+            }))
         );
         assert_eq!(
-            section.block_states.block_counts.get(&stone_block).unwrap(),
-            &4096
+            section.block_states.block_counts.get(&block!("stone")),
+            Some(&4096)
         );
     }
 
     #[test]
     fn test_false_positive() {
-        let mut chunk = Chunk::new(0, 0, "overworld".to_string());
+        let mut chunk = Chunk::new(0, 0, "overworld".to_string(), vec![Section::empty(0)]);
         let block = block!("stone");
-        chunk.set_block(0, 0, 0, block).unwrap();
-        assert_ne!(chunk.get_block(0, 1, 0).unwrap(), block);
+        chunk.set_block(IVec3::ZERO, block).unwrap();
+        if let PaletteType::Paleted(palette) = &chunk.sections[0].block_states.block_data {
+            if let Paletted::U4 {
+                palette,
+                last,
+                data,
+            } = palette.as_ref()
+            {
+                dbg!(palette);
+                dbg!(last);
+            }
+        }
+        assert_ne!(chunk.get_block((0, 1, 0).into()).unwrap(), &block);
     }
 
     #[test]
     fn test_doesnt_fail() {
-        let mut chunk = Chunk::new(0, 0, "overworld".to_string());
+        let mut chunk = Chunk::new(0, 0, "overworld".to_string(), vec![Section::empty(0)]);
+
         let block = block!("stone");
-        assert!(chunk.set_block(0, 0, 0, block).is_ok());
-        assert!(chunk.set_block(0, 0, 0, block).is_ok());
-        assert!(chunk.get_block(0, 0, 0).is_ok());
+        assert!(chunk.set_block(IVec3::ZERO, block).is_ok());
+        assert!(chunk.set_block(IVec3::ZERO, block).is_ok());
+        assert!(chunk.get_block(IVec3::ZERO).is_ok());
     }
 }

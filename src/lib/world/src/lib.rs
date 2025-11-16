@@ -9,7 +9,6 @@ pub mod vanilla_chunk_format;
 
 use crate::chunk_format::Chunk;
 use crate::errors::WorldError;
-use deepsize::DeepSizeOf;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_general_purpose::paths::get_root_path;
 use ferrumc_storage::lmdb::LmdbBackend;
@@ -104,7 +103,7 @@ impl World {
 
         let cache = Cache::builder()
             .eviction_listener(eviction_listener)
-            .weigher(|_k, v: &Arc<Chunk>| v.deep_size_of() as u32)
+            .weigher(|_k, v: &Arc<Chunk>| v.deep_size() as u32)
             .time_to_live(Duration::from_secs(get_global_config().database.cache_ttl))
             .max_capacity(get_global_config().database.cache_capacity * 1024)
             .build();

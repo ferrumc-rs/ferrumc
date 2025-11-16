@@ -5,7 +5,7 @@ use ferrumc_net_codec::net_types::bitset::BitSet;
 use ferrumc_net_codec::net_types::byte_array::ByteArray;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use ferrumc_world::chunk_format::{Chunk, PaletteType};
+use ferrumc_world::chunk_format::{Chunk, PaletteType, Paletted};
 use std::io::Cursor;
 use std::ops::Not;
 use tracing::warn;
@@ -100,30 +100,56 @@ impl ChunkAndLightData {
             raw_data.write_u16::<BigEndian>(section.block_states.non_air_blocks)?;
 
             match &section.block_states.block_data {
-                PaletteType::Single(val) => {
-                    // debug!("Single palette type: {:?}", (chunk.x, chunk.z));
+                PaletteType::Empty => {
                     raw_data.write_u8(0)?;
-                    val.write(&mut raw_data)?;
-                    // VarInt::new(0).write(&mut raw_data)?;
+                    VarInt::new(0).write(&mut raw_data)?;
                 }
-                PaletteType::Indirect {
-                    bits_per_block,
-                    data,
-                    palette,
-                } => {
-                    // debug!("Indirect palette type: {:?}", (chunk.x, chunk.z));
-                    raw_data.write_u8(*bits_per_block)?;
-                    VarInt::new(palette.len() as i32).write(&mut raw_data)?;
-                    for palette_entry in palette {
-                        palette_entry.write(&mut raw_data)?;
+                // TODO: this dois not work, client drops connection on trying to get index.
+                PaletteType::Paleted(paleted) => {
+                    // TODO: check non-air single sections
+                    match paleted.as_ref() {
+                        Paletted::U4 { palette, data, .. } => {
+                            raw_data.write_u8(4)?;
+                            VarInt::new(16).write(&mut raw_data)?;
+                            for &block in palette {
+                                VarInt::from(block).write(&mut raw_data)?;
+                            }
+                            // TODO: pls pls pls let me use transmute i promise it's safe this is literally noop
+                            // let data = unsafe { std::mem::transmute::<_, &[i64; 256]>(data) };
+                            let data = {
+                                let mut out = [0; 256];
+                                let mut tmp = [0; 8];
+                                for i in 0..256 {
+                                    tmp.copy_from_slice(&data[i * 8..i * 8 + 8]);
+                                    out[i] = i64::from_le_bytes(tmp);
+                                }
+                                out
+                            };
+                            for data_entry in data {
+                                raw_data.write_i64::<BigEndian>(data_entry)?
+                            }
+                        }
+                        Paletted::U8 { palette, data, .. } => {
+                            raw_data.write_u8(8)?;
+                            VarInt::new(256).write(&mut raw_data)?;
+                            for &block in palette {
+                                VarInt::from(block).write(&mut raw_data)?;
+                            }
+                            let data = {
+                                let mut out = [0; 256];
+                                let mut tmp = [0; 8];
+                                for i in 0..256 {
+                                    tmp.copy_from_slice(&data[i * 8..i * 8 + 8]);
+                                    out[i] = i64::from_le_bytes(tmp);
+                                }
+                                out
+                            };
+                            for data_entry in data {
+                                raw_data.write_i64::<BigEndian>(data_entry)?
+                            }
+                        }
+                        Paletted::Direct { data } => todo!(),
                     }
-                    // VarInt::new(data.len() as i32).write(&mut raw_data)?;
-                    for data_entry in data {
-                        raw_data.write_i64::<BigEndian>(*data_entry)?;
-                    }
-                }
-                PaletteType::Direct { .. } => {
-                    todo!("Direct palette type")
                 }
             }
 

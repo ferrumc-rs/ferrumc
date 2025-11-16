@@ -11,15 +11,17 @@ mod end;
 pub mod errors;
 mod nether;
 mod noise_router;
-mod overworld;
+pub mod overworld;
 mod perlin_noise;
 mod pos;
-mod random;
+pub mod random;
 use crate::end::end_generator::EndGenerator;
 use crate::errors::WorldGenError;
+use crate::overworld::overworld_generator::OverworldGenerator;
 use crate::pos::BlockPos;
 use ferrumc_world::block_id::BlockId;
 use ferrumc_world::chunk_format::Chunk;
+use tracing::debug;
 
 pub struct ChunkAccess {}
 

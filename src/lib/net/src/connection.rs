@@ -36,7 +36,7 @@ const MAX_HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(10);
 /// - Runs a background task that writes packets to the underlying socket.
 /// - Supports toggling compression dynamically.
 /// - Gracefully handles disconnection when dropped.
-#[derive(TypeName, Component)]
+#[derive(TypeName, Component, Debug)]
 pub struct StreamWriter {
     sender: UnboundedSender<Vec<u8>>,
     pub running: Arc<AtomicBool>,

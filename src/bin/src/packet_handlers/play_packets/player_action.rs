@@ -36,12 +36,10 @@ pub fn handle(
                                 .generate_chunk(event.location.x >> 4, event.location.z >> 4)?
                         }
                     };
-                    let (relative_x, relative_y, relative_z) = (
-                        event.location.x.abs() % 16,
-                        event.location.y as i32,
-                        event.location.z.abs() % 16,
-                    );
-                    chunk.set_block(relative_x, relative_y, relative_z, BlockId::default())?;
+                    chunk.set_block(
+                        (event.location.x, event.location.y as i32, event.location.z).into(),
+                        BlockId::default(),
+                    )?;
                     // Save the chunk to disk
                     state.0.world.save_chunk(Arc::new(chunk))?;
                     for (eid, conn) in query {
