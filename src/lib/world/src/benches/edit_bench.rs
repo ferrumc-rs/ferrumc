@@ -28,11 +28,16 @@ pub(crate) fn bench_edits(c: &mut Criterion) {
 
     read_group.bench_function("Read rand", |b| {
         b.iter(|| {
-            black_box(chunk.get_block(
-                (get_rand_in_range(0, 15),
-                get_rand_in_range(0, 15),
-                get_rand_in_range(0, 255)).into()
-            ))
+            black_box(
+                chunk.get_block(
+                    (
+                        get_rand_in_range(0, 15),
+                        get_rand_in_range(0, 15),
+                        get_rand_in_range(0, 255),
+                    )
+                        .into(),
+                ),
+            )
         });
     });
 
@@ -59,12 +64,17 @@ pub(crate) fn bench_edits(c: &mut Criterion) {
     write_group.bench_with_input("Write rand", &chunk, |b, chunk| {
         b.iter(|| {
             let mut chunk = chunk.clone();
-            black_box(chunk.set_block((
-                get_rand_in_range(0, 15),
-                get_rand_in_range(0, 15),
-                get_rand_in_range(0, 255)).into(),
-                block!("bricks"),
-            ))
+            black_box(
+                chunk.set_block(
+                    (
+                        get_rand_in_range(0, 15),
+                        get_rand_in_range(0, 15),
+                        get_rand_in_range(0, 255),
+                    )
+                        .into(),
+                    block!("bricks"),
+                ),
+            )
             .unwrap();
         });
     });
