@@ -53,6 +53,9 @@ impl GameEventPacket {
     /// - 104: Tell that the demo is over and print a message about how to take a screenshot.
     pub const DEMO_EVENT: u8 = 5;
 
+    /// GameEvent packet ID to indicate that an arrow has hit a player.
+    pub const ARROW_HIT_PLAYER: u8 = 6;
+
     pub fn new(event_id: u8, value: f32) -> Self {
         Self { event_id, value }
     }
