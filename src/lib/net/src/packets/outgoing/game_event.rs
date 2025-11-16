@@ -13,6 +13,11 @@ impl GameEventPacket {
     /// > "You have no home bed or charged respawn anchor, or it was obstructed"
     pub const NO_RESPAWN_BLOCK_AVAILABLE: u8 = 0;
 
+    /// GameEvent packet ID to begin raining.
+    /// The rest of the rain generation is handled client-side.  
+    /// To stop the rain, use [`END_RAINING`].
+    pub const BEGIN_RAINING: u8 = 1;
+
     pub fn new(event_id: u8, value: f32) -> Self {
         Self { event_id, value }
     }
