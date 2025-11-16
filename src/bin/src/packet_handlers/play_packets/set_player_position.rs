@@ -102,7 +102,7 @@ fn update_pos_for_all(
 ) -> Result<(), BinaryError> {
     if !state.players.is_connected(entity_id) {
         // Player is not connected, skip processing this update
-        error!(
+        debug!(
             "Player {} is not connected, skipping position update",
             entity_id
         );
