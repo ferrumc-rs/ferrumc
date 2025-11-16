@@ -86,6 +86,14 @@ impl GameEventPacket {
     /// That's just how the Minecraft protocol works.
     pub const ENABLE_RESPAWN_SCREEN: u8 = 11;
 
+    /// GameEvent packet ID to indicate that the client should enable/disable
+    /// limited crafting mode. If enabled (1), the recipe book will only show
+    /// recipes that have already been crated by the player.
+    /// Possible values:
+    /// - 0: Disable limited crafting mode.
+    /// - 1: Enable limited crafting mode.
+    pub const LIMITED_CRAFTING: u8 = 12;
+
     pub fn new(event_id: u8, value: f32) -> Self {
         Self { event_id, value }
     }
