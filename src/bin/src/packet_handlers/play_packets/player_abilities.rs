@@ -4,7 +4,6 @@ use tracing::{debug, error, warn};
 
 use ferrumc_net::PlayerAbilitiesReceiver;
 
-// The OUTGOING packet struct
 use ferrumc_net::packets::outgoing::player_abilities::PlayerAbilities as OutgoingPlayerAbilities;
 
 use ferrumc_core::player::abilities::PlayerAbilities;
@@ -14,7 +13,7 @@ pub fn handle(
     // 1. Get the queue of incoming packets
     events: Res<PlayerAbilitiesReceiver>,
 
-    // 2. Get *mutable* access to all PlayerAbilities components
+    // 2. Get mutable access to all PlayerAbilities components
     mut abilities_query: Query<&mut PlayerAbilities>,
 
     // 3. Get all player connections (to send corrections)
@@ -22,7 +21,7 @@ pub fn handle(
 ) {
     // Loop through each packet received this tick
     for (event, trigger_eid) in events.0.try_iter() {
-        // `event` is your incoming `PlayerAbilities` { flags: u8 }
+        // `event` is the incoming `PlayerAbilities` { flags: u8 }
         // `trigger_eid` is the Bevy Entity of the player who sent it
 
         // Get the PlayerAbilities component only for the player who sent this

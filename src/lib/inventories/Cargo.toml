@@ -13,6 +13,7 @@ once_cell = { workspace = true }
 thiserror = { workspace = true }
 ferrumc-registry = { workspace = true }
 simd-json = { workspace = true }
+ferrumc-world = {workspace = true}
 
 [lints]
 workspace = true

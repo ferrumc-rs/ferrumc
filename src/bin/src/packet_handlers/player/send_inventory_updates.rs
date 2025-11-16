@@ -1,6 +1,4 @@
 use bevy_ecs::prelude::{Query, Res};
-use ferrumc_inventories::defined_slots::player::HEAD_SLOT;
-use ferrumc_inventories::item::ItemID;
 use ferrumc_inventories::INVENTORY_UPDATES_QUEUE;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net_codec::net_types::var_int::VarInt;
@@ -17,15 +15,8 @@ pub fn handle_inventory_updates(state: Res<GlobalStateResource>, mut query: Quer
                 let packet = ferrumc_net::packets::outgoing::set_container_slot::SetContainerSlot {
                     window_id: VarInt::new(0),
                     state_id: VarInt::new(0),
-                    slot_index: HEAD_SLOT as i16,
-                    slot: ferrumc_inventories::slot::InventorySlot {
-                        count: VarInt::new(65),
-                        item_id: Some(ItemID::new(872)),
-                        components_to_add_count: Some(VarInt::new(0)),
-                        components_to_remove_count: Some(VarInt::new(0)),
-                        components_to_add: None,
-                        components_to_remove: None,
-                    },
+                    slot_index: update.slot_index as i16,
+                    slot: update.slot,
                 };
                 if let Err(err) = writer.send_packet_ref(&packet) {
                     error!("Failed to send inventory update packet: {:?}", err);
