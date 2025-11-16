@@ -1,14 +1,15 @@
 use crate::systems::system_messages;
 use bevy_ecs::prelude::{Commands, Res, Resource};
 use crossbeam_channel::Receiver;
-use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
+
 use ferrumc_core::conn::keepalive::KeepAliveTracker;
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
+use ferrumc_core::{chunks::chunk_receiver::ChunkReceiver, player::gamemode::GameModeComponent};
 use ferrumc_inventories::hotbar::Hotbar;
 use ferrumc_inventories::inventory::Inventory;
-use ferrumc_net::connection::NewConnection;
+use ferrumc_net::connection::{DisconnectHandle, NewConnection};
 use ferrumc_state::GlobalStateResource;
 use std::time::Instant;
 use tracing::{error, trace};
@@ -26,8 +27,22 @@ pub fn accept_new_connections(
     }
     while let Ok(new_connection) = new_connections.0.try_recv() {
         let return_sender = new_connection.entity_return;
+
+        // --- Load abilities from cache, or use defaults ---
+        // This removes the entry from the cache, ensuring it's not used again
+        // until the player logs out
+        let (abilities, gamemode) = state
+            .0
+            .player_cache
+            .get_and_remove(&new_connection.player_identity.uuid)
+            .map(|data| (data.abilities, data.gamemode)) // Extract both
+            .unwrap_or_default();
+
         let entity = cmd.spawn((
             new_connection.stream,
+            DisconnectHandle {
+                sender: Some(new_connection.disconnect_handle),
+            },
             Position::default(),
             ChunkReceiver::default(),
             Rotation::default(),
@@ -40,6 +55,8 @@ pub fn accept_new_connections(
             },
             Inventory::new(46),
             Hotbar::default(),
+            abilities,
+            GameModeComponent(gamemode),
         ));
 
         state.0.players.player_list.insert(

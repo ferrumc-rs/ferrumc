@@ -14,7 +14,7 @@ use tracing::{debug, error, trace};
 
 use ferrumc_inventories::hotbar::Hotbar;
 use ferrumc_inventories::inventory::Inventory;
-use ferrumc_world::block_id::BlockId;
+use ferrumc_world::block_state_id::BlockStateId;
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -57,13 +57,14 @@ pub fn handle(
                         error!("Selected item has no item ID");
                         continue 'ev_loop;
                     };
-                    let Some(mapped_block_id) = ITEM_TO_BLOCK_MAPPING.get(&item_id.0 .0) else {
+                    let Some(mapped_block_state_id) = ITEM_TO_BLOCK_MAPPING.get(&item_id.0 .0)
+                    else {
                         error!("No block mapping found for item ID: {}", item_id.0);
                         continue 'ev_loop;
                     };
                     debug!(
-                        "Placing block with item ID: {}, mapped to block ID: {}",
-                        item_id.0, mapped_block_id
+                        "Placing block with item ID: {}, mapped to block state ID: {}",
+                        item_id.0, mapped_block_state_id
                     );
                     let mut chunk = match state.0.world.load_chunk_owned(
                         event.position.x >> 4,
@@ -127,9 +128,10 @@ pub fn handle(
                         continue 'ev_loop;
                     }
 
-                    if let Err(err) =
-                        chunk.set_block((x, y as i32, z).into(), BlockId(*mapped_block_id as u32))
-                    {
+                    if let Err(err) = chunk.set_block(
+                        (x, y as i32, z).into(),
+                        BlockStateId(*mapped_block_state_id as u32),
+                    ) {
                         error!("Failed to set block: {:?}", err);
                         continue 'ev_loop;
                     }
@@ -139,7 +141,7 @@ pub fn handle(
 
                     let chunk_packet = BlockUpdate {
                         location: NetworkPosition { x, y, z },
-                        block_id: VarInt::from(*mapped_block_id),
+                        block_state_id: VarInt::from(*mapped_block_state_id),
                     };
                     if let Err(err) = conn.send_packet_ref(&chunk_packet) {
                         error!("Failed to send block update packet: {:?}", err);

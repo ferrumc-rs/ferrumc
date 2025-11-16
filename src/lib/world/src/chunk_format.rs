@@ -1,4 +1,4 @@
-use crate::block_id::BlockId;
+use crate::block_state_id::BlockStateId;
 use crate::errors::WorldError;
 use crate::vanilla_chunk_format::{VanillaChunk, VanillaHeightmaps};
 use bitcode_derive::{Decode, Encode};
@@ -110,17 +110,16 @@ impl Section {
 pub struct BlockStates {
     pub non_air_blocks: u16,
     pub block_data: PaletteType,
-    pub block_counts: HashMap<BlockId, i32>,
+    pub block_counts: HashMap<BlockStateId, i32>,
 }
 
-impl<'a> FromIterator<&'a BlockId> for BlockStates {
-    fn from_iter<T: IntoIterator<Item = &'a BlockId>>(iter: T) -> Self {
+impl<'a> FromIterator<&'a BlockStateId> for BlockStates {
+    fn from_iter<T: IntoIterator<Item = &'a BlockStateId>>(iter: T) -> Self {
         let mut section = Section::empty(0);
         for (index, &block) in iter.into_iter().enumerate() {
             section.set_block_by_index(index, block).unwrap();
         }
-        let block_states = section.block_states;
-        block_states
+        section.block_states
     }
 }
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -130,7 +129,7 @@ pub struct BlockStatesIter<'a> {
 }
 
 impl<'a> Iterator for BlockStatesIter<'a> {
-    type Item = &'a BlockId;
+    type Item = &'a BlockStateId;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.index >= 4096 {
@@ -164,7 +163,7 @@ impl<'a> Iterator for BlockStatesIter<'a> {
 impl BlockStates {
     pub fn iter(&self) -> BlockStatesIter<'_> {
         BlockStatesIter {
-            block_states: &self,
+            block_states: self,
             index: 0,
         }
     }
@@ -173,11 +172,11 @@ impl BlockStates {
         Self {
             non_air_blocks: 0,
             block_data: PaletteType::Empty,
-            block_counts: HashMap::from([(BlockId::default(), 4096)]),
+            block_counts: HashMap::from([(BlockStateId::default(), 4096)]),
         }
     }
     /// Palette filled with single block
-    pub fn from_single(block_id: BlockId) -> Self {
+    pub fn from_single(block_id: BlockStateId) -> Self {
         if matches!(block_id, block!("air")) {
             Self::new()
         } else {
@@ -187,12 +186,12 @@ impl BlockStates {
             out.block_counts.insert(block_id, 4096);
             out.block_data = PaletteType::Paleted(Box::new(Paletted::U4 {
                 palette: {
-                    let mut palette = [BlockId::default(); 16];
+                    let mut palette = [BlockStateId::default(); 16];
                     palette[0] = block_id;
                     palette
                 },
                 last: 1,
-                data: [0; _],
+                data: Box::new([0; _]),
             }));
             out
         }
@@ -208,23 +207,23 @@ impl PaletteType {
     /// Construct a U4 empty palett
     pub fn empty_u4() -> Self {
         Self::Paleted(Box::new(Paletted::U4 {
-            palette: [BlockId::default(); _],
+            palette: [BlockStateId::default(); _],
             last: 1,
-            data: [0; _],
+            data: Box::new([0; _]),
         }))
     }
     /// Construct a U8 empty palette
     pub fn empty_u8() -> Self {
         Self::Paleted(Box::new(Paletted::U8 {
-            palette: [BlockId::default(); _],
+            palette: [BlockStateId::default(); _],
             last: 1,
-            data: [0; _],
+            data: Box::new([0; _]),
         }))
     }
     /// Construct a direct empty palette
     pub fn empty_direct() -> Self {
         Self::Paleted(Box::new(Paletted::Direct {
-            data: Box::new([BlockId::default(); _]),
+            data: Box::new([BlockStateId::default(); _]),
         }))
     }
 }
@@ -233,18 +232,18 @@ impl PaletteType {
 pub enum Paletted {
     /// palettes with bits per block &le; 4
     U4 {
-        palette: [BlockId; 16],
+        palette: [BlockStateId; 16],
         last: u8,
-        data: [u8; 2048],
+        data: Box<[u8; 2048]>,
     },
     /// palettes with bits per block &le; 8
     U8 {
-        palette: [BlockId; 256],
+        palette: [BlockStateId; 256],
         last: u8,
-        data: [u8; 4096],
+        data: Box<[u8; 4096]>,
     },
     /// direct blockstates
-    Direct { data: Box<[BlockId; 4096]> },
+    Direct { data: Box<[BlockStateId; 4096]> },
 }
 
 #[derive(Encode, Decode, Clone, Eq, PartialEq, Debug)]
@@ -276,10 +275,10 @@ impl VanillaChunk {
                 while i + bits_per_block < 64 {
                     let palette_index = read_nbit_i32(chunk, bits_per_block as usize, i as u32)?;
                     let block = match palette.get(palette_index as usize) {
-                        Some(block) => block.to_block_id(),
+                        Some(block) => block.to_block_state_id(),
                         None => {
                             error!("Could not find block for palette index: {}", palette_index);
-                            BlockId::default()
+                            BlockStateId::default()
                         }
                     };
                     blocks.push(block);
@@ -364,11 +363,11 @@ mod tests {
             PaletteType::Paleted(Box::new(Paletted::U4 {
                 last: 1,
                 palette: {
-                    let mut palette = [BlockId::default(); 16];
+                    let mut palette = [BlockStateId::default(); 16];
                     palette[0] = block!("stone");
                     palette
                 },
-                data: [0; _]
+                data: Box::new([0; _])
             }))
         );
         assert_eq!(

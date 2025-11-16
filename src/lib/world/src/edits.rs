@@ -1,4 +1,4 @@
-use crate::block_id::BlockId;
+use crate::block_state_id::BlockStateId;
 use crate::chunk_format::{BlockStates, Chunk, PaletteType, Paletted, Section};
 use crate::errors::WorldError;
 use crate::World;
@@ -7,20 +7,24 @@ use ferrumc_macros::block;
 use std::sync::Arc;
 use tracing::debug;
 impl World {
-    /// Retrieves the [`BlockId`] at the specified coordinates in the given dimension.
-    pub fn get_block_and_fetch(&self, pos: IVec3, dimension: &str) -> Result<BlockId, WorldError> {
+    /// Retrieves the [`BlockStateId`] at the specified coordinates in the given dimension.
+    pub fn get_block_and_fetch(
+        &self,
+        pos: IVec3,
+        dimension: &str,
+    ) -> Result<BlockStateId, WorldError> {
         let chunk_x = pos.x >> 4;
         let chunk_z = pos.z >> 4;
         let chunk = self.load_chunk(chunk_x, chunk_z, dimension)?;
         Ok(*chunk.get_block(pos)?)
     }
 
-    /// Sets the [`BlockId`] at the specified coordinates in the given dimension.
+    /// Sets the [`BlockStateId`] at the specified coordinates in the given dimension.
     pub fn set_block_and_fetch(
         &self,
         pos: IVec3,
         dimension: &str,
-        block_id: BlockId,
+        block_state_id: BlockStateId,
     ) -> Result<(), WorldError> {
         // Get chunk
         let chunk_x = pos.x >> 4;
@@ -29,7 +33,7 @@ impl World {
 
         debug!("Chunk: {}, {}", chunk_x, chunk_z);
 
-        chunk.set_block(pos, block_id)?;
+        chunk.set_block(pos, block_state_id)?;
 
         // Save chunk
         self.save_chunk(Arc::new(chunk))?;
@@ -39,38 +43,43 @@ impl World {
 
 impl Chunk {
     /// Sets the block at the specified coordinates to the sepcifiend block.
-    pub fn set_block(&mut self, pos: IVec3, block_id: BlockId) -> Result<(), WorldError> {
-        self.find_section_mut(pos.y)?.set_block(pos, block_id)
+    pub fn set_block(
+        &mut self,
+        pos: IVec3,
+        block_state_id: BlockStateId,
+    ) -> Result<(), WorldError> {
+        self.find_section_mut(pos.y)?.set_block(pos, block_state_id)
     }
     pub fn find_section(&self, y: i32) -> Result<&Section, WorldError> {
         self.sections
             .iter()
             .find(|section| section.y == (y >> 4) as i8)
-            .ok_or_else(|| WorldError::SectionOutOfBounds(y >> 4))
+            .ok_or(WorldError::SectionOutOfBounds(y >> 4))
     }
 
     pub fn find_section_mut(&mut self, y: i32) -> Result<&mut Section, WorldError> {
         self.sections
             .iter_mut()
             .find(|section| section.y == (y >> 4) as i8)
-            .ok_or_else(|| WorldError::SectionOutOfBounds(y >> 4))
+            .ok_or(WorldError::SectionOutOfBounds(y >> 4))
     }
 
     /// Gets the block at the specified coordinates.
-    pub fn get_block(&self, pos: IVec3) -> Result<&BlockId, WorldError> {
+    pub fn get_block(&self, pos: IVec3) -> Result<&BlockStateId, WorldError> {
         Ok(self.find_section(pos.y)?.get_block(pos))
     }
 
-    /// Fills the [`Section`] at the specified index with the specified [`BlockId`].
+    /// Fills the [`Section`] at the specified index with the specified [`BlockStateId`].
     /// If the section is out of bounds, an error is returned.
-    pub fn set_section(&mut self, y: i32, block_id: BlockId) -> Result<(), WorldError> {
-        Ok(self.find_section_mut(y)?.fill(block_id))
+    pub fn set_section(&mut self, y: i32, block_state_id: BlockStateId) -> Result<(), WorldError> {
+        self.find_section_mut(y)?.fill(block_state_id);
+        Ok(())
     }
 
     /// Fills the chunk with the specified block.
-    pub fn fill(&mut self, block_id: BlockId) {
+    pub fn fill(&mut self, block_state_id: BlockStateId) {
         for section in &mut self.sections {
-            section.fill(block_id);
+            section.fill(block_state_id);
         }
     }
 }
@@ -80,45 +89,49 @@ impl Section {
         (pos & 15).dot((1, 256, 16).into()) as usize
     }
 
+    /// Set block by index from `Self::index`
     pub fn set_block_by_index(
         &mut self,
         index: usize,
-        block_id: BlockId,
+        block_state_id: BlockStateId,
     ) -> Result<(), WorldError> {
-        self.block_states.set_block_by_index(index, block_id);
+        self.block_states.set_block_by_index(index, block_state_id);
         Ok(())
     }
 
-    pub fn set_block(&mut self, pos: IVec3, block_id: BlockId) -> Result<(), WorldError> {
-        self.set_block_by_index(Self::index(pos), block_id)
+    /// Set block by it's position in the world.
+    pub fn set_block(
+        &mut self,
+        pos: IVec3,
+        block_state_id: BlockStateId,
+    ) -> Result<(), WorldError> {
+        self.set_block_by_index(Self::index(pos), block_state_id)
     }
 
-    pub fn get_block_by_index(&self, index: usize) -> &BlockId {
+    /// Get block by index from `Self::index`
+    pub fn get_block_by_index(&self, index: usize) -> &BlockStateId {
         self.block_states.get_block_by_index(index)
     }
 
-    pub fn get_block(&self, pos: IVec3) -> &BlockId {
+    /// Get block by it's position in the world.
+    pub fn get_block(&self, pos: IVec3) -> &BlockStateId {
         self.block_states.get_block_by_index(Self::index(pos))
     }
 
     /// Fills the section with the specified block.
-    pub fn fill(&mut self, block_id: BlockId) {
-        self.block_states = BlockStates::from_single(block_id);
+    pub fn fill(&mut self, block_state_id: BlockStateId) {
+        self.block_states = BlockStates::from_single(block_state_id);
     }
 
-    /// This function trims out unnecessary data from the section. Primarily it does 2 things:
-    ///
-    /// 1. Removes any palette entries that are not used in the block states data.
-    ///
-    /// 2. If there is only one block in the palette, it converts the palette to single block mode.
+    /// UNIMPLEMENTED
     pub fn optimise(&mut self) {
         self.block_states = self.block_states.iter().collect();
     }
 }
 
 impl BlockStates {
-    /// Get block by index, must be between 0 and 4096.
-    pub fn get_block_by_index(&self, index: usize) -> &BlockId {
+    /// Get block by index from `Section::index`
+    pub fn get_block_by_index(&self, index: usize) -> &BlockStateId {
         assert!((0..4096).contains(&index));
         match &self.block_data {
             PaletteType::Empty => &block!("air"),
@@ -141,7 +154,7 @@ impl BlockStates {
             },
         }
     }
-
+    // TODO: find what is the bug causing client disconect
     fn promote_to_next_size(&mut self) {
         debug!("size promotion");
         match &self.block_data {
@@ -152,7 +165,7 @@ impl BlockStates {
                     data,
                     last,
                 } => {
-                    let mut new_palette = [BlockId(0); 256];
+                    let mut new_palette = [BlockStateId(0); 256];
                     for (index, &block) in palette.iter().enumerate() {
                         new_palette[index] = block;
                     }
@@ -163,12 +176,12 @@ impl BlockStates {
                     }
                     self.block_data = PaletteType::Paleted(Box::new(Paletted::U8 {
                         palette: new_palette,
-                        data: new_data,
+                        data: Box::new(new_data),
                         last: *last,
                     }));
                 }
                 Paletted::U8 { palette, data, .. } => {
-                    let mut blocks = [BlockId(0); 4096];
+                    let mut blocks = [BlockStateId(0); 4096];
                     for (index, &data) in data.iter().enumerate() {
                         blocks[index] = palette[data as usize];
                     }
@@ -191,11 +204,11 @@ impl BlockStates {
             },
         }
     }
-
-    pub fn set_block_by_index(&mut self, index: usize, block_id: BlockId) {
+    /// Set block by index from `Section::index`. This method must uphold invariants of the section.
+    pub fn set_block_by_index(&mut self, index: usize, block_state_id: BlockStateId) {
         assert!((0..4096).contains(&index));
         let old_block_id = *self.get_block_by_index(index);
-        if old_block_id == block_id {
+        if old_block_id == block_state_id {
             return;
         }
         // TODO: could we remove old_block_id form the block_counts here?
@@ -207,15 +220,15 @@ impl BlockStates {
 
         let block_count = *self
             .block_counts
-            .entry(block_id)
+            .entry(block_state_id)
             .and_modify(|x| *x += 1)
             .or_insert(1)
             - 1;
 
-        if !block_id.is_non_air() && old_block_id.is_non_air() {
+        if !block_state_id.is_non_air() && old_block_id.is_non_air() {
             self.non_air_blocks -= 1;
         }
-        if block_id.is_non_air() && !old_block_id.is_non_air() {
+        if block_state_id.is_non_air() && !old_block_id.is_non_air() {
             self.non_air_blocks += 1;
         }
 
@@ -248,11 +261,11 @@ impl BlockStates {
                             data[index / 2] / 16
                         }
                     };
-                    // evict single block, this won't reduce last size if `block_id` is air
+                    // evict single block, this won't reduce last size if `block_state_id` is air
                     // to not change all the values
                     if old_block_count == 0 {
                         let palette_index = get_palette(data, index);
-                        palette[palette_index as usize] = block_id;
+                        palette[palette_index as usize] = block_state_id;
                         return;
                     }
                     // find the block in the palette
@@ -261,13 +274,13 @@ impl BlockStates {
                             .iter()
                             .take(*last as usize)
                             .enumerate()
-                            .find(|(_, &block)| block == block_id)
-                            .expect("block_id count is not zero");
+                            .find(|(_, &block)| block == block_state_id)
+                            .expect("block_state_id count is not zero");
                         set_palette(data, palette_index as u8);
                         return;
                     }
                     // take another spot in the palette
-                    palette[*last as usize] = block_id;
+                    palette[*last as usize] = block_state_id;
                     set_palette(data, *last);
                     *last += 1;
                 }
@@ -276,11 +289,11 @@ impl BlockStates {
                     last,
                     data,
                 } => {
-                    // evict single block, this won't reduce last size if `block_id` is air
+                    // evict single block, this won't reduce last size if `block_state_id` is air
                     // to not change all the values
                     if old_block_count == 0 {
                         let palette_index = data[index];
-                        palette[palette_index as usize] = block_id;
+                        palette[palette_index as usize] = block_state_id;
                         return;
                     }
                     // find the block in the palette
@@ -289,17 +302,17 @@ impl BlockStates {
                             .iter()
                             .take(*last as usize)
                             .enumerate()
-                            .find(|(_, &block)| block == block_id)
-                            .expect("block_id count is not zero");
+                            .find(|(_, &block)| block == block_state_id)
+                            .expect("block_state_id count is not zero");
                         data[index] = palette_index as u8;
                         return;
                     }
                     // take another spot in the palette
-                    palette[*last as usize] = block_id;
+                    palette[*last as usize] = block_state_id;
                     data[index] = *last;
                     *last += 1;
                 }
-                Paletted::Direct { data } => data[index] = block_id,
+                Paletted::Direct { data } => data[index] = block_state_id,
             },
         }
     }

@@ -8,7 +8,7 @@ use ferrumc_net::packets::outgoing::block_update::BlockUpdate;
 use ferrumc_net::PlayerActionReceiver;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalStateResource;
-use ferrumc_world::block_id::BlockId;
+use ferrumc_world::block_state_id::BlockStateId;
 use tracing::{debug, error, trace};
 
 pub fn handle(
@@ -33,15 +33,21 @@ pub fn handle(
                                 .0
                                 .clone()
                                 .terrain_generator
-                                .generate_chunk(event.location.x >> 4, event.location.z >> 4)?
+                                .generate_chunk(event.location.x >> 4, event.location.z >> 4)
+                                .map_err(BinaryError::WorldGen)?
                         }
                     };
-                    chunk.set_block(
-                        (event.location.x, event.location.y as i32, event.location.z).into(),
-                        BlockId::default(),
-                    )?;
+                    let relative =
+                        (event.location.x, event.location.y as i32, event.location.z).into();
+                    chunk
+                        .set_block(relative, BlockStateId::default())
+                        .map_err(BinaryError::World)?;
                     // Save the chunk to disk
-                    state.0.world.save_chunk(Arc::new(chunk))?;
+                    state
+                        .0
+                        .world
+                        .save_chunk(Arc::new(chunk))
+                        .map_err(BinaryError::World)?;
                     for (eid, conn) in query {
                         if !state.0.players.is_connected(eid) {
                             continue;
@@ -49,14 +55,16 @@ pub fn handle(
                         // If the player is the one who placed the block, send the BlockChangeAck packet
                         let block_update_packet = BlockUpdate {
                             location: event.location.clone(),
-                            block_id: VarInt::from(BlockId::default()),
+                            block_state_id: VarInt::from(BlockStateId::default()),
                         };
-                        conn.send_packet_ref(&block_update_packet)?;
+                        conn.send_packet_ref(&block_update_packet)
+                            .map_err(BinaryError::Net)?;
                         if eid == trigger_eid {
                             let ack_packet = BlockChangeAck {
                                 sequence: event.sequence,
                             };
-                            conn.send_packet_ref(&ack_packet)?;
+                            conn.send_packet_ref(&ack_packet)
+                                .map_err(BinaryError::Net)?;
                         }
                     }
                 }

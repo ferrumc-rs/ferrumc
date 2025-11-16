@@ -94,9 +94,9 @@ pub(crate) struct BlockStates {
 
 /// Information about a block's name and properties.
 ///
-/// This should be used sparingly, as it's much more efficient to use [BlockId] where possible.
+/// This should be used sparingly, as it's much more efficient to use [BlockStateId] where possible.
 ///
-/// If you want to use it as a literal and the convert to a BlockId, use the [ferrumc_macros::block_data!] macro.
+/// If you want to use it as a literal and the convert to a BlockStateId, use the [ferrumc_macros::block_data!] macro.
 #[apply(ChunkDerives)]
 #[derive(Hash)]
 pub struct BlockData {

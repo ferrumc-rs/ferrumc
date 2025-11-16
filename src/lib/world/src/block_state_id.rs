@@ -49,15 +49,15 @@ lazy_static! {
 /// This should be used over `BlockData` in most cases, as it's much more efficient to store and pass around.
 /// You can also generate a block's id at runtime with the [ferrumc_macros::block!] macro.
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Encode, Decode, DeepSizeOf)]
-pub struct BlockId(pub u32);
+pub struct BlockStateId(pub u32);
 
-impl BlockId {
-    /// Given a BlockData, return a BlockId. Does not clone, should be quite fast.
+impl BlockStateId {
+    /// Given a BlockData, return a BlockStateId. Does not clone, should be quite fast.
     pub fn from_block_data(block_data: &BlockData) -> Self {
         let id = BLOCK2ID
             .get(block_data)
             .expect("Block data not found in block mappings file");
-        BlockId(*id as u32)
+        BlockStateId(*id as u32)
     }
 
     pub(crate) fn is_non_air(&self) -> bool {
@@ -73,7 +73,7 @@ impl BlockId {
     }
 
     pub fn from_varint(var_int: VarInt) -> Self {
-        BlockId(var_int.0 as u32)
+        BlockStateId(var_int.0 as u32)
     }
 
     pub fn to_varint(&self) -> VarInt {
@@ -81,71 +81,71 @@ impl BlockId {
     }
 }
 
-impl Display for BlockId {
+impl Display for BlockStateId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if let Some(block_data) = self.to_block_data() {
-            write!(f, "BlockId({}: {:?})", self.0, block_data)
+            write!(f, "BlockStateId({}: {:?})", self.0, block_data)
         } else {
-            write!(f, "BlockId({}: Unknown)", self.0)
+            write!(f, "BlockStateId({}: Unknown)", self.0)
         }
     }
 }
 
 impl BlockData {
-    /// Converts a BlockData to a BlockId. Will panic if the ID is not found.
-    pub fn to_block_id(&self) -> BlockId {
-        BlockId::from_block_data(self)
+    /// Converts a BlockData to a BlockStateId. Will panic if the ID is not found.
+    pub fn to_block_state_id(&self) -> BlockStateId {
+        BlockStateId::from_block_data(self)
     }
 
-    /// Converts a BlockId to a BlockData. Will panic if the ID is not found.
-    pub fn from_block_id(block_id: BlockId) -> BlockData {
-        block_id
+    /// Converts a BlockStateId to a BlockData. Will panic if the ID is not found.
+    pub fn from_block_state_id(block_state_id: BlockStateId) -> BlockData {
+        block_state_id
             .to_block_data()
-            .expect("Block ID not found in block mappings file")
+            .expect("Block state ID not found in block mappings file")
     }
 }
-impl From<BlockData> for BlockId {
+impl From<BlockData> for BlockStateId {
     fn from(block_data: BlockData) -> Self {
-        BlockId::from_block_data(&block_data)
+        BlockStateId::from_block_data(&block_data)
     }
 }
-impl From<BlockId> for BlockData {
-    /// Converts a BlockId to a BlockData. Will panic if the ID is not found.
-    fn from(block_id: BlockId) -> Self {
-        block_id
+impl From<BlockStateId> for BlockData {
+    /// Converts a BlockStateId to a BlockData. Will panic if the ID is not found.
+    fn from(block_state_id: BlockStateId) -> Self {
+        block_state_id
             .to_block_data()
-            .expect("Block ID not found in block mappings file")
+            .expect("Block state ID not found in block mappings file")
     }
 }
 
-impl From<VarInt> for BlockId {
-    /// Converts a VarInt to a BlockId.
+impl From<VarInt> for BlockStateId {
+    /// Converts a VarInt to a BlockStateId. Probably a no-op, but included for completeness.
     fn from(var_int: VarInt) -> Self {
         Self(var_int.0 as u32)
     }
 }
 
-impl From<BlockId> for VarInt {
-    /// Converts a BlockId to a VarInt.
-    fn from(block_id: BlockId) -> Self {
-        VarInt(block_id.0 as i32)
+impl From<BlockStateId> for VarInt {
+    /// Converts a BlockStateId to a VarInt. Probably a no-op, but included for completeness.
+    fn from(block_state_id: BlockStateId) -> Self {
+        VarInt(block_state_id.0 as i32)
     }
 }
 
-impl Default for BlockId {
-    /// Returns a BlockId with ID 0, which is air.
+impl Default for BlockStateId {
+    /// Returns a BlockStateId with ID 0, which is air.
     fn default() -> Self {
         Self(0)
     }
 }
 
-impl From<u32> for BlockId {
+impl From<u32> for BlockStateId {
     fn from(value: u32) -> Self {
         Self(value)
     }
 }
 
-impl From<u16> for BlockId {
+impl From<u16> for BlockStateId {
     fn from(value: u16) -> Self {
         Self(value as u32)
     }

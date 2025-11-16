@@ -21,3 +21,5 @@ profile.json.gz
 whitelist.txt
 
 logs/
+
+.zed

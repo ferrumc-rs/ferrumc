@@ -12,7 +12,7 @@ use ferrumc_net_codec::encode::NetEncodeOpts::WithLength;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalState;
 use std::sync::atomic::Ordering;
-use tracing::{debug, error, trace};
+use tracing::{error, trace};
 
 pub fn send_chunks(
     state: GlobalState,
@@ -21,7 +21,6 @@ pub fn send_chunks(
     // recv: &mut Mut<ChunkReceiver>,
     center_chunk: (i32, i32),
 ) -> Result<(), BinaryError> {
-    debug!("sending chunks {chunk_coords:?} to {conn:?}");
     let (center_x, center_z) = center_chunk;
 
     // Sort the chunks by distance from the center

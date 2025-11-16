@@ -99,27 +99,27 @@ pub fn build_registry_packets(input: TokenStream) -> TokenStream {
     registries_packets::build_mapping(input)
 }
 
-/// A macro to lookup block IDs at compile time.
+/// A macro to lookup block state IDs at compile time.
 ///
 /// Feed in the block name as a string literal, and an optional set of properties as a map.
-/// It will output a [`ferrumc_world::block_id::BlockId`] struct with the correct ID for that block and properties.
+/// It will output a [`ferrumc_world::block_state_id::BlockStateId`] struct with the correct ID for that block and properties.
 /// Usage:
 /// ```
-/// # use ferrumc_world::block_id::BlockId;
+/// # use ferrumc_world::block_state_id::BlockStateId;
 /// # use ferrumc_macros::block;
-/// assert_eq!(BlockId(1), block!("stone"));
-/// assert_eq!(BlockId(8) ,block!("minecraft:grass_block", {snowy: true}));
+/// assert_eq!(BlockStateId(1), block!("stone"));
+/// assert_eq!(BlockStateId(8) ,block!("minecraft:grass_block", {snowy: true}));
 /// for i in 581..1730 {
 ///     assert!(
 ///         matches!(
-///             BlockId(i),
+///             BlockStateId(i),
 ///             block!("note_block", { note: _, powered: _, instrument: _})
 ///         )
 ///     );
 /// }
 /// ```
 /// Unfortunately, due to current limitations in Rust's proc macros, you will need to import the
-/// `BlockId` struct manually.
+/// `BlockStateId` struct manually.
 ///
 /// The `minecraft:` namespace is optional and will be added automatically if not present.
 ///
@@ -137,19 +137,19 @@ pub fn block(input: TokenStream) -> TokenStream {
     block::block(input)
 }
 
-/// A macro to check if a block ID matches a given block name at compile time.
+/// A macro to check if a block state ID matches a given block name at compile time.
 /// Usage:
 /// ```
 /// # use ferrumc_macros::{match_block};
-/// # use ferrumc_world::block_id::BlockId;
-/// let block_id = BlockId(1);
+/// # use ferrumc_world::block_state_id::BlockStateId;
+/// let block_id = BlockStateId(1);
 /// assert!(match_block!("stone", block_id));
 /// for i in 581..1730 {
-///     assert!(match_block!("note_block", BlockId(i)));
+///     assert!(match_block!("note_block", BlockStateId(i)));
 /// }
 /// ```
 /// Unfortunately, due to current limitations in Rust's proc macros, you will need to import the
-/// `BlockId` struct manually.
+/// `BlockStateId` struct manually.
 ///
 /// The `minecraft:` namespace is optional and will be added automatically if not present.
 #[proc_macro]

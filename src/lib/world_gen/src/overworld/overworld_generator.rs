@@ -11,7 +11,7 @@ use crate::pos::{ChunkHeight, ChunkPos};
 use crate::random::Xoroshiro128PlusPlus;
 use bevy_math::IVec2;
 use ferrumc_macros::block;
-use ferrumc_world::block_id::BlockId;
+use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::chunk_format::Paletted;
 use ferrumc_world::chunk_format::{BiomeStates, BlockStates, Chunk, PaletteType, Section};
 use itertools::Itertools;
@@ -71,9 +71,9 @@ impl OverworldGenerator {
                             block_data: PaletteType::Paleted(Box::new(Paletted::U4 {
                                 palette: Default::default(),
                                 last: 1,
-                                data: [0; _],
+                                data: Box::new([0; _]),
                             })),
-                            block_counts: HashMap::from([(BlockId::default(), 4096)]),
+                            block_counts: HashMap::from([(BlockStateId::default(), 4096)]),
                         },
                         biome_states: BiomeStates {
                             bits_per_biome: 0,
@@ -95,7 +95,7 @@ impl OverworldGenerator {
             .iter_columns()
             .cartesian_product(CHUNK_HEIGHT.iter())
             .map(|(c, y)| c.block(y))
-            .map(|pos| {
+            .try_for_each(|pos| {
                 let final_density = self
                     .biome_noise
                     .post_process(pos, self.biome_noise.pre_baked_final_density(pos));
@@ -107,8 +107,7 @@ impl OverworldGenerator {
                         block!("air")
                     },
                 )
-            })
-            .collect::<Result<(), _>>()?;
+            })?;
         Ok(chunk)
     }
 }

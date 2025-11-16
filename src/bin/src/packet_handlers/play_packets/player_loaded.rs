@@ -4,7 +4,7 @@ use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket;
 use ferrumc_net::PlayerLoadedReceiver;
 use ferrumc_state::GlobalStateResource;
-use ferrumc_world::block_id::BlockId;
+use ferrumc_world::block_state_id::BlockStateId;
 use tracing::warn;
 
 pub fn handle(
@@ -34,7 +34,7 @@ pub fn handle(
             "overworld",
         );
         if let Ok(head_block) = head_block {
-            if head_block == BlockId(0) {
+            if head_block == BlockStateId(0) {
                 tracing::info!(
                     "Player {} loaded at position: ({}, {}, {})",
                     player,

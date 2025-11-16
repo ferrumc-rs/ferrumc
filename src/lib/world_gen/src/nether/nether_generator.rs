@@ -42,7 +42,7 @@ impl NetherGenerator {
             self.chunk_height
                 .iter()
                 .step_by(16)
-                .map(|y| Section::empty((y as i8))
+                .map(|y| Section::empty(y as i8))
                 .collect(),
         );
         self.noise

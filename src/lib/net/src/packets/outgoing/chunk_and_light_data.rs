@@ -148,7 +148,7 @@ impl ChunkAndLightData {
                                 raw_data.write_i64::<BigEndian>(data_entry)?
                             }
                         }
-                        Paletted::Direct { data } => todo!(),
+                        Paletted::Direct { .. } => todo!(),
                     }
                 }
             }

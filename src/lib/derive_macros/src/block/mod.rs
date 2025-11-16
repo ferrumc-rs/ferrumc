@@ -262,7 +262,7 @@ fn block_with_props(name: LitStr, opts: Pairs) -> Result<TokenStream> {
 
     let mut block_states = BLOCK_STATES
         .get(&name_value)
-        .expect(&format!("block name {name_value} should be present"))
+        .unwrap_or_else(|| panic!("block name {name_value} should be present"))
         .to_vec();
     for kv in &opts.pairs {
         let k = kv.key_str();
@@ -293,7 +293,7 @@ fn block_with_props(name: LitStr, opts: Pairs) -> Result<TokenStream> {
                     .iter()
                     .map(|v| BLOCK_STATES
                         .get(&format!("{k}:{v}"))
-                        .expect(&format!("the key {k}:{v} exists in BLOCK_STATES"))
+                        .unwrap_or_else(|| panic!("the key {k}:{v} exists in BLOCK_STATES"))
                     );
                 let mut combined_block_states = Vec::new();
                 for &bs in vs {
@@ -312,12 +312,12 @@ fn block_with_props(name: LitStr, opts: Pairs) -> Result<TokenStream> {
         for k in missing_props {
             let missing_block_states = PROP_PARTS
                 .get(&k)
-                .expect(&format!("the key {k} exists in PROP_PARTS"))
+                .unwrap_or_else(|| panic!("the key {k} exists in PROP_PARTS"))
                 .iter()
                 .map(|v| {
                     BLOCK_STATES
                         .get(&format!("{k}:{v}"))
-                        .expect(&format!("the key {k}:{v} exists in BLOCK_STATES"))
+                        .unwrap_or_else(|| panic!("the key {k}:{v} exists in BLOCK_STATES"))
                 });
             let mut combined = Vec::new();
             for &bs in missing_block_states {
@@ -337,7 +337,7 @@ fn block_with_props(name: LitStr, opts: Pairs) -> Result<TokenStream> {
         ));
     }
     let block_ids = block_states.iter().map(|x| *x as u32);
-    Ok(quote! {BlockId(#(#block_ids)|*)}.into())
+    Ok(quote! {BlockStateId(#(#block_ids)|*)}.into())
 }
 
 fn block_with_any_props(name: LitStr) -> Result<TokenStream> {
@@ -348,7 +348,7 @@ fn block_with_any_props(name: LitStr) -> Result<TokenStream> {
         .ok_or_else(|| Error::new_spanned(&name, format!("the block `{name_value}` is not found in blockstates.json (BLOCK_STATES is not populated)")))?
         .iter()
         .map(|&x| x as u32);
-    Ok(quote! {BlockId(#(#block_ids)|*)}.into())
+    Ok(quote! {BlockStateId(#(#block_ids)|*)}.into())
 }
 fn static_block(name: LitStr) -> Result<TokenStream> {
     let name_value = parse_name(&name);
@@ -389,7 +389,7 @@ fn static_block(name: LitStr) -> Result<TokenStream> {
     }
 
     let id = block_states[0] as u32;
-    Ok(quote! { BlockId(#id) }.into())
+    Ok(quote! { BlockStateId(#id) }.into())
 }
 
 fn parse_name(name: &LitStr) -> String {

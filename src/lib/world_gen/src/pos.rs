@@ -78,7 +78,7 @@ impl ColumnPos {
         let radius = radius as i32;
         ((-radius)..=(radius))
             .cartesian_product((-radius)..=(radius))
-            .map(|vec| IVec2::from(vec))
+            .map(IVec2::from)
             .filter(move |vec| vec.length_squared() <= radius * radius)
             .map(|vec| Self::from(self.pos + vec))
     }

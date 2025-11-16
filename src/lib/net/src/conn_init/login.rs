@@ -194,12 +194,37 @@ pub(super) async fn login(
 
     // =============================================================================================
     // 11 Send login_play packet to switch to Play state
-    let login_play =
-        crate::packets::outgoing::login_play::LoginPlayPacket::new(player_identity.short_uuid);
+
+    let gamemode_to_send = state
+        .player_cache
+        .get(&player_identity.uuid)
+        .map(|data| data.gamemode)
+        .unwrap_or_default();
+
+    let login_play = crate::packets::outgoing::login_play::LoginPlayPacket::new(
+        player_identity.short_uuid,
+        gamemode_to_send as u8,
+    );
     conn_write.send_packet(login_play)?;
 
     // =============================================================================================
-    // 12 Send initial player position sync (requires teleport confirmation)
+    // 12 Send initial Player Abilities packet
+    // We send this to sync the client with the cached player's abilities
+
+    let abilities_to_send = state
+        .player_cache
+        .get(&player_identity.uuid)
+        .map(|data| data.abilities.clone())
+        .unwrap_or_default();
+
+    let abilities_packet =
+        crate::packets::outgoing::player_abilities::PlayerAbilities::from_abilities(
+            &abilities_to_send,
+        );
+    conn_write.send_packet(abilities_packet)?;
+
+    // =============================================================================================
+    // 13 Send initial player position sync (requires teleport confirmation)
     let teleport_id_i32: i32 = (rand::random::<u32>() & 0x3FFF_FFFF) as i32;
     let sync_player_pos =
         crate::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket {
@@ -209,22 +234,28 @@ pub(super) async fn login(
     conn_write.send_packet(sync_player_pos)?;
 
     // =============================================================================================
-    // 13 Await client's teleport acceptance
-    let mut skel = PacketSkeleton::new(conn_read, compressed, Play).await?;
+    // 14 Await client's teleport acceptance
+    // The client may send other packets (like client_tick_end) before accepting the teleport,
+    // so we loop until we get the accept_teleportation packet
     let expected_id = lookup_packet!("play", "serverbound", "accept_teleportation");
-    if skel.id != expected_id {
-        return Err(NetError::Packet(PacketError::UnexpectedPacket {
-            expected: expected_id,
-            received: skel.id,
-            state: Play,
-        }));
-    }
-
-    let confirm_player_teleport =
-        crate::packets::incoming::confirm_player_teleport::ConfirmPlayerTeleport::decode(
-            &mut skel.data,
-            &NetDecodeOpts::None,
-        )?;
+    let confirm_player_teleport = loop {
+        let mut skel = PacketSkeleton::new(conn_read, compressed, Play).await?;
+        if skel.id == expected_id {
+            // Got the teleport confirmation
+            let confirm =
+                crate::packets::incoming::confirm_player_teleport::ConfirmPlayerTeleport::decode(
+                    &mut skel.data,
+                    &NetDecodeOpts::None,
+                )?;
+            break confirm;
+        } else {
+            // Client sent another packet before confirming teleport - just ignore it
+            trace!(
+                "Ignoring packet 0x{:02X} while waiting for teleport confirmation",
+                skel.id
+            );
+        }
+    };
 
     if confirm_player_teleport.teleport_id.0 != teleport_id_i32 {
         error!(
@@ -234,35 +265,39 @@ pub(super) async fn login(
     }
 
     // =============================================================================================
-    // 14 Receive first movement packet from player
-    let mut skel = PacketSkeleton::new(conn_read, compressed, Play).await?;
+    // 15 Receive first movement packet from player
+    // Similarly, the client may send other packets before the movement packet
     let expected_id = lookup_packet!("play", "serverbound", "move_player_pos_rot");
-    if skel.id != expected_id {
-        return Err(NetError::Packet(PacketError::UnexpectedPacket {
-            expected: expected_id,
-            received: skel.id,
-            state: Play,
-        }));
-    }
+    let _player_pos_and_rot = loop {
+        let mut skel = PacketSkeleton::new(conn_read, compressed, Play).await?;
 
-    let _player_pos_and_rot =
-        crate::packets::incoming::set_player_position_and_rotation::SetPlayerPositionAndRotationPacket::decode(
-            &mut skel.data,
-            &NetDecodeOpts::None,
-        )?;
+        if skel.id == expected_id {
+            let pos_rot = crate::packets::incoming::set_player_position_and_rotation::SetPlayerPositionAndRotationPacket::decode(
+                &mut skel.data,
+                &NetDecodeOpts::None,
+            )?;
+            break pos_rot;
+        } else {
+            // Client sent another packet before movement - ignore it
+            trace!(
+                "Ignoring packet 0x{:02X} while waiting for initial movement packet",
+                skel.id
+            );
+        }
+    };
 
     // =============================================================================================
-    // 15 Send initial game event (e.g., "change game mode")
+    // 16 Send initial game event (e.g., "change game mode")
     let game_event = crate::packets::outgoing::game_event::GameEventPacket::new(13, 0.0);
     conn_write.send_packet(game_event)?;
 
     // =============================================================================================
-    // 16 Send center chunk packet (player spawn location)
+    // 17 Send center chunk packet (player spawn location)
     let center_chunk = crate::packets::outgoing::set_center_chunk::SetCenterChunk::new(0, 0);
     conn_write.send_packet(center_chunk)?;
 
     // =============================================================================================
-    // 17 Load and send surrounding chunks within render distance
+    // 18 Load and send surrounding chunks within render distance
     let radius = get_global_config().chunk_render_distance as i32;
 
     let mut batch = state.thread_pool.batch();
