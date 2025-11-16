@@ -7,7 +7,7 @@ pub mod new_connections;
 pub mod player_count_update;
 pub mod send_chunks;
 pub mod shutdown_systems;
-mod system_messages;
+pub mod system_messages;
 pub mod world_sync;
 
 pub fn register_game_systems(schedule: &mut bevy_ecs::schedule::Schedule) {

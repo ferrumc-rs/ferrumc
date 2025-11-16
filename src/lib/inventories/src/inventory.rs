@@ -4,12 +4,23 @@ use crate::slot::InventorySlot;
 use crate::{INVENTORY_UPDATES_QUEUE, InventoryUpdate};
 use bevy_ecs::prelude::{Component, Entity};
 
-#[derive(Component)]
+#[derive(Component, Clone, Debug)]
 pub struct Inventory {
     pub slots: Box<[Option<InventorySlot>]>,
 }
 
+impl Default for Inventory {
+    /// Make default inventory, sized for a PLAYER.
+    /// 46 = (5 * 9) + 1 =
+    /// NOT divisible by 9.
+    fn default() -> Self {
+        Self::new(Self::DEFAULT_PLAYER_SIZE)
+    }
+}
+
 impl Inventory {
+    pub const DEFAULT_PLAYER_SIZE: usize = 46;
+
     pub fn new(size: usize) -> Self {
         Self {
             slots: vec![None; size].into_boxed_slice(),

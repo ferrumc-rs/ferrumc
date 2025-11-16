@@ -1,3 +1,5 @@
+use crate::events::player_join_event::PlayerJoinEvent;
+use crate::events::player_leave_event::PlayerLeaveEvent;
 use bevy_ecs::event::EventRegistry;
 use bevy_ecs::prelude::World;
 use ferrumc_commands::events::{CommandDispatchEvent, ResolvedCommandDispatchEvent};
@@ -11,4 +13,6 @@ pub fn register_events(world: &mut World) {
     EventRegistry::register_event::<ForcePlayerRecountEvent>(world);
     EventRegistry::register_event::<CommandDispatchEvent>(world);
     EventRegistry::register_event::<ResolvedCommandDispatchEvent>(world);
+    EventRegistry::register_event::<PlayerLeaveEvent>(world);
+    EventRegistry::register_event::<PlayerJoinEvent>(world);
 }
