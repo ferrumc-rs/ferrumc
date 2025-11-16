@@ -63,6 +63,13 @@ impl GameEventPacket {
     /// - `f32` from `0-1` indicating the rain intensity.
     pub const RAIN_LEVEL_CHANGE: u8 = 7;
 
+    /// GameEvent packet ID to change the thunder intensity level.
+    /// The protocol wiki page states that this seems to change both the lighting
+    /// and sky color.
+    /// Value:
+    /// - `f32` from `0-1` indicating the thunder intensity.
+    pub const THUNDER_LEVEL_CHANGE: u8 = 8;
+
     pub fn new(event_id: u8, value: f32) -> Self {
         Self { event_id, value }
     }
