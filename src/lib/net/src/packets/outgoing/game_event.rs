@@ -81,10 +81,7 @@ impl GameEventPacket {
     /// Possible values:
     /// - 0: Enable respawn screen.
     /// - 1: Disable respawn screen (immediate respawn).
-    ///
-    /// Why a value of `0` actually *enables* the respawn screen... no idea.
-    /// That's just how the Minecraft protocol works.
-    pub const ENABLE_RESPAWN_SCREEN: u8 = 11;
+    pub const DISABLE_RESPAWN_SCREEN: u8 = 11;
 
     /// GameEvent packet ID to indicate that the client should enable/disable
     /// limited crafting mode. If enabled (1), the recipe book will only show
