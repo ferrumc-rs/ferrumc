@@ -1,20 +1,20 @@
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use std::fs;
 use std::io::Write;
-use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
-mod particles;
-mod sounds;
 mod attributes;
-mod blocks;
-mod items;
-mod entities;
 mod biomes;
-mod enchantments;
-mod potions;
-mod effects;
+mod blocks;
 mod damage_types;
+mod effects;
+mod enchantments;
+mod entities;
 mod fluids;
+mod items;
+mod particles;
+mod potions;
 mod recipes;
+mod sounds;
 mod tags;
 
 pub const OUT_DIR: &str = "src/generated";

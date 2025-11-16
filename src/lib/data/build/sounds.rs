@@ -1,7 +1,7 @@
-use std::fs;
 use heck::ToPascalCase;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
+use std::fs;
 
 use crate::array_to_tokenstream;
 
@@ -11,9 +11,9 @@ pub(crate) fn build() -> TokenStream {
     let sounds: Vec<String> =
         serde_json::from_str(&fs::read_to_string("../../../assets/extracted/sounds.json").unwrap())
             .expect("Failed to parse sounds.json");
-    
+
     let variants = array_to_tokenstream(&sounds);
-    
+
     let type_from_name = &sounds
         .iter()
         .map(|sound| {
@@ -25,7 +25,7 @@ pub(crate) fn build() -> TokenStream {
             }
         })
         .collect::<TokenStream>();
-        
+
     let type_to_name = &sounds
         .iter()
         .map(|sound| {
@@ -37,7 +37,7 @@ pub(crate) fn build() -> TokenStream {
             }
         })
         .collect::<TokenStream>();
-        
+
     quote! {
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
         pub enum Sound {
@@ -53,7 +53,7 @@ pub(crate) fn build() -> TokenStream {
                     _ => None
                 }
             }
-            
+
             pub const fn to_name(&self) -> &'static str {
                 match self {
                     #type_to_name

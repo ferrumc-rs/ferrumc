@@ -1,10 +1,10 @@
-use std::{collections::BTreeMap, fs};
 use heck::ToShoutySnakeCase;
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote};
 use serde::Deserialize;
-use syn::{LitBool, LitFloat, LitInt};
 use serde_json::Value;
+use std::{collections::BTreeMap, fs};
+use syn::{LitBool, LitFloat, LitInt};
 
 fn deserialize_carvers<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
 where
@@ -16,7 +16,11 @@ where
         Value::Array(arr) => {
             let strings: Result<Vec<String>, _> = arr
                 .into_iter()
-                .map(|v| v.as_str().map(|s| s.to_string()).ok_or_else(|| serde::de::Error::custom("Expected string")))
+                .map(|v| {
+                    v.as_str()
+                        .map(|s| s.to_string())
+                        .ok_or_else(|| serde::de::Error::custom("Expected string"))
+                })
                 .collect();
             strings
         }
@@ -86,16 +90,19 @@ pub(crate) fn build() -> TokenStream {
 
     for (name, biome) in biomes.iter() {
         let const_ident = format_ident!("{}", name.to_shouty_snake_case());
-        
+
         let has_precipitation = LitBool::new(biome.has_precipitation, Span::call_site());
         let temperature = LitFloat::new(&format!("{:.1}", biome.temperature), Span::call_site());
         let downfall = LitFloat::new(&format!("{:.1}", biome.downfall), Span::call_site());
-        
+
         let sky_color = LitInt::new(&biome.effects.sky_color.to_string(), Span::call_site());
         let fog_color = LitInt::new(&biome.effects.fog_color.to_string(), Span::call_site());
         let water_color = LitInt::new(&biome.effects.water_color.to_string(), Span::call_site());
-        let water_fog_color = LitInt::new(&biome.effects.water_fog_color.to_string(), Span::call_site());
-        
+        let water_fog_color = LitInt::new(
+            &biome.effects.water_fog_color.to_string(),
+            Span::call_site(),
+        );
+
         let foliage_color = match biome.effects.foliage_color {
             Some(color) => {
                 let color_lit = LitInt::new(&color.to_string(), Span::call_site());
@@ -103,7 +110,7 @@ pub(crate) fn build() -> TokenStream {
             }
             None => quote! { None },
         };
-        
+
         let grass_color = match biome.effects.grass_color {
             Some(color) => {
                 let color_lit = LitInt::new(&color.to_string(), Span::call_site());

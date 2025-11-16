@@ -1,9 +1,9 @@
-use std::{collections::BTreeMap, fs};
 use heck::ToShoutySnakeCase;
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote, ToTokens};
 use serde::Deserialize;
-use syn::{LitInt};
+use std::{collections::BTreeMap, fs};
+use syn::LitInt;
 
 #[derive(Deserialize)]
 pub struct EntityType {
@@ -118,7 +118,7 @@ impl quote::ToTokens for NamedEntityType<'_> {
         let summonable = entity.summonable;
         let fire_immune = entity.fire_immune;
         let eye_height = entity.eye_height;
-        
+
         let mob = entity.mob.unwrap_or(false);
         let limit_per_chunk = entity.limit_per_chunk.unwrap_or(0);
         let can_spawn_far_from_player = entity.can_spawn_far_from_player;
@@ -150,9 +150,10 @@ impl quote::ToTokens for NamedEntityType<'_> {
 pub(crate) fn build() -> TokenStream {
     println!("cargo:rerun-if-changed=../../../assets/extracted/entities.json");
 
-    let json: BTreeMap<String, EntityType> =
-        serde_json::from_str(&fs::read_to_string("../../../assets/extracted/entities.json").unwrap())
-            .expect("Failed to parse entities.json");
+    let json: BTreeMap<String, EntityType> = serde_json::from_str(
+        &fs::read_to_string("../../../assets/extracted/entities.json").unwrap(),
+    )
+    .expect("Failed to parse entities.json");
 
     let mut consts = TokenStream::new();
     let mut type_from_raw_id_arms = TokenStream::new();
@@ -249,7 +250,7 @@ pub(crate) fn build() -> TokenStream {
 
         impl MobCategory {
             pub const NO_DESPAWN_DISTANCE: i32 = 32;
-            
+
             pub const fn max_per_chunk(&self) -> i32 {
                 match self {
                     Self::MONSTER => 70,

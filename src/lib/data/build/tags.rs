@@ -1,8 +1,8 @@
-use std::collections::BTreeMap;
-use std::fs;
 use heck::ToShoutySnakeCase;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
+use std::collections::BTreeMap;
+use std::fs;
 
 pub(crate) fn build() -> TokenStream {
     println!("cargo:rerun-if-changed=../../../assets/extracted/tags.json");
@@ -16,7 +16,7 @@ pub(crate) fn build() -> TokenStream {
 
     for (name, tag_data) in tags.iter() {
         let const_ident = format_ident!("{}", name.replace('/', "_").to_shouty_snake_case());
-        
+
         // Convert the tag data to a string representation for now
         let tag_str = serde_json::to_string(tag_data).unwrap();
 

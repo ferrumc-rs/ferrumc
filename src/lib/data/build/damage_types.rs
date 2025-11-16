@@ -1,19 +1,20 @@
-use std::{collections::BTreeMap, fs};
 use heck::ToPascalCase;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
+use std::{collections::BTreeMap, fs};
 
 pub(crate) fn build() -> TokenStream {
     println!("cargo:rerun-if-changed=../../../assets/extracted/damage_type.json");
 
-    let damage_types: BTreeMap<String, serde_json::Value> =
-        serde_json::from_str(&fs::read_to_string("../../../assets/extracted/damage_type.json").unwrap())
-            .expect("Failed to parse damage_type.json");
-    
+    let damage_types: BTreeMap<String, serde_json::Value> = serde_json::from_str(
+        &fs::read_to_string("../../../assets/extracted/damage_type.json").unwrap(),
+    )
+    .expect("Failed to parse damage_type.json");
+
     let damage_type_names: Vec<String> = damage_types.keys().cloned().collect();
-    
+
     let variants = crate::array_to_tokenstream(&damage_type_names);
-    
+
     let type_from_name = &damage_type_names
         .iter()
         .map(|damage_type| {
@@ -25,7 +26,7 @@ pub(crate) fn build() -> TokenStream {
             }
         })
         .collect::<TokenStream>();
-        
+
     let type_to_name = &damage_type_names
         .iter()
         .map(|damage_type| {
@@ -37,7 +38,7 @@ pub(crate) fn build() -> TokenStream {
             }
         })
         .collect::<TokenStream>();
-        
+
     quote! {
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
         pub enum DamageType {
@@ -53,7 +54,7 @@ pub(crate) fn build() -> TokenStream {
                     _ => None
                 }
             }
-            
+
             pub const fn to_name(&self) -> &'static str {
                 match self {
                     #type_to_name
