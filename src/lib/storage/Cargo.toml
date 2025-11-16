@@ -12,6 +12,7 @@ rand = { workspace = true }
 heed = { workspace = true }
 page_size = { workspace = true }
 parking_lot = { workspace = true }
+tempfile = { workspace = true }
 
 
 [dev-dependencies]

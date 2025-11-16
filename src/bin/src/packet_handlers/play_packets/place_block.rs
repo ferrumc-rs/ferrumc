@@ -48,7 +48,7 @@ pub fn handle(
         match event.hand.0 {
             0 => {
                 let slot_index = hotbar.selected_slot as usize;
-                let Ok(slot) = inventory.get_item(slot_index) else {
+                let Ok(slot) = inventory.get_item(slot_index + 36) else {
                     error!("Could not fetch {:?}", eid);
                     continue 'ev_loop;
                 };
@@ -78,9 +78,7 @@ pub fn handle(
                         }
                     };
                     let Ok(block_clicked) = chunk.get_block(
-                        event.position.x,
-                        event.position.y as i32,
-                        event.position.z,
+                        (event.position.x, event.position.y as i32, event.position.z).into(),
                     ) else {
                         debug!("Failed to get block at position: {:?}", event.position);
                         continue 'ev_loop;
@@ -131,9 +129,7 @@ pub fn handle(
                     }
 
                     if let Err(err) = chunk.set_block(
-                        x & 0xF,
-                        y as i32,
-                        z & 0xF,
+                        (x, y as i32, z).into(),
                         BlockStateId(*mapped_block_state_id as u32),
                     ) {
                         error!("Failed to set block: {:?}", err);

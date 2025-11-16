@@ -5,10 +5,13 @@ edition = "2024"
 
 [dependencies]
 ferrumc-world = { workspace = true }
-thiserror = { workspace = true }
-noise = { workspace = true }
-rand = { workspace = true }
 ferrumc-macros = { workspace = true }
+thiserror = { workspace = true }
+cthash = { workspace = true }
+bevy_math = { workspace = true }
+itertools = { workspace = true }
+const-str = {workspace = true }
+tracing = { workspace = true }
 
 [lints]
 workspace = true

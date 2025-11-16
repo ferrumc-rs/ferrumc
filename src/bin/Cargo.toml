@@ -11,6 +11,7 @@ thiserror = { workspace = true }
 
 ferrumc-core = { workspace = true }
 bevy_ecs = { workspace = true }
+bevy_math = { workspace = true }
 ferrumc-scheduler = { workspace = true }
 
 ferrumc-net = { workspace = true }

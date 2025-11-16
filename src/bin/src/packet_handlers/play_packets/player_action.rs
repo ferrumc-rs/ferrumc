@@ -37,13 +37,10 @@ pub fn handle(
                                 .map_err(BinaryError::WorldGen)?
                         }
                     };
-                    let (relative_x, relative_y, relative_z) = (
-                        event.location.x.abs() % 16,
-                        event.location.y as i32,
-                        event.location.z.abs() % 16,
-                    );
+                    let relative =
+                        (event.location.x, event.location.y as i32, event.location.z).into();
                     chunk
-                        .set_block(relative_x, relative_y, relative_z, BlockStateId::default())
+                        .set_block(relative, BlockStateId::default())
                         .map_err(BinaryError::World)?;
                     // Save the chunk to disk
                     state

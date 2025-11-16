@@ -227,7 +227,7 @@ mod tests {
     fn test_compress_packet_below_threshold() {
         let packet = TestPacket {
             test_vi: VarInt::new(42),
-            body: vec![255; 100], // Small enough to not trigger compression
+            body: vec![255; 50], // Small enough to not trigger compression
         };
         set_global_config(ServerConfig {
             network_compression_threshold: 512,

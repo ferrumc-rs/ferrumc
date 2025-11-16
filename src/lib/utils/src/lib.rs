@@ -13,7 +13,7 @@ pub mod formatting;
 ///
 /// # Example
 ///
-/// ```
+/// ```no_run
 /// use std::path::Path;
 /// use ferrumc_utils::root;
 ///

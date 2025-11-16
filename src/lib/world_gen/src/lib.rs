@@ -1,69 +1,69 @@
-mod biomes;
+#![feature(more_float_constants)]
+#![feature(new_range_api)]
+#![expect(unused)]
+
+mod biome;
+mod biome_chunk;
+pub mod block_can_survive;
+pub mod blocktag;
+mod common;
+mod direction;
+mod end;
 pub mod errors;
-
+mod nether;
+mod noise_router;
+pub mod overworld;
+mod perlin_noise;
+mod pos;
+pub mod random;
+use crate::end::end_generator::EndGenerator;
 use crate::errors::WorldGenError;
+use crate::overworld::overworld_generator::OverworldGenerator;
+use crate::pos::BlockPos;
+use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::chunk_format::Chunk;
-use noise::{Clamp, NoiseFn, OpenSimplex};
+use tracing::debug;
 
-/// Trait for generating a biome
-///
-/// Should be implemented for each biome's generator
-pub(crate) trait BiomeGenerator {
-    fn _biome_id(&self) -> u8;
-    fn _biome_name(&self) -> String;
-    fn generate_chunk(
-        &self,
-        x: i32,
-        z: i32,
-        noise: &NoiseGenerator,
-    ) -> Result<Chunk, WorldGenError>;
+pub struct ChunkAccess {}
+
+impl ChunkAccess {
+    pub fn get_block_state(&self, pos: BlockPos) -> BlockStateId {
+        todo!()
+    }
+
+    pub fn set_block_state(&mut self, pos: BlockPos, data: BlockStateId) {
+        todo!()
+    }
+    pub fn set_block_state_flags(&mut self, pos: BlockPos, data: BlockStateId, flags: u32) {
+        todo!()
+    }
+
+    fn get_height(&self, world_surface_wg: HeightmapType, max_x: i32, z: i32) -> i32 {
+        todo!()
+    }
 }
 
-pub(crate) struct NoiseGenerator {
-    pub(crate) layers: Vec<Clamp<f64, OpenSimplex, 2>>,
+#[derive(Clone, Copy)]
+pub enum HeightmapType {
+    WorldSurfaceWg,
+    MotionBlocking,
+    MotionBlockingNoLeaves,
+    WorldSurface,
+    OceanFloor,
+    OceanFloorWg,
 }
-
 pub struct WorldGenerator {
-    _seed: u64,
-    noise_generator: NoiseGenerator,
-}
-
-impl NoiseGenerator {
-    pub fn new(seed: u64) -> Self {
-        let mut layers = Vec::new();
-        for i in 0..4 {
-            let open_simplex = OpenSimplex::new((seed + i) as u32);
-            let clamp = Clamp::new(open_simplex).set_bounds(-1.0, 1.0);
-            layers.push(clamp);
-        }
-        Self { layers }
-    }
-
-    pub fn get_noise(&self, x: f64, z: f64) -> f64 {
-        let mut noise = 0.0;
-        for (c, layer) in self.layers.iter().enumerate() {
-            let scale = 64.0_f64.powi(c as i32 + 1);
-            noise += layer.get([x / scale, z / scale]);
-        }
-        noise / (self.layers.len() as f64 / 2.0)
-    }
+    generator: EndGenerator,
 }
 
 impl WorldGenerator {
     pub fn new(seed: u64) -> Self {
         Self {
-            _seed: seed,
-            noise_generator: NoiseGenerator::new(seed),
+            generator: EndGenerator::new(seed),
         }
     }
 
-    fn get_biome(&self, _x: i32, _z: i32) -> Box<dyn BiomeGenerator> {
-        // Implement biome selection here
-        Box::new(biomes::plains::PlainsBiome)
-    }
-
     pub fn generate_chunk(&self, x: i32, z: i32) -> Result<Chunk, WorldGenError> {
-        let biome = self.get_biome(x, z);
-        biome.generate_chunk(x, z, &self.noise_generator)
+        self.generator.generate_chunk(x, z)
     }
 }
