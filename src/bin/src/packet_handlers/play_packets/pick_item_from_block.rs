@@ -1,6 +1,6 @@
 use bevy_ecs::prelude::{Entity, Query, Res};
+use ferrumc_components::player::abilities::PlayerAbilities;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
-use ferrumc_core::player::abilities::PlayerAbilities;
 use ferrumc_inventories::item::ItemID;
 use ferrumc_inventories::slot::InventorySlot;
 use ferrumc_inventories::{hotbar::Hotbar, inventory::Inventory};

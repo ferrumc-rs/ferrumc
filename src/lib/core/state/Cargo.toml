@@ -12,3 +12,4 @@ ferrumc-threadpool = { workspace = true }
 crossbeam-queue = { workspace = true }
 ferrumc-core = {workspace = true}
 uuid = { workspace = true }
+ferrumc-components = {workspace = true }

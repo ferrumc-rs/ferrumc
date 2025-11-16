@@ -1,6 +1,6 @@
 use dashmap::DashMap;
-use ferrumc_core::player::abilities::PlayerAbilities;
-use ferrumc_core::player::gamemode::{GameMode, GameModeComponent};
+use ferrumc_components::player::abilities::PlayerAbilities;
+use ferrumc_components::player::gamemode::{GameMode, GameModeComponent};
 use uuid::Uuid;
 
 /// A struct to hold all component data for an offline player.

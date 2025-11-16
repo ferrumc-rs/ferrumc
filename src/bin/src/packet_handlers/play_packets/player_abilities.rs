@@ -6,7 +6,7 @@ use ferrumc_net::PlayerAbilitiesReceiver;
 
 use ferrumc_net::packets::outgoing::player_abilities::PlayerAbilities as OutgoingPlayerAbilities;
 
-use ferrumc_core::player::abilities::PlayerAbilities;
+use ferrumc_components::player::abilities::PlayerAbilities;
 
 /// Handles incoming PlayerAbilities packets (client telling us its flying status)
 pub fn handle(

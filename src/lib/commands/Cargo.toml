@@ -15,6 +15,7 @@ ferrumc-macros = { workspace = true }
 bevy_ecs = { workspace = true }
 ferrumc-net-codec = { workspace = true }
 regex = { workspace = true }
+ferrumc-components = {workspace = true }
 
 [dev-dependencies] # Needed for the ServerState mock... :concern:
 ferrumc-world = { workspace = true }

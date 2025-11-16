@@ -1,8 +1,8 @@
 use bevy_ecs::prelude::*;
 use ferrumc_commands::Sender;
+use ferrumc_components::player::abilities::PlayerAbilities;
+use ferrumc_components::player::gamemode::{GameMode, GameModeComponent};
 use ferrumc_core::identity::player_identity::PlayerIdentity;
-use ferrumc_core::player::abilities::PlayerAbilities;
-use ferrumc_core::player::gamemode::{GameMode, GameModeComponent};
 use ferrumc_macros::command;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::game_event::GameEventPacket; // For changing the client's UI

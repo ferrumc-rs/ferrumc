@@ -1,9 +1,8 @@
 use crate::systems::system_messages;
 use bevy_ecs::prelude::{Commands, Entity, Query, Res};
-use ferrumc_core::player::abilities::PlayerAbilities;
-use ferrumc_core::{
-    identity::player_identity::PlayerIdentity, player::gamemode::GameModeComponent,
-};
+use ferrumc_components::player::abilities::PlayerAbilities;
+use ferrumc_components::player::gamemode::GameModeComponent;
+use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_state::player_cache::OfflinePlayerData;
 use ferrumc_state::GlobalStateResource;
