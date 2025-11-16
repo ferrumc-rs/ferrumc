@@ -56,6 +56,13 @@ impl GameEventPacket {
     /// GameEvent packet ID to indicate that an arrow has hit a player.
     pub const ARROW_HIT_PLAYER: u8 = 6;
 
+    /// GameEvent packet ID to change the rain intensity level.
+    /// The protocol wiki page states that this seems to change both the lighting
+    /// and sky color.
+    /// Value:
+    /// - `f32` from `0-1` indicating the rain intensity.
+    pub const RAIN_LEVEL_CHANGE: u8 = 7;
+
     pub fn new(event_id: u8, value: f32) -> Self {
         Self { event_id, value }
     }
