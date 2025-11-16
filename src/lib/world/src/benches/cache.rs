@@ -27,9 +27,9 @@ pub(crate) fn bench_cache(c: &mut Criterion) {
             || World::new(&backend_path),
             |world| {
                 world.get_block_and_fetch(
+                    (black_box(1),
                     black_box(1),
-                    black_box(1),
-                    black_box(1),
+                    black_box(1)).into(),
                     black_box("overworld"),
                 )
             },
@@ -52,10 +52,10 @@ pub(crate) fn bench_cache(c: &mut Criterion) {
     });
     group.bench_function("Load block 1,1 cached", |b| {
         b.iter(|| {
-            world.get_block_and_fetch(
+            world.get_block_and_fetch((
                 black_box(1),
                 black_box(1),
-                black_box(1),
+                black_box(1)).into(),
                 black_box("overworld"),
             )
         });

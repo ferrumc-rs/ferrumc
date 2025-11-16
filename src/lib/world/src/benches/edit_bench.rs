@@ -19,19 +19,19 @@ pub(crate) fn bench_edits(c: &mut Criterion) {
     read_group.throughput(Throughput::Elements(1));
 
     read_group.bench_function("Read 0,0,0", |b| {
-        b.iter(|| black_box(chunk.get_block(0, 0, 0)));
+        b.iter(|| black_box(chunk.get_block((0, 0, 0).into())));
     });
 
     read_group.bench_function("Read 8,8,150", |b| {
-        b.iter(|| black_box(chunk.get_block(8, 8, 150)));
+        b.iter(|| black_box(chunk.get_block((8, 8, 150).into())));
     });
 
     read_group.bench_function("Read rand", |b| {
         b.iter(|| {
             black_box(chunk.get_block(
+                (get_rand_in_range(0, 15),
                 get_rand_in_range(0, 15),
-                get_rand_in_range(0, 15),
-                get_rand_in_range(0, 255),
+                get_rand_in_range(0, 255)).into()
             ))
         });
     });
@@ -45,24 +45,24 @@ pub(crate) fn bench_edits(c: &mut Criterion) {
     write_group.bench_with_input("Write 0,0,0", &chunk, |b, chunk| {
         b.iter(|| {
             let mut chunk = chunk.clone();
-            black_box(chunk.set_block(0, 0, 0, block!("bricks"))).unwrap();
+            black_box(chunk.set_block((0, 0, 0).into(), block!("bricks"))).unwrap();
         });
     });
 
     write_group.bench_with_input("Write 8,8,150", &chunk, |b, chunk| {
         b.iter(|| {
             let mut chunk = chunk.clone();
-            black_box(chunk.set_block(8, 8, 150, block!("bricks"))).unwrap();
+            black_box(chunk.set_block((8, 8, 150).into(), block!("bricks"))).unwrap();
         });
     });
 
     write_group.bench_with_input("Write rand", &chunk, |b, chunk| {
         b.iter(|| {
             let mut chunk = chunk.clone();
-            black_box(chunk.set_block(
+            black_box(chunk.set_block((
                 get_rand_in_range(0, 15),
                 get_rand_in_range(0, 15),
-                get_rand_in_range(0, 255),
+                get_rand_in_range(0, 255)).into(),
                 block!("bricks"),
             ))
             .unwrap();
@@ -74,7 +74,7 @@ pub(crate) fn bench_edits(c: &mut Criterion) {
     write_group.bench_with_input("Fill", &chunk, |b, chunk| {
         b.iter(|| {
             let mut chunk = chunk.clone();
-            black_box(chunk.fill(block!("bricks"))).unwrap();
+            black_box(chunk.fill(block!("bricks")));
         });
     });
 
@@ -84,7 +84,7 @@ pub(crate) fn bench_edits(c: &mut Criterion) {
             for x in 0..16 {
                 for y in 0..256 {
                     for z in 0..16 {
-                        black_box(chunk.set_block(x, y, z, block!("bricks"))).unwrap();
+                        black_box(chunk.set_block((x, y, z).into(), block!("bricks"))).unwrap();
                     }
                 }
             }
