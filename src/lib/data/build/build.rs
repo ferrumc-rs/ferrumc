@@ -34,6 +34,7 @@ pub fn main() {
     }
 
     // Build functions in order of dependency (excluding blocks)
+    #[allow(clippy::type_complexity)]
     let build_functions: Vec<(fn() -> proc_macro2::TokenStream, &str)> = vec![
         (particles::build, "particles.rs"),
         (sounds::build, "sounds.rs"),
