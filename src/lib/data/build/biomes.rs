@@ -79,6 +79,7 @@ pub struct MusicData {
 }
 
 pub(crate) fn build() -> TokenStream {
+    println!("Building biomes...");
     println!("cargo:rerun-if-changed=../../../assets/extracted/biome.json");
 
     let biomes: BTreeMap<String, Biome> =
