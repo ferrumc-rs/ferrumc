@@ -21,13 +21,13 @@ pub const OUT_DIR: &str = "src/generated";
 
 pub fn main() {
     println!("Running build.rs...");
-    
+
     // Write a test file to verify build script runs
     let out_dir = std::env::var("OUT_DIR").unwrap_or_else(|_| "test".to_string());
     let test_file = std::path::Path::new(&out_dir).join("build_test.txt");
     std::fs::write(&test_file, "Build script ran!").unwrap();
     println!("Wrote test file to: {:?}", test_file);
-    
+
     let path = std::path::Path::new(OUT_DIR);
     if !path.exists() {
         let _ = fs::create_dir(OUT_DIR);
@@ -49,7 +49,7 @@ pub fn main() {
         (recipes::build, "recipes.rs"),
         (tags::build, "tags.rs"),
     ];
-    
+
     // Build other files normally
     build_functions.par_iter().for_each(|(build_fn, file)| {
         println!("Building {}...", file);
@@ -57,14 +57,14 @@ pub fn main() {
         write_generated_file(&formatted_code, file);
         println!("Finished building {}", file);
     });
-    
+
     // Build blocks separately (uses OUT_DIR from cargo)
     match blocks::build() {
-        Ok(()) => {},
+        Ok(()) => {}
         Err(e) => {
             eprintln!("Failed to build blocks: {}", e);
             std::process::exit(1);
-        },
+        }
     }
 }
 

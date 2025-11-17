@@ -436,7 +436,6 @@ pub(crate) fn build() -> TokenStream {
     }
 
     quote! {
-        use std::borrow::Cow;
         use std::hash::{Hash, Hasher};
         use crate::attributes::Attribute;
 
@@ -688,6 +687,7 @@ pub(crate) fn build() -> TokenStream {
         }
 
         #[derive(Clone, Debug)]
+        #[allow(non_camel_case_types)]
         pub enum EquipmentSlot {
             MAIN_HAND,
             OFF_HAND,

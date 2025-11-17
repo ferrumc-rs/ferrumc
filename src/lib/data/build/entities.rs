@@ -237,6 +237,7 @@ pub(crate) fn build() -> TokenStream {
         }
 
         #[derive(Debug)]
+        #[allow(non_camel_case_types)]
         pub enum MobCategory {
             MONSTER,
             CREATURE,
