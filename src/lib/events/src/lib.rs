@@ -15,3 +15,6 @@ pub use player_join::*;
 
 pub mod player_leave;
 pub use player_leave::*;
+
+pub mod change_gamemode;
+pub use change_gamemode::*;

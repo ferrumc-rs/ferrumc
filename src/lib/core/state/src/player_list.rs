@@ -14,7 +14,15 @@ impl PlayerList {
     }
 
     pub fn disconnect(&self, entity: Entity, reason: Option<String>) {
-        self.player_list.remove(&entity);
-        self.disconnection_queue.push((entity, reason));
+        // 1. Try to remove the player from the active list.
+        //    `DashMap::remove` is atomic. It will only return `Some`
+        //    for the first thread that calls this.
+        let removal_result = self.player_list.remove(&entity);
+
+        // 2. Only push to the disconnect queue if we were the
+        //    first ones to successfully remove the player.
+        if removal_result.is_some() {
+            self.disconnection_queue.push((entity, reason));
+        }
     }
 }

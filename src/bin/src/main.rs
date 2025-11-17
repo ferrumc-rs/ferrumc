@@ -19,7 +19,6 @@ pub(crate) mod errors;
 use crate::cli::{CLIArgs, Command, ImportArgs};
 mod chunk_sending;
 mod cli;
-mod events;
 mod game_loop;
 mod packet_handlers;
 mod register_events;
@@ -38,6 +37,8 @@ fn main() {
 
     let cli_args = CLIArgs::parse();
     ferrumc_logging::init_logging(cli_args.log.into());
+
+    ferrumc_registry::init();
 
     match cli_args.command {
         Some(Command::Setup) => {
