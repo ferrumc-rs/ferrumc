@@ -7,6 +7,7 @@ use std::fs;
 use syn::{LitFloat, LitInt};
 
 #[derive(Deserialize, Clone, Debug)]
+#[allow(dead_code)]
 pub struct Enchantment {
     pub id: u16,
     pub description: Description,

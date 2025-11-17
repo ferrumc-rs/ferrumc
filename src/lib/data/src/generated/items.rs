@@ -1,5 +1,5 @@
 use crate::attributes::Attribute;
-use std::borrow::Cow;
+
 use std::hash::{Hash, Hasher};
 #[derive(Clone)]
 pub struct Item {
@@ -33607,6 +33607,7 @@ pub enum AttributeModifierSlot {
     Any,
 }
 #[derive(Clone, Debug)]
+#[allow(non_camel_case_types)]
 pub enum EquipmentSlot {
     MAIN_HAND,
     OFF_HAND,

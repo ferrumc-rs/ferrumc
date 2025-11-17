@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Attribute {
     pub id: u16,

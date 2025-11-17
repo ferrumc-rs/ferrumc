@@ -11,7 +11,7 @@
 resolver = "2"
 
 #================= Members =================#
-members = [
+ members = [
     "src/bin",
     "src/lib/adapters/anvil",
     "src/lib/adapters/nbt",
@@ -39,6 +39,7 @@ members = [
     "src/lib/components",
     "src/lib/events"
     "src/lib/data",
+    "examples",
 ]
 
 [workspace.package]
