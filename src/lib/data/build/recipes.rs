@@ -30,6 +30,7 @@ where
 }
 
 #[derive(Deserialize, Clone, Debug)]
+#[allow(dead_code)]
 pub struct Recipe {
     #[serde(rename = "type")]
     pub recipe_type: String,

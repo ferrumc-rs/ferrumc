@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Potion {
     pub id: u16,

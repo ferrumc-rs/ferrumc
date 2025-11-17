@@ -2,12 +2,14 @@ use std::fs;
 use std::path::Path;
 
 #[derive(Debug, serde::Deserialize)]
+#[allow(dead_code)]
 struct BlockData {
     blocks: Vec<Block>,
     shapes: Vec<Shape>,
 }
 
 #[derive(Debug, serde::Deserialize)]
+#[allow(dead_code)]
 struct Block {
     id: u32,
     name: String,
@@ -27,6 +29,7 @@ struct Block {
 type Property = i32;
 
 #[derive(Debug, serde::Deserialize)]
+#[allow(dead_code)]
 struct State {
     id: u32,
     state_flags: u32,
@@ -40,6 +43,7 @@ struct State {
 }
 
 #[derive(Debug, serde::Deserialize)]
+#[allow(dead_code)]
 struct Shape {
     min: [f64; 3],
     max: [f64; 3],

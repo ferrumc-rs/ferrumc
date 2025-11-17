@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+
 #[derive(Debug, Clone)]
 pub struct Recipe {
     pub name: &'static str,

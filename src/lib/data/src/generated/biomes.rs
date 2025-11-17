@@ -1,4 +1,3 @@
-use std::hash::Hash;
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Biome {
     pub name: &'static str,

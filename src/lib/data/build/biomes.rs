@@ -29,6 +29,7 @@ where
 }
 
 #[derive(Deserialize, Clone, Debug)]
+#[allow(dead_code)]
 pub struct Biome {
     pub has_precipitation: bool,
     pub temperature: f64,
@@ -42,6 +43,7 @@ pub struct Biome {
 }
 
 #[derive(Deserialize, Clone, Debug)]
+#[allow(dead_code)]
 pub struct BiomeEffects {
     pub mood_sound: Option<MoodSound>,
     pub music: Option<Vec<Music>>,
@@ -56,6 +58,7 @@ pub struct BiomeEffects {
 }
 
 #[derive(Deserialize, Clone, Debug)]
+#[allow(dead_code)]
 pub struct MoodSound {
     pub sound: String,
     pub tick_delay: i32,
@@ -64,12 +67,14 @@ pub struct MoodSound {
 }
 
 #[derive(Deserialize, Clone, Debug)]
+#[allow(dead_code)]
 pub struct Music {
     pub data: MusicData,
     pub weight: u32,
 }
 
 #[derive(Deserialize, Clone, Debug)]
+#[allow(dead_code)]
 pub struct MusicData {
     pub sound: String,
     pub min_delay: i32,
@@ -150,7 +155,6 @@ pub(crate) fn build() -> TokenStream {
     }
 
     quote! {
-        use std::hash::Hash;
 
         #[derive(Debug, Clone, Copy, PartialEq)]
         pub struct Biome {
