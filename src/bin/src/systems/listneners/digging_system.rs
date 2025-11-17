@@ -22,6 +22,7 @@ pub fn handle_start_digging(
     mut commands: Commands,
     mut events: EventReader<PlayerStartDiggingEvent>,
     mut player_query: Query<DiggingPlayerQuery, With<PlayerAbilities>>,
+    state: Res<GlobalStateResource>,
 ) {
     for event in events.read() {
         debug!(
@@ -29,17 +30,81 @@ pub fn handle_start_digging(
             event.player, event.position
         );
 
-        // (TODO: Calculate real break_time)
-        let break_time = Duration::from_millis(900);
+        // --- 1. GET THE BLOCK NAME ---
+        let block_state_id = match state.0.world.get_block_and_fetch(
+            event.position.x,
+            event.position.y as i32,
+            event.position.z,
+            "overworld", // TODO: remove hardcoded dimension
+        ) {
+            Ok(id) => id,
+            Err(e) => {
+                warn!(
+                    "StartDigging: Failed to get block at {:?}: {:?}",
+                    event.position, e
+                );
+                continue;
+            }
+        };
 
-        // Add the component
+        // --- 2. GET THE BLOCK HARDNESS ---
+        let Some(block_name) =
+            ferrumc_registry::lookup_blockstate_name(&VarInt::from(block_state_id).0.to_string())
+        else {
+            warn!("Could not find block name for state {:?}", block_state_id);
+            continue;
+        };
+
+        // --- 3. GET THE BLOCK HARDNESS ---
+        let hardness = ferrumc_registry::lookup_block_hardness(block_name).unwrap_or(0.0);
+        debug!(
+            "Player {:?} started digging block {} with hardness {}",
+            event.player, block_name, hardness
+        );
+
+        // --- 4. CHECK FOR UNBREAKABLE BLOCKS ---
+        if hardness < 0.0 {
+            debug!(
+                "Player {:?} tried to dig an unbreakable block ({})",
+                event.player, block_name
+            );
+
+            // We must still send an ACK to the client.
+            // But we do not add the PlayerDigging component.
+            if let Ok((_, writer, _)) = player_query.get_mut(event.player) {
+                let ack_packet = BlockChangeAck {
+                    sequence: event.sequence,
+                };
+                if let Err(e) = writer.send_packet_ref(&ack_packet) {
+                    error!(
+                        "Failed to send start_dig ACK to {:?}: {:?}",
+                        event.player, e
+                    );
+                }
+            }
+            continue; // Move to the next event
+        }
+
+        // --- 5. Calculate break time ---
+        // TODO: This is a placeholder. A real calculation would
+        // check for tools, effects, etc.
+        let break_time = if hardness == 0.0 {
+            // Instabreak blocks like air, grass, flowers
+            Duration::from_millis(0)
+        } else {
+            // Placeholder: 1.5s per hardness
+            // TODO: replace with real formula
+            Duration::from_secs_f32(hardness * 1.5)
+        };
+
+        // --- 6. Add the component ----
         commands.entity(event.player).insert(PlayerDigging {
             block_pos: event.position.clone(),
             start_time: Instant::now(),
             break_time,
         });
 
-        // Acknowledge the client
+        // --- 7. Acknowledge the client ---
         if let Ok((_, writer, _)) = player_query.get_mut(event.player) {
             let ack_packet = BlockChangeAck {
                 sequence: event.sequence,
@@ -145,9 +210,9 @@ pub fn handle_finish_digging(
             );
 
             let real_block_state = match state.0.world.get_block_and_fetch(
-                event.position.x as i32,
+                event.position.x,
                 event.position.y as i32,
-                event.position.z as i32,
+                event.position.z,
                 "overworld",
             ) {
                 Ok(id) => id,
