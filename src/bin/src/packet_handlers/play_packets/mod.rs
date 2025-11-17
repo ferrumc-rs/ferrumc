@@ -7,6 +7,7 @@ mod command;
 mod command_suggestions;
 mod confirm_player_teleport;
 mod keep_alive;
+mod pick_item_from_block;
 mod place_block;
 mod player_abilities;
 mod player_action;
@@ -38,6 +39,7 @@ pub fn register_packet_handlers(schedule: &mut Schedule) {
     schedule.add_systems(set_held_item::handle);
     schedule.add_systems(player_abilities::handle);
     schedule.add_systems(change_game_mode::handle);
+    schedule.add_systems(pick_item_from_block::handle);
 }
 
 pub mod set_creative_mode_slot;

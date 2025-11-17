@@ -3,6 +3,7 @@ use crate::packet_handlers::{play_packets, register_player_systems};
 use crate::register_events::register_events;
 use crate::register_resources::register_resources;
 use crate::systems::lan_pinger::LanPinger;
+use crate::systems::listneners::register_gameplay_listeners;
 use crate::systems::register_game_systems;
 use crate::systems::shutdown_systems::register_shutdown_systems;
 use bevy_ecs::prelude::World;
@@ -129,7 +130,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
 
     shutdown_schedule.run(&mut ecs_world);
 
-    // tell the TCP connection acceptor to shut down
+    // Tell the TCP connection acceptor to shut down
     trace!("Sending shutdown signal to TCP connection acceptor");
     shutdown_send
         .send(())
@@ -154,6 +155,7 @@ fn build_timed_scheduler() -> Scheduler {
         register_player_systems(s);
         register_command_systems(s);
         register_game_systems(s);
+        register_gameplay_listeners(s);
     };
     let tick_period = Duration::from_secs(1) / get_global_config().tps;
     timed.register(

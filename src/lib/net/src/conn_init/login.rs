@@ -214,7 +214,7 @@ pub(super) async fn login(
     let abilities_to_send = state
         .player_cache
         .get(&player_identity.uuid)
-        .map(|data| data.abilities.clone())
+        .map(|data| data.abilities)
         .unwrap_or_default();
 
     let abilities_packet =
@@ -224,7 +224,16 @@ pub(super) async fn login(
     conn_write.send_packet(abilities_packet)?;
 
     // =============================================================================================
-    // 13 Send initial player position sync (requires teleport confirmation)
+    // 13 Send entity status to grant Op Level
+    // TODO: Replace this with actual OP code of the player
+    let op_level_packet = crate::packets::outgoing::entity_event::EntityStatus {
+        entity_id: player_identity.short_uuid, // same ID as LoginPlayPacket
+        status: 28,                            // Status 28 = OP level 4
+    };
+    conn_write.send_packet(op_level_packet)?;
+
+    // =============================================================================================
+    // 14 Send initial player position sync (requires teleport confirmation)
     let teleport_id_i32: i32 = (rand::random::<u32>() & 0x3FFF_FFFF) as i32;
     let sync_player_pos =
         crate::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket {
@@ -234,7 +243,7 @@ pub(super) async fn login(
     conn_write.send_packet(sync_player_pos)?;
 
     // =============================================================================================
-    // 14 Await client's teleport acceptance
+    // 15 Await client's teleport acceptance
     // The client may send other packets (like client_tick_end) before accepting the teleport,
     // so we loop until we get the accept_teleportation packet
     let expected_id = lookup_packet!("play", "serverbound", "accept_teleportation");
@@ -265,7 +274,7 @@ pub(super) async fn login(
     }
 
     // =============================================================================================
-    // 15 Receive first movement packet from player
+    // 16 Receive first movement packet from player
     // Similarly, the client may send other packets before the movement packet
     let expected_id = lookup_packet!("play", "serverbound", "move_player_pos_rot");
     let _player_pos_and_rot = loop {
@@ -287,17 +296,17 @@ pub(super) async fn login(
     };
 
     // =============================================================================================
-    // 16 Send initial game event (e.g., "change game mode")
+    // 17 Send initial game event (e.g., "change game mode")
     let game_event = crate::packets::outgoing::game_event::GameEventPacket::new(13, 0.0);
     conn_write.send_packet(game_event)?;
 
     // =============================================================================================
-    // 17 Send center chunk packet (player spawn location)
+    // 18 Send center chunk packet (player spawn location)
     let center_chunk = crate::packets::outgoing::set_center_chunk::SetCenterChunk::new(0, 0);
     conn_write.send_packet(center_chunk)?;
 
     // =============================================================================================
-    // 18 Load and send surrounding chunks within render distance
+    // 19 Load and send surrounding chunks within render distance
     let radius = get_global_config().chunk_render_distance as i32;
 
     let mut batch = state.thread_pool.batch();
