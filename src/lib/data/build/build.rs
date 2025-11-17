@@ -43,10 +43,18 @@ pub fn main() {
         (tags::build, "tags.rs"),
     ];
 
-    build_functions.par_iter().for_each(|(build_fn, file)| {
+    // Handle blocks separately since it creates its own directory structure
+    let mut build_functions_mut = build_functions;
+    let (blocks_build_fn, _blocks_file) = build_functions_mut.remove(9); // blocks is at index 9
+    
+    // Build other files normally
+    build_functions_mut.par_iter().for_each(|(build_fn, file)| {
         let formatted_code = format_code(&build_fn().to_string());
         write_generated_file(&formatted_code, file);
     });
+    
+    // Build blocks (creates its own directory structure internally)
+    blocks_build_fn();
 }
 
 pub fn array_to_tokenstream(array: &[String]) -> proc_macro2::TokenStream {

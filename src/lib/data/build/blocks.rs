@@ -3,8 +3,11 @@ use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote, ToTokens};
 use serde::Deserialize;
 use std::{
-    collections::{BTreeMap, HashSet},
+    collections::BTreeMap,
     fs,
+    path::Path,
+    process::{Command, Stdio},
+    io::Write,
 };
 use syn::{Ident, LitInt, LitStr};
 
@@ -23,7 +26,7 @@ fn fill_array<T: Clone + quote::ToTokens>(array: Vec<(u16, T)>) -> Vec<TokenStre
 
 fn fill_state_array(array: Vec<(Ident, usize, u16)>) -> Vec<TokenStream> {
     let max_index = array.iter().map(|(_, _, index)| index).max().unwrap();
-    let mut ret = vec![quote! { MissedState }; (max_index + 1) as usize];
+    let mut ret = vec![quote! { &BlockState::from_id(0) }; (max_index + 1) as usize];
 
     for (block, index, state_id) in array {
         let index_lit = LitInt::new(&index.to_string(), Span::call_site());
@@ -35,6 +38,36 @@ fn fill_state_array(array: Vec<(Ident, usize, u16)>) -> Vec<TokenStream> {
 
 fn const_block_name_from_block_name(block: &str) -> String {
     block.to_shouty_snake_case()
+}
+
+fn format_code(unformatted_code: &str) -> String {
+    let mut child = Command::new("rustfmt")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("Failed to spawn rustfmt process.");
+
+    child
+        .stdin
+        .take()
+        .expect("Failed to take rustfmt stdin")
+        .write_all(unformatted_code.as_bytes())
+        .expect("Failed to write to rustfmt stdin.");
+
+    let output = child
+        .wait_with_output()
+        .expect("Failed to wait for rustfmt process.");
+
+    if output.status.success() {
+        String::from_utf8(output.stdout).expect("rustfmt output was not valid UTF-8.")
+    } else {
+        panic!(
+            "rustfmt failed with status: {}\n--- stderr ---\n{}",
+            output.status,
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
 }
 
 fn property_group_name_from_derived_name(name: &str) -> String {
@@ -659,6 +692,10 @@ pub(crate) fn build() -> TokenStream {
         serde_json::from_str(&fs::read_to_string("../../../assets/extracted/blocks.json").unwrap())
             .expect("Failed to parse blocks.json");
 
+    // Create blocks directory
+    let blocks_dir = Path::new("src/generated/blocks");
+    fs::create_dir_all(blocks_dir).expect("Failed to create blocks directory");
+
     let mut type_from_raw_id_items = TokenStream::new();
     let mut block_from_name = TokenStream::new();
     let mut raw_id_from_state_id = TokenStream::new();
@@ -668,14 +705,12 @@ pub(crate) fn build() -> TokenStream {
     let block_properties_from_state_and_block_id = TokenStream::new();
     let block_properties_from_props_and_name = TokenStream::new();
     let mut existing_item_ids: Vec<u16> = Vec::new();
-    let mut constants = TokenStream::new();
+    let mut block_mods: Vec<String> = Vec::new();
 
     // Used to create property `enum`s.
     let property_enums: BTreeMap<String, PropertyStruct> = BTreeMap::new();
     // Property implementation for a block.
     let block_properties: Vec<BlockPropertyStruct> = Vec::new();
-    // Mapping of a collection of property hashes -> blocks that have these properties.
-    let mut property_collection_map: BTreeMap<Vec<i32>, PropertyCollectionData> = BTreeMap::new();
     // Validator that we have no `enum` collisions.
     let mut optimized_blocks: Vec<Block> = Vec::new();
 
@@ -690,29 +725,30 @@ pub(crate) fn build() -> TokenStream {
             }
         }
 
-        let property_collection = HashSet::new();
-        let property_mapping = Vec::new();
-        for _property in block.properties {
-            // For now, we'll skip property generation since we don't have the properties.json file
-            // This can be added later when we have the complete data
-        }
-
-        // The Minecraft Java state manager deterministically produces an index given a set of properties.
-        if !property_collection.is_empty() {
-            let mut property_collection = Vec::from_iter(property_collection);
-            property_collection.sort();
-            property_collection_map
-                .entry(property_collection)
-                .or_insert_with(|| PropertyCollectionData::from_mappings(property_mapping))
-                .add_block(block.name.clone(), block.id);
-        }
+        // Property generation is currently disabled
+        // This can be added later when we have the complete properties data
     }
 
-    // Generate the collision shapes array.
+    // Generate collision shapes module
     let shapes = blocks_assets
         .shapes
         .iter()
         .map(|shape| shape.to_token_stream());
+    
+    let shapes_content = quote! {
+        #[derive(Clone, Copy, Debug)]
+        pub struct CollisionShape {
+            pub min: [f64; 3],
+            pub max: [f64; 3],
+        }
+
+        pub const COLLISION_SHAPES: &[CollisionShape] = &[
+            #(#shapes),*
+        ];
+    };
+    
+    fs::write(blocks_dir.join("collision_shapes.rs"), format_code(&shapes_content.to_string()))
+        .expect("Failed to write collision_shapes.rs");
 
     let random_tick_state_ids = quote! {
         #(#random_tick_states)|*
@@ -721,11 +757,20 @@ pub(crate) fn build() -> TokenStream {
     let block_props = block_properties.iter().map(|prop| prop.to_token_stream());
     let properties = property_enums.values().map(|prop| prop.to_token_stream());
 
-    // Generate the block entity types array.
+    // Generate block entity types module
     let block_entity_types = blocks_assets
         .block_entity_types
         .iter()
         .map(|entity_type| LitStr::new(entity_type, Span::call_site()));
+    
+    let block_entity_types_content = quote! {
+        pub const BLOCK_ENTITY_TYPES: &[&str] = &[
+            #(#block_entity_types),*
+        ];
+    };
+    
+    fs::write(blocks_dir.join("block_entity_types.rs"), format_code(&block_entity_types_content.to_string()))
+        .expect("Failed to write block_entity_types.rs");
 
     let mut raw_id_from_state_id_array = vec![];
     let mut type_from_raw_id_array = vec![];
@@ -741,9 +786,22 @@ pub(crate) fn build() -> TokenStream {
 
         let item_id = block.item_id;
 
-        constants.extend(quote! {
+        // Generate individual block file
+        let file_name = format!("{}.rs", const_block_name_from_block_name(&block.name));
+        let file_path = blocks_dir.join(&file_name);
+        
+        let block_file_content = quote! {
+            use super::*;
+            
             pub const #const_ident: Block = #block_tokens;
-        });
+        };
+        
+        fs::write(&file_path, format_code(&block_file_content.to_string()))
+            .expect(&format!("Failed to write block file: {}", file_path.display()));
+        
+        // Add to module declarations
+        let mod_name = const_block_name_from_block_name(&block.name);
+        block_mods.push(format!("pub mod {};", mod_name));
 
         type_from_raw_id_array.push((block.id, quote! { &Self::#const_ident }));
 
@@ -793,7 +851,8 @@ pub(crate) fn build() -> TokenStream {
 
     assert_eq!(max_state_id, max_state_id_2);
 
-    quote! {
+    // Create traits and types module
+    let traits_content = quote! {
         use std::collections::BTreeMap;
         use phf;
 
@@ -832,12 +891,6 @@ pub(crate) fn build() -> TokenStream {
             fn from_index(index: u16) -> Self;
             fn to_value(&self) -> &str;
             fn from_value(value: &str) -> Self;
-        }
-
-        #[derive(Clone, Copy, Debug)]
-        pub struct CollisionShape {
-            pub min: [f64; 3],
-            pub max: [f64; 3],
         }
 
         #[derive(Clone, Copy, Debug)]
@@ -916,14 +969,6 @@ pub(crate) fn build() -> TokenStream {
             pub flammable: Option<Flammable>,
         }
 
-        pub const COLLISION_SHAPES: &[CollisionShape] = &[
-            #(#shapes),*
-        ];
-
-        pub const BLOCK_ENTITY_TYPES: &[&str] = &[
-            #(#block_entity_types),*
-        ];
-
         pub fn has_random_ticks(state_id: u16) -> bool {
             matches!(state_id, #random_tick_state_ids)
         }
@@ -952,9 +997,22 @@ pub(crate) fn build() -> TokenStream {
             }
         }
 
-        impl Block {
-            #constants
+        #(#properties)*
 
+        #(#block_props)*
+    };
+    
+    fs::write(blocks_dir.join("types.rs"), format_code(&traits_content.to_string()))
+        .expect("Failed to write types.rs");
+
+    // Create main block implementation
+    let main_content = quote! {
+        use phf;
+        use super::types::*;
+        use super::collision_shapes::*;
+        use super::block_entity_types::*;
+
+        impl Block {
             // String name to block struct
             const BLOCK_FROM_NAME_MAP: phf::Map<&'static str, Block> = phf::phf_map!{
                 #block_from_name
@@ -969,7 +1027,7 @@ pub(crate) fn build() -> TokenStream {
                 #type_from_raw_id_items
             ];
 
-            const STATE_FROM_STATE_ID: [&'static BlockState; #max_state_id] = [
+            pub const STATE_FROM_STATE_ID: [&'static BlockState; #max_state_id] = [
                 #state_from_state_id
             ];
 
@@ -1041,9 +1099,41 @@ pub(crate) fn build() -> TokenStream {
                 }
             }
         }
+    };
+    
+    // Write main block implementation
+    fs::write(blocks_dir.join("block_impl.rs"), format_code(&main_content.to_string()))
+        .expect("Failed to write block_impl.rs");
 
-        #(#properties)*
+    // Create mod.rs file for the blocks module
+    create_mod_rs(&block_mods);
 
-        #(#block_props)*
+    // Return empty TokenStream since we're writing to files now
+    quote! {}
+}
+
+// Create the mod.rs file for the blocks module
+fn create_mod_rs(block_mods: &[String]) {
+    let mut content = String::new();
+    content.push_str("pub mod types;\n");
+    content.push_str("pub mod collision_shapes;\n");
+    content.push_str("pub mod block_entity_types;\n");
+    content.push_str("pub mod block_impl;\n");
+    content.push_str("\n");
+    content.push_str("// Re-export main types\n");
+    content.push_str("pub use types::*;\n");
+    content.push_str("pub use collision_shapes::*;\n");
+    content.push_str("pub use block_entity_types::*;\n");
+    content.push_str("pub use block_impl::*;\n");
+    content.push_str("\n");
+    content.push_str("// Individual block modules\n");
+    
+    for block_mod in block_mods {
+        content.push_str(block_mod);
+        content.push_str("\n");
     }
+    
+    let mod_rs_path = Path::new("src/generated/blocks/mod.rs");
+    fs::write(mod_rs_path, content)
+        .expect("Failed to write blocks/mod.rs file");
 }
