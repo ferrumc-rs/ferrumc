@@ -52,7 +52,6 @@ pub(crate) fn build() -> TokenStream {
     }
 
     quote! {
-        use std::collections::HashMap;
 
         #[derive(Debug, Clone, Copy, PartialEq)]
         pub struct Attribute {

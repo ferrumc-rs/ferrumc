@@ -1,5 +1,4 @@
 use crate::attributes::Attribute;
-
 use std::hash::{Hash, Hasher};
 #[derive(Clone)]
 pub struct Item {

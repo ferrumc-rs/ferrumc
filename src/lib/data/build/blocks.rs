@@ -63,21 +63,21 @@ fn format_float(f: f32) -> String {
 
 pub fn build() -> Result<(), Box<dyn std::error::Error>> {
     println!("cargo:rerun-if-changed=../../../assets/extracted/blocks.json");
-    
+
     let out_dir = std::env::var("OUT_DIR")?;
     let blocks_dir = Path::new(&out_dir).join("blocks");
-    
+
     // Create blocks directory
     fs::create_dir_all(&blocks_dir)?;
-    
+
     let json_content = fs::read_to_string("../../../assets/extracted/blocks.json")?;
     let data: BlockData = serde_json::from_str(&json_content)?;
-    
+
     // Create types.rs
     let mut types_content = String::new();
     types_content.push_str("#[derive(Debug, Clone, Copy, PartialEq, Eq)]\n");
     types_content.push_str("pub struct BlockId(pub u32);\n\n");
-    
+
     types_content.push_str("#[derive(Debug, Clone, Copy)]\n");
     types_content.push_str("pub struct Block {\n");
     types_content.push_str("    pub id: u32,\n");
@@ -91,13 +91,13 @@ pub fn build() -> Result<(), Box<dyn std::error::Error>> {
     types_content.push_str("    pub luminance: u32,\n");
     types_content.push_str("    pub item_id: u32,\n");
     types_content.push_str("}\n\n");
-    
+
     types_content.push_str("#[derive(Debug, Clone, Copy)]\n");
     types_content.push_str("pub struct Shape {\n");
     types_content.push_str("    pub min: [f64; 3],\n");
     types_content.push_str("    pub max: [f64; 3],\n");
     types_content.push_str("}\n\n");
-    
+
     types_content.push_str("#[derive(Debug, Clone, Copy)]\n");
     types_content.push_str("pub struct BlockState {\n");
     types_content.push_str("    pub id: u32,\n");
@@ -106,9 +106,9 @@ pub fn build() -> Result<(), Box<dyn std::error::Error>> {
     types_content.push_str("    pub collision_shapes: &'static [u32],\n");
     types_content.push_str("    pub outline_shapes: &'static [u32],\n");
     types_content.push_str("}\n\n");
-    
+
     fs::write(blocks_dir.join("types.rs"), types_content)?;
-    
+
     // Create shapes.rs
     let mut shapes_content = String::new();
     shapes_content.push_str("use super::types::Shape;\n\n");
@@ -116,21 +116,20 @@ pub fn build() -> Result<(), Box<dyn std::error::Error>> {
     for shape in &data.shapes {
         shapes_content.push_str(&format!(
             "    Shape {{ min: [{:.1}, {:.1}, {:.1}], max: [{:.1}, {:.1}, {:.1}] }},\n",
-            shape.min[0], shape.min[1], shape.min[2],
-            shape.max[0], shape.max[1], shape.max[2]
+            shape.min[0], shape.min[1], shape.min[2], shape.max[0], shape.max[1], shape.max[2]
         ));
     }
     shapes_content.push_str("];\n");
     fs::write(blocks_dir.join("shapes.rs"), shapes_content)?;
-    
+
     // Create individual block files
     for block in &data.blocks {
         let sanitized_name = sanitize_name(&block.name);
         let file_name = format!("{}.rs", sanitized_name);
-        
+
         let mut content = String::new();
         content.push_str("use super::types::{Block, BlockState};\n\n");
-        
+
         // Block constant
         content.push_str(&format!(
             "pub const {}: Block = Block {{\n",
@@ -138,19 +137,37 @@ pub fn build() -> Result<(), Box<dyn std::error::Error>> {
         ));
         content.push_str(&format!("    id: {},\n", block.id));
         content.push_str(&format!("    name: \"{}\",\n", block.name));
-        content.push_str(&format!("    translation_key: \"{}\",\n", block.translation_key));
-        content.push_str(&format!("    hardness: {},\n", format_float(block.hardness)));
-        content.push_str(&format!("    blast_resistance: {},\n", format_float(block.blast_resistance)));
-        content.push_str(&format!("    slipperiness: {},\n", format_float(block.slipperiness)));
-        content.push_str(&format!("    velocity_multiplier: {},\n", format_float(block.velocity_multiplier)));
-        content.push_str(&format!("    jump_velocity_multiplier: {},\n", format_float(block.jump_velocity_multiplier)));
-        
+        content.push_str(&format!(
+            "    translation_key: \"{}\",\n",
+            block.translation_key
+        ));
+        content.push_str(&format!(
+            "    hardness: {},\n",
+            format_float(block.hardness)
+        ));
+        content.push_str(&format!(
+            "    blast_resistance: {},\n",
+            format_float(block.blast_resistance)
+        ));
+        content.push_str(&format!(
+            "    slipperiness: {},\n",
+            format_float(block.slipperiness)
+        ));
+        content.push_str(&format!(
+            "    velocity_multiplier: {},\n",
+            format_float(block.velocity_multiplier)
+        ));
+        content.push_str(&format!(
+            "    jump_velocity_multiplier: {},\n",
+            format_float(block.jump_velocity_multiplier)
+        ));
+
         // Use first state for basic properties
         let first_state = &block.states[0];
         content.push_str(&format!("    luminance: {},\n", first_state.luminance));
         content.push_str(&format!("    item_id: {},\n", block.item_id));
         content.push_str("};\n\n");
-        
+
         // States
         if !block.states.is_empty() {
             content.push_str("pub const STATES: &[BlockState] = &[\n");
@@ -158,81 +175,94 @@ pub fn build() -> Result<(), Box<dyn std::error::Error>> {
                 content.push_str("    BlockState {\n");
                 content.push_str(&format!("        id: {},\n", state.id));
                 content.push_str(&format!("        luminance: {},\n", state.luminance));
-                content.push_str(&format!("        piston_behavior: \"{}\",\n", state.piston_behavior));
-                
+                content.push_str(&format!(
+                    "        piston_behavior: \"{}\",\n",
+                    state.piston_behavior
+                ));
+
                 if !state.collision_shapes.is_empty() {
                     content.push_str("        collision_shapes: &[");
                     for (i, shape_id) in state.collision_shapes.iter().enumerate() {
-                        if i > 0 { content.push_str(", "); }
+                        if i > 0 {
+                            content.push_str(", ");
+                        }
                         content.push_str(&format!("{}", shape_id));
                     }
                     content.push_str("],\n");
                 } else {
                     content.push_str("        collision_shapes: &[],\n");
                 }
-                
+
                 if !state.outline_shapes.is_empty() {
                     content.push_str("        outline_shapes: &[");
                     for (i, shape_id) in state.outline_shapes.iter().enumerate() {
-                        if i > 0 { content.push_str(", "); }
+                        if i > 0 {
+                            content.push_str(", ");
+                        }
                         content.push_str(&format!("{}", shape_id));
                     }
                     content.push_str("],\n");
                 } else {
                     content.push_str("        outline_shapes: &[],\n");
                 }
-                
+
                 content.push_str("    },\n");
             }
             content.push_str("];\n\n");
         }
-        
+
         fs::write(blocks_dir.join(&file_name), content)?;
     }
-    
+
     // Create mod.rs
     let mut mod_content = String::new();
     mod_content.push_str("pub mod types;\n");
     mod_content.push_str("pub mod shapes;\n\n");
-    
+
     // Add individual block modules
     for block in &data.blocks {
         let sanitized_name = sanitize_name(&block.name);
         mod_content.push_str(&format!("pub mod {};\n", sanitized_name));
     }
-    
+
     mod_content.push_str("\nuse types::Block;\n\n");
-    
+
     // Block lookup array
     mod_content.push_str("pub const ALL_BLOCKS: &[Block] = &[\n");
     for block in &data.blocks {
         let sanitized_name = sanitize_name(&block.name);
-        mod_content.push_str(&format!("    {}::{},\n", sanitized_name, sanitized_name.to_uppercase()));
+        mod_content.push_str(&format!(
+            "    {}::{},\n",
+            sanitized_name,
+            sanitized_name.to_uppercase()
+        ));
     }
     mod_content.push_str("];\n\n");
-    
+
     // Lookup functions
     mod_content.push_str("impl Block {\n");
     mod_content.push_str("    pub fn by_id(id: u32) -> Option<&'static Block> {\n");
     mod_content.push_str("        ALL_BLOCKS.get(id as usize)\n");
     mod_content.push_str("    }\n\n");
-    
+
     mod_content.push_str("    pub fn by_name(name: &str) -> Option<&'static Block> {\n");
     mod_content.push_str("        match name {\n");
     for block in &data.blocks {
         let sanitized_name = sanitize_name(&block.name);
         mod_content.push_str(&format!(
             "            \"{}\" => Some(&{}::{}),\n",
-            block.name, sanitized_name, sanitized_name.to_uppercase()
+            block.name,
+            sanitized_name,
+            sanitized_name.to_uppercase()
         ));
     }
     mod_content.push_str("            _ => None,\n");
     mod_content.push_str("        }\n");
     mod_content.push_str("    }\n");
     mod_content.push_str("}\n");
-    
+
     fs::write(blocks_dir.join("mod.rs"), mod_content)?;
-    
+
     // Also create a blocks.rs file in the OUT_DIR that includes the module
     let blocks_rs_content = format!(
         r#"#[path = "{}/blocks/mod.rs"]
@@ -240,8 +270,8 @@ pub mod blocks;"#,
         out_dir
     );
     fs::write(Path::new(&out_dir).join("blocks.rs"), blocks_rs_content)?;
-    
+
     println!("Generated {} blocks in individual files", data.blocks.len());
-    
+
     Ok(())
 }
