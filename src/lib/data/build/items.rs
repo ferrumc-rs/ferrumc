@@ -67,7 +67,7 @@ impl ToTokens for ItemComponents {
         }
 
         let translate = &self.item_name.translate;
-        let item_name = LitStr::new(&translate, Span::call_site());
+        let item_name = LitStr::new(translate, Span::call_site());
         tokens.extend(quote! {
             (DataComponent::ItemName, &ItemNameImpl {
                 name: #item_name,
