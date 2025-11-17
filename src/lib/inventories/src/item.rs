@@ -4,9 +4,6 @@ use ferrumc_net_codec::encode::errors::NetEncodeError;
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_world::block_state_id::BlockStateId;
-use simd_json::base::ValueAsScalar;
-use simd_json::prelude::ValueAsObject;
-use simd_json::prelude::ValueObjectAccess;
 use std::fmt::Display;
 use std::io::{Read, Write};
 use tokio::io::{AsyncRead, AsyncWrite};
@@ -28,56 +25,36 @@ impl ItemID {
     /// Note: This won't work for blocks that drop a different item
     /// (e.g., stone dropping cobblestone), that's a loot table.
     pub fn from_block_state(block_state_id: BlockStateId) -> Option<Self> {
-        // 1. Convert BlockStateId to its raw protocol ID.
         let protocol_id = VarInt::from(block_state_id).0;
-
-        // 2. 0 is "air", which has no item.
         if protocol_id == 0 {
             return None;
         }
 
-        // 3. Convert the ID to a string key.
         let id_key = protocol_id.to_string();
 
-        // 4. Call your new, dedicated registry function
-        let entry = ferrumc_registry::lookup_blockstate(&id_key)?;
+        // 1. Call the new compile-time lookup
+        let block_name = ferrumc_registry::lookup_blockstate_name(&id_key)?;
 
-        // 5. Get the "name" field from the entry (e.g., "minecraft:stone").
-        let block_name = entry.get("name")?.as_str()?;
-
-        // 6. Use the existing `from_name` to get the ItemID.
         ItemID::from_name(block_name)
     }
 
     /// Creates an `ItemID` from a name, e.g. "minecraft:stone" or "stone".
-    /// Is somewhat expensive, as it queries the registry.
     pub fn from_name(name: &str) -> Option<Self> {
         let name = if !name.starts_with("minecraft:") {
             format!("minecraft:{}", name)
         } else {
             name.to_string()
         };
-        ferrumc_registry::lookup(format!("minecraft:item/entries/{}/protocol_id", name).as_str())
-            .and_then(|scalar| scalar.as_i32())
-            .map(|id| Self(VarInt::new(id)))
+
+        ferrumc_registry::lookup_item_protocol_id(&name).map(|id| Self(VarInt::new(id)))
     }
 
     /// Converts the `ItemID` to a name, e.g. "minecraft:stone" or "stone".
-    /// This is extremely expensive, as it iterates over the entire items registry.
     pub fn to_name(&self) -> Option<String> {
-        ferrumc_registry::lookup("minecraft:item/entries").map(|entries| {
-            entries.as_object().and_then(|obj| {
-                obj.iter().find_map(|(key, value)| {
-                    if value.get("protocol_id")?.as_i32() == Some(self.0.0) {
-                        Some(key.to_string())
-                    } else {
-                        None
-                    }
-                })
-            })
-        })?
+        ferrumc_registry::lookup_item_name(self.0.0).map(|s| s.to_string())
     }
 }
+
 impl ItemID {
     pub fn new(id: i32) -> Self {
         Self(VarInt::from(id))
