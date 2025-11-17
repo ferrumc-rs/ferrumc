@@ -36,6 +36,8 @@ members = [
     "src/lib/inventories",
     "src/lib/registry",
     "src/lib/scheduler",
+    "src/lib/components",
+    "src/lib/events"
 ]
 
 #================== Lints ==================#
@@ -110,6 +112,8 @@ ferrumc-utils = { path = "src/lib/utils" }
 ferrumc-world = { path = "src/lib/world" }
 ferrumc-world-gen = { path = "src/lib/world_gen" }
 ferrumc-inventories = { path = "src/lib/inventories" }
+ferrumc-components = { path = "src/lib/components"}
+ferrumc-events = { path = "src/lib/events"}
 
 # Asynchronous
 tokio = { version = "1.48.0", features = ["macros", "net", "rt", "sync", "time", "io-util", "test-util"], default-features = false }
@@ -213,3 +217,6 @@ criterion = { version = "0.7.0", features = ["html_reports"] }
 
 bitcode = { git = "https://github.com/SoftbearStudios/bitcode" }
 bitcode_derive = { git = "https://github.com/SoftbearStudios/bitcode" }
+
+phf = { version = "0.11", features = ["macros"] }
+phf_codegen = { version = "0.11" }

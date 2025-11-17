@@ -1,7 +1,7 @@
 use bevy_ecs::prelude::*;
 use ferrumc_commands::Sender;
+use ferrumc_components::player::abilities::PlayerAbilities;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
-use ferrumc_core::player::abilities::PlayerAbilities;
 use ferrumc_macros::command;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::player_abilities::PlayerAbilities as OutgoingPlayerAbilities;

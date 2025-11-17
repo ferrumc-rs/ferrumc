@@ -1,14 +1,26 @@
 use crate::errors::InventoryError;
+use crate::item::ItemID;
 use crate::slot::InventorySlot;
 use crate::{INVENTORY_UPDATES_QUEUE, InventoryUpdate};
 use bevy_ecs::prelude::{Component, Entity};
 
-#[derive(Component)]
+#[derive(Component, Clone, Debug)]
 pub struct Inventory {
     pub slots: Box<[Option<InventorySlot>]>,
 }
 
+impl Default for Inventory {
+    /// Make default inventory, sized for a PLAYER.
+    /// 46 = (5 * 9) + 1 =
+    /// NOT divisible by 9.
+    fn default() -> Self {
+        Self::new(Self::DEFAULT_PLAYER_SIZE)
+    }
+}
+
 impl Inventory {
+    pub const DEFAULT_PLAYER_SIZE: usize = 46;
+
     pub fn new(size: usize) -> Self {
         Self {
             slots: vec![None; size].into_boxed_slice(),
@@ -125,6 +137,84 @@ impl Inventory {
             slot: InventorySlot::default(),
             entity,
         });
+        Ok(())
+    }
+
+    /// Clears an inventory slot, regardless of its current state, and sends an update.
+    /// This is idempotent and will not error if the slot is already empty.
+    pub fn clear_slot_with_update(
+        &mut self,
+        index: usize,
+        entity: Entity,
+    ) -> Result<(), InventoryError> {
+        if index >= self.slots.len() {
+            return Err(InventoryError::InvalidSlotIndex(index));
+        }
+
+        // If the slot is already empty, we don't need to do anything
+        // except send the update (which is good practice).
+        if self.slots[index].is_none() {
+            // Fall through to send the update
+        }
+
+        // Set the server's state to empty
+        self.slots[index] = None;
+
+        // Queue the update to tell the client the slot is now empty
+        INVENTORY_UPDATES_QUEUE.push(InventoryUpdate {
+            slot_index: index as u8,
+            slot: InventorySlot::default(), // An empty slot (count: 0)
+            entity,
+        });
+        Ok(())
+    }
+
+    /// Searches the inventory for the first slot containing the given ItemID.
+    ///
+    /// Returns `Some(index)` if found, `None` otherwise.
+    pub fn find_item(&self, item_id: ItemID) -> Option<usize> {
+        self.slots.iter().position(|slot| match slot {
+            Some(inventory_slot) => inventory_slot.item_id == Some(item_id),
+            None => false,
+        })
+    }
+
+    /// Swaps the contents of two slots and sends updates to the client.
+    pub fn swap_slots_with_update(
+        &mut self,
+        index_a: usize,
+        index_b: usize,
+        entity: Entity,
+    ) -> Result<(), InventoryError> {
+        if index_a >= self.slots.len() {
+            return Err(InventoryError::InvalidSlotIndex(index_a));
+        }
+        if index_b >= self.slots.len() {
+            return Err(InventoryError::InvalidSlotIndex(index_b));
+        }
+        if index_a == index_b {
+            return Ok(()); // Nothing to do
+        }
+
+        // Swap the slots in the server's memory
+        self.slots.swap(index_a, index_b);
+
+        // Send an update for the first slot
+        INVENTORY_UPDATES_QUEUE.push(InventoryUpdate {
+            slot_index: index_a as u8,
+            // Clone the data that is now in slot A
+            slot: self.slots[index_a].clone().unwrap_or_default(),
+            entity,
+        });
+
+        // Send an update for the second slot
+        INVENTORY_UPDATES_QUEUE.push(InventoryUpdate {
+            slot_index: index_b as u8,
+            // Clone the data that is now in slot B
+            slot: self.slots[index_b].clone().unwrap_or_default(),
+            entity,
+        });
+
         Ok(())
     }
 }

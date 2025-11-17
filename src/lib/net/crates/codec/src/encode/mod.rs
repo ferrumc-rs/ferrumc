@@ -7,8 +7,9 @@ mod primitives;
 
 /// Sole purpose is for compression compatibility.
 /// And possibly other stuff in the future.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy, Default)]
 pub enum NetEncodeOpts {
+    #[default]
     None,
     WithLength,
     SizePrefixed,

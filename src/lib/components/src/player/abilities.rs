@@ -1,6 +1,6 @@
 use bevy_ecs::prelude::Component;
 
-#[derive(Component, Debug, Clone)]
+#[derive(Component, Debug, Clone, Copy)]
 pub struct PlayerAbilities {
     pub invulnerable: bool,
     pub flying: bool,

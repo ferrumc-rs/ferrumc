@@ -25,6 +25,7 @@ pub mod swing_arm;
 
 pub mod chunk_batch_ack;
 
+pub mod pick_item_from_block;
 pub mod player_abilities;
 pub mod player_action;
 

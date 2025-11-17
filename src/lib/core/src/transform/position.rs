@@ -7,7 +7,7 @@ use std::{
 };
 use typename::TypeName;
 
-#[derive(TypeName, Component)]
+#[derive(TypeName, Component, Clone)]
 pub struct Position {
     pub coords: DVec3,
 }

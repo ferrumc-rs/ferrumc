@@ -13,6 +13,7 @@ pub mod ping_response;
 pub mod registry_data;
 pub mod set_center_chunk;
 pub mod set_default_spawn_position;
+pub mod set_held_slot;
 pub mod set_render_distance;
 pub mod status_response;
 pub mod synchronize_player_position;
@@ -22,6 +23,7 @@ pub mod remove_entities;
 pub mod spawn_entity;
 
 pub mod entity_animation;
+pub mod entity_event;
 pub mod entity_metadata;
 pub mod player_info_update;
 
