@@ -33,6 +33,14 @@ pub fn lookup_item_to_block_id_str(item_id_str: &str) -> Option<&'static str> {
     ITEM_ID_STR_TO_BLOCKSTATE_ID_STR.get(item_id_str).copied()
 }
 
+/// Looks up a block's hardness (e.g., 1.5 for stone) from its name.
+/// This is an instant, compile-time map lookup.
+pub fn lookup_block_hardness(block_name: &str) -> Option<f32> {
+    BLOCK_NAME_TO_HARDNESS
+        .get(block_name)
+        .map(|hardness_u32| f32::from_bits(*hardness_u32))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

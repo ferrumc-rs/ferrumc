@@ -2,8 +2,8 @@ use bevy_ecs::prelude::{Entity, Event};
 
 /// Fired when a player should take damage.
 ///
-/// Fired by: Physics (fall damage), Hunger System (starvation), Combat.
-/// Listened for by: A `health_system` that will decrease the `Health` component.
+/// * Fired by: Physics (fall damage), Hunger System (starvation), Combat.
+/// * Listened for by: A `health_system` that will decrease the `Health` component.
 #[derive(Event)]
 #[allow(unused)]
 pub struct PlayerDamageEvent {

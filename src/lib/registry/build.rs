@@ -6,7 +6,7 @@ use std::fs;
 use std::io::Write;
 use std::path::Path;
 
-// --- 1. Define strong types for our JSON data ---
+// --- 1. Define strong types for the JSON data ---
 
 #[derive(Deserialize)]
 struct BlockStateEntry {
@@ -18,11 +18,26 @@ struct ItemEntry {
     protocol_id: i32,
 }
 
+#[derive(Deserialize)]
+struct BlockEntry {
+    // We only care about hardness for now
+    // It's sometimes missing (like for Air), so it's an Option
+    hardness: Option<f32>,
+}
+
+#[derive(Deserialize)]
+struct BlockRegistry {
+    entries: HashMap<String, BlockEntry>,
+}
+
 // Type for registries.json: "minecraft:item" -> "entries" -> "minecraft:stone" -> ItemEntry
 #[derive(Deserialize)]
 struct RegistryRoot {
     #[serde(rename = "minecraft:item")]
     item: ItemRegistry,
+
+    #[serde(rename = "minecraft:block")]
+    block: BlockRegistry,
 }
 
 #[derive(Deserialize)]
@@ -102,4 +117,19 @@ fn main() {
         i2b_map.entry(item_id_str, &format!("r#\"{}\"#", block_state_id_str));
     }
     writeln!(file, "{};\n", i2b_map.build()).unwrap();
+
+    write!(
+        file,
+        "static BLOCK_NAME_TO_HARDNESS: phf::Map<&'static str, u32> = "
+    )
+    .unwrap();
+    let mut hardness_map = Map::new();
+    for (name, entry) in registry.block.entries {
+        // We store the f32 as a u32 to use it in the const map
+        // (PHF maps don't like f32). We'll convert it back at runtime.
+        let hardness_f32 = entry.hardness.unwrap_or(0.0);
+        let hardness_u32 = hardness_f32.to_bits();
+        hardness_map.entry(name, &hardness_u32.to_string());
+    }
+    writeln!(file, "{};\n", hardness_map.build()).unwrap();
 }
