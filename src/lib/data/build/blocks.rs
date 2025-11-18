@@ -225,7 +225,7 @@ pub fn build() -> Result<(), Box<dyn std::error::Error>> {
         mod_content.push_str(&format!("pub mod {};\n", sanitized_name));
     }
 
-    mod_content.push_str("\n");
+    mod_content.push_str('\n');
 
     // Block lookup array
     mod_content.push_str("pub const ALL_BLOCKS: &[Block] = &[\n");
@@ -249,7 +249,7 @@ pub fn build() -> Result<(), Box<dyn std::error::Error>> {
             sanitized_name.to_uppercase()
         ));
     }
-    mod_content.push_str("\n");
+    mod_content.push_str('\n');
 
     // Re-export types and lookup functions
     mod_content.push_str("// Re-export types and lookup functions\n");
