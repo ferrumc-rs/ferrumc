@@ -35,6 +35,7 @@ ferrumc-world-gen = { workspace = true }
 ferrumc-threadpool = { workspace = true }
 ferrumc-inventories = { workspace = true }
 ferrumc-data = { workspace = true }
+ferrumc-dashboard = { workspace = true, optional = true }
 once_cell = { workspace = true }
 serde_json = { workspace = true }
 
@@ -50,6 +51,7 @@ dhat = { workspace = true }
 
 [features]
 dhat = []
+dashboard = ["dep:ferrumc-dashboard"]
 
 [[bin]]
 name = "ferrumc"
