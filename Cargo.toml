@@ -36,10 +36,10 @@ resolver = "2"
     "src/lib/inventories",
     "src/lib/registry",
     "src/lib/scheduler",
+    "src/lib/data",
     "src/lib/components",
     "src/lib/events",
     "src/lib/data",
-    "examples",
 ]
 
 [workspace.package]
@@ -118,6 +118,7 @@ ferrumc-utils = { path = "src/lib/utils" }
 ferrumc-world = { path = "src/lib/world" }
 ferrumc-world-gen = { path = "src/lib/world_gen" }
 ferrumc-inventories = { path = "src/lib/inventories" }
+ferrumc-data = { path = "src/lib/data" }
 ferrumc-components = { path = "src/lib/components"}
 ferrumc-events = { path = "src/lib/events"}
 ferrumc-data = { path = "src/lib/data" }
