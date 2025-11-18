@@ -1,6 +1,6 @@
 use askama::Template;
-use axum::response::IntoResponse;
 use axum::http::StatusCode;
+use axum::response::IntoResponse;
 
 #[derive(Template)]
 #[template(path = "base.html")]
