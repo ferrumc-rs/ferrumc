@@ -1,0 +1,49 @@
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-title">Server Status</div>
+        <div class="stat-value" style="color: var(--success-color);">Online</div>
+        <div class="stat-trend">Uptime: 2d 4h 12m</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-title">Online Players</div>
+        <div class="stat-value">12 <span style="font-size: 1rem; color: #666;">/ 100</span></div>
+        <div class="stat-trend trend-up"><i class="fas fa-arrow-up"></i> 2 since last hour</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-title">Memory Usage</div>
+        <div class="stat-value">4.2 GB</div>
+        <div class="stat-trend trend-down"><i class="fas fa-memory"></i> 32GB Total</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-title">Tick Time (MSPT)</div>
+        <div class="stat-value">14.5 ms</div>
+        <div class="stat-trend trend-up" style="color: var(--success-color);"><i class="fas fa-check"></i> Healthy</div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+    <div class="stat-card">
+        <div class="stat-title">CPU Load History</div>
+        <div style="height: 200px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); border-radius: 4px;">
+            <!-- Placeholder for a chart -->
+            <span style="color: #666;">[Graph Placeholder]</span>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-title">Recent Activity</div>
+        <ul style="list-style: none; margin-top: 10px; font-size: 0.9rem; color: var(--text-secondary);">
+            <li style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <span style="color: var(--accent-color);">Sweattypalms</span> joined the game.
+                <span style="float: right; font-size: 0.8rem;">2m ago</span>
+            </li>
+            <li style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                Server thread/WARN: Can't keep up!
+                <span style="float: right; font-size: 0.8rem;">15m ago</span>
+            </li>
+            <li style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <span style="color: var(--accent-color);">Notch</span> left the game.
+                <span style="float: right; font-size: 0.8rem;">1h ago</span>
+            </li>
+        </ul>
+    </div>
+</div>

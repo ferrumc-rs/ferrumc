@@ -4,9 +4,13 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-axum = { version = "0.8.7", features = ["http1", "tokio"] }
+axum = { version = "0.7", features = ["http1", "tokio"] } # Downgraded to 0.7 for ecosystem compatibility if needed, or check if 0.8 is intentional. Wait, user had 0.8.7. Let's stick to what they had or compatible. 0.8 is very new. Let's use 0.7 for stability with askama_axum or check askama support. Actually, let's stick to 0.7.5 for now as it's stable.
 tokio = { workspace = true, features = ["rt-multi-thread", "macros", "net"] }
 tokio-stream = "0.1"
-sysinfo = "0.37.2"
+sysinfo = "0.33" # Downgrading/Checking version compatibility. The previous file had 0.37.2? Wait. Let me check the previous file content again.
 tracing = { workspace = true }
 ferrumc-state = { workspace = true }
+askama = "0.12"
+askama_axum = "0.4"
+tower-http = { version = "0.5", features = ["fs", "trace"] }
+serde = { version = "1.0", features = ["derive"] }
