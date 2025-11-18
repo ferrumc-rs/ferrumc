@@ -6,11 +6,11 @@ use ferrumc_data::blocks;
 fn main() {
     println!("=== Minecraft Blocks Demo ===\n");
 
-    // Access specific blocks
-    let air = blocks::air::AIR;
-    let stone = blocks::stone::STONE;
-    let grass = blocks::grass_block::GRASS_BLOCK;
-    let water = blocks::water::WATER;
+    // Access specific blocks (NEW API)
+    let air = blocks::AIR;
+    let stone = blocks::STONE;
+    let grass = blocks::GRASS_BLOCK;
+    let water = blocks::WATER;
 
     println!("Basic Blocks:");
     println!(
