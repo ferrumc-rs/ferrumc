@@ -35,6 +35,7 @@ pub async fn players() -> impl IntoResponse {
 }
 
 // Helper to turn Template errors into 500
+#[allow(unused)]
 struct HtmlTemplate<T>(T);
 
 impl<T> IntoResponse for HtmlTemplate<T>
