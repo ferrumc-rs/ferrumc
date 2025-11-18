@@ -5,13 +5,13 @@ use std::time::{Duration, Instant};
 use crate::BinaryError;
 use ferrumc_components::player::abilities::PlayerAbilities;
 use ferrumc_components::player::gameplay_state::digging::PlayerDigging;
+use ferrumc_data::blocks::types::Block;
 use ferrumc_events::player_digging::*;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::{block_change_ack::BlockChangeAck, block_update::BlockUpdate};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalStateResource;
 use ferrumc_world::block_state_id::BlockStateId;
-use ferrumc_data::blocks::types::Block;
 use tracing::{debug, error, trace, warn};
 
 // A query for just the components needed to acknowledge a dig packet
@@ -48,9 +48,9 @@ pub fn handle_start_digging(
             }
         };
         // --- 2. Get Block Name ---
-        let Some(block_name) = ferrumc_registry::lookup_blockstate_name(
-            &VarInt::from(block_state_id).0.to_string()
-        ) else {
+        let Some(block_name) =
+            ferrumc_registry::lookup_blockstate_name(&VarInt::from(block_state_id).0.to_string())
+        else {
             warn!("Could not find block name for state {:?}", block_state_id);
             continue;
         };
@@ -60,10 +60,13 @@ pub fn handle_start_digging(
 
         // Get Hardness directly using the ID
         let Some(block_data) = Block::by_id(block_id_u32) else {
-            warn!("Could not find block data for BlockStateId: {}", block_id_u32);
+            warn!(
+                "Could not find block data for BlockStateId: {}",
+                block_id_u32
+            );
             continue;
         };
-        
+
         let hardness = block_data.hardness;
 
         // --- 4. Check for unbreakable block ---
