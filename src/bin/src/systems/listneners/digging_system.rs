@@ -11,6 +11,7 @@ use ferrumc_net::packets::outgoing::{block_change_ack::BlockChangeAck, block_upd
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalStateResource;
 use ferrumc_world::block_state_id::BlockStateId;
+use ferrumc_data::blocks::types::Block;
 use tracing::{debug, error, trace, warn};
 
 // A query for just the components needed to acknowledge a dig packet
@@ -30,7 +31,7 @@ pub fn handle_start_digging(
             event.player, event.position
         );
 
-        // --- 1. GET THE BLOCK NAME ---
+        // --- 1. Get BlockStateId from the world ---
         let block_state_id = match state.0.world.get_block_and_fetch(
             event.position.x,
             event.position.y as i32,
@@ -46,23 +47,26 @@ pub fn handle_start_digging(
                 continue;
             }
         };
-
-        // --- 2. GET THE BLOCK HARDNESS ---
-        let Some(block_name) =
-            ferrumc_registry::lookup_blockstate_name(&VarInt::from(block_state_id).0.to_string())
-        else {
+        // --- 2. Get Block Name ---
+        let Some(block_name) = ferrumc_registry::lookup_blockstate_name(
+            &VarInt::from(block_state_id).0.to_string()
+        ) else {
             warn!("Could not find block name for state {:?}", block_state_id);
             continue;
         };
 
-        // --- 3. GET THE BLOCK HARDNESS ---
-        let hardness = ferrumc_registry::lookup_block_hardness(block_name).unwrap_or(0.0);
-        debug!(
-            "Player {:?} started digging block {} with hardness {}",
-            event.player, block_name, hardness
-        );
+        // --- 3. Get Hardness ---
+        let block_id_u32 = block_state_id.0;
 
-        // --- 4. CHECK FOR UNBREAKABLE BLOCKS ---
+        // Get Hardness directly using the ID
+        let Some(block_data) = Block::by_id(block_id_u32) else {
+            warn!("Could not find block data for BlockStateId: {}", block_id_u32);
+            continue;
+        };
+        
+        let hardness = block_data.hardness;
+
+        // --- 4. Check for unbreakable block ---
         if hardness < 0.0 {
             debug!(
                 "Player {:?} tried to dig an unbreakable block ({})",
