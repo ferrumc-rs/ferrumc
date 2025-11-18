@@ -1,5 +1,5 @@
 use std::fs;
-use std::path::Path;
+use std::path::PathBuf;
 
 #[derive(Debug, serde::Deserialize)]
 #[allow(dead_code)]
@@ -65,7 +65,7 @@ pub fn build() -> Result<(), Box<dyn std::error::Error>> {
     println!("cargo:rerun-if-changed=../../../assets/extracted/blocks.json");
 
     let out_dir = std::env::var("OUT_DIR")?;
-    let blocks_dir = Path::new(&out_dir).join("blocks");
+    let blocks_dir = PathBuf::from(out_dir.clone()).join("blocks");
 
     // Create blocks directory
     fs::create_dir_all(&blocks_dir)?;
@@ -282,11 +282,14 @@ pub fn build() -> Result<(), Box<dyn std::error::Error>> {
 
     // Also create a blocks.rs file in the OUT_DIR that includes the module
     let blocks_rs_content = format!(
-        r#"#[path = "{}/blocks/mod.rs"]
+        r#"#[path = r"{}/blocks/mod.rs"]
 pub mod blocks;"#,
         out_dir
     );
-    fs::write(Path::new(&out_dir).join("blocks.rs"), blocks_rs_content)?;
+    fs::write(
+        PathBuf::from(&out_dir.clone()).join("blocks.rs"),
+        blocks_rs_content,
+    )?;
 
     println!("Generated {} blocks in individual files", data.blocks.len());
 
