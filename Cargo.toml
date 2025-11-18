@@ -37,7 +37,7 @@ resolver = "2"
     "src/lib/registry",
     "src/lib/scheduler",
     "src/lib/components",
-    "src/lib/events"
+    "src/lib/events",
     "src/lib/data",
     "examples",
 ]
