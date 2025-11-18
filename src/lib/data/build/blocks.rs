@@ -1,16 +1,16 @@
 use std::fs;
-use std::path::Path;
+use std::path::PathBuf;
 
 #[derive(Debug, serde::Deserialize)]
 #[allow(dead_code)]
-struct BlockData {
+pub struct BlockData {
     blocks: Vec<Block>,
     shapes: Vec<Shape>,
 }
 
 #[derive(Debug, serde::Deserialize)]
 #[allow(dead_code)]
-struct Block {
+pub struct Block {
     id: u32,
     name: String,
     translation_key: String,
@@ -26,11 +26,11 @@ struct Block {
 }
 
 // Properties are actually integers in the JSON format
-type Property = i32;
+pub type Property = i32;
 
 #[derive(Debug, serde::Deserialize)]
 #[allow(dead_code)]
-struct State {
+pub struct State {
     id: u32,
     state_flags: u32,
     side_flags: u32,
@@ -44,7 +44,7 @@ struct State {
 
 #[derive(Debug, serde::Deserialize)]
 #[allow(dead_code)]
-struct Shape {
+pub struct Shape {
     min: [f64; 3],
     max: [f64; 3],
 }
@@ -65,7 +65,7 @@ pub fn build() -> Result<(), Box<dyn std::error::Error>> {
     println!("cargo:rerun-if-changed=../../../assets/extracted/blocks.json");
 
     let out_dir = std::env::var("OUT_DIR")?;
-    let blocks_dir = Path::new(&out_dir).join("blocks");
+    let blocks_dir = PathBuf::from(out_dir.clone()).join("blocks");
 
     // Create blocks directory
     fs::create_dir_all(&blocks_dir)?;
@@ -225,7 +225,7 @@ pub fn build() -> Result<(), Box<dyn std::error::Error>> {
         mod_content.push_str(&format!("pub mod {};\n", sanitized_name));
     }
 
-    mod_content.push_str("\nuse types::Block;\n\n");
+    mod_content.push('\n');
 
     // Block lookup array
     mod_content.push_str("pub const ALL_BLOCKS: &[Block] = &[\n");
@@ -238,6 +238,23 @@ pub fn build() -> Result<(), Box<dyn std::error::Error>> {
         ));
     }
     mod_content.push_str("];\n\n");
+
+    // Re-exports for direct access (blocks::STONE instead of blocks::stone::STONE)
+    mod_content.push_str("// Re-exports for direct access to block constants\n");
+    for block in &data.blocks {
+        let sanitized_name = sanitize_name(&block.name);
+        mod_content.push_str(&format!(
+            "pub use {}::{};\n",
+            sanitized_name,
+            sanitized_name.to_uppercase()
+        ));
+    }
+    mod_content.push('\n');
+
+    // Re-export types and lookup functions
+    mod_content.push_str("// Re-export types and lookup functions\n");
+    mod_content.push_str("pub use types::{Block, BlockState, Shape};\n");
+    mod_content.push_str("pub use shapes::SHAPES;\n\n");
 
     // Lookup functions
     mod_content.push_str("impl Block {\n");
@@ -265,11 +282,14 @@ pub fn build() -> Result<(), Box<dyn std::error::Error>> {
 
     // Also create a blocks.rs file in the OUT_DIR that includes the module
     let blocks_rs_content = format!(
-        r#"#[path = "{}/blocks/mod.rs"]
+        r#"#[path = r"{}/blocks/mod.rs"]
 pub mod blocks;"#,
         out_dir
     );
-    fs::write(Path::new(&out_dir).join("blocks.rs"), blocks_rs_content)?;
+    fs::write(
+        PathBuf::from(&out_dir.clone()).join("blocks.rs"),
+        blocks_rs_content,
+    )?;
 
     println!("Generated {} blocks in individual files", data.blocks.len());
 
