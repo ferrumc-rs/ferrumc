@@ -116,6 +116,9 @@ fn entry(start_time: Instant) -> Result<(), BinaryError> {
         generate_chunks(global_state.clone())?;
     }
 
+    #[cfg(feature = "dashboard")]
+    ferrumc_dashboard::start_dashboard(global_state.clone());
+
     ctrlc::set_handler({
         let global_state = global_state.clone();
         move || {
@@ -130,9 +133,6 @@ fn entry(start_time: Instant) -> Result<(), BinaryError> {
         }
     })
     .expect("Error setting Ctrl-C handler");
-
-    #[cfg(feature = "dashboard")]
-    ferrumc_dashboard::start_dashboard();
 
     game_loop::start_game_loop(global_state.clone())?;
 

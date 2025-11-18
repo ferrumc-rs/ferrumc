@@ -4,7 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-axum = { version = "0.7", features = ["http1", "tokio"] }
+axum = { version = "0.8.7", features = ["http1", "tokio"] }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros", "net"] }
 tokio-stream = "0.1"
+sysinfo = "0.37.2"
 tracing = { workspace = true }
+ferrumc-state = { workspace = true }
