@@ -48,3 +48,4 @@ pub(crate) mod set_compression;
 pub mod set_container_content;
 pub mod set_container_slot;
 pub mod set_player_inventory_slot;
+mod encryption_request;
