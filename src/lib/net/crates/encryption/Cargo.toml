@@ -5,3 +5,5 @@ edition = "2021"
 
 [dependencies]
 thiserror = { workspace = true }
+rand = { workspace = true }
+rsa = { version = "0.10.0-rc.10" }
