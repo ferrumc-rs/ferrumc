@@ -38,8 +38,7 @@ resolver = "2"
     "src/lib/scheduler",
     "src/lib/data",
     "src/lib/components",
-    "src/lib/events",
-    "examples"
+    "src/lib/events"
 ]
 
 [workspace.package]
