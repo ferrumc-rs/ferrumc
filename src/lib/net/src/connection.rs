@@ -1,3 +1,4 @@
+use std::ops::Deref;
 use crate::compression::compress_packet;
 use crate::conn_init::handle_handshake;
 use crate::errors::CompressionError::GenericCompressionError;
@@ -41,6 +42,7 @@ pub struct StreamWriter {
     sender: UnboundedSender<Vec<u8>>,
     pub running: Arc<AtomicBool>,
     pub compress: Arc<AtomicBool>,
+    pub encryption_key: Arc<Mutex<Option<Vec<u8>>>>,
     pub state: Arc<ServerState>,
     pub entity: Arc<Mutex<Option<Entity>>>,
 }
@@ -60,6 +62,7 @@ impl StreamWriter {
     pub async fn new(
         mut writer: OwnedWriteHalf,
         running: Arc<AtomicBool>,
+        encryption_key: Arc<Mutex<Option<Vec<u8>>>>,
         state: Arc<ServerState>,
         entity: Arc<Mutex<Option<Entity>>>,
     ) -> Self {
@@ -102,6 +105,7 @@ impl StreamWriter {
             sender,
             running,
             compress,
+            encryption_key,
             state,
             entity,
         }
@@ -207,11 +211,13 @@ pub async fn handle_connection(
 
     let running = Arc::new(AtomicBool::new(true));
 
+    let encryption_key_holder: Arc<Mutex<Option<Vec<u8>>>> = Arc::new(Mutex::new(None));
     let entity_holder: Arc<Mutex<Option<Entity>>> = Arc::new(Mutex::new(None));
 
     let stream = StreamWriter::new(
         tcp_writer,
         running.clone(),
+        encryption_key_holder.clone(),
         state.clone(),
         entity_holder.clone(),
     )
