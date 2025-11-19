@@ -9,6 +9,8 @@ pub enum NetEncryptionError {
     },
     #[error("Failed to convert public key to DER format")]
     DERConversionError,
+    #[error("Player shared secret key holder poisoned")]
+    SharedKeyHolderPoisoned,
     #[error("Something failed lol")]
     SomeError,
 }

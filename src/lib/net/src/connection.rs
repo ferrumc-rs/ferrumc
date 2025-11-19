@@ -25,6 +25,7 @@ use tokio::sync::oneshot;
 use tokio::time::timeout;
 use tracing::{debug, debug_span, error, trace, warn, Instrument};
 use typename::TypeName;
+use ferrumc_net_encryption::errors::NetEncryptionError;
 
 /// The maximum time allowed for a client to complete its initial handshake.
 /// Connections exceeding this duration will be dropped to avoid resource hogging.
@@ -153,6 +154,13 @@ impl StreamWriter {
                 err
             )))
         })?;
+
+        let key = self.encryption_key.lock()
+            .map_err(|_| NetError::EncryptionError(NetEncryptionError::SharedKeyHolderPoisoned))?;
+
+        if let Some(key) = key.as_ref() {
+            debug!("need to encrypt outgoing packets");
+        }
 
         self.sender.send(raw_bytes).map_err(std::io::Error::other)?;
         Ok(())
