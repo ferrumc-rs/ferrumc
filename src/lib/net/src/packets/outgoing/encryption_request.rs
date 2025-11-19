@@ -1,13 +1,13 @@
-use ferrumc_macros::{packet, NetDecode};
+use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 
-#[derive(NetDecode)]
+#[derive(NetEncode)]
 #[packet(packet_id = "hello", state = "login")]
 pub struct EncryptionRequest {
-    server_id: String,
-    public_key: LengthPrefixedVec<u8>,
-    verify_token: LengthPrefixedVec<u8>,
-    should_authenticate: bool,
+    pub server_id: String,
+    pub public_key: LengthPrefixedVec<u8>,
+    pub verify_token: LengthPrefixedVec<u8>,
+    pub should_authenticate: bool,
 }
 
 #[cfg(test)]
