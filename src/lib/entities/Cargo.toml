@@ -7,6 +7,7 @@ edition = "2024"
 bevy_ecs = { workspace = true }
 
 ferrumc-core = { workspace = true }
+ferrumc-data = { workspace = true }
 ferrumc-macros = { workspace = true }
 ferrumc-net = { workspace = true }
 ferrumc-net-codec = { workspace = true }

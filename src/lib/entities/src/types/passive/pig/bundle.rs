@@ -4,6 +4,7 @@ use bevy_ecs::prelude::*;
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
+use ferrumc_data::generated::entities::EntityType as EntityTypeData;
 use uuid::Uuid;
 
 /// Complete bundle for spawning a pig entity
@@ -45,7 +46,7 @@ impl PigBundle {
             position,
             rotation: Rotation::default(),
             velocity: Velocity::zero(),
-            health: Health::new(10.0), // Pigs have 10 HP
+            health: Health::new(EntityTypeData::PIG.max_health.unwrap()), // Pig max health from vanilla data (10.0)
             age: Age::new(),
             on_ground: OnGround(true), // Spawn on ground to prevent falling before sync
             uuid: EntityUuid(Uuid::new_v4()),

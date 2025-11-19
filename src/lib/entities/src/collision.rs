@@ -1,4 +1,5 @@
 use ferrumc_core::transform::position::Position;
+use ferrumc_data::generated::entities::EntityType as EntityTypeData;
 use ferrumc_state::GlobalState;
 
 /// Bounding box dimensions for an entity
@@ -9,10 +10,10 @@ pub struct BoundingBox {
 }
 
 impl BoundingBox {
-    /// Pig hitbox (0.9 × 0.9 × 0.9 blocks in Minecraft vanilla)
+    /// Pig hitbox from Minecraft vanilla data (0.9 × 0.9 blocks)
     pub const PIG: BoundingBox = BoundingBox {
-        half_width: 0.45,
-        height: 0.9,
+        half_width: EntityTypeData::PIG.dimension[0] as f64 / 2.0,
+        height: EntityTypeData::PIG.dimension[1] as f64,
     };
 }
 
