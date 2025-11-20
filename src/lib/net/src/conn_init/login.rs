@@ -17,6 +17,7 @@ use ferrumc_state::GlobalState;
 use tokio::net::tcp::OwnedReadHalf;
 use tracing::{debug, error, trace};
 use uuid::Uuid;
+use ferrumc_net_encryption::cipher::EncryptionCipher;
 use ferrumc_net_encryption::errors::NetEncryptionError;
 use ferrumc_net_encryption::get_encryption_keys;
 
@@ -117,7 +118,7 @@ pub(super) async fn login(
             let mut lock = conn_write.encryption_key.lock().map_err(|_| NetError::Misc("Failed to lock encryption key holder.".to_string()))?;
 
             let shared_secret = get_encryption_keys().decrypt_bytes(&encryption_response.shared_secret.data)?;
-            lock.get_or_insert(shared_secret);
+            lock.get_or_insert(EncryptionCipher::new(&shared_secret));
             debug!("Successfully enabled encryption!");
         } else {
             return Err(NetError::EncryptionError(NetEncryptionError::VerifyTokenMismatch {

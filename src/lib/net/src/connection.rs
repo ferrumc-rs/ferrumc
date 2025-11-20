@@ -25,6 +25,7 @@ use tokio::sync::oneshot;
 use tokio::time::timeout;
 use tracing::{debug, debug_span, error, trace, warn, Instrument};
 use typename::TypeName;
+use ferrumc_net_encryption::cipher::EncryptionCipher;
 use ferrumc_net_encryption::errors::NetEncryptionError;
 
 /// The maximum time allowed for a client to complete its initial handshake.
@@ -43,7 +44,7 @@ pub struct StreamWriter {
     sender: UnboundedSender<Vec<u8>>,
     pub running: Arc<AtomicBool>,
     pub compress: Arc<AtomicBool>,
-    pub encryption_key: Arc<Mutex<Option<Vec<u8>>>>,
+    pub encryption_key: Arc<Mutex<Option<EncryptionCipher>>>,
     pub state: Arc<ServerState>,
     pub entity: Arc<Mutex<Option<Entity>>>,
 }
@@ -63,7 +64,7 @@ impl StreamWriter {
     pub async fn new(
         mut writer: OwnedWriteHalf,
         running: Arc<AtomicBool>,
-        encryption_key: Arc<Mutex<Option<Vec<u8>>>>,
+        encryption_key: Arc<Mutex<Option<EncryptionCipher>>>,
         state: Arc<ServerState>,
         entity: Arc<Mutex<Option<Entity>>>,
     ) -> Self {
@@ -155,10 +156,10 @@ impl StreamWriter {
             )))
         })?;
 
-        let key = self.encryption_key.lock()
+        let mut cipher = self.encryption_key.lock()
             .map_err(|_| NetError::EncryptionError(NetEncryptionError::SharedKeyHolderPoisoned))?;
 
-        if let Some(key) = key.as_ref() {
+        if let Some(cipher) = cipher.as_mut() {
             debug!("need to encrypt outgoing packets");
         }
 
@@ -219,7 +220,7 @@ pub async fn handle_connection(
 
     let running = Arc::new(AtomicBool::new(true));
 
-    let encryption_key_holder: Arc<Mutex<Option<Vec<u8>>>> = Arc::new(Mutex::new(None));
+    let encryption_key_holder: Arc<Mutex<Option<EncryptionCipher>>> = Arc::new(Mutex::new(None));
     let entity_holder: Arc<Mutex<Option<Entity>>> = Arc::new(Mutex::new(None));
 
     let stream = StreamWriter::new(
