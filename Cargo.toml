@@ -11,7 +11,7 @@
 resolver = "2"
 
 #================= Members =================#
-members = [
+ members = [
     "src/bin",
 
     # Core Layers
@@ -47,8 +47,15 @@ members = [
     "src/lib/config",
     "src/lib/plugins",
     "src/lib/scheduler",
+    "src/lib/data",
+    "src/lib/components",
+    "src/lib/events",
+    "examples"
 ]
 
+[workspace.package]
+edition = "2021"
+version = "0.1.0"
 
 #================== Lints ==================#
 [workspace.lints.rust]
@@ -129,6 +136,17 @@ ferrumc-net-encryption = { path = "src/lib/net/crates/encryption" }
 ferrumc-storage = { path = "src/lib/storage" }
 ferrumc-plugins = { path = "src/lib/plugins" }
 ferrumc-scheduler = { path = "src/lib/scheduler" }
+ferrumc-state = { path = "src/lib/core/state" }
+ferrumc-storage = { path = "src/lib/storage" }
+ferrumc-text = { path = "src/lib/text" }
+ferrumc-threadpool = { path = "src/lib/utils/threadpool" }
+ferrumc-utils = { path = "src/lib/utils" }
+ferrumc-world = { path = "src/lib/world" }
+ferrumc-world-gen = { path = "src/lib/world_gen" }
+ferrumc-inventories = { path = "src/lib/inventories" }
+ferrumc-data = { path = "src/lib/data" }
+ferrumc-components = { path = "src/lib/components"}
+ferrumc-events = { path = "src/lib/events"}
 
 # Asynchronous
 tokio = { version = "1.48.0", features = [
