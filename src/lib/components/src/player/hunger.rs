@@ -1,21 +1,25 @@
 use bevy_ecs::prelude::Component;
+use ferrumc_core::player::hunger::HungerData;
+use std::ops::{Deref, DerefMut};
 
-#[derive(Component, Debug, Clone, Copy)]
-pub struct Hunger {
-    /// 0-20 (half-shanks)
-    pub level: u8,
-    /// 0.0-5.0 (for regeneration)
-    pub saturation: f32,
-    /// 0.0-4.0 (accumulates before saturation/hunger drain)
-    pub exhaustion: f32,
+#[derive(Component, Debug, Clone, Copy, Default)]
+pub struct Hunger(pub HungerData);
+
+impl Hunger {
+    pub fn new(level: u8, saturation: f32, exhaustion: f32) -> Self {
+        Self(HungerData::new(level, saturation, exhaustion))
+    }
 }
 
-impl Default for Hunger {
-    fn default() -> Self {
-        Self {
-            level: 20,
-            saturation: 5.0,
-            exhaustion: 0.0,
-        }
+impl Deref for Hunger {
+    type Target = HungerData;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for Hunger {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }
