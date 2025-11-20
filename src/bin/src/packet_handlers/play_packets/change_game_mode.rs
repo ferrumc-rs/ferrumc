@@ -1,9 +1,9 @@
 use bevy_ecs::prelude::*;
-use ferrumc_components::player::gamemode::GameMode;
+use ferrumc_core::player::gamemode::GameMode;
 use ferrumc_net::ChangeGameModeReceiver;
 use tracing::warn;
 
-use ferrumc_events::ChangeGameModeEvent;
+use ferrumc_messages::ChangeGameModeEvent;
 
 pub fn handle(
     events: Res<ChangeGameModeReceiver>,

@@ -1,7 +1,7 @@
 //! Command senders.
 
 use bevy_ecs::prelude::*;
-use ferrumc_core::mq;
+use ferrumc_components::chat::message_queue as mq;
 use ferrumc_text::TextComponent;
 use tracing::info;
 

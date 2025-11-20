@@ -1,7 +1,7 @@
 use bevy_ecs::event::EventReader;
 use bevy_ecs::prelude::Query;
-use ferrumc_core::identity::player_identity::PlayerIdentity;
-use ferrumc_core::transform::rotation::Rotation;
+use ferrumc_components::player::identity::PlayerIdentity;
+use ferrumc_components::player::transform::rotation::Rotation;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::set_head_rotation::SetHeadRotationPacket;
 use ferrumc_net::packets::packet_events::TransformEvent;

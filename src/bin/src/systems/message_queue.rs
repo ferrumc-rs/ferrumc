@@ -1,16 +1,16 @@
 use bevy_ecs::prelude::*;
-use ferrumc_core::mq;
+use ferrumc_components::chat::message_queue as mq;
+use ferrumc_components::state::server_state::GlobalStateResource;
 use ferrumc_net::{
     connection::StreamWriter, packets::outgoing::system_message::SystemMessagePacket,
 };
-use ferrumc_state::GlobalStateResource;
 use tracing::error;
 
 fn send(
     writer: &StreamWriter,
     receiver: Entity,
     state: &GlobalStateResource,
-    entry: ferrumc_core::mq::QueueEntry,
+    entry: ferrumc_components::chat::message_queue::QueueEntry,
 ) {
     if !state.0.players.is_connected(receiver) {
         return;

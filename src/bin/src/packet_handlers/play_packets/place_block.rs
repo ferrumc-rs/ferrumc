@@ -1,23 +1,24 @@
+use std::collections::HashMap;
+use std::str::FromStr;
 use std::sync::Arc;
 
 use bevy_ecs::prelude::{Entity, Query, Res};
-use ferrumc_core::collisions::bounds::CollisionBounds;
-use ferrumc_core::transform::position::Position;
+
+use ferrumc_components::collisions::bounds::CollisionBounds;
+use ferrumc_components::inventory::hotbar::Hotbar;
+use ferrumc_components::inventory::Inventory;
+use ferrumc_components::player::transform::position::Position;
+use ferrumc_components::state::server_state::GlobalStateResource;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::block_change_ack::BlockChangeAck;
 use ferrumc_net::packets::outgoing::block_update::BlockUpdate;
 use ferrumc_net::PlaceBlockReceiver;
 use ferrumc_net_codec::net_types::network_position::NetworkPosition;
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use ferrumc_state::GlobalStateResource;
-use tracing::{debug, error, trace};
-
-use ferrumc_inventories::hotbar::Hotbar;
-use ferrumc_inventories::inventory::Inventory;
 use ferrumc_world::block_state_id::BlockStateId;
+
 use once_cell::sync::Lazy;
-use std::collections::HashMap;
-use std::str::FromStr;
+use tracing::{debug, error, trace};
 
 const ITEM_TO_BLOCK_MAPPING_FILE: &str =
     include_str!("../../../../../assets/data/item_to_block_mapping.json");
@@ -56,8 +57,7 @@ pub fn handle(
                         error!("Selected item has no item ID");
                         continue 'ev_loop;
                     };
-                    let Some(mapped_block_state_id) = ITEM_TO_BLOCK_MAPPING.get(&item_id.0 .0)
-                    else {
+                    let Some(mapped_block_state_id) = ITEM_TO_BLOCK_MAPPING.get(&item_id.0) else {
                         error!("No block mapping found for item ID: {}", item_id.0);
                         continue 'ev_loop;
                     };

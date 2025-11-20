@@ -1,7 +1,7 @@
 use bevy_ecs::prelude::{Entity, Query, Res, ResMut};
-use ferrumc_core::conn::player_count_update_cooldown::PlayerCountUpdateCooldown;
-use ferrumc_core::identity::player_identity::PlayerIdentity;
-use ferrumc_state::GlobalStateResource;
+use ferrumc_components::conn::player_count_update_cooldown::PlayerCountUpdateCooldown;
+use ferrumc_components::player::identity::PlayerIdentity;
+use ferrumc_components::state::server_state::GlobalStateResource;
 
 pub fn player_count_updater(
     state: Res<GlobalStateResource>,

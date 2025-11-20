@@ -10,7 +10,7 @@ use ferrumc_net::{
 use ferrumc_net_codec::net_types::{
     length_prefixed_vec::LengthPrefixedVec, prefixed_optional::PrefixedOptional, var_int::VarInt,
 };
-use ferrumc_state::GlobalStateResource;
+use ferrumc_components::state::server_state::GlobalStateResource;
 use tracing::error;
 
 fn find_command(input: String) -> Option<Arc<Command>> {

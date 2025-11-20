@@ -1,9 +1,10 @@
 use bevy_ecs::event::EventRegistry;
 use bevy_ecs::prelude::World;
 use ferrumc_commands::events::{CommandDispatchEvent, ResolvedCommandDispatchEvent};
-use ferrumc_core::chunks::cross_chunk_boundary_event::CrossChunkBoundaryEvent;
-use ferrumc_core::conn::force_player_recount_event::ForcePlayerRecountEvent;
-use ferrumc_events::*;
+use ferrumc_messages::connection::monitoring::ForcePlayerRecountEvent;
+use ferrumc_messages::player::lifecycle::{PlayerJoinEvent, PlayerLeaveEvent};
+use ferrumc_messages::world::chunk::CrossChunkBoundaryEvent;
+use ferrumc_messages::*;
 use ferrumc_net::packets::packet_events::TransformEvent;
 
 pub fn register_events(world: &mut World) {

@@ -1,5 +1,7 @@
 use bevy_ecs::prelude::*;
-use ferrumc_core::{identity::player_identity::PlayerIdentity, mq};
+
+use ferrumc_components::chat::message_queue as mq;
+use ferrumc_components::player::identity::PlayerIdentity;
 use ferrumc_net::ChatMessagePacketReceiver;
 use ferrumc_text::TextComponent;
 
