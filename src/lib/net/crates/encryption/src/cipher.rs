@@ -1,7 +1,6 @@
 use aes::cipher::generic_array::GenericArray;
 use aes::cipher::{BlockDecryptMut, BlockEncryptMut, KeyIvInit};
 use aes::Aes128;
-use log::debug;
 
 type AesCfb8Encryptor = cfb8::Encryptor<Aes128>;
 type AesCfb8Decryptor = cfb8::Decryptor<Aes128>;

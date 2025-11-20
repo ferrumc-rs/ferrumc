@@ -1,4 +1,3 @@
-use std::ops::Deref;
 use crate::compression::compress_packet;
 use crate::conn_init::handle_handshake;
 use crate::errors::CompressionError::GenericCompressionError;
@@ -27,7 +26,6 @@ use tokio::time::timeout;
 use tracing::{debug, debug_span, error, trace, warn, Instrument};
 use typename::TypeName;
 use ferrumc_net_encryption::cipher::EncryptionCipher;
-use ferrumc_net_encryption::errors::NetEncryptionError;
 
 /// The maximum time allowed for a client to complete its initial handshake.
 /// Connections exceeding this duration will be dropped to avoid resource hogging.
