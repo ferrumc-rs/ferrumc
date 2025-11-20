@@ -1,5 +1,5 @@
 use aes::Aes128;
-use aes::cipher::{AsyncStreamCipher, KeyIvInit};
+use aes::cipher::{BlockDecryptMut, BlockEncryptMut, KeyIvInit};
 
 type AesCfb8Encryptor = cfb8::Encryptor<Aes128>;
 type AesCfb8Decryptor = cfb8::Decryptor<Aes128>;
@@ -17,11 +17,11 @@ impl EncryptionCipher {
         }
     }
 
-    pub fn encrypt(&self, data: &mut [u8]) {
-        self.encryptor.encrypt(data)
+    pub fn encrypt(&mut self, data: &mut [u8]) {
+        self.encryptor.encrypt_block_mut(data.into())
     }
 
-    pub fn decrypt(&self, data: &mut [u8]) {
-        self.decryptor.decrypt(data)
+    pub fn decrypt(&mut self, data: &mut [u8]) {
+        self.decryptor.decrypt_block_mut(data.into())
     }
 }

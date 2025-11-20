@@ -143,7 +143,7 @@ impl StreamWriter {
             return Err(NetError::ConnectionDropped);
         }
 
-        let raw_bytes = compress_packet(
+        let mut raw_bytes = compress_packet(
             packet,
             self.compress.load(Ordering::Relaxed),
             net_encode_opts,
@@ -160,7 +160,7 @@ impl StreamWriter {
             .map_err(|_| NetError::EncryptionError(NetEncryptionError::SharedKeyHolderPoisoned))?;
 
         if let Some(cipher) = cipher.as_mut() {
-            debug!("need to encrypt outgoing packets");
+            cipher.encrypt(&mut raw_bytes);
         }
 
         self.sender.send(raw_bytes).map_err(std::io::Error::other)?;
