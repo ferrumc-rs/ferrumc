@@ -48,7 +48,7 @@ pub(super) async fn login(
 
     // =============================================================================================
     // 1 Receive initial Login Start packet
-    let mut skel = PacketSkeleton::new(conn_read, compressed, Login).await?;
+    let mut skel = PacketSkeleton::new(conn_read, compressed, conn_write.encryption_key.clone(), Login).await?;
 
     let expected_id = lookup_packet!("login", "serverbound", "hello");
 
@@ -95,7 +95,7 @@ pub(super) async fn login(
         conn_write.send_packet(encryption_packet)?;
 
         // Wait for encryption response packet
-        let mut skel = PacketSkeleton::new(conn_read, compressed, Login).await?;
+        let mut skel = PacketSkeleton::new(conn_read, compressed, conn_write.encryption_key.clone(), Login).await?;
         let expected_id = lookup_packet!("login", "serverbound", "key");
 
         if skel.id != expected_id {
@@ -115,10 +115,12 @@ pub(super) async fn login(
 
         // Verify that the encryption algorithms worked correctly
         if verify_token == received_verify_token {
-            let mut lock = conn_write.encryption_key.lock().map_err(|_| NetError::Misc("Failed to lock encryption key holder.".to_string()))?;
+            {
+                let mut lock = conn_write.encryption_key.lock().await;
 
-            let shared_secret = get_encryption_keys().decrypt_bytes(&encryption_response.shared_secret.data)?;
-            lock.get_or_insert(EncryptionCipher::new(&shared_secret));
+                let shared_secret = get_encryption_keys().decrypt_bytes(&encryption_response.shared_secret.data)?;
+                lock.get_or_insert(EncryptionCipher::new(&shared_secret));
+            }
             debug!("Successfully enabled encryption!");
         } else {
             return Err(NetError::EncryptionError(NetEncryptionError::VerifyTokenMismatch {
@@ -149,7 +151,7 @@ pub(super) async fn login(
 
     // =============================================================================================
     // 5 Wait for client Login Acknowledged packet
-    let mut skel = PacketSkeleton::new(conn_read, compressed, Login).await?;
+    let mut skel = PacketSkeleton::new(conn_read, compressed, conn_write.encryption_key.clone(), Login).await?;
     let expected_id = lookup_packet!("login", "serverbound", "login_acknowledged");
 
     if skel.id != expected_id {
@@ -168,7 +170,7 @@ pub(super) async fn login(
 
     // =============================================================================================
     // 6 Read Client Information (locale, view distance, etc.)
-    let mut skel = PacketSkeleton::new(conn_read, compressed, Configuration).await?;
+    let mut skel = PacketSkeleton::new(conn_read, compressed, conn_write.encryption_key.clone(), Configuration).await?;
     let expected_id = lookup_packet!("configuration", "serverbound", "client_information");
     if skel.id != expected_id {
         return Err(NetError::Packet(PacketError::UnexpectedPacket {
@@ -200,7 +202,7 @@ pub(super) async fn login(
 
     // =============================================================================================
     // 8 Read client's selected known packs (currently ignored)
-    let mut skel = PacketSkeleton::new(conn_read, compressed, Configuration).await?;
+    let mut skel = PacketSkeleton::new(conn_read, compressed, conn_write.encryption_key.clone(), Configuration).await?;
     let expected_id = lookup_packet!("configuration", "serverbound", "select_known_packs");
     if skel.id != expected_id {
         return Err(NetError::Packet(PacketError::UnexpectedPacket {
@@ -230,7 +232,7 @@ pub(super) async fn login(
 
     // =============================================================================================
     // 11 Wait for client's finish_configuration ack
-    let mut skel = PacketSkeleton::new(conn_read, compressed, Configuration).await?;
+    let mut skel = PacketSkeleton::new(conn_read, compressed, conn_write.encryption_key.clone(), Configuration).await?;
     let expected_id = lookup_packet!("configuration", "serverbound", "finish_configuration");
     if skel.id != expected_id {
         return Err(NetError::Packet(PacketError::UnexpectedPacket {
@@ -302,7 +304,7 @@ pub(super) async fn login(
     // so we loop until we get the accept_teleportation packet
     let expected_id = lookup_packet!("play", "serverbound", "accept_teleportation");
     let confirm_player_teleport = loop {
-        let mut skel = PacketSkeleton::new(conn_read, compressed, Play).await?;
+        let mut skel = PacketSkeleton::new(conn_read, compressed, conn_write.encryption_key.clone(), Play).await?;
         if skel.id == expected_id {
             // Got the teleport confirmation
             let confirm =
@@ -332,7 +334,7 @@ pub(super) async fn login(
     // Similarly, the client may send other packets before the movement packet
     let expected_id = lookup_packet!("play", "serverbound", "move_player_pos_rot");
     let _player_pos_and_rot = loop {
-        let mut skel = PacketSkeleton::new(conn_read, compressed, Play).await?;
+        let mut skel = PacketSkeleton::new(conn_read, compressed, conn_write.encryption_key.clone(), Play).await?;
 
         if skel.id == expected_id {
             let pos_rot = crate::packets::incoming::set_player_position_and_rotation::SetPlayerPositionAndRotationPacket::decode(

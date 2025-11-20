@@ -22,6 +22,7 @@ use tokio::net::tcp::OwnedWriteHalf;
 use tokio::net::TcpStream;
 use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
 use tokio::sync::oneshot;
+use tokio::sync::Mutex as TokioMutex;
 use tokio::time::timeout;
 use tracing::{debug, debug_span, error, trace, warn, Instrument};
 use typename::TypeName;
@@ -44,7 +45,7 @@ pub struct StreamWriter {
     sender: UnboundedSender<Vec<u8>>,
     pub running: Arc<AtomicBool>,
     pub compress: Arc<AtomicBool>,
-    pub encryption_key: Arc<Mutex<Option<EncryptionCipher>>>,
+    pub encryption_key: Arc<TokioMutex<Option<EncryptionCipher>>>,
     pub state: Arc<ServerState>,
     pub entity: Arc<Mutex<Option<Entity>>>,
 }
@@ -64,7 +65,7 @@ impl StreamWriter {
     pub async fn new(
         mut writer: OwnedWriteHalf,
         running: Arc<AtomicBool>,
-        encryption_key: Arc<Mutex<Option<EncryptionCipher>>>,
+        encryption_key: Arc<TokioMutex<Option<EncryptionCipher>>>,
         state: Arc<ServerState>,
         entity: Arc<Mutex<Option<Entity>>>,
     ) -> Self {
@@ -156,11 +157,13 @@ impl StreamWriter {
             )))
         })?;
 
-        let mut cipher = self.encryption_key.lock()
-            .map_err(|_| NetError::EncryptionError(NetEncryptionError::SharedKeyHolderPoisoned))?;
+        {
+            // TODO: find a better way of attaining this lock?
+            let mut cipher = pollster::block_on(self.encryption_key.lock());
 
-        if let Some(cipher) = cipher.as_mut() {
-            cipher.encrypt(&mut raw_bytes);
+            if let Some(cipher) = cipher.as_mut() {
+                cipher.encrypt(&mut raw_bytes);
+            }
         }
 
         self.sender.send(raw_bytes).map_err(std::io::Error::other)?;
@@ -220,7 +223,7 @@ pub async fn handle_connection(
 
     let running = Arc::new(AtomicBool::new(true));
 
-    let encryption_key_holder: Arc<Mutex<Option<EncryptionCipher>>> = Arc::new(Mutex::new(None));
+    let encryption_key_holder: Arc<TokioMutex<Option<EncryptionCipher>>> = Arc::new(TokioMutex::new(None));
     let entity_holder: Arc<Mutex<Option<Entity>>> = Arc::new(Mutex::new(None));
 
     let stream = StreamWriter::new(
@@ -327,7 +330,7 @@ pub async fn handle_connection(
         // Read next packet
         let mut packet_skele;
         tokio::select! {
-            packet_result = PacketSkeleton::new(&mut tcp_reader, login_result.compression, Play) => {
+            packet_result = PacketSkeleton::new(&mut tcp_reader, login_result.compression, encryption_key_holder.clone(), Play) => {
                 match packet_result {
                     Ok(packet) => {
                         packet_skele = packet;

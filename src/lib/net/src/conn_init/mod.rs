@@ -66,6 +66,7 @@ pub async fn handle_handshake(
     let mut skel = PacketSkeleton::new(
         &mut conn_read,
         conn_write.compress.load(Ordering::Relaxed),
+        conn_write.encryption_key.clone(),
         crate::ConnState::Handshake,
     )
     .await?;

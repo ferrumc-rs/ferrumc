@@ -8,10 +8,13 @@ use ferrumc_macros::lookup_packet;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::fmt::Debug;
 use std::io::Cursor;
+use std::sync::Arc;
 use tokio::io::AsyncRead;
 use tokio::io::AsyncReadExt;
+use tokio::sync::Mutex as TokioMutex;
 use tracing::{debug, error, trace};
 use yazi::{decompress, Format};
+use ferrumc_net_encryption::cipher::EncryptionCipher;
 
 /// Represents a minimal parsed network packet (frame) read from the client.
 ///
@@ -58,11 +61,12 @@ impl PacketSkeleton {
     pub async fn new<R: AsyncRead + Unpin>(
         reader: &mut R,
         compressed: bool,
+        encryption_cipher: Arc<TokioMutex<Option<EncryptionCipher>>>,
         state: ConnState,
     ) -> Result<Self, NetError> {
         let pak = match compressed {
-            true => Self::read_compressed(reader, state).await,
-            false => Self::read_uncompressed(reader, state).await,
+            true => Self::read_compressed(reader, encryption_cipher, state).await,
+            false => Self::read_uncompressed(reader, encryption_cipher, state).await,
         };
         match pak {
             Ok(p) => {
@@ -95,11 +99,17 @@ impl PacketSkeleton {
     ///   to ignore unused plugin channels.
     async fn read_uncompressed<R: AsyncRead + Unpin>(
         reader: &mut R,
+        cipher: Arc<TokioMutex<Option<EncryptionCipher>>>,
         state: ConnState,
     ) -> Result<Self, NetError> {
         loop {
+            let mut lock = cipher.lock().await;
+
             // Read total packet length (must be >= 1 byte)
-            let length = VarInt::read_async(reader).await?.0 as usize;
+            let length = match lock.as_mut() {
+                Some(cipher) => VarInt::read_async_encrypt(reader, cipher).await?.0,
+                None => VarInt::read_async(reader).await?.0,
+            } as usize;
 
             if length < 1 {
                 return Err(NetError::Packet(PacketError::MalformedPacket(Some(
@@ -117,6 +127,11 @@ impl PacketSkeleton {
             let mut buf = {
                 let mut buf = vec![0; length];
                 reader.read_exact(&mut buf).await?;
+
+                if let Some(cipher) = lock.as_mut() {
+                    cipher.decrypt(&mut buf);
+                }
+
                 Cursor::new(buf)
             };
 
@@ -157,11 +172,17 @@ impl PacketSkeleton {
     /// - Plugin messages (0x14) are ignored here as well.
     async fn read_compressed<R: AsyncRead + Unpin>(
         reader: &mut R,
+        cipher: Arc<TokioMutex<Option<EncryptionCipher>>>,
         state: ConnState,
     ) -> Result<Self, NetError> {
         loop {
+            let mut lock = cipher.lock().await;
+
             // Total length of this packet frame
-            let packet_length = VarInt::read_async(reader).await?.0;
+            let packet_length = match lock.as_mut() {
+                Some(cipher) => VarInt::read_async_encrypt(reader, cipher).await?.0,
+                None => VarInt::read_async(reader).await?.0,
+            };
 
             if packet_length < 1 {
                 return Err(NetError::Packet(PacketError::MalformedPacket(Some(
@@ -170,7 +191,10 @@ impl PacketSkeleton {
             }
 
             // Declared length of decompressed payload (0 = no compression)
-            let data_length = VarInt::read_async(reader).await?.0;
+            let data_length = match lock.as_mut() {
+                Some(cipher) => VarInt::read_async_encrypt(reader, cipher).await?.0,
+                None => VarInt::read_async(reader).await?.0,
+            };
 
             if data_length < 0 {
                 return Err(NetError::Packet(PacketError::MalformedPacket(Some(
@@ -192,6 +216,11 @@ impl PacketSkeleton {
             if data_length == 0 {
                 let mut buf = vec![0; remaining_len];
                 reader.read_exact(&mut buf).await?;
+
+                if let Some(cipher) = lock.as_mut() {
+                    cipher.decrypt(&mut buf);
+                }
+
                 let mut cursor = Cursor::new(buf);
 
                 let id = VarInt::read_async(&mut cursor).await?;
@@ -225,6 +254,10 @@ impl PacketSkeleton {
             // Read compressed bytes
             let mut compressed_buf = vec![0; remaining_len];
             reader.read_exact(&mut compressed_buf).await?;
+
+            if let Some(cipher) = lock.as_mut() {
+                cipher.decrypt(&mut compressed_buf);
+            }
 
             // Attempt decompression (Zlib format)
             let (decompressed_data, checksum) =

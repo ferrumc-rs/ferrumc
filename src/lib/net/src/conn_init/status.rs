@@ -41,7 +41,7 @@ pub(super) async fn status(
     // ---- Phase 1: Receive and validate Status Request packet ----
 
     // Read next incoming packet in "status" connection state
-    let mut skel = PacketSkeleton::new(&mut conn_read, false, crate::ConnState::Status).await?;
+    let mut skel = PacketSkeleton::new(&mut conn_read, false, conn_write.encryption_key.clone(), crate::ConnState::Status).await?;
 
     // Expected packet ID for a status request
     let expected_id = lookup_packet!("status", "serverbound", "status_request");
@@ -69,7 +69,7 @@ pub(super) async fn status(
 
     // ---- Phase 3: Wait for Ping Request ----
 
-    let mut skel = PacketSkeleton::new(&mut conn_read, false, crate::ConnState::Status).await?;
+    let mut skel = PacketSkeleton::new(&mut conn_read, false, conn_write.encryption_key.clone(), crate::ConnState::Status).await?;
 
     let expected_id = lookup_packet!("status", "serverbound", "ping_request");
 

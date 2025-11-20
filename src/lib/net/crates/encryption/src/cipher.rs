@@ -29,7 +29,6 @@ impl EncryptionCipher {
     }
 
     pub fn decrypt(&mut self, data: &mut [u8]) {
-        debug!("Decrypting {} bytes", data.len());
         for b in data.iter_mut() {
             let mut arr = [*b];
             let block = GenericArray::from_mut_slice(&mut arr);
