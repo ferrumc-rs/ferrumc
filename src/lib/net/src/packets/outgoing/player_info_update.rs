@@ -1,5 +1,5 @@
 use bevy_ecs::prelude::{Component, Entity, Query};
-use ferrumc_core::identity::player_identity::PlayerIdentity;
+use ferrumc_components::player::identity::PlayerIdentity;
 use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::var_int::VarInt;
@@ -28,7 +28,7 @@ impl PlayerInfoUpdatePacket {
 
     /// The packet to be sent to all already connected players when a new player joins the server
     pub fn new_player_join_packet(identity: PlayerIdentity) -> Self {
-        let player = PlayerWithActions::add_player(identity.short_uuid, identity.username);
+        let player = PlayerWithActions::add_player(identity.short_uuid, identity.username.clone());
 
         Self::with_players(vec![player])
     }

@@ -9,6 +9,6 @@ pub trait IncomingPacket {
     fn handle(
         self,
         conn_id: usize,
-        state: std::sync::Arc<ferrumc_state::ServerState>,
+        state: std::sync::Arc<ferrumc_components::state::server_state::GlobalState>,
     ) -> Result<(), NetError>;
 }

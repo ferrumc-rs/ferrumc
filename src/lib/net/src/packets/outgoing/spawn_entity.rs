@@ -1,9 +1,9 @@
 use crate::errors::NetError;
 
 use bevy_ecs::prelude::{Entity, Query};
-use ferrumc_core::identity::player_identity::PlayerIdentity;
-use ferrumc_core::transform::position::Position;
-use ferrumc_core::transform::rotation::Rotation;
+use ferrumc_components::player::identity::PlayerIdentity;
+use ferrumc_components::player::transform::position::Position;
+use ferrumc_components::player::transform::rotation::Rotation;
 use ferrumc_macros::{get_registry_entry, packet, NetEncode};
 use ferrumc_net_codec::net_types::angle::NetAngle;
 use ferrumc_net_codec::net_types::var_int::VarInt;
