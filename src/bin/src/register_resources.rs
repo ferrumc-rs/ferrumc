@@ -1,9 +1,9 @@
 use crate::systems::new_connections::NewConnectionRecv;
 use bevy_ecs::prelude::World;
 use crossbeam_channel::Receiver;
-use ferrumc_components::state::server_state::GlobalStateResource;
 use ferrumc_components::chunks::world_sync_tracker::WorldSyncTracker;
 use ferrumc_components::conn::player_count_update_cooldown::PlayerCountUpdateCooldown;
+use ferrumc_components::state::server_state::GlobalStateResource;
 use ferrumc_net::connection::NewConnection;
 
 pub fn register_resources(

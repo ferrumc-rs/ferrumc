@@ -1,9 +1,9 @@
 use bevy_ecs::prelude::{Entity, Query, Res};
+use ferrumc_components::state::server_state::GlobalStateResource;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::incoming::player_command::PlayerCommandAction;
 use ferrumc_net::packets::outgoing::entity_metadata::{EntityMetadata, EntityMetadataPacket};
 use ferrumc_net::PlayerCommandPacketReceiver;
-use ferrumc_components::state::server_state::GlobalStateResource;
 use tracing::error;
 
 pub fn handle(

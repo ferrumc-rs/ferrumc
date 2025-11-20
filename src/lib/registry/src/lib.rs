@@ -127,7 +127,7 @@ fn load_generic_json(dir_path: PathBuf) -> HashMap<String, OwnedValue> {
 
     for entry in WalkDir::new(&dir_path).into_iter().filter_map(|e| e.ok()) {
         let file_path = entry.path();
-        if file_path.is_file() && file_path.extension().map_or(false, |s| s == "json") {
+        if file_path.is_file() && file_path.extension().is_some_and(|s| s == "json") {
             let file_name = file_path.file_name().unwrap().to_str().unwrap().to_string();
 
             let mut buf = fs::read(file_path).unwrap();

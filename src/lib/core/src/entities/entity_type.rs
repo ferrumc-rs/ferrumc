@@ -8,5 +8,4 @@ pub enum EntityType {
     Skeleton,
     Creeper,
     Item,
-
 }

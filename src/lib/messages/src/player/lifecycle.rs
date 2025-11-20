@@ -17,7 +17,6 @@ pub struct PlayerJoinEvent(pub PlayerIdentityData);
 #[allow(unused)]
 pub struct PlayerLeaveEvent(pub PlayerIdentityData);
 
-
 #[derive(Event)]
 pub struct ConnectionKillEvent {
     pub entity: Entity,

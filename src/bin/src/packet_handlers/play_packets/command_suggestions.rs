@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use bevy_ecs::prelude::*;
 use ferrumc_commands::{Command, CommandContext, CommandInput, Sender, ROOT_COMMAND};
+use ferrumc_components::state::server_state::GlobalStateResource;
 use ferrumc_net::{
     connection::StreamWriter,
     packets::outgoing::command_suggestions::{CommandSuggestionsPacket, Match},
@@ -10,7 +11,6 @@ use ferrumc_net::{
 use ferrumc_net_codec::net_types::{
     length_prefixed_vec::LengthPrefixedVec, prefixed_optional::PrefixedOptional, var_int::VarInt,
 };
-use ferrumc_components::state::server_state::GlobalStateResource;
 use tracing::error;
 
 fn find_command(input: String) -> Option<Arc<Command>> {

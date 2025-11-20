@@ -13,4 +13,3 @@ pub enum EntityCategory {
     #[default]
     Misc,
 }
-
