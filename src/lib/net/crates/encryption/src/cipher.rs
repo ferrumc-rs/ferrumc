@@ -1,5 +1,7 @@
-use aes::Aes128;
+use aes::cipher::generic_array::GenericArray;
 use aes::cipher::{BlockDecryptMut, BlockEncryptMut, KeyIvInit};
+use aes::Aes128;
+use log::debug;
 
 type AesCfb8Encryptor = cfb8::Encryptor<Aes128>;
 type AesCfb8Decryptor = cfb8::Decryptor<Aes128>;
@@ -18,10 +20,21 @@ impl EncryptionCipher {
     }
 
     pub fn encrypt(&mut self, data: &mut [u8]) {
-        self.encryptor.encrypt_block_mut(data.into())
+        for b in data.iter_mut() {
+            let mut arr = [*b];
+            let block = GenericArray::from_mut_slice(&mut arr);
+            self.encryptor.encrypt_block_mut(block);
+            *b = block[0];
+        }
     }
 
     pub fn decrypt(&mut self, data: &mut [u8]) {
-        self.decryptor.decrypt_block_mut(data.into())
+        debug!("Decrypting {} bytes", data.len());
+        for b in data.iter_mut() {
+            let mut arr = [*b];
+            let block = GenericArray::from_mut_slice(&mut arr);
+            self.decryptor.decrypt_block_mut(block);
+            *b = block[0];
+        }
     }
 }
