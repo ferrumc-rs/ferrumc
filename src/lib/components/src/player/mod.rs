@@ -1,8 +1,9 @@
 pub mod abilities;
-pub mod client_information;
 pub mod experience;
 pub mod gamemode;
-pub mod gameplay_state;
+pub mod gameplay_mechanics;
+pub mod health;
 pub mod hunger;
+pub mod identity;
 pub mod player_bundle;
-pub mod view_distance;
+pub mod transform;

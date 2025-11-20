@@ -1,6 +1,6 @@
 use bevy_ecs::prelude::{Entity, Event};
-use ferrumc_core::transform::position::Position;
-use ferrumc_core::transform::rotation::Rotation;
+use ferrumc_components::player::transform::position::Position;
+use ferrumc_components::player::transform::rotation::Rotation;
 
 #[derive(Event, Debug)]
 pub struct TransformEvent {

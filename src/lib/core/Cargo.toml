@@ -2,22 +2,14 @@
 name = "ferrumc-core"
 description = "This crate defines all the primitives, traits and logics used in FerrumC codebase."
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
-thiserror = { workspace = true }
-bevy_ecs = { workspace = true }
-bevy_math = { workspace = true }
-tracing = { workspace = true }
-typename = { workspace = true }
-ferrumc-text = { workspace = true }
-ferrumc-net-codec = { workspace = true }
 uuid = { workspace = true }
-crossbeam-queue = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
 
-[dev-dependencies]
-criterion = { workspace = true }
+bitcode = { workspace = true, optional = true }
+deepsize = { workspace = true, optional = true }
 
-[[bench]]
-name = "core_bench"
-harness = false
+[features]
+default = ["bitcode", "deepsize"]

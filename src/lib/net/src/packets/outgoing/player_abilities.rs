@@ -21,7 +21,7 @@ impl PlayerAbilities {
         let flags = (abilities.invulnerable as u8)
             | (abilities.flying as u8 * 0x02)
             | (abilities.may_fly as u8 * 0x04)
-            | (abilities.creative_mode as u8 * 0x08);
+            | (abilities.instant_build as u8 * 0x08);
 
         Self {
             flags,

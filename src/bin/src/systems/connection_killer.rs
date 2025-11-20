@@ -1,20 +1,17 @@
 use bevy_ecs::prelude::{Commands, Entity, EventWriter, Query, Res};
-use ferrumc_components::{
-    active_effects::ActiveEffects,
-    health::Health,
-    player::{
-        abilities::PlayerAbilities, experience::Experience, gamemode::GameModeComponent,
-        gameplay_state::ender_chest::EnderChest, hunger::Hunger,
-    },
+use ferrumc_components::inventory::Inventory;
+use ferrumc_components::player::gameplay_mechanics::active_effects::ActiveEffects;
+use ferrumc_components::player::identity::PlayerIdentity;
+use ferrumc_components::player::transform::position::Position;
+use ferrumc_components::player::transform::rotation::Rotation;
+use ferrumc_components::player::{
+    abilities::PlayerAbilities, experience::Experience, gamemode::GameModeComponent,
+    gameplay_mechanics::ender_chest::EnderChest, health::Health, hunger::Hunger,
 };
-use ferrumc_core::{
-    identity::player_identity::PlayerIdentity,
-    transform::{position::Position, rotation::Rotation},
-};
-use ferrumc_events::player_leave::PlayerLeaveEvent;
-use ferrumc_inventories::inventory::Inventory;
+use ferrumc_components::state::player_cache::OfflinePlayerData;
+use ferrumc_components::state::server_state::GlobalStateResource;
+use ferrumc_messages::PlayerLeaveEvent;
 use ferrumc_net::connection::StreamWriter;
-use ferrumc_state::{player_cache::OfflinePlayerData, GlobalStateResource};
 use ferrumc_text::TextComponent;
 use tracing::{info, trace, warn};
 
@@ -103,7 +100,7 @@ pub fn connection_killer(
             // Save data to cache
             let data_to_cache = OfflinePlayerData {
                 abilities: *abilities,
-                gamemode: gamemode.0,
+                gamemode: *gamemode,
                 position: pos.clone(),
                 rotation: *rot,
                 inventory: inv.clone(),
@@ -119,7 +116,7 @@ pub fn connection_killer(
                 .insert(player_identity.uuid, data_to_cache);
 
             // --- 3. Fire PlayerLeaveEvent ---
-            leave_events.write(PlayerLeaveEvent(player_identity.clone()));
+            leave_events.write(PlayerLeaveEvent(player_identity.0.clone()));
         } else {
             // --- FAILURE: This is a "half-player" or zombie ---
             warn!(
@@ -133,7 +130,7 @@ pub fn connection_killer(
                     "-> (Half-player had identity: {})",
                     player_identity.username
                 );
-                leave_events.write(PlayerLeaveEvent(player_identity.clone()));
+                leave_events.write(PlayerLeaveEvent(player_identity.0.clone()));
             } else {
                 warn!("-> (Half-player didn't even have an identity component!)");
             }

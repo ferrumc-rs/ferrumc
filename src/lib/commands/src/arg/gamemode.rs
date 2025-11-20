@@ -4,7 +4,7 @@ use crate::{
 };
 
 use super::PrimitiveArgument;
-use ferrumc_components::player::gamemode::GameMode;
+use ferrumc_core::player::gamemode::GameMode;
 
 // Implement the trait directly for the enum
 impl CommandArgument for GameMode {

@@ -5,7 +5,7 @@ use ferrumc_commands::{
     events::{CommandDispatchEvent, ResolvedCommandDispatchEvent},
     infrastructure, Command, CommandContext, CommandInput, Sender,
 };
-use ferrumc_core::mq;
+use ferrumc_components::chat::message_queue as mq;
 use ferrumc_net::ChatCommandPacketReceiver;
 use ferrumc_text::{NamedColor, TextComponent, TextComponentBuilder};
 

@@ -1,6 +1,5 @@
 use bevy_ecs::query::QueryEntityError;
-use ferrumc_core::errors::CoreError;
-use ferrumc_inventories::errors::InventoryError;
+use ferrumc_components::inventory::errors::InventoryError;
 use ferrumc_net::errors::NetError;
 use ferrumc_plugins::errors::PluginsError;
 use ferrumc_storage::errors::StorageError;
@@ -10,9 +9,6 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum BinaryError {
-    #[error("Core error: {0}")]
-    Core(#[from] CoreError),
-
     #[error("QueryError error: {0}")]
     QueryError(#[from] QueryEntityError),
 

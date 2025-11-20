@@ -1,7 +1,7 @@
 use bevy_ecs::prelude::{Query, Res};
-use ferrumc_inventories::inventory::Inventory;
+use ferrumc_components::inventory::Inventory;
+use ferrumc_components::state::server_state::GlobalStateResource;
 use ferrumc_net::SetCreativeModeSlotReceiver;
-use ferrumc_state::GlobalStateResource;
 use tracing::{debug, error};
 
 pub fn handle(
@@ -16,7 +16,7 @@ pub fn handle(
         );
         if state.0.players.is_connected(entity) {
             if let Ok(mut inventory) = query.get_mut(entity) {
-                if event.slot.count.0 == 0 {
+                if event.slot.count == 0 {
                     if let Err(e) =
                         inventory.clear_slot_with_update(event.slot_index as usize, entity)
                     {

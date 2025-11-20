@@ -1,9 +1,9 @@
 use bevy_ecs::prelude::{Entity, Query, Res};
-use ferrumc_core::transform::position::Position;
+use ferrumc_components::player::transform::position::Position;
+use ferrumc_components::state::server_state::GlobalStateResource;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket;
 use ferrumc_net::PlayerLoadedReceiver;
-use ferrumc_state::GlobalStateResource;
 use ferrumc_world::block_state_id::BlockStateId;
 use tracing::warn;
 

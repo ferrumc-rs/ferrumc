@@ -22,23 +22,24 @@ pub mod formatting;
 #[macro_export]
 macro_rules! root {
     ($from_root:literal) => {{
-        let delimiter = if cfg!(windows) { "\\" } else { "/" };
-        let root = std::path::absolute(file!())
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .to_string();
-        let root = root
+        // Use CARGO_MANIFEST_DIR instead of file!()
+        // This guarantees we get the path to the source code on disk,
+        // even when running in a temporary doctest environment.
+        let manifest_dir = env!("CARGO_MANIFEST_DIR");
+        let delimiter = std::path::MAIN_SEPARATOR;
+
+        let root = manifest_dir
             .split(delimiter)
             .take_while(|&x| x != "src")
             .collect::<Vec<&str>>()
-            .join(delimiter);
+            .join(&delimiter.to_string());
+
         let path_from_root = std::path::Path::new($from_root);
-        std::path::absolute(root)
-            .unwrap()
+
+        std::path::Path::new(&root)
             .join(path_from_root)
             .to_str()
-            .unwrap()
+            .expect("Failed to convert path to string")
             .to_string()
     }};
 }

@@ -1,9 +1,9 @@
 use bevy_ecs::prelude::{Entity, EventReader, Query};
-use ferrumc_core::identity::player_identity::PlayerIdentity;
-use ferrumc_core::mq;
+use ferrumc_components::chat::message_queue as mq;
+use ferrumc_components::player::identity::PlayerIdentity;
 use ferrumc_text::{Color, NamedColor, TextComponent};
 
-use ferrumc_events::player_join::PlayerJoinEvent;
+use ferrumc_messages::PlayerJoinEvent;
 
 use tracing::trace;
 

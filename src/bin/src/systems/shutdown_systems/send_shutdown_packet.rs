@@ -1,7 +1,7 @@
 use bevy_ecs::prelude::{Entity, Query, Res};
-use ferrumc_core::identity::player_identity::PlayerIdentity;
+use ferrumc_components::player::identity::PlayerIdentity;
+use ferrumc_components::state::server_state::GlobalStateResource;
 use ferrumc_net::connection::StreamWriter;
-use ferrumc_state::GlobalStateResource;
 use ferrumc_text::TextComponent;
 
 pub fn handle(

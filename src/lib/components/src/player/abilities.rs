@@ -1,27 +1,19 @@
 use bevy_ecs::prelude::Component;
+use ferrumc_core::player::abilities::PlayerAbilitiesData;
+use std::ops::{Deref, DerefMut};
 
-#[derive(Component, Debug, Clone, Copy)]
-pub struct PlayerAbilities {
-    pub invulnerable: bool,
-    pub flying: bool,
-    pub may_fly: bool,
-    pub creative_mode: bool,
-    pub may_build: bool,
-    pub flying_speed: f32,
-    pub walking_speed: f32,
+#[derive(Component, Debug, Clone, Copy, Default)]
+pub struct PlayerAbilities(pub PlayerAbilitiesData);
+
+impl Deref for PlayerAbilities {
+    type Target = PlayerAbilitiesData;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
 
-impl Default for PlayerAbilities {
-    // Default abilities for players
-    fn default() -> Self {
-        Self {
-            invulnerable: false,
-            flying: false,
-            may_fly: false,
-            creative_mode: false,
-            may_build: true,
-            flying_speed: 0.05,
-            walking_speed: 0.1,
-        }
+impl DerefMut for PlayerAbilities {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }

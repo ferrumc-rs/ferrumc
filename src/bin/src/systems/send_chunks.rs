@@ -1,5 +1,6 @@
 use crate::errors::BinaryError;
 use bevy_ecs::prelude::Mut;
+use ferrumc_components::state::server_state::GlobalState;
 use ferrumc_net::compression::compress_packet;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::errors::NetError;
@@ -10,9 +11,10 @@ use ferrumc_net::packets::outgoing::set_center_chunk::SetCenterChunk;
 use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::encode::NetEncodeOpts::WithLength;
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use ferrumc_state::GlobalState;
 use std::sync::atomic::Ordering;
 use tracing::{error, trace};
+
+// Assuming this function is called by a Bevy system like `handle_chunk_loading`
 
 pub fn send_chunks(
     state: GlobalState,
@@ -68,7 +70,7 @@ pub fn send_chunks(
                 Ok(packet) => {
                     if is_compressed {
                         // Compress the packet if compression is enabled
-                        let compressed_packet = compress_packet(&packet, true, &WithLength)?;
+                        let compressed_packet = compress_packet(&packet, true, &WithLength, 512)?;
                         Ok((compressed_packet, x, z))
                     } else {
                         let mut buffer = Vec::new();
