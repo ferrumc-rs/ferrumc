@@ -104,7 +104,7 @@ pub fn build_registry_packets(input: TokenStream) -> TokenStream {
 /// Feed in the block name as a string literal, and an optional set of properties as a map.
 /// It will output a [`ferrumc_world::block_state_id::BlockStateId`] struct with the correct ID for that block and properties.
 /// Usage:
-/// ```
+/// ```ignore
 /// # use ferrumc_world::block_state_id::BlockStateId;
 /// # use ferrumc_macros::block;
 /// let block_state_id = block!("stone");
@@ -126,7 +126,7 @@ pub fn block(input: TokenStream) -> TokenStream {
 
 /// A macro to check if a block state ID matches a given block name at compile time.
 /// Usage:
-/// ```
+/// ```ignore
 /// # use ferrumc_macros::{match_block};
 /// # use ferrumc_world::block_state_id::BlockStateId;
 /// let block_state_id = BlockStateId(1);

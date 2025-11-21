@@ -13,7 +13,7 @@ impl BiomeGenerator for MountainBiome {
         "mountain".to_string()
     }
 
-    fn decorate(&self, chunk: &mut Chunk, x: u8, z: u8) -> Result<(), WorldGenError> {
+    fn decorate(&self, _: &mut Chunk, _: u8, _: u8) -> Result<(), WorldGenError> {
         // Doesn't generate any blocks, just a placeholder
         Ok(())
     }

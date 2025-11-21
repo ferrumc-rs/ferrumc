@@ -3,7 +3,7 @@ use splines::Spline;
 pub struct NoiseGenerator {
     seed: u64,
     frequency: f32,
-    octaves: u8,
+    _octaves: u8,
     spline: Option<Spline<f32, f32>>,
 }
 
@@ -12,7 +12,7 @@ impl NoiseGenerator {
         NoiseGenerator {
             seed,
             frequency,
-            octaves,
+            _octaves: octaves,
             spline,
         }
     }

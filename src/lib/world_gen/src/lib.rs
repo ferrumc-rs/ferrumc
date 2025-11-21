@@ -28,8 +28,8 @@ pub(crate) trait BiomeGenerator {
 
 pub struct WorldGenerator {
     seed: u64,
-    humidity_noise: NoiseGenerator,
-    temperature_noise: NoiseGenerator,
+    _humidity_noise: NoiseGenerator,
+    _temperature_noise: NoiseGenerator,
     height_noise: NoiseGenerator,
     erosion_noise: NoiseGenerator,
 }
@@ -43,8 +43,8 @@ impl WorldGenerator {
 
         WorldGenerator {
             seed,
-            humidity_noise,
-            temperature_noise,
+            _humidity_noise: humidity_noise,
+            _temperature_noise: temperature_noise,
             height_noise,
             erosion_noise,
         }
@@ -52,10 +52,10 @@ impl WorldGenerator {
 
     fn get_biome(&self, chunk: &Chunk, x: usize, z: usize) -> Box<dyn BiomeGenerator> {
         // Implement biome selection here
-        let humidity = f32::from_bits(chunk.noises.humidity_noise[x][z]);
-        let temperature = f32::from_bits(chunk.noises.temperature_noise[x][z]);
+        let _humidity = f32::from_bits(chunk.noises.humidity_noise[x][z]);
+        let _temperature = f32::from_bits(chunk.noises.temperature_noise[x][z]);
         let erosion = f32::from_bits(chunk.noises.erosion_noise[x][z]);
-        let height = f32::from_bits(chunk.noises.height_noise[x][z]);
+        let _height = f32::from_bits(chunk.noises.height_noise[x][z]);
         let real_height = chunk.real_heightmap[x][z];
         if real_height < 50 {
             return Box::new(biomes::ocean::OceanBiome::new(self.seed));

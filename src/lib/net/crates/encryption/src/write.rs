@@ -44,6 +44,7 @@ impl<Writer: AsyncWrite + Unpin> AsyncWrite for EncryptedWriter<Writer> {
         // If cipher is not None, encrypt outgoing bytes
         if let Some(enc) = self.cipher.as_mut() {
             for b in buf.chunks_mut(1) {
+                #[allow(deprecated)]
                 let block = HybridArray::from_mut_slice(b);
                 enc.encrypt_block(block);
             }

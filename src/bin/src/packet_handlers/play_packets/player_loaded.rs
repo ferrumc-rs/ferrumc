@@ -60,7 +60,7 @@ pub fn handle(
                 );
                 // get the lowest block we can teleport the player to
 
-                let lowest_y = chunk.real_heightmap[player_pos.x.abs() as usize % 16][player_pos.z.abs() as usize % 16];
+                // let lowest_y = chunk.real_heightmap[player_pos.x.abs() as usize % 16][player_pos.z.abs() as usize % 16];
 
                 // Teleport the player to the world center if their head block is not air
                 let packet = SynchronizePlayerPositionPacket::default();

@@ -10,8 +10,6 @@ use ferrumc_state::player_list::PlayerList;
 use ferrumc_state::{GlobalState, ServerState};
 use ferrumc_threadpool::ThreadPool;
 use ferrumc_world::World;
-use ferrumc_world_gen::errors::WorldGenError;
-use ferrumc_world_gen::errors::WorldGenError::WorldError;
 use ferrumc_world_gen::WorldGenerator;
 use std::sync::Arc;
 use std::time::Instant;
