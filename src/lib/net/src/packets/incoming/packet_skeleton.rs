@@ -117,6 +117,7 @@ impl PacketSkeleton {
             let mut buf = {
                 let mut buf = vec![0; length];
                 reader.read_exact(&mut buf).await?;
+
                 Cursor::new(buf)
             };
 
@@ -192,6 +193,7 @@ impl PacketSkeleton {
             if data_length == 0 {
                 let mut buf = vec![0; remaining_len];
                 reader.read_exact(&mut buf).await?;
+
                 let mut cursor = Cursor::new(buf);
 
                 let id = VarInt::read_async(&mut cursor).await?;
