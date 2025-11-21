@@ -7,11 +7,3 @@ pub struct EncryptionResponse {
     pub shared_secret: LengthPrefixedVec<u8>,
     pub verify_token: LengthPrefixedVec<u8>,
 }
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn test_decode() {
-        todo!()
-    }
-}

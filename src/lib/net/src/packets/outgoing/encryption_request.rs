@@ -9,11 +9,3 @@ pub struct EncryptionRequest {
     pub verify_token: LengthPrefixedVec<u8>,
     pub should_authenticate: bool,
 }
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn test_request() {
-        todo!()
-    }
-}
