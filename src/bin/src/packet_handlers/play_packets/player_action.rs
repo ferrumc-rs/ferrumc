@@ -105,12 +105,14 @@ pub fn handle(
                     start_dig_events.write(PlayerStartDiggingEvent {
                         player: trigger_eid,
                         position: event.location,
+                        sequence: event.sequence,
                     });
                 }
                 1 => {
                     // Cancelled digging
                     cancel_dig_events.write(PlayerCancelDiggingEvent {
                         player: trigger_eid,
+                        sequence: event.sequence,
                     });
                 }
                 2 => {
@@ -118,6 +120,7 @@ pub fn handle(
                     finish_dig_events.write(PlayerFinishDiggingEvent {
                         player: trigger_eid,
                         position: event.location,
+                        sequence: event.sequence,
                     });
                 }
                 _ => {} // Other statuses (drop item, etc.) are handled by different packets

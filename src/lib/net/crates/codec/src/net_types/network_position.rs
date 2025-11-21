@@ -10,7 +10,7 @@ use tokio::io::AsyncReadExt;
 use tokio::io::AsyncWriteExt;
 
 /// The definition of a "Position" in the Minecraft protocol.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct NetworkPosition {
     // Encoded as a 26 bit int
     pub x: i32,
