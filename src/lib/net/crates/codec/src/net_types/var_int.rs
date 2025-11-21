@@ -131,13 +131,13 @@ impl VarInt {
         Err(NetTypesError::InvalidVarInt)
     }
 
-    pub async fn read_async_encrypt<R: AsyncRead + Unpin>(cursor: &mut R, cipher: &mut EncryptionCipher) -> Result<Self, NetTypesError> {
+    pub async fn read_async_encrypt<R: AsyncRead + Unpin>(cursor: &mut R, cipher: &EncryptionCipher) -> Result<Self, NetTypesError> {
         let mut val = 0;
         for i in 0..5 {
             let byte = {
                 let mut buf = [0u8; 1];
                 cursor.read_exact(&mut buf).await?;
-                cipher.decrypt(&mut buf);
+                cipher.decrypt(&mut buf).await;
                 buf[0]
             } as i32;
 

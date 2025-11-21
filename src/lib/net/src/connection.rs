@@ -21,7 +21,6 @@ use tokio::net::tcp::OwnedWriteHalf;
 use tokio::net::TcpStream;
 use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
 use tokio::sync::oneshot;
-use tokio::sync::Mutex as TokioMutex;
 use tokio::time::timeout;
 use tracing::{debug, debug_span, error, trace, warn, Instrument};
 use typename::TypeName;
@@ -43,7 +42,7 @@ pub struct StreamWriter {
     sender: UnboundedSender<Vec<u8>>,
     pub running: Arc<AtomicBool>,
     pub compress: Arc<AtomicBool>,
-    pub encryption_key: Arc<TokioMutex<Option<EncryptionCipher>>>,
+    pub encryption_key: Arc<EncryptionCipher>,
     pub state: Arc<ServerState>,
     pub entity: Arc<Mutex<Option<Entity>>>,
 }
@@ -63,7 +62,7 @@ impl StreamWriter {
     pub async fn new(
         mut writer: OwnedWriteHalf,
         running: Arc<AtomicBool>,
-        encryption_key: Arc<TokioMutex<Option<EncryptionCipher>>>,
+        encryption_key: Arc<EncryptionCipher>,
         state: Arc<ServerState>,
         entity: Arc<Mutex<Option<Entity>>>,
     ) -> Self {
@@ -155,14 +154,8 @@ impl StreamWriter {
             )))
         })?;
 
-        {
-            // TODO: find a better way of attaining this lock?
-            let mut cipher = pollster::block_on(self.encryption_key.lock());
-
-            if let Some(cipher) = cipher.as_mut() {
-                cipher.encrypt(&mut raw_bytes);
-            }
-        }
+        // TODO: find a better way of waiting for this to complete?
+        pollster::block_on(self.encryption_key.encrypt(&mut raw_bytes));
 
         self.sender.send(raw_bytes).map_err(std::io::Error::other)?;
         Ok(())
@@ -221,7 +214,7 @@ pub async fn handle_connection(
 
     let running = Arc::new(AtomicBool::new(true));
 
-    let encryption_key_holder: Arc<TokioMutex<Option<EncryptionCipher>>> = Arc::new(TokioMutex::new(None));
+    let encryption_key_holder: Arc<EncryptionCipher> = Arc::new(EncryptionCipher::new());
     let entity_holder: Arc<Mutex<Option<Entity>>> = Arc::new(Mutex::new(None));
 
     let stream = StreamWriter::new(
