@@ -8,10 +8,13 @@ pub mod errors;
 pub mod read;
 pub mod write;
 
-/// The generated key pair to use for encryption/decryption
+/// The global EncryptionKeys instance to be used for encryption/decryption.
 static ENCRYPTION_KEYS: LazyLock<EncryptionKeys> = LazyLock::new(|| EncryptionKeys::generate());
 
-/// Helper struct to store public and private keys for the server
+/// Struct to hold:
+/// - A RSA private key
+/// - The public key associated with said private key
+/// - The public key encoded in DER format as specified by the Minecraft protocol
 pub struct EncryptionKeys {
     pub public_key: RsaPublicKey,
     pub private_key: RsaPrivateKey,
@@ -19,7 +22,10 @@ pub struct EncryptionKeys {
 }
 
 impl EncryptionKeys {
-    /// Generates a 1024-bit RSA key pair to be used with the network protocol
+    /// Generates a 1024-bit RSA key pair to be used with the network protocol.
+    ///
+    /// # Returns
+    /// - `Self`: A new EncryptionKeys instance with a random RSA key pair.
     pub fn generate() -> Self {
         let private_key = RsaPrivateKey::new(&mut rand::rng(), 1024).expect("RsaPrivateKey failed to generate");
         let public_key = RsaPublicKey::from(&private_key);
@@ -36,17 +42,35 @@ impl EncryptionKeys {
         }
     }
 
+    /// Clones the DER formatted public key to be sent to the client when enabling encryption.
+    ///
+    /// # Returns
+    /// - `Vec<u8>`: The cloned public key in DER format.
     pub fn clone_der(&self) -> Vec<u8> {
         self.der_format.clone()
     }
 
+    /// Decrypts a byte array using this struct's private key.
+    ///
+    /// # Parameters
+    /// - `data`: The data to be decrypted.
+    ///
+    /// # Returns
+    /// - `Vec<u8>`: On success, the decrypted bytes.
+    ///
+    /// # Errors
+    /// Returns `NetEncryptionError::RSADecryptionError` if decryption fails.
     pub fn decrypt_bytes(&self, data: &[u8]) -> Result<Vec<u8>, NetEncryptionError> {
         Ok(self.private_key.decrypt(Pkcs1v15Encrypt::default(), data)
-            .map_err(|_| NetEncryptionError::SomeError)? // TODO: more descriptive error
+            .map_err(|_| NetEncryptionError::RSADecryptionError)?
             .to_vec())
     }
 }
 
+/// Gets the current global EncryptionKeys instance.
+///
+/// # Returns
+/// The current EncryptionKey instance.
 pub fn get_encryption_keys() -> &'static EncryptionKeys {
     ENCRYPTION_KEYS.deref()
 }

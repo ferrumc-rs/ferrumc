@@ -6,12 +6,17 @@ use aes::cipher::generic_array::GenericArray;
 use cfb8::Decryptor;
 use tokio::io::{AsyncRead, ReadBuf};
 
+/// A wrapper around a reader that decrypts incoming bytes using AES/CFB8, if configured.
 pub struct EncryptedReader<Reader> {
     reader: Reader,
     cipher: Option<Decryptor<Aes128>>,
 }
 
 impl<Reader> EncryptedReader<Reader> {
+    /// Sets the internal AES cipher to use the specified key.
+    ///
+    /// # Parameters
+    /// - `key`: The key to use for the AES cipher.
     pub fn update_cipher(&mut self, key: &[u8]) {
         self.cipher = Some(Decryptor::new_from_slices(key, key).unwrap());
     }
@@ -29,6 +34,7 @@ impl<Reader: AsyncRead + Unpin> AsyncRead for EncryptedReader<Reader> {
         let poll = Pin::new(&mut self.reader).poll_read(cx, buf);
 
         if let Poll::Ready(Ok(())) = poll {
+            // If cipher is not None, use it to decrypt incoming bytes
             if let Some(cipher) = self.cipher.as_mut() {
                 for b in buf.filled_mut()[before..].chunks_mut(1) {
                     let block = GenericArray::from_mut_slice(b);
