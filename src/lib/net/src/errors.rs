@@ -4,6 +4,7 @@ use ferrumc_net_codec::decode::errors::NetDecodeError;
 use ferrumc_net_codec::encode::errors::NetEncodeError;
 use ferrumc_net_encryption::errors::NetEncryptionError;
 use thiserror::Error;
+use crate::auth::NetAuthenticationError;
 
 #[derive(Debug, Error)]
 pub enum NetError {
@@ -11,7 +12,7 @@ pub enum NetError {
     EncryptionError(#[from] NetEncryptionError),
 
     #[error("Authentication Error: {0}")]
-    AuthenticationError(String),
+    AuthenticationError(#[from] NetAuthenticationError),
 
     #[error("Decoder Error: {0}")]
     DecoderError(#[from] NetDecodeError),
