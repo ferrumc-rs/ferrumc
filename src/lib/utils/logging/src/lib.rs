@@ -14,6 +14,10 @@ pub fn init_logging(trace_level: Level) {
         .with_default_directive(trace_level.into())
         .parse_lossy("");
 
+    let env_filter = env_filter
+        .add_directive("ureq=warn".parse().unwrap())
+        .add_directive("rustls=warn".parse().unwrap());
+
     let file_appender = tracing_appender::rolling::Builder::new()
         .rotation(Rotation::DAILY)
         .filename_prefix("ferrumc")

@@ -10,6 +10,7 @@ use ferrumc_config::favicon::get_favicon_base64;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_macros::lookup_packet;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
+use ferrumc_net_encryption::read::EncryptedReader;
 use ferrumc_state::GlobalState;
 use rand::prelude::IndexedRandom;
 use tokio::net::tcp::OwnedReadHalf;
@@ -34,7 +35,7 @@ use tokio::net::tcp::OwnedReadHalf;
 /// - `true`: Indicates that the connection should be closed after responding.
 /// - `LoginResult`: Contains no player identity or compression because this is a stateless query.
 pub(super) async fn status(
-    mut conn_read: &mut OwnedReadHalf,
+    mut conn_read: &mut EncryptedReader<OwnedReadHalf>,
     conn_write: &StreamWriter,
     state: GlobalState,
 ) -> Result<(bool, LoginResult), NetError> {

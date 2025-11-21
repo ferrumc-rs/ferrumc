@@ -31,7 +31,7 @@ pub struct LoginPlayPacket<'a> {
 }
 
 impl LoginPlayPacket<'_> {
-    pub fn new(conn_id: i32) -> Self {
+    pub fn new(conn_id: i32, gamemode: u8) -> Self {
         Self {
             entity_id: conn_id,
             is_hardcore: false,
@@ -46,7 +46,7 @@ impl LoginPlayPacket<'_> {
             dimension_type: VarInt::new(0),
             dimension_name: "minecraft:overworld",
             seed_hash: 0,
-            gamemode: 1,
+            gamemode,
             previous_gamemode: -1,
             is_debug: false,
             is_flat: false,

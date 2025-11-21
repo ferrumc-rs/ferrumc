@@ -14,14 +14,11 @@ resolver = "2"
 members = [
     "src/bin",
     "src/lib/adapters/anvil",
-    "src/lib/adapters/anvil",
-    "src/lib/adapters/nbt",
     "src/lib/adapters/nbt",
     "src/lib/commands",
     "src/lib/default_commands",
     "src/lib/core",
     "src/lib/core/state",
-    "src/lib/derive_macros",
     "src/lib/derive_macros",
     "src/lib/net",
     "src/lib/net/crates/codec",
@@ -39,7 +36,15 @@ members = [
     "src/lib/inventories",
     "src/lib/registry",
     "src/lib/scheduler",
+    "src/lib/data",
+    "src/lib/components",
+    "src/lib/messages",
+    "src/lib/data",
 ]
+
+[workspace.package]
+edition = "2021"
+version = "0.1.0"
 
 #================== Lints ==================#
 [workspace.lints.rust]
@@ -113,6 +118,9 @@ ferrumc-utils = { path = "src/lib/utils" }
 ferrumc-world = { path = "src/lib/world" }
 ferrumc-world-gen = { path = "src/lib/world_gen" }
 ferrumc-inventories = { path = "src/lib/inventories" }
+ferrumc-components = { path = "src/lib/components" }
+ferrumc-messages = { path = "src/lib/messages" }
+ferrumc-data = { path = "src/lib/data" }
 
 # Asynchronous
 tokio = { version = "1.48.0", features = ["macros", "net", "rt", "sync", "time", "io-util", "test-util"], default-features = false }
@@ -141,6 +149,11 @@ rand = "0.10.0-rc.0"
 fnv = "1.0.7"
 wyhash = "0.6.0"
 ahash = "0.8.12"
+rsa = { version = "0.10.0-rc.10" }
+aes = { version = "0.8.4" }
+cfb8 = "0.8.1"
+sha1 = "0.10.6"
+num-bigint = "0.4.6"
 
 # Encoding/Serialization
 serde = { version = "1.0.228", features = ["derive"] }
@@ -202,6 +215,7 @@ ctrlc = "3.5.0"
 num_cpus = "1.17.0"
 typename = "0.1.2"
 bevy_ecs = { version = "0.17.2", features = ["multi_threaded", "trace"] }
+bevy_math = "0.16.1"
 once_cell = "1.21.3"
 
 # I/O
@@ -214,3 +228,6 @@ criterion = { version = "0.7.0", features = ["html_reports"] }
 
 bitcode = { git = "https://github.com/SoftbearStudios/bitcode" }
 bitcode_derive = { git = "https://github.com/SoftbearStudios/bitcode" }
+
+phf = { version = "0.11", features = ["macros"] }
+phf_codegen = { version = "0.11" }

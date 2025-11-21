@@ -13,6 +13,9 @@ ferrumc-core = { workspace = true }
 bevy_ecs = { workspace = true }
 ferrumc-scheduler = { workspace = true }
 
+ferrumc-registry = { workspace = true }
+ferrumc-messages = { workspace = true }
+ferrumc-components = { workspace = true }
 ferrumc-net = { workspace = true }
 ferrumc-net-codec = { workspace = true }
 ferrumc-plugins = { workspace = true }
@@ -31,6 +34,7 @@ ferrumc-default-commands = { workspace = true }
 ferrumc-world-gen = { workspace = true }
 ferrumc-threadpool = { workspace = true }
 ferrumc-inventories = { workspace = true }
+ferrumc-data = { workspace = true }
 once_cell = { workspace = true }
 serde_json = { workspace = true }
 

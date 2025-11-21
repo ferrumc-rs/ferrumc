@@ -47,8 +47,7 @@ pub fn handle(
         }
         match event.hand.0 {
             0 => {
-                let slot_index = hotbar.selected_slot as usize;
-                let Ok(slot) = inventory.get_item(slot_index) else {
+                let Ok(slot) = hotbar.get_selected_item(inventory) else {
                     error!("Could not fetch {:?}", eid);
                     continue 'ev_loop;
                 };

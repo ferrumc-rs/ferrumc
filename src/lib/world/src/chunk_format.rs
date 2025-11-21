@@ -149,7 +149,7 @@ impl VanillaChunk {
                     if let Some(count) = block_counts.get_mut(&block) {
                         *count += 1;
                     } else {
-                        block_counts.insert(block, 0);
+                        block_counts.insert(block, 1);
                     }
 
                     i += bits_per_block;

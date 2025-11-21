@@ -25,6 +25,8 @@ pub mod swing_arm;
 
 pub mod chunk_batch_ack;
 
+pub mod pick_item_from_block;
+pub mod player_abilities;
 pub mod player_action;
 
 pub mod client_tick_end;
@@ -35,3 +37,6 @@ pub mod player_loaded;
 pub mod set_creative_mode_slot;
 
 pub mod set_held_item;
+
+pub mod change_game_mode;
+pub mod encryption_response;

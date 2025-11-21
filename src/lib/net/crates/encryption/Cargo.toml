@@ -5,3 +5,10 @@ edition = "2021"
 
 [dependencies]
 thiserror = { workspace = true }
+rand = { workspace = true }
+tokio = { workspace = true }
+rsa = { workspace = true }
+aes = { workspace = true }
+cfb8 = { workspace = true }
+sha1 = { workspace = true }
+num-bigint = { workspace = true }
