@@ -113,6 +113,7 @@ pub fn minecraft_hex_digest(server_id: &str, shared_secret: &[u8]) -> String {
 ///
 /// # Returns
 /// - `String`: The resulting hex representation of the SHA1 digest
+#[allow(unused)]
 fn minecraft_hex_digest_test(server_id: &str, shared_secret: &[u8]) -> String {
     let mut hasher = Sha1::new();
     sha1::digest::Update::update(&mut hasher, server_id.as_bytes());

@@ -1,4 +1,5 @@
 use rand::RngCore;
+use serde_derive::Deserialize;
 use crate::compression::compress_packet;
 use crate::conn_init::VarInt;
 use crate::conn_init::{LoginResult, NetDecodeOpts};
@@ -18,7 +19,7 @@ use tokio::net::tcp::OwnedReadHalf;
 use tracing::{debug, error, trace};
 use uuid::Uuid;
 use ferrumc_net_encryption::errors::NetEncryptionError;
-use ferrumc_net_encryption::get_encryption_keys;
+use ferrumc_net_encryption::{get_encryption_keys, minecraft_hex_digest};
 use ferrumc_net_encryption::read::EncryptedReader;
 
 /// Handles the **login sequence** for a newly connecting client.
@@ -119,6 +120,40 @@ pub(super) async fn login(
             conn_read.update_cipher(&shared_secret);
             conn_write.update_encryption_cipher(&shared_secret)?;
             debug!("Successfully enabled encryption!");
+
+            if get_global_config().online_mode {
+                let server_id = minecraft_hex_digest("", &shared_secret);
+
+                let url = format!(
+                    "https://sessionserver.mojang.com/session/minecraft/hasJoined?username={}&serverId={}",
+                    login_start.username,
+                    server_id,
+                );
+
+                #[derive(Deserialize, Debug)]
+                struct AuthResponse {
+                    id: String,
+                    name: String,
+                    properties: Vec<AuthProperty>,
+                }
+
+                #[derive(Deserialize, Debug)]
+                struct AuthProperty {
+                    name: String,
+                    value: String,
+                    signature: String,
+                }
+
+                let response = ureq::get(&url)
+                    .call()
+                    .expect("failed to get auth response")
+                    .body_mut()
+                    .read_json::<AuthResponse>()
+                    .expect("failed to decode auth response");
+
+                debug!("authentication response: {:#?}", response);
+            }
+
         } else {
             return Err(NetError::EncryptionError(NetEncryptionError::VerifyTokenMismatch {
                 expected: verify_token,
@@ -126,8 +161,6 @@ pub(super) async fn login(
             }));
         }
     }
-
-    // TODO: auth player if enabled
 
     // =============================================================================================
     // 4 Send Login Success (UUID and username acknowledgement)
