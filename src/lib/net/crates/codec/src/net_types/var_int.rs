@@ -10,7 +10,6 @@ use std::io::{Read, Write};
 use tokio::io::AsyncRead;
 use tokio::io::AsyncWriteExt;
 use tokio::io::{AsyncReadExt, AsyncWrite};
-use ferrumc_net_encryption::cipher::EncryptionCipher;
 
 #[derive(Debug, Encode, Decode, Clone, DeepSizeOf, PartialEq, Eq, PartialOrd, Ord, Copy, Hash)]
 pub struct VarInt(pub i32);
@@ -119,25 +118,6 @@ impl VarInt {
             let byte = {
                 let mut buf = [0u8; 1];
                 cursor.read_exact(&mut buf).await?;
-                buf[0]
-            } as i32;
-
-            val |= (byte & SEGMENT_BITS) << (7 * i);
-            if byte & CONTINUE_BIT == 0 {
-                return Ok(Self::new(val));
-            }
-        }
-
-        Err(NetTypesError::InvalidVarInt)
-    }
-
-    pub async fn read_async_encrypt<R: AsyncRead + Unpin>(cursor: &mut R, cipher: &EncryptionCipher) -> Result<Self, NetTypesError> {
-        let mut val = 0;
-        for i in 0..5 {
-            let byte = {
-                let mut buf = [0u8; 1];
-                cursor.read_exact(&mut buf).await?;
-                cipher.decrypt(&mut buf).await;
                 buf[0]
             } as i32;
 

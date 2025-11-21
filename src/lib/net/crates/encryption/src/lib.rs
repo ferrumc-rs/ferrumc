@@ -5,7 +5,6 @@ use rsa::pkcs8::EncodePublicKey;
 use crate::errors::NetEncryptionError;
 
 pub mod errors;
-pub mod cipher;
 pub mod read;
 pub mod write;
 
