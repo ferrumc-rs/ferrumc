@@ -79,6 +79,12 @@ impl StreamWriter {
                     break;
                 };
 
+                if bytes.starts_with(b"internal_cmd_update_keys") {
+                    let key = bytes.strip_prefix(b"internal_cmd_update_keys").unwrap();
+                    writer.update_cipher(key);
+                    continue;
+                }
+
                 // This handles ONLY if there was a writing error to the client.
                 if let Err(e) = writer.write_all(&bytes).await {
                     error!("Failed to write to client: {:?}", e);
@@ -165,6 +171,21 @@ impl StreamWriter {
         }
 
         self.sender.send(raw_bytes).map_err(std::io::Error::other)?;
+        Ok(())
+    }
+
+    pub fn update_encryption_cipher(&self, new_key: &[u8]) -> Result<(), NetError> {
+        if !self.running.load(Ordering::Relaxed) {
+            #[cfg(debug_assertions)]
+            warn!("Attempted to update encryption cipher on closed connection");
+            return Err(NetError::ConnectionDropped);
+        }
+
+        // TODO: find a better way of doing this that doesn't involve sending over this sender
+        let mut msg = b"internal_cmd_update_keys".to_vec();
+        msg.extend_from_slice(new_key);
+
+        self.sender.send(msg).map_err(std::io::Error::other)?;
         Ok(())
     }
 }

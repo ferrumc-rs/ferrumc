@@ -117,7 +117,7 @@ pub(super) async fn login(
         if verify_token == received_verify_token {
             let shared_secret = get_encryption_keys().decrypt_bytes(&encryption_response.shared_secret.data)?;
             conn_read.update_cipher(&shared_secret);
-            // TODO: figure out a way to get the key to the writer. another tx/rx channel?
+            conn_write.update_encryption_cipher(&shared_secret)?;
             debug!("Successfully enabled encryption!");
         } else {
             return Err(NetError::EncryptionError(NetEncryptionError::VerifyTokenMismatch {
