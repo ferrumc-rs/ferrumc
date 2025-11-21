@@ -24,3 +24,5 @@ whitelist.txt
 logs/
 
 .zed
+
+temp_gen/
