@@ -1,3 +1,5 @@
+extern crate core;
+
 use bevy_ecs::prelude::Resource;
 use bevy_ecs::world::World;
 use crossbeam_channel::{Receiver, Sender};

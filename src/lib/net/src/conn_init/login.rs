@@ -1,5 +1,3 @@
-use std::str::FromStr;
-use base64::Engine;
 use crate::compression::compress_packet;
 use crate::conn_init::VarInt;
 use crate::conn_init::{LoginResult, NetDecodeOpts};
@@ -16,15 +14,15 @@ use ferrumc_net_codec::decode::NetDecode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_encryption::errors::NetEncryptionError;
-use ferrumc_net_encryption::{get_encryption_keys, minecraft_hex_digest};
+use ferrumc_net_encryption::get_encryption_keys;
 use ferrumc_net_encryption::read::EncryptedReader;
 use ferrumc_state::GlobalState;
 use rand::RngCore;
-use serde_derive::Deserialize;
 use tokio::net::tcp::OwnedReadHalf;
 use tracing::{debug, error, trace};
 use uuid::Uuid;
 use ferrumc_net_codec::net_types::prefixed_optional::PrefixedOptional;
+use crate::auth::authenticate_user;
 
 /// Handles the **login sequence** for a newly connecting client.
 ///
@@ -133,87 +131,11 @@ pub(super) async fn login(
             // =============================================================================================
             // 3.1 Authenticate the player with Mojang's servers (if online_mode is enabled)
             if get_global_config().online_mode {
-                let server_id = minecraft_hex_digest("", &shared_secret);
+                let (username, uuid, properties) = authenticate_user(&login_start.username, "", &shared_secret).await?;
 
-                let url = format!(
-                    "https://sessionserver.mojang.com/session/minecraft/hasJoined?username={}&serverId={}",
-                    login_start.username,
-                    server_id,
-                );
-
-                #[derive(Deserialize, Debug)]
-                struct AuthResponse {
-                    id: String,
-                    name: String,
-                    properties: Vec<AuthProperty>,
-                }
-
-                #[derive(Deserialize, Debug)]
-                struct AuthProperty {
-                    name: String,
-                    value: String,
-                    signature: String,
-                }
-
-                let mut response = ureq::get(&url).call().map_err(|err| {
-                    NetError::AuthenticationError(format!(
-                        "Failed to connect to Mojang servers: {}",
-                        err
-                    ))
-                })?;
-
-                match response.status().as_u16() {
-                    200 => debug!("Successfully authenticated player!"),
-                    204 => {
-                        return Err(NetError::AuthenticationError(
-                            "Authentication failed: server responded with 204".to_string(),
-                        ))
-                    }
-                    404 => {
-                        return Err(NetError::AuthenticationError(
-                            "Mojang's servers are currently unreachable".to_string(),
-                        ))
-                    }
-                    err => {
-                        return Err(NetError::AuthenticationError(format!(
-                            "Mojang's servers responded with error code {}",
-                            err
-                        )))
-                    }
-                };
-
-                let response = response
-                    .body_mut()
-                    .read_json::<AuthResponse>()
-                    .map_err(|err| {
-                        NetError::AuthenticationError(format!("Failed to parse response: {}", err))
-                    })?;
-
-                for property in &response.properties {
-                    player_properties.push(PlayerProperty {
-                        name: property.name.clone(),
-                        value: String::from_utf8(
-                            base64::engine::general_purpose::STANDARD
-                                .decode(&property.value)
-                                .map_err(|err| {
-                                    NetError::AuthenticationError(format!(
-                                        "Failed to decode base64 property value: {err}"
-                                    ))
-                                })?,
-                        )
-                            .map_err(|err| {
-                                NetError::AuthenticationError(format!(
-                                    "Failed to convert property value to String: {err}"
-                                ))
-                            })?,
-                        signature: property.signature.clone(),
-                    });
-                }
-
-                login_start.uuid = Uuid::from_str(&response.id)
-                    .map_err(|err| NetError::AuthenticationError(format!("Corrupted UUID: {err}")))?
-                    .as_u128();
-                login_start.username = response.name;
+                login_start.username = username;
+                login_start.uuid = uuid.as_u128();
+                player_properties.extend_from_slice(&properties);
             }
         } else {
             return Err(NetError::EncryptionError(
@@ -236,7 +158,11 @@ pub(super) async fn login(
                 .map(|property: &PlayerProperty| LoginSuccessProperties {
                     name: &property.name,
                     value: &property.value,
-                    signature: PrefixedOptional::Some(&property.signature),
+                    signature: if let Some(str) = property.signature.as_ref() {
+                        PrefixedOptional::Some(str.as_str())
+                    } else {
+                        PrefixedOptional::None
+                    },
                 })
                 .collect(),
         ),
