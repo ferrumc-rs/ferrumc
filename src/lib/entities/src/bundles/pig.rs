@@ -106,6 +106,9 @@ mod tests {
 
     #[test]
     fn test_pig_bundle_creation() {
+        const EPSILON_F32: f32 = 1e-6;
+        const EPSILON_F64: f64 = 1e-6;
+
         let position = Position::new(0.0, 64.0, 0.0);
         let pig = PigBundle::new(position);
 
@@ -114,10 +117,10 @@ mod tests {
         assert_eq!(pig.metadata.resource_name(), "pig");
         assert!(pig.metadata.is_mob());
 
-        // Verify physical properties
-        assert_eq!(pig.physical.bounding_box.height, 0.9);
-        assert_eq!(pig.physical.bounding_box.half_width, 0.45);
-        assert_eq!(pig.physical.eye_height, 0.765);
+        // Verify physical properties (using epsilon for floating point comparison)
+        assert!((pig.physical.bounding_box.height - 0.9).abs() < EPSILON_F64);
+        assert!((pig.physical.bounding_box.half_width - 0.45).abs() < EPSILON_F64);
+        assert!((pig.physical.eye_height - 0.765).abs() < EPSILON_F32);
         assert!(!pig.physical.fire_immune);
 
         // Verify combat properties
