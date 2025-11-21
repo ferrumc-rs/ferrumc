@@ -11,8 +11,6 @@ thiserror = { workspace = true }
 
 ferrumc-core = { workspace = true }
 bevy_ecs = { workspace = true }
-subsecond = { workspace = true }
-dioxus-devtools = { workspace = true }
 ferrumc-scheduler = { workspace = true }
 
 ferrumc-registry = { workspace = true }

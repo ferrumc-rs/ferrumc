@@ -25,9 +25,6 @@ use tokio::time::sleep;
 use tracing::{debug, error, info, info_span, trace, warn, Instrument};
 
 pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
-    #[cfg(debug_assertions)]
-    dioxus_devtools::connect_subsecond();
-    
     // ECS world and schedules
     let mut ecs_world = World::new();
 

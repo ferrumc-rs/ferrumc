@@ -20,7 +20,7 @@ fn test_command(
     };
 
     sender.send_message(
-        TextComponentBuilder::new(format!("{} did not say: ", username))
+        TextComponentBuilder::new(format!("{} said: ", username))
             .extra(TextComponent::from(message.clone()))
             .build(),
         false,
