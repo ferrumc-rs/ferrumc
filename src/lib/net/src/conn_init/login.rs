@@ -1,5 +1,3 @@
-use std::str::FromStr;
-use base64::Engine;
 use crate::compression::compress_packet;
 use crate::conn_init::VarInt;
 use crate::conn_init::{LoginResult, NetDecodeOpts};
@@ -9,22 +7,24 @@ use crate::packets::incoming::packet_skeleton::PacketSkeleton;
 use crate::packets::outgoing::login_success::LoginSuccessProperties;
 use crate::packets::outgoing::{commands::CommandsPacket, registry_data::REGISTRY_PACKETS};
 use crate::ConnState::*;
+use base64::Engine;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_core::identity::player_identity::{PlayerIdentity, PlayerProperty};
 use ferrumc_macros::lookup_packet;
 use ferrumc_net_codec::decode::NetDecode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
+use ferrumc_net_codec::net_types::prefixed_optional::PrefixedOptional;
 use ferrumc_net_encryption::errors::NetEncryptionError;
-use ferrumc_net_encryption::{get_encryption_keys, minecraft_hex_digest};
 use ferrumc_net_encryption::read::EncryptedReader;
+use ferrumc_net_encryption::{get_encryption_keys, minecraft_hex_digest};
 use ferrumc_state::GlobalState;
 use rand::RngCore;
 use serde_derive::Deserialize;
+use std::str::FromStr;
 use tokio::net::tcp::OwnedReadHalf;
 use tracing::{debug, error, trace};
 use uuid::Uuid;
-use ferrumc_net_codec::net_types::prefixed_optional::PrefixedOptional;
 
 /// Handles the **login sequence** for a newly connecting client.
 ///
@@ -201,11 +201,11 @@ pub(super) async fn login(
                                     ))
                                 })?,
                         )
-                            .map_err(|err| {
-                                NetError::AuthenticationError(format!(
-                                    "Failed to convert property value to String: {err}"
-                                ))
-                            })?,
+                        .map_err(|err| {
+                            NetError::AuthenticationError(format!(
+                                "Failed to convert property value to String: {err}"
+                            ))
+                        })?,
                         signature: property.signature.clone(),
                     });
                 }
