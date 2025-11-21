@@ -3,7 +3,7 @@ use crate::packet_handlers::{play_packets, register_player_systems};
 use crate::register_messages::register_messages;
 use crate::register_resources::register_resources;
 use crate::systems::lan_pinger::LanPinger;
-use crate::systems::listneners::register_gameplay_listeners;
+use crate::systems::listeners::register_gameplay_listeners;
 use crate::systems::register_game_systems;
 use crate::systems::shutdown_systems::register_shutdown_systems;
 use bevy_ecs::prelude::World;

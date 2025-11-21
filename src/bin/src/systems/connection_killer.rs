@@ -1,4 +1,4 @@
-use bevy_ecs::prelude::{Commands, Entity, EventWriter, Query, Res};
+use bevy_ecs::prelude::{Commands, Entity, MessageWriter, Query, Res};
 use ferrumc_components::{
     active_effects::ActiveEffects,
     health::Health,
@@ -11,8 +11,8 @@ use ferrumc_core::{
     identity::player_identity::PlayerIdentity,
     transform::{position::Position, rotation::Rotation},
 };
-use ferrumc_events::player_leave::PlayerLeaveEvent;
 use ferrumc_inventories::inventory::Inventory;
+use ferrumc_messages::player_leave::PlayerLeft;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_state::{player_cache::OfflinePlayerData, GlobalStateResource};
 use ferrumc_text::TextComponent;
@@ -43,7 +43,7 @@ pub fn connection_killer(
     identity_query: Query<PlayerIdentityQuery>,
     mut cmd: Commands,
     state: Res<GlobalStateResource>,
-    mut leave_events: EventWriter<PlayerLeaveEvent>,
+    mut leave_events: MessageWriter<PlayerLeft>,
 ) {
     // Loop through all entities marked for disconnection
     while let Some((disconnecting_entity, reason)) = state.0.players.disconnection_queue.pop() {
@@ -120,7 +120,7 @@ pub fn connection_killer(
                 .insert(player_identity.uuid, data_to_cache);
 
             // --- 3. Fire PlayerLeaveEvent ---
-            leave_events.write(PlayerLeaveEvent(player_identity.clone()));
+            leave_events.write(PlayerLeft(player_identity.clone()));
         } else {
             // --- FAILURE: This is a "half-player" or zombie ---
             warn!(
@@ -134,7 +134,7 @@ pub fn connection_killer(
                     "-> (Half-player had identity: {})",
                     player_identity.username
                 );
-                leave_events.write(PlayerLeaveEvent(player_identity.clone()));
+                leave_events.write(PlayerLeft(player_identity.clone()));
             } else {
                 warn!("-> (Half-player didn't even have an identity component!)");
             }

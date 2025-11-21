@@ -6,7 +6,7 @@ use crate::BinaryError;
 use ferrumc_components::player::abilities::PlayerAbilities;
 use ferrumc_components::player::gameplay_state::digging::PlayerDigging;
 use ferrumc_data::blocks::types::Block;
-use ferrumc_events::player_digging::*;
+use ferrumc_messages::player_digging::*;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::{block_change_ack::BlockChangeAck, block_update::BlockUpdate};
 use ferrumc_net_codec::net_types::var_int::VarInt;
@@ -21,7 +21,7 @@ type DiggingPlayerQuery<'a> = (Entity, &'a StreamWriter, Option<&'a PlayerDiggin
 /// This system starts the digging timer.
 pub fn handle_start_digging(
     mut commands: Commands,
-    mut events: EventReader<PlayerStartDiggingEvent>,
+    mut events: MessageReader<PlayerStartedDigging>,
     mut player_query: Query<DiggingPlayerQuery, With<PlayerAbilities>>,
     state: Res<GlobalStateResource>,
 ) {
@@ -130,7 +130,7 @@ pub fn handle_start_digging(
 /// This system stops the digging timer.
 pub fn handle_cancel_digging(
     mut commands: Commands,
-    mut events: EventReader<PlayerCancelDiggingEvent>,
+    mut events: MessageReader<PlayerCancelledDigging>,
     mut player_query: Query<DiggingPlayerQuery>,
 ) {
     for event in events.read() {
@@ -158,7 +158,7 @@ pub fn handle_cancel_digging(
 /// This system checks the timer and breaks the block.
 pub fn handle_finish_digging(
     mut commands: Commands,
-    mut events: EventReader<PlayerFinishDiggingEvent>,
+    mut events: MessageReader<PlayerFinishedDigging>,
     state: Res<GlobalStateResource>,
     mut player_query: Query<DiggingPlayerQuery>,
     broadcast_query: Query<(Entity, &StreamWriter)>, // For broadcasting the break

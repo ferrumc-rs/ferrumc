@@ -1,7 +1,7 @@
-use bevy_ecs::prelude::{Entity, EventReader, Query};
+use bevy_ecs::prelude::{Entity, MessageReader, Query};
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::mq;
-use ferrumc_events::player_leave::PlayerLeaveEvent;
+use ferrumc_messages::player_leave::PlayerLeft;
 use ferrumc_text::{Color, NamedColor, TextComponent};
 
 use tracing::trace; // We only need trace, mq will handle errors
@@ -9,7 +9,7 @@ use tracing::trace; // We only need trace, mq will handle errors
 /// Listens for `PlayerLeaveEvent` and broadcasts the "left" message
 /// to all other connected players via the Message Queue.
 pub fn handle(
-    mut events: EventReader<PlayerLeaveEvent>,
+    mut events: MessageReader<PlayerLeft>,
     player_query: Query<(Entity, &PlayerIdentity)>,
 ) {
     // 1. Loop through each "player left" event

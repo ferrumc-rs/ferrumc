@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
 use crate::errors::BinaryError;
-use bevy_ecs::prelude::{Entity, EventWriter, Query, Res};
+use bevy_ecs::prelude::{Entity, MessageWriter, Query, Res};
 use ferrumc_components::player::abilities::PlayerAbilities;
-use ferrumc_events::player_digging::*;
+use ferrumc_messages::player_digging::*;
 
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::block_change_ack::BlockChangeAck;
@@ -19,16 +19,12 @@ pub fn handle(
     state: Res<GlobalStateResource>,
     broadcast_query: Query<(Entity, &StreamWriter)>,
     player_query: Query<&PlayerAbilities>,
-    mut start_dig_events: MessageWriter<PlayerStartDiggingEvent>,
-    mut cancel_dig_events: MessageWriter<PlayerCancelDiggingEvent>,
-    mut finish_dig_events: MessageWriter<PlayerFinishDiggingEvent>,
+    mut start_dig_events: MessageWriter<PlayerStartedDigging>,
+    mut cancel_dig_events: MessageWriter<PlayerCancelledDigging>,
+    mut finish_dig_events: MessageWriter<PlayerFinishedDigging>,
 ) {
     // https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol?oldid=2773393#Player_Action
     for (event, trigger_eid) in receiver.0.try_iter() {
-        let res: Result<(), BinaryError> = try {
-            match event.status.0 {
-                0 => {
-    for (event, trigger_eid) in events.0.try_iter() {
         // Get the player's abilities to check their gamemode
         let Ok(abilities) = player_query.get(trigger_eid) else {
             warn!(
@@ -103,11 +99,11 @@ pub fn handle(
             }
         } else {
             // --- SURVIVAL MODE LOGIC ---
-            // This handler's only job is to fire events.
+            // This handler's only job is to fire messages.
             match event.status.0 {
                 0 => {
                     // Started digging
-                    start_dig_events.write(PlayerStartDiggingEvent {
+                    start_dig_events.write(PlayerStartedDigging {
                         player: trigger_eid,
                         position: event.location,
                         sequence: event.sequence,
@@ -115,14 +111,14 @@ pub fn handle(
                 }
                 1 => {
                     // Cancelled digging
-                    cancel_dig_events.write(PlayerCancelDiggingEvent {
+                    cancel_dig_events.write(PlayerCancelledDigging {
                         player: trigger_eid,
                         sequence: event.sequence,
                     });
                 }
                 2 => {
                     // Finished digging
-                    finish_dig_events.write(PlayerFinishDiggingEvent {
+                    finish_dig_events.write(PlayerFinishedDigging {
                         player: trigger_eid,
                         position: event.location,
                         sequence: event.sequence,

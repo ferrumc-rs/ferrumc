@@ -2,7 +2,7 @@ pub mod connection_killer;
 mod cross_chunk_boundary;
 pub mod keep_alive_system;
 pub mod lan_pinger;
-pub mod listneners;
+pub mod listeners;
 mod mq;
 pub mod new_connections;
 pub mod player_count_update;
