@@ -10,3 +10,7 @@ ferrumc-world-gen = { workspace = true }
 dashmap = { workspace = true }
 ferrumc-threadpool = { workspace = true }
 crossbeam-queue = { workspace = true }
+ferrumc-core = {workspace = true}
+uuid = { workspace = true }
+ferrumc-components = { workspace = true }
+ferrumc-inventories = { workspace = true }

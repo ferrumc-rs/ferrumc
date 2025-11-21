@@ -12,6 +12,8 @@ use crossbeam_channel::Sender;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
+use ferrumc_net_encryption::read::EncryptedReader;
+use ferrumc_net_encryption::write::EncryptedWriter;
 use ferrumc_state::ServerState;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
@@ -38,7 +40,7 @@ const MAX_HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(10);
 /// - Gracefully handles disconnection when dropped.
 #[derive(TypeName, Component)]
 pub struct StreamWriter {
-    sender: UnboundedSender<Vec<u8>>,
+    sender: UnboundedSender<WriterCommand>,
     pub running: Arc<AtomicBool>,
     pub compress: Arc<AtomicBool>,
     pub state: Arc<ServerState>,
@@ -58,14 +60,16 @@ impl StreamWriter {
     /// Spawns a background task that continuously reads from the channel
     /// and writes bytes to the network socket.
     pub async fn new(
-        mut writer: OwnedWriteHalf,
+        mut writer: EncryptedWriter<OwnedWriteHalf>,
         running: Arc<AtomicBool>,
         state: Arc<ServerState>,
         entity: Arc<Mutex<Option<Entity>>>,
     ) -> Self {
         let compress = Arc::new(AtomicBool::new(false)); // Default: no compression
-        let (sender, mut receiver): (UnboundedSender<Vec<u8>>, UnboundedReceiver<Vec<u8>>) =
-            tokio::sync::mpsc::unbounded_channel();
+        let (sender, mut receiver): (
+            UnboundedSender<WriterCommand>,
+            UnboundedReceiver<WriterCommand>,
+        ) = tokio::sync::mpsc::unbounded_channel();
         let running_clone = running.clone();
         let entity_clone = entity.clone();
         let state_clone = state.clone();
@@ -73,18 +77,25 @@ impl StreamWriter {
         // Task: forward packets from channel to socket
         tokio::spawn(async move {
             while running_clone.load(Ordering::Relaxed) {
-                let Some(bytes) = receiver.recv().await else {
+                let Some(cmd) = receiver.recv().await else {
                     break;
                 };
 
-                // This handles ONLY if there was a writing error to the client.
-                if let Err(e) = writer.write_all(&bytes).await {
-                    error!("Failed to write to client: {:?}", e);
-                    running_clone.store(false, Ordering::Relaxed);
-                    if let Some(entity_id) = *entity_clone.lock().unwrap() {
-                        state_clone.players.disconnect(entity_id, None);
+                match cmd {
+                    WriterCommand::SendPacket(bytes) => {
+                        // This handles ONLY if there was a writing error to the client.
+                        if let Err(e) = writer.write_all(&bytes).await {
+                            error!("Failed to write to client: {:?}", e);
+                            running_clone.store(false, Ordering::Relaxed);
+                            if let Some(entity_id) = *entity_clone.lock().unwrap() {
+                                state_clone.players.disconnect(entity_id, None);
+                            }
+                            break;
+                        }
                     }
-                    break;
+                    WriterCommand::CipherKey(new_key) => {
+                        writer.update_cipher(&new_key);
+                    }
                 }
             }
 
@@ -150,7 +161,9 @@ impl StreamWriter {
             )))
         })?;
 
-        self.sender.send(raw_bytes).map_err(std::io::Error::other)?;
+        self.sender
+            .send(WriterCommand::SendPacket(raw_bytes))
+            .map_err(std::io::Error::other)?;
         Ok(())
     }
 
@@ -162,7 +175,23 @@ impl StreamWriter {
             return Err(NetError::ConnectionDropped);
         }
 
-        self.sender.send(raw_bytes).map_err(std::io::Error::other)?;
+        self.sender
+            .send(WriterCommand::SendPacket(raw_bytes))
+            .map_err(std::io::Error::other)?;
+        Ok(())
+    }
+
+    /// Sends a message to the outgoing packet writer to update its encryption keys
+    pub fn update_encryption_cipher(&self, new_key: &[u8]) -> Result<(), NetError> {
+        if !self.running.load(Ordering::Relaxed) {
+            #[cfg(debug_assertions)]
+            warn!("Attempted to update encryption cipher on closed connection");
+            return Err(NetError::ConnectionDropped);
+        }
+
+        self.sender
+            .send(WriterCommand::CipherKey(new_key.to_vec()))
+            .map_err(std::io::Error::other)?;
         Ok(())
     }
 }
@@ -203,7 +232,10 @@ pub async fn handle_connection(
     packet_sender: Arc<PacketSender>,
     new_join_sender: Arc<Sender<NewConnection>>,
 ) -> Result<(), NetError> {
-    let (mut tcp_reader, tcp_writer) = tcp_stream.into_split();
+    let (tcp_reader, tcp_writer) = tcp_stream.into_split();
+
+    let mut tcp_reader = EncryptedReader::from(tcp_reader);
+    let tcp_writer = EncryptedWriter::from(tcp_writer);
 
     let running = Arc::new(AtomicBool::new(true));
 
@@ -375,4 +407,9 @@ pub async fn handle_connection(
     }
 
     Ok(())
+}
+
+enum WriterCommand {
+    SendPacket(Vec<u8>),
+    CipherKey(Vec<u8>),
 }

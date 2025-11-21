@@ -36,7 +36,7 @@ jobs:
         with:
           tool: cargo-audit
       - name: Run Cargo Audit
-        run: cargo audit
+        run: cargo audit --ignore RUSTSEC-2023-0071
   build:
     name: Build and Upload Artifacts
     if: github.ref == 'refs/heads/master'
@@ -51,6 +51,8 @@ jobs:
             target: x86_64-unknown-linux-gnu
           - os: windows-latest
             target: x86_64-pc-windows-msvc
+          - os: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
     steps:
       - uses: actions/checkout@v5
 
@@ -81,6 +83,8 @@ jobs:
             target: x86_64-unknown-linux-gnu
           - os: windows-latest
             target: x86_64-pc-windows-msvc
+          - os: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5

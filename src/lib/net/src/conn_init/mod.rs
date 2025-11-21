@@ -11,6 +11,7 @@ use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_macros::lookup_packet;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::net_types::var_int::VarInt;
+use ferrumc_net_encryption::read::EncryptedReader;
 use ferrumc_state::GlobalState;
 use ferrumc_text::{ComponentBuilder, NamedColor, TextComponent};
 use std::sync::atomic::Ordering;
@@ -57,7 +58,7 @@ pub const PROTOCOL_VERSION_1_21_8: i32 = 772;
 /// - Protocol version mismatches and cannot be gracefully handled.
 /// - An invalid or unsupported handshake state is encountered.
 pub async fn handle_handshake(
-    mut conn_read: &mut OwnedReadHalf,
+    mut conn_read: &mut EncryptedReader<OwnedReadHalf>,
     conn_write: &StreamWriter,
     state: GlobalState,
 ) -> Result<(bool, LoginResult), NetError> {
@@ -125,7 +126,7 @@ pub async fn handle_handshake(
 /// Always returns `Err(NetError::MismatchedProtocolVersion)` to signal the mismatch.
 async fn handle_version_mismatch(
     hs_packet: Handshake,
-    conn_read: &mut OwnedReadHalf,
+    conn_read: &mut EncryptedReader<OwnedReadHalf>,
     conn_write: &StreamWriter,
     state: GlobalState,
 ) -> Result<(bool, LoginResult), NetError> {

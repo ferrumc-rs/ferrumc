@@ -48,6 +48,8 @@ pub struct ServerConfig {
     pub world: String,
     pub network_compression_threshold: i32, // Can be negative
     pub verify_decompressed_packets: bool,
+    pub encryption_enabled: bool,
+    pub online_mode: bool,
     pub whitelist: bool,
     pub chunk_render_distance: u32,
 }
