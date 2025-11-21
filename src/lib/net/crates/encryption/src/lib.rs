@@ -104,34 +104,35 @@ pub fn minecraft_hex_digest(server_id: &str, shared_secret: &[u8]) -> String {
     bigint.to_str_radix(16)
 }
 
-/// Minecraft's custom implementation of a SHA1 hex digest.
-///
-/// # Note
-/// This function is only to be used in tests. The only different between this function and `minecraft_hex_digest`
-/// is that this function does **NOT** hash the encryption key.
-///
-/// # Parameters
-/// - `server_id`: The server id sent to the player in an EncryptionRequest packet.
-/// - `shared_secret`: The shared secret returned by the player in an EncryptionResponse packet.
-///
-/// # Returns
-/// - `String`: The resulting hex representation of the SHA1 digest
-#[allow(unused)]
-fn minecraft_hex_digest_test(server_id: &str, shared_secret: &[u8]) -> String {
-    let mut hasher = Sha1::new();
-    sha1::digest::Update::update(&mut hasher, server_id.as_bytes());
-    sha1::digest::Update::update(&mut hasher, shared_secret);
-    let digest = hasher.finalize();
-
-    // Minecraft requires this as part of their special hexdigest function
-    let bigint = BigInt::from_signed_bytes_be(&digest);
-
-    bigint.to_str_radix(16)
-}
-
 #[cfg(test)]
 mod tests {
-    use crate::minecraft_hex_digest_test;
+    use num_bigint::BigInt;
+    use sha1::{Digest, Sha1};
+
+    /// Minecraft's custom implementation of a SHA1 hex digest.
+    ///
+    /// # Note
+    /// This function is only to be used in tests. The only different between this function and `minecraft_hex_digest`
+    /// is that this function does **NOT** hash the encryption key.
+    ///
+    /// # Parameters
+    /// - `server_id`: The server id sent to the player in an EncryptionRequest packet.
+    /// - `shared_secret`: The shared secret returned by the player in an EncryptionResponse packet.
+    ///
+    /// # Returns
+    /// - `String`: The resulting hex representation of the SHA1 digest
+    #[allow(unused)]
+    fn minecraft_hex_digest_test(server_id: &str, shared_secret: &[u8]) -> String {
+        let mut hasher = Sha1::new();
+        sha1::digest::Update::update(&mut hasher, server_id.as_bytes());
+        sha1::digest::Update::update(&mut hasher, shared_secret);
+        let digest = hasher.finalize();
+
+        // Minecraft requires this as part of their special hexdigest function
+        let bigint = BigInt::from_signed_bytes_be(&digest);
+
+        bigint.to_str_radix(16)
+    }
 
     #[test]
     fn test_hex_digest() {
