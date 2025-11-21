@@ -11,7 +11,7 @@
 resolver = "2"
 
 #================= Members =================#
- members = [
+members = [
     "src/bin",
     "src/lib/adapters/anvil",
     "src/lib/adapters/nbt",
@@ -118,8 +118,8 @@ ferrumc-utils = { path = "src/lib/utils" }
 ferrumc-world = { path = "src/lib/world" }
 ferrumc-world-gen = { path = "src/lib/world_gen" }
 ferrumc-inventories = { path = "src/lib/inventories" }
-ferrumc-components = { path = "src/lib/components"}
-ferrumc-events = { path = "src/lib/events"}
+ferrumc-components = { path = "src/lib/components" }
+ferrumc-events = { path = "src/lib/events" }
 ferrumc-data = { path = "src/lib/data" }
 
 # Asynchronous
