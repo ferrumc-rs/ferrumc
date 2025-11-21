@@ -30,6 +30,8 @@ online_mode = true
 # Chunk render distance. This is the distance in chunks that the server will load around the player.
 chunk_render_distance = 12
 
+default_gamemode = "creative"
+
 # Database configuration
 [database]
 # Path to the world database

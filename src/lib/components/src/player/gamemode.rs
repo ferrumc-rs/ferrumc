@@ -1,15 +1,26 @@
-use bevy_ecs::prelude::Component;
-
 use crate::player::abilities::PlayerAbilities;
+use bevy_ecs::prelude::Component;
+use ferrumc_config::server_config::get_global_config;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum GameMode {
-    #[default]
     Survival = 0,
     Creative = 1,
     Adventure = 2,
     Spectator = 3,
+}
+
+impl Default for GameMode {
+    fn default() -> Self {
+        match get_global_config().default_gamemode.to_lowercase().as_str() {
+            "survival" => GameMode::Survival,
+            "creative" => GameMode::Creative,
+            "adventure" => GameMode::Adventure,
+            "spectator" => GameMode::Spectator,
+            _ => GameMode::Survival,
+        }
+    }
 }
 
 impl GameMode {
