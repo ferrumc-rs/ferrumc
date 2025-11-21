@@ -1,5 +1,6 @@
 use bevy_ecs::prelude::{Entity, Event};
 use ferrumc_net_codec::net_types::network_position::NetworkPosition;
+use ferrumc_net_codec::net_types::var_int::VarInt;
 
 /// Fired when the client sends "start digging" (status 0).
 ///
@@ -10,6 +11,7 @@ use ferrumc_net_codec::net_types::network_position::NetworkPosition;
 pub struct PlayerStartDiggingEvent {
     pub player: Entity,
     pub position: NetworkPosition,
+    pub sequence: VarInt,
 }
 
 /// Fired when the client sends "cancel digging" (status 1).
@@ -20,6 +22,7 @@ pub struct PlayerStartDiggingEvent {
 #[allow(unused)]
 pub struct PlayerCancelDiggingEvent {
     pub player: Entity,
+    pub sequence: VarInt,
 }
 
 /// Fired when the client sends "finish digging" (status 2).
@@ -31,4 +34,5 @@ pub struct PlayerCancelDiggingEvent {
 pub struct PlayerFinishDiggingEvent {
     pub player: Entity,
     pub position: NetworkPosition,
+    pub sequence: VarInt,
 }
