@@ -1,7 +1,7 @@
 use std::pin::Pin;
 use std::task::{Context, Poll};
 use aes::Aes128;
-use aes::cipher::BlockDecryptMut;
+use aes::cipher::{BlockDecryptMut, KeyIvInit};
 use aes::cipher::generic_array::GenericArray;
 use cfb8::Decryptor;
 use tokio::io::{AsyncRead, ReadBuf};
@@ -12,8 +12,8 @@ pub struct EncryptedReader<Reader> {
 }
 
 impl<Reader> EncryptedReader<Reader> {
-    pub fn update_cipher(&mut self, cipher: Decryptor<Aes128>) {
-        self.cipher = Some(cipher);
+    pub fn update_cipher(&mut self, key: &[u8]) {
+        self.cipher = Some(Decryptor::new_from_slices(key, key).unwrap());
     }
 }
 

@@ -1,5 +1,5 @@
 use aes::cipher::generic_array::GenericArray;
-use aes::cipher::BlockEncryptMut;
+use aes::cipher::{BlockEncryptMut, KeyIvInit};
 use aes::Aes128;
 use cfb8::Encryptor;
 use std::io::Error;
@@ -13,8 +13,8 @@ pub struct EncryptedWriter<Writer> {
 }
 
 impl<Writer> EncryptedWriter<Writer> {
-    pub fn update_cipher(&mut self, cipher: Encryptor<Aes128>) {
-        self.cipher = Some(cipher);
+    pub fn update_cipher(&mut self, key: &[u8]) {
+        self.cipher = Some(Encryptor::new_from_slices(key, key).unwrap());
     }
 }
 
