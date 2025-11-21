@@ -5,11 +5,13 @@ use crate::connection::StreamWriter;
 use crate::errors::{NetError, PacketError};
 use crate::packets::incoming::packet_skeleton::PacketSkeleton;
 use crate::packets::outgoing::login_success::LoginSuccessProperties;
+use crate::packets::outgoing::set_default_spawn_position::DEFAULT_SPAWN_POSITION;
 use crate::packets::outgoing::{commands::CommandsPacket, registry_data::REGISTRY_PACKETS};
 use crate::ConnState::*;
 use base64::Engine;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_core::identity::player_identity::{PlayerIdentity, PlayerProperty};
+use ferrumc_core::transform::position::Position;
 use ferrumc_macros::lookup_packet;
 use ferrumc_net_codec::decode::NetDecode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
@@ -354,7 +356,7 @@ pub(super) async fn login(
     // =============================================================================================
     // 12 Send login_play packet to switch to Play state
 
-    let gamemode_to_send = state
+    let game_mode_to_send = state
         .player_cache
         .get(&player_identity.uuid)
         .map(|data| data.gamemode)
@@ -362,7 +364,7 @@ pub(super) async fn login(
 
     let login_play = crate::packets::outgoing::login_play::LoginPlayPacket::new(
         player_identity.short_uuid,
-        gamemode_to_send as u8,
+        game_mode_to_send as u8,
     );
     conn_write.send_packet(login_play)?;
 
@@ -394,8 +396,30 @@ pub(super) async fn login(
     // =============================================================================================
     // 15 Send initial player position sync (requires teleport confirmation)
     let teleport_id_i32: i32 = (rand::random::<u32>() & 0x3FFF_FFFF) as i32;
+
+    let spawn_pos = state
+        .player_cache
+        .get(&player_identity.uuid)
+        .map(|f| f.position.clone())
+        .unwrap_or(Position::new(
+            DEFAULT_SPAWN_POSITION.x as f64,
+            DEFAULT_SPAWN_POSITION.y as f64,
+            DEFAULT_SPAWN_POSITION.z as f64,
+        ));
+
+    let spawn_rotation = state
+        .player_cache
+        .get(&player_identity.uuid)
+        .map(|f| f.rotation)
+        .unwrap_or_default();
+
     let sync_player_pos =
         crate::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket {
+            x: spawn_pos.x,
+            y: spawn_pos.y,
+            z: spawn_pos.z,
+            pitch: spawn_rotation.pitch,
+            yaw: spawn_rotation.yaw,
             teleport_id: VarInt::new(teleport_id_i32),
             ..Default::default()
         };
