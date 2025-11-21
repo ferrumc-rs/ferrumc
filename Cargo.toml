@@ -149,6 +149,11 @@ rand = "0.10.0-rc.0"
 fnv = "1.0.7"
 wyhash = "0.6.0"
 ahash = "0.8.12"
+rsa = { version = "0.10.0-rc.10" }
+aes = { version = "0.8.4" }
+cfb8 = "0.8.1"
+sha1 = "0.10.6"
+num-bigint = "0.4.6"
 
 # Encoding/Serialization
 serde = { version = "1.0.228", features = ["derive"] }
