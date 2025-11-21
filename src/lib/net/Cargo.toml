@@ -39,6 +39,7 @@ yazi = { workspace = true }
 ferrumc-inventories = { workspace = true }
 ureq = { workspace = true }
 base64 = { workspace = true }
+reqwest = { version = "0.12.24", features = ["json"] }
 
 
 [dev-dependencies]
