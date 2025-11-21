@@ -84,7 +84,7 @@ pub(super) async fn login(
 
     // =============================================================================================
     // 3 Enable encryption and auth player if configured
-    if get_global_config().encryption_enabled {
+    if get_global_config().encryption_enabled || get_global_config().online_mode {
         let mut verify_token = vec![0u8; 16];
         rand::rng().fill_bytes(&mut verify_token);
 
