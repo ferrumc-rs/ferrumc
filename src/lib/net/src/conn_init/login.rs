@@ -8,7 +8,6 @@ use crate::packets::outgoing::login_success::LoginSuccessProperties;
 use crate::packets::outgoing::set_default_spawn_position::DEFAULT_SPAWN_POSITION;
 use crate::packets::outgoing::{commands::CommandsPacket, registry_data::REGISTRY_PACKETS};
 use crate::ConnState::*;
-use ferrumc_components::player::gamemode::GameMode;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_core::identity::player_identity::{PlayerIdentity, PlayerProperty};
 use ferrumc_core::transform::position::Position;
