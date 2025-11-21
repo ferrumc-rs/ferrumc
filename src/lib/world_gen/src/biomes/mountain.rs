@@ -1,5 +1,5 @@
-use crate::errors::WorldGenError;
 use crate::BiomeGenerator;
+use crate::errors::WorldGenError;
 use ferrumc_world::chunk_format::Chunk;
 
 pub(crate) struct MountainBiome {}

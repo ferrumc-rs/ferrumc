@@ -1,6 +1,6 @@
 use crate::errors::WorldGenError;
 use crate::noise::NoiseGenerator;
-use crate::{WorldGenerator, MAX_GENERATED_HEIGHT};
+use crate::{MAX_GENERATED_HEIGHT, WorldGenerator};
 use ferrumc_macros::block;
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::chunk_format::Chunk;

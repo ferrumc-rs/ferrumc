@@ -1,6 +1,6 @@
 use crate::errors::WorldGenError;
 use crate::noise::NoiseGenerator;
-use crate::{BiomeGenerator, BASELINE_HEIGHT};
+use crate::{BASELINE_HEIGHT, BiomeGenerator};
 use ferrumc_macros::block;
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::chunk_format::Chunk;

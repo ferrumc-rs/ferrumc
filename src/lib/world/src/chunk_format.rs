@@ -32,8 +32,7 @@ pub struct Chunk {
     pub noises: Noises,
 }
 
-#[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug, Default)]
-#[derive(Copy)]
+#[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug, Default, Copy)]
 pub struct Noises {
     // We have to use u32 here because f32s are not Eq, so we convert them to and from u32s with
     // to_bits() and from_bits() respectively. DO NOT USE `as f32` ON THESE VALUES, YOU WILL BREAK

@@ -1,5 +1,5 @@
 use crate::noise::NoiseGenerator;
-use crate::{WorldGenerator, BASELINE_HEIGHT, MAX_GENERATED_HEIGHT};
+use crate::{BASELINE_HEIGHT, MAX_GENERATED_HEIGHT, WorldGenerator};
 use ferrumc_macros::block;
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::edit_batch::EditBatch;
