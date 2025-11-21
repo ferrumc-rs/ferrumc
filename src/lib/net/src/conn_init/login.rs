@@ -24,6 +24,7 @@ use serde_derive::Deserialize;
 use tokio::net::tcp::OwnedReadHalf;
 use tracing::{debug, error, trace};
 use uuid::Uuid;
+use ferrumc_net_codec::net_types::prefixed_optional::PrefixedOptional;
 
 /// Handles the **login sequence** for a newly connecting client.
 ///
@@ -235,7 +236,7 @@ pub(super) async fn login(
                 .map(|property: &PlayerProperty| LoginSuccessProperties {
                     name: &property.name,
                     value: &property.value,
-                    signature: Some(&property.signature),
+                    signature: PrefixedOptional::Some(&property.signature),
                 })
                 .collect(),
         ),
