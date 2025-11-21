@@ -4,13 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-axum = { version = "0.7", features = ["http1", "tokio"] }
-tokio = { workspace = true, features = ["rt-multi-thread", "macros", "net"] }
-tokio-stream = "0.1"
-sysinfo = "0.33"
 tracing = { workspace = true }
 ferrumc-state = { workspace = true }
-askama = "0.12"
-askama_axum = "0.4"
-tower-http = { version = "0.5", features = ["fs", "trace"] }
-serde = { version = "1.0", features = ["derive"] }
+
+[build-dependencies]
+reqwest = { version = "0.12", features = ["blocking", "rustls-tls"] }
+anyhow = "1.0"
