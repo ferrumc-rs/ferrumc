@@ -11,13 +11,16 @@ pub mod write;
 /// The global EncryptionKeys instance to be used for encryption/decryption.
 static ENCRYPTION_KEYS: LazyLock<EncryptionKeys> = LazyLock::new(|| EncryptionKeys::generate());
 
-/// Struct to hold:
+/// Struct to hold encryption keys.
+///
+/// Holds:
 /// - A RSA private key
 /// - The public key associated with said private key
 /// - The public key encoded in DER format as specified by the Minecraft protocol
 pub struct EncryptionKeys {
-    pub public_key: RsaPublicKey,
-    pub private_key: RsaPrivateKey,
+    #[allow(unused)] // Public key currently is only used to create DER format
+    public_key: RsaPublicKey,
+    private_key: RsaPrivateKey,
     der_format: Vec<u8>,
 }
 
