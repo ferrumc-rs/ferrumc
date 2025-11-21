@@ -1,7 +1,10 @@
 use std::ops::Deref;
 use std::sync::LazyLock;
+use num_bigint::BigInt;
 use rsa::{Pkcs1v15Encrypt, RsaPrivateKey, RsaPublicKey};
 use rsa::pkcs8::EncodePublicKey;
+use sha1::{Digest, Sha1};
+use sha1::digest::Update;
 use crate::errors::NetEncryptionError;
 
 pub mod errors;
@@ -76,6 +79,27 @@ impl EncryptionKeys {
 /// The current EncryptionKey instance.
 pub fn get_encryption_keys() -> &'static EncryptionKeys {
     ENCRYPTION_KEYS.deref()
+}
+
+/// Minecraft's custom implementation of a SHA1 hex digest.
+///
+/// # Parameters
+/// - `server_id`: The server id sent to the player in an EncryptionRequest packet.
+/// - `shared_secret`: The shared secret returned by the player in an EncryptionResponse packet.
+///
+/// # Returns
+/// - `String`: The resulting hex representation of the SHA1 digest
+pub fn minecraft_hex_digest(server_id: &str, shared_secret: &[u8]) -> String {
+    let mut hasher = Sha1::new();
+    hasher.update(server_id.as_bytes());
+    hasher.update(shared_secret);
+    hasher.update(get_encryption_keys().clone_der());
+    let digest = hasher.finalize();
+
+    // Minecraft requires this as part of their special hexdigest function
+    let bigint = BigInt::from_signed_bytes_be(&digest);
+
+    bigint.to_str_radix(16)
 }
 
 #[cfg(test)]
