@@ -115,12 +115,8 @@ pub(super) async fn login(
 
         // Verify that the encryption algorithms worked correctly
         if verify_token == received_verify_token {
-            {
-                let mut lock = conn_write.encryption_key.lock().await;
-
-                let shared_secret = get_encryption_keys().decrypt_bytes(&encryption_response.shared_secret.data)?;
-                lock.get_or_insert(EncryptionCipher::new(&shared_secret));
-            }
+            let shared_secret = get_encryption_keys().decrypt_bytes(&encryption_response.shared_secret.data)?;
+            conn_write.encryption_key.update_keys(&shared_secret).await;
             debug!("Successfully enabled encryption!");
         } else {
             return Err(NetError::EncryptionError(NetEncryptionError::VerifyTokenMismatch {
