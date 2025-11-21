@@ -10,6 +10,9 @@ pub enum NetError {
     #[error("Encryption Error: {0}")]
     EncryptionError(#[from] NetEncryptionError),
 
+    #[error("Authentication Error: {0}")]
+    AuthenticationError(String),
+
     #[error("Decoder Error: {0}")]
     DecoderError(#[from] NetDecodeError),
 
