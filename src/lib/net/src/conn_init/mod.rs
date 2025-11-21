@@ -11,12 +11,12 @@ use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_macros::lookup_packet;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::net_types::var_int::VarInt;
+use ferrumc_net_encryption::read::EncryptedReader;
 use ferrumc_state::GlobalState;
 use ferrumc_text::{ComponentBuilder, NamedColor, TextComponent};
 use std::sync::atomic::Ordering;
 use tokio::net::tcp::OwnedReadHalf;
 use tracing::{error, trace};
-use ferrumc_net_encryption::read::EncryptedReader;
 
 /// Represents the result of a login attempt after the handshake process.
 ///

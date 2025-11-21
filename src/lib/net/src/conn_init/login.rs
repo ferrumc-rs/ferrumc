@@ -1,27 +1,29 @@
-use std::str::FromStr;
-use rand::RngCore;
-use serde_derive::Deserialize;
 use crate::compression::compress_packet;
 use crate::conn_init::VarInt;
 use crate::conn_init::{LoginResult, NetDecodeOpts};
 use crate::connection::StreamWriter;
 use crate::errors::{NetError, PacketError};
 use crate::packets::incoming::packet_skeleton::PacketSkeleton;
+use crate::packets::outgoing::login_success::LoginSuccessProperties;
 use crate::packets::outgoing::{commands::CommandsPacket, registry_data::REGISTRY_PACKETS};
 use crate::ConnState::*;
+use base64::Engine;
 use ferrumc_config::server_config::get_global_config;
-use ferrumc_core::identity::player_identity::PlayerIdentity;
+use ferrumc_core::identity::player_identity::{PlayerIdentity, PlayerProperty};
 use ferrumc_macros::lookup_packet;
 use ferrumc_net_codec::decode::NetDecode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
+use ferrumc_net_encryption::errors::NetEncryptionError;
+use ferrumc_net_encryption::read::EncryptedReader;
+use ferrumc_net_encryption::{get_encryption_keys, minecraft_hex_digest};
 use ferrumc_state::GlobalState;
+use rand::RngCore;
+use serde_derive::Deserialize;
+use std::str::FromStr;
 use tokio::net::tcp::OwnedReadHalf;
 use tracing::{debug, error, trace};
 use uuid::Uuid;
-use ferrumc_net_encryption::errors::NetEncryptionError;
-use ferrumc_net_encryption::{get_encryption_keys, minecraft_hex_digest};
-use ferrumc_net_encryption::read::EncryptedReader;
 
 /// Handles the **login sequence** for a newly connecting client.
 ///
@@ -84,6 +86,8 @@ pub(super) async fn login(
 
     // =============================================================================================
     // 3 Enable encryption and auth player if configured
+    let mut player_properties = Vec::new();
+
     if get_global_config().encryption_enabled || get_global_config().online_mode {
         let mut verify_token = vec![0u8; 16];
         rand::rng().fill_bytes(&mut verify_token);
@@ -108,16 +112,19 @@ pub(super) async fn login(
             }));
         }
 
-        let encryption_response = crate::packets::incoming::encryption_response::EncryptionResponse::decode(
-            &mut skel.data,
-            &NetDecodeOpts::None,
-        )?;
+        let encryption_response =
+            crate::packets::incoming::encryption_response::EncryptionResponse::decode(
+                &mut skel.data,
+                &NetDecodeOpts::None,
+            )?;
 
-        let received_verify_token = get_encryption_keys().decrypt_bytes(&encryption_response.verify_token.data)?;
+        let received_verify_token =
+            get_encryption_keys().decrypt_bytes(&encryption_response.verify_token.data)?;
 
         // Verify that the encryption algorithms worked correctly
         if verify_token == received_verify_token {
-            let shared_secret = get_encryption_keys().decrypt_bytes(&encryption_response.shared_secret.data)?;
+            let shared_secret =
+                get_encryption_keys().decrypt_bytes(&encryption_response.shared_secret.data)?;
             conn_read.update_cipher(&shared_secret);
             conn_write.update_encryption_cipher(&shared_secret)?;
             debug!("Successfully enabled encryption!");
@@ -147,33 +154,73 @@ pub(super) async fn login(
                     signature: String,
                 }
 
-                let mut response = ureq::get(&url)
-                    .call()
-                    .map_err(|err| NetError::AuthenticationError(format!("Failed to connect to Mojang servers: {}", err)))?;
+                let mut response = ureq::get(&url).call().map_err(|err| {
+                    NetError::AuthenticationError(format!(
+                        "Failed to connect to Mojang servers: {}",
+                        err
+                    ))
+                })?;
 
                 match response.status().as_u16() {
                     200 => debug!("Successfully authenticated player!"),
-                    204 => return Err(NetError::AuthenticationError("Authentication failed: server responded with 204".to_string())),
-                    404 => return Err(NetError::AuthenticationError("Mojang's servers are currently unreachable".to_string())),
-                    err => return Err(NetError::AuthenticationError(format!("Mojang's servers responded with error code {}", err))),
+                    204 => {
+                        return Err(NetError::AuthenticationError(
+                            "Authentication failed: server responded with 204".to_string(),
+                        ))
+                    }
+                    404 => {
+                        return Err(NetError::AuthenticationError(
+                            "Mojang's servers are currently unreachable".to_string(),
+                        ))
+                    }
+                    err => {
+                        return Err(NetError::AuthenticationError(format!(
+                            "Mojang's servers responded with error code {}",
+                            err
+                        )))
+                    }
                 };
 
                 let response = response
                     .body_mut()
                     .read_json::<AuthResponse>()
-                    .map_err(|err| NetError::AuthenticationError(format!("Failed to parse response: {}", err)))?;
+                    .map_err(|err| {
+                        NetError::AuthenticationError(format!("Failed to parse response: {}", err))
+                    })?;
 
-                login_start.uuid = Uuid::from_str(&response.id).map_err(|err| NetError::AuthenticationError(format!("Corrupted UUID: {err}")))?.as_u128();
+                for property in &response.properties {
+                    player_properties.push(PlayerProperty {
+                        name: property.name.clone(),
+                        value: String::from_utf8(
+                            base64::engine::general_purpose::STANDARD
+                                .decode(&property.value)
+                                .map_err(|err| {
+                                    NetError::AuthenticationError(format!(
+                                        "Failed to decode base64 property value: {err}"
+                                    ))
+                                })?,
+                        )
+                        .map_err(|err| {
+                            NetError::AuthenticationError(format!(
+                                "Failed to convert property value to String: {err}"
+                            ))
+                        })?,
+                        signature: property.signature.clone(),
+                    });
+                }
+
+                login_start.uuid = Uuid::from_str(&response.id)
+                    .map_err(|err| NetError::AuthenticationError(format!("Corrupted UUID: {err}")))?
+                    .as_u128();
                 login_start.username = response.name;
-
-                // TODO: something needs to be done with the properties returned here, they should be stored on the player and sent during the entity creation packet
             }
-
         } else {
-            return Err(NetError::EncryptionError(NetEncryptionError::VerifyTokenMismatch {
-                expected: verify_token,
-                returned: encryption_response.verify_token.data,
-            }));
+            return Err(NetError::EncryptionError(
+                NetEncryptionError::VerifyTokenMismatch {
+                    expected: verify_token,
+                    returned: encryption_response.verify_token.data,
+                },
+            ));
         }
     }
 
@@ -182,7 +229,16 @@ pub(super) async fn login(
     let login_success = crate::packets::outgoing::login_success::LoginSuccessPacket {
         uuid: login_start.uuid,
         username: &login_start.username,
-        properties: LengthPrefixedVec::default(),
+        properties: LengthPrefixedVec::new(
+            player_properties
+                .iter()
+                .map(|property| LoginSuccessProperties {
+                    name: &property.name,
+                    value: &property.value,
+                    signature: Some(&property.signature),
+                })
+                .collect(),
+        ),
     };
 
     conn_write.send_packet(login_success)?;
@@ -192,6 +248,7 @@ pub(super) async fn login(
         uuid: Uuid::from_u128(login_start.uuid),
         username: login_start.username.clone(),
         short_uuid: login_start.uuid as i32,
+        properties: player_properties,
     };
 
     // =============================================================================================

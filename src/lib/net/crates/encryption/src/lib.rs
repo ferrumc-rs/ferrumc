@@ -1,17 +1,17 @@
+use crate::errors::NetEncryptionError;
+use num_bigint::BigInt;
+use rsa::pkcs8::EncodePublicKey;
+use rsa::{Pkcs1v15Encrypt, RsaPrivateKey, RsaPublicKey};
+use sha1::{Digest, Sha1};
 use std::ops::Deref;
 use std::sync::LazyLock;
-use num_bigint::BigInt;
-use rsa::{Pkcs1v15Encrypt, RsaPrivateKey, RsaPublicKey};
-use rsa::pkcs8::EncodePublicKey;
-use sha1::{Digest, Sha1};
-use crate::errors::NetEncryptionError;
 
 pub mod errors;
 pub mod read;
 pub mod write;
 
 /// The global EncryptionKeys instance to be used for encryption/decryption.
-static ENCRYPTION_KEYS: LazyLock<EncryptionKeys> = LazyLock::new(|| EncryptionKeys::generate());
+static ENCRYPTION_KEYS: LazyLock<EncryptionKeys> = LazyLock::new(EncryptionKeys::generate);
 
 /// Struct to hold encryption keys.
 ///
@@ -32,7 +32,8 @@ impl EncryptionKeys {
     /// # Returns
     /// - `Self`: A new EncryptionKeys instance with a random RSA key pair.
     pub fn generate() -> Self {
-        let private_key = RsaPrivateKey::new(&mut rand::rng(), 1024).expect("RsaPrivateKey failed to generate");
+        let private_key =
+            RsaPrivateKey::new(&mut rand::rng(), 1024).expect("RsaPrivateKey failed to generate");
         let public_key = RsaPublicKey::from(&private_key);
 
         let der = public_key
@@ -66,7 +67,9 @@ impl EncryptionKeys {
     /// # Errors
     /// Returns `NetEncryptionError::RSADecryptionError` if decryption fails.
     pub fn decrypt_bytes(&self, data: &[u8]) -> Result<Vec<u8>, NetEncryptionError> {
-        Ok(self.private_key.decrypt(Pkcs1v15Encrypt::default(), data)
+        Ok(self
+            .private_key
+            .decrypt(Pkcs1v15Encrypt, data)
             .map_err(|_| NetEncryptionError::RSADecryptionError)?
             .to_vec())
     }
@@ -128,12 +131,21 @@ fn minecraft_hex_digest_test(server_id: &str, shared_secret: &[u8]) -> String {
 
 #[cfg(test)]
 mod tests {
-    use crate::{minecraft_hex_digest_test};
+    use crate::minecraft_hex_digest_test;
 
     #[test]
     fn test_hex_digest() {
-        assert_eq!("-7c9d5b0044c130109a5d7b5fb5c317c02b4e28c1", minecraft_hex_digest_test("", b"jeb_"));
-        assert_eq!("4ed1f46bbe04bc756bcb17c0c7ce3e4632f06a48", minecraft_hex_digest_test("", b"Notch"));
-        assert_eq!("88e16a1019277b15d58faf0541e11910eb756f6", minecraft_hex_digest_test("", b"simon"));
+        assert_eq!(
+            "-7c9d5b0044c130109a5d7b5fb5c317c02b4e28c1",
+            minecraft_hex_digest_test("", b"jeb_")
+        );
+        assert_eq!(
+            "4ed1f46bbe04bc756bcb17c0c7ce3e4632f06a48",
+            minecraft_hex_digest_test("", b"Notch")
+        );
+        assert_eq!(
+            "88e16a1019277b15d58faf0541e11910eb756f6",
+            minecraft_hex_digest_test("", b"simon")
+        );
     }
 }

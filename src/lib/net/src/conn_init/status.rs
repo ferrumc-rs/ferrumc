@@ -10,10 +10,10 @@ use ferrumc_config::favicon::get_favicon_base64;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_macros::lookup_packet;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
+use ferrumc_net_encryption::read::EncryptedReader;
 use ferrumc_state::GlobalState;
 use rand::prelude::IndexedRandom;
 use tokio::net::tcp::OwnedReadHalf;
-use ferrumc_net_encryption::read::EncryptedReader;
 
 /// Handles the Minecraft server "status" state of the handshake.
 ///

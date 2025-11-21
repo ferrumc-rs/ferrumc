@@ -25,12 +25,19 @@ impl<Writer> EncryptedWriter<Writer> {
 
 impl<Writer> From<Writer> for EncryptedWriter<Writer> {
     fn from(writer: Writer) -> Self {
-        Self { writer, cipher: None }
+        Self {
+            writer,
+            cipher: None,
+        }
     }
 }
 
 impl<Writer: AsyncWrite + Unpin> AsyncWrite for EncryptedWriter<Writer> {
-    fn poll_write(mut self: Pin<&mut Self>, cx: &mut Context<'_>, buf: &[u8]) -> Poll<Result<usize, Error>> {
+    fn poll_write(
+        mut self: Pin<&mut Self>,
+        cx: &mut Context<'_>,
+        buf: &[u8],
+    ) -> Poll<Result<usize, Error>> {
         let mut buf = buf.to_vec();
 
         // If cipher is not None, encrypt outgoing bytes

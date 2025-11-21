@@ -1,9 +1,9 @@
+use aes::cipher::generic_array::GenericArray;
+use aes::cipher::{BlockDecryptMut, KeyIvInit};
+use aes::Aes128;
+use cfb8::Decryptor;
 use std::pin::Pin;
 use std::task::{Context, Poll};
-use aes::Aes128;
-use aes::cipher::{BlockDecryptMut, KeyIvInit};
-use aes::cipher::generic_array::GenericArray;
-use cfb8::Decryptor;
 use tokio::io::{AsyncRead, ReadBuf};
 
 /// A wrapper around a reader that decrypts incoming bytes using AES/CFB8, if configured.
@@ -24,12 +24,19 @@ impl<Reader> EncryptedReader<Reader> {
 
 impl<Reader> From<Reader> for EncryptedReader<Reader> {
     fn from(reader: Reader) -> EncryptedReader<Reader> {
-        Self { reader, cipher: None }
+        Self {
+            reader,
+            cipher: None,
+        }
     }
 }
 
 impl<Reader: AsyncRead + Unpin> AsyncRead for EncryptedReader<Reader> {
-    fn poll_read(mut self: Pin<&mut Self>, cx: &mut Context<'_>, buf: &mut ReadBuf<'_>) -> Poll<std::io::Result<()>> {
+    fn poll_read(
+        mut self: Pin<&mut Self>,
+        cx: &mut Context<'_>,
+        buf: &mut ReadBuf<'_>,
+    ) -> Poll<std::io::Result<()>> {
         let before = buf.filled().len();
         let poll = Pin::new(&mut self.reader).poll_read(cx, buf);
 

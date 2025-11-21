@@ -38,6 +38,7 @@ lazy_static = { workspace = true }
 yazi = { workspace = true }
 ferrumc-inventories = { workspace = true }
 ureq = { workspace = true }
+base64 = { workspace = true }
 
 
 [dev-dependencies]

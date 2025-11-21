@@ -12,6 +12,8 @@ use crossbeam_channel::Sender;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
+use ferrumc_net_encryption::read::EncryptedReader;
+use ferrumc_net_encryption::write::EncryptedWriter;
 use ferrumc_state::ServerState;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
@@ -24,8 +26,6 @@ use tokio::sync::oneshot;
 use tokio::time::timeout;
 use tracing::{debug, debug_span, error, trace, warn, Instrument};
 use typename::TypeName;
-use ferrumc_net_encryption::read::EncryptedReader;
-use ferrumc_net_encryption::write::EncryptedWriter;
 
 /// The maximum time allowed for a client to complete its initial handshake.
 /// Connections exceeding this duration will be dropped to avoid resource hogging.
