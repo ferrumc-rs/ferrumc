@@ -40,7 +40,7 @@ const MAX_HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(10);
 /// - Gracefully handles disconnection when dropped.
 #[derive(TypeName, Component)]
 pub struct StreamWriter {
-    sender: UnboundedSender<Vec<u8>>,
+    sender: UnboundedSender<WriterCommand>,
     pub running: Arc<AtomicBool>,
     pub compress: Arc<AtomicBool>,
     pub state: Arc<ServerState>,
@@ -66,8 +66,10 @@ impl StreamWriter {
         entity: Arc<Mutex<Option<Entity>>>,
     ) -> Self {
         let compress = Arc::new(AtomicBool::new(false)); // Default: no compression
-        let (sender, mut receiver): (UnboundedSender<Vec<u8>>, UnboundedReceiver<Vec<u8>>) =
-            tokio::sync::mpsc::unbounded_channel();
+        let (sender, mut receiver): (
+            UnboundedSender<WriterCommand>,
+            UnboundedReceiver<WriterCommand>,
+        ) = tokio::sync::mpsc::unbounded_channel();
         let running_clone = running.clone();
         let entity_clone = entity.clone();
         let state_clone = state.clone();
@@ -75,24 +77,25 @@ impl StreamWriter {
         // Task: forward packets from channel to socket
         tokio::spawn(async move {
             while running_clone.load(Ordering::Relaxed) {
-                let Some(bytes) = receiver.recv().await else {
+                let Some(cmd) = receiver.recv().await else {
                     break;
                 };
 
-                if bytes.starts_with(b"internal_cmd_update_keys") {
-                    let key = bytes.strip_prefix(b"internal_cmd_update_keys").unwrap();
-                    writer.update_cipher(key);
-                    continue;
-                }
-
-                // This handles ONLY if there was a writing error to the client.
-                if let Err(e) = writer.write_all(&bytes).await {
-                    error!("Failed to write to client: {:?}", e);
-                    running_clone.store(false, Ordering::Relaxed);
-                    if let Some(entity_id) = *entity_clone.lock().unwrap() {
-                        state_clone.players.disconnect(entity_id, None);
+                match cmd {
+                    WriterCommand::SendPacket(bytes) => {
+                        // This handles ONLY if there was a writing error to the client.
+                        if let Err(e) = writer.write_all(&bytes).await {
+                            error!("Failed to write to client: {:?}", e);
+                            running_clone.store(false, Ordering::Relaxed);
+                            if let Some(entity_id) = *entity_clone.lock().unwrap() {
+                                state_clone.players.disconnect(entity_id, None);
+                            }
+                            break;
+                        }
                     }
-                    break;
+                    WriterCommand::CipherKey(new_key) => {
+                        writer.update_cipher(&new_key);
+                    }
                 }
             }
 
@@ -158,7 +161,9 @@ impl StreamWriter {
             )))
         })?;
 
-        self.sender.send(raw_bytes).map_err(std::io::Error::other)?;
+        self.sender
+            .send(WriterCommand::SendPacket(raw_bytes))
+            .map_err(std::io::Error::other)?;
         Ok(())
     }
 
@@ -170,7 +175,9 @@ impl StreamWriter {
             return Err(NetError::ConnectionDropped);
         }
 
-        self.sender.send(raw_bytes).map_err(std::io::Error::other)?;
+        self.sender
+            .send(WriterCommand::SendPacket(raw_bytes))
+            .map_err(std::io::Error::other)?;
         Ok(())
     }
 
@@ -182,11 +189,9 @@ impl StreamWriter {
             return Err(NetError::ConnectionDropped);
         }
 
-        // TODO: find a better way of doing this that doesn't involve sending over this sender
-        let mut msg = b"internal_cmd_update_keys".to_vec();
-        msg.extend_from_slice(new_key);
-
-        self.sender.send(msg).map_err(std::io::Error::other)?;
+        self.sender
+            .send(WriterCommand::CipherKey(new_key.to_vec()))
+            .map_err(std::io::Error::other)?;
         Ok(())
     }
 }
@@ -402,4 +407,9 @@ pub async fn handle_connection(
     }
 
     Ok(())
+}
+
+enum WriterCommand {
+    SendPacket(Vec<u8>),
+    CipherKey(Vec<u8>),
 }
