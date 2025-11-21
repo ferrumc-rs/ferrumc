@@ -38,7 +38,8 @@ resolver = "2"
     "src/lib/scheduler",
     "src/lib/data",
     "src/lib/components",
-    "src/lib/events"
+    "src/lib/events",
+    "src/lib/data",
 ]
 
 [workspace.package]
@@ -117,9 +118,9 @@ ferrumc-utils = { path = "src/lib/utils" }
 ferrumc-world = { path = "src/lib/world" }
 ferrumc-world-gen = { path = "src/lib/world_gen" }
 ferrumc-inventories = { path = "src/lib/inventories" }
-ferrumc-data = { path = "src/lib/data" }
 ferrumc-components = { path = "src/lib/components"}
 ferrumc-events = { path = "src/lib/events"}
+ferrumc-data = { path = "src/lib/data" }
 
 # Asynchronous
 tokio = { version = "1.48.0", features = ["macros", "net", "rt", "sync", "time", "io-util", "test-util"], default-features = false }
