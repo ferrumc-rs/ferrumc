@@ -40,3 +40,10 @@ map_size = 1_000
 cache_ttl = 60
 # How big the cache can be in kb.
 cache_capacity = 20_000
+
+# Dashboard configuration (functional only if the dashboard feature is enabled)
+[dashboard]
+port = 9000
+# Generated using:
+# python -c "import secret;print(secrets.token_urlsafe())"
+secret = "H4AiheIDL2-e2dM3mxSoHOhNRSyfGw1iGYlV3WcuaRw"

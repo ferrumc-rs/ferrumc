@@ -50,6 +50,8 @@ pub struct ServerConfig {
     pub verify_decompressed_packets: bool,
     pub whitelist: bool,
     pub chunk_render_distance: u32,
+    #[cfg(feature = "dashboard")]
+    pub dashboard: DashboardConfig,
 }
 
 /// The database configuration section from [ServerConfig].
@@ -70,6 +72,18 @@ pub struct DatabaseConfig {
     pub map_size: u64,
     pub cache_ttl: u64,
     pub cache_capacity: u64,
+}
+
+#[cfg(feature = "dashboard")]
+/// The dashboard configuration section from [ServerConfig].
+///
+/// Fields:
+/// - `port`: The port that the dashboard will bind to. (0-65535)
+/// - `secret`: The secret key for accessing the dashboard.
+#[derive(Debug, Deserialize, Serialize, Default)]
+pub struct DashboardConfig {
+    pub port: u16,
+    pub secret: String,
 }
 
 fn create_config() -> ServerConfig {

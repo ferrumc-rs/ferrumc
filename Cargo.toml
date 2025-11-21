@@ -222,9 +222,11 @@ tempfile = "3.23.0"
 # Benchmarking
 criterion = { version = "0.7.0", features = ["html_reports"] }
 
-
 bitcode = { git = "https://github.com/SoftbearStudios/bitcode" }
 bitcode_derive = { git = "https://github.com/SoftbearStudios/bitcode" }
 
 phf = { version = "0.11", features = ["macros"] }
 phf_codegen = { version = "0.11" }
+
+# Web server
+axum = { version = "0.8.7", features = ["tokio"]}

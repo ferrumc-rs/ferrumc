@@ -4,8 +4,14 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+
 tracing = { workspace = true }
+axum = { workspace = true }
+tokio = { workspace = true, features = ["rt-multi-thread"] }
+
+# ferrumc local crates
 ferrumc-state = { workspace = true }
+ferrumc-config = { workspace = true, features = ["dashboard"] }
 
 [build-dependencies]
 reqwest = { version = "0.12", features = ["blocking", "rustls-tls"] }

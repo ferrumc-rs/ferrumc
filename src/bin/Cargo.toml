@@ -51,7 +51,10 @@ dhat = { workspace = true }
 
 [features]
 dhat = []
-dashboard = ["dep:ferrumc-dashboard"]
+dashboard = [
+    "dep:ferrumc-dashboard",
+    "ferrumc-config/dashboard"
+]
 
 [[bin]]
 name = "ferrumc"

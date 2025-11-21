@@ -1,13 +1,14 @@
+use anyhow::Result;
 use std::env;
 use std::fs;
-use std::path::Path;
 use std::io::Write;
-use anyhow::Result;
+use std::path::Path;
 
 // CONFIGURATION
 // Since we set up the GitHub Action to release to 'latest', we can use this URL.
 // Replace 'ferrumc-rs/dashboard' with your actual user/repo if different.
-const DASHBOARD_URL: &str = "https://github.com/ferrumc-rs/dashboard/releases/download/latest/dashboard.min.html";
+const DASHBOARD_URL: &str =
+    "https://github.com/ferrumc-rs/dashboard/releases/download/latest/dashboard.min.html";
 
 fn main() -> Result<()> {
     // 1. Determine where to put the file.
@@ -21,10 +22,14 @@ fn main() -> Result<()> {
     let should_download = std::env::var("FORCE_UPDATE").is_ok() || !dest_path.exists();
 
     if should_download {
-        println!("cargo:warning=Downloading Dashboard artifact from {}", DASHBOARD_URL);
+        println!(
+            "cargo:warning=Downloading Dashboard artifact from {}",
+            DASHBOARD_URL
+        );
 
         let client = reqwest::blocking::Client::new();
-        let response = client.get(DASHBOARD_URL)
+        let response = client
+            .get(DASHBOARD_URL)
             .header("User-Agent", "ferrumc-build-script")
             .send()?;
 
