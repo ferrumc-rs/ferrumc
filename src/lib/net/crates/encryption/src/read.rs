@@ -45,8 +45,8 @@ impl<Reader: AsyncRead + Unpin> AsyncRead for EncryptedReader<Reader> {
             if let Some(cipher) = self.cipher.as_mut() {
                 for b in buf.filled_mut()[before..].chunks_mut(1) {
                     #[allow(deprecated)]
-                    let mut block = HybridArray::from_mut_slice(b);
-                    cipher.decrypt_block(&mut block);
+                    let block = HybridArray::from_mut_slice(b);
+                    cipher.decrypt_block(block);
                 }
             }
         }
