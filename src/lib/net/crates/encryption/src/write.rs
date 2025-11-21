@@ -1,6 +1,7 @@
-use aes::cipher::generic_array::GenericArray;
-use aes::cipher::{BlockEncryptMut, KeyIvInit};
+use aes::cipher::array::Array as HybridArray;
+use aes::cipher::KeyIvInit;
 use aes::Aes128;
+use cfb8::cipher::BlockModeEncrypt;
 use cfb8::Encryptor;
 use std::io::Error;
 use std::pin::Pin;
@@ -43,8 +44,8 @@ impl<Writer: AsyncWrite + Unpin> AsyncWrite for EncryptedWriter<Writer> {
         // If cipher is not None, encrypt outgoing bytes
         if let Some(enc) = self.cipher.as_mut() {
             for b in buf.chunks_mut(1) {
-                let block = GenericArray::from_mut_slice(b);
-                enc.encrypt_block_mut(block);
+                let block = HybridArray::from_mut_slice(b);
+                enc.encrypt_block(block);
             }
         }
 
