@@ -14,8 +14,8 @@ use ferrumc_net_codec::decode::NetDecode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_encryption::errors::NetEncryptionError;
-use ferrumc_net_encryption::read::EncryptedReader;
 use ferrumc_net_encryption::get_encryption_keys;
+use ferrumc_net_encryption::read::EncryptedReader;
 use ferrumc_state::GlobalState;
 use rand::RngCore;
 use tokio::net::tcp::OwnedReadHalf;
@@ -83,7 +83,7 @@ pub(super) async fn login(
 
     // =============================================================================================
     // 3 Enable encryption and auth player if configured
-    let mut player_properties = Vec::new();
+    let player_properties = Vec::new();
 
     if get_global_config().encryption_enabled || get_global_config().online_mode {
         let mut verify_token = vec![0u8; 16];
