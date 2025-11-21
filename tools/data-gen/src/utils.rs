@@ -16,6 +16,6 @@ pub fn create_file(path: &Path) -> fs::File {
 pub fn write_mod_file(output_dir: &Path) {
     let mut file = fs::File::create(output_dir.join("mod.rs")).unwrap();
     writeln!(file, "pub mod blocks;").unwrap();
-//    writeln!(file, "pub mod items;").unwrap();
-//    writeln!(file, "pub mod registries;").unwrap();
+    //    writeln!(file, "pub mod items;").unwrap();
+    //    writeln!(file, "pub mod registries;").unwrap();
 }

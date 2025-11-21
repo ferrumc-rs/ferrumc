@@ -100,7 +100,9 @@ pub fn extract_physics_data(remapped_jar: &Path, temp_dir: &Path) -> PathBuf {
 
     println!("    Found {} libraries.", jar_count);
     if !found_dfu {
-        println!("WARNING: 'datafixerupper' JAR not found in libraries! Compilation will likely fail.");
+        println!(
+            "WARNING: 'datafixerupper' JAR not found in libraries! Compilation will likely fail."
+        );
         println!("Check contents of: {}", lib_dir.display());
     }
 
