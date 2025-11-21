@@ -1,4 +1,5 @@
 use crate::errors::BinaryError;
+use crate::events;
 use crate::packet_handlers::{play_packets, register_player_systems};
 use crate::register_events::register_events;
 use crate::register_resources::register_resources;
@@ -202,6 +203,10 @@ fn build_timed_scheduler() -> Scheduler {
     }
 
     timed
+}
+
+fn register_event_systems(schedule: &mut Schedule) {
+    schedule.add_systems(events::player_disconnect::handle);
 }
 
 fn tcp_conn_acceptor(
