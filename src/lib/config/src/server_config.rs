@@ -52,6 +52,7 @@ pub struct ServerConfig {
     pub online_mode: bool,
     pub whitelist: bool,
     pub chunk_render_distance: u32,
+    pub default_gamemode: String,
 }
 
 /// The database configuration section from [ServerConfig].
