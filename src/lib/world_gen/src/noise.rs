@@ -1,3 +1,4 @@
+use simdnoise::Settings;
 use splines::Spline;
 
 pub struct NoiseGenerator {
