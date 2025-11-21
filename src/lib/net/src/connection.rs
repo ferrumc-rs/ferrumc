@@ -174,6 +174,7 @@ impl StreamWriter {
         Ok(())
     }
 
+    /// Sends a message to the outgoing packet writer to update its encryption keys
     pub fn update_encryption_cipher(&self, new_key: &[u8]) -> Result<(), NetError> {
         if !self.running.load(Ordering::Relaxed) {
             #[cfg(debug_assertions)]

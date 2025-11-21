@@ -1,3 +1,4 @@
+use std::str::FromStr;
 use rand::RngCore;
 use serde_derive::Deserialize;
 use crate::compression::compress_packet;
@@ -61,7 +62,7 @@ pub(super) async fn login(
         }));
     }
 
-    let login_start = crate::packets::incoming::login_start::LoginStartPacket::decode(
+    let mut login_start = crate::packets::incoming::login_start::LoginStartPacket::decode(
         &mut skel.data,
         &NetDecodeOpts::None,
     )?;
@@ -121,6 +122,8 @@ pub(super) async fn login(
             conn_write.update_encryption_cipher(&shared_secret)?;
             debug!("Successfully enabled encryption!");
 
+            // =============================================================================================
+            // 3.1 Authenticate the player with Mojang's servers (if online_mode is enabled)
             if get_global_config().online_mode {
                 let server_id = minecraft_hex_digest("", &shared_secret);
 
@@ -144,14 +147,26 @@ pub(super) async fn login(
                     signature: String,
                 }
 
-                let response = ureq::get(&url)
+                let mut response = ureq::get(&url)
                     .call()
-                    .expect("failed to get auth response")
+                    .map_err(|err| NetError::AuthenticationError(format!("Failed to connect to Mojang servers: {}", err)))?;
+
+                match response.status().as_u16() {
+                    200 => debug!("Successfully authenticated player!"),
+                    204 => return Err(NetError::AuthenticationError("Authentication failed: server responded with 204".to_string())),
+                    404 => return Err(NetError::AuthenticationError("Mojang's servers are currently unreachable".to_string())),
+                    err => return Err(NetError::AuthenticationError(format!("Mojang's servers responded with error code {}", err))),
+                };
+
+                let response = response
                     .body_mut()
                     .read_json::<AuthResponse>()
-                    .expect("failed to decode auth response");
+                    .map_err(|err| NetError::AuthenticationError(format!("Failed to parse response: {}", err)))?;
 
-                debug!("authentication response: {:#?}", response);
+                login_start.uuid = Uuid::from_str(&response.id).map_err(|err| NetError::AuthenticationError(format!("Corrupted UUID: {err}")))?.as_u128();
+                login_start.username = response.name;
+
+                // TODO: something needs to be done with the properties returned here, they should be stored on the player and sent during the entity creation packet
             }
 
         } else {
