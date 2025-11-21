@@ -19,6 +19,7 @@ pub fn handle(
             *rot = Rotation::new(event.yaw, event.pitch);
 
             *ground = OnGround::from(event.flags & 0x01 != 0); // Check if the on_ground flag is set
+
             //TODO: ANTICHEAT
         }
         let transform_event = TransformEvent::new(eid)
