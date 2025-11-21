@@ -77,6 +77,10 @@ impl ThreadPool {
         let boxed = move || Box::new(func());
         self.pool.evaluate(boxed)
     }
+
+    pub fn close(self) {
+        <rusty_pool::ThreadPool as Clone>::clone(&self.pool).shutdown();
+    }
 }
 
 impl<'a, R: Send + 'static> ThreadPoolBatch<'a, R> {

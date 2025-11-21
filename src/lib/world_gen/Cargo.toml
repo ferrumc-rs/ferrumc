@@ -7,8 +7,14 @@ edition = "2024"
 ferrumc-world = { workspace = true }
 thiserror = { workspace = true }
 noise = { workspace = true }
+simdnoise = { workspace = true }
+splines = { workspace = true }
 rand = { workspace = true }
 ferrumc-macros = { workspace = true }
+
+[dev-dependencies]
+rayon = { workspace = true }
+dashmap = { workspace = true }
 
 [lints]
 workspace = true
