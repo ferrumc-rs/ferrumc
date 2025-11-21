@@ -24,7 +24,8 @@ use tokio::sync::oneshot;
 use tokio::time::timeout;
 use tracing::{debug, debug_span, error, trace, warn, Instrument};
 use typename::TypeName;
-use ferrumc_net_encryption::cipher::EncryptionCipher;
+use ferrumc_net_encryption::read::EncryptedReader;
+use ferrumc_net_encryption::write::EncryptedWriter;
 
 /// The maximum time allowed for a client to complete its initial handshake.
 /// Connections exceeding this duration will be dropped to avoid resource hogging.
@@ -42,7 +43,6 @@ pub struct StreamWriter {
     sender: UnboundedSender<Vec<u8>>,
     pub running: Arc<AtomicBool>,
     pub compress: Arc<AtomicBool>,
-    pub encryption_key: Arc<EncryptionCipher>,
     pub state: Arc<ServerState>,
     pub entity: Arc<Mutex<Option<Entity>>>,
 }
@@ -60,9 +60,8 @@ impl StreamWriter {
     /// Spawns a background task that continuously reads from the channel
     /// and writes bytes to the network socket.
     pub async fn new(
-        mut writer: OwnedWriteHalf,
+        mut writer: EncryptedWriter<OwnedWriteHalf>,
         running: Arc<AtomicBool>,
-        encryption_key: Arc<EncryptionCipher>,
         state: Arc<ServerState>,
         entity: Arc<Mutex<Option<Entity>>>,
     ) -> Self {
@@ -105,7 +104,6 @@ impl StreamWriter {
             sender,
             running,
             compress,
-            encryption_key,
             state,
             entity,
         }
@@ -141,7 +139,7 @@ impl StreamWriter {
             return Err(NetError::ConnectionDropped);
         }
 
-        let mut raw_bytes = compress_packet(
+        let raw_bytes = compress_packet(
             packet,
             self.compress.load(Ordering::Relaxed),
             net_encode_opts,
@@ -153,9 +151,6 @@ impl StreamWriter {
                 err
             )))
         })?;
-
-        // TODO: find a better way of waiting for this to complete?
-        pollster::block_on(self.encryption_key.encrypt(&mut raw_bytes));
 
         self.sender.send(raw_bytes).map_err(std::io::Error::other)?;
         Ok(())
@@ -210,17 +205,18 @@ pub async fn handle_connection(
     packet_sender: Arc<PacketSender>,
     new_join_sender: Arc<Sender<NewConnection>>,
 ) -> Result<(), NetError> {
-    let (mut tcp_reader, tcp_writer) = tcp_stream.into_split();
+    let (tcp_reader, tcp_writer) = tcp_stream.into_split();
+
+    let mut tcp_reader = EncryptedReader::from(tcp_reader);
+    let tcp_writer = EncryptedWriter::from(tcp_writer);
 
     let running = Arc::new(AtomicBool::new(true));
 
-    let encryption_key_holder: Arc<EncryptionCipher> = Arc::new(EncryptionCipher::new());
     let entity_holder: Arc<Mutex<Option<Entity>>> = Arc::new(Mutex::new(None));
 
     let stream = StreamWriter::new(
         tcp_writer,
         running.clone(),
-        encryption_key_holder.clone(),
         state.clone(),
         entity_holder.clone(),
     )
@@ -321,7 +317,7 @@ pub async fn handle_connection(
         // Read next packet
         let mut packet_skele;
         tokio::select! {
-            packet_result = PacketSkeleton::new(&mut tcp_reader, login_result.compression, encryption_key_holder.clone(), Play) => {
+            packet_result = PacketSkeleton::new(&mut tcp_reader, login_result.compression, Play) => {
                 match packet_result {
                     Ok(packet) => {
                         packet_skele = packet;

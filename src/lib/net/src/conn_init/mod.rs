@@ -16,6 +16,7 @@ use ferrumc_text::{ComponentBuilder, NamedColor, TextComponent};
 use std::sync::atomic::Ordering;
 use tokio::net::tcp::OwnedReadHalf;
 use tracing::{error, trace};
+use ferrumc_net_encryption::read::EncryptedReader;
 
 /// Represents the result of a login attempt after the handshake process.
 ///
@@ -57,7 +58,7 @@ pub const PROTOCOL_VERSION_1_21_8: i32 = 772;
 /// - Protocol version mismatches and cannot be gracefully handled.
 /// - An invalid or unsupported handshake state is encountered.
 pub async fn handle_handshake(
-    mut conn_read: &mut OwnedReadHalf,
+    mut conn_read: &mut EncryptedReader<OwnedReadHalf>,
     conn_write: &StreamWriter,
     state: GlobalState,
 ) -> Result<(bool, LoginResult), NetError> {
@@ -66,7 +67,6 @@ pub async fn handle_handshake(
     let mut skel = PacketSkeleton::new(
         &mut conn_read,
         conn_write.compress.load(Ordering::Relaxed),
-        conn_write.encryption_key.clone(),
         crate::ConnState::Handshake,
     )
     .await?;
@@ -126,7 +126,7 @@ pub async fn handle_handshake(
 /// Always returns `Err(NetError::MismatchedProtocolVersion)` to signal the mismatch.
 async fn handle_version_mismatch(
     hs_packet: Handshake,
-    conn_read: &mut OwnedReadHalf,
+    conn_read: &mut EncryptedReader<OwnedReadHalf>,
     conn_write: &StreamWriter,
     state: GlobalState,
 ) -> Result<(bool, LoginResult), NetError> {
