@@ -1,3 +1,4 @@
+use crate::auth::authenticate_user;
 use crate::compression::compress_packet;
 use crate::conn_init::VarInt;
 use crate::conn_init::{LoginResult, NetDecodeOpts};
@@ -13,6 +14,7 @@ use ferrumc_macros::lookup_packet;
 use ferrumc_net_codec::decode::NetDecode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
+use ferrumc_net_codec::net_types::prefixed_optional::PrefixedOptional;
 use ferrumc_net_encryption::errors::NetEncryptionError;
 use ferrumc_net_encryption::get_encryption_keys;
 use ferrumc_net_encryption::read::EncryptedReader;
@@ -21,8 +23,6 @@ use rand::RngCore;
 use tokio::net::tcp::OwnedReadHalf;
 use tracing::{debug, error, trace};
 use uuid::Uuid;
-use ferrumc_net_codec::net_types::prefixed_optional::PrefixedOptional;
-use crate::auth::authenticate_user;
 
 /// Handles the **login sequence** for a newly connecting client.
 ///
@@ -131,7 +131,8 @@ pub(super) async fn login(
             // =============================================================================================
             // 3.1 Authenticate the player with Mojang's servers (if online_mode is enabled)
             if get_global_config().online_mode {
-                let (username, uuid, properties) = authenticate_user(&login_start.username, "", &shared_secret).await?;
+                let (username, uuid, properties) =
+                    authenticate_user(&login_start.username, "", &shared_secret).await?;
 
                 login_start.username = username;
                 login_start.uuid = uuid.as_u128();

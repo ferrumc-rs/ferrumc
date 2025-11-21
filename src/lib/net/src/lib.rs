@@ -7,13 +7,13 @@ use ferrumc_macros::setup_packet_handling;
 use std::fmt::Display;
 use std::sync::Arc;
 
+pub mod auth;
 pub mod compression;
 mod conn_init;
 pub mod connection;
 pub mod errors;
 pub mod packets;
 pub mod server;
-pub mod auth;
 
 setup_packet_handling!("\\src\\packets\\incoming");
 

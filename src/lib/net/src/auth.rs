@@ -1,12 +1,12 @@
+use base64::Engine;
+use ferrumc_core::identity::player_identity::PlayerProperty;
+use ferrumc_net_encryption::minecraft_hex_digest;
+use serde_derive::Deserialize;
 use std::error::Error;
 use std::str::FromStr;
 use std::sync::Arc;
-use base64::Engine;
-use serde_derive::Deserialize;
 use thiserror::Error;
 use uuid::Uuid;
-use ferrumc_core::identity::player_identity::PlayerProperty;
-use ferrumc_net_encryption::minecraft_hex_digest;
 
 #[derive(Debug, Clone, Error)]
 pub enum NetAuthenticationError {
@@ -44,14 +44,19 @@ pub enum NetAuthenticationError {
 ///
 /// # Error
 /// A `NetAuthenticationError` upon an unsuccessful authentication. See the `NetAuthenticationError` enum for more information.
-pub(crate) async fn authenticate_user(username: &str, server_id: &str, shared_secret: &[u8]) -> Result<(String, Uuid, Vec<PlayerProperty>), NetAuthenticationError> {
+pub(crate) async fn authenticate_user(
+    username: &str,
+    server_id: &str,
+    shared_secret: &[u8],
+) -> Result<(String, Uuid, Vec<PlayerProperty>), NetAuthenticationError> {
     let url = format!(
         "https://sessionserver.mojang.com/session/minecraft/hasJoined?username={}&serverId={}",
         username,
         minecraft_hex_digest(server_id, shared_secret),
     );
 
-    let response = reqwest::get(&url).await
+    let response = reqwest::get(&url)
+        .await
         .map_err(|_| NetAuthenticationError::CouldNotReachMojang)?;
 
     let _ = match response.status().as_u16() {
@@ -63,7 +68,8 @@ pub(crate) async fn authenticate_user(username: &str, server_id: &str, shared_se
     }?;
 
     let response = response
-        .json::<MojangAuthResponse>().await
+        .json::<MojangAuthResponse>()
+        .await
         .map_err(|err| NetAuthenticationError::ParseError(Arc::new(err)))?;
 
     let username = response.name.clone();
@@ -73,11 +79,17 @@ pub(crate) async fn authenticate_user(username: &str, server_id: &str, shared_se
     for property in response.properties {
         properties.push(PlayerProperty {
             name: property.name,
-            signature: if property.signature.is_empty() { None } else { Some(property.signature) },
+            signature: if property.signature.is_empty() {
+                None
+            } else {
+                Some(property.signature)
+            },
             value: String::from_utf8(
-                base64::engine::general_purpose::STANDARD.decode(&property.value)
-                    .map_err(|err| NetAuthenticationError::ParseError(Arc::new(err)))?
-            ).map_err(|err| NetAuthenticationError::ParseError(Arc::new(err)))?
+                base64::engine::general_purpose::STANDARD
+                    .decode(&property.value)
+                    .map_err(|err| NetAuthenticationError::ParseError(Arc::new(err)))?,
+            )
+            .map_err(|err| NetAuthenticationError::ParseError(Arc::new(err)))?,
         })
     }
 

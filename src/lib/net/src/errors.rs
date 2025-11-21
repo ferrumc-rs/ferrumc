@@ -1,10 +1,10 @@
+use crate::auth::NetAuthenticationError;
 use crate::ConnState;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_net_codec::decode::errors::NetDecodeError;
 use ferrumc_net_codec::encode::errors::NetEncodeError;
 use ferrumc_net_encryption::errors::NetEncryptionError;
 use thiserror::Error;
-use crate::auth::NetAuthenticationError;
 
 #[derive(Debug, Error)]
 pub enum NetError {
