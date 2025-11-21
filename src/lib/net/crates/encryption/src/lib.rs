@@ -6,8 +6,8 @@ use crate::errors::NetEncryptionError;
 
 pub mod errors;
 pub mod cipher;
-mod read;
-mod write;
+pub mod read;
+pub mod write;
 
 /// The generated key pair to use for encryption/decryption
 static ENCRYPTION_KEYS: LazyLock<EncryptionKeys> = LazyLock::new(|| EncryptionKeys::generate());
