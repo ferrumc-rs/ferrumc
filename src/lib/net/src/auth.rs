@@ -59,7 +59,7 @@ pub(crate) async fn authenticate_user(
         .await
         .map_err(|_| NetAuthenticationError::CouldNotReachMojang)?;
 
-    let _ = match response.status().as_u16() {
+    match response.status().as_u16() {
         200 => Ok(()),
         204 => Err(NetAuthenticationError::FailedToAuthenticate),
         404 => Err(NetAuthenticationError::CouldNotReachMojang),

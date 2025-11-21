@@ -22,8 +22,6 @@ use ferrumc_net_encryption::get_encryption_keys;
 use ferrumc_net_encryption::read::EncryptedReader;
 use ferrumc_state::GlobalState;
 use rand::RngCore;
-use serde_derive::Deserialize;
-use std::str::FromStr;
 use tokio::net::tcp::OwnedReadHalf;
 use tracing::{debug, error, trace};
 use uuid::Uuid;
