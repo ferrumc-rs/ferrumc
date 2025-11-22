@@ -5,6 +5,8 @@ pub mod chunks;
 pub mod collisions;
 pub mod conn;
 pub mod identity;
+pub mod items;
 pub mod mq;
 pub mod state;
 pub mod transform;
+pub mod world;

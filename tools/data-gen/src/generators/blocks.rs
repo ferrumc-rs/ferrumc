@@ -6,9 +6,8 @@ use std::fs;
 use std::io::Write;
 use std::path::Path;
 
-// --- 1. Structures for Vanilla Report (IDs) ---
-// Source: generated/reports/blocks.json
-// Structure: "minecraft:stone": { "states": [...] }
+// --- Structs (Same as before) ---
+
 type BlockReport = BTreeMap<String, BlockDefinition>;
 
 #[derive(Deserialize)]
@@ -24,12 +23,7 @@ struct BlockStateEntry {
     default: bool,
 }
 
-// --- 2. Structures for Physics Data (Extracted) ---
-// Source: temp_gen/physics.json
-// Structure: { "minecraft:stone": { "hardness": 1.5, "resistance": 6.0 } }
-// Note: The Java dumper outputs a Map, so we use HashMap directly.
-
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone, Default)]
 struct PhysicsEntry {
     hardness: f32,
     resistance: f32,
@@ -43,7 +37,7 @@ struct PhysicsEntry {
 
 type PhysicsReport = HashMap<String, PhysicsEntry>;
 
-// --- 3. Generator Logic ---
+// --- Generator Logic ---
 
 pub fn generate(ids_path: &Path, physics_path: &Path, output: &Path) {
     println!("   ... Parsing IDs from {:?}", ids_path);
@@ -56,43 +50,32 @@ pub fn generate(ids_path: &Path, physics_path: &Path, output: &Path) {
     let physics_report: PhysicsReport =
         serde_json::from_str(&physics_content).expect("Failed to parse physics.json");
 
+    // Create the single file
     let mut file = utils::create_file(output);
 
-    // Write Header
+    // Header
     writeln!(file, "use ferrumc_core::world::block_data::BlockData;").unwrap();
-    writeln!(file, "use std::collections::BTreeMap;").unwrap();
     writeln!(file, "").unwrap();
 
-    let mut match_arms = String::new();
+    let mut name_match_arms = String::new();
+    let mut id_match_arms = String::new();
 
-    // Iterate over the Vanilla Report (Source of Truth for existence)
     for (name, def) in ids_report {
         let clean_name = name.replace("minecraft:", "");
         let const_name = clean_name.to_shouty_snake_case();
 
-        // Handle Rust keywords if a block is named "struct" or "match" (unlikely but safe)
         let safe_const_name = if const_name == "TYPE" || const_name == "MATCH" {
             format!("{}_BLOCK", const_name)
         } else {
             const_name
         };
 
-        // 1. Get Default State ID
+        // 1. Get Defaults
         let default_state = def.states.iter().find(|s| s.default).or(def.states.first());
         let default_id = default_state.map(|s| s.id).unwrap_or(0);
 
-        // 2. Get Physics Data
-        // We use a default struct if data is missing to prevent crashes
-        let phys = physics_report.get(&name).unwrap_or(&PhysicsEntry {
-            hardness: 0.0,
-            resistance: 0.0,
-            friction: 0.6, // Standard block friction
-            speed_factor: 1.0,
-            jump_factor: 1.0,
-            light_emission: 0,
-            is_air: false,
-            is_solid: true,
-        });
+        // 2. Get Physics
+        let phys = physics_report.get(&name).cloned().unwrap_or_default();
 
         // 3. Write Constant
         writeln!(
@@ -101,10 +84,8 @@ pub fn generate(ids_path: &Path, physics_path: &Path, output: &Path) {
             safe_const_name
         )
         .unwrap();
-        writeln!(file, "    name: \"{}\".to_string(),", name).unwrap();
+        writeln!(file, "    name: \"{}\",", name).unwrap(); // using &'static str
         writeln!(file, "    default_state_id: {},", default_id).unwrap();
-
-        // Write new fields
         writeln!(file, "    hardness: {:.2},", phys.hardness).unwrap();
         writeln!(file, "    blast_resistance: {:.2},", phys.resistance).unwrap();
         writeln!(file, "    friction: {:.2},", phys.friction).unwrap();
@@ -116,20 +97,25 @@ pub fn generate(ids_path: &Path, physics_path: &Path, output: &Path) {
         writeln!(file, "}};").unwrap();
         writeln!(file, "").unwrap();
 
-        // 4. Add to Match Arms
-        // We match against the UNPREFIXED name to be safe ("stone"),
-        // but we can also match fully qualified if we want.
-        // Based on your previous bug, let's support the short name.
-        match_arms.push_str(&format!(
+        // 4. Add to Name Lookup (Match against simple name "stone")
+        name_match_arms.push_str(&format!(
             "        \"{}\" => Some(&{}),\n",
             clean_name, safe_const_name
         ));
+
+        // 5. Add to ID Lookup (Map ALL state IDs to this block)
+        for state in &def.states {
+            id_match_arms.push_str(&format!(
+                "        {} => Some(&{}),\n",
+                state.id, safe_const_name
+            ));
+        }
     }
 
-    // Write Lookup Function
+    // Write Name Lookup
     writeln!(
         file,
-        "/// Looks up a BlockData reference by its short name (e.g. \"stone\")."
+        "/// Looks up BlockData by name (e.g. \"stone\" or \"minecraft:stone\")."
     )
     .unwrap();
     writeln!(
@@ -137,16 +123,27 @@ pub fn generate(ids_path: &Path, physics_path: &Path, output: &Path) {
         "pub fn get_block_by_name(name: &str) -> Option<&'static BlockData> {{"
     )
     .unwrap();
-
-    // Helper to strip prefix if passed
     writeln!(
         file,
         "    let name = name.strip_prefix(\"minecraft:\").unwrap_or(name);"
     )
     .unwrap();
-
     writeln!(file, "    match name {{").unwrap();
-    file.write_all(match_arms.as_bytes()).unwrap();
+    file.write_all(name_match_arms.as_bytes()).unwrap();
+    writeln!(file, "        _ => None,").unwrap();
+    writeln!(file, "    }}").unwrap();
+    writeln!(file, "}}").unwrap();
+
+    // Write ID Lookup
+    writeln!(file, "").unwrap();
+    writeln!(file, "/// Looks up BlockData by Protocol State ID.").unwrap();
+    writeln!(
+        file,
+        "pub fn get_block_by_id(id: u32) -> Option<&'static BlockData> {{"
+    )
+    .unwrap();
+    writeln!(file, "    match id {{").unwrap();
+    file.write_all(id_match_arms.as_bytes()).unwrap();
     writeln!(file, "        _ => None,").unwrap();
     writeln!(file, "    }}").unwrap();
     writeln!(file, "}}").unwrap();

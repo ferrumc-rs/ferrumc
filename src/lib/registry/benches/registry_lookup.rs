@@ -1,59 +1,45 @@
 use criterion::{Criterion, Throughput, criterion_group, criterion_main};
 use std::hint::black_box;
 
-/// Helper function to run `init()` once.
-/// In our new compile-time setup, this is a no-op,
-/// but it's good practice to keep it.
-fn setup() {
-    ferrumc_registry::init();
-}
-
-/// Benchmarks the `ITEM_NAME_TO_ID` map (from registries.json)
+/// Benchmarks the item to/from protocol_ID maps
 fn bench_item_lookup(c: &mut Criterion) {
-    setup();
     let mut group = c.benchmark_group("registry_item_lookup");
     group.throughput(Throughput::Elements(1));
 
-    group.bench_function("lookup_item_protocol_id (apple)", |b| {
-        b.iter(|| black_box(ferrumc_registry::lookup_item_protocol_id("minecraft:apple")))
+    group.bench_function("get_item_by_id (apple)", |b| {
+        b.iter(|| black_box(ferrumc_registry::get_item_by_id(800)))
     });
 
-    group.bench_function("lookup_item_protocol_id (cobblestone)", |b| {
-        b.iter(|| {
-            black_box(ferrumc_registry::lookup_item_protocol_id(
-                "minecraft:cobblestone",
-            ))
-        })
+    group.bench_function("get_item_by_name (cobblestone)", |b| {
+        b.iter(|| black_box(ferrumc_registry::get_item_by_name("minecraft:cobblestone")))
     });
     group.finish();
 }
 
-/// Benchmarks the `BLOCKSTATE_ID_TO_NAME` map (from blockstates.json)
+/// Benchmarks the to/from protocol_ID maps
 fn bench_blockstate_lookup(c: &mut Criterion) {
-    setup();
     let mut group = c.benchmark_group("registry_blockstate_lookup");
     group.throughput(Throughput::Elements(1));
 
-    group.bench_function("lookup_blockstate_name (stone)", |b| {
-        b.iter(|| black_box(ferrumc_registry::lookup_blockstate_name("1")))
+    group.bench_function("get_block_by_id (stone)", |b| {
+        b.iter(|| black_box(ferrumc_registry::get_block_by_id(1)))
     });
 
     group.bench_function("lookup_blockstate_name (grass)", |b| {
-        b.iter(|| black_box(ferrumc_registry::lookup_blockstate_name("9")))
+        b.iter(|| black_box(ferrumc_registry::get_block_by_name("minecraft:grass")))
     });
     group.finish();
 }
 
-/// Benchmarks the `ITEM_ID_STR_TO_BLOCKSTATE_ID_STR` map
+/// Benchmarks the block->item ID map
 fn bench_item_to_block_lookup(c: &mut Criterion) {
-    setup();
     let mut group = c.benchmark_group("registry_item_to_block_lookup");
     group.throughput(Throughput::Elements(1));
 
-    group.bench_function("lookup_item_to_block_id_str (stone)", |b| {
+    group.bench_function("lookup_item_to_block_id (stone)", |b| {
         b.iter(|| {
             // Assuming item "1" (stone) maps to a block
-            black_box(ferrumc_registry::lookup_item_to_block_id_str("1"))
+            black_box(ferrumc_registry::get_block_id_from_item_id(1))
         })
     });
     group.finish();

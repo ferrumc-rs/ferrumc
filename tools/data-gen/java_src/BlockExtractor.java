@@ -39,7 +39,7 @@ public class BlockInfoDumper {
                         int lightEmission = defaultState.getLightEmission();
                         boolean isAir = defaultState.isAir();
 
-                        // --- FIX: Safe Collision Check ---
+                        // --- Safe Collision Check ---
                         boolean isSolid = false;
                         try {
                               // blocksMotion() internally calls getCollisionShape().
@@ -50,7 +50,6 @@ public class BlockInfoDumper {
                               // Defaulting to false (not solid) is the safest fallback.
                               isSolid = false;
                         }
-                        // ---------------------------------
 
                         String line = String.format(
                                     "\"%s\": {" +
