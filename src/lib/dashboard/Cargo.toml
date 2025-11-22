@@ -8,6 +8,7 @@ edition = "2021"
 tracing = { workspace = true }
 axum = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread"] }
+sysinfo = { workspace = true }
 
 # ferrumc local crates
 ferrumc-state = { workspace = true }

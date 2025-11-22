@@ -230,3 +230,6 @@ phf_codegen = { version = "0.11" }
 
 # Web server
 axum = { version = "0.8.7", features = ["tokio"]}
+
+# Stats
+sysinfo = "0.37.2"
