@@ -1,9 +1,6 @@
 // Imports standard library IO traits
 use std::io::{Cursor, Read};
 
-// Imports the global compression threshold setting from server config
-use ferrumc_config::server_config::get_global_config;
-
 // Imports the NetEncode trait and options enum for encoding network packets
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 // Imports Minecraft-style VarInt support (used for frame sizes and IDs)
@@ -37,6 +34,7 @@ pub fn compress_packet(
     packet: &(impl NetEncode + Send),
     compress_packet: bool,
     net_encode_opts: &NetEncodeOpts,
+    threshold: usize,
 ) -> Result<Vec<u8>, NetError> {
     /// Helper function to encode the packet as a full frame, then split into `(VarInt ID, body bytes)`.
     ///
@@ -72,9 +70,6 @@ pub fn compress_packet(
         let mut uncompressed_frame = Vec::with_capacity(id_vi.len() + body.len());
         id_vi.encode(&mut uncompressed_frame, &NetEncodeOpts::None)?;
         uncompressed_frame.extend_from_slice(&body);
-
-        // Compression threshold (in bytes), retrieved from global config
-        let threshold = get_global_config().network_compression_threshold as usize;
 
         let mut inner = Vec::new();
 
@@ -123,8 +118,6 @@ mod tests {
     use crate::compression::compress_packet;
     use crate::packets::incoming::packet_skeleton::PacketSkeleton;
     use crate::ConnState;
-    use ferrumc_config::server_config::set_global_config;
-    use ferrumc_config::ServerConfig;
 
     use crate::errors::NetError;
     use ferrumc_net_codec::encode::errors::NetEncodeError;
@@ -186,7 +179,7 @@ mod tests {
             test_vi: VarInt::new(42),
             body: vec![255; 1000], // Large enough to trigger compression
         };
-        let compressed = compress_packet(&packet, true, &NetEncodeOpts::WithLength);
+        let compressed = compress_packet(&packet, true, &NetEncodeOpts::WithLength, 512);
         assert!(
             compressed.is_ok(),
             "Compression failed: {:?}",
@@ -208,6 +201,7 @@ mod tests {
             },
             true,
             &NetEncodeOpts::WithLength,
+            64,
         )
         .unwrap();
 
@@ -229,15 +223,11 @@ mod tests {
             test_vi: VarInt::new(42),
             body: vec![255; 100], // Small enough to not trigger compression
         };
-        set_global_config(ServerConfig {
-            network_compression_threshold: 512,
-            ..Default::default()
-        });
         let mut uncompressed_buf = Vec::new();
         packet
             .encode(&mut uncompressed_buf, &NetEncodeOpts::None)
             .unwrap();
-        let compressed = compress_packet(&packet, true, &NetEncodeOpts::WithLength);
+        let compressed = compress_packet(&packet, true, &NetEncodeOpts::WithLength, 512);
         assert!(
             compressed.is_ok(),
             "Compression failed: {:?}",
@@ -261,11 +251,7 @@ mod tests {
             test_vi: VarInt::new(42),
             body: vec![255; 100], // Small enough to not trigger compression
         };
-        set_global_config(ServerConfig {
-            network_compression_threshold: 512,
-            ..Default::default()
-        });
-        let compressed = compress_packet(&packet, true, &NetEncodeOpts::WithLength).unwrap();
+        let compressed = compress_packet(&packet, true, &NetEncodeOpts::WithLength, 512).unwrap();
 
         let mut async_reader = Cursor::new(compressed);
 
@@ -285,7 +271,7 @@ mod tests {
             test_vi: VarInt::new(42),
             body: vec![255; 1000], // Large enough to trigger compression
         };
-        let compressed = compress_packet(&packet, false, &NetEncodeOpts::WithLength);
+        let compressed = compress_packet(&packet, false, &NetEncodeOpts::WithLength, 64);
         assert!(
             compressed.is_ok(),
             "Compression failed: {:?}",
@@ -310,7 +296,7 @@ mod tests {
             test_vi: VarInt::new(42),
             body: vec![255; 1000], // Large enough to trigger compression
         };
-        let compressed = compress_packet(&packet, false, &NetEncodeOpts::WithLength).unwrap();
+        let compressed = compress_packet(&packet, false, &NetEncodeOpts::WithLength, 512).unwrap();
 
         let mut async_reader = Cursor::new(compressed);
 

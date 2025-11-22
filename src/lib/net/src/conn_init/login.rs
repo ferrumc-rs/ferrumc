@@ -444,7 +444,7 @@ pub(super) async fn login(
                         crate::packets::outgoing::chunk_and_light_data::ChunkAndLightData::from_chunk(
                             &chunk,
                         )?;
-                    let compressed_packet = compress_packet(&chunk_data, compressed, &NetEncodeOpts::WithLength)?;
+                    let compressed_packet = compress_packet(&chunk_data, compressed, &NetEncodeOpts::WithLength, 64)?;
                     Ok(compressed_packet)
                 }
             });

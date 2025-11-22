@@ -152,6 +152,7 @@ impl StreamWriter {
             packet,
             self.compress.load(Ordering::Relaxed),
             net_encode_opts,
+            512,
         )
         .map_err(|err| {
             error!("Failed to compress packet: {:?}", err);

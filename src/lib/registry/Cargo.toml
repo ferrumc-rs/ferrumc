@@ -5,9 +5,6 @@ edition = "2024"
 build = "build.rs"
 
 [dependencies]
-simd-json = { workspace = true }
-once_cell = { workspace = true }
-tracing = { workspace = true }
 phf = { workspace = true }
 
 [dev-dependencies]
