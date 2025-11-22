@@ -5,7 +5,6 @@ use std::time::{Duration, Instant};
 use crate::BinaryError;
 use ferrumc_components::player::abilities::PlayerAbilities;
 use ferrumc_components::player::gameplay_state::digging::PlayerDigging;
-use ferrumc_data::blocks::types::Block;
 use ferrumc_events::player_digging::*;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::{block_change_ack::BlockChangeAck, block_update::BlockUpdate};
@@ -56,18 +55,19 @@ pub fn handle_start_digging(
         };
 
         // --- 3. Get Hardness ---
-        let block_id_u32 = block_state_id.0;
+        // TODO: use new registry stuff
+        // let block_id_u32 = block_state_id.0;
 
         // Get Hardness directly using the ID
-        let Some(block_data) = Block::by_id(block_id_u32) else {
-            warn!(
-                "Could not find block data for BlockStateId: {}",
-                block_id_u32
-            );
-            continue;
-        };
+        // let Some(block_data) = Block::by_id(block_id_u32) else {
+        //     warn!(
+        //         "Could not find block data for BlockStateId: {}",
+        //         block_id_u32
+        //     );
+        //     continue;
+        // };
 
-        let hardness = block_data.hardness;
+        let hardness = 1.0; //block_data.hardness;
 
         // --- 4. Check for unbreakable block ---
         if hardness < 0.0 {
