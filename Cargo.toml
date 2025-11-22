@@ -36,7 +36,6 @@ members = [
     "src/lib/inventories",
     "src/lib/registry",
     "src/lib/scheduler",
-    "src/lib/data",
     "src/lib/components",
     "src/lib/events",
     "src/lib/data",
@@ -123,7 +122,15 @@ ferrumc-events = { path = "src/lib/events" }
 ferrumc-data = { path = "src/lib/data" }
 
 # Asynchronous
-tokio = { version = "1.48.0", features = ["macros", "net", "rt", "sync", "time", "io-util", "test-util"], default-features = false }
+tokio = { version = "1.48.0", features = [
+    "macros",
+    "net",
+    "rt",
+    "sync",
+    "time",
+    "io-util",
+    "test-util",
+], default-features = false }
 
 # Logging
 tracing = "0.1.41"
