@@ -82,7 +82,7 @@ struct FoodComponent {
     #[serde(default)]
     can_always_eat: bool,
     // "minecraft:consumable" usually holds eat_seconds, but we'll default to 1.6
-    // TODO: eat_seconds 
+    // TODO: eat_seconds
 }
 
 #[derive(Deserialize)]
