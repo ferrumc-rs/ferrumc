@@ -11,3 +11,4 @@ ferrumc-components = { workspace = true }
 ferrumc-core = { workspace = true }
 ferrumc-net-codec = { workspace = true }
 ferrumc-inventories = {workspace = true }
+ferrumc-entities = { workspace = true }

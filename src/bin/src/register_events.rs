@@ -24,4 +24,5 @@ pub fn register_events(world: &mut World) {
     EventRegistry::register_event::<PlayerXPGainEvent>(world);
     EventRegistry::register_event::<PlayerLevelUpEvent>(world);
     EventRegistry::register_event::<ChangeGameModeEvent>(world);
+    EventRegistry::register_event::<SpawnEntityEvent>(world);
 }

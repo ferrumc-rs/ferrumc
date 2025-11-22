@@ -11,6 +11,7 @@ ferrumc-macros = { workspace = true }
 ferrumc-text = { workspace = true }
 ferrumc-core = { workspace = true }
 ferrumc-net = { workspace = true }
+ferrumc-entities = { workspace = true }
 
 ctor = { workspace = true }
 tracing = { workspace = true }

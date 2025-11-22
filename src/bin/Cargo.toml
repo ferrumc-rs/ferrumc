@@ -35,6 +35,7 @@ ferrumc-world-gen = { workspace = true }
 ferrumc-threadpool = { workspace = true }
 ferrumc-inventories = { workspace = true }
 ferrumc-data = { workspace = true }
+ferrumc-entities = { workspace = true }
 once_cell = { workspace = true }
 serde_json = { workspace = true }
 
