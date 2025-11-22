@@ -3,7 +3,7 @@ use crate::compression::compress_packet;
 use crate::conn_init::VarInt;
 use crate::conn_init::{LoginResult, NetDecodeOpts};
 use crate::connection::StreamWriter;
-use crate::errors::{NetError, PacketError};
+use crate::errors::{NetAuthenticationError, NetError, PacketError};
 use crate::packets::incoming::packet_skeleton::PacketSkeleton;
 use crate::packets::outgoing::login_success::LoginSuccessProperties;
 use crate::packets::outgoing::set_default_spawn_position::DEFAULT_SPAWN_POSITION;
@@ -65,7 +65,7 @@ pub(super) async fn login(
         }));
     }
 
-    let mut login_start = crate::packets::incoming::login_start::LoginStartPacket::decode(
+    let login_start = crate::packets::incoming::login_start::LoginStartPacket::decode(
         &mut skel.data,
         &NetDecodeOpts::None,
     )?;
@@ -136,8 +136,12 @@ pub(super) async fn login(
                 let (username, uuid, properties) =
                     authenticate_user(&login_start.username, "", &shared_secret).await?;
 
-                login_start.username = username;
-                login_start.uuid = uuid.as_u128();
+                if username != login_start.username || uuid.as_u128() != login_start.uuid {
+                    return Err(NetError::AuthenticationError(
+                        NetAuthenticationError::InformationDoesntMatch,
+                    ));
+                }
+
                 player_properties.extend_from_slice(&properties);
             }
         } else {

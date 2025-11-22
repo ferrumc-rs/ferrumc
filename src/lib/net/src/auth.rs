@@ -1,33 +1,11 @@
+use crate::errors::NetAuthenticationError;
 use base64::Engine;
 use ferrumc_core::identity::player_identity::PlayerProperty;
 use ferrumc_net_encryption::minecraft_hex_digest;
 use serde_derive::Deserialize;
-use std::error::Error;
 use std::str::FromStr;
 use std::sync::Arc;
-use thiserror::Error;
 use uuid::Uuid;
-
-#[derive(Debug, Clone, Error)]
-pub enum NetAuthenticationError {
-    #[error("Failed to reach Mojang's authentication servers")]
-    CouldNotReachMojang,
-
-    #[error("The server has exceeded the rate limit allowed by Mojang")]
-    RateLimitReached,
-
-    #[error("The user could not be authenticated")]
-    FailedToAuthenticate,
-
-    #[error("Could not parse auth server response: {0}")]
-    ParseError(#[from] Arc<dyn Error + Send + Sync>),
-
-    #[error("Mojang returned a corrupted UUID")]
-    CorruptUuid,
-
-    #[error("Mojang responded with status code {0}")]
-    StatusError(u16),
-}
 
 /// Authenticates the given player with Mojang's session server.
 ///
@@ -62,9 +40,9 @@ pub(crate) async fn authenticate_user(
     match response.status().as_u16() {
         200 => Ok(()),
         204 => Err(NetAuthenticationError::FailedToAuthenticate),
-        404 => Err(NetAuthenticationError::CouldNotReachMojang),
+        404 => Err(NetAuthenticationError::BadURL),
         429 => Err(NetAuthenticationError::RateLimitReached),
-        code => Err(NetAuthenticationError::StatusError(code)),
+        code => Err(NetAuthenticationError::UnknownStatusError(code)),
     }?;
 
     let response = response
