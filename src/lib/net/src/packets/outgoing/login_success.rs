@@ -1,5 +1,6 @@
 use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
+use ferrumc_net_codec::net_types::prefixed_optional::PrefixedOptional;
 
 #[derive(NetEncode)]
 #[packet(packet_id = "login_finished", state = "login")]
@@ -23,5 +24,5 @@ impl<'a> LoginSuccessPacket<'a> {
 pub struct LoginSuccessProperties<'a> {
     pub name: &'a str,
     pub value: &'a str,
-    pub signature: Option<&'a str>,
+    pub signature: PrefixedOptional<&'a str>,
 }

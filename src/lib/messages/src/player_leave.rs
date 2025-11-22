@@ -1,6 +1,6 @@
 use bevy_ecs::prelude::*;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 
-#[derive(Event, Clone)]
+#[derive(Message, Clone)]
 #[allow(unused)]
-pub struct PlayerLeaveEvent(pub PlayerIdentity);
+pub struct PlayerLeft(pub PlayerIdentity);

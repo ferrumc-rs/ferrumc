@@ -1,16 +1,16 @@
-use bevy_ecs::prelude::{Entity, EventReader, Query};
+use bevy_ecs::prelude::{Entity, MessageReader, Query};
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::mq;
 use ferrumc_text::{Color, NamedColor, TextComponent};
 
-use ferrumc_events::player_join::PlayerJoinEvent;
+use ferrumc_messages::player_join::PlayerJoined;
 
 use tracing::trace;
 
 /// Listens for `PlayerJoinEvent` and broadcasts the "join" message
 /// to all other conneceted players via the Message Queue.
 pub fn handle(
-    mut events: EventReader<PlayerJoinEvent>,
+    mut events: MessageReader<PlayerJoined>,
     player_query: Query<(Entity, &PlayerIdentity)>,
 ) {
     // 1. Loop through each "player left" event

@@ -3,11 +3,11 @@ use ferrumc_components::player::gamemode::GameMode;
 use ferrumc_net::ChangeGameModeReceiver;
 use tracing::warn;
 
-use ferrumc_events::ChangeGameModeEvent;
+use ferrumc_messages::PlayerGameModeChanged;
 
 pub fn handle(
     events: Res<ChangeGameModeReceiver>,
-    mut gamemode_events: EventWriter<ChangeGameModeEvent>,
+    mut gamemode_events: MessageWriter<PlayerGameModeChanged>,
 ) {
     for (packet, sender_entity) in events.0.try_iter() {
         // 1. Parse the gamemode ID from the packet
@@ -26,7 +26,7 @@ pub fn handle(
         };
 
         // 2. Fire the event
-        gamemode_events.write(ChangeGameModeEvent {
+        gamemode_events.write(PlayerGameModeChanged {
             player: sender_entity,
             new_mode,
         });

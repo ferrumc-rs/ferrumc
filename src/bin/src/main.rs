@@ -21,7 +21,7 @@ mod chunk_sending;
 mod cli;
 mod game_loop;
 mod packet_handlers;
-mod register_events;
+mod register_messages;
 mod register_resources;
 mod systems;
 

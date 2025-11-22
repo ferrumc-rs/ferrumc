@@ -5,11 +5,11 @@ use ferrumc_state::GlobalStateResource;
 use tracing::{debug, error};
 
 pub fn handle(
-    events: Res<SetHeldItemReceiver>,
+    receiver: Res<SetHeldItemReceiver>,
     state: Res<GlobalStateResource>,
     mut query: Query<&mut Hotbar>,
 ) {
-    for (event, entity) in events.0.try_iter() {
+    for (event, entity) in receiver.0.try_iter() {
         if state.0.players.is_connected(entity) {
             if 0 <= event.slot_index && event.slot_index < 9 {
                 if let Ok(mut hotbar) = query.get_mut(entity) {

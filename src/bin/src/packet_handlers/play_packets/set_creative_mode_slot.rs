@@ -5,11 +5,11 @@ use ferrumc_state::GlobalStateResource;
 use tracing::{debug, error};
 
 pub fn handle(
-    events: Res<SetCreativeModeSlotReceiver>,
+    receiver: Res<SetCreativeModeSlotReceiver>,
     state: Res<GlobalStateResource>,
     mut query: Query<&mut Inventory>,
 ) {
-    for (event, entity) in events.0.try_iter() {
+    for (event, entity) in receiver.0.try_iter() {
         debug!(
             "Slot {} placed at {} by player {}",
             event.slot, event.slot_index, entity
