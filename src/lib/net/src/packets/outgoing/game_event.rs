@@ -43,7 +43,7 @@ impl GameEventPacket {
     /// > time.
     pub const WIN_GAME: u8 = 4;
 
-    /// GameEvent packet ID to trigger demo events.
+    /// GameEvent packet ID to trigger demo messages.
     /// *Copied from https://minecraft.wiki/w/Java_Edition_protocol/Packets*  
     /// Possible values:
     /// - 0: Show welcome to demo screen.

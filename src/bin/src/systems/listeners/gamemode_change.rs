@@ -2,7 +2,7 @@ use bevy_ecs::prelude::*;
 use ferrumc_components::player::abilities::PlayerAbilities;
 use ferrumc_components::player::gamemode::GameModeComponent;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
-use ferrumc_events::ChangeGameModeEvent;
+use ferrumc_messages::PlayerGameModeChanged;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::game_event::GameEventPacket;
 use ferrumc_net::packets::outgoing::player_abilities::PlayerAbilities as OutgoingAbilities;
@@ -12,7 +12,7 @@ use tracing::{error, info};
 
 /// Listens for `ChangeGameModeEvent` and applies all game logic.
 pub fn handle(
-    mut events: EventReader<ChangeGameModeEvent>,
+    mut events: MessageReader<PlayerGameModeChanged>,
     mut player_query: Query<(
         &PlayerIdentity,
         &mut PlayerAbilities,

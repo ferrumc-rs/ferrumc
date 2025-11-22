@@ -1,4 +1,4 @@
-use bevy_ecs::prelude::{Entity, Event};
+use bevy_ecs::prelude::{Entity, Message};
 use ferrumc_net_codec::net_types::network_position::NetworkPosition;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 
@@ -6,9 +6,9 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 ///
 /// Fired by: `player_action` packet handler.
 /// Listened for by: A new `digging_system`.
-#[derive(Event)]
+#[derive(Message)]
 #[allow(unused)]
-pub struct PlayerStartDiggingEvent {
+pub struct PlayerStartedDigging {
     pub player: Entity,
     pub position: NetworkPosition,
     pub sequence: VarInt,
@@ -18,9 +18,9 @@ pub struct PlayerStartDiggingEvent {
 ///
 /// Fired by: `player_action` packet handler.
 /// Listened for by: `digging_system` (to remove the `PlayerDigging` component).
-#[derive(Event)]
+#[derive(Message)]
 #[allow(unused)]
-pub struct PlayerCancelDiggingEvent {
+pub struct PlayerCancelledDigging {
     pub player: Entity,
     pub sequence: VarInt,
 }
@@ -29,9 +29,9 @@ pub struct PlayerCancelDiggingEvent {
 ///
 /// Fired by: `player_action` packet handler.
 /// Listened for by: `digging_system` (to check time, break the block, and spawn items).
-#[derive(Event)]
+#[derive(Message)]
 #[allow(unused)]
-pub struct PlayerFinishDiggingEvent {
+pub struct PlayerFinishedDigging {
     pub player: Entity,
     pub position: NetworkPosition,
     pub sequence: VarInt,

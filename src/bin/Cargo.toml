@@ -14,7 +14,7 @@ bevy_ecs = { workspace = true }
 ferrumc-scheduler = { workspace = true }
 
 ferrumc-registry = { workspace = true }
-ferrumc-events = { workspace = true }
+ferrumc-messages = { workspace = true }
 ferrumc-components = { workspace = true }
 ferrumc-net = { workspace = true }
 ferrumc-net-codec = { workspace = true }
