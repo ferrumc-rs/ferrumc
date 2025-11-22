@@ -12,3 +12,10 @@ tempfile = "3.10"
 indicatif = "0.17"
 zip = "0.6"
 walkdir = "2"
+
+[[bin]]
+name = "ferrumc-data-gen"
+path = "src/main.rs"
+test = false
+bench = false
+doc = false
