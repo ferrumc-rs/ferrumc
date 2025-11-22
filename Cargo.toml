@@ -10,6 +10,8 @@
 [workspace]
 resolver = "2"
 
+default-members = ["src/bin"]
+
 #================= Members =================#
 members = [
     "src/bin",
@@ -36,10 +38,9 @@ members = [
     "src/lib/inventories",
     "src/lib/registry",
     "src/lib/scheduler",
-    "src/lib/data",
     "src/lib/components",
     "src/lib/events",
-    "src/lib/data",
+    "tools/data-gen",
 ]
 
 [workspace.package]
@@ -120,10 +121,17 @@ ferrumc-world-gen = { path = "src/lib/world_gen" }
 ferrumc-inventories = { path = "src/lib/inventories" }
 ferrumc-components = { path = "src/lib/components" }
 ferrumc-events = { path = "src/lib/events" }
-ferrumc-data = { path = "src/lib/data" }
 
 # Asynchronous
-tokio = { version = "1.48.0", features = ["macros", "net", "rt", "sync", "time", "io-util", "test-util"], default-features = false }
+tokio = { version = "1.48.0", features = [
+    "macros",
+    "net",
+    "rt",
+    "sync",
+    "time",
+    "io-util",
+    "test-util",
+], default-features = false }
 
 # Logging
 tracing = "0.1.41"

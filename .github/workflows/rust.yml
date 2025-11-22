@@ -98,4 +98,4 @@ jobs:
         with:
           tool: cargo-nextest
       - name: Run Tests
-        run: cargo nextest run --target ${{ matrix.target }} --all-targets --all-features -E "not kind(bench)"
+        run: cargo nextest run --workspace --target ${{ matrix.target }} --all-targets --all-features -E "not kind(bench)"
