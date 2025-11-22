@@ -1,8 +1,9 @@
+use crate::auth::authenticate_user;
 use crate::compression::compress_packet;
 use crate::conn_init::VarInt;
 use crate::conn_init::{LoginResult, NetDecodeOpts};
 use crate::connection::StreamWriter;
-use crate::errors::{NetError, PacketError};
+use crate::errors::{NetAuthenticationError, NetError, PacketError};
 use crate::packets::incoming::packet_skeleton::PacketSkeleton;
 use crate::packets::outgoing::login_success::LoginSuccessProperties;
 use crate::packets::outgoing::set_default_spawn_position::DEFAULT_SPAWN_POSITION;
@@ -16,6 +17,7 @@ use ferrumc_macros::lookup_packet;
 use ferrumc_net_codec::decode::NetDecode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
+use ferrumc_net_codec::net_types::prefixed_optional::PrefixedOptional;
 use ferrumc_net_encryption::errors::NetEncryptionError;
 use ferrumc_net_encryption::get_encryption_keys;
 use ferrumc_net_encryption::read::EncryptedReader;
@@ -87,7 +89,7 @@ pub(super) async fn login(
 
     // =============================================================================================
     // 3 Enable encryption and auth player if configured
-    let player_properties = Vec::new();
+    let mut player_properties = Vec::new();
 
     if get_global_config().encryption_enabled || get_global_config().online_mode {
         let mut verify_token = vec![0u8; 16];
@@ -133,7 +135,16 @@ pub(super) async fn login(
             // =============================================================================================
             // 3.1 Authenticate the player with Mojang's servers (if online_mode is enabled)
             if get_global_config().online_mode {
-                // TODO: auth code should go here
+                let (username, uuid, properties) =
+                    authenticate_user(&login_start.username, "", &shared_secret).await?;
+
+                if username != login_start.username || uuid.as_u128() != login_start.uuid {
+                    return Err(NetError::AuthenticationError(
+                        NetAuthenticationError::InformationDoesntMatch,
+                    ));
+                }
+
+                player_properties.extend_from_slice(&properties);
             }
         } else {
             return Err(NetError::EncryptionError(
@@ -156,7 +167,11 @@ pub(super) async fn login(
                 .map(|property: &PlayerProperty| LoginSuccessProperties {
                     name: &property.name,
                     value: &property.value,
-                    signature: Some(&property.signature),
+                    signature: if let Some(str) = property.signature.as_ref() {
+                        PrefixedOptional::Some(str.as_str())
+                    } else {
+                        PrefixedOptional::None
+                    },
                 })
                 .collect(),
         ),

@@ -39,6 +39,7 @@ yazi = { workspace = true }
 ferrumc-inventories = { workspace = true }
 base64 = { workspace = true }
 craftflow-nbt = { workspace = true }
+reqwest = { workspace = true }
 
 
 [dev-dependencies]

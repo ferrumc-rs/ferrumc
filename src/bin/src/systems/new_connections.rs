@@ -1,7 +1,4 @@
-use bevy_ecs::{
-    event::EventWriter,
-    prelude::{Commands, Res, Resource},
-};
+use bevy_ecs::prelude::{Commands, MessageWriter, Res, Resource};
 use crossbeam_channel::Receiver;
 use ferrumc_components::{
     active_effects::ActiveEffects,
@@ -20,8 +17,8 @@ use ferrumc_core::{
     conn::keepalive::KeepAliveTracker,
     transform::{grounded::OnGround, position::Position, rotation::Rotation},
 };
-use ferrumc_events::player_join::PlayerJoinEvent;
 use ferrumc_inventories::{hotbar::Hotbar, inventory::Inventory};
+use ferrumc_messages::player_join::PlayerJoined;
 use ferrumc_net::connection::{DisconnectHandle, NewConnection};
 use ferrumc_state::GlobalStateResource;
 use std::time::Instant;
@@ -34,7 +31,7 @@ pub fn accept_new_connections(
     mut cmd: Commands,
     new_connections: Res<NewConnectionRecv>,
     state: Res<GlobalStateResource>,
-    mut join_events: EventWriter<PlayerJoinEvent>,
+    mut join_events: MessageWriter<PlayerJoined>,
 ) {
     if new_connections.0.is_empty() {
         return;
@@ -143,7 +140,7 @@ pub fn accept_new_connections(
         );
 
         // Fire PlayerJoinEvent
-        join_events.write(PlayerJoinEvent(new_connection.player_identity.clone()));
+        join_events.write(PlayerJoined(new_connection.player_identity.clone()));
 
         if let Err(err) = return_sender.send(entity_id) {
             error!(

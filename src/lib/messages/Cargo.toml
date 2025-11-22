@@ -1,8 +1,8 @@
 [package]
-name = "ferrumc-events"
+name = "ferrumc-messages"
 version = "0.1.0"
 edition = "2021"
-description = "Defines all Bevy ECS events for FerrumC."
+description = "Defines all Bevy ECS messages for FerrumC."
 
 [dependencies]
 bevy_ecs = { workspace = true }

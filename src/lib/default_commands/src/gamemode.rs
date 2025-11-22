@@ -1,8 +1,8 @@
 use bevy_ecs::prelude::*;
 use ferrumc_commands::Sender;
 use ferrumc_components::player::gamemode::GameMode;
-use ferrumc_events::ChangeGameModeEvent;
 use ferrumc_macros::command;
+use ferrumc_messages::PlayerGameModeChanged;
 
 /// Sets the sender's gamemode.
 #[command("gamemode")]
@@ -10,7 +10,7 @@ use ferrumc_macros::command;
 fn gamemode_command(
     #[sender] sender: Sender,
     #[arg] new_gamemode: GameMode,
-    mut gamemode_events: EventWriter<ChangeGameModeEvent>,
+    mut gamemode_events: MessageWriter<PlayerGameModeChanged>,
 ) {
     // 1. Ensure the sender is a player
     let player_entity = match sender {
@@ -22,7 +22,7 @@ fn gamemode_command(
     };
 
     // 2. Fire the event
-    gamemode_events.write(ChangeGameModeEvent {
+    gamemode_events.write(PlayerGameModeChanged {
         player: player_entity,
         new_mode: new_gamemode,
     });

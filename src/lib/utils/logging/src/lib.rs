@@ -14,9 +14,10 @@ pub fn init_logging(trace_level: Level) {
         .with_default_directive(trace_level.into())
         .parse_lossy("");
 
+    // Disallow request and hyper-util debug prints since they spam the console
     let env_filter = env_filter
-        .add_directive("ureq=warn".parse().unwrap())
-        .add_directive("rustls=warn".parse().unwrap());
+        .add_directive("reqwest=warn".parse().unwrap())
+        .add_directive("hyper_util=warn".parse().unwrap());
 
     let file_appender = tracing_appender::rolling::Builder::new()
         .rotation(Rotation::DAILY)

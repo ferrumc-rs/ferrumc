@@ -1,12 +1,12 @@
-use bevy_ecs::prelude::{Entity, Event};
+use bevy_ecs::prelude::{Entity, Message};
 
 /// Fired when a player gains experience points (e.g., from an orb).
 ///
 /// Fired by: Orb collection system, command handler.
 /// Listened for by: An `experience_system` to update the `Experience` component.
-#[derive(Event)]
+#[derive(Message)]
 #[allow(unused)]
-pub struct PlayerXPGainEvent {
+pub struct PlayerGainedXP {
     pub player: Entity,
     pub amount: u32,
 }
@@ -15,9 +15,9 @@ pub struct PlayerXPGainEvent {
 ///
 /// Fired by: `experience_system`.
 /// Listened for by: `sound_system` (to play the *ding*), UI systems.
-#[derive(Event)]
+#[derive(Message)]
 #[allow(unused)]
-pub struct PlayerLevelUpEvent {
+pub struct PlayerLeveledUp {
     pub player: Entity,
     pub new_level: u32,
 }

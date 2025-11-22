@@ -3,12 +3,17 @@ use ferrumc_config::server_config::get_global_config;
 use ferrumc_net_codec::decode::errors::NetDecodeError;
 use ferrumc_net_codec::encode::errors::NetEncodeError;
 use ferrumc_net_encryption::errors::NetEncryptionError;
+use std::error::Error;
+use std::sync::Arc;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum NetError {
     #[error("Encryption Error: {0}")]
     EncryptionError(#[from] NetEncryptionError),
+
+    #[error("Authentication Error: {0}")]
+    AuthenticationError(#[from] NetAuthenticationError),
 
     #[error("Decoder Error: {0}")]
     DecoderError(#[from] NetDecodeError),
@@ -136,4 +141,31 @@ impl From<PacketError> for NetError {
     fn from(err: PacketError) -> Self {
         NetError::Packet(err)
     }
+}
+
+#[derive(Debug, Clone, Error)]
+pub enum NetAuthenticationError {
+    #[error("Failed to reach Mojang's authentication servers")]
+    CouldNotReachMojang,
+
+    #[error("Bad URL used to reach Mojang")]
+    BadURL,
+
+    #[error("The server has exceeded the rate limit allowed by Mojang")]
+    RateLimitReached,
+
+    #[error("The user could not be authenticated")]
+    FailedToAuthenticate,
+
+    #[error("Player's reported information does not match Mojang's information")]
+    InformationDoesntMatch,
+
+    #[error("Could not parse auth server response: {0}")]
+    ParseError(#[from] Arc<dyn Error + Send + Sync>),
+
+    #[error("Mojang returned a corrupted UUID")]
+    CorruptUuid,
+
+    #[error("Mojang responded with status code {0}")]
+    UnknownStatusError(u16),
 }
