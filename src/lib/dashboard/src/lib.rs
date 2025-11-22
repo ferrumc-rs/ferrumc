@@ -1,10 +1,15 @@
-use axum::extract::State;
 use axum::response::{Html, IntoResponse};
 use axum::routing::get;
 use axum::Router;
+use tokio::sync::broadcast;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_state::GlobalState;
 use tracing::{debug, info};
+use crate::telemetry::DashboardEvent;
+
+/// Dashboard telemetry module
+mod telemetry;
+mod ws;
 
 pub fn start_dashboard(state: GlobalState) {
     std::thread::Builder::new()
@@ -24,12 +29,29 @@ pub fn start_dashboard(state: GlobalState) {
 /// The HTTP protocol used by the dashboard.
 /// (i made this variable cuz rustrover was complaining about insecure url 💔😔)
 const PROTOCOL: &str = "http";
-async fn start_webserver(state: GlobalState) {
+/// This macro runs at COMPILE TIME.
+/// It looks inside the OUT_DIR (where build.rs saved the file)
+/// and embeds the content directly into the binary's data segment.
+const DASHBOARD_HTML: &str = include_str!(concat!(env!("OUT_DIR"), "/dashboard.min.html"));
+
+async fn start_webserver(_state: GlobalState) {
     debug!("Starting FerrumC dashboard webserver...");
 
+    // Create a rx/tx (with max 100 messages buffered) for telemetry events
+    let (tx, _rx) = broadcast::channel::<DashboardEvent>(100);
+
+    // Spawn the Telemetry Loop in the background
+    let tx_clone = tx.clone();
+    tokio::spawn(telemetry::start_telemetry_loop(tx_clone));
+
+    // websocket state:
+    let ws_state = ws::WsState { tx };
+
+    // axum app/router
     let app = Router::new()
         .route("/", get(dashboard_handler))
-        .with_state(state);
+        .route("/ws", get(ws::ws_handler))
+        .with_state(ws_state);
 
     let config = get_global_config();
     let addr = format!("{}:{}", config.host, config.dashboard.port);
@@ -47,11 +69,8 @@ async fn start_webserver(state: GlobalState) {
     }
 }
 
-// This macro runs at COMPILE TIME.
-// It looks inside the OUT_DIR (where build.rs saved the file)
-// and embeds the content directly into the binary's data segment.
-const DASHBOARD_HTML: &str = include_str!(concat!(env!("OUT_DIR"), "/dashboard.min.html"));
 
-async fn dashboard_handler(State(_state): State<GlobalState>) -> impl IntoResponse {
+
+async fn dashboard_handler() -> impl IntoResponse {
     Html(DASHBOARD_HTML)
 }

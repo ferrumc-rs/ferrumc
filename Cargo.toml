@@ -229,7 +229,7 @@ phf = { version = "0.11", features = ["macros"] }
 phf_codegen = { version = "0.11" }
 
 # Web server
-axum = { version = "0.8.7", features = ["tokio"]}
+axum = { version = "0.8.7", features = ["tokio", "ws"]}
 
 # Stats
 sysinfo = "0.37.2"
