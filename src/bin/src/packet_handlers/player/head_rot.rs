@@ -1,22 +1,24 @@
 use bevy_ecs::event::EventReader;
-use bevy_ecs::prelude::Query;
+use bevy_ecs::prelude::{Entity, Query};
+
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::set_head_rotation::SetHeadRotationPacket;
 use ferrumc_net::packets::packet_events::TransformEvent;
 use ferrumc_net_codec::net_types::angle::NetAngle;
+
 use tracing::error;
 
 pub fn handle_player_move(
     mut events: EventReader<TransformEvent>,
     query: Query<(&Rotation, &PlayerIdentity)>,
-    broadcast_query: Query<&StreamWriter>,
+    broadcast_query: Query<(Entity, &StreamWriter)>,
 ) {
     for event in events.read() {
-        let entity = event.entity;
+        let sender_entity = event.entity;
 
-        let Ok((rot, identity)) = query.get(entity) else {
+        let Ok((rot, identity)) = query.get(sender_entity) else {
             continue;
         };
 
@@ -28,7 +30,12 @@ pub fn handle_player_move(
         #[cfg(debug_assertions)]
         let start = std::time::Instant::now();
 
-        for writer in broadcast_query.iter() {
+        for (recipient_entity, writer) in broadcast_query.iter() {
+            // Skip sending it to the sender
+            if recipient_entity == sender_entity {
+                continue;
+            }
+
             if !writer.running.load(std::sync::atomic::Ordering::Relaxed) {
                 continue;
             }

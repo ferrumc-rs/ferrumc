@@ -1,11 +1,10 @@
 use bevy_ecs::prelude::{Entity, EventWriter, Query, Res};
-use ferrumc_core::chunks::cross_chunk_boundary_event::CrossChunkBoundaryEvent;
-use ferrumc_core::identity::player_identity::PlayerIdentity;
-use ferrumc_net::SetPlayerPositionPacketReceiver;
+
 use std::sync::atomic::Ordering;
-use tracing::{debug, error, trace, warn};
 
 use crate::errors::BinaryError;
+use ferrumc_core::chunks::cross_chunk_boundary_event::CrossChunkBoundaryEvent;
+use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
@@ -15,7 +14,10 @@ use ferrumc_net::packets::outgoing::entity_position_sync::TeleportEntityPacket;
 use ferrumc_net::packets::outgoing::update_entity_position::UpdateEntityPositionPacket;
 use ferrumc_net::packets::outgoing::update_entity_position_and_rotation::UpdateEntityPositionAndRotationPacket;
 use ferrumc_net::packets::outgoing::update_entity_rotation::UpdateEntityRotationPacket;
+use ferrumc_net::SetPlayerPositionPacketReceiver;
 use ferrumc_state::{GlobalState, GlobalStateResource};
+
+use tracing::{debug, error, trace, warn};
 
 pub fn handle(
     events: Res<SetPlayerPositionPacketReceiver>,
@@ -26,7 +28,7 @@ pub fn handle(
 ) {
     for (event, eid) in events.0.try_iter() {
         if !state.0.players.is_connected(eid) {
-            error!(
+            debug!(
                 "Player {} is not connected, skipping SetPlayerPositionPacket processing",
                 eid
             );
