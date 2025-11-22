@@ -3,7 +3,6 @@ use ferrumc_core::transform::{grounded::OnGround, position::Position, rotation::
 use ferrumc_data::generated::entities::EntityType as VanillaEntityType;
 
 use crate::components::{CombatProperties, EntityMetadata, PhysicalProperties, SpawnProperties};
-use crate::traits::EntityFactory;
 
 /// Complete bundle to spawn a pig in Bevy ECS.
 ///
@@ -63,9 +62,13 @@ impl PigBundle {
     /// commands.spawn(pig);
     /// ```
     pub fn new(position: Position) -> Self {
-        // Use EntityFactory to create the basics components from vanilla data
-        let (metadata, physical, combat, spawn) =
-            Self::create_base_components(&VanillaEntityType::PIG);
+        // Create metadata from vanilla data
+        let metadata = EntityMetadata::from_vanilla(&VanillaEntityType::PIG);
+
+        // Create other components from metadata
+        let physical = PhysicalProperties::from_metadata(&metadata);
+        let combat = CombatProperties::from_metadata(&metadata);
+        let spawn = SpawnProperties::from_metadata(&metadata);
 
         Self {
             // Derived components from vanilla
