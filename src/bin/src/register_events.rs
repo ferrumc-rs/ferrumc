@@ -3,6 +3,7 @@ use bevy_ecs::prelude::World;
 use ferrumc_commands::events::{CommandDispatchEvent, ResolvedCommandDispatchEvent};
 use ferrumc_core::chunks::cross_chunk_boundary_event::CrossChunkBoundaryEvent;
 use ferrumc_core::conn::force_player_recount_event::ForcePlayerRecountEvent;
+use ferrumc_entities::{DamageEvent, SpawnEntityEvent};
 use ferrumc_events::*;
 use ferrumc_net::packets::packet_events::TransformEvent;
 
@@ -24,4 +25,6 @@ pub fn register_events(world: &mut World) {
     EventRegistry::register_event::<PlayerXPGainEvent>(world);
     EventRegistry::register_event::<PlayerLevelUpEvent>(world);
     EventRegistry::register_event::<ChangeGameModeEvent>(world);
+    EventRegistry::register_event::<SpawnEntityEvent>(world);
+    EventRegistry::register_event::<DamageEvent>(world);
 }

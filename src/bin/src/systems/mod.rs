@@ -1,5 +1,6 @@
 pub mod connection_killer;
 mod cross_chunk_boundary;
+pub mod entities;
 pub mod keep_alive_system;
 pub mod lan_pinger;
 pub mod listneners;
@@ -15,7 +16,7 @@ pub fn register_game_systems(schedule: &mut bevy_ecs::schedule::Schedule) {
     schedule.add_systems(new_connections::accept_new_connections);
     schedule.add_systems(cross_chunk_boundary::cross_chunk_boundary);
     schedule.add_systems(mq::process);
-
+    entities::register_entity_systems(schedule);
     // Should always be last
     schedule.add_systems(connection_killer::connection_killer);
 }

@@ -13,7 +13,7 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 pub struct SpawnEntityPacket {
     entity_id: VarInt,
     entity_uuid: u128,
-    r#type: VarInt,
+    entity_type: VarInt,
     x: f64,
     y: f64,
     z: f64,
@@ -41,7 +41,7 @@ impl SpawnEntityPacket {
         Ok(Self {
             entity_id: VarInt::new(player_identity.short_uuid),
             entity_uuid: player_identity.uuid.as_u128(),
-            r#type: VarInt::new(PLAYER_ID as i32),
+            entity_type: VarInt::new(PLAYER_ID as i32),
             x: position.x,
             y: position.y,
             z: position.z,
@@ -53,5 +53,30 @@ impl SpawnEntityPacket {
             velocity_y: 0,
             velocity_z: 0,
         })
+    }
+
+    /// Create a spawn entity packet for generic entities (mobs, animals, etc.)
+    pub fn entity(
+        entity_id: i32,
+        entity_uuid: u128,
+        entity_type_id: i32,
+        position: &Position,
+        rotation: &Rotation,
+    ) -> Self {
+        Self {
+            entity_id: VarInt::new(entity_id),
+            entity_uuid,
+            entity_type: VarInt::new(entity_type_id),
+            x: position.x,
+            y: position.y,
+            z: position.z,
+            pitch: NetAngle::from_degrees(rotation.pitch as f64),
+            yaw: NetAngle::from_degrees(rotation.yaw as f64),
+            head_yaw: NetAngle::from_degrees(rotation.yaw as f64),
+            data: VarInt::new(0),
+            velocity_x: 0,
+            velocity_y: 0,
+            velocity_z: 0,
+        }
     }
 }
