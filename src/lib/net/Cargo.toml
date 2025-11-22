@@ -38,10 +38,10 @@ lazy_static = { workspace = true }
 yazi = { workspace = true }
 ferrumc-inventories = { workspace = true }
 base64 = { workspace = true }
+craftflow-nbt = { workspace = true }
 
 
 [dev-dependencies]
-craftflow-nbt = { workspace = true }
 criterion = { workspace = true }
 ferrumc-world-gen = { workspace = true }
 
