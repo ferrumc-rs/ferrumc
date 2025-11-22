@@ -60,7 +60,7 @@ pub fn handle(
         };
 
         // 3. Convert `BlockStateId` to `ItemId`
-        let item_id = match ItemID::from_block_state(block_state_id) {
+        let item_id = match ItemID::get_item_from_block_state(block_state_id) {
             Some(id) => id,
             None => {
                 debug!(

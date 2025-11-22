@@ -48,7 +48,7 @@ pub fn handle_start_digging(
         };
         // --- 2. Get Block Name ---
         let Some(block_name) =
-            ferrumc_registry::lookup_blockstate_name(&VarInt::from(block_state_id).0.to_string())
+            ferrumc_registry::get_block_by_id(block_state_id.0).map(|i| i.name.to_string())
         else {
             warn!("Could not find block name for state {:?}", block_state_id);
             continue;

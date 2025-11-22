@@ -24,34 +24,20 @@ impl ItemID {
     ///
     /// Note: This won't work for blocks that drop a different item
     /// (e.g., stone dropping cobblestone), that's a loot table.
-    pub fn from_block_state(block_state_id: BlockStateId) -> Option<Self> {
-        let protocol_id = VarInt::from(block_state_id).0;
-        if protocol_id == 0 {
-            return None;
-        }
-
-        let id_key = protocol_id.to_string();
-
-        // 1. Call the new compile-time lookup
-        let block_name = ferrumc_registry::lookup_blockstate_name(&id_key)?;
-
-        ItemID::from_name(block_name)
+    pub fn get_item_from_block_state(block_state: BlockStateId) -> Option<ItemID> {
+        ferrumc_registry::get_item_id_from_block_id(block_state.0)
+            .map(|item_data| ItemID::new(item_data as i32))
     }
 
     /// Creates an `ItemID` from a name, e.g. "minecraft:stone" or "stone".
     pub fn from_name(name: &str) -> Option<Self> {
-        let name = if !name.starts_with("minecraft:") {
-            format!("minecraft:{}", name)
-        } else {
-            name.to_string()
-        };
-
-        ferrumc_registry::lookup_item_protocol_id(&name).map(|id| Self(VarInt::new(id)))
+        ferrumc_registry::get_item_by_name(name)
+            .map(|item_data| ItemID::new(item_data.protocol_id as i32))
     }
 
     /// Converts the `ItemID` to a name, e.g. "minecraft:stone" or "stone".
     pub fn to_name(&self) -> Option<String> {
-        ferrumc_registry::lookup_item_name(self.0.0).map(|s| s.to_string())
+        ferrumc_registry::get_item_by_id(self.0.0 as u32).map(|i| i.name.to_string())
     }
 }
 
@@ -140,7 +126,7 @@ mod tests {
         // BlockStateId(1) is "minecraft:stone"
         let block_state_id = BlockStateId(1);
 
-        let item_id = ItemID::from_block_state(block_state_id);
+        let item_id = ItemID::get_item_from_block_state(block_state_id);
         assert!(
             item_id.is_some(),
             "ItemID::from_block_state returned None for Stone (ID 1)"
@@ -161,7 +147,7 @@ mod tests {
         // BlockStateId(9) is "minecraft:grass_block" with snowy=false
         let block_state_id = BlockStateId(9);
 
-        let item_id = ItemID::from_block_state(block_state_id);
+        let item_id = ItemID::get_item_from_block_state(block_state_id);
         assert!(
             item_id.is_some(),
             "ItemID::from_block_state returned None for Grass (ID 9)"
@@ -182,7 +168,7 @@ mod tests {
         // BlockStateId(0) is "minecraft:air"
         let block_state_id = BlockStateId(0);
 
-        let item_id = ItemID::from_block_state(block_state_id);
+        let item_id = ItemID::get_item_from_block_state(block_state_id);
         assert!(
             item_id.is_none(),
             "ItemID::from_block_state returned Some for Air (ID 0)"
