@@ -27,6 +27,11 @@ fn main() -> Result<()> {
             DASHBOARD_URL
         );
 
+        // delete existing file if it exists
+        if dest_path.exists() {
+            fs::remove_file(&dest_path)?;
+        }
+
         let client = reqwest::blocking::Client::new();
         let response = client
             .get(DASHBOARD_URL)
