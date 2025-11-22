@@ -35,9 +35,11 @@ ferrumc-world-gen = { workspace = true }
 ferrumc-threadpool = { workspace = true }
 ferrumc-inventories = { workspace = true }
 ferrumc-data = { workspace = true }
+
 once_cell = { workspace = true }
 serde_json = { workspace = true }
 
+dhat = { workspace = true }
 tracing = { workspace = true }
 clap = { workspace = true, features = ["derive", "env"] }
 flate2 = { workspace = true }
