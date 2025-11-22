@@ -24,5 +24,5 @@ impl PlayerIdentity {
 pub struct PlayerProperty {
     pub name: String,
     pub value: String,
-    pub signature: String,
+    pub signature: Option<String>,
 }

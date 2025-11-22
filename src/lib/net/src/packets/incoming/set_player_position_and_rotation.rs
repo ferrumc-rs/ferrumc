@@ -8,5 +8,5 @@ pub struct SetPlayerPositionAndRotationPacket {
     pub z: f64,
     pub yaw: f32,
     pub pitch: f32,
-    pub flags: i8,
+    pub flags: i8, // Bit field: 0x01: on ground, 0x02: pushing against wall.
 }
