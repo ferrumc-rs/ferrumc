@@ -21,6 +21,15 @@ impl<Writer> EncryptedWriter<Writer> {
     pub fn update_cipher(&mut self, key: &[u8]) {
         self.cipher = Some(Encryptor::new_from_slices(key, key).unwrap());
     }
+
+    pub fn encrypt_buf(&mut self, buf: &mut [u8]) {
+        if let Some(enc) = self.cipher.as_mut() {
+            for b in buf.chunks_mut(1) {
+                let block = GenericArray::from_mut_slice(b);
+                enc.encrypt_block_mut(block);
+            }
+        }
+    }
 }
 
 impl<Writer> From<Writer> for EncryptedWriter<Writer> {
@@ -38,17 +47,7 @@ impl<Writer: AsyncWrite + Unpin> AsyncWrite for EncryptedWriter<Writer> {
         cx: &mut Context<'_>,
         buf: &[u8],
     ) -> Poll<Result<usize, Error>> {
-        let mut buf = buf.to_vec();
-
-        // If cipher is not None, encrypt outgoing bytes
-        if let Some(enc) = self.cipher.as_mut() {
-            for b in buf.chunks_mut(1) {
-                let block = GenericArray::from_mut_slice(b);
-                enc.encrypt_block_mut(block);
-            }
-        }
-
-        Pin::new(&mut self.writer).poll_write(cx, &buf)
+        Pin::new(&mut self.writer).poll_write(cx, buf)
     }
 
     // Wrap the internal writer's poll_flush and poll_shutdown methods
