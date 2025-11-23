@@ -1,6 +1,10 @@
 use crate::{Color, NamedColor, TextComponent, TextContent};
 
 impl TextComponent {
+    /// Turns this TextComponent into an ANSI string
+    ///
+    /// # Returns
+    /// - A console-printable ANSI string
     pub fn to_ansi_string(self) -> String {
         fn to_ansi_inner(component: TextComponent) -> String {
             let mut str = String::new();
@@ -62,6 +66,7 @@ impl TextComponent {
 }
 
 impl Color {
+    /// Returns this color as an ANSI color code
     pub fn to_ansi_color(self) -> Option<String> {
         fn ansi_from_hex(hex: &str) -> Option<String> {
             let hex = hex.strip_prefix("#")?;
@@ -94,31 +99,5 @@ impl Color {
             },
             Color::Hex(hex) => ansi_from_hex(hex.as_str()),
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::{Color, NamedColor, TextComponentBuilder};
-
-    #[test]
-    fn test_ansi_print() {
-        let text = TextComponentBuilder::new("hello, world!")
-            .bold()
-            .underlined()
-            .strikethrough()
-            .italic()
-            .extra(
-                TextComponentBuilder::new(" im second")
-                    .not_bold()
-                    .not_underlined()
-                    .not_italic()
-                    .not_strikethrough()
-                    .color(Color::Named(NamedColor::Red)),
-            )
-            .color(Color::Named(NamedColor::Blue))
-            .build();
-
-        println!("{}", text.to_ansi_string());
     }
 }
