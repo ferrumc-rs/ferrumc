@@ -1,5 +1,6 @@
 use bevy_ecs::prelude::Bundle;
 use ferrumc_core::transform::{grounded::OnGround, position::Position, rotation::Rotation};
+
 use ferrumc_data::generated::entities::EntityType as VanillaEntityType;
 
 use crate::components::{CombatProperties, EntityMetadata, PhysicalProperties, SpawnProperties};
