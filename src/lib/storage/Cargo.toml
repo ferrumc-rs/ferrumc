@@ -8,7 +8,6 @@ edition = "2021"
 thiserror = { workspace = true }
 tracing = { workspace = true }
 ferrumc-config = { workspace = true }
-rand = { workspace = true }
 heed = { workspace = true }
 page_size = { workspace = true }
 parking_lot = { workspace = true }
@@ -18,6 +17,7 @@ parking_lot = { workspace = true }
 criterion = { workspace = true }
 tempfile = { workspace = true }
 wyhash = { workspace = true }
+rand = { workspace = true }
 
 [[bench]]
 name = "storage_bench"

@@ -1,16 +1,16 @@
-use bevy_ecs::prelude::{Entity, Event};
+use bevy_ecs::prelude::{Entity, Message};
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
 
-#[derive(Event, Debug)]
-pub struct TransformEvent {
+#[derive(Message, Debug)]
+pub struct Movement {
     pub entity: Entity,
     pub position: Option<Position>,
     pub rotation: Option<Rotation>,
     pub on_ground: Option<bool>,
 }
 
-impl TransformEvent {
+impl Movement {
     pub fn new(entity: Entity) -> Self {
         Self {
             entity,

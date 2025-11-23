@@ -1,3 +1,5 @@
+extern crate core;
+
 use bevy_ecs::prelude::Resource;
 use bevy_ecs::world::World;
 use crossbeam_channel::{Receiver, Sender};
@@ -5,6 +7,7 @@ use ferrumc_macros::setup_packet_handling;
 use std::fmt::Display;
 use std::sync::Arc;
 
+pub mod auth;
 pub mod compression;
 mod conn_init;
 pub mod connection;

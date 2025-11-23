@@ -20,7 +20,7 @@ use crate::cli::{CLIArgs, Command, ImportArgs};
 mod cli;
 mod game_loop;
 mod packet_handlers;
-mod register_events;
+mod register_messages;
 mod register_resources;
 mod systems;
 

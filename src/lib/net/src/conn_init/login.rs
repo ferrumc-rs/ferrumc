@@ -1,8 +1,9 @@
+use crate::auth::authenticate_user;
 use crate::compression::compress_packet;
 use crate::conn_init::VarInt;
 use crate::conn_init::{LoginResult, NetDecodeOpts};
 use crate::connection::StreamWriter;
-use crate::errors::{NetError, PacketError};
+use crate::errors::{NetAuthenticationError, NetError, PacketError};
 use crate::packets::incoming::packet_skeleton::PacketSkeleton;
 use crate::packets::outgoing::login_success::LoginSuccessProperties;
 use crate::packets::outgoing::set_default_spawn_position::DEFAULT_SPAWN_POSITION;
@@ -11,14 +12,17 @@ use crate::ConnState::*;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_core::identity::player_identity::{PlayerIdentity, PlayerProperty};
 use ferrumc_core::transform::position::Position;
+use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_macros::lookup_packet;
 use ferrumc_net_codec::decode::NetDecode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
+use ferrumc_net_codec::net_types::prefixed_optional::PrefixedOptional;
 use ferrumc_net_encryption::errors::NetEncryptionError;
 use ferrumc_net_encryption::get_encryption_keys;
 use ferrumc_net_encryption::read::EncryptedReader;
 use ferrumc_state::GlobalState;
+
 use rand::RngCore;
 use tokio::net::tcp::OwnedReadHalf;
 use tracing::{debug, error, trace};
@@ -85,7 +89,7 @@ pub(super) async fn login(
 
     // =============================================================================================
     // 3 Enable encryption and auth player if configured
-    let player_properties = Vec::new();
+    let mut player_properties = Vec::new();
 
     if get_global_config().encryption_enabled || get_global_config().online_mode {
         let mut verify_token = vec![0u8; 16];
@@ -131,7 +135,16 @@ pub(super) async fn login(
             // =============================================================================================
             // 3.1 Authenticate the player with Mojang's servers (if online_mode is enabled)
             if get_global_config().online_mode {
-                // TODO: auth code should go here
+                let (username, uuid, properties) =
+                    authenticate_user(&login_start.username, "", &shared_secret).await?;
+
+                if username != login_start.username || uuid.as_u128() != login_start.uuid {
+                    return Err(NetError::AuthenticationError(
+                        NetAuthenticationError::InformationDoesntMatch,
+                    ));
+                }
+
+                player_properties.extend_from_slice(&properties);
             }
         } else {
             return Err(NetError::EncryptionError(
@@ -154,7 +167,11 @@ pub(super) async fn login(
                 .map(|property: &PlayerProperty| LoginSuccessProperties {
                     name: &property.name,
                     value: &property.value,
-                    signature: Some(&property.signature),
+                    signature: if let Some(str) = property.signature.as_ref() {
+                        PrefixedOptional::Some(str.as_str())
+                    } else {
+                        PrefixedOptional::None
+                    },
                 })
                 .collect(),
         ),
@@ -311,34 +328,41 @@ pub(super) async fn login(
 
     // =============================================================================================
     // 15 Send initial player position sync (requires teleport confirmation)
+
     let teleport_id_i32: i32 = (rand::random::<u32>() & 0x3FFF_FFFF) as i32;
 
-    let spawn_pos = state
-        .player_cache
-        .get(&player_identity.uuid)
-        .map(|f| f.position.clone())
-        .unwrap_or(Position::new(
-            DEFAULT_SPAWN_POSITION.x as f64,
-            DEFAULT_SPAWN_POSITION.y as f64,
-            DEFAULT_SPAWN_POSITION.z as f64,
-        ));
-
-    let spawn_rotation = state
-        .player_cache
-        .get(&player_identity.uuid)
-        .map(|f| f.rotation)
-        .unwrap_or_default();
+    // Attempt to get BOTH position and rotation from the cache at the same time.
+    let (spawn_pos, spawn_rotation) =
+        if let Some(data) = state.player_cache.get(&player_identity.uuid) {
+            // Found in cache: return clones of the data
+            (data.position.clone(), data.rotation)
+        } else {
+            // Not found: Use Server Defaults for BOTH
+            (
+                Position::new(
+                    DEFAULT_SPAWN_POSITION.x as f64,
+                    DEFAULT_SPAWN_POSITION.y as f64,
+                    DEFAULT_SPAWN_POSITION.z as f64,
+                ),
+                // Ensure you have a default rotation that matches the default position
+                Rotation::default(),
+            )
+        };
 
     let sync_player_pos =
         crate::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket {
             x: spawn_pos.x,
             y: spawn_pos.y,
             z: spawn_pos.z,
-            pitch: spawn_rotation.pitch,
+            vel_x: 0.0,
+            vel_y: 0.0,
+            vel_z: 0.0,
             yaw: spawn_rotation.yaw,
+            pitch: spawn_rotation.pitch,
             teleport_id: VarInt::new(teleport_id_i32),
-            ..Default::default()
+            flags: 0, // Explicitly set flags to 0 (Absolute positioning)
         };
+
     conn_write.send_packet(sync_player_pos)?;
 
     // =============================================================================================
@@ -420,7 +444,7 @@ pub(super) async fn login(
                         crate::packets::outgoing::chunk_and_light_data::ChunkAndLightData::from_chunk(
                             &chunk,
                         )?;
-                    let compressed_packet = compress_packet(&chunk_data, compressed, &NetEncodeOpts::WithLength)?;
+                    let compressed_packet = compress_packet(&chunk_data, compressed, &NetEncodeOpts::WithLength, 64)?;
                     Ok(compressed_packet)
                 }
             });

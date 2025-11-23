@@ -2,7 +2,7 @@ use bevy_ecs::prelude::Component;
 use std::fmt::Debug;
 use typename::TypeName;
 
-#[derive(TypeName, Component)]
+#[derive(TypeName, Component, Clone, Copy, Default)]
 pub struct Rotation {
     pub yaw: f32,
     pub pitch: f32,
@@ -42,20 +42,6 @@ impl Rotation {
         (x, y, z)
     }
 }
-
-impl Default for Rotation {
-    fn default() -> Self {
-        Self::new(0.0, 0.0)
-    }
-}
-
-impl Clone for Rotation {
-    fn clone(&self) -> Self {
-        *self
-    }
-}
-
-impl Copy for Rotation {}
 
 impl Debug for Rotation {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
