@@ -28,6 +28,19 @@ pub struct Chunk {
     pub dimension: String,
     pub sections: Vec<Section>,
     pub heightmaps: Heightmaps,
+    pub real_heightmap: [[i16; 16]; 16],
+    pub noises: Noises,
+}
+
+#[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug, Default, Copy)]
+pub struct Noises {
+    // We have to use u32 here because f32s are not Eq, so we convert them to and from u32s with
+    // to_bits() and from_bits() respectively. DO NOT USE `as f32` ON THESE VALUES, YOU WILL BREAK
+    // EVERYTHING.
+    pub humidity_noise: [[u32; 16]; 16],
+    pub temperature_noise: [[u32; 16]; 16],
+    pub height_noise: [[u32; 16]; 16],
+    pub erosion_noise: [[u32; 16]; 16],
 }
 
 #[derive(Encode, Decode, NBTDeserialize, NBTSerialize, Clone, DeepSizeOf, Debug)]
@@ -54,7 +67,7 @@ pub struct BlockStates {
     pub block_counts: HashMap<BlockStateId, i32>,
 }
 
-#[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug)]
+#[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug, Hash)]
 pub enum PaletteType {
     Single(VarInt),
     Indirect {
@@ -99,6 +112,20 @@ impl Heightmaps {
             motion_blocking: vec![],
             world_surface: vec![],
         }
+    }
+}
+
+impl Chunk {
+    pub fn get_min_y(&self) -> i16 {
+        let mut min_y = i16::MAX;
+        for row in self.real_heightmap {
+            for y in row {
+                if y < min_y {
+                    min_y = y;
+                }
+            }
+        }
+        min_y
     }
 }
 
@@ -215,6 +242,8 @@ impl VanillaChunk {
             dimension,
             sections,
             heightmaps,
+            real_heightmap: [[0; 16]; 16],
+            noises: Noises::default(),
         })
     }
 }
@@ -248,6 +277,8 @@ impl Chunk {
             dimension,
             sections,
             heightmaps: Heightmaps::new(),
+            real_heightmap: [[0; 16]; 16],
+            noises: Noises::default(),
         }
     }
 }

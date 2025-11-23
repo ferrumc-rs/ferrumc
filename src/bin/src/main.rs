@@ -17,7 +17,6 @@ use tracing::{error, info};
 
 pub(crate) mod errors;
 use crate::cli::{CLIArgs, Command, ImportArgs};
-mod chunk_sending;
 mod cli;
 mod game_loop;
 mod packet_handlers;
@@ -101,9 +100,9 @@ fn generate_chunks(state: GlobalState) -> Result<(), BinaryError> {
                     error!("Error saving chunk ({}, {}): {:?}", x, z, e);
                 }
             }
-        });
+        })
     }
-    batch.wait();
+    let _generated_chunks = batch.wait();
     info!("Finished generating spawn chunks in {:?}", start.elapsed());
     Ok(())
 }
@@ -112,6 +111,7 @@ fn entry(start_time: Instant) -> Result<(), BinaryError> {
     let state = create_state(start_time)?;
     let global_state = Arc::new(state);
     create_whitelist();
+
     if !global_state.world.chunk_exists(0, 0, "overworld")? {
         generate_chunks(global_state.clone())?;
     }

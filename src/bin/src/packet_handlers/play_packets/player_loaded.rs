@@ -24,11 +24,21 @@ pub fn handle(
             );
             continue;
         }
-        let head_block = state.0.world.get_block_and_fetch(
-            player_pos.x as i32,
-            player_pos.y as i32,
-            player_pos.z as i32,
+        let Ok(chunk) = state.0.world.load_chunk(
+            player_pos.x as i32 >> 4,
+            player_pos.z as i32 >> 4,
             "overworld",
+        ) else {
+            warn!(
+                "Failed to load chunk for player {} at position: ({}, {}, {})",
+                player, player_pos.x, player_pos.y, player_pos.z
+            );
+            continue;
+        };
+        let head_block = chunk.get_block(
+            player_pos.x as i32 % 16,
+            player_pos.y as i32,
+            player_pos.z as i32 % 16,
         );
         if let Ok(head_block) = head_block {
             if head_block == BlockStateId(0) {
@@ -48,6 +58,10 @@ pub fn handle(
                     player_pos.z,
                     head_block
                 );
+                // get the lowest block we can teleport the player to
+
+                // let lowest_y = chunk.real_heightmap[player_pos.x.abs() as usize % 16][player_pos.z.abs() as usize % 16];
+
                 // Teleport the player to the world center if their head block is not air
                 let packet = SynchronizePlayerPositionPacket::default();
                 if let Err(e) = conn.send_packet_ref(&packet) {
