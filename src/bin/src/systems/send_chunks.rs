@@ -68,7 +68,7 @@ pub fn send_chunks(
                 Ok(packet) => {
                     if is_compressed {
                         // Compress the packet if compression is enabled
-                        let compressed_packet = compress_packet(&packet, true, &WithLength)?;
+                        let compressed_packet = compress_packet(&packet, true, &WithLength, 64)?;
                         Ok((compressed_packet, x, z))
                     } else {
                         let mut buffer = Vec::new();

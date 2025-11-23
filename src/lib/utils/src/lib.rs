@@ -22,24 +22,25 @@ pub mod formatting;
 #[macro_export]
 macro_rules! root {
     ($from_root:literal) => {{
-        let delimiter = if cfg!(windows) { "\\" } else { "/" };
-        let root = std::path::absolute(file!())
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .to_string();
-        let root = root
-            .split(delimiter)
-            .take_while(|&x| x != "src")
-            .collect::<Vec<&str>>()
-            .join(delimiter);
-        let path_from_root = std::path::Path::new($from_root);
-        std::path::absolute(root)
-            .unwrap()
-            .join(path_from_root)
-            .to_str()
-            .unwrap()
-            .to_string()
+        let manifest_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+
+        // Walk up until we find the workspace root (defined by having a Cargo.lock or .git)
+        // Or just assume the logic you had before but applied to MANIFEST_DIR
+        let mut root = manifest_dir;
+
+        // Attempt to strip src/lib/... if present, or just find the git root
+        for _ in 0..5 {
+            if root.join("Cargo.lock").exists() || root.join(".git").exists() {
+                break;
+            }
+            if let Some(parent) = root.parent() {
+                root = parent;
+            } else {
+                break;
+            }
+        }
+
+        root.join($from_root).to_str().unwrap().to_string()
     }};
 }
 

@@ -7,7 +7,6 @@ edition = "2021"
 
 thiserror = { workspace = true }
 ferrumc-net-codec = { workspace = true }
-tracing = { workspace = true }
 tokio = { workspace = true }
 ferrumc-general-purpose = { workspace = true }
 uuid = { workspace = true }
