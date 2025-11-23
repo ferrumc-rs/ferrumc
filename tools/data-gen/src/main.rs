@@ -29,8 +29,9 @@ fn main() {
 
     // 4. Physics Pipeline
     let remapped_jar = setup::prepare_remapped_jar(&temp_dir);
-    let physics_json = setup::extract_physics_data(&remapped_jar, &temp_dir);
+    let physics_json = setup::extract_blocks(&remapped_jar, &temp_dir);
     let mappings_json = setup::extract_mappings(&remapped_jar, &temp_dir);
+    let entities_json = setup::extract_entities(&remapped_jar, &temp_dir);
 
     // 5. Generate Code
 
@@ -55,6 +56,10 @@ fn main() {
     // Mappings
     println!("Generating Item->Block Mappings...");
     generators::mappings::generate(&mappings_json, &output_base.join("mappings.rs"));
+
+    // Entities
+    println!("Generating Entites Mappings...");
+    generators::entities::generate(&entities_json, &output_base.join("entities.rs"));
 
     // 6. Create Mod File
     utils::write_mod_file(&output_base);

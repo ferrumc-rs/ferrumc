@@ -444,12 +444,7 @@ pub const APPLE: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 4,
-        saturation: 2.4,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 4, saturation: 2.4, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -617,12 +612,7 @@ pub const BAKED_POTATO: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 5,
-        saturation: 6.0,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 5, saturation: 6.0, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -1000,12 +990,7 @@ pub const BEEF: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 3,
-        saturation: 1.8,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 3, saturation: 1.8, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -1033,12 +1018,7 @@ pub const BEETROOT: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 1,
-        saturation: 1.2,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 1, saturation: 1.2, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -1066,12 +1046,7 @@ pub const BEETROOT_SOUP: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 6,
-        saturation: 7.2,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 6, saturation: 7.2, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -2037,12 +2012,7 @@ pub const BREAD: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 5,
-        saturation: 6.0,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 5, saturation: 6.0, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -2602,12 +2572,7 @@ pub const CARROT: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 3,
-        saturation: 3.6,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 3, saturation: 3.6, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -3069,12 +3034,7 @@ pub const CHICKEN: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 2,
-        saturation: 1.2,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 2, saturation: 1.2, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -3284,12 +3244,7 @@ pub const CHORUS_FRUIT: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 4,
-        saturation: 2.4,
-        can_always_eat: true,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 4, saturation: 2.4, can_always_eat: true, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -3569,12 +3524,7 @@ pub const COD: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 2,
-        saturation: 0.4,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 2, saturation: 0.4, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -3700,12 +3650,7 @@ pub const COOKED_BEEF: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 8,
-        saturation: 12.8,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 8, saturation: 12.8, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -3719,12 +3664,7 @@ pub const COOKED_CHICKEN: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 6,
-        saturation: 7.2,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 6, saturation: 7.2, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -3738,12 +3678,7 @@ pub const COOKED_COD: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 5,
-        saturation: 6.0,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 5, saturation: 6.0, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -3757,12 +3692,7 @@ pub const COOKED_MUTTON: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 6,
-        saturation: 9.6,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 6, saturation: 9.6, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -3776,12 +3706,7 @@ pub const COOKED_PORKCHOP: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 8,
-        saturation: 12.8,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 8, saturation: 12.8, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -3795,12 +3720,7 @@ pub const COOKED_RABBIT: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 5,
-        saturation: 6.0,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 5, saturation: 6.0, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -3814,12 +3734,7 @@ pub const COOKED_SALMON: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 6,
-        saturation: 9.6,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 6, saturation: 9.6, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -3833,12 +3748,7 @@ pub const COOKIE: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 2,
-        saturation: 0.4,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 2, saturation: 0.4, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -5505,38 +5415,10 @@ pub const DIAMOND_AXE: ItemData = ItemData {
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData {
-        default_mining_speed: 1.0,
-        damage_per_block: 1,
-        rules: &[
-            ToolRule {
-                blocks: "#minecraft:incorrect_for_diamond_tool",
-                speed: None,
-                correct_for_drops: Some(false),
-            },
-            ToolRule {
-                blocks: "#minecraft:mineable/axe",
-                speed: Some(8.0),
-                correct_for_drops: Some(true),
-            },
-        ],
-    }),
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_diamond_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/axe", speed: Some(8.0), correct_for_drops: Some(true) }, ] }),
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[
-        AttributeModifier {
-            kind: AttributeType::AttackDamage,
-            amount: 8.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-        AttributeModifier {
-            kind: AttributeType::AttackSpeed,
-            amount: -3.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-    ],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 8.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const DIAMOND_BLOCK: ItemData = ItemData {
@@ -5603,38 +5485,10 @@ pub const DIAMOND_HOE: ItemData = ItemData {
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData {
-        default_mining_speed: 1.0,
-        damage_per_block: 1,
-        rules: &[
-            ToolRule {
-                blocks: "#minecraft:incorrect_for_diamond_tool",
-                speed: None,
-                correct_for_drops: Some(false),
-            },
-            ToolRule {
-                blocks: "#minecraft:mineable/hoe",
-                speed: Some(8.0),
-                correct_for_drops: Some(true),
-            },
-        ],
-    }),
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_diamond_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/hoe", speed: Some(8.0), correct_for_drops: Some(true) }, ] }),
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[
-        AttributeModifier {
-            kind: AttributeType::AttackDamage,
-            amount: 0.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-        AttributeModifier {
-            kind: AttributeType::AttackSpeed,
-            amount: 0.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-    ],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const DIAMOND_HORSE_ARMOR: ItemData = ItemData {
@@ -5687,38 +5541,10 @@ pub const DIAMOND_PICKAXE: ItemData = ItemData {
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData {
-        default_mining_speed: 1.0,
-        damage_per_block: 1,
-        rules: &[
-            ToolRule {
-                blocks: "#minecraft:incorrect_for_diamond_tool",
-                speed: None,
-                correct_for_drops: Some(false),
-            },
-            ToolRule {
-                blocks: "#minecraft:mineable/pickaxe",
-                speed: Some(8.0),
-                correct_for_drops: Some(true),
-            },
-        ],
-    }),
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_diamond_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/pickaxe", speed: Some(8.0), correct_for_drops: Some(true) }, ] }),
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[
-        AttributeModifier {
-            kind: AttributeType::AttackDamage,
-            amount: 4.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-        AttributeModifier {
-            kind: AttributeType::AttackSpeed,
-            amount: -2.8000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-    ],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 4.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -2.8000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const DIAMOND_SHOVEL: ItemData = ItemData {
@@ -5729,38 +5555,10 @@ pub const DIAMOND_SHOVEL: ItemData = ItemData {
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData {
-        default_mining_speed: 1.0,
-        damage_per_block: 1,
-        rules: &[
-            ToolRule {
-                blocks: "#minecraft:incorrect_for_diamond_tool",
-                speed: None,
-                correct_for_drops: Some(false),
-            },
-            ToolRule {
-                blocks: "#minecraft:mineable/shovel",
-                speed: Some(8.0),
-                correct_for_drops: Some(true),
-            },
-        ],
-    }),
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_diamond_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/shovel", speed: Some(8.0), correct_for_drops: Some(true) }, ] }),
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[
-        AttributeModifier {
-            kind: AttributeType::AttackDamage,
-            amount: 4.5000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-        AttributeModifier {
-            kind: AttributeType::AttackSpeed,
-            amount: -3.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-    ],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 4.5000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const DIAMOND_SWORD: ItemData = ItemData {
@@ -5771,38 +5569,10 @@ pub const DIAMOND_SWORD: ItemData = ItemData {
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData {
-        default_mining_speed: 1.0,
-        damage_per_block: 2,
-        rules: &[
-            ToolRule {
-                blocks: "minecraft:cobweb",
-                speed: Some(15.0),
-                correct_for_drops: Some(true),
-            },
-            ToolRule {
-                blocks: "#minecraft:sword_efficient",
-                speed: Some(1.5),
-                correct_for_drops: None,
-            },
-        ],
-    }),
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 2, rules: &[ToolRule { blocks: "minecraft:cobweb", speed: Some(15.0), correct_for_drops: Some(true) }, ToolRule { blocks: "#minecraft:sword_efficient", speed: Some(1.5), correct_for_drops: None }, ] }),
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[
-        AttributeModifier {
-            kind: AttributeType::AttackDamage,
-            amount: 6.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-        AttributeModifier {
-            kind: AttributeType::AttackSpeed,
-            amount: -2.4000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-    ],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 6.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -2.4000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const DIORITE: ItemData = ItemData {
@@ -5994,12 +5764,7 @@ pub const DRIED_KELP: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 1,
-        saturation: 0.6,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 1, saturation: 0.6, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -6195,12 +5960,7 @@ pub const ENCHANTED_GOLDEN_APPLE: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Epic,
-    food: Some(FoodData {
-        nutrition: 4,
-        saturation: 9.6,
-        can_always_eat: true,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 4, saturation: 9.6, can_always_eat: true, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -7110,12 +6870,7 @@ pub const GLOW_BERRIES: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 2,
-        saturation: 0.4,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 2, saturation: 0.4, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -7297,12 +7052,7 @@ pub const GOLDEN_APPLE: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Rare,
-    food: Some(FoodData {
-        nutrition: 4,
-        saturation: 9.6,
-        can_always_eat: true,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 4, saturation: 9.6, can_always_eat: true, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -7317,38 +7067,10 @@ pub const GOLDEN_AXE: ItemData = ItemData {
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData {
-        default_mining_speed: 1.0,
-        damage_per_block: 1,
-        rules: &[
-            ToolRule {
-                blocks: "#minecraft:incorrect_for_gold_tool",
-                speed: None,
-                correct_for_drops: Some(false),
-            },
-            ToolRule {
-                blocks: "#minecraft:mineable/axe",
-                speed: Some(12.0),
-                correct_for_drops: Some(true),
-            },
-        ],
-    }),
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_gold_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/axe", speed: Some(12.0), correct_for_drops: Some(true) }, ] }),
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[
-        AttributeModifier {
-            kind: AttributeType::AttackDamage,
-            amount: 6.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-        AttributeModifier {
-            kind: AttributeType::AttackSpeed,
-            amount: -3.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-    ],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 6.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const GOLDEN_BOOTS: ItemData = ItemData {
@@ -7372,12 +7094,7 @@ pub const GOLDEN_CARROT: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 6,
-        saturation: 14.4,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 6, saturation: 14.4, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -7420,38 +7137,10 @@ pub const GOLDEN_HOE: ItemData = ItemData {
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData {
-        default_mining_speed: 1.0,
-        damage_per_block: 1,
-        rules: &[
-            ToolRule {
-                blocks: "#minecraft:incorrect_for_gold_tool",
-                speed: None,
-                correct_for_drops: Some(false),
-            },
-            ToolRule {
-                blocks: "#minecraft:mineable/hoe",
-                speed: Some(12.0),
-                correct_for_drops: Some(true),
-            },
-        ],
-    }),
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_gold_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/hoe", speed: Some(12.0), correct_for_drops: Some(true) }, ] }),
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[
-        AttributeModifier {
-            kind: AttributeType::AttackDamage,
-            amount: 0.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-        AttributeModifier {
-            kind: AttributeType::AttackSpeed,
-            amount: -3.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-    ],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const GOLDEN_HORSE_ARMOR: ItemData = ItemData {
@@ -7490,38 +7179,10 @@ pub const GOLDEN_PICKAXE: ItemData = ItemData {
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData {
-        default_mining_speed: 1.0,
-        damage_per_block: 1,
-        rules: &[
-            ToolRule {
-                blocks: "#minecraft:incorrect_for_gold_tool",
-                speed: None,
-                correct_for_drops: Some(false),
-            },
-            ToolRule {
-                blocks: "#minecraft:mineable/pickaxe",
-                speed: Some(12.0),
-                correct_for_drops: Some(true),
-            },
-        ],
-    }),
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_gold_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/pickaxe", speed: Some(12.0), correct_for_drops: Some(true) }, ] }),
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[
-        AttributeModifier {
-            kind: AttributeType::AttackDamage,
-            amount: 1.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-        AttributeModifier {
-            kind: AttributeType::AttackSpeed,
-            amount: -2.8000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-    ],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 1.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -2.8000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const GOLDEN_SHOVEL: ItemData = ItemData {
@@ -7532,38 +7193,10 @@ pub const GOLDEN_SHOVEL: ItemData = ItemData {
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData {
-        default_mining_speed: 1.0,
-        damage_per_block: 1,
-        rules: &[
-            ToolRule {
-                blocks: "#minecraft:incorrect_for_gold_tool",
-                speed: None,
-                correct_for_drops: Some(false),
-            },
-            ToolRule {
-                blocks: "#minecraft:mineable/shovel",
-                speed: Some(12.0),
-                correct_for_drops: Some(true),
-            },
-        ],
-    }),
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_gold_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/shovel", speed: Some(12.0), correct_for_drops: Some(true) }, ] }),
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[
-        AttributeModifier {
-            kind: AttributeType::AttackDamage,
-            amount: 1.5000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-        AttributeModifier {
-            kind: AttributeType::AttackSpeed,
-            amount: -3.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-    ],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 1.5000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const GOLDEN_SWORD: ItemData = ItemData {
@@ -7574,38 +7207,10 @@ pub const GOLDEN_SWORD: ItemData = ItemData {
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData {
-        default_mining_speed: 1.0,
-        damage_per_block: 2,
-        rules: &[
-            ToolRule {
-                blocks: "minecraft:cobweb",
-                speed: Some(15.0),
-                correct_for_drops: Some(true),
-            },
-            ToolRule {
-                blocks: "#minecraft:sword_efficient",
-                speed: Some(1.5),
-                correct_for_drops: None,
-            },
-        ],
-    }),
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 2, rules: &[ToolRule { blocks: "minecraft:cobweb", speed: Some(15.0), correct_for_drops: Some(true) }, ToolRule { blocks: "#minecraft:sword_efficient", speed: Some(1.5), correct_for_drops: None }, ] }),
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[
-        AttributeModifier {
-            kind: AttributeType::AttackDamage,
-            amount: 3.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-        AttributeModifier {
-            kind: AttributeType::AttackSpeed,
-            amount: -2.4000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-    ],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -2.4000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const GRANITE: ItemData = ItemData {
@@ -8259,12 +7864,7 @@ pub const HONEY_BOTTLE: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 6,
-        saturation: 1.2,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 6, saturation: 1.2, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -8559,38 +8159,10 @@ pub const IRON_AXE: ItemData = ItemData {
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData {
-        default_mining_speed: 1.0,
-        damage_per_block: 1,
-        rules: &[
-            ToolRule {
-                blocks: "#minecraft:incorrect_for_iron_tool",
-                speed: None,
-                correct_for_drops: Some(false),
-            },
-            ToolRule {
-                blocks: "#minecraft:mineable/axe",
-                speed: Some(6.0),
-                correct_for_drops: Some(true),
-            },
-        ],
-    }),
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_iron_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/axe", speed: Some(6.0), correct_for_drops: Some(true) }, ] }),
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[
-        AttributeModifier {
-            kind: AttributeType::AttackDamage,
-            amount: 8.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-        AttributeModifier {
-            kind: AttributeType::AttackSpeed,
-            amount: -3.1000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-    ],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 8.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -3.1000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const IRON_BARS: ItemData = ItemData {
@@ -8699,38 +8271,10 @@ pub const IRON_HOE: ItemData = ItemData {
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData {
-        default_mining_speed: 1.0,
-        damage_per_block: 1,
-        rules: &[
-            ToolRule {
-                blocks: "#minecraft:incorrect_for_iron_tool",
-                speed: None,
-                correct_for_drops: Some(false),
-            },
-            ToolRule {
-                blocks: "#minecraft:mineable/hoe",
-                speed: Some(6.0),
-                correct_for_drops: Some(true),
-            },
-        ],
-    }),
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_iron_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/hoe", speed: Some(6.0), correct_for_drops: Some(true) }, ] }),
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[
-        AttributeModifier {
-            kind: AttributeType::AttackDamage,
-            amount: 0.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-        AttributeModifier {
-            kind: AttributeType::AttackSpeed,
-            amount: -1.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-    ],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -1.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const IRON_HORSE_ARMOR: ItemData = ItemData {
@@ -8811,38 +8355,10 @@ pub const IRON_PICKAXE: ItemData = ItemData {
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData {
-        default_mining_speed: 1.0,
-        damage_per_block: 1,
-        rules: &[
-            ToolRule {
-                blocks: "#minecraft:incorrect_for_iron_tool",
-                speed: None,
-                correct_for_drops: Some(false),
-            },
-            ToolRule {
-                blocks: "#minecraft:mineable/pickaxe",
-                speed: Some(6.0),
-                correct_for_drops: Some(true),
-            },
-        ],
-    }),
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_iron_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/pickaxe", speed: Some(6.0), correct_for_drops: Some(true) }, ] }),
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[
-        AttributeModifier {
-            kind: AttributeType::AttackDamage,
-            amount: 3.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-        AttributeModifier {
-            kind: AttributeType::AttackSpeed,
-            amount: -2.8000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-    ],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -2.8000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const IRON_SHOVEL: ItemData = ItemData {
@@ -8853,38 +8369,10 @@ pub const IRON_SHOVEL: ItemData = ItemData {
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData {
-        default_mining_speed: 1.0,
-        damage_per_block: 1,
-        rules: &[
-            ToolRule {
-                blocks: "#minecraft:incorrect_for_iron_tool",
-                speed: None,
-                correct_for_drops: Some(false),
-            },
-            ToolRule {
-                blocks: "#minecraft:mineable/shovel",
-                speed: Some(6.0),
-                correct_for_drops: Some(true),
-            },
-        ],
-    }),
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_iron_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/shovel", speed: Some(6.0), correct_for_drops: Some(true) }, ] }),
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[
-        AttributeModifier {
-            kind: AttributeType::AttackDamage,
-            amount: 3.5000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-        AttributeModifier {
-            kind: AttributeType::AttackSpeed,
-            amount: -3.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-    ],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 3.5000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const IRON_SWORD: ItemData = ItemData {
@@ -8895,38 +8383,10 @@ pub const IRON_SWORD: ItemData = ItemData {
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData {
-        default_mining_speed: 1.0,
-        damage_per_block: 2,
-        rules: &[
-            ToolRule {
-                blocks: "minecraft:cobweb",
-                speed: Some(15.0),
-                correct_for_drops: Some(true),
-            },
-            ToolRule {
-                blocks: "#minecraft:sword_efficient",
-                speed: Some(1.5),
-                correct_for_drops: None,
-            },
-        ],
-    }),
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 2, rules: &[ToolRule { blocks: "minecraft:cobweb", speed: Some(15.0), correct_for_drops: Some(true) }, ToolRule { blocks: "#minecraft:sword_efficient", speed: Some(1.5), correct_for_drops: None }, ] }),
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[
-        AttributeModifier {
-            kind: AttributeType::AttackDamage,
-            amount: 5.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-        AttributeModifier {
-            kind: AttributeType::AttackSpeed,
-            amount: -2.4000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-    ],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 5.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -2.4000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const IRON_TRAPDOOR: ItemData = ItemData {
@@ -10197,27 +9657,10 @@ pub const MACE: ItemData = ItemData {
     is_fire_resistant: false,
     rarity: Rarity::Epic,
     food: None,
-    tool: Some(ToolData {
-        default_mining_speed: 1.0,
-        damage_per_block: 2,
-        rules: &[],
-    }),
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 2, rules: &[] }),
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[
-        AttributeModifier {
-            kind: AttributeType::AttackDamage,
-            amount: 5.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-        AttributeModifier {
-            kind: AttributeType::AttackSpeed,
-            amount: -3.4000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-    ],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 5.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -3.4000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const MAGENTA_BANNER: ItemData = ItemData {
@@ -10759,12 +10202,7 @@ pub const MELON_SLICE: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 2,
-        saturation: 1.2,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 2, saturation: 1.2, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -11114,12 +10552,7 @@ pub const MUSHROOM_STEW: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 6,
-        saturation: 7.2,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 6, saturation: 7.2, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -11399,12 +10832,7 @@ pub const MUTTON: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 2,
-        saturation: 1.2,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 2, saturation: 1.2, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -11629,38 +11057,10 @@ pub const NETHERITE_AXE: ItemData = ItemData {
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData {
-        default_mining_speed: 1.0,
-        damage_per_block: 1,
-        rules: &[
-            ToolRule {
-                blocks: "#minecraft:incorrect_for_netherite_tool",
-                speed: None,
-                correct_for_drops: Some(false),
-            },
-            ToolRule {
-                blocks: "#minecraft:mineable/axe",
-                speed: Some(9.0),
-                correct_for_drops: Some(true),
-            },
-        ],
-    }),
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_netherite_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/axe", speed: Some(9.0), correct_for_drops: Some(true) }, ] }),
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[
-        AttributeModifier {
-            kind: AttributeType::AttackDamage,
-            amount: 9.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-        AttributeModifier {
-            kind: AttributeType::AttackSpeed,
-            amount: -3.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-    ],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 9.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const NETHERITE_BLOCK: ItemData = ItemData {
@@ -11727,38 +11127,10 @@ pub const NETHERITE_HOE: ItemData = ItemData {
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData {
-        default_mining_speed: 1.0,
-        damage_per_block: 1,
-        rules: &[
-            ToolRule {
-                blocks: "#minecraft:incorrect_for_netherite_tool",
-                speed: None,
-                correct_for_drops: Some(false),
-            },
-            ToolRule {
-                blocks: "#minecraft:mineable/hoe",
-                speed: Some(9.0),
-                correct_for_drops: Some(true),
-            },
-        ],
-    }),
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_netherite_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/hoe", speed: Some(9.0), correct_for_drops: Some(true) }, ] }),
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[
-        AttributeModifier {
-            kind: AttributeType::AttackDamage,
-            amount: 0.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-        AttributeModifier {
-            kind: AttributeType::AttackSpeed,
-            amount: 0.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-    ],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const NETHERITE_INGOT: ItemData = ItemData {
@@ -11797,38 +11169,10 @@ pub const NETHERITE_PICKAXE: ItemData = ItemData {
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData {
-        default_mining_speed: 1.0,
-        damage_per_block: 1,
-        rules: &[
-            ToolRule {
-                blocks: "#minecraft:incorrect_for_netherite_tool",
-                speed: None,
-                correct_for_drops: Some(false),
-            },
-            ToolRule {
-                blocks: "#minecraft:mineable/pickaxe",
-                speed: Some(9.0),
-                correct_for_drops: Some(true),
-            },
-        ],
-    }),
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_netherite_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/pickaxe", speed: Some(9.0), correct_for_drops: Some(true) }, ] }),
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[
-        AttributeModifier {
-            kind: AttributeType::AttackDamage,
-            amount: 5.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-        AttributeModifier {
-            kind: AttributeType::AttackSpeed,
-            amount: -2.8000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-    ],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 5.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -2.8000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const NETHERITE_SCRAP: ItemData = ItemData {
@@ -11853,38 +11197,10 @@ pub const NETHERITE_SHOVEL: ItemData = ItemData {
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData {
-        default_mining_speed: 1.0,
-        damage_per_block: 1,
-        rules: &[
-            ToolRule {
-                blocks: "#minecraft:incorrect_for_netherite_tool",
-                speed: None,
-                correct_for_drops: Some(false),
-            },
-            ToolRule {
-                blocks: "#minecraft:mineable/shovel",
-                speed: Some(9.0),
-                correct_for_drops: Some(true),
-            },
-        ],
-    }),
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_netherite_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/shovel", speed: Some(9.0), correct_for_drops: Some(true) }, ] }),
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[
-        AttributeModifier {
-            kind: AttributeType::AttackDamage,
-            amount: 5.5000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-        AttributeModifier {
-            kind: AttributeType::AttackSpeed,
-            amount: -3.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-    ],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 5.5000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const NETHERITE_SWORD: ItemData = ItemData {
@@ -11895,38 +11211,10 @@ pub const NETHERITE_SWORD: ItemData = ItemData {
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData {
-        default_mining_speed: 1.0,
-        damage_per_block: 2,
-        rules: &[
-            ToolRule {
-                blocks: "minecraft:cobweb",
-                speed: Some(15.0),
-                correct_for_drops: Some(true),
-            },
-            ToolRule {
-                blocks: "#minecraft:sword_efficient",
-                speed: Some(1.5),
-                correct_for_drops: None,
-            },
-        ],
-    }),
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 2, rules: &[ToolRule { blocks: "minecraft:cobweb", speed: Some(15.0), correct_for_drops: Some(true) }, ToolRule { blocks: "#minecraft:sword_efficient", speed: Some(1.5), correct_for_drops: None }, ] }),
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[
-        AttributeModifier {
-            kind: AttributeType::AttackDamage,
-            amount: 7.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-        AttributeModifier {
-            kind: AttributeType::AttackSpeed,
-            amount: -2.4000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-    ],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 7.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -2.4000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const NETHERITE_UPGRADE_SMITHING_TEMPLATE: ItemData = ItemData {
@@ -12272,12 +11560,7 @@ pub const OMINOUS_BOTTLE: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 1,
-        saturation: 0.2,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 1, saturation: 0.2, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -13187,12 +12470,7 @@ pub const POISONOUS_POTATO: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 2,
-        saturation: 1.2,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 2, saturation: 1.2, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -13640,12 +12918,7 @@ pub const PORKCHOP: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 3,
-        saturation: 1.8,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 3, saturation: 1.8, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -13659,12 +12932,7 @@ pub const POTATO: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 1,
-        saturation: 0.6,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 1, saturation: 0.6, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -13860,12 +13128,7 @@ pub const PUFFERFISH: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 1,
-        saturation: 0.2,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 1, saturation: 0.2, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -13921,12 +13184,7 @@ pub const PUMPKIN_PIE: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 8,
-        saturation: 4.8,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 8, saturation: 4.8, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -14276,12 +13534,7 @@ pub const RABBIT: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 3,
-        saturation: 1.8,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 3, saturation: 1.8, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -14337,12 +13590,7 @@ pub const RABBIT_STEW: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 10,
-        saturation: 12.0,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 10, saturation: 12.0, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -15014,12 +14262,7 @@ pub const ROTTEN_FLESH: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 4,
-        saturation: 0.8,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 4, saturation: 0.8, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -15047,12 +14290,7 @@ pub const SALMON: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 2,
-        saturation: 0.4,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 2, saturation: 0.4, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -15347,32 +14585,7 @@ pub const SHEARS: ItemData = ItemData {
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData {
-        default_mining_speed: 1.0,
-        damage_per_block: 1,
-        rules: &[
-            ToolRule {
-                blocks: "minecraft:cobweb",
-                speed: Some(15.0),
-                correct_for_drops: Some(true),
-            },
-            ToolRule {
-                blocks: "#minecraft:leaves",
-                speed: Some(15.0),
-                correct_for_drops: None,
-            },
-            ToolRule {
-                blocks: "#minecraft:wool",
-                speed: Some(5.0),
-                correct_for_drops: None,
-            },
-            ToolRule {
-                blocks: "minecraft:vine,minecraft:glow_lichen",
-                speed: Some(2.0),
-                correct_for_drops: None,
-            },
-        ],
-    }),
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "minecraft:cobweb", speed: Some(15.0), correct_for_drops: Some(true) }, ToolRule { blocks: "#minecraft:leaves", speed: Some(15.0), correct_for_drops: None }, ToolRule { blocks: "#minecraft:wool", speed: Some(5.0), correct_for_drops: None }, ToolRule { blocks: "minecraft:vine,minecraft:glow_lichen", speed: Some(2.0), correct_for_drops: None }, ] }),
     enchantable_value: None,
     repairable_with: None,
     attribute_modifiers: &[],
@@ -16071,12 +15284,7 @@ pub const SPIDER_EYE: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 2,
-        saturation: 3.2,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 2, saturation: 3.2, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -16469,38 +15677,10 @@ pub const STONE_AXE: ItemData = ItemData {
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData {
-        default_mining_speed: 1.0,
-        damage_per_block: 1,
-        rules: &[
-            ToolRule {
-                blocks: "#minecraft:incorrect_for_stone_tool",
-                speed: None,
-                correct_for_drops: Some(false),
-            },
-            ToolRule {
-                blocks: "#minecraft:mineable/axe",
-                speed: Some(4.0),
-                correct_for_drops: Some(true),
-            },
-        ],
-    }),
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_stone_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/axe", speed: Some(4.0), correct_for_drops: Some(true) }, ] }),
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[
-        AttributeModifier {
-            kind: AttributeType::AttackDamage,
-            amount: 8.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-        AttributeModifier {
-            kind: AttributeType::AttackSpeed,
-            amount: -3.2000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-    ],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 8.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -3.2000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const STONE_BRICK_SLAB: ItemData = ItemData {
@@ -16581,38 +15761,10 @@ pub const STONE_HOE: ItemData = ItemData {
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData {
-        default_mining_speed: 1.0,
-        damage_per_block: 1,
-        rules: &[
-            ToolRule {
-                blocks: "#minecraft:incorrect_for_stone_tool",
-                speed: None,
-                correct_for_drops: Some(false),
-            },
-            ToolRule {
-                blocks: "#minecraft:mineable/hoe",
-                speed: Some(4.0),
-                correct_for_drops: Some(true),
-            },
-        ],
-    }),
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_stone_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/hoe", speed: Some(4.0), correct_for_drops: Some(true) }, ] }),
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[
-        AttributeModifier {
-            kind: AttributeType::AttackDamage,
-            amount: 0.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-        AttributeModifier {
-            kind: AttributeType::AttackSpeed,
-            amount: -2.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-    ],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -2.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const STONE_PICKAXE: ItemData = ItemData {
@@ -16623,38 +15775,10 @@ pub const STONE_PICKAXE: ItemData = ItemData {
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData {
-        default_mining_speed: 1.0,
-        damage_per_block: 1,
-        rules: &[
-            ToolRule {
-                blocks: "#minecraft:incorrect_for_stone_tool",
-                speed: None,
-                correct_for_drops: Some(false),
-            },
-            ToolRule {
-                blocks: "#minecraft:mineable/pickaxe",
-                speed: Some(4.0),
-                correct_for_drops: Some(true),
-            },
-        ],
-    }),
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_stone_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/pickaxe", speed: Some(4.0), correct_for_drops: Some(true) }, ] }),
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[
-        AttributeModifier {
-            kind: AttributeType::AttackDamage,
-            amount: 2.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-        AttributeModifier {
-            kind: AttributeType::AttackSpeed,
-            amount: -2.8000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-    ],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 2.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -2.8000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const STONE_PRESSURE_PLATE: ItemData = ItemData {
@@ -16679,38 +15803,10 @@ pub const STONE_SHOVEL: ItemData = ItemData {
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData {
-        default_mining_speed: 1.0,
-        damage_per_block: 1,
-        rules: &[
-            ToolRule {
-                blocks: "#minecraft:incorrect_for_stone_tool",
-                speed: None,
-                correct_for_drops: Some(false),
-            },
-            ToolRule {
-                blocks: "#minecraft:mineable/shovel",
-                speed: Some(4.0),
-                correct_for_drops: Some(true),
-            },
-        ],
-    }),
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_stone_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/shovel", speed: Some(4.0), correct_for_drops: Some(true) }, ] }),
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[
-        AttributeModifier {
-            kind: AttributeType::AttackDamage,
-            amount: 2.5000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-        AttributeModifier {
-            kind: AttributeType::AttackSpeed,
-            amount: -3.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-    ],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 2.5000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const STONE_SLAB: ItemData = ItemData {
@@ -16749,38 +15845,10 @@ pub const STONE_SWORD: ItemData = ItemData {
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData {
-        default_mining_speed: 1.0,
-        damage_per_block: 2,
-        rules: &[
-            ToolRule {
-                blocks: "minecraft:cobweb",
-                speed: Some(15.0),
-                correct_for_drops: Some(true),
-            },
-            ToolRule {
-                blocks: "#minecraft:sword_efficient",
-                speed: Some(1.5),
-                correct_for_drops: None,
-            },
-        ],
-    }),
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 2, rules: &[ToolRule { blocks: "minecraft:cobweb", speed: Some(15.0), correct_for_drops: Some(true) }, ToolRule { blocks: "#minecraft:sword_efficient", speed: Some(1.5), correct_for_drops: None }, ] }),
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[
-        AttributeModifier {
-            kind: AttributeType::AttackDamage,
-            amount: 4.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-        AttributeModifier {
-            kind: AttributeType::AttackSpeed,
-            amount: -2.4000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-    ],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 4.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -2.4000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const STONECUTTER: ItemData = ItemData {
@@ -17238,12 +16306,7 @@ pub const SUSPICIOUS_STEW: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 6,
-        saturation: 7.2,
-        can_always_eat: true,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 6, saturation: 7.2, can_always_eat: true, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -17257,12 +16320,7 @@ pub const SWEET_BERRIES: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 2,
-        saturation: 0.4,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 2, saturation: 0.4, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -17529,27 +16587,10 @@ pub const TRIDENT: ItemData = ItemData {
     is_fire_resistant: false,
     rarity: Rarity::Epic,
     food: None,
-    tool: Some(ToolData {
-        default_mining_speed: 1.0,
-        damage_per_block: 2,
-        rules: &[],
-    }),
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 2, rules: &[] }),
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[
-        AttributeModifier {
-            kind: AttributeType::AttackDamage,
-            amount: 8.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-        AttributeModifier {
-            kind: AttributeType::AttackSpeed,
-            amount: -2.9000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-    ],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 8.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -2.9000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const TRIPWIRE_HOOK: ItemData = ItemData {
@@ -17573,12 +16614,7 @@ pub const TROPICAL_FISH: ItemData = ItemData {
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData {
-        nutrition: 1,
-        saturation: 0.2,
-        can_always_eat: false,
-        eat_seconds: 1.6,
-    }),
+    food: Some(FoodData { nutrition: 1, saturation: 0.2, can_always_eat: false, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -19273,38 +18309,10 @@ pub const WOODEN_AXE: ItemData = ItemData {
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData {
-        default_mining_speed: 1.0,
-        damage_per_block: 1,
-        rules: &[
-            ToolRule {
-                blocks: "#minecraft:incorrect_for_wooden_tool",
-                speed: None,
-                correct_for_drops: Some(false),
-            },
-            ToolRule {
-                blocks: "#minecraft:mineable/axe",
-                speed: Some(2.0),
-                correct_for_drops: Some(true),
-            },
-        ],
-    }),
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_wooden_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/axe", speed: Some(2.0), correct_for_drops: Some(true) }, ] }),
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[
-        AttributeModifier {
-            kind: AttributeType::AttackDamage,
-            amount: 6.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-        AttributeModifier {
-            kind: AttributeType::AttackSpeed,
-            amount: -3.2000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-    ],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 6.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -3.2000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const WOODEN_HOE: ItemData = ItemData {
@@ -19315,38 +18323,10 @@ pub const WOODEN_HOE: ItemData = ItemData {
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData {
-        default_mining_speed: 1.0,
-        damage_per_block: 1,
-        rules: &[
-            ToolRule {
-                blocks: "#minecraft:incorrect_for_wooden_tool",
-                speed: None,
-                correct_for_drops: Some(false),
-            },
-            ToolRule {
-                blocks: "#minecraft:mineable/hoe",
-                speed: Some(2.0),
-                correct_for_drops: Some(true),
-            },
-        ],
-    }),
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_wooden_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/hoe", speed: Some(2.0), correct_for_drops: Some(true) }, ] }),
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[
-        AttributeModifier {
-            kind: AttributeType::AttackDamage,
-            amount: 0.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-        AttributeModifier {
-            kind: AttributeType::AttackSpeed,
-            amount: -3.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-    ],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const WOODEN_PICKAXE: ItemData = ItemData {
@@ -19357,38 +18337,10 @@ pub const WOODEN_PICKAXE: ItemData = ItemData {
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData {
-        default_mining_speed: 1.0,
-        damage_per_block: 1,
-        rules: &[
-            ToolRule {
-                blocks: "#minecraft:incorrect_for_wooden_tool",
-                speed: None,
-                correct_for_drops: Some(false),
-            },
-            ToolRule {
-                blocks: "#minecraft:mineable/pickaxe",
-                speed: Some(2.0),
-                correct_for_drops: Some(true),
-            },
-        ],
-    }),
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_wooden_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/pickaxe", speed: Some(2.0), correct_for_drops: Some(true) }, ] }),
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[
-        AttributeModifier {
-            kind: AttributeType::AttackDamage,
-            amount: 1.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-        AttributeModifier {
-            kind: AttributeType::AttackSpeed,
-            amount: -2.8000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-    ],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 1.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -2.8000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const WOODEN_SHOVEL: ItemData = ItemData {
@@ -19399,38 +18351,10 @@ pub const WOODEN_SHOVEL: ItemData = ItemData {
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData {
-        default_mining_speed: 1.0,
-        damage_per_block: 1,
-        rules: &[
-            ToolRule {
-                blocks: "#minecraft:incorrect_for_wooden_tool",
-                speed: None,
-                correct_for_drops: Some(false),
-            },
-            ToolRule {
-                blocks: "#minecraft:mineable/shovel",
-                speed: Some(2.0),
-                correct_for_drops: Some(true),
-            },
-        ],
-    }),
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_wooden_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/shovel", speed: Some(2.0), correct_for_drops: Some(true) }, ] }),
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[
-        AttributeModifier {
-            kind: AttributeType::AttackDamage,
-            amount: 1.5000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-        AttributeModifier {
-            kind: AttributeType::AttackSpeed,
-            amount: -3.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-    ],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 1.5000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const WOODEN_SWORD: ItemData = ItemData {
@@ -19441,38 +18365,10 @@ pub const WOODEN_SWORD: ItemData = ItemData {
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData {
-        default_mining_speed: 1.0,
-        damage_per_block: 2,
-        rules: &[
-            ToolRule {
-                blocks: "minecraft:cobweb",
-                speed: Some(15.0),
-                correct_for_drops: Some(true),
-            },
-            ToolRule {
-                blocks: "#minecraft:sword_efficient",
-                speed: Some(1.5),
-                correct_for_drops: None,
-            },
-        ],
-    }),
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 2, rules: &[ToolRule { blocks: "minecraft:cobweb", speed: Some(15.0), correct_for_drops: Some(true) }, ToolRule { blocks: "#minecraft:sword_efficient", speed: Some(1.5), correct_for_drops: None }, ] }),
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[
-        AttributeModifier {
-            kind: AttributeType::AttackDamage,
-            amount: 3.0000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-        AttributeModifier {
-            kind: AttributeType::AttackSpeed,
-            amount: -2.4000,
-            operation: AttributeOperation::AddValue,
-            slot: EquipmentSlot::MainHand,
-        },
-    ],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -2.4000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const WRITABLE_BOOK: ItemData = ItemData {

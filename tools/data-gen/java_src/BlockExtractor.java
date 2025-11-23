@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class BlockInfoDumper {
+public class BlockExtractor {
       public static void main(String[] args) {
             try {
                   if (args.length < 1) {

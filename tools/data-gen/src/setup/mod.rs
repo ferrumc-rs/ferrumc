@@ -1,22 +1,29 @@
-pub mod physics;
+pub mod decompiler;
+pub mod extractors;
 pub mod vanilla;
 
-use std::fs;
-use std::path::Path;
-
-pub use physics::{extract_mappings, extract_physics_data, prepare_remapped_jar};
+pub use decompiler::prepare_remapped_jar;
+pub use extractors::{extract_blocks, extract_entities, extract_mappings};
 pub use vanilla::{download_server_jar, run_java_generator};
 
 pub const MC_VERSION: &str = "1.21.1";
 pub const MANIFEST_URL: &str = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
 
+use std::fs;
+use std::path::Path;
+
+/// Ensures that the temporary and output directories exist.
+/// This does NOT delete existing files, allowing for caching.
 pub fn prepare_directories(temp_dir: &Path, output_dir: &Path) {
-    // only create if missing. Do NOT remove existing.
+    // 1. Temp Directory (Cache)
     if !temp_dir.exists() {
-        fs::create_dir_all(temp_dir).unwrap();
+        println!("Creating temp directory: {:?}", temp_dir);
+        fs::create_dir_all(temp_dir).expect("Failed to create temp directory");
     }
-    // output dir we might want to clean to remove stale generated files... hmm
+
+    // 2. Output Directory (Generated Code)
     if !output_dir.exists() {
-        fs::create_dir_all(output_dir).unwrap();
+        println!("Creating output directory: {:?}", output_dir);
+        fs::create_dir_all(output_dir).expect("Failed to create output directory");
     }
 }

@@ -18,5 +18,6 @@ pub fn write_mod_file(output_dir: &Path) {
     writeln!(file, "pub mod blocks;").unwrap();
     writeln!(file, "pub mod items;").unwrap();
     writeln!(file, "pub mod mappings;").unwrap();
+    writeln!(file, "pub mod entities;").unwrap();
     //    writeln!(file, "pub mod registries;").unwrap();
 }
