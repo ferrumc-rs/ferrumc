@@ -7,7 +7,6 @@ edition = "2021"
 ferrumc-net-codec = { workspace = true }
 ferrumc-nbt = { workspace = true }
 ferrumc-macros = { workspace = true }
-tracing = { workspace = true }
 tokio = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
