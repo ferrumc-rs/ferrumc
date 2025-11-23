@@ -30,7 +30,12 @@ impl TextComponent {
             }
 
             if let Some(color) = component.color {
-                str.push_str(color.to_ansi_color().as_str());
+                str.push_str(
+                    color
+                        .to_ansi_color()
+                        .unwrap_or("\x1b[39m".to_string())
+                        .as_str(),
+                );
             }
 
             str.push_str(
@@ -57,34 +62,37 @@ impl TextComponent {
 }
 
 impl Color {
-    pub fn to_ansi_color(self) -> String {
+    pub fn to_ansi_color(self) -> Option<String> {
+        fn ansi_from_hex(hex: &str) -> Option<String> {
+            let hex = hex.strip_prefix("#")?;
+
+            let r = u8::from_str_radix(&hex[0..2], 16).ok()?;
+            let g = u8::from_str_radix(&hex[2..4], 16).ok()?;
+            let b = u8::from_str_radix(&hex[4..6], 16).ok()?;
+
+            Some(format!("\x1b[38;2;{r};{g};{b}m"))
+        }
+
         match self {
             Color::Named(name) => match name {
-                NamedColor::Black => "\x1b[38;5;16m".to_string(),
-                NamedColor::DarkBlue => "\x1b[38;5;19m".to_string(),
-                NamedColor::DarkGreen => "\x1b[38;5;34m".to_string(),
-                NamedColor::DarkAqua => "\x1b[38;5;37m".to_string(),
-                NamedColor::DarkRed => "\x1b[38;5;124m".to_string(),
-                NamedColor::Gold => "\x1b[38;5;214m".to_string(),
-                NamedColor::Gray => "\x1b[38;5;250m".to_string(),
-                NamedColor::DarkGray => "\x1b[38;5;240m".to_string(),
-                NamedColor::Blue => "\x1b[38;5;63m".to_string(),
-                NamedColor::Green => "\x1b[38;5;83m".to_string(),
-                NamedColor::Aqua => "\x1b[38;5;87m".to_string(),
-                NamedColor::Red => "\x1b[38;5;203m".to_string(),
-                NamedColor::LightPurple => "\x1b[38;5;207m".to_string(),
-                NamedColor::Yellow => "\x1b[38;5;227m".to_string(),
-                NamedColor::White => "\x1b[38;5;231m".to_string(),
-                NamedColor::DarkPurple => "\x1b[38;5;127m".to_string(),
+                NamedColor::Black => ansi_from_hex("#000000"),
+                NamedColor::DarkBlue => ansi_from_hex("#0000AA"),
+                NamedColor::DarkGreen => ansi_from_hex("#00AA00"),
+                NamedColor::DarkAqua => ansi_from_hex("#00AAAA"),
+                NamedColor::DarkRed => ansi_from_hex("#AA0000"),
+                NamedColor::Gold => ansi_from_hex("#FFAA00"),
+                NamedColor::Gray => ansi_from_hex("#AAAAAA"),
+                NamedColor::DarkGray => ansi_from_hex("#555555"),
+                NamedColor::Blue => ansi_from_hex("#5555FF"),
+                NamedColor::Green => ansi_from_hex("#55FF55"),
+                NamedColor::Aqua => ansi_from_hex("#55FFFF"),
+                NamedColor::Red => ansi_from_hex("#FF5555"),
+                NamedColor::LightPurple => ansi_from_hex("#FF55FF"),
+                NamedColor::Yellow => ansi_from_hex("#FFFF55"),
+                NamedColor::White => ansi_from_hex("#FFFFFF"),
+                NamedColor::DarkPurple => ansi_from_hex("#AA00AA"),
             },
-            Color::Hex(hex) => {
-                let hex = hex.strip_prefix('#').unwrap();
-                let r = u8::from_str_radix(&hex[0..2], 16).unwrap();
-                let g = u8::from_str_radix(&hex[2..4], 16).unwrap();
-                let b = u8::from_str_radix(&hex[4..6], 16).unwrap();
-
-                format!("\x1b[38;2;{r};{g};{b}m")
-            }
+            Color::Hex(hex) => ansi_from_hex(hex.as_str()),
         }
     }
 }
@@ -94,18 +102,21 @@ mod tests {
     use crate::{Color, NamedColor, TextComponentBuilder};
 
     #[test]
-    #[ignore]
     fn test_ansi_print() {
         let text = TextComponentBuilder::new("hello, world!")
             .bold()
             .underlined()
+            .strikethrough()
+            .italic()
             .extra(
                 TextComponentBuilder::new(" im second")
                     .not_bold()
                     .not_underlined()
-                    .color(Color::Named(NamedColor::DarkGray)),
+                    .not_italic()
+                    .not_strikethrough()
+                    .color(Color::Named(NamedColor::Red)),
             )
-            .color(Color::Hex("#FF00FF".to_string()))
+            .color(Color::Named(NamedColor::Blue))
             .build();
 
         println!("{}", text.to_ansi_string());
