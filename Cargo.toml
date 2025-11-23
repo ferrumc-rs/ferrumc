@@ -121,7 +121,7 @@ ferrumc-inventories = { path = "src/lib/inventories" }
 ferrumc-components = { path = "src/lib/components" }
 ferrumc-messages = { path = "src/lib/messages" }
 ferrumc-data = { path = "src/lib/data" }
-ferrumc-entities = { path = "src/lib/entities"}
+ferrumc-entities = { path = "src/lib/entities" }
 
 # Asynchronous
 tokio = { version = "1.48.0", features = [
@@ -229,7 +229,7 @@ once_cell = "1.21.3"
 
 # Maths
 noise = "0.9.0"
-splines = "5.0.0"
+splines = { version = "5.0.0", features = ["glam"] }
 simdnoise = { git = "https://github.com/verpeteren/rust-simd-noise/", branch = "verpeteren/neon" }
 
 

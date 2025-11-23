@@ -19,6 +19,9 @@ impl NoiseGenerator {
     }
 
     pub fn get(&self, x: f32, z: f32) -> f32 {
+        // Wrap coordinates to avoid precision issues since simdnoise taps out at 2^26
+        let x = x % 67108864f32;
+        let z = z % 67108864f32;
         let mut noise_builder = simdnoise::NoiseBuilder::gradient_2d_offset(x, 4, z, 4);
         let noise_val = *noise_builder
             .with_freq(self.frequency)
@@ -28,7 +31,7 @@ impl NoiseGenerator {
             .first()
             .expect("Failed to generate noise");
         if let Some(spline) = &self.spline {
-            spline.clamped_sample(noise_val).unwrap_or_default()
+            spline.clamped_sample(noise_val).unwrap()
         } else {
             noise_val
         }

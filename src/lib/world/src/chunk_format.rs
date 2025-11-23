@@ -67,7 +67,7 @@ pub struct BlockStates {
     pub block_counts: HashMap<BlockStateId, i32>,
 }
 
-#[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug)]
+#[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug, Hash)]
 pub enum PaletteType {
     Single(VarInt),
     Indirect {

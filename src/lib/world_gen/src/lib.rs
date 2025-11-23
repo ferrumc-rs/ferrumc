@@ -85,3 +85,72 @@ impl WorldGenerator {
         Ok(chunk)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_world_generator_creation() {
+        let seed = 12345;
+        let world_gen = WorldGenerator::new(seed);
+        assert_eq!(world_gen.seed, seed);
+    }
+
+    #[test]
+    fn test_high_coordinates() {
+        let seed = 67890;
+        let world_gen = WorldGenerator::new(seed);
+        let coord = i32::MAX / 4;
+        world_gen.generate_chunk(coord, coord).unwrap();
+    }
+
+    #[test]
+    fn test_low_coordinates() {
+        let seed = 67890;
+        let world_gen = WorldGenerator::new(seed);
+        world_gen
+            .generate_chunk(f32::MIN as i32, f32::MIN as i32)
+            .unwrap();
+    }
+
+    #[test]
+    fn test_not_empty_chunk() {
+        let seed = 13579;
+        let world_gen = WorldGenerator::new(seed);
+        let chunk = world_gen.generate_chunk(0, 0).unwrap();
+        let all_air = chunk.sections.iter().all(|section| {
+            section
+                .block_states
+                .block_counts
+                .get(&block!("air"))
+                .unwrap_or(&0)
+                != &4096
+        });
+        assert!(!all_air, "Generated chunk should not be empty");
+    }
+
+    #[test]
+    fn test_chunks_are_different() {
+        let seed = 24680;
+        let world_gen = WorldGenerator::new(seed);
+        let count = 4i32;
+        let block_data: Vec<Vec<_>> = (-count..count)
+            .map(|coord| world_gen.generate_chunk(coord, coord))
+            .map(Result::unwrap)
+            .map(|chunk| {
+                chunk
+                    .sections
+                    .iter()
+                    .map(|section| section.block_states.block_data.clone())
+                    .collect()
+            })
+            .collect();
+        let unique_chunks: std::collections::HashSet<_> = block_data.into_iter().collect();
+        assert_eq!(
+            unique_chunks.len(),
+            count as usize * 2,
+            "All generated chunks should be unique"
+        );
+    }
+}
