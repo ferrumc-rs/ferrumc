@@ -5,7 +5,6 @@ use std::time::{Duration, Instant};
 use crate::BinaryError;
 use ferrumc_components::player::abilities::PlayerAbilities;
 use ferrumc_components::player::gameplay_state::digging::PlayerDigging;
-use ferrumc_data::blocks::types::Block;
 use ferrumc_messages::player_digging::*;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::{block_change_ack::BlockChangeAck, block_update::BlockUpdate};
