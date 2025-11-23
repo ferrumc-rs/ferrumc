@@ -1,15 +1,16 @@
 use super::{NBTSerializable, NBTSerializeOptions};
 use ferrumc_general_purpose::simd::arrays;
 use std::collections::HashMap;
+use std::io::Write;
 use uuid::Uuid;
 
 macro_rules! impl_ser_primitives {
     ($($($ty:ty) | * > $id:expr),*) => {
         $($(
             impl NBTSerializable for $ty {
-                fn serialize(&self, buf: &mut Vec<u8>, options: & NBTSerializeOptions<'_> ) {
-                    write_header::<Self>(buf, options);
-                    buf.extend_from_slice(&self.to_be_bytes());
+                fn serialize<W: std::io::Write>(&self, buf: &mut W, options: & NBTSerializeOptions<'_> ) {
+                    write_header::<Self, W>(buf, options);
+                    buf.write_all(&self.to_be_bytes()).unwrap();
                 }
 
                 fn id() -> u8 {
@@ -46,7 +47,7 @@ impl<T> NBTSerializable for Box<T>
 where
     T: NBTSerializable,
 {
-    fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
+    fn serialize<W: Write>(&self, buf: &mut W, options: &NBTSerializeOptions<'_>) {
         T::serialize(self, buf, options);
     }
 
@@ -56,9 +57,9 @@ where
 }
 
 impl NBTSerializable for bool {
-    fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
-        write_header::<Self>(buf, options);
-        buf.push(if *self { 1 } else { 0 });
+    fn serialize<W: Write>(&self, buf: &mut W, options: &NBTSerializeOptions<'_>) {
+        write_header::<Self, W>(buf, options);
+        buf.write(&[if *self { 1 } else { 0 }]).unwrap();
     }
 
     fn id() -> u8 {
@@ -67,7 +68,7 @@ impl NBTSerializable for bool {
 }
 
 impl NBTSerializable for String {
-    fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
+    fn serialize<W: Write>(&self, buf: &mut W, options: &NBTSerializeOptions<'_>) {
         self.as_str().serialize(buf, options);
     }
 
@@ -77,11 +78,11 @@ impl NBTSerializable for String {
 }
 
 impl NBTSerializable for &str {
-    fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
-        write_header::<Self>(buf, options);
+    fn serialize<W: Write>(&self, buf: &mut W, options: &NBTSerializeOptions<'_>) {
+        write_header::<Self, W>(buf, options);
         let bytes = self.as_bytes();
         (bytes.len() as u16).serialize(buf, &NBTSerializeOptions::None);
-        buf.extend_from_slice(bytes);
+        buf.write_all(bytes).unwrap();
     }
 
     fn id() -> u8 {
@@ -90,7 +91,7 @@ impl NBTSerializable for &str {
 }
 
 impl NBTSerializable for Uuid {
-    fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
+    fn serialize<W: Write>(&self, buf: &mut W, options: &NBTSerializeOptions<'_>) {
         NBTSerializable::serialize(&self.as_hyphenated().to_string().as_str(), buf, options);
     }
 
@@ -100,7 +101,7 @@ impl NBTSerializable for Uuid {
 }
 
 impl<T: NBTSerializable + std::fmt::Debug> NBTSerializable for Vec<T> {
-    fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
+    fn serialize<W: Write>(&self, buf: &mut W, options: &NBTSerializeOptions<'_>) {
         self.as_slice().serialize(buf, options);
     }
 
@@ -116,13 +117,13 @@ impl<T: NBTSerializable + std::fmt::Debug> NBTSerializable for Vec<T> {
 }
 
 impl<T: NBTSerializable> NBTSerializable for &'_ [T] {
-    fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
-        write_header::<Self>(buf, options);
+    fn serialize<W: Write>(&self, buf: &mut W, options: &NBTSerializeOptions<'_>) {
+        write_header::<Self, W>(buf, options);
 
         let is_special = [TAG_BYTE_ARRAY, TAG_INT_ARRAY, TAG_LONG_ARRAY].contains(&Self::id());
 
         if !is_special {
-            buf.push(T::id());
+            buf.write_all(&[T::id()]).unwrap();
         }
 
         (self.len() as i32).serialize(buf, &NBTSerializeOptions::None);
@@ -133,7 +134,7 @@ impl<T: NBTSerializable> NBTSerializable for &'_ [T] {
                     let bytes = unsafe {
                         std::slice::from_raw_parts(self.as_ptr() as *const u8, self.len())
                     };
-                    buf.extend_from_slice(bytes);
+                    buf.write_all(bytes).unwrap();
                 }
                 TAG_INT_ARRAY => {
                     let bytes = unsafe {
@@ -142,7 +143,7 @@ impl<T: NBTSerializable> NBTSerializable for &'_ [T] {
                             self.len(),
                         ))
                     };
-                    buf.extend_from_slice(bytes.as_slice());
+                    buf.write_all(&bytes).unwrap();
                 }
                 TAG_LONG_ARRAY => {
                     let bytes = unsafe {
@@ -151,7 +152,7 @@ impl<T: NBTSerializable> NBTSerializable for &'_ [T] {
                             self.len(),
                         ))
                     };
-                    buf.extend_from_slice(&bytes);
+                    buf.write_all(&bytes).unwrap();
                 }
                 _ => unreachable!(),
             }
@@ -173,7 +174,7 @@ impl<T: NBTSerializable> NBTSerializable for &'_ [T] {
 }
 
 impl<T: NBTSerializable> NBTSerializable for Option<T> {
-    fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
+    fn serialize<W: Write>(&self, buf: &mut W, options: &NBTSerializeOptions<'_>) {
         if let Some(value) = self {
             value.serialize(buf, options);
         }
@@ -201,8 +202,8 @@ mod hashmaps {
     use std::collections::BTreeMap;
     impl<T: NBTSerializable> NBTSerializable for HashMap<String, T> {
         //! Equivalent to a COMPOUND tag in NBT.
-        fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
-            write_header::<Self>(buf, options);
+        fn serialize<W: Write>(&self, buf: &mut W, options: &NBTSerializeOptions<'_>) {
+            write_header::<Self, W>(buf, options);
 
             for (key, value) in self {
                 // tag type ; name length; name
@@ -221,8 +222,8 @@ mod hashmaps {
     }
 
     impl<V: NBTSerializable> NBTSerializable for HashMap<&str, V> {
-        fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
-            write_header::<Self>(buf, options);
+        fn serialize<W: Write>(&self, buf: &mut W, options: &NBTSerializeOptions<'_>) {
+            write_header::<Self, W>(buf, options);
 
             for (tag_name, value) in self {
                 // tag type ; name length; name
@@ -242,8 +243,8 @@ mod hashmaps {
     }
 
     impl<V: NBTSerializable> NBTSerializable for BTreeMap<&str, V> {
-        fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
-            write_header::<Self>(buf, options);
+        fn serialize<W: Write>(&self, buf: &mut W, options: &NBTSerializeOptions<'_>) {
+            write_header::<Self, W>(buf, options);
 
             for (tag_name, value) in self {
                 // tag type ; name length; name
@@ -263,8 +264,8 @@ mod hashmaps {
     }
 
     impl<V: NBTSerializable> NBTSerializable for BTreeMap<String, V> {
-        fn serialize(&self, buf: &mut Vec<u8>, options: &NBTSerializeOptions<'_>) {
-            write_header::<Self>(buf, options);
+        fn serialize<W: Write>(&self, buf: &mut W, options: &NBTSerializeOptions<'_>) {
+            write_header::<Self, W>(buf, options);
 
             for (tag_name, value) in self {
                 // tag type ; name length; name
@@ -283,7 +284,7 @@ mod hashmaps {
         }
     }
 }
-fn write_header<T: NBTSerializable>(buf: &mut Vec<u8>, opts: &NBTSerializeOptions<'_>) {
+fn write_header<T: NBTSerializable, W: Write>(buf: &mut W, opts: &NBTSerializeOptions<'_>) {
     // tag type ; name length; name
     match opts {
         NBTSerializeOptions::None => {}
