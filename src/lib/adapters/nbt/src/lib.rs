@@ -30,27 +30,51 @@ impl<T> NBT<T> {
 }
 
 impl<T: NBTSerializable> NetEncode for NBT<T> {
-    fn encode<W: Write>(&self, writer: &mut W, _opts: &NetEncodeOpts) -> std::result::Result<(), NetEncodeError> {
-        Ok(self.inner.serialize(writer, &NBTSerializeOptions::Network))
+    fn encode<W: Write>(
+        &self,
+        writer: &mut W,
+        _opts: &NetEncodeOpts,
+    ) -> std::result::Result<(), NetEncodeError> {
+        self.inner.serialize(writer, &NBTSerializeOptions::Network);
+        Ok(())
     }
 
-    async fn encode_async<W: AsyncWrite + Unpin>(&self, writer: &mut W, _opts: &NetEncodeOpts) -> std::result::Result<(), NetEncodeError> {
-        Ok(self.inner.serialize_async(writer, &NBTSerializeOptions::Network).await)
+    async fn encode_async<W: AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        _opts: &NetEncodeOpts,
+    ) -> std::result::Result<(), NetEncodeError> {
+        self.inner
+            .serialize_async(writer, &NBTSerializeOptions::Network)
+            .await;
+        Ok(())
     }
 }
 
 impl<T: for<'a> FromNbt<'a>> NetDecode for NBT<T> {
-    fn decode<R: Read>(reader: &mut R, _opts: &NetDecodeOpts) -> std::result::Result<Self, NetDecodeError> {
-        let mut bytes = Vec::with_capacity(reader.bytes().count());
+    fn decode<R: Read>(
+        reader: &mut R,
+        _opts: &NetDecodeOpts,
+    ) -> std::result::Result<Self, NetDecodeError> {
+        let mut bytes = Vec::new();
         reader.read_to_end(&mut bytes)?;
         let tape = NbtTape::new(&bytes);
-        Ok(NBT { inner: T::from_nbt(&tape, tape.get("").unwrap()).map_err(|_| NetDecodeError::ExternalError("NBT Parse Error".into()))? })
+        Ok(NBT {
+            inner: T::from_nbt(&tape, tape.get("").unwrap())
+                .map_err(|_| NetDecodeError::ExternalError("NBT Parse Error".into()))?,
+        })
     }
 
-    async fn decode_async<R: AsyncRead + Unpin>(reader: &mut R, _opts: &NetDecodeOpts) -> std::result::Result<Self, NetDecodeError> {
+    async fn decode_async<R: AsyncRead + Unpin>(
+        reader: &mut R,
+        _opts: &NetDecodeOpts,
+    ) -> std::result::Result<Self, NetDecodeError> {
         let mut bytes = Vec::new();
         reader.read_to_end(&mut bytes).await?;
         let tape = NbtTape::new(&bytes);
-        Ok(NBT { inner: T::from_nbt(&tape, tape.get("").unwrap()).map_err(|_| NetDecodeError::ExternalError("NBT Parse error".into()))? })
+        Ok(NBT {
+            inner: T::from_nbt(&tape, tape.get("").unwrap())
+                .map_err(|_| NetDecodeError::ExternalError("NBT Parse error".into()))?,
+        })
     }
 }

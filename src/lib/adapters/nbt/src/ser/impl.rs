@@ -57,7 +57,11 @@ where
         T::serialize(self, buf, options);
     }
 
-    async fn serialize_async<W: AsyncWrite + Unpin>(&self, buf: &mut W, options: &NBTSerializeOptions<'_>) {
+    async fn serialize_async<W: AsyncWrite + Unpin>(
+        &self,
+        buf: &mut W,
+        options: &NBTSerializeOptions<'_>,
+    ) {
         T::serialize_async(self, buf, options).await;
     }
 
@@ -72,7 +76,11 @@ impl NBTSerializable for bool {
         buf.write_all(&[if *self { 1 } else { 0 }]).unwrap();
     }
 
-    async fn serialize_async<W: AsyncWrite + Unpin>(&self, buf: &mut W, options: &NBTSerializeOptions<'_>) {
+    async fn serialize_async<W: AsyncWrite + Unpin>(
+        &self,
+        buf: &mut W,
+        options: &NBTSerializeOptions<'_>,
+    ) {
         write_header_async::<Self, W>(buf, options).await;
         buf.write_all(&[if *self { 1 } else { 0 }]).await.unwrap();
     }
@@ -87,7 +95,11 @@ impl NBTSerializable for String {
         self.as_str().serialize(buf, options);
     }
 
-    async fn serialize_async<W: AsyncWrite + Unpin>(&self, buf: &mut W, options: &NBTSerializeOptions<'_>) {
+    async fn serialize_async<W: AsyncWrite + Unpin>(
+        &self,
+        buf: &mut W,
+        options: &NBTSerializeOptions<'_>,
+    ) {
         self.as_str().serialize_async(buf, options).await;
     }
 
@@ -104,10 +116,16 @@ impl NBTSerializable for &str {
         buf.write_all(bytes).unwrap();
     }
 
-    async fn serialize_async<W: AsyncWrite + Unpin>(&self, buf: &mut W, options: &NBTSerializeOptions<'_>) {
+    async fn serialize_async<W: AsyncWrite + Unpin>(
+        &self,
+        buf: &mut W,
+        options: &NBTSerializeOptions<'_>,
+    ) {
         Box::pin(write_header_async::<Self, W>(buf, options)).await;
         let bytes = self.as_bytes();
-        (bytes.len() as u16).serialize_async(buf, &NBTSerializeOptions::None).await;
+        (bytes.len() as u16)
+            .serialize_async(buf, &NBTSerializeOptions::None)
+            .await;
         buf.write_all(bytes).await.unwrap();
     }
 
@@ -121,8 +139,13 @@ impl NBTSerializable for Uuid {
         NBTSerializable::serialize(&self.as_hyphenated().to_string().as_str(), buf, options);
     }
 
-    async fn serialize_async<W: AsyncWrite + Unpin>(&self, buf: &mut W, options: &NBTSerializeOptions<'_>) {
-        NBTSerializable::serialize_async(&self.as_hyphenated().to_string().as_str(), buf, options).await;
+    async fn serialize_async<W: AsyncWrite + Unpin>(
+        &self,
+        buf: &mut W,
+        options: &NBTSerializeOptions<'_>,
+    ) {
+        NBTSerializable::serialize_async(&self.as_hyphenated().to_string().as_str(), buf, options)
+            .await;
     }
 
     fn id() -> u8 {
@@ -135,7 +158,11 @@ impl<T: NBTSerializable + std::fmt::Debug> NBTSerializable for Vec<T> {
         self.as_slice().serialize(buf, options);
     }
 
-    async fn serialize_async<W: AsyncWrite + Unpin>(&self, buf: &mut W, options: &NBTSerializeOptions<'_>) {
+    async fn serialize_async<W: AsyncWrite + Unpin>(
+        &self,
+        buf: &mut W,
+        options: &NBTSerializeOptions<'_>,
+    ) {
         self.as_slice().serialize_async(buf, options).await;
     }
 
@@ -196,7 +223,11 @@ impl<T: NBTSerializable> NBTSerializable for &'_ [T] {
         }
     }
 
-    async fn serialize_async<W: AsyncWrite + Unpin>(&self, buf: &mut W, options: &NBTSerializeOptions<'_>) {
+    async fn serialize_async<W: AsyncWrite + Unpin>(
+        &self,
+        buf: &mut W,
+        options: &NBTSerializeOptions<'_>,
+    ) {
         write_header_async::<Self, W>(buf, options).await;
 
         let is_special = [TAG_BYTE_ARRAY, TAG_INT_ARRAY, TAG_LONG_ARRAY].contains(&Self::id());
@@ -205,7 +236,9 @@ impl<T: NBTSerializable> NBTSerializable for &'_ [T] {
             buf.write_all(&[T::id()]).await.unwrap();
         }
 
-        (self.len() as i32).serialize_async(buf, &NBTSerializeOptions::None).await;
+        (self.len() as i32)
+            .serialize_async(buf, &NBTSerializeOptions::None)
+            .await;
 
         if is_special {
             match Self::id() {
@@ -260,7 +293,11 @@ impl<T: NBTSerializable> NBTSerializable for Option<T> {
         }
     }
 
-    async fn serialize_async<W: AsyncWrite + Unpin>(&self, buf: &mut W, options: &NBTSerializeOptions<'_>) {
+    async fn serialize_async<W: AsyncWrite + Unpin>(
+        &self,
+        buf: &mut W,
+        options: &NBTSerializeOptions<'_>,
+    ) {
         if let Some(value) = self {
             Box::pin(value.serialize_async(buf, options)).await;
         }
@@ -308,7 +345,11 @@ mod hashmaps {
             }
         }
 
-        async fn serialize_async<W: AsyncWrite + Unpin>(&self, buf: &mut W, options: &NBTSerializeOptions<'_>) {
+        async fn serialize_async<W: AsyncWrite + Unpin>(
+            &self,
+            buf: &mut W,
+            options: &NBTSerializeOptions<'_>,
+        ) {
             write_header_async::<Self, W>(buf, options).await;
 
             for (key, value) in self {
@@ -341,7 +382,11 @@ mod hashmaps {
             }
         }
 
-        async fn serialize_async<W: AsyncWrite + Unpin>(&self, buf: &mut W, options: &NBTSerializeOptions<'_>) {
+        async fn serialize_async<W: AsyncWrite + Unpin>(
+            &self,
+            buf: &mut W,
+            options: &NBTSerializeOptions<'_>,
+        ) {
             write_header_async::<Self, W>(buf, options).await;
 
             for (tag_name, value) in self {
@@ -374,7 +419,11 @@ mod hashmaps {
             }
         }
 
-        async fn serialize_async<W: AsyncWrite + Unpin>(&self, buf: &mut W, options: &NBTSerializeOptions<'_>) {
+        async fn serialize_async<W: AsyncWrite + Unpin>(
+            &self,
+            buf: &mut W,
+            options: &NBTSerializeOptions<'_>,
+        ) {
             write_header_async::<Self, W>(buf, options).await;
 
             for (tag_name, value) in self {
@@ -407,7 +456,11 @@ mod hashmaps {
             }
         }
 
-        async fn serialize_async<W: AsyncWrite + Unpin>(&self, buf: &mut W, options: &NBTSerializeOptions<'_>) {
+        async fn serialize_async<W: AsyncWrite + Unpin>(
+            &self,
+            buf: &mut W,
+            options: &NBTSerializeOptions<'_>,
+        ) {
             write_header_async::<Self, W>(buf, options).await;
 
             for (tag_name, value) in self {
@@ -438,16 +491,25 @@ fn write_header<T: NBTSerializable, W: Write>(buf: &mut W, opts: &NBTSerializeOp
     }
 }
 
-async fn write_header_async<T: NBTSerializable, W: AsyncWrite + Unpin>(buf: &mut W, opts: &NBTSerializeOptions<'_>) {
+async fn write_header_async<T: NBTSerializable, W: AsyncWrite + Unpin>(
+    buf: &mut W,
+    opts: &NBTSerializeOptions<'_>,
+) {
     // tag type ; name length; name
     match opts {
         NBTSerializeOptions::None => {}
         NBTSerializeOptions::WithHeader(tag_name) => {
-            T::id().serialize_async(buf, &NBTSerializeOptions::None).await;
-            tag_name.serialize_async(buf, &NBTSerializeOptions::None).await;
+            T::id()
+                .serialize_async(buf, &NBTSerializeOptions::None)
+                .await;
+            tag_name
+                .serialize_async(buf, &NBTSerializeOptions::None)
+                .await;
         }
         NBTSerializeOptions::Network | NBTSerializeOptions::Flatten => {
-            T::id().serialize_async(buf, &NBTSerializeOptions::None).await;
+            T::id()
+                .serialize_async(buf, &NBTSerializeOptions::None)
+                .await;
         }
     }
 }
