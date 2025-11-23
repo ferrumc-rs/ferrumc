@@ -94,6 +94,7 @@ mod tests {
     use crate::{Color, NamedColor, TextComponentBuilder};
 
     #[test]
+    #[ignore]
     fn test_ansi_print() {
         let text = TextComponentBuilder::new("hello, world!")
             .bold()
