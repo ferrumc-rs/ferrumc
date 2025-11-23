@@ -15,6 +15,7 @@ use ferrumc_net_codec::encode::errors::NetEncodeError;
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 pub use ser::{NBTSerializable, NBTSerializeOptions};
 use std::io::{Read, Write};
+use std::ops::{Deref, DerefMut};
 use tokio::io::{AsyncRead, AsyncWrite};
 
 pub use tokio;
@@ -76,5 +77,19 @@ impl<T: for<'a> FromNbt<'a>> NetDecode for NBT<T> {
             inner: T::from_nbt(&tape, tape.get("").unwrap())
                 .map_err(|_| NetDecodeError::ExternalError("NBT Parse error".into()))?,
         })
+    }
+}
+
+impl<T> Deref for NBT<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+impl<T> DerefMut for NBT<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.inner
     }
 }
