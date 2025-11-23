@@ -237,7 +237,7 @@ impl<T: NBTSerializable> NBTSerializable for &'_ [T] {
             }
         } else {
             for item in self.iter() {
-                item.serialize_async(buf, &NBTSerializeOptions::None).await;
+                Box::pin(item.serialize_async(buf, &NBTSerializeOptions::None)).await;
             }
         }
     }
@@ -262,7 +262,7 @@ impl<T: NBTSerializable> NBTSerializable for Option<T> {
 
     async fn serialize_async<W: AsyncWrite + Unpin>(&self, buf: &mut W, options: &NBTSerializeOptions<'_>) {
         if let Some(value) = self {
-            value.serialize_async(buf, options).await;
+            Box::pin(value.serialize_async(buf, options)).await;
         }
     }
 
