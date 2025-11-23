@@ -439,7 +439,9 @@ pub(super) async fn login(
             batch.execute({
                 let state = state.clone();
                 move || -> Result<Vec<u8>, NetError> {
-                    let chunk = state.world.load_chunk(x, z, "overworld")?;
+                    let chunk = state.world.load_chunk(x, z, "overworld").unwrap_or(
+                        state.terrain_generator.generate_chunk(x, z).expect("Could not generate chunk").into()
+                    );
                     let chunk_data =
                         crate::packets::outgoing::chunk_and_light_data::ChunkAndLightData::from_chunk(
                             &chunk,
@@ -469,6 +471,7 @@ pub(super) async fn login(
     }
 
     // =============================================================================================
+    // 21 Send command graph packet
     conn_write.send_packet(CommandsPacket::new())?;
 
     trace!(
