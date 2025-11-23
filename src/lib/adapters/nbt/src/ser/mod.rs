@@ -1,9 +1,12 @@
 use std::io::Write;
+use tokio::io::AsyncWrite;
 
 mod r#impl;
 
 pub trait NBTSerializable {
     fn serialize<W: Write>(&self, buf: &mut W, options: &NBTSerializeOptions<'_>);
+    #[allow(async_fn_in_trait)]
+    async fn serialize_async<W: AsyncWrite + Unpin>(&self, buf: &mut W, options: &NBTSerializeOptions<'_>);
     fn id() -> u8;
 }
 
