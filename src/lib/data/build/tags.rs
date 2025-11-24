@@ -34,6 +34,8 @@ pub(crate) fn build() -> TokenStream {
         for (tag, values) in tag_data.iter() {
             let tag_ident = format_ident!("{}_{}", const_ident, tag.to_shouty_snake_case());
 
+            let values = values.iter().map(|value| format!("minecraft:{value}"));
+
             tag_names.extend(quote! {
                 &Self::#tag_ident,
             });

@@ -219,7 +219,7 @@ pub(crate) fn build() -> TokenStream {
     }
 
     quote! {
-        #[derive(Debug, Clone)]
+        #[derive(Debug, Clone, PartialEq)]
         pub struct Recipe {
             pub name: &'static str,
             pub recipe_type: RecipeType,

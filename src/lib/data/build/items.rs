@@ -418,6 +418,8 @@ pub(crate) fn build() -> TokenStream {
 
         let id_lit = LitInt::new(&item.id.to_string(), Span::call_site());
 
+        let name = format!("minecraft:{name}");
+
         constants.extend(quote! {
             pub const #const_ident: Item = Item {
                 id: #id_lit,
