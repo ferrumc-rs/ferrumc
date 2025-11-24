@@ -9,7 +9,7 @@ pub fn handle(
     state: Res<GlobalStateResource>,
 ) {
     let packet = ferrumc_net::packets::outgoing::disconnect::DisconnectPacket {
-        reason: TextComponent::from("Server is shutting down"),
+        reason: TextComponent::from("Server is shutting down").into(),
     };
 
     for (entity, conn, identity) in query.iter() {
