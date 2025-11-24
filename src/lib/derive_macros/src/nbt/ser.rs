@@ -321,7 +321,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
                                 return quote! {};
                             }
 
-                            let condition = syn::parse_str::<Expr>(&condition).unwrap();
+                            let condition = syn::parse_str::<Expr>(&condition).expect("failed to parse condition as Expr");
                             skip_if = Some(condition);
                         }
                         _ => {}
@@ -397,7 +397,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
                 let serialize_fields = match &variant.fields {
                     Fields::Named(fields_named) => {
                         let fields = fields_named.named.iter().map(|field| {
-                            let ident = field.ident.as_ref().unwrap();
+                            let ident = field.ident.as_ref().expect("field.ident didn't exist");
                             let ty = &field.ty;
                             let field_name = ident.to_string();
 

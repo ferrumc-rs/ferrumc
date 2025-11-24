@@ -49,8 +49,13 @@ impl<T: for<'a> FromNbt<'a>> NetDecode for NBT<T> {
         reader.read_to_end(&mut bytes)?;
         let tape = NbtTape::new(&bytes);
         Ok(NBT {
-            inner: T::from_nbt(&tape, tape.get("").unwrap())
-                .map_err(|_| NetDecodeError::ExternalError("NBT Parse Error".into()))?,
+            inner: T::from_nbt(
+                &tape,
+                tape.get("").ok_or(NetDecodeError::ExternalError(
+                    "NBT did not contain a root compound".into(),
+                ))?,
+            )
+            .map_err(|_| NetDecodeError::ExternalError("NBT Parse Error".into()))?,
         })
     }
 
@@ -62,8 +67,13 @@ impl<T: for<'a> FromNbt<'a>> NetDecode for NBT<T> {
         reader.read_to_end(&mut bytes).await?;
         let tape = NbtTape::new(&bytes);
         Ok(NBT {
-            inner: T::from_nbt(&tape, tape.get("").unwrap())
-                .map_err(|_| NetDecodeError::ExternalError("NBT Parse error".into()))?,
+            inner: T::from_nbt(
+                &tape,
+                tape.get("").ok_or(NetDecodeError::ExternalError(
+                    "NBT did not contain a root compound".into(),
+                ))?,
+            )
+            .map_err(|_| NetDecodeError::ExternalError("NBT Parse error".into()))?,
         })
     }
 }
