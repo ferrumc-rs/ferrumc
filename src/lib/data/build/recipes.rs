@@ -1,32 +1,55 @@
+use std::collections::HashMap;
 use heck::ToShoutySnakeCase;
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote};
-use serde::Deserialize;
-use serde_json::Value;
+use serde::{Deserialize, Deserializer};
 use std::fs;
 use syn::{LitFloat, LitInt};
 
-fn deserialize_pattern<'de, D>(deserializer: D) -> Result<Option<Vec<String>>, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    let value = Value::deserialize(deserializer)?;
-    match value {
-        Value::Null => Ok(None),
-        Value::String(s) => Ok(Some(vec![s])),
-        Value::Array(arr) => {
-            let strings: Result<Vec<String>, _> = arr
-                .into_iter()
-                .map(|v| {
-                    v.as_str()
-                        .map(|s| s.to_string())
-                        .ok_or_else(|| serde::de::Error::custom("Expected string"))
-                })
-                .collect();
-            Ok(Some(strings?))
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum StringOrVec {
+    String(String),
+    Vec(Vec<StringOrVec>),
+}
+
+impl StringOrVec {
+    fn flatten(self) -> Vec<String> {
+        match self {
+            StringOrVec::String(s) => vec![s],
+            StringOrVec::Vec(items) => items.into_iter()
+                .map(|f| f.flatten())
+                .flatten()
+                .collect(),
         }
-        _ => Err(serde::de::Error::custom("Expected string, array, or null")),
     }
+}
+
+fn deserialize_pattern<'de, D>(deserializer: D) -> Result<Option<Vec<Vec<String>>>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let raw = StringOrVec::deserialize(deserializer)?;
+
+    Ok(Some(match raw {
+        StringOrVec::String(s) => vec![vec![s]],
+        StringOrVec::Vec(items) => items.into_iter().map(StringOrVec::flatten).collect()
+    }))
+}
+
+fn deserialize_key<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Option<HashMap<String, Vec<String>>>, D::Error> {
+    let raw = HashMap::<String, StringOrVec>::deserialize(deserializer)?;
+
+    Ok(Some(raw.into_iter().map(|(k, v)| match v {
+        StringOrVec::String(s) => (k, vec![s]),
+        StringOrVec::Vec(v) => (k, v.into_iter().map(StringOrVec::flatten).flatten().collect()),
+    }).collect()))
+}
+
+fn deserialize_ingredient<'de, D: Deserializer<'de>>(deserialize: D) -> Result<Option<Vec<String>>, D::Error> {
+    let raw = Vec::<StringOrVec>::deserialize(deserialize)?;
+
+    Ok(Some(raw.into_iter().map(StringOrVec::flatten).flatten().collect()))
 }
 
 #[derive(Deserialize, Clone, Debug)]
@@ -38,18 +61,24 @@ pub struct Recipe {
     pub group: Option<String>,
     #[serde(default)]
     pub category: Option<String>,
-    #[serde(default)]
-    pub ingredients: Option<Vec<serde_json::Value>>,
-    #[serde(default)]
-    pub key: Option<serde_json::Value>,
+    #[serde(default, deserialize_with = "deserialize_ingredient")]
+    pub ingredients: Option<Vec<String>>,
+    #[serde(default, deserialize_with = "deserialize_key")]
+    pub key: Option<HashMap<String, Vec<String>>>,
     #[serde(default, deserialize_with = "deserialize_pattern")]
-    pub pattern: Option<Vec<String>>,
+    pub pattern: Option<Vec<Vec<String>>>,
     #[serde(default)]
-    pub result: Option<serde_json::Value>,
+    pub result: Option<RecipeResult>,
     #[serde(default)]
     pub experience: Option<f32>,
     #[serde(default)]
     pub cookingtime: Option<u32>,
+}
+
+#[derive(Deserialize, Clone, Debug)]
+pub struct RecipeResult {
+    pub id: String,
+    pub count: Option<u8>,
 }
 
 pub(crate) fn build() -> TokenStream {
@@ -61,13 +90,43 @@ pub(crate) fn build() -> TokenStream {
     .expect("Failed to parse recipes.json");
 
     let mut constants = TokenStream::new();
+    let mut constant_names = TokenStream::new();
     let mut type_from_name = TokenStream::new();
 
     for (index, recipe) in recipes.iter().enumerate() {
         let name = format!("recipe_{}", index);
         let const_ident = format_ident!("{}", name.to_shouty_snake_case());
 
-        let recipe_type = &recipe.recipe_type;
+        constant_names.extend(quote! {
+            &Self::#const_ident,
+        });
+
+        let recipe_type = match recipe.recipe_type.as_str() {
+            "minecraft:crafting_shaped" | "crafting_shaped" => quote! { RecipeType::CraftingShaped },
+            "minecraft:crafting_shapeless" | "crafting_shapeless" => quote! { RecipeType::CraftingShapeless },
+            "minecraft:crafting_special_armordye" | "crafting_special_armordye" => quote! { RecipeType::CraftingSpecialArmorDye },
+            "minecraft:crafting_special_bannerduplicate" | "crafting_special_bannerduplicate" => quote! { RecipeType::CraftingSpecialBannerDuplicate },
+            "minecraft:crafting_transmute" | "crafting_transmute" => quote! { RecipeType::CraftingTransmute },
+            "minecraft:crafting_special_bookcloning" | "crafting_special_bookcloning" => quote! { RecipeType::CraftingSpecialBookCloning },
+            "minecraft:crafting_decorated_pot" | "crafting_decorated_pot" => quote! { RecipeType::CraftingDecoratedPot },
+            "minecraft:crafting_special_firework_rocket" | "crafting_special_firework_rocket" => quote! { RecipeType::CraftingSpecialFireworkRocket },
+            "minecraft:crafting_special_firework_star" | "crafting_special_firework_star" => quote! { RecipeType::CraftingSpecialFireworkStar },
+            "minecraft:crafting_special_firework_star_fade" | "crafting_special_firework_star_fade" => quote! { RecipeType::CraftingSpecialFireworkStarFade },
+            "minecraft:crafting_special_mapcloning" | "crafting_special_mapcloning" => quote! { RecipeType::CraftingSpecialMapCloning },
+            "minecraft:crafting_special_mapextending" | "crafting_special_mapextending" => quote! { RecipeType::CraftingSpecialMapExtending },
+            "minecraft:crafting_special_repairitem" | "crafting_special_repairitem" => quote! { RecipeType::CraftingSpecialRepairItem },
+            "minecraft:crafting_special_shielddecoration" | "crafting_special_shielddecoration" => quote! { RecipeType::CraftingSpecialShieldDecoration },
+            "minecraft:crafting_special_tippedarrow" | "crafting_special_tippedarrow" => quote! { RecipeType::CraftingSpecialTippedArrow },
+            "minecraft:stonecutting" | "stonecutting" => quote! { RecipeType::Stonecutting },
+            "minecraft:smelting" | "smelting" => quote! { RecipeType::Smelting },
+            "minecraft:campfire_cooking" | "campfire_cooking" => quote! { RecipeType::CampfireCooking },
+            "minecraft:smoking" | "smoking" => quote! { RecipeType::Smoking },
+            "minecraft:smithing_trim" | "smithing_trim" => quote! { RecipeType::SmithingTrim },
+            "minecraft:smithing_transform" | "smithing_transform" => quote! { RecipeType::SmithingTransform },
+            "minecraft:blasting" | "blasting" => quote! { RecipeType::Blasting },
+            ty => panic!("unknown recipe type: {ty}"),
+        };
+
         let group = match &recipe.group {
             Some(group) => {
                 quote! { Some(#group) }
@@ -103,6 +162,42 @@ pub(crate) fn build() -> TokenStream {
             None => quote! { None },
         };
 
+        let key = match &recipe.key {
+            Some(key) => {
+                let items = key.iter().map(|(a, b)| {
+                    let b_items = b.iter();
+                    quote! { (#a, &[#(#b_items),*]) }
+                });
+                quote! { Some(&[#(#items),*])}
+            },
+            None => quote! { None },
+        };
+
+        let ingredients = match &recipe.ingredients {
+            Some(ingredients) => quote! { Some(&[#(#ingredients),*]) },
+            None => quote! { None },
+        };
+
+        let pattern = match &recipe.pattern {
+            Some(pattern) => {
+                let items = pattern.iter().map(|a| {
+                    quote! {  &[#(#a),*] }
+                });
+                quote! { Some(&[#(#items),*])}
+            },
+            None => quote! { None },
+        };
+
+        let result = match &recipe.result {
+            Some(RecipeResult { id, count }) => {
+                let count = count.unwrap_or(1);
+                quote! {
+                    Some(RecipeResult { id: #id, count: #count })
+                }
+            },
+            None => quote! { None },
+        };
+
         constants.extend(quote! {
             pub const #const_ident: Recipe = Recipe {
                 name: #name,
@@ -111,6 +206,10 @@ pub(crate) fn build() -> TokenStream {
                 category: #category,
                 experience: #experience,
                 cookingtime: #cookingtime,
+                key: #key,
+                ingredients: #ingredients,
+                result: #result,
+                pattern: #pattern,
             };
         });
 
@@ -123,15 +222,53 @@ pub(crate) fn build() -> TokenStream {
         #[derive(Debug, Clone)]
         pub struct Recipe {
             pub name: &'static str,
-            pub recipe_type: &'static str,
+            pub recipe_type: RecipeType,
             pub group: Option<&'static str>,
             pub category: Option<&'static str>,
             pub experience: Option<f32>,
             pub cookingtime: Option<u32>,
+            pub key: Option<&'static [(&'static str, &'static [&'static str])]>,
+            pub ingredients: Option<&'static [&'static str]>,
+            pub result: Option<RecipeResult>,
+            pub pattern: Option<&'static [&'static [&'static str]]>
+        }
+
+        #[derive(Debug, Clone, PartialEq)]
+        pub struct RecipeResult {
+            pub id: &'static str,
+            pub count: u8,
+        }
+
+        #[derive(Debug, Copy, Clone, PartialEq)]
+        pub enum RecipeType {
+            CraftingShaped,
+            CraftingShapeless,
+            CraftingSpecialArmorDye,
+            CraftingSpecialBannerDuplicate,
+            CraftingTransmute,
+            CraftingSpecialBookCloning,
+            CraftingDecoratedPot,
+            CraftingSpecialFireworkRocket,
+            CraftingSpecialFireworkStar,
+            CraftingSpecialFireworkStarFade,
+            CraftingSpecialMapCloning,
+            CraftingSpecialMapExtending,
+            CraftingSpecialRepairItem,
+            CraftingSpecialShieldDecoration,
+            CraftingSpecialTippedArrow,
+            Stonecutting,
+            Smelting,
+            CampfireCooking,
+            Smoking,
+            SmithingTrim,
+            SmithingTransform,
+            Blasting,
         }
 
         impl Recipe {
             #constants
+
+            pub const ALL_RECIPES: &'static [&'static Recipe] = &[#constant_names];
 
             #[doc = r" Try to parse a `Recipe` from a resource location string."]
             pub fn from_name(name: &str) -> Option<&'static Self> {
@@ -143,23 +280,23 @@ pub(crate) fn build() -> TokenStream {
             }
 
             #[doc = r" Check if this is a crafting recipe."]
-            pub const fn is_crafting(&self) -> bool {
-                matches!(self.recipe_type, "minecraft:crafting_shaped" | "minecraft:crafting_shapeless")
+            pub fn is_crafting(&self) -> bool {
+                matches!(self.recipe_type, RecipeType::CraftingShaped | RecipeType::CraftingShapeless)
             }
 
             #[doc = r" Check if this is a smelting recipe."]
-            pub const fn is_smelting(&self) -> bool {
-                matches!(self.recipe_type, "minecraft:smelting" | "minecraft:blasting" | "minecraft:smoking" | "minecraft:campfire_cooking")
+            pub fn is_smelting(&self) -> bool {
+                matches!(self.recipe_type, RecipeType::Smelting | RecipeType::Blasting | RecipeType::Smoking | RecipeType::CampfireCooking)
             }
 
             #[doc = r" Check if this is a stonecutting recipe."]
-            pub const fn is_stonecutting(&self) -> bool {
-                self.recipe_type == "minecraft:stonecutting"
+            pub fn is_stonecutting(&self) -> bool {
+                self.recipe_type == RecipeType::Stonecutting
             }
 
             #[doc = r" Check if this is a smithing recipe."]
-            pub const fn is_smithing(&self) -> bool {
-                self.recipe_type == "minecraft:smithing"
+            pub fn is_smithing(&self) -> bool {
+                matches!(self.recipe_type, RecipeType::SmithingTrim | RecipeType::SmithingTransform)
             }
         }
     }
