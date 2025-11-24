@@ -11,12 +11,12 @@ macro_rules! impl_ser_primitives {
             impl NBTSerializable for $ty {
                 fn serialize<W: std::io::Write>(&self, buf: &mut W, options: & NBTSerializeOptions<'_> ) {
                     write_header::<Self, W>(buf, options);
-                    buf.write_all(&self.to_be_bytes()).unwrap();
+                    buf.write_all(&self.to_be_bytes()).expect("failed to write to buffer");
                 }
 
                 async fn serialize_async<W: AsyncWrite + Unpin>(&self, buf: &mut W, options: &NBTSerializeOptions<'_>) {
                     Box::pin(write_header_async::<Self, W>(buf, options)).await;
-                    buf.write_all(&self.to_be_bytes()).await.unwrap();
+                    buf.write_all(&self.to_be_bytes()).await.expect("failed to write to buffer");
                 }
 
                 fn id() -> u8 {
@@ -73,7 +73,8 @@ where
 impl NBTSerializable for bool {
     fn serialize<W: Write>(&self, buf: &mut W, options: &NBTSerializeOptions<'_>) {
         write_header::<Self, W>(buf, options);
-        buf.write_all(&[if *self { 1 } else { 0 }]).unwrap();
+        buf.write_all(&[if *self { 1 } else { 0 }])
+            .expect("failed to write to buffer");
     }
 
     async fn serialize_async<W: AsyncWrite + Unpin>(
