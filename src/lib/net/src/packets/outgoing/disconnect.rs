@@ -10,7 +10,9 @@ pub struct DisconnectPacket {
 
 impl DisconnectPacket {
     pub fn new(reason: TextComponent) -> Self {
-        Self { reason: NBT::new(reason) }
+        Self {
+            reason: NBT::new(reason),
+        }
     }
     pub fn from_string(reason: String) -> Self {
         let reason = ComponentBuilder::text(reason);

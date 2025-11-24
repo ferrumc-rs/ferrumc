@@ -1,12 +1,12 @@
+use crate::{FromNbt, NBTSerializable, NBTSerializeOptions, NbtTape};
+use ferrumc_net_codec::decode::errors::NetDecodeError;
+use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
+use ferrumc_net_codec::encode::errors::NetEncodeError;
+use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use std::fmt::Debug;
 use std::io::{Read, Write};
 use std::ops::{Deref, DerefMut};
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite};
-use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
-use ferrumc_net_codec::decode::errors::NetDecodeError;
-use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
-use ferrumc_net_codec::encode::errors::NetEncodeError;
-use crate::{FromNbt, NBTSerializable, NBTSerializeOptions, NbtTape};
 
 pub struct NBT<T> {
     inner: T,
@@ -76,13 +76,17 @@ impl<T> From<T> for NBT<T> {
 
 impl<T: Default> Default for NBT<T> {
     fn default() -> Self {
-        Self { inner: T::default() }
+        Self {
+            inner: T::default(),
+        }
     }
 }
 
 impl<T: Clone> Clone for NBT<T> {
     fn clone(&self) -> Self {
-        Self { inner: self.inner.clone() }
+        Self {
+            inner: self.inner.clone(),
+        }
     }
 }
 
