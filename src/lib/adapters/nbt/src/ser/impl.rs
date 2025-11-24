@@ -82,7 +82,9 @@ impl NBTSerializable for bool {
         options: &NBTSerializeOptions<'_>,
     ) {
         write_header_async::<Self, W>(buf, options).await;
-        buf.write_all(&[if *self { 1 } else { 0 }]).await.unwrap();
+        buf.write_all(&[if *self { 1 } else { 0 }])
+            .await
+            .expect("failed to write bytes to writer")
     }
 
     fn id() -> u8 {
@@ -113,7 +115,8 @@ impl NBTSerializable for &str {
         write_header::<Self, W>(buf, options);
         let bytes = self.as_bytes();
         (bytes.len() as u16).serialize(buf, &NBTSerializeOptions::None);
-        buf.write_all(bytes).unwrap();
+        buf.write_all(bytes)
+            .expect("failed to write bytes to writer");
     }
 
     async fn serialize_async<W: AsyncWrite + Unpin>(
@@ -126,7 +129,9 @@ impl NBTSerializable for &str {
         (bytes.len() as u16)
             .serialize_async(buf, &NBTSerializeOptions::None)
             .await;
-        buf.write_all(bytes).await.unwrap();
+        buf.write_all(bytes)
+            .await
+            .expect("failed to write bytes to writer");
     }
 
     fn id() -> u8 {
@@ -184,7 +189,8 @@ impl<T: NBTSerializable> NBTSerializable for &'_ [T] {
         let is_special = [TAG_BYTE_ARRAY, TAG_INT_ARRAY, TAG_LONG_ARRAY].contains(&Self::id());
 
         if !is_special {
-            buf.write_all(&[T::id()]).unwrap();
+            buf.write_all(&[T::id()])
+                .expect("failed to write bytes to writer");
         }
 
         (self.len() as i32).serialize(buf, &NBTSerializeOptions::None);
@@ -195,7 +201,8 @@ impl<T: NBTSerializable> NBTSerializable for &'_ [T] {
                     let bytes = unsafe {
                         std::slice::from_raw_parts(self.as_ptr() as *const u8, self.len())
                     };
-                    buf.write_all(bytes).unwrap();
+                    buf.write_all(bytes)
+                        .expect("failed to write bytes to writer");
                 }
                 TAG_INT_ARRAY => {
                     let bytes = unsafe {
@@ -204,7 +211,8 @@ impl<T: NBTSerializable> NBTSerializable for &'_ [T] {
                             self.len(),
                         ))
                     };
-                    buf.write_all(&bytes).unwrap();
+                    buf.write_all(&bytes)
+                        .expect("failed to write bytes to writer");
                 }
                 TAG_LONG_ARRAY => {
                     let bytes = unsafe {
@@ -213,7 +221,8 @@ impl<T: NBTSerializable> NBTSerializable for &'_ [T] {
                             self.len(),
                         ))
                     };
-                    buf.write_all(&bytes).unwrap();
+                    buf.write_all(&bytes)
+                        .expect("failed to write bytes to writer");
                 }
                 _ => unreachable!(),
             }
@@ -233,7 +242,9 @@ impl<T: NBTSerializable> NBTSerializable for &'_ [T] {
         let is_special = [TAG_BYTE_ARRAY, TAG_INT_ARRAY, TAG_LONG_ARRAY].contains(&Self::id());
 
         if !is_special {
-            buf.write_all(&[T::id()]).await.unwrap();
+            buf.write_all(&[T::id()])
+                .await
+                .expect("failed to write bytes to writer");
         }
 
         (self.len() as i32)
@@ -246,7 +257,9 @@ impl<T: NBTSerializable> NBTSerializable for &'_ [T] {
                     let bytes = unsafe {
                         std::slice::from_raw_parts(self.as_ptr() as *const u8, self.len())
                     };
-                    buf.write_all(bytes).await.unwrap();
+                    buf.write_all(bytes)
+                        .await
+                        .expect("failed to write bytes to writer");
                 }
                 TAG_INT_ARRAY => {
                     let bytes = unsafe {
@@ -255,7 +268,9 @@ impl<T: NBTSerializable> NBTSerializable for &'_ [T] {
                             self.len(),
                         ))
                     };
-                    buf.write_all(&bytes).await.unwrap();
+                    buf.write_all(&bytes)
+                        .await
+                        .expect("failed to write bytes to writer");
                 }
                 TAG_LONG_ARRAY => {
                     let bytes = unsafe {
@@ -264,7 +279,9 @@ impl<T: NBTSerializable> NBTSerializable for &'_ [T] {
                             self.len(),
                         ))
                     };
-                    buf.write_all(&bytes).await.unwrap();
+                    buf.write_all(&bytes)
+                        .await
+                        .expect("failed to write bytes to writer");
                 }
                 _ => unreachable!(),
             }
