@@ -13,7 +13,7 @@ macro_rules! make_bool_setters {
                 }
 
                 pub fn [<not_ $field>](mut self) -> Self {
-                    self.$field = Some(true);
+                    self.$field = Some(false);
                     self
                 }
 

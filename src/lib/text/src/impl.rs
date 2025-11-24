@@ -1,12 +1,9 @@
 use crate::*;
 use ferrumc_nbt::{NBTSerializable, NBTSerializeOptions};
-use ferrumc_net_codec::encode::{errors::NetEncodeError, NetEncode, NetEncodeOpts};
 use paste::paste;
 use std::fmt;
-use std::io::Write;
 use std::ops::Add;
 use std::str::FromStr;
-use tokio::io::AsyncWriteExt;
 
 impl From<String> for TextComponent {
     fn from(value: String) -> Self {
@@ -92,21 +89,6 @@ impl TextComponent {
         let mut vec = Vec::new();
         NBTSerializable::serialize(self, &mut vec, &NBTSerializeOptions::Network);
         vec
-    }
-}
-
-impl NetEncode for TextComponent {
-    fn encode<W: Write>(&self, writer: &mut W, _: &NetEncodeOpts) -> Result<(), NetEncodeError> {
-        writer.write_all(&self.serialize_nbt()[..])?;
-        Ok(())
-    }
-    async fn encode_async<W: tokio::io::AsyncWrite + Unpin>(
-        &self,
-        writer: &mut W,
-        _: &NetEncodeOpts,
-    ) -> Result<(), NetEncodeError> {
-        writer.write_all(&self.serialize_nbt()[..]).await?;
-        Ok(())
     }
 }
 

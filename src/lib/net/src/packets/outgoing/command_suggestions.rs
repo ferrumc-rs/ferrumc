@@ -1,4 +1,5 @@
 use ferrumc_macros::{packet, NetEncode};
+use ferrumc_nbt::NBT;
 use ferrumc_net_codec::net_types::{
     length_prefixed_vec::LengthPrefixedVec, prefixed_optional::PrefixedOptional, var_int::VarInt,
 };
@@ -16,5 +17,5 @@ pub struct CommandSuggestionsPacket {
 #[derive(NetEncode)]
 pub struct Match {
     pub content: String,
-    pub tooltip: PrefixedOptional<TextComponent>,
+    pub tooltip: PrefixedOptional<NBT<TextComponent>>,
 }

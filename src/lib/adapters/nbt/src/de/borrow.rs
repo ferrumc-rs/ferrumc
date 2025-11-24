@@ -217,7 +217,8 @@ impl<'a> NbtTape<'a> {
                         NbtDeserializableOptions::TagType(el_type.clone()),
                     );
 
-                    let element = T::from_nbt(&tape, &nbt_element).unwrap();
+                    let element =
+                        T::from_nbt(&tape, &nbt_element).expect("failed to deserialize element");
 
                     elements.push(element);
                 }
