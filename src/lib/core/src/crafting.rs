@@ -3,6 +3,14 @@ use ferrumc_data::items::Item;
 use ferrumc_data::recipes::{Recipe, RecipeType};
 use ferrumc_data::tags::TagData;
 
+pub fn get_recipes_from_2x2(grid: [[Option<&Item>; 2]; 2]) -> Vec<&Recipe> {
+    get_recipes_from_3x3([
+        [grid[0][0], grid[0][1], None],
+        [grid[1][0], grid[1][1], None],
+        [None,       None,       None],
+    ])
+}
+
 pub fn get_recipes_from_3x3(grid: [[Option<&Item>; 3]; 3]) -> Vec<&Recipe> {
     Recipe::ALL_RECIPES
         .iter()
@@ -32,11 +40,11 @@ fn normalize_grid(grid: &mut Vec<Vec<Option<&str>>>) {
         .unwrap_or(grid.len() - 1);
 
     let left = (0..grid[0].len())
-        .find(|&r| grid[r].iter().any(|c| c.is_some()))
+        .find(|&r| grid[0][r].is_some())
         .unwrap_or_default();
 
     let right = (0..grid[0].len())
-        .rfind(|&r| grid[r].iter().any(|c| c.is_some()))
+        .rfind(|&r| grid[0][r].is_some())
         .unwrap_or(grid[0].len() - 1);
 
     let mut trimmed = Vec::with_capacity(bottom - top + 1);
@@ -132,6 +140,17 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_find_none() {
+        let recipes = get_recipes_from_3x3([
+            [Some(&Item::OAK_PLANKS),   Some(&Item::OAK_PLANKS),    None                    ],
+            [None,                      Some(&Item::STICK),         Some(&Item::OAK_PLANKS) ],
+            [None,                      Some(&Item::ANVIL),         None                    ],
+        ]);
+
+        assert_eq!(recipes.len(), 0);
+    }
+
+    #[test]
     fn test_find_wooden_pickaxe() {
         let recipes = get_recipes_from_3x3([
             [Some(&Item::OAK_PLANKS),   Some(&Item::OAK_PLANKS),    Some(&Item::OAK_PLANKS) ],
@@ -172,5 +191,26 @@ mod tests {
         assert_eq!(recipes2, recipes3);
         assert_eq!(recipes3, recipes4);
         assert_eq!(recipes4, [&Recipe::RECIPE_807])
+    }
+
+    #[test]
+    fn test_oak_planks() {
+        let recipes = get_recipes_from_2x2([
+            [Some(&Item::OAK_LOG), None],
+            [None, None],
+        ]);
+
+        assert_eq!(recipes.len(), 1);
+        assert_eq!(recipes, [&Recipe::RECIPE_813]);
+    }
+
+    #[test]
+    fn test_sticks() {
+        let recipes = get_recipes_from_2x2([
+            [Some(&Item::OAK_PLANKS), None],
+            [Some(&Item::OAK_PLANKS), None],
+        ]);
+
+        assert_eq!(recipes, [&Recipe::RECIPE_1150]);
     }
 }
