@@ -8,3 +8,4 @@ pub mod identity;
 pub mod mq;
 pub mod state;
 pub mod transform;
+pub mod crafting;
