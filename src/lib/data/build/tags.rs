@@ -7,28 +7,47 @@ use std::fs;
 pub(crate) fn build() -> TokenStream {
     println!("cargo:rerun-if-changed=../../../assets/extracted/tags.json");
 
-    let tags: BTreeMap<String, serde_json::Value> =
+    let tags: BTreeMap<String, BTreeMap<String, Vec<String>>> =
         serde_json::from_str(&fs::read_to_string("../../../assets/extracted/tags.json").unwrap())
             .expect("Failed to parse tags.json");
 
-    let mut constants = TokenStream::new();
-    let mut type_from_name = TokenStream::new();
+    let mut tag_consts = TokenStream::new();
+    let mut lists = TokenStream::new();
+    let mut lookup_fns = TokenStream::new();
 
     for (name, tag_data) in tags.iter() {
-        let const_ident = format_ident!("{}", name.replace('/', "_").to_shouty_snake_case());
+        let name = name.replace('/', "_");
+        let const_ident = format_ident!("{}_TAGS", name.to_shouty_snake_case());
+        let name_ident = format_ident!("get_{name}_tag");
 
-        // Convert the tag data to a string representation for now
-        let tag_str = serde_json::to_string(tag_data).unwrap();
-
-        constants.extend(quote! {
-            pub const #const_ident: TagData = TagData {
-                name: #name,
-                data: #tag_str,
-            };
+        lookup_fns.extend(quote! {
+            pub fn #name_ident(tag_name: &str) -> Option<&TagData> {
+                Self::#const_ident
+                    .iter()
+                    .filter_map(|tag| if tag.name == tag_name { Some(*tag) } else { None })
+                    .next()
+            }
         });
 
-        type_from_name.extend(quote! {
-            #name => Some(&Self::#const_ident),
+        let mut tag_names = TokenStream::new();
+
+        for (tag, values) in tag_data.iter() {
+            let tag_ident = format_ident!("{}_{}", const_ident, tag.to_shouty_snake_case());
+
+            tag_names.extend(quote! {
+                &Self::#tag_ident,
+            });
+
+            tag_consts.extend(quote! {
+                pub const #tag_ident: TagData = TagData {
+                    name: #tag,
+                    values: &[#(#values),*],
+                };
+            })
+        }
+
+        lists.extend(quote! {
+            pub const #const_ident: &'static [&'static TagData] = &[#tag_names];
         });
     }
 
@@ -36,20 +55,15 @@ pub(crate) fn build() -> TokenStream {
         #[derive(Debug, Clone)]
         pub struct TagData {
             pub name: &'static str,
-            pub data: &'static str,
+            pub values: &'static [&'static str],
         }
 
         impl TagData {
-            #constants
+            #tag_consts
 
-            #[doc = r" Try to parse a `TagData` from a resource location string."]
-            pub fn from_name(name: &str) -> Option<&'static Self> {
-                let name = name.strip_prefix("minecraft:").unwrap_or(name);
-                match name {
-                    #type_from_name
-                    _ => None
-                }
-            }
+            #lists
+
+            #lookup_fns
         }
     }
 }
