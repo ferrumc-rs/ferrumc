@@ -6,7 +6,7 @@ use ferrumc_core::conn::force_player_recount_event::ForcePlayerRecount;
 use ferrumc_messages::{
     PlayerCancelledDigging, PlayerDamaged, PlayerDied, PlayerEating, PlayerFinishedDigging,
     PlayerGainedXP, PlayerGameModeChanged, PlayerJoined, PlayerLeft, PlayerLeveledUp,
-    PlayerStartedDigging,
+    PlayerStartedDigging, SpawnEntityEvent,
 };
 use ferrumc_net::packets::packet_messages::Movement;
 
@@ -28,4 +28,5 @@ pub fn register_messages(world: &mut World) {
     MessageRegistry::register_message::<PlayerGainedXP>(world);
     MessageRegistry::register_message::<PlayerLeveledUp>(world);
     MessageRegistry::register_message::<PlayerGameModeChanged>(world);
+    MessageRegistry::register_message::<SpawnEntityEvent>(world);
 }
