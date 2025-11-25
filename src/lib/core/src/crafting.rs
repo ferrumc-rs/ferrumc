@@ -40,11 +40,11 @@ fn normalize_grid(grid: &mut Vec<Vec<Option<&str>>>) {
         .unwrap_or(grid.len() - 1);
 
     let left = (0..grid[0].len())
-        .find(|&r| grid[0][r].is_some())
+        .find(|&r| grid.iter().any(|row| row[r].is_some()))
         .unwrap_or_default();
 
     let right = (0..grid[0].len())
-        .rfind(|&r| grid[0][r].is_some())
+        .rfind(|&r| grid.iter().any(|row| row[r].is_some()))
         .unwrap_or(grid[0].len() - 1);
 
     let mut trimmed = Vec::with_capacity(bottom - top + 1);
