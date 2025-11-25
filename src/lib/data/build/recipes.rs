@@ -1,8 +1,8 @@
-use std::collections::HashMap;
 use heck::ToShoutySnakeCase;
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote};
 use serde::{Deserialize, Deserializer};
+use std::collections::BTreeMap;
 use std::fs;
 use syn::{LitFloat, LitInt};
 
@@ -37,8 +37,8 @@ where
     }))
 }
 
-fn deserialize_key<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Option<HashMap<String, Vec<String>>>, D::Error> {
-    let raw = HashMap::<String, StringOrVec>::deserialize(deserializer)?;
+fn deserialize_key<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Option<BTreeMap<String, Vec<String>>>, D::Error> {
+    let raw = BTreeMap::<String, StringOrVec>::deserialize(deserializer)?;
 
     Ok(Some(raw.into_iter().map(|(k, v)| match v {
         StringOrVec::String(s) => (k, vec![s]),
@@ -64,7 +64,7 @@ pub struct Recipe {
     #[serde(default, deserialize_with = "deserialize_ingredient")]
     pub ingredients: Option<Vec<String>>,
     #[serde(default, deserialize_with = "deserialize_key")]
-    pub key: Option<HashMap<String, Vec<String>>>,
+    pub key: Option<BTreeMap<String, Vec<String>>>,
     #[serde(default, deserialize_with = "deserialize_pattern")]
     pub pattern: Option<Vec<Vec<String>>>,
     #[serde(default)]

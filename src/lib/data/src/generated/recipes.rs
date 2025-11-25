@@ -146,8 +146,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:chain"]),
             ("#", &["minecraft:stripped_acacia_log"]),
+            ("X", &["minecraft:chain"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -272,9 +272,9 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
+            ("#", &["minecraft:redstone_torch"]),
             ("S", &["minecraft:stick"]),
             ("X", &["minecraft:iron_ingot"]),
-            ("#", &["minecraft:redstone_torch"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -411,8 +411,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("i", &["minecraft:iron_ingot"]),
             ("I", &["minecraft:iron_block"]),
+            ("i", &["minecraft:iron_ingot"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -459,9 +459,9 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("Y", &["minecraft:feather"]),
             ("#", &["minecraft:stick"]),
             ("X", &["minecraft:flint"]),
+            ("Y", &["minecraft:feather"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -611,8 +611,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("W", &["minecraft:bamboo_planks"]),
             ("#", &["minecraft:stick"]),
+            ("W", &["minecraft:bamboo_planks"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -629,8 +629,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:chain"]),
             ("#", &["minecraft:stripped_bamboo_block"]),
+            ("X", &["minecraft:chain"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -737,8 +737,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:stick"]),
             ("#", &["minecraft:bamboo_planks"]),
+            ("X", &["minecraft:stick"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -831,8 +831,8 @@ impl Recipe {
         cookingtime: None,
         key: Some(&[
             ("G", &["minecraft:glass"]),
-            ("S", &["minecraft:nether_star"]),
             ("O", &["minecraft:obsidian"]),
+            ("S", &["minecraft:nether_star"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -849,8 +849,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("P", &["#minecraft:planks"]),
             ("H", &["minecraft:honeycomb"]),
+            ("P", &["#minecraft:planks"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -968,8 +968,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("W", &["minecraft:birch_planks"]),
             ("#", &["minecraft:stick"]),
+            ("W", &["minecraft:birch_planks"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -986,8 +986,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:chain"]),
             ("#", &["minecraft:stripped_birch_log"]),
+            ("X", &["minecraft:chain"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -1263,9 +1263,9 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
+            ("#", &["minecraft:black_wool"]),
             ("G", &["minecraft:glass"]),
             ("L", &["minecraft:leather"]),
-            ("#", &["minecraft:black_wool"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -1345,8 +1345,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:black_dye"]),
             ("#", &["minecraft:terracotta"]),
+            ("X", &["minecraft:black_dye"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -1453,9 +1453,9 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:furnace"]),
-            ("I", &["minecraft:iron_ingot"]),
             ("#", &["minecraft:smooth_stone"]),
+            ("I", &["minecraft:iron_ingot"]),
+            ("X", &["minecraft:furnace"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -1635,8 +1635,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("G", &["minecraft:glass"]),
             ("#", &["minecraft:blue_wool"]),
+            ("G", &["minecraft:glass"]),
             ("L", &["minecraft:leather"]),
         ]),
         ingredients: None,
@@ -1724,8 +1724,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("$", &["minecraft:blue_dye"]),
             ("#", &["minecraft:glass_pane"]),
+            ("$", &["minecraft:blue_dye"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -1760,12 +1760,12 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("S", &["minecraft:bolt_armor_trim_smithing_template"]),
             ("#", &["minecraft:diamond"]),
             (
                 "C",
                 &["minecraft:copper_block", "minecraft:waxed_copper_block"],
             ),
+            ("S", &["minecraft:bolt_armor_trim_smithing_template"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -1870,7 +1870,7 @@ impl Recipe {
         category: Some("building"),
         experience: None,
         cookingtime: None,
-        key: Some(&[("X", &["minecraft:book"]), ("#", &["#minecraft:planks"])]),
+        key: Some(&[("#", &["#minecraft:planks"]), ("X", &["minecraft:book"])]),
         ingredients: None,
         result: Some(RecipeResult {
             id: "minecraft:bookshelf",
@@ -1900,7 +1900,7 @@ impl Recipe {
         category: Some("equipment"),
         experience: None,
         cookingtime: None,
-        key: Some(&[("X", &["minecraft:string"]), ("#", &["minecraft:stick"])]),
+        key: Some(&[("#", &["minecraft:stick"]), ("X", &["minecraft:string"])]),
         ingredients: None,
         result: Some(RecipeResult {
             id: "minecraft:bow",
@@ -2084,8 +2084,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("|", &["minecraft:stick"]),
             ("#", &["minecraft:brown_wool"]),
+            ("|", &["minecraft:stick"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -2220,9 +2220,9 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
+            ("#", &["minecraft:brown_wool"]),
             ("G", &["minecraft:glass"]),
             ("L", &["minecraft:leather"]),
-            ("#", &["minecraft:brown_wool"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -2253,7 +2253,7 @@ impl Recipe {
         category: Some("building"),
         experience: None,
         cookingtime: None,
-        key: Some(&[("X", &["minecraft:brown_dye"]), ("#", &["minecraft:glass"])]),
+        key: Some(&[("#", &["minecraft:glass"]), ("X", &["minecraft:brown_dye"])]),
         ingredients: None,
         result: Some(RecipeResult {
             id: "minecraft:brown_stained_glass",
@@ -2284,8 +2284,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("$", &["minecraft:brown_dye"]),
             ("#", &["minecraft:glass_pane"]),
+            ("$", &["minecraft:brown_dye"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -2320,9 +2320,9 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:feather"]),
-            ("I", &["minecraft:stick"]),
             ("#", &["minecraft:copper_ingot"]),
+            ("I", &["minecraft:stick"]),
+            ("X", &["minecraft:feather"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -2369,10 +2369,10 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("E", &["#minecraft:eggs"]),
-            ("C", &["minecraft:wheat"]),
             ("A", &["minecraft:milk_bucket"]),
             ("B", &["minecraft:sugar"]),
+            ("C", &["minecraft:wheat"]),
+            ("E", &["#minecraft:eggs"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -2407,9 +2407,9 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("S", &["minecraft:stick"]),
             ("C", &["#minecraft:coals"]),
             ("L", &["#minecraft:logs"]),
+            ("S", &["minecraft:stick"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -2426,8 +2426,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("S", &["minecraft:string"]),
             ("H", &["minecraft:honeycomb"]),
+            ("S", &["minecraft:string"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -2444,8 +2444,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:carrot"]),
             ("#", &["minecraft:fishing_rod"]),
+            ("X", &["minecraft:carrot"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -2461,7 +2461,7 @@ impl Recipe {
         category: Some("misc"),
         experience: None,
         cookingtime: None,
-        key: Some(&[("@", &["minecraft:paper"]), ("#", &["#minecraft:planks"])]),
+        key: Some(&[("#", &["#minecraft:planks"]), ("@", &["minecraft:paper"])]),
         ingredients: None,
         result: Some(RecipeResult {
             id: "minecraft:cartography_table",
@@ -2621,8 +2621,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:chain"]),
             ("#", &["minecraft:stripped_cherry_log"]),
+            ("X", &["minecraft:chain"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -3549,9 +3549,9 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
+            ("#", &["minecraft:redstone_torch"]),
             ("I", &["minecraft:stone"]),
             ("X", &["minecraft:quartz"]),
-            ("#", &["minecraft:redstone_torch"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -3568,8 +3568,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:redstone"]),
             ("#", &["minecraft:iron_ingot"]),
+            ("X", &["minecraft:redstone"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -3601,8 +3601,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:heart_of_the_sea"]),
             ("#", &["minecraft:nautilus_shell"]),
+            ("X", &["minecraft:heart_of_the_sea"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -3968,8 +3968,8 @@ impl Recipe {
         cookingtime: None,
         key: Some(&[
             ("B", &["minecraft:blaze_rod"]),
-            ("R", &["minecraft:redstone"]),
             ("C", &["minecraft:copper_block"]),
+            ("R", &["minecraft:redstone"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -4241,9 +4241,9 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("D", &["minecraft:dropper"]),
             ("#", &["minecraft:iron_ingot"]),
             ("C", &["minecraft:crafting_table"]),
+            ("D", &["minecraft:dropper"]),
             ("R", &["minecraft:redstone"]),
         ]),
         ingredients: None,
@@ -4276,8 +4276,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("R", &["minecraft:resin_block"]),
             ("L", &["minecraft:pale_oak_log"]),
+            ("R", &["minecraft:resin_block"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -4438,8 +4438,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:stick"]),
             ("#", &["minecraft:crimson_planks"]),
+            ("X", &["minecraft:stick"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -4501,10 +4501,10 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("~", &["minecraft:string"]),
-            ("&", &["minecraft:iron_ingot"]),
             ("#", &["minecraft:stick"]),
             ("$", &["minecraft:tripwire_hook"]),
+            ("&", &["minecraft:iron_ingot"]),
+            ("~", &["minecraft:string"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -4939,9 +4939,9 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("L", &["minecraft:leather"]),
-            ("G", &["minecraft:glass"]),
             ("#", &["minecraft:cyan_wool"]),
+            ("G", &["minecraft:glass"]),
+            ("L", &["minecraft:leather"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -5021,8 +5021,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:cyan_dye"]),
             ("#", &["minecraft:terracotta"]),
+            ("X", &["minecraft:cyan_dye"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -5099,8 +5099,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("W", &["minecraft:dark_oak_planks"]),
             ("#", &["minecraft:stick"]),
+            ("W", &["minecraft:dark_oak_planks"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -5117,8 +5117,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("W", &["minecraft:dark_oak_planks"]),
             ("#", &["minecraft:stick"]),
+            ("W", &["minecraft:dark_oak_planks"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -5135,8 +5135,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:chain"]),
             ("#", &["minecraft:stripped_dark_oak_log"]),
+            ("X", &["minecraft:chain"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -5340,8 +5340,8 @@ impl Recipe {
         cookingtime: None,
         key: Some(&[
             ("G", &["minecraft:glass"]),
-            ("W", &["#minecraft:wooden_slabs"]),
             ("Q", &["minecraft:quartz"]),
+            ("W", &["#minecraft:wooden_slabs"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -5910,9 +5910,9 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
+            ("#", &["minecraft:stone_pressure_plate"]),
             ("R", &["minecraft:redstone"]),
             ("X", &["minecraft:iron_ingot"]),
-            ("#", &["minecraft:stone_pressure_plate"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -5944,8 +5944,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["#minecraft:diamond_tool_materials"]),
             ("#", &["minecraft:stick"]),
+            ("X", &["#minecraft:diamond_tool_materials"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -6151,8 +6151,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["#minecraft:diamond_tool_materials"]),
             ("#", &["minecraft:stick"]),
+            ("X", &["#minecraft:diamond_tool_materials"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -6169,8 +6169,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("Q", &["minecraft:quartz"]),
             ("C", &["minecraft:cobblestone"]),
+            ("Q", &["minecraft:quartz"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -6422,9 +6422,9 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
+            ("#", &["minecraft:diamond"]),
             ("C", &["minecraft:sandstone"]),
             ("S", &["minecraft:dune_armor_trim_smithing_template"]),
-            ("#", &["minecraft:diamond"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -8591,9 +8591,9 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
+            ("#", &["minecraft:obsidian"]),
             ("B", &["minecraft:book"]),
             ("D", &["minecraft:diamond"]),
-            ("#", &["minecraft:obsidian"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -8812,8 +8812,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("E", &["minecraft:ender_eye"]),
             ("#", &["minecraft:obsidian"]),
+            ("E", &["minecraft:ender_eye"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -8890,8 +8890,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("C", &["minecraft:exposed_copper"]),
             ("B", &["minecraft:blaze_rod"]),
+            ("C", &["minecraft:exposed_copper"]),
             ("R", &["minecraft:redstone"]),
         ]),
         ingredients: None,
@@ -9059,8 +9059,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("C", &["minecraft:end_stone"]),
             ("#", &["minecraft:diamond"]),
+            ("C", &["minecraft:end_stone"]),
             ("S", &["minecraft:eye_armor_trim_smithing_template"]),
         ]),
         ingredients: None,
@@ -9240,9 +9240,9 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("S", &["minecraft:flow_armor_trim_smithing_template"]),
             ("#", &["minecraft:diamond"]),
             ("C", &["minecraft:breeze_rod"]),
+            ("S", &["minecraft:flow_armor_trim_smithing_template"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -9634,8 +9634,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:apple"]),
             ("#", &["minecraft:gold_ingot"]),
+            ("X", &["minecraft:apple"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -9733,8 +9733,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["#minecraft:gold_tool_materials"]),
             ("#", &["minecraft:stick"]),
+            ("X", &["#minecraft:gold_tool_materials"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -9766,8 +9766,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["#minecraft:gold_tool_materials"]),
             ("#", &["minecraft:stick"]),
+            ("X", &["#minecraft:gold_tool_materials"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -9940,8 +9940,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["#minecraft:planks"]),
             ("#", &["minecraft:gray_wool"]),
+            ("X", &["#minecraft:planks"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -10073,9 +10073,9 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
+            ("#", &["minecraft:gray_wool"]),
             ("G", &["minecraft:glass"]),
             ("L", &["minecraft:leather"]),
-            ("#", &["minecraft:gray_wool"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -10155,8 +10155,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:gray_dye"]),
             ("#", &["minecraft:terracotta"]),
+            ("X", &["minecraft:gray_dye"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -10173,8 +10173,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("|", &["minecraft:stick"]),
             ("#", &["minecraft:green_wool"]),
+            ("|", &["minecraft:stick"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -10191,8 +10191,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["#minecraft:planks"]),
             ("#", &["minecraft:green_wool"]),
+            ("X", &["#minecraft:planks"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -10309,9 +10309,9 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
+            ("#", &["minecraft:green_wool"]),
             ("G", &["minecraft:glass"]),
             ("L", &["minecraft:leather"]),
-            ("#", &["minecraft:green_wool"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -10342,7 +10342,7 @@ impl Recipe {
         category: Some("building"),
         experience: None,
         cookingtime: None,
-        key: Some(&[("X", &["minecraft:green_dye"]), ("#", &["minecraft:glass"])]),
+        key: Some(&[("#", &["minecraft:glass"]), ("X", &["minecraft:green_dye"])]),
         ingredients: None,
         result: Some(RecipeResult {
             id: "minecraft:green_stained_glass",
@@ -10409,9 +10409,9 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("I", &["minecraft:stick"]),
             ("#", &["#minecraft:planks"]),
             ("-", &["minecraft:stone_slab"]),
+            ("I", &["minecraft:stick"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -10583,8 +10583,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["#minecraft:iron_tool_materials"]),
             ("#", &["minecraft:stick"]),
+            ("X", &["#minecraft:iron_tool_materials"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -10925,8 +10925,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["#minecraft:iron_tool_materials"]),
             ("#", &["minecraft:stick"]),
+            ("X", &["#minecraft:iron_tool_materials"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -10957,7 +10957,7 @@ impl Recipe {
         category: Some("misc"),
         experience: None,
         cookingtime: None,
-        key: Some(&[("X", &["minecraft:leather"]), ("#", &["minecraft:stick"])]),
+        key: Some(&[("#", &["minecraft:stick"]), ("X", &["minecraft:leather"])]),
         ingredients: None,
         result: Some(RecipeResult {
             id: "minecraft:item_frame",
@@ -10973,8 +10973,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("B", &["minecraft:torch"]),
             ("A", &["minecraft:carved_pumpkin"]),
+            ("B", &["minecraft:torch"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -10990,7 +10990,7 @@ impl Recipe {
         category: Some("misc"),
         experience: None,
         cookingtime: None,
-        key: Some(&[("X", &["minecraft:diamond"]), ("#", &["#minecraft:planks"])]),
+        key: Some(&[("#", &["#minecraft:planks"]), ("X", &["minecraft:diamond"])]),
         ingredients: None,
         result: Some(RecipeResult {
             id: "minecraft:jukebox",
@@ -11066,8 +11066,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("W", &["minecraft:jungle_planks"]),
             ("#", &["minecraft:stick"]),
+            ("W", &["minecraft:jungle_planks"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -11084,8 +11084,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("W", &["minecraft:jungle_planks"]),
             ("#", &["minecraft:stick"]),
+            ("W", &["minecraft:jungle_planks"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -11471,8 +11471,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("S", &["#minecraft:wooden_slabs"]),
             ("B", &["minecraft:bookshelf"]),
+            ("S", &["#minecraft:wooden_slabs"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -11525,8 +11525,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["#minecraft:planks"]),
             ("#", &["minecraft:light_blue_wool"]),
+            ("X", &["#minecraft:planks"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -11658,9 +11658,9 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("L", &["minecraft:leather"]),
-            ("G", &["minecraft:glass"]),
             ("#", &["minecraft:light_blue_wool"]),
+            ("G", &["minecraft:glass"]),
+            ("L", &["minecraft:leather"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -11692,8 +11692,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:light_blue_dye"]),
             ("#", &["minecraft:glass"]),
+            ("X", &["minecraft:light_blue_dye"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -11743,8 +11743,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:light_blue_dye"]),
             ("#", &["minecraft:terracotta"]),
+            ("X", &["minecraft:light_blue_dye"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -11961,8 +11961,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("G", &["minecraft:glass"]),
             ("#", &["minecraft:light_gray_wool"]),
+            ("G", &["minecraft:glass"]),
             ("L", &["minecraft:leather"]),
         ]),
         ingredients: None,
@@ -11995,8 +11995,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:light_gray_dye"]),
             ("#", &["minecraft:glass"]),
+            ("X", &["minecraft:light_gray_dye"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -12028,8 +12028,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("$", &["minecraft:light_gray_dye"]),
             ("#", &["minecraft:glass_pane"]),
+            ("$", &["minecraft:light_gray_dye"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -12046,8 +12046,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:light_gray_dye"]),
             ("#", &["minecraft:terracotta"]),
+            ("X", &["minecraft:light_gray_dye"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -12093,7 +12093,7 @@ impl Recipe {
         category: Some("misc"),
         experience: None,
         cookingtime: None,
-        key: Some(&[("|", &["minecraft:stick"]), ("#", &["minecraft:lime_wool"])]),
+        key: Some(&[("#", &["minecraft:lime_wool"]), ("|", &["minecraft:stick"])]),
         ingredients: None,
         result: Some(RecipeResult {
             id: "minecraft:lime_banner",
@@ -12242,9 +12242,9 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
+            ("#", &["minecraft:lime_wool"]),
             ("G", &["minecraft:glass"]),
             ("L", &["minecraft:leather"]),
-            ("#", &["minecraft:lime_wool"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -12275,7 +12275,7 @@ impl Recipe {
         category: Some("building"),
         experience: None,
         cookingtime: None,
-        key: Some(&[("X", &["minecraft:lime_dye"]), ("#", &["minecraft:glass"])]),
+        key: Some(&[("#", &["minecraft:glass"]), ("X", &["minecraft:lime_dye"])]),
         ingredients: None,
         result: Some(RecipeResult {
             id: "minecraft:lime_stained_glass",
@@ -12375,8 +12375,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("I", &["minecraft:breeze_rod"]),
             ("#", &["minecraft:heavy_core"]),
+            ("I", &["minecraft:breeze_rod"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -12393,8 +12393,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("|", &["minecraft:stick"]),
             ("#", &["minecraft:magenta_wool"]),
+            ("|", &["minecraft:stick"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -12598,8 +12598,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("G", &["minecraft:glass"]),
             ("#", &["minecraft:magenta_wool"]),
+            ("G", &["minecraft:glass"]),
             ("L", &["minecraft:leather"]),
         ]),
         ingredients: None,
@@ -12632,8 +12632,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:magenta_dye"]),
             ("#", &["minecraft:glass"]),
+            ("X", &["minecraft:magenta_dye"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -12665,8 +12665,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("$", &["minecraft:magenta_dye"]),
             ("#", &["minecraft:glass_pane"]),
+            ("$", &["minecraft:magenta_dye"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -12809,8 +12809,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("W", &["minecraft:mangrove_planks"]),
             ("#", &["minecraft:stick"]),
+            ("W", &["minecraft:mangrove_planks"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -13496,8 +13496,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("W", &["minecraft:nether_bricks"]),
             ("#", &["minecraft:nether_brick"]),
+            ("W", &["minecraft:nether_bricks"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -13863,9 +13863,9 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
+            ("#", &["minecraft:diamond"]),
             ("C", &["minecraft:netherrack"]),
             ("S", &["minecraft:netherite_upgrade_smithing_template"]),
-            ("#", &["minecraft:diamond"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -13882,8 +13882,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:redstone"]),
             ("#", &["#minecraft:planks"]),
+            ("X", &["minecraft:redstone"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -13996,8 +13996,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:chain"]),
             ("#", &["minecraft:stripped_oak_log"]),
+            ("X", &["minecraft:chain"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -14322,9 +14322,9 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
+            ("#", &["minecraft:orange_wool"]),
             ("G", &["minecraft:glass"]),
             ("L", &["minecraft:leather"]),
-            ("#", &["minecraft:orange_wool"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -14389,8 +14389,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("$", &["minecraft:orange_dye"]),
             ("#", &["minecraft:glass_pane"]),
+            ("$", &["minecraft:orange_dye"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -14470,8 +14470,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("C", &["minecraft:oxidized_copper"]),
             ("B", &["minecraft:blaze_rod"]),
+            ("C", &["minecraft:oxidized_copper"]),
             ("R", &["minecraft:redstone"]),
         ]),
         ingredients: None,
@@ -14678,7 +14678,7 @@ impl Recipe {
         category: Some("misc"),
         experience: None,
         cookingtime: None,
-        key: Some(&[("X", &["#minecraft:wool"]), ("#", &["minecraft:stick"])]),
+        key: Some(&[("#", &["minecraft:stick"]), ("X", &["#minecraft:wool"])]),
         ingredients: None,
         result: Some(RecipeResult {
             id: "minecraft:painting",
@@ -14769,8 +14769,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("W", &["minecraft:pale_oak_planks"]),
             ("#", &["minecraft:stick"]),
+            ("W", &["minecraft:pale_oak_planks"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -14805,8 +14805,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:chain"]),
             ("#", &["minecraft:stripped_pale_oak_log"]),
+            ("X", &["minecraft:chain"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -15140,8 +15140,8 @@ impl Recipe {
         cookingtime: None,
         key: Some(&[
             ("#", &["minecraft:pink_wool"]),
-            ("L", &["minecraft:leather"]),
             ("G", &["minecraft:glass"]),
+            ("L", &["minecraft:leather"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -15203,8 +15203,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("$", &["minecraft:pink_dye"]),
             ("#", &["minecraft:glass_pane"]),
+            ("$", &["minecraft:pink_dye"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -15221,8 +15221,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:pink_dye"]),
             ("#", &["minecraft:terracotta"]),
+            ("X", &["minecraft:pink_dye"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -16653,8 +16653,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("|", &["minecraft:stick"]),
             ("#", &["minecraft:purple_wool"]),
+            ("|", &["minecraft:stick"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -16671,8 +16671,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["#minecraft:planks"]),
             ("#", &["minecraft:purple_wool"]),
+            ("X", &["#minecraft:planks"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -16790,8 +16790,8 @@ impl Recipe {
         cookingtime: None,
         key: Some(&[
             ("#", &["minecraft:purple_wool"]),
-            ("L", &["minecraft:leather"]),
             ("G", &["minecraft:glass"]),
+            ("L", &["minecraft:leather"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -16823,8 +16823,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:purple_dye"]),
             ("#", &["minecraft:glass"]),
+            ("X", &["minecraft:purple_dye"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -17553,9 +17553,9 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("L", &["minecraft:leather"]),
             ("#", &["minecraft:red_wool"]),
             ("G", &["minecraft:glass"]),
+            ("L", &["minecraft:leather"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -17662,8 +17662,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("W", &["minecraft:nether_wart"]),
             ("N", &["minecraft:nether_brick"]),
+            ("W", &["minecraft:nether_wart"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -17812,7 +17812,7 @@ impl Recipe {
         category: Some("building"),
         experience: None,
         cookingtime: None,
-        key: Some(&[("X", &["minecraft:red_dye"]), ("#", &["minecraft:glass"])]),
+        key: Some(&[("#", &["minecraft:glass"]), ("X", &["minecraft:red_dye"])]),
         ingredients: None,
         result: Some(RecipeResult {
             id: "minecraft:red_stained_glass",
@@ -17861,8 +17861,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:red_dye"]),
             ("#", &["minecraft:terracotta"]),
+            ("X", &["minecraft:red_dye"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -17969,8 +17969,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("R", &["minecraft:redstone"]),
             ("G", &["minecraft:glowstone"]),
+            ("R", &["minecraft:redstone"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -18183,8 +18183,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("O", &["minecraft:crying_obsidian"]),
             ("G", &["minecraft:glowstone"]),
+            ("O", &["minecraft:crying_obsidian"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -18201,9 +18201,9 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("S", &["minecraft:rib_armor_trim_smithing_template"]),
             ("#", &["minecraft:diamond"]),
             ("C", &["minecraft:netherrack"]),
+            ("S", &["minecraft:rib_armor_trim_smithing_template"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -18364,7 +18364,7 @@ impl Recipe {
         category: Some("misc"),
         experience: None,
         cookingtime: None,
-        key: Some(&[("~", &["minecraft:string"]), ("I", &["minecraft:bamboo"])]),
+        key: Some(&[("I", &["minecraft:bamboo"]), ("~", &["minecraft:string"])]),
         ingredients: None,
         result: Some(RecipeResult {
             id: "minecraft:scaffolding",
@@ -18380,8 +18380,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("S", &["minecraft:prismarine_shard"]),
             ("C", &["minecraft:prismarine_crystals"]),
+            ("S", &["minecraft:prismarine_shard"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -18475,8 +18475,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("o", &["minecraft:iron_ingot"]),
             ("W", &["#minecraft:wooden_tool_materials"]),
+            ("o", &["minecraft:iron_ingot"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -18505,8 +18505,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("-", &["minecraft:shulker_shell"]),
             ("#", &["minecraft:chest"]),
+            ("-", &["minecraft:shulker_shell"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -18523,8 +18523,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("C", &["minecraft:cobbled_deepslate"]),
             ("#", &["minecraft:diamond"]),
+            ("C", &["minecraft:cobbled_deepslate"]),
             ("S", &["minecraft:silence_armor_trim_smithing_template"]),
         ]),
         ingredients: None,
@@ -18599,8 +18599,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("@", &["minecraft:iron_ingot"]),
             ("#", &["#minecraft:planks"]),
+            ("@", &["minecraft:iron_ingot"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -18616,7 +18616,7 @@ impl Recipe {
         category: Some("misc"),
         experience: None,
         cookingtime: None,
-        key: Some(&[("X", &["minecraft:furnace"]), ("#", &["#minecraft:logs"])]),
+        key: Some(&[("#", &["#minecraft:logs"]), ("X", &["minecraft:furnace"])]),
         ingredients: None,
         result: Some(RecipeResult {
             id: "minecraft:smoker",
@@ -18978,9 +18978,9 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("S", &["minecraft:stick"]),
             ("#", &["#minecraft:soul_fire_base_blocks"]),
             ("L", &["#minecraft:logs"]),
+            ("S", &["minecraft:stick"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -19015,9 +19015,9 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:coal", "minecraft:charcoal"]),
-            ("S", &["#minecraft:soul_fire_base_blocks"]),
             ("#", &["minecraft:stick"]),
+            ("S", &["#minecraft:soul_fire_base_blocks"]),
+            ("X", &["minecraft:coal", "minecraft:charcoal"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -19034,8 +19034,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:arrow"]),
             ("#", &["minecraft:glowstone_dust"]),
+            ("X", &["minecraft:arrow"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -19158,8 +19158,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("W", &["minecraft:spruce_planks"]),
             ("#", &["minecraft:stick"]),
+            ("W", &["minecraft:spruce_planks"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -19176,8 +19176,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("W", &["minecraft:spruce_planks"]),
             ("#", &["minecraft:stick"]),
+            ("W", &["minecraft:spruce_planks"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -19194,8 +19194,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:chain"]),
             ("#", &["minecraft:stripped_spruce_log"]),
+            ("X", &["minecraft:chain"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -19320,8 +19320,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:copper_ingot"]),
             ("#", &["minecraft:amethyst_shard"]),
+            ("X", &["minecraft:copper_ingot"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -19401,8 +19401,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["#minecraft:stone_tool_materials"]),
             ("#", &["minecraft:stick"]),
+            ("X", &["#minecraft:stone_tool_materials"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -19599,8 +19599,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["#minecraft:stone_tool_materials"]),
             ("#", &["minecraft:stick"]),
+            ("X", &["#minecraft:stone_tool_materials"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -19617,8 +19617,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["#minecraft:stone_tool_materials"]),
             ("#", &["minecraft:stick"]),
+            ("X", &["#minecraft:stone_tool_materials"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -20312,9 +20312,9 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("S", &["minecraft:tide_armor_trim_smithing_template"]),
-            ("C", &["minecraft:prismarine"]),
             ("#", &["minecraft:diamond"]),
+            ("C", &["minecraft:prismarine"]),
+            ("S", &["minecraft:tide_armor_trim_smithing_template"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -20343,8 +20343,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("S", &["minecraft:amethyst_shard"]),
             ("G", &["minecraft:glass"]),
+            ("S", &["minecraft:amethyst_shard"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -20439,9 +20439,9 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("S", &["minecraft:stick"]),
             ("#", &["#minecraft:planks"]),
             ("I", &["minecraft:iron_ingot"]),
+            ("S", &["minecraft:stick"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -20880,8 +20880,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("W", &["minecraft:warped_planks"]),
             ("#", &["minecraft:stick"]),
+            ("W", &["minecraft:warped_planks"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -20898,8 +20898,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("W", &["minecraft:warped_planks"]),
             ("#", &["minecraft:stick"]),
+            ("W", &["minecraft:warped_planks"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -20916,8 +20916,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:warped_fungus"]),
             ("#", &["minecraft:fishing_rod"]),
+            ("X", &["minecraft:warped_fungus"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -20997,8 +20997,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:stick"]),
             ("#", &["minecraft:warped_planks"]),
+            ("X", &["minecraft:stick"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -21135,9 +21135,9 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("R", &["minecraft:redstone"]),
             ("B", &["minecraft:blaze_rod"]),
             ("C", &["minecraft:waxed_copper_block"]),
+            ("R", &["minecraft:redstone"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -21469,9 +21469,9 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("R", &["minecraft:redstone"]),
             ("B", &["minecraft:blaze_rod"]),
             ("C", &["minecraft:waxed_exposed_copper"]),
+            ("R", &["minecraft:redstone"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -21818,8 +21818,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("C", &["minecraft:waxed_oxidized_copper"]),
             ("B", &["minecraft:blaze_rod"]),
+            ("C", &["minecraft:waxed_oxidized_copper"]),
             ("R", &["minecraft:redstone"]),
         ]),
         ingredients: None,
@@ -22171,8 +22171,8 @@ impl Recipe {
         cookingtime: None,
         key: Some(&[
             ("B", &["minecraft:blaze_rod"]),
-            ("R", &["minecraft:redstone"]),
             ("C", &["minecraft:waxed_weathered_copper"]),
+            ("R", &["minecraft:redstone"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -22539,8 +22539,8 @@ impl Recipe {
         cookingtime: None,
         key: Some(&[
             ("B", &["minecraft:blaze_rod"]),
-            ("R", &["minecraft:redstone"]),
             ("C", &["minecraft:weathered_copper"]),
+            ("R", &["minecraft:redstone"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -22873,9 +22873,9 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
+            ("#", &["minecraft:white_wool"]),
             ("G", &["minecraft:glass"]),
             ("L", &["minecraft:leather"]),
-            ("#", &["minecraft:white_wool"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -22937,8 +22937,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("$", &["minecraft:white_dye"]),
             ("#", &["minecraft:glass_pane"]),
+            ("$", &["minecraft:white_dye"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -22988,9 +22988,9 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("S", &["minecraft:wild_armor_trim_smithing_template"]),
-            ("C", &["minecraft:mossy_cobblestone"]),
             ("#", &["minecraft:diamond"]),
+            ("C", &["minecraft:mossy_cobblestone"]),
+            ("S", &["minecraft:wild_armor_trim_smithing_template"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -23067,8 +23067,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["#minecraft:wooden_tool_materials"]),
             ("#", &["minecraft:stick"]),
+            ("X", &["#minecraft:wooden_tool_materials"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -23103,8 +23103,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["#minecraft:wooden_tool_materials"]),
             ("#", &["minecraft:stick"]),
+            ("X", &["#minecraft:wooden_tool_materials"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -23121,8 +23121,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["#minecraft:wooden_tool_materials"]),
             ("#", &["minecraft:stick"]),
+            ("X", &["#minecraft:wooden_tool_materials"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -23154,8 +23154,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("|", &["minecraft:stick"]),
             ("#", &["minecraft:yellow_wool"]),
+            ("|", &["minecraft:stick"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -23172,8 +23172,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["#minecraft:planks"]),
             ("#", &["minecraft:yellow_wool"]),
+            ("X", &["#minecraft:planks"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -23320,8 +23320,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("G", &["minecraft:glass"]),
             ("#", &["minecraft:yellow_wool"]),
+            ("G", &["minecraft:glass"]),
             ("L", &["minecraft:leather"]),
         ]),
         ingredients: None,
@@ -23354,8 +23354,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:yellow_dye"]),
             ("#", &["minecraft:glass"]),
+            ("X", &["minecraft:yellow_dye"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -23387,8 +23387,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("$", &["minecraft:yellow_dye"]),
             ("#", &["minecraft:glass_pane"]),
+            ("$", &["minecraft:yellow_dye"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
@@ -23405,8 +23405,8 @@ impl Recipe {
         experience: None,
         cookingtime: None,
         key: Some(&[
-            ("X", &["minecraft:yellow_dye"]),
             ("#", &["minecraft:terracotta"]),
+            ("X", &["minecraft:yellow_dye"]),
         ]),
         ingredients: None,
         result: Some(RecipeResult {
