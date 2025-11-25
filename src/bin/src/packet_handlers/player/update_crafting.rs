@@ -7,6 +7,7 @@ use ferrumc_inventories::item::ItemID;
 use ferrumc_inventories::slot::InventorySlot;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 
+/// Takes in a player inventory and entity id and will update the survival crafting grid output based on its inputs
 pub fn update_player_crafting_grid(inventory: &mut Inventory, eid: Entity) {
     let craft_slot_1 = inventory
         .get_item(defined_slots::player::CRAFT_SLOT_1 as _)

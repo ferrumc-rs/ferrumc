@@ -12,6 +12,7 @@ pub fn handle(
 ) {
     for (event, eid) in receiver.0.try_iter() {
         // TODO: actually verify that the inventory is synced, this code assumes that the ClickContainer packet is 100% truthful
+        // TODO: when actually implementing this correctly, make sure that if the client sends an out of bounds slot id the entire server doesnt crash
 
         if let Ok(mut inventory) = inventories.get_mut(eid) {
             for slot in event.changed_slots.data {
