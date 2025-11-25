@@ -19,6 +19,19 @@ pub struct InventorySlot {
     // https://minecraft.wiki/w/Java_Edition_protocol/Slot_data
 }
 
+impl InventorySlot {
+    pub fn empty() -> Self {
+        Self {
+            count: VarInt(0),
+            item_id: None,
+            components_to_add_count: None,
+            components_to_add: None,
+            components_to_remove: None,
+            components_to_remove_count: None,
+        }
+    }
+}
+
 impl Display for InventorySlot {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(

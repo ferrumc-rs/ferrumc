@@ -40,3 +40,4 @@ pub mod set_held_item;
 
 pub mod change_game_mode;
 pub mod encryption_response;
+pub mod click_container;

@@ -30589,7 +30589,7 @@ impl Item {
     #[doc = "Try to parse an item from a resource location string."]
     pub fn from_registry_key(name: &str) -> Option<&'static Self> {
         let name = name.strip_prefix("minecraft:").unwrap_or(name);
-        match name {
+        match format!("minecraft:{name}").as_str() {
             "minecraft:acacia_boat" => Some(&Self::ACACIA_BOAT),
             "minecraft:acacia_button" => Some(&Self::ACACIA_BUTTON),
             "minecraft:acacia_chest_boat" => Some(&Self::ACACIA_CHEST_BOAT),

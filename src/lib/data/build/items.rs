@@ -480,7 +480,7 @@ pub(crate) fn build() -> TokenStream {
             #[doc = "Try to parse an item from a resource location string."]
             pub fn from_registry_key(name: &str) -> Option<&'static Self> {
                 let name = name.strip_prefix("minecraft:").unwrap_or(name);
-                match name {
+                match format!("minecraft:{name}").as_str() {
                     #type_from_name
                     _ => None
                 }
