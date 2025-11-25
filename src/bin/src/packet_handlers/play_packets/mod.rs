@@ -46,6 +46,6 @@ pub fn register_packet_handlers(schedule: &mut Schedule) {
 
 pub mod set_creative_mode_slot;
 
+mod close_container;
 pub mod set_held_item;
 mod update_survival_mode_slot;
-mod close_container;

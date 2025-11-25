@@ -17,10 +17,7 @@ impl StringOrVec {
     fn flatten(self) -> Vec<String> {
         match self {
             StringOrVec::String(s) => vec![s],
-            StringOrVec::Vec(items) => items.into_iter()
-                .map(|f| f.flatten())
-                .flatten()
-                .collect(),
+            StringOrVec::Vec(items) => items.into_iter().flat_map(|f| f.flatten()).collect(),
         }
     }
 }
@@ -33,23 +30,33 @@ where
 
     Ok(Some(match raw {
         StringOrVec::String(s) => vec![vec![s]],
-        StringOrVec::Vec(items) => items.into_iter().map(StringOrVec::flatten).collect()
+        StringOrVec::Vec(items) => items.into_iter().map(StringOrVec::flatten).collect(),
     }))
 }
 
-fn deserialize_key<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Option<BTreeMap<String, Vec<String>>>, D::Error> {
+fn deserialize_key<'de, D: Deserializer<'de>>(
+    deserializer: D,
+) -> Result<Option<BTreeMap<String, Vec<String>>>, D::Error> {
     let raw = BTreeMap::<String, StringOrVec>::deserialize(deserializer)?;
 
-    Ok(Some(raw.into_iter().map(|(k, v)| match v {
-        StringOrVec::String(s) => (k, vec![s]),
-        StringOrVec::Vec(v) => (k, v.into_iter().map(StringOrVec::flatten).flatten().collect()),
-    }).collect()))
+    Ok(Some(
+        raw.into_iter()
+            .map(|(k, v)| match v {
+                StringOrVec::String(s) => (k, vec![s]),
+                StringOrVec::Vec(v) => (k, v.into_iter().flat_map(StringOrVec::flatten).collect()),
+            })
+            .collect(),
+    ))
 }
 
-fn deserialize_ingredient<'de, D: Deserializer<'de>>(deserialize: D) -> Result<Option<Vec<String>>, D::Error> {
+fn deserialize_ingredient<'de, D: Deserializer<'de>>(
+    deserialize: D,
+) -> Result<Option<Vec<String>>, D::Error> {
     let raw = Vec::<StringOrVec>::deserialize(deserialize)?;
 
-    Ok(Some(raw.into_iter().map(StringOrVec::flatten).flatten().collect()))
+    Ok(Some(
+        raw.into_iter().flat_map(StringOrVec::flatten).collect(),
+    ))
 }
 
 #[derive(Deserialize, Clone, Debug)]
@@ -102,27 +109,62 @@ pub(crate) fn build() -> TokenStream {
         });
 
         let recipe_type = match recipe.recipe_type.as_str() {
-            "minecraft:crafting_shaped" | "crafting_shaped" => quote! { RecipeType::CraftingShaped },
-            "minecraft:crafting_shapeless" | "crafting_shapeless" => quote! { RecipeType::CraftingShapeless },
-            "minecraft:crafting_special_armordye" | "crafting_special_armordye" => quote! { RecipeType::CraftingSpecialArmorDye },
-            "minecraft:crafting_special_bannerduplicate" | "crafting_special_bannerduplicate" => quote! { RecipeType::CraftingSpecialBannerDuplicate },
-            "minecraft:crafting_transmute" | "crafting_transmute" => quote! { RecipeType::CraftingTransmute },
-            "minecraft:crafting_special_bookcloning" | "crafting_special_bookcloning" => quote! { RecipeType::CraftingSpecialBookCloning },
-            "minecraft:crafting_decorated_pot" | "crafting_decorated_pot" => quote! { RecipeType::CraftingDecoratedPot },
-            "minecraft:crafting_special_firework_rocket" | "crafting_special_firework_rocket" => quote! { RecipeType::CraftingSpecialFireworkRocket },
-            "minecraft:crafting_special_firework_star" | "crafting_special_firework_star" => quote! { RecipeType::CraftingSpecialFireworkStar },
-            "minecraft:crafting_special_firework_star_fade" | "crafting_special_firework_star_fade" => quote! { RecipeType::CraftingSpecialFireworkStarFade },
-            "minecraft:crafting_special_mapcloning" | "crafting_special_mapcloning" => quote! { RecipeType::CraftingSpecialMapCloning },
-            "minecraft:crafting_special_mapextending" | "crafting_special_mapextending" => quote! { RecipeType::CraftingSpecialMapExtending },
-            "minecraft:crafting_special_repairitem" | "crafting_special_repairitem" => quote! { RecipeType::CraftingSpecialRepairItem },
-            "minecraft:crafting_special_shielddecoration" | "crafting_special_shielddecoration" => quote! { RecipeType::CraftingSpecialShieldDecoration },
-            "minecraft:crafting_special_tippedarrow" | "crafting_special_tippedarrow" => quote! { RecipeType::CraftingSpecialTippedArrow },
+            "minecraft:crafting_shaped" | "crafting_shaped" => {
+                quote! { RecipeType::CraftingShaped }
+            }
+            "minecraft:crafting_shapeless" | "crafting_shapeless" => {
+                quote! { RecipeType::CraftingShapeless }
+            }
+            "minecraft:crafting_special_armordye" | "crafting_special_armordye" => {
+                quote! { RecipeType::CraftingSpecialArmorDye }
+            }
+            "minecraft:crafting_special_bannerduplicate" | "crafting_special_bannerduplicate" => {
+                quote! { RecipeType::CraftingSpecialBannerDuplicate }
+            }
+            "minecraft:crafting_transmute" | "crafting_transmute" => {
+                quote! { RecipeType::CraftingTransmute }
+            }
+            "minecraft:crafting_special_bookcloning" | "crafting_special_bookcloning" => {
+                quote! { RecipeType::CraftingSpecialBookCloning }
+            }
+            "minecraft:crafting_decorated_pot" | "crafting_decorated_pot" => {
+                quote! { RecipeType::CraftingDecoratedPot }
+            }
+            "minecraft:crafting_special_firework_rocket" | "crafting_special_firework_rocket" => {
+                quote! { RecipeType::CraftingSpecialFireworkRocket }
+            }
+            "minecraft:crafting_special_firework_star" | "crafting_special_firework_star" => {
+                quote! { RecipeType::CraftingSpecialFireworkStar }
+            }
+            "minecraft:crafting_special_firework_star_fade"
+            | "crafting_special_firework_star_fade" => {
+                quote! { RecipeType::CraftingSpecialFireworkStarFade }
+            }
+            "minecraft:crafting_special_mapcloning" | "crafting_special_mapcloning" => {
+                quote! { RecipeType::CraftingSpecialMapCloning }
+            }
+            "minecraft:crafting_special_mapextending" | "crafting_special_mapextending" => {
+                quote! { RecipeType::CraftingSpecialMapExtending }
+            }
+            "minecraft:crafting_special_repairitem" | "crafting_special_repairitem" => {
+                quote! { RecipeType::CraftingSpecialRepairItem }
+            }
+            "minecraft:crafting_special_shielddecoration" | "crafting_special_shielddecoration" => {
+                quote! { RecipeType::CraftingSpecialShieldDecoration }
+            }
+            "minecraft:crafting_special_tippedarrow" | "crafting_special_tippedarrow" => {
+                quote! { RecipeType::CraftingSpecialTippedArrow }
+            }
             "minecraft:stonecutting" | "stonecutting" => quote! { RecipeType::Stonecutting },
             "minecraft:smelting" | "smelting" => quote! { RecipeType::Smelting },
-            "minecraft:campfire_cooking" | "campfire_cooking" => quote! { RecipeType::CampfireCooking },
+            "minecraft:campfire_cooking" | "campfire_cooking" => {
+                quote! { RecipeType::CampfireCooking }
+            }
             "minecraft:smoking" | "smoking" => quote! { RecipeType::Smoking },
             "minecraft:smithing_trim" | "smithing_trim" => quote! { RecipeType::SmithingTrim },
-            "minecraft:smithing_transform" | "smithing_transform" => quote! { RecipeType::SmithingTransform },
+            "minecraft:smithing_transform" | "smithing_transform" => {
+                quote! { RecipeType::SmithingTransform }
+            }
             "minecraft:blasting" | "blasting" => quote! { RecipeType::Blasting },
             ty => panic!("unknown recipe type: {ty}"),
         };
@@ -169,7 +211,7 @@ pub(crate) fn build() -> TokenStream {
                     quote! { (#a, &[#(#b_items),*]) }
                 });
                 quote! { Some(&[#(#items),*])}
-            },
+            }
             None => quote! { None },
         };
 
@@ -184,7 +226,7 @@ pub(crate) fn build() -> TokenStream {
                     quote! {  &[#(#a),*] }
                 });
                 quote! { Some(&[#(#items),*])}
-            },
+            }
             None => quote! { None },
         };
 
@@ -194,7 +236,7 @@ pub(crate) fn build() -> TokenStream {
                 quote! {
                     Some(RecipeResult { id: #id, count: #count })
                 }
-            },
+            }
             None => quote! { None },
         };
 

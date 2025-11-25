@@ -11,7 +11,7 @@ pub struct ClickContainer {
     pub slot: i16,
     pub button: i8,
     pub mode: VarInt,
-    pub changed_slots: LengthPrefixedVec<ChangedSlot>
+    pub changed_slots: LengthPrefixedVec<ChangedSlot>,
 }
 
 #[derive(NetDecode)]
