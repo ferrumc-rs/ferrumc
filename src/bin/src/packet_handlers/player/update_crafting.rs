@@ -44,5 +44,10 @@ pub fn update_player_crafting_grid(
                 slot,
                 eid,
             ).expect("failed to set item in inventory");
+        } else {
+            inventory.clear_slot_with_update(
+                defined_slots::player::CRAFT_SLOT_OUTPUT as _,
+                eid,
+            ).expect("failed to clear item in inventory");
         }
 }
