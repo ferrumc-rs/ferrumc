@@ -27,10 +27,15 @@ pub fn handle(
                             components_to_remove_count: None,
                         }
                     ).expect("failed to write to inventory");
+                } else {
+                    inventory.clear_slot_with_update(
+                        slot.number as _,
+                        eid,
+                    ).expect("failed to clear item in inventory");
+                }
 
-                    if (defined_slots::player::CRAFT_SLOT_1..=defined_slots::player::CRAFT_SLOT_4).contains(&(slot.number as u8)) {
-                        update_player_crafting_grid(&mut inventory, eid);
-                    }
+                if (defined_slots::player::CRAFT_SLOT_1..=defined_slots::player::CRAFT_SLOT_4).contains(&(slot.number as u8)) {
+                    update_player_crafting_grid(&mut inventory, eid);
                 }
             }
         } else {
