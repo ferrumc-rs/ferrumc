@@ -6,36 +6,24 @@ use ferrumc_inventories::inventory::Inventory;
 use ferrumc_inventories::item::ItemID;
 use ferrumc_inventories::slot::InventorySlot;
 use ferrumc_net_codec::net_types::var_int::VarInt;
+use tracing::error;
 
 /// Takes in a player inventory and entity id and will update the survival crafting grid output based on its inputs
 pub fn update_player_crafting_grid(inventory: &mut Inventory, eid: Entity) {
-    let craft_slot_1 = inventory
-        .get_item(defined_slots::player::CRAFT_SLOT_1 as _)
-        .expect("failed to get craft slot 1")
-        .and_then(|slot| slot.item_id)
-        .and_then(|id| Item::from_id(id.0 .0 as _));
-    let craft_slot_2 = inventory
-        .get_item(defined_slots::player::CRAFT_SLOT_2 as _)
-        .expect("failed to get craft slot 2")
-        .and_then(|slot| slot.item_id)
-        .and_then(|id| Item::from_id(id.0 .0 as _));
-    let craft_slot_3 = inventory
-        .get_item(defined_slots::player::CRAFT_SLOT_3 as _)
-        .expect("failed to get craft slot 3")
-        .and_then(|slot| slot.item_id)
-        .and_then(|id| Item::from_id(id.0 .0 as _));
-    let craft_slot_4 = inventory
-        .get_item(defined_slots::player::CRAFT_SLOT_4 as _)
-        .expect("failed to get craft slot 4")
-        .and_then(|slot| slot.item_id)
-        .and_then(|id| Item::from_id(id.0 .0 as _));
-
-    let recipes =
-        get_recipes_from_2x2([[craft_slot_1, craft_slot_2], [craft_slot_3, craft_slot_4]]);
+    let recipes = get_recipes_from_2x2([
+        [
+            get_inventory_slot(inventory, defined_slots::player::CRAFT_SLOT_1),
+            get_inventory_slot(inventory, defined_slots::player::CRAFT_SLOT_2),
+        ],
+        [
+            get_inventory_slot(inventory, defined_slots::player::CRAFT_SLOT_3),
+            get_inventory_slot(inventory, defined_slots::player::CRAFT_SLOT_4),
+        ],
+    ]);
 
     if let Some(first) = recipes.first().and_then(|recipe| recipe.result.as_ref()) {
         let item = Item::from_registry_key(first.id)
-            .unwrap_or_else(|| panic!("failed to get item: {:?}", first.id));
+            .unwrap_or_else(|| panic!("Failed to get item: {:?}", first.id));
 
         let slot = InventorySlot {
             item_id: Some(ItemID(VarInt(item.id as _))),
@@ -45,10 +33,18 @@ pub fn update_player_crafting_grid(inventory: &mut Inventory, eid: Entity) {
 
         inventory
             .set_item_with_update(defined_slots::player::CRAFT_SLOT_OUTPUT as _, slot, eid)
-            .expect("failed to set item in inventory");
+            .unwrap_or_else(|err| error!("Failed to set player crafting output slot: {}", err))
     } else {
         inventory
             .clear_slot_with_update(defined_slots::player::CRAFT_SLOT_OUTPUT as _, eid)
-            .expect("failed to clear item in inventory");
+            .unwrap_or_else(|err| error!("Failed to clear player crafting output slot: {}", err))
     }
+}
+
+fn get_inventory_slot(inventory: &Inventory, slot: u8) -> Option<&Item> {
+    inventory
+        .get_item(slot as usize)
+        .ok()
+        .and_then(|slot| slot.and_then(|id| id.item_id))
+        .and_then(|item_id| Item::from_id(item_id.0 .0 as u16))
 }

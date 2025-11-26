@@ -3,6 +3,9 @@ use ferrumc_data::recipes::{Recipe, RecipeType};
 use ferrumc_data::tags::TagData;
 use std::collections::HashMap;
 
+/// Returns a list of valid recipes that are compatible with the given crafting grid.
+///
+/// There may be more than one valid recipe, but most often it will only return one recipe.
 pub fn get_recipes_from_2x2(grid: [[Option<&Item>; 2]; 2]) -> Vec<&Recipe> {
     get_recipes_from_3x3([
         [grid[0][0], grid[0][1], None],
@@ -11,6 +14,9 @@ pub fn get_recipes_from_2x2(grid: [[Option<&Item>; 2]; 2]) -> Vec<&Recipe> {
     ])
 }
 
+/// Returns a list of valid recipes that are compatible with the given crafting grid.
+///
+/// There may be more than one valid recipe, but most often it will only return one recipe.
 pub fn get_recipes_from_3x3(grid: [[Option<&Item>; 3]; 3]) -> Vec<&Recipe> {
     Recipe::ALL_RECIPES
         .iter()
@@ -24,6 +30,7 @@ pub fn get_recipes_from_3x3(grid: [[Option<&Item>; 3]; 3]) -> Vec<&Recipe> {
         .collect()
 }
 
+/// Compact the given crafting grid to cut off rows or columns that are all `None`.
 fn normalize_grid(grid: &mut Vec<Vec<Option<&str>>>) {
     if grid.is_empty() || grid[0].is_empty() {
         return;
@@ -53,6 +60,7 @@ fn normalize_grid(grid: &mut Vec<Vec<Option<&str>>>) {
     *grid = trimmed;
 }
 
+/// Checks if the given grid aligns with the given shaped recipe
 fn matches_crafting_shaped(recipe: &Recipe, grid: [[Option<&Item>; 3]; 3]) -> Option<()> {
     let key = recipe.key.as_ref()?;
 
@@ -98,6 +106,7 @@ fn matches_crafting_shaped(recipe: &Recipe, grid: [[Option<&Item>; 3]; 3]) -> Op
     Some(())
 }
 
+/// Checks if the given grid aligns with the given shapeless recipe
 fn matches_crafting_shapeless(recipe: &Recipe, grid: [[Option<&Item>; 3]; 3]) -> Option<()> {
     let ingredients = recipe.ingredients.as_ref()?;
 
@@ -131,13 +140,14 @@ fn matches_crafting_shapeless(recipe: &Recipe, grid: [[Option<&Item>; 3]; 3]) ->
     Some(())
 }
 
+/// Checks if the item_id given is in any of the allowed symbols.
+/// If an allowed symbol is a tag (starts with '#'), this function checks the tag's data to see if item_id is part of that tag.
 fn symbol_matches_item(symbol_allowed: &[&str], item_id: &str) -> bool {
     for allowed in symbol_allowed {
         if let Some(tag) = allowed.strip_prefix('#') {
-            if let Some(values) = TagData::get_item_tag(tag) {
-                if values.values.contains(&item_id) {
-                    return true;
-                }
+            if TagData::get_item_tag(tag).is_some_and(|tag_data| tag_data.values.contains(&item_id))
+            {
+                return true;
             }
         } else if *allowed == item_id {
             return true;
