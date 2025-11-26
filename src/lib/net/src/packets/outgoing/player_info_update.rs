@@ -68,6 +68,7 @@ impl PlayerWithActions {
         for action in &self.actions {
             mask |= match action {
                 PlayerAction::AddPlayer { .. } => 0x01,
+                PlayerAction::UpdateListed { .. } => 0x08,
             }
         }
         mask
@@ -76,19 +77,22 @@ impl PlayerWithActions {
     pub fn add_player(identity: &PlayerIdentity) -> Self {
         Self {
             uuid: identity.uuid.as_u128(),
-            actions: vec![PlayerAction::AddPlayer {
-                name: identity.username.clone(),
-                properties: LengthPrefixedVec::new(
-                    identity.properties
-                        .iter()
-                        .map(|property| PlayerProperty {
-                            name: property.name.clone(),
-                            value: base64::engine::general_purpose::STANDARD.encode(&property.value),
-                            signature: PrefixedOptional::new(property.signature.clone())
-                        })
-                        .collect(),
-                ),
-            }],
+            actions: vec![
+                PlayerAction::AddPlayer {
+                    name: identity.username.clone(),
+                    properties: LengthPrefixedVec::new(
+                        identity.properties
+                            .iter()
+                            .map(|property| PlayerProperty {
+                                name: property.name.clone(),
+                                value: base64::engine::general_purpose::STANDARD.encode(&property.value),
+                                signature: PrefixedOptional::new(property.signature.clone())
+                            })
+                            .collect(),
+                    ),
+                },
+                PlayerAction::UpdateListed { is_listed: true },
+            ],
         }
     }
 }
@@ -99,6 +103,9 @@ pub enum PlayerAction {
         name: String,
         properties: LengthPrefixedVec<PlayerProperty>,
     },
+    UpdateListed {
+        is_listed: bool,
+    }
 }
 
 #[derive(NetEncode, Debug)]
