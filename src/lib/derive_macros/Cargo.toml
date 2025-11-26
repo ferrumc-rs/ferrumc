@@ -11,6 +11,8 @@ colors = []
 proc-macro = true
 
 [dependencies]
+ferrumc-protocol = { workspace = true }
+
 colored = { workspace = true }
 quote = { workspace = true }
 syn = { workspace = true, features = ["full"] }

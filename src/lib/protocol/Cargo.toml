@@ -1,0 +1,12 @@
+[package]
+name = "ferrumc-protocol"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Layer 1 Dependencies
+ferrumc-core = { workspace = true }
+ferrumc-net-codec = { workspace = true }
+ferrumc-nbt = { workspace = true }
+uuid = { workspace = true }
+serde = { workspace = true, features = ["derive"] }

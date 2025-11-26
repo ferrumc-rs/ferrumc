@@ -42,6 +42,7 @@ members = [
     "tools/data-gen",
     "src/lib/messages",
     "src/lib/entities",
+    "src/lib/protocol",
 ]
 
 [workspace.package]
@@ -123,6 +124,7 @@ ferrumc-inventories = { path = "src/lib/inventories" }
 ferrumc-components = { path = "src/lib/components" }
 ferrumc-messages = { path = "src/lib/messages" }
 ferrumc-entities = { path = "src/lib/entities" }
+ferrumc-protocol = { path = "src/lib/protocol" }
 
 # Asynchronous
 tokio = { version = "1.48.0", features = [

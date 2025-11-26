@@ -1,34 +1,70 @@
-use crate::helpers::{get_derive_attributes, StructInfo};
-use crate::net::packets::get_packet_details_from_attributes;
-use crate::static_loading::packets::PacketBoundiness;
+use crate::helpers::StructInfo;
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput, Fields};
+use syn::parse::{Parse, ParseStream};
+use syn::{parse_macro_input, DeriveInput, Expr, Fields, Token};
 
-// Generate packet ID encoding snippets
-fn generate_packet_id_snippets(
-    packet_id: Option<u8>,
-) -> (proc_macro2::TokenStream, proc_macro2::TokenStream) {
-    let sync_snippet = if let Some(id) = packet_id {
-        quote! {
-            <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode(&#id.into(), writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)?;
-        }
-    } else {
-        quote! {}
-    };
-
-    let async_snippet = if let Some(id) = packet_id {
-        quote! {
-            <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode_async(&#id.into(), writer, &ferrumc_net_codec::encode::NetEncodeOpts::None).await?;
-        }
-    } else {
-        quote! {}
-    };
-
-    (sync_snippet, async_snippet)
+// --- Local Parser for #[packet(id = ...)] ---
+struct PacketIdArg {
+    id: Option<Expr>,
 }
 
-// Generate field encoding expressions for structs
+impl Parse for PacketIdArg {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let mut id = None;
+        while !input.is_empty() {
+            let key: syn::Ident = input.parse()?;
+            input.parse::<Token![=]>()?;
+
+            if key == "id" {
+                id = Some(input.parse()?);
+            } else {
+                // Skip other arguments (like state = "play")
+                // We parse as Expr because literals ("string") are valid Exprs
+                let _skip: Expr = input.parse()?;
+            }
+
+            if !input.is_empty() {
+                let _ = input.parse::<Token![,]>();
+            }
+        }
+        Ok(PacketIdArg { id })
+    }
+}
+
+// --- Snippet Generator ---
+
+// Generate packet ID encoding snippets using the Expression
+fn generate_packet_id_snippets(
+    packet_id: Option<Expr>,
+) -> (proc_macro2::TokenStream, proc_macro2::TokenStream) {
+    if let Some(id_expr) = packet_id {
+        // Sync version
+        let sync_snippet = quote! {
+            <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode(
+                &ferrumc_net_codec::net_types::var_int::VarInt::from(#id_expr),
+                writer,
+                &ferrumc_net_codec::encode::NetEncodeOpts::None
+            )?;
+        };
+
+        // Async version
+        let async_snippet = quote! {
+            <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode_async(
+                &ferrumc_net_codec::net_types::var_int::VarInt::from(#id_expr),
+                writer,
+                &ferrumc_net_codec::encode::NetEncodeOpts::None
+            ).await?;
+        };
+
+        (sync_snippet, async_snippet)
+    } else {
+        (quote! {}, quote! {})
+    }
+}
+
+// --- Field Encoders ---
+
 fn generate_field_encoders(fields: &syn::Fields) -> proc_macro2::TokenStream {
     let encode_fields = fields.iter().map(|field| {
         let field_name = field.ident.as_ref().unwrap();
@@ -51,7 +87,8 @@ fn generate_async_field_encoders(fields: &syn::Fields) -> proc_macro2::TokenStre
     quote! { #(#encode_fields)* }
 }
 
-// Generate enum variant encoding using static dispatch
+// --- Enum Encoders ---
+
 fn generate_enum_encoders(
     data: &syn::DataEnum,
 ) -> (proc_macro2::TokenStream, proc_macro2::TokenStream) {
@@ -106,12 +143,8 @@ fn generate_enum_encoders(
                 })
             }
             Fields::Unit => (
-                quote! {
-                    Self::#variant_ident => {}
-                },
-                quote! {
-                    Self::#variant_ident => {}
-                }
+                quote! { Self::#variant_ident => {} },
+                quote! { Self::#variant_ident => {} }
             ),
         }
     }).unzip::<_, _, Vec<_>, Vec<_>>();
@@ -119,28 +152,29 @@ fn generate_enum_encoders(
     let (sync_variants, async_variants) = variants;
 
     (
-        quote! {
-            match self {
-                #(#sync_variants)*
-            }
-        },
-        quote! {
-            match self {
-                #(#async_variants)*
-            }
-        },
+        quote! { match self { #(#sync_variants)* } },
+        quote! { match self { #(#async_variants)* } },
     )
 }
+
+// --- 3. Main Derive Function ---
 
 pub(crate) fn derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
-    let packet_attr = get_derive_attributes(&input, "packet");
-    let (packet_id_snippet, async_packet_id_snippet) = generate_packet_id_snippets(
-        get_packet_details_from_attributes(packet_attr.as_slice(), PacketBoundiness::Clientbound)
-            .unzip()
-            .1,
-    );
+    // 1. Parse the packet ID from attributes
+    let mut packet_id_expr = None;
+    for attr in &input.attrs {
+        if attr.path().is_ident("packet") {
+            if let Ok(args) = attr.parse_args::<PacketIdArg>() {
+                if let Some(id) = args.id {
+                    packet_id_expr = Some(id);
+                }
+            }
+        }
+    }
+
+    let (packet_id_snippet, async_packet_id_snippet) = generate_packet_id_snippets(packet_id_expr);
 
     let (sync_impl, async_impl) = match &input.data {
         syn::Data::Struct(data) => {
@@ -185,7 +219,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                                 let mut writer = &mut writer;
 
                                 #async_packet_id_snippet
-                                #field_encoders
+                                #async_field_encoders // FIX: Used correct encoder
 
                                 let len: ferrumc_net_codec::net_types::var_int::VarInt = writer.len().into();
                                 <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode_async(&len, actual_writer, &ferrumc_net_codec::encode::NetEncodeOpts::None).await?;
@@ -239,7 +273,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
                                 let mut writer = &mut writer;
 
                                 #async_packet_id_snippet
-                                #sync_enum_encoder
+                                #async_enum_encoder
 
                                 let len: ferrumc_net_codec::net_types::var_int::VarInt = writer.len().into();
                                 <ferrumc_net_codec::net_types::var_int::VarInt as ferrumc_net_codec::encode::NetEncode>::encode_async(&len, actual_writer, &ferrumc_net_codec::encode::NetEncodeOpts::None).await?;
@@ -260,7 +294,6 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
         impl_generics,
         ty_generics,
         where_clause,
-        lifetime: _lifetime,
         ..
     } = crate::helpers::extract_struct_info(&input, None);
 

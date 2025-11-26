@@ -1,0 +1,4 @@
+ignore = [
+      # Ignore the generated registry code (It's huge and read-only)
+      "src/lib/registry/src/generated",
+]

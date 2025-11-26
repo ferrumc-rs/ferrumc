@@ -53,13 +53,6 @@ pub fn setup_packet_handling(input: TokenStream) -> TokenStream {
     net::packets::setup_packet_handling(input)
 }
 
-/// Get a packet entry from the packets.json file.
-/// returns protocol_id (as 0x??) of the specified packet.
-/// e.g. get_packet_entry!("play", "clientbound", "add_entity") -> 0x01
-#[proc_macro]
-pub fn lookup_packet(input: TokenStream) -> TokenStream {
-    static_loading::packets::lookup_packet(input)
-}
 // #=================== PACKETS ===================#
 
 /// Creates a command.

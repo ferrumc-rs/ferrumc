@@ -3,6 +3,7 @@ mod setup;
 mod utils;
 
 use std::env;
+use std::fs;
 
 fn main() {
     println!("Starting FerrumC Data Generator");
@@ -27,7 +28,7 @@ fn main() {
     setup::run_java_generator(&vanilla_jar, &temp_dir);
     let reports_dir = temp_dir.join("generated/reports");
 
-    // 4. Physics Pipeline
+    // 4. Extract Pipeline
     let remapped_jar = setup::prepare_remapped_jar(&temp_dir);
     let physics_json = setup::extract_blocks(&remapped_jar, &temp_dir);
     let mappings_json = setup::extract_mappings(&remapped_jar, &temp_dir);
@@ -60,6 +61,16 @@ fn main() {
     // Entities
     println!("Generating Entites Mappings...");
     generators::entities::generate(&entities_json, &output_base.join("entities.rs"));
+
+    // 6. Generate Packet IDs
+    println!("Generating Packet IDs...");
+
+    let packet_ids_output = project_root.join("src/lib/protocol/src/ids.rs");
+
+    if let Some(parent) = packet_ids_output.parent() {
+        fs::create_dir_all(parent).unwrap();
+    }
+    generators::packets::generate(&reports_dir.join("packets.json"), &packet_ids_output);
 
     // 6. Create Mod File
     utils::write_mod_file(&output_base);

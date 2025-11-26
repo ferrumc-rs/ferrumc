@@ -53,6 +53,8 @@ pub fn generate(ids_path: &Path, physics_path: &Path, output: &Path) {
     // Create the single file
     let mut file = utils::create_file(output);
 
+    writeln!(file, "#![allow(clippy::excessive_precision)]").unwrap();
+
     // Header
     writeln!(file, "use ferrumc_core::world::block_data::BlockData;").unwrap();
     writeln!(file, "").unwrap();
