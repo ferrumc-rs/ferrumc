@@ -144,12 +144,10 @@ fn matches_crafting_shapeless(recipe: &Recipe, grid: [[Option<&Item>; 3]; 3]) ->
 /// If an allowed symbol is a tag (starts with '#'), this function checks the tag's data to see if item_id is part of that tag.
 fn symbol_matches_item(symbol_allowed: &[&str], item_id: &str) -> bool {
     for allowed in symbol_allowed {
-        if let Some(tag) = allowed.strip_prefix('#') {
-            if TagData::get_item_tag(tag).is_some_and(|tag_data| tag_data.values.contains(&item_id))
-            {
-                return true;
-            }
-        } else if *allowed == item_id {
+        if allowed.strip_prefix('#').is_some_and(|tag| {
+            TagData::get_item_tag(tag).is_some_and(|tag_data| tag_data.values.contains(&item_id))
+        }) || *allowed == item_id
+        {
             return true;
         }
     }
