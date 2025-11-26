@@ -41,16 +41,19 @@ impl SpawnEntityPacket {
         position: &Position,
         rotation: &Rotation,
     ) -> Self {
+        let (x, y, z) = position.xyz();
+        let (yaw, pitch) = rotation.yaw_pitch();
+
         Self {
             entity_id: VarInt::new(entity_id),
             entity_uuid,
             r#type: VarInt::new(entity_type_id),
-            x: position.x,
-            y: position.y,
-            z: position.z,
-            pitch: NetAngle::from_degrees(rotation.pitch as f64),
-            yaw: NetAngle::from_degrees(rotation.yaw as f64),
-            head_yaw: NetAngle::from_degrees(rotation.yaw as f64),
+            x,
+            y,
+            z,
+            pitch: NetAngle::from_degrees(pitch as f64),
+            yaw: NetAngle::from_degrees(yaw as f64),
+            head_yaw: NetAngle::from_degrees(yaw as f64),
             data: VarInt::new(0),
             velocity_x: 0,
             velocity_y: 0,
@@ -67,16 +70,19 @@ impl SpawnEntityPacket {
             .unwrap_or_else(|_| panic!("Failed to get player identity, position, and rotation for entity ID: {entity_id:?}"
             ));
 
+        let (x, y, z) = position.xyz();
+        let (yaw, pitch) = rotation.yaw_pitch();
+
         Ok(Self {
             entity_id: VarInt::new(player_identity.short_uuid),
             entity_uuid: player_identity.uuid.as_u128(),
             r#type: VarInt::new(PLAYER_ID as i32),
-            x: position.x,
-            y: position.y,
-            z: position.z,
-            pitch: NetAngle::from_degrees(rotation.pitch as f64),
-            yaw: NetAngle::from_degrees(rotation.yaw as f64),
-            head_yaw: NetAngle::from_degrees(rotation.yaw as f64),
+            x,
+            y,
+            z,
+            pitch: NetAngle::from_degrees(pitch as f64),
+            yaw: NetAngle::from_degrees(yaw as f64),
+            head_yaw: NetAngle::from_degrees(yaw as f64),
             data: VarInt::new(0),
             velocity_x: 0,
             velocity_y: 0,
@@ -100,16 +106,19 @@ impl SpawnEntityPacket {
             panic!("Failed to get entity identity, position, and rotation for entity: {entity:?}")
         });
 
+        let (x, y, z) = position.xyz();
+        let (yaw, pitch) = rotation.yaw_pitch();
+
         Ok(Self {
             entity_id: VarInt::new(identity.entity_id),
             entity_uuid: identity.uuid.as_u128(),
             r#type: VarInt::new(entity_type_id as i32),
-            x: position.x,
-            y: position.y,
-            z: position.z,
-            pitch: NetAngle::from_degrees(rotation.pitch as f64),
-            yaw: NetAngle::from_degrees(rotation.yaw as f64),
-            head_yaw: NetAngle::from_degrees(rotation.yaw as f64),
+            x,
+            y,
+            z,
+            pitch: NetAngle::from_degrees(pitch as f64),
+            yaw: NetAngle::from_degrees(yaw as f64),
+            head_yaw: NetAngle::from_degrees(yaw as f64),
             data: VarInt::new(0),
             velocity_x: 0,
             velocity_y: 0,

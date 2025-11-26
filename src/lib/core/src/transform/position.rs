@@ -54,6 +54,22 @@ impl Position {
             self.z + (yaw_radians.cos() as f64 * distance),
         )
     }
+
+    /// Returns the x, y, z coordinates as a tuple for easy spreading.
+    ///
+    /// This is useful for struct initialization where you need to spread
+    /// position coordinates across multiple fields.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// let pos = Position::new(10.0, 64.0, 20.0);
+    /// let (x, y, z) = pos.xyz();
+    /// // Now you can use x, y, z individually
+    /// ```
+    pub fn xyz(&self) -> (f64, f64, f64) {
+        (self.x, self.y, self.z)
+    }
 }
 
 impl Deref for Position {
