@@ -5,7 +5,7 @@ incoming_template = """
 use crate::packets::IncomingPacket;
 
 use ferrumc_macros::{packet, NetDecode};
-use ferrumc_state::ServerState;
+use ferrumc_components::state::server_state::GlobalStateResource;
 use std::sync::Arc;
 
 #[derive(NetDecode)]
@@ -15,7 +15,7 @@ pub struct ++name++ {
 """
 
 handler = """
-use ferrumc_state::GlobalStateResource;
+use ferrumc_components::state::server_state::GlobalStateResource;
 use bevy_ecs::prelude::Res;
 use ferrumc_net::++name++Receiver;
 

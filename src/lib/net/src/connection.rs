@@ -9,12 +9,16 @@ use crate::ConnState::Play;
 use crate::{handle_packet, PacketSender};
 use bevy_ecs::prelude::{Component, Entity};
 use crossbeam_channel::Sender;
-use ferrumc_core::identity::player_identity::PlayerIdentity;
+use ferrumc_components::player::identity::PlayerIdentity;
+use ferrumc_components::state::server_state::ServerState;
 use ferrumc_net_codec::encode::NetEncode;
 use ferrumc_net_codec::encode::NetEncodeOpts;
+<<<<<<< HEAD
 use ferrumc_net_encryption::read::EncryptedReader;
 use ferrumc_net_encryption::write::EncryptedWriter;
 use ferrumc_state::ServerState;
+=======
+>>>>>>> origin/master
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
@@ -152,6 +156,7 @@ impl StreamWriter {
             packet,
             self.compress.load(Ordering::Relaxed),
             net_encode_opts,
+            512,
         )
         .map_err(|err| {
             error!("Failed to compress packet: {:?}", err);

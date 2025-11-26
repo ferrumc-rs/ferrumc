@@ -1,26 +1,29 @@
 use bevy_ecs::prelude::{Commands, MessageWriter, Res, Resource};
 use crossbeam_channel::Receiver;
-use ferrumc_components::{
-    active_effects::ActiveEffects,
-    health::Health,
-    player::{
-        abilities::PlayerAbilities,
-        experience::Experience,
-        gamemode::{GameMode, GameModeComponent},
-        gameplay_state::ender_chest::EnderChest,
-        hunger::Hunger,
-        player_bundle::PlayerBundle,
-    },
+use ferrumc_components::chunks::chunk_receiver::ChunkReceiver;
+use ferrumc_components::conn::keepalive::KeepAliveTracker;
+use ferrumc_components::inventory::{hotbar::Hotbar, storage::Inventory};
+use ferrumc_components::player::gamemode::GameModeComponent;
+use ferrumc_components::player::transform::{
+    grounded::OnGround, position::Position, rotation::Rotation,
 };
-use ferrumc_core::{
-    chunks::chunk_receiver::ChunkReceiver,
-    conn::keepalive::KeepAliveTracker,
-    transform::{grounded::OnGround, position::Position, rotation::Rotation},
+use ferrumc_components::state::server_state::GlobalStateResource;
+
+use ferrumc_components::player::health::Health;
+use ferrumc_components::player::{
+    abilities::PlayerAbilities, experience::Experience,
+    gameplay_mechanics::active_effects::ActiveEffects, gameplay_mechanics::ender_chest::EnderChest,
+    hunger::Hunger, player_bundle::PlayerBundle,
 };
+<<<<<<< HEAD
 use ferrumc_inventories::{hotbar::Hotbar, inventory::Inventory};
 use ferrumc_messages::player_join::PlayerJoined;
+=======
+use ferrumc_core::player::gamemode::GameMode;
+
+use ferrumc_messages::player::lifecycle::PlayerJoinEvent;
+>>>>>>> origin/master
 use ferrumc_net::connection::{DisconnectHandle, NewConnection};
-use ferrumc_state::GlobalStateResource;
 use std::time::Instant;
 use tracing::{error, trace};
 
@@ -39,7 +42,7 @@ pub fn accept_new_connections(
     while let Ok(new_connection) = new_connections.0.try_recv() {
         let return_sender = new_connection.entity_return;
 
-        // --- 1. Load all data from cache ---
+        // --- 1. Load data ---
         let (
             abilities,
             gamemode,
@@ -56,7 +59,7 @@ pub fn accept_new_connections(
             .player_cache
             .get_and_remove(&new_connection.player_identity.uuid)
             .map(|data| {
-                // A. Found in cache, use cached data
+                // A. Found in cache (Returns Core Enum)
                 (
                     data.abilities,
                     data.gamemode,
@@ -71,10 +74,10 @@ pub fn accept_new_connections(
                 )
             })
             .unwrap_or_else(|| {
-                // B. Not in cache, use defaults
+                // B. Defaults
                 (
                     PlayerAbilities::default(),
-                    GameMode::default(),
+                    GameModeComponent(GameMode::default()),
                     Position::default(),
                     Rotation::default(),
                     Inventory::default(),
@@ -86,11 +89,11 @@ pub fn accept_new_connections(
                 )
             });
 
-        // --- 2. Build the PlayerBundle ---
+        // --- 2. Build Bundle ---
         let player_bundle = PlayerBundle {
             identity: new_connection.player_identity.clone(),
             abilities,
-            gamemode: GameModeComponent(gamemode),
+            gamemode,
             position,
             rotation,
             on_ground: OnGround::default(),
@@ -104,7 +107,7 @@ pub fn accept_new_connections(
             active_effects,
         };
 
-        // --- 3. Spawn the PlayerBundle, then .insert() the network components ---
+        // --- 3. Spawn & Insert Network Components ---
         let mut entity_commands = cmd.spawn(player_bundle);
 
         entity_commands.insert((
@@ -121,16 +124,10 @@ pub fn accept_new_connections(
 
         let entity_id = entity_commands.id();
 
-        state.0.players.player_list.insert(
-            entity_id,
-            (
-                new_connection.player_identity.uuid.as_u128(),
-                new_connection.player_identity.username.clone(),
-            ),
-        );
-
         trace!("Spawned entity for new connection: {:?}", entity_id);
-        // Add the new entity to the global state
+
+        // --- 4. Update Global State ---
+        // (You had this twice in your snippet, I removed the duplicate)
         state.0.players.player_list.insert(
             entity_id,
             (
@@ -140,7 +137,11 @@ pub fn accept_new_connections(
         );
 
         // Fire PlayerJoinEvent
+<<<<<<< HEAD
         join_events.write(PlayerJoined(new_connection.player_identity.clone()));
+=======
+        join_events.write(PlayerJoinEvent(new_connection.player_identity.0.clone()));
+>>>>>>> origin/master
 
         if let Err(err) = return_sender.send(entity_id) {
             error!(

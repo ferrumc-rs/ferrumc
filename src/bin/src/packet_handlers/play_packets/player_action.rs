@@ -1,17 +1,27 @@
 use std::sync::Arc;
 
+<<<<<<< HEAD
 use crate::errors::BinaryError;
 use bevy_ecs::prelude::{Entity, MessageWriter, Query, Res};
 use ferrumc_components::player::abilities::PlayerAbilities;
 use ferrumc_messages::player_digging::*;
+=======
+use bevy_ecs::prelude::{Entity, EventWriter, Query, Res};
+>>>>>>> origin/master
 
+use crate::errors::BinaryError;
+use ferrumc_components::player::abilities::PlayerAbilities;
+use ferrumc_components::state::server_state::GlobalStateResource;
+use ferrumc_messages::{
+    PlayerCancelDiggingEvent, PlayerFinishDiggingEvent, PlayerStartDiggingEvent,
+};
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::block_change_ack::BlockChangeAck;
 use ferrumc_net::packets::outgoing::block_update::BlockUpdate;
 use ferrumc_net::PlayerActionReceiver;
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use ferrumc_state::GlobalStateResource;
 use ferrumc_world::block_state_id::BlockStateId;
+
 use tracing::{error, trace, warn};
 
 pub fn handle(
@@ -34,7 +44,7 @@ pub fn handle(
             continue;
         };
 
-        if abilities.creative_mode {
+        if abilities.instant_build {
             // --- CREATIVE MODE LOGIC ---
             // Only instabreak (status 0) is relevant in creative.
             if event.status.0 == 0 {

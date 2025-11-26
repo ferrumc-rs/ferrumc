@@ -5,9 +5,28 @@ edition = "2021"
 description = "FerrumC components"
 
 [dependencies]
+# Bevy crates
 bevy_ecs = { workspace = true }
+bevy_math = { workspace = true }
 
-ferrumc-inventories = { workspace = true }
+# Core crates
 ferrumc-core = { workspace = true }
 ferrumc-net-codec = { workspace = true }
+<<<<<<< HEAD
 ferrumc-config = { workspace = true }
+=======
+
+# Other FerrumC crates
+ferrumc-world = { workspace = true }
+ferrumc-world-gen = { workspace = true }
+ferrumc-threadpool = { workspace = true }
+ferrumc-text = { workspace = true }
+
+# External crates
+dashmap = { workspace = true }
+crossbeam-queue = { workspace = true }
+uuid = { workspace = true }
+typename = { workspace = true }
+once_cell = { workspace = true }
+thiserror = { workspace = true }
+>>>>>>> origin/master

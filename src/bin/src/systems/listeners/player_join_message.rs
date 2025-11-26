@@ -1,9 +1,18 @@
+<<<<<<< HEAD:src/bin/src/systems/listeners/player_join_message.rs
 use bevy_ecs::prelude::{Entity, MessageReader, Query};
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::mq;
 use ferrumc_text::{Color, NamedColor, TextComponent};
 
 use ferrumc_messages::player_join::PlayerJoined;
+=======
+use bevy_ecs::prelude::{Entity, EventReader, Query};
+use ferrumc_components::chat::message_queue as mq;
+use ferrumc_components::player::identity::PlayerIdentity;
+use ferrumc_text::{Color, NamedColor, TextComponent};
+
+use ferrumc_messages::PlayerJoinEvent;
+>>>>>>> origin/master:src/bin/src/systems/listneners/player_join_message.rs
 
 use tracing::trace;
 

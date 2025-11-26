@@ -1,18 +1,16 @@
 use super::gamemode::GameMode;
 use bevy_ecs::prelude::Component;
+<<<<<<< HEAD
 use ferrumc_config::server_config::get_global_config;
+=======
+use ferrumc_core::player::abilities::PlayerAbilitiesData;
+use std::ops::{Deref, DerefMut};
+>>>>>>> origin/master
 
-#[derive(Component, Debug, Clone, Copy)]
-pub struct PlayerAbilities {
-    pub invulnerable: bool,
-    pub flying: bool,
-    pub may_fly: bool,
-    pub creative_mode: bool,
-    pub may_build: bool,
-    pub flying_speed: f32,
-    pub walking_speed: f32,
-}
+#[derive(Component, Debug, Clone, Copy, Default)]
+pub struct PlayerAbilities(pub PlayerAbilitiesData);
 
+<<<<<<< HEAD
 impl Default for PlayerAbilities {
     fn default() -> Self {
         let default_gamemode = match get_global_config().default_gamemode.to_lowercase().as_str() {
@@ -65,5 +63,17 @@ impl PlayerAbilities {
                 walking_speed: 0.1,
             },
         }
+=======
+impl Deref for PlayerAbilities {
+    type Target = PlayerAbilitiesData;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for PlayerAbilities {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+>>>>>>> origin/master
     }
 }

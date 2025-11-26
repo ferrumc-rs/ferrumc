@@ -15,34 +15,41 @@ default-members = ["src/bin"]
 #================= Members =================#
 members = [
     "src/bin",
+
+    # Core Layers
+    "src/lib/core",       # Pure Data
+    "src/lib/components", # Bevy Glue
+    "src/lib/messages",   # Events/Messages
+    "src/lib/registry",   # Compile-time Data
+
+    # Logic & Systems
+    "src/lib/net",
+    "src/lib/commands",
+    "src/lib/commands/default_commands",
+    "src/lib/world",
+    "src/lib/world_gen",
+
+    # Utilities & Adapters
     "src/lib/adapters/anvil",
     "src/lib/adapters/nbt",
-    "src/lib/commands",
-    "src/lib/default_commands",
-    "src/lib/core",
-    "src/lib/core/state",
     "src/lib/derive_macros",
-    "src/lib/net",
-    "src/lib/net/crates/codec",
-    "src/lib/net/crates/encryption",
-    "src/lib/plugins",
-    "src/lib/storage",
-    "src/lib/text",
     "src/lib/utils",
     "src/lib/utils/general_purpose",
     "src/lib/utils/logging",
     "src/lib/utils/profiling",
-    "src/lib/world",
-    "src/lib/world_gen",
     "src/lib/utils/threadpool",
-    "src/lib/inventories",
-    "src/lib/registry",
+
+    # Internal Crates (Net internals)
+    "src/lib/net/crates/codec",
+    "src/lib/net/crates/encryption",
+
+    # Other Systems
+    "src/lib/storage",
+    "src/lib/text",
+    "src/lib/config",
+    "src/lib/plugins",
     "src/lib/scheduler",
-    "src/lib/components",
-    "tools/data-gen",
-    "src/lib/messages",
-    "src/lib/entities",
-    "src/lib/protocol",
+    "src/lib/data",
 ]
 
 [workspace.package]
@@ -97,34 +104,38 @@ debug = true
 #=============== Dependencies ==============#
 [workspace.dependencies]
 # Workspace members
-ferrumc-anvil = { path = "src/lib/adapters/anvil" }
-ferrumc-config = { path = "src/lib/config" }
+# --- 1. The Core Data Layers ---
 ferrumc-core = { path = "src/lib/core" }
-ferrumc-default-commands = { path = "src/lib/default_commands" }
-ferrumc-commands = { path = "src/lib/commands" }
-ferrumc-general-purpose = { path = "src/lib/utils/general_purpose" }
-ferrumc-logging = { path = "src/lib/utils/logging" }
-ferrumc-macros = { path = "src/lib/derive_macros" }
-ferrumc-nbt = { path = "src/lib/adapters/nbt" }
-ferrumc-net = { path = "src/lib/net" }
-ferrumc-net-codec = { path = "src/lib/net/crates/codec" }
-ferrumc-net-encryption = { path = "src/lib/net/crates/encryption" }
-ferrumc-plugins = { path = "src/lib/plugins" }
-ferrumc-profiling = { path = "src/lib/utils/profiling" }
-ferrumc-registry = { path = "src/lib/registry" }
-ferrumc-scheduler = { path = "src/lib/scheduler" }
-ferrumc-state = { path = "src/lib/core/state" }
-ferrumc-storage = { path = "src/lib/storage" }
-ferrumc-text = { path = "src/lib/text" }
-ferrumc-threadpool = { path = "src/lib/utils/threadpool" }
-ferrumc-utils = { path = "src/lib/utils" }
-ferrumc-world = { path = "src/lib/world" }
-ferrumc-world-gen = { path = "src/lib/world_gen" }
-ferrumc-inventories = { path = "src/lib/inventories" }
 ferrumc-components = { path = "src/lib/components" }
 ferrumc-messages = { path = "src/lib/messages" }
-ferrumc-entities = { path = "src/lib/entities" }
-ferrumc-protocol = { path = "src/lib/protocol" }
+ferrumc-registry = { path = "src/lib/registry" }
+
+# --- 2. Logic & Systems ---
+ferrumc-net = { path = "src/lib/net" }
+ferrumc-commands = { path = "src/lib/commands" }
+ferrumc-default-commands = { path = "src/lib/commands/default_commands" }
+ferrumc-world = { path = "src/lib/world" }
+ferrumc-world-gen = { path = "src/lib/world_gen" }
+
+# --- 3. Utilities ---
+ferrumc-macros = { path = "src/lib/derive_macros" }
+ferrumc-utils = { path = "src/lib/utils" }
+ferrumc-general-purpose = { path = "src/lib/utils/general_purpose" }
+ferrumc-logging = { path = "src/lib/utils/logging" }
+ferrumc-profiling = { path = "src/lib/utils/profiling" }
+ferrumc-threadpool = { path = "src/lib/utils/threadpool" }
+ferrumc-text = { path = "src/lib/text" }
+ferrumc-config = { path = "src/lib/config" }
+
+# --- 4. Adapters & Internals ---
+ferrumc-anvil = { path = "src/lib/adapters/anvil" }
+ferrumc-nbt = { path = "src/lib/adapters/nbt" }
+ferrumc-net-codec = { path = "src/lib/net/crates/codec" }
+ferrumc-net-encryption = { path = "src/lib/net/crates/encryption" }
+ferrumc-storage = { path = "src/lib/storage" }
+ferrumc-plugins = { path = "src/lib/plugins" }
+ferrumc-scheduler = { path = "src/lib/scheduler" }
+ferrumc-data = { path = "src/lib/data" }
 
 # Asynchronous
 tokio = { version = "1.48.0", features = [
@@ -211,7 +222,7 @@ yazi = "0.2.1"
 
 # Database
 heed = "0.22.0"
-moka = "0.12.11"
+moka = { version = "0.12.11", features = ["sync", "future"] }
 
 # CLI
 clap = "4.5.49"
@@ -242,5 +253,5 @@ criterion = { version = "0.7.0", features = ["html_reports"] }
 bitcode = { git = "https://github.com/SoftbearStudios/bitcode" }
 bitcode_derive = { git = "https://github.com/SoftbearStudios/bitcode" }
 
-phf = { version = "0.11", features = ["macros"] }
 phf_codegen = { version = "0.11" }
+phf = { version = "0.11", features = ["macros"] }

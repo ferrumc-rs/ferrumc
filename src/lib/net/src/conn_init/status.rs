@@ -6,12 +6,16 @@ use crate::packets::incoming::ping::PingPacket;
 use crate::packets::incoming::status_request::StatusRequestPacket;
 use crate::packets::outgoing::ping_response::PongPacket;
 use crate::packets::outgoing::status_response::StatusResponse;
+use ferrumc_components::state::server_state::GlobalState;
 use ferrumc_config::favicon::get_favicon_base64;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_macros::lookup_packet;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
+<<<<<<< HEAD
 use ferrumc_net_encryption::read::EncryptedReader;
 use ferrumc_state::GlobalState;
+=======
+>>>>>>> origin/master
 use rand::prelude::IndexedRandom;
 use tokio::net::tcp::OwnedReadHalf;
 

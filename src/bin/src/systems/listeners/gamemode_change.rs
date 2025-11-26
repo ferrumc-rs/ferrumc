@@ -1,8 +1,14 @@
 use bevy_ecs::prelude::*;
 use ferrumc_components::player::abilities::PlayerAbilities;
 use ferrumc_components::player::gamemode::GameModeComponent;
+<<<<<<< HEAD:src/bin/src/systems/listeners/gamemode_change.rs
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_messages::PlayerGameModeChanged;
+=======
+use ferrumc_components::player::identity::PlayerIdentity;
+use ferrumc_core::player::gamemode::GameMode;
+use ferrumc_messages::ChangeGameModeEvent;
+>>>>>>> origin/master:src/bin/src/systems/listneners/gamemode_change.rs
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::game_event::GameEventPacket;
 use ferrumc_net::packets::outgoing::player_abilities::PlayerAbilities as OutgoingAbilities;
@@ -59,12 +65,12 @@ pub fn handle(
 
         // 4. Send confirmation chat message
         let mode_name = match new_mode {
-            ferrumc_components::player::gamemode::GameMode::Survival => "Survival",
-            ferrumc_components::player::gamemode::GameMode::Creative => "Creative",
-            ferrumc_components::player::gamemode::GameMode::Adventure => "Adventure",
-            ferrumc_components::player::gamemode::GameMode::Spectator => "Spectator",
+            // Note: If you import `GameMode::*`, you can omit `GameMode::` entirely.
+            GameMode::Survival => "Survival",
+            GameMode::Creative => "Creative",
+            GameMode::Adventure => "Adventure",
+            GameMode::Spectator => "Spectator",
         };
-
         let msg = TextComponentBuilder::new("Set gamemode to ")
             .extra(TextComponent::from(mode_name).color(Color::Named(NamedColor::Aqua)))
             .build();

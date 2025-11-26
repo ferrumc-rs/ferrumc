@@ -1,4 +1,4 @@
-use ferrumc_inventories::slot::InventorySlot;
+use ferrumc_core::items::inventory_slot::InventorySlot;
 use ferrumc_macros::{packet, NetDecode};
 
 #[derive(NetDecode)]

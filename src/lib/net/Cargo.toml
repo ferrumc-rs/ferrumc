@@ -5,19 +5,19 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-thiserror = { workspace = true }
+bevy_ecs = { workspace = true }
+
 ferrumc-net-encryption = { workspace = true }
 ferrumc-net-codec = { workspace = true }
 ferrumc-macros = { workspace = true }
 ferrumc-config = { workspace = true }
 ferrumc-commands = { workspace = true }
 ferrumc-components = { workspace = true }
-bevy_ecs = { workspace = true }
-
 ferrumc-nbt = { workspace = true }
 ferrumc-core = { workspace = true }
 ferrumc-text = { workspace = true }
 ferrumc-world = { workspace = true }
+
 tracing = { workspace = true }
 tokio = { workspace = true }
 dashmap = { workspace = true }
@@ -28,7 +28,6 @@ serde_derive = { workspace = true }
 rand = { workspace = true }
 uuid = { workspace = true, features = ["v4"] }
 byteorder = { workspace = true }
-ferrumc-state = { workspace = true }
 crossbeam-channel = { workspace = true }
 craftflow-nbt = { workspace = true }
 typename = { workspace = true }
@@ -36,10 +35,14 @@ bitcode = { workspace = true }
 indexmap = { workspace = true }
 lazy_static = { workspace = true }
 yazi = { workspace = true }
+<<<<<<< HEAD
 ferrumc-inventories = { workspace = true }
 base64 = { workspace = true }
 reqwest = { workspace = true }
 
+=======
+thiserror = { workspace = true }
+>>>>>>> origin/master
 
 [dev-dependencies]
 criterion = { workspace = true }

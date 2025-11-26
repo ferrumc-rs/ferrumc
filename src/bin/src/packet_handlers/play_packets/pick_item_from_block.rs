@@ -1,15 +1,13 @@
 use bevy_ecs::prelude::{Entity, Query, Res};
+use ferrumc_components::inventory::{hotbar::Hotbar, storage::Inventory};
 use ferrumc_components::player::abilities::PlayerAbilities;
-use ferrumc_core::identity::player_identity::PlayerIdentity;
-use ferrumc_inventories::item::ItemID;
-use ferrumc_inventories::slot::InventorySlot;
-use ferrumc_inventories::{hotbar::Hotbar, inventory::Inventory};
+use ferrumc_components::player::identity::PlayerIdentity;
+use ferrumc_components::state::server_state::GlobalStateResource;
+use ferrumc_core::items::inventory_slot::InventorySlot;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::set_held_slot::SetHeldItem;
-use ferrumc_net_codec::net_types::var_int::VarInt;
-use ferrumc_state::GlobalStateResource;
-
 use ferrumc_net::PickItemFromBlockReceiver;
+
 use tracing::{debug, error, warn};
 
 pub fn handle(
@@ -60,14 +58,18 @@ pub fn handle(
         };
 
         // 3. Convert `BlockStateId` to `ItemId`
+<<<<<<< HEAD
         let item_id = match ItemID::get_item_from_block_state(block_state_id) {
+=======
+        let item_id = match ferrumc_registry::get_item_from_block_state(block_state_id) {
+>>>>>>> origin/master
             Some(id) => id,
             None => {
                 debug!(
                     "PickItemFromBlock: No item for block state {:?}",
                     block_state_id
                 );
-                continue; // No item for this block (e.g., air)
+                continue;
             }
         };
 
@@ -119,13 +121,13 @@ pub fn handle(
             }
         }
         // 6. If not found AND in creative mode
-        else if abilities.creative_mode {
+        else if abilities.instant_build {
             // TODO: Possible bug with using creative_mode ability instead of creative Gamemode
             debug!("Item not found. Creating stack for creative player.");
 
             let new_slot = InventorySlot {
                 item_id: Some(item_id),
-                count: VarInt::new(1),
+                count: 1,
                 ..Default::default()
             };
 

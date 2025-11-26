@@ -1,6 +1,12 @@
+<<<<<<< HEAD:src/lib/net/src/packets/packet_messages.rs
 use bevy_ecs::prelude::{Entity, Message};
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
+=======
+use bevy_ecs::prelude::{Entity, Event};
+use ferrumc_components::player::transform::position::Position;
+use ferrumc_components::player::transform::rotation::Rotation;
+>>>>>>> origin/master:src/lib/net/src/packets/packet_events.rs
 
 #[derive(Message, Debug)]
 pub struct Movement {

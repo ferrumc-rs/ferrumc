@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 use crate::player::abilities::PlayerAbilities;
 use bevy_ecs::prelude::Component;
 use ferrumc_config::server_config::get_global_config;
@@ -50,5 +51,10 @@ impl GameMode {
 }
 
 /// The component storing a player's current gamemode.
+=======
+use bevy_ecs::prelude::Component;
+use ferrumc_core::player::gamemode::GameMode;
+
+>>>>>>> origin/master
 #[derive(Component, Debug, Clone, Copy, Default)]
 pub struct GameModeComponent(pub GameMode);

@@ -1,9 +1,15 @@
 use crate::systems::send_chunks::send_chunks;
+<<<<<<< HEAD
 use bevy_ecs::prelude::{MessageReader, Query, Res};
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_core::chunks::cross_chunk_boundary_event::ChunkBoundaryCrossed;
+=======
+use bevy_ecs::prelude::{EventReader, Query, Res};
+use ferrumc_components::state::server_state::GlobalStateResource;
+use ferrumc_config::server_config::get_global_config;
+use ferrumc_messages::chunk::CrossChunkBoundaryEvent;
+>>>>>>> origin/master
 use ferrumc_net::connection::StreamWriter;
-use ferrumc_state::GlobalStateResource;
 use std::collections::HashSet;
 
 pub fn cross_chunk_boundary(

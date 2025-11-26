@@ -1,7 +1,7 @@
 use bevy_ecs::prelude::{Entity, Query, Res};
-use ferrumc_core::conn::keepalive::KeepAliveTracker;
+use ferrumc_components::conn::keepalive::KeepAliveTracker;
+use ferrumc_components::state::server_state::GlobalStateResource;
 use ferrumc_net::connection::StreamWriter;
-use ferrumc_state::GlobalStateResource;
 use std::time::Duration;
 use tracing::warn;
 
