@@ -1,16 +1,16 @@
+use base64::Engine;
 use bevy_ecs::prelude::{Component, Entity, Query};
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
-use ferrumc_net_codec::net_types::var_int::VarInt;
 use tracing::debug;
+use ferrumc_net_codec::net_types::prefixed_optional::PrefixedOptional;
 
 #[derive(NetEncode)]
 #[packet(packet_id = "player_info_update", state = "play")]
 pub struct PlayerInfoUpdatePacket {
     pub actions: u8,
-    pub numbers_of_players: VarInt,
-    pub players: Vec<PlayerWithActions>,
+    pub players: LengthPrefixedVec<PlayerWithActions>,
 }
 
 impl PlayerInfoUpdatePacket {
@@ -21,16 +21,13 @@ impl PlayerInfoUpdatePacket {
                 .iter()
                 .map(|player| player.get_actions_mask())
                 .fold(0, |acc, x| acc | x),
-            numbers_of_players: VarInt::new(players.len() as i32),
-            players,
+            players: LengthPrefixedVec::new(players),
         }
     }
 
     /// The packet to be sent to all already connected players when a new player joins the server
-    pub fn new_player_join_packet(identity: PlayerIdentity) -> Self {
-        let player = PlayerWithActions::add_player(identity.short_uuid, identity.username);
-
-        Self::with_players(vec![player])
+    pub fn new_player_join_packet(identity: &PlayerIdentity) -> Self {
+        Self::with_players(vec![PlayerWithActions::add_player(identity)])
     }
 
     /// The packet to be sent to a new player when they join the server,
@@ -50,13 +47,7 @@ impl PlayerInfoUpdatePacket {
 
         let players = players
             .into_iter()
-            .map(|player| {
-                let uuid = player.short_uuid;
-                let name = player.username.clone();
-
-                (uuid, name)
-            })
-            .map(|(uuid, name)| PlayerWithActions::add_player(uuid, name))
+            .map(|identity| PlayerWithActions::add_player(identity))
             .collect::<Vec<_>>();
 
         debug!("Sending PlayerInfoUpdatePacket with {:?} players", players);
@@ -67,7 +58,7 @@ impl PlayerInfoUpdatePacket {
 
 #[derive(NetEncode, Debug, Component)]
 pub struct PlayerWithActions {
-    pub uuid: i32,
+    pub uuid: u128,
     pub actions: Vec<PlayerAction>,
 }
 
@@ -82,12 +73,21 @@ impl PlayerWithActions {
         mask
     }
 
-    pub fn add_player(uuid: i32, name: impl Into<String>) -> Self {
+    pub fn add_player(identity: &PlayerIdentity) -> Self {
         Self {
-            uuid,
+            uuid: identity.uuid.as_u128(),
             actions: vec![PlayerAction::AddPlayer {
-                name: name.into(),
-                properties: LengthPrefixedVec::default(),
+                name: identity.username.clone(),
+                properties: LengthPrefixedVec::new(
+                    identity.properties
+                        .iter()
+                        .map(|property| PlayerProperty {
+                            name: property.name.clone(),
+                            value: base64::engine::general_purpose::STANDARD.encode(&property.value),
+                            signature: PrefixedOptional::new(property.signature.clone())
+                        })
+                        .collect(),
+                ),
             }],
         }
     }
@@ -105,6 +105,5 @@ pub enum PlayerAction {
 pub struct PlayerProperty {
     pub name: String,
     pub value: String,
-    pub is_signed: bool,
-    pub signature: Option<String>,
+    pub signature: PrefixedOptional<String>,
 }
