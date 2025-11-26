@@ -4,8 +4,7 @@ use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_entities::bundles::PigBundle;
 use ferrumc_entities::components::EntityMetadata;
-use ferrumc_entities::{pop_spawn_request, EntityType};
-use ferrumc_messages::SpawnEntityEvent;
+use ferrumc_messages::{EntityType, SpawnEntityCommand, SpawnEntityEvent};
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::spawn_entity::SpawnEntityPacket;
 use tracing::{error, warn};
@@ -72,26 +71,27 @@ fn broadcast_entity_spawn(world: &mut World, entity: Entity) {
     }
 }
 
-/// System that processes spawn commands from the queue
+/// System that processes spawn commands from messages
 pub fn spawn_command_processor(
+    mut spawn_commands: MessageReader<SpawnEntityCommand>,
     query: Query<(&Position, &Rotation)>,
     mut spawn_events: MessageWriter<SpawnEntityEvent>,
 ) {
-    // Process all pending spawn requests from the lock-free queue
-    while let Some(request) = pop_spawn_request() {
+    // Process all spawn command messages
+    for command in spawn_commands.read() {
         // Get player position and rotation
-        if let Ok((pos, rot)) = query.get(request.player_entity) {
+        if let Ok((pos, rot)) = query.get(command.player_entity) {
             // Calculate spawn position 2 blocks in front of the player
             let spawn_pos = pos.offset_forward(rot, 2.0);
 
             spawn_events.write(SpawnEntityEvent {
-                entity_type: request.entity_type,
+                entity_type: command.entity_type,
                 position: spawn_pos,
             });
         } else {
             warn!(
                 "Failed to get position for entity {:?}",
-                request.player_entity
+                command.player_entity
             );
         }
     }

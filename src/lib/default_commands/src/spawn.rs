@@ -1,3 +1,4 @@
+use bevy_ecs::prelude::MessageWriter;
 use ferrumc_commands::{
     arg::{
         primitive::PrimitiveArgument,
@@ -9,8 +10,8 @@ use ferrumc_commands::{
     Sender,
     Suggestion,
 };
-use ferrumc_entities::{request_spawn, EntityType};
 use ferrumc_macros::command;
+use ferrumc_messages::{EntityType, SpawnEntityCommand};
 use ferrumc_text::TextComponent;
 
 /// Wrapper type for EntityType that implements CommandArgument
@@ -55,11 +56,18 @@ impl CommandArgument for EntityTypeArg {
 /// Usage: /spawn <entity_type>
 /// Currently supported: pig
 #[command("spawn")]
-fn spawn_command(#[sender] sender: Sender, #[arg] entity_type: EntityTypeArg) {
+fn spawn_command(
+    #[sender] sender: Sender,
+    #[arg] entity_type: EntityTypeArg,
+    mut spawn_commands: MessageWriter<SpawnEntityCommand>,
+) {
     match sender {
         Sender::Player(entity) => {
-            // Add spawn request to global queue - will be processed by spawn_command_processor system
-            request_spawn(entity_type.0, entity);
+            // Write spawn command message - will be processed by spawn_command_processor system
+            spawn_commands.write(SpawnEntityCommand {
+                entity_type: entity_type.0,
+                player_entity: entity,
+            });
 
             // Get entity name for message
             let entity_name = match entity_type.0 {

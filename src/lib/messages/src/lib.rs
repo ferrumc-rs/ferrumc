@@ -20,4 +20,4 @@ pub mod change_gamemode;
 pub use change_gamemode::*;
 
 pub mod entity_spawn;
-pub use entity_spawn::SpawnEntityEvent;
+pub use entity_spawn::{EntityType, SpawnEntityCommand, SpawnEntityEvent};
