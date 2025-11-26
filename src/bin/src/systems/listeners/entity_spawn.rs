@@ -10,6 +10,68 @@ use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::spawn_entity::SpawnEntityPacket;
 use tracing::{error, warn};
 
+/// Helper function to broadcast entity spawn packets to all connected players.
+///
+/// This function queries the entity's components and sends the spawn packet
+/// to all players. It's generic and works for any entity type.
+///
+/// # Arguments
+///
+/// * `world` - The Bevy world
+/// * `entity` - The entity to broadcast
+fn broadcast_entity_spawn(world: &mut World, entity: Entity) {
+    // Get entity components
+    let metadata = match world.get::<EntityMetadata>(entity) {
+        Some(m) => m,
+        None => {
+            error!("Failed to get entity metadata for {:?}", entity);
+            return;
+        }
+    };
+    let protocol_id = metadata.protocol_id();
+
+    let identity = match world.get::<EntityIdentity>(entity) {
+        Some(i) => i,
+        None => {
+            error!("Failed to get entity identity for {:?}", entity);
+            return;
+        }
+    };
+
+    let position = match world.get::<Position>(entity) {
+        Some(p) => p,
+        None => {
+            error!("Failed to get entity position for {:?}", entity);
+            return;
+        }
+    };
+
+    let rotation = match world.get::<Rotation>(entity) {
+        Some(r) => r,
+        None => {
+            error!("Failed to get entity rotation for {:?}", entity);
+            return;
+        }
+    };
+
+    // Create spawn packet
+    let spawn_packet = SpawnEntityPacket::new(
+        identity.entity_id,
+        identity.uuid.as_u128(),
+        protocol_id as i32,
+        position,
+        rotation,
+    );
+
+    // Broadcast to all connected players
+    let mut writer_query = world.query::<&StreamWriter>();
+    for writer in writer_query.iter(world) {
+        if let Err(e) = writer.send_packet_ref(&spawn_packet) {
+            error!("Failed to send spawn packet: {:?}", e);
+        }
+    }
+}
+
 /// System that processes spawn commands from the queue
 pub fn spawn_command_processor(
     query: Query<(&Position, &Rotation)>,
@@ -42,63 +104,14 @@ pub fn handle_spawn_entity(mut events: MessageReader<SpawnEntityEvent>, mut comm
         match event.entity_type {
             EntityType::Pig => {
                 // Spawn the pig entity and get its ID
-                let pig_entity = commands.spawn(PigBundle::new(event.position.clone())).id();
+                let entity = commands.spawn(PigBundle::new(event.position.clone())).id();
 
                 // Add EntityIdentity using the Bevy entity ID
-                commands.entity(pig_entity).insert(EntityIdentity::from_entity(pig_entity));
+                commands.entity(entity).insert(EntityIdentity::from_entity(entity));
 
-                // Queue a deferred system to send packets after pig is spawned
+                // Queue a deferred system to broadcast spawn packets after entity is fully spawned
                 commands.queue(move |world: &mut World| {
-                    // Get pig's components directly from world
-                    let metadata = match world.get::<EntityMetadata>(pig_entity) {
-                        Some(m) => m,
-                        None => {
-                            error!("Failed to get pig metadata");
-                            return;
-                        }
-                    };
-                    let protocol_id = metadata.protocol_id();
-
-                    let identity = match world.get::<EntityIdentity>(pig_entity) {
-                        Some(i) => i,
-                        None => {
-                            error!("Failed to get pig identity");
-                            return;
-                        }
-                    };
-
-                    let position = match world.get::<Position>(pig_entity) {
-                        Some(p) => p,
-                        None => {
-                            error!("Failed to get pig position");
-                            return;
-                        }
-                    };
-
-                    let rotation = match world.get::<Rotation>(pig_entity) {
-                        Some(r) => r,
-                        None => {
-                            error!("Failed to get pig rotation");
-                            return;
-                        }
-                    };
-
-                    // Create spawn packet using the new method
-                    let spawn_packet = SpawnEntityPacket::new(
-                        identity.entity_id,
-                        identity.uuid.as_u128(),
-                        protocol_id as i32,
-                        position,
-                        rotation,
-                    );
-
-                    // Broadcast to all connected players
-                    let mut writer_query = world.query::<&StreamWriter>();
-                    for writer in writer_query.iter(world) {
-                        if let Err(e) = writer.send_packet_ref(&spawn_packet) {
-                            error!("Failed to send spawn packet: {:?}", e);
-                        }
-                    }
+                    broadcast_entity_spawn(world, entity);
                 });
             }
         }
