@@ -3,8 +3,8 @@ use bevy_ecs::prelude::{Component, Entity, Query};
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
-use tracing::debug;
 use ferrumc_net_codec::net_types::prefixed_optional::PrefixedOptional;
+use tracing::debug;
 
 #[derive(NetEncode)]
 #[packet(packet_id = "player_info_update", state = "play")]
@@ -47,7 +47,7 @@ impl PlayerInfoUpdatePacket {
 
         let players = players
             .into_iter()
-            .map(|identity| PlayerWithActions::add_player(identity))
+            .map(PlayerWithActions::add_player)
             .collect::<Vec<_>>();
 
         debug!("Sending PlayerInfoUpdatePacket with {:?} players", players);
@@ -81,12 +81,14 @@ impl PlayerWithActions {
                 PlayerAction::AddPlayer {
                     name: identity.username.clone(),
                     properties: LengthPrefixedVec::new(
-                        identity.properties
+                        identity
+                            .properties
                             .iter()
                             .map(|property| PlayerProperty {
                                 name: property.name.clone(),
-                                value: base64::engine::general_purpose::STANDARD.encode(&property.value),
-                                signature: PrefixedOptional::new(property.signature.clone())
+                                value: base64::engine::general_purpose::STANDARD
+                                    .encode(&property.value),
+                                signature: PrefixedOptional::new(property.signature.clone()),
                             })
                             .collect(),
                     ),
@@ -105,7 +107,7 @@ pub enum PlayerAction {
     },
     UpdateListed {
         is_listed: bool,
-    }
+    },
 }
 
 #[derive(NetEncode, Debug)]
