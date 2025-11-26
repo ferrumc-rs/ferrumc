@@ -25,6 +25,35 @@ impl Position {
             coords: DVec3::new(x, y, z),
         }
     }
+
+    /// Returns a new position offset forward by the given distance based on rotation.
+    ///
+    /// This calculates a position in front of the current position using the yaw angle.
+    /// Useful for spawning entities in front of a player or calculating look direction.
+    ///
+    /// # Arguments
+    ///
+    /// * `rotation` - The rotation (yaw/pitch) to use for direction
+    /// * `distance` - How many blocks forward to offset
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// use ferrumc_core::transform::{Position, Rotation};
+    ///
+    /// let pos = Position::new(0.0, 64.0, 0.0);
+    /// let rot = Rotation::new(0.0, 0.0); // Looking north
+    /// let forward = pos.offset_forward(&rot, 2.0);
+    /// // forward is 2 blocks in front based on yaw
+    /// ```
+    pub fn offset_forward(&self, rotation: &super::rotation::Rotation, distance: f64) -> Self {
+        let yaw_radians = rotation.yaw.to_radians();
+        Self::new(
+            self.x - (yaw_radians.sin() as f64 * distance),
+            self.y,
+            self.z + (yaw_radians.cos() as f64 * distance),
+        )
+    }
 }
 
 impl Deref for Position {

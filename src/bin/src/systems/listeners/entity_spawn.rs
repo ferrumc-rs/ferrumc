@@ -20,12 +20,7 @@ pub fn spawn_command_processor(
         // Get player position and rotation
         if let Ok((pos, rot)) = query.get(request.player_entity) {
             // Calculate spawn position 2 blocks in front of the player
-            let yaw_radians = rot.yaw.to_radians();
-            let spawn_pos = Position::new(
-                pos.x - (yaw_radians.sin() as f64 * 2.0),
-                pos.y,
-                pos.z + (yaw_radians.cos() as f64 * 2.0),
-            );
+            let spawn_pos = pos.offset_forward(rot, 2.0);
 
             spawn_events.write(SpawnEntityEvent {
                 entity_type: request.entity_type,
