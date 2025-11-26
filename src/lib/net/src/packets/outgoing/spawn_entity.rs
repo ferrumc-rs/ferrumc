@@ -67,8 +67,7 @@ impl SpawnEntityPacket {
     ) -> Result<Self, NetError> {
         let (player_identity, position, rotation) = query
             .get(entity_id)
-            .unwrap_or_else(|_| panic!("Failed to get player identity, position, and rotation for entity ID: {entity_id:?}"
-            ));
+            .map_err(|e| NetError::ECSError(e.into()))?;
 
         let (x, y, z) = position.xyz();
         let (yaw, pitch) = rotation.yaw_pitch();
@@ -102,9 +101,9 @@ impl SpawnEntityPacket {
         entity_type_id: u16,
         query: Query<(&EntityIdentity, &Position, &Rotation)>,
     ) -> Result<Self, NetError> {
-        let (identity, position, rotation) = query.get(entity).unwrap_or_else(|_| {
-            panic!("Failed to get entity identity, position, and rotation for entity: {entity:?}")
-        });
+        let (identity, position, rotation) = query
+            .get(entity)
+            .map_err(|e| NetError::ECSError(e.into()))?;
 
         let (x, y, z) = position.xyz();
         let (yaw, pitch) = rotation.yaw_pitch();
