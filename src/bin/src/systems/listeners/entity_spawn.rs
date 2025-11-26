@@ -41,8 +41,11 @@ pub fn handle_spawn_entity(mut events: MessageReader<SpawnEntityEvent>, mut comm
     for event in events.read() {
         match event.entity_type {
             EntityType::Pig => {
-                // Spawn the pig entity
+                // Spawn the pig entity and get its ID
                 let pig_entity = commands.spawn(PigBundle::new(event.position.clone())).id();
+
+                // Add EntityIdentity using the Bevy entity ID
+                commands.entity(pig_entity).insert(EntityIdentity::from_entity(pig_entity));
 
                 // Queue a deferred system to send packets after pig is spawned
                 commands.queue(move |world: &mut World| {
