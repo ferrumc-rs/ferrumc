@@ -2,7 +2,7 @@ use bevy_ecs::prelude::{Query, Res};
 use ferrumc_components::inventory::update::INVENTORY_UPDATES_QUEUE;
 use ferrumc_components::state::server_state::GlobalStateResource;
 use ferrumc_net::connection::StreamWriter;
-use ferrumc_net_codec::net_types::var_int::VarInt;
+use ferrumc_protocol::codec::net_types::var_int::VarInt;
 use tracing::{debug, error};
 
 pub fn handle_inventory_updates(state: Res<GlobalStateResource>, mut query: Query<&StreamWriter>) {

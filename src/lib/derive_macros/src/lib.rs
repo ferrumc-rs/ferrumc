@@ -10,7 +10,6 @@ mod nbt;
 mod net;
 mod profiling;
 mod registries_packets;
-mod static_loading;
 
 #[proc_macro_attribute]
 pub fn profile(attr: TokenStream, item: TokenStream) -> TokenStream {
@@ -79,13 +78,6 @@ pub fn command(attr: TokenStream, input: TokenStream) -> TokenStream {
 // pub fn arg(attr: TokenStream, input: TokenStream) -> TokenStream {
 //     commands::arg(attr, input)
 // }
-
-/// Get a registry entry from the registries.json file.
-/// returns protocol_id (as u64) of the specified entry.
-#[proc_macro]
-pub fn get_registry_entry(input: TokenStream) -> TokenStream {
-    static_loading::registry::get(input)
-}
 
 #[proc_macro]
 pub fn build_registry_packets(input: TokenStream) -> TokenStream {

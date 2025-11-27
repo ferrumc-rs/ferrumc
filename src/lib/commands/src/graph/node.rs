@@ -4,7 +4,7 @@ use std::fmt;
 
 use enum_ordinalize::Ordinalize;
 use ferrumc_macros::NetEncode;
-use ferrumc_net_codec::net_types::{length_prefixed_vec::LengthPrefixedVec, var_int::VarInt};
+use ferrumc_protocol::codec::net_types::{length_prefixed_vec::LengthPrefixedVec, var_int::VarInt};
 
 use crate::arg::primitive::{PrimitiveArgumentFlags, PrimitiveArgumentType};
 

@@ -6,12 +6,8 @@ edition = "2024"
 
 [dependencies]
 uuid = { workspace = true }
-<<<<<<< HEAD
 crossbeam-queue = { workspace = true }
-serde = { workspace = true }
-=======
 serde = { workspace = true, features = ["derive"] }
->>>>>>> origin/master
 
 bitcode = { workspace = true, optional = true }
 deepsize = { workspace = true, optional = true }

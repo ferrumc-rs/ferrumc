@@ -1,7 +1,7 @@
 use bevy_ecs::prelude::Component;
 use bevy_math::DVec3; // We keep bevy_math here, in the engine layer
 use ferrumc_core::player::transform::position::PositionData;
-use ferrumc_net_codec::net_types::network_position::NetworkPosition;
+use ferrumc_protocol::codec::net_types::network_position::NetworkPosition;
 use std::ops::{Deref, DerefMut};
 
 /// The Bevy Component wrapper.

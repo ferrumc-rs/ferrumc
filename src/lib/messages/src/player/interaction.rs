@@ -1,12 +1,8 @@
-<<<<<<<< HEAD:src/lib/messages/src/player_digging.rs
 use bevy_ecs::prelude::{Entity, Message};
-========
-use bevy_ecs::prelude::{Entity, Event};
 
 use ferrumc_core::items::item_id::ItemID;
->>>>>>>> origin/master:src/lib/messages/src/player/interaction.rs
-use ferrumc_net_codec::net_types::network_position::NetworkPosition;
-use ferrumc_net_codec::net_types::var_int::VarInt;
+use ferrumc_protocol::codec::net_types::network_position::NetworkPosition;
+use ferrumc_protocol::codec::net_types::var_int::VarInt;
 
 /// Fired when the client sends "start digging" (status 0).
 ///
@@ -41,15 +37,13 @@ pub struct PlayerFinishedDigging {
     pub player: Entity,
     pub position: NetworkPosition,
     pub sequence: VarInt,
-<<<<<<<< HEAD:src/lib/messages/src/player_digging.rs
-========
 }
 
 /// Fired when a player successfully eats an item.
 ///
 /// Fired by: `use_item` packet handler.
 /// Listened for by: A `hunger_system` to update the `Hunger` component.
-#[derive(Event)]
+#[derive(Message)]
 #[allow(unused)]
 pub struct PlayerEatEvent {
     pub player: Entity,
@@ -57,5 +51,4 @@ pub struct PlayerEatEvent {
     // we can pre-calculate these from the registry
     pub food_value: u8,
     pub saturation_value: f32,
->>>>>>>> origin/master:src/lib/messages/src/player/interaction.rs
 }

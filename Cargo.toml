@@ -21,6 +21,7 @@ members = [
     "src/lib/components", # Bevy Glue
     "src/lib/messages",   # Events/Messages
     "src/lib/registry",   # Compile-time Data
+    "src/lib/protocol",
 
     # Logic & Systems
     "src/lib/net",
@@ -40,8 +41,10 @@ members = [
     "src/lib/utils/threadpool",
 
     # Internal Crates (Net internals)
-    "src/lib/net/crates/codec",
     "src/lib/net/crates/encryption",
+
+    # Tools
+    "tools/data-gen",
 
     # Other Systems
     "src/lib/storage",
@@ -49,7 +52,8 @@ members = [
     "src/lib/config",
     "src/lib/plugins",
     "src/lib/scheduler",
-    "src/lib/data",
+
+
 ]
 
 [workspace.package]
@@ -109,6 +113,7 @@ ferrumc-core = { path = "src/lib/core" }
 ferrumc-components = { path = "src/lib/components" }
 ferrumc-messages = { path = "src/lib/messages" }
 ferrumc-registry = { path = "src/lib/registry" }
+ferrumc-protocol = { path = "src/lib/protocol" }
 
 # --- 2. Logic & Systems ---
 ferrumc-net = { path = "src/lib/net" }
@@ -130,12 +135,10 @@ ferrumc-config = { path = "src/lib/config" }
 # --- 4. Adapters & Internals ---
 ferrumc-anvil = { path = "src/lib/adapters/anvil" }
 ferrumc-nbt = { path = "src/lib/adapters/nbt" }
-ferrumc-net-codec = { path = "src/lib/net/crates/codec" }
 ferrumc-net-encryption = { path = "src/lib/net/crates/encryption" }
 ferrumc-storage = { path = "src/lib/storage" }
 ferrumc-plugins = { path = "src/lib/plugins" }
 ferrumc-scheduler = { path = "src/lib/scheduler" }
-ferrumc-data = { path = "src/lib/data" }
 
 # Asynchronous
 tokio = { version = "1.48.0", features = [

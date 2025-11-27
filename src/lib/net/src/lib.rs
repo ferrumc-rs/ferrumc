@@ -12,7 +12,6 @@ pub mod compression;
 mod conn_init;
 pub mod connection;
 pub mod errors;
-pub mod packets;
 pub mod server;
 
 setup_packet_handling!("\\src\\packets\\incoming");

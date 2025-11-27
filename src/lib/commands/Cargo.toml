@@ -13,7 +13,7 @@ ferrumc-core = { workspace = true }
 enum-ordinalize = { workspace = true }
 ferrumc-macros = { workspace = true }
 bevy_ecs = { workspace = true }
-ferrumc-net-codec = { workspace = true }
+ferrumc-protocol = { workspace = true }
 regex = { workspace = true }
 ferrumc-components = { workspace = true }
 

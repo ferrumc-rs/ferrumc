@@ -72,7 +72,14 @@ fn main() {
     }
     generators::packets::generate(&reports_dir.join("packets.json"), &packet_ids_output);
 
-    // 6. Create Mod File
+    // 7. Generate Registries
+    println!("Generating General Registry Lookups...");
+
+    let registry_output = output_base.join("registries.rs");
+
+    generators::registries::generate(&reports_dir.join("registries.json"), &registry_output);
+
+    // 8. Create Mod File
     utils::write_mod_file(&output_base);
 
     println!("Done! (Cached files kept in temp_gen)");

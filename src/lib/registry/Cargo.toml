@@ -2,24 +2,13 @@
 name = "ferrumc-registry"
 version = "0.1.0"
 edition = "2024"
-<<<<<<< HEAD
-
-[dependencies]
-ferrumc-core = { workspace = true }
-=======
 description = "FerrumC registry system"
 
 [dependencies]
-simd-json = { workspace = true }
-once_cell = { workspace = true }
-tracing = { workspace = true }
-serde = { workspace = true, features = ["derive"] }
 ferrumc-core = { workspace = true }
-ferrumc-world = { workspace = true }
 
 walkdir = "2"
 tokio = { workspace = true, features = ["rt-multi-thread", "fs"] }
->>>>>>> origin/master
 
 [dev-dependencies]
 criterion = { workspace = true }

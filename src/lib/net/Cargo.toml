@@ -8,7 +8,7 @@ edition = "2021"
 bevy_ecs = { workspace = true }
 
 ferrumc-net-encryption = { workspace = true }
-ferrumc-net-codec = { workspace = true }
+ferrumc-protocol = { workspace = true }
 ferrumc-macros = { workspace = true }
 ferrumc-config = { workspace = true }
 ferrumc-commands = { workspace = true }
@@ -35,14 +35,10 @@ bitcode = { workspace = true }
 indexmap = { workspace = true }
 lazy_static = { workspace = true }
 yazi = { workspace = true }
-<<<<<<< HEAD
-ferrumc-inventories = { workspace = true }
 base64 = { workspace = true }
 reqwest = { workspace = true }
 
-=======
 thiserror = { workspace = true }
->>>>>>> origin/master
 
 [dev-dependencies]
 criterion = { workspace = true }

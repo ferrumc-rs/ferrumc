@@ -1,6 +1,6 @@
 use std::{io::Write, ops::Deref};
 
-use ferrumc_net_codec::encode::{errors::NetEncodeError, NetEncode, NetEncodeOpts};
+use ferrumc_protocol::codec::encode::{errors::NetEncodeError, NetEncode, NetEncodeOpts};
 use tokio::io::AsyncWrite;
 
 use crate::{

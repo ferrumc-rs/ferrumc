@@ -12,31 +12,12 @@ use crate::ConnState::*;
 use ferrumc_components::player::identity::PlayerIdentity;
 use ferrumc_components::state::server_state::GlobalState;
 use ferrumc_config::server_config::get_global_config;
-<<<<<<< HEAD
-use ferrumc_core::identity::player_identity::{PlayerIdentity, PlayerProperty};
-use ferrumc_core::transform::position::Position;
-use ferrumc_core::transform::rotation::Rotation;
-=======
->>>>>>> origin/master
 use ferrumc_macros::lookup_packet;
-use ferrumc_net_codec::decode::NetDecode;
-use ferrumc_net_codec::encode::NetEncodeOpts;
-use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
-<<<<<<< HEAD
-use ferrumc_net_codec::net_types::prefixed_optional::PrefixedOptional;
-use ferrumc_net_encryption::errors::NetEncryptionError;
-use ferrumc_net_encryption::get_encryption_keys;
-use ferrumc_net_encryption::read::EncryptedReader;
-use ferrumc_state::GlobalState;
-
-use rand::RngCore;
-use tokio::net::tcp::OwnedReadHalf;
-use tracing::{debug, error, trace};
-use uuid::Uuid;
-=======
+use ferrumc_protocol::codec::decode::NetDecode;
+use ferrumc_protocol::codec::encode::NetEncodeOpts;
+use ferrumc_protocol::codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use tokio::net::tcp::OwnedReadHalf;
 use tracing::{error, trace};
->>>>>>> origin/master
 
 /// Handles the **login sequence** for a newly connecting client.
 ///
@@ -190,16 +171,7 @@ pub(super) async fn login(
     conn_write.send_packet(login_success)?;
 
     // Build PlayerIdentity for server-side tracking
-<<<<<<< HEAD
-    let player_identity = PlayerIdentity {
-        uuid: Uuid::from_u128(login_start.uuid),
-        username: login_start.username.clone(),
-        short_uuid: login_start.uuid as i32,
-        properties: player_properties,
-    };
-=======
     let player_identity = PlayerIdentity::new(login_start.username.clone(), login_start.uuid);
->>>>>>> origin/master
 
     // =============================================================================================
     // 5 Wait for client Login Acknowledged packet
@@ -311,11 +283,7 @@ pub(super) async fn login(
 
     let login_play = crate::packets::outgoing::login_play::LoginPlayPacket::new(
         player_identity.short_uuid,
-<<<<<<< HEAD
-        game_mode_to_send as u8,
-=======
         gamemode_to_send.0 as u8,
->>>>>>> origin/master
     );
     conn_write.send_packet(login_play)?;
 

@@ -3,4 +3,4 @@ pub mod entities;
 pub mod items;
 pub mod mappings;
 pub mod packets;
-pub mod registry;
+pub mod registries;

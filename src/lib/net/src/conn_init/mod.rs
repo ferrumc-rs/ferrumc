@@ -10,13 +10,8 @@ use crate::packets::incoming::packet_skeleton::PacketSkeleton;
 use ferrumc_components::player::identity::PlayerIdentity;
 use ferrumc_components::state::server_state::GlobalState;
 use ferrumc_macros::lookup_packet;
-use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
-use ferrumc_net_codec::net_types::var_int::VarInt;
-<<<<<<< HEAD
-use ferrumc_net_encryption::read::EncryptedReader;
-use ferrumc_state::GlobalState;
-=======
->>>>>>> origin/master
+use ferrumc_protocol::codec::decode::{NetDecode, NetDecodeOpts};
+use ferrumc_protocol::codec::net_types::var_int::VarInt;
 use ferrumc_text::{ComponentBuilder, NamedColor, TextComponent};
 use std::sync::atomic::Ordering;
 use tokio::net::tcp::OwnedReadHalf;

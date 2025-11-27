@@ -83,10 +83,10 @@ fn test_to_string() {
     assert_eq!(component.to_string(), Text::keybind("key.jump").to_string());
 }
 
-use ferrumc_macros::{packet, NetEncode};
+use ferrumc_macros::NetEncode;
 use ferrumc_nbt::NBTSerializable;
 use ferrumc_nbt::NBTSerializeOptions;
-use ferrumc_net_codec::{
+use ferrumc_protocol::codec::{
     decode::{NetDecode, NetDecodeOpts},
     encode::{NetEncode, NetEncodeOpts},
     net_types::var_int::VarInt,
@@ -95,7 +95,6 @@ use std::fs::File;
 use std::io::{Cursor, Write};
 
 #[derive(NetEncode)]
-#[packet(packet_id = 0x6C, state = "play")]
 struct TestPacket {
     message: TextComponent,
     overlay: bool,

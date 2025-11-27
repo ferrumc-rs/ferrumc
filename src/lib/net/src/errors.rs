@@ -1,7 +1,7 @@
 use crate::ConnState;
 use ferrumc_config::server_config::get_global_config;
-use ferrumc_net_codec::decode::errors::NetDecodeError;
-use ferrumc_net_codec::encode::errors::NetEncodeError;
+use ferrumc_protocol::codec::decode::errors::NetDecodeError;
+use ferrumc_protocol::codec::encode::errors::NetEncodeError;
 use ferrumc_net_encryption::errors::NetEncryptionError;
 use std::error::Error;
 use std::sync::Arc;
@@ -34,7 +34,7 @@ pub enum NetError {
     UTF8Error(#[from] std::string::FromUtf8Error),
 
     #[error("VarInt Error: {0}")]
-    TypesError(ferrumc_net_codec::net_types::NetTypesError),
+    TypesError(ferrumc_protocol::codec::net_types::NetTypesError),
 
     #[error("ECS Error: {0}")]
     ECSError(bevy_ecs::error::BevyError),
@@ -123,9 +123,9 @@ impl From<std::io::Error> for NetError {
         }
     }
 }
-impl From<ferrumc_net_codec::net_types::NetTypesError> for NetError {
-    fn from(err: ferrumc_net_codec::net_types::NetTypesError) -> Self {
-        use ferrumc_net_codec::net_types::NetTypesError;
+impl From<ferrumc_protocol::codec::net_types::NetTypesError> for NetError {
+    fn from(err: ferrumc_protocol::codec::net_types::NetTypesError) -> Self {
+        use ferrumc_protocol::codec::net_types::NetTypesError;
         use std::io::ErrorKind;
 
         if let NetTypesError::Io(io_err) = &err {

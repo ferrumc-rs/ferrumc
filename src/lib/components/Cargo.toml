@@ -11,10 +11,8 @@ bevy_math = { workspace = true }
 
 # Core crates
 ferrumc-core = { workspace = true }
-ferrumc-net-codec = { workspace = true }
-<<<<<<< HEAD
+ferrumc-protocol = { workspace = true }
 ferrumc-config = { workspace = true }
-=======
 
 # Other FerrumC crates
 ferrumc-world = { workspace = true }
@@ -29,4 +27,3 @@ uuid = { workspace = true }
 typename = { workspace = true }
 once_cell = { workspace = true }
 thiserror = { workspace = true }
->>>>>>> origin/master

@@ -1,7 +1,7 @@
 use std::io::Write;
 
 use enum_ordinalize::Ordinalize;
-use ferrumc_net_codec::{
+use ferrumc_protocol::codec::{
     encode::{errors::NetEncodeError, NetEncode, NetEncodeOpts},
     net_types::var_int::VarInt,
 };

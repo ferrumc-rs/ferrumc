@@ -8,7 +8,7 @@ use ferrumc_components::player::gameplay_state::digging::PlayerDigging;
 use ferrumc_messages::player_digging::*;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::{block_change_ack::BlockChangeAck, block_update::BlockUpdate};
-use ferrumc_net_codec::net_types::var_int::VarInt;
+use ferrumc_protocol::codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalStateResource;
 use ferrumc_world::block_state_id::BlockStateId;
 use tracing::{debug, error, trace, warn};
@@ -275,7 +275,7 @@ pub fn handle_finish_digging(
 fn break_block(
     state: &Res<GlobalStateResource>,
     broadcast_query: &Query<(Entity, &StreamWriter)>,
-    position: &ferrumc_net_codec::net_types::network_position::NetworkPosition,
+    position: &ferrumc_protocol::codec::net_types::network_position::NetworkPosition,
 ) -> Result<(), BinaryError> {
     let mut chunk =
         match state

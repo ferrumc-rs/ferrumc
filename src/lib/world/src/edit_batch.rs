@@ -4,7 +4,7 @@ use crate::WorldError;
 use ahash::{AHashMap, AHashSet, AHasher};
 use ferrumc_general_purpose::data_packing::i32::read_nbit_i32;
 use ferrumc_general_purpose::data_packing::u32::write_nbit_u32;
-use ferrumc_net_codec::net_types::var_int::VarInt;
+use ferrumc_protocol::codec::net_types::var_int::VarInt;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 

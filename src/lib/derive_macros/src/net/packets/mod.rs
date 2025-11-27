@@ -187,7 +187,7 @@ pub fn setup_packet_handling(input: TokenStream) -> TokenStream {
                         match_arms.push(quote! {
                             (#packet_id_expr) => {
                                 // Decode
-                                let packet = <#struct_path as ferrumc_net_codec::decode::NetDecode>::decode(cursor, &ferrumc_net_codec::decode::NetDecodeOpts::None)?;
+                                let packet = <#struct_path as ferrumc_protocol::codec::decode::NetDecode>::decode(cursor, &ferrumc_protocol::codec::decode::NetDecodeOpts::None)?;
                                 // Send
                                 packet_sender.#field_name.send((packet, entity)).expect("Failed to send packet");
                                 Ok(())

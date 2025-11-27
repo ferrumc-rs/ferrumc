@@ -3,9 +3,43 @@
 
 use ferrumc_core::entities::entity_data::*;
 
+pub const ACACIA_BOAT: EntityData = EntityData {
+    name: "minecraft:acacia_boat",
+    protocol_id: 0,
+    width: 1.3750,
+    height: 0.5625,
+    eye_height: 0.4781,
+    summonable: true,
+    fire_immune: false,
+    can_spawn_far_from_player: true,
+    category: EntityCategory::Misc,
+    limit_per_chunk: 0,
+    spawn_restriction_location: SpawnLocation::Unrestricted,
+    spawn_restriction_heightmap: HeightMap::None,
+    max_health: None,
+    attackable: true,
+};
+
+pub const ACACIA_CHEST_BOAT: EntityData = EntityData {
+    name: "minecraft:acacia_chest_boat",
+    protocol_id: 1,
+    width: 1.3750,
+    height: 0.5625,
+    eye_height: 0.4781,
+    summonable: true,
+    fire_immune: false,
+    can_spawn_far_from_player: true,
+    category: EntityCategory::Misc,
+    limit_per_chunk: 0,
+    spawn_restriction_location: SpawnLocation::Unrestricted,
+    spawn_restriction_heightmap: HeightMap::None,
+    max_health: None,
+    attackable: true,
+};
+
 pub const ALLAY: EntityData = EntityData {
     name: "minecraft:allay",
-    protocol_id: 0,
+    protocol_id: 2,
     width: 0.3500,
     height: 0.6000,
     eye_height: 0.5100,
@@ -22,7 +56,7 @@ pub const ALLAY: EntityData = EntityData {
 
 pub const AREA_EFFECT_CLOUD: EntityData = EntityData {
     name: "minecraft:area_effect_cloud",
-    protocol_id: 1,
+    protocol_id: 3,
     width: 6.0000,
     height: 0.5000,
     eye_height: 0.4250,
@@ -39,7 +73,7 @@ pub const AREA_EFFECT_CLOUD: EntityData = EntityData {
 
 pub const ARMADILLO: EntityData = EntityData {
     name: "minecraft:armadillo",
-    protocol_id: 2,
+    protocol_id: 4,
     width: 0.7000,
     height: 0.6500,
     eye_height: 0.5525,
@@ -56,7 +90,7 @@ pub const ARMADILLO: EntityData = EntityData {
 
 pub const ARMOR_STAND: EntityData = EntityData {
     name: "minecraft:armor_stand",
-    protocol_id: 3,
+    protocol_id: 5,
     width: 0.5000,
     height: 1.9750,
     eye_height: 1.6788,
@@ -73,7 +107,7 @@ pub const ARMOR_STAND: EntityData = EntityData {
 
 pub const ARROW: EntityData = EntityData {
     name: "minecraft:arrow",
-    protocol_id: 4,
+    protocol_id: 6,
     width: 0.5000,
     height: 0.5000,
     eye_height: 0.4250,
@@ -90,7 +124,7 @@ pub const ARROW: EntityData = EntityData {
 
 pub const AXOLOTL: EntityData = EntityData {
     name: "minecraft:axolotl",
-    protocol_id: 5,
+    protocol_id: 7,
     width: 0.7500,
     height: 0.4200,
     eye_height: 0.3570,
@@ -105,9 +139,43 @@ pub const AXOLOTL: EntityData = EntityData {
     attackable: true,
 };
 
+pub const BAMBOO_CHEST_RAFT: EntityData = EntityData {
+    name: "minecraft:bamboo_chest_raft",
+    protocol_id: 8,
+    width: 1.3750,
+    height: 0.5625,
+    eye_height: 0.4781,
+    summonable: true,
+    fire_immune: false,
+    can_spawn_far_from_player: true,
+    category: EntityCategory::Misc,
+    limit_per_chunk: 0,
+    spawn_restriction_location: SpawnLocation::Unrestricted,
+    spawn_restriction_heightmap: HeightMap::None,
+    max_health: None,
+    attackable: true,
+};
+
+pub const BAMBOO_RAFT: EntityData = EntityData {
+    name: "minecraft:bamboo_raft",
+    protocol_id: 9,
+    width: 1.3750,
+    height: 0.5625,
+    eye_height: 0.4781,
+    summonable: true,
+    fire_immune: false,
+    can_spawn_far_from_player: true,
+    category: EntityCategory::Misc,
+    limit_per_chunk: 0,
+    spawn_restriction_location: SpawnLocation::Unrestricted,
+    spawn_restriction_heightmap: HeightMap::None,
+    max_health: None,
+    attackable: true,
+};
+
 pub const BAT: EntityData = EntityData {
     name: "minecraft:bat",
-    protocol_id: 6,
+    protocol_id: 10,
     width: 0.5000,
     height: 0.9000,
     eye_height: 0.7650,
@@ -124,7 +192,7 @@ pub const BAT: EntityData = EntityData {
 
 pub const BEE: EntityData = EntityData {
     name: "minecraft:bee",
-    protocol_id: 7,
+    protocol_id: 11,
     width: 0.7000,
     height: 0.6000,
     eye_height: 0.5100,
@@ -139,9 +207,43 @@ pub const BEE: EntityData = EntityData {
     attackable: true,
 };
 
+pub const BIRCH_BOAT: EntityData = EntityData {
+    name: "minecraft:birch_boat",
+    protocol_id: 12,
+    width: 1.3750,
+    height: 0.5625,
+    eye_height: 0.4781,
+    summonable: true,
+    fire_immune: false,
+    can_spawn_far_from_player: true,
+    category: EntityCategory::Misc,
+    limit_per_chunk: 0,
+    spawn_restriction_location: SpawnLocation::Unrestricted,
+    spawn_restriction_heightmap: HeightMap::None,
+    max_health: None,
+    attackable: true,
+};
+
+pub const BIRCH_CHEST_BOAT: EntityData = EntityData {
+    name: "minecraft:birch_chest_boat",
+    protocol_id: 13,
+    width: 1.3750,
+    height: 0.5625,
+    eye_height: 0.4781,
+    summonable: true,
+    fire_immune: false,
+    can_spawn_far_from_player: true,
+    category: EntityCategory::Misc,
+    limit_per_chunk: 0,
+    spawn_restriction_location: SpawnLocation::Unrestricted,
+    spawn_restriction_heightmap: HeightMap::None,
+    max_health: None,
+    attackable: true,
+};
+
 pub const BLAZE: EntityData = EntityData {
     name: "minecraft:blaze",
-    protocol_id: 8,
+    protocol_id: 14,
     width: 0.6000,
     height: 1.8000,
     eye_height: 1.5300,
@@ -158,7 +260,7 @@ pub const BLAZE: EntityData = EntityData {
 
 pub const BLOCK_DISPLAY: EntityData = EntityData {
     name: "minecraft:block_display",
-    protocol_id: 9,
+    protocol_id: 15,
     width: 0.0000,
     height: 0.0000,
     eye_height: 0.0000,
@@ -173,26 +275,9 @@ pub const BLOCK_DISPLAY: EntityData = EntityData {
     attackable: true,
 };
 
-pub const BOAT: EntityData = EntityData {
-    name: "minecraft:boat",
-    protocol_id: 10,
-    width: 1.3750,
-    height: 0.5625,
-    eye_height: 0.4781,
-    summonable: true,
-    fire_immune: false,
-    can_spawn_far_from_player: true,
-    category: EntityCategory::Misc,
-    limit_per_chunk: 0,
-    spawn_restriction_location: SpawnLocation::Unrestricted,
-    spawn_restriction_heightmap: HeightMap::None,
-    max_health: None,
-    attackable: true,
-};
-
 pub const BOGGED: EntityData = EntityData {
     name: "minecraft:bogged",
-    protocol_id: 11,
+    protocol_id: 16,
     width: 0.6000,
     height: 1.9900,
     eye_height: 1.6915,
@@ -209,7 +294,7 @@ pub const BOGGED: EntityData = EntityData {
 
 pub const BREEZE: EntityData = EntityData {
     name: "minecraft:breeze",
-    protocol_id: 12,
+    protocol_id: 17,
     width: 0.6000,
     height: 1.7700,
     eye_height: 1.5045,
@@ -226,7 +311,7 @@ pub const BREEZE: EntityData = EntityData {
 
 pub const BREEZE_WIND_CHARGE: EntityData = EntityData {
     name: "minecraft:breeze_wind_charge",
-    protocol_id: 13,
+    protocol_id: 18,
     width: 0.3125,
     height: 0.3125,
     eye_height: 0.2656,
@@ -243,7 +328,7 @@ pub const BREEZE_WIND_CHARGE: EntityData = EntityData {
 
 pub const CAMEL: EntityData = EntityData {
     name: "minecraft:camel",
-    protocol_id: 14,
+    protocol_id: 19,
     width: 1.7000,
     height: 2.3750,
     eye_height: 2.0187,
@@ -260,7 +345,7 @@ pub const CAMEL: EntityData = EntityData {
 
 pub const CAT: EntityData = EntityData {
     name: "minecraft:cat",
-    protocol_id: 15,
+    protocol_id: 20,
     width: 0.6000,
     height: 0.7000,
     eye_height: 0.5950,
@@ -277,7 +362,7 @@ pub const CAT: EntityData = EntityData {
 
 pub const CAVE_SPIDER: EntityData = EntityData {
     name: "minecraft:cave_spider",
-    protocol_id: 16,
+    protocol_id: 21,
     width: 0.7000,
     height: 0.5000,
     eye_height: 0.4250,
@@ -292,9 +377,26 @@ pub const CAVE_SPIDER: EntityData = EntityData {
     attackable: true,
 };
 
-pub const CHEST_BOAT: EntityData = EntityData {
-    name: "minecraft:chest_boat",
-    protocol_id: 17,
+pub const CHERRY_BOAT: EntityData = EntityData {
+    name: "minecraft:cherry_boat",
+    protocol_id: 22,
+    width: 1.3750,
+    height: 0.5625,
+    eye_height: 0.4781,
+    summonable: true,
+    fire_immune: false,
+    can_spawn_far_from_player: true,
+    category: EntityCategory::Misc,
+    limit_per_chunk: 0,
+    spawn_restriction_location: SpawnLocation::Unrestricted,
+    spawn_restriction_heightmap: HeightMap::None,
+    max_health: None,
+    attackable: true,
+};
+
+pub const CHERRY_CHEST_BOAT: EntityData = EntityData {
+    name: "minecraft:cherry_chest_boat",
+    protocol_id: 23,
     width: 1.3750,
     height: 0.5625,
     eye_height: 0.4781,
@@ -311,7 +413,7 @@ pub const CHEST_BOAT: EntityData = EntityData {
 
 pub const CHEST_MINECART: EntityData = EntityData {
     name: "minecraft:chest_minecart",
-    protocol_id: 18,
+    protocol_id: 24,
     width: 0.9800,
     height: 0.7000,
     eye_height: 0.5950,
@@ -328,7 +430,7 @@ pub const CHEST_MINECART: EntityData = EntityData {
 
 pub const CHICKEN: EntityData = EntityData {
     name: "minecraft:chicken",
-    protocol_id: 19,
+    protocol_id: 25,
     width: 0.4000,
     height: 0.7000,
     eye_height: 0.5950,
@@ -345,7 +447,7 @@ pub const CHICKEN: EntityData = EntityData {
 
 pub const COD: EntityData = EntityData {
     name: "minecraft:cod",
-    protocol_id: 20,
+    protocol_id: 26,
     width: 0.5000,
     height: 0.3000,
     eye_height: 0.2550,
@@ -362,7 +464,7 @@ pub const COD: EntityData = EntityData {
 
 pub const COMMAND_BLOCK_MINECART: EntityData = EntityData {
     name: "minecraft:command_block_minecart",
-    protocol_id: 21,
+    protocol_id: 27,
     width: 0.9800,
     height: 0.7000,
     eye_height: 0.5950,
@@ -379,7 +481,7 @@ pub const COMMAND_BLOCK_MINECART: EntityData = EntityData {
 
 pub const COW: EntityData = EntityData {
     name: "minecraft:cow",
-    protocol_id: 22,
+    protocol_id: 28,
     width: 0.9000,
     height: 1.4000,
     eye_height: 1.1900,
@@ -394,9 +496,26 @@ pub const COW: EntityData = EntityData {
     attackable: true,
 };
 
+pub const CREAKING: EntityData = EntityData {
+    name: "minecraft:creaking",
+    protocol_id: 29,
+    width: 0.9000,
+    height: 2.7000,
+    eye_height: 2.2950,
+    summonable: true,
+    fire_immune: false,
+    can_spawn_far_from_player: false,
+    category: EntityCategory::Monster,
+    limit_per_chunk: 0,
+    spawn_restriction_location: SpawnLocation::Unrestricted,
+    spawn_restriction_heightmap: HeightMap::None,
+    max_health: None,
+    attackable: true,
+};
+
 pub const CREEPER: EntityData = EntityData {
     name: "minecraft:creeper",
-    protocol_id: 23,
+    protocol_id: 30,
     width: 0.6000,
     height: 1.7000,
     eye_height: 1.4450,
@@ -411,9 +530,43 @@ pub const CREEPER: EntityData = EntityData {
     attackable: true,
 };
 
+pub const DARK_OAK_BOAT: EntityData = EntityData {
+    name: "minecraft:dark_oak_boat",
+    protocol_id: 31,
+    width: 1.3750,
+    height: 0.5625,
+    eye_height: 0.4781,
+    summonable: true,
+    fire_immune: false,
+    can_spawn_far_from_player: true,
+    category: EntityCategory::Misc,
+    limit_per_chunk: 0,
+    spawn_restriction_location: SpawnLocation::Unrestricted,
+    spawn_restriction_heightmap: HeightMap::None,
+    max_health: None,
+    attackable: true,
+};
+
+pub const DARK_OAK_CHEST_BOAT: EntityData = EntityData {
+    name: "minecraft:dark_oak_chest_boat",
+    protocol_id: 32,
+    width: 1.3750,
+    height: 0.5625,
+    eye_height: 0.4781,
+    summonable: true,
+    fire_immune: false,
+    can_spawn_far_from_player: true,
+    category: EntityCategory::Misc,
+    limit_per_chunk: 0,
+    spawn_restriction_location: SpawnLocation::Unrestricted,
+    spawn_restriction_heightmap: HeightMap::None,
+    max_health: None,
+    attackable: true,
+};
+
 pub const DOLPHIN: EntityData = EntityData {
     name: "minecraft:dolphin",
-    protocol_id: 24,
+    protocol_id: 33,
     width: 0.9000,
     height: 0.6000,
     eye_height: 0.5100,
@@ -430,7 +583,7 @@ pub const DOLPHIN: EntityData = EntityData {
 
 pub const DONKEY: EntityData = EntityData {
     name: "minecraft:donkey",
-    protocol_id: 25,
+    protocol_id: 34,
     width: 1.3965,
     height: 1.5000,
     eye_height: 1.2750,
@@ -447,7 +600,7 @@ pub const DONKEY: EntityData = EntityData {
 
 pub const DRAGON_FIREBALL: EntityData = EntityData {
     name: "minecraft:dragon_fireball",
-    protocol_id: 26,
+    protocol_id: 35,
     width: 1.0000,
     height: 1.0000,
     eye_height: 0.8500,
@@ -464,7 +617,7 @@ pub const DRAGON_FIREBALL: EntityData = EntityData {
 
 pub const DROWNED: EntityData = EntityData {
     name: "minecraft:drowned",
-    protocol_id: 27,
+    protocol_id: 36,
     width: 0.6000,
     height: 1.9500,
     eye_height: 1.6575,
@@ -481,7 +634,7 @@ pub const DROWNED: EntityData = EntityData {
 
 pub const EGG: EntityData = EntityData {
     name: "minecraft:egg",
-    protocol_id: 28,
+    protocol_id: 37,
     width: 0.2500,
     height: 0.2500,
     eye_height: 0.2125,
@@ -498,7 +651,7 @@ pub const EGG: EntityData = EntityData {
 
 pub const ELDER_GUARDIAN: EntityData = EntityData {
     name: "minecraft:elder_guardian",
-    protocol_id: 29,
+    protocol_id: 38,
     width: 1.9975,
     height: 1.9975,
     eye_height: 1.6979,
@@ -515,7 +668,7 @@ pub const ELDER_GUARDIAN: EntityData = EntityData {
 
 pub const END_CRYSTAL: EntityData = EntityData {
     name: "minecraft:end_crystal",
-    protocol_id: 30,
+    protocol_id: 43,
     width: 2.0000,
     height: 2.0000,
     eye_height: 1.7000,
@@ -532,7 +685,7 @@ pub const END_CRYSTAL: EntityData = EntityData {
 
 pub const ENDER_DRAGON: EntityData = EntityData {
     name: "minecraft:ender_dragon",
-    protocol_id: 31,
+    protocol_id: 41,
     width: 16.0000,
     height: 8.0000,
     eye_height: 6.8000,
@@ -549,7 +702,7 @@ pub const ENDER_DRAGON: EntityData = EntityData {
 
 pub const ENDER_PEARL: EntityData = EntityData {
     name: "minecraft:ender_pearl",
-    protocol_id: 32,
+    protocol_id: 42,
     width: 0.2500,
     height: 0.2500,
     eye_height: 0.2125,
@@ -566,7 +719,7 @@ pub const ENDER_PEARL: EntityData = EntityData {
 
 pub const ENDERMAN: EntityData = EntityData {
     name: "minecraft:enderman",
-    protocol_id: 33,
+    protocol_id: 39,
     width: 0.6000,
     height: 2.9000,
     eye_height: 2.4650,
@@ -583,7 +736,7 @@ pub const ENDERMAN: EntityData = EntityData {
 
 pub const ENDERMITE: EntityData = EntityData {
     name: "minecraft:endermite",
-    protocol_id: 34,
+    protocol_id: 40,
     width: 0.4000,
     height: 0.3000,
     eye_height: 0.2550,
@@ -600,7 +753,7 @@ pub const ENDERMITE: EntityData = EntityData {
 
 pub const EVOKER: EntityData = EntityData {
     name: "minecraft:evoker",
-    protocol_id: 35,
+    protocol_id: 44,
     width: 0.6000,
     height: 1.9500,
     eye_height: 1.6575,
@@ -617,7 +770,7 @@ pub const EVOKER: EntityData = EntityData {
 
 pub const EVOKER_FANGS: EntityData = EntityData {
     name: "minecraft:evoker_fangs",
-    protocol_id: 36,
+    protocol_id: 45,
     width: 0.5000,
     height: 0.8000,
     eye_height: 0.6800,
@@ -634,7 +787,7 @@ pub const EVOKER_FANGS: EntityData = EntityData {
 
 pub const EXPERIENCE_BOTTLE: EntityData = EntityData {
     name: "minecraft:experience_bottle",
-    protocol_id: 37,
+    protocol_id: 46,
     width: 0.2500,
     height: 0.2500,
     eye_height: 0.2125,
@@ -651,7 +804,7 @@ pub const EXPERIENCE_BOTTLE: EntityData = EntityData {
 
 pub const EXPERIENCE_ORB: EntityData = EntityData {
     name: "minecraft:experience_orb",
-    protocol_id: 38,
+    protocol_id: 47,
     width: 0.5000,
     height: 0.5000,
     eye_height: 0.4250,
@@ -668,7 +821,7 @@ pub const EXPERIENCE_ORB: EntityData = EntityData {
 
 pub const EYE_OF_ENDER: EntityData = EntityData {
     name: "minecraft:eye_of_ender",
-    protocol_id: 39,
+    protocol_id: 48,
     width: 0.2500,
     height: 0.2500,
     eye_height: 0.2125,
@@ -685,7 +838,7 @@ pub const EYE_OF_ENDER: EntityData = EntityData {
 
 pub const FALLING_BLOCK: EntityData = EntityData {
     name: "minecraft:falling_block",
-    protocol_id: 40,
+    protocol_id: 49,
     width: 0.9800,
     height: 0.9800,
     eye_height: 0.8330,
@@ -702,7 +855,7 @@ pub const FALLING_BLOCK: EntityData = EntityData {
 
 pub const FIREBALL: EntityData = EntityData {
     name: "minecraft:fireball",
-    protocol_id: 62,
+    protocol_id: 50,
     width: 1.0000,
     height: 1.0000,
     eye_height: 0.8500,
@@ -719,7 +872,7 @@ pub const FIREBALL: EntityData = EntityData {
 
 pub const FIREWORK_ROCKET: EntityData = EntityData {
     name: "minecraft:firework_rocket",
-    protocol_id: 41,
+    protocol_id: 51,
     width: 0.2500,
     height: 0.2500,
     eye_height: 0.2125,
@@ -736,7 +889,7 @@ pub const FIREWORK_ROCKET: EntityData = EntityData {
 
 pub const FISHING_BOBBER: EntityData = EntityData {
     name: "minecraft:fishing_bobber",
-    protocol_id: 129,
+    protocol_id: 150,
     width: 0.2500,
     height: 0.2500,
     eye_height: 0.2125,
@@ -753,7 +906,7 @@ pub const FISHING_BOBBER: EntityData = EntityData {
 
 pub const FOX: EntityData = EntityData {
     name: "minecraft:fox",
-    protocol_id: 42,
+    protocol_id: 52,
     width: 0.6000,
     height: 0.7000,
     eye_height: 0.5950,
@@ -770,7 +923,7 @@ pub const FOX: EntityData = EntityData {
 
 pub const FROG: EntityData = EntityData {
     name: "minecraft:frog",
-    protocol_id: 43,
+    protocol_id: 53,
     width: 0.5000,
     height: 0.5000,
     eye_height: 0.4250,
@@ -787,7 +940,7 @@ pub const FROG: EntityData = EntityData {
 
 pub const FURNACE_MINECART: EntityData = EntityData {
     name: "minecraft:furnace_minecart",
-    protocol_id: 44,
+    protocol_id: 54,
     width: 0.9800,
     height: 0.7000,
     eye_height: 0.5950,
@@ -804,7 +957,7 @@ pub const FURNACE_MINECART: EntityData = EntityData {
 
 pub const GHAST: EntityData = EntityData {
     name: "minecraft:ghast",
-    protocol_id: 45,
+    protocol_id: 55,
     width: 4.0000,
     height: 4.0000,
     eye_height: 3.4000,
@@ -821,7 +974,7 @@ pub const GHAST: EntityData = EntityData {
 
 pub const GIANT: EntityData = EntityData {
     name: "minecraft:giant",
-    protocol_id: 46,
+    protocol_id: 57,
     width: 3.6000,
     height: 12.0000,
     eye_height: 10.2000,
@@ -838,7 +991,7 @@ pub const GIANT: EntityData = EntityData {
 
 pub const GLOW_ITEM_FRAME: EntityData = EntityData {
     name: "minecraft:glow_item_frame",
-    protocol_id: 47,
+    protocol_id: 58,
     width: 0.5000,
     height: 0.5000,
     eye_height: 0.4250,
@@ -855,7 +1008,7 @@ pub const GLOW_ITEM_FRAME: EntityData = EntityData {
 
 pub const GLOW_SQUID: EntityData = EntityData {
     name: "minecraft:glow_squid",
-    protocol_id: 48,
+    protocol_id: 59,
     width: 0.8000,
     height: 0.8000,
     eye_height: 0.6800,
@@ -872,7 +1025,7 @@ pub const GLOW_SQUID: EntityData = EntityData {
 
 pub const GOAT: EntityData = EntityData {
     name: "minecraft:goat",
-    protocol_id: 49,
+    protocol_id: 60,
     width: 0.9000,
     height: 1.3000,
     eye_height: 1.1050,
@@ -889,7 +1042,7 @@ pub const GOAT: EntityData = EntityData {
 
 pub const GUARDIAN: EntityData = EntityData {
     name: "minecraft:guardian",
-    protocol_id: 50,
+    protocol_id: 61,
     width: 0.8500,
     height: 0.8500,
     eye_height: 0.7225,
@@ -904,9 +1057,26 @@ pub const GUARDIAN: EntityData = EntityData {
     attackable: true,
 };
 
+pub const HAPPY_GHAST: EntityData = EntityData {
+    name: "minecraft:happy_ghast",
+    protocol_id: 56,
+    width: 4.0000,
+    height: 4.0000,
+    eye_height: 3.4000,
+    summonable: true,
+    fire_immune: false,
+    can_spawn_far_from_player: true,
+    category: EntityCategory::Creature,
+    limit_per_chunk: 0,
+    spawn_restriction_location: SpawnLocation::Unrestricted,
+    spawn_restriction_heightmap: HeightMap::None,
+    max_health: None,
+    attackable: true,
+};
+
 pub const HOGLIN: EntityData = EntityData {
     name: "minecraft:hoglin",
-    protocol_id: 51,
+    protocol_id: 62,
     width: 1.3965,
     height: 1.4000,
     eye_height: 1.1900,
@@ -923,7 +1093,7 @@ pub const HOGLIN: EntityData = EntityData {
 
 pub const HOPPER_MINECART: EntityData = EntityData {
     name: "minecraft:hopper_minecart",
-    protocol_id: 52,
+    protocol_id: 63,
     width: 0.9800,
     height: 0.7000,
     eye_height: 0.5950,
@@ -940,7 +1110,7 @@ pub const HOPPER_MINECART: EntityData = EntityData {
 
 pub const HORSE: EntityData = EntityData {
     name: "minecraft:horse",
-    protocol_id: 53,
+    protocol_id: 64,
     width: 1.3965,
     height: 1.6000,
     eye_height: 1.3600,
@@ -957,7 +1127,7 @@ pub const HORSE: EntityData = EntityData {
 
 pub const HUSK: EntityData = EntityData {
     name: "minecraft:husk",
-    protocol_id: 54,
+    protocol_id: 65,
     width: 0.6000,
     height: 1.9500,
     eye_height: 1.6575,
@@ -974,7 +1144,7 @@ pub const HUSK: EntityData = EntityData {
 
 pub const ILLUSIONER: EntityData = EntityData {
     name: "minecraft:illusioner",
-    protocol_id: 55,
+    protocol_id: 66,
     width: 0.6000,
     height: 1.9500,
     eye_height: 1.6575,
@@ -991,7 +1161,7 @@ pub const ILLUSIONER: EntityData = EntityData {
 
 pub const INTERACTION: EntityData = EntityData {
     name: "minecraft:interaction",
-    protocol_id: 56,
+    protocol_id: 67,
     width: 0.0000,
     height: 0.0000,
     eye_height: 0.0000,
@@ -1008,7 +1178,7 @@ pub const INTERACTION: EntityData = EntityData {
 
 pub const IRON_GOLEM: EntityData = EntityData {
     name: "minecraft:iron_golem",
-    protocol_id: 57,
+    protocol_id: 68,
     width: 1.4000,
     height: 2.7000,
     eye_height: 2.2950,
@@ -1025,7 +1195,7 @@ pub const IRON_GOLEM: EntityData = EntityData {
 
 pub const ITEM: EntityData = EntityData {
     name: "minecraft:item",
-    protocol_id: 58,
+    protocol_id: 69,
     width: 0.2500,
     height: 0.2500,
     eye_height: 0.2125,
@@ -1042,7 +1212,7 @@ pub const ITEM: EntityData = EntityData {
 
 pub const ITEM_DISPLAY: EntityData = EntityData {
     name: "minecraft:item_display",
-    protocol_id: 59,
+    protocol_id: 70,
     width: 0.0000,
     height: 0.0000,
     eye_height: 0.0000,
@@ -1059,7 +1229,7 @@ pub const ITEM_DISPLAY: EntityData = EntityData {
 
 pub const ITEM_FRAME: EntityData = EntityData {
     name: "minecraft:item_frame",
-    protocol_id: 60,
+    protocol_id: 71,
     width: 0.5000,
     height: 0.5000,
     eye_height: 0.4250,
@@ -1074,9 +1244,43 @@ pub const ITEM_FRAME: EntityData = EntityData {
     attackable: true,
 };
 
+pub const JUNGLE_BOAT: EntityData = EntityData {
+    name: "minecraft:jungle_boat",
+    protocol_id: 72,
+    width: 1.3750,
+    height: 0.5625,
+    eye_height: 0.4781,
+    summonable: true,
+    fire_immune: false,
+    can_spawn_far_from_player: true,
+    category: EntityCategory::Misc,
+    limit_per_chunk: 0,
+    spawn_restriction_location: SpawnLocation::Unrestricted,
+    spawn_restriction_heightmap: HeightMap::None,
+    max_health: None,
+    attackable: true,
+};
+
+pub const JUNGLE_CHEST_BOAT: EntityData = EntityData {
+    name: "minecraft:jungle_chest_boat",
+    protocol_id: 73,
+    width: 1.3750,
+    height: 0.5625,
+    eye_height: 0.4781,
+    summonable: true,
+    fire_immune: false,
+    can_spawn_far_from_player: true,
+    category: EntityCategory::Misc,
+    limit_per_chunk: 0,
+    spawn_restriction_location: SpawnLocation::Unrestricted,
+    spawn_restriction_heightmap: HeightMap::None,
+    max_health: None,
+    attackable: true,
+};
+
 pub const LEASH_KNOT: EntityData = EntityData {
     name: "minecraft:leash_knot",
-    protocol_id: 63,
+    protocol_id: 74,
     width: 0.3750,
     height: 0.5000,
     eye_height: 0.4250,
@@ -1093,7 +1297,7 @@ pub const LEASH_KNOT: EntityData = EntityData {
 
 pub const LIGHTNING_BOLT: EntityData = EntityData {
     name: "minecraft:lightning_bolt",
-    protocol_id: 64,
+    protocol_id: 75,
     width: 0.0000,
     height: 0.0000,
     eye_height: 0.0000,
@@ -1108,9 +1312,26 @@ pub const LIGHTNING_BOLT: EntityData = EntityData {
     attackable: true,
 };
 
+pub const LINGERING_POTION: EntityData = EntityData {
+    name: "minecraft:lingering_potion",
+    protocol_id: 101,
+    width: 0.2500,
+    height: 0.2500,
+    eye_height: 0.2125,
+    summonable: true,
+    fire_immune: false,
+    can_spawn_far_from_player: true,
+    category: EntityCategory::Misc,
+    limit_per_chunk: 0,
+    spawn_restriction_location: SpawnLocation::Unrestricted,
+    spawn_restriction_heightmap: HeightMap::None,
+    max_health: None,
+    attackable: true,
+};
+
 pub const LLAMA: EntityData = EntityData {
     name: "minecraft:llama",
-    protocol_id: 65,
+    protocol_id: 76,
     width: 0.9000,
     height: 1.8700,
     eye_height: 1.5895,
@@ -1127,7 +1348,7 @@ pub const LLAMA: EntityData = EntityData {
 
 pub const LLAMA_SPIT: EntityData = EntityData {
     name: "minecraft:llama_spit",
-    protocol_id: 66,
+    protocol_id: 77,
     width: 0.2500,
     height: 0.2500,
     eye_height: 0.2125,
@@ -1144,7 +1365,7 @@ pub const LLAMA_SPIT: EntityData = EntityData {
 
 pub const MAGMA_CUBE: EntityData = EntityData {
     name: "minecraft:magma_cube",
-    protocol_id: 67,
+    protocol_id: 78,
     width: 0.5200,
     height: 0.5200,
     eye_height: 0.4420,
@@ -1159,9 +1380,43 @@ pub const MAGMA_CUBE: EntityData = EntityData {
     attackable: true,
 };
 
+pub const MANGROVE_BOAT: EntityData = EntityData {
+    name: "minecraft:mangrove_boat",
+    protocol_id: 79,
+    width: 1.3750,
+    height: 0.5625,
+    eye_height: 0.4781,
+    summonable: true,
+    fire_immune: false,
+    can_spawn_far_from_player: true,
+    category: EntityCategory::Misc,
+    limit_per_chunk: 0,
+    spawn_restriction_location: SpawnLocation::Unrestricted,
+    spawn_restriction_heightmap: HeightMap::None,
+    max_health: None,
+    attackable: true,
+};
+
+pub const MANGROVE_CHEST_BOAT: EntityData = EntityData {
+    name: "minecraft:mangrove_chest_boat",
+    protocol_id: 80,
+    width: 1.3750,
+    height: 0.5625,
+    eye_height: 0.4781,
+    summonable: true,
+    fire_immune: false,
+    can_spawn_far_from_player: true,
+    category: EntityCategory::Misc,
+    limit_per_chunk: 0,
+    spawn_restriction_location: SpawnLocation::Unrestricted,
+    spawn_restriction_heightmap: HeightMap::None,
+    max_health: None,
+    attackable: true,
+};
+
 pub const MARKER: EntityData = EntityData {
     name: "minecraft:marker",
-    protocol_id: 68,
+    protocol_id: 81,
     width: 0.0000,
     height: 0.0000,
     eye_height: 0.0000,
@@ -1178,7 +1433,7 @@ pub const MARKER: EntityData = EntityData {
 
 pub const MINECART: EntityData = EntityData {
     name: "minecraft:minecart",
-    protocol_id: 69,
+    protocol_id: 82,
     width: 0.9800,
     height: 0.7000,
     eye_height: 0.5950,
@@ -1195,7 +1450,7 @@ pub const MINECART: EntityData = EntityData {
 
 pub const MOOSHROOM: EntityData = EntityData {
     name: "minecraft:mooshroom",
-    protocol_id: 70,
+    protocol_id: 83,
     width: 0.9000,
     height: 1.4000,
     eye_height: 1.1900,
@@ -1212,7 +1467,7 @@ pub const MOOSHROOM: EntityData = EntityData {
 
 pub const MULE: EntityData = EntityData {
     name: "minecraft:mule",
-    protocol_id: 71,
+    protocol_id: 84,
     width: 1.3965,
     height: 1.6000,
     eye_height: 1.3600,
@@ -1227,9 +1482,43 @@ pub const MULE: EntityData = EntityData {
     attackable: true,
 };
 
+pub const OAK_BOAT: EntityData = EntityData {
+    name: "minecraft:oak_boat",
+    protocol_id: 85,
+    width: 1.3750,
+    height: 0.5625,
+    eye_height: 0.4781,
+    summonable: true,
+    fire_immune: false,
+    can_spawn_far_from_player: true,
+    category: EntityCategory::Misc,
+    limit_per_chunk: 0,
+    spawn_restriction_location: SpawnLocation::Unrestricted,
+    spawn_restriction_heightmap: HeightMap::None,
+    max_health: None,
+    attackable: true,
+};
+
+pub const OAK_CHEST_BOAT: EntityData = EntityData {
+    name: "minecraft:oak_chest_boat",
+    protocol_id: 86,
+    width: 1.3750,
+    height: 0.5625,
+    eye_height: 0.4781,
+    summonable: true,
+    fire_immune: false,
+    can_spawn_far_from_player: true,
+    category: EntityCategory::Misc,
+    limit_per_chunk: 0,
+    spawn_restriction_location: SpawnLocation::Unrestricted,
+    spawn_restriction_heightmap: HeightMap::None,
+    max_health: None,
+    attackable: true,
+};
+
 pub const OCELOT: EntityData = EntityData {
     name: "minecraft:ocelot",
-    protocol_id: 72,
+    protocol_id: 87,
     width: 0.6000,
     height: 0.7000,
     eye_height: 0.5950,
@@ -1246,7 +1535,7 @@ pub const OCELOT: EntityData = EntityData {
 
 pub const OMINOUS_ITEM_SPAWNER: EntityData = EntityData {
     name: "minecraft:ominous_item_spawner",
-    protocol_id: 61,
+    protocol_id: 88,
     width: 0.2500,
     height: 0.2500,
     eye_height: 0.2125,
@@ -1263,7 +1552,7 @@ pub const OMINOUS_ITEM_SPAWNER: EntityData = EntityData {
 
 pub const PAINTING: EntityData = EntityData {
     name: "minecraft:painting",
-    protocol_id: 73,
+    protocol_id: 89,
     width: 0.5000,
     height: 0.5000,
     eye_height: 0.4250,
@@ -1278,9 +1567,43 @@ pub const PAINTING: EntityData = EntityData {
     attackable: true,
 };
 
+pub const PALE_OAK_BOAT: EntityData = EntityData {
+    name: "minecraft:pale_oak_boat",
+    protocol_id: 90,
+    width: 1.3750,
+    height: 0.5625,
+    eye_height: 0.4781,
+    summonable: true,
+    fire_immune: false,
+    can_spawn_far_from_player: true,
+    category: EntityCategory::Misc,
+    limit_per_chunk: 0,
+    spawn_restriction_location: SpawnLocation::Unrestricted,
+    spawn_restriction_heightmap: HeightMap::None,
+    max_health: None,
+    attackable: true,
+};
+
+pub const PALE_OAK_CHEST_BOAT: EntityData = EntityData {
+    name: "minecraft:pale_oak_chest_boat",
+    protocol_id: 91,
+    width: 1.3750,
+    height: 0.5625,
+    eye_height: 0.4781,
+    summonable: true,
+    fire_immune: false,
+    can_spawn_far_from_player: true,
+    category: EntityCategory::Misc,
+    limit_per_chunk: 0,
+    spawn_restriction_location: SpawnLocation::Unrestricted,
+    spawn_restriction_heightmap: HeightMap::None,
+    max_health: None,
+    attackable: true,
+};
+
 pub const PANDA: EntityData = EntityData {
     name: "minecraft:panda",
-    protocol_id: 74,
+    protocol_id: 92,
     width: 1.3000,
     height: 1.2500,
     eye_height: 1.0625,
@@ -1297,7 +1620,7 @@ pub const PANDA: EntityData = EntityData {
 
 pub const PARROT: EntityData = EntityData {
     name: "minecraft:parrot",
-    protocol_id: 75,
+    protocol_id: 93,
     width: 0.5000,
     height: 0.9000,
     eye_height: 0.7650,
@@ -1314,7 +1637,7 @@ pub const PARROT: EntityData = EntityData {
 
 pub const PHANTOM: EntityData = EntityData {
     name: "minecraft:phantom",
-    protocol_id: 76,
+    protocol_id: 94,
     width: 0.9000,
     height: 0.5000,
     eye_height: 0.4250,
@@ -1331,7 +1654,7 @@ pub const PHANTOM: EntityData = EntityData {
 
 pub const PIG: EntityData = EntityData {
     name: "minecraft:pig",
-    protocol_id: 77,
+    protocol_id: 95,
     width: 0.9000,
     height: 0.9000,
     eye_height: 0.7650,
@@ -1348,7 +1671,7 @@ pub const PIG: EntityData = EntityData {
 
 pub const PIGLIN: EntityData = EntityData {
     name: "minecraft:piglin",
-    protocol_id: 78,
+    protocol_id: 96,
     width: 0.6000,
     height: 1.9500,
     eye_height: 1.6575,
@@ -1365,7 +1688,7 @@ pub const PIGLIN: EntityData = EntityData {
 
 pub const PIGLIN_BRUTE: EntityData = EntityData {
     name: "minecraft:piglin_brute",
-    protocol_id: 79,
+    protocol_id: 97,
     width: 0.6000,
     height: 1.9500,
     eye_height: 1.6575,
@@ -1382,7 +1705,7 @@ pub const PIGLIN_BRUTE: EntityData = EntityData {
 
 pub const PILLAGER: EntityData = EntityData {
     name: "minecraft:pillager",
-    protocol_id: 80,
+    protocol_id: 98,
     width: 0.6000,
     height: 1.9500,
     eye_height: 1.6575,
@@ -1399,7 +1722,7 @@ pub const PILLAGER: EntityData = EntityData {
 
 pub const PLAYER: EntityData = EntityData {
     name: "minecraft:player",
-    protocol_id: 128,
+    protocol_id: 149,
     width: 0.6000,
     height: 1.8000,
     eye_height: 1.5300,
@@ -1416,7 +1739,7 @@ pub const PLAYER: EntityData = EntityData {
 
 pub const POLAR_BEAR: EntityData = EntityData {
     name: "minecraft:polar_bear",
-    protocol_id: 81,
+    protocol_id: 99,
     width: 1.4000,
     height: 1.4000,
     eye_height: 1.1900,
@@ -1431,26 +1754,9 @@ pub const POLAR_BEAR: EntityData = EntityData {
     attackable: true,
 };
 
-pub const POTION: EntityData = EntityData {
-    name: "minecraft:potion",
-    protocol_id: 82,
-    width: 0.2500,
-    height: 0.2500,
-    eye_height: 0.2125,
-    summonable: true,
-    fire_immune: false,
-    can_spawn_far_from_player: true,
-    category: EntityCategory::Misc,
-    limit_per_chunk: 0,
-    spawn_restriction_location: SpawnLocation::Unrestricted,
-    spawn_restriction_heightmap: HeightMap::None,
-    max_health: None,
-    attackable: true,
-};
-
 pub const PUFFERFISH: EntityData = EntityData {
     name: "minecraft:pufferfish",
-    protocol_id: 83,
+    protocol_id: 102,
     width: 0.7000,
     height: 0.7000,
     eye_height: 0.5950,
@@ -1467,7 +1773,7 @@ pub const PUFFERFISH: EntityData = EntityData {
 
 pub const RABBIT: EntityData = EntityData {
     name: "minecraft:rabbit",
-    protocol_id: 84,
+    protocol_id: 103,
     width: 0.4000,
     height: 0.5000,
     eye_height: 0.4250,
@@ -1484,7 +1790,7 @@ pub const RABBIT: EntityData = EntityData {
 
 pub const RAVAGER: EntityData = EntityData {
     name: "minecraft:ravager",
-    protocol_id: 85,
+    protocol_id: 104,
     width: 1.9500,
     height: 2.2000,
     eye_height: 1.8700,
@@ -1501,7 +1807,7 @@ pub const RAVAGER: EntityData = EntityData {
 
 pub const SALMON: EntityData = EntityData {
     name: "minecraft:salmon",
-    protocol_id: 86,
+    protocol_id: 105,
     width: 0.7000,
     height: 0.4000,
     eye_height: 0.3400,
@@ -1518,7 +1824,7 @@ pub const SALMON: EntityData = EntityData {
 
 pub const SHEEP: EntityData = EntityData {
     name: "minecraft:sheep",
-    protocol_id: 87,
+    protocol_id: 106,
     width: 0.9000,
     height: 1.3000,
     eye_height: 1.1050,
@@ -1535,7 +1841,7 @@ pub const SHEEP: EntityData = EntityData {
 
 pub const SHULKER: EntityData = EntityData {
     name: "minecraft:shulker",
-    protocol_id: 88,
+    protocol_id: 107,
     width: 1.0000,
     height: 1.0000,
     eye_height: 0.8500,
@@ -1552,7 +1858,7 @@ pub const SHULKER: EntityData = EntityData {
 
 pub const SHULKER_BULLET: EntityData = EntityData {
     name: "minecraft:shulker_bullet",
-    protocol_id: 89,
+    protocol_id: 108,
     width: 0.3125,
     height: 0.3125,
     eye_height: 0.2656,
@@ -1569,7 +1875,7 @@ pub const SHULKER_BULLET: EntityData = EntityData {
 
 pub const SILVERFISH: EntityData = EntityData {
     name: "minecraft:silverfish",
-    protocol_id: 90,
+    protocol_id: 109,
     width: 0.4000,
     height: 0.3000,
     eye_height: 0.2550,
@@ -1586,7 +1892,7 @@ pub const SILVERFISH: EntityData = EntityData {
 
 pub const SKELETON: EntityData = EntityData {
     name: "minecraft:skeleton",
-    protocol_id: 91,
+    protocol_id: 110,
     width: 0.6000,
     height: 1.9900,
     eye_height: 1.6915,
@@ -1603,7 +1909,7 @@ pub const SKELETON: EntityData = EntityData {
 
 pub const SKELETON_HORSE: EntityData = EntityData {
     name: "minecraft:skeleton_horse",
-    protocol_id: 92,
+    protocol_id: 111,
     width: 1.3965,
     height: 1.6000,
     eye_height: 1.3600,
@@ -1620,7 +1926,7 @@ pub const SKELETON_HORSE: EntityData = EntityData {
 
 pub const SLIME: EntityData = EntityData {
     name: "minecraft:slime",
-    protocol_id: 93,
+    protocol_id: 112,
     width: 0.5200,
     height: 0.5200,
     eye_height: 0.4420,
@@ -1637,7 +1943,7 @@ pub const SLIME: EntityData = EntityData {
 
 pub const SMALL_FIREBALL: EntityData = EntityData {
     name: "minecraft:small_fireball",
-    protocol_id: 94,
+    protocol_id: 113,
     width: 0.3125,
     height: 0.3125,
     eye_height: 0.2656,
@@ -1654,7 +1960,7 @@ pub const SMALL_FIREBALL: EntityData = EntityData {
 
 pub const SNIFFER: EntityData = EntityData {
     name: "minecraft:sniffer",
-    protocol_id: 95,
+    protocol_id: 114,
     width: 1.9000,
     height: 1.7500,
     eye_height: 1.4875,
@@ -1671,7 +1977,7 @@ pub const SNIFFER: EntityData = EntityData {
 
 pub const SNOW_GOLEM: EntityData = EntityData {
     name: "minecraft:snow_golem",
-    protocol_id: 96,
+    protocol_id: 116,
     width: 0.7000,
     height: 1.9000,
     eye_height: 1.6150,
@@ -1688,7 +1994,7 @@ pub const SNOW_GOLEM: EntityData = EntityData {
 
 pub const SNOWBALL: EntityData = EntityData {
     name: "minecraft:snowball",
-    protocol_id: 97,
+    protocol_id: 115,
     width: 0.2500,
     height: 0.2500,
     eye_height: 0.2125,
@@ -1705,7 +2011,7 @@ pub const SNOWBALL: EntityData = EntityData {
 
 pub const SPAWNER_MINECART: EntityData = EntityData {
     name: "minecraft:spawner_minecart",
-    protocol_id: 98,
+    protocol_id: 117,
     width: 0.9800,
     height: 0.7000,
     eye_height: 0.5950,
@@ -1722,7 +2028,7 @@ pub const SPAWNER_MINECART: EntityData = EntityData {
 
 pub const SPECTRAL_ARROW: EntityData = EntityData {
     name: "minecraft:spectral_arrow",
-    protocol_id: 99,
+    protocol_id: 118,
     width: 0.5000,
     height: 0.5000,
     eye_height: 0.4250,
@@ -1739,7 +2045,7 @@ pub const SPECTRAL_ARROW: EntityData = EntityData {
 
 pub const SPIDER: EntityData = EntityData {
     name: "minecraft:spider",
-    protocol_id: 100,
+    protocol_id: 119,
     width: 1.4000,
     height: 0.9000,
     eye_height: 0.7650,
@@ -1754,9 +2060,60 @@ pub const SPIDER: EntityData = EntityData {
     attackable: true,
 };
 
+pub const SPLASH_POTION: EntityData = EntityData {
+    name: "minecraft:splash_potion",
+    protocol_id: 100,
+    width: 0.2500,
+    height: 0.2500,
+    eye_height: 0.2125,
+    summonable: true,
+    fire_immune: false,
+    can_spawn_far_from_player: true,
+    category: EntityCategory::Misc,
+    limit_per_chunk: 0,
+    spawn_restriction_location: SpawnLocation::Unrestricted,
+    spawn_restriction_heightmap: HeightMap::None,
+    max_health: None,
+    attackable: true,
+};
+
+pub const SPRUCE_BOAT: EntityData = EntityData {
+    name: "minecraft:spruce_boat",
+    protocol_id: 120,
+    width: 1.3750,
+    height: 0.5625,
+    eye_height: 0.4781,
+    summonable: true,
+    fire_immune: false,
+    can_spawn_far_from_player: true,
+    category: EntityCategory::Misc,
+    limit_per_chunk: 0,
+    spawn_restriction_location: SpawnLocation::Unrestricted,
+    spawn_restriction_heightmap: HeightMap::None,
+    max_health: None,
+    attackable: true,
+};
+
+pub const SPRUCE_CHEST_BOAT: EntityData = EntityData {
+    name: "minecraft:spruce_chest_boat",
+    protocol_id: 121,
+    width: 1.3750,
+    height: 0.5625,
+    eye_height: 0.4781,
+    summonable: true,
+    fire_immune: false,
+    can_spawn_far_from_player: true,
+    category: EntityCategory::Misc,
+    limit_per_chunk: 0,
+    spawn_restriction_location: SpawnLocation::Unrestricted,
+    spawn_restriction_heightmap: HeightMap::None,
+    max_health: None,
+    attackable: true,
+};
+
 pub const SQUID: EntityData = EntityData {
     name: "minecraft:squid",
-    protocol_id: 101,
+    protocol_id: 122,
     width: 0.8000,
     height: 0.8000,
     eye_height: 0.6800,
@@ -1773,7 +2130,7 @@ pub const SQUID: EntityData = EntityData {
 
 pub const STRAY: EntityData = EntityData {
     name: "minecraft:stray",
-    protocol_id: 102,
+    protocol_id: 123,
     width: 0.6000,
     height: 1.9900,
     eye_height: 1.6915,
@@ -1790,7 +2147,7 @@ pub const STRAY: EntityData = EntityData {
 
 pub const STRIDER: EntityData = EntityData {
     name: "minecraft:strider",
-    protocol_id: 103,
+    protocol_id: 124,
     width: 0.9000,
     height: 1.7000,
     eye_height: 1.4450,
@@ -1807,7 +2164,7 @@ pub const STRIDER: EntityData = EntityData {
 
 pub const TADPOLE: EntityData = EntityData {
     name: "minecraft:tadpole",
-    protocol_id: 104,
+    protocol_id: 125,
     width: 0.4000,
     height: 0.3000,
     eye_height: 0.2550,
@@ -1824,7 +2181,7 @@ pub const TADPOLE: EntityData = EntityData {
 
 pub const TEXT_DISPLAY: EntityData = EntityData {
     name: "minecraft:text_display",
-    protocol_id: 105,
+    protocol_id: 126,
     width: 0.0000,
     height: 0.0000,
     eye_height: 0.0000,
@@ -1841,7 +2198,7 @@ pub const TEXT_DISPLAY: EntityData = EntityData {
 
 pub const TNT: EntityData = EntityData {
     name: "minecraft:tnt",
-    protocol_id: 106,
+    protocol_id: 127,
     width: 0.9800,
     height: 0.9800,
     eye_height: 0.8330,
@@ -1858,7 +2215,7 @@ pub const TNT: EntityData = EntityData {
 
 pub const TNT_MINECART: EntityData = EntityData {
     name: "minecraft:tnt_minecart",
-    protocol_id: 107,
+    protocol_id: 128,
     width: 0.9800,
     height: 0.7000,
     eye_height: 0.5950,
@@ -1875,7 +2232,7 @@ pub const TNT_MINECART: EntityData = EntityData {
 
 pub const TRADER_LLAMA: EntityData = EntityData {
     name: "minecraft:trader_llama",
-    protocol_id: 108,
+    protocol_id: 129,
     width: 0.9000,
     height: 1.8700,
     eye_height: 1.5895,
@@ -1892,7 +2249,7 @@ pub const TRADER_LLAMA: EntityData = EntityData {
 
 pub const TRIDENT: EntityData = EntityData {
     name: "minecraft:trident",
-    protocol_id: 109,
+    protocol_id: 130,
     width: 0.5000,
     height: 0.5000,
     eye_height: 0.4250,
@@ -1909,7 +2266,7 @@ pub const TRIDENT: EntityData = EntityData {
 
 pub const TROPICAL_FISH: EntityData = EntityData {
     name: "minecraft:tropical_fish",
-    protocol_id: 110,
+    protocol_id: 131,
     width: 0.5000,
     height: 0.4000,
     eye_height: 0.3400,
@@ -1926,7 +2283,7 @@ pub const TROPICAL_FISH: EntityData = EntityData {
 
 pub const TURTLE: EntityData = EntityData {
     name: "minecraft:turtle",
-    protocol_id: 111,
+    protocol_id: 132,
     width: 1.2000,
     height: 0.4000,
     eye_height: 0.3400,
@@ -1943,7 +2300,7 @@ pub const TURTLE: EntityData = EntityData {
 
 pub const VEX: EntityData = EntityData {
     name: "minecraft:vex",
-    protocol_id: 112,
+    protocol_id: 133,
     width: 0.4000,
     height: 0.8000,
     eye_height: 0.6800,
@@ -1960,7 +2317,7 @@ pub const VEX: EntityData = EntityData {
 
 pub const VILLAGER: EntityData = EntityData {
     name: "minecraft:villager",
-    protocol_id: 113,
+    protocol_id: 134,
     width: 0.6000,
     height: 1.9500,
     eye_height: 1.6575,
@@ -1977,7 +2334,7 @@ pub const VILLAGER: EntityData = EntityData {
 
 pub const VINDICATOR: EntityData = EntityData {
     name: "minecraft:vindicator",
-    protocol_id: 114,
+    protocol_id: 135,
     width: 0.6000,
     height: 1.9500,
     eye_height: 1.6575,
@@ -1994,7 +2351,7 @@ pub const VINDICATOR: EntityData = EntityData {
 
 pub const WANDERING_TRADER: EntityData = EntityData {
     name: "minecraft:wandering_trader",
-    protocol_id: 115,
+    protocol_id: 136,
     width: 0.6000,
     height: 1.9500,
     eye_height: 1.6575,
@@ -2011,7 +2368,7 @@ pub const WANDERING_TRADER: EntityData = EntityData {
 
 pub const WARDEN: EntityData = EntityData {
     name: "minecraft:warden",
-    protocol_id: 116,
+    protocol_id: 137,
     width: 0.9000,
     height: 2.9000,
     eye_height: 2.4650,
@@ -2028,7 +2385,7 @@ pub const WARDEN: EntityData = EntityData {
 
 pub const WIND_CHARGE: EntityData = EntityData {
     name: "minecraft:wind_charge",
-    protocol_id: 117,
+    protocol_id: 138,
     width: 0.3125,
     height: 0.3125,
     eye_height: 0.2656,
@@ -2045,7 +2402,7 @@ pub const WIND_CHARGE: EntityData = EntityData {
 
 pub const WITCH: EntityData = EntityData {
     name: "minecraft:witch",
-    protocol_id: 118,
+    protocol_id: 139,
     width: 0.6000,
     height: 1.9500,
     eye_height: 1.6575,
@@ -2062,7 +2419,7 @@ pub const WITCH: EntityData = EntityData {
 
 pub const WITHER: EntityData = EntityData {
     name: "minecraft:wither",
-    protocol_id: 119,
+    protocol_id: 140,
     width: 0.9000,
     height: 3.5000,
     eye_height: 2.9750,
@@ -2079,7 +2436,7 @@ pub const WITHER: EntityData = EntityData {
 
 pub const WITHER_SKELETON: EntityData = EntityData {
     name: "minecraft:wither_skeleton",
-    protocol_id: 120,
+    protocol_id: 141,
     width: 0.7000,
     height: 2.4000,
     eye_height: 2.0400,
@@ -2096,7 +2453,7 @@ pub const WITHER_SKELETON: EntityData = EntityData {
 
 pub const WITHER_SKULL: EntityData = EntityData {
     name: "minecraft:wither_skull",
-    protocol_id: 121,
+    protocol_id: 142,
     width: 0.3125,
     height: 0.3125,
     eye_height: 0.2656,
@@ -2113,7 +2470,7 @@ pub const WITHER_SKULL: EntityData = EntityData {
 
 pub const WOLF: EntityData = EntityData {
     name: "minecraft:wolf",
-    protocol_id: 122,
+    protocol_id: 143,
     width: 0.6000,
     height: 0.8500,
     eye_height: 0.7225,
@@ -2130,7 +2487,7 @@ pub const WOLF: EntityData = EntityData {
 
 pub const ZOGLIN: EntityData = EntityData {
     name: "minecraft:zoglin",
-    protocol_id: 123,
+    protocol_id: 144,
     width: 1.3965,
     height: 1.4000,
     eye_height: 1.1900,
@@ -2147,7 +2504,7 @@ pub const ZOGLIN: EntityData = EntityData {
 
 pub const ZOMBIE: EntityData = EntityData {
     name: "minecraft:zombie",
-    protocol_id: 124,
+    protocol_id: 145,
     width: 0.6000,
     height: 1.9500,
     eye_height: 1.6575,
@@ -2164,7 +2521,7 @@ pub const ZOMBIE: EntityData = EntityData {
 
 pub const ZOMBIE_HORSE: EntityData = EntityData {
     name: "minecraft:zombie_horse",
-    protocol_id: 125,
+    protocol_id: 146,
     width: 1.3965,
     height: 1.6000,
     eye_height: 1.3600,
@@ -2181,7 +2538,7 @@ pub const ZOMBIE_HORSE: EntityData = EntityData {
 
 pub const ZOMBIE_VILLAGER: EntityData = EntityData {
     name: "minecraft:zombie_villager",
-    protocol_id: 126,
+    protocol_id: 147,
     width: 0.6000,
     height: 1.9500,
     eye_height: 1.6575,
@@ -2198,7 +2555,7 @@ pub const ZOMBIE_VILLAGER: EntityData = EntityData {
 
 pub const ZOMBIFIED_PIGLIN: EntityData = EntityData {
     name: "minecraft:zombified_piglin",
-    protocol_id: 127,
+    protocol_id: 148,
     width: 0.6000,
     height: 1.9500,
     eye_height: 1.6575,
@@ -2218,30 +2575,39 @@ pub fn get_entity_by_name(name: &str) -> Option<&'static EntityData> {
     // Normalize input to full name if needed, or just match on full name
     let name = if !name.contains(':') { format!("minecraft:{}", name) } else { name.to_string() };
     match name.as_str() {
+        "acacia_boat" => Some(&ACACIA_BOAT),
+        "acacia_chest_boat" => Some(&ACACIA_CHEST_BOAT),
         "allay" => Some(&ALLAY),
         "area_effect_cloud" => Some(&AREA_EFFECT_CLOUD),
         "armadillo" => Some(&ARMADILLO),
         "armor_stand" => Some(&ARMOR_STAND),
         "arrow" => Some(&ARROW),
         "axolotl" => Some(&AXOLOTL),
+        "bamboo_chest_raft" => Some(&BAMBOO_CHEST_RAFT),
+        "bamboo_raft" => Some(&BAMBOO_RAFT),
         "bat" => Some(&BAT),
         "bee" => Some(&BEE),
+        "birch_boat" => Some(&BIRCH_BOAT),
+        "birch_chest_boat" => Some(&BIRCH_CHEST_BOAT),
         "blaze" => Some(&BLAZE),
         "block_display" => Some(&BLOCK_DISPLAY),
-        "boat" => Some(&BOAT),
         "bogged" => Some(&BOGGED),
         "breeze" => Some(&BREEZE),
         "breeze_wind_charge" => Some(&BREEZE_WIND_CHARGE),
         "camel" => Some(&CAMEL),
         "cat" => Some(&CAT),
         "cave_spider" => Some(&CAVE_SPIDER),
-        "chest_boat" => Some(&CHEST_BOAT),
+        "cherry_boat" => Some(&CHERRY_BOAT),
+        "cherry_chest_boat" => Some(&CHERRY_CHEST_BOAT),
         "chest_minecart" => Some(&CHEST_MINECART),
         "chicken" => Some(&CHICKEN),
         "cod" => Some(&COD),
         "command_block_minecart" => Some(&COMMAND_BLOCK_MINECART),
         "cow" => Some(&COW),
+        "creaking" => Some(&CREAKING),
         "creeper" => Some(&CREEPER),
+        "dark_oak_boat" => Some(&DARK_OAK_BOAT),
+        "dark_oak_chest_boat" => Some(&DARK_OAK_CHEST_BOAT),
         "dolphin" => Some(&DOLPHIN),
         "donkey" => Some(&DONKEY),
         "dragon_fireball" => Some(&DRAGON_FIREBALL),
@@ -2271,6 +2637,7 @@ pub fn get_entity_by_name(name: &str) -> Option<&'static EntityData> {
         "glow_squid" => Some(&GLOW_SQUID),
         "goat" => Some(&GOAT),
         "guardian" => Some(&GUARDIAN),
+        "happy_ghast" => Some(&HAPPY_GHAST),
         "hoglin" => Some(&HOGLIN),
         "hopper_minecart" => Some(&HOPPER_MINECART),
         "horse" => Some(&HORSE),
@@ -2281,18 +2648,27 @@ pub fn get_entity_by_name(name: &str) -> Option<&'static EntityData> {
         "item" => Some(&ITEM),
         "item_display" => Some(&ITEM_DISPLAY),
         "item_frame" => Some(&ITEM_FRAME),
+        "jungle_boat" => Some(&JUNGLE_BOAT),
+        "jungle_chest_boat" => Some(&JUNGLE_CHEST_BOAT),
         "leash_knot" => Some(&LEASH_KNOT),
         "lightning_bolt" => Some(&LIGHTNING_BOLT),
+        "lingering_potion" => Some(&LINGERING_POTION),
         "llama" => Some(&LLAMA),
         "llama_spit" => Some(&LLAMA_SPIT),
         "magma_cube" => Some(&MAGMA_CUBE),
+        "mangrove_boat" => Some(&MANGROVE_BOAT),
+        "mangrove_chest_boat" => Some(&MANGROVE_CHEST_BOAT),
         "marker" => Some(&MARKER),
         "minecart" => Some(&MINECART),
         "mooshroom" => Some(&MOOSHROOM),
         "mule" => Some(&MULE),
+        "oak_boat" => Some(&OAK_BOAT),
+        "oak_chest_boat" => Some(&OAK_CHEST_BOAT),
         "ocelot" => Some(&OCELOT),
         "ominous_item_spawner" => Some(&OMINOUS_ITEM_SPAWNER),
         "painting" => Some(&PAINTING),
+        "pale_oak_boat" => Some(&PALE_OAK_BOAT),
+        "pale_oak_chest_boat" => Some(&PALE_OAK_CHEST_BOAT),
         "panda" => Some(&PANDA),
         "parrot" => Some(&PARROT),
         "phantom" => Some(&PHANTOM),
@@ -2302,7 +2678,6 @@ pub fn get_entity_by_name(name: &str) -> Option<&'static EntityData> {
         "pillager" => Some(&PILLAGER),
         "player" => Some(&PLAYER),
         "polar_bear" => Some(&POLAR_BEAR),
-        "potion" => Some(&POTION),
         "pufferfish" => Some(&PUFFERFISH),
         "rabbit" => Some(&RABBIT),
         "ravager" => Some(&RAVAGER),
@@ -2321,6 +2696,9 @@ pub fn get_entity_by_name(name: &str) -> Option<&'static EntityData> {
         "spawner_minecart" => Some(&SPAWNER_MINECART),
         "spectral_arrow" => Some(&SPECTRAL_ARROW),
         "spider" => Some(&SPIDER),
+        "splash_potion" => Some(&SPLASH_POTION),
+        "spruce_boat" => Some(&SPRUCE_BOAT),
+        "spruce_chest_boat" => Some(&SPRUCE_CHEST_BOAT),
         "squid" => Some(&SQUID),
         "stray" => Some(&STRAY),
         "strider" => Some(&STRIDER),
@@ -2355,136 +2733,157 @@ pub fn get_entity_by_name(name: &str) -> Option<&'static EntityData> {
 /// Looks up EntityData by Protocol ID.
 pub fn get_entity_by_id(id: u32) -> Option<&'static EntityData> {
     match id {
-        0 => Some(&ALLAY),
-        1 => Some(&AREA_EFFECT_CLOUD),
-        2 => Some(&ARMADILLO),
-        3 => Some(&ARMOR_STAND),
-        4 => Some(&ARROW),
-        5 => Some(&AXOLOTL),
-        6 => Some(&BAT),
-        7 => Some(&BEE),
-        8 => Some(&BLAZE),
-        9 => Some(&BLOCK_DISPLAY),
-        10 => Some(&BOAT),
-        11 => Some(&BOGGED),
-        12 => Some(&BREEZE),
-        13 => Some(&BREEZE_WIND_CHARGE),
-        14 => Some(&CAMEL),
-        15 => Some(&CAT),
-        16 => Some(&CAVE_SPIDER),
-        17 => Some(&CHEST_BOAT),
-        18 => Some(&CHEST_MINECART),
-        19 => Some(&CHICKEN),
-        20 => Some(&COD),
-        21 => Some(&COMMAND_BLOCK_MINECART),
-        22 => Some(&COW),
-        23 => Some(&CREEPER),
-        24 => Some(&DOLPHIN),
-        25 => Some(&DONKEY),
-        26 => Some(&DRAGON_FIREBALL),
-        27 => Some(&DROWNED),
-        28 => Some(&EGG),
-        29 => Some(&ELDER_GUARDIAN),
-        30 => Some(&END_CRYSTAL),
-        31 => Some(&ENDER_DRAGON),
-        32 => Some(&ENDER_PEARL),
-        33 => Some(&ENDERMAN),
-        34 => Some(&ENDERMITE),
-        35 => Some(&EVOKER),
-        36 => Some(&EVOKER_FANGS),
-        37 => Some(&EXPERIENCE_BOTTLE),
-        38 => Some(&EXPERIENCE_ORB),
-        39 => Some(&EYE_OF_ENDER),
-        40 => Some(&FALLING_BLOCK),
-        62 => Some(&FIREBALL),
-        41 => Some(&FIREWORK_ROCKET),
-        129 => Some(&FISHING_BOBBER),
-        42 => Some(&FOX),
-        43 => Some(&FROG),
-        44 => Some(&FURNACE_MINECART),
-        45 => Some(&GHAST),
-        46 => Some(&GIANT),
-        47 => Some(&GLOW_ITEM_FRAME),
-        48 => Some(&GLOW_SQUID),
-        49 => Some(&GOAT),
-        50 => Some(&GUARDIAN),
-        51 => Some(&HOGLIN),
-        52 => Some(&HOPPER_MINECART),
-        53 => Some(&HORSE),
-        54 => Some(&HUSK),
-        55 => Some(&ILLUSIONER),
-        56 => Some(&INTERACTION),
-        57 => Some(&IRON_GOLEM),
-        58 => Some(&ITEM),
-        59 => Some(&ITEM_DISPLAY),
-        60 => Some(&ITEM_FRAME),
-        63 => Some(&LEASH_KNOT),
-        64 => Some(&LIGHTNING_BOLT),
-        65 => Some(&LLAMA),
-        66 => Some(&LLAMA_SPIT),
-        67 => Some(&MAGMA_CUBE),
-        68 => Some(&MARKER),
-        69 => Some(&MINECART),
-        70 => Some(&MOOSHROOM),
-        71 => Some(&MULE),
-        72 => Some(&OCELOT),
-        61 => Some(&OMINOUS_ITEM_SPAWNER),
-        73 => Some(&PAINTING),
-        74 => Some(&PANDA),
-        75 => Some(&PARROT),
-        76 => Some(&PHANTOM),
-        77 => Some(&PIG),
-        78 => Some(&PIGLIN),
-        79 => Some(&PIGLIN_BRUTE),
-        80 => Some(&PILLAGER),
-        128 => Some(&PLAYER),
-        81 => Some(&POLAR_BEAR),
-        82 => Some(&POTION),
-        83 => Some(&PUFFERFISH),
-        84 => Some(&RABBIT),
-        85 => Some(&RAVAGER),
-        86 => Some(&SALMON),
-        87 => Some(&SHEEP),
-        88 => Some(&SHULKER),
-        89 => Some(&SHULKER_BULLET),
-        90 => Some(&SILVERFISH),
-        91 => Some(&SKELETON),
-        92 => Some(&SKELETON_HORSE),
-        93 => Some(&SLIME),
-        94 => Some(&SMALL_FIREBALL),
-        95 => Some(&SNIFFER),
-        96 => Some(&SNOW_GOLEM),
-        97 => Some(&SNOWBALL),
-        98 => Some(&SPAWNER_MINECART),
-        99 => Some(&SPECTRAL_ARROW),
-        100 => Some(&SPIDER),
-        101 => Some(&SQUID),
-        102 => Some(&STRAY),
-        103 => Some(&STRIDER),
-        104 => Some(&TADPOLE),
-        105 => Some(&TEXT_DISPLAY),
-        106 => Some(&TNT),
-        107 => Some(&TNT_MINECART),
-        108 => Some(&TRADER_LLAMA),
-        109 => Some(&TRIDENT),
-        110 => Some(&TROPICAL_FISH),
-        111 => Some(&TURTLE),
-        112 => Some(&VEX),
-        113 => Some(&VILLAGER),
-        114 => Some(&VINDICATOR),
-        115 => Some(&WANDERING_TRADER),
-        116 => Some(&WARDEN),
-        117 => Some(&WIND_CHARGE),
-        118 => Some(&WITCH),
-        119 => Some(&WITHER),
-        120 => Some(&WITHER_SKELETON),
-        121 => Some(&WITHER_SKULL),
-        122 => Some(&WOLF),
-        123 => Some(&ZOGLIN),
-        124 => Some(&ZOMBIE),
-        125 => Some(&ZOMBIE_HORSE),
-        126 => Some(&ZOMBIE_VILLAGER),
-        127 => Some(&ZOMBIFIED_PIGLIN),
+        0 => Some(&ACACIA_BOAT),
+        1 => Some(&ACACIA_CHEST_BOAT),
+        2 => Some(&ALLAY),
+        3 => Some(&AREA_EFFECT_CLOUD),
+        4 => Some(&ARMADILLO),
+        5 => Some(&ARMOR_STAND),
+        6 => Some(&ARROW),
+        7 => Some(&AXOLOTL),
+        8 => Some(&BAMBOO_CHEST_RAFT),
+        9 => Some(&BAMBOO_RAFT),
+        10 => Some(&BAT),
+        11 => Some(&BEE),
+        12 => Some(&BIRCH_BOAT),
+        13 => Some(&BIRCH_CHEST_BOAT),
+        14 => Some(&BLAZE),
+        15 => Some(&BLOCK_DISPLAY),
+        16 => Some(&BOGGED),
+        17 => Some(&BREEZE),
+        18 => Some(&BREEZE_WIND_CHARGE),
+        19 => Some(&CAMEL),
+        20 => Some(&CAT),
+        21 => Some(&CAVE_SPIDER),
+        22 => Some(&CHERRY_BOAT),
+        23 => Some(&CHERRY_CHEST_BOAT),
+        24 => Some(&CHEST_MINECART),
+        25 => Some(&CHICKEN),
+        26 => Some(&COD),
+        27 => Some(&COMMAND_BLOCK_MINECART),
+        28 => Some(&COW),
+        29 => Some(&CREAKING),
+        30 => Some(&CREEPER),
+        31 => Some(&DARK_OAK_BOAT),
+        32 => Some(&DARK_OAK_CHEST_BOAT),
+        33 => Some(&DOLPHIN),
+        34 => Some(&DONKEY),
+        35 => Some(&DRAGON_FIREBALL),
+        36 => Some(&DROWNED),
+        37 => Some(&EGG),
+        38 => Some(&ELDER_GUARDIAN),
+        43 => Some(&END_CRYSTAL),
+        41 => Some(&ENDER_DRAGON),
+        42 => Some(&ENDER_PEARL),
+        39 => Some(&ENDERMAN),
+        40 => Some(&ENDERMITE),
+        44 => Some(&EVOKER),
+        45 => Some(&EVOKER_FANGS),
+        46 => Some(&EXPERIENCE_BOTTLE),
+        47 => Some(&EXPERIENCE_ORB),
+        48 => Some(&EYE_OF_ENDER),
+        49 => Some(&FALLING_BLOCK),
+        50 => Some(&FIREBALL),
+        51 => Some(&FIREWORK_ROCKET),
+        150 => Some(&FISHING_BOBBER),
+        52 => Some(&FOX),
+        53 => Some(&FROG),
+        54 => Some(&FURNACE_MINECART),
+        55 => Some(&GHAST),
+        57 => Some(&GIANT),
+        58 => Some(&GLOW_ITEM_FRAME),
+        59 => Some(&GLOW_SQUID),
+        60 => Some(&GOAT),
+        61 => Some(&GUARDIAN),
+        56 => Some(&HAPPY_GHAST),
+        62 => Some(&HOGLIN),
+        63 => Some(&HOPPER_MINECART),
+        64 => Some(&HORSE),
+        65 => Some(&HUSK),
+        66 => Some(&ILLUSIONER),
+        67 => Some(&INTERACTION),
+        68 => Some(&IRON_GOLEM),
+        69 => Some(&ITEM),
+        70 => Some(&ITEM_DISPLAY),
+        71 => Some(&ITEM_FRAME),
+        72 => Some(&JUNGLE_BOAT),
+        73 => Some(&JUNGLE_CHEST_BOAT),
+        74 => Some(&LEASH_KNOT),
+        75 => Some(&LIGHTNING_BOLT),
+        101 => Some(&LINGERING_POTION),
+        76 => Some(&LLAMA),
+        77 => Some(&LLAMA_SPIT),
+        78 => Some(&MAGMA_CUBE),
+        79 => Some(&MANGROVE_BOAT),
+        80 => Some(&MANGROVE_CHEST_BOAT),
+        81 => Some(&MARKER),
+        82 => Some(&MINECART),
+        83 => Some(&MOOSHROOM),
+        84 => Some(&MULE),
+        85 => Some(&OAK_BOAT),
+        86 => Some(&OAK_CHEST_BOAT),
+        87 => Some(&OCELOT),
+        88 => Some(&OMINOUS_ITEM_SPAWNER),
+        89 => Some(&PAINTING),
+        90 => Some(&PALE_OAK_BOAT),
+        91 => Some(&PALE_OAK_CHEST_BOAT),
+        92 => Some(&PANDA),
+        93 => Some(&PARROT),
+        94 => Some(&PHANTOM),
+        95 => Some(&PIG),
+        96 => Some(&PIGLIN),
+        97 => Some(&PIGLIN_BRUTE),
+        98 => Some(&PILLAGER),
+        149 => Some(&PLAYER),
+        99 => Some(&POLAR_BEAR),
+        102 => Some(&PUFFERFISH),
+        103 => Some(&RABBIT),
+        104 => Some(&RAVAGER),
+        105 => Some(&SALMON),
+        106 => Some(&SHEEP),
+        107 => Some(&SHULKER),
+        108 => Some(&SHULKER_BULLET),
+        109 => Some(&SILVERFISH),
+        110 => Some(&SKELETON),
+        111 => Some(&SKELETON_HORSE),
+        112 => Some(&SLIME),
+        113 => Some(&SMALL_FIREBALL),
+        114 => Some(&SNIFFER),
+        116 => Some(&SNOW_GOLEM),
+        115 => Some(&SNOWBALL),
+        117 => Some(&SPAWNER_MINECART),
+        118 => Some(&SPECTRAL_ARROW),
+        119 => Some(&SPIDER),
+        100 => Some(&SPLASH_POTION),
+        120 => Some(&SPRUCE_BOAT),
+        121 => Some(&SPRUCE_CHEST_BOAT),
+        122 => Some(&SQUID),
+        123 => Some(&STRAY),
+        124 => Some(&STRIDER),
+        125 => Some(&TADPOLE),
+        126 => Some(&TEXT_DISPLAY),
+        127 => Some(&TNT),
+        128 => Some(&TNT_MINECART),
+        129 => Some(&TRADER_LLAMA),
+        130 => Some(&TRIDENT),
+        131 => Some(&TROPICAL_FISH),
+        132 => Some(&TURTLE),
+        133 => Some(&VEX),
+        134 => Some(&VILLAGER),
+        135 => Some(&VINDICATOR),
+        136 => Some(&WANDERING_TRADER),
+        137 => Some(&WARDEN),
+        138 => Some(&WIND_CHARGE),
+        139 => Some(&WITCH),
+        140 => Some(&WITHER),
+        141 => Some(&WITHER_SKELETON),
+        142 => Some(&WITHER_SKULL),
+        143 => Some(&WOLF),
+        144 => Some(&ZOGLIN),
+        145 => Some(&ZOMBIE),
+        146 => Some(&ZOMBIE_HORSE),
+        147 => Some(&ZOMBIE_VILLAGER),
+        148 => Some(&ZOMBIFIED_PIGLIN),
         _ => None,
     }
 }

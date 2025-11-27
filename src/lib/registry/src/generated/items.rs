@@ -5,7 +5,7 @@ use ferrumc_core::items::item_data::*;
 
 pub const ACACIA_BOAT: ItemData = ItemData {
     name: "minecraft:acacia_boat",
-    protocol_id: 782,
+    protocol_id: 835,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -19,7 +19,7 @@ pub const ACACIA_BOAT: ItemData = ItemData {
 
 pub const ACACIA_BUTTON: ItemData = ItemData {
     name: "minecraft:acacia_button",
-    protocol_id: 688,
+    protocol_id: 719,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -33,7 +33,7 @@ pub const ACACIA_BUTTON: ItemData = ItemData {
 
 pub const ACACIA_CHEST_BOAT: ItemData = ItemData {
     name: "minecraft:acacia_chest_boat",
-    protocol_id: 783,
+    protocol_id: 836,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -47,7 +47,7 @@ pub const ACACIA_CHEST_BOAT: ItemData = ItemData {
 
 pub const ACACIA_DOOR: ItemData = ItemData {
     name: "minecraft:acacia_door",
-    protocol_id: 715,
+    protocol_id: 748,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -61,7 +61,7 @@ pub const ACACIA_DOOR: ItemData = ItemData {
 
 pub const ACACIA_FENCE: ItemData = ItemData {
     name: "minecraft:acacia_fence",
-    protocol_id: 315,
+    protocol_id: 336,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -75,7 +75,7 @@ pub const ACACIA_FENCE: ItemData = ItemData {
 
 pub const ACACIA_FENCE_GATE: ItemData = ItemData {
     name: "minecraft:acacia_fence_gate",
-    protocol_id: 754,
+    protocol_id: 789,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -89,7 +89,7 @@ pub const ACACIA_FENCE_GATE: ItemData = ItemData {
 
 pub const ACACIA_HANGING_SIGN: ItemData = ItemData {
     name: "minecraft:acacia_hanging_sign",
-    protocol_id: 901,
+    protocol_id: 959,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -103,7 +103,7 @@ pub const ACACIA_HANGING_SIGN: ItemData = ItemData {
 
 pub const ACACIA_LEAVES: ItemData = ItemData {
     name: "minecraft:acacia_leaves",
-    protocol_id: 180,
+    protocol_id: 186,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -117,7 +117,7 @@ pub const ACACIA_LEAVES: ItemData = ItemData {
 
 pub const ACACIA_LOG: ItemData = ItemData {
     name: "minecraft:acacia_log",
-    protocol_id: 136,
+    protocol_id: 138,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -145,7 +145,7 @@ pub const ACACIA_PLANKS: ItemData = ItemData {
 
 pub const ACACIA_PRESSURE_PLATE: ItemData = ItemData {
     name: "minecraft:acacia_pressure_plate",
-    protocol_id: 703,
+    protocol_id: 735,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -159,7 +159,7 @@ pub const ACACIA_PRESSURE_PLATE: ItemData = ItemData {
 
 pub const ACACIA_SAPLING: ItemData = ItemData {
     name: "minecraft:acacia_sapling",
-    protocol_id: 52,
+    protocol_id: 53,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -173,7 +173,7 @@ pub const ACACIA_SAPLING: ItemData = ItemData {
 
 pub const ACACIA_SIGN: ItemData = ItemData {
     name: "minecraft:acacia_sign",
-    protocol_id: 890,
+    protocol_id: 947,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -187,7 +187,7 @@ pub const ACACIA_SIGN: ItemData = ItemData {
 
 pub const ACACIA_SLAB: ItemData = ItemData {
     name: "minecraft:acacia_slab",
-    protocol_id: 256,
+    protocol_id: 274,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -201,7 +201,7 @@ pub const ACACIA_SLAB: ItemData = ItemData {
 
 pub const ACACIA_STAIRS: ItemData = ItemData {
     name: "minecraft:acacia_stairs",
-    protocol_id: 387,
+    protocol_id: 416,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -215,7 +215,7 @@ pub const ACACIA_STAIRS: ItemData = ItemData {
 
 pub const ACACIA_TRAPDOOR: ItemData = ItemData {
     name: "minecraft:acacia_trapdoor",
-    protocol_id: 735,
+    protocol_id: 769,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -229,7 +229,7 @@ pub const ACACIA_TRAPDOOR: ItemData = ItemData {
 
 pub const ACACIA_WOOD: ItemData = ItemData {
     name: "minecraft:acacia_wood",
-    protocol_id: 170,
+    protocol_id: 175,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -243,7 +243,7 @@ pub const ACACIA_WOOD: ItemData = ItemData {
 
 pub const ACTIVATOR_RAIL: ItemData = ItemData {
     name: "minecraft:activator_rail",
-    protocol_id: 764,
+    protocol_id: 800,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -271,7 +271,7 @@ pub const AIR: ItemData = ItemData {
 
 pub const ALLAY_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:allay_spawn_egg",
-    protocol_id: 1009,
+    protocol_id: 1086,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -285,7 +285,7 @@ pub const ALLAY_SPAWN_EGG: ItemData = ItemData {
 
 pub const ALLIUM: ItemData = ItemData {
     name: "minecraft:allium",
-    protocol_id: 221,
+    protocol_id: 234,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -299,7 +299,7 @@ pub const ALLIUM: ItemData = ItemData {
 
 pub const AMETHYST_BLOCK: ItemData = ItemData {
     name: "minecraft:amethyst_block",
-    protocol_id: 86,
+    protocol_id: 88,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -313,7 +313,7 @@ pub const AMETHYST_BLOCK: ItemData = ItemData {
 
 pub const AMETHYST_CLUSTER: ItemData = ItemData {
     name: "minecraft:amethyst_cluster",
-    protocol_id: 1261,
+    protocol_id: 1345,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -327,7 +327,7 @@ pub const AMETHYST_CLUSTER: ItemData = ItemData {
 
 pub const AMETHYST_SHARD: ItemData = ItemData {
     name: "minecraft:amethyst_shard",
-    protocol_id: 809,
+    protocol_id: 866,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -341,10 +341,10 @@ pub const AMETHYST_SHARD: ItemData = ItemData {
 
 pub const ANCIENT_DEBRIS: ItemData = ItemData {
     name: "minecraft:ancient_debris",
-    protocol_id: 80,
+    protocol_id: 82,
     max_stack_size: 64,
     max_damage: 0,
-    is_fire_resistant: false,
+    is_fire_resistant: true,
     rarity: Rarity::Common,
     food: None,
     tool: None,
@@ -369,7 +369,7 @@ pub const ANDESITE: ItemData = ItemData {
 
 pub const ANDESITE_SLAB: ItemData = ItemData {
     name: "minecraft:andesite_slab",
-    protocol_id: 648,
+    protocol_id: 679,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -383,7 +383,7 @@ pub const ANDESITE_SLAB: ItemData = ItemData {
 
 pub const ANDESITE_STAIRS: ItemData = ItemData {
     name: "minecraft:andesite_stairs",
-    protocol_id: 631,
+    protocol_id: 662,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -397,7 +397,7 @@ pub const ANDESITE_STAIRS: ItemData = ItemData {
 
 pub const ANDESITE_WALL: ItemData = ItemData {
     name: "minecraft:andesite_wall",
-    protocol_id: 407,
+    protocol_id: 437,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -411,11 +411,11 @@ pub const ANDESITE_WALL: ItemData = ItemData {
 
 pub const ANGLER_POTTERY_SHERD: ItemData = ItemData {
     name: "minecraft:angler_pottery_sherd",
-    protocol_id: 1288,
+    protocol_id: 1372,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -425,7 +425,7 @@ pub const ANGLER_POTTERY_SHERD: ItemData = ItemData {
 
 pub const ANVIL: ItemData = ItemData {
     name: "minecraft:anvil",
-    protocol_id: 419,
+    protocol_id: 449,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -439,7 +439,7 @@ pub const ANVIL: ItemData = ItemData {
 
 pub const APPLE: ItemData = ItemData {
     name: "minecraft:apple",
-    protocol_id: 800,
+    protocol_id: 857,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -453,11 +453,11 @@ pub const APPLE: ItemData = ItemData {
 
 pub const ARCHER_POTTERY_SHERD: ItemData = ItemData {
     name: "minecraft:archer_pottery_sherd",
-    protocol_id: 1289,
+    protocol_id: 1373,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -467,7 +467,7 @@ pub const ARCHER_POTTERY_SHERD: ItemData = ItemData {
 
 pub const ARMADILLO_SCUTE: ItemData = ItemData {
     name: "minecraft:armadillo_scute",
-    protocol_id: 796,
+    protocol_id: 853,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -481,7 +481,7 @@ pub const ARMADILLO_SCUTE: ItemData = ItemData {
 
 pub const ARMADILLO_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:armadillo_spawn_egg",
-    protocol_id: 1008,
+    protocol_id: 1085,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -495,7 +495,7 @@ pub const ARMADILLO_SPAWN_EGG: ItemData = ItemData {
 
 pub const ARMOR_STAND: ItemData = ItemData {
     name: "minecraft:armor_stand",
-    protocol_id: 1123,
+    protocol_id: 1204,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -509,11 +509,11 @@ pub const ARMOR_STAND: ItemData = ItemData {
 
 pub const ARMS_UP_POTTERY_SHERD: ItemData = ItemData {
     name: "minecraft:arms_up_pottery_sherd",
-    protocol_id: 1290,
+    protocol_id: 1374,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -523,7 +523,7 @@ pub const ARMS_UP_POTTERY_SHERD: ItemData = ItemData {
 
 pub const ARROW: ItemData = ItemData {
     name: "minecraft:arrow",
-    protocol_id: 802,
+    protocol_id: 859,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -537,7 +537,7 @@ pub const ARROW: ItemData = ItemData {
 
 pub const AXOLOTL_BUCKET: ItemData = ItemData {
     name: "minecraft:axolotl_bucket",
-    protocol_id: 919,
+    protocol_id: 978,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -551,7 +551,7 @@ pub const AXOLOTL_BUCKET: ItemData = ItemData {
 
 pub const AXOLOTL_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:axolotl_spawn_egg",
-    protocol_id: 1010,
+    protocol_id: 1087,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -565,7 +565,7 @@ pub const AXOLOTL_SPAWN_EGG: ItemData = ItemData {
 
 pub const AZALEA: ItemData = ItemData {
     name: "minecraft:azalea",
-    protocol_id: 197,
+    protocol_id: 205,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -579,7 +579,7 @@ pub const AZALEA: ItemData = ItemData {
 
 pub const AZALEA_LEAVES: ItemData = ItemData {
     name: "minecraft:azalea_leaves",
-    protocol_id: 184,
+    protocol_id: 191,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -593,7 +593,7 @@ pub const AZALEA_LEAVES: ItemData = ItemData {
 
 pub const AZURE_BLUET: ItemData = ItemData {
     name: "minecraft:azure_bluet",
-    protocol_id: 222,
+    protocol_id: 235,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -607,7 +607,7 @@ pub const AZURE_BLUET: ItemData = ItemData {
 
 pub const BAKED_POTATO: ItemData = ItemData {
     name: "minecraft:baked_potato",
-    protocol_id: 1099,
+    protocol_id: 1179,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -621,7 +621,7 @@ pub const BAKED_POTATO: ItemData = ItemData {
 
 pub const BAMBOO: ItemData = ItemData {
     name: "minecraft:bamboo",
-    protocol_id: 251,
+    protocol_id: 269,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -635,7 +635,7 @@ pub const BAMBOO: ItemData = ItemData {
 
 pub const BAMBOO_BLOCK: ItemData = ItemData {
     name: "minecraft:bamboo_block",
-    protocol_id: 144,
+    protocol_id: 147,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -649,7 +649,7 @@ pub const BAMBOO_BLOCK: ItemData = ItemData {
 
 pub const BAMBOO_BUTTON: ItemData = ItemData {
     name: "minecraft:bamboo_button",
-    protocol_id: 692,
+    protocol_id: 724,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -663,7 +663,7 @@ pub const BAMBOO_BUTTON: ItemData = ItemData {
 
 pub const BAMBOO_CHEST_RAFT: ItemData = ItemData {
     name: "minecraft:bamboo_chest_raft",
-    protocol_id: 791,
+    protocol_id: 846,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -677,7 +677,7 @@ pub const BAMBOO_CHEST_RAFT: ItemData = ItemData {
 
 pub const BAMBOO_DOOR: ItemData = ItemData {
     name: "minecraft:bamboo_door",
-    protocol_id: 719,
+    protocol_id: 753,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -691,7 +691,7 @@ pub const BAMBOO_DOOR: ItemData = ItemData {
 
 pub const BAMBOO_FENCE: ItemData = ItemData {
     name: "minecraft:bamboo_fence",
-    protocol_id: 319,
+    protocol_id: 341,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -705,7 +705,7 @@ pub const BAMBOO_FENCE: ItemData = ItemData {
 
 pub const BAMBOO_FENCE_GATE: ItemData = ItemData {
     name: "minecraft:bamboo_fence_gate",
-    protocol_id: 758,
+    protocol_id: 794,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -719,7 +719,7 @@ pub const BAMBOO_FENCE_GATE: ItemData = ItemData {
 
 pub const BAMBOO_HANGING_SIGN: ItemData = ItemData {
     name: "minecraft:bamboo_hanging_sign",
-    protocol_id: 905,
+    protocol_id: 964,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -733,7 +733,7 @@ pub const BAMBOO_HANGING_SIGN: ItemData = ItemData {
 
 pub const BAMBOO_MOSAIC: ItemData = ItemData {
     name: "minecraft:bamboo_mosaic",
-    protocol_id: 47,
+    protocol_id: 48,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -747,7 +747,7 @@ pub const BAMBOO_MOSAIC: ItemData = ItemData {
 
 pub const BAMBOO_MOSAIC_SLAB: ItemData = ItemData {
     name: "minecraft:bamboo_mosaic_slab",
-    protocol_id: 261,
+    protocol_id: 280,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -761,7 +761,7 @@ pub const BAMBOO_MOSAIC_SLAB: ItemData = ItemData {
 
 pub const BAMBOO_MOSAIC_STAIRS: ItemData = ItemData {
     name: "minecraft:bamboo_mosaic_stairs",
-    protocol_id: 392,
+    protocol_id: 422,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -775,7 +775,7 @@ pub const BAMBOO_MOSAIC_STAIRS: ItemData = ItemData {
 
 pub const BAMBOO_PLANKS: ItemData = ItemData {
     name: "minecraft:bamboo_planks",
-    protocol_id: 44,
+    protocol_id: 45,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -789,7 +789,7 @@ pub const BAMBOO_PLANKS: ItemData = ItemData {
 
 pub const BAMBOO_PRESSURE_PLATE: ItemData = ItemData {
     name: "minecraft:bamboo_pressure_plate",
-    protocol_id: 707,
+    protocol_id: 740,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -803,7 +803,7 @@ pub const BAMBOO_PRESSURE_PLATE: ItemData = ItemData {
 
 pub const BAMBOO_RAFT: ItemData = ItemData {
     name: "minecraft:bamboo_raft",
-    protocol_id: 790,
+    protocol_id: 845,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -817,7 +817,7 @@ pub const BAMBOO_RAFT: ItemData = ItemData {
 
 pub const BAMBOO_SIGN: ItemData = ItemData {
     name: "minecraft:bamboo_sign",
-    protocol_id: 894,
+    protocol_id: 952,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -831,7 +831,7 @@ pub const BAMBOO_SIGN: ItemData = ItemData {
 
 pub const BAMBOO_SLAB: ItemData = ItemData {
     name: "minecraft:bamboo_slab",
-    protocol_id: 260,
+    protocol_id: 279,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -845,7 +845,7 @@ pub const BAMBOO_SLAB: ItemData = ItemData {
 
 pub const BAMBOO_STAIRS: ItemData = ItemData {
     name: "minecraft:bamboo_stairs",
-    protocol_id: 391,
+    protocol_id: 421,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -859,7 +859,7 @@ pub const BAMBOO_STAIRS: ItemData = ItemData {
 
 pub const BAMBOO_TRAPDOOR: ItemData = ItemData {
     name: "minecraft:bamboo_trapdoor",
-    protocol_id: 739,
+    protocol_id: 774,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -873,7 +873,7 @@ pub const BAMBOO_TRAPDOOR: ItemData = ItemData {
 
 pub const BARREL: ItemData = ItemData {
     name: "minecraft:barrel",
-    protocol_id: 1205,
+    protocol_id: 1289,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -887,7 +887,7 @@ pub const BARREL: ItemData = ItemData {
 
 pub const BARRIER: ItemData = ItemData {
     name: "minecraft:barrier",
-    protocol_id: 443,
+    protocol_id: 473,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -901,7 +901,7 @@ pub const BARRIER: ItemData = ItemData {
 
 pub const BASALT: ItemData = ItemData {
     name: "minecraft:basalt",
-    protocol_id: 328,
+    protocol_id: 350,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -915,7 +915,7 @@ pub const BASALT: ItemData = ItemData {
 
 pub const BAT_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:bat_spawn_egg",
-    protocol_id: 1011,
+    protocol_id: 1088,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -929,7 +929,7 @@ pub const BAT_SPAWN_EGG: ItemData = ItemData {
 
 pub const BEACON: ItemData = ItemData {
     name: "minecraft:beacon",
-    protocol_id: 396,
+    protocol_id: 426,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -943,7 +943,7 @@ pub const BEACON: ItemData = ItemData {
 
 pub const BEDROCK: ItemData = ItemData {
     name: "minecraft:bedrock",
-    protocol_id: 56,
+    protocol_id: 58,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -957,7 +957,7 @@ pub const BEDROCK: ItemData = ItemData {
 
 pub const BEE_NEST: ItemData = ItemData {
     name: "minecraft:bee_nest",
-    protocol_id: 1222,
+    protocol_id: 1306,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -971,7 +971,7 @@ pub const BEE_NEST: ItemData = ItemData {
 
 pub const BEE_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:bee_spawn_egg",
-    protocol_id: 1012,
+    protocol_id: 1089,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -985,7 +985,7 @@ pub const BEE_SPAWN_EGG: ItemData = ItemData {
 
 pub const BEEF: ItemData = ItemData {
     name: "minecraft:beef",
-    protocol_id: 988,
+    protocol_id: 1065,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -999,7 +999,7 @@ pub const BEEF: ItemData = ItemData {
 
 pub const BEEHIVE: ItemData = ItemData {
     name: "minecraft:beehive",
-    protocol_id: 1223,
+    protocol_id: 1307,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1013,7 +1013,7 @@ pub const BEEHIVE: ItemData = ItemData {
 
 pub const BEETROOT: ItemData = ItemData {
     name: "minecraft:beetroot",
-    protocol_id: 1154,
+    protocol_id: 1235,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1027,7 +1027,7 @@ pub const BEETROOT: ItemData = ItemData {
 
 pub const BEETROOT_SEEDS: ItemData = ItemData {
     name: "minecraft:beetroot_seeds",
-    protocol_id: 1155,
+    protocol_id: 1236,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1041,7 +1041,7 @@ pub const BEETROOT_SEEDS: ItemData = ItemData {
 
 pub const BEETROOT_SOUP: ItemData = ItemData {
     name: "minecraft:beetroot_soup",
-    protocol_id: 1156,
+    protocol_id: 1237,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1055,7 +1055,7 @@ pub const BEETROOT_SOUP: ItemData = ItemData {
 
 pub const BELL: ItemData = ItemData {
     name: "minecraft:bell",
-    protocol_id: 1213,
+    protocol_id: 1297,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1069,7 +1069,7 @@ pub const BELL: ItemData = ItemData {
 
 pub const BIG_DRIPLEAF: ItemData = ItemData {
     name: "minecraft:big_dripleaf",
-    protocol_id: 249,
+    protocol_id: 267,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1083,7 +1083,7 @@ pub const BIG_DRIPLEAF: ItemData = ItemData {
 
 pub const BIRCH_BOAT: ItemData = ItemData {
     name: "minecraft:birch_boat",
-    protocol_id: 778,
+    protocol_id: 831,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1097,7 +1097,7 @@ pub const BIRCH_BOAT: ItemData = ItemData {
 
 pub const BIRCH_BUTTON: ItemData = ItemData {
     name: "minecraft:birch_button",
-    protocol_id: 686,
+    protocol_id: 717,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1111,7 +1111,7 @@ pub const BIRCH_BUTTON: ItemData = ItemData {
 
 pub const BIRCH_CHEST_BOAT: ItemData = ItemData {
     name: "minecraft:birch_chest_boat",
-    protocol_id: 779,
+    protocol_id: 832,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1125,7 +1125,7 @@ pub const BIRCH_CHEST_BOAT: ItemData = ItemData {
 
 pub const BIRCH_DOOR: ItemData = ItemData {
     name: "minecraft:birch_door",
-    protocol_id: 713,
+    protocol_id: 746,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1139,7 +1139,7 @@ pub const BIRCH_DOOR: ItemData = ItemData {
 
 pub const BIRCH_FENCE: ItemData = ItemData {
     name: "minecraft:birch_fence",
-    protocol_id: 313,
+    protocol_id: 334,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1153,7 +1153,7 @@ pub const BIRCH_FENCE: ItemData = ItemData {
 
 pub const BIRCH_FENCE_GATE: ItemData = ItemData {
     name: "minecraft:birch_fence_gate",
-    protocol_id: 752,
+    protocol_id: 787,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1167,7 +1167,7 @@ pub const BIRCH_FENCE_GATE: ItemData = ItemData {
 
 pub const BIRCH_HANGING_SIGN: ItemData = ItemData {
     name: "minecraft:birch_hanging_sign",
-    protocol_id: 899,
+    protocol_id: 957,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1181,7 +1181,7 @@ pub const BIRCH_HANGING_SIGN: ItemData = ItemData {
 
 pub const BIRCH_LEAVES: ItemData = ItemData {
     name: "minecraft:birch_leaves",
-    protocol_id: 178,
+    protocol_id: 184,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1195,7 +1195,7 @@ pub const BIRCH_LEAVES: ItemData = ItemData {
 
 pub const BIRCH_LOG: ItemData = ItemData {
     name: "minecraft:birch_log",
-    protocol_id: 134,
+    protocol_id: 136,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1223,7 +1223,7 @@ pub const BIRCH_PLANKS: ItemData = ItemData {
 
 pub const BIRCH_PRESSURE_PLATE: ItemData = ItemData {
     name: "minecraft:birch_pressure_plate",
-    protocol_id: 701,
+    protocol_id: 733,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1237,7 +1237,7 @@ pub const BIRCH_PRESSURE_PLATE: ItemData = ItemData {
 
 pub const BIRCH_SAPLING: ItemData = ItemData {
     name: "minecraft:birch_sapling",
-    protocol_id: 50,
+    protocol_id: 51,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1251,7 +1251,7 @@ pub const BIRCH_SAPLING: ItemData = ItemData {
 
 pub const BIRCH_SIGN: ItemData = ItemData {
     name: "minecraft:birch_sign",
-    protocol_id: 888,
+    protocol_id: 945,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1265,7 +1265,7 @@ pub const BIRCH_SIGN: ItemData = ItemData {
 
 pub const BIRCH_SLAB: ItemData = ItemData {
     name: "minecraft:birch_slab",
-    protocol_id: 254,
+    protocol_id: 272,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1279,7 +1279,7 @@ pub const BIRCH_SLAB: ItemData = ItemData {
 
 pub const BIRCH_STAIRS: ItemData = ItemData {
     name: "minecraft:birch_stairs",
-    protocol_id: 385,
+    protocol_id: 414,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1293,7 +1293,7 @@ pub const BIRCH_STAIRS: ItemData = ItemData {
 
 pub const BIRCH_TRAPDOOR: ItemData = ItemData {
     name: "minecraft:birch_trapdoor",
-    protocol_id: 733,
+    protocol_id: 767,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1307,7 +1307,7 @@ pub const BIRCH_TRAPDOOR: ItemData = ItemData {
 
 pub const BIRCH_WOOD: ItemData = ItemData {
     name: "minecraft:birch_wood",
-    protocol_id: 168,
+    protocol_id: 173,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1321,7 +1321,7 @@ pub const BIRCH_WOOD: ItemData = ItemData {
 
 pub const BLACK_BANNER: ItemData = ItemData {
     name: "minecraft:black_banner",
-    protocol_id: 1148,
+    protocol_id: 1229,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1335,7 +1335,21 @@ pub const BLACK_BANNER: ItemData = ItemData {
 
 pub const BLACK_BED: ItemData = ItemData {
     name: "minecraft:black_bed",
-    protocol_id: 979,
+    protocol_id: 1056,
+    max_stack_size: 1,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const BLACK_BUNDLE: ItemData = ItemData {
+    name: "minecraft:black_bundle",
+    protocol_id: 1007,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1349,7 +1363,7 @@ pub const BLACK_BED: ItemData = ItemData {
 
 pub const BLACK_CANDLE: ItemData = ItemData {
     name: "minecraft:black_candle",
-    protocol_id: 1257,
+    protocol_id: 1341,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1363,7 +1377,7 @@ pub const BLACK_CANDLE: ItemData = ItemData {
 
 pub const BLACK_CARPET: ItemData = ItemData {
     name: "minecraft:black_carpet",
-    protocol_id: 461,
+    protocol_id: 491,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1377,7 +1391,7 @@ pub const BLACK_CARPET: ItemData = ItemData {
 
 pub const BLACK_CONCRETE: ItemData = ItemData {
     name: "minecraft:black_concrete",
-    protocol_id: 570,
+    protocol_id: 600,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1391,7 +1405,7 @@ pub const BLACK_CONCRETE: ItemData = ItemData {
 
 pub const BLACK_CONCRETE_POWDER: ItemData = ItemData {
     name: "minecraft:black_concrete_powder",
-    protocol_id: 586,
+    protocol_id: 616,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1405,7 +1419,7 @@ pub const BLACK_CONCRETE_POWDER: ItemData = ItemData {
 
 pub const BLACK_DYE: ItemData = ItemData {
     name: "minecraft:black_dye",
-    protocol_id: 959,
+    protocol_id: 1036,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1419,8 +1433,22 @@ pub const BLACK_DYE: ItemData = ItemData {
 
 pub const BLACK_GLAZED_TERRACOTTA: ItemData = ItemData {
     name: "minecraft:black_glazed_terracotta",
-    protocol_id: 554,
+    protocol_id: 584,
     max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const BLACK_HARNESS: ItemData = ItemData {
+    name: "minecraft:black_harness",
+    protocol_id: 817,
+    max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
@@ -1433,7 +1461,7 @@ pub const BLACK_GLAZED_TERRACOTTA: ItemData = ItemData {
 
 pub const BLACK_SHULKER_BOX: ItemData = ItemData {
     name: "minecraft:black_shulker_box",
-    protocol_id: 538,
+    protocol_id: 568,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1447,7 +1475,7 @@ pub const BLACK_SHULKER_BOX: ItemData = ItemData {
 
 pub const BLACK_STAINED_GLASS: ItemData = ItemData {
     name: "minecraft:black_stained_glass",
-    protocol_id: 486,
+    protocol_id: 516,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1461,7 +1489,7 @@ pub const BLACK_STAINED_GLASS: ItemData = ItemData {
 
 pub const BLACK_STAINED_GLASS_PANE: ItemData = ItemData {
     name: "minecraft:black_stained_glass_pane",
-    protocol_id: 502,
+    protocol_id: 532,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1475,7 +1503,7 @@ pub const BLACK_STAINED_GLASS_PANE: ItemData = ItemData {
 
 pub const BLACK_TERRACOTTA: ItemData = ItemData {
     name: "minecraft:black_terracotta",
-    protocol_id: 442,
+    protocol_id: 472,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1489,7 +1517,7 @@ pub const BLACK_TERRACOTTA: ItemData = ItemData {
 
 pub const BLACK_WOOL: ItemData = ItemData {
     name: "minecraft:black_wool",
-    protocol_id: 217,
+    protocol_id: 228,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1503,7 +1531,7 @@ pub const BLACK_WOOL: ItemData = ItemData {
 
 pub const BLACKSTONE: ItemData = ItemData {
     name: "minecraft:blackstone",
-    protocol_id: 1228,
+    protocol_id: 1312,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1517,7 +1545,7 @@ pub const BLACKSTONE: ItemData = ItemData {
 
 pub const BLACKSTONE_SLAB: ItemData = ItemData {
     name: "minecraft:blackstone_slab",
-    protocol_id: 1229,
+    protocol_id: 1313,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1531,7 +1559,7 @@ pub const BLACKSTONE_SLAB: ItemData = ItemData {
 
 pub const BLACKSTONE_STAIRS: ItemData = ItemData {
     name: "minecraft:blackstone_stairs",
-    protocol_id: 1230,
+    protocol_id: 1314,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1545,7 +1573,7 @@ pub const BLACKSTONE_STAIRS: ItemData = ItemData {
 
 pub const BLACKSTONE_WALL: ItemData = ItemData {
     name: "minecraft:blackstone_wall",
-    protocol_id: 412,
+    protocol_id: 442,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1559,11 +1587,11 @@ pub const BLACKSTONE_WALL: ItemData = ItemData {
 
 pub const BLADE_POTTERY_SHERD: ItemData = ItemData {
     name: "minecraft:blade_pottery_sherd",
-    protocol_id: 1291,
+    protocol_id: 1375,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -1573,7 +1601,7 @@ pub const BLADE_POTTERY_SHERD: ItemData = ItemData {
 
 pub const BLAST_FURNACE: ItemData = ItemData {
     name: "minecraft:blast_furnace",
-    protocol_id: 1207,
+    protocol_id: 1291,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1587,7 +1615,7 @@ pub const BLAST_FURNACE: ItemData = ItemData {
 
 pub const BLAZE_POWDER: ItemData = ItemData {
     name: "minecraft:blaze_powder",
-    protocol_id: 1002,
+    protocol_id: 1079,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1601,7 +1629,7 @@ pub const BLAZE_POWDER: ItemData = ItemData {
 
 pub const BLAZE_ROD: ItemData = ItemData {
     name: "minecraft:blaze_rod",
-    protocol_id: 994,
+    protocol_id: 1071,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1615,7 +1643,7 @@ pub const BLAZE_ROD: ItemData = ItemData {
 
 pub const BLAZE_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:blaze_spawn_egg",
-    protocol_id: 1013,
+    protocol_id: 1090,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1629,7 +1657,7 @@ pub const BLAZE_SPAWN_EGG: ItemData = ItemData {
 
 pub const BLUE_BANNER: ItemData = ItemData {
     name: "minecraft:blue_banner",
-    protocol_id: 1144,
+    protocol_id: 1225,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1643,7 +1671,21 @@ pub const BLUE_BANNER: ItemData = ItemData {
 
 pub const BLUE_BED: ItemData = ItemData {
     name: "minecraft:blue_bed",
-    protocol_id: 975,
+    protocol_id: 1052,
+    max_stack_size: 1,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const BLUE_BUNDLE: ItemData = ItemData {
+    name: "minecraft:blue_bundle",
+    protocol_id: 1003,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1657,7 +1699,7 @@ pub const BLUE_BED: ItemData = ItemData {
 
 pub const BLUE_CANDLE: ItemData = ItemData {
     name: "minecraft:blue_candle",
-    protocol_id: 1253,
+    protocol_id: 1337,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1671,7 +1713,7 @@ pub const BLUE_CANDLE: ItemData = ItemData {
 
 pub const BLUE_CARPET: ItemData = ItemData {
     name: "minecraft:blue_carpet",
-    protocol_id: 457,
+    protocol_id: 487,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1685,7 +1727,7 @@ pub const BLUE_CARPET: ItemData = ItemData {
 
 pub const BLUE_CONCRETE: ItemData = ItemData {
     name: "minecraft:blue_concrete",
-    protocol_id: 566,
+    protocol_id: 596,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1699,7 +1741,7 @@ pub const BLUE_CONCRETE: ItemData = ItemData {
 
 pub const BLUE_CONCRETE_POWDER: ItemData = ItemData {
     name: "minecraft:blue_concrete_powder",
-    protocol_id: 582,
+    protocol_id: 612,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1713,8 +1755,22 @@ pub const BLUE_CONCRETE_POWDER: ItemData = ItemData {
 
 pub const BLUE_DYE: ItemData = ItemData {
     name: "minecraft:blue_dye",
-    protocol_id: 955,
+    protocol_id: 1032,
     max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const BLUE_EGG: ItemData = ItemData {
+    name: "minecraft:blue_egg",
+    protocol_id: 987,
+    max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
@@ -1727,8 +1783,22 @@ pub const BLUE_DYE: ItemData = ItemData {
 
 pub const BLUE_GLAZED_TERRACOTTA: ItemData = ItemData {
     name: "minecraft:blue_glazed_terracotta",
-    protocol_id: 550,
+    protocol_id: 580,
     max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const BLUE_HARNESS: ItemData = ItemData {
+    name: "minecraft:blue_harness",
+    protocol_id: 813,
+    max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
@@ -1741,7 +1811,7 @@ pub const BLUE_GLAZED_TERRACOTTA: ItemData = ItemData {
 
 pub const BLUE_ICE: ItemData = ItemData {
     name: "minecraft:blue_ice",
-    protocol_id: 619,
+    protocol_id: 650,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1755,7 +1825,7 @@ pub const BLUE_ICE: ItemData = ItemData {
 
 pub const BLUE_ORCHID: ItemData = ItemData {
     name: "minecraft:blue_orchid",
-    protocol_id: 220,
+    protocol_id: 233,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1769,7 +1839,7 @@ pub const BLUE_ORCHID: ItemData = ItemData {
 
 pub const BLUE_SHULKER_BOX: ItemData = ItemData {
     name: "minecraft:blue_shulker_box",
-    protocol_id: 534,
+    protocol_id: 564,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1783,7 +1853,7 @@ pub const BLUE_SHULKER_BOX: ItemData = ItemData {
 
 pub const BLUE_STAINED_GLASS: ItemData = ItemData {
     name: "minecraft:blue_stained_glass",
-    protocol_id: 482,
+    protocol_id: 512,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1797,7 +1867,7 @@ pub const BLUE_STAINED_GLASS: ItemData = ItemData {
 
 pub const BLUE_STAINED_GLASS_PANE: ItemData = ItemData {
     name: "minecraft:blue_stained_glass_pane",
-    protocol_id: 498,
+    protocol_id: 528,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1811,7 +1881,7 @@ pub const BLUE_STAINED_GLASS_PANE: ItemData = ItemData {
 
 pub const BLUE_TERRACOTTA: ItemData = ItemData {
     name: "minecraft:blue_terracotta",
-    protocol_id: 438,
+    protocol_id: 468,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1825,7 +1895,7 @@ pub const BLUE_TERRACOTTA: ItemData = ItemData {
 
 pub const BLUE_WOOL: ItemData = ItemData {
     name: "minecraft:blue_wool",
-    protocol_id: 213,
+    protocol_id: 224,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1839,7 +1909,7 @@ pub const BLUE_WOOL: ItemData = ItemData {
 
 pub const BOGGED_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:bogged_spawn_egg",
-    protocol_id: 1014,
+    protocol_id: 1091,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1853,11 +1923,11 @@ pub const BOGGED_SPAWN_EGG: ItemData = ItemData {
 
 pub const BOLT_ARMOR_TRIM_SMITHING_TEMPLATE: ItemData = ItemData {
     name: "minecraft:bolt_armor_trim_smithing_template",
-    protocol_id: 1287,
+    protocol_id: 1371,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -1867,7 +1937,7 @@ pub const BOLT_ARMOR_TRIM_SMITHING_TEMPLATE: ItemData = ItemData {
 
 pub const BONE: ItemData = ItemData {
     name: "minecraft:bone",
-    protocol_id: 961,
+    protocol_id: 1038,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1881,7 +1951,7 @@ pub const BONE: ItemData = ItemData {
 
 pub const BONE_BLOCK: ItemData = ItemData {
     name: "minecraft:bone_block",
-    protocol_id: 520,
+    protocol_id: 550,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1895,7 +1965,7 @@ pub const BONE_BLOCK: ItemData = ItemData {
 
 pub const BONE_MEAL: ItemData = ItemData {
     name: "minecraft:bone_meal",
-    protocol_id: 960,
+    protocol_id: 1037,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1909,7 +1979,21 @@ pub const BONE_MEAL: ItemData = ItemData {
 
 pub const BOOK: ItemData = ItemData {
     name: "minecraft:book",
-    protocol_id: 925,
+    protocol_id: 984,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: Some(1),
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const BOOKSHELF: ItemData = ItemData {
+    name: "minecraft:bookshelf",
+    protocol_id: 305,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1921,10 +2005,10 @@ pub const BOOK: ItemData = ItemData {
     attribute_modifiers: &[],
 };
 
-pub const BOOKSHELF: ItemData = ItemData {
-    name: "minecraft:bookshelf",
-    protocol_id: 286,
-    max_stack_size: 64,
+pub const BORDURE_INDENTED_BANNER_PATTERN: ItemData = ItemData {
+    name: "minecraft:bordure_indented_banner_pattern",
+    protocol_id: 1286,
+    max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
@@ -1937,21 +2021,21 @@ pub const BOOKSHELF: ItemData = ItemData {
 
 pub const BOW: ItemData = ItemData {
     name: "minecraft:bow",
-    protocol_id: 801,
+    protocol_id: 858,
     max_stack_size: 1,
     max_damage: 384,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: None,
-    enchantable_value: None,
+    enchantable_value: Some(1),
     repairable_with: None,
     attribute_modifiers: &[],
 };
 
 pub const BOWL: ItemData = ItemData {
     name: "minecraft:bowl",
-    protocol_id: 799,
+    protocol_id: 856,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1965,7 +2049,7 @@ pub const BOWL: ItemData = ItemData {
 
 pub const BRAIN_CORAL: ItemData = ItemData {
     name: "minecraft:brain_coral",
-    protocol_id: 600,
+    protocol_id: 631,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1979,7 +2063,7 @@ pub const BRAIN_CORAL: ItemData = ItemData {
 
 pub const BRAIN_CORAL_BLOCK: ItemData = ItemData {
     name: "minecraft:brain_coral_block",
-    protocol_id: 595,
+    protocol_id: 626,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -1993,7 +2077,7 @@ pub const BRAIN_CORAL_BLOCK: ItemData = ItemData {
 
 pub const BRAIN_CORAL_FAN: ItemData = ItemData {
     name: "minecraft:brain_coral_fan",
-    protocol_id: 610,
+    protocol_id: 641,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2007,7 +2091,7 @@ pub const BRAIN_CORAL_FAN: ItemData = ItemData {
 
 pub const BREAD: ItemData = ItemData {
     name: "minecraft:bread",
-    protocol_id: 855,
+    protocol_id: 912,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2021,7 +2105,7 @@ pub const BREAD: ItemData = ItemData {
 
 pub const BREEZE_ROD: ItemData = ItemData {
     name: "minecraft:breeze_rod",
-    protocol_id: 1332,
+    protocol_id: 1172,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2035,7 +2119,7 @@ pub const BREEZE_ROD: ItemData = ItemData {
 
 pub const BREEZE_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:breeze_spawn_egg",
-    protocol_id: 1015,
+    protocol_id: 1092,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2049,11 +2133,11 @@ pub const BREEZE_SPAWN_EGG: ItemData = ItemData {
 
 pub const BREWER_POTTERY_SHERD: ItemData = ItemData {
     name: "minecraft:brewer_pottery_sherd",
-    protocol_id: 1292,
+    protocol_id: 1376,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -2063,7 +2147,7 @@ pub const BREWER_POTTERY_SHERD: ItemData = ItemData {
 
 pub const BREWING_STAND: ItemData = ItemData {
     name: "minecraft:brewing_stand",
-    protocol_id: 1004,
+    protocol_id: 1081,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2077,7 +2161,7 @@ pub const BREWING_STAND: ItemData = ItemData {
 
 pub const BRICK: ItemData = ItemData {
     name: "minecraft:brick",
-    protocol_id: 921,
+    protocol_id: 980,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2091,7 +2175,7 @@ pub const BRICK: ItemData = ItemData {
 
 pub const BRICK_SLAB: ItemData = ItemData {
     name: "minecraft:brick_slab",
-    protocol_id: 270,
+    protocol_id: 289,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2105,7 +2189,7 @@ pub const BRICK_SLAB: ItemData = ItemData {
 
 pub const BRICK_STAIRS: ItemData = ItemData {
     name: "minecraft:brick_stairs",
-    protocol_id: 361,
+    protocol_id: 390,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2119,7 +2203,7 @@ pub const BRICK_STAIRS: ItemData = ItemData {
 
 pub const BRICK_WALL: ItemData = ItemData {
     name: "minecraft:brick_wall",
-    protocol_id: 399,
+    protocol_id: 429,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2133,7 +2217,7 @@ pub const BRICK_WALL: ItemData = ItemData {
 
 pub const BRICKS: ItemData = ItemData {
     name: "minecraft:bricks",
-    protocol_id: 285,
+    protocol_id: 304,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2147,7 +2231,7 @@ pub const BRICKS: ItemData = ItemData {
 
 pub const BROWN_BANNER: ItemData = ItemData {
     name: "minecraft:brown_banner",
-    protocol_id: 1145,
+    protocol_id: 1226,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2161,7 +2245,21 @@ pub const BROWN_BANNER: ItemData = ItemData {
 
 pub const BROWN_BED: ItemData = ItemData {
     name: "minecraft:brown_bed",
-    protocol_id: 976,
+    protocol_id: 1053,
+    max_stack_size: 1,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const BROWN_BUNDLE: ItemData = ItemData {
+    name: "minecraft:brown_bundle",
+    protocol_id: 1004,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2175,7 +2273,7 @@ pub const BROWN_BED: ItemData = ItemData {
 
 pub const BROWN_CANDLE: ItemData = ItemData {
     name: "minecraft:brown_candle",
-    protocol_id: 1254,
+    protocol_id: 1338,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2189,7 +2287,7 @@ pub const BROWN_CANDLE: ItemData = ItemData {
 
 pub const BROWN_CARPET: ItemData = ItemData {
     name: "minecraft:brown_carpet",
-    protocol_id: 458,
+    protocol_id: 488,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2203,7 +2301,7 @@ pub const BROWN_CARPET: ItemData = ItemData {
 
 pub const BROWN_CONCRETE: ItemData = ItemData {
     name: "minecraft:brown_concrete",
-    protocol_id: 567,
+    protocol_id: 597,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2217,7 +2315,7 @@ pub const BROWN_CONCRETE: ItemData = ItemData {
 
 pub const BROWN_CONCRETE_POWDER: ItemData = ItemData {
     name: "minecraft:brown_concrete_powder",
-    protocol_id: 583,
+    protocol_id: 613,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2231,8 +2329,22 @@ pub const BROWN_CONCRETE_POWDER: ItemData = ItemData {
 
 pub const BROWN_DYE: ItemData = ItemData {
     name: "minecraft:brown_dye",
-    protocol_id: 956,
+    protocol_id: 1033,
     max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const BROWN_EGG: ItemData = ItemData {
+    name: "minecraft:brown_egg",
+    protocol_id: 988,
+    max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
@@ -2245,8 +2357,22 @@ pub const BROWN_DYE: ItemData = ItemData {
 
 pub const BROWN_GLAZED_TERRACOTTA: ItemData = ItemData {
     name: "minecraft:brown_glazed_terracotta",
-    protocol_id: 551,
+    protocol_id: 581,
     max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const BROWN_HARNESS: ItemData = ItemData {
+    name: "minecraft:brown_harness",
+    protocol_id: 814,
+    max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
@@ -2259,7 +2385,7 @@ pub const BROWN_GLAZED_TERRACOTTA: ItemData = ItemData {
 
 pub const BROWN_MUSHROOM: ItemData = ItemData {
     name: "minecraft:brown_mushroom",
-    protocol_id: 234,
+    protocol_id: 247,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2273,7 +2399,7 @@ pub const BROWN_MUSHROOM: ItemData = ItemData {
 
 pub const BROWN_MUSHROOM_BLOCK: ItemData = ItemData {
     name: "minecraft:brown_mushroom_block",
-    protocol_id: 352,
+    protocol_id: 374,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2287,7 +2413,7 @@ pub const BROWN_MUSHROOM_BLOCK: ItemData = ItemData {
 
 pub const BROWN_SHULKER_BOX: ItemData = ItemData {
     name: "minecraft:brown_shulker_box",
-    protocol_id: 535,
+    protocol_id: 565,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2301,7 +2427,7 @@ pub const BROWN_SHULKER_BOX: ItemData = ItemData {
 
 pub const BROWN_STAINED_GLASS: ItemData = ItemData {
     name: "minecraft:brown_stained_glass",
-    protocol_id: 483,
+    protocol_id: 513,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2315,7 +2441,7 @@ pub const BROWN_STAINED_GLASS: ItemData = ItemData {
 
 pub const BROWN_STAINED_GLASS_PANE: ItemData = ItemData {
     name: "minecraft:brown_stained_glass_pane",
-    protocol_id: 499,
+    protocol_id: 529,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2329,7 +2455,7 @@ pub const BROWN_STAINED_GLASS_PANE: ItemData = ItemData {
 
 pub const BROWN_TERRACOTTA: ItemData = ItemData {
     name: "minecraft:brown_terracotta",
-    protocol_id: 439,
+    protocol_id: 469,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2343,7 +2469,7 @@ pub const BROWN_TERRACOTTA: ItemData = ItemData {
 
 pub const BROWN_WOOL: ItemData = ItemData {
     name: "minecraft:brown_wool",
-    protocol_id: 214,
+    protocol_id: 225,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2357,7 +2483,7 @@ pub const BROWN_WOOL: ItemData = ItemData {
 
 pub const BRUSH: ItemData = ItemData {
     name: "minecraft:brush",
-    protocol_id: 1268,
+    protocol_id: 1352,
     max_stack_size: 1,
     max_damage: 64,
     is_fire_resistant: false,
@@ -2371,7 +2497,7 @@ pub const BRUSH: ItemData = ItemData {
 
 pub const BUBBLE_CORAL: ItemData = ItemData {
     name: "minecraft:bubble_coral",
-    protocol_id: 601,
+    protocol_id: 632,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2385,7 +2511,7 @@ pub const BUBBLE_CORAL: ItemData = ItemData {
 
 pub const BUBBLE_CORAL_BLOCK: ItemData = ItemData {
     name: "minecraft:bubble_coral_block",
-    protocol_id: 596,
+    protocol_id: 627,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2399,7 +2525,7 @@ pub const BUBBLE_CORAL_BLOCK: ItemData = ItemData {
 
 pub const BUBBLE_CORAL_FAN: ItemData = ItemData {
     name: "minecraft:bubble_coral_fan",
-    protocol_id: 611,
+    protocol_id: 642,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2413,7 +2539,7 @@ pub const BUBBLE_CORAL_FAN: ItemData = ItemData {
 
 pub const BUCKET: ItemData = ItemData {
     name: "minecraft:bucket",
-    protocol_id: 908,
+    protocol_id: 967,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2427,7 +2553,7 @@ pub const BUCKET: ItemData = ItemData {
 
 pub const BUDDING_AMETHYST: ItemData = ItemData {
     name: "minecraft:budding_amethyst",
-    protocol_id: 87,
+    protocol_id: 89,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2441,7 +2567,7 @@ pub const BUDDING_AMETHYST: ItemData = ItemData {
 
 pub const BUNDLE: ItemData = ItemData {
     name: "minecraft:bundle",
-    protocol_id: 930,
+    protocol_id: 991,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2455,7 +2581,21 @@ pub const BUNDLE: ItemData = ItemData {
 
 pub const BURN_POTTERY_SHERD: ItemData = ItemData {
     name: "minecraft:burn_pottery_sherd",
-    protocol_id: 1293,
+    protocol_id: 1377,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Uncommon,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const BUSH: ItemData = ItemData {
+    name: "minecraft:bush",
+    protocol_id: 204,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2469,7 +2609,21 @@ pub const BURN_POTTERY_SHERD: ItemData = ItemData {
 
 pub const CACTUS: ItemData = ItemData {
     name: "minecraft:cactus",
-    protocol_id: 308,
+    protocol_id: 328,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const CACTUS_FLOWER: ItemData = ItemData {
+    name: "minecraft:cactus_flower",
+    protocol_id: 329,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2483,7 +2637,7 @@ pub const CACTUS: ItemData = ItemData {
 
 pub const CAKE: ItemData = ItemData {
     name: "minecraft:cake",
-    protocol_id: 963,
+    protocol_id: 1040,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2511,7 +2665,7 @@ pub const CALCITE: ItemData = ItemData {
 
 pub const CALIBRATED_SCULK_SENSOR: ItemData = ItemData {
     name: "minecraft:calibrated_sculk_sensor",
-    protocol_id: 676,
+    protocol_id: 707,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2525,7 +2679,7 @@ pub const CALIBRATED_SCULK_SENSOR: ItemData = ItemData {
 
 pub const CAMEL_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:camel_spawn_egg",
-    protocol_id: 1017,
+    protocol_id: 1094,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2539,7 +2693,7 @@ pub const CAMEL_SPAWN_EGG: ItemData = ItemData {
 
 pub const CAMPFIRE: ItemData = ItemData {
     name: "minecraft:campfire",
-    protocol_id: 1218,
+    protocol_id: 1302,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2553,7 +2707,7 @@ pub const CAMPFIRE: ItemData = ItemData {
 
 pub const CANDLE: ItemData = ItemData {
     name: "minecraft:candle",
-    protocol_id: 1241,
+    protocol_id: 1325,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2567,7 +2721,7 @@ pub const CANDLE: ItemData = ItemData {
 
 pub const CARROT: ItemData = ItemData {
     name: "minecraft:carrot",
-    protocol_id: 1097,
+    protocol_id: 1177,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2581,7 +2735,7 @@ pub const CARROT: ItemData = ItemData {
 
 pub const CARROT_ON_A_STICK: ItemData = ItemData {
     name: "minecraft:carrot_on_a_stick",
-    protocol_id: 771,
+    protocol_id: 823,
     max_stack_size: 1,
     max_damage: 25,
     is_fire_resistant: false,
@@ -2595,7 +2749,7 @@ pub const CARROT_ON_A_STICK: ItemData = ItemData {
 
 pub const CARTOGRAPHY_TABLE: ItemData = ItemData {
     name: "minecraft:cartography_table",
-    protocol_id: 1208,
+    protocol_id: 1292,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2609,7 +2763,7 @@ pub const CARTOGRAPHY_TABLE: ItemData = ItemData {
 
 pub const CARVED_PUMPKIN: ItemData = ItemData {
     name: "minecraft:carved_pumpkin",
-    protocol_id: 323,
+    protocol_id: 345,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2618,12 +2772,12 @@ pub const CARVED_PUMPKIN: ItemData = ItemData {
     tool: None,
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Unknown, amount: -1.0000, operation: AttributeOperation::MultiplyTotal, slot: EquipmentSlot::Head }, ],
 };
 
 pub const CAT_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:cat_spawn_egg",
-    protocol_id: 1016,
+    protocol_id: 1093,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2637,7 +2791,7 @@ pub const CAT_SPAWN_EGG: ItemData = ItemData {
 
 pub const CAULDRON: ItemData = ItemData {
     name: "minecraft:cauldron",
-    protocol_id: 1005,
+    protocol_id: 1082,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2651,7 +2805,7 @@ pub const CAULDRON: ItemData = ItemData {
 
 pub const CAVE_SPIDER_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:cave_spider_spawn_egg",
-    protocol_id: 1018,
+    protocol_id: 1095,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2665,7 +2819,7 @@ pub const CAVE_SPIDER_SPAWN_EGG: ItemData = ItemData {
 
 pub const CHAIN: ItemData = ItemData {
     name: "minecraft:chain",
-    protocol_id: 356,
+    protocol_id: 378,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2679,7 +2833,7 @@ pub const CHAIN: ItemData = ItemData {
 
 pub const CHAIN_COMMAND_BLOCK: ItemData = ItemData {
     name: "minecraft:chain_command_block",
-    protocol_id: 515,
+    protocol_id: 545,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2693,63 +2847,63 @@ pub const CHAIN_COMMAND_BLOCK: ItemData = ItemData {
 
 pub const CHAINMAIL_BOOTS: ItemData = ItemData {
     name: "minecraft:chainmail_boots",
-    protocol_id: 863,
+    protocol_id: 920,
     max_stack_size: 1,
     max_damage: 195,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
-    enchantable_value: None,
-    repairable_with: None,
-    attribute_modifiers: &[],
+    enchantable_value: Some(12),
+    repairable_with: Some("#minecraft:repairs_chain_armor"),
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Armor, amount: 1.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Feet }, AttributeModifier { kind: AttributeType::ArmorToughness, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Feet }, ],
 };
 
 pub const CHAINMAIL_CHESTPLATE: ItemData = ItemData {
     name: "minecraft:chainmail_chestplate",
-    protocol_id: 861,
+    protocol_id: 918,
     max_stack_size: 1,
     max_damage: 240,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
-    enchantable_value: None,
-    repairable_with: None,
-    attribute_modifiers: &[],
+    enchantable_value: Some(12),
+    repairable_with: Some("#minecraft:repairs_chain_armor"),
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Armor, amount: 5.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Chest }, AttributeModifier { kind: AttributeType::ArmorToughness, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Chest }, ],
 };
 
 pub const CHAINMAIL_HELMET: ItemData = ItemData {
     name: "minecraft:chainmail_helmet",
-    protocol_id: 860,
+    protocol_id: 917,
     max_stack_size: 1,
     max_damage: 165,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
-    enchantable_value: None,
-    repairable_with: None,
-    attribute_modifiers: &[],
+    enchantable_value: Some(12),
+    repairable_with: Some("#minecraft:repairs_chain_armor"),
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Armor, amount: 2.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Head }, AttributeModifier { kind: AttributeType::ArmorToughness, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Head }, ],
 };
 
 pub const CHAINMAIL_LEGGINGS: ItemData = ItemData {
     name: "minecraft:chainmail_leggings",
-    protocol_id: 862,
+    protocol_id: 919,
     max_stack_size: 1,
     max_damage: 225,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
-    enchantable_value: None,
-    repairable_with: None,
-    attribute_modifiers: &[],
+    enchantable_value: Some(12),
+    repairable_with: Some("#minecraft:repairs_chain_armor"),
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Armor, amount: 4.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Legs }, AttributeModifier { kind: AttributeType::ArmorToughness, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Legs }, ],
 };
 
 pub const CHARCOAL: ItemData = ItemData {
     name: "minecraft:charcoal",
-    protocol_id: 804,
+    protocol_id: 861,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2763,7 +2917,7 @@ pub const CHARCOAL: ItemData = ItemData {
 
 pub const CHERRY_BOAT: ItemData = ItemData {
     name: "minecraft:cherry_boat",
-    protocol_id: 784,
+    protocol_id: 837,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2777,7 +2931,7 @@ pub const CHERRY_BOAT: ItemData = ItemData {
 
 pub const CHERRY_BUTTON: ItemData = ItemData {
     name: "minecraft:cherry_button",
-    protocol_id: 689,
+    protocol_id: 720,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2791,7 +2945,7 @@ pub const CHERRY_BUTTON: ItemData = ItemData {
 
 pub const CHERRY_CHEST_BOAT: ItemData = ItemData {
     name: "minecraft:cherry_chest_boat",
-    protocol_id: 785,
+    protocol_id: 838,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2805,7 +2959,7 @@ pub const CHERRY_CHEST_BOAT: ItemData = ItemData {
 
 pub const CHERRY_DOOR: ItemData = ItemData {
     name: "minecraft:cherry_door",
-    protocol_id: 716,
+    protocol_id: 749,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2819,7 +2973,7 @@ pub const CHERRY_DOOR: ItemData = ItemData {
 
 pub const CHERRY_FENCE: ItemData = ItemData {
     name: "minecraft:cherry_fence",
-    protocol_id: 316,
+    protocol_id: 337,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2833,7 +2987,7 @@ pub const CHERRY_FENCE: ItemData = ItemData {
 
 pub const CHERRY_FENCE_GATE: ItemData = ItemData {
     name: "minecraft:cherry_fence_gate",
-    protocol_id: 755,
+    protocol_id: 790,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2847,7 +3001,7 @@ pub const CHERRY_FENCE_GATE: ItemData = ItemData {
 
 pub const CHERRY_HANGING_SIGN: ItemData = ItemData {
     name: "minecraft:cherry_hanging_sign",
-    protocol_id: 902,
+    protocol_id: 960,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2861,7 +3015,7 @@ pub const CHERRY_HANGING_SIGN: ItemData = ItemData {
 
 pub const CHERRY_LEAVES: ItemData = ItemData {
     name: "minecraft:cherry_leaves",
-    protocol_id: 181,
+    protocol_id: 187,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2875,7 +3029,7 @@ pub const CHERRY_LEAVES: ItemData = ItemData {
 
 pub const CHERRY_LOG: ItemData = ItemData {
     name: "minecraft:cherry_log",
-    protocol_id: 137,
+    protocol_id: 139,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2903,7 +3057,7 @@ pub const CHERRY_PLANKS: ItemData = ItemData {
 
 pub const CHERRY_PRESSURE_PLATE: ItemData = ItemData {
     name: "minecraft:cherry_pressure_plate",
-    protocol_id: 704,
+    protocol_id: 736,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2917,7 +3071,7 @@ pub const CHERRY_PRESSURE_PLATE: ItemData = ItemData {
 
 pub const CHERRY_SAPLING: ItemData = ItemData {
     name: "minecraft:cherry_sapling",
-    protocol_id: 53,
+    protocol_id: 54,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2931,7 +3085,7 @@ pub const CHERRY_SAPLING: ItemData = ItemData {
 
 pub const CHERRY_SIGN: ItemData = ItemData {
     name: "minecraft:cherry_sign",
-    protocol_id: 891,
+    protocol_id: 948,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2945,7 +3099,7 @@ pub const CHERRY_SIGN: ItemData = ItemData {
 
 pub const CHERRY_SLAB: ItemData = ItemData {
     name: "minecraft:cherry_slab",
-    protocol_id: 257,
+    protocol_id: 275,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2959,7 +3113,7 @@ pub const CHERRY_SLAB: ItemData = ItemData {
 
 pub const CHERRY_STAIRS: ItemData = ItemData {
     name: "minecraft:cherry_stairs",
-    protocol_id: 388,
+    protocol_id: 417,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2973,7 +3127,7 @@ pub const CHERRY_STAIRS: ItemData = ItemData {
 
 pub const CHERRY_TRAPDOOR: ItemData = ItemData {
     name: "minecraft:cherry_trapdoor",
-    protocol_id: 736,
+    protocol_id: 770,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -2987,7 +3141,7 @@ pub const CHERRY_TRAPDOOR: ItemData = ItemData {
 
 pub const CHERRY_WOOD: ItemData = ItemData {
     name: "minecraft:cherry_wood",
-    protocol_id: 171,
+    protocol_id: 176,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3001,7 +3155,7 @@ pub const CHERRY_WOOD: ItemData = ItemData {
 
 pub const CHEST: ItemData = ItemData {
     name: "minecraft:chest",
-    protocol_id: 299,
+    protocol_id: 319,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3015,7 +3169,7 @@ pub const CHEST: ItemData = ItemData {
 
 pub const CHEST_MINECART: ItemData = ItemData {
     name: "minecraft:chest_minecart",
-    protocol_id: 767,
+    protocol_id: 819,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3029,7 +3183,7 @@ pub const CHEST_MINECART: ItemData = ItemData {
 
 pub const CHICKEN: ItemData = ItemData {
     name: "minecraft:chicken",
-    protocol_id: 990,
+    protocol_id: 1067,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3043,7 +3197,7 @@ pub const CHICKEN: ItemData = ItemData {
 
 pub const CHICKEN_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:chicken_spawn_egg",
-    protocol_id: 1019,
+    protocol_id: 1096,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3057,7 +3211,7 @@ pub const CHICKEN_SPAWN_EGG: ItemData = ItemData {
 
 pub const CHIPPED_ANVIL: ItemData = ItemData {
     name: "minecraft:chipped_anvil",
-    protocol_id: 420,
+    protocol_id: 450,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3071,7 +3225,7 @@ pub const CHIPPED_ANVIL: ItemData = ItemData {
 
 pub const CHISELED_BOOKSHELF: ItemData = ItemData {
     name: "minecraft:chiseled_bookshelf",
-    protocol_id: 287,
+    protocol_id: 306,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3085,7 +3239,7 @@ pub const CHISELED_BOOKSHELF: ItemData = ItemData {
 
 pub const CHISELED_COPPER: ItemData = ItemData {
     name: "minecraft:chiseled_copper",
-    protocol_id: 96,
+    protocol_id: 98,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3099,7 +3253,7 @@ pub const CHISELED_COPPER: ItemData = ItemData {
 
 pub const CHISELED_DEEPSLATE: ItemData = ItemData {
     name: "minecraft:chiseled_deepslate",
-    protocol_id: 350,
+    protocol_id: 372,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3113,7 +3267,7 @@ pub const CHISELED_DEEPSLATE: ItemData = ItemData {
 
 pub const CHISELED_NETHER_BRICKS: ItemData = ItemData {
     name: "minecraft:chiseled_nether_bricks",
-    protocol_id: 368,
+    protocol_id: 397,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3127,7 +3281,7 @@ pub const CHISELED_NETHER_BRICKS: ItemData = ItemData {
 
 pub const CHISELED_POLISHED_BLACKSTONE: ItemData = ItemData {
     name: "minecraft:chiseled_polished_blackstone",
-    protocol_id: 1235,
+    protocol_id: 1319,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3141,7 +3295,7 @@ pub const CHISELED_POLISHED_BLACKSTONE: ItemData = ItemData {
 
 pub const CHISELED_QUARTZ_BLOCK: ItemData = ItemData {
     name: "minecraft:chiseled_quartz_block",
-    protocol_id: 422,
+    protocol_id: 452,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3155,7 +3309,21 @@ pub const CHISELED_QUARTZ_BLOCK: ItemData = ItemData {
 
 pub const CHISELED_RED_SANDSTONE: ItemData = ItemData {
     name: "minecraft:chiseled_red_sandstone",
-    protocol_id: 511,
+    protocol_id: 541,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const CHISELED_RESIN_BRICKS: ItemData = ItemData {
+    name: "minecraft:chiseled_resin_bricks",
+    protocol_id: 389,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3169,7 +3337,7 @@ pub const CHISELED_RED_SANDSTONE: ItemData = ItemData {
 
 pub const CHISELED_SANDSTONE: ItemData = ItemData {
     name: "minecraft:chiseled_sandstone",
-    protocol_id: 192,
+    protocol_id: 199,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3183,7 +3351,7 @@ pub const CHISELED_SANDSTONE: ItemData = ItemData {
 
 pub const CHISELED_STONE_BRICKS: ItemData = ItemData {
     name: "minecraft:chiseled_stone_bricks",
-    protocol_id: 343,
+    protocol_id: 365,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3225,7 +3393,7 @@ pub const CHISELED_TUFF_BRICKS: ItemData = ItemData {
 
 pub const CHORUS_FLOWER: ItemData = ItemData {
     name: "minecraft:chorus_flower",
-    protocol_id: 294,
+    protocol_id: 313,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3239,7 +3407,7 @@ pub const CHORUS_FLOWER: ItemData = ItemData {
 
 pub const CHORUS_FRUIT: ItemData = ItemData {
     name: "minecraft:chorus_fruit",
-    protocol_id: 1150,
+    protocol_id: 1231,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3253,7 +3421,7 @@ pub const CHORUS_FRUIT: ItemData = ItemData {
 
 pub const CHORUS_PLANT: ItemData = ItemData {
     name: "minecraft:chorus_plant",
-    protocol_id: 293,
+    protocol_id: 312,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3267,7 +3435,7 @@ pub const CHORUS_PLANT: ItemData = ItemData {
 
 pub const CLAY: ItemData = ItemData {
     name: "minecraft:clay",
-    protocol_id: 309,
+    protocol_id: 330,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3281,7 +3449,7 @@ pub const CLAY: ItemData = ItemData {
 
 pub const CLAY_BALL: ItemData = ItemData {
     name: "minecraft:clay_ball",
-    protocol_id: 922,
+    protocol_id: 981,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3295,7 +3463,21 @@ pub const CLAY_BALL: ItemData = ItemData {
 
 pub const CLOCK: ItemData = ItemData {
     name: "minecraft:clock",
-    protocol_id: 932,
+    protocol_id: 1009,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const CLOSED_EYEBLOSSOM: ItemData = ItemData {
+    name: "minecraft:closed_eyeblossom",
+    protocol_id: 231,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3309,7 +3491,7 @@ pub const CLOCK: ItemData = ItemData {
 
 pub const COAL: ItemData = ItemData {
     name: "minecraft:coal",
-    protocol_id: 803,
+    protocol_id: 860,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3323,7 +3505,7 @@ pub const COAL: ItemData = ItemData {
 
 pub const COAL_BLOCK: ItemData = ItemData {
     name: "minecraft:coal_block",
-    protocol_id: 81,
+    protocol_id: 83,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3337,7 +3519,7 @@ pub const COAL_BLOCK: ItemData = ItemData {
 
 pub const COAL_ORE: ItemData = ItemData {
     name: "minecraft:coal_ore",
-    protocol_id: 62,
+    protocol_id: 64,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3365,11 +3547,11 @@ pub const COARSE_DIRT: ItemData = ItemData {
 
 pub const COAST_ARMOR_TRIM_SMITHING_TEMPLATE: ItemData = ItemData {
     name: "minecraft:coast_armor_trim_smithing_template",
-    protocol_id: 1272,
+    protocol_id: 1356,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -3393,7 +3575,7 @@ pub const COBBLED_DEEPSLATE: ItemData = ItemData {
 
 pub const COBBLED_DEEPSLATE_SLAB: ItemData = ItemData {
     name: "minecraft:cobbled_deepslate_slab",
-    protocol_id: 652,
+    protocol_id: 683,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3407,7 +3589,7 @@ pub const COBBLED_DEEPSLATE_SLAB: ItemData = ItemData {
 
 pub const COBBLED_DEEPSLATE_STAIRS: ItemData = ItemData {
     name: "minecraft:cobbled_deepslate_stairs",
-    protocol_id: 635,
+    protocol_id: 666,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3421,7 +3603,7 @@ pub const COBBLED_DEEPSLATE_STAIRS: ItemData = ItemData {
 
 pub const COBBLED_DEEPSLATE_WALL: ItemData = ItemData {
     name: "minecraft:cobbled_deepslate_wall",
-    protocol_id: 415,
+    protocol_id: 445,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3449,7 +3631,7 @@ pub const COBBLESTONE: ItemData = ItemData {
 
 pub const COBBLESTONE_SLAB: ItemData = ItemData {
     name: "minecraft:cobblestone_slab",
-    protocol_id: 269,
+    protocol_id: 288,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3463,7 +3645,7 @@ pub const COBBLESTONE_SLAB: ItemData = ItemData {
 
 pub const COBBLESTONE_STAIRS: ItemData = ItemData {
     name: "minecraft:cobblestone_stairs",
-    protocol_id: 304,
+    protocol_id: 324,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3477,7 +3659,7 @@ pub const COBBLESTONE_STAIRS: ItemData = ItemData {
 
 pub const COBBLESTONE_WALL: ItemData = ItemData {
     name: "minecraft:cobblestone_wall",
-    protocol_id: 397,
+    protocol_id: 427,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3491,7 +3673,7 @@ pub const COBBLESTONE_WALL: ItemData = ItemData {
 
 pub const COBWEB: ItemData = ItemData {
     name: "minecraft:cobweb",
-    protocol_id: 194,
+    protocol_id: 201,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3505,7 +3687,7 @@ pub const COBWEB: ItemData = ItemData {
 
 pub const COCOA_BEANS: ItemData = ItemData {
     name: "minecraft:cocoa_beans",
-    protocol_id: 943,
+    protocol_id: 1020,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3519,7 +3701,7 @@ pub const COCOA_BEANS: ItemData = ItemData {
 
 pub const COD: ItemData = ItemData {
     name: "minecraft:cod",
-    protocol_id: 935,
+    protocol_id: 1012,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3533,7 +3715,7 @@ pub const COD: ItemData = ItemData {
 
 pub const COD_BUCKET: ItemData = ItemData {
     name: "minecraft:cod_bucket",
-    protocol_id: 917,
+    protocol_id: 976,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3547,7 +3729,7 @@ pub const COD_BUCKET: ItemData = ItemData {
 
 pub const COD_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:cod_spawn_egg",
-    protocol_id: 1020,
+    protocol_id: 1097,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3561,7 +3743,7 @@ pub const COD_SPAWN_EGG: ItemData = ItemData {
 
 pub const COMMAND_BLOCK: ItemData = ItemData {
     name: "minecraft:command_block",
-    protocol_id: 395,
+    protocol_id: 425,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3575,7 +3757,7 @@ pub const COMMAND_BLOCK: ItemData = ItemData {
 
 pub const COMMAND_BLOCK_MINECART: ItemData = ItemData {
     name: "minecraft:command_block_minecart",
-    protocol_id: 1130,
+    protocol_id: 1211,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3589,7 +3771,7 @@ pub const COMMAND_BLOCK_MINECART: ItemData = ItemData {
 
 pub const COMPARATOR: ItemData = ItemData {
     name: "minecraft:comparator",
-    protocol_id: 661,
+    protocol_id: 692,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3603,7 +3785,7 @@ pub const COMPARATOR: ItemData = ItemData {
 
 pub const COMPASS: ItemData = ItemData {
     name: "minecraft:compass",
-    protocol_id: 928,
+    protocol_id: 989,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3617,7 +3799,7 @@ pub const COMPASS: ItemData = ItemData {
 
 pub const COMPOSTER: ItemData = ItemData {
     name: "minecraft:composter",
-    protocol_id: 1204,
+    protocol_id: 1288,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3631,11 +3813,11 @@ pub const COMPOSTER: ItemData = ItemData {
 
 pub const CONDUIT: ItemData = ItemData {
     name: "minecraft:conduit",
-    protocol_id: 620,
+    protocol_id: 651,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Rare,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -3645,7 +3827,7 @@ pub const CONDUIT: ItemData = ItemData {
 
 pub const COOKED_BEEF: ItemData = ItemData {
     name: "minecraft:cooked_beef",
-    protocol_id: 989,
+    protocol_id: 1066,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3659,7 +3841,7 @@ pub const COOKED_BEEF: ItemData = ItemData {
 
 pub const COOKED_CHICKEN: ItemData = ItemData {
     name: "minecraft:cooked_chicken",
-    protocol_id: 991,
+    protocol_id: 1068,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3673,7 +3855,7 @@ pub const COOKED_CHICKEN: ItemData = ItemData {
 
 pub const COOKED_COD: ItemData = ItemData {
     name: "minecraft:cooked_cod",
-    protocol_id: 939,
+    protocol_id: 1016,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3687,7 +3869,7 @@ pub const COOKED_COD: ItemData = ItemData {
 
 pub const COOKED_MUTTON: ItemData = ItemData {
     name: "minecraft:cooked_mutton",
-    protocol_id: 1132,
+    protocol_id: 1213,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3701,7 +3883,7 @@ pub const COOKED_MUTTON: ItemData = ItemData {
 
 pub const COOKED_PORKCHOP: ItemData = ItemData {
     name: "minecraft:cooked_porkchop",
-    protocol_id: 882,
+    protocol_id: 939,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3715,7 +3897,7 @@ pub const COOKED_PORKCHOP: ItemData = ItemData {
 
 pub const COOKED_RABBIT: ItemData = ItemData {
     name: "minecraft:cooked_rabbit",
-    protocol_id: 1119,
+    protocol_id: 1200,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3729,7 +3911,7 @@ pub const COOKED_RABBIT: ItemData = ItemData {
 
 pub const COOKED_SALMON: ItemData = ItemData {
     name: "minecraft:cooked_salmon",
-    protocol_id: 940,
+    protocol_id: 1017,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3743,7 +3925,7 @@ pub const COOKED_SALMON: ItemData = ItemData {
 
 pub const COOKIE: ItemData = ItemData {
     name: "minecraft:cookie",
-    protocol_id: 980,
+    protocol_id: 1057,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3757,7 +3939,7 @@ pub const COOKIE: ItemData = ItemData {
 
 pub const COPPER_BLOCK: ItemData = ItemData {
     name: "minecraft:copper_block",
-    protocol_id: 89,
+    protocol_id: 91,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3771,7 +3953,7 @@ pub const COPPER_BLOCK: ItemData = ItemData {
 
 pub const COPPER_BULB: ItemData = ItemData {
     name: "minecraft:copper_bulb",
-    protocol_id: 1319,
+    protocol_id: 1403,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3785,7 +3967,7 @@ pub const COPPER_BULB: ItemData = ItemData {
 
 pub const COPPER_DOOR: ItemData = ItemData {
     name: "minecraft:copper_door",
-    protocol_id: 722,
+    protocol_id: 756,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3799,7 +3981,7 @@ pub const COPPER_DOOR: ItemData = ItemData {
 
 pub const COPPER_GRATE: ItemData = ItemData {
     name: "minecraft:copper_grate",
-    protocol_id: 1311,
+    protocol_id: 1395,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3813,7 +3995,7 @@ pub const COPPER_GRATE: ItemData = ItemData {
 
 pub const COPPER_INGOT: ItemData = ItemData {
     name: "minecraft:copper_ingot",
-    protocol_id: 813,
+    protocol_id: 870,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3827,7 +4009,7 @@ pub const COPPER_INGOT: ItemData = ItemData {
 
 pub const COPPER_ORE: ItemData = ItemData {
     name: "minecraft:copper_ore",
-    protocol_id: 66,
+    protocol_id: 68,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3841,7 +4023,7 @@ pub const COPPER_ORE: ItemData = ItemData {
 
 pub const COPPER_TRAPDOOR: ItemData = ItemData {
     name: "minecraft:copper_trapdoor",
-    protocol_id: 742,
+    protocol_id: 777,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3855,7 +4037,7 @@ pub const COPPER_TRAPDOOR: ItemData = ItemData {
 
 pub const CORNFLOWER: ItemData = ItemData {
     name: "minecraft:cornflower",
-    protocol_id: 228,
+    protocol_id: 241,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3869,7 +4051,7 @@ pub const CORNFLOWER: ItemData = ItemData {
 
 pub const COW_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:cow_spawn_egg",
-    protocol_id: 1021,
+    protocol_id: 1098,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3883,7 +4065,7 @@ pub const COW_SPAWN_EGG: ItemData = ItemData {
 
 pub const CRACKED_DEEPSLATE_BRICKS: ItemData = ItemData {
     name: "minecraft:cracked_deepslate_bricks",
-    protocol_id: 347,
+    protocol_id: 369,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3897,7 +4079,7 @@ pub const CRACKED_DEEPSLATE_BRICKS: ItemData = ItemData {
 
 pub const CRACKED_DEEPSLATE_TILES: ItemData = ItemData {
     name: "minecraft:cracked_deepslate_tiles",
-    protocol_id: 349,
+    protocol_id: 371,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3911,7 +4093,7 @@ pub const CRACKED_DEEPSLATE_TILES: ItemData = ItemData {
 
 pub const CRACKED_NETHER_BRICKS: ItemData = ItemData {
     name: "minecraft:cracked_nether_bricks",
-    protocol_id: 367,
+    protocol_id: 396,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3925,7 +4107,7 @@ pub const CRACKED_NETHER_BRICKS: ItemData = ItemData {
 
 pub const CRACKED_POLISHED_BLACKSTONE_BRICKS: ItemData = ItemData {
     name: "minecraft:cracked_polished_blackstone_bricks",
-    protocol_id: 1239,
+    protocol_id: 1323,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3939,7 +4121,7 @@ pub const CRACKED_POLISHED_BLACKSTONE_BRICKS: ItemData = ItemData {
 
 pub const CRACKED_STONE_BRICKS: ItemData = ItemData {
     name: "minecraft:cracked_stone_bricks",
-    protocol_id: 342,
+    protocol_id: 364,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3953,7 +4135,7 @@ pub const CRACKED_STONE_BRICKS: ItemData = ItemData {
 
 pub const CRAFTER: ItemData = ItemData {
     name: "minecraft:crafter",
-    protocol_id: 981,
+    protocol_id: 1058,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3967,7 +4149,35 @@ pub const CRAFTER: ItemData = ItemData {
 
 pub const CRAFTING_TABLE: ItemData = ItemData {
     name: "minecraft:crafting_table",
-    protocol_id: 300,
+    protocol_id: 320,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const CREAKING_HEART: ItemData = ItemData {
+    name: "minecraft:creaking_heart",
+    protocol_id: 318,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const CREAKING_SPAWN_EGG: ItemData = ItemData {
+    name: "minecraft:creaking_spawn_egg",
+    protocol_id: 1162,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3981,7 +4191,7 @@ pub const CRAFTING_TABLE: ItemData = ItemData {
 
 pub const CREEPER_BANNER_PATTERN: ItemData = ItemData {
     name: "minecraft:creeper_banner_pattern",
-    protocol_id: 1196,
+    protocol_id: 1278,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -3995,7 +4205,7 @@ pub const CREEPER_BANNER_PATTERN: ItemData = ItemData {
 
 pub const CREEPER_HEAD: ItemData = ItemData {
     name: "minecraft:creeper_head",
-    protocol_id: 1107,
+    protocol_id: 1187,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4004,12 +4214,12 @@ pub const CREEPER_HEAD: ItemData = ItemData {
     tool: None,
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Unknown, amount: -1.0000, operation: AttributeOperation::MultiplyTotal, slot: EquipmentSlot::Head }, ],
 };
 
 pub const CREEPER_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:creeper_spawn_egg",
-    protocol_id: 1022,
+    protocol_id: 1099,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4023,7 +4233,7 @@ pub const CREEPER_SPAWN_EGG: ItemData = ItemData {
 
 pub const CRIMSON_BUTTON: ItemData = ItemData {
     name: "minecraft:crimson_button",
-    protocol_id: 693,
+    protocol_id: 725,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4037,7 +4247,7 @@ pub const CRIMSON_BUTTON: ItemData = ItemData {
 
 pub const CRIMSON_DOOR: ItemData = ItemData {
     name: "minecraft:crimson_door",
-    protocol_id: 720,
+    protocol_id: 754,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4051,7 +4261,7 @@ pub const CRIMSON_DOOR: ItemData = ItemData {
 
 pub const CRIMSON_FENCE: ItemData = ItemData {
     name: "minecraft:crimson_fence",
-    protocol_id: 320,
+    protocol_id: 342,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4065,7 +4275,7 @@ pub const CRIMSON_FENCE: ItemData = ItemData {
 
 pub const CRIMSON_FENCE_GATE: ItemData = ItemData {
     name: "minecraft:crimson_fence_gate",
-    protocol_id: 759,
+    protocol_id: 795,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4079,7 +4289,7 @@ pub const CRIMSON_FENCE_GATE: ItemData = ItemData {
 
 pub const CRIMSON_FUNGUS: ItemData = ItemData {
     name: "minecraft:crimson_fungus",
-    protocol_id: 236,
+    protocol_id: 249,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4093,7 +4303,7 @@ pub const CRIMSON_FUNGUS: ItemData = ItemData {
 
 pub const CRIMSON_HANGING_SIGN: ItemData = ItemData {
     name: "minecraft:crimson_hanging_sign",
-    protocol_id: 906,
+    protocol_id: 965,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4107,7 +4317,7 @@ pub const CRIMSON_HANGING_SIGN: ItemData = ItemData {
 
 pub const CRIMSON_HYPHAE: ItemData = ItemData {
     name: "minecraft:crimson_hyphae",
-    protocol_id: 174,
+    protocol_id: 180,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4135,7 +4345,7 @@ pub const CRIMSON_NYLIUM: ItemData = ItemData {
 
 pub const CRIMSON_PLANKS: ItemData = ItemData {
     name: "minecraft:crimson_planks",
-    protocol_id: 45,
+    protocol_id: 46,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4149,7 +4359,7 @@ pub const CRIMSON_PLANKS: ItemData = ItemData {
 
 pub const CRIMSON_PRESSURE_PLATE: ItemData = ItemData {
     name: "minecraft:crimson_pressure_plate",
-    protocol_id: 708,
+    protocol_id: 741,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4163,7 +4373,7 @@ pub const CRIMSON_PRESSURE_PLATE: ItemData = ItemData {
 
 pub const CRIMSON_ROOTS: ItemData = ItemData {
     name: "minecraft:crimson_roots",
-    protocol_id: 238,
+    protocol_id: 251,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4177,7 +4387,7 @@ pub const CRIMSON_ROOTS: ItemData = ItemData {
 
 pub const CRIMSON_SIGN: ItemData = ItemData {
     name: "minecraft:crimson_sign",
-    protocol_id: 895,
+    protocol_id: 953,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4191,7 +4401,7 @@ pub const CRIMSON_SIGN: ItemData = ItemData {
 
 pub const CRIMSON_SLAB: ItemData = ItemData {
     name: "minecraft:crimson_slab",
-    protocol_id: 262,
+    protocol_id: 281,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4205,7 +4415,7 @@ pub const CRIMSON_SLAB: ItemData = ItemData {
 
 pub const CRIMSON_STAIRS: ItemData = ItemData {
     name: "minecraft:crimson_stairs",
-    protocol_id: 393,
+    protocol_id: 423,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4219,7 +4429,7 @@ pub const CRIMSON_STAIRS: ItemData = ItemData {
 
 pub const CRIMSON_STEM: ItemData = ItemData {
     name: "minecraft:crimson_stem",
-    protocol_id: 142,
+    protocol_id: 145,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4233,7 +4443,7 @@ pub const CRIMSON_STEM: ItemData = ItemData {
 
 pub const CRIMSON_TRAPDOOR: ItemData = ItemData {
     name: "minecraft:crimson_trapdoor",
-    protocol_id: 740,
+    protocol_id: 775,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4247,21 +4457,21 @@ pub const CRIMSON_TRAPDOOR: ItemData = ItemData {
 
 pub const CROSSBOW: ItemData = ItemData {
     name: "minecraft:crossbow",
-    protocol_id: 1192,
+    protocol_id: 1274,
     max_stack_size: 1,
     max_damage: 465,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: None,
-    enchantable_value: None,
+    enchantable_value: Some(1),
     repairable_with: None,
     attribute_modifiers: &[],
 };
 
 pub const CRYING_OBSIDIAN: ItemData = ItemData {
     name: "minecraft:crying_obsidian",
-    protocol_id: 1227,
+    protocol_id: 1311,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4275,7 +4485,7 @@ pub const CRYING_OBSIDIAN: ItemData = ItemData {
 
 pub const CUT_COPPER: ItemData = ItemData {
     name: "minecraft:cut_copper",
-    protocol_id: 100,
+    protocol_id: 102,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4289,7 +4499,7 @@ pub const CUT_COPPER: ItemData = ItemData {
 
 pub const CUT_COPPER_SLAB: ItemData = ItemData {
     name: "minecraft:cut_copper_slab",
-    protocol_id: 108,
+    protocol_id: 110,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4303,7 +4513,7 @@ pub const CUT_COPPER_SLAB: ItemData = ItemData {
 
 pub const CUT_COPPER_STAIRS: ItemData = ItemData {
     name: "minecraft:cut_copper_stairs",
-    protocol_id: 104,
+    protocol_id: 106,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4317,7 +4527,7 @@ pub const CUT_COPPER_STAIRS: ItemData = ItemData {
 
 pub const CUT_RED_SANDSTONE: ItemData = ItemData {
     name: "minecraft:cut_red_sandstone",
-    protocol_id: 512,
+    protocol_id: 542,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4331,7 +4541,7 @@ pub const CUT_RED_SANDSTONE: ItemData = ItemData {
 
 pub const CUT_RED_SANDSTONE_SLAB: ItemData = ItemData {
     name: "minecraft:cut_red_sandstone_slab",
-    protocol_id: 276,
+    protocol_id: 295,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4345,7 +4555,7 @@ pub const CUT_RED_SANDSTONE_SLAB: ItemData = ItemData {
 
 pub const CUT_SANDSTONE: ItemData = ItemData {
     name: "minecraft:cut_sandstone",
-    protocol_id: 193,
+    protocol_id: 200,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4359,7 +4569,7 @@ pub const CUT_SANDSTONE: ItemData = ItemData {
 
 pub const CUT_SANDSTONE_SLAB: ItemData = ItemData {
     name: "minecraft:cut_sandstone_slab",
-    protocol_id: 267,
+    protocol_id: 286,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4373,7 +4583,7 @@ pub const CUT_SANDSTONE_SLAB: ItemData = ItemData {
 
 pub const CYAN_BANNER: ItemData = ItemData {
     name: "minecraft:cyan_banner",
-    protocol_id: 1142,
+    protocol_id: 1223,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4387,7 +4597,21 @@ pub const CYAN_BANNER: ItemData = ItemData {
 
 pub const CYAN_BED: ItemData = ItemData {
     name: "minecraft:cyan_bed",
-    protocol_id: 973,
+    protocol_id: 1050,
+    max_stack_size: 1,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const CYAN_BUNDLE: ItemData = ItemData {
+    name: "minecraft:cyan_bundle",
+    protocol_id: 1001,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4401,7 +4625,7 @@ pub const CYAN_BED: ItemData = ItemData {
 
 pub const CYAN_CANDLE: ItemData = ItemData {
     name: "minecraft:cyan_candle",
-    protocol_id: 1251,
+    protocol_id: 1335,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4415,7 +4639,7 @@ pub const CYAN_CANDLE: ItemData = ItemData {
 
 pub const CYAN_CARPET: ItemData = ItemData {
     name: "minecraft:cyan_carpet",
-    protocol_id: 455,
+    protocol_id: 485,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4429,7 +4653,7 @@ pub const CYAN_CARPET: ItemData = ItemData {
 
 pub const CYAN_CONCRETE: ItemData = ItemData {
     name: "minecraft:cyan_concrete",
-    protocol_id: 564,
+    protocol_id: 594,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4443,7 +4667,7 @@ pub const CYAN_CONCRETE: ItemData = ItemData {
 
 pub const CYAN_CONCRETE_POWDER: ItemData = ItemData {
     name: "minecraft:cyan_concrete_powder",
-    protocol_id: 580,
+    protocol_id: 610,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4457,7 +4681,7 @@ pub const CYAN_CONCRETE_POWDER: ItemData = ItemData {
 
 pub const CYAN_DYE: ItemData = ItemData {
     name: "minecraft:cyan_dye",
-    protocol_id: 953,
+    protocol_id: 1030,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4471,8 +4695,22 @@ pub const CYAN_DYE: ItemData = ItemData {
 
 pub const CYAN_GLAZED_TERRACOTTA: ItemData = ItemData {
     name: "minecraft:cyan_glazed_terracotta",
-    protocol_id: 548,
+    protocol_id: 578,
     max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const CYAN_HARNESS: ItemData = ItemData {
+    name: "minecraft:cyan_harness",
+    protocol_id: 811,
+    max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
@@ -4485,7 +4723,7 @@ pub const CYAN_GLAZED_TERRACOTTA: ItemData = ItemData {
 
 pub const CYAN_SHULKER_BOX: ItemData = ItemData {
     name: "minecraft:cyan_shulker_box",
-    protocol_id: 532,
+    protocol_id: 562,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4499,7 +4737,7 @@ pub const CYAN_SHULKER_BOX: ItemData = ItemData {
 
 pub const CYAN_STAINED_GLASS: ItemData = ItemData {
     name: "minecraft:cyan_stained_glass",
-    protocol_id: 480,
+    protocol_id: 510,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4513,7 +4751,7 @@ pub const CYAN_STAINED_GLASS: ItemData = ItemData {
 
 pub const CYAN_STAINED_GLASS_PANE: ItemData = ItemData {
     name: "minecraft:cyan_stained_glass_pane",
-    protocol_id: 496,
+    protocol_id: 526,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4527,7 +4765,7 @@ pub const CYAN_STAINED_GLASS_PANE: ItemData = ItemData {
 
 pub const CYAN_TERRACOTTA: ItemData = ItemData {
     name: "minecraft:cyan_terracotta",
-    protocol_id: 436,
+    protocol_id: 466,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4541,7 +4779,7 @@ pub const CYAN_TERRACOTTA: ItemData = ItemData {
 
 pub const CYAN_WOOL: ItemData = ItemData {
     name: "minecraft:cyan_wool",
-    protocol_id: 211,
+    protocol_id: 222,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4555,7 +4793,7 @@ pub const CYAN_WOOL: ItemData = ItemData {
 
 pub const DAMAGED_ANVIL: ItemData = ItemData {
     name: "minecraft:damaged_anvil",
-    protocol_id: 421,
+    protocol_id: 451,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4569,7 +4807,7 @@ pub const DAMAGED_ANVIL: ItemData = ItemData {
 
 pub const DANDELION: ItemData = ItemData {
     name: "minecraft:dandelion",
-    protocol_id: 218,
+    protocol_id: 229,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4583,11 +4821,11 @@ pub const DANDELION: ItemData = ItemData {
 
 pub const DANGER_POTTERY_SHERD: ItemData = ItemData {
     name: "minecraft:danger_pottery_sherd",
-    protocol_id: 1294,
+    protocol_id: 1378,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -4597,7 +4835,7 @@ pub const DANGER_POTTERY_SHERD: ItemData = ItemData {
 
 pub const DARK_OAK_BOAT: ItemData = ItemData {
     name: "minecraft:dark_oak_boat",
-    protocol_id: 786,
+    protocol_id: 839,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4611,7 +4849,7 @@ pub const DARK_OAK_BOAT: ItemData = ItemData {
 
 pub const DARK_OAK_BUTTON: ItemData = ItemData {
     name: "minecraft:dark_oak_button",
-    protocol_id: 690,
+    protocol_id: 721,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4625,7 +4863,7 @@ pub const DARK_OAK_BUTTON: ItemData = ItemData {
 
 pub const DARK_OAK_CHEST_BOAT: ItemData = ItemData {
     name: "minecraft:dark_oak_chest_boat",
-    protocol_id: 787,
+    protocol_id: 840,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4639,7 +4877,7 @@ pub const DARK_OAK_CHEST_BOAT: ItemData = ItemData {
 
 pub const DARK_OAK_DOOR: ItemData = ItemData {
     name: "minecraft:dark_oak_door",
-    protocol_id: 717,
+    protocol_id: 750,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4653,7 +4891,7 @@ pub const DARK_OAK_DOOR: ItemData = ItemData {
 
 pub const DARK_OAK_FENCE: ItemData = ItemData {
     name: "minecraft:dark_oak_fence",
-    protocol_id: 317,
+    protocol_id: 338,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4667,7 +4905,7 @@ pub const DARK_OAK_FENCE: ItemData = ItemData {
 
 pub const DARK_OAK_FENCE_GATE: ItemData = ItemData {
     name: "minecraft:dark_oak_fence_gate",
-    protocol_id: 756,
+    protocol_id: 791,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4681,7 +4919,7 @@ pub const DARK_OAK_FENCE_GATE: ItemData = ItemData {
 
 pub const DARK_OAK_HANGING_SIGN: ItemData = ItemData {
     name: "minecraft:dark_oak_hanging_sign",
-    protocol_id: 903,
+    protocol_id: 961,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4695,7 +4933,7 @@ pub const DARK_OAK_HANGING_SIGN: ItemData = ItemData {
 
 pub const DARK_OAK_LEAVES: ItemData = ItemData {
     name: "minecraft:dark_oak_leaves",
-    protocol_id: 182,
+    protocol_id: 188,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4709,7 +4947,7 @@ pub const DARK_OAK_LEAVES: ItemData = ItemData {
 
 pub const DARK_OAK_LOG: ItemData = ItemData {
     name: "minecraft:dark_oak_log",
-    protocol_id: 138,
+    protocol_id: 141,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4737,7 +4975,7 @@ pub const DARK_OAK_PLANKS: ItemData = ItemData {
 
 pub const DARK_OAK_PRESSURE_PLATE: ItemData = ItemData {
     name: "minecraft:dark_oak_pressure_plate",
-    protocol_id: 705,
+    protocol_id: 737,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4751,7 +4989,7 @@ pub const DARK_OAK_PRESSURE_PLATE: ItemData = ItemData {
 
 pub const DARK_OAK_SAPLING: ItemData = ItemData {
     name: "minecraft:dark_oak_sapling",
-    protocol_id: 54,
+    protocol_id: 55,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4765,7 +5003,7 @@ pub const DARK_OAK_SAPLING: ItemData = ItemData {
 
 pub const DARK_OAK_SIGN: ItemData = ItemData {
     name: "minecraft:dark_oak_sign",
-    protocol_id: 892,
+    protocol_id: 949,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4779,7 +5017,7 @@ pub const DARK_OAK_SIGN: ItemData = ItemData {
 
 pub const DARK_OAK_SLAB: ItemData = ItemData {
     name: "minecraft:dark_oak_slab",
-    protocol_id: 258,
+    protocol_id: 276,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4793,7 +5031,7 @@ pub const DARK_OAK_SLAB: ItemData = ItemData {
 
 pub const DARK_OAK_STAIRS: ItemData = ItemData {
     name: "minecraft:dark_oak_stairs",
-    protocol_id: 389,
+    protocol_id: 418,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4807,7 +5045,7 @@ pub const DARK_OAK_STAIRS: ItemData = ItemData {
 
 pub const DARK_OAK_TRAPDOOR: ItemData = ItemData {
     name: "minecraft:dark_oak_trapdoor",
-    protocol_id: 737,
+    protocol_id: 771,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4821,7 +5059,7 @@ pub const DARK_OAK_TRAPDOOR: ItemData = ItemData {
 
 pub const DARK_OAK_WOOD: ItemData = ItemData {
     name: "minecraft:dark_oak_wood",
-    protocol_id: 172,
+    protocol_id: 178,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4835,7 +5073,7 @@ pub const DARK_OAK_WOOD: ItemData = ItemData {
 
 pub const DARK_PRISMARINE: ItemData = ItemData {
     name: "minecraft:dark_prismarine",
-    protocol_id: 505,
+    protocol_id: 535,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4849,7 +5087,7 @@ pub const DARK_PRISMARINE: ItemData = ItemData {
 
 pub const DARK_PRISMARINE_SLAB: ItemData = ItemData {
     name: "minecraft:dark_prismarine_slab",
-    protocol_id: 280,
+    protocol_id: 299,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4863,7 +5101,7 @@ pub const DARK_PRISMARINE_SLAB: ItemData = ItemData {
 
 pub const DARK_PRISMARINE_STAIRS: ItemData = ItemData {
     name: "minecraft:dark_prismarine_stairs",
-    protocol_id: 508,
+    protocol_id: 538,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4877,7 +5115,7 @@ pub const DARK_PRISMARINE_STAIRS: ItemData = ItemData {
 
 pub const DAYLIGHT_DETECTOR: ItemData = ItemData {
     name: "minecraft:daylight_detector",
-    protocol_id: 674,
+    protocol_id: 705,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4891,7 +5129,7 @@ pub const DAYLIGHT_DETECTOR: ItemData = ItemData {
 
 pub const DEAD_BRAIN_CORAL: ItemData = ItemData {
     name: "minecraft:dead_brain_coral",
-    protocol_id: 604,
+    protocol_id: 635,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4905,7 +5143,7 @@ pub const DEAD_BRAIN_CORAL: ItemData = ItemData {
 
 pub const DEAD_BRAIN_CORAL_BLOCK: ItemData = ItemData {
     name: "minecraft:dead_brain_coral_block",
-    protocol_id: 590,
+    protocol_id: 621,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4919,7 +5157,7 @@ pub const DEAD_BRAIN_CORAL_BLOCK: ItemData = ItemData {
 
 pub const DEAD_BRAIN_CORAL_FAN: ItemData = ItemData {
     name: "minecraft:dead_brain_coral_fan",
-    protocol_id: 615,
+    protocol_id: 646,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4933,7 +5171,7 @@ pub const DEAD_BRAIN_CORAL_FAN: ItemData = ItemData {
 
 pub const DEAD_BUBBLE_CORAL: ItemData = ItemData {
     name: "minecraft:dead_bubble_coral",
-    protocol_id: 605,
+    protocol_id: 636,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4947,7 +5185,7 @@ pub const DEAD_BUBBLE_CORAL: ItemData = ItemData {
 
 pub const DEAD_BUBBLE_CORAL_BLOCK: ItemData = ItemData {
     name: "minecraft:dead_bubble_coral_block",
-    protocol_id: 591,
+    protocol_id: 622,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4961,7 +5199,7 @@ pub const DEAD_BUBBLE_CORAL_BLOCK: ItemData = ItemData {
 
 pub const DEAD_BUBBLE_CORAL_FAN: ItemData = ItemData {
     name: "minecraft:dead_bubble_coral_fan",
-    protocol_id: 616,
+    protocol_id: 647,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4975,7 +5213,7 @@ pub const DEAD_BUBBLE_CORAL_FAN: ItemData = ItemData {
 
 pub const DEAD_BUSH: ItemData = ItemData {
     name: "minecraft:dead_bush",
-    protocol_id: 199,
+    protocol_id: 207,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -4989,7 +5227,7 @@ pub const DEAD_BUSH: ItemData = ItemData {
 
 pub const DEAD_FIRE_CORAL: ItemData = ItemData {
     name: "minecraft:dead_fire_coral",
-    protocol_id: 606,
+    protocol_id: 637,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5003,7 +5241,7 @@ pub const DEAD_FIRE_CORAL: ItemData = ItemData {
 
 pub const DEAD_FIRE_CORAL_BLOCK: ItemData = ItemData {
     name: "minecraft:dead_fire_coral_block",
-    protocol_id: 592,
+    protocol_id: 623,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5017,7 +5255,7 @@ pub const DEAD_FIRE_CORAL_BLOCK: ItemData = ItemData {
 
 pub const DEAD_FIRE_CORAL_FAN: ItemData = ItemData {
     name: "minecraft:dead_fire_coral_fan",
-    protocol_id: 617,
+    protocol_id: 648,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5031,7 +5269,7 @@ pub const DEAD_FIRE_CORAL_FAN: ItemData = ItemData {
 
 pub const DEAD_HORN_CORAL: ItemData = ItemData {
     name: "minecraft:dead_horn_coral",
-    protocol_id: 607,
+    protocol_id: 638,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5045,7 +5283,7 @@ pub const DEAD_HORN_CORAL: ItemData = ItemData {
 
 pub const DEAD_HORN_CORAL_BLOCK: ItemData = ItemData {
     name: "minecraft:dead_horn_coral_block",
-    protocol_id: 593,
+    protocol_id: 624,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5059,7 +5297,7 @@ pub const DEAD_HORN_CORAL_BLOCK: ItemData = ItemData {
 
 pub const DEAD_HORN_CORAL_FAN: ItemData = ItemData {
     name: "minecraft:dead_horn_coral_fan",
-    protocol_id: 618,
+    protocol_id: 649,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5073,7 +5311,7 @@ pub const DEAD_HORN_CORAL_FAN: ItemData = ItemData {
 
 pub const DEAD_TUBE_CORAL: ItemData = ItemData {
     name: "minecraft:dead_tube_coral",
-    protocol_id: 608,
+    protocol_id: 639,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5087,7 +5325,7 @@ pub const DEAD_TUBE_CORAL: ItemData = ItemData {
 
 pub const DEAD_TUBE_CORAL_BLOCK: ItemData = ItemData {
     name: "minecraft:dead_tube_coral_block",
-    protocol_id: 589,
+    protocol_id: 620,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5101,7 +5339,7 @@ pub const DEAD_TUBE_CORAL_BLOCK: ItemData = ItemData {
 
 pub const DEAD_TUBE_CORAL_FAN: ItemData = ItemData {
     name: "minecraft:dead_tube_coral_fan",
-    protocol_id: 614,
+    protocol_id: 645,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5115,7 +5353,7 @@ pub const DEAD_TUBE_CORAL_FAN: ItemData = ItemData {
 
 pub const DEBUG_STICK: ItemData = ItemData {
     name: "minecraft:debug_stick",
-    protocol_id: 1167,
+    protocol_id: 1248,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5129,7 +5367,7 @@ pub const DEBUG_STICK: ItemData = ItemData {
 
 pub const DECORATED_POT: ItemData = ItemData {
     name: "minecraft:decorated_pot",
-    protocol_id: 288,
+    protocol_id: 307,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5157,7 +5395,7 @@ pub const DEEPSLATE: ItemData = ItemData {
 
 pub const DEEPSLATE_BRICK_SLAB: ItemData = ItemData {
     name: "minecraft:deepslate_brick_slab",
-    protocol_id: 654,
+    protocol_id: 685,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5171,7 +5409,7 @@ pub const DEEPSLATE_BRICK_SLAB: ItemData = ItemData {
 
 pub const DEEPSLATE_BRICK_STAIRS: ItemData = ItemData {
     name: "minecraft:deepslate_brick_stairs",
-    protocol_id: 637,
+    protocol_id: 668,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5185,7 +5423,7 @@ pub const DEEPSLATE_BRICK_STAIRS: ItemData = ItemData {
 
 pub const DEEPSLATE_BRICK_WALL: ItemData = ItemData {
     name: "minecraft:deepslate_brick_wall",
-    protocol_id: 417,
+    protocol_id: 447,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5199,7 +5437,7 @@ pub const DEEPSLATE_BRICK_WALL: ItemData = ItemData {
 
 pub const DEEPSLATE_BRICKS: ItemData = ItemData {
     name: "minecraft:deepslate_bricks",
-    protocol_id: 346,
+    protocol_id: 368,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5213,7 +5451,7 @@ pub const DEEPSLATE_BRICKS: ItemData = ItemData {
 
 pub const DEEPSLATE_COAL_ORE: ItemData = ItemData {
     name: "minecraft:deepslate_coal_ore",
-    protocol_id: 63,
+    protocol_id: 65,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5227,7 +5465,7 @@ pub const DEEPSLATE_COAL_ORE: ItemData = ItemData {
 
 pub const DEEPSLATE_COPPER_ORE: ItemData = ItemData {
     name: "minecraft:deepslate_copper_ore",
-    protocol_id: 67,
+    protocol_id: 69,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5241,7 +5479,7 @@ pub const DEEPSLATE_COPPER_ORE: ItemData = ItemData {
 
 pub const DEEPSLATE_DIAMOND_ORE: ItemData = ItemData {
     name: "minecraft:deepslate_diamond_ore",
-    protocol_id: 77,
+    protocol_id: 79,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5255,7 +5493,7 @@ pub const DEEPSLATE_DIAMOND_ORE: ItemData = ItemData {
 
 pub const DEEPSLATE_EMERALD_ORE: ItemData = ItemData {
     name: "minecraft:deepslate_emerald_ore",
-    protocol_id: 73,
+    protocol_id: 75,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5269,7 +5507,7 @@ pub const DEEPSLATE_EMERALD_ORE: ItemData = ItemData {
 
 pub const DEEPSLATE_GOLD_ORE: ItemData = ItemData {
     name: "minecraft:deepslate_gold_ore",
-    protocol_id: 69,
+    protocol_id: 71,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5283,7 +5521,7 @@ pub const DEEPSLATE_GOLD_ORE: ItemData = ItemData {
 
 pub const DEEPSLATE_IRON_ORE: ItemData = ItemData {
     name: "minecraft:deepslate_iron_ore",
-    protocol_id: 65,
+    protocol_id: 67,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5297,7 +5535,7 @@ pub const DEEPSLATE_IRON_ORE: ItemData = ItemData {
 
 pub const DEEPSLATE_LAPIS_ORE: ItemData = ItemData {
     name: "minecraft:deepslate_lapis_ore",
-    protocol_id: 75,
+    protocol_id: 77,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5311,7 +5549,7 @@ pub const DEEPSLATE_LAPIS_ORE: ItemData = ItemData {
 
 pub const DEEPSLATE_REDSTONE_ORE: ItemData = ItemData {
     name: "minecraft:deepslate_redstone_ore",
-    protocol_id: 71,
+    protocol_id: 73,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5325,7 +5563,7 @@ pub const DEEPSLATE_REDSTONE_ORE: ItemData = ItemData {
 
 pub const DEEPSLATE_TILE_SLAB: ItemData = ItemData {
     name: "minecraft:deepslate_tile_slab",
-    protocol_id: 655,
+    protocol_id: 686,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5339,7 +5577,7 @@ pub const DEEPSLATE_TILE_SLAB: ItemData = ItemData {
 
 pub const DEEPSLATE_TILE_STAIRS: ItemData = ItemData {
     name: "minecraft:deepslate_tile_stairs",
-    protocol_id: 638,
+    protocol_id: 669,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5353,7 +5591,7 @@ pub const DEEPSLATE_TILE_STAIRS: ItemData = ItemData {
 
 pub const DEEPSLATE_TILE_WALL: ItemData = ItemData {
     name: "minecraft:deepslate_tile_wall",
-    protocol_id: 418,
+    protocol_id: 448,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5367,7 +5605,7 @@ pub const DEEPSLATE_TILE_WALL: ItemData = ItemData {
 
 pub const DEEPSLATE_TILES: ItemData = ItemData {
     name: "minecraft:deepslate_tiles",
-    protocol_id: 348,
+    protocol_id: 370,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5381,7 +5619,7 @@ pub const DEEPSLATE_TILES: ItemData = ItemData {
 
 pub const DETECTOR_RAIL: ItemData = ItemData {
     name: "minecraft:detector_rail",
-    protocol_id: 762,
+    protocol_id: 798,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5395,7 +5633,7 @@ pub const DETECTOR_RAIL: ItemData = ItemData {
 
 pub const DIAMOND: ItemData = ItemData {
     name: "minecraft:diamond",
-    protocol_id: 805,
+    protocol_id: 862,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5409,21 +5647,21 @@ pub const DIAMOND: ItemData = ItemData {
 
 pub const DIAMOND_AXE: ItemData = ItemData {
     name: "minecraft:diamond_axe",
-    protocol_id: 841,
+    protocol_id: 898,
     max_stack_size: 1,
     max_damage: 1561,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_diamond_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/axe", speed: Some(8.0), correct_for_drops: Some(true) }, ] }),
-    enchantable_value: None,
-    repairable_with: None,
+    enchantable_value: Some(10),
+    repairable_with: Some("#minecraft:diamond_tool_materials"),
     attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 8.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const DIAMOND_BLOCK: ItemData = ItemData {
     name: "minecraft:diamond_block",
-    protocol_id: 91,
+    protocol_id: 93,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5437,63 +5675,63 @@ pub const DIAMOND_BLOCK: ItemData = ItemData {
 
 pub const DIAMOND_BOOTS: ItemData = ItemData {
     name: "minecraft:diamond_boots",
-    protocol_id: 871,
+    protocol_id: 928,
     max_stack_size: 1,
     max_damage: 429,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: None,
-    enchantable_value: None,
-    repairable_with: None,
-    attribute_modifiers: &[],
+    enchantable_value: Some(10),
+    repairable_with: Some("#minecraft:repairs_diamond_armor"),
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Armor, amount: 3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Feet }, AttributeModifier { kind: AttributeType::ArmorToughness, amount: 2.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Feet }, ],
 };
 
 pub const DIAMOND_CHESTPLATE: ItemData = ItemData {
     name: "minecraft:diamond_chestplate",
-    protocol_id: 869,
+    protocol_id: 926,
     max_stack_size: 1,
     max_damage: 528,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: None,
-    enchantable_value: None,
-    repairable_with: None,
-    attribute_modifiers: &[],
+    enchantable_value: Some(10),
+    repairable_with: Some("#minecraft:repairs_diamond_armor"),
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Armor, amount: 8.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Chest }, AttributeModifier { kind: AttributeType::ArmorToughness, amount: 2.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Chest }, ],
 };
 
 pub const DIAMOND_HELMET: ItemData = ItemData {
     name: "minecraft:diamond_helmet",
-    protocol_id: 868,
+    protocol_id: 925,
     max_stack_size: 1,
     max_damage: 363,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: None,
-    enchantable_value: None,
-    repairable_with: None,
-    attribute_modifiers: &[],
+    enchantable_value: Some(10),
+    repairable_with: Some("#minecraft:repairs_diamond_armor"),
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Armor, amount: 3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Head }, AttributeModifier { kind: AttributeType::ArmorToughness, amount: 2.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Head }, ],
 };
 
 pub const DIAMOND_HOE: ItemData = ItemData {
     name: "minecraft:diamond_hoe",
-    protocol_id: 842,
+    protocol_id: 899,
     max_stack_size: 1,
     max_damage: 1561,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_diamond_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/hoe", speed: Some(8.0), correct_for_drops: Some(true) }, ] }),
-    enchantable_value: None,
-    repairable_with: None,
+    enchantable_value: Some(10),
+    repairable_with: Some("#minecraft:diamond_tool_materials"),
     attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const DIAMOND_HORSE_ARMOR: ItemData = ItemData {
     name: "minecraft:diamond_horse_armor",
-    protocol_id: 1126,
+    protocol_id: 1207,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5502,26 +5740,26 @@ pub const DIAMOND_HORSE_ARMOR: ItemData = ItemData {
     tool: None,
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Armor, amount: 11.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Body }, AttributeModifier { kind: AttributeType::ArmorToughness, amount: 2.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Body }, ],
 };
 
 pub const DIAMOND_LEGGINGS: ItemData = ItemData {
     name: "minecraft:diamond_leggings",
-    protocol_id: 870,
+    protocol_id: 927,
     max_stack_size: 1,
     max_damage: 495,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: None,
-    enchantable_value: None,
-    repairable_with: None,
-    attribute_modifiers: &[],
+    enchantable_value: Some(10),
+    repairable_with: Some("#minecraft:repairs_diamond_armor"),
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Armor, amount: 6.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Legs }, AttributeModifier { kind: AttributeType::ArmorToughness, amount: 2.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Legs }, ],
 };
 
 pub const DIAMOND_ORE: ItemData = ItemData {
     name: "minecraft:diamond_ore",
-    protocol_id: 76,
+    protocol_id: 78,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5535,43 +5773,43 @@ pub const DIAMOND_ORE: ItemData = ItemData {
 
 pub const DIAMOND_PICKAXE: ItemData = ItemData {
     name: "minecraft:diamond_pickaxe",
-    protocol_id: 840,
+    protocol_id: 897,
     max_stack_size: 1,
     max_damage: 1561,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_diamond_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/pickaxe", speed: Some(8.0), correct_for_drops: Some(true) }, ] }),
-    enchantable_value: None,
-    repairable_with: None,
+    enchantable_value: Some(10),
+    repairable_with: Some("#minecraft:diamond_tool_materials"),
     attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 4.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -2.8000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const DIAMOND_SHOVEL: ItemData = ItemData {
     name: "minecraft:diamond_shovel",
-    protocol_id: 839,
+    protocol_id: 896,
     max_stack_size: 1,
     max_damage: 1561,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_diamond_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/shovel", speed: Some(8.0), correct_for_drops: Some(true) }, ] }),
-    enchantable_value: None,
-    repairable_with: None,
+    enchantable_value: Some(10),
+    repairable_with: Some("#minecraft:diamond_tool_materials"),
     attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 4.5000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const DIAMOND_SWORD: ItemData = ItemData {
     name: "minecraft:diamond_sword",
-    protocol_id: 838,
+    protocol_id: 895,
     max_stack_size: 1,
     max_damage: 1561,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 2, rules: &[ToolRule { blocks: "minecraft:cobweb", speed: Some(15.0), correct_for_drops: Some(true) }, ToolRule { blocks: "#minecraft:sword_efficient", speed: Some(1.5), correct_for_drops: None }, ] }),
-    enchantable_value: None,
-    repairable_with: None,
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 2, rules: &[ToolRule { blocks: "minecraft:cobweb", speed: Some(15.0), correct_for_drops: Some(true) }, ToolRule { blocks: "#minecraft:sword_instantly_mines", speed: Some(3.4028235e38), correct_for_drops: None }, ToolRule { blocks: "#minecraft:sword_efficient", speed: Some(1.5), correct_for_drops: None }, ] }),
+    enchantable_value: Some(10),
+    repairable_with: Some("#minecraft:diamond_tool_materials"),
     attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 6.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -2.4000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
@@ -5591,7 +5829,7 @@ pub const DIORITE: ItemData = ItemData {
 
 pub const DIORITE_SLAB: ItemData = ItemData {
     name: "minecraft:diorite_slab",
-    protocol_id: 651,
+    protocol_id: 682,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5605,7 +5843,7 @@ pub const DIORITE_SLAB: ItemData = ItemData {
 
 pub const DIORITE_STAIRS: ItemData = ItemData {
     name: "minecraft:diorite_stairs",
-    protocol_id: 634,
+    protocol_id: 665,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5619,7 +5857,7 @@ pub const DIORITE_STAIRS: ItemData = ItemData {
 
 pub const DIORITE_WALL: ItemData = ItemData {
     name: "minecraft:diorite_wall",
-    protocol_id: 411,
+    protocol_id: 441,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5647,7 +5885,7 @@ pub const DIRT: ItemData = ItemData {
 
 pub const DIRT_PATH: ItemData = ItemData {
     name: "minecraft:dirt_path",
-    protocol_id: 464,
+    protocol_id: 494,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5661,11 +5899,11 @@ pub const DIRT_PATH: ItemData = ItemData {
 
 pub const DISC_FRAGMENT_5: ItemData = ItemData {
     name: "minecraft:disc_fragment_5",
-    protocol_id: 1187,
+    protocol_id: 1270,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -5675,7 +5913,7 @@ pub const DISC_FRAGMENT_5: ItemData = ItemData {
 
 pub const DISPENSER: ItemData = ItemData {
     name: "minecraft:dispenser",
-    protocol_id: 668,
+    protocol_id: 699,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5689,7 +5927,7 @@ pub const DISPENSER: ItemData = ItemData {
 
 pub const DOLPHIN_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:dolphin_spawn_egg",
-    protocol_id: 1023,
+    protocol_id: 1100,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5703,7 +5941,7 @@ pub const DOLPHIN_SPAWN_EGG: ItemData = ItemData {
 
 pub const DONKEY_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:donkey_spawn_egg",
-    protocol_id: 1024,
+    protocol_id: 1101,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5717,7 +5955,7 @@ pub const DONKEY_SPAWN_EGG: ItemData = ItemData {
 
 pub const DRAGON_BREATH: ItemData = ItemData {
     name: "minecraft:dragon_breath",
-    protocol_id: 1157,
+    protocol_id: 1238,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5731,7 +5969,7 @@ pub const DRAGON_BREATH: ItemData = ItemData {
 
 pub const DRAGON_EGG: ItemData = ItemData {
     name: "minecraft:dragon_egg",
-    protocol_id: 379,
+    protocol_id: 408,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5745,11 +5983,25 @@ pub const DRAGON_EGG: ItemData = ItemData {
 
 pub const DRAGON_HEAD: ItemData = ItemData {
     name: "minecraft:dragon_head",
-    protocol_id: 1108,
+    protocol_id: 1188,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Uncommon,
+    rarity: Rarity::Epic,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Unknown, amount: -1.0000, operation: AttributeOperation::MultiplyTotal, slot: EquipmentSlot::Head }, ],
+};
+
+pub const DRIED_GHAST: ItemData = ItemData {
+    name: "minecraft:dried_ghast",
+    protocol_id: 619,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -5759,7 +6011,7 @@ pub const DRAGON_HEAD: ItemData = ItemData {
 
 pub const DRIED_KELP: ItemData = ItemData {
     name: "minecraft:dried_kelp",
-    protocol_id: 985,
+    protocol_id: 1062,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5773,7 +6025,7 @@ pub const DRIED_KELP: ItemData = ItemData {
 
 pub const DRIED_KELP_BLOCK: ItemData = ItemData {
     name: "minecraft:dried_kelp_block",
-    protocol_id: 923,
+    protocol_id: 982,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5801,7 +6053,7 @@ pub const DRIPSTONE_BLOCK: ItemData = ItemData {
 
 pub const DROPPER: ItemData = ItemData {
     name: "minecraft:dropper",
-    protocol_id: 669,
+    protocol_id: 700,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5815,7 +6067,7 @@ pub const DROPPER: ItemData = ItemData {
 
 pub const DROWNED_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:drowned_spawn_egg",
-    protocol_id: 1025,
+    protocol_id: 1102,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5829,11 +6081,11 @@ pub const DROWNED_SPAWN_EGG: ItemData = ItemData {
 
 pub const DUNE_ARMOR_TRIM_SMITHING_TEMPLATE: ItemData = ItemData {
     name: "minecraft:dune_armor_trim_smithing_template",
-    protocol_id: 1271,
+    protocol_id: 1355,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -5843,11 +6095,11 @@ pub const DUNE_ARMOR_TRIM_SMITHING_TEMPLATE: ItemData = ItemData {
 
 pub const ECHO_SHARD: ItemData = ItemData {
     name: "minecraft:echo_shard",
-    protocol_id: 1267,
+    protocol_id: 1351,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -5857,7 +6109,7 @@ pub const ECHO_SHARD: ItemData = ItemData {
 
 pub const EGG: ItemData = ItemData {
     name: "minecraft:egg",
-    protocol_id: 927,
+    protocol_id: 986,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5871,7 +6123,7 @@ pub const EGG: ItemData = ItemData {
 
 pub const ELDER_GUARDIAN_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:elder_guardian_spawn_egg",
-    protocol_id: 1026,
+    protocol_id: 1103,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5885,21 +6137,21 @@ pub const ELDER_GUARDIAN_SPAWN_EGG: ItemData = ItemData {
 
 pub const ELYTRA: ItemData = ItemData {
     name: "minecraft:elytra",
-    protocol_id: 773,
+    protocol_id: 826,
     max_stack_size: 1,
     max_damage: 432,
     is_fire_resistant: false,
-    rarity: Rarity::Uncommon,
+    rarity: Rarity::Epic,
     food: None,
     tool: None,
     enchantable_value: None,
-    repairable_with: None,
+    repairable_with: Some("minecraft:phantom_membrane"),
     attribute_modifiers: &[],
 };
 
 pub const EMERALD: ItemData = ItemData {
     name: "minecraft:emerald",
-    protocol_id: 806,
+    protocol_id: 863,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5913,7 +6165,7 @@ pub const EMERALD: ItemData = ItemData {
 
 pub const EMERALD_BLOCK: ItemData = ItemData {
     name: "minecraft:emerald_block",
-    protocol_id: 382,
+    protocol_id: 411,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5927,7 +6179,7 @@ pub const EMERALD_BLOCK: ItemData = ItemData {
 
 pub const EMERALD_ORE: ItemData = ItemData {
     name: "minecraft:emerald_ore",
-    protocol_id: 72,
+    protocol_id: 74,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5941,7 +6193,7 @@ pub const EMERALD_ORE: ItemData = ItemData {
 
 pub const ENCHANTED_BOOK: ItemData = ItemData {
     name: "minecraft:enchanted_book",
-    protocol_id: 1114,
+    protocol_id: 1194,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5955,11 +6207,11 @@ pub const ENCHANTED_BOOK: ItemData = ItemData {
 
 pub const ENCHANTED_GOLDEN_APPLE: ItemData = ItemData {
     name: "minecraft:enchanted_golden_apple",
-    protocol_id: 885,
+    protocol_id: 942,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Epic,
+    rarity: Rarity::Rare,
     food: Some(FoodData { nutrition: 4, saturation: 9.6, can_always_eat: true, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
@@ -5969,7 +6221,7 @@ pub const ENCHANTED_GOLDEN_APPLE: ItemData = ItemData {
 
 pub const ENCHANTING_TABLE: ItemData = ItemData {
     name: "minecraft:enchanting_table",
-    protocol_id: 375,
+    protocol_id: 404,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -5983,11 +6235,11 @@ pub const ENCHANTING_TABLE: ItemData = ItemData {
 
 pub const END_CRYSTAL: ItemData = ItemData {
     name: "minecraft:end_crystal",
-    protocol_id: 1149,
+    protocol_id: 1230,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Rare,
+    rarity: Rarity::Common,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -5997,7 +6249,7 @@ pub const END_CRYSTAL: ItemData = ItemData {
 
 pub const END_PORTAL_FRAME: ItemData = ItemData {
     name: "minecraft:end_portal_frame",
-    protocol_id: 376,
+    protocol_id: 405,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6011,7 +6263,7 @@ pub const END_PORTAL_FRAME: ItemData = ItemData {
 
 pub const END_ROD: ItemData = ItemData {
     name: "minecraft:end_rod",
-    protocol_id: 292,
+    protocol_id: 311,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6025,7 +6277,7 @@ pub const END_ROD: ItemData = ItemData {
 
 pub const END_STONE: ItemData = ItemData {
     name: "minecraft:end_stone",
-    protocol_id: 377,
+    protocol_id: 406,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6039,7 +6291,7 @@ pub const END_STONE: ItemData = ItemData {
 
 pub const END_STONE_BRICK_SLAB: ItemData = ItemData {
     name: "minecraft:end_stone_brick_slab",
-    protocol_id: 644,
+    protocol_id: 675,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6053,7 +6305,7 @@ pub const END_STONE_BRICK_SLAB: ItemData = ItemData {
 
 pub const END_STONE_BRICK_STAIRS: ItemData = ItemData {
     name: "minecraft:end_stone_brick_stairs",
-    protocol_id: 626,
+    protocol_id: 657,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6067,7 +6319,7 @@ pub const END_STONE_BRICK_STAIRS: ItemData = ItemData {
 
 pub const END_STONE_BRICK_WALL: ItemData = ItemData {
     name: "minecraft:end_stone_brick_wall",
-    protocol_id: 410,
+    protocol_id: 440,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6081,7 +6333,7 @@ pub const END_STONE_BRICK_WALL: ItemData = ItemData {
 
 pub const END_STONE_BRICKS: ItemData = ItemData {
     name: "minecraft:end_stone_bricks",
-    protocol_id: 378,
+    protocol_id: 407,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6095,7 +6347,7 @@ pub const END_STONE_BRICKS: ItemData = ItemData {
 
 pub const ENDER_CHEST: ItemData = ItemData {
     name: "minecraft:ender_chest",
-    protocol_id: 381,
+    protocol_id: 410,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6109,7 +6361,7 @@ pub const ENDER_CHEST: ItemData = ItemData {
 
 pub const ENDER_DRAGON_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:ender_dragon_spawn_egg",
-    protocol_id: 1027,
+    protocol_id: 1104,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6123,7 +6375,7 @@ pub const ENDER_DRAGON_SPAWN_EGG: ItemData = ItemData {
 
 pub const ENDER_EYE: ItemData = ItemData {
     name: "minecraft:ender_eye",
-    protocol_id: 1006,
+    protocol_id: 1083,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6137,7 +6389,7 @@ pub const ENDER_EYE: ItemData = ItemData {
 
 pub const ENDER_PEARL: ItemData = ItemData {
     name: "minecraft:ender_pearl",
-    protocol_id: 993,
+    protocol_id: 1070,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6151,7 +6403,7 @@ pub const ENDER_PEARL: ItemData = ItemData {
 
 pub const ENDERMAN_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:enderman_spawn_egg",
-    protocol_id: 1028,
+    protocol_id: 1105,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6165,7 +6417,7 @@ pub const ENDERMAN_SPAWN_EGG: ItemData = ItemData {
 
 pub const ENDERMITE_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:endermite_spawn_egg",
-    protocol_id: 1029,
+    protocol_id: 1106,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6179,7 +6431,7 @@ pub const ENDERMITE_SPAWN_EGG: ItemData = ItemData {
 
 pub const EVOKER_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:evoker_spawn_egg",
-    protocol_id: 1030,
+    protocol_id: 1107,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6193,7 +6445,7 @@ pub const EVOKER_SPAWN_EGG: ItemData = ItemData {
 
 pub const EXPERIENCE_BOTTLE: ItemData = ItemData {
     name: "minecraft:experience_bottle",
-    protocol_id: 1088,
+    protocol_id: 1167,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6207,11 +6459,11 @@ pub const EXPERIENCE_BOTTLE: ItemData = ItemData {
 
 pub const EXPLORER_POTTERY_SHERD: ItemData = ItemData {
     name: "minecraft:explorer_pottery_sherd",
-    protocol_id: 1295,
+    protocol_id: 1379,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -6221,7 +6473,7 @@ pub const EXPLORER_POTTERY_SHERD: ItemData = ItemData {
 
 pub const EXPOSED_CHISELED_COPPER: ItemData = ItemData {
     name: "minecraft:exposed_chiseled_copper",
-    protocol_id: 97,
+    protocol_id: 99,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6235,7 +6487,7 @@ pub const EXPOSED_CHISELED_COPPER: ItemData = ItemData {
 
 pub const EXPOSED_COPPER: ItemData = ItemData {
     name: "minecraft:exposed_copper",
-    protocol_id: 93,
+    protocol_id: 95,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6249,7 +6501,7 @@ pub const EXPOSED_COPPER: ItemData = ItemData {
 
 pub const EXPOSED_COPPER_BULB: ItemData = ItemData {
     name: "minecraft:exposed_copper_bulb",
-    protocol_id: 1320,
+    protocol_id: 1404,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6263,7 +6515,7 @@ pub const EXPOSED_COPPER_BULB: ItemData = ItemData {
 
 pub const EXPOSED_COPPER_DOOR: ItemData = ItemData {
     name: "minecraft:exposed_copper_door",
-    protocol_id: 723,
+    protocol_id: 757,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6277,7 +6529,7 @@ pub const EXPOSED_COPPER_DOOR: ItemData = ItemData {
 
 pub const EXPOSED_COPPER_GRATE: ItemData = ItemData {
     name: "minecraft:exposed_copper_grate",
-    protocol_id: 1312,
+    protocol_id: 1396,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6291,7 +6543,7 @@ pub const EXPOSED_COPPER_GRATE: ItemData = ItemData {
 
 pub const EXPOSED_COPPER_TRAPDOOR: ItemData = ItemData {
     name: "minecraft:exposed_copper_trapdoor",
-    protocol_id: 743,
+    protocol_id: 778,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6305,7 +6557,7 @@ pub const EXPOSED_COPPER_TRAPDOOR: ItemData = ItemData {
 
 pub const EXPOSED_CUT_COPPER: ItemData = ItemData {
     name: "minecraft:exposed_cut_copper",
-    protocol_id: 101,
+    protocol_id: 103,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6319,7 +6571,7 @@ pub const EXPOSED_CUT_COPPER: ItemData = ItemData {
 
 pub const EXPOSED_CUT_COPPER_SLAB: ItemData = ItemData {
     name: "minecraft:exposed_cut_copper_slab",
-    protocol_id: 109,
+    protocol_id: 111,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6333,7 +6585,7 @@ pub const EXPOSED_CUT_COPPER_SLAB: ItemData = ItemData {
 
 pub const EXPOSED_CUT_COPPER_STAIRS: ItemData = ItemData {
     name: "minecraft:exposed_cut_copper_stairs",
-    protocol_id: 105,
+    protocol_id: 107,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6347,11 +6599,11 @@ pub const EXPOSED_CUT_COPPER_STAIRS: ItemData = ItemData {
 
 pub const EYE_ARMOR_TRIM_SMITHING_TEMPLATE: ItemData = ItemData {
     name: "minecraft:eye_armor_trim_smithing_template",
-    protocol_id: 1275,
+    protocol_id: 1359,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Rare,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -6361,7 +6613,7 @@ pub const EYE_ARMOR_TRIM_SMITHING_TEMPLATE: ItemData = ItemData {
 
 pub const FARMLAND: ItemData = ItemData {
     name: "minecraft:farmland",
-    protocol_id: 301,
+    protocol_id: 321,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6375,7 +6627,7 @@ pub const FARMLAND: ItemData = ItemData {
 
 pub const FEATHER: ItemData = ItemData {
     name: "minecraft:feather",
-    protocol_id: 851,
+    protocol_id: 908,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6389,7 +6641,7 @@ pub const FEATHER: ItemData = ItemData {
 
 pub const FERMENTED_SPIDER_EYE: ItemData = ItemData {
     name: "minecraft:fermented_spider_eye",
-    protocol_id: 1001,
+    protocol_id: 1078,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6403,8 +6655,22 @@ pub const FERMENTED_SPIDER_EYE: ItemData = ItemData {
 
 pub const FERN: ItemData = ItemData {
     name: "minecraft:fern",
-    protocol_id: 196,
+    protocol_id: 203,
     max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const FIELD_MASONED_BANNER_PATTERN: ItemData = ItemData {
+    name: "minecraft:field_masoned_banner_pattern",
+    protocol_id: 1285,
+    max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
@@ -6417,7 +6683,7 @@ pub const FERN: ItemData = ItemData {
 
 pub const FILLED_MAP: ItemData = ItemData {
     name: "minecraft:filled_map",
-    protocol_id: 982,
+    protocol_id: 1059,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6431,7 +6697,7 @@ pub const FILLED_MAP: ItemData = ItemData {
 
 pub const FIRE_CHARGE: ItemData = ItemData {
     name: "minecraft:fire_charge",
-    protocol_id: 1089,
+    protocol_id: 1168,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6445,7 +6711,7 @@ pub const FIRE_CHARGE: ItemData = ItemData {
 
 pub const FIRE_CORAL: ItemData = ItemData {
     name: "minecraft:fire_coral",
-    protocol_id: 602,
+    protocol_id: 633,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6459,7 +6725,7 @@ pub const FIRE_CORAL: ItemData = ItemData {
 
 pub const FIRE_CORAL_BLOCK: ItemData = ItemData {
     name: "minecraft:fire_coral_block",
-    protocol_id: 597,
+    protocol_id: 628,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6473,7 +6739,21 @@ pub const FIRE_CORAL_BLOCK: ItemData = ItemData {
 
 pub const FIRE_CORAL_FAN: ItemData = ItemData {
     name: "minecraft:fire_coral_fan",
-    protocol_id: 612,
+    protocol_id: 643,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const FIREFLY_BUSH: ItemData = ItemData {
+    name: "minecraft:firefly_bush",
+    protocol_id: 208,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6487,7 +6767,7 @@ pub const FIRE_CORAL_FAN: ItemData = ItemData {
 
 pub const FIREWORK_ROCKET: ItemData = ItemData {
     name: "minecraft:firework_rocket",
-    protocol_id: 1112,
+    protocol_id: 1192,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6501,7 +6781,7 @@ pub const FIREWORK_ROCKET: ItemData = ItemData {
 
 pub const FIREWORK_STAR: ItemData = ItemData {
     name: "minecraft:firework_star",
-    protocol_id: 1113,
+    protocol_id: 1193,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6515,21 +6795,21 @@ pub const FIREWORK_STAR: ItemData = ItemData {
 
 pub const FISHING_ROD: ItemData = ItemData {
     name: "minecraft:fishing_rod",
-    protocol_id: 931,
+    protocol_id: 1008,
     max_stack_size: 1,
     max_damage: 64,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: None,
-    enchantable_value: None,
+    enchantable_value: Some(1),
     repairable_with: None,
     attribute_modifiers: &[],
 };
 
 pub const FLETCHING_TABLE: ItemData = ItemData {
     name: "minecraft:fletching_table",
-    protocol_id: 1209,
+    protocol_id: 1293,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6543,7 +6823,7 @@ pub const FLETCHING_TABLE: ItemData = ItemData {
 
 pub const FLINT: ItemData = ItemData {
     name: "minecraft:flint",
-    protocol_id: 880,
+    protocol_id: 937,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6557,7 +6837,7 @@ pub const FLINT: ItemData = ItemData {
 
 pub const FLINT_AND_STEEL: ItemData = ItemData {
     name: "minecraft:flint_and_steel",
-    protocol_id: 798,
+    protocol_id: 855,
     max_stack_size: 1,
     max_damage: 64,
     is_fire_resistant: false,
@@ -6571,11 +6851,11 @@ pub const FLINT_AND_STEEL: ItemData = ItemData {
 
 pub const FLOW_ARMOR_TRIM_SMITHING_TEMPLATE: ItemData = ItemData {
     name: "minecraft:flow_armor_trim_smithing_template",
-    protocol_id: 1286,
+    protocol_id: 1370,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -6585,7 +6865,7 @@ pub const FLOW_ARMOR_TRIM_SMITHING_TEMPLATE: ItemData = ItemData {
 
 pub const FLOW_BANNER_PATTERN: ItemData = ItemData {
     name: "minecraft:flow_banner_pattern",
-    protocol_id: 1201,
+    protocol_id: 1283,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6599,11 +6879,11 @@ pub const FLOW_BANNER_PATTERN: ItemData = ItemData {
 
 pub const FLOW_POTTERY_SHERD: ItemData = ItemData {
     name: "minecraft:flow_pottery_sherd",
-    protocol_id: 1296,
+    protocol_id: 1380,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -6613,7 +6893,7 @@ pub const FLOW_POTTERY_SHERD: ItemData = ItemData {
 
 pub const FLOWER_BANNER_PATTERN: ItemData = ItemData {
     name: "minecraft:flower_banner_pattern",
-    protocol_id: 1195,
+    protocol_id: 1277,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6627,7 +6907,7 @@ pub const FLOWER_BANNER_PATTERN: ItemData = ItemData {
 
 pub const FLOWER_POT: ItemData = ItemData {
     name: "minecraft:flower_pot",
-    protocol_id: 1096,
+    protocol_id: 1176,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6641,7 +6921,7 @@ pub const FLOWER_POT: ItemData = ItemData {
 
 pub const FLOWERING_AZALEA: ItemData = ItemData {
     name: "minecraft:flowering_azalea",
-    protocol_id: 198,
+    protocol_id: 206,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6655,7 +6935,7 @@ pub const FLOWERING_AZALEA: ItemData = ItemData {
 
 pub const FLOWERING_AZALEA_LEAVES: ItemData = ItemData {
     name: "minecraft:flowering_azalea_leaves",
-    protocol_id: 185,
+    protocol_id: 192,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6669,7 +6949,7 @@ pub const FLOWERING_AZALEA_LEAVES: ItemData = ItemData {
 
 pub const FOX_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:fox_spawn_egg",
-    protocol_id: 1031,
+    protocol_id: 1108,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6683,11 +6963,11 @@ pub const FOX_SPAWN_EGG: ItemData = ItemData {
 
 pub const FRIEND_POTTERY_SHERD: ItemData = ItemData {
     name: "minecraft:friend_pottery_sherd",
-    protocol_id: 1297,
+    protocol_id: 1381,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -6697,7 +6977,7 @@ pub const FRIEND_POTTERY_SHERD: ItemData = ItemData {
 
 pub const FROG_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:frog_spawn_egg",
-    protocol_id: 1032,
+    protocol_id: 1109,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6711,7 +6991,7 @@ pub const FROG_SPAWN_EGG: ItemData = ItemData {
 
 pub const FROGSPAWN: ItemData = ItemData {
     name: "minecraft:frogspawn",
-    protocol_id: 1266,
+    protocol_id: 1350,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6725,7 +7005,7 @@ pub const FROGSPAWN: ItemData = ItemData {
 
 pub const FURNACE: ItemData = ItemData {
     name: "minecraft:furnace",
-    protocol_id: 302,
+    protocol_id: 322,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6739,7 +7019,7 @@ pub const FURNACE: ItemData = ItemData {
 
 pub const FURNACE_MINECART: ItemData = ItemData {
     name: "minecraft:furnace_minecart",
-    protocol_id: 768,
+    protocol_id: 820,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6753,7 +7033,7 @@ pub const FURNACE_MINECART: ItemData = ItemData {
 
 pub const GHAST_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:ghast_spawn_egg",
-    protocol_id: 1033,
+    protocol_id: 1110,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6767,7 +7047,7 @@ pub const GHAST_SPAWN_EGG: ItemData = ItemData {
 
 pub const GHAST_TEAR: ItemData = ItemData {
     name: "minecraft:ghast_tear",
-    protocol_id: 995,
+    protocol_id: 1072,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6781,7 +7061,7 @@ pub const GHAST_TEAR: ItemData = ItemData {
 
 pub const GILDED_BLACKSTONE: ItemData = ItemData {
     name: "minecraft:gilded_blackstone",
-    protocol_id: 1231,
+    protocol_id: 1315,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6795,7 +7075,7 @@ pub const GILDED_BLACKSTONE: ItemData = ItemData {
 
 pub const GLASS: ItemData = ItemData {
     name: "minecraft:glass",
-    protocol_id: 188,
+    protocol_id: 195,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6809,7 +7089,7 @@ pub const GLASS: ItemData = ItemData {
 
 pub const GLASS_BOTTLE: ItemData = ItemData {
     name: "minecraft:glass_bottle",
-    protocol_id: 999,
+    protocol_id: 1075,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6823,7 +7103,7 @@ pub const GLASS_BOTTLE: ItemData = ItemData {
 
 pub const GLASS_PANE: ItemData = ItemData {
     name: "minecraft:glass_pane",
-    protocol_id: 357,
+    protocol_id: 379,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6837,7 +7117,7 @@ pub const GLASS_PANE: ItemData = ItemData {
 
 pub const GLISTERING_MELON_SLICE: ItemData = ItemData {
     name: "minecraft:glistering_melon_slice",
-    protocol_id: 1007,
+    protocol_id: 1084,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6851,7 +7131,7 @@ pub const GLISTERING_MELON_SLICE: ItemData = ItemData {
 
 pub const GLOBE_BANNER_PATTERN: ItemData = ItemData {
     name: "minecraft:globe_banner_pattern",
-    protocol_id: 1199,
+    protocol_id: 1281,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6865,7 +7145,7 @@ pub const GLOBE_BANNER_PATTERN: ItemData = ItemData {
 
 pub const GLOW_BERRIES: ItemData = ItemData {
     name: "minecraft:glow_berries",
-    protocol_id: 1217,
+    protocol_id: 1301,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6879,7 +7159,7 @@ pub const GLOW_BERRIES: ItemData = ItemData {
 
 pub const GLOW_INK_SAC: ItemData = ItemData {
     name: "minecraft:glow_ink_sac",
-    protocol_id: 942,
+    protocol_id: 1019,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6893,7 +7173,7 @@ pub const GLOW_INK_SAC: ItemData = ItemData {
 
 pub const GLOW_ITEM_FRAME: ItemData = ItemData {
     name: "minecraft:glow_item_frame",
-    protocol_id: 1095,
+    protocol_id: 1175,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6907,7 +7187,7 @@ pub const GLOW_ITEM_FRAME: ItemData = ItemData {
 
 pub const GLOW_LICHEN: ItemData = ItemData {
     name: "minecraft:glow_lichen",
-    protocol_id: 360,
+    protocol_id: 382,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6921,7 +7201,7 @@ pub const GLOW_LICHEN: ItemData = ItemData {
 
 pub const GLOW_SQUID_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:glow_squid_spawn_egg",
-    protocol_id: 1034,
+    protocol_id: 1112,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6935,7 +7215,7 @@ pub const GLOW_SQUID_SPAWN_EGG: ItemData = ItemData {
 
 pub const GLOWSTONE: ItemData = ItemData {
     name: "minecraft:glowstone",
-    protocol_id: 332,
+    protocol_id: 354,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6949,7 +7229,7 @@ pub const GLOWSTONE: ItemData = ItemData {
 
 pub const GLOWSTONE_DUST: ItemData = ItemData {
     name: "minecraft:glowstone_dust",
-    protocol_id: 934,
+    protocol_id: 1011,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6963,11 +7243,11 @@ pub const GLOWSTONE_DUST: ItemData = ItemData {
 
 pub const GOAT_HORN: ItemData = ItemData {
     name: "minecraft:goat_horn",
-    protocol_id: 1203,
+    protocol_id: 1287,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -6977,7 +7257,7 @@ pub const GOAT_HORN: ItemData = ItemData {
 
 pub const GOAT_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:goat_spawn_egg",
-    protocol_id: 1035,
+    protocol_id: 1113,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -6991,7 +7271,7 @@ pub const GOAT_SPAWN_EGG: ItemData = ItemData {
 
 pub const GOLD_BLOCK: ItemData = ItemData {
     name: "minecraft:gold_block",
-    protocol_id: 90,
+    protocol_id: 92,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7005,7 +7285,7 @@ pub const GOLD_BLOCK: ItemData = ItemData {
 
 pub const GOLD_INGOT: ItemData = ItemData {
     name: "minecraft:gold_ingot",
-    protocol_id: 815,
+    protocol_id: 872,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7019,7 +7299,7 @@ pub const GOLD_INGOT: ItemData = ItemData {
 
 pub const GOLD_NUGGET: ItemData = ItemData {
     name: "minecraft:gold_nugget",
-    protocol_id: 996,
+    protocol_id: 1073,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7033,7 +7313,7 @@ pub const GOLD_NUGGET: ItemData = ItemData {
 
 pub const GOLD_ORE: ItemData = ItemData {
     name: "minecraft:gold_ore",
-    protocol_id: 68,
+    protocol_id: 70,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7047,11 +7327,11 @@ pub const GOLD_ORE: ItemData = ItemData {
 
 pub const GOLDEN_APPLE: ItemData = ItemData {
     name: "minecraft:golden_apple",
-    protocol_id: 884,
+    protocol_id: 941,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Rare,
+    rarity: Rarity::Common,
     food: Some(FoodData { nutrition: 4, saturation: 9.6, can_always_eat: true, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
@@ -7061,35 +7341,35 @@ pub const GOLDEN_APPLE: ItemData = ItemData {
 
 pub const GOLDEN_AXE: ItemData = ItemData {
     name: "minecraft:golden_axe",
-    protocol_id: 831,
+    protocol_id: 888,
     max_stack_size: 1,
     max_damage: 32,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_gold_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/axe", speed: Some(12.0), correct_for_drops: Some(true) }, ] }),
-    enchantable_value: None,
-    repairable_with: None,
+    enchantable_value: Some(22),
+    repairable_with: Some("#minecraft:gold_tool_materials"),
     attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 6.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const GOLDEN_BOOTS: ItemData = ItemData {
     name: "minecraft:golden_boots",
-    protocol_id: 875,
+    protocol_id: 932,
     max_stack_size: 1,
     max_damage: 91,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: None,
-    enchantable_value: None,
-    repairable_with: None,
-    attribute_modifiers: &[],
+    enchantable_value: Some(25),
+    repairable_with: Some("#minecraft:repairs_gold_armor"),
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Armor, amount: 1.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Feet }, AttributeModifier { kind: AttributeType::ArmorToughness, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Feet }, ],
 };
 
 pub const GOLDEN_CARROT: ItemData = ItemData {
     name: "minecraft:golden_carrot",
-    protocol_id: 1102,
+    protocol_id: 1182,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7103,49 +7383,49 @@ pub const GOLDEN_CARROT: ItemData = ItemData {
 
 pub const GOLDEN_CHESTPLATE: ItemData = ItemData {
     name: "minecraft:golden_chestplate",
-    protocol_id: 873,
+    protocol_id: 930,
     max_stack_size: 1,
     max_damage: 112,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: None,
-    enchantable_value: None,
-    repairable_with: None,
-    attribute_modifiers: &[],
+    enchantable_value: Some(25),
+    repairable_with: Some("#minecraft:repairs_gold_armor"),
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Armor, amount: 5.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Chest }, AttributeModifier { kind: AttributeType::ArmorToughness, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Chest }, ],
 };
 
 pub const GOLDEN_HELMET: ItemData = ItemData {
     name: "minecraft:golden_helmet",
-    protocol_id: 872,
+    protocol_id: 929,
     max_stack_size: 1,
     max_damage: 77,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: None,
-    enchantable_value: None,
-    repairable_with: None,
-    attribute_modifiers: &[],
+    enchantable_value: Some(25),
+    repairable_with: Some("#minecraft:repairs_gold_armor"),
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Armor, amount: 2.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Head }, AttributeModifier { kind: AttributeType::ArmorToughness, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Head }, ],
 };
 
 pub const GOLDEN_HOE: ItemData = ItemData {
     name: "minecraft:golden_hoe",
-    protocol_id: 832,
+    protocol_id: 889,
     max_stack_size: 1,
     max_damage: 32,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_gold_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/hoe", speed: Some(12.0), correct_for_drops: Some(true) }, ] }),
-    enchantable_value: None,
-    repairable_with: None,
+    enchantable_value: Some(22),
+    repairable_with: Some("#minecraft:gold_tool_materials"),
     attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const GOLDEN_HORSE_ARMOR: ItemData = ItemData {
     name: "minecraft:golden_horse_armor",
-    protocol_id: 1125,
+    protocol_id: 1206,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7154,62 +7434,62 @@ pub const GOLDEN_HORSE_ARMOR: ItemData = ItemData {
     tool: None,
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Armor, amount: 7.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Body }, AttributeModifier { kind: AttributeType::ArmorToughness, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Body }, ],
 };
 
 pub const GOLDEN_LEGGINGS: ItemData = ItemData {
     name: "minecraft:golden_leggings",
-    protocol_id: 874,
+    protocol_id: 931,
     max_stack_size: 1,
     max_damage: 105,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: None,
-    enchantable_value: None,
-    repairable_with: None,
-    attribute_modifiers: &[],
+    enchantable_value: Some(25),
+    repairable_with: Some("#minecraft:repairs_gold_armor"),
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Armor, amount: 3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Legs }, AttributeModifier { kind: AttributeType::ArmorToughness, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Legs }, ],
 };
 
 pub const GOLDEN_PICKAXE: ItemData = ItemData {
     name: "minecraft:golden_pickaxe",
-    protocol_id: 830,
+    protocol_id: 887,
     max_stack_size: 1,
     max_damage: 32,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_gold_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/pickaxe", speed: Some(12.0), correct_for_drops: Some(true) }, ] }),
-    enchantable_value: None,
-    repairable_with: None,
+    enchantable_value: Some(22),
+    repairable_with: Some("#minecraft:gold_tool_materials"),
     attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 1.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -2.8000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const GOLDEN_SHOVEL: ItemData = ItemData {
     name: "minecraft:golden_shovel",
-    protocol_id: 829,
+    protocol_id: 886,
     max_stack_size: 1,
     max_damage: 32,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_gold_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/shovel", speed: Some(12.0), correct_for_drops: Some(true) }, ] }),
-    enchantable_value: None,
-    repairable_with: None,
+    enchantable_value: Some(22),
+    repairable_with: Some("#minecraft:gold_tool_materials"),
     attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 1.5000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const GOLDEN_SWORD: ItemData = ItemData {
     name: "minecraft:golden_sword",
-    protocol_id: 828,
+    protocol_id: 885,
     max_stack_size: 1,
     max_damage: 32,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 2, rules: &[ToolRule { blocks: "minecraft:cobweb", speed: Some(15.0), correct_for_drops: Some(true) }, ToolRule { blocks: "#minecraft:sword_efficient", speed: Some(1.5), correct_for_drops: None }, ] }),
-    enchantable_value: None,
-    repairable_with: None,
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 2, rules: &[ToolRule { blocks: "minecraft:cobweb", speed: Some(15.0), correct_for_drops: Some(true) }, ToolRule { blocks: "#minecraft:sword_instantly_mines", speed: Some(3.4028235e38), correct_for_drops: None }, ToolRule { blocks: "#minecraft:sword_efficient", speed: Some(1.5), correct_for_drops: None }, ] }),
+    enchantable_value: Some(22),
+    repairable_with: Some("#minecraft:gold_tool_materials"),
     attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -2.4000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
@@ -7229,7 +7509,7 @@ pub const GRANITE: ItemData = ItemData {
 
 pub const GRANITE_SLAB: ItemData = ItemData {
     name: "minecraft:granite_slab",
-    protocol_id: 647,
+    protocol_id: 678,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7243,7 +7523,7 @@ pub const GRANITE_SLAB: ItemData = ItemData {
 
 pub const GRANITE_STAIRS: ItemData = ItemData {
     name: "minecraft:granite_stairs",
-    protocol_id: 630,
+    protocol_id: 661,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7257,7 +7537,7 @@ pub const GRANITE_STAIRS: ItemData = ItemData {
 
 pub const GRANITE_WALL: ItemData = ItemData {
     name: "minecraft:granite_wall",
-    protocol_id: 403,
+    protocol_id: 433,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7285,7 +7565,7 @@ pub const GRASS_BLOCK: ItemData = ItemData {
 
 pub const GRAVEL: ItemData = ItemData {
     name: "minecraft:gravel",
-    protocol_id: 61,
+    protocol_id: 63,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7299,7 +7579,7 @@ pub const GRAVEL: ItemData = ItemData {
 
 pub const GRAY_BANNER: ItemData = ItemData {
     name: "minecraft:gray_banner",
-    protocol_id: 1140,
+    protocol_id: 1221,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7313,7 +7593,21 @@ pub const GRAY_BANNER: ItemData = ItemData {
 
 pub const GRAY_BED: ItemData = ItemData {
     name: "minecraft:gray_bed",
-    protocol_id: 971,
+    protocol_id: 1048,
+    max_stack_size: 1,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const GRAY_BUNDLE: ItemData = ItemData {
+    name: "minecraft:gray_bundle",
+    protocol_id: 999,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7327,7 +7621,7 @@ pub const GRAY_BED: ItemData = ItemData {
 
 pub const GRAY_CANDLE: ItemData = ItemData {
     name: "minecraft:gray_candle",
-    protocol_id: 1249,
+    protocol_id: 1333,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7341,7 +7635,7 @@ pub const GRAY_CANDLE: ItemData = ItemData {
 
 pub const GRAY_CARPET: ItemData = ItemData {
     name: "minecraft:gray_carpet",
-    protocol_id: 453,
+    protocol_id: 483,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7355,7 +7649,7 @@ pub const GRAY_CARPET: ItemData = ItemData {
 
 pub const GRAY_CONCRETE: ItemData = ItemData {
     name: "minecraft:gray_concrete",
-    protocol_id: 562,
+    protocol_id: 592,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7369,7 +7663,7 @@ pub const GRAY_CONCRETE: ItemData = ItemData {
 
 pub const GRAY_CONCRETE_POWDER: ItemData = ItemData {
     name: "minecraft:gray_concrete_powder",
-    protocol_id: 578,
+    protocol_id: 608,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7383,7 +7677,7 @@ pub const GRAY_CONCRETE_POWDER: ItemData = ItemData {
 
 pub const GRAY_DYE: ItemData = ItemData {
     name: "minecraft:gray_dye",
-    protocol_id: 951,
+    protocol_id: 1028,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7397,8 +7691,22 @@ pub const GRAY_DYE: ItemData = ItemData {
 
 pub const GRAY_GLAZED_TERRACOTTA: ItemData = ItemData {
     name: "minecraft:gray_glazed_terracotta",
-    protocol_id: 546,
+    protocol_id: 576,
     max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const GRAY_HARNESS: ItemData = ItemData {
+    name: "minecraft:gray_harness",
+    protocol_id: 809,
+    max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
@@ -7411,7 +7719,7 @@ pub const GRAY_GLAZED_TERRACOTTA: ItemData = ItemData {
 
 pub const GRAY_SHULKER_BOX: ItemData = ItemData {
     name: "minecraft:gray_shulker_box",
-    protocol_id: 530,
+    protocol_id: 560,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7425,7 +7733,7 @@ pub const GRAY_SHULKER_BOX: ItemData = ItemData {
 
 pub const GRAY_STAINED_GLASS: ItemData = ItemData {
     name: "minecraft:gray_stained_glass",
-    protocol_id: 478,
+    protocol_id: 508,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7439,7 +7747,7 @@ pub const GRAY_STAINED_GLASS: ItemData = ItemData {
 
 pub const GRAY_STAINED_GLASS_PANE: ItemData = ItemData {
     name: "minecraft:gray_stained_glass_pane",
-    protocol_id: 494,
+    protocol_id: 524,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7453,7 +7761,7 @@ pub const GRAY_STAINED_GLASS_PANE: ItemData = ItemData {
 
 pub const GRAY_TERRACOTTA: ItemData = ItemData {
     name: "minecraft:gray_terracotta",
-    protocol_id: 434,
+    protocol_id: 464,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7467,7 +7775,7 @@ pub const GRAY_TERRACOTTA: ItemData = ItemData {
 
 pub const GRAY_WOOL: ItemData = ItemData {
     name: "minecraft:gray_wool",
-    protocol_id: 209,
+    protocol_id: 220,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7481,7 +7789,7 @@ pub const GRAY_WOOL: ItemData = ItemData {
 
 pub const GREEN_BANNER: ItemData = ItemData {
     name: "minecraft:green_banner",
-    protocol_id: 1146,
+    protocol_id: 1227,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7495,7 +7803,21 @@ pub const GREEN_BANNER: ItemData = ItemData {
 
 pub const GREEN_BED: ItemData = ItemData {
     name: "minecraft:green_bed",
-    protocol_id: 977,
+    protocol_id: 1054,
+    max_stack_size: 1,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const GREEN_BUNDLE: ItemData = ItemData {
+    name: "minecraft:green_bundle",
+    protocol_id: 1005,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7509,7 +7831,7 @@ pub const GREEN_BED: ItemData = ItemData {
 
 pub const GREEN_CANDLE: ItemData = ItemData {
     name: "minecraft:green_candle",
-    protocol_id: 1255,
+    protocol_id: 1339,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7523,7 +7845,7 @@ pub const GREEN_CANDLE: ItemData = ItemData {
 
 pub const GREEN_CARPET: ItemData = ItemData {
     name: "minecraft:green_carpet",
-    protocol_id: 459,
+    protocol_id: 489,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7537,7 +7859,7 @@ pub const GREEN_CARPET: ItemData = ItemData {
 
 pub const GREEN_CONCRETE: ItemData = ItemData {
     name: "minecraft:green_concrete",
-    protocol_id: 568,
+    protocol_id: 598,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7551,7 +7873,7 @@ pub const GREEN_CONCRETE: ItemData = ItemData {
 
 pub const GREEN_CONCRETE_POWDER: ItemData = ItemData {
     name: "minecraft:green_concrete_powder",
-    protocol_id: 584,
+    protocol_id: 614,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7565,7 +7887,7 @@ pub const GREEN_CONCRETE_POWDER: ItemData = ItemData {
 
 pub const GREEN_DYE: ItemData = ItemData {
     name: "minecraft:green_dye",
-    protocol_id: 957,
+    protocol_id: 1034,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7579,8 +7901,22 @@ pub const GREEN_DYE: ItemData = ItemData {
 
 pub const GREEN_GLAZED_TERRACOTTA: ItemData = ItemData {
     name: "minecraft:green_glazed_terracotta",
-    protocol_id: 552,
+    protocol_id: 582,
     max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const GREEN_HARNESS: ItemData = ItemData {
+    name: "minecraft:green_harness",
+    protocol_id: 815,
+    max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
@@ -7593,7 +7929,7 @@ pub const GREEN_GLAZED_TERRACOTTA: ItemData = ItemData {
 
 pub const GREEN_SHULKER_BOX: ItemData = ItemData {
     name: "minecraft:green_shulker_box",
-    protocol_id: 536,
+    protocol_id: 566,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7607,7 +7943,7 @@ pub const GREEN_SHULKER_BOX: ItemData = ItemData {
 
 pub const GREEN_STAINED_GLASS: ItemData = ItemData {
     name: "minecraft:green_stained_glass",
-    protocol_id: 484,
+    protocol_id: 514,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7621,7 +7957,7 @@ pub const GREEN_STAINED_GLASS: ItemData = ItemData {
 
 pub const GREEN_STAINED_GLASS_PANE: ItemData = ItemData {
     name: "minecraft:green_stained_glass_pane",
-    protocol_id: 500,
+    protocol_id: 530,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7635,7 +7971,7 @@ pub const GREEN_STAINED_GLASS_PANE: ItemData = ItemData {
 
 pub const GREEN_TERRACOTTA: ItemData = ItemData {
     name: "minecraft:green_terracotta",
-    protocol_id: 440,
+    protocol_id: 470,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7649,7 +7985,7 @@ pub const GREEN_TERRACOTTA: ItemData = ItemData {
 
 pub const GREEN_WOOL: ItemData = ItemData {
     name: "minecraft:green_wool",
-    protocol_id: 215,
+    protocol_id: 226,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7663,7 +7999,7 @@ pub const GREEN_WOOL: ItemData = ItemData {
 
 pub const GRINDSTONE: ItemData = ItemData {
     name: "minecraft:grindstone",
-    protocol_id: 1210,
+    protocol_id: 1294,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7677,7 +8013,7 @@ pub const GRINDSTONE: ItemData = ItemData {
 
 pub const GUARDIAN_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:guardian_spawn_egg",
-    protocol_id: 1036,
+    protocol_id: 1114,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7691,7 +8027,7 @@ pub const GUARDIAN_SPAWN_EGG: ItemData = ItemData {
 
 pub const GUNPOWDER: ItemData = ItemData {
     name: "minecraft:gunpowder",
-    protocol_id: 852,
+    protocol_id: 909,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7705,7 +8041,7 @@ pub const GUNPOWDER: ItemData = ItemData {
 
 pub const GUSTER_BANNER_PATTERN: ItemData = ItemData {
     name: "minecraft:guster_banner_pattern",
-    protocol_id: 1202,
+    protocol_id: 1284,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7719,7 +8055,21 @@ pub const GUSTER_BANNER_PATTERN: ItemData = ItemData {
 
 pub const GUSTER_POTTERY_SHERD: ItemData = ItemData {
     name: "minecraft:guster_pottery_sherd",
-    protocol_id: 1298,
+    protocol_id: 1382,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Uncommon,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const HANGING_ROOTS: ItemData = ItemData {
+    name: "minecraft:hanging_roots",
+    protocol_id: 266,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7731,9 +8081,9 @@ pub const GUSTER_POTTERY_SHERD: ItemData = ItemData {
     attribute_modifiers: &[],
 };
 
-pub const HANGING_ROOTS: ItemData = ItemData {
-    name: "minecraft:hanging_roots",
-    protocol_id: 248,
+pub const HAPPY_GHAST_SPAWN_EGG: ItemData = ItemData {
+    name: "minecraft:happy_ghast_spawn_egg",
+    protocol_id: 1111,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7747,7 +8097,7 @@ pub const HANGING_ROOTS: ItemData = ItemData {
 
 pub const HAY_BLOCK: ItemData = ItemData {
     name: "minecraft:hay_block",
-    protocol_id: 445,
+    protocol_id: 475,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7761,7 +8111,7 @@ pub const HAY_BLOCK: ItemData = ItemData {
 
 pub const HEART_OF_THE_SEA: ItemData = ItemData {
     name: "minecraft:heart_of_the_sea",
-    protocol_id: 1191,
+    protocol_id: 1273,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7775,11 +8125,11 @@ pub const HEART_OF_THE_SEA: ItemData = ItemData {
 
 pub const HEART_POTTERY_SHERD: ItemData = ItemData {
     name: "minecraft:heart_pottery_sherd",
-    protocol_id: 1299,
+    protocol_id: 1383,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -7789,11 +8139,11 @@ pub const HEART_POTTERY_SHERD: ItemData = ItemData {
 
 pub const HEARTBREAK_POTTERY_SHERD: ItemData = ItemData {
     name: "minecraft:heartbreak_pottery_sherd",
-    protocol_id: 1300,
+    protocol_id: 1384,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -7803,7 +8153,7 @@ pub const HEARTBREAK_POTTERY_SHERD: ItemData = ItemData {
 
 pub const HEAVY_CORE: ItemData = ItemData {
     name: "minecraft:heavy_core",
-    protocol_id: 85,
+    protocol_id: 87,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7817,7 +8167,7 @@ pub const HEAVY_CORE: ItemData = ItemData {
 
 pub const HEAVY_WEIGHTED_PRESSURE_PLATE: ItemData = ItemData {
     name: "minecraft:heavy_weighted_pressure_plate",
-    protocol_id: 698,
+    protocol_id: 730,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7831,7 +8181,7 @@ pub const HEAVY_WEIGHTED_PRESSURE_PLATE: ItemData = ItemData {
 
 pub const HOGLIN_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:hoglin_spawn_egg",
-    protocol_id: 1037,
+    protocol_id: 1115,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7845,7 +8195,7 @@ pub const HOGLIN_SPAWN_EGG: ItemData = ItemData {
 
 pub const HONEY_BLOCK: ItemData = ItemData {
     name: "minecraft:honey_block",
-    protocol_id: 665,
+    protocol_id: 696,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7859,12 +8209,12 @@ pub const HONEY_BLOCK: ItemData = ItemData {
 
 pub const HONEY_BOTTLE: ItemData = ItemData {
     name: "minecraft:honey_bottle",
-    protocol_id: 1224,
+    protocol_id: 1308,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
-    food: Some(FoodData { nutrition: 6, saturation: 1.2, can_always_eat: false, eat_seconds: 1.6 }),
+    food: Some(FoodData { nutrition: 6, saturation: 1.2, can_always_eat: true, eat_seconds: 1.6 }),
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -7873,7 +8223,7 @@ pub const HONEY_BOTTLE: ItemData = ItemData {
 
 pub const HONEYCOMB: ItemData = ItemData {
     name: "minecraft:honeycomb",
-    protocol_id: 1221,
+    protocol_id: 1305,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7887,7 +8237,7 @@ pub const HONEYCOMB: ItemData = ItemData {
 
 pub const HONEYCOMB_BLOCK: ItemData = ItemData {
     name: "minecraft:honeycomb_block",
-    protocol_id: 1225,
+    protocol_id: 1309,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7901,7 +8251,7 @@ pub const HONEYCOMB_BLOCK: ItemData = ItemData {
 
 pub const HOPPER: ItemData = ItemData {
     name: "minecraft:hopper",
-    protocol_id: 667,
+    protocol_id: 698,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7915,7 +8265,7 @@ pub const HOPPER: ItemData = ItemData {
 
 pub const HOPPER_MINECART: ItemData = ItemData {
     name: "minecraft:hopper_minecart",
-    protocol_id: 770,
+    protocol_id: 822,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7929,7 +8279,7 @@ pub const HOPPER_MINECART: ItemData = ItemData {
 
 pub const HORN_CORAL: ItemData = ItemData {
     name: "minecraft:horn_coral",
-    protocol_id: 603,
+    protocol_id: 634,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7943,7 +8293,7 @@ pub const HORN_CORAL: ItemData = ItemData {
 
 pub const HORN_CORAL_BLOCK: ItemData = ItemData {
     name: "minecraft:horn_coral_block",
-    protocol_id: 598,
+    protocol_id: 629,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7957,7 +8307,7 @@ pub const HORN_CORAL_BLOCK: ItemData = ItemData {
 
 pub const HORN_CORAL_FAN: ItemData = ItemData {
     name: "minecraft:horn_coral_fan",
-    protocol_id: 613,
+    protocol_id: 644,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7971,7 +8321,7 @@ pub const HORN_CORAL_FAN: ItemData = ItemData {
 
 pub const HORSE_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:horse_spawn_egg",
-    protocol_id: 1038,
+    protocol_id: 1116,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -7985,11 +8335,11 @@ pub const HORSE_SPAWN_EGG: ItemData = ItemData {
 
 pub const HOST_ARMOR_TRIM_SMITHING_TEMPLATE: ItemData = ItemData {
     name: "minecraft:host_armor_trim_smithing_template",
-    protocol_id: 1285,
+    protocol_id: 1369,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -7999,11 +8349,11 @@ pub const HOST_ARMOR_TRIM_SMITHING_TEMPLATE: ItemData = ItemData {
 
 pub const HOWL_POTTERY_SHERD: ItemData = ItemData {
     name: "minecraft:howl_pottery_sherd",
-    protocol_id: 1301,
+    protocol_id: 1385,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -8013,7 +8363,7 @@ pub const HOWL_POTTERY_SHERD: ItemData = ItemData {
 
 pub const HUSK_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:husk_spawn_egg",
-    protocol_id: 1039,
+    protocol_id: 1117,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8027,7 +8377,7 @@ pub const HUSK_SPAWN_EGG: ItemData = ItemData {
 
 pub const ICE: ItemData = ItemData {
     name: "minecraft:ice",
-    protocol_id: 306,
+    protocol_id: 326,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8041,7 +8391,7 @@ pub const ICE: ItemData = ItemData {
 
 pub const INFESTED_CHISELED_STONE_BRICKS: ItemData = ItemData {
     name: "minecraft:infested_chiseled_stone_bricks",
-    protocol_id: 338,
+    protocol_id: 360,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8055,7 +8405,7 @@ pub const INFESTED_CHISELED_STONE_BRICKS: ItemData = ItemData {
 
 pub const INFESTED_COBBLESTONE: ItemData = ItemData {
     name: "minecraft:infested_cobblestone",
-    protocol_id: 334,
+    protocol_id: 356,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8069,7 +8419,7 @@ pub const INFESTED_COBBLESTONE: ItemData = ItemData {
 
 pub const INFESTED_CRACKED_STONE_BRICKS: ItemData = ItemData {
     name: "minecraft:infested_cracked_stone_bricks",
-    protocol_id: 337,
+    protocol_id: 359,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8083,7 +8433,7 @@ pub const INFESTED_CRACKED_STONE_BRICKS: ItemData = ItemData {
 
 pub const INFESTED_DEEPSLATE: ItemData = ItemData {
     name: "minecraft:infested_deepslate",
-    protocol_id: 339,
+    protocol_id: 361,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8097,7 +8447,7 @@ pub const INFESTED_DEEPSLATE: ItemData = ItemData {
 
 pub const INFESTED_MOSSY_STONE_BRICKS: ItemData = ItemData {
     name: "minecraft:infested_mossy_stone_bricks",
-    protocol_id: 336,
+    protocol_id: 358,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8111,7 +8461,7 @@ pub const INFESTED_MOSSY_STONE_BRICKS: ItemData = ItemData {
 
 pub const INFESTED_STONE: ItemData = ItemData {
     name: "minecraft:infested_stone",
-    protocol_id: 333,
+    protocol_id: 355,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8125,7 +8475,7 @@ pub const INFESTED_STONE: ItemData = ItemData {
 
 pub const INFESTED_STONE_BRICKS: ItemData = ItemData {
     name: "minecraft:infested_stone_bricks",
-    protocol_id: 335,
+    protocol_id: 357,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8139,7 +8489,7 @@ pub const INFESTED_STONE_BRICKS: ItemData = ItemData {
 
 pub const INK_SAC: ItemData = ItemData {
     name: "minecraft:ink_sac",
-    protocol_id: 941,
+    protocol_id: 1018,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8153,21 +8503,21 @@ pub const INK_SAC: ItemData = ItemData {
 
 pub const IRON_AXE: ItemData = ItemData {
     name: "minecraft:iron_axe",
-    protocol_id: 836,
+    protocol_id: 893,
     max_stack_size: 1,
     max_damage: 250,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_iron_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/axe", speed: Some(6.0), correct_for_drops: Some(true) }, ] }),
-    enchantable_value: None,
-    repairable_with: None,
+    enchantable_value: Some(14),
+    repairable_with: Some("#minecraft:iron_tool_materials"),
     attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 8.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -3.1000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const IRON_BARS: ItemData = ItemData {
     name: "minecraft:iron_bars",
-    protocol_id: 355,
+    protocol_id: 377,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8181,7 +8531,7 @@ pub const IRON_BARS: ItemData = ItemData {
 
 pub const IRON_BLOCK: ItemData = ItemData {
     name: "minecraft:iron_block",
-    protocol_id: 88,
+    protocol_id: 90,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8195,35 +8545,35 @@ pub const IRON_BLOCK: ItemData = ItemData {
 
 pub const IRON_BOOTS: ItemData = ItemData {
     name: "minecraft:iron_boots",
-    protocol_id: 867,
+    protocol_id: 924,
     max_stack_size: 1,
     max_damage: 195,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: None,
-    enchantable_value: None,
-    repairable_with: None,
-    attribute_modifiers: &[],
+    enchantable_value: Some(9),
+    repairable_with: Some("#minecraft:repairs_iron_armor"),
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Armor, amount: 2.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Feet }, AttributeModifier { kind: AttributeType::ArmorToughness, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Feet }, ],
 };
 
 pub const IRON_CHESTPLATE: ItemData = ItemData {
     name: "minecraft:iron_chestplate",
-    protocol_id: 865,
+    protocol_id: 922,
     max_stack_size: 1,
     max_damage: 240,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: None,
-    enchantable_value: None,
-    repairable_with: None,
-    attribute_modifiers: &[],
+    enchantable_value: Some(9),
+    repairable_with: Some("#minecraft:repairs_iron_armor"),
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Armor, amount: 6.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Chest }, AttributeModifier { kind: AttributeType::ArmorToughness, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Chest }, ],
 };
 
 pub const IRON_DOOR: ItemData = ItemData {
     name: "minecraft:iron_door",
-    protocol_id: 710,
+    protocol_id: 743,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8237,7 +8587,7 @@ pub const IRON_DOOR: ItemData = ItemData {
 
 pub const IRON_GOLEM_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:iron_golem_spawn_egg",
-    protocol_id: 1040,
+    protocol_id: 1118,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8251,35 +8601,35 @@ pub const IRON_GOLEM_SPAWN_EGG: ItemData = ItemData {
 
 pub const IRON_HELMET: ItemData = ItemData {
     name: "minecraft:iron_helmet",
-    protocol_id: 864,
+    protocol_id: 921,
     max_stack_size: 1,
     max_damage: 165,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: None,
-    enchantable_value: None,
-    repairable_with: None,
-    attribute_modifiers: &[],
+    enchantable_value: Some(9),
+    repairable_with: Some("#minecraft:repairs_iron_armor"),
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Armor, amount: 2.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Head }, AttributeModifier { kind: AttributeType::ArmorToughness, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Head }, ],
 };
 
 pub const IRON_HOE: ItemData = ItemData {
     name: "minecraft:iron_hoe",
-    protocol_id: 837,
+    protocol_id: 894,
     max_stack_size: 1,
     max_damage: 250,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_iron_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/hoe", speed: Some(6.0), correct_for_drops: Some(true) }, ] }),
-    enchantable_value: None,
-    repairable_with: None,
+    enchantable_value: Some(14),
+    repairable_with: Some("#minecraft:iron_tool_materials"),
     attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -1.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const IRON_HORSE_ARMOR: ItemData = ItemData {
     name: "minecraft:iron_horse_armor",
-    protocol_id: 1124,
+    protocol_id: 1205,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8288,12 +8638,12 @@ pub const IRON_HORSE_ARMOR: ItemData = ItemData {
     tool: None,
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Armor, amount: 5.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Body }, AttributeModifier { kind: AttributeType::ArmorToughness, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Body }, ],
 };
 
 pub const IRON_INGOT: ItemData = ItemData {
     name: "minecraft:iron_ingot",
-    protocol_id: 811,
+    protocol_id: 868,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8307,21 +8657,21 @@ pub const IRON_INGOT: ItemData = ItemData {
 
 pub const IRON_LEGGINGS: ItemData = ItemData {
     name: "minecraft:iron_leggings",
-    protocol_id: 866,
+    protocol_id: 923,
     max_stack_size: 1,
     max_damage: 225,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: None,
-    enchantable_value: None,
-    repairable_with: None,
-    attribute_modifiers: &[],
+    enchantable_value: Some(9),
+    repairable_with: Some("#minecraft:repairs_iron_armor"),
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Armor, amount: 5.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Legs }, AttributeModifier { kind: AttributeType::ArmorToughness, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Legs }, ],
 };
 
 pub const IRON_NUGGET: ItemData = ItemData {
     name: "minecraft:iron_nugget",
-    protocol_id: 1165,
+    protocol_id: 1246,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8335,7 +8685,7 @@ pub const IRON_NUGGET: ItemData = ItemData {
 
 pub const IRON_ORE: ItemData = ItemData {
     name: "minecraft:iron_ore",
-    protocol_id: 64,
+    protocol_id: 66,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8349,49 +8699,49 @@ pub const IRON_ORE: ItemData = ItemData {
 
 pub const IRON_PICKAXE: ItemData = ItemData {
     name: "minecraft:iron_pickaxe",
-    protocol_id: 835,
+    protocol_id: 892,
     max_stack_size: 1,
     max_damage: 250,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_iron_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/pickaxe", speed: Some(6.0), correct_for_drops: Some(true) }, ] }),
-    enchantable_value: None,
-    repairable_with: None,
+    enchantable_value: Some(14),
+    repairable_with: Some("#minecraft:iron_tool_materials"),
     attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -2.8000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const IRON_SHOVEL: ItemData = ItemData {
     name: "minecraft:iron_shovel",
-    protocol_id: 834,
+    protocol_id: 891,
     max_stack_size: 1,
     max_damage: 250,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_iron_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/shovel", speed: Some(6.0), correct_for_drops: Some(true) }, ] }),
-    enchantable_value: None,
-    repairable_with: None,
+    enchantable_value: Some(14),
+    repairable_with: Some("#minecraft:iron_tool_materials"),
     attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 3.5000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const IRON_SWORD: ItemData = ItemData {
     name: "minecraft:iron_sword",
-    protocol_id: 833,
+    protocol_id: 890,
     max_stack_size: 1,
     max_damage: 250,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 2, rules: &[ToolRule { blocks: "minecraft:cobweb", speed: Some(15.0), correct_for_drops: Some(true) }, ToolRule { blocks: "#minecraft:sword_efficient", speed: Some(1.5), correct_for_drops: None }, ] }),
-    enchantable_value: None,
-    repairable_with: None,
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 2, rules: &[ToolRule { blocks: "minecraft:cobweb", speed: Some(15.0), correct_for_drops: Some(true) }, ToolRule { blocks: "#minecraft:sword_instantly_mines", speed: Some(3.4028235e38), correct_for_drops: None }, ToolRule { blocks: "#minecraft:sword_efficient", speed: Some(1.5), correct_for_drops: None }, ] }),
+    enchantable_value: Some(14),
+    repairable_with: Some("#minecraft:iron_tool_materials"),
     attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 5.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -2.4000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const IRON_TRAPDOOR: ItemData = ItemData {
     name: "minecraft:iron_trapdoor",
-    protocol_id: 730,
+    protocol_id: 764,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8405,7 +8755,7 @@ pub const IRON_TRAPDOOR: ItemData = ItemData {
 
 pub const ITEM_FRAME: ItemData = ItemData {
     name: "minecraft:item_frame",
-    protocol_id: 1094,
+    protocol_id: 1174,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8419,7 +8769,7 @@ pub const ITEM_FRAME: ItemData = ItemData {
 
 pub const JACK_O_LANTERN: ItemData = ItemData {
     name: "minecraft:jack_o_lantern",
-    protocol_id: 324,
+    protocol_id: 346,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8433,7 +8783,7 @@ pub const JACK_O_LANTERN: ItemData = ItemData {
 
 pub const JIGSAW: ItemData = ItemData {
     name: "minecraft:jigsaw",
-    protocol_id: 793,
+    protocol_id: 848,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8447,7 +8797,7 @@ pub const JIGSAW: ItemData = ItemData {
 
 pub const JUKEBOX: ItemData = ItemData {
     name: "minecraft:jukebox",
-    protocol_id: 310,
+    protocol_id: 331,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8461,7 +8811,7 @@ pub const JUKEBOX: ItemData = ItemData {
 
 pub const JUNGLE_BOAT: ItemData = ItemData {
     name: "minecraft:jungle_boat",
-    protocol_id: 780,
+    protocol_id: 833,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8475,7 +8825,7 @@ pub const JUNGLE_BOAT: ItemData = ItemData {
 
 pub const JUNGLE_BUTTON: ItemData = ItemData {
     name: "minecraft:jungle_button",
-    protocol_id: 687,
+    protocol_id: 718,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8489,7 +8839,7 @@ pub const JUNGLE_BUTTON: ItemData = ItemData {
 
 pub const JUNGLE_CHEST_BOAT: ItemData = ItemData {
     name: "minecraft:jungle_chest_boat",
-    protocol_id: 781,
+    protocol_id: 834,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8503,7 +8853,7 @@ pub const JUNGLE_CHEST_BOAT: ItemData = ItemData {
 
 pub const JUNGLE_DOOR: ItemData = ItemData {
     name: "minecraft:jungle_door",
-    protocol_id: 714,
+    protocol_id: 747,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8517,7 +8867,7 @@ pub const JUNGLE_DOOR: ItemData = ItemData {
 
 pub const JUNGLE_FENCE: ItemData = ItemData {
     name: "minecraft:jungle_fence",
-    protocol_id: 314,
+    protocol_id: 335,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8531,7 +8881,7 @@ pub const JUNGLE_FENCE: ItemData = ItemData {
 
 pub const JUNGLE_FENCE_GATE: ItemData = ItemData {
     name: "minecraft:jungle_fence_gate",
-    protocol_id: 753,
+    protocol_id: 788,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8545,7 +8895,7 @@ pub const JUNGLE_FENCE_GATE: ItemData = ItemData {
 
 pub const JUNGLE_HANGING_SIGN: ItemData = ItemData {
     name: "minecraft:jungle_hanging_sign",
-    protocol_id: 900,
+    protocol_id: 958,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8559,7 +8909,7 @@ pub const JUNGLE_HANGING_SIGN: ItemData = ItemData {
 
 pub const JUNGLE_LEAVES: ItemData = ItemData {
     name: "minecraft:jungle_leaves",
-    protocol_id: 179,
+    protocol_id: 185,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8573,7 +8923,7 @@ pub const JUNGLE_LEAVES: ItemData = ItemData {
 
 pub const JUNGLE_LOG: ItemData = ItemData {
     name: "minecraft:jungle_log",
-    protocol_id: 135,
+    protocol_id: 137,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8601,7 +8951,7 @@ pub const JUNGLE_PLANKS: ItemData = ItemData {
 
 pub const JUNGLE_PRESSURE_PLATE: ItemData = ItemData {
     name: "minecraft:jungle_pressure_plate",
-    protocol_id: 702,
+    protocol_id: 734,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8615,7 +8965,7 @@ pub const JUNGLE_PRESSURE_PLATE: ItemData = ItemData {
 
 pub const JUNGLE_SAPLING: ItemData = ItemData {
     name: "minecraft:jungle_sapling",
-    protocol_id: 51,
+    protocol_id: 52,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8629,7 +8979,7 @@ pub const JUNGLE_SAPLING: ItemData = ItemData {
 
 pub const JUNGLE_SIGN: ItemData = ItemData {
     name: "minecraft:jungle_sign",
-    protocol_id: 889,
+    protocol_id: 946,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8643,7 +8993,7 @@ pub const JUNGLE_SIGN: ItemData = ItemData {
 
 pub const JUNGLE_SLAB: ItemData = ItemData {
     name: "minecraft:jungle_slab",
-    protocol_id: 255,
+    protocol_id: 273,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8657,7 +9007,7 @@ pub const JUNGLE_SLAB: ItemData = ItemData {
 
 pub const JUNGLE_STAIRS: ItemData = ItemData {
     name: "minecraft:jungle_stairs",
-    protocol_id: 386,
+    protocol_id: 415,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8671,7 +9021,7 @@ pub const JUNGLE_STAIRS: ItemData = ItemData {
 
 pub const JUNGLE_TRAPDOOR: ItemData = ItemData {
     name: "minecraft:jungle_trapdoor",
-    protocol_id: 734,
+    protocol_id: 768,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8685,7 +9035,7 @@ pub const JUNGLE_TRAPDOOR: ItemData = ItemData {
 
 pub const JUNGLE_WOOD: ItemData = ItemData {
     name: "minecraft:jungle_wood",
-    protocol_id: 169,
+    protocol_id: 174,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8699,7 +9049,7 @@ pub const JUNGLE_WOOD: ItemData = ItemData {
 
 pub const KELP: ItemData = ItemData {
     name: "minecraft:kelp",
-    protocol_id: 244,
+    protocol_id: 257,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8713,7 +9063,7 @@ pub const KELP: ItemData = ItemData {
 
 pub const KNOWLEDGE_BOOK: ItemData = ItemData {
     name: "minecraft:knowledge_book",
-    protocol_id: 1166,
+    protocol_id: 1247,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8727,7 +9077,7 @@ pub const KNOWLEDGE_BOOK: ItemData = ItemData {
 
 pub const LADDER: ItemData = ItemData {
     name: "minecraft:ladder",
-    protocol_id: 303,
+    protocol_id: 323,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8741,7 +9091,7 @@ pub const LADDER: ItemData = ItemData {
 
 pub const LANTERN: ItemData = ItemData {
     name: "minecraft:lantern",
-    protocol_id: 1214,
+    protocol_id: 1298,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8755,7 +9105,7 @@ pub const LANTERN: ItemData = ItemData {
 
 pub const LAPIS_BLOCK: ItemData = ItemData {
     name: "minecraft:lapis_block",
-    protocol_id: 190,
+    protocol_id: 197,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8769,7 +9119,7 @@ pub const LAPIS_BLOCK: ItemData = ItemData {
 
 pub const LAPIS_LAZULI: ItemData = ItemData {
     name: "minecraft:lapis_lazuli",
-    protocol_id: 807,
+    protocol_id: 864,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8783,7 +9133,7 @@ pub const LAPIS_LAZULI: ItemData = ItemData {
 
 pub const LAPIS_ORE: ItemData = ItemData {
     name: "minecraft:lapis_ore",
-    protocol_id: 74,
+    protocol_id: 76,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8797,7 +9147,7 @@ pub const LAPIS_ORE: ItemData = ItemData {
 
 pub const LARGE_AMETHYST_BUD: ItemData = ItemData {
     name: "minecraft:large_amethyst_bud",
-    protocol_id: 1260,
+    protocol_id: 1344,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8811,7 +9161,7 @@ pub const LARGE_AMETHYST_BUD: ItemData = ItemData {
 
 pub const LARGE_FERN: ItemData = ItemData {
     name: "minecraft:large_fern",
-    protocol_id: 470,
+    protocol_id: 500,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8825,7 +9175,7 @@ pub const LARGE_FERN: ItemData = ItemData {
 
 pub const LAVA_BUCKET: ItemData = ItemData {
     name: "minecraft:lava_bucket",
-    protocol_id: 910,
+    protocol_id: 969,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8839,7 +9189,21 @@ pub const LAVA_BUCKET: ItemData = ItemData {
 
 pub const LEAD: ItemData = ItemData {
     name: "minecraft:lead",
-    protocol_id: 1128,
+    protocol_id: 1209,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const LEAF_LITTER: ItemData = ItemData {
+    name: "minecraft:leaf_litter",
+    protocol_id: 260,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8853,7 +9217,7 @@ pub const LEAD: ItemData = ItemData {
 
 pub const LEATHER: ItemData = ItemData {
     name: "minecraft:leather",
-    protocol_id: 913,
+    protocol_id: 972,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8867,49 +9231,49 @@ pub const LEATHER: ItemData = ItemData {
 
 pub const LEATHER_BOOTS: ItemData = ItemData {
     name: "minecraft:leather_boots",
-    protocol_id: 859,
+    protocol_id: 916,
     max_stack_size: 1,
     max_damage: 65,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: None,
-    enchantable_value: None,
-    repairable_with: None,
-    attribute_modifiers: &[],
+    enchantable_value: Some(15),
+    repairable_with: Some("#minecraft:repairs_leather_armor"),
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Armor, amount: 1.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Feet }, AttributeModifier { kind: AttributeType::ArmorToughness, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Feet }, ],
 };
 
 pub const LEATHER_CHESTPLATE: ItemData = ItemData {
     name: "minecraft:leather_chestplate",
-    protocol_id: 857,
+    protocol_id: 914,
     max_stack_size: 1,
     max_damage: 80,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: None,
-    enchantable_value: None,
-    repairable_with: None,
-    attribute_modifiers: &[],
+    enchantable_value: Some(15),
+    repairable_with: Some("#minecraft:repairs_leather_armor"),
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Armor, amount: 3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Chest }, AttributeModifier { kind: AttributeType::ArmorToughness, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Chest }, ],
 };
 
 pub const LEATHER_HELMET: ItemData = ItemData {
     name: "minecraft:leather_helmet",
-    protocol_id: 856,
+    protocol_id: 913,
     max_stack_size: 1,
     max_damage: 55,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: None,
-    enchantable_value: None,
-    repairable_with: None,
-    attribute_modifiers: &[],
+    enchantable_value: Some(15),
+    repairable_with: Some("#minecraft:repairs_leather_armor"),
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Armor, amount: 1.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Head }, AttributeModifier { kind: AttributeType::ArmorToughness, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Head }, ],
 };
 
 pub const LEATHER_HORSE_ARMOR: ItemData = ItemData {
     name: "minecraft:leather_horse_armor",
-    protocol_id: 1127,
+    protocol_id: 1208,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8918,26 +9282,26 @@ pub const LEATHER_HORSE_ARMOR: ItemData = ItemData {
     tool: None,
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Armor, amount: 3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Body }, AttributeModifier { kind: AttributeType::ArmorToughness, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Body }, ],
 };
 
 pub const LEATHER_LEGGINGS: ItemData = ItemData {
     name: "minecraft:leather_leggings",
-    protocol_id: 858,
+    protocol_id: 915,
     max_stack_size: 1,
     max_damage: 75,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: None,
-    enchantable_value: None,
-    repairable_with: None,
-    attribute_modifiers: &[],
+    enchantable_value: Some(15),
+    repairable_with: Some("#minecraft:repairs_leather_armor"),
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Armor, amount: 2.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Legs }, AttributeModifier { kind: AttributeType::ArmorToughness, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Legs }, ],
 };
 
 pub const LECTERN: ItemData = ItemData {
     name: "minecraft:lectern",
-    protocol_id: 670,
+    protocol_id: 701,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8951,7 +9315,7 @@ pub const LECTERN: ItemData = ItemData {
 
 pub const LEVER: ItemData = ItemData {
     name: "minecraft:lever",
-    protocol_id: 672,
+    protocol_id: 703,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8965,7 +9329,7 @@ pub const LEVER: ItemData = ItemData {
 
 pub const LIGHT: ItemData = ItemData {
     name: "minecraft:light",
-    protocol_id: 444,
+    protocol_id: 474,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8979,7 +9343,7 @@ pub const LIGHT: ItemData = ItemData {
 
 pub const LIGHT_BLUE_BANNER: ItemData = ItemData {
     name: "minecraft:light_blue_banner",
-    protocol_id: 1136,
+    protocol_id: 1217,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -8993,7 +9357,21 @@ pub const LIGHT_BLUE_BANNER: ItemData = ItemData {
 
 pub const LIGHT_BLUE_BED: ItemData = ItemData {
     name: "minecraft:light_blue_bed",
-    protocol_id: 967,
+    protocol_id: 1044,
+    max_stack_size: 1,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const LIGHT_BLUE_BUNDLE: ItemData = ItemData {
+    name: "minecraft:light_blue_bundle",
+    protocol_id: 995,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9007,7 +9385,7 @@ pub const LIGHT_BLUE_BED: ItemData = ItemData {
 
 pub const LIGHT_BLUE_CANDLE: ItemData = ItemData {
     name: "minecraft:light_blue_candle",
-    protocol_id: 1245,
+    protocol_id: 1329,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9021,7 +9399,7 @@ pub const LIGHT_BLUE_CANDLE: ItemData = ItemData {
 
 pub const LIGHT_BLUE_CARPET: ItemData = ItemData {
     name: "minecraft:light_blue_carpet",
-    protocol_id: 449,
+    protocol_id: 479,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9035,7 +9413,7 @@ pub const LIGHT_BLUE_CARPET: ItemData = ItemData {
 
 pub const LIGHT_BLUE_CONCRETE: ItemData = ItemData {
     name: "minecraft:light_blue_concrete",
-    protocol_id: 558,
+    protocol_id: 588,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9049,7 +9427,7 @@ pub const LIGHT_BLUE_CONCRETE: ItemData = ItemData {
 
 pub const LIGHT_BLUE_CONCRETE_POWDER: ItemData = ItemData {
     name: "minecraft:light_blue_concrete_powder",
-    protocol_id: 574,
+    protocol_id: 604,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9063,7 +9441,7 @@ pub const LIGHT_BLUE_CONCRETE_POWDER: ItemData = ItemData {
 
 pub const LIGHT_BLUE_DYE: ItemData = ItemData {
     name: "minecraft:light_blue_dye",
-    protocol_id: 947,
+    protocol_id: 1024,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9077,8 +9455,22 @@ pub const LIGHT_BLUE_DYE: ItemData = ItemData {
 
 pub const LIGHT_BLUE_GLAZED_TERRACOTTA: ItemData = ItemData {
     name: "minecraft:light_blue_glazed_terracotta",
-    protocol_id: 542,
+    protocol_id: 572,
     max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const LIGHT_BLUE_HARNESS: ItemData = ItemData {
+    name: "minecraft:light_blue_harness",
+    protocol_id: 805,
+    max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
@@ -9091,7 +9483,7 @@ pub const LIGHT_BLUE_GLAZED_TERRACOTTA: ItemData = ItemData {
 
 pub const LIGHT_BLUE_SHULKER_BOX: ItemData = ItemData {
     name: "minecraft:light_blue_shulker_box",
-    protocol_id: 526,
+    protocol_id: 556,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9105,7 +9497,7 @@ pub const LIGHT_BLUE_SHULKER_BOX: ItemData = ItemData {
 
 pub const LIGHT_BLUE_STAINED_GLASS: ItemData = ItemData {
     name: "minecraft:light_blue_stained_glass",
-    protocol_id: 474,
+    protocol_id: 504,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9119,7 +9511,7 @@ pub const LIGHT_BLUE_STAINED_GLASS: ItemData = ItemData {
 
 pub const LIGHT_BLUE_STAINED_GLASS_PANE: ItemData = ItemData {
     name: "minecraft:light_blue_stained_glass_pane",
-    protocol_id: 490,
+    protocol_id: 520,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9133,7 +9525,7 @@ pub const LIGHT_BLUE_STAINED_GLASS_PANE: ItemData = ItemData {
 
 pub const LIGHT_BLUE_TERRACOTTA: ItemData = ItemData {
     name: "minecraft:light_blue_terracotta",
-    protocol_id: 430,
+    protocol_id: 460,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9147,7 +9539,7 @@ pub const LIGHT_BLUE_TERRACOTTA: ItemData = ItemData {
 
 pub const LIGHT_BLUE_WOOL: ItemData = ItemData {
     name: "minecraft:light_blue_wool",
-    protocol_id: 205,
+    protocol_id: 216,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9161,7 +9553,7 @@ pub const LIGHT_BLUE_WOOL: ItemData = ItemData {
 
 pub const LIGHT_GRAY_BANNER: ItemData = ItemData {
     name: "minecraft:light_gray_banner",
-    protocol_id: 1141,
+    protocol_id: 1222,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9175,7 +9567,21 @@ pub const LIGHT_GRAY_BANNER: ItemData = ItemData {
 
 pub const LIGHT_GRAY_BED: ItemData = ItemData {
     name: "minecraft:light_gray_bed",
-    protocol_id: 972,
+    protocol_id: 1049,
+    max_stack_size: 1,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const LIGHT_GRAY_BUNDLE: ItemData = ItemData {
+    name: "minecraft:light_gray_bundle",
+    protocol_id: 1000,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9189,7 +9595,7 @@ pub const LIGHT_GRAY_BED: ItemData = ItemData {
 
 pub const LIGHT_GRAY_CANDLE: ItemData = ItemData {
     name: "minecraft:light_gray_candle",
-    protocol_id: 1250,
+    protocol_id: 1334,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9203,7 +9609,7 @@ pub const LIGHT_GRAY_CANDLE: ItemData = ItemData {
 
 pub const LIGHT_GRAY_CARPET: ItemData = ItemData {
     name: "minecraft:light_gray_carpet",
-    protocol_id: 454,
+    protocol_id: 484,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9217,7 +9623,7 @@ pub const LIGHT_GRAY_CARPET: ItemData = ItemData {
 
 pub const LIGHT_GRAY_CONCRETE: ItemData = ItemData {
     name: "minecraft:light_gray_concrete",
-    protocol_id: 563,
+    protocol_id: 593,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9231,7 +9637,7 @@ pub const LIGHT_GRAY_CONCRETE: ItemData = ItemData {
 
 pub const LIGHT_GRAY_CONCRETE_POWDER: ItemData = ItemData {
     name: "minecraft:light_gray_concrete_powder",
-    protocol_id: 579,
+    protocol_id: 609,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9245,7 +9651,7 @@ pub const LIGHT_GRAY_CONCRETE_POWDER: ItemData = ItemData {
 
 pub const LIGHT_GRAY_DYE: ItemData = ItemData {
     name: "minecraft:light_gray_dye",
-    protocol_id: 952,
+    protocol_id: 1029,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9259,8 +9665,22 @@ pub const LIGHT_GRAY_DYE: ItemData = ItemData {
 
 pub const LIGHT_GRAY_GLAZED_TERRACOTTA: ItemData = ItemData {
     name: "minecraft:light_gray_glazed_terracotta",
-    protocol_id: 547,
+    protocol_id: 577,
     max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const LIGHT_GRAY_HARNESS: ItemData = ItemData {
+    name: "minecraft:light_gray_harness",
+    protocol_id: 810,
+    max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
@@ -9273,7 +9693,7 @@ pub const LIGHT_GRAY_GLAZED_TERRACOTTA: ItemData = ItemData {
 
 pub const LIGHT_GRAY_SHULKER_BOX: ItemData = ItemData {
     name: "minecraft:light_gray_shulker_box",
-    protocol_id: 531,
+    protocol_id: 561,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9287,7 +9707,7 @@ pub const LIGHT_GRAY_SHULKER_BOX: ItemData = ItemData {
 
 pub const LIGHT_GRAY_STAINED_GLASS: ItemData = ItemData {
     name: "minecraft:light_gray_stained_glass",
-    protocol_id: 479,
+    protocol_id: 509,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9301,7 +9721,7 @@ pub const LIGHT_GRAY_STAINED_GLASS: ItemData = ItemData {
 
 pub const LIGHT_GRAY_STAINED_GLASS_PANE: ItemData = ItemData {
     name: "minecraft:light_gray_stained_glass_pane",
-    protocol_id: 495,
+    protocol_id: 525,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9315,7 +9735,7 @@ pub const LIGHT_GRAY_STAINED_GLASS_PANE: ItemData = ItemData {
 
 pub const LIGHT_GRAY_TERRACOTTA: ItemData = ItemData {
     name: "minecraft:light_gray_terracotta",
-    protocol_id: 435,
+    protocol_id: 465,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9329,7 +9749,7 @@ pub const LIGHT_GRAY_TERRACOTTA: ItemData = ItemData {
 
 pub const LIGHT_GRAY_WOOL: ItemData = ItemData {
     name: "minecraft:light_gray_wool",
-    protocol_id: 210,
+    protocol_id: 221,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9343,7 +9763,7 @@ pub const LIGHT_GRAY_WOOL: ItemData = ItemData {
 
 pub const LIGHT_WEIGHTED_PRESSURE_PLATE: ItemData = ItemData {
     name: "minecraft:light_weighted_pressure_plate",
-    protocol_id: 697,
+    protocol_id: 729,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9357,7 +9777,7 @@ pub const LIGHT_WEIGHTED_PRESSURE_PLATE: ItemData = ItemData {
 
 pub const LIGHTNING_ROD: ItemData = ItemData {
     name: "minecraft:lightning_rod",
-    protocol_id: 673,
+    protocol_id: 704,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9371,7 +9791,7 @@ pub const LIGHTNING_ROD: ItemData = ItemData {
 
 pub const LILAC: ItemData = ItemData {
     name: "minecraft:lilac",
-    protocol_id: 466,
+    protocol_id: 496,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9385,7 +9805,7 @@ pub const LILAC: ItemData = ItemData {
 
 pub const LILY_OF_THE_VALLEY: ItemData = ItemData {
     name: "minecraft:lily_of_the_valley",
-    protocol_id: 229,
+    protocol_id: 242,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9399,7 +9819,7 @@ pub const LILY_OF_THE_VALLEY: ItemData = ItemData {
 
 pub const LILY_PAD: ItemData = ItemData {
     name: "minecraft:lily_pad",
-    protocol_id: 365,
+    protocol_id: 394,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9413,7 +9833,7 @@ pub const LILY_PAD: ItemData = ItemData {
 
 pub const LIME_BANNER: ItemData = ItemData {
     name: "minecraft:lime_banner",
-    protocol_id: 1138,
+    protocol_id: 1219,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9427,7 +9847,21 @@ pub const LIME_BANNER: ItemData = ItemData {
 
 pub const LIME_BED: ItemData = ItemData {
     name: "minecraft:lime_bed",
-    protocol_id: 969,
+    protocol_id: 1046,
+    max_stack_size: 1,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const LIME_BUNDLE: ItemData = ItemData {
+    name: "minecraft:lime_bundle",
+    protocol_id: 997,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9441,7 +9875,7 @@ pub const LIME_BED: ItemData = ItemData {
 
 pub const LIME_CANDLE: ItemData = ItemData {
     name: "minecraft:lime_candle",
-    protocol_id: 1247,
+    protocol_id: 1331,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9455,7 +9889,7 @@ pub const LIME_CANDLE: ItemData = ItemData {
 
 pub const LIME_CARPET: ItemData = ItemData {
     name: "minecraft:lime_carpet",
-    protocol_id: 451,
+    protocol_id: 481,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9469,7 +9903,7 @@ pub const LIME_CARPET: ItemData = ItemData {
 
 pub const LIME_CONCRETE: ItemData = ItemData {
     name: "minecraft:lime_concrete",
-    protocol_id: 560,
+    protocol_id: 590,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9483,7 +9917,7 @@ pub const LIME_CONCRETE: ItemData = ItemData {
 
 pub const LIME_CONCRETE_POWDER: ItemData = ItemData {
     name: "minecraft:lime_concrete_powder",
-    protocol_id: 576,
+    protocol_id: 606,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9497,7 +9931,7 @@ pub const LIME_CONCRETE_POWDER: ItemData = ItemData {
 
 pub const LIME_DYE: ItemData = ItemData {
     name: "minecraft:lime_dye",
-    protocol_id: 949,
+    protocol_id: 1026,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9511,8 +9945,22 @@ pub const LIME_DYE: ItemData = ItemData {
 
 pub const LIME_GLAZED_TERRACOTTA: ItemData = ItemData {
     name: "minecraft:lime_glazed_terracotta",
-    protocol_id: 544,
+    protocol_id: 574,
     max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const LIME_HARNESS: ItemData = ItemData {
+    name: "minecraft:lime_harness",
+    protocol_id: 807,
+    max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
@@ -9525,7 +9973,7 @@ pub const LIME_GLAZED_TERRACOTTA: ItemData = ItemData {
 
 pub const LIME_SHULKER_BOX: ItemData = ItemData {
     name: "minecraft:lime_shulker_box",
-    protocol_id: 528,
+    protocol_id: 558,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9539,7 +9987,7 @@ pub const LIME_SHULKER_BOX: ItemData = ItemData {
 
 pub const LIME_STAINED_GLASS: ItemData = ItemData {
     name: "minecraft:lime_stained_glass",
-    protocol_id: 476,
+    protocol_id: 506,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9553,7 +10001,7 @@ pub const LIME_STAINED_GLASS: ItemData = ItemData {
 
 pub const LIME_STAINED_GLASS_PANE: ItemData = ItemData {
     name: "minecraft:lime_stained_glass_pane",
-    protocol_id: 492,
+    protocol_id: 522,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9567,7 +10015,7 @@ pub const LIME_STAINED_GLASS_PANE: ItemData = ItemData {
 
 pub const LIME_TERRACOTTA: ItemData = ItemData {
     name: "minecraft:lime_terracotta",
-    protocol_id: 432,
+    protocol_id: 462,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9581,7 +10029,7 @@ pub const LIME_TERRACOTTA: ItemData = ItemData {
 
 pub const LIME_WOOL: ItemData = ItemData {
     name: "minecraft:lime_wool",
-    protocol_id: 207,
+    protocol_id: 218,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9595,7 +10043,7 @@ pub const LIME_WOOL: ItemData = ItemData {
 
 pub const LINGERING_POTION: ItemData = ItemData {
     name: "minecraft:lingering_potion",
-    protocol_id: 1161,
+    protocol_id: 1242,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9609,7 +10057,7 @@ pub const LINGERING_POTION: ItemData = ItemData {
 
 pub const LLAMA_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:llama_spawn_egg",
-    protocol_id: 1041,
+    protocol_id: 1119,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9623,7 +10071,7 @@ pub const LLAMA_SPAWN_EGG: ItemData = ItemData {
 
 pub const LODESTONE: ItemData = ItemData {
     name: "minecraft:lodestone",
-    protocol_id: 1226,
+    protocol_id: 1310,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9637,7 +10085,7 @@ pub const LODESTONE: ItemData = ItemData {
 
 pub const LOOM: ItemData = ItemData {
     name: "minecraft:loom",
-    protocol_id: 1194,
+    protocol_id: 1276,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9651,21 +10099,21 @@ pub const LOOM: ItemData = ItemData {
 
 pub const MACE: ItemData = ItemData {
     name: "minecraft:mace",
-    protocol_id: 1093,
+    protocol_id: 1173,
     max_stack_size: 1,
     max_damage: 500,
     is_fire_resistant: false,
     rarity: Rarity::Epic,
     food: None,
     tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 2, rules: &[] }),
-    enchantable_value: None,
-    repairable_with: None,
+    enchantable_value: Some(15),
+    repairable_with: Some("minecraft:breeze_rod"),
     attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 5.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -3.4000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const MAGENTA_BANNER: ItemData = ItemData {
     name: "minecraft:magenta_banner",
-    protocol_id: 1135,
+    protocol_id: 1216,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9679,7 +10127,21 @@ pub const MAGENTA_BANNER: ItemData = ItemData {
 
 pub const MAGENTA_BED: ItemData = ItemData {
     name: "minecraft:magenta_bed",
-    protocol_id: 966,
+    protocol_id: 1043,
+    max_stack_size: 1,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const MAGENTA_BUNDLE: ItemData = ItemData {
+    name: "minecraft:magenta_bundle",
+    protocol_id: 994,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9693,7 +10155,7 @@ pub const MAGENTA_BED: ItemData = ItemData {
 
 pub const MAGENTA_CANDLE: ItemData = ItemData {
     name: "minecraft:magenta_candle",
-    protocol_id: 1244,
+    protocol_id: 1328,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9707,7 +10169,7 @@ pub const MAGENTA_CANDLE: ItemData = ItemData {
 
 pub const MAGENTA_CARPET: ItemData = ItemData {
     name: "minecraft:magenta_carpet",
-    protocol_id: 448,
+    protocol_id: 478,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9721,7 +10183,7 @@ pub const MAGENTA_CARPET: ItemData = ItemData {
 
 pub const MAGENTA_CONCRETE: ItemData = ItemData {
     name: "minecraft:magenta_concrete",
-    protocol_id: 557,
+    protocol_id: 587,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9735,7 +10197,7 @@ pub const MAGENTA_CONCRETE: ItemData = ItemData {
 
 pub const MAGENTA_CONCRETE_POWDER: ItemData = ItemData {
     name: "minecraft:magenta_concrete_powder",
-    protocol_id: 573,
+    protocol_id: 603,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9749,7 +10211,7 @@ pub const MAGENTA_CONCRETE_POWDER: ItemData = ItemData {
 
 pub const MAGENTA_DYE: ItemData = ItemData {
     name: "minecraft:magenta_dye",
-    protocol_id: 946,
+    protocol_id: 1023,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9763,8 +10225,22 @@ pub const MAGENTA_DYE: ItemData = ItemData {
 
 pub const MAGENTA_GLAZED_TERRACOTTA: ItemData = ItemData {
     name: "minecraft:magenta_glazed_terracotta",
-    protocol_id: 541,
+    protocol_id: 571,
     max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const MAGENTA_HARNESS: ItemData = ItemData {
+    name: "minecraft:magenta_harness",
+    protocol_id: 804,
+    max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
@@ -9777,7 +10253,7 @@ pub const MAGENTA_GLAZED_TERRACOTTA: ItemData = ItemData {
 
 pub const MAGENTA_SHULKER_BOX: ItemData = ItemData {
     name: "minecraft:magenta_shulker_box",
-    protocol_id: 525,
+    protocol_id: 555,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9791,7 +10267,7 @@ pub const MAGENTA_SHULKER_BOX: ItemData = ItemData {
 
 pub const MAGENTA_STAINED_GLASS: ItemData = ItemData {
     name: "minecraft:magenta_stained_glass",
-    protocol_id: 473,
+    protocol_id: 503,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9805,7 +10281,7 @@ pub const MAGENTA_STAINED_GLASS: ItemData = ItemData {
 
 pub const MAGENTA_STAINED_GLASS_PANE: ItemData = ItemData {
     name: "minecraft:magenta_stained_glass_pane",
-    protocol_id: 489,
+    protocol_id: 519,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9819,7 +10295,7 @@ pub const MAGENTA_STAINED_GLASS_PANE: ItemData = ItemData {
 
 pub const MAGENTA_TERRACOTTA: ItemData = ItemData {
     name: "minecraft:magenta_terracotta",
-    protocol_id: 429,
+    protocol_id: 459,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9833,7 +10309,7 @@ pub const MAGENTA_TERRACOTTA: ItemData = ItemData {
 
 pub const MAGENTA_WOOL: ItemData = ItemData {
     name: "minecraft:magenta_wool",
-    protocol_id: 204,
+    protocol_id: 215,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9847,7 +10323,7 @@ pub const MAGENTA_WOOL: ItemData = ItemData {
 
 pub const MAGMA_BLOCK: ItemData = ItemData {
     name: "minecraft:magma_block",
-    protocol_id: 516,
+    protocol_id: 546,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9861,7 +10337,7 @@ pub const MAGMA_BLOCK: ItemData = ItemData {
 
 pub const MAGMA_CREAM: ItemData = ItemData {
     name: "minecraft:magma_cream",
-    protocol_id: 1003,
+    protocol_id: 1080,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9875,7 +10351,7 @@ pub const MAGMA_CREAM: ItemData = ItemData {
 
 pub const MAGMA_CUBE_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:magma_cube_spawn_egg",
-    protocol_id: 1042,
+    protocol_id: 1120,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9889,7 +10365,7 @@ pub const MAGMA_CUBE_SPAWN_EGG: ItemData = ItemData {
 
 pub const MANGROVE_BOAT: ItemData = ItemData {
     name: "minecraft:mangrove_boat",
-    protocol_id: 788,
+    protocol_id: 843,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9903,7 +10379,7 @@ pub const MANGROVE_BOAT: ItemData = ItemData {
 
 pub const MANGROVE_BUTTON: ItemData = ItemData {
     name: "minecraft:mangrove_button",
-    protocol_id: 691,
+    protocol_id: 723,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9917,7 +10393,7 @@ pub const MANGROVE_BUTTON: ItemData = ItemData {
 
 pub const MANGROVE_CHEST_BOAT: ItemData = ItemData {
     name: "minecraft:mangrove_chest_boat",
-    protocol_id: 789,
+    protocol_id: 844,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9931,7 +10407,7 @@ pub const MANGROVE_CHEST_BOAT: ItemData = ItemData {
 
 pub const MANGROVE_DOOR: ItemData = ItemData {
     name: "minecraft:mangrove_door",
-    protocol_id: 718,
+    protocol_id: 752,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9945,7 +10421,7 @@ pub const MANGROVE_DOOR: ItemData = ItemData {
 
 pub const MANGROVE_FENCE: ItemData = ItemData {
     name: "minecraft:mangrove_fence",
-    protocol_id: 318,
+    protocol_id: 340,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9959,7 +10435,7 @@ pub const MANGROVE_FENCE: ItemData = ItemData {
 
 pub const MANGROVE_FENCE_GATE: ItemData = ItemData {
     name: "minecraft:mangrove_fence_gate",
-    protocol_id: 757,
+    protocol_id: 793,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9973,7 +10449,7 @@ pub const MANGROVE_FENCE_GATE: ItemData = ItemData {
 
 pub const MANGROVE_HANGING_SIGN: ItemData = ItemData {
     name: "minecraft:mangrove_hanging_sign",
-    protocol_id: 904,
+    protocol_id: 963,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -9987,7 +10463,7 @@ pub const MANGROVE_HANGING_SIGN: ItemData = ItemData {
 
 pub const MANGROVE_LEAVES: ItemData = ItemData {
     name: "minecraft:mangrove_leaves",
-    protocol_id: 183,
+    protocol_id: 190,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10001,7 +10477,7 @@ pub const MANGROVE_LEAVES: ItemData = ItemData {
 
 pub const MANGROVE_LOG: ItemData = ItemData {
     name: "minecraft:mangrove_log",
-    protocol_id: 139,
+    protocol_id: 142,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10015,7 +10491,7 @@ pub const MANGROVE_LOG: ItemData = ItemData {
 
 pub const MANGROVE_PLANKS: ItemData = ItemData {
     name: "minecraft:mangrove_planks",
-    protocol_id: 43,
+    protocol_id: 44,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10029,7 +10505,7 @@ pub const MANGROVE_PLANKS: ItemData = ItemData {
 
 pub const MANGROVE_PRESSURE_PLATE: ItemData = ItemData {
     name: "minecraft:mangrove_pressure_plate",
-    protocol_id: 706,
+    protocol_id: 739,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10043,7 +10519,7 @@ pub const MANGROVE_PRESSURE_PLATE: ItemData = ItemData {
 
 pub const MANGROVE_PROPAGULE: ItemData = ItemData {
     name: "minecraft:mangrove_propagule",
-    protocol_id: 55,
+    protocol_id: 57,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10057,7 +10533,7 @@ pub const MANGROVE_PROPAGULE: ItemData = ItemData {
 
 pub const MANGROVE_ROOTS: ItemData = ItemData {
     name: "minecraft:mangrove_roots",
-    protocol_id: 140,
+    protocol_id: 143,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10071,7 +10547,7 @@ pub const MANGROVE_ROOTS: ItemData = ItemData {
 
 pub const MANGROVE_SIGN: ItemData = ItemData {
     name: "minecraft:mangrove_sign",
-    protocol_id: 893,
+    protocol_id: 951,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10085,7 +10561,7 @@ pub const MANGROVE_SIGN: ItemData = ItemData {
 
 pub const MANGROVE_SLAB: ItemData = ItemData {
     name: "minecraft:mangrove_slab",
-    protocol_id: 259,
+    protocol_id: 278,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10099,7 +10575,7 @@ pub const MANGROVE_SLAB: ItemData = ItemData {
 
 pub const MANGROVE_STAIRS: ItemData = ItemData {
     name: "minecraft:mangrove_stairs",
-    protocol_id: 390,
+    protocol_id: 420,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10113,7 +10589,7 @@ pub const MANGROVE_STAIRS: ItemData = ItemData {
 
 pub const MANGROVE_TRAPDOOR: ItemData = ItemData {
     name: "minecraft:mangrove_trapdoor",
-    protocol_id: 738,
+    protocol_id: 773,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10127,7 +10603,7 @@ pub const MANGROVE_TRAPDOOR: ItemData = ItemData {
 
 pub const MANGROVE_WOOD: ItemData = ItemData {
     name: "minecraft:mangrove_wood",
-    protocol_id: 173,
+    protocol_id: 179,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10141,7 +10617,7 @@ pub const MANGROVE_WOOD: ItemData = ItemData {
 
 pub const MAP: ItemData = ItemData {
     name: "minecraft:map",
-    protocol_id: 1101,
+    protocol_id: 1181,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10155,7 +10631,7 @@ pub const MAP: ItemData = ItemData {
 
 pub const MEDIUM_AMETHYST_BUD: ItemData = ItemData {
     name: "minecraft:medium_amethyst_bud",
-    protocol_id: 1259,
+    protocol_id: 1343,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10169,7 +10645,7 @@ pub const MEDIUM_AMETHYST_BUD: ItemData = ItemData {
 
 pub const MELON: ItemData = ItemData {
     name: "minecraft:melon",
-    protocol_id: 358,
+    protocol_id: 380,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10183,7 +10659,7 @@ pub const MELON: ItemData = ItemData {
 
 pub const MELON_SEEDS: ItemData = ItemData {
     name: "minecraft:melon_seeds",
-    protocol_id: 987,
+    protocol_id: 1064,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10197,7 +10673,7 @@ pub const MELON_SEEDS: ItemData = ItemData {
 
 pub const MELON_SLICE: ItemData = ItemData {
     name: "minecraft:melon_slice",
-    protocol_id: 984,
+    protocol_id: 1061,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10211,7 +10687,7 @@ pub const MELON_SLICE: ItemData = ItemData {
 
 pub const MILK_BUCKET: ItemData = ItemData {
     name: "minecraft:milk_bucket",
-    protocol_id: 914,
+    protocol_id: 973,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10225,7 +10701,7 @@ pub const MILK_BUCKET: ItemData = ItemData {
 
 pub const MINECART: ItemData = ItemData {
     name: "minecraft:minecart",
-    protocol_id: 766,
+    protocol_id: 818,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10239,11 +10715,11 @@ pub const MINECART: ItemData = ItemData {
 
 pub const MINER_POTTERY_SHERD: ItemData = ItemData {
     name: "minecraft:miner_pottery_sherd",
-    protocol_id: 1302,
+    protocol_id: 1386,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -10253,11 +10729,11 @@ pub const MINER_POTTERY_SHERD: ItemData = ItemData {
 
 pub const MOJANG_BANNER_PATTERN: ItemData = ItemData {
     name: "minecraft:mojang_banner_pattern",
-    protocol_id: 1198,
+    protocol_id: 1280,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Epic,
+    rarity: Rarity::Rare,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -10267,7 +10743,7 @@ pub const MOJANG_BANNER_PATTERN: ItemData = ItemData {
 
 pub const MOOSHROOM_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:mooshroom_spawn_egg",
-    protocol_id: 1043,
+    protocol_id: 1121,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10281,7 +10757,7 @@ pub const MOOSHROOM_SPAWN_EGG: ItemData = ItemData {
 
 pub const MOSS_BLOCK: ItemData = ItemData {
     name: "minecraft:moss_block",
-    protocol_id: 247,
+    protocol_id: 262,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10295,7 +10771,7 @@ pub const MOSS_BLOCK: ItemData = ItemData {
 
 pub const MOSS_CARPET: ItemData = ItemData {
     name: "minecraft:moss_carpet",
-    protocol_id: 245,
+    protocol_id: 261,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10309,7 +10785,7 @@ pub const MOSS_CARPET: ItemData = ItemData {
 
 pub const MOSSY_COBBLESTONE: ItemData = ItemData {
     name: "minecraft:mossy_cobblestone",
-    protocol_id: 289,
+    protocol_id: 308,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10323,7 +10799,7 @@ pub const MOSSY_COBBLESTONE: ItemData = ItemData {
 
 pub const MOSSY_COBBLESTONE_SLAB: ItemData = ItemData {
     name: "minecraft:mossy_cobblestone_slab",
-    protocol_id: 643,
+    protocol_id: 674,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10337,7 +10813,7 @@ pub const MOSSY_COBBLESTONE_SLAB: ItemData = ItemData {
 
 pub const MOSSY_COBBLESTONE_STAIRS: ItemData = ItemData {
     name: "minecraft:mossy_cobblestone_stairs",
-    protocol_id: 625,
+    protocol_id: 656,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10351,7 +10827,7 @@ pub const MOSSY_COBBLESTONE_STAIRS: ItemData = ItemData {
 
 pub const MOSSY_COBBLESTONE_WALL: ItemData = ItemData {
     name: "minecraft:mossy_cobblestone_wall",
-    protocol_id: 398,
+    protocol_id: 428,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10365,7 +10841,7 @@ pub const MOSSY_COBBLESTONE_WALL: ItemData = ItemData {
 
 pub const MOSSY_STONE_BRICK_SLAB: ItemData = ItemData {
     name: "minecraft:mossy_stone_brick_slab",
-    protocol_id: 641,
+    protocol_id: 672,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10379,7 +10855,7 @@ pub const MOSSY_STONE_BRICK_SLAB: ItemData = ItemData {
 
 pub const MOSSY_STONE_BRICK_STAIRS: ItemData = ItemData {
     name: "minecraft:mossy_stone_brick_stairs",
-    protocol_id: 623,
+    protocol_id: 654,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10393,7 +10869,7 @@ pub const MOSSY_STONE_BRICK_STAIRS: ItemData = ItemData {
 
 pub const MOSSY_STONE_BRICK_WALL: ItemData = ItemData {
     name: "minecraft:mossy_stone_brick_wall",
-    protocol_id: 402,
+    protocol_id: 432,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10407,7 +10883,7 @@ pub const MOSSY_STONE_BRICK_WALL: ItemData = ItemData {
 
 pub const MOSSY_STONE_BRICKS: ItemData = ItemData {
     name: "minecraft:mossy_stone_bricks",
-    protocol_id: 341,
+    protocol_id: 363,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10421,11 +10897,11 @@ pub const MOSSY_STONE_BRICKS: ItemData = ItemData {
 
 pub const MOURNER_POTTERY_SHERD: ItemData = ItemData {
     name: "minecraft:mourner_pottery_sherd",
-    protocol_id: 1303,
+    protocol_id: 1387,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -10449,7 +10925,7 @@ pub const MUD: ItemData = ItemData {
 
 pub const MUD_BRICK_SLAB: ItemData = ItemData {
     name: "minecraft:mud_brick_slab",
-    protocol_id: 272,
+    protocol_id: 291,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10463,7 +10939,7 @@ pub const MUD_BRICK_SLAB: ItemData = ItemData {
 
 pub const MUD_BRICK_STAIRS: ItemData = ItemData {
     name: "minecraft:mud_brick_stairs",
-    protocol_id: 363,
+    protocol_id: 392,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10477,7 +10953,7 @@ pub const MUD_BRICK_STAIRS: ItemData = ItemData {
 
 pub const MUD_BRICK_WALL: ItemData = ItemData {
     name: "minecraft:mud_brick_wall",
-    protocol_id: 405,
+    protocol_id: 435,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10491,7 +10967,7 @@ pub const MUD_BRICK_WALL: ItemData = ItemData {
 
 pub const MUD_BRICKS: ItemData = ItemData {
     name: "minecraft:mud_bricks",
-    protocol_id: 345,
+    protocol_id: 367,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10505,7 +10981,7 @@ pub const MUD_BRICKS: ItemData = ItemData {
 
 pub const MUDDY_MANGROVE_ROOTS: ItemData = ItemData {
     name: "minecraft:muddy_mangrove_roots",
-    protocol_id: 141,
+    protocol_id: 144,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10519,7 +10995,7 @@ pub const MUDDY_MANGROVE_ROOTS: ItemData = ItemData {
 
 pub const MULE_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:mule_spawn_egg",
-    protocol_id: 1044,
+    protocol_id: 1122,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10533,7 +11009,7 @@ pub const MULE_SPAWN_EGG: ItemData = ItemData {
 
 pub const MUSHROOM_STEM: ItemData = ItemData {
     name: "minecraft:mushroom_stem",
-    protocol_id: 354,
+    protocol_id: 376,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10547,7 +11023,7 @@ pub const MUSHROOM_STEM: ItemData = ItemData {
 
 pub const MUSHROOM_STEW: ItemData = ItemData {
     name: "minecraft:mushroom_stew",
-    protocol_id: 849,
+    protocol_id: 906,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10561,11 +11037,11 @@ pub const MUSHROOM_STEW: ItemData = ItemData {
 
 pub const MUSIC_DISC_11: ItemData = ItemData {
     name: "minecraft:music_disc_11",
-    protocol_id: 1180,
+    protocol_id: 1262,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Rare,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -10575,11 +11051,11 @@ pub const MUSIC_DISC_11: ItemData = ItemData {
 
 pub const MUSIC_DISC_13: ItemData = ItemData {
     name: "minecraft:music_disc_13",
-    protocol_id: 1168,
+    protocol_id: 1249,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Rare,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -10589,11 +11065,11 @@ pub const MUSIC_DISC_13: ItemData = ItemData {
 
 pub const MUSIC_DISC_5: ItemData = ItemData {
     name: "minecraft:music_disc_5",
-    protocol_id: 1184,
+    protocol_id: 1266,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Rare,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -10603,11 +11079,11 @@ pub const MUSIC_DISC_5: ItemData = ItemData {
 
 pub const MUSIC_DISC_BLOCKS: ItemData = ItemData {
     name: "minecraft:music_disc_blocks",
-    protocol_id: 1170,
+    protocol_id: 1251,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Rare,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -10617,11 +11093,11 @@ pub const MUSIC_DISC_BLOCKS: ItemData = ItemData {
 
 pub const MUSIC_DISC_CAT: ItemData = ItemData {
     name: "minecraft:music_disc_cat",
-    protocol_id: 1169,
+    protocol_id: 1250,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Rare,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -10631,11 +11107,11 @@ pub const MUSIC_DISC_CAT: ItemData = ItemData {
 
 pub const MUSIC_DISC_CHIRP: ItemData = ItemData {
     name: "minecraft:music_disc_chirp",
-    protocol_id: 1171,
+    protocol_id: 1252,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Rare,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -10645,7 +11121,7 @@ pub const MUSIC_DISC_CHIRP: ItemData = ItemData {
 
 pub const MUSIC_DISC_CREATOR: ItemData = ItemData {
     name: "minecraft:music_disc_creator",
-    protocol_id: 1172,
+    protocol_id: 1253,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10659,11 +11135,11 @@ pub const MUSIC_DISC_CREATOR: ItemData = ItemData {
 
 pub const MUSIC_DISC_CREATOR_MUSIC_BOX: ItemData = ItemData {
     name: "minecraft:music_disc_creator_music_box",
-    protocol_id: 1173,
+    protocol_id: 1254,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Rare,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -10673,7 +11149,21 @@ pub const MUSIC_DISC_CREATOR_MUSIC_BOX: ItemData = ItemData {
 
 pub const MUSIC_DISC_FAR: ItemData = ItemData {
     name: "minecraft:music_disc_far",
-    protocol_id: 1174,
+    protocol_id: 1255,
+    max_stack_size: 1,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Uncommon,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const MUSIC_DISC_LAVA_CHICKEN: ItemData = ItemData {
+    name: "minecraft:music_disc_lava_chicken",
+    protocol_id: 1256,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10687,11 +11177,11 @@ pub const MUSIC_DISC_FAR: ItemData = ItemData {
 
 pub const MUSIC_DISC_MALL: ItemData = ItemData {
     name: "minecraft:music_disc_mall",
-    protocol_id: 1175,
+    protocol_id: 1257,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Rare,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -10701,11 +11191,11 @@ pub const MUSIC_DISC_MALL: ItemData = ItemData {
 
 pub const MUSIC_DISC_MELLOHI: ItemData = ItemData {
     name: "minecraft:music_disc_mellohi",
-    protocol_id: 1176,
+    protocol_id: 1258,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Rare,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -10715,7 +11205,7 @@ pub const MUSIC_DISC_MELLOHI: ItemData = ItemData {
 
 pub const MUSIC_DISC_OTHERSIDE: ItemData = ItemData {
     name: "minecraft:music_disc_otherside",
-    protocol_id: 1182,
+    protocol_id: 1264,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10729,7 +11219,7 @@ pub const MUSIC_DISC_OTHERSIDE: ItemData = ItemData {
 
 pub const MUSIC_DISC_PIGSTEP: ItemData = ItemData {
     name: "minecraft:music_disc_pigstep",
-    protocol_id: 1185,
+    protocol_id: 1267,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10743,11 +11233,11 @@ pub const MUSIC_DISC_PIGSTEP: ItemData = ItemData {
 
 pub const MUSIC_DISC_PRECIPICE: ItemData = ItemData {
     name: "minecraft:music_disc_precipice",
-    protocol_id: 1186,
+    protocol_id: 1268,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Rare,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -10757,11 +11247,11 @@ pub const MUSIC_DISC_PRECIPICE: ItemData = ItemData {
 
 pub const MUSIC_DISC_RELIC: ItemData = ItemData {
     name: "minecraft:music_disc_relic",
-    protocol_id: 1183,
+    protocol_id: 1265,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Rare,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -10771,11 +11261,11 @@ pub const MUSIC_DISC_RELIC: ItemData = ItemData {
 
 pub const MUSIC_DISC_STAL: ItemData = ItemData {
     name: "minecraft:music_disc_stal",
-    protocol_id: 1177,
+    protocol_id: 1259,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Rare,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -10785,11 +11275,25 @@ pub const MUSIC_DISC_STAL: ItemData = ItemData {
 
 pub const MUSIC_DISC_STRAD: ItemData = ItemData {
     name: "minecraft:music_disc_strad",
-    protocol_id: 1178,
+    protocol_id: 1260,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Rare,
+    rarity: Rarity::Uncommon,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const MUSIC_DISC_TEARS: ItemData = ItemData {
+    name: "minecraft:music_disc_tears",
+    protocol_id: 1269,
+    max_stack_size: 1,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -10799,11 +11303,11 @@ pub const MUSIC_DISC_STRAD: ItemData = ItemData {
 
 pub const MUSIC_DISC_WAIT: ItemData = ItemData {
     name: "minecraft:music_disc_wait",
-    protocol_id: 1181,
+    protocol_id: 1263,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Rare,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -10813,11 +11317,11 @@ pub const MUSIC_DISC_WAIT: ItemData = ItemData {
 
 pub const MUSIC_DISC_WARD: ItemData = ItemData {
     name: "minecraft:music_disc_ward",
-    protocol_id: 1179,
+    protocol_id: 1261,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Rare,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -10827,7 +11331,7 @@ pub const MUSIC_DISC_WARD: ItemData = ItemData {
 
 pub const MUTTON: ItemData = ItemData {
     name: "minecraft:mutton",
-    protocol_id: 1131,
+    protocol_id: 1212,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10841,7 +11345,7 @@ pub const MUTTON: ItemData = ItemData {
 
 pub const MYCELIUM: ItemData = ItemData {
     name: "minecraft:mycelium",
-    protocol_id: 364,
+    protocol_id: 393,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10855,7 +11359,7 @@ pub const MYCELIUM: ItemData = ItemData {
 
 pub const NAME_TAG: ItemData = ItemData {
     name: "minecraft:name_tag",
-    protocol_id: 1129,
+    protocol_id: 1210,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10869,11 +11373,11 @@ pub const NAME_TAG: ItemData = ItemData {
 
 pub const NAUTILUS_SHELL: ItemData = ItemData {
     name: "minecraft:nautilus_shell",
-    protocol_id: 1190,
+    protocol_id: 1272,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -10883,7 +11387,7 @@ pub const NAUTILUS_SHELL: ItemData = ItemData {
 
 pub const NETHER_BRICK: ItemData = ItemData {
     name: "minecraft:nether_brick",
-    protocol_id: 1115,
+    protocol_id: 1195,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10897,7 +11401,7 @@ pub const NETHER_BRICK: ItemData = ItemData {
 
 pub const NETHER_BRICK_FENCE: ItemData = ItemData {
     name: "minecraft:nether_brick_fence",
-    protocol_id: 369,
+    protocol_id: 398,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10911,7 +11415,7 @@ pub const NETHER_BRICK_FENCE: ItemData = ItemData {
 
 pub const NETHER_BRICK_SLAB: ItemData = ItemData {
     name: "minecraft:nether_brick_slab",
-    protocol_id: 273,
+    protocol_id: 292,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10925,7 +11429,7 @@ pub const NETHER_BRICK_SLAB: ItemData = ItemData {
 
 pub const NETHER_BRICK_STAIRS: ItemData = ItemData {
     name: "minecraft:nether_brick_stairs",
-    protocol_id: 370,
+    protocol_id: 399,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10939,7 +11443,7 @@ pub const NETHER_BRICK_STAIRS: ItemData = ItemData {
 
 pub const NETHER_BRICK_WALL: ItemData = ItemData {
     name: "minecraft:nether_brick_wall",
-    protocol_id: 406,
+    protocol_id: 436,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10953,7 +11457,7 @@ pub const NETHER_BRICK_WALL: ItemData = ItemData {
 
 pub const NETHER_BRICKS: ItemData = ItemData {
     name: "minecraft:nether_bricks",
-    protocol_id: 366,
+    protocol_id: 395,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10967,7 +11471,7 @@ pub const NETHER_BRICKS: ItemData = ItemData {
 
 pub const NETHER_GOLD_ORE: ItemData = ItemData {
     name: "minecraft:nether_gold_ore",
-    protocol_id: 78,
+    protocol_id: 80,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10981,7 +11485,7 @@ pub const NETHER_GOLD_ORE: ItemData = ItemData {
 
 pub const NETHER_QUARTZ_ORE: ItemData = ItemData {
     name: "minecraft:nether_quartz_ore",
-    protocol_id: 79,
+    protocol_id: 81,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -10995,7 +11499,7 @@ pub const NETHER_QUARTZ_ORE: ItemData = ItemData {
 
 pub const NETHER_SPROUTS: ItemData = ItemData {
     name: "minecraft:nether_sprouts",
-    protocol_id: 240,
+    protocol_id: 253,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11009,11 +11513,11 @@ pub const NETHER_SPROUTS: ItemData = ItemData {
 
 pub const NETHER_STAR: ItemData = ItemData {
     name: "minecraft:nether_star",
-    protocol_id: 1110,
+    protocol_id: 1190,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Uncommon,
+    rarity: Rarity::Rare,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -11023,7 +11527,7 @@ pub const NETHER_STAR: ItemData = ItemData {
 
 pub const NETHER_WART: ItemData = ItemData {
     name: "minecraft:nether_wart",
-    protocol_id: 997,
+    protocol_id: 1074,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11037,7 +11541,7 @@ pub const NETHER_WART: ItemData = ItemData {
 
 pub const NETHER_WART_BLOCK: ItemData = ItemData {
     name: "minecraft:nether_wart_block",
-    protocol_id: 517,
+    protocol_id: 547,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11051,24 +11555,24 @@ pub const NETHER_WART_BLOCK: ItemData = ItemData {
 
 pub const NETHERITE_AXE: ItemData = ItemData {
     name: "minecraft:netherite_axe",
-    protocol_id: 846,
+    protocol_id: 903,
     max_stack_size: 1,
     max_damage: 2031,
-    is_fire_resistant: false,
+    is_fire_resistant: true,
     rarity: Rarity::Common,
     food: None,
     tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_netherite_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/axe", speed: Some(9.0), correct_for_drops: Some(true) }, ] }),
-    enchantable_value: None,
-    repairable_with: None,
+    enchantable_value: Some(15),
+    repairable_with: Some("#minecraft:netherite_tool_materials"),
     attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 9.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const NETHERITE_BLOCK: ItemData = ItemData {
     name: "minecraft:netherite_block",
-    protocol_id: 92,
+    protocol_id: 94,
     max_stack_size: 64,
     max_damage: 0,
-    is_fire_resistant: false,
+    is_fire_resistant: true,
     rarity: Rarity::Common,
     food: None,
     tool: None,
@@ -11079,66 +11583,66 @@ pub const NETHERITE_BLOCK: ItemData = ItemData {
 
 pub const NETHERITE_BOOTS: ItemData = ItemData {
     name: "minecraft:netherite_boots",
-    protocol_id: 879,
+    protocol_id: 936,
     max_stack_size: 1,
     max_damage: 481,
-    is_fire_resistant: false,
+    is_fire_resistant: true,
     rarity: Rarity::Common,
     food: None,
     tool: None,
-    enchantable_value: None,
-    repairable_with: None,
-    attribute_modifiers: &[],
+    enchantable_value: Some(15),
+    repairable_with: Some("#minecraft:repairs_netherite_armor"),
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Armor, amount: 3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Feet }, AttributeModifier { kind: AttributeType::ArmorToughness, amount: 3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Feet }, AttributeModifier { kind: AttributeType::KnockbackResistance, amount: 0.1000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Feet }, ],
 };
 
 pub const NETHERITE_CHESTPLATE: ItemData = ItemData {
     name: "minecraft:netherite_chestplate",
-    protocol_id: 877,
+    protocol_id: 934,
     max_stack_size: 1,
     max_damage: 592,
-    is_fire_resistant: false,
+    is_fire_resistant: true,
     rarity: Rarity::Common,
     food: None,
     tool: None,
-    enchantable_value: None,
-    repairable_with: None,
-    attribute_modifiers: &[],
+    enchantable_value: Some(15),
+    repairable_with: Some("#minecraft:repairs_netherite_armor"),
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Armor, amount: 8.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Chest }, AttributeModifier { kind: AttributeType::ArmorToughness, amount: 3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Chest }, AttributeModifier { kind: AttributeType::KnockbackResistance, amount: 0.1000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Chest }, ],
 };
 
 pub const NETHERITE_HELMET: ItemData = ItemData {
     name: "minecraft:netherite_helmet",
-    protocol_id: 876,
+    protocol_id: 933,
     max_stack_size: 1,
     max_damage: 407,
-    is_fire_resistant: false,
+    is_fire_resistant: true,
     rarity: Rarity::Common,
     food: None,
     tool: None,
-    enchantable_value: None,
-    repairable_with: None,
-    attribute_modifiers: &[],
+    enchantable_value: Some(15),
+    repairable_with: Some("#minecraft:repairs_netherite_armor"),
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Armor, amount: 3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Head }, AttributeModifier { kind: AttributeType::ArmorToughness, amount: 3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Head }, AttributeModifier { kind: AttributeType::KnockbackResistance, amount: 0.1000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Head }, ],
 };
 
 pub const NETHERITE_HOE: ItemData = ItemData {
     name: "minecraft:netherite_hoe",
-    protocol_id: 847,
+    protocol_id: 904,
     max_stack_size: 1,
     max_damage: 2031,
-    is_fire_resistant: false,
+    is_fire_resistant: true,
     rarity: Rarity::Common,
     food: None,
     tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_netherite_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/hoe", speed: Some(9.0), correct_for_drops: Some(true) }, ] }),
-    enchantable_value: None,
-    repairable_with: None,
+    enchantable_value: Some(15),
+    repairable_with: Some("#minecraft:netherite_tool_materials"),
     attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const NETHERITE_INGOT: ItemData = ItemData {
     name: "minecraft:netherite_ingot",
-    protocol_id: 816,
+    protocol_id: 873,
     max_stack_size: 64,
     max_damage: 0,
-    is_fire_resistant: false,
+    is_fire_resistant: true,
     rarity: Rarity::Common,
     food: None,
     tool: None,
@@ -11149,38 +11653,38 @@ pub const NETHERITE_INGOT: ItemData = ItemData {
 
 pub const NETHERITE_LEGGINGS: ItemData = ItemData {
     name: "minecraft:netherite_leggings",
-    protocol_id: 878,
+    protocol_id: 935,
     max_stack_size: 1,
     max_damage: 555,
-    is_fire_resistant: false,
+    is_fire_resistant: true,
     rarity: Rarity::Common,
     food: None,
     tool: None,
-    enchantable_value: None,
-    repairable_with: None,
-    attribute_modifiers: &[],
+    enchantable_value: Some(15),
+    repairable_with: Some("#minecraft:repairs_netherite_armor"),
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Armor, amount: 6.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Legs }, AttributeModifier { kind: AttributeType::ArmorToughness, amount: 3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Legs }, AttributeModifier { kind: AttributeType::KnockbackResistance, amount: 0.1000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Legs }, ],
 };
 
 pub const NETHERITE_PICKAXE: ItemData = ItemData {
     name: "minecraft:netherite_pickaxe",
-    protocol_id: 845,
+    protocol_id: 902,
     max_stack_size: 1,
     max_damage: 2031,
-    is_fire_resistant: false,
+    is_fire_resistant: true,
     rarity: Rarity::Common,
     food: None,
     tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_netherite_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/pickaxe", speed: Some(9.0), correct_for_drops: Some(true) }, ] }),
-    enchantable_value: None,
-    repairable_with: None,
+    enchantable_value: Some(15),
+    repairable_with: Some("#minecraft:netherite_tool_materials"),
     attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 5.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -2.8000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const NETHERITE_SCRAP: ItemData = ItemData {
     name: "minecraft:netherite_scrap",
-    protocol_id: 817,
+    protocol_id: 874,
     max_stack_size: 64,
     max_damage: 0,
-    is_fire_resistant: false,
+    is_fire_resistant: true,
     rarity: Rarity::Common,
     food: None,
     tool: None,
@@ -11191,39 +11695,39 @@ pub const NETHERITE_SCRAP: ItemData = ItemData {
 
 pub const NETHERITE_SHOVEL: ItemData = ItemData {
     name: "minecraft:netherite_shovel",
-    protocol_id: 844,
+    protocol_id: 901,
     max_stack_size: 1,
     max_damage: 2031,
-    is_fire_resistant: false,
+    is_fire_resistant: true,
     rarity: Rarity::Common,
     food: None,
     tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_netherite_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/shovel", speed: Some(9.0), correct_for_drops: Some(true) }, ] }),
-    enchantable_value: None,
-    repairable_with: None,
+    enchantable_value: Some(15),
+    repairable_with: Some("#minecraft:netherite_tool_materials"),
     attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 5.5000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const NETHERITE_SWORD: ItemData = ItemData {
     name: "minecraft:netherite_sword",
-    protocol_id: 843,
+    protocol_id: 900,
     max_stack_size: 1,
     max_damage: 2031,
-    is_fire_resistant: false,
+    is_fire_resistant: true,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 2, rules: &[ToolRule { blocks: "minecraft:cobweb", speed: Some(15.0), correct_for_drops: Some(true) }, ToolRule { blocks: "#minecraft:sword_efficient", speed: Some(1.5), correct_for_drops: None }, ] }),
-    enchantable_value: None,
-    repairable_with: None,
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 2, rules: &[ToolRule { blocks: "minecraft:cobweb", speed: Some(15.0), correct_for_drops: Some(true) }, ToolRule { blocks: "#minecraft:sword_instantly_mines", speed: Some(3.4028235e38), correct_for_drops: None }, ToolRule { blocks: "#minecraft:sword_efficient", speed: Some(1.5), correct_for_drops: None }, ] }),
+    enchantable_value: Some(15),
+    repairable_with: Some("#minecraft:netherite_tool_materials"),
     attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 7.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -2.4000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const NETHERITE_UPGRADE_SMITHING_TEMPLATE: ItemData = ItemData {
     name: "minecraft:netherite_upgrade_smithing_template",
-    protocol_id: 1269,
+    protocol_id: 1353,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -11233,7 +11737,7 @@ pub const NETHERITE_UPGRADE_SMITHING_TEMPLATE: ItemData = ItemData {
 
 pub const NETHERRACK: ItemData = ItemData {
     name: "minecraft:netherrack",
-    protocol_id: 325,
+    protocol_id: 347,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11247,7 +11751,7 @@ pub const NETHERRACK: ItemData = ItemData {
 
 pub const NOTE_BLOCK: ItemData = ItemData {
     name: "minecraft:note_block",
-    protocol_id: 681,
+    protocol_id: 712,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11261,7 +11765,7 @@ pub const NOTE_BLOCK: ItemData = ItemData {
 
 pub const OAK_BOAT: ItemData = ItemData {
     name: "minecraft:oak_boat",
-    protocol_id: 774,
+    protocol_id: 827,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11275,7 +11779,7 @@ pub const OAK_BOAT: ItemData = ItemData {
 
 pub const OAK_BUTTON: ItemData = ItemData {
     name: "minecraft:oak_button",
-    protocol_id: 684,
+    protocol_id: 715,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11289,7 +11793,7 @@ pub const OAK_BUTTON: ItemData = ItemData {
 
 pub const OAK_CHEST_BOAT: ItemData = ItemData {
     name: "minecraft:oak_chest_boat",
-    protocol_id: 775,
+    protocol_id: 828,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11303,7 +11807,7 @@ pub const OAK_CHEST_BOAT: ItemData = ItemData {
 
 pub const OAK_DOOR: ItemData = ItemData {
     name: "minecraft:oak_door",
-    protocol_id: 711,
+    protocol_id: 744,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11317,7 +11821,7 @@ pub const OAK_DOOR: ItemData = ItemData {
 
 pub const OAK_FENCE: ItemData = ItemData {
     name: "minecraft:oak_fence",
-    protocol_id: 311,
+    protocol_id: 332,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11331,7 +11835,7 @@ pub const OAK_FENCE: ItemData = ItemData {
 
 pub const OAK_FENCE_GATE: ItemData = ItemData {
     name: "minecraft:oak_fence_gate",
-    protocol_id: 750,
+    protocol_id: 785,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11345,7 +11849,7 @@ pub const OAK_FENCE_GATE: ItemData = ItemData {
 
 pub const OAK_HANGING_SIGN: ItemData = ItemData {
     name: "minecraft:oak_hanging_sign",
-    protocol_id: 897,
+    protocol_id: 955,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11359,7 +11863,7 @@ pub const OAK_HANGING_SIGN: ItemData = ItemData {
 
 pub const OAK_LEAVES: ItemData = ItemData {
     name: "minecraft:oak_leaves",
-    protocol_id: 176,
+    protocol_id: 182,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11373,7 +11877,7 @@ pub const OAK_LEAVES: ItemData = ItemData {
 
 pub const OAK_LOG: ItemData = ItemData {
     name: "minecraft:oak_log",
-    protocol_id: 132,
+    protocol_id: 134,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11401,7 +11905,7 @@ pub const OAK_PLANKS: ItemData = ItemData {
 
 pub const OAK_PRESSURE_PLATE: ItemData = ItemData {
     name: "minecraft:oak_pressure_plate",
-    protocol_id: 699,
+    protocol_id: 731,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11415,7 +11919,7 @@ pub const OAK_PRESSURE_PLATE: ItemData = ItemData {
 
 pub const OAK_SAPLING: ItemData = ItemData {
     name: "minecraft:oak_sapling",
-    protocol_id: 48,
+    protocol_id: 49,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11429,7 +11933,7 @@ pub const OAK_SAPLING: ItemData = ItemData {
 
 pub const OAK_SIGN: ItemData = ItemData {
     name: "minecraft:oak_sign",
-    protocol_id: 886,
+    protocol_id: 943,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11443,7 +11947,7 @@ pub const OAK_SIGN: ItemData = ItemData {
 
 pub const OAK_SLAB: ItemData = ItemData {
     name: "minecraft:oak_slab",
-    protocol_id: 252,
+    protocol_id: 270,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11457,7 +11961,7 @@ pub const OAK_SLAB: ItemData = ItemData {
 
 pub const OAK_STAIRS: ItemData = ItemData {
     name: "minecraft:oak_stairs",
-    protocol_id: 383,
+    protocol_id: 412,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11471,7 +11975,7 @@ pub const OAK_STAIRS: ItemData = ItemData {
 
 pub const OAK_TRAPDOOR: ItemData = ItemData {
     name: "minecraft:oak_trapdoor",
-    protocol_id: 731,
+    protocol_id: 765,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11485,7 +11989,7 @@ pub const OAK_TRAPDOOR: ItemData = ItemData {
 
 pub const OAK_WOOD: ItemData = ItemData {
     name: "minecraft:oak_wood",
-    protocol_id: 166,
+    protocol_id: 171,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11499,7 +12003,7 @@ pub const OAK_WOOD: ItemData = ItemData {
 
 pub const OBSERVER: ItemData = ItemData {
     name: "minecraft:observer",
-    protocol_id: 666,
+    protocol_id: 697,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11513,7 +12017,7 @@ pub const OBSERVER: ItemData = ItemData {
 
 pub const OBSIDIAN: ItemData = ItemData {
     name: "minecraft:obsidian",
-    protocol_id: 290,
+    protocol_id: 309,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11527,7 +12031,7 @@ pub const OBSIDIAN: ItemData = ItemData {
 
 pub const OCELOT_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:ocelot_spawn_egg",
-    protocol_id: 1045,
+    protocol_id: 1123,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11541,7 +12045,7 @@ pub const OCELOT_SPAWN_EGG: ItemData = ItemData {
 
 pub const OCHRE_FROGLIGHT: ItemData = ItemData {
     name: "minecraft:ochre_froglight",
-    protocol_id: 1263,
+    protocol_id: 1347,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11555,12 +12059,12 @@ pub const OCHRE_FROGLIGHT: ItemData = ItemData {
 
 pub const OMINOUS_BOTTLE: ItemData = ItemData {
     name: "minecraft:ominous_bottle",
-    protocol_id: 1331,
+    protocol_id: 1415,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
-    food: Some(FoodData { nutrition: 1, saturation: 0.2, can_always_eat: false, eat_seconds: 1.6 }),
+    rarity: Rarity::Uncommon,
+    food: None,
     tool: None,
     enchantable_value: None,
     repairable_with: None,
@@ -11569,7 +12073,21 @@ pub const OMINOUS_BOTTLE: ItemData = ItemData {
 
 pub const OMINOUS_TRIAL_KEY: ItemData = ItemData {
     name: "minecraft:ominous_trial_key",
-    protocol_id: 1329,
+    protocol_id: 1413,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const OPEN_EYEBLOSSOM: ItemData = ItemData {
+    name: "minecraft:open_eyeblossom",
+    protocol_id: 230,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11583,7 +12101,7 @@ pub const OMINOUS_TRIAL_KEY: ItemData = ItemData {
 
 pub const ORANGE_BANNER: ItemData = ItemData {
     name: "minecraft:orange_banner",
-    protocol_id: 1134,
+    protocol_id: 1215,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11597,7 +12115,21 @@ pub const ORANGE_BANNER: ItemData = ItemData {
 
 pub const ORANGE_BED: ItemData = ItemData {
     name: "minecraft:orange_bed",
-    protocol_id: 965,
+    protocol_id: 1042,
+    max_stack_size: 1,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const ORANGE_BUNDLE: ItemData = ItemData {
+    name: "minecraft:orange_bundle",
+    protocol_id: 993,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11611,7 +12143,7 @@ pub const ORANGE_BED: ItemData = ItemData {
 
 pub const ORANGE_CANDLE: ItemData = ItemData {
     name: "minecraft:orange_candle",
-    protocol_id: 1243,
+    protocol_id: 1327,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11625,7 +12157,7 @@ pub const ORANGE_CANDLE: ItemData = ItemData {
 
 pub const ORANGE_CARPET: ItemData = ItemData {
     name: "minecraft:orange_carpet",
-    protocol_id: 447,
+    protocol_id: 477,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11639,7 +12171,7 @@ pub const ORANGE_CARPET: ItemData = ItemData {
 
 pub const ORANGE_CONCRETE: ItemData = ItemData {
     name: "minecraft:orange_concrete",
-    protocol_id: 556,
+    protocol_id: 586,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11653,7 +12185,7 @@ pub const ORANGE_CONCRETE: ItemData = ItemData {
 
 pub const ORANGE_CONCRETE_POWDER: ItemData = ItemData {
     name: "minecraft:orange_concrete_powder",
-    protocol_id: 572,
+    protocol_id: 602,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11667,7 +12199,7 @@ pub const ORANGE_CONCRETE_POWDER: ItemData = ItemData {
 
 pub const ORANGE_DYE: ItemData = ItemData {
     name: "minecraft:orange_dye",
-    protocol_id: 945,
+    protocol_id: 1022,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11681,8 +12213,22 @@ pub const ORANGE_DYE: ItemData = ItemData {
 
 pub const ORANGE_GLAZED_TERRACOTTA: ItemData = ItemData {
     name: "minecraft:orange_glazed_terracotta",
-    protocol_id: 540,
+    protocol_id: 570,
     max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const ORANGE_HARNESS: ItemData = ItemData {
+    name: "minecraft:orange_harness",
+    protocol_id: 803,
+    max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
@@ -11695,7 +12241,7 @@ pub const ORANGE_GLAZED_TERRACOTTA: ItemData = ItemData {
 
 pub const ORANGE_SHULKER_BOX: ItemData = ItemData {
     name: "minecraft:orange_shulker_box",
-    protocol_id: 524,
+    protocol_id: 554,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11709,7 +12255,7 @@ pub const ORANGE_SHULKER_BOX: ItemData = ItemData {
 
 pub const ORANGE_STAINED_GLASS: ItemData = ItemData {
     name: "minecraft:orange_stained_glass",
-    protocol_id: 472,
+    protocol_id: 502,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11723,7 +12269,7 @@ pub const ORANGE_STAINED_GLASS: ItemData = ItemData {
 
 pub const ORANGE_STAINED_GLASS_PANE: ItemData = ItemData {
     name: "minecraft:orange_stained_glass_pane",
-    protocol_id: 488,
+    protocol_id: 518,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11737,7 +12283,7 @@ pub const ORANGE_STAINED_GLASS_PANE: ItemData = ItemData {
 
 pub const ORANGE_TERRACOTTA: ItemData = ItemData {
     name: "minecraft:orange_terracotta",
-    protocol_id: 428,
+    protocol_id: 458,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11751,7 +12297,7 @@ pub const ORANGE_TERRACOTTA: ItemData = ItemData {
 
 pub const ORANGE_TULIP: ItemData = ItemData {
     name: "minecraft:orange_tulip",
-    protocol_id: 224,
+    protocol_id: 237,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11765,7 +12311,7 @@ pub const ORANGE_TULIP: ItemData = ItemData {
 
 pub const ORANGE_WOOL: ItemData = ItemData {
     name: "minecraft:orange_wool",
-    protocol_id: 203,
+    protocol_id: 214,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11779,7 +12325,7 @@ pub const ORANGE_WOOL: ItemData = ItemData {
 
 pub const OXEYE_DAISY: ItemData = ItemData {
     name: "minecraft:oxeye_daisy",
-    protocol_id: 227,
+    protocol_id: 240,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11793,7 +12339,7 @@ pub const OXEYE_DAISY: ItemData = ItemData {
 
 pub const OXIDIZED_CHISELED_COPPER: ItemData = ItemData {
     name: "minecraft:oxidized_chiseled_copper",
-    protocol_id: 99,
+    protocol_id: 101,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11807,7 +12353,7 @@ pub const OXIDIZED_CHISELED_COPPER: ItemData = ItemData {
 
 pub const OXIDIZED_COPPER: ItemData = ItemData {
     name: "minecraft:oxidized_copper",
-    protocol_id: 95,
+    protocol_id: 97,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11821,7 +12367,7 @@ pub const OXIDIZED_COPPER: ItemData = ItemData {
 
 pub const OXIDIZED_COPPER_BULB: ItemData = ItemData {
     name: "minecraft:oxidized_copper_bulb",
-    protocol_id: 1322,
+    protocol_id: 1406,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11835,7 +12381,7 @@ pub const OXIDIZED_COPPER_BULB: ItemData = ItemData {
 
 pub const OXIDIZED_COPPER_DOOR: ItemData = ItemData {
     name: "minecraft:oxidized_copper_door",
-    protocol_id: 725,
+    protocol_id: 759,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11849,7 +12395,7 @@ pub const OXIDIZED_COPPER_DOOR: ItemData = ItemData {
 
 pub const OXIDIZED_COPPER_GRATE: ItemData = ItemData {
     name: "minecraft:oxidized_copper_grate",
-    protocol_id: 1314,
+    protocol_id: 1398,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11863,7 +12409,7 @@ pub const OXIDIZED_COPPER_GRATE: ItemData = ItemData {
 
 pub const OXIDIZED_COPPER_TRAPDOOR: ItemData = ItemData {
     name: "minecraft:oxidized_copper_trapdoor",
-    protocol_id: 745,
+    protocol_id: 780,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11877,7 +12423,7 @@ pub const OXIDIZED_COPPER_TRAPDOOR: ItemData = ItemData {
 
 pub const OXIDIZED_CUT_COPPER: ItemData = ItemData {
     name: "minecraft:oxidized_cut_copper",
-    protocol_id: 103,
+    protocol_id: 105,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11891,7 +12437,7 @@ pub const OXIDIZED_CUT_COPPER: ItemData = ItemData {
 
 pub const OXIDIZED_CUT_COPPER_SLAB: ItemData = ItemData {
     name: "minecraft:oxidized_cut_copper_slab",
-    protocol_id: 111,
+    protocol_id: 113,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11905,7 +12451,7 @@ pub const OXIDIZED_CUT_COPPER_SLAB: ItemData = ItemData {
 
 pub const OXIDIZED_CUT_COPPER_STAIRS: ItemData = ItemData {
     name: "minecraft:oxidized_cut_copper_stairs",
-    protocol_id: 107,
+    protocol_id: 109,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11919,7 +12465,7 @@ pub const OXIDIZED_CUT_COPPER_STAIRS: ItemData = ItemData {
 
 pub const PACKED_ICE: ItemData = ItemData {
     name: "minecraft:packed_ice",
-    protocol_id: 463,
+    protocol_id: 493,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11933,7 +12479,7 @@ pub const PACKED_ICE: ItemData = ItemData {
 
 pub const PACKED_MUD: ItemData = ItemData {
     name: "minecraft:packed_mud",
-    protocol_id: 344,
+    protocol_id: 366,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11947,7 +12493,287 @@ pub const PACKED_MUD: ItemData = ItemData {
 
 pub const PAINTING: ItemData = ItemData {
     name: "minecraft:painting",
-    protocol_id: 883,
+    protocol_id: 940,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const PALE_HANGING_MOSS: ItemData = ItemData {
+    name: "minecraft:pale_hanging_moss",
+    protocol_id: 264,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const PALE_MOSS_BLOCK: ItemData = ItemData {
+    name: "minecraft:pale_moss_block",
+    protocol_id: 265,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const PALE_MOSS_CARPET: ItemData = ItemData {
+    name: "minecraft:pale_moss_carpet",
+    protocol_id: 263,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const PALE_OAK_BOAT: ItemData = ItemData {
+    name: "minecraft:pale_oak_boat",
+    protocol_id: 841,
+    max_stack_size: 1,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const PALE_OAK_BUTTON: ItemData = ItemData {
+    name: "minecraft:pale_oak_button",
+    protocol_id: 722,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const PALE_OAK_CHEST_BOAT: ItemData = ItemData {
+    name: "minecraft:pale_oak_chest_boat",
+    protocol_id: 842,
+    max_stack_size: 1,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const PALE_OAK_DOOR: ItemData = ItemData {
+    name: "minecraft:pale_oak_door",
+    protocol_id: 751,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const PALE_OAK_FENCE: ItemData = ItemData {
+    name: "minecraft:pale_oak_fence",
+    protocol_id: 339,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const PALE_OAK_FENCE_GATE: ItemData = ItemData {
+    name: "minecraft:pale_oak_fence_gate",
+    protocol_id: 792,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const PALE_OAK_HANGING_SIGN: ItemData = ItemData {
+    name: "minecraft:pale_oak_hanging_sign",
+    protocol_id: 962,
+    max_stack_size: 16,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const PALE_OAK_LEAVES: ItemData = ItemData {
+    name: "minecraft:pale_oak_leaves",
+    protocol_id: 189,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const PALE_OAK_LOG: ItemData = ItemData {
+    name: "minecraft:pale_oak_log",
+    protocol_id: 140,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const PALE_OAK_PLANKS: ItemData = ItemData {
+    name: "minecraft:pale_oak_planks",
+    protocol_id: 43,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const PALE_OAK_PRESSURE_PLATE: ItemData = ItemData {
+    name: "minecraft:pale_oak_pressure_plate",
+    protocol_id: 738,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const PALE_OAK_SAPLING: ItemData = ItemData {
+    name: "minecraft:pale_oak_sapling",
+    protocol_id: 56,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const PALE_OAK_SIGN: ItemData = ItemData {
+    name: "minecraft:pale_oak_sign",
+    protocol_id: 950,
+    max_stack_size: 16,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const PALE_OAK_SLAB: ItemData = ItemData {
+    name: "minecraft:pale_oak_slab",
+    protocol_id: 277,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const PALE_OAK_STAIRS: ItemData = ItemData {
+    name: "minecraft:pale_oak_stairs",
+    protocol_id: 419,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const PALE_OAK_TRAPDOOR: ItemData = ItemData {
+    name: "minecraft:pale_oak_trapdoor",
+    protocol_id: 772,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const PALE_OAK_WOOD: ItemData = ItemData {
+    name: "minecraft:pale_oak_wood",
+    protocol_id: 177,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11961,7 +12787,7 @@ pub const PAINTING: ItemData = ItemData {
 
 pub const PANDA_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:panda_spawn_egg",
-    protocol_id: 1046,
+    protocol_id: 1124,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11975,7 +12801,7 @@ pub const PANDA_SPAWN_EGG: ItemData = ItemData {
 
 pub const PAPER: ItemData = ItemData {
     name: "minecraft:paper",
-    protocol_id: 924,
+    protocol_id: 983,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -11989,7 +12815,7 @@ pub const PAPER: ItemData = ItemData {
 
 pub const PARROT_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:parrot_spawn_egg",
-    protocol_id: 1047,
+    protocol_id: 1125,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12003,7 +12829,7 @@ pub const PARROT_SPAWN_EGG: ItemData = ItemData {
 
 pub const PEARLESCENT_FROGLIGHT: ItemData = ItemData {
     name: "minecraft:pearlescent_froglight",
-    protocol_id: 1265,
+    protocol_id: 1349,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12017,7 +12843,7 @@ pub const PEARLESCENT_FROGLIGHT: ItemData = ItemData {
 
 pub const PEONY: ItemData = ItemData {
     name: "minecraft:peony",
-    protocol_id: 468,
+    protocol_id: 498,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12031,7 +12857,7 @@ pub const PEONY: ItemData = ItemData {
 
 pub const PETRIFIED_OAK_SLAB: ItemData = ItemData {
     name: "minecraft:petrified_oak_slab",
-    protocol_id: 268,
+    protocol_id: 287,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12045,7 +12871,7 @@ pub const PETRIFIED_OAK_SLAB: ItemData = ItemData {
 
 pub const PHANTOM_MEMBRANE: ItemData = ItemData {
     name: "minecraft:phantom_membrane",
-    protocol_id: 1189,
+    protocol_id: 825,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12059,7 +12885,7 @@ pub const PHANTOM_MEMBRANE: ItemData = ItemData {
 
 pub const PHANTOM_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:phantom_spawn_egg",
-    protocol_id: 1048,
+    protocol_id: 1126,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12073,7 +12899,7 @@ pub const PHANTOM_SPAWN_EGG: ItemData = ItemData {
 
 pub const PIG_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:pig_spawn_egg",
-    protocol_id: 1049,
+    protocol_id: 1127,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12087,7 +12913,7 @@ pub const PIG_SPAWN_EGG: ItemData = ItemData {
 
 pub const PIGLIN_BANNER_PATTERN: ItemData = ItemData {
     name: "minecraft:piglin_banner_pattern",
-    protocol_id: 1200,
+    protocol_id: 1282,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12101,7 +12927,7 @@ pub const PIGLIN_BANNER_PATTERN: ItemData = ItemData {
 
 pub const PIGLIN_BRUTE_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:piglin_brute_spawn_egg",
-    protocol_id: 1051,
+    protocol_id: 1129,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12115,7 +12941,7 @@ pub const PIGLIN_BRUTE_SPAWN_EGG: ItemData = ItemData {
 
 pub const PIGLIN_HEAD: ItemData = ItemData {
     name: "minecraft:piglin_head",
-    protocol_id: 1109,
+    protocol_id: 1189,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12124,12 +12950,12 @@ pub const PIGLIN_HEAD: ItemData = ItemData {
     tool: None,
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Unknown, amount: -1.0000, operation: AttributeOperation::MultiplyTotal, slot: EquipmentSlot::Head }, ],
 };
 
 pub const PIGLIN_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:piglin_spawn_egg",
-    protocol_id: 1050,
+    protocol_id: 1128,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12143,7 +12969,7 @@ pub const PIGLIN_SPAWN_EGG: ItemData = ItemData {
 
 pub const PILLAGER_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:pillager_spawn_egg",
-    protocol_id: 1052,
+    protocol_id: 1130,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12157,7 +12983,7 @@ pub const PILLAGER_SPAWN_EGG: ItemData = ItemData {
 
 pub const PINK_BANNER: ItemData = ItemData {
     name: "minecraft:pink_banner",
-    protocol_id: 1139,
+    protocol_id: 1220,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12171,7 +12997,21 @@ pub const PINK_BANNER: ItemData = ItemData {
 
 pub const PINK_BED: ItemData = ItemData {
     name: "minecraft:pink_bed",
-    protocol_id: 970,
+    protocol_id: 1047,
+    max_stack_size: 1,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const PINK_BUNDLE: ItemData = ItemData {
+    name: "minecraft:pink_bundle",
+    protocol_id: 998,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12185,7 +13025,7 @@ pub const PINK_BED: ItemData = ItemData {
 
 pub const PINK_CANDLE: ItemData = ItemData {
     name: "minecraft:pink_candle",
-    protocol_id: 1248,
+    protocol_id: 1332,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12199,7 +13039,7 @@ pub const PINK_CANDLE: ItemData = ItemData {
 
 pub const PINK_CARPET: ItemData = ItemData {
     name: "minecraft:pink_carpet",
-    protocol_id: 452,
+    protocol_id: 482,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12213,7 +13053,7 @@ pub const PINK_CARPET: ItemData = ItemData {
 
 pub const PINK_CONCRETE: ItemData = ItemData {
     name: "minecraft:pink_concrete",
-    protocol_id: 561,
+    protocol_id: 591,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12227,7 +13067,7 @@ pub const PINK_CONCRETE: ItemData = ItemData {
 
 pub const PINK_CONCRETE_POWDER: ItemData = ItemData {
     name: "minecraft:pink_concrete_powder",
-    protocol_id: 577,
+    protocol_id: 607,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12241,7 +13081,7 @@ pub const PINK_CONCRETE_POWDER: ItemData = ItemData {
 
 pub const PINK_DYE: ItemData = ItemData {
     name: "minecraft:pink_dye",
-    protocol_id: 950,
+    protocol_id: 1027,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12255,8 +13095,22 @@ pub const PINK_DYE: ItemData = ItemData {
 
 pub const PINK_GLAZED_TERRACOTTA: ItemData = ItemData {
     name: "minecraft:pink_glazed_terracotta",
-    protocol_id: 545,
+    protocol_id: 575,
     max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const PINK_HARNESS: ItemData = ItemData {
+    name: "minecraft:pink_harness",
+    protocol_id: 808,
+    max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
@@ -12269,7 +13123,7 @@ pub const PINK_GLAZED_TERRACOTTA: ItemData = ItemData {
 
 pub const PINK_PETALS: ItemData = ItemData {
     name: "minecraft:pink_petals",
-    protocol_id: 246,
+    protocol_id: 258,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12283,7 +13137,7 @@ pub const PINK_PETALS: ItemData = ItemData {
 
 pub const PINK_SHULKER_BOX: ItemData = ItemData {
     name: "minecraft:pink_shulker_box",
-    protocol_id: 529,
+    protocol_id: 559,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12297,7 +13151,7 @@ pub const PINK_SHULKER_BOX: ItemData = ItemData {
 
 pub const PINK_STAINED_GLASS: ItemData = ItemData {
     name: "minecraft:pink_stained_glass",
-    protocol_id: 477,
+    protocol_id: 507,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12311,7 +13165,7 @@ pub const PINK_STAINED_GLASS: ItemData = ItemData {
 
 pub const PINK_STAINED_GLASS_PANE: ItemData = ItemData {
     name: "minecraft:pink_stained_glass_pane",
-    protocol_id: 493,
+    protocol_id: 523,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12325,7 +13179,7 @@ pub const PINK_STAINED_GLASS_PANE: ItemData = ItemData {
 
 pub const PINK_TERRACOTTA: ItemData = ItemData {
     name: "minecraft:pink_terracotta",
-    protocol_id: 433,
+    protocol_id: 463,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12339,7 +13193,7 @@ pub const PINK_TERRACOTTA: ItemData = ItemData {
 
 pub const PINK_TULIP: ItemData = ItemData {
     name: "minecraft:pink_tulip",
-    protocol_id: 226,
+    protocol_id: 239,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12353,7 +13207,7 @@ pub const PINK_TULIP: ItemData = ItemData {
 
 pub const PINK_WOOL: ItemData = ItemData {
     name: "minecraft:pink_wool",
-    protocol_id: 208,
+    protocol_id: 219,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12367,7 +13221,7 @@ pub const PINK_WOOL: ItemData = ItemData {
 
 pub const PISTON: ItemData = ItemData {
     name: "minecraft:piston",
-    protocol_id: 662,
+    protocol_id: 693,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12381,7 +13235,7 @@ pub const PISTON: ItemData = ItemData {
 
 pub const PITCHER_PLANT: ItemData = ItemData {
     name: "minecraft:pitcher_plant",
-    protocol_id: 232,
+    protocol_id: 245,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12395,7 +13249,7 @@ pub const PITCHER_PLANT: ItemData = ItemData {
 
 pub const PITCHER_POD: ItemData = ItemData {
     name: "minecraft:pitcher_pod",
-    protocol_id: 1153,
+    protocol_id: 1234,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12409,7 +13263,7 @@ pub const PITCHER_POD: ItemData = ItemData {
 
 pub const PLAYER_HEAD: ItemData = ItemData {
     name: "minecraft:player_head",
-    protocol_id: 1105,
+    protocol_id: 1185,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12418,16 +13272,16 @@ pub const PLAYER_HEAD: ItemData = ItemData {
     tool: None,
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Unknown, amount: -1.0000, operation: AttributeOperation::MultiplyTotal, slot: EquipmentSlot::Head }, ],
 };
 
 pub const PLENTY_POTTERY_SHERD: ItemData = ItemData {
     name: "minecraft:plenty_pottery_sherd",
-    protocol_id: 1304,
+    protocol_id: 1388,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -12451,7 +13305,7 @@ pub const PODZOL: ItemData = ItemData {
 
 pub const POINTED_DRIPSTONE: ItemData = ItemData {
     name: "minecraft:pointed_dripstone",
-    protocol_id: 1262,
+    protocol_id: 1346,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12465,7 +13319,7 @@ pub const POINTED_DRIPSTONE: ItemData = ItemData {
 
 pub const POISONOUS_POTATO: ItemData = ItemData {
     name: "minecraft:poisonous_potato",
-    protocol_id: 1100,
+    protocol_id: 1180,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12479,7 +13333,7 @@ pub const POISONOUS_POTATO: ItemData = ItemData {
 
 pub const POLAR_BEAR_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:polar_bear_spawn_egg",
-    protocol_id: 1053,
+    protocol_id: 1131,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12507,7 +13361,7 @@ pub const POLISHED_ANDESITE: ItemData = ItemData {
 
 pub const POLISHED_ANDESITE_SLAB: ItemData = ItemData {
     name: "minecraft:polished_andesite_slab",
-    protocol_id: 650,
+    protocol_id: 681,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12521,7 +13375,7 @@ pub const POLISHED_ANDESITE_SLAB: ItemData = ItemData {
 
 pub const POLISHED_ANDESITE_STAIRS: ItemData = ItemData {
     name: "minecraft:polished_andesite_stairs",
-    protocol_id: 633,
+    protocol_id: 664,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12535,7 +13389,7 @@ pub const POLISHED_ANDESITE_STAIRS: ItemData = ItemData {
 
 pub const POLISHED_BASALT: ItemData = ItemData {
     name: "minecraft:polished_basalt",
-    protocol_id: 329,
+    protocol_id: 351,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12549,7 +13403,7 @@ pub const POLISHED_BASALT: ItemData = ItemData {
 
 pub const POLISHED_BLACKSTONE: ItemData = ItemData {
     name: "minecraft:polished_blackstone",
-    protocol_id: 1232,
+    protocol_id: 1316,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12563,7 +13417,7 @@ pub const POLISHED_BLACKSTONE: ItemData = ItemData {
 
 pub const POLISHED_BLACKSTONE_BRICK_SLAB: ItemData = ItemData {
     name: "minecraft:polished_blackstone_brick_slab",
-    protocol_id: 1237,
+    protocol_id: 1321,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12577,7 +13431,7 @@ pub const POLISHED_BLACKSTONE_BRICK_SLAB: ItemData = ItemData {
 
 pub const POLISHED_BLACKSTONE_BRICK_STAIRS: ItemData = ItemData {
     name: "minecraft:polished_blackstone_brick_stairs",
-    protocol_id: 1238,
+    protocol_id: 1322,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12591,7 +13445,7 @@ pub const POLISHED_BLACKSTONE_BRICK_STAIRS: ItemData = ItemData {
 
 pub const POLISHED_BLACKSTONE_BRICK_WALL: ItemData = ItemData {
     name: "minecraft:polished_blackstone_brick_wall",
-    protocol_id: 414,
+    protocol_id: 444,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12605,7 +13459,7 @@ pub const POLISHED_BLACKSTONE_BRICK_WALL: ItemData = ItemData {
 
 pub const POLISHED_BLACKSTONE_BRICKS: ItemData = ItemData {
     name: "minecraft:polished_blackstone_bricks",
-    protocol_id: 1236,
+    protocol_id: 1320,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12619,7 +13473,7 @@ pub const POLISHED_BLACKSTONE_BRICKS: ItemData = ItemData {
 
 pub const POLISHED_BLACKSTONE_BUTTON: ItemData = ItemData {
     name: "minecraft:polished_blackstone_button",
-    protocol_id: 683,
+    protocol_id: 714,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12633,7 +13487,7 @@ pub const POLISHED_BLACKSTONE_BUTTON: ItemData = ItemData {
 
 pub const POLISHED_BLACKSTONE_PRESSURE_PLATE: ItemData = ItemData {
     name: "minecraft:polished_blackstone_pressure_plate",
-    protocol_id: 696,
+    protocol_id: 728,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12647,7 +13501,7 @@ pub const POLISHED_BLACKSTONE_PRESSURE_PLATE: ItemData = ItemData {
 
 pub const POLISHED_BLACKSTONE_SLAB: ItemData = ItemData {
     name: "minecraft:polished_blackstone_slab",
-    protocol_id: 1233,
+    protocol_id: 1317,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12661,7 +13515,7 @@ pub const POLISHED_BLACKSTONE_SLAB: ItemData = ItemData {
 
 pub const POLISHED_BLACKSTONE_STAIRS: ItemData = ItemData {
     name: "minecraft:polished_blackstone_stairs",
-    protocol_id: 1234,
+    protocol_id: 1318,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12675,7 +13529,7 @@ pub const POLISHED_BLACKSTONE_STAIRS: ItemData = ItemData {
 
 pub const POLISHED_BLACKSTONE_WALL: ItemData = ItemData {
     name: "minecraft:polished_blackstone_wall",
-    protocol_id: 413,
+    protocol_id: 443,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12703,7 +13557,7 @@ pub const POLISHED_DEEPSLATE: ItemData = ItemData {
 
 pub const POLISHED_DEEPSLATE_SLAB: ItemData = ItemData {
     name: "minecraft:polished_deepslate_slab",
-    protocol_id: 653,
+    protocol_id: 684,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12717,7 +13571,7 @@ pub const POLISHED_DEEPSLATE_SLAB: ItemData = ItemData {
 
 pub const POLISHED_DEEPSLATE_STAIRS: ItemData = ItemData {
     name: "minecraft:polished_deepslate_stairs",
-    protocol_id: 636,
+    protocol_id: 667,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12731,7 +13585,7 @@ pub const POLISHED_DEEPSLATE_STAIRS: ItemData = ItemData {
 
 pub const POLISHED_DEEPSLATE_WALL: ItemData = ItemData {
     name: "minecraft:polished_deepslate_wall",
-    protocol_id: 416,
+    protocol_id: 446,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12759,7 +13613,7 @@ pub const POLISHED_DIORITE: ItemData = ItemData {
 
 pub const POLISHED_DIORITE_SLAB: ItemData = ItemData {
     name: "minecraft:polished_diorite_slab",
-    protocol_id: 642,
+    protocol_id: 673,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12773,7 +13627,7 @@ pub const POLISHED_DIORITE_SLAB: ItemData = ItemData {
 
 pub const POLISHED_DIORITE_STAIRS: ItemData = ItemData {
     name: "minecraft:polished_diorite_stairs",
-    protocol_id: 624,
+    protocol_id: 655,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12801,7 +13655,7 @@ pub const POLISHED_GRANITE: ItemData = ItemData {
 
 pub const POLISHED_GRANITE_SLAB: ItemData = ItemData {
     name: "minecraft:polished_granite_slab",
-    protocol_id: 639,
+    protocol_id: 670,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12815,7 +13669,7 @@ pub const POLISHED_GRANITE_SLAB: ItemData = ItemData {
 
 pub const POLISHED_GRANITE_STAIRS: ItemData = ItemData {
     name: "minecraft:polished_granite_stairs",
-    protocol_id: 621,
+    protocol_id: 652,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12885,7 +13739,7 @@ pub const POLISHED_TUFF_WALL: ItemData = ItemData {
 
 pub const POPPED_CHORUS_FRUIT: ItemData = ItemData {
     name: "minecraft:popped_chorus_fruit",
-    protocol_id: 1151,
+    protocol_id: 1232,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12899,7 +13753,7 @@ pub const POPPED_CHORUS_FRUIT: ItemData = ItemData {
 
 pub const POPPY: ItemData = ItemData {
     name: "minecraft:poppy",
-    protocol_id: 219,
+    protocol_id: 232,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12913,7 +13767,7 @@ pub const POPPY: ItemData = ItemData {
 
 pub const PORKCHOP: ItemData = ItemData {
     name: "minecraft:porkchop",
-    protocol_id: 881,
+    protocol_id: 938,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12927,7 +13781,7 @@ pub const PORKCHOP: ItemData = ItemData {
 
 pub const POTATO: ItemData = ItemData {
     name: "minecraft:potato",
-    protocol_id: 1098,
+    protocol_id: 1178,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12941,7 +13795,7 @@ pub const POTATO: ItemData = ItemData {
 
 pub const POTION: ItemData = ItemData {
     name: "minecraft:potion",
-    protocol_id: 998,
+    protocol_id: 1076,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12955,7 +13809,7 @@ pub const POTION: ItemData = ItemData {
 
 pub const POWDER_SNOW_BUCKET: ItemData = ItemData {
     name: "minecraft:powder_snow_bucket",
-    protocol_id: 911,
+    protocol_id: 970,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12969,7 +13823,7 @@ pub const POWDER_SNOW_BUCKET: ItemData = ItemData {
 
 pub const POWERED_RAIL: ItemData = ItemData {
     name: "minecraft:powered_rail",
-    protocol_id: 761,
+    protocol_id: 797,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12983,7 +13837,7 @@ pub const POWERED_RAIL: ItemData = ItemData {
 
 pub const PRISMARINE: ItemData = ItemData {
     name: "minecraft:prismarine",
-    protocol_id: 503,
+    protocol_id: 533,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -12997,7 +13851,7 @@ pub const PRISMARINE: ItemData = ItemData {
 
 pub const PRISMARINE_BRICK_SLAB: ItemData = ItemData {
     name: "minecraft:prismarine_brick_slab",
-    protocol_id: 279,
+    protocol_id: 298,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13011,7 +13865,7 @@ pub const PRISMARINE_BRICK_SLAB: ItemData = ItemData {
 
 pub const PRISMARINE_BRICK_STAIRS: ItemData = ItemData {
     name: "minecraft:prismarine_brick_stairs",
-    protocol_id: 507,
+    protocol_id: 537,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13025,7 +13879,7 @@ pub const PRISMARINE_BRICK_STAIRS: ItemData = ItemData {
 
 pub const PRISMARINE_BRICKS: ItemData = ItemData {
     name: "minecraft:prismarine_bricks",
-    protocol_id: 504,
+    protocol_id: 534,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13039,7 +13893,7 @@ pub const PRISMARINE_BRICKS: ItemData = ItemData {
 
 pub const PRISMARINE_CRYSTALS: ItemData = ItemData {
     name: "minecraft:prismarine_crystals",
-    protocol_id: 1117,
+    protocol_id: 1198,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13053,7 +13907,7 @@ pub const PRISMARINE_CRYSTALS: ItemData = ItemData {
 
 pub const PRISMARINE_SHARD: ItemData = ItemData {
     name: "minecraft:prismarine_shard",
-    protocol_id: 1116,
+    protocol_id: 1197,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13067,7 +13921,7 @@ pub const PRISMARINE_SHARD: ItemData = ItemData {
 
 pub const PRISMARINE_SLAB: ItemData = ItemData {
     name: "minecraft:prismarine_slab",
-    protocol_id: 278,
+    protocol_id: 297,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13081,7 +13935,7 @@ pub const PRISMARINE_SLAB: ItemData = ItemData {
 
 pub const PRISMARINE_STAIRS: ItemData = ItemData {
     name: "minecraft:prismarine_stairs",
-    protocol_id: 506,
+    protocol_id: 536,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13095,7 +13949,7 @@ pub const PRISMARINE_STAIRS: ItemData = ItemData {
 
 pub const PRISMARINE_WALL: ItemData = ItemData {
     name: "minecraft:prismarine_wall",
-    protocol_id: 400,
+    protocol_id: 430,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13109,11 +13963,11 @@ pub const PRISMARINE_WALL: ItemData = ItemData {
 
 pub const PRIZE_POTTERY_SHERD: ItemData = ItemData {
     name: "minecraft:prize_pottery_sherd",
-    protocol_id: 1305,
+    protocol_id: 1389,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -13123,7 +13977,7 @@ pub const PRIZE_POTTERY_SHERD: ItemData = ItemData {
 
 pub const PUFFERFISH: ItemData = ItemData {
     name: "minecraft:pufferfish",
-    protocol_id: 938,
+    protocol_id: 1015,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13137,7 +13991,7 @@ pub const PUFFERFISH: ItemData = ItemData {
 
 pub const PUFFERFISH_BUCKET: ItemData = ItemData {
     name: "minecraft:pufferfish_bucket",
-    protocol_id: 915,
+    protocol_id: 974,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13151,7 +14005,7 @@ pub const PUFFERFISH_BUCKET: ItemData = ItemData {
 
 pub const PUFFERFISH_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:pufferfish_spawn_egg",
-    protocol_id: 1054,
+    protocol_id: 1132,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13165,7 +14019,7 @@ pub const PUFFERFISH_SPAWN_EGG: ItemData = ItemData {
 
 pub const PUMPKIN: ItemData = ItemData {
     name: "minecraft:pumpkin",
-    protocol_id: 322,
+    protocol_id: 344,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13179,7 +14033,7 @@ pub const PUMPKIN: ItemData = ItemData {
 
 pub const PUMPKIN_PIE: ItemData = ItemData {
     name: "minecraft:pumpkin_pie",
-    protocol_id: 1111,
+    protocol_id: 1191,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13193,7 +14047,7 @@ pub const PUMPKIN_PIE: ItemData = ItemData {
 
 pub const PUMPKIN_SEEDS: ItemData = ItemData {
     name: "minecraft:pumpkin_seeds",
-    protocol_id: 986,
+    protocol_id: 1063,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13207,7 +14061,7 @@ pub const PUMPKIN_SEEDS: ItemData = ItemData {
 
 pub const PURPLE_BANNER: ItemData = ItemData {
     name: "minecraft:purple_banner",
-    protocol_id: 1143,
+    protocol_id: 1224,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13221,7 +14075,21 @@ pub const PURPLE_BANNER: ItemData = ItemData {
 
 pub const PURPLE_BED: ItemData = ItemData {
     name: "minecraft:purple_bed",
-    protocol_id: 974,
+    protocol_id: 1051,
+    max_stack_size: 1,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const PURPLE_BUNDLE: ItemData = ItemData {
+    name: "minecraft:purple_bundle",
+    protocol_id: 1002,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13235,7 +14103,7 @@ pub const PURPLE_BED: ItemData = ItemData {
 
 pub const PURPLE_CANDLE: ItemData = ItemData {
     name: "minecraft:purple_candle",
-    protocol_id: 1252,
+    protocol_id: 1336,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13249,7 +14117,7 @@ pub const PURPLE_CANDLE: ItemData = ItemData {
 
 pub const PURPLE_CARPET: ItemData = ItemData {
     name: "minecraft:purple_carpet",
-    protocol_id: 456,
+    protocol_id: 486,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13263,7 +14131,7 @@ pub const PURPLE_CARPET: ItemData = ItemData {
 
 pub const PURPLE_CONCRETE: ItemData = ItemData {
     name: "minecraft:purple_concrete",
-    protocol_id: 565,
+    protocol_id: 595,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13277,7 +14145,7 @@ pub const PURPLE_CONCRETE: ItemData = ItemData {
 
 pub const PURPLE_CONCRETE_POWDER: ItemData = ItemData {
     name: "minecraft:purple_concrete_powder",
-    protocol_id: 581,
+    protocol_id: 611,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13291,7 +14159,7 @@ pub const PURPLE_CONCRETE_POWDER: ItemData = ItemData {
 
 pub const PURPLE_DYE: ItemData = ItemData {
     name: "minecraft:purple_dye",
-    protocol_id: 954,
+    protocol_id: 1031,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13305,8 +14173,22 @@ pub const PURPLE_DYE: ItemData = ItemData {
 
 pub const PURPLE_GLAZED_TERRACOTTA: ItemData = ItemData {
     name: "minecraft:purple_glazed_terracotta",
-    protocol_id: 549,
+    protocol_id: 579,
     max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const PURPLE_HARNESS: ItemData = ItemData {
+    name: "minecraft:purple_harness",
+    protocol_id: 812,
+    max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
@@ -13319,7 +14201,7 @@ pub const PURPLE_GLAZED_TERRACOTTA: ItemData = ItemData {
 
 pub const PURPLE_SHULKER_BOX: ItemData = ItemData {
     name: "minecraft:purple_shulker_box",
-    protocol_id: 533,
+    protocol_id: 563,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13333,7 +14215,7 @@ pub const PURPLE_SHULKER_BOX: ItemData = ItemData {
 
 pub const PURPLE_STAINED_GLASS: ItemData = ItemData {
     name: "minecraft:purple_stained_glass",
-    protocol_id: 481,
+    protocol_id: 511,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13347,7 +14229,7 @@ pub const PURPLE_STAINED_GLASS: ItemData = ItemData {
 
 pub const PURPLE_STAINED_GLASS_PANE: ItemData = ItemData {
     name: "minecraft:purple_stained_glass_pane",
-    protocol_id: 497,
+    protocol_id: 527,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13361,7 +14243,7 @@ pub const PURPLE_STAINED_GLASS_PANE: ItemData = ItemData {
 
 pub const PURPLE_TERRACOTTA: ItemData = ItemData {
     name: "minecraft:purple_terracotta",
-    protocol_id: 437,
+    protocol_id: 467,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13375,7 +14257,7 @@ pub const PURPLE_TERRACOTTA: ItemData = ItemData {
 
 pub const PURPLE_WOOL: ItemData = ItemData {
     name: "minecraft:purple_wool",
-    protocol_id: 212,
+    protocol_id: 223,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13389,7 +14271,7 @@ pub const PURPLE_WOOL: ItemData = ItemData {
 
 pub const PURPUR_BLOCK: ItemData = ItemData {
     name: "minecraft:purpur_block",
-    protocol_id: 295,
+    protocol_id: 314,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13403,7 +14285,7 @@ pub const PURPUR_BLOCK: ItemData = ItemData {
 
 pub const PURPUR_PILLAR: ItemData = ItemData {
     name: "minecraft:purpur_pillar",
-    protocol_id: 296,
+    protocol_id: 315,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13417,7 +14299,7 @@ pub const PURPUR_PILLAR: ItemData = ItemData {
 
 pub const PURPUR_SLAB: ItemData = ItemData {
     name: "minecraft:purpur_slab",
-    protocol_id: 277,
+    protocol_id: 296,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13431,7 +14313,7 @@ pub const PURPUR_SLAB: ItemData = ItemData {
 
 pub const PURPUR_STAIRS: ItemData = ItemData {
     name: "minecraft:purpur_stairs",
-    protocol_id: 297,
+    protocol_id: 316,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13445,7 +14327,7 @@ pub const PURPUR_STAIRS: ItemData = ItemData {
 
 pub const QUARTZ: ItemData = ItemData {
     name: "minecraft:quartz",
-    protocol_id: 808,
+    protocol_id: 865,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13459,7 +14341,7 @@ pub const QUARTZ: ItemData = ItemData {
 
 pub const QUARTZ_BLOCK: ItemData = ItemData {
     name: "minecraft:quartz_block",
-    protocol_id: 423,
+    protocol_id: 453,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13473,7 +14355,7 @@ pub const QUARTZ_BLOCK: ItemData = ItemData {
 
 pub const QUARTZ_BRICKS: ItemData = ItemData {
     name: "minecraft:quartz_bricks",
-    protocol_id: 424,
+    protocol_id: 454,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13487,7 +14369,7 @@ pub const QUARTZ_BRICKS: ItemData = ItemData {
 
 pub const QUARTZ_PILLAR: ItemData = ItemData {
     name: "minecraft:quartz_pillar",
-    protocol_id: 425,
+    protocol_id: 455,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13501,7 +14383,7 @@ pub const QUARTZ_PILLAR: ItemData = ItemData {
 
 pub const QUARTZ_SLAB: ItemData = ItemData {
     name: "minecraft:quartz_slab",
-    protocol_id: 274,
+    protocol_id: 293,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13515,7 +14397,7 @@ pub const QUARTZ_SLAB: ItemData = ItemData {
 
 pub const QUARTZ_STAIRS: ItemData = ItemData {
     name: "minecraft:quartz_stairs",
-    protocol_id: 426,
+    protocol_id: 456,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13529,7 +14411,7 @@ pub const QUARTZ_STAIRS: ItemData = ItemData {
 
 pub const RABBIT: ItemData = ItemData {
     name: "minecraft:rabbit",
-    protocol_id: 1118,
+    protocol_id: 1199,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13543,7 +14425,7 @@ pub const RABBIT: ItemData = ItemData {
 
 pub const RABBIT_FOOT: ItemData = ItemData {
     name: "minecraft:rabbit_foot",
-    protocol_id: 1121,
+    protocol_id: 1202,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13557,7 +14439,7 @@ pub const RABBIT_FOOT: ItemData = ItemData {
 
 pub const RABBIT_HIDE: ItemData = ItemData {
     name: "minecraft:rabbit_hide",
-    protocol_id: 1122,
+    protocol_id: 1203,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13571,7 +14453,7 @@ pub const RABBIT_HIDE: ItemData = ItemData {
 
 pub const RABBIT_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:rabbit_spawn_egg",
-    protocol_id: 1055,
+    protocol_id: 1133,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13585,7 +14467,7 @@ pub const RABBIT_SPAWN_EGG: ItemData = ItemData {
 
 pub const RABBIT_STEW: ItemData = ItemData {
     name: "minecraft:rabbit_stew",
-    protocol_id: 1120,
+    protocol_id: 1201,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13599,7 +14481,7 @@ pub const RABBIT_STEW: ItemData = ItemData {
 
 pub const RAIL: ItemData = ItemData {
     name: "minecraft:rail",
-    protocol_id: 763,
+    protocol_id: 799,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13613,11 +14495,11 @@ pub const RAIL: ItemData = ItemData {
 
 pub const RAISER_ARMOR_TRIM_SMITHING_TEMPLATE: ItemData = ItemData {
     name: "minecraft:raiser_armor_trim_smithing_template",
-    protocol_id: 1284,
+    protocol_id: 1368,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -13627,7 +14509,7 @@ pub const RAISER_ARMOR_TRIM_SMITHING_TEMPLATE: ItemData = ItemData {
 
 pub const RAVAGER_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:ravager_spawn_egg",
-    protocol_id: 1056,
+    protocol_id: 1134,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13641,7 +14523,7 @@ pub const RAVAGER_SPAWN_EGG: ItemData = ItemData {
 
 pub const RAW_COPPER: ItemData = ItemData {
     name: "minecraft:raw_copper",
-    protocol_id: 812,
+    protocol_id: 869,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13655,7 +14537,7 @@ pub const RAW_COPPER: ItemData = ItemData {
 
 pub const RAW_COPPER_BLOCK: ItemData = ItemData {
     name: "minecraft:raw_copper_block",
-    protocol_id: 83,
+    protocol_id: 85,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13669,7 +14551,7 @@ pub const RAW_COPPER_BLOCK: ItemData = ItemData {
 
 pub const RAW_GOLD: ItemData = ItemData {
     name: "minecraft:raw_gold",
-    protocol_id: 814,
+    protocol_id: 871,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13683,7 +14565,7 @@ pub const RAW_GOLD: ItemData = ItemData {
 
 pub const RAW_GOLD_BLOCK: ItemData = ItemData {
     name: "minecraft:raw_gold_block",
-    protocol_id: 84,
+    protocol_id: 86,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13697,7 +14579,7 @@ pub const RAW_GOLD_BLOCK: ItemData = ItemData {
 
 pub const RAW_IRON: ItemData = ItemData {
     name: "minecraft:raw_iron",
-    protocol_id: 810,
+    protocol_id: 867,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13711,7 +14593,7 @@ pub const RAW_IRON: ItemData = ItemData {
 
 pub const RAW_IRON_BLOCK: ItemData = ItemData {
     name: "minecraft:raw_iron_block",
-    protocol_id: 82,
+    protocol_id: 84,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13725,11 +14607,11 @@ pub const RAW_IRON_BLOCK: ItemData = ItemData {
 
 pub const RECOVERY_COMPASS: ItemData = ItemData {
     name: "minecraft:recovery_compass",
-    protocol_id: 929,
+    protocol_id: 990,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -13739,7 +14621,7 @@ pub const RECOVERY_COMPASS: ItemData = ItemData {
 
 pub const RED_BANNER: ItemData = ItemData {
     name: "minecraft:red_banner",
-    protocol_id: 1147,
+    protocol_id: 1228,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13753,7 +14635,21 @@ pub const RED_BANNER: ItemData = ItemData {
 
 pub const RED_BED: ItemData = ItemData {
     name: "minecraft:red_bed",
-    protocol_id: 978,
+    protocol_id: 1055,
+    max_stack_size: 1,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const RED_BUNDLE: ItemData = ItemData {
+    name: "minecraft:red_bundle",
+    protocol_id: 1006,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13767,7 +14663,7 @@ pub const RED_BED: ItemData = ItemData {
 
 pub const RED_CANDLE: ItemData = ItemData {
     name: "minecraft:red_candle",
-    protocol_id: 1256,
+    protocol_id: 1340,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13781,7 +14677,7 @@ pub const RED_CANDLE: ItemData = ItemData {
 
 pub const RED_CARPET: ItemData = ItemData {
     name: "minecraft:red_carpet",
-    protocol_id: 460,
+    protocol_id: 490,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13795,7 +14691,7 @@ pub const RED_CARPET: ItemData = ItemData {
 
 pub const RED_CONCRETE: ItemData = ItemData {
     name: "minecraft:red_concrete",
-    protocol_id: 569,
+    protocol_id: 599,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13809,7 +14705,7 @@ pub const RED_CONCRETE: ItemData = ItemData {
 
 pub const RED_CONCRETE_POWDER: ItemData = ItemData {
     name: "minecraft:red_concrete_powder",
-    protocol_id: 585,
+    protocol_id: 615,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13823,7 +14719,7 @@ pub const RED_CONCRETE_POWDER: ItemData = ItemData {
 
 pub const RED_DYE: ItemData = ItemData {
     name: "minecraft:red_dye",
-    protocol_id: 958,
+    protocol_id: 1035,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13837,8 +14733,22 @@ pub const RED_DYE: ItemData = ItemData {
 
 pub const RED_GLAZED_TERRACOTTA: ItemData = ItemData {
     name: "minecraft:red_glazed_terracotta",
-    protocol_id: 553,
+    protocol_id: 583,
     max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const RED_HARNESS: ItemData = ItemData {
+    name: "minecraft:red_harness",
+    protocol_id: 816,
+    max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
@@ -13851,7 +14761,7 @@ pub const RED_GLAZED_TERRACOTTA: ItemData = ItemData {
 
 pub const RED_MUSHROOM: ItemData = ItemData {
     name: "minecraft:red_mushroom",
-    protocol_id: 235,
+    protocol_id: 248,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13865,7 +14775,7 @@ pub const RED_MUSHROOM: ItemData = ItemData {
 
 pub const RED_MUSHROOM_BLOCK: ItemData = ItemData {
     name: "minecraft:red_mushroom_block",
-    protocol_id: 353,
+    protocol_id: 375,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13879,7 +14789,7 @@ pub const RED_MUSHROOM_BLOCK: ItemData = ItemData {
 
 pub const RED_NETHER_BRICK_SLAB: ItemData = ItemData {
     name: "minecraft:red_nether_brick_slab",
-    protocol_id: 649,
+    protocol_id: 680,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13893,7 +14803,7 @@ pub const RED_NETHER_BRICK_SLAB: ItemData = ItemData {
 
 pub const RED_NETHER_BRICK_STAIRS: ItemData = ItemData {
     name: "minecraft:red_nether_brick_stairs",
-    protocol_id: 632,
+    protocol_id: 663,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13907,7 +14817,7 @@ pub const RED_NETHER_BRICK_STAIRS: ItemData = ItemData {
 
 pub const RED_NETHER_BRICK_WALL: ItemData = ItemData {
     name: "minecraft:red_nether_brick_wall",
-    protocol_id: 408,
+    protocol_id: 438,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13921,7 +14831,7 @@ pub const RED_NETHER_BRICK_WALL: ItemData = ItemData {
 
 pub const RED_NETHER_BRICKS: ItemData = ItemData {
     name: "minecraft:red_nether_bricks",
-    protocol_id: 519,
+    protocol_id: 549,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13935,7 +14845,7 @@ pub const RED_NETHER_BRICKS: ItemData = ItemData {
 
 pub const RED_SAND: ItemData = ItemData {
     name: "minecraft:red_sand",
-    protocol_id: 60,
+    protocol_id: 62,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13949,7 +14859,7 @@ pub const RED_SAND: ItemData = ItemData {
 
 pub const RED_SANDSTONE: ItemData = ItemData {
     name: "minecraft:red_sandstone",
-    protocol_id: 510,
+    protocol_id: 540,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13963,7 +14873,7 @@ pub const RED_SANDSTONE: ItemData = ItemData {
 
 pub const RED_SANDSTONE_SLAB: ItemData = ItemData {
     name: "minecraft:red_sandstone_slab",
-    protocol_id: 275,
+    protocol_id: 294,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13977,7 +14887,7 @@ pub const RED_SANDSTONE_SLAB: ItemData = ItemData {
 
 pub const RED_SANDSTONE_STAIRS: ItemData = ItemData {
     name: "minecraft:red_sandstone_stairs",
-    protocol_id: 513,
+    protocol_id: 543,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -13991,7 +14901,7 @@ pub const RED_SANDSTONE_STAIRS: ItemData = ItemData {
 
 pub const RED_SANDSTONE_WALL: ItemData = ItemData {
     name: "minecraft:red_sandstone_wall",
-    protocol_id: 401,
+    protocol_id: 431,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14005,7 +14915,7 @@ pub const RED_SANDSTONE_WALL: ItemData = ItemData {
 
 pub const RED_SHULKER_BOX: ItemData = ItemData {
     name: "minecraft:red_shulker_box",
-    protocol_id: 537,
+    protocol_id: 567,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14019,7 +14929,7 @@ pub const RED_SHULKER_BOX: ItemData = ItemData {
 
 pub const RED_STAINED_GLASS: ItemData = ItemData {
     name: "minecraft:red_stained_glass",
-    protocol_id: 485,
+    protocol_id: 515,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14033,7 +14943,7 @@ pub const RED_STAINED_GLASS: ItemData = ItemData {
 
 pub const RED_STAINED_GLASS_PANE: ItemData = ItemData {
     name: "minecraft:red_stained_glass_pane",
-    protocol_id: 501,
+    protocol_id: 531,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14047,7 +14957,7 @@ pub const RED_STAINED_GLASS_PANE: ItemData = ItemData {
 
 pub const RED_TERRACOTTA: ItemData = ItemData {
     name: "minecraft:red_terracotta",
-    protocol_id: 441,
+    protocol_id: 471,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14061,7 +14971,7 @@ pub const RED_TERRACOTTA: ItemData = ItemData {
 
 pub const RED_TULIP: ItemData = ItemData {
     name: "minecraft:red_tulip",
-    protocol_id: 223,
+    protocol_id: 236,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14075,7 +14985,7 @@ pub const RED_TULIP: ItemData = ItemData {
 
 pub const RED_WOOL: ItemData = ItemData {
     name: "minecraft:red_wool",
-    protocol_id: 216,
+    protocol_id: 227,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14089,7 +14999,7 @@ pub const RED_WOOL: ItemData = ItemData {
 
 pub const REDSTONE: ItemData = ItemData {
     name: "minecraft:redstone",
-    protocol_id: 657,
+    protocol_id: 688,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14103,7 +15013,7 @@ pub const REDSTONE: ItemData = ItemData {
 
 pub const REDSTONE_BLOCK: ItemData = ItemData {
     name: "minecraft:redstone_block",
-    protocol_id: 659,
+    protocol_id: 690,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14117,7 +15027,7 @@ pub const REDSTONE_BLOCK: ItemData = ItemData {
 
 pub const REDSTONE_LAMP: ItemData = ItemData {
     name: "minecraft:redstone_lamp",
-    protocol_id: 680,
+    protocol_id: 711,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14131,7 +15041,7 @@ pub const REDSTONE_LAMP: ItemData = ItemData {
 
 pub const REDSTONE_ORE: ItemData = ItemData {
     name: "minecraft:redstone_ore",
-    protocol_id: 70,
+    protocol_id: 72,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14145,7 +15055,7 @@ pub const REDSTONE_ORE: ItemData = ItemData {
 
 pub const REDSTONE_TORCH: ItemData = ItemData {
     name: "minecraft:redstone_torch",
-    protocol_id: 658,
+    protocol_id: 689,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14159,7 +15069,7 @@ pub const REDSTONE_TORCH: ItemData = ItemData {
 
 pub const REINFORCED_DEEPSLATE: ItemData = ItemData {
     name: "minecraft:reinforced_deepslate",
-    protocol_id: 351,
+    protocol_id: 373,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14173,7 +15083,7 @@ pub const REINFORCED_DEEPSLATE: ItemData = ItemData {
 
 pub const REPEATER: ItemData = ItemData {
     name: "minecraft:repeater",
-    protocol_id: 660,
+    protocol_id: 691,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14187,7 +15097,7 @@ pub const REPEATER: ItemData = ItemData {
 
 pub const REPEATING_COMMAND_BLOCK: ItemData = ItemData {
     name: "minecraft:repeating_command_block",
-    protocol_id: 514,
+    protocol_id: 544,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14199,9 +15109,107 @@ pub const REPEATING_COMMAND_BLOCK: ItemData = ItemData {
     attribute_modifiers: &[],
 };
 
+pub const RESIN_BLOCK: ItemData = ItemData {
+    name: "minecraft:resin_block",
+    protocol_id: 384,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const RESIN_BRICK: ItemData = ItemData {
+    name: "minecraft:resin_brick",
+    protocol_id: 1196,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const RESIN_BRICK_SLAB: ItemData = ItemData {
+    name: "minecraft:resin_brick_slab",
+    protocol_id: 387,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const RESIN_BRICK_STAIRS: ItemData = ItemData {
+    name: "minecraft:resin_brick_stairs",
+    protocol_id: 386,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const RESIN_BRICK_WALL: ItemData = ItemData {
+    name: "minecraft:resin_brick_wall",
+    protocol_id: 388,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const RESIN_BRICKS: ItemData = ItemData {
+    name: "minecraft:resin_bricks",
+    protocol_id: 385,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const RESIN_CLUMP: ItemData = ItemData {
+    name: "minecraft:resin_clump",
+    protocol_id: 383,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
 pub const RESPAWN_ANCHOR: ItemData = ItemData {
     name: "minecraft:respawn_anchor",
-    protocol_id: 1240,
+    protocol_id: 1324,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14215,11 +15223,11 @@ pub const RESPAWN_ANCHOR: ItemData = ItemData {
 
 pub const RIB_ARMOR_TRIM_SMITHING_TEMPLATE: ItemData = ItemData {
     name: "minecraft:rib_armor_trim_smithing_template",
-    protocol_id: 1279,
+    protocol_id: 1363,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -14243,7 +15251,7 @@ pub const ROOTED_DIRT: ItemData = ItemData {
 
 pub const ROSE_BUSH: ItemData = ItemData {
     name: "minecraft:rose_bush",
-    protocol_id: 467,
+    protocol_id: 497,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14257,7 +15265,7 @@ pub const ROSE_BUSH: ItemData = ItemData {
 
 pub const ROTTEN_FLESH: ItemData = ItemData {
     name: "minecraft:rotten_flesh",
-    protocol_id: 992,
+    protocol_id: 1069,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14271,7 +15279,7 @@ pub const ROTTEN_FLESH: ItemData = ItemData {
 
 pub const SADDLE: ItemData = ItemData {
     name: "minecraft:saddle",
-    protocol_id: 765,
+    protocol_id: 801,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14285,7 +15293,7 @@ pub const SADDLE: ItemData = ItemData {
 
 pub const SALMON: ItemData = ItemData {
     name: "minecraft:salmon",
-    protocol_id: 936,
+    protocol_id: 1013,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14299,7 +15307,7 @@ pub const SALMON: ItemData = ItemData {
 
 pub const SALMON_BUCKET: ItemData = ItemData {
     name: "minecraft:salmon_bucket",
-    protocol_id: 916,
+    protocol_id: 975,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14313,7 +15321,7 @@ pub const SALMON_BUCKET: ItemData = ItemData {
 
 pub const SALMON_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:salmon_spawn_egg",
-    protocol_id: 1057,
+    protocol_id: 1135,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14327,7 +15335,7 @@ pub const SALMON_SPAWN_EGG: ItemData = ItemData {
 
 pub const SAND: ItemData = ItemData {
     name: "minecraft:sand",
-    protocol_id: 57,
+    protocol_id: 59,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14341,7 +15349,7 @@ pub const SAND: ItemData = ItemData {
 
 pub const SANDSTONE: ItemData = ItemData {
     name: "minecraft:sandstone",
-    protocol_id: 191,
+    protocol_id: 198,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14355,7 +15363,7 @@ pub const SANDSTONE: ItemData = ItemData {
 
 pub const SANDSTONE_SLAB: ItemData = ItemData {
     name: "minecraft:sandstone_slab",
-    protocol_id: 266,
+    protocol_id: 285,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14369,7 +15377,7 @@ pub const SANDSTONE_SLAB: ItemData = ItemData {
 
 pub const SANDSTONE_STAIRS: ItemData = ItemData {
     name: "minecraft:sandstone_stairs",
-    protocol_id: 380,
+    protocol_id: 409,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14383,7 +15391,7 @@ pub const SANDSTONE_STAIRS: ItemData = ItemData {
 
 pub const SANDSTONE_WALL: ItemData = ItemData {
     name: "minecraft:sandstone_wall",
-    protocol_id: 409,
+    protocol_id: 439,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14397,7 +15405,7 @@ pub const SANDSTONE_WALL: ItemData = ItemData {
 
 pub const SCAFFOLDING: ItemData = ItemData {
     name: "minecraft:scaffolding",
-    protocol_id: 656,
+    protocol_id: 687,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14411,11 +15419,11 @@ pub const SCAFFOLDING: ItemData = ItemData {
 
 pub const SCRAPE_POTTERY_SHERD: ItemData = ItemData {
     name: "minecraft:scrape_pottery_sherd",
-    protocol_id: 1306,
+    protocol_id: 1390,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -14425,7 +15433,7 @@ pub const SCRAPE_POTTERY_SHERD: ItemData = ItemData {
 
 pub const SCULK: ItemData = ItemData {
     name: "minecraft:sculk",
-    protocol_id: 371,
+    protocol_id: 400,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14439,7 +15447,7 @@ pub const SCULK: ItemData = ItemData {
 
 pub const SCULK_CATALYST: ItemData = ItemData {
     name: "minecraft:sculk_catalyst",
-    protocol_id: 373,
+    protocol_id: 402,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14453,7 +15461,7 @@ pub const SCULK_CATALYST: ItemData = ItemData {
 
 pub const SCULK_SENSOR: ItemData = ItemData {
     name: "minecraft:sculk_sensor",
-    protocol_id: 675,
+    protocol_id: 706,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14467,7 +15475,7 @@ pub const SCULK_SENSOR: ItemData = ItemData {
 
 pub const SCULK_SHRIEKER: ItemData = ItemData {
     name: "minecraft:sculk_shrieker",
-    protocol_id: 374,
+    protocol_id: 403,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14481,7 +15489,7 @@ pub const SCULK_SHRIEKER: ItemData = ItemData {
 
 pub const SCULK_VEIN: ItemData = ItemData {
     name: "minecraft:sculk_vein",
-    protocol_id: 372,
+    protocol_id: 401,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14495,7 +15503,7 @@ pub const SCULK_VEIN: ItemData = ItemData {
 
 pub const SEA_LANTERN: ItemData = ItemData {
     name: "minecraft:sea_lantern",
-    protocol_id: 509,
+    protocol_id: 539,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14509,7 +15517,7 @@ pub const SEA_LANTERN: ItemData = ItemData {
 
 pub const SEA_PICKLE: ItemData = ItemData {
     name: "minecraft:sea_pickle",
-    protocol_id: 201,
+    protocol_id: 212,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14523,7 +15531,7 @@ pub const SEA_PICKLE: ItemData = ItemData {
 
 pub const SEAGRASS: ItemData = ItemData {
     name: "minecraft:seagrass",
-    protocol_id: 200,
+    protocol_id: 211,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14537,11 +15545,11 @@ pub const SEAGRASS: ItemData = ItemData {
 
 pub const SENTRY_ARMOR_TRIM_SMITHING_TEMPLATE: ItemData = ItemData {
     name: "minecraft:sentry_armor_trim_smithing_template",
-    protocol_id: 1270,
+    protocol_id: 1354,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -14551,11 +15559,11 @@ pub const SENTRY_ARMOR_TRIM_SMITHING_TEMPLATE: ItemData = ItemData {
 
 pub const SHAPER_ARMOR_TRIM_SMITHING_TEMPLATE: ItemData = ItemData {
     name: "minecraft:shaper_armor_trim_smithing_template",
-    protocol_id: 1282,
+    protocol_id: 1366,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -14565,11 +15573,11 @@ pub const SHAPER_ARMOR_TRIM_SMITHING_TEMPLATE: ItemData = ItemData {
 
 pub const SHEAF_POTTERY_SHERD: ItemData = ItemData {
     name: "minecraft:sheaf_pottery_sherd",
-    protocol_id: 1307,
+    protocol_id: 1391,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -14579,7 +15587,7 @@ pub const SHEAF_POTTERY_SHERD: ItemData = ItemData {
 
 pub const SHEARS: ItemData = ItemData {
     name: "minecraft:shears",
-    protocol_id: 983,
+    protocol_id: 1060,
     max_stack_size: 1,
     max_damage: 238,
     is_fire_resistant: false,
@@ -14593,7 +15601,7 @@ pub const SHEARS: ItemData = ItemData {
 
 pub const SHEEP_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:sheep_spawn_egg",
-    protocol_id: 1058,
+    protocol_id: 1136,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14607,7 +15615,35 @@ pub const SHEEP_SPAWN_EGG: ItemData = ItemData {
 
 pub const SHELTER_POTTERY_SHERD: ItemData = ItemData {
     name: "minecraft:shelter_pottery_sherd",
-    protocol_id: 1308,
+    protocol_id: 1392,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Uncommon,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const SHIELD: ItemData = ItemData {
+    name: "minecraft:shield",
+    protocol_id: 1243,
+    max_stack_size: 1,
+    max_damage: 336,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: Some("#minecraft:wooden_tool_materials"),
+    attribute_modifiers: &[],
+};
+
+pub const SHORT_DRY_GRASS: ItemData = ItemData {
+    name: "minecraft:short_dry_grass",
+    protocol_id: 209,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14619,23 +15655,9 @@ pub const SHELTER_POTTERY_SHERD: ItemData = ItemData {
     attribute_modifiers: &[],
 };
 
-pub const SHIELD: ItemData = ItemData {
-    name: "minecraft:shield",
-    protocol_id: 1162,
-    max_stack_size: 1,
-    max_damage: 336,
-    is_fire_resistant: false,
-    rarity: Rarity::Common,
-    food: None,
-    tool: None,
-    enchantable_value: None,
-    repairable_with: None,
-    attribute_modifiers: &[],
-};
-
 pub const SHORT_GRASS: ItemData = ItemData {
     name: "minecraft:short_grass",
-    protocol_id: 195,
+    protocol_id: 202,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14649,7 +15671,7 @@ pub const SHORT_GRASS: ItemData = ItemData {
 
 pub const SHROOMLIGHT: ItemData = ItemData {
     name: "minecraft:shroomlight",
-    protocol_id: 1220,
+    protocol_id: 1304,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14663,7 +15685,7 @@ pub const SHROOMLIGHT: ItemData = ItemData {
 
 pub const SHULKER_BOX: ItemData = ItemData {
     name: "minecraft:shulker_box",
-    protocol_id: 522,
+    protocol_id: 552,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14677,7 +15699,7 @@ pub const SHULKER_BOX: ItemData = ItemData {
 
 pub const SHULKER_SHELL: ItemData = ItemData {
     name: "minecraft:shulker_shell",
-    protocol_id: 1164,
+    protocol_id: 1245,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14691,7 +15713,7 @@ pub const SHULKER_SHELL: ItemData = ItemData {
 
 pub const SHULKER_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:shulker_spawn_egg",
-    protocol_id: 1059,
+    protocol_id: 1137,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14705,11 +15727,11 @@ pub const SHULKER_SPAWN_EGG: ItemData = ItemData {
 
 pub const SILENCE_ARMOR_TRIM_SMITHING_TEMPLATE: ItemData = ItemData {
     name: "minecraft:silence_armor_trim_smithing_template",
-    protocol_id: 1283,
+    protocol_id: 1367,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Epic,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -14719,7 +15741,7 @@ pub const SILENCE_ARMOR_TRIM_SMITHING_TEMPLATE: ItemData = ItemData {
 
 pub const SILVERFISH_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:silverfish_spawn_egg",
-    protocol_id: 1060,
+    protocol_id: 1138,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14733,7 +15755,7 @@ pub const SILVERFISH_SPAWN_EGG: ItemData = ItemData {
 
 pub const SKELETON_HORSE_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:skeleton_horse_spawn_egg",
-    protocol_id: 1062,
+    protocol_id: 1140,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14747,7 +15769,7 @@ pub const SKELETON_HORSE_SPAWN_EGG: ItemData = ItemData {
 
 pub const SKELETON_SKULL: ItemData = ItemData {
     name: "minecraft:skeleton_skull",
-    protocol_id: 1103,
+    protocol_id: 1183,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14756,12 +15778,12 @@ pub const SKELETON_SKULL: ItemData = ItemData {
     tool: None,
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Unknown, amount: -1.0000, operation: AttributeOperation::MultiplyTotal, slot: EquipmentSlot::Head }, ],
 };
 
 pub const SKELETON_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:skeleton_spawn_egg",
-    protocol_id: 1061,
+    protocol_id: 1139,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14775,8 +15797,22 @@ pub const SKELETON_SPAWN_EGG: ItemData = ItemData {
 
 pub const SKULL_BANNER_PATTERN: ItemData = ItemData {
     name: "minecraft:skull_banner_pattern",
-    protocol_id: 1197,
+    protocol_id: 1279,
     max_stack_size: 1,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Rare,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const SKULL_POTTERY_SHERD: ItemData = ItemData {
+    name: "minecraft:skull_pottery_sherd",
+    protocol_id: 1393,
+    max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Uncommon,
@@ -14787,23 +15823,9 @@ pub const SKULL_BANNER_PATTERN: ItemData = ItemData {
     attribute_modifiers: &[],
 };
 
-pub const SKULL_POTTERY_SHERD: ItemData = ItemData {
-    name: "minecraft:skull_pottery_sherd",
-    protocol_id: 1309,
-    max_stack_size: 64,
-    max_damage: 0,
-    is_fire_resistant: false,
-    rarity: Rarity::Common,
-    food: None,
-    tool: None,
-    enchantable_value: None,
-    repairable_with: None,
-    attribute_modifiers: &[],
-};
-
 pub const SLIME_BALL: ItemData = ItemData {
     name: "minecraft:slime_ball",
-    protocol_id: 926,
+    protocol_id: 985,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14817,7 +15839,7 @@ pub const SLIME_BALL: ItemData = ItemData {
 
 pub const SLIME_BLOCK: ItemData = ItemData {
     name: "minecraft:slime_block",
-    protocol_id: 664,
+    protocol_id: 695,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14831,7 +15853,7 @@ pub const SLIME_BLOCK: ItemData = ItemData {
 
 pub const SLIME_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:slime_spawn_egg",
-    protocol_id: 1063,
+    protocol_id: 1141,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14845,7 +15867,7 @@ pub const SLIME_SPAWN_EGG: ItemData = ItemData {
 
 pub const SMALL_AMETHYST_BUD: ItemData = ItemData {
     name: "minecraft:small_amethyst_bud",
-    protocol_id: 1258,
+    protocol_id: 1342,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14859,7 +15881,7 @@ pub const SMALL_AMETHYST_BUD: ItemData = ItemData {
 
 pub const SMALL_DRIPLEAF: ItemData = ItemData {
     name: "minecraft:small_dripleaf",
-    protocol_id: 250,
+    protocol_id: 268,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14873,7 +15895,7 @@ pub const SMALL_DRIPLEAF: ItemData = ItemData {
 
 pub const SMITHING_TABLE: ItemData = ItemData {
     name: "minecraft:smithing_table",
-    protocol_id: 1211,
+    protocol_id: 1295,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14887,7 +15909,7 @@ pub const SMITHING_TABLE: ItemData = ItemData {
 
 pub const SMOKER: ItemData = ItemData {
     name: "minecraft:smoker",
-    protocol_id: 1206,
+    protocol_id: 1290,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14901,7 +15923,7 @@ pub const SMOKER: ItemData = ItemData {
 
 pub const SMOOTH_BASALT: ItemData = ItemData {
     name: "minecraft:smooth_basalt",
-    protocol_id: 330,
+    protocol_id: 352,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14915,7 +15937,7 @@ pub const SMOOTH_BASALT: ItemData = ItemData {
 
 pub const SMOOTH_QUARTZ: ItemData = ItemData {
     name: "minecraft:smooth_quartz",
-    protocol_id: 281,
+    protocol_id: 300,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14929,7 +15951,7 @@ pub const SMOOTH_QUARTZ: ItemData = ItemData {
 
 pub const SMOOTH_QUARTZ_SLAB: ItemData = ItemData {
     name: "minecraft:smooth_quartz_slab",
-    protocol_id: 646,
+    protocol_id: 677,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14943,7 +15965,7 @@ pub const SMOOTH_QUARTZ_SLAB: ItemData = ItemData {
 
 pub const SMOOTH_QUARTZ_STAIRS: ItemData = ItemData {
     name: "minecraft:smooth_quartz_stairs",
-    protocol_id: 629,
+    protocol_id: 660,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14957,7 +15979,7 @@ pub const SMOOTH_QUARTZ_STAIRS: ItemData = ItemData {
 
 pub const SMOOTH_RED_SANDSTONE: ItemData = ItemData {
     name: "minecraft:smooth_red_sandstone",
-    protocol_id: 282,
+    protocol_id: 301,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14971,7 +15993,7 @@ pub const SMOOTH_RED_SANDSTONE: ItemData = ItemData {
 
 pub const SMOOTH_RED_SANDSTONE_SLAB: ItemData = ItemData {
     name: "minecraft:smooth_red_sandstone_slab",
-    protocol_id: 640,
+    protocol_id: 671,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14985,7 +16007,7 @@ pub const SMOOTH_RED_SANDSTONE_SLAB: ItemData = ItemData {
 
 pub const SMOOTH_RED_SANDSTONE_STAIRS: ItemData = ItemData {
     name: "minecraft:smooth_red_sandstone_stairs",
-    protocol_id: 622,
+    protocol_id: 653,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -14999,7 +16021,7 @@ pub const SMOOTH_RED_SANDSTONE_STAIRS: ItemData = ItemData {
 
 pub const SMOOTH_SANDSTONE: ItemData = ItemData {
     name: "minecraft:smooth_sandstone",
-    protocol_id: 283,
+    protocol_id: 302,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15013,7 +16035,7 @@ pub const SMOOTH_SANDSTONE: ItemData = ItemData {
 
 pub const SMOOTH_SANDSTONE_SLAB: ItemData = ItemData {
     name: "minecraft:smooth_sandstone_slab",
-    protocol_id: 645,
+    protocol_id: 676,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15027,7 +16049,7 @@ pub const SMOOTH_SANDSTONE_SLAB: ItemData = ItemData {
 
 pub const SMOOTH_SANDSTONE_STAIRS: ItemData = ItemData {
     name: "minecraft:smooth_sandstone_stairs",
-    protocol_id: 628,
+    protocol_id: 659,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15041,7 +16063,7 @@ pub const SMOOTH_SANDSTONE_STAIRS: ItemData = ItemData {
 
 pub const SMOOTH_STONE: ItemData = ItemData {
     name: "minecraft:smooth_stone",
-    protocol_id: 284,
+    protocol_id: 303,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15055,7 +16077,7 @@ pub const SMOOTH_STONE: ItemData = ItemData {
 
 pub const SMOOTH_STONE_SLAB: ItemData = ItemData {
     name: "minecraft:smooth_stone_slab",
-    protocol_id: 265,
+    protocol_id: 284,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15069,11 +16091,11 @@ pub const SMOOTH_STONE_SLAB: ItemData = ItemData {
 
 pub const SNIFFER_EGG: ItemData = ItemData {
     name: "minecraft:sniffer_egg",
-    protocol_id: 588,
+    protocol_id: 618,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -15083,7 +16105,7 @@ pub const SNIFFER_EGG: ItemData = ItemData {
 
 pub const SNIFFER_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:sniffer_spawn_egg",
-    protocol_id: 1064,
+    protocol_id: 1142,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15097,11 +16119,11 @@ pub const SNIFFER_SPAWN_EGG: ItemData = ItemData {
 
 pub const SNORT_POTTERY_SHERD: ItemData = ItemData {
     name: "minecraft:snort_pottery_sherd",
-    protocol_id: 1310,
+    protocol_id: 1394,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -15111,11 +16133,11 @@ pub const SNORT_POTTERY_SHERD: ItemData = ItemData {
 
 pub const SNOUT_ARMOR_TRIM_SMITHING_TEMPLATE: ItemData = ItemData {
     name: "minecraft:snout_armor_trim_smithing_template",
-    protocol_id: 1278,
+    protocol_id: 1362,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -15125,7 +16147,7 @@ pub const SNOUT_ARMOR_TRIM_SMITHING_TEMPLATE: ItemData = ItemData {
 
 pub const SNOW: ItemData = ItemData {
     name: "minecraft:snow",
-    protocol_id: 305,
+    protocol_id: 325,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15139,7 +16161,7 @@ pub const SNOW: ItemData = ItemData {
 
 pub const SNOW_BLOCK: ItemData = ItemData {
     name: "minecraft:snow_block",
-    protocol_id: 307,
+    protocol_id: 327,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15153,7 +16175,7 @@ pub const SNOW_BLOCK: ItemData = ItemData {
 
 pub const SNOW_GOLEM_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:snow_golem_spawn_egg",
-    protocol_id: 1065,
+    protocol_id: 1143,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15167,7 +16189,7 @@ pub const SNOW_GOLEM_SPAWN_EGG: ItemData = ItemData {
 
 pub const SNOWBALL: ItemData = ItemData {
     name: "minecraft:snowball",
-    protocol_id: 912,
+    protocol_id: 971,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15181,7 +16203,7 @@ pub const SNOWBALL: ItemData = ItemData {
 
 pub const SOUL_CAMPFIRE: ItemData = ItemData {
     name: "minecraft:soul_campfire",
-    protocol_id: 1219,
+    protocol_id: 1303,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15195,7 +16217,7 @@ pub const SOUL_CAMPFIRE: ItemData = ItemData {
 
 pub const SOUL_LANTERN: ItemData = ItemData {
     name: "minecraft:soul_lantern",
-    protocol_id: 1215,
+    protocol_id: 1299,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15209,7 +16231,7 @@ pub const SOUL_LANTERN: ItemData = ItemData {
 
 pub const SOUL_SAND: ItemData = ItemData {
     name: "minecraft:soul_sand",
-    protocol_id: 326,
+    protocol_id: 348,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15223,7 +16245,7 @@ pub const SOUL_SAND: ItemData = ItemData {
 
 pub const SOUL_SOIL: ItemData = ItemData {
     name: "minecraft:soul_soil",
-    protocol_id: 327,
+    protocol_id: 349,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15237,7 +16259,7 @@ pub const SOUL_SOIL: ItemData = ItemData {
 
 pub const SOUL_TORCH: ItemData = ItemData {
     name: "minecraft:soul_torch",
-    protocol_id: 331,
+    protocol_id: 353,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15251,7 +16273,7 @@ pub const SOUL_TORCH: ItemData = ItemData {
 
 pub const SPAWNER: ItemData = ItemData {
     name: "minecraft:spawner",
-    protocol_id: 298,
+    protocol_id: 317,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15265,7 +16287,7 @@ pub const SPAWNER: ItemData = ItemData {
 
 pub const SPECTRAL_ARROW: ItemData = ItemData {
     name: "minecraft:spectral_arrow",
-    protocol_id: 1159,
+    protocol_id: 1240,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15279,7 +16301,7 @@ pub const SPECTRAL_ARROW: ItemData = ItemData {
 
 pub const SPIDER_EYE: ItemData = ItemData {
     name: "minecraft:spider_eye",
-    protocol_id: 1000,
+    protocol_id: 1077,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15293,7 +16315,7 @@ pub const SPIDER_EYE: ItemData = ItemData {
 
 pub const SPIDER_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:spider_spawn_egg",
-    protocol_id: 1066,
+    protocol_id: 1144,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15307,11 +16329,11 @@ pub const SPIDER_SPAWN_EGG: ItemData = ItemData {
 
 pub const SPIRE_ARMOR_TRIM_SMITHING_TEMPLATE: ItemData = ItemData {
     name: "minecraft:spire_armor_trim_smithing_template",
-    protocol_id: 1280,
+    protocol_id: 1364,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Rare,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -15321,7 +16343,7 @@ pub const SPIRE_ARMOR_TRIM_SMITHING_TEMPLATE: ItemData = ItemData {
 
 pub const SPLASH_POTION: ItemData = ItemData {
     name: "minecraft:splash_potion",
-    protocol_id: 1158,
+    protocol_id: 1239,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15335,7 +16357,7 @@ pub const SPLASH_POTION: ItemData = ItemData {
 
 pub const SPONGE: ItemData = ItemData {
     name: "minecraft:sponge",
-    protocol_id: 186,
+    protocol_id: 193,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15349,7 +16371,7 @@ pub const SPONGE: ItemData = ItemData {
 
 pub const SPORE_BLOSSOM: ItemData = ItemData {
     name: "minecraft:spore_blossom",
-    protocol_id: 233,
+    protocol_id: 246,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15363,7 +16385,7 @@ pub const SPORE_BLOSSOM: ItemData = ItemData {
 
 pub const SPRUCE_BOAT: ItemData = ItemData {
     name: "minecraft:spruce_boat",
-    protocol_id: 776,
+    protocol_id: 829,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15377,7 +16399,7 @@ pub const SPRUCE_BOAT: ItemData = ItemData {
 
 pub const SPRUCE_BUTTON: ItemData = ItemData {
     name: "minecraft:spruce_button",
-    protocol_id: 685,
+    protocol_id: 716,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15391,7 +16413,7 @@ pub const SPRUCE_BUTTON: ItemData = ItemData {
 
 pub const SPRUCE_CHEST_BOAT: ItemData = ItemData {
     name: "minecraft:spruce_chest_boat",
-    protocol_id: 777,
+    protocol_id: 830,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15405,7 +16427,7 @@ pub const SPRUCE_CHEST_BOAT: ItemData = ItemData {
 
 pub const SPRUCE_DOOR: ItemData = ItemData {
     name: "minecraft:spruce_door",
-    protocol_id: 712,
+    protocol_id: 745,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15419,7 +16441,7 @@ pub const SPRUCE_DOOR: ItemData = ItemData {
 
 pub const SPRUCE_FENCE: ItemData = ItemData {
     name: "minecraft:spruce_fence",
-    protocol_id: 312,
+    protocol_id: 333,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15433,7 +16455,7 @@ pub const SPRUCE_FENCE: ItemData = ItemData {
 
 pub const SPRUCE_FENCE_GATE: ItemData = ItemData {
     name: "minecraft:spruce_fence_gate",
-    protocol_id: 751,
+    protocol_id: 786,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15447,7 +16469,7 @@ pub const SPRUCE_FENCE_GATE: ItemData = ItemData {
 
 pub const SPRUCE_HANGING_SIGN: ItemData = ItemData {
     name: "minecraft:spruce_hanging_sign",
-    protocol_id: 898,
+    protocol_id: 956,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15461,7 +16483,7 @@ pub const SPRUCE_HANGING_SIGN: ItemData = ItemData {
 
 pub const SPRUCE_LEAVES: ItemData = ItemData {
     name: "minecraft:spruce_leaves",
-    protocol_id: 177,
+    protocol_id: 183,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15475,7 +16497,7 @@ pub const SPRUCE_LEAVES: ItemData = ItemData {
 
 pub const SPRUCE_LOG: ItemData = ItemData {
     name: "minecraft:spruce_log",
-    protocol_id: 133,
+    protocol_id: 135,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15503,7 +16525,7 @@ pub const SPRUCE_PLANKS: ItemData = ItemData {
 
 pub const SPRUCE_PRESSURE_PLATE: ItemData = ItemData {
     name: "minecraft:spruce_pressure_plate",
-    protocol_id: 700,
+    protocol_id: 732,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15517,7 +16539,7 @@ pub const SPRUCE_PRESSURE_PLATE: ItemData = ItemData {
 
 pub const SPRUCE_SAPLING: ItemData = ItemData {
     name: "minecraft:spruce_sapling",
-    protocol_id: 49,
+    protocol_id: 50,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15531,7 +16553,7 @@ pub const SPRUCE_SAPLING: ItemData = ItemData {
 
 pub const SPRUCE_SIGN: ItemData = ItemData {
     name: "minecraft:spruce_sign",
-    protocol_id: 887,
+    protocol_id: 944,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15545,7 +16567,7 @@ pub const SPRUCE_SIGN: ItemData = ItemData {
 
 pub const SPRUCE_SLAB: ItemData = ItemData {
     name: "minecraft:spruce_slab",
-    protocol_id: 253,
+    protocol_id: 271,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15559,7 +16581,7 @@ pub const SPRUCE_SLAB: ItemData = ItemData {
 
 pub const SPRUCE_STAIRS: ItemData = ItemData {
     name: "minecraft:spruce_stairs",
-    protocol_id: 384,
+    protocol_id: 413,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15573,7 +16595,7 @@ pub const SPRUCE_STAIRS: ItemData = ItemData {
 
 pub const SPRUCE_TRAPDOOR: ItemData = ItemData {
     name: "minecraft:spruce_trapdoor",
-    protocol_id: 732,
+    protocol_id: 766,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15587,7 +16609,7 @@ pub const SPRUCE_TRAPDOOR: ItemData = ItemData {
 
 pub const SPRUCE_WOOD: ItemData = ItemData {
     name: "minecraft:spruce_wood",
-    protocol_id: 167,
+    protocol_id: 172,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15601,7 +16623,7 @@ pub const SPRUCE_WOOD: ItemData = ItemData {
 
 pub const SPYGLASS: ItemData = ItemData {
     name: "minecraft:spyglass",
-    protocol_id: 933,
+    protocol_id: 1010,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15615,7 +16637,7 @@ pub const SPYGLASS: ItemData = ItemData {
 
 pub const SQUID_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:squid_spawn_egg",
-    protocol_id: 1067,
+    protocol_id: 1145,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15629,7 +16651,7 @@ pub const SQUID_SPAWN_EGG: ItemData = ItemData {
 
 pub const STICK: ItemData = ItemData {
     name: "minecraft:stick",
-    protocol_id: 848,
+    protocol_id: 905,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15643,7 +16665,7 @@ pub const STICK: ItemData = ItemData {
 
 pub const STICKY_PISTON: ItemData = ItemData {
     name: "minecraft:sticky_piston",
-    protocol_id: 663,
+    protocol_id: 694,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15671,21 +16693,21 @@ pub const STONE: ItemData = ItemData {
 
 pub const STONE_AXE: ItemData = ItemData {
     name: "minecraft:stone_axe",
-    protocol_id: 826,
+    protocol_id: 883,
     max_stack_size: 1,
     max_damage: 131,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_stone_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/axe", speed: Some(4.0), correct_for_drops: Some(true) }, ] }),
-    enchantable_value: None,
-    repairable_with: None,
+    enchantable_value: Some(5),
+    repairable_with: Some("#minecraft:stone_tool_materials"),
     attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 8.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -3.2000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const STONE_BRICK_SLAB: ItemData = ItemData {
     name: "minecraft:stone_brick_slab",
-    protocol_id: 271,
+    protocol_id: 290,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15699,7 +16721,7 @@ pub const STONE_BRICK_SLAB: ItemData = ItemData {
 
 pub const STONE_BRICK_STAIRS: ItemData = ItemData {
     name: "minecraft:stone_brick_stairs",
-    protocol_id: 362,
+    protocol_id: 391,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15713,7 +16735,7 @@ pub const STONE_BRICK_STAIRS: ItemData = ItemData {
 
 pub const STONE_BRICK_WALL: ItemData = ItemData {
     name: "minecraft:stone_brick_wall",
-    protocol_id: 404,
+    protocol_id: 434,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15727,7 +16749,7 @@ pub const STONE_BRICK_WALL: ItemData = ItemData {
 
 pub const STONE_BRICKS: ItemData = ItemData {
     name: "minecraft:stone_bricks",
-    protocol_id: 340,
+    protocol_id: 362,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15741,7 +16763,7 @@ pub const STONE_BRICKS: ItemData = ItemData {
 
 pub const STONE_BUTTON: ItemData = ItemData {
     name: "minecraft:stone_button",
-    protocol_id: 682,
+    protocol_id: 713,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15755,35 +16777,35 @@ pub const STONE_BUTTON: ItemData = ItemData {
 
 pub const STONE_HOE: ItemData = ItemData {
     name: "minecraft:stone_hoe",
-    protocol_id: 827,
+    protocol_id: 884,
     max_stack_size: 1,
     max_damage: 131,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_stone_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/hoe", speed: Some(4.0), correct_for_drops: Some(true) }, ] }),
-    enchantable_value: None,
-    repairable_with: None,
+    enchantable_value: Some(5),
+    repairable_with: Some("#minecraft:stone_tool_materials"),
     attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -2.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const STONE_PICKAXE: ItemData = ItemData {
     name: "minecraft:stone_pickaxe",
-    protocol_id: 825,
+    protocol_id: 882,
     max_stack_size: 1,
     max_damage: 131,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_stone_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/pickaxe", speed: Some(4.0), correct_for_drops: Some(true) }, ] }),
-    enchantable_value: None,
-    repairable_with: None,
+    enchantable_value: Some(5),
+    repairable_with: Some("#minecraft:stone_tool_materials"),
     attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 2.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -2.8000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const STONE_PRESSURE_PLATE: ItemData = ItemData {
     name: "minecraft:stone_pressure_plate",
-    protocol_id: 695,
+    protocol_id: 727,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15797,21 +16819,21 @@ pub const STONE_PRESSURE_PLATE: ItemData = ItemData {
 
 pub const STONE_SHOVEL: ItemData = ItemData {
     name: "minecraft:stone_shovel",
-    protocol_id: 824,
+    protocol_id: 881,
     max_stack_size: 1,
     max_damage: 131,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_stone_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/shovel", speed: Some(4.0), correct_for_drops: Some(true) }, ] }),
-    enchantable_value: None,
-    repairable_with: None,
+    enchantable_value: Some(5),
+    repairable_with: Some("#minecraft:stone_tool_materials"),
     attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 2.5000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const STONE_SLAB: ItemData = ItemData {
     name: "minecraft:stone_slab",
-    protocol_id: 264,
+    protocol_id: 283,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15825,7 +16847,7 @@ pub const STONE_SLAB: ItemData = ItemData {
 
 pub const STONE_STAIRS: ItemData = ItemData {
     name: "minecraft:stone_stairs",
-    protocol_id: 627,
+    protocol_id: 658,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15839,21 +16861,21 @@ pub const STONE_STAIRS: ItemData = ItemData {
 
 pub const STONE_SWORD: ItemData = ItemData {
     name: "minecraft:stone_sword",
-    protocol_id: 823,
+    protocol_id: 880,
     max_stack_size: 1,
     max_damage: 131,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 2, rules: &[ToolRule { blocks: "minecraft:cobweb", speed: Some(15.0), correct_for_drops: Some(true) }, ToolRule { blocks: "#minecraft:sword_efficient", speed: Some(1.5), correct_for_drops: None }, ] }),
-    enchantable_value: None,
-    repairable_with: None,
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 2, rules: &[ToolRule { blocks: "minecraft:cobweb", speed: Some(15.0), correct_for_drops: Some(true) }, ToolRule { blocks: "#minecraft:sword_instantly_mines", speed: Some(3.4028235e38), correct_for_drops: None }, ToolRule { blocks: "#minecraft:sword_efficient", speed: Some(1.5), correct_for_drops: None }, ] }),
+    enchantable_value: Some(5),
+    repairable_with: Some("#minecraft:stone_tool_materials"),
     attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 4.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -2.4000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const STONECUTTER: ItemData = ItemData {
     name: "minecraft:stonecutter",
-    protocol_id: 1212,
+    protocol_id: 1296,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15867,7 +16889,7 @@ pub const STONECUTTER: ItemData = ItemData {
 
 pub const STRAY_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:stray_spawn_egg",
-    protocol_id: 1068,
+    protocol_id: 1146,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15881,7 +16903,7 @@ pub const STRAY_SPAWN_EGG: ItemData = ItemData {
 
 pub const STRIDER_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:strider_spawn_egg",
-    protocol_id: 1069,
+    protocol_id: 1147,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15895,7 +16917,7 @@ pub const STRIDER_SPAWN_EGG: ItemData = ItemData {
 
 pub const STRING: ItemData = ItemData {
     name: "minecraft:string",
-    protocol_id: 850,
+    protocol_id: 907,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15909,7 +16931,7 @@ pub const STRING: ItemData = ItemData {
 
 pub const STRIPPED_ACACIA_LOG: ItemData = ItemData {
     name: "minecraft:stripped_acacia_log",
-    protocol_id: 149,
+    protocol_id: 152,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15923,7 +16945,7 @@ pub const STRIPPED_ACACIA_LOG: ItemData = ItemData {
 
 pub const STRIPPED_ACACIA_WOOD: ItemData = ItemData {
     name: "minecraft:stripped_acacia_wood",
-    protocol_id: 159,
+    protocol_id: 163,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15937,7 +16959,7 @@ pub const STRIPPED_ACACIA_WOOD: ItemData = ItemData {
 
 pub const STRIPPED_BAMBOO_BLOCK: ItemData = ItemData {
     name: "minecraft:stripped_bamboo_block",
-    protocol_id: 165,
+    protocol_id: 170,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15951,7 +16973,7 @@ pub const STRIPPED_BAMBOO_BLOCK: ItemData = ItemData {
 
 pub const STRIPPED_BIRCH_LOG: ItemData = ItemData {
     name: "minecraft:stripped_birch_log",
-    protocol_id: 147,
+    protocol_id: 150,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15965,7 +16987,7 @@ pub const STRIPPED_BIRCH_LOG: ItemData = ItemData {
 
 pub const STRIPPED_BIRCH_WOOD: ItemData = ItemData {
     name: "minecraft:stripped_birch_wood",
-    protocol_id: 157,
+    protocol_id: 161,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15979,7 +17001,7 @@ pub const STRIPPED_BIRCH_WOOD: ItemData = ItemData {
 
 pub const STRIPPED_CHERRY_LOG: ItemData = ItemData {
     name: "minecraft:stripped_cherry_log",
-    protocol_id: 150,
+    protocol_id: 153,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -15993,7 +17015,7 @@ pub const STRIPPED_CHERRY_LOG: ItemData = ItemData {
 
 pub const STRIPPED_CHERRY_WOOD: ItemData = ItemData {
     name: "minecraft:stripped_cherry_wood",
-    protocol_id: 160,
+    protocol_id: 164,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16007,7 +17029,7 @@ pub const STRIPPED_CHERRY_WOOD: ItemData = ItemData {
 
 pub const STRIPPED_CRIMSON_HYPHAE: ItemData = ItemData {
     name: "minecraft:stripped_crimson_hyphae",
-    protocol_id: 163,
+    protocol_id: 168,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16021,7 +17043,7 @@ pub const STRIPPED_CRIMSON_HYPHAE: ItemData = ItemData {
 
 pub const STRIPPED_CRIMSON_STEM: ItemData = ItemData {
     name: "minecraft:stripped_crimson_stem",
-    protocol_id: 153,
+    protocol_id: 157,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16035,7 +17057,7 @@ pub const STRIPPED_CRIMSON_STEM: ItemData = ItemData {
 
 pub const STRIPPED_DARK_OAK_LOG: ItemData = ItemData {
     name: "minecraft:stripped_dark_oak_log",
-    protocol_id: 151,
+    protocol_id: 154,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16049,7 +17071,7 @@ pub const STRIPPED_DARK_OAK_LOG: ItemData = ItemData {
 
 pub const STRIPPED_DARK_OAK_WOOD: ItemData = ItemData {
     name: "minecraft:stripped_dark_oak_wood",
-    protocol_id: 161,
+    protocol_id: 165,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16063,7 +17085,7 @@ pub const STRIPPED_DARK_OAK_WOOD: ItemData = ItemData {
 
 pub const STRIPPED_JUNGLE_LOG: ItemData = ItemData {
     name: "minecraft:stripped_jungle_log",
-    protocol_id: 148,
+    protocol_id: 151,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16077,7 +17099,7 @@ pub const STRIPPED_JUNGLE_LOG: ItemData = ItemData {
 
 pub const STRIPPED_JUNGLE_WOOD: ItemData = ItemData {
     name: "minecraft:stripped_jungle_wood",
-    protocol_id: 158,
+    protocol_id: 162,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16091,7 +17113,7 @@ pub const STRIPPED_JUNGLE_WOOD: ItemData = ItemData {
 
 pub const STRIPPED_MANGROVE_LOG: ItemData = ItemData {
     name: "minecraft:stripped_mangrove_log",
-    protocol_id: 152,
+    protocol_id: 156,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16105,7 +17127,7 @@ pub const STRIPPED_MANGROVE_LOG: ItemData = ItemData {
 
 pub const STRIPPED_MANGROVE_WOOD: ItemData = ItemData {
     name: "minecraft:stripped_mangrove_wood",
-    protocol_id: 162,
+    protocol_id: 167,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16119,7 +17141,7 @@ pub const STRIPPED_MANGROVE_WOOD: ItemData = ItemData {
 
 pub const STRIPPED_OAK_LOG: ItemData = ItemData {
     name: "minecraft:stripped_oak_log",
-    protocol_id: 145,
+    protocol_id: 148,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16133,7 +17155,35 @@ pub const STRIPPED_OAK_LOG: ItemData = ItemData {
 
 pub const STRIPPED_OAK_WOOD: ItemData = ItemData {
     name: "minecraft:stripped_oak_wood",
+    protocol_id: 159,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const STRIPPED_PALE_OAK_LOG: ItemData = ItemData {
+    name: "minecraft:stripped_pale_oak_log",
     protocol_id: 155,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const STRIPPED_PALE_OAK_WOOD: ItemData = ItemData {
+    name: "minecraft:stripped_pale_oak_wood",
+    protocol_id: 166,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16147,7 +17197,7 @@ pub const STRIPPED_OAK_WOOD: ItemData = ItemData {
 
 pub const STRIPPED_SPRUCE_LOG: ItemData = ItemData {
     name: "minecraft:stripped_spruce_log",
-    protocol_id: 146,
+    protocol_id: 149,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16161,7 +17211,7 @@ pub const STRIPPED_SPRUCE_LOG: ItemData = ItemData {
 
 pub const STRIPPED_SPRUCE_WOOD: ItemData = ItemData {
     name: "minecraft:stripped_spruce_wood",
-    protocol_id: 156,
+    protocol_id: 160,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16175,7 +17225,7 @@ pub const STRIPPED_SPRUCE_WOOD: ItemData = ItemData {
 
 pub const STRIPPED_WARPED_HYPHAE: ItemData = ItemData {
     name: "minecraft:stripped_warped_hyphae",
-    protocol_id: 164,
+    protocol_id: 169,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16189,7 +17239,7 @@ pub const STRIPPED_WARPED_HYPHAE: ItemData = ItemData {
 
 pub const STRIPPED_WARPED_STEM: ItemData = ItemData {
     name: "minecraft:stripped_warped_stem",
-    protocol_id: 154,
+    protocol_id: 158,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16203,7 +17253,7 @@ pub const STRIPPED_WARPED_STEM: ItemData = ItemData {
 
 pub const STRUCTURE_BLOCK: ItemData = ItemData {
     name: "minecraft:structure_block",
-    protocol_id: 792,
+    protocol_id: 847,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16217,7 +17267,7 @@ pub const STRUCTURE_BLOCK: ItemData = ItemData {
 
 pub const STRUCTURE_VOID: ItemData = ItemData {
     name: "minecraft:structure_void",
-    protocol_id: 521,
+    protocol_id: 551,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16231,7 +17281,7 @@ pub const STRUCTURE_VOID: ItemData = ItemData {
 
 pub const SUGAR: ItemData = ItemData {
     name: "minecraft:sugar",
-    protocol_id: 962,
+    protocol_id: 1039,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16245,7 +17295,7 @@ pub const SUGAR: ItemData = ItemData {
 
 pub const SUGAR_CANE: ItemData = ItemData {
     name: "minecraft:sugar_cane",
-    protocol_id: 243,
+    protocol_id: 256,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16259,7 +17309,7 @@ pub const SUGAR_CANE: ItemData = ItemData {
 
 pub const SUNFLOWER: ItemData = ItemData {
     name: "minecraft:sunflower",
-    protocol_id: 465,
+    protocol_id: 495,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16273,7 +17323,7 @@ pub const SUNFLOWER: ItemData = ItemData {
 
 pub const SUSPICIOUS_GRAVEL: ItemData = ItemData {
     name: "minecraft:suspicious_gravel",
-    protocol_id: 59,
+    protocol_id: 61,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16287,7 +17337,7 @@ pub const SUSPICIOUS_GRAVEL: ItemData = ItemData {
 
 pub const SUSPICIOUS_SAND: ItemData = ItemData {
     name: "minecraft:suspicious_sand",
-    protocol_id: 58,
+    protocol_id: 60,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16301,7 +17351,7 @@ pub const SUSPICIOUS_SAND: ItemData = ItemData {
 
 pub const SUSPICIOUS_STEW: ItemData = ItemData {
     name: "minecraft:suspicious_stew",
-    protocol_id: 1193,
+    protocol_id: 1275,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16315,7 +17365,7 @@ pub const SUSPICIOUS_STEW: ItemData = ItemData {
 
 pub const SWEET_BERRIES: ItemData = ItemData {
     name: "minecraft:sweet_berries",
-    protocol_id: 1216,
+    protocol_id: 1300,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16329,7 +17379,7 @@ pub const SWEET_BERRIES: ItemData = ItemData {
 
 pub const TADPOLE_BUCKET: ItemData = ItemData {
     name: "minecraft:tadpole_bucket",
-    protocol_id: 920,
+    protocol_id: 979,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16343,7 +17393,21 @@ pub const TADPOLE_BUCKET: ItemData = ItemData {
 
 pub const TADPOLE_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:tadpole_spawn_egg",
-    protocol_id: 1070,
+    protocol_id: 1148,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const TALL_DRY_GRASS: ItemData = ItemData {
+    name: "minecraft:tall_dry_grass",
+    protocol_id: 210,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16357,7 +17421,7 @@ pub const TADPOLE_SPAWN_EGG: ItemData = ItemData {
 
 pub const TALL_GRASS: ItemData = ItemData {
     name: "minecraft:tall_grass",
-    protocol_id: 469,
+    protocol_id: 499,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16371,7 +17435,7 @@ pub const TALL_GRASS: ItemData = ItemData {
 
 pub const TARGET: ItemData = ItemData {
     name: "minecraft:target",
-    protocol_id: 671,
+    protocol_id: 702,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16385,11 +17449,39 @@ pub const TARGET: ItemData = ItemData {
 
 pub const TERRACOTTA: ItemData = ItemData {
     name: "minecraft:terracotta",
-    protocol_id: 462,
+    protocol_id: 492,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const TEST_BLOCK: ItemData = ItemData {
+    name: "minecraft:test_block",
+    protocol_id: 849,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Epic,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const TEST_INSTANCE_BLOCK: ItemData = ItemData {
+    name: "minecraft:test_instance_block",
+    protocol_id: 850,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Epic,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -16399,11 +17491,11 @@ pub const TERRACOTTA: ItemData = ItemData {
 
 pub const TIDE_ARMOR_TRIM_SMITHING_TEMPLATE: ItemData = ItemData {
     name: "minecraft:tide_armor_trim_smithing_template",
-    protocol_id: 1277,
+    protocol_id: 1361,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -16413,7 +17505,7 @@ pub const TIDE_ARMOR_TRIM_SMITHING_TEMPLATE: ItemData = ItemData {
 
 pub const TINTED_GLASS: ItemData = ItemData {
     name: "minecraft:tinted_glass",
-    protocol_id: 189,
+    protocol_id: 196,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16427,7 +17519,7 @@ pub const TINTED_GLASS: ItemData = ItemData {
 
 pub const TIPPED_ARROW: ItemData = ItemData {
     name: "minecraft:tipped_arrow",
-    protocol_id: 1160,
+    protocol_id: 1241,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16441,7 +17533,7 @@ pub const TIPPED_ARROW: ItemData = ItemData {
 
 pub const TNT: ItemData = ItemData {
     name: "minecraft:tnt",
-    protocol_id: 679,
+    protocol_id: 710,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16455,7 +17547,7 @@ pub const TNT: ItemData = ItemData {
 
 pub const TNT_MINECART: ItemData = ItemData {
     name: "minecraft:tnt_minecart",
-    protocol_id: 769,
+    protocol_id: 821,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16469,7 +17561,7 @@ pub const TNT_MINECART: ItemData = ItemData {
 
 pub const TORCH: ItemData = ItemData {
     name: "minecraft:torch",
-    protocol_id: 291,
+    protocol_id: 310,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16483,7 +17575,7 @@ pub const TORCH: ItemData = ItemData {
 
 pub const TORCHFLOWER: ItemData = ItemData {
     name: "minecraft:torchflower",
-    protocol_id: 231,
+    protocol_id: 244,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16497,7 +17589,7 @@ pub const TORCHFLOWER: ItemData = ItemData {
 
 pub const TORCHFLOWER_SEEDS: ItemData = ItemData {
     name: "minecraft:torchflower_seeds",
-    protocol_id: 1152,
+    protocol_id: 1233,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16511,7 +17603,7 @@ pub const TORCHFLOWER_SEEDS: ItemData = ItemData {
 
 pub const TOTEM_OF_UNDYING: ItemData = ItemData {
     name: "minecraft:totem_of_undying",
-    protocol_id: 1163,
+    protocol_id: 1244,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16525,7 +17617,7 @@ pub const TOTEM_OF_UNDYING: ItemData = ItemData {
 
 pub const TRADER_LLAMA_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:trader_llama_spawn_egg",
-    protocol_id: 1071,
+    protocol_id: 1149,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16539,7 +17631,7 @@ pub const TRADER_LLAMA_SPAWN_EGG: ItemData = ItemData {
 
 pub const TRAPPED_CHEST: ItemData = ItemData {
     name: "minecraft:trapped_chest",
-    protocol_id: 678,
+    protocol_id: 709,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16553,7 +17645,7 @@ pub const TRAPPED_CHEST: ItemData = ItemData {
 
 pub const TRIAL_KEY: ItemData = ItemData {
     name: "minecraft:trial_key",
-    protocol_id: 1328,
+    protocol_id: 1412,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16567,7 +17659,7 @@ pub const TRIAL_KEY: ItemData = ItemData {
 
 pub const TRIAL_SPAWNER: ItemData = ItemData {
     name: "minecraft:trial_spawner",
-    protocol_id: 1327,
+    protocol_id: 1411,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16581,21 +17673,21 @@ pub const TRIAL_SPAWNER: ItemData = ItemData {
 
 pub const TRIDENT: ItemData = ItemData {
     name: "minecraft:trident",
-    protocol_id: 1188,
+    protocol_id: 1271,
     max_stack_size: 1,
     max_damage: 250,
     is_fire_resistant: false,
-    rarity: Rarity::Epic,
+    rarity: Rarity::Rare,
     food: None,
     tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 2, rules: &[] }),
-    enchantable_value: None,
+    enchantable_value: Some(1),
     repairable_with: None,
     attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 8.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -2.9000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const TRIPWIRE_HOOK: ItemData = ItemData {
     name: "minecraft:tripwire_hook",
-    protocol_id: 677,
+    protocol_id: 708,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16609,7 +17701,7 @@ pub const TRIPWIRE_HOOK: ItemData = ItemData {
 
 pub const TROPICAL_FISH: ItemData = ItemData {
     name: "minecraft:tropical_fish",
-    protocol_id: 937,
+    protocol_id: 1014,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16623,7 +17715,7 @@ pub const TROPICAL_FISH: ItemData = ItemData {
 
 pub const TROPICAL_FISH_BUCKET: ItemData = ItemData {
     name: "minecraft:tropical_fish_bucket",
-    protocol_id: 918,
+    protocol_id: 977,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16637,7 +17729,7 @@ pub const TROPICAL_FISH_BUCKET: ItemData = ItemData {
 
 pub const TROPICAL_FISH_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:tropical_fish_spawn_egg",
-    protocol_id: 1072,
+    protocol_id: 1150,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16651,7 +17743,7 @@ pub const TROPICAL_FISH_SPAWN_EGG: ItemData = ItemData {
 
 pub const TUBE_CORAL: ItemData = ItemData {
     name: "minecraft:tube_coral",
-    protocol_id: 599,
+    protocol_id: 630,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16665,7 +17757,7 @@ pub const TUBE_CORAL: ItemData = ItemData {
 
 pub const TUBE_CORAL_BLOCK: ItemData = ItemData {
     name: "minecraft:tube_coral_block",
-    protocol_id: 594,
+    protocol_id: 625,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16679,7 +17771,7 @@ pub const TUBE_CORAL_BLOCK: ItemData = ItemData {
 
 pub const TUBE_CORAL_FAN: ItemData = ItemData {
     name: "minecraft:tube_coral_fan",
-    protocol_id: 609,
+    protocol_id: 640,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16805,7 +17897,7 @@ pub const TUFF_WALL: ItemData = ItemData {
 
 pub const TURTLE_EGG: ItemData = ItemData {
     name: "minecraft:turtle_egg",
-    protocol_id: 587,
+    protocol_id: 617,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16819,21 +17911,21 @@ pub const TURTLE_EGG: ItemData = ItemData {
 
 pub const TURTLE_HELMET: ItemData = ItemData {
     name: "minecraft:turtle_helmet",
-    protocol_id: 794,
+    protocol_id: 851,
     max_stack_size: 1,
     max_damage: 275,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: None,
-    enchantable_value: None,
-    repairable_with: None,
-    attribute_modifiers: &[],
+    enchantable_value: Some(9),
+    repairable_with: Some("#minecraft:repairs_turtle_helmet"),
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Armor, amount: 2.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Head }, AttributeModifier { kind: AttributeType::ArmorToughness, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Head }, ],
 };
 
 pub const TURTLE_SCUTE: ItemData = ItemData {
     name: "minecraft:turtle_scute",
-    protocol_id: 795,
+    protocol_id: 852,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16847,7 +17939,7 @@ pub const TURTLE_SCUTE: ItemData = ItemData {
 
 pub const TURTLE_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:turtle_spawn_egg",
-    protocol_id: 1073,
+    protocol_id: 1151,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16861,7 +17953,7 @@ pub const TURTLE_SPAWN_EGG: ItemData = ItemData {
 
 pub const TWISTING_VINES: ItemData = ItemData {
     name: "minecraft:twisting_vines",
-    protocol_id: 242,
+    protocol_id: 255,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16875,7 +17967,7 @@ pub const TWISTING_VINES: ItemData = ItemData {
 
 pub const VAULT: ItemData = ItemData {
     name: "minecraft:vault",
-    protocol_id: 1330,
+    protocol_id: 1414,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16889,7 +17981,7 @@ pub const VAULT: ItemData = ItemData {
 
 pub const VERDANT_FROGLIGHT: ItemData = ItemData {
     name: "minecraft:verdant_froglight",
-    protocol_id: 1264,
+    protocol_id: 1348,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16903,11 +17995,11 @@ pub const VERDANT_FROGLIGHT: ItemData = ItemData {
 
 pub const VEX_ARMOR_TRIM_SMITHING_TEMPLATE: ItemData = ItemData {
     name: "minecraft:vex_armor_trim_smithing_template",
-    protocol_id: 1276,
+    protocol_id: 1360,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Rare,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -16917,7 +18009,7 @@ pub const VEX_ARMOR_TRIM_SMITHING_TEMPLATE: ItemData = ItemData {
 
 pub const VEX_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:vex_spawn_egg",
-    protocol_id: 1074,
+    protocol_id: 1152,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16931,7 +18023,7 @@ pub const VEX_SPAWN_EGG: ItemData = ItemData {
 
 pub const VILLAGER_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:villager_spawn_egg",
-    protocol_id: 1075,
+    protocol_id: 1153,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16945,7 +18037,7 @@ pub const VILLAGER_SPAWN_EGG: ItemData = ItemData {
 
 pub const VINDICATOR_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:vindicator_spawn_egg",
-    protocol_id: 1076,
+    protocol_id: 1154,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16959,7 +18051,7 @@ pub const VINDICATOR_SPAWN_EGG: ItemData = ItemData {
 
 pub const VINE: ItemData = ItemData {
     name: "minecraft:vine",
-    protocol_id: 359,
+    protocol_id: 381,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16973,7 +18065,7 @@ pub const VINE: ItemData = ItemData {
 
 pub const WANDERING_TRADER_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:wandering_trader_spawn_egg",
-    protocol_id: 1077,
+    protocol_id: 1155,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -16987,11 +18079,11 @@ pub const WANDERING_TRADER_SPAWN_EGG: ItemData = ItemData {
 
 pub const WARD_ARMOR_TRIM_SMITHING_TEMPLATE: ItemData = ItemData {
     name: "minecraft:ward_armor_trim_smithing_template",
-    protocol_id: 1274,
+    protocol_id: 1358,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Rare,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -17001,7 +18093,7 @@ pub const WARD_ARMOR_TRIM_SMITHING_TEMPLATE: ItemData = ItemData {
 
 pub const WARDEN_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:warden_spawn_egg",
-    protocol_id: 1078,
+    protocol_id: 1156,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17015,7 +18107,7 @@ pub const WARDEN_SPAWN_EGG: ItemData = ItemData {
 
 pub const WARPED_BUTTON: ItemData = ItemData {
     name: "minecraft:warped_button",
-    protocol_id: 694,
+    protocol_id: 726,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17029,7 +18121,7 @@ pub const WARPED_BUTTON: ItemData = ItemData {
 
 pub const WARPED_DOOR: ItemData = ItemData {
     name: "minecraft:warped_door",
-    protocol_id: 721,
+    protocol_id: 755,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17043,7 +18135,7 @@ pub const WARPED_DOOR: ItemData = ItemData {
 
 pub const WARPED_FENCE: ItemData = ItemData {
     name: "minecraft:warped_fence",
-    protocol_id: 321,
+    protocol_id: 343,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17057,7 +18149,7 @@ pub const WARPED_FENCE: ItemData = ItemData {
 
 pub const WARPED_FENCE_GATE: ItemData = ItemData {
     name: "minecraft:warped_fence_gate",
-    protocol_id: 760,
+    protocol_id: 796,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17071,7 +18163,7 @@ pub const WARPED_FENCE_GATE: ItemData = ItemData {
 
 pub const WARPED_FUNGUS: ItemData = ItemData {
     name: "minecraft:warped_fungus",
-    protocol_id: 237,
+    protocol_id: 250,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17085,7 +18177,7 @@ pub const WARPED_FUNGUS: ItemData = ItemData {
 
 pub const WARPED_FUNGUS_ON_A_STICK: ItemData = ItemData {
     name: "minecraft:warped_fungus_on_a_stick",
-    protocol_id: 772,
+    protocol_id: 824,
     max_stack_size: 1,
     max_damage: 100,
     is_fire_resistant: false,
@@ -17099,7 +18191,7 @@ pub const WARPED_FUNGUS_ON_A_STICK: ItemData = ItemData {
 
 pub const WARPED_HANGING_SIGN: ItemData = ItemData {
     name: "minecraft:warped_hanging_sign",
-    protocol_id: 907,
+    protocol_id: 966,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17113,7 +18205,7 @@ pub const WARPED_HANGING_SIGN: ItemData = ItemData {
 
 pub const WARPED_HYPHAE: ItemData = ItemData {
     name: "minecraft:warped_hyphae",
-    protocol_id: 175,
+    protocol_id: 181,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17141,7 +18233,7 @@ pub const WARPED_NYLIUM: ItemData = ItemData {
 
 pub const WARPED_PLANKS: ItemData = ItemData {
     name: "minecraft:warped_planks",
-    protocol_id: 46,
+    protocol_id: 47,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17155,7 +18247,7 @@ pub const WARPED_PLANKS: ItemData = ItemData {
 
 pub const WARPED_PRESSURE_PLATE: ItemData = ItemData {
     name: "minecraft:warped_pressure_plate",
-    protocol_id: 709,
+    protocol_id: 742,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17169,7 +18261,7 @@ pub const WARPED_PRESSURE_PLATE: ItemData = ItemData {
 
 pub const WARPED_ROOTS: ItemData = ItemData {
     name: "minecraft:warped_roots",
-    protocol_id: 239,
+    protocol_id: 252,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17183,7 +18275,7 @@ pub const WARPED_ROOTS: ItemData = ItemData {
 
 pub const WARPED_SIGN: ItemData = ItemData {
     name: "minecraft:warped_sign",
-    protocol_id: 896,
+    protocol_id: 954,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17197,7 +18289,7 @@ pub const WARPED_SIGN: ItemData = ItemData {
 
 pub const WARPED_SLAB: ItemData = ItemData {
     name: "minecraft:warped_slab",
-    protocol_id: 263,
+    protocol_id: 282,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17211,7 +18303,7 @@ pub const WARPED_SLAB: ItemData = ItemData {
 
 pub const WARPED_STAIRS: ItemData = ItemData {
     name: "minecraft:warped_stairs",
-    protocol_id: 394,
+    protocol_id: 424,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17225,7 +18317,7 @@ pub const WARPED_STAIRS: ItemData = ItemData {
 
 pub const WARPED_STEM: ItemData = ItemData {
     name: "minecraft:warped_stem",
-    protocol_id: 143,
+    protocol_id: 146,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17239,7 +18331,7 @@ pub const WARPED_STEM: ItemData = ItemData {
 
 pub const WARPED_TRAPDOOR: ItemData = ItemData {
     name: "minecraft:warped_trapdoor",
-    protocol_id: 741,
+    protocol_id: 776,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17253,7 +18345,7 @@ pub const WARPED_TRAPDOOR: ItemData = ItemData {
 
 pub const WARPED_WART_BLOCK: ItemData = ItemData {
     name: "minecraft:warped_wart_block",
-    protocol_id: 518,
+    protocol_id: 548,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17267,7 +18359,7 @@ pub const WARPED_WART_BLOCK: ItemData = ItemData {
 
 pub const WATER_BUCKET: ItemData = ItemData {
     name: "minecraft:water_bucket",
-    protocol_id: 909,
+    protocol_id: 968,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17281,7 +18373,7 @@ pub const WATER_BUCKET: ItemData = ItemData {
 
 pub const WAXED_CHISELED_COPPER: ItemData = ItemData {
     name: "minecraft:waxed_chiseled_copper",
-    protocol_id: 116,
+    protocol_id: 118,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17295,7 +18387,7 @@ pub const WAXED_CHISELED_COPPER: ItemData = ItemData {
 
 pub const WAXED_COPPER_BLOCK: ItemData = ItemData {
     name: "minecraft:waxed_copper_block",
-    protocol_id: 112,
+    protocol_id: 114,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17309,7 +18401,7 @@ pub const WAXED_COPPER_BLOCK: ItemData = ItemData {
 
 pub const WAXED_COPPER_BULB: ItemData = ItemData {
     name: "minecraft:waxed_copper_bulb",
-    protocol_id: 1323,
+    protocol_id: 1407,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17323,7 +18415,7 @@ pub const WAXED_COPPER_BULB: ItemData = ItemData {
 
 pub const WAXED_COPPER_DOOR: ItemData = ItemData {
     name: "minecraft:waxed_copper_door",
-    protocol_id: 726,
+    protocol_id: 760,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17337,7 +18429,7 @@ pub const WAXED_COPPER_DOOR: ItemData = ItemData {
 
 pub const WAXED_COPPER_GRATE: ItemData = ItemData {
     name: "minecraft:waxed_copper_grate",
-    protocol_id: 1315,
+    protocol_id: 1399,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17351,7 +18443,7 @@ pub const WAXED_COPPER_GRATE: ItemData = ItemData {
 
 pub const WAXED_COPPER_TRAPDOOR: ItemData = ItemData {
     name: "minecraft:waxed_copper_trapdoor",
-    protocol_id: 746,
+    protocol_id: 781,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17365,7 +18457,7 @@ pub const WAXED_COPPER_TRAPDOOR: ItemData = ItemData {
 
 pub const WAXED_CUT_COPPER: ItemData = ItemData {
     name: "minecraft:waxed_cut_copper",
-    protocol_id: 120,
+    protocol_id: 122,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17379,7 +18471,7 @@ pub const WAXED_CUT_COPPER: ItemData = ItemData {
 
 pub const WAXED_CUT_COPPER_SLAB: ItemData = ItemData {
     name: "minecraft:waxed_cut_copper_slab",
-    protocol_id: 128,
+    protocol_id: 130,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17393,7 +18485,7 @@ pub const WAXED_CUT_COPPER_SLAB: ItemData = ItemData {
 
 pub const WAXED_CUT_COPPER_STAIRS: ItemData = ItemData {
     name: "minecraft:waxed_cut_copper_stairs",
-    protocol_id: 124,
+    protocol_id: 126,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17407,7 +18499,7 @@ pub const WAXED_CUT_COPPER_STAIRS: ItemData = ItemData {
 
 pub const WAXED_EXPOSED_CHISELED_COPPER: ItemData = ItemData {
     name: "minecraft:waxed_exposed_chiseled_copper",
-    protocol_id: 117,
+    protocol_id: 119,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17421,7 +18513,7 @@ pub const WAXED_EXPOSED_CHISELED_COPPER: ItemData = ItemData {
 
 pub const WAXED_EXPOSED_COPPER: ItemData = ItemData {
     name: "minecraft:waxed_exposed_copper",
-    protocol_id: 113,
+    protocol_id: 115,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17435,7 +18527,7 @@ pub const WAXED_EXPOSED_COPPER: ItemData = ItemData {
 
 pub const WAXED_EXPOSED_COPPER_BULB: ItemData = ItemData {
     name: "minecraft:waxed_exposed_copper_bulb",
-    protocol_id: 1324,
+    protocol_id: 1408,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17449,7 +18541,7 @@ pub const WAXED_EXPOSED_COPPER_BULB: ItemData = ItemData {
 
 pub const WAXED_EXPOSED_COPPER_DOOR: ItemData = ItemData {
     name: "minecraft:waxed_exposed_copper_door",
-    protocol_id: 727,
+    protocol_id: 761,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17463,7 +18555,7 @@ pub const WAXED_EXPOSED_COPPER_DOOR: ItemData = ItemData {
 
 pub const WAXED_EXPOSED_COPPER_GRATE: ItemData = ItemData {
     name: "minecraft:waxed_exposed_copper_grate",
-    protocol_id: 1316,
+    protocol_id: 1400,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17477,7 +18569,7 @@ pub const WAXED_EXPOSED_COPPER_GRATE: ItemData = ItemData {
 
 pub const WAXED_EXPOSED_COPPER_TRAPDOOR: ItemData = ItemData {
     name: "minecraft:waxed_exposed_copper_trapdoor",
-    protocol_id: 747,
+    protocol_id: 782,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17491,7 +18583,7 @@ pub const WAXED_EXPOSED_COPPER_TRAPDOOR: ItemData = ItemData {
 
 pub const WAXED_EXPOSED_CUT_COPPER: ItemData = ItemData {
     name: "minecraft:waxed_exposed_cut_copper",
-    protocol_id: 121,
+    protocol_id: 123,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17505,7 +18597,7 @@ pub const WAXED_EXPOSED_CUT_COPPER: ItemData = ItemData {
 
 pub const WAXED_EXPOSED_CUT_COPPER_SLAB: ItemData = ItemData {
     name: "minecraft:waxed_exposed_cut_copper_slab",
-    protocol_id: 129,
+    protocol_id: 131,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17519,7 +18611,7 @@ pub const WAXED_EXPOSED_CUT_COPPER_SLAB: ItemData = ItemData {
 
 pub const WAXED_EXPOSED_CUT_COPPER_STAIRS: ItemData = ItemData {
     name: "minecraft:waxed_exposed_cut_copper_stairs",
-    protocol_id: 125,
+    protocol_id: 127,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17533,7 +18625,7 @@ pub const WAXED_EXPOSED_CUT_COPPER_STAIRS: ItemData = ItemData {
 
 pub const WAXED_OXIDIZED_CHISELED_COPPER: ItemData = ItemData {
     name: "minecraft:waxed_oxidized_chiseled_copper",
-    protocol_id: 119,
+    protocol_id: 121,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17547,7 +18639,7 @@ pub const WAXED_OXIDIZED_CHISELED_COPPER: ItemData = ItemData {
 
 pub const WAXED_OXIDIZED_COPPER: ItemData = ItemData {
     name: "minecraft:waxed_oxidized_copper",
-    protocol_id: 115,
+    protocol_id: 117,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17561,7 +18653,7 @@ pub const WAXED_OXIDIZED_COPPER: ItemData = ItemData {
 
 pub const WAXED_OXIDIZED_COPPER_BULB: ItemData = ItemData {
     name: "minecraft:waxed_oxidized_copper_bulb",
-    protocol_id: 1326,
+    protocol_id: 1410,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17575,7 +18667,7 @@ pub const WAXED_OXIDIZED_COPPER_BULB: ItemData = ItemData {
 
 pub const WAXED_OXIDIZED_COPPER_DOOR: ItemData = ItemData {
     name: "minecraft:waxed_oxidized_copper_door",
-    protocol_id: 729,
+    protocol_id: 763,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17589,7 +18681,7 @@ pub const WAXED_OXIDIZED_COPPER_DOOR: ItemData = ItemData {
 
 pub const WAXED_OXIDIZED_COPPER_GRATE: ItemData = ItemData {
     name: "minecraft:waxed_oxidized_copper_grate",
-    protocol_id: 1318,
+    protocol_id: 1402,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17603,7 +18695,7 @@ pub const WAXED_OXIDIZED_COPPER_GRATE: ItemData = ItemData {
 
 pub const WAXED_OXIDIZED_COPPER_TRAPDOOR: ItemData = ItemData {
     name: "minecraft:waxed_oxidized_copper_trapdoor",
-    protocol_id: 749,
+    protocol_id: 784,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17617,7 +18709,7 @@ pub const WAXED_OXIDIZED_COPPER_TRAPDOOR: ItemData = ItemData {
 
 pub const WAXED_OXIDIZED_CUT_COPPER: ItemData = ItemData {
     name: "minecraft:waxed_oxidized_cut_copper",
-    protocol_id: 123,
+    protocol_id: 125,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17631,7 +18723,7 @@ pub const WAXED_OXIDIZED_CUT_COPPER: ItemData = ItemData {
 
 pub const WAXED_OXIDIZED_CUT_COPPER_SLAB: ItemData = ItemData {
     name: "minecraft:waxed_oxidized_cut_copper_slab",
-    protocol_id: 131,
+    protocol_id: 133,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17645,7 +18737,7 @@ pub const WAXED_OXIDIZED_CUT_COPPER_SLAB: ItemData = ItemData {
 
 pub const WAXED_OXIDIZED_CUT_COPPER_STAIRS: ItemData = ItemData {
     name: "minecraft:waxed_oxidized_cut_copper_stairs",
-    protocol_id: 127,
+    protocol_id: 129,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17659,7 +18751,7 @@ pub const WAXED_OXIDIZED_CUT_COPPER_STAIRS: ItemData = ItemData {
 
 pub const WAXED_WEATHERED_CHISELED_COPPER: ItemData = ItemData {
     name: "minecraft:waxed_weathered_chiseled_copper",
-    protocol_id: 118,
+    protocol_id: 120,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17673,7 +18765,7 @@ pub const WAXED_WEATHERED_CHISELED_COPPER: ItemData = ItemData {
 
 pub const WAXED_WEATHERED_COPPER: ItemData = ItemData {
     name: "minecraft:waxed_weathered_copper",
-    protocol_id: 114,
+    protocol_id: 116,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17687,7 +18779,7 @@ pub const WAXED_WEATHERED_COPPER: ItemData = ItemData {
 
 pub const WAXED_WEATHERED_COPPER_BULB: ItemData = ItemData {
     name: "minecraft:waxed_weathered_copper_bulb",
-    protocol_id: 1325,
+    protocol_id: 1409,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17701,7 +18793,7 @@ pub const WAXED_WEATHERED_COPPER_BULB: ItemData = ItemData {
 
 pub const WAXED_WEATHERED_COPPER_DOOR: ItemData = ItemData {
     name: "minecraft:waxed_weathered_copper_door",
-    protocol_id: 728,
+    protocol_id: 762,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17715,7 +18807,7 @@ pub const WAXED_WEATHERED_COPPER_DOOR: ItemData = ItemData {
 
 pub const WAXED_WEATHERED_COPPER_GRATE: ItemData = ItemData {
     name: "minecraft:waxed_weathered_copper_grate",
-    protocol_id: 1317,
+    protocol_id: 1401,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17729,7 +18821,7 @@ pub const WAXED_WEATHERED_COPPER_GRATE: ItemData = ItemData {
 
 pub const WAXED_WEATHERED_COPPER_TRAPDOOR: ItemData = ItemData {
     name: "minecraft:waxed_weathered_copper_trapdoor",
-    protocol_id: 748,
+    protocol_id: 783,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17743,7 +18835,7 @@ pub const WAXED_WEATHERED_COPPER_TRAPDOOR: ItemData = ItemData {
 
 pub const WAXED_WEATHERED_CUT_COPPER: ItemData = ItemData {
     name: "minecraft:waxed_weathered_cut_copper",
-    protocol_id: 122,
+    protocol_id: 124,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17757,7 +18849,7 @@ pub const WAXED_WEATHERED_CUT_COPPER: ItemData = ItemData {
 
 pub const WAXED_WEATHERED_CUT_COPPER_SLAB: ItemData = ItemData {
     name: "minecraft:waxed_weathered_cut_copper_slab",
-    protocol_id: 130,
+    protocol_id: 132,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17771,7 +18863,7 @@ pub const WAXED_WEATHERED_CUT_COPPER_SLAB: ItemData = ItemData {
 
 pub const WAXED_WEATHERED_CUT_COPPER_STAIRS: ItemData = ItemData {
     name: "minecraft:waxed_weathered_cut_copper_stairs",
-    protocol_id: 126,
+    protocol_id: 128,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17785,11 +18877,11 @@ pub const WAXED_WEATHERED_CUT_COPPER_STAIRS: ItemData = ItemData {
 
 pub const WAYFINDER_ARMOR_TRIM_SMITHING_TEMPLATE: ItemData = ItemData {
     name: "minecraft:wayfinder_armor_trim_smithing_template",
-    protocol_id: 1281,
+    protocol_id: 1365,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Common,
+    rarity: Rarity::Uncommon,
     food: None,
     tool: None,
     enchantable_value: None,
@@ -17799,7 +18891,7 @@ pub const WAYFINDER_ARMOR_TRIM_SMITHING_TEMPLATE: ItemData = ItemData {
 
 pub const WEATHERED_CHISELED_COPPER: ItemData = ItemData {
     name: "minecraft:weathered_chiseled_copper",
-    protocol_id: 98,
+    protocol_id: 100,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17813,7 +18905,7 @@ pub const WEATHERED_CHISELED_COPPER: ItemData = ItemData {
 
 pub const WEATHERED_COPPER: ItemData = ItemData {
     name: "minecraft:weathered_copper",
-    protocol_id: 94,
+    protocol_id: 96,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17827,7 +18919,7 @@ pub const WEATHERED_COPPER: ItemData = ItemData {
 
 pub const WEATHERED_COPPER_BULB: ItemData = ItemData {
     name: "minecraft:weathered_copper_bulb",
-    protocol_id: 1321,
+    protocol_id: 1405,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17841,7 +18933,7 @@ pub const WEATHERED_COPPER_BULB: ItemData = ItemData {
 
 pub const WEATHERED_COPPER_DOOR: ItemData = ItemData {
     name: "minecraft:weathered_copper_door",
-    protocol_id: 724,
+    protocol_id: 758,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17855,7 +18947,7 @@ pub const WEATHERED_COPPER_DOOR: ItemData = ItemData {
 
 pub const WEATHERED_COPPER_GRATE: ItemData = ItemData {
     name: "minecraft:weathered_copper_grate",
-    protocol_id: 1313,
+    protocol_id: 1397,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17869,7 +18961,7 @@ pub const WEATHERED_COPPER_GRATE: ItemData = ItemData {
 
 pub const WEATHERED_COPPER_TRAPDOOR: ItemData = ItemData {
     name: "minecraft:weathered_copper_trapdoor",
-    protocol_id: 744,
+    protocol_id: 779,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17883,7 +18975,7 @@ pub const WEATHERED_COPPER_TRAPDOOR: ItemData = ItemData {
 
 pub const WEATHERED_CUT_COPPER: ItemData = ItemData {
     name: "minecraft:weathered_cut_copper",
-    protocol_id: 102,
+    protocol_id: 104,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17897,7 +18989,7 @@ pub const WEATHERED_CUT_COPPER: ItemData = ItemData {
 
 pub const WEATHERED_CUT_COPPER_SLAB: ItemData = ItemData {
     name: "minecraft:weathered_cut_copper_slab",
-    protocol_id: 110,
+    protocol_id: 112,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17911,7 +19003,7 @@ pub const WEATHERED_CUT_COPPER_SLAB: ItemData = ItemData {
 
 pub const WEATHERED_CUT_COPPER_STAIRS: ItemData = ItemData {
     name: "minecraft:weathered_cut_copper_stairs",
-    protocol_id: 106,
+    protocol_id: 108,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17925,7 +19017,7 @@ pub const WEATHERED_CUT_COPPER_STAIRS: ItemData = ItemData {
 
 pub const WEEPING_VINES: ItemData = ItemData {
     name: "minecraft:weeping_vines",
-    protocol_id: 241,
+    protocol_id: 254,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17939,7 +19031,7 @@ pub const WEEPING_VINES: ItemData = ItemData {
 
 pub const WET_SPONGE: ItemData = ItemData {
     name: "minecraft:wet_sponge",
-    protocol_id: 187,
+    protocol_id: 194,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17953,7 +19045,7 @@ pub const WET_SPONGE: ItemData = ItemData {
 
 pub const WHEAT: ItemData = ItemData {
     name: "minecraft:wheat",
-    protocol_id: 854,
+    protocol_id: 911,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17967,7 +19059,7 @@ pub const WHEAT: ItemData = ItemData {
 
 pub const WHEAT_SEEDS: ItemData = ItemData {
     name: "minecraft:wheat_seeds",
-    protocol_id: 853,
+    protocol_id: 910,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17981,7 +19073,7 @@ pub const WHEAT_SEEDS: ItemData = ItemData {
 
 pub const WHITE_BANNER: ItemData = ItemData {
     name: "minecraft:white_banner",
-    protocol_id: 1133,
+    protocol_id: 1214,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -17995,7 +19087,21 @@ pub const WHITE_BANNER: ItemData = ItemData {
 
 pub const WHITE_BED: ItemData = ItemData {
     name: "minecraft:white_bed",
-    protocol_id: 964,
+    protocol_id: 1041,
+    max_stack_size: 1,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const WHITE_BUNDLE: ItemData = ItemData {
+    name: "minecraft:white_bundle",
+    protocol_id: 992,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18009,7 +19115,7 @@ pub const WHITE_BED: ItemData = ItemData {
 
 pub const WHITE_CANDLE: ItemData = ItemData {
     name: "minecraft:white_candle",
-    protocol_id: 1242,
+    protocol_id: 1326,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18023,7 +19129,7 @@ pub const WHITE_CANDLE: ItemData = ItemData {
 
 pub const WHITE_CARPET: ItemData = ItemData {
     name: "minecraft:white_carpet",
-    protocol_id: 446,
+    protocol_id: 476,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18037,7 +19143,7 @@ pub const WHITE_CARPET: ItemData = ItemData {
 
 pub const WHITE_CONCRETE: ItemData = ItemData {
     name: "minecraft:white_concrete",
-    protocol_id: 555,
+    protocol_id: 585,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18051,7 +19157,7 @@ pub const WHITE_CONCRETE: ItemData = ItemData {
 
 pub const WHITE_CONCRETE_POWDER: ItemData = ItemData {
     name: "minecraft:white_concrete_powder",
-    protocol_id: 571,
+    protocol_id: 601,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18065,7 +19171,7 @@ pub const WHITE_CONCRETE_POWDER: ItemData = ItemData {
 
 pub const WHITE_DYE: ItemData = ItemData {
     name: "minecraft:white_dye",
-    protocol_id: 944,
+    protocol_id: 1021,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18079,8 +19185,22 @@ pub const WHITE_DYE: ItemData = ItemData {
 
 pub const WHITE_GLAZED_TERRACOTTA: ItemData = ItemData {
     name: "minecraft:white_glazed_terracotta",
-    protocol_id: 539,
+    protocol_id: 569,
     max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const WHITE_HARNESS: ItemData = ItemData {
+    name: "minecraft:white_harness",
+    protocol_id: 802,
+    max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
@@ -18093,7 +19213,7 @@ pub const WHITE_GLAZED_TERRACOTTA: ItemData = ItemData {
 
 pub const WHITE_SHULKER_BOX: ItemData = ItemData {
     name: "minecraft:white_shulker_box",
-    protocol_id: 523,
+    protocol_id: 553,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18107,7 +19227,7 @@ pub const WHITE_SHULKER_BOX: ItemData = ItemData {
 
 pub const WHITE_STAINED_GLASS: ItemData = ItemData {
     name: "minecraft:white_stained_glass",
-    protocol_id: 471,
+    protocol_id: 501,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18121,7 +19241,7 @@ pub const WHITE_STAINED_GLASS: ItemData = ItemData {
 
 pub const WHITE_STAINED_GLASS_PANE: ItemData = ItemData {
     name: "minecraft:white_stained_glass_pane",
-    protocol_id: 487,
+    protocol_id: 517,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18135,7 +19255,7 @@ pub const WHITE_STAINED_GLASS_PANE: ItemData = ItemData {
 
 pub const WHITE_TERRACOTTA: ItemData = ItemData {
     name: "minecraft:white_terracotta",
-    protocol_id: 427,
+    protocol_id: 457,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18149,7 +19269,7 @@ pub const WHITE_TERRACOTTA: ItemData = ItemData {
 
 pub const WHITE_TULIP: ItemData = ItemData {
     name: "minecraft:white_tulip",
-    protocol_id: 225,
+    protocol_id: 238,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18163,7 +19283,7 @@ pub const WHITE_TULIP: ItemData = ItemData {
 
 pub const WHITE_WOOL: ItemData = ItemData {
     name: "minecraft:white_wool",
-    protocol_id: 202,
+    protocol_id: 213,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18177,7 +19297,21 @@ pub const WHITE_WOOL: ItemData = ItemData {
 
 pub const WILD_ARMOR_TRIM_SMITHING_TEMPLATE: ItemData = ItemData {
     name: "minecraft:wild_armor_trim_smithing_template",
-    protocol_id: 1273,
+    protocol_id: 1357,
+    max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Uncommon,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const WILDFLOWERS: ItemData = ItemData {
+    name: "minecraft:wildflowers",
+    protocol_id: 259,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18191,7 +19325,7 @@ pub const WILD_ARMOR_TRIM_SMITHING_TEMPLATE: ItemData = ItemData {
 
 pub const WIND_CHARGE: ItemData = ItemData {
     name: "minecraft:wind_charge",
-    protocol_id: 1090,
+    protocol_id: 1169,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18205,7 +19339,7 @@ pub const WIND_CHARGE: ItemData = ItemData {
 
 pub const WITCH_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:witch_spawn_egg",
-    protocol_id: 1079,
+    protocol_id: 1157,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18219,7 +19353,7 @@ pub const WITCH_SPAWN_EGG: ItemData = ItemData {
 
 pub const WITHER_ROSE: ItemData = ItemData {
     name: "minecraft:wither_rose",
-    protocol_id: 230,
+    protocol_id: 243,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18233,21 +19367,21 @@ pub const WITHER_ROSE: ItemData = ItemData {
 
 pub const WITHER_SKELETON_SKULL: ItemData = ItemData {
     name: "minecraft:wither_skeleton_skull",
-    protocol_id: 1104,
+    protocol_id: 1184,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
-    rarity: Rarity::Uncommon,
+    rarity: Rarity::Rare,
     food: None,
     tool: None,
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Unknown, amount: -1.0000, operation: AttributeOperation::MultiplyTotal, slot: EquipmentSlot::Head }, ],
 };
 
 pub const WITHER_SKELETON_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:wither_skeleton_spawn_egg",
-    protocol_id: 1081,
+    protocol_id: 1159,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18261,7 +19395,7 @@ pub const WITHER_SKELETON_SPAWN_EGG: ItemData = ItemData {
 
 pub const WITHER_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:wither_spawn_egg",
-    protocol_id: 1080,
+    protocol_id: 1158,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18275,7 +19409,7 @@ pub const WITHER_SPAWN_EGG: ItemData = ItemData {
 
 pub const WOLF_ARMOR: ItemData = ItemData {
     name: "minecraft:wolf_armor",
-    protocol_id: 797,
+    protocol_id: 854,
     max_stack_size: 1,
     max_damage: 64,
     is_fire_resistant: false,
@@ -18283,13 +19417,13 @@ pub const WOLF_ARMOR: ItemData = ItemData {
     food: None,
     tool: None,
     enchantable_value: None,
-    repairable_with: None,
-    attribute_modifiers: &[],
+    repairable_with: Some("#minecraft:repairs_wolf_armor"),
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Armor, amount: 11.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Body }, AttributeModifier { kind: AttributeType::ArmorToughness, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::Body }, ],
 };
 
 pub const WOLF_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:wolf_spawn_egg",
-    protocol_id: 1082,
+    protocol_id: 1160,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18303,77 +19437,77 @@ pub const WOLF_SPAWN_EGG: ItemData = ItemData {
 
 pub const WOODEN_AXE: ItemData = ItemData {
     name: "minecraft:wooden_axe",
-    protocol_id: 821,
+    protocol_id: 878,
     max_stack_size: 1,
     max_damage: 59,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_wooden_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/axe", speed: Some(2.0), correct_for_drops: Some(true) }, ] }),
-    enchantable_value: None,
-    repairable_with: None,
+    enchantable_value: Some(15),
+    repairable_with: Some("#minecraft:wooden_tool_materials"),
     attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 6.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -3.2000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const WOODEN_HOE: ItemData = ItemData {
     name: "minecraft:wooden_hoe",
-    protocol_id: 822,
+    protocol_id: 879,
     max_stack_size: 1,
     max_damage: 59,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_wooden_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/hoe", speed: Some(2.0), correct_for_drops: Some(true) }, ] }),
-    enchantable_value: None,
-    repairable_with: None,
+    enchantable_value: Some(15),
+    repairable_with: Some("#minecraft:wooden_tool_materials"),
     attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 0.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const WOODEN_PICKAXE: ItemData = ItemData {
     name: "minecraft:wooden_pickaxe",
-    protocol_id: 820,
+    protocol_id: 877,
     max_stack_size: 1,
     max_damage: 59,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_wooden_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/pickaxe", speed: Some(2.0), correct_for_drops: Some(true) }, ] }),
-    enchantable_value: None,
-    repairable_with: None,
+    enchantable_value: Some(15),
+    repairable_with: Some("#minecraft:wooden_tool_materials"),
     attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 1.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -2.8000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const WOODEN_SHOVEL: ItemData = ItemData {
     name: "minecraft:wooden_shovel",
-    protocol_id: 819,
+    protocol_id: 876,
     max_stack_size: 1,
     max_damage: 59,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
     tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 1, rules: &[ToolRule { blocks: "#minecraft:incorrect_for_wooden_tool", speed: None, correct_for_drops: Some(false) }, ToolRule { blocks: "#minecraft:mineable/shovel", speed: Some(2.0), correct_for_drops: Some(true) }, ] }),
-    enchantable_value: None,
-    repairable_with: None,
+    enchantable_value: Some(15),
+    repairable_with: Some("#minecraft:wooden_tool_materials"),
     attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 1.5000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const WOODEN_SWORD: ItemData = ItemData {
     name: "minecraft:wooden_sword",
-    protocol_id: 818,
+    protocol_id: 875,
     max_stack_size: 1,
     max_damage: 59,
     is_fire_resistant: false,
     rarity: Rarity::Common,
     food: None,
-    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 2, rules: &[ToolRule { blocks: "minecraft:cobweb", speed: Some(15.0), correct_for_drops: Some(true) }, ToolRule { blocks: "#minecraft:sword_efficient", speed: Some(1.5), correct_for_drops: None }, ] }),
-    enchantable_value: None,
-    repairable_with: None,
+    tool: Some(ToolData { default_mining_speed: 1.0, damage_per_block: 2, rules: &[ToolRule { blocks: "minecraft:cobweb", speed: Some(15.0), correct_for_drops: Some(true) }, ToolRule { blocks: "#minecraft:sword_instantly_mines", speed: Some(3.4028235e38), correct_for_drops: None }, ToolRule { blocks: "#minecraft:sword_efficient", speed: Some(1.5), correct_for_drops: None }, ] }),
+    enchantable_value: Some(15),
+    repairable_with: Some("#minecraft:wooden_tool_materials"),
     attribute_modifiers: &[AttributeModifier { kind: AttributeType::AttackDamage, amount: 3.0000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, AttributeModifier { kind: AttributeType::AttackSpeed, amount: -2.4000, operation: AttributeOperation::AddValue, slot: EquipmentSlot::MainHand }, ],
 };
 
 pub const WRITABLE_BOOK: ItemData = ItemData {
     name: "minecraft:writable_book",
-    protocol_id: 1091,
+    protocol_id: 1170,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18387,7 +19521,7 @@ pub const WRITABLE_BOOK: ItemData = ItemData {
 
 pub const WRITTEN_BOOK: ItemData = ItemData {
     name: "minecraft:written_book",
-    protocol_id: 1092,
+    protocol_id: 1171,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18401,7 +19535,7 @@ pub const WRITTEN_BOOK: ItemData = ItemData {
 
 pub const YELLOW_BANNER: ItemData = ItemData {
     name: "minecraft:yellow_banner",
-    protocol_id: 1137,
+    protocol_id: 1218,
     max_stack_size: 16,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18415,7 +19549,21 @@ pub const YELLOW_BANNER: ItemData = ItemData {
 
 pub const YELLOW_BED: ItemData = ItemData {
     name: "minecraft:yellow_bed",
-    protocol_id: 968,
+    protocol_id: 1045,
+    max_stack_size: 1,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const YELLOW_BUNDLE: ItemData = ItemData {
+    name: "minecraft:yellow_bundle",
+    protocol_id: 996,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18429,7 +19577,7 @@ pub const YELLOW_BED: ItemData = ItemData {
 
 pub const YELLOW_CANDLE: ItemData = ItemData {
     name: "minecraft:yellow_candle",
-    protocol_id: 1246,
+    protocol_id: 1330,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18443,7 +19591,7 @@ pub const YELLOW_CANDLE: ItemData = ItemData {
 
 pub const YELLOW_CARPET: ItemData = ItemData {
     name: "minecraft:yellow_carpet",
-    protocol_id: 450,
+    protocol_id: 480,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18457,7 +19605,7 @@ pub const YELLOW_CARPET: ItemData = ItemData {
 
 pub const YELLOW_CONCRETE: ItemData = ItemData {
     name: "minecraft:yellow_concrete",
-    protocol_id: 559,
+    protocol_id: 589,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18471,7 +19619,7 @@ pub const YELLOW_CONCRETE: ItemData = ItemData {
 
 pub const YELLOW_CONCRETE_POWDER: ItemData = ItemData {
     name: "minecraft:yellow_concrete_powder",
-    protocol_id: 575,
+    protocol_id: 605,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18485,7 +19633,7 @@ pub const YELLOW_CONCRETE_POWDER: ItemData = ItemData {
 
 pub const YELLOW_DYE: ItemData = ItemData {
     name: "minecraft:yellow_dye",
-    protocol_id: 948,
+    protocol_id: 1025,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18499,8 +19647,22 @@ pub const YELLOW_DYE: ItemData = ItemData {
 
 pub const YELLOW_GLAZED_TERRACOTTA: ItemData = ItemData {
     name: "minecraft:yellow_glazed_terracotta",
-    protocol_id: 543,
+    protocol_id: 573,
     max_stack_size: 64,
+    max_damage: 0,
+    is_fire_resistant: false,
+    rarity: Rarity::Common,
+    food: None,
+    tool: None,
+    enchantable_value: None,
+    repairable_with: None,
+    attribute_modifiers: &[],
+};
+
+pub const YELLOW_HARNESS: ItemData = ItemData {
+    name: "minecraft:yellow_harness",
+    protocol_id: 806,
+    max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
     rarity: Rarity::Common,
@@ -18513,7 +19675,7 @@ pub const YELLOW_GLAZED_TERRACOTTA: ItemData = ItemData {
 
 pub const YELLOW_SHULKER_BOX: ItemData = ItemData {
     name: "minecraft:yellow_shulker_box",
-    protocol_id: 527,
+    protocol_id: 557,
     max_stack_size: 1,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18527,7 +19689,7 @@ pub const YELLOW_SHULKER_BOX: ItemData = ItemData {
 
 pub const YELLOW_STAINED_GLASS: ItemData = ItemData {
     name: "minecraft:yellow_stained_glass",
-    protocol_id: 475,
+    protocol_id: 505,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18541,7 +19703,7 @@ pub const YELLOW_STAINED_GLASS: ItemData = ItemData {
 
 pub const YELLOW_STAINED_GLASS_PANE: ItemData = ItemData {
     name: "minecraft:yellow_stained_glass_pane",
-    protocol_id: 491,
+    protocol_id: 521,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18555,7 +19717,7 @@ pub const YELLOW_STAINED_GLASS_PANE: ItemData = ItemData {
 
 pub const YELLOW_TERRACOTTA: ItemData = ItemData {
     name: "minecraft:yellow_terracotta",
-    protocol_id: 431,
+    protocol_id: 461,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18569,7 +19731,7 @@ pub const YELLOW_TERRACOTTA: ItemData = ItemData {
 
 pub const YELLOW_WOOL: ItemData = ItemData {
     name: "minecraft:yellow_wool",
-    protocol_id: 206,
+    protocol_id: 217,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18583,7 +19745,7 @@ pub const YELLOW_WOOL: ItemData = ItemData {
 
 pub const ZOGLIN_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:zoglin_spawn_egg",
-    protocol_id: 1083,
+    protocol_id: 1161,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18597,7 +19759,7 @@ pub const ZOGLIN_SPAWN_EGG: ItemData = ItemData {
 
 pub const ZOMBIE_HEAD: ItemData = ItemData {
     name: "minecraft:zombie_head",
-    protocol_id: 1106,
+    protocol_id: 1186,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18606,12 +19768,12 @@ pub const ZOMBIE_HEAD: ItemData = ItemData {
     tool: None,
     enchantable_value: None,
     repairable_with: None,
-    attribute_modifiers: &[],
+    attribute_modifiers: &[AttributeModifier { kind: AttributeType::Unknown, amount: -1.0000, operation: AttributeOperation::MultiplyTotal, slot: EquipmentSlot::Head }, ],
 };
 
 pub const ZOMBIE_HORSE_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:zombie_horse_spawn_egg",
-    protocol_id: 1085,
+    protocol_id: 1164,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18625,7 +19787,7 @@ pub const ZOMBIE_HORSE_SPAWN_EGG: ItemData = ItemData {
 
 pub const ZOMBIE_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:zombie_spawn_egg",
-    protocol_id: 1084,
+    protocol_id: 1163,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18639,7 +19801,7 @@ pub const ZOMBIE_SPAWN_EGG: ItemData = ItemData {
 
 pub const ZOMBIE_VILLAGER_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:zombie_villager_spawn_egg",
-    protocol_id: 1086,
+    protocol_id: 1165,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18653,7 +19815,7 @@ pub const ZOMBIE_VILLAGER_SPAWN_EGG: ItemData = ItemData {
 
 pub const ZOMBIFIED_PIGLIN_SPAWN_EGG: ItemData = ItemData {
     name: "minecraft:zombified_piglin_spawn_egg",
-    protocol_id: 1087,
+    protocol_id: 1166,
     max_stack_size: 64,
     max_damage: 0,
     is_fire_resistant: false,
@@ -18764,12 +19926,14 @@ pub fn get_item_by_name(name: &str) -> Option<&'static ItemData> {
         "birch_wood" => Some(&BIRCH_WOOD),
         "black_banner" => Some(&BLACK_BANNER),
         "black_bed" => Some(&BLACK_BED),
+        "black_bundle" => Some(&BLACK_BUNDLE),
         "black_candle" => Some(&BLACK_CANDLE),
         "black_carpet" => Some(&BLACK_CARPET),
         "black_concrete" => Some(&BLACK_CONCRETE),
         "black_concrete_powder" => Some(&BLACK_CONCRETE_POWDER),
         "black_dye" => Some(&BLACK_DYE),
         "black_glazed_terracotta" => Some(&BLACK_GLAZED_TERRACOTTA),
+        "black_harness" => Some(&BLACK_HARNESS),
         "black_shulker_box" => Some(&BLACK_SHULKER_BOX),
         "black_stained_glass" => Some(&BLACK_STAINED_GLASS),
         "black_stained_glass_pane" => Some(&BLACK_STAINED_GLASS_PANE),
@@ -18786,12 +19950,15 @@ pub fn get_item_by_name(name: &str) -> Option<&'static ItemData> {
         "blaze_spawn_egg" => Some(&BLAZE_SPAWN_EGG),
         "blue_banner" => Some(&BLUE_BANNER),
         "blue_bed" => Some(&BLUE_BED),
+        "blue_bundle" => Some(&BLUE_BUNDLE),
         "blue_candle" => Some(&BLUE_CANDLE),
         "blue_carpet" => Some(&BLUE_CARPET),
         "blue_concrete" => Some(&BLUE_CONCRETE),
         "blue_concrete_powder" => Some(&BLUE_CONCRETE_POWDER),
         "blue_dye" => Some(&BLUE_DYE),
+        "blue_egg" => Some(&BLUE_EGG),
         "blue_glazed_terracotta" => Some(&BLUE_GLAZED_TERRACOTTA),
+        "blue_harness" => Some(&BLUE_HARNESS),
         "blue_ice" => Some(&BLUE_ICE),
         "blue_orchid" => Some(&BLUE_ORCHID),
         "blue_shulker_box" => Some(&BLUE_SHULKER_BOX),
@@ -18806,6 +19973,7 @@ pub fn get_item_by_name(name: &str) -> Option<&'static ItemData> {
         "bone_meal" => Some(&BONE_MEAL),
         "book" => Some(&BOOK),
         "bookshelf" => Some(&BOOKSHELF),
+        "bordure_indented_banner_pattern" => Some(&BORDURE_INDENTED_BANNER_PATTERN),
         "bow" => Some(&BOW),
         "bowl" => Some(&BOWL),
         "brain_coral" => Some(&BRAIN_CORAL),
@@ -18823,12 +19991,15 @@ pub fn get_item_by_name(name: &str) -> Option<&'static ItemData> {
         "bricks" => Some(&BRICKS),
         "brown_banner" => Some(&BROWN_BANNER),
         "brown_bed" => Some(&BROWN_BED),
+        "brown_bundle" => Some(&BROWN_BUNDLE),
         "brown_candle" => Some(&BROWN_CANDLE),
         "brown_carpet" => Some(&BROWN_CARPET),
         "brown_concrete" => Some(&BROWN_CONCRETE),
         "brown_concrete_powder" => Some(&BROWN_CONCRETE_POWDER),
         "brown_dye" => Some(&BROWN_DYE),
+        "brown_egg" => Some(&BROWN_EGG),
         "brown_glazed_terracotta" => Some(&BROWN_GLAZED_TERRACOTTA),
+        "brown_harness" => Some(&BROWN_HARNESS),
         "brown_mushroom" => Some(&BROWN_MUSHROOM),
         "brown_mushroom_block" => Some(&BROWN_MUSHROOM_BLOCK),
         "brown_shulker_box" => Some(&BROWN_SHULKER_BOX),
@@ -18844,7 +20015,9 @@ pub fn get_item_by_name(name: &str) -> Option<&'static ItemData> {
         "budding_amethyst" => Some(&BUDDING_AMETHYST),
         "bundle" => Some(&BUNDLE),
         "burn_pottery_sherd" => Some(&BURN_POTTERY_SHERD),
+        "bush" => Some(&BUSH),
         "cactus" => Some(&CACTUS),
+        "cactus_flower" => Some(&CACTUS_FLOWER),
         "cake" => Some(&CAKE),
         "calcite" => Some(&CALCITE),
         "calibrated_sculk_sensor" => Some(&CALIBRATED_SCULK_SENSOR),
@@ -18894,6 +20067,7 @@ pub fn get_item_by_name(name: &str) -> Option<&'static ItemData> {
         "chiseled_polished_blackstone" => Some(&CHISELED_POLISHED_BLACKSTONE),
         "chiseled_quartz_block" => Some(&CHISELED_QUARTZ_BLOCK),
         "chiseled_red_sandstone" => Some(&CHISELED_RED_SANDSTONE),
+        "chiseled_resin_bricks" => Some(&CHISELED_RESIN_BRICKS),
         "chiseled_sandstone" => Some(&CHISELED_SANDSTONE),
         "chiseled_stone_bricks" => Some(&CHISELED_STONE_BRICKS),
         "chiseled_tuff" => Some(&CHISELED_TUFF),
@@ -18904,6 +20078,7 @@ pub fn get_item_by_name(name: &str) -> Option<&'static ItemData> {
         "clay" => Some(&CLAY),
         "clay_ball" => Some(&CLAY_BALL),
         "clock" => Some(&CLOCK),
+        "closed_eyeblossom" => Some(&CLOSED_EYEBLOSSOM),
         "coal" => Some(&COAL),
         "coal_block" => Some(&COAL_BLOCK),
         "coal_ore" => Some(&COAL_ORE),
@@ -18952,6 +20127,8 @@ pub fn get_item_by_name(name: &str) -> Option<&'static ItemData> {
         "cracked_stone_bricks" => Some(&CRACKED_STONE_BRICKS),
         "crafter" => Some(&CRAFTER),
         "crafting_table" => Some(&CRAFTING_TABLE),
+        "creaking_heart" => Some(&CREAKING_HEART),
+        "creaking_spawn_egg" => Some(&CREAKING_SPAWN_EGG),
         "creeper_banner_pattern" => Some(&CREEPER_BANNER_PATTERN),
         "creeper_head" => Some(&CREEPER_HEAD),
         "creeper_spawn_egg" => Some(&CREEPER_SPAWN_EGG),
@@ -18982,12 +20159,14 @@ pub fn get_item_by_name(name: &str) -> Option<&'static ItemData> {
         "cut_sandstone_slab" => Some(&CUT_SANDSTONE_SLAB),
         "cyan_banner" => Some(&CYAN_BANNER),
         "cyan_bed" => Some(&CYAN_BED),
+        "cyan_bundle" => Some(&CYAN_BUNDLE),
         "cyan_candle" => Some(&CYAN_CANDLE),
         "cyan_carpet" => Some(&CYAN_CARPET),
         "cyan_concrete" => Some(&CYAN_CONCRETE),
         "cyan_concrete_powder" => Some(&CYAN_CONCRETE_POWDER),
         "cyan_dye" => Some(&CYAN_DYE),
         "cyan_glazed_terracotta" => Some(&CYAN_GLAZED_TERRACOTTA),
+        "cyan_harness" => Some(&CYAN_HARNESS),
         "cyan_shulker_box" => Some(&CYAN_SHULKER_BOX),
         "cyan_stained_glass" => Some(&CYAN_STAINED_GLASS),
         "cyan_stained_glass_pane" => Some(&CYAN_STAINED_GLASS_PANE),
@@ -19079,6 +20258,7 @@ pub fn get_item_by_name(name: &str) -> Option<&'static ItemData> {
         "dragon_breath" => Some(&DRAGON_BREATH),
         "dragon_egg" => Some(&DRAGON_EGG),
         "dragon_head" => Some(&DRAGON_HEAD),
+        "dried_ghast" => Some(&DRIED_GHAST),
         "dried_kelp" => Some(&DRIED_KELP),
         "dried_kelp_block" => Some(&DRIED_KELP_BLOCK),
         "dripstone_block" => Some(&DRIPSTONE_BLOCK),
@@ -19126,11 +20306,13 @@ pub fn get_item_by_name(name: &str) -> Option<&'static ItemData> {
         "feather" => Some(&FEATHER),
         "fermented_spider_eye" => Some(&FERMENTED_SPIDER_EYE),
         "fern" => Some(&FERN),
+        "field_masoned_banner_pattern" => Some(&FIELD_MASONED_BANNER_PATTERN),
         "filled_map" => Some(&FILLED_MAP),
         "fire_charge" => Some(&FIRE_CHARGE),
         "fire_coral" => Some(&FIRE_CORAL),
         "fire_coral_block" => Some(&FIRE_CORAL_BLOCK),
         "fire_coral_fan" => Some(&FIRE_CORAL_FAN),
+        "firefly_bush" => Some(&FIREFLY_BUSH),
         "firework_rocket" => Some(&FIREWORK_ROCKET),
         "firework_star" => Some(&FIREWORK_STAR),
         "fishing_rod" => Some(&FISHING_ROD),
@@ -19191,12 +20373,14 @@ pub fn get_item_by_name(name: &str) -> Option<&'static ItemData> {
         "gravel" => Some(&GRAVEL),
         "gray_banner" => Some(&GRAY_BANNER),
         "gray_bed" => Some(&GRAY_BED),
+        "gray_bundle" => Some(&GRAY_BUNDLE),
         "gray_candle" => Some(&GRAY_CANDLE),
         "gray_carpet" => Some(&GRAY_CARPET),
         "gray_concrete" => Some(&GRAY_CONCRETE),
         "gray_concrete_powder" => Some(&GRAY_CONCRETE_POWDER),
         "gray_dye" => Some(&GRAY_DYE),
         "gray_glazed_terracotta" => Some(&GRAY_GLAZED_TERRACOTTA),
+        "gray_harness" => Some(&GRAY_HARNESS),
         "gray_shulker_box" => Some(&GRAY_SHULKER_BOX),
         "gray_stained_glass" => Some(&GRAY_STAINED_GLASS),
         "gray_stained_glass_pane" => Some(&GRAY_STAINED_GLASS_PANE),
@@ -19204,12 +20388,14 @@ pub fn get_item_by_name(name: &str) -> Option<&'static ItemData> {
         "gray_wool" => Some(&GRAY_WOOL),
         "green_banner" => Some(&GREEN_BANNER),
         "green_bed" => Some(&GREEN_BED),
+        "green_bundle" => Some(&GREEN_BUNDLE),
         "green_candle" => Some(&GREEN_CANDLE),
         "green_carpet" => Some(&GREEN_CARPET),
         "green_concrete" => Some(&GREEN_CONCRETE),
         "green_concrete_powder" => Some(&GREEN_CONCRETE_POWDER),
         "green_dye" => Some(&GREEN_DYE),
         "green_glazed_terracotta" => Some(&GREEN_GLAZED_TERRACOTTA),
+        "green_harness" => Some(&GREEN_HARNESS),
         "green_shulker_box" => Some(&GREEN_SHULKER_BOX),
         "green_stained_glass" => Some(&GREEN_STAINED_GLASS),
         "green_stained_glass_pane" => Some(&GREEN_STAINED_GLASS_PANE),
@@ -19221,6 +20407,7 @@ pub fn get_item_by_name(name: &str) -> Option<&'static ItemData> {
         "guster_banner_pattern" => Some(&GUSTER_BANNER_PATTERN),
         "guster_pottery_sherd" => Some(&GUSTER_POTTERY_SHERD),
         "hanging_roots" => Some(&HANGING_ROOTS),
+        "happy_ghast_spawn_egg" => Some(&HAPPY_GHAST_SPAWN_EGG),
         "hay_block" => Some(&HAY_BLOCK),
         "heart_of_the_sea" => Some(&HEART_OF_THE_SEA),
         "heart_pottery_sherd" => Some(&HEART_POTTERY_SHERD),
@@ -19300,6 +20487,7 @@ pub fn get_item_by_name(name: &str) -> Option<&'static ItemData> {
         "large_fern" => Some(&LARGE_FERN),
         "lava_bucket" => Some(&LAVA_BUCKET),
         "lead" => Some(&LEAD),
+        "leaf_litter" => Some(&LEAF_LITTER),
         "leather" => Some(&LEATHER),
         "leather_boots" => Some(&LEATHER_BOOTS),
         "leather_chestplate" => Some(&LEATHER_CHESTPLATE),
@@ -19311,12 +20499,14 @@ pub fn get_item_by_name(name: &str) -> Option<&'static ItemData> {
         "light" => Some(&LIGHT),
         "light_blue_banner" => Some(&LIGHT_BLUE_BANNER),
         "light_blue_bed" => Some(&LIGHT_BLUE_BED),
+        "light_blue_bundle" => Some(&LIGHT_BLUE_BUNDLE),
         "light_blue_candle" => Some(&LIGHT_BLUE_CANDLE),
         "light_blue_carpet" => Some(&LIGHT_BLUE_CARPET),
         "light_blue_concrete" => Some(&LIGHT_BLUE_CONCRETE),
         "light_blue_concrete_powder" => Some(&LIGHT_BLUE_CONCRETE_POWDER),
         "light_blue_dye" => Some(&LIGHT_BLUE_DYE),
         "light_blue_glazed_terracotta" => Some(&LIGHT_BLUE_GLAZED_TERRACOTTA),
+        "light_blue_harness" => Some(&LIGHT_BLUE_HARNESS),
         "light_blue_shulker_box" => Some(&LIGHT_BLUE_SHULKER_BOX),
         "light_blue_stained_glass" => Some(&LIGHT_BLUE_STAINED_GLASS),
         "light_blue_stained_glass_pane" => Some(&LIGHT_BLUE_STAINED_GLASS_PANE),
@@ -19324,12 +20514,14 @@ pub fn get_item_by_name(name: &str) -> Option<&'static ItemData> {
         "light_blue_wool" => Some(&LIGHT_BLUE_WOOL),
         "light_gray_banner" => Some(&LIGHT_GRAY_BANNER),
         "light_gray_bed" => Some(&LIGHT_GRAY_BED),
+        "light_gray_bundle" => Some(&LIGHT_GRAY_BUNDLE),
         "light_gray_candle" => Some(&LIGHT_GRAY_CANDLE),
         "light_gray_carpet" => Some(&LIGHT_GRAY_CARPET),
         "light_gray_concrete" => Some(&LIGHT_GRAY_CONCRETE),
         "light_gray_concrete_powder" => Some(&LIGHT_GRAY_CONCRETE_POWDER),
         "light_gray_dye" => Some(&LIGHT_GRAY_DYE),
         "light_gray_glazed_terracotta" => Some(&LIGHT_GRAY_GLAZED_TERRACOTTA),
+        "light_gray_harness" => Some(&LIGHT_GRAY_HARNESS),
         "light_gray_shulker_box" => Some(&LIGHT_GRAY_SHULKER_BOX),
         "light_gray_stained_glass" => Some(&LIGHT_GRAY_STAINED_GLASS),
         "light_gray_stained_glass_pane" => Some(&LIGHT_GRAY_STAINED_GLASS_PANE),
@@ -19342,12 +20534,14 @@ pub fn get_item_by_name(name: &str) -> Option<&'static ItemData> {
         "lily_pad" => Some(&LILY_PAD),
         "lime_banner" => Some(&LIME_BANNER),
         "lime_bed" => Some(&LIME_BED),
+        "lime_bundle" => Some(&LIME_BUNDLE),
         "lime_candle" => Some(&LIME_CANDLE),
         "lime_carpet" => Some(&LIME_CARPET),
         "lime_concrete" => Some(&LIME_CONCRETE),
         "lime_concrete_powder" => Some(&LIME_CONCRETE_POWDER),
         "lime_dye" => Some(&LIME_DYE),
         "lime_glazed_terracotta" => Some(&LIME_GLAZED_TERRACOTTA),
+        "lime_harness" => Some(&LIME_HARNESS),
         "lime_shulker_box" => Some(&LIME_SHULKER_BOX),
         "lime_stained_glass" => Some(&LIME_STAINED_GLASS),
         "lime_stained_glass_pane" => Some(&LIME_STAINED_GLASS_PANE),
@@ -19360,12 +20554,14 @@ pub fn get_item_by_name(name: &str) -> Option<&'static ItemData> {
         "mace" => Some(&MACE),
         "magenta_banner" => Some(&MAGENTA_BANNER),
         "magenta_bed" => Some(&MAGENTA_BED),
+        "magenta_bundle" => Some(&MAGENTA_BUNDLE),
         "magenta_candle" => Some(&MAGENTA_CANDLE),
         "magenta_carpet" => Some(&MAGENTA_CARPET),
         "magenta_concrete" => Some(&MAGENTA_CONCRETE),
         "magenta_concrete_powder" => Some(&MAGENTA_CONCRETE_POWDER),
         "magenta_dye" => Some(&MAGENTA_DYE),
         "magenta_glazed_terracotta" => Some(&MAGENTA_GLAZED_TERRACOTTA),
+        "magenta_harness" => Some(&MAGENTA_HARNESS),
         "magenta_shulker_box" => Some(&MAGENTA_SHULKER_BOX),
         "magenta_stained_glass" => Some(&MAGENTA_STAINED_GLASS),
         "magenta_stained_glass_pane" => Some(&MAGENTA_STAINED_GLASS_PANE),
@@ -19431,6 +20627,7 @@ pub fn get_item_by_name(name: &str) -> Option<&'static ItemData> {
         "music_disc_creator" => Some(&MUSIC_DISC_CREATOR),
         "music_disc_creator_music_box" => Some(&MUSIC_DISC_CREATOR_MUSIC_BOX),
         "music_disc_far" => Some(&MUSIC_DISC_FAR),
+        "music_disc_lava_chicken" => Some(&MUSIC_DISC_LAVA_CHICKEN),
         "music_disc_mall" => Some(&MUSIC_DISC_MALL),
         "music_disc_mellohi" => Some(&MUSIC_DISC_MELLOHI),
         "music_disc_otherside" => Some(&MUSIC_DISC_OTHERSIDE),
@@ -19439,6 +20636,7 @@ pub fn get_item_by_name(name: &str) -> Option<&'static ItemData> {
         "music_disc_relic" => Some(&MUSIC_DISC_RELIC),
         "music_disc_stal" => Some(&MUSIC_DISC_STAL),
         "music_disc_strad" => Some(&MUSIC_DISC_STRAD),
+        "music_disc_tears" => Some(&MUSIC_DISC_TEARS),
         "music_disc_wait" => Some(&MUSIC_DISC_WAIT),
         "music_disc_ward" => Some(&MUSIC_DISC_WARD),
         "mutton" => Some(&MUTTON),
@@ -19495,14 +20693,17 @@ pub fn get_item_by_name(name: &str) -> Option<&'static ItemData> {
         "ochre_froglight" => Some(&OCHRE_FROGLIGHT),
         "ominous_bottle" => Some(&OMINOUS_BOTTLE),
         "ominous_trial_key" => Some(&OMINOUS_TRIAL_KEY),
+        "open_eyeblossom" => Some(&OPEN_EYEBLOSSOM),
         "orange_banner" => Some(&ORANGE_BANNER),
         "orange_bed" => Some(&ORANGE_BED),
+        "orange_bundle" => Some(&ORANGE_BUNDLE),
         "orange_candle" => Some(&ORANGE_CANDLE),
         "orange_carpet" => Some(&ORANGE_CARPET),
         "orange_concrete" => Some(&ORANGE_CONCRETE),
         "orange_concrete_powder" => Some(&ORANGE_CONCRETE_POWDER),
         "orange_dye" => Some(&ORANGE_DYE),
         "orange_glazed_terracotta" => Some(&ORANGE_GLAZED_TERRACOTTA),
+        "orange_harness" => Some(&ORANGE_HARNESS),
         "orange_shulker_box" => Some(&ORANGE_SHULKER_BOX),
         "orange_stained_glass" => Some(&ORANGE_STAINED_GLASS),
         "orange_stained_glass_pane" => Some(&ORANGE_STAINED_GLASS_PANE),
@@ -19522,6 +20723,26 @@ pub fn get_item_by_name(name: &str) -> Option<&'static ItemData> {
         "packed_ice" => Some(&PACKED_ICE),
         "packed_mud" => Some(&PACKED_MUD),
         "painting" => Some(&PAINTING),
+        "pale_hanging_moss" => Some(&PALE_HANGING_MOSS),
+        "pale_moss_block" => Some(&PALE_MOSS_BLOCK),
+        "pale_moss_carpet" => Some(&PALE_MOSS_CARPET),
+        "pale_oak_boat" => Some(&PALE_OAK_BOAT),
+        "pale_oak_button" => Some(&PALE_OAK_BUTTON),
+        "pale_oak_chest_boat" => Some(&PALE_OAK_CHEST_BOAT),
+        "pale_oak_door" => Some(&PALE_OAK_DOOR),
+        "pale_oak_fence" => Some(&PALE_OAK_FENCE),
+        "pale_oak_fence_gate" => Some(&PALE_OAK_FENCE_GATE),
+        "pale_oak_hanging_sign" => Some(&PALE_OAK_HANGING_SIGN),
+        "pale_oak_leaves" => Some(&PALE_OAK_LEAVES),
+        "pale_oak_log" => Some(&PALE_OAK_LOG),
+        "pale_oak_planks" => Some(&PALE_OAK_PLANKS),
+        "pale_oak_pressure_plate" => Some(&PALE_OAK_PRESSURE_PLATE),
+        "pale_oak_sapling" => Some(&PALE_OAK_SAPLING),
+        "pale_oak_sign" => Some(&PALE_OAK_SIGN),
+        "pale_oak_slab" => Some(&PALE_OAK_SLAB),
+        "pale_oak_stairs" => Some(&PALE_OAK_STAIRS),
+        "pale_oak_trapdoor" => Some(&PALE_OAK_TRAPDOOR),
+        "pale_oak_wood" => Some(&PALE_OAK_WOOD),
         "panda_spawn_egg" => Some(&PANDA_SPAWN_EGG),
         "paper" => Some(&PAPER),
         "parrot_spawn_egg" => Some(&PARROT_SPAWN_EGG),
@@ -19538,12 +20759,14 @@ pub fn get_item_by_name(name: &str) -> Option<&'static ItemData> {
         "pillager_spawn_egg" => Some(&PILLAGER_SPAWN_EGG),
         "pink_banner" => Some(&PINK_BANNER),
         "pink_bed" => Some(&PINK_BED),
+        "pink_bundle" => Some(&PINK_BUNDLE),
         "pink_candle" => Some(&PINK_CANDLE),
         "pink_carpet" => Some(&PINK_CARPET),
         "pink_concrete" => Some(&PINK_CONCRETE),
         "pink_concrete_powder" => Some(&PINK_CONCRETE_POWDER),
         "pink_dye" => Some(&PINK_DYE),
         "pink_glazed_terracotta" => Some(&PINK_GLAZED_TERRACOTTA),
+        "pink_harness" => Some(&PINK_HARNESS),
         "pink_petals" => Some(&PINK_PETALS),
         "pink_shulker_box" => Some(&PINK_SHULKER_BOX),
         "pink_stained_glass" => Some(&PINK_STAINED_GLASS),
@@ -19613,12 +20836,14 @@ pub fn get_item_by_name(name: &str) -> Option<&'static ItemData> {
         "pumpkin_seeds" => Some(&PUMPKIN_SEEDS),
         "purple_banner" => Some(&PURPLE_BANNER),
         "purple_bed" => Some(&PURPLE_BED),
+        "purple_bundle" => Some(&PURPLE_BUNDLE),
         "purple_candle" => Some(&PURPLE_CANDLE),
         "purple_carpet" => Some(&PURPLE_CARPET),
         "purple_concrete" => Some(&PURPLE_CONCRETE),
         "purple_concrete_powder" => Some(&PURPLE_CONCRETE_POWDER),
         "purple_dye" => Some(&PURPLE_DYE),
         "purple_glazed_terracotta" => Some(&PURPLE_GLAZED_TERRACOTTA),
+        "purple_harness" => Some(&PURPLE_HARNESS),
         "purple_shulker_box" => Some(&PURPLE_SHULKER_BOX),
         "purple_stained_glass" => Some(&PURPLE_STAINED_GLASS),
         "purple_stained_glass_pane" => Some(&PURPLE_STAINED_GLASS_PANE),
@@ -19651,12 +20876,14 @@ pub fn get_item_by_name(name: &str) -> Option<&'static ItemData> {
         "recovery_compass" => Some(&RECOVERY_COMPASS),
         "red_banner" => Some(&RED_BANNER),
         "red_bed" => Some(&RED_BED),
+        "red_bundle" => Some(&RED_BUNDLE),
         "red_candle" => Some(&RED_CANDLE),
         "red_carpet" => Some(&RED_CARPET),
         "red_concrete" => Some(&RED_CONCRETE),
         "red_concrete_powder" => Some(&RED_CONCRETE_POWDER),
         "red_dye" => Some(&RED_DYE),
         "red_glazed_terracotta" => Some(&RED_GLAZED_TERRACOTTA),
+        "red_harness" => Some(&RED_HARNESS),
         "red_mushroom" => Some(&RED_MUSHROOM),
         "red_mushroom_block" => Some(&RED_MUSHROOM_BLOCK),
         "red_nether_brick_slab" => Some(&RED_NETHER_BRICK_SLAB),
@@ -19682,6 +20909,13 @@ pub fn get_item_by_name(name: &str) -> Option<&'static ItemData> {
         "reinforced_deepslate" => Some(&REINFORCED_DEEPSLATE),
         "repeater" => Some(&REPEATER),
         "repeating_command_block" => Some(&REPEATING_COMMAND_BLOCK),
+        "resin_block" => Some(&RESIN_BLOCK),
+        "resin_brick" => Some(&RESIN_BRICK),
+        "resin_brick_slab" => Some(&RESIN_BRICK_SLAB),
+        "resin_brick_stairs" => Some(&RESIN_BRICK_STAIRS),
+        "resin_brick_wall" => Some(&RESIN_BRICK_WALL),
+        "resin_bricks" => Some(&RESIN_BRICKS),
+        "resin_clump" => Some(&RESIN_CLUMP),
         "respawn_anchor" => Some(&RESPAWN_ANCHOR),
         "rib_armor_trim_smithing_template" => Some(&RIB_ARMOR_TRIM_SMITHING_TEMPLATE),
         "rooted_dirt" => Some(&ROOTED_DIRT),
@@ -19713,6 +20947,7 @@ pub fn get_item_by_name(name: &str) -> Option<&'static ItemData> {
         "sheep_spawn_egg" => Some(&SHEEP_SPAWN_EGG),
         "shelter_pottery_sherd" => Some(&SHELTER_POTTERY_SHERD),
         "shield" => Some(&SHIELD),
+        "short_dry_grass" => Some(&SHORT_DRY_GRASS),
         "short_grass" => Some(&SHORT_GRASS),
         "shroomlight" => Some(&SHROOMLIGHT),
         "shulker_box" => Some(&SHULKER_BOX),
@@ -19821,6 +21056,8 @@ pub fn get_item_by_name(name: &str) -> Option<&'static ItemData> {
         "stripped_mangrove_wood" => Some(&STRIPPED_MANGROVE_WOOD),
         "stripped_oak_log" => Some(&STRIPPED_OAK_LOG),
         "stripped_oak_wood" => Some(&STRIPPED_OAK_WOOD),
+        "stripped_pale_oak_log" => Some(&STRIPPED_PALE_OAK_LOG),
+        "stripped_pale_oak_wood" => Some(&STRIPPED_PALE_OAK_WOOD),
         "stripped_spruce_log" => Some(&STRIPPED_SPRUCE_LOG),
         "stripped_spruce_wood" => Some(&STRIPPED_SPRUCE_WOOD),
         "stripped_warped_hyphae" => Some(&STRIPPED_WARPED_HYPHAE),
@@ -19836,9 +21073,12 @@ pub fn get_item_by_name(name: &str) -> Option<&'static ItemData> {
         "sweet_berries" => Some(&SWEET_BERRIES),
         "tadpole_bucket" => Some(&TADPOLE_BUCKET),
         "tadpole_spawn_egg" => Some(&TADPOLE_SPAWN_EGG),
+        "tall_dry_grass" => Some(&TALL_DRY_GRASS),
         "tall_grass" => Some(&TALL_GRASS),
         "target" => Some(&TARGET),
         "terracotta" => Some(&TERRACOTTA),
+        "test_block" => Some(&TEST_BLOCK),
+        "test_instance_block" => Some(&TEST_INSTANCE_BLOCK),
         "tide_armor_trim_smithing_template" => Some(&TIDE_ARMOR_TRIM_SMITHING_TEMPLATE),
         "tinted_glass" => Some(&TINTED_GLASS),
         "tipped_arrow" => Some(&TIPPED_ARROW),
@@ -19954,12 +21194,14 @@ pub fn get_item_by_name(name: &str) -> Option<&'static ItemData> {
         "wheat_seeds" => Some(&WHEAT_SEEDS),
         "white_banner" => Some(&WHITE_BANNER),
         "white_bed" => Some(&WHITE_BED),
+        "white_bundle" => Some(&WHITE_BUNDLE),
         "white_candle" => Some(&WHITE_CANDLE),
         "white_carpet" => Some(&WHITE_CARPET),
         "white_concrete" => Some(&WHITE_CONCRETE),
         "white_concrete_powder" => Some(&WHITE_CONCRETE_POWDER),
         "white_dye" => Some(&WHITE_DYE),
         "white_glazed_terracotta" => Some(&WHITE_GLAZED_TERRACOTTA),
+        "white_harness" => Some(&WHITE_HARNESS),
         "white_shulker_box" => Some(&WHITE_SHULKER_BOX),
         "white_stained_glass" => Some(&WHITE_STAINED_GLASS),
         "white_stained_glass_pane" => Some(&WHITE_STAINED_GLASS_PANE),
@@ -19967,6 +21209,7 @@ pub fn get_item_by_name(name: &str) -> Option<&'static ItemData> {
         "white_tulip" => Some(&WHITE_TULIP),
         "white_wool" => Some(&WHITE_WOOL),
         "wild_armor_trim_smithing_template" => Some(&WILD_ARMOR_TRIM_SMITHING_TEMPLATE),
+        "wildflowers" => Some(&WILDFLOWERS),
         "wind_charge" => Some(&WIND_CHARGE),
         "witch_spawn_egg" => Some(&WITCH_SPAWN_EGG),
         "wither_rose" => Some(&WITHER_ROSE),
@@ -19984,12 +21227,14 @@ pub fn get_item_by_name(name: &str) -> Option<&'static ItemData> {
         "written_book" => Some(&WRITTEN_BOOK),
         "yellow_banner" => Some(&YELLOW_BANNER),
         "yellow_bed" => Some(&YELLOW_BED),
+        "yellow_bundle" => Some(&YELLOW_BUNDLE),
         "yellow_candle" => Some(&YELLOW_CANDLE),
         "yellow_carpet" => Some(&YELLOW_CARPET),
         "yellow_concrete" => Some(&YELLOW_CONCRETE),
         "yellow_concrete_powder" => Some(&YELLOW_CONCRETE_POWDER),
         "yellow_dye" => Some(&YELLOW_DYE),
         "yellow_glazed_terracotta" => Some(&YELLOW_GLAZED_TERRACOTTA),
+        "yellow_harness" => Some(&YELLOW_HARNESS),
         "yellow_shulker_box" => Some(&YELLOW_SHULKER_BOX),
         "yellow_stained_glass" => Some(&YELLOW_STAINED_GLASS),
         "yellow_stained_glass_pane" => Some(&YELLOW_STAINED_GLASS_PANE),
@@ -20007,1198 +21252,1276 @@ pub fn get_item_by_name(name: &str) -> Option<&'static ItemData> {
 
 pub fn get_item_by_id(id: u32) -> Option<&'static ItemData> {
     match id {
-        782 => Some(&ACACIA_BOAT),
-        688 => Some(&ACACIA_BUTTON),
-        783 => Some(&ACACIA_CHEST_BOAT),
-        715 => Some(&ACACIA_DOOR),
-        315 => Some(&ACACIA_FENCE),
-        754 => Some(&ACACIA_FENCE_GATE),
-        901 => Some(&ACACIA_HANGING_SIGN),
-        180 => Some(&ACACIA_LEAVES),
-        136 => Some(&ACACIA_LOG),
+        835 => Some(&ACACIA_BOAT),
+        719 => Some(&ACACIA_BUTTON),
+        836 => Some(&ACACIA_CHEST_BOAT),
+        748 => Some(&ACACIA_DOOR),
+        336 => Some(&ACACIA_FENCE),
+        789 => Some(&ACACIA_FENCE_GATE),
+        959 => Some(&ACACIA_HANGING_SIGN),
+        186 => Some(&ACACIA_LEAVES),
+        138 => Some(&ACACIA_LOG),
         40 => Some(&ACACIA_PLANKS),
-        703 => Some(&ACACIA_PRESSURE_PLATE),
-        52 => Some(&ACACIA_SAPLING),
-        890 => Some(&ACACIA_SIGN),
-        256 => Some(&ACACIA_SLAB),
-        387 => Some(&ACACIA_STAIRS),
-        735 => Some(&ACACIA_TRAPDOOR),
-        170 => Some(&ACACIA_WOOD),
-        764 => Some(&ACTIVATOR_RAIL),
+        735 => Some(&ACACIA_PRESSURE_PLATE),
+        53 => Some(&ACACIA_SAPLING),
+        947 => Some(&ACACIA_SIGN),
+        274 => Some(&ACACIA_SLAB),
+        416 => Some(&ACACIA_STAIRS),
+        769 => Some(&ACACIA_TRAPDOOR),
+        175 => Some(&ACACIA_WOOD),
+        800 => Some(&ACTIVATOR_RAIL),
         0 => Some(&AIR),
-        1009 => Some(&ALLAY_SPAWN_EGG),
-        221 => Some(&ALLIUM),
-        86 => Some(&AMETHYST_BLOCK),
-        1261 => Some(&AMETHYST_CLUSTER),
-        809 => Some(&AMETHYST_SHARD),
-        80 => Some(&ANCIENT_DEBRIS),
+        1086 => Some(&ALLAY_SPAWN_EGG),
+        234 => Some(&ALLIUM),
+        88 => Some(&AMETHYST_BLOCK),
+        1345 => Some(&AMETHYST_CLUSTER),
+        866 => Some(&AMETHYST_SHARD),
+        82 => Some(&ANCIENT_DEBRIS),
         6 => Some(&ANDESITE),
-        648 => Some(&ANDESITE_SLAB),
-        631 => Some(&ANDESITE_STAIRS),
-        407 => Some(&ANDESITE_WALL),
-        1288 => Some(&ANGLER_POTTERY_SHERD),
-        419 => Some(&ANVIL),
-        800 => Some(&APPLE),
-        1289 => Some(&ARCHER_POTTERY_SHERD),
-        796 => Some(&ARMADILLO_SCUTE),
-        1008 => Some(&ARMADILLO_SPAWN_EGG),
-        1123 => Some(&ARMOR_STAND),
-        1290 => Some(&ARMS_UP_POTTERY_SHERD),
-        802 => Some(&ARROW),
-        919 => Some(&AXOLOTL_BUCKET),
-        1010 => Some(&AXOLOTL_SPAWN_EGG),
-        197 => Some(&AZALEA),
-        184 => Some(&AZALEA_LEAVES),
-        222 => Some(&AZURE_BLUET),
-        1099 => Some(&BAKED_POTATO),
-        251 => Some(&BAMBOO),
-        144 => Some(&BAMBOO_BLOCK),
-        692 => Some(&BAMBOO_BUTTON),
-        791 => Some(&BAMBOO_CHEST_RAFT),
-        719 => Some(&BAMBOO_DOOR),
-        319 => Some(&BAMBOO_FENCE),
-        758 => Some(&BAMBOO_FENCE_GATE),
-        905 => Some(&BAMBOO_HANGING_SIGN),
-        47 => Some(&BAMBOO_MOSAIC),
-        261 => Some(&BAMBOO_MOSAIC_SLAB),
-        392 => Some(&BAMBOO_MOSAIC_STAIRS),
-        44 => Some(&BAMBOO_PLANKS),
-        707 => Some(&BAMBOO_PRESSURE_PLATE),
-        790 => Some(&BAMBOO_RAFT),
-        894 => Some(&BAMBOO_SIGN),
-        260 => Some(&BAMBOO_SLAB),
-        391 => Some(&BAMBOO_STAIRS),
-        739 => Some(&BAMBOO_TRAPDOOR),
-        1205 => Some(&BARREL),
-        443 => Some(&BARRIER),
-        328 => Some(&BASALT),
-        1011 => Some(&BAT_SPAWN_EGG),
-        396 => Some(&BEACON),
-        56 => Some(&BEDROCK),
-        1222 => Some(&BEE_NEST),
-        1012 => Some(&BEE_SPAWN_EGG),
-        988 => Some(&BEEF),
-        1223 => Some(&BEEHIVE),
-        1154 => Some(&BEETROOT),
-        1155 => Some(&BEETROOT_SEEDS),
-        1156 => Some(&BEETROOT_SOUP),
-        1213 => Some(&BELL),
-        249 => Some(&BIG_DRIPLEAF),
-        778 => Some(&BIRCH_BOAT),
-        686 => Some(&BIRCH_BUTTON),
-        779 => Some(&BIRCH_CHEST_BOAT),
-        713 => Some(&BIRCH_DOOR),
-        313 => Some(&BIRCH_FENCE),
-        752 => Some(&BIRCH_FENCE_GATE),
-        899 => Some(&BIRCH_HANGING_SIGN),
-        178 => Some(&BIRCH_LEAVES),
-        134 => Some(&BIRCH_LOG),
+        679 => Some(&ANDESITE_SLAB),
+        662 => Some(&ANDESITE_STAIRS),
+        437 => Some(&ANDESITE_WALL),
+        1372 => Some(&ANGLER_POTTERY_SHERD),
+        449 => Some(&ANVIL),
+        857 => Some(&APPLE),
+        1373 => Some(&ARCHER_POTTERY_SHERD),
+        853 => Some(&ARMADILLO_SCUTE),
+        1085 => Some(&ARMADILLO_SPAWN_EGG),
+        1204 => Some(&ARMOR_STAND),
+        1374 => Some(&ARMS_UP_POTTERY_SHERD),
+        859 => Some(&ARROW),
+        978 => Some(&AXOLOTL_BUCKET),
+        1087 => Some(&AXOLOTL_SPAWN_EGG),
+        205 => Some(&AZALEA),
+        191 => Some(&AZALEA_LEAVES),
+        235 => Some(&AZURE_BLUET),
+        1179 => Some(&BAKED_POTATO),
+        269 => Some(&BAMBOO),
+        147 => Some(&BAMBOO_BLOCK),
+        724 => Some(&BAMBOO_BUTTON),
+        846 => Some(&BAMBOO_CHEST_RAFT),
+        753 => Some(&BAMBOO_DOOR),
+        341 => Some(&BAMBOO_FENCE),
+        794 => Some(&BAMBOO_FENCE_GATE),
+        964 => Some(&BAMBOO_HANGING_SIGN),
+        48 => Some(&BAMBOO_MOSAIC),
+        280 => Some(&BAMBOO_MOSAIC_SLAB),
+        422 => Some(&BAMBOO_MOSAIC_STAIRS),
+        45 => Some(&BAMBOO_PLANKS),
+        740 => Some(&BAMBOO_PRESSURE_PLATE),
+        845 => Some(&BAMBOO_RAFT),
+        952 => Some(&BAMBOO_SIGN),
+        279 => Some(&BAMBOO_SLAB),
+        421 => Some(&BAMBOO_STAIRS),
+        774 => Some(&BAMBOO_TRAPDOOR),
+        1289 => Some(&BARREL),
+        473 => Some(&BARRIER),
+        350 => Some(&BASALT),
+        1088 => Some(&BAT_SPAWN_EGG),
+        426 => Some(&BEACON),
+        58 => Some(&BEDROCK),
+        1306 => Some(&BEE_NEST),
+        1089 => Some(&BEE_SPAWN_EGG),
+        1065 => Some(&BEEF),
+        1307 => Some(&BEEHIVE),
+        1235 => Some(&BEETROOT),
+        1236 => Some(&BEETROOT_SEEDS),
+        1237 => Some(&BEETROOT_SOUP),
+        1297 => Some(&BELL),
+        267 => Some(&BIG_DRIPLEAF),
+        831 => Some(&BIRCH_BOAT),
+        717 => Some(&BIRCH_BUTTON),
+        832 => Some(&BIRCH_CHEST_BOAT),
+        746 => Some(&BIRCH_DOOR),
+        334 => Some(&BIRCH_FENCE),
+        787 => Some(&BIRCH_FENCE_GATE),
+        957 => Some(&BIRCH_HANGING_SIGN),
+        184 => Some(&BIRCH_LEAVES),
+        136 => Some(&BIRCH_LOG),
         38 => Some(&BIRCH_PLANKS),
-        701 => Some(&BIRCH_PRESSURE_PLATE),
-        50 => Some(&BIRCH_SAPLING),
-        888 => Some(&BIRCH_SIGN),
-        254 => Some(&BIRCH_SLAB),
-        385 => Some(&BIRCH_STAIRS),
-        733 => Some(&BIRCH_TRAPDOOR),
-        168 => Some(&BIRCH_WOOD),
-        1148 => Some(&BLACK_BANNER),
-        979 => Some(&BLACK_BED),
-        1257 => Some(&BLACK_CANDLE),
-        461 => Some(&BLACK_CARPET),
-        570 => Some(&BLACK_CONCRETE),
-        586 => Some(&BLACK_CONCRETE_POWDER),
-        959 => Some(&BLACK_DYE),
-        554 => Some(&BLACK_GLAZED_TERRACOTTA),
-        538 => Some(&BLACK_SHULKER_BOX),
-        486 => Some(&BLACK_STAINED_GLASS),
-        502 => Some(&BLACK_STAINED_GLASS_PANE),
-        442 => Some(&BLACK_TERRACOTTA),
-        217 => Some(&BLACK_WOOL),
-        1228 => Some(&BLACKSTONE),
-        1229 => Some(&BLACKSTONE_SLAB),
-        1230 => Some(&BLACKSTONE_STAIRS),
-        412 => Some(&BLACKSTONE_WALL),
-        1291 => Some(&BLADE_POTTERY_SHERD),
-        1207 => Some(&BLAST_FURNACE),
-        1002 => Some(&BLAZE_POWDER),
-        994 => Some(&BLAZE_ROD),
-        1013 => Some(&BLAZE_SPAWN_EGG),
-        1144 => Some(&BLUE_BANNER),
-        975 => Some(&BLUE_BED),
-        1253 => Some(&BLUE_CANDLE),
-        457 => Some(&BLUE_CARPET),
-        566 => Some(&BLUE_CONCRETE),
-        582 => Some(&BLUE_CONCRETE_POWDER),
-        955 => Some(&BLUE_DYE),
-        550 => Some(&BLUE_GLAZED_TERRACOTTA),
-        619 => Some(&BLUE_ICE),
-        220 => Some(&BLUE_ORCHID),
-        534 => Some(&BLUE_SHULKER_BOX),
-        482 => Some(&BLUE_STAINED_GLASS),
-        498 => Some(&BLUE_STAINED_GLASS_PANE),
-        438 => Some(&BLUE_TERRACOTTA),
-        213 => Some(&BLUE_WOOL),
-        1014 => Some(&BOGGED_SPAWN_EGG),
-        1287 => Some(&BOLT_ARMOR_TRIM_SMITHING_TEMPLATE),
-        961 => Some(&BONE),
-        520 => Some(&BONE_BLOCK),
-        960 => Some(&BONE_MEAL),
-        925 => Some(&BOOK),
-        286 => Some(&BOOKSHELF),
-        801 => Some(&BOW),
-        799 => Some(&BOWL),
-        600 => Some(&BRAIN_CORAL),
-        595 => Some(&BRAIN_CORAL_BLOCK),
-        610 => Some(&BRAIN_CORAL_FAN),
-        855 => Some(&BREAD),
-        1332 => Some(&BREEZE_ROD),
-        1015 => Some(&BREEZE_SPAWN_EGG),
-        1292 => Some(&BREWER_POTTERY_SHERD),
-        1004 => Some(&BREWING_STAND),
-        921 => Some(&BRICK),
-        270 => Some(&BRICK_SLAB),
-        361 => Some(&BRICK_STAIRS),
-        399 => Some(&BRICK_WALL),
-        285 => Some(&BRICKS),
-        1145 => Some(&BROWN_BANNER),
-        976 => Some(&BROWN_BED),
-        1254 => Some(&BROWN_CANDLE),
-        458 => Some(&BROWN_CARPET),
-        567 => Some(&BROWN_CONCRETE),
-        583 => Some(&BROWN_CONCRETE_POWDER),
-        956 => Some(&BROWN_DYE),
-        551 => Some(&BROWN_GLAZED_TERRACOTTA),
-        234 => Some(&BROWN_MUSHROOM),
-        352 => Some(&BROWN_MUSHROOM_BLOCK),
-        535 => Some(&BROWN_SHULKER_BOX),
-        483 => Some(&BROWN_STAINED_GLASS),
-        499 => Some(&BROWN_STAINED_GLASS_PANE),
-        439 => Some(&BROWN_TERRACOTTA),
-        214 => Some(&BROWN_WOOL),
-        1268 => Some(&BRUSH),
-        601 => Some(&BUBBLE_CORAL),
-        596 => Some(&BUBBLE_CORAL_BLOCK),
-        611 => Some(&BUBBLE_CORAL_FAN),
-        908 => Some(&BUCKET),
-        87 => Some(&BUDDING_AMETHYST),
-        930 => Some(&BUNDLE),
-        1293 => Some(&BURN_POTTERY_SHERD),
-        308 => Some(&CACTUS),
-        963 => Some(&CAKE),
+        733 => Some(&BIRCH_PRESSURE_PLATE),
+        51 => Some(&BIRCH_SAPLING),
+        945 => Some(&BIRCH_SIGN),
+        272 => Some(&BIRCH_SLAB),
+        414 => Some(&BIRCH_STAIRS),
+        767 => Some(&BIRCH_TRAPDOOR),
+        173 => Some(&BIRCH_WOOD),
+        1229 => Some(&BLACK_BANNER),
+        1056 => Some(&BLACK_BED),
+        1007 => Some(&BLACK_BUNDLE),
+        1341 => Some(&BLACK_CANDLE),
+        491 => Some(&BLACK_CARPET),
+        600 => Some(&BLACK_CONCRETE),
+        616 => Some(&BLACK_CONCRETE_POWDER),
+        1036 => Some(&BLACK_DYE),
+        584 => Some(&BLACK_GLAZED_TERRACOTTA),
+        817 => Some(&BLACK_HARNESS),
+        568 => Some(&BLACK_SHULKER_BOX),
+        516 => Some(&BLACK_STAINED_GLASS),
+        532 => Some(&BLACK_STAINED_GLASS_PANE),
+        472 => Some(&BLACK_TERRACOTTA),
+        228 => Some(&BLACK_WOOL),
+        1312 => Some(&BLACKSTONE),
+        1313 => Some(&BLACKSTONE_SLAB),
+        1314 => Some(&BLACKSTONE_STAIRS),
+        442 => Some(&BLACKSTONE_WALL),
+        1375 => Some(&BLADE_POTTERY_SHERD),
+        1291 => Some(&BLAST_FURNACE),
+        1079 => Some(&BLAZE_POWDER),
+        1071 => Some(&BLAZE_ROD),
+        1090 => Some(&BLAZE_SPAWN_EGG),
+        1225 => Some(&BLUE_BANNER),
+        1052 => Some(&BLUE_BED),
+        1003 => Some(&BLUE_BUNDLE),
+        1337 => Some(&BLUE_CANDLE),
+        487 => Some(&BLUE_CARPET),
+        596 => Some(&BLUE_CONCRETE),
+        612 => Some(&BLUE_CONCRETE_POWDER),
+        1032 => Some(&BLUE_DYE),
+        987 => Some(&BLUE_EGG),
+        580 => Some(&BLUE_GLAZED_TERRACOTTA),
+        813 => Some(&BLUE_HARNESS),
+        650 => Some(&BLUE_ICE),
+        233 => Some(&BLUE_ORCHID),
+        564 => Some(&BLUE_SHULKER_BOX),
+        512 => Some(&BLUE_STAINED_GLASS),
+        528 => Some(&BLUE_STAINED_GLASS_PANE),
+        468 => Some(&BLUE_TERRACOTTA),
+        224 => Some(&BLUE_WOOL),
+        1091 => Some(&BOGGED_SPAWN_EGG),
+        1371 => Some(&BOLT_ARMOR_TRIM_SMITHING_TEMPLATE),
+        1038 => Some(&BONE),
+        550 => Some(&BONE_BLOCK),
+        1037 => Some(&BONE_MEAL),
+        984 => Some(&BOOK),
+        305 => Some(&BOOKSHELF),
+        1286 => Some(&BORDURE_INDENTED_BANNER_PATTERN),
+        858 => Some(&BOW),
+        856 => Some(&BOWL),
+        631 => Some(&BRAIN_CORAL),
+        626 => Some(&BRAIN_CORAL_BLOCK),
+        641 => Some(&BRAIN_CORAL_FAN),
+        912 => Some(&BREAD),
+        1172 => Some(&BREEZE_ROD),
+        1092 => Some(&BREEZE_SPAWN_EGG),
+        1376 => Some(&BREWER_POTTERY_SHERD),
+        1081 => Some(&BREWING_STAND),
+        980 => Some(&BRICK),
+        289 => Some(&BRICK_SLAB),
+        390 => Some(&BRICK_STAIRS),
+        429 => Some(&BRICK_WALL),
+        304 => Some(&BRICKS),
+        1226 => Some(&BROWN_BANNER),
+        1053 => Some(&BROWN_BED),
+        1004 => Some(&BROWN_BUNDLE),
+        1338 => Some(&BROWN_CANDLE),
+        488 => Some(&BROWN_CARPET),
+        597 => Some(&BROWN_CONCRETE),
+        613 => Some(&BROWN_CONCRETE_POWDER),
+        1033 => Some(&BROWN_DYE),
+        988 => Some(&BROWN_EGG),
+        581 => Some(&BROWN_GLAZED_TERRACOTTA),
+        814 => Some(&BROWN_HARNESS),
+        247 => Some(&BROWN_MUSHROOM),
+        374 => Some(&BROWN_MUSHROOM_BLOCK),
+        565 => Some(&BROWN_SHULKER_BOX),
+        513 => Some(&BROWN_STAINED_GLASS),
+        529 => Some(&BROWN_STAINED_GLASS_PANE),
+        469 => Some(&BROWN_TERRACOTTA),
+        225 => Some(&BROWN_WOOL),
+        1352 => Some(&BRUSH),
+        632 => Some(&BUBBLE_CORAL),
+        627 => Some(&BUBBLE_CORAL_BLOCK),
+        642 => Some(&BUBBLE_CORAL_FAN),
+        967 => Some(&BUCKET),
+        89 => Some(&BUDDING_AMETHYST),
+        991 => Some(&BUNDLE),
+        1377 => Some(&BURN_POTTERY_SHERD),
+        204 => Some(&BUSH),
+        328 => Some(&CACTUS),
+        329 => Some(&CACTUS_FLOWER),
+        1040 => Some(&CAKE),
         11 => Some(&CALCITE),
-        676 => Some(&CALIBRATED_SCULK_SENSOR),
-        1017 => Some(&CAMEL_SPAWN_EGG),
-        1218 => Some(&CAMPFIRE),
-        1241 => Some(&CANDLE),
-        1097 => Some(&CARROT),
-        771 => Some(&CARROT_ON_A_STICK),
-        1208 => Some(&CARTOGRAPHY_TABLE),
-        323 => Some(&CARVED_PUMPKIN),
-        1016 => Some(&CAT_SPAWN_EGG),
-        1005 => Some(&CAULDRON),
-        1018 => Some(&CAVE_SPIDER_SPAWN_EGG),
-        356 => Some(&CHAIN),
-        515 => Some(&CHAIN_COMMAND_BLOCK),
-        863 => Some(&CHAINMAIL_BOOTS),
-        861 => Some(&CHAINMAIL_CHESTPLATE),
-        860 => Some(&CHAINMAIL_HELMET),
-        862 => Some(&CHAINMAIL_LEGGINGS),
-        804 => Some(&CHARCOAL),
-        784 => Some(&CHERRY_BOAT),
-        689 => Some(&CHERRY_BUTTON),
-        785 => Some(&CHERRY_CHEST_BOAT),
-        716 => Some(&CHERRY_DOOR),
-        316 => Some(&CHERRY_FENCE),
-        755 => Some(&CHERRY_FENCE_GATE),
-        902 => Some(&CHERRY_HANGING_SIGN),
-        181 => Some(&CHERRY_LEAVES),
-        137 => Some(&CHERRY_LOG),
+        707 => Some(&CALIBRATED_SCULK_SENSOR),
+        1094 => Some(&CAMEL_SPAWN_EGG),
+        1302 => Some(&CAMPFIRE),
+        1325 => Some(&CANDLE),
+        1177 => Some(&CARROT),
+        823 => Some(&CARROT_ON_A_STICK),
+        1292 => Some(&CARTOGRAPHY_TABLE),
+        345 => Some(&CARVED_PUMPKIN),
+        1093 => Some(&CAT_SPAWN_EGG),
+        1082 => Some(&CAULDRON),
+        1095 => Some(&CAVE_SPIDER_SPAWN_EGG),
+        378 => Some(&CHAIN),
+        545 => Some(&CHAIN_COMMAND_BLOCK),
+        920 => Some(&CHAINMAIL_BOOTS),
+        918 => Some(&CHAINMAIL_CHESTPLATE),
+        917 => Some(&CHAINMAIL_HELMET),
+        919 => Some(&CHAINMAIL_LEGGINGS),
+        861 => Some(&CHARCOAL),
+        837 => Some(&CHERRY_BOAT),
+        720 => Some(&CHERRY_BUTTON),
+        838 => Some(&CHERRY_CHEST_BOAT),
+        749 => Some(&CHERRY_DOOR),
+        337 => Some(&CHERRY_FENCE),
+        790 => Some(&CHERRY_FENCE_GATE),
+        960 => Some(&CHERRY_HANGING_SIGN),
+        187 => Some(&CHERRY_LEAVES),
+        139 => Some(&CHERRY_LOG),
         41 => Some(&CHERRY_PLANKS),
-        704 => Some(&CHERRY_PRESSURE_PLATE),
-        53 => Some(&CHERRY_SAPLING),
-        891 => Some(&CHERRY_SIGN),
-        257 => Some(&CHERRY_SLAB),
-        388 => Some(&CHERRY_STAIRS),
-        736 => Some(&CHERRY_TRAPDOOR),
-        171 => Some(&CHERRY_WOOD),
-        299 => Some(&CHEST),
-        767 => Some(&CHEST_MINECART),
-        990 => Some(&CHICKEN),
-        1019 => Some(&CHICKEN_SPAWN_EGG),
-        420 => Some(&CHIPPED_ANVIL),
-        287 => Some(&CHISELED_BOOKSHELF),
-        96 => Some(&CHISELED_COPPER),
-        350 => Some(&CHISELED_DEEPSLATE),
-        368 => Some(&CHISELED_NETHER_BRICKS),
-        1235 => Some(&CHISELED_POLISHED_BLACKSTONE),
-        422 => Some(&CHISELED_QUARTZ_BLOCK),
-        511 => Some(&CHISELED_RED_SANDSTONE),
-        192 => Some(&CHISELED_SANDSTONE),
-        343 => Some(&CHISELED_STONE_BRICKS),
+        736 => Some(&CHERRY_PRESSURE_PLATE),
+        54 => Some(&CHERRY_SAPLING),
+        948 => Some(&CHERRY_SIGN),
+        275 => Some(&CHERRY_SLAB),
+        417 => Some(&CHERRY_STAIRS),
+        770 => Some(&CHERRY_TRAPDOOR),
+        176 => Some(&CHERRY_WOOD),
+        319 => Some(&CHEST),
+        819 => Some(&CHEST_MINECART),
+        1067 => Some(&CHICKEN),
+        1096 => Some(&CHICKEN_SPAWN_EGG),
+        450 => Some(&CHIPPED_ANVIL),
+        306 => Some(&CHISELED_BOOKSHELF),
+        98 => Some(&CHISELED_COPPER),
+        372 => Some(&CHISELED_DEEPSLATE),
+        397 => Some(&CHISELED_NETHER_BRICKS),
+        1319 => Some(&CHISELED_POLISHED_BLACKSTONE),
+        452 => Some(&CHISELED_QUARTZ_BLOCK),
+        541 => Some(&CHISELED_RED_SANDSTONE),
+        389 => Some(&CHISELED_RESIN_BRICKS),
+        199 => Some(&CHISELED_SANDSTONE),
+        365 => Some(&CHISELED_STONE_BRICKS),
         16 => Some(&CHISELED_TUFF),
         25 => Some(&CHISELED_TUFF_BRICKS),
-        294 => Some(&CHORUS_FLOWER),
-        1150 => Some(&CHORUS_FRUIT),
-        293 => Some(&CHORUS_PLANT),
-        309 => Some(&CLAY),
-        922 => Some(&CLAY_BALL),
-        932 => Some(&CLOCK),
-        803 => Some(&COAL),
-        81 => Some(&COAL_BLOCK),
-        62 => Some(&COAL_ORE),
+        313 => Some(&CHORUS_FLOWER),
+        1231 => Some(&CHORUS_FRUIT),
+        312 => Some(&CHORUS_PLANT),
+        330 => Some(&CLAY),
+        981 => Some(&CLAY_BALL),
+        1009 => Some(&CLOCK),
+        231 => Some(&CLOSED_EYEBLOSSOM),
+        860 => Some(&COAL),
+        83 => Some(&COAL_BLOCK),
+        64 => Some(&COAL_ORE),
         29 => Some(&COARSE_DIRT),
-        1272 => Some(&COAST_ARMOR_TRIM_SMITHING_TEMPLATE),
+        1356 => Some(&COAST_ARMOR_TRIM_SMITHING_TEMPLATE),
         9 => Some(&COBBLED_DEEPSLATE),
-        652 => Some(&COBBLED_DEEPSLATE_SLAB),
-        635 => Some(&COBBLED_DEEPSLATE_STAIRS),
-        415 => Some(&COBBLED_DEEPSLATE_WALL),
+        683 => Some(&COBBLED_DEEPSLATE_SLAB),
+        666 => Some(&COBBLED_DEEPSLATE_STAIRS),
+        445 => Some(&COBBLED_DEEPSLATE_WALL),
         35 => Some(&COBBLESTONE),
-        269 => Some(&COBBLESTONE_SLAB),
-        304 => Some(&COBBLESTONE_STAIRS),
-        397 => Some(&COBBLESTONE_WALL),
-        194 => Some(&COBWEB),
-        943 => Some(&COCOA_BEANS),
-        935 => Some(&COD),
-        917 => Some(&COD_BUCKET),
-        1020 => Some(&COD_SPAWN_EGG),
-        395 => Some(&COMMAND_BLOCK),
-        1130 => Some(&COMMAND_BLOCK_MINECART),
-        661 => Some(&COMPARATOR),
-        928 => Some(&COMPASS),
-        1204 => Some(&COMPOSTER),
-        620 => Some(&CONDUIT),
-        989 => Some(&COOKED_BEEF),
-        991 => Some(&COOKED_CHICKEN),
-        939 => Some(&COOKED_COD),
-        1132 => Some(&COOKED_MUTTON),
-        882 => Some(&COOKED_PORKCHOP),
-        1119 => Some(&COOKED_RABBIT),
-        940 => Some(&COOKED_SALMON),
-        980 => Some(&COOKIE),
-        89 => Some(&COPPER_BLOCK),
-        1319 => Some(&COPPER_BULB),
-        722 => Some(&COPPER_DOOR),
-        1311 => Some(&COPPER_GRATE),
-        813 => Some(&COPPER_INGOT),
-        66 => Some(&COPPER_ORE),
-        742 => Some(&COPPER_TRAPDOOR),
-        228 => Some(&CORNFLOWER),
-        1021 => Some(&COW_SPAWN_EGG),
-        347 => Some(&CRACKED_DEEPSLATE_BRICKS),
-        349 => Some(&CRACKED_DEEPSLATE_TILES),
-        367 => Some(&CRACKED_NETHER_BRICKS),
-        1239 => Some(&CRACKED_POLISHED_BLACKSTONE_BRICKS),
-        342 => Some(&CRACKED_STONE_BRICKS),
-        981 => Some(&CRAFTER),
-        300 => Some(&CRAFTING_TABLE),
-        1196 => Some(&CREEPER_BANNER_PATTERN),
-        1107 => Some(&CREEPER_HEAD),
-        1022 => Some(&CREEPER_SPAWN_EGG),
-        693 => Some(&CRIMSON_BUTTON),
-        720 => Some(&CRIMSON_DOOR),
-        320 => Some(&CRIMSON_FENCE),
-        759 => Some(&CRIMSON_FENCE_GATE),
-        236 => Some(&CRIMSON_FUNGUS),
-        906 => Some(&CRIMSON_HANGING_SIGN),
-        174 => Some(&CRIMSON_HYPHAE),
+        288 => Some(&COBBLESTONE_SLAB),
+        324 => Some(&COBBLESTONE_STAIRS),
+        427 => Some(&COBBLESTONE_WALL),
+        201 => Some(&COBWEB),
+        1020 => Some(&COCOA_BEANS),
+        1012 => Some(&COD),
+        976 => Some(&COD_BUCKET),
+        1097 => Some(&COD_SPAWN_EGG),
+        425 => Some(&COMMAND_BLOCK),
+        1211 => Some(&COMMAND_BLOCK_MINECART),
+        692 => Some(&COMPARATOR),
+        989 => Some(&COMPASS),
+        1288 => Some(&COMPOSTER),
+        651 => Some(&CONDUIT),
+        1066 => Some(&COOKED_BEEF),
+        1068 => Some(&COOKED_CHICKEN),
+        1016 => Some(&COOKED_COD),
+        1213 => Some(&COOKED_MUTTON),
+        939 => Some(&COOKED_PORKCHOP),
+        1200 => Some(&COOKED_RABBIT),
+        1017 => Some(&COOKED_SALMON),
+        1057 => Some(&COOKIE),
+        91 => Some(&COPPER_BLOCK),
+        1403 => Some(&COPPER_BULB),
+        756 => Some(&COPPER_DOOR),
+        1395 => Some(&COPPER_GRATE),
+        870 => Some(&COPPER_INGOT),
+        68 => Some(&COPPER_ORE),
+        777 => Some(&COPPER_TRAPDOOR),
+        241 => Some(&CORNFLOWER),
+        1098 => Some(&COW_SPAWN_EGG),
+        369 => Some(&CRACKED_DEEPSLATE_BRICKS),
+        371 => Some(&CRACKED_DEEPSLATE_TILES),
+        396 => Some(&CRACKED_NETHER_BRICKS),
+        1323 => Some(&CRACKED_POLISHED_BLACKSTONE_BRICKS),
+        364 => Some(&CRACKED_STONE_BRICKS),
+        1058 => Some(&CRAFTER),
+        320 => Some(&CRAFTING_TABLE),
+        318 => Some(&CREAKING_HEART),
+        1162 => Some(&CREAKING_SPAWN_EGG),
+        1278 => Some(&CREEPER_BANNER_PATTERN),
+        1187 => Some(&CREEPER_HEAD),
+        1099 => Some(&CREEPER_SPAWN_EGG),
+        725 => Some(&CRIMSON_BUTTON),
+        754 => Some(&CRIMSON_DOOR),
+        342 => Some(&CRIMSON_FENCE),
+        795 => Some(&CRIMSON_FENCE_GATE),
+        249 => Some(&CRIMSON_FUNGUS),
+        965 => Some(&CRIMSON_HANGING_SIGN),
+        180 => Some(&CRIMSON_HYPHAE),
         33 => Some(&CRIMSON_NYLIUM),
-        45 => Some(&CRIMSON_PLANKS),
-        708 => Some(&CRIMSON_PRESSURE_PLATE),
-        238 => Some(&CRIMSON_ROOTS),
-        895 => Some(&CRIMSON_SIGN),
-        262 => Some(&CRIMSON_SLAB),
-        393 => Some(&CRIMSON_STAIRS),
-        142 => Some(&CRIMSON_STEM),
-        740 => Some(&CRIMSON_TRAPDOOR),
-        1192 => Some(&CROSSBOW),
-        1227 => Some(&CRYING_OBSIDIAN),
-        100 => Some(&CUT_COPPER),
-        108 => Some(&CUT_COPPER_SLAB),
-        104 => Some(&CUT_COPPER_STAIRS),
-        512 => Some(&CUT_RED_SANDSTONE),
-        276 => Some(&CUT_RED_SANDSTONE_SLAB),
-        193 => Some(&CUT_SANDSTONE),
-        267 => Some(&CUT_SANDSTONE_SLAB),
-        1142 => Some(&CYAN_BANNER),
-        973 => Some(&CYAN_BED),
-        1251 => Some(&CYAN_CANDLE),
-        455 => Some(&CYAN_CARPET),
-        564 => Some(&CYAN_CONCRETE),
-        580 => Some(&CYAN_CONCRETE_POWDER),
-        953 => Some(&CYAN_DYE),
-        548 => Some(&CYAN_GLAZED_TERRACOTTA),
-        532 => Some(&CYAN_SHULKER_BOX),
-        480 => Some(&CYAN_STAINED_GLASS),
-        496 => Some(&CYAN_STAINED_GLASS_PANE),
-        436 => Some(&CYAN_TERRACOTTA),
-        211 => Some(&CYAN_WOOL),
-        421 => Some(&DAMAGED_ANVIL),
-        218 => Some(&DANDELION),
-        1294 => Some(&DANGER_POTTERY_SHERD),
-        786 => Some(&DARK_OAK_BOAT),
-        690 => Some(&DARK_OAK_BUTTON),
-        787 => Some(&DARK_OAK_CHEST_BOAT),
-        717 => Some(&DARK_OAK_DOOR),
-        317 => Some(&DARK_OAK_FENCE),
-        756 => Some(&DARK_OAK_FENCE_GATE),
-        903 => Some(&DARK_OAK_HANGING_SIGN),
-        182 => Some(&DARK_OAK_LEAVES),
-        138 => Some(&DARK_OAK_LOG),
+        46 => Some(&CRIMSON_PLANKS),
+        741 => Some(&CRIMSON_PRESSURE_PLATE),
+        251 => Some(&CRIMSON_ROOTS),
+        953 => Some(&CRIMSON_SIGN),
+        281 => Some(&CRIMSON_SLAB),
+        423 => Some(&CRIMSON_STAIRS),
+        145 => Some(&CRIMSON_STEM),
+        775 => Some(&CRIMSON_TRAPDOOR),
+        1274 => Some(&CROSSBOW),
+        1311 => Some(&CRYING_OBSIDIAN),
+        102 => Some(&CUT_COPPER),
+        110 => Some(&CUT_COPPER_SLAB),
+        106 => Some(&CUT_COPPER_STAIRS),
+        542 => Some(&CUT_RED_SANDSTONE),
+        295 => Some(&CUT_RED_SANDSTONE_SLAB),
+        200 => Some(&CUT_SANDSTONE),
+        286 => Some(&CUT_SANDSTONE_SLAB),
+        1223 => Some(&CYAN_BANNER),
+        1050 => Some(&CYAN_BED),
+        1001 => Some(&CYAN_BUNDLE),
+        1335 => Some(&CYAN_CANDLE),
+        485 => Some(&CYAN_CARPET),
+        594 => Some(&CYAN_CONCRETE),
+        610 => Some(&CYAN_CONCRETE_POWDER),
+        1030 => Some(&CYAN_DYE),
+        578 => Some(&CYAN_GLAZED_TERRACOTTA),
+        811 => Some(&CYAN_HARNESS),
+        562 => Some(&CYAN_SHULKER_BOX),
+        510 => Some(&CYAN_STAINED_GLASS),
+        526 => Some(&CYAN_STAINED_GLASS_PANE),
+        466 => Some(&CYAN_TERRACOTTA),
+        222 => Some(&CYAN_WOOL),
+        451 => Some(&DAMAGED_ANVIL),
+        229 => Some(&DANDELION),
+        1378 => Some(&DANGER_POTTERY_SHERD),
+        839 => Some(&DARK_OAK_BOAT),
+        721 => Some(&DARK_OAK_BUTTON),
+        840 => Some(&DARK_OAK_CHEST_BOAT),
+        750 => Some(&DARK_OAK_DOOR),
+        338 => Some(&DARK_OAK_FENCE),
+        791 => Some(&DARK_OAK_FENCE_GATE),
+        961 => Some(&DARK_OAK_HANGING_SIGN),
+        188 => Some(&DARK_OAK_LEAVES),
+        141 => Some(&DARK_OAK_LOG),
         42 => Some(&DARK_OAK_PLANKS),
-        705 => Some(&DARK_OAK_PRESSURE_PLATE),
-        54 => Some(&DARK_OAK_SAPLING),
-        892 => Some(&DARK_OAK_SIGN),
-        258 => Some(&DARK_OAK_SLAB),
-        389 => Some(&DARK_OAK_STAIRS),
-        737 => Some(&DARK_OAK_TRAPDOOR),
-        172 => Some(&DARK_OAK_WOOD),
-        505 => Some(&DARK_PRISMARINE),
-        280 => Some(&DARK_PRISMARINE_SLAB),
-        508 => Some(&DARK_PRISMARINE_STAIRS),
-        674 => Some(&DAYLIGHT_DETECTOR),
-        604 => Some(&DEAD_BRAIN_CORAL),
-        590 => Some(&DEAD_BRAIN_CORAL_BLOCK),
-        615 => Some(&DEAD_BRAIN_CORAL_FAN),
-        605 => Some(&DEAD_BUBBLE_CORAL),
-        591 => Some(&DEAD_BUBBLE_CORAL_BLOCK),
-        616 => Some(&DEAD_BUBBLE_CORAL_FAN),
-        199 => Some(&DEAD_BUSH),
-        606 => Some(&DEAD_FIRE_CORAL),
-        592 => Some(&DEAD_FIRE_CORAL_BLOCK),
-        617 => Some(&DEAD_FIRE_CORAL_FAN),
-        607 => Some(&DEAD_HORN_CORAL),
-        593 => Some(&DEAD_HORN_CORAL_BLOCK),
-        618 => Some(&DEAD_HORN_CORAL_FAN),
-        608 => Some(&DEAD_TUBE_CORAL),
-        589 => Some(&DEAD_TUBE_CORAL_BLOCK),
-        614 => Some(&DEAD_TUBE_CORAL_FAN),
-        1167 => Some(&DEBUG_STICK),
-        288 => Some(&DECORATED_POT),
+        737 => Some(&DARK_OAK_PRESSURE_PLATE),
+        55 => Some(&DARK_OAK_SAPLING),
+        949 => Some(&DARK_OAK_SIGN),
+        276 => Some(&DARK_OAK_SLAB),
+        418 => Some(&DARK_OAK_STAIRS),
+        771 => Some(&DARK_OAK_TRAPDOOR),
+        178 => Some(&DARK_OAK_WOOD),
+        535 => Some(&DARK_PRISMARINE),
+        299 => Some(&DARK_PRISMARINE_SLAB),
+        538 => Some(&DARK_PRISMARINE_STAIRS),
+        705 => Some(&DAYLIGHT_DETECTOR),
+        635 => Some(&DEAD_BRAIN_CORAL),
+        621 => Some(&DEAD_BRAIN_CORAL_BLOCK),
+        646 => Some(&DEAD_BRAIN_CORAL_FAN),
+        636 => Some(&DEAD_BUBBLE_CORAL),
+        622 => Some(&DEAD_BUBBLE_CORAL_BLOCK),
+        647 => Some(&DEAD_BUBBLE_CORAL_FAN),
+        207 => Some(&DEAD_BUSH),
+        637 => Some(&DEAD_FIRE_CORAL),
+        623 => Some(&DEAD_FIRE_CORAL_BLOCK),
+        648 => Some(&DEAD_FIRE_CORAL_FAN),
+        638 => Some(&DEAD_HORN_CORAL),
+        624 => Some(&DEAD_HORN_CORAL_BLOCK),
+        649 => Some(&DEAD_HORN_CORAL_FAN),
+        639 => Some(&DEAD_TUBE_CORAL),
+        620 => Some(&DEAD_TUBE_CORAL_BLOCK),
+        645 => Some(&DEAD_TUBE_CORAL_FAN),
+        1248 => Some(&DEBUG_STICK),
+        307 => Some(&DECORATED_POT),
         8 => Some(&DEEPSLATE),
-        654 => Some(&DEEPSLATE_BRICK_SLAB),
-        637 => Some(&DEEPSLATE_BRICK_STAIRS),
-        417 => Some(&DEEPSLATE_BRICK_WALL),
-        346 => Some(&DEEPSLATE_BRICKS),
-        63 => Some(&DEEPSLATE_COAL_ORE),
-        67 => Some(&DEEPSLATE_COPPER_ORE),
-        77 => Some(&DEEPSLATE_DIAMOND_ORE),
-        73 => Some(&DEEPSLATE_EMERALD_ORE),
-        69 => Some(&DEEPSLATE_GOLD_ORE),
-        65 => Some(&DEEPSLATE_IRON_ORE),
-        75 => Some(&DEEPSLATE_LAPIS_ORE),
-        71 => Some(&DEEPSLATE_REDSTONE_ORE),
-        655 => Some(&DEEPSLATE_TILE_SLAB),
-        638 => Some(&DEEPSLATE_TILE_STAIRS),
-        418 => Some(&DEEPSLATE_TILE_WALL),
-        348 => Some(&DEEPSLATE_TILES),
-        762 => Some(&DETECTOR_RAIL),
-        805 => Some(&DIAMOND),
-        841 => Some(&DIAMOND_AXE),
-        91 => Some(&DIAMOND_BLOCK),
-        871 => Some(&DIAMOND_BOOTS),
-        869 => Some(&DIAMOND_CHESTPLATE),
-        868 => Some(&DIAMOND_HELMET),
-        842 => Some(&DIAMOND_HOE),
-        1126 => Some(&DIAMOND_HORSE_ARMOR),
-        870 => Some(&DIAMOND_LEGGINGS),
-        76 => Some(&DIAMOND_ORE),
-        840 => Some(&DIAMOND_PICKAXE),
-        839 => Some(&DIAMOND_SHOVEL),
-        838 => Some(&DIAMOND_SWORD),
+        685 => Some(&DEEPSLATE_BRICK_SLAB),
+        668 => Some(&DEEPSLATE_BRICK_STAIRS),
+        447 => Some(&DEEPSLATE_BRICK_WALL),
+        368 => Some(&DEEPSLATE_BRICKS),
+        65 => Some(&DEEPSLATE_COAL_ORE),
+        69 => Some(&DEEPSLATE_COPPER_ORE),
+        79 => Some(&DEEPSLATE_DIAMOND_ORE),
+        75 => Some(&DEEPSLATE_EMERALD_ORE),
+        71 => Some(&DEEPSLATE_GOLD_ORE),
+        67 => Some(&DEEPSLATE_IRON_ORE),
+        77 => Some(&DEEPSLATE_LAPIS_ORE),
+        73 => Some(&DEEPSLATE_REDSTONE_ORE),
+        686 => Some(&DEEPSLATE_TILE_SLAB),
+        669 => Some(&DEEPSLATE_TILE_STAIRS),
+        448 => Some(&DEEPSLATE_TILE_WALL),
+        370 => Some(&DEEPSLATE_TILES),
+        798 => Some(&DETECTOR_RAIL),
+        862 => Some(&DIAMOND),
+        898 => Some(&DIAMOND_AXE),
+        93 => Some(&DIAMOND_BLOCK),
+        928 => Some(&DIAMOND_BOOTS),
+        926 => Some(&DIAMOND_CHESTPLATE),
+        925 => Some(&DIAMOND_HELMET),
+        899 => Some(&DIAMOND_HOE),
+        1207 => Some(&DIAMOND_HORSE_ARMOR),
+        927 => Some(&DIAMOND_LEGGINGS),
+        78 => Some(&DIAMOND_ORE),
+        897 => Some(&DIAMOND_PICKAXE),
+        896 => Some(&DIAMOND_SHOVEL),
+        895 => Some(&DIAMOND_SWORD),
         4 => Some(&DIORITE),
-        651 => Some(&DIORITE_SLAB),
-        634 => Some(&DIORITE_STAIRS),
-        411 => Some(&DIORITE_WALL),
+        682 => Some(&DIORITE_SLAB),
+        665 => Some(&DIORITE_STAIRS),
+        441 => Some(&DIORITE_WALL),
         28 => Some(&DIRT),
-        464 => Some(&DIRT_PATH),
-        1187 => Some(&DISC_FRAGMENT_5),
-        668 => Some(&DISPENSER),
-        1023 => Some(&DOLPHIN_SPAWN_EGG),
-        1024 => Some(&DONKEY_SPAWN_EGG),
-        1157 => Some(&DRAGON_BREATH),
-        379 => Some(&DRAGON_EGG),
-        1108 => Some(&DRAGON_HEAD),
-        985 => Some(&DRIED_KELP),
-        923 => Some(&DRIED_KELP_BLOCK),
+        494 => Some(&DIRT_PATH),
+        1270 => Some(&DISC_FRAGMENT_5),
+        699 => Some(&DISPENSER),
+        1100 => Some(&DOLPHIN_SPAWN_EGG),
+        1101 => Some(&DONKEY_SPAWN_EGG),
+        1238 => Some(&DRAGON_BREATH),
+        408 => Some(&DRAGON_EGG),
+        1188 => Some(&DRAGON_HEAD),
+        619 => Some(&DRIED_GHAST),
+        1062 => Some(&DRIED_KELP),
+        982 => Some(&DRIED_KELP_BLOCK),
         26 => Some(&DRIPSTONE_BLOCK),
-        669 => Some(&DROPPER),
-        1025 => Some(&DROWNED_SPAWN_EGG),
-        1271 => Some(&DUNE_ARMOR_TRIM_SMITHING_TEMPLATE),
-        1267 => Some(&ECHO_SHARD),
-        927 => Some(&EGG),
-        1026 => Some(&ELDER_GUARDIAN_SPAWN_EGG),
-        773 => Some(&ELYTRA),
-        806 => Some(&EMERALD),
-        382 => Some(&EMERALD_BLOCK),
-        72 => Some(&EMERALD_ORE),
-        1114 => Some(&ENCHANTED_BOOK),
-        885 => Some(&ENCHANTED_GOLDEN_APPLE),
-        375 => Some(&ENCHANTING_TABLE),
-        1149 => Some(&END_CRYSTAL),
-        376 => Some(&END_PORTAL_FRAME),
-        292 => Some(&END_ROD),
-        377 => Some(&END_STONE),
-        644 => Some(&END_STONE_BRICK_SLAB),
-        626 => Some(&END_STONE_BRICK_STAIRS),
-        410 => Some(&END_STONE_BRICK_WALL),
-        378 => Some(&END_STONE_BRICKS),
-        381 => Some(&ENDER_CHEST),
-        1027 => Some(&ENDER_DRAGON_SPAWN_EGG),
-        1006 => Some(&ENDER_EYE),
-        993 => Some(&ENDER_PEARL),
-        1028 => Some(&ENDERMAN_SPAWN_EGG),
-        1029 => Some(&ENDERMITE_SPAWN_EGG),
-        1030 => Some(&EVOKER_SPAWN_EGG),
-        1088 => Some(&EXPERIENCE_BOTTLE),
-        1295 => Some(&EXPLORER_POTTERY_SHERD),
-        97 => Some(&EXPOSED_CHISELED_COPPER),
-        93 => Some(&EXPOSED_COPPER),
-        1320 => Some(&EXPOSED_COPPER_BULB),
-        723 => Some(&EXPOSED_COPPER_DOOR),
-        1312 => Some(&EXPOSED_COPPER_GRATE),
-        743 => Some(&EXPOSED_COPPER_TRAPDOOR),
-        101 => Some(&EXPOSED_CUT_COPPER),
-        109 => Some(&EXPOSED_CUT_COPPER_SLAB),
-        105 => Some(&EXPOSED_CUT_COPPER_STAIRS),
-        1275 => Some(&EYE_ARMOR_TRIM_SMITHING_TEMPLATE),
-        301 => Some(&FARMLAND),
-        851 => Some(&FEATHER),
-        1001 => Some(&FERMENTED_SPIDER_EYE),
-        196 => Some(&FERN),
-        982 => Some(&FILLED_MAP),
-        1089 => Some(&FIRE_CHARGE),
-        602 => Some(&FIRE_CORAL),
-        597 => Some(&FIRE_CORAL_BLOCK),
-        612 => Some(&FIRE_CORAL_FAN),
-        1112 => Some(&FIREWORK_ROCKET),
-        1113 => Some(&FIREWORK_STAR),
-        931 => Some(&FISHING_ROD),
-        1209 => Some(&FLETCHING_TABLE),
-        880 => Some(&FLINT),
-        798 => Some(&FLINT_AND_STEEL),
-        1286 => Some(&FLOW_ARMOR_TRIM_SMITHING_TEMPLATE),
-        1201 => Some(&FLOW_BANNER_PATTERN),
-        1296 => Some(&FLOW_POTTERY_SHERD),
-        1195 => Some(&FLOWER_BANNER_PATTERN),
-        1096 => Some(&FLOWER_POT),
-        198 => Some(&FLOWERING_AZALEA),
-        185 => Some(&FLOWERING_AZALEA_LEAVES),
-        1031 => Some(&FOX_SPAWN_EGG),
-        1297 => Some(&FRIEND_POTTERY_SHERD),
-        1032 => Some(&FROG_SPAWN_EGG),
-        1266 => Some(&FROGSPAWN),
-        302 => Some(&FURNACE),
-        768 => Some(&FURNACE_MINECART),
-        1033 => Some(&GHAST_SPAWN_EGG),
-        995 => Some(&GHAST_TEAR),
-        1231 => Some(&GILDED_BLACKSTONE),
-        188 => Some(&GLASS),
-        999 => Some(&GLASS_BOTTLE),
-        357 => Some(&GLASS_PANE),
-        1007 => Some(&GLISTERING_MELON_SLICE),
-        1199 => Some(&GLOBE_BANNER_PATTERN),
-        1217 => Some(&GLOW_BERRIES),
-        942 => Some(&GLOW_INK_SAC),
-        1095 => Some(&GLOW_ITEM_FRAME),
-        360 => Some(&GLOW_LICHEN),
-        1034 => Some(&GLOW_SQUID_SPAWN_EGG),
-        332 => Some(&GLOWSTONE),
-        934 => Some(&GLOWSTONE_DUST),
-        1203 => Some(&GOAT_HORN),
-        1035 => Some(&GOAT_SPAWN_EGG),
-        90 => Some(&GOLD_BLOCK),
-        815 => Some(&GOLD_INGOT),
-        996 => Some(&GOLD_NUGGET),
-        68 => Some(&GOLD_ORE),
-        884 => Some(&GOLDEN_APPLE),
-        831 => Some(&GOLDEN_AXE),
-        875 => Some(&GOLDEN_BOOTS),
-        1102 => Some(&GOLDEN_CARROT),
-        873 => Some(&GOLDEN_CHESTPLATE),
-        872 => Some(&GOLDEN_HELMET),
-        832 => Some(&GOLDEN_HOE),
-        1125 => Some(&GOLDEN_HORSE_ARMOR),
-        874 => Some(&GOLDEN_LEGGINGS),
-        830 => Some(&GOLDEN_PICKAXE),
-        829 => Some(&GOLDEN_SHOVEL),
-        828 => Some(&GOLDEN_SWORD),
+        700 => Some(&DROPPER),
+        1102 => Some(&DROWNED_SPAWN_EGG),
+        1355 => Some(&DUNE_ARMOR_TRIM_SMITHING_TEMPLATE),
+        1351 => Some(&ECHO_SHARD),
+        986 => Some(&EGG),
+        1103 => Some(&ELDER_GUARDIAN_SPAWN_EGG),
+        826 => Some(&ELYTRA),
+        863 => Some(&EMERALD),
+        411 => Some(&EMERALD_BLOCK),
+        74 => Some(&EMERALD_ORE),
+        1194 => Some(&ENCHANTED_BOOK),
+        942 => Some(&ENCHANTED_GOLDEN_APPLE),
+        404 => Some(&ENCHANTING_TABLE),
+        1230 => Some(&END_CRYSTAL),
+        405 => Some(&END_PORTAL_FRAME),
+        311 => Some(&END_ROD),
+        406 => Some(&END_STONE),
+        675 => Some(&END_STONE_BRICK_SLAB),
+        657 => Some(&END_STONE_BRICK_STAIRS),
+        440 => Some(&END_STONE_BRICK_WALL),
+        407 => Some(&END_STONE_BRICKS),
+        410 => Some(&ENDER_CHEST),
+        1104 => Some(&ENDER_DRAGON_SPAWN_EGG),
+        1083 => Some(&ENDER_EYE),
+        1070 => Some(&ENDER_PEARL),
+        1105 => Some(&ENDERMAN_SPAWN_EGG),
+        1106 => Some(&ENDERMITE_SPAWN_EGG),
+        1107 => Some(&EVOKER_SPAWN_EGG),
+        1167 => Some(&EXPERIENCE_BOTTLE),
+        1379 => Some(&EXPLORER_POTTERY_SHERD),
+        99 => Some(&EXPOSED_CHISELED_COPPER),
+        95 => Some(&EXPOSED_COPPER),
+        1404 => Some(&EXPOSED_COPPER_BULB),
+        757 => Some(&EXPOSED_COPPER_DOOR),
+        1396 => Some(&EXPOSED_COPPER_GRATE),
+        778 => Some(&EXPOSED_COPPER_TRAPDOOR),
+        103 => Some(&EXPOSED_CUT_COPPER),
+        111 => Some(&EXPOSED_CUT_COPPER_SLAB),
+        107 => Some(&EXPOSED_CUT_COPPER_STAIRS),
+        1359 => Some(&EYE_ARMOR_TRIM_SMITHING_TEMPLATE),
+        321 => Some(&FARMLAND),
+        908 => Some(&FEATHER),
+        1078 => Some(&FERMENTED_SPIDER_EYE),
+        203 => Some(&FERN),
+        1285 => Some(&FIELD_MASONED_BANNER_PATTERN),
+        1059 => Some(&FILLED_MAP),
+        1168 => Some(&FIRE_CHARGE),
+        633 => Some(&FIRE_CORAL),
+        628 => Some(&FIRE_CORAL_BLOCK),
+        643 => Some(&FIRE_CORAL_FAN),
+        208 => Some(&FIREFLY_BUSH),
+        1192 => Some(&FIREWORK_ROCKET),
+        1193 => Some(&FIREWORK_STAR),
+        1008 => Some(&FISHING_ROD),
+        1293 => Some(&FLETCHING_TABLE),
+        937 => Some(&FLINT),
+        855 => Some(&FLINT_AND_STEEL),
+        1370 => Some(&FLOW_ARMOR_TRIM_SMITHING_TEMPLATE),
+        1283 => Some(&FLOW_BANNER_PATTERN),
+        1380 => Some(&FLOW_POTTERY_SHERD),
+        1277 => Some(&FLOWER_BANNER_PATTERN),
+        1176 => Some(&FLOWER_POT),
+        206 => Some(&FLOWERING_AZALEA),
+        192 => Some(&FLOWERING_AZALEA_LEAVES),
+        1108 => Some(&FOX_SPAWN_EGG),
+        1381 => Some(&FRIEND_POTTERY_SHERD),
+        1109 => Some(&FROG_SPAWN_EGG),
+        1350 => Some(&FROGSPAWN),
+        322 => Some(&FURNACE),
+        820 => Some(&FURNACE_MINECART),
+        1110 => Some(&GHAST_SPAWN_EGG),
+        1072 => Some(&GHAST_TEAR),
+        1315 => Some(&GILDED_BLACKSTONE),
+        195 => Some(&GLASS),
+        1075 => Some(&GLASS_BOTTLE),
+        379 => Some(&GLASS_PANE),
+        1084 => Some(&GLISTERING_MELON_SLICE),
+        1281 => Some(&GLOBE_BANNER_PATTERN),
+        1301 => Some(&GLOW_BERRIES),
+        1019 => Some(&GLOW_INK_SAC),
+        1175 => Some(&GLOW_ITEM_FRAME),
+        382 => Some(&GLOW_LICHEN),
+        1112 => Some(&GLOW_SQUID_SPAWN_EGG),
+        354 => Some(&GLOWSTONE),
+        1011 => Some(&GLOWSTONE_DUST),
+        1287 => Some(&GOAT_HORN),
+        1113 => Some(&GOAT_SPAWN_EGG),
+        92 => Some(&GOLD_BLOCK),
+        872 => Some(&GOLD_INGOT),
+        1073 => Some(&GOLD_NUGGET),
+        70 => Some(&GOLD_ORE),
+        941 => Some(&GOLDEN_APPLE),
+        888 => Some(&GOLDEN_AXE),
+        932 => Some(&GOLDEN_BOOTS),
+        1182 => Some(&GOLDEN_CARROT),
+        930 => Some(&GOLDEN_CHESTPLATE),
+        929 => Some(&GOLDEN_HELMET),
+        889 => Some(&GOLDEN_HOE),
+        1206 => Some(&GOLDEN_HORSE_ARMOR),
+        931 => Some(&GOLDEN_LEGGINGS),
+        887 => Some(&GOLDEN_PICKAXE),
+        886 => Some(&GOLDEN_SHOVEL),
+        885 => Some(&GOLDEN_SWORD),
         2 => Some(&GRANITE),
-        647 => Some(&GRANITE_SLAB),
-        630 => Some(&GRANITE_STAIRS),
-        403 => Some(&GRANITE_WALL),
+        678 => Some(&GRANITE_SLAB),
+        661 => Some(&GRANITE_STAIRS),
+        433 => Some(&GRANITE_WALL),
         27 => Some(&GRASS_BLOCK),
-        61 => Some(&GRAVEL),
-        1140 => Some(&GRAY_BANNER),
-        971 => Some(&GRAY_BED),
-        1249 => Some(&GRAY_CANDLE),
-        453 => Some(&GRAY_CARPET),
-        562 => Some(&GRAY_CONCRETE),
-        578 => Some(&GRAY_CONCRETE_POWDER),
-        951 => Some(&GRAY_DYE),
-        546 => Some(&GRAY_GLAZED_TERRACOTTA),
-        530 => Some(&GRAY_SHULKER_BOX),
-        478 => Some(&GRAY_STAINED_GLASS),
-        494 => Some(&GRAY_STAINED_GLASS_PANE),
-        434 => Some(&GRAY_TERRACOTTA),
-        209 => Some(&GRAY_WOOL),
-        1146 => Some(&GREEN_BANNER),
-        977 => Some(&GREEN_BED),
-        1255 => Some(&GREEN_CANDLE),
-        459 => Some(&GREEN_CARPET),
-        568 => Some(&GREEN_CONCRETE),
-        584 => Some(&GREEN_CONCRETE_POWDER),
-        957 => Some(&GREEN_DYE),
-        552 => Some(&GREEN_GLAZED_TERRACOTTA),
-        536 => Some(&GREEN_SHULKER_BOX),
-        484 => Some(&GREEN_STAINED_GLASS),
-        500 => Some(&GREEN_STAINED_GLASS_PANE),
-        440 => Some(&GREEN_TERRACOTTA),
-        215 => Some(&GREEN_WOOL),
-        1210 => Some(&GRINDSTONE),
-        1036 => Some(&GUARDIAN_SPAWN_EGG),
-        852 => Some(&GUNPOWDER),
-        1202 => Some(&GUSTER_BANNER_PATTERN),
-        1298 => Some(&GUSTER_POTTERY_SHERD),
-        248 => Some(&HANGING_ROOTS),
-        445 => Some(&HAY_BLOCK),
-        1191 => Some(&HEART_OF_THE_SEA),
-        1299 => Some(&HEART_POTTERY_SHERD),
-        1300 => Some(&HEARTBREAK_POTTERY_SHERD),
-        85 => Some(&HEAVY_CORE),
-        698 => Some(&HEAVY_WEIGHTED_PRESSURE_PLATE),
-        1037 => Some(&HOGLIN_SPAWN_EGG),
-        665 => Some(&HONEY_BLOCK),
-        1224 => Some(&HONEY_BOTTLE),
-        1221 => Some(&HONEYCOMB),
-        1225 => Some(&HONEYCOMB_BLOCK),
-        667 => Some(&HOPPER),
-        770 => Some(&HOPPER_MINECART),
-        603 => Some(&HORN_CORAL),
-        598 => Some(&HORN_CORAL_BLOCK),
-        613 => Some(&HORN_CORAL_FAN),
-        1038 => Some(&HORSE_SPAWN_EGG),
-        1285 => Some(&HOST_ARMOR_TRIM_SMITHING_TEMPLATE),
-        1301 => Some(&HOWL_POTTERY_SHERD),
-        1039 => Some(&HUSK_SPAWN_EGG),
-        306 => Some(&ICE),
-        338 => Some(&INFESTED_CHISELED_STONE_BRICKS),
-        334 => Some(&INFESTED_COBBLESTONE),
-        337 => Some(&INFESTED_CRACKED_STONE_BRICKS),
-        339 => Some(&INFESTED_DEEPSLATE),
-        336 => Some(&INFESTED_MOSSY_STONE_BRICKS),
-        333 => Some(&INFESTED_STONE),
-        335 => Some(&INFESTED_STONE_BRICKS),
-        941 => Some(&INK_SAC),
-        836 => Some(&IRON_AXE),
-        355 => Some(&IRON_BARS),
-        88 => Some(&IRON_BLOCK),
-        867 => Some(&IRON_BOOTS),
-        865 => Some(&IRON_CHESTPLATE),
-        710 => Some(&IRON_DOOR),
-        1040 => Some(&IRON_GOLEM_SPAWN_EGG),
-        864 => Some(&IRON_HELMET),
-        837 => Some(&IRON_HOE),
-        1124 => Some(&IRON_HORSE_ARMOR),
-        811 => Some(&IRON_INGOT),
-        866 => Some(&IRON_LEGGINGS),
-        1165 => Some(&IRON_NUGGET),
-        64 => Some(&IRON_ORE),
-        835 => Some(&IRON_PICKAXE),
-        834 => Some(&IRON_SHOVEL),
-        833 => Some(&IRON_SWORD),
-        730 => Some(&IRON_TRAPDOOR),
-        1094 => Some(&ITEM_FRAME),
-        324 => Some(&JACK_O_LANTERN),
-        793 => Some(&JIGSAW),
-        310 => Some(&JUKEBOX),
-        780 => Some(&JUNGLE_BOAT),
-        687 => Some(&JUNGLE_BUTTON),
-        781 => Some(&JUNGLE_CHEST_BOAT),
-        714 => Some(&JUNGLE_DOOR),
-        314 => Some(&JUNGLE_FENCE),
-        753 => Some(&JUNGLE_FENCE_GATE),
-        900 => Some(&JUNGLE_HANGING_SIGN),
-        179 => Some(&JUNGLE_LEAVES),
-        135 => Some(&JUNGLE_LOG),
+        63 => Some(&GRAVEL),
+        1221 => Some(&GRAY_BANNER),
+        1048 => Some(&GRAY_BED),
+        999 => Some(&GRAY_BUNDLE),
+        1333 => Some(&GRAY_CANDLE),
+        483 => Some(&GRAY_CARPET),
+        592 => Some(&GRAY_CONCRETE),
+        608 => Some(&GRAY_CONCRETE_POWDER),
+        1028 => Some(&GRAY_DYE),
+        576 => Some(&GRAY_GLAZED_TERRACOTTA),
+        809 => Some(&GRAY_HARNESS),
+        560 => Some(&GRAY_SHULKER_BOX),
+        508 => Some(&GRAY_STAINED_GLASS),
+        524 => Some(&GRAY_STAINED_GLASS_PANE),
+        464 => Some(&GRAY_TERRACOTTA),
+        220 => Some(&GRAY_WOOL),
+        1227 => Some(&GREEN_BANNER),
+        1054 => Some(&GREEN_BED),
+        1005 => Some(&GREEN_BUNDLE),
+        1339 => Some(&GREEN_CANDLE),
+        489 => Some(&GREEN_CARPET),
+        598 => Some(&GREEN_CONCRETE),
+        614 => Some(&GREEN_CONCRETE_POWDER),
+        1034 => Some(&GREEN_DYE),
+        582 => Some(&GREEN_GLAZED_TERRACOTTA),
+        815 => Some(&GREEN_HARNESS),
+        566 => Some(&GREEN_SHULKER_BOX),
+        514 => Some(&GREEN_STAINED_GLASS),
+        530 => Some(&GREEN_STAINED_GLASS_PANE),
+        470 => Some(&GREEN_TERRACOTTA),
+        226 => Some(&GREEN_WOOL),
+        1294 => Some(&GRINDSTONE),
+        1114 => Some(&GUARDIAN_SPAWN_EGG),
+        909 => Some(&GUNPOWDER),
+        1284 => Some(&GUSTER_BANNER_PATTERN),
+        1382 => Some(&GUSTER_POTTERY_SHERD),
+        266 => Some(&HANGING_ROOTS),
+        1111 => Some(&HAPPY_GHAST_SPAWN_EGG),
+        475 => Some(&HAY_BLOCK),
+        1273 => Some(&HEART_OF_THE_SEA),
+        1383 => Some(&HEART_POTTERY_SHERD),
+        1384 => Some(&HEARTBREAK_POTTERY_SHERD),
+        87 => Some(&HEAVY_CORE),
+        730 => Some(&HEAVY_WEIGHTED_PRESSURE_PLATE),
+        1115 => Some(&HOGLIN_SPAWN_EGG),
+        696 => Some(&HONEY_BLOCK),
+        1308 => Some(&HONEY_BOTTLE),
+        1305 => Some(&HONEYCOMB),
+        1309 => Some(&HONEYCOMB_BLOCK),
+        698 => Some(&HOPPER),
+        822 => Some(&HOPPER_MINECART),
+        634 => Some(&HORN_CORAL),
+        629 => Some(&HORN_CORAL_BLOCK),
+        644 => Some(&HORN_CORAL_FAN),
+        1116 => Some(&HORSE_SPAWN_EGG),
+        1369 => Some(&HOST_ARMOR_TRIM_SMITHING_TEMPLATE),
+        1385 => Some(&HOWL_POTTERY_SHERD),
+        1117 => Some(&HUSK_SPAWN_EGG),
+        326 => Some(&ICE),
+        360 => Some(&INFESTED_CHISELED_STONE_BRICKS),
+        356 => Some(&INFESTED_COBBLESTONE),
+        359 => Some(&INFESTED_CRACKED_STONE_BRICKS),
+        361 => Some(&INFESTED_DEEPSLATE),
+        358 => Some(&INFESTED_MOSSY_STONE_BRICKS),
+        355 => Some(&INFESTED_STONE),
+        357 => Some(&INFESTED_STONE_BRICKS),
+        1018 => Some(&INK_SAC),
+        893 => Some(&IRON_AXE),
+        377 => Some(&IRON_BARS),
+        90 => Some(&IRON_BLOCK),
+        924 => Some(&IRON_BOOTS),
+        922 => Some(&IRON_CHESTPLATE),
+        743 => Some(&IRON_DOOR),
+        1118 => Some(&IRON_GOLEM_SPAWN_EGG),
+        921 => Some(&IRON_HELMET),
+        894 => Some(&IRON_HOE),
+        1205 => Some(&IRON_HORSE_ARMOR),
+        868 => Some(&IRON_INGOT),
+        923 => Some(&IRON_LEGGINGS),
+        1246 => Some(&IRON_NUGGET),
+        66 => Some(&IRON_ORE),
+        892 => Some(&IRON_PICKAXE),
+        891 => Some(&IRON_SHOVEL),
+        890 => Some(&IRON_SWORD),
+        764 => Some(&IRON_TRAPDOOR),
+        1174 => Some(&ITEM_FRAME),
+        346 => Some(&JACK_O_LANTERN),
+        848 => Some(&JIGSAW),
+        331 => Some(&JUKEBOX),
+        833 => Some(&JUNGLE_BOAT),
+        718 => Some(&JUNGLE_BUTTON),
+        834 => Some(&JUNGLE_CHEST_BOAT),
+        747 => Some(&JUNGLE_DOOR),
+        335 => Some(&JUNGLE_FENCE),
+        788 => Some(&JUNGLE_FENCE_GATE),
+        958 => Some(&JUNGLE_HANGING_SIGN),
+        185 => Some(&JUNGLE_LEAVES),
+        137 => Some(&JUNGLE_LOG),
         39 => Some(&JUNGLE_PLANKS),
-        702 => Some(&JUNGLE_PRESSURE_PLATE),
-        51 => Some(&JUNGLE_SAPLING),
-        889 => Some(&JUNGLE_SIGN),
-        255 => Some(&JUNGLE_SLAB),
-        386 => Some(&JUNGLE_STAIRS),
-        734 => Some(&JUNGLE_TRAPDOOR),
-        169 => Some(&JUNGLE_WOOD),
-        244 => Some(&KELP),
-        1166 => Some(&KNOWLEDGE_BOOK),
-        303 => Some(&LADDER),
-        1214 => Some(&LANTERN),
-        190 => Some(&LAPIS_BLOCK),
-        807 => Some(&LAPIS_LAZULI),
-        74 => Some(&LAPIS_ORE),
-        1260 => Some(&LARGE_AMETHYST_BUD),
-        470 => Some(&LARGE_FERN),
-        910 => Some(&LAVA_BUCKET),
-        1128 => Some(&LEAD),
-        913 => Some(&LEATHER),
-        859 => Some(&LEATHER_BOOTS),
-        857 => Some(&LEATHER_CHESTPLATE),
-        856 => Some(&LEATHER_HELMET),
-        1127 => Some(&LEATHER_HORSE_ARMOR),
-        858 => Some(&LEATHER_LEGGINGS),
-        670 => Some(&LECTERN),
-        672 => Some(&LEVER),
-        444 => Some(&LIGHT),
-        1136 => Some(&LIGHT_BLUE_BANNER),
-        967 => Some(&LIGHT_BLUE_BED),
-        1245 => Some(&LIGHT_BLUE_CANDLE),
-        449 => Some(&LIGHT_BLUE_CARPET),
-        558 => Some(&LIGHT_BLUE_CONCRETE),
-        574 => Some(&LIGHT_BLUE_CONCRETE_POWDER),
-        947 => Some(&LIGHT_BLUE_DYE),
-        542 => Some(&LIGHT_BLUE_GLAZED_TERRACOTTA),
-        526 => Some(&LIGHT_BLUE_SHULKER_BOX),
-        474 => Some(&LIGHT_BLUE_STAINED_GLASS),
-        490 => Some(&LIGHT_BLUE_STAINED_GLASS_PANE),
-        430 => Some(&LIGHT_BLUE_TERRACOTTA),
-        205 => Some(&LIGHT_BLUE_WOOL),
-        1141 => Some(&LIGHT_GRAY_BANNER),
-        972 => Some(&LIGHT_GRAY_BED),
-        1250 => Some(&LIGHT_GRAY_CANDLE),
-        454 => Some(&LIGHT_GRAY_CARPET),
-        563 => Some(&LIGHT_GRAY_CONCRETE),
-        579 => Some(&LIGHT_GRAY_CONCRETE_POWDER),
-        952 => Some(&LIGHT_GRAY_DYE),
-        547 => Some(&LIGHT_GRAY_GLAZED_TERRACOTTA),
-        531 => Some(&LIGHT_GRAY_SHULKER_BOX),
-        479 => Some(&LIGHT_GRAY_STAINED_GLASS),
-        495 => Some(&LIGHT_GRAY_STAINED_GLASS_PANE),
-        435 => Some(&LIGHT_GRAY_TERRACOTTA),
-        210 => Some(&LIGHT_GRAY_WOOL),
-        697 => Some(&LIGHT_WEIGHTED_PRESSURE_PLATE),
-        673 => Some(&LIGHTNING_ROD),
-        466 => Some(&LILAC),
-        229 => Some(&LILY_OF_THE_VALLEY),
-        365 => Some(&LILY_PAD),
-        1138 => Some(&LIME_BANNER),
-        969 => Some(&LIME_BED),
-        1247 => Some(&LIME_CANDLE),
-        451 => Some(&LIME_CARPET),
-        560 => Some(&LIME_CONCRETE),
-        576 => Some(&LIME_CONCRETE_POWDER),
-        949 => Some(&LIME_DYE),
-        544 => Some(&LIME_GLAZED_TERRACOTTA),
-        528 => Some(&LIME_SHULKER_BOX),
-        476 => Some(&LIME_STAINED_GLASS),
-        492 => Some(&LIME_STAINED_GLASS_PANE),
-        432 => Some(&LIME_TERRACOTTA),
-        207 => Some(&LIME_WOOL),
-        1161 => Some(&LINGERING_POTION),
-        1041 => Some(&LLAMA_SPAWN_EGG),
-        1226 => Some(&LODESTONE),
-        1194 => Some(&LOOM),
-        1093 => Some(&MACE),
-        1135 => Some(&MAGENTA_BANNER),
-        966 => Some(&MAGENTA_BED),
-        1244 => Some(&MAGENTA_CANDLE),
-        448 => Some(&MAGENTA_CARPET),
-        557 => Some(&MAGENTA_CONCRETE),
-        573 => Some(&MAGENTA_CONCRETE_POWDER),
-        946 => Some(&MAGENTA_DYE),
-        541 => Some(&MAGENTA_GLAZED_TERRACOTTA),
-        525 => Some(&MAGENTA_SHULKER_BOX),
-        473 => Some(&MAGENTA_STAINED_GLASS),
-        489 => Some(&MAGENTA_STAINED_GLASS_PANE),
-        429 => Some(&MAGENTA_TERRACOTTA),
-        204 => Some(&MAGENTA_WOOL),
-        516 => Some(&MAGMA_BLOCK),
-        1003 => Some(&MAGMA_CREAM),
-        1042 => Some(&MAGMA_CUBE_SPAWN_EGG),
-        788 => Some(&MANGROVE_BOAT),
-        691 => Some(&MANGROVE_BUTTON),
-        789 => Some(&MANGROVE_CHEST_BOAT),
-        718 => Some(&MANGROVE_DOOR),
-        318 => Some(&MANGROVE_FENCE),
-        757 => Some(&MANGROVE_FENCE_GATE),
-        904 => Some(&MANGROVE_HANGING_SIGN),
-        183 => Some(&MANGROVE_LEAVES),
-        139 => Some(&MANGROVE_LOG),
-        43 => Some(&MANGROVE_PLANKS),
-        706 => Some(&MANGROVE_PRESSURE_PLATE),
-        55 => Some(&MANGROVE_PROPAGULE),
-        140 => Some(&MANGROVE_ROOTS),
-        893 => Some(&MANGROVE_SIGN),
-        259 => Some(&MANGROVE_SLAB),
-        390 => Some(&MANGROVE_STAIRS),
-        738 => Some(&MANGROVE_TRAPDOOR),
-        173 => Some(&MANGROVE_WOOD),
-        1101 => Some(&MAP),
-        1259 => Some(&MEDIUM_AMETHYST_BUD),
-        358 => Some(&MELON),
-        987 => Some(&MELON_SEEDS),
-        984 => Some(&MELON_SLICE),
-        914 => Some(&MILK_BUCKET),
-        766 => Some(&MINECART),
-        1302 => Some(&MINER_POTTERY_SHERD),
-        1198 => Some(&MOJANG_BANNER_PATTERN),
-        1043 => Some(&MOOSHROOM_SPAWN_EGG),
-        247 => Some(&MOSS_BLOCK),
-        245 => Some(&MOSS_CARPET),
-        289 => Some(&MOSSY_COBBLESTONE),
-        643 => Some(&MOSSY_COBBLESTONE_SLAB),
-        625 => Some(&MOSSY_COBBLESTONE_STAIRS),
-        398 => Some(&MOSSY_COBBLESTONE_WALL),
-        641 => Some(&MOSSY_STONE_BRICK_SLAB),
-        623 => Some(&MOSSY_STONE_BRICK_STAIRS),
-        402 => Some(&MOSSY_STONE_BRICK_WALL),
-        341 => Some(&MOSSY_STONE_BRICKS),
-        1303 => Some(&MOURNER_POTTERY_SHERD),
+        734 => Some(&JUNGLE_PRESSURE_PLATE),
+        52 => Some(&JUNGLE_SAPLING),
+        946 => Some(&JUNGLE_SIGN),
+        273 => Some(&JUNGLE_SLAB),
+        415 => Some(&JUNGLE_STAIRS),
+        768 => Some(&JUNGLE_TRAPDOOR),
+        174 => Some(&JUNGLE_WOOD),
+        257 => Some(&KELP),
+        1247 => Some(&KNOWLEDGE_BOOK),
+        323 => Some(&LADDER),
+        1298 => Some(&LANTERN),
+        197 => Some(&LAPIS_BLOCK),
+        864 => Some(&LAPIS_LAZULI),
+        76 => Some(&LAPIS_ORE),
+        1344 => Some(&LARGE_AMETHYST_BUD),
+        500 => Some(&LARGE_FERN),
+        969 => Some(&LAVA_BUCKET),
+        1209 => Some(&LEAD),
+        260 => Some(&LEAF_LITTER),
+        972 => Some(&LEATHER),
+        916 => Some(&LEATHER_BOOTS),
+        914 => Some(&LEATHER_CHESTPLATE),
+        913 => Some(&LEATHER_HELMET),
+        1208 => Some(&LEATHER_HORSE_ARMOR),
+        915 => Some(&LEATHER_LEGGINGS),
+        701 => Some(&LECTERN),
+        703 => Some(&LEVER),
+        474 => Some(&LIGHT),
+        1217 => Some(&LIGHT_BLUE_BANNER),
+        1044 => Some(&LIGHT_BLUE_BED),
+        995 => Some(&LIGHT_BLUE_BUNDLE),
+        1329 => Some(&LIGHT_BLUE_CANDLE),
+        479 => Some(&LIGHT_BLUE_CARPET),
+        588 => Some(&LIGHT_BLUE_CONCRETE),
+        604 => Some(&LIGHT_BLUE_CONCRETE_POWDER),
+        1024 => Some(&LIGHT_BLUE_DYE),
+        572 => Some(&LIGHT_BLUE_GLAZED_TERRACOTTA),
+        805 => Some(&LIGHT_BLUE_HARNESS),
+        556 => Some(&LIGHT_BLUE_SHULKER_BOX),
+        504 => Some(&LIGHT_BLUE_STAINED_GLASS),
+        520 => Some(&LIGHT_BLUE_STAINED_GLASS_PANE),
+        460 => Some(&LIGHT_BLUE_TERRACOTTA),
+        216 => Some(&LIGHT_BLUE_WOOL),
+        1222 => Some(&LIGHT_GRAY_BANNER),
+        1049 => Some(&LIGHT_GRAY_BED),
+        1000 => Some(&LIGHT_GRAY_BUNDLE),
+        1334 => Some(&LIGHT_GRAY_CANDLE),
+        484 => Some(&LIGHT_GRAY_CARPET),
+        593 => Some(&LIGHT_GRAY_CONCRETE),
+        609 => Some(&LIGHT_GRAY_CONCRETE_POWDER),
+        1029 => Some(&LIGHT_GRAY_DYE),
+        577 => Some(&LIGHT_GRAY_GLAZED_TERRACOTTA),
+        810 => Some(&LIGHT_GRAY_HARNESS),
+        561 => Some(&LIGHT_GRAY_SHULKER_BOX),
+        509 => Some(&LIGHT_GRAY_STAINED_GLASS),
+        525 => Some(&LIGHT_GRAY_STAINED_GLASS_PANE),
+        465 => Some(&LIGHT_GRAY_TERRACOTTA),
+        221 => Some(&LIGHT_GRAY_WOOL),
+        729 => Some(&LIGHT_WEIGHTED_PRESSURE_PLATE),
+        704 => Some(&LIGHTNING_ROD),
+        496 => Some(&LILAC),
+        242 => Some(&LILY_OF_THE_VALLEY),
+        394 => Some(&LILY_PAD),
+        1219 => Some(&LIME_BANNER),
+        1046 => Some(&LIME_BED),
+        997 => Some(&LIME_BUNDLE),
+        1331 => Some(&LIME_CANDLE),
+        481 => Some(&LIME_CARPET),
+        590 => Some(&LIME_CONCRETE),
+        606 => Some(&LIME_CONCRETE_POWDER),
+        1026 => Some(&LIME_DYE),
+        574 => Some(&LIME_GLAZED_TERRACOTTA),
+        807 => Some(&LIME_HARNESS),
+        558 => Some(&LIME_SHULKER_BOX),
+        506 => Some(&LIME_STAINED_GLASS),
+        522 => Some(&LIME_STAINED_GLASS_PANE),
+        462 => Some(&LIME_TERRACOTTA),
+        218 => Some(&LIME_WOOL),
+        1242 => Some(&LINGERING_POTION),
+        1119 => Some(&LLAMA_SPAWN_EGG),
+        1310 => Some(&LODESTONE),
+        1276 => Some(&LOOM),
+        1173 => Some(&MACE),
+        1216 => Some(&MAGENTA_BANNER),
+        1043 => Some(&MAGENTA_BED),
+        994 => Some(&MAGENTA_BUNDLE),
+        1328 => Some(&MAGENTA_CANDLE),
+        478 => Some(&MAGENTA_CARPET),
+        587 => Some(&MAGENTA_CONCRETE),
+        603 => Some(&MAGENTA_CONCRETE_POWDER),
+        1023 => Some(&MAGENTA_DYE),
+        571 => Some(&MAGENTA_GLAZED_TERRACOTTA),
+        804 => Some(&MAGENTA_HARNESS),
+        555 => Some(&MAGENTA_SHULKER_BOX),
+        503 => Some(&MAGENTA_STAINED_GLASS),
+        519 => Some(&MAGENTA_STAINED_GLASS_PANE),
+        459 => Some(&MAGENTA_TERRACOTTA),
+        215 => Some(&MAGENTA_WOOL),
+        546 => Some(&MAGMA_BLOCK),
+        1080 => Some(&MAGMA_CREAM),
+        1120 => Some(&MAGMA_CUBE_SPAWN_EGG),
+        843 => Some(&MANGROVE_BOAT),
+        723 => Some(&MANGROVE_BUTTON),
+        844 => Some(&MANGROVE_CHEST_BOAT),
+        752 => Some(&MANGROVE_DOOR),
+        340 => Some(&MANGROVE_FENCE),
+        793 => Some(&MANGROVE_FENCE_GATE),
+        963 => Some(&MANGROVE_HANGING_SIGN),
+        190 => Some(&MANGROVE_LEAVES),
+        142 => Some(&MANGROVE_LOG),
+        44 => Some(&MANGROVE_PLANKS),
+        739 => Some(&MANGROVE_PRESSURE_PLATE),
+        57 => Some(&MANGROVE_PROPAGULE),
+        143 => Some(&MANGROVE_ROOTS),
+        951 => Some(&MANGROVE_SIGN),
+        278 => Some(&MANGROVE_SLAB),
+        420 => Some(&MANGROVE_STAIRS),
+        773 => Some(&MANGROVE_TRAPDOOR),
+        179 => Some(&MANGROVE_WOOD),
+        1181 => Some(&MAP),
+        1343 => Some(&MEDIUM_AMETHYST_BUD),
+        380 => Some(&MELON),
+        1064 => Some(&MELON_SEEDS),
+        1061 => Some(&MELON_SLICE),
+        973 => Some(&MILK_BUCKET),
+        818 => Some(&MINECART),
+        1386 => Some(&MINER_POTTERY_SHERD),
+        1280 => Some(&MOJANG_BANNER_PATTERN),
+        1121 => Some(&MOOSHROOM_SPAWN_EGG),
+        262 => Some(&MOSS_BLOCK),
+        261 => Some(&MOSS_CARPET),
+        308 => Some(&MOSSY_COBBLESTONE),
+        674 => Some(&MOSSY_COBBLESTONE_SLAB),
+        656 => Some(&MOSSY_COBBLESTONE_STAIRS),
+        428 => Some(&MOSSY_COBBLESTONE_WALL),
+        672 => Some(&MOSSY_STONE_BRICK_SLAB),
+        654 => Some(&MOSSY_STONE_BRICK_STAIRS),
+        432 => Some(&MOSSY_STONE_BRICK_WALL),
+        363 => Some(&MOSSY_STONE_BRICKS),
+        1387 => Some(&MOURNER_POTTERY_SHERD),
         32 => Some(&MUD),
-        272 => Some(&MUD_BRICK_SLAB),
-        363 => Some(&MUD_BRICK_STAIRS),
-        405 => Some(&MUD_BRICK_WALL),
-        345 => Some(&MUD_BRICKS),
-        141 => Some(&MUDDY_MANGROVE_ROOTS),
-        1044 => Some(&MULE_SPAWN_EGG),
-        354 => Some(&MUSHROOM_STEM),
-        849 => Some(&MUSHROOM_STEW),
-        1180 => Some(&MUSIC_DISC_11),
-        1168 => Some(&MUSIC_DISC_13),
-        1184 => Some(&MUSIC_DISC_5),
-        1170 => Some(&MUSIC_DISC_BLOCKS),
-        1169 => Some(&MUSIC_DISC_CAT),
-        1171 => Some(&MUSIC_DISC_CHIRP),
-        1172 => Some(&MUSIC_DISC_CREATOR),
-        1173 => Some(&MUSIC_DISC_CREATOR_MUSIC_BOX),
-        1174 => Some(&MUSIC_DISC_FAR),
-        1175 => Some(&MUSIC_DISC_MALL),
-        1176 => Some(&MUSIC_DISC_MELLOHI),
-        1182 => Some(&MUSIC_DISC_OTHERSIDE),
-        1185 => Some(&MUSIC_DISC_PIGSTEP),
-        1186 => Some(&MUSIC_DISC_PRECIPICE),
-        1183 => Some(&MUSIC_DISC_RELIC),
-        1177 => Some(&MUSIC_DISC_STAL),
-        1178 => Some(&MUSIC_DISC_STRAD),
-        1181 => Some(&MUSIC_DISC_WAIT),
-        1179 => Some(&MUSIC_DISC_WARD),
-        1131 => Some(&MUTTON),
-        364 => Some(&MYCELIUM),
-        1129 => Some(&NAME_TAG),
-        1190 => Some(&NAUTILUS_SHELL),
-        1115 => Some(&NETHER_BRICK),
-        369 => Some(&NETHER_BRICK_FENCE),
-        273 => Some(&NETHER_BRICK_SLAB),
-        370 => Some(&NETHER_BRICK_STAIRS),
-        406 => Some(&NETHER_BRICK_WALL),
-        366 => Some(&NETHER_BRICKS),
-        78 => Some(&NETHER_GOLD_ORE),
-        79 => Some(&NETHER_QUARTZ_ORE),
-        240 => Some(&NETHER_SPROUTS),
-        1110 => Some(&NETHER_STAR),
-        997 => Some(&NETHER_WART),
-        517 => Some(&NETHER_WART_BLOCK),
-        846 => Some(&NETHERITE_AXE),
-        92 => Some(&NETHERITE_BLOCK),
-        879 => Some(&NETHERITE_BOOTS),
-        877 => Some(&NETHERITE_CHESTPLATE),
-        876 => Some(&NETHERITE_HELMET),
-        847 => Some(&NETHERITE_HOE),
-        816 => Some(&NETHERITE_INGOT),
-        878 => Some(&NETHERITE_LEGGINGS),
-        845 => Some(&NETHERITE_PICKAXE),
-        817 => Some(&NETHERITE_SCRAP),
-        844 => Some(&NETHERITE_SHOVEL),
-        843 => Some(&NETHERITE_SWORD),
-        1269 => Some(&NETHERITE_UPGRADE_SMITHING_TEMPLATE),
-        325 => Some(&NETHERRACK),
-        681 => Some(&NOTE_BLOCK),
-        774 => Some(&OAK_BOAT),
-        684 => Some(&OAK_BUTTON),
-        775 => Some(&OAK_CHEST_BOAT),
-        711 => Some(&OAK_DOOR),
-        311 => Some(&OAK_FENCE),
-        750 => Some(&OAK_FENCE_GATE),
-        897 => Some(&OAK_HANGING_SIGN),
-        176 => Some(&OAK_LEAVES),
-        132 => Some(&OAK_LOG),
+        291 => Some(&MUD_BRICK_SLAB),
+        392 => Some(&MUD_BRICK_STAIRS),
+        435 => Some(&MUD_BRICK_WALL),
+        367 => Some(&MUD_BRICKS),
+        144 => Some(&MUDDY_MANGROVE_ROOTS),
+        1122 => Some(&MULE_SPAWN_EGG),
+        376 => Some(&MUSHROOM_STEM),
+        906 => Some(&MUSHROOM_STEW),
+        1262 => Some(&MUSIC_DISC_11),
+        1249 => Some(&MUSIC_DISC_13),
+        1266 => Some(&MUSIC_DISC_5),
+        1251 => Some(&MUSIC_DISC_BLOCKS),
+        1250 => Some(&MUSIC_DISC_CAT),
+        1252 => Some(&MUSIC_DISC_CHIRP),
+        1253 => Some(&MUSIC_DISC_CREATOR),
+        1254 => Some(&MUSIC_DISC_CREATOR_MUSIC_BOX),
+        1255 => Some(&MUSIC_DISC_FAR),
+        1256 => Some(&MUSIC_DISC_LAVA_CHICKEN),
+        1257 => Some(&MUSIC_DISC_MALL),
+        1258 => Some(&MUSIC_DISC_MELLOHI),
+        1264 => Some(&MUSIC_DISC_OTHERSIDE),
+        1267 => Some(&MUSIC_DISC_PIGSTEP),
+        1268 => Some(&MUSIC_DISC_PRECIPICE),
+        1265 => Some(&MUSIC_DISC_RELIC),
+        1259 => Some(&MUSIC_DISC_STAL),
+        1260 => Some(&MUSIC_DISC_STRAD),
+        1269 => Some(&MUSIC_DISC_TEARS),
+        1263 => Some(&MUSIC_DISC_WAIT),
+        1261 => Some(&MUSIC_DISC_WARD),
+        1212 => Some(&MUTTON),
+        393 => Some(&MYCELIUM),
+        1210 => Some(&NAME_TAG),
+        1272 => Some(&NAUTILUS_SHELL),
+        1195 => Some(&NETHER_BRICK),
+        398 => Some(&NETHER_BRICK_FENCE),
+        292 => Some(&NETHER_BRICK_SLAB),
+        399 => Some(&NETHER_BRICK_STAIRS),
+        436 => Some(&NETHER_BRICK_WALL),
+        395 => Some(&NETHER_BRICKS),
+        80 => Some(&NETHER_GOLD_ORE),
+        81 => Some(&NETHER_QUARTZ_ORE),
+        253 => Some(&NETHER_SPROUTS),
+        1190 => Some(&NETHER_STAR),
+        1074 => Some(&NETHER_WART),
+        547 => Some(&NETHER_WART_BLOCK),
+        903 => Some(&NETHERITE_AXE),
+        94 => Some(&NETHERITE_BLOCK),
+        936 => Some(&NETHERITE_BOOTS),
+        934 => Some(&NETHERITE_CHESTPLATE),
+        933 => Some(&NETHERITE_HELMET),
+        904 => Some(&NETHERITE_HOE),
+        873 => Some(&NETHERITE_INGOT),
+        935 => Some(&NETHERITE_LEGGINGS),
+        902 => Some(&NETHERITE_PICKAXE),
+        874 => Some(&NETHERITE_SCRAP),
+        901 => Some(&NETHERITE_SHOVEL),
+        900 => Some(&NETHERITE_SWORD),
+        1353 => Some(&NETHERITE_UPGRADE_SMITHING_TEMPLATE),
+        347 => Some(&NETHERRACK),
+        712 => Some(&NOTE_BLOCK),
+        827 => Some(&OAK_BOAT),
+        715 => Some(&OAK_BUTTON),
+        828 => Some(&OAK_CHEST_BOAT),
+        744 => Some(&OAK_DOOR),
+        332 => Some(&OAK_FENCE),
+        785 => Some(&OAK_FENCE_GATE),
+        955 => Some(&OAK_HANGING_SIGN),
+        182 => Some(&OAK_LEAVES),
+        134 => Some(&OAK_LOG),
         36 => Some(&OAK_PLANKS),
-        699 => Some(&OAK_PRESSURE_PLATE),
-        48 => Some(&OAK_SAPLING),
-        886 => Some(&OAK_SIGN),
-        252 => Some(&OAK_SLAB),
-        383 => Some(&OAK_STAIRS),
-        731 => Some(&OAK_TRAPDOOR),
-        166 => Some(&OAK_WOOD),
-        666 => Some(&OBSERVER),
-        290 => Some(&OBSIDIAN),
-        1045 => Some(&OCELOT_SPAWN_EGG),
-        1263 => Some(&OCHRE_FROGLIGHT),
-        1331 => Some(&OMINOUS_BOTTLE),
-        1329 => Some(&OMINOUS_TRIAL_KEY),
-        1134 => Some(&ORANGE_BANNER),
-        965 => Some(&ORANGE_BED),
-        1243 => Some(&ORANGE_CANDLE),
-        447 => Some(&ORANGE_CARPET),
-        556 => Some(&ORANGE_CONCRETE),
-        572 => Some(&ORANGE_CONCRETE_POWDER),
-        945 => Some(&ORANGE_DYE),
-        540 => Some(&ORANGE_GLAZED_TERRACOTTA),
-        524 => Some(&ORANGE_SHULKER_BOX),
-        472 => Some(&ORANGE_STAINED_GLASS),
-        488 => Some(&ORANGE_STAINED_GLASS_PANE),
-        428 => Some(&ORANGE_TERRACOTTA),
-        224 => Some(&ORANGE_TULIP),
-        203 => Some(&ORANGE_WOOL),
-        227 => Some(&OXEYE_DAISY),
-        99 => Some(&OXIDIZED_CHISELED_COPPER),
-        95 => Some(&OXIDIZED_COPPER),
-        1322 => Some(&OXIDIZED_COPPER_BULB),
-        725 => Some(&OXIDIZED_COPPER_DOOR),
-        1314 => Some(&OXIDIZED_COPPER_GRATE),
-        745 => Some(&OXIDIZED_COPPER_TRAPDOOR),
-        103 => Some(&OXIDIZED_CUT_COPPER),
-        111 => Some(&OXIDIZED_CUT_COPPER_SLAB),
-        107 => Some(&OXIDIZED_CUT_COPPER_STAIRS),
-        463 => Some(&PACKED_ICE),
-        344 => Some(&PACKED_MUD),
-        883 => Some(&PAINTING),
-        1046 => Some(&PANDA_SPAWN_EGG),
-        924 => Some(&PAPER),
-        1047 => Some(&PARROT_SPAWN_EGG),
-        1265 => Some(&PEARLESCENT_FROGLIGHT),
-        468 => Some(&PEONY),
-        268 => Some(&PETRIFIED_OAK_SLAB),
-        1189 => Some(&PHANTOM_MEMBRANE),
-        1048 => Some(&PHANTOM_SPAWN_EGG),
-        1049 => Some(&PIG_SPAWN_EGG),
-        1200 => Some(&PIGLIN_BANNER_PATTERN),
-        1051 => Some(&PIGLIN_BRUTE_SPAWN_EGG),
-        1109 => Some(&PIGLIN_HEAD),
-        1050 => Some(&PIGLIN_SPAWN_EGG),
-        1052 => Some(&PILLAGER_SPAWN_EGG),
-        1139 => Some(&PINK_BANNER),
-        970 => Some(&PINK_BED),
-        1248 => Some(&PINK_CANDLE),
-        452 => Some(&PINK_CARPET),
-        561 => Some(&PINK_CONCRETE),
-        577 => Some(&PINK_CONCRETE_POWDER),
-        950 => Some(&PINK_DYE),
-        545 => Some(&PINK_GLAZED_TERRACOTTA),
-        246 => Some(&PINK_PETALS),
-        529 => Some(&PINK_SHULKER_BOX),
-        477 => Some(&PINK_STAINED_GLASS),
-        493 => Some(&PINK_STAINED_GLASS_PANE),
-        433 => Some(&PINK_TERRACOTTA),
-        226 => Some(&PINK_TULIP),
-        208 => Some(&PINK_WOOL),
-        662 => Some(&PISTON),
-        232 => Some(&PITCHER_PLANT),
-        1153 => Some(&PITCHER_POD),
-        1105 => Some(&PLAYER_HEAD),
-        1304 => Some(&PLENTY_POTTERY_SHERD),
+        731 => Some(&OAK_PRESSURE_PLATE),
+        49 => Some(&OAK_SAPLING),
+        943 => Some(&OAK_SIGN),
+        270 => Some(&OAK_SLAB),
+        412 => Some(&OAK_STAIRS),
+        765 => Some(&OAK_TRAPDOOR),
+        171 => Some(&OAK_WOOD),
+        697 => Some(&OBSERVER),
+        309 => Some(&OBSIDIAN),
+        1123 => Some(&OCELOT_SPAWN_EGG),
+        1347 => Some(&OCHRE_FROGLIGHT),
+        1415 => Some(&OMINOUS_BOTTLE),
+        1413 => Some(&OMINOUS_TRIAL_KEY),
+        230 => Some(&OPEN_EYEBLOSSOM),
+        1215 => Some(&ORANGE_BANNER),
+        1042 => Some(&ORANGE_BED),
+        993 => Some(&ORANGE_BUNDLE),
+        1327 => Some(&ORANGE_CANDLE),
+        477 => Some(&ORANGE_CARPET),
+        586 => Some(&ORANGE_CONCRETE),
+        602 => Some(&ORANGE_CONCRETE_POWDER),
+        1022 => Some(&ORANGE_DYE),
+        570 => Some(&ORANGE_GLAZED_TERRACOTTA),
+        803 => Some(&ORANGE_HARNESS),
+        554 => Some(&ORANGE_SHULKER_BOX),
+        502 => Some(&ORANGE_STAINED_GLASS),
+        518 => Some(&ORANGE_STAINED_GLASS_PANE),
+        458 => Some(&ORANGE_TERRACOTTA),
+        237 => Some(&ORANGE_TULIP),
+        214 => Some(&ORANGE_WOOL),
+        240 => Some(&OXEYE_DAISY),
+        101 => Some(&OXIDIZED_CHISELED_COPPER),
+        97 => Some(&OXIDIZED_COPPER),
+        1406 => Some(&OXIDIZED_COPPER_BULB),
+        759 => Some(&OXIDIZED_COPPER_DOOR),
+        1398 => Some(&OXIDIZED_COPPER_GRATE),
+        780 => Some(&OXIDIZED_COPPER_TRAPDOOR),
+        105 => Some(&OXIDIZED_CUT_COPPER),
+        113 => Some(&OXIDIZED_CUT_COPPER_SLAB),
+        109 => Some(&OXIDIZED_CUT_COPPER_STAIRS),
+        493 => Some(&PACKED_ICE),
+        366 => Some(&PACKED_MUD),
+        940 => Some(&PAINTING),
+        264 => Some(&PALE_HANGING_MOSS),
+        265 => Some(&PALE_MOSS_BLOCK),
+        263 => Some(&PALE_MOSS_CARPET),
+        841 => Some(&PALE_OAK_BOAT),
+        722 => Some(&PALE_OAK_BUTTON),
+        842 => Some(&PALE_OAK_CHEST_BOAT),
+        751 => Some(&PALE_OAK_DOOR),
+        339 => Some(&PALE_OAK_FENCE),
+        792 => Some(&PALE_OAK_FENCE_GATE),
+        962 => Some(&PALE_OAK_HANGING_SIGN),
+        189 => Some(&PALE_OAK_LEAVES),
+        140 => Some(&PALE_OAK_LOG),
+        43 => Some(&PALE_OAK_PLANKS),
+        738 => Some(&PALE_OAK_PRESSURE_PLATE),
+        56 => Some(&PALE_OAK_SAPLING),
+        950 => Some(&PALE_OAK_SIGN),
+        277 => Some(&PALE_OAK_SLAB),
+        419 => Some(&PALE_OAK_STAIRS),
+        772 => Some(&PALE_OAK_TRAPDOOR),
+        177 => Some(&PALE_OAK_WOOD),
+        1124 => Some(&PANDA_SPAWN_EGG),
+        983 => Some(&PAPER),
+        1125 => Some(&PARROT_SPAWN_EGG),
+        1349 => Some(&PEARLESCENT_FROGLIGHT),
+        498 => Some(&PEONY),
+        287 => Some(&PETRIFIED_OAK_SLAB),
+        825 => Some(&PHANTOM_MEMBRANE),
+        1126 => Some(&PHANTOM_SPAWN_EGG),
+        1127 => Some(&PIG_SPAWN_EGG),
+        1282 => Some(&PIGLIN_BANNER_PATTERN),
+        1129 => Some(&PIGLIN_BRUTE_SPAWN_EGG),
+        1189 => Some(&PIGLIN_HEAD),
+        1128 => Some(&PIGLIN_SPAWN_EGG),
+        1130 => Some(&PILLAGER_SPAWN_EGG),
+        1220 => Some(&PINK_BANNER),
+        1047 => Some(&PINK_BED),
+        998 => Some(&PINK_BUNDLE),
+        1332 => Some(&PINK_CANDLE),
+        482 => Some(&PINK_CARPET),
+        591 => Some(&PINK_CONCRETE),
+        607 => Some(&PINK_CONCRETE_POWDER),
+        1027 => Some(&PINK_DYE),
+        575 => Some(&PINK_GLAZED_TERRACOTTA),
+        808 => Some(&PINK_HARNESS),
+        258 => Some(&PINK_PETALS),
+        559 => Some(&PINK_SHULKER_BOX),
+        507 => Some(&PINK_STAINED_GLASS),
+        523 => Some(&PINK_STAINED_GLASS_PANE),
+        463 => Some(&PINK_TERRACOTTA),
+        239 => Some(&PINK_TULIP),
+        219 => Some(&PINK_WOOL),
+        693 => Some(&PISTON),
+        245 => Some(&PITCHER_PLANT),
+        1234 => Some(&PITCHER_POD),
+        1185 => Some(&PLAYER_HEAD),
+        1388 => Some(&PLENTY_POTTERY_SHERD),
         30 => Some(&PODZOL),
-        1262 => Some(&POINTED_DRIPSTONE),
-        1100 => Some(&POISONOUS_POTATO),
-        1053 => Some(&POLAR_BEAR_SPAWN_EGG),
+        1346 => Some(&POINTED_DRIPSTONE),
+        1180 => Some(&POISONOUS_POTATO),
+        1131 => Some(&POLAR_BEAR_SPAWN_EGG),
         7 => Some(&POLISHED_ANDESITE),
-        650 => Some(&POLISHED_ANDESITE_SLAB),
-        633 => Some(&POLISHED_ANDESITE_STAIRS),
-        329 => Some(&POLISHED_BASALT),
-        1232 => Some(&POLISHED_BLACKSTONE),
-        1237 => Some(&POLISHED_BLACKSTONE_BRICK_SLAB),
-        1238 => Some(&POLISHED_BLACKSTONE_BRICK_STAIRS),
-        414 => Some(&POLISHED_BLACKSTONE_BRICK_WALL),
-        1236 => Some(&POLISHED_BLACKSTONE_BRICKS),
-        683 => Some(&POLISHED_BLACKSTONE_BUTTON),
-        696 => Some(&POLISHED_BLACKSTONE_PRESSURE_PLATE),
-        1233 => Some(&POLISHED_BLACKSTONE_SLAB),
-        1234 => Some(&POLISHED_BLACKSTONE_STAIRS),
-        413 => Some(&POLISHED_BLACKSTONE_WALL),
+        681 => Some(&POLISHED_ANDESITE_SLAB),
+        664 => Some(&POLISHED_ANDESITE_STAIRS),
+        351 => Some(&POLISHED_BASALT),
+        1316 => Some(&POLISHED_BLACKSTONE),
+        1321 => Some(&POLISHED_BLACKSTONE_BRICK_SLAB),
+        1322 => Some(&POLISHED_BLACKSTONE_BRICK_STAIRS),
+        444 => Some(&POLISHED_BLACKSTONE_BRICK_WALL),
+        1320 => Some(&POLISHED_BLACKSTONE_BRICKS),
+        714 => Some(&POLISHED_BLACKSTONE_BUTTON),
+        728 => Some(&POLISHED_BLACKSTONE_PRESSURE_PLATE),
+        1317 => Some(&POLISHED_BLACKSTONE_SLAB),
+        1318 => Some(&POLISHED_BLACKSTONE_STAIRS),
+        443 => Some(&POLISHED_BLACKSTONE_WALL),
         10 => Some(&POLISHED_DEEPSLATE),
-        653 => Some(&POLISHED_DEEPSLATE_SLAB),
-        636 => Some(&POLISHED_DEEPSLATE_STAIRS),
-        416 => Some(&POLISHED_DEEPSLATE_WALL),
+        684 => Some(&POLISHED_DEEPSLATE_SLAB),
+        667 => Some(&POLISHED_DEEPSLATE_STAIRS),
+        446 => Some(&POLISHED_DEEPSLATE_WALL),
         5 => Some(&POLISHED_DIORITE),
-        642 => Some(&POLISHED_DIORITE_SLAB),
-        624 => Some(&POLISHED_DIORITE_STAIRS),
+        673 => Some(&POLISHED_DIORITE_SLAB),
+        655 => Some(&POLISHED_DIORITE_STAIRS),
         3 => Some(&POLISHED_GRANITE),
-        639 => Some(&POLISHED_GRANITE_SLAB),
-        621 => Some(&POLISHED_GRANITE_STAIRS),
+        670 => Some(&POLISHED_GRANITE_SLAB),
+        652 => Some(&POLISHED_GRANITE_STAIRS),
         17 => Some(&POLISHED_TUFF),
         18 => Some(&POLISHED_TUFF_SLAB),
         19 => Some(&POLISHED_TUFF_STAIRS),
         20 => Some(&POLISHED_TUFF_WALL),
-        1151 => Some(&POPPED_CHORUS_FRUIT),
-        219 => Some(&POPPY),
-        881 => Some(&PORKCHOP),
-        1098 => Some(&POTATO),
-        998 => Some(&POTION),
-        911 => Some(&POWDER_SNOW_BUCKET),
-        761 => Some(&POWERED_RAIL),
-        503 => Some(&PRISMARINE),
-        279 => Some(&PRISMARINE_BRICK_SLAB),
-        507 => Some(&PRISMARINE_BRICK_STAIRS),
-        504 => Some(&PRISMARINE_BRICKS),
-        1117 => Some(&PRISMARINE_CRYSTALS),
-        1116 => Some(&PRISMARINE_SHARD),
-        278 => Some(&PRISMARINE_SLAB),
-        506 => Some(&PRISMARINE_STAIRS),
-        400 => Some(&PRISMARINE_WALL),
-        1305 => Some(&PRIZE_POTTERY_SHERD),
-        938 => Some(&PUFFERFISH),
-        915 => Some(&PUFFERFISH_BUCKET),
-        1054 => Some(&PUFFERFISH_SPAWN_EGG),
-        322 => Some(&PUMPKIN),
-        1111 => Some(&PUMPKIN_PIE),
-        986 => Some(&PUMPKIN_SEEDS),
-        1143 => Some(&PURPLE_BANNER),
-        974 => Some(&PURPLE_BED),
-        1252 => Some(&PURPLE_CANDLE),
-        456 => Some(&PURPLE_CARPET),
-        565 => Some(&PURPLE_CONCRETE),
-        581 => Some(&PURPLE_CONCRETE_POWDER),
-        954 => Some(&PURPLE_DYE),
-        549 => Some(&PURPLE_GLAZED_TERRACOTTA),
-        533 => Some(&PURPLE_SHULKER_BOX),
-        481 => Some(&PURPLE_STAINED_GLASS),
-        497 => Some(&PURPLE_STAINED_GLASS_PANE),
-        437 => Some(&PURPLE_TERRACOTTA),
-        212 => Some(&PURPLE_WOOL),
-        295 => Some(&PURPUR_BLOCK),
-        296 => Some(&PURPUR_PILLAR),
-        277 => Some(&PURPUR_SLAB),
-        297 => Some(&PURPUR_STAIRS),
-        808 => Some(&QUARTZ),
-        423 => Some(&QUARTZ_BLOCK),
-        424 => Some(&QUARTZ_BRICKS),
-        425 => Some(&QUARTZ_PILLAR),
-        274 => Some(&QUARTZ_SLAB),
-        426 => Some(&QUARTZ_STAIRS),
-        1118 => Some(&RABBIT),
-        1121 => Some(&RABBIT_FOOT),
-        1122 => Some(&RABBIT_HIDE),
-        1055 => Some(&RABBIT_SPAWN_EGG),
-        1120 => Some(&RABBIT_STEW),
-        763 => Some(&RAIL),
-        1284 => Some(&RAISER_ARMOR_TRIM_SMITHING_TEMPLATE),
-        1056 => Some(&RAVAGER_SPAWN_EGG),
-        812 => Some(&RAW_COPPER),
-        83 => Some(&RAW_COPPER_BLOCK),
-        814 => Some(&RAW_GOLD),
-        84 => Some(&RAW_GOLD_BLOCK),
-        810 => Some(&RAW_IRON),
-        82 => Some(&RAW_IRON_BLOCK),
-        929 => Some(&RECOVERY_COMPASS),
-        1147 => Some(&RED_BANNER),
-        978 => Some(&RED_BED),
-        1256 => Some(&RED_CANDLE),
-        460 => Some(&RED_CARPET),
-        569 => Some(&RED_CONCRETE),
-        585 => Some(&RED_CONCRETE_POWDER),
-        958 => Some(&RED_DYE),
-        553 => Some(&RED_GLAZED_TERRACOTTA),
-        235 => Some(&RED_MUSHROOM),
-        353 => Some(&RED_MUSHROOM_BLOCK),
-        649 => Some(&RED_NETHER_BRICK_SLAB),
-        632 => Some(&RED_NETHER_BRICK_STAIRS),
-        408 => Some(&RED_NETHER_BRICK_WALL),
-        519 => Some(&RED_NETHER_BRICKS),
-        60 => Some(&RED_SAND),
-        510 => Some(&RED_SANDSTONE),
-        275 => Some(&RED_SANDSTONE_SLAB),
-        513 => Some(&RED_SANDSTONE_STAIRS),
-        401 => Some(&RED_SANDSTONE_WALL),
-        537 => Some(&RED_SHULKER_BOX),
-        485 => Some(&RED_STAINED_GLASS),
-        501 => Some(&RED_STAINED_GLASS_PANE),
-        441 => Some(&RED_TERRACOTTA),
-        223 => Some(&RED_TULIP),
-        216 => Some(&RED_WOOL),
-        657 => Some(&REDSTONE),
-        659 => Some(&REDSTONE_BLOCK),
-        680 => Some(&REDSTONE_LAMP),
-        70 => Some(&REDSTONE_ORE),
-        658 => Some(&REDSTONE_TORCH),
-        351 => Some(&REINFORCED_DEEPSLATE),
-        660 => Some(&REPEATER),
-        514 => Some(&REPEATING_COMMAND_BLOCK),
-        1240 => Some(&RESPAWN_ANCHOR),
-        1279 => Some(&RIB_ARMOR_TRIM_SMITHING_TEMPLATE),
+        1232 => Some(&POPPED_CHORUS_FRUIT),
+        232 => Some(&POPPY),
+        938 => Some(&PORKCHOP),
+        1178 => Some(&POTATO),
+        1076 => Some(&POTION),
+        970 => Some(&POWDER_SNOW_BUCKET),
+        797 => Some(&POWERED_RAIL),
+        533 => Some(&PRISMARINE),
+        298 => Some(&PRISMARINE_BRICK_SLAB),
+        537 => Some(&PRISMARINE_BRICK_STAIRS),
+        534 => Some(&PRISMARINE_BRICKS),
+        1198 => Some(&PRISMARINE_CRYSTALS),
+        1197 => Some(&PRISMARINE_SHARD),
+        297 => Some(&PRISMARINE_SLAB),
+        536 => Some(&PRISMARINE_STAIRS),
+        430 => Some(&PRISMARINE_WALL),
+        1389 => Some(&PRIZE_POTTERY_SHERD),
+        1015 => Some(&PUFFERFISH),
+        974 => Some(&PUFFERFISH_BUCKET),
+        1132 => Some(&PUFFERFISH_SPAWN_EGG),
+        344 => Some(&PUMPKIN),
+        1191 => Some(&PUMPKIN_PIE),
+        1063 => Some(&PUMPKIN_SEEDS),
+        1224 => Some(&PURPLE_BANNER),
+        1051 => Some(&PURPLE_BED),
+        1002 => Some(&PURPLE_BUNDLE),
+        1336 => Some(&PURPLE_CANDLE),
+        486 => Some(&PURPLE_CARPET),
+        595 => Some(&PURPLE_CONCRETE),
+        611 => Some(&PURPLE_CONCRETE_POWDER),
+        1031 => Some(&PURPLE_DYE),
+        579 => Some(&PURPLE_GLAZED_TERRACOTTA),
+        812 => Some(&PURPLE_HARNESS),
+        563 => Some(&PURPLE_SHULKER_BOX),
+        511 => Some(&PURPLE_STAINED_GLASS),
+        527 => Some(&PURPLE_STAINED_GLASS_PANE),
+        467 => Some(&PURPLE_TERRACOTTA),
+        223 => Some(&PURPLE_WOOL),
+        314 => Some(&PURPUR_BLOCK),
+        315 => Some(&PURPUR_PILLAR),
+        296 => Some(&PURPUR_SLAB),
+        316 => Some(&PURPUR_STAIRS),
+        865 => Some(&QUARTZ),
+        453 => Some(&QUARTZ_BLOCK),
+        454 => Some(&QUARTZ_BRICKS),
+        455 => Some(&QUARTZ_PILLAR),
+        293 => Some(&QUARTZ_SLAB),
+        456 => Some(&QUARTZ_STAIRS),
+        1199 => Some(&RABBIT),
+        1202 => Some(&RABBIT_FOOT),
+        1203 => Some(&RABBIT_HIDE),
+        1133 => Some(&RABBIT_SPAWN_EGG),
+        1201 => Some(&RABBIT_STEW),
+        799 => Some(&RAIL),
+        1368 => Some(&RAISER_ARMOR_TRIM_SMITHING_TEMPLATE),
+        1134 => Some(&RAVAGER_SPAWN_EGG),
+        869 => Some(&RAW_COPPER),
+        85 => Some(&RAW_COPPER_BLOCK),
+        871 => Some(&RAW_GOLD),
+        86 => Some(&RAW_GOLD_BLOCK),
+        867 => Some(&RAW_IRON),
+        84 => Some(&RAW_IRON_BLOCK),
+        990 => Some(&RECOVERY_COMPASS),
+        1228 => Some(&RED_BANNER),
+        1055 => Some(&RED_BED),
+        1006 => Some(&RED_BUNDLE),
+        1340 => Some(&RED_CANDLE),
+        490 => Some(&RED_CARPET),
+        599 => Some(&RED_CONCRETE),
+        615 => Some(&RED_CONCRETE_POWDER),
+        1035 => Some(&RED_DYE),
+        583 => Some(&RED_GLAZED_TERRACOTTA),
+        816 => Some(&RED_HARNESS),
+        248 => Some(&RED_MUSHROOM),
+        375 => Some(&RED_MUSHROOM_BLOCK),
+        680 => Some(&RED_NETHER_BRICK_SLAB),
+        663 => Some(&RED_NETHER_BRICK_STAIRS),
+        438 => Some(&RED_NETHER_BRICK_WALL),
+        549 => Some(&RED_NETHER_BRICKS),
+        62 => Some(&RED_SAND),
+        540 => Some(&RED_SANDSTONE),
+        294 => Some(&RED_SANDSTONE_SLAB),
+        543 => Some(&RED_SANDSTONE_STAIRS),
+        431 => Some(&RED_SANDSTONE_WALL),
+        567 => Some(&RED_SHULKER_BOX),
+        515 => Some(&RED_STAINED_GLASS),
+        531 => Some(&RED_STAINED_GLASS_PANE),
+        471 => Some(&RED_TERRACOTTA),
+        236 => Some(&RED_TULIP),
+        227 => Some(&RED_WOOL),
+        688 => Some(&REDSTONE),
+        690 => Some(&REDSTONE_BLOCK),
+        711 => Some(&REDSTONE_LAMP),
+        72 => Some(&REDSTONE_ORE),
+        689 => Some(&REDSTONE_TORCH),
+        373 => Some(&REINFORCED_DEEPSLATE),
+        691 => Some(&REPEATER),
+        544 => Some(&REPEATING_COMMAND_BLOCK),
+        384 => Some(&RESIN_BLOCK),
+        1196 => Some(&RESIN_BRICK),
+        387 => Some(&RESIN_BRICK_SLAB),
+        386 => Some(&RESIN_BRICK_STAIRS),
+        388 => Some(&RESIN_BRICK_WALL),
+        385 => Some(&RESIN_BRICKS),
+        383 => Some(&RESIN_CLUMP),
+        1324 => Some(&RESPAWN_ANCHOR),
+        1363 => Some(&RIB_ARMOR_TRIM_SMITHING_TEMPLATE),
         31 => Some(&ROOTED_DIRT),
-        467 => Some(&ROSE_BUSH),
-        992 => Some(&ROTTEN_FLESH),
-        765 => Some(&SADDLE),
-        936 => Some(&SALMON),
-        916 => Some(&SALMON_BUCKET),
-        1057 => Some(&SALMON_SPAWN_EGG),
-        57 => Some(&SAND),
-        191 => Some(&SANDSTONE),
-        266 => Some(&SANDSTONE_SLAB),
-        380 => Some(&SANDSTONE_STAIRS),
-        409 => Some(&SANDSTONE_WALL),
-        656 => Some(&SCAFFOLDING),
-        1306 => Some(&SCRAPE_POTTERY_SHERD),
-        371 => Some(&SCULK),
-        373 => Some(&SCULK_CATALYST),
-        675 => Some(&SCULK_SENSOR),
-        374 => Some(&SCULK_SHRIEKER),
-        372 => Some(&SCULK_VEIN),
-        509 => Some(&SEA_LANTERN),
-        201 => Some(&SEA_PICKLE),
-        200 => Some(&SEAGRASS),
-        1270 => Some(&SENTRY_ARMOR_TRIM_SMITHING_TEMPLATE),
-        1282 => Some(&SHAPER_ARMOR_TRIM_SMITHING_TEMPLATE),
-        1307 => Some(&SHEAF_POTTERY_SHERD),
-        983 => Some(&SHEARS),
-        1058 => Some(&SHEEP_SPAWN_EGG),
-        1308 => Some(&SHELTER_POTTERY_SHERD),
-        1162 => Some(&SHIELD),
-        195 => Some(&SHORT_GRASS),
-        1220 => Some(&SHROOMLIGHT),
-        522 => Some(&SHULKER_BOX),
-        1164 => Some(&SHULKER_SHELL),
-        1059 => Some(&SHULKER_SPAWN_EGG),
-        1283 => Some(&SILENCE_ARMOR_TRIM_SMITHING_TEMPLATE),
-        1060 => Some(&SILVERFISH_SPAWN_EGG),
-        1062 => Some(&SKELETON_HORSE_SPAWN_EGG),
-        1103 => Some(&SKELETON_SKULL),
-        1061 => Some(&SKELETON_SPAWN_EGG),
-        1197 => Some(&SKULL_BANNER_PATTERN),
-        1309 => Some(&SKULL_POTTERY_SHERD),
-        926 => Some(&SLIME_BALL),
-        664 => Some(&SLIME_BLOCK),
-        1063 => Some(&SLIME_SPAWN_EGG),
-        1258 => Some(&SMALL_AMETHYST_BUD),
-        250 => Some(&SMALL_DRIPLEAF),
-        1211 => Some(&SMITHING_TABLE),
-        1206 => Some(&SMOKER),
-        330 => Some(&SMOOTH_BASALT),
-        281 => Some(&SMOOTH_QUARTZ),
-        646 => Some(&SMOOTH_QUARTZ_SLAB),
-        629 => Some(&SMOOTH_QUARTZ_STAIRS),
-        282 => Some(&SMOOTH_RED_SANDSTONE),
-        640 => Some(&SMOOTH_RED_SANDSTONE_SLAB),
-        622 => Some(&SMOOTH_RED_SANDSTONE_STAIRS),
-        283 => Some(&SMOOTH_SANDSTONE),
-        645 => Some(&SMOOTH_SANDSTONE_SLAB),
-        628 => Some(&SMOOTH_SANDSTONE_STAIRS),
-        284 => Some(&SMOOTH_STONE),
-        265 => Some(&SMOOTH_STONE_SLAB),
-        588 => Some(&SNIFFER_EGG),
-        1064 => Some(&SNIFFER_SPAWN_EGG),
-        1310 => Some(&SNORT_POTTERY_SHERD),
-        1278 => Some(&SNOUT_ARMOR_TRIM_SMITHING_TEMPLATE),
-        305 => Some(&SNOW),
-        307 => Some(&SNOW_BLOCK),
-        1065 => Some(&SNOW_GOLEM_SPAWN_EGG),
-        912 => Some(&SNOWBALL),
-        1219 => Some(&SOUL_CAMPFIRE),
-        1215 => Some(&SOUL_LANTERN),
-        326 => Some(&SOUL_SAND),
-        327 => Some(&SOUL_SOIL),
-        331 => Some(&SOUL_TORCH),
-        298 => Some(&SPAWNER),
-        1159 => Some(&SPECTRAL_ARROW),
-        1000 => Some(&SPIDER_EYE),
-        1066 => Some(&SPIDER_SPAWN_EGG),
-        1280 => Some(&SPIRE_ARMOR_TRIM_SMITHING_TEMPLATE),
-        1158 => Some(&SPLASH_POTION),
-        186 => Some(&SPONGE),
-        233 => Some(&SPORE_BLOSSOM),
-        776 => Some(&SPRUCE_BOAT),
-        685 => Some(&SPRUCE_BUTTON),
-        777 => Some(&SPRUCE_CHEST_BOAT),
-        712 => Some(&SPRUCE_DOOR),
-        312 => Some(&SPRUCE_FENCE),
-        751 => Some(&SPRUCE_FENCE_GATE),
-        898 => Some(&SPRUCE_HANGING_SIGN),
-        177 => Some(&SPRUCE_LEAVES),
-        133 => Some(&SPRUCE_LOG),
+        497 => Some(&ROSE_BUSH),
+        1069 => Some(&ROTTEN_FLESH),
+        801 => Some(&SADDLE),
+        1013 => Some(&SALMON),
+        975 => Some(&SALMON_BUCKET),
+        1135 => Some(&SALMON_SPAWN_EGG),
+        59 => Some(&SAND),
+        198 => Some(&SANDSTONE),
+        285 => Some(&SANDSTONE_SLAB),
+        409 => Some(&SANDSTONE_STAIRS),
+        439 => Some(&SANDSTONE_WALL),
+        687 => Some(&SCAFFOLDING),
+        1390 => Some(&SCRAPE_POTTERY_SHERD),
+        400 => Some(&SCULK),
+        402 => Some(&SCULK_CATALYST),
+        706 => Some(&SCULK_SENSOR),
+        403 => Some(&SCULK_SHRIEKER),
+        401 => Some(&SCULK_VEIN),
+        539 => Some(&SEA_LANTERN),
+        212 => Some(&SEA_PICKLE),
+        211 => Some(&SEAGRASS),
+        1354 => Some(&SENTRY_ARMOR_TRIM_SMITHING_TEMPLATE),
+        1366 => Some(&SHAPER_ARMOR_TRIM_SMITHING_TEMPLATE),
+        1391 => Some(&SHEAF_POTTERY_SHERD),
+        1060 => Some(&SHEARS),
+        1136 => Some(&SHEEP_SPAWN_EGG),
+        1392 => Some(&SHELTER_POTTERY_SHERD),
+        1243 => Some(&SHIELD),
+        209 => Some(&SHORT_DRY_GRASS),
+        202 => Some(&SHORT_GRASS),
+        1304 => Some(&SHROOMLIGHT),
+        552 => Some(&SHULKER_BOX),
+        1245 => Some(&SHULKER_SHELL),
+        1137 => Some(&SHULKER_SPAWN_EGG),
+        1367 => Some(&SILENCE_ARMOR_TRIM_SMITHING_TEMPLATE),
+        1138 => Some(&SILVERFISH_SPAWN_EGG),
+        1140 => Some(&SKELETON_HORSE_SPAWN_EGG),
+        1183 => Some(&SKELETON_SKULL),
+        1139 => Some(&SKELETON_SPAWN_EGG),
+        1279 => Some(&SKULL_BANNER_PATTERN),
+        1393 => Some(&SKULL_POTTERY_SHERD),
+        985 => Some(&SLIME_BALL),
+        695 => Some(&SLIME_BLOCK),
+        1141 => Some(&SLIME_SPAWN_EGG),
+        1342 => Some(&SMALL_AMETHYST_BUD),
+        268 => Some(&SMALL_DRIPLEAF),
+        1295 => Some(&SMITHING_TABLE),
+        1290 => Some(&SMOKER),
+        352 => Some(&SMOOTH_BASALT),
+        300 => Some(&SMOOTH_QUARTZ),
+        677 => Some(&SMOOTH_QUARTZ_SLAB),
+        660 => Some(&SMOOTH_QUARTZ_STAIRS),
+        301 => Some(&SMOOTH_RED_SANDSTONE),
+        671 => Some(&SMOOTH_RED_SANDSTONE_SLAB),
+        653 => Some(&SMOOTH_RED_SANDSTONE_STAIRS),
+        302 => Some(&SMOOTH_SANDSTONE),
+        676 => Some(&SMOOTH_SANDSTONE_SLAB),
+        659 => Some(&SMOOTH_SANDSTONE_STAIRS),
+        303 => Some(&SMOOTH_STONE),
+        284 => Some(&SMOOTH_STONE_SLAB),
+        618 => Some(&SNIFFER_EGG),
+        1142 => Some(&SNIFFER_SPAWN_EGG),
+        1394 => Some(&SNORT_POTTERY_SHERD),
+        1362 => Some(&SNOUT_ARMOR_TRIM_SMITHING_TEMPLATE),
+        325 => Some(&SNOW),
+        327 => Some(&SNOW_BLOCK),
+        1143 => Some(&SNOW_GOLEM_SPAWN_EGG),
+        971 => Some(&SNOWBALL),
+        1303 => Some(&SOUL_CAMPFIRE),
+        1299 => Some(&SOUL_LANTERN),
+        348 => Some(&SOUL_SAND),
+        349 => Some(&SOUL_SOIL),
+        353 => Some(&SOUL_TORCH),
+        317 => Some(&SPAWNER),
+        1240 => Some(&SPECTRAL_ARROW),
+        1077 => Some(&SPIDER_EYE),
+        1144 => Some(&SPIDER_SPAWN_EGG),
+        1364 => Some(&SPIRE_ARMOR_TRIM_SMITHING_TEMPLATE),
+        1239 => Some(&SPLASH_POTION),
+        193 => Some(&SPONGE),
+        246 => Some(&SPORE_BLOSSOM),
+        829 => Some(&SPRUCE_BOAT),
+        716 => Some(&SPRUCE_BUTTON),
+        830 => Some(&SPRUCE_CHEST_BOAT),
+        745 => Some(&SPRUCE_DOOR),
+        333 => Some(&SPRUCE_FENCE),
+        786 => Some(&SPRUCE_FENCE_GATE),
+        956 => Some(&SPRUCE_HANGING_SIGN),
+        183 => Some(&SPRUCE_LEAVES),
+        135 => Some(&SPRUCE_LOG),
         37 => Some(&SPRUCE_PLANKS),
-        700 => Some(&SPRUCE_PRESSURE_PLATE),
-        49 => Some(&SPRUCE_SAPLING),
-        887 => Some(&SPRUCE_SIGN),
-        253 => Some(&SPRUCE_SLAB),
-        384 => Some(&SPRUCE_STAIRS),
-        732 => Some(&SPRUCE_TRAPDOOR),
-        167 => Some(&SPRUCE_WOOD),
-        933 => Some(&SPYGLASS),
-        1067 => Some(&SQUID_SPAWN_EGG),
-        848 => Some(&STICK),
-        663 => Some(&STICKY_PISTON),
+        732 => Some(&SPRUCE_PRESSURE_PLATE),
+        50 => Some(&SPRUCE_SAPLING),
+        944 => Some(&SPRUCE_SIGN),
+        271 => Some(&SPRUCE_SLAB),
+        413 => Some(&SPRUCE_STAIRS),
+        766 => Some(&SPRUCE_TRAPDOOR),
+        172 => Some(&SPRUCE_WOOD),
+        1010 => Some(&SPYGLASS),
+        1145 => Some(&SQUID_SPAWN_EGG),
+        905 => Some(&STICK),
+        694 => Some(&STICKY_PISTON),
         1 => Some(&STONE),
-        826 => Some(&STONE_AXE),
-        271 => Some(&STONE_BRICK_SLAB),
-        362 => Some(&STONE_BRICK_STAIRS),
-        404 => Some(&STONE_BRICK_WALL),
-        340 => Some(&STONE_BRICKS),
-        682 => Some(&STONE_BUTTON),
-        827 => Some(&STONE_HOE),
-        825 => Some(&STONE_PICKAXE),
-        695 => Some(&STONE_PRESSURE_PLATE),
-        824 => Some(&STONE_SHOVEL),
-        264 => Some(&STONE_SLAB),
-        627 => Some(&STONE_STAIRS),
-        823 => Some(&STONE_SWORD),
-        1212 => Some(&STONECUTTER),
-        1068 => Some(&STRAY_SPAWN_EGG),
-        1069 => Some(&STRIDER_SPAWN_EGG),
-        850 => Some(&STRING),
-        149 => Some(&STRIPPED_ACACIA_LOG),
-        159 => Some(&STRIPPED_ACACIA_WOOD),
-        165 => Some(&STRIPPED_BAMBOO_BLOCK),
-        147 => Some(&STRIPPED_BIRCH_LOG),
-        157 => Some(&STRIPPED_BIRCH_WOOD),
-        150 => Some(&STRIPPED_CHERRY_LOG),
-        160 => Some(&STRIPPED_CHERRY_WOOD),
-        163 => Some(&STRIPPED_CRIMSON_HYPHAE),
-        153 => Some(&STRIPPED_CRIMSON_STEM),
-        151 => Some(&STRIPPED_DARK_OAK_LOG),
-        161 => Some(&STRIPPED_DARK_OAK_WOOD),
-        148 => Some(&STRIPPED_JUNGLE_LOG),
-        158 => Some(&STRIPPED_JUNGLE_WOOD),
-        152 => Some(&STRIPPED_MANGROVE_LOG),
-        162 => Some(&STRIPPED_MANGROVE_WOOD),
-        145 => Some(&STRIPPED_OAK_LOG),
-        155 => Some(&STRIPPED_OAK_WOOD),
-        146 => Some(&STRIPPED_SPRUCE_LOG),
-        156 => Some(&STRIPPED_SPRUCE_WOOD),
-        164 => Some(&STRIPPED_WARPED_HYPHAE),
-        154 => Some(&STRIPPED_WARPED_STEM),
-        792 => Some(&STRUCTURE_BLOCK),
-        521 => Some(&STRUCTURE_VOID),
-        962 => Some(&SUGAR),
-        243 => Some(&SUGAR_CANE),
-        465 => Some(&SUNFLOWER),
-        59 => Some(&SUSPICIOUS_GRAVEL),
-        58 => Some(&SUSPICIOUS_SAND),
-        1193 => Some(&SUSPICIOUS_STEW),
-        1216 => Some(&SWEET_BERRIES),
-        920 => Some(&TADPOLE_BUCKET),
-        1070 => Some(&TADPOLE_SPAWN_EGG),
-        469 => Some(&TALL_GRASS),
-        671 => Some(&TARGET),
-        462 => Some(&TERRACOTTA),
-        1277 => Some(&TIDE_ARMOR_TRIM_SMITHING_TEMPLATE),
-        189 => Some(&TINTED_GLASS),
-        1160 => Some(&TIPPED_ARROW),
-        679 => Some(&TNT),
-        769 => Some(&TNT_MINECART),
-        291 => Some(&TORCH),
-        231 => Some(&TORCHFLOWER),
-        1152 => Some(&TORCHFLOWER_SEEDS),
-        1163 => Some(&TOTEM_OF_UNDYING),
-        1071 => Some(&TRADER_LLAMA_SPAWN_EGG),
-        678 => Some(&TRAPPED_CHEST),
-        1328 => Some(&TRIAL_KEY),
-        1327 => Some(&TRIAL_SPAWNER),
-        1188 => Some(&TRIDENT),
-        677 => Some(&TRIPWIRE_HOOK),
-        937 => Some(&TROPICAL_FISH),
-        918 => Some(&TROPICAL_FISH_BUCKET),
-        1072 => Some(&TROPICAL_FISH_SPAWN_EGG),
-        599 => Some(&TUBE_CORAL),
-        594 => Some(&TUBE_CORAL_BLOCK),
-        609 => Some(&TUBE_CORAL_FAN),
+        883 => Some(&STONE_AXE),
+        290 => Some(&STONE_BRICK_SLAB),
+        391 => Some(&STONE_BRICK_STAIRS),
+        434 => Some(&STONE_BRICK_WALL),
+        362 => Some(&STONE_BRICKS),
+        713 => Some(&STONE_BUTTON),
+        884 => Some(&STONE_HOE),
+        882 => Some(&STONE_PICKAXE),
+        727 => Some(&STONE_PRESSURE_PLATE),
+        881 => Some(&STONE_SHOVEL),
+        283 => Some(&STONE_SLAB),
+        658 => Some(&STONE_STAIRS),
+        880 => Some(&STONE_SWORD),
+        1296 => Some(&STONECUTTER),
+        1146 => Some(&STRAY_SPAWN_EGG),
+        1147 => Some(&STRIDER_SPAWN_EGG),
+        907 => Some(&STRING),
+        152 => Some(&STRIPPED_ACACIA_LOG),
+        163 => Some(&STRIPPED_ACACIA_WOOD),
+        170 => Some(&STRIPPED_BAMBOO_BLOCK),
+        150 => Some(&STRIPPED_BIRCH_LOG),
+        161 => Some(&STRIPPED_BIRCH_WOOD),
+        153 => Some(&STRIPPED_CHERRY_LOG),
+        164 => Some(&STRIPPED_CHERRY_WOOD),
+        168 => Some(&STRIPPED_CRIMSON_HYPHAE),
+        157 => Some(&STRIPPED_CRIMSON_STEM),
+        154 => Some(&STRIPPED_DARK_OAK_LOG),
+        165 => Some(&STRIPPED_DARK_OAK_WOOD),
+        151 => Some(&STRIPPED_JUNGLE_LOG),
+        162 => Some(&STRIPPED_JUNGLE_WOOD),
+        156 => Some(&STRIPPED_MANGROVE_LOG),
+        167 => Some(&STRIPPED_MANGROVE_WOOD),
+        148 => Some(&STRIPPED_OAK_LOG),
+        159 => Some(&STRIPPED_OAK_WOOD),
+        155 => Some(&STRIPPED_PALE_OAK_LOG),
+        166 => Some(&STRIPPED_PALE_OAK_WOOD),
+        149 => Some(&STRIPPED_SPRUCE_LOG),
+        160 => Some(&STRIPPED_SPRUCE_WOOD),
+        169 => Some(&STRIPPED_WARPED_HYPHAE),
+        158 => Some(&STRIPPED_WARPED_STEM),
+        847 => Some(&STRUCTURE_BLOCK),
+        551 => Some(&STRUCTURE_VOID),
+        1039 => Some(&SUGAR),
+        256 => Some(&SUGAR_CANE),
+        495 => Some(&SUNFLOWER),
+        61 => Some(&SUSPICIOUS_GRAVEL),
+        60 => Some(&SUSPICIOUS_SAND),
+        1275 => Some(&SUSPICIOUS_STEW),
+        1300 => Some(&SWEET_BERRIES),
+        979 => Some(&TADPOLE_BUCKET),
+        1148 => Some(&TADPOLE_SPAWN_EGG),
+        210 => Some(&TALL_DRY_GRASS),
+        499 => Some(&TALL_GRASS),
+        702 => Some(&TARGET),
+        492 => Some(&TERRACOTTA),
+        849 => Some(&TEST_BLOCK),
+        850 => Some(&TEST_INSTANCE_BLOCK),
+        1361 => Some(&TIDE_ARMOR_TRIM_SMITHING_TEMPLATE),
+        196 => Some(&TINTED_GLASS),
+        1241 => Some(&TIPPED_ARROW),
+        710 => Some(&TNT),
+        821 => Some(&TNT_MINECART),
+        310 => Some(&TORCH),
+        244 => Some(&TORCHFLOWER),
+        1233 => Some(&TORCHFLOWER_SEEDS),
+        1244 => Some(&TOTEM_OF_UNDYING),
+        1149 => Some(&TRADER_LLAMA_SPAWN_EGG),
+        709 => Some(&TRAPPED_CHEST),
+        1412 => Some(&TRIAL_KEY),
+        1411 => Some(&TRIAL_SPAWNER),
+        1271 => Some(&TRIDENT),
+        708 => Some(&TRIPWIRE_HOOK),
+        1014 => Some(&TROPICAL_FISH),
+        977 => Some(&TROPICAL_FISH_BUCKET),
+        1150 => Some(&TROPICAL_FISH_SPAWN_EGG),
+        630 => Some(&TUBE_CORAL),
+        625 => Some(&TUBE_CORAL_BLOCK),
+        640 => Some(&TUBE_CORAL_FAN),
         12 => Some(&TUFF),
         22 => Some(&TUFF_BRICK_SLAB),
         23 => Some(&TUFF_BRICK_STAIRS),
@@ -21207,139 +22530,144 @@ pub fn get_item_by_id(id: u32) -> Option<&'static ItemData> {
         13 => Some(&TUFF_SLAB),
         14 => Some(&TUFF_STAIRS),
         15 => Some(&TUFF_WALL),
-        587 => Some(&TURTLE_EGG),
-        794 => Some(&TURTLE_HELMET),
-        795 => Some(&TURTLE_SCUTE),
-        1073 => Some(&TURTLE_SPAWN_EGG),
-        242 => Some(&TWISTING_VINES),
-        1330 => Some(&VAULT),
-        1264 => Some(&VERDANT_FROGLIGHT),
-        1276 => Some(&VEX_ARMOR_TRIM_SMITHING_TEMPLATE),
-        1074 => Some(&VEX_SPAWN_EGG),
-        1075 => Some(&VILLAGER_SPAWN_EGG),
-        1076 => Some(&VINDICATOR_SPAWN_EGG),
-        359 => Some(&VINE),
-        1077 => Some(&WANDERING_TRADER_SPAWN_EGG),
-        1274 => Some(&WARD_ARMOR_TRIM_SMITHING_TEMPLATE),
-        1078 => Some(&WARDEN_SPAWN_EGG),
-        694 => Some(&WARPED_BUTTON),
-        721 => Some(&WARPED_DOOR),
-        321 => Some(&WARPED_FENCE),
-        760 => Some(&WARPED_FENCE_GATE),
-        237 => Some(&WARPED_FUNGUS),
-        772 => Some(&WARPED_FUNGUS_ON_A_STICK),
-        907 => Some(&WARPED_HANGING_SIGN),
-        175 => Some(&WARPED_HYPHAE),
+        617 => Some(&TURTLE_EGG),
+        851 => Some(&TURTLE_HELMET),
+        852 => Some(&TURTLE_SCUTE),
+        1151 => Some(&TURTLE_SPAWN_EGG),
+        255 => Some(&TWISTING_VINES),
+        1414 => Some(&VAULT),
+        1348 => Some(&VERDANT_FROGLIGHT),
+        1360 => Some(&VEX_ARMOR_TRIM_SMITHING_TEMPLATE),
+        1152 => Some(&VEX_SPAWN_EGG),
+        1153 => Some(&VILLAGER_SPAWN_EGG),
+        1154 => Some(&VINDICATOR_SPAWN_EGG),
+        381 => Some(&VINE),
+        1155 => Some(&WANDERING_TRADER_SPAWN_EGG),
+        1358 => Some(&WARD_ARMOR_TRIM_SMITHING_TEMPLATE),
+        1156 => Some(&WARDEN_SPAWN_EGG),
+        726 => Some(&WARPED_BUTTON),
+        755 => Some(&WARPED_DOOR),
+        343 => Some(&WARPED_FENCE),
+        796 => Some(&WARPED_FENCE_GATE),
+        250 => Some(&WARPED_FUNGUS),
+        824 => Some(&WARPED_FUNGUS_ON_A_STICK),
+        966 => Some(&WARPED_HANGING_SIGN),
+        181 => Some(&WARPED_HYPHAE),
         34 => Some(&WARPED_NYLIUM),
-        46 => Some(&WARPED_PLANKS),
-        709 => Some(&WARPED_PRESSURE_PLATE),
-        239 => Some(&WARPED_ROOTS),
-        896 => Some(&WARPED_SIGN),
-        263 => Some(&WARPED_SLAB),
-        394 => Some(&WARPED_STAIRS),
-        143 => Some(&WARPED_STEM),
-        741 => Some(&WARPED_TRAPDOOR),
-        518 => Some(&WARPED_WART_BLOCK),
-        909 => Some(&WATER_BUCKET),
-        116 => Some(&WAXED_CHISELED_COPPER),
-        112 => Some(&WAXED_COPPER_BLOCK),
-        1323 => Some(&WAXED_COPPER_BULB),
-        726 => Some(&WAXED_COPPER_DOOR),
-        1315 => Some(&WAXED_COPPER_GRATE),
-        746 => Some(&WAXED_COPPER_TRAPDOOR),
-        120 => Some(&WAXED_CUT_COPPER),
-        128 => Some(&WAXED_CUT_COPPER_SLAB),
-        124 => Some(&WAXED_CUT_COPPER_STAIRS),
-        117 => Some(&WAXED_EXPOSED_CHISELED_COPPER),
-        113 => Some(&WAXED_EXPOSED_COPPER),
-        1324 => Some(&WAXED_EXPOSED_COPPER_BULB),
-        727 => Some(&WAXED_EXPOSED_COPPER_DOOR),
-        1316 => Some(&WAXED_EXPOSED_COPPER_GRATE),
-        747 => Some(&WAXED_EXPOSED_COPPER_TRAPDOOR),
-        121 => Some(&WAXED_EXPOSED_CUT_COPPER),
-        129 => Some(&WAXED_EXPOSED_CUT_COPPER_SLAB),
-        125 => Some(&WAXED_EXPOSED_CUT_COPPER_STAIRS),
-        119 => Some(&WAXED_OXIDIZED_CHISELED_COPPER),
-        115 => Some(&WAXED_OXIDIZED_COPPER),
-        1326 => Some(&WAXED_OXIDIZED_COPPER_BULB),
-        729 => Some(&WAXED_OXIDIZED_COPPER_DOOR),
-        1318 => Some(&WAXED_OXIDIZED_COPPER_GRATE),
-        749 => Some(&WAXED_OXIDIZED_COPPER_TRAPDOOR),
-        123 => Some(&WAXED_OXIDIZED_CUT_COPPER),
-        131 => Some(&WAXED_OXIDIZED_CUT_COPPER_SLAB),
-        127 => Some(&WAXED_OXIDIZED_CUT_COPPER_STAIRS),
-        118 => Some(&WAXED_WEATHERED_CHISELED_COPPER),
-        114 => Some(&WAXED_WEATHERED_COPPER),
-        1325 => Some(&WAXED_WEATHERED_COPPER_BULB),
-        728 => Some(&WAXED_WEATHERED_COPPER_DOOR),
-        1317 => Some(&WAXED_WEATHERED_COPPER_GRATE),
-        748 => Some(&WAXED_WEATHERED_COPPER_TRAPDOOR),
-        122 => Some(&WAXED_WEATHERED_CUT_COPPER),
-        130 => Some(&WAXED_WEATHERED_CUT_COPPER_SLAB),
-        126 => Some(&WAXED_WEATHERED_CUT_COPPER_STAIRS),
-        1281 => Some(&WAYFINDER_ARMOR_TRIM_SMITHING_TEMPLATE),
-        98 => Some(&WEATHERED_CHISELED_COPPER),
-        94 => Some(&WEATHERED_COPPER),
-        1321 => Some(&WEATHERED_COPPER_BULB),
-        724 => Some(&WEATHERED_COPPER_DOOR),
-        1313 => Some(&WEATHERED_COPPER_GRATE),
-        744 => Some(&WEATHERED_COPPER_TRAPDOOR),
-        102 => Some(&WEATHERED_CUT_COPPER),
-        110 => Some(&WEATHERED_CUT_COPPER_SLAB),
-        106 => Some(&WEATHERED_CUT_COPPER_STAIRS),
-        241 => Some(&WEEPING_VINES),
-        187 => Some(&WET_SPONGE),
-        854 => Some(&WHEAT),
-        853 => Some(&WHEAT_SEEDS),
-        1133 => Some(&WHITE_BANNER),
-        964 => Some(&WHITE_BED),
-        1242 => Some(&WHITE_CANDLE),
-        446 => Some(&WHITE_CARPET),
-        555 => Some(&WHITE_CONCRETE),
-        571 => Some(&WHITE_CONCRETE_POWDER),
-        944 => Some(&WHITE_DYE),
-        539 => Some(&WHITE_GLAZED_TERRACOTTA),
-        523 => Some(&WHITE_SHULKER_BOX),
-        471 => Some(&WHITE_STAINED_GLASS),
-        487 => Some(&WHITE_STAINED_GLASS_PANE),
-        427 => Some(&WHITE_TERRACOTTA),
-        225 => Some(&WHITE_TULIP),
-        202 => Some(&WHITE_WOOL),
-        1273 => Some(&WILD_ARMOR_TRIM_SMITHING_TEMPLATE),
-        1090 => Some(&WIND_CHARGE),
-        1079 => Some(&WITCH_SPAWN_EGG),
-        230 => Some(&WITHER_ROSE),
-        1104 => Some(&WITHER_SKELETON_SKULL),
-        1081 => Some(&WITHER_SKELETON_SPAWN_EGG),
-        1080 => Some(&WITHER_SPAWN_EGG),
-        797 => Some(&WOLF_ARMOR),
-        1082 => Some(&WOLF_SPAWN_EGG),
-        821 => Some(&WOODEN_AXE),
-        822 => Some(&WOODEN_HOE),
-        820 => Some(&WOODEN_PICKAXE),
-        819 => Some(&WOODEN_SHOVEL),
-        818 => Some(&WOODEN_SWORD),
-        1091 => Some(&WRITABLE_BOOK),
-        1092 => Some(&WRITTEN_BOOK),
-        1137 => Some(&YELLOW_BANNER),
-        968 => Some(&YELLOW_BED),
-        1246 => Some(&YELLOW_CANDLE),
-        450 => Some(&YELLOW_CARPET),
-        559 => Some(&YELLOW_CONCRETE),
-        575 => Some(&YELLOW_CONCRETE_POWDER),
-        948 => Some(&YELLOW_DYE),
-        543 => Some(&YELLOW_GLAZED_TERRACOTTA),
-        527 => Some(&YELLOW_SHULKER_BOX),
-        475 => Some(&YELLOW_STAINED_GLASS),
-        491 => Some(&YELLOW_STAINED_GLASS_PANE),
-        431 => Some(&YELLOW_TERRACOTTA),
-        206 => Some(&YELLOW_WOOL),
-        1083 => Some(&ZOGLIN_SPAWN_EGG),
-        1106 => Some(&ZOMBIE_HEAD),
-        1085 => Some(&ZOMBIE_HORSE_SPAWN_EGG),
-        1084 => Some(&ZOMBIE_SPAWN_EGG),
-        1086 => Some(&ZOMBIE_VILLAGER_SPAWN_EGG),
-        1087 => Some(&ZOMBIFIED_PIGLIN_SPAWN_EGG),
+        47 => Some(&WARPED_PLANKS),
+        742 => Some(&WARPED_PRESSURE_PLATE),
+        252 => Some(&WARPED_ROOTS),
+        954 => Some(&WARPED_SIGN),
+        282 => Some(&WARPED_SLAB),
+        424 => Some(&WARPED_STAIRS),
+        146 => Some(&WARPED_STEM),
+        776 => Some(&WARPED_TRAPDOOR),
+        548 => Some(&WARPED_WART_BLOCK),
+        968 => Some(&WATER_BUCKET),
+        118 => Some(&WAXED_CHISELED_COPPER),
+        114 => Some(&WAXED_COPPER_BLOCK),
+        1407 => Some(&WAXED_COPPER_BULB),
+        760 => Some(&WAXED_COPPER_DOOR),
+        1399 => Some(&WAXED_COPPER_GRATE),
+        781 => Some(&WAXED_COPPER_TRAPDOOR),
+        122 => Some(&WAXED_CUT_COPPER),
+        130 => Some(&WAXED_CUT_COPPER_SLAB),
+        126 => Some(&WAXED_CUT_COPPER_STAIRS),
+        119 => Some(&WAXED_EXPOSED_CHISELED_COPPER),
+        115 => Some(&WAXED_EXPOSED_COPPER),
+        1408 => Some(&WAXED_EXPOSED_COPPER_BULB),
+        761 => Some(&WAXED_EXPOSED_COPPER_DOOR),
+        1400 => Some(&WAXED_EXPOSED_COPPER_GRATE),
+        782 => Some(&WAXED_EXPOSED_COPPER_TRAPDOOR),
+        123 => Some(&WAXED_EXPOSED_CUT_COPPER),
+        131 => Some(&WAXED_EXPOSED_CUT_COPPER_SLAB),
+        127 => Some(&WAXED_EXPOSED_CUT_COPPER_STAIRS),
+        121 => Some(&WAXED_OXIDIZED_CHISELED_COPPER),
+        117 => Some(&WAXED_OXIDIZED_COPPER),
+        1410 => Some(&WAXED_OXIDIZED_COPPER_BULB),
+        763 => Some(&WAXED_OXIDIZED_COPPER_DOOR),
+        1402 => Some(&WAXED_OXIDIZED_COPPER_GRATE),
+        784 => Some(&WAXED_OXIDIZED_COPPER_TRAPDOOR),
+        125 => Some(&WAXED_OXIDIZED_CUT_COPPER),
+        133 => Some(&WAXED_OXIDIZED_CUT_COPPER_SLAB),
+        129 => Some(&WAXED_OXIDIZED_CUT_COPPER_STAIRS),
+        120 => Some(&WAXED_WEATHERED_CHISELED_COPPER),
+        116 => Some(&WAXED_WEATHERED_COPPER),
+        1409 => Some(&WAXED_WEATHERED_COPPER_BULB),
+        762 => Some(&WAXED_WEATHERED_COPPER_DOOR),
+        1401 => Some(&WAXED_WEATHERED_COPPER_GRATE),
+        783 => Some(&WAXED_WEATHERED_COPPER_TRAPDOOR),
+        124 => Some(&WAXED_WEATHERED_CUT_COPPER),
+        132 => Some(&WAXED_WEATHERED_CUT_COPPER_SLAB),
+        128 => Some(&WAXED_WEATHERED_CUT_COPPER_STAIRS),
+        1365 => Some(&WAYFINDER_ARMOR_TRIM_SMITHING_TEMPLATE),
+        100 => Some(&WEATHERED_CHISELED_COPPER),
+        96 => Some(&WEATHERED_COPPER),
+        1405 => Some(&WEATHERED_COPPER_BULB),
+        758 => Some(&WEATHERED_COPPER_DOOR),
+        1397 => Some(&WEATHERED_COPPER_GRATE),
+        779 => Some(&WEATHERED_COPPER_TRAPDOOR),
+        104 => Some(&WEATHERED_CUT_COPPER),
+        112 => Some(&WEATHERED_CUT_COPPER_SLAB),
+        108 => Some(&WEATHERED_CUT_COPPER_STAIRS),
+        254 => Some(&WEEPING_VINES),
+        194 => Some(&WET_SPONGE),
+        911 => Some(&WHEAT),
+        910 => Some(&WHEAT_SEEDS),
+        1214 => Some(&WHITE_BANNER),
+        1041 => Some(&WHITE_BED),
+        992 => Some(&WHITE_BUNDLE),
+        1326 => Some(&WHITE_CANDLE),
+        476 => Some(&WHITE_CARPET),
+        585 => Some(&WHITE_CONCRETE),
+        601 => Some(&WHITE_CONCRETE_POWDER),
+        1021 => Some(&WHITE_DYE),
+        569 => Some(&WHITE_GLAZED_TERRACOTTA),
+        802 => Some(&WHITE_HARNESS),
+        553 => Some(&WHITE_SHULKER_BOX),
+        501 => Some(&WHITE_STAINED_GLASS),
+        517 => Some(&WHITE_STAINED_GLASS_PANE),
+        457 => Some(&WHITE_TERRACOTTA),
+        238 => Some(&WHITE_TULIP),
+        213 => Some(&WHITE_WOOL),
+        1357 => Some(&WILD_ARMOR_TRIM_SMITHING_TEMPLATE),
+        259 => Some(&WILDFLOWERS),
+        1169 => Some(&WIND_CHARGE),
+        1157 => Some(&WITCH_SPAWN_EGG),
+        243 => Some(&WITHER_ROSE),
+        1184 => Some(&WITHER_SKELETON_SKULL),
+        1159 => Some(&WITHER_SKELETON_SPAWN_EGG),
+        1158 => Some(&WITHER_SPAWN_EGG),
+        854 => Some(&WOLF_ARMOR),
+        1160 => Some(&WOLF_SPAWN_EGG),
+        878 => Some(&WOODEN_AXE),
+        879 => Some(&WOODEN_HOE),
+        877 => Some(&WOODEN_PICKAXE),
+        876 => Some(&WOODEN_SHOVEL),
+        875 => Some(&WOODEN_SWORD),
+        1170 => Some(&WRITABLE_BOOK),
+        1171 => Some(&WRITTEN_BOOK),
+        1218 => Some(&YELLOW_BANNER),
+        1045 => Some(&YELLOW_BED),
+        996 => Some(&YELLOW_BUNDLE),
+        1330 => Some(&YELLOW_CANDLE),
+        480 => Some(&YELLOW_CARPET),
+        589 => Some(&YELLOW_CONCRETE),
+        605 => Some(&YELLOW_CONCRETE_POWDER),
+        1025 => Some(&YELLOW_DYE),
+        573 => Some(&YELLOW_GLAZED_TERRACOTTA),
+        806 => Some(&YELLOW_HARNESS),
+        557 => Some(&YELLOW_SHULKER_BOX),
+        505 => Some(&YELLOW_STAINED_GLASS),
+        521 => Some(&YELLOW_STAINED_GLASS_PANE),
+        461 => Some(&YELLOW_TERRACOTTA),
+        217 => Some(&YELLOW_WOOL),
+        1161 => Some(&ZOGLIN_SPAWN_EGG),
+        1186 => Some(&ZOMBIE_HEAD),
+        1164 => Some(&ZOMBIE_HORSE_SPAWN_EGG),
+        1163 => Some(&ZOMBIE_SPAWN_EGG),
+        1165 => Some(&ZOMBIE_VILLAGER_SPAWN_EGG),
+        1166 => Some(&ZOMBIFIED_PIGLIN_SPAWN_EGG),
         _ => None,
     }
 }

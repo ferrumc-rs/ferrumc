@@ -3,8 +3,8 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
-use ferrumc_net_codec::net_types::var_int::VarInt;
+use ferrumc_protocol::codec::net_types::length_prefixed_vec::LengthPrefixedVec;
+use ferrumc_protocol::codec::net_types::var_int::VarInt;
 use node::{CommandNode, CommandNodeFlag, CommandNodeType};
 
 use crate::Command;

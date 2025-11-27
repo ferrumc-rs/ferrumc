@@ -5,8 +5,8 @@ use bevy_ecs::prelude::{Entity, Event};
 
 use ferrumc_core::items::item_id::ItemID;
 >>>>>>>> origin/master:src/lib/messages/src/player/interaction.rs
-use ferrumc_net_codec::net_types::network_position::NetworkPosition;
-use ferrumc_net_codec::net_types::var_int::VarInt;
+use ferrumc_protocol::codec::net_types::network_position::NetworkPosition;
+use ferrumc_protocol::codec::net_types::var_int::VarInt;
 
 /// Fired when the client sends "start digging" (status 0).
 ///

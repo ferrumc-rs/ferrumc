@@ -2,8 +2,8 @@ use std::io::{Cursor, Read};
 
 use crate::errors::CompressionError::GenericCompressionError;
 use crate::errors::NetError;
-use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
-use ferrumc_net_codec::net_types::var_int::VarInt;
+use ferrumc_protocol::codec::encode::{NetEncode, NetEncodeOpts};
+use ferrumc_protocol::codec::net_types::var_int::VarInt;
 
 use tracing::error;
 use yazi::{compress, CompressionLevel, Format};
@@ -117,9 +117,9 @@ mod tests {
     use ferrumc_config::ServerConfig;
 
     use crate::errors::NetError;
-    use ferrumc_net_codec::encode::errors::NetEncodeError;
-    use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
-    use ferrumc_net_codec::net_types::var_int::VarInt;
+    use ferrumc_protocol::codec::encode::errors::NetEncodeError;
+    use ferrumc_protocol::codec::encode::{NetEncode, NetEncodeOpts};
+    use ferrumc_protocol::codec::net_types::var_int::VarInt;
     use std::io::Cursor;
 
     struct TestPacket {

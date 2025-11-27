@@ -1,6 +1,6 @@
 use crate::*;
 use ferrumc_nbt::{NBTSerializable, NBTSerializeOptions};
-use ferrumc_net_codec::encode::{errors::NetEncodeError, NetEncode, NetEncodeOpts};
+use ferrumc_protocol::codec::encode::{errors::NetEncodeError, NetEncode, NetEncodeOpts};
 use paste::paste;
 use std::fmt;
 use std::io::Write;

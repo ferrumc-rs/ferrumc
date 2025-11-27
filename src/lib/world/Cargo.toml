@@ -9,7 +9,7 @@ thiserror = { workspace = true }
 ferrumc-storage = { workspace = true }
 ferrumc-config = { workspace = true }
 tracing = { workspace = true }
-ferrumc-net-codec = { workspace = true }
+ferrumc-protocol = { workspace = true }
 serde = { workspace = true }
 serde_derive = { workspace = true }
 macro_rules_attribute = { workspace = true }

@@ -1,0 +1,94 @@
+use crate::codec::decode::errors::NetDecodeError;
+use crate::codec::decode::{NetDecode, NetDecodeOpts};
+use crate::codec::encode::errors::NetEncodeError;
+use crate::codec::encode::{NetEncode, NetEncodeOpts};
+use crate::codec::net_types::var_int::VarInt;
+use std::io::{Read, Write};
+use tokio::io::{AsyncRead, AsyncWrite};
+
+#[derive(Debug, Clone)]
+pub struct LengthPrefixedVec<T> {
+    pub length: VarInt,
+    pub data: Vec<T>,
+}
+
+impl<T> Default for LengthPrefixedVec<T> {
+    fn default() -> Self {
+        Self {
+            length: VarInt::new(0),
+            data: Vec::new(),
+        }
+    }
+}
+
+impl<T> LengthPrefixedVec<T> {
+    pub fn new(data: Vec<T>) -> Self {
+        Self {
+            length: VarInt::new(data.len() as i32),
+            data,
+        }
+    }
+
+    pub fn push(&mut self, data: T) {
+        self.data.push(data);
+        self.length = VarInt::new(self.length.0 + 1);
+    }
+}
+
+impl<T> NetEncode for LengthPrefixedVec<T>
+where
+    T: NetEncode,
+{
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+        self.length.encode(writer, opts)?;
+
+        for item in &self.data {
+            item.encode(writer, opts)?;
+        }
+
+        Ok(())
+    }
+
+    async fn encode_async<W: AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
+        self.length.encode_async(writer, opts).await?;
+
+        for item in &self.data {
+            item.encode_async(writer, opts).await?;
+        }
+
+        Ok(())
+    }
+}
+impl<T> NetDecode for LengthPrefixedVec<T>
+where
+    T: NetDecode,
+{
+    fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
+        let length = VarInt::decode(reader, opts)?;
+
+        let mut data = Vec::new();
+        for _ in 0..length.0 {
+            data.push(T::decode(reader, opts)?);
+        }
+
+        Ok(Self { length, data })
+    }
+
+    async fn decode_async<R: AsyncRead + Unpin>(
+        reader: &mut R,
+        opts: &NetDecodeOpts,
+    ) -> Result<Self, NetDecodeError> {
+        let length = VarInt::decode_async(reader, opts).await?;
+
+        let mut data = Vec::new();
+        for _ in 0..length.0 {
+            data.push(T::decode_async(reader, opts).await?);
+        }
+
+        Ok(Self { length, data })
+    }
+}

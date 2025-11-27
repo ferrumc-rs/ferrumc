@@ -13,8 +13,8 @@ use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::block_change_ack::BlockChangeAck;
 use ferrumc_net::packets::outgoing::block_update::BlockUpdate;
 use ferrumc_net::PlaceBlockReceiver;
-use ferrumc_net_codec::net_types::network_position::NetworkPosition;
-use ferrumc_net_codec::net_types::var_int::VarInt;
+use ferrumc_protocol::codec::net_types::network_position::NetworkPosition;
+use ferrumc_protocol::codec::net_types::var_int::VarInt;
 use ferrumc_world::block_state_id::BlockStateId;
 
 use once_cell::sync::Lazy;

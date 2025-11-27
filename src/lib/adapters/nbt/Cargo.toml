@@ -4,12 +4,11 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+ferrumc-general-purpose = { workspace = true }
 
 thiserror = { workspace = true }
-ferrumc-net-codec = { workspace = true }
 tracing = { workspace = true }
 tokio = { workspace = true }
-ferrumc-general-purpose = { workspace = true }
 uuid = { workspace = true }
 
 [lints]

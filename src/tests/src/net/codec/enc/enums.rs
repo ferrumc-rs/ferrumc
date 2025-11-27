@@ -1,6 +1,6 @@
 use ferrumc_macros::NetEncode;
-use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
-use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
+use ferrumc_protocol::codec::decode::{NetDecode, NetDecodeOpts};
+use ferrumc_protocol::codec::encode::{NetEncode, NetEncodeOpts};
 
 #[derive(NetEncode)]
 enum TestPacket {

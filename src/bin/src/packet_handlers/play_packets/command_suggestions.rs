@@ -8,7 +8,7 @@ use ferrumc_net::{
     packets::outgoing::command_suggestions::{CommandSuggestionsPacket, Match},
     CommandSuggestionRequestReceiver,
 };
-use ferrumc_net_codec::net_types::{
+use ferrumc_protocol::codec::net_types::{
     length_prefixed_vec::LengthPrefixedVec, prefixed_optional::PrefixedOptional, var_int::VarInt,
 };
 use tracing::error;

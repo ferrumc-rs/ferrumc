@@ -9,7 +9,7 @@ bevy_ecs = { workspace = true }
 ferrumc-core = { workspace = true }
 ferrumc-macros = { workspace = true }
 ferrumc-net = { workspace = true }
-ferrumc-net-codec = { workspace = true }
+ferrumc-protocol = { workspace = true }
 ferrumc-state = { workspace = true }
 ferrumc-world = { workspace = true }
 

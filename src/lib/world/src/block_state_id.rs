@@ -2,7 +2,7 @@ use crate::vanilla_chunk_format::BlockData;
 use ahash::RandomState;
 use bitcode_derive::{Decode, Encode};
 use deepsize::DeepSizeOf;
-use ferrumc_net_codec::net_types::var_int::VarInt;
+use ferrumc_protocol::codec::net_types::var_int::VarInt;
 use lazy_static::lazy_static;
 use std::collections::HashMap;
 use std::fmt::Display;

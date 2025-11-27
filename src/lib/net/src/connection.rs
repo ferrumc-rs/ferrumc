@@ -11,14 +11,8 @@ use bevy_ecs::prelude::{Component, Entity};
 use crossbeam_channel::Sender;
 use ferrumc_components::player::identity::PlayerIdentity;
 use ferrumc_components::state::server_state::ServerState;
-use ferrumc_net_codec::encode::NetEncode;
-use ferrumc_net_codec::encode::NetEncodeOpts;
-<<<<<<< HEAD
-use ferrumc_net_encryption::read::EncryptedReader;
-use ferrumc_net_encryption::write::EncryptedWriter;
-use ferrumc_state::ServerState;
-=======
->>>>>>> origin/master
+use ferrumc_protocol::codec::encode::NetEncode;
+use ferrumc_protocol::codec::encode::NetEncodeOpts;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;

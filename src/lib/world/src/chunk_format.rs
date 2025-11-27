@@ -6,7 +6,7 @@ use bitcode_derive::{Decode, Encode};
 use deepsize::DeepSizeOf;
 use ferrumc_general_purpose::data_packing::i32::read_nbit_i32;
 use ferrumc_macros::{block, NBTDeserialize, NBTSerialize};
-use ferrumc_net_codec::net_types::var_int::VarInt;
+use ferrumc_protocol::codec::net_types::var_int::VarInt;
 use std::cmp::max;
 use std::collections::HashMap;
 use tracing::error;

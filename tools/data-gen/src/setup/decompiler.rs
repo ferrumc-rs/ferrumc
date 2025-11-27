@@ -19,7 +19,7 @@ pub fn prepare_remapped_jar(temp_dir: &Path) -> PathBuf {
     // 1. Download Decompiler
     let decompiler_path = temp_dir.join("MinecraftDecompiler.jar");
     if !decompiler_path.exists() {
-        println!("⬇️  Downloading Decompiler...");
+        println!("Downloading Decompiler...");
         let mut resp = Client::new()
             .get(DECOMPILER_URL)
             .send()

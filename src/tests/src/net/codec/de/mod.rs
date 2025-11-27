@@ -1,5 +1,5 @@
 use ferrumc_macros::NetDecode;
-use ferrumc_net_codec::decode::NetDecode;
+use ferrumc_protocol::codec::decode::NetDecode;
 
 #[derive(NetDecode, Debug)]
 #[expect(dead_code)]
@@ -14,7 +14,7 @@ fn test_decode() {
 
     let mut reader = std::io::Cursor::new(file);
     let example =
-        SomeExampleEncStruct::decode(&mut reader, &ferrumc_net_codec::decode::NetDecodeOpts::None)
+        SomeExampleEncStruct::decode(&mut reader, &ferrumc_protocol::codec::decode::NetDecodeOpts::None)
             .unwrap();
 
     println!("{:?}", example);

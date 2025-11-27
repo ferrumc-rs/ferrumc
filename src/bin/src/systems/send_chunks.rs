@@ -8,9 +8,9 @@ use ferrumc_net::packets::outgoing::chunk_and_light_data::ChunkAndLightData;
 use ferrumc_net::packets::outgoing::chunk_batch_finish::ChunkBatchFinish;
 use ferrumc_net::packets::outgoing::chunk_batch_start::ChunkBatchStart;
 use ferrumc_net::packets::outgoing::set_center_chunk::SetCenterChunk;
-use ferrumc_net_codec::encode::NetEncode;
-use ferrumc_net_codec::encode::NetEncodeOpts::WithLength;
-use ferrumc_net_codec::net_types::var_int::VarInt;
+use ferrumc_protocol::codec::encode::NetEncode;
+use ferrumc_protocol::codec::encode::NetEncodeOpts::WithLength;
+use ferrumc_protocol::codec::net_types::var_int::VarInt;
 use std::sync::atomic::Ordering;
 use tracing::{error, trace};
 

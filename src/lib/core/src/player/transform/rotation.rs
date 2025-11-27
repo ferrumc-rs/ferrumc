@@ -1,13 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 
-<<<<<<< HEAD:src/lib/core/src/transform/rotation.rs
-#[derive(TypeName, Component, Clone, Copy, Default)]
-pub struct Rotation {
-=======
 #[derive(Clone, Copy, PartialEq, Default, Serialize, Deserialize)]
 pub struct RotationData {
->>>>>>> origin/master:src/lib/core/src/player/transform/rotation.rs
     pub yaw: f32,
     pub pitch: f32,
 }
@@ -47,11 +42,7 @@ impl RotationData {
     }
 }
 
-<<<<<<< HEAD:src/lib/core/src/transform/rotation.rs
-impl Debug for Rotation {
-=======
 impl Debug for RotationData {
->>>>>>> origin/master:src/lib/core/src/player/transform/rotation.rs
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,

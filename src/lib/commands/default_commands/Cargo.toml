@@ -5,11 +5,7 @@ edition = "2021"
 
 [dependencies]
 ferrumc-messages = { workspace = true }
-<<<<<<< HEAD:src/lib/default_commands/Cargo.toml
 ferrumc-components = { workspace = true}
-=======
-ferrumc-components = { workspace = true }
->>>>>>> origin/master:src/lib/commands/default_commands/Cargo.toml
 ferrumc-commands = { workspace = true }
 ferrumc-macros = { workspace = true }
 ferrumc-text = { workspace = true }

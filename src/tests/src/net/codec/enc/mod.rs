@@ -1,5 +1,5 @@
 use ferrumc_macros::NetEncode;
-use ferrumc_net_codec::{encode::NetEncode, net_types::var_int::VarInt};
+use ferrumc_protocol::codec::{encode::NetEncode, net_types::var_int::VarInt};
 use std::io::Write;
 
 mod enums;
@@ -26,7 +26,7 @@ fn test_encode() {
     };
     let mut writer = Vec::<u8>::new();
     example
-        .encode(&mut writer, &ferrumc_net_codec::encode::NetEncodeOpts::None)
+        .encode(&mut writer, &ferrumc_protocol::codec::encode::NetEncodeOpts::None)
         .unwrap();
 }
 
@@ -43,7 +43,7 @@ fn _test_compression() -> ! {
         example
             .encode(
                 &mut writer,
-                &ferrumc_net_codec::encode::NetEncodeOpts::Compressed,
+                &ferrumc_protocol::codec::encode::NetEncodeOpts::Compressed,
             )
             .unwrap();
     }
