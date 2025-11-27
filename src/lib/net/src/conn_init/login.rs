@@ -27,6 +27,7 @@ use rand::RngCore;
 use tokio::net::tcp::OwnedReadHalf;
 use tracing::{debug, error, trace};
 use uuid::Uuid;
+use crate::packets::outgoing::client_bound_plugin_message::ClientBoundPluginMessagePacket;
 
 /// Handles the **login sequence** for a newly connecting client.
 ///
@@ -261,6 +262,12 @@ pub(super) async fn login(
     for packet in &*REGISTRY_PACKETS {
         conn_write.send_packet_ref(packet)?;
     }
+
+    // =============================================================================================
+    // Send client server brand information
+    let brand_packet = ClientBoundPluginMessagePacket::brand();
+    conn_write.send_packet(brand_packet)?;
+
 
     // =============================================================================================
     // 10 Signal end of configuration phase
