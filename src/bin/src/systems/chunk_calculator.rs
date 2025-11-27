@@ -20,31 +20,29 @@ pub fn handle(
         let player_chunk_x = position.x.floor() as i32 >> 4;
         let player_chunk_z = position.z.floor() as i32 >> 4;
 
+        let mut queued_chunks = Vec::new();
+
         // Add all chunks within the radius to the loading list if not already loaded
         for x in player_chunk_x - radius..=player_chunk_x + radius {
             for z in player_chunk_z - radius..=player_chunk_z + radius {
                 let chunk_coords = (x, z);
                 if !chunk_receiver.loaded.contains(&chunk_coords) {
-                    chunk_receiver.loading.push(chunk_coords);
+                    queued_chunks.push(chunk_coords);
                 }
             }
         }
 
         // Sort loading list to prioritize closer chunks
-        chunk_receiver.loading.sort_by_key(|(x, z)| {
+        queued_chunks.sort_by_key(|(x, z)| {
             let dx = x - player_chunk_x;
             let dz = z - player_chunk_z;
             dx * dx + dz * dz
         });
 
-        // Mark chunks that are outside the radius for unloading
-        chunk_receiver.loaded.retain(|(x, z)| {
-            if (x - player_chunk_x).abs() > radius || (z - player_chunk_z).abs() > radius {
-                chunk_receiver.unloading.insert((*x, *z));
-                false
-            } else {
-                true
-            }
-        });
+        for coords in queued_chunks {
+            chunk_receiver.loading.push_back(coords);
+        }
+
+        // TODO: Handle unloading of distant chunks
     }
 }
