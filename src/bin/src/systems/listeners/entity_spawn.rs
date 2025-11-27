@@ -103,17 +103,12 @@ pub fn handle_spawn_entity(mut events: MessageReader<SpawnEntityEvent>, mut comm
     for event in events.read() {
         match event.entity_type {
             EntityType::Pig => {
-                // Spawn the pig entity and get its ID
-                let entity = commands.spawn(PigBundle::new(event.position.clone())).id();
-
-                // Add EntityIdentity using the Bevy entity ID
-                commands
-                    .entity(entity)
-                    .insert(EntityIdentity::from_entity(entity));
+                // Spawn the pig entity
+                let pig_entity = commands.spawn(PigBundle::new(event.position.clone())).id();
 
                 // Queue a deferred system to broadcast spawn packets after entity is fully spawned
                 commands.queue(move |world: &mut World| {
-                    broadcast_entity_spawn(world, entity);
+                    broadcast_entity_spawn(world, pig_entity);
                 });
             }
         }

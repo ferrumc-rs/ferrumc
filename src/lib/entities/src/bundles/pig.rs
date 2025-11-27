@@ -1,4 +1,5 @@
 use bevy_ecs::prelude::Bundle;
+use ferrumc_core::identity::entity_identity::EntityIdentity;
 use ferrumc_core::transform::{grounded::OnGround, position::Position, rotation::Rotation};
 use ferrumc_data::generated::entities::EntityType as VanillaEntityType;
 
@@ -10,24 +11,23 @@ use crate::components::{CombatProperties, EntityMetadata, PhysicalProperties, Sp
 /// in the world. It use Vanilla's data from ferrumc-data to correctly
 /// initialize properties.
 ///
-/// Note: The EntityIdentity component must be added separately after spawning
-/// since it needs the Bevy Entity ID.
-///
 /// # Examples
 ///
 /// ```ignore
 /// use bevy_ecs::prelude::Commands;
 /// use ferrumc_entities::bundles::PigBundle;
-/// use ferrumc_core::{identity::entity_identity::EntityIdentity, transform::position::Position};
+/// use ferrumc_core::transform::position::Position;
 ///
 /// fn spawn_pig(mut commands: Commands) {
 ///     let position = Position::new(0.0, 64.0, 0.0);
-///     let entity = commands.spawn(PigBundle::new(position)).id();
-///     commands.entity(entity).insert(EntityIdentity::from_entity(entity));
+///     commands.spawn(PigBundle::new(position));
 /// }
 /// ```
 #[derive(Bundle)]
 pub struct PigBundle {
+    /// Network identity (entity_id and UUID)
+    pub identity: EntityIdentity,
+
     /// Immutable vanilla metadatas (protocol_id, resource_name, etc.)
     pub metadata: EntityMetadata,
 
@@ -56,16 +56,14 @@ impl PigBundle {
     /// Initialize all the components with correct vanilla's values
     /// from ferrumc-data.
     ///
-    /// Note: Don't forget to add EntityIdentity after spawning!
-    ///
     /// # Examples
     ///
     /// ```ignore
     /// use ferrumc_entities::bundles::PigBundle;
-    /// use ferrumc_core::{identity::entity_identity::EntityIdentity, transform::position::Position};
+    /// use ferrumc_core::transform::position::Position;
     ///
-    /// let entity = commands.spawn(PigBundle::new(Position::new(10.0, 64.0, 20.0))).id();
-    /// commands.entity(entity).insert(EntityIdentity::from_entity(entity));
+    /// let pig = PigBundle::new(Position::new(10.0, 64.0, 20.0));
+    /// commands.spawn(pig);
     /// ```
     pub fn new(position: Position) -> Self {
         // Create metadata from vanilla data
@@ -77,6 +75,9 @@ impl PigBundle {
         let spawn = SpawnProperties::from_metadata(&metadata);
 
         Self {
+            // Network identity
+            identity: EntityIdentity::new(),
+
             // Derived components from vanilla
             metadata,
             physical,
