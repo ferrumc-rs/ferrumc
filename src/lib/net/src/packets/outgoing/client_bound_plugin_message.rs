@@ -1,8 +1,7 @@
 use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 
-const SERVER_VERSION: &str =
-    concat!("FerrumC v", env!("FERRUMC_VERSION"), env!("BUILD_TYPE"));
+const SERVER_VERSION: &str = concat!("FerrumC v", env!("FERRUMC_VERSION"), env!("BUILD_TYPE"));
 
 #[derive(NetEncode, Clone)]
 #[packet(packet_id = "custom_payload", state = "configuration")]
