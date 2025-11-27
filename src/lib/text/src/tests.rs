@@ -84,8 +84,8 @@ fn test_to_string() {
 }
 
 use ferrumc_macros::{packet, NetEncode};
-use ferrumc_nbt::NBTSerializable;
 use ferrumc_nbt::NBTSerializeOptions;
+use ferrumc_nbt::{NBTSerializable, NBT};
 use ferrumc_net_codec::{
     decode::{NetDecode, NetDecodeOpts},
     encode::{NetEncode, NetEncodeOpts},
@@ -97,7 +97,7 @@ use std::io::{Cursor, Write};
 #[derive(NetEncode)]
 #[packet(packet_id = 0x6C, state = "play")]
 struct TestPacket {
-    message: TextComponent,
+    message: NBT<TextComponent>,
     overlay: bool,
 }
 
@@ -149,7 +149,8 @@ fn test_serialize_to_nbt() {
         &TestPacket {
             message: TextComponentBuilder::new("test")
                 .color(NamedColor::Blue)
-                .build(),
+                .build()
+                .into(),
             overlay: false,
         },
         &mut cursor,

@@ -82,8 +82,9 @@ impl StreamWriter {
                 };
 
                 match cmd {
-                    WriterCommand::SendPacket(bytes) => {
+                    WriterCommand::SendPacket(mut bytes) => {
                         // This handles ONLY if there was a writing error to the client.
+                        writer.encrypt_buf(&mut bytes);
                         if let Err(e) = writer.write_all(&bytes).await {
                             error!("Failed to write to client: {:?}", e);
                             running_clone.store(false, Ordering::Relaxed);

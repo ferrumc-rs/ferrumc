@@ -17,6 +17,7 @@ mod sender;
 // Re-export under main module to avoid clutter.
 pub use ctx::*;
 use ferrumc_macros::NetEncode;
+use ferrumc_nbt::NBT;
 use ferrumc_text::TextComponent;
 pub use input::*;
 pub use sender::*;
@@ -38,7 +39,7 @@ pub struct Suggestion {
     pub content: String,
 
     /// An optional tooltip that gets displayed when hovering over the suggestion.
-    pub tooltip: Option<TextComponent>,
+    pub tooltip: Option<NBT<TextComponent>>,
 }
 
 impl Suggestion {

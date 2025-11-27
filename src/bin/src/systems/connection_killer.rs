@@ -86,7 +86,8 @@ pub fn connection_killer(
                 );
                 if let Err(e) = conn.send_packet_ref(
                     &ferrumc_net::packets::outgoing::disconnect::DisconnectPacket {
-                        reason: TextComponent::from(reason.as_deref().unwrap_or("Disconnected")),
+                        reason: TextComponent::from(reason.as_deref().unwrap_or("Disconnected"))
+                            .into(),
                     },
                 ) {
                     warn!(

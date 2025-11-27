@@ -183,8 +183,13 @@ mod test_map {
 
         let mut tapes = crate::de::borrow::NbtTape::new(&data);
         tapes.parse();
-        let root = tapes.root.as_ref().map(|(_, b)| b).unwrap();
-        let hashmap = HashMap::<&str, i32>::from_nbt(&tapes, root).unwrap();
+        let root = tapes
+            .root
+            .as_ref()
+            .map(|(_, b)| b)
+            .expect("failed to get root");
+        let hashmap =
+            HashMap::<&str, i32>::from_nbt(&tapes, root).expect("failed to deserialize root");
 
         assert_eq!(some_hashmap, hashmap);
     }
@@ -205,8 +210,13 @@ mod test_map {
 
         let mut tapes = crate::de::borrow::NbtTape::new(&data);
         tapes.parse();
-        let root = tapes.root.as_ref().map(|(_, b)| b).unwrap();
-        let btreemap = std::collections::BTreeMap::<&str, i32>::from_nbt(&tapes, root).unwrap();
+        let root = tapes
+            .root
+            .as_ref()
+            .map(|(_, b)| b)
+            .expect("failed to get root");
+        let btreemap = std::collections::BTreeMap::<&str, i32>::from_nbt(&tapes, root)
+            .expect("failed to deserialize root");
 
         assert_eq!(some_btreemap, btreemap);
     }

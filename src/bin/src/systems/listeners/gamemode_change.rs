@@ -70,7 +70,7 @@ pub fn handle(
             .build();
 
         let chat_packet = SystemMessagePacket {
-            message: msg,
+            message: msg.into(),
             overlay: false,
         };
         if let Err(e) = writer.send_packet_ref(&chat_packet) {
