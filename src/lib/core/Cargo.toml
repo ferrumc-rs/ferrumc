@@ -15,6 +15,7 @@ ferrumc-net-codec = { workspace = true }
 uuid = { workspace = true }
 crossbeam-queue = { workspace = true }
 dashmap = { workspace = true }
+ferrumc-data = { workspace = true }
 
 [dev-dependencies]
 criterion = { workspace = true }
