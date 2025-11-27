@@ -17,4 +17,9 @@ pub mod player_leave;
 pub use player_leave::*;
 
 pub mod change_gamemode;
+pub mod chunk_calc;
+
 pub use change_gamemode::*;
+
+pub mod entity_spawn;
+pub use entity_spawn::{EntityType, SpawnEntityCommand, SpawnEntityEvent};

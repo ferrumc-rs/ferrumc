@@ -187,6 +187,11 @@ Options:
             - `warn` (Only warnings)
             - `error` (Only errors)
 
+### [Option 3] Use Docker
+
+1. You need to build the image : `sudo docker build -t ferrumc:yourtag .`
+2. Then run it : `docker run --rm -it -p 25565:25565 ferrumc:yourtag`
+
 ## 🛠️ Development
 
 We welcome contributions! If you'd like to contribute to FerrumC, please follow these steps:

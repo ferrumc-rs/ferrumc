@@ -169,6 +169,30 @@ impl StreamWriter {
         Ok(())
     }
 
+    pub fn prep_packet(&self, packet: &(impl NetEncode + Send)) -> Result<Vec<u8>, NetError> {
+        if !self.running.load(Ordering::Relaxed) {
+            #[cfg(debug_assertions)]
+            warn!("Attempted to prepare packet on closed connection");
+            return Err(NetError::ConnectionDropped);
+        }
+
+        let raw_bytes = compress_packet(
+            packet,
+            self.compress.load(Ordering::Relaxed),
+            &NetEncodeOpts::WithLength,
+            512,
+        )
+        .map_err(|err| {
+            error!("Failed to compress packet: {:?}", err);
+            NetError::CompressionError(GenericCompressionError(format!(
+                "Failed to compress packet: {:?}",
+                err
+            )))
+        })?;
+
+        Ok(raw_bytes)
+    }
+
     /// Sends pre-encoded raw bytes to the client without additional processing.
     pub fn send_raw_packet(&self, raw_bytes: Vec<u8>) -> Result<(), NetError> {
         if !self.running.load(Ordering::Relaxed) {
