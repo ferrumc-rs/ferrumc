@@ -1,4 +1,5 @@
 use bevy_ecs::prelude::Bundle;
+use ferrumc_core::identity::entity_identity::EntityIdentity;
 use ferrumc_core::transform::{grounded::OnGround, position::Position, rotation::Rotation};
 use ferrumc_data::generated::entities::EntityType as VanillaEntityType;
 
@@ -24,6 +25,9 @@ use crate::components::{CombatProperties, EntityMetadata, PhysicalProperties, Sp
 /// ```
 #[derive(Bundle)]
 pub struct PigBundle {
+    /// Network identity (entity_id and UUID)
+    pub identity: EntityIdentity,
+
     /// Immutable vanilla metadatas (protocol_id, resource_name, etc.)
     pub metadata: EntityMetadata,
 
@@ -71,6 +75,9 @@ impl PigBundle {
         let spawn = SpawnProperties::from_metadata(&metadata);
 
         Self {
+            // Network identity
+            identity: EntityIdentity::new(),
+
             // Derived components from vanilla
             metadata,
             physical,

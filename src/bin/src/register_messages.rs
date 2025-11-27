@@ -6,7 +6,7 @@ use ferrumc_messages::chunk_calc::ChunkCalc;
 use ferrumc_messages::{
     PlayerCancelledDigging, PlayerDamaged, PlayerDied, PlayerEating, PlayerFinishedDigging,
     PlayerGainedXP, PlayerGameModeChanged, PlayerJoined, PlayerLeft, PlayerLeveledUp,
-    PlayerStartedDigging,
+    PlayerStartedDigging, SpawnEntityCommand, SpawnEntityEvent,
 };
 use ferrumc_net::packets::packet_messages::Movement;
 
@@ -28,4 +28,6 @@ pub fn register_messages(world: &mut World) {
     MessageRegistry::register_message::<PlayerGainedXP>(world);
     MessageRegistry::register_message::<PlayerLeveledUp>(world);
     MessageRegistry::register_message::<PlayerGameModeChanged>(world);
+    MessageRegistry::register_message::<SpawnEntityCommand>(world);
+    MessageRegistry::register_message::<SpawnEntityEvent>(world);
 }

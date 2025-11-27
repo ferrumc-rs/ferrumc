@@ -41,6 +41,22 @@ impl Rotation {
 
         (x, y, z)
     }
+
+    /// Returns yaw and pitch as a tuple for easy spreading.
+    ///
+    /// This is useful for struct initialization where you need to spread
+    /// rotation values across multiple fields.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// let rot = Rotation::new(90.0, 45.0);
+    /// let (yaw, pitch) = rot.yaw_pitch();
+    /// // Now you can use yaw, pitch individually
+    /// ```
+    pub fn yaw_pitch(&self) -> (f32, f32) {
+        (self.yaw, self.pitch)
+    }
 }
 
 impl Debug for Rotation {
