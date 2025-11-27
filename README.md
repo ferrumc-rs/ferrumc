@@ -189,9 +189,8 @@ Options:
 
 ### [Option 3] Use Docker
 
-1. You need to build the image `sudo docker buildx build -t ferrumc:yourtag --load .` 
-> or withtout buildkit `sudo docker build -t ferrumc:yourtag .`
-2. Then run it : `sudo docker run --rm -it -p 25565:25565 ferrumc:yourtag`
+1. You need to build the image : `sudo docker build -t ferrumc:yourtag .`
+2. Then run it : `docker run --rm -it -p 25565:25565 ferrumc:yourtag`
 
 ## 🛠️ Development
 
