@@ -3,7 +3,6 @@ use bevy_ecs::prelude::{Entity, MessageWriter, Query, Res};
 use std::sync::atomic::Ordering;
 
 use crate::errors::BinaryError;
-use ferrumc_core::chunks::cross_chunk_boundary_event::ChunkBoundaryCrossed;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
@@ -17,13 +16,14 @@ use ferrumc_net::packets::outgoing::update_entity_rotation::UpdateEntityRotation
 use ferrumc_net::SetPlayerPositionPacketReceiver;
 use ferrumc_state::{GlobalState, GlobalStateResource};
 
+use ferrumc_messages::chunk_calc::ChunkCalc;
 use tracing::{debug, error, trace, warn};
 
 pub fn handle(
     receiver: Res<SetPlayerPositionPacketReceiver>,
     mut pos_query: Query<(&mut Position, &mut OnGround, &Rotation, &PlayerIdentity)>,
     pass_conn_query: Query<(Entity, &StreamWriter)>,
-    mut cross_chunk_msgs: MessageWriter<ChunkBoundaryCrossed>,
+    mut recalc_chunk_messages: MessageWriter<ChunkCalc>,
     state: Res<GlobalStateResource>,
 ) {
     for (event, eid) in receiver.0.try_iter() {
@@ -54,11 +54,7 @@ pub fn handle(
         let new_chunk = (new_position.x as i32 >> 4, new_position.z as i32 >> 4);
 
         if old_chunk != new_chunk {
-            cross_chunk_msgs.write(ChunkBoundaryCrossed {
-                player: eid,
-                old_chunk,
-                new_chunk,
-            });
+            recalc_chunk_messages.write(ChunkCalc(eid));
         }
 
         *position = Position::new(new_position.x, new_position.y, new_position.z);

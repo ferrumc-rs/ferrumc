@@ -1,0 +1,32 @@
+# Build artifacts
+target/
+**/target/
+
+# IDE
+.idea/
+.vscode/
+.zed/
+
+# Git
+.git/
+.gitignore
+
+# Runtime files
+world/
+logs/
+whitelist.txt
+config.toml
+
+# Nix/Direnv
+.direnv/
+result
+result-*
+
+# Documentation
+*.md
+
+# CI/CD
+.github/
+
+# Config samples
+configs/
