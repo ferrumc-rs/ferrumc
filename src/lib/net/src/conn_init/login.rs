@@ -419,17 +419,22 @@ pub(super) async fn login(
     };
 
     // =============================================================================================
-    // 18 Send initial game event (e.g., "change game mode")
+    // 18 Send player info update packets
+    let player_info = crate::packets::outgoing::player_info_update::PlayerInfoUpdatePacket::new_player_join_packet(&player_identity);
+    conn_write.send_packet(player_info)?;
+
+    // =============================================================================================
+    // 19 Send initial game event (e.g., "change game mode")
     let game_event = crate::packets::outgoing::game_event::GameEventPacket::new(13, 0.0);
     conn_write.send_packet(game_event)?;
 
     // =============================================================================================
-    // 19 Send center chunk packet (player spawn location)
+    // 20 Send center chunk packet (player spawn location)
     let center_chunk = crate::packets::outgoing::set_center_chunk::SetCenterChunk::new(0, 0);
     conn_write.send_packet(center_chunk)?;
 
     // =============================================================================================
-    // 20 Load and send surrounding chunks within render distance
+    // 21 Load and send surrounding chunks within render distance
     let radius = get_global_config().chunk_render_distance as i32;
 
     let mut batch = state.thread_pool.batch();
