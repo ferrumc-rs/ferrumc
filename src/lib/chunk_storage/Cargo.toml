@@ -1,0 +1,50 @@
+[package]
+name = "ferrumc-chunks"
+description = "Handles Minecraft chunk data structure, storage persistence (LMDB), caching, and Anvil format importing."
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+# --- Layer 1: Primitives ---
+ferrumc-core = { workspace = true }            # BlockStateId, Chunk structs
+ferrumc-config = { workspace = true }          # Cache settings
+ferrumc-general-purpose = { workspace = true } # Paths, Bit-packing utils
+ferrumc-threadpool = { workspace = true }      # Parallel importing
+ferrumc-nbt = { workspace = true }             # parsing vanilla chunks
+ferrumc-macros = { workspace = true }          # NBT derive macros
+
+# --- Layer 2: Engine State ---
+ferrumc-registry = { workspace = true } # For mapping Item names -> Block IDs during import
+
+# --- Layer 4: Infrastructure ---
+ferrumc-storage = { workspace = true }   # The LMDB backend wrapper
+ferrumc-anvil = { workspace = true }     # Reading MCA files
+ferrumc-net-codec = { workspace = true } # For VarInt (used in Palette)
+
+# --- External Dependencies ---
+# Serialization & Data
+serde = { workspace = true }
+bitcode = { workspace = true }
+yazi = { workspace = true }     # Compression
+deepsize = { workspace = true } # Cache sizing
+
+# Storage & Caching
+moka = { workspace = true, features = ["sync"] }
+ahash = { workspace = true }                     # Fast hashing for chunk edits
+
+# Error Handling & Logging
+thiserror = { workspace = true }
+tracing = { workspace = true }
+
+# Importing Utilities
+rayon = { workspace = true }     # Parallel iteration
+indicatif = { workspace = true } # Progress bars
+
+[[bench]]
+name = "world_bench"
+harness = false
+path = "src/benches/world.rs"
+
+[dev-dependencies]
+criterion = { workspace = true }
+rand = { workspace = true }      # Only used for generating random chunks in tests/benches
