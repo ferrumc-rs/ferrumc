@@ -11,7 +11,7 @@ use ferrumc_components::player::transform::rotation::Rotation;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::set_head_rotation::SetHeadRotationPacket;
 use ferrumc_net::packets::packet_messages::Movement;
-use ferrumc_protocol::codec::net_types::angle::NetAngle;
+use crate::codec::net_types::angle::NetAngle;
 
 use tracing::error;
 

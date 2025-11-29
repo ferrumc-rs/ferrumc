@@ -4,47 +4,60 @@ description = "A high-performance Minecraft server implementation, crafted in Ru
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-thiserror = { workspace = true }
-
+# --- Layer 1: Primitives ---
 ferrumc-core = { workspace = true }
-bevy_ecs = { workspace = true }
-ferrumc-scheduler = { workspace = true }
-
-ferrumc-registry = { workspace = true }
-ferrumc-messages = { workspace = true }
-ferrumc-world = { workspace = true }
-ferrumc-components = { workspace = true }
-ferrumc-net = { workspace = true }
-ferrumc-protocol = { workspace = true }
-ferrumc-plugins = { workspace = true }
-ferrumc-storage = { workspace = true }
 ferrumc-utils = { workspace = true }
 ferrumc-config = { workspace = true }
-ferrumc-profiling = { workspace = true }
-ferrumc-text = { workspace = true }
 ferrumc-logging = { workspace = true }
 ferrumc-macros = { workspace = true }
 ferrumc-general-purpose = { workspace = true }
+ferrumc-threadpool = { workspace = true }
+ferrumc-text = { workspace = true }            # Needed for disconnect messages/setup
 
+# --- Layer 2: Engine State ---
+ferrumc-ecs = { workspace = true }
+ferrumc-registry = { workspace = true } # Needed for init()
+
+# --- Layer 3: Interfaces ---
+ferrumc-protocol = { workspace = true }
+
+# --- Layer 4: Infrastructure (I/O) ---
+ferrumc-net = { workspace = true }
+ferrumc-chunks = { workspace = true }    # Replaces ferrumc-world
+ferrumc-storage = { workspace = true }   # Underlying LMDB types
+ferrumc-scheduler = { workspace = true }
+
+# --- Layer 5: Game Logic ---
+ferrumc-plugins = { workspace = true }          # The main game logic container
 ferrumc-commands = { workspace = true }
 ferrumc-default-commands = { workspace = true }
 ferrumc-world-gen = { workspace = true }
-ferrumc-threadpool = { workspace = true }
-once_cell = { workspace = true }
-serde_json = { workspace = true }
 
-tracing = { workspace = true }
+# --- External Dependencies (Binary Specific) ---
+# CLI Parsing
 clap = { workspace = true, features = ["derive", "env"] }
-flate2 = { workspace = true }
-rand = { workspace = true }
-ctrlc = { workspace = true }
+# Async Runtime
 tokio = { workspace = true, features = ["full"] }
+# Logging & Tracing
+tracing = { workspace = true }
+# Error Handling
+thiserror = { workspace = true }
+# System
+ctrlc = { workspace = true } # For graceful shutdown handling
+# Profiling (Feature gated)
+dhat = { workspace = true }
+# Serialization (Config loading)
+serde_json = { workspace = true }
+# Utils
+once_cell = { workspace = true }
 crossbeam-channel = { workspace = true }
 uuid = { workspace = true }
-dhat = { workspace = true }
+
+# REMOVED:
+# flate2 - Should be an implementation detail of ferrumc-storage/net
+# rand - Should be an implementation detail of ferrumc-world-gen/logic
+# ferrumc-world - Renamed to ferrumc-chunks
 
 [features]
 dhat = []

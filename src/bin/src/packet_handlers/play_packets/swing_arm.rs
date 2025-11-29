@@ -1,10 +1,10 @@
+use crate::codec::net_types::var_int::VarInt;
 use bevy_ecs::prelude::{Entity, Query, Res};
 use ferrumc_components::player::identity::PlayerIdentity;
 use ferrumc_components::state::server_state::GlobalStateResource;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::entity_animation::EntityAnimationPacket;
 use ferrumc_net::SwingArmPacketReceiver;
-use ferrumc_protocol::codec::net_types::var_int::VarInt;
 use tracing::error;
 
 pub fn handle(

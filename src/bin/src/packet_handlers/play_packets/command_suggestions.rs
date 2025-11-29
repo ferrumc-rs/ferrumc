@@ -1,5 +1,8 @@
 use std::sync::Arc;
 
+use crate::codec::net_types::{
+    length_prefixed_vec::LengthPrefixedVec, prefixed_optional::PrefixedOptional, var_int::VarInt,
+};
 use bevy_ecs::prelude::*;
 use ferrumc_commands::{Command, CommandContext, CommandInput, Sender, ROOT_COMMAND};
 use ferrumc_components::state::server_state::GlobalStateResource;
@@ -7,9 +10,6 @@ use ferrumc_net::{
     connection::StreamWriter,
     packets::outgoing::command_suggestions::{CommandSuggestionsPacket, Match},
     CommandSuggestionRequestReceiver,
-};
-use ferrumc_protocol::codec::net_types::{
-    length_prefixed_vec::LengthPrefixedVec, prefixed_optional::PrefixedOptional, var_int::VarInt,
 };
 use tracing::error;
 

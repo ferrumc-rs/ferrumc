@@ -4,6 +4,8 @@ use std::sync::Arc;
 
 use bevy_ecs::prelude::{Entity, Query, Res};
 
+use crate::codec::net_types::network_position::NetworkPosition;
+use crate::codec::net_types::var_int::VarInt;
 use ferrumc_components::collisions::bounds::CollisionBounds;
 use ferrumc_components::inventory::hotbar::Hotbar;
 use ferrumc_components::inventory::Inventory;
@@ -13,8 +15,6 @@ use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::block_change_ack::BlockChangeAck;
 use ferrumc_net::packets::outgoing::block_update::BlockUpdate;
 use ferrumc_net::PlaceBlockReceiver;
-use ferrumc_protocol::codec::net_types::network_position::NetworkPosition;
-use ferrumc_protocol::codec::net_types::var_int::VarInt;
 use ferrumc_world::block_state_id::BlockStateId;
 
 use once_cell::sync::Lazy;
