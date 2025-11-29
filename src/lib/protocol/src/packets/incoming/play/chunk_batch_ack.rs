@@ -1,5 +1,5 @@
-use ferrumc_macros::{packet, NetDecode};
-use ferrumc_protocol::ids;
+use crate::ids;
+use ferrumc_macros::{NetDecode, packet};
 
 #[derive(NetDecode)]
 #[packet(id = ids::PLAY_SERVERBOUND_CHUNK_BATCH_RECEIVED, state = "play")]

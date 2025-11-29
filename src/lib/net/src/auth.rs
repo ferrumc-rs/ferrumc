@@ -1,6 +1,6 @@
 use crate::errors::NetAuthenticationError;
 use base64::Engine;
-use ferrumc_core::identity::player_identity::PlayerProperty;
+use ferrumc_core::player::identity::PlayerIdentityData;
 use ferrumc_net_encryption::minecraft_hex_digest;
 use serde_derive::Deserialize;
 use std::str::FromStr;

@@ -1,8 +1,8 @@
 use ferrumc_macros::{packet, NetDecode};
-use ferrumc_protocol::codec::decode::errors::NetDecodeError;
-use ferrumc_protocol::codec::decode::{NetDecode, NetDecodeOpts};
-use ferrumc_protocol::codec::net_types::var_int::VarInt;
-use ferrumc_protocol::ids;
+use crate::codec::decode::errors::NetDecodeError;
+use crate::codec::decode::{NetDecode, NetDecodeOpts};
+use crate::codec::net_types::var_int::VarInt;
+use crate::ids;
 
 use std::fmt::Display;
 use std::io::Read;

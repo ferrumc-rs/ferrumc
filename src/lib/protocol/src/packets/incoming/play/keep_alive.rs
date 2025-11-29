@@ -1,5 +1,5 @@
-use ferrumc_macros::{packet, NetDecode};
-use ferrumc_protocol::ids;
+use crate::ids;
+use ferrumc_macros::{NetDecode, packet};
 use typename::TypeName;
 
 #[derive(TypeName, NetDecode)]

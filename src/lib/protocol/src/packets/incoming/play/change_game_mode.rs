@@ -1,6 +1,6 @@
-use ferrumc_macros::{packet, NetDecode};
-use ferrumc_protocol::codec::net_types::var_int::VarInt;
-use ferrumc_protocol::ids;
+use crate::codec::net_types::var_int::VarInt;
+use crate::ids;
+use ferrumc_macros::{NetDecode, packet};
 
 /// Client-to-Server packet to request a gamemode change. (f3+f4)
 #[derive(NetDecode)]

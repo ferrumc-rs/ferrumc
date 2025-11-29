@@ -340,10 +340,25 @@ pub async fn handle_connection(
             break 'recv;
         }
 
+        // Retrieve config once per loop or reuse if static
+        let config = ferrumc_config::server_config::get_global_config();
+        let threshold = if config.network_compression_threshold < 0 {
+            0
+        } else {
+            config.network_compression_threshold as usize
+        };
+        let verify = config.verify_decompressed_packets;
+
         // Read next packet
         let mut packet_skele;
         tokio::select! {
-            packet_result = PacketSkeleton::new(&mut tcp_reader, login_result.compression, Play) => {
+            packet_result = PacketSkeleton::new(
+                &mut tcp_reader,
+                login_result.compression,
+                Play,
+                threshold,
+                verify,
+            ) => {
                 match packet_result {
                     Ok(packet) => {
                         packet_skele = packet;

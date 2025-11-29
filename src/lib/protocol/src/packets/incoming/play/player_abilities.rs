@@ -1,5 +1,5 @@
-use ferrumc_macros::{packet, NetDecode};
-use ferrumc_protocol::ids;
+use crate::ids;
+use ferrumc_macros::{NetDecode, packet};
 
 // The vanilla client sends this packet when the player
 // starts/stops flying with the Flags parameter changed accordingly.

@@ -26,6 +26,7 @@ It is a **Pure Data** crate. It does not know about TCP, Tokio, ECS Entities, or
 ### **1\. Defining a Packet**
 
 Packets are just structs marked with the \#\[packet\] macro. They must implement NetEncode.  
+```rust
 use ferrumc\_protocol::ids;  
 use ferrumc\_macros::{packet, NetEncode};
 
@@ -34,6 +35,7 @@ use ferrumc\_macros::{packet, NetEncode};
 pub struct KeepAlivePacket {  
     pub id: i64,  
 }
+```
 
 ### **2\. Using Core Types**
 

@@ -1,6 +1,6 @@
-use ferrumc_macros::{packet, NetDecode};
-use ferrumc_protocol::codec::net_types::var_int::VarInt;
-use ferrumc_protocol::ids;
+use crate::codec::net_types::var_int::VarInt;
+use crate::ids;
+use ferrumc_macros::{NetDecode, packet};
 
 #[derive(NetDecode, Debug)]
 #[packet(id = ids::HANDSHAKE_SERVERBOUND_INTENTION, state = "handshake")]
@@ -13,9 +13,9 @@ pub struct Handshake {
 
 #[cfg(test)]
 mod tests {
+    use crate::codec::decode::{NetDecode, NetDecodeOpts};
+    use crate::codec::net_types::var_int::VarInt;
     use ferrumc_macros::NetDecode;
-    use ferrumc_protocol::codec::decode::{NetDecode, NetDecodeOpts};
-    use ferrumc_protocol::codec::net_types::var_int::VarInt;
     use std::io::Cursor;
 
     #[test]

@@ -1,6 +1,6 @@
+use crate::ids;
 use ferrumc_core::items::inventory_slot::InventorySlot;
-use ferrumc_macros::{packet, NetDecode};
-use ferrumc_protocol::ids;
+use ferrumc_macros::{NetDecode, packet};
 
 #[derive(NetDecode)]
 #[packet(id = ids::PLAY_SERVERBOUND_SET_CREATIVE_MODE_SLOT, state = "play")]
