@@ -1,8 +1,8 @@
 [package]
-name = "ferrumc-messages"
+name = "ferrumc-ecs"
 version = "0.1.0"
-edition = "2021"
-description = "Defines all Bevy ECS messages for FerrumC."
+edition = "2024"
+description = "The single source of truth for the ECS schema."
 
 [dependencies]
 bevy_ecs = { workspace = true }
