@@ -47,6 +47,7 @@ use uuid::Uuid;
 ///
 /// # Errors
 /// Returns `NetError` for protocol violations, unexpected packets, or I/O errors.
+// TODO: split this function into smaller sub-functions for clarity. and make the main 'login' function just call those in a very nice and orderly sequence with easily readable code. nothing extra going on other than just the function calls. instead of sending chunks in a 'login' function haha...
 pub(super) async fn login(
     conn_read: &mut EncryptedReader<OwnedReadHalf>,
     conn_write: &StreamWriter,
@@ -75,6 +76,7 @@ pub(super) async fn login(
 
     // =============================================================================================
     // 2 Negotiate compression if configured
+    // TODO: update get_global_config -> a local variable instead of repeated calls
     if get_global_config().network_compression_threshold > 0 {
         compressed = true;
 
@@ -92,6 +94,7 @@ pub(super) async fn login(
     // 3 Enable encryption and auth player if configured
     let mut player_properties = Vec::new();
 
+    // TODO: the body of this "if" can be moved into its own function for clarity
     if get_global_config().encryption_enabled || get_global_config().online_mode {
         let mut verify_token = vec![0u8; 16];
         rand::rng().fill_bytes(&mut verify_token);
@@ -168,6 +171,7 @@ pub(super) async fn login(
                 .map(|property: &PlayerProperty| LoginSuccessProperties {
                     name: &property.name,
                     value: &property.value,
+                    // TODO: make this simplified through a method on PrefixedOptional to auto convert
                     signature: if let Some(str) = property.signature.as_ref() {
                         PrefixedOptional::Some(str.as_str())
                     } else {
@@ -209,6 +213,7 @@ pub(super) async fn login(
 
     // =============================================================================================
     // 6 Read Client Information (locale, view distance, etc.)
+    // TODO: is this even being saved in the ecs? lol. should prolly if not already.
     let mut skel = PacketSkeleton::new(conn_read, compressed, Configuration).await?;
     let expected_id = lookup_packet!("configuration", "serverbound", "client_information");
     if skel.id != expected_id {
@@ -259,6 +264,7 @@ pub(super) async fn login(
 
     // =============================================================================================
     // 9 Send server registry data (dimensions, biomes, etc.)
+    // TODO: Cache these packets to avoid re-encoding on each login
     for packet in &*REGISTRY_PACKETS {
         conn_write.send_packet_ref(packet)?;
     }
@@ -355,6 +361,7 @@ pub(super) async fn login(
             )
         };
 
+    // TODO: helper method to create this packet from Position/Rotation structs
     let sync_player_pos =
         crate::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket {
             x: spawn_pos.x,
@@ -406,6 +413,7 @@ pub(super) async fn login(
     // 17 Receive first movement packet from player
     // Similarly, the client may send other packets before the movement packet
     let expected_id = lookup_packet!("play", "serverbound", "move_player_pos_rot");
+    // TODO: helpers method for ignoring packets until receiving one.
     let _player_pos_and_rot = loop {
         let mut skel = PacketSkeleton::new(conn_read, compressed, Play).await?;
 
@@ -441,6 +449,8 @@ pub(super) async fn login(
 
     // =============================================================================================
     // 21 Load and send surrounding chunks within render distance
+    // TODO: this doesn't respect the client's view distance setting; it should use that. min(server, client).
+    // TODO: if the client wants less, we give less, if the client wants more, we cap it at server max.
     let radius = get_global_config().chunk_render_distance as i32;
 
     let mut batch = state.thread_pool.batch();
@@ -483,6 +493,7 @@ pub(super) async fn login(
 
     // =============================================================================================
     // 21 Send command graph packet
+    // TODO: name method better, "new" semantically implies an empty instance.
     conn_write.send_packet(CommandsPacket::new())?;
 
     trace!(

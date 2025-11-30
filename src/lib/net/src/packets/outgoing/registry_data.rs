@@ -23,6 +23,7 @@ impl RegistryDataPacket {
 lazy_static! {
     // This is a lazy static to ensure that the registry packets are only built once
     // and can be reused across multiple calls.
+    // TODO: save the encoded form to avoid re-encoding on each use.
     pub static ref REGISTRY_PACKETS: Vec<RegistryDataPacket> = process_reg_packets();
 }
 
