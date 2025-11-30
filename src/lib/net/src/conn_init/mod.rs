@@ -7,6 +7,7 @@ use crate::connection::StreamWriter;
 use crate::errors::{NetError, PacketError};
 use crate::packets::incoming::handshake::Handshake;
 use crate::packets::incoming::packet_skeleton::PacketSkeleton;
+use crate::packets::outgoing::login_disconnect::LoginDisconnectPacket;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_macros::lookup_packet;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
@@ -17,7 +18,6 @@ use ferrumc_text::{ComponentBuilder, NamedColor, TextComponent};
 use std::sync::atomic::Ordering;
 use tokio::net::tcp::OwnedReadHalf;
 use tracing::{error, trace};
-use crate::packets::outgoing::login_disconnect::LoginDisconnectPacket;
 
 /// Represents the result of a login attempt after the handshake process.
 ///
@@ -145,10 +145,7 @@ async fn handle_version_mismatch(
         2 => {
             let disconnect_reason = get_mismatched_version_message(hs_packet.protocol_version.0);
 
-            let login_disconnect =
-                LoginDisconnectPacket::new(
-                    disconnect_reason,
-                );
+            let login_disconnect = LoginDisconnectPacket::new(disconnect_reason);
 
             if let Err(send_err) = conn_write.send_packet(login_disconnect) {
                 error!("Failed to send login disconnect packet {:?}", send_err);
