@@ -7,11 +7,13 @@ use std::{array::from_fn, f64};
 
 use crate::{
     common::noise::{generate_interpolation_data, slide},
-    perlin_noise::{BlendedNoise, ImprovedNoise, BASE_3D_NOISE_END},
-    pos::{BlockPos, ChunkBlockPos, ChunkPos, ColumnPos},
+    perlin_noise::{BASE_3D_NOISE_END, BlendedNoise, ImprovedNoise},
+    pos::{BlockPos, ChunkBlockPos, ChunkHeight, ChunkPos, ColumnPos},
     random::LegacyRandom,
 };
 use std::f32;
+
+pub const CHUNK_HEIGHT: ChunkHeight = ChunkHeight::new(0, 256);
 
 pub struct EndNoise {
     island_simplex: ImprovedNoise,

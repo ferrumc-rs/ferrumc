@@ -41,7 +41,8 @@ impl AquiferSectionPos {
 
     //TODO: cache this if faster
     fn random_pos(self, factory: Xoroshiro128PlusPlus) -> BlockPos {
-        let mut random = factory.at(self.pos);
+        let mut random = factory.at(self.pos); //TODO: wrong; should not be
+        //readjusted for block pos
         BlockPos::new(
             self.pos.x + random.next_bounded(10) as i32,
             self.pos.y + random.next_bounded(9) as i32,

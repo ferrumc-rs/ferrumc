@@ -12,18 +12,18 @@ use crate::{
     random::{LegacyRandom, Rng},
 };
 
-pub(crate) struct CarvingMask {
+pub struct CarvingMask {
     carved: Vec<bool>,
     min_y: i32,
 }
 impl CarvingMask {
-    pub(crate) fn new(chunk_height: ChunkHeight) -> Self {
+    pub fn new(chunk_height: ChunkHeight) -> Self {
         Self {
             min_y: chunk_height.min_y,
             carved: vec![false; (chunk_height.height * 16 * 16) as usize],
         }
     }
-    pub(crate) fn carve(&mut self, pos: IVec3) -> bool {
+    pub fn carve(&mut self, pos: IVec3) -> bool {
         let i = pos.x & 15 | (pos.z & 15) << 4 | (pos.y - self.min_y) << 8;
         let res = self.carved[i as usize];
         self.carved[i as usize] = true;
@@ -31,7 +31,7 @@ impl CarvingMask {
     }
 }
 
-pub(crate) fn carve_ellipsoid(
+pub fn carve_ellipsoid(
     chunk_pos: ChunkPos,
     pos: DVec3,
     radii: DVec2,

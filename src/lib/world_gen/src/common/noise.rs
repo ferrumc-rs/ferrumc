@@ -1,6 +1,6 @@
 use std::mem::swap;
 
-use bevy_math::FloatExt;
+use bevy_math::{FloatExt, U8Vec3};
 
 use crate::{
     common::math::clamped_map,

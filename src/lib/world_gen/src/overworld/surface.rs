@@ -12,13 +12,13 @@ use crate::perlin_noise::{
     ICE, ICEBERG_PILLAR, ICEBERG_PILLAR_ROOF, ICEBERG_SURFACE, PACKED_ICE, POWDER_SNOW, SURFACE,
     SURFACE_SECONDARY, SWAMP,
 };
-use crate::pos::{BlockPos, ChunkColumnPos};
+use crate::pos::{BlockPos, ChunkBlockPos, ChunkColumnPos};
 use crate::random::Xoroshiro128PlusPlus;
-use crate::{ChunkAccess, HeightmapType};
 use crate::{biome_chunk::BiomeChunk, pos::ColumnPos};
 use bevy_math::FloatExt;
-use ferrumc_macros::{block, match_block};
+use ferrumc_macros::block;
 use ferrumc_world::block_state_id::BlockStateId;
+use ferrumc_world::chunk_format::Chunk;
 
 use crate::{biome::Biome, perlin_noise::NormalNoise, random::Rng};
 
@@ -80,13 +80,11 @@ impl OverworldSurface {
     pub fn build_surface(
         &self,
         biome_noise: &OverworldBiomeNoise,
-        chunk: &ChunkAccess,
+        chunk: &mut Chunk,
         biome_manager: &BiomeChunk,
         pos: ColumnPos,
-    ) -> Vec<BlockStateId> {
-        let (stone_level, fluid_level) = self.surface.find_surface(pos, |pos, final_density| {
-            self.aquifer.at(biome_noise, pos, final_density).0 //TODO
-        });
+    ) {
+        let (stone_level, fluid_level) = self.surface.find_surface(chunk, pos);
         let biome = biome_manager.at(pos.block(stone_level + 1));
         let extended_height = if matches!(biome, Biome::ErodedBadlands) && fluid_level.is_none() {
             self.eroded_badlands_extend_height(pos)
@@ -126,15 +124,14 @@ impl OverworldSurface {
         ); //TODO: add Vein to rules
 
         if matches!(biome, Biome::FrozenOcean | Biome::DeepFrozenOcean) {
-            self.frozen_ocean_extension(
-                biome_noise,
-                pos,
-                biome,
-                &mut block_column,
-                extended_height + 1,
-            );
+            self.frozen_ocean_extension(pos, biome, &mut block_column);
         }
-        block_column
+        block_column.iter().enumerate().for_each(|(i, b)| {
+            let pos: ChunkBlockPos = pos.block(i as i32 - 64).into();
+            chunk
+                .set_block(pos.pos.x.into(), pos.pos.y.into(), pos.pos.z.into(), *b)
+                .unwrap()
+        });
     }
 
     fn eroded_badlands_extend_height(&self, pos: ColumnPos) -> Option<i32> {
@@ -151,81 +148,47 @@ impl OverworldSurface {
         }
     }
 
+    fn frozen_ocean_extend_height(&self, pos: ColumnPos, biome: Biome) -> Option<i32> {
+        let noise_pos = pos.block(0).as_dvec3();
+        let surface = (self.noises.iceberg_surface_noise.at(noise_pos) * 8.25)
+            .abs()
+            .min(self.noises.iceberg_pillar_noise.at(noise_pos * 1.28) * 15.0);
+        if surface <= 1.8 {
+            return None;
+        }
+        let abs = (self.noises.iceberg_pillar_roof_noise.at(noise_pos * 1.17) * 1.5).abs();
+        let iceburg_height = (surface * surface * 1.2).min(abs * 40.0).ceil() as i32 + 14;
+
+        if biome.block_temperature(pos.block(SEA_LEVEL), SEA_LEVEL) > 0.1 {
+            Some(iceburg_height - 2)
+        } else {
+            Some(iceburg_height)
+        }
+    }
+
     fn frozen_ocean_extension(
         &self,
-        noise: &OverworldBiomeNoise,
         pos: ColumnPos,
         biome: Biome,
         block_column: &mut [BlockStateId],
-        height: i32,
     ) {
-        fn should_melt_frozen_ocean_iceberg_slightly(
-            biome: Biome,
-            pos: BlockPos,
-            sea_level: i32,
-        ) -> bool {
-            biome.block_temperature(pos, sea_level) > 0.1
-        }
-        let min_surface_level = self.min_surface_level(noise, pos);
-        let min_y = self.surface.chunk_height.min_y;
-        let min = (self
-            .noises
-            .iceberg_surface_noise
-            .at(pos.block(0).as_dvec3())
-            * 8.25)
-            .abs()
-            .min(
-                self.noises
-                    .iceberg_pillar_noise
-                    .at(pos.block(0).as_dvec3() * 1.28)
-                    * 15.0,
-            );
-
-        if min > 1.8 {
-            let abs = (self
-                .noises
-                .iceberg_pillar_roof_noise
-                .at(pos.block(0).as_dvec3() * 1.17)
-                * 1.5)
-                .abs();
-            let mut iceburg_height = (min * min * 1.2).min(abs * 40.0).ceil() + 14.0;
-
-            if should_melt_frozen_ocean_iceberg_slightly(biome, pos.block(SEA_LEVEL), SEA_LEVEL) {
-                iceburg_height -= 2.0;
-            }
-
-            let (d3, d4) = if iceburg_height > 2.0 {
-                (
-                    f64::from(SEA_LEVEL) - iceburg_height - 7.0,
-                    f64::from(SEA_LEVEL) + iceburg_height,
-                )
-            } else {
-                (0.0, 0.0)
-            };
-
+        if let Some(iceburg_height) = self.frozen_ocean_extend_height(pos, biome) {
             let mut rng = self.factory.at(pos.block(0));
             let max_snow_blocks = 2 + rng.next_bounded(4);
             let min_snow_block_y = SEA_LEVEL + 18 + rng.next_bounded(10) as i32;
             let mut snow_blocks = 0;
-
-            for y in (min_surface_level..=height.max(iceburg_height as i32 + 1)).rev() {
-                let block = block_column[(y + min_y) as usize];
-
-                let cond_air =
-                    match_block!("air", block) && f64::from(y) < d4 && rng.next_f64() > 0.01;
-                let cond_water = match_block!("water", block)
-                    && f64::from(y) > d3
-                    && y < SEA_LEVEL
-                    && d3 != 0.0
-                    && rng.next_f64() > 0.15;
-
-                if cond_air || cond_water {
-                    if snow_blocks <= max_snow_blocks && y > min_snow_block_y {
-                        block_column[(y + min_y) as usize] = block!("snow_block");
-                        snow_blocks += 1;
-                    } else {
-                        block_column[(y + min_y) as usize] = block!("packed_ice");
-                    }
+            for y in (SEA_LEVEL - iceburg_height - 7..=SEA_LEVEL + iceburg_height).rev() {
+                let block = block_column[(y - CHUNK_HEIGHT.min_y) as usize];
+                if block == block!("air") && rng.next_f64() > 0.01
+                    || block == block!("water", {level: 0}) && rng.next_f64() > 0.15
+                {
+                    block_column[(y - CHUNK_HEIGHT.min_y) as usize] =
+                        if snow_blocks <= max_snow_blocks && y > min_snow_block_y {
+                            snow_blocks += 1;
+                            block!("snow_block")
+                        } else {
+                            block!("packed_ice")
+                        };
                 }
             }
         }
@@ -253,7 +216,7 @@ impl OverworldSurface {
 
     pub(crate) fn top_material(
         &self,
-        chunk: &ChunkAccess,
+        chunk: &Chunk,
         biome_noise: &OverworldBiomeNoise,
         biome: Biome,
         pos: BlockPos,
@@ -328,45 +291,45 @@ impl SurfaceBlock {
             return None;
         }
         Some(match self {
-            SurfaceBlock::Air => todo!(),
-            SurfaceBlock::Bedrock => todo!(),
-            SurfaceBlock::WhiteTerracotta => todo!(),
-            SurfaceBlock::OrangeTerracotta => todo!(),
-            SurfaceBlock::Terracotta => todo!(),
-            SurfaceBlock::YellowTerracotta => todo!(),
-            SurfaceBlock::BrownTerracotta => todo!(),
-            SurfaceBlock::RedTerracotta => todo!(),
-            SurfaceBlock::LightGrayTerracotta => todo!(),
-            SurfaceBlock::RedSand => todo!(),
-            SurfaceBlock::RedSandstone => todo!(),
-            SurfaceBlock::Stone => todo!(),
-            SurfaceBlock::Deepslate => todo!(),
-            SurfaceBlock::Dirt => todo!(),
-            SurfaceBlock::Podzol => todo!(),
-            SurfaceBlock::CoarseDirt => todo!(),
-            SurfaceBlock::Mycelium => todo!(),
-            SurfaceBlock::GrassBlock => todo!(),
-            SurfaceBlock::Calcite => todo!(),
-            SurfaceBlock::Gravel => todo!(),
-            SurfaceBlock::Sand => todo!(),
-            SurfaceBlock::Sandstone => todo!(),
-            SurfaceBlock::PackedIce => todo!(),
-            SurfaceBlock::SnowBlock => todo!(),
-            SurfaceBlock::Mud => todo!(),
-            SurfaceBlock::PowderSnow => todo!(),
-            SurfaceBlock::Ice => todo!(),
-            SurfaceBlock::Water => todo!(),
-            SurfaceBlock::Lava => todo!(),
-            SurfaceBlock::Netherrack => todo!(),
-            SurfaceBlock::SoulSand => todo!(),
-            SurfaceBlock::SoulSoil => todo!(),
-            SurfaceBlock::Basalt => todo!(),
-            SurfaceBlock::Blackstone => todo!(),
-            SurfaceBlock::WarpedWartBlock => todo!(),
-            SurfaceBlock::WarpedNylium => todo!(),
-            SurfaceBlock::NetherWartBlock => todo!(),
-            SurfaceBlock::CrimsonNylium => todo!(),
-            SurfaceBlock::Endstone => todo!(),
+            SurfaceBlock::Air => block!("air"),
+            SurfaceBlock::Bedrock => block!("bedrock"),
+            SurfaceBlock::WhiteTerracotta => block!("white_terracotta"),
+            SurfaceBlock::OrangeTerracotta => block!("orange_terracotta"),
+            SurfaceBlock::Terracotta => block!("terracotta"),
+            SurfaceBlock::YellowTerracotta => block!("yellow_terracotta"),
+            SurfaceBlock::BrownTerracotta => block!("brown_terracotta"),
+            SurfaceBlock::RedTerracotta => block!("red_terracotta"),
+            SurfaceBlock::LightGrayTerracotta => block!("light_gray_terracotta"),
+            SurfaceBlock::RedSand => block!("red_sand"),
+            SurfaceBlock::RedSandstone => block!("red_sandstone"),
+            SurfaceBlock::Stone => block!("stone"),
+            SurfaceBlock::Deepslate => block!("deepslate", {axis: "y"}),
+            SurfaceBlock::Dirt => block!("dirt"),
+            SurfaceBlock::Podzol => block!("podzol", {snowy: false}),
+            SurfaceBlock::CoarseDirt => block!("coarse_dirt"),
+            SurfaceBlock::Mycelium => block!("mycelium", {snowy: false}),
+            SurfaceBlock::GrassBlock => block!("grass_block", {snowy: false}),
+            SurfaceBlock::Calcite => block!("calcite"),
+            SurfaceBlock::Gravel => block!("gravel"),
+            SurfaceBlock::Sand => block!("sand"),
+            SurfaceBlock::Sandstone => block!("sandstone"),
+            SurfaceBlock::PackedIce => block!("packed_ice"),
+            SurfaceBlock::SnowBlock => block!("snow_block"),
+            SurfaceBlock::Mud => block!("mud"),
+            SurfaceBlock::PowderSnow => block!("powder_snow"),
+            SurfaceBlock::Ice => block!("ice"),
+            SurfaceBlock::Water => block!("water", {level: 0}),
+            SurfaceBlock::Lava => block!("lava", {level: 0}),
+            SurfaceBlock::Netherrack => block!("netherrack"),
+            SurfaceBlock::SoulSand => block!("soul_sand"),
+            SurfaceBlock::SoulSoil => block!("soul_soil"),
+            SurfaceBlock::Basalt => block!("basalt", {axis: "y"}),
+            SurfaceBlock::Blackstone => block!("blackstone"),
+            SurfaceBlock::WarpedWartBlock => block!("warped_wart_block"),
+            SurfaceBlock::WarpedNylium => block!("warped_nylium"),
+            SurfaceBlock::NetherWartBlock => block!("nether_wart_block"),
+            SurfaceBlock::CrimsonNylium => block!("crimson_nylium"),
+            SurfaceBlock::Endstone => block!("end_stone"),
         })
     }
 }
@@ -382,7 +345,7 @@ impl SurfaceRules {
 
     pub fn try_apply(
         &self,
-        chunk: &ChunkAccess,
+        chunk: &Chunk,
         surface: &OverworldSurface,
         biome_noise: &OverworldBiomeNoise,
         biome: Biome,
@@ -836,25 +799,26 @@ fn badlands_noise_condition(surface_noise: f64) -> bool {
         || (0.5454..=0.909).contains(&surface_noise)
 }
 
-fn is_steep(pos: BlockPos, chunk: &ChunkAccess) -> bool {
-    let x = pos.x & 15;
-    let z = pos.z & 15;
-
-    let max_z = (z - 1).max(0);
-    let min_z = (z + 1).min(15);
-
-    let height = chunk.get_height(HeightmapType::WorldSurfaceWg, x, max_z);
-    let height1 = chunk.get_height(HeightmapType::WorldSurfaceWg, x, min_z);
-
-    if height1 >= height + 4 {
-        true
-    } else {
-        let max_x = (x - 1).max(0);
-        let min_x = (x + 1).min(15);
-
-        let height2 = chunk.get_height(HeightmapType::WorldSurfaceWg, max_x, z);
-        let height3 = chunk.get_height(HeightmapType::WorldSurfaceWg, min_x, z);
-
-        height2 >= height3 + 4
-    }
+fn is_steep(pos: BlockPos, chunk: &Chunk) -> bool {
+    return false;
+    // let x = pos.x & 15;
+    // let z = pos.z & 15;
+    //
+    // let max_z = (z - 1).max(0);
+    // let min_z = (z + 1).min(15);
+    //
+    // let height = chunk.get_height(HeightmapType::WorldSurfaceWg, x, max_z);
+    // let height1 = chunk.get_height(HeightmapType::WorldSurfaceWg, x, min_z);
+    //
+    // if height1 >= height + 4 {
+    //     true
+    // } else {
+    //     let max_x = (x - 1).max(0);
+    //     let min_x = (x + 1).min(15);
+    //
+    //     let height2 = chunk.get_height(HeightmapType::WorldSurfaceWg, max_x, z);
+    //     let height3 = chunk.get_height(HeightmapType::WorldSurfaceWg, min_x, z);
+    //
+    //     height2 >= height3 + 4
+    // }
 }

@@ -13,8 +13,8 @@ pub struct BiomeChunk {
 }
 
 impl BiomeChunk {
-    pub(crate) fn generate(
-        noise: &impl BiomeNoise,
+    pub fn generate(
+        biome_noise: impl Fn(BlockPos) -> [f64; 6],
         seed: u64,
         biomes: &[(NoisePoint, Biome)],
         pos: ChunkPos,
@@ -33,7 +33,7 @@ impl BiomeChunk {
             .cartesian_product((0..16).step_by(4))
             .cartesian_product(chunk_height.iter().step_by(4))
             .map(|((x, z), y)| pos.chunk_block((x as u8, y as i16, z as u8).into()))
-            .map(|pos| noise.at(pos))
+            .map(|pos| biome_noise(pos).map(|a| a as f32).map(f32_to_i64))
             .map(|noise| get_best(noise, biomes))
             .collect();
         let min_y = chunk_height.min_y.div_euclid(4);

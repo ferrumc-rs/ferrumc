@@ -2,15 +2,15 @@ use crate::{
     common::carver::{Caver, can_reach},
     direction::Direction,
     overworld::{noise_depth::OverworldBiomeNoise, overworld_generator::CHUNK_HEIGHT},
+    pos::ChunkBlockPos,
 };
 use ferrumc_macros::{block, match_block};
-use ferrumc_world::block_state_id::BlockStateId;
+use ferrumc_world::{block_state_id::BlockStateId, chunk_format::Chunk};
 use std::{f32::consts::PI, range::Range};
 
 use bevy_math::Vec3Swizzles;
 
 use crate::{
-    ChunkAccess,
     biome_chunk::BiomeChunk,
     common::{
         aquifer::FluidType,
@@ -21,7 +21,7 @@ use crate::{
     random::{LegacyRandom, Rng},
 };
 
-pub(super) struct OverworldCarver {
+pub struct OverworldCarver {
     cave_carver: Caver,
     extra_cave_carver: Caver,
 }
@@ -55,7 +55,7 @@ impl OverworldCarver {
     }
     pub fn carve(
         &self,
-        chunk: &mut ChunkAccess,
+        chunk: &mut Chunk,
         biome_accessor: &BiomeChunk,
         seed: u64,
         chunk_pos: ChunkPos,
@@ -94,14 +94,21 @@ impl OverworldCarver {
 }
 
 fn clear_overworld_cave_block(
-    chunk: &mut ChunkAccess,
+    chunk: &mut Chunk,
     surface: &OverworldSurface,
     biome_accessor: &BiomeChunk,
     biome_noise: &OverworldBiomeNoise,
     surface_reached: &mut bool,
     pos: BlockPos,
 ) {
-    let block = chunk.get_block_state(pos);
+    let rel_pos: ChunkBlockPos = pos.into();
+    let block = chunk
+        .get_block(
+            rel_pos.pos.x.into(),
+            rel_pos.pos.y.into(),
+            rel_pos.pos.z.into(),
+        )
+        .unwrap();
 
     if block == block!("bedrock") {
         return;
@@ -113,10 +120,26 @@ fn clear_overworld_cave_block(
 
     if let (Some(carve_state), _fluid_update /* TODO */) = surface.aquifer.at(biome_noise, pos, 0.0)
     {
-        chunk.set_block_state(pos, carve_state.into());
+        chunk
+            .set_block(
+                rel_pos.pos.x.into(),
+                rel_pos.pos.y.into(),
+                rel_pos.pos.z.into(),
+                carve_state.into(),
+            )
+            .unwrap();
         if *surface_reached {
             let check_pos = pos + Direction::Down;
-            if chunk.get_block_state(check_pos) == block!("dirt")
+            let rel_pos: ChunkBlockPos = check_pos.into();
+
+            if chunk
+                .get_block(
+                    rel_pos.pos.x.into(),
+                    rel_pos.pos.y.into(),
+                    rel_pos.pos.z.into(),
+                )
+                .unwrap()
+                == block!("dirt")
                 && let Some(block_state1) = surface.top_material(
                     chunk,
                     biome_noise,
@@ -125,7 +148,14 @@ fn clear_overworld_cave_block(
                     carve_state != FluidType::Air,
                 )
             {
-                chunk.set_block_state(check_pos, block_state1);
+                chunk
+                    .set_block(
+                        rel_pos.pos.x.into(),
+                        rel_pos.pos.y.into(),
+                        rel_pos.pos.z.into(),
+                        block_state1,
+                    )
+                    .unwrap();
                 // if block_state1.name == "minecraft:water" || block_state1.name == "minecraft:lava" {
                 //     //TODO
                 // }
@@ -137,7 +167,7 @@ fn clear_overworld_cave_block(
 impl Caver {
     fn carve_overworld(
         &self,
-        chunk: &mut ChunkAccess,
+        chunk: &mut Chunk,
         biome_accessor: &BiomeChunk,
         seed: u64,
         chunk_pos: ChunkPos,
@@ -173,7 +203,7 @@ impl Caver {
 }
 
 fn carve_canyon(
-    chunk: &mut ChunkAccess,
+    chunk: &mut Chunk,
     biome_accessor: &BiomeChunk,
     seed: u64,
     chunk_pos: ChunkPos,
