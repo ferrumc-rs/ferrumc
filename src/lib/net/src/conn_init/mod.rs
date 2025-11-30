@@ -17,6 +17,7 @@ use ferrumc_text::{ComponentBuilder, NamedColor, TextComponent};
 use std::sync::atomic::Ordering;
 use tokio::net::tcp::OwnedReadHalf;
 use tracing::{error, trace};
+use crate::packets::outgoing::login_disconnect::LoginDisconnectPacket;
 
 /// Represents the result of a login attempt after the handshake process.
 ///
@@ -145,7 +146,7 @@ async fn handle_version_mismatch(
             let disconnect_reason = get_mismatched_version_message(hs_packet.protocol_version.0);
 
             let login_disconnect =
-                crate::packets::outgoing::login_disconnect::LoginDisconnectPacket::new(
+                LoginDisconnectPacket::new(
                     disconnect_reason,
                 );
 
