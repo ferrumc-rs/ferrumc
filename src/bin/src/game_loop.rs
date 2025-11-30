@@ -43,7 +43,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     // =========================================================================
     // PHASE 1: ECS World Setup
     // =========================================================================
-    
+
     // Create the Bevy ECS world - this holds all entities, components, and resources
     let mut ecs_world = World::new();
 
@@ -53,10 +53,10 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     // =========================================================================
     // PHASE 2: Channel Setup for Inter-Thread Communication
     // =========================================================================
-    
+
     // Packet sender for outgoing network packets (shared across connection handlers)
     let sender_struct = Arc::new(ferrumc_net::create_packet_senders(&mut ecs_world));
-    
+
     // Channel for new player connections (TCP acceptor -> main loop)
     let (new_conn_send, new_conn_recv) = crossbeam_channel::unbounded();
 
@@ -69,7 +69,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     // =========================================================================
     // PHASE 3: Register ECS Systems and Resources
     // =========================================================================
-    
+
     // Initialize default server commands (e.g., /stop, /help, etc.)
     ferrumc_default_commands::init();
 
@@ -78,7 +78,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
 
     // Register event messages the ECS will handle
     register_messages(&mut ecs_world);
-    
+
     // Register shared resources (connection receiver, global state, etc.)
     register_resources(&mut ecs_world, new_conn_recv, global_state_res);
 
@@ -91,7 +91,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     // =========================================================================
     // PHASE 4: Start Network Thread
     // =========================================================================
-    
+
     // Spawn the TCP connection acceptor on a dedicated thread with its own Tokio runtime
     tcp_conn_acceptor(
         global_state.clone(),
@@ -109,7 +109,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     // =========================================================================
     // PHASE 5: Main Scheduler Loop
     // =========================================================================
-    
+
     // Maximum number of schedules to run in a single iteration before yielding.
     // This prevents starvation if we fall behind (e.g., after a lag spike).
     const MAX_GLOBAL_CATCH_UP: usize = 64;
@@ -130,7 +130,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
             }
 
             let now = Instant::now();
-            
+
             // Peek at the next schedule that's due to run
             let Some((idx, due)) = timed.peek_next_due() else {
                 // No schedules registered, wait a bit
@@ -191,7 +191,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     // =========================================================================
     // PHASE 6: Graceful Shutdown
     // =========================================================================
-    
+
     // Run shutdown systems (save world, disconnect players, cleanup)
     shutdown_schedule.run(&mut ecs_world);
 
@@ -227,10 +227,10 @@ fn build_timed_scheduler() -> Scheduler {
     // Uses Burst behavior to catch up if ticks are missed (up to 5 at a time).
     let build_tick = |s: &mut Schedule| {
         s.set_executor_kind(ExecutorKind::SingleThreaded);
-        register_packet_handlers(s);    // Handle incoming packets from players
-        register_player_systems(s);     // Update player state (position, inventory, etc.)
-        register_command_systems(s);    // Process queued commands
-        register_game_systems(s);       // General game logic
+        register_packet_handlers(s); // Handle incoming packets from players
+        register_player_systems(s); // Update player state (position, inventory, etc.)
+        register_command_systems(s); // Process queued commands
+        register_game_systems(s); // General game logic
         register_gameplay_listeners(s); // Event listeners for gameplay events
     };
     let tick_period = Duration::from_secs(1) / get_global_config().tps;
@@ -334,10 +334,10 @@ fn tcp_conn_acceptor(
                 .enable_all()
                 .thread_name("Tokio-Async-Network")
                 .build()?;
-            
+
             // Spawn LAN broadcast pinger (for local network server discovery)
             async_runtime.spawn(spawn_lan_pinger());
-            
+
             // Main connection accept loop
             async_runtime.block_on({
                 let state = Arc::clone(&state);
@@ -349,7 +349,7 @@ fn tcp_conn_acceptor(
                             "Failed to create TCP listener".to_string(),
                         ));
                     };
-                    
+
                     // Accept connections until shutdown is signaled
                     while !state.shut_down.load(std::sync::atomic::Ordering::Relaxed) {
                         // Use tokio::select! to handle both new connections AND shutdown signal
@@ -360,7 +360,7 @@ fn tcp_conn_acceptor(
                                     Ok((stream, _)) => {
                                         let addy = stream.peer_addr()?;
                                         debug!("Got TCP connection from {}", addy);
-                                        
+
                                         // Spawn a task to handle this connection asynchronously
                                         tokio::spawn({
                                             let state = Arc::clone(&state);
@@ -390,14 +390,14 @@ fn tcp_conn_acceptor(
                     Ok(())
                 }
             })?;
-            
+
             trace!("Shutting down TCP connection acceptor");
 
             // Notify main loop that we've finished shutting down
             shutdown_response.send(()).expect("Failed to send shutdown response");
             Ok::<(), BinaryError>(())
         }));
-        
+
         // Handle panic case - ensure server shuts down cleanly
         if let Err(e) = caught_panic {
             error!("TCP connection acceptor thread panicked: {:?}", e);
