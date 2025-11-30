@@ -194,10 +194,14 @@ fn get_server_status(state: &GlobalState) -> String {
 
     // Randomly choose a MOTD line from the configured list
     const DEFAULT_MOTD: &str = "A FerrumC Server";
-    let motd = config.motd.choose(&mut rand::rng()).unwrap_or_else(|| {
-        warn!("Add a MOTD line to your server config. Using default for now.");
-        DEFAULT_MOTD
-    });
+    let motd: &str = config
+        .motd
+        .choose(&mut rand::rng())
+        .map(|s| s.as_str())
+        .unwrap_or_else(|| {
+            warn!("Add a MOTD line to your server config. Using default for now.");
+            DEFAULT_MOTD
+        });
 
     let description = structs::Description { text: motd };
 

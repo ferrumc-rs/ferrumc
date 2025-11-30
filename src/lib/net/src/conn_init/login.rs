@@ -29,6 +29,39 @@ use tokio::net::tcp::OwnedReadHalf;
 use tracing::{debug, error, trace};
 use uuid::Uuid;
 
+use crate::ConnState;
+
+/// Waits for a specific packet type, ignoring any other packets received in the meantime.
+///
+/// This is useful during login when the client may send packets (like `client_tick_end`)
+/// before the expected response packet.
+///
+/// # Type Parameters
+/// - `T`: The packet type to decode, must implement `NetDecode`.
+///
+/// # Returns
+/// The decoded packet of type `T`, or an error if packet reading/decoding fails.
+async fn wait_for_packet<T: NetDecode>(
+    conn_read: &mut EncryptedReader<OwnedReadHalf>,
+    compressed: bool,
+    conn_state: ConnState,
+    expected_packet_id: i32,
+) -> Result<T, NetError> {
+    let expected_id = expected_packet_id as u8;
+    loop {
+        let mut skel = PacketSkeleton::new(conn_read, compressed, conn_state).await?;
+        if skel.id == expected_id {
+            return T::decode(&mut skel.data, &NetDecodeOpts::None).map_err(NetError::from);
+        } else {
+            trace!(
+                "Ignoring packet 0x{:02X} while waiting for 0x{:02X}",
+                skel.id,
+                expected_id
+            );
+        }
+    }
+}
+
 /// Handles the **login sequence** for a newly connecting client.
 ///
 /// This function follows the Minecraft login/configuration handshake:
@@ -47,13 +80,16 @@ use uuid::Uuid;
 ///
 /// # Errors
 /// Returns `NetError` for protocol violations, unexpected packets, or I/O errors.
-// TODO: split this function into smaller sub-functions for clarity. and make the main 'login' function just call those in a very nice and orderly sequence with easily readable code. nothing extra going on other than just the function calls. instead of sending chunks in a 'login' function haha...
+// TODO: split into smaller functions for clarity
 pub(super) async fn login(
     conn_read: &mut EncryptedReader<OwnedReadHalf>,
     conn_write: &StreamWriter,
     state: GlobalState,
 ) -> Result<(bool, LoginResult), NetError> {
     let mut compressed = false;
+
+    // Cache global config to avoid repeated calls throughout login sequence
+    let config = get_global_config();
 
     // =============================================================================================
     // 1 Receive initial Login Start packet
@@ -76,13 +112,12 @@ pub(super) async fn login(
 
     // =============================================================================================
     // 2 Negotiate compression if configured
-    // TODO: update get_global_config -> a local variable instead of repeated calls
-    if get_global_config().network_compression_threshold > 0 {
+    if config.network_compression_threshold > 0 {
         compressed = true;
 
         // Notify client to enable compression on subsequent packets
         let compression_packet = crate::packets::outgoing::set_compression::SetCompressionPacket {
-            threshold: VarInt::new(get_global_config().network_compression_threshold),
+            threshold: VarInt::new(config.network_compression_threshold),
         };
         conn_write.send_packet(compression_packet)?;
         conn_write
@@ -94,8 +129,7 @@ pub(super) async fn login(
     // 3 Enable encryption and auth player if configured
     let mut player_properties = Vec::new();
 
-    // TODO: the body of this "if" can be moved into its own function for clarity
-    if get_global_config().encryption_enabled || get_global_config().online_mode {
+    if config.encryption_enabled || config.online_mode {
         let mut verify_token = vec![0u8; 16];
         rand::rng().fill_bytes(&mut verify_token);
 
@@ -103,7 +137,7 @@ pub(super) async fn login(
             server_id: "".to_string(), // As of 1.7, this field should always be empty
             public_key: LengthPrefixedVec::new(get_encryption_keys().clone_der()),
             verify_token: LengthPrefixedVec::new(verify_token.clone()),
-            should_authenticate: get_global_config().online_mode,
+            should_authenticate: config.online_mode,
         };
         conn_write.send_packet(encryption_packet)?;
 
@@ -138,7 +172,7 @@ pub(super) async fn login(
 
             // =============================================================================================
             // 3.1 Authenticate the player with Mojang's servers (if online_mode is enabled)
-            if get_global_config().online_mode {
+            if config.online_mode {
                 let (username, uuid, properties) =
                     authenticate_user(&login_start.username, "", &shared_secret).await?;
 
@@ -171,12 +205,9 @@ pub(super) async fn login(
                 .map(|property: &PlayerProperty| LoginSuccessProperties {
                     name: &property.name,
                     value: &property.value,
-                    // TODO: make this simplified through a method on PrefixedOptional to auto convert
-                    signature: if let Some(str) = property.signature.as_ref() {
-                        PrefixedOptional::Some(str.as_str())
-                    } else {
-                        PrefixedOptional::None
-                    },
+                    signature: PrefixedOptional::new(
+                        property.signature.as_ref().map(|s| s.as_str()),
+                    ),
                 })
                 .collect(),
         ),
@@ -213,7 +244,6 @@ pub(super) async fn login(
 
     // =============================================================================================
     // 6 Read Client Information (locale, view distance, etc.)
-    // TODO: is this even being saved in the ecs? lol. should prolly if not already.
     let mut skel = PacketSkeleton::new(conn_read, compressed, Configuration).await?;
     let expected_id = lookup_packet!("configuration", "serverbound", "client_information");
     if skel.id != expected_id {
@@ -264,7 +294,6 @@ pub(super) async fn login(
 
     // =============================================================================================
     // 9 Send server registry data (dimensions, biomes, etc.)
-    // TODO: Cache these packets to avoid re-encoding on each login
     for packet in &*REGISTRY_PACKETS {
         conn_write.send_packet_ref(packet)?;
     }
@@ -361,46 +390,21 @@ pub(super) async fn login(
             )
         };
 
-    // TODO: helper method to create this packet from Position/Rotation structs
     let sync_player_pos =
-        crate::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket {
-            x: spawn_pos.x,
-            y: spawn_pos.y,
-            z: spawn_pos.z,
-            vel_x: 0.0,
-            vel_y: 0.0,
-            vel_z: 0.0,
-            yaw: spawn_rotation.yaw,
-            pitch: spawn_rotation.pitch,
-            teleport_id: VarInt::new(teleport_id_i32),
-            flags: 0, // Explicitly set flags to 0 (Absolute positioning)
-        };
+        crate::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket::from_position_rotation(
+            &spawn_pos,
+            &spawn_rotation,
+            VarInt::new(teleport_id_i32),
+        );
 
     conn_write.send_packet(sync_player_pos)?;
 
     // =============================================================================================
     // 16 Await client's teleport acceptance
-    // The client may send other packets (like client_tick_end) before accepting the teleport,
-    // so we loop until we get the accept_teleportation packet
+    // The client may send other packets (like client_tick_end) before accepting the teleport
     let expected_id = lookup_packet!("play", "serverbound", "accept_teleportation");
-    let confirm_player_teleport = loop {
-        let mut skel = PacketSkeleton::new(conn_read, compressed, Play).await?;
-        if skel.id == expected_id {
-            // Got the teleport confirmation
-            let confirm =
-                crate::packets::incoming::confirm_player_teleport::ConfirmPlayerTeleport::decode(
-                    &mut skel.data,
-                    &NetDecodeOpts::None,
-                )?;
-            break confirm;
-        } else {
-            // Client sent another packet before confirming teleport - just ignore it
-            trace!(
-                "Ignoring packet 0x{:02X} while waiting for teleport confirmation",
-                skel.id
-            );
-        }
-    };
+    let confirm_player_teleport: crate::packets::incoming::confirm_player_teleport::ConfirmPlayerTeleport =
+        wait_for_packet(conn_read, compressed, Play, expected_id).await?;
 
     if confirm_player_teleport.teleport_id.0 != teleport_id_i32 {
         error!(
@@ -411,26 +415,10 @@ pub(super) async fn login(
 
     // =============================================================================================
     // 17 Receive first movement packet from player
-    // Similarly, the client may send other packets before the movement packet
+    // The client may send other packets before the movement packet
     let expected_id = lookup_packet!("play", "serverbound", "move_player_pos_rot");
-    // TODO: helpers method for ignoring packets until receiving one.
-    let _player_pos_and_rot = loop {
-        let mut skel = PacketSkeleton::new(conn_read, compressed, Play).await?;
-
-        if skel.id == expected_id {
-            let pos_rot = crate::packets::incoming::set_player_position_and_rotation::SetPlayerPositionAndRotationPacket::decode(
-                &mut skel.data,
-                &NetDecodeOpts::None,
-            )?;
-            break pos_rot;
-        } else {
-            // Client sent another packet before movement - ignore it
-            trace!(
-                "Ignoring packet 0x{:02X} while waiting for initial movement packet",
-                skel.id
-            );
-        }
-    };
+    let _player_pos_and_rot: crate::packets::incoming::set_player_position_and_rotation::SetPlayerPositionAndRotationPacket =
+        wait_for_packet(conn_read, compressed, Play, expected_id).await?;
 
     // =============================================================================================
     // 18 Send player info update packets
@@ -449,9 +437,10 @@ pub(super) async fn login(
 
     // =============================================================================================
     // 21 Load and send surrounding chunks within render distance
-    // TODO: this doesn't respect the client's view distance setting; it should use that. min(server, client).
-    // TODO: if the client wants less, we give less, if the client wants more, we cap it at server max.
-    let radius = get_global_config().chunk_render_distance as i32;
+    // Use the minimum of server config and client's requested view distance
+    let server_render_distance = config.chunk_render_distance as i32;
+    let client_view_distance = client_info.view_distance as i32;
+    let radius = server_render_distance.min(client_view_distance);
 
     let mut batch = state.thread_pool.batch();
 
@@ -492,9 +481,8 @@ pub(super) async fn login(
     }
 
     // =============================================================================================
-    // 21 Send command graph packet
-    // TODO: name method better, "new" semantically implies an empty instance.
-    conn_write.send_packet(CommandsPacket::new())?;
+    // 22 Send command graph packet
+    conn_write.send_packet(CommandsPacket::from_global_graph())?;
 
     trace!(
         "sending command graph {:#?}",
