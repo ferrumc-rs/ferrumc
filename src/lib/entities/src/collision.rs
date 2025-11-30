@@ -65,3 +65,43 @@ pub fn is_in_water(state: &GlobalState, pos: &Position, aabb: &Aabb3d) -> bool {
     let center = pos.coords + (aabb.min.as_dvec3() + aabb.max.as_dvec3()) * 0.5;
     is_water_block(state, center.as_ivec3())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_pig_aabb_dimensions() {
+        // Pig dimensions from vanilla: 0.9 x 0.9 x 0.9 blocks
+        let expected_width = EntityTypeData::PIG.dimension[0];
+        let expected_height = EntityTypeData::PIG.dimension[1];
+
+        assert_eq!(PIG_AABB.min.x, -expected_width / 2.0);
+        assert_eq!(PIG_AABB.max.x, expected_width / 2.0);
+        assert_eq!(PIG_AABB.min.y, 0.0); // Feet at y=0
+        assert_eq!(PIG_AABB.max.y, expected_height);
+        assert_eq!(PIG_AABB.min.z, -expected_width / 2.0);
+        assert_eq!(PIG_AABB.max.z, expected_width / 2.0);
+    }
+
+    #[test]
+    fn test_pig_aabb_centered() {
+        // The box should be centered on X/Z axes
+        assert_eq!(PIG_AABB.min.x, -PIG_AABB.max.x);
+        assert_eq!(PIG_AABB.min.z, -PIG_AABB.max.z);
+    }
+
+    #[test]
+    fn test_aabb_conversion_to_dvec3() {
+        let min_dvec = PIG_AABB.min.as_dvec3();
+        let max_dvec = PIG_AABB.max.as_dvec3();
+
+        // Verify conversion works correctly
+        assert_eq!(min_dvec.x as f32, PIG_AABB.min.x);
+        assert_eq!(min_dvec.y as f32, PIG_AABB.min.y);
+        assert_eq!(min_dvec.z as f32, PIG_AABB.min.z);
+        assert_eq!(max_dvec.x as f32, PIG_AABB.max.x);
+        assert_eq!(max_dvec.y as f32, PIG_AABB.max.y);
+        assert_eq!(max_dvec.z as f32, PIG_AABB.max.z);
+    }
+}
