@@ -14,6 +14,7 @@ use ferrumc_net_encryption::read::EncryptedReader;
 use ferrumc_state::GlobalState;
 use rand::prelude::IndexedRandom;
 use tokio::net::tcp::OwnedReadHalf;
+use tracing::warn;
 
 /// Handles the Minecraft server "status" state of the handshake.
 ///
@@ -192,7 +193,12 @@ fn get_server_status(state: &GlobalState) -> String {
     };
 
     // Randomly choose a MOTD line from the configured list
-    let motd = config.motd.choose(&mut rand::rng()).unwrap();
+    const DEFAULT_MOTD: &str = "A FerrumC Server";
+    let motd = config.motd.choose(&mut rand::rng()).unwrap_or_else(|| {
+        warn!("Add a MOTD line to your server config. Using default for now.");
+        DEFAULT_MOTD
+    });
+
     let description = structs::Description { text: motd };
 
     // Encode favicon image in base64
@@ -207,5 +213,5 @@ fn get_server_status(state: &GlobalState) -> String {
         enforces_secure_chat: false,
     };
 
-    serde_json::to_string(&status).unwrap()
+    serde_json::to_string(&status).expect("Failed to serialize server status to JSON")
 }
