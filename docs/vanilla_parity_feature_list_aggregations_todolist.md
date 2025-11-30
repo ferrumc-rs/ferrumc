@@ -191,7 +191,18 @@
 ## VII. Command & Chat System
 
 ### **Chat**
-## VIII. Data Packs & Resources
+- [x] **JSON Chat Components** — [`src/lib/text/src/lib.rs`](../src/lib/text/src/lib.rs). Full `TextComponent` with text/translate/keybind content, colors, formatting, click/hover events, NBT serialization.
+- [/] **Chat Messages** — [`src/bin/src/packet_handlers/play_packets/chat_message.rs`](../src/bin/src/packet_handlers/play_packets/chat_message.rs). Basic `<player> message` broadcast via message queue.
+- [ ] **Chat Signing (1.19+)** — Not implemented.
+
+### **Brigadier (Command Parser)**
+- [x] **Command Tree** — [`src/lib/commands/src/graph/`](../src/lib/commands/src/graph/). Command nodes with argument types, suggestions.
+- [x] **Argument Types** — [`src/lib/commands/src/arg/`](../src/lib/commands/src/arg/). String, integer, and custom argument parsers.
+- [/] **Target Selectors** — Not implemented as full selector system.
+- [ ] **Permission Levels** — Not implemented.
+- [/] **Command Logic** — [`src/lib/default_commands/src/`](../src/lib/default_commands/src/). Implemented: `/echo`, `/fly`, `/gamemode`, `/spawn`. **Missing:** Most vanilla commands.
+
+---
 
 ### **Datapack Loader**
 - [ ] **Zip/Folder parsing** — Not implemented.
