@@ -211,9 +211,7 @@ async fn send_login_success(
                 .map(|property: &PlayerProperty| LoginSuccessProperties {
                     name: &property.name,
                     value: &property.value,
-                    signature: PrefixedOptional::new(
-                        property.signature.as_deref(),
-                    ),
+                    signature: PrefixedOptional::new(property.signature.as_deref()),
                 })
                 .collect(),
         ),
