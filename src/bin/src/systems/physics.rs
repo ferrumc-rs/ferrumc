@@ -15,6 +15,7 @@ const GRAVITY: f64 = -0.08;
 const TERMINAL_VELOCITY: f64 = -3.92;
 const WATER_BUOYANCY: f64 = 0.09;
 const WATER_DRAG: f64 = 0.8;
+const WATER_VERTICAL_DRAG: f64 = 0.95;
 const GROUND_FRICTION: f64 = 0.85;
 const AIR_RESISTANCE: f64 = 0.98;
 
@@ -97,7 +98,7 @@ pub fn entity_physics_system(
         if in_water {
             vel.x *= WATER_DRAG;
             vel.z *= WATER_DRAG;
-            vel.y *= 0.95;
+            vel.y *= WATER_VERTICAL_DRAG;
         } else if on_ground.0 {
             vel.x *= GROUND_FRICTION;
             vel.z *= GROUND_FRICTION;
