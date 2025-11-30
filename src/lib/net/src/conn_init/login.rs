@@ -212,7 +212,7 @@ async fn send_login_success(
                     name: &property.name,
                     value: &property.value,
                     signature: PrefixedOptional::new(
-                        property.signature.as_ref().map(|s| s.as_str()),
+                        property.signature.as_deref(),
                     ),
                 })
                 .collect(),
@@ -541,9 +541,9 @@ pub(super) async fn login(
 
     // Phase 1: Initial Handshake
     let login_start = receive_login_start(conn_read, false).await?;
-    let compressed = setup_compression(conn_write, &config)?;
+    let compressed = setup_compression(conn_write, config)?;
     let player_properties =
-        setup_encryption_and_auth(conn_read, conn_write, &config, &login_start, compressed).await?;
+        setup_encryption_and_auth(conn_read, conn_write, config, &login_start, compressed).await?;
 
     let player_identity = send_login_success(
         conn_read,
