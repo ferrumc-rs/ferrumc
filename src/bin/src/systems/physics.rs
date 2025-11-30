@@ -1,9 +1,10 @@
 use bevy_ecs::prelude::*;
+use bevy_math::DVec3;
 use ferrumc_core::identity::entity_identity::EntityIdentity;
 use ferrumc_core::transform::{
     grounded::OnGround, position::Position, rotation::Rotation, velocity::Velocity,
 };
-use ferrumc_entities::collision::{check_collision, is_in_water, BoundingBox};
+use ferrumc_entities::collision::{check_collision, is_in_water, PIG_AABB};
 use ferrumc_entities::components::{EntityMetadata, LastSyncedPosition};
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::update_entity_position_and_rotation::UpdateEntityPositionAndRotationPacket;
@@ -14,6 +15,8 @@ const GRAVITY: f64 = -0.08;
 const TERMINAL_VELOCITY: f64 = -3.92;
 const WATER_BUOYANCY: f64 = 0.09;
 const WATER_DRAG: f64 = 0.8;
+const GROUND_FRICTION: f64 = 0.85;
+const AIR_RESISTANCE: f64 = 0.98;
 
 type EntitySyncComponents<'a> = (
     &'a EntityIdentity,
@@ -31,13 +34,11 @@ type EntitySyncComponents<'a> = (
 /// - Updates entity positions
 /// - Applies friction based on environment
 pub fn entity_physics_system(
-    mut query: Query<(&mut Position, &mut Velocity, &OnGround), With<EntityMetadata>>,
+    mut query: Query<(&mut Position, &mut Velocity, &mut OnGround), With<EntityMetadata>>,
     state: Res<GlobalStateResource>,
 ) {
-    let bbox = BoundingBox::PIG;
-
-    for (mut pos, mut vel, on_ground) in query.iter_mut() {
-        let in_water = is_in_water(&state.0, pos.x, pos.y, pos.z, &bbox);
+    for (mut pos, mut vel, mut on_ground) in query.iter_mut() {
+        let in_water = is_in_water(&state.0, &pos, &PIG_AABB);
 
         // Apply gravity and buoyancy
         if in_water {
@@ -49,38 +50,47 @@ pub fn entity_physics_system(
         }
 
         // Calculate new position
-        let new_x = pos.x + vel.x;
-        let new_y = pos.y + vel.y;
-        let new_z = pos.z + vel.z;
+        let new_pos = pos.coords + **vel;
 
         // Check collision and update position
-        if !check_collision(&state.0, new_x, new_y, new_z, &bbox) {
-            *pos = Position::new(new_x, new_y, new_z);
+        let test_pos = Position::from(new_pos);
+        if !check_collision(&state.0, &test_pos, &PIG_AABB) {
+            pos.coords = new_pos;
+            on_ground.0 = false;
         } else {
             // Try each axis separately
-            let mut final_x = pos.x;
-            let mut final_y = pos.y;
-            let mut final_z = pos.z;
+            let mut final_pos = pos.coords;
 
-            if !check_collision(&state.0, pos.x, new_y, pos.z, &bbox) {
-                final_y = new_y;
+            // Try Y movement first (jumping/falling)
+            let test_y = Position::from(DVec3::new(pos.x, new_pos.y, pos.z));
+            if !check_collision(&state.0, &test_y, &PIG_AABB) {
+                final_pos.y = new_pos.y;
+                on_ground.0 = false;
             } else {
                 vel.y = 0.0;
+                // Check if collision is below (on ground)
+                if new_pos.y < pos.y {
+                    on_ground.0 = true;
+                }
             }
 
-            if !check_collision(&state.0, new_x, final_y, pos.z, &bbox) {
-                final_x = new_x;
+            // Try X movement with updated Y position
+            let test_x = Position::from(DVec3::new(new_pos.x, final_pos.y, pos.z));
+            if !check_collision(&state.0, &test_x, &PIG_AABB) {
+                final_pos.x = new_pos.x;
             } else {
                 vel.x = 0.0;
             }
 
-            if !check_collision(&state.0, final_x, final_y, new_z, &bbox) {
-                final_z = new_z;
+            // Try Z movement with updated X and Y positions
+            let test_z = Position::from(DVec3::new(final_pos.x, final_pos.y, new_pos.z));
+            if !check_collision(&state.0, &test_z, &PIG_AABB) {
+                final_pos.z = new_pos.z;
             } else {
                 vel.z = 0.0;
             }
 
-            *pos = Position::new(final_x, final_y, final_z);
+            pos.coords = final_pos;
         }
 
         // Apply friction
@@ -89,11 +99,11 @@ pub fn entity_physics_system(
             vel.z *= WATER_DRAG;
             vel.y *= 0.95;
         } else if on_ground.0 {
-            vel.x *= 0.85;
-            vel.z *= 0.85;
+            vel.x *= GROUND_FRICTION;
+            vel.z *= GROUND_FRICTION;
         } else {
-            vel.x *= 0.98;
-            vel.z *= 0.98;
+            vel.x *= AIR_RESISTANCE;
+            vel.z *= AIR_RESISTANCE;
         }
     }
 }

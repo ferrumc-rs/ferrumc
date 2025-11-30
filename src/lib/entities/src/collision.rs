@@ -1,18 +1,18 @@
+use bevy_math::bounding::Aabb3d;
+use bevy_math::Vec3A;
+use ferrumc_core::transform::position::Position;
 use ferrumc_data::generated::entities::EntityType as EntityTypeData;
 use ferrumc_state::GlobalState;
 
-#[derive(Debug, Clone, Copy)]
-pub struct BoundingBox {
-    pub half_width: f64,
-    pub height: f64,
-}
-
-impl BoundingBox {
-    pub const PIG: BoundingBox = BoundingBox {
-        half_width: EntityTypeData::PIG.dimension[0] as f64 / 2.0,
-        height: EntityTypeData::PIG.dimension[1] as f64,
-    };
-}
+/// Pig bounding box using Bevy's Aabb3d
+pub const PIG_AABB: Aabb3d = {
+    let width = EntityTypeData::PIG.dimension[0];
+    let height = EntityTypeData::PIG.dimension[1];
+    Aabb3d {
+        min: Vec3A::new(-width / 2.0, 0.0, -width / 2.0),
+        max: Vec3A::new(width / 2.0, height, width / 2.0),
+    }
+};
 
 pub fn is_water_block(state: &GlobalState, x: i32, y: i32, z: i32) -> bool {
     state
@@ -34,48 +34,21 @@ pub fn is_solid_block(state: &GlobalState, x: i32, y: i32, z: i32) -> bool {
 }
 
 /// Checks collision by testing 8 points (4 corners at feet + 4 at head level)
-pub fn check_collision(state: &GlobalState, x: f64, y: f64, z: f64, bbox: &BoundingBox) -> bool {
+pub fn check_collision(state: &GlobalState, pos: &Position, aabb: &Aabb3d) -> bool {
+    let min = aabb.min.as_dvec3();
+    let max = aabb.max.as_dvec3();
+
     let check_positions = [
-        (
-            (x - bbox.half_width).floor() as i32,
-            y.floor() as i32,
-            (z - bbox.half_width).floor() as i32,
-        ),
-        (
-            (x + bbox.half_width).floor() as i32,
-            y.floor() as i32,
-            (z - bbox.half_width).floor() as i32,
-        ),
-        (
-            (x - bbox.half_width).floor() as i32,
-            y.floor() as i32,
-            (z + bbox.half_width).floor() as i32,
-        ),
-        (
-            (x + bbox.half_width).floor() as i32,
-            y.floor() as i32,
-            (z + bbox.half_width).floor() as i32,
-        ),
-        (
-            (x - bbox.half_width).floor() as i32,
-            (y + bbox.height).floor() as i32,
-            (z - bbox.half_width).floor() as i32,
-        ),
-        (
-            (x + bbox.half_width).floor() as i32,
-            (y + bbox.height).floor() as i32,
-            (z - bbox.half_width).floor() as i32,
-        ),
-        (
-            (x - bbox.half_width).floor() as i32,
-            (y + bbox.height).floor() as i32,
-            (z + bbox.half_width).floor() as i32,
-        ),
-        (
-            (x + bbox.half_width).floor() as i32,
-            (y + bbox.height).floor() as i32,
-            (z + bbox.half_width).floor() as i32,
-        ),
+        // Feet level (min.y)
+        ((pos.x + min.x).floor() as i32, (pos.y + min.y).floor() as i32, (pos.z + min.z).floor() as i32),
+        ((pos.x + max.x).floor() as i32, (pos.y + min.y).floor() as i32, (pos.z + min.z).floor() as i32),
+        ((pos.x + min.x).floor() as i32, (pos.y + min.y).floor() as i32, (pos.z + max.z).floor() as i32),
+        ((pos.x + max.x).floor() as i32, (pos.y + min.y).floor() as i32, (pos.z + max.z).floor() as i32),
+        // Head level (max.y)
+        ((pos.x + min.x).floor() as i32, (pos.y + max.y).floor() as i32, (pos.z + min.z).floor() as i32),
+        ((pos.x + max.x).floor() as i32, (pos.y + max.y).floor() as i32, (pos.z + min.z).floor() as i32),
+        ((pos.x + min.x).floor() as i32, (pos.y + max.y).floor() as i32, (pos.z + max.z).floor() as i32),
+        ((pos.x + max.x).floor() as i32, (pos.y + max.y).floor() as i32, (pos.z + max.z).floor() as i32),
     ];
 
     for (check_x, check_y, check_z) in check_positions {
@@ -87,10 +60,7 @@ pub fn check_collision(state: &GlobalState, x: f64, y: f64, z: f64, bbox: &Bound
     false
 }
 
-pub fn is_in_water(state: &GlobalState, x: f64, y: f64, z: f64, bbox: &BoundingBox) -> bool {
-    let center_x = x.floor() as i32;
-    let center_y = (y + bbox.height / 2.0).floor() as i32;
-    let center_z = z.floor() as i32;
-
-    is_water_block(state, center_x, center_y, center_z)
+pub fn is_in_water(state: &GlobalState, pos: &Position, aabb: &Aabb3d) -> bool {
+    let center = pos.coords + (aabb.min.as_dvec3() + aabb.max.as_dvec3()) * 0.5;
+    is_water_block(state, center.x.floor() as i32, center.y.floor() as i32, center.z.floor() as i32)
 }
