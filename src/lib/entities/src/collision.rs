@@ -40,7 +40,8 @@ pub fn is_solid_block(state: &GlobalState, pos: IVec3) -> bool {
 pub fn check_collision(state: &GlobalState, pos: &Position, aabb: &Aabb3d) -> bool {
     let (min, max) = (aabb.min.as_dvec3(), aabb.max.as_dvec3());
 
-    let to_block = |x: f64, y: f64, z: f64| IVec3::new(x.floor() as i32, y.floor() as i32, z.floor() as i32);
+    let to_block =
+        |x: f64, y: f64, z: f64| IVec3::new(x.floor() as i32, y.floor() as i32, z.floor() as i32);
 
     let check_positions = [
         // Feet level
@@ -55,7 +56,9 @@ pub fn check_collision(state: &GlobalState, pos: &Position, aabb: &Aabb3d) -> bo
         to_block(pos.x + max.x, pos.y + max.y, pos.z + max.z),
     ];
 
-    check_positions.iter().any(|&pos| is_solid_block(state, pos))
+    check_positions
+        .iter()
+        .any(|&pos| is_solid_block(state, pos))
 }
 
 pub fn is_in_water(state: &GlobalState, pos: &Position, aabb: &Aabb3d) -> bool {
