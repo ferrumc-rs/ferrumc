@@ -56,7 +56,7 @@
 - [x] **Handshaking** — [`src/lib/net/src/packets/incoming/handshake.rs`](../src/lib/net/src/packets/incoming/handshake.rs). Reads protocol version, server address, port, next state (1=Status, 2=Login).
 - [x] **Status (SLP)** — [`src/lib/net/src/packets/incoming/status_request.rs`](../src/lib/net/src/packets/incoming/status_request.rs), [`ping_request.rs`](../src/lib/net/src/packets/incoming/ping.rs). Full JSON response with MOTD, player count, max players, favicon (base64), version info.
 - [x] **Login** — [`src/lib/net/src/packets/incoming/login_start.rs`](../src/lib/net/src/packets/incoming/login_start.rs), [`encryption_response.rs`](../src/lib/net/src/packets/incoming/encryption_response.rs). Mojang session auth via `sessionserver.mojang.com/session/minecraft/hasJoined` in [`src/lib/net/src/auth.rs`](../src/lib/net/src/auth.rs). Compression packet, Login Success with UUID/username/properties.
-- [/] **Play (In-Game)** — Partial implementation. **Implemented:** Chunk sending, keep-alive, player position/rotation sync, block break/place (creative), entity spawning, chat messages, command handling. **Missing:** Most gameplay packets (combat, enchanting, villagers, etc.). See [`src/lib/net/src/packets/outgoing/`](../src/lib/net/src/packets/outgoing/) for ~45 outgoing packets.
+- [/] **Play (In-Game)** — Partial implementation. **Implemented:** Chunk sending, keep-alive, player position/rotation sync, block break/place (creative), entity spawning, chat messages, command handling, sneaking state sync, arm swing animation, pick block (creative/survival), render distance syncing. **Missing:** Most gameplay packets (combat, enchanting, villagers, etc.). See [`src/lib/net/src/packets/outgoing/`](../src/lib/net/src/packets/outgoing/) for ~45 outgoing packets.
 - [ ] **RCON** — Not implemented.
 
 ---
@@ -129,7 +129,7 @@
 
 ### **Entity Categories**
 - [/] **Living** — `Health` component in [`src/lib/components/src/health.rs`](../src/lib/components/src/health.rs). **Missing:** Potions, armor, hand items.
-- [ ] **Mobs** — Not implemented. Only player entities.
+- [/] **Mobs** — Partial implementation. **Implemented:** Pig entity (`PigBundle`) with full component set (physics, combat, metadata). **Missing:** AI, other mobs.
 - [ ] **Projectiles** — Not implemented.
 - [ ] **Vehicles** — Not implemented.
 - [ ] **Items** — Not implemented. No item entities.
@@ -190,19 +190,6 @@
 ## VII. Command & Chat System
 
 ### **Chat**
-- [x] **JSON Chat Components** — [`src/lib/text/src/lib.rs`](../src/lib/text/src/lib.rs). Full `TextComponent` with text/translate/keybind content, colors, formatting, click/hover events, NBT serialization.
-- [/] **Chat Messages** — [`src/bin/src/packet_handlers/play_packets/chat_message.rs`](../src/bin/src/packet_handlers/play_packets/chat_message.rs). Basic `<player> message` broadcast via message queue.
-- [ ] **Chat Signing (1.19+)** — Not implemented.
-
-### **Brigadier (Command Parser)**
-- [x] **Command Tree** — [`src/lib/commands/src/graph/`](../src/lib/commands/src/graph/). Command nodes with argument types, suggestions.
-- [x] **Argument Types** — [`src/lib/commands/src/arg/`](../src/lib/commands/src/arg/). String, integer, and custom argument parsers.
-- [/] **Target Selectors** — Not implemented as full selector system.
-- [ ] **Permission Levels** — Not implemented.
-- [/] **Command Logic** — [`src/lib/default_commands/src/`](../src/lib/default_commands/src/). Implemented: `/echo`, `/fly`, `/gamemode`, `/spawn`. **Missing:** Most vanilla commands.
-
----
-
 ## VIII. Data Packs & Resources
 
 ### **Datapack Loader**
