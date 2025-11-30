@@ -1,9 +1,10 @@
-# 🛠️ Server Implementation To-Do System
+# 🛠️ Vanilla 1:1 Parity Feature Implementation Checklist for FerrumC
 
 > **Legend:**
 > - [x] = Done
 > - [/] = Partial
 > - [ ] = Not Done
+
 
 ## I. Core Infrastructure & Lifecycle
 
@@ -239,6 +240,7 @@
 ---
 
 # Significant Deviations from Vanilla Java Server
+(This is just for reference for like funsies or something)
 
 | Area | Vanilla (Java) | FerrumC (Rust) | Notes |
 |------|----------------|----------------|-------|
