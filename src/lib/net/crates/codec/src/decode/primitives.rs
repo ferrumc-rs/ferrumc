@@ -185,7 +185,10 @@ impl<const N: usize> NetDecode for [u8; N] {
         Ok(buf)
     }
 
-    async fn decode_async<R: AsyncRead + Unpin>(reader: &mut R, _opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
+    async fn decode_async<R: AsyncRead + Unpin>(
+        reader: &mut R,
+        _opts: &NetDecodeOpts,
+    ) -> Result<Self, NetDecodeError> {
         let mut buf = [0; N];
         reader.read_exact(&mut buf).await?;
         Ok(buf)
