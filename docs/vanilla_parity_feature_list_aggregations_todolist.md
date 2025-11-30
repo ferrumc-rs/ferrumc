@@ -200,7 +200,7 @@
 - [x] **Argument Types** — [`src/lib/commands/src/arg/`](../src/lib/commands/src/arg/). String, integer, and custom argument parsers.
 - [/] **Target Selectors** — Not implemented as full selector system.
 - [ ] **Permission Levels** — Not implemented.
-- [/] **Command Logic** — [`src/lib/default_commands/src/`](../src/lib/default_commands/src/). Implemented: `/echo`, `/fly`, `/gamemode`, `/spawn`. **Missing:** Most vanilla commands.
+- [/] **Command Logic** — [`src/lib/default_commands/src/`](../src/lib/default_commands/src/). Implemented: `/echo`, `/fly`, `/gamemode`, `/spawn`, `/nested` (test). **Missing:** Most vanilla commands.
 
 ---
 
