@@ -6,7 +6,6 @@ pub mod lan_pinger;
 pub mod listeners;
 mod mq;
 pub mod new_connections;
-pub mod player_count_update;
 pub mod shutdown_systems;
 pub mod world_sync;
 

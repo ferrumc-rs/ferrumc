@@ -352,7 +352,7 @@ pub async fn handle_connection(
     };
 
     // Sets the entity for the stream writer.
-    *entity_holder.lock().unwrap() = Some(entity);
+    *entity_holder.lock().expect("Failed to lock entity holder") = Some(entity);
 
     trace!("Entity {:?} assigned to connection", entity);
 

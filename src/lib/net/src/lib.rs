@@ -17,7 +17,7 @@ pub mod server;
 
 setup_packet_handling!("\\src\\packets\\incoming");
 
-#[derive(Eq, PartialEq, Debug)]
+#[derive(Eq, PartialEq, Debug, Clone, Copy)]
 pub enum ConnState {
     Handshake,
     Login,

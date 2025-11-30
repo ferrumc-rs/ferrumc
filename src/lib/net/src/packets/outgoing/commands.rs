@@ -10,20 +10,25 @@ pub struct CommandsPacket {
 }
 
 impl CommandsPacket {
-    pub fn new_with(graph: CommandGraph) -> Self {
+    /// Creates a CommandsPacket from the provided command graph.
+    pub fn new(graph: CommandGraph) -> Self {
         Self {
             graph: LengthPrefixedVec::new(graph.nodes),
             root_idx: VarInt::new(0),
         }
     }
 
-    pub fn new() -> Self {
-        Self::new_with(ferrumc_commands::infrastructure::get_graph())
+    /// Creates a CommandsPacket using the globally registered command graph.
+    ///
+    /// This is the typical way to create this packet, as it includes all
+    /// registered server commands for tab-completion and validation.
+    pub fn from_global_graph() -> Self {
+        Self::new(ferrumc_commands::infrastructure::get_graph())
     }
 }
 
 impl Default for CommandsPacket {
     fn default() -> Self {
-        Self::new()
+        Self::from_global_graph()
     }
 }
