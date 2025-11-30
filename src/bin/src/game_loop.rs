@@ -215,7 +215,6 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
 /// Each schedule runs at a specific interval and handles different aspects of the game:
 /// - **tick**: Main game tick (player updates, packets, commands) - runs at configured TPS
 /// - **world_sync**: Persists world data to disk - every 15 seconds
-/// - **player_count_refresh**: Updates player count for server list - every 10 seconds
 /// - **keepalive**: Sends keepalive packets to prevent timeouts - every 1 second
 fn build_timed_scheduler() -> Scheduler {
     let mut timed = Scheduler::new();
@@ -255,23 +254,6 @@ fn build_timed_scheduler() -> Scheduler {
     );
 
     // -------------------------------------------------------------------------
-    // PLAYER COUNT REFRESH - Updates server list player count
-    // -------------------------------------------------------------------------
-    // Refreshes the player count shown in the server list.
-    // TODO: Why are we doing this on a schedule instead of on player connect/disconnect?
-    let build_player_count = |s: &mut Schedule| {
-        s.add_systems(crate::systems::player_count_update::player_count_updater);
-    };
-    timed.register(
-        TimedSchedule::new(
-            "player_count_refresh",
-            Duration::from_secs(10),
-            build_player_count,
-        )
-        .with_behavior(MissedTickBehavior::Skip),
-    );
-
-    // -------------------------------------------------------------------------
     // KEEPALIVE SCHEDULE - Prevents client timeout disconnects
     // -------------------------------------------------------------------------
     // Sends keepalive packets to all connected players to maintain the connection.
@@ -294,6 +276,27 @@ fn build_timed_scheduler() -> Scheduler {
     }
 
     timed
+}
+
+/// Spawns the LAN broadcast pinger task.
+///
+/// This broadcasts the server's presence on the local network using UDP multicast
+/// to Mojang's LAN discovery address (224.0.2.60:4445). Minecraft clients scanning
+/// for LAN games will pick up these broadcasts.
+///
+/// The 1.5 second interval is a balance between:
+/// - Fast enough for clients to discover the server quickly
+/// - Slow enough to not spam the network with unnecessary traffic
+async fn spawn_lan_pinger() {
+    let Ok(mut pinger) = LanPinger::new().await else {
+        error!("Failed creating LAN pinger");
+        return;
+    };
+
+    loop {
+        pinger.send().await;
+        sleep(Duration::from_millis(1500)).await;
+    }
 }
 
 /// Spawns a dedicated thread for accepting TCP connections.
@@ -333,20 +336,7 @@ fn tcp_conn_acceptor(
                 .build()?;
             
             // Spawn LAN broadcast pinger (for local network server discovery)
-            // TODO: break up into its own function/module.
-            async_runtime.spawn(async move {
-                let Ok(mut pinger) = LanPinger::new().await else {
-                    error!("Failed creating LAN pinger");
-                    return
-                };
-
-                // Broadcast server presence every 1.5 seconds
-                // TODO: seems pretty random; where does this number come from?
-                loop {
-                    pinger.send().await;
-                    sleep(Duration::from_millis(1500)).await;
-                }
-            });
+            async_runtime.spawn(spawn_lan_pinger());
             
             // Main connection accept loop
             async_runtime.block_on({
