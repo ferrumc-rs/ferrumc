@@ -16,7 +16,6 @@ mod overworld;
 mod perlin_noise;
 mod pos;
 mod random;
-use crate::end::end_generator::EndGenerator;
 use crate::errors::WorldGenError;
 use crate::overworld::overworld_generator::OverworldGenerator;
 use crate::pos::BlockPos;

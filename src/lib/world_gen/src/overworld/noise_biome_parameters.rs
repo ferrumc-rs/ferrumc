@@ -256,7 +256,6 @@ fn surface(
     ]
 }
 
-#[allow(dead_code)]
 pub fn overworld_biomes() -> Vec<(NoisePoint, Biome)> {
     let mut vec = add_ocean_biomes();
     vec.extend(add_inland_biomes());

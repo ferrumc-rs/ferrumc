@@ -1,5 +1,6 @@
 mod aquifer;
 mod carver;
+mod chunk_noise;
 mod noise_biome_parameters;
 mod noise_depth;
 mod ore_veins;

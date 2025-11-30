@@ -1,9 +1,10 @@
 use crate::biome_chunk::BiomeNoise;
 use crate::common::math::clamped_map;
+use crate::common::noise::slide;
 use crate::overworld::noise_biome_parameters::{
     DEPTH_DEEP_DARK_DRYNESS_THRESHOLD, EROSION_DEEP_DARK_DRYNESS_THRESHOLD,
 };
-use crate::overworld::overworld_generator::CachedNoise;
+use crate::overworld::overworld_generator::{CHUNK_HEIGHT, CachedNoise};
 use crate::perlin_noise::{
     BASE_3D_NOISE_OVERWORLD, BlendedNoise, CAVE_CHEESE, CAVE_ENTRANCE, CAVE_LAYER, CONTINENTALNESS,
     EROSION, JAGGED, NOODLE, NOODLE_RIDGE_A, NOODLE_RIDGE_B, NOODLE_THICKNESS, NormalNoise, PILLAR,
@@ -12,7 +13,7 @@ use crate::perlin_noise::{
     SPAGHETTI_3D_RARITY, SPAGHETTI_3D_THICKNESS, SPAGHETTI_ROUGHNESS,
     SPAGHETTI_ROUGHNESS_MODULATOR, TEMPERATURE, VEGETATION,
 };
-use crate::pos::{BlockPos, ChunkHeight, ChunkPos, ColumnPos};
+use crate::pos::{BlockPos, ChunkPos, ColumnPos};
 use crate::random::Xoroshiro128PlusPlus;
 use bevy_math::{DVec3, FloatExt, IVec3, Vec3Swizzles};
 
@@ -84,57 +85,52 @@ fn build_erosion_offset_spline(
 }
 
 fn ridge_spline(y1: f32, y2: f32, y3: f32, y4: f32, y5: f32, min_smoothing: f32) -> CubicSpline {
-    let max = (0.5 * (y2 - y1)).max(min_smoothing);
-    let f = 5.0 * (y3 - y2);
+    let slope1 = (0.5 * (y2 - y1)).max(min_smoothing);
+    let slope2 = 5.0 * (y3 - y2);
 
     CubicSpline::new(
         SplineType::RidgesFolded,
         vec![
-            SplinePoint::constant(-1.0, y1, max),
-            SplinePoint::constant(-0.4, y2, max.min(f)),
-            SplinePoint::constant(0.0, y3, f),
+            SplinePoint::constant(-1.0, y1, slope1),
+            SplinePoint::constant(-0.4, y2, slope1.min(slope2)),
+            SplinePoint::constant(0.0, y3, slope2),
             SplinePoint::constant(0.4, y4, 2.0 * (y4 - y3)),
             SplinePoint::constant(1.0, y5, 0.7 * (y5 - y4)),
         ],
     )
 }
 fn build_mountain_ridge_spline_with_points(magnitude: f32, use_max_slope: bool) -> CubicSpline {
-    fn mountain_continentalness(height_factor: f32, magnitude: f32, cutoff_height: f32) -> f32 {
+    let mountain_continentalness = |height_factor: f32| {
         let f2 = 1.0 - (1.0 - magnitude) * 0.5;
         let f3 = 0.5 * (1.0 - magnitude);
         let f4 = (height_factor + 1.17) * 0.46082947;
         let f5 = f4 * f2 - f3;
-        if height_factor < cutoff_height {
-            f5.max(-0.2222)
-        } else {
-            f5.max(0.0)
-        }
-    }
+        f5.max(if height_factor < -0.7 { -0.2222 } else { 0.0 })
+    };
 
-    fn calculate_mountain_ridge_zero_continentalness_point(input: f32) -> f32 {
-        let f2 = 1.0 - (1.0 - input) * 0.5;
-        let f3 = 0.5 * (1.0 - input);
-        f3 / (0.46082947 * f2) - 1.17
-    }
-    let f2 = mountain_continentalness(-1.0, magnitude, -0.7);
+    let f2 = mountain_continentalness(-1.0);
     let f3 = 1.0;
-    let f4 = mountain_continentalness(1.0, magnitude, -0.7);
-    let f5 = calculate_mountain_ridge_zero_continentalness_point(magnitude);
+    let f4 = mountain_continentalness(1.0);
+    let f5 = {
+        let f2 = 1.0 - (1.0 - magnitude) * 0.5;
+        let f3 = 0.5 * (1.0 - magnitude);
+        f3 / (0.46082947 * f2) - 1.17
+    };
     let f6 = -0.65;
 
     let mut points = Vec::new();
 
     if f6 < f5 && f5 < f3 {
-        let f7 = mountain_continentalness(f6, magnitude, -0.7);
+        let f7 = mountain_continentalness(f6);
         let f8 = -0.75;
-        let f9 = mountain_continentalness(f8, magnitude, -0.7);
+        let f9 = mountain_continentalness(f8);
         let f10 = slope(f2, f9, -1.0, f8);
 
         points.push(SplinePoint::constant(-1.0, f2, f10));
         points.push(SplinePoint::constant(f8, f9, 0.0));
         points.push(SplinePoint::constant(f6, f7, 0.0));
 
-        let f11 = mountain_continentalness(f5, magnitude, -0.7);
+        let f11 = mountain_continentalness(f5);
         let f12 = slope(f11, f4, f5, 1.0);
 
         points.push(SplinePoint::constant(f5 - 0.01, f11, 0.0));
@@ -362,14 +358,13 @@ fn build_ridge_jaggedness_spline(
 }
 
 pub struct OverworldBiomeNoise {
-    chunk_height: ChunkHeight,
     noise_size_vertical: usize,
     offset: CubicSpline,
     jaggedness: CubicSpline,
     factor: CubicSpline,
     shift: NormalNoise<4>,
-    temperature: NormalNoise<6>,
-    vegetation: NormalNoise<6>,
+    pub temperature: NormalNoise<6>,
+    pub vegetation: NormalNoise<6>,
     continents: NormalNoise<9>,
     erosion: NormalNoise<5>,
     ridges: NormalNoise<6>,
@@ -399,10 +394,6 @@ pub struct OverworldBiomeNoise {
 impl OverworldBiomeNoise {
     pub(super) fn new(factory: Xoroshiro128PlusPlus) -> Self {
         Self {
-            chunk_height: ChunkHeight {
-                min_y: -64,
-                height: 384,
-            },
             noise_size_vertical: 2 << 2,
             factor: overworld_factor(),
             jaggedness: overworld_jaggedness(),
@@ -550,12 +541,14 @@ impl OverworldBiomeNoise {
         let tmp2 = spaghetti_2d + 0.083 * spaghetti_2d_thickness_modulator;
         thickness.max(tmp2).clamp(-1.0, 1.0)
     }
+
     fn pillars(&self, pos: DVec3) -> f64 {
         let pillar = self.pillar.at(pos * DVec3::new(25.0, 0.3, 25.0));
         let rareness = self.pillar_rareness.at(pos).remap(-1.0, 1.0, 0.0, -2.0);
         let thickness = self.pillar_thickness.at(pos).remap(-1.0, 1.0, 0.0, 1.1);
         thickness.powi(3) * (pillar * 2.0 + rareness)
     }
+
     fn underground(
         &self,
         sloped_cheese: f64,
@@ -583,6 +576,7 @@ impl OverworldBiomeNoise {
             .remap(-1.0, 1.0, 0.0, -0.1);
         (initial_spaghetti_roughness.abs() - 0.4) * spaghetti_roughness_modulator
     }
+
     pub fn noodle(&self, pos: DVec3) -> f64 {
         if pos.y < -60.0 || self.noodle.at(pos) <= 0.0 {
             return 64.0;
@@ -594,6 +588,7 @@ impl OverworldBiomeNoise {
         let ridge = ridge_a.abs().max(ridge_b.abs()) * 1.5;
         thickness + ridge
     }
+
     pub fn pre_baked_final_density(&self, pos: BlockPos, cached_noise: CachedNoise) -> f64 {
         let final_jaggedness = cached_noise.jagged
             * if cached_noise.jagged > 0.0 { 1.0 } else { 0.5 }
@@ -630,7 +625,7 @@ impl OverworldBiomeNoise {
 
     pub fn make_spline_params(&self, transformed_pos: DVec3) -> SplineCoord {
         let ridges = self.ridges.at(transformed_pos);
-        let ridges_folded = (ridges.abs() - 0.6666666666666666).abs() * -3.0 + 1.0;
+        let ridges_folded = (ridges.abs() - 2. / 3.).abs() * -3.0 + 1.0;
         let erosion = self.erosion.at(transformed_pos);
         let continents = self.continents.at(transformed_pos);
         SplineCoord::new(ridges, ridges_folded, erosion, continents)
@@ -647,12 +642,12 @@ impl OverworldBiomeNoise {
 
     pub fn preliminary_surface(&self, chunk: ChunkPos) -> i32 {
         let column = chunk.origin();
-        self.chunk_height
+        CHUNK_HEIGHT
             .iter()
             .rev()
             .step_by(self.noise_size_vertical)
             .find(|y| self.initial_density_without_jaggedness(column.block(*y)) > 0.390625)
-            .unwrap_or(self.chunk_height.min_y)
+            .unwrap_or(CHUNK_HEIGHT.min_y)
     }
     pub fn is_deep_dark_region(&self, pos: IVec3) -> bool {
         let transformed_pos = self.transform(pos.into());
@@ -660,52 +655,15 @@ impl OverworldBiomeNoise {
             && self.depth(pos, self.offset(self.make_spline_params(transformed_pos)))
                 > DEPTH_DEEP_DARK_DRYNESS_THRESHOLD.into()
     }
-}
-fn slide(
-    y: f64,
-    density: f64,
-    top_start: f64,
-    top_end: f64,
-    top_delta: f64,
-    bottom_start: f64,
-    bottom_end: f64,
-    bottom_delta: f64,
-) -> f64 {
-    let s = clamped_map(y, top_start, top_end, 1.0, 0.0);
-    let t = clamped_map(y, bottom_start, bottom_end, 0.0, 1.0);
-    bottom_delta.lerp(top_delta.lerp(density, s), t)
-}
-pub fn lerp3(
-    delta: DVec3,
-    c000: f64,
-    c100: f64,
-    c010: f64,
-    c110: f64,
-    c001: f64,
-    c101: f64,
-    c011: f64,
-    c111: f64,
-) -> f64 {
-    let c00 = c000.lerp(c100, delta.x);
-    let c10 = c010.lerp(c110, delta.x);
-    let c01 = c001.lerp(c101, delta.x);
-    let c11 = c011.lerp(c111, delta.x);
-    let c0 = c00.lerp(c10, delta.y);
-    let c1 = c01.lerp(c11, delta.y);
-    c0.lerp(c1, delta.z)
-}
 
-impl BiomeNoise for OverworldBiomeNoise {
-    fn at_inner(&self, pos: BlockPos) -> [f64; 6] {
-        let transformed = self.transform(pos.into());
-        let spline_coord = self.make_spline_params(transformed);
+    pub fn at_inner(&self, pos: BlockPos, cache: CachedNoise) -> [f64; 6] {
         [
-            self.temperature.at(transformed),
-            self.vegetation.at(transformed),
-            spline_coord.continents,
-            spline_coord.erosion,
-            self.depth(pos, self.offset(spline_coord)),
-            spline_coord.ridges,
+            cache.temperature,
+            cache.vegetation,
+            cache.spline.continents,
+            cache.spline.erosion,
+            self.depth(pos, cache.offset),
+            cache.spline.ridges,
         ]
     }
 }
@@ -714,6 +672,16 @@ impl BiomeNoise for OverworldBiomeNoise {
 fn test_offset() {
     let offset = get_offset_spline();
     // TODO:
+    dbg!(
+        offset.sample(SplineCoord::new(
+            CONTINENTALNESS
+                .init(Xoroshiro128PlusPlus::from_seed(1).fork())
+                .at((0., 0., 0.).into()),
+            1.,
+            1.,
+            1.
+        ))
+    );
     dbg!(offset.compute_min_max());
     dbg!(overworld_factor().compute_min_max());
     dbg!(overworld_jaggedness().compute_min_max());

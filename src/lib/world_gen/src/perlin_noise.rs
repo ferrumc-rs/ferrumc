@@ -598,3 +598,16 @@ fn test_simplex_noise() {
         0.16818932411152765
     );
 }
+
+#[test]
+fn test_continentalness() {
+    let noise = CONTINENTALNESS.init(crate::random::Xoroshiro128PlusPlus::from_seed(1).fork());
+    // vanilla is 1.4999999999999998
+    assert_eq!(noise.factor, 1.5);
+    // assert_eq!(
+    //     noise.first.noise_levels[0].offset,
+    //     (13.954442024230957, 65.71379852294922, 250.0172119140625).into()
+    // );
+
+    assert_eq!(noise.at((0., 0., 0.).into()), 0.4846943122912421);
+}
