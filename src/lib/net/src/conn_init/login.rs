@@ -564,7 +564,7 @@ pub(super) async fn login(
     send_initial_chunks(
         conn_write,
         &state,
-        &config,
+        config,
         client_info.view_distance,
         compressed,
     )?;
