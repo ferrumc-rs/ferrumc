@@ -304,7 +304,7 @@ impl Chunk {
                     });
 
                 // judge if we need to resize
-                let required_bits = ((palette.len() as f32).log2().ceil() as u8).max(4);
+                let required_bits = ((palette.len() as f32).log2().ceil() as u8).max(4).min(15); // 15 is max in minecraft protocol
                 
                 let resize = required_bits > *bits_per_block;
 
@@ -360,9 +360,7 @@ impl Chunk {
             .map(|(_, count)| *count as u16)
             .sum();
 
-        self.sections
-            .iter_mut()
-            .for_each(|section| section.optimise().unwrap());
+        section.optimise()?;
             
         Ok(())
     }
