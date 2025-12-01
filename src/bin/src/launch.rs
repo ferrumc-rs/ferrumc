@@ -33,7 +33,7 @@ pub fn generate_spawn_chunks(state: GlobalState) -> Result<(), BinaryError> {
     info!("No overworld spawn chunk found, generating spawn chunks...");
 
     let start = Instant::now();
-    let radius = get_global_config().chunk_render_distance as i32 + 4;
+    let radius = get_global_config().chunk_render_distance as i32;
 
     // Collect all chunk coordinates to generate
     let chunks: Vec<(i32, i32)> = (-radius..=radius)

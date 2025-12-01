@@ -328,6 +328,7 @@ fn tcp_conn_acceptor(
     let named_thread = std::thread::Builder::new().name("TokioNetworkThread".to_string());
     named_thread.spawn(move || {
         // Catch panics to ensure graceful shutdown even if something goes wrong
+        // We catch it so we can shut down the entire server instead of leaving it open with a crashed network loop
         let caught_panic = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             // Create a dedicated single-threaded Tokio runtime for networking
             let async_runtime = tokio::runtime::Builder::new_current_thread()
