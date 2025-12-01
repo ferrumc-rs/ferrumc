@@ -103,40 +103,35 @@ impl BlockStates {
                 data,
                 palette,
             } => {
-                // Step 1: Read existing packed data into a list of normal integers
                 let mut normalised_ints = Vec::with_capacity(4096);
                 let mut values_read = 0;
 
                 for long in data {
                     let mut bit_offset = 0;
-
                     while bit_offset + *bits_per_block as usize <= 64 {
                         if values_read >= 4096 {
                             break;
                         }
 
-                        // Extract value at the current bit offset
                         let value =
                             read_nbit_i32(long, *bits_per_block as usize, bit_offset as u32)?;
+
                         let max_int_value = (1 << new_bit_size) - 1;
                         if value > max_int_value {
                             return Err(WorldError::InvalidBlockStateData(format!(
                                 "Value {value} exceeds maximum value for {new_bit_size}-bit block state"
                             )));
                         }
+                        
                         normalised_ints.push(value);
                         values_read += 1;
-
                         bit_offset += *bits_per_block as usize;
                     }
-
-                    // Stop reading if we’ve already hit 4096 values
                     if values_read >= 4096 {
                         break;
                     }
                 }
 
-                // Check if we read exactly 4096 block states
                 if normalised_ints.len() != 4096 {
                     return Err(WorldError::InvalidBlockStateData(format!(
                         "Expected 4096 block states, but got {}",
@@ -144,37 +139,45 @@ impl BlockStates {
                     )));
                 }
 
-                // Step 2: Write the normalised integers into the new packed format
                 let mut new_data = Vec::new();
                 let mut current_long: i64 = 0;
                 let mut bit_position = 0;
 
                 for &value in &normalised_ints {
+                    if bit_position + new_bit_size > 64 {
+                        new_data.push(current_long);
+                        current_long = 0;
+                        bit_position = 0;
+                    }
+
                     current_long |= (value as i64) << bit_position;
                     bit_position += new_bit_size;
-
-                    if bit_position >= 64 {
-                        new_data.push(current_long);
-                        current_long = (value as i64) >> (new_bit_size - (bit_position - 64));
-                        bit_position -= 64;
-                    }
                 }
 
-                // Push any remaining bits in the final long
+                // just in case there's remaining data to push, and avoid pushing empty longs
                 if bit_position > 0 {
                     new_data.push(current_long);
                 }
 
-                // Verify the size of the new data matches expectations
-                let expected_size = (4096 * new_bit_size).div_ceil(64);
-                if new_data.len() != expected_size {
+                // validation of size
+                // the original logic is not suitable here
+                // fuck it, each long waste is uncertain
+                if new_data.is_empty() {
+                     return Err(WorldError::InvalidBlockStateData(
+                        "Resizing resulted in empty data".to_string()
+                    ));
+                }
+                
+                let blocks_per_long = 64 / new_bit_size;
+                let expected_longs = (4096 + blocks_per_long - 1) / blocks_per_long;
+                 if new_data.len() != expected_longs {
                     return Err(WorldError::InvalidBlockStateData(format!(
                         "Expected packed data size of {}, but got {}",
-                        expected_size,
+                        expected_longs,
                         new_data.len()
                     )));
                 }
-                // Update the chunk with the new packed data and a bit size
+
                 self.block_data = PaletteType::Indirect {
                     bits_per_block: new_bit_size as u8,
                     data: new_data,
@@ -218,26 +221,24 @@ impl Chunk {
         z: i32,
         block: BlockStateId,
     ) -> Result<(), WorldError> {
-        // Get old block
         let old_block = self.get_block(x, y, z)?;
         if old_block == block {
-            // debug!("Block is the same as the old block");
             return Ok(());
         }
-        // Get section
+
         let section = self
             .sections
             .iter_mut()
             .find(|section| section.y == (y >> 4) as i8)
             .ok_or(WorldError::SectionOutOfBounds(y >> 4))?;
 
+        // from single palette to indirect palette if needed
         let mut converted = false;
         let mut new_contents = PaletteType::Indirect {
             bits_per_block: 4,
             data: vec![],
             palette: vec![],
         };
-
         if let PaletteType::Single(val) = &section.block_states.block_data {
             new_contents = PaletteType::Indirect {
                 bits_per_block: 4,
@@ -246,27 +247,24 @@ impl Chunk {
             };
             converted = true;
         }
-
         if converted {
             section.block_states.block_data = new_contents;
         }
 
-        // Do different things based on the palette type
-        match &mut section.block_states.block_data {
+        let (block_palette_index, needs_resize, target_bits) = match &mut section.block_states.block_data {
             PaletteType::Single(_val) => {
                 panic!("Single palette type should have been converted to indirect palette type");
             }
             PaletteType::Indirect {
                 bits_per_block,
-                data,
                 palette,
+                .. 
             } => {
-                // debug!("Indirect mode");
                 match section.block_states.block_counts.entry(old_block) {
                     Entry::Occupied(mut occ_entry) => {
                         let count = occ_entry.get_mut();
                         if *count <= 0 {
-                            return match old_block.to_block_data() {
+                             return match old_block.to_block_data() {
                                 Some(block_data) => {
                                     error!("Block count is zero for block: {:?}", block_data);
                                     Err(WorldError::InvalidBlockStateData(format!(
@@ -274,10 +272,7 @@ impl Chunk {
                                     )))
                                 }
                                 None => {
-                                    error!(
-                                        "Block count is zero for unknown block state ID: {}",
-                                        old_block.0
-                                    );
+                                    error!("Block count is zero for unknown block state ID: {}", old_block.0);
                                     Err(WorldError::InvalidBlockStateId(old_block.0))
                                 }
                             };
@@ -289,38 +284,58 @@ impl Chunk {
                         empty_entry.insert(0);
                     }
                 }
-                // Add new block
+                
+                // Add new block to counts
                 if let Some(e) = section.block_states.block_counts.get(&block) {
                     section.block_states.block_counts.insert(block, e + 1);
                 } else {
-                    // debug!("Adding block to block counts");
                     section.block_states.block_counts.insert(block, 1);
                 }
-                // let required_bits = max((palette.len() as f32).log2().ceil() as u8, 4);
-                // if *bits_per_block != required_bits {
-                //     section.block_states.resize(required_bits as usize)?;
-                // }
-                // Get block index
-                let block_palette_index = palette
+
+                
+                // find in palette 
+                let index = palette
                     .iter()
                     .position(|p| *p == block.to_varint())
                     .unwrap_or_else(|| {
-                        // Add block to palette if it doesn't exist
-                        let index = palette.len() as i16;
+                        let idx = palette.len();
                         palette.push(block.to_varint());
-                        index as usize
+                        idx
                     });
-                // Set block
+
+                // judge if we need to resize
+                let required_bits = ((palette.len() as f32).log2().ceil() as u8).max(4);
+                
+                let resize = required_bits > *bits_per_block;
+
+                (index, resize, required_bits)
+            }
+            PaletteType::Direct { .. } => todo!("Implement direct palette for set_block"),
+        };
+
+        if needs_resize {
+            // debug!("Resizing section block states to {} bits", target_bits);
+            section.block_states.resize(target_bits as usize)?;
+        }
+
+        match &mut section.block_states.block_data {
+            PaletteType::Indirect {
+                bits_per_block,
+                data,
+                ..
+            } => {
                 let blocks_per_i64 = (64f64 / *bits_per_block as f64).floor() as usize;
                 let index =
                     ((y.abs() & 0xf) * 256 + (z.abs() & 0xf) * 16 + (x.abs() & 0xf)) as usize;
                 let i64_index = index / blocks_per_i64;
-                let packed_u64 =
-                    data.get_mut(i64_index)
-                        .ok_or(WorldError::InvalidBlockStateData(format!(
-                            "Invalid block state data at index {i64_index}"
-                        )))?;
+                
+                let packed_u64 = data.get_mut(i64_index)
+                    .ok_or(WorldError::InvalidBlockStateData(format!(
+                        "Invalid block state data at index {i64_index}"
+                    )))?;
+                
                 let offset = (index % blocks_per_i64) * *bits_per_block as usize;
+                
                 if let Err(e) = ferrumc_general_purpose::data_packing::u32::write_nbit_u32(
                     packed_u64,
                     offset as u32,
@@ -332,9 +347,7 @@ impl Chunk {
                     )));
                 }
             }
-            PaletteType::Direct { .. } => {
-                todo!("Implement direct palette for set_block");
-            }
+            _ => return Err(WorldError::InvalidBlockStateData("Unexpected palette type".to_string())),
         }
 
         section.block_states.non_air_blocks = section
@@ -342,7 +355,6 @@ impl Chunk {
             .block_counts
             .iter()
             .filter(|(block, _)| {
-                // Air, void air and cave air respectively
                 ![0, 12958, 12959].contains(&block.0)
             })
             .map(|(_, count)| *count as u16)
@@ -351,6 +363,7 @@ impl Chunk {
         self.sections
             .iter_mut()
             .for_each(|section| section.optimise().unwrap());
+            
         Ok(())
     }
 
