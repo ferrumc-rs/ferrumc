@@ -229,7 +229,8 @@ flowchart TD
 │  └─────────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────┘
                               │
-                              │ crossbeam channels
+                              │ crossbeam channels (incoming)
+                              │ tokio mpsc channels (outgoing)
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                  NETWORK THREAD (Tokio)                     │
