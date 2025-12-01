@@ -169,7 +169,7 @@ impl BlockStates {
                 }
 
                 let blocks_per_long = 64 / new_bit_size;
-                let expected_longs = (4096 + blocks_per_long - 1) / blocks_per_long;
+                let expected_longs = 4096usize.div_ceil(blocks_per_long);
                 if new_data.len() != expected_longs {
                     return Err(WorldError::InvalidBlockStateData(format!(
                         "Expected packed data size of {}, but got {}",
@@ -309,7 +309,7 @@ impl Chunk {
                     });
 
                 // judge if we need to resize
-                let required_bits = ((palette.len() as f32).log2().ceil() as u8).max(4).min(15); // 15 is max in minecraft protocol
+                let required_bits = ((palette.len() as f32).log2().ceil() as u8).clamp(4, 15); // 15 is max in minecraft protocol
 
                 let resize = required_bits > *bits_per_block;
 
