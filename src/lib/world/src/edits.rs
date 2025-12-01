@@ -122,7 +122,7 @@ impl BlockStates {
                                 "Value {value} exceeds maximum value for {new_bit_size}-bit block state"
                             )));
                         }
-                        
+
                         normalised_ints.push(value);
                         values_read += 1;
                         bit_offset += *bits_per_block as usize;
@@ -163,14 +163,14 @@ impl BlockStates {
                 // the original logic is not suitable here
                 // fuck it, each long waste is uncertain
                 if new_data.is_empty() {
-                     return Err(WorldError::InvalidBlockStateData(
-                        "Resizing resulted in empty data".to_string()
+                    return Err(WorldError::InvalidBlockStateData(
+                        "Resizing resulted in empty data".to_string(),
                     ));
                 }
-                
+
                 let blocks_per_long = 64 / new_bit_size;
                 let expected_longs = (4096 + blocks_per_long - 1) / blocks_per_long;
-                 if new_data.len() != expected_longs {
+                if new_data.len() != expected_longs {
                     return Err(WorldError::InvalidBlockStateData(format!(
                         "Expected packed data size of {}, but got {}",
                         expected_longs,
@@ -251,20 +251,23 @@ impl Chunk {
             section.block_states.block_data = new_contents;
         }
 
-        let (block_palette_index, needs_resize, target_bits) = match &mut section.block_states.block_data {
+        let (block_palette_index, needs_resize, target_bits) = match &mut section
+            .block_states
+            .block_data
+        {
             PaletteType::Single(_val) => {
                 panic!("Single palette type should have been converted to indirect palette type");
             }
             PaletteType::Indirect {
                 bits_per_block,
                 palette,
-                .. 
+                ..
             } => {
                 match section.block_states.block_counts.entry(old_block) {
                     Entry::Occupied(mut occ_entry) => {
                         let count = occ_entry.get_mut();
                         if *count <= 0 {
-                             return match old_block.to_block_data() {
+                            return match old_block.to_block_data() {
                                 Some(block_data) => {
                                     error!("Block count is zero for block: {:?}", block_data);
                                     Err(WorldError::InvalidBlockStateData(format!(
@@ -272,7 +275,10 @@ impl Chunk {
                                     )))
                                 }
                                 None => {
-                                    error!("Block count is zero for unknown block state ID: {}", old_block.0);
+                                    error!(
+                                        "Block count is zero for unknown block state ID: {}",
+                                        old_block.0
+                                    );
                                     Err(WorldError::InvalidBlockStateId(old_block.0))
                                 }
                             };
@@ -284,7 +290,7 @@ impl Chunk {
                         empty_entry.insert(0);
                     }
                 }
-                
+
                 // Add new block to counts
                 if let Some(e) = section.block_states.block_counts.get(&block) {
                     section.block_states.block_counts.insert(block, e + 1);
@@ -292,8 +298,7 @@ impl Chunk {
                     section.block_states.block_counts.insert(block, 1);
                 }
 
-                
-                // find in palette 
+                // find in palette
                 let index = palette
                     .iter()
                     .position(|p| *p == block.to_varint())
@@ -305,7 +310,7 @@ impl Chunk {
 
                 // judge if we need to resize
                 let required_bits = ((palette.len() as f32).log2().ceil() as u8).max(4).min(15); // 15 is max in minecraft protocol
-                
+
                 let resize = required_bits > *bits_per_block;
 
                 (index, resize, required_bits)
@@ -328,14 +333,15 @@ impl Chunk {
                 let index =
                     ((y.abs() & 0xf) * 256 + (z.abs() & 0xf) * 16 + (x.abs() & 0xf)) as usize;
                 let i64_index = index / blocks_per_i64;
-                
-                let packed_u64 = data.get_mut(i64_index)
-                    .ok_or(WorldError::InvalidBlockStateData(format!(
-                        "Invalid block state data at index {i64_index}"
-                    )))?;
-                
+
+                let packed_u64 =
+                    data.get_mut(i64_index)
+                        .ok_or(WorldError::InvalidBlockStateData(format!(
+                            "Invalid block state data at index {i64_index}"
+                        )))?;
+
                 let offset = (index % blocks_per_i64) * *bits_per_block as usize;
-                
+
                 if let Err(e) = ferrumc_general_purpose::data_packing::u32::write_nbit_u32(
                     packed_u64,
                     offset as u32,
@@ -347,21 +353,23 @@ impl Chunk {
                     )));
                 }
             }
-            _ => return Err(WorldError::InvalidBlockStateData("Unexpected palette type".to_string())),
+            _ => {
+                return Err(WorldError::InvalidBlockStateData(
+                    "Unexpected palette type".to_string(),
+                ))
+            }
         }
 
         section.block_states.non_air_blocks = section
             .block_states
             .block_counts
             .iter()
-            .filter(|(block, _)| {
-                ![0, 12958, 12959].contains(&block.0)
-            })
+            .filter(|(block, _)| ![0, 12958, 12959].contains(&block.0))
             .map(|(_, count)| *count as u16)
             .sum();
 
         section.optimise()?;
-            
+
         Ok(())
     }
 
