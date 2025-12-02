@@ -232,17 +232,9 @@ pub(crate) fn sync_internal(world: &World) -> Result<(), WorldError> {
 }
 
 fn create_key(dimension: &str, pos: ChunkPos) -> u128 {
-    let mut key = 0u128;
     let mut hasher = wyhash::WyHash::with_seed(0);
     hasher.write(dimension.as_bytes());
     hasher.write_u8(0xFF);
     let dim_hash = hasher.finish();
-    // Insert the dimension hash into the key as the first 32 bits
-    key |= (dim_hash as u128) << 96;
-    // Convert the x coordinate to a 48 bit integer and insert it into the key
-    key |= ((pos.pos.x as u128) & 0x0000_0000_FFFF_FFFF) << 48;
-    // Convert the z coordinate to a 48 bit integer and insert it into the key
-    key |= (pos.pos.y as u128) & 0x0000_0000_FFFF_FFFF;
-
-    key
+    (dim_hash as u128) << 96 | pos.pack() as u128
 }

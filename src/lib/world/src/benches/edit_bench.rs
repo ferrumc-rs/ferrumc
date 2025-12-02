@@ -67,9 +67,9 @@ pub(crate) fn bench_edits(c: &mut Criterion) {
             black_box(
                 chunk.set_block(
                     (
-                        get_rand_in_range(0, 15),
-                        get_rand_in_range(0, 255),
-                        get_rand_in_range(0, 15),
+                        get_rand_in_range(0, 15) as u8,
+                        get_rand_in_range(0, 255) as i16,
+                        get_rand_in_range(0, 15) as u8,
                     )
                         .into(),
                     block!("bricks"),

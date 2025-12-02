@@ -69,7 +69,7 @@ pub fn handle(
         })
         .expect("Failed to send SetCenterChunk");
 
-        for coordinates in needed_chunks {
+        for coordinates in needed_chunks.into_iter().map(|c| ChunkPos::new(c.0, c.1)) {
             let state = state.clone();
             let is_compressed = conn.compress.load(Ordering::Relaxed);
             batch.execute({
@@ -77,20 +77,17 @@ pub fn handle(
                     let chunk = state
                         .0
                         .world
-                        .load_chunk(ChunkPos::new(coordinates.0, coordinates.1), "overworld")
+                        .load_chunk(coordinates, "overworld")
                         .unwrap_or(
                             state
                                 .0
                                 .terrain_generator
-                                .generate_chunk(coordinates.0, coordinates.1)
+                                .generate_chunk(coordinates.pos.x, coordinates.pos.y)
                                 .expect("Could not generate chunk")
                                 .into(),
                         );
-                    let packet = ChunkAndLightData::from_chunk(
-                        ChunkPos::new(coordinates.0, coordinates.1),
-                        &chunk,
-                    )
-                    .expect("Failed to create ChunkAndLightData");
+                    let packet = ChunkAndLightData::from_chunk(coordinates, &chunk)
+                        .expect("Failed to create ChunkAndLightData");
                     compress_packet(
                         &packet,
                         is_compressed,

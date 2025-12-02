@@ -34,7 +34,7 @@ pub fn handle(
             continue;
         };
 
-        let pos = BlockPos::of(event.location.x, event.location.y as i32, event.location.z);
+        let pos: BlockPos = event.location.clone().into();
         if abilities.creative_mode {
             // --- CREATIVE MODE LOGIC ---
             // Only instabreak (status 0) is relevant in creative.

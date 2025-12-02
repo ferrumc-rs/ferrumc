@@ -318,7 +318,7 @@ impl Chunk {
                 ..
             } => {
                 let blocks_per_i64 = (64f64 / *bits_per_block as f64).floor() as usize;
-                let index = (pos.pos.y * 256 + pos.pos.z * 16 + pos.pos.x) as usize;
+                let index = pos.section_block_pos().pack() as usize;
                 let i64_index = index / blocks_per_i64;
 
                 let packed_u64 =
@@ -396,7 +396,7 @@ impl Chunk {
                     return Ok(BlockStateId::from_varint(palette[0]));
                 }
                 let blocks_per_i64 = (64f64 / *bits_per_block as f64).floor() as usize;
-                let index = (pos.pos.y * 256 + pos.pos.z * 16 + pos.pos.x) as usize;
+                let index = pos.section_block_pos().pack() as usize;
                 let i64_index = index / blocks_per_i64;
                 let packed_u64 = data
                     .get(i64_index)

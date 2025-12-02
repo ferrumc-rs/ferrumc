@@ -66,8 +66,7 @@ pub fn handle(
                         "Placing block with item ID: {}, mapped to block state ID: {}",
                         item_id.0, mapped_block_state_id
                     );
-                    let pos =
-                        BlockPos::of(event.position.x, event.position.y as i32, event.position.z);
+                    let pos: BlockPos = event.position.into();
                     let mut chunk = match state.0.world.load_chunk_owned(pos.chunk(), "overworld") {
                         Ok(chunk) => chunk,
                         Err(e) => {

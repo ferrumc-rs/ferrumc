@@ -8,8 +8,10 @@ use bevy_math::I16Vec3;
 use bevy_math::IVec2;
 use bevy_math::IVec3;
 use bevy_math::U8Vec2;
+use bevy_math::U8Vec3;
 use bevy_math::Vec2Swizzles;
 use bevy_math::Vec3Swizzles;
+use ferrumc_net_codec::net_types::network_position::NetworkPosition;
 
 #[derive(Clone, Copy)]
 pub struct BlockPos {
@@ -33,6 +35,32 @@ impl BlockPos {
 
     pub fn chunk_block_pos(self) -> ChunkBlockPos {
         ChunkBlockPos::from(self)
+    }
+
+    pub fn section(&self) -> SectionPos {
+        SectionPos {
+            pos: self.pos.div_euclid((16, 16, 16).into()) * 16,
+        }
+    }
+
+    pub fn section_block_pos(&self) -> SectionBlockPos {
+        SectionBlockPos {
+            pos: self.pos.rem_euclid((16, 16, 16).into()).as_u8vec3(),
+        }
+    }
+}
+
+impl From<NetworkPosition> for BlockPos {
+    fn from(value: NetworkPosition) -> Self {
+        Self {
+            pos: IVec3::new(value.x, value.y as i32, value.z),
+        }
+    }
+}
+
+impl From<BlockPos> for NetworkPosition {
+    fn from(value: BlockPos) -> Self {
+        Self::new(value.pos.x, value.pos.y as i16, value.pos.z)
     }
 }
 
@@ -103,8 +131,13 @@ impl ChunkPos {
     pub fn block_offset(&self, x: i32, y: i32, z: i32) -> BlockPos {
         ColumnPos::from(self.pos + IVec2::new(x, z)).block(y)
     }
+
     pub fn column_offset(&self, x: i32, z: i32) -> ColumnPos {
         ColumnPos::from(self.pos + IVec2::new(x, z))
+    }
+
+    pub fn pack(&self) -> u64 {
+        (self.pos.y as u64) << (32 - 8) | self.pos.x as u64 >> 4
     }
 }
 
@@ -124,7 +157,7 @@ impl Add<(i32, i32)> for ChunkPos {
 }
 
 pub struct ChunkColumnPos {
-    pub pos: U8Vec2,
+    pos: U8Vec2,
 }
 
 impl ChunkColumnPos {
@@ -190,15 +223,20 @@ impl ChunkBlockPos {
             pos: I16Vec3::new(x as i16, y, z as i16),
         }
     }
+
+    pub fn section_block_pos(&self) -> SectionBlockPos {
+        SectionBlockPos {
+            pos: self.pos.rem_euclid((16, 16, 16).into()).as_u8vec3(),
+        }
+    }
 }
 
 #[derive(Clone, Copy)]
 pub struct ColumnPos {
-    pub pos: IVec2,
+    pos: IVec2,
 }
 
 impl ColumnPos {
-    #[deprecated]
     pub fn new(x: i32, z: i32) -> Self {
         Self { pos: (x, z).into() }
     }
@@ -217,5 +255,25 @@ impl ColumnPos {
 impl From<IVec2> for ColumnPos {
     fn from(pos: IVec2) -> Self {
         Self { pos }
+    }
+}
+
+pub struct SectionPos {
+    pos: IVec3,
+}
+
+impl SectionPos {
+    pub fn chunk(&self) -> ChunkPos {
+        ChunkPos { pos: self.pos.xz() }
+    }
+}
+
+pub struct SectionBlockPos {
+    pos: U8Vec3,
+}
+
+impl SectionBlockPos {
+    pub fn pack(&self) -> u16 {
+        (self.pos.y as u16) << 8 | (self.pos.z as u16) << 4 | self.pos.x as u16
     }
 }

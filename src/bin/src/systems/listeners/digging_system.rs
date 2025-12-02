@@ -33,7 +33,7 @@ pub fn handle_start_digging(
         );
 
         // --- 1. Get BlockStateId from the world ---
-        let pos = BlockPos::of(event.position.x, event.position.y as i32, event.position.z);
+        let pos = event.position.clone().into();
         let block_state_id = match state.0.world.get_block_and_fetch(
             pos,
             "overworld", // TODO: remove hardcoded dimension
@@ -216,7 +216,7 @@ pub fn handle_finish_digging(
                 digging.break_time.as_millis()
             );
 
-            let pos = BlockPos::of(event.position.x, event.position.y as i32, event.position.z);
+            let pos = event.position.clone().into();
             let real_block_state = match state.0.world.get_block_and_fetch(pos, "overworld") {
                 Ok(id) => id,
                 Err(e) => {
@@ -273,7 +273,7 @@ fn break_block(
     broadcast_query: &Query<(Entity, &StreamWriter)>,
     position: &ferrumc_net_codec::net_types::network_position::NetworkPosition,
 ) -> Result<(), BinaryError> {
-    let pos = BlockPos::of(position.x, position.y as i32, position.z);
+    let pos: BlockPos = position.clone().into();
     let mut chunk = match state
         .0
         .clone()

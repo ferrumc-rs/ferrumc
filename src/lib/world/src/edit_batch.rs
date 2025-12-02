@@ -212,7 +212,7 @@ impl<'a> EditBatch<'a> {
 
             for maybe_edit in edits_vec.iter() {
                 let Some(edit) = maybe_edit else { continue };
-                let index = (edit.pos.pos.y * 256 + edit.pos.pos.z * 16 + edit.pos.pos.x) as usize;
+                let index = edit.pos.section_block_pos().pack() as usize;
 
                 let palette_index = if let Some(&idx) = self.tmp_palette_map.get(&edit.block) {
                     idx
