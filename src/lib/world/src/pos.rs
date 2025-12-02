@@ -15,6 +15,7 @@ use ferrumc_net_codec::net_types::network_position::NetworkPosition;
 
 #[derive(Clone, Copy)]
 pub struct BlockPos {
+    /// (i26, i12, i26)
     pub pos: IVec3,
 }
 

@@ -381,7 +381,7 @@ impl Chunk {
         let section = self
             .sections
             .iter()
-            .find(|section| section.y == (pos.pos.y.div_euclid(16)) as i8)
+            .find(|section| section.y == pos.pos.y.div_euclid(16) as i8)
             .ok_or(WorldError::SectionOutOfBounds(
                 pos.pos.y.div_euclid(16) as i32
             ))?;
