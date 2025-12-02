@@ -21,10 +21,11 @@ use std::hash::{Hash, Hasher};
 /// # use ferrumc_world::chunk_format::Chunk;
 /// # use ferrumc_world::edit_batch::EditBatch;
 /// # use ferrumc_world::vanilla_chunk_format::BlockData;
-/// # let mut chunk = Chunk::new(0, 0, "overworld".to_string());
+/// # use ferrumc_world::pos::ChunkBlockPos;
+/// # let mut chunk = Chunk::new();
 /// let mut batch = EditBatch::new(&mut chunk);
-/// batch.set_block(1, 64, 1, block!("stone"));
-/// batch.set_block(2, 64, 1, block!("stone"));
+/// batch.set_block(ChunkBlockPos::new(1, 64, 1), block!("stone"));
+/// batch.set_block(ChunkBlockPos::new(2, 64, 1), block!("stone"));
 /// batch.apply().unwrap();
 /// ```
 ///

@@ -34,7 +34,11 @@ impl BlockPos {
     }
 
     pub fn chunk_block_pos(self) -> ChunkBlockPos {
-        ChunkBlockPos::from(self)
+        ChunkBlockPos::new(
+            self.pos.x.rem_euclid(16) as u8,
+            self.pos.y as i16,
+            self.pos.z.rem_euclid(16) as u8,
+        )
     }
 
     pub fn section(&self) -> SectionPos {
@@ -197,16 +201,6 @@ impl From<(u8, u8)> for ChunkColumnPos {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ChunkBlockPos {
     pub pos: I16Vec3,
-}
-
-impl From<BlockPos> for ChunkBlockPos {
-    fn from(pos: BlockPos) -> Self {
-        Self::new(
-            pos.pos.x.rem_euclid(16) as u8,
-            pos.pos.y as i16,
-            pos.pos.z.rem_euclid(16) as u8,
-        )
-    }
 }
 
 impl From<(u8, i16, u8)> for ChunkBlockPos {
