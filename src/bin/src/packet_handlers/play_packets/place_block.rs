@@ -22,12 +22,17 @@ use std::str::FromStr;
 
 const ITEM_TO_BLOCK_MAPPING_FILE: &str =
     include_str!("../../../../../assets/data/item_to_block_mapping.json");
-static ITEM_TO_BLOCK_MAPPING: Lazy<HashMap<i32, i32>> = Lazy::new(|| {
+static ITEM_TO_BLOCK_MAPPING: Lazy<HashMap<i32, BlockStateId>> = Lazy::new(|| {
     let str_form: HashMap<String, String> = serde_json::from_str(ITEM_TO_BLOCK_MAPPING_FILE)
         .expect("Failed to parse item_to_block_mapping.json");
     str_form
         .into_iter()
-        .map(|(k, v)| (i32::from_str(&k).unwrap(), i32::from_str(&v).unwrap()))
+        .map(|(k, v)| {
+            (
+                i32::from_str(&k).unwrap(),
+                BlockStateId::new(u32::from_str(&v).unwrap()),
+            )
+        })
         .collect()
 });
 
@@ -124,10 +129,8 @@ pub fn handle(
                         continue 'ev_loop;
                     }
 
-                    if let Err(err) = chunk.set_block(
-                        pos.chunk_block_pos(),
-                        BlockStateId(*mapped_block_state_id as u32),
-                    ) {
+                    if let Err(err) = chunk.set_block(pos.chunk_block_pos(), *mapped_block_state_id)
+                    {
                         error!("Failed to set block: {:?}", err);
                         continue 'ev_loop;
                     }

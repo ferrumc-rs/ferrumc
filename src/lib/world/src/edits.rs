@@ -1,9 +1,10 @@
-use crate::block_state_id::{BlockStateId, ID2BLOCK};
+use crate::block_state_id::BlockStateId;
 use crate::chunk_format::{BlockStates, Chunk, PaletteType, Section};
 use crate::errors::WorldError;
 use crate::pos::{BlockPos, ChunkBlockPos};
 use crate::World;
 use ferrumc_general_purpose::data_packing::i32::read_nbit_i32;
+use ferrumc_macros::block;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -62,9 +63,6 @@ impl World {
         dimension: &str,
         block: BlockStateId,
     ) -> Result<(), WorldError> {
-        if ID2BLOCK.get(block.0 as usize).is_none() {
-            return Err(WorldError::InvalidBlockStateId(block.0));
-        };
         let mut chunk = self.load_chunk_owned(pos.chunk(), dimension)?;
 
         debug!("Chunk: {}", pos.chunk());
@@ -255,26 +253,13 @@ impl Chunk {
                     Entry::Occupied(mut occ_entry) => {
                         let count = occ_entry.get_mut();
                         if *count <= 0 {
-                            return match old_block.to_block_data() {
-                                Some(block_data) => {
-                                    error!("Block count is zero for block: {:?}", block_data);
-                                    Err(WorldError::InvalidBlockStateData(format!(
-                                        "Block count is zero for block: {block_data:?}"
-                                    )))
-                                }
-                                None => {
-                                    error!(
-                                        "Block count is zero for unknown block state ID: {}",
-                                        old_block.0
-                                    );
-                                    Err(WorldError::InvalidBlockStateId(old_block.0))
-                                }
-                            };
+                            error!("Block count is zero for block state {old_block}");
+                            return Err(WorldError::InvalidBlockStateId(old_block));
                         }
                         *count -= 1;
                     }
                     Entry::Vacant(empty_entry) => {
-                        warn!("Block not found in block counts: {:?}", old_block);
+                        warn!("Block not found in block counts: {old_block}");
                         empty_entry.insert(0);
                     }
                 }
@@ -351,7 +336,9 @@ impl Chunk {
             .block_states
             .block_counts
             .iter()
-            .filter(|(block, _)| ![0, 12958, 12959].contains(&block.0))
+            .filter(|(block, _)| {
+                [block!("air"), block!("cave_air"), block!("void_air")].contains(block)
+            })
             .map(|(_, count)| *count as u16)
             .sum();
 
@@ -473,7 +460,7 @@ impl Section {
         self.block_states.block_data = PaletteType::Single(block.to_varint());
         self.block_states.block_counts = HashMap::from([(block, 4096)]);
         // Air, void air and cave air respectively
-        if [0, 12958, 12959].contains(&block.0) {
+        if [block!("air"), block!("cave_air"), block!("void_air")].contains(&block) {
             self.block_states.non_air_blocks = 0;
         } else {
             self.block_states.non_air_blocks = 4096;
@@ -486,6 +473,8 @@ impl Section {
     /// 1. Removes any palette entries that are not used in the block states data.
     ///
     /// 2. If there is only one block in the palette, it converts the palette to single block mode.
+    ///
+    /// So it may only useful to call if a block has been removed from the section.
     pub fn optimise(&mut self) -> Result<(), WorldError> {
         match &mut self.block_states.block_data {
             PaletteType::Single(_) => {
@@ -505,7 +494,7 @@ impl Section {
                         if let Some(index) = index {
                             remove_indexes.push(index);
                         } else {
-                            return Err(WorldError::InvalidBlockStateId(block.0));
+                            return Err(WorldError::InvalidBlockStateId(*block));
                         }
                     }
                 }

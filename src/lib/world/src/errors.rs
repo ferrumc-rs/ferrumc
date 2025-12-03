@@ -51,7 +51,7 @@ pub enum WorldError {
     #[error("Invalid batching operation: {0}")]
     InvalidBatchingOperation(String),
     #[error("Invalid block state ID: {0}")]
-    InvalidBlockStateId(u32),
+    InvalidBlockStateId(BlockStateId),
     #[error("World generation error: {0}")]
     WorldGenerationError(String),
     #[error("Compression error: {0}")]

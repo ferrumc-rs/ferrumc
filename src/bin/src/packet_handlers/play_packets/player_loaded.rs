@@ -1,5 +1,6 @@
 use bevy_ecs::prelude::{Entity, Query, Res};
 use ferrumc_core::transform::position::Position;
+use ferrumc_macros::block;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket;
 use ferrumc_net::PlayerLoadedReceiver;
@@ -32,7 +33,7 @@ pub fn handle(
         );
         let head_block = state.0.world.get_block_and_fetch(pos, "overworld");
         if let Ok(head_block) = head_block {
-            if head_block == BlockStateId(0) {
+            if head_block == block!("air") {
                 tracing::info!(
                     "Player {} loaded at position: ({}, {}, {})",
                     player,
