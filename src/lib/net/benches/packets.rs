@@ -1,5 +1,6 @@
 use criterion::measurement::WallTime;
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
+use ferrumc_world::pos::ChunkPos;
 use std::hint::black_box;
 
 pub fn bench_packets(c: &mut criterion::BenchmarkGroup<WallTime>) {
