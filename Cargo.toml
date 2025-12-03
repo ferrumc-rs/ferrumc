@@ -18,7 +18,7 @@ members = [
     "src/bin",
 
     # --- Layer 5: Game Logic ---
-    "src/lib/modules",
+    "src/lib/modules/*",
     "src/lib/world_gen",
     "src/lib/commands",
     "src/lib/commands/default_commands",
@@ -38,11 +38,11 @@ members = [
 
     # --- Layer 1: Primitives ---
     "src/lib/core",
-    "src/lib/nbt",           # (Renamed from adapters/nbt if you moved it, otherwise update path)
+    "src/lib/adapters/nbt", # (Renamed from adapters/nbt if you moved it, otherwise update path)
     "src/lib/utils",
-    "src/lib/derive_macros",
-    "src/lib/text",          # Text is a primitive type
-    "src/lib/config",        # Config is a primitive dependency
+    "src/lib/macros",
+    "src/lib/text",         # Text is a primitive type
+    "src/lib/config",       # Config is a primitive dependency
 
     # --- Tools ---
     "tools/data-gen",
@@ -55,10 +55,6 @@ members = [
     "src/lib/utils/logging",
     "src/lib/utils/profiling",
     "src/lib/utils/threadpool",
-    "src/lib/scheduler",
-
-    # Deprecated (Delete after migration)
-    "src/lib/world", # Replacing with just storage
 ]
 
 [workspace.package]
@@ -114,10 +110,12 @@ debug = true
 [workspace.dependencies]
 
 # --- Layer 5: Game Logic ---
-ferrumc-modules = { path = "src/lib/modules" }
 ferrumc-world-gen = { path = "src/lib/world_gen" }
 ferrumc-commands = { path = "src/lib/commands" }
-ferrumc-default-commands = { path = "src/lib/commands/default_commands" }
+ferrumc-default-commands = { path = "src/lib/commands/default_commands" } # to moved into corresponding modules
+# Modules
+ferrumc-plugin-mining = { path = "src/lib/modules/mining" }
+
 
 # --- Layer 4: Infrastructure ---
 ferrumc-net = { path = "src/lib/net" }
@@ -135,7 +133,7 @@ ferrumc-registry = { path = "src/lib/registry" }
 # --- Layer 1: Primitives ---
 ferrumc-core = { path = "src/lib/core" }
 ferrumc-utils = { path = "src/lib/utils" }
-ferrumc-macros = { path = "src/lib/derive_macros" }
+ferrumc-macros = { path = "src/lib/macros" }
 ferrumc-nbt = { path = "src/lib/adapters/nbt" }
 ferrumc-text = { path = "src/lib/text" }
 ferrumc-config = { path = "src/lib/config" }
@@ -143,19 +141,16 @@ ferrumc-config = { path = "src/lib/config" }
 # --- Internal / Adapters ---
 ferrumc-anvil = { path = "src/lib/adapters/anvil" }
 ferrumc-net-encryption = { path = "src/lib/net/crates/encryption" }
-ferrumc-scheduler = { path = "src/lib/scheduler" }
 ferrumc-general-purpose = { path = "src/lib/utils/general_purpose" }
 ferrumc-logging = { path = "src/lib/utils/logging" }
 ferrumc-profiling = { path = "src/lib/utils/profiling" }
 ferrumc-threadpool = { path = "src/lib/utils/threadpool" }
 
-# --- Deprecated (Keep until removed) ---
-ferrumc-world = { path = "src/lib/world" }
-ferrumc-plugins = { path = "src/lib/plugins" }
-
 # --- External Crates ---
 bevy_ecs = { version = "0.16.1", features = ["multi_threaded", "trace"] }
 bevy_math = "0.16.1"
+bevy_app = { version = "0.16.1", features = ["bevy_executor"] }
+
 tokio = { version = "1.48.0", features = [
     "macros",
     "net",

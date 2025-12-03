@@ -7,6 +7,5 @@ description = "The single source of truth for the ECS schema."
 [dependencies]
 bevy_ecs = { workspace = true }
 
-ferrumc-components = { workspace = true }
 ferrumc-core = { workspace = true }
 ferrumc-protocol = { workspace = true }

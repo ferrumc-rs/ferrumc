@@ -13,23 +13,18 @@ ferrumc-logging = { workspace = true }
 ferrumc-macros = { workspace = true }
 ferrumc-general-purpose = { workspace = true }
 ferrumc-threadpool = { workspace = true }
-ferrumc-text = { workspace = true }            # Needed for disconnect messages/setup
 
 # --- Layer 2: Engine State ---
 ferrumc-ecs = { workspace = true }
-ferrumc-registry = { workspace = true } # Needed for init()
 
 # --- Layer 3: Interfaces ---
 ferrumc-protocol = { workspace = true }
 
 # --- Layer 4: Infrastructure (I/O) ---
 ferrumc-net = { workspace = true }
-ferrumc-chunks = { workspace = true }    # Replaces ferrumc-world
-ferrumc-storage = { workspace = true }   # Underlying LMDB types
-ferrumc-scheduler = { workspace = true }
+ferrumc-storage = { workspace = true }
 
 # --- Layer 5: Game Logic ---
-ferrumc-plugins = { workspace = true }          # The main game logic container
 ferrumc-commands = { workspace = true }
 ferrumc-default-commands = { workspace = true }
 ferrumc-world-gen = { workspace = true }
@@ -54,10 +49,7 @@ once_cell = { workspace = true }
 crossbeam-channel = { workspace = true }
 uuid = { workspace = true }
 
-# REMOVED:
-# flate2 - Should be an implementation detail of ferrumc-storage/net
-# rand - Should be an implementation detail of ferrumc-world-gen/logic
-# ferrumc-world - Renamed to ferrumc-chunks
+bevy_app = { workspace = true }
 
 [features]
 dhat = []
