@@ -269,11 +269,14 @@ impl SectionPos {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct SectionBlockPos {
     pos: U8Vec3,
 }
 
 impl SectionBlockPos {
+    /// Packed representation (big endian): 0x0yzx
+    /// So the max value is 0xfff or 4095
     pub fn pack(&self) -> u16 {
         (self.pos.y as u16) << 8 | (self.pos.z as u16) << 4 | self.pos.x as u16
     }

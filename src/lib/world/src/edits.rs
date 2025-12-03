@@ -1,7 +1,7 @@
 use crate::block_state_id::BlockStateId;
 use crate::chunk_format::{BlockStates, Chunk, PaletteType, Section};
 use crate::errors::WorldError;
-use crate::pos::{BlockPos, ChunkBlockPos};
+use crate::pos::{BlockPos, ChunkBlockPos, SectionBlockPos};
 use crate::World;
 use ferrumc_general_purpose::data_packing::i32::read_nbit_i32;
 use ferrumc_macros::block;
@@ -187,212 +187,22 @@ impl Chunk {
     /// If the block is the same as the old block, nothing happens.
     /// If the block is not in the palette, it is added.
     /// If the palette is in single block mode, it is converted to palette'd mode.
-    ///
-    /// # Arguments
-    ///
-    /// * `x` - The x-coordinate of the block.
-    /// * `y` - The y-coordinate of the block.
-    /// * `z` - The z-coordinate of the block.
-    /// * `block` - The block data to set the block to.
-    ///
-    /// # Returns
-    ///
-    /// * `Ok(())` - If the block was successfully set.
-    /// * `Err(WorldError)` - If an error occurs while setting the block.
-    ///
-    /// ### Note
-    /// The positions are modulo'd by 16 to get the block index in the section anyway, so converting
-    /// the coordinates to section coordinates isn't really necessary, but you should probably do it
-    /// anyway for readability's sake.
     pub fn set_block(&mut self, pos: ChunkBlockPos, block: BlockStateId) -> Result<(), WorldError> {
-        let old_block = self.get_block(pos)?;
-        if old_block == block {
-            return Ok(());
-        }
-
         let section = self
             .get_section_mut(pos.section())
             .ok_or(WorldError::SectionOutOfBounds(pos.section() as i32))?;
-
-        // from single palette to indirect palette if needed
-        let mut converted = false;
-        let mut new_contents = PaletteType::Indirect {
-            bits_per_block: 4,
-            data: vec![],
-            palette: vec![],
-        };
-        if let PaletteType::Single(val) = &section.block_states.block_data {
-            new_contents = PaletteType::Indirect {
-                bits_per_block: 4,
-                data: vec![0; 256],
-                palette: vec![*val],
-            };
-            converted = true;
-        }
-        if converted {
-            section.block_states.block_data = new_contents;
-        }
-
-        let (block_palette_index, needs_resize, target_bits) = match &mut section
-            .block_states
-            .block_data
-        {
-            PaletteType::Single(_val) => {
-                panic!("Single palette type should have been converted to indirect palette type");
-            }
-            PaletteType::Indirect {
-                bits_per_block,
-                palette,
-                ..
-            } => {
-                match section.block_states.block_counts.entry(old_block) {
-                    Entry::Occupied(mut occ_entry) => {
-                        let count = occ_entry.get_mut();
-                        if *count <= 0 {
-                            error!("Block count is zero for block state {old_block}");
-                            return Err(WorldError::InvalidBlockStateId(old_block));
-                        }
-                        *count -= 1;
-                    }
-                    Entry::Vacant(empty_entry) => {
-                        warn!("Block not found in block counts: {old_block}");
-                        empty_entry.insert(0);
-                    }
-                }
-
-                // Add new block to counts
-                if let Some(e) = section.block_states.block_counts.get(&block) {
-                    section.block_states.block_counts.insert(block, e + 1);
-                } else {
-                    section.block_states.block_counts.insert(block, 1);
-                }
-
-                // find in palette
-                let index = palette
-                    .iter()
-                    .position(|p| *p == block.to_varint())
-                    .unwrap_or_else(|| {
-                        let idx = palette.len();
-                        palette.push(block.to_varint());
-                        idx
-                    });
-
-                // judge if we need to resize
-                let required_bits = ((palette.len() as f32).log2().ceil() as u8).clamp(4, 15); // 15 is max in minecraft protocol
-
-                let resize = required_bits > *bits_per_block;
-
-                (index, resize, required_bits)
-            }
-            PaletteType::Direct { .. } => todo!("Implement direct palette for set_block"),
-        };
-
-        if needs_resize {
-            // debug!("Resizing section block states to {} bits", target_bits);
-            section.block_states.resize(target_bits as usize)?;
-        }
-
-        match &mut section.block_states.block_data {
-            PaletteType::Indirect {
-                bits_per_block,
-                data,
-                ..
-            } => {
-                let blocks_per_i64 = (64f64 / *bits_per_block as f64).floor() as usize;
-                let index = pos.section_block_pos().pack() as usize;
-                let i64_index = index / blocks_per_i64;
-
-                let packed_u64 =
-                    data.get_mut(i64_index)
-                        .ok_or(WorldError::InvalidBlockStateData(format!(
-                            "Invalid block state data at index {i64_index}"
-                        )))?;
-
-                let offset = (index % blocks_per_i64) * *bits_per_block as usize;
-
-                if let Err(e) = ferrumc_general_purpose::data_packing::u32::write_nbit_u32(
-                    packed_u64,
-                    offset as u32,
-                    block_palette_index as u32,
-                    *bits_per_block,
-                ) {
-                    return Err(WorldError::InvalidBlockStateData(format!(
-                        "Failed to write block: {e}"
-                    )));
-                }
-            }
-            _ => {
-                return Err(WorldError::InvalidBlockStateData(
-                    "Unexpected palette type".to_string(),
-                ))
-            }
-        }
-
-        section.block_states.non_air_blocks = section
-            .block_states
-            .block_counts
-            .iter()
-            .filter(|(block, _)| {
-                [block!("air"), block!("cave_air"), block!("void_air")].contains(block)
-            })
-            .map(|(_, count)| *count as u16)
-            .sum();
+        section.set_block(pos.section_block_pos(), block)?;
 
         section.optimise()?;
 
         Ok(())
     }
 
-    /// Gets the block at the specified coordinates.
-    ///
-    /// # Arguments
-    ///
-    /// * `x` - The x-coordinate of the block.
-    /// * `y` - The y-coordinate of the block.
-    /// * `z` - The z-coordinate of the block.
-    ///
-    /// # Returns
-    ///
-    /// * `Ok(BlockData)` - The block data at the specified coordinates.
-    /// * `Err(WorldError)` - If an error occurs while retrieving the block data.
-    ///
-    /// ### Note
-    /// The positions are modulo'd by 16 to get the block index in the section anyway, so converting
-    /// the coordinates to section coordinates isn't really necessary, but you should probably do it
-    /// anyway for readability's sake.
     pub fn get_block(&self, pos: ChunkBlockPos) -> Result<BlockStateId, WorldError> {
         let section = self
             .get_section(pos.section())
             .ok_or(WorldError::SectionOutOfBounds(pos.section() as i32))?;
-        match &section.block_states.block_data {
-            PaletteType::Single(val) => Ok(BlockStateId::from_varint(*val)),
-            PaletteType::Indirect {
-                bits_per_block,
-                data,
-                palette,
-            } => {
-                if palette.len() == 1 || *bits_per_block == 0 {
-                    return Ok(BlockStateId::from_varint(palette[0]));
-                }
-                let blocks_per_i64 = (64f64 / *bits_per_block as f64).floor() as usize;
-                let index = pos.section_block_pos().pack() as usize;
-                let i64_index = index / blocks_per_i64;
-                let packed_u64 = data
-                    .get(i64_index)
-                    .ok_or(WorldError::InvalidBlockStateData(format!(
-                        "Invalid block state data at index {i64_index}"
-                    )))?;
-                let offset = (index % blocks_per_i64) * *bits_per_block as usize;
-                let id = ferrumc_general_purpose::data_packing::u32::read_nbit_u32(
-                    packed_u64,
-                    *bits_per_block,
-                    offset as u32,
-                )?;
-                let palette_id = palette.get(id as usize).ok_or(WorldError::ChunkNotFound)?;
-                Ok(BlockStateId::from_varint(*palette_id))
-            }
-            &PaletteType::Direct { .. } => todo!("Implement direct palette for get_block"),
-        }
+        section.get_block(pos.section_block_pos())
     }
 
     /// Sets the section at the specified index to the specified block data.
@@ -434,6 +244,175 @@ impl Chunk {
 }
 
 impl Section {
+    pub fn set_block(
+        &mut self,
+        pos: SectionBlockPos,
+        block: BlockStateId,
+    ) -> Result<(), WorldError> {
+        let old_block = self.get_block(pos)?;
+        if old_block == block {
+            return Ok(());
+        }
+
+        // from single palette to indirect palette if needed
+        let mut converted = false;
+        let mut new_contents = PaletteType::Indirect {
+            bits_per_block: 4,
+            data: vec![],
+            palette: vec![],
+        };
+        if let PaletteType::Single(val) = &self.block_states.block_data {
+            new_contents = PaletteType::Indirect {
+                bits_per_block: 4,
+                data: vec![0; 256],
+                palette: vec![*val],
+            };
+            converted = true;
+        }
+        if converted {
+            self.block_states.block_data = new_contents;
+        }
+
+        let (block_palette_index, needs_resize, target_bits) = match &mut self
+            .block_states
+            .block_data
+        {
+            PaletteType::Single(_val) => {
+                panic!("Single palette type should have been converted to indirect palette type");
+            }
+            PaletteType::Indirect {
+                bits_per_block,
+                palette,
+                ..
+            } => {
+                match self.block_states.block_counts.entry(old_block) {
+                    Entry::Occupied(mut occ_entry) => {
+                        let count = occ_entry.get_mut();
+                        if *count <= 0 {
+                            error!("Block count is zero for block state {old_block}");
+                            return Err(WorldError::InvalidBlockStateId(old_block));
+                        }
+                        *count -= 1;
+                    }
+                    Entry::Vacant(empty_entry) => {
+                        warn!("Block not found in block counts: {old_block}");
+                        empty_entry.insert(0);
+                    }
+                }
+
+                // Add new block to counts
+                if let Some(e) = self.block_states.block_counts.get(&block) {
+                    self.block_states.block_counts.insert(block, e + 1);
+                } else {
+                    self.block_states.block_counts.insert(block, 1);
+                }
+
+                // find in palette
+                let index = palette
+                    .iter()
+                    .position(|p| *p == block.to_varint())
+                    .unwrap_or_else(|| {
+                        let idx = palette.len();
+                        palette.push(block.to_varint());
+                        idx
+                    });
+
+                // judge if we need to resize
+                let required_bits = ((palette.len() as f32).log2().ceil() as u8).clamp(4, 15); // 15 is max in minecraft protocol
+
+                let resize = required_bits > *bits_per_block;
+
+                (index, resize, required_bits)
+            }
+            PaletteType::Direct { .. } => todo!("Implement direct palette for set_block"),
+        };
+
+        if needs_resize {
+            // debug!("Resizing section block states to {} bits", target_bits);
+            self.block_states.resize(target_bits as usize)?;
+        }
+
+        match &mut self.block_states.block_data {
+            PaletteType::Indirect {
+                bits_per_block,
+                data,
+                ..
+            } => {
+                let blocks_per_i64 = (64f64 / *bits_per_block as f64).floor() as usize;
+                let index = pos.pack() as usize;
+                let i64_index = index / blocks_per_i64;
+
+                let packed_u64 =
+                    data.get_mut(i64_index)
+                        .ok_or(WorldError::InvalidBlockStateData(format!(
+                            "Invalid block state data at index {i64_index}"
+                        )))?;
+
+                let offset = (index % blocks_per_i64) * *bits_per_block as usize;
+
+                if let Err(e) = ferrumc_general_purpose::data_packing::u32::write_nbit_u32(
+                    packed_u64,
+                    offset as u32,
+                    block_palette_index as u32,
+                    *bits_per_block,
+                ) {
+                    return Err(WorldError::InvalidBlockStateData(format!(
+                        "Failed to write block: {e}"
+                    )));
+                }
+            }
+            _ => {
+                return Err(WorldError::InvalidBlockStateData(
+                    "Unexpected palette type".to_string(),
+                ))
+            }
+        }
+
+        self.block_states.non_air_blocks = self
+            .block_states
+            .block_counts
+            .iter()
+            .filter(|(block, _)| {
+                [block!("air"), block!("cave_air"), block!("void_air")].contains(block)
+            })
+            .map(|(_, count)| *count as u16)
+            .sum();
+
+        Ok(())
+    }
+
+    pub fn get_block(&self, pos: SectionBlockPos) -> Result<BlockStateId, WorldError> {
+        match &self.block_states.block_data {
+            PaletteType::Single(val) => Ok(BlockStateId::from_varint(*val)),
+            PaletteType::Indirect {
+                bits_per_block,
+                data,
+                palette,
+            } => {
+                if palette.len() == 1 || *bits_per_block == 0 {
+                    return Ok(BlockStateId::from_varint(palette[0]));
+                }
+                let blocks_per_i64 = (64f64 / *bits_per_block as f64).floor() as usize;
+                let index = pos.pack() as usize;
+                let i64_index = index / blocks_per_i64;
+                let packed_u64 = data
+                    .get(i64_index)
+                    .ok_or(WorldError::InvalidBlockStateData(format!(
+                        "Invalid block state data at index {i64_index}"
+                    )))?;
+                let offset = (index % blocks_per_i64) * *bits_per_block as usize;
+                let id = ferrumc_general_purpose::data_packing::u32::read_nbit_u32(
+                    packed_u64,
+                    *bits_per_block,
+                    offset as u32,
+                )?;
+                let palette_id = palette.get(id as usize).ok_or(WorldError::ChunkNotFound)?;
+                Ok(BlockStateId::from_varint(*palette_id))
+            }
+            &PaletteType::Direct { .. } => todo!("Implement direct palette for get_block"),
+        }
+    }
+
     /// Fills the section with the specified block.
     ///
     /// # Arguments
