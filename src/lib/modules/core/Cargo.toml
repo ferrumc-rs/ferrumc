@@ -1,0 +1,29 @@
+[package]
+name = "ferrumc-plugin-core"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# --- Layer 1: Primitives ---
+ferrumc-core = { workspace = true }  # For PlayerIdentityData, GameMode, etc.
+ferrumc-utils = { workspace = true } # For logging/config helpers
+
+# --- Layer 2: Engine State ---
+ferrumc-ecs = { workspace = true }      # For PlayerBundle, GlobalState, PlayerList
+ferrumc-registry = { workspace = true } # For looking up spawn data (optional)
+
+# --- Layer 3: Interfaces ---
+ferrumc-protocol = { workspace = true } # To build KeepAlive/Disconnect packets
+
+# --- Layer 4: Infrastructure (TRAITS ONLY if possible) ---
+# We need concrete types (StreamWriter, NewConnection) because
+# this plugin handles the physical handoff from Net -> ECS.
+ferrumc-net = { workspace = true }
+ferrumc-storage = { workspace = true } # For loading player data (via ChunkStorage/GameStore)
+
+# --- External ---
+bevy_app = { workspace = true }
+bevy_ecs = { workspace = true }
+tracing = { workspace = true }
+crossbeam-channel = { workspace = true } # For the NewConnection receiver
+uuid = { workspace = true }

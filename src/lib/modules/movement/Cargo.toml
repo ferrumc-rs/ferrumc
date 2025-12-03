@@ -1,0 +1,24 @@
+[package]
+name = "ferrumc-plugin-movement"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# --- Layer 1: Primitives ---
+ferrumc-core = { workspace = true } # PositionData, AABB, BlockPos
+
+# --- Layer 2: Engine State ---
+ferrumc-ecs = { workspace = true }      # Position/Rotation Components, GlobalState
+ferrumc-registry = { workspace = true } # To lookup block collisions (is_solid)
+
+# --- Layer 3: Interfaces ---
+ferrumc-protocol = { workspace = true } # To send Teleport/Correction packets
+
+# --- Layer 4: Infrastructure (Traits) ---
+# Uses ChunkSource trait to read blocks for collision without depending on storage implementation.
+# Uses PacketSender trait to send corrections.
+
+# --- External ---
+bevy_app = { workspace = true }
+bevy_ecs = { workspace = true }
+tracing = { workspace = true }

@@ -1,0 +1,25 @@
+[package]
+name = "ferrumc-plugin-interactions"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# --- Layer 1: Primitives ---
+ferrumc-core = { workspace = true }  # ItemID, InventorySlot
+ferrumc-utils = { workspace = true }
+
+# --- Layer 2: Engine State ---
+ferrumc-ecs = { workspace = true }      # Inventory Component, ActiveEffects
+ferrumc-registry = { workspace = true } # To lookup item properties (food value)
+
+# --- Layer 3: Interfaces ---
+ferrumc-protocol = { workspace = true } # To send inventory updates / animations
+
+# --- Layer 4: Infrastructure ---
+# Does not need storage. Does not need net internals.
+# It uses the PacketSender trait from core ideally, but might need net for now.
+
+# --- External ---
+bevy_app = { workspace = true }
+bevy_ecs = { workspace = true }
+tracing = { workspace = true }

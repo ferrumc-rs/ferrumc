@@ -1,0 +1,25 @@
+[package]
+name = "ferrumc-plugin-replication"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# --- Layer 1: Primitives ---
+ferrumc-core = { workspace = true }  # Traits (PacketSender, ChunkSource)
+ferrumc-utils = { workspace = true }
+
+# --- Layer 2: Engine State ---
+ferrumc-ecs = { workspace = true } # Changed<Position>, BlockBreakEvent
+# No registry needed usually
+
+# --- Layer 3: Interfaces ---
+ferrumc-protocol = { workspace = true } # To build EntityUpdate, BlockUpdate packets
+
+# --- Layer 4: Infrastructure (Traits) ---
+# Uses PacketSender to broadcast updates.
+# Uses ChunkSource to load chunks for sending.
+
+# --- External ---
+bevy_app = { workspace = true }
+bevy_ecs = { workspace = true }
+tracing = { workspace = true }

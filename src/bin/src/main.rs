@@ -9,7 +9,7 @@ use ferrumc_net::NetPlugin;
 use ferrumc_plugin_core::CorePlugin;
 use ferrumc_plugin_replication::ReplicationPlugin;
 use ferrumc_storage::StoragePlugin;
-// ... import other plugins ...
+// todo: import other plugins ...
 
 fn main() {
     // 1. Imperative Setup
@@ -37,6 +37,6 @@ fn main() {
                         // MovementPlugin,
                         // ChatPlugin,
         ))
-        // D. Run!
+        // D. Run
         .run();
 }
