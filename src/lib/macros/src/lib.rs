@@ -9,7 +9,6 @@ mod helpers;
 mod nbt;
 mod net;
 mod profiling;
-mod registries_packets;
 
 #[proc_macro_attribute]
 pub fn profile(attr: TokenStream, item: TokenStream) -> TokenStream {
@@ -72,16 +71,6 @@ pub fn setup_packet_handling(input: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn command(attr: TokenStream, input: TokenStream) -> TokenStream {
     commands::command(attr, input)
-}
-
-// #[proc_macro_attribute]
-// pub fn arg(attr: TokenStream, input: TokenStream) -> TokenStream {
-//     commands::arg(attr, input)
-// }
-
-#[proc_macro]
-pub fn build_registry_packets(input: TokenStream) -> TokenStream {
-    registries_packets::build_mapping(input)
 }
 
 /// A macro to lookup block state IDs at compile time.

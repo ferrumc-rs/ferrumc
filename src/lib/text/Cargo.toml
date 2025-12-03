@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-ferrumc-protocol = { workspace = true }
 ferrumc-nbt = { workspace = true }
 ferrumc-macros = { workspace = true }
 tracing = { workspace = true }
