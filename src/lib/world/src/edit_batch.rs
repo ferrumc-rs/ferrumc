@@ -39,7 +39,6 @@ pub struct EditBatch<'a> {
     pub(crate) edits: Vec<Edit>,
     chunk: &'a mut Chunk,
     tmp_palette_map: AHashMap<BlockStateId, usize>,
-    used: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -66,7 +65,6 @@ impl<'a> EditBatch<'a> {
             edits: Vec::new(),
             chunk,
             tmp_palette_map: AHashMap::with_capacity(map_capacity),
-            used: false,
         }
     }
 
@@ -80,13 +78,8 @@ impl<'a> EditBatch<'a> {
     /// Applies all edits in the batch to the chunk.
     ///
     /// This will modify the chunk in place and clear the batch.
-    /// Will return an error if the batch has already been used or if there are no edits.
-    pub fn apply(&mut self) -> Result<(), WorldError> {
-        if self.used {
-            return Err(WorldError::InvalidBatchingOperation(
-                "EditBatch has already been used".to_string(),
-            ));
-        }
+    /// Will return an error if there are no edits.
+    pub fn apply(mut self) -> Result<(), WorldError> {
         if self.edits.is_empty() {
             return Err(WorldError::InvalidBatchingOperation(
                 "No edits to apply".to_string(),
@@ -275,7 +268,6 @@ impl<'a> EditBatch<'a> {
 
         // Clear edits after applying
         self.edits.clear();
-        self.used = true;
 
         Ok(())
     }
