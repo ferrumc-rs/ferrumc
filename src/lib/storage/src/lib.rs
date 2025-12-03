@@ -1,4 +1,3 @@
-// Module Declarations
 pub mod chunk;
 pub mod db;
 pub mod errors;
@@ -13,7 +12,7 @@ pub use errors::WorldError;
 use bevy_app::{App, Plugin};
 use bevy_ecs::prelude::*;
 use ferrumc_config::DatabaseConfig;
-use ferrumc_core::traits::ChunkSource; // The trait we want to provide
+use ferrumc_core::traits::ChunkSource;
 use std::sync::Arc;
 
 /// The Bevy Plugin that initializes the storage layer.

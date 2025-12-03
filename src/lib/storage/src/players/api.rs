@@ -22,8 +22,8 @@ impl ChunkStorage {
             .backend
             .get("players".to_string(), u128::from_be_bytes(*key))?;
 
-        // Wait, UUID is 128 bit, LMDB key in the wrapper is u128.
-        // Perfect match! u128::from_be_bytes(*uuid.as_bytes())
+        // UUID is 128 bit, LMDB key in the wrapper is u128
+        // perfect match u128::from_be_bytes(*uuid.as_bytes())
 
         match bytes_opt {
             Some(bytes) => {

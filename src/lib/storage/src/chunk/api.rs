@@ -65,8 +65,8 @@ impl ChunkStorage {
         for &(x, z) in coords {
             // We ignore errors for individual chunks in a batch?
             // Or do we fail the whole batch?
-            // Usually better to return what we found or error if critical.
-            // Let's propagate error for now.
+            // Usually better to return what we found or error if critical
+            // Let's propagate error for now haha
             chunks.push(self.get_chunk(x, z)?);
         }
 

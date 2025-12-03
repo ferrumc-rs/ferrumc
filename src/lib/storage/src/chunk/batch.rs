@@ -1,4 +1,4 @@
-use crate::chunk::edits::SECTION_VOLUME; // Import constant
+use crate::chunk::edits::SECTION_VOLUME;
 use crate::errors::WorldError;
 use ferrumc_core::world::block_state_id::BlockStateId;
 use ferrumc_core::world::chunk::{BlockStates, Chunk, PaletteType, Section};

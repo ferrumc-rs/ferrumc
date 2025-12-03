@@ -1,4 +1,5 @@
 use crate::errors::StorageError;
+
 use heed::byteorder::BigEndian;
 use heed::types::{Bytes, U128};
 use heed::{Database, Env, EnvOpenOptions, WithoutTls};
@@ -53,7 +54,16 @@ impl LmdbBackend {
                 .open(checked_path)
                 .map_err(|e| StorageError::DatabaseInitError(e.to_string()))?;
 
-            Ok(LmdbBackend {
+            Ok(LmdbBacerror[E0308]: mismatched types
+                --> src/lib/protocol/src/packets/outgoing/play/chunk_and_light_data.rs:71:25
+                 |
+              71 |             heightmaps: LengthPrefixedVec::default(),
+                 |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `RawNbt`, found `LengthPrefixedVec<_>`
+                 |
+                 = note: expected struct `RawNbt`
+                            found struct `LengthPrefixedVec<_>`
+              
+              kend {
                 env: Arc::new(Mutex::new(env)),
             })
         }

@@ -5,14 +5,18 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-thiserror = { workspace = true }
-tracing = { workspace = true }
+ferrumc-core = { workspace = true }
 ferrumc-config = { workspace = true }
+ferrumc-ecs = { workspace = true }
+
+bevy_app = { workspace = true }
 rand = { workspace = true }
 heed = { workspace = true }
 page_size = { workspace = true }
 parking_lot = { workspace = true }
-bevy_app = { workspace = true }
+
+thiserror = { workspace = true }
+tracing = { workspace = true }
 
 [dev-dependencies]
 criterion = { workspace = true }
