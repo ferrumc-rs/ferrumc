@@ -87,22 +87,22 @@ impl Add<(i32, i32, i32)> for BlockPos {
 
 #[derive(Clone, Copy)]
 pub struct ChunkHeight {
-    pub min_y: i32,
-    pub height: u32,
+    pub min_y: i16,
+    pub height: u16,
 }
 
 impl ChunkHeight {
-    pub const fn new(min_y: i32, height: u32) -> Self {
+    pub const fn new(min_y: i16, height: u16) -> Self {
         assert!(min_y % 16 == 0);
         assert!(height.is_multiple_of(16));
         Self { min_y, height }
     }
 
-    pub fn iter(self) -> Range<i32> {
+    pub fn iter(self) -> Range<i16> {
         self.min_y..self.max_y()
     }
-    pub const fn max_y(self) -> i32 {
-        self.min_y + self.height as i32
+    pub const fn max_y(self) -> i16 {
+        self.min_y + self.height as i16
     }
 }
 
@@ -225,6 +225,10 @@ impl ChunkBlockPos {
         SectionBlockPos {
             pos: self.pos.rem_euclid((16, 16, 16).into()).as_u8vec3(),
         }
+    }
+
+    pub fn section(&self) -> i8 {
+        self.pos.y.div_euclid(16) as i8
     }
 }
 

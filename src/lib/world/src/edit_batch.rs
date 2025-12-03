@@ -1,12 +1,11 @@
 use crate::block_state_id::BlockStateId;
-use crate::chunk_format::{BiomeStates, BlockStates, Chunk, PaletteType};
+use crate::chunk_format::{Chunk, PaletteType};
 use crate::pos::ChunkBlockPos;
 use crate::WorldError;
 use ahash::{AHashMap, AHashSet, AHasher};
 use ferrumc_general_purpose::data_packing::i32::read_nbit_i32;
 use ferrumc_general_purpose::data_packing::u32::write_nbit_u32;
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 
 /// A batched block editing utility for a single Minecraft chunk.
@@ -116,7 +115,6 @@ impl<'a> EditBatch<'a> {
             if edits_vec.is_empty() || edits_vec.iter().all(|e| e.is_none()) {
                 continue;
             }
-            let section_maybe = self.chunk.sections.iter_mut().find(|s| s.y == section_y);
             // let first_edit = edits_vec
             //     .iter()
             //     .find(|e| e.is_some())
@@ -125,38 +123,10 @@ impl<'a> EditBatch<'a> {
             //     .unwrap();
             let mut block_count_adds = AHashMap::new();
             let mut block_count_removes = AHashMap::new();
-
-            let section = match section_maybe {
-                Some(section) => {
-                    // If the section exists, we can just use it
-                    section
-                }
-                None => &mut {
-                    // If the section doesn't exist, create it
-                    let new_section = crate::chunk_format::Section {
-                        y: section_y,
-                        block_states: BlockStates {
-                            non_air_blocks: 0,
-                            block_data: PaletteType::Single(VarInt::default()),
-                            block_counts: HashMap::from([(BlockStateId::default(), 4096)]),
-                        },
-                        // Biomes don't really matter for this, so we can just use empty data
-                        biome_states: BiomeStates {
-                            bits_per_biome: 0,
-                            data: vec![],
-                            palette: vec![],
-                        },
-                        block_light: vec![255; 2048],
-                        sky_light: vec![255; 2048],
-                    };
-                    self.chunk.sections.push(new_section);
-                    self.chunk
-                        .sections
-                        .iter_mut()
-                        .find(|s| s.y == section_y)
-                        .expect("Section should exist after push")
-                },
-            };
+            let section = self
+                .chunk
+                .get_section_mut(section_y)
+                .ok_or(WorldError::SectionOutOfBounds(section_y as i32))?;
 
             // // check if all the edits in 1 section are the same
             // let all_same = edits_vec

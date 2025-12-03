@@ -211,12 +211,8 @@ impl Chunk {
         }
 
         let section = self
-            .sections
-            .iter_mut()
-            .find(|section| section.y == pos.pos.y.div_euclid(16) as i8)
-            .ok_or(WorldError::SectionOutOfBounds(
-                pos.pos.y.div_euclid(16) as i32
-            ))?;
+            .get_section_mut(pos.section())
+            .ok_or(WorldError::SectionOutOfBounds(pos.section() as i32))?;
 
         // from single palette to indirect palette if needed
         let mut converted = false;
@@ -366,12 +362,8 @@ impl Chunk {
     /// anyway for readability's sake.
     pub fn get_block(&self, pos: ChunkBlockPos) -> Result<BlockStateId, WorldError> {
         let section = self
-            .sections
-            .iter()
-            .find(|section| section.y == pos.pos.y.div_euclid(16) as i8)
-            .ok_or(WorldError::SectionOutOfBounds(
-                pos.pos.y.div_euclid(16) as i32
-            ))?;
+            .get_section(pos.section())
+            .ok_or(WorldError::SectionOutOfBounds(pos.section() as i32))?;
         match &section.block_states.block_data {
             PaletteType::Single(val) => Ok(BlockStateId::from_varint(*val)),
             PaletteType::Indirect {
@@ -416,11 +408,7 @@ impl Chunk {
     /// * `Ok(())` - If the section was successfully set.
     /// * `Err(WorldError)` - If an error occurs while setting the section.
     pub fn set_section(&mut self, section_y: i8, block: BlockStateId) -> Result<(), WorldError> {
-        if let Some(section) = self
-            .sections
-            .iter_mut()
-            .find(|section| section.y == section_y)
-        {
+        if let Some(section) = self.get_section_mut(section_y) {
             section.fill(block)
         } else {
             Err(WorldError::SectionOutOfBounds(section_y as i32))
