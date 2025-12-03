@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 bevy_ecs = { workspace = true }
+bevy_math = { workspace = true }
 
 ferrumc-core = { workspace = true }
 ferrumc-data = { workspace = true }
