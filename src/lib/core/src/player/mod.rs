@@ -10,4 +10,5 @@ pub mod inventory_slots_consts;
 pub mod last_death_location;
 pub mod score;
 pub mod seen_credits;
+pub mod settings;
 pub mod transform;
