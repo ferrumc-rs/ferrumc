@@ -12,7 +12,7 @@ rand = { workspace = true }
 heed = { workspace = true }
 page_size = { workspace = true }
 parking_lot = { workspace = true }
-
+bevy_app = { workspace = true }
 
 [dev-dependencies]
 criterion = { workspace = true }
