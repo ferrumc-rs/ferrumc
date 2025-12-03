@@ -93,6 +93,8 @@ pub struct ChunkHeight {
 
 impl ChunkHeight {
     pub const fn new(min_y: i32, height: u32) -> Self {
+        assert!(min_y % 16 == 0);
+        assert!(height.is_multiple_of(16));
         Self { min_y, height }
     }
 

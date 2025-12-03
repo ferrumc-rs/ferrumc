@@ -22,7 +22,8 @@ use std::hash::{Hash, Hasher};
 /// # use ferrumc_world::edit_batch::EditBatch;
 /// # use ferrumc_world::vanilla_chunk_format::BlockData;
 /// # use ferrumc_world::pos::ChunkBlockPos;
-/// # let mut chunk = Chunk::new();
+/// # use ferrumc_world::pos::ChunkHeight;
+/// # let mut chunk = Chunk::new(ChunkHeight::new(-64, 384));
 /// let mut batch = EditBatch::new(&mut chunk);
 /// batch.set_block(ChunkBlockPos::new(1, 64, 1), block!("stone"));
 /// batch.set_block(ChunkBlockPos::new(2, 64, 1), block!("stone"));
@@ -314,6 +315,7 @@ impl<'a> EditBatch<'a> {
 mod tests {
     use super::*;
     use crate::chunk_format::Chunk;
+    use crate::pos::ChunkHeight;
     use crate::vanilla_chunk_format::BlockData;
 
     fn make_test_block(name: &str) -> BlockStateId {
@@ -326,7 +328,7 @@ mod tests {
 
     #[test]
     fn test_single_block_edit() {
-        let mut chunk = Chunk::new();
+        let mut chunk = Chunk::new(ChunkHeight::new(-64, 384));
         let block = make_test_block("minecraft:stone");
 
         let mut batch = EditBatch::new(&mut chunk);
@@ -339,7 +341,7 @@ mod tests {
 
     #[test]
     fn test_multi_block_edits() {
-        let mut chunk = Chunk::new();
+        let mut chunk = Chunk::new(ChunkHeight::new(-64, 384));
         let stone = make_test_block("minecraft:stone");
         let dirt = make_test_block("minecraft:dirt");
 

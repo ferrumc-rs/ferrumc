@@ -4,6 +4,7 @@ use ferrumc_macros::block;
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::chunk_format::Chunk;
 use ferrumc_world::edit_batch::EditBatch;
+use ferrumc_world::pos::ChunkHeight;
 
 pub(crate) struct PlainsBiome;
 
@@ -22,7 +23,7 @@ impl BiomeGenerator for PlainsBiome {
         z: i32,
         noise: &NoiseGenerator,
     ) -> Result<Chunk, WorldGenError> {
-        let mut chunk = Chunk::new();
+        let mut chunk = Chunk::new(ChunkHeight::new(-64, 384));
         let mut heights = vec![];
         let stone = block!("stone"); // just to test the macro
 
