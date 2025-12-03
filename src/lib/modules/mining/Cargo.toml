@@ -1,0 +1,24 @@
+[package]
+name = "ferrumc-plugin-mining"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+# Layers 1 & 2 (Data)
+ferrumc-core = { workspace = true }
+ferrumc-ecs = { workspace = true }
+ferrumc-registry = { workspace = true }
+ferrumc-utils = { workspace = true }
+
+# Layer 3 (Protocol) - To construct packets
+ferrumc-protocol = { workspace = true }
+
+# Layer 4 (Infrastructure) - ONLY TRAITS if possible
+# If you need concrete types (like StreamWriter), you might need net/storage,
+# but prefer traits from core to keep compile times fast.
+ferrumc-net = { workspace = true }
+
+# External
+bevy_app = { workspace = true }
+bevy_ecs = { workspace = true }
+tracing = { workspace = true }

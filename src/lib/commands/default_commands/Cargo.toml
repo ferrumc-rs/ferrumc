@@ -4,8 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-ferrumc-messages = { workspace = true }
-ferrumc-components = { workspace = true}
+ferrumc-ecs = { workspace = true }
 ferrumc-commands = { workspace = true }
 ferrumc-macros = { workspace = true }
 ferrumc-text = { workspace = true }

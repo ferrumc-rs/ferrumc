@@ -1,0 +1,20 @@
+[package]
+name = "ferrumc-plugin-chat"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# --- Layer 1: Primitives ---
+ferrumc-core = { workspace = true } # For PlayerIdentity data types
+ferrumc-text = { workspace = true } # Critical: For TextComponent and Builders
+
+# --- Layer 2: Engine State ---
+ferrumc-ecs = { workspace = true } # For PlayerIdentity Component, StreamWriter, and GlobalState
+
+# --- Layer 3: Interfaces ---
+ferrumc-protocol = { workspace = true } # To construct the SystemChat packet
+
+# --- External ---
+bevy_app = { workspace = true } # For the Plugin trait
+bevy_ecs = { workspace = true } # For Systems and Queries
+tracing = { workspace = true }
