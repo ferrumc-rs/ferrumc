@@ -1,7 +1,7 @@
 use crate::codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use crate::codec::net_types::prefixed_optional::PrefixedOptional;
 use crate::ids;
-use ferrumc_macros::{NetEncode, build_registry_packets, packet};
+use ferrumc_macros::{NetEncode, packet};
 
 use bitcode::{Decode, Encode};
 use lazy_static::lazy_static;

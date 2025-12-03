@@ -1,5 +1,4 @@
 use crate::codec::net_types::{prefixed_optional::PrefixedOptional, var_int::VarInt};
-use crate::ids;
 use ferrumc_macros::{NetDecode, packet};
 
 #[derive(NetDecode)]

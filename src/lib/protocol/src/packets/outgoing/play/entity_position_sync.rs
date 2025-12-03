@@ -1,8 +1,8 @@
 use crate::codec::net_types::var_int::VarInt;
 use crate::ids;
-use ferrumc_components::player::identity::PlayerIdentity;
-use ferrumc_components::player::transform::position::Position;
-use ferrumc_components::player::transform::rotation::Rotation;
+use ferrumc_core::player::identity::PlayerIdentityData;
+use ferrumc_core::player::transform::position::PositionData;
+use ferrumc_core::player::transform::rotation::RotationData;
 use ferrumc_macros::{NetEncode, packet};
 
 #[derive(NetEncode, Clone)]
@@ -22,9 +22,9 @@ pub struct TeleportEntityPacket {
 
 impl TeleportEntityPacket {
     pub fn new(
-        entity_id: &PlayerIdentity,
-        position: &Position,
-        angle: &Rotation,
+        entity_id: &PlayerIdentityData,
+        position: &PositionData,
+        angle: &RotationData,
         on_ground: bool,
     ) -> Self {
         // TODO: Add velocity parameters if needed

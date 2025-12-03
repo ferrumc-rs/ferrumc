@@ -1,5 +1,4 @@
 use crate::codec::net_types::var_int::VarInt;
-use crate::ids;
 use ferrumc_macros::{NetDecode, packet};
 
 // Mojang surely has SOME naming schemes.. commands??

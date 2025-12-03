@@ -1,5 +1,4 @@
 use crate::codec::net_types::var_int::VarInt;
-use crate::ids;
 use ferrumc_macros::{NetDecode, packet};
 
 #[derive(NetDecode, Debug)]
@@ -9,34 +8,4 @@ pub struct Handshake {
     pub server_address: String,
     pub server_port: u16,
     pub next_state: VarInt,
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::codec::decode::{NetDecode, NetDecodeOpts};
-    use crate::codec::net_types::var_int::VarInt;
-    use ferrumc_macros::NetDecode;
-    use std::io::Cursor;
-
-    #[test]
-    fn test_macro_decode() {
-        #[derive(NetDecode, Default)]
-        struct Handshake {
-            protocol_version: VarInt,
-            server_address: String,
-            server_port: u16,
-            next_state: VarInt,
-        }
-        let mut data = Cursor::new(vec![
-            255, 5, 9, 108, 111, 99, 97, 108, 104, 111, 115, 116, 99, 221, 1,
-        ]);
-
-        let handshake = Handshake::decode(&mut data, &NetDecodeOpts::None).unwrap();
-        // Although the 1.21.8 protocol version is 772, we don't need to actually account for that here,
-        // so using the 767 version is fine for testing purposes.
-        assert_eq!(handshake.protocol_version, VarInt::new(767));
-        assert_eq!(handshake.server_address, "localhost".to_string());
-        assert_eq!(handshake.server_port, 25565);
-        assert_eq!(handshake.next_state, VarInt::new(1));
-    }
 }

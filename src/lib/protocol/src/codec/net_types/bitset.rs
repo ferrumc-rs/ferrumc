@@ -57,9 +57,11 @@ impl BitSet {
 impl NetEncode for BitSet {
     fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
         VarInt::from(self.0.len()).encode(writer, opts)?;
-        writer.write_all(&ferrumc_general_purpose::simd::arrays::u64_slice_to_u8_be(
-            &self.0,
-        ))?;
+
+        for &word in &self.0 {
+            writer.write_all(&word.to_be_bytes())?;
+        }
+
         Ok(())
     }
 
@@ -71,11 +73,11 @@ impl NetEncode for BitSet {
         VarInt::from(self.0.len())
             .encode_async(writer, opts)
             .await?;
-        writer
-            .write_all(&ferrumc_general_purpose::simd::arrays::u64_slice_to_u8_be(
-                &self.0,
-            ))
-            .await?;
+
+        for &word in &self.0 {
+            writer.write_all(&word.to_be_bytes()).await?;
+        }
+
         Ok(())
     }
 }

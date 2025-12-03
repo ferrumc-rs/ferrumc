@@ -1,4 +1,3 @@
-use crate::ids;
 use ferrumc_macros::{NetDecode, packet};
 
 // The vanilla client sends this packet when the player

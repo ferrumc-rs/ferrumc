@@ -1,4 +1,3 @@
-use crate::ids;
 use ferrumc_core::items::inventory_slot::InventorySlot;
 use ferrumc_macros::{NetDecode, packet};
 

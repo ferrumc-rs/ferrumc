@@ -2,14 +2,15 @@ use crate::codec::net_types::bitset::BitSet;
 use crate::codec::net_types::byte_array::ByteArray;
 use crate::codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use crate::codec::net_types::var_int::VarInt;
-use crate::errors::NetError;
+use crate::error::ProtocolError;
 use crate::ids;
-use byteorder::{BigEndian, WriteBytesExt};
+use crate::types::nbt::RawNbt;
+use ferrumc_core::world::chunk_format::{Chunk, PaletteType};
+use ferrumc_macros::NBTSerialize;
 use ferrumc_macros::{NetEncode, packet};
-use ferrumc_world::chunk_format::{Chunk, PaletteType};
+
+use byteorder::{BigEndian, WriteBytesExt};
 use std::io::Cursor;
-use std::ops::Not;
-use tracing::warn;
 
 const SECTIONS: usize = 24; // Number of sections, adjust for your Y range (-64 to 319)
 
@@ -21,20 +22,25 @@ pub struct BlockEntity {
     pub nbt: Vec<u8>,
 }
 
-#[derive(NetEncode)]
-pub struct NetHeightmap {
-    // Define the structure of your heightmaps here
-    pub id: VarInt,
-    pub data: LengthPrefixedVec<i64>,
+/// Internal helper struct to serialize Heightmaps to NBT.
+/// This is specific to this packet's requirements.
+#[derive(Debug, Clone, NBTSerialize)]
+#[nbt(rename = "")] // Root compound
+struct HeightmapsNbt {
+    #[nbt(rename = "MOTION_BLOCKING")]
+    pub motion_blocking: Vec<i64>,
+    #[nbt(rename = "WORLD_SURFACE")]
+    pub world_surface: Vec<i64>,
 }
+
+// --- The Main Packet ---
 
 #[derive(NetEncode)]
 #[packet(id = ids::PLAY_CLIENTBOUND_LEVEL_CHUNK_WITH_LIGHT, state = "play")]
 pub struct ChunkAndLightData {
     pub chunk_x: i32,
     pub chunk_z: i32,
-    // The binary nbt data
-    pub heightmaps: LengthPrefixedVec<NetHeightmap>,
+    pub heightmaps: RawNbt,
     pub data: ByteArray,
     pub block_entities: LengthPrefixedVec<BlockEntity>,
     pub sky_light_mask: BitSet,
@@ -47,21 +53,47 @@ pub struct ChunkAndLightData {
 
 impl ChunkAndLightData {
     pub fn empty(chunk_x: i32, chunk_z: i32) -> Self {
+        // 1. Create Empty Light Arrays
         let sky_light_arrays = (0..SECTIONS)
             .map(|_| ByteArray::new(vec![0; 2048]))
             .collect();
         let block_light_arrays = (0..SECTIONS)
             .map(|_| ByteArray::new(vec![0; 2048]))
             .collect();
+
+        // 2. Setup Empty Masks (All set to true indicating "Empty")
         let mut empty_sky_light_mask = BitSet::new(SECTIONS + 2);
-        empty_sky_light_mask.set_all(false);
+        empty_sky_light_mask.set_all(true);
         let mut empty_block_light_mask = BitSet::new(SECTIONS + 2);
-        empty_block_light_mask.set_all(false);
+        empty_block_light_mask.set_all(true);
+
+        // 3. Create Default Heightmaps (NBT)
+        // Protocol requires 37 longs for these arrays, even if empty.
+        let heightmaps_struct = HeightmapsNbt {
+            motion_blocking: vec![0i64; 37],
+            world_surface: vec![0i64; 37],
+        };
+
+        let heightmaps_bytes = heightmaps_struct.serialize_with_header();
+
+        // 4. Construct Valid Chunk Data (Safer Generator)
+        let mut raw_data = Cursor::new(Vec::new());
+        for _ in 0..SECTIONS {
+            raw_data.write_u16::<BigEndian>(0).unwrap(); // Non-air count
+            raw_data.write_u8(0).unwrap(); // Block States (Single)
+            VarInt::new(0).write(&mut raw_data).unwrap(); // Palette ID 0 (Air)
+            VarInt::new(0).write(&mut raw_data).unwrap(); // Data Length 0
+
+            raw_data.write_u8(0).unwrap(); // Biomes (Single)
+            VarInt::new(1).write(&mut raw_data).unwrap(); // Palette ID 1 (Plains)
+            VarInt::new(0).write(&mut raw_data).unwrap(); // Data Length 0
+        }
+
         ChunkAndLightData {
             chunk_x,
             chunk_z,
-            heightmaps: LengthPrefixedVec::default(),
-            data: ByteArray::new(vec![0; SECTIONS * 10]),
+            heightmaps: RawNbt(heightmaps_bytes),
+            data: ByteArray::new(raw_data.into_inner()),
             block_entities: LengthPrefixedVec::new(Vec::new()),
             sky_light_mask: BitSet::new(SECTIONS),
             block_light_mask: BitSet::new(SECTIONS),
@@ -72,121 +104,122 @@ impl ChunkAndLightData {
         }
     }
 
-    pub fn from_chunk(chunk: &Chunk) -> Result<Self, NetError> {
+    pub fn from_chunk(chunk: &Chunk) -> Result<Self, ProtocolError> {
         let mut raw_data = Cursor::new(Vec::new());
-        let mut sky_light_data = Vec::new();
-        let mut block_light_data = Vec::new();
-        for section in &chunk.sections {
-            let section_sky_light_data = if section.sky_light.len() != 2048 {
-                warn!(
-                    "Sky light data for section at {}, {} is not 2048 bytes long",
-                    chunk.x, chunk.z
-                );
-                vec![255; 2048]
-            } else {
-                section.sky_light.clone()
-            };
-            sky_light_data.push(section_sky_light_data);
-            let section_block_light_data = if section.block_light.len() != 2048 {
-                warn!(
-                    "Block light data for section at {}, {} is not 2048 bytes long",
-                    chunk.x, chunk.z
-                );
-                vec![255; 2048]
-            } else {
-                section.block_light.clone()
-            };
-            block_light_data.push(section_block_light_data);
 
+        // --- 1. Block Data & Biomes ---
+        for section in &chunk.sections {
+            // A. Non-air blocks count (u16)
             raw_data.write_u16::<BigEndian>(section.block_states.non_air_blocks)?;
 
+            // B. Block States (Convert Core i32 -> Protocol VarInt)
             match &section.block_states.block_data {
                 PaletteType::Single(val) => {
-                    // debug!("Single palette type: {:?}", (chunk.x, chunk.z));
-                    raw_data.write_u8(0)?;
-                    val.write(&mut raw_data)?;
-                    // VarInt::new(0).write(&mut raw_data)?;
+                    raw_data.write_u8(0)?; // Bits per block (0 for Single)
+                    VarInt(*val).write(&mut raw_data)?; // Palette ID
+                    VarInt(0).write(&mut raw_data)?; // Data Length (0)
                 }
                 PaletteType::Indirect {
                     bits_per_block,
                     data,
                     palette,
                 } => {
-                    // debug!("Indirect palette type: {:?}", (chunk.x, chunk.z));
                     raw_data.write_u8(*bits_per_block)?;
-                    VarInt::new(palette.len() as i32).write(&mut raw_data)?;
-                    for palette_entry in palette {
-                        palette_entry.write(&mut raw_data)?;
+
+                    // Palette Length
+                    VarInt(palette.len() as i32).write(&mut raw_data)?;
+
+                    // Write Palette Entries (Convert i32 -> VarInt)
+                    for &block_id in palette {
+                        VarInt(block_id).write(&mut raw_data)?;
                     }
-                    // VarInt::new(data.len() as i32).write(&mut raw_data)?;
-                    for data_entry in data {
-                        raw_data.write_i64::<BigEndian>(*data_entry)?;
+
+                    // Data Array Length (Number of Longs)
+                    VarInt(data.len() as i32).write(&mut raw_data)?;
+
+                    // Write Data (i64s)
+                    for &long in data {
+                        raw_data.write_i64::<BigEndian>(long)?;
                     }
                 }
-                PaletteType::Direct { .. } => {
-                    todo!("Direct palette type")
+                PaletteType::Direct => {
+                    // Direct palettes (15 bits+) don't have a palette header, just data.
+                    todo!("Direct palette serialization not yet implemented");
                 }
             }
 
-            // Empty biome data for now
-            raw_data.write_u8(0)?;
-            // Forest biome id
-            raw_data.write_u8(21)?;
+            // C. Biomes
+            // For now, we default to Single(Forest/Plains) if biome data isn't fully populated.
+            // TODO: Hook up real biome reading from `section.biome_states`
+            raw_data.write_u8(0)?; // 0 bits
+            VarInt(21).write(&mut raw_data)?; // ID 21 = Forest
+            VarInt(0).write(&mut raw_data)?; // Data Len 0
         }
+
+        // --- 2. Light Data ---
         let mut sky_light_mask = BitSet::new(SECTIONS + 2);
         let mut block_light_mask = BitSet::new(SECTIONS + 2);
+        let mut empty_sky_light_mask = BitSet::new(SECTIONS + 2);
+        let mut empty_block_light_mask = BitSet::new(SECTIONS + 2);
 
-        // Populate masks based on light data
+        let mut sky_light_arrays_vec = Vec::new();
+        let mut block_light_arrays_vec = Vec::new();
+
         for (i, section) in chunk.sections.iter().enumerate() {
-            if !section.sky_light.is_empty() && section.sky_light.len() == 2048 {
-                sky_light_mask.set(i, true);
+            // Offset +1 because bit 0 is the section BELOW the world
+            let mask_index = i + 1;
+
+            if section.sky_light.len() == 2048 {
+                sky_light_mask.set(mask_index, true);
+                sky_light_arrays_vec.push(ByteArray::new(section.sky_light.clone()));
+            } else {
+                empty_sky_light_mask.set(mask_index, true);
             }
-            if !section.block_light.is_empty() && section.block_light.len() == 2048 {
-                block_light_mask.set(i, true);
+
+            if section.block_light.len() == 2048 {
+                block_light_mask.set(mask_index, true);
+                block_light_arrays_vec.push(ByteArray::new(section.block_light.clone()));
+            } else {
+                empty_block_light_mask.set(mask_index, true);
             }
         }
 
-        // Invert masks to create empty masks
-        let empty_sky_light_mask = sky_light_mask.clone().not();
-        let empty_block_light_mask = block_light_mask.clone().not();
+        // --- 3. Heightmaps (NBT) ---
+        // Protocol requires exactly 37 longs. If data is missing/corrupt, pad it.
+        let motion_blocking = if chunk.heightmaps.motion_blocking.len() >= 37 {
+            chunk.heightmaps.motion_blocking.clone()
+        } else {
+            vec![0i64; 37]
+        };
 
-        // Align light arrays with masks
-        let sky_light_arrays = chunk
-            .sections
-            .iter()
-            .filter(|section| !section.sky_light.is_empty())
-            .map(|section| ByteArray::new(section.sky_light.clone()))
-            .collect();
+        let world_surface = if chunk.heightmaps.world_surface.len() >= 37 {
+            chunk.heightmaps.world_surface.clone()
+        } else {
+            vec![0i64; 37]
+        };
 
-        let block_light_arrays = chunk
-            .sections
-            .iter()
-            .filter(|section| !section.block_light.is_empty())
-            .map(|section| ByteArray::new(section.block_light.clone()))
-            .collect();
-        let heightmaps = vec![
-            NetHeightmap {
-                id: VarInt::new(1), // Placeholder for heightmap ID
-                data: LengthPrefixedVec::new(chunk.heightmaps.world_surface.clone()),
-            },
-            NetHeightmap {
-                id: VarInt::new(4), // Placeholder for heightmap ID
-                data: LengthPrefixedVec::new(chunk.heightmaps.motion_blocking.clone()),
-            },
-        ];
+        // Construct the helper struct for NBT serialization
+        let heightmaps_struct = HeightmapsNbt {
+            motion_blocking,
+            world_surface,
+        };
 
+        // Serialize using ferrumc-nbt (Standard "With Header" format for Chunks)
+        let heightmaps_bytes = heightmaps_struct.serialize_with_header();
+
+        // --- 4. Final Assembly ---
         Ok(ChunkAndLightData {
             chunk_x: chunk.x,
             chunk_z: chunk.z,
-            heightmaps: LengthPrefixedVec::new(heightmaps),
+            heightmaps: RawNbt(heightmaps_bytes),
             data: ByteArray::new(raw_data.into_inner()),
-            block_entities: LengthPrefixedVec::new(Vec::new()),
+            block_entities: LengthPrefixedVec::new(Vec::new()), // Empty for now
             sky_light_mask,
             block_light_mask,
             empty_sky_light_mask,
             empty_block_light_mask,
-            sky_light_arrays: LengthPrefixedVec::new(sky_light_arrays),
-            block_light_arrays: LengthPrefixedVec::new(block_light_arrays),
+            sky_light_arrays: LengthPrefixedVec::new(sky_light_arrays_vec),
+            block_light_arrays: LengthPrefixedVec::new(block_light_arrays_vec),
         })
     }
 }

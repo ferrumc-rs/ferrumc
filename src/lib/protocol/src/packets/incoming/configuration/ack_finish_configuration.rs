@@ -1,4 +1,3 @@
-use crate::codec::decode::NetDecode;
 use ferrumc_macros::{NetDecode, packet};
 
 #[derive(NetDecode)]

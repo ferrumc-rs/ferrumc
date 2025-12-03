@@ -4,22 +4,21 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-bevy_ecs = { workspace = true }
-
-# Layer 1 Dependencies
+# Layer 1
 ferrumc-core = { workspace = true }
 ferrumc-nbt = { workspace = true }
-ferrumc-general-purpose = { workspace = true }
-ferrumc-config = { workspace = true }
 ferrumc-net-encryption = { workspace = true }
 ferrumc-macros = { workspace = true }
-ferrumc-ecs = { workspace = true }
+ferrumc-text = { workspace = true }
 
+# External
 uuid = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 thiserror = { workspace = true }
-tokio = { workspace = true }
 bitcode = { workspace = true }
 deepsize = { workspace = true }
 yazi = { workspace = true }
 tracing = { workspace = true }
+tokio = { workspace = true, features = ["io-util"] }
+typename = { workspace = true }
+byteorder = { workspace = true }

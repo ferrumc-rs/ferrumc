@@ -1,5 +1,6 @@
 use crate::ids;
-use ferrumc_macros::{NetEncode, packet};
+use ferrumc_macros::NetEncode;
+use ferrumc_macros::packet;
 
 #[derive(NetEncode)]
 #[packet(id = ids::STATUS_CLIENTBOUND_STATUS_RESPONSE, state = "status")]

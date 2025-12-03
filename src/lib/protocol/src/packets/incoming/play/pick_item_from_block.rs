@@ -1,5 +1,4 @@
 use crate::codec::net_types::network_position::NetworkPosition;
-use crate::ids;
 use ferrumc_macros::{NetDecode, packet};
 
 /// Client-to-Server packet to request a "pick block" action.

@@ -1,8 +1,7 @@
-pub mod ids;
-pub use ids::*;
+extern crate self as ferrumc_protocol;
 
 pub mod codec;
-
-pub mod types;
-
+pub mod error;
+pub mod ids;
 pub mod packets;
+pub mod types;
