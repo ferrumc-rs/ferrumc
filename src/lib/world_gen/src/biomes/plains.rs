@@ -4,7 +4,7 @@ use ferrumc_macros::block;
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::chunk_format::Chunk;
 use ferrumc_world::edit_batch::EditBatch;
-use ferrumc_world::pos::ChunkHeight;
+use ferrumc_world::pos::{BlockPos, ChunkHeight};
 
 pub(crate) struct PlainsBiome;
 
@@ -58,22 +58,22 @@ impl BiomeGenerator for PlainsBiome {
                 for y in 0..height {
                     if y + above_filled_sections <= 64 {
                         batch.set_block(
-                            (
-                                (global_x as i32 & 0xF) as u8,
-                                (y + above_filled_sections) as i16,
-                                (global_z as i32 & 0xF) as u8,
+                            BlockPos::of(
+                                global_x as i32,
+                                y + above_filled_sections,
+                                global_z as i32,
                             )
-                                .into(),
+                            .chunk_block_pos(),
                             block!("sand"),
                         );
                     } else {
                         batch.set_block(
-                            (
-                                (global_x as i32 & 0xF) as u8,
-                                (y + above_filled_sections) as i16,
-                                (global_z as i32 & 0xF) as u8,
+                            BlockPos::of(
+                                global_x as i32,
+                                y + above_filled_sections,
+                                global_z as i32,
                             )
-                                .into(),
+                            .chunk_block_pos(),
                             block!("grass_block", {snowy: false}),
                         );
                     }
