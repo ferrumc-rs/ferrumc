@@ -121,6 +121,7 @@ pub fn accept_new_connections(
 
         let entity_id = entity_commands.id();
 
+        // Add the new player to the global player list (used for server list player count)
         state.0.players.player_list.insert(
             entity_id,
             (
@@ -130,14 +131,6 @@ pub fn accept_new_connections(
         );
 
         trace!("Spawned entity for new connection: {:?}", entity_id);
-        // Add the new entity to the global state
-        state.0.players.player_list.insert(
-            entity_id,
-            (
-                new_connection.player_identity.uuid.as_u128(),
-                new_connection.player_identity.username.clone(),
-            ),
-        );
 
         // Fire PlayerJoinEvent
         join_events.write(PlayerJoined(new_connection.player_identity.clone()));
