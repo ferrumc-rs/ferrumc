@@ -176,8 +176,8 @@ impl ChunkAndLightData {
         ];
 
         Ok(ChunkAndLightData {
-            chunk_x: pos.pos.x,
-            chunk_z: pos.pos.y,
+            chunk_x: pos.x(),
+            chunk_z: pos.z(),
             heightmaps: LengthPrefixedVec::new(heightmaps),
             data: ByteArray::new(raw_data.into_inner()),
             block_entities: LengthPrefixedVec::new(Vec::new()),

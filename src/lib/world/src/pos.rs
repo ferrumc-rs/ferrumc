@@ -108,7 +108,7 @@ impl ChunkHeight {
 
 #[derive(Hash, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ChunkPos {
-    pub pos: IVec2,
+    pos: IVec2,
 }
 
 impl ChunkPos {
@@ -141,6 +141,14 @@ impl ChunkPos {
 
     pub fn column_offset(&self, x: i32, z: i32) -> ColumnPos {
         ColumnPos::from(self.pos + IVec2::new(x, z))
+    }
+
+    pub fn x(&self) -> i32 {
+        self.pos.x >> 4
+    }
+
+    pub fn z(&self) -> i32 {
+        self.pos.y >> 4
     }
 
     pub fn pack(&self) -> u64 {
@@ -203,7 +211,7 @@ impl From<(u8, u8)> for ChunkColumnPos {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ChunkBlockPos {
-    pub pos: I16Vec3,
+    pos: I16Vec3,
 }
 
 impl From<(u8, i16, u8)> for ChunkBlockPos {

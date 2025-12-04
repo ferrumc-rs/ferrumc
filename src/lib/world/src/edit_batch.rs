@@ -92,11 +92,9 @@ impl<'a> EditBatch<'a> {
         // Convert edits into per-section sparse arrays (Vec<Option<&Edit>>),
         // using block index (0..4095) as the key instead of hashing 3D coords
         for edit in &self.edits {
-            let section_index = (edit.pos.pos.y >> 4) as i8;
+            let section_index = edit.pos.section();
             // Compute linear index within section (16x16x16 = 4096 blocks)
-            let index = ((edit.pos.pos.y & 0xf) * 256
-                + (edit.pos.pos.z & 0xf) * 16
-                + (edit.pos.pos.x & 0xf)) as usize;
+            let index = edit.pos.section_block_pos().pack() as usize;
             let section_vec = section_edits
                 .entry(section_index)
                 .or_insert_with(|| vec![None; 4096]);
