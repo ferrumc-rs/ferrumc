@@ -472,7 +472,7 @@ fn send_initial_chunks(
                     let chunk = state.world.load_chunk(ChunkPos::new(x,z), "overworld").unwrap_or(
                         state
                             .terrain_generator
-                            .generate_chunk(x, z)
+                            .generate_chunk(ChunkPos::new(x, z))
                             .expect("Could not generate chunk")
                             .into(),
                     );

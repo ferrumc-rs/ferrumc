@@ -47,7 +47,7 @@ pub fn generate_spawn_chunks(state: GlobalState) -> Result<(), BinaryError> {
         batch.execute(move || {
             let chunk = state_clone
                 .terrain_generator
-                .generate_chunk(x, z)
+                .generate_chunk(ChunkPos::new(x, z))
                 .map(Arc::new);
 
             match chunk {

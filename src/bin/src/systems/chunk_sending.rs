@@ -82,7 +82,7 @@ pub fn handle(
                             state
                                 .0
                                 .terrain_generator
-                                .generate_chunk(coordinates.x(), coordinates.z())
+                                .generate_chunk(coordinates)
                                 .expect("Could not generate chunk")
                                 .into(),
                         );

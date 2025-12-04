@@ -108,11 +108,13 @@ impl ChunkHeight {
 
 #[derive(Hash, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ChunkPos {
-    pos: IVec2,
+    pub pos: IVec2,
 }
 
 impl ChunkPos {
-    pub fn new(x: i32, z: i32) -> Self {
+    pub const fn new(x: i32, z: i32) -> Self {
+        assert!(x < 1 << 22);
+        assert!(z < 1 << 22);
         Self {
             pos: IVec2::new(x * 16, z * 16),
         }
@@ -258,6 +260,14 @@ impl ColumnPos {
 
     pub fn chunk(self) -> ChunkPos {
         ChunkPos::new(self.pos.x, self.pos.y)
+    }
+
+    pub fn x(&self) -> i32 {
+        self.pos.x
+    }
+
+    pub fn z(&self) -> i32 {
+        self.pos.y
     }
 }
 

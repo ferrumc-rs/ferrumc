@@ -53,10 +53,7 @@ pub fn handle(
                                 .0
                                 .clone()
                                 .terrain_generator
-                                .generate_chunk(
-                                    event.location.x.div_euclid(16),
-                                    event.location.z.div_euclid(16),
-                                )
+                                .generate_chunk(BlockPos::from(event.location.clone()).chunk())
                                 .map_err(BinaryError::WorldGen)?
                         }
                     };
