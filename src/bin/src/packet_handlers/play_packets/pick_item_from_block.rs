@@ -10,6 +10,7 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalStateResource;
 
 use ferrumc_net::PickItemFromBlockReceiver;
+use ferrumc_world::pos::BlockPos;
 use tracing::{debug, error, warn};
 
 pub fn handle(
@@ -43,10 +44,13 @@ pub fn handle(
         );
 
         // 2. Get block from world
-        let block_state_id = match state.0.world.get_block_and_fetch(
+        let pos = BlockPos::of(
             packet.location.x,
             packet.location.y as i32,
             packet.location.z,
+        );
+        let block_state_id = match state.0.world.get_block_and_fetch(
+            pos,
             "overworld", // TODO: Remove overworld hard coding for the dimension
         ) {
             Ok(id) => id,

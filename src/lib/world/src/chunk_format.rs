@@ -23,9 +23,6 @@ use tracing::error;
 #[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug)]
 // This is a placeholder for the actual chunk format
 pub struct Chunk {
-    pub x: i32,
-    pub z: i32,
-    pub dimension: String,
     pub sections: Vec<Section>,
     pub heightmaps: Heightmaps,
 }
@@ -205,14 +202,9 @@ impl VanillaChunk {
             sections.push(section);
         }
 
-        let dimension = self.dimension.clone().unwrap_or("overworld".to_string());
-
         let heightmaps: Heightmaps = self.heightmaps.clone().map(Into::into).unwrap_or_default();
 
         Ok(Chunk {
-            x: self.x_pos,
-            z: self.z_pos,
-            dimension,
             sections,
             heightmaps,
         })
@@ -220,7 +212,7 @@ impl VanillaChunk {
 }
 
 impl Chunk {
-    pub fn new(x: i32, z: i32, dimension: String) -> Self {
+    pub fn new() -> Self {
         let mut sections: Vec<Section> = (-4..20)
             .map(|y| Section {
                 y: y as i8,
@@ -243,12 +235,15 @@ impl Chunk {
         }
         block!("stone");
         Chunk {
-            x,
-            z,
-            dimension,
             sections,
             heightmaps: Heightmaps::new(),
         }
+    }
+}
+
+impl Default for Chunk {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -259,15 +254,15 @@ mod tests {
 
     #[test]
     fn test_chunk_set_block() {
-        let mut chunk = Chunk::new(0, 0, "overworld".to_string());
+        let mut chunk = Chunk::new();
         let block = block!("stone");
-        chunk.set_block(0, 0, 0, block).unwrap();
-        assert_eq!(chunk.get_block(0, 0, 0).unwrap(), block);
+        chunk.set_block((0, 0, 0).into(), block).unwrap();
+        assert_eq!(chunk.get_block((0, 0, 0).into()).unwrap(), block);
     }
 
     #[test]
     fn test_chunk_fill() {
-        let mut chunk = Chunk::new(0, 0, "overworld".to_string());
+        let mut chunk = Chunk::new();
         let stone_block = block!("stone");
         chunk.fill(stone_block).unwrap();
         for section in &chunk.sections {
@@ -309,18 +304,18 @@ mod tests {
 
     #[test]
     fn test_false_positive() {
-        let mut chunk = Chunk::new(0, 0, "overworld".to_string());
+        let mut chunk = Chunk::new();
         let block = block!("stone");
-        chunk.set_block(0, 0, 0, block).unwrap();
-        assert_ne!(chunk.get_block(0, 1, 0).unwrap(), block);
+        chunk.set_block((0, 0, 0).into(), block).unwrap();
+        assert_ne!(chunk.get_block((0, 1, 0).into()).unwrap(), block);
     }
 
     #[test]
     fn test_doesnt_fail() {
-        let mut chunk = Chunk::new(0, 0, "overworld".to_string());
+        let mut chunk = Chunk::new();
         let block = block!("stone");
-        assert!(chunk.set_block(0, 0, 0, block).is_ok());
-        assert!(chunk.set_block(0, 0, 0, block).is_ok());
-        assert!(chunk.get_block(0, 0, 0).is_ok());
+        assert!(chunk.set_block((0, 0, 0).into(), block).is_ok());
+        assert!(chunk.set_block((0, 0, 0).into(), block).is_ok());
+        assert!(chunk.get_block((0, 0, 0).into()).is_ok());
     }
 }

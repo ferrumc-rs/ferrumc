@@ -1,6 +1,7 @@
 use crate::chunk_format::Chunk;
 use crate::errors::WorldError;
 use crate::errors::WorldError::CorruptedChunkData;
+use crate::pos::ChunkPos;
 // db_functions.rs
 use crate::warn;
 use crate::World;
@@ -15,30 +16,34 @@ impl World {
     ///
     /// This function will save a chunk to the storage backend and update the cache with the new
     /// chunk data. If the chunk already exists in the cache, it will be updated with the new data.
-    pub fn save_chunk(&self, chunk: Arc<Chunk>) -> Result<(), WorldError> {
-        let ret = save_chunk_internal(self, &chunk);
-        self.cache
-            .insert((chunk.x, chunk.z, chunk.dimension.clone()), chunk);
+    pub fn save_chunk(
+        &self,
+        pos: ChunkPos,
+        dimension: &str,
+        chunk: Arc<Chunk>,
+    ) -> Result<(), WorldError> {
+        let ret = save_chunk_internal(self, pos, dimension, &chunk);
+        self.cache.insert((pos, dimension.to_string()), chunk);
         ret
     }
 
     /// Load a chunk from the storage backend. If the chunk is in the cache, it will be returned
     /// from the cache instead of the storage backend. If the chunk is not in the cache, it will be
     /// loaded from the storage backend and inserted into the cache.
-    pub fn load_chunk(&self, x: i32, z: i32, dimension: &str) -> Result<Arc<Chunk>, WorldError> {
-        if let Some(chunk) = self.cache.get(&(x, z, dimension.to_string())) {
+    pub fn load_chunk(&self, pos: ChunkPos, dimension: &str) -> Result<Arc<Chunk>, WorldError> {
+        if let Some(chunk) = self.cache.get(&(pos, dimension.to_string())) {
             return Ok(chunk);
         }
-        let chunk = load_chunk_internal(self, x, z, dimension);
+        let chunk = load_chunk_internal(self, pos, dimension);
         if let Ok(ref chunk) = chunk {
             self.cache
-                .insert((x, z, dimension.to_string()), Arc::from(chunk.clone()));
+                .insert((pos, dimension.to_string()), Arc::from(chunk.clone()));
         }
         chunk.map(Arc::new)
     }
 
-    pub fn load_chunk_owned(&self, x: i32, z: i32, dimension: &str) -> Result<Chunk, WorldError> {
-        self.load_chunk(x, z, dimension).map(|c| c.as_ref().clone())
+    pub fn load_chunk_owned(&self, pos: ChunkPos, dimension: &str) -> Result<Chunk, WorldError> {
+        self.load_chunk(pos, dimension).map(|c| c.as_ref().clone())
     }
 
     /// Check if a chunk exists in the storage backend.
@@ -46,19 +51,19 @@ impl World {
     /// It will first check if the chunk is in the cache and if it is, it will return true. If the
     /// chunk is not in the cache, it will check the storage backend for the chunk, returning true
     /// if it exists and false if it does not.
-    pub fn chunk_exists(&self, x: i32, z: i32, dimension: &str) -> Result<bool, WorldError> {
-        if self.cache.contains_key(&(x, z, dimension.to_string())) {
+    pub fn chunk_exists(&self, pos: ChunkPos, dimension: &str) -> Result<bool, WorldError> {
+        if self.cache.contains_key(&(pos, dimension.to_string())) {
             return Ok(true);
         }
-        chunk_exists_internal(self, x, z, dimension)
+        chunk_exists_internal(self, pos, dimension)
     }
 
     /// Delete a chunk from the storage backend.
     ///
     /// This function will remove the chunk from the cache and delete it from the storage backend.
-    pub fn delete_chunk(&self, x: i32, z: i32, dimension: &str) -> Result<(), WorldError> {
-        self.cache.remove(&(x, z, dimension.to_string()));
-        delete_chunk_internal(self, x, z, dimension)
+    pub fn delete_chunk(&self, pos: ChunkPos, dimension: &str) -> Result<(), WorldError> {
+        self.cache.remove(&(pos, dimension.to_string()));
+        delete_chunk_internal(self, pos, dimension)
     }
 
     /// Sync the storage backend.
@@ -68,8 +73,8 @@ impl World {
     /// to ensure that the data is properly saved to disk.
     pub fn sync(&self) -> Result<(), WorldError> {
         for (k, v) in self.cache.iter() {
-            trace!("Syncing chunk: {:?}", (k.0, k.1));
-            save_chunk_internal(self, &v)?;
+            trace!("Syncing chunk: {:?}", k.0);
+            save_chunk_internal(self, k.0, &k.1, &v)?;
         }
         sync_internal(self)
     }
@@ -81,22 +86,22 @@ impl World {
     /// returned as a vector.
     pub fn load_chunk_batch(
         &self,
-        coords: &[(i32, i32, &str)],
+        coords: &[(ChunkPos, &str)],
     ) -> Result<Vec<Arc<Chunk>>, WorldError> {
         let mut found_chunks = Vec::new();
         let mut missing_chunks = Vec::new();
         for coord in coords {
-            if let Some(chunk) = self.cache.get(&(coord.0, coord.1, coord.2.to_string())) {
+            if let Some(chunk) = self.cache.get(&(coord.0, coord.1.to_string())) {
                 found_chunks.push(chunk);
             } else {
                 missing_chunks.push(*coord);
             }
         }
         let fetched = load_chunk_batch_internal(self, &missing_chunks)?;
-        for chunk in fetched {
+        for (chunk, (pos, dimension)) in fetched.into_iter().zip(missing_chunks) {
             let chunk = Arc::new(chunk);
             self.cache
-                .insert((chunk.x, chunk.z, chunk.dimension.clone()), chunk.clone());
+                .insert((pos, dimension.to_string()), chunk.clone());
             found_chunks.push(chunk);
         }
         Ok(found_chunks)
@@ -107,17 +112,22 @@ impl World {
     /// This function will load a chunk from the storage backend and insert it into the cache
     /// without returning the chunk. This is useful for preloading chunks into the cache before
     /// they are needed.
-    pub fn pre_cache(&self, x: i32, z: i32, dimension: &str) -> Result<(), WorldError> {
-        if self.cache.get(&(x, z, dimension.to_string())).is_none() {
-            let chunk = load_chunk_internal(self, x, z, dimension)?;
+    pub fn pre_cache(&self, pos: ChunkPos, dimension: &str) -> Result<(), WorldError> {
+        if self.cache.get(&(pos, dimension.to_string())).is_none() {
+            let chunk = load_chunk_internal(self, pos, dimension)?;
             self.cache
-                .insert((x, z, dimension.to_string()), Arc::new(chunk));
+                .insert((pos, dimension.to_string()), Arc::new(chunk));
         }
         Ok(())
     }
 }
 
-pub(crate) fn save_chunk_internal(world: &World, chunk: &Chunk) -> Result<(), WorldError> {
+pub(crate) fn save_chunk_internal(
+    world: &World,
+    pos: ChunkPos,
+    dimension: &str,
+    chunk: &Chunk,
+) -> Result<(), WorldError> {
     if !world.storage_backend.table_exists("chunks".to_string())? {
         world.storage_backend.create_table("chunks".to_string())?;
     }
@@ -126,7 +136,7 @@ pub(crate) fn save_chunk_internal(world: &World, chunk: &Chunk) -> Result<(), Wo
         yazi::Format::Zlib,
         CompressionLevel::BestSpeed,
     )?;
-    let digest = create_key(chunk.dimension.as_str(), chunk.x, chunk.z);
+    let digest = create_key(dimension, pos);
     world
         .storage_backend
         .upsert("chunks".to_string(), digest, as_bytes)?;
@@ -135,11 +145,10 @@ pub(crate) fn save_chunk_internal(world: &World, chunk: &Chunk) -> Result<(), Wo
 
 pub(crate) fn load_chunk_internal(
     world: &World,
-    x: i32,
-    z: i32,
+    pos: ChunkPos,
     dimension: &str,
 ) -> Result<Chunk, WorldError> {
-    let digest = create_key(dimension, x, z);
+    let digest = create_key(dimension, pos);
     match world.storage_backend.get("chunks".to_string(), digest)? {
         Some(compressed) => {
             let (data, checksum) = yazi::decompress(compressed.as_slice(), yazi::Format::Zlib)?;
@@ -163,11 +172,11 @@ pub(crate) fn load_chunk_internal(
 
 pub(crate) fn load_chunk_batch_internal(
     world: &World,
-    coords: &[(i32, i32, &str)],
+    coords: &[(ChunkPos, &str)],
 ) -> Result<Vec<Chunk>, WorldError> {
     let digests = coords
         .iter()
-        .map(|&(x, z, dim)| create_key(dim, x, z))
+        .map(|&(pos, dim)| create_key(dim, pos))
         .collect();
     world
         .storage_backend
@@ -197,24 +206,22 @@ pub(crate) fn load_chunk_batch_internal(
 
 pub(crate) fn chunk_exists_internal(
     world: &World,
-    x: i32,
-    z: i32,
+    pos: ChunkPos,
     dimension: &str,
 ) -> Result<bool, WorldError> {
     if !world.storage_backend.table_exists("chunks".to_string())? {
         return Ok(false);
     }
-    let digest = create_key(dimension, x, z);
+    let digest = create_key(dimension, pos);
     Ok(world.storage_backend.exists("chunks".to_string(), digest)?)
 }
 
 pub(crate) fn delete_chunk_internal(
     world: &World,
-    x: i32,
-    z: i32,
+    pos: ChunkPos,
     dimension: &str,
 ) -> Result<(), WorldError> {
-    let digest = create_key(dimension, x, z);
+    let digest = create_key(dimension, pos);
     world.storage_backend.delete("chunks".to_string(), digest)?;
     Ok(())
 }
@@ -224,7 +231,7 @@ pub(crate) fn sync_internal(world: &World) -> Result<(), WorldError> {
     Ok(())
 }
 
-fn create_key(dimension: &str, x: i32, z: i32) -> u128 {
+fn create_key(dimension: &str, pos: ChunkPos) -> u128 {
     let mut key = 0u128;
     let mut hasher = wyhash::WyHash::with_seed(0);
     hasher.write(dimension.as_bytes());
@@ -233,9 +240,9 @@ fn create_key(dimension: &str, x: i32, z: i32) -> u128 {
     // Insert the dimension hash into the key as the first 32 bits
     key |= (dim_hash as u128) << 96;
     // Convert the x coordinate to a 48 bit integer and insert it into the key
-    key |= ((x as u128) & 0x0000_0000_FFFF_FFFF) << 48;
+    key |= ((pos.pos.x as u128) & 0x0000_0000_FFFF_FFFF) << 48;
     // Convert the z coordinate to a 48 bit integer and insert it into the key
-    key |= (z as u128) & 0x0000_0000_FFFF_FFFF;
+    key |= (pos.pos.y as u128) & 0x0000_0000_FFFF_FFFF;
 
     key
 }

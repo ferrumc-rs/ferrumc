@@ -1,5 +1,6 @@
 use crate::block_state_id::BlockStateId;
 use crate::chunk_format::{BiomeStates, BlockStates, Chunk, PaletteType};
+use crate::pos::ChunkBlockPos;
 use crate::WorldError;
 use ahash::{AHashMap, AHashSet, AHasher};
 use ferrumc_general_purpose::data_packing::i32::read_nbit_i32;
@@ -42,9 +43,7 @@ pub struct EditBatch<'a> {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub(crate) struct Edit {
-    pub(crate) x: i32,
-    pub(crate) y: i32,
-    pub(crate) z: i32,
+    pub(crate) pos: ChunkBlockPos,
     pub(crate) block: BlockStateId,
 }
 
@@ -73,8 +72,8 @@ impl<'a> EditBatch<'a> {
     /// Sets a block at the given chunk-relative coordinates.
     ///
     /// This won't have any effect until `apply()` is called.
-    pub fn set_block(&mut self, x: i32, y: i32, z: i32, block: BlockStateId) {
-        self.edits.push(Edit { x, y, z, block });
+    pub fn set_block(&mut self, pos: ChunkBlockPos, block: BlockStateId) {
+        self.edits.push(Edit { pos, block });
     }
 
     /// Applies all edits in the batch to the chunk.
@@ -99,9 +98,11 @@ impl<'a> EditBatch<'a> {
         // Convert edits into per-section sparse arrays (Vec<Option<&Edit>>),
         // using block index (0..4095) as the key instead of hashing 3D coords
         for edit in &self.edits {
-            let section_index = (edit.y >> 4) as i8;
+            let section_index = (edit.pos.pos.y >> 4) as i8;
             // Compute linear index within section (16x16x16 = 4096 blocks)
-            let index = ((edit.y & 0xf) * 256 + (edit.z & 0xf) * 16 + (edit.x & 0xf)) as usize;
+            let index = ((edit.pos.pos.y & 0xf) * 256
+                + (edit.pos.pos.z & 0xf) * 16
+                + (edit.pos.pos.x & 0xf)) as usize;
             let section_vec = section_edits
                 .entry(section_index)
                 .or_insert_with(|| vec![None; 4096]);
@@ -211,7 +212,7 @@ impl<'a> EditBatch<'a> {
 
             for maybe_edit in edits_vec.iter() {
                 let Some(edit) = maybe_edit else { continue };
-                let index = ((edit.y & 0xf) * 256 + (edit.z & 0xf) * 16 + (edit.x & 0xf)) as usize;
+                let index = (edit.pos.pos.y * 256 + edit.pos.pos.z * 16 + edit.pos.pos.x) as usize;
 
                 let palette_index = if let Some(&idx) = self.tmp_palette_map.get(&edit.block) {
                     idx
@@ -324,20 +325,20 @@ mod tests {
 
     #[test]
     fn test_single_block_edit() {
-        let mut chunk = Chunk::new(0, 0, "overworld".to_string());
+        let mut chunk = Chunk::new();
         let block = make_test_block("minecraft:stone");
 
         let mut batch = EditBatch::new(&mut chunk);
-        batch.set_block(1, 1, 1, block);
+        batch.set_block((1, 1, 1).into(), block);
         batch.apply().unwrap();
 
-        let got = chunk.get_block(1, 1, 1).unwrap();
+        let got = chunk.get_block((1, 1, 1).into()).unwrap();
         assert_eq!(got, block);
     }
 
     #[test]
     fn test_multi_block_edits() {
-        let mut chunk = Chunk::new(0, 0, "overworld".to_string());
+        let mut chunk = Chunk::new();
         let stone = make_test_block("minecraft:stone");
         let dirt = make_test_block("minecraft:dirt");
 
@@ -346,7 +347,7 @@ mod tests {
             for y in 0..4 {
                 for z in 0..4 {
                     let block = if (x + y + z) % 2 == 0 { stone } else { dirt };
-                    batch.set_block(x, y, z, block);
+                    batch.set_block((x as u8, y, z as u8).into(), block);
                 }
             }
         }
@@ -356,7 +357,7 @@ mod tests {
             for y in 0..4 {
                 for z in 0..4 {
                     let expected = if (x + y + z) % 2 == 0 { &stone } else { &dirt };
-                    let got = chunk.get_block(x, y, z).unwrap();
+                    let got = chunk.get_block((x as u8, y, z as u8).into()).unwrap();
                     assert_eq!(&got, expected);
                 }
             }

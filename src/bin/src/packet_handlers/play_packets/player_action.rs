@@ -11,7 +11,7 @@ use ferrumc_net::packets::outgoing::block_update::BlockUpdate;
 use ferrumc_net::PlayerActionReceiver;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalStateResource;
-use ferrumc_world::block_state_id::BlockStateId;
+use ferrumc_world::{block_state_id::BlockStateId, pos::BlockPos};
 use tracing::{error, trace, warn};
 
 pub fn handle(
@@ -34,16 +34,18 @@ pub fn handle(
             continue;
         };
 
+        let pos = BlockPos::of(event.location.x, event.location.y as i32, event.location.z);
         if abilities.creative_mode {
             // --- CREATIVE MODE LOGIC ---
             // Only instabreak (status 0) is relevant in creative.
             if event.status.0 == 0 {
                 let res: Result<(), BinaryError> = try {
-                    let mut chunk = match state.0.clone().world.load_chunk_owned(
-                        event.location.x >> 4,
-                        event.location.z >> 4,
-                        "overworld",
-                    ) {
+                    let mut chunk = match state
+                        .0
+                        .clone()
+                        .world
+                        .load_chunk_owned(pos.chunk(), "overworld")
+                    {
                         Ok(chunk) => chunk,
                         Err(e) => {
                             trace!("Chunk not found, generating new chunk: {:?}", e);
@@ -51,23 +53,21 @@ pub fn handle(
                                 .0
                                 .clone()
                                 .terrain_generator
-                                .generate_chunk(event.location.x >> 4, event.location.z >> 4)
+                                .generate_chunk(
+                                    event.location.x.div_euclid(16),
+                                    event.location.z.div_euclid(16),
+                                )
                                 .map_err(BinaryError::WorldGen)?
                         }
                     };
-                    let (relative_x, relative_y, relative_z) = (
-                        event.location.x.abs() % 16,
-                        event.location.y as i32,
-                        event.location.z.abs() % 16,
-                    );
                     chunk
-                        .set_block(relative_x, relative_y, relative_z, BlockStateId::default())
+                        .set_block(pos.chunk_block_pos(), BlockStateId::default())
                         .map_err(BinaryError::World)?;
 
                     state
                         .0
                         .world
-                        .save_chunk(Arc::new(chunk))
+                        .save_chunk(pos.chunk(), "overworld", Arc::new(chunk))
                         .map_err(BinaryError::World)?;
 
                     // Broadcast the change

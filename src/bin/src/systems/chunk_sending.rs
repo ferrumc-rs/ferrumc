@@ -11,6 +11,7 @@ use ferrumc_net::packets::outgoing::chunk_batch_start::ChunkBatchStart;
 use ferrumc_net::packets::outgoing::set_center_chunk::SetCenterChunk;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::GlobalStateResource;
+use ferrumc_world::pos::ChunkPos;
 use std::sync::atomic::Ordering;
 
 // Just take the needed chunks from the ChunkReceiver and send them
@@ -76,7 +77,7 @@ pub fn handle(
                     let chunk = state
                         .0
                         .world
-                        .load_chunk(coordinates.0, coordinates.1, "overworld")
+                        .load_chunk(ChunkPos::new(coordinates.0, coordinates.1), "overworld")
                         .unwrap_or(
                             state
                                 .0
@@ -85,8 +86,11 @@ pub fn handle(
                                 .expect("Could not generate chunk")
                                 .into(),
                         );
-                    let packet = ChunkAndLightData::from_chunk(&chunk)
-                        .expect("Failed to create ChunkAndLightData");
+                    let packet = ChunkAndLightData::from_chunk(
+                        ChunkPos::new(coordinates.0, coordinates.1),
+                        &chunk,
+                    )
+                    .expect("Failed to create ChunkAndLightData");
                     compress_packet(
                         &packet,
                         is_compressed,

@@ -22,7 +22,7 @@ impl BiomeGenerator for PlainsBiome {
         z: i32,
         noise: &NoiseGenerator,
     ) -> Result<Chunk, WorldGenError> {
-        let mut chunk = Chunk::new(x, z, "overworld".to_string());
+        let mut chunk = Chunk::new();
         let mut heights = vec![];
         let stone = block!("stone"); // just to test the macro
 
@@ -57,16 +57,22 @@ impl BiomeGenerator for PlainsBiome {
                 for y in 0..height {
                     if y + above_filled_sections <= 64 {
                         batch.set_block(
-                            global_x as i32 & 0xF,
-                            y + above_filled_sections,
-                            global_z as i32 & 0xF,
+                            (
+                                (global_x as i32 & 0xF) as u8,
+                                (y + above_filled_sections) as i16,
+                                (global_z as i32 & 0xF) as u8,
+                            )
+                                .into(),
                             block!("sand"),
                         );
                     } else {
                         batch.set_block(
-                            global_x as i32 & 0xF,
-                            y + above_filled_sections,
-                            global_z as i32 & 0xF,
+                            (
+                                (global_x as i32 & 0xF) as u8,
+                                (y + above_filled_sections) as i16,
+                                (global_z as i32 & 0xF) as u8,
+                            )
+                                .into(),
                             block!("grass_block", {snowy: false}),
                         );
                     }

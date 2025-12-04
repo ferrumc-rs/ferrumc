@@ -22,6 +22,7 @@ use ferrumc_net_encryption::errors::NetEncryptionError;
 use ferrumc_net_encryption::get_encryption_keys;
 use ferrumc_net_encryption::read::EncryptedReader;
 use ferrumc_state::GlobalState;
+use ferrumc_world::pos::ChunkPos;
 
 use crate::packets::incoming::ack_finish_configuration::AckFinishConfigurationPacket;
 use crate::packets::incoming::client_information::ClientInformation;
@@ -468,7 +469,7 @@ fn send_initial_chunks(
             batch.execute({
                 let state = state.clone();
                 move || -> Result<Vec<u8>, NetError> {
-                    let chunk = state.world.load_chunk(x, z, "overworld").unwrap_or(
+                    let chunk = state.world.load_chunk(ChunkPos::new(x,z), "overworld").unwrap_or(
                         state
                             .terrain_generator
                             .generate_chunk(x, z)
@@ -477,6 +478,7 @@ fn send_initial_chunks(
                     );
                     let chunk_data =
                         crate::packets::outgoing::chunk_and_light_data::ChunkAndLightData::from_chunk(
+                        ChunkPos::new(x,z),
                             &chunk,
                         )?;
                     compress_packet(&chunk_data, compressed, &NetEncodeOpts::WithLength, 64)

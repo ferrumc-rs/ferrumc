@@ -1,4 +1,5 @@
 use bevy_ecs::prelude::*;
+use ferrumc_world::pos::BlockPos;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -32,10 +33,9 @@ pub fn handle_start_digging(
         );
 
         // --- 1. Get BlockStateId from the world ---
+        let pos = BlockPos::of(event.position.x, event.position.y as i32, event.position.z);
         let block_state_id = match state.0.world.get_block_and_fetch(
-            event.position.x,
-            event.position.y as i32,
-            event.position.z,
+            pos,
             "overworld", // TODO: remove hardcoded dimension
         ) {
             Ok(id) => id,
@@ -216,12 +216,8 @@ pub fn handle_finish_digging(
                 digging.break_time.as_millis()
             );
 
-            let real_block_state = match state.0.world.get_block_and_fetch(
-                event.position.x,
-                event.position.y as i32,
-                event.position.z,
-                "overworld",
-            ) {
+            let pos = BlockPos::of(event.position.x, event.position.y as i32, event.position.z);
+            let real_block_state = match state.0.world.get_block_and_fetch(pos, "overworld") {
                 Ok(id) => id,
                 Err(e) => {
                     error!(
@@ -277,36 +273,31 @@ fn break_block(
     broadcast_query: &Query<(Entity, &StreamWriter)>,
     position: &ferrumc_net_codec::net_types::network_position::NetworkPosition,
 ) -> Result<(), BinaryError> {
-    let mut chunk =
-        match state
-            .0
-            .clone()
-            .world
-            .load_chunk_owned(position.x >> 4, position.z >> 4, "overworld")
-        {
-            Ok(chunk) => chunk,
-            Err(e) => {
-                trace!("Chunk not found, generating new chunk: {:?}", e);
-                state
-                    .0
-                    .clone()
-                    .terrain_generator
-                    .generate_chunk(position.x >> 4, position.z >> 4)
-                    .map_err(BinaryError::WorldGen)?
-            }
-        };
-    let (relative_x, relative_y, relative_z) = (
-        position.x.abs() % 16,
-        position.y as i32,
-        position.z.abs() % 16,
-    );
+    let pos = BlockPos::of(position.x, position.y as i32, position.z);
+    let mut chunk = match state
+        .0
+        .clone()
+        .world
+        .load_chunk_owned(pos.chunk(), "overworld")
+    {
+        Ok(chunk) => chunk,
+        Err(e) => {
+            trace!("Chunk not found, generating new chunk: {:?}", e);
+            state
+                .0
+                .clone()
+                .terrain_generator
+                .generate_chunk(position.x >> 4, position.z >> 4)
+                .map_err(BinaryError::WorldGen)?
+        }
+    };
     chunk
-        .set_block(relative_x, relative_y, relative_z, BlockStateId::default())
+        .set_block(pos.chunk_block_pos(), BlockStateId::default())
         .map_err(BinaryError::World)?;
     state
         .0
         .world
-        .save_chunk(Arc::new(chunk))
+        .save_chunk(pos.chunk(), "overworld", Arc::new(chunk))
         .map_err(BinaryError::World)?;
 
     // Broadcast the block break to all players

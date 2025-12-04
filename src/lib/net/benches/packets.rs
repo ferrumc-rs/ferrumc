@@ -11,8 +11,11 @@ fn bench_chunk_packet(c: &mut criterion::BenchmarkGroup<WallTime>) {
         .generate_chunk(0, 0)
         .unwrap();
     let chunk_packet = black_box(
-        ferrumc_net::packets::outgoing::chunk_and_light_data::ChunkAndLightData::from_chunk(&chunk)
-            .unwrap(),
+        ferrumc_net::packets::outgoing::chunk_and_light_data::ChunkAndLightData::from_chunk(
+            ChunkPos::new(0, 0),
+            &chunk,
+        )
+        .unwrap(),
     );
     c.bench_function("chunk_and_light_data", |b| {
         b.iter(|| {

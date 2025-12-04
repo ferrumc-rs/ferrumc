@@ -10,6 +10,7 @@ use ferrumc_net::PlaceBlockReceiver;
 use ferrumc_net_codec::net_types::network_position::NetworkPosition;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalStateResource;
+use ferrumc_world::pos::BlockPos;
 use tracing::{debug, error, trace};
 
 use ferrumc_inventories::hotbar::Hotbar;
@@ -65,41 +66,32 @@ pub fn handle(
                         "Placing block with item ID: {}, mapped to block state ID: {}",
                         item_id.0, mapped_block_state_id
                     );
-                    let mut chunk = match state.0.world.load_chunk_owned(
-                        event.position.x >> 4,
-                        event.position.z >> 4,
-                        "overworld",
-                    ) {
+                    let pos =
+                        BlockPos::of(event.position.x, event.position.y as i32, event.position.z);
+                    let mut chunk = match state.0.world.load_chunk_owned(pos.chunk(), "overworld") {
                         Ok(chunk) => chunk,
                         Err(e) => {
                             debug!("Failed to load chunk: {:?}", e);
                             continue 'ev_loop;
                         }
                     };
-                    let Ok(block_clicked) = chunk.get_block(
-                        event.position.x,
-                        event.position.y as i32,
-                        event.position.z,
-                    ) else {
-                        debug!("Failed to get block at position: {:?}", event.position);
+                    let Ok(block_clicked) = chunk.get_block(pos.chunk_block_pos()) else {
+                        debug!("Failed to get block at position: {}", pos);
                         continue 'ev_loop;
                     };
                     trace!("Block clicked: {:?}", block_clicked);
                     // Use the face to determine the offset of the block to place
-                    let (x_block_offset, y_block_offset, z_block_offset) = match event.face.0 {
-                        0 => (0, -1, 0),
-                        1 => (0, 1, 0),
-                        2 => (0, 0, -1),
-                        3 => (0, 0, 1),
-                        4 => (-1, 0, 0),
-                        5 => (1, 0, 0),
-                        _ => (0, 0, 0),
-                    };
-                    let (x, y, z) = (
-                        event.position.x + x_block_offset,
-                        event.position.y + y_block_offset,
-                        event.position.z + z_block_offset,
-                    );
+                    let offset_pos = pos
+                        + match event.face.0 {
+                            0 => (0, -1, 0),
+                            1 => (0, 1, 0),
+                            2 => (0, 0, -1),
+                            3 => (0, 0, 1),
+                            4 => (-1, 0, 0),
+                            5 => (1, 0, 0),
+                            _ => (0, 0, 0),
+                        };
+
                     // Check if the block collides with any entities
                     let does_collide = {
                         pos_q.into_iter().any(|(pos, bounds)| {
@@ -113,7 +105,11 @@ pub fn handle(
                                     z_offset_start: 0.0,
                                     z_offset_end: 1.0,
                                 },
-                                (x as f64, y as f64, z as f64),
+                                (
+                                    offset_pos.pos.x as f64,
+                                    offset_pos.pos.y as f64,
+                                    offset_pos.pos.z as f64,
+                                ),
                             )
                         })
                     };
@@ -130,9 +126,7 @@ pub fn handle(
                     }
 
                     if let Err(err) = chunk.set_block(
-                        x & 0xF,
-                        y as i32,
-                        z & 0xF,
+                        pos.chunk_block_pos(),
                         BlockStateId(*mapped_block_state_id as u32),
                     ) {
                         error!("Failed to set block: {:?}", err);
@@ -143,7 +137,11 @@ pub fn handle(
                     };
 
                     let chunk_packet = BlockUpdate {
-                        location: NetworkPosition { x, y, z },
+                        location: NetworkPosition {
+                            x: offset_pos.pos.x,
+                            y: offset_pos.pos.y as i16,
+                            z: offset_pos.pos.z,
+                        },
                         block_state_id: VarInt::from(*mapped_block_state_id),
                     };
                     if let Err(err) = conn.send_packet_ref(&chunk_packet) {
@@ -155,10 +153,15 @@ pub fn handle(
                         continue 'ev_loop;
                     }
 
-                    if let Err(err) = state.0.world.save_chunk(Arc::from(chunk)) {
+                    if let Err(err) =
+                        state
+                            .0
+                            .world
+                            .save_chunk(pos.chunk(), "overworld", Arc::from(chunk))
+                    {
                         error!("Failed to save chunk after block placement: {:?}", err);
                     } else {
-                        trace!("Block placed at ({}, {}, {})", x, y, z);
+                        trace!("Block placed at {}", offset_pos);
                     }
                 }
             }

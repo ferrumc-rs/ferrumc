@@ -1,6 +1,7 @@
 use crate::block_state_id::{BlockStateId, ID2BLOCK};
 use crate::chunk_format::{BlockStates, Chunk, PaletteType, Section};
 use crate::errors::WorldError;
+use crate::pos::{BlockPos, ChunkBlockPos};
 use crate::World;
 use ferrumc_general_purpose::data_packing::i32::read_nbit_i32;
 use std::collections::hash_map::Entry;
@@ -32,15 +33,11 @@ impl World {
     /// * `WorldError::InvalidBlockStateData` - If the block state data is invalid.
     pub fn get_block_and_fetch(
         &self,
-        x: i32,
-        y: i32,
-        z: i32,
+        pos: BlockPos,
         dimension: &str,
     ) -> Result<BlockStateId, WorldError> {
-        let chunk_x = x >> 4;
-        let chunk_z = z >> 4;
-        let chunk = self.load_chunk(chunk_x, chunk_z, dimension)?;
-        chunk.get_block(x, y, z)
+        let chunk = self.load_chunk(pos.chunk(), dimension)?;
+        chunk.get_block(pos.chunk_block_pos())
     }
 
     /// Sets the block data at the specified coordinates in the given dimension.
@@ -61,29 +58,24 @@ impl World {
     /// * `Err(WorldError)` - If an error occurs while setting the block data.
     pub fn set_block_and_fetch(
         &self,
-        x: i32,
-        y: i32,
-        z: i32,
+        pos: BlockPos,
         dimension: &str,
         block: BlockStateId,
     ) -> Result<(), WorldError> {
         if ID2BLOCK.get(block.0 as usize).is_none() {
             return Err(WorldError::InvalidBlockStateId(block.0));
         };
-        // Get chunk
-        let chunk_x = x >> 4;
-        let chunk_z = z >> 4;
-        let mut chunk = self.load_chunk_owned(chunk_x, chunk_z, dimension)?;
+        let mut chunk = self.load_chunk_owned(pos.chunk(), dimension)?;
 
-        debug!("Chunk: {}, {}", chunk_x, chunk_z);
+        debug!("Chunk: {}", pos.chunk());
 
-        chunk.set_block(x, y, z, block)?;
+        chunk.set_block(pos.chunk_block_pos(), block)?;
         for section in &mut chunk.sections {
             section.optimise()?;
         }
 
         // Save chunk
-        self.save_chunk(Arc::new(chunk))?;
+        self.save_chunk(pos.chunk(), dimension, Arc::new(chunk))?;
         Ok(())
     }
 }
@@ -214,14 +206,8 @@ impl Chunk {
     /// The positions are modulo'd by 16 to get the block index in the section anyway, so converting
     /// the coordinates to section coordinates isn't really necessary, but you should probably do it
     /// anyway for readability's sake.
-    pub fn set_block(
-        &mut self,
-        x: i32,
-        y: i32,
-        z: i32,
-        block: BlockStateId,
-    ) -> Result<(), WorldError> {
-        let old_block = self.get_block(x, y, z)?;
+    pub fn set_block(&mut self, pos: ChunkBlockPos, block: BlockStateId) -> Result<(), WorldError> {
+        let old_block = self.get_block(pos)?;
         if old_block == block {
             return Ok(());
         }
@@ -229,8 +215,10 @@ impl Chunk {
         let section = self
             .sections
             .iter_mut()
-            .find(|section| section.y == (y >> 4) as i8)
-            .ok_or(WorldError::SectionOutOfBounds(y >> 4))?;
+            .find(|section| section.y == pos.pos.y.div_euclid(16) as i8)
+            .ok_or(WorldError::SectionOutOfBounds(
+                pos.pos.y.div_euclid(16) as i32
+            ))?;
 
         // from single palette to indirect palette if needed
         let mut converted = false;
@@ -330,8 +318,7 @@ impl Chunk {
                 ..
             } => {
                 let blocks_per_i64 = (64f64 / *bits_per_block as f64).floor() as usize;
-                let index =
-                    ((y.abs() & 0xf) * 256 + (z.abs() & 0xf) * 16 + (x.abs() & 0xf)) as usize;
+                let index = (pos.pos.y * 256 + pos.pos.z * 16 + pos.pos.x) as usize;
                 let i64_index = index / blocks_per_i64;
 
                 let packed_u64 =
@@ -390,12 +377,14 @@ impl Chunk {
     /// The positions are modulo'd by 16 to get the block index in the section anyway, so converting
     /// the coordinates to section coordinates isn't really necessary, but you should probably do it
     /// anyway for readability's sake.
-    pub fn get_block(&self, x: i32, y: i32, z: i32) -> Result<BlockStateId, WorldError> {
+    pub fn get_block(&self, pos: ChunkBlockPos) -> Result<BlockStateId, WorldError> {
         let section = self
             .sections
             .iter()
-            .find(|section| section.y == (y / 16) as i8)
-            .ok_or(WorldError::SectionOutOfBounds(y >> 4))?;
+            .find(|section| section.y == (pos.pos.y.div_euclid(16)) as i8)
+            .ok_or(WorldError::SectionOutOfBounds(
+                pos.pos.y.div_euclid(16) as i32
+            ))?;
         match &section.block_states.block_data {
             PaletteType::Single(val) => Ok(BlockStateId::from_varint(*val)),
             PaletteType::Indirect {
@@ -407,7 +396,7 @@ impl Chunk {
                     return Ok(BlockStateId::from_varint(palette[0]));
                 }
                 let blocks_per_i64 = (64f64 / *bits_per_block as f64).floor() as usize;
-                let index = ((y & 0xf) * 256 + (z & 0xf) * 16 + (x & 0xf)) as usize;
+                let index = (pos.pos.y * 256 + pos.pos.z * 16 + pos.pos.x) as usize;
                 let i64_index = index / blocks_per_i64;
                 let packed_u64 = data
                     .get(i64_index)

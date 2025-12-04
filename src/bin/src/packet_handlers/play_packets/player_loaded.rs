@@ -5,6 +5,7 @@ use ferrumc_net::packets::outgoing::synchronize_player_position::SynchronizePlay
 use ferrumc_net::PlayerLoadedReceiver;
 use ferrumc_state::GlobalStateResource;
 use ferrumc_world::block_state_id::BlockStateId;
+use ferrumc_world::pos::BlockPos;
 use tracing::warn;
 
 pub fn handle(
@@ -24,12 +25,12 @@ pub fn handle(
             );
             continue;
         }
-        let head_block = state.0.world.get_block_and_fetch(
+        let pos = BlockPos::of(
             player_pos.x as i32,
             player_pos.y as i32,
             player_pos.z as i32,
-            "overworld",
         );
+        let head_block = state.0.world.get_block_and_fetch(pos, "overworld");
         if let Ok(head_block) = head_block {
             if head_block == BlockStateId(0) {
                 tracing::info!(
