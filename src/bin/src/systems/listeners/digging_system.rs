@@ -285,7 +285,7 @@ fn break_block(
                 .0
                 .clone()
                 .terrain_generator
-                .generate_chunk(BlockPos::from(position.clone()).chunk())
+                .generate_chunk(pos.chunk())
                 .map_err(BinaryError::WorldGen)?
         }
     };

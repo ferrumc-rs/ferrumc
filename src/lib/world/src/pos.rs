@@ -154,7 +154,7 @@ impl ChunkPos {
     }
 
     pub fn pack(&self) -> u64 {
-        (self.pos.y as u64) << (32 - 8) | self.pos.x as u64 >> 4
+        (((self.z() as u64) & ((1 << 22) - 1)) << 22) | ((self.x() as u64) & ((1 << 22) - 1))
     }
 }
 
