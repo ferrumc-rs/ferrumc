@@ -45,18 +45,15 @@ pub fn generate_spawn_chunks(state: GlobalState) -> Result<(), BinaryError> {
     for (x, z) in chunks {
         let state_clone = state.clone();
         batch.execute(move || {
+            let pos = ChunkPos::new(x, z);
             let chunk = state_clone
                 .terrain_generator
-                .generate_chunk(ChunkPos::new(x, z))
+                .generate_chunk(pos)
                 .map(Arc::new);
 
             match chunk {
                 Ok(chunk) => {
-                    if let Err(e) =
-                        state_clone
-                            .world
-                            .save_chunk(ChunkPos::new(x, z), "overworld", chunk)
-                    {
+                    if let Err(e) = state_clone.world.save_chunk(pos, "overworld", chunk) {
                         error!("Error saving chunk ({}, {}): {:?}", x, z, e);
                     }
                 }
