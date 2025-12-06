@@ -259,7 +259,7 @@ impl ColumnPos {
     }
 
     pub fn chunk(self) -> ChunkPos {
-        ChunkPos::new(self.pos.x, self.pos.y)
+        ChunkPos::new(self.pos.x.div_euclid(16), self.pos.y.div_euclid(16))
     }
 
     pub fn x(&self) -> i32 {
