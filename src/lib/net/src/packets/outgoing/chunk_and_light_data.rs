@@ -6,6 +6,7 @@ use ferrumc_net_codec::net_types::byte_array::ByteArray;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_world::chunk_format::{Chunk, PaletteType};
+use ferrumc_world::pos::ChunkPos;
 use std::io::Cursor;
 use std::ops::Not;
 use tracing::warn;
@@ -71,15 +72,15 @@ impl ChunkAndLightData {
         }
     }
 
-    pub fn from_chunk(chunk: &Chunk) -> Result<Self, NetError> {
+    pub fn from_chunk(pos: ChunkPos, chunk: &Chunk) -> Result<Self, NetError> {
         let mut raw_data = Cursor::new(Vec::new());
         let mut sky_light_data = Vec::new();
         let mut block_light_data = Vec::new();
         for section in &chunk.sections {
             let section_sky_light_data = if section.sky_light.len() != 2048 {
                 warn!(
-                    "Sky light data for section at {}, {} is not 2048 bytes long",
-                    chunk.x, chunk.z
+                    "Sky light data for section at {} is not 2048 bytes long",
+                    pos
                 );
                 vec![255; 2048]
             } else {
@@ -88,8 +89,8 @@ impl ChunkAndLightData {
             sky_light_data.push(section_sky_light_data);
             let section_block_light_data = if section.block_light.len() != 2048 {
                 warn!(
-                    "Block light data for section at {}, {} is not 2048 bytes long",
-                    chunk.x, chunk.z
+                    "Block light data for section at {} is not 2048 bytes long",
+                    pos
                 );
                 vec![255; 2048]
             } else {
@@ -175,8 +176,8 @@ impl ChunkAndLightData {
         ];
 
         Ok(ChunkAndLightData {
-            chunk_x: chunk.x,
-            chunk_z: chunk.z,
+            chunk_x: pos.x(),
+            chunk_z: pos.z(),
             heightmaps: LengthPrefixedVec::new(heightmaps),
             data: ByteArray::new(raw_data.into_inner()),
             block_entities: LengthPrefixedVec::new(Vec::new()),

@@ -138,7 +138,7 @@ mod tests {
     #[test]
     fn test_item_id_from_block_state_stone() {
         // BlockStateId(1) is "minecraft:stone"
-        let block_state_id = BlockStateId(1);
+        let block_state_id = BlockStateId::new(1);
 
         let item_id = ItemID::from_block_state(block_state_id);
         assert!(
@@ -159,7 +159,7 @@ mod tests {
     #[test]
     fn test_item_id_from_block_state_grass() {
         // BlockStateId(9) is "minecraft:grass_block" with snowy=false
-        let block_state_id = BlockStateId(9);
+        let block_state_id = BlockStateId::new(9);
 
         let item_id = ItemID::from_block_state(block_state_id);
         assert!(
@@ -180,7 +180,7 @@ mod tests {
     #[test]
     fn test_item_id_from_block_state_air() {
         // BlockStateId(0) is "minecraft:air"
-        let block_state_id = BlockStateId(0);
+        let block_state_id = BlockStateId::new(0);
 
         let item_id = ItemID::from_block_state(block_state_id);
         assert!(

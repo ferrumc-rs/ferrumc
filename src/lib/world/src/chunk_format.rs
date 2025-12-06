@@ -1,4 +1,5 @@
 use crate::block_state_id::{BlockStateId, BLOCK2ID};
+use crate::pos::ChunkHeight;
 use crate::vanilla_chunk_format;
 use crate::vanilla_chunk_format::VanillaChunk;
 use crate::{errors::WorldError, vanilla_chunk_format::VanillaHeightmaps};
@@ -23,9 +24,7 @@ use tracing::error;
 #[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug)]
 // This is a placeholder for the actual chunk format
 pub struct Chunk {
-    pub x: i32,
-    pub z: i32,
-    pub dimension: String,
+    pub min_y: i16,
     pub sections: Vec<Section>,
     pub heightmaps: Heightmaps,
 }
@@ -41,7 +40,6 @@ pub struct Heightmaps {
 }
 #[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug)]
 pub struct Section {
-    pub y: i8,
     pub block_states: BlockStates,
     pub biome_states: BiomeStates,
     pub block_light: Vec<u8>,
@@ -119,7 +117,28 @@ impl From<VanillaHeightmaps> for Heightmaps {
 
 impl VanillaChunk {
     pub fn to_custom_format(&self) -> Result<Chunk, WorldError> {
-        let mut sections = Vec::new();
+        let height = if self.dimension.as_ref().is_none_or(|s| s == "overworld") {
+            ChunkHeight::new(-64, 384)
+        } else {
+            ChunkHeight::new(0, 256)
+        };
+        let mut sections = vec![
+            Section {
+                block_states: BlockStates {
+                    non_air_blocks: 0,
+                    block_data: PaletteType::Single(VarInt::from(0)),
+                    block_counts: HashMap::from([(BlockStateId::default(), 4096)]),
+                },
+                biome_states: BiomeStates {
+                    bits_per_biome: 0,
+                    data: vec![],
+                    palette: vec![VarInt::from(0)],
+                },
+                block_light: vec![255; 2048],
+                sky_light: vec![255; 2048],
+            };
+            height.height as usize >> 4
+        ];
         for section in self.sections.as_ref().unwrap() {
             let y = section.y;
             let raw_block_data = section
@@ -196,23 +215,18 @@ impl VanillaChunk {
                 palette: vec![VarInt::from(0); 1],
             };
             let section = Section {
-                y,
                 block_states,
                 biome_states,
                 block_light,
                 sky_light,
             };
-            sections.push(section);
+            sections[(y - (height.min_y >> 4) as i8) as usize] = section;
         }
-
-        let dimension = self.dimension.clone().unwrap_or("overworld".to_string());
 
         let heightmaps: Heightmaps = self.heightmaps.clone().map(Into::into).unwrap_or_default();
 
         Ok(Chunk {
-            x: self.x_pos,
-            z: self.z_pos,
-            dimension,
+            min_y: height.min_y,
             sections,
             heightmaps,
         })
@@ -220,10 +234,10 @@ impl VanillaChunk {
 }
 
 impl Chunk {
-    pub fn new(x: i32, z: i32, dimension: String) -> Self {
-        let mut sections: Vec<Section> = (-4..20)
-            .map(|y| Section {
-                y: y as i8,
+    pub fn new(height: ChunkHeight) -> Self {
+        let mut sections: Vec<Section> = (height.min_y.div_euclid(16)
+            ..height.max_y().div_euclid(16))
+            .map(|_| Section {
                 block_states: BlockStates {
                     non_air_blocks: 0,
                     block_data: PaletteType::Single(VarInt::from(0)),
@@ -241,14 +255,21 @@ impl Chunk {
         for section in &mut sections {
             section.optimise().expect("Failed to optimise section");
         }
-        block!("stone");
         Chunk {
-            x,
-            z,
-            dimension,
+            min_y: height.min_y,
             sections,
             heightmaps: Heightmaps::new(),
         }
+    }
+
+    pub fn get_section_mut(&mut self, section: i8) -> Option<&mut Section> {
+        self.sections
+            .get_mut((section - (self.min_y >> 4) as i8) as usize)
+    }
+
+    pub fn get_section(&self, section: i8) -> Option<&Section> {
+        self.sections
+            .get((section - (self.min_y >> 4) as i8) as usize)
     }
 }
 
@@ -259,15 +280,15 @@ mod tests {
 
     #[test]
     fn test_chunk_set_block() {
-        let mut chunk = Chunk::new(0, 0, "overworld".to_string());
+        let mut chunk = Chunk::new(ChunkHeight::new(-64, 384));
         let block = block!("stone");
-        chunk.set_block(0, 0, 0, block).unwrap();
-        assert_eq!(chunk.get_block(0, 0, 0).unwrap(), block);
+        chunk.set_block((0, 0, 0).into(), block).unwrap();
+        assert_eq!(chunk.get_block((0, 0, 0).into()).unwrap(), block);
     }
 
     #[test]
     fn test_chunk_fill() {
-        let mut chunk = Chunk::new(0, 0, "overworld".to_string());
+        let mut chunk = Chunk::new(ChunkHeight::new(-64, 384));
         let stone_block = block!("stone");
         chunk.fill(stone_block).unwrap();
         for section in &chunk.sections {
@@ -281,7 +302,6 @@ mod tests {
     #[test]
     fn test_section_fill() {
         let mut section = Section {
-            y: 0,
             block_states: BlockStates {
                 non_air_blocks: 0,
                 block_data: PaletteType::Single(VarInt::from(0)),
@@ -309,18 +329,18 @@ mod tests {
 
     #[test]
     fn test_false_positive() {
-        let mut chunk = Chunk::new(0, 0, "overworld".to_string());
+        let mut chunk = Chunk::new(ChunkHeight::new(-64, 384));
         let block = block!("stone");
-        chunk.set_block(0, 0, 0, block).unwrap();
-        assert_ne!(chunk.get_block(0, 1, 0).unwrap(), block);
+        chunk.set_block((0, 0, 0).into(), block).unwrap();
+        assert_ne!(chunk.get_block((0, 1, 0).into()).unwrap(), block);
     }
 
     #[test]
     fn test_doesnt_fail() {
-        let mut chunk = Chunk::new(0, 0, "overworld".to_string());
+        let mut chunk = Chunk::new(ChunkHeight::new(-64, 384));
         let block = block!("stone");
-        assert!(chunk.set_block(0, 0, 0, block).is_ok());
-        assert!(chunk.set_block(0, 0, 0, block).is_ok());
-        assert!(chunk.get_block(0, 0, 0).is_ok());
+        assert!(chunk.set_block((0, 0, 0).into(), block).is_ok());
+        assert!(chunk.set_block((0, 0, 0).into(), block).is_ok());
+        assert!(chunk.get_block((0, 0, 0).into()).is_ok());
     }
 }

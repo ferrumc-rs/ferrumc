@@ -1,4 +1,5 @@
 use crate::errors::WorldError;
+use crate::pos::ChunkPos;
 use crate::vanilla_chunk_format::VanillaChunk;
 use crate::World;
 use ferrumc_anvil::load_anvil_file;
@@ -91,8 +92,11 @@ impl World {
                             let self_clone = arc_self.clone();
                             let progress = progress.clone();
                             move || {
-                                let res =
-                                    self_clone.save_chunk(vanilla_chunk.to_custom_format()?.into());
+                                let res = self_clone.save_chunk(
+                                    ChunkPos::new(vanilla_chunk.x_pos, vanilla_chunk.z_pos),
+                                    vanilla_chunk.dimension.as_deref().unwrap_or("overworld"),
+                                    vanilla_chunk.to_custom_format()?.into(),
+                                );
                                 progress.inc(1);
                                 if index == location_count - 1 {
                                     self_clone.storage_backend.flush()?;

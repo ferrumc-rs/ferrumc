@@ -11,6 +11,7 @@ use ferrumc_net::packets::outgoing::chunk_batch_start::ChunkBatchStart;
 use ferrumc_net::packets::outgoing::set_center_chunk::SetCenterChunk;
 use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::GlobalStateResource;
+use ferrumc_world::pos::ChunkPos;
 use std::sync::atomic::Ordering;
 
 // Just take the needed chunks from the ChunkReceiver and send them
@@ -68,7 +69,7 @@ pub fn handle(
         })
         .expect("Failed to send SetCenterChunk");
 
-        for coordinates in needed_chunks {
+        for coordinates in needed_chunks.into_iter().map(|c| ChunkPos::new(c.0, c.1)) {
             let state = state.clone();
             let is_compressed = conn.compress.load(Ordering::Relaxed);
             batch.execute({
@@ -76,16 +77,16 @@ pub fn handle(
                     let chunk = state
                         .0
                         .world
-                        .load_chunk(coordinates.0, coordinates.1, "overworld")
+                        .load_chunk(coordinates, "overworld")
                         .unwrap_or(
                             state
                                 .0
                                 .terrain_generator
-                                .generate_chunk(coordinates.0, coordinates.1)
+                                .generate_chunk(coordinates)
                                 .expect("Could not generate chunk")
                                 .into(),
                         );
-                    let packet = ChunkAndLightData::from_chunk(&chunk)
+                    let packet = ChunkAndLightData::from_chunk(coordinates, &chunk)
                         .expect("Failed to create ChunkAndLightData");
                     compress_packet(
                         &packet,

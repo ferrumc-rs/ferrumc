@@ -4,6 +4,7 @@ use crate::cli::{CLIArgs, Command};
 use crate::errors::BinaryError;
 use clap::Parser;
 use ferrumc_config::whitelist::create_whitelist;
+use ferrumc_world::pos::ChunkPos;
 use std::sync::Arc;
 use std::time::Instant;
 use tracing::{error, info};
@@ -72,8 +73,10 @@ fn entry(start_time: Instant) -> Result<(), BinaryError> {
     let global_state = Arc::new(state);
 
     create_whitelist();
-
-    if !global_state.world.chunk_exists(0, 0, "overworld")? {
+    if !global_state
+        .world
+        .chunk_exists(ChunkPos::new(0, 0), "overworld")?
+    {
         launch::generate_spawn_chunks(global_state.clone())?;
     }
 

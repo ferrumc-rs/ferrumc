@@ -1,11 +1,11 @@
 use crate::block_state_id::BlockStateId;
-use crate::chunk_format::{BiomeStates, BlockStates, Chunk, PaletteType};
+use crate::chunk_format::{Chunk, PaletteType};
+use crate::pos::ChunkBlockPos;
 use crate::WorldError;
 use ahash::{AHashMap, AHashSet, AHasher};
 use ferrumc_general_purpose::data_packing::i32::read_nbit_i32;
 use ferrumc_general_purpose::data_packing::u32::write_nbit_u32;
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 
 /// A batched block editing utility for a single Minecraft chunk.
@@ -20,10 +20,12 @@ use std::hash::{Hash, Hasher};
 /// # use ferrumc_world::chunk_format::Chunk;
 /// # use ferrumc_world::edit_batch::EditBatch;
 /// # use ferrumc_world::vanilla_chunk_format::BlockData;
-/// # let mut chunk = Chunk::new(0, 0, "overworld".to_string());
+/// # use ferrumc_world::pos::ChunkBlockPos;
+/// # use ferrumc_world::pos::ChunkHeight;
+/// # let mut chunk = Chunk::new(ChunkHeight::new(-64, 384));
 /// let mut batch = EditBatch::new(&mut chunk);
-/// batch.set_block(1, 64, 1, block!("stone"));
-/// batch.set_block(2, 64, 1, block!("stone"));
+/// batch.set_block(ChunkBlockPos::new(1, 64, 1), block!("stone"));
+/// batch.set_block(ChunkBlockPos::new(2, 64, 1), block!("stone"));
 /// batch.apply().unwrap();
 /// ```
 ///
@@ -37,14 +39,11 @@ pub struct EditBatch<'a> {
     pub(crate) edits: Vec<Edit>,
     chunk: &'a mut Chunk,
     tmp_palette_map: AHashMap<BlockStateId, usize>,
-    used: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub(crate) struct Edit {
-    pub(crate) x: i32,
-    pub(crate) y: i32,
-    pub(crate) z: i32,
+    pub(crate) pos: ChunkBlockPos,
     pub(crate) block: BlockStateId,
 }
 
@@ -66,27 +65,21 @@ impl<'a> EditBatch<'a> {
             edits: Vec::new(),
             chunk,
             tmp_palette_map: AHashMap::with_capacity(map_capacity),
-            used: false,
         }
     }
 
     /// Sets a block at the given chunk-relative coordinates.
     ///
     /// This won't have any effect until `apply()` is called.
-    pub fn set_block(&mut self, x: i32, y: i32, z: i32, block: BlockStateId) {
-        self.edits.push(Edit { x, y, z, block });
+    pub fn set_block(&mut self, pos: ChunkBlockPos, block: BlockStateId) {
+        self.edits.push(Edit { pos, block });
     }
 
     /// Applies all edits in the batch to the chunk.
     ///
     /// This will modify the chunk in place and clear the batch.
-    /// Will return an error if the batch has already been used or if there are no edits.
-    pub fn apply(&mut self) -> Result<(), WorldError> {
-        if self.used {
-            return Err(WorldError::InvalidBatchingOperation(
-                "EditBatch has already been used".to_string(),
-            ));
-        }
+    /// Will return an error if there are no edits.
+    pub fn apply(mut self) -> Result<(), WorldError> {
         if self.edits.is_empty() {
             return Err(WorldError::InvalidBatchingOperation(
                 "No edits to apply".to_string(),
@@ -99,9 +92,9 @@ impl<'a> EditBatch<'a> {
         // Convert edits into per-section sparse arrays (Vec<Option<&Edit>>),
         // using block index (0..4095) as the key instead of hashing 3D coords
         for edit in &self.edits {
-            let section_index = (edit.y >> 4) as i8;
+            let section_index = edit.pos.section();
             // Compute linear index within section (16x16x16 = 4096 blocks)
-            let index = ((edit.y & 0xf) * 256 + (edit.z & 0xf) * 16 + (edit.x & 0xf)) as usize;
+            let index = edit.pos.section_block_pos().pack() as usize;
             let section_vec = section_edits
                 .entry(section_index)
                 .or_insert_with(|| vec![None; 4096]);
@@ -113,7 +106,6 @@ impl<'a> EditBatch<'a> {
             if edits_vec.is_empty() || edits_vec.iter().all(|e| e.is_none()) {
                 continue;
             }
-            let section_maybe = self.chunk.sections.iter_mut().find(|s| s.y == section_y);
             // let first_edit = edits_vec
             //     .iter()
             //     .find(|e| e.is_some())
@@ -122,38 +114,10 @@ impl<'a> EditBatch<'a> {
             //     .unwrap();
             let mut block_count_adds = AHashMap::new();
             let mut block_count_removes = AHashMap::new();
-
-            let section = match section_maybe {
-                Some(section) => {
-                    // If the section exists, we can just use it
-                    section
-                }
-                None => &mut {
-                    // If the section doesn't exist, create it
-                    let new_section = crate::chunk_format::Section {
-                        y: section_y,
-                        block_states: BlockStates {
-                            non_air_blocks: 0,
-                            block_data: PaletteType::Single(VarInt::default()),
-                            block_counts: HashMap::from([(BlockStateId::default(), 4096)]),
-                        },
-                        // Biomes don't really matter for this, so we can just use empty data
-                        biome_states: BiomeStates {
-                            bits_per_biome: 0,
-                            data: vec![],
-                            palette: vec![],
-                        },
-                        block_light: vec![255; 2048],
-                        sky_light: vec![255; 2048],
-                    };
-                    self.chunk.sections.push(new_section);
-                    self.chunk
-                        .sections
-                        .iter_mut()
-                        .find(|s| s.y == section_y)
-                        .expect("Section should exist after push")
-                },
-            };
+            let section = self
+                .chunk
+                .get_section_mut(section_y)
+                .ok_or(WorldError::SectionOutOfBounds(section_y as i32))?;
 
             // // check if all the edits in 1 section are the same
             // let all_same = edits_vec
@@ -211,7 +175,7 @@ impl<'a> EditBatch<'a> {
 
             for maybe_edit in edits_vec.iter() {
                 let Some(edit) = maybe_edit else { continue };
-                let index = ((edit.y & 0xf) * 256 + (edit.z & 0xf) * 16 + (edit.x & 0xf)) as usize;
+                let index = edit.pos.section_block_pos().pack() as usize;
 
                 let palette_index = if let Some(&idx) = self.tmp_palette_map.get(&edit.block) {
                     idx
@@ -302,7 +266,6 @@ impl<'a> EditBatch<'a> {
 
         // Clear edits after applying
         self.edits.clear();
-        self.used = true;
 
         Ok(())
     }
@@ -312,6 +275,7 @@ impl<'a> EditBatch<'a> {
 mod tests {
     use super::*;
     use crate::chunk_format::Chunk;
+    use crate::pos::ChunkHeight;
     use crate::vanilla_chunk_format::BlockData;
 
     fn make_test_block(name: &str) -> BlockStateId {
@@ -324,20 +288,20 @@ mod tests {
 
     #[test]
     fn test_single_block_edit() {
-        let mut chunk = Chunk::new(0, 0, "overworld".to_string());
+        let mut chunk = Chunk::new(ChunkHeight::new(-64, 384));
         let block = make_test_block("minecraft:stone");
 
         let mut batch = EditBatch::new(&mut chunk);
-        batch.set_block(1, 1, 1, block);
+        batch.set_block((1, 1, 1).into(), block);
         batch.apply().unwrap();
 
-        let got = chunk.get_block(1, 1, 1).unwrap();
+        let got = chunk.get_block((1, 1, 1).into()).unwrap();
         assert_eq!(got, block);
     }
 
     #[test]
     fn test_multi_block_edits() {
-        let mut chunk = Chunk::new(0, 0, "overworld".to_string());
+        let mut chunk = Chunk::new(ChunkHeight::new(-64, 384));
         let stone = make_test_block("minecraft:stone");
         let dirt = make_test_block("minecraft:dirt");
 
@@ -346,7 +310,7 @@ mod tests {
             for y in 0..4 {
                 for z in 0..4 {
                     let block = if (x + y + z) % 2 == 0 { stone } else { dirt };
-                    batch.set_block(x, y, z, block);
+                    batch.set_block((x as u8, y, z as u8).into(), block);
                 }
             }
         }
@@ -356,7 +320,7 @@ mod tests {
             for y in 0..4 {
                 for z in 0..4 {
                     let expected = if (x + y + z) % 2 == 0 { &stone } else { &dirt };
-                    let got = chunk.get_block(x, y, z).unwrap();
+                    let got = chunk.get_block((x as u8, y, z as u8).into()).unwrap();
                     assert_eq!(&got, expected);
                 }
             }

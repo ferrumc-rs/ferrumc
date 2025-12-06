@@ -8,6 +8,7 @@ use ferrumc_state::player_cache::PlayerCache;
 use ferrumc_state::player_list::PlayerList;
 use ferrumc_state::{GlobalState, ServerState};
 use ferrumc_threadpool::ThreadPool;
+use ferrumc_world::pos::ChunkPos;
 use ferrumc_world::World;
 use ferrumc_world_gen::WorldGenerator;
 use std::sync::Arc;
@@ -44,14 +45,15 @@ pub fn generate_spawn_chunks(state: GlobalState) -> Result<(), BinaryError> {
     for (x, z) in chunks {
         let state_clone = state.clone();
         batch.execute(move || {
+            let pos = ChunkPos::new(x, z);
             let chunk = state_clone
                 .terrain_generator
-                .generate_chunk(x, z)
+                .generate_chunk(pos)
                 .map(Arc::new);
 
             match chunk {
                 Ok(chunk) => {
-                    if let Err(e) = state_clone.world.save_chunk(chunk) {
+                    if let Err(e) = state_clone.world.save_chunk(pos, "overworld", chunk) {
                         error!("Error saving chunk ({}, {}): {:?}", x, z, e);
                     }
                 }
