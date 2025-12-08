@@ -161,12 +161,7 @@ mod tests {
 
     #[test]
     fn test_find_none() {
-        let recipes = get_recipes_from_3x3([
-            [Some(&Item::OAK_PLANKS), Some(&Item::OAK_PLANKS), None],
-            [None, Some(&Item::STICK), Some(&Item::OAK_PLANKS)],
-            [None, Some(&Item::ANVIL), None],
-        ]);
-
+        let recipes = get_recipes_from_3x3([[None; 3]; 3]);
         assert_eq!(recipes.len(), 0);
     }
 

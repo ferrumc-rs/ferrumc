@@ -156,7 +156,7 @@ pub(crate) fn build() -> TokenStream {
     .expect("Failed to parse entities.json");
 
     let mut consts = TokenStream::new();
-    let mut type_from_raw_id_arms = TokenStream::new();
+    let mut type_from_id_arms = TokenStream::new();
     let mut type_from_name = TokenStream::new();
 
     for (name, entity) in json.iter() {
@@ -168,7 +168,7 @@ pub(crate) fn build() -> TokenStream {
         });
 
         let id_lit = LitInt::new(&entity.id.to_string(), Span::call_site());
-        type_from_raw_id_arms.extend(quote! {
+        type_from_id_arms.extend(quote! {
             #id_lit => Some(&Self::#upper_name),
         });
 
@@ -284,15 +284,17 @@ pub(crate) fn build() -> TokenStream {
         impl EntityType {
             #consts
 
-            pub const fn from_raw(id: u16) -> Option<&'static Self> {
+            #[doc = r" Try to get an `EntityType` from its ID."]
+            pub const fn try_from_id(id: u16) -> Option<&'static Self> {
                 match id {
-                    #type_from_raw_id_arms
+                    #type_from_id_arms
                     _ => None
                 }
             }
 
-            pub fn from_name(name: &str) -> Option<&'static Self> {
-                let name = name.strip_prefix("minecraft:").unwrap_or(name);
+            #[doc = r" Try to parse an `EntityType` from a resource location string."]
+            pub const fn try_from_name(name: &str) -> Option<&'static Self> {
+                let name = crate::helpers::strip_prefix_or_self(name, "minecraft:");
                 match name {
                     #type_from_name
                     _ => None

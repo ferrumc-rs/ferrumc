@@ -117,8 +117,8 @@ pub enum Particle {
 }
 impl Particle {
     #[doc = r" Try to parse a `Particle` from a resource location string."]
-    pub fn from_name(name: &str) -> Option<Self> {
-        let name = name.strip_prefix("minecraft:").unwrap_or(name);
+    pub fn try_from_name(name: &str) -> Option<Self> {
+        let name = crate::helpers::strip_prefix_or_self(name, "minecraft:");
         match name {
             "angry_villager" => Some(Self::AngryVillager),
             "block" => Some(Self::Block),

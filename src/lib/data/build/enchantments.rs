@@ -165,8 +165,8 @@ pub(crate) fn build() -> TokenStream {
             #constants
 
             #[doc = r" Try to parse an `Enchantment` from a resource location string."]
-            pub fn from_name(name: &str) -> Option<&'static Self> {
-                let name = name.strip_prefix("minecraft:").unwrap_or(name);
+            pub const fn try_from_name(name: &str) -> Option<&'static Self> {
+                let name = crate::helpers::strip_prefix_or_self(name, "minecraft:");
                 match name {
                     #type_from_name
                     _ => None
@@ -174,7 +174,7 @@ pub(crate) fn build() -> TokenStream {
             }
 
             #[doc = r" Try to get an `Enchantment` from its ID."]
-            pub const fn from_id(id: u16) -> Option<&'static Self> {
+            pub const fn try_from_id(id: u16) -> Option<&'static Self> {
                 match id {
                     #type_from_id_arms
                     _ => None

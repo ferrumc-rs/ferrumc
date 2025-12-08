@@ -24825,8 +24825,8 @@ impl Recipe {
         &Self::RECIPE_1406,
     ];
     #[doc = r" Try to parse a `Recipe` from a resource location string."]
-    pub fn from_name(name: &str) -> Option<&'static Self> {
-        let name = name.strip_prefix("minecraft:").unwrap_or(name);
+    pub const fn try_from_name(name: &str) -> Option<&'static Self> {
+        let name = crate::helpers::strip_prefix_or_self(name, "minecraft:");
         match name {
             "recipe_0" => Some(&Self::RECIPE_0),
             "recipe_1" => Some(&Self::RECIPE_1),
@@ -26239,14 +26239,14 @@ impl Recipe {
         }
     }
     #[doc = r" Check if this is a crafting recipe."]
-    pub fn is_crafting(&self) -> bool {
+    pub const fn is_crafting(&self) -> bool {
         matches!(
             self.recipe_type,
             RecipeType::CraftingShaped | RecipeType::CraftingShapeless
         )
     }
     #[doc = r" Check if this is a smelting recipe."]
-    pub fn is_smelting(&self) -> bool {
+    pub const fn is_smelting(&self) -> bool {
         matches!(
             self.recipe_type,
             RecipeType::Smelting
@@ -26256,11 +26256,11 @@ impl Recipe {
         )
     }
     #[doc = r" Check if this is a stonecutting recipe."]
-    pub fn is_stonecutting(&self) -> bool {
-        self.recipe_type == RecipeType::Stonecutting
+    pub const fn is_stonecutting(&self) -> bool {
+        matches!(self.recipe_type, RecipeType::Stonecutting)
     }
     #[doc = r" Check if this is a smithing recipe."]
-    pub fn is_smithing(&self) -> bool {
+    pub const fn is_smithing(&self) -> bool {
         matches!(
             self.recipe_type,
             RecipeType::SmithingTrim | RecipeType::SmithingTransform

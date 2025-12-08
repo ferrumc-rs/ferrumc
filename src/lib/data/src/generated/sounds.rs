@@ -1731,8 +1731,8 @@ pub enum Sound {
 }
 impl Sound {
     #[doc = r" Try to parse a `Sound` from a resource location string."]
-    pub fn from_name(name: &str) -> Option<Self> {
-        let name = name.strip_prefix("minecraft:").unwrap_or(name);
+    pub const fn try_from_name(name: &str) -> Option<Self> {
+        let name = crate::helpers::strip_prefix_or_self(name, "minecraft:");
         match name {
             "entity.allay.ambient_with_item" => Some(Self::EntityAllayAmbientWithItem),
             "entity.allay.ambient_without_item" => Some(Self::EntityAllayAmbientWithoutItem),
@@ -3507,6 +3507,7 @@ impl Sound {
             _ => None,
         }
     }
+    #[doc = r" Get name of the type."]
     pub const fn to_name(&self) -> &'static str {
         match self {
             Self::EntityAllayAmbientWithItem => "entity.allay.ambient_with_item",

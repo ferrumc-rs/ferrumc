@@ -42,8 +42,8 @@ pub enum Effect {
 }
 impl Effect {
     #[doc = r" Try to parse an `Effect` from a resource location string."]
-    pub fn from_name(name: &str) -> Option<Self> {
-        let name = name.strip_prefix("minecraft:").unwrap_or(name);
+    pub const fn try_from_name(name: &str) -> Option<Self> {
+        let name = crate::helpers::strip_prefix_or_self(name, "minecraft:");
         match name {
             "absorption" => Some(Self::Absorption),
             "bad_omen" => Some(Self::BadOmen),

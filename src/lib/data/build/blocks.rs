@@ -75,42 +75,45 @@ pub fn build() -> Result<(), Box<dyn std::error::Error>> {
 
     // Create types.rs
     let mut types_content = String::new();
-    types_content.push_str("#[derive(Debug, Clone, Copy, PartialEq, Eq)]\n");
-    types_content.push_str("pub struct BlockId(pub u32);\n\n");
+    types_content.push_str(
+        "#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct BlockId(pub u32);
 
-    types_content.push_str("#[derive(Debug, Clone, Copy)]\n");
-    types_content.push_str("pub struct Block {\n");
-    types_content.push_str("    pub id: u32,\n");
-    types_content.push_str("    pub name: &'static str,\n");
-    types_content.push_str("    pub translation_key: &'static str,\n");
-    types_content.push_str("    pub hardness: f32,\n");
-    types_content.push_str("    pub blast_resistance: f32,\n");
-    types_content.push_str("    pub slipperiness: f32,\n");
-    types_content.push_str("    pub velocity_multiplier: f32,\n");
-    types_content.push_str("    pub jump_velocity_multiplier: f32,\n");
-    types_content.push_str("    pub luminance: u32,\n");
-    types_content.push_str("    pub item_id: u32,\n");
-    types_content.push_str("}\n\n");
+#[derive(Debug, Clone, Copy)]
+pub struct Block {
+    pub id: u32,
+    pub name: &'static str,
+    pub translation_key: &'static str,
+    pub hardness: f32,
+    pub blast_resistance: f32,
+    pub slipperiness: f32,
+    pub velocity_multiplier: f32,
+    pub jump_velocity_multiplier: f32,
+    pub luminance: u32,
+    pub item_id: u32,
+}
 
-    types_content.push_str("#[derive(Debug, Clone, Copy)]\n");
-    types_content.push_str("pub struct Shape {\n");
-    types_content.push_str("    pub min_x: f64,\n");
-    types_content.push_str("    pub min_y: f64,\n");
-    types_content.push_str("    pub min_z: f64,\n");
-    types_content.push_str("    pub max_x: f64,\n");
-    types_content.push_str("    pub max_y: f64,\n");
-    types_content.push_str("    pub max_z: f64,\n");
-    types_content.push_str("}\n\n");
+#[derive(Debug, Clone, Copy)]
+pub struct Shape {
+    pub min_x: f64,
+    pub min_y: f64,
+    pub min_z: f64,
+    pub max_x: f64,
+    pub max_y: f64,
+    pub max_z: f64,
+}
 
-    types_content.push_str("#[derive(Debug, Clone, Copy)]\n");
-    types_content.push_str("pub struct BlockState {\n");
-    types_content.push_str("    pub id: u32,\n");
-    types_content.push_str("    pub luminance: u32,\n");
-    types_content.push_str("    pub piston_behavior: &'static str,\n");
-    types_content.push_str("    pub collision_shapes: &'static [u32],\n");
-    types_content.push_str("    pub outline_shapes: &'static [u32],\n");
-    types_content.push_str("}\n\n");
+#[derive(Debug, Clone, Copy)]
+pub struct BlockState {
+    pub id: u32,
+    pub luminance: u32,
+    pub piston_behavior: &'static str,
+    pub collision_shapes: &'static [u32],
+    pub outline_shapes: &'static [u32],
+}
 
+",
+    );
     fs::write(blocks_dir.join("types.rs"), types_content)?;
 
     // Create shapes.rs
@@ -132,85 +135,66 @@ pub fn build() -> Result<(), Box<dyn std::error::Error>> {
         let file_name = format!("{}.rs", sanitized_name);
 
         let mut content = String::new();
-        content.push_str("use super::types::{Block, BlockState};\n\n");
 
         // Block constant
         content.push_str(&format!(
-            "pub const {}: Block = Block {{\n",
-            sanitized_name.to_uppercase()
-        ));
-        content.push_str(&format!("    id: {},\n", block.id));
-        content.push_str(&format!("    name: \"{}\",\n", block.name));
-        content.push_str(&format!(
-            "    translation_key: \"{}\",\n",
-            block.translation_key
-        ));
-        content.push_str(&format!(
-            "    hardness: {},\n",
-            format_float(block.hardness)
-        ));
-        content.push_str(&format!(
-            "    blast_resistance: {},\n",
-            format_float(block.blast_resistance)
-        ));
-        content.push_str(&format!(
-            "    slipperiness: {},\n",
-            format_float(block.slipperiness)
-        ));
-        content.push_str(&format!(
-            "    velocity_multiplier: {},\n",
-            format_float(block.velocity_multiplier)
-        ));
-        content.push_str(&format!(
-            "    jump_velocity_multiplier: {},\n",
-            format_float(block.jump_velocity_multiplier)
-        ));
+            "use super::types::{{Block, BlockState}};
 
-        // Use first state for basic properties
-        let first_state = &block.states[0];
-        content.push_str(&format!("    luminance: {},\n", first_state.luminance));
-        content.push_str(&format!("    item_id: {},\n", block.item_id));
-        content.push_str("};\n\n");
+pub const {ident}: Block = Block {{
+    id: {id},
+    name: \"{name}\",
+    translation_key: \"{translation_key}\",
+    hardness: {hardness},
+    blast_resistance: {blast_resistance},
+    slipperiness: {slipperiness},
+    velocity_multiplier: {velocity_multiplier},
+    jump_velocity_multiplier: {jump_velocity_multiplier},
+    luminance: {luminance},
+    item_id: {item_id},
+}};\n\n",
+            ident = sanitized_name.to_uppercase(),
+            id = block.id,
+            name = block.name,
+            translation_key = block.translation_key,
+            hardness = format_float(block.hardness),
+            blast_resistance = format_float(block.blast_resistance),
+            slipperiness = format_float(block.slipperiness),
+            velocity_multiplier = format_float(block.velocity_multiplier),
+            jump_velocity_multiplier = format_float(block.jump_velocity_multiplier),
+            luminance = block.states[0].luminance,
+            item_id = block.item_id
+        ));
 
         // States
         if !block.states.is_empty() {
-            content.push_str("pub const STATES: &[BlockState] = &[\n");
+            content.push_str("pub const STATES: &[BlockState] = &[");
             for state in &block.states {
-                content.push_str("    BlockState {\n");
-                content.push_str(&format!("        id: {},\n", state.id));
-                content.push_str(&format!("        luminance: {},\n", state.luminance));
+                content.push_str("");
                 content.push_str(&format!(
-                    "        piston_behavior: \"{}\",\n",
-                    state.piston_behavior
+                    "
+    BlockState {{
+        id: {id},
+        luminance: {luminance},
+        piston_behavior: \"{piston_behavior}\",
+        collision_shapes: &[{collision_shapes}],
+        outline_shapes: &[{outline_shapes}],
+    }},",
+                    id = state.id,
+                    luminance = state.luminance,
+                    piston_behavior = state.piston_behavior,
+                    collision_shapes = state
+                        .collision_shapes
+                        .iter()
+                        .map(|shape_id| shape_id.to_string())
+                        .collect::<Vec<_>>()
+                        .join(", "),
+                    outline_shapes = state
+                        .outline_shapes
+                        .iter()
+                        .map(|shape_id| shape_id.to_string())
+                        .collect::<Vec<_>>()
+                        .join(", ")
                 ));
-
-                if !state.collision_shapes.is_empty() {
-                    content.push_str("        collision_shapes: &[");
-                    for (i, shape_id) in state.collision_shapes.iter().enumerate() {
-                        if i > 0 {
-                            content.push_str(", ");
-                        }
-                        content.push_str(&format!("{}", shape_id));
-                    }
-                    content.push_str("],\n");
-                } else {
-                    content.push_str("        collision_shapes: &[],\n");
-                }
-
-                if !state.outline_shapes.is_empty() {
-                    content.push_str("        outline_shapes: &[");
-                    for (i, shape_id) in state.outline_shapes.iter().enumerate() {
-                        if i > 0 {
-                            content.push_str(", ");
-                        }
-                        content.push_str(&format!("{}", shape_id));
-                    }
-                    content.push_str("],\n");
-                } else {
-                    content.push_str("        outline_shapes: &[],\n");
-                }
-
-                content.push_str("    },\n");
             }
             content.push_str("];\n\n");
         }
@@ -244,7 +228,6 @@ pub fn build() -> Result<(), Box<dyn std::error::Error>> {
     mod_content.push_str("];\n\n");
 
     // Re-exports for direct access (blocks::STONE instead of blocks::stone::STONE)
-    mod_content.push_str("// Re-exports for direct access to block constants\n");
     for block in &data.blocks {
         let sanitized_name = sanitize_name(&block.name);
         mod_content.push_str(&format!(
@@ -256,18 +239,24 @@ pub fn build() -> Result<(), Box<dyn std::error::Error>> {
     mod_content.push('\n');
 
     // Re-export types and lookup functions
-    mod_content.push_str("// Re-export types and lookup functions\n");
-    mod_content.push_str("pub use types::{Block, BlockState, Shape};\n");
-    mod_content.push_str("pub use shapes::SHAPES;\n\n");
+    mod_content.push_str(
+        "pub use types::{Block, BlockState, Shape};
+pub use shapes::SHAPES;
 
-    // Lookup functions
-    mod_content.push_str("impl Block {\n");
-    mod_content.push_str("    pub fn by_id(id: u32) -> Option<&'static Block> {\n");
-    mod_content.push_str("        ALL_BLOCKS.get(id as usize)\n");
-    mod_content.push_str("    }\n\n");
-
-    mod_content.push_str("    pub fn by_name(name: &str) -> Option<&'static Block> {\n");
-    mod_content.push_str("        match &*name.to_lowercase() {\n");
+impl Block {
+    pub const fn try_from_id(id: u32) -> Option<&'static Block> {
+        let id = id as usize;
+        if id < ALL_BLOCKS.len() {
+            Some(&ALL_BLOCKS[id])
+        } else {
+            None
+        }
+    }
+    pub const fn try_from_name(name: &str) -> Option<&'static Block> {
+        let name = crate::helpers::strip_prefix_or_self(name, \"minecraft:\");
+        match name {
+",
+    );
     for block in &data.blocks {
         let sanitized_name = sanitize_name(&block.name);
         mod_content.push_str(&format!(
@@ -277,11 +266,14 @@ pub fn build() -> Result<(), Box<dyn std::error::Error>> {
             sanitized_name.to_uppercase()
         ));
     }
-    mod_content.push_str("            _ => None,\n");
-    mod_content.push_str("        }\n");
-    mod_content.push_str("    }\n");
-    mod_content.push_str("}\n");
-
+    mod_content.push_str(
+        "
+            _ => None,
+        }
+    }
+}
+",
+    );
     fs::write(blocks_dir.join("mod.rs"), mod_content)?;
 
     // Also create a blocks.rs file in the OUT_DIR that includes the module

@@ -829,8 +829,8 @@ impl Enchantment {
         exclusive_set: None,
     };
     #[doc = r" Try to parse an `Enchantment` from a resource location string."]
-    pub fn from_name(name: &str) -> Option<&'static Self> {
-        let name = name.strip_prefix("minecraft:").unwrap_or(name);
+    pub const fn try_from_name(name: &str) -> Option<&'static Self> {
+        let name = crate::helpers::strip_prefix_or_self(name, "minecraft:");
         match name {
             "minecraft:aqua_affinity" => Some(&Self::AQUA_AFFINITY),
             "minecraft:bane_of_arthropods" => Some(&Self::BANE_OF_ARTHROPODS),
@@ -878,7 +878,7 @@ impl Enchantment {
         }
     }
     #[doc = r" Try to get an `Enchantment` from its ID."]
-    pub const fn from_id(id: u16) -> Option<&'static Self> {
+    pub const fn try_from_id(id: u16) -> Option<&'static Self> {
         match id {
             0 => Some(&Self::AQUA_AFFINITY),
             1 => Some(&Self::BANE_OF_ARTHROPODS),

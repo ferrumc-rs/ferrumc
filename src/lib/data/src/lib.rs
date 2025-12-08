@@ -4,7 +4,7 @@
 #![feature(const_cmp)]
 
 pub mod generated;
-
+pub(crate) mod helpers;
 // Include build-generated blocks module
 include!(concat!(env!("OUT_DIR"), "/blocks.rs"));
 

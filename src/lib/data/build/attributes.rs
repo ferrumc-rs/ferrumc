@@ -64,8 +64,8 @@ pub(crate) fn build() -> TokenStream {
             #constants
 
             #[doc = r" Try to parse an `Attribute` from a resource location string."]
-            pub fn from_name(name: &str) -> Option<&'static Self> {
-                let name = name.strip_prefix("minecraft:").unwrap_or(name);
+            pub const fn from_name(name: &str) -> Option<&'static Self> {
+                let name = crate::helpers::strip_prefix_or_self(name, "minecraft:");
                 match name {
                     #type_from_name
                     _ => None

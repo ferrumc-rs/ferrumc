@@ -47,14 +47,14 @@ pub(crate) fn build() -> TokenStream {
 
         impl DamageType {
             #[doc = r" Try to parse a `DamageType` from a resource location string."]
-            pub fn from_name(name: &str) -> Option<Self> {
-                let name = name.strip_prefix("minecraft:").unwrap_or(name);
+            pub const fn try_from_name(name: &str) -> Option<Self> {
+                let name = crate::helpers::strip_prefix_or_self(name, "minecraft:");
                 match name {
                     #type_from_name
                     _ => None
                 }
             }
-
+            #[doc = " Get the name of the `DamageType`"]
             pub const fn to_name(&self) -> &'static str {
                 match self {
                     #type_to_name

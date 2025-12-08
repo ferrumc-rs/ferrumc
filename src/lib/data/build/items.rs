@@ -418,12 +418,12 @@ pub(crate) fn build() -> TokenStream {
 
         let id_lit = LitInt::new(&item.id.to_string(), Span::call_site());
 
-        let name = format!("minecraft:{name}");
+        let registry_key = format!("minecraft:{name}");
 
         constants.extend(quote! {
             pub const #const_ident: Item = Item {
                 id: #id_lit,
-                registry_key: #name,
+                registry_key: #registry_key,
                 components: &[#components_tokens],
             };
         });
@@ -464,7 +464,7 @@ pub(crate) fn build() -> TokenStream {
 
         impl Item {
             #constants
-
+            #[doc = "Get the name of the `Item`"]
             pub fn translated_name(&self) -> String {
                 self.components
                     .iter()
@@ -478,16 +478,16 @@ pub(crate) fn build() -> TokenStream {
             }
 
             #[doc = "Try to parse an item from a resource location string."]
-            pub fn from_registry_key(name: &str) -> Option<&'static Self> {
-                let name = name.strip_prefix("minecraft:").unwrap_or(name);
-                match format!("minecraft:{name}").as_str() {
+            pub const fn try_from_name(name: &str) -> Option<&'static Self> {
+                let name = crate::helpers::strip_prefix_or_self(name, "minecraft:");
+                match name {
                     #type_from_name
                     _ => None
                 }
             }
 
             #[doc = "Try to parse an item from a raw id."]
-            pub const fn from_id(id: u16) -> Option<&'static Self> {
+            pub const fn try_from_id(id: u16) -> Option<&'static Self> {
                 match id {
                     #type_from_raw_id_arms
                     _ => None
