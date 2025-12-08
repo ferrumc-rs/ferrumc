@@ -2,7 +2,7 @@ use std::io::Read;
 use std::process::{Command, Stdio};
 
 fn main() -> std::io::Result<()> {
-    let lock_generator = Command::new("cargo")
+    let _ = Command::new("cargo")
         .args(["generate-lockfile"])
         .stdout(Stdio::piped())
         .spawn()?;

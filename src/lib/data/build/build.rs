@@ -22,12 +22,6 @@ pub const OUT_DIR: &str = "src/generated";
 pub fn main() {
     println!("Running build.rs...");
 
-    // Write a test file to verify build script runs
-    let out_dir = std::env::var("OUT_DIR").unwrap_or_else(|_| "test".to_string());
-    let test_file = std::path::Path::new(&out_dir).join("build_test.txt");
-    std::fs::write(&test_file, "Build script ran!").unwrap();
-    println!("Wrote test file to: {:?}", test_file);
-
     let path = std::path::Path::new(OUT_DIR);
     if !path.exists() {
         let _ = fs::create_dir(OUT_DIR);

@@ -616,8 +616,8 @@ impl Potion {
         }],
     };
     #[doc = r" Try to parse a `Potion` from a resource location string."]
-    pub fn from_name(name: &str) -> Option<&'static Self> {
-        let name = name.strip_prefix("minecraft:").unwrap_or(name);
+    pub const fn try_from_name(name: &str) -> Option<&'static Self> {
+        let name = crate::helpers::strip_prefix_or_self(name, "minecraft:");
         match name {
             "awkward" => Some(&Self::AWKWARD),
             "fire_resistance" => Some(&Self::FIRE_RESISTANCE),
@@ -669,7 +669,7 @@ impl Potion {
         }
     }
     #[doc = r" Try to get a `Potion` from its ID."]
-    pub const fn from_id(id: u16) -> Option<&'static Self> {
+    pub const fn try_from_id(id: u16) -> Option<&'static Self> {
         match id {
             3 => Some(&Self::AWKWARD),
             11 => Some(&Self::FIRE_RESISTANCE),

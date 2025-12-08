@@ -59,7 +59,7 @@ pub fn handle_start_digging(
         let block_id_u32 = block_state_id.0;
 
         // Get Hardness directly using the ID
-        let Some(block_data) = Block::by_id(block_id_u32) else {
+        let Some(block_data) = Block::try_from_id(block_id_u32) else {
             warn!(
                 "Could not find block data for BlockStateId: {}",
                 block_id_u32

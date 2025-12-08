@@ -22,7 +22,7 @@ pub fn update_player_crafting_grid(inventory: &mut Inventory, eid: Entity) {
     ]);
 
     if let Some(first) = recipes.first().and_then(|recipe| recipe.result.as_ref()) {
-        let item = Item::from_registry_key(first.id)
+        let item = Item::try_from_name(first.id)
             .unwrap_or_else(|| panic!("Failed to get item: {:?}", first.id));
 
         let slot = InventorySlot {
@@ -46,5 +46,5 @@ fn get_inventory_slot(inventory: &Inventory, slot: u8) -> Option<&Item> {
         .get_item(slot as usize)
         .ok()
         .and_then(|slot| slot.and_then(|id| id.item_id))
-        .and_then(|item_id| Item::from_id(item_id.0 .0 as u16))
+        .and_then(|item_id| Item::try_from_id(item_id.0 .0 as u16))
 }

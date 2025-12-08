@@ -15,24 +15,30 @@ pub(crate) fn build() -> TokenStream {
     let mut lists = TokenStream::new();
     let mut lookup_fns = TokenStream::new();
 
-    for (name, tag_data) in tags.iter() {
-        let name = name.replace('/', "_");
-        let const_ident = format_ident!("{}_TAGS", name.to_shouty_snake_case());
-        let name_ident = format_ident!("get_{name}_tag");
+    for (tag_name, tag_data) in tags.iter() {
+        let tag_name = tag_name.replace('/', "_");
+        let const_tag_name_ident = format_ident!("{}_TAGS", tag_name.to_shouty_snake_case());
+        let get_function_name_ident = format_ident!("get_{tag_name}_tag");
 
         lookup_fns.extend(quote! {
-            pub fn #name_ident(tag_name: &str) -> Option<&TagData> {
-                Self::#const_ident
-                    .iter()
-                    .filter_map(|tag| if tag.name == tag_name { Some(*tag) } else { None })
-                    .next()
+            pub const fn #get_function_name_ident(tag_name: &str) -> Option<&TagData> {
+                let mut i = 0;
+                let v = Self::#const_tag_name_ident;
+                while i < v.len() {
+                    if v[i].name == tag_name {
+                        return Some(v[i]);
+                    }
+                    i += 1;
+                }
+                None
             }
         });
 
         let mut tag_names = TokenStream::new();
 
         for (tag, values) in tag_data.iter() {
-            let tag_ident = format_ident!("{}_{}", const_ident, tag.to_shouty_snake_case());
+            let tag_ident =
+                format_ident!("{}_{}", const_tag_name_ident, tag.to_shouty_snake_case());
 
             let values = values.iter().map(|value| format!("minecraft:{value}"));
 
@@ -49,7 +55,7 @@ pub(crate) fn build() -> TokenStream {
         }
 
         lists.extend(quote! {
-            pub const #const_ident: &'static [&'static TagData] = &[#tag_names];
+            pub const #const_tag_name_ident: &'static [&'static TagData] = &[#tag_names];
         });
     }
 

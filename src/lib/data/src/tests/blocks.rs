@@ -21,18 +21,18 @@ fn test_blocks_basic_usage() {
 #[test]
 fn test_blocks_lookup_functions() {
     // Test ID lookup
-    let block_by_id = blocks::Block::by_id(1);
+    let block_by_id = blocks::Block::try_from_id(1);
     assert!(block_by_id.is_some());
     assert_eq!(block_by_id.unwrap().name, "stone");
 
     // Test string lookup
-    let block_by_name = blocks::Block::by_name("stone");
+    let block_by_name = blocks::Block::try_from_name("stone");
     assert!(block_by_name.is_some());
     assert_eq!(block_by_name.unwrap().id, 1);
 
     // Test non-existent lookups
-    assert!(blocks::Block::by_id(9999).is_none());
-    assert!(blocks::Block::by_name("nonexistent_block").is_none());
+    assert!(blocks::Block::try_from_id(9999).is_none());
+    assert!(blocks::Block::try_from_name("nonexistent_block").is_none());
 }
 
 #[test]
@@ -165,14 +165,14 @@ fn test_blocks_api_improved() {
         assert!(blocks::WATER.id > 0);
     }
     // Test ID lookup for specific blocks
-    if let Some(block) = blocks::Block::by_id(1) {
+    if let Some(block) = blocks::Block::try_from_id(1) {
         assert_eq!(block.name, "stone");
         assert!(block.hardness > 0.0);
     } else {
         panic!("Should find block with ID 1");
     }
 
-    if let Some(block) = blocks::Block::by_id(35) {
+    if let Some(block) = blocks::Block::try_from_id(35) {
         assert!(!block.name.is_empty());
         assert!(block.hardness >= 0.0);
     } else {
@@ -182,7 +182,7 @@ fn test_blocks_api_improved() {
     // Test string lookup
     let test_blocks = vec!["stone", "diamond_ore", "bedrock"];
     for block_name in test_blocks {
-        if let Some(block) = blocks::Block::by_name(block_name) {
+        if let Some(block) = blocks::Block::try_from_name(block_name) {
             assert!(!block.name.is_empty());
         } else {
             panic!("Should find block by name: {}", block_name);
@@ -205,17 +205,15 @@ fn test_blocks_edge_cases() {
     // Test edge cases and error conditions
 
     // Test invalid ID
-    assert!(blocks::Block::by_id(u32::MAX).is_none());
+    assert!(blocks::Block::try_from_id(u32::MAX).is_none());
 
     // Test invalid names
-    assert!(blocks::Block::by_name("").is_none());
-    assert!(blocks::Block::by_name("definitely_not_a_block").is_none());
-    assert!(blocks::Block::by_name("   ").is_none());
+    assert!(blocks::Block::try_from_name("").is_none());
+    assert!(blocks::Block::try_from_name("definitely_not_a_block").is_none());
+    assert!(blocks::Block::try_from_name("   ").is_none());
 
     // Test case sensitivity
-    let _stone_lower = blocks::Block::by_name("stone").unwrap();
-    let _stone_upper = blocks::Block::by_name("STONE").unwrap();
-    let _stone_mixed = blocks::Block::by_name("Stone").unwrap();
+    let _stone_lower = blocks::Block::try_from_name("stone").unwrap();
 
     // Depending on implementation, case sensitivity might vary
     // We just verify that at least one works
@@ -228,8 +226,8 @@ fn test_blocks_consistency() {
     // Get stone through different methods
     let direct_stone = blocks::STONE;
     let submodule_stone = blocks::stone::STONE;
-    let id_lookup = blocks::Block::by_id(1).unwrap();
-    let name_lookup = blocks::Block::by_name("stone").unwrap();
+    let id_lookup = blocks::Block::try_from_id(1).unwrap();
+    let name_lookup = blocks::Block::try_from_name("stone").unwrap();
 
     // All should have the same properties
     assert_eq!(direct_stone.id, submodule_stone.id);

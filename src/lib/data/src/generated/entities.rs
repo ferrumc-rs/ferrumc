@@ -2957,7 +2957,8 @@ impl EntityType {
         },
         resource_name: "zombified_piglin",
     };
-    pub const fn from_raw(id: u16) -> Option<&'static Self> {
+    #[doc = r" Try to get an `EntityType` from its ID."]
+    pub const fn try_from_id(id: u16) -> Option<&'static Self> {
         match id {
             0 => Some(&Self::ACACIA_BOAT),
             1 => Some(&Self::ACACIA_CHEST_BOAT),
@@ -3113,8 +3114,9 @@ impl EntityType {
             _ => None,
         }
     }
-    pub fn from_name(name: &str) -> Option<&'static Self> {
-        let name = name.strip_prefix("minecraft:").unwrap_or(name);
+    #[doc = r" Try to parse an `EntityType` from a resource location string."]
+    pub const fn try_from_name(name: &str) -> Option<&'static Self> {
+        let name = crate::helpers::strip_prefix_or_self(name, "minecraft:");
         match name {
             "acacia_boat" => Some(&Self::ACACIA_BOAT),
             "acacia_chest_boat" => Some(&Self::ACACIA_CHEST_BOAT),

@@ -8,8 +8,8 @@ pub enum Fluid {
 }
 impl Fluid {
     #[doc = r" Try to parse a `Fluid` from a resource location string."]
-    pub fn from_name(name: &str) -> Option<Self> {
-        let name = name.strip_prefix("minecraft:").unwrap_or(name);
+    pub const fn try_from_name(name: &str) -> Option<Self> {
+        let name = crate::helpers::strip_prefix_or_self(name, "minecraft:");
         match name {
             "empty" => Some(Self::Empty),
             "flowing_water" => Some(Self::FlowingWater),
@@ -19,6 +19,7 @@ impl Fluid {
             _ => None,
         }
     }
+    #[doc = "Get name of the Fluid"]
     pub const fn to_name(&self) -> &'static str {
         match self {
             Self::Empty => "empty",

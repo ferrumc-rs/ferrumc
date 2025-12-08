@@ -15151,160 +15151,147 @@ impl TagData {
         &Self::WORLDGEN_BIOME_TAGS_MINECRAFT_WITHOUT_WANDERING_TRADER_SPAWNS,
         &Self::WORLDGEN_BIOME_TAGS_MINECRAFT_WITHOUT_ZOMBIE_SIEGES,
     ];
-    pub fn get_banner_pattern_tag(tag_name: &str) -> Option<&TagData> {
-        Self::BANNER_PATTERN_TAGS
-            .iter()
-            .filter_map(|tag| {
-                if tag.name == tag_name {
-                    Some(*tag)
-                } else {
-                    None
-                }
-            })
-            .next()
+    pub const fn get_banner_pattern_tag(tag_name: &str) -> Option<&TagData> {
+        let mut i = 0;
+        let v = Self::BANNER_PATTERN_TAGS;
+        while i < v.len() {
+            if v[i].name == tag_name {
+                return Some(v[i]);
+            }
+            i += 1;
+        }
+        None
     }
-    pub fn get_block_tag(tag_name: &str) -> Option<&TagData> {
-        Self::BLOCK_TAGS
-            .iter()
-            .filter_map(|tag| {
-                if tag.name == tag_name {
-                    Some(*tag)
-                } else {
-                    None
-                }
-            })
-            .next()
+    pub const fn get_block_tag(tag_name: &str) -> Option<&TagData> {
+        let mut i = 0;
+        let v = Self::BLOCK_TAGS;
+        while i < v.len() {
+            if v[i].name == tag_name {
+                return Some(v[i]);
+            }
+            i += 1;
+        }
+        None
     }
-    pub fn get_damage_type_tag(tag_name: &str) -> Option<&TagData> {
-        Self::DAMAGE_TYPE_TAGS
-            .iter()
-            .filter_map(|tag| {
-                if tag.name == tag_name {
-                    Some(*tag)
-                } else {
-                    None
-                }
-            })
-            .next()
+    pub const fn get_damage_type_tag(tag_name: &str) -> Option<&TagData> {
+        let mut i = 0;
+        let v = Self::DAMAGE_TYPE_TAGS;
+        while i < v.len() {
+            if v[i].name == tag_name {
+                return Some(v[i]);
+            }
+            i += 1;
+        }
+        None
     }
-    pub fn get_dialog_tag(tag_name: &str) -> Option<&TagData> {
-        Self::DIALOG_TAGS
-            .iter()
-            .filter_map(|tag| {
-                if tag.name == tag_name {
-                    Some(*tag)
-                } else {
-                    None
-                }
-            })
-            .next()
+    pub const fn get_dialog_tag(tag_name: &str) -> Option<&TagData> {
+        let mut i = 0;
+        let v = Self::DIALOG_TAGS;
+        while i < v.len() {
+            if v[i].name == tag_name {
+                return Some(v[i]);
+            }
+            i += 1;
+        }
+        None
     }
-    pub fn get_enchantment_tag(tag_name: &str) -> Option<&TagData> {
-        Self::ENCHANTMENT_TAGS
-            .iter()
-            .filter_map(|tag| {
-                if tag.name == tag_name {
-                    Some(*tag)
-                } else {
-                    None
-                }
-            })
-            .next()
+    pub const fn get_enchantment_tag(tag_name: &str) -> Option<&TagData> {
+        let mut i = 0;
+        let v = Self::ENCHANTMENT_TAGS;
+        while i < v.len() {
+            if v[i].name == tag_name {
+                return Some(v[i]);
+            }
+            i += 1;
+        }
+        None
     }
-    pub fn get_entity_type_tag(tag_name: &str) -> Option<&TagData> {
-        Self::ENTITY_TYPE_TAGS
-            .iter()
-            .filter_map(|tag| {
-                if tag.name == tag_name {
-                    Some(*tag)
-                } else {
-                    None
-                }
-            })
-            .next()
+    pub const fn get_entity_type_tag(tag_name: &str) -> Option<&TagData> {
+        let mut i = 0;
+        let v = Self::ENTITY_TYPE_TAGS;
+        while i < v.len() {
+            if v[i].name == tag_name {
+                return Some(v[i]);
+            }
+            i += 1;
+        }
+        None
     }
-    pub fn get_fluid_tag(tag_name: &str) -> Option<&TagData> {
-        Self::FLUID_TAGS
-            .iter()
-            .filter_map(|tag| {
-                if tag.name == tag_name {
-                    Some(*tag)
-                } else {
-                    None
-                }
-            })
-            .next()
+    pub const fn get_fluid_tag(tag_name: &str) -> Option<&TagData> {
+        let mut i = 0;
+        let v = Self::FLUID_TAGS;
+        while i < v.len() {
+            if v[i].name == tag_name {
+                return Some(v[i]);
+            }
+            i += 1;
+        }
+        None
     }
-    pub fn get_game_event_tag(tag_name: &str) -> Option<&TagData> {
-        Self::GAME_EVENT_TAGS
-            .iter()
-            .filter_map(|tag| {
-                if tag.name == tag_name {
-                    Some(*tag)
-                } else {
-                    None
-                }
-            })
-            .next()
+    pub const fn get_game_event_tag(tag_name: &str) -> Option<&TagData> {
+        let mut i = 0;
+        let v = Self::GAME_EVENT_TAGS;
+        while i < v.len() {
+            if v[i].name == tag_name {
+                return Some(v[i]);
+            }
+            i += 1;
+        }
+        None
     }
-    pub fn get_instrument_tag(tag_name: &str) -> Option<&TagData> {
-        Self::INSTRUMENT_TAGS
-            .iter()
-            .filter_map(|tag| {
-                if tag.name == tag_name {
-                    Some(*tag)
-                } else {
-                    None
-                }
-            })
-            .next()
+    pub const fn get_instrument_tag(tag_name: &str) -> Option<&TagData> {
+        let mut i = 0;
+        let v = Self::INSTRUMENT_TAGS;
+        while i < v.len() {
+            if v[i].name == tag_name {
+                return Some(v[i]);
+            }
+            i += 1;
+        }
+        None
     }
-    pub fn get_item_tag(tag_name: &str) -> Option<&TagData> {
-        Self::ITEM_TAGS
-            .iter()
-            .filter_map(|tag| {
-                if tag.name == tag_name {
-                    Some(*tag)
-                } else {
-                    None
-                }
-            })
-            .next()
+    pub const fn get_item_tag(tag_name: &str) -> Option<&TagData> {
+        let mut i = 0;
+        let v = Self::ITEM_TAGS;
+        while i < v.len() {
+            if v[i].name == tag_name {
+                return Some(v[i]);
+            }
+            i += 1;
+        }
+        None
     }
-    pub fn get_painting_variant_tag(tag_name: &str) -> Option<&TagData> {
-        Self::PAINTING_VARIANT_TAGS
-            .iter()
-            .filter_map(|tag| {
-                if tag.name == tag_name {
-                    Some(*tag)
-                } else {
-                    None
-                }
-            })
-            .next()
+    pub const fn get_painting_variant_tag(tag_name: &str) -> Option<&TagData> {
+        let mut i = 0;
+        let v = Self::PAINTING_VARIANT_TAGS;
+        while i < v.len() {
+            if v[i].name == tag_name {
+                return Some(v[i]);
+            }
+            i += 1;
+        }
+        None
     }
-    pub fn get_point_of_interest_type_tag(tag_name: &str) -> Option<&TagData> {
-        Self::POINT_OF_INTEREST_TYPE_TAGS
-            .iter()
-            .filter_map(|tag| {
-                if tag.name == tag_name {
-                    Some(*tag)
-                } else {
-                    None
-                }
-            })
-            .next()
+    pub const fn get_point_of_interest_type_tag(tag_name: &str) -> Option<&TagData> {
+        let mut i = 0;
+        let v = Self::POINT_OF_INTEREST_TYPE_TAGS;
+        while i < v.len() {
+            if v[i].name == tag_name {
+                return Some(v[i]);
+            }
+            i += 1;
+        }
+        None
     }
-    pub fn get_worldgen_biome_tag(tag_name: &str) -> Option<&TagData> {
-        Self::WORLDGEN_BIOME_TAGS
-            .iter()
-            .filter_map(|tag| {
-                if tag.name == tag_name {
-                    Some(*tag)
-                } else {
-                    None
-                }
-            })
-            .next()
+    pub const fn get_worldgen_biome_tag(tag_name: &str) -> Option<&TagData> {
+        let mut i = 0;
+        let v = Self::WORLDGEN_BIOME_TAGS;
+        while i < v.len() {
+            if v[i].name == tag_name {
+                return Some(v[i]);
+            }
+            i += 1;
+        }
+        None
     }
 }
