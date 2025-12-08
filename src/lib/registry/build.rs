@@ -89,7 +89,7 @@ fn main() {
     let mut item_id_map = Map::new();
     for (name, entry) in &registry.item.entries {
         // Here, the key is the i32 protocol_id
-        item_id_map.entry(entry.protocol_id, &format!("r#\"{}\"#", name));
+        item_id_map.entry(entry.protocol_id, format!("r#\"{}\"#", name));
     }
     writeln!(file, "{};\n", item_id_map.build()).unwrap();
 
