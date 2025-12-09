@@ -9,6 +9,7 @@ use ferrumc_net::packets::outgoing::entity_metadata::{EntityMetadata, EntityMeta
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalStateResource;
 use ferrumc_world::block_state_id::BlockStateId;
+use ferrumc_world::pos::BlockPos;
 use tracing::error;
 
 /// Height of player's eyes from feet (blocks)
@@ -40,9 +41,11 @@ fn is_player_in_water(state: &ferrumc_state::GlobalState, pos: &Position) -> boo
         block!("water", { level: 15 }),
     ];
 
+    let pos = BlockPos::of(eye_pos.x, eye_pos.y, eye_pos.z);
+
     state
         .world
-        .get_block_and_fetch(eye_pos.x, eye_pos.y, eye_pos.z, "overworld")
+        .get_block_and_fetch(pos, "overworld")
         .map(|current_block| water_id.contains(&current_block))
         .unwrap_or(false)
 }
