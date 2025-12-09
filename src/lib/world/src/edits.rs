@@ -1,8 +1,10 @@
-use crate::block_state_id::{BlockStateId, ID2BLOCK};
+use crate::block_state_id::BlockStateId;
 use crate::chunk_format::{BlockStates, Chunk, PaletteType, Section};
 use crate::errors::WorldError;
+use crate::pos::{BlockPos, ChunkBlockPos, SectionBlockPos};
 use crate::World;
 use ferrumc_general_purpose::data_packing::i32::read_nbit_i32;
+use ferrumc_macros::block;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -32,15 +34,11 @@ impl World {
     /// * `WorldError::InvalidBlockStateData` - If the block state data is invalid.
     pub fn get_block_and_fetch(
         &self,
-        x: i32,
-        y: i32,
-        z: i32,
+        pos: BlockPos,
         dimension: &str,
     ) -> Result<BlockStateId, WorldError> {
-        let chunk_x = x >> 4;
-        let chunk_z = z >> 4;
-        let chunk = self.load_chunk(chunk_x, chunk_z, dimension)?;
-        chunk.get_block(x, y, z)
+        let chunk = self.load_chunk(pos.chunk(), dimension)?;
+        chunk.get_block(pos.chunk_block_pos())
     }
 
     /// Sets the block data at the specified coordinates in the given dimension.
@@ -61,29 +59,21 @@ impl World {
     /// * `Err(WorldError)` - If an error occurs while setting the block data.
     pub fn set_block_and_fetch(
         &self,
-        x: i32,
-        y: i32,
-        z: i32,
+        pos: BlockPos,
         dimension: &str,
         block: BlockStateId,
     ) -> Result<(), WorldError> {
-        if ID2BLOCK.get(block.0 as usize).is_none() {
-            return Err(WorldError::InvalidBlockStateId(block.0));
-        };
-        // Get chunk
-        let chunk_x = x >> 4;
-        let chunk_z = z >> 4;
-        let mut chunk = self.load_chunk_owned(chunk_x, chunk_z, dimension)?;
+        let mut chunk = self.load_chunk_owned(pos.chunk(), dimension)?;
 
-        debug!("Chunk: {}, {}", chunk_x, chunk_z);
+        debug!("Chunk: {}", pos.chunk());
 
-        chunk.set_block(x, y, z, block)?;
+        chunk.set_block(pos.chunk_block_pos(), block)?;
         for section in &mut chunk.sections {
             section.optimise()?;
         }
 
         // Save chunk
-        self.save_chunk(Arc::new(chunk))?;
+        self.save_chunk(pos.chunk(), dimension, Arc::new(chunk))?;
         Ok(())
     }
 }
@@ -197,40 +187,72 @@ impl Chunk {
     /// If the block is the same as the old block, nothing happens.
     /// If the block is not in the palette, it is added.
     /// If the palette is in single block mode, it is converted to palette'd mode.
+    pub fn set_block(&mut self, pos: ChunkBlockPos, block: BlockStateId) -> Result<(), WorldError> {
+        let section = self
+            .get_section_mut(pos.section())
+            .ok_or(WorldError::SectionOutOfBounds(pos.section() as i32))?;
+        section.set_block(pos.section_block_pos(), block)?;
+
+        section.optimise()?;
+
+        Ok(())
+    }
+
+    pub fn get_block(&self, pos: ChunkBlockPos) -> Result<BlockStateId, WorldError> {
+        let section = self
+            .get_section(pos.section())
+            .ok_or(WorldError::SectionOutOfBounds(pos.section() as i32))?;
+        section.get_block(pos.section_block_pos())
+    }
+
+    /// Sets the section at the specified index to the specified block data.
+    /// If the section is out of bounds, an error is returned.
     ///
     /// # Arguments
     ///
-    /// * `x` - The x-coordinate of the block.
-    /// * `y` - The y-coordinate of the block.
-    /// * `z` - The z-coordinate of the block.
-    /// * `block` - The block data to set the block to.
+    /// * `section` - The index of the section to set.
+    /// * `block` - The block data to set the section to.
     ///
     /// # Returns
     ///
-    /// * `Ok(())` - If the block was successfully set.
-    /// * `Err(WorldError)` - If an error occurs while setting the block.
+    /// * `Ok(())` - If the section was successfully set.
+    /// * `Err(WorldError)` - If an error occurs while setting the section.
+    pub fn set_section(&mut self, section_y: i8, block: BlockStateId) -> Result<(), WorldError> {
+        if let Some(section) = self.get_section_mut(section_y) {
+            section.fill(block)
+        } else {
+            Err(WorldError::SectionOutOfBounds(section_y as i32))
+        }
+    }
+
+    /// Fills the chunk with the specified block.
     ///
-    /// ### Note
-    /// The positions are modulo'd by 16 to get the block index in the section anyway, so converting
-    /// the coordinates to section coordinates isn't really necessary, but you should probably do it
-    /// anyway for readability's sake.
+    /// # Arguments
+    ///
+    /// * `block` - The block data to fill the chunk with.
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(())` - If the chunk was successfully filled.
+    /// * `Err(WorldError)` - If an error occurs while filling the chunk.
+    pub fn fill(&mut self, block: BlockStateId) -> Result<(), WorldError> {
+        for section in &mut self.sections {
+            section.fill(block)?;
+        }
+        Ok(())
+    }
+}
+
+impl Section {
     pub fn set_block(
         &mut self,
-        x: i32,
-        y: i32,
-        z: i32,
+        pos: SectionBlockPos,
         block: BlockStateId,
     ) -> Result<(), WorldError> {
-        let old_block = self.get_block(x, y, z)?;
+        let old_block = self.get_block(pos)?;
         if old_block == block {
             return Ok(());
         }
-
-        let section = self
-            .sections
-            .iter_mut()
-            .find(|section| section.y == (y >> 4) as i8)
-            .ok_or(WorldError::SectionOutOfBounds(y >> 4))?;
 
         // from single palette to indirect palette if needed
         let mut converted = false;
@@ -239,7 +261,7 @@ impl Chunk {
             data: vec![],
             palette: vec![],
         };
-        if let PaletteType::Single(val) = &section.block_states.block_data {
+        if let PaletteType::Single(val) = &self.block_states.block_data {
             new_contents = PaletteType::Indirect {
                 bits_per_block: 4,
                 data: vec![0; 256],
@@ -248,10 +270,10 @@ impl Chunk {
             converted = true;
         }
         if converted {
-            section.block_states.block_data = new_contents;
+            self.block_states.block_data = new_contents;
         }
 
-        let (block_palette_index, needs_resize, target_bits) = match &mut section
+        let (block_palette_index, needs_resize, target_bits) = match &mut self
             .block_states
             .block_data
         {
@@ -263,39 +285,26 @@ impl Chunk {
                 palette,
                 ..
             } => {
-                match section.block_states.block_counts.entry(old_block) {
+                match self.block_states.block_counts.entry(old_block) {
                     Entry::Occupied(mut occ_entry) => {
                         let count = occ_entry.get_mut();
                         if *count <= 0 {
-                            return match old_block.to_block_data() {
-                                Some(block_data) => {
-                                    error!("Block count is zero for block: {:?}", block_data);
-                                    Err(WorldError::InvalidBlockStateData(format!(
-                                        "Block count is zero for block: {block_data:?}"
-                                    )))
-                                }
-                                None => {
-                                    error!(
-                                        "Block count is zero for unknown block state ID: {}",
-                                        old_block.0
-                                    );
-                                    Err(WorldError::InvalidBlockStateId(old_block.0))
-                                }
-                            };
+                            error!("Block count is zero for block state {old_block}");
+                            return Err(WorldError::InvalidBlockStateId(old_block));
                         }
                         *count -= 1;
                     }
                     Entry::Vacant(empty_entry) => {
-                        warn!("Block not found in block counts: {:?}", old_block);
+                        warn!("Block not found in block counts: {old_block}");
                         empty_entry.insert(0);
                     }
                 }
 
                 // Add new block to counts
-                if let Some(e) = section.block_states.block_counts.get(&block) {
-                    section.block_states.block_counts.insert(block, e + 1);
+                if let Some(e) = self.block_states.block_counts.get(&block) {
+                    self.block_states.block_counts.insert(block, e + 1);
                 } else {
-                    section.block_states.block_counts.insert(block, 1);
+                    self.block_states.block_counts.insert(block, 1);
                 }
 
                 // find in palette
@@ -320,18 +329,17 @@ impl Chunk {
 
         if needs_resize {
             // debug!("Resizing section block states to {} bits", target_bits);
-            section.block_states.resize(target_bits as usize)?;
+            self.block_states.resize(target_bits as usize)?;
         }
 
-        match &mut section.block_states.block_data {
+        match &mut self.block_states.block_data {
             PaletteType::Indirect {
                 bits_per_block,
                 data,
                 ..
             } => {
                 let blocks_per_i64 = (64f64 / *bits_per_block as f64).floor() as usize;
-                let index =
-                    ((y.abs() & 0xf) * 256 + (z.abs() & 0xf) * 16 + (x.abs() & 0xf)) as usize;
+                let index = pos.pack() as usize;
                 let i64_index = index / blocks_per_i64;
 
                 let packed_u64 =
@@ -360,43 +368,21 @@ impl Chunk {
             }
         }
 
-        section.block_states.non_air_blocks = section
+        self.block_states.non_air_blocks = self
             .block_states
             .block_counts
             .iter()
-            .filter(|(block, _)| ![0, 12958, 12959].contains(&block.0))
+            .filter(|(block, _)| {
+                [block!("air"), block!("cave_air"), block!("void_air")].contains(block)
+            })
             .map(|(_, count)| *count as u16)
             .sum();
-
-        section.optimise()?;
 
         Ok(())
     }
 
-    /// Gets the block at the specified coordinates.
-    ///
-    /// # Arguments
-    ///
-    /// * `x` - The x-coordinate of the block.
-    /// * `y` - The y-coordinate of the block.
-    /// * `z` - The z-coordinate of the block.
-    ///
-    /// # Returns
-    ///
-    /// * `Ok(BlockData)` - The block data at the specified coordinates.
-    /// * `Err(WorldError)` - If an error occurs while retrieving the block data.
-    ///
-    /// ### Note
-    /// The positions are modulo'd by 16 to get the block index in the section anyway, so converting
-    /// the coordinates to section coordinates isn't really necessary, but you should probably do it
-    /// anyway for readability's sake.
-    pub fn get_block(&self, x: i32, y: i32, z: i32) -> Result<BlockStateId, WorldError> {
-        let section = self
-            .sections
-            .iter()
-            .find(|section| section.y == (y / 16) as i8)
-            .ok_or(WorldError::SectionOutOfBounds(y >> 4))?;
-        match &section.block_states.block_data {
+    pub fn get_block(&self, pos: SectionBlockPos) -> Result<BlockStateId, WorldError> {
+        match &self.block_states.block_data {
             PaletteType::Single(val) => Ok(BlockStateId::from_varint(*val)),
             PaletteType::Indirect {
                 bits_per_block,
@@ -407,7 +393,7 @@ impl Chunk {
                     return Ok(BlockStateId::from_varint(palette[0]));
                 }
                 let blocks_per_i64 = (64f64 / *bits_per_block as f64).floor() as usize;
-                let index = ((y & 0xf) * 256 + (z & 0xf) * 16 + (x & 0xf)) as usize;
+                let index = pos.pack() as usize;
                 let i64_index = index / blocks_per_i64;
                 let packed_u64 = data
                     .get(i64_index)
@@ -427,49 +413,6 @@ impl Chunk {
         }
     }
 
-    /// Sets the section at the specified index to the specified block data.
-    /// If the section is out of bounds, an error is returned.
-    ///
-    /// # Arguments
-    ///
-    /// * `section` - The index of the section to set.
-    /// * `block` - The block data to set the section to.
-    ///
-    /// # Returns
-    ///
-    /// * `Ok(())` - If the section was successfully set.
-    /// * `Err(WorldError)` - If an error occurs while setting the section.
-    pub fn set_section(&mut self, section_y: i8, block: BlockStateId) -> Result<(), WorldError> {
-        if let Some(section) = self
-            .sections
-            .iter_mut()
-            .find(|section| section.y == section_y)
-        {
-            section.fill(block)
-        } else {
-            Err(WorldError::SectionOutOfBounds(section_y as i32))
-        }
-    }
-
-    /// Fills the chunk with the specified block.
-    ///
-    /// # Arguments
-    ///
-    /// * `block` - The block data to fill the chunk with.
-    ///
-    /// # Returns
-    ///
-    /// * `Ok(())` - If the chunk was successfully filled.
-    /// * `Err(WorldError)` - If an error occurs while filling the chunk.
-    pub fn fill(&mut self, block: BlockStateId) -> Result<(), WorldError> {
-        for section in &mut self.sections {
-            section.fill(block)?;
-        }
-        Ok(())
-    }
-}
-
-impl Section {
     /// Fills the section with the specified block.
     ///
     /// # Arguments
@@ -484,7 +427,7 @@ impl Section {
         self.block_states.block_data = PaletteType::Single(block.to_varint());
         self.block_states.block_counts = HashMap::from([(block, 4096)]);
         // Air, void air and cave air respectively
-        if [0, 12958, 12959].contains(&block.0) {
+        if [block!("air"), block!("cave_air"), block!("void_air")].contains(&block) {
             self.block_states.non_air_blocks = 0;
         } else {
             self.block_states.non_air_blocks = 4096;
@@ -497,6 +440,8 @@ impl Section {
     /// 1. Removes any palette entries that are not used in the block states data.
     ///
     /// 2. If there is only one block in the palette, it converts the palette to single block mode.
+    ///
+    /// So it may only useful to call if a block has been removed from the section.
     pub fn optimise(&mut self) -> Result<(), WorldError> {
         match &mut self.block_states.block_data {
             PaletteType::Single(_) => {
@@ -516,7 +461,7 @@ impl Section {
                         if let Some(index) = index {
                             remove_indexes.push(index);
                         } else {
-                            return Err(WorldError::InvalidBlockStateId(block.0));
+                            return Err(WorldError::InvalidBlockStateId(*block));
                         }
                     }
                 }

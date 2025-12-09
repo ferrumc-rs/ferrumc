@@ -4,6 +4,7 @@ use ferrumc_macros::block;
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::chunk_format::Chunk;
 use ferrumc_world::edit_batch::EditBatch;
+use ferrumc_world::pos::{BlockPos, ChunkColumnPos, ChunkHeight, ChunkPos};
 
 pub(crate) struct PlainsBiome;
 
@@ -18,11 +19,10 @@ impl BiomeGenerator for PlainsBiome {
 
     fn generate_chunk(
         &self,
-        x: i32,
-        z: i32,
+        pos: ChunkPos,
         noise: &NoiseGenerator,
     ) -> Result<Chunk, WorldGenError> {
-        let mut chunk = Chunk::new(x, z, "overworld".to_string());
+        let mut chunk = Chunk::new(ChunkHeight::new(-64, 384));
         let mut heights = vec![];
         let stone = block!("stone"); // just to test the macro
 
@@ -32,11 +32,12 @@ impl BiomeGenerator for PlainsBiome {
         }
 
         // Then generate some heights
-        for chunk_x in 0..16i64 {
-            for chunk_z in 0..16i64 {
-                let global_x = i64::from(x) * 16 + chunk_x;
-                let global_z = i64::from(z) * 16 + chunk_z;
-                let height = noise.get_noise(global_x as f64, global_z as f64);
+        for chunk_x in 0..16 {
+            for chunk_z in 0..16 {
+                let curr_pos = pos.column_pos(ChunkColumnPos::new(chunk_x, chunk_z));
+                let global_x = curr_pos.x();
+                let global_z = curr_pos.z();
+                let height = noise.get_noise(f64::from(global_x), f64::from(global_z));
                 let height = (height * 64.0) as i32 + 64;
                 heights.push((global_x, global_z, height));
             }
@@ -57,16 +58,14 @@ impl BiomeGenerator for PlainsBiome {
                 for y in 0..height {
                     if y + above_filled_sections <= 64 {
                         batch.set_block(
-                            global_x as i32 & 0xF,
-                            y + above_filled_sections,
-                            global_z as i32 & 0xF,
+                            BlockPos::of(global_x, y + above_filled_sections, global_z)
+                                .chunk_block_pos(),
                             block!("sand"),
                         );
                     } else {
                         batch.set_block(
-                            global_x as i32 & 0xF,
-                            y + above_filled_sections,
-                            global_z as i32 & 0xF,
+                            BlockPos::of(global_x, y + above_filled_sections, global_z)
+                                .chunk_block_pos(),
                             block!("grass_block", {snowy: false}),
                         );
                     }
@@ -88,7 +87,11 @@ mod test {
     fn test_is_ok() {
         let generator = PlainsBiome {};
         let noise = NoiseGenerator::new(0);
-        assert!(generator.generate_chunk(0, 0, &noise).is_ok());
+        assert!(
+            generator
+                .generate_chunk(ChunkPos::new(0, 0), &noise)
+                .is_ok()
+        );
     }
 
     #[test]
@@ -96,9 +99,13 @@ mod test {
         let generator = PlainsBiome {};
         let noise = NoiseGenerator::new(0);
         for _ in 0..100 {
-            let x = rand::random::<i32>();
-            let z = rand::random::<i32>();
-            assert!(generator.generate_chunk(x, z, &noise).is_ok());
+            let x = rand::random::<i32>() & ((1 << 22) - 1);
+            let z = rand::random::<i32>() & ((1 << 22) - 1);
+            assert!(
+                generator
+                    .generate_chunk(ChunkPos::new(x, z), &noise)
+                    .is_ok()
+            );
         }
     }
 
@@ -108,12 +115,12 @@ mod test {
         let noise = NoiseGenerator::new(0);
         assert!(
             generator
-                .generate_chunk(1610612735, 1610612735, &noise)
+                .generate_chunk(ChunkPos::new((1 << 22) - 1, (1 << 22) - 1), &noise)
                 .is_ok()
         );
         assert!(
             generator
-                .generate_chunk(-1610612735, -1610612735, &noise)
+                .generate_chunk(ChunkPos::new(-((1 << 22) - 1), -((1 << 22) - 1)), &noise)
                 .is_ok()
         );
     }
@@ -124,7 +131,11 @@ mod test {
             let generator = PlainsBiome {};
             let seed = rand::random::<u64>();
             let noise = NoiseGenerator::new(seed);
-            assert!(generator.generate_chunk(0, 0, &noise).is_ok());
+            assert!(
+                generator
+                    .generate_chunk(ChunkPos::new(0, 0), &noise)
+                    .is_ok()
+            );
         }
     }
 }

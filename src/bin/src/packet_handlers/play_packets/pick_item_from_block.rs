@@ -43,10 +43,9 @@ pub fn handle(
         );
 
         // 2. Get block from world
+        let pos = packet.location.clone().into();
         let block_state_id = match state.0.world.get_block_and_fetch(
-            packet.location.x,
-            packet.location.y as i32,
-            packet.location.z,
+            pos,
             "overworld", // TODO: Remove overworld hard coding for the dimension
         ) {
             Ok(id) => id,
