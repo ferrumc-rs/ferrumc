@@ -5,17 +5,3 @@ use bevy_ecs::prelude::Component;
 pub struct SwimmingState {
     pub is_swimming: bool,
 }
-
-impl SwimmingState {
-    pub fn new(is_swimming: bool) -> Self {
-        Self { is_swimming }
-    }
-
-    pub fn start_swimming(&mut self) {
-        self.is_swimming = true;
-    }
-
-    pub fn stop_swimming(&mut self) {
-        self.is_swimming = false;
-    }
-}

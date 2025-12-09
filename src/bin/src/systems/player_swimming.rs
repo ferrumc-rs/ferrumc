@@ -58,7 +58,7 @@ pub fn detect_player_swimming(
         let in_water = is_player_in_water(&state.0, pos);
 
         if in_water && !swimming_state.is_swimming {
-            swimming_state.start_swimming();
+            swimming_state.is_swimming = true;
 
             let entity_id = VarInt::new(identity.short_uuid);
             let packet = EntityMetadataPacket::new(
@@ -71,7 +71,7 @@ pub fn detect_player_swimming(
 
             broadcast_metadata(&packet, &all_connections, &state);
         } else if !in_water && swimming_state.is_swimming {
-            swimming_state.stop_swimming();
+            swimming_state.is_swimming = false;
 
             let entity_id = VarInt::new(identity.short_uuid);
             let packet = EntityMetadataPacket::new(
