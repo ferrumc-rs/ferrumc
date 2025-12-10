@@ -1,5 +1,5 @@
 use bevy_ecs::prelude::*;
-use bevy_math::IVec3;
+use bevy_math::DVec3;
 use ferrumc_components::player::swimming::SwimmingState;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::position::Position;
@@ -17,11 +17,9 @@ const PLAYER_EYE_HEIGHT: f64 = 1.62;
 
 /// Check if a player is in water by testing at eye level
 fn is_player_in_water(state: &ferrumc_state::GlobalState, pos: &Position) -> bool {
-    let eye_pos = IVec3::new(
-        pos.x.floor() as i32,
-        (pos.y + PLAYER_EYE_HEIGHT).floor() as i32,
-        pos.z.floor() as i32,
-    );
+    let eye_pos = DVec3::new(pos.x, pos.y + PLAYER_EYE_HEIGHT, pos.z)
+        .floor()
+        .as_ivec3();
 
     let water_id = vec![
         block!("water", { level: 1 }),
