@@ -128,17 +128,18 @@ fn process_movement_event(
         if has_crossed_chunk_boundary(&position, new_pos) {
             let chunk_x = new_pos.x.floor() as i32 >> 4;
             let chunk_z = new_pos.z.floor() as i32 >> 4;
-            let radius = get_global_config().chunk_render_distance as u8;
-            let client_info = client_information.get(entity).ok();
-            debug!("client info: {:?}", client_info);
-            let radius = client_info
-                .map(|info| {
-                    let client_view_distance = info.view_distance;
-                    let server_render_distance = radius;
-                    // Don't send more than what the server allows, nor more than what the client wants
-                    server_render_distance.min(client_view_distance)
-                })
-                .unwrap_or(radius);
+            let radius = {
+                let radius = get_global_config().chunk_render_distance as u8;
+                let client_info = client_information.get(entity).ok();
+                client_info
+                    .map(|info| {
+                        let client_view_distance = info.view_distance;
+                        let server_render_distance = radius;
+                        // Don't send more than what the server allows, nor more than what the client wants
+                        server_render_distance.min(client_view_distance)
+                    })
+                    .unwrap_or(radius)
+            };
 
             // Use try_send to avoid blocking the ECS tick if the channel is full
             if let Err(e) = chunk_sender.tx.try_send(ChunkCommand::UpdateCenter {

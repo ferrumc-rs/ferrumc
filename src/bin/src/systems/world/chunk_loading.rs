@@ -383,7 +383,7 @@ fn handle_batch_ack(player_name: &str, loader: &mut ChunkLoaderState, desired_ra
 
     let new_rate = desired_rate.clamp(MIN_CHUNKS_PER_BATCH, MAX_CHUNKS_PER_BATCH);
 
-    debug!(
+    trace!(
         "[{}] Batch ACK received. Rate: {:.1} -> {:.1}, queue: {}",
         player_name,
         loader.chunks_per_batch,
@@ -411,7 +411,7 @@ fn send_batch(
 
     let target_batch_size = loader.chunks_per_batch.ceil() as usize;
 
-    debug!(
+    trace!(
         "[{}] Sending batch (target: {}, queue: {})",
         player_name,
         target_batch_size,
