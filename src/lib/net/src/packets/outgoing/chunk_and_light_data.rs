@@ -1,6 +1,7 @@
+use ferrumc_world::block_state_id::BlockStateId;
 use crate::errors::NetError;
 use byteorder::{BigEndian, WriteBytesExt};
-use ferrumc_macros::{packet, NetEncode};
+use ferrumc_macros::{block, packet, NetEncode};
 use ferrumc_net_codec::net_types::bitset::BitSet;
 use ferrumc_net_codec::net_types::byte_array::ByteArray;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
@@ -11,7 +12,8 @@ use std::io::Cursor;
 use std::ops::Not;
 use tracing::warn;
 
-const SECTIONS: usize = 24; // Number of sections, adjust for your Y range (-64 to 319)
+/// Number of sections in a chunk for the current world height (-64 to 320 = 384 blocks = 24 sections = 16 blocks per section)
+const SECTIONS: usize = 24;
 
 #[derive(NetEncode)]
 pub struct BlockEntity {
@@ -23,7 +25,6 @@ pub struct BlockEntity {
 
 #[derive(NetEncode)]
 pub struct NetHeightmap {
-    // Define the structure of your heightmaps here
     pub id: VarInt,
     pub data: LengthPrefixedVec<i64>,
 }
@@ -46,30 +47,85 @@ pub struct ChunkAndLightData {
 }
 
 impl ChunkAndLightData {
-    pub fn empty(chunk_x: i32, chunk_z: i32) -> Self {
-        let sky_light_arrays = (0..SECTIONS)
-            .map(|_| ByteArray::new(vec![0; 2048]))
-            .collect();
-        let block_light_arrays = (0..SECTIONS)
-            .map(|_| ByteArray::new(vec![0; 2048]))
-            .collect();
-        let mut empty_sky_light_mask = BitSet::new(SECTIONS + 2);
-        empty_sky_light_mask.set_all(false);
-        let mut empty_block_light_mask = BitSet::new(SECTIONS + 2);
-        empty_block_light_mask.set_all(false);
-        ChunkAndLightData {
+    /// Creates a flat chunk packet with a solid floor of a given height.
+    ///
+    /// # Arguments
+    /// * `chunk_x` - The chunk X coordinate.
+    /// * `chunk_z` - The chunk Z coordinate.
+    /// * `floor_sections` - The number of sections from the bottom to fill with Bedrock.
+    ///   (e.g., 4 sections = -64 to 0 if starting at -64).
+    pub fn flat(chunk_x: i32, chunk_z: i32, floor_sections: usize) -> Result<Self, NetError> {
+        let mut chunk_sections_data = Vec::with_capacity(SECTIONS * 8);
+
+        // --- Block IDs (1.21 Vanilla) ---
+        let air_id = block!("air");
+        let bedrock_id = block!("bedrock");
+        let biome_id = 1; // Plains (i think; cba checking the registry)
+
+        for i in 0..SECTIONS {
+            let is_solid = i < floor_sections;
+
+            // 1. Block Count (u16 Big Endian)
+            // 4096 if full, 0 if empty
+            let block_count = if is_solid { 4096 } else { 0 };
+            chunk_sections_data
+                .write_u16::<BigEndian>(block_count)
+                .map_err(|e| NetError::Misc(e.to_string()))?;
+
+            // 2. Block States (Paletted Container)
+            // Format: [BitsPerEntry(u8)] + [Palette(VarInt Array)] + [DataArray(Long Array)]
+
+            // Bits Per Entry = 0 (Single Value Palette)
+            chunk_sections_data
+                .write_u8(0)
+                .map_err(|e| NetError::Misc(e.to_string()))?;
+
+            // Palette Value (VarInt)
+            let block = if is_solid { bedrock_id } else { air_id };
+            block.to_varint()
+                .write(&mut chunk_sections_data)
+                .map_err(|e| NetError::Misc(format!("VarInt write error: {:?}", e)))?;
+
+            // 3. Biomes (Paletted Container)
+            // Bits Per Entry = 0 (Single Value)
+            chunk_sections_data
+                .write_u8(0)
+                .map_err(|e| NetError::Misc(e.to_string()))?;
+            // Palette Value (VarInt)
+            VarInt::new(biome_id)
+                .write(&mut chunk_sections_data)
+                .map_err(|e| NetError::Misc(format!("VarInt write error: {:?}", e)))?;
+        }
+
+        // --- Lighting Masks ---
+        // Create masks indicating all sections are "empty" of light data
+        // to prevent the client from waiting for light updates.
+        let mut empty_sky = BitSet::new(SECTIONS + 2);
+        let mut empty_block = BitSet::new(SECTIONS + 2);
+        empty_sky.set_all(true);
+        empty_block.set_all(true);
+
+        Ok(ChunkAndLightData {
             chunk_x,
             chunk_z,
-            heightmaps: LengthPrefixedVec::default(),
-            data: ByteArray::new(vec![0; SECTIONS * 10]),
-            block_entities: LengthPrefixedVec::new(Vec::new()),
-            sky_light_mask: BitSet::new(SECTIONS),
-            block_light_mask: BitSet::new(SECTIONS),
-            empty_sky_light_mask,
-            empty_block_light_mask,
-            sky_light_arrays: LengthPrefixedVec::new(sky_light_arrays),
-            block_light_arrays: LengthPrefixedVec::new(block_light_arrays),
-        }
+            // Empty heightmaps - client will default to min-height/recalculate
+            heightmaps: LengthPrefixedVec::new(vec![]),
+            data: ByteArray::new(chunk_sections_data),
+            block_entities: LengthPrefixedVec::new(vec![]),
+            // Light masks (empty implies all 0s, but we flag them as explicitly empty in the empty_* masks)
+            sky_light_mask: BitSet::new(SECTIONS + 2),
+            block_light_mask: BitSet::new(SECTIONS + 2),
+            empty_sky_light_mask: empty_sky,
+            empty_block_light_mask: empty_block,
+            sky_light_arrays: LengthPrefixedVec::new(vec![]),
+            block_light_arrays: LengthPrefixedVec::new(vec![]),
+        })
+    }
+
+    pub fn empty(chunk_x: i32, chunk_z: i32) -> Self {
+        // Reuse the flat generator with 0 solid sections for a completely empty chunk
+        // It shouldn't fail because I said so
+        Self::flat(chunk_x, chunk_z, 0).expect("this is a bug. empty chunk generation failed.")
     }
 
     pub fn from_chunk(pos: ChunkPos, chunk: &Chunk) -> Result<Self, NetError> {
