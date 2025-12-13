@@ -11,14 +11,6 @@ use ferrumc_net::packets::outgoing::update_entity_position_and_rotation::UpdateE
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalStateResource;
 
-const GRAVITY: f64 = -0.08;
-const TERMINAL_VELOCITY: f64 = -3.92;
-const WATER_BUOYANCY: f64 = 0.09;
-const WATER_DRAG: f64 = 0.8;
-const WATER_VERTICAL_DRAG: f64 = 0.95;
-const GROUND_FRICTION: f64 = 0.85;
-const AIR_RESISTANCE: f64 = 0.98;
-
 type EntitySyncComponents<'a> = (
     &'a EntityIdentity,
     &'a Position,

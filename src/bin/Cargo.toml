@@ -36,6 +36,7 @@ ferrumc-threadpool = { workspace = true }
 ferrumc-inventories = { workspace = true }
 ferrumc-data = { workspace = true }
 ferrumc-entities = { workspace = true }
+ferrumc-physics = { workspace = true }
 bevy_math = { workspace = true }
 once_cell = { workspace = true }
 serde_json = { workspace = true }

@@ -40,6 +40,7 @@ members = [
     "src/lib/messages",
     "src/lib/data",
     "src/lib/entities",
+    "src/lib/physics",
 ]
 
 [workspace.package]
@@ -121,7 +122,8 @@ ferrumc-inventories = { path = "src/lib/inventories" }
 ferrumc-components = { path = "src/lib/components" }
 ferrumc-messages = { path = "src/lib/messages" }
 ferrumc-data = { path = "src/lib/data" }
-ferrumc-entities = { path = "src/lib/entities"}
+ferrumc-entities = { path = "src/lib/entities" }
+ferrumc-physics = { path = "src/lib/physics" }
 
 # Asynchronous
 tokio = { version = "1.48.0", features = [
