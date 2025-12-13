@@ -14,6 +14,8 @@ use ferrumc_net::packets::packet_messages::Movement;
 use ferrumc_state::GlobalStateResource;
 use std::sync::atomic::Ordering;
 use tracing::{debug, trace, warn};
+use ferrumc_net::packets::outgoing::system_message::SystemMessagePacket;
+use ferrumc_text::{Color, NamedColor, TextComponent};
 
 /// Maximum delta for position updates before teleport is required.
 /// As per Minecraft protocol: "If the movement exceeds these limits, Teleport Entity should be sent instead."
@@ -74,6 +76,21 @@ pub fn handle(
             let old_chunk = (position.x as i32 >> 4, position.z as i32 >> 4);
             let new_chunk = (new_pos.x as i32 >> 4, new_pos.z as i32 >> 4);
             if old_chunk != new_chunk {
+                debug!("Entity {:?} changed chunk from {:?} to {:?}", entity, old_chunk, new_chunk);
+                let mut message =
+                    TextComponent::from(format!("You have moved to new chunk ({}, {})", new_chunk.0, new_chunk.1));
+                message.color = Some(Color::Named(NamedColor::Green));
+                let connection = conn_query
+                    .get(entity)
+                    .map(|(_, conn)| conn)
+                    .expect("this is a bug. entity should have a connection here");
+                let msg: SystemMessagePacket = message.into();
+                if let Err(e) = connection.send_packet(msg) {
+                    warn!(
+                        "Failed to send chunk change message to player {:?}: {}",
+                        entity, e
+                    );
+                }
                 chunk_calc_messages.write(ChunkCalc(entity));
             }
         }
