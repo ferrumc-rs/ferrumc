@@ -7,7 +7,10 @@ use std::{
 use bevy_math::{DVec2, DVec3, IVec3, Vec2Swizzles, Vec3Swizzles};
 use itertools::{Either, Itertools};
 
-use crate::random::{LegacyRandom, Rng};
+use crate::{
+    direction::Direction,
+    random::{LegacyRandom, Rng},
+};
 use ferrumc_world::pos::{BlockPos, ChunkHeight, ChunkPos};
 
 pub struct CarvingMask {
@@ -137,7 +140,7 @@ impl Caver {
                 let mut surface_reached = false;
                 for (relative, pos) in carve_ellipsoid(
                     chunk_pos,
-                    random_pos.pos.as_dvec3() + DVec3::from((1.0, 0.0, 0.0)),
+                    (random_pos + Direction::East.as_unit().into()).into(),
                     (
                         1.5 + f64::from((FRAC_PI_2).sin()) * radius,
                         (1.5 + f64::from((FRAC_PI_2).sin()) * radius) * y_scale,

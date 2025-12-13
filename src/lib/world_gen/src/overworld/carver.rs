@@ -112,7 +112,7 @@ fn clear_overworld_cave_block(
     {
         chunk.set_block(rel_pos, carve_state.into()).unwrap();
         if *surface_reached {
-            let check_pos = pos + Direction::Down.as_unit().into();
+            let check_pos = pos + Direction::Down.as_unit().into(); //TODO bounds check
             let rel_pos: ChunkBlockPos = check_pos.chunk_block_pos();
 
             if chunk.get_block(rel_pos).unwrap() == block!("dirt")
