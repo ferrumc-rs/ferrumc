@@ -149,9 +149,8 @@ impl ChunkLoaderState {
         let r = self.radius as i32;
 
         // Helper closure that doesn't borrow self
-        let in_view = |x: i32, z: i32| -> bool {
-            x >= cx - r && x <= cx + r && z >= cz - r && z <= cz + r
-        };
+        let in_view =
+            |x: i32, z: i32| -> bool { x >= cx - r && x <= cx + r && z >= cz - r && z <= cz + r };
 
         // Retain only chunks still in view
         self.queue.retain(|(x, z)| in_view(*x, *z));
@@ -201,7 +200,17 @@ pub async fn chunk_loader_task(
                 chunk_z,
                 radius,
             } => {
-                if handle_center_update(&conn, &state, &player_name, &mut loader, chunk_x, chunk_z, radius).is_err() {
+                if handle_center_update(
+                    &conn,
+                    &state,
+                    &player_name,
+                    &mut loader,
+                    chunk_x,
+                    chunk_z,
+                    radius,
+                )
+                .is_err()
+                {
                     break;
                 }
 
@@ -306,7 +315,10 @@ fn handle_center_update(
                 // Normal movement: calculate delta
                 let purged = loader.purge_stale_chunks();
                 if purged > 0 {
-                    debug!("[{}] Purged {} stale chunks from queue", player_name, purged);
+                    debug!(
+                        "[{}] Purged {} stale chunks from queue",
+                        player_name, purged
+                    );
                 }
 
                 // Unload chunks that left the view
@@ -329,7 +341,9 @@ fn handle_center_update(
                 for x in (new_x - new_radius_i32)..=(new_x + new_radius_i32) {
                     for z in (new_z - new_radius_i32)..=(new_z + new_radius_i32) {
                         let chunk = (x, z);
-                        if !loader.sent_chunks.contains(&chunk) && !loader.queued_set.contains(&chunk) {
+                        if !loader.sent_chunks.contains(&chunk)
+                            && !loader.queued_set.contains(&chunk)
+                        {
                             new_chunks.push(chunk);
                         }
                     }
@@ -442,14 +456,25 @@ fn send_batch(
                 sent += 1;
             }
             Err(e) => {
-                error!("[{}] Failed to create chunk ({}, {}): {:?}", player_name, cx, cz, e);
+                error!(
+                    "[{}] Failed to create chunk ({}, {}): {:?}",
+                    player_name, cx, cz, e
+                );
             }
         }
     }
 
     // Finish batch
-    if conn.send_packet(ChunkBatchFinish { batch_size: sent.into() }).is_err() {
-        debug!("[{}] Connection dead (ChunkBatchFinish failed)", player_name);
+    if conn
+        .send_packet(ChunkBatchFinish {
+            batch_size: sent.into(),
+        })
+        .is_err()
+    {
+        debug!(
+            "[{}] Connection dead (ChunkBatchFinish failed)",
+            player_name
+        );
         return Err(());
     }
 

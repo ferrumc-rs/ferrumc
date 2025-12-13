@@ -17,14 +17,12 @@ pub fn handle(
     for (event, eid) in receiver.0.try_iter() {
         trace!(
             "Received ChunkBatchAck from {:?}: desired rate {:.1} chunks/tick",
-            eid, event.chunks_per_tick
+            eid,
+            event.chunks_per_tick
         );
 
         let Ok((eid, chunk_sender)) = query.get(eid) else {
-            error!(
-                "Failed to get ChunkSender for entity: {:?}",
-                eid
-            );
+            error!("Failed to get ChunkSender for entity: {:?}", eid);
             continue;
         };
 

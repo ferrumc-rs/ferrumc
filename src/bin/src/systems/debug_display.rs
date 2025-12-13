@@ -73,7 +73,10 @@ fn build_debug_message(
     if flags.contains(DebugFlags::CHUNK_INFO) {
         let chunk_x = position.x as i32 >> 4;
         let chunk_z = position.z as i32 >> 4;
-        parts.push(format_debug_section("Chunk", &format!("{}, {}", chunk_x, chunk_z)));
+        parts.push(format_debug_section(
+            "Chunk",
+            &format!("{}, {}", chunk_x, chunk_z),
+        ));
     }
 
     // Position information

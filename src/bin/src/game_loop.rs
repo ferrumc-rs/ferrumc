@@ -113,7 +113,12 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     // =========================================================================
 
     // Register shared resources (connection receiver, global state, tokio handle, etc.)
-    register_resources(&mut ecs_world, new_conn_recv, global_state_res, tokio_handle);
+    register_resources(
+        &mut ecs_world,
+        new_conn_recv,
+        global_state_res,
+        tokio_handle,
+    );
 
     info!(
         "Server is ready in {}",

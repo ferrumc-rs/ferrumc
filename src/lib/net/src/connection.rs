@@ -49,11 +49,11 @@ pub struct StreamWriter {
 
 impl Clone for StreamWriter {
     /// Clones the StreamWriter, sharing the underlying channel and state.
-    /// 
+    ///
     /// This is safe because:
     /// - The `sender` is an unbounded channel that supports multiple senders
     /// - All other fields are `Arc`-wrapped and designed for shared ownership
-    /// 
+    ///
     /// Note: The `Drop` impl marks `running` as false, but since we're cloning
     /// `Arc`s, dropping a clone won't affect the original's `running` state
     /// until all clones are dropped.

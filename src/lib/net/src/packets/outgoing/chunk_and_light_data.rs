@@ -1,4 +1,3 @@
-use ferrumc_world::block_state_id::BlockStateId;
 use crate::errors::NetError;
 use byteorder::{BigEndian, WriteBytesExt};
 use ferrumc_macros::{block, packet, NetEncode};
@@ -6,6 +5,7 @@ use ferrumc_net_codec::net_types::bitset::BitSet;
 use ferrumc_net_codec::net_types::byte_array::ByteArray;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::var_int::VarInt;
+use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::chunk_format::{Chunk, PaletteType};
 use ferrumc_world::pos::ChunkPos;
 use std::io::Cursor;
@@ -82,7 +82,8 @@ impl ChunkAndLightData {
 
             // Palette Value (VarInt)
             let block = if is_solid { bedrock_id } else { air_id };
-            block.to_varint()
+            block
+                .to_varint()
                 .write(&mut chunk_sections_data)
                 .map_err(|e| NetError::Misc(format!("VarInt write error: {:?}", e)))?;
 

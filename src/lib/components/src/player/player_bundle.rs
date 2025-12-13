@@ -2,13 +2,9 @@ use crate::{
     active_effects::ActiveEffects,
     health::Health,
     player::{
-        abilities::PlayerAbilities,
-        client_information::ClientInformation,
-        debug_settings::DebugSettings,
-        experience::Experience,
-        gamemode::GameModeComponent,
-        gameplay_state::ender_chest::EnderChest,
-        hunger::Hunger,
+        abilities::PlayerAbilities, client_information::ClientInformation,
+        debug_settings::DebugSettings, experience::Experience, gamemode::GameModeComponent,
+        gameplay_state::ender_chest::EnderChest, hunger::Hunger,
     },
 };
 use bevy_ecs::prelude::Bundle;

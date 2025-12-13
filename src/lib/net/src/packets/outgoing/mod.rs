@@ -3,7 +3,6 @@ pub mod chunk_batch_finish;
 pub mod chunk_batch_start;
 pub mod client_bound_known_packs;
 pub mod disconnect;
-pub mod unload_chunk;
 pub mod finish_configuration;
 pub mod game_event;
 pub mod keep_alive;
@@ -19,6 +18,7 @@ pub mod set_render_distance;
 pub mod status_response;
 pub mod synchronize_player_position;
 pub mod system_message;
+pub mod unload_chunk;
 
 pub mod remove_entities;
 pub mod spawn_entity;

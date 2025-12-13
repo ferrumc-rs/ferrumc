@@ -442,8 +442,6 @@ fn send_player_info(
     Ok(())
 }
 
-
-
 /// Sends the command graph to the client.
 fn send_command_graph(conn_write: &StreamWriter) -> Result<(), NetError> {
     conn_write.send_packet(CommandsPacket::from_global_graph())?;

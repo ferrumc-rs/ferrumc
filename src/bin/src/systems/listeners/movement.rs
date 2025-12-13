@@ -7,6 +7,7 @@
 
 use bevy_ecs::prelude::{Entity, MessageReader, Query, Res};
 use ferrumc_components::chunks::{ChunkCommand, ChunkSender};
+use ferrumc_components::player::client_information::ClientInformation;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::grounded::OnGround;
@@ -22,7 +23,6 @@ use ferrumc_net::packets::packet_messages::Movement;
 use ferrumc_state::GlobalStateResource;
 use std::sync::atomic::Ordering;
 use tracing::{debug, trace, warn};
-use ferrumc_components::player::client_information::ClientInformation;
 // ============================================================================
 // Constants
 // ============================================================================
@@ -80,7 +80,13 @@ pub fn handle(
     state: Res<GlobalStateResource>,
 ) {
     for movement in movement_events.read() {
-        process_movement_event(&movement, &mut transform_query, &client_information, &conn_query, &state);
+        process_movement_event(
+            &movement,
+            &mut transform_query,
+            &client_information,
+            &conn_query,
+            &state,
+        );
     }
 }
 
@@ -129,7 +135,6 @@ fn process_movement_event(
                 .map(|info| {
                     let client_view_distance = info.view_distance;
                     let server_render_distance = radius;
-                    debug!("Client view distance: {}, Server render distance: {}", client_view_distance, server_render_distance);
                     // Don't send more than what the server allows, nor more than what the client wants
                     server_render_distance.min(client_view_distance)
                 })

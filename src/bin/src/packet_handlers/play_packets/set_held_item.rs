@@ -16,7 +16,8 @@ pub fn handle(
                     hotbar.selected_slot = event.slot_index as u8;
                     trace!(
                         "Set held item for player {} to slot {}",
-                        entity, event.slot_index
+                        entity,
+                        event.slot_index
                     );
                 } else {
                     error!("Could not find hotbar for player {}", entity);
