@@ -70,7 +70,7 @@ impl EntityMetadata {
     /// Returns true if this entity is a mob.
     ///
     /// Mobs are living entities (animals, monsters).
-    /// Non-mobs include items, projectiles, boats, etc.
+    /// Non-physics include items, projectiles, boats, etc.
     pub const fn is_mob(&self) -> bool {
         self.vanilla_data.mob
     }

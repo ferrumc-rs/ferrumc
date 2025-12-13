@@ -1,5 +1,7 @@
 use bevy_ecs::prelude::Component;
+use bevy_math::bounding::Aabb3d;
 use ferrumc_data::generated::entities::EntityType as VanillaEntityType;
+use std::ops::{Deref, DerefMut};
 
 /// Entity bounding box (collision box).
 ///
@@ -7,14 +9,21 @@ use ferrumc_data::generated::entities::EntityType as VanillaEntityType;
 /// Used for collision detection and physics.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct BoundingBox {
-    /// Half-width of the bounding box in blocks.
-    ///
-    /// The total width is `half_width * 2`. Stored as half-width
-    /// to facilitate collision calculations (distance from center to edges).
-    pub half_width: f64,
+    aabb: Aabb3d,
+}
 
-    /// Height of the bounding box in blocks.
-    pub height: f64,
+impl Deref for BoundingBox {
+    type Target = Aabb3d;
+
+    fn deref(&self) -> &Self::Target {
+        &self.aabb
+    }
+}
+
+impl DerefMut for BoundingBox {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.aabb
+    }
 }
 
 impl BoundingBox {
@@ -35,19 +44,31 @@ impl BoundingBox {
     /// ```
     pub const fn from_vanilla_dimension(dimension: [f32; 2]) -> Self {
         Self {
-            half_width: (dimension[0] / 2.0) as f64,
-            height: dimension[1] as f64,
+            aabb: Aabb3d {
+                max: bevy_math::Vec3A::new(dimension[0] / 2.0, dimension[1], dimension[0] / 2.0),
+                min: bevy_math::Vec3A::new(-(dimension[0] / 2.0), 0.0, -(dimension[0] / 2.0)),
+            },
         }
     }
 
     /// Returns the total width of the bounding box.
-    pub const fn width(&self) -> f64 {
-        self.half_width * 2.0
+    pub fn width(&self) -> f64 {
+        (self.aabb.max.x - self.aabb.min.x) as f64
+    }
+
+    /// Returns the height of the bounding box.
+    pub fn height(&self) -> f64 {
+        (self.aabb.max.y - self.aabb.min.y) as f64
+    }
+
+    /// Returns the depth of the bounding box.
+    pub fn depth(&self) -> f64 {
+        (self.aabb.max.z - self.aabb.min.z) as f64
     }
 
     /// Returns the volume of the bounding box in cubic blocks.
-    pub const fn volume(&self) -> f64 {
-        self.width() * self.width() * self.height
+    pub fn volume(&self) -> f64 {
+        self.width() * self.height() * self.depth()
     }
 }
 
@@ -128,8 +149,19 @@ impl PhysicalProperties {
     ///
     /// * `scale` - Multiplier factor (0.5 for baby, 1.0 for adult)
     pub fn apply_scale(&mut self, scale: f64) {
-        self.bounding_box.half_width *= scale;
-        self.bounding_box.height *= scale;
+        let width = self.bounding_box.width() * scale;
+        let height = self.bounding_box.height() * scale;
+        let depth = self.bounding_box.depth() * scale;
+        self.bounding_box = BoundingBox {
+            aabb: Aabb3d {
+                min: bevy_math::Vec3A::new(-(width as f32) / 2.0, 0.0, -(depth as f32) / 2.0),
+                max: bevy_math::Vec3A::new(
+                    (width as f32) / 2.0,
+                    height as f32,
+                    (depth as f32) / 2.0,
+                ),
+            },
+        };
         self.eye_height = (self.eye_height as f64 * scale) as f32;
     }
 }

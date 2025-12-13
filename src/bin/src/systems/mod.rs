@@ -4,7 +4,6 @@ pub mod connection_killer;
 pub mod keep_alive_system;
 pub mod lan_pinger;
 pub mod listeners;
-mod mobs;
 mod mq;
 pub mod new_connections;
 pub mod physics;
@@ -19,8 +18,10 @@ pub fn register_game_systems(schedule: &mut bevy_ecs::schedule::Schedule) {
     schedule.add_systems(mq::process);
 
     // Entity physics and synchronization
-    schedule.add_systems(physics::entity_physics_system);
-    schedule.add_systems(physics::entity_movement_sync);
+    schedule.add_systems(physics::collisions::handle);
+    schedule.add_systems(physics::drag::handle);
+    schedule.add_systems(physics::gravity::handle);
+    schedule.add_systems(physics::velocity::handle);
 
     // Should always be last
     schedule.add_systems(connection_killer::connection_killer);

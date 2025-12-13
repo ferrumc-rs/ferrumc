@@ -117,6 +117,12 @@ impl From<DVec3> for ChunkPos {
     }
 }
 
+impl From<IVec3> for ChunkPos {
+    fn from(pos: IVec3) -> Self {
+        Self::new(pos.x.div_euclid(16), pos.z.div_euclid(16))
+    }
+}
+
 impl ChunkPos {
     pub const fn new(x: i32, z: i32) -> Self {
         assert!(x < 1 << 22);
@@ -225,6 +231,16 @@ pub struct ChunkBlockPos {
 impl From<(u8, i16, u8)> for ChunkBlockPos {
     fn from(pos: (u8, i16, u8)) -> Self {
         Self::new(pos.0, pos.1, pos.2)
+    }
+}
+
+impl From<IVec3> for ChunkBlockPos {
+    fn from(pos: IVec3) -> Self {
+        Self::new(
+            pos.x.rem_euclid(16) as u8,
+            pos.y as i16,
+            pos.z.rem_euclid(16) as u8,
+        )
     }
 }
 

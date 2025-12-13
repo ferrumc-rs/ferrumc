@@ -8,6 +8,7 @@ use ferrumc_data::generated::entities::EntityType as VanillaEntityType;
 use crate::components::{
     CombatProperties, EntityMetadata, LastSyncedPosition, PhysicalProperties, SpawnProperties,
 };
+use crate::Entity;
 
 /// Complete bundle to spawn a pig in Bevy ECS.
 ///
@@ -56,6 +57,12 @@ impl PigBundle {
     }
 }
 
+impl Entity for PigBundle {
+    fn type_marker() -> impl bevy_ecs::prelude::Component {
+        crate::markers::entity_types::Pig
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -74,8 +81,8 @@ mod tests {
         assert!(pig.metadata.is_mob());
 
         // Verify physical properties (using epsilon for floating point comparison)
-        assert!((pig.physical.bounding_box.height - 0.9).abs() < EPSILON_F64);
-        assert!((pig.physical.bounding_box.half_width - 0.45).abs() < EPSILON_F64);
+        assert!((pig.physical.bounding_box.height() - 0.9).abs() < EPSILON_F64);
+        assert!((pig.physical.bounding_box.width() - 0.9).abs() < EPSILON_F64);
         assert!((pig.physical.eye_height - 0.765).abs() < EPSILON_F32);
         assert!(!pig.physical.fire_immune);
 

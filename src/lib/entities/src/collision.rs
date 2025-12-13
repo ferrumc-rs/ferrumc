@@ -1,8 +1,11 @@
+use ferrumc_world::block_state_id::BlockStateId;
 use bevy_math::bounding::Aabb3d;
 use bevy_math::{IVec3, Vec3A};
 use ferrumc_core::transform::position::Position;
 use ferrumc_data::generated::entities::EntityType as EntityTypeData;
+use ferrumc_macros::match_block;
 use ferrumc_state::GlobalState;
+use ferrumc_world::pos::{ChunkBlockPos, ChunkPos};
 
 /// Pig bounding box from vanilla data
 ///
@@ -20,18 +23,23 @@ pub const PIG_AABB: Aabb3d = {
 pub fn is_water_block(state: &GlobalState, pos: IVec3) -> bool {
     state
         .world
-        .get_block_and_fetch(pos.x, pos.y, pos.z, "overworld")
-        .map(|block_state| (86..=101).contains(&block_state.0))
+        .load_chunk(ChunkPos::from(pos.as_dvec3()), "overworld")
+        .unwrap_or(state.terrain_generator.generate_chunk(ChunkPos::from(pos.as_dvec3())).expect("Failed to generate chunk").into())
+        .get_block(ChunkBlockPos::from(pos))
+        .map(|block_state| match_block!("water", block_state))
         .unwrap_or(false)
 }
 
 pub fn is_solid_block(state: &GlobalState, pos: IVec3) -> bool {
     state
         .world
-        .get_block_and_fetch(pos.x, pos.y, pos.z, "overworld")
+        .load_chunk(ChunkPos::from(pos.as_dvec3()), "overworld")
+        .unwrap_or(state.terrain_generator.generate_chunk(ChunkPos::from(pos.as_dvec3())).expect("Failed to generate chunk").into())
+        .get_block(ChunkBlockPos::from(pos))
         .map(|block_state| {
-            let id = block_state.0;
-            id != 0 && !(86..=117).contains(&id)
+            !match_block!("air", block_state)
+                && !match_block!("void_air", block_state)
+                && !match_block!("cave_air", block_state)
         })
         .unwrap_or(false)
 }

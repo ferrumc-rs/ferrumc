@@ -8,7 +8,7 @@ pub struct HasGravity;
 pub struct HasWaterDrag;
 
 // Entity types
-mod entity_types {
+pub mod entity_types {
     use super::Component;
     #[derive(Component)]
     pub struct Pig;
