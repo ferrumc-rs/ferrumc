@@ -1,29 +1,34 @@
 #![feature(maybe_uninit_array_assume_init)]
 
-mod aquifier;
+mod aquifer;
 mod biome;
-mod biomes;
+mod biome_chunk;
 mod carver;
 pub mod errors;
 mod noise_biome_parameters;
 mod noise_router;
-mod ore_veins;
+mod overworld;
 mod perlin_noise;
+mod pos;
 mod random;
 mod surface;
-use crate::{aquifier::FluidPicker, biome::Biome, errors::WorldGenError};
+use crate::biome_chunk::{BiomeChunk, BiomeNoise, NoisePoint};
+use crate::pos::{ChunkHeight, ChunkPos};
+use crate::{aquifer::FluidPicker, biome::Biome, errors::WorldGenError};
 use ferrumc_world::{block_id::BlockId, chunk_format::Chunk, vanilla_chunk_format::BlockData};
-use noise::{Clamp, NoiseFn, OpenSimplex};
 
 pub struct NoiseGeneratorSettings {
-    noise_settings: NoiseSettings,
+    noise_size_vertical: u32,
     default_block: BlockId,
-    noise_router: NoiseRouter,
+    noise_router: Option<AquiferNoise>,
+    vein_noise: Option<VeinNoise>,
     sea_level: FluidPicker,
-    aquifers_enabled: bool,
-    ore_veins_enabled: bool,
     use_legacy_random_source: bool,
+    initial_density_without_jaggedness: DensityFunction,
+    final_density: DensityFunction,
     rule_source: SurfaceRule,
+    biome_noise: BiomeNoise,
+    chunk_height: ChunkHeight,
 }
 
 pub struct SurfaceRule {} //TODO
@@ -40,14 +45,6 @@ impl SurfaceRule {
     }
 }
 
-pub struct NoiseSettings {
-    min_y: i32,
-    height: u32,
-    //cell width
-    noise_size_horizontal: i32,
-    //cell height
-    noise_size_vertical: i32,
-}
 //TODO
 pub struct DensityFunction;
 impl DensityFunction {
@@ -55,83 +52,40 @@ impl DensityFunction {
         todo!()
     }
 } //TODO
-pub struct NoiseRouter {
+pub struct AquiferNoise {
     barrier_noise: DensityFunction,
     fluid_level_floodedness_noise: DensityFunction,
     fluid_level_spread_noise: DensityFunction,
     lava_noise: DensityFunction,
-    temperature: DensityFunction,
-    vegetation: DensityFunction,
-    continents: DensityFunction,
-    erosion: DensityFunction,
-    depth: DensityFunction,
-    ridges: DensityFunction,
-    initial_density_without_jaggedness: DensityFunction,
-    final_density: DensityFunction,
     vein_toggle: DensityFunction,
     vein_ridged: DensityFunction,
     vein_gap: DensityFunction,
 }
 
-pub fn generate_chunk(settings: &NoiseGeneratorSettings, x: i32, y: i32) -> Chunk {
-    todo!()
-}
-
-/// Trait for generating a biome
-///
-/// Should be implemented for each biome's generator
-pub(crate) trait BiomeGenerator {
-    fn _biome_id(&self) -> u8;
-    fn _biome_name(&self) -> String;
-    fn generate_chunk(&self, pos: ChunkPos, noise: &NoiseGenerator)
-    -> Result<Chunk, WorldGenError>;
-}
-
-pub(crate) struct NoiseGenerator {
-    pub(crate) layers: Vec<Clamp<f64, OpenSimplex, 2>>,
+pub struct VeinNoise {
+    vein_toggle: DensityFunction,
+    vein_ridged: DensityFunction,
+    vein_gap: DensityFunction,
 }
 
 pub struct WorldGenerator {
     _seed: u64,
-    noise_generator: NoiseGenerator,
-}
-
-impl NoiseGenerator {
-    pub fn new(seed: u64) -> Self {
-        let mut layers = Vec::new();
-        for i in 0..4 {
-            let open_simplex = OpenSimplex::new((seed + i) as u32);
-            let clamp = Clamp::new(open_simplex).set_bounds(-1.0, 1.0);
-            layers.push(clamp);
-        }
-        Self { layers }
-    }
-
-    pub fn get_noise(&self, x: f64, z: f64) -> f64 {
-        let mut noise = 0.0;
-        for (c, layer) in self.layers.iter().enumerate() {
-            let scale = 64.0_f64.powi(c as i32 + 1);
-            noise += layer.get([x / scale, z / scale]);
-        }
-        noise / (self.layers.len() as f64 / 2.0)
-    }
+    chunk_height: ChunkHeight,
+    biome_noise: BiomeNoise,
+    biomes: Vec<(NoisePoint, Biome)>,
 }
 
 impl WorldGenerator {
     pub fn new(seed: u64) -> Self {
-        Self {
-            _seed: seed,
-            noise_generator: NoiseGenerator::new(seed),
-        }
+        todo!()
+        // Self { _seed: seed }
     }
 
-    fn get_biome(&self, _pos: ChunkPos) -> Box<dyn BiomeGenerator> {
-        // Implement biome selection here
-        Box::new(biomes::plains::PlainsBiome)
+    fn generate_biomes(&self, pos: ChunkPos) -> BiomeChunk {
+        BiomeChunk::generate(&self.biome_noise, &self.biomes, pos, self.chunk_height)
     }
 
-    pub fn generate_chunk(&self, pos: ChunkPos) -> Result<Chunk, WorldGenError> {
-        let biome = self.get_biome(pos);
-        biome.generate_chunk(pos, &self.noise_generator)
+    pub fn generate_chunk(&self, x: i32, z: i32) -> Result<Chunk, WorldGenError> {
+        todo!()
     }
 }

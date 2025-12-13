@@ -1,5 +1,7 @@
+use crate::biome_chunk::BiomeNoise;
+use crate::pos::{ChunkHeight, ColumnPos};
 use crate::{
-    NoiseGeneratorSettings, NoiseRouter, noise_biome_parameters::is_deep_dark_region,
+    AquiferNoise, NoiseGeneratorSettings, noise_biome_parameters::is_deep_dark_region,
     random::RandomState,
 };
 use std::{collections::BTreeMap, ops::Add};
@@ -7,70 +9,17 @@ use std::{collections::BTreeMap, ops::Add};
 use ferrumc_world::vanilla_chunk_format::BlockData;
 use itertools::Itertools;
 
-use bevy_math::{FloatExt, IVec2, IVec3, Vec2Swizzles};
+use bevy_math::{FloatExt, IVec3};
 
 use crate::random::{Rng, RngFactory};
 
-#[derive(Clone, Copy)]
-pub struct ChunkPos {
-    pub pos: IVec2,
-}
-
-impl From<IVec2> for ChunkPos {
-    fn from(pos: IVec2) -> Self {
-        Self {
-            pos: pos.div_euclid((16, 16).into()) * 16,
-        }
-    }
-}
-
-impl ChunkPos {
-    pub fn column_pos(&self, x: u32, z: u32) -> ColumnPos {
-        (self.pos + IVec2::new(x as i32, z as i32)).into()
-    }
-    pub fn iter_columns(self) -> impl Iterator<Item = ColumnPos> {
-        (self.pos.x..self.pos.x + 16)
-            .zip(self.pos.y..self.pos.y + 16)
-            .map(IVec2::from)
-            .map(ColumnPos::from)
-    }
-    pub fn block(&self, x: u32, y: i32, z: u32) -> IVec3 {
-        self.column_pos(x, z).block(y)
-    }
-}
-
-#[derive(Clone, Copy)]
-pub struct ColumnPos {
-    pub pos: IVec2,
-}
-
-impl ColumnPos {
-    pub fn new(x: i32, z: i32) -> Self {
-        Self { pos: (x, z).into() }
-    }
-
-    pub fn block(self, y: i32) -> IVec3 {
-        self.pos.xxy().with_y(y)
-    }
-
-    pub fn chunk(self) -> ChunkPos {
-        self.pos.into()
-    }
-}
-
-impl From<IVec2> for ColumnPos {
-    fn from(pos: IVec2) -> Self {
-        Self { pos }
-    }
-}
-
 /// a 16 by 16 by 12 Region
 #[derive(Clone, Copy)]
-struct SectionPos {
+struct AquiferSectionPos {
     pos: IVec3,
 }
 
-impl SectionPos {
+impl AquiferSectionPos {
     fn new(x: i32, y: i32, z: i32) -> Self {
         Self {
             pos: (x, y, z).into(),
@@ -86,8 +35,8 @@ impl SectionPos {
     }
 }
 
-impl Add for SectionPos {
-    type Output = SectionPos;
+impl Add for AquiferSectionPos {
+    type Output = AquiferSectionPos;
 
     fn add(self, rhs: Self) -> Self::Output {
         Self {
@@ -96,11 +45,11 @@ impl Add for SectionPos {
     }
 }
 
-impl From<IVec3> for SectionPos {
+impl From<IVec3> for AquiferSectionPos {
     fn from(value: IVec3) -> Self {
         Self::new(
             value.x.div_euclid(16),
-            value.x.div_euclid(16),
+            value.x.div_euclid(12),
             value.z.div_euclid(16),
         )
     }
@@ -130,22 +79,22 @@ pub(crate) fn compute_substance(
     if final_density > 0.0 {
         return (None, false);
     }
-    if !settings.aquifers_enabled {
+    let Some(aquifer) = &settings.noise_router else {
         return (Some(simple_compute_fluid(pos.y, settings.sea_level)), false);
-    }
+    };
     let final_density = -final_density;
 
     if simple_compute_fluid(pos.y, settings.sea_level) == FluidType::Lava {
         return (Some(FluidType::Lava), false);
     }
 
-    let section: SectionPos = IVec3::new(pos.x - 5, pos.y + 1, pos.z - 5).into();
+    let section: AquiferSectionPos = IVec3::new(pos.x - 5, pos.y + 1, pos.z - 5).into();
 
     let smallest: [(i32, IVec3); 4] = (0..=1)
         .rev()
         .cartesian_product((-1..=1).rev())
         .cartesian_product((0..=1).rev())
-        .map(|((x, y), z)| section + SectionPos::new(x, y, z))
+        .map(|((x, y), z)| section + AquiferSectionPos::new(x, y, z))
         .map(|offset_section| {
             let mut random = random.aquifer_random.with_pos(offset_section.pos); //TODO: perf: cache this
             let random_pos = offset_section.block(
@@ -159,7 +108,7 @@ pub(crate) fn compute_substance(
         .collect_array()
         .unwrap();
 
-    let nearest_status = compute_fluid(smallest[0].1, settings);
+    let nearest_status = compute_fluid(smallest[0].1, settings, aquifer);
     let block_state = nearest_status.at(pos.y);
     let similtarity = similarity(smallest[0].0, smallest[1].0);
 
@@ -168,7 +117,7 @@ pub(crate) fn compute_substance(
         return (
             Some(block_state),
             similtarity >= FLOWING_UPDATE_SIMILARITY
-                && !compute_fluid(smallest[1].1, settings).eq(&nearest_status),
+                && !compute_fluid(smallest[1].1, settings, aquifer).eq(&nearest_status),
         );
     }
     if block_state == FluidType::Water
@@ -176,12 +125,12 @@ pub(crate) fn compute_substance(
     {
         return (Some(block_state), true);
     }
-    let barrier = settings.noise_router.barrier_noise.compute(pos);
-    let second_nearest_status = compute_fluid(smallest[1].1, settings);
+    let barrier = aquifer.barrier_noise.compute(pos);
+    let second_nearest_status = compute_fluid(smallest[1].1, settings, aquifer);
     if similtarity * pressure(pos, barrier, nearest_status, second_nearest_status) > final_density {
         return (None, false);
     }
-    let third_nearest_status = compute_fluid(smallest[2].1, settings);
+    let third_nearest_status = compute_fluid(smallest[2].1, settings, aquifer);
     let d2 = similarity(smallest[0].0, smallest[2].0);
 
     if d2 > 0.0
@@ -206,7 +155,7 @@ pub(crate) fn compute_substance(
             || (d2 >= FLOWING_UPDATE_SIMILARITY && nearest_status != third_nearest_status)
             || (d2 >= FLOWING_UPDATE_SIMILARITY
                 && similarity(smallest[0].0, smallest[3].0) >= FLOWING_UPDATE_SIMILARITY
-                && nearest_status != compute_fluid(smallest[3].1, settings)),
+                && nearest_status != compute_fluid(smallest[3].1, settings, aquifer)),
     )
 }
 
@@ -261,7 +210,11 @@ fn simple_compute_fluid(y: i32, sea_level: FluidPicker) -> FluidType {
 }
 
 //TODO this is cached with just section poses... idk why
-fn compute_fluid(pos: IVec3, settings: &NoiseGeneratorSettings) -> FluidPicker {
+fn compute_fluid(
+    pos: IVec3,
+    settings: &NoiseGeneratorSettings,
+    aquifer: &AquiferNoise,
+) -> FluidPicker {
     const SURFACE_SAMPLING_OFFSETS_IN_CHUNKS: [(i32, i32); 13] = [
         (0, 0),
         (-2, -1),
@@ -292,6 +245,7 @@ fn compute_fluid(pos: IVec3, settings: &NoiseGeneratorSettings) -> FluidPicker {
     for ints in SURFACE_SAMPLING_OFFSETS_IN_CHUNKS {
         let preliminary_surface_level = preliminary_surface_level(
             ColumnPos::new(pos.x + (ints.0 << 4), pos.z + (ints.1 << 4)),
+            settings.chunk_height,
             settings,
         );
         let i6 = preliminary_surface_level + 8;
@@ -323,11 +277,10 @@ fn compute_fluid(pos: IVec3, settings: &NoiseGeneratorSettings) -> FluidPicker {
         fluid_status.0,
         max_surface_level,
         fluid_present,
-        &settings.noise_router,
+        aquifer,
+        &settings.biome_noise,
     );
-    let res = if serface_level.is_some_and(|surface| surface <= -10)
-        && is_lava(pos, &settings.noise_router)
-    {
+    let res = if serface_level.is_some_and(|surface| surface <= -10) && is_lava(pos, aquifer) {
         FluidType::Lava
     } else {
         simple_compute_fluid(pos.y, settings.sea_level)
@@ -335,7 +288,7 @@ fn compute_fluid(pos: IVec3, settings: &NoiseGeneratorSettings) -> FluidPicker {
     FluidPicker::new(serface_level.unwrap_or(-64 * 1000), res) //TODO
 }
 
-fn is_lava(pos: IVec3, settings: &NoiseRouter) -> bool {
+fn is_lava(pos: IVec3, settings: &AquiferNoise) -> bool {
     settings
         .lava_noise
         .compute((
@@ -352,9 +305,10 @@ fn compute_surface_level(
     default_level: i32,
     max_surface_level: i32,
     fluid_present: bool,
-    settings: &NoiseRouter,
+    settings: &AquiferNoise,
+    biome_noise: &BiomeNoise,
 ) -> Option<i32> {
-    if is_deep_dark_region(settings, pos) {
+    if is_deep_dark_region(biome_noise, pos) {
         return None;
     }
     let d2 = if fluid_present {
@@ -385,7 +339,7 @@ fn compute_surface_level(
     }
 }
 
-fn calc_pluid_spread(pos: IVec3, settings: &NoiseRouter) -> i32 {
+fn calc_pluid_spread(pos: IVec3, settings: &AquiferNoise) -> i32 {
     let spread = quantize(
         settings.fluid_level_spread_noise.compute((
             pos.x.div_euclid(16),
@@ -408,16 +362,16 @@ pub(crate) fn clamped_map(v: f64, in_min: f64, in_max: f64, out_min: f64, out_ma
 
 pub(crate) fn preliminary_surface_level(
     column: ColumnPos,
+    chunk_height: ChunkHeight,
     settings: &NoiseGeneratorSettings,
 ) -> i32 {
     let column = column.chunk().column_pos(0, 0);
-    (settings.noise_settings.min_y
-        ..settings.noise_settings.min_y + settings.noise_settings.height as i32)
+    chunk_height
+        .iter()
         .rev()
-        .step_by(settings.noise_settings.noise_size_vertical as usize)
+        .step_by(settings.noise_size_vertical as usize)
         .find(|y| {
             settings
-                .noise_router
                 .initial_density_without_jaggedness
                 .compute(column.block(*y))
                 > 0.390625

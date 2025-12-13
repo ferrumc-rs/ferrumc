@@ -4,17 +4,18 @@ use bevy_math::IVec3;
 use ferrumc_world::vanilla_chunk_format::BlockData;
 
 use crate::{
-    NoiseRouter,
-    aquifier::clamped_map,
+    VeinNoise,
+    aquifer::clamped_map,
     random::{RandomState, Rng, RngFactory},
 };
 
 #[allow(dead_code)]
 pub(crate) fn compute_vein_block(
     random: &RandomState,
-    settings: &NoiseRouter,
+    settings: Option<&VeinNoise>,
     pos: IVec3,
 ) -> Option<BlockData> {
+    let settings = settings?;
     let copper: (BlockData, BlockData, BlockData, RangeInclusive<i32>) = (
         BlockData {
             name: "minecraft:copper_ore".to_string(),
@@ -48,19 +49,12 @@ pub(crate) fn compute_vein_block(
     let vein_toggle = settings.vein_toggle.compute(pos);
     let vein_type = if vein_toggle > 0.0 { copper } else { iron };
 
-    let dist_to_upper = vein_type.3.end() - pos.y;
-    let dist_to_lower = pos.y - vein_type.3.start();
+    let distance = distance(vein_type.3, pos.y);
 
-    if !vein_type.3.contains(&pos.y) {
+    if distance <= 0 {
         return None;
     }
-    let d1 = clamped_map(
-        f64::from(dist_to_upper.min(dist_to_lower)),
-        0.0,
-        20.0,
-        -0.2,
-        0.0,
-    );
+    let d1 = clamped_map(f64::from(distance), 0.0, 20.0, -0.2, 0.0);
 
     let vein_toggle_abs = vein_toggle.abs();
     if vein_toggle_abs + d1 < 0.4 {
@@ -82,4 +76,10 @@ pub(crate) fn compute_vein_block(
     } else {
         Some(vein_type.2)
     }
+}
+
+fn distance(range: RangeInclusive<i32>, i: i32) -> i32 {
+    let dist_to_upper = range.end() - i;
+    let dist_to_lower = i - range.start();
+    dist_to_lower.min(dist_to_upper)
 }
