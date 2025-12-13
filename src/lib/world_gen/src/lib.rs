@@ -8,8 +8,49 @@ mod ore_veins;
 mod perlin_noise;
 mod random;
 use crate::errors::WorldGenError;
-use ferrumc_world::{chunk_format::Chunk, pos::ChunkPos};
+use ferrumc_world::{block_id::BlockId, chunk_format::Chunk};
 use noise::{Clamp, NoiseFn, OpenSimplex};
+
+pub struct NoiseGeneratorSettings {
+    noise_settings: NoiseSettings,
+    default_block: BlockId,
+    default_fluid: BlockId,
+    noise_router: NoiseRouter,
+    sea_level: i32,
+    aquifers_enabled: bool,
+    ore_veins_enabled: bool,
+    use_legacy_random_source: bool,
+}
+
+pub struct NoiseSettings {
+    min_y: i32,
+    height: u32,
+    noise_size_horizontal: i32,
+    noise_size_vertical: i32,
+}
+//TODO
+pub struct DensityFunction;
+pub struct NoiseRouter {
+    barrier_noise: DensityFunction,
+    fluid_level_floodedness_noise: DensityFunction,
+    fluid_level_spread_noise: DensityFunction,
+    lava_noise: DensityFunction,
+    temperature: DensityFunction,
+    vegetation: DensityFunction,
+    continents: DensityFunction,
+    erosion: DensityFunction,
+    depth: DensityFunction,
+    ridges: DensityFunction,
+    initial_density_without_jaggedness: DensityFunction,
+    final_density: DensityFunction,
+    vein_toggle: DensityFunction,
+    vein_ridged: DensityFunction,
+    vein_gap: DensityFunction,
+}
+
+pub fn generate_chunk(settings: &NoiseGeneratorSettings, x: i32, y: i32) -> Chunk {
+    todo!()
+}
 
 /// Trait for generating a biome
 ///

@@ -1,5 +1,83 @@
 use bevy_math::IVec3;
 
+pub struct RandomState {
+    random: RandomFactory,
+    aquifer_random: RandomFactory,
+    ore_random: RandomFactory,
+}
+
+impl RandomState {
+    pub fn new(seed: u64, legacy: bool) -> Self {
+        let random = if legacy {
+            RandomFactory::Legacy(LegacyRandom::new(seed).fork_positional())
+        } else {
+            RandomFactory::Xoroshiro128PlusPlus(
+                Xoroshiro128PlusPlus::from_seed(seed).fork_positional(),
+            )
+        };
+        Self {
+            aquifer_random: random.with_hash("minecraft:aquifer").fork_positional(),
+            ore_random: random.with_hash("minecraft:ore").fork_positional(),
+            random,
+        }
+    }
+}
+
+pub enum Random {
+    Legacy(LegacyRandom),
+    Xoroshiro128PlusPlus(Xoroshiro128PlusPlus),
+}
+
+macro_rules! delegate_rng_fn {
+    ($fn_name:ident ( $($arg:ident : $arg_ty:ty),* ) -> $ret:ty) => {
+        fn $fn_name(&mut self, $($arg : $arg_ty),*) -> $ret {
+            match self {
+                Random::Legacy(r) => r.$fn_name($($arg),*),
+                Random::Xoroshiro128PlusPlus(r) => r.$fn_name($($arg),*),
+            }
+        }
+    };
+}
+
+// Usage in an impl:
+impl Rng<RandomFactory> for Random {
+    delegate_rng_fn!(next_u32() -> u32);
+    delegate_rng_fn!(next_u64() -> u64);
+    delegate_rng_fn!(next_f32() -> f32);
+    delegate_rng_fn!(next_f64() -> f64);
+    delegate_rng_fn!(next_bounded(bound: u32) -> u32);
+
+    fn fork_positional(&mut self) -> RandomFactory {
+        match self {
+            Random::Legacy(r) => RandomFactory::Legacy(r.fork_positional()),
+            Random::Xoroshiro128PlusPlus(r) => {
+                RandomFactory::Xoroshiro128PlusPlus(r.fork_positional())
+            }
+        }
+    }
+}
+
+pub enum RandomFactory {
+    Legacy(LegacyPositionalFactory),
+    Xoroshiro128PlusPlus(Xoroshiro128PlusPlusFactory),
+}
+
+impl RngFactory<Random> for RandomFactory {
+    fn with_hash(&self, s: &str) -> Random {
+        match self {
+            RandomFactory::Legacy(r) => Random::Legacy(r.with_hash(s)),
+            RandomFactory::Xoroshiro128PlusPlus(r) => Random::Xoroshiro128PlusPlus(r.with_hash(s)),
+        }
+    }
+
+    fn with_pos(&self, pos: IVec3) -> Random {
+        match self {
+            RandomFactory::Legacy(r) => Random::Legacy(r.with_pos(pos)),
+            RandomFactory::Xoroshiro128PlusPlus(r) => Random::Xoroshiro128PlusPlus(r.with_pos(pos)),
+        }
+    }
+}
+
 const PHI: u64 = 0x9e3779b97f4a7c15;
 
 pub trait Rng<RF> {
@@ -53,8 +131,9 @@ impl Xoroshiro128PlusPlus {
         }
         Self { lo, hi }
     }
-
-    pub fn next_u64(&mut self) -> u64 {
+}
+impl Rng<Xoroshiro128PlusPlusFactory> for Xoroshiro128PlusPlus {
+    fn next_u64(&mut self) -> u64 {
         let res = self
             .lo
             .wrapping_add(self.hi)
@@ -72,7 +151,7 @@ impl Xoroshiro128PlusPlus {
     }
 
     ///reference: net.minecraft.world.level.levelgen.XoroshiroRandomSource
-    pub fn next_bounded(&mut self, bound: u32) -> u32 {
+    fn next_bounded(&mut self, bound: u32) -> u32 {
         assert_ne!(bound, 0, "Bound must be positive");
         loop {
             let res = u64::from(self.next_u32()).wrapping_mul(bound.into());
@@ -83,16 +162,16 @@ impl Xoroshiro128PlusPlus {
         }
     }
 
-    pub fn next_f64(&mut self) -> f64 {
+    fn next_f64(&mut self) -> f64 {
         ((self.next_u64() >> 11) as f32 * 1.110223E-16f32).into()
     }
 
-    pub fn next_f32(&mut self) -> f32 {
+    fn next_f32(&mut self) -> f32 {
         (self.next_u64() >> 40) as f32 * 5.9604645E-8f32
     }
 
-    pub fn fork_positional(&mut self) -> PositionalFactory {
-        PositionalFactory {
+    fn fork_positional(&mut self) -> Xoroshiro128PlusPlusFactory {
+        Xoroshiro128PlusPlusFactory {
             lo: self.next_u64(),
             hi: self.next_u64(),
         }
@@ -101,14 +180,12 @@ impl Xoroshiro128PlusPlus {
 
 #[allow(dead_code)]
 #[derive(Debug, Clone, Copy)]
-pub struct PositionalFactory {
+pub struct Xoroshiro128PlusPlusFactory {
     lo: u64,
     hi: u64,
 }
-
-#[allow(dead_code)]
-impl PositionalFactory {
-    pub fn with_hash(&self, s: &str) -> Xoroshiro128PlusPlus {
+impl RngFactory<Xoroshiro128PlusPlus> for Xoroshiro128PlusPlusFactory {
+    fn with_hash(&self, s: &str) -> Xoroshiro128PlusPlus {
         let digest = md5::compute(s.as_bytes());
 
         Xoroshiro128PlusPlus::new(
@@ -117,7 +194,7 @@ impl PositionalFactory {
         )
     }
 
-    fn at(&self, pos: IVec3) -> Xoroshiro128PlusPlus {
+    fn with_pos(&self, pos: IVec3) -> Xoroshiro128PlusPlus {
         Xoroshiro128PlusPlus::new(seed_at(pos) as u64 ^ self.lo, self.hi)
     }
 }
@@ -134,29 +211,29 @@ impl LegacyRandom {
             seed: (seed ^ 0x5DEECE66D) & ((1 << 48) - 1),
         }
     }
-
     pub fn next(&mut self, bits: u32) -> i32 {
         self.seed = self.seed.wrapping_mul(0x5DEECE66D).wrapping_add(11) & ((1 << 48) - 1);
         (self.seed >> (48 - bits)) as i32
     }
-
-    pub fn next_u32(&mut self) -> u32 {
+}
+impl Rng<LegacyPositionalFactory> for LegacyRandom {
+    fn next_u32(&mut self) -> u32 {
         self.next(32) as u32
     }
 
-    pub fn next_u64(&mut self) -> u64 {
+    fn next_u64(&mut self) -> u64 {
         ((i64::from(self.next(32)) << 32) + i64::from(self.next(32))) as u64
     }
 
-    pub fn next_f32(&mut self) -> f32 {
+    fn next_f32(&mut self) -> f32 {
         self.next(24) as f32 * 5.9604645E-8f32
     }
 
-    pub fn next_f64(&mut self) -> f64 {
+    fn next_f64(&mut self) -> f64 {
         f64::from((((self.next(26) as u64) << 27) + self.next(27) as u64) as f32 * 1.110223E-16f32)
     }
 
-    pub fn next_bounded(&mut self, bound: u32) -> u32 {
+    fn next_bounded(&mut self, bound: u32) -> u32 {
         if (bound & (bound - 1)) == 0 {
             ((u64::from(bound) * self.next(31) as u64) >> 31) as u32
         } else {
@@ -164,7 +241,7 @@ impl LegacyRandom {
         }
     }
 
-    pub fn fork_positional(&mut self) -> LegacyPositionalFactory {
+    fn fork_positional(&mut self) -> LegacyPositionalFactory {
         LegacyPositionalFactory {
             seed: self.next_u64(),
         }
@@ -177,12 +254,12 @@ pub struct LegacyPositionalFactory {
 }
 
 #[allow(dead_code)]
-impl LegacyPositionalFactory {
-    pub fn with_hash(&self, s: &str) -> LegacyRandom {
+impl RngFactory<LegacyRandom> for LegacyPositionalFactory {
+    fn with_hash(&self, s: &str) -> LegacyRandom {
         LegacyRandom::new((i64::from(java_string_hashcode(s)) ^ self.seed as i64) as u64)
     }
 
-    pub fn with_pos(&self, pos: IVec3) -> LegacyRandom {
+    fn with_pos(&self, pos: IVec3) -> LegacyRandom {
         LegacyRandom::new((seed_at(pos) ^ self.seed as i64) as u64)
     }
 }
