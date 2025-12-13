@@ -22,12 +22,11 @@
 
 use bevy_ecs::prelude::{Query, Res};
 use ferrumc_components::world_time::WorldTime;
+use ferrumc_config::server_config::get_global_config;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::update_time::UpdateTime;
 use std::sync::atomic::Ordering;
 use tracing::trace;
-use ferrumc_config::server_config::get_global_config;
-
 
 /// Advances world time and broadcasts updates to all connected players.
 ///
@@ -41,7 +40,6 @@ use ferrumc_config::server_config::get_global_config;
 /// - `world_time`: The shared world time resource
 /// - `query`: All entities with a `StreamWriter` (connected players)
 pub fn time_sync_system(world_time: Res<WorldTime>, query: Query<&StreamWriter>) {
-
     let tps = get_global_config().tps;
 
     // Advance world time

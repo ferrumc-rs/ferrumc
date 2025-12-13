@@ -134,9 +134,7 @@ impl WorldTime {
             // Wrap around if we exceeded 24,000
             if old + ticks >= 24_000 {
                 self.time_of_day
-                    .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |v| {
-                        Some(v % 24_000)
-                    })
+                    .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |v| Some(v % 24_000))
                     .ok();
             }
         }
@@ -154,7 +152,8 @@ impl WorldTime {
     ///
     /// When disabled, `time_of_day` won't advance during `tick()`.
     pub fn set_daylight_cycle_enabled(&self, enabled: bool) {
-        self.daylight_cycle_enabled.store(enabled, Ordering::Relaxed);
+        self.daylight_cycle_enabled
+            .store(enabled, Ordering::Relaxed);
     }
 
     /// Adds time to the current time of day (e.g., from `/time add` command).
