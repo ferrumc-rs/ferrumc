@@ -52,14 +52,14 @@ impl ChunkAndLightData {
     /// # Arguments
     /// * `chunk_x` - The chunk X coordinate.
     /// * `chunk_z` - The chunk Z coordinate.
-    /// * `floor_sections` - The number of sections from the bottom to fill with Bedrock.
+    /// * `floor_sections` - The number of sections from the bottom to fill with grass_block.
     ///   (e.g., 4 sections = -64 to 0 if starting at -64).
     pub fn flat(chunk_x: i32, chunk_z: i32, floor_sections: usize) -> Result<Self, NetError> {
         let mut chunk_sections_data = Vec::with_capacity(SECTIONS * 8);
 
         // --- Block IDs (1.21 Vanilla) ---
         let air_id = block!("air");
-        let bedrock_id = block!("bedrock");
+        let block_id = block!("grass_block", {snowy: false});
         let biome_id = 1; // Plains (i think; cba checking the registry)
 
         for i in 0..SECTIONS {
@@ -81,7 +81,7 @@ impl ChunkAndLightData {
                 .map_err(|e| NetError::Misc(e.to_string()))?;
 
             // Palette Value (VarInt)
-            let block = if is_solid { bedrock_id } else { air_id };
+            let block = if is_solid { block_id } else { air_id };
             block
                 .to_varint()
                 .write(&mut chunk_sections_data)

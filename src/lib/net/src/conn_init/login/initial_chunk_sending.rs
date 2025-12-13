@@ -19,7 +19,7 @@ pub(super) fn send_initial_chunks(
     let radius = calculate_render_distance(config, client_view_distance);
 
     // 3. Send Flat Chunks
-    // Fill the bottom 8 sections (Y -64 to 64) with bedrock
+    // Fill the bottom 8 sections (Y -64 to 64) with grass
     let floor_sections = 8;
 
     for x in -radius..=radius {

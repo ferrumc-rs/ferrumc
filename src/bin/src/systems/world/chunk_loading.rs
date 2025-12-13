@@ -51,7 +51,7 @@ use tracing::{debug, error, trace};
 // ============================================================================
 
 /// Number of vertical sections in a chunk (controls Y range).
-/// 8 sections = Y -64 to 64 (flat world / bedrock floor).
+/// 8 sections = Y -64 to 64 (flat world / floor).
 const CHUNK_SECTIONS: usize = 8;
 
 /// Default chunks per batch before we receive client feedback.
