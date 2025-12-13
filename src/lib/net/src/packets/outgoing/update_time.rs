@@ -14,7 +14,7 @@
 //!   - 18,000: Midnight
 //!
 //! # Protocol
-//! - Packet ID: `set_time` (0x6A in protocol 773)
+//! - Packet ID: `set_time` (0x6A in protocol 772)
 //! - State: Play
 //! - Bound to: Client
 

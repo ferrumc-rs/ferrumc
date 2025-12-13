@@ -19,7 +19,7 @@ pub use super::client_information::{ChatMode, MainHand, ParticleStatus};
 /// recalculation if view distance changed.
 ///
 /// # Protocol
-/// - Packet ID: `client_information` (0x0D in protocol 773)
+/// - Packet ID: `client_information` (0x0D in protocol 772)
 /// - State: Play
 /// - Bound to: Server
 #[derive(TypeName, Debug, NetDecode)]
