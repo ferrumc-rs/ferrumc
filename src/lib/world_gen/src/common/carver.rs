@@ -7,26 +7,24 @@ use std::{
 use bevy_math::{DVec2, DVec3, IVec3, Vec2Swizzles, Vec3Swizzles};
 use itertools::{Either, Itertools};
 
-use crate::{
-    pos::{BlockPos, ChunkHeight, ChunkPos},
-    random::{LegacyRandom, Rng},
-};
+use crate::random::{LegacyRandom, Rng};
+use ferrumc_world::pos::{BlockPos, ChunkHeight, ChunkPos};
 
 pub struct CarvingMask {
     carved: Vec<bool>,
-    min_y: i32,
+    min_y: i16,
 }
 impl CarvingMask {
     pub fn new(chunk_height: ChunkHeight) -> Self {
         Self {
             min_y: chunk_height.min_y,
-            carved: vec![false; (chunk_height.height * 16 * 16) as usize],
+            carved: vec![false; chunk_height.height as usize * 16 * 16],
         }
     }
-    pub fn carve(&mut self, pos: IVec3) -> bool {
-        let i = pos.x & 15 | (pos.z & 15) << 4 | (pos.y - self.min_y) << 8;
-        let res = self.carved[i as usize];
-        self.carved[i as usize] = true;
+    pub fn carve(&mut self, pos: BlockPos) -> bool {
+        let i = pos.chunk_block_pos().pack(self.min_y) as usize;
+        let res = self.carved[i];
+        self.carved[i] = true;
         res
     }
 }
@@ -36,7 +34,7 @@ pub fn carve_ellipsoid(
     pos: DVec3,
     radii: DVec2,
     chunk_height: ChunkHeight,
-) -> impl Iterator<Item = (DVec3, IVec3)> {
+) -> impl Iterator<Item = (DVec3, BlockPos)> {
     if (chunk_pos.center().pos.as_dvec2() - pos.xz())
         .abs()
         .max_element()
@@ -46,11 +44,13 @@ pub fn carve_ellipsoid(
     }
 
     let radii = radii.xyx();
-    let min = ((pos - radii).floor().as_ivec3() - 1).max((0, chunk_height.min_y + 1, 0).into());
-    let max = (pos + radii)
-        .floor()
-        .as_ivec3()
-        .min((15, chunk_height.max_y() - 1 - 7, 15).into());
+    let min =
+        ((pos - radii).floor().as_ivec3() - 1).max(IVec3::new(0, chunk_height.min_y as i32 + 1, 0));
+    let max = (pos + radii).floor().as_ivec3().min(IVec3::new(
+        15,
+        chunk_height.max_y() as i32 - 1 - 7,
+        15,
+    ));
     let x = move |x| ((f64::from(x) + 0.5 - pos.x) / radii.x, x);
     let z = (min.z..=max.z).map(move |z| ((f64::from(z) + 0.5 - pos.z) / radii.z, z));
     let y = (min.y..=max.y)
@@ -62,7 +62,7 @@ pub fn carve_ellipsoid(
             .cartesian_product(z)
             .filter(|((dx, _), (dz, _))| dx * dx + dz * dz < 1.0)
             .cartesian_product(y)
-            .map(|(((dx, x), (dz, z)), (dy, y))| (DVec3::new(dx, dy, dz), IVec3::new(x, y, z))),
+            .map(|(((dx, x), (dz, z)), (dy, y))| (DVec3::new(dx, dy, dz), BlockPos::of(x, y, z))),
     )
 }
 
@@ -137,7 +137,7 @@ impl Caver {
                 let mut surface_reached = false;
                 for (relative, pos) in carve_ellipsoid(
                     chunk_pos,
-                    random_pos.as_dvec3() + DVec3::from((1.0, 0.0, 0.0)),
+                    random_pos.pos.as_dvec3() + DVec3::from((1.0, 0.0, 0.0)),
                     (
                         1.5 + f64::from((FRAC_PI_2).sin()) * radius,
                         (1.5 + f64::from((FRAC_PI_2).sin()) * radius) * y_scale,
@@ -176,7 +176,7 @@ impl Caver {
                 tunnler.create_tunnel(
                     clearer,
                     random.next_random(),
-                    random_pos.into(),
+                    random_pos.pos.into(),
                     thickness,
                     f1,
                     f,

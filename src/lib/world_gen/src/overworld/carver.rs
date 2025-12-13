@@ -1,23 +1,19 @@
-use crate::{
-    common::carver::{Caver, can_reach},
-    direction::Direction,
-    overworld::{noise_depth::OverworldBiomeNoise, overworld_generator::CHUNK_HEIGHT},
-    pos::ChunkBlockPos,
-};
 use ferrumc_macros::{block, match_block};
-use ferrumc_world::{block_state_id::BlockStateId, chunk_format::Chunk};
+use ferrumc_world::{block_state_id::BlockStateId, chunk_format::Chunk, pos::*};
 use std::{f32::consts::PI, range::Range};
 
 use bevy_math::Vec3Swizzles;
 
 use crate::{
     biome_chunk::BiomeChunk,
+    common::carver::{Caver, can_reach},
     common::{
         aquifer::FluidType,
         carver::{CarvingMask, carve_ellipsoid},
     },
+    direction::Direction,
     overworld::surface::OverworldSurface,
-    pos::{BlockPos, ChunkPos},
+    overworld::{noise_depth::OverworldBiomeNoise, overworld_generator::CHUNK_HEIGHT},
     random::{LegacyRandom, Rng},
 };
 
@@ -101,14 +97,8 @@ fn clear_overworld_cave_block(
     surface_reached: &mut bool,
     pos: BlockPos,
 ) {
-    let rel_pos: ChunkBlockPos = pos.into();
-    let block = chunk
-        .get_block(
-            rel_pos.pos.x.into(),
-            rel_pos.pos.y.into(),
-            rel_pos.pos.z.into(),
-        )
-        .unwrap();
+    let rel_pos: ChunkBlockPos = pos.chunk_block_pos();
+    let block = chunk.get_block(rel_pos).unwrap();
 
     if block == block!("bedrock") {
         return;
@@ -120,26 +110,12 @@ fn clear_overworld_cave_block(
 
     if let (Some(carve_state), _fluid_update /* TODO */) = surface.aquifer.at(biome_noise, pos, 0.0)
     {
-        chunk
-            .set_block(
-                rel_pos.pos.x.into(),
-                rel_pos.pos.y.into(),
-                rel_pos.pos.z.into(),
-                carve_state.into(),
-            )
-            .unwrap();
+        chunk.set_block(rel_pos, carve_state.into()).unwrap();
         if *surface_reached {
-            let check_pos = pos + Direction::Down;
-            let rel_pos: ChunkBlockPos = check_pos.into();
+            let check_pos = pos + Direction::Down.as_unit().into();
+            let rel_pos: ChunkBlockPos = check_pos.chunk_block_pos();
 
-            if chunk
-                .get_block(
-                    rel_pos.pos.x.into(),
-                    rel_pos.pos.y.into(),
-                    rel_pos.pos.z.into(),
-                )
-                .unwrap()
-                == block!("dirt")
+            if chunk.get_block(rel_pos).unwrap() == block!("dirt")
                 && let Some(block_state1) = surface.top_material(
                     chunk,
                     biome_noise,
@@ -148,14 +124,7 @@ fn clear_overworld_cave_block(
                     carve_state != FluidType::Air,
                 )
             {
-                chunk
-                    .set_block(
-                        rel_pos.pos.x.into(),
-                        rel_pos.pos.y.into(),
-                        rel_pos.pos.z.into(),
-                        block_state1,
-                    )
-                    .unwrap();
+                chunk.set_block(rel_pos, block_state1).unwrap();
                 // if block_state1.name == "minecraft:water" || block_state1.name == "minecraft:lava" {
                 //     //TODO
                 // }
@@ -221,14 +190,12 @@ fn carve_canyon(
         return;
     }
     let mut random_pos = chunk_pos
-        .chunk_block(
-            (
-                random.next_bounded(16) as u8,
-                random.next_i32_range(Range::from(10..68)) as i16,
-                random.next_bounded(16) as u8,
-            )
-                .into(),
-        )
+        .chunk_block(ChunkBlockPos::new(
+            random.next_bounded(16) as u8,
+            random.next_i32_range(Range::from(10..68)) as i16,
+            random.next_bounded(16) as u8,
+        ))
+        .pos
         .as_dvec3();
     let mut yaw = random.next_f32() * (PI * 2.0);
     let mut pitch = random.next_f32_range(Range::from(-0.125..0.125));
@@ -284,7 +251,7 @@ fn carve_canyon(
             let radii = (horizontal_radius, vertical_radius).into();
             for (relative, pos) in carve_ellipsoid(chunk_pos, random_pos, radii, CHUNK_HEIGHT) {
                 if (relative.xz().length_squared())
-                    * f64::from(width_factors[(pos.y - CHUNK_HEIGHT.min_y) as usize - 1])
+                    * f64::from(width_factors[(pos.y() as i16 - CHUNK_HEIGHT.min_y) as usize - 1])
                     + relative.y.powi(2) / 6.0
                     >= 1.0
                     || carving_mask.carve(pos)

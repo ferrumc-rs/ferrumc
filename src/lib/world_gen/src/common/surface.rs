@@ -1,9 +1,6 @@
-use crate::{
-    biome::Biome,
-    common::aquifer::FluidType,
-    pos::{BlockPos, ChunkBlockPos, ChunkHeight, ColumnPos},
-};
+use crate::{biome::Biome, common::aquifer::FluidType};
 use ferrumc_macros::block;
+use ferrumc_world::pos::{BlockPos, ChunkHeight, ColumnPos};
 use ferrumc_world::{block_state_id::BlockStateId, chunk_format::Chunk};
 
 pub struct Surface {
@@ -20,23 +17,17 @@ impl Surface {
     }
 
     pub fn find_surface(&self, chunk: &Chunk, pos: ColumnPos) -> (i32, Option<i32>) {
-        let mut stone_level = self.chunk_height.min_y - 1;
+        let mut stone_level = self.chunk_height.min_y as i32 - 1;
         let mut fluid_level = None;
         for y in self.chunk_height.iter().rev() {
-            let chunk_block_pos: ChunkBlockPos = pos.block(y).into();
-            let substance = chunk
-                .get_block(
-                    chunk_block_pos.pos.x.into(),
-                    chunk_block_pos.pos.y.into(),
-                    chunk_block_pos.pos.z.into(),
-                )
-                .unwrap();
+            let chunk_block_pos = pos.block(y as i32).chunk_block_pos();
+            let substance = chunk.get_block(chunk_block_pos).unwrap();
             if substance == block!("stone") || substance == block!("deepslate", {axis: "y"}) {
-                stone_level = y;
+                stone_level = y as i32;
                 break;
             }
             if substance != block!("air") /*aka lava and water*/ && fluid_level.is_none() {
-                fluid_level = Some(y);
+                fluid_level = Some(y as i32);
             }
         }
         (stone_level, fluid_level)
@@ -52,7 +43,7 @@ impl Surface {
         aquifer: impl Fn(BlockPos, f64) -> Option<FluidType>,
     ) -> Vec<BlockStateId> {
         let mut depth = 0;
-        (self.chunk_height.min_y..=stone_level)
+        (self.chunk_height.min_y as i32..=stone_level)
             .rev()
             .map(|y| {
                 let substance = aquifer(
@@ -72,7 +63,7 @@ impl Surface {
                     .unwrap_or(self.default_block)
             })
             .rev()
-            .chain((stone_level + 1..self.chunk_height.max_y()).map(|_| Default::default()))
+            .chain((stone_level + 1..self.chunk_height.max_y() as i32).map(|_| Default::default()))
             .collect()
     }
 }

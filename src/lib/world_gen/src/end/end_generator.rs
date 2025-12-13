@@ -1,12 +1,11 @@
-use bevy_math::IVec2;
 use ferrumc_world::chunk_format::Chunk;
 
 use crate::{
-    end::biome_noise::EndNoise,
+    end::biome_noise::{CHUNK_HEIGHT, EndNoise},
     errors::WorldGenError,
-    pos::{ChunkHeight, ChunkPos},
 };
 
+use ferrumc_world::pos::{ChunkHeight, ChunkPos};
 pub struct EndGenerator {
     seed: u64,
     biome_seed: u64,
@@ -34,9 +33,8 @@ impl EndGenerator {
         }
     }
 
-    pub fn generate_chunk(&self, x: i32, z: i32) -> Result<Chunk, WorldGenError> {
-        let mut chunk = Chunk::new(x, z, "overworld".to_string());
-        let pos = ChunkPos::new(x * 16, z * 16);
+    pub fn generate_chunk(&self, pos: ChunkPos) -> Result<Chunk, WorldGenError> {
+        let mut chunk = Chunk::new(CHUNK_HEIGHT);
         self.biome_noise.generate_chunk(pos, &mut chunk);
         Ok(chunk)
     }

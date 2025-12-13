@@ -14,13 +14,12 @@ mod nether;
 mod noise_router;
 mod overworld;
 mod perlin_noise;
-mod pos;
 mod random;
 use crate::errors::WorldGenError;
 use crate::overworld::overworld_generator::OverworldGenerator;
-use crate::pos::BlockPos;
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::chunk_format::Chunk;
+use ferrumc_world::pos::{BlockPos, ChunkPos};
 
 pub struct ChunkAccess {}
 
@@ -61,7 +60,7 @@ impl WorldGenerator {
         }
     }
 
-    pub fn generate_chunk(&self, x: i32, z: i32) -> Result<Chunk, WorldGenError> {
-        self.generator.generate_chunk(x, z)
+    pub fn generate_chunk(&self, pos: ChunkPos) -> Result<Chunk, WorldGenError> {
+        self.generator.generate_chunk(pos)
     }
 }

@@ -2,17 +2,14 @@ use ferrumc_macros::match_block;
 use ferrumc_world::block_state_id::BlockStateId;
 use std::range::{Range, RangeInclusive};
 
-use bevy_math::{IVec2, IVec3, Vec2Swizzles, Vec3Swizzles};
+use bevy_math::{IVec2, IVec3, Vec2Swizzles};
 use itertools::{Itertools, repeat_n};
 
 use crate::{
-    ChunkAccess, HeightmapType,
-    biome::Biome,
-    direction::Direction,
-    perlin_noise::BIOME_INFO_NOISE,
-    pos::{BlockPos, ChunkHeight},
+    ChunkAccess, HeightmapType, biome::Biome, direction::Direction, perlin_noise::BIOME_INFO_NOISE,
     random::Rng,
 };
+use ferrumc_world::pos::{BlockPos, ChunkHeight};
 
 //filters
 struct BlockPredicateFilter {
@@ -50,7 +47,7 @@ struct SurfaceRelativeThresholdFilter {
 }
 impl SurfaceRelativeThresholdFilter {
     fn filter(&self, pos: BlockPos, height: i32) -> bool {
-        (height + self.range.start..=height + self.range.end).contains(&pos.y)
+        (height + self.range.start..=height + self.range.end).contains(&pos.y())
     }
     fn apply(&self, pos: BlockPos, height: i32) -> impl Iterator<Item = BlockPos> {
         Some(pos)
@@ -96,7 +93,7 @@ struct HeightmapPlacement {
 
 impl HeightmapPlacement {
     fn filter(&self, pos: BlockPos, chunk_height: ChunkHeight) -> bool {
-        pos.y > chunk_height.min_y //TODO should never fail
+        pos.y() > chunk_height.min_y as i32 //TODO should never fail
     }
     fn apply(
         &self,
@@ -104,9 +101,13 @@ impl HeightmapPlacement {
         chunk_access: &ChunkAccess,
         chunk_height: ChunkHeight,
     ) -> impl Iterator<Item = BlockPos> {
-        Some(pos.with_y(chunk_access.get_height(self.height_type, pos.x, pos.z)))
-            .filter(|_| self.filter(pos, chunk_height))
-            .into_iter()
+        Some(
+            pos.pos
+                .with_y(chunk_access.get_height(self.height_type, pos.x(), pos.z())),
+        )
+        .filter(|_| self.filter(pos, chunk_height))
+        .map(|i| BlockPos::of(i.x, i.y, i.z))
+        .into_iter()
     }
 }
 //count placements
@@ -131,7 +132,8 @@ struct NoiseBasedCountPlacement {
 }
 impl NoiseBasedCountPlacement {
     fn count(&self, pos: BlockPos) -> usize {
-        (BIOME_INFO_NOISE.legacy_simplex_at(pos.xz().as_dvec2() / self.factor) + self.offset)
+        (BIOME_INFO_NOISE.legacy_simplex_at(pos.column().pos.as_dvec2() / self.factor)
+            + self.offset)
             .ceil()
             .max(0.0) as usize
     }
@@ -147,7 +149,9 @@ struct NoiseThresholdCountPlacement {
 }
 impl NoiseThresholdCountPlacement {
     fn count(&self, pos: BlockPos) -> usize {
-        if BIOME_INFO_NOISE.legacy_simplex_at(pos.xz().as_dvec2() / 200.0) < self.noise_level {
+        if BIOME_INFO_NOISE.legacy_simplex_at(pos.column().pos.as_dvec2() / 200.0)
+            < self.noise_level
+        {
             self.below
         } else {
             self.above
@@ -174,16 +178,22 @@ impl CountOnEveryLayerPlacement {
         let mut res = Vec::new();
         while res.is_empty() {
             for _ in 0..random.next_bounded(self.count) {
-                let pos = pos.xz()
+                let pos = pos.column().pos
                     + IVec2::new(
                         random.next_bounded(16) as i32,
                         random.next_bounded(16) as i32,
                     );
                 let y = height.get_height(HeightmapType::MotionBlocking, pos.x, pos.y);
                 let pos = pos.xxy().with_y(y);
-                if let Some((_, (i, _))) = (chunk_height.min_y..pos.y)
+                if let Some((_, (i, _))) = (chunk_height.min_y as i32..pos.y)
                     .rev()
-                    .map(|y| height.get_block_state(pos.with_y(y)))
+                    .map(|y| {
+                        height.get_block_state(BlockPos::of(
+                            pos.with_y(y).x,
+                            pos.with_y(y).y,
+                            pos.with_y(y).z,
+                        ))
+                    })
                     .tuple_windows()
                     .enumerate()
                     .filter(|(_, (a, b))| {
@@ -204,7 +214,7 @@ impl CountOnEveryLayerPlacement {
                 }
             }
         }
-        res.into_iter()
+        res.into_iter().map(|i| BlockPos::of(i.x, i.y, i.z))
     }
 }
 
@@ -229,12 +239,18 @@ impl EnvironmentScanPlacement {
             return None.into_iter();
         }
         (0..self.max_steps as i32)
-            .map(|i| pos + self.direction.as_unit() * i)
-            .take_while(|pos| chunk_height.iter().contains(&pos.y))
-            .map(|pos| (pos, chunk_access.get_block_state(pos)))
+            .map(|i| pos.pos + self.direction.as_unit() * i)
+            .take_while(|pos| chunk_height.iter().contains(&(pos.y as i16)))
+            .map(|pos| {
+                (
+                    pos,
+                    chunk_access.get_block_state(BlockPos::of(pos.x, pos.y, pos.z)),
+                )
+            })
             .take_while_inclusive(|(_, block)| self.allowed_search_condition.contains(block))
             .find(|(_, block)| self.target_condition.contains(block))
             .map(|(pos, _)| pos)
+            .map(|i| BlockPos::of(i.x, i.y, i.z))
             .into_iter()
     }
 }
@@ -245,7 +261,9 @@ struct HeightRangeModifier {
 
 impl HeightRangeModifier {
     fn apply(&self, pos: BlockPos, random: &mut impl Rng) -> impl Iterator<Item = BlockPos> {
-        Some(pos.with_y(random.next_i32_range(self.range))).into_iter()
+        Some(pos.pos.with_y(random.next_i32_range(self.range)))
+            .into_iter()
+            .map(|i| BlockPos::of(i.x, i.y, i.z))
     }
 }
 
@@ -259,6 +277,7 @@ impl InSquarePlacement {
                     0,
                     random.next_bounded(16) as i32,
                 )
+                .into()
             })
             .into_iter()
     }
@@ -276,6 +295,7 @@ impl RandomOffsetPlacement {
                     random.next_i32_range(self.y_offset),
                     random.next_i32_range(self.xz_offset),
                 )
+                .into()
             })
             .into_iter()
     }

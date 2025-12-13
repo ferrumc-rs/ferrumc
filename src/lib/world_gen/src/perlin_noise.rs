@@ -1,11 +1,10 @@
 use crate::{
     common::math::lerp3,
-    pos::BlockPos,
     random::{LegacyRandom, Rng},
 };
 use std::{array::from_fn, f64::consts::SQRT_3, sync::LazyLock};
 
-use bevy_math::{DVec2, DVec3, FloatExt};
+use bevy_math::{DVec2, DVec3, FloatExt, IVec3};
 use const_str::starts_with;
 
 //reference net.minecraft.world.level.levelgen.Noises
@@ -306,7 +305,8 @@ pub struct NormalNoise<const N: usize> {
 }
 
 impl<const N: usize> NormalNoise<N> {
-    pub fn at(&self, pos: DVec3) -> f64 {
+    pub fn at(&self, pos: impl Into<DVec3>) -> f64 {
+        let pos = pos.into();
         (self.first.at(pos) + self.second.at(pos * 1.0181268882175227)) * self.factor
     }
 }
@@ -459,7 +459,7 @@ impl ImprovedNoise {
     }
 
     #[inline]
-    fn gradient(&self, delta: DVec3, grid: BlockPos) -> (f64, f64, f64, f64, f64, f64, f64, f64) {
+    fn gradient(&self, delta: DVec3, grid: IVec3) -> (f64, f64, f64, f64, f64, f64, f64, f64) {
         let x = self.p(grid.x);
         let x1 = self.p(grid.x + 1);
         let y = self.p(x + grid.y);
@@ -609,5 +609,5 @@ fn test_continentalness() {
     //     (13.954442024230957, 65.71379852294922, 250.0172119140625).into()
     // );
 
-    assert_eq!(noise.at((0., 0., 0.).into()), 0.4846943122912421);
+    assert_eq!(noise.at((0., 0., 0.)), 0.4846943122912421);
 }

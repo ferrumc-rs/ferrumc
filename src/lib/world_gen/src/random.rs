@@ -2,7 +2,7 @@ use std::range::Range;
 
 use bevy_math::{IVec3, UVec3};
 
-use crate::pos::{BlockPos, ChunkPos};
+use ferrumc_world::pos::{BlockPos, ChunkPos};
 
 pub trait Rng {
     fn next_f32(&mut self) -> f32;
@@ -262,9 +262,9 @@ impl Rng for LegacyRandom {
 }
 
 const fn seed_at(pos: BlockPos) -> u64 {
-    let composition = ((pos.x as i64).wrapping_mul(3129871)
-        ^ (pos.z as i64).wrapping_mul(116129781)
-        ^ (pos.y as i64)) as u64;
+    let composition = ((pos.x() as i64).wrapping_mul(3129871)
+        ^ (pos.z() as i64).wrapping_mul(116129781)
+        ^ (pos.y() as i64)) as u64;
     let shuffle = composition
         .wrapping_mul(composition)
         .wrapping_mul(42317861)
@@ -314,7 +314,7 @@ fn test_legacy_factory() {
     //TODO: change to minecraft:test
     assert_eq!(factory.with_hash("test").seed, 198298808087495);
     assert_eq!(factory.with_hash("test").next_u64(), 1964728489694604786);
-    assert_eq!(factory.at((1, 1, 1).into()).next_u64(), 6437814084537238339);
+    assert_eq!(factory.at(BlockPos::of(1, 1, 1)).next_u64(), 6437814084537238339);
 }
 
 #[test]

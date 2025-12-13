@@ -2,10 +2,10 @@ use crate::{
     ChunkAccess,
     blocktag::{BAMBOO_PLANTABLE_ON, DIRT, SMALL_DRIPLEAF_PLACEABLE},
     direction::Direction,
-    pos::BlockPos,
 };
 use ferrumc_macros::match_block;
 use ferrumc_world::block_state_id::BlockStateId;
+use ferrumc_world::pos::BlockPos;
 
 fn has(block: BlockStateId, key: &str, value: &str) -> bool {
     todo!()
@@ -15,7 +15,7 @@ fn is(block: BlockStateId, name: &str, key: &str, value: &str) -> bool {
 }
 
 pub fn can_survive(block: BlockStateId, level: &ChunkAccess, pos: BlockPos) -> bool {
-    let below = level.get_block_state(pos + Direction::Down);
+    let below = level.get_block_state(pos + Direction::Down.as_unit().into());
     match block {
         _ if match_block!("small_dripleaf", block) => {
             if has(block, "half", "upper") {

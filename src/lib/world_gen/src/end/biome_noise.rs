@@ -8,9 +8,9 @@ use std::{array::from_fn, f64};
 use crate::{
     common::noise::{generate_interpolation_data, slide},
     perlin_noise::{BASE_3D_NOISE_END, BlendedNoise, ImprovedNoise},
-    pos::{BlockPos, ChunkBlockPos, ChunkHeight, ChunkPos, ColumnPos},
     random::LegacyRandom,
 };
+use ferrumc_world::pos::{BlockPos, ChunkHeight, ChunkPos, ColumnPos};
 use std::f32;
 
 pub const CHUNK_HEIGHT: ChunkHeight = ChunkHeight::new(0, 256);
@@ -37,16 +37,9 @@ impl EndNoise {
             |block| self.pre_backed_final_density(islands_cache, pos, block),
             pos,
             |pos, res| {
-                let pos = ChunkBlockPos::from(pos);
-
                 if res > 0.0 {
                     chunk
-                        .set_block(
-                            i32::from(pos.pos.x),
-                            i32::from(pos.pos.y),
-                            i32::from(pos.pos.z),
-                            block!("end_stone"),
-                        )
+                        .set_block(pos.chunk_block_pos(), block!("end_stone"))
                         .unwrap();
                 }
             },
@@ -59,11 +52,11 @@ impl EndNoise {
         chunk: ChunkPos,
         pos: BlockPos,
     ) -> f64 {
-        let cache_pos = (pos - chunk.origin().block(0)) / 8;
+        let cache_pos = (pos.pos - chunk.origin().block(0).pos) / 8;
         let sloped_cheese = islands_cache[cache_pos.x as usize][cache_pos.z as usize]
-            + self.base_noise.at(pos.as_dvec3() * 0.25 * 684.412);
+            + self.base_noise.at(pos.pos.as_dvec3() * 0.25 * 684.412);
         slide(
-            pos.y.into(),
+            pos.y().into(),
             sloped_cheese,
             128. - 72.,
             128. + 184.,

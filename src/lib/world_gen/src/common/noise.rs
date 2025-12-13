@@ -1,12 +1,10 @@
 use std::mem::swap;
 
-use bevy_math::{FloatExt, U8Vec3};
+use bevy_math::FloatExt;
 
-use crate::{
-    common::math::clamped_map,
-    pos::{BlockPos, ChunkBlockPos, ChunkPos},
-};
+use crate::common::math::clamped_map;
 
+use ferrumc_world::pos::{BlockPos, ChunkPos};
 pub fn post_process(interpolated: f64) -> f64 {
     let d = (interpolated * 0.64).clamp(-1.0, 1.0);
     d / 2.0 - d * d * d / 24.0
@@ -96,9 +94,8 @@ pub fn generate_interpolation_data(
 
                             let res = post_process(value);
 
-                            let curr_pos = ChunkBlockPos::from(
-                                base_pos + BlockPos::new(cx as i32, cy, cz as i32),
-                            );
+                            let curr_pos =
+                                (base_pos + (cx as i32, cy, cz as i32)).chunk_block_pos();
 
                             action(pos.chunk_block(curr_pos), res);
                         }

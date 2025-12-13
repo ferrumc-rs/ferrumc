@@ -1,10 +1,7 @@
-use bevy_math::Vec3Swizzles;
 
-use crate::{
-    perlin_noise::{BIOME_INFO_NOISE, FROZEN_TEMPERATURE_NOISE, TEMPERATURE_NOISE},
-    pos::BlockPos,
-};
+use crate::perlin_noise::{BIOME_INFO_NOISE, FROZEN_TEMPERATURE_NOISE, TEMPERATURE_NOISE};
 
+use ferrumc_world::pos::BlockPos;
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Biome {
     TheVoid,
@@ -127,8 +124,8 @@ impl Biome {
     }
 
     pub fn block_temperature(&self, pos: BlockPos, sea_level: i32) -> f32 {
-        let y = pos.y;
-        let pos = pos.xz().as_dvec2();
+        let y = pos.y();
+        let pos = pos.column().pos.as_dvec2();
         let temp = if *self == Biome::FrozenOcean
             && FROZEN_TEMPERATURE_NOISE.legacy_simplex_at(pos * 0.05) * 7.
                 + BIOME_INFO_NOISE.legacy_simplex_at(pos * 0.2)

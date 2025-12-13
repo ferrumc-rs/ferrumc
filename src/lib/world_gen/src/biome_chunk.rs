@@ -1,13 +1,11 @@
 use bevy_math::{DVec3, IVec3};
 use itertools::Itertools;
 
-use crate::{
-    biome::Biome,
-    pos::{BlockPos, ChunkHeight, ChunkPos},
-};
+use crate::biome::Biome;
+use ferrumc_world::pos::{BlockPos, ChunkHeight, ChunkPos};
 
 pub struct BiomeChunk {
-    min_y: i32,
+    min_y: i16,
     biomes: Vec<Biome>,
     seed: u64,
 }
@@ -36,7 +34,7 @@ impl BiomeChunk {
             .map(|pos| biome_noise(pos).map(|a| a as f32).map(f32_to_i64))
             .map(|noise| get_best(noise, biomes))
             .collect();
-        let min_y = chunk_height.min_y.div_euclid(4);
+        let min_y = chunk_height.min_y;
 
         Self {
             biomes,
@@ -46,14 +44,15 @@ impl BiomeChunk {
     }
 
     fn intern_at(&self, pos: IVec3) -> Biome {
-        let i = pos.x & 3 | (pos.z & 3) << 2 | (pos.y - self.min_y) << 4;
+        let pos = pos.abs();
+        let i = pos.x & 3 | (pos.z & 3) << 2 | (pos.y - self.min_y as i32) << 4;
         self.biomes[i as usize]
     }
     pub fn at(&self, pos: BlockPos) -> Biome {
         fn next(left: i64, right: i64) -> i64 {
             const MULTIPLIER: i64 = 6364136223846793005;
             const INCREMENT: i64 = 1442695040888963407;
-            left.wrapping_mul(left.wrapping_mul(MULTIPLIER) + INCREMENT)
+            left.wrapping_mul(left.wrapping_mul(MULTIPLIER).wrapping_add(INCREMENT))
                 .wrapping_add(right)
         }
 
@@ -81,7 +80,7 @@ impl BiomeChunk {
             (noise + DVec3::new(x_fiddle, y_fiddle, z_fiddle)).length_squared()
         }
 
-        let i = pos - 2;
+        let i = pos.pos - 2;
 
         let pos = i >> 2;
 

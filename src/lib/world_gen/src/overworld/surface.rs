@@ -3,6 +3,7 @@ use crate::common::math::lerp2;
 use crate::overworld::overworld_generator::CHUNK_HEIGHT;
 use std::range::Range;
 
+use crate::biome_chunk::BiomeChunk;
 use crate::common::surface::Surface;
 use crate::overworld::aquifer::{Aquifer, SEA_LEVEL};
 use crate::overworld::noise_depth::OverworldBiomeNoise;
@@ -12,13 +13,12 @@ use crate::perlin_noise::{
     ICE, ICEBERG_PILLAR, ICEBERG_PILLAR_ROOF, ICEBERG_SURFACE, PACKED_ICE, POWDER_SNOW, SURFACE,
     SURFACE_SECONDARY, SWAMP,
 };
-use crate::pos::{BlockPos, ChunkBlockPos, ChunkColumnPos};
 use crate::random::Xoroshiro128PlusPlus;
-use crate::{biome_chunk::BiomeChunk, pos::ColumnPos};
 use bevy_math::FloatExt;
 use ferrumc_macros::block;
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::chunk_format::Chunk;
+use ferrumc_world::pos::{BlockPos, ChunkBlockPos, ColumnPos};
 
 use crate::{biome::Biome, perlin_noise::NormalNoise, random::Rng};
 
@@ -117,7 +117,7 @@ impl OverworldSurface {
                     .to_block()
             },
             |pos, final_density| {
-                (pos.y < stone_level).then_some(()).and_then(
+                (pos.y() < stone_level).then_some(()).and_then(
                     |()| self.aquifer.at(biome_noise, pos, final_density).0, //TODO
                 )
             },
@@ -127,15 +127,13 @@ impl OverworldSurface {
             self.frozen_ocean_extension(pos, biome, &mut block_column);
         }
         block_column.iter().enumerate().for_each(|(i, b)| {
-            let pos: ChunkBlockPos = pos.block(i as i32 - 64).into();
-            chunk
-                .set_block(pos.pos.x.into(), pos.pos.y.into(), pos.pos.z.into(), *b)
-                .unwrap()
+            let pos: ChunkBlockPos = pos.block(i as i32 - 64).chunk_block_pos();
+            chunk.set_block(pos, *b).unwrap()
         });
     }
 
     fn eroded_badlands_extend_height(&self, pos: ColumnPos) -> Option<i32> {
-        let pos = pos.block(0).as_dvec3();
+        let pos = pos.block(0).pos.as_dvec3();
         let surface = (self.noises.badlands_surface_noise.at(pos) * 8.25)
             .abs()
             .min(self.noises.badlands_pillar_noise.at(pos * 0.2) * 15.0);
@@ -149,7 +147,7 @@ impl OverworldSurface {
     }
 
     fn frozen_ocean_extend_height(&self, pos: ColumnPos, biome: Biome) -> Option<i32> {
-        let noise_pos = pos.block(0).as_dvec3();
+        let noise_pos = pos.block(0).pos.as_dvec3();
         let surface = (self.noises.iceberg_surface_noise.at(noise_pos) * 8.25)
             .abs()
             .min(self.noises.iceberg_pillar_noise.at(noise_pos * 1.28) * 15.0);
@@ -178,11 +176,11 @@ impl OverworldSurface {
             let min_snow_block_y = SEA_LEVEL + 18 + rng.next_bounded(10) as i32;
             let mut snow_blocks = 0;
             for y in (SEA_LEVEL - iceburg_height - 7..=SEA_LEVEL + iceburg_height).rev() {
-                let block = block_column[(y - CHUNK_HEIGHT.min_y) as usize];
+                let block = block_column[(y as i16 - CHUNK_HEIGHT.min_y) as usize];
                 if block == block!("air") && rng.next_f64() > 0.01
                     || block == block!("water", {level: 0}) && rng.next_f64() > 0.15
                 {
-                    block_column[(y - CHUNK_HEIGHT.min_y) as usize] =
+                    block_column[(y as i16 - CHUNK_HEIGHT.min_y) as usize] =
                         if snow_blocks <= max_snow_blocks && y > min_snow_block_y {
                             snow_blocks += 1;
                             block!("snow_block")
@@ -197,7 +195,7 @@ impl OverworldSurface {
     pub fn min_surface_level(&self, noise: &OverworldBiomeNoise, pos: ColumnPos) -> i32 {
         let chunk = pos.chunk();
         lerp2(
-            ChunkColumnPos::from(pos).pos.as_dvec2() / 16.0,
+            pos.chunk_column_pos().pos.as_dvec2() / 16.0,
             f64::from(noise.preliminary_surface(chunk)),
             f64::from(noise.preliminary_surface(chunk + (1, 0))),
             f64::from(noise.preliminary_surface(chunk + (0, 1))),
@@ -209,9 +207,7 @@ impl OverworldSurface {
 
     fn get_surface_depth(&self, pos: ColumnPos) -> i32 {
         let pos = pos.block(0);
-        (self.noises.surface.at(pos.as_dvec3()) * 2.75
-            + 3.0
-            + self.factory.at(pos).next_f64() * 0.25) as i32
+        (self.noises.surface.at(pos) * 2.75 + 3.0 + self.factory.at(pos).next_f64() * 0.25) as i32
     }
 
     pub(crate) fn top_material(
@@ -230,7 +226,7 @@ impl OverworldSurface {
                 biome,
                 1,
                 1,
-                if is_fluid { Some(pos.y + 1) } else { None },
+                if is_fluid { Some(pos.y() + 1) } else { None },
                 pos,
             )
             .to_block()
@@ -356,21 +352,23 @@ impl SurfaceRules {
     ) -> SurfaceBlock {
         use SurfaceBlock::*;
         //bedrock
-        if pos.y == -64
-            || pos.y < -64 + 5
+        if pos.y() == -64
+            || pos.y() < -64 + 5
                 && self.bedrock.at(pos).next_f32()
-                    < f64::from(pos.y).remap(-64.0, -64.0 + 5.0, 1.0, 0.0) as f32
+                    < f64::from(pos.y()).remap(-64.0, -64.0 + 5.0, 1.0, 0.0) as f32
         {
             return Bedrock;
         }
 
-        if pos.y >= surface.min_surface_level(biome_noise, pos.into()) {
-            let surface_noise = surface.noises.surface.at(pos.with_y(0).into());
-            let surface_depth =
-                surface_noise * 2.75 + 3.0 + self.factory.at(pos.with_y(0)).next_f64() * 0.25;
+        if pos.y() >= surface.min_surface_level(biome_noise, pos.column()) {
+            let surface_noise = surface.noises.surface.at(pos.column().block(0));
+            let surface_depth = surface_noise * 2.75
+                + 3.0
+                + self.factory.at(pos.column().block(0)).next_f64() * 0.25;
 
             if depth_above <= 1 {
-                if biome == Biome::WoodedBadlands && f64::from(pos.y) >= 97.0 + surface_depth * 2.0
+                if biome == Biome::WoodedBadlands
+                    && f64::from(pos.y()) >= 97.0 + surface_depth * 2.0
                 {
                     if badlands_noise_condition(surface_noise) {
                         return CoarseDirt;
@@ -381,16 +379,13 @@ impl SurfaceRules {
                         Dirt
                     };
                 }
-                if biome == Biome::Swamp
-                    && pos.y == 62
-                    && surface.noises.swamp.at(pos.into()) >= 0.0
-                {
+                if biome == Biome::Swamp && pos.y() == 62 && surface.noises.swamp.at(pos) >= 0.0 {
                     return Water;
                 }
                 if biome == Biome::MangroveSwamp
-                    && pos.y >= 60
-                    && pos.y < 63
-                    && surface.noises.swamp.at(pos.into()) >= 0.0
+                    && pos.y() >= 60
+                    && pos.y() < 63
+                    && surface.noises.swamp.at(pos) >= 0.0
                 {
                     return Water;
                 }
@@ -400,10 +395,10 @@ impl SurfaceRules {
                 Biome::Badlands | Biome::ErodedBadlands | Biome::WoodedBadlands
             ) {
                 if depth_above <= 1 {
-                    if pos.y >= 256 {
+                    if pos.y() >= 256 {
                         return OrangeTerracotta;
                     }
-                    if f64::from(pos.y) >= 72.0 + f64::from(depth_above) + surface_depth {
+                    if f64::from(pos.y()) >= 72.0 + f64::from(depth_above) + surface_depth {
                         return if badlands_noise_condition(surface_noise) {
                             Terracotta
                         } else {
@@ -421,16 +416,16 @@ impl SurfaceRules {
                         return OrangeTerracotta;
                     }
                     if fluid_level.is_none_or(|f| {
-                        f64::from(pos.y) + f64::from(depth_below)
+                        f64::from(pos.y()) + f64::from(depth_below)
                             >= f64::from(f) - 6.0 - surface_depth
                     }) {
                         return WhiteTerracotta;
                     }
                     return if depth_below <= 1 { Stone } else { Gravel };
                 }
-                if f64::from(pos.y) + f64::from(depth_above) >= 63.0 - surface_depth {
-                    return if pos.y >= 63
-                        && f64::from(pos.y) + f64::from(depth_above) < 74.0 - surface_depth
+                if f64::from(pos.y()) + f64::from(depth_above) >= 63.0 - surface_depth {
+                    return if pos.y() >= 63
+                        && f64::from(pos.y()) + f64::from(depth_above) < 74.0 - surface_depth
                     {
                         OrangeTerracotta
                     } else {
@@ -440,14 +435,14 @@ impl SurfaceRules {
 
                 if f64::from(depth_above) <= 1.0 + surface_depth
                     && fluid_level.is_none_or(|f| {
-                        f64::from(pos.y) + f64::from(depth_below)
+                        f64::from(pos.y()) + f64::from(depth_below)
                             >= f64::from(f) - 6.0 - surface_depth
                     })
                 {
                     return WhiteTerracotta;
                 }
             }
-            if depth_above <= 1 && fluid_level.is_none_or(|f| pos.y >= f - 1) {
+            if depth_above <= 1 && fluid_level.is_none_or(|f| pos.y() >= f - 1) {
                 return if matches!(biome, Biome::DeepFrozenOcean | Biome::FrozenOcean)
                     && surface_depth <= 0.0
                 {
@@ -463,11 +458,12 @@ impl SurfaceRules {
                         if is_steep(pos, chunk) {
                             return PackedIce;
                         }
-                        if (0.0..=0.2).contains(&surface.noises.packed_ice.at(pos.with_y(0).into()))
+                        if (0.0..=0.2)
+                            .contains(&surface.noises.packed_ice.at(pos.column().block(0)))
                         {
                             return PackedIce;
                         }
-                        if (0.0..=0.025).contains(&surface.noises.ice.at(pos.with_y(0).into())) {
+                        if (0.0..=0.025).contains(&surface.noises.ice.at(pos.column().block(0))) {
                             return PackedIce;
                         }
                         if fluid_level.is_none() {
@@ -480,7 +476,7 @@ impl SurfaceRules {
                         }
                         if fluid_level.is_none()
                             && (0.45..=0.58)
-                                .contains(&surface.noises.powder_snow.at(pos.with_y(0).into()))
+                                .contains(&surface.noises.powder_snow.at(pos.column().block(0)))
                         {
                             return PowderSnow;
                         }
@@ -499,7 +495,7 @@ impl SurfaceRules {
                     if biome == Biome::Grove {
                         if fluid_level.is_none()
                             && (0.45..=0.58)
-                                .contains(&surface.noises.powder_snow.at(pos.with_y(0).into()))
+                                .contains(&surface.noises.powder_snow.at(pos.column().block(0)))
                         {
                             return PowderSnow;
                         }
@@ -560,7 +556,7 @@ impl SurfaceRules {
                 };
             }
             if fluid_level.is_none_or(|f| {
-                f64::from(pos.y) + f64::from(depth_below) >= f64::from(f) - 6.0 - surface_depth
+                f64::from(pos.y()) + f64::from(depth_below) >= f64::from(f) - 6.0 - surface_depth
             }) {
                 if depth_above <= 1
                     && matches!(biome, Biome::DeepFrozenOcean | Biome::FrozenOcean)
@@ -574,11 +570,11 @@ impl SurfaceRules {
                             return PackedIce;
                         }
                         if (-0.5..=0.2)
-                            .contains(&surface.noises.packed_ice.at(pos.with_y(0).into()))
+                            .contains(&surface.noises.packed_ice.at(pos.column().block(0)))
                         {
                             return PackedIce;
                         }
-                        if (-0.0625..=0.025).contains(&surface.noises.ice.at(pos.with_y(0).into()))
+                        if (-0.0625..=0.025).contains(&surface.noises.ice.at(pos.column().block(0)))
                         {
                             return PackedIce;
                         }
@@ -592,7 +588,7 @@ impl SurfaceRules {
                         }
                         if fluid_level.is_none()
                             && (0.45..=0.58)
-                                .contains(&surface.noises.powder_snow.at(pos.with_y(0).into()))
+                                .contains(&surface.noises.powder_snow.at(pos.column().block(0)))
                         {
                             return PowderSnow;
                         }
@@ -605,7 +601,7 @@ impl SurfaceRules {
                     }
                     if biome == Biome::Grove {
                         return if (0.45..=0.58)
-                            .contains(&surface.noises.powder_snow.at(pos.with_y(0).into()))
+                            .contains(&surface.noises.powder_snow.at(pos.column().block(0)))
                         {
                             PowderSnow
                         } else {
@@ -614,7 +610,7 @@ impl SurfaceRules {
                     }
                     if biome == Biome::StonyPeaks {
                         return if (-0.0125..=0.0125)
-                            .contains(&surface.noises.calcite.at(pos.with_y(0).into()))
+                            .contains(&surface.noises.calcite.at(pos.column().block(0)))
                         {
                             Calcite
                         } else {
@@ -624,7 +620,7 @@ impl SurfaceRules {
                     if biome == Biome::StonyShore {
                         return if depth_below <= 1
                             && (-0.05..=0.05)
-                                .contains(&surface.noises.gravel.at(pos.with_y(0).into()))
+                                .contains(&surface.noises.gravel.at(pos.column().block(0)))
                         {
                             Gravel
                         } else {
@@ -671,7 +667,7 @@ impl SurfaceRules {
                             + surface
                                 .noises
                                 .surface_secondary
-                                .at(pos.with_y(0).into())
+                                .at(pos.column().block(0))
                                 .remap(-1.0, 1.0, 0.0, 6.0)
                         || f64::from(depth_above)
                             <= 1.0
@@ -679,7 +675,7 @@ impl SurfaceRules {
                                 + surface
                                     .noises
                                     .surface_secondary
-                                    .at(pos.with_y(0).into())
+                                    .at(pos.column().block(0))
                                     .remap(-1.0, 1.0, 0.0, 30.0))
                 {
                     return Sandstone;
@@ -701,10 +697,10 @@ impl SurfaceRules {
             }
         }
 
-        if pos.y <= 0
-            || pos.y < 8
+        if pos.y() <= 0
+            || pos.y() < 8
                 && self.deepslate.at(pos).next_f32()
-                    < f64::from(pos.y).remap(0.0, 8.0, 1.0, 0.0) as f32
+                    < f64::from(pos.y()).remap(0.0, 8.0, 1.0, 0.0) as f32
         {
             return Deepslate;
         }
@@ -713,10 +709,10 @@ impl SurfaceRules {
     }
 
     fn get_badlands_clay(&self, surface: &OverworldSurface, pos: BlockPos) -> SurfaceBlock {
-        let i = (surface.noises.clay_bands_offset.at(pos.with_y(0).into()) * 4.0).round(); //TODO:
+        let i = (surface.noises.clay_bands_offset.at(pos.column().block(0)) * 4.0).round(); //TODO:
         //this rounding is not the same as in java.
         self.clay_bands
-            [(pos.y as usize + i as usize + self.clay_bands.len()) % self.clay_bands.len()]
+            [(pos.y() as usize + i as usize + self.clay_bands.len()) % self.clay_bands.len()]
     }
 }
 fn badlands_clay(factory: Xoroshiro128PlusPlus) -> [SurfaceBlock; 192] {

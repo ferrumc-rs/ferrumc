@@ -3,7 +3,7 @@ use ferrumc_macros::block;
 use ferrumc_world::block_state_id::BlockStateId;
 use std::ops::RangeInclusive;
 
-use bevy_math::IVec3;
+use ferrumc_world::pos::BlockPos;
 
 use crate::{
     perlin_noise::{NormalNoise, ORE_GAP, ORE_VEIN_A, ORE_VEIN_B, ORE_VEININESS},
@@ -30,7 +30,7 @@ impl Vein {
         }
     }
 
-    pub(crate) fn at(&self, pos: IVec3) -> Option<BlockStateId> {
+    pub(crate) fn at(&self, pos: BlockPos) -> Option<BlockStateId> {
         let copper: (
             BlockStateId,
             BlockStateId,
@@ -53,10 +53,10 @@ impl Vein {
             block!("tuff"),
             (-60..=-8),
         );
-        let vein_toggle = self.vein_toggle.at(pos.as_dvec3() * 1.5);
+        let vein_toggle = self.vein_toggle.at(pos.pos.as_dvec3() * 1.5);
         let vein_type = if vein_toggle > 0.0 { copper } else { iron };
 
-        let distance = distance(vein_type.3, pos.y);
+        let distance = distance(vein_type.3, pos.y());
 
         if distance < 0 {
             return None;
@@ -66,13 +66,13 @@ impl Vein {
             return None;
         }
         let mut rand = self.factory.at(pos);
-        let vein_pos = pos.as_dvec3() * 4.0;
+        let vein_pos = pos.pos.as_dvec3() * 4.0;
         if rand.next_f32() > 0.7 || self.vein_a.at(vein_pos).max(self.vein_b.at(vein_pos)) >= 0.08 {
             return None;
         }
 
         if f64::from(rand.next_f32()) < clamped_map(vein_toggle.abs(), 0.4, 0.6, 0.1, 0.3)
-            && self.vein_gap.at(pos.into()) > -0.3
+            && self.vein_gap.at(pos) > -0.3
         {
             if rand.next_f32() < 0.02 {
                 Some(vein_type.1)

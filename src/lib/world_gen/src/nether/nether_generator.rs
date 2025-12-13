@@ -1,12 +1,12 @@
-use bevy_math::IVec2;
 use ferrumc_world::chunk_format::Chunk;
 
 use crate::{
     errors::WorldGenError,
     nether::noise::NetherNoise,
-    pos::{ChunkHeight, ChunkPos},
 };
 
+   use ferrumc_world:: pos::{ChunkHeight, ChunkPos};
+pub const CHUNK_HEIGHT: ChunkHeight = ChunkHeight::new(0, 256);
 pub struct NetherGenerator {
     seed: u64,
     biome_seed: u64,
@@ -34,11 +34,9 @@ impl NetherGenerator {
         }
     }
 
-    pub fn generate_chunk(&self, x: i32, z: i32) -> Result<Chunk, WorldGenError> {
-        let mut chunk = Chunk::new(x, z, "overworld".to_string());
-        self.noise
-            .generate_chunk(ChunkPos::new(x * 16, z * 16), &mut chunk);
-
+    pub fn generate_chunk(&self, pos: ChunkPos) -> Result<Chunk, WorldGenError> {
+        let mut chunk = Chunk::new(CHUNK_HEIGHT);
+        self.noise.generate_chunk(pos, &mut chunk);
         Ok(chunk)
     }
 }

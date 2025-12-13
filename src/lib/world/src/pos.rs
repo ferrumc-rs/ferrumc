@@ -3,7 +3,9 @@ use std::fmt::Formatter;
 use std::fmt::Result;
 use std::ops::Add;
 use std::ops::Range;
+use std::ops::Sub;
 
+use bevy_math::DVec3;
 use bevy_math::I16Vec3;
 use bevy_math::IVec2;
 use bevy_math::IVec3;
@@ -26,6 +28,16 @@ impl BlockPos {
         }
     }
 
+    pub const fn x(&self) -> i32 {
+        self.pos.x
+    }
+    pub const fn y(&self) -> i32 {
+        self.pos.y
+    }
+    pub const fn z(&self) -> i32 {
+        self.pos.z
+    }
+
     pub fn column(&self) -> ColumnPos {
         ColumnPos { pos: self.pos.xz() }
     }
@@ -34,7 +46,7 @@ impl BlockPos {
         self.column().chunk()
     }
 
-    pub fn chunk_block_pos(self) -> ChunkBlockPos {
+    pub fn chunk_block_pos(&self) -> ChunkBlockPos {
         ChunkBlockPos::new(
             self.pos.x.rem_euclid(16) as u8,
             self.pos.y as i16,
@@ -51,6 +63,26 @@ impl BlockPos {
     pub fn section_block_pos(&self) -> SectionBlockPos {
         SectionBlockPos {
             pos: self.pos.rem_euclid((16, 16, 16).into()).as_u8vec3(),
+        }
+    }
+
+    pub fn distance_squared(&self, other: BlockPos) -> i32 {
+        self.pos.distance_squared(other.pos)
+    }
+}
+
+impl From<BlockPos> for DVec3 {
+    fn from(value: BlockPos) -> Self {
+        value.pos.as_dvec3()
+    }
+}
+
+impl Sub<(i32, i32, i32)> for BlockPos {
+    type Output = BlockPos;
+
+    fn sub(self, rhs: (i32, i32, i32)) -> Self::Output {
+        Self {
+            pos: self.pos - IVec3::from(rhs),
         }
     }
 }
@@ -174,7 +206,7 @@ impl Add<(i32, i32)> for ChunkPos {
 }
 
 pub struct ChunkColumnPos {
-    pos: U8Vec2,
+    pub pos: U8Vec2,
 }
 
 impl ChunkColumnPos {
@@ -183,14 +215,6 @@ impl ChunkColumnPos {
         assert!(z < 16);
         Self {
             pos: U8Vec2::new(x, z),
-        }
-    }
-}
-
-impl From<ColumnPos> for ChunkColumnPos {
-    fn from(pos: ColumnPos) -> Self {
-        Self {
-            pos: pos.pos.rem_euclid((16, 16).into()).as_u8vec2(),
         }
     }
 }
@@ -240,11 +264,15 @@ impl ChunkBlockPos {
     pub fn section(&self) -> i8 {
         self.pos.y.div_euclid(16) as i8
     }
+
+    pub fn pack(&self, min_y: i16) -> u16 {
+        ((self.pos.y - min_y) as u16) << 8 | (self.pos.z as u16) << 4 | self.pos.x as u16
+    }
 }
 
 #[derive(Clone, Copy)]
 pub struct ColumnPos {
-    pos: IVec2,
+    pub pos: IVec2,
 }
 
 impl ColumnPos {
@@ -252,14 +280,20 @@ impl ColumnPos {
         Self { pos: (x, z).into() }
     }
 
-    pub fn block(self, y: i32) -> BlockPos {
+    pub fn block(&self, y: i32) -> BlockPos {
         BlockPos {
             pos: self.pos.xxy().with_y(y),
         }
     }
 
-    pub fn chunk(self) -> ChunkPos {
+    pub fn chunk(&self) -> ChunkPos {
         ChunkPos::new(self.pos.x.div_euclid(16), self.pos.y.div_euclid(16))
+    }
+
+    pub fn chunk_column_pos(&self) -> ChunkColumnPos {
+        ChunkColumnPos {
+            pos: self.pos.rem_euclid((16, 16).into()).as_u8vec2(),
+        }
     }
 
     pub fn x(&self) -> i32 {

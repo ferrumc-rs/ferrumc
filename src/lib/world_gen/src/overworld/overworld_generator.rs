@@ -12,14 +12,14 @@ use crate::overworld::noise_biome_parameters::overworld_biomes;
 use crate::overworld::noise_depth::OverworldBiomeNoise;
 use crate::overworld::spline::SplineCoord;
 use crate::overworld::surface::OverworldSurface;
-use crate::pos::{ChunkBlockPos, ChunkHeight, ChunkPos, ColumnPos};
 use crate::random::Xoroshiro128PlusPlus;
 use bevy_math::DVec3;
 use ferrumc_macros::block;
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::chunk_format::Chunk;
+use ferrumc_world::pos::{ChunkHeight, ChunkPos, ColumnPos};
 
-pub(super) const CHUNK_HEIGHT: ChunkHeight = ChunkHeight::new(-64, 380);
+pub(super) const CHUNK_HEIGHT: ChunkHeight = ChunkHeight::new(-64, 384);
 
 #[derive(Clone, Copy)]
 pub struct CachedNoise {
@@ -35,12 +35,12 @@ pub struct CachedNoise {
 impl CachedNoise {
     pub fn new(pos: ColumnPos, biome_noise: &OverworldBiomeNoise) -> Self {
         let pos = pos.block(0);
-        let transformed = biome_noise.transform(pos.as_dvec3());
+        let transformed = biome_noise.transform(pos.into());
         let spline_params = biome_noise.make_spline_params(transformed);
         let jaggedness = biome_noise.jaggedness(spline_params);
         let jagged = biome_noise
             .jagged
-            .at(pos.as_dvec3() * DVec3::new(1500.0, 0.0, 1500.0));
+            .at(DVec3::from(pos) * DVec3::new(1500.0, 0.0, 1500.0));
 
         let factor = biome_noise.factor(spline_params);
         let offset = biome_noise.offset(spline_params);
@@ -90,8 +90,8 @@ impl OverworldGenerator {
         }
     }
 
-    pub fn generate_chunk(&self, x: i32, z: i32) -> Result<Chunk, WorldGenError> {
-        let mut chunk = Chunk::new(x, z, "overworld".to_string());
+    pub fn generate_chunk(&self, chunk_pos: ChunkPos) -> Result<Chunk, WorldGenError> {
+        let mut chunk = Chunk::new(CHUNK_HEIGHT);
         for i in -4..4 {
             chunk.set_section(
                 i,
@@ -103,7 +103,6 @@ impl OverworldGenerator {
             )?;
         }
 
-        let chunk_pos = ChunkPos::new(x * 16, z * 16);
         let spline_coord_cache: [[CachedNoise; 5]; 5] = from_fn(|x| {
             from_fn(|z| {
                 CachedNoise::new(
@@ -114,7 +113,7 @@ impl OverworldGenerator {
         });
         generate_interpolation_data(
             |pos| {
-                let cache_pos = (pos - chunk_pos.origin().block(0)) / 4;
+                let cache_pos = (pos.pos - chunk_pos.origin().block(0).pos) / 4;
                 self.biome_noise.pre_baked_final_density(
                     pos,
                     spline_coord_cache[cache_pos.x as usize][cache_pos.z as usize],
@@ -122,18 +121,11 @@ impl OverworldGenerator {
             },
             chunk_pos,
             |pos, res| {
-                let rel_pos = ChunkBlockPos::from(pos);
-                let res = res.min(self.biome_noise.noodle(pos.as_dvec3()));
+                let rel_pos = pos.chunk_block_pos();
+                let res = res.min(self.biome_noise.noodle(pos.into()));
                 if res > 0.0 {
-                    if pos.y >= 64 {
-                        chunk
-                            .set_block(
-                                i32::from(rel_pos.pos.x),
-                                i32::from(rel_pos.pos.y),
-                                i32::from(rel_pos.pos.z),
-                                block!("stone"),
-                            )
-                            .unwrap();
+                    if pos.y() >= 64 {
+                        chunk.set_block(rel_pos, block!("stone")).unwrap();
                     }
                 } else {
                     let fluid_type = if false {
@@ -141,23 +133,14 @@ impl OverworldGenerator {
                     } else {
                         if res > 0. { None } else { Some(FluidType::Air) }
                     };
-                    if pos.y < 64 {
+                    if pos.y() < 64 {
                         if let Some(block) = fluid_type {
-                            chunk
-                                .set_block(
-                                    i32::from(rel_pos.pos.x),
-                                    i32::from(rel_pos.pos.y),
-                                    i32::from(rel_pos.pos.z),
-                                    block.into(),
-                                )
-                                .unwrap();
+                            chunk.set_block(rel_pos, block.into()).unwrap();
                         }
                     } else {
                         chunk
                             .set_block(
-                                i32::from(rel_pos.pos.x),
-                                i32::from(rel_pos.pos.y),
-                                i32::from(rel_pos.pos.z),
+                                rel_pos,
                                 fluid_type.map(|f| f.into()).unwrap_or(block!("stone")),
                             )
                             .unwrap();
@@ -170,7 +153,7 @@ impl OverworldGenerator {
         }
         let biomes = BiomeChunk::generate(
             |pos| {
-                let cache_pos = (pos - chunk_pos.origin().block(0)) / 4;
+                let cache_pos = (pos.pos - chunk_pos.origin().block(0).pos) / 4;
                 self.biome_noise.at_inner(
                     pos,
                     spline_coord_cache[cache_pos.x as usize][cache_pos.z as usize],

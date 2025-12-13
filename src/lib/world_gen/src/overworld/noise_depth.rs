@@ -1,4 +1,3 @@
-use crate::biome_chunk::BiomeNoise;
 use crate::common::math::clamped_map;
 use crate::common::noise::slide;
 use crate::overworld::noise_biome_parameters::{
@@ -13,9 +12,9 @@ use crate::perlin_noise::{
     SPAGHETTI_3D_RARITY, SPAGHETTI_3D_THICKNESS, SPAGHETTI_ROUGHNESS,
     SPAGHETTI_ROUGHNESS_MODULATOR, TEMPERATURE, VEGETATION,
 };
-use crate::pos::{BlockPos, ChunkPos, ColumnPos};
 use crate::random::Xoroshiro128PlusPlus;
-use bevy_math::{DVec3, FloatExt, IVec3, Vec3Swizzles};
+use bevy_math::{DVec3, FloatExt, Vec3Swizzles};
+use ferrumc_world::pos::{BlockPos, ChunkPos, ColumnPos};
 
 use crate::overworld::spline::{CubicSpline, SplineCoord, SplinePoint, SplineType};
 
@@ -476,7 +475,7 @@ impl OverworldBiomeNoise {
         factor_depth *= if factor_depth > 0.0 { 4.0 } else { 1.0 };
         let density = (factor_depth - 0.703125).clamp(-64.0, 64.0);
         slide(
-            pos.y.into(),
+            pos.y().into(),
             density,
             240.0,
             256.0,
@@ -596,7 +595,7 @@ impl OverworldBiomeNoise {
         let depth = cached_noise.factor * (self.depth(pos, cached_noise.offset) + final_jaggedness);
         let base_3d_noise_overworld = self
             .base_3d_noise_overworld
-            .at(pos.as_dvec3() * DVec3::new(0.25, 0.125, 0.25) * 684.412);
+            .at(DVec3::from(pos) * DVec3::new(0.25, 0.125, 0.25) * 684.412);
         let sloped_cheese = depth * if depth > 0.0 { 4.0 } else { 1.0 } + base_3d_noise_overworld;
 
         let spaghetti_roughness = self.spaghetti_roughness(pos.into());
@@ -608,7 +607,7 @@ impl OverworldBiomeNoise {
         };
 
         slide(
-            pos.y.into(),
+            pos.y().into(),
             f8,
             240.0,
             256.0,
@@ -637,7 +636,7 @@ impl OverworldBiomeNoise {
     }
 
     fn depth(&self, pos: BlockPos, offset: f64) -> f64 {
-        f64::from(pos.y).remap(-64.0, 320.0, 1.5, -1.5) + offset
+        f64::from(pos.y()).remap(-64.0, 320.0, 1.5, -1.5) + offset
     }
 
     pub fn preliminary_surface(&self, chunk: ChunkPos) -> i32 {
@@ -646,11 +645,11 @@ impl OverworldBiomeNoise {
             .iter()
             .rev()
             .step_by(self.noise_size_vertical)
-            .find(|y| self.initial_density_without_jaggedness(column.block(*y)) > 0.390625)
-            .unwrap_or(CHUNK_HEIGHT.min_y)
+            .find(|y| self.initial_density_without_jaggedness(column.block(*y as i32)) > 0.390625)
+            .unwrap_or(CHUNK_HEIGHT.min_y) as i32
     }
-    pub fn is_deep_dark_region(&self, pos: IVec3) -> bool {
-        let transformed_pos = self.transform(pos.into());
+    pub fn is_deep_dark_region(&self, pos: BlockPos) -> bool {
+        let transformed_pos = self.transform(pos.pos.as_dvec3());
         self.erosion.at(transformed_pos) < EROSION_DEEP_DARK_DRYNESS_THRESHOLD.into()
             && self.depth(pos, self.offset(self.make_spline_params(transformed_pos)))
                 > DEPTH_DEEP_DARK_DRYNESS_THRESHOLD.into()
@@ -676,7 +675,7 @@ fn test_offset() {
         offset.sample(SplineCoord::new(
             CONTINENTALNESS
                 .init(Xoroshiro128PlusPlus::from_seed(1).fork())
-                .at((0., 0., 0.).into()),
+                .at(DVec3::new(0., 0., 0.)),
             1.,
             1.,
             1.

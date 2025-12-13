@@ -1,15 +1,13 @@
 use bevy_math::DVec3;
-use ferrumc_macros::block;
-use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::chunk_format::Chunk;
 use std::f64;
 
 use crate::{
     common::noise::{generate_interpolation_data, slide},
     perlin_noise::{BASE_3D_NOISE_NETHER, BlendedNoise},
-    pos::{BlockPos, ChunkPos},
     random::LegacyRandom,
 };
+use ferrumc_world::pos::{BlockPos, ChunkPos};
 
 pub struct NetherNoise {
     base_noise: BlendedNoise,
@@ -30,9 +28,9 @@ impl NetherNoise {
     fn pre_backed_final_density(&self, pos: BlockPos) -> f64 {
         let sloped_cheese = self
             .base_noise
-            .at(pos.as_dvec3() * DVec3::new(0.25, 0.375, 0.25) * 684.412);
+            .at(pos.pos.as_dvec3() * DVec3::new(0.25, 0.375, 0.25) * 684.412);
         slide(
-            pos.y.into(),
+            pos.y().into(),
             sloped_cheese,
             128. - 24.,
             128.,
