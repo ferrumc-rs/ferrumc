@@ -446,6 +446,7 @@ fn send_player_info(
 }
 
 /// Sends initial chunks to the player.
+/// TODO: rework to use events/bevy ecs to send chunks instead of writing the logic here. Unify the logic essentially.
 fn send_initial_chunks(
     conn_write: &StreamWriter,
     state: &GlobalState,
@@ -453,6 +454,7 @@ fn send_initial_chunks(
     client_view_distance: i8,
     compressed: bool,
 ) -> Result<(), NetError> {
+
     // Send center chunk
     conn_write.send_packet(SetCenterChunk::new(0, 0))?;
 

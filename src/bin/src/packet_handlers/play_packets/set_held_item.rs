@@ -2,7 +2,7 @@ use bevy_ecs::prelude::{Query, Res};
 use ferrumc_inventories::hotbar::Hotbar;
 use ferrumc_net::SetHeldItemReceiver;
 use ferrumc_state::GlobalStateResource;
-use tracing::{debug, error};
+use tracing::{debug, error, trace};
 
 pub fn handle(
     receiver: Res<SetHeldItemReceiver>,
@@ -14,7 +14,7 @@ pub fn handle(
             if 0 <= event.slot_index && event.slot_index < 9 {
                 if let Ok(mut hotbar) = query.get_mut(entity) {
                     hotbar.selected_slot = event.slot_index as u8;
-                    debug!(
+                    trace!(
                         "Set held item for player {} to slot {}",
                         entity, event.slot_index
                     );
