@@ -6,6 +6,7 @@ pub mod edits;
 pub mod errors;
 mod importing;
 pub mod pos;
+pub mod structure;
 pub mod vanilla_chunk_format;
 
 use crate::chunk_format::Chunk;
