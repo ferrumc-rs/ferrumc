@@ -1,13 +1,15 @@
 use std::ops::RangeInclusive;
 
+use bevy_math::IVec3;
+
 use crate::{
-    aquifier::{BlockPos, Noise, clamped_map},
+    aquifier::{Noise, clamped_map},
     random::{Rng, RngFactory},
 };
 
 #[allow(dead_code)]
 fn compute_vein_block<R: Rng<RF>, RF: RngFactory<R>>(
-    pos: BlockPos,
+    pos: IVec3,
     vein_toggle: Noise,
     vein_ridged: Noise,
     vein_gap: Noise,
@@ -34,7 +36,7 @@ fn compute_vein_block<R: Rng<RF>, RF: RngFactory<R>>(
     if vein_toggle_abs + d1 < 0.4 {
         return None;
     }
-    let mut rand = random.with_pos(pos.into());
+    let mut rand = random.with_pos(pos);
     if rand.next_f32() > 0.7 || vein_ridged.compute(pos) >= 0.0 {
         return None;
     }
