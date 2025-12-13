@@ -1,3 +1,10 @@
+//! Unified movement handler for processing all player movement events.
+//!
+//! This module processes movement packets (position, rotation, or combined) and:
+//! - Updates the player's ECS components (Position, Rotation, OnGround)
+//! - Detects chunk boundary crossings and emits recalculation messages
+//! - Broadcasts movement updates to other connected players
+
 use bevy_ecs::prelude::{Entity, MessageReader, MessageWriter, Query, Res};
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::grounded::OnGround;
@@ -14,14 +21,25 @@ use ferrumc_net::packets::packet_messages::Movement;
 use ferrumc_state::GlobalStateResource;
 use std::sync::atomic::Ordering;
 use tracing::{debug, trace, warn};
-use ferrumc_net::packets::outgoing::system_message::SystemMessagePacket;
-use ferrumc_text::{Color, NamedColor, TextComponent};
+
+// ============================================================================
+// Constants
+// ============================================================================
 
 /// Maximum delta for position updates before teleport is required.
-/// As per Minecraft protocol: "If the movement exceeds these limits, Teleport Entity should be sent instead."
-const MAX_DELTA: i16 = (7.5 * 4096f32) as i16;
+/// As per Minecraft protocol: "If the movement exceeds these limits,
+/// Teleport Entity should be sent instead."
+const MAX_POSITION_DELTA: i16 = (7.5 * 4096.0_f32) as i16;
+
+/// Scale factor for converting world coordinates to protocol delta values.
+const POSITION_SCALE: f64 = 4096.0;
+
+// ============================================================================
+// Broadcast Packet Types
+// ============================================================================
 
 /// Enum representing all possible movement broadcast packets.
+/// Using an enum allows us to handle different packet types uniformly.
 #[derive(NetEncode, Clone)]
 enum BroadcastMovementPacket {
     UpdateEntityPosition(UpdateEntityPositionPacket),
@@ -30,8 +48,23 @@ enum BroadcastMovementPacket {
     TeleportEntity(TeleportEntityPacket),
 }
 
+// ============================================================================
+// Main Handler
+// ============================================================================
+
 /// Unified movement handler that processes all player movement events.
-/// This handles position-only, rotation-only, and combined position+rotation updates.
+///
+/// This system handles:
+/// - Position-only updates (from SetPlayerPosition packets)
+/// - Rotation-only updates (from SetPlayerRotation packets)
+/// - Combined position+rotation updates (from SetPlayerPositionAndRotation packets)
+///
+/// For each movement event, it:
+/// 1. Validates the player is still connected
+/// 2. Calculates position deltas for network updates
+/// 3. Detects chunk boundary crossings
+/// 4. Updates ECS components
+/// 5. Broadcasts the movement to other players
 pub fn handle(
     mut movement_events: MessageReader<Movement>,
     mut chunk_calc_messages: MessageWriter<ChunkCalc>,
@@ -40,116 +73,172 @@ pub fn handle(
     state: Res<GlobalStateResource>,
 ) {
     for movement in movement_events.read() {
-        let entity = movement.entity;
-
-        // Check if player is still connected
-        if !state.0.players.is_connected(entity) {
-            trace!(
-                "Player {:?} is not connected, skipping movement processing",
-                entity
-            );
-            continue;
-        }
-
-        // Get the entity's transform components
-        let Ok((mut position, mut rotation, mut on_ground, identity)) =
-            transform_query.get_mut(entity)
-        else {
-            debug!(
-                "Failed to get transform components for entity {:?}",
-                entity
-            );
-            continue;
-        };
-
-        // Calculate delta position if position is being updated
-        let delta_pos = movement.position.as_ref().map(|new_pos| {
-            (
-                ((new_pos.x * 4096.0) - (position.x * 4096.0)) as i16,
-                ((new_pos.y * 4096.0) - (position.y * 4096.0)) as i16,
-                ((new_pos.z * 4096.0) - (position.z * 4096.0)) as i16,
-            )
-        });
-
-        // Check if chunk changed and emit chunk recalculation message
-        if let Some(new_pos) = &movement.position {
-            let old_chunk = (position.x as i32 >> 4, position.z as i32 >> 4);
-            let new_chunk = (new_pos.x as i32 >> 4, new_pos.z as i32 >> 4);
-            if old_chunk != new_chunk {
-                debug!("Entity {:?} changed chunk from {:?} to {:?}", entity, old_chunk, new_chunk);
-                let mut message =
-                    TextComponent::from(format!("You have moved to new chunk ({}, {})", new_chunk.0, new_chunk.1));
-                message.color = Some(Color::Named(NamedColor::Green));
-                let connection = conn_query
-                    .get(entity)
-                    .map(|(_, conn)| conn)
-                    .expect("this is a bug. entity should have a connection here");
-                let msg: SystemMessagePacket = message.into();
-                if let Err(e) = connection.send_packet(msg) {
-                    warn!(
-                        "Failed to send chunk change message to player {:?}: {}",
-                        entity, e
-                    );
-                }
-                chunk_calc_messages.write(ChunkCalc(entity));
-            }
-        }
-
-        // Update position component if provided
-        if let Some(new_pos) = &movement.position {
-            *position = Position::new(new_pos.x, new_pos.y, new_pos.z);
-        }
-
-        // Update rotation component if provided
-        if let Some(new_rot) = &movement.rotation {
-            *rotation = Rotation::new(new_rot.yaw, new_rot.pitch);
-        }
-
-        // Update on_ground component if provided
-        if let Some(grounded) = movement.on_ground {
-            *on_ground = OnGround(grounded);
-        }
-
-        // Build and broadcast the appropriate movement packet to other players
-        let packet = build_broadcast_packet(
-            delta_pos,
-            movement.rotation.as_ref(),
-            &position,
-            &rotation,
-            on_ground.0,
-            identity,
-        );
-
-        if let Some(packet) = packet {
-            broadcast_movement_to_players(entity, &packet, &conn_query, &state);
-        }
-
-        trace!(
-            "Processed movement for entity {:?}: pos={:?}, rot={:?}, ground={:?}",
-            entity,
-            movement.position,
-            movement.rotation,
-            movement.on_ground
+        process_movement_event(
+            &movement,
+            &mut chunk_calc_messages,
+            &mut transform_query,
+            &conn_query,
+            &state,
         );
     }
 }
 
-/// Determines if delta position exceeds the threshold for teleport.
-fn delta_exceeds_threshold(delta_pos: Option<(i16, i16, i16)>) -> bool {
-    match delta_pos {
-        Some((delta_x, delta_y, delta_z)) => {
-            // Prevent int overflow, since abs of i16::MIN would overflow
-            if delta_x == i16::MIN || delta_y == i16::MIN || delta_z == i16::MIN {
-                true
-            } else {
-                delta_x.abs() > MAX_DELTA || delta_y.abs() > MAX_DELTA || delta_z.abs() > MAX_DELTA
-            }
+/// Processes a single movement event.
+fn process_movement_event(
+    movement: &Movement,
+    chunk_calc_messages: &mut MessageWriter<ChunkCalc>,
+    transform_query: &mut Query<(&mut Position, &mut Rotation, &mut OnGround, &PlayerIdentity)>,
+    conn_query: &Query<(Entity, &StreamWriter)>,
+    state: &Res<GlobalStateResource>,
+) {
+    let entity = movement.entity;
+
+    // Validate player connection
+    if !state.0.players.is_connected(entity) {
+        trace!("Skipping movement for disconnected player {:?}", entity);
+        return;
+    }
+
+    // Get transform components
+    let Ok((mut position, mut rotation, mut on_ground, identity)) = transform_query.get_mut(entity)
+    else {
+        debug!("Failed to get transform components for entity {:?}", entity);
+        return;
+    };
+
+    // Calculate position delta for network broadcast
+    let delta_pos = calculate_position_delta(&position, movement.position.as_ref());
+
+    // Handle chunk boundary crossing
+    if let Some(new_pos) = &movement.position {
+        if has_crossed_chunk_boundary(&position, new_pos) {
+            chunk_calc_messages.write(ChunkCalc(entity));
+        }
+    }
+
+    // Update ECS components
+    update_transform_components(
+        &mut position,
+        &mut rotation,
+        &mut on_ground,
+        movement.position.as_ref(),
+        movement.rotation.as_ref(),
+        movement.on_ground,
+    );
+
+    // Build and broadcast movement packet
+    if let Some(packet) = build_broadcast_packet(
+        delta_pos,
+        movement.rotation.as_ref(),
+        &position,
+        &rotation,
+        on_ground.0,
+        identity,
+    ) {
+        broadcast_to_other_players(entity, &packet, conn_query, state);
+    }
+
+    trace!(
+        "Processed movement for {:?}: pos={:?}, rot={:?}",
+        entity,
+        movement.position.is_some(),
+        movement.rotation.is_some()
+    );
+}
+
+// ============================================================================
+// Position Calculations
+// ============================================================================
+
+/// Calculates the position delta between current and new position.
+///
+/// Returns `None` if no new position is provided.
+/// The delta is scaled to protocol units (4096 per block).
+#[inline]
+fn calculate_position_delta(
+    current: &Position,
+    new_pos: Option<&Position>,
+) -> Option<(i16, i16, i16)> {
+    new_pos.map(|new| {
+        (
+            scale_delta(new.x, current.x),
+            scale_delta(new.y, current.y),
+            scale_delta(new.z, current.z),
+        )
+    })
+}
+
+/// Scales a coordinate delta to protocol units.
+#[inline]
+fn scale_delta(new: f64, current: f64) -> i16 {
+    ((new * POSITION_SCALE) - (current * POSITION_SCALE)) as i16
+}
+
+/// Checks if the position delta exceeds the threshold requiring teleport.
+#[inline]
+fn delta_exceeds_threshold(delta: Option<(i16, i16, i16)>) -> bool {
+    match delta {
+        Some((dx, dy, dz)) => {
+            // Handle i16::MIN edge case to prevent overflow on abs()
+            dx == i16::MIN
+                || dy == i16::MIN
+                || dz == i16::MIN
+                || dx.abs() > MAX_POSITION_DELTA
+                || dy.abs() > MAX_POSITION_DELTA
+                || dz.abs() > MAX_POSITION_DELTA
         }
         None => false,
     }
 }
 
+/// Checks if the player has crossed a chunk boundary.
+#[inline]
+fn has_crossed_chunk_boundary(old_pos: &Position, new_pos: &Position) -> bool {
+    let old_chunk = position_to_chunk(old_pos);
+    let new_chunk = (new_pos.x as i32 >> 4, new_pos.z as i32 >> 4);
+    old_chunk != new_chunk
+}
+
+/// Converts a position to chunk coordinates.
+#[inline]
+pub fn position_to_chunk(pos: &Position) -> (i32, i32) {
+    (pos.x as i32 >> 4, pos.z as i32 >> 4)
+}
+
+// ============================================================================
+// Component Updates
+// ============================================================================
+
+/// Updates the transform components with new values.
+#[inline]
+fn update_transform_components(
+    position: &mut Position,
+    rotation: &mut Rotation,
+    on_ground: &mut OnGround,
+    new_pos: Option<&Position>,
+    new_rot: Option<&Rotation>,
+    new_ground: Option<bool>,
+) {
+    if let Some(pos) = new_pos {
+        *position = Position::new(pos.x, pos.y, pos.z);
+    }
+
+    if let Some(rot) = new_rot {
+        *rotation = Rotation::new(rot.yaw, rot.pitch);
+    }
+
+    if let Some(ground) = new_ground {
+        *on_ground = OnGround(ground);
+    }
+}
+
+// ============================================================================
+// Packet Building
+// ============================================================================
+
 /// Builds the appropriate broadcast packet based on what changed.
+///
+/// Returns `None` if nothing needs to be broadcast (no position or rotation change).
 fn build_broadcast_packet(
     delta_pos: Option<(i16, i16, i16)>,
     new_rot: Option<&Rotation>,
@@ -158,14 +247,14 @@ fn build_broadcast_packet(
     on_ground: bool,
     identity: &PlayerIdentity,
 ) -> Option<BroadcastMovementPacket> {
-    // If delta exceeds threshold, use teleport packet
+    // If delta exceeds threshold, force teleport packet
     if delta_exceeds_threshold(delta_pos) {
         return Some(BroadcastMovementPacket::TeleportEntity(
             TeleportEntityPacket::new(identity, current_pos, current_rot, on_ground),
         ));
     }
 
-    // Build appropriate packet based on what was updated
+    // Build appropriate packet based on available data
     match (delta_pos, new_rot) {
         (Some(delta), Some(rot)) => Some(BroadcastMovementPacket::UpdateEntityPositionAndRotation(
             UpdateEntityPositionAndRotationPacket::new(identity, delta, rot, on_ground),
@@ -180,37 +269,51 @@ fn build_broadcast_packet(
     }
 }
 
-/// Broadcasts a movement packet to all connected players except the source entity.
-fn broadcast_movement_to_players(
+// ============================================================================
+// Broadcasting
+// ============================================================================
+
+/// Broadcasts a movement packet to all connected players except the source.
+fn broadcast_to_other_players(
     source_entity: Entity,
     packet: &BroadcastMovementPacket,
     conn_query: &Query<(Entity, &StreamWriter)>,
     state: &Res<GlobalStateResource>,
 ) {
     for (entity, conn) in conn_query.iter() {
-        // Don't send to the player who moved
+        // Skip the player who moved
         if entity == source_entity {
             continue;
         }
 
-        // Check if player is still connected
-        if !state.0.players.is_connected(entity) || !conn.running.load(Ordering::Relaxed) {
-            warn!(
-                "Player {:?} is not connected, skipping movement broadcast",
-                entity
-            );
-            state
-                .0
-                .players
-                .disconnect(entity, Some(String::from("Player not connected anymore.")));
+        // Skip disconnected players
+        if !is_player_connected(entity, conn, state) {
+            handle_disconnected_player(entity, state);
             continue;
         }
 
+        // Send the packet
         if let Err(e) = conn.send_packet_ref(packet) {
-            warn!(
-                "Failed to send movement packet to player {:?}: {}",
-                entity, e
-            );
+            warn!("Failed to send movement packet to {:?}: {}", entity, e);
         }
     }
+}
+
+/// Checks if a player is still connected.
+#[inline]
+fn is_player_connected(
+    entity: Entity,
+    conn: &StreamWriter,
+    state: &Res<GlobalStateResource>,
+) -> bool {
+    state.0.players.is_connected(entity) && conn.running.load(Ordering::Relaxed)
+}
+
+/// Handles cleanup for a disconnected player.
+fn handle_disconnected_player(entity: Entity, state: &Res<GlobalStateResource>) {
+    warn!("Player {:?} is not connected, cleaning up", entity);
+    state
+        .0
+        .players
+        .disconnect(entity, Some(String::from("Player not connected anymore.")));
 }

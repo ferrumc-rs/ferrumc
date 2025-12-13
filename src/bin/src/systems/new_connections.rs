@@ -102,6 +102,7 @@ pub fn accept_new_connections(
             hunger,
             experience,
             active_effects,
+            debug_settings: Default::default(),
         };
 
         // --- 3. Spawn the PlayerBundle, then .insert() the network components ---

@@ -1,6 +1,7 @@
 mod chunk_calculator;
 mod chunk_sending;
 pub mod connection_killer;
+pub mod debug_display;
 pub mod keep_alive_system;
 pub mod lan_pinger;
 pub mod listeners;
@@ -13,6 +14,7 @@ pub fn register_game_systems(schedule: &mut bevy_ecs::schedule::Schedule) {
     // Tick-bound systems only (run every game tick)
     schedule.add_systems(new_connections::accept_new_connections);
     schedule.add_systems(mq::process);
+    schedule.add_systems(debug_display::handle);
 
     // TODO: re-enable or rework completely.
     // schedule.add_systems(chunk_calculator::handle);

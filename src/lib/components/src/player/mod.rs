@@ -1,5 +1,6 @@
 pub mod abilities;
 pub mod client_information;
+pub mod debug_settings;
 pub mod experience;
 pub mod gamemode;
 pub mod gameplay_state;

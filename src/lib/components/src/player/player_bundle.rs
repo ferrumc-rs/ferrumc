@@ -2,8 +2,12 @@ use crate::{
     active_effects::ActiveEffects,
     health::Health,
     player::{
-        abilities::PlayerAbilities, experience::Experience, gamemode::GameModeComponent,
-        gameplay_state::ender_chest::EnderChest, hunger::Hunger,
+        abilities::PlayerAbilities,
+        debug_settings::DebugSettings,
+        experience::Experience,
+        gamemode::GameModeComponent,
+        gameplay_state::ender_chest::EnderChest,
+        hunger::Hunger,
     },
 };
 use bevy_ecs::prelude::Bundle;
@@ -40,4 +44,7 @@ pub struct PlayerBundle {
     pub hunger: Hunger,
     pub experience: Experience,
     pub active_effects: ActiveEffects,
+
+    // Debug/Development
+    pub debug_settings: DebugSettings,
 }
