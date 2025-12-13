@@ -5,7 +5,7 @@
 //!
 //! # Time System
 //!
-//! Minecraft time is measured in ticks (20 ticks = 1 second):
+//! Minecraft time is measured in ticks (20 ticks = 1 second, although the TPS is configurable in the config file):
 //! - A full day/night cycle is 24,000 ticks (20 real-world minutes)
 //! - Time of day values:
 //!   - 0: Sunrise
