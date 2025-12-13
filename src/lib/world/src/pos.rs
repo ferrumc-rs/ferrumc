@@ -4,13 +4,13 @@ use std::fmt::Result;
 use std::ops::Add;
 use std::ops::Range;
 
-use bevy_math::I16Vec3;
 use bevy_math::IVec2;
 use bevy_math::IVec3;
 use bevy_math::U8Vec2;
 use bevy_math::U8Vec3;
 use bevy_math::Vec2Swizzles;
 use bevy_math::Vec3Swizzles;
+use bevy_math::{DVec3, I16Vec3};
 use ferrumc_net_codec::net_types::network_position::NetworkPosition;
 
 #[derive(Clone, Copy)]
@@ -109,6 +109,12 @@ impl ChunkHeight {
 #[derive(Hash, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ChunkPos {
     pub pos: IVec2,
+}
+
+impl From<DVec3> for ChunkPos {
+    fn from(pos: DVec3) -> Self {
+        Self::new(pos.x.div_euclid(16.0) as i32, pos.z.div_euclid(16.0) as i32)
+    }
 }
 
 impl ChunkPos {
