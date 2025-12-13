@@ -1,15 +1,9 @@
-use std::ops::Range;
+use std::range::Range;
 
-use bevy_math::IVec3;
+use crate::pos::{BlockPos, ChunkPos};
 
-use crate::pos::ChunkPos;
-
-const PHI: u64 = 0x9e3779b97f4a7c15;
-
-pub trait Rng<RF> {
-    fn next_u32(&mut self) -> u32;
-    fn next_u64(&mut self) -> u64;
-
+#[const_trait]
+pub trait Rng {
     fn next_f32(&mut self) -> f32;
     fn next_f64(&mut self) -> f64;
 
@@ -26,13 +20,19 @@ pub trait Rng<RF> {
         let height = (size - plateau) / 2.0;
         min + self.next_f32() * (size - height) + self.next_f32() * height
     }
+    fn shuffle<T>(&mut self, array: &mut [T]) {
+        let mut i = 0;
+        while i < array.len() {
+            array.swap(
+                i,
+                i + self.next_bounded(array.len() as u32 - i as u32) as usize,
+            );
+            i += 1;
+        }
+    }
 
-    fn fork_positional(&mut self) -> RF;
-}
-
-pub trait RngFactory<R> {
-    fn with_hash(&self, s: &str) -> R;
-    fn at(&self, pos: IVec3) -> R;
+    fn fork(&mut self) -> Self;
+    fn with_hash(&self, s: &str) -> Self;
 }
 
 #[derive(Clone, Copy)]
@@ -44,9 +44,10 @@ pub struct Xoroshiro128PlusPlus {
 /// Reference: net.minecraft.world.level.levelgen.Xoroshiro128PlusPlus
 #[allow(dead_code)]
 impl Xoroshiro128PlusPlus {
+    const PHI: u64 = 0x9e3779b97f4a7c15;
     /// Reference: net.minecraft.world.level.levelgen.RandomSupport
-    pub fn from_seed(seed: u64) -> Self {
-        fn mix_stafford13(mut seed: u64) -> u64 {
+    pub const fn from_seed(seed: u64) -> Self {
+        const fn mix_stafford13(mut seed: u64) -> u64 {
             seed = (seed ^ (seed >> 30)).wrapping_mul(0xBF58476D1CE4E5B9u64);
             seed = (seed ^ (seed >> 27)).wrapping_mul(0x94D049BB133111EBu64);
             seed ^ (seed >> 31)
@@ -55,25 +56,21 @@ impl Xoroshiro128PlusPlus {
         let low = seed ^ 0x6a09e667f3bcc909;
         Self {
             lo: mix_stafford13(low),
-            hi: mix_stafford13(low.wrapping_add(PHI)),
+            hi: mix_stafford13(low.wrapping_add(Self::PHI)),
         }
     }
 
-    pub fn new(lo: u64, hi: u64) -> Self {
+    pub const fn new(lo: u64, hi: u64) -> Self {
         if (lo | hi) == 0 {
             return Self {
-                lo: PHI,
+                lo: Self::PHI,
                 hi: 0x6a09e667f3bcc909,
             };
         }
         Self { lo, hi }
     }
-    pub fn next_bool(&mut self) -> bool {
-        self.next_u64() & 1 != 0
-    }
-}
-impl Rng<Xoroshiro128PlusPlusFactory> for Xoroshiro128PlusPlus {
-    fn next_u64(&mut self) -> u64 {
+
+    const fn next_u64(&mut self) -> u64 {
         let res = self
             .lo
             .wrapping_add(self.hi)
@@ -86,15 +83,15 @@ impl Rng<Xoroshiro128PlusPlusFactory> for Xoroshiro128PlusPlus {
         res
     }
 
-    fn next_u32(&mut self) -> u32 {
-        self.next_u64() as u32
+    pub const fn next_bool(&mut self) -> bool {
+        self.next_u64() & 1 != 0
     }
 
     ///reference: net.minecraft.world.level.levelgen.XoroshiroRandomSource
-    fn next_bounded(&mut self, bound: u32) -> u32 {
-        assert_ne!(bound, 0, "Bound must be positive");
+    pub const fn next_bounded(&mut self, bound: u32) -> u32 {
+        assert!(bound != 0, "Bound must be positive");
         loop {
-            let res = u64::from(self.next_u32()).wrapping_mul(bound.into());
+            let res = (self.next_u64() & 0xFFFF_FFFF).wrapping_mul(bound as u64);
             let lo = res as u32;
             if lo >= bound || lo >= (!bound + 1) % bound {
                 return (res >> 32) as u32;
@@ -102,49 +99,60 @@ impl Rng<Xoroshiro128PlusPlusFactory> for Xoroshiro128PlusPlus {
         }
     }
 
-    fn next_f64(&mut self) -> f64 {
-        ((self.next_u64() >> 11) as f32 * 1.110223E-16f32).into()
+    pub const fn next_f64(&mut self) -> f64 {
+        ((self.next_u64() >> 11) as f32 * 1.110223E-16f32) as f64
     }
 
-    fn next_f32(&mut self) -> f32 {
+    pub const fn next_f32(&mut self) -> f32 {
         (self.next_u64() >> 40) as f32 * 5.9604645E-8f32
     }
 
-    fn fork_positional(&mut self) -> Xoroshiro128PlusPlusFactory {
-        Xoroshiro128PlusPlusFactory {
+    pub const fn fork(&mut self) -> Self {
+        Self {
             lo: self.next_u64(),
             hi: self.next_u64(),
         }
     }
-}
 
-#[allow(dead_code)]
-#[derive(Debug, Clone, Copy)]
-pub struct Xoroshiro128PlusPlusFactory {
-    lo: u64,
-    hi: u64,
-}
-impl RngFactory<Xoroshiro128PlusPlus> for Xoroshiro128PlusPlusFactory {
-    fn with_hash(&self, s: &str) -> Xoroshiro128PlusPlus {
-        let digest = md5::compute(s.as_bytes());
-
-        Xoroshiro128PlusPlus::new(
-            u64::from_be_bytes(digest[0..8].try_into().unwrap()) ^ self.lo,
-            u64::from_be_bytes(digest[8..16].try_into().unwrap()) ^ self.hi,
+    pub const fn with_hash(&self, s: &str) -> Self {
+        let a = cthash::md5(s.as_bytes());
+        Self::new(
+            u64::from_be_bytes([a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]]) ^ self.lo,
+            u64::from_be_bytes([a[8], a[9], a[10], a[11], a[12], a[13], a[14], a[15]]) ^ self.hi,
         )
     }
 
-    fn at(&self, pos: IVec3) -> Xoroshiro128PlusPlus {
-        Xoroshiro128PlusPlus::new(seed_at(pos) as u64 ^ self.lo, self.hi)
+    pub const fn at(&self, pos: BlockPos) -> Self {
+        Self::new(seed_at(pos) ^ self.lo, self.hi)
     }
 }
 
-#[allow(dead_code)]
+impl const Rng for Xoroshiro128PlusPlus {
+    fn next_bounded(&mut self, bound: u32) -> u32 {
+        self.next_bounded(bound)
+    }
+
+    fn next_f64(&mut self) -> f64 {
+        self.next_f64()
+    }
+
+    fn next_f32(&mut self) -> f32 {
+        self.next_f32()
+    }
+
+    fn fork(&mut self) -> Self {
+        self.fork()
+    }
+
+    fn with_hash(&self, s: &str) -> Self {
+        self.with_hash(s)
+    }
+}
+
 pub struct LegacyRandom {
     seed: u64,
 }
 
-#[allow(dead_code)]
 impl LegacyRandom {
     pub fn large_features(seed: u64, chunk_pos: ChunkPos) -> Self {
         let mut random = Self::new(seed);
@@ -159,10 +167,11 @@ impl LegacyRandom {
             seed: (seed ^ 0x5DEECE66D) & ((1 << 48) - 1),
         }
     }
-    pub const fn next(&mut self, bits: u32) -> i32 {
+    const fn next(&mut self, bits: u32) -> i32 {
         self.seed = self.seed.wrapping_mul(0x5DEECE66D).wrapping_add(11) & ((1 << 48) - 1);
         (self.seed >> (48 - bits)) as i32
     }
+
     pub const fn next_f64(&mut self) -> f64 {
         ((((self.next(26) as u64) << 27) + self.next(27) as u64) as f32 * 1.110223E-16f32) as f64
     }
@@ -174,54 +183,54 @@ impl LegacyRandom {
             self.next(31) as u32 % bound
         }
     }
-}
-impl Rng<LegacyPositionalFactory> for LegacyRandom {
-    fn next_u32(&mut self) -> u32 {
-        self.next(32) as u32
+
+    const fn next_u64(&mut self) -> u64 {
+        (((self.next(32) as i64) << 32) + (self.next(32) as i64)) as u64
     }
 
-    fn next_u64(&mut self) -> u64 {
-        ((i64::from(self.next(32)) << 32) + i64::from(self.next(32))) as u64
+    pub const fn next_random(&mut self) -> LegacyRandom {
+        LegacyRandom::new(self.next_u64())
     }
 
-    fn next_f32(&mut self) -> f32 {
+    pub const fn next_f32(&mut self) -> f32 {
         self.next(24) as f32 * 5.9604645E-8f32
     }
 
-    fn next_f64(&mut self) -> f64 {
-        self.next_f64()
-    }
-
-    fn next_bounded(&mut self, bound: u32) -> u32 {
-        self.next_bounded(bound)
-    }
-
-    fn fork_positional(&mut self) -> LegacyPositionalFactory {
-        LegacyPositionalFactory {
+    pub const fn fork(&mut self) -> Self {
+        Self {
             seed: self.next_u64(),
         }
     }
-}
-
-#[derive(Clone, Copy)]
-pub struct LegacyPositionalFactory {
-    seed: u64,
-}
-
-impl RngFactory<LegacyRandom> for LegacyPositionalFactory {
-    fn with_hash(&self, s: &str) -> LegacyRandom {
-        LegacyRandom::new((i64::from(java_string_hashcode(s)) ^ self.seed as i64) as u64)
+    pub const fn with_hash(&self, s: &str) -> Self {
+        Self::new(((java_string_hashcode(s) as i64) ^ self.seed as i64) as u64)
     }
-
-    fn at(&self, pos: IVec3) -> LegacyRandom {
-        LegacyRandom::new((seed_at(pos) ^ self.seed as i64) as u64)
+    pub const fn at(&self, pos: BlockPos) -> Self {
+        Self::new(seed_at(pos) ^ self.seed)
     }
 }
 
-fn seed_at(pos: IVec3) -> i64 {
-    let composition = i64::from(pos.x).wrapping_mul(3129871)
-        ^ i64::from(pos.z).wrapping_mul(116129781)
-        ^ i64::from(pos.y);
+impl const Rng for LegacyRandom {
+    fn next_f32(&mut self) -> f32 {
+        self.next_f32()
+    }
+    fn next_f64(&mut self) -> f64 {
+        self.next_f64()
+    }
+    fn next_bounded(&mut self, bound: u32) -> u32 {
+        self.next_bounded(bound)
+    }
+    fn fork(&mut self) -> Self {
+        self.fork()
+    }
+    fn with_hash(&self, s: &str) -> Self {
+        self.with_hash(s)
+    }
+}
+
+const fn seed_at(pos: BlockPos) -> u64 {
+    let composition = ((pos.x as i64).wrapping_mul(3129871)
+        ^ (pos.z as i64).wrapping_mul(116129781)
+        ^ (pos.y as i64)) as u64;
     let shuffle = composition
         .wrapping_mul(composition)
         .wrapping_mul(42317861)
@@ -229,10 +238,13 @@ fn seed_at(pos: IVec3) -> i64 {
     shuffle >> 16
 }
 
-fn java_string_hashcode(s: &str) -> i32 {
+const fn java_string_hashcode(s: &str) -> i32 {
+    let s = s.as_bytes();
     let mut hash: i32 = 0;
-    for unit in s.encode_utf16() {
-        hash = hash.wrapping_mul(31).wrapping_add(unit.into());
+    let mut i = 0;
+    while i < s.len() {
+        hash = hash.wrapping_mul(31).wrapping_add(s[i] as i32);
+        i += 1;
     }
     hash
 }
@@ -263,7 +275,7 @@ fn test_legacy_float() {
 fn test_legacy_factory() {
     let mut rng = LegacyRandom::new(0);
 
-    let factory = rng.fork_positional();
+    let factory = rng.fork();
 
     assert_eq!(factory.with_hash("test").seed, 198298808087495);
     assert_eq!(factory.with_hash("test").next_u64(), 1964728489694604786);
@@ -339,7 +351,7 @@ fn test_from_seed() {
 #[test]
 fn test_fork_positional_with_hash() {
     let mut rng = Xoroshiro128PlusPlus::new(0, 0);
-    let mut rng = rng.fork_positional().with_hash("test");
+    let mut rng = rng.fork().with_hash("test");
 
     assert_eq!(rng.next_u64(), 8856493334125025190, "Mismatch in next_u64");
 }

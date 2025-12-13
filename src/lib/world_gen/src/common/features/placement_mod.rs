@@ -1,4 +1,4 @@
-use std::ops::{Range, RangeInclusive};
+use std::range::{Range, RangeInclusive};
 
 use bevy_math::{IVec2, IVec3, Vec2Swizzles, Vec3Swizzles};
 use ferrumc_world::vanilla_chunk_format::BlockData;
@@ -36,14 +36,10 @@ impl RarityFilter {
         }
     }
 
-    fn filter<RF>(&self, random: &mut impl Rng<RF>) -> bool {
+    fn filter(&self, random: &mut impl Rng) -> bool {
         random.next_f32() < self.chance
     }
-    fn apply<RF>(
-        &self,
-        pos: BlockPos,
-        random: &mut impl Rng<RF>,
-    ) -> impl Iterator<Item = BlockPos> {
+    fn apply(&self, pos: BlockPos, random: &mut impl Rng) -> impl Iterator<Item = BlockPos> {
         Some(pos).filter(|_| self.filter(random)).into_iter()
     }
 }
@@ -53,7 +49,7 @@ struct SurfaceRelativeThresholdFilter {
 }
 impl SurfaceRelativeThresholdFilter {
     fn filter(&self, pos: BlockPos, height: i32) -> bool {
-        (height + self.range.start()..=height + self.range.end()).contains(&pos.y)
+        (height + self.range.start..=height + self.range.end).contains(&pos.y)
     }
     fn apply(&self, pos: BlockPos, height: i32) -> impl Iterator<Item = BlockPos> {
         Some(pos)
@@ -119,14 +115,10 @@ struct CountPlacement {
 }
 
 impl CountPlacement {
-    fn count<RF>(&self, random: &mut impl Rng<RF>) -> usize {
+    fn count(&self, random: &mut impl Rng) -> usize {
         random.next_bounded(self.count) as usize //TODO
     }
-    fn apply<RF>(
-        &self,
-        pos: BlockPos,
-        random: &mut impl Rng<RF>,
-    ) -> impl Iterator<Item = BlockPos> {
+    fn apply(&self, pos: BlockPos, random: &mut impl Rng) -> impl Iterator<Item = BlockPos> {
         repeat_n(pos, self.count(random))
     }
 }
@@ -170,10 +162,10 @@ struct CountOnEveryLayerPlacement {
 }
 
 impl CountOnEveryLayerPlacement {
-    fn apply<RF>(
+    fn apply(
         &self,
         pos: BlockPos,
-        random: &mut impl Rng<RF>,
+        random: &mut impl Rng,
         height: &ChunkAccess,
         chunk_height: ChunkHeight,
     ) -> impl Iterator<Item = BlockPos> {
@@ -252,22 +244,14 @@ struct HeightRangeModifier {
 }
 
 impl HeightRangeModifier {
-    fn apply<RF>(
-        &self,
-        pos: BlockPos,
-        random: &mut impl Rng<RF>,
-    ) -> impl Iterator<Item = BlockPos> {
-        Some(pos.with_y(random.next_i32_range(self.range.clone()))).into_iter()
+    fn apply(&self, pos: BlockPos, random: &mut impl Rng) -> impl Iterator<Item = BlockPos> {
+        Some(pos.with_y(random.next_i32_range(self.range))).into_iter()
     }
 }
 
 struct InSquarePlacement;
 impl InSquarePlacement {
-    fn apply<RF>(
-        &self,
-        pos: BlockPos,
-        random: &mut impl Rng<RF>,
-    ) -> impl Iterator<Item = BlockPos> {
+    fn apply(&self, pos: BlockPos, random: &mut impl Rng) -> impl Iterator<Item = BlockPos> {
         Some(pos)
             .map(|pos| {
                 pos + IVec3::new(
@@ -284,17 +268,13 @@ struct RandomOffsetPlacement {
     y_offset: Range<i32>,
 }
 impl RandomOffsetPlacement {
-    fn apply<RF>(
-        &self,
-        pos: BlockPos,
-        random: &mut impl Rng<RF>,
-    ) -> impl Iterator<Item = BlockPos> {
+    fn apply(&self, pos: BlockPos, random: &mut impl Rng) -> impl Iterator<Item = BlockPos> {
         Some(pos)
             .map(|pos| {
                 pos + IVec3::new(
-                    random.next_i32_range(self.xz_offset.clone()),
-                    random.next_i32_range(self.y_offset.clone()),
-                    random.next_i32_range(self.xz_offset.clone()),
+                    random.next_i32_range(self.xz_offset),
+                    random.next_i32_range(self.y_offset),
+                    random.next_i32_range(self.xz_offset),
                 )
             })
             .into_iter()

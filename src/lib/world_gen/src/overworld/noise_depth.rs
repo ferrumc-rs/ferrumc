@@ -12,13 +12,10 @@ use crate::perlin_noise::{
     SPAGHETTI_ROUGHNESS_MODULATOR, TEMPERATURE, VEGETATION, lerp3,
 };
 use crate::pos::{BlockPos, ChunkHeight, ChunkPos};
-use crate::random::RngFactory;
+use crate::random::Xoroshiro128PlusPlus;
 use bevy_math::{DVec3, FloatExt, IVec3, Vec3Swizzles};
 
-use crate::{
-    overworld::spline::{CubicSpline, SplinePoint, SplineType},
-    random::Xoroshiro128PlusPlusFactory,
-};
+use crate::overworld::spline::{CubicSpline, SplinePoint, SplineType};
 
 //TODO: const
 fn build_erosion_offset_spline(
@@ -400,7 +397,7 @@ pub struct OverworldBiomeNoise {
     noodle_ridge_b: NormalNoise<1>,
 }
 impl OverworldBiomeNoise {
-    pub(super) fn new(random: Xoroshiro128PlusPlusFactory) -> Self {
+    pub(super) fn new(factory: Xoroshiro128PlusPlus) -> Self {
         Self {
             chunk_height: ChunkHeight {
                 min_y: -64,
@@ -410,35 +407,35 @@ impl OverworldBiomeNoise {
             factor: overworld_factor(),
             jaggedness: overworld_jaggedness(),
             offset: get_offset_spline(),
-            shift: SHIFT.init(random),
-            temperature: TEMPERATURE.init(random),
-            vegetation: VEGETATION.init(random),
-            continents: CONTINENTALNESS.init(random),
-            erosion: EROSION.init(random),
-            ridges: RIDGE.init(random),
-            jagged: JAGGED.init(random),
-            spaghetti_3d_1: SPAGHETTI_3D_1.init(random),
-            spaghetti_3d_rarity: SPAGHETTI_3D_RARITY.init(random),
-            spaghetti_3d_thickness: SPAGHETTI_3D_THICKNESS.init(random),
-            spaghetti_3d_2: SPAGHETTI_3D_2.init(random),
-            spaghetti_roughness: SPAGHETTI_ROUGHNESS.init(random),
-            spaghetti_roughness_modulator: SPAGHETTI_ROUGHNESS_MODULATOR.init(random),
-            cave_entrance: CAVE_ENTRANCE.init(random),
-            spaghetti_2d_modulator: SPAGHETTI_2D_MODULATOR.init(random),
-            spaghetti_2d: SPAGHETTI_2D.init(random),
-            spaghetti_2d_elevation: SPAGHETTI_2D_ELEVATION.init(random),
-            spaghetti_2d_thickness: SPAGHETTI_2D_THICKNESS.init(random),
-            pillar: PILLAR.init(random),
-            pillar_rareness: PILLAR_RARENESS.init(random),
-            pillar_thickness: PILLAR_THICKNESS.init(random),
-            cave_layer: CAVE_LAYER.init(random),
-            cave_cheese: CAVE_CHEESE.init(random),
-            noodle: NOODLE.init(random),
-            noodle_thickness: NOODLE_THICKNESS.init(random),
-            noodle_ridge_a: NOODLE_RIDGE_A.init(random),
-            noodle_ridge_b: NOODLE_RIDGE_B.init(random),
+            shift: SHIFT.init(factory),
+            temperature: TEMPERATURE.init(factory),
+            vegetation: VEGETATION.init(factory),
+            continents: CONTINENTALNESS.init(factory),
+            erosion: EROSION.init(factory),
+            ridges: RIDGE.init(factory),
+            jagged: JAGGED.init(factory),
+            spaghetti_3d_1: SPAGHETTI_3D_1.init(factory),
+            spaghetti_3d_rarity: SPAGHETTI_3D_RARITY.init(factory),
+            spaghetti_3d_thickness: SPAGHETTI_3D_THICKNESS.init(factory),
+            spaghetti_3d_2: SPAGHETTI_3D_2.init(factory),
+            spaghetti_roughness: SPAGHETTI_ROUGHNESS.init(factory),
+            spaghetti_roughness_modulator: SPAGHETTI_ROUGHNESS_MODULATOR.init(factory),
+            cave_entrance: CAVE_ENTRANCE.init(factory),
+            spaghetti_2d_modulator: SPAGHETTI_2D_MODULATOR.init(factory),
+            spaghetti_2d: SPAGHETTI_2D.init(factory),
+            spaghetti_2d_elevation: SPAGHETTI_2D_ELEVATION.init(factory),
+            spaghetti_2d_thickness: SPAGHETTI_2D_THICKNESS.init(factory),
+            pillar: PILLAR.init(factory),
+            pillar_rareness: PILLAR_RARENESS.init(factory),
+            pillar_thickness: PILLAR_THICKNESS.init(factory),
+            cave_layer: CAVE_LAYER.init(factory),
+            cave_cheese: CAVE_CHEESE.init(factory),
+            noodle: NOODLE.init(factory),
+            noodle_thickness: NOODLE_THICKNESS.init(factory),
+            noodle_ridge_a: NOODLE_RIDGE_A.init(factory),
+            noodle_ridge_b: NOODLE_RIDGE_B.init(factory),
             base_3d_noise_overworld: BASE_3D_NOISE_OVERWORLD
-                .init(&mut random.with_hash("minecraft:terrain")),
+                .init(&mut factory.with_hash("minecraft:terrain")),
         }
     }
 

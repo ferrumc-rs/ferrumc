@@ -1,3 +1,5 @@
+use std::range::Range;
+
 use crate::common::aquifer::FluidType;
 use crate::common::surface::{Surface, SurfaceRule};
 use crate::overworld::aquifer::Aquifer;
@@ -9,7 +11,7 @@ use crate::perlin_noise::{
     SURFACE_SECONDARY, SWAMP,
 };
 use crate::pos::{BlockPos, ChunkHeight};
-use crate::random::{Xoroshiro128PlusPlus, Xoroshiro128PlusPlusFactory};
+use crate::random::Xoroshiro128PlusPlus;
 use crate::{ChunkAccess, HeightmapType};
 use crate::{biome_chunk::BiomeChunk, common::aquifer::FluidPicker, pos::ColumnPos};
 use bevy_math::{DVec2, FloatExt, IVec2, IVec3};
@@ -18,7 +20,7 @@ use ferrumc_world::vanilla_chunk_format::BlockData;
 use crate::{
     biome::Biome,
     perlin_noise::{NormalNoise, lerp2},
-    random::{Rng, RngFactory},
+    random::Rng,
 };
 
 pub struct SurfaceNoises {
@@ -44,11 +46,11 @@ pub struct OverworldSurface {
     pub aquifer: Aquifer,
     noises: SurfaceNoises,
     vein: Vein,
-    random: Xoroshiro128PlusPlusFactory,
+    factory: Xoroshiro128PlusPlus,
 }
 
 impl OverworldSurface {
-    pub fn new(random: Xoroshiro128PlusPlusFactory, chunk_height: ChunkHeight) -> Self {
+    pub fn new(factory: Xoroshiro128PlusPlus, chunk_height: ChunkHeight) -> Self {
         Self {
             surface: Surface::new(
                 BlockData {
@@ -59,26 +61,26 @@ impl OverworldSurface {
                 chunk_height,
                 SurfaceRule {}, //TODO:
             ),
-            aquifer: Aquifer::new(FluidPicker(63, FluidType::Water), random),
+            aquifer: Aquifer::new(FluidPicker(63, FluidType::Water), factory),
             noises: SurfaceNoises {
-                surface: SURFACE.init(random),
-                surface_secondary: SURFACE_SECONDARY.init(random),
-                clay_bands_offset: CLAY_BANDS_OFFSET.init(random),
-                swamp: SWAMP.init(random),
-                packed_ice: PACKED_ICE.init(random),
-                ice: ICE.init(random),
-                powder_snow: POWDER_SNOW.init(random),
-                calcite: CALCITE.init(random),
-                gravel: GRAVEL.init(random),
-                iceberg_surface_noise: ICEBERG_SURFACE.init(random),
-                iceberg_pillar_noise: ICEBERG_PILLAR.init(random),
-                iceberg_pillar_roof_noise: ICEBERG_PILLAR_ROOF.init(random),
-                badlands_surface_noise: BADLANDS_SURFACE.init(random),
-                badlands_pillar_noise: BADLANDS_PILLAR.init(random),
-                badlands_pillar_roof_noise: BADLANDS_PILLAR_ROOF.init(random),
+                surface: SURFACE.init(factory),
+                surface_secondary: SURFACE_SECONDARY.init(factory),
+                clay_bands_offset: CLAY_BANDS_OFFSET.init(factory),
+                swamp: SWAMP.init(factory),
+                packed_ice: PACKED_ICE.init(factory),
+                ice: ICE.init(factory),
+                powder_snow: POWDER_SNOW.init(factory),
+                calcite: CALCITE.init(factory),
+                gravel: GRAVEL.init(factory),
+                iceberg_surface_noise: ICEBERG_SURFACE.init(factory),
+                iceberg_pillar_noise: ICEBERG_PILLAR.init(factory),
+                iceberg_pillar_roof_noise: ICEBERG_PILLAR_ROOF.init(factory),
+                badlands_surface_noise: BADLANDS_SURFACE.init(factory),
+                badlands_pillar_noise: BADLANDS_PILLAR.init(factory),
+                badlands_pillar_roof_noise: BADLANDS_PILLAR_ROOF.init(factory),
             },
-            vein: Vein::new(random),
-            random,
+            vein: Vein::new(factory),
+            factory,
         }
     }
 
@@ -186,7 +188,7 @@ impl OverworldSurface {
                 (0.0, 0.0)
             };
 
-            let mut rng = self.random.at(pos.block(0));
+            let mut rng = self.factory.at(pos.block(0));
             let max_snow_blocks = 2 + rng.next_bounded(4);
             let min_snow_block_y = sea_level + 18 + rng.next_bounded(10) as i32;
             let mut snow_blocks = 0;
@@ -237,7 +239,7 @@ impl OverworldSurface {
         let pos = pos.block(0);
         (self.noises.surface.at(pos.as_dvec3()) * 2.75
             + 3.0
-            + self.random.at(pos).next_f64() * 0.25) as i32
+            + self.factory.at(pos).next_f64() * 0.25) as i32
     }
 
     pub(crate) fn top_material(
@@ -257,9 +259,9 @@ impl OverworldSurface {
 }
 
 struct SurfaceRules {
-    random: Xoroshiro128PlusPlusFactory,
-    bedrock: Xoroshiro128PlusPlusFactory,
-    deepslate: Xoroshiro128PlusPlusFactory,
+    factory: Xoroshiro128PlusPlus,
+    bedrock: Xoroshiro128PlusPlus,
+    deepslate: Xoroshiro128PlusPlus,
     clay_bands: [SurfaceBlock; 192],
 }
 #[derive(Clone, Copy)]
@@ -305,14 +307,12 @@ enum SurfaceBlock {
     Endstone,
 }
 impl SurfaceRules {
-    fn new(random: Xoroshiro128PlusPlusFactory) -> Self {
+    fn new(factory: Xoroshiro128PlusPlus) -> Self {
         Self {
-            random,
-            bedrock: random
-                .with_hash("minecraft:bedrock_floor")
-                .fork_positional(),
-            deepslate: random.with_hash("minecraft:deepslate").fork_positional(),
-            clay_bands: badlands_clay(random),
+            factory,
+            bedrock: factory.with_hash("minecraft:bedrock_floor").fork(),
+            deepslate: factory.with_hash("minecraft:deepslate").fork(),
+            clay_bands: badlands_clay(factory),
         }
     }
 
@@ -340,7 +340,7 @@ impl SurfaceRules {
         if pos.y >= surface.min_surface_level(biome_noise, pos.into()) {
             let surface_noise = surface.noises.surface.at(pos.with_y(0).into());
             let surface_depth =
-                surface_noise * 2.75 + 3.0 + self.random.at(pos.with_y(0)).next_f64() * 0.25;
+                surface_noise * 2.75 + 3.0 + self.factory.at(pos.with_y(0)).next_f64() * 0.25;
 
             if depth_above <= 1 {
                 if biome == Biome::WoodedBadlands && f64::from(pos.y) >= 97.0 + surface_depth * 2.0
@@ -692,7 +692,7 @@ impl SurfaceRules {
             [(pos.y as usize + i as usize + self.clay_bands.len()) % self.clay_bands.len()]
     }
 }
-fn badlands_clay(random: Xoroshiro128PlusPlusFactory) -> [SurfaceBlock; 192] {
+fn badlands_clay(factory: Xoroshiro128PlusPlus) -> [SurfaceBlock; 192] {
     fn make_bands(
         rng: &mut Xoroshiro128PlusPlus,
         output: &mut [SurfaceBlock],
@@ -700,7 +700,7 @@ fn badlands_clay(random: Xoroshiro128PlusPlusFactory) -> [SurfaceBlock; 192] {
         state: SurfaceBlock,
     ) {
         // Java: nextIntBetweenInclusive(6, 15)
-        let band_count = rng.next_i32_range(6..16);
+        let band_count = rng.next_i32_range(Range::from(6..16));
 
         for _ in 0..band_count {
             // Java: minSize + nextInt(3)
@@ -717,7 +717,7 @@ fn badlands_clay(random: Xoroshiro128PlusPlusFactory) -> [SurfaceBlock; 192] {
             }
         }
     }
-    let mut random = random.with_hash("minecraft:clay_bands");
+    let mut random = factory.with_hash("minecraft:clay_bands");
     let mut block_states = [SurfaceBlock::Terracotta; 192];
 
     let mut i = 1 + random.next_bounded(5) as usize;
@@ -745,7 +745,7 @@ fn badlands_clay(random: Xoroshiro128PlusPlusFactory) -> [SurfaceBlock; 192] {
         SurfaceBlock::RedTerracotta,
     );
 
-    let ix = random.next_i32_range(9..16);
+    let ix = random.next_i32_range(Range::from(9..16));
     let mut painted = 0;
     let mut i = 0;
 

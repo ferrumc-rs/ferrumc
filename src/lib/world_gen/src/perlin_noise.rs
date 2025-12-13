@@ -1,8 +1,7 @@
-use crate::random::{LegacyRandom, Rng, RngFactory};
-use std::{f64::consts::SQRT_3, iter::repeat_with, mem::MaybeUninit, sync::LazyLock};
+use crate::random::{LegacyRandom, Rng};
+use std::{array::from_fn, f64::consts::SQRT_3, sync::LazyLock};
 
 use bevy_math::{DVec2, DVec3, FloatExt, Vec3Swizzles};
-use unarray::{ArrayFromIter, build_array};
 
 //reference net.minecraft.world.level.levelgen.Noises
 //only shift and swamp have a different name in the resourcelocation, but we could rename them and
@@ -170,7 +169,7 @@ impl ConstBlendedNoise {
             smear_scale_multiplier,
         }
     }
-    pub fn init<RF>(&self, random: &mut impl Rng<RF>) -> BlendedNoise {
+    pub fn init(&self, random: &mut impl const Rng) -> BlendedNoise {
         BlendedNoise {
             min_limit_noise: self.min_limit_noise.legacy_init(random),
             max_limit_noise: self.max_limit_noise.legacy_init(random),
@@ -196,47 +195,24 @@ impl BlendedNoise {
     pub fn at(&self, pos: DVec3) -> f64 {
         let main_pos = pos / DVec3::new(self.xz_factor, self.y_factor, self.xz_factor);
 
-        let d6 = self.y_scale * 684.412 * self.smear_scale_multiplier;
-        let d7 = d6 / self.y_factor;
+        let limit_scale = self.y_scale * 684.412 * self.smear_scale_multiplier;
+        let main_scale = limit_scale / self.y_factor;
 
-        let mut d8 = 0.0;
-        let mut d9 = 0.0;
-        let mut main_noise = 0.0;
-        // dbg!(main_pos);
-        // dbg!(&self.min_limit_noise);
+        let main_noise = self.main_noise.legacy_blended_at(main_pos, main_scale);
 
-        let mut weight = 1.0;
-        for n in self.main_noise.noise_levels.iter() {
-            let curr_pos = (main_pos * weight).map(wrap);
-            main_noise += n.legacy_at(curr_pos, d7 * weight, main_pos.y * weight) / weight;
-            // dbg!(main_noise);
-            weight /= 2.0;
-        }
+        let main = (main_noise / 10.0 + 1.0) / 2.0;
+        let min = if main < 1.0 {
+            self.min_limit_noise.legacy_blended_at(pos, limit_scale)
+        } else {
+            0.0
+        };
+        let max = if main > 0.0 {
+            self.max_limit_noise.legacy_blended_at(pos, limit_scale)
+        } else {
+            0.0
+        };
 
-        let d12 = (main_noise / 10.0 + 1.0) / 2.0;
-        let flag1 = d12 >= 1.0;
-        let flag2 = d12 <= 0.0;
-
-        // ----- Second octave loop -----
-        let mut weight = 1.0;
-        for (n0, n1) in self
-            .min_limit_noise
-            .noise_levels
-            .iter()
-            .zip(self.max_limit_noise.noise_levels.iter())
-        {
-            let curr_pos = (pos * weight).map(wrap);
-            if !flag1 {
-                d8 += n0.legacy_at(curr_pos, d6 * weight, pos.y * weight) / weight;
-            }
-
-            if !flag2 {
-                d9 += n1.legacy_at(curr_pos, d6 * weight, pos.y * weight) / weight;
-            }
-
-            weight /= 2.0;
-        }
-        (d8 / 512.0).lerp(d9 / 512.0, d12.clamp(0.0, 1.0)) / 128.0
+        (min / 512.0).lerp(max / 512.0, main.clamp(0.0, 1.0)) / 128.0
     }
 }
 pub struct ConstNormalNoise<const N: usize> {
@@ -248,6 +224,7 @@ pub struct ConstNormalNoise<const N: usize> {
 
 impl<const N: usize> ConstNormalNoise<N> {
     pub const fn new(name: &'static str, first_octave: u32, amplitudes: [f64; N]) -> Self {
+        #[inline]
         const fn expected_deviation(octaves: usize) -> f64 {
             0.16666666666666666 / (0.1 * (1.0 + 1.0 / (octaves as f64 + 1.0)))
         }
@@ -286,14 +263,11 @@ impl<const N: usize> ConstNormalNoise<N> {
             factor: self.factor,
         }
     }
-    pub fn init<R: Rng<RF>, RF: RngFactory<R>>(
-        &self,
-        random: impl RngFactory<R>,
-    ) -> NormalNoise<N> {
-        let mut rng = random.with_hash(self.name);
+    pub fn init(&self, factory: impl const Rng) -> NormalNoise<N> {
+        let mut rng = factory.with_hash(self.name);
         NormalNoise {
-            first: self.first.init(rng.fork_positional()),
-            second: self.second.init(rng.fork_positional()),
+            first: self.first.init(rng.fork()),
+            second: self.second.init(rng.fork()),
             factor: self.factor,
         }
     }
@@ -321,18 +295,18 @@ impl<const N: usize> ConstPerlinNoise<N> {
         }
     }
 
-    pub fn legacy_init<RF>(&self, random: &mut impl Rng<RF>) -> PerlinNoise<N> {
+    pub fn legacy_init(&self, random: &mut impl const Rng) -> PerlinNoise<N> {
         PerlinNoise {
-            noise_levels: build_array(|_| ImprovedNoise::new(random)),
+            noise_levels: from_fn(|_| ImprovedNoise::new(random)),
             amplitudes: self.amplitudes,
             lowest_freq_input_factor: self.lowest_freq_input_factor,
             lowest_freq_value_factor: self.lowest_freq_value_factor,
         }
     }
 
-    pub fn init<R: Rng<RF>, RF>(&self, factory: impl RngFactory<R>) -> PerlinNoise<N> {
+    pub fn init(&self, factory: impl const Rng) -> PerlinNoise<N> {
         PerlinNoise {
-            noise_levels: build_array(|i| {
+            noise_levels: from_fn(|i| {
                 ImprovedNoise::new(
                     &mut factory
                         .with_hash(&format!("octave_{}", i as i32 - self.first_octave as i32)),
@@ -373,7 +347,7 @@ impl<const N: usize> PerlinNoise<N> {
         let mut freq_input_factor = self.lowest_freq_input_factor;
         let mut freq_value_factor = self.lowest_freq_value_factor;
 
-        for (noise, amp) in self.noise_levels.iter().zip(self.amplitudes.iter()) {
+        for (noise, amp) in self.noise_levels.iter().zip(self.amplitudes) {
             res += amp * noise.at((point * freq_input_factor).map(wrap)) * freq_value_factor;
 
             freq_input_factor *= 2.0;
@@ -382,16 +356,33 @@ impl<const N: usize> PerlinNoise<N> {
 
         res
     }
+    //TODO: remove
     pub fn legacy_at(&self, point: DVec3) -> f64 {
         let mut res = 0.0;
         let mut freq_input_factor = self.lowest_freq_input_factor;
         let mut freq_value_factor = self.lowest_freq_value_factor;
 
-        for (noise, amp) in self.noise_levels.iter().rev().zip(self.amplitudes.iter()) {
+        for (noise, amp) in self.noise_levels.iter().rev().zip(self.amplitudes) {
             res += amp * noise.at((point * freq_input_factor).map(wrap)) * freq_value_factor;
 
             freq_input_factor *= 2.0;
             freq_value_factor /= 2.0;
+        }
+
+        res
+    }
+
+    pub fn legacy_blended_at(&self, point: DVec3, y_scale: f64) -> f64 {
+        let mut res = 0.0;
+        let mut weight = 1.0;
+
+        for noise in &self.noise_levels {
+            res += noise.legacy_at(
+                (point * weight).map(wrap),
+                y_scale * weight,
+                point.y * weight,
+            ) / weight;
+            weight /= 2.0;
         }
 
         res
@@ -402,7 +393,7 @@ impl<const N: usize> PerlinNoise<N> {
         let mut freq_input_factor = self.lowest_freq_input_factor;
         let mut freq_value_factor = self.lowest_freq_value_factor;
 
-        for (noise, amp) in self.noise_levels.iter().zip(self.amplitudes.iter()) {
+        for (noise, amp) in self.noise_levels.iter().zip(self.amplitudes) {
             res += amp * noise.legacy_simplex_at(point * freq_input_factor) * freq_value_factor;
 
             freq_input_factor *= 2.0;
@@ -413,10 +404,12 @@ impl<const N: usize> PerlinNoise<N> {
     }
 }
 
+#[inline]
 fn smoothstep(input: f64) -> f64 {
     input * input * input * (input * (input * 6.0 - 15.0) + 10.0)
 }
 
+#[inline]
 fn wrap(input: f64) -> f64 {
     input - ((input / 2f64.powi(25) + 0.5).floor() * 2f64.powi(25))
 }
@@ -429,21 +422,23 @@ pub struct ImprovedNoise {
 }
 
 impl ImprovedNoise {
-    pub fn new<RF>(random: &mut impl Rng<RF>) -> Self {
+    #[inline]
+    pub fn new(random: &mut impl const Rng) -> Self {
         let offset = DVec3::new(random.next_f64(), random.next_f64(), random.next_f64()) * 256.0;
 
-        let mut p = build_array(|i| i as u8);
+        let mut p = from_fn(|i| i as u8);
 
-        for i in 0..256 {
-            p.swap(i, i + random.next_bounded(256 - i as u32) as usize);
-        }
+        random.shuffle(&mut p);
 
         Self { p, offset }
     }
+
+    #[inline]
+    fn corner_noise(&self, index: i32, point: DVec3, offset: f64) -> f64 {
+        (offset - point.length_squared()).max(0.0).powi(4) * self.grad_dot(index % 12, point)
+    }
+    #[inline]
     fn legacy_simplex_at(&self, at: DVec2) -> f64 {
-        fn get_corner_noise_3d(gradient_index: i32, point: DVec3, offset: f64) -> f64 {
-            (offset - point.length_squared()).max(0.0).powi(4) * grad_dot(gradient_index, point)
-        }
         const F2: f64 = 0.5 * (SQRT_3 - 1.0);
         const G2: f64 = (3.0 - SQRT_3) / 6.0;
 
@@ -469,16 +464,15 @@ impl ImprovedNoise {
         let i2 = i_floor & 0xFF;
         let i3 = i_floor1 & 0xFF;
 
-        let i4 = self.p(i2.wrapping_add(self.p(i_floor1))) % 12;
-        let i5 = self.p(i2.wrapping_add(i + self.p(i3.wrapping_add(i1)))) % 12;
-        let i6 = self.p(i2.wrapping_add(1 + self.p(i3 + 1))) % 12;
-
-        let corner_noise3d = get_corner_noise_3d(i4, DVec3::new(d4, d5, 0.0), 0.5);
-        let corner_noise3d1 = get_corner_noise_3d(i5, DVec3::new(d6, d7, 0.0), 0.5);
-        let corner_noise3d2 = get_corner_noise_3d(i6, DVec3::new(d8, d9, 0.0), 0.5);
+        let corner_noise3d = self.corner_noise(i2 + self.p(i_floor1), DVec3::new(d4, d5, 0.0), 0.5);
+        let corner_noise3d1 =
+            self.corner_noise(i2 + i + self.p(i3 + i1), DVec3::new(d6, d7, 0.0), 0.5);
+        let corner_noise3d2 =
+            self.corner_noise(i2 + 1 + self.p(i3 + 1), DVec3::new(d8, d9, 0.0), 0.5);
 
         70.0 * (corner_noise3d + corner_noise3d1 + corner_noise3d2)
     }
+
     fn legacy_at(&self, at: DVec3, y_scale: f64, y_max: f64) -> f64 {
         assert!(y_scale != 0.0);
         let actual = at + self.offset;
@@ -486,96 +480,80 @@ impl ImprovedNoise {
         let delta = actual - grid;
 
         let grid = grid.as_ivec3();
-        let delta_y = if y_max >= 0.0 {
-            delta.y.min(y_max)
-        } else {
-            delta.y
-        };
-        let weird_delta = delta.with_y(delta.y - (delta_y / y_scale + 1.0E-7).floor() * y_scale);
-        let i = self.p(grid.x);
-        let i1 = self.p(grid.x + 1);
-        let i2 = self.p(i + grid.y);
-        let i3 = self.p(i + grid.y + 1);
-        let i4 = self.p(i1 + grid.y);
-        let i5 = self.p(i1 + grid.y + 1);
-
-        let d = grad_dot(self.p(i2 + grid.z), weird_delta);
-        let d1 = grad_dot(self.p(i4 + grid.z), weird_delta - DVec3::new(1.0, 0.0, 0.0));
-        let d2 = grad_dot(self.p(i3 + grid.z), weird_delta - DVec3::new(0.0, 1.0, 0.0));
-        let d3 = grad_dot(self.p(i5 + grid.z), weird_delta - DVec3::new(1.0, 1.0, 0.0));
-        let d4 = grad_dot(
-            self.p(i2 + grid.z + 1),
-            weird_delta - DVec3::new(0.0, 0.0, 1.0),
-        );
-        let d5 = grad_dot(
-            self.p(i4 + grid.z + 1),
-            weird_delta - DVec3::new(1.0, 0.0, 1.0),
-        );
-        let d6 = grad_dot(
-            self.p(i3 + grid.z + 1),
-            weird_delta - DVec3::new(0.0, 1.0, 1.0),
-        );
-        let d7 = grad_dot(
-            self.p(i5 + grid.z + 1),
-            weird_delta - DVec3::new(1.0, 1.0, 1.0),
-        );
+        let weird_delta =
+            delta.with_y(delta.y - (delta.y.min(y_max) / y_scale + 1.0E-7).floor() * y_scale);
+        let (d, d1, d2, d3, d4, d5, d6, d7) = self.gradient(weird_delta, grid);
 
         let smooth = delta.map(smoothstep);
 
         lerp3(smooth, d, d1, d2, d3, d4, d5, d6, d7)
     }
+
     pub fn at(&self, at: DVec3) -> f64 {
         let actual = at + self.offset;
         let grid = actual.floor();
         let delta = actual - grid;
 
         let grid = grid.as_ivec3();
-        let i = self.p(grid.x);
-        let i1 = self.p(grid.x + 1);
-        let i2 = self.p(i + grid.y);
-        let i3 = self.p(i + grid.y + 1);
-        let i4 = self.p(i1 + grid.y);
-        let i5 = self.p(i1 + grid.y + 1);
-
-        let d = grad_dot(self.p(i2 + grid.z), delta);
-        let d1 = grad_dot(self.p(i4 + grid.z), delta - DVec3::new(1.0, 0.0, 0.0));
-        let d2 = grad_dot(self.p(i3 + grid.z), delta - DVec3::new(0.0, 1.0, 0.0));
-        let d3 = grad_dot(self.p(i5 + grid.z), delta - DVec3::new(1.0, 1.0, 0.0));
-        let d4 = grad_dot(self.p(i2 + grid.z + 1), delta - DVec3::new(0.0, 0.0, 1.0));
-        let d5 = grad_dot(self.p(i4 + grid.z + 1), delta - DVec3::new(1.0, 0.0, 1.0));
-        let d6 = grad_dot(self.p(i3 + grid.z + 1), delta - DVec3::new(0.0, 1.0, 1.0));
-        let d7 = grad_dot(self.p(i5 + grid.z + 1), delta - DVec3::new(1.0, 1.0, 1.0));
+        let (d, d1, d2, d3, d4, d5, d6, d7) = self.gradient(delta, grid);
 
         let smooth = delta.map(smoothstep);
 
         lerp3(smooth, d, d1, d2, d3, d4, d5, d6, d7)
     }
 
-    fn p(&self, index: i32) -> i32 {
-        self.p[(index & 0xFF) as usize].into()
-    }
-}
+    #[inline]
+    fn gradient(
+        &self,
+        delta: DVec3,
+        grid: bevy_math::IVec3,
+    ) -> (f64, f64, f64, f64, f64, f64, f64, f64) {
+        let x = self.p(grid.x);
+        let x1 = self.p(grid.x + 1);
+        let y = self.p(x + grid.y);
+        let y1 = self.p(x + grid.y + 1);
+        let x1y = self.p(x1 + grid.y);
+        let x1y1 = self.p(x1 + grid.y + 1);
 
-fn grad_dot(grad_index: i32, p: DVec3) -> f64 {
-    const SIMPLEX_GRADIENT: [DVec3; 16] = [
-        DVec3::new(1.0, 1.0, 0.0),
-        DVec3::new(-1.0, 1.0, 0.0),
-        DVec3::new(1.0, -1.0, 0.0),
-        DVec3::new(-1.0, -1.0, 0.0),
-        DVec3::new(1.0, 0.0, 1.0),
-        DVec3::new(-1.0, 0.0, 1.0),
-        DVec3::new(1.0, 0.0, -1.0),
-        DVec3::new(-1.0, 0.0, -1.0),
-        DVec3::new(0.0, 1.0, 1.0),
-        DVec3::new(0.0, -1.0, 1.0),
-        DVec3::new(0.0, 1.0, -1.0),
-        DVec3::new(0.0, -1.0, -1.0),
-        DVec3::new(1.0, 1.0, 0.0),
-        DVec3::new(0.0, -1.0, 1.0),
-        DVec3::new(-1.0, 1.0, 0.0),
-        DVec3::new(0.0, -1.0, -1.0),
-    ];
-    p.dot(SIMPLEX_GRADIENT[grad_index as usize & 15])
+        let d = self.grad_dot(y + grid.z, delta);
+        let d1 = self.grad_dot(x1y + grid.z, delta - DVec3::new(1.0, 0.0, 0.0));
+        let d2 = self.grad_dot(y1 + grid.z, delta - DVec3::new(0.0, 1.0, 0.0));
+        let d3 = self.grad_dot(x1y1 + grid.z, delta - DVec3::new(1.0, 1.0, 0.0));
+        let d4 = self.grad_dot(y + grid.z + 1, delta - DVec3::new(0.0, 0.0, 1.0));
+        let d5 = self.grad_dot(x1y + grid.z + 1, delta - DVec3::new(1.0, 0.0, 1.0));
+        let d6 = self.grad_dot(y1 + grid.z + 1, delta - DVec3::new(0.0, 1.0, 1.0));
+        let d7 = self.grad_dot(x1y1 + grid.z + 1, delta - DVec3::new(1.0, 1.0, 1.0));
+        (d, d1, d2, d3, d4, d5, d6, d7)
+    }
+
+    #[inline]
+    const fn p(&self, index: i32) -> i32 {
+        self.p[(index & 0xFF) as usize] as i32
+    }
+
+    #[inline]
+    fn grad_dot(&self, index: i32, p: DVec3) -> f64 {
+        let grad_index = self.p(index);
+        const SIMPLEX_GRADIENT: [DVec3; 16] = [
+            DVec3::new(1.0, 1.0, 0.0),
+            DVec3::new(-1.0, 1.0, 0.0),
+            DVec3::new(1.0, -1.0, 0.0),
+            DVec3::new(-1.0, -1.0, 0.0),
+            DVec3::new(1.0, 0.0, 1.0),
+            DVec3::new(-1.0, 0.0, 1.0),
+            DVec3::new(1.0, 0.0, -1.0),
+            DVec3::new(-1.0, 0.0, -1.0),
+            DVec3::new(0.0, 1.0, 1.0),
+            DVec3::new(0.0, -1.0, 1.0),
+            DVec3::new(0.0, 1.0, -1.0),
+            DVec3::new(0.0, -1.0, -1.0),
+            DVec3::new(1.0, 1.0, 0.0),
+            DVec3::new(0.0, -1.0, 1.0),
+            DVec3::new(-1.0, 1.0, 0.0),
+            DVec3::new(0.0, -1.0, -1.0),
+        ];
+        p.dot(SIMPLEX_GRADIENT[grad_index as usize & 15])
+    }
 }
 
 pub fn lerp2(delta: DVec2, start1: f64, end1: f64, start2: f64, end2: f64) -> f64 {
@@ -602,7 +580,7 @@ pub fn lerp3(
 
 #[test]
 fn test_normal_noise() {
-    let rng = crate::random::Xoroshiro128PlusPlus::new(0, 0).fork_positional();
+    let rng = crate::random::Xoroshiro128PlusPlus::new(0, 0).fork();
     let noise = ConstNormalNoise::new("test", 5, [0.0, 2.0, 1.5, 0.1, -1.0, 0.0, 0.0]).init(rng);
 
     assert_eq!(noise.factor, 1.3333333333333333, "Mismatch in noise factor");
@@ -647,7 +625,7 @@ fn test_improved_noise() {
 
 #[test]
 fn test_perlin_noise() {
-    let rng = crate::random::Xoroshiro128PlusPlus::new(0, 0).fork_positional();
+    let rng = crate::random::Xoroshiro128PlusPlus::new(0, 0).fork();
 
     let perlin_noise = ConstPerlinNoise::new(3, [0.0, 1.0, -1.0, 0.0, 0.5, 0.0]).init(rng);
 

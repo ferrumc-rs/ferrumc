@@ -6,7 +6,7 @@ use ferrumc_world::vanilla_chunk_format::BlockData;
 use crate::{
     overworld::aquifer::clamped_map,
     perlin_noise::{NormalNoise, ORE_GAP, ORE_VEIN_A, ORE_VEIN_B, ORE_VEININESS},
-    random::{Rng, RngFactory, Xoroshiro128PlusPlusFactory},
+    random::Xoroshiro128PlusPlus,
 };
 
 pub struct Vein {
@@ -14,19 +14,19 @@ pub struct Vein {
     vein_a: NormalNoise<1>,
     vein_b: NormalNoise<1>,
     vein_gap: NormalNoise<1>,
-    random: Xoroshiro128PlusPlusFactory,
+    factory: Xoroshiro128PlusPlus,
 }
 
 #[allow(dead_code)]
 impl Vein {
-    pub fn new(random: Xoroshiro128PlusPlusFactory) -> Self {
-        let random = random.with_hash("minecraft:ore").fork_positional();
+    pub fn new(factory: Xoroshiro128PlusPlus) -> Self {
+        let factory = factory.with_hash("minecraft:ore").fork();
         Self {
-            vein_toggle: ORE_VEININESS.init(random),
-            vein_a: ORE_VEIN_A.init(random),
-            vein_b: ORE_VEIN_B.init(random),
-            vein_gap: ORE_GAP.init(random),
-            random,
+            vein_toggle: ORE_VEININESS.init(factory),
+            vein_a: ORE_VEIN_A.init(factory),
+            vein_b: ORE_VEIN_B.init(factory),
+            vein_gap: ORE_GAP.init(factory),
+            factory,
         }
     }
 
@@ -75,7 +75,7 @@ impl Vein {
         if vein_toggle_abs + d1 < 0.4 {
             return None;
         }
-        let mut rand = self.random.at(pos);
+        let mut rand = self.factory.at(pos);
         let vein_pos = pos.as_dvec3() * 4.0;
         if rand.next_f32() > 0.7 || self.vein_a.at(vein_pos).max(self.vein_b.at(vein_pos)) >= 0.08 {
             return None;
