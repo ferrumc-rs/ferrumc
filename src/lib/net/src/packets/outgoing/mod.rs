@@ -18,6 +18,7 @@ pub mod set_render_distance;
 pub mod status_response;
 pub mod synchronize_player_position;
 pub mod system_message;
+pub mod unload_chunk;
 
 pub mod remove_entities;
 pub mod spawn_entity;
@@ -48,5 +49,6 @@ pub(crate) mod set_compression;
 pub mod client_bound_plugin_message;
 pub mod encryption_request;
 pub mod set_container_content;
+pub mod update_time;
 pub mod set_container_slot;
 pub mod set_player_inventory_slot;

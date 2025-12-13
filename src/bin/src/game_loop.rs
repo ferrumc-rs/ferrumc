@@ -60,6 +60,9 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     // Channel for new player connections (TCP acceptor -> main loop)
     let (new_conn_send, new_conn_recv) = crossbeam_channel::unbounded();
 
+    // Channel for receiving the Tokio runtime handle from the network thread
+    let (tokio_handle_send, tokio_handle_recv) = crossbeam_channel::bounded(1);
+
     // Shutdown coordination channels:
     // - shutdown_send/recv: Main loop tells TCP acceptor to stop
     // - shutdown_response: TCP acceptor confirms it has stopped
@@ -67,7 +70,7 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     let (shutdown_response_send, shutdown_response_recv) = crossbeam_channel::unbounded();
 
     // =========================================================================
-    // PHASE 3: Register ECS Systems and Resources
+    // PHASE 3: Register ECS Systems and Messages
     // =========================================================================
 
     // Initialize default server commands (e.g., /stop, /help, etc.)
@@ -78,9 +81,6 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
 
     // Register event messages the ECS will handle
     register_messages(&mut ecs_world);
-
-    // Register shared resources (connection receiver, global state, etc.)
-    register_resources(&mut ecs_world, new_conn_recv, global_state_res);
 
     // Build the timed scheduler with all periodic schedules (tick, sync, keepalive)
     let mut timed = build_timed_scheduler();
@@ -99,7 +99,26 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
         Arc::new(new_conn_send),
         shutdown_recv,
         shutdown_response_send,
+        tokio_handle_send,
     )?;
+
+    // Wait for the Tokio runtime handle from the network thread
+    // This allows ECS systems to spawn async tasks on the network runtime
+    let tokio_handle = tokio_handle_recv
+        .recv()
+        .expect("Failed to receive Tokio runtime handle from network thread");
+
+    // =========================================================================
+    // PHASE 5: Register ECS Resources (after network thread provides handle)
+    // =========================================================================
+
+    // Register shared resources (connection receiver, global state, tokio handle, etc.)
+    register_resources(
+        &mut ecs_world,
+        new_conn_recv,
+        global_state_res,
+        tokio_handle,
+    );
 
     info!(
         "Server is ready in {}",
@@ -268,6 +287,21 @@ fn build_timed_scheduler() -> Scheduler {
     );
 
     // -------------------------------------------------------------------------
+    // TIME SYNC SCHEDULE - Broadcasts world time to all clients
+    // -------------------------------------------------------------------------
+    // Sends UpdateTime packets to synchronize the day/night cycle.
+    // Runs every second (20 ticks) which provides good sync accuracy while
+    // minimizing network overhead. Has a 500ms phase offset.
+    let build_time_sync = |s: &mut Schedule| {
+        s.add_systems(crate::systems::time_sync::time_sync_system);
+    };
+    timed.register(
+        TimedSchedule::new("time_sync", Duration::from_secs(1), build_time_sync)
+            .with_behavior(MissedTickBehavior::Skip)
+            .with_phase(Duration::from_millis(500)), // Offset from other schedules
+    );
+
+    // -------------------------------------------------------------------------
     // PLUGIN SCHEDULES - Dynamically registered by plugins
     // -------------------------------------------------------------------------
     // Drain any schedules that plugins registered during initialization.
@@ -313,6 +347,7 @@ async fn spawn_lan_pinger() {
 /// * `sender` - Channel to notify main loop of new connections
 /// * `shutdown_notify` - Receives signal when server is shutting down
 /// * `shutdown_response` - Sends confirmation when this thread has stopped
+/// * `handle_sender` - Sends the Tokio runtime handle back to main thread
 ///
 /// # Why a separate thread?
 /// The network acceptor runs on its own thread with a dedicated Tokio runtime
@@ -324,6 +359,7 @@ fn tcp_conn_acceptor(
     sender: Arc<Sender<NewConnection>>,
     mut shutdown_notify: tokio::sync::oneshot::Receiver<()>,
     shutdown_response: Sender<()>,
+    handle_sender: Sender<tokio::runtime::Handle>,
 ) -> Result<(), BinaryError> {
     let named_thread = std::thread::Builder::new().name("TokioNetworkThread".to_string());
     named_thread.spawn(move || {
@@ -335,6 +371,11 @@ fn tcp_conn_acceptor(
                 .enable_all()
                 .thread_name("Tokio-Async-Network")
                 .build()?;
+
+            // Send the runtime handle back to main thread so ECS systems can spawn async tasks
+            handle_sender
+                .send(async_runtime.handle().clone())
+                .expect("Failed to send Tokio runtime handle to main thread");
 
             // Spawn LAN broadcast pinger (for local network server discovery)
             async_runtime.spawn(spawn_lan_pinger());

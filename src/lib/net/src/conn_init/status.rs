@@ -99,6 +99,7 @@ pub(super) async fn status(
         LoginResult {
             player_identity: None,
             compression: false,
+            client_view_distance: 8, // Default, not used for status connections
         },
     ))
 }

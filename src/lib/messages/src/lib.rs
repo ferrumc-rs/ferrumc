@@ -23,3 +23,6 @@ pub use change_gamemode::*;
 
 pub mod entity_spawn;
 pub use entity_spawn::{EntityType, SpawnEntityCommand, SpawnEntityEvent};
+
+pub mod client_settings;
+pub use client_settings::ClientInformationUpdated;

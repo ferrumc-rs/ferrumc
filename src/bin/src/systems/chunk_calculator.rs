@@ -1,9 +1,15 @@
+//! Legacy chunk calculator system.
+//!
+//! NOTE: This system is deprecated in favor of the async per-player chunk loader.
+//! It's kept for reference and may be removed in the future.
+
 use bevy_ecs::prelude::{MessageReader, Query};
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
 use ferrumc_core::transform::position::Position;
 use ferrumc_messages::chunk_calc::ChunkCalc;
 
+#[allow(dead_code)]
 pub fn handle(
     mut messages: MessageReader<ChunkCalc>,
     mut query: Query<(&Position, &mut ChunkReceiver)>,

@@ -1,20 +1,17 @@
-use bevy_ecs::prelude::{MessageWriter, Query, Res};
-use ferrumc_core::transform::rotation::Rotation;
+use bevy_ecs::prelude::{MessageWriter, Res};
 use ferrumc_net::packets::packet_messages::Movement;
 use ferrumc_net::SetPlayerRotationPacketReceiver;
 
+/// Handles incoming SetPlayerRotation packets.
+/// Simply converts the packet data to a Movement message for unified processing.
 pub fn handle(
     receiver: Res<SetPlayerRotationPacketReceiver>,
-    mut event_writer: MessageWriter<Movement>,
-    mut query: Query<&mut Rotation>,
+    mut movement_writer: MessageWriter<Movement>,
 ) {
     for (event, eid) in receiver.0.try_iter() {
-        // Update the player's components
-        if let Ok(mut rotation) = query.get_mut(eid) {
-            *rotation = Rotation::new(event.yaw, event.pitch);
-        }
-
-        let movement = Movement::new(eid).rotation((event.yaw, event.pitch).into());
-        event_writer.write(movement);
+        let movement = Movement::new(eid)
+            .rotation((event.yaw, event.pitch).into())
+            .on_ground(event.flags & 0x01 != 0);
+        movement_writer.write(movement);
     }
 }

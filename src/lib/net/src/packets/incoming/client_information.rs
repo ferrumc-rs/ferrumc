@@ -1,3 +1,12 @@
+//! Client Information packet for Configuration state.
+//!
+//! This packet is sent by the client during the configuration phase to inform
+//! the server of the player's client settings (locale, view distance, chat
+//! preferences, skin parts, etc.).
+//!
+//! The enums defined here (`ChatMode`, `MainHand`, `ParticleStatus`) are also
+//! re-exported by `client_information_play` for use during the Play state.
+
 use ferrumc_macros::{packet, NetDecode};
 use ferrumc_net_codec::decode::errors::NetDecodeError;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
@@ -8,25 +17,51 @@ use tokio::io::AsyncRead;
 use tracing::warn;
 use typename::TypeName;
 
+/// Client Information packet received during Configuration state.
+///
+/// Sent by the client during the configuration phase to inform the server
+/// of the player's preferences and settings.
+///
+/// # Protocol
+/// - Packet ID: `client_information`
+/// - State: Configuration
+/// - Bound to: Server
 #[derive(TypeName, Debug, NetDecode)]
 #[packet(packet_id = "client_information", state = "configuration")]
 pub struct ClientInformation {
+    /// The client's locale (e.g., "en_us", "de_de").
     pub locale: String,
+    /// The client's render distance in chunks (2-32).
     pub view_distance: i8,
+    /// Chat visibility mode.
     pub chat_mode: ChatMode,
+    /// Whether chat colors are enabled.
     pub chat_colors: bool,
+    /// Bitmask of displayed skin parts.
     pub displayed_skin_parts: u8,
+    /// The player's main hand preference.
     pub main_hand: MainHand,
+    /// Whether text filtering is enabled.
     pub enable_text_filtering: bool,
+    /// Whether the player appears in server listings.
     pub allow_server_listings: bool,
+    /// Particle rendering level.
     pub particle_status: ParticleStatus,
 }
 
-#[derive(Debug)]
+/// Chat visibility mode for the client.
+///
+/// Controls which chat messages the client wants to receive.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[repr(u8)]
 pub enum ChatMode {
-    Enabled,
-    CommandsOnly,
-    Hidden,
+    /// All chat messages are shown.
+    #[default]
+    Enabled = 0,
+    /// Only command feedback is shown.
+    CommandsOnly = 1,
+    /// All chat messages are hidden.
+    Hidden = 2,
 }
 
 impl NetDecode for ChatMode {
@@ -76,10 +111,23 @@ impl Display for ChatMode {
     }
 }
 
-#[derive(Debug)]
+impl From<ChatMode> for u8 {
+    fn from(mode: ChatMode) -> Self {
+        mode as u8
+    }
+}
+
+/// The player's dominant hand preference.
+///
+/// Used for item placement and attack animations.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[repr(u8)]
 pub enum MainHand {
-    Left,
-    Right,
+    /// Left hand is dominant.
+    Left = 0,
+    /// Right hand is dominant.
+    #[default]
+    Right = 1,
 }
 
 impl NetDecode for MainHand {
@@ -126,11 +174,25 @@ impl Display for MainHand {
     }
 }
 
-#[derive(Debug)]
+impl From<MainHand> for u8 {
+    fn from(hand: MainHand) -> Self {
+        hand as u8
+    }
+}
+
+/// Particle rendering level preference.
+///
+/// Controls how many particles the client renders.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[repr(u8)]
 pub enum ParticleStatus {
-    All,
-    Decreased,
-    Minimal,
+    /// All particles are rendered.
+    #[default]
+    All = 0,
+    /// Reduced particle rendering.
+    Decreased = 1,
+    /// Minimal particle rendering.
+    Minimal = 2,
 }
 
 impl NetDecode for ParticleStatus {
@@ -177,5 +239,11 @@ impl Display for ParticleStatus {
             ParticleStatus::Decreased => write!(f, "Decreased"),
             ParticleStatus::Minimal => write!(f, "Minimal"),
         }
+    }
+}
+
+impl From<ParticleStatus> for u8 {
+    fn from(status: ParticleStatus) -> Self {
+        status as u8
     }
 }

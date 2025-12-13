@@ -47,6 +47,27 @@ pub struct StreamWriter {
     pub entity: Arc<Mutex<Option<Entity>>>,
 }
 
+impl Clone for StreamWriter {
+    /// Clones the StreamWriter, sharing the underlying channel and state.
+    ///
+    /// This is safe because:
+    /// - The `sender` is an unbounded channel that supports multiple senders
+    /// - All other fields are `Arc`-wrapped and designed for shared ownership
+    ///
+    /// Note: The `Drop` impl marks `running` as false, but since we're cloning
+    /// `Arc`s, dropping a clone won't affect the original's `running` state
+    /// until all clones are dropped.
+    fn clone(&self) -> Self {
+        Self {
+            sender: self.sender.clone(),
+            running: self.running.clone(),
+            compress: self.compress.clone(),
+            state: self.state.clone(),
+            entity: self.entity.clone(),
+        }
+    }
+}
+
 impl Drop for StreamWriter {
     /// When the writer is dropped, mark the connection as no longer active.
     fn drop(&mut self) {
@@ -229,6 +250,8 @@ pub struct NewConnection {
     pub player_identity: PlayerIdentity,
     pub entity_return: oneshot::Sender<Entity>,
     pub disconnect_handle: oneshot::Sender<()>,
+    /// The client's initial view distance from the configuration phase.
+    pub client_view_distance: u8,
 }
 
 #[derive(Component)]
@@ -339,6 +362,7 @@ pub async fn handle_connection(
             player_identity: login_result.player_identity.unwrap_or_default(),
             entity_return,
             disconnect_handle: disconnect_return,
+            client_view_distance: login_result.client_view_distance,
         })
         .map_err(|_| NetError::Misc("Failed to register new connection".to_string()))?;
 

@@ -1,3 +1,4 @@
+pub mod debug;
 pub mod echo;
 pub mod fly;
 pub mod gamemode;

@@ -1,3 +1,8 @@
+//! Legacy chunk sending system.
+//!
+//! NOTE: This system is deprecated in favor of the async per-player chunk loader.
+//! It's kept for reference and may be removed in the future.
+
 use bevy_ecs::prelude::{Entity, Query, Res};
 use bevy_math::IVec3;
 use ferrumc_config::server_config::get_global_config;
@@ -17,6 +22,7 @@ use std::sync::atomic::Ordering;
 // Just take the needed chunks from the ChunkReceiver and send them
 // calculating which chunks are required is figured out elsewhere
 // TODO: Respect chunks_per_tick limit
+#[allow(dead_code)]
 pub fn handle(
     mut query: Query<(Entity, &StreamWriter, &mut ChunkReceiver, &Position)>,
     state: Res<GlobalStateResource>,
