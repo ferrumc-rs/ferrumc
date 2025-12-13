@@ -3,6 +3,7 @@ pub mod chunk_batch_finish;
 pub mod chunk_batch_start;
 pub mod client_bound_known_packs;
 pub mod disconnect;
+pub mod unload_chunk;
 pub mod finish_configuration;
 pub mod game_event;
 pub mod keep_alive;

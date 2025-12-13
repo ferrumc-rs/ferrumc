@@ -1,22 +1,33 @@
 use bevy_ecs::prelude::{Entity, Query, Res};
-use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
+use ferrumc_components::chunks::{ChunkCommand, ChunkSender};
 use ferrumc_net::ChunkBatchAckReceiver;
 use ferrumc_state::GlobalStateResource;
-use tracing::{error, warn};
+use tracing::{debug, error, trace, warn};
 
+/// Handles ChunkBatchAck packets from clients.
+///
+/// When the client finishes processing a chunk batch, it sends this packet with
+/// its desired chunks-per-tick rate. We forward this to the async chunk loader
+/// task so it can pace the next batch accordingly.
 pub fn handle(
     receiver: Res<ChunkBatchAckReceiver>,
-    mut query: Query<(Entity, &mut ChunkReceiver)>,
+    query: Query<(Entity, &ChunkSender)>,
     state: Res<GlobalStateResource>,
 ) {
     for (event, eid) in receiver.0.try_iter() {
-        let Ok((eid, mut chunk_recv)) = query.get_mut(eid) else {
+        debug!(
+            "Received ChunkBatchAck from {:?}: desired rate {:.1} chunks/tick",
+            eid, event.chunks_per_tick
+        );
+
+        let Ok((eid, chunk_sender)) = query.get(eid) else {
             error!(
-                "Failed to get chunk receiver or connection for entity: {:?}",
+                "Failed to get ChunkSender for entity: {:?}",
                 eid
             );
             continue;
         };
+
         if !state.0.players.is_connected(eid) {
             warn!(
                 "Entity {:?} is not connected, cannot handle chunk batch ack",
@@ -24,6 +35,17 @@ pub fn handle(
             );
             continue;
         }
-        chunk_recv.chunks_per_tick = event.chunks_per_tick;
+
+        // Forward the rate to the async chunk loader task
+        if let Err(e) = chunk_sender
+            .tx
+            .try_send(ChunkCommand::BatchReceived(event.chunks_per_tick))
+        {
+            trace!(
+                "Failed to send BatchReceived to chunk loader for {:?}: {}",
+                eid,
+                e
+            );
+        }
     }
 }
