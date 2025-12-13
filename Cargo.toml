@@ -164,6 +164,7 @@ aes = { version = "0.8.4" }
 cfb8 = "0.8.1"
 sha1 = "0.10.6"
 num-bigint = "0.4.6"
+md5 = "0.8.0"
 
 # Encoding/Serialization
 serde = { version = "1.0.228", features = ["derive"] }
