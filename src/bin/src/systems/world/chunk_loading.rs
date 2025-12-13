@@ -6,11 +6,18 @@
 //!
 //! ## Architecture
 //!
-//! The chunk loader implements a "Sliding Window" algorithm:
+//! The chunk loader implements a "Sliding Window" algorithm with queue invalidation:
 //! - On first join, all chunks in the view radius are queued in spiral order
-//! - On movement, only the delta (new chunks to load, old chunks to unload) is processed
+//! - On movement, stale chunks are removed from the queue and new chunks are added
 //! - Chunks are sent in batches, waiting for client acknowledgment between batches
-//! - This prevents overwhelming the client at high render distances (e.g., 32)
+//! - Before sending, each chunk is validated to still be within the current radius
+//!
+//! ## Fast Movement Handling
+//!
+//! When the player moves faster than chunks can be sent:
+//! 1. Stale chunks (outside new radius) are purged from the queue
+//! 2. Duplicate chunks are prevented via HashSet tracking
+//! 3. Pre-send validation skips chunks that became stale mid-batch
 //!
 //! ## Protocol Flow
 //!
@@ -24,7 +31,7 @@
 //!   |                                |
 //!   |<-------- ChunkBatchReceived ---|
 //!   |                                |
-//!   |-- (next batch if queue) ----->|
+//!   |-- (next batch if queue) ------>|
 //! ```
 
 use ferrumc_components::chunks::ChunkCommand;
@@ -35,73 +42,158 @@ use ferrumc_net::packets::outgoing::chunk_batch_start::ChunkBatchStart;
 use ferrumc_net::packets::outgoing::set_center_chunk::SetCenterChunk;
 use ferrumc_net::packets::outgoing::unload_chunk::UnloadChunk;
 use ferrumc_state::GlobalState;
-use std::collections::VecDeque;
+use std::collections::{HashSet, VecDeque};
 use tokio::sync::mpsc::Receiver;
 use tracing::{debug, error, trace};
 
+// ============================================================================
+// Constants
+// ============================================================================
+
 /// Number of vertical sections in a chunk (controls Y range).
-/// 24 sections = Y -64 to 320 (full 1.18+ world height)
-/// Although, the 8 here represents the default flat world height.
-///  8 => Y -64 to 64. That's the bedrock floor. 
+/// 8 sections = Y -64 to 64 (flat world / bedrock floor).
 const CHUNK_SECTIONS: usize = 8;
 
 /// Default chunks per batch before we receive client feedback.
-const DEFAULT_CHUNKS_PER_BATCH: f32 = 10.0;
+const DEFAULT_CHUNKS_PER_BATCH: f32 = 100.0;
 
 /// Maximum chunks per batch to prevent packet flooding.
-/// 100 is basically 10*10 so like a square of 10x10 chunks at once.
 const MAX_CHUNKS_PER_BATCH: f32 = 100.0;
 
 /// Minimum chunks per batch to ensure progress.
 const MIN_CHUNKS_PER_BATCH: f32 = 1.0;
 
+// ============================================================================
+// Chunk Loader State
+// ============================================================================
+
 /// Internal state for the chunk loader task.
+///
+/// Tracks the player's view center, pending chunks, and rate limiting.
 struct ChunkLoaderState {
-    /// Last known center position (None = first join)
-    last_center: Option<(i32, i32)>,
-    /// Current view radius
-    current_radius: u8,
-    /// Queue of chunks waiting to be sent
+    /// Current center position (None = not yet initialized)
+    center: Option<(i32, i32)>,
+
+    /// Current view radius in chunks
+    radius: u8,
+
+    /// Ordered queue of chunks to send (closest first)
     queue: VecDeque<(i32, i32)>,
-    /// Number of chunks to send per batch (dynamically adjusted)
+
+    /// Set of chunks currently in queue (for O(1) dedup checks)
+    queued_set: HashSet<(i32, i32)>,
+
+    /// Set of chunks already sent to client (avoid re-sending)
+    sent_chunks: HashSet<(i32, i32)>,
+
+    /// Chunks per batch (dynamically adjusted based on client feedback)
     chunks_per_batch: f32,
-    /// Whether we're waiting for a batch acknowledgment
+
+    /// Whether we're waiting for client acknowledgment
     awaiting_ack: bool,
 }
 
 impl ChunkLoaderState {
     fn new() -> Self {
         Self {
-            last_center: None,
-            current_radius: 0,
-            queue: VecDeque::new(),
+            center: None,
+            radius: 0,
+            queue: VecDeque::with_capacity(1024),
+            queued_set: HashSet::with_capacity(1024),
+            sent_chunks: HashSet::with_capacity(2048),
             chunks_per_batch: DEFAULT_CHUNKS_PER_BATCH,
             awaiting_ack: false,
         }
     }
+
+    /// Adds a chunk to the queue if not already queued or sent.
+    #[inline]
+    fn enqueue(&mut self, chunk: (i32, i32)) {
+        if !self.queued_set.contains(&chunk) && !self.sent_chunks.contains(&chunk) {
+            self.queue.push_back(chunk);
+            self.queued_set.insert(chunk);
+        }
+    }
+
+    /// Removes and returns the next chunk from the queue.
+    #[inline]
+    fn dequeue(&mut self) -> Option<(i32, i32)> {
+        if let Some(chunk) = self.queue.pop_front() {
+            self.queued_set.remove(&chunk);
+            Some(chunk)
+        } else {
+            None
+        }
+    }
+
+    /// Checks if a chunk is within the current view radius.
+    #[inline]
+    fn is_in_view(&self, chunk_x: i32, chunk_z: i32) -> bool {
+        if let Some((cx, cz)) = self.center {
+            let r = self.radius as i32;
+            chunk_x >= cx - r && chunk_x <= cx + r && chunk_z >= cz - r && chunk_z <= cz + r
+        } else {
+            false
+        }
+    }
+
+    /// Purges stale chunks from the queue that are outside the current view.
+    /// Returns the number of chunks removed.
+    fn purge_stale_chunks(&mut self) -> usize {
+        let before = self.queue.len();
+
+        // Extract center/radius to avoid borrow issues
+        let Some((cx, cz)) = self.center else {
+            return 0;
+        };
+        let r = self.radius as i32;
+
+        // Helper closure that doesn't borrow self
+        let in_view = |x: i32, z: i32| -> bool {
+            x >= cx - r && x <= cx + r && z >= cz - r && z <= cz + r
+        };
+
+        // Retain only chunks still in view
+        self.queue.retain(|(x, z)| in_view(*x, *z));
+
+        // Rebuild the queued set
+        self.queued_set.clear();
+        for chunk in &self.queue {
+            self.queued_set.insert(*chunk);
+        }
+
+        // Also purge sent_chunks that are no longer in view (memory cleanup)
+        self.sent_chunks.retain(|(x, z)| in_view(*x, *z));
+
+        before - self.queue.len()
+    }
+
+    /// Clears all state for a fresh start (e.g., teleport).
+    fn reset(&mut self) {
+        self.queue.clear();
+        self.queued_set.clear();
+        self.sent_chunks.clear();
+        self.awaiting_ack = false;
+    }
 }
+
+// ============================================================================
+// Main Task
+// ============================================================================
 
 /// Async task that handles chunk loading for a single player.
 ///
-/// This task runs independently of the ECS tick and processes chunk commands
-/// sent via the channel. When no commands are pending, it sleeps (0% CPU).
-///
-/// # Arguments
-/// * `rx` - Receiver end of the channel for incoming `ChunkCommand`s
-/// * `conn` - Clone of the player's `StreamWriter` for sending packets
-/// * `state` - Global server state for accessing world data
-/// * `player_name` - Player's username for logging purposes
+/// Runs independently of the ECS tick. Sleeps when idle (0% CPU).
 pub async fn chunk_loader_task(
     mut rx: Receiver<ChunkCommand>,
     conn: StreamWriter,
     state: GlobalState,
     player_name: String,
 ) {
-    debug!("Async chunk loader started for {}", player_name);
+    debug!("[{}] Chunk loader started", player_name);
 
-    let mut loader_state = ChunkLoaderState::new();
+    let mut loader = ChunkLoaderState::new();
 
-    // Main command loop - sleeps when no commands are pending
     while let Some(command) = rx.recv().await {
         match command {
             ChunkCommand::UpdateCenter {
@@ -109,246 +201,300 @@ pub async fn chunk_loader_task(
                 chunk_z,
                 radius,
             } => {
-                if let Err(()) = handle_update_center(
-                    &conn,
-                    &state,
-                    &player_name,
-                    &mut loader_state,
-                    chunk_x,
-                    chunk_z,
-                    radius,
-                ) {
+                if handle_center_update(&conn, &state, &player_name, &mut loader, chunk_x, chunk_z, radius).is_err() {
                     break;
                 }
 
-                // Try to send a batch if we're not waiting for ack
-                if !loader_state.awaiting_ack && !loader_state.queue.is_empty() {
-                    if let Err(()) = send_chunk_batch(&conn, &state, &player_name, &mut loader_state)
-                    {
+                // Send batch if not waiting for ack
+                if !loader.awaiting_ack && !loader.queue.is_empty() {
+                    if send_batch(&conn, &state, &player_name, &mut loader).is_err() {
                         break;
                     }
                 }
             }
-            ChunkCommand::BatchReceived(desired_rate) => {
-                debug!(
-                    "[{}] Client acknowledged batch. Desired rate: {:.1} chunks/tick",
-                    player_name, desired_rate
-                );
-                handle_batch_received(&mut loader_state, desired_rate);
 
-                // Send next batch if queue has items
-                if !loader_state.queue.is_empty() {
-                    if let Err(()) = send_chunk_batch(&conn, &state, &player_name, &mut loader_state)
-                    {
+            ChunkCommand::BatchReceived(desired_rate) => {
+                handle_batch_ack(&player_name, &mut loader, desired_rate);
+
+                // Continue sending if queue has items
+                if !loader.queue.is_empty() {
+                    if send_batch(&conn, &state, &player_name, &mut loader).is_err() {
                         break;
                     }
                 }
             }
+
             ChunkCommand::Stop => {
-                debug!("Stopping chunk loader for {}", player_name);
+                debug!("[{}] Chunk loader stopping", player_name);
                 break;
             }
         }
     }
 
-    debug!("Chunk loader task ended for {}", player_name);
+    debug!("[{}] Chunk loader ended", player_name);
 }
 
-/// Handles the UpdateCenter command by calculating delta and queueing new chunks.
-fn handle_update_center(
+// ============================================================================
+// Command Handlers
+// ============================================================================
+
+/// Handles a center position update (movement or teleport).
+fn handle_center_update(
     conn: &StreamWriter,
     _state: &GlobalState,
     player_name: &str,
-    loader_state: &mut ChunkLoaderState,
+    loader: &mut ChunkLoaderState,
     new_x: i32,
     new_z: i32,
     new_radius: u8,
 ) -> Result<(), ()> {
-    trace!(
-        "{} moved to chunk ({}, {}). Radius: {}",
-        player_name,
-        new_x,
-        new_z,
-        new_radius
-    );
+    let old_center = loader.center;
+    let old_radius = loader.radius as i32;
+    let new_radius_i32 = new_radius as i32;
 
-    // Send SetCenterChunk first (required by protocol)
+    // Update state first (needed for is_in_view checks)
+    loader.center = Some((new_x, new_z));
+    loader.radius = new_radius;
+
+    // Send SetCenterChunk (required by protocol)
     if conn.send_packet(SetCenterChunk::new(new_x, new_z)).is_err() {
-        debug!(
-            "Failed to send SetCenterChunk to {}, connection dead",
-            player_name
-        );
+        debug!("[{}] Connection dead (SetCenterChunk failed)", player_name);
         return Err(());
     }
 
-    match loader_state.last_center {
+    match old_center {
         None => {
-            // First join - load all chunks in spiral order
-            let chunks = generate_spiral_chunks(new_x, new_z, new_radius as i32);
+            // First join - queue all chunks in spiral order
+            let chunks = generate_spiral(new_x, new_z, new_radius_i32);
             debug!(
-                "{} first join: queueing {} chunks in spiral order",
+                "[{}] Initial load: queueing {} chunks",
                 player_name,
                 chunks.len()
             );
-            loader_state.queue.extend(chunks);
+            for chunk in chunks {
+                loader.enqueue(chunk);
+            }
         }
-        Some((old_x, old_z)) => {
-            // Movement - calculate delta
-            let old_radius = loader_state.current_radius as i32;
-            let (to_load, to_unload) =
-                calculate_chunk_delta(old_x, old_z, old_radius, new_x, new_z, new_radius as i32);
 
-            // Unload old chunks immediately (cheap operation)
-            if !to_unload.is_empty() {
-                trace!(
-                    "{}: unloading {} chunks, loading {} new chunks",
+        Some((old_x, old_z)) => {
+            // Check if this is a teleport (large distance)
+            let dx = (new_x - old_x).abs();
+            let dz = (new_z - old_z).abs();
+            let is_teleport = dx > new_radius_i32 * 2 || dz > new_radius_i32 * 2;
+
+            if is_teleport {
+                // Teleport: reset everything and load fresh
+                debug!(
+                    "[{}] Teleport detected ({} chunks away), resetting state",
                     player_name,
-                    to_unload.len(),
-                    to_load.len()
+                    dx.max(dz)
                 );
-                for (cx, cz) in to_unload {
-                    if conn.send_packet(UnloadChunk::new(cx, cz)).is_err() {
-                        debug!("Failed to send UnloadChunk to {}", player_name);
-                        return Err(());
+                loader.reset();
+
+                // Unload all old chunks
+                for x in (old_x - old_radius)..=(old_x + old_radius) {
+                    for z in (old_z - old_radius)..=(old_z + old_radius) {
+                        let _ = conn.send_packet(UnloadChunk::new(x, z));
                     }
                 }
-            }
 
-            // Queue new chunks (sorted by distance to new center)
-            let mut sorted_load = to_load;
-            sorted_load.sort_by_key(|(cx, cz)| {
-                let dx = cx - new_x;
-                let dz = cz - new_z;
-                dx * dx + dz * dz
-            });
-            loader_state.queue.extend(sorted_load);
+                // Queue new chunks
+                for chunk in generate_spiral(new_x, new_z, new_radius_i32) {
+                    loader.enqueue(chunk);
+                }
+            } else {
+                // Normal movement: calculate delta
+                let purged = loader.purge_stale_chunks();
+                if purged > 0 {
+                    debug!("[{}] Purged {} stale chunks from queue", player_name, purged);
+                }
+
+                // Unload chunks that left the view
+                let mut unloaded = 0;
+                for x in (old_x - old_radius)..=(old_x + old_radius) {
+                    for z in (old_z - old_radius)..=(old_z + old_radius) {
+                        if !loader.is_in_view(x, z) {
+                            if conn.send_packet(UnloadChunk::new(x, z)).is_err() {
+                                debug!("[{}] Connection dead (UnloadChunk failed)", player_name);
+                                return Err(());
+                            }
+                            loader.sent_chunks.remove(&(x, z));
+                            unloaded += 1;
+                        }
+                    }
+                }
+
+                // Queue new chunks that entered the view (sorted by distance)
+                let mut new_chunks: Vec<(i32, i32)> = Vec::new();
+                for x in (new_x - new_radius_i32)..=(new_x + new_radius_i32) {
+                    for z in (new_z - new_radius_i32)..=(new_z + new_radius_i32) {
+                        let chunk = (x, z);
+                        if !loader.sent_chunks.contains(&chunk) && !loader.queued_set.contains(&chunk) {
+                            new_chunks.push(chunk);
+                        }
+                    }
+                }
+
+                // Sort by distance to center (closest first)
+                new_chunks.sort_by_key(|(x, z)| {
+                    let dx = x - new_x;
+                    let dz = z - new_z;
+                    dx * dx + dz * dz
+                });
+
+                let queued = new_chunks.len();
+                for chunk in new_chunks {
+                    loader.enqueue(chunk);
+                }
+
+                if unloaded > 0 || queued > 0 {
+                    trace!(
+                        "[{}] Movement: unloaded {}, queued {}, queue size: {}",
+                        player_name,
+                        unloaded,
+                        queued,
+                        loader.queue.len()
+                    );
+                }
+            }
         }
     }
-
-    // Update state
-    loader_state.last_center = Some((new_x, new_z));
-    loader_state.current_radius = new_radius;
 
     Ok(())
 }
 
-/// Handles BatchReceived by updating the send rate.
-fn handle_batch_received(loader_state: &mut ChunkLoaderState, desired_rate: f32) {
-    loader_state.awaiting_ack = false;
+/// Handles a batch acknowledgment from the client.
+fn handle_batch_ack(player_name: &str, loader: &mut ChunkLoaderState, desired_rate: f32) {
+    loader.awaiting_ack = false;
 
-    // Clamp the rate to reasonable bounds
     let new_rate = desired_rate.clamp(MIN_CHUNKS_PER_BATCH, MAX_CHUNKS_PER_BATCH);
 
     debug!(
-        "Adjusting batch rate: client requested {:.1}, clamped to {:.1}",
-        desired_rate,
-        new_rate
+        "[{}] Batch ACK received. Rate: {:.1} -> {:.1}, queue: {}",
+        player_name,
+        loader.chunks_per_batch,
+        new_rate,
+        loader.queue.len()
     );
 
-    loader_state.chunks_per_batch = new_rate;
+    loader.chunks_per_batch = new_rate;
 }
 
-/// Sends a batch of chunks from the queue.
-fn send_chunk_batch(
+// ============================================================================
+// Batch Sending
+// ============================================================================
+
+/// Sends a batch of chunks to the client.
+fn send_batch(
     conn: &StreamWriter,
     _state: &GlobalState,
     player_name: &str,
-    loader_state: &mut ChunkLoaderState,
+    loader: &mut ChunkLoaderState,
 ) -> Result<(), ()> {
-    if loader_state.queue.is_empty() {
+    if loader.queue.is_empty() {
         return Ok(());
     }
 
-    // Calculate how many chunks to send this batch
-    let batch_size = (loader_state.chunks_per_batch.ceil() as usize).min(loader_state.queue.len());
+    let target_batch_size = loader.chunks_per_batch.ceil() as usize;
 
     debug!(
-        "[{}] Sending batch: {} chunks (rate: {:.1}, queue: {})",
+        "[{}] Sending batch (target: {}, queue: {})",
         player_name,
-        batch_size,
-        loader_state.chunks_per_batch,
-        loader_state.queue.len()
+        target_batch_size,
+        loader.queue.len()
     );
 
-    // Start the batch
+    // Start batch
     if conn.send_packet(ChunkBatchStart {}).is_err() {
-        debug!("Failed to send ChunkBatchStart to {}", player_name);
+        debug!("[{}] Connection dead (ChunkBatchStart failed)", player_name);
         return Err(());
     }
 
-    // Send chunks
-    let mut sent_count: i32 = 0;
-    for _ in 0..batch_size {
-        if let Some((cx, cz)) = loader_state.queue.pop_front() {
-            // TODO: Load actual chunk data from state.world
-            // For now, use flat chunks for testing
-            match ChunkAndLightData::flat(cx, cz, CHUNK_SECTIONS) {
-                Ok(packet) => {
-                    if conn.send_packet(packet).is_err() {
-                        debug!(
-                            "Failed to send chunk ({}, {}) to {}, connection dead",
-                            cx, cz, player_name
-                        );
-                        return Err(());
-                    }
-                    sent_count += 1;
+    let mut sent = 0i32;
+    let mut skipped = 0;
+
+    for _ in 0..target_batch_size {
+        let Some((cx, cz)) = loader.dequeue() else {
+            break;
+        };
+
+        // Skip if chunk is no longer in view (player moved fast)
+        if !loader.is_in_view(cx, cz) {
+            skipped += 1;
+            continue;
+        }
+
+        // Skip if already sent (shouldn't happen, but safety check)
+        if loader.sent_chunks.contains(&(cx, cz)) {
+            skipped += 1;
+            continue;
+        }
+
+        // Create and send chunk packet
+        // TODO: Load actual chunk data from state.world
+        match ChunkAndLightData::flat(cx, cz, CHUNK_SECTIONS) {
+            Ok(packet) => {
+                if conn.send_packet(packet).is_err() {
+                    debug!("[{}] Connection dead (chunk send failed)", player_name);
+                    return Err(());
                 }
-                Err(e) => {
-                    error!("Failed to create chunk packet for ({}, {}): {:?}", cx, cz, e);
-                }
+                loader.sent_chunks.insert((cx, cz));
+                sent += 1;
+            }
+            Err(e) => {
+                error!("[{}] Failed to create chunk ({}, {}): {:?}", player_name, cx, cz, e);
             }
         }
     }
 
-    // Finish the batch
-    if conn
-        .send_packet(ChunkBatchFinish {
-            batch_size: sent_count.into(),
-        })
-        .is_err()
-    {
-        debug!("Failed to send ChunkBatchFinish to {}", player_name);
+    // Finish batch
+    if conn.send_packet(ChunkBatchFinish { batch_size: sent.into() }).is_err() {
+        debug!("[{}] Connection dead (ChunkBatchFinish failed)", player_name);
         return Err(());
     }
 
     debug!(
-        "[{}] Batch sent: {} chunks delivered, {} remaining. Awaiting client ACK...",
+        "[{}] Batch sent: {} chunks, {} skipped, {} remaining",
         player_name,
-        sent_count,
-        loader_state.queue.len()
+        sent,
+        skipped,
+        loader.queue.len()
     );
 
-    // Mark that we're waiting for acknowledgment
-    loader_state.awaiting_ack = true;
-
+    loader.awaiting_ack = true;
     Ok(())
 }
 
-/// Generates chunks in spiral order from center outward.
+// ============================================================================
+// Chunk Generation Utilities
+// ============================================================================
+
+/// Generates chunk coordinates in spiral order from center outward.
 ///
-/// This ensures the player sees chunks directly under and around them first,
+/// Spiral order ensures the player sees chunks directly under them first,
 /// providing the best perceived loading experience.
-fn generate_spiral_chunks(center_x: i32, center_z: i32, radius: i32) -> Vec<(i32, i32)> {
-    let mut chunks = Vec::with_capacity(((radius * 2 + 1) * (radius * 2 + 1)) as usize);
+fn generate_spiral(center_x: i32, center_z: i32, radius: i32) -> Vec<(i32, i32)> {
+    let size = (radius * 2 + 1) * (radius * 2 + 1);
+    let mut chunks = Vec::with_capacity(size as usize);
 
     // Start at center
     chunks.push((center_x, center_z));
 
-    // Spiral outward
+    // Spiral outward layer by layer
     for r in 1..=radius {
         // Top edge (left to right)
         for x in -r..=r {
             chunks.push((center_x + x, center_z - r));
         }
-        // Right edge (top to bottom, excluding top corner)
+        // Right edge (excluding top corner)
         for z in (-r + 1)..=r {
             chunks.push((center_x + r, center_z + z));
         }
-        // Bottom edge (right to left, excluding right corner)
+        // Bottom edge (excluding right corner)
         for x in ((-r)..r).rev() {
             chunks.push((center_x + x, center_z + r));
         }
-        // Left edge (bottom to top, excluding both corners)
+        // Left edge (excluding corners)
         for z in ((-r + 1)..r).rev() {
             chunks.push((center_x - r, center_z + z));
         }
@@ -357,49 +503,9 @@ fn generate_spiral_chunks(center_x: i32, center_z: i32, radius: i32) -> Vec<(i32
     chunks
 }
 
-/// Calculates which chunks need to be loaded and unloaded when moving.
-///
-/// Returns (chunks_to_load, chunks_to_unload).
-fn calculate_chunk_delta(
-    old_x: i32,
-    old_z: i32,
-    old_radius: i32,
-    new_x: i32,
-    new_z: i32,
-    new_radius: i32,
-) -> (Vec<(i32, i32)>, Vec<(i32, i32)>) {
-    let mut to_load = Vec::new();
-    let mut to_unload = Vec::new();
-
-    // Check all chunks in the new radius - if not in old radius, need to load
-    for x in (new_x - new_radius)..=(new_x + new_radius) {
-        for z in (new_z - new_radius)..=(new_z + new_radius) {
-            if !is_in_radius(x, z, old_x, old_z, old_radius) {
-                to_load.push((x, z));
-            }
-        }
-    }
-
-    // Check all chunks in the old radius - if not in new radius, need to unload
-    for x in (old_x - old_radius)..=(old_x + old_radius) {
-        for z in (old_z - old_radius)..=(old_z + old_radius) {
-            if !is_in_radius(x, z, new_x, new_z, new_radius) {
-                to_unload.push((x, z));
-            }
-        }
-    }
-
-    (to_load, to_unload)
-}
-
-/// Checks if a chunk is within the given radius of a center point.
-#[inline]
-fn is_in_radius(chunk_x: i32, chunk_z: i32, center_x: i32, center_z: i32, radius: i32) -> bool {
-    chunk_x >= center_x - radius
-        && chunk_x <= center_x + radius
-        && chunk_z >= center_z - radius
-        && chunk_z <= center_z + radius
-}
+// ============================================================================
+// Tests
+// ============================================================================
 
 #[cfg(test)]
 mod tests {
@@ -407,43 +513,62 @@ mod tests {
 
     #[test]
     fn test_spiral_generation() {
-        let chunks = generate_spiral_chunks(0, 0, 1);
-        // Should be 9 chunks for radius 1: center + 8 surrounding
-        assert_eq!(chunks.len(), 9);
-        // First chunk should be center
+        let chunks = generate_spiral(0, 0, 1);
+        assert_eq!(chunks.len(), 9); // 3x3
+        assert_eq!(chunks[0], (0, 0)); // Center first
+    }
+
+    #[test]
+    fn test_spiral_radius_2() {
+        let chunks = generate_spiral(0, 0, 2);
+        assert_eq!(chunks.len(), 25); // 5x5
         assert_eq!(chunks[0], (0, 0));
     }
 
     #[test]
-    fn test_spiral_order() {
-        let chunks = generate_spiral_chunks(0, 0, 2);
-        // Should be 25 chunks for radius 2
-        assert_eq!(chunks.len(), 25);
-        // First is center
-        assert_eq!(chunks[0], (0, 0));
+    fn test_loader_state_enqueue_dedup() {
+        let mut state = ChunkLoaderState::new();
+        state.center = Some((0, 0));
+        state.radius = 2;
+
+        state.enqueue((0, 0));
+        state.enqueue((0, 0)); // Duplicate
+        state.enqueue((1, 1));
+
+        assert_eq!(state.queue.len(), 2);
     }
 
     #[test]
-    fn test_chunk_delta_no_movement() {
-        let (load, unload) = calculate_chunk_delta(0, 0, 2, 0, 0, 2);
-        assert!(load.is_empty());
-        assert!(unload.is_empty());
+    fn test_loader_state_purge() {
+        let mut state = ChunkLoaderState::new();
+        state.center = Some((0, 0));
+        state.radius = 2;
+
+        // Queue some chunks - all within radius 2 of (0,0)
+        state.enqueue((0, 0));
+        state.enqueue((1, 1));
+        state.enqueue((2, 2));
+
+        assert_eq!(state.queue.len(), 3);
+
+        // Move center to (5, 5) with radius 2
+        // New view: x in [3,7], z in [3,7]
+        // (0,0), (1,1), (2,2) are all outside this range
+        state.center = Some((5, 5));
+
+        let purged = state.purge_stale_chunks();
+        assert_eq!(purged, 3); // All 3 chunks are now out of range
+        assert_eq!(state.queue.len(), 0);
     }
 
     #[test]
-    fn test_chunk_delta_movement() {
-        // Move one chunk east
-        let (load, unload) = calculate_chunk_delta(0, 0, 2, 1, 0, 2);
-        // Should load 5 new chunks on the east edge
-        assert_eq!(load.len(), 5);
-        // Should unload 5 old chunks on the west edge
-        assert_eq!(unload.len(), 5);
-    }
+    fn test_is_in_view() {
+        let mut state = ChunkLoaderState::new();
+        state.center = Some((0, 0));
+        state.radius = 2;
 
-    #[test]
-    fn test_is_in_radius() {
-        assert!(is_in_radius(0, 0, 0, 0, 2));
-        assert!(is_in_radius(2, 2, 0, 0, 2));
-        assert!(!is_in_radius(3, 0, 0, 0, 2));
+        assert!(state.is_in_view(0, 0));
+        assert!(state.is_in_view(2, 2));
+        assert!(!state.is_in_view(3, 0));
     }
 }

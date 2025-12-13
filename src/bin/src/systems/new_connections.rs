@@ -6,6 +6,7 @@ use ferrumc_components::{
     health::Health,
     player::{
         abilities::PlayerAbilities,
+        client_information::ClientInformation,
         experience::Experience,
         gamemode::{GameMode, GameModeComponent},
         gameplay_state::ender_chest::EnderChest,
@@ -92,7 +93,11 @@ pub fn accept_new_connections(
                 )
             });
 
-        // --- 2. Build the PlayerBundle ---
+        // --- 2. Build the PlayerBundle with client info from login ---
+        let client_view_distance = new_connection.client_view_distance;
+        let mut client_information = ClientInformation::new();
+        client_information.view_distance = client_view_distance;
+
         let player_bundle = PlayerBundle {
             identity: new_connection.player_identity.clone(),
             abilities,
@@ -108,6 +113,7 @@ pub fn accept_new_connections(
             hunger,
             experience,
             active_effects,
+            client_information,
             debug_settings: Default::default(),
         };
 
@@ -134,7 +140,9 @@ pub fn accept_new_connections(
         // Calculate initial chunk position for the player
         let initial_chunk_x = position.x.floor() as i32 >> 4;
         let initial_chunk_z = position.z.floor() as i32 >> 4;
-        let chunk_radius = get_global_config().chunk_render_distance as u8;
+        // Use the minimum of server render distance and client view distance
+        let server_render_distance = get_global_config().chunk_render_distance as u8;
+        let chunk_radius = server_render_distance.min(client_view_distance);
 
         // Send initial chunk load command to the async task
         if let Err(e) = chunk_tx.try_send(ChunkCommand::UpdateCenter {

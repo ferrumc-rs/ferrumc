@@ -518,6 +518,7 @@ pub(super) async fn login(
         LoginResult {
             player_identity: Some(player_identity),
             compression: compressed,
+            client_view_distance: client_info.view_distance.max(2) as u8,
         },
     ))
 }

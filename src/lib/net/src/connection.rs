@@ -250,6 +250,8 @@ pub struct NewConnection {
     pub player_identity: PlayerIdentity,
     pub entity_return: oneshot::Sender<Entity>,
     pub disconnect_handle: oneshot::Sender<()>,
+    /// The client's initial view distance from the configuration phase.
+    pub client_view_distance: u8,
 }
 
 #[derive(Component)]
@@ -360,6 +362,7 @@ pub async fn handle_connection(
             player_identity: login_result.player_identity.unwrap_or_default(),
             entity_return,
             disconnect_handle: disconnect_return,
+            client_view_distance: login_result.client_view_distance,
         })
         .map_err(|_| NetError::Misc("Failed to register new connection".to_string()))?;
 

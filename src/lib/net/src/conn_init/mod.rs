@@ -23,9 +23,11 @@ use tracing::{error, trace};
 ///
 /// - `player_identity`: Populated when login is successful and a player is identified.
 /// - `compression`: Indicates whether network compression should be enabled for this connection.
+/// - `client_view_distance`: The client's requested view distance from client information.
 pub(crate) struct LoginResult {
     pub player_identity: Option<PlayerIdentity>,
     pub compression: bool,
+    pub client_view_distance: u8,
 }
 
 /// Protocol version supported by this server implementation (Minecraft 1.21.8).

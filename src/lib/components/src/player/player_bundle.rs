@@ -3,6 +3,7 @@ use crate::{
     health::Health,
     player::{
         abilities::PlayerAbilities,
+        client_information::ClientInformation,
         debug_settings::DebugSettings,
         experience::Experience,
         gamemode::GameModeComponent,
@@ -44,6 +45,9 @@ pub struct PlayerBundle {
     pub hunger: Hunger,
     pub experience: Experience,
     pub active_effects: ActiveEffects,
+
+    // Client Settings
+    pub client_information: ClientInformation,
 
     // Debug/Development
     pub debug_settings: DebugSettings,

@@ -2,7 +2,7 @@ use bevy_ecs::prelude::{Query, Res};
 use ferrumc_inventories::hotbar::Hotbar;
 use ferrumc_net::SetHeldItemReceiver;
 use ferrumc_state::GlobalStateResource;
-use tracing::{debug, error, trace};
+use tracing::{error, trace};
 
 pub fn handle(
     receiver: Res<SetHeldItemReceiver>,

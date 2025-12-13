@@ -2,7 +2,7 @@ use bevy_ecs::prelude::{Entity, Query, Res};
 use ferrumc_components::chunks::{ChunkCommand, ChunkSender};
 use ferrumc_net::ChunkBatchAckReceiver;
 use ferrumc_state::GlobalStateResource;
-use tracing::{debug, error, trace, warn};
+use tracing::{error, trace, warn};
 
 /// Handles ChunkBatchAck packets from clients.
 ///
@@ -15,7 +15,7 @@ pub fn handle(
     state: Res<GlobalStateResource>,
 ) {
     for (event, eid) in receiver.0.try_iter() {
-        debug!(
+        trace!(
             "Received ChunkBatchAck from {:?}: desired rate {:.1} chunks/tick",
             eid, event.chunks_per_tick
         );
