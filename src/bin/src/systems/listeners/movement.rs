@@ -2,16 +2,17 @@
 //!
 //! This module processes movement packets (position, rotation, or combined) and:
 //! - Updates the player's ECS components (Position, Rotation, OnGround)
-//! - Detects chunk boundary crossings and emits recalculation messages
+//! - Detects chunk boundary crossings and sends commands to async chunk loaders
 //! - Broadcasts movement updates to other connected players
 
-use bevy_ecs::prelude::{Entity, MessageReader, MessageWriter, Query, Res};
+use bevy_ecs::prelude::{Entity, MessageReader, Query, Res};
+use ferrumc_components::chunks::{ChunkCommand, ChunkSender};
+use ferrumc_config::server_config::get_global_config;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_macros::NetEncode;
-use ferrumc_messages::chunk_calc::ChunkCalc;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::entity_position_sync::TeleportEntityPacket;
 use ferrumc_net::packets::outgoing::update_entity_position::UpdateEntityPositionPacket;
@@ -21,7 +22,7 @@ use ferrumc_net::packets::packet_messages::Movement;
 use ferrumc_state::GlobalStateResource;
 use std::sync::atomic::Ordering;
 use tracing::{debug, trace, warn};
-
+use ferrumc_components::player::client_information::ClientInformation;
 // ============================================================================
 // Constants
 // ============================================================================
@@ -62,32 +63,38 @@ enum BroadcastMovementPacket {
 /// For each movement event, it:
 /// 1. Validates the player is still connected
 /// 2. Calculates position deltas for network updates
-/// 3. Detects chunk boundary crossings
+/// 3. Detects chunk boundary crossings and notifies async chunk loader
 /// 4. Updates ECS components
 /// 5. Broadcasts the movement to other players
 pub fn handle(
     mut movement_events: MessageReader<Movement>,
-    mut chunk_calc_messages: MessageWriter<ChunkCalc>,
-    mut transform_query: Query<(&mut Position, &mut Rotation, &mut OnGround, &PlayerIdentity)>,
+    mut transform_query: Query<(
+        &mut Position,
+        &mut Rotation,
+        &mut OnGround,
+        &PlayerIdentity,
+        &ChunkSender,
+    )>,
+    client_information: Query<&ClientInformation>,
     conn_query: Query<(Entity, &StreamWriter)>,
     state: Res<GlobalStateResource>,
 ) {
     for movement in movement_events.read() {
-        process_movement_event(
-            &movement,
-            &mut chunk_calc_messages,
-            &mut transform_query,
-            &conn_query,
-            &state,
-        );
+        process_movement_event(&movement, &mut transform_query, &client_information, &conn_query, &state);
     }
 }
 
 /// Processes a single movement event.
 fn process_movement_event(
     movement: &Movement,
-    chunk_calc_messages: &mut MessageWriter<ChunkCalc>,
-    transform_query: &mut Query<(&mut Position, &mut Rotation, &mut OnGround, &PlayerIdentity)>,
+    transform_query: &mut Query<(
+        &mut Position,
+        &mut Rotation,
+        &mut OnGround,
+        &PlayerIdentity,
+        &ChunkSender,
+    )>,
+    client_information: &Query<&ClientInformation>,
     conn_query: &Query<(Entity, &StreamWriter)>,
     state: &Res<GlobalStateResource>,
 ) {
@@ -100,7 +107,8 @@ fn process_movement_event(
     }
 
     // Get transform components
-    let Ok((mut position, mut rotation, mut on_ground, identity)) = transform_query.get_mut(entity)
+    let Ok((mut position, mut rotation, mut on_ground, identity, chunk_sender)) =
+        transform_query.get_mut(entity)
     else {
         debug!("Failed to get transform components for entity {:?}", entity);
         return;
@@ -109,10 +117,33 @@ fn process_movement_event(
     // Calculate position delta for network broadcast
     let delta_pos = calculate_position_delta(&position, movement.position.as_ref());
 
-    // Handle chunk boundary crossing
+    // Handle chunk boundary crossing - send command to async chunk loader
     if let Some(new_pos) = &movement.position {
         if has_crossed_chunk_boundary(&position, new_pos) {
-            chunk_calc_messages.write(ChunkCalc(entity));
+            let chunk_x = new_pos.x.floor() as i32 >> 4;
+            let chunk_z = new_pos.z.floor() as i32 >> 4;
+            let radius = get_global_config().chunk_render_distance as u8;
+            let client_info = client_information.get(entity).ok();
+            let radius = client_info
+                .map(|info| {
+                    let client_view_distance = info.view_distance;
+                    let server_render_distance = radius;
+                    // Don't send more than what the server allows, nor more than what the client wants
+                    server_render_distance.min(client_view_distance)
+                })
+                .unwrap_or(radius);
+
+            // Use try_send to avoid blocking the ECS tick if the channel is full
+            if let Err(e) = chunk_sender.tx.try_send(ChunkCommand::UpdateCenter {
+                chunk_x,
+                chunk_z,
+                radius,
+            }) {
+                debug!(
+                    "Failed to send chunk update command for {:?}: {:?}",
+                    entity, e
+                );
+            }
         }
     }
 

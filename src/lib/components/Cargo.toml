@@ -11,3 +11,6 @@ ferrumc-inventories = { workspace = true }
 ferrumc-core = { workspace = true }
 ferrumc-net-codec = { workspace = true }
 ferrumc-config = { workspace = true }
+
+# Only sync primitives, not the full runtime
+tokio = { workspace = true, features = ["sync"], default-features = false }

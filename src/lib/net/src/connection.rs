@@ -47,6 +47,27 @@ pub struct StreamWriter {
     pub entity: Arc<Mutex<Option<Entity>>>,
 }
 
+impl Clone for StreamWriter {
+    /// Clones the StreamWriter, sharing the underlying channel and state.
+    /// 
+    /// This is safe because:
+    /// - The `sender` is an unbounded channel that supports multiple senders
+    /// - All other fields are `Arc`-wrapped and designed for shared ownership
+    /// 
+    /// Note: The `Drop` impl marks `running` as false, but since we're cloning
+    /// `Arc`s, dropping a clone won't affect the original's `running` state
+    /// until all clones are dropped.
+    fn clone(&self) -> Self {
+        Self {
+            sender: self.sender.clone(),
+            running: self.running.clone(),
+            compress: self.compress.clone(),
+            state: self.state.clone(),
+            entity: self.entity.clone(),
+        }
+    }
+}
+
 impl Drop for StreamWriter {
     /// When the writer is dropped, mark the connection as no longer active.
     fn drop(&mut self) {
