@@ -1,6 +1,7 @@
 use crate::systems::new_connections::NewConnectionRecv;
 use bevy_ecs::prelude::{Resource, World};
 use crossbeam_channel::Receiver;
+use ferrumc_components::world_time::WorldTime;
 use ferrumc_core::chunks::world_sync_tracker::WorldSyncTracker;
 use ferrumc_net::connection::NewConnection;
 use ferrumc_state::GlobalStateResource;
@@ -34,4 +35,8 @@ pub fn register_resources(
         last_synced: std::time::Instant::now(),
     });
     world.insert_resource(TokioHandle(tokio_handle));
+
+    // World time resource for day/night cycle
+    // TODO: Load from world save file when persistence is implemented
+    world.insert_resource(WorldTime::new());
 }

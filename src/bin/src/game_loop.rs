@@ -287,6 +287,21 @@ fn build_timed_scheduler() -> Scheduler {
     );
 
     // -------------------------------------------------------------------------
+    // TIME SYNC SCHEDULE - Broadcasts world time to all clients
+    // -------------------------------------------------------------------------
+    // Sends UpdateTime packets to synchronize the day/night cycle.
+    // Runs every second (20 ticks) which provides good sync accuracy while
+    // minimizing network overhead. Has a 500ms phase offset.
+    let build_time_sync = |s: &mut Schedule| {
+        s.add_systems(crate::systems::time_sync::time_sync_system);
+    };
+    timed.register(
+        TimedSchedule::new("time_sync", Duration::from_secs(1), build_time_sync)
+            .with_behavior(MissedTickBehavior::Skip)
+            .with_phase(Duration::from_millis(500)), // Offset from other schedules
+    );
+
+    // -------------------------------------------------------------------------
     // PLUGIN SCHEDULES - Dynamically registered by plugins
     // -------------------------------------------------------------------------
     // Drain any schedules that plugins registered during initialization.

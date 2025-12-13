@@ -478,7 +478,7 @@ fn send_batch(
         return Err(());
     }
 
-    debug!(
+    trace!(
         "[{}] Batch sent: {} chunks, {} skipped, {} remaining",
         player_name,
         sent,

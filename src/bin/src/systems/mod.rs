@@ -8,6 +8,7 @@ pub mod listeners;
 mod mq;
 pub mod new_connections;
 pub mod shutdown_systems;
+pub mod time_sync;
 pub mod world;
 pub mod world_sync;
 

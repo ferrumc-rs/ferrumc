@@ -49,5 +49,6 @@ pub(crate) mod set_compression;
 pub mod client_bound_plugin_message;
 pub mod encryption_request;
 pub mod set_container_content;
+pub mod update_time;
 pub mod set_container_slot;
 pub mod set_player_inventory_slot;
