@@ -1,5 +1,4 @@
 use crate::auth::authenticate_user;
-use crate::compression::compress_packet;
 use crate::conn_init::VarInt;
 use crate::conn_init::{LoginResult, NetDecodeOpts};
 use crate::connection::StreamWriter;
@@ -15,14 +14,12 @@ use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_macros::lookup_packet;
 use ferrumc_net_codec::decode::NetDecode;
-use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::prefixed_optional::PrefixedOptional;
 use ferrumc_net_encryption::errors::NetEncryptionError;
 use ferrumc_net_encryption::get_encryption_keys;
 use ferrumc_net_encryption::read::EncryptedReader;
 use ferrumc_state::GlobalState;
-use ferrumc_world::pos::ChunkPos;
 
 use crate::packets::incoming::ack_finish_configuration::AckFinishConfigurationPacket;
 use crate::packets::incoming::client_information::ClientInformation;
@@ -41,7 +38,6 @@ use crate::packets::outgoing::game_event::GameEventPacket;
 use crate::packets::outgoing::login_play::LoginPlayPacket;
 use crate::packets::outgoing::player_abilities::PlayerAbilities;
 use crate::packets::outgoing::player_info_update::PlayerInfoUpdatePacket;
-use crate::packets::outgoing::set_center_chunk::SetCenterChunk;
 use crate::packets::outgoing::set_compression::SetCompressionPacket;
 use crate::packets::outgoing::synchronize_player_position::SynchronizePlayerPositionPacket;
 use crate::ConnState;
@@ -49,6 +45,7 @@ use rand::RngCore;
 use tokio::net::tcp::OwnedReadHalf;
 use tracing::{debug, error, trace};
 use uuid::Uuid;
+mod initial_chunk_sending;
 
 // =================================================================================================
 // Helper Functions
@@ -445,66 +442,7 @@ fn send_player_info(
     Ok(())
 }
 
-/// Sends initial chunks to the player.
-/// TODO: rework to use events/bevy ecs to send chunks instead of writing the logic here. Unify the logic essentially.
-fn send_initial_chunks(
-    conn_write: &StreamWriter,
-    state: &GlobalState,
-    config: &ServerConfig,
-    client_view_distance: i8,
-    compressed: bool,
-) -> Result<(), NetError> {
 
-    // Send center chunk
-    conn_write.send_packet(SetCenterChunk::new(0, 0))?;
-
-    // Calculate render distance
-    let server_render_distance = config.chunk_render_distance as i32;
-    let client_view_distance = client_view_distance as i32;
-    let radius = server_render_distance.min(client_view_distance);
-
-    // Generate/load chunks in parallel
-    let mut batch = state.thread_pool.batch();
-
-    for x in -radius..=radius {
-        for z in -radius..=radius {
-            batch.execute({
-                let state = state.clone();
-                move || -> Result<Vec<u8>, NetError> {
-                    let chunk = state.world.load_chunk(ChunkPos::new(x,z), "overworld").unwrap_or(
-                        state
-                            .terrain_generator
-                            .generate_chunk(ChunkPos::new(x, z))
-                            .expect("Could not generate chunk")
-                            .into(),
-                    );
-                    let chunk_data =
-                        crate::packets::outgoing::chunk_and_light_data::ChunkAndLightData::from_chunk(
-                        ChunkPos::new(x,z),
-                            &chunk,
-                        )?;
-                    compress_packet(&chunk_data, compressed, &NetEncodeOpts::WithLength, 64)
-                }
-            });
-        }
-    }
-
-    // Send all chunks
-    for packet in batch.wait() {
-        match packet {
-            Ok(data) => conn_write.send_raw_packet(data)?,
-            Err(err) => {
-                error!("Failed to send chunk data: {:?}", err);
-                return Err(NetError::Misc(format!(
-                    "Failed to send chunk data: {:?}",
-                    err
-                )));
-            }
-        }
-    }
-
-    Ok(())
-}
 
 /// Sends the command graph to the client.
 fn send_command_graph(conn_write: &StreamWriter) -> Result<(), NetError> {
@@ -565,7 +503,7 @@ pub(super) async fn login(
     send_initial_play_packets(conn_write, &state, &player_identity)?;
     sync_player_position(conn_read, conn_write, &state, &player_identity, compressed).await?;
     send_player_info(conn_write, &player_identity)?;
-    send_initial_chunks(
+    initial_chunk_sending::send_initial_chunks(
         conn_write,
         &state,
         config,
