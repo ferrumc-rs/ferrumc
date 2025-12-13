@@ -8,7 +8,6 @@ mod mobs;
 mod mq;
 pub mod new_connections;
 pub mod physics;
-pub mod player_count_update;
 pub mod shutdown_systems;
 pub mod world_sync;
 

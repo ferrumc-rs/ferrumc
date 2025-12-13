@@ -1,4 +1,6 @@
 use crate::packets::outgoing::set_default_spawn_position::DEFAULT_SPAWN_POSITION;
+use ferrumc_core::transform::position::Position;
+use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::teleport_flags::TeleportFlags;
 use ferrumc_net_codec::net_types::var_int::VarInt;
@@ -55,6 +57,28 @@ impl SynchronizePlayerPositionPacket {
             yaw,
             pitch,
             flags,
+            teleport_id,
+        }
+    }
+
+    /// Creates a packet from Position and Rotation components.
+    ///
+    /// Uses absolute positioning (flags = 0) with zero velocity.
+    pub fn from_position_rotation(
+        position: &Position,
+        rotation: &Rotation,
+        teleport_id: VarInt,
+    ) -> Self {
+        Self {
+            x: position.x,
+            y: position.y,
+            z: position.z,
+            vel_x: 0.0,
+            vel_y: 0.0,
+            vel_z: 0.0,
+            yaw: rotation.yaw,
+            pitch: rotation.pitch,
+            flags: 0, // Absolute positioning
             teleport_id,
         }
     }

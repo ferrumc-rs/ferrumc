@@ -48,9 +48,15 @@ lazy_static! {
 /// This should be used over `BlockData` in most cases, as it's much more efficient to store and pass around.
 /// You can also generate a block's id at runtime with the [ferrumc_macros::block!] macro.
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Encode, Decode, DeepSizeOf)]
-pub struct BlockStateId(pub u32);
+pub struct BlockStateId(u32);
 
 impl BlockStateId {
+    /// Do NOT use this by yourself. Instead use the block macro `block!("stone")` the item to block
+    /// map
+    pub fn new(id: u32) -> Self {
+        Self(id)
+    }
+
     /// Given a BlockData, return a BlockStateId. Does not clone, should be quite fast.
     pub fn from_block_data(block_data: &BlockData) -> Self {
         let id = BLOCK2ID
@@ -71,6 +77,12 @@ impl BlockStateId {
 
     pub fn to_varint(&self) -> VarInt {
         VarInt(self.0 as i32)
+    }
+
+    /// Do Not use this by yourself. This is only useful for apis that use this as an index or key
+    /// to get additionally information about this state.
+    pub fn raw(&self) -> u32 {
+        self.0
     }
 }
 

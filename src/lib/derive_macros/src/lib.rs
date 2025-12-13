@@ -109,8 +109,8 @@ pub fn build_registry_packets(input: TokenStream) -> TokenStream {
 /// # use ferrumc_macros::block;
 /// let block_state_id = block!("stone");
 /// let another_block_state_id = block!("minecraft:grass_block", {snowy: true});
-/// assert_eq!(block_state_id, BlockStateId(1));
-/// assert_eq!(another_block_state_id, BlockStateId(8));
+/// assert_eq!(block_state_id, BlockStateId::new(1));
+/// assert_eq!(another_block_state_id, BlockStateId::new(8));
 /// ```
 /// Unfortunately, due to current limitations in Rust's proc macros, you will need to import the
 /// `BlockStateId` struct manually.
@@ -127,9 +127,9 @@ pub fn block(input: TokenStream) -> TokenStream {
 /// A macro to check if a block state ID matches a given block name at compile time.
 /// Usage:
 /// ```
-/// # use ferrumc_macros::{match_block};
+/// # use ferrumc_macros::{match_block, block};
 /// # use ferrumc_world::block_state_id::BlockStateId;
-/// let block_state_id = BlockStateId(1);
+/// let block_state_id = block!("stone");
 /// if match_block!("stone", block_state_id) {
 ///     // do something
 /// }
