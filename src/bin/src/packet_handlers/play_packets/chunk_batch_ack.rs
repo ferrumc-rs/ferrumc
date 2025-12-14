@@ -2,7 +2,7 @@ use bevy_ecs::prelude::{Entity, Query, Res};
 use ferrumc_components::chunks::{ChunkCommand, ChunkSender};
 use ferrumc_net::ChunkBatchAckReceiver;
 use ferrumc_state::GlobalStateResource;
-use tracing::{debug, error, warn};
+use tracing::{error, trace, warn};
 
 /// Handles ChunkBatchAck packets from clients.
 ///
@@ -15,12 +15,6 @@ pub fn handle(
     state: Res<GlobalStateResource>,
 ) {
     for (event, eid) in receiver.0.try_iter() {
-        debug!(
-            "[ACK] Received ChunkBatchAck from {:?}: desired rate {:.1} chunks/tick",
-            eid,
-            event.chunks_per_tick
-        );
-
         let Ok((eid, chunk_sender)) = query.get(eid) else {
             error!("Failed to get ChunkSender for entity: {:?}", eid);
             continue;
@@ -39,13 +33,11 @@ pub fn handle(
             .tx
             .try_send(ChunkCommand::BatchReceived(event.chunks_per_tick))
         {
-            debug!(
-                "[ACK] Failed to send BatchReceived to chunk loader for {:?}: {}",
+            trace!(
+                "Failed to send BatchReceived to chunk loader for {:?}: {}",
                 eid,
                 e
             );
-        } else {
-            debug!("[ACK] Forwarded BatchReceived to async task for {:?}", eid);
         }
     }
 }

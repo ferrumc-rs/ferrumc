@@ -61,9 +61,8 @@ use ferrumc_world::structure::FerrumcChunk;
 use std::collections::{HashSet, VecDeque};
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
-use std::time::Instant;
 use tokio::sync::mpsc::Receiver;
-use tracing::{debug, error, info, trace};
+use tracing::{debug, error, trace};
 
 // ============================================================================
 // Constants
@@ -73,10 +72,10 @@ use tracing::{debug, error, info, trace};
 const DEFAULT_CHUNKS_PER_BATCH: f32 = 32.0;
 
 /// Maximum chunks per batch to prevent packet flooding.
-const MAX_CHUNKS_PER_BATCH: f32 = 64.0;
+const MAX_CHUNKS_PER_BATCH: f32 = 150.0;
 
 /// Minimum chunks per batch to ensure progress.
-const MIN_CHUNKS_PER_BATCH: f32 = 50.0;
+const MIN_CHUNKS_PER_BATCH: f32 = 100.0;
 
 // ============================================================================
 // Chunk Loader State
@@ -207,23 +206,14 @@ pub async fn chunk_loader_task(
     debug!("[{}] Chunk loader started", player_name);
 
     let mut loader = ChunkLoaderState::new();
-    let mut last_command_time = Instant::now();
 
     while let Some(command) = rx.recv().await {
-        let time_since_last = last_command_time.elapsed();
-        last_command_time = Instant::now();
-        
         match command {
             ChunkCommand::UpdateCenter {
                 chunk_x,
                 chunk_z,
                 radius,
             } => {
-                debug!(
-                    "[{}] CMD: UpdateCenter({}, {}, r={}) after {:?}",
-                    player_name, chunk_x, chunk_z, radius, time_since_last
-                );
-                
                 if handle_center_update(
                     &conn,
                     &state,
@@ -240,42 +230,26 @@ pub async fn chunk_loader_task(
 
                 // Send batch if not waiting for ack
                 if !loader.awaiting_ack && !loader.queue.is_empty() {
-                    info!(
-                        "[{}] Sending batch (queue={}, not awaiting ack)",
-                        player_name, loader.queue.len()
-                    );
-                    if send_batch(&conn, &state, &player_name, &mut loader).await.is_err() {
+                    if send_batch(&conn, &state, &player_name, &mut loader)
+                        .await
+                        .is_err()
+                    {
                         break;
                     }
-                } else if loader.awaiting_ack {
-                    debug!(
-                        "[{}] Skipping batch: awaiting_ack=true, queue={}",
-                        player_name, loader.queue.len()
-                    );
-                } else if loader.queue.is_empty() {
-                    debug!("[{}] Skipping batch: queue empty", player_name);
                 }
             }
 
             ChunkCommand::BatchReceived(desired_rate) => {
-                info!(
-                    "[{}] CMD: BatchReceived(rate={:.1}) after {:?}, queue={}, awaiting_ack={}",
-                    player_name, desired_rate, time_since_last, loader.queue.len(), loader.awaiting_ack
-                );
-                
                 handle_batch_ack(&player_name, &mut loader, desired_rate);
 
                 // Continue sending if queue has items
                 if !loader.queue.is_empty() {
-                    info!(
-                        "[{}] Sending next batch after ACK (queue={})",
-                        player_name, loader.queue.len()
-                    );
-                    if send_batch(&conn, &state, &player_name, &mut loader).await.is_err() {
+                    if send_batch(&conn, &state, &player_name, &mut loader)
+                        .await
+                        .is_err()
+                    {
                         break;
                     }
-                } else {
-                    info!("[{}] Queue empty after ACK, waiting for movement", player_name);
                 }
             }
 
@@ -534,170 +508,92 @@ async fn send_batch(
         chunks_to_prepare.push((cx, cz));
     }
 
-    // Offload entire batch to thread pool for PARALLEL execution
-    // Phase 1: Generate/Load + Serialize + Compress (PARALLEL - no DB writes!)
+    // Offload entire batch to thread pool for parallel execution
+    // Phase 1: Generate/Load + Serialize + Compress (parallel - no DB writes)
     // Phase 2: Collect results
-    // Phase 3: Save newly generated chunks to DB (SEQUENTIAL - avoids lock contention)
+    // Phase 3: Save newly generated chunks to DB (sequential - avoids lock contention)
     let state_clone = Arc::clone(state);
     let chunks = chunks_to_prepare.clone();
-    let batch_size = chunks.len();
-    
-    let batch_start = Instant::now();
+
     let prepared_chunks = tokio::task::spawn_blocking(move || {
-        let blocking_start = Instant::now();
-        
-        // ================================================================
-        // PHASE 1: Parallel generation/loading + serialization + compression
-        // NO DB WRITES HERE - avoids LMDB lock contention
-        // ================================================================
+        // Phase 1: Parallel generation/loading + serialization + compression
         let mut batch = state_clone.thread_pool.batch::<Result<PreparedChunk, String>>();
 
         for (cx, cz) in chunks {
             let state_inner = Arc::clone(&state_clone);
             batch.execute(move || {
-                let chunk_start = Instant::now();
                 let chunk_pos = ChunkPos::new(cx, cz);
-                
-                // 1. Try to load from database first (read-only, no lock contention)
-                let load_start = Instant::now();
-                let (chunk, was_generated) = match state_inner.world.load_ferrumc_chunk(chunk_pos, "overworld") {
-                    Ok(loaded) => (loaded, false),
-                    Err(ferrumc_world::errors::WorldError::ChunkNotFound) => {
-                        // 2. Generate if not found (CPU-intensive noise calculations)
-                        let generated = state_inner
-                            .terrain_generator
-                            .generate_chunk(chunk_pos)
-                            .map_err(|e| format!("Generation failed ({}, {}): {:?}", cx, cz, e))?;
-                        
-                        // DON'T save here - we'll batch save after parallel work completes
-                        (generated, true)
-                    }
-                    Err(e) => {
-                        return Err(format!("DB load failed ({}, {}): {:?}", cx, cz, e));
-                    }
-                };
-                let load_gen_time = load_start.elapsed();
 
-                // 3. Create packet (serialization)
-                let ser_start = Instant::now();
+                // Try to load from database first
+                let (chunk, was_generated) =
+                    match state_inner.world.load_ferrumc_chunk(chunk_pos, "overworld") {
+                        Ok(loaded) => (loaded, false),
+                        Err(ferrumc_world::errors::WorldError::ChunkNotFound) => {
+                            // Generate if not found
+                            let generated = state_inner
+                                .terrain_generator
+                                .generate_chunk(chunk_pos)
+                                .map_err(|e| format!("Generation failed ({}, {}): {:?}", cx, cz, e))?;
+                            (generated, true)
+                        }
+                        Err(e) => {
+                            return Err(format!("DB load failed ({}, {}): {:?}", cx, cz, e));
+                        }
+                    };
+
+                // Create packet
                 let packet = ChunkAndLightData::from_ferrumc_chunk(&chunk)
                     .map_err(|e| format!("Packet creation failed ({}, {}): {:?}", cx, cz, e))?;
-                let ser_time = ser_start.elapsed();
 
-                // 4. Compress packet (Zlib compression)
-                let comp_start = Instant::now();
+                // Compress packet
                 let raw_bytes = compress_packet(&packet, compress, &NetEncodeOpts::WithLength, 512)
                     .map_err(|e| format!("Compression failed ({}, {}): {:?}", cx, cz, e))?;
-                let comp_time = comp_start.elapsed();
-                
-                let total_chunk_time = chunk_start.elapsed();
-                
-                // Per-chunk timing (trace level to avoid spam)
-                trace!(
-                    "Chunk ({}, {}) - {}: {:?}, Ser: {:?}, Comp: {:?}, Total: {:?}, Size: {} bytes",
-                    cx, cz,
-                    if was_generated { "Gen" } else { "Load" },
-                    load_gen_time,
-                    ser_time,
-                    comp_time,
-                    total_chunk_time,
-                    raw_bytes.len()
-                );
 
                 Ok(PreparedChunk {
                     coords: (cx, cz),
                     raw_bytes,
-                    // Only include chunk if newly generated (needs DB save)
                     generated_chunk: if was_generated { Some(chunk) } else { None },
                 })
             });
         }
 
-        // Wait for ALL parallel work to complete
+        // Wait for all parallel work to complete
         let results = batch.wait();
-        let parallel_elapsed = blocking_start.elapsed();
-        
-        // ================================================================
-        // PHASE 2 & 3: Collect results and save new chunks SEQUENTIALLY
-        // This avoids LMDB write lock contention between threads
-        // ================================================================
-        let save_start = Instant::now();
-        let mut chunks_saved = 0;
-        
-        // Collect successfully prepared chunks and save any newly generated ones
-        let final_results: Vec<Result<PreparedChunk, String>> = results
+
+        // Phase 2 & 3: Collect results and save new chunks sequentially
+        results
             .into_iter()
             .map(|result| {
                 if let Ok(ref prepared) = result {
-                    // Save newly generated chunks to DB (sequential, no lock contention)
+                    // Save newly generated chunks to DB
                     if let Some(ref chunk) = prepared.generated_chunk {
                         let pos = ChunkPos::new(prepared.coords.0, prepared.coords.1);
-                        if let Err(e) = state_clone.world.save_ferrumc_chunk(pos, "overworld", chunk) {
+                        if let Err(e) =
+                            state_clone.world.save_ferrumc_chunk(pos, "overworld", chunk)
+                        {
                             tracing::warn!("Failed to save chunk {:?}: {:?}", prepared.coords, e);
-                        } else {
-                            chunks_saved += 1;
                         }
                     }
                 }
                 result
             })
-            .collect();
-        
-        let save_elapsed = save_start.elapsed();
-        let total_elapsed = blocking_start.elapsed();
-        
-        debug!(
-            "Batch complete: parallel={:?}, saves={} in {:?}, total={:?}",
-            parallel_elapsed, chunks_saved, save_elapsed, total_elapsed
-        );
-        
-        final_results
+            .collect::<Vec<_>>()
     })
     .await
     .map_err(|e| {
         error!("[{}] Blocking task panicked: {:?}", player_name, e);
     })?;
-    
-    let batch_prep_time = batch_start.elapsed();
-    debug!(
-        "[{}] Batch prepared: {} chunks in {:?} ({:.1} chunks/sec)",
-        player_name,
-        batch_size,
-        batch_prep_time,
-        batch_size as f64 / batch_prep_time.as_secs_f64()
-    );
 
     // Send all prepared chunks (already compressed, just write bytes)
     let mut sent = 0i32;
-    let mut total_send_time = std::time::Duration::ZERO;
-    let mut total_bytes_sent = 0usize;
-    let send_start = Instant::now();
 
     for result in prepared_chunks {
         match result {
             Ok(prepared) => {
-                let packet_size = prepared.raw_bytes.len();
-                let send_one_start = Instant::now();
                 if conn.send_raw_packet(prepared.raw_bytes).is_err() {
                     debug!("[{}] Connection dead (chunk send failed)", player_name);
                     return Err(());
                 }
-                let send_one_time = send_one_start.elapsed();
-                total_send_time += send_one_time;
-                total_bytes_sent += packet_size;
-                
-                // Log slow sends (potential network backpressure)
-                if send_one_time.as_millis() > 5 {
-                    trace!(
-                        "[{}] Slow send: chunk ({}, {}) took {:?} ({} bytes)",
-                        player_name,
-                        prepared.coords.0,
-                        prepared.coords.1,
-                        send_one_time,
-                        packet_size
-                    );
-                }
-                
                 loader.sent_chunks.insert(prepared.coords);
                 sent += 1;
             }
@@ -706,16 +602,6 @@ async fn send_batch(
             }
         }
     }
-    
-    let total_send_elapsed = send_start.elapsed();
-    debug!(
-        "[{}] Network send: {} chunks, {} bytes in {:?} ({:.2} MB/s)",
-        player_name,
-        sent,
-        total_bytes_sent,
-        total_send_elapsed,
-        (total_bytes_sent as f64 / 1_000_000.0) / total_send_elapsed.as_secs_f64()
-    );
 
     // Finish batch
     if conn

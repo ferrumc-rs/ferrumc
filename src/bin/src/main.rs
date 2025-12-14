@@ -9,7 +9,6 @@ use std::sync::Arc;
 use std::time::Instant;
 use tracing::{error, info};
 
-mod benchmarks;
 mod cli;
 pub(crate) mod errors;
 mod game_loop;
@@ -50,13 +49,6 @@ fn main() {
                 error!("Import failed with the following error: {}", e.to_string());
             } else {
                 info!("Import completed successfully.");
-            }
-        }
-
-        Some(Command::BenchChunks { count, save }) => {
-            info!("Starting chunk benchmark (count={}, save={})...", count, save);
-            if let Err(e) = benchmarks::run_chunk_benchmark(count, save) {
-                error!("Benchmark failed: {}", e);
             }
         }
 
