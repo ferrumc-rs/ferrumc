@@ -264,13 +264,7 @@ impl ChunkAndLightData {
         let section_count = chunk.sections.len();
         let mut raw_data = Cursor::new(Vec::with_capacity(section_count * 2048));
 
-        // Track light data and masks
-        let mut sky_light_arrays: Vec<ByteArray> = Vec::with_capacity(section_count);
-        let mut block_light_arrays: Vec<ByteArray> = Vec::with_capacity(section_count);
-        let mut sky_light_mask = BitSet::new(section_count + 2);
-        let mut block_light_mask = BitSet::new(section_count + 2);
-
-        for (i, section) in chunk.sections.iter().enumerate() {
+        for section in chunk.sections.iter() {
             // 1. Write block count (u16 Big Endian)
             raw_data.write_u16::<BigEndian>(section.block_count)?;
 
@@ -279,26 +273,27 @@ impl ChunkAndLightData {
 
             // 3. Write biomes paletted container
             Self::write_paletted_container(&mut raw_data, &section.biomes)?;
-
-            // Collect light data
-            if let Some(ref sky_light) = section.sky_light {
-                if sky_light.len() == 2048 {
-                    sky_light_mask.set(i + 1, true); // +1 for the extra section below
-                    sky_light_arrays.push(ByteArray::new(sky_light.clone()));
-                }
-            }
-
-            if let Some(ref block_light) = section.block_light {
-                if block_light.len() == 2048 {
-                    block_light_mask.set(i + 1, true); // +1 for the extra section below
-                    block_light_arrays.push(ByteArray::new(block_light.clone()));
-                }
-            }
         }
 
-        // Build empty light masks (inverse of populated masks)
-        let empty_sky_light_mask = sky_light_mask.clone().not();
-        let empty_block_light_mask = block_light_mask.clone().not();
+        // ================================================================
+        // LIGHT DATA: Send "empty" light masks to let client calculate lighting
+        // 
+        // Previously we were sending dummy 0xFF skylight which caused the client
+        // to choke on invalid lighting (full brightness underground).
+        //
+        // By marking all sections as "empty" in the empty_*_mask and sending no
+        // light arrays, the client will calculate lighting itself.
+        // ================================================================
+        
+        // Light mask = all zeros (no sections have light data)
+        let sky_light_mask = BitSet::new(section_count + 2);
+        let block_light_mask = BitSet::new(section_count + 2);
+        
+        // Empty light mask = all ones (all sections are "empty" of light data)
+        let mut empty_sky_light_mask = BitSet::new(section_count + 2);
+        let mut empty_block_light_mask = BitSet::new(section_count + 2);
+        empty_sky_light_mask.set_all(true);
+        empty_block_light_mask.set_all(true);
 
         // Use heightmaps and block_entities directly from chunk (zero-copy friendly)
         // For now, we send empty heightmaps since the generator doesn't produce them yet
@@ -319,8 +314,9 @@ impl ChunkAndLightData {
             block_light_mask,
             empty_sky_light_mask,
             empty_block_light_mask,
-            sky_light_arrays: LengthPrefixedVec::new(sky_light_arrays),
-            block_light_arrays: LengthPrefixedVec::new(block_light_arrays),
+            // Empty arrays - no light data sent
+            sky_light_arrays: LengthPrefixedVec::new(vec![]),
+            block_light_arrays: LengthPrefixedVec::new(vec![]),
         })
     }
 

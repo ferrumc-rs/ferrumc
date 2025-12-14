@@ -15,14 +15,25 @@
 //! let chunk = builder.build();
 //! ```
 
+use ahash::AHashMap;
 use ferrumc_world::structure::{
     FerrumcChunk, FerrumcSection, PalettedContainer, BLOCKS_PER_SECTION,
     MAX_INDIRECT_BITS_BLOCKS, MIN_INDIRECT_BITS_BLOCKS,
 };
-use std::collections::HashMap;
 
 /// Number of blocks per section (16³).
 const SECTION_SIZE: usize = 4096;
+
+/// Section state for optimization.
+#[derive(Debug, Clone, Copy)]
+enum SectionState {
+    /// Section is filled with a single block type (ID stored).
+    /// No need to iterate all blocks during build.
+    Uniform(u32),
+    /// Section has been modified with individual blocks.
+    /// Must iterate all blocks during build.
+    Mixed,
+}
 
 /// A builder for constructing `FerrumcChunk` instances during world generation.
 ///
@@ -33,8 +44,8 @@ const SECTION_SIZE: usize = 4096;
 /// # Performance
 ///
 /// The builder stores blocks as raw `u32` state IDs in flat arrays, allowing O(1)
-/// block access during generation. The `build()` method then computes optimal
-/// palettes and packs the data for network efficiency.
+/// block access during generation. Sections filled with `fill_section()` are
+/// marked as uniform and skip the expensive iteration during `build()`.
 #[derive(Debug, Clone)]
 pub struct ChunkBuilder {
     /// Chunk X coordinate.
@@ -47,6 +58,8 @@ pub struct ChunkBuilder {
     height: i16,
     /// Block data for each section. Key is section index, value is block state IDs.
     sections: Vec<[u32; SECTION_SIZE]>,
+    /// Track section state for optimization.
+    section_states: Vec<SectionState>,
 }
 
 impl ChunkBuilder {
@@ -69,6 +82,8 @@ impl ChunkBuilder {
         let section_count = (height / 16) as usize;
         // Initialize all sections with air (block state ID 0)
         let sections = vec![[0u32; SECTION_SIZE]; section_count];
+        // All sections start as uniform (filled with air)
+        let section_states = vec![SectionState::Uniform(0); section_count];
 
         Self {
             x,
@@ -76,6 +91,7 @@ impl ChunkBuilder {
             min_y,
             height,
             sections,
+            section_states,
         }
     }
 
@@ -135,6 +151,8 @@ impl ChunkBuilder {
         let block_index = Self::block_index(x, local_y, z);
 
         self.sections[section_index][block_index] = block_id;
+        // Mark section as mixed since we're setting individual blocks
+        self.section_states[section_index] = SectionState::Mixed;
     }
 
     /// Gets the block at the given local coordinates.
@@ -164,7 +182,8 @@ impl ChunkBuilder {
     /// Fills an entire section with a single block type.
     ///
     /// This is more efficient than setting blocks individually when filling
-    /// large areas with the same block.
+    /// large areas with the same block. Sections filled this way are optimized
+    /// during `build()` to skip block-by-block iteration.
     ///
     /// # Arguments
     ///
@@ -178,14 +197,16 @@ impl ChunkBuilder {
         let section_index = (section_y - (self.min_y / 16) as i8) as usize;
         if section_index < self.sections.len() {
             self.sections[section_index].fill(block_id);
+            // Mark as uniform - build() can skip iteration for this section
+            self.section_states[section_index] = SectionState::Uniform(block_id);
         }
     }
 
     /// Builds the final `FerrumcChunk` from the builder data.
     ///
     /// This method:
-    /// 1. Calculates optimal palettes for each section
-    /// 2. Packs block data into the protocol-native format
+    /// 1. For uniform sections: Creates `PalettedContainer::Single` instantly
+    /// 2. For mixed sections: Calculates palettes and packs data
     /// 3. Computes non-air block counts
     ///
     /// # Returns
@@ -195,8 +216,17 @@ impl ChunkBuilder {
     pub fn build(self) -> FerrumcChunk {
         let mut ferrumc_sections = Vec::with_capacity(self.sections.len());
 
-        for section_data in &self.sections {
-            let section = Self::build_section(section_data);
+        for (section_data, state) in self.sections.iter().zip(self.section_states.iter()) {
+            let section = match state {
+                SectionState::Uniform(block_id) => {
+                    // Fast path: uniform section, no iteration needed
+                    Self::build_uniform_section(*block_id)
+                }
+                SectionState::Mixed => {
+                    // Slow path: mixed section, must iterate
+                    Self::build_mixed_section(section_data)
+                }
+            };
             ferrumc_sections.push(section);
         }
 
@@ -211,10 +241,25 @@ impl ChunkBuilder {
         }
     }
 
-    /// Builds a single section from raw block data.
-    fn build_section(blocks: &[u32; SECTION_SIZE]) -> FerrumcSection {
-        // Count unique blocks and build palette
-        let mut block_counts: HashMap<u32, u16> = HashMap::new();
+    /// Builds a uniform section (all same block) without iteration.
+    #[inline]
+    fn build_uniform_section(block_id: u32) -> FerrumcSection {
+        // Non-air count: 4096 if not air, 0 if air
+        let non_air_blocks = if block_id == 0 { 0 } else { BLOCKS_PER_SECTION as u16 };
+        
+        FerrumcSection {
+            block_count: non_air_blocks,
+            block_states: PalettedContainer::Single(block_id),
+            biomes: PalettedContainer::Single(0), // Default to plains biome
+            sky_light: Some(vec![0xFF; 2048]),    // Full sky light
+            block_light: Some(vec![0x00; 2048]),  // No block light
+        }
+    }
+
+    /// Builds a mixed section from raw block data (requires iteration).
+    fn build_mixed_section(blocks: &[u32; SECTION_SIZE]) -> FerrumcSection {
+        // Count unique blocks and build palette using AHashMap for speed
+        let mut block_counts: AHashMap<u32, u16> = AHashMap::default();
         for &block_id in blocks.iter() {
             *block_counts.entry(block_id).or_insert(0) += 1;
         }
@@ -238,8 +283,8 @@ impl ChunkBuilder {
             let mut palette: Vec<u32> = block_counts.keys().copied().collect();
             palette.sort_unstable(); // Consistent ordering
 
-            // Build reverse mapping (global ID to palette index)
-            let id_to_palette: HashMap<u32, u32> = palette
+            // Build reverse mapping (global ID to palette index) using AHashMap
+            let id_to_palette: AHashMap<u32, u32> = palette
                 .iter()
                 .enumerate()
                 .map(|(idx, &id)| (id, idx as u32))
@@ -279,7 +324,7 @@ impl ChunkBuilder {
     /// end of each u64 if entries don't divide evenly.
     fn pack_blocks(
         blocks: &[u32; SECTION_SIZE],
-        id_to_palette: &HashMap<u32, u32>,
+        id_to_palette: &AHashMap<u32, u32>,
         bits_per_entry: u8,
     ) -> Vec<u64> {
         let bits = bits_per_entry as usize;

@@ -20,6 +20,15 @@ pub enum Command {
     Import(ImportArgs),
     /// Start the server
     Run,
+    /// Benchmark chunk generation and serialization
+    BenchChunks {
+        /// Number of chunks to generate
+        #[clap(short, long, default_value = "1000")]
+        count: usize,
+        /// Save chunks to database after generation
+        #[clap(short, long)]
+        save: bool,
+    },
 }
 
 #[derive(Debug, Clone, Parser)]

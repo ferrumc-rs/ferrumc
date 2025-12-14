@@ -34,6 +34,8 @@
 //! - **Indirect**: Small palette with indices packed into `u64` array
 //! - **Direct**: No palette, global IDs packed directly (15 bits for blocks, 6 for biomes)
 
+use bitcode::{Decode, Encode};
+
 // ============================================================================
 // Chunk Structure
 // ============================================================================
@@ -52,7 +54,7 @@
 /// - `sections`: Array of 16-block-tall sections (height / 16 sections)
 /// - `heightmaps`: Pre-encoded NBT containing MOTION_BLOCKING and WORLD_SURFACE
 /// - `block_entities`: Pre-encoded NBT array of block entities
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct FerrumcChunk {
     /// Chunk X coordinate (block X >> 4).
     pub x: i32,
@@ -137,7 +139,7 @@ impl FerrumcChunk {
 /// The `block_count` field is the number of non-air blocks in this section.
 /// This is sent to the client for rendering optimization - sections with
 /// 0 blocks can be skipped entirely.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct FerrumcSection {
     /// Number of non-air blocks in this section (0-4096).
     pub block_count: u16,
@@ -207,7 +209,7 @@ impl FerrumcSection {
 ///
 /// For example, with 5 bits per entry, each `u64` holds 12 entries (60 bits used,
 /// 4 bits padding).
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub enum PalettedContainer {
     /// All entries have the same value (0 bits per entry).
     ///

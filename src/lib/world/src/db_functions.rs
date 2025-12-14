@@ -2,6 +2,7 @@ use crate::chunk_format::Chunk;
 use crate::errors::WorldError;
 use crate::errors::WorldError::CorruptedChunkData;
 use crate::pos::ChunkPos;
+use crate::structure::FerrumcChunk;
 // db_functions.rs
 use crate::warn;
 use crate::World;
@@ -120,6 +121,44 @@ impl World {
         }
         Ok(())
     }
+
+    // ========================================================================
+    // FerrumcChunk (packet-optimized format) methods
+    // ========================================================================
+
+    /// Save a FerrumcChunk to the storage backend.
+    ///
+    /// Uses the "ferrumc_chunks" table to store packet-optimized chunks separately
+    /// from the old chunk format.
+    pub fn save_ferrumc_chunk(
+        &self,
+        pos: ChunkPos,
+        dimension: &str,
+        chunk: &FerrumcChunk,
+    ) -> Result<(), WorldError> {
+        save_ferrumc_chunk_internal(self, pos, dimension, chunk)
+    }
+
+    /// Load a FerrumcChunk from the storage backend.
+    ///
+    /// Returns `WorldError::ChunkNotFound` if the chunk doesn't exist.
+    pub fn load_ferrumc_chunk(
+        &self,
+        pos: ChunkPos,
+        dimension: &str,
+    ) -> Result<FerrumcChunk, WorldError> {
+        load_ferrumc_chunk_internal(self, pos, dimension)
+    }
+
+    /// Check if a FerrumcChunk exists in the storage backend.
+    pub fn ferrumc_chunk_exists(&self, pos: ChunkPos, dimension: &str) -> Result<bool, WorldError> {
+        ferrumc_chunk_exists_internal(self, pos, dimension)
+    }
+
+    /// Delete a FerrumcChunk from the storage backend.
+    pub fn delete_ferrumc_chunk(&self, pos: ChunkPos, dimension: &str) -> Result<(), WorldError> {
+        delete_ferrumc_chunk_internal(self, pos, dimension)
+    }
 }
 
 pub(crate) fn save_chunk_internal(
@@ -237,4 +276,102 @@ fn create_key(dimension: &str, pos: ChunkPos) -> u128 {
     hasher.write_u8(0xFF);
     let dim_hash = hasher.finish();
     (dim_hash as u128) << 96 | pos.pack() as u128
+}
+
+// ============================================================================
+// FerrumcChunk Internal Functions
+// ============================================================================
+
+const FERRUMC_CHUNKS_TABLE: &str = "ferrumc_chunks";
+
+pub(crate) fn save_ferrumc_chunk_internal(
+    world: &World,
+    pos: ChunkPos,
+    dimension: &str,
+    chunk: &FerrumcChunk,
+) -> Result<(), WorldError> {
+    if !world
+        .storage_backend
+        .table_exists(FERRUMC_CHUNKS_TABLE.to_string())?
+    {
+        world
+            .storage_backend
+            .create_table(FERRUMC_CHUNKS_TABLE.to_string())?;
+    }
+    let as_bytes = yazi::compress(
+        &bitcode::encode(chunk),
+        yazi::Format::Zlib,
+        CompressionLevel::BestSpeed,
+    )?;
+    let digest = create_key(dimension, pos);
+    world
+        .storage_backend
+        .upsert(FERRUMC_CHUNKS_TABLE.to_string(), digest, as_bytes)?;
+    Ok(())
+}
+
+pub(crate) fn load_ferrumc_chunk_internal(
+    world: &World,
+    pos: ChunkPos,
+    dimension: &str,
+) -> Result<FerrumcChunk, WorldError> {
+    // Check if table exists first - if not, chunk definitely doesn't exist
+    if !world
+        .storage_backend
+        .table_exists(FERRUMC_CHUNKS_TABLE.to_string())?
+    {
+        return Err(WorldError::ChunkNotFound);
+    }
+    let digest = create_key(dimension, pos);
+    match world
+        .storage_backend
+        .get(FERRUMC_CHUNKS_TABLE.to_string(), digest)?
+    {
+        Some(compressed) => {
+            let (data, checksum) = yazi::decompress(compressed.as_slice(), yazi::Format::Zlib)?;
+            if get_global_config().database.verify_chunk_data {
+                if let Some(expected_checksum) = checksum {
+                    let real_checksum = yazi::Adler32::from_buf(data.as_slice()).finish();
+                    if real_checksum != expected_checksum {
+                        return Err(CorruptedChunkData(real_checksum, expected_checksum));
+                    }
+                } else {
+                    warn!("Chunk data does not have a checksum, skipping verification.");
+                }
+            }
+            let chunk: FerrumcChunk = bitcode::decode(&data)
+                .map_err(|e| WorldError::BitcodeDecodeError(e.to_string()))?;
+            Ok(chunk)
+        }
+        None => Err(WorldError::ChunkNotFound),
+    }
+}
+
+pub(crate) fn ferrumc_chunk_exists_internal(
+    world: &World,
+    pos: ChunkPos,
+    dimension: &str,
+) -> Result<bool, WorldError> {
+    if !world
+        .storage_backend
+        .table_exists(FERRUMC_CHUNKS_TABLE.to_string())?
+    {
+        return Ok(false);
+    }
+    let digest = create_key(dimension, pos);
+    Ok(world
+        .storage_backend
+        .exists(FERRUMC_CHUNKS_TABLE.to_string(), digest)?)
+}
+
+pub(crate) fn delete_ferrumc_chunk_internal(
+    world: &World,
+    pos: ChunkPos,
+    dimension: &str,
+) -> Result<(), WorldError> {
+    let digest = create_key(dimension, pos);
+    world
+        .storage_backend
+        .delete(FERRUMC_CHUNKS_TABLE.to_string(), digest)?;
+    Ok(())
 }

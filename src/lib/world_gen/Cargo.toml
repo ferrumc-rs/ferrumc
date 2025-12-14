@@ -9,6 +9,7 @@ thiserror = { workspace = true }
 noise = { workspace = true }
 rand = { workspace = true }
 ferrumc-macros = { workspace = true }
+ahash = { workspace = true }
 
 [lints]
 workspace = true
