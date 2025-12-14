@@ -1,12 +1,18 @@
 [package]
 name = "ferrumc-structured-components"
-edition.workspace = true
-version.workspace = true
+build = "build/build.rs"
+version = "0.1.0"
+edition = "2021"
 
 [dependencies]
 ferrumc-net-codec = { workspace = true }
-serde = { workspace = true, features = ["derive"] }
 tokio = { workspace = true }
+
+[build-dependencies]
+proc-macro2 = "1.0"
+quote = "1.0"
+syn = { version = "2.0", features = ["extra-traits"] }
+async-trait = "0.1"
 
 [lints]
 workspace = true

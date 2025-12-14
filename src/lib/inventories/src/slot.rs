@@ -7,7 +7,7 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::fmt::Display;
 use std::io::{Read, Write};
 use tokio::io::{AsyncRead, AsyncWrite};
-use ferrumc_structured_components::netcode::structured_component::StructuredComponent;
+use ferrumc_structured_components::netcode::generated::StructuredComponent;
 
 #[derive(Debug, Clone, Hash, Default, PartialEq)]
 pub struct InventorySlot {
