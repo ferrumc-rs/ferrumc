@@ -55,10 +55,10 @@ use tracing::{debug, error, trace};
 const CHUNK_SECTIONS: usize = 8;
 
 /// Default chunks per batch before we receive client feedback.
-const DEFAULT_CHUNKS_PER_BATCH: f32 = 100.0;
+const DEFAULT_CHUNKS_PER_BATCH: f32 = 32.0;
 
 /// Maximum chunks per batch to prevent packet flooding.
-const MAX_CHUNKS_PER_BATCH: f32 = 100.0;
+const MAX_CHUNKS_PER_BATCH: f32 = 64.0;
 
 /// Minimum chunks per batch to ensure progress.
 const MIN_CHUNKS_PER_BATCH: f32 = 1.0;
@@ -215,22 +215,20 @@ pub async fn chunk_loader_task(
                 }
 
                 // Send batch if not waiting for ack
-                if !loader.awaiting_ack && !loader.queue.is_empty() {
-                    if send_batch(&conn, &state, &player_name, &mut loader).is_err() {
+                if !loader.awaiting_ack && !loader.queue.is_empty()
+                    && send_batch(&conn, &state, &player_name, &mut loader).is_err() {
                         break;
                     }
-                }
             }
 
             ChunkCommand::BatchReceived(desired_rate) => {
                 handle_batch_ack(&player_name, &mut loader, desired_rate);
 
                 // Continue sending if queue has items
-                if !loader.queue.is_empty() {
-                    if send_batch(&conn, &state, &player_name, &mut loader).is_err() {
+                if !loader.queue.is_empty()
+                    && send_batch(&conn, &state, &player_name, &mut loader).is_err() {
                         break;
                     }
-                }
             }
 
             ChunkCommand::Stop => {
