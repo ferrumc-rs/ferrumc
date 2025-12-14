@@ -1,18 +1,37 @@
 mod biomes;
+pub mod chunk_builder;
 pub mod errors;
 
 use crate::errors::WorldGenError;
-use ferrumc_world::{chunk_format::Chunk, pos::ChunkPos};
+use ferrumc_world::{pos::ChunkPos, structure::FerrumcChunk};
 use noise::{Clamp, NoiseFn, OpenSimplex};
 
-/// Trait for generating a biome
+/// Trait for generating a biome.
 ///
-/// Should be implemented for each biome's generator
+/// Should be implemented for each biome's generator.
+/// Implementations should use `ChunkBuilder` to construct chunks efficiently.
 pub(crate) trait BiomeGenerator {
+    /// Returns the numeric biome ID.
     fn _biome_id(&self) -> u8;
+
+    /// Returns the biome name (e.g., "plains").
     fn _biome_name(&self) -> String;
-    fn generate_chunk(&self, pos: ChunkPos, noise: &NoiseGenerator)
-    -> Result<Chunk, WorldGenError>;
+
+    /// Generates a chunk for this biome at the given position.
+    ///
+    /// # Arguments
+    ///
+    /// * `pos` - The chunk position to generate
+    /// * `noise` - The noise generator for terrain height
+    ///
+    /// # Returns
+    ///
+    /// A `FerrumcChunk` containing the generated terrain.
+    fn generate_chunk(
+        &self,
+        pos: ChunkPos,
+        noise: &NoiseGenerator,
+    ) -> Result<FerrumcChunk, WorldGenError>;
 }
 
 pub(crate) struct NoiseGenerator {
@@ -58,7 +77,7 @@ impl WorldGenerator {
         Box::new(biomes::plains::PlainsBiome)
     }
 
-    pub fn generate_chunk(&self, pos: ChunkPos) -> Result<Chunk, WorldGenError> {
+    pub fn generate_chunk(&self, pos: ChunkPos) -> Result<FerrumcChunk, WorldGenError> {
         let biome = self.get_biome(pos);
         biome.generate_chunk(pos, &self.noise_generator)
     }

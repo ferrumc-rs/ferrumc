@@ -1,11 +1,14 @@
+use crate::chunk_builder::ChunkBuilder;
 use crate::errors::WorldGenError;
 use crate::{BiomeGenerator, NoiseGenerator};
 use ferrumc_macros::block;
 use ferrumc_world::block_state_id::BlockStateId;
-use ferrumc_world::chunk_format::Chunk;
-use ferrumc_world::edit_batch::EditBatch;
-use ferrumc_world::pos::{BlockPos, ChunkColumnPos, ChunkHeight, ChunkPos};
+use ferrumc_world::pos::{ChunkColumnPos, ChunkPos};
+use ferrumc_world::structure::FerrumcChunk;
 
+/// Plains biome generator.
+///
+/// Generates rolling grassland terrain with noise-based height variation.
 pub(crate) struct PlainsBiome;
 
 impl BiomeGenerator for PlainsBiome {
@@ -21,61 +24,60 @@ impl BiomeGenerator for PlainsBiome {
         &self,
         pos: ChunkPos,
         noise: &NoiseGenerator,
-    ) -> Result<Chunk, WorldGenError> {
-        let mut chunk = Chunk::new(ChunkHeight::new(-64, 384));
-        let mut heights = vec![];
-        let stone = block!("stone"); // just to test the macro
+    ) -> Result<FerrumcChunk, WorldGenError> {
+        // Create a chunk builder for overworld dimensions
+        let mut builder = ChunkBuilder::new(pos.x(), pos.z(), -64, 384);
 
-        // Fill with water first
-        for section_y in -4..4 {
-            chunk.set_section(section_y as i8, block!("water", {level: 0}))?;
-        }
+        // Get block state IDs once (the block! macro returns BlockStateId)
+        let stone = block!("stone").raw();
+        let water = block!("water", {level: 0}).raw();
+        let sand = block!("sand").raw();
+        let grass = block!("grass_block", {snowy: false}).raw();
 
-        // Then generate some heights
-        for chunk_x in 0..16 {
-            for chunk_z in 0..16 {
+        // Pre-calculate heights for all columns
+        let mut heights = Vec::with_capacity(256);
+        for chunk_x in 0..16u8 {
+            for chunk_z in 0..16u8 {
                 let curr_pos = pos.column_pos(ChunkColumnPos::new(chunk_x, chunk_z));
                 let global_x = curr_pos.x();
                 let global_z = curr_pos.z();
                 let height = noise.get_noise(f64::from(global_x), f64::from(global_z));
                 let height = (height * 64.0) as i32 + 64;
-                heights.push((global_x, global_z, height));
+                heights.push((chunk_x, chunk_z, height));
             }
         }
 
-        // Fill in the sections that consist of only stone first with the set_section method since
-        // it's faster than set_block
-        let y_min = heights.iter().min_by(|a, b| a.2.cmp(&b.2)).unwrap().2;
+        // Find the minimum height for efficient section filling
+        let y_min = heights.iter().map(|(_, _, h)| *h).min().unwrap_or(0);
         let highest_full_section = y_min / 16;
-        for section_y in -4..highest_full_section {
-            chunk.set_section(section_y as i8, stone)?;
+
+        // Fill sections below sea level with water first (sea level is 64)
+        for section_y in -4..4i8 {
+            builder.fill_section(section_y, water);
         }
-        let mut batch = EditBatch::new(&mut chunk);
+
+        // Fill sections that are completely underground with stone
+        for section_y in -4..highest_full_section as i8 {
+            builder.fill_section(section_y, stone);
+        }
+
+        // Generate terrain above the fully-filled sections
         let above_filled_sections = (highest_full_section * 16) - 1;
-        for (global_x, global_z, height) in heights {
-            if height > above_filled_sections {
-                let height = height - above_filled_sections;
-                for y in 0..height {
-                    if y + above_filled_sections <= 64 {
-                        batch.set_block(
-                            BlockPos::of(global_x, y + above_filled_sections, global_z)
-                                .chunk_block_pos(),
-                            block!("sand"),
-                        );
-                    } else {
-                        batch.set_block(
-                            BlockPos::of(global_x, y + above_filled_sections, global_z)
-                                .chunk_block_pos(),
-                            block!("grass_block", {snowy: false}),
-                        );
-                    }
-                }
+        for (chunk_x, chunk_z, height) in heights {
+            // Fill from bedrock to height
+            for y in (above_filled_sections + 1)..=height {
+                let block_id = if y <= 64 {
+                    // Below or at sea level, use sand (beach/ocean floor)
+                    sand
+                } else {
+                    // Above sea level, use grass
+                    grass
+                };
+                builder.set_block(chunk_x, y, chunk_z, block_id);
             }
         }
 
-        batch.apply()?;
-
-        Ok(chunk)
+        Ok(builder.build())
     }
 }
 
@@ -92,6 +94,22 @@ mod test {
                 .generate_chunk(ChunkPos::new(0, 0), &noise)
                 .is_ok()
         );
+    }
+
+    #[test]
+    fn test_chunk_structure() {
+        let generator = PlainsBiome {};
+        let noise = NoiseGenerator::new(0);
+        let chunk = generator
+            .generate_chunk(ChunkPos::new(0, 0), &noise)
+            .unwrap();
+
+        // Verify chunk metadata
+        assert_eq!(chunk.x, 0);
+        assert_eq!(chunk.z, 0);
+        assert_eq!(chunk.min_y, -64);
+        assert_eq!(chunk.height, 384);
+        assert_eq!(chunk.sections.len(), 24);
     }
 
     #[test]
