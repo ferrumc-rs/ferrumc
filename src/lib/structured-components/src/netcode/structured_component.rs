@@ -14,6 +14,7 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::{Read, Write};
 use tokio::io::{AsyncRead, AsyncWrite};
 use crate::netcode::components::fireworks::Fireworks;
+use crate::netcode::components::suspicious_stew_effects::SuspiciousStewEffects;
 
 #[derive(Debug, Clone, Hash, Default, PartialEq)]
 pub enum StructuredComponent {
@@ -24,6 +25,7 @@ pub enum StructuredComponent {
     Enchantable(Enchantable),
     StoredEnchantments(EnchantmentsCollection),
     PotionContents(PotionContents),
+    SuspiciousStewEffects(SuspiciousStewEffects),
     Fireworks(Fireworks),
 }
 
@@ -35,6 +37,7 @@ impl StructuredComponent {
             StructuredComponent::Enchantable(_) => Ok(VarInt::from(27)),
             StructuredComponent::StoredEnchantments(_) => Ok(VarInt::from(34)),
             StructuredComponent::PotionContents(_) => Ok(VarInt::from(42)),
+            StructuredComponent::SuspiciousStewEffects(_) => Ok(VarInt::from(44)),
             StructuredComponent::Fireworks(_) => Ok(VarInt::from(60)),
             StructuredComponent::Invalid => Err(InvalidStructuredComponentEnumError()),
         }
@@ -51,6 +54,7 @@ impl StructuredComponent {
             27 => StructuredComponent::Enchantable(Enchantable::decode(reader, opts)?),
             34 => StructuredComponent::StoredEnchantments(EnchantmentsCollection::decode(reader, opts)?),
             42 => StructuredComponent::PotionContents(PotionContents::decode(reader, opts)?),
+            44 => StructuredComponent::SuspiciousStewEffects(SuspiciousStewEffects::decode(reader, opts)?),
             60 => StructuredComponent::Fireworks(Fireworks::decode(reader, opts)?),
             _ => Err(NotSupportedStructuredComponentError(id))?,
         };
@@ -72,6 +76,7 @@ impl StructuredComponent {
             27 => StructuredComponent::Enchantable(Enchantable::decode_async(reader, opts).await?),
             34 => StructuredComponent::StoredEnchantments(EnchantmentsCollection::decode_async(reader, opts).await?),
             42 => StructuredComponent::PotionContents(PotionContents::decode_async(reader, opts).await?),
+            44 => StructuredComponent::SuspiciousStewEffects(SuspiciousStewEffects::decode_async(reader, opts).await?),
             60 => StructuredComponent::Fireworks(Fireworks::decode_async(reader, opts).await?),
             _ => Err(NotSupportedStructuredComponentError(id))?,
         };
@@ -92,6 +97,7 @@ impl NetEncode for StructuredComponent {
             StructuredComponent::Enchantable(enchantable) => enchantable.encode(writer, opts),
             StructuredComponent::StoredEnchantments(stored_enchantments) => stored_enchantments.encode(writer, opts),
             StructuredComponent::PotionContents(potion_contents) => potion_contents.encode(writer, opts),
+            StructuredComponent::SuspiciousStewEffects(suspicious_stew_effects) => suspicious_stew_effects.encode(writer, opts),
             StructuredComponent::Fireworks(fireworks) => fireworks.encode(writer, opts),
             StructuredComponent::Invalid => Err(InvalidStructuredComponentEnumError())?,
         }
@@ -112,6 +118,7 @@ impl NetEncode for StructuredComponent {
             StructuredComponent::Enchantable(enchantable) => enchantable.encode_async(writer, opts).await,
             StructuredComponent::StoredEnchantments(stored_enchantments) => stored_enchantments.encode_async(writer, opts).await,
             StructuredComponent::PotionContents(potion_contents) => potion_contents.encode_async(writer, opts).await,
+            StructuredComponent::SuspiciousStewEffects(suspicious_stew_effects) => suspicious_stew_effects.encode_async(writer, opts).await,
             StructuredComponent::Fireworks(fireworks) => fireworks.encode_async(writer, opts).await,
             StructuredComponent::Invalid => Err(InvalidStructuredComponentEnumError())?,
         }
