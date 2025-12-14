@@ -11,7 +11,6 @@ use ferrumc_threadpool::ThreadPool;
 use ferrumc_world::pos::ChunkPos;
 use ferrumc_world::World;
 use ferrumc_world_gen::WorldGenerator;
-use std::sync::Arc;
 use std::time::Instant;
 use tracing::{error, info};
 
@@ -46,16 +45,14 @@ pub fn generate_spawn_chunks(state: GlobalState) -> Result<(), BinaryError> {
         let state_clone = state.clone();
         batch.execute(move || {
             let pos = ChunkPos::new(x, z);
-            let chunk = state_clone
-                .terrain_generator
-                .generate_chunk(pos)
-                .map(Arc::new);
-
-            match chunk {
-                Ok(chunk) => {
-                    if let Err(e) = state_clone.world.save_chunk(pos, "overworld", chunk) {
-                        error!("Error saving chunk ({}, {}): {:?}", x, z, e);
-                    }
+            // Generate chunk but don't save to database yet
+            // TODO: Save to database when FerrumcChunk storage is implemented
+            match state_clone.terrain_generator.generate_chunk(pos) {
+                Ok(_chunk) => {
+                    // Database saving disabled until FerrumcChunk storage is implemented
+                    // if let Err(e) = state_clone.world.save_chunk(pos, "overworld", chunk) {
+                    //     error!("Error saving chunk ({}, {}): {:?}", x, z, e);
+                    // }
                 }
                 Err(e) => {
                     error!("Error generating chunk ({}, {}): {:?}", x, z, e);

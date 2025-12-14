@@ -8,6 +8,7 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::chunk_format::{Chunk, PaletteType};
 use ferrumc_world::pos::ChunkPos;
+use ferrumc_world::structure::{FerrumcChunk, PalettedContainer};
 use std::io::Cursor;
 use std::ops::Not;
 use tracing::warn;
@@ -245,5 +246,134 @@ impl ChunkAndLightData {
             sky_light_arrays: LengthPrefixedVec::new(sky_light_arrays),
             block_light_arrays: LengthPrefixedVec::new(block_light_arrays),
         })
+    }
+
+    /// Creates a `ChunkAndLightData` packet from a `FerrumcChunk`.
+    ///
+    /// This method efficiently serializes the packet-optimized `FerrumcChunk` format
+    /// into the network protocol format with minimal transformation.
+    ///
+    /// # Arguments
+    ///
+    /// * `chunk` - The `FerrumcChunk` to convert
+    ///
+    /// # Returns
+    ///
+    /// A `ChunkAndLightData` packet ready for network transmission.
+    pub fn from_ferrumc_chunk(chunk: &FerrumcChunk) -> Result<Self, NetError> {
+        let section_count = chunk.sections.len();
+        let mut raw_data = Cursor::new(Vec::with_capacity(section_count * 2048));
+
+        // Track light data and masks
+        let mut sky_light_arrays: Vec<ByteArray> = Vec::with_capacity(section_count);
+        let mut block_light_arrays: Vec<ByteArray> = Vec::with_capacity(section_count);
+        let mut sky_light_mask = BitSet::new(section_count + 2);
+        let mut block_light_mask = BitSet::new(section_count + 2);
+
+        for (i, section) in chunk.sections.iter().enumerate() {
+            // 1. Write block count (u16 Big Endian)
+            raw_data.write_u16::<BigEndian>(section.block_count)?;
+
+            // 2. Write block states paletted container
+            Self::write_paletted_container(&mut raw_data, &section.block_states)?;
+
+            // 3. Write biomes paletted container
+            Self::write_paletted_container(&mut raw_data, &section.biomes)?;
+
+            // Collect light data
+            if let Some(ref sky_light) = section.sky_light {
+                if sky_light.len() == 2048 {
+                    sky_light_mask.set(i + 1, true); // +1 for the extra section below
+                    sky_light_arrays.push(ByteArray::new(sky_light.clone()));
+                }
+            }
+
+            if let Some(ref block_light) = section.block_light {
+                if block_light.len() == 2048 {
+                    block_light_mask.set(i + 1, true); // +1 for the extra section below
+                    block_light_arrays.push(ByteArray::new(block_light.clone()));
+                }
+            }
+        }
+
+        // Build empty light masks (inverse of populated masks)
+        let empty_sky_light_mask = sky_light_mask.clone().not();
+        let empty_block_light_mask = block_light_mask.clone().not();
+
+        // Use heightmaps and block_entities directly from chunk (zero-copy friendly)
+        // For now, we send empty heightmaps since the generator doesn't produce them yet
+        let heightmaps = if chunk.heightmaps.is_empty() {
+            vec![]
+        } else {
+            // TODO: Parse and convert raw NBT heightmaps when implemented
+            vec![]
+        };
+
+        Ok(ChunkAndLightData {
+            chunk_x: chunk.x,
+            chunk_z: chunk.z,
+            heightmaps: LengthPrefixedVec::new(heightmaps),
+            data: ByteArray::new(raw_data.into_inner()),
+            block_entities: LengthPrefixedVec::new(Vec::new()),
+            sky_light_mask,
+            block_light_mask,
+            empty_sky_light_mask,
+            empty_block_light_mask,
+            sky_light_arrays: LengthPrefixedVec::new(sky_light_arrays),
+            block_light_arrays: LengthPrefixedVec::new(block_light_arrays),
+        })
+    }
+
+    /// Writes a `PalettedContainer` to the output buffer in protocol format.
+    fn write_paletted_container(
+        output: &mut Cursor<Vec<u8>>,
+        container: &PalettedContainer,
+    ) -> Result<(), NetError> {
+        match container {
+            PalettedContainer::Single(global_id) => {
+                // Bits per entry = 0 (single value palette)
+                output.write_u8(0)?;
+                // Write the single palette value as VarInt
+                VarInt::new(*global_id as i32).write(output)?;
+                // No data array needed for single value
+            }
+
+            PalettedContainer::Indirect {
+                bits_per_entry,
+                palette,
+                data,
+            } => {
+                // Write bits per entry
+                output.write_u8(*bits_per_entry)?;
+
+                // Write palette length and entries
+                VarInt::new(palette.len() as i32).write(output)?;
+                for &global_id in palette {
+                    VarInt::new(global_id as i32).write(output)?;
+                }
+
+                // Write data array length and entries
+                // VarInt::new(data.len() as i32).write(output)?;
+                
+                for &long_val in data {
+                    output.write_i64::<BigEndian>(long_val as i64)?;
+                }
+            }
+
+            PalettedContainer::Direct { bits_per_entry, data } => {
+                // Write bits per entry (15 for blocks, 6 for biomes)
+                output.write_u8(*bits_per_entry)?;
+
+                // No palette for direct mode
+
+                // Write data array length and entries
+                VarInt::new(data.len() as i32).write(output)?;
+                for &long_val in data {
+                    output.write_i64::<BigEndian>(long_val as i64)?;
+                }
+            }
+        }
+
+        Ok(())
     }
 }

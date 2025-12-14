@@ -12,6 +12,18 @@
 //! - Chunks are sent in batches, waiting for client acknowledgment between batches
 //! - Before sending, each chunk is validated to still be within the current radius
 //!
+//! ## Non-Blocking Architecture
+//!
+//! CPU-heavy work (generation, serialization, compression) is offloaded to blocking
+//! tasks via `tokio::task::spawn_blocking`. The async task only:
+//! - Decides which chunks to send
+//! - Spawns workers for heavy computation
+//! - Awaits compressed bytes
+//! - Writes raw bytes to the connection
+//!
+//! This keeps the Tokio runtime responsive and allows chunk work to utilize
+//! the blocking thread pool.
+//!
 //! ## Fast Movement Handling
 //!
 //! When the player moves faster than chunks can be sent:
@@ -35,24 +47,25 @@
 //! ```
 
 use ferrumc_components::chunks::ChunkCommand;
+use ferrumc_net::compression::compress_packet;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::chunk_and_light_data::ChunkAndLightData;
 use ferrumc_net::packets::outgoing::chunk_batch_finish::ChunkBatchFinish;
 use ferrumc_net::packets::outgoing::chunk_batch_start::ChunkBatchStart;
 use ferrumc_net::packets::outgoing::set_center_chunk::SetCenterChunk;
 use ferrumc_net::packets::outgoing::unload_chunk::UnloadChunk;
+use ferrumc_net_codec::encode::NetEncodeOpts;
 use ferrumc_state::GlobalState;
+use ferrumc_world::pos::ChunkPos;
 use std::collections::{HashSet, VecDeque};
+use std::sync::atomic::Ordering;
+use std::sync::Arc;
 use tokio::sync::mpsc::Receiver;
 use tracing::{debug, error, trace};
 
 // ============================================================================
 // Constants
 // ============================================================================
-
-/// Number of vertical sections in a chunk (controls Y range).
-/// 8 sections = Y -64 to 64 (flat world / floor).
-const CHUNK_SECTIONS: usize = 8;
 
 /// Default chunks per batch before we receive client feedback.
 const DEFAULT_CHUNKS_PER_BATCH: f32 = 32.0;
@@ -216,7 +229,7 @@ pub async fn chunk_loader_task(
 
                 // Send batch if not waiting for ack
                 if !loader.awaiting_ack && !loader.queue.is_empty()
-                    && send_batch(&conn, &state, &player_name, &mut loader).is_err() {
+                    && send_batch(&conn, &state, &player_name, &mut loader).await.is_err() {
                         break;
                     }
             }
@@ -226,7 +239,7 @@ pub async fn chunk_loader_task(
 
                 // Continue sending if queue has items
                 if !loader.queue.is_empty()
-                    && send_batch(&conn, &state, &player_name, &mut loader).is_err() {
+                    && send_batch(&conn, &state, &player_name, &mut loader).await.is_err() {
                         break;
                     }
             }
@@ -396,10 +409,51 @@ fn handle_batch_ack(player_name: &str, loader: &mut ChunkLoaderState, desired_ra
 // Batch Sending
 // ============================================================================
 
-/// Sends a batch of chunks to the client.
-fn send_batch(
+/// Result of preparing a single chunk in a blocking task.
+struct PreparedChunk {
+    /// Chunk coordinates
+    coords: (i32, i32),
+    /// Pre-compressed packet bytes ready to send
+    raw_bytes: Vec<u8>,
+}
+
+/// Generates, serializes, and compresses a chunk in a blocking context.
+///
+/// This function runs on Tokio's blocking thread pool to avoid stalling
+/// the async runtime with CPU-heavy work.
+fn prepare_chunk_blocking(
+    state: &GlobalState,
+    cx: i32,
+    cz: i32,
+    compress: bool,
+) -> Result<PreparedChunk, String> {
+    // 1. Generate chunk (CPU-intensive noise calculations)
+    let chunk_pos = ChunkPos::new(cx, cz);
+    let chunk = state.terrain_generator
+        .generate_chunk(chunk_pos)
+        .map_err(|e| format!("Generation failed: {:?}", e))?;
+
+    // 2. Create packet (serialization)
+    let packet = ChunkAndLightData::from_ferrumc_chunk(&chunk)
+        .map_err(|e| format!("Packet creation failed: {:?}", e))?;
+
+    // 3. Compress packet (Zlib compression)
+    let raw_bytes = compress_packet(&packet, compress, &NetEncodeOpts::WithLength, 512)
+        .map_err(|e| format!("Compression failed: {:?}", e))?;
+
+    Ok(PreparedChunk {
+        coords: (cx, cz),
+        raw_bytes,
+    })
+}
+
+/// Sends a batch of chunks to the client using non-blocking architecture.
+///
+/// CPU-heavy work (generation, serialization, compression) is offloaded to
+/// `spawn_blocking` tasks. The async task only writes pre-compressed bytes.
+async fn send_batch(
     conn: &StreamWriter,
-    _state: &GlobalState,
+    state: &GlobalState,
     player_name: &str,
     loader: &mut ChunkLoaderState,
 ) -> Result<(), ()> {
@@ -408,6 +462,7 @@ fn send_batch(
     }
 
     let target_batch_size = loader.chunks_per_batch.ceil() as usize;
+    let compress = conn.compress.load(Ordering::Relaxed);
 
     trace!(
         "[{}] Sending batch (target: {}, queue: {})",
@@ -422,7 +477,8 @@ fn send_batch(
         return Err(());
     }
 
-    let mut sent = 0i32;
+    // Collect chunks to prepare (while still validating they're in view)
+    let mut chunks_to_prepare: Vec<(i32, i32)> = Vec::with_capacity(target_batch_size);
     let mut skipped = 0;
 
     for _ in 0..target_batch_size {
@@ -442,22 +498,39 @@ fn send_batch(
             continue;
         }
 
-        // Create and send chunk packet
-        // TODO: Load actual chunk data from state.world
-        match ChunkAndLightData::flat(cx, cz, CHUNK_SECTIONS) {
-            Ok(packet) => {
-                if conn.send_packet(packet).is_err() {
+        chunks_to_prepare.push((cx, cz));
+    }
+
+    // Spawn blocking tasks for all chunks in parallel
+    let mut handles = Vec::with_capacity(chunks_to_prepare.len());
+
+    for (cx, cz) in chunks_to_prepare {
+        let state_clone = Arc::clone(state);
+        let handle = tokio::task::spawn_blocking(move || {
+            prepare_chunk_blocking(&state_clone, cx, cz, compress)
+        });
+        handles.push(handle);
+    }
+
+    // Await all blocking tasks and send results
+    let mut sent = 0i32;
+
+    for handle in handles {
+        match handle.await {
+            Ok(Ok(prepared)) => {
+                // Send pre-compressed raw bytes
+                if conn.send_raw_packet(prepared.raw_bytes).is_err() {
                     debug!("[{}] Connection dead (chunk send failed)", player_name);
                     return Err(());
                 }
-                loader.sent_chunks.insert((cx, cz));
+                loader.sent_chunks.insert(prepared.coords);
                 sent += 1;
             }
+            Ok(Err(e)) => {
+                error!("[{}] Chunk preparation failed: {}", player_name, e);
+            }
             Err(e) => {
-                error!(
-                    "[{}] Failed to create chunk ({}, {}): {:?}",
-                    player_name, cx, cz, e
-                );
+                error!("[{}] Blocking task panicked: {:?}", player_name, e);
             }
         }
     }
