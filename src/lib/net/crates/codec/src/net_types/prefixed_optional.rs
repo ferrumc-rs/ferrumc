@@ -7,8 +7,9 @@ use std::fmt::Display;
 use std::io::{Read, Write};
 use tokio::io::{AsyncRead, AsyncWrite};
 
-#[derive(Encode, Decode, Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Encode, Decode, Default, Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PrefixedOptional<T> {
+    #[default]
     None,
     Some(T),
 }

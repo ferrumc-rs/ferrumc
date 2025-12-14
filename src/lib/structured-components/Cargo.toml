@@ -1,0 +1,12 @@
+[package]
+name = "ferrumc-structured-components"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+ferrumc-net-codec = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+tokio = { workspace = true }
+
+[lints]
+workspace = true

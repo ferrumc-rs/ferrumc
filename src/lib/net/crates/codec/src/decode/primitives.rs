@@ -194,3 +194,13 @@ impl<const N: usize> NetDecode for [u8; N] {
         Ok(buf)
     }
 }
+
+impl<T: NetDecode> NetDecode for Box<T> {
+    fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
+        Ok(Box::new(T::decode(reader, opts)?))
+    }
+
+    async fn decode_async<R: AsyncRead + Unpin>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
+        Ok(Box::new(T::decode_async(reader, opts).await?))
+    }
+}

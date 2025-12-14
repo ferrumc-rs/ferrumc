@@ -229,3 +229,13 @@ where
         Ok(())
     }
 }
+
+impl<T: NetEncode> NetEncode for Box<T> {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+        self.as_ref().encode(writer, opts)
+    }
+
+    async fn encode_async<W: AsyncWrite + Unpin>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+        self.as_ref().encode_async(writer, opts).await
+    }
+}
