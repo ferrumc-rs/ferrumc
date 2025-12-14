@@ -30,7 +30,7 @@ pub fn main() {
 
     let unformatted_code = unformatted_code_stream.to_string();
     let formatted_code = format_code(&unformatted_code);
-    write_generated_file(&formatted_code, OUT_FILE);
+    write_generated_file(&formatted_code, OUT_FILE, OUT_DIR);
 }
 
 fn build() -> TokenStream {
@@ -236,8 +236,8 @@ fn generate_encode_arms(components: &[ComponentDef], is_async: bool) -> TokenStr
 
 //stole it from data/build:
 
-pub fn write_generated_file(new_code: &str, out_file: &str) {
-    let path = std::path::Path::new(OUT_DIR).join(out_file);
+pub fn write_generated_file(new_code: &str, out_file: &str, out_dir : &str) {
+    let path = std::path::Path::new(out_dir).join(out_file);
 
     if path.exists() {
         if let Ok(existing_code) = fs::read_to_string(&path) {
