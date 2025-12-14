@@ -228,6 +228,34 @@ impl StreamWriter {
         Ok(())
     }
 
+    /// Sends multiple pre-encoded packets as a single batched write.
+    ///
+    /// This is more efficient than calling `send_raw_packet` multiple times because:
+    /// 1. Only one channel send instead of N
+    /// 2. Only one encryption pass over the combined buffer
+    /// 3. Only one write syscall
+    ///
+    /// Use this for bulk operations like sending chunk batches.
+    pub fn send_raw_packets_batched(&self, packets: Vec<Vec<u8>>) -> Result<(), NetError> {
+        if !self.running.load(Ordering::Relaxed) {
+            #[cfg(debug_assertions)]
+            warn!("Attempted to send batched raw bytes on closed connection");
+            return Err(NetError::ConnectionDropped);
+        }
+
+        // Calculate total size and concatenate all packets
+        let total_size: usize = packets.iter().map(|p| p.len()).sum();
+        let mut combined = Vec::with_capacity(total_size);
+        for packet in packets {
+            combined.extend(packet);
+        }
+
+        self.sender
+            .send(WriterCommand::SendPacket(combined))
+            .map_err(std::io::Error::other)?;
+        Ok(())
+    }
+
     /// Sends a message to the outgoing packet writer to update its encryption keys
     pub fn update_encryption_cipher(&self, new_key: &[u8]) -> Result<(), NetError> {
         if !self.running.load(Ordering::Relaxed) {

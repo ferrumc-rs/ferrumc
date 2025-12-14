@@ -72,10 +72,10 @@ use tracing::{debug, error, trace};
 const DEFAULT_CHUNKS_PER_BATCH: f32 = 32.0;
 
 /// Maximum chunks per batch to prevent packet flooding.
-const MAX_CHUNKS_PER_BATCH: f32 = 150.0;
+const MAX_CHUNKS_PER_BATCH: f32 = 128.0;
 
 /// Minimum chunks per batch to ensure progress.
-const MIN_CHUNKS_PER_BATCH: f32 = 100.0;
+const MIN_CHUNKS_PER_BATCH: f32 = 1.0;
 
 // ============================================================================
 // Chunk Loader State
@@ -478,12 +478,6 @@ async fn send_batch(
         loader.queue.len()
     );
 
-    // Start batch
-    if conn.send_packet(ChunkBatchStart {}).is_err() {
-        debug!("[{}] Connection dead (ChunkBatchStart failed)", player_name);
-        return Err(());
-    }
-
     // Collect chunks to prepare (while validating they're in view)
     let mut chunks_to_prepare: Vec<(i32, i32)> = Vec::with_capacity(target_batch_size);
     let mut skipped = 0;
@@ -584,23 +578,42 @@ async fn send_batch(
         error!("[{}] Blocking task panicked: {:?}", player_name, e);
     })?;
 
-    // Send all prepared chunks (already compressed, just write bytes)
-    let mut sent = 0i32;
+    // Collect successful chunk packets and track coordinates
+    let mut chunk_packets: Vec<Vec<u8>> = Vec::with_capacity(prepared_chunks.len());
+    let mut chunk_coords: Vec<(i32, i32)> = Vec::with_capacity(prepared_chunks.len());
 
     for result in prepared_chunks {
         match result {
             Ok(prepared) => {
-                if conn.send_raw_packet(prepared.raw_bytes).is_err() {
-                    debug!("[{}] Connection dead (chunk send failed)", player_name);
-                    return Err(());
-                }
-                loader.sent_chunks.insert(prepared.coords);
-                sent += 1;
+                chunk_coords.push(prepared.coords);
+                chunk_packets.push(prepared.raw_bytes);
             }
             Err(e) => {
                 error!("[{}] Chunk preparation failed: {}", player_name, e);
             }
         }
+    }
+
+    let sent = chunk_packets.len() as i32;
+
+    // NOW start the batch protocol - client timer begins here
+    // This ensures the client only measures network transmission + deserialization,
+    // not server-side generation/compression time
+    if conn.send_packet(ChunkBatchStart {}).is_err() {
+        debug!("[{}] Connection dead (ChunkBatchStart failed)", player_name);
+        return Err(());
+    }
+
+    // Send all chunk packets as a single batched write
+    // This is much faster than individual sends due to reduced encryption overhead
+    if conn.send_raw_packets_batched(chunk_packets).is_err() {
+        debug!("[{}] Connection dead (chunk batch send failed)", player_name);
+        return Err(());
+    }
+
+    // Mark all chunks as sent
+    for coords in chunk_coords {
+        loader.sent_chunks.insert(coords);
     }
 
     // Finish batch
