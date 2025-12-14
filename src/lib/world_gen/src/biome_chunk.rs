@@ -45,7 +45,7 @@ impl BiomeChunk {
 
     fn intern_at(&self, pos: IVec3) -> Biome {
         let pos = pos.abs();
-        let i = pos.x & 3 | (pos.z & 3) << 2 | (pos.y - self.min_y as i32) << 4;
+        let i = pos.x & 3 | (pos.z & 3) << 2 | (pos.y - i32::from(self.min_y)) << 4;
         self.biomes[i as usize]
     }
     pub fn at(&self, pos: BlockPos) -> Biome {

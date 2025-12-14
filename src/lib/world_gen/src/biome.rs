@@ -1,8 +1,7 @@
-
 use crate::perlin_noise::{BIOME_INFO_NOISE, FROZEN_TEMPERATURE_NOISE, TEMPERATURE_NOISE};
 
 use ferrumc_world::pos::BlockPos;
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Biome {
     TheVoid,
     Plains,

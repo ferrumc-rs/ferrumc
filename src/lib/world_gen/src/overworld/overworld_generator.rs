@@ -17,7 +17,10 @@ use bevy_math::DVec3;
 use ferrumc_macros::block;
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::chunk_format::Chunk;
-use ferrumc_world::pos::{ChunkHeight, ChunkPos, ColumnPos};
+use ferrumc_world::pos::{
+    BlockPos, ChunkBlockPos, ChunkColumnPos, ChunkHeight, ChunkPos, ColumnPos,
+};
+use itertools::Itertools;
 
 pub(super) const CHUNK_HEIGHT: ChunkHeight = ChunkHeight::new(-64, 384);
 
@@ -165,17 +168,23 @@ impl OverworldGenerator {
             CHUNK_HEIGHT,
         );
 
-        self.surface
-            .build_surface(&self.biome_noise, &mut chunk, &biomes, chunk_pos.origin());
-        self.carver.carve(
-            &mut chunk,
-            &biomes,
-            self.seed,
-            chunk_pos,
-            &mut CarvingMask::new(CHUNK_HEIGHT),
-            &self.surface,
-            &self.biome_noise,
-        );
+        for (x, z) in (0..15).cartesian_product(0..15) {
+            self.surface.build_surface(
+                &self.biome_noise,
+                &mut chunk,
+                &biomes,
+                chunk_pos.column_pos(ChunkColumnPos::new(x, z)),
+            );
+        }
+        // self.carver.carve(
+        //     &mut chunk,
+        //     &biomes,
+        //     self.seed,
+        //     chunk_pos,
+        //     &mut CarvingMask::new(CHUNK_HEIGHT),
+        //     &self.surface,
+        //     &self.biome_noise,
+        // );
         Ok(chunk)
     }
 }

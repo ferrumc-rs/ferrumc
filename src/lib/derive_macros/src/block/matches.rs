@@ -52,7 +52,7 @@ pub fn matches_block(input: TokenStream) -> TokenStream {
     let mut arms = Vec::new();
     for (id, _) in filtered_names {
         arms.push(quote! {
-            #block_state_id_var == BlockStateId::new(#id)
+            #block_state_id_var == BlockStateId(#id)
         });
     }
     let joined = quote! {

@@ -5,7 +5,7 @@ use std::range::Range;
 
 use crate::biome_chunk::BiomeChunk;
 use crate::common::surface::Surface;
-use crate::overworld::aquifer::{Aquifer, SEA_LEVEL};
+use crate::overworld::aquifer::SEA_LEVEL;
 use crate::overworld::noise_depth::OverworldBiomeNoise;
 use crate::overworld::ore_veins::Vein;
 use crate::perlin_noise::{
@@ -18,7 +18,7 @@ use bevy_math::FloatExt;
 use ferrumc_macros::block;
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::chunk_format::Chunk;
-use ferrumc_world::pos::{BlockPos, ChunkBlockPos, ColumnPos};
+use ferrumc_world::pos::{BlockPos, ColumnPos};
 
 use crate::{biome::Biome, perlin_noise::NormalNoise, random::Rng};
 
@@ -42,7 +42,6 @@ pub struct SurfaceNoises {
 
 pub struct OverworldSurface {
     pub surface: Surface,
-    pub aquifer: Aquifer,
     noises: SurfaceNoises,
     vein: Vein,
     factory: Xoroshiro128PlusPlus,
@@ -54,7 +53,6 @@ impl OverworldSurface {
         Self {
             surface: Surface::new(block!("stone"), CHUNK_HEIGHT),
             rules: SurfaceRules::new(factory),
-            aquifer: Aquifer::new(factory),
             noises: SurfaceNoises {
                 surface: SURFACE.init(factory),
                 surface_secondary: SURFACE_SECONDARY.init(factory),
@@ -85,7 +83,7 @@ impl OverworldSurface {
         pos: ColumnPos,
     ) {
         let (stone_level, fluid_level) = self.surface.find_surface(chunk, pos);
-        let biome = biome_manager.at(pos.block(stone_level + 1));
+        let biome = biome_manager.at(pos.block((stone_level + 1).into()));
         let extended_height = if matches!(biome, Biome::ErodedBadlands) && fluid_level.is_none() {
             self.eroded_badlands_extend_height(pos)
                 .unwrap_or(stone_level)
@@ -93,46 +91,34 @@ impl OverworldSurface {
             stone_level
         };
 
-        let mut block_column = self.surface.make_column(
+        self.surface.make_column(
+            chunk,
             extended_height,
             fluid_level,
             pos,
             biome,
-            |biome: Biome,
-             depth_above: i32,
-             depth_below: i32,
-             fluid_level: Option<i32>,
-             pos: BlockPos| {
+            |chunk, biome, depth_above, depth_below, fluid_level, pos| {
                 self.rules
                     .try_apply(
                         chunk,
                         self,
                         biome_noise,
                         biome,
-                        depth_above,
-                        depth_below,
-                        fluid_level,
+                        depth_above.into(),
+                        depth_below.into(),
+                        fluid_level.map(i32::from),
                         pos,
                     )
                     .to_block()
             },
-            |pos, final_density| {
-                (pos.y() < stone_level).then_some(()).and_then(
-                    |()| self.aquifer.at(biome_noise, pos, final_density).0, //TODO
-                )
-            },
         ); //TODO: add Vein to rules
 
         if matches!(biome, Biome::FrozenOcean | Biome::DeepFrozenOcean) {
-            self.frozen_ocean_extension(pos, biome, &mut block_column);
+            self.frozen_ocean_extension(pos, biome, chunk);
         }
-        block_column.iter().enumerate().for_each(|(i, b)| {
-            let pos: ChunkBlockPos = pos.block(i as i32 - 64).chunk_block_pos();
-            chunk.set_block(pos, *b).unwrap()
-        });
     }
 
-    fn eroded_badlands_extend_height(&self, pos: ColumnPos) -> Option<i32> {
+    fn eroded_badlands_extend_height(&self, pos: ColumnPos) -> Option<i16> {
         let pos = pos.block(0).pos.as_dvec3();
         let surface = (self.noises.badlands_surface_noise.at(pos) * 8.25)
             .abs()
@@ -140,7 +126,7 @@ impl OverworldSurface {
 
         if surface > 0.0 {
             let pillar_roof = (self.noises.badlands_pillar_roof_noise.at(pos * 0.75) * 1.5).abs();
-            Some((64.0 + (surface * surface * 2.5).min(pillar_roof * 50.0).ceil() + 24.0) as i32)
+            Some((64.0 + (surface * surface * 2.5).min(pillar_roof * 50.0).ceil() + 24.0) as i16)
         } else {
             None
         }
@@ -164,29 +150,31 @@ impl OverworldSurface {
         }
     }
 
-    fn frozen_ocean_extension(
-        &self,
-        pos: ColumnPos,
-        biome: Biome,
-        block_column: &mut [BlockStateId],
-    ) {
+    fn frozen_ocean_extension(&self, pos: ColumnPos, biome: Biome, block_column: &mut Chunk) {
         if let Some(iceburg_height) = self.frozen_ocean_extend_height(pos, biome) {
             let mut rng = self.factory.at(pos.block(0));
             let max_snow_blocks = 2 + rng.next_bounded(4);
             let min_snow_block_y = SEA_LEVEL + 18 + rng.next_bounded(10) as i32;
             let mut snow_blocks = 0;
             for y in (SEA_LEVEL - iceburg_height - 7..=SEA_LEVEL + iceburg_height).rev() {
-                let block = block_column[(y as i16 - CHUNK_HEIGHT.min_y) as usize];
+                let pos = pos
+                    .block((y as i16 - CHUNK_HEIGHT.min_y).into())
+                    .chunk_block_pos();
+                let block = block_column.get_block(pos).unwrap();
                 if block == block!("air") && rng.next_f64() > 0.01
                     || block == block!("water", {level: 0}) && rng.next_f64() > 0.15
                 {
-                    block_column[(y as i16 - CHUNK_HEIGHT.min_y) as usize] =
-                        if snow_blocks <= max_snow_blocks && y > min_snow_block_y {
-                            snow_blocks += 1;
-                            block!("snow_block")
-                        } else {
-                            block!("packed_ice")
-                        };
+                    block_column
+                        .set_block(
+                            pos,
+                            if snow_blocks <= max_snow_blocks && y > min_snow_block_y {
+                                snow_blocks += 1;
+                                block!("snow_block")
+                            } else {
+                                block!("packed_ice")
+                            },
+                        )
+                        .unwrap();
                 }
             }
         }

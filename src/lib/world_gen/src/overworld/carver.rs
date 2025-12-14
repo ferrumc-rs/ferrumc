@@ -6,14 +6,15 @@ use bevy_math::Vec3Swizzles;
 
 use crate::{
     biome_chunk::BiomeChunk,
-    common::carver::{Caver, can_reach},
     common::{
-        aquifer::FluidType,
-        carver::{CarvingMask, carve_ellipsoid},
+        aquifer::{self, FluidType},
+        carver::{CarvingMask, Caver, can_reach, carve_ellipsoid},
     },
     direction::Direction,
-    overworld::surface::OverworldSurface,
-    overworld::{noise_depth::OverworldBiomeNoise, overworld_generator::CHUNK_HEIGHT},
+    overworld::{
+        aquifer::Aquifer, noise_depth::OverworldBiomeNoise, overworld_generator::CHUNK_HEIGHT,
+        surface::OverworldSurface,
+    },
     random::{LegacyRandom, Rng},
 };
 
@@ -57,6 +58,7 @@ impl OverworldCarver {
         chunk_pos: ChunkPos,
         carving_mask: &mut CarvingMask,
         surface: &OverworldSurface,
+        aquifer: &Aquifer,
         biome_noise: &OverworldBiomeNoise,
     ) {
         self.cave_carver.carve_overworld(
@@ -66,6 +68,7 @@ impl OverworldCarver {
             chunk_pos,
             carving_mask,
             surface,
+            aquifer,
             biome_noise,
         );
         self.extra_cave_carver.carve_overworld(
@@ -75,6 +78,7 @@ impl OverworldCarver {
             chunk_pos,
             carving_mask,
             surface,
+            aquifer,
             biome_noise,
         );
         carve_canyon(
@@ -84,6 +88,7 @@ impl OverworldCarver {
             chunk_pos,
             carving_mask,
             surface,
+            aquifer,
             biome_noise,
         );
     }
@@ -92,12 +97,13 @@ impl OverworldCarver {
 fn clear_overworld_cave_block(
     chunk: &mut Chunk,
     surface: &OverworldSurface,
+    aquifer: &Aquifer,
     biome_accessor: &BiomeChunk,
     biome_noise: &OverworldBiomeNoise,
     surface_reached: &mut bool,
     pos: BlockPos,
 ) {
-    let rel_pos: ChunkBlockPos = pos.chunk_block_pos();
+    let rel_pos = pos.chunk_block_pos();
     let block = chunk.get_block(rel_pos).unwrap();
 
     if block == block!("bedrock") {
@@ -108,12 +114,11 @@ fn clear_overworld_cave_block(
         *surface_reached = true;
     }
 
-    if let (Some(carve_state), _fluid_update /* TODO */) = surface.aquifer.at(biome_noise, pos, 0.0)
-    {
+    if let (Some(carve_state), _fluid_update /* TODO */) = aquifer.at(biome_noise, pos, 0.0) {
         chunk.set_block(rel_pos, carve_state.into()).unwrap();
         if *surface_reached {
             let check_pos = pos + Direction::Down.as_unit().into(); //TODO bounds check
-            let rel_pos: ChunkBlockPos = check_pos.chunk_block_pos();
+            let rel_pos = check_pos.chunk_block_pos();
 
             if chunk.get_block(rel_pos).unwrap() == block!("dirt")
                 && let Some(block_state1) = surface.top_material(
@@ -142,6 +147,7 @@ impl Caver {
         chunk_pos: ChunkPos,
         carving_mask: &mut CarvingMask,
         surface: &OverworldSurface,
+        aquifer: &Aquifer,
         biome_noise: &OverworldBiomeNoise,
     ) {
         self.carve(
@@ -149,6 +155,7 @@ impl Caver {
                 clear_overworld_cave_block(
                     chunk,
                     surface,
+                    aquifer,
                     biome_accessor,
                     biome_noise,
                     surface_reached,
@@ -178,6 +185,7 @@ fn carve_canyon(
     chunk_pos: ChunkPos,
     carving_mask: &mut CarvingMask,
     surface: &OverworldSurface,
+    aquifer: &Aquifer,
     biome_noise: &OverworldBiomeNoise,
 ) {
     const PROBABILITY: f32 = 0.01;
@@ -261,6 +269,7 @@ fn carve_canyon(
                 clear_overworld_cave_block(
                     chunk,
                     surface,
+                    aquifer,
                     biome_accessor,
                     biome_noise,
                     &mut surface_reached,

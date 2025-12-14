@@ -48,7 +48,7 @@ lazy_static! {
 /// This should be used over `BlockData` in most cases, as it's much more efficient to store and pass around.
 /// You can also generate a block's id at runtime with the [ferrumc_macros::block!] macro.
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Encode, Decode, DeepSizeOf)]
-pub struct BlockStateId(u32);
+pub struct BlockStateId(pub u32);
 
 impl BlockStateId {
     /// Do NOT use this by yourself. Instead use the block macro `block!("stone")` the item to block
