@@ -1,1 +1,1 @@
-﻿mod potion_contents_json;
+﻿mod components;

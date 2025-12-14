@@ -118,8 +118,6 @@ impl NetEncode for PotionEffectDetail {
 
 impl NetDecode for PotionContents {
     fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
-        let _probably_data_length = VarInt::decode(reader, opts)?; // I don't know why there is this byte. But it is there!
-
         let potion_id: PrefixedOptional<VarInt> = PrefixedOptional::decode(reader, opts)?;
         let custom_color: PrefixedOptional<i32> = PrefixedOptional::decode(reader, opts)?;
         let custom_effects: LengthPrefixedVec<PotionEffect> = LengthPrefixedVec::decode(reader, opts)?;
@@ -137,7 +135,6 @@ impl NetDecode for PotionContents {
         reader: &mut R,
         opts: &NetDecodeOpts,
     ) -> Result<Self, NetDecodeError> {
-        let _probably_data_length = VarInt::decode_async(reader, opts).await; // I don't know why there is this byte. But it is there!
         let potion_id: PrefixedOptional<VarInt> = PrefixedOptional::decode_async(reader, opts).await?;
         let custom_color: PrefixedOptional<i32> = PrefixedOptional::decode_async(reader, opts).await?;
         let custom_effects: LengthPrefixedVec<PotionEffect> = LengthPrefixedVec::decode_async(reader, opts).await?;
