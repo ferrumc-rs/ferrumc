@@ -6,9 +6,7 @@ pub mod memory;
 pub mod tick;
 pub mod tps;
 
-pub const TICKS_PER_SECOND: usize = 20;
 pub const WINDOW_SECONDS: usize = 60;
-pub const BUFFER_SIZE: usize = TICKS_PER_SECOND * WINDOW_SECONDS; // 1200
 
 /// Core ECS resource for all server performance metrics.
 ///
@@ -39,8 +37,17 @@ pub const BUFFER_SIZE: usize = TICKS_PER_SECOND * WINDOW_SECONDS; // 1200
 /// - Lag spike detection
 /// - Scheduler overrun statistics (will be moved here)
 /// - Sampler-based profiling (maybe i doubt it to be honest)
-#[derive(Resource, Default)]
+#[derive(Resource)]
 pub struct ServerPerformance {
     pub tps: TPSMonitor,
     pub memory: MemoryUsage,
+}
+
+impl ServerPerformance {
+    pub fn new(tps: u32) -> Self {
+        Self {
+            tps: TPSMonitor::new(tps),
+            memory: MemoryUsage::default(),
+        }
+    }
 }

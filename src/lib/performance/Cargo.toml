@@ -5,6 +5,8 @@ edition.workspace = true
 version.workspace = true
 
 [dependencies]
+ferrumc-config = { workspace = true }
+
 bevy_ecs = { workspace = true }
 sysinfo = { workspace = true }
 

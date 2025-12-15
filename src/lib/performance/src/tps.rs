@@ -1,21 +1,21 @@
 use crate::{
     tick::{TickData, TickHistory},
-    BUFFER_SIZE, TICKS_PER_SECOND,
+    WINDOW_SECONDS,
 };
 
 pub struct TPSMonitor {
+    tps: u32,
     history: TickHistory,
 }
 
-impl Default for TPSMonitor {
-    fn default() -> Self {
+impl TPSMonitor {
+    pub fn new(tps: u32) -> Self {
         Self {
-            history: TickHistory::new(BUFFER_SIZE),
+            tps,
+            history: TickHistory::new(tps as usize * WINDOW_SECONDS),
         }
     }
-}
 
-impl TPSMonitor {
     #[inline]
     pub fn record_tick(&mut self, tick: TickData) {
         self.history.record(tick);
@@ -36,32 +36,11 @@ impl TPSMonitor {
         }
 
         if ticks == 0 || elapsed_ns == 0 {
-            return TICKS_PER_SECOND as f32;
+            return self.tps as f32;
         }
 
         let tps = (ticks as f64) / (elapsed_ns as f64 / 1_000_000_000.0);
-        tps.clamp(0.0, TICKS_PER_SECOND as f64) as f32
-    }
-
-    /// Average tick duration over the last second (ms)
-    pub fn avg_tick_ms(&self) -> f64 {
-        let mut elapsed_ns = 0u128;
-        let mut ticks = 0;
-
-        for tick in self.history.iter_rev() {
-            elapsed_ns += tick.duration_ns;
-            ticks += 1;
-
-            if elapsed_ns >= 1_000_000_000 {
-                break;
-            }
-        }
-
-        if ticks == 0 {
-            return 0.0;
-        }
-
-        (elapsed_ns as f64 / ticks as f64) / 1_000_000.0
+        tps.clamp(0.0, f64::from(self.tps)) as f32
     }
 
     fn collect_window_ns(&self, window_ns: u128) -> Vec<u128> {
@@ -98,6 +77,27 @@ impl TPSMonitor {
         let samples = self.collect_window_ns(window_ns);
         let ns = self.percentile_ns(samples, percentile)?;
         Some(ns as f64 / 1_000_000.0)
+    }
+
+    /// Average tick duration over the last second (ms)
+    pub fn avg_tick_ms(&self) -> f64 {
+        let mut elapsed_ns = 0u128;
+        let mut ticks = 0;
+
+        for tick in self.history.iter_rev() {
+            elapsed_ns += tick.duration_ns;
+            ticks += 1;
+
+            if elapsed_ns >= 1_000_000_000 {
+                break;
+            }
+        }
+
+        if ticks == 0 {
+            return 0.0;
+        }
+
+        (elapsed_ns as f64 / f64::from(ticks)) / 1_000_000.0
     }
 
     pub fn tps_1s(&self) -> f32 {
