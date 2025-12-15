@@ -58,3 +58,44 @@ impl From<NotSupportedStructuredComponentError> for NetDecodeError {
         NetDecodeError::ExternalError(Box::new(value))
     }
 }
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MaxLimitExceededError {
+    pub limit_type: &'static str,
+    pub actual: usize,
+    pub max_limit: usize,
+}
+
+impl MaxLimitExceededError {
+    pub fn new(limit_type: &'static str, actual: usize, max_limit: usize) -> Self {
+        MaxLimitExceededError {
+            limit_type,
+            actual,
+            max_limit,
+        }
+    }
+}
+
+impl fmt::Display for MaxLimitExceededError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{} exceeds maximum allowed limit. Received: {}, Max: {}",
+            self.limit_type, self.actual, self.max_limit
+        )
+    }
+}
+
+impl Error for MaxLimitExceededError {}
+
+impl From<MaxLimitExceededError> for NetEncodeError {
+    fn from(value: MaxLimitExceededError) -> Self {
+        NetEncodeError::ExternalError(Box::new(value))
+    }
+}
+
+impl From<MaxLimitExceededError> for NetDecodeError {
+    fn from(value: MaxLimitExceededError) -> Self {
+        NetDecodeError::ExternalError(Box::new(value))
+    }
+}

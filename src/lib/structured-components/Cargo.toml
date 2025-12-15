@@ -7,6 +7,8 @@ edition = "2021"
 [dependencies]
 ferrumc-net-codec = { workspace = true }
 tokio = { workspace = true }
+trace = "0.1.7"
+log = "0.4.29"
 
 [build-dependencies]
 proc-macro2 = "1.0"

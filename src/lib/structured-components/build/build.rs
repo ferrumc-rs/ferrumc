@@ -39,6 +39,7 @@ fn build() -> TokenStream {
         ComponentDef { id: 34, variant: "StoredEnchantments", struct_path: Some("crate::netcode::components::enchantments::enchantments_collection::EnchantmentsCollection") },
         ComponentDef { id: 42, variant: "PotionContents", struct_path: Some("crate::netcode::components::potion_contents::PotionContents") },
         ComponentDef { id: 44, variant: "SuspiciousStewEffects", struct_path: Some("crate::netcode::components::suspicious_stew_effects::SuspiciousStewEffects") },
+        ComponentDef { id: 45, variant: "WritableBookContent", struct_path: Some("crate::netcode::components::writable_book_content::WritableBookContent") },
         ComponentDef { id: 54, variant: "OminousBottleAmplifier", struct_path: Some("crate::netcode::components::ominous_bottle_amplifier::OminousBottleAmplifier") },
         ComponentDef { id: 60, variant: "Fireworks", struct_path: Some("crate::netcode::components::fireworks::Fireworks") },
     ];
@@ -56,6 +57,7 @@ fn build() -> TokenStream {
         use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
         use ferrumc_net_codec::encode::errors::NetEncodeError;
         use ferrumc_net_codec::net_types::var_int::VarInt;
+        use log::debug;
         use std::io::{Read, Write};
         use tokio::io::{AsyncRead, AsyncWrite};
         use crate::netcode::errors::{InvalidStructuredComponentEnumError, NotSupportedStructuredComponentError};
@@ -112,6 +114,8 @@ fn build() -> TokenStream {
 
                 let _probably_data_length = VarInt::decode(reader, opts)?;
 
+                debug!{"Decoding structuredComponent with id {} and data length {}", id, _probably_data_length}
+
                 match id.0 {
                     #decode_match_arms
                     _ => {
@@ -124,6 +128,8 @@ fn build() -> TokenStream {
                 let id = VarInt::decode_async(reader, opts).await?;
 
                 let _probably_data_length = VarInt::decode_async(reader, opts).await?;
+
+                debug!{"Decoding structuredComponent with id {} and data length {}", id, _probably_data_length}
 
                 match id.0 {
                     #decode_async_match_arms
