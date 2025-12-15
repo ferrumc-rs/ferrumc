@@ -1,8 +1,3 @@
-#![allow(clippy::all)]
-#![allow(warnings)]
-#![recursion_limit = "256"]
-#![feature(async_fn_in_trait)]
-
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 use std::fs;
