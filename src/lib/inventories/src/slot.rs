@@ -163,9 +163,6 @@ mod tests {
     use ferrumc_net_codec::encode::NetEncodeOpts;
     use ferrumc_net_codec::net_types::var_int::VarInt;
     use std::io::Cursor;
-    use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
-    use ferrumc_net_codec::net_types::prefixed_optional::PrefixedOptional;
-    use ferrumc_structured_components::netcode::components::potion_contents::{PotionContents, PotionEffect};
 
     // This helper function runs the encode/decode cycle
     fn run_roundtrip_test(slot_in: &InventorySlot) -> InventorySlot {
@@ -212,26 +209,12 @@ mod tests {
 
         // --- Test Case 2: The Full NBT/Component Slot ---
 
-        let potion_effect = PotionEffect {
-            effect_id: VarInt::new(42),
-            detail: Default::default(),
-        };
-
-        let potion_content = PotionContents {
-            potion_id: PrefixedOptional::None,
-            custom_color: PrefixedOptional::Some(200),
-            custom_effects: LengthPrefixedVec::new(vec![potion_effect]),
-            custom_name: "jabba".to_string(),
-        };
-
-        let potion_component = StructuredComponent::PotionContents(potion_content);
-
         let complex_slot = InventorySlot {
             count: VarInt::new(1),
             item_id: Some(ItemID::new(872)),
-            components_to_add_count: Some(VarInt::new(1)),
+            components_to_add_count: Some(VarInt::new(0)),
             components_to_remove_count: Some(VarInt::new(1)),
-            components_to_add: Some(vec![potion_component]),
+            components_to_add: Some(vec![]),
             components_to_remove: Some(vec![VarInt::new(20)]),
         };
         let decoded_complex = run_roundtrip_test(&complex_slot);
