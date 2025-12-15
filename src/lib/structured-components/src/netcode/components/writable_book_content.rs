@@ -28,13 +28,14 @@ fn throw_if_length_exceeds(
     limit_type: &'static str,
 ) -> Result<(), MaxLimitExceededError> {
     if value_count > max_length {
-        return Err(MaxLimitExceededError::new(
+        Err(MaxLimitExceededError::new(
             limit_type,
             value_count,
             max_length,
-        ))?;
+        ))
+    } else {
+        Ok(())
     }
-    Ok(())
 }
 
 impl NetDecode for Page {

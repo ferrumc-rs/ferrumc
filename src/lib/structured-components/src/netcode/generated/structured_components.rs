@@ -9,6 +9,10 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use log::debug;
 use std::io::{Read, Write};
 use tokio::io::{AsyncRead, AsyncWrite};
+#[doc = r" NOTE:"]
+#[doc = r" Structured components use an asymmetric protocol:"]
+#[doc = r" - client -> server: id + length + data"]
+#[doc = r" - server -> client: id + data"]
 #[derive(Debug, Clone, Hash, Default, PartialEq)]
 pub enum StructuredComponent {
     # [default] Invalid , MaxDamage (crate :: netcode :: components :: damage :: MaxDamage) , Damage (crate :: netcode :: components :: damage :: Damage) , Unbreakable , Enchantments (crate :: netcode :: components :: enchantments :: enchantments_collection :: EnchantmentsCollection) , EnchantmentGlintOverride (crate :: netcode :: components :: enchantments :: enchantment_glint_override :: EnchantmentGlintOverride) , Enchantable (crate :: netcode :: components :: enchantments :: enchantable :: Enchantable) , StoredEnchantments (crate :: netcode :: components :: enchantments :: enchantments_collection :: EnchantmentsCollection) , PotionContents (crate :: netcode :: components :: potion_contents :: PotionContents) , SuspiciousStewEffects (crate :: netcode :: components :: suspicious_stew_effects :: SuspiciousStewEffects) , WritableBookContent (crate :: netcode :: components :: writable_book_content :: WritableBookContent) , OminousBottleAmplifier (crate :: netcode :: components :: ominous_bottle_amplifier :: OminousBottleAmplifier) , Fireworks (crate :: netcode :: components :: fireworks :: Fireworks) , }

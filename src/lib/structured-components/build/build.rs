@@ -62,6 +62,10 @@ fn build() -> TokenStream {
         use tokio::io::{AsyncRead, AsyncWrite};
         use crate::netcode::errors::{InvalidStructuredComponentEnumError, NotSupportedStructuredComponentError};
 
+        /// NOTE:
+        /// Structured components use an asymmetric protocol:
+        /// - client -> server: id + length + data
+        /// - server -> client: id + data
         #[derive(Debug, Clone, Hash, Default, PartialEq)]
         pub enum StructuredComponent {
             #[default]
