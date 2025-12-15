@@ -1,4 +1,4 @@
-﻿use crate::netcode::errors::ProtocolViolationError;
+use crate::netcode::errors::ProtocolViolationError;
 use ferrumc_net_codec::decode::errors::NetDecodeError;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::encode::errors::NetEncodeError;
@@ -120,7 +120,8 @@ impl NetDecode for PotionContents {
     fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
         let potion_id: PrefixedOptional<VarInt> = PrefixedOptional::decode(reader, opts)?;
         let custom_color: PrefixedOptional<i32> = PrefixedOptional::decode(reader, opts)?;
-        let custom_effects: LengthPrefixedVec<PotionEffect> = LengthPrefixedVec::decode(reader, opts)?;
+        let custom_effects: LengthPrefixedVec<PotionEffect> =
+            LengthPrefixedVec::decode(reader, opts)?;
         let custom_name: String = String::decode(reader, opts)?;
 
         Ok(PotionContents {
@@ -135,9 +136,12 @@ impl NetDecode for PotionContents {
         reader: &mut R,
         opts: &NetDecodeOpts,
     ) -> Result<Self, NetDecodeError> {
-        let potion_id: PrefixedOptional<VarInt> = PrefixedOptional::decode_async(reader, opts).await?;
-        let custom_color: PrefixedOptional<i32> = PrefixedOptional::decode_async(reader, opts).await?;
-        let custom_effects: LengthPrefixedVec<PotionEffect> = LengthPrefixedVec::decode_async(reader, opts).await?;
+        let potion_id: PrefixedOptional<VarInt> =
+            PrefixedOptional::decode_async(reader, opts).await?;
+        let custom_color: PrefixedOptional<i32> =
+            PrefixedOptional::decode_async(reader, opts).await?;
+        let custom_effects: LengthPrefixedVec<PotionEffect> =
+            LengthPrefixedVec::decode_async(reader, opts).await?;
         let custom_name: String = String::decode_async(reader, opts).await?;
 
         Ok(PotionContents {
@@ -162,8 +166,7 @@ impl NetDecode for PotionEffect {
         opts: &NetDecodeOpts,
     ) -> Result<Self, NetDecodeError> {
         let effect_id: VarInt = VarInt::decode_async(reader, opts).await?;
-        let detail: PotionEffectDetail =
-            PotionEffectDetail::decode_async(reader, opts).await?;
+        let detail: PotionEffectDetail = PotionEffectDetail::decode_async(reader, opts).await?;
 
         Ok(PotionEffect { effect_id, detail })
     }
@@ -225,8 +228,7 @@ impl NetDecode for PotionEffectDetail {
             }
         }
 
-        let mut next_child: PrefixedOptional<Box<PotionEffectDetail>> =
-            PrefixedOptional::None;
+        let mut next_child: PrefixedOptional<Box<PotionEffectDetail>> = PrefixedOptional::None;
 
         while let Some(data) = stack.pop() {
             let current_node = PotionEffectDetail {

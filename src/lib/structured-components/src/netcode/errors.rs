@@ -1,8 +1,8 @@
-﻿use std::error::Error;
-use std::fmt;
 use ferrumc_net_codec::decode::errors::NetDecodeError;
 use ferrumc_net_codec::encode::errors::NetEncodeError;
 use ferrumc_net_codec::net_types::var_int::VarInt;
+use std::error::Error;
+use std::fmt;
 
 #[derive(Debug)]
 pub struct ProtocolViolationError(pub &'static str);
@@ -37,7 +37,11 @@ pub struct NotSupportedStructuredComponentError(pub VarInt);
 
 impl fmt::Display for NotSupportedStructuredComponentError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "This StructuredComponent is not supported. Id : {}", self.0)
+        write!(
+            f,
+            "This StructuredComponent is not supported. Id : {}",
+            self.0
+        )
     }
 }
 

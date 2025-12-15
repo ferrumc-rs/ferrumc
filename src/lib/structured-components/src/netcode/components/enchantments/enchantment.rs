@@ -1,4 +1,4 @@
-﻿use ferrumc_net_codec::decode::errors::NetDecodeError;
+use ferrumc_net_codec::decode::errors::NetDecodeError;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::encode::errors::NetEncodeError;
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
@@ -39,7 +39,11 @@ impl NetEncode for Enchantment {
         Ok(())
     }
 
-    async fn encode_async<W: AsyncWrite + Unpin>(&self, writer: &mut W, opts: &NetEncodeOpts,) -> Result<(), NetEncodeError> {
+    async fn encode_async<W: AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
         self.type_id.encode_async(writer, opts).await?;
         self.level.encode_async(writer, opts).await?;
 

@@ -34,7 +34,7 @@ impl NetEncode for StructuredComponent {
         if let StructuredComponent::Invalid = self {
             return Err(InvalidStructuredComponentEnumError().into());
         }
-        let id = self.to_id().map_err(|e| NetEncodeError::from(e))?;
+        let id = self.to_id()?;
         id.encode(writer, opts)?;
         match self {
             StructuredComponent::Invalid => unreachable!(),
@@ -59,7 +59,7 @@ impl NetEncode for StructuredComponent {
         if let StructuredComponent::Invalid = self {
             return Err(InvalidStructuredComponentEnumError().into());
         }
-        let id = self.to_id().map_err(|e| NetEncodeError::from(e))?;
+        let id = self.to_id()?;
         id.encode_async(writer, opts).await?;
         match self {
             StructuredComponent::Invalid => unreachable!(),

@@ -1,10 +1,10 @@
-﻿use std::io::{Read, Write};
-use tokio::io::{AsyncRead, AsyncWrite};
-use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::decode::errors::NetDecodeError;
-use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
+use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::encode::errors::NetEncodeError;
+use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use ferrumc_net_codec::net_types::var_int::VarInt;
+use std::io::{Read, Write};
+use tokio::io::{AsyncRead, AsyncWrite};
 
 /// minecraft:max_damage
 /// The maximum damage the item can take before breaking.
@@ -26,7 +26,10 @@ impl NetDecode for MaxDamage {
         Ok(MaxDamage { max_damage })
     }
 
-    async fn decode_async<R: AsyncRead + Unpin>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
+    async fn decode_async<R: AsyncRead + Unpin>(
+        reader: &mut R,
+        opts: &NetDecodeOpts,
+    ) -> Result<Self, NetDecodeError> {
         let max_damage = VarInt::decode_async(reader, opts).await?;
         Ok(MaxDamage { max_damage })
     }
@@ -38,7 +41,11 @@ impl NetEncode for MaxDamage {
         Ok(())
     }
 
-    async fn encode_async<W: AsyncWrite + Unpin>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+    async fn encode_async<W: AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
         self.max_damage.encode_async(writer, opts).await?;
         Ok(())
     }
@@ -50,7 +57,10 @@ impl NetDecode for Damage {
         Ok(Damage { damage })
     }
 
-    async fn decode_async<R: AsyncRead + Unpin>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
+    async fn decode_async<R: AsyncRead + Unpin>(
+        reader: &mut R,
+        opts: &NetDecodeOpts,
+    ) -> Result<Self, NetDecodeError> {
         let damage = VarInt::decode_async(reader, opts).await?;
         Ok(Damage { damage })
     }
@@ -62,7 +72,11 @@ impl NetEncode for Damage {
         Ok(())
     }
 
-    async fn encode_async<W: AsyncWrite + Unpin>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+    async fn encode_async<W: AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
         self.damage.encode_async(writer, opts).await?;
         Ok(())
     }

@@ -1,26 +1,26 @@
-﻿use std::io::{Read, Write};
-use tokio::io::{AsyncRead, AsyncWrite};
-use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::decode::errors::NetDecodeError;
-use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
+use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::encode::errors::NetEncodeError;
+use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::var_int::VarInt;
+use std::io::{Read, Write};
+use tokio::io::{AsyncRead, AsyncWrite};
 
 ///minecraft:fireworks
 #[derive(Debug, Clone, Hash, Default, PartialEq)]
-pub struct Fireworks{
-    pub flight_duration : VarInt,
-    pub explosions : LengthPrefixedVec<FireworkExplosion>,
+pub struct Fireworks {
+    pub flight_duration: VarInt,
+    pub explosions: LengthPrefixedVec<FireworkExplosion>,
 }
 
 #[derive(Debug, Clone, Hash, Default, PartialEq)]
-pub struct  FireworkExplosion {
-    pub shape : VarInt,
-    pub colors : LengthPrefixedVec<i32>,
-    pub fade_colors : LengthPrefixedVec<i32>,
-    pub has_trail : bool,
-    pub has_twinkle : bool,
+pub struct FireworkExplosion {
+    pub shape: VarInt,
+    pub colors: LengthPrefixedVec<i32>,
+    pub fade_colors: LengthPrefixedVec<i32>,
+    pub has_trail: bool,
+    pub has_twinkle: bool,
 }
 
 impl NetDecode for FireworkExplosion {
@@ -40,7 +40,10 @@ impl NetDecode for FireworkExplosion {
         })
     }
 
-    async fn decode_async<R: AsyncRead + Unpin>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
+    async fn decode_async<R: AsyncRead + Unpin>(
+        reader: &mut R,
+        opts: &NetDecodeOpts,
+    ) -> Result<Self, NetDecodeError> {
         let shape = VarInt::decode_async(reader, opts).await?;
         let colors = LengthPrefixedVec::decode_async(reader, opts).await?;
         let fade_colors = LengthPrefixedVec::decode_async(reader, opts).await?;
@@ -68,7 +71,11 @@ impl NetEncode for FireworkExplosion {
         Ok(())
     }
 
-    async fn encode_async<W: AsyncWrite + Unpin>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+    async fn encode_async<W: AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
         self.shape.encode_async(writer, opts).await?;
         self.colors.encode_async(writer, opts).await?;
         self.fade_colors.encode_async(writer, opts).await?;
@@ -90,7 +97,10 @@ impl NetDecode for Fireworks {
         })
     }
 
-    async fn decode_async<R: AsyncRead + Unpin>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
+    async fn decode_async<R: AsyncRead + Unpin>(
+        reader: &mut R,
+        opts: &NetDecodeOpts,
+    ) -> Result<Self, NetDecodeError> {
         let flight_duration = VarInt::decode_async(reader, opts).await?;
         let explosions = LengthPrefixedVec::decode_async(reader, opts).await?;
 
@@ -109,7 +119,11 @@ impl NetEncode for Fireworks {
         Ok(())
     }
 
-    async fn encode_async<W: AsyncWrite + Unpin>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+    async fn encode_async<W: AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
         self.flight_duration.encode_async(writer, opts).await?;
         self.explosions.encode_async(writer, opts).await?;
 

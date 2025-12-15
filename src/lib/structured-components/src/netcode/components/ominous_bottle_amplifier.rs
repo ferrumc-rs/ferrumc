@@ -1,10 +1,10 @@
-﻿use std::io::{Read, Write};
-use tokio::io::{AsyncRead, AsyncWrite};
-use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::decode::errors::NetDecodeError;
-use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
+use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::encode::errors::NetEncodeError;
+use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use ferrumc_net_codec::net_types::var_int::VarInt;
+use std::io::{Read, Write};
+use tokio::io::{AsyncRead, AsyncWrite};
 
 /// minecraft:ominous_bottle_amplifier
 /// Amplifier for the effect of an ominous bottle.
@@ -20,7 +20,10 @@ impl NetDecode for OminousBottleAmplifier {
         Ok(OminousBottleAmplifier { amplifier })
     }
 
-    async fn decode_async<R: AsyncRead + Unpin>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
+    async fn decode_async<R: AsyncRead + Unpin>(
+        reader: &mut R,
+        opts: &NetDecodeOpts,
+    ) -> Result<Self, NetDecodeError> {
         let amplifier = VarInt::decode_async(reader, opts).await?;
 
         Ok(OminousBottleAmplifier { amplifier })
@@ -34,7 +37,11 @@ impl NetEncode for OminousBottleAmplifier {
         Ok(())
     }
 
-    async fn encode_async<W: AsyncWrite + Unpin>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+    async fn encode_async<W: AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
         self.amplifier.encode_async(writer, opts).await?;
 
         Ok(())

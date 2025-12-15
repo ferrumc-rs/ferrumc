@@ -200,7 +200,10 @@ impl<T: NetDecode> NetDecode for Box<T> {
         Ok(Box::new(T::decode(reader, opts)?))
     }
 
-    async fn decode_async<R: AsyncRead + Unpin>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
+    async fn decode_async<R: AsyncRead + Unpin>(
+        reader: &mut R,
+        opts: &NetDecodeOpts,
+    ) -> Result<Self, NetDecodeError> {
         Ok(Box::new(T::decode_async(reader, opts).await?))
     }
 }

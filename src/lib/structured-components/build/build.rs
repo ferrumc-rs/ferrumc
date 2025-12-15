@@ -1,4 +1,4 @@
-﻿#![allow(clippy::all)]
+#![allow(clippy::all)]
 #![allow(warnings)]
 #![recursion_limit = "256"]
 #![feature(async_fn_in_trait)]
@@ -87,7 +87,7 @@ fn build() -> TokenStream {
                      return Err(InvalidStructuredComponentEnumError().into());
                 }
 
-                let id = self.to_id().map_err(|e| NetEncodeError::from(e))?;
+                let id = self.to_id()?;
                 id.encode(writer, opts)?;
 
                 match self {
@@ -101,7 +101,7 @@ fn build() -> TokenStream {
                      return Err(InvalidStructuredComponentEnumError().into());
                 }
 
-                let id = self.to_id().map_err(|e| NetEncodeError::from(e))?;
+                let id = self.to_id()?;
                 id.encode_async(writer, opts).await?;
 
                 match self {
@@ -236,7 +236,7 @@ fn generate_encode_arms(components: &[ComponentDef], is_async: bool) -> TokenStr
 
 //stole it from data/build:
 
-pub fn write_generated_file(new_code: &str, out_file: &str, out_dir : &str) {
+pub fn write_generated_file(new_code: &str, out_file: &str, out_dir: &str) {
     let path = std::path::Path::new(out_dir).join(out_file);
 
     if path.exists() {
