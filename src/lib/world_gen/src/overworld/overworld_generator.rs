@@ -112,7 +112,7 @@ impl OverworldGenerator {
                 )
             })
         });
-        let mut edit = EditBatch::new(&mut chunk);
+        let mut edit = EditBatch::new();
         let mut chunk_aquifer = self.aquifer.chunk(&self.biome_noise);
         generate_interpolation_data(
             |pos| {
@@ -149,7 +149,7 @@ impl OverworldGenerator {
                 }
             },
         );
-        edit.apply().unwrap();
+        edit.apply(&mut chunk).unwrap();
         if chunk_pos.pos.to_array() != [16, 16] {
             return Ok(chunk);
         }

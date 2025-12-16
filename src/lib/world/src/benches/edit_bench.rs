@@ -104,7 +104,7 @@ pub(crate) fn bench_edits(c: &mut Criterion) {
     write_group.bench_with_input("Manual batch fill same", &chunk, |b, chunk| {
         b.iter(|| {
             let mut chunk = chunk.clone();
-            let mut batch = ferrumc_world::edit_batch::EditBatch::new(&mut chunk);
+            let mut batch = ferrumc_world::edit_batch::EditBatch::new();
             for x in 0..16 {
                 for y in 0..256 {
                     for z in 0..16 {
@@ -112,14 +112,14 @@ pub(crate) fn bench_edits(c: &mut Criterion) {
                     }
                 }
             }
-            black_box(batch.apply()).unwrap();
+            black_box(batch.apply(&mut chunk)).unwrap();
         });
     });
 
     write_group.bench_with_input("Manual batch fill diff", &chunk, |b, chunk| {
         b.iter(|| {
             let mut chunk = chunk.clone();
-            let mut batch = ferrumc_world::edit_batch::EditBatch::new(&mut chunk);
+            let mut batch = ferrumc_world::edit_batch::EditBatch::new();
             for x in 0..16 {
                 for y in 0..256 {
                     for z in 0..16 {
@@ -132,7 +132,7 @@ pub(crate) fn bench_edits(c: &mut Criterion) {
                     }
                 }
             }
-            black_box(batch.apply()).unwrap();
+            black_box(batch.apply(&mut chunk)).unwrap();
         });
     });
 

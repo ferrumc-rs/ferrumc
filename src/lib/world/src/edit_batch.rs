@@ -35,9 +35,8 @@ use std::hash::{Hash, Hasher};
 /// entire sections with the same block type. If you need to fill a section with the same block type, use
 /// `Chunk::set_section` instead. However, there is a small amount of memory overhead for setting
 /// up the batch, so if you only need to set one or two blocks, it's better to just call `set_block`
-pub struct EditBatch<'a> {
+pub struct EditBatch {
     pub(crate) edits: Vec<Edit>,
-    chunk: &'a mut Chunk,
     tmp_palette_map: AHashMap<BlockStateId, usize>,
 }
 
@@ -53,17 +52,16 @@ fn get_palette_hash(palette: &[VarInt]) -> i32 {
     hasher.finish() as i32
 }
 
-impl<'a> EditBatch<'a> {
+impl EditBatch {
     /// Creates a new `EditBatch` for the given chunk.
     ///
     /// This doesn't return the modified chunk, as the edits are applied in place.
     /// This means you should create the batch, add edits, apply and then use the original chunk
     /// you passed in.
-    pub fn new(chunk: &'a mut Chunk) -> Self {
+    pub fn new() -> Self {
         let map_capacity = 64;
         Self {
             edits: Vec::new(),
-            chunk,
             tmp_palette_map: AHashMap::with_capacity(map_capacity),
         }
     }
@@ -79,7 +77,7 @@ impl<'a> EditBatch<'a> {
     ///
     /// This will modify the chunk in place and clear the batch.
     /// Will return an error if there are no edits.
-    pub fn apply(mut self) -> Result<(), WorldError> {
+    pub fn apply(mut self, chunk: &mut Chunk) -> Result<(), WorldError> {
         if self.edits.is_empty() {
             return Err(WorldError::InvalidBatchingOperation(
                 "No edits to apply".to_string(),
@@ -114,8 +112,7 @@ impl<'a> EditBatch<'a> {
             //     .unwrap();
             let mut block_count_adds = AHashMap::new();
             let mut block_count_removes = AHashMap::new();
-            let section = self
-                .chunk
+            let section = chunk
                 .get_section_mut(section_y)
                 .ok_or(WorldError::SectionOutOfBounds(section_y as i32))?;
 
@@ -271,6 +268,12 @@ impl<'a> EditBatch<'a> {
     }
 }
 
+impl Default for EditBatch {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -291,9 +294,9 @@ mod tests {
         let mut chunk = Chunk::new(ChunkHeight::new(-64, 384));
         let block = make_test_block("minecraft:stone");
 
-        let mut batch = EditBatch::new(&mut chunk);
+        let mut batch = EditBatch::new();
         batch.set_block((1, 1, 1).into(), block);
-        batch.apply().unwrap();
+        batch.apply(&mut chunk).unwrap();
 
         let got = chunk.get_block((1, 1, 1).into()).unwrap();
         assert_eq!(got, block);
@@ -305,7 +308,7 @@ mod tests {
         let stone = make_test_block("minecraft:stone");
         let dirt = make_test_block("minecraft:dirt");
 
-        let mut batch = EditBatch::new(&mut chunk);
+        let mut batch = EditBatch::new();
         for x in 0..4 {
             for y in 0..4 {
                 for z in 0..4 {
@@ -314,7 +317,7 @@ mod tests {
                 }
             }
         }
-        batch.apply().unwrap();
+        batch.apply(&mut chunk).unwrap();
 
         for x in 0..4 {
             for y in 0..4 {

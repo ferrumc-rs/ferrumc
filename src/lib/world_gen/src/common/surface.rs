@@ -43,6 +43,7 @@ impl Surface {
         let mut stone_under = stone_level;
         let mut depth_above = 0;
 
+        let mut edit = EditBatch::new();
         for y in (self.chunk_height.min_y..=stone_level).rev() {
             match chunk
                 .get_block(pos.block(y.into()).chunk_block_pos())
@@ -79,10 +80,11 @@ impl Surface {
                         fluid_level,
                         pos.block(y.into()),
                     ) {
-                        chunk.set_block(pos.block(y.into()).chunk_block_pos(), block);
+                        edit.set_block(pos.block(y.into()).chunk_block_pos(), block);
                     }
                 }
             }
         }
+        edit.apply(chunk).unwrap();
     }
 }
