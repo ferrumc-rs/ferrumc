@@ -51,7 +51,7 @@ pub struct OverworldSurface {
 impl OverworldSurface {
     pub fn new(factory: Xoroshiro128PlusPlus) -> Self {
         Self {
-            surface: Surface::new(block!("stone"), CHUNK_HEIGHT),
+            surface: Surface::new(CHUNK_HEIGHT),
             rules: SurfaceRules::new(factory),
             noises: SurfaceNoises {
                 surface: SURFACE.init(factory),
@@ -338,6 +338,7 @@ impl SurfaceRules {
         fluid_level: Option<i32>,
         pos: BlockPos,
     ) -> SurfaceBlock {
+        use Biome::*;
         use SurfaceBlock::*;
         //bedrock
         if pos.y() == -64
@@ -349,100 +350,93 @@ impl SurfaceRules {
         }
 
         if pos.y() >= surface.min_surface_level(biome_noise, pos.column()) {
-            let surface_noise = surface.noises.surface.at(pos.column().block(0));
-            let surface_depth = surface_noise * 2.75
-                + 3.0
-                + self.factory.at(pos.column().block(0)).next_f64() * 0.25;
-
-            if depth_above <= 1 {
-                if biome == Biome::WoodedBadlands
-                    && f64::from(pos.y()) >= 97.0 + surface_depth * 2.0
-                {
-                    if badlands_noise_condition(surface_noise) {
-                        return CoarseDirt;
-                    }
-                    return if fluid_level.is_none() {
-                        GrassBlock
-                    } else {
-                        Dirt
-                    };
-                }
-                if biome == Biome::Swamp && pos.y() == 62 && surface.noises.swamp.at(pos) >= 0.0 {
-                    return Water;
-                }
-                if biome == Biome::MangroveSwamp
-                    && pos.y() >= 60
-                    && pos.y() < 63
-                    && surface.noises.swamp.at(pos) >= 0.0
-                {
-                    return Water;
-                }
-            }
-            if matches!(
-                biome,
-                Biome::Badlands | Biome::ErodedBadlands | Biome::WoodedBadlands
-            ) {
-                if depth_above <= 1 {
-                    if pos.y() >= 256 {
-                        return OrangeTerracotta;
-                    }
-                    if f64::from(pos.y()) >= 72.0 + f64::from(depth_above) + surface_depth {
-                        return if badlands_noise_condition(surface_noise) {
-                            Terracotta
+            let is_on_surface = depth_above <= 1;
+            let surface_noise = || surface.noises.surface.at(pos.column().block(0));
+            let surface_depth = || {
+                surface_noise() * 2.75
+                    + 3.0
+                    + self.factory.at(pos.column().block(0)).next_f64() * 0.25
+            };
+            let some_fluid_condition = || {
+                fluid_level.is_none_or(|f| {
+                    f64::from(pos.y()) + f64::from(depth_below)
+                        >= f64::from(f) - 6.0 - surface_depth()
+                })
+            };
+            let fluid_depth = fluid_level.unwrap_or(pos.y()) - pos.y();
+            let some_surface_depth_cond = || f64::from(depth_above) <= 1.0 + surface_depth();
+            match biome {
+                WoodedBadlands => {
+                    let surface_noise = surface_noise();
+                    if is_on_surface && f64::from(pos.y()) >= 97.0 + surface_depth() * 2.0 {
+                        if badlands_noise_condition(surface_noise) {
+                            return CoarseDirt;
+                        }
+                        return if fluid_level.is_none() {
+                            GrassBlock
                         } else {
-                            self.get_badlands_clay(surface, pos)
+                            Dirt
                         };
                     }
-                    if fluid_level.is_none() {
-                        return if depth_below <= 1 {
-                            RedSandstone
-                        } else {
-                            RedSand
-                        };
+                    if let Some(value) = self.badlands(
+                        surface,
+                        depth_above,
+                        fluid_level,
+                        pos,
+                        depth_below,
+                        is_on_surface,
+                        surface_noise,
+                        surface_depth(),
+                    ) {
+                        return value;
                     }
-                    if surface_depth > 0.0 {
-                        return OrangeTerracotta;
-                    }
-                    if fluid_level.is_none_or(|f| {
-                        f64::from(pos.y()) + f64::from(depth_below)
-                            >= f64::from(f) - 6.0 - surface_depth
-                    }) {
-                        return WhiteTerracotta;
-                    }
-                    return if depth_below <= 1 { Stone } else { Gravel };
                 }
-                if f64::from(pos.y()) + f64::from(depth_above) >= 63.0 - surface_depth {
-                    return if pos.y() >= 63
-                        && f64::from(pos.y()) + f64::from(depth_above) < 74.0 - surface_depth
+                Swamp => {
+                    if is_on_surface && pos.y() == 62 && surface.noises.swamp.at(pos) >= 0.0 {
+                        return Water;
+                    }
+                }
+                MangroveSwamp => {
+                    if is_on_surface
+                        && (60..63).contains(&pos.y())
+                        && surface.noises.swamp.at(pos) >= 0.0
                     {
-                        OrangeTerracotta
-                    } else {
-                        self.get_badlands_clay(surface, pos)
-                    };
-                }
-
-                if f64::from(depth_above) <= 1.0 + surface_depth
-                    && fluid_level.is_none_or(|f| {
-                        f64::from(pos.y()) + f64::from(depth_below)
-                            >= f64::from(f) - 6.0 - surface_depth
-                    })
-                {
-                    return WhiteTerracotta;
-                }
-            }
-            if depth_above <= 1 && fluid_level.is_none_or(|f| pos.y() >= f - 1) {
-                return if matches!(biome, Biome::DeepFrozenOcean | Biome::FrozenOcean)
-                    && surface_depth <= 0.0
-                {
-                    if fluid_level.is_none() {
-                        Air
-                    } else if biome.precipitation(pos) == Precipitation::Snow {
-                        Ice
-                    } else {
-                        Water
+                        return Water;
                     }
-                } else {
-                    if biome == Biome::FrozenPeaks {
+                    if is_on_surface && fluid_depth <= 1 {
+                        return Mud;
+                    }
+                }
+                Badlands | ErodedBadlands => {
+                    if let Some(value) = self.badlands(
+                        surface,
+                        depth_above,
+                        fluid_level,
+                        pos,
+                        depth_below,
+                        is_on_surface,
+                        surface_noise(),
+                        surface_depth(),
+                    ) {
+                        return value;
+                    }
+                }
+                DeepFrozenOcean | FrozenOcean => {
+                    if is_on_surface && fluid_depth <= 1 && surface_depth() <= 0.0 {
+                        return if fluid_level.is_none() {
+                            Air
+                        } else if biome.precipitation(pos) == Precipitation::Snow {
+                            Ice
+                        } else {
+                            Water
+                        };
+                    }
+                    if some_fluid_condition() && is_on_surface && surface_depth() <= 0.0 {
+                        return Water;
+                    }
+                }
+                FrozenPeaks => {
+                    if is_on_surface && fluid_depth <= 1 {
                         if is_steep(pos, chunk) {
                             return PackedIce;
                         }
@@ -454,106 +448,14 @@ impl SurfaceRules {
                         if (0.0..=0.025).contains(&surface.noises.ice.at(pos.column().block(0))) {
                             return PackedIce;
                         }
-                        if fluid_level.is_none() {
+                        if fluid_depth == 0 {
                             return SnowBlock;
                         }
                     }
-                    if biome == Biome::SnowySlopes {
-                        if is_steep(pos, chunk) {
-                            return Stone;
-                        }
-                        if fluid_level.is_none()
-                            && (0.45..=0.58)
-                                .contains(&surface.noises.powder_snow.at(pos.column().block(0)))
-                        {
-                            return PowderSnow;
-                        }
-                        if fluid_level.is_none() {
-                            return SnowBlock;
-                        }
+                    if is_on_surface {
+                        return Stone;
                     }
-                    if biome == Biome::JaggedPeaks {
-                        if is_steep(pos, chunk) {
-                            return Stone;
-                        }
-                        if fluid_level.is_none() {
-                            return SnowBlock;
-                        }
-                    }
-                    if biome == Biome::Grove {
-                        if fluid_level.is_none()
-                            && (0.45..=0.58)
-                                .contains(&surface.noises.powder_snow.at(pos.column().block(0)))
-                        {
-                            return PowderSnow;
-                        }
-                        if fluid_level.is_none() {
-                            return SnowBlock;
-                        }
-                    }
-                    if biome == Biome::WindsweptSavanna {
-                        if surface_noise >= 1.75 / 8.25 {
-                            return Stone;
-                        }
-                        if surface_noise >= -0.5 / 8.25 {
-                            return CoarseDirt;
-                        }
-                    }
-                    if biome == Biome::WindsweptGravellyHills {
-                        return if surface_noise >= 2.0 / 8.25 {
-                            if depth_below <= 1 { Stone } else { Gravel }
-                        } else if surface_noise >= 1.0 / 8.25 {
-                            Stone
-                        } else if surface_noise >= -1.0 / 8.25 {
-                            if fluid_level.is_none() {
-                                GrassBlock
-                            } else {
-                                Dirt
-                            }
-                        } else if depth_below <= 1 {
-                            Stone
-                        } else {
-                            Gravel
-                        };
-                    }
-                    if matches!(
-                        biome,
-                        Biome::OldGrowthPineTaiga | Biome::OldGrowthSpruceTaiga
-                    ) {
-                        if surface_noise >= 1.75 / 8.25 {
-                            return CoarseDirt;
-                        }
-                        if surface_noise >= -0.95 / 8.25 {
-                            return Podzol;
-                        }
-                    }
-                    if biome == Biome::IceSpikes && fluid_level.is_none() {
-                        return SnowBlock;
-                    }
-                    if biome == Biome::MangroveSwamp {
-                        return Mud;
-                    }
-                    if biome == Biome::MushroomFields {
-                        return Mycelium;
-                    }
-                    return if fluid_level.is_none() {
-                        GrassBlock
-                    } else {
-                        Dirt
-                    };
-                };
-            }
-            if fluid_level.is_none_or(|f| {
-                f64::from(pos.y()) + f64::from(depth_below) >= f64::from(f) - 6.0 - surface_depth
-            }) {
-                if depth_above <= 1
-                    && matches!(biome, Biome::DeepFrozenOcean | Biome::FrozenOcean)
-                    && surface_depth <= 0.0
-                {
-                    return Water;
-                }
-                if f64::from(depth_above) <= 1.0 + surface_depth {
-                    if biome == Biome::FrozenPeaks {
+                    if some_fluid_condition() && some_surface_depth_cond() {
                         if is_steep(pos, chunk) {
                             return PackedIce;
                         }
@@ -570,7 +472,9 @@ impl SurfaceRules {
                             return SnowBlock;
                         }
                     }
-                    if biome == Biome::SnowySlopes {
+                }
+                SnowySlopes => {
+                    if is_on_surface && fluid_depth <= 1 {
                         if is_steep(pos, chunk) {
                             return Stone;
                         }
@@ -584,10 +488,50 @@ impl SurfaceRules {
                             return SnowBlock;
                         }
                     }
-                    if biome == Biome::JaggedPeaks {
+                    if some_fluid_condition() && some_surface_depth_cond() {
+                        if is_steep(pos, chunk) {
+                            return Stone;
+                        }
+                        if fluid_level.is_none()
+                            && (0.45..=0.58)
+                                .contains(&surface.noises.powder_snow.at(pos.column().block(0)))
+                        {
+                            return PowderSnow;
+                        }
+                        if fluid_level.is_none() {
+                            return SnowBlock;
+                        }
+                    }
+                }
+                JaggedPeaks => {
+                    if is_on_surface && fluid_depth <= 1 {
+                        if is_steep(pos, chunk) {
+                            return Stone;
+                        }
+                        if fluid_level.is_none() {
+                            return SnowBlock;
+                        }
+                    }
+                    if is_on_surface {
                         return Stone;
                     }
-                    if biome == Biome::Grove {
+                    if some_fluid_condition() && some_surface_depth_cond() {
+                        return Stone;
+                    }
+                }
+                Grove => {
+                    if is_on_surface && fluid_depth <= 1 {
+                        if fluid_level.is_none()
+                            && (0.45..=0.58)
+                                .contains(&surface.noises.powder_snow.at(pos.column().block(0)))
+                        {
+                            return PowderSnow;
+                        }
+                        if fluid_level.is_none() {
+                            return SnowBlock;
+                        }
+                    }
+                    if some_fluid_condition() && some_surface_depth_cond() {
                         return if (0.45..=0.58)
                             .contains(&surface.noises.powder_snow.at(pos.column().block(0)))
                         {
@@ -596,7 +540,97 @@ impl SurfaceRules {
                             Dirt
                         };
                     }
-                    if biome == Biome::StonyPeaks {
+                }
+                WindsweptSavanna => {
+                    if is_on_surface && fluid_depth <= 1 {
+                        if surface_noise() >= 1.75 / 8.25 {
+                            return Stone;
+                        }
+                        if surface_noise() >= -0.5 / 8.25 {
+                            return CoarseDirt;
+                        }
+                    }
+                    if some_fluid_condition()
+                        && some_surface_depth_cond()
+                        && surface_noise() >= 1.75 / 8.25
+                    {
+                        return Stone;
+                    }
+                }
+                WindsweptGravellyHills => {
+                    if is_on_surface && fluid_depth <= 1 {
+                        return if surface_noise() >= 2.0 / 8.25 {
+                            if depth_below <= 1 { Stone } else { Gravel }
+                        } else if surface_noise() >= 1.0 / 8.25 {
+                            Stone
+                        } else if surface_noise() >= -1.0 / 8.25 {
+                            if fluid_level.is_none() {
+                                GrassBlock
+                            } else {
+                                Dirt
+                            }
+                        } else if depth_below <= 1 {
+                            Stone
+                        } else {
+                            Gravel
+                        };
+                    }
+                }
+                OldGrowthPineTaiga | OldGrowthSpruceTaiga => {
+                    if is_on_surface && fluid_depth <= 1 {
+                        if surface_noise() >= 1.75 / 8.25 {
+                            return CoarseDirt;
+                        }
+                        if surface_noise() >= -0.95 / 8.25 {
+                            return Podzol;
+                        }
+                    }
+                }
+                IceSpikes => {
+                    if is_on_surface && fluid_depth == 0 {
+                        return SnowBlock;
+                    }
+                }
+                MushroomFields => {
+                    if is_on_surface && fluid_depth <= 1 {
+                        return Mycelium;
+                    }
+                }
+                WarmOcean => {
+                    if is_on_surface {
+                        return if depth_below <= 1 { Sandstone } else { Sand };
+                    }
+                    if some_fluid_condition() && some_surface_depth_cond() {
+                        return if depth_below <= 1 { Sandstone } else { Sand };
+                    }
+                    if some_fluid_condition()
+                        && (f64::from(depth_above)
+                            <= 1.0
+                                + surface_depth()
+                                + surface
+                                    .noises
+                                    .surface_secondary
+                                    .at(pos.column().block(0))
+                                    .remap(-1.0, 1.0, 0.0, 6.0)
+                            || f64::from(depth_above)
+                                <= 1.0
+                                    + surface_depth()
+                                    + surface
+                                        .noises
+                                        .surface_secondary
+                                        .at(pos.column().block(0))
+                                        .remap(-1.0, 1.0, 0.0, 30.0))
+                    {
+                        return Sandstone;
+                    }
+                }
+                DeepLukewarmOcean | LukewarmOcean => {
+                    if is_on_surface {
+                        return if depth_below <= 1 { Sandstone } else { Sand };
+                    }
+                }
+                StonyPeaks => {
+                    if some_fluid_condition() && some_surface_depth_cond() {
                         return if (-0.0125..=0.0125)
                             .contains(&surface.noises.calcite.at(pos.column().block(0)))
                         {
@@ -605,7 +639,9 @@ impl SurfaceRules {
                             Stone
                         };
                     }
-                    if biome == Biome::StonyShore {
+                }
+                StonyShore => {
+                    if some_fluid_condition() && some_surface_depth_cond() {
                         return if depth_below <= 1
                             && (-0.05..=0.05)
                                 .contains(&surface.noises.gravel.at(pos.column().block(0)))
@@ -615,22 +651,16 @@ impl SurfaceRules {
                             Stone
                         };
                     }
-                    if biome == Biome::WindsweptHills && surface_noise >= 1.0 / 8.25 {
+                }
+                WindsweptHills => {
+                    if some_fluid_condition()
+                        && some_surface_depth_cond()
+                        && surface_noise() >= 1.0 / 8.25
+                    {
                         return Stone;
                     }
-                    if matches!(
-                        biome,
-                        Biome::SnowyBeach | Biome::Beach | Biome::WarmOcean | Biome::Desert
-                    ) {
-                        return if depth_below <= 1 { Sandstone } else { Sand };
-                    }
-                    if biome == Biome::DripstoneCaves {
-                        return Stone;
-                    }
-                    if biome == Biome::WindsweptSavanna && surface_noise >= 1.75 / 8.25 {
-                        return Stone;
-                    }
-                    if biome == Biome::WindsweptHills {
+                    if some_fluid_condition() && some_surface_depth_cond() {
+                        let surface_noise = surface_noise();
                         return if surface_noise >= 2.0 / 8.25 {
                             if depth_below <= 1 { Stone } else { Gravel }
                         } else if surface_noise >= 1.0 / 8.25 {
@@ -643,45 +673,55 @@ impl SurfaceRules {
                             Gravel
                         };
                     }
-                    if biome == Biome::MangroveSwamp {
-                        return Mud;
-                    }
-                    return Dirt;
                 }
-                if matches!(biome, Biome::SnowyBeach | Biome::Beach | Biome::WarmOcean)
-                    && (f64::from(depth_above)
-                        <= 1.0
-                            + surface_depth
-                            + surface
-                                .noises
-                                .surface_secondary
-                                .at(pos.column().block(0))
-                                .remap(-1.0, 1.0, 0.0, 6.0)
-                        || f64::from(depth_above)
+                Desert => {
+                    if some_fluid_condition() && some_surface_depth_cond() {
+                        return if depth_below <= 1 { Sandstone } else { Sand };
+                    }
+                }
+                SnowyBeach | Beach => {
+                    if some_fluid_condition() && some_surface_depth_cond() {
+                        return if depth_below <= 1 { Sandstone } else { Sand };
+                    }
+                    if some_fluid_condition()
+                        && (f64::from(depth_above)
                             <= 1.0
-                                + surface_depth
+                                + surface_depth()
                                 + surface
                                     .noises
                                     .surface_secondary
                                     .at(pos.column().block(0))
-                                    .remap(-1.0, 1.0, 0.0, 30.0))
-                {
-                    return Sandstone;
+                                    .remap(-1.0, 1.0, 0.0, 6.0)
+                            || f64::from(depth_above)
+                                <= 1.0
+                                    + surface_depth()
+                                    + surface
+                                        .noises
+                                        .surface_secondary
+                                        .at(pos.column().block(0))
+                                        .remap(-1.0, 1.0, 0.0, 30.0))
+                    {
+                        return Sandstone;
+                    }
                 }
-            }
-            if depth_above <= 1 {
-                return if matches!(biome, Biome::FrozenPeaks | Biome::JaggedPeaks) {
-                    Stone
-                } else if matches!(
-                    biome,
-                    Biome::WarmOcean | Biome::DeepLukewarmOcean | Biome::LukewarmOcean
-                ) {
-                    if depth_below <= 1 { Sandstone } else { Sand }
-                } else if depth_below <= 1 {
-                    Stone
-                } else {
-                    Gravel
-                };
+                DripstoneCaves => {
+                    if some_fluid_condition() && some_surface_depth_cond() {
+                        return Stone;
+                    }
+                }
+
+                _ => {
+                    if is_on_surface && fluid_level.is_none_or(|f| pos.y() >= f - 1) {
+                        return if fluid_level.is_none() {
+                            GrassBlock
+                        } else {
+                            Dirt
+                        };
+                    }
+                    if some_fluid_condition() {
+                        return Dirt;
+                    }
+                }
             }
         }
 
@@ -694,6 +734,68 @@ impl SurfaceRules {
         }
 
         Stone
+    }
+
+    fn badlands(
+        &self,
+        surface: &OverworldSurface,
+        depth_above: i32,
+        fluid_level: Option<i32>,
+        pos: BlockPos,
+        depth_below: i32,
+        is_on_surface: bool,
+        surface_noise: f64,
+        surface_depth: f64,
+    ) -> Option<SurfaceBlock> {
+        use SurfaceBlock::*;
+        if is_on_surface {
+            if pos.y() >= 256 {
+                return Some(OrangeTerracotta);
+            }
+            if f64::from(pos.y()) >= 72.0 + f64::from(depth_above) + surface_depth {
+                return Some(if badlands_noise_condition(surface_noise) {
+                    Terracotta
+                } else {
+                    self.get_badlands_clay(surface, pos)
+                });
+            }
+            if fluid_level.is_none() {
+                return Some(if depth_below <= 1 {
+                    RedSandstone
+                } else {
+                    RedSand
+                });
+            }
+            if surface_depth > 0.0 {
+                return Some(OrangeTerracotta);
+            }
+            if fluid_level.is_none_or(|f| {
+                f64::from(pos.y()) + f64::from(depth_below) >= f64::from(f) - 6.0 - surface_depth
+            }) {
+                return Some(WhiteTerracotta);
+            }
+            return Some(if depth_below <= 1 { Stone } else { Gravel });
+        }
+        if f64::from(pos.y()) + f64::from(depth_above) >= 63.0 - surface_depth {
+            return Some(
+                if pos.y() >= 63
+                    && f64::from(pos.y()) + f64::from(depth_above) < 74.0 - surface_depth
+                {
+                    OrangeTerracotta
+                } else {
+                    self.get_badlands_clay(surface, pos)
+                },
+            );
+        }
+
+        if f64::from(depth_above) <= 1.0 + surface_depth
+            && fluid_level.is_none_or(|f| {
+                f64::from(pos.y()) + f64::from(depth_below) >= f64::from(f) - 6.0 - surface_depth
+            })
+        {
+            return Some(WhiteTerracotta);
+        }
+        None
     }
 
     fn get_badlands_clay(&self, surface: &OverworldSurface, pos: BlockPos) -> SurfaceBlock {

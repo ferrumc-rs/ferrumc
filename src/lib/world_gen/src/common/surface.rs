@@ -1,20 +1,17 @@
 use crate::biome::Biome;
 use ferrumc_macros::block;
+use ferrumc_world::edit_batch::EditBatch;
 use ferrumc_world::pos::{BlockPos, ChunkHeight, ColumnPos};
 use ferrumc_world::{block_state_id::BlockStateId, chunk_format::Chunk};
 use itertools::Itertools;
 
 pub struct Surface {
-    default_block: BlockStateId,
     pub chunk_height: ChunkHeight,
 }
 
 impl Surface {
-    pub fn new(default_block: BlockStateId, chunk_height: ChunkHeight) -> Self {
-        Self {
-            default_block,
-            chunk_height,
-        }
+    pub fn new(chunk_height: ChunkHeight) -> Self {
+        Self { chunk_height }
     }
 
     pub fn find_surface(&self, chunk: &Chunk, pos: ColumnPos) -> (i16, Option<i16>) {
@@ -45,6 +42,7 @@ impl Surface {
     ) {
         let mut stone_under = stone_level;
         let mut depth_above = 0;
+
         for y in (self.chunk_height.min_y..=stone_level).rev() {
             match chunk
                 .get_block(pos.block(y.into()).chunk_block_pos())
@@ -73,20 +71,16 @@ impl Surface {
                     depth_above += 1;
                     let depth_from_stone = y - stone_under + 1;
 
-                    chunk
-                        .set_block(
-                            pos.block(y.into()).chunk_block_pos(),
-                            rules(
-                                chunk,
-                                biome,
-                                depth_above,
-                                depth_from_stone,
-                                fluid_level,
-                                pos.block(y.into()),
-                            )
-                            .unwrap_or(self.default_block),
-                        )
-                        .unwrap();
+                    if let Some(block) = rules(
+                        chunk,
+                        biome,
+                        depth_above,
+                        depth_from_stone,
+                        fluid_level,
+                        pos.block(y.into()),
+                    ) {
+                        chunk.set_block(pos.block(y.into()).chunk_block_pos(), block);
+                    }
                 }
             }
         }

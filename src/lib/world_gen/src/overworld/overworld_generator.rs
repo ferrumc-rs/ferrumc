@@ -150,7 +150,7 @@ impl OverworldGenerator {
             },
         );
         edit.apply().unwrap();
-        if chunk_pos.pos.to_array() != [0, 0] {
+        if chunk_pos.pos.to_array() != [16, 16] {
             return Ok(chunk);
         }
         let biomes = BiomeChunk::generate(
@@ -167,7 +167,7 @@ impl OverworldGenerator {
             CHUNK_HEIGHT,
         );
 
-        for (x, z) in (0..1).cartesian_product(0..1) {
+        for (x, z) in (0..15).cartesian_product(0..3) {
             self.surface.build_surface(
                 &self.biome_noise,
                 &mut chunk,
