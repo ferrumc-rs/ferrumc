@@ -56,11 +56,12 @@ impl MemoryUsage {
     }
 
     pub fn get_memory(&mut self, unit: MemoryUnit) -> (u64, u64) {
-        let max = self.convert(self.max_rss_bytes, &unit);
+        // updates peak memory, so this has to go first.
         let usage = match self.get_usage_internal() {
             Some(bytes) => self.convert(bytes, &unit),
             None => 0,
         };
+        let max = self.convert(self.max_rss_bytes, &unit);
 
         (usage, max)
     }

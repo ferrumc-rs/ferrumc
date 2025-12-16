@@ -4,14 +4,14 @@ use crate::{
 };
 
 pub struct TPSMonitor {
-    tps: u32,
+    targetted_tps: u32,
     history: TickHistory,
 }
 
 impl TPSMonitor {
     pub fn new(tps: u32) -> Self {
         Self {
-            tps,
+            targetted_tps: tps,
             history: TickHistory::new(tps as usize * WINDOW_SECONDS),
         }
     }
@@ -36,11 +36,11 @@ impl TPSMonitor {
         }
 
         if ticks == 0 || elapsed_ns == 0 {
-            return self.tps as f32;
+            return self.targetted_tps as f32;
         }
 
         let tps = (ticks as f64) / (elapsed_ns as f64 / 1_000_000_000.0);
-        tps.clamp(0.0, f64::from(self.tps)) as f32
+        tps.clamp(0.0, f64::from(self.targetted_tps)) as f32
     }
 
     fn collect_window_ns(&self, window_ns: u128) -> Vec<u128> {
