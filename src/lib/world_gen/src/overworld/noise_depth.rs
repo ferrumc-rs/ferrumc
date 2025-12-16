@@ -639,14 +639,14 @@ impl OverworldBiomeNoise {
         f64::from(pos.y()).remap(-64.0, 320.0, 1.5, -1.5) + offset
     }
 
-    pub fn preliminary_surface(&self, chunk: ChunkPos) -> i32 {
+    pub fn preliminary_surface(&self, chunk: ChunkPos) -> i16 {
         let column = chunk.origin();
         CHUNK_HEIGHT
             .iter()
             .rev()
             .step_by(self.noise_size_vertical)
-            .find(|y| self.initial_density_without_jaggedness(column.block(*y as i32)) > 0.390625)
-            .unwrap_or(CHUNK_HEIGHT.min_y) as i32
+            .find(|y| self.initial_density_without_jaggedness(column.block((*y).into())) > 0.390625)
+            .unwrap_or(CHUNK_HEIGHT.min_y)
     }
     pub fn is_deep_dark_region(&self, pos: BlockPos) -> bool {
         let transformed_pos = self.transform(pos.pos.as_dvec3());

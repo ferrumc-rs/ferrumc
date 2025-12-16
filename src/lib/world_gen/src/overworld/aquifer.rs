@@ -17,6 +17,8 @@ use crate::random::Xoroshiro128PlusPlus;
 
 pub const SEA_LEVEL: i32 = 63;
 pub const SEA_TYPE: FluidType = FluidType::Water;
+pub const LAVA_LEVEL: i32 = -54;
+pub const LAVA_TYPE: FluidType = FluidType::Lava;
 
 pub struct Aquifer {
     factory: Xoroshiro128PlusPlus,
@@ -97,8 +99,8 @@ impl Aquifer {
         }
         let final_density = -final_density;
 
-        if simple_compute_fluid(pos.y()) == FluidType::Lava {
-            return (Some(FluidType::Lava), false);
+        if simple_compute_fluid(pos.y()) == LAVA_TYPE {
+            return (Some(LAVA_TYPE), false);
         }
 
         let smallest = self.find_nearest_section_randoms(pos);
@@ -153,10 +155,10 @@ impl Aquifer {
         )
     }
 
+    /// uses (-1..=1) by (0..=1) surrounding chunks, offset by -5, -5 so at most (-2..=1) by (-1..=1)
     fn find_nearest_section_randoms(&self, pos: BlockPos) -> [(i32, BlockPos); 4] {
         let section: AquiferSectionPos = (pos + (-5, 1, -5)).into();
-
-        let smallest: [(i32, BlockPos); 4] = (0..=1)
+        (0..=1)
             .rev()
             .cartesian_product((-1..=1).rev())
             .cartesian_product((0..=1).rev())
@@ -167,8 +169,7 @@ impl Aquifer {
             })
             .k_smallest_by_key(4, |(dist, _)| *dist)
             .collect_array()
-            .unwrap();
-        smallest
+            .unwrap()
     }
 
     fn pressure(
@@ -224,19 +225,25 @@ impl Aquifer {
 
     ///this is only ever called at one position in each `AquiferSectionPos` so we may cache this
     ///per section.
+    /// uses -1..=1 by -2..=1 chunk prelim surface and (-3, 0)
+    /// so at most (-4..=2) by (-3..=2) is accessed
     ///TODO: cache this if faster
     fn compute_fluid(&self, pos: BlockPos, biome_noise: &OverworldBiomeNoise) -> FluidPicker {
+        const SURFACE_OFFESET: i16 = 8;
         let chunk = pos.chunk();
-        let mut min_prelim_surface = biome_noise.preliminary_surface(chunk);
-        if pos.y() - 12 > min_prelim_surface + 8 {
+        let mut min_prelim_surface = biome_noise.preliminary_surface(chunk) + SURFACE_OFFESET;
+        if pos.y() as i16 - 12 > min_prelim_surface {
             return simple_fluid_picker(pos.y());
         }
-        for y in -1..=1 {
+        for z in -1..=1 {
             for x in -2..=1 {
                 let preliminary_surface = biome_noise
-                    .preliminary_surface(chunk + (x - if y == 0 && x < 1 { 1 } else { 0 }, y));
-                if (pos.y() + 12 > preliminary_surface + 8) && preliminary_surface + 8 < SEA_LEVEL {
-                    return simple_fluid_picker(preliminary_surface + 8);
+                    .preliminary_surface(chunk + (x - if z == 0 && x < 1 { 1 } else { 0 }, z))
+                    + SURFACE_OFFESET;
+                if (pos.y() as i16 + 12 > preliminary_surface)
+                    && preliminary_surface < SEA_LEVEL as i16
+                {
+                    return simple_fluid_picker(preliminary_surface.into());
                 }
                 min_prelim_surface = min_prelim_surface.min(preliminary_surface);
             }
@@ -245,22 +252,22 @@ impl Aquifer {
         if biome_noise.is_deep_dark_region(pos) {
             return FluidPicker::EMPTY;
         }
-        let tmp = if min_prelim_surface + 8 < SEA_LEVEL {
-            (min_prelim_surface + 8 - pos.y()).into()
+        let diff_to_surface_min = if min_prelim_surface < SEA_LEVEL as i16 {
+            (min_prelim_surface - pos.y() as i16).into()
         } else {
             f64::MAX
         };
         let floodedness = self.floodedness(pos);
-        if floodedness > clamped_map(tmp, 0.0, 64.0, -0.3, 0.8) {
+        if floodedness > clamped_map(diff_to_surface_min, 0.0, 64.0, -0.3, 0.8) {
             simple_fluid_picker(pos.y())
-        } else if floodedness <= clamped_map(tmp, 0.0, 64.0, -0.8, 0.4) {
+        } else if floodedness <= clamped_map(diff_to_surface_min, 0.0, 64.0, -0.8, 0.4) {
             FluidPicker::EMPTY
         } else {
-            self.spread_fluid(pos, min_prelim_surface)
+            self.spread_fluid(pos, min_prelim_surface - SURFACE_OFFESET)
         }
     }
 
-    fn spread_fluid(&self, pos: BlockPos, min_prelim_surface: i32) -> FluidPicker {
+    fn spread_fluid(&self, pos: BlockPos, min_prelim_surface: i16) -> FluidPicker {
         let surface_level = self.fluid_spread(pos).min(min_prelim_surface);
         let res = simple_compute_fluid(pos.y());
         let res = if res != FluidType::Lava && surface_level <= -10 && self.is_lava(pos) {
@@ -268,7 +275,7 @@ impl Aquifer {
         } else {
             res
         };
-        FluidPicker::new(surface_level, res)
+        FluidPicker::new(surface_level.into(), res)
     }
 
     fn is_lava(&self, pos: BlockPos) -> bool {
@@ -283,20 +290,20 @@ impl Aquifer {
         let pos = DVec3::from(pos) * DVec3::new(1.0, 0.67, 1.0);
         self.fluid_level_floodedness_noise.at(pos)
     }
-    fn fluid_spread(&self, pos: BlockPos) -> i32 {
-        fn quantize(value: f64, factor: i32) -> i32 {
-            (value / f64::from(factor)).floor() as i32 * factor
+    fn fluid_spread(&self, pos: BlockPos) -> i16 {
+        fn quantize(value: f64, factor: i16) -> i16 {
+            (value / f64::from(factor)).floor() as i16 * factor
         }
         let pos = pos.pos.div_euclid((16, 40, 16).into());
         let noise_pos = pos.as_dvec3() * DVec3::new(1.0, 0.7142857142857143, 1.0);
         let spread = quantize(self.fluid_level_spread_noise.at(noise_pos) * 10.0, 3);
-        pos.y * 40 + 20 + spread
+        pos.y as i16 * 40 + 20 + spread
     }
 }
 
 fn simple_compute_fluid(y: i32) -> FluidType {
-    if y < SEA_LEVEL.min(-54) {
-        FluidType::Lava
+    if y < SEA_LEVEL.min(LAVA_LEVEL) {
+        LAVA_TYPE
     } else if y < SEA_LEVEL {
         SEA_TYPE
     } else {
@@ -305,8 +312,8 @@ fn simple_compute_fluid(y: i32) -> FluidType {
 }
 
 fn simple_fluid_picker(y: i32) -> FluidPicker {
-    if y < SEA_LEVEL.min(-54) {
-        FluidPicker::new(-54, FluidType::Lava)
+    if y < SEA_LEVEL.min(LAVA_LEVEL) {
+        FluidPicker::new(LAVA_LEVEL, LAVA_TYPE)
     } else {
         FluidPicker::new(SEA_LEVEL, SEA_TYPE)
     }

@@ -3,7 +3,6 @@ use std::array::from_fn;
 use crate::biome::Biome;
 use crate::biome_chunk::{BiomeChunk, NoisePoint};
 use crate::common::aquifer::FluidType;
-use crate::common::carver::CarvingMask;
 use crate::common::noise::generate_interpolation_data;
 use crate::errors::WorldGenError;
 use crate::overworld::aquifer::Aquifer;
@@ -17,9 +16,8 @@ use bevy_math::DVec3;
 use ferrumc_macros::block;
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::chunk_format::Chunk;
-use ferrumc_world::pos::{
-    BlockPos, ChunkBlockPos, ChunkColumnPos, ChunkHeight, ChunkPos, ColumnPos,
-};
+use ferrumc_world::edit_batch::EditBatch;
+use ferrumc_world::pos::{ChunkColumnPos, ChunkHeight, ChunkPos, ColumnPos};
 use itertools::Itertools;
 
 pub(super) const CHUNK_HEIGHT: ChunkHeight = ChunkHeight::new(-64, 384);
@@ -114,6 +112,7 @@ impl OverworldGenerator {
                 )
             })
         });
+        let mut edit = EditBatch::new(&mut chunk);
         generate_interpolation_data(
             |pos| {
                 let cache_pos = (pos.pos - chunk_pos.origin().block(0).pos) / 4;
@@ -128,7 +127,7 @@ impl OverworldGenerator {
                 let res = res.min(self.biome_noise.noodle(pos.into()));
                 if res > 0.0 {
                     if pos.y() >= 64 {
-                        chunk.set_block(rel_pos, block!("stone")).unwrap();
+                        edit.set_block(rel_pos, block!("stone"));
                     }
                 } else {
                     let fluid_type = if false {
@@ -138,19 +137,18 @@ impl OverworldGenerator {
                     };
                     if pos.y() < 64 {
                         if let Some(block) = fluid_type {
-                            chunk.set_block(rel_pos, block.into()).unwrap();
+                            edit.set_block(rel_pos, block.into());
                         }
                     } else {
-                        chunk
-                            .set_block(
-                                rel_pos,
-                                fluid_type.map(|f| f.into()).unwrap_or(block!("stone")),
-                            )
-                            .unwrap();
+                        edit.set_block(
+                            rel_pos,
+                            fluid_type.map(|f| f.into()).unwrap_or(block!("stone")),
+                        );
                     }
                 }
             },
         );
+        edit.apply().unwrap();
         if chunk_pos.pos.to_array() != [0, 0] {
             return Ok(chunk);
         }
@@ -168,7 +166,7 @@ impl OverworldGenerator {
             CHUNK_HEIGHT,
         );
 
-        for (x, z) in (0..15).cartesian_product(0..15) {
+        for (x, z) in (0..1).cartesian_product(0..1) {
             self.surface.build_surface(
                 &self.biome_noise,
                 &mut chunk,
