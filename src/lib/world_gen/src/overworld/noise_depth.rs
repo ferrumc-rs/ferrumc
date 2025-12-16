@@ -365,7 +365,7 @@ pub struct OverworldBiomeNoise {
     pub temperature: NormalNoise<6>,
     pub vegetation: NormalNoise<6>,
     continents: NormalNoise<9>,
-    erosion: NormalNoise<5>,
+    pub erosion: NormalNoise<5>,
     ridges: NormalNoise<6>,
     pub jagged: NormalNoise<16>,
     base_3d_noise_overworld: BlendedNoise,
@@ -468,10 +468,11 @@ impl OverworldBiomeNoise {
         }
     }
 
+    //needs factor and offset spline
     pub fn initial_density_without_jaggedness(&self, pos: BlockPos) -> f64 {
         let spline_params = self.make_spline_params(self.transform(pos.into()));
         let mut factor_depth =
-            self.factor(spline_params) * self.depth(pos, self.offset(spline_params));
+            self.factor(spline_params) * Self::depth(pos, self.offset(spline_params));
         factor_depth *= if factor_depth > 0.0 { 4.0 } else { 1.0 };
         let density = (factor_depth - 0.703125).clamp(-64.0, 64.0);
         slide(
@@ -592,7 +593,8 @@ impl OverworldBiomeNoise {
         let final_jaggedness = cached_noise.jagged
             * if cached_noise.jagged > 0.0 { 1.0 } else { 0.5 }
             * cached_noise.jaggedness;
-        let depth = cached_noise.factor * (self.depth(pos, cached_noise.offset) + final_jaggedness);
+        let depth =
+            cached_noise.factor * (Self::depth(pos, cached_noise.offset) + final_jaggedness);
         let base_3d_noise_overworld = self
             .base_3d_noise_overworld
             .at(DVec3::from(pos) * DVec3::new(0.25, 0.125, 0.25) * 684.412);
@@ -635,7 +637,7 @@ impl OverworldBiomeNoise {
         f64::from(self.offset.sample(spline_params)) - 0.50375
     }
 
-    fn depth(&self, pos: BlockPos, offset: f64) -> f64 {
+    fn depth(pos: BlockPos, offset: f64) -> f64 {
         f64::from(pos.y()).remap(-64.0, 320.0, 1.5, -1.5) + offset
     }
 
@@ -651,7 +653,7 @@ impl OverworldBiomeNoise {
     pub fn is_deep_dark_region(&self, pos: BlockPos) -> bool {
         let transformed_pos = self.transform(pos.pos.as_dvec3());
         self.erosion.at(transformed_pos) < EROSION_DEEP_DARK_DRYNESS_THRESHOLD.into()
-            && self.depth(pos, self.offset(self.make_spline_params(transformed_pos)))
+            && Self::depth(pos, self.offset(self.make_spline_params(transformed_pos)))
                 > DEPTH_DEEP_DARK_DRYNESS_THRESHOLD.into()
     }
 
@@ -661,7 +663,7 @@ impl OverworldBiomeNoise {
             cache.vegetation,
             cache.spline.continents,
             cache.spline.erosion,
-            self.depth(pos, cache.offset),
+            Self::depth(pos, cache.offset),
             cache.spline.ridges,
         ]
     }

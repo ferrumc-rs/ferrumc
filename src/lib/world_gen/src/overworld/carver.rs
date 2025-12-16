@@ -7,12 +7,12 @@ use bevy_math::Vec3Swizzles;
 use crate::{
     biome_chunk::BiomeChunk,
     common::{
-        aquifer::{self, FluidType},
+        aquifer::FluidType,
         carver::{CarvingMask, Caver, can_reach, carve_ellipsoid},
     },
     direction::Direction,
     overworld::{
-        aquifer::Aquifer, noise_depth::OverworldBiomeNoise, overworld_generator::CHUNK_HEIGHT,
+        aquifer::ChunkAquifer, noise_depth::OverworldBiomeNoise, overworld_generator::CHUNK_HEIGHT,
         surface::OverworldSurface,
     },
     random::{LegacyRandom, Rng},
@@ -58,7 +58,7 @@ impl OverworldCarver {
         chunk_pos: ChunkPos,
         carving_mask: &mut CarvingMask,
         surface: &OverworldSurface,
-        aquifer: &Aquifer,
+        aquifer: &mut ChunkAquifer<'_>,
         biome_noise: &OverworldBiomeNoise,
     ) {
         self.cave_carver.carve_overworld(
@@ -97,7 +97,7 @@ impl OverworldCarver {
 fn clear_overworld_cave_block(
     chunk: &mut Chunk,
     surface: &OverworldSurface,
-    aquifer: &Aquifer,
+    aquifer: &mut ChunkAquifer<'_>,
     biome_accessor: &BiomeChunk,
     biome_noise: &OverworldBiomeNoise,
     surface_reached: &mut bool,
@@ -114,7 +114,7 @@ fn clear_overworld_cave_block(
         *surface_reached = true;
     }
 
-    if let (Some(carve_state), _fluid_update /* TODO */) = aquifer.at(biome_noise, pos, 0.0) {
+    if let Some(carve_state) = aquifer.at(pos, 0.0) {
         chunk.set_block(rel_pos, carve_state.into()).unwrap();
         if *surface_reached {
             let check_pos = pos + Direction::Down.as_unit().into(); //TODO bounds check
@@ -147,7 +147,7 @@ impl Caver {
         chunk_pos: ChunkPos,
         carving_mask: &mut CarvingMask,
         surface: &OverworldSurface,
-        aquifer: &Aquifer,
+        aquifer: &mut ChunkAquifer<'_>,
         biome_noise: &OverworldBiomeNoise,
     ) {
         self.carve(
@@ -185,7 +185,7 @@ fn carve_canyon(
     chunk_pos: ChunkPos,
     carving_mask: &mut CarvingMask,
     surface: &OverworldSurface,
-    aquifer: &Aquifer,
+    aquifer: &mut ChunkAquifer<'_>,
     biome_noise: &OverworldBiomeNoise,
 ) {
     const PROBABILITY: f32 = 0.01;

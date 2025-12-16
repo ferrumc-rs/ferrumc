@@ -113,6 +113,7 @@ impl OverworldGenerator {
             })
         });
         let mut edit = EditBatch::new(&mut chunk);
+        let mut chunk_aquifer = self.aquifer.chunk(&self.biome_noise);
         generate_interpolation_data(
             |pos| {
                 let cache_pos = (pos.pos - chunk_pos.origin().block(0).pos) / 4;
@@ -131,7 +132,7 @@ impl OverworldGenerator {
                     }
                 } else {
                     let fluid_type = if false {
-                        self.aquifer.at(&self.biome_noise, pos, res).0
+                        chunk_aquifer.at(pos, res)
                     } else {
                         if res > 0. { None } else { Some(FluidType::Air) }
                     };

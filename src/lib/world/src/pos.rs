@@ -69,6 +69,12 @@ impl BlockPos {
     pub fn distance_squared(&self, other: BlockPos) -> i32 {
         self.pos.distance_squared(other.pos)
     }
+
+    pub fn pack(&self) -> u64 {
+        ((self.x() as u64 & 0x3FFFFFF) << 38)
+            | ((self.z() as u64 & 0x3FFFFFF) << 12)
+            | (self.y() as u64 & 0xFFF)
+    }
 }
 
 impl From<BlockPos> for DVec3 {
