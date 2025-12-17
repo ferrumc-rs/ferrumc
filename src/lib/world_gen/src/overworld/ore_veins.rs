@@ -1,14 +1,17 @@
-use crate::common::math::clamped_map;
+use crate::{common::math::clamped_map, perlin_noise::ConstNormalNoise};
 use ferrumc_macros::block;
 use ferrumc_world::block_state_id::BlockStateId;
 use std::ops::RangeInclusive;
 
 use ferrumc_world::pos::BlockPos;
 
-use crate::{
-    perlin_noise::{NormalNoise, ORE_GAP, ORE_VEIN_A, ORE_VEIN_B, ORE_VEININESS},
-    random::Xoroshiro128PlusPlus,
-};
+use crate::{perlin_noise::NormalNoise, random::Xoroshiro128PlusPlus};
+
+const ORE_VEININESS: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:ore_veininess", -8, [1.0]);
+const ORE_VEIN_A: ConstNormalNoise<1> = ConstNormalNoise::new("minecraft:ore_vein_a", -7, [1.0]);
+const ORE_VEIN_B: ConstNormalNoise<1> = ConstNormalNoise::new("minecraft:ore_vein_b", -7, [1.0]);
+const ORE_GAP: ConstNormalNoise<1> = ConstNormalNoise::new("minecraft:ore_gap", -5, [1.0]);
 
 pub struct Vein {
     vein_toggle: NormalNoise<1>,

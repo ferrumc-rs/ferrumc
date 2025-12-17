@@ -1,6 +1,19 @@
-use crate::perlin_noise::{BIOME_INFO_NOISE, FROZEN_TEMPERATURE_NOISE, TEMPERATURE_NOISE};
+use crate::perlin_noise::ConstPerlinNoise;
+use crate::random::LegacyRandom;
+use std::sync::LazyLock;
+
+use crate::perlin_noise::PerlinNoise;
 
 use ferrumc_world::pos::BlockPos;
+
+pub static BIOME_INFO_NOISE: LazyLock<PerlinNoise<1>> =
+    LazyLock::new(|| ConstPerlinNoise::new(0, [1.0]).legacy_init(&mut LegacyRandom::new(2345)));
+pub static TEMPERATURE_NOISE: LazyLock<PerlinNoise<1>> =
+    LazyLock::new(|| ConstPerlinNoise::new(0, [1.0]).legacy_init(&mut LegacyRandom::new(1234)));
+pub static FROZEN_TEMPERATURE_NOISE: LazyLock<PerlinNoise<3>> = LazyLock::new(|| {
+    ConstPerlinNoise::new(-2, [1.0, 1.0, 1.0]).legacy_init(&mut LegacyRandom::new(3456))
+});
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Biome {
     TheVoid,

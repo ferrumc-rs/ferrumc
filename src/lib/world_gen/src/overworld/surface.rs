@@ -1,6 +1,7 @@
 use crate::biome::Precipitation;
 use crate::common::math::lerp2;
 use crate::overworld::overworld_generator::CHUNK_HEIGHT;
+use crate::perlin_noise::ConstNormalNoise;
 use std::range::Range;
 
 use crate::biome_chunk::BiomeChunk;
@@ -8,11 +9,7 @@ use crate::common::surface::Surface;
 use crate::overworld::aquifer::SEA_LEVEL;
 use crate::overworld::noise_depth::OverworldBiomeNoise;
 use crate::overworld::ore_veins::Vein;
-use crate::perlin_noise::{
-    BADLANDS_PILLAR, BADLANDS_PILLAR_ROOF, BADLANDS_SURFACE, CALCITE, CLAY_BANDS_OFFSET, GRAVEL,
-    ICE, ICEBERG_PILLAR, ICEBERG_PILLAR_ROOF, ICEBERG_SURFACE, PACKED_ICE, POWDER_SNOW, SURFACE,
-    SURFACE_SECONDARY, SWAMP,
-};
+
 use crate::random::Xoroshiro128PlusPlus;
 use bevy_math::FloatExt;
 use ferrumc_macros::block;
@@ -21,6 +18,34 @@ use ferrumc_world::chunk_format::Chunk;
 use ferrumc_world::pos::{BlockPos, ColumnPos};
 
 use crate::{biome::Biome, perlin_noise::NormalNoise, random::Rng};
+
+const SURFACE: ConstNormalNoise<3> = ConstNormalNoise::new("minecraft:surface", -6, [1.0, 1.0, 1.0]);
+const SURFACE_SECONDARY: ConstNormalNoise<4> =
+    ConstNormalNoise::new("minecraft:surface_secondary", -6, [1.0, 1.0, 0.0, 1.0]);
+const CLAY_BANDS_OFFSET: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:clay_bands_offset", -8, [1.0]);
+const BADLANDS_PILLAR: ConstNormalNoise<4> =
+    ConstNormalNoise::new("minecraft:badlands_pillar", -2, [1.0, 1.0, 1.0, 1.0]);
+const BADLANDS_PILLAR_ROOF: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:badlands_pillar_roof", -8, [1.0]);
+const BADLANDS_SURFACE: ConstNormalNoise<3> =
+    ConstNormalNoise::new("minecraft:badlands_surface", -6, [1.0, 1.0, 1.0]);
+const ICEBERG_PILLAR: ConstNormalNoise<4> =
+    ConstNormalNoise::new("minecraft:iceberg_pillar", -6, [1.0, 1.0, 1.0, 1.0]);
+const ICEBERG_PILLAR_ROOF: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:iceberg_pillar_roof", -3, [1.0]);
+const ICEBERG_SURFACE: ConstNormalNoise<3> =
+    ConstNormalNoise::new("minecraft:iceberg_surface", -6, [1.0, 1.0, 1.0]);
+const SWAMP: ConstNormalNoise<1> = ConstNormalNoise::new("minecraft:surface_swamp", -2, [1.0]);
+const CALCITE: ConstNormalNoise<4> =
+    ConstNormalNoise::new("minecraft:calcite", -9, [1.0, 1.0, 1.0, 1.0]);
+const GRAVEL: ConstNormalNoise<4> =
+    ConstNormalNoise::new("minecraft:gravel", -8, [1.0, 1.0, 1.0, 1.0]);
+const POWDER_SNOW: ConstNormalNoise<4> =
+    ConstNormalNoise::new("minecraft:powder_snow", -6, [1.0, 1.0, 1.0, 1.0]);
+const PACKED_ICE: ConstNormalNoise<4> =
+    ConstNormalNoise::new("minecraft:packed_ice", -7, [1.0, 1.0, 1.0, 1.0]);
+const ICE: ConstNormalNoise<4> = ConstNormalNoise::new("minecraft:ice", -4, [1.0, 1.0, 1.0, 1.0]);
 
 pub struct SurfaceNoises {
     surface: NormalNoise<3>,

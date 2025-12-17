@@ -1,10 +1,7 @@
 use crate::common::aquifer::{FluidPicker, FluidType};
 use crate::common::math::clamped_map;
 use crate::overworld::noise_depth::OverworldBiomeNoise;
-use crate::perlin_noise::{
-    AQUIFER_BARRIER, AQUIFER_FLUID_LEVEL_FLOODEDNESS, AQUIFER_FLUID_LEVEL_SPREAD, AQUIFER_LAVA,
-    NormalNoise,
-};
+use crate::perlin_noise::{ConstNormalNoise, NormalNoise};
 use core::f64;
 use ferrumc_world::pos::BlockPos;
 use std::collections::HashMap;
@@ -15,6 +12,15 @@ use itertools::Itertools;
 use bevy_math::DVec3;
 
 use crate::random::Xoroshiro128PlusPlus;
+
+const AQUIFER_BARRIER: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:aquifer_barrier", -3, [1.0]);
+const AQUIFER_FLUID_LEVEL_FLOODEDNESS: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:aquifer_fluid_level_floodedness", -7, [1.0]);
+const AQUIFER_LAVA: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:aquifer_lava", -1, [1.0]);
+const AQUIFER_FLUID_LEVEL_SPREAD: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:aquifer_fluid_level_spread", -5, [1.0]);
 
 pub const SEA_LEVEL: i32 = 63;
 pub const SEA_TYPE: FluidType = FluidType::Water;

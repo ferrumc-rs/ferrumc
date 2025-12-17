@@ -1,4 +1,4 @@
-use bevy_math::{IVec2, Vec2};
+use bevy_math::{DVec3, IVec2, Vec2};
 use ferrumc_macros::block;
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::chunk_format::Chunk;
@@ -7,12 +7,14 @@ use std::{array::from_fn, f64};
 
 use crate::{
     common::noise::{generate_interpolation_data, slide},
-    perlin_noise::{BASE_3D_NOISE_END, BlendedNoise, ImprovedNoise},
+    perlin_noise::{BlendedNoise, ConstBlendedNoise, ImprovedNoise},
     random::LegacyRandom,
 };
 use ferrumc_world::pos::{BlockPos, ChunkHeight, ChunkPos, ColumnPos};
 use std::f32;
 
+const BASE_3D_NOISE_END: ConstBlendedNoise =
+    ConstBlendedNoise::new(0.25 * 684.412 * 4., DVec3::new(80.0, 160.0, 80.0));
 pub const CHUNK_HEIGHT: ChunkHeight = ChunkHeight::new(0, 256);
 
 pub struct EndNoise {

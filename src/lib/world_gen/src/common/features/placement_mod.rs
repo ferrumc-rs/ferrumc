@@ -6,7 +6,7 @@ use bevy_math::{IVec2, IVec3, Vec2Swizzles};
 use itertools::{Itertools, repeat_n};
 
 use crate::{
-    ChunkAccess, HeightmapType, biome::Biome, direction::Direction, perlin_noise::BIOME_INFO_NOISE,
+    ChunkAccess, HeightmapType, biome::BIOME_INFO_NOISE, biome::Biome, direction::Direction,
     random::Rng,
 };
 use ferrumc_world::pos::{BlockPos, ChunkHeight};

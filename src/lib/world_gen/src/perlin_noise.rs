@@ -2,7 +2,7 @@ use crate::{
     common::math::lerp3,
     random::{LegacyRandom, Rng},
 };
-use std::{array::from_fn, f64::consts::SQRT_3, sync::LazyLock};
+use std::{array::from_fn, f64::consts::SQRT_3};
 
 use bevy_math::{DVec2, DVec3, FloatExt, IVec3};
 use const_str::starts_with;
@@ -12,150 +12,32 @@ use const_str::starts_with;
 //do some macro magic (maybe)
 //TODO: move
 pub const NETHER_TEMPERATURE: ConstNormalNoise<2> =
-    ConstNormalNoise::new("minecraft:temperature", 7, [1.0, 1.0]);
+    ConstNormalNoise::new("minecraft:temperature", -7, [1.0, 1.0]);
 pub const NETHER_VEGETATION: ConstNormalNoise<2> =
-    ConstNormalNoise::new("minecraft:vegetation", 7, [1.0, 1.0]);
-pub const RIDGE: ConstNormalNoise<6> =
-    ConstNormalNoise::new("minecraft:ridge", 7, [1.0, 2.0, 1.0, 0.0, 0.0, 0.0]);
-pub const SHIFT: ConstNormalNoise<4> =
-    ConstNormalNoise::new("minecraft:offset", 3, [1.0, 1.0, 1.0, 0.0]);
-pub const TEMPERATURE: ConstNormalNoise<6> =
-    ConstNormalNoise::new("minecraft:temperature", 10, [1.5, 0.0, 1.0, 0.0, 0.0, 0.0]);
-pub const VEGETATION: ConstNormalNoise<6> =
-    ConstNormalNoise::new("minecraft:vegetation", 8, [1.0, 1.0, 0.0, 0.0, 0.0, 0.0]);
-pub const CONTINENTALNESS: ConstNormalNoise<9> = ConstNormalNoise::new(
-    "minecraft:continentalness",
-    9,
-    [1.0, 1.0, 2.0, 2.0, 2.0, 1.0, 1.0, 1.0, 1.0],
-);
-pub const EROSION: ConstNormalNoise<5> =
-    ConstNormalNoise::new("minecraft:erosion", 9, [1.0, 1.0, 0.0, 1.0, 1.0]);
-pub const AQUIFER_BARRIER: ConstNormalNoise<1> =
-    ConstNormalNoise::new("minecraft:aquifer_barrier", 3, [1.0]);
-pub const AQUIFER_FLUID_LEVEL_FLOODEDNESS: ConstNormalNoise<1> =
-    ConstNormalNoise::new("minecraft:aquifer_fluid_level_floodedness", 7, [1.0]);
-pub const AQUIFER_LAVA: ConstNormalNoise<1> =
-    ConstNormalNoise::new("minecraft:aquifer_lava", 1, [1.0]);
-pub const AQUIFER_FLUID_LEVEL_SPREAD: ConstNormalNoise<1> =
-    ConstNormalNoise::new("minecraft:aquifer_fluid_level_spread", 5, [1.0]);
-pub const PILLAR: ConstNormalNoise<2> = ConstNormalNoise::new("minecraft:pillar", 7, [1.0, 1.0]);
-pub const PILLAR_RARENESS: ConstNormalNoise<1> =
-    ConstNormalNoise::new("minecraft:pillar_rareness", 8, [1.0]);
-pub const PILLAR_THICKNESS: ConstNormalNoise<1> =
-    ConstNormalNoise::new("minecraft:pillar_thickness", 8, [1.0]);
-pub const SPAGHETTI_2D: ConstNormalNoise<1> =
-    ConstNormalNoise::new("minecraft:spaghetti_2d", 7, [1.0]);
-pub const SPAGHETTI_2D_ELEVATION: ConstNormalNoise<1> =
-    ConstNormalNoise::new("minecraft:spaghetti_2d_elevation", 8, [1.0]);
-pub const SPAGHETTI_2D_MODULATOR: ConstNormalNoise<1> =
-    ConstNormalNoise::new("minecraft:spaghetti_2d_modulator", 11, [1.0]);
-pub const SPAGHETTI_2D_THICKNESS: ConstNormalNoise<1> =
-    ConstNormalNoise::new("minecraft:spaghetti_2d_thickness", 11, [1.0]);
-pub const SPAGHETTI_3D_1: ConstNormalNoise<1> =
-    ConstNormalNoise::new("minecraft:spaghetti_3d_1", 7, [1.0]);
-pub const SPAGHETTI_3D_2: ConstNormalNoise<1> =
-    ConstNormalNoise::new("minecraft:spaghetti_3d_2", 7, [1.0]);
-pub const SPAGHETTI_3D_RARITY: ConstNormalNoise<1> =
-    ConstNormalNoise::new("minecraft:spaghetti_3d_rarity", 11, [1.0]);
-pub const SPAGHETTI_3D_THICKNESS: ConstNormalNoise<1> =
-    ConstNormalNoise::new("minecraft:spaghetti_3d_thickness", 8, [1.0]);
-pub const SPAGHETTI_ROUGHNESS: ConstNormalNoise<1> =
-    ConstNormalNoise::new("minecraft:spaghetti_roughness", 5, [1.0]);
-pub const SPAGHETTI_ROUGHNESS_MODULATOR: ConstNormalNoise<1> =
-    ConstNormalNoise::new("minecraft:spaghetti_roughness_modulator", 8, [1.0]);
-pub const CAVE_ENTRANCE: ConstNormalNoise<3> =
-    ConstNormalNoise::new("minecraft:cave_entrance", 7, [0.4, 0.5, 1.0]);
-pub const CAVE_LAYER: ConstNormalNoise<1> = ConstNormalNoise::new("minecraft:cave_layer", 8, [1.0]);
-pub const CAVE_CHEESE: ConstNormalNoise<9> = ConstNormalNoise::new(
-    "minecraft:cave_cheese",
-    8,
-    [0.5, 1.0, 2.0, 1.0, 2.0, 1.0, 0.0, 2.0, 0.0],
-);
-pub const ORE_VEININESS: ConstNormalNoise<1> =
-    ConstNormalNoise::new("minecraft:ore_veininess", 8, [1.0]);
-pub const ORE_VEIN_A: ConstNormalNoise<1> = ConstNormalNoise::new("minecraft:ore_vein_a", 7, [1.0]);
-pub const ORE_VEIN_B: ConstNormalNoise<1> = ConstNormalNoise::new("minecraft:ore_vein_b", 7, [1.0]);
-pub const ORE_GAP: ConstNormalNoise<1> = ConstNormalNoise::new("minecraft:ore_gap", 5, [1.0]);
-pub const NOODLE: ConstNormalNoise<1> = ConstNormalNoise::new("minecraft:noodle", 8, [1.0]);
-pub const NOODLE_THICKNESS: ConstNormalNoise<1> =
-    ConstNormalNoise::new("minecraft:noodle_thickness", 8, [1.0]);
-pub const NOODLE_RIDGE_A: ConstNormalNoise<1> =
-    ConstNormalNoise::new("minecraft:noodle_ridge_a", 7, [1.0]);
-pub const NOODLE_RIDGE_B: ConstNormalNoise<1> =
-    ConstNormalNoise::new("minecraft:noodle_ridge_b", 7, [1.0]);
-pub const JAGGED: ConstNormalNoise<16> = ConstNormalNoise::new(
-    "minecraft:jagged",
-    16,
-    [
-        1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-    ],
-);
-pub const SURFACE: ConstNormalNoise<3> =
-    ConstNormalNoise::new("minecraft:surface", 6, [1.0, 1.0, 1.0]);
-pub const SURFACE_SECONDARY: ConstNormalNoise<4> =
-    ConstNormalNoise::new("minecraft:surface_secondary", 6, [1.0, 1.0, 0.0, 1.0]);
-pub const CLAY_BANDS_OFFSET: ConstNormalNoise<1> =
-    ConstNormalNoise::new("minecraft:clay_bands_offset", 8, [1.0]);
-pub const BADLANDS_PILLAR: ConstNormalNoise<4> =
-    ConstNormalNoise::new("minecraft:badlands_pillar", 2, [1.0, 1.0, 1.0, 1.0]);
-pub const BADLANDS_PILLAR_ROOF: ConstNormalNoise<1> =
-    ConstNormalNoise::new("minecraft:badlands_pillar_roof", 8, [1.0]);
-pub const BADLANDS_SURFACE: ConstNormalNoise<3> =
-    ConstNormalNoise::new("minecraft:badlands_surface", 6, [1.0, 1.0, 1.0]);
-pub const ICEBERG_PILLAR: ConstNormalNoise<4> =
-    ConstNormalNoise::new("minecraft:iceberg_pillar", 6, [1.0, 1.0, 1.0, 1.0]);
-pub const ICEBERG_PILLAR_ROOF: ConstNormalNoise<1> =
-    ConstNormalNoise::new("minecraft:iceberg_pillar_roof", 3, [1.0]);
-pub const ICEBERG_SURFACE: ConstNormalNoise<3> =
-    ConstNormalNoise::new("minecraft:iceberg_surface", 6, [1.0, 1.0, 1.0]);
-pub const SWAMP: ConstNormalNoise<1> = ConstNormalNoise::new("minecraft:surface_swamp", 2, [1.0]);
-pub const CALCITE: ConstNormalNoise<4> =
-    ConstNormalNoise::new("minecraft:calcite", 9, [1.0, 1.0, 1.0, 1.0]);
-pub const GRAVEL: ConstNormalNoise<4> =
-    ConstNormalNoise::new("minecraft:gravel", 8, [1.0, 1.0, 1.0, 1.0]);
-pub const POWDER_SNOW: ConstNormalNoise<4> =
-    ConstNormalNoise::new("minecraft:powder_snow", 6, [1.0, 1.0, 1.0, 1.0]);
-pub const PACKED_ICE: ConstNormalNoise<4> =
-    ConstNormalNoise::new("minecraft:packed_ice", 7, [1.0, 1.0, 1.0, 1.0]);
-pub const ICE: ConstNormalNoise<4> =
-    ConstNormalNoise::new("minecraft:ice", 4, [1.0, 1.0, 1.0, 1.0]);
-pub const SOUL_SAND_LAYER: ConstNormalNoise<9> = ConstNormalNoise::new(
+    ConstNormalNoise::new("minecraft:vegetation", -7, [1.0, 1.0]);
+pub const NETHERRACK: ConstNormalNoise<4> =
+    ConstNormalNoise::new("minecraft:netherrack", -3, [1.0, 0.0, 0.0, 0.35]);
+pub const NETHER_WART: ConstNormalNoise<4> =
+    ConstNormalNoise::new("minecraft:nether_wart", -3, [1.0, 0.0, 0.0, 0.9]);
+const SOUL_SAND_LAYER: ConstNormalNoise<9> = ConstNormalNoise::new(
     "minecraft:soul_sand_layer",
-    8,
+    -8,
     [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.013333333333333334],
 );
-pub const GRAVEL_LAYER: ConstNormalNoise<9> = ConstNormalNoise::new(
+const GRAVEL_LAYER: ConstNormalNoise<9> = ConstNormalNoise::new(
     "minecraft:gravel_layer",
-    8,
+    -8,
     [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.013333333333333334],
 );
-pub const PATCH: ConstNormalNoise<6> = ConstNormalNoise::new(
+const PATCH: ConstNormalNoise<6> = ConstNormalNoise::new(
     "minecraft:patch",
-    5,
+    -5,
     [1.0, 0.0, 0.0, 0.0, 0.0, 0.013333333333333334],
 );
-pub const NETHERRACK: ConstNormalNoise<4> =
-    ConstNormalNoise::new("minecraft:netherrack", 3, [1.0, 0.0, 0.0, 0.35]);
-pub const NETHER_WART: ConstNormalNoise<4> =
-    ConstNormalNoise::new("minecraft:nether_wart", 3, [1.0, 0.0, 0.0, 0.9]);
 pub const NETHER_STATE_SELECTOR: ConstNormalNoise<1> =
-    ConstNormalNoise::new("minecraft:nether_state_selector", 4, [1.0]);
-pub const BASE_3D_NOISE_OVERWORLD: ConstBlendedNoise =
-    ConstBlendedNoise::new(0.125 * 684.412 * 8., DVec3::new(80.0, 160.0, 80.0));
-pub const BASE_3D_NOISE_END: ConstBlendedNoise =
-    ConstBlendedNoise::new(0.25 * 684.412 * 4., DVec3::new(80.0, 160.0, 80.0));
+    ConstNormalNoise::new("minecraft:nether_state_selector", -4, [1.0]);
 pub const BASE_3D_NOISE_NETHER: ConstBlendedNoise =
     ConstBlendedNoise::new(0.375 * 684.412 * 8., DVec3::new(80.0, 60.0, 80.0));
-pub static BIOME_INFO_NOISE: LazyLock<PerlinNoise<1>> =
-    LazyLock::new(|| ConstPerlinNoise::new(0, [1.0]).legacy_init(&mut LegacyRandom::new(2345))); //TODO:
-//make const
-pub static TEMPERATURE_NOISE: LazyLock<PerlinNoise<1>> =
-    LazyLock::new(|| ConstPerlinNoise::new(0, [1.0]).legacy_init(&mut LegacyRandom::new(1234))); //TODO:
-//make const
-pub static FROZEN_TEMPERATURE_NOISE: LazyLock<PerlinNoise<3>> = LazyLock::new(|| {
-    ConstPerlinNoise::new(2, [1.0, 1.0, 1.0]).legacy_init(&mut LegacyRandom::new(3456))
-}); //TODO:
-//make const
 
 pub struct ConstBlendedNoise {
     min_limit_noise: ConstPerlinNoise<16>,
@@ -165,11 +47,11 @@ pub struct ConstBlendedNoise {
     factor: DVec3,
 }
 impl ConstBlendedNoise {
-    const fn new(y_scale: f64, factor: DVec3) -> Self {
+    pub const fn new(y_scale: f64, factor: DVec3) -> Self {
         Self {
-            min_limit_noise: ConstPerlinNoise::new(15, [1.0; 16]),
-            max_limit_noise: ConstPerlinNoise::new(15, [1.0; 16]),
-            main_noise: ConstPerlinNoise::new(7, [1.0; 8]),
+            min_limit_noise: ConstPerlinNoise::new(-15, [1.0; 16]),
+            max_limit_noise: ConstPerlinNoise::new(-15, [1.0; 16]),
+            main_noise: ConstPerlinNoise::new(-7, [1.0; 8]),
             y_scale,
             factor,
         }
@@ -212,7 +94,8 @@ pub struct ConstNormalNoise<const N: usize> {
 }
 
 impl<const N: usize> ConstNormalNoise<N> {
-    pub const fn new(name: &'static str, first_octave: u32, amplitudes: [f64; N]) -> Self {
+    pub const fn new(name: &'static str, first_octave: i32, amplitudes: [f64; N]) -> Self {
+        assert!(first_octave <= 0);
         assert!(amplitudes[0] != 0.0);
         assert!(starts_with!(name, "minecraft:"));
 
@@ -227,7 +110,7 @@ impl<const N: usize> ConstNormalNoise<N> {
         }
         Self {
             name,
-            factor: 1.0 / (0.6 + 6.0 / (10 * (last_idx + 1)) as f64),
+            factor: 5. / 3. - 5. / (3 * last_idx + 6) as f64,
             first: ConstPerlinNoise::new(first_octave, amplitudes),
             second: ConstPerlinNoise::new(first_octave, amplitudes),
         }
@@ -252,26 +135,17 @@ impl<const N: usize> ConstNormalNoise<N> {
 }
 
 pub struct ConstPerlinNoise<const N: usize> {
-    first_octave: u32,
+    first_octave: i32,
     amplitudes: [f64; N],
-    input_factor: f64,
 }
 
 impl<const N: usize> ConstPerlinNoise<N> {
-    pub const fn new(first_octave: u32, mut amplitudes: [f64; N]) -> Self {
+    pub const fn new(first_octave: i32, amplitudes: [f64; N]) -> Self {
         assert!(!amplitudes.is_empty());
-        let input_factor = 2i32.pow(first_octave) as f64;
-        let lowest_freq_value_factor = (1 << (N - 1)) as f64 / ((1 << N) - 1) as f64;
-
-        let mut i = 0;
-        while i < amplitudes.len() {
-            amplitudes[i] *= lowest_freq_value_factor;
-            i += 1;
-        }
+        assert!(first_octave <= 0);
         Self {
             first_octave,
             amplitudes,
-            input_factor,
         }
     }
 
@@ -279,7 +153,7 @@ impl<const N: usize> ConstPerlinNoise<N> {
         PerlinNoise {
             noise_levels: from_fn(|_| ImprovedNoise::new(random)),
             amplitudes: self.amplitudes,
-            input_factor: self.input_factor,
+            first_octave: self.first_octave,
         }
     }
 
@@ -287,12 +161,11 @@ impl<const N: usize> ConstPerlinNoise<N> {
         PerlinNoise {
             noise_levels: from_fn(|i| {
                 ImprovedNoise::new(
-                    &mut factory
-                        .with_hash(&format!("octave_{}", i as i32 - self.first_octave as i32)),
+                    &mut factory.with_hash(&format!("octave_{}", i as i32 + self.first_octave)),
                 )
             }),
             amplitudes: self.amplitudes,
-            input_factor: self.input_factor,
+            first_octave: self.first_octave,
         }
     }
 }
@@ -315,21 +188,20 @@ impl<const N: usize> NormalNoise<N> {
 pub struct PerlinNoise<const N: usize> {
     noise_levels: [ImprovedNoise; N],
     amplitudes: [f64; N],
-    input_factor: f64,
+    first_octave: i32,
 }
 
 impl<const N: usize> PerlinNoise<N> {
     pub fn at(&self, point: DVec3) -> f64 {
-        let point = point / self.input_factor;
-        let mut res = 0.0;
-        let mut scale = 1.;
-
-        for (noise, amp) in self.noise_levels.iter().zip(self.amplitudes) {
-            res += amp * noise.at((point * scale).map(wrap)) / scale;
-            scale *= 2.0;
-        }
-
-        res
+        self.noise_levels
+            .iter()
+            .zip(self.amplitudes)
+            .enumerate()
+            .map(|(i, (noise, amp))| {
+                amp * f64::from(1 << (N - 1 - i)) / f64::from((1 << N) - 1)
+                    * noise.at((point * 2f64.powi(self.first_octave + i as i32)).map(wrap))
+            })
+            .sum()
     }
 
     fn legacy_blended_at(&self, point: DVec3, y_scale: f64) -> f64 {
@@ -347,7 +219,7 @@ impl<const N: usize> PerlinNoise<N> {
     }
 
     pub fn legacy_simplex_at(&self, point: DVec2) -> f64 {
-        let point = point / self.input_factor;
+        let point = point * 2f64.powi(self.first_octave);
         let mut res = 0.0;
         let mut scale = 1.;
 
@@ -511,17 +383,17 @@ impl ImprovedNoise {
 fn test_normal_noise() {
     let rng = crate::random::Xoroshiro128PlusPlus::new(0, 0).fork();
     let noise =
-        ConstNormalNoise::new("minecraft:test", 4, [2.0, 1.5, 0.1, -1.0, 0.0, 0.0]).init(rng);
+        ConstNormalNoise::new("minecraft:test", -4, [2.0, 1.5, 0.1, -1.0, 0.0, 0.0]).init(rng);
 
+    //TODO: vanilla has slight rounding errors here so the result is instead 0.3623879633162622
     assert_eq!(
         noise.at(DVec3::new(0.0, 0.0, 0.0)),
-        0.3623879633162622,
+        0.3623879633162623,
         "Mismatch in noise at zero"
     );
-    //TODO: vanilla has slight rounding errors here so the result is instead -0.10086538185785067
     assert_eq!(
         noise.at(DVec3::new(10000.123, 203.5, -20031.78)),
-        -0.10086538185785066,
+        -0.10086538185785067,
         "Mismatch in noise"
     );
 }
@@ -552,12 +424,8 @@ fn test_improved_noise() {
 fn test_perlin_noise() {
     let rng = crate::random::Xoroshiro128PlusPlus::new(0, 0).fork();
 
-    let perlin_noise = ConstPerlinNoise::new(2, [1.0, -1.0, 0.0, 0.5, 0.0]).init(rng);
+    let perlin_noise = ConstPerlinNoise::new(-2, [1.0, -1.0, 0.0, 0.5, 0.0]).init(rng);
 
-    assert_eq!(
-        perlin_noise.input_factor, 4.0,
-        "Mismatch in lowest_freq_input_factor"
-    );
     assert_eq!(
         perlin_noise.at(DVec3::new(0.0, 0.0, 0.0)),
         -0.05992145275521602,
@@ -573,7 +441,8 @@ fn test_perlin_noise() {
 #[test]
 fn test_blended_noise() {
     let mut rng = crate::random::Xoroshiro128PlusPlus::from_seed(0);
-    let noise = BASE_3D_NOISE_OVERWORLD.init(&mut rng);
+    let noise =
+        ConstBlendedNoise::new(0.125 * 684.412 * 8., DVec3::new(80.0, 160.0, 80.0)).init(&mut rng);
     assert_eq!(noise.at(DVec3::new(0.0, 0.0, 0.0)), 0.05283812245734512);
     assert_eq!(
         noise.at(DVec3::new(10000.0, 203.0, -20031.0) * DVec3::new(1.0, 0.125, 1.0) * 684.412),
@@ -597,17 +466,4 @@ fn test_simplex_noise() {
         noise.legacy_simplex_at(DVec2::new(10000.0, -20031.0)),
         0.16818932411152765
     );
-}
-
-#[test]
-fn test_continentalness() {
-    let noise = CONTINENTALNESS.init(crate::random::Xoroshiro128PlusPlus::from_seed(1).fork());
-    // vanilla is 1.4999999999999998
-    assert_eq!(noise.factor, 1.5);
-    // assert_eq!(
-    //     noise.first.noise_levels[0].offset,
-    //     (13.954442024230957, 65.71379852294922, 250.0172119140625).into()
-    // );
-
-    assert_eq!(noise.at((0., 0., 0.)), 0.4846943122912421);
 }

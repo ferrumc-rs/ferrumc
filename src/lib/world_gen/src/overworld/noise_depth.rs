@@ -4,19 +4,77 @@ use crate::overworld::noise_biome_parameters::{
     DEPTH_DEEP_DARK_DRYNESS_THRESHOLD, EROSION_DEEP_DARK_DRYNESS_THRESHOLD,
 };
 use crate::overworld::overworld_generator::{CHUNK_HEIGHT, CachedNoise};
-use crate::perlin_noise::{
-    BASE_3D_NOISE_OVERWORLD, BlendedNoise, CAVE_CHEESE, CAVE_ENTRANCE, CAVE_LAYER, CONTINENTALNESS,
-    EROSION, JAGGED, NOODLE, NOODLE_RIDGE_A, NOODLE_RIDGE_B, NOODLE_THICKNESS, NormalNoise, PILLAR,
-    PILLAR_RARENESS, PILLAR_THICKNESS, RIDGE, SHIFT, SPAGHETTI_2D, SPAGHETTI_2D_ELEVATION,
-    SPAGHETTI_2D_MODULATOR, SPAGHETTI_2D_THICKNESS, SPAGHETTI_3D_1, SPAGHETTI_3D_2,
-    SPAGHETTI_3D_RARITY, SPAGHETTI_3D_THICKNESS, SPAGHETTI_ROUGHNESS,
-    SPAGHETTI_ROUGHNESS_MODULATOR, TEMPERATURE, VEGETATION,
-};
+use crate::perlin_noise::{BlendedNoise, ConstBlendedNoise, ConstNormalNoise, NormalNoise};
 use crate::random::Xoroshiro128PlusPlus;
 use bevy_math::{DVec3, FloatExt, Vec3Swizzles};
 use ferrumc_world::pos::{BlockPos, ChunkPos, ColumnPos};
 
 use crate::overworld::spline::{CubicSpline, SplineCoord, SplinePoint, SplineType};
+
+const BASE_3D_NOISE_OVERWORLD: ConstBlendedNoise =
+    ConstBlendedNoise::new(0.125 * 684.412 * 8., DVec3::new(80.0, 160.0, 80.0));
+const RIDGE: ConstNormalNoise<6> =
+    ConstNormalNoise::new("minecraft:ridge", -7, [1.0, 2.0, 1.0, 0.0, 0.0, 0.0]);
+const SHIFT: ConstNormalNoise<4> =
+    ConstNormalNoise::new("minecraft:offset", -3, [1.0, 1.0, 1.0, 0.0]);
+const TEMPERATURE: ConstNormalNoise<6> =
+    ConstNormalNoise::new("minecraft:temperature", -10, [1.5, 0.0, 1.0, 0.0, 0.0, 0.0]);
+const VEGETATION: ConstNormalNoise<6> =
+    ConstNormalNoise::new("minecraft:vegetation", -8, [1.0, 1.0, 0.0, 0.0, 0.0, 0.0]);
+const CONTINENTALNESS: ConstNormalNoise<9> = ConstNormalNoise::new(
+    "minecraft:continentalness",
+    -9,
+    [1.0, 1.0, 2.0, 2.0, 2.0, 1.0, 1.0, 1.0, 1.0],
+);
+const EROSION: ConstNormalNoise<5> =
+    ConstNormalNoise::new("minecraft:erosion", -9, [1.0, 1.0, 0.0, 1.0, 1.0]);
+const PILLAR: ConstNormalNoise<2> = ConstNormalNoise::new("minecraft:pillar", -7, [1.0, 1.0]);
+const PILLAR_RARENESS: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:pillar_rareness", -8, [1.0]);
+const PILLAR_THICKNESS: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:pillar_thickness", -8, [1.0]);
+const SPAGHETTI_2D: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:spaghetti_2d", -7, [1.0]);
+const SPAGHETTI_2D_ELEVATION: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:spaghetti_2d_elevation", -8, [1.0]);
+const SPAGHETTI_2D_MODULATOR: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:spaghetti_2d_modulator", -11, [1.0]);
+const SPAGHETTI_2D_THICKNESS: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:spaghetti_2d_thickness", -11, [1.0]);
+const SPAGHETTI_3D_1: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:spaghetti_3d_1", -7, [1.0]);
+const SPAGHETTI_3D_2: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:spaghetti_3d_2", -7, [1.0]);
+const SPAGHETTI_3D_RARITY: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:spaghetti_3d_rarity", -11, [1.0]);
+const SPAGHETTI_3D_THICKNESS: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:spaghetti_3d_thickness", -8, [1.0]);
+const SPAGHETTI_ROUGHNESS: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:spaghetti_roughness", -5, [1.0]);
+const SPAGHETTI_ROUGHNESS_MODULATOR: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:spaghetti_roughness_modulator", -8, [1.0]);
+const CAVE_ENTRANCE: ConstNormalNoise<3> =
+    ConstNormalNoise::new("minecraft:cave_entrance", -7, [0.4, 0.5, 1.0]);
+const CAVE_LAYER: ConstNormalNoise<1> = ConstNormalNoise::new("minecraft:cave_layer", -8, [1.0]);
+const CAVE_CHEESE: ConstNormalNoise<9> = ConstNormalNoise::new(
+    "minecraft:cave_cheese",
+    -8,
+    [0.5, 1.0, 2.0, 1.0, 2.0, 1.0, 0.0, 2.0, 0.0],
+);
+const NOODLE: ConstNormalNoise<1> = ConstNormalNoise::new("minecraft:noodle", -8, [1.0]);
+const NOODLE_THICKNESS: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:noodle_thickness", -8, [1.0]);
+const NOODLE_RIDGE_A: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:noodle_ridge_a", -7, [1.0]);
+const NOODLE_RIDGE_B: ConstNormalNoise<1> =
+    ConstNormalNoise::new("minecraft:noodle_ridge_b", -7, [1.0]);
+const JAGGED: ConstNormalNoise<16> = ConstNormalNoise::new(
+    "minecraft:jagged",
+    -16,
+    [
+        1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+    ],
+);
 
 //TODO: const
 fn build_erosion_offset_spline(
@@ -700,3 +758,16 @@ fn test_offset() {
         0.008096008
     );
 }
+
+// #[test]
+// fn test_continentalness() {
+//     let noise = CONTINENTALNESS.init(crate::random::Xoroshiro128PlusPlus::from_seed(1).fork());
+//     // vanilla is 1.4999999999999998
+//     assert_eq!(noise.factor, 1.5);
+//     // assert_eq!(
+//     //     noise.first.noise_levels[0].offset,
+//     //     (13.954442024230957, 65.71379852294922, 250.0172119140625).into()
+//     // );
+//
+//     assert_eq!(noise.at((0., 0., 0.)), 0.4846943122912421);
+// }
