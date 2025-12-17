@@ -193,42 +193,37 @@ pub struct PerlinNoise<const N: usize> {
 
 impl<const N: usize> PerlinNoise<N> {
     pub fn at(&self, point: DVec3) -> f64 {
+        self.iter_sum(|(i, (noise, amp))| {
+            amp * f64::from(1 << (N - 1 - i)) / f64::from((1 << N) - 1)
+                * noise.at((point * 2f64.powi(self.first_octave + i as i32)).map(wrap))
+        })
+    }
+
+    pub fn legacy_simplex_at(&self, point: DVec2) -> f64 {
+        self.iter_sum(|(i, (noise, amp))| {
+            amp * f64::from(1 << (N - 1 - i)) / f64::from((1 << N) - 1)
+                * noise
+                    .legacy_simplex_at((point * 2f64.powi(self.first_octave + i as i32)).map(wrap))
+        })
+    }
+
+    fn legacy_blended_at(&self, point: DVec3, y_scale: f64) -> f64 {
+        self.iter_sum(|(i, (noise, _))| {
+            noise.legacy_at(
+                (point / f64::from(1 << i)).map(wrap),
+                y_scale / f64::from(1 << i),
+                point.y / f64::from(1 << i),
+            ) * f64::from(1 << i)
+        })
+    }
+
+    fn iter_sum(&self, map: impl Fn((usize, (&ImprovedNoise, f64))) -> f64) -> f64 {
         self.noise_levels
             .iter()
             .zip(self.amplitudes)
             .enumerate()
-            .map(|(i, (noise, amp))| {
-                amp * f64::from(1 << (N - 1 - i)) / f64::from((1 << N) - 1)
-                    * noise.at((point * 2f64.powi(self.first_octave + i as i32)).map(wrap))
-            })
+            .map(map)
             .sum()
-    }
-
-    fn legacy_blended_at(&self, point: DVec3, y_scale: f64) -> f64 {
-        let mut res = 0.0;
-        let mut scale = 1.0;
-
-        //assume all amps are 1.
-        for noise in &self.noise_levels {
-            res += noise.legacy_at((point * scale).map(wrap), y_scale * scale, point.y * scale)
-                / scale;
-            scale /= 2.0;
-        }
-
-        res
-    }
-
-    pub fn legacy_simplex_at(&self, point: DVec2) -> f64 {
-        let point = point * 2f64.powi(self.first_octave);
-        let mut res = 0.0;
-        let mut scale = 1.;
-
-        for (noise, amp) in self.noise_levels.iter().zip(self.amplitudes) {
-            res += amp * noise.legacy_simplex_at(point * scale) / scale;
-            scale *= 2.0;
-        }
-
-        res
     }
 }
 
@@ -302,7 +297,6 @@ impl ImprovedNoise {
     }
 
     fn legacy_at(&self, at: DVec3, y_scale: f64, y_max: f64) -> f64 {
-        assert!(y_scale != 0.0);
         let actual = at + self.offset;
         let grid = actual.floor();
         let delta = actual - grid;
