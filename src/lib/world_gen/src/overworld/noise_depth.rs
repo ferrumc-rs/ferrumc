@@ -449,7 +449,7 @@ pub struct OverworldBiomeNoise {
     noodle_ridge_b: NormalNoise<1>,
 }
 impl OverworldBiomeNoise {
-    pub(super) fn new(factory: Xoroshiro128PlusPlus) -> Self {
+    pub fn new(factory: Xoroshiro128PlusPlus) -> Self {
         Self {
             noise_size_vertical: 2 << 2,
             factor: overworld_factor(),
@@ -494,14 +494,14 @@ impl OverworldBiomeNoise {
         let shift_z = self.shift.at(noise_pos.zxy());
         pos * DVec3::new(0.25, 0.0, 0.25) + DVec3::new(shift_x, 0.0, shift_z)
     }
-    pub fn direct_preliminary_surface(&self, pos: ColumnPos) -> i32 {
+    pub fn direct_preliminary_surface(&self, pos: ColumnPos) -> i16 {
         let spline_params = self.make_spline_params(self.transform(pos.block(0).into()));
         let factor = self.factor(spline_params) * 4.;
         let base_density = factor * self.offset(spline_params) - 0.703125;
         let res = (0.390625 - base_density) / factor;
 
         // y >= 30 / 8 * 8
-        let y = res.remap(1.5, -1.5, -64., 320.0) as i32 / 8 * 8;
+        let y = res.remap(1.5, -1.5, -64., 320.0) as i16 / 8 * 8;
 
         if y >= 240 + 8 {
             for y in (240 + 8..=y.min(256 - 8)).rev().step_by(8) {
@@ -710,9 +710,9 @@ impl OverworldBiomeNoise {
     }
     pub fn is_deep_dark_region(&self, pos: BlockPos) -> bool {
         let transformed_pos = self.transform(pos.pos.as_dvec3());
-        self.erosion.at(transformed_pos) < EROSION_DEEP_DARK_DRYNESS_THRESHOLD.into()
+        self.erosion.at(transformed_pos) < EROSION_DEEP_DARK_DRYNESS_THRESHOLD
             && Self::depth(pos, self.offset(self.make_spline_params(transformed_pos)))
-                > DEPTH_DEEP_DARK_DRYNESS_THRESHOLD.into()
+                > DEPTH_DEEP_DARK_DRYNESS_THRESHOLD
     }
 
     pub fn at_inner(&self, pos: BlockPos, cache: CachedNoise) -> [f64; 6] {
@@ -759,6 +759,21 @@ fn test_offset() {
     );
 }
 
+#[test]
+fn test_prelim_surface() {
+    use itertools::Itertools;
+    let noise = OverworldBiomeNoise::new(Xoroshiro128PlusPlus::from_seed(0));
+    for pos in (0..100)
+        .cartesian_product(0..100)
+        .map(|(x, z)| ChunkPos::new(x, z))
+    {
+        assert_eq!(
+            noise.preliminary_surface(pos),
+            noise.direct_preliminary_surface(pos.origin()),
+            "not equal prelim surface at {pos}"
+        );
+    }
+}
 // #[test]
 // fn test_continentalness() {
 //     let noise = CONTINENTALNESS.init(crate::random::Xoroshiro128PlusPlus::from_seed(1).fork());
