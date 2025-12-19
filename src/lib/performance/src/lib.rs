@@ -43,15 +43,14 @@ pub struct ServerPerformance {
 }
 
 impl ServerPerformance {
-    pub fn new(tps: u32) -> Option<Self> {
+    pub fn new(tps: u32) -> Self {
         if !sysinfo::IS_SUPPORTED_SYSTEM {
             warn!("System does not support 'sysinfo', disabling server performance statisics.");
-            return None;
         }
 
-        Some(Self {
+        Self {
             tps: TPSMonitor::new(tps),
             memory: MemoryUsage::default(),
-        })
+        }
     }
 }
