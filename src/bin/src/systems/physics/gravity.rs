@@ -1,4 +1,5 @@
 use bevy_ecs::prelude::{Query, Res, With};
+use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::velocity::Velocity;
 use ferrumc_entities::markers::HasGravity;
@@ -9,10 +10,13 @@ use ferrumc_world::pos::{ChunkBlockPos, ChunkPos};
 
 // Just apply gravity to a mob's velocity. Application of velocity is handled elsewhere.
 pub(crate) fn handle(
-    mut entities: Query<(&mut Velocity, &Position), With<HasGravity>>,
+    mut entities: Query<(&mut Velocity, &Position, &OnGround), With<HasGravity>>,
     state: Res<GlobalStateResource>,
 ) {
-    for (mut vel, pos) in entities.iter_mut() {
+    for (mut vel, pos, grounded) in entities.iter_mut() {
+        if grounded.0 {
+            continue;
+        }
         let int_pos = pos.floor().as_ivec3();
         if state
             .0

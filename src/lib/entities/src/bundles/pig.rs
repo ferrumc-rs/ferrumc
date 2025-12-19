@@ -8,7 +8,6 @@ use ferrumc_data::generated::entities::EntityType as VanillaEntityType;
 use crate::components::{
     CombatProperties, EntityMetadata, LastSyncedPosition, PhysicalProperties, SpawnProperties,
 };
-use crate::Entity;
 
 /// Complete bundle to spawn a pig in Bevy ECS.
 ///
@@ -54,12 +53,6 @@ impl PigBundle {
         let mut bundle = Self::new(position);
         bundle.rotation = rotation;
         bundle
-    }
-}
-
-impl Entity for PigBundle {
-    fn type_marker() -> impl bevy_ecs::prelude::Component {
-        crate::markers::entity_types::Pig
     }
 }
 

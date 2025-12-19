@@ -4,6 +4,7 @@ pub mod connection_killer;
 pub mod keep_alive_system;
 pub mod lan_pinger;
 pub mod listeners;
+pub mod mobs;
 mod mq;
 pub mod new_connections;
 pub mod physics;
