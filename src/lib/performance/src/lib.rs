@@ -1,4 +1,5 @@
 use bevy_ecs::resource::Resource;
+use tracing::warn;
 
 use crate::{memory::MemoryUsage, tps::TPSMonitor};
 
@@ -19,6 +20,9 @@ pub const WINDOW_SECONDS: usize = 60;
 /// ```rs
 /// fn test(performance: Res<ServerPerformance>) {
 ///     let tps = &performance.tps;
+///
+///     tps.tps(Duration::from_secs(1));
+///     tps.tick_duration(0.50);
 /// }
 /// ```
 ///
@@ -32,11 +36,6 @@ pub const WINDOW_SECONDS: usize = 60;
 /// - Tick durations
 /// - Rolling TPS (1s / 5s / 15s windows)
 /// - Memory Usage (Current / Peak)
-///
-/// Intended to expand in the future to include:
-/// - Lag spike detection
-/// - Scheduler overrun statistics (will be moved here)
-/// - Sampler-based profiling (maybe i doubt it to be honest)
 #[derive(Resource)]
 pub struct ServerPerformance {
     pub tps: TPSMonitor,
@@ -44,10 +43,15 @@ pub struct ServerPerformance {
 }
 
 impl ServerPerformance {
-    pub fn new(tps: u32) -> Self {
-        Self {
+    pub fn new(tps: u32) -> Option<Self> {
+        if !sysinfo::IS_SUPPORTED_SYSTEM {
+            warn!("System does not support 'sysinfo', disabling server performance statisics.");
+            return None;
+        }
+
+        Some(Self {
             tps: TPSMonitor::new(tps),
             memory: MemoryUsage::default(),
-        }
+        })
     }
 }

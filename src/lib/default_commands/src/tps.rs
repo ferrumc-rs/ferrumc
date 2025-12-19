@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use bevy_ecs::system::ResMut;
 use ferrumc_commands::Sender;
 use ferrumc_macros::command;
@@ -20,19 +22,19 @@ fn tps_command(#[sender] sender: Sender, performance_res: ResMut<ServerPerforman
                     .color(NamedColor::Gray)
                     .build(),
             )
-            .extra(get_tps_component(tps.tps_1s()))
+            .extra(get_tps_component(tps.tps(Duration::from_secs(1))))
             .extra(
                 TextComponentBuilder::new("| ")
                     .color(NamedColor::DarkGray)
                     .build(),
             )
-            .extra(get_tps_component(tps.tps_5s()))
+            .extra(get_tps_component(tps.tps(Duration::from_secs(5))))
             .extra(
                 TextComponentBuilder::new("| ")
                     .color(NamedColor::DarkGray)
                     .build(),
             )
-            .extra(get_tps_component(tps.tps_15s()))
+            .extra(get_tps_component(tps.tps(Duration::from_secs(15))))
             .extra(
                 TextComponentBuilder::new(" (1s / 5s / 15s)\n\n")
                     .color(NamedColor::Gray)
@@ -49,25 +51,25 @@ fn tps_command(#[sender] sender: Sender, performance_res: ResMut<ServerPerforman
                     .color(NamedColor::Gray)
                     .build(),
             )
-            .extra(get_percentile_component(Some(tps.avg_tick_ms())))
+            .extra(get_percentile_component(tps.avg_tick_ms()))
             .extra(
                 TextComponentBuilder::new("p50 ")
                     .color(NamedColor::Gray)
                     .build(),
             )
-            .extra(get_percentile_component(tps.p50_ms()))
+            .extra(get_percentile_component(tps.tick_duration(0.50)))
             .extra(
                 TextComponentBuilder::new("p95 ")
                     .color(NamedColor::Gray)
                     .build(),
             )
-            .extra(get_percentile_component(tps.p95_ms()))
+            .extra(get_percentile_component(tps.tick_duration(0.95)))
             .extra(
                 TextComponentBuilder::new("p99 ")
                     .color(NamedColor::Gray)
                     .build(),
             )
-            .extra(get_percentile_component(tps.p99_ms()))
+            .extra(get_percentile_component(tps.tick_duration(0.99)))
             // Memory section
             .extra(TextComponent::from("\n\n"))
             .extra(
@@ -119,23 +121,16 @@ fn get_tps_component(tps: f32) -> TextComponent {
         .build()
 }
 
-fn get_percentile_component(percentile: Option<f64>) -> TextComponent {
-    match percentile {
-        Some(ms) => {
-            let color = if ms > 100.0 {
-                NamedColor::Red
-            } else if ms > 50.0 {
-                NamedColor::Yellow
-            } else {
-                NamedColor::Green
-            };
+fn get_percentile_component(percentile: f64) -> TextComponent {
+    let color = if percentile > 100.0 {
+        NamedColor::Red
+    } else if percentile > 50.0 {
+        NamedColor::Yellow
+    } else {
+        NamedColor::Green
+    };
 
-            TextComponentBuilder::new(format!("{:.2}ms ", ms))
-                .color(color)
-                .build()
-        }
-        None => TextComponentBuilder::new("0.00ms ")
-            .color(NamedColor::Green)
-            .build(),
-    }
+    TextComponentBuilder::new(format!("{:.2}ms ", percentile))
+        .color(color)
+        .build()
 }

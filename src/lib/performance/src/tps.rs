@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use crate::{
     tick::{TickData, TickHistory},
     WINDOW_SECONDS,
@@ -100,27 +102,11 @@ impl TPSMonitor {
         (elapsed_ns as f64 / f64::from(ticks)) / 1_000_000.0
     }
 
-    pub fn tps_1s(&self) -> f32 {
-        self.tps_window_ns(1_000_000_000)
+    pub fn tps(&self, duration: Duration) -> f32 {
+        self.tps_window_ns(duration.as_nanos())
     }
 
-    pub fn tps_5s(&self) -> f32 {
-        self.tps_window_ns(5_000_000_000)
-    }
-
-    pub fn tps_15s(&self) -> f32 {
-        self.tps_window_ns(15_000_000_000)
-    }
-
-    pub fn p50_ms(&self) -> Option<f64> {
-        self.percentile_ms(0.50, 1_000_000_000)
-    }
-
-    pub fn p95_ms(&self) -> Option<f64> {
-        self.percentile_ms(0.95, 1_000_000_000)
-    }
-
-    pub fn p99_ms(&self) -> Option<f64> {
-        self.percentile_ms(0.99, 1_000_000_000)
+    pub fn tick_duration(&self, percentile: f64) -> f64 {
+        self.percentile_ms(percentile, 1_000_000_000).unwrap_or(0.0)
     }
 }

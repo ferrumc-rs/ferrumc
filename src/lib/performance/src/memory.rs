@@ -2,6 +2,7 @@ use sysinfo::{Pid, ProcessesToUpdate, System};
 
 pub enum MemoryUnit {
     Bytes,
+    Kilobytes,
     Megabytes,
     Gigabytes,
 }
@@ -50,6 +51,7 @@ impl MemoryUsage {
     fn convert(&self, bytes: u64, unit: &MemoryUnit) -> u64 {
         match unit {
             MemoryUnit::Bytes => bytes,
+            MemoryUnit::Kilobytes => bytes / 1024,
             MemoryUnit::Megabytes => bytes / 1024 / 1024,
             MemoryUnit::Gigabytes => bytes / 1024 / 1024 / 1024,
         }

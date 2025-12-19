@@ -17,5 +17,8 @@ pub fn register_resources(
     world.insert_resource(WorldSyncTracker {
         last_synced: std::time::Instant::now(),
     });
-    world.insert_resource(ServerPerformance::new(get_global_config().tps));
+
+    if let Some(performance) = ServerPerformance::new(get_global_config().tps) {
+        world.insert_resource(performance);
+    }
 }
