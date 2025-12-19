@@ -3,7 +3,7 @@ use bevy_math::DVec3;
 use ferrumc_components::player::swimming::SwimmingState;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::position::Position;
-use ferrumc_macros::block;
+use ferrumc_macros::match_block;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::entity_metadata::{EntityMetadata, EntityMetadataPacket};
 use ferrumc_net_codec::net_types::var_int::VarInt;
@@ -21,30 +21,12 @@ fn is_player_in_water(state: &ferrumc_state::GlobalState, pos: &Position) -> boo
         .floor()
         .as_ivec3();
 
-    let water_id = vec![
-        block!("water", { level: 1 }),
-        block!("water", { level: 2 }),
-        block!("water", { level: 3 }),
-        block!("water", { level: 4 }),
-        block!("water", { level: 5 }),
-        block!("water", { level: 6 }),
-        block!("water", { level: 7 }),
-        block!("water", { level: 8 }),
-        block!("water", { level: 9 }),
-        block!("water", { level: 10 }),
-        block!("water", { level: 11 }),
-        block!("water", { level: 12 }),
-        block!("water", { level: 13 }),
-        block!("water", { level: 14 }),
-        block!("water", { level: 15 }),
-    ];
-
     let pos = BlockPos::of(eye_pos.x, eye_pos.y, eye_pos.z);
 
     state
         .world
         .get_block_and_fetch(pos, "overworld")
-        .map(|current_block| water_id.contains(&current_block))
+        .map(|current_block| match_block!("water", current_block))
         .unwrap_or(false)
 }
 
