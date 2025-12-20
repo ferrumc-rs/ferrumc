@@ -1,4 +1,4 @@
-use bevy_ecs::prelude::{DetectChanges, Query, Res};
+use bevy_ecs::prelude::{DetectChanges, Query, Ref, Res};
 use bevy_math::{IVec3, Vec3A};
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
@@ -9,20 +9,17 @@ use ferrumc_state::{GlobalState, GlobalStateResource};
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::pos::{ChunkBlockPos, ChunkPos};
 use tracing::debug;
-use tracing::field::debug;
-
-const STEP_SIZE: f32 = 0.01;
 
 pub fn handle(
     query: Query<(
         &mut Velocity,
-        &mut Position,
+        Ref<Position>,
         &PhysicalProperties,
         &mut OnGround,
     )>,
     state: Res<GlobalStateResource>,
 ) {
-    for (mut vel, mut pos, physical, mut grounded) in query {
+    for (mut vel, pos, physical, mut grounded) in query {
         if pos.is_changed() || vel.is_changed() {
             // Figure out where the entity is going to be next tick
             let next_pos = (pos.coords + vel.as_dvec3()).as_vec3a();
