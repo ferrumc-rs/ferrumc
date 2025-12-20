@@ -8,6 +8,7 @@ pub mod mobs;
 mod mq;
 pub mod new_connections;
 pub mod physics;
+mod send_entity_updates;
 pub mod shutdown_systems;
 pub mod world_sync;
 
@@ -18,11 +19,7 @@ pub fn register_game_systems(schedule: &mut bevy_ecs::schedule::Schedule) {
     schedule.add_systems(chunk_sending::handle);
     schedule.add_systems(mq::process);
 
-    // Entity physics and synchronization
-    schedule.add_systems(physics::collisions::handle);
-    schedule.add_systems(physics::drag::handle);
-    schedule.add_systems(physics::gravity::handle);
-    schedule.add_systems(physics::velocity::handle);
+    schedule.add_systems(send_entity_updates::handle);
 
     // Should always be last
     schedule.add_systems(connection_killer::connection_killer);

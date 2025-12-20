@@ -1,5 +1,6 @@
-use bevy_ecs::prelude::{DetectChanges, Query, Ref, Res};
-use bevy_math::IVec3;
+use bevy_ecs::prelude::{DetectChanges, Query, Res};
+use bevy_math::{IVec3, Vec3A};
+use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::velocity::Velocity;
 use ferrumc_entities::PhysicalProperties;
@@ -7,41 +8,53 @@ use ferrumc_macros::match_block;
 use ferrumc_state::{GlobalState, GlobalStateResource};
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::pos::{ChunkBlockPos, ChunkPos};
+use tracing::debug;
+use tracing::field::debug;
+
+const STEP_SIZE: f32 = 0.01;
 
 pub fn handle(
-    query: Query<(&mut Velocity, Ref<Position>, &PhysicalProperties)>,
+    query: Query<(
+        &mut Velocity,
+        &mut Position,
+        &PhysicalProperties,
+        &mut OnGround,
+    )>,
     state: Res<GlobalStateResource>,
 ) {
-    for (mut vel, pos, physical) in query {
-        // If velocity and position haven't changed, skip collision checks
-        if !vel.is_changed() && !pos.is_changed() {
-            continue;
-        }
-        let aabb = physical.bounding_box;
-        let (min, max) = (aabb.min.as_dvec3(), aabb.max.as_dvec3());
+    for (mut vel, mut pos, physical, mut grounded) in query {
+        if pos.is_changed() || vel.is_changed() {
+            // Figure out where the entity is going to be next tick
+            let next_pos = (pos.coords + vel.as_dvec3()).as_vec3a();
+            let mut collided = false;
+            let mut hit_block = IVec3::ZERO;
 
-        let to_block = |x: f64, y: f64, z: f64| {
-            IVec3::new(x.floor() as i32, y.floor() as i32, z.floor() as i32)
-        };
+            // Get the block positions that the entity's bounding box will occupy
+            let min_block_pos = physical.bounding_box.min + next_pos;
+            let max_block_pos = physical.bounding_box.max + next_pos;
 
-        let check_positions = [
-            // Feet level
-            to_block(pos.x + min.x, pos.y + min.y, pos.z + min.z),
-            to_block(pos.x + max.x, pos.y + min.y, pos.z + min.z),
-            to_block(pos.x + min.x, pos.y + min.y, pos.z + max.z),
-            to_block(pos.x + max.x, pos.y + min.y, pos.z + max.z),
-            // Head level
-            to_block(pos.x + min.x, pos.y + max.y, pos.z + min.z),
-            to_block(pos.x + max.x, pos.y + max.y, pos.z + min.z),
-            to_block(pos.x + min.x, pos.y + max.y, pos.z + max.z),
-            to_block(pos.x + max.x, pos.y + max.y, pos.z + max.z),
-        ];
+            // Check each block in the bounding box for solidity
+            for x in min_block_pos.x.floor() as i32..=max_block_pos.x.floor() as i32 {
+                for y in min_block_pos.y.floor() as i32..=max_block_pos.y.floor() as i32 {
+                    for z in min_block_pos.z.floor() as i32..=max_block_pos.z.floor() as i32 {
+                        let block_pos = IVec3::new(x, y, z);
+                        if is_solid_block(&state.0, block_pos) {
+                            collided = true;
+                            hit_block = block_pos;
+                            if is_solid_block(&state.0, IVec3::new(x, y - 1, z)) && vel.y <= 0.0 {
+                                grounded.0 = true;
+                            }
+                        }
+                    }
+                }
+            }
+            // If a collision is detected, stop the entity's movement
+            if collided {
+                vel.vec = Vec3A::ZERO;
+                debug!("Entity collided at block position: {:?}", debug(&hit_block));
 
-        if check_positions
-            .iter()
-            .any(|pos| is_solid_block(&state.0, *pos))
-        {
-            vel.y = 0.0;
+                //TODO: Clip the entity to the nearest non-colliding position
+            }
         }
     }
 }
