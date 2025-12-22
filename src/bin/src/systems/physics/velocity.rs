@@ -1,20 +1,14 @@
-use bevy_ecs::message::MessageWriter;
 use bevy_ecs::prelude::{Entity, Query, Ref};
 use bevy_math::Vec3A;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::velocity::Velocity;
-use ferrumc_messages::entity_update::SendEntityUpdate;
 
-pub fn handle(
-    mut query: Query<(Entity, Ref<Velocity>, &mut Position)>,
-    mut writer: MessageWriter<SendEntityUpdate>,
-) {
+pub fn handle(mut query: Query<(Entity, Ref<Velocity>, &mut Position)>) {
     for (eid, vel, mut pos) in query.iter_mut() {
         if **vel == Vec3A::ZERO {
             continue;
         }
         pos.coords += vel.as_dvec3();
-        writer.write(SendEntityUpdate(eid));
     }
 }
 

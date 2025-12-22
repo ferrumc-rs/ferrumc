@@ -1,255 +1,119 @@
-use bevy_ecs::prelude::{DetectChanges, Query, Ref, Res};
+use bevy_ecs::message::MessageWriter;
+use bevy_ecs::prelude::{DetectChanges, Entity, Query, Res};
+use bevy_math::bounding::{Aabb3d, BoundingVolume};
 use bevy_math::{IVec3, Vec3A};
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::velocity::Velocity;
 use ferrumc_entities::PhysicalProperties;
 use ferrumc_macros::match_block;
+use ferrumc_messages::entity_update::SendEntityUpdate;
 use ferrumc_state::{GlobalState, GlobalStateResource};
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::pos::{ChunkBlockPos, ChunkPos};
+use tracing::debug;
 
 pub fn handle(
     query: Query<(
+        Entity,
         &mut Velocity,
-        Ref<Position>,
+        &mut Position,
         &PhysicalProperties,
         &mut OnGround,
     )>,
+    mut writer: MessageWriter<SendEntityUpdate>,
     state: Res<GlobalStateResource>,
 ) {
-    for (mut vel, pos, physical, mut grounded) in query {
-        let is_on_ground = check_ground(&state.0, &pos, &physical.bounding_box);
-        grounded.0 = is_on_ground;
-
+    for (eid, mut vel, mut pos, physical, mut grounded) in query {
         if pos.is_changed() || vel.is_changed() {
-            // Clamp Y axis first for proper ground detection
-            let clamped_vel_y = clamp_axis_velocity(
-                &state.0,
-                &pos,
-                &physical.bounding_box,
-                vel.y as f64,
-                Axis::Y,
-            );
+            // Figure out where the entity is going to be next tick
+            let next_pos = (pos.coords + vel.as_dvec3()).as_vec3a();
+            let mut collided = false;
+            let mut hit_blocks = vec![];
 
-            if clamped_vel_y != vel.y as f64 {
-                vel.y = clamped_vel_y as f32;
+            // Merge the current and next bounding boxes to get the full area the entity will occupy
+            // This helps catch fast-moving entities that might skip through thin blocks
+            // At really high speeds this will create a very large bounding box, so further optimizations may be needed
+            let current_hitbox = Aabb3d {
+                min: physical.bounding_box.min + pos.coords.as_vec3a(),
+                max: physical.bounding_box.max + pos.coords.as_vec3a(),
+            };
+
+            let next_hitbox = Aabb3d {
+                min: physical.bounding_box.min + next_pos,
+                max: physical.bounding_box.max + next_pos,
+            };
+
+            let merged_hitbox = current_hitbox.merge(&next_hitbox);
+
+            // Get the block positions that the entity's bounding box will occupy
+            let min_block_pos = merged_hitbox.min;
+            let max_block_pos = merged_hitbox.max;
+
+            // Check each block in the bounding box for solidity
+            for x in min_block_pos.x.floor() as i32..=max_block_pos.x.floor() as i32 {
+                for y in min_block_pos.y.floor() as i32..=max_block_pos.y.floor() as i32 {
+                    for z in min_block_pos.z.floor() as i32..=max_block_pos.z.floor() as i32 {
+                        let block_pos = IVec3::new(x, y, z);
+                        if is_solid_block(&state.0, block_pos) {
+                            collided = true;
+                            hit_blocks.push(block_pos);
+                            if is_solid_block(&state.0, IVec3::new(x, y - 1, z)) && vel.y <= 0.0 {
+                                grounded.0 = true;
+                            }
+                        }
+                    }
+                }
             }
+            // If a collision is detected, stop the entity's movement
+            if collided {
+                vel.vec = Vec3A::ZERO;
+                hit_blocks.sort_by(|a, b| {
+                    let dist_a = (a.as_vec3a() - next_pos).length_squared();
+                    let dist_b = (b.as_vec3a() - next_pos).length_squared();
+                    dist_a.partial_cmp(&dist_b).unwrap()
+                });
+                let first_hit = hit_blocks.first().expect("At least one hit block expected");
+                debug!(
+                    "Entity collided at block position: {:?} going {}",
+                    &hit_blocks, vel.vec
+                );
 
-            // Clamp X axis, accounting for Y movement
-            let clamped_vel_x = clamp_axis_velocity_with_offset(
-                &state.0,
-                &pos,
-                &physical.bounding_box,
-                vel.x as f64,
-                Axis::X,
-                Vec3A::new(0.0, clamped_vel_y as f32, 0.0),
-            );
-            if clamped_vel_x != vel.x as f64 {
-                vel.x = clamped_vel_x as f32;
-            }
+                let block_aabb = Aabb3d {
+                    min: first_hit.as_vec3a(),
+                    max: (first_hit + IVec3::ONE).as_vec3a(),
+                };
 
-            // Clamp Z axis, accounting for Y and X movement
-            let clamped_vel_z = clamp_axis_velocity_with_offset(
-                &state.0,
-                &pos,
-                &physical.bounding_box,
-                vel.z as f64,
-                Axis::Z,
-                Vec3A::new(clamped_vel_x as f32, clamped_vel_y as f32, 0.0),
-            );
-            if clamped_vel_z != vel.z as f64 {
-                vel.z = clamped_vel_z as f32;
-            }
-        }
-    }
-}
+                let translated_bounding_box = Aabb3d {
+                    min: physical.bounding_box.min + pos.coords.as_vec3a(),
+                    max: physical.bounding_box.max + pos.coords.as_vec3a(),
+                };
 
-enum Axis {
-    X,
-    Y,
-    Z,
-}
+                // Get the closest point on the entity's bounding box to the block's AABB
+                let entity_collide_point = translated_bounding_box
+                    .closest_point(block_aabb.center().as_dvec3().as_vec3a());
 
-/// Clamp velocity on a single axis to prevent collision.
-fn clamp_axis_velocity_with_offset(
-    state: &GlobalState,
-    pos: &Ref<Position>,
-    bounding_box: &bevy_math::bounding::Aabb3d,
-    mut velocity: f64,
-    axis: Axis,
-    offset: Vec3A,
-) -> f64 {
-    if velocity.abs() < 0.0001 {
-        return velocity;
-    }
-
-    let current_pos = Vec3A::new(
-        (pos.coords.x + offset.x as f64) as f32,
-        (pos.coords.y + offset.y as f64) as f32,
-        (pos.coords.z + offset.z as f64) as f32,
-    );
-
-    let min = bounding_box.min + current_pos;
-    let max = bounding_box.max + current_pos;
-
-    let (check_min, check_max) = match axis {
-        Axis::X => {
-            let x_min = if velocity > 0.0 {
-                min.x
-            } else {
-                min.x + velocity as f32
-            };
-            let x_max = if velocity > 0.0 {
-                max.x + velocity as f32
-            } else {
-                max.x
-            };
-            (
-                Vec3A::new(x_min, min.y, min.z),
-                Vec3A::new(x_max, max.y, max.z),
-            )
-        }
-        Axis::Y => {
-            let y_min = if velocity > 0.0 {
-                min.y
-            } else {
-                min.y + velocity as f32
-            };
-            let y_max = if velocity > 0.0 {
-                max.y + velocity as f32
-            } else {
-                max.y
-            };
-            (
-                Vec3A::new(min.x, y_min, min.z),
-                Vec3A::new(max.x, y_max, max.z),
-            )
-        }
-        Axis::Z => {
-            let z_min = if velocity > 0.0 {
-                min.z
-            } else {
-                min.z + velocity as f32
-            };
-            let z_max = if velocity > 0.0 {
-                max.z + velocity as f32
-            } else {
-                max.z
-            };
-            (
-                Vec3A::new(min.x, min.y, z_min),
-                Vec3A::new(max.x, max.y, z_max),
-            )
-        }
-    };
-
-    for x in check_min.x.floor() as i32..=check_max.x.floor() as i32 {
-        for y in check_min.y.floor() as i32..=check_max.y.floor() as i32 {
-            for z in check_min.z.floor() as i32..=check_max.z.floor() as i32 {
-                let block_pos = IVec3::new(x, y, z);
-                if !is_solid_block(state, block_pos) {
+                if entity_collide_point == block_aabb.center().as_dvec3().as_vec3a() {
                     continue;
                 }
 
-                velocity = match axis {
-                    Axis::X => {
-                        if velocity > 0.0 {
-                            let block_left = x as f64;
-                            let entity_right = max.x as f64;
-                            velocity.min(block_left - entity_right)
-                        } else {
-                            let block_right = (x + 1) as f64;
-                            let entity_left = min.x as f64;
-                            velocity.max(block_right - entity_left)
-                        }
-                    }
-                    Axis::Y => {
-                        if velocity > 0.0 {
-                            let block_bottom = y as f64;
-                            let entity_top = max.y as f64;
-                            velocity.min(block_bottom - entity_top)
-                        } else {
-                            let block_top = (y + 1) as f64;
-                            let entity_bottom = min.y as f64;
-                            velocity.max(block_top - entity_bottom)
-                        }
-                    }
-                    Axis::Z => {
-                        if velocity > 0.0 {
-                            let block_near = z as f64;
-                            let entity_far = max.z as f64;
-                            velocity.min(block_near - entity_far)
-                        } else {
-                            let block_far = (z + 1) as f64;
-                            let entity_near = min.z as f64;
-                            velocity.max(block_far - entity_near)
-                        }
-                    }
-                };
+                // Then we get the closest point on the block's AABB to the entity's collide point
+                let block_collide_point = block_aabb.closest_point(entity_collide_point);
 
-                if velocity.abs() < 0.0001 {
-                    return 0.0;
+                if block_collide_point == entity_collide_point {
+                    continue;
                 }
+
+                // The difference between these two points tells us how far apart the 2 colliding objects are
+                let collision_difference = entity_collide_point - block_collide_point;
+
+                // We use this to nudge the entity out of the block along the smallest axis
+                pos.coords -= collision_difference.as_dvec3();
             }
+
+            writer.write(SendEntityUpdate(eid));
         }
     }
-
-    velocity
-}
-
-fn clamp_axis_velocity(
-    state: &GlobalState,
-    pos: &Ref<Position>,
-    bounding_box: &bevy_math::bounding::Aabb3d,
-    velocity: f64,
-    axis: Axis,
-) -> f64 {
-    clamp_axis_velocity_with_offset(state, pos, bounding_box, velocity, axis, Vec3A::ZERO)
-}
-
-/// Check if entity is standing on solid ground
-fn check_ground(
-    state: &GlobalState,
-    pos: &Ref<Position>,
-    bounding_box: &bevy_math::bounding::Aabb3d,
-) -> bool {
-    let entity_pos = pos.coords.as_vec3a();
-    let min = bounding_box.min + entity_pos;
-
-    // Check blocks just below the entity's feet (0.01 blocks down)
-    let check_y = (min.y - 0.01) as i32;
-
-    for x in min.x.floor() as i32..=bounding_box.max.x.floor() as i32 {
-        for z in min.z.floor() as i32..=bounding_box.max.z.floor() as i32 {
-            if is_solid_block(state, IVec3::new(x, check_y, z)) {
-                return true;
-            }
-        }
-    }
-    false
-}
-
-#[allow(dead_code)]
-fn check_collision(
-    state: &GlobalState,
-    pos: Vec3A,
-    bounding_box: &bevy_math::bounding::Aabb3d,
-) -> bool {
-    let min_block_pos = bounding_box.min + pos;
-    let max_block_pos = bounding_box.max + pos;
-
-    for x in min_block_pos.x.floor() as i32..=max_block_pos.x.floor() as i32 {
-        for y in min_block_pos.y.floor() as i32..=max_block_pos.y.floor() as i32 {
-            for z in min_block_pos.z.floor() as i32..=max_block_pos.z.floor() as i32 {
-                let block_pos = IVec3::new(x, y, z);
-                if is_solid_block(state, block_pos) {
-                    return true;
-                }
-            }
-        }
-    }
-    false
 }
 
 pub fn is_solid_block(state: &GlobalState, pos: IVec3) -> bool {

@@ -9,8 +9,8 @@ pub fn register_physics(schedule: &mut bevy_ecs::schedule::Schedule) {
         (
             gravity::handle,
             drag::handle,
-            collisions::handle,
             velocity::handle,
+            collisions::handle,
         )
             .chain(),
     );
