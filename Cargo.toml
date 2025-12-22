@@ -40,6 +40,7 @@ members = [
     "src/lib/messages",
     "src/lib/data",
     "src/lib/entities",
+    "src/lib/performance",
 ]
 
 [workspace.package]
@@ -104,6 +105,7 @@ ferrumc-logging = { path = "src/lib/utils/logging" }
 ferrumc-macros = { path = "src/lib/derive_macros" }
 ferrumc-nbt = { path = "src/lib/adapters/nbt" }
 ferrumc-net = { path = "src/lib/net" }
+ferrumc-performance = { path = "src/lib/performance" }
 ferrumc-net-codec = { path = "src/lib/net/crates/codec" }
 ferrumc-net-encryption = { path = "src/lib/net/crates/encryption" }
 ferrumc-plugins = { path = "src/lib/plugins" }
@@ -227,6 +229,7 @@ typename = "0.1.2"
 bevy_ecs = { version = "0.17.2", features = ["multi_threaded", "trace"] }
 bevy_math = "0.16.1"
 once_cell = "1.21.3"
+sysinfo = "0.37.2"
 
 # I/O
 memmap2 = "0.9.8"

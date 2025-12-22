@@ -17,6 +17,7 @@ ferrumc-registry = { workspace = true }
 ferrumc-messages = { workspace = true }
 ferrumc-components = { workspace = true }
 ferrumc-net = { workspace = true }
+ferrumc-performance = { workspace = true }
 ferrumc-net-codec = { workspace = true }
 ferrumc-plugins = { workspace = true }
 ferrumc-storage = { workspace = true }
