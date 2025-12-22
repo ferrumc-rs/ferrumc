@@ -9,11 +9,11 @@ struct ComponentDef {
     struct_path: Option<&'static str>,
 }
 
-pub const OUT_DIR: &str = "src/netcode/generated";
+pub const OUT_DIR: &str = "src/structured_components/generated";
 pub const OUT_FILE: &str = "structured_components.rs";
 
 pub fn main() {
-    println!("Running structured-components/build/build.rs...");
+    println!("Running inventories/build/build.rs...");
 
     let path = std::path::Path::new(OUT_DIR);
 
@@ -30,18 +30,26 @@ pub fn main() {
 
 fn build() -> TokenStream {
     let components = vec![
-        ComponentDef { id: 2, variant: "MaxDamage", struct_path: Some("crate::netcode::components::damage::MaxDamage") },
-        ComponentDef { id: 3, variant: "Damage", struct_path: Some("crate::netcode::components::damage::Damage") },
+        ComponentDef { id: 1, variant: "MaxStackSize", struct_path: Some("crate::structured_components::components::MaxStackSize") },
+        ComponentDef { id: 2, variant: "MaxDamage", struct_path: Some("crate::structured_components::components::MaxDamage") },
+        ComponentDef { id: 3, variant: "Damage", struct_path: Some("crate::structured_components::components::Damage") },
         ComponentDef { id: 4, variant: "Unbreakable", struct_path: None },
-        ComponentDef { id: 10, variant: "Enchantments", struct_path: Some("crate::netcode::components::enchantments::enchantments_collection::EnchantmentsCollection") },
-        ComponentDef { id: 18, variant: "EnchantmentGlintOverride", struct_path: Some("crate::netcode::components::enchantments::enchantment_glint_override::EnchantmentGlintOverride") },
-        ComponentDef { id: 27, variant: "Enchantable", struct_path: Some("crate::netcode::components::enchantments::enchantable::Enchantable") },
-        ComponentDef { id: 34, variant: "StoredEnchantments", struct_path: Some("crate::netcode::components::enchantments::enchantments_collection::EnchantmentsCollection") },
-        ComponentDef { id: 42, variant: "PotionContents", struct_path: Some("crate::netcode::components::potion_contents::PotionContents") },
-        ComponentDef { id: 44, variant: "SuspiciousStewEffects", struct_path: Some("crate::netcode::components::suspicious_stew_effects::SuspiciousStewEffects") },
-        ComponentDef { id: 45, variant: "WritableBookContent", struct_path: Some("crate::netcode::components::writable_book_content::WritableBookContent") },
-        ComponentDef { id: 54, variant: "OminousBottleAmplifier", struct_path: Some("crate::netcode::components::ominous_bottle_amplifier::OminousBottleAmplifier") },
-        ComponentDef { id: 60, variant: "Fireworks", struct_path: Some("crate::netcode::components::fireworks::Fireworks") },
+        ComponentDef { id: 5, variant: "CustomName", struct_path: Some("crate::structured_components::components::TextComponentWrapper") },
+        ComponentDef { id: 6, variant: "ItemName", struct_path: Some("crate::structured_components::components::TextComponentWrapper") },
+        ComponentDef { id: 8, variant: "Lore", struct_path: Some("crate::structured_components::components::Lore") },
+        ComponentDef { id: 9, variant: "Rarity", struct_path: Some("crate::structured_components::components::Rarity") },
+        ComponentDef { id: 10, variant: "Enchantments", struct_path: Some("crate::structured_components::components::EnchantmentsCollection") },
+        ComponentDef { id: 20, variant: "Food", struct_path: Some("crate::structured_components::components::Food") },
+        ComponentDef { id: 16, variant: "RepairCost", struct_path: Some("crate::structured_components::components::RepairCost") },
+        ComponentDef { id: 18, variant: "EnchantmentGlintOverride", struct_path: Some("crate::structured_components::components::EnchantmentGlintOverride") },
+        ComponentDef { id: 27, variant: "Enchantable", struct_path: Some("crate::structured_components::components::Enchantable") },
+        ComponentDef { id: 34, variant: "StoredEnchantments", struct_path: Some("crate::structured_components::components::EnchantmentsCollection") },
+        ComponentDef { id: 42, variant: "PotionContents", struct_path: Some("crate::structured_components::components::PotionContents") },
+        ComponentDef { id: 44, variant: "SuspiciousStewEffects", struct_path: Some("crate::structured_components::components::SuspiciousStewEffects") },
+        ComponentDef { id: 45, variant: "WritableBookContent", struct_path: Some("crate::structured_components::components::WritableBookContent") },
+        ComponentDef { id: 46, variant: "WrittenBookContent", struct_path: Some("crate::structured_components::components::WrittenBookContent") },
+        ComponentDef { id: 54, variant: "OminousBottleAmplifier", struct_path: Some("crate::structured_components::components::OminousBottleAmplifier") },
+        ComponentDef { id: 60, variant: "Fireworks", struct_path: Some("crate::structured_components::components::Fireworks") },
     ];
 
     let enum_variants = generate_enum_variants(&components);
@@ -60,7 +68,7 @@ fn build() -> TokenStream {
         use log::debug;
         use std::io::{Read, Write};
         use tokio::io::{AsyncRead, AsyncWrite};
-        use crate::netcode::errors::{InvalidStructuredComponentEnumError, NotSupportedStructuredComponentError};
+        use crate::structured_components::errors::{InvalidStructuredComponentEnumError, NotSupportedStructuredComponentError};
 
         /// NOTE:
         /// Structured components use an asymmetric protocol:
@@ -116,9 +124,7 @@ fn build() -> TokenStream {
             fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
                 let id = VarInt::decode(reader, opts)?;
 
-                let _probably_data_length = VarInt::decode(reader, opts)?;
-
-                debug!{"Decoding structuredComponent with id {} and data length {}", id, _probably_data_length}
+                debug!{"Decoding structuredComponent with id {}", id}
 
                 match id.0 {
                     #decode_match_arms
@@ -131,9 +137,7 @@ fn build() -> TokenStream {
             async fn decode_async<R: AsyncRead + Unpin>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
                 let id = VarInt::decode_async(reader, opts).await?;
 
-                let _probably_data_length = VarInt::decode_async(reader, opts).await?;
-
-                debug!{"Decoding structuredComponent with id {} and data length {}", id, _probably_data_length}
+                debug!{"Decoding structuredComponent with id {}", id}
 
                 match id.0 {
                     #decode_async_match_arms

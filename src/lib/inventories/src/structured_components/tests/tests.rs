@@ -1,7 +1,7 @@
-#[cfg(test)]
+﻿#[cfg(test)]
 mod tests {
-    use crate::netcode::components::potion_contents::PotionContents;
-    use crate::netcode::generated::StructuredComponent;
+    use crate::structured_components::components::potion_contents::PotionContents;
+    use crate::structured_components::generated::StructuredComponent;
     use ferrumc_net_codec::decode::NetDecode;
     use ferrumc_net_codec::decode::NetDecodeOpts;
     use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};

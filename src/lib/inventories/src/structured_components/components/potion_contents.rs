@@ -1,4 +1,4 @@
-use crate::netcode::errors::ProtocolViolationError;
+use crate::structured_components::errors::ProtocolViolationError;
 use ferrumc_net_codec::decode::errors::NetDecodeError;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::encode::errors::NetEncodeError;
@@ -118,6 +118,7 @@ impl NetEncode for PotionEffectDetail {
 
 impl NetDecode for PotionContents {
     fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
+        let _data_length = VarInt::decode(reader, opts)?;
         let potion_id: PrefixedOptional<VarInt> = PrefixedOptional::decode(reader, opts)?;
         let custom_color: PrefixedOptional<i32> = PrefixedOptional::decode(reader, opts)?;
         let custom_effects: LengthPrefixedVec<PotionEffect> =
@@ -136,6 +137,7 @@ impl NetDecode for PotionContents {
         reader: &mut R,
         opts: &NetDecodeOpts,
     ) -> Result<Self, NetDecodeError> {
+        let _data_length = VarInt::decode_async(reader, opts).await?;
         let potion_id: PrefixedOptional<VarInt> =
             PrefixedOptional::decode_async(reader, opts).await?;
         let custom_color: PrefixedOptional<i32> =

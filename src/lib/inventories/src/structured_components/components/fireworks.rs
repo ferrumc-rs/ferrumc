@@ -25,6 +25,7 @@ pub struct FireworkExplosion {
 
 impl NetDecode for FireworkExplosion {
     fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
+        let _data_length = VarInt::decode(reader, opts)?;
         let shape = VarInt::decode(reader, opts)?;
         let colors = LengthPrefixedVec::decode(reader, opts)?;
         let fade_colors = LengthPrefixedVec::decode(reader, opts)?;
@@ -44,6 +45,7 @@ impl NetDecode for FireworkExplosion {
         reader: &mut R,
         opts: &NetDecodeOpts,
     ) -> Result<Self, NetDecodeError> {
+        let _data_length = VarInt::decode_async(reader, opts).await?;
         let shape = VarInt::decode_async(reader, opts).await?;
         let colors = LengthPrefixedVec::decode_async(reader, opts).await?;
         let fade_colors = LengthPrefixedVec::decode_async(reader, opts).await?;

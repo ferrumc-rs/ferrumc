@@ -2,6 +2,7 @@
 name = "ferrumc-inventories"
 version = "0.1.0"
 edition = "2024"
+build = "build/build.rs"
 
 [dependencies]
 
@@ -13,7 +14,16 @@ once_cell = { workspace = true }
 thiserror = { workspace = true }
 ferrumc-registry = { workspace = true }
 ferrumc-world = {workspace = true}
-ferrumc-structured-components = {workspace = true}
+ferrumc-nbt = {workspace = true}
+log = {workspace = true}
+mutf8 = "0.5.0"
+fastnbt = "2.6.0"
+futures = "0.3.31"
+
+[build-dependencies]
+proc-macro2 = { workspace = true }
+quote = { workspace = true }
+syn = {workspace = true}
 
 [lints]
 workspace = true

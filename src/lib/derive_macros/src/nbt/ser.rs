@@ -18,7 +18,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
             let fields = match &data_struct.fields {
                 Fields::Named(fields_named) => &fields_named.named,
                 Fields::Unnamed(fields_unnamed) => &fields_unnamed.unnamed,
-                Fields::Unit => panic!("Unit structs are not supported!"),
+                Fields::Unit => panic!("Unit data are not supported!"),
             };
 
             let mut variant_case: Cases = Cases::Normal;
@@ -273,7 +273,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
             let fields = match &data_struct.fields {
                 Fields::Named(fields_named) => &fields_named.named,
                 Fields::Unnamed(fields_unnamed) => &fields_unnamed.unnamed,
-                Fields::Unit => panic!("Unit structs are not supported!"),
+                Fields::Unit => panic!("Unit data are not supported!"),
             };
 
             let mut variant_case: Cases = Cases::Normal;

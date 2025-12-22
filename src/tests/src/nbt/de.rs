@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-// since some structs are there just for testing purposes (fields aren't used and it gives stupid warnings)
+// since some data are there just for testing purposes (fields aren't used and it gives stupid warnings)
 #![cfg(test)]
 
 use ferrumc_macros::{NBTDeserialize, NBTSerialize};

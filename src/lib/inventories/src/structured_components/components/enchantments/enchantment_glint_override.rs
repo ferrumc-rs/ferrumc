@@ -7,34 +7,33 @@ use std::io::{Read, Write};
 use tokio::io::{AsyncRead, AsyncWrite};
 
 #[derive(Debug, Clone, Hash, Default, PartialEq)]
-pub struct Enchantment {
-    pub type_id: VarInt,
-    pub level: VarInt,
+///minecraft:enchantment_glint_override
+pub struct EnchantmentGlintOverride {
+    pub has_glint: bool,
 }
 
-impl NetDecode for Enchantment {
+impl NetDecode for EnchantmentGlintOverride {
     fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
-        let type_id = VarInt::decode(reader, opts)?;
-        let level = VarInt::decode(reader, opts)?;
+        let _data_length = VarInt::decode(reader, opts)?;
+        let has_glint = bool::decode(reader, opts)?;
 
-        Ok(Self { type_id, level })
+        Ok(Self { has_glint })
     }
 
     async fn decode_async<R: AsyncRead + Unpin>(
         reader: &mut R,
         opts: &NetDecodeOpts,
     ) -> Result<Self, NetDecodeError> {
-        let type_id = VarInt::decode_async(reader, opts).await?;
-        let level = VarInt::decode_async(reader, opts).await?;
+        let _data_length = VarInt::decode_async(reader, opts).await?;
+        let has_glint = bool::decode_async(reader, opts).await?;
 
-        Ok(Self { type_id, level })
+        Ok(Self { has_glint })
     }
 }
 
-impl NetEncode for Enchantment {
+impl NetEncode for EnchantmentGlintOverride {
     fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
-        self.type_id.encode(writer, opts)?;
-        self.level.encode(writer, opts)?;
+        self.has_glint.encode(writer, opts)?;
 
         Ok(())
     }
@@ -44,8 +43,7 @@ impl NetEncode for Enchantment {
         writer: &mut W,
         opts: &NetEncodeOpts,
     ) -> Result<(), NetEncodeError> {
-        self.type_id.encode_async(writer, opts).await?;
-        self.level.encode_async(writer, opts).await?;
+        self.has_glint.encode_async(writer, opts).await?;
 
         Ok(())
     }

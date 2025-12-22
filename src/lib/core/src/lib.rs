@@ -1,6 +1,6 @@
 pub mod errors;
 
-// Core structs/types. Usually used in ECS Components.
+// Core data/types. Usually used in ECS Components.
 pub mod chunks;
 pub mod collisions;
 pub mod conn;

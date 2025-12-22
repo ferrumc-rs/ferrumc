@@ -6,33 +6,37 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::{Read, Write};
 use tokio::io::{AsyncRead, AsyncWrite};
 
-/// minecraft:ominous_bottle_amplifier
-/// Amplifier for the effect of an ominous bottle.
 #[derive(Debug, Clone, Hash, Default, PartialEq)]
-pub struct OminousBottleAmplifier {
-    pub amplifier: VarInt,
+pub struct Enchantment {
+    pub type_id: VarInt,
+    pub level: VarInt,
 }
 
-impl NetDecode for OminousBottleAmplifier {
+impl NetDecode for Enchantment {
     fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
-        let amplifier = VarInt::decode(reader, opts)?;
+        let _data_length = VarInt::decode(reader, opts)?;
+        let type_id = VarInt::decode(reader, opts)?;
+        let level = VarInt::decode(reader, opts)?;
 
-        Ok(OminousBottleAmplifier { amplifier })
+        Ok(Self { type_id, level })
     }
 
     async fn decode_async<R: AsyncRead + Unpin>(
         reader: &mut R,
         opts: &NetDecodeOpts,
     ) -> Result<Self, NetDecodeError> {
-        let amplifier = VarInt::decode_async(reader, opts).await?;
+        let _data_length = VarInt::decode_async(reader, opts).await?;
+        let type_id = VarInt::decode_async(reader, opts).await?;
+        let level = VarInt::decode_async(reader, opts).await?;
 
-        Ok(OminousBottleAmplifier { amplifier })
+        Ok(Self { type_id, level })
     }
 }
 
-impl NetEncode for OminousBottleAmplifier {
+impl NetEncode for Enchantment {
     fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
-        self.amplifier.encode(writer, opts)?;
+        self.type_id.encode(writer, opts)?;
+        self.level.encode(writer, opts)?;
 
         Ok(())
     }
@@ -42,7 +46,8 @@ impl NetEncode for OminousBottleAmplifier {
         writer: &mut W,
         opts: &NetEncodeOpts,
     ) -> Result<(), NetEncodeError> {
-        self.amplifier.encode_async(writer, opts).await?;
+        self.type_id.encode_async(writer, opts).await?;
+        self.level.encode_async(writer, opts).await?;
 
         Ok(())
     }

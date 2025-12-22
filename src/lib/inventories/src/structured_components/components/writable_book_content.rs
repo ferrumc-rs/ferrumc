@@ -1,10 +1,11 @@
-﻿use crate::netcode::errors::MaxLimitExceededError;
+use crate::structured_components::errors::MaxLimitExceededError;
 use ferrumc_net_codec::decode::errors::NetDecodeError;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::encode::errors::NetEncodeError;
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::prefixed_optional::PrefixedOptional;
+use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::{Read, Write};
 use tokio::io::{AsyncRead, AsyncWrite};
 
@@ -108,6 +109,7 @@ impl NetEncode for Page {
 
 impl NetDecode for WritableBookContent {
     fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
+        let _data_length = VarInt::decode(reader, opts)?;
         let pages = LengthPrefixedVec::decode(reader, opts)?;
 
         throw_if_length_exceeds(pages.data.len(), MAX_PAGES, "pages")?;
@@ -119,6 +121,7 @@ impl NetDecode for WritableBookContent {
         reader: &mut R,
         opts: &NetDecodeOpts,
     ) -> Result<Self, NetDecodeError> {
+        let _data_length = VarInt::decode_async(reader, opts).await?;
         let pages = LengthPrefixedVec::decode_async(reader, opts).await?;
 
         throw_if_length_exceeds(pages.data.len(), MAX_PAGES, "pages")?;

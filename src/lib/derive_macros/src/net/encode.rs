@@ -28,7 +28,7 @@ fn generate_packet_id_snippets(
     (sync_snippet, async_snippet)
 }
 
-// Generate field encoding expressions for structs
+// Generate field encoding expressions for data
 fn generate_field_encoders(fields: &syn::Fields) -> proc_macro2::TokenStream {
     let encode_fields = fields.iter().map(|field| {
         let field_name = field.ident.as_ref().unwrap();
