@@ -1,10 +1,11 @@
 use bevy_ecs::message::MessageWriter;
-use bevy_ecs::prelude::{DetectChanges, Entity, Query, Res};
+use bevy_ecs::prelude::{DetectChanges, Entity, Query, Res, With};
 use bevy_math::bounding::{Aabb3d, BoundingVolume};
 use bevy_math::{IVec3, Vec3A};
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::velocity::Velocity;
+use ferrumc_entities::markers::HasCollisions;
 use ferrumc_entities::PhysicalProperties;
 use ferrumc_macros::match_block;
 use ferrumc_messages::entity_update::SendEntityUpdate;
@@ -14,13 +15,16 @@ use ferrumc_world::pos::{ChunkBlockPos, ChunkPos};
 use tracing::debug;
 
 pub fn handle(
-    query: Query<(
-        Entity,
-        &mut Velocity,
-        &mut Position,
-        &PhysicalProperties,
-        &mut OnGround,
-    )>,
+    query: Query<
+        (
+            Entity,
+            &mut Velocity,
+            &mut Position,
+            &PhysicalProperties,
+            &mut OnGround,
+        ),
+        With<HasCollisions>,
+    >,
     mut writer: MessageWriter<SendEntityUpdate>,
     state: Res<GlobalStateResource>,
 ) {
