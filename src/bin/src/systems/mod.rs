@@ -8,8 +8,8 @@ pub mod mobs;
 mod mq;
 pub mod new_connections;
 pub mod physics;
-mod send_entity_updates;
 mod player_swimming;
+mod send_entity_updates;
 pub mod shutdown_systems;
 pub mod world_sync;
 

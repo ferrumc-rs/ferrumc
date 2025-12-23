@@ -52,45 +52,6 @@ mod tests {
     }
 
     #[test]
-    fn test_send_entity_update_message() {
-        let mut world = World::new();
-        let entity = world
-            .spawn((
-                Velocity {
-                    vec: Vec3A::new(1.0, 0.0, 0.0),
-                },
-                Position {
-                    coords: Vec3A::ZERO.as_dvec3(),
-                },
-            ))
-            .id();
-
-        MessageRegistry::register_message::<SendEntityUpdate>(&mut world);
-
-        let mut schedule = Schedule::default();
-        schedule.add_systems(handle);
-
-        // Run the velocity system
-        schedule.run(&mut world);
-
-        let reader = world.get_resource::<Messages<SendEntityUpdate>>().unwrap();
-        let mut cursor = reader.get_cursor();
-        let mut messages = vec![];
-        for msg in cursor.read(reader) {
-            messages.push(msg);
-        }
-        assert_eq!(
-            messages.len(),
-            1,
-            "One SendEntityUpdate message should be sent"
-        );
-        assert_eq!(
-            messages[0].0, entity,
-            "The message should contain the correct entity ID"
-        );
-    }
-
-    #[test]
     fn test_no_update_when_unchanged() {
         let mut world = World::new();
         let entity = world
@@ -148,8 +109,6 @@ mod tests {
             ))
             .id();
 
-        MessageRegistry::register_message::<SendEntityUpdate>(&mut world);
-
         let mut schedule = Schedule::default();
         schedule.add_systems(handle);
 
@@ -163,18 +122,6 @@ mod tests {
             pos.coords,
             Vec3A::new(2.0, 0.0, 0.0).as_dvec3(),
             "Position should be updated correctly after multiple steps"
-        );
-
-        let reader = world.get_resource::<Messages<SendEntityUpdate>>().unwrap();
-        let mut cursor = reader.get_cursor();
-        let mut messages = vec![];
-        for msg in cursor.read(reader) {
-            messages.push(msg);
-        }
-        assert_eq!(
-            messages.len(),
-            4,
-            "Four SendEntityUpdate messages should be sent after four updates"
         );
     }
 
@@ -202,8 +149,6 @@ mod tests {
             ))
             .id();
 
-        MessageRegistry::register_message::<SendEntityUpdate>(&mut world);
-
         let mut schedule = Schedule::default();
         schedule.add_systems(handle);
 
@@ -221,18 +166,6 @@ mod tests {
             pos2.coords,
             Vec3A::new(0.0, 1.0, 0.0).as_dvec3(),
             "Entity 2 position should be updated correctly"
-        );
-
-        let reader = world.get_resource::<Messages<SendEntityUpdate>>().unwrap();
-        let mut cursor = reader.get_cursor();
-        let mut messages = vec![];
-        for msg in cursor.read(reader) {
-            messages.push(msg);
-        }
-        assert_eq!(
-            messages.len(),
-            2,
-            "Two SendEntityUpdate messages should be sent for two entities"
         );
     }
 }
