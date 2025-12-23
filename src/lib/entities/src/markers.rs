@@ -7,6 +7,9 @@ pub struct HasGravity;
 #[derive(Component)]
 pub struct HasWaterDrag;
 
+#[derive(Component)]
+pub struct HasCollisions;
+
 // Entity types
 pub mod entity_types {
     use super::Component;

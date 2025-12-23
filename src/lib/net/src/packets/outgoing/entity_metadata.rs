@@ -89,6 +89,30 @@ pub mod constructors {
                 EntityMetadataValue::Entity6(EntityPose::Standing),
             )
         }
+
+        /// Entity state with swimming bit set
+        pub fn entity_swimming_state() -> Self {
+            Self::new(
+                EntityMetadataIndexType::Byte,
+                EntityMetadataValue::Entity0(EntityStateMask::from_state(EntityState::Swimming)),
+            )
+        }
+
+        /// Entity in swimming pose
+        pub fn entity_swimming_pose() -> Self {
+            Self::new(
+                EntityMetadataIndexType::Pose,
+                EntityMetadataValue::Entity6(EntityPose::Swimming),
+            )
+        }
+
+        /// Entity state with all flags cleared (default state)
+        pub fn entity_clear_state() -> Self {
+            Self::new(
+                EntityMetadataIndexType::Byte,
+                EntityMetadataValue::Entity0(EntityStateMask::new()),
+            )
+        }
     }
 }
 
