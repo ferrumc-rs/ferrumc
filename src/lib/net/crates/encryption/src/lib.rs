@@ -32,8 +32,8 @@ impl EncryptionKeys {
     /// # Returns
     /// - `Self`: A new EncryptionKeys instance with a random RSA key pair.
     pub fn generate() -> Self {
-        let private_key =
-            RsaPrivateKey::new(&mut rand::rng(), 1024).expect("RsaPrivateKey failed to generate");
+        let private_key = RsaPrivateKey::new(&mut rand::thread_rng(), 1024)
+            .expect("RsaPrivateKey failed to generate");
         let public_key = RsaPublicKey::from(&private_key);
 
         let der = public_key

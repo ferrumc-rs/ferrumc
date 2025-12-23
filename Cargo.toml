@@ -159,11 +159,11 @@ reqwest = { version = "0.12.28", features = ["json"] }
 thiserror = "2.0.17"
 
 # Cryptography
-rand = "0.10.0-rc.0"
+rand = "0.9.2"
 fnv = "1.0.7"
 wyhash = "0.6.0"
 ahash = "0.8.12"
-rsa = { version = "0.10.0-rc.10" }
+rsa = { version = "0.9.9" }
 aes = { version = "0.8.4" }
 cfb8 = "0.8.1"
 sha1 = "0.10.6"
