@@ -1,10 +1,10 @@
-use bevy_ecs::prelude::{Entity, Query, Ref};
+use bevy_ecs::prelude::Query;
 use bevy_math::Vec3A;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::velocity::Velocity;
 
-pub fn handle(mut query: Query<(Entity, Ref<Velocity>, &mut Position)>) {
-    for (eid, vel, mut pos) in query.iter_mut() {
+pub fn handle(mut query: Query<(&Velocity, &mut Position)>) {
+    for (vel, mut pos) in query.iter_mut() {
         if **vel == Vec3A::ZERO {
             continue;
         }
