@@ -27,7 +27,7 @@ pub fn handle(
     for (eid, mut vel, mut pos, physical, mut grounded) in query {
         if pos.is_changed() || vel.is_changed() {
             // Figure out where the entity is going to be next tick
-            let next_pos = (pos.coords + vel.as_dvec3()).as_vec3a();
+            let next_pos = pos.coords.as_vec3a() + **vel;
             let mut collided = false;
             let mut hit_blocks = vec![];
 
@@ -68,6 +68,7 @@ pub fn handle(
             // If a collision is detected, stop the entity's movement
             if collided {
                 vel.vec = Vec3A::ZERO;
+                // Find the closest hit block to the entity's next position
                 hit_blocks.sort_by(|a, b| {
                     let dist_a = (a.as_vec3a() - next_pos).length_squared();
                     let dist_b = (b.as_vec3a() - next_pos).length_squared();
