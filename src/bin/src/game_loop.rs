@@ -23,6 +23,8 @@ use ferrumc_config::server_config::get_global_config;
 use ferrumc_net::connection::{handle_connection, NewConnection};
 use ferrumc_net::server::create_server_listener;
 use ferrumc_net::PacketSender;
+use ferrumc_performance::tick::TickData;
+use ferrumc_performance::ServerPerformance;
 use ferrumc_scheduler::MissedTickBehavior;
 use ferrumc_scheduler::{drain_registered_schedules, Scheduler, TimedSchedule};
 use ferrumc_state::{GlobalState, GlobalStateResource};
@@ -115,11 +117,14 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
     // This prevents starvation if we fall behind (e.g., after a lag spike).
     const MAX_GLOBAL_CATCH_UP: usize = 64;
 
+    let tick_zero = Instant::now();
+
     // Main loop - runs until shutdown flag is set (e.g., via Ctrl+C or /stop command)
     while !global_state
         .shut_down
         .load(std::sync::atomic::Ordering::Relaxed)
     {
+        let tick_start = Instant::now();
         let mut ran_any = false;
         let mut ran_count = 0;
 
@@ -183,9 +188,22 @@ pub fn start_game_loop(global_state: GlobalState) -> Result<(), BinaryError> {
             ran_count += 1;
         }
 
+        let tick_duration = tick_start.elapsed();
+
         // If no schedules were ready, sleep until the next one is due
+        // If schedules were ran, store tick data.
         if !ran_any {
             timed.park_until_next_due();
+        } else {
+            let tick_data = TickData {
+                start_ns: tick_zero.elapsed().as_nanos(),
+                duration_ns: tick_duration.as_nanos(),
+                entity_count: 0,
+                ran_count,
+            };
+
+            let mut performance = ecs_world.resource_mut::<ServerPerformance>();
+            performance.tps.record_tick(tick_data);
         }
     }
 
