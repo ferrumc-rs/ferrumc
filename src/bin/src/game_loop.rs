@@ -12,6 +12,7 @@ use crate::register_messages::register_messages;
 use crate::register_resources::register_resources;
 use crate::systems::lan_pinger::LanPinger;
 use crate::systems::listeners::register_gameplay_listeners;
+use crate::systems::physics::register_physics;
 use crate::systems::register_game_systems;
 use crate::systems::shutdown_systems::register_shutdown_systems;
 use bevy_ecs::prelude::World;
@@ -250,6 +251,7 @@ fn build_timed_scheduler() -> Scheduler {
         register_command_systems(s); // Process queued commands
         register_game_systems(s); // General game logic
         register_gameplay_listeners(s); // Event listeners for gameplay events
+        register_physics(s); // Physics systems (movement, collision, etc.)
     };
     let tick_period = Duration::from_secs(1) / get_global_config().tps;
     timed.register(

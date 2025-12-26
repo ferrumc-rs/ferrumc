@@ -4,9 +4,12 @@ pub mod connection_killer;
 pub mod keep_alive_system;
 pub mod lan_pinger;
 pub mod listeners;
+pub mod mobs;
 mod mq;
 pub mod new_connections;
+pub mod physics;
 mod player_swimming;
+mod send_entity_updates;
 pub mod shutdown_systems;
 pub mod world_sync;
 
@@ -17,6 +20,8 @@ pub fn register_game_systems(schedule: &mut bevy_ecs::schedule::Schedule) {
     schedule.add_systems(chunk_sending::handle);
     schedule.add_systems(mq::process);
     schedule.add_systems(player_swimming::detect_player_swimming);
+
+    schedule.add_systems(send_entity_updates::handle);
 
     // Should always be last
     schedule.add_systems(connection_killer::connection_killer);

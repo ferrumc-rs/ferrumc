@@ -22,4 +22,6 @@ pub mod chunk_calc;
 pub use change_gamemode::*;
 
 pub mod entity_spawn;
+pub mod entity_update;
+
 pub use entity_spawn::{EntityType, SpawnEntityCommand, SpawnEntityEvent};

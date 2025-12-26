@@ -1,6 +1,7 @@
 use bevy_ecs::prelude::Component;
 use bevy_math::DVec3;
 use ferrumc_net_codec::net_types::network_position::NetworkPosition;
+use std::ops::DerefMut;
 use std::{
     fmt::{Debug, Display, Formatter},
     ops::Deref,
@@ -77,6 +78,12 @@ impl Deref for Position {
 
     fn deref(&self) -> &Self::Target {
         &self.coords
+    }
+}
+
+impl DerefMut for Position {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.coords
     }
 }
 

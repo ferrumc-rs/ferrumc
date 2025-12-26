@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 ferrumc-messages = { workspace = true }
-ferrumc-components = { workspace = true}
+ferrumc-components = { workspace = true }
 ferrumc-commands = { workspace = true }
 ferrumc-macros = { workspace = true }
 ferrumc-text = { workspace = true }
@@ -13,6 +13,8 @@ ferrumc-core = { workspace = true }
 ferrumc-net = { workspace = true }
 ferrumc-performance = { workspace = true }
 ferrumc-entities = { workspace = true }
+lazy_static = { workspace = true }
+bimap = { workspace = true }
 
 ctor = { workspace = true }
 tracing = { workspace = true }

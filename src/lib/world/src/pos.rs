@@ -4,13 +4,13 @@ use std::fmt::Result;
 use std::ops::Add;
 use std::ops::Range;
 
-use bevy_math::I16Vec3;
 use bevy_math::IVec2;
 use bevy_math::IVec3;
 use bevy_math::U8Vec2;
 use bevy_math::U8Vec3;
 use bevy_math::Vec2Swizzles;
 use bevy_math::Vec3Swizzles;
+use bevy_math::{DVec3, I16Vec3};
 use ferrumc_net_codec::net_types::network_position::NetworkPosition;
 
 #[derive(Clone, Copy)]
@@ -109,6 +109,18 @@ impl ChunkHeight {
 #[derive(Hash, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ChunkPos {
     pub pos: IVec2,
+}
+
+impl From<DVec3> for ChunkPos {
+    fn from(pos: DVec3) -> Self {
+        Self::new(pos.x.div_euclid(16.0) as i32, pos.z.div_euclid(16.0) as i32)
+    }
+}
+
+impl From<IVec3> for ChunkPos {
+    fn from(pos: IVec3) -> Self {
+        Self::new(pos.x.div_euclid(16), pos.z.div_euclid(16))
+    }
 }
 
 impl ChunkPos {
@@ -219,6 +231,16 @@ pub struct ChunkBlockPos {
 impl From<(u8, i16, u8)> for ChunkBlockPos {
     fn from(pos: (u8, i16, u8)) -> Self {
         Self::new(pos.0, pos.1, pos.2)
+    }
+}
+
+impl From<IVec3> for ChunkBlockPos {
+    fn from(pos: IVec3) -> Self {
+        Self::new(
+            pos.x.rem_euclid(16) as u8,
+            pos.y as i16,
+            pos.z.rem_euclid(16) as u8,
+        )
     }
 }
 
