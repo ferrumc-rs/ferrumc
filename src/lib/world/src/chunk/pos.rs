@@ -25,6 +25,16 @@ pub struct BlockPos {
     pub z: i32,
 }
 
+impl Into<SectionBlockPos> for ChunkBlockPos {
+    fn into(self) -> SectionBlockPos {
+        SectionBlockPos {
+            x: self.x,
+            z: self.z,
+            y: (self.y.abs() as u16 % 16) as u8,
+        }
+    }
+}
+
 impl Into<usize> for SectionBlockPos {
     fn into(self) -> usize {
         ((self.y as usize) << 8) | ((self.z as usize) << 4) | (self.x as usize)

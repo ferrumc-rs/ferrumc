@@ -21,14 +21,14 @@ impl DirectSection {
     }
 }
 
-impl From<UniformSection> for DirectSection {
-    fn from(s: UniformSection) -> Self {
+impl From<&mut UniformSection> for DirectSection {
+    fn from(s: &mut UniformSection) -> Self {
         Self(vec![s.get_block(); CHUNK_SECTION_LENGTH].into_boxed_slice())
     }
 }
 
-impl From<PalettedSection> for DirectSection {
-    fn from(s: PalettedSection) -> Self {
+impl From<&mut PalettedSection> for DirectSection {
+    fn from(s: &mut PalettedSection) -> Self {
         let mut vec = vec![0; CHUNK_SECTION_LENGTH];
 
         for block_idx in 0..CHUNK_SECTION_LENGTH {

@@ -51,7 +51,15 @@ impl PalettedSection {
     }
 
     fn resize(&mut self, new_bit_width: u8) {
-        todo!()
+        let mut new_buffer = vec![0u8; CHUNK_SECTION_LENGTH / (8 / new_bit_width as usize)].into_boxed_slice();
+
+        for block_idx in 0..CHUNK_SECTION_LENGTH {
+            let id = Self::unpack_value(&self.block_data, block_idx, self.bit_width);
+            Self::pack_value(&mut new_buffer, block_idx, new_bit_width, id);
+        }
+
+        self.bit_width = new_bit_width;
+        self.block_data = new_buffer;
     }
 
     fn pack_value(buffer: &mut [u8], idx: usize, bit_width: u8, value: u8) {
@@ -80,11 +88,32 @@ impl PalettedSection {
     }
 }
 
-impl From<UniformSection> for PalettedSection {
-    fn from(s: UniformSection) -> Self {
-        let mut palette = BlockPalette::new();
-        let _ = palette.add_block(s.get_block());
+impl From<&mut UniformSection> for PalettedSection {
+    fn from(s: &mut UniformSection) -> Self {
+        if s.get_block() != 0 {
+            let mut palette = BlockPalette::new();
+            let _ = palette.add_block(s.get_block());
 
-        Self { palette, block_data: vec![u8::MAX; CHUNK_SECTION_LENGTH / 8].into_boxed_slice(), bit_width: 1 }
+            Self { palette, block_data: vec![u8::MAX; CHUNK_SECTION_LENGTH / 8].into_boxed_slice(), bit_width: 1 }
+        } else {
+            Self::new()
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::chunk::section::paletted::PalettedSection;
+
+    #[test]
+    fn test_pack_unpack() {
+        let mut arr = [0, 0, 0, 0];
+        let bit_width = 4;
+
+        PalettedSection::pack_value(&mut arr, 0, bit_width, 1);
+        PalettedSection::pack_value(&mut arr, 5, bit_width, 15);
+
+        assert_eq!(PalettedSection::unpack_value(&arr, 0, bit_width), 1);
+        assert_eq!(PalettedSection::unpack_value(&arr, 5, bit_width), 15);
     }
 }

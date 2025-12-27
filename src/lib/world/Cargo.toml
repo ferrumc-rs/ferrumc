@@ -39,4 +39,4 @@ rand = { workspace = true }
 [[bench]]
 name = "world_bench"
 harness = false
-path = "src/benches/world.rs"
+path = "benches/world.rs"

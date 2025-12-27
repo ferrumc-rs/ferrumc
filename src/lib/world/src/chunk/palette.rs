@@ -92,7 +92,7 @@ impl BlockPalette {
                 PaletteResult::Normal(idx)
             }
         } else {
-            let Some((idx, empty_entry)) = self.palette.iter_mut().enumerate().find(|(idx, val)| val.is_none()) else {
+            let Some((idx, empty_entry)) = self.palette.iter_mut().enumerate().find(|(_, val)| val.is_none()) else {
                 panic!("palette should contain empty entry if free_count != 0");
             };
 
@@ -103,7 +103,7 @@ impl BlockPalette {
     }
 
     pub fn remove_block(&mut self, idx: PaletteIndex) {
-        if idx == 0 { return; }
+        if idx == 0 { return; } // Air is always ignored
 
         let idx = idx as usize;
 
