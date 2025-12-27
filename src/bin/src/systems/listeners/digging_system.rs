@@ -247,7 +247,12 @@ pub fn handle_finish_digging(
 
             // We wrap the block-breaking logic in its own function
             // to handle the errors cleanly (replaces `try` block).
-            if let Err(e) = break_block(&state, &broadcast_query, &event.position, &mut block_break_writer) {
+            if let Err(e) = break_block(
+                &state,
+                &broadcast_query,
+                &event.position,
+                &mut block_break_writer,
+            ) {
                 error!("Error handling finished digging: {:?}", e);
             }
         }
@@ -302,9 +307,7 @@ fn break_block(
 
     // Send block broken event for un-grounding system
     debug!("Sending BlockBrokenEvent for block at {:?}", pos.pos);
-    block_break_writer.write(ferrumc_messages::BlockBrokenEvent {
-        position: pos,
-    });
+    block_break_writer.write(ferrumc_messages::BlockBrokenEvent { position: pos });
 
     // Broadcast the block break to all players
     let block_update_packet = BlockUpdate {

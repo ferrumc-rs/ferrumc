@@ -21,7 +21,10 @@ pub fn handle(
 ) {
     for event in events.read() {
         let broken_block_pos = event.position;
-        debug!("Block broken at {:?}, checking entities for un-grounding", broken_block_pos.pos);
+        debug!(
+            "Block broken at {:?}, checking entities for un-grounding",
+            broken_block_pos.pos
+        );
 
         // Check all entities with collisions
         for (pos, physical, mut grounded) in entities.iter_mut() {
@@ -80,10 +83,16 @@ pub fn handle(
 
                 // If no support found, unground the entity
                 if !has_support {
-                    debug!("Un-grounding entity at {:?} - no support remaining", pos.coords);
+                    debug!(
+                        "Un-grounding entity at {:?} - no support remaining",
+                        pos.coords
+                    );
                     grounded.0 = false;
                 } else {
-                    debug!("Entity at {:?} still has support after block break", pos.coords);
+                    debug!(
+                        "Entity at {:?} still has support after block break",
+                        pos.coords
+                    );
                 }
             } else {
                 debug!(

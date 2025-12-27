@@ -71,9 +71,7 @@ pub fn handle(
                         .map_err(BinaryError::World)?;
 
                     // Send block broken event for un-grounding system
-                    block_break_events.write(BlockBrokenEvent {
-                        position: pos,
-                    });
+                    block_break_events.write(BlockBrokenEvent { position: pos });
 
                     // Broadcast the change
                     for (eid, conn) in &broadcast_query {
