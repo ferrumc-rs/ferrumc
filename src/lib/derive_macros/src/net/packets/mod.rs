@@ -188,7 +188,7 @@ pub fn setup_packet_handling(input: TokenStream) -> TokenStream {
         "   {} {}",
         "[FERRUMC_MACROS]".bold().blue(),
         format!("It took: {elapsed:?} to parse all the files and generate the packet registry")
-            .red()
+            .green()
             .bold()
     );
 

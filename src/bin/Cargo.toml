@@ -39,10 +39,10 @@ ferrumc-data = { workspace = true }
 ferrumc-entities = { workspace = true }
 ferrumc-physics = { workspace = true }
 bevy_math = { workspace = true }
+ferrumc-dashboard = { workspace = true, optional = true }
 once_cell = { workspace = true }
 serde_json = { workspace = true }
 
-dhat = { workspace = true }
 tracing = { workspace = true }
 clap = { workspace = true, features = ["derive", "env"] }
 flate2 = { workspace = true }
@@ -54,6 +54,10 @@ uuid = { workspace = true }
 
 [features]
 dhat = []
+dashboard = [
+    "dep:ferrumc-dashboard",
+    "ferrumc-config/dashboard"
+]
 
 [[bin]]
 name = "ferrumc"
