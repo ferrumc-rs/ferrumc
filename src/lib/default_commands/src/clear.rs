@@ -1,11 +1,7 @@
-use std::time::Duration;
 use bevy_ecs::message::MessageWriter;
-use bevy_ecs::system::ResMut;
 use ferrumc_commands::Sender;
 use ferrumc_macros::command;
 use ferrumc_messages::ClearPlayerInventory;
-use ferrumc_performance::{memory::MemoryUnit, ServerPerformance};
-use ferrumc_text::{NamedColor, TextComponent, TextComponentBuilder};
 
 #[command("clear")]
 fn tps_command(
