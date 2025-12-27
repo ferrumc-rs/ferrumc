@@ -1,4 +1,5 @@
 use std::num::NonZeroU16;
+use deepsize::DeepSizeOf;
 use crate::chunk::BlockStateId;
 
 pub type PaletteIndex = u16;
@@ -30,6 +31,7 @@ impl<T> PaletteResult<T> {
     }
 }
 
+#[derive(Clone, DeepSizeOf)]
 pub struct BlockPalette {
     palette: Vec<Option<(BlockStateId, NonZeroU16)>>,
     free_count: u16,
@@ -53,6 +55,20 @@ impl BlockPalette {
             ],
             free_count: entries as u16,
         }
+    }
+
+    pub fn len(&self) -> usize {
+        self.palette.len()
+    }
+
+    pub fn palette_data(&self) -> Vec<BlockStateId> {
+        self.palette.iter().map(|val| {
+            if let Some((id, _)) = val {
+                *id
+            } else {
+                0
+            }
+        }).collect::<Vec<_>>()
     }
 
     pub fn translate_idx(&self, idx: PaletteIndex) -> Option<BlockStateId> {
@@ -127,6 +143,10 @@ impl BlockPalette {
         } else {
             *count = NonZeroU16::new(count.get() - 1).expect("count should be greater than 1");
         }
+    }
+
+    pub fn block_count(&self) -> u16 {
+        self.palette.iter().flatten().map(|(state, count)| if *state != 0 { count.get() } else { 0 }).sum()
     }
 
     pub fn get_minimum_bit_width(&self) -> u8 {

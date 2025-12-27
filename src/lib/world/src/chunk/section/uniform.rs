@@ -1,5 +1,7 @@
+use deepsize::DeepSizeOf;
 use crate::chunk::BlockStateId;
 
+#[derive(Clone, DeepSizeOf)]
 pub struct UniformSection(BlockStateId);
 
 impl UniformSection {

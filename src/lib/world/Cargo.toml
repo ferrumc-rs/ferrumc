@@ -30,6 +30,8 @@ ahash = { workspace = true }
 yazi = { workspace = true }
 ferrumc-threadpool = { workspace = true }
 bevy_math = { workspace = true }
+bytemuck = { version = "1.24.0", features = ["extern_crate_alloc"] }
+tokio = { workspace = true }
 
 
 [dev-dependencies]

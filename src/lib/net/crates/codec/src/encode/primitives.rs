@@ -126,14 +126,17 @@ where
     }
 }
 
-impl NetEncode for &[u8] {
+impl<T: NetEncode> NetEncode for &[T] {
     fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
         if matches!(opts, NetEncodeOpts::SizePrefixed) {
             let len: VarInt = VarInt::new(self.len() as i32);
             len.encode(writer, opts)?;
         }
 
-        writer.write_all(self)?;
+        for val in self.iter() {
+            val.encode(writer, opts)?;
+        }
+
         Ok(())
     }
     async fn encode_async<W: AsyncWrite + Unpin>(
@@ -146,21 +149,25 @@ impl NetEncode for &[u8] {
             len.encode_async(writer, opts).await?;
         }
 
-        writer.write_all(self).await?;
+        for val in self.iter() {
+            val.encode_async(writer, opts).await?;
+        }
+
         Ok(())
     }
 }
 
-impl NetEncode for &[&str] {
+impl<T: NetEncode> NetEncode for [T] {
     fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
         if matches!(opts, NetEncodeOpts::SizePrefixed) {
             let len: VarInt = VarInt::new(self.len() as i32);
             len.encode(writer, opts)?;
         }
 
-        for item in *self {
-            item.encode(writer, opts)?;
+        for val in self.iter() {
+            val.encode(writer, opts)?;
         }
+
         Ok(())
     }
     async fn encode_async<W: AsyncWrite + Unpin>(
@@ -173,10 +180,21 @@ impl NetEncode for &[&str] {
             len.encode_async(writer, opts).await?;
         }
 
-        for item in *self {
-            item.encode_async(writer, opts).await?;
+        for val in self.iter() {
+            val.encode_async(writer, opts).await?;
         }
+
         Ok(())
+    }
+}
+
+impl<T: NetEncode + ?Sized> NetEncode for Box<T> {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+        self.as_ref().encode(writer, opts)
+    }
+
+    async fn encode_async<W: AsyncWrite + Unpin>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+        self.as_ref().encode_async(writer, opts).await
     }
 }
 

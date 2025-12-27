@@ -1,19 +1,21 @@
+use deepsize::DeepSizeOf;
 use crate::chunk::BlockStateId;
 use crate::chunk::palette::{BlockPalette, PaletteIndex};
 use crate::chunk::section::CHUNK_SECTION_LENGTH;
 use crate::chunk::section::uniform::UniformSection;
 
+#[derive(Clone, DeepSizeOf)]
 pub struct PalettedSection {
-    palette: BlockPalette,
-    block_data: Box<[u8]>,
-    bit_width: u8,
+    pub(crate) palette: BlockPalette,
+    pub(crate) block_data: Box<[u64]>,
+    pub(crate) bit_width: u8,
 }
 
 impl PalettedSection {
     pub fn new() -> Self {
         Self {
             palette: BlockPalette::new(),
-            block_data: vec![0; CHUNK_SECTION_LENGTH / 8].into_boxed_slice(),
+            block_data: vec![0u64; (CHUNK_SECTION_LENGTH / 8) / size_of::<u64>()].into_boxed_slice(),
             bit_width: 1,
         }
     }
@@ -23,7 +25,7 @@ impl PalettedSection {
 
         Self {
             palette: BlockPalette::new_with_entry_count(block_count as _),
-            block_data: vec![0; CHUNK_SECTION_LENGTH / (8 / bit_width as usize)].into_boxed_slice(),
+            block_data: vec![0u64; (CHUNK_SECTION_LENGTH / (8 / bit_width as usize)) / size_of::<u64>()].into_boxed_slice(),
             bit_width,
         }
     }
@@ -50,8 +52,12 @@ impl PalettedSection {
         Some(())
     }
 
+    pub fn block_count(&self) -> u16 {
+        self.palette.block_count()
+    }
+
     fn resize(&mut self, new_bit_width: u8) {
-        let mut new_buffer = vec![0u8; CHUNK_SECTION_LENGTH / (8 / new_bit_width as usize)].into_boxed_slice();
+        let mut new_buffer = vec![0u64; (CHUNK_SECTION_LENGTH / (8 / new_bit_width as usize)) / size_of::<u64>()].into_boxed_slice();
 
         for block_idx in 0..CHUNK_SECTION_LENGTH {
             let id = Self::unpack_value(&self.block_data, block_idx, self.bit_width);
@@ -62,29 +68,40 @@ impl PalettedSection {
         self.block_data = new_buffer;
     }
 
-    fn pack_value(buffer: &mut [u8], idx: usize, bit_width: u8, value: u8) {
+    const BITS_PER_LONG: usize = 8 * size_of::<u64>();
+
+    #[inline]
+    pub(crate) fn pack_value(buffer: &mut [u64], idx: usize, bit_width: u8, value: u8) {
         debug_assert!(bit_width.is_power_of_two());
         debug_assert!(bit_width <= 8);
         debug_assert!(value < (1 << bit_width));
 
-        let entries_per_byte = 8 / bit_width as usize;
-        let byte_idx = idx / entries_per_byte;
-        let bit_offset = (idx % entries_per_byte) * bit_width as usize;
+        let bit_width = bit_width as usize;
 
-        let mask = ((1 << bit_width) - 1) << bit_offset;
-        buffer[byte_idx] &= !mask;
-        buffer[byte_idx] |= value << bit_offset;
+        let entries_per_long = Self::BITS_PER_LONG / bit_width;
+        let entry_mask = ((1u64 << bit_width) - 1) as usize;
+        let long_index = idx / entries_per_long;
+        let bit_idx = idx % entries_per_long * bit_width;
+
+        let value = (buffer[long_index] >> bit_idx) & entry_mask as u64;
+
+        buffer[long_index] &= !(entry_mask << bit_idx) as u64;
+        buffer[long_index] |= value << bit_idx;
     }
 
-    fn unpack_value(buffer: &[u8], idx: usize, bit_width: u8) -> u8 {
+    #[inline]
+    pub(crate) fn unpack_value(buffer: &[u64], idx: usize, bit_width: u8) -> u8 {
         debug_assert!(bit_width.is_power_of_two());
         debug_assert!(bit_width <= 8);
 
-        let entries_per_byte = 8 / bit_width as usize;
-        let byte_idx = idx / entries_per_byte;
-        let bit_offset = (idx % entries_per_byte) * bit_width as usize;
+        let bit_width = bit_width as usize;
 
-        (buffer[byte_idx] >> bit_offset) & ((1 << bit_width) - 1)
+        let entries_per_long = Self::BITS_PER_LONG / bit_width;
+        let entry_mask = ((1u64 << bit_width) - 1) as usize;
+        let long_index = idx / entries_per_long;
+        let bit_idx = idx % entries_per_long * bit_width;
+
+        ((buffer[long_index] >> bit_idx) & entry_mask as u64) as u8
     }
 }
 
@@ -94,7 +111,7 @@ impl From<&mut UniformSection> for PalettedSection {
             let mut palette = BlockPalette::new();
             let _ = palette.add_block(s.get_block());
 
-            Self { palette, block_data: vec![u8::MAX; CHUNK_SECTION_LENGTH / 8].into_boxed_slice(), bit_width: 1 }
+            Self { palette, block_data: vec![u64::MAX; (CHUNK_SECTION_LENGTH / 8) / size_of::<u64>()].into_boxed_slice(), bit_width: 1 }
         } else {
             Self::new()
         }

@@ -1,3 +1,4 @@
+use deepsize::DeepSizeOf;
 use crate::chunk::section::direct::DirectSection;
 use crate::chunk::section::paletted::PalettedSection;
 use crate::chunk::section::uniform::UniformSection;
@@ -6,10 +7,12 @@ use crate::chunk::{BlockStateId, SectionBlockPos};
 mod uniform;
 mod paletted;
 mod direct;
+pub mod network;
 
 pub const CHUNK_SECTION_LENGTH: usize = 16 * 16 * 16;
 
-enum ChunkSectionType {
+#[derive(Clone, DeepSizeOf)]
+pub(crate) enum ChunkSectionType {
     Uniform(UniformSection),
     Paletted(PalettedSection),
     Direct(DirectSection),
@@ -55,10 +58,19 @@ impl ChunkSectionType {
             _ => *self = Self::Uniform(UniformSection::new_with(id)),
         }
     }
+
+    pub fn block_count(&self) -> u16 {
+        match self {
+            Self::Uniform(data) => if data.get_block() == 0 { 0 } else { 4096 },
+            Self::Paletted(data) => data.block_count(),
+            Self::Direct(data) => data.block_count(),
+        }
+    }
 }
 
+#[derive(Clone, DeepSizeOf)]
 pub struct ChunkSection {
-    inner: ChunkSectionType,
+    pub(crate) inner: ChunkSectionType,
     // todo: add light data
 }
 
@@ -103,5 +115,10 @@ impl ChunkSection {
     #[inline]
     pub fn clear(&mut self) {
         self.fill(0)
+    }
+
+    #[inline]
+    pub fn block_count(&self) -> u16 {
+        self.inner.block_count()
     }
 }
