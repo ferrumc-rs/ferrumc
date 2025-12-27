@@ -140,6 +140,27 @@ impl Inventory {
         Ok(())
     }
 
+    /// Clears an inventory slot and **does not** send an update packet to the client.
+    /// This is identical to `clear_slot_with_update`, but just does not send an update.
+    pub fn clear_slot(
+        &mut self,
+        index: usize,
+    ) -> Result<(), InventoryError> {
+        if index >= self.slots.len() {
+            return Err(InventoryError::InvalidSlotIndex(index));
+        }
+
+        // If the slot is already empty, we don't need to do anything
+        if self.slots[index].is_none() {
+            return Ok(()); // will 'fail silently'
+        }
+
+        // Otherwise, set the server's state to empty
+        self.slots[index] = None;
+
+        Ok(())
+    }
+
     /// Clears an inventory slot, regardless of its current state, and sends an update.
     /// This is idempotent and will not error if the slot is already empty.
     pub fn clear_slot_with_update(
