@@ -1,7 +1,4 @@
-use bevy_ecs::{
-    event::EventWriter,
-    prelude::{Commands, Res, Resource},
-};
+use bevy_ecs::prelude::{Commands, MessageWriter, Res, Resource};
 use crossbeam_channel::Receiver;
 use ferrumc_components::{
     active_effects::ActiveEffects,
@@ -13,6 +10,7 @@ use ferrumc_components::{
         gameplay_state::ender_chest::EnderChest,
         hunger::Hunger,
         player_bundle::PlayerBundle,
+        swimming::SwimmingState,
     },
 };
 use ferrumc_core::{
@@ -20,8 +18,8 @@ use ferrumc_core::{
     conn::keepalive::KeepAliveTracker,
     transform::{grounded::OnGround, position::Position, rotation::Rotation},
 };
-use ferrumc_events::player_join::PlayerJoinEvent;
 use ferrumc_inventories::{hotbar::Hotbar, inventory::Inventory};
+use ferrumc_messages::player_join::PlayerJoined;
 use ferrumc_net::connection::{DisconnectHandle, NewConnection};
 use ferrumc_state::GlobalStateResource;
 use std::time::Instant;
@@ -34,7 +32,7 @@ pub fn accept_new_connections(
     mut cmd: Commands,
     new_connections: Res<NewConnectionRecv>,
     state: Res<GlobalStateResource>,
-    mut join_events: EventWriter<PlayerJoinEvent>,
+    mut join_events: MessageWriter<PlayerJoined>,
 ) {
     if new_connections.0.is_empty() {
         return;
@@ -105,6 +103,7 @@ pub fn accept_new_connections(
             hunger,
             experience,
             active_effects,
+            swimming: SwimmingState::default(),
         };
 
         // --- 3. Spawn the PlayerBundle, then .insert() the network components ---
@@ -124,6 +123,7 @@ pub fn accept_new_connections(
 
         let entity_id = entity_commands.id();
 
+        // Add the new player to the global player list (used for server list player count)
         state.0.players.player_list.insert(
             entity_id,
             (
@@ -133,17 +133,9 @@ pub fn accept_new_connections(
         );
 
         trace!("Spawned entity for new connection: {:?}", entity_id);
-        // Add the new entity to the global state
-        state.0.players.player_list.insert(
-            entity_id,
-            (
-                new_connection.player_identity.uuid.as_u128(),
-                new_connection.player_identity.username.clone(),
-            ),
-        );
 
         // Fire PlayerJoinEvent
-        join_events.write(PlayerJoinEvent(new_connection.player_identity.clone()));
+        join_events.write(PlayerJoined(new_connection.player_identity.clone()));
 
         if let Err(err) = return_sender.send(entity_id) {
             error!(

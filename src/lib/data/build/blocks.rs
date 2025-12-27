@@ -94,8 +94,12 @@ pub fn build() -> Result<(), Box<dyn std::error::Error>> {
 
     types_content.push_str("#[derive(Debug, Clone, Copy)]\n");
     types_content.push_str("pub struct Shape {\n");
-    types_content.push_str("    pub min: [f64; 3],\n");
-    types_content.push_str("    pub max: [f64; 3],\n");
+    types_content.push_str("    pub min_x: f64,\n");
+    types_content.push_str("    pub min_y: f64,\n");
+    types_content.push_str("    pub min_z: f64,\n");
+    types_content.push_str("    pub max_x: f64,\n");
+    types_content.push_str("    pub max_y: f64,\n");
+    types_content.push_str("    pub max_z: f64,\n");
     types_content.push_str("}\n\n");
 
     types_content.push_str("#[derive(Debug, Clone, Copy)]\n");
@@ -115,7 +119,7 @@ pub fn build() -> Result<(), Box<dyn std::error::Error>> {
     shapes_content.push_str("pub const SHAPES: &[Shape] = &[\n");
     for shape in &data.shapes {
         shapes_content.push_str(&format!(
-            "    Shape {{ min: [{:.1}, {:.1}, {:.1}], max: [{:.1}, {:.1}, {:.1}] }},\n",
+            "    Shape {{ min_x: {:.1}, min_y: {:.1}, min_z: {:.1}, max_x: {:.1}, max_y: {:.1}, max_z: {:.1} }},\n",
             shape.min[0], shape.min[1], shape.min[2], shape.max[0], shape.max[1], shape.max[2]
         ));
     }
@@ -263,7 +267,7 @@ pub fn build() -> Result<(), Box<dyn std::error::Error>> {
     mod_content.push_str("    }\n\n");
 
     mod_content.push_str("    pub fn by_name(name: &str) -> Option<&'static Block> {\n");
-    mod_content.push_str("        match name {\n");
+    mod_content.push_str("        match &*name.to_lowercase() {\n");
     for block in &data.blocks {
         let sanitized_name = sanitize_name(&block.name);
         mod_content.push_str(&format!(

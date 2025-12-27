@@ -27,14 +27,16 @@ indicatif = { workspace = true }
 wyhash = { workspace = true }
 moka = { workspace = true, features = ["sync"] }
 ahash = { workspace = true }
-rand = { workspace = true }
 yazi = { workspace = true }
 ferrumc-threadpool = { workspace = true }
+bevy_math = { workspace = true }
+
+
+[dev-dependencies]
+criterion = { workspace = true }
+rand = { workspace = true }
 
 [[bench]]
 name = "world_bench"
 harness = false
 path = "src/benches/world.rs"
-
-[dev-dependencies]
-criterion = { workspace = true }

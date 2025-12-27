@@ -3,7 +3,7 @@ use crate::{
     health::Health,
     player::{
         abilities::PlayerAbilities, experience::Experience, gamemode::GameModeComponent,
-        gameplay_state::ender_chest::EnderChest, hunger::Hunger,
+        gameplay_state::ender_chest::EnderChest, hunger::Hunger, swimming::SwimmingState,
     },
 };
 use bevy_ecs::prelude::Bundle;
@@ -40,4 +40,7 @@ pub struct PlayerBundle {
     pub hunger: Hunger,
     pub experience: Experience,
     pub active_effects: ActiveEffects,
+
+    // Movement State
+    pub swimming: SwimmingState,
 }

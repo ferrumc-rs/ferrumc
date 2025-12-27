@@ -2,7 +2,7 @@ use bevy_ecs::prelude::Component;
 use std::fmt::Debug;
 use typename::TypeName;
 
-#[derive(TypeName, Component)]
+#[derive(TypeName, Component, Clone, Copy, Default)]
 pub struct Rotation {
     pub yaw: f32,
     pub pitch: f32,
@@ -41,21 +41,23 @@ impl Rotation {
 
         (x, y, z)
     }
-}
 
-impl Default for Rotation {
-    fn default() -> Self {
-        Self::new(0.0, 0.0)
+    /// Returns yaw and pitch as a tuple for easy spreading.
+    ///
+    /// This is useful for struct initialization where you need to spread
+    /// rotation values across multiple fields.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// let rot = Rotation::new(90.0, 45.0);
+    /// let (yaw, pitch) = rot.yaw_pitch();
+    /// // Now you can use yaw, pitch individually
+    /// ```
+    pub fn yaw_pitch(&self) -> (f32, f32) {
+        (self.yaw, self.pitch)
     }
 }
-
-impl Clone for Rotation {
-    fn clone(&self) -> Self {
-        *self
-    }
-}
-
-impl Copy for Rotation {}
 
 impl Debug for Rotation {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

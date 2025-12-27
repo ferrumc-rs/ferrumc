@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 #[cfg(test)]
 mod tests;
 
+mod ansi;
 mod builders;
 mod r#impl;
 mod utils;

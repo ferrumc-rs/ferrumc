@@ -187,6 +187,11 @@ Options:
             - `warn` (Only warnings)
             - `error` (Only errors)
 
+### [Option 3] Use Docker
+
+1. You need to build the image : `sudo docker build -t ferrumc:yourtag .`
+2. Then run it : `docker run --rm -it -p 25565:25565 ferrumc:yourtag`
+
 ## 🛠️ Development
 
 We welcome contributions! If you'd like to contribute to FerrumC, please follow these steps:
@@ -272,7 +277,4 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE) f
 
 ## 📊 Stats
 
-[![Timeline graph](https://images.repography.com/59032276/ferrumc-rs/ferrumc/recent-activity/J6CgGhzs6y3LXRuADz1QpSUriBC3ix9DXnPUbbljruA/O-qGFiSVQmksFEaX7mVQ4jY3lppUTK2xUw4CpqZ3oUk_timeline.svg)](https://github.com/ferrumc-rs/ferrumc/commits)
-[![Issue status graph](https://images.repography.com/59032276/ferrumc-rs/ferrumc/recent-activity/J6CgGhzs6y3LXRuADz1QpSUriBC3ix9DXnPUbbljruA/O-qGFiSVQmksFEaX7mVQ4jY3lppUTK2xUw4CpqZ3oUk_issues.svg)](https://github.com/ferrumc-rs/ferrumc/issues)
-[![Pull request status graph](https://images.repography.com/59032276/ferrumc-rs/ferrumc/recent-activity/J6CgGhzs6y3LXRuADz1QpSUriBC3ix9DXnPUbbljruA/O-qGFiSVQmksFEaX7mVQ4jY3lppUTK2xUw4CpqZ3oUk_prs.svg)](https://github.com/ferrumc-rs/ferrumc/pulls)
-[![Top contributors](https://images.repography.com/59032276/ferrumc-rs/ferrumc/recent-activity/J6CgGhzs6y3LXRuADz1QpSUriBC3ix9DXnPUbbljruA/O-qGFiSVQmksFEaX7mVQ4jY3lppUTK2xUw4CpqZ3oUk_users.svg)](https://github.com/ferrumc-rs/ferrumc/graphs/contributors)
+![Alt](https://repobeats.axiom.co/api/embed/9f014c2e6ded808ae2dff5de3428c65a834e4ac0.svg "Repobeats analytics image")

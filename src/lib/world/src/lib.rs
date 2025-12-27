@@ -5,10 +5,12 @@ pub mod edit_batch;
 pub mod edits;
 pub mod errors;
 mod importing;
+pub mod pos;
 pub mod vanilla_chunk_format;
 
 use crate::chunk_format::Chunk;
 use crate::errors::WorldError;
+use crate::pos::ChunkPos;
 use deepsize::DeepSizeOf;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_general_purpose::paths::get_root_path;
@@ -24,7 +26,7 @@ use tracing::{error, trace, warn};
 #[derive(Clone)]
 pub struct World {
     storage_backend: LmdbBackend,
-    cache: Cache<(i32, i32, String), Arc<Chunk>>,
+    cache: Cache<(ChunkPos, String), Arc<Chunk>>,
 }
 
 fn check_config_validity() -> Result<(), WorldError> {
@@ -128,7 +130,7 @@ mod tests {
                 .unwrap()
                 .join("../../../target/debug/world"),
         );
-        let chunk = world.load_chunk(1, 1, "overworld").expect(
+        let chunk = world.load_chunk(ChunkPos::new(1, 1), "overworld").expect(
             "Failed to load chunk. If it's a bitcode error, chances are the chunk format \
              has changed since last generating a world so you'll need to regenerate",
         );

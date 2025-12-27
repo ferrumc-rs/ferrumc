@@ -20,8 +20,17 @@ network_compression_threshold = 64
 # Verify decompressed packets. This is a good idea to catch any corruption, but it will slow down processing.
 verify_decompressed_packets = true
 
+# Enable encryption. This will encrypt all outgoing packets and will decrypt all incoming packets.
+# If online mode is enabled, encryption is always enabled no matter the value of this setting.
+encryption_enabled = true
+
+# Online mode. This will authenticate all incoming players with Mojang's servers. This is a good idea to have on.
+online_mode = true
+
 # Chunk render distance. This is the distance in chunks that the server will load around the player.
 chunk_render_distance = 12
+
+default_gamemode = "creative"
 
 # Database configuration
 [database]

@@ -1,6 +1,7 @@
 use bevy_ecs::prelude::Component;
 use bevy_math::DVec3;
 use ferrumc_net_codec::net_types::network_position::NetworkPosition;
+use std::ops::DerefMut;
 use std::{
     fmt::{Debug, Display, Formatter},
     ops::Deref,
@@ -25,6 +26,51 @@ impl Position {
             coords: DVec3::new(x, y, z),
         }
     }
+
+    /// Returns a new position offset forward by the given distance based on rotation.
+    ///
+    /// This calculates a position in front of the current position using the yaw angle.
+    /// Useful for spawning entities in front of a player or calculating look direction.
+    ///
+    /// # Arguments
+    ///
+    /// * `rotation` - The rotation (yaw/pitch) to use for direction
+    /// * `distance` - How many blocks forward to offset
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// use ferrumc_core::transform::{Position, Rotation};
+    ///
+    /// let pos = Position::new(0.0, 64.0, 0.0);
+    /// let rot = Rotation::new(0.0, 0.0); // Looking north
+    /// let forward = pos.offset_forward(&rot, 2.0);
+    /// // forward is 2 blocks in front based on yaw
+    /// ```
+    pub fn offset_forward(&self, rotation: &super::rotation::Rotation, distance: f64) -> Self {
+        let yaw_radians = rotation.yaw.to_radians();
+        Self::new(
+            self.x - (yaw_radians.sin() as f64 * distance),
+            self.y,
+            self.z + (yaw_radians.cos() as f64 * distance),
+        )
+    }
+
+    /// Returns the x, y, z coordinates as a tuple for easy spreading.
+    ///
+    /// This is useful for struct initialization where you need to spread
+    /// position coordinates across multiple fields.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// let pos = Position::new(10.0, 64.0, 20.0);
+    /// let (x, y, z) = pos.xyz();
+    /// // Now you can use x, y, z individually
+    /// ```
+    pub fn xyz(&self) -> (f64, f64, f64) {
+        (self.x, self.y, self.z)
+    }
 }
 
 impl Deref for Position {
@@ -32,6 +78,12 @@ impl Deref for Position {
 
     fn deref(&self) -> &Self::Target {
         &self.coords
+    }
+}
+
+impl DerefMut for Position {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.coords
     }
 }
 

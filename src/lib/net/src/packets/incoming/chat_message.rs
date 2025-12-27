@@ -7,8 +7,8 @@ pub struct ChatMessagePacket {
     pub message: String,
     pub timestamp: u64,
     pub salt: u64,
-    pub has_signature: bool,
-    pub signature: PrefixedOptional<Vec<u64>>,
+    pub signature: PrefixedOptional<[u8; 256]>,
     pub message_count: VarInt,
-    pub acknowledged: Vec<u8>,
+    pub acknowledged: [u8; 3],
+    pub checksum: u8,
 }

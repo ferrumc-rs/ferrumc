@@ -31,6 +31,8 @@ pub fn register_packet_handlers(schedule: &mut Schedule) {
     schedule.add_systems(set_player_position_and_rotation::handle);
     schedule.add_systems(set_player_rotation::handle);
     schedule.add_systems(swing_arm::handle);
+    schedule.add_systems(update_survival_mode_slot::handle);
+    schedule.add_systems(close_container::handle);
     schedule.add_systems(player_loaded::handle);
     schedule.add_systems(command::handle);
     schedule.add_systems(command_suggestions::handle);
@@ -44,4 +46,6 @@ pub fn register_packet_handlers(schedule: &mut Schedule) {
 
 pub mod set_creative_mode_slot;
 
+mod close_container;
 pub mod set_held_item;
+mod update_survival_mode_slot;

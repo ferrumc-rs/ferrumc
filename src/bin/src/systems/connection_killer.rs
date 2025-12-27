@@ -1,4 +1,4 @@
-use bevy_ecs::prelude::{Commands, Entity, EventWriter, Query, Res};
+use bevy_ecs::prelude::{Commands, Entity, MessageWriter, Query, Res};
 use ferrumc_components::{
     active_effects::ActiveEffects,
     health::Health,
@@ -11,12 +11,12 @@ use ferrumc_core::{
     identity::player_identity::PlayerIdentity,
     transform::{position::Position, rotation::Rotation},
 };
-use ferrumc_events::player_leave::PlayerLeaveEvent;
 use ferrumc_inventories::inventory::Inventory;
+use ferrumc_messages::player_leave::PlayerLeft;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_state::{player_cache::OfflinePlayerData, GlobalStateResource};
 use ferrumc_text::TextComponent;
-use tracing::{info, trace, warn};
+use tracing::{debug, info, trace, warn};
 
 // This type alias defines all the components of a "full" player
 type PlayerCacheQuery<'a> = (
@@ -43,7 +43,7 @@ pub fn connection_killer(
     identity_query: Query<PlayerIdentityQuery>,
     mut cmd: Commands,
     state: Res<GlobalStateResource>,
-    mut leave_events: EventWriter<PlayerLeaveEvent>,
+    mut leave_events: MessageWriter<PlayerLeft>,
 ) {
     // Loop through all entities marked for disconnection
     while let Some((disconnecting_entity, reason)) = state.0.players.disconnection_queue.pop() {
@@ -71,11 +71,12 @@ pub fn connection_killer(
         {
             // --- SUCCESS: This is a fully-joined player ---
             info!(
-                "Player {} ({}) disconnected: {}. Caching data...",
+                "Player {} ({}) disconnected: {}.",
                 player_identity.username,
                 player_identity.uuid,
                 reason.as_deref().unwrap_or("No reason")
             );
+            debug!("Saving player data to cache...");
 
             // Send disconnect packet
             if conn.running.load(std::sync::atomic::Ordering::Relaxed) {
@@ -85,7 +86,8 @@ pub fn connection_killer(
                 );
                 if let Err(e) = conn.send_packet_ref(
                     &ferrumc_net::packets::outgoing::disconnect::DisconnectPacket {
-                        reason: TextComponent::from(reason.as_deref().unwrap_or("Disconnected")),
+                        reason: TextComponent::from(reason.as_deref().unwrap_or("Disconnected"))
+                            .into(),
                     },
                 ) {
                     warn!(
@@ -119,7 +121,7 @@ pub fn connection_killer(
                 .insert(player_identity.uuid, data_to_cache);
 
             // --- 3. Fire PlayerLeaveEvent ---
-            leave_events.write(PlayerLeaveEvent(player_identity.clone()));
+            leave_events.write(PlayerLeft(player_identity.clone()));
         } else {
             // --- FAILURE: This is a "half-player" or zombie ---
             warn!(
@@ -133,7 +135,7 @@ pub fn connection_killer(
                     "-> (Half-player had identity: {})",
                     player_identity.username
                 );
-                leave_events.write(PlayerLeaveEvent(player_identity.clone()));
+                leave_events.write(PlayerLeft(player_identity.clone()));
             } else {
                 warn!("-> (Half-player didn't even have an identity component!)");
             }

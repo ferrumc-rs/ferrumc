@@ -1,0 +1,14 @@
+[package]
+name = "ferrumc-messages"
+version = "0.1.0"
+edition = "2021"
+description = "Defines all Bevy ECS messages for FerrumC."
+
+[dependencies]
+bevy_ecs = { workspace = true }
+
+ferrumc-components = { workspace = true }
+ferrumc-core = { workspace = true }
+ferrumc-net-codec = { workspace = true }
+ferrumc-inventories = {workspace = true }
+ferrumc-entities = { workspace = true }

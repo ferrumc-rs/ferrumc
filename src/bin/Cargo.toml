@@ -14,9 +14,10 @@ bevy_ecs = { workspace = true }
 ferrumc-scheduler = { workspace = true }
 
 ferrumc-registry = { workspace = true }
-ferrumc-events = { workspace = true }
+ferrumc-messages = { workspace = true }
 ferrumc-components = { workspace = true }
 ferrumc-net = { workspace = true }
+ferrumc-performance = { workspace = true }
 ferrumc-net-codec = { workspace = true }
 ferrumc-plugins = { workspace = true }
 ferrumc-storage = { workspace = true }
@@ -35,6 +36,9 @@ ferrumc-world-gen = { workspace = true }
 ferrumc-threadpool = { workspace = true }
 ferrumc-inventories = { workspace = true }
 ferrumc-data = { workspace = true }
+ferrumc-entities = { workspace = true }
+ferrumc-physics = { workspace = true }
+bevy_math = { workspace = true }
 ferrumc-dashboard = { workspace = true, optional = true }
 once_cell = { workspace = true }
 serde_json = { workspace = true }
@@ -47,7 +51,6 @@ ctrlc = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 crossbeam-channel = { workspace = true }
 uuid = { workspace = true }
-dhat = { workspace = true }
 
 [features]
 dhat = []

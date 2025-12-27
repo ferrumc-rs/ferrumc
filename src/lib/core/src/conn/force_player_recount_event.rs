@@ -1,4 +1,4 @@
-use bevy_ecs::prelude::Event;
+use bevy_ecs::prelude::Message;
 
-#[derive(Event)]
-pub struct ForcePlayerRecountEvent;
+#[derive(Message)]
+pub struct ForcePlayerRecount;
