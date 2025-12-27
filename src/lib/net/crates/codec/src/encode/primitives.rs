@@ -1,9 +1,11 @@
+use std::borrow::Cow;
 use crate::encode::errors::NetEncodeError;
 use crate::encode::AsyncWrite;
 use crate::encode::{NetEncode, NetEncodeOpts};
 use crate::net_types::var_int::VarInt;
 use std::collections::HashMap;
 use std::io::Write;
+use std::ops::Deref;
 use tokio::io::AsyncWriteExt;
 
 macro_rules! impl_for_primitives {
@@ -188,13 +190,13 @@ impl<T: NetEncode> NetEncode for [T] {
     }
 }
 
-impl<T: NetEncode + ?Sized> NetEncode for Box<T> {
+impl<T: NetEncode + ?Sized + ToOwned> NetEncode for Cow<'_, T> {
     fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
-        self.as_ref().encode(writer, opts)
+        self.deref().encode(writer, opts)
     }
 
     async fn encode_async<W: AsyncWrite + Unpin>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
-        self.as_ref().encode_async(writer, opts).await
+        self.deref().encode_async(writer, opts).await
     }
 }
 

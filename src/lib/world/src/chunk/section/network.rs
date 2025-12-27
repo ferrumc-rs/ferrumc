@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use ferrumc_macros::NetEncode;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use crate::chunk::section::{ChunkSection, ChunkSectionType, CHUNK_SECTION_LENGTH};
@@ -8,16 +9,10 @@ use crate::chunk::section::uniform::UniformSection;
 const BIOME_DATA: &[u64] = &[0u64; 8];
 
 #[derive(NetEncode)]
-enum DataArray<'a> {
-    Borrowed(&'a [u64]),
-    Owned(Box<[u64]>),
-}
-
-#[derive(NetEncode)]
 pub struct PalettedContainer<'section> {
     bits_per_entry: u8,
     palette: NetworkPalette,
-    data_array: DataArray<'section>,
+    data_array: Cow<'section, [u64]>,
 }
 
 #[derive(NetEncode)]
@@ -46,7 +41,7 @@ impl<'section> From<&'section UniformSection> for PalettedContainer<'section> {
         PalettedContainer {
             bits_per_entry: 0,
             palette: NetworkPalette::SingleValued { value: VarInt(palette.get_block() as _) },
-            data_array: DataArray::Owned(Box::new([])),
+            data_array: Cow::Owned(vec![]),
         }
     }
 }
@@ -54,8 +49,8 @@ impl<'section> From<&'section UniformSection> for PalettedContainer<'section> {
 impl<'section> From<&'section PalettedSection> for PalettedContainer<'section> {
     fn from(palette: &'section PalettedSection) -> Self {
         let bits_per_entry = palette.bit_width.max(4); // Minecraft supports lowest bit width of 4 for indirect palettes
-        let data_array: DataArray = if bits_per_entry != palette.bit_width {
-            let mut new_buffer = vec![0u64; (CHUNK_SECTION_LENGTH / (8 / bits_per_entry as usize)) / size_of::<u64>()].into_boxed_slice();
+        let data_array: Cow<[u64]> = if bits_per_entry != palette.bit_width {
+            let mut new_buffer = vec![0u64; (CHUNK_SECTION_LENGTH / (8 / bits_per_entry as usize)) / size_of::<u64>()];
 
             for block in 0..CHUNK_SECTION_LENGTH {
                 PalettedSection::pack_value(
@@ -66,9 +61,9 @@ impl<'section> From<&'section PalettedSection> for PalettedContainer<'section> {
                 );
             }
 
-            DataArray::Owned(new_buffer)
+            Cow::Owned(new_buffer)
         } else {
-            DataArray::Borrowed(&palette.block_data)
+            Cow::Borrowed(&palette.block_data)
         };
 
         PalettedContainer {
@@ -87,7 +82,7 @@ impl<'section> From<&'section DirectSection> for PalettedContainer<'section> {
         PalettedContainer {
             bits_per_entry: 16,
             palette: NetworkPalette::Direct { },
-            data_array: DataArray::Owned(Box::new([])), // TODO: fix this to use the data from the palette; bytemuck::cast_slice(&palette.0)
+            data_array: Cow::Owned(vec![]), // TODO: fix this to use the data from the palette; bytemuck::cast_slice(&palette.0)
         }
     }
 }
@@ -105,9 +100,9 @@ impl<'section> From<&'section ChunkSection> for PalettedContainer<'section> {
 impl<'section> PalettedContainer<'section> {
     pub fn biomes() -> PalettedContainer<'section> {
         PalettedContainer {
-            bits_per_entry: 8,
-            palette: NetworkPalette::Direct { },
-            data_array: DataArray::Borrowed(BIOME_DATA),
+            bits_per_entry: 0,
+            palette: NetworkPalette::SingleValued { value: VarInt(0) },
+            data_array: Cow::Owned(vec![]),
         }
     }
 }
