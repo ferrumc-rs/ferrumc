@@ -3,10 +3,15 @@ use crate::chunk::BlockStateId;
 pub struct UniformSection(BlockStateId);
 
 impl UniformSection {
-    pub fn new() -> Self {
+    pub fn air() -> Self {
         Self(0)
     }
 
+    pub fn new_with(id: BlockStateId) -> Self {
+        Self(id)
+    }
+
+    #[inline]
     pub fn get_block(&self) -> BlockStateId {
         self.0
     }
