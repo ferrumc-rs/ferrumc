@@ -40,15 +40,16 @@ impl PalettedSection {
         let prev_idx = Self::unpack_value(&self.block_data, idx, self.bit_width);
         self.palette.remove_block(prev_idx as PaletteIndex);
 
-        let new_idx = self.palette.add_block(state);
-        if let Some(new_bit_width) = new_idx.new_bit_width() {
+        let (new_idx, new_bit_width) = self.palette.add_block(state);
+        if let Some(new_bit_width) = new_bit_width {
             if new_bit_width > 8 {
                 return None;
             }
+
             self.resize(new_bit_width);
         }
 
-        Self::pack_value(&mut self.block_data, idx, self.bit_width, new_idx.unwrap() as u8);
+        Self::pack_value(&mut self.block_data, idx, self.bit_width, new_idx as u8);
         Some(())
     }
 

@@ -37,19 +37,19 @@ pub struct NetworkSection<'section> {
 }
 
 impl<'section> From<&'section UniformSection> for PalettedContainer<'section> {
-    fn from(palette: &'section UniformSection) -> Self {
+    fn from(section: &'section UniformSection) -> Self {
         PalettedContainer {
             bits_per_entry: 0,
-            palette: NetworkPalette::SingleValued { value: VarInt(palette.get_block() as _) },
+            palette: NetworkPalette::SingleValued { value: VarInt(section.get_block() as _) },
             data_array: Cow::Owned(vec![]),
         }
     }
 }
 
 impl<'section> From<&'section PalettedSection> for PalettedContainer<'section> {
-    fn from(palette: &'section PalettedSection) -> Self {
-        let bits_per_entry = palette.bit_width.max(4); // Minecraft supports lowest bit width of 4 for indirect palettes
-        let data_array: Cow<[u64]> = if bits_per_entry != palette.bit_width {
+    fn from(section: &'section PalettedSection) -> Self {
+        let bits_per_entry = section.bit_width.max(4); // Minecraft supports lowest bit width of 4 for indirect palettes
+        let data_array: Cow<[u64]> = if bits_per_entry != section.bit_width {
             let mut new_buffer = vec![0u64; (CHUNK_SECTION_LENGTH / (8 / bits_per_entry as usize)) / size_of::<u64>()];
 
             for block in 0..CHUNK_SECTION_LENGTH {
@@ -57,20 +57,20 @@ impl<'section> From<&'section PalettedSection> for PalettedContainer<'section> {
                     &mut new_buffer,
                     block,
                     bits_per_entry,
-                    PalettedSection::unpack_value(&palette.block_data, block, palette.bit_width)
+                    PalettedSection::unpack_value(&section.block_data, block, section.bit_width)
                 );
             }
 
             Cow::Owned(new_buffer)
         } else {
-            Cow::Borrowed(&palette.block_data)
+            Cow::Borrowed(&section.block_data)
         };
 
         PalettedContainer {
             bits_per_entry,
             palette: NetworkPalette::Indirect {
-                palette_length: VarInt(palette.palette.len() as _),
-                palette_values: palette.palette.palette_data().into_iter().map(|v| VarInt(v as _)).collect(),
+                palette_length: VarInt(section.palette.len() as _),
+                palette_values: section.palette.palette_data().into_iter().map(|v| VarInt(v as _)).collect(),
             },
             data_array,
         }
@@ -78,11 +78,11 @@ impl<'section> From<&'section PalettedSection> for PalettedContainer<'section> {
 }
 
 impl<'section> From<&'section DirectSection> for PalettedContainer<'section> {
-    fn from(palette: &'section DirectSection) -> Self {
+    fn from(section: &'section DirectSection) -> Self {
         PalettedContainer {
             bits_per_entry: 16,
             palette: NetworkPalette::Direct { },
-            data_array: Cow::Owned(vec![]), // TODO: fix this to use the data from the palette; bytemuck::cast_slice(&palette.0)
+            data_array: Cow::Owned(vec![]), // TODO: fix this to use the data from the section; bytemuck::cast_slice(&section.0)
         }
     }
 }

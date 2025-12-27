@@ -9,28 +9,6 @@ const NON_ZERO_ONE: NonZeroU16 = match NonZeroU16::new(1) {
     None => unreachable!(),
 };
 
-pub enum PaletteResult<T> {
-    Normal(T),
-    RequiresResize(T, u8),
-}
-
-impl<T> PaletteResult<T> {
-    pub fn new_bit_width(&self) -> Option<u8> {
-        if let PaletteResult::RequiresResize(_, new_bit_width) = self {
-            Some(*new_bit_width)
-        } else {
-            None
-        }
-    }
-
-    pub fn unwrap(self) -> T {
-        match self {
-            PaletteResult::Normal(val) => val,
-            PaletteResult::RequiresResize(val, _) => val,
-        }
-    }
-}
-
 #[derive(Clone, DeepSizeOf)]
 pub struct BlockPalette {
     palette: Vec<Option<(BlockStateId, NonZeroU16)>>,
@@ -57,17 +35,14 @@ impl BlockPalette {
         }
     }
 
+    #[inline]
     pub fn len(&self) -> usize {
         self.palette.len()
     }
 
     pub fn palette_data(&self) -> Vec<BlockStateId> {
         self.palette.iter().map(|val| {
-            if let Some((id, _)) = val {
-                *id
-            } else {
-                0
-            }
+            val.unwrap_or((0, NonZeroU16::MAX)).0
         }).collect::<Vec<_>>()
     }
 
@@ -81,14 +56,14 @@ impl BlockPalette {
         }
     }
 
-    pub fn add_block(&mut self, id: BlockStateId) -> PaletteResult<PaletteIndex> {
-        if id == 0 { return PaletteResult::Normal(0) } // Air is always palette idx 0
+    pub fn add_block(&mut self, id: BlockStateId) -> (PaletteIndex, Option<u8>) {
+        if id == 0 { return (0, None) } // Air is always palette idx 0
 
         for (idx, val) in self.palette.iter_mut().enumerate() {
             if let Some((block_id, count)) = val {
                 if *block_id == id {
                     *count = NonZeroU16::new(count.get().checked_add(1).expect("count should never exceed 4096")).expect("addition should not overflow");
-                    return PaletteResult::Normal(idx as PaletteIndex);
+                    return (idx as PaletteIndex, None);
                 }
             }
         }
@@ -103,9 +78,9 @@ impl BlockPalette {
             let idx = (self.palette.len() - 1) as PaletteIndex;
 
             if curr_bit_width != new_bit_width {
-                PaletteResult::RequiresResize(idx, new_bit_width)
+                (idx, Some(new_bit_width))
             } else {
-                PaletteResult::Normal(idx)
+                (idx, None)
             }
         } else {
             let Some((idx, empty_entry)) = self.palette.iter_mut().enumerate().find(|(_, val)| val.is_none()) else {
@@ -114,7 +89,7 @@ impl BlockPalette {
 
             let _ =empty_entry.insert((id, NON_ZERO_ONE));
             self.free_count -= 1;
-            PaletteResult::Normal(idx as PaletteIndex)
+            (idx as PaletteIndex, None)
         }
     }
 
