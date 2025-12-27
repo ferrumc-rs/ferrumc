@@ -7,6 +7,7 @@ pub mod listeners;
 pub mod mobs;
 mod mq;
 pub mod new_connections;
+mod particles;
 pub mod physics;
 mod player_swimming;
 mod send_entity_updates;
@@ -25,4 +26,5 @@ pub fn register_game_systems(schedule: &mut bevy_ecs::schedule::Schedule) {
 
     // Should always be last
     schedule.add_systems(connection_killer::connection_killer);
+    schedule.add_systems(particles::handle);
 }

@@ -23,5 +23,6 @@ pub use change_gamemode::*;
 
 pub mod entity_spawn;
 pub mod entity_update;
+pub mod particle;
 
 pub use entity_spawn::{EntityType, SpawnEntityCommand, SpawnEntityEvent};
