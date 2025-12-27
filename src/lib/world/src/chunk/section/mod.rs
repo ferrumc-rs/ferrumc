@@ -3,6 +3,7 @@ use crate::chunk::section::direct::DirectSection;
 use crate::chunk::section::paletted::PalettedSection;
 use crate::chunk::section::uniform::UniformSection;
 use crate::chunk::{BlockStateId, SectionBlockPos};
+use crate::chunk::light::SectionLightData;
 
 mod uniform;
 mod paletted;
@@ -71,13 +72,14 @@ impl ChunkSectionType {
 #[derive(Clone, DeepSizeOf)]
 pub struct ChunkSection {
     pub(crate) inner: ChunkSectionType,
-    // todo: add light data
+    pub(crate) light: SectionLightData,
 }
 
 impl ChunkSection {
     pub fn new_uniform(id: BlockStateId) -> Self {
         Self {
             inner: ChunkSectionType::Uniform(UniformSection::new_with(id)),
+            light: SectionLightData::new(),
         }
     }
 
@@ -85,14 +87,17 @@ impl ChunkSection {
         if unique_blocks <= 1 {
             Self {
                 inner: ChunkSectionType::Uniform(UniformSection::air()),
+                light: SectionLightData::new(),
             }
         } else if unique_blocks < 256 {
             Self {
                 inner: ChunkSectionType::Paletted(PalettedSection::new_with_block_count(unique_blocks as _)),
+                light: SectionLightData::new(),
             }
         } else {
             Self {
                 inner: ChunkSectionType::Direct(DirectSection::new()),
+                light: SectionLightData::new(),
             }
         }
     }

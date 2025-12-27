@@ -1,6 +1,6 @@
 pub mod section;
 mod palette;
-mod light;
+pub mod light;
 mod heightmap;
 mod pos;
 
