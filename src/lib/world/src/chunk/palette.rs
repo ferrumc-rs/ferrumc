@@ -45,6 +45,16 @@ impl BlockPalette {
         }
     }
 
+    pub fn new_with_entry_count(entries: usize) -> BlockPalette {
+        BlockPalette {
+            palette: vec![
+                Some((0, NonZeroU16::MAX));
+                entries + 1
+            ],
+            free_count: entries as u16,
+        }
+    }
+
     pub fn translate_idx(&self, idx: PaletteIndex) -> Option<BlockStateId> {
         let idx = idx as usize;
 
@@ -125,7 +135,7 @@ impl BlockPalette {
         Self::bit_width_for_len(len)
     }
 
-    fn bit_width_for_len(len: usize) -> u8 {
+    pub fn bit_width_for_len(len: usize) -> u8 {
         let bits = if len <= 1 {
             1
         } else {
