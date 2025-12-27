@@ -28,8 +28,8 @@ impl Inventory {
     }
 
     pub fn clear(&mut self) {
-        for slot in &mut self.slots {
-            *slot = None;
+        for slot in 0..self.slots.len() {
+            let _ = self.clear_slot(slot);
         }
     }
 
