@@ -160,6 +160,7 @@ pub fn handle_finish_digging(
     state: Res<GlobalStateResource>,
     mut player_query: Query<DiggingPlayerQuery>,
     broadcast_query: Query<(Entity, &StreamWriter)>, // For broadcasting the break
+    mut block_break_writer: MessageWriter<ferrumc_messages::BlockBrokenEvent>,
 ) {
     for event in events.read() {
         let Ok((_player_entity, writer, digging_opt)) = player_query.get_mut(event.player) else {
@@ -246,7 +247,7 @@ pub fn handle_finish_digging(
 
             // We wrap the block-breaking logic in its own function
             // to handle the errors cleanly (replaces `try` block).
-            if let Err(e) = break_block(&state, &broadcast_query, &event.position) {
+            if let Err(e) = break_block(&state, &broadcast_query, &event.position, &mut block_break_writer) {
                 error!("Error handling finished digging: {:?}", e);
             }
         }
@@ -270,6 +271,7 @@ fn break_block(
     state: &Res<GlobalStateResource>,
     broadcast_query: &Query<(Entity, &StreamWriter)>,
     position: &ferrumc_net_codec::net_types::network_position::NetworkPosition,
+    block_break_writer: &mut MessageWriter<ferrumc_messages::BlockBrokenEvent>,
 ) -> Result<(), BinaryError> {
     let pos: BlockPos = position.clone().into();
     let mut chunk = match state
@@ -297,6 +299,12 @@ fn break_block(
         .world
         .save_chunk(pos.chunk(), "overworld", Arc::new(chunk))
         .map_err(BinaryError::World)?;
+
+    // Send block broken event for un-grounding system
+    debug!("Sending BlockBrokenEvent for block at {:?}", pos.pos);
+    block_break_writer.write(ferrumc_messages::BlockBrokenEvent {
+        position: pos,
+    });
 
     // Broadcast the block break to all players
     let block_update_packet = BlockUpdate {

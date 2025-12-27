@@ -4,6 +4,7 @@ use crate::errors::BinaryError;
 use bevy_ecs::prelude::{Entity, MessageWriter, Query, Res};
 use ferrumc_components::player::abilities::PlayerAbilities;
 use ferrumc_messages::player_digging::*;
+use ferrumc_messages::BlockBrokenEvent;
 
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::block_change_ack::BlockChangeAck;
@@ -22,6 +23,7 @@ pub fn handle(
     mut start_dig_events: MessageWriter<PlayerStartedDigging>,
     mut cancel_dig_events: MessageWriter<PlayerCancelledDigging>,
     mut finish_dig_events: MessageWriter<PlayerFinishedDigging>,
+    mut block_break_events: MessageWriter<BlockBrokenEvent>,
 ) {
     // https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol?oldid=2773393#Player_Action
     for (event, trigger_eid) in receiver.0.try_iter() {
@@ -66,6 +68,11 @@ pub fn handle(
                         .world
                         .save_chunk(pos.chunk(), "overworld", Arc::new(chunk))
                         .map_err(BinaryError::World)?;
+
+                    // Send block broken event for un-grounding system
+                    block_break_events.write(BlockBrokenEvent {
+                        position: pos,
+                    });
 
                     // Broadcast the change
                     for (eid, conn) in &broadcast_query {
