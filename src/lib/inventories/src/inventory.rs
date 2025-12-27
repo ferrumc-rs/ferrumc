@@ -33,6 +33,12 @@ impl Inventory {
         }
     }
 
+    pub fn clear_with_update(&mut self, entity: Entity) {
+        for slot in 0..self.slots.len() {
+            let _ = self.clear_slot_with_update(slot, entity);
+        }
+    }
+
     pub fn contains_item(&self, item_id: i32) -> bool {
         self.slots.iter().any(|slot| {
             if let Some(slot) = slot {
