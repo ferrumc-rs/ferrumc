@@ -84,10 +84,8 @@ impl PalettedSection {
         let long_index = idx / entries_per_long;
         let bit_idx = idx % entries_per_long * bit_width;
 
-        let value = (buffer[long_index] >> bit_idx) & entry_mask as u64;
-
         buffer[long_index] &= !(entry_mask << bit_idx) as u64;
-        buffer[long_index] |= value << bit_idx;
+        buffer[long_index] |= (value as u64) << bit_idx;
     }
 
     #[inline]

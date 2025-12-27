@@ -2,10 +2,8 @@ pub mod section;
 mod palette;
 pub mod light;
 mod heightmap;
-mod pos;
 
 use deepsize::DeepSizeOf;
-pub use pos::*;
 use crate::chunk::section::ChunkSection;
 use crate::pos::ChunkBlockPos;
 
@@ -43,14 +41,14 @@ impl Chunk {
         let section = (pos.y() + -self.min_y) / 16;
         assert!(section >= 0);
 
-        self.sections[section as usize].get_block(pos.into())
+        self.sections[section as usize].get_block(pos.section_block_pos())
     }
 
     pub fn set_block(&mut self, pos: ChunkBlockPos, id: BlockStateId) {
         let section = (pos.y() + -self.min_y) / 16;
         assert!(section >= 0);
 
-        self.sections[section as usize].set_block(pos.into(), id);
+        self.sections[section as usize].set_block(pos.section_block_pos(), id);
     }
 }
 

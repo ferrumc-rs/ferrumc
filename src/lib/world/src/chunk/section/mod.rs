@@ -2,8 +2,9 @@ use deepsize::DeepSizeOf;
 use crate::chunk::section::direct::DirectSection;
 use crate::chunk::section::paletted::PalettedSection;
 use crate::chunk::section::uniform::UniformSection;
-use crate::chunk::{BlockStateId, SectionBlockPos};
+use crate::chunk::BlockStateId;
 use crate::chunk::light::SectionLightData;
+use crate::pos::SectionBlockPos;
 
 mod uniform;
 mod paletted;
@@ -24,31 +25,31 @@ impl ChunkSectionType {
     pub fn get_block(&self, pos: SectionBlockPos) -> BlockStateId {
         match self {
             Self::Uniform(data) => data.get_block(),
-            Self::Paletted(data) => data.get_block(pos.into()),
-            Self::Direct(data) => data.get_block(pos.into()),
+            Self::Paletted(data) => data.get_block(pos.pack() as _),
+            Self::Direct(data) => data.get_block(pos.pack() as _),
         }
     }
 
     #[inline]
     pub fn set_block(&mut self, pos: SectionBlockPos, id: BlockStateId) {
+        let pos = pos.pack() as usize;
+
         match self {
             Self::Uniform(data) => {
                 if id != data.get_block() {
                     let mut new_data = PalettedSection::from(data);
-                    new_data.set_block(pos.into(), id);
+                    new_data.set_block(pos, id);
                     *self = Self::Paletted(new_data);
                 }
             }
             Self::Paletted(data) => {
-                let pos: usize = pos.into();
-
                 if let None = data.set_block(pos, id) {
                     let mut new_data = DirectSection::from(data);
                     new_data.set_block(pos, id);
                     *self = Self::Direct(new_data);
                 }
             }
-            Self::Direct(data) => data.set_block(pos.into(), id),
+            Self::Direct(data) => data.set_block(pos, id),
         }
     }
 
