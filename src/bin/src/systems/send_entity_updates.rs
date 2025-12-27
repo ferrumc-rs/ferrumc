@@ -10,7 +10,7 @@ use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::entity_position_sync::TeleportEntityPacket;
 use ferrumc_net::packets::outgoing::update_entity_position_and_rotation::UpdateEntityPositionAndRotationPacket;
 use ferrumc_net_codec::net_types::angle::NetAngle;
-use tracing::{debug, warn};
+use tracing::warn;
 
 pub fn handle(
     mut query: Query<(
