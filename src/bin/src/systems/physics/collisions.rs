@@ -12,7 +12,6 @@ use ferrumc_messages::entity_update::SendEntityUpdate;
 use ferrumc_state::{GlobalState, GlobalStateResource};
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::pos::{ChunkBlockPos, ChunkPos};
-use tracing::debug;
 
 pub fn handle(
     query: Query<
@@ -79,10 +78,6 @@ pub fn handle(
                     dist_a.partial_cmp(&dist_b).unwrap()
                 });
                 let first_hit = hit_blocks.first().expect("At least one hit block expected");
-                debug!(
-                    "Entity collided at block position: {:?} going {}",
-                    &hit_blocks, vel.vec
-                );
 
                 let block_aabb = Aabb3d {
                     min: first_hit.as_vec3a(),

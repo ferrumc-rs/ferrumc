@@ -30,7 +30,6 @@ pub fn handle(
     }
     entities_to_update.dedup();
     for entity in entities_to_update {
-        debug!("Sending entity update for entity {:?}", entity);
         if let Ok((pos, vel, rot, mut last_synced, id, grounded)) = query.get_mut(entity) {
             if last_synced.0.distance(pos.coords) > 8.0 {
                 let packet = TeleportEntityPacket {

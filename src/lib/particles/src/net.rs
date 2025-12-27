@@ -13,10 +13,6 @@ impl NetEncode for ParticleType {
             Block { blockstate } | BlockMarker { blockstate } | FallingDust { blockstate } => {
                 blockstate.to_varint().encode(writer, opts)
             }
-            DragonBreath { power } => {
-                writer.write_all(&power.to_le_bytes())?;
-                Ok(())
-            }
             Dust { color, scale } => {
                 color.to_i32().encode(writer, opts)?;
                 writer.write_all(&scale.to_le_bytes())?;
@@ -28,21 +24,10 @@ impl NetEncode for ParticleType {
                 writer.write_all(&scale.to_le_bytes())?;
                 Ok(())
             }
-            Effect { color, power } => {
-                color.to_i32().encode(writer, opts)?;
-                writer.write_all(&power.to_le_bytes())?;
-                Ok(())
-            }
             EntityEffect { color } => color.to_i32().encode(writer, opts),
             TintedLeaves { color } => color.to_i32().encode(writer, opts),
             SculkCharge { roll } => {
                 writer.write_all(&roll.to_le_bytes())?;
-                Ok(())
-            }
-            Flash { color } => color.to_i32().encode(writer, opts),
-            InstantEffect { color, power } => {
-                color.to_i32().encode(writer, opts)?;
-                writer.write_all(&power.to_le_bytes())?;
                 Ok(())
             }
             Item { item } => item.encode(writer, opts),
