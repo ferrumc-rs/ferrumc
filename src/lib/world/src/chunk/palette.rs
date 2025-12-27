@@ -93,6 +93,14 @@ impl BlockPalette {
         }
     }
 
+    pub fn add_block_with_count(&mut self, id: BlockStateId, count: NonZeroU16) -> (PaletteIndex, Option<u8>) {
+        let res = self.add_block(id);
+
+        self.palette[res.0 as usize] = Some((id, count));
+
+        res
+    }
+
     pub fn remove_block(&mut self, idx: PaletteIndex) {
         if idx == 0 { return; } // Air is always ignored
 

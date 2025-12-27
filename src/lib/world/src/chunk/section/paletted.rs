@@ -1,3 +1,4 @@
+use std::num::NonZeroU16;
 use deepsize::DeepSizeOf;
 use crate::chunk::BlockStateId;
 use crate::chunk::palette::{BlockPalette, PaletteIndex};
@@ -108,7 +109,7 @@ impl From<&mut UniformSection> for PalettedSection {
     fn from(s: &mut UniformSection) -> Self {
         if s.get_block() != 0 {
             let mut palette = BlockPalette::new();
-            let _ = palette.add_block(s.get_block());
+            let _ = palette.add_block_with_count(s.get_block(), NonZeroU16::new(CHUNK_SECTION_LENGTH as _).expect("CHUNK_SECTION_LENGTH should not be 0"));
 
             Self { palette, block_data: vec![u64::MAX; (CHUNK_SECTION_LENGTH / 8) / size_of::<u64>()].into_boxed_slice(), bit_width: 1 }
         } else {
