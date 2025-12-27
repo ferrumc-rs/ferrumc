@@ -4,6 +4,7 @@ pub mod gamemode;
 pub mod nested;
 pub mod spawn;
 pub mod tps;
+pub mod clear;
 
 /// Static library initialisation shenanigans.
 pub fn init() {}
