@@ -71,10 +71,10 @@ pub fn handle(
             // If a collision is detected, stop the entity's movement
             if collided {
                 vel.vec = Vec3A::ZERO;
-                // Find the closest hit block to the entity's next position
+                // Find the closest hit block to the entity's position
                 hit_blocks.sort_by(|a, b| {
-                    let dist_a = (a.as_vec3a() - next_pos).length_squared();
-                    let dist_b = (b.as_vec3a() - next_pos).length_squared();
+                    let dist_a = (a.as_dvec3() - pos.coords).length_squared();
+                    let dist_b = (b.as_dvec3() - pos.coords).length_squared();
                     dist_a.partial_cmp(&dist_b).unwrap()
                 });
                 let first_hit = hit_blocks.first().expect("At least one hit block expected");
