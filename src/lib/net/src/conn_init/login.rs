@@ -394,7 +394,7 @@ async fn sync_player_position(
     // Get spawn position from cache or use defaults
     let (spawn_pos, spawn_rotation) =
         if let Some(data) = state.player_cache.get(&player_identity.uuid) {
-            (data.position.clone(), data.rotation)
+            (data.position, data.rotation)
         } else {
             (
                 Position::new(

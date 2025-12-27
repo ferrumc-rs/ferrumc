@@ -9,6 +9,9 @@ use ferrumc_world::block_state_id::BlockStateId;
 
 #[discriminant(i32)]
 #[derive(Clone)]
+/// Enum representing different types of particles in the game.
+///
+/// To send to clients, use the `SendParticle` message from `ferrumc_messages::particle`.
 pub enum ParticleType {
     AngryVillager,
     Block {

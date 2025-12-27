@@ -18,11 +18,13 @@ pub fn tick_pig(
             if distance_sq > 16.0 * 256.0 {
                 return;
             }
+            // Spawn end rod particles from the pig to the player
             let steps = ferrumc_utils::maths::step::step_between(
                 pos.coords.as_vec3a(),
                 player_pos.coords.as_vec3a(),
                 0.5,
             );
+            // Limit to 32 particles to avoid spamming (16 blocks with a 0.5 step)
             for step_pos in steps.iter().take(32) {
                 let particle_message = SendParticle {
                     particle_type: ParticleType::EndRod,
