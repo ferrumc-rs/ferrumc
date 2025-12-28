@@ -53,6 +53,15 @@ fn experience_query_command(
     sender.send_message(msg, false);
 }
 
+#[command("xp add")]
+fn xp_add_command(
+    #[sender] sender: Sender,
+    #[arg] amount: Integer,
+    gained_xp_events: MessageWriter<PlayerGainedXP>,
+) {
+    experience_add_command(sender, amount, gained_xp_events);
+}
+
 #[command("xp query")]
 fn xp_query_command(
     #[sender] sender: Sender,
@@ -60,3 +69,4 @@ fn xp_query_command(
 ) {
     experience_query_command(sender, xp_players);
 }
+
