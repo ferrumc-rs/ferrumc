@@ -2,10 +2,9 @@ use bevy_ecs::prelude::*;
 use ferrumc_commands::arg::primitive::int::Integer;
 use ferrumc_commands::Sender;
 use ferrumc_components::player::experience::Experience;
-use ferrumc_components::player::gamemode::GameMode;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_macros::command;
-use ferrumc_messages::{PlayerGainedXP, PlayerGameModeChanged};
+use ferrumc_messages::PlayerGainedXP;
 use ferrumc_text::TextComponent;
 
 /// Adds experience points to the sender.
