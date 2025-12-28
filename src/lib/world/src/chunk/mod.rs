@@ -1,9 +1,10 @@
 pub mod section;
 mod palette;
 pub mod light;
-mod heightmap;
+pub mod heightmap;
 
 use deepsize::DeepSizeOf;
+use crate::chunk::heightmap::Heightmaps;
 use crate::chunk::section::ChunkSection;
 use crate::pos::ChunkBlockPos;
 
@@ -13,6 +14,8 @@ pub type BlockStateId = u16;
 pub struct Chunk {
     pub sections: [ChunkSection; 24],
     min_y: i16,
+
+    pub heightmaps: Heightmaps,
 }
 
 impl Chunk {
@@ -20,6 +23,7 @@ impl Chunk {
         Self {
             sections: core::array::from_fn(|_| ChunkSection::new_uniform(0)),
             min_y: -64,
+            heightmaps: Heightmaps::new(),
         }
     }
 
@@ -27,6 +31,7 @@ impl Chunk {
         Self {
             sections,
             min_y: -64,
+            heightmaps: Heightmaps::new(),
         }
     }
 
