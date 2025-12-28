@@ -14,6 +14,7 @@ use super::collisions::is_solid_block;
 /// System that ungrounds entities when blocks are broken beneath them.
 /// This runs only when BlockBrokenEvent messages are received, avoiding
 /// the performance cost of checking every entity every tick.
+/// The main purpose is to re-enable gravity for entities that lose their ground support.
 pub fn handle(
     mut events: MessageReader<BlockBrokenEvent>,
     mut entities: Query<(&Position, &PhysicalProperties, &mut OnGround), With<HasCollisions>>,

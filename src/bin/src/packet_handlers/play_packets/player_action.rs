@@ -15,16 +15,17 @@ use ferrumc_state::GlobalStateResource;
 use ferrumc_world::{block_state_id::BlockStateId, pos::BlockPos};
 use tracing::{error, trace, warn};
 
-#[allow(clippy::too_many_arguments)]
 pub fn handle(
     receiver: Res<PlayerActionReceiver>,
     state: Res<GlobalStateResource>,
     broadcast_query: Query<(Entity, &StreamWriter)>,
     player_query: Query<&PlayerAbilities>,
-    mut start_dig_events: MessageWriter<PlayerStartedDigging>,
-    mut cancel_dig_events: MessageWriter<PlayerCancelledDigging>,
-    mut finish_dig_events: MessageWriter<PlayerFinishedDigging>,
-    mut block_break_events: MessageWriter<BlockBrokenEvent>,
+    (mut start_dig_events, mut cancel_dig_events, mut finish_dig_events, mut block_break_events): (
+        MessageWriter<PlayerStartedDigging>,
+        MessageWriter<PlayerCancelledDigging>,
+        MessageWriter<PlayerFinishedDigging>,
+        MessageWriter<BlockBrokenEvent>,
+    ),
 ) {
     // https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol?oldid=2773393#Player_Action
     for (event, trigger_eid) in receiver.0.try_iter() {
