@@ -8,7 +8,7 @@ use ferrumc_macros::command;
 use ferrumc_messages::{PlayerGainedXP, PlayerGameModeChanged};
 use ferrumc_text::TextComponent;
 
-/// Sets the sender's gamemode.
+/// Adds experience points to the sender.
 #[command("experience add")]
 fn experience_add_command(
     #[sender] sender: Sender,
@@ -31,6 +31,7 @@ fn experience_add_command(
     });
 }
 
+/// Returns information about the experience points & levels of the sender.
 #[command("experience query")]
 fn experience_query_command(
     #[sender] sender: Sender,
