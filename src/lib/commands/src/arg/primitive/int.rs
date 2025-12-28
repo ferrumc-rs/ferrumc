@@ -87,6 +87,6 @@ impl<const MIN: i32, const MAX: i32> CommandArgument for Integer<MIN, MAX> {
     }
 
     fn primitive() -> PrimitiveArgument {
-        PrimitiveArgument::int(Some(MIN), Some(MIN))
+        PrimitiveArgument::int(Some(MIN), Some(MAX))
     }
 }
