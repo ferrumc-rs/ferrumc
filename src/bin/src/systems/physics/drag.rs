@@ -4,7 +4,6 @@ use ferrumc_core::transform::velocity::Velocity;
 use ferrumc_entities::markers::HasWaterDrag;
 use ferrumc_macros::match_block;
 use ferrumc_state::GlobalStateResource;
-use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::pos::{ChunkBlockPos, ChunkPos};
 
 pub fn handle(

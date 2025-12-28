@@ -337,7 +337,7 @@ fn block_with_props(name: LitStr, opts: Pairs) -> Result<TokenStream> {
         ));
     }
     let block_ids = block_states.iter().map(|x| *x as u32);
-    Ok(quote! {BlockStateId(#(#block_ids)|*)}.into())
+    Ok(quote! {BlockStateId::new(#(#block_ids)|*)}.into())
 }
 
 fn block_with_any_props(name: LitStr) -> Result<TokenStream> {
@@ -348,7 +348,7 @@ fn block_with_any_props(name: LitStr) -> Result<TokenStream> {
         .ok_or_else(|| Error::new_spanned(&name, format!("the block `{name_value}` is not found in blockstates.json (BLOCK_STATES is not populated)")))?
         .iter()
         .map(|&x| x as u32);
-    Ok(quote! {BlockStateId(#(#block_ids)|*)}.into())
+    Ok(quote! {BlockStateId::new(#(#block_ids)|*)}.into())
 }
 fn static_block(name: LitStr) -> Result<TokenStream> {
     let name_value = parse_name(&name);
@@ -389,7 +389,7 @@ fn static_block(name: LitStr) -> Result<TokenStream> {
     }
 
     let id = block_states[0] as u32;
-    Ok(quote! { BlockStateId(#id) }.into())
+    Ok(quote! { BlockStateId::new(#id) }.into())
 }
 
 fn parse_name(name: &LitStr) -> String {

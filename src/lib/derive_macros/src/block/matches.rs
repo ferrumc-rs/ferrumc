@@ -41,8 +41,8 @@ pub fn matches_block(input: TokenStream) -> TokenStream {
     let states = states.unwrap().iter().map(|&x| x as u32);
 
     let matched = quote! {
-        match #block_id_var {
-            BlockStateId(#(#states)|*) => true,
+        match #block_id_var.raw() {
+            #(#states)|* => true,
             _ => false
         }
     };

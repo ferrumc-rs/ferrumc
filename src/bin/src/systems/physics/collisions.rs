@@ -10,7 +10,6 @@ use ferrumc_entities::PhysicalProperties;
 use ferrumc_macros::match_block;
 use ferrumc_messages::entity_update::SendEntityUpdate;
 use ferrumc_state::{GlobalState, GlobalStateResource};
-use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::pos::{ChunkBlockPos, ChunkPos};
 
 pub fn handle(
