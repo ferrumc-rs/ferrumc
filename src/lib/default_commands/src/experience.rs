@@ -49,6 +49,6 @@ fn experience_query_command(
     let levels = xp.level;
     let progress = xp.progress * 100.0;
 
-    let msg = TextComponent::from(format!("You have {levels} experience levels and are {progress}% to the next level."));
+    let msg = TextComponent::from(format!("You have {levels} experience levels and are {progress:.0}% to the next level."));
     sender.send_message(msg, false);
 }
