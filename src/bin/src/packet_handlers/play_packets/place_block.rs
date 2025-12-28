@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use bevy_ecs::prelude::{Entity, Query, Res};
 use ferrumc_core::collisions::bounds::CollisionBounds;
 use ferrumc_core::transform::position::Position;
@@ -72,7 +70,7 @@ pub fn handle(
                         item_id.0, mapped_block_state_id
                     );
                     let pos: BlockPos = event.position.into();
-                    let mut chunk = match state.0.world.load_chunk_owned(pos.chunk(), "overworld") {
+                    let mut chunk = match state.0.world.load_chunk_mut(pos.chunk(), "overworld") {
                         Ok(chunk) => chunk,
                         Err(e) => {
                             debug!("Failed to load chunk: {:?}", e);
@@ -153,17 +151,6 @@ pub fn handle(
                     if let Err(err) = conn.send_packet_ref(&ack_packet) {
                         error!("Failed to send block change ack packet: {:?}", err);
                         continue 'ev_loop;
-                    }
-
-                    if let Err(err) =
-                        state
-                            .0
-                            .world
-                            .save_chunk(pos.chunk(), "overworld", Arc::from(chunk))
-                    {
-                        error!("Failed to save chunk after block placement: {:?}", err);
-                    } else {
-                        trace!("Block placed at {}", offset_pos);
                     }
                 }
             }

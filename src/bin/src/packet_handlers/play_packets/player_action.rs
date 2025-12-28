@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::errors::BinaryError;
 use bevy_ecs::prelude::{Entity, MessageWriter, Query, Res};
 use ferrumc_components::player::abilities::PlayerAbilities;
@@ -48,7 +46,8 @@ pub fn handle(
                         .0
                         .clone()
                         .world
-                        .load_chunk_owned(pos.chunk(), "overworld")
+                        .load_chunk(pos.chunk(), "overworld")
+                        .map(|c| c.clone())
                     {
                         Ok(chunk) => chunk,
                         Err(e) => {
@@ -63,12 +62,6 @@ pub fn handle(
                     };
                     chunk
                         .set_block(pos.chunk_block_pos(), BlockStateId::default())
-                        .map_err(BinaryError::World)?;
-
-                    state
-                        .0
-                        .world
-                        .save_chunk(pos.chunk(), "overworld", Arc::new(chunk))
                         .map_err(BinaryError::World)?;
 
                     // Send block broken event for un-grounding system

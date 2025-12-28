@@ -30,6 +30,8 @@ ahash = { workspace = true }
 yazi = { workspace = true }
 ferrumc-threadpool = { workspace = true }
 bevy_math = { workspace = true }
+dashmap = { workspace = true }
+rand = { workspace = true }
 
 
 [dev-dependencies]

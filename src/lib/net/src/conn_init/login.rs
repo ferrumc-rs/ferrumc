@@ -469,12 +469,11 @@ fn send_initial_chunks(
             batch.execute({
                 let state = state.clone();
                 move || -> Result<Vec<u8>, NetError> {
-                    let chunk = state.world.load_chunk(ChunkPos::new(x,z), "overworld").unwrap_or(
+                    let chunk = state.world.load_chunk(ChunkPos::new(x,z), "overworld").map(|c|{c.clone()}).unwrap_or(
                         state
                             .terrain_generator
                             .generate_chunk(ChunkPos::new(x, z))
-                            .expect("Could not generate chunk")
-                            .into(),
+                            .expect("Could not generate chunk"),
                     );
                     let chunk_data =
                         crate::packets::outgoing::chunk_and_light_data::ChunkAndLightData::from_chunk(

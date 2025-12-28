@@ -1,6 +1,5 @@
 use bevy_ecs::prelude::*;
 use ferrumc_world::pos::BlockPos;
-use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use crate::BinaryError;
@@ -279,30 +278,32 @@ fn break_block(
     block_break_writer: &mut MessageWriter<ferrumc_messages::BlockBrokenEvent>,
 ) -> Result<(), BinaryError> {
     let pos: BlockPos = position.clone().into();
-    let mut chunk = match state
-        .0
-        .clone()
-        .world
-        .load_chunk_owned(pos.chunk(), "overworld")
-    {
+    let mut chunk = match state.0.world.load_chunk_mut(pos.chunk(), "overworld") {
         Ok(chunk) => chunk,
         Err(e) => {
             trace!("Chunk not found, generating new chunk: {:?}", e);
             state
                 .0
-                .clone()
-                .terrain_generator
-                .generate_chunk(pos.chunk())
-                .map_err(BinaryError::WorldGen)?
+                .world
+                .insert_chunk(
+                    pos.chunk(),
+                    "overworld",
+                    state
+                        .0
+                        .terrain_generator
+                        .generate_chunk(pos.chunk())
+                        .expect("Could not generate chunk"),
+                )
+                .expect("Failed to save generated chunk");
+            state
+                .0
+                .world
+                .load_chunk_mut(pos.chunk(), "overworld")
+                .expect("Failed to load newly generated chunk")
         }
     };
     chunk
         .set_block(pos.chunk_block_pos(), BlockStateId::default())
-        .map_err(BinaryError::World)?;
-    state
-        .0
-        .world
-        .save_chunk(pos.chunk(), "overworld", Arc::new(chunk))
         .map_err(BinaryError::World)?;
 
     // Send block broken event for un-grounding system

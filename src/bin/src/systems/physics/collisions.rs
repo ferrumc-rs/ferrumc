@@ -117,16 +117,27 @@ pub fn handle(
 }
 
 pub fn is_solid_block(state: &GlobalState, pos: IVec3) -> bool {
+    let chunk_coordinates = ChunkPos::from(pos.as_dvec3());
     state
         .world
-        .load_chunk(ChunkPos::from(pos.as_dvec3()), "overworld")
-        .unwrap_or(
+        .load_chunk(chunk_coordinates, "overworld")
+        .unwrap_or({
             state
-                .terrain_generator
-                .generate_chunk(ChunkPos::from(pos.as_dvec3()))
-                .expect("Failed to generate chunk")
-                .into(),
-        )
+                .world
+                .insert_chunk(
+                    chunk_coordinates,
+                    "overworld",
+                    state
+                        .terrain_generator
+                        .generate_chunk(chunk_coordinates)
+                        .expect("Could not generate chunk"),
+                )
+                .expect("Failed to save generated chunk");
+            state
+                .world
+                .load_chunk(chunk_coordinates, "overworld")
+                .expect("Failed to load newly generated chunk")
+        })
         .get_block(ChunkBlockPos::from(pos))
         .map(|block_state| {
             !match_block!("air", block_state)
