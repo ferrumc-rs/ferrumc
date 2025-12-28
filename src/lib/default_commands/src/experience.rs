@@ -10,7 +10,7 @@ use ferrumc_text::TextComponent;
 
 /// Sets the sender's gamemode.
 #[command("experience add")]
-fn experience_command(
+fn experience_add_command(
     #[sender] sender: Sender,
     #[arg] amount: Integer,
     mut gained_xp_events: MessageWriter<PlayerGainedXP>,
