@@ -24,11 +24,16 @@ fn experience_add_command(
         Sender::Player(entity) => entity,
     };
 
+    let amount = *amount as u32;
+
     // 2. Fire the event
     gained_xp_events.write(PlayerGainedXP {
         player: player_entity,
-        amount: *amount as u32,
+        amount,
     });
+
+    let msg = TextComponent::from(format!("Added {amount} experience points to player."));
+    sender.send_message(msg, false);
 }
 
 /// Returns information about the experience points & levels of the sender.
