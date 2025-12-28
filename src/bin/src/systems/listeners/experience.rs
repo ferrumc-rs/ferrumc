@@ -12,9 +12,16 @@ pub fn player_gained_xp_handler(
 ) {
     for event in events.read() {
         let Ok(mut xp) = xp_players.get_mut(event.player) else {continue};
+        let old_level = xp.level;
         xp.total_xp += event.amount;
         let level = (xp.total_xp as f32 + 9.0).sqrt() - 3.0;
         xp.level = level.floor() as u32;
+        if xp.level != old_level {
+            player_leveled_up.write(PlayerLeveledUp {
+                player: event.player,
+                new_level: xp.level,
+            });
+        }
         xp.progress = level % 1.0;
     }
 }
