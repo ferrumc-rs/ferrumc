@@ -1,9 +1,35 @@
 use bevy_ecs::prelude::*;
+use ferrumc_commands::arg::primitive::int::Integer;
 use ferrumc_commands::Sender;
 use ferrumc_components::player::experience::Experience;
+use ferrumc_components::player::gamemode::GameMode;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_macros::command;
+use ferrumc_messages::{PlayerGainedXP, PlayerGameModeChanged};
 use ferrumc_text::TextComponent;
+
+/// Sets the sender's gamemode.
+#[command("experience add")]
+fn experience_command(
+    #[sender] sender: Sender,
+    #[arg] amount: Integer,
+    mut gained_xp_events: MessageWriter<PlayerGainedXP>,
+) {
+    // 1. Ensure the sender is a player
+    let player_entity = match sender {
+        Sender::Server => {
+            sender.send_message("Error: The server can't change its XP level.".into(), false);
+            return;
+        },
+        Sender::Player(entity) => entity,
+    };
+
+    // 2. Fire the event
+    gained_xp_events.write(PlayerGainedXP {
+        player: player_entity,
+        amount: *amount as u32,
+    });
+}
 
 #[command("experience query")]
 fn experience_query_command(
