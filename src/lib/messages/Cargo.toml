@@ -6,9 +6,11 @@ description = "Defines all Bevy ECS messages for FerrumC."
 
 [dependencies]
 bevy_ecs = { workspace = true }
+bevy_math = { workspace = true }
 
 ferrumc-components = { workspace = true }
 ferrumc-core = { workspace = true }
 ferrumc-net-codec = { workspace = true }
-ferrumc-inventories = {workspace = true }
+ferrumc-inventories = { workspace = true }
 ferrumc-entities = { workspace = true }
+ferrumc-particles = { workspace = true }

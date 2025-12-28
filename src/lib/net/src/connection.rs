@@ -144,9 +144,8 @@ impl StreamWriter {
         net_encode_opts: &NetEncodeOpts,
     ) -> Result<(), NetError> {
         if !self.running.load(Ordering::Relaxed) {
-            #[cfg(debug_assertions)]
             warn!("Attempted to send packet on closed connection");
-            return Err(NetError::ConnectionDropped);
+            return Ok(());
         }
 
         let raw_bytes = compress_packet(

@@ -10,7 +10,7 @@ use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::entity_position_sync::TeleportEntityPacket;
 use ferrumc_net::packets::outgoing::update_entity_position_and_rotation::UpdateEntityPositionAndRotationPacket;
 use ferrumc_net_codec::net_types::angle::NetAngle;
-use tracing::{debug, warn};
+use tracing::warn;
 
 pub fn handle(
     mut query: Query<(
@@ -30,7 +30,6 @@ pub fn handle(
     }
     entities_to_update.dedup();
     for entity in entities_to_update {
-        debug!("Sending entity update for entity {:?}", entity);
         if let Ok((pos, vel, rot, mut last_synced, id, grounded)) = query.get_mut(entity) {
             if last_synced.0.distance(pos.coords) > 8.0 {
                 let packet = TeleportEntityPacket {
