@@ -52,3 +52,11 @@ fn experience_query_command(
     let msg = TextComponent::from(format!("You have {levels} experience levels and are {progress:.0}% to the next level."));
     sender.send_message(msg, false);
 }
+
+#[command("xp query")]
+fn xp_query_command(
+    #[sender] sender: Sender,
+    xp_players: Query<&Experience, With<PlayerIdentity>>,
+) {
+    experience_query_command(sender, xp_players);
+}
