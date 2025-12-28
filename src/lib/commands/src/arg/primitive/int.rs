@@ -77,7 +77,7 @@ impl<const MIN: i32, const MAX: i32> CommandArgument for Integer<MIN, MAX> {
             )));
         }
 
-        if int > MIN {
+        if int > MAX {
             return Err(parser_error(&format!(
                 "integer too large: {int}, expected at most {MIN}"
             )));
