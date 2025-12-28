@@ -244,3 +244,6 @@ criterion = { version = "0.7.0", features = ["html_reports"] }
 
 phf = { version = "0.13", features = ["macros"] }
 phf_codegen = { version = "0.13" }
+
+phf_codegen = { version = "0.13" }
+phf = { version = "0.13", features = ["macros"] }

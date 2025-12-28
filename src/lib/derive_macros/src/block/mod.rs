@@ -184,9 +184,8 @@ impl quote::ToTokens for Value {
             Value::Any(underscore) => underscore.to_tokens(tokens),
             Value::Ident(ident) => ident.to_tokens(tokens),
         }
-        let first = filtered_names.first().unwrap().0;
-        return quote! { BlockStateId::new(#first) }.into();
-    };
+    }
+}
 
 pub fn block(input: TokenStream) -> TokenStream {
     let out = match syn::parse_macro_input!(input as Input) {
@@ -450,9 +449,10 @@ fn combine(a: &[u16], b: &[u16]) -> Vec<u16> {
     v
 }
 
-    let res = matched[0];
-    quote! { BlockStateId::new(#res) }.into()
-}
-
-    quote! { BlockStateId(#id) }.into()
+#[test]
+fn simple_combine() {
+    let a = [2, 4, 6, 8];
+    let b = [1, 3, 5, 7];
+    let c = combine(&a, &b);
+    assert_eq!(vec![1, 2, 3, 4, 5, 6, 7, 8], c);
 }
