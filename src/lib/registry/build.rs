@@ -76,7 +76,7 @@ fn main() {
     let mut item_map = Map::new();
     for (name, entry) in &registry.item.entries {
         // Use & to borrow
-        item_map.entry(name, &entry.protocol_id.to_string());
+        item_map.entry(name, entry.protocol_id.to_string());
     }
     writeln!(file, "{};\n", item_map.build()).unwrap();
 
@@ -89,7 +89,7 @@ fn main() {
     let mut item_id_map = Map::new();
     for (name, entry) in &registry.item.entries {
         // Here, the key is the i32 protocol_id
-        item_id_map.entry(entry.protocol_id, &format!("r#\"{}\"#", name));
+        item_id_map.entry(entry.protocol_id, format!("r#\"{}\"#", name));
     }
     writeln!(file, "{};\n", item_id_map.build()).unwrap();
 
@@ -102,7 +102,7 @@ fn main() {
     let mut bs_map = Map::new();
     for (id, data) in blockstates {
         // Use `entry` to build a valid raw string literal for the value
-        bs_map.entry(id, &format!("r#\"{}\"#", data.name));
+        bs_map.entry(id, format!("r#\"{}\"#", data.name));
     }
     writeln!(file, "{};\n", bs_map.build()).unwrap();
 
@@ -114,7 +114,7 @@ fn main() {
     .unwrap();
     let mut i2b_map = Map::new();
     for (item_id_str, block_state_id_str) in item_to_block {
-        i2b_map.entry(item_id_str, &format!("r#\"{}\"#", block_state_id_str));
+        i2b_map.entry(item_id_str, format!("r#\"{}\"#", block_state_id_str));
     }
     writeln!(file, "{};\n", i2b_map.build()).unwrap();
 
@@ -129,7 +129,7 @@ fn main() {
         // (PHF maps don't like f32). We'll convert it back at runtime.
         let hardness_f32 = entry.hardness.unwrap_or(0.0);
         let hardness_u32 = hardness_f32.to_bits();
-        hardness_map.entry(name, &hardness_u32.to_string());
+        hardness_map.entry(name, hardness_u32.to_string());
     }
     writeln!(file, "{};\n", hardness_map.build()).unwrap();
 }

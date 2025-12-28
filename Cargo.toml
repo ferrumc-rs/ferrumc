@@ -242,5 +242,5 @@ tempfile = "3.23.0"
 # Benchmarking
 criterion = { version = "0.7.0", features = ["html_reports"] }
 
-phf = { version = "0.11", features = ["macros"] }
-phf_codegen = { version = "0.11" }
+phf = { version = "0.13", features = ["macros"] }
+phf_codegen = { version = "0.13" }

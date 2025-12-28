@@ -8,7 +8,6 @@ use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::entity_metadata::{EntityMetadata, EntityMetadataPacket};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalStateResource;
-use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::pos::BlockPos;
 use tracing::error;
 

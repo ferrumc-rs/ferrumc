@@ -16,3 +16,6 @@ maplit = { workspace = true }
 
 [lints]
 workspace = true
+
+[build-dependencies]
+simd-json = { workspace = true }
