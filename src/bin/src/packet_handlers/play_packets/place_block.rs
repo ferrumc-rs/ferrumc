@@ -70,13 +70,12 @@ pub fn handle(
                         item_id.0, mapped_block_state_id
                     );
                     let pos: BlockPos = event.position.into();
-                    let mut chunk = match state.0.world.load_chunk_mut(pos.chunk(), "overworld") {
-                        Ok(chunk) => chunk,
-                        Err(e) => {
-                            debug!("Failed to load chunk: {:?}", e);
-                            continue 'ev_loop;
-                        }
-                    };
+                    let mut chunk = ferrumc_utils::world::load_or_generate_mut(
+                        &state.0,
+                        pos.chunk(),
+                        "overworld",
+                    )
+                    .expect("Failed to load or generate chunk");
                     let Ok(block_clicked) = chunk.get_block(pos.chunk_block_pos()) else {
                         debug!("Failed to get block at position: {}", pos);
                         continue 'ev_loop;
