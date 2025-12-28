@@ -42,24 +42,12 @@ pub fn handle(
             // Only instabreak (status 0) is relevant in creative.
             if event.status.0 == 0 {
                 let res: Result<(), BinaryError> = try {
-                    let mut chunk = match state
-                        .0
-                        .clone()
-                        .world
-                        .load_chunk(pos.chunk(), "overworld")
-                        .map(|c| c.clone())
-                    {
-                        Ok(chunk) => chunk,
-                        Err(e) => {
-                            trace!("Chunk not found, generating new chunk: {:?}", e);
-                            state
-                                .0
-                                .clone()
-                                .terrain_generator
-                                .generate_chunk(pos.chunk())
-                                .map_err(BinaryError::WorldGen)?
-                        }
-                    };
+                    let mut chunk = ferrumc_utils::world::load_or_generate_mut(
+                        &state.0,
+                        pos.chunk(),
+                        "overworld",
+                    )
+                    .expect("Failed to load or generate chunk");
                     chunk
                         .set_block(pos.chunk_block_pos(), BlockStateId::default())
                         .map_err(BinaryError::World)?;

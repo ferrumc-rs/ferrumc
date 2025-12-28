@@ -278,30 +278,8 @@ fn break_block(
     block_break_writer: &mut MessageWriter<ferrumc_messages::BlockBrokenEvent>,
 ) -> Result<(), BinaryError> {
     let pos: BlockPos = position.clone().into();
-    let mut chunk = match state.0.world.load_chunk_mut(pos.chunk(), "overworld") {
-        Ok(chunk) => chunk,
-        Err(e) => {
-            trace!("Chunk not found, generating new chunk: {:?}", e);
-            state
-                .0
-                .world
-                .insert_chunk(
-                    pos.chunk(),
-                    "overworld",
-                    state
-                        .0
-                        .terrain_generator
-                        .generate_chunk(pos.chunk())
-                        .expect("Could not generate chunk"),
-                )
-                .expect("Failed to save generated chunk");
-            state
-                .0
-                .world
-                .load_chunk_mut(pos.chunk(), "overworld")
-                .expect("Failed to load newly generated chunk")
-        }
-    };
+    let mut chunk = ferrumc_utils::world::load_or_generate_mut(&state.0, pos.chunk(), "overworld")
+        .expect("Failed to load or generate chunk");
     chunk
         .set_block(pos.chunk_block_pos(), BlockStateId::default())
         .map_err(BinaryError::World)?;

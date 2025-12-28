@@ -19,6 +19,7 @@ ferrumc-core = { workspace = true }
 ferrumc-text = { workspace = true }
 ferrumc-world = { workspace = true }
 ferrumc-particles = { workspace = true }
+ferrumc-utils = { workspace = true }
 
 tracing = { workspace = true }
 tokio = { workspace = true }
