@@ -16,7 +16,7 @@ pub fn tick_pig(
             let distance_sq = player_pos.as_vec3a().distance_squared(pos.as_vec3a());
             // Only spawn particles if a player is within 256 blocks
             if distance_sq > 16.0 * 256.0 {
-                return;
+                continue;
             }
             // Spawn end rod particles from the pig to the player
             let steps = ferrumc_utils::maths::step::step_between(

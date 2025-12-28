@@ -25,10 +25,11 @@ pub fn step_between(
     end: bevy_math::Vec3A,
     step: f32,
 ) -> Vec<bevy_math::Vec3A> {
-    let mut points = Vec::new();
     let direction = end - start; // Calculate the direction vector from start to end.
     let distance = direction.length(); // Calculate the total distance between start and end.
-    let direction_normalized = direction / distance; // Normalize the direction vector.
+    let step_count = (distance / step).ceil() as usize; // Determine the number of steps needed.
+    let mut points = Vec::with_capacity(step_count + 1); // Preallocate space for the points.
+    let direction_normalized = direction.normalize(); // Normalize the direction vector.
 
     let mut current_distance = 0.0;
     while current_distance < distance {

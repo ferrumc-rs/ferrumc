@@ -41,7 +41,8 @@ members = [
     "src/lib/data",
     "src/lib/entities",
     "src/lib/physics",
-    "src/lib/performance", "src/lib/particles",
+    "src/lib/performance",
+    "src/lib/particles",
 ]
 
 [workspace.package]
