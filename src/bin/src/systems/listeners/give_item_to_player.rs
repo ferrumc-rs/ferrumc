@@ -5,7 +5,6 @@ use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_inventories::inventory::Inventory;
 use ferrumc_inventories::item::ItemID;
 use ferrumc_inventories::slot::InventorySlot;
-use ferrumc_inventories::{InventoryUpdate, INVENTORY_UPDATES_QUEUE};
 use ferrumc_messages::GiveItemToPlayer;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 
@@ -37,13 +36,7 @@ pub fn give_item_to_player_handler(
             let slot_quantity_to_add = (64 - slot.count.0).min(quantity as i32);
             slot.count.0 += slot_quantity_to_add;
             quantity -= slot_quantity_to_add as u32;
-            let _ = inventory.set_item(i, slot.clone());
-
-            INVENTORY_UPDATES_QUEUE.push(InventoryUpdate {
-                slot_index: i as u8,
-                slot: slot.clone(),
-                entity: event.player,
-            });
+            let _ = inventory.set_item_with_update(i, slot.clone(), event.player);
         }
 
         // add *new* stacks of items
