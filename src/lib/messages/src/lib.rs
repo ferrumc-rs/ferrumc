@@ -31,4 +31,7 @@ pub mod particle;
 pub use entity_spawn::{EntityType, SpawnEntityCommand, SpawnEntityEvent};
 
 pub mod block_break;
+pub mod give_item_to_player;
+pub use give_item_to_player::*;
+
 pub use block_break::BlockBrokenEvent;
