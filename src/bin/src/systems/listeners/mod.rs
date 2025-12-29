@@ -1,10 +1,11 @@
+mod clear_player_inventory;
 pub mod digging_system;
 pub mod entity_spawn;
+pub mod experience;
 pub mod gamemode_change;
+pub mod give_item_to_player;
 pub mod player_join_message;
 pub mod player_leave_message;
-mod clear_player_inventory;
-mod experience;
 
 pub fn register_gameplay_listeners(schedule: &mut bevy_ecs::schedule::Schedule) {
     schedule.add_systems(player_leave_message::handle);
@@ -17,4 +18,5 @@ pub fn register_gameplay_listeners(schedule: &mut bevy_ecs::schedule::Schedule) 
     schedule.add_systems(digging_system::handle_finish_digging);
     schedule.add_systems(clear_player_inventory::handle_clear_player_inventory);
     schedule.add_systems(experience::player_gained_xp_handler);
+    schedule.add_systems(give_item_to_player::give_item_to_player_handler);
 }
