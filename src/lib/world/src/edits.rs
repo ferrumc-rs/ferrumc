@@ -375,6 +375,8 @@ impl Section {
             .map(|(_, count)| *count as u16)
             .sum();
 
+        self.dirty = true;
+
         Ok(())
     }
 
@@ -429,6 +431,7 @@ impl Section {
         } else {
             self.block_states.non_air_blocks = 4096;
         }
+        self.dirty = true;
         Ok(())
     }
 
@@ -500,6 +503,7 @@ impl Section {
                 todo!("Implement optimisation for direct palette");
             }
         };
+        self.dirty = true;
 
         Ok(())
     }

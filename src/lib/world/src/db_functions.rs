@@ -21,6 +21,8 @@ impl World {
         dimension: &str,
         chunk: Chunk,
     ) -> Result<(), WorldError> {
+        let mut chunk = chunk;
+        chunk.sections.iter_mut().for_each(|c| c.dirty = false);
         save_chunk_internal(self, pos, dimension, &chunk)?;
         // self.cache.insert((pos, dimension.to_string()), chunk);
         Ok(())
