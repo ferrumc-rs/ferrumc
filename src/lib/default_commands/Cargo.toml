@@ -13,6 +13,7 @@ ferrumc-core = { workspace = true }
 ferrumc-config = { workspace = true }
 ferrumc-net = { workspace = true }
 ferrumc-performance = { workspace = true }
+ferrumc-data = { workspace = true }
 ferrumc-entities = { workspace = true }
 lazy_static = { workspace = true }
 bimap = { workspace = true }
