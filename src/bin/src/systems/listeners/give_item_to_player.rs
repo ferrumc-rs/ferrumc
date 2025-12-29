@@ -64,22 +64,6 @@ pub fn give_item_to_player_handler(
             inventory
                 .set_item_with_update(i, slot.clone(), event.player)
                 .unwrap();
-            INVENTORY_UPDATES_QUEUE.push(InventoryUpdate {
-                slot_index: i as u8,
-                slot,
-                entity: event.player,
-            });
         }
-
-        // let mut slot = InventorySlot::empty();
-        // slot.item_id = Some(ItemID::new(event.item_id as i32));
-        // while quantity > 0 {
-        //     let slot_quantity_to_add = quantity.min(64);
-        //     slot.count = VarInt(slot_quantity_to_add as i32);
-        //     dbg!(&slot);
-        //     quantity -= slot_quantity_to_add;
-        //     let _ = inventory.add_item_with_update(slot.clone(), event.player);
-        //     // TODO: inventory full, drop item on floor if Err
-        // }
     }
 }
