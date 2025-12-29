@@ -4,10 +4,7 @@ use ferrumc_macros::command;
 use ferrumc_messages::ClearPlayerInventory;
 
 #[command("clear")]
-fn tps_command(
-    #[sender] sender: Sender,
-    mut clear_inventory: MessageWriter<ClearPlayerInventory>
-) {
+fn tps_command(#[sender] sender: Sender, mut clear_inventory: MessageWriter<ClearPlayerInventory>) {
     // 1. Ensure the sender is a player
     let player_entity = match sender {
         Sender::Server => {
@@ -19,5 +16,4 @@ fn tps_command(
     let _ = clear_inventory.write(ClearPlayerInventory {
         player: player_entity,
     });
-    dbg!();
 }
