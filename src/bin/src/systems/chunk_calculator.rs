@@ -42,5 +42,15 @@ pub fn handle(
         }
 
         // TODO: Handle unloading of distant chunks
+
+        for loaded_chunk in chunk_receiver.loaded.clone() {
+            let dx = loaded_chunk.0 - player_chunk.x();
+            let dz = loaded_chunk.1 - player_chunk.z();
+            if dx * dx + dz * dz > radius {
+                if let Some(pos) = chunk_receiver.loaded.take(&loaded_chunk) {
+                    chunk_receiver.unloading.insert(pos);
+                }
+            }
+        }
     }
 }

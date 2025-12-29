@@ -1,5 +1,6 @@
 mod chunk_calculator;
 mod chunk_sending;
+pub mod chunk_unloader;
 pub mod connection_killer;
 pub mod keep_alive_system;
 pub mod lan_pinger;

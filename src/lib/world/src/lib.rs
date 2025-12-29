@@ -105,6 +105,10 @@ impl World {
             cache,
         }
     }
+
+    pub fn get_cache(&self) -> &ChunkCache {
+        &self.cache
+    }
 }
 
 #[cfg(test)]

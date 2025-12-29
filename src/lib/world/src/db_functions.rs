@@ -22,7 +22,7 @@ impl World {
         chunk: Chunk,
     ) -> Result<(), WorldError> {
         save_chunk_internal(self, pos, dimension, &chunk)?;
-        self.cache.insert((pos, dimension.to_string()), chunk);
+        // self.cache.insert((pos, dimension.to_string()), chunk);
         Ok(())
     }
 
