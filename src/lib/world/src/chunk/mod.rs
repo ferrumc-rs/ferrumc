@@ -2,6 +2,7 @@ pub mod section;
 mod palette;
 pub mod light;
 pub mod heightmap;
+pub mod network;
 
 use deepsize::DeepSizeOf;
 use crate::chunk::heightmap::Heightmaps;
@@ -15,7 +16,7 @@ pub struct Chunk {
     pub sections: [ChunkSection; 24],
     min_y: i16,
 
-    pub heightmaps: Heightmaps,
+    heightmaps: Option<Heightmaps>,
 }
 
 impl Chunk {
@@ -23,7 +24,7 @@ impl Chunk {
         Self {
             sections: core::array::from_fn(|_| ChunkSection::new_uniform(0)),
             min_y: -64,
-            heightmaps: Heightmaps::new(),
+            heightmaps: None,
         }
     }
 
@@ -31,7 +32,7 @@ impl Chunk {
         Self {
             sections,
             min_y: -64,
-            heightmaps: Heightmaps::new(),
+            heightmaps: None,
         }
     }
 
@@ -53,7 +54,13 @@ impl Chunk {
         let section = (pos.y() + -self.min_y) / 16;
         assert!(section >= 0);
 
+        self.update_heightmaps(pos, id);
+
         self.sections[section as usize].set_block(pos.section_block_pos(), id);
+    }
+
+    pub fn update_heightmaps(&mut self, pos: ChunkBlockPos, block: BlockStateId) {
+        // TODO: this should be implemented
     }
 }
 

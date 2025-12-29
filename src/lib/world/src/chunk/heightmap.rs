@@ -5,8 +5,8 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 
 #[derive(Clone, DeepSizeOf)]
 pub struct Heightmaps {
-    world_surface: ChunkHeightmap,
-    motion_blocking: ChunkHeightmap,
+    pub world_surface: ChunkHeightmap,
+    pub motion_blocking: ChunkHeightmap,
 }
 
 #[derive(Clone, DeepSizeOf)]
@@ -47,17 +47,39 @@ impl Heightmaps {
         }
     }
 
-    pub fn as_network(&self) -> LengthPrefixedVec<NetworkHeightmap> {
+    pub fn get_network_repr(heightmaps: &Option<Heightmaps>) -> LengthPrefixedVec<NetworkHeightmap> {
+        const BITS_PER_ENTRY: usize = 9;
+        const ENTRIES_PER_LONG: usize = 64 / 9;
+        const NUMBER_OF_ENTRIES: usize = 16 * 16;
+        const NUMBER_OF_LONGS: usize = NUMBER_OF_ENTRIES + (ENTRIES_PER_LONG - 1) / ENTRIES_PER_LONG;
+
+        let mut world_surface = vec![0u64; NUMBER_OF_LONGS];
+        let mut motion_blocking = vec![0u64; NUMBER_OF_LONGS];
+
+        if let Some(heightmaps) = heightmaps.as_ref() {
+            for (i, (&world_surface_val, &motion_blocking_val)) in heightmaps.world_surface.data.iter().zip(heightmaps.motion_blocking.data.iter()).enumerate() {
+                let entry_mask = (1u64 << BITS_PER_ENTRY) - 1;
+                let long_index = i / ENTRIES_PER_LONG;
+                let bit_index = i % ENTRIES_PER_LONG * BITS_PER_ENTRY;
+
+                world_surface[long_index] &= !(entry_mask << bit_index);
+                world_surface[long_index] |= (world_surface_val as u64) << bit_index;
+
+                motion_blocking[long_index] &= !(entry_mask << bit_index);
+                motion_blocking[long_index] |= (motion_blocking_val as u64) << bit_index;
+            }
+        }
+
         let mut heightmaps = Vec::with_capacity(2);
 
         heightmaps.push(NetworkHeightmap {
             heightmap: VarInt(1),
-            data: LengthPrefixedVec::new(vec![0; 37]),
+            data: LengthPrefixedVec::new(world_surface),
         });
 
         heightmaps.push(NetworkHeightmap {
             heightmap: VarInt(4),
-            data: LengthPrefixedVec::new(vec![0; 37]),
+            data: LengthPrefixedVec::new(motion_blocking),
         });
 
         LengthPrefixedVec::new(heightmaps)
