@@ -1,8 +1,8 @@
 use std::fmt::Display;
 use std::fmt::Formatter;
 use std::fmt::Result;
-use std::ops::Add;
 use std::ops::Range;
+use std::ops::{Add, Deref};
 
 use bevy_math::IVec2;
 use bevy_math::IVec3;
@@ -253,6 +253,18 @@ impl ChunkBlockPos {
         }
     }
 
+    pub fn x(&self) -> u8 {
+        self.pos.x as _
+    }
+
+    pub fn y(&self) -> i16 {
+        self.pos.y as _
+    }
+
+    pub fn z(&self) -> u8 {
+        self.pos.z as _
+    }
+
     pub fn section_block_pos(&self) -> SectionBlockPos {
         SectionBlockPos {
             pos: self.pos.rem_euclid((16, 16, 16).into()).as_u8vec3(),
@@ -319,5 +331,13 @@ impl SectionBlockPos {
     /// So the max value is 0xfff or 4095
     pub fn pack(&self) -> u16 {
         (self.pos.y as u16) << 8 | (self.pos.z as u16) << 4 | self.pos.x as u16
+    }
+}
+
+impl Deref for SectionBlockPos {
+    type Target = U8Vec3;
+
+    fn deref(&self) -> &Self::Target {
+        &self.pos
     }
 }
