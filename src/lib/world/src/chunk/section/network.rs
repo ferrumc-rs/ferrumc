@@ -1,13 +1,11 @@
-use std::borrow::Cow;
-use ferrumc_macros::NetEncode;
-use ferrumc_net_codec::net_types::var_int::VarInt;
-use crate::chunk::section::{ChunkSection, ChunkSectionType, CHUNK_SECTION_LENGTH};
 use crate::chunk::section::biome::BiomeData;
 use crate::chunk::section::direct::DirectSection;
 use crate::chunk::section::paletted::PalettedSection;
 use crate::chunk::section::uniform::UniformSection;
-
-const BIOME_DATA: &[u64] = &[0u64; 8];
+use crate::chunk::section::{ChunkSection, ChunkSectionType, CHUNK_SECTION_LENGTH};
+use ferrumc_macros::NetEncode;
+use ferrumc_net_codec::net_types::var_int::VarInt;
+use std::borrow::Cow;
 
 #[derive(NetEncode)]
 pub struct PalettedContainer<'section> {
@@ -27,7 +25,7 @@ pub enum NetworkPalette {
     },
     Direct {
         // No values
-    }
+    },
 }
 
 #[derive(NetEncode)]
@@ -41,7 +39,9 @@ impl<'section> From<&'section UniformSection> for PalettedContainer<'section> {
     fn from(section: &'section UniformSection) -> Self {
         PalettedContainer {
             bits_per_entry: 0,
-            palette: NetworkPalette::SingleValued { value: VarInt(section.get_block() as _) },
+            palette: NetworkPalette::SingleValued {
+                value: VarInt(section.get_block() as _),
+            },
             data_array: Cow::Owned(vec![]),
         }
     }
@@ -51,14 +51,18 @@ impl<'section> From<&'section PalettedSection> for PalettedContainer<'section> {
     fn from(section: &'section PalettedSection) -> Self {
         let bits_per_entry = section.bit_width.max(4); // Minecraft supports lowest bit width of 4 for indirect palettes
         let data_array: Cow<[u64]> = if bits_per_entry != section.bit_width {
-            let mut new_buffer = vec![0u64; (CHUNK_SECTION_LENGTH / (8 / bits_per_entry as usize)) / size_of::<u64>()];
+            let mut new_buffer = vec![
+                0u64;
+                (CHUNK_SECTION_LENGTH / (8 / bits_per_entry as usize))
+                    / size_of::<u64>()
+            ];
 
             for block in 0..CHUNK_SECTION_LENGTH {
                 PalettedSection::pack_value(
                     &mut new_buffer,
                     block,
                     bits_per_entry,
-                    PalettedSection::unpack_value(&section.block_data, block, section.bit_width)
+                    PalettedSection::unpack_value(&section.block_data, block, section.bit_width),
                 );
             }
 
@@ -71,7 +75,12 @@ impl<'section> From<&'section PalettedSection> for PalettedContainer<'section> {
             bits_per_entry,
             palette: NetworkPalette::Indirect {
                 palette_length: VarInt(section.palette.len() as _),
-                palette_values: section.palette.palette_data().into_iter().map(|v| VarInt(v as _)).collect(),
+                palette_values: section
+                    .palette
+                    .palette_data()
+                    .into_iter()
+                    .map(|v| VarInt(v as _))
+                    .collect(),
             },
             data_array,
         }
@@ -79,10 +88,10 @@ impl<'section> From<&'section PalettedSection> for PalettedContainer<'section> {
 }
 
 impl<'section> From<&'section DirectSection> for PalettedContainer<'section> {
-    fn from(section: &'section DirectSection) -> Self {
+    fn from(_section: &'section DirectSection) -> Self {
         PalettedContainer {
             bits_per_entry: 16,
-            palette: NetworkPalette::Direct { },
+            palette: NetworkPalette::Direct {},
             data_array: Cow::Owned(vec![]), // TODO: fix this to use the data from the section; bytemuck::cast_slice(&section.0)
         }
     }
@@ -103,14 +112,16 @@ impl<'section> From<&'section BiomeData> for PalettedContainer<'section> {
         match value {
             BiomeData::Uniform(data) => PalettedContainer {
                 bits_per_entry: 0,
-                palette: NetworkPalette::SingleValued { value: VarInt(*data as _) },
+                palette: NetworkPalette::SingleValued {
+                    value: VarInt(*data as _),
+                },
                 data_array: Cow::Owned(vec![]),
             },
             BiomeData::Mixed(data) => PalettedContainer {
                 bits_per_entry: 8,
                 palette: NetworkPalette::Direct {},
-                data_array: Cow::Borrowed(bytemuck::cast_slice(&data)),
-            }
+                data_array: Cow::Borrowed(bytemuck::cast_slice(data)),
+            },
         }
     }
 }

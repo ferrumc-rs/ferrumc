@@ -1,10 +1,10 @@
-use std::ops::Not;
+use crate::chunk::light::LightStorage;
+use crate::chunk::Chunk;
 use ferrumc_macros::NetEncode;
 use ferrumc_net_codec::net_types::bitset::BitSet;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use crate::chunk::Chunk;
-use crate::chunk::light::LightStorage;
+use std::ops::Not;
 
 const FULL_SECTION_LIGHT: &[u8] = &[u8::MAX; 2048];
 const NUM_SECTIONS: usize = 24;
@@ -38,29 +38,25 @@ impl<'chunk> From<&'chunk Chunk> for NetworkLightData<'chunk> {
             block_light_mask.set(i, section.light.contains_block_light());
 
             if section.light.contains_sky_light() {
-                sky_light_arrays.push(
-                    LightDataArray {
-                        length: VarInt(2048),
-                        data: match &section.light.sky_light {
-                            LightStorage::Empty => unreachable!(),
-                            LightStorage::Full => &FULL_SECTION_LIGHT,
-                            LightStorage::Mixed { light_data } => &light_data,
-                        }
-                    }
-                )
+                sky_light_arrays.push(LightDataArray {
+                    length: VarInt(2048),
+                    data: match &section.light.sky_light {
+                        LightStorage::Empty => unreachable!(),
+                        LightStorage::Full => FULL_SECTION_LIGHT,
+                        LightStorage::Mixed { light_data } => light_data,
+                    },
+                })
             }
 
             if section.light.contains_block_light() {
-                block_light_arrays.push(
-                    LightDataArray {
-                        length: VarInt(2048),
-                        data: match &section.light.block_light {
-                            LightStorage::Empty => unreachable!(),
-                            LightStorage::Full => &FULL_SECTION_LIGHT,
-                            LightStorage::Mixed { light_data } => &light_data,
-                        }
-                    }
-                )
+                block_light_arrays.push(LightDataArray {
+                    length: VarInt(2048),
+                    data: match &section.light.block_light {
+                        LightStorage::Empty => unreachable!(),
+                        LightStorage::Full => FULL_SECTION_LIGHT,
+                        LightStorage::Mixed { light_data } => light_data,
+                    },
+                })
             }
         }
 

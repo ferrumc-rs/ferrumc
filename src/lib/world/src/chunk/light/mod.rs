@@ -9,7 +9,7 @@ pub(crate) enum LightStorage {
     Full,
     Mixed {
         light_data: Box<[u8]>,
-    }
+    },
 }
 
 #[derive(Clone, DeepSizeOf)]
@@ -18,14 +18,16 @@ pub struct SectionLightData {
     block_light: LightStorage,
 }
 
-impl SectionLightData {
-    pub fn new() -> Self {
+impl Default for SectionLightData {
+    fn default() -> Self {
         Self {
             sky_light: LightStorage::Full,
             block_light: LightStorage::default(),
         }
     }
+}
 
+impl SectionLightData {
     #[inline]
     pub fn contains_sky_light(&self) -> bool {
         self.sky_light.contains_light()

@@ -1,4 +1,5 @@
 pub mod block_state_id;
+pub mod chunk;
 pub mod chunk_format;
 mod db_functions;
 pub mod edit_batch;
@@ -7,7 +8,6 @@ pub mod errors;
 mod importing;
 pub mod pos;
 pub mod vanilla_chunk_format;
-pub mod chunk;
 
 use crate::chunk_format::Chunk;
 use crate::errors::WorldError;

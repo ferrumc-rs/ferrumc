@@ -1,17 +1,17 @@
-use deepsize::DeepSizeOf;
+use crate::chunk::light::SectionLightData;
+use crate::chunk::section::biome::BiomeData;
 use crate::chunk::section::direct::DirectSection;
 use crate::chunk::section::paletted::PalettedSection;
 use crate::chunk::section::uniform::UniformSection;
 use crate::chunk::BlockStateId;
-use crate::chunk::light::SectionLightData;
-use crate::chunk::section::biome::BiomeData;
 use crate::pos::SectionBlockPos;
+use deepsize::DeepSizeOf;
 
-mod uniform;
-mod paletted;
+mod biome;
 mod direct;
 pub mod network;
-mod biome;
+mod paletted;
+mod uniform;
 
 pub const CHUNK_SECTION_LENGTH: usize = 16 * 16 * 16;
 
@@ -45,7 +45,7 @@ impl ChunkSectionType {
                 }
             }
             Self::Paletted(data) => {
-                if let None = data.set_block(pos, id) {
+                if data.set_block(pos, id).is_none() {
                     let mut new_data = DirectSection::from(data);
                     new_data.set_block(pos, id);
                     *self = Self::Direct(new_data);
@@ -65,7 +65,13 @@ impl ChunkSectionType {
 
     pub fn block_count(&self) -> u16 {
         match self {
-            Self::Uniform(data) => if data.get_block() == 0 { 0 } else { 4096 },
+            Self::Uniform(data) => {
+                if data.get_block() == 0 {
+                    0
+                } else {
+                    4096
+                }
+            }
             Self::Paletted(data) => data.block_count(),
             Self::Direct(data) => data.block_count(),
         }
@@ -83,7 +89,7 @@ impl ChunkSection {
     pub fn new_uniform(id: BlockStateId) -> Self {
         Self {
             inner: ChunkSectionType::Uniform(UniformSection::new_with(id)),
-            light: SectionLightData::new(),
+            light: SectionLightData::default(),
             biome: BiomeData::Uniform(0),
         }
     }
@@ -92,19 +98,21 @@ impl ChunkSection {
         if unique_blocks <= 1 {
             Self {
                 inner: ChunkSectionType::Uniform(UniformSection::air()),
-                light: SectionLightData::new(),
+                light: SectionLightData::default(),
                 biome: BiomeData::Uniform(0),
             }
         } else if unique_blocks < 256 {
             Self {
-                inner: ChunkSectionType::Paletted(PalettedSection::new_with_block_count(unique_blocks as _)),
-                light: SectionLightData::new(),
+                inner: ChunkSectionType::Paletted(PalettedSection::new_with_block_count(
+                    unique_blocks as _,
+                )),
+                light: SectionLightData::default(),
                 biome: BiomeData::Uniform(0),
             }
         } else {
             Self {
-                inner: ChunkSectionType::Direct(DirectSection::new()),
-                light: SectionLightData::new(),
+                inner: ChunkSectionType::Direct(DirectSection::default()),
+                light: SectionLightData::default(),
                 biome: BiomeData::Uniform(0),
             }
         }

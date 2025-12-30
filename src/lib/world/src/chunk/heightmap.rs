@@ -3,7 +3,7 @@ use ferrumc_macros::NetEncode;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 
-#[derive(Clone, DeepSizeOf)]
+#[derive(Default, Clone, DeepSizeOf)]
 pub struct Heightmaps {
     pub world_surface: ChunkHeightmap,
     pub motion_blocking: ChunkHeightmap,
@@ -14,16 +14,15 @@ pub struct ChunkHeightmap {
     data: Box<[i16]>,
 }
 
-impl ChunkHeightmap {
-    const BITS_PER_ENTRY: u8 = 9;
-    const ENTRIES: usize = 16 * 16;
-
-    pub fn new() -> Self {
+impl Default for ChunkHeightmap {
+    fn default() -> Self {
         Self {
-            data: Box::new([0; 256]),
+            data: vec![0; 256].into_boxed_slice(),
         }
     }
+}
 
+impl ChunkHeightmap {
     pub fn set_height(&mut self, x: u8, z: u8, height: i16) {
         self.data[((z << 4) | x) as usize] = height;
     }
@@ -36,28 +35,30 @@ impl ChunkHeightmap {
 #[derive(NetEncode)]
 pub struct NetworkHeightmap {
     heightmap: VarInt,
-    data: LengthPrefixedVec<u64>
+    data: LengthPrefixedVec<u64>,
 }
 
 impl Heightmaps {
-    pub fn new() -> Self {
-        Self {
-            world_surface: ChunkHeightmap::new(),
-            motion_blocking: ChunkHeightmap::new(),
-        }
-    }
-
-    pub fn get_network_repr(heightmaps: &Option<Heightmaps>) -> LengthPrefixedVec<NetworkHeightmap> {
+    pub fn get_network_repr(
+        heightmaps: &Option<Heightmaps>,
+    ) -> LengthPrefixedVec<NetworkHeightmap> {
         const BITS_PER_ENTRY: usize = 9;
         const ENTRIES_PER_LONG: usize = 64 / 9;
         const NUMBER_OF_ENTRIES: usize = 16 * 16;
-        const NUMBER_OF_LONGS: usize = NUMBER_OF_ENTRIES + (ENTRIES_PER_LONG - 1) / ENTRIES_PER_LONG;
+        const NUMBER_OF_LONGS: usize =
+            NUMBER_OF_ENTRIES + (ENTRIES_PER_LONG - 1) / ENTRIES_PER_LONG;
 
         let mut world_surface = vec![0u64; NUMBER_OF_LONGS];
         let mut motion_blocking = vec![0u64; NUMBER_OF_LONGS];
 
         if let Some(heightmaps) = heightmaps.as_ref() {
-            for (i, (&world_surface_val, &motion_blocking_val)) in heightmaps.world_surface.data.iter().zip(heightmaps.motion_blocking.data.iter()).enumerate() {
+            for (i, (&world_surface_val, &motion_blocking_val)) in heightmaps
+                .world_surface
+                .data
+                .iter()
+                .zip(heightmaps.motion_blocking.data.iter())
+                .enumerate()
+            {
                 let entry_mask = (1u64 << BITS_PER_ENTRY) - 1;
                 let long_index = i / ENTRIES_PER_LONG;
                 let bit_index = i % ENTRIES_PER_LONG * BITS_PER_ENTRY;
@@ -70,17 +71,16 @@ impl Heightmaps {
             }
         }
 
-        let mut heightmaps = Vec::with_capacity(2);
-
-        heightmaps.push(NetworkHeightmap {
-            heightmap: VarInt(1),
-            data: LengthPrefixedVec::new(world_surface),
-        });
-
-        heightmaps.push(NetworkHeightmap {
-            heightmap: VarInt(4),
-            data: LengthPrefixedVec::new(motion_blocking),
-        });
+        let heightmaps = vec![
+            NetworkHeightmap {
+                heightmap: VarInt(1),
+                data: LengthPrefixedVec::new(world_surface),
+            },
+            NetworkHeightmap {
+                heightmap: VarInt(4),
+                data: LengthPrefixedVec::new(motion_blocking),
+            },
+        ];
 
         LengthPrefixedVec::new(heightmaps)
     }

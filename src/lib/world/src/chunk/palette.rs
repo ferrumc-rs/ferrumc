@@ -1,6 +1,6 @@
-use std::num::NonZeroU16;
-use deepsize::DeepSizeOf;
 use crate::chunk::BlockStateId;
+use deepsize::DeepSizeOf;
+use std::num::NonZeroU16;
 
 pub type PaletteIndex = u16;
 
@@ -18,19 +18,14 @@ pub struct BlockPalette {
 impl BlockPalette {
     pub fn new() -> BlockPalette {
         BlockPalette {
-            palette: vec![
-                Some((0, NonZeroU16::MAX))
-            ],
+            palette: vec![Some((0, NonZeroU16::MAX))],
             free_count: 0,
         }
     }
 
     pub fn new_with_entry_count(entries: usize) -> BlockPalette {
         BlockPalette {
-            palette: vec![
-                Some((0, NonZeroU16::MAX));
-                entries + 1
-            ],
+            palette: vec![Some((0, NonZeroU16::MAX)); entries + 1],
             free_count: entries as u16,
         }
     }
@@ -41,9 +36,10 @@ impl BlockPalette {
     }
 
     pub fn palette_data(&self) -> Vec<BlockStateId> {
-        self.palette.iter().map(|val| {
-            val.unwrap_or((0, NonZeroU16::MAX)).0
-        }).collect::<Vec<_>>()
+        self.palette
+            .iter()
+            .map(|val| val.unwrap_or((0, NonZeroU16::MAX)).0)
+            .collect::<Vec<_>>()
     }
 
     pub fn translate_idx(&self, idx: PaletteIndex) -> Option<BlockStateId> {
@@ -52,24 +48,34 @@ impl BlockPalette {
         if self.palette.len() <= idx {
             None
         } else {
-            self.palette[idx].as_ref().and_then(|(id, _)| Some(*id))
+            self.palette[idx].as_ref().map(|(s, _)| *s)
         }
     }
 
     pub fn add_block(&mut self, id: BlockStateId) -> (PaletteIndex, Option<u8>) {
-        if id == 0 { return (0, None) } // Air is always palette idx 0
+        if id == 0 {
+            return (0, None);
+        } // Air is always palette idx 0
 
         for (idx, val) in self.palette.iter_mut().enumerate() {
             if let Some((block_id, count)) = val {
                 if *block_id == id {
-                    *count = NonZeroU16::new(count.get().checked_add(1).expect("count should never exceed 4096")).expect("addition should not overflow");
+                    *count = NonZeroU16::new(
+                        count
+                            .get()
+                            .checked_add(1)
+                            .expect("count should never exceed 4096"),
+                    )
+                    .expect("addition should not overflow");
                     return (idx as PaletteIndex, None);
                 }
             }
         }
 
         if self.free_count == 0 {
-            if self.palette.len() >= 4096 { panic!("Palette size should not be growing past 4096 because 4096 is the number of blocks per section") }
+            if self.palette.len() >= 4096 {
+                panic!("Palette size should not be growing past 4096 because 4096 is the number of blocks per section")
+            }
 
             let curr_bit_width = Self::bit_width_for_len(self.palette.len());
             let new_bit_width = Self::bit_width_for_len(self.palette.len() + 1);
@@ -83,17 +89,26 @@ impl BlockPalette {
                 (idx, None)
             }
         } else {
-            let Some((idx, empty_entry)) = self.palette.iter_mut().enumerate().find(|(_, val)| val.is_none()) else {
+            let Some((idx, empty_entry)) = self
+                .palette
+                .iter_mut()
+                .enumerate()
+                .find(|(_, val)| val.is_none())
+            else {
                 panic!("palette should contain empty entry if free_count != 0");
             };
 
-            let _ =empty_entry.insert((id, NON_ZERO_ONE));
+            let _ = empty_entry.insert((id, NON_ZERO_ONE));
             self.free_count -= 1;
             (idx as PaletteIndex, None)
         }
     }
 
-    pub fn add_block_with_count(&mut self, id: BlockStateId, count: NonZeroU16) -> (PaletteIndex, Option<u8>) {
+    pub fn add_block_with_count(
+        &mut self,
+        id: BlockStateId,
+        count: NonZeroU16,
+    ) -> (PaletteIndex, Option<u8>) {
         let res = self.add_block(id);
 
         self.palette[res.0 as usize] = Some((id, count));
@@ -102,14 +117,17 @@ impl BlockPalette {
     }
 
     pub fn remove_block(&mut self, idx: PaletteIndex) {
-        if idx == 0 { return; } // Air is always ignored
+        if idx == 0 {
+            return;
+        } // Air is always ignored
 
         let idx = idx as usize;
 
         debug_assert!(
             self.palette.len() > idx,
             "Palette index {} out of bounds for palette length {}",
-            idx, self.palette.len(),
+            idx,
+            self.palette.len(),
         );
 
         debug_assert!(
@@ -129,7 +147,11 @@ impl BlockPalette {
     }
 
     pub fn block_count(&self) -> u16 {
-        self.palette.iter().flatten().map(|(state, count)| if *state != 0 { count.get() } else { 0 }).sum()
+        self.palette
+            .iter()
+            .flatten()
+            .map(|(state, count)| if *state != 0 { count.get() } else { 0 })
+            .sum()
     }
 
     pub fn get_minimum_bit_width(&self) -> u8 {

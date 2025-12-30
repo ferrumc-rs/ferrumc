@@ -1,12 +1,12 @@
-use std::io::Cursor;
-use ferrumc_macros::NetEncode;
-use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
-use ferrumc_net_codec::encode::errors::NetEncodeError;
-use ferrumc_net_codec::net_types::byte_array::ByteArray;
-use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
-use crate::chunk::Chunk;
 use crate::chunk::heightmap::{Heightmaps, NetworkHeightmap};
 use crate::chunk::section::network::NetworkSection;
+use crate::chunk::Chunk;
+use ferrumc_macros::NetEncode;
+use ferrumc_net_codec::encode::errors::NetEncodeError;
+use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
+use ferrumc_net_codec::net_types::byte_array::ByteArray;
+use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
+use std::io::Cursor;
 
 #[derive(NetEncode)]
 pub struct NetworkChunk {

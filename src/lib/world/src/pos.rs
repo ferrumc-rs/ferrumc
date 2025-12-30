@@ -1,8 +1,8 @@
 use std::fmt::Display;
 use std::fmt::Formatter;
 use std::fmt::Result;
-use std::ops::{Add, Deref};
 use std::ops::Range;
+use std::ops::{Add, Deref};
 
 use bevy_math::IVec2;
 use bevy_math::IVec3;

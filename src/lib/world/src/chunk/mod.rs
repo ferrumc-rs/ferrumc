@@ -1,13 +1,13 @@
-pub mod section;
-mod palette;
-pub mod light;
 pub mod heightmap;
+pub mod light;
 pub mod network;
+mod palette;
+pub mod section;
 
-use deepsize::DeepSizeOf;
 use crate::chunk::heightmap::Heightmaps;
 use crate::chunk::section::ChunkSection;
 use crate::pos::ChunkBlockPos;
+use deepsize::DeepSizeOf;
 
 pub type BlockStateId = u16;
 
@@ -59,7 +59,7 @@ impl Chunk {
         self.sections[section as usize].set_block(pos.section_block_pos(), id);
     }
 
-    pub fn update_heightmaps(&mut self, pos: ChunkBlockPos, block: BlockStateId) {
+    pub fn update_heightmaps(&mut self, _pos: ChunkBlockPos, _block: BlockStateId) {
         // TODO: this should be implemented
     }
 }
@@ -73,7 +73,7 @@ mod tests {
         let mut chunk = Chunk::new_empty();
 
         chunk.set_block(ChunkBlockPos::new(0, 0, 0), 1);
-        chunk.set_block(ChunkBlockPos::new(0, 16 ,1), 2);
+        chunk.set_block(ChunkBlockPos::new(0, 16, 1), 2);
 
         assert_eq!(chunk.get_block(ChunkBlockPos::new(0, 0, 0)), 1);
         assert_eq!(chunk.get_block(ChunkBlockPos::new(0, 16, 1)), 2);

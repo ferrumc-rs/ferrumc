@@ -1,10 +1,10 @@
-use deepsize::DeepSizeOf;
 use crate::pos::SectionBlockPos;
+use deepsize::DeepSizeOf;
 
 #[derive(Clone, DeepSizeOf)]
 pub enum BiomeData {
     Uniform(u8),
-    Mixed(Box<[u8]>)
+    Mixed(Box<[u8]>),
 }
 
 impl BiomeData {
@@ -24,11 +24,13 @@ impl BiomeData {
         let idx = Self::get_idx(pos);
 
         match self {
-            BiomeData::Uniform(data) => if *data != value {
-                let mut new_data = vec![*data; 64].into_boxed_slice();
-                new_data[idx] = value;
-                *self = BiomeData::Mixed(new_data);
-            },
+            BiomeData::Uniform(data) => {
+                if *data != value {
+                    let mut new_data = vec![*data; 64].into_boxed_slice();
+                    new_data[idx] = value;
+                    *self = BiomeData::Mixed(new_data);
+                }
+            }
             BiomeData::Mixed(data) => data[idx] = value,
         }
     }

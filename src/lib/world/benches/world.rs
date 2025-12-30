@@ -1,6 +1,6 @@
 mod cache;
-mod edit_bench;
 mod chunk;
+mod edit_bench;
 
 use criterion::{criterion_group, criterion_main};
 fn world_benches(c: &mut criterion::Criterion) {
