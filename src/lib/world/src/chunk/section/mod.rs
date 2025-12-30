@@ -4,12 +4,14 @@ use crate::chunk::section::paletted::PalettedSection;
 use crate::chunk::section::uniform::UniformSection;
 use crate::chunk::BlockStateId;
 use crate::chunk::light::SectionLightData;
+use crate::chunk::section::biome::BiomeData;
 use crate::pos::SectionBlockPos;
 
 mod uniform;
 mod paletted;
 mod direct;
 pub mod network;
+mod biome;
 
 pub const CHUNK_SECTION_LENGTH: usize = 16 * 16 * 16;
 
@@ -74,6 +76,7 @@ impl ChunkSectionType {
 pub struct ChunkSection {
     pub(crate) inner: ChunkSectionType,
     pub(crate) light: SectionLightData,
+    pub(crate) biome: BiomeData,
 }
 
 impl ChunkSection {
@@ -81,6 +84,7 @@ impl ChunkSection {
         Self {
             inner: ChunkSectionType::Uniform(UniformSection::new_with(id)),
             light: SectionLightData::new(),
+            biome: BiomeData::Uniform(0),
         }
     }
 
@@ -89,16 +93,19 @@ impl ChunkSection {
             Self {
                 inner: ChunkSectionType::Uniform(UniformSection::air()),
                 light: SectionLightData::new(),
+                biome: BiomeData::Uniform(0),
             }
         } else if unique_blocks < 256 {
             Self {
                 inner: ChunkSectionType::Paletted(PalettedSection::new_with_block_count(unique_blocks as _)),
                 light: SectionLightData::new(),
+                biome: BiomeData::Uniform(0),
             }
         } else {
             Self {
                 inner: ChunkSectionType::Direct(DirectSection::new()),
                 light: SectionLightData::new(),
+                biome: BiomeData::Uniform(0),
             }
         }
     }
