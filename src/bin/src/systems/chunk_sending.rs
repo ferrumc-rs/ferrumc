@@ -102,5 +102,16 @@ pub fn handle(
             batch_size: packets_len.into(),
         })
         .expect("Failed to send ChunkBatchFinish");
+
+        // Tell the client to unload chunks that are no longer needed
+
+        while let Some(coords) = &chunk_receiver.unloading.pop_front() {
+            let packet = ferrumc_net::packets::outgoing::unload_chunk::UnloadChunk {
+                x: coords.0,
+                z: coords.1,
+            };
+            conn.send_packet(packet)
+                .expect("Failed to send UnloadChunk packet");
+        }
     }
 }

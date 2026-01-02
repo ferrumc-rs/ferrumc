@@ -1,4 +1,5 @@
 use bevy_ecs::prelude::{MessageReader, Query};
+use bevy_math::IVec2;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
 use ferrumc_core::transform::position::Position;
@@ -32,23 +33,22 @@ pub fn handle(
 
         // Sort loading list to prioritize closer chunks
         queued_chunks.sort_by_key(|(x, z)| {
-            let dx = x - player_chunk.x();
-            let dz = z - player_chunk.z();
-            dx * dx + dz * dz
+            let as_vec = IVec2::new(*x, *z);
+            as_vec.chebyshev_distance(IVec2::new(player_chunk.x(), player_chunk.z()))
         });
 
         for coords in queued_chunks {
             chunk_receiver.loading.push_back(coords);
         }
 
-        // TODO: Handle unloading of distant chunks
+        // Unload chunks that are outside the radius
 
         for loaded_chunk in chunk_receiver.loaded.clone() {
-            let dx = loaded_chunk.0 - player_chunk.x();
-            let dz = loaded_chunk.1 - player_chunk.z();
-            if dx * dx + dz * dz > radius {
+            let vec = IVec2::new(loaded_chunk.0, loaded_chunk.1);
+            let dx = IVec2::new(player_chunk.x(), player_chunk.z()).chebyshev_distance(vec);
+            if dx > radius as u32 {
                 if let Some(pos) = chunk_receiver.loaded.take(&loaded_chunk) {
-                    chunk_receiver.unloading.insert(pos);
+                    chunk_receiver.unloading.push_back(pos);
                 }
             }
         }

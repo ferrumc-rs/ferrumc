@@ -1,3 +1,4 @@
+use bevy_ecs::schedule::IntoScheduleConfigs;
 mod chunk_calculator;
 mod chunk_sending;
 pub mod chunk_unloader;
@@ -18,8 +19,14 @@ pub mod world_sync;
 pub fn register_game_systems(schedule: &mut bevy_ecs::schedule::Schedule) {
     // Tick-bound systems only (run every game tick)
     schedule.add_systems(new_connections::accept_new_connections);
-    schedule.add_systems(chunk_calculator::handle);
-    schedule.add_systems(chunk_sending::handle);
+    schedule.add_systems(
+        (
+            chunk_calculator::handle,
+            chunk_sending::handle,
+            // chunk_unloader::handle,
+        )
+            .chain(),
+    );
     schedule.add_systems(mq::process);
     schedule.add_systems(player_swimming::detect_player_swimming);
 
