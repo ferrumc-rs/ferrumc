@@ -25,7 +25,6 @@ lazy_static = { workspace = true }
 serde_json = { workspace = true }
 indicatif = { workspace = true }
 wyhash = { workspace = true }
-moka = { workspace = true, features = ["sync"] }
 ahash = { workspace = true }
 yazi = { workspace = true }
 ferrumc-threadpool = { workspace = true }

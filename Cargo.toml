@@ -214,7 +214,6 @@ yazi = "0.2.1"
 
 # Database
 heed = "0.22.1-nested-rtxns-6"
-moka = "0.12.12"
 
 # CLI
 clap = "4.5.53"
