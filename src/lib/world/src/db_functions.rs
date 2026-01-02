@@ -106,7 +106,7 @@ impl World {
             let k = pair.key();
             let v = pair.value();
             trace!("Syncing chunk: {:?}", k.0);
-            save_chunk_internal(self, k.0, &k.1, &v)?;
+            save_chunk_internal(self, k.0, &k.1, v)?;
         }
         sync_internal(self)
     }

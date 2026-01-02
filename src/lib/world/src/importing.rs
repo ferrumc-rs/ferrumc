@@ -95,7 +95,7 @@ impl World {
                                 let res = self_clone.insert_chunk(
                                     ChunkPos::new(vanilla_chunk.x_pos, vanilla_chunk.z_pos),
                                     vanilla_chunk.dimension.as_deref().unwrap_or("overworld"),
-                                    vanilla_chunk.to_custom_format()?.into(),
+                                    vanilla_chunk.to_custom_format()?,
                                 );
                                 progress.inc(1);
                                 if index == location_count - 1 {

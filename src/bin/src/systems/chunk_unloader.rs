@@ -3,7 +3,7 @@ use ferrumc_core::chunks::chunk_receiver::ChunkReceiver;
 use ferrumc_state::GlobalStateResource;
 use ferrumc_world::pos::ChunkPos;
 use std::collections::HashSet;
-use tracing::{debug, error, trace};
+use tracing::{error, trace};
 
 pub fn handle(state: Res<GlobalStateResource>, query: Query<&ChunkReceiver>) {
     // If there are no connected players, unload all cached chunks
@@ -77,6 +77,8 @@ pub fn handle(state: Res<GlobalStateResource>, query: Query<&ChunkReceiver>) {
     let remaining_chunks = state.0.world.get_cache().len();
     trace!(
         "Unloaded {} chunks from cache ({} written to world). {} chunks remain in cache.",
-        unloaded_entries, written_chunks, remaining_chunks
+        unloaded_entries,
+        written_chunks,
+        remaining_chunks
     );
 }

@@ -12,7 +12,7 @@ use ferrumc_net::packets::outgoing::{block_change_ack::BlockChangeAck, block_upd
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalStateResource;
 use ferrumc_world::block_state_id::BlockStateId;
-use tracing::{debug, error, trace, warn};
+use tracing::{debug, error, warn};
 
 // A query for just the components needed to acknowledge a dig packet
 type DiggingPlayerQuery<'a> = (Entity, &'a StreamWriter, Option<&'a PlayerDigging>);

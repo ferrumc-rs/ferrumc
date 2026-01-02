@@ -11,7 +11,7 @@ use ferrumc_net::PlayerActionReceiver;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalStateResource;
 use ferrumc_world::{block_state_id::BlockStateId, pos::BlockPos};
-use tracing::{error, trace, warn};
+use tracing::{error, warn};
 
 pub fn handle(
     receiver: Res<PlayerActionReceiver>,
