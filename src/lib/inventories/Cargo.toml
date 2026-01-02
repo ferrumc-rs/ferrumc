@@ -14,11 +14,12 @@ once_cell = { workspace = true }
 thiserror = { workspace = true }
 ferrumc-registry = { workspace = true }
 ferrumc-world = {workspace = true}
-ferrumc-nbt = {workspace = true}
+ferrumc-text = {workspace = true}
+ferrumc-macros = {workspace = true}
 log = {workspace = true}
-mutf8 = "0.5.0"
-fastnbt = "2.6.0"
-futures = "0.3.31"
+ferrumc-nbt = {workspace = true}
+ordered-float = "5.1.0"
+regex = "1.12.2"
 
 [build-dependencies]
 proc-macro2 = { workspace = true }

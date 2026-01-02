@@ -2,6 +2,6 @@
 use ferrumc_net_codec::net_types::var_int::VarInt;
 
 #[derive(Debug, NetDecode, NetEncode, Clone, Hash, Default, PartialEq)]
-pub struct MaxStackSize {
-    pub value: VarInt,
+pub struct MapPostProcessing {
+    pub processing_type: VarInt,
 }

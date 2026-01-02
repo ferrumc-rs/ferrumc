@@ -1,7 +1,7 @@
 ﻿use ferrumc_macros::{NetDecode, NetEncode};
-use ferrumc_net_codec::net_types::var_int::VarInt;
+use crate::structured_components::data::Identifier;
 
 #[derive(Debug, NetDecode, NetEncode, Clone, Hash, Default, PartialEq)]
-pub struct MaxStackSize {
-    pub value: VarInt,
+pub struct DamageResistant {
+    pub types : Identifier
 }

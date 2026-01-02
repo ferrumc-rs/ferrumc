@@ -1,7 +1,8 @@
 use crate::*;
-use ferrumc_nbt::{NBTSerializable, NBTSerializeOptions};
+use ferrumc_nbt::{FromNbt, NBTSerializable, NBTSerializeOptions, NbtTape, NbtTapeElement};
 use paste::paste;
 use std::fmt;
+use std::hash::{Hash, Hasher};
 use std::ops::Add;
 use std::str::FromStr;
 
@@ -75,6 +76,18 @@ impl fmt::Display for TextComponent {
     }
 }
 
+impl<'a> FromNbt<'a> for TextComponent {
+    fn from_nbt(tapes: &NbtTape<'a>, element: &NbtTapeElement<'a>) -> ferrumc_nbt::Result<Self> {
+        todo!("impl<'a> FromNbt<'a> for TextComponent")
+    }
+}
+
+impl Hash for TextComponent {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        todo!("impl Hash for TextComponent")
+    }
+}
+
 impl TextComponent {
     make_setters!(
         (Color, color),
@@ -99,3 +112,5 @@ impl Default for TextContent {
         }
     }
 }
+
+

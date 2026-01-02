@@ -30,26 +30,44 @@ pub fn main() {
 
 fn build() -> TokenStream {
     let components = vec![
-        ComponentDef { id: 1, variant: "MaxStackSize", struct_path: Some("crate::structured_components::components::MaxStackSize") },
-        ComponentDef { id: 2, variant: "MaxDamage", struct_path: Some("crate::structured_components::components::MaxDamage") },
-        ComponentDef { id: 3, variant: "Damage", struct_path: Some("crate::structured_components::components::Damage") },
-        ComponentDef { id: 4, variant: "Unbreakable", struct_path: None },
-        ComponentDef { id: 5, variant: "CustomName", struct_path: Some("crate::structured_components::components::TextComponentWrapper") },
-        ComponentDef { id: 6, variant: "ItemName", struct_path: Some("crate::structured_components::components::TextComponentWrapper") },
-        ComponentDef { id: 8, variant: "Lore", struct_path: Some("crate::structured_components::components::Lore") },
-        ComponentDef { id: 9, variant: "Rarity", struct_path: Some("crate::structured_components::components::Rarity") },
-        ComponentDef { id: 10, variant: "Enchantments", struct_path: Some("crate::structured_components::components::EnchantmentsCollection") },
-        ComponentDef { id: 20, variant: "Food", struct_path: Some("crate::structured_components::components::Food") },
-        ComponentDef { id: 16, variant: "RepairCost", struct_path: Some("crate::structured_components::components::RepairCost") },
-        ComponentDef { id: 18, variant: "EnchantmentGlintOverride", struct_path: Some("crate::structured_components::components::EnchantmentGlintOverride") },
-        ComponentDef { id: 27, variant: "Enchantable", struct_path: Some("crate::structured_components::components::Enchantable") },
-        ComponentDef { id: 34, variant: "StoredEnchantments", struct_path: Some("crate::structured_components::components::EnchantmentsCollection") },
-        ComponentDef { id: 42, variant: "PotionContents", struct_path: Some("crate::structured_components::components::PotionContents") },
-        ComponentDef { id: 44, variant: "SuspiciousStewEffects", struct_path: Some("crate::structured_components::components::SuspiciousStewEffects") },
-        ComponentDef { id: 45, variant: "WritableBookContent", struct_path: Some("crate::structured_components::components::WritableBookContent") },
-        ComponentDef { id: 46, variant: "WrittenBookContent", struct_path: Some("crate::structured_components::components::WrittenBookContent") },
-        ComponentDef { id: 54, variant: "OminousBottleAmplifier", struct_path: Some("crate::structured_components::components::OminousBottleAmplifier") },
-        ComponentDef { id: 60, variant: "Fireworks", struct_path: Some("crate::structured_components::components::Fireworks") },
+        ComponentDef { id:1, variant: "MaxStackSize", struct_path: Some("crate::structured_components::components::MaxStackSize") },
+        ComponentDef { id:2, variant: "MaxDamage", struct_path: Some("crate::structured_components::components::MaxDamage") },
+        ComponentDef { id:3, variant: "Damage", struct_path: Some("crate::structured_components::components::Damage") },
+        ComponentDef { id:4, variant: "Unbreakable", struct_path: None },
+        ComponentDef { id:5, variant: "CustomName", struct_path: Some("crate::structured_components::components::TextComponentWrapper") },
+        ComponentDef { id:6, variant: "ItemName", struct_path: Some("crate::structured_components::components::TextComponentWrapper") },
+        ComponentDef { id:8, variant: "Lore", struct_path: Some("crate::structured_components::components::Lore") },
+        ComponentDef { id:9, variant: "Rarity", struct_path: Some("crate::structured_components::components::Rarity") },
+        ComponentDef { id:10, variant: "Enchantments", struct_path: Some("crate::structured_components::components::EnchantmentsCollection") },
+        ComponentDef { id:14, variant: "CustomModelData", struct_path: Some("crate::structured_components::components::CustomModelData") },
+        ComponentDef { id:15, variant: "TooltipDisplay", struct_path: Some("crate::structured_components::components::TooltipDisplay") },
+        ComponentDef { id:16, variant: "RepairCost", struct_path: Some("crate::structured_components::components::RepairCost") },
+        ComponentDef { id:17, variant: "CreativeSlotLock", struct_path: None },
+        ComponentDef { id:18, variant: "EnchantmentGlintOverride", struct_path: Some("crate::structured_components::components::EnchantmentGlintOverride") },
+        ComponentDef { id:20, variant: "Food", struct_path: Some("crate::structured_components::components::Food") },
+        ComponentDef { id:21, variant: "Consumable", struct_path: Some("crate::structured_components::components::Consumable") },
+        ComponentDef { id:23, variant: "UseCooldown", struct_path: Some("crate::structured_components::components::UseCooldown") },
+        ComponentDef { id:24, variant: "DamageResistant", struct_path: Some("crate::structured_components::components::DamageResistant") },
+        ComponentDef { id:25, variant: "Tool", struct_path: Some("crate::structured_components::components::Tool") },
+        ComponentDef { id:26, variant: "Weapon", struct_path: Some("crate::structured_components::components::Weapon") },
+        ComponentDef { id:27, variant: "Enchantable", struct_path: Some("crate::structured_components::components::Enchantable") },
+        ComponentDef { id:28, variant: "Equippable", struct_path: Some("crate::structured_components::components::Equippable") },
+        ComponentDef { id:29, variant: "Repairable", struct_path: Some("crate::structured_components::components::Repairable") },
+        ComponentDef { id:30, variant: "Glider", struct_path: None },
+        ComponentDef { id:31, variant: "TooltipStyle", struct_path: Some("crate::structured_components::components::TooltipStyle") },
+        ComponentDef { id:32, variant: "DeathProtection", struct_path: Some("crate::structured_components::components::DeathProtection") },
+        ComponentDef { id:33, variant: "BlocksAttacks", struct_path: Some("crate::structured_components::components::BlocksAttacks") },
+        ComponentDef { id:34, variant: "StoredEnchantments", struct_path: Some("crate::structured_components::components::EnchantmentsCollection") },
+        ComponentDef { id:35, variant: "DyedColor", struct_path: Some("crate::structured_components::components::DyedColor") },
+        ComponentDef { id:36, variant: "MapColor", struct_path: Some("crate::structured_components::components::MapColor") },
+        ComponentDef { id:37, variant: "MapId", struct_path: Some("crate::structured_components::components::MapId") },
+        ComponentDef { id:39, variant: "MapPostProcessing", struct_path: Some("crate::structured_components::components::MapPostProcessing") },
+        ComponentDef { id:42, variant: "PotionContents", struct_path: Some("crate::structured_components::components::PotionContents") },
+        ComponentDef { id:44, variant: "SuspiciousStewEffects", struct_path: Some("crate::structured_components::components::SuspiciousStewEffects") },
+        ComponentDef { id:45, variant: "WritableBookContent", struct_path: Some("crate::structured_components::components::WritableBookContent") },
+        ComponentDef { id:46, variant: "WrittenBookContent", struct_path: Some("crate::structured_components::components::WrittenBookContent") },
+        ComponentDef { id:54, variant: "OminousBottleAmplifier", struct_path: Some("crate::structured_components::components::OminousBottleAmplifier") },
+        ComponentDef { id:60, variant: "Fireworks", struct_path: Some("crate::structured_components::components::Fireworks") },
     ];
 
     let enum_variants = generate_enum_variants(&components);
@@ -123,8 +141,9 @@ fn build() -> TokenStream {
         impl NetDecode for StructuredComponent {
             fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
                 let id = VarInt::decode(reader, opts)?;
+                let length = VarInt::decode(reader, opts)?;
 
-                debug!{"Decoding structuredComponent with id {}", id}
+                debug!{"Decoding structuredComponent with id {} and length {}", id, length}
 
                 match id.0 {
                     #decode_match_arms
@@ -136,8 +155,9 @@ fn build() -> TokenStream {
 
             async fn decode_async<R: AsyncRead + Unpin>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
                 let id = VarInt::decode_async(reader, opts).await?;
+                let length = VarInt::decode_async(reader, opts).await?;
 
-                debug!{"Decoding structuredComponent with id {}", id}
+                debug!{"Decoding structuredComponent with id {} and length {}", id, length}
 
                 match id.0 {
                     #decode_async_match_arms

@@ -5,7 +5,6 @@ use ferrumc_net_codec::encode::errors::NetEncodeError;
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::prefixed_optional::PrefixedOptional;
-use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::{Read, Write};
 use tokio::io::{AsyncRead, AsyncWrite};
 
@@ -35,6 +34,48 @@ fn throw_if_length_exceeds(
             max_length,
         ))
     } else {
+        Ok(())
+    }
+}
+impl NetDecode for WritableBookContent {
+    fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
+        let pages = LengthPrefixedVec::decode(reader, opts)?;
+
+        throw_if_length_exceeds(pages.data.len(), MAX_PAGES, "pages")?;
+
+        Ok(WritableBookContent { pages })
+    }
+
+    async fn decode_async<R: AsyncRead + Unpin>(
+        reader: &mut R,
+        opts: &NetDecodeOpts,
+    ) -> Result<Self, NetDecodeError> {
+        let pages = LengthPrefixedVec::decode_async(reader, opts).await?;
+
+        throw_if_length_exceeds(pages.data.len(), MAX_PAGES, "pages")?;
+
+        Ok(WritableBookContent { pages })
+    }
+}
+
+impl NetEncode for WritableBookContent {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+        throw_if_length_exceeds(self.pages.data.len(), MAX_PAGES, "pages")?;
+
+        self.pages.encode(writer, opts)?;
+
+        Ok(())
+    }
+
+    async fn encode_async<W: AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
+        throw_if_length_exceeds(self.pages.data.len(), MAX_PAGES, "pages")?;
+
+        self.pages.encode_async(writer, opts).await?;
+
         Ok(())
     }
 }
@@ -107,47 +148,4 @@ impl NetEncode for Page {
     }
 }
 
-impl NetDecode for WritableBookContent {
-    fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
-        let _data_length = VarInt::decode(reader, opts)?;
-        let pages = LengthPrefixedVec::decode(reader, opts)?;
 
-        throw_if_length_exceeds(pages.data.len(), MAX_PAGES, "pages")?;
-
-        Ok(WritableBookContent { pages })
-    }
-
-    async fn decode_async<R: AsyncRead + Unpin>(
-        reader: &mut R,
-        opts: &NetDecodeOpts,
-    ) -> Result<Self, NetDecodeError> {
-        let _data_length = VarInt::decode_async(reader, opts).await?;
-        let pages = LengthPrefixedVec::decode_async(reader, opts).await?;
-
-        throw_if_length_exceeds(pages.data.len(), MAX_PAGES, "pages")?;
-
-        Ok(WritableBookContent { pages })
-    }
-}
-
-impl NetEncode for WritableBookContent {
-    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
-        throw_if_length_exceeds(self.pages.data.len(), MAX_PAGES, "pages")?;
-
-        self.pages.encode(writer, opts)?;
-
-        Ok(())
-    }
-
-    async fn encode_async<W: AsyncWrite + Unpin>(
-        &self,
-        writer: &mut W,
-        opts: &NetEncodeOpts,
-    ) -> Result<(), NetEncodeError> {
-        throw_if_length_exceeds(self.pages.data.len(), MAX_PAGES, "pages")?;
-
-        self.pages.encode_async(writer, opts).await?;
-
-        Ok(())
-    }
-}

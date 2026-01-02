@@ -99,6 +99,328 @@ mod primitives {
     }
 }
 
+pub mod readers {
+    pub mod async_reader {
+        use std::io;
+        use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
+        use crate::de::borrow::NbtTag;
+
+        enum Frame {
+            Compound,
+            List {
+                tag_type: NbtTag,
+                remaining: i32,
+            },
+        }
+
+        pub async fn read_to_buf<R, W>(reader: &mut R, writer: &mut W) -> Result<(), io::Error>
+        where
+            R: AsyncRead + Unpin,
+            W: AsyncWrite + Unpin,
+        {
+            let tag = read_tag(reader, writer).await?;
+
+            if tag == NbtTag::End {
+                return Ok(());
+            }
+
+            read_nbt_string(reader, writer).await?;
+            read_nbt_content_async(&tag, reader, writer).await
+        }
+
+        pub async fn read_nbt_content_async<R, W>(tag: &NbtTag, reader: &mut R, writer: &mut W) -> Result<(), io::Error>
+        where
+            R: AsyncRead + Unpin,
+            W: AsyncWrite + Unpin,
+        {
+            let mut current_tag = tag.clone();
+            let mut stack: Vec<Frame> = Vec::with_capacity(8);
+
+            loop {
+                match current_tag {
+                    NbtTag::End => {}
+                    NbtTag::Compound => {
+                        stack.push(Frame::Compound);
+                    }
+                    NbtTag::List => {
+                        let tag_type = read_tag(reader, writer).await?;
+                        let length = read_i32(reader, writer).await?;
+                        if length > 0 {
+                            stack.push(Frame::List {
+                                tag_type,
+                                remaining: length,
+                            });
+                        }
+                    }
+                    _ => {
+                        read_tag_content_simple(current_tag, reader, writer).await?;
+                    }
+                }
+
+                loop {
+                    match stack.last_mut() {
+                        None => {
+                            return Ok(());
+                        }
+                        Some(Frame::Compound) => {
+                            current_tag = read_tag(reader, writer).await?;
+
+                            if current_tag != NbtTag::End {
+                                read_nbt_string(reader, writer).await?;
+                            } else {
+                                stack.pop();
+                                continue;
+                            }
+                            break;
+                        }
+                        Some(Frame::List { tag_type, remaining }) => {
+                            if *remaining > 0 {
+                                current_tag = tag_type.clone();
+                                *remaining -= 1;
+                                break;
+                            } else {
+                                stack.pop();
+                                continue;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        async fn read_tag_content_simple<R, W>(tag: NbtTag, reader: &mut R, writer: &mut W) -> Result<(), io::Error>
+        where
+            R: AsyncRead + Unpin,
+            W: AsyncWrite + Unpin,
+        {
+            match tag {
+                NbtTag::Byte => copy_bytes(reader, writer, 1).await,
+                NbtTag::Short => copy_bytes(reader, writer, 2).await,
+                NbtTag::Int => copy_bytes(reader, writer, 4).await,
+                NbtTag::Long => copy_bytes(reader, writer, 8).await,
+                NbtTag::Float => copy_bytes(reader, writer, 4).await,
+                NbtTag::Double => copy_bytes(reader, writer, 8).await,
+                NbtTag::ByteArray => {
+                    let len = read_i32(reader, writer).await?;
+                    copy_bytes(reader, writer, len as usize).await
+                }
+                NbtTag::IntArray => {
+                    let len = read_i32(reader, writer).await?;
+                    copy_bytes(reader, writer, len as usize * 4).await
+                }
+                NbtTag::LongArray => {
+                    let len = read_i32(reader, writer).await?;
+                    copy_bytes(reader, writer, len as usize * 8).await
+                }
+                NbtTag::String => read_nbt_string(reader, writer).await,
+                _ => Err(io::Error::new(io::ErrorKind::InvalidData, "Unexpected complex tag")),
+            }
+        }
+
+        async fn read_nbt_string<R, W>(reader: &mut R, writer: &mut W) -> Result<(), io::Error>
+        where
+            R: AsyncRead + Unpin,
+            W: AsyncWrite + Unpin,
+        {
+            let len = read_u16(reader, writer).await?;
+            copy_bytes(reader, writer, len as usize).await
+        }
+
+        async fn read_tag<R: AsyncRead + Unpin, W: AsyncWrite + Unpin>(reader: &mut R, writer: &mut W)
+                                                                       -> Result<NbtTag, io::Error> {
+            let tag = reader.read_u8().await?;
+            writer.write_u8(tag).await?;
+
+            Ok(NbtTag::from(tag)) //todo: use try from
+        }
+
+        async fn read_i32<R, W>(reader: &mut R, writer: &mut W) -> Result<i32, io::Error>
+        where
+            R: AsyncRead + Unpin,
+            W: AsyncWrite + Unpin,
+        {
+            let val = reader.read_i32().await?;
+            writer.write_i32(val).await?;
+
+            Ok(val)
+        }
+
+        async fn read_u16<R, W>(reader: &mut R, writer: &mut W) -> Result<u16, io::Error>
+        where
+            R: AsyncRead + Unpin,
+            W: AsyncWrite + Unpin,
+        {
+            let val = reader.read_u16().await?;
+            writer.write_u16(val).await?;
+
+            Ok(val)
+        }
+
+        async fn copy_bytes<R, W>(
+            reader: &mut R,
+            writer: &mut W,
+            count: usize,
+        ) -> Result<(), io::Error>
+        where
+            R: AsyncRead + Unpin,
+            W: AsyncWrite + Unpin,
+        {
+            if count <= 1024 {
+                let mut buf = [0u8; 1024];
+                let slice = &mut buf[..count];
+                reader.read_exact(slice).await?;
+                writer.write_all(slice).await?;
+            } else {
+                let mut limited = reader.take(count as u64);
+                let copied = tokio::io::copy(&mut limited, writer).await?;
+
+                if copied < count as u64 {
+                    return Err(io::Error::new(io::ErrorKind::UnexpectedEof, "Incomplete NBT data"));
+                }
+            }
+
+            Ok(())
+        }
+    }
+    pub mod sync_reader {
+        use std::io::{self, Read, Write};
+        use crate::de::borrow::NbtTag;
+
+        pub fn read_to_buf<R, W>(reader: &mut R, writer: &mut W) -> Result<(), io::Error>
+        where
+            R: Read,
+            W: Write,
+        {
+            let tag = read_tag(reader, writer)?;
+
+            if tag == NbtTag::End {
+                return Ok(());
+            }
+
+            read_nbt_string(reader, writer)?;
+            read_nbt_content_recursive(&tag, reader, writer)
+        }
+
+        pub fn read_nbt_content_recursive<R, W>(tag: &NbtTag, reader: &mut R, writer: &mut W) -> Result<(), io::Error>
+        where
+            R: Read,
+            W: Write,
+        {
+            match tag {
+                NbtTag::End => Ok(()),
+                NbtTag::Compound => {
+                    loop {
+                        let inner_tag = read_tag(reader, writer)?;
+
+                        if inner_tag == NbtTag::End {
+                            break;
+                        }
+
+                        read_nbt_string(reader, writer)?;
+                        read_nbt_content_recursive(&inner_tag, reader, writer)?;
+                    }
+                    Ok(())
+                }
+                NbtTag::List => {
+                    let tag_type = read_tag(reader, writer)?;
+                    let length = read_i32(reader, writer)?;
+
+                    for _ in 0..length {
+                        read_nbt_content_recursive(&tag_type, reader, writer)?;
+                    }
+
+                    Ok(())
+                }
+                _ => read_tag_content_simple(tag, reader, writer),
+            }
+        }
+
+        fn read_tag_content_simple<R, W>(tag: &NbtTag, reader: &mut R, writer: &mut W) -> Result<(), io::Error>
+        where
+            R: Read,
+            W: Write,
+        {
+            match tag {
+                NbtTag::Byte => copy_bytes(reader, writer, 1),
+                NbtTag::Short => copy_bytes(reader, writer, 2),
+                NbtTag::Int => copy_bytes(reader, writer, 4),
+                NbtTag::Long => copy_bytes(reader, writer, 8),
+                NbtTag::Float => copy_bytes(reader, writer, 4),
+                NbtTag::Double => copy_bytes(reader, writer, 8),
+                NbtTag::ByteArray => {
+                    let len = read_i32(reader, writer)?;
+                    copy_bytes(reader, writer, len as usize)?;
+                    Ok(())
+                }
+                NbtTag::IntArray => {
+                    let len = read_i32(reader, writer)?;
+                    copy_bytes(reader, writer, len as usize * 4)?;
+                    Ok(())
+                }
+                NbtTag::LongArray => {
+                    let len = read_i32(reader, writer)?;
+                    copy_bytes(reader, writer, len as usize * 8)?;
+                    Ok(())
+                }
+                NbtTag::String => read_nbt_string(reader, writer),
+                _ => Err(io::Error::new(io::ErrorKind::InvalidData, "Unexpected complex tag")),
+            }
+        }
+
+        fn read_nbt_string<R, W>(reader: &mut R, writer: &mut W) -> Result<(), io::Error>
+        where
+            R: Read,
+            W: Write,
+        {
+            let len = read_u16(reader, writer)?;
+            copy_bytes(reader, writer, len as usize)
+        }
+
+        fn read_tag<R: Read, W: Write>(reader: &mut R, writer: &mut W) -> Result<NbtTag, io::Error> {
+            let mut buf = [0u8; 1];
+            reader.read_exact(&mut buf)?;
+            writer.write_all(&buf)?;
+            Ok(NbtTag::from(buf[0])) //todo: use try from
+        }
+
+        fn read_i32<R: Read, W: Write>(reader: &mut R, writer: &mut W) -> Result<i32, io::Error> {
+            let mut buf = [0u8; 4];
+            reader.read_exact(&mut buf)?;
+            writer.write_all(&buf)?;
+            Ok(i32::from_be_bytes(buf))
+        }
+
+        fn read_u16<R: Read, W: Write>(reader: &mut R, writer: &mut W) -> Result<u16, io::Error> {
+            let mut buf = [0u8; 2];
+            reader.read_exact(&mut buf)?;
+            writer.write_all(&buf)?;
+            Ok(u16::from_be_bytes(buf))
+        }
+
+        fn copy_bytes<R: Read, W: Write>(reader: &mut R, writer: &mut W, count: usize) -> Result<(), io::Error> {
+            if (count == 0) {
+                return Ok(());
+            }
+
+            if count <= 1024 {
+                let mut buf = [0u8; 1024];
+                let slice = &mut buf[..count];
+                reader.read_exact(slice)?;
+                writer.write_all(slice)?;
+            } else {
+                let mut limited = reader.take(count as u64);
+                let copied = io::copy(&mut limited, writer)?;
+
+                if copied < count as u64 {
+                    return Err(io::Error::new(io::ErrorKind::UnexpectedEof, "Incomplete NBT data"));
+                }
+            }
+
+            Ok(())
+        }
+    }
+}
+
 mod maps {
     use crate::{FromNbt, NBTError, NbtTape, NbtTapeElement, Result};
     use std::collections::{BTreeMap, HashMap};

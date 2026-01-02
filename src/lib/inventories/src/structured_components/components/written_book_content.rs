@@ -1,5 +1,4 @@
-﻿use crate::structured_components::data::TextComponent;
-use ferrumc_net_codec::decode::errors::NetDecodeError;
+﻿use ferrumc_net_codec::decode::errors::NetDecodeError;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::encode::errors::NetEncodeError;
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
@@ -8,6 +7,8 @@ use ferrumc_net_codec::net_types::prefixed_optional::PrefixedOptional;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::{Read, Write};
 use tokio::io::{AsyncRead, AsyncWrite};
+use ferrumc_text::TextComponent;
+use crate::structured_components::data::StructuredTextComponent;
 
 #[derive(Debug, Clone, Hash, Default, PartialEq)]
 pub struct WrittenBookContent {
@@ -21,36 +22,8 @@ pub struct WrittenBookContent {
 
 #[derive(Debug, Clone, Hash, Default, PartialEq)]
 pub struct Page {
-    pub raw_text: TextComponent,
-    pub filtered_text: PrefixedOptional<TextComponent>,
-}
-
-impl NetEncode for WrittenBookContent {
-    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
-        self.raw_title.encode(writer, opts)?;
-        self.filtered_title.encode(writer, opts)?;
-        self.author.encode(writer, opts)?;
-        self.generation.encode(writer, opts)?;
-        self.pages.encode(writer, opts)?;
-        self.is_resolved.encode(writer, opts)?;
-
-        Ok(())
-    }
-
-    async fn encode_async<W: AsyncWrite + Unpin>(
-        &self,
-        writer: &mut W,
-        opts: &NetEncodeOpts,
-    ) -> Result<(), NetEncodeError> {
-        self.raw_title.encode_async(writer, opts).await?;
-        self.filtered_title.encode_async(writer, opts).await?;
-        self.author.encode_async(writer, opts).await?;
-        self.generation.encode_async(writer, opts).await?;
-        self.pages.encode_async(writer, opts).await?;
-        self.is_resolved.encode_async(writer, opts).await?;
-
-        Ok(())
-    }
+    pub raw_text: StructuredTextComponent,
+    pub filtered_text: PrefixedOptional<StructuredTextComponent>,
 }
 
 impl NetDecode for WrittenBookContent {
@@ -94,6 +67,59 @@ impl NetDecode for WrittenBookContent {
     }
 }
 
+impl NetEncode for WrittenBookContent {
+    fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+        self.raw_title.encode(writer, opts)?;
+        self.filtered_title.encode(writer, opts)?;
+        self.author.encode(writer, opts)?;
+        self.generation.encode(writer, opts)?;
+        self.pages.encode(writer, opts)?;
+        self.is_resolved.encode(writer, opts)?;
+
+        Ok(())
+    }
+
+    async fn encode_async<W: AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
+        self.raw_title.encode_async(writer, opts).await?;
+        self.filtered_title.encode_async(writer, opts).await?;
+        self.author.encode_async(writer, opts).await?;
+        self.generation.encode_async(writer, opts).await?;
+        self.pages.encode_async(writer, opts).await?;
+        self.is_resolved.encode_async(writer, opts).await?;
+
+        Ok(())
+    }
+}
+
+impl NetDecode for Page {
+    fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
+        let raw_text = StructuredTextComponent::decode(reader, opts)?;
+        let filtered_text = PrefixedOptional::decode(reader, opts)?;
+
+        Ok(Self {
+            raw_text,
+            filtered_text,
+        })
+    }
+
+    async fn decode_async<R: AsyncRead + Unpin>(
+        reader: &mut R,
+        opts: &NetDecodeOpts,
+    ) -> Result<Self, NetDecodeError> {
+        let raw_text = StructuredTextComponent::decode_async(reader, opts).await?;
+        let filtered_text = PrefixedOptional::decode_async(reader, opts).await?;
+
+        Ok(Self {
+            raw_text,
+            filtered_text,
+        })
+    }
+}
+
 impl NetEncode for Page {
     fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
         self.raw_text.encode(writer, opts)?;
@@ -111,30 +137,5 @@ impl NetEncode for Page {
         self.filtered_text.encode_async(writer, opts).await?;
 
         Ok(())
-    }
-}
-
-impl NetDecode for Page {
-    fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
-        let raw_text = TextComponent::decode(reader, opts)?;
-        let filtered_text = PrefixedOptional::decode(reader, opts)?;
-
-        Ok(Self {
-            raw_text,
-            filtered_text,
-        })
-    }
-
-    async fn decode_async<R: AsyncRead + Unpin>(
-        reader: &mut R,
-        opts: &NetDecodeOpts,
-    ) -> Result<Self, NetDecodeError> {
-        let raw_text = TextComponent::decode_async(reader, opts).await?;
-        let filtered_text = PrefixedOptional::decode_async(reader, opts).await?;
-
-        Ok(Self {
-            raw_text,
-            filtered_text,
-        })
     }
 }

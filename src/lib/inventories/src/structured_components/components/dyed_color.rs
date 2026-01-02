@@ -1,7 +1,6 @@
 ﻿use ferrumc_macros::{NetDecode, NetEncode};
-use ferrumc_net_codec::net_types::var_int::VarInt;
 
 #[derive(Debug, NetDecode, NetEncode, Clone, Hash, Default, PartialEq)]
-pub struct MaxStackSize {
-    pub value: VarInt,
+pub struct DyedColor {
+    pub color: i32,
 }
