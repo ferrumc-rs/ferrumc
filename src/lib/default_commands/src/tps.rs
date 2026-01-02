@@ -11,7 +11,7 @@ fn tps_command(#[sender] sender: Sender, performance_res: ResMut<ServerPerforman
     let performance = performance_res.into_inner();
 
     let tps = &performance.tps;
-    let (current, peak) = performance.memory.get_memory(MemoryUnit::Megabytes);
+    let (current, peak) = performance.memory.get_memory(MemoryUnit::Kilobytes);
 
     sender.send_message(
         TextComponentBuilder::new("Server Performance\n")
@@ -73,7 +73,7 @@ fn tps_command(#[sender] sender: Sender, performance_res: ResMut<ServerPerforman
             // Memory section
             .extra(TextComponent::from("\n\n"))
             .extra(
-                TextComponentBuilder::new("Memory (MB)\n")
+                TextComponentBuilder::new("Memory (MiB)\n")
                     .color(NamedColor::Gray)
                     .build(),
             )
@@ -83,7 +83,7 @@ fn tps_command(#[sender] sender: Sender, performance_res: ResMut<ServerPerforman
                     .build(),
             )
             .extra(
-                TextComponentBuilder::new(format!("{}MB", current))
+                TextComponentBuilder::new(format!("{:.2}MiB", get_mib(current)))
                     .color(NamedColor::White)
                     .build(),
             )
@@ -98,7 +98,7 @@ fn tps_command(#[sender] sender: Sender, performance_res: ResMut<ServerPerforman
                     .build(),
             )
             .extra(
-                TextComponentBuilder::new(format!("{}MB", peak))
+                TextComponentBuilder::new(format!("{:.2}MiB", get_mib(peak)))
                     .color(NamedColor::White)
                     .build(),
             )
@@ -133,4 +133,8 @@ fn get_percentile_component(percentile: f64) -> TextComponent {
     TextComponentBuilder::new(format!("{:.2}ms ", percentile))
         .color(color)
         .build()
+}
+
+fn get_mib(kb: u64) -> f64 {
+    (kb as f64) / 1024.0
 }
