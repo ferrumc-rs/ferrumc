@@ -155,7 +155,7 @@ crossbeam-queue = "0.3.12"
 
 # Network
 ureq = "3.1.4"
-reqwest = { version = "0.12.28", features = ["json"] }
+reqwest = { version = "0.13.1", features = ["json"] }
 
 # Error handling
 thiserror = "2.0.17"
@@ -173,7 +173,7 @@ num-bigint = "0.4.6"
 
 # Encoding/Serialization
 serde = { version = "1.0.228", features = ["derive"] }
-serde_json = "1.0.146"
+serde_json = "1.0.148"
 serde_derive = "1.0.228"
 base64 = "0.22.1"
 
@@ -196,8 +196,8 @@ bimap = "0.6.3"
 # Macros
 lazy_static = "1.5.0"
 quote = "1.0.42"
-syn = "2.0.111"
-proc-macro2 = "1.0.103"
+syn = "2.0.112"
+proc-macro2 = "1.0.104"
 paste = "1.0.15"
 maplit = "1.0.2"
 macro_rules_attribute = "0.2.2"
@@ -214,7 +214,6 @@ yazi = "0.2.1"
 
 # Database
 heed = "0.22.1-nested-rtxns-6"
-moka = "0.12.12"
 
 # CLI
 clap = "4.5.53"
@@ -244,3 +243,6 @@ criterion = { version = "0.7.0", features = ["html_reports"] }
 
 phf = { version = "0.11", features = ["macros"] }
 phf_codegen = { version = "0.11" }
+
+[profile.dev.package.yazi]
+opt-level = 3

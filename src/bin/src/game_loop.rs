@@ -276,6 +276,20 @@ fn build_timed_scheduler() -> Scheduler {
     );
 
     // -------------------------------------------------------------------------
+    // CHUNK GC SCHEDULE - Periodic chunk garbage collection
+    // -------------------------------------------------------------------------
+    //
+    // Cleans up unused chunks from memory to free resources.
+    // Uses Skip behavior - if we miss a GC, just wait for the next one.
+    let build_chunk_gc = |s: &mut Schedule| {
+        s.add_systems(crate::systems::chunk_unloader::handle);
+    };
+    timed.register(
+        TimedSchedule::new("chunk_gc", Duration::from_secs(5), build_chunk_gc)
+            .with_behavior(MissedTickBehavior::Skip),
+    );
+
+    // -------------------------------------------------------------------------
     // KEEPALIVE SCHEDULE - Prevents client timeout disconnects
     // -------------------------------------------------------------------------
     // Sends keepalive packets to all connected players to maintain the connection.

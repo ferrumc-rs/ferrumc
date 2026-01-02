@@ -48,10 +48,6 @@ pub fn handle(
 
         needed_chunks.extend(dirty_chunks);
 
-        for coords in &needed_chunks {
-            chunk_receiver.loaded.insert(*coords);
-        }
-
         if needed_chunks.is_empty() {
             continue;
         }
@@ -70,22 +66,19 @@ pub fn handle(
         .expect("Failed to send SetCenterChunk");
 
         for coordinates in needed_chunks.into_iter().map(|c| ChunkPos::new(c.0, c.1)) {
+            chunk_receiver
+                .loaded
+                .insert((coordinates.x(), coordinates.z()));
             let state = state.clone();
             let is_compressed = conn.compress.load(Ordering::Relaxed);
             batch.execute({
                 move || {
-                    let chunk = state
-                        .0
-                        .world
-                        .load_chunk(coordinates, "overworld")
-                        .unwrap_or(
-                            state
-                                .0
-                                .terrain_generator
-                                .generate_chunk(coordinates)
-                                .expect("Could not generate chunk")
-                                .into(),
-                        );
+                    let chunk = ferrumc_utils::world::load_or_generate_chunk(
+                        &state.0,
+                        coordinates,
+                        "overworld",
+                    )
+                    .expect("Failed to load or generate chunk");
                     let packet = ChunkAndLightData::from_chunk(coordinates, &chunk)
                         .expect("Failed to create ChunkAndLightData");
                     compress_packet(
@@ -109,5 +102,16 @@ pub fn handle(
             batch_size: packets_len.into(),
         })
         .expect("Failed to send ChunkBatchFinish");
+
+        // Tell the client to unload chunks that are no longer needed
+
+        while let Some(coords) = &chunk_receiver.unloading.pop_front() {
+            let packet = ferrumc_net::packets::outgoing::unload_chunk::UnloadChunk {
+                x: coords.0,
+                z: coords.1,
+            };
+            conn.send_packet(packet)
+                .expect("Failed to send UnloadChunk packet");
+        }
     }
 }

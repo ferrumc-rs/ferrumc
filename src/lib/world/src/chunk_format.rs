@@ -40,6 +40,7 @@ pub struct Heightmaps {
 }
 #[derive(Encode, Decode, Clone, DeepSizeOf, Eq, PartialEq, Debug)]
 pub struct Section {
+    pub dirty: bool,
     pub block_states: BlockStates,
     pub biome_states: BiomeStates,
     pub block_light: Vec<u8>,
@@ -124,6 +125,7 @@ impl VanillaChunk {
         };
         let mut sections = vec![
             Section {
+                dirty: false,
                 block_states: BlockStates {
                     non_air_blocks: 0,
                     block_data: PaletteType::Single(VarInt::from(0)),
@@ -215,6 +217,7 @@ impl VanillaChunk {
                 palette: vec![VarInt::from(0); 1],
             };
             let section = Section {
+                dirty: false,
                 block_states,
                 biome_states,
                 block_light,
@@ -238,6 +241,7 @@ impl Chunk {
         let mut sections: Vec<Section> = (height.min_y.div_euclid(16)
             ..height.max_y().div_euclid(16))
             .map(|_| Section {
+                dirty: false,
                 block_states: BlockStates {
                     non_air_blocks: 0,
                     block_data: PaletteType::Single(VarInt::from(0)),
@@ -302,6 +306,7 @@ mod tests {
     #[test]
     fn test_section_fill() {
         let mut section = Section {
+            dirty: false,
             block_states: BlockStates {
                 non_air_blocks: 0,
                 block_data: PaletteType::Single(VarInt::from(0)),

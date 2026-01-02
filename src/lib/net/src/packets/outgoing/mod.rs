@@ -52,3 +52,5 @@ pub mod set_container_slot;
 pub mod set_player_inventory_slot;
 
 pub mod particle;
+
+pub mod unload_chunk;

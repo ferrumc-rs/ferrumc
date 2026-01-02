@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::errors::BinaryError;
 use bevy_ecs::prelude::{Entity, MessageWriter, Query, Res};
 use ferrumc_components::player::abilities::PlayerAbilities;
@@ -13,7 +11,7 @@ use ferrumc_net::PlayerActionReceiver;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalStateResource;
 use ferrumc_world::{block_state_id::BlockStateId, pos::BlockPos};
-use tracing::{error, trace, warn};
+use tracing::{error, warn};
 
 pub fn handle(
     receiver: Res<PlayerActionReceiver>,
@@ -44,31 +42,14 @@ pub fn handle(
             // Only instabreak (status 0) is relevant in creative.
             if event.status.0 == 0 {
                 let res: Result<(), BinaryError> = try {
-                    let mut chunk = match state
-                        .0
-                        .clone()
-                        .world
-                        .load_chunk_owned(pos.chunk(), "overworld")
-                    {
-                        Ok(chunk) => chunk,
-                        Err(e) => {
-                            trace!("Chunk not found, generating new chunk: {:?}", e);
-                            state
-                                .0
-                                .clone()
-                                .terrain_generator
-                                .generate_chunk(pos.chunk())
-                                .map_err(BinaryError::WorldGen)?
-                        }
-                    };
+                    let mut chunk = ferrumc_utils::world::load_or_generate_mut(
+                        &state.0,
+                        pos.chunk(),
+                        "overworld",
+                    )
+                    .expect("Failed to load or generate chunk");
                     chunk
                         .set_block(pos.chunk_block_pos(), BlockStateId::default())
-                        .map_err(BinaryError::World)?;
-
-                    state
-                        .0
-                        .world
-                        .save_chunk(pos.chunk(), "overworld", Arc::new(chunk))
                         .map_err(BinaryError::World)?;
 
                     // Send block broken event for un-grounding system

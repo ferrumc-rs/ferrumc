@@ -117,16 +117,9 @@ pub fn handle(
 }
 
 pub fn is_solid_block(state: &GlobalState, pos: IVec3) -> bool {
-    state
-        .world
-        .load_chunk(ChunkPos::from(pos.as_dvec3()), "overworld")
-        .unwrap_or(
-            state
-                .terrain_generator
-                .generate_chunk(ChunkPos::from(pos.as_dvec3()))
-                .expect("Failed to generate chunk")
-                .into(),
-        )
+    let chunk_coordinates = ChunkPos::from(pos.as_dvec3());
+    ferrumc_utils::world::load_or_generate_mut(state, chunk_coordinates, "overworld")
+        .expect("Failed to load or generate chunk")
         .get_block(ChunkBlockPos::from(pos))
         .map(|block_state| {
             !match_block!("air", block_state)
