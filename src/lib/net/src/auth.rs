@@ -74,7 +74,7 @@ pub(crate) async fn authenticate_user(
     Ok((username, uuid, properties))
 }
 
-// Helper structs to decode Mojang's json response
+// Helper data to decode Mojang's json response
 #[derive(Deserialize)]
 struct MojangAuthResponse {
     name: String,

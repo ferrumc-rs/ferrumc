@@ -1,4 +1,5 @@
 use crate::item::ItemID;
+use crate::structured_components::generated::StructuredComponent;
 use ferrumc_net_codec::decode::errors::NetDecodeError;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::encode::errors::NetEncodeError;
@@ -14,7 +15,7 @@ pub struct InventorySlot {
     pub item_id: Option<ItemID>,
     pub components_to_add_count: Option<VarInt>,
     pub components_to_remove_count: Option<VarInt>,
-    pub components_to_add: Option<Vec<VarInt>>,
+    pub components_to_add: Option<Vec<StructuredComponent>>,
     pub components_to_remove: Option<Vec<VarInt>>,
     // https://minecraft.wiki/w/Java_Edition_protocol/Slot_data
 }
@@ -61,7 +62,7 @@ impl NetDecode for InventorySlot {
             let components_to_add = {
                 let mut components = Vec::with_capacity(components_to_add_count.0 as usize);
                 for _ in 0..components_to_add_count.0 {
-                    components.push(VarInt::decode(reader, opts)?);
+                    components.push(StructuredComponent::decode(reader, opts)?);
                 }
                 Some(components)
             };
@@ -207,12 +208,13 @@ mod tests {
         assert_eq!(simple_slot, decoded_simple, "Simple slot roundtrip failed");
 
         // --- Test Case 2: The Full NBT/Component Slot ---
+
         let complex_slot = InventorySlot {
             count: VarInt::new(1),
             item_id: Some(ItemID::new(872)),
-            components_to_add_count: Some(VarInt::new(2)),
+            components_to_add_count: Some(VarInt::new(0)),
             components_to_remove_count: Some(VarInt::new(1)),
-            components_to_add: Some(vec![VarInt::new(10), VarInt::new(11)]),
+            components_to_add: Some(vec![]),
             components_to_remove: Some(vec![VarInt::new(20)]),
         };
         let decoded_complex = run_roundtrip_test(&complex_slot);
