@@ -1,3 +1,4 @@
+/// THIS IS TEMPRORARY AND WILL BE MOVED TO FERRUMC-WORLD ONCE OTHER WORLD-RELATED PR'S ARE MERGED
 pub fn load_or_generate_chunk<'a>(
     state: &'a std::sync::Arc<ferrumc_state::ServerState>,
     chunk_pos: ferrumc_world::pos::ChunkPos,
@@ -19,7 +20,7 @@ pub fn load_or_generate_chunk<'a>(
         state.world.load_chunk(chunk_pos, dimension)
     }
 }
-
+/// THIS IS TEMPRORARY AND WILL BE MOVED TO FERRUMC-WORLD ONCE OTHER WORLD-RELATED PR'S ARE MERGED
 pub fn load_or_generate_mut<'a>(
     state: &'a std::sync::Arc<ferrumc_state::ServerState>,
     chunk_pos: ferrumc_world::pos::ChunkPos,
