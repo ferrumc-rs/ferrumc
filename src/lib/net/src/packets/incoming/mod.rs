@@ -40,5 +40,8 @@ pub mod set_held_item;
 
 pub mod change_game_mode;
 pub mod click_container;
+pub mod client_command;
 pub mod close_container;
 pub mod encryption_response;
+pub mod interact;
+pub mod use_item;
