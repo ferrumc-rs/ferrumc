@@ -8,7 +8,7 @@ use zip::ZipArchive;
 // CONFIGURATION
 // Since we set up the GitHub Action to release to 'latest', we can use this URL.
 const DASHBOARD_URL: &str =
-    "https://github.com/ErdemGKSL/dashboard/releases/download/latest/ferrumc-dashboard.zip";
+    "https://github.com/ferrumc-rs/dashboard/releases/download/latest/ferrumc-dashboard.zip";
 
 fn main() -> Result<()> {
     // Tell Cargo about our custom cfg flags to suppress warnings
