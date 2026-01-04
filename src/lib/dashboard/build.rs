@@ -17,32 +17,18 @@ fn main() -> Result<()> {
     println!("cargo::rustc-check-cfg=cfg(dashboard_build)");
     
     // 1. Determine where to put the files.
-    // Try OUT_DIR first (standard for build artifacts), fall back to CARGO_MANIFEST_DIR
-    // because proc macros like include_dir! don't always see OUT_DIR reliably.
-    let (dest_dir, zip_path, use_out_dir) = if let Ok(out_dir) = env::var("OUT_DIR") {
+    let (dest_dir, use_out_dir) = if let Ok(out_dir) = env::var("OUT_DIR") {
         let out_path = Path::new(&out_dir);
         // Check if OUT_DIR actually exists and is accessible
         if out_path.exists() {
-            (
-                out_path.join("dashboard"),
-                out_path.join("dashboard.zip"),
-                true,
-            )
+            (out_path.join("dashboard"), true)
         } else {
             let manifest_dir = env::var("CARGO_MANIFEST_DIR")?;
-            (
-                Path::new(&manifest_dir).join("dashboard-dist"),
-                Path::new(&manifest_dir).join("dashboard.zip"),
-                false,
-            )
+            (Path::new(&manifest_dir).join("dashboard-dist"), false)
         }
     } else {
         let manifest_dir = env::var("CARGO_MANIFEST_DIR")?;
-        (
-            Path::new(&manifest_dir).join("dashboard-dist"),
-            Path::new(&manifest_dir).join("dashboard.zip"),
-            false,
-        )
+        (Path::new(&manifest_dir).join("dashboard-dist"), false)
     };
     
     // Emit which path we're using so include_dir! knows where to look
@@ -52,34 +38,25 @@ fn main() -> Result<()> {
         println!("cargo:rustc-cfg=dashboard_in_manifest_dir");
     }
 
-    // 2. Logic to decide when to download.
-    // We check if the directory exists. If it doesn't, we download.
-    // We can also force a download by setting an ENV var: FORCE_UPDATE=1
-    let should_download = std::env::var("FORCE_UPDATE").is_ok() || !dest_dir.exists();
+    // 2. Always attempt to download the dashboard
+    println!(
+        "cargo:warning=Downloading Dashboard artifact from {}",
+        DASHBOARD_URL
+    );
 
-    if should_download {
-        println!(
-            "cargo:warning=Downloading Dashboard artifact from {}",
-            DASHBOARD_URL
-        );
+    let client = reqwest::blocking::Client::new();
+    let download_result = client
+        .get(DASHBOARD_URL)
+        .header("User-Agent", "ferrumc-build-script")
+        .send();
 
-        // Delete existing directory if it exists
-        if dest_dir.exists() {
-            fs::remove_dir_all(&dest_dir)?;
-        }
+    match download_result {
+        Ok(response) if response.status().is_success() => {
+            // Delete existing directory if it exists
+            if dest_dir.exists() {
+                fs::remove_dir_all(&dest_dir)?;
+            }
 
-        // Delete existing zip if it exists
-        if zip_path.exists() {
-            fs::remove_file(&zip_path)?;
-        }
-
-        let client = reqwest::blocking::Client::new();
-        let response = client
-            .get(DASHBOARD_URL)
-            .header("User-Agent", "ferrumc-build-script")
-            .send()?;
-
-        if response.status().is_success() {
             let content = response.bytes()?;
             
             // Extract the zip file
@@ -106,24 +83,24 @@ fn main() -> Result<()> {
             }
             
             println!("cargo:warning=Dashboard extracted to {:?}", dest_dir);
-        } else {
-            // Fallback: If download fails (e.g., no internet, repo private),
-            // create a dummy file so the build doesn't crash during dev.
-            println!("cargo:warning=Failed to download dashboard. Using fallback.");
-            fs::create_dir_all(&dest_dir)?;
-            let mut file = fs::File::create(dest_dir.join("index.html"))?;
-            file.write_all(b"<h1>Dashboard Offline (Build failed to fetch)</h1>")?;
+        }
+        _ => {
+            // Download failed (no internet, request error, non-success status)
+            if dest_dir.exists() {
+                // Use existing dashboard files
+                println!("cargo:warning=Download failed, using existing dashboard files.");
+            } else {
+                // Create fallback HTML
+                println!("cargo:warning=Download failed and no existing dashboard. Creating fallback.");
+                fs::create_dir_all(&dest_dir)?;
+                let mut file = fs::File::create(dest_dir.join("index.html"))?;
+                file.write_all(b"<h1>Dashboard Offline (Build failed to fetch)</h1>")?;
+            }
         }
     }
 
-    // 3. Tell Cargo to rerun this script if specific conditions change
-    println!("cargo:rerun-if-env-changed=FORCE_UPDATE");
-    
-    // 4. Emit a cfg flag so the main code knows build.rs ran
+    // Emit a cfg flag so the main code knows build.rs ran
     println!("cargo:rustc-cfg=dashboard_build");
-    
-    // 5. Rerun if the dashboard-dist directory is deleted
-    println!("cargo:rerun-if-changed=dashboard-dist");
 
     Ok(())
 }
