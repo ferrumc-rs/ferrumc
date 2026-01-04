@@ -246,13 +246,11 @@ criterion = { version = "0.7.0", features = ["html_reports"] }
 phf = { version = "0.11", features = ["macros"] }
 phf_codegen = { version = "0.11" }
 
-<<<<<<< HEAD
 # Web server
 axum = { version = "0.8.7", features = ["tokio", "ws"]}
 
 # Stats
 sysinfo = "0.37.2"
-=======
+
 [profile.dev.package.yazi]
 opt-level = 3
->>>>>>> master
