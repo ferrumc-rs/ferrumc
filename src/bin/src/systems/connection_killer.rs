@@ -106,7 +106,7 @@ pub fn connection_killer(
             let data_to_cache = OfflinePlayerData {
                 abilities: *abilities,
                 gamemode: gamemode.0,
-                position: pos.clone(),
+                position: *pos,
                 rotation: *rot,
                 inventory: inv.clone(),
                 health: *health,

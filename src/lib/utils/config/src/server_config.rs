@@ -45,16 +45,12 @@ pub struct ServerConfig {
 ///   to hold everything before it starts writing to disk. This isn't memory use though, it's just
 ///   how much we can map into memory if needed, so you can set this to an insane number if you want,
 ///   but it won't actually use that much memory, it'll just show up as virtual memory use.
-/// - `cache_ttl`: The time to live for cache entries in seconds.
-/// - `cache_capacity`: How big the cache can be in kb.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct DatabaseConfig {
     pub compression: String,
     pub db_path: String,
     pub compression_level: i32,
     pub map_size: u64,
-    pub cache_ttl: u64,
-    pub cache_capacity: u64,
 }
 
 /// The database compression enum for [DatabaseConfig].

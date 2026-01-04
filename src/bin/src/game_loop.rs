@@ -12,6 +12,7 @@ use crate::register_messages::register_messages;
 use crate::register_resources::register_resources;
 use crate::systems::lan_pinger::LanPinger;
 use crate::systems::listeners::register_gameplay_listeners;
+use crate::systems::mobs::register_mob_systems;
 use crate::systems::physics::register_physics;
 use crate::systems::register_game_systems;
 use crate::systems::shutdown_systems::register_shutdown_systems;
@@ -252,6 +253,7 @@ fn build_timed_scheduler() -> Scheduler {
         register_game_systems(s); // General game logic
         register_gameplay_listeners(s); // Event listeners for gameplay events
         register_physics(s); // Physics systems (movement, collision, etc.)
+        register_mob_systems(s); // Mob AI and behavior
     };
     let tick_period = Duration::from_secs(1) / get_global_config().tps;
     timed.register(
@@ -270,6 +272,20 @@ fn build_timed_scheduler() -> Scheduler {
     };
     timed.register(
         TimedSchedule::new("world_sync", Duration::from_secs(15), build_world_sync)
+            .with_behavior(MissedTickBehavior::Skip),
+    );
+
+    // -------------------------------------------------------------------------
+    // CHUNK GC SCHEDULE - Periodic chunk garbage collection
+    // -------------------------------------------------------------------------
+    //
+    // Cleans up unused chunks from memory to free resources.
+    // Uses Skip behavior - if we miss a GC, just wait for the next one.
+    let build_chunk_gc = |s: &mut Schedule| {
+        s.add_systems(crate::systems::chunk_unloader::handle);
+    };
+    timed.register(
+        TimedSchedule::new("chunk_gc", Duration::from_secs(5), build_chunk_gc)
             .with_behavior(MissedTickBehavior::Skip),
     );
 
