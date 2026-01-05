@@ -7,7 +7,6 @@ use ferrumc_general_purpose::data_packing::i32::read_nbit_i32;
 use ferrumc_macros::block;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
-use std::sync::Arc;
 use tracing::{debug, error, warn};
 
 impl World {
@@ -63,7 +62,7 @@ impl World {
         dimension: &str,
         block: BlockStateId,
     ) -> Result<(), WorldError> {
-        let mut chunk = self.load_chunk_owned(pos.chunk(), dimension)?;
+        let mut chunk = self.load_chunk_mut(pos.chunk(), dimension)?;
 
         debug!("Chunk: {}", pos.chunk());
 
@@ -72,8 +71,6 @@ impl World {
             section.optimise()?;
         }
 
-        // Save chunk
-        self.save_chunk(pos.chunk(), dimension, Arc::new(chunk))?;
         Ok(())
     }
 }
@@ -378,6 +375,8 @@ impl Section {
             .map(|(_, count)| *count as u16)
             .sum();
 
+        self.dirty = true;
+
         Ok(())
     }
 
@@ -432,6 +431,7 @@ impl Section {
         } else {
             self.block_states.non_air_blocks = 4096;
         }
+        self.dirty = true;
         Ok(())
     }
 
@@ -503,6 +503,7 @@ impl Section {
                 todo!("Implement optimisation for direct palette");
             }
         };
+        self.dirty = true;
 
         Ok(())
     }

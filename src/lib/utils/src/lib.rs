@@ -1,5 +1,7 @@
 pub mod errors;
 pub mod formatting;
+pub mod maths;
+pub mod world;
 
 /// Gets the fully qualified path to the root of the project and joins it with the given path.
 ///

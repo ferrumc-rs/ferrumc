@@ -1,9 +1,8 @@
-use std::sync::Arc;
-
 use crate::errors::BinaryError;
 use bevy_ecs::prelude::{Entity, MessageWriter, Query, Res};
 use ferrumc_components::player::abilities::PlayerAbilities;
 use ferrumc_messages::player_digging::*;
+use ferrumc_messages::BlockBrokenEvent;
 
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::block_change_ack::BlockChangeAck;
@@ -12,16 +11,19 @@ use ferrumc_net::PlayerActionReceiver;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use ferrumc_state::GlobalStateResource;
 use ferrumc_world::{block_state_id::BlockStateId, pos::BlockPos};
-use tracing::{error, trace, warn};
+use tracing::{error, warn};
 
 pub fn handle(
     receiver: Res<PlayerActionReceiver>,
     state: Res<GlobalStateResource>,
     broadcast_query: Query<(Entity, &StreamWriter)>,
     player_query: Query<&PlayerAbilities>,
-    mut start_dig_events: MessageWriter<PlayerStartedDigging>,
-    mut cancel_dig_events: MessageWriter<PlayerCancelledDigging>,
-    mut finish_dig_events: MessageWriter<PlayerFinishedDigging>,
+    (mut start_dig_events, mut cancel_dig_events, mut finish_dig_events, mut block_break_events): (
+        MessageWriter<PlayerStartedDigging>,
+        MessageWriter<PlayerCancelledDigging>,
+        MessageWriter<PlayerFinishedDigging>,
+        MessageWriter<BlockBrokenEvent>,
+    ),
 ) {
     // https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol?oldid=2773393#Player_Action
     for (event, trigger_eid) in receiver.0.try_iter() {
@@ -40,32 +42,18 @@ pub fn handle(
             // Only instabreak (status 0) is relevant in creative.
             if event.status.0 == 0 {
                 let res: Result<(), BinaryError> = try {
-                    let mut chunk = match state
-                        .0
-                        .clone()
-                        .world
-                        .load_chunk_owned(pos.chunk(), "overworld")
-                    {
-                        Ok(chunk) => chunk,
-                        Err(e) => {
-                            trace!("Chunk not found, generating new chunk: {:?}", e);
-                            state
-                                .0
-                                .clone()
-                                .terrain_generator
-                                .generate_chunk(pos.chunk())
-                                .map_err(BinaryError::WorldGen)?
-                        }
-                    };
+                    let mut chunk = ferrumc_utils::world::load_or_generate_mut(
+                        &state.0,
+                        pos.chunk(),
+                        "overworld",
+                    )
+                    .expect("Failed to load or generate chunk");
                     chunk
                         .set_block(pos.chunk_block_pos(), BlockStateId::default())
                         .map_err(BinaryError::World)?;
 
-                    state
-                        .0
-                        .world
-                        .save_chunk(pos.chunk(), "overworld", Arc::new(chunk))
-                        .map_err(BinaryError::World)?;
+                    // Send block broken event for un-grounding system
+                    block_break_events.write(BlockBrokenEvent { position: pos });
 
                     // Broadcast the change
                     for (eid, conn) in &broadcast_query {

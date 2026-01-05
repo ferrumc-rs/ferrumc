@@ -30,19 +30,7 @@ impl MemoryUsage {
 
         let process = self.sys.process(self.process_pid)?;
 
-        let rss_bytes = {
-            let raw = process.memory();
-
-            #[cfg(windows)]
-            {
-                raw
-            }
-
-            #[cfg(not(windows))]
-            {
-                raw * 1024
-            }
-        };
+        let rss_bytes = process.memory();
 
         self.max_rss_bytes = self.max_rss_bytes.max(rss_bytes);
         Some(rss_bytes)
