@@ -15,7 +15,7 @@ fn main() -> Result<()> {
     println!("cargo::rustc-check-cfg=cfg(dashboard_in_out_dir)");
     println!("cargo::rustc-check-cfg=cfg(dashboard_in_manifest_dir)");
     println!("cargo::rustc-check-cfg=cfg(dashboard_build)");
-    
+
     // 1. Determine where to put the files.
     let (dest_dir, use_out_dir) = if let Ok(out_dir) = env::var("OUT_DIR") {
         let out_path = Path::new(&out_dir);
@@ -30,7 +30,7 @@ fn main() -> Result<()> {
         let manifest_dir = env::var("CARGO_MANIFEST_DIR")?;
         (Path::new(&manifest_dir).join("dashboard-dist"), false)
     };
-    
+
     // Emit which path we're using so include_dir! knows where to look
     if use_out_dir {
         println!("cargo:rustc-cfg=dashboard_in_out_dir");
@@ -58,19 +58,19 @@ fn main() -> Result<()> {
             }
 
             let content = response.bytes()?;
-            
+
             // Extract the zip file
             let cursor = Cursor::new(content);
             let mut archive = ZipArchive::new(cursor)?;
-            
+
             // Create the destination directory
             fs::create_dir_all(&dest_dir)?;
-            
+
             // Extract all files
             for i in 0..archive.len() {
                 let mut file = archive.by_index(i)?;
                 let outpath = dest_dir.join(file.mangled_name());
-                
+
                 if file.is_dir() {
                     fs::create_dir_all(&outpath)?;
                 } else {
@@ -81,7 +81,7 @@ fn main() -> Result<()> {
                     std::io::copy(&mut file, &mut outfile)?;
                 }
             }
-            
+
             println!("cargo:warning=Dashboard extracted to {:?}", dest_dir);
         }
         _ => {
@@ -91,7 +91,9 @@ fn main() -> Result<()> {
                 println!("cargo:warning=Download failed, using existing dashboard files.");
             } else {
                 // Create fallback HTML
-                println!("cargo:warning=Download failed and no existing dashboard. Creating fallback.");
+                println!(
+                    "cargo:warning=Download failed and no existing dashboard. Creating fallback."
+                );
                 fs::create_dir_all(&dest_dir)?;
                 let mut file = fs::File::create(dest_dir.join("index.html"))?;
                 file.write_all(b"<h1>Dashboard Offline (Build failed to fetch)</h1>")?;

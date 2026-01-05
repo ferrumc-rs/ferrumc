@@ -1,14 +1,14 @@
+use crate::telemetry::DashboardEvent;
 use axum::extract::Path;
 use axum::http::{header, StatusCode};
 use axum::response::{Html, IntoResponse, Response};
 use axum::routing::get;
 use axum::Router;
-use include_dir::{include_dir, Dir};
-use tokio::sync::broadcast;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_state::GlobalState;
+use include_dir::{include_dir, Dir};
+use tokio::sync::broadcast;
 use tracing::{debug, info};
-use crate::telemetry::DashboardEvent;
 
 /// Dashboard telemetry module
 mod telemetry;
@@ -92,9 +92,10 @@ async fn index_handler() -> impl IntoResponse {
 async fn static_handler(Path(path): Path<String>) -> Response {
     // Try to find the file in the embedded directory
     let path = path.trim_start_matches('/');
-    
+
     // Try multiple fallbacks for the path
-    let file = DASHBOARD_DIR.get_file(path)
+    let file = DASHBOARD_DIR
+        .get_file(path)
         // Try with index.html appended (for directory-style URLs like /admin/)
         .or_else(|| {
             let with_index = if path.is_empty() {
@@ -114,14 +115,14 @@ async fn static_handler(Path(path): Path<String>) -> Response {
                 None
             }
         });
-    
+
     match file {
         Some(file) => {
             let file_path = file.path().to_string_lossy();
             let mime_type = mime_guess::from_path(file_path.as_ref())
                 .first_or_octet_stream()
                 .to_string();
-            
+
             (
                 StatusCode::OK,
                 [(header::CONTENT_TYPE, mime_type)],
