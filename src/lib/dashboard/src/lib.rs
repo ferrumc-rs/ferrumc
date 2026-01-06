@@ -110,7 +110,7 @@ async fn static_handler(Path(path): Path<String>) -> Response {
         // Try with .html extension (for clean URLs like /about -> /about.html)
         .or_else(|| {
             if !path.contains('.') {
-                DASHBOARD_DIR.get_file(&format!("{}.html", path))
+                DASHBOARD_DIR.get_file(format!("{}.html", path))
             } else {
                 None
             }
