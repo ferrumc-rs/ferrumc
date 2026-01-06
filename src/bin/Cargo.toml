@@ -52,9 +52,10 @@ ctrlc = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 crossbeam-channel = { workspace = true }
 uuid = { workspace = true }
+dhat = { version = "0.3", optional = true }
 
 [features]
-dhat = []
+dhat = ["dep:dhat"]
 dashboard = [
     "dep:ferrumc-dashboard",
     "ferrumc-config/dashboard"
