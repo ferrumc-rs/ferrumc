@@ -27,7 +27,7 @@ impl BiomeGenerator for PlainsBiome {
 
         // Fill with water first
         for section_y in -4..4 {
-            chunk.set_section(section_y as i8, block!("water", {level: 0}));
+            chunk.fill_section(section_y as i8, block!("water", {level: 0}));
         }
 
         // Then generate some heights
@@ -47,7 +47,7 @@ impl BiomeGenerator for PlainsBiome {
         let y_min = heights.iter().min_by(|a, b| a.2.cmp(&b.2)).unwrap().2;
         let highest_full_section = y_min / 16;
         for section_y in -4..highest_full_section {
-            chunk.set_section(section_y as i8, stone);
+            chunk.fill_section(section_y as i8, stone);
         }
 
         let above_filled_sections = (highest_full_section * 16) - 1;

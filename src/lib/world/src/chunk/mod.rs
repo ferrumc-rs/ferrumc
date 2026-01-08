@@ -16,7 +16,7 @@ use deepsize::DeepSizeOf;
 
 #[derive(Clone, DeepSizeOf, Encode, Decode)]
 pub struct Chunk {
-    pub sections: [ChunkSection; 24],
+    pub sections: Box<[ChunkSection]>,
     height: ChunkHeight,
 
     heightmaps: Option<Heightmaps>,
@@ -25,7 +25,7 @@ pub struct Chunk {
 impl Chunk {
     pub fn new_empty() -> Chunk {
         Self {
-            sections: core::array::from_fn(|_| ChunkSection::new_uniform(AIR)),
+            sections: vec![ChunkSection::new_uniform(AIR); 24].into_boxed_slice(),
             height: ChunkHeight::new(-64, 384),
             heightmaps: None,
         }
@@ -33,7 +33,7 @@ impl Chunk {
 
     pub fn new_empty_with_height(height: ChunkHeight) -> Chunk {
         Self {
-            sections: core::array::from_fn(|_| ChunkSection::new_uniform(AIR)),
+            sections: vec![ChunkSection::new_uniform(AIR); (height.height / 16) as usize].into_boxed_slice(),
             height,
             heightmaps: None,
         }
@@ -41,13 +41,13 @@ impl Chunk {
 
     pub fn new_with_sections(sections: [ChunkSection; 24]) -> Chunk {
         Self {
-            sections,
+            sections: sections.to_vec().into_boxed_slice(),
             height: ChunkHeight::new(-64, 384),
             heightmaps: None,
         }
     }
 
-    pub fn set_section(&mut self, y: i8, state: BlockStateId) {
+    pub fn fill_section(&mut self, y: i8, state: BlockStateId) {
         let section = y as i16 + -self.height.min_y / 16;
         assert!(section >= 0);
 
@@ -65,13 +65,7 @@ impl Chunk {
         let section = (pos.y() + -self.height.min_y) / 16;
         assert!(section >= 0);
 
-        self.update_heightmaps(pos, id);
-
         self.sections[section as usize].set_block(pos.section_block_pos(), id);
-    }
-
-    pub fn update_heightmaps(&mut self, _pos: ChunkBlockPos, _block: BlockStateId) {
-        // TODO: this should be implemented
     }
 }
 
