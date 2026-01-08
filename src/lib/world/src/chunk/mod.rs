@@ -145,7 +145,7 @@ impl World {
 
 #[cfg(test)]
 mod tests {
-    use crate::chunk::{Chunk, ChunkBlockPos};
+    use crate::chunk::{BlockStateId, Chunk, ChunkBlockPos};
     use ferrumc_macros::block;
 
     #[test]
