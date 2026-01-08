@@ -1,15 +1,16 @@
+use bitcode_derive::{Decode, Encode};
 use deepsize::DeepSizeOf;
 use ferrumc_macros::NetEncode;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 
-#[derive(Default, Clone, DeepSizeOf)]
+#[derive(Default, Clone, DeepSizeOf, Encode, Decode)]
 pub struct Heightmaps {
     pub world_surface: ChunkHeightmap,
     pub motion_blocking: ChunkHeightmap,
 }
 
-#[derive(Clone, DeepSizeOf)]
+#[derive(Clone, DeepSizeOf, Encode, Decode)]
 pub struct ChunkHeightmap {
     data: Box<[i16]>,
 }

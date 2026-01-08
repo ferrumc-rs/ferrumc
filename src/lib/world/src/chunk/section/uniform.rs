@@ -1,8 +1,9 @@
-use crate::chunk::BlockStateId;
-use deepsize::DeepSizeOf;
 use crate::chunk::section::AIR;
+use crate::chunk::BlockStateId;
+use bitcode_derive::{Decode, Encode};
+use deepsize::DeepSizeOf;
 
-#[derive(Clone, DeepSizeOf)]
+#[derive(Clone, DeepSizeOf, Encode, Decode)]
 pub struct UniformSection(BlockStateId);
 
 impl UniformSection {

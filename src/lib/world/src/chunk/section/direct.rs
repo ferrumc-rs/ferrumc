@@ -2,9 +2,10 @@ use crate::chunk::section::paletted::PalettedSection;
 use crate::chunk::section::uniform::UniformSection;
 use crate::chunk::section::{AIR, CHUNK_SECTION_LENGTH};
 use crate::chunk::BlockStateId;
+use bitcode_derive::{Decode, Encode};
 use deepsize::DeepSizeOf;
 
-#[derive(Clone, DeepSizeOf)]
+#[derive(Clone, DeepSizeOf, Encode, Decode)]
 pub struct DirectSection(pub(crate) Box<[BlockStateId]>, u16);
 
 impl Default for DirectSection {
@@ -38,7 +39,7 @@ impl DirectSection {
 impl From<&mut UniformSection> for DirectSection {
     fn from(s: &mut UniformSection) -> Self {
         Self(
-            vec![s.get_block().into(); CHUNK_SECTION_LENGTH].into_boxed_slice(),
+            vec![s.get_block(); CHUNK_SECTION_LENGTH].into_boxed_slice(),
             if s.get_block() == AIR { 0 } else { 4096 },
         )
     }

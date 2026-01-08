@@ -1,4 +1,6 @@
+use crate::chunk::section::AIR;
 use crate::chunk::BlockStateId;
+use bitcode_derive::{Decode, Encode};
 use deepsize::DeepSizeOf;
 use std::num::NonZeroU16;
 
@@ -9,7 +11,7 @@ const NON_ZERO_ONE: NonZeroU16 = match NonZeroU16::new(1) {
     None => unreachable!(),
 };
 
-#[derive(Clone, DeepSizeOf)]
+#[derive(Clone, DeepSizeOf, Encode, Decode)]
 pub struct BlockPalette {
     palette: Vec<Option<(BlockStateId, NonZeroU16)>>,
     free_count: u16,
@@ -18,14 +20,14 @@ pub struct BlockPalette {
 impl BlockPalette {
     pub fn new() -> BlockPalette {
         BlockPalette {
-            palette: vec![Some((0, NonZeroU16::MAX))],
+            palette: vec![Some((AIR, NonZeroU16::MAX))],
             free_count: 0,
         }
     }
 
     pub fn new_with_entry_count(entries: usize) -> BlockPalette {
         BlockPalette {
-            palette: vec![Some((0, NonZeroU16::MAX)); entries + 1],
+            palette: vec![Some((AIR, NonZeroU16::MAX)); entries + 1],
             free_count: entries as u16,
         }
     }
@@ -38,7 +40,7 @@ impl BlockPalette {
     pub fn palette_data(&self) -> Vec<BlockStateId> {
         self.palette
             .iter()
-            .map(|val| val.unwrap_or((0, NonZeroU16::MAX)).0)
+            .map(|val| val.unwrap_or((AIR, NonZeroU16::MAX)).0)
             .collect::<Vec<_>>()
     }
 
@@ -53,7 +55,7 @@ impl BlockPalette {
     }
 
     pub fn add_block(&mut self, id: BlockStateId) -> (PaletteIndex, Option<u8>) {
-        if id == 0 {
+        if id == AIR {
             return (0, None);
         } // Air is always palette idx 0
 
@@ -150,10 +152,11 @@ impl BlockPalette {
         self.palette
             .iter()
             .flatten()
-            .map(|(state, count)| if *state != 0 { count.get() } else { 0 })
+            .map(|(state, count)| if *state != AIR { count.get() } else { 0 })
             .sum()
     }
 
+    #[allow(dead_code)] // this will eventually be used for saving to the disk
     pub fn get_minimum_bit_width(&self) -> u8 {
         let len = self.palette.iter().flatten().count();
 

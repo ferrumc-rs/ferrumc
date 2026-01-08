@@ -2,8 +2,7 @@ use crate::errors::WorldGenError;
 use crate::{BiomeGenerator, NoiseGenerator};
 use ferrumc_macros::block;
 use ferrumc_world::block_state_id::BlockStateId;
-use ferrumc_world::chunk_format::Chunk;
-use ferrumc_world::edit_batch::EditBatch;
+use ferrumc_world::chunk::Chunk;
 use ferrumc_world::pos::{BlockPos, ChunkColumnPos, ChunkHeight, ChunkPos};
 
 pub(crate) struct PlainsBiome;
@@ -22,13 +21,13 @@ impl BiomeGenerator for PlainsBiome {
         pos: ChunkPos,
         noise: &NoiseGenerator,
     ) -> Result<Chunk, WorldGenError> {
-        let mut chunk = Chunk::new(ChunkHeight::new(-64, 384));
+        let mut chunk = Chunk::new_empty_with_height(ChunkHeight::new(-64, 384));
         let mut heights = vec![];
         let stone = block!("stone"); // just to test the macro
 
         // Fill with water first
         for section_y in -4..4 {
-            chunk.set_section(section_y as i8, block!("water", {level: 0}))?;
+            chunk.set_section(section_y as i8, block!("water", {level: 0}));
         }
 
         // Then generate some heights
@@ -48,22 +47,22 @@ impl BiomeGenerator for PlainsBiome {
         let y_min = heights.iter().min_by(|a, b| a.2.cmp(&b.2)).unwrap().2;
         let highest_full_section = y_min / 16;
         for section_y in -4..highest_full_section {
-            chunk.set_section(section_y as i8, stone)?;
+            chunk.set_section(section_y as i8, stone);
         }
-        let mut batch = EditBatch::new(&mut chunk);
+
         let above_filled_sections = (highest_full_section * 16) - 1;
         for (global_x, global_z, height) in heights {
             if height > above_filled_sections {
                 let height = height - above_filled_sections;
                 for y in 0..height {
                     if y + above_filled_sections <= 64 {
-                        batch.set_block(
+                        chunk.set_block(
                             BlockPos::of(global_x, y + above_filled_sections, global_z)
                                 .chunk_block_pos(),
                             block!("sand"),
                         );
                     } else {
-                        batch.set_block(
+                        chunk.set_block(
                             BlockPos::of(global_x, y + above_filled_sections, global_z)
                                 .chunk_block_pos(),
                             block!("grass_block", {snowy: false}),
@@ -72,8 +71,6 @@ impl BiomeGenerator for PlainsBiome {
                 }
             }
         }
-
-        batch.apply()?;
 
         Ok(chunk)
     }

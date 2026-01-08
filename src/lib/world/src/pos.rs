@@ -11,6 +11,8 @@ use bevy_math::U8Vec3;
 use bevy_math::Vec2Swizzles;
 use bevy_math::Vec3Swizzles;
 use bevy_math::{DVec3, I16Vec3};
+use bitcode_derive::{Decode, Encode};
+use deepsize::DeepSizeOf;
 use ferrumc_net_codec::net_types::network_position::NetworkPosition;
 
 #[derive(Clone, Copy)]
@@ -85,7 +87,7 @@ impl Add<(i32, i32, i32)> for BlockPos {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, DeepSizeOf, Encode, Decode)]
 pub struct ChunkHeight {
     pub min_y: i16,
     pub height: u16,

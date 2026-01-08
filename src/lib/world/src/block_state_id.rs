@@ -53,7 +53,7 @@ pub struct BlockStateId(u32);
 impl BlockStateId {
     /// Do NOT use this by yourself. Instead use the block macro `block!("stone")` the item to block
     /// map
-    pub fn new(id: u32) -> Self {
+    pub const fn new(id: u32) -> Self {
         Self(id)
     }
 

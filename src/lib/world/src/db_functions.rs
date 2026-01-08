@@ -1,4 +1,4 @@
-use crate::chunk_format::Chunk;
+use crate::chunk::Chunk;
 use crate::errors::WorldError;
 use crate::errors::WorldError::CorruptedChunkData;
 use crate::pos::ChunkPos;

@@ -2,10 +2,11 @@ use crate::chunk::palette::{BlockPalette, PaletteIndex};
 use crate::chunk::section::uniform::UniformSection;
 use crate::chunk::section::{AIR, CHUNK_SECTION_LENGTH};
 use crate::chunk::BlockStateId;
+use bitcode_derive::{Decode, Encode};
 use deepsize::DeepSizeOf;
 use std::num::NonZeroU16;
 
-#[derive(Clone, DeepSizeOf)]
+#[derive(Clone, DeepSizeOf, Encode, Decode)]
 pub struct PalettedSection {
     pub(crate) palette: BlockPalette,
     pub(crate) block_data: Box<[u64]>,

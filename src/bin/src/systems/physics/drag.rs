@@ -17,10 +17,10 @@ pub fn handle(
             let chunk =
                 ferrumc_utils::world::load_or_generate_mut(&state.0, chunk_pos, "overworld")
                     .expect("Failed to load or generate chunk");
-            let is_in_water = chunk
-                .get_block(ChunkBlockPos::from(pos.coords.as_ivec3()))
-                .map(|block| match_block!("water", block))
-                .unwrap_or(false);
+            let is_in_water = match_block!(
+                "water",
+                chunk.get_block(ChunkBlockPos::from(pos.coords.as_ivec3()))
+            );
             if is_in_water {
                 vel.y *= 0.98;
                 vel.x *= 0.91;

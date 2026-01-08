@@ -2,7 +2,7 @@ mod biomes;
 pub mod errors;
 
 use crate::errors::WorldGenError;
-use ferrumc_world::{chunk_format::Chunk, pos::ChunkPos};
+use ferrumc_world::{chunk::Chunk, pos::ChunkPos};
 use noise::{Clamp, NoiseFn, OpenSimplex};
 
 /// Trait for generating a biome

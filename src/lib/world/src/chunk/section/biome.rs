@@ -1,7 +1,8 @@
 use crate::pos::SectionBlockPos;
+use bitcode_derive::{Decode, Encode};
 use deepsize::DeepSizeOf;
 
-#[derive(Clone, DeepSizeOf)]
+#[derive(Clone, DeepSizeOf, Encode, Decode)]
 pub enum BiomeData {
     Uniform(u8),
     Mixed(Box<[u8]>),

@@ -1,12 +1,13 @@
+use crate::block_state_id::BlockStateId;
 use crate::chunk::light::SectionLightData;
 use crate::chunk::section::biome::BiomeData;
 use crate::chunk::section::direct::DirectSection;
 use crate::chunk::section::paletted::PalettedSection;
 use crate::chunk::section::uniform::UniformSection;
 use crate::pos::SectionBlockPos;
+use bitcode_derive::{Decode, Encode};
 use deepsize::DeepSizeOf;
 use ferrumc_macros::block;
-use crate::block_state_id::BlockStateId;
 
 mod biome;
 mod direct;
@@ -18,7 +19,7 @@ pub const CHUNK_SECTION_LENGTH: usize = 16 * 16 * 16;
 
 pub(crate) const AIR: BlockStateId = block!("air");
 
-#[derive(Clone, DeepSizeOf)]
+#[derive(Clone, DeepSizeOf, Encode, Decode)]
 pub(crate) enum ChunkSectionType {
     Uniform(UniformSection),
     Paletted(PalettedSection),
@@ -81,11 +82,12 @@ impl ChunkSectionType {
     }
 }
 
-#[derive(Clone, DeepSizeOf)]
+#[derive(Clone, DeepSizeOf, Encode, Decode)]
 pub struct ChunkSection {
     pub(crate) inner: ChunkSectionType,
     pub(crate) light: SectionLightData,
     pub(crate) biome: BiomeData,
+    pub dirty: bool,
 }
 
 impl ChunkSection {
@@ -94,6 +96,7 @@ impl ChunkSection {
             inner: ChunkSectionType::Uniform(UniformSection::new_with(id)),
             light: SectionLightData::default(),
             biome: BiomeData::Uniform(0),
+            dirty: true,
         }
     }
 
@@ -103,6 +106,7 @@ impl ChunkSection {
                 inner: ChunkSectionType::Uniform(UniformSection::air()),
                 light: SectionLightData::default(),
                 biome: BiomeData::Uniform(0),
+                dirty: true,
             }
         } else if unique_blocks < 256 {
             Self {
@@ -111,12 +115,14 @@ impl ChunkSection {
                 )),
                 light: SectionLightData::default(),
                 biome: BiomeData::Uniform(0),
+                dirty: true,
             }
         } else {
             Self {
                 inner: ChunkSectionType::Direct(DirectSection::default()),
                 light: SectionLightData::default(),
                 biome: BiomeData::Uniform(0),
+                dirty: true,
             }
         }
     }
@@ -128,11 +134,13 @@ impl ChunkSection {
 
     #[inline]
     pub fn set_block(&mut self, pos: SectionBlockPos, id: BlockStateId) {
+        self.dirty = true;
         self.inner.set_block(pos, id);
     }
 
     #[inline]
     pub fn fill(&mut self, id: BlockStateId) {
+        self.dirty = true;
         self.inner.fill(id);
     }
 
