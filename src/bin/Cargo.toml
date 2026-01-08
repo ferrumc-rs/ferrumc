@@ -6,6 +6,7 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+
 [dependencies]
 thiserror = { workspace = true }
 
@@ -59,6 +60,9 @@ dhat = ["dep:dhat"]
 dashboard = [
     "dep:ferrumc-dashboard",
     "ferrumc-config/dashboard"
+]
+default = [
+    "dashboard"
 ]
 
 [[bin]]
