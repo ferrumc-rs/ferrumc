@@ -53,7 +53,11 @@ impl GameMode {
 }
 
 impl NetEncode for GameMode {
-    fn encode<W: Write>(&self, writer: &mut W, _opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+    fn encode<W: Write>(
+        &self,
+        writer: &mut W,
+        _opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
         writer.write_all(&[*self as u8])?;
         Ok(())
     }
