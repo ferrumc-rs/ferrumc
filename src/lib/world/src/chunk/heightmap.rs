@@ -3,6 +3,8 @@ use deepsize::DeepSizeOf;
 use ferrumc_macros::NetEncode;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::var_int::VarInt;
+use crate::errors::WorldError;
+use crate::vanilla_chunk_format::VanillaHeightmaps;
 
 #[derive(Default, Clone, DeepSizeOf, Encode, Decode)]
 pub struct Heightmaps {
@@ -30,6 +32,24 @@ impl ChunkHeightmap {
 
     pub fn get_height(&self, x: u8, z: u8) -> i16 {
         self.data[((z << 4) | x) as usize]
+    }
+}
+
+impl TryFrom<&VanillaHeightmaps> for Heightmaps {
+    type Error = WorldError;
+
+    fn try_from(value: &VanillaHeightmaps) -> Result<Self, Self::Error> {
+        let convert_long_vec = |data| {
+            let data: Vec<i16> = bytemuck::cast_vec(data);
+            ChunkHeightmap {
+                data: data.into_boxed_slice(),
+            }
+        };
+
+        Ok(Self {
+            world_surface: value.world_surface.clone().map(convert_long_vec).unwrap_or_default(),
+            motion_blocking: value.motion_blocking.clone().map(convert_long_vec).unwrap_or_default(),
+        })
     }
 }
 

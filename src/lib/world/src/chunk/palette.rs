@@ -13,8 +13,8 @@ const NON_ZERO_ONE: NonZeroU16 = match NonZeroU16::new(1) {
 
 #[derive(Clone, DeepSizeOf, Encode, Decode)]
 pub struct BlockPalette {
-    palette: Vec<Option<(BlockStateId, NonZeroU16)>>,
-    free_count: u16,
+    pub(crate) palette: Vec<Option<(BlockStateId, NonZeroU16)>>,
+    pub(crate) free_count: u16,
 }
 
 impl BlockPalette {

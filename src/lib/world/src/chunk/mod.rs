@@ -72,8 +72,18 @@ impl Chunk {
 impl TryFrom<&VanillaChunk> for Chunk {
     type Error = WorldError;
 
-    fn try_from(_value: &VanillaChunk) -> Result<Self, Self::Error> {
-        todo!()
+    fn try_from(value: &VanillaChunk) -> Result<Self, Self::Error> {
+        let mut sections = vec![ChunkSection::new_uniform(AIR); 24];
+
+        for section in value.sections.as_ref().ok_or(WorldError::CorruptedChunkData(value.x_pos as _, value.z_pos as _))?.iter() {
+            sections[(section.y + 4) as usize] = ChunkSection::try_from(section)?;
+        }
+
+        Ok(Chunk {
+            sections: sections.into_boxed_slice(),
+            height: ChunkHeight::new(-64, 384),
+            heightmaps: value.heightmaps.as_ref().and_then(|v| Heightmaps::try_from(v).ok())
+        })
     }
 }
 
