@@ -1,6 +1,6 @@
 use crate::block_state_id::BlockStateId;
 use crate::chunk::light::SectionLightData;
-use crate::chunk::section::biome::BiomeData;
+use crate::chunk::section::biome::{BiomeData, BiomeType};
 use crate::chunk::section::direct::DirectSection;
 use crate::chunk::section::paletted::PalettedSection;
 use crate::chunk::section::uniform::UniformSection;
@@ -95,7 +95,7 @@ impl ChunkSection {
         Self {
             inner: ChunkSectionType::Uniform(UniformSection::new_with(id)),
             light: SectionLightData::default(),
-            biome: BiomeData::Uniform(0),
+            biome: BiomeData::Uniform(BiomeType(5)),
             dirty: true,
         }
     }
@@ -105,7 +105,7 @@ impl ChunkSection {
             Self {
                 inner: ChunkSectionType::Uniform(UniformSection::air()),
                 light: SectionLightData::default(),
-                biome: BiomeData::Uniform(0),
+                biome: BiomeData::Uniform(BiomeType(5)),
                 dirty: true,
             }
         } else if unique_blocks < 256 {
@@ -114,14 +114,14 @@ impl ChunkSection {
                     unique_blocks as _,
                 )),
                 light: SectionLightData::default(),
-                biome: BiomeData::Uniform(0),
+                biome: BiomeData::Uniform(BiomeType(5)),
                 dirty: true,
             }
         } else {
             Self {
                 inner: ChunkSectionType::Direct(DirectSection::default()),
                 light: SectionLightData::default(),
-                biome: BiomeData::Uniform(0),
+                biome: BiomeData::Uniform(BiomeType(5)),
                 dirty: true,
             }
         }

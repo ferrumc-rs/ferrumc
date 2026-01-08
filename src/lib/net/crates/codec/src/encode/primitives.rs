@@ -128,16 +128,14 @@ where
     }
 }
 
-impl<T: NetEncode> NetEncode for &[T] {
+impl NetEncode for &[u8] {
     fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
         if matches!(opts, NetEncodeOpts::SizePrefixed) {
             let len: VarInt = VarInt::new(self.len() as i32);
             len.encode(writer, opts)?;
         }
 
-        for val in self.iter() {
-            val.encode(writer, opts)?;
-        }
+        writer.write_all(self)?;
 
         Ok(())
     }
@@ -151,24 +149,20 @@ impl<T: NetEncode> NetEncode for &[T] {
             len.encode_async(writer, opts).await?;
         }
 
-        for val in self.iter() {
-            val.encode_async(writer, opts).await?;
-        }
+        writer.write_all(self).await?;
 
         Ok(())
     }
 }
 
-impl<T: NetEncode> NetEncode for [T] {
+impl NetEncode for [u8] {
     fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
         if matches!(opts, NetEncodeOpts::SizePrefixed) {
             let len: VarInt = VarInt::new(self.len() as i32);
             len.encode(writer, opts)?;
         }
 
-        for val in self.iter() {
-            val.encode(writer, opts)?;
-        }
+        writer.write_all(self)?;
 
         Ok(())
     }
@@ -182,9 +176,7 @@ impl<T: NetEncode> NetEncode for [T] {
             len.encode_async(writer, opts).await?;
         }
 
-        for val in self.iter() {
-            val.encode_async(writer, opts).await?;
-        }
+        writer.write_all(self).await?;
 
         Ok(())
     }
