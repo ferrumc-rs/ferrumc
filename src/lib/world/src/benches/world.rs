@@ -1,4 +1,3 @@
-mod cache;
 mod chunk;
 mod edit_bench;
 
