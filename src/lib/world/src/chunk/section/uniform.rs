@@ -1,12 +1,13 @@
 use crate::chunk::BlockStateId;
 use deepsize::DeepSizeOf;
+use crate::chunk::section::AIR;
 
 #[derive(Clone, DeepSizeOf)]
 pub struct UniformSection(BlockStateId);
 
 impl UniformSection {
     pub fn air() -> Self {
-        Self(0)
+        Self(AIR)
     }
 
     pub fn new_with(id: BlockStateId) -> Self {

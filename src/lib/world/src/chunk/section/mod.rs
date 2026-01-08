@@ -3,9 +3,10 @@ use crate::chunk::section::biome::BiomeData;
 use crate::chunk::section::direct::DirectSection;
 use crate::chunk::section::paletted::PalettedSection;
 use crate::chunk::section::uniform::UniformSection;
-use crate::chunk::BlockStateId;
 use crate::pos::SectionBlockPos;
 use deepsize::DeepSizeOf;
+use ferrumc_macros::block;
+use crate::block_state_id::BlockStateId;
 
 mod biome;
 mod direct;
@@ -14,6 +15,8 @@ mod paletted;
 mod uniform;
 
 pub const CHUNK_SECTION_LENGTH: usize = 16 * 16 * 16;
+
+pub(crate) const AIR: BlockStateId = block!("air");
 
 #[derive(Clone, DeepSizeOf)]
 pub(crate) enum ChunkSectionType {
@@ -66,7 +69,7 @@ impl ChunkSectionType {
     pub fn block_count(&self) -> u16 {
         match self {
             Self::Uniform(data) => {
-                if data.get_block() == 0 {
+                if data.get_block() == block!("air") {
                     0
                 } else {
                     4096
@@ -135,7 +138,7 @@ impl ChunkSection {
 
     #[inline]
     pub fn clear(&mut self) {
-        self.fill(0)
+        self.fill(block!("air"))
     }
 
     #[inline]

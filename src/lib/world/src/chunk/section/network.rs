@@ -40,7 +40,7 @@ impl<'section> From<&'section UniformSection> for PalettedContainer<'section> {
         PalettedContainer {
             bits_per_entry: 0,
             palette: NetworkPalette::SingleValued {
-                value: VarInt(section.get_block() as _),
+                value: VarInt(section.get_block().raw() as _),
             },
             data_array: Cow::Owned(vec![]),
         }
@@ -79,7 +79,7 @@ impl<'section> From<&'section PalettedSection> for PalettedContainer<'section> {
                     .palette
                     .palette_data()
                     .into_iter()
-                    .map(|v| VarInt(v as _))
+                    .map(|v| VarInt(v.raw() as _))
                     .collect(),
             },
             data_array,

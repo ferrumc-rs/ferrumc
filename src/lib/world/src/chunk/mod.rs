@@ -5,11 +5,10 @@ mod palette;
 pub mod section;
 
 use crate::chunk::heightmap::Heightmaps;
-use crate::chunk::section::ChunkSection;
+use crate::chunk::section::{ChunkSection, AIR};
 use crate::pos::ChunkBlockPos;
 use deepsize::DeepSizeOf;
-
-pub type BlockStateId = u16;
+use crate::block_state_id::BlockStateId;
 
 #[derive(Clone, DeepSizeOf)]
 pub struct Chunk {
@@ -22,7 +21,7 @@ pub struct Chunk {
 impl Chunk {
     pub fn new_empty() -> Chunk {
         Self {
-            sections: core::array::from_fn(|_| ChunkSection::new_uniform(0)),
+            sections: core::array::from_fn(|_| ChunkSection::new_uniform(AIR)),
             min_y: -64,
             heightmaps: None,
         }
@@ -66,16 +65,17 @@ impl Chunk {
 
 #[cfg(test)]
 mod tests {
+    use ferrumc_macros::block;
     use crate::chunk::{Chunk, ChunkBlockPos};
 
     #[test]
     fn test_read_write() {
         let mut chunk = Chunk::new_empty();
 
-        chunk.set_block(ChunkBlockPos::new(0, 0, 0), 1);
-        chunk.set_block(ChunkBlockPos::new(0, 16, 1), 2);
+        chunk.set_block(ChunkBlockPos::new(0, 0, 0), block!("stone"));
+        chunk.set_block(ChunkBlockPos::new(0, 16, 1), block!("dirt"));
 
-        assert_eq!(chunk.get_block(ChunkBlockPos::new(0, 0, 0)), 1);
-        assert_eq!(chunk.get_block(ChunkBlockPos::new(0, 16, 1)), 2);
+        assert_eq!(chunk.get_block(ChunkBlockPos::new(0, 0, 0)), block!("stone"));
+        assert_eq!(chunk.get_block(ChunkBlockPos::new(0, 16, 1)), block!("dirt"));
     }
 }

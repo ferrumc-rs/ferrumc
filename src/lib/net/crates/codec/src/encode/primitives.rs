@@ -1,8 +1,8 @@
-use std::borrow::Cow;
 use crate::encode::errors::NetEncodeError;
 use crate::encode::AsyncWrite;
 use crate::encode::{NetEncode, NetEncodeOpts};
 use crate::net_types::var_int::VarInt;
+use std::borrow::Cow;
 use std::collections::HashMap;
 use std::io::Write;
 use std::ops::Deref;
@@ -195,7 +195,11 @@ impl<T: NetEncode + ?Sized + ToOwned> NetEncode for Cow<'_, T> {
         self.deref().encode(writer, opts)
     }
 
-    async fn encode_async<W: AsyncWrite + Unpin>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
+    async fn encode_async<W: AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
         self.deref().encode_async(writer, opts).await
     }
 }
