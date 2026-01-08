@@ -4,10 +4,13 @@
 //! - Action 0: Request respawn after death
 
 use ferrumc_macros::{packet, NetDecode};
+#[allow(unused_imports)]
 use ferrumc_net_codec::net_types::var_int::VarInt;
 
 /// Client command actions.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, NetDecode)]
+#[net(type_cast = "VarInt", type_cast_handler = "value.0 as u8")]
+#[repr(u8)]
 pub enum ClientCommandAction {
     /// Request to respawn after death
     PerformRespawn = 0,
@@ -15,32 +18,17 @@ pub enum ClientCommandAction {
     RequestStats = 1,
 }
 
-impl From<i32> for ClientCommandAction {
-    fn from(value: i32) -> Self {
-        match value {
-            0 => Self::PerformRespawn,
-            1 => Self::RequestStats,
-            _ => Self::PerformRespawn, // Default to respawn
-        }
-    }
-}
-
 /// Sent by the client to request respawn or stats.
 #[derive(NetDecode, Debug)]
 #[packet(packet_id = "client_command", state = "play")]
 pub struct ClientCommand {
-    /// The action to perform (0 = respawn, 1 = request stats)
-    pub action: VarInt,
+    /// The action to perform
+    pub action: ClientCommandAction,
 }
 
 impl ClientCommand {
-    /// Get the action as a typed enum.
-    pub fn action_type(&self) -> ClientCommandAction {
-        ClientCommandAction::from(self.action.0)
-    }
-
     /// Check if this is a respawn request.
     pub fn is_respawn_request(&self) -> bool {
-        self.action.0 == 0
+        self.action == ClientCommandAction::PerformRespawn
     }
 }
