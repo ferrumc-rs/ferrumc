@@ -14,14 +14,9 @@ pub fn handle(
     for (mut vel, pos) in query.iter_mut() {
         if pos.is_changed() || vel.is_changed() {
             let chunk_pos = ChunkPos::from(pos.coords);
-            let chunk = state.0.world.load_chunk(chunk_pos, "overworld").unwrap_or(
-                state
-                    .0
-                    .terrain_generator
-                    .generate_chunk(chunk_pos)
-                    .expect("Failed to generate chunk")
-                    .into(),
-            );
+            let chunk =
+                ferrumc_utils::world::load_or_generate_mut(&state.0, chunk_pos, "overworld")
+                    .expect("Failed to load or generate chunk");
             let is_in_water = chunk
                 .get_block(ChunkBlockPos::from(pos.coords.as_ivec3()))
                 .map(|block| match_block!("water", block))

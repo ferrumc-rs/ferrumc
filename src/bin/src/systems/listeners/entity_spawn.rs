@@ -108,7 +108,7 @@ pub fn handle_spawn_entity(mut events: MessageReader<SpawnEntityEvent>, mut comm
                 // Spawn the pig entity
                 let pig_entity = commands
                     .spawn((
-                        PigBundle::new(event.position.clone()),
+                        PigBundle::new(event.position),
                         Pig,
                         HasGravity,
                         HasCollisions,

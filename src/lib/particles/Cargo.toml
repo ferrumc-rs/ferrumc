@@ -1,0 +1,15 @@
+[package]
+name = "ferrumc-particles"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+ferrumc-world = { workspace = true }
+ferrumc-net-codec = { workspace = true }
+ferrumc-core = { workspace = true }
+ferrumc-inventories = { workspace = true }
+enum_discriminant = { workspace = true }
+tokio = { workspace = true }
+
+[lints]
+workspace = true
