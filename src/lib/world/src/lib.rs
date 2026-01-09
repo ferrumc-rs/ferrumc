@@ -116,11 +116,7 @@ mod tests {
     #[test]
     #[ignore]
     fn dump_chunk() {
-        let world = World::new(
-            std::env::current_dir()
-                .unwrap()
-                .join("../../../target/debug/world"),
-        );
+        let world = World::new(std::env::current_dir().unwrap().join("../../../world"));
         let chunk = world.load_chunk(ChunkPos::new(1, 1), "overworld").expect(
             "Failed to load chunk. If it's a bitcode error, chances are the chunk format \
              has changed since last generating a world so you'll need to regenerate",
