@@ -45,3 +45,14 @@ verify_chunk_data = true
 # but it won't actually use that much memory, it'll just show up as virtual memory use.
 # The default is 1TB, which should be more than enough for most worlds. Set this higher if you have a huge world.
 map_size = 1_000
+# The time to live for cache entries in seconds.
+cache_ttl = 60
+# How big the cache can be in kb.
+cache_capacity = 20_000
+
+# Dashboard configuration (functional only if the dashboard feature is enabled)
+[dashboard]
+port = 9000
+# Generated using:
+# python -c "import secret;print(secrets.token_urlsafe())"
+secret = "H4AiheIDL2-e2dM3mxSoHOhNRSyfGw1iGYlV3WcuaRw"

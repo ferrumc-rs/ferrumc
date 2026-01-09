@@ -42,6 +42,7 @@ members = [
     "src/lib/entities",
     "src/lib/physics",
     "src/lib/performance",
+    "src/lib/dashboard",
     "src/lib/particles",
 ]
 
@@ -122,9 +123,11 @@ ferrumc-utils = { path = "src/lib/utils" }
 ferrumc-world = { path = "src/lib/world" }
 ferrumc-world-gen = { path = "src/lib/world_gen" }
 ferrumc-inventories = { path = "src/lib/inventories" }
-ferrumc-components = { path = "src/lib/components" }
-ferrumc-messages = { path = "src/lib/messages" }
 ferrumc-data = { path = "src/lib/data" }
+ferrumc-components = { path = "src/lib/components" }
+ferrumc-events = { path = "src/lib/events" }
+ferrumc-dashboard = { path = "src/lib/dashboard" }
+ferrumc-messages = { path = "src/lib/messages" }
 ferrumc-entities = { path = "src/lib/entities" }
 ferrumc-physics = { path = "src/lib/physics" }
 ferrumc-particles = { path = "src/lib/particles" }
@@ -233,7 +236,6 @@ typename = "0.1.2"
 bevy_ecs = { version = "0.17.3", features = ["multi_threaded", "trace"] }
 bevy_math = "0.17.3"
 once_cell = "1.21.3"
-sysinfo = "0.37.2"
 
 # I/O
 memmap2 = "0.9.9"
@@ -244,6 +246,12 @@ criterion = { version = "0.7.0", features = ["html_reports"] }
 
 phf = { version = "0.11", features = ["macros"] }
 phf_codegen = { version = "0.11" }
+
+# Web server
+axum = { version = "0.8.7", features = ["tokio", "ws"]}
+
+# Stats
+sysinfo = "0.37.2"
 
 [profile.dev.package.yazi]
 opt-level = 3
