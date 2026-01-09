@@ -54,3 +54,4 @@ pub mod set_player_inventory_slot;
 pub mod particle;
 
 pub mod unload_chunk;
+pub mod update_time;
