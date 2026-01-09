@@ -13,6 +13,7 @@ use crate::vanilla_chunk_format::VanillaChunk;
 use crate::World;
 use bitcode_derive::{Decode, Encode};
 use deepsize::DeepSizeOf;
+use ferrumc_macros::block;
 
 #[derive(Clone, DeepSizeOf, Encode, Decode)]
 pub struct Chunk {
@@ -57,7 +58,9 @@ impl Chunk {
 
     pub fn get_block(&self, pos: ChunkBlockPos) -> BlockStateId {
         let section = (pos.y() + -self.height.min_y) / 16;
-        assert!(section >= 0);
+        if section < 0 {
+            return block!("void_air");
+        }
 
         self.sections[section as usize].get_block(pos.section_block_pos())
     }
@@ -167,6 +170,9 @@ impl World {
 mod tests {
     use crate::chunk::{BlockStateId, Chunk, ChunkBlockPos};
     use ferrumc_macros::block;
+    use rayon::prelude::*;
+    use std::thread;
+    use std::time::{Duration, Instant};
 
     #[test]
     fn test_read_write() {
@@ -183,5 +189,33 @@ mod tests {
             chunk.get_block(ChunkBlockPos::new(0, 16, 1)),
             block!("dirt")
         );
+    }
+
+    #[test]
+    #[ignore]
+    fn test_memory() {
+        let now = Instant::now();
+
+        let _chunks: Vec<_> = (0..16_000)
+            .par_bridge()
+            .map(|v| {
+                println!("generating chunk {}", v);
+                let mut chunk = Chunk::new_empty();
+
+                for x in 0..16 {
+                    for z in 0..16 {
+                        for y in -64..70 {
+                            chunk.set_block(ChunkBlockPos::new(x, y, z), block!("stone"));
+                        }
+                    }
+                }
+
+                chunk
+            })
+            .collect();
+
+        println!("done. time elapsed: {:?}", now.elapsed());
+
+        thread::sleep(Duration::from_secs(30))
     }
 }

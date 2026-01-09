@@ -2,7 +2,7 @@ use crate::block_state_id::BlockStateId;
 use crate::chunk::light::{LightStorage, SectionLightData};
 use crate::chunk::section::biome::{BiomeData, BiomeType};
 use crate::chunk::section::direct::DirectSection;
-use crate::chunk::section::paletted::PalettedSection;
+use crate::chunk::section::paletted::{PalettedSection, PalettedSectionResult};
 use crate::chunk::section::uniform::UniformSection;
 use crate::errors::WorldError;
 use crate::pos::SectionBlockPos;
@@ -50,13 +50,17 @@ impl ChunkSectionType {
                     *self = Self::Paletted(new_data);
                 }
             }
-            Self::Paletted(data) => {
-                if data.set_block(pos, id).is_none() {
+            Self::Paletted(data) => match data.set_block(pos, id) {
+                PalettedSectionResult::Shrink(block) => {
+                    *self = ChunkSectionType::Uniform(UniformSection::new_with(block))
+                }
+                PalettedSectionResult::Expand => {
                     let mut new_data = DirectSection::from(data);
                     new_data.set_block(pos, id);
                     *self = Self::Direct(new_data);
                 }
-            }
+                PalettedSectionResult::Keep => {}
+            },
             Self::Direct(data) => data.set_block(pos, id),
         }
     }

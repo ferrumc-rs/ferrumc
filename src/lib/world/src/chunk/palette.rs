@@ -11,6 +11,12 @@ const NON_ZERO_ONE: NonZeroU16 = match NonZeroU16::new(1) {
     None => unreachable!(),
 };
 
+pub enum BlockPaletteResult {
+    Normal(PaletteIndex),
+    ShouldResize(PaletteIndex, u8),
+    ConvertToUniform(BlockStateId),
+}
+
 #[derive(Clone, DeepSizeOf, Encode, Decode)]
 pub struct BlockPalette {
     pub(crate) palette: Vec<Option<(BlockStateId, NonZeroU16)>>,
@@ -57,11 +63,12 @@ impl BlockPalette {
         }
     }
 
-    pub fn add_block(&mut self, id: BlockStateId) -> (PaletteIndex, Option<u8>) {
+    pub fn add_block(&mut self, id: BlockStateId) -> BlockPaletteResult {
         if id == AIR {
-            return (0, None);
+            return BlockPaletteResult::Normal(0);
         } // Air is always palette idx 0
 
+        // First, check if the id already exists within the palette
         for (idx, val) in self.palette.iter_mut().enumerate() {
             if let Some((block_id, count)) = val {
                 if *block_id == id {
@@ -72,11 +79,17 @@ impl BlockPalette {
                             .expect("count should never exceed 4096"),
                     )
                     .expect("addition should not overflow");
-                    return (idx as PaletteIndex, None);
+
+                    return if count.get() + 1 >= 4096 {
+                        BlockPaletteResult::ConvertToUniform(id)
+                    } else {
+                        BlockPaletteResult::Normal(idx as _)
+                    };
                 }
             }
         }
 
+        // If the index doesn't exist and there are no free indexes, create a new index
         if self.free_count == 0 {
             if self.palette.len() >= 4096 {
                 panic!("Palette size should not be growing past 4096 because 4096 is the number of blocks per section")
@@ -89,11 +102,12 @@ impl BlockPalette {
             let idx = (self.palette.len() - 1) as PaletteIndex;
 
             if curr_bit_width != new_bit_width {
-                (idx, Some(new_bit_width))
+                BlockPaletteResult::ShouldResize(idx, new_bit_width)
             } else {
-                (idx, None)
+                BlockPaletteResult::Normal(idx)
             }
         } else {
+            // If there are free indexes, find one and use it
             let Some((idx, empty_entry)) = self
                 .palette
                 .iter_mut()
@@ -105,7 +119,7 @@ impl BlockPalette {
 
             let _ = empty_entry.insert((id, NON_ZERO_ONE));
             self.free_count -= 1;
-            (idx as PaletteIndex, None)
+            BlockPaletteResult::Normal(idx as _)
         }
     }
 
@@ -113,10 +127,15 @@ impl BlockPalette {
         &mut self,
         id: BlockStateId,
         count: NonZeroU16,
-    ) -> (PaletteIndex, Option<u8>) {
+    ) -> BlockPaletteResult {
         let res = self.add_block(id);
 
-        self.palette[res.0 as usize] = Some((id, count));
+        match res {
+            BlockPaletteResult::Normal(idx) | BlockPaletteResult::ShouldResize(idx, _) => {
+                self.palette[idx as usize] = Some((id, count));
+            }
+            _ => {}
+        }
 
         res
     }
@@ -170,7 +189,7 @@ impl BlockPalette {
         let bits = if len <= 1 {
             1
         } else {
-            (usize::BITS - len.leading_zeros()) as u8
+            (usize::BITS - (len - 1).leading_zeros()) as u8
         };
 
         bits.next_power_of_two()

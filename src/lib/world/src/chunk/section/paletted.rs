@@ -1,10 +1,16 @@
-use crate::chunk::palette::{BlockPalette, PaletteIndex};
+use crate::chunk::palette::{BlockPalette, BlockPaletteResult, PaletteIndex};
 use crate::chunk::section::uniform::UniformSection;
 use crate::chunk::section::{AIR, CHUNK_SECTION_LENGTH};
 use crate::chunk::BlockStateId;
 use bitcode_derive::{Decode, Encode};
 use deepsize::DeepSizeOf;
 use std::num::NonZeroU16;
+
+pub enum PalettedSectionResult {
+    Keep,
+    Expand,
+    Shrink(BlockStateId),
+}
 
 #[derive(Clone, DeepSizeOf, Encode, Decode)]
 pub struct PalettedSection {
@@ -26,7 +32,7 @@ impl Default for PalettedSection {
 
 impl PalettedSection {
     pub fn new_with_block_count(block_count: u8) -> Self {
-        let bit_width = BlockPalette::bit_width_for_len(block_count as _);
+        let bit_width = BlockPalette::bit_width_for_len(block_count as usize + 1);
 
         Self {
             palette: BlockPalette::new_with_entry_count(block_count as _),
@@ -47,22 +53,26 @@ impl PalettedSection {
             .expect("idx should be within the palette")
     }
 
-    pub fn set_block(&mut self, idx: usize, state: BlockStateId) -> Option<()> {
+    pub fn set_block(&mut self, idx: usize, state: BlockStateId) -> PalettedSectionResult {
         let prev_idx = Self::unpack_value(&self.block_data, idx, self.bit_width);
         self.palette.remove_block(prev_idx as PaletteIndex);
 
-        let (new_idx, new_bit_width) = self.palette.add_block(state);
-        if let Some(new_bit_width) = new_bit_width {
-            if new_bit_width > 8 {
-                return None;
+        match self.palette.add_block(state) {
+            BlockPaletteResult::Normal(id) => {
+                Self::pack_value(&mut self.block_data, idx, self.bit_width, id as u8);
+                PalettedSectionResult::Keep
             }
+            BlockPaletteResult::ShouldResize(id, new_bit_width) => {
+                if new_bit_width > 8 {
+                    return PalettedSectionResult::Expand;
+                }
 
-            self.resize(new_bit_width);
-            self.bit_width = new_bit_width;
+                self.resize(new_bit_width);
+                Self::pack_value(&mut self.block_data, idx, self.bit_width, id as u8);
+                PalettedSectionResult::Keep
+            }
+            BlockPaletteResult::ConvertToUniform(block) => PalettedSectionResult::Shrink(block),
         }
-
-        Self::pack_value(&mut self.block_data, idx, self.bit_width, new_idx as u8);
-        Some(())
     }
 
     pub fn block_count(&self) -> u16 {
@@ -147,7 +157,7 @@ impl From<&mut UniformSection> for PalettedSection {
 
             Self {
                 palette,
-                block_data: vec![u64::MAX; (CHUNK_SECTION_LENGTH / 8) / size_of::<u64>()]
+                block_data: vec![u64::MAX; (CHUNK_SECTION_LENGTH / 4) / size_of::<u64>()]
                     .into_boxed_slice(),
                 bit_width: 1,
             }
