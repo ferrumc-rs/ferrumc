@@ -10,9 +10,10 @@ fn get_rand_in_range(min: i32, max: i32) -> i32 {
     rng.random_range(min..=max)
 }
 
+#[expect(clippy::unit_arg)]
 pub(crate) fn bench_edits(c: &mut Criterion) {
     let chunk_data = std::fs::read("../../../.etc/raw_chunk.dat").unwrap();
-    let mut chunk: Chunk = bitcode::decode(&chunk_data)
+    let chunk: Chunk = bitcode::decode(&chunk_data)
         .expect("If this fails, go run the dump_chunk test at src/lib/world/src/lib.rs");
 
     let mut read_group = c.benchmark_group("edit_read");
