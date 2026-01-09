@@ -96,6 +96,17 @@ impl Chunk {
         self.sections[section as usize] = ChunkSection::new_uniform(state)
     }
 
+    /// Fills the entire chunk with the given block.
+    ///
+    /// # Arguments
+    ///
+    /// * `state` - The [`BlockStateId`] of the block to fill the chunk with.
+    pub fn fill(&mut self, state: BlockStateId) {
+        for section in &mut self.sections {
+            *section = ChunkSection::new_uniform(state);
+        }
+    }
+
     /// Gets a block in the chunk.
     ///
     /// # Arguments
