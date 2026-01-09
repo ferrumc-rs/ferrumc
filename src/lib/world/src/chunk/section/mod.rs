@@ -31,10 +31,12 @@ pub(crate) enum ChunkSectionType {
 impl ChunkSectionType {
     #[inline]
     pub fn get_block(&self, pos: SectionBlockPos) -> BlockStateId {
+        let pos = pos.pack() as usize;
+
         match self {
             Self::Uniform(data) => data.get_block(),
-            Self::Paletted(data) => data.get_block(pos.pack() as _),
-            Self::Direct(data) => data.get_block(pos.pack() as _),
+            Self::Paletted(data) => data.get_block(pos),
+            Self::Direct(data) => data.get_block(pos),
         }
     }
 
@@ -44,6 +46,8 @@ impl ChunkSectionType {
 
         match self {
             Self::Uniform(data) => {
+                // Check if the id doesn't match the block type that fills the section,
+                // If not, then create a PalettedSection to hold more than one block type
                 if id != data.get_block() {
                     let mut new_data = PalettedSection::from(data);
                     new_data.set_block(pos, id);
@@ -51,9 +55,11 @@ impl ChunkSectionType {
                 }
             }
             Self::Paletted(data) => match data.set_block(pos, id) {
+                // Shrink the PalettedSection into a UniformSection if one block fills the entire section
                 PalettedSectionResult::Shrink(block) => {
                     *self = ChunkSectionType::Uniform(UniformSection::new_with(block))
                 }
+                // Expand the PalettedSection into a DirectSection if more than u8::MAX block types are in the section
                 PalettedSectionResult::Expand => {
                     let mut new_data = DirectSection::from(data);
                     new_data.set_block(pos, id);

@@ -32,7 +32,7 @@ impl Default for PalettedSection {
 
 impl PalettedSection {
     pub fn new_with_block_count(block_count: u8) -> Self {
-        let bit_width = BlockPalette::bit_width_for_len(block_count as usize + 1);
+        let bit_width = BlockPalette::bit_width_for_len(block_count as usize + 1); // + 1 because block_count should be the highest index into a Vec, so the len would be block_count + 1
 
         Self {
             palette: BlockPalette::new_with_entry_count(block_count as _),
@@ -62,7 +62,9 @@ impl PalettedSection {
                 Self::pack_value(&mut self.block_data, idx, self.bit_width, id as u8);
                 PalettedSectionResult::Keep
             }
+            // If the palette bit_width grow reflect that here and resize the buffer
             BlockPaletteResult::ShouldResize(id, new_bit_width) => {
+                // If the new bit_width doesn't fit within an u8, then expand into a DirectSection
                 if new_bit_width > 8 {
                     return PalettedSectionResult::Expand;
                 }
@@ -71,6 +73,7 @@ impl PalettedSection {
                 Self::pack_value(&mut self.block_data, idx, self.bit_width, id as u8);
                 PalettedSectionResult::Keep
             }
+            // If one block fills the entire section, then shrink into a UniformSection
             BlockPaletteResult::ConvertToUniform(block) => PalettedSectionResult::Shrink(block),
         }
     }
@@ -94,6 +97,7 @@ impl PalettedSection {
     }
 
     #[inline]
+    // See https://minecraft.wiki/w/Java_Edition_protocol/Chunk_format#Data_Array_format for details on implementation
     pub(crate) fn pack_value(buffer: &mut [u64], idx: usize, bit_width: u8, value: u8) {
         debug_assert!(bit_width.is_power_of_two());
         debug_assert!(bit_width <= 8);
@@ -116,6 +120,8 @@ impl PalettedSection {
     }
 
     #[inline]
+    // See https://minecraft.wiki/w/Java_Edition_protocol/Chunk_format#Data_Array_format for details on implementation
+    // Only accepts bit_widths that are powers of two.
     pub(crate) fn unpack_value(buffer: &[u64], idx: usize, bit_width: u8) -> u8 {
         debug_assert!(bit_width.is_power_of_two());
         debug_assert!(bit_width <= 8);
@@ -131,6 +137,8 @@ impl PalettedSection {
     }
 
     #[inline]
+    // See https://minecraft.wiki/w/Java_Edition_protocol/Chunk_format#Data_Array_format for details on implementation
+    // This function is used when converting from vanilla chunks as the bit_width there can be any number.
     pub(crate) fn unpack_value_unaligned(buffer: &[u64], idx: usize, bit_width: u8) -> u8 {
         assert!(bit_width <= 8, "should be using direct sampling");
 

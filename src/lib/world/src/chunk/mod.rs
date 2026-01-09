@@ -24,14 +24,26 @@ pub struct Chunk {
 }
 
 impl Chunk {
+    /// Returns a chunk that is completely filled with air.
+    ///
+    /// This uses the overworld [`ChunkHeight`] (-64..320) as the chunk's height.
+    ///
+    /// # Returns
+    ///
+    /// * An empty chunk filled with air using the overworld [`ChunkHeight`].
     pub fn new_empty() -> Chunk {
-        Self {
-            sections: vec![ChunkSection::new_uniform(AIR); 24].into_boxed_slice(),
-            height: ChunkHeight::new(-64, 384),
-            heightmaps: None,
-        }
+        Self::new_empty_with_height(ChunkHeight::new(-64, 384))
     }
 
+    /// Returns a chunk that is completely filled with air.
+    ///
+    /// # Arguments
+    ///
+    /// * `height` - The [`ChunkHeight`] that this chunk should be set to
+    ///
+    /// # Returns
+    ///
+    /// * An empty chunk filled with air using the given [`ChunkHeight`].
     pub fn new_empty_with_height(height: ChunkHeight) -> Chunk {
         Self {
             sections: vec![ChunkSection::new_uniform(AIR); (height.height / 16) as usize]
@@ -41,33 +53,86 @@ impl Chunk {
         }
     }
 
-    pub fn new_with_sections(sections: [ChunkSection; 24]) -> Chunk {
+    /// Creates a chunk using the given sections and height.
+    ///
+    /// # Arguments
+    ///
+    /// * `sections` - The sections to fill the chunk with. These should be in order from the bottom of the world at index 0 and the top at the end of the slice.
+    /// * `height` - The [`ChunkHeight`] to use.
+    ///
+    /// # Asserts
+    ///
+    /// * debug_assert_eq: `sections` contains enough [`ChunkSection`]s to fill the chunk based on the given [`ChunkHeight`].
+    ///
+    /// # Returns
+    ///
+    /// * A chunk using the given sections and [`ChunkHeight`]
+    pub fn new_with_sections(sections: &[ChunkSection], height: ChunkHeight) -> Chunk {
+        debug_assert_eq!(height.height as usize / 16, sections.len());
+
         Self {
             sections: sections.to_vec().into_boxed_slice(),
-            height: ChunkHeight::new(-64, 384),
+            height,
             heightmaps: None,
         }
     }
 
+    /// Fills an entire [`ChunkSection`] with the given block.
+    ///
+    /// # Arguments
+    ///
+    /// * `y` - The y of the section to fill.
+    /// * `state` - The [`BlockStateId`] to fill the section with.
+    ///
+    /// # Asserts
+    ///
+    /// * `assert` - Checks if the given y value is in range of the height of the chunk.
     pub fn fill_section(&mut self, y: i8, state: BlockStateId) {
+        assert!(y as i16 >= self.height.min_y / 16);
+        assert!((y as i16) < (self.height.min_y + self.height.height as i16) / 16);
+
         let section = y as i16 + -self.height.min_y / 16;
-        assert!(section >= 0);
 
         self.sections[section as usize] = ChunkSection::new_uniform(state)
     }
 
+    /// Gets a block in the chunk.
+    ///
+    /// # Arguments
+    ///
+    /// * `pos` - The position of the block to get.
+    ///
+    /// # Returns
+    ///
+    /// * The [`BlockStateId`] of the block at the requested position. If the position is above the maximum y of the chunk, air is always returned.
+    ///   If the position is below the minimum y of the chunk, void air is always returned.
     pub fn get_block(&self, pos: ChunkBlockPos) -> BlockStateId {
         let section = (pos.y() + -self.height.min_y) / 16;
         if section < 0 {
             return block!("void_air");
         }
 
+        if section as usize >= self.sections.len() {
+            return block!("air");
+        }
+
         self.sections[section as usize].get_block(pos.section_block_pos())
     }
 
+    /// Sets a block in the chunk.
+    ///
+    /// # Arguments
+    ///
+    /// * `pos` - The position of the block to set within the chunk.
+    /// * `id` - The [`BlockStateId`] of the block to set.
+    ///
+    /// # Asserts
+    ///
+    /// * `assert` - Checks to ensure that the given position is in-bounds.
     pub fn set_block(&mut self, pos: ChunkBlockPos, id: BlockStateId) {
         let section = (pos.y() + -self.height.min_y) / 16;
         assert!(section >= 0);
+        assert!(section as usize <= self.sections.len());
 
         self.sections[section as usize].set_block(pos.section_block_pos(), id);
     }
