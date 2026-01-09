@@ -334,6 +334,22 @@ impl SectionBlockPos {
     pub fn pack(&self) -> u16 {
         (self.pos.y as u16) << 8 | (self.pos.z as u16) << 4 | self.pos.x as u16
     }
+
+    /// Unpacks from the packed representation: 0x0yzx
+    /// Returns None if data >= 4096
+    pub fn unpack(data: u16) -> Option<Self> {
+        if data >= 4096 {
+            None
+        } else {
+            let y = (data & (0xF << 8)) >> 8;
+            let z = (data & (0xF << 4)) >> 4;
+            let x = data & 0xF;
+
+            Some(Self {
+                pos: U8Vec3::new(x as _, y as _, z as _),
+            })
+        }
+    }
 }
 
 impl Deref for SectionBlockPos {

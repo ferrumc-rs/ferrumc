@@ -26,8 +26,11 @@ impl BlockPalette {
     }
 
     pub fn new_with_entry_count(entries: usize) -> BlockPalette {
+        let mut palette = vec![Some((AIR, NonZeroU16::MAX))];
+        palette.resize_with(entries + 1, || None);
+
         BlockPalette {
-            palette: vec![Some((AIR, NonZeroU16::MAX)); entries + 1],
+            palette,
             free_count: entries as u16,
         }
     }
@@ -167,7 +170,7 @@ impl BlockPalette {
         let bits = if len <= 1 {
             1
         } else {
-            (usize::BITS - (len - 1).leading_zeros()) as u8
+            (usize::BITS - len.leading_zeros()) as u8
         };
 
         bits.next_power_of_two()

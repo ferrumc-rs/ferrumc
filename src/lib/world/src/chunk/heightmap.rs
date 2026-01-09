@@ -39,10 +39,9 @@ impl TryFrom<&VanillaHeightmaps> for Heightmaps {
     type Error = WorldError;
 
     fn try_from(value: &VanillaHeightmaps) -> Result<Self, Self::Error> {
-        let convert_long_vec = |data| {
-            let data: Vec<i16> = bytemuck::cast_vec(data);
+        let convert_long_vec = |data: Vec<i64>| {
             ChunkHeightmap {
-                data: data.into_boxed_slice(),
+                data: data.into_iter().map(|v| v as i16).collect(),
             }
         };
 

@@ -1,17 +1,16 @@
-use std::num::NonZeroU16;
 use crate::block_state_id::BlockStateId;
 use crate::chunk::light::{LightStorage, SectionLightData};
 use crate::chunk::section::biome::{BiomeData, BiomeType};
 use crate::chunk::section::direct::DirectSection;
 use crate::chunk::section::paletted::PalettedSection;
 use crate::chunk::section::uniform::UniformSection;
+use crate::errors::WorldError;
 use crate::pos::SectionBlockPos;
+use crate::vanilla_chunk_format::Section;
 use bitcode_derive::{Decode, Encode};
 use deepsize::DeepSizeOf;
 use ferrumc_macros::block;
 use crate::chunk::palette::BlockPalette;
-use crate::errors::WorldError;
-use crate::vanilla_chunk_format::Section;
 
 mod biome;
 mod direct;
@@ -168,31 +167,69 @@ impl TryFrom<&Section> for ChunkSection {
 
         let light_data = SectionLightData::with_data(sky_light, block_light);
 
-        let block_data = value.block_states.as_ref().ok_or(WorldError::CorruptedChunkData(0, 0))?;
-        let blocks = block_data.data.clone().ok_or(WorldError::CorruptedChunkData(0, 0))?;
+        if let Some(block_data) = value.block_states.as_ref() {
+            let (block_count, block_states) = if let Some(blocks) = block_data.data.as_ref() {
+                if let Some(palette) = block_data.palette.as_ref() {
+                    let bits_per_block = ((palette.len().saturating_sub(1) as u32).ilog2() + 1).max(4);
 
-        if let Some(palette) = block_data.palette.as_ref() {
+                    let mut values = Vec::with_capacity(4096);
+
+                    for i in 0..4096 {
+                        values.push(PalettedSection::unpack_value_unaligned(bytemuck::cast_slice(blocks.as_slice()), i, bits_per_block as _))
+                    }
+
+                    debug_assert_eq!(values.len(), 4096);
+
+                    (
+                        if bits_per_block >= 9 {
+                            None
+                        } else {
+                            Some(palette.len())
+                        },
+                        values.into_iter().map(|v| {
+                            if bits_per_block >= 9 {
+                                BlockStateId::new(v as _)
+                            } else {
+                                BlockStateId::from_block_data(&palette[v as usize])
+                            }
+                        }).collect::<Vec<_>>()
+                    )
+                } else {
+                    return Err(WorldError::CorruptedChunkData(0, 0));
+                }
+            } else {
+                return Ok(Self {
+                    light: light_data,
+                    biome: BiomeData::Uniform(BiomeType(5)),
+                    dirty: false,
+
+                    inner: ChunkSectionType::Uniform(UniformSection::air()),
+                })
+            };
+
+            let mut section_data = if let Some(block_count) = block_count {
+                ChunkSectionType::Paletted(PalettedSection::new_with_block_count(block_count as _))
+            } else {
+                ChunkSectionType::Direct(DirectSection::default())
+            };
+
+
+            for (idx, block) in block_states.into_iter().enumerate() {
+                section_data.set_block(SectionBlockPos::unpack(idx as _).expect("should be in-bounds"), block)
+            }
+
             Ok(Self {
                 light: light_data,
                 biome: BiomeData::Uniform(BiomeType(5)),
                 dirty: false,
-
-                inner: ChunkSectionType::Paletted(PalettedSection {
-                    block_data: blocks.into_iter().map(|v| v as u64).collect(),
-                    bit_width: BlockPalette::bit_width_for_len(palette.len()),
-                    palette: BlockPalette {
-                        free_count: 0,
-                        palette: palette.into_iter().map(|data| Some((BlockStateId::from_block_data(&data), NonZeroU16::MAX))).collect(),
-                    },
-                })
+                inner: section_data,
             })
         } else {
             Ok(Self {
                 light: light_data,
-                biome: BiomeData::new_uniform(BiomeType(5)),
+                biome: BiomeData::Uniform(BiomeType(5)),
                 dirty: false,
-
-                inner: ChunkSectionType::Uniform(UniformSection::new_with(AIR)),
+                inner: ChunkSectionType::Uniform(UniformSection::air()),
             })
         }
     }

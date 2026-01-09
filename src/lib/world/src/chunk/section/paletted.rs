@@ -58,6 +58,7 @@ impl PalettedSection {
             }
 
             self.resize(new_bit_width);
+            self.bit_width = new_bit_width;
         }
 
         Self::pack_value(&mut self.block_data, idx, self.bit_width, new_idx as u8);
@@ -86,7 +87,7 @@ impl PalettedSection {
     pub(crate) fn pack_value(buffer: &mut [u64], idx: usize, bit_width: u8, value: u8) {
         debug_assert!(bit_width.is_power_of_two());
         debug_assert!(bit_width <= 8);
-        debug_assert!(value < (1 << bit_width));
+        debug_assert!((value as u16) < (1u16 << bit_width), "value < (1 << bit_width) failed: bit_width {}, value {}", bit_width, value);
 
         let bit_width = bit_width as usize;
 
@@ -103,6 +104,20 @@ impl PalettedSection {
     pub(crate) fn unpack_value(buffer: &[u64], idx: usize, bit_width: u8) -> u8 {
         debug_assert!(bit_width.is_power_of_two());
         debug_assert!(bit_width <= 8);
+
+        let bit_width = bit_width as usize;
+
+        let entries_per_long = u64::BITS as usize / bit_width;
+        let entry_mask = ((1u64 << bit_width) - 1) as usize;
+        let long_index = idx / entries_per_long;
+        let bit_idx = idx % entries_per_long * bit_width;
+
+        ((buffer[long_index] >> bit_idx) & entry_mask as u64) as u8
+    }
+
+    #[inline]
+    pub(crate) fn unpack_value_unaligned(buffer: &[u64], idx: usize, bit_width: u8) -> u8 {
+        assert!(bit_width <= 8, "should be using direct sampling");
 
         let bit_width = bit_width as usize;
 

@@ -51,7 +51,7 @@ impl From<Vec<i8>> for LightStorage {
 }
 
 impl SectionLightData {
-    pub fn with_data(sky_light: LightStorage, block_light: LightStorage) -> Self {
+    pub(crate) fn with_data(sky_light: LightStorage, block_light: LightStorage) -> Self {
         Self {
             sky_light,
             block_light,
