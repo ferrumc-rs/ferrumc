@@ -10,7 +10,6 @@ use crate::vanilla_chunk_format::Section;
 use bitcode_derive::{Decode, Encode};
 use deepsize::DeepSizeOf;
 use ferrumc_macros::block;
-use crate::chunk::palette::BlockPalette;
 
 mod biome;
 mod direct;
@@ -162,20 +161,33 @@ impl TryFrom<&Section> for ChunkSection {
     type Error = WorldError;
 
     fn try_from(value: &Section) -> Result<Self, Self::Error> {
-        let sky_light = value.sky_light.clone().map(LightStorage::from).unwrap_or_default();
-        let block_light = value.block_light.clone().map(LightStorage::from).unwrap_or_default();
+        let sky_light = value
+            .sky_light
+            .clone()
+            .map(LightStorage::from)
+            .unwrap_or_default();
+        let block_light = value
+            .block_light
+            .clone()
+            .map(LightStorage::from)
+            .unwrap_or_default();
 
         let light_data = SectionLightData::with_data(sky_light, block_light);
 
         if let Some(block_data) = value.block_states.as_ref() {
             let (block_count, block_states) = if let Some(blocks) = block_data.data.as_ref() {
                 if let Some(palette) = block_data.palette.as_ref() {
-                    let bits_per_block = ((palette.len().saturating_sub(1) as u32).ilog2() + 1).max(4);
+                    let bits_per_block =
+                        ((palette.len().saturating_sub(1) as u32).ilog2() + 1).max(4);
 
                     let mut values = Vec::with_capacity(4096);
 
                     for i in 0..4096 {
-                        values.push(PalettedSection::unpack_value_unaligned(bytemuck::cast_slice(blocks.as_slice()), i, bits_per_block as _))
+                        values.push(PalettedSection::unpack_value_unaligned(
+                            bytemuck::cast_slice(blocks.as_slice()),
+                            i,
+                            bits_per_block as _,
+                        ))
                     }
 
                     debug_assert_eq!(values.len(), 4096);
@@ -186,13 +198,16 @@ impl TryFrom<&Section> for ChunkSection {
                         } else {
                             Some(palette.len())
                         },
-                        values.into_iter().map(|v| {
-                            if bits_per_block >= 9 {
-                                BlockStateId::new(v as _)
-                            } else {
-                                BlockStateId::from_block_data(&palette[v as usize])
-                            }
-                        }).collect::<Vec<_>>()
+                        values
+                            .into_iter()
+                            .map(|v| {
+                                if bits_per_block >= 9 {
+                                    BlockStateId::new(v as _)
+                                } else {
+                                    BlockStateId::from_block_data(&palette[v as usize])
+                                }
+                            })
+                            .collect::<Vec<_>>(),
                     )
                 } else {
                     return Err(WorldError::CorruptedChunkData(0, 0));
@@ -204,7 +219,7 @@ impl TryFrom<&Section> for ChunkSection {
                     dirty: false,
 
                     inner: ChunkSectionType::Uniform(UniformSection::air()),
-                })
+                });
             };
 
             let mut section_data = if let Some(block_count) = block_count {
@@ -213,9 +228,11 @@ impl TryFrom<&Section> for ChunkSection {
                 ChunkSectionType::Direct(DirectSection::default())
             };
 
-
             for (idx, block) in block_states.into_iter().enumerate() {
-                section_data.set_block(SectionBlockPos::unpack(idx as _).expect("should be in-bounds"), block)
+                section_data.set_block(
+                    SectionBlockPos::unpack(idx as _).expect("should be in-bounds"),
+                    block,
+                )
             }
 
             Ok(Self {

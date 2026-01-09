@@ -15,7 +15,10 @@ pub struct DirectSection(pub(crate) Box<[CompactBlockStateId]>, u16);
 
 impl Default for DirectSection {
     fn default() -> Self {
-        Self(vec![AIR_COMPACT; CHUNK_SECTION_LENGTH].into_boxed_slice(), 0)
+        Self(
+            vec![AIR_COMPACT; CHUNK_SECTION_LENGTH].into_boxed_slice(),
+            0,
+        )
     }
 }
 
@@ -44,7 +47,8 @@ impl DirectSection {
 impl From<&mut UniformSection> for DirectSection {
     fn from(s: &mut UniformSection) -> Self {
         Self(
-            vec![s.get_block().raw() as CompactBlockStateId; CHUNK_SECTION_LENGTH].into_boxed_slice(),
+            vec![s.get_block().raw() as CompactBlockStateId; CHUNK_SECTION_LENGTH]
+                .into_boxed_slice(),
             if s.get_block() == AIR { 0 } else { 4096 },
         )
     }

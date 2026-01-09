@@ -37,14 +37,22 @@ impl From<Vec<i8>> for LightStorage {
             let mut all_off = true;
 
             for b in data.iter() {
-                if *b != i8::MAX { all_on = false };
-                if *b != i8::MIN { all_off = false };
+                if *b != i8::MAX {
+                    all_on = false
+                };
+                if *b != i8::MIN {
+                    all_off = false
+                };
             }
 
-            if all_on { Self::Full }
-            else if all_off { Self::Empty }
-            else {
-                Self::Mixed { light_data: data.into_iter().map(|v| v as u8).collect() }
+            if all_on {
+                Self::Full
+            } else if all_off {
+                Self::Empty
+            } else {
+                Self::Mixed {
+                    light_data: data.into_iter().map(|v| v as u8).collect(),
+                }
             }
         }
     }

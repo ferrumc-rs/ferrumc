@@ -1,10 +1,10 @@
+use crate::errors::WorldError;
+use crate::vanilla_chunk_format::VanillaHeightmaps;
 use bitcode_derive::{Decode, Encode};
 use deepsize::DeepSizeOf;
 use ferrumc_macros::NetEncode;
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use crate::errors::WorldError;
-use crate::vanilla_chunk_format::VanillaHeightmaps;
 
 #[derive(Default, Clone, DeepSizeOf, Encode, Decode)]
 pub struct Heightmaps {
@@ -39,15 +39,21 @@ impl TryFrom<&VanillaHeightmaps> for Heightmaps {
     type Error = WorldError;
 
     fn try_from(value: &VanillaHeightmaps) -> Result<Self, Self::Error> {
-        let convert_long_vec = |data: Vec<i64>| {
-            ChunkHeightmap {
-                data: data.into_iter().map(|v| v as i16).collect(),
-            }
+        let convert_long_vec = |data: Vec<i64>| ChunkHeightmap {
+            data: data.into_iter().map(|v| v as i16).collect(),
         };
 
         Ok(Self {
-            world_surface: value.world_surface.clone().map(convert_long_vec).unwrap_or_default(),
-            motion_blocking: value.motion_blocking.clone().map(convert_long_vec).unwrap_or_default(),
+            world_surface: value
+                .world_surface
+                .clone()
+                .map(convert_long_vec)
+                .unwrap_or_default(),
+            motion_blocking: value
+                .motion_blocking
+                .clone()
+                .map(convert_long_vec)
+                .unwrap_or_default(),
         })
     }
 }

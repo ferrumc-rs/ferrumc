@@ -13,7 +13,6 @@ use crate::vanilla_chunk_format::VanillaChunk;
 use crate::World;
 use bitcode_derive::{Decode, Encode};
 use deepsize::DeepSizeOf;
-use tracing::debug;
 
 #[derive(Clone, DeepSizeOf, Encode, Decode)]
 pub struct Chunk {
@@ -34,7 +33,8 @@ impl Chunk {
 
     pub fn new_empty_with_height(height: ChunkHeight) -> Chunk {
         Self {
-            sections: vec![ChunkSection::new_uniform(AIR); (height.height / 16) as usize].into_boxed_slice(),
+            sections: vec![ChunkSection::new_uniform(AIR); (height.height / 16) as usize]
+                .into_boxed_slice(),
             height,
             heightmaps: None,
         }
@@ -76,16 +76,29 @@ impl TryFrom<&VanillaChunk> for Chunk {
     fn try_from(value: &VanillaChunk) -> Result<Self, Self::Error> {
         let mut sections = vec![ChunkSection::new_uniform(AIR); 24];
 
-        if value.status != "minecraft:full" { return Err(WorldError::CorruptedChunkData(0, 0)) }
+        if value.status != "minecraft:full" {
+            return Err(WorldError::CorruptedChunkData(0, 0));
+        }
 
-        for section in value.sections.as_ref().ok_or(WorldError::CorruptedChunkData(value.x_pos as _, value.z_pos as _))?.iter() {
-            sections[(section.y + 4).max(0).min(23) as usize] = ChunkSection::try_from(section)?;
+        for section in value
+            .sections
+            .as_ref()
+            .ok_or(WorldError::CorruptedChunkData(
+                value.x_pos as _,
+                value.z_pos as _,
+            ))?
+            .iter()
+        {
+            sections[(section.y + 4).clamp(0, 23) as usize] = ChunkSection::try_from(section)?;
         }
 
         Ok(Chunk {
             sections: sections.into_boxed_slice(),
             height: ChunkHeight::new(-64, 384),
-            heightmaps: value.heightmaps.as_ref().and_then(|v| Heightmaps::try_from(v).ok())
+            heightmaps: value
+                .heightmaps
+                .as_ref()
+                .and_then(|v| Heightmaps::try_from(v).ok()),
         })
     }
 }

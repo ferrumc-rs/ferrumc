@@ -87,7 +87,12 @@ impl PalettedSection {
     pub(crate) fn pack_value(buffer: &mut [u64], idx: usize, bit_width: u8, value: u8) {
         debug_assert!(bit_width.is_power_of_two());
         debug_assert!(bit_width <= 8);
-        debug_assert!((value as u16) < (1u16 << bit_width), "value < (1 << bit_width) failed: bit_width {}, value {}", bit_width, value);
+        debug_assert!(
+            (value as u16) < (1u16 << bit_width),
+            "value < (1 << bit_width) failed: bit_width {}, value {}",
+            bit_width,
+            value
+        );
 
         let bit_width = bit_width as usize;
 

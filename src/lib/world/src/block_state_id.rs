@@ -59,13 +59,10 @@ impl BlockStateId {
 
     /// Given a BlockData, return a BlockStateId. Does not clone, should be quite fast.
     pub fn from_block_data(block_data: &BlockData) -> Self {
-        let id = BLOCK2ID
-            .get(block_data)
-            .copied()
-            .unwrap_or_else(|| {
-                warn!("Block data '{block_data}' not found in block mappings file");
-                0
-            });
+        let id = BLOCK2ID.get(block_data).copied().unwrap_or_else(|| {
+            warn!("Block data '{block_data}' not found in block mappings file");
+            0
+        });
         BlockStateId(id as u32)
     }
 
