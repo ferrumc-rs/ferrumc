@@ -1,8 +1,10 @@
 use bevy_ecs::schedule::IntoScheduleConfigs;
+use std::time::Duration;
 mod chunk_calculator;
 mod chunk_sending;
 pub mod chunk_unloader;
 pub mod connection_killer;
+pub mod day_cycle;
 pub mod keep_alive_system;
 pub mod lan_pinger;
 pub mod listeners;
@@ -31,6 +33,8 @@ pub fn register_game_systems(schedule: &mut bevy_ecs::schedule::Schedule) {
     schedule.add_systems(player_swimming::detect_player_swimming);
 
     schedule.add_systems(send_entity_updates::handle);
+
+    schedule.add_systems(day_cycle::tick_daylight_cycle);
 
     // Should always be last
     schedule.add_systems(connection_killer::connection_killer);
