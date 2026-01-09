@@ -13,7 +13,7 @@ use tracing::debug;
 pub struct WorldTime(pub u16);
 
 pub fn tick_daylight_cycle(
-    mut world_time: Option<ResMut<WorldTime>>,
+    world_time: Option<ResMut<WorldTime>>,
     players: Query<(Entity, &StreamWriter)>,
     mut commands: Commands,
 ) {
