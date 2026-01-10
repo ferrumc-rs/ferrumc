@@ -186,6 +186,7 @@ toml = "0.9.8"
 craftflow-nbt = "2.1.0"
 figment = { version = "0.10.19", features = ["toml", "env"] }
 simd-json = "0.17.0"
+bytemuck = { version = "1.24.0", features = ["extern_crate_alloc"] }
 
 # Bit manipulation
 byteorder = "1.5.0"

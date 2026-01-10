@@ -7,7 +7,7 @@ use lazy_static::lazy_static;
 use std::collections::HashMap;
 use std::fmt::Display;
 use std::process::exit;
-use tracing::error;
+use tracing::{error, warn};
 
 // The number of block entries in the mappings file
 // Go to the .etc/blockstates.json file, see what the last ID is, and add 1 to it.
@@ -53,16 +53,17 @@ pub struct BlockStateId(u32);
 impl BlockStateId {
     /// Do NOT use this by yourself. Instead use the block macro `block!("stone")` the item to block
     /// map
-    pub fn new(id: u32) -> Self {
+    pub const fn new(id: u32) -> Self {
         Self(id)
     }
 
     /// Given a BlockData, return a BlockStateId. Does not clone, should be quite fast.
     pub fn from_block_data(block_data: &BlockData) -> Self {
-        let id = BLOCK2ID
-            .get(block_data)
-            .expect("Block data not found in block mappings file");
-        BlockStateId(*id as u32)
+        let id = BLOCK2ID.get(block_data).copied().unwrap_or_else(|| {
+            warn!("Block data '{block_data}' not found in block mappings file");
+            0
+        });
+        BlockStateId(id as u32)
     }
 
     /// Given a block state ID, return a BlockData. Will clone, so don't use in hot loops.
@@ -81,7 +82,7 @@ impl BlockStateId {
 
     /// Do Not use this by yourself. This is only useful for apis that use this as an index or key
     /// to get additionally information about this state.
-    pub fn raw(&self) -> u32 {
+    pub const fn raw(&self) -> u32 {
         self.0
     }
 }

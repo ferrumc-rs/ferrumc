@@ -48,9 +48,7 @@ pub fn handle(
                         "overworld",
                     )
                     .expect("Failed to load or generate chunk");
-                    chunk
-                        .set_block(pos.chunk_block_pos(), BlockStateId::default())
-                        .map_err(BinaryError::World)?;
+                    chunk.set_block(pos.chunk_block_pos(), BlockStateId::default());
 
                     // Send block broken event for un-grounding system
                     block_break_events.write(BlockBrokenEvent { position: pos });

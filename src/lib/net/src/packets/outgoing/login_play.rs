@@ -1,5 +1,6 @@
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_macros::{packet, NetEncode};
+use ferrumc_net_codec::net_types::net_array::NetworkArray;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 
 #[derive(NetEncode)]
@@ -8,7 +9,7 @@ pub struct LoginPlayPacket<'a> {
     pub entity_id: i32,
     pub is_hardcore: bool,
     pub dimension_length: VarInt,
-    pub dimension_names: &'a [&'a str],
+    pub dimension_names: NetworkArray<'a, &'a str>,
     pub max_players: VarInt,
     pub view_distance: VarInt,
     pub simulation_distance: VarInt,
@@ -36,7 +37,7 @@ impl LoginPlayPacket<'_> {
             entity_id: conn_id,
             is_hardcore: false,
             dimension_length: VarInt::from(1),
-            dimension_names: &["minecraft:overworld"],
+            dimension_names: NetworkArray::new_borrowed(&["minecraft:overworld"]),
             max_players: VarInt::from(get_global_config().max_players as i32),
             view_distance: VarInt::from(get_global_config().chunk_render_distance as i32),
             simulation_distance: VarInt::from(get_global_config().chunk_render_distance as i32),

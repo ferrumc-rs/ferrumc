@@ -76,10 +76,7 @@ pub fn handle(
                         "overworld",
                     )
                     .expect("Failed to load or generate chunk");
-                    let Ok(block_clicked) = chunk.get_block(pos.chunk_block_pos()) else {
-                        debug!("Failed to get block at position: {}", pos);
-                        continue 'ev_loop;
-                    };
+                    let block_clicked = chunk.get_block(pos.chunk_block_pos());
                     trace!("Block clicked: {:?}", block_clicked);
                     // Use the face to determine the offset of the block to place
                     let offset_pos = pos
@@ -126,11 +123,7 @@ pub fn handle(
                         continue 'ev_loop;
                     }
 
-                    if let Err(err) = chunk.set_block(pos.chunk_block_pos(), *mapped_block_state_id)
-                    {
-                        error!("Failed to set block: {:?}", err);
-                        continue 'ev_loop;
-                    }
+                    chunk.set_block(pos.chunk_block_pos(), *mapped_block_state_id);
                     let ack_packet = BlockChangeAck {
                         sequence: event.sequence,
                     };

@@ -280,9 +280,7 @@ fn break_block(
     let pos: BlockPos = position.clone().into();
     let mut chunk = ferrumc_utils::world::load_or_generate_mut(&state.0, pos.chunk(), "overworld")
         .expect("Failed to load or generate chunk");
-    chunk
-        .set_block(pos.chunk_block_pos(), BlockStateId::default())
-        .map_err(BinaryError::World)?;
+    chunk.set_block(pos.chunk_block_pos(), BlockStateId::default());
 
     // Send block broken event for un-grounding system
     debug!("Sending BlockBrokenEvent for block at {:?}", pos.pos);
