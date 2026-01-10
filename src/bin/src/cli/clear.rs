@@ -98,7 +98,7 @@ pub struct ClearResult {
 /// - I/O operations fail during confirmation
 /// - One or more clear operations fail
 pub fn handle_clear(args: ClearArgs) -> Result<(), BinaryError> {
-    let base_path = ferrumc_general_purpose::paths::get_root_path()?;
+    let base_path = ferrumc_general_purpose::paths::get_root_path();
 
     // Determine which targets to clear
     let targets = collect_targets(&args);

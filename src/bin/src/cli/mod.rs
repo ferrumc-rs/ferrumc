@@ -20,5 +20,6 @@
 mod args;
 mod clear;
 
+#[allow(unused_imports)]
 pub use args::{CLIArgs, ClearArgs, Command, ImportArgs, LogLevel};
 pub use clear::handle_clear;
