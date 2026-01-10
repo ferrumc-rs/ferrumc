@@ -163,7 +163,7 @@ pub(crate) fn derive(input: TokenStream) -> TokenStream {
 
     let fields = match &input.data {
         syn::Data::Struct(data) => &data.fields,
-        _ => panic!("NetDecode can only be derived for structs or for enums with `u8_cast`."),
+        _ => panic!("NetDecode can only be derived for data or for enums with `u8_cast`."),
     };
 
     // Generate per-field decode statements. We'll build them in order, storing

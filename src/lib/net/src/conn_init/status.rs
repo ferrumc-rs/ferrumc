@@ -114,7 +114,7 @@ pub(super) async fn status(
 /// # Returns
 /// A JSON-encoded string containing the server's status.
 fn get_server_status(state: &GlobalState) -> String {
-    // Internal structs serialized to match Minecraft's server list response schema
+    // Internal data serialized to match Minecraft's server list response schema
     mod structs {
         #[derive(serde_derive::Serialize)]
         pub(super) struct ServerStatus<'a> {
