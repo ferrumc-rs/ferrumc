@@ -54,4 +54,8 @@ pub mod set_player_inventory_slot;
 pub mod particle;
 
 pub mod unload_chunk;
+
+pub mod hurt_animation;
+pub mod respawn;
+pub mod set_health;
 pub mod update_time;
