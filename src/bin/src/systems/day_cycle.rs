@@ -1,4 +1,4 @@
-use bevy_ecs::prelude::{Commands, Entity, Query, ResMut, Resource};
+use bevy_ecs::prelude::{Entity, Query, ResMut, Resource};
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::update_time::UpdateTimePacket;
 use tracing::debug;
@@ -13,26 +13,16 @@ use tracing::debug;
 pub struct WorldTime(pub u16);
 
 pub fn tick_daylight_cycle(
-    world_time: Option<ResMut<WorldTime>>,
+    mut world_time: ResMut<WorldTime>,
     players: Query<(Entity, &StreamWriter)>,
-    mut commands: Commands,
 ) {
-    let current_time = match world_time {
-        None => {
-            commands.init_resource::<WorldTime>();
-            0
-        }
-        Some(mut world_time) => {
-            world_time.0 = (world_time.0 + 1) % 24000;
-            world_time.0
-        }
-    };
+    world_time.0 = (world_time.0 + 1) % 24000;
 
     // Send time update every 20 ticks
-    if current_time % 20 == 0 {
+    if world_time.0.is_multiple_of(20) {
         let packet = UpdateTimePacket {
             world_age: 0,
-            time_of_day: current_time as _,
+            time_of_day: world_time.0 as _,
             time_of_day_increasing: true,
         };
 
