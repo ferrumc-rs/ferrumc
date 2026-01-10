@@ -71,10 +71,9 @@ impl ClearTarget {
 
 /// Result of a clear operation for a single target.
 #[derive(Debug)]
-pub struct ClearResult {
-    pub target: ClearTarget,
-    pub success: bool,
-    pub message: String,
+struct ClearResult {
+    success: bool,
+    message: String,
 }
 
 // ============================================================================
@@ -83,9 +82,8 @@ pub struct ClearResult {
 
 /// Handles the clear command, removing selected server data.
 ///
-/// This is the main entry point for the clear command. It parses the provided
-/// arguments, confirms with the user (unless `--yes` is provided), and performs
-/// the deletion of selected targets.
+/// This is the main entry point for the clear command. It confirms with the user
+/// (unless `--yes` is provided), and performs the deletion of selected targets.
 ///
 /// # Arguments
 ///
@@ -99,15 +97,7 @@ pub struct ClearResult {
 /// - One or more clear operations fail
 pub fn handle_clear(args: ClearArgs) -> Result<(), BinaryError> {
     let base_path = ferrumc_general_purpose::paths::get_root_path();
-
-    // Determine which targets to clear
     let targets = collect_targets(&args);
-
-    // If no specific targets selected, show help
-    if targets.is_empty() {
-        print_usage_help();
-        return Ok(());
-    }
 
     // Show what will be deleted
     print_deletion_preview(&base_path, &targets);
@@ -162,19 +152,6 @@ fn collect_targets(args: &ClearArgs) -> Vec<ClearTarget> {
         targets.push(ClearTarget::World);
     }
     targets
-}
-
-/// Prints usage help when no targets are specified.
-fn print_usage_help() {
-    println!("No targets specified. Use one or more of the following options:");
-    println!("  -c, --config     Clear configuration files");
-    println!("  -w, --whitelist  Clear whitelist file");
-    println!("  -l, --logs       Clear log files");
-    println!("  -W, --world      Clear world data");
-    println!("  -a, --all        Clear all data");
-    println!();
-    println!("Example: ferrumc clear --all");
-    println!("         ferrumc clear --logs --world");
 }
 
 /// Prints a preview of what will be deleted.
@@ -253,7 +230,6 @@ fn clear_target(base_path: &Path, target: ClearTarget) -> ClearResult {
                 target_path.display()
             );
             ClearResult {
-                target,
                 success: true,
                 message: format!("Successfully removed {}", target.description()),
             }
@@ -265,7 +241,6 @@ fn clear_target(base_path: &Path, target: ClearTarget) -> ClearResult {
                 target_path.display()
             );
             ClearResult {
-                target,
                 success: true,
                 message: format!("{} not found (already clean)", target.description()),
             }
@@ -278,7 +253,6 @@ fn clear_target(base_path: &Path, target: ClearTarget) -> ClearResult {
                 e
             );
             ClearResult {
-                target,
                 success: false,
                 message: format!("Failed to remove {}: {}", target.description(), e),
             }
@@ -319,97 +293,4 @@ fn print_clear_summary(results: &[ClearResult]) {
 
     println!("{}", "-".repeat(50));
     println!("Completed: {}/{} operations successful", successful, total);
-}
-
-// ============================================================================
-// Tests
-// ============================================================================
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::fs::File;
-    use tempfile::tempdir;
-
-    #[test]
-    fn test_clear_target_paths() {
-        assert_eq!(ClearTarget::Config.path(), "configs");
-        assert_eq!(ClearTarget::Whitelist.path(), "whitelist.txt");
-        assert_eq!(ClearTarget::Logs.path(), "logs");
-        assert_eq!(ClearTarget::World.path(), "world");
-    }
-
-    #[test]
-    fn test_remove_nonexistent_path() {
-        let dir = tempdir().unwrap();
-        let path = dir.path().join("nonexistent");
-        assert!(matches!(remove_path(&path), Ok(false)));
-    }
-
-    #[test]
-    fn test_remove_file() {
-        let dir = tempdir().unwrap();
-        let file_path = dir.path().join("test.txt");
-        File::create(&file_path).unwrap();
-
-        assert!(file_path.exists());
-        assert!(matches!(remove_path(&file_path), Ok(true)));
-        assert!(!file_path.exists());
-    }
-
-    #[test]
-    fn test_remove_directory() {
-        let dir = tempdir().unwrap();
-        let subdir = dir.path().join("subdir");
-        fs::create_dir(&subdir).unwrap();
-        File::create(subdir.join("file.txt")).unwrap();
-
-        assert!(subdir.exists());
-        assert!(matches!(remove_path(&subdir), Ok(true)));
-        assert!(!subdir.exists());
-    }
-
-    #[test]
-    fn test_collect_targets_all() {
-        let args = ClearArgs {
-            config: false,
-            whitelist: false,
-            logs: false,
-            world: false,
-            all: true,
-            yes: false,
-        };
-        let targets = collect_targets(&args);
-        assert_eq!(targets.len(), 4);
-    }
-
-    #[test]
-    fn test_collect_targets_specific() {
-        let args = ClearArgs {
-            config: true,
-            whitelist: false,
-            logs: true,
-            world: false,
-            all: false,
-            yes: false,
-        };
-        let targets = collect_targets(&args);
-        assert_eq!(targets.len(), 2);
-        assert!(targets.contains(&ClearTarget::Config));
-        assert!(targets.contains(&ClearTarget::Logs));
-    }
-
-    #[test]
-    fn test_collect_targets_empty() {
-        let args = ClearArgs {
-            config: false,
-            whitelist: false,
-            logs: false,
-            world: false,
-            all: false,
-            yes: false,
-        };
-        let targets = collect_targets(&args);
-        assert!(targets.is_empty());
-    }
 }

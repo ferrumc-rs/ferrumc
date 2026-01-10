@@ -9,7 +9,6 @@ use std::sync::Arc;
 use std::time::Instant;
 use tracing::{error, info};
 
-mod cli;
 pub(crate) mod errors;
 mod game_loop;
 mod launch;
@@ -17,6 +16,7 @@ mod packet_handlers;
 mod register_messages;
 mod register_resources;
 mod systems;
+mod cli;
 
 #[cfg(feature = "dhat")]
 #[global_allocator]

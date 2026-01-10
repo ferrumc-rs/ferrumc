@@ -3,7 +3,7 @@
 //! This module contains all the argument structures used by the FerrumC CLI,
 //! powered by the `clap` crate.
 
-use clap::{Parser, Subcommand, ValueEnum};
+use clap::{ArgGroup, Parser, Subcommand, ValueEnum};
 use tracing::Level;
 
 /// Main CLI arguments for FerrumC.
@@ -35,30 +35,38 @@ pub enum Command {
 }
 
 /// Arguments for the clear command.
+///
+/// At least one target must be specified (or use `--all` for everything).
 #[derive(Debug, Clone, Parser)]
+#[command(group(
+    ArgGroup::new("targets")
+        .required(true)
+        .multiple(true)
+        .args(["config", "whitelist", "logs", "world", "all"]),
+))]
 pub struct ClearArgs {
     /// Clear configuration files (configs/)
-    #[clap(long, short = 'c')]
+    #[arg(long, short = 'c')]
     pub config: bool,
 
     /// Clear whitelist file (whitelist.txt)
-    #[clap(long, short = 'w')]
+    #[arg(long, short = 'w')]
     pub whitelist: bool,
 
     /// Clear log files (logs/)
-    #[clap(long, short = 'l')]
+    #[arg(long, short = 'l')]
     pub logs: bool,
 
     /// Clear world data (world/)
-    #[clap(long, short = 'W')]
+    #[arg(long, short = 'W')]
     pub world: bool,
 
     /// Clear all data (equivalent to --config --whitelist --logs --world)
-    #[clap(long, short = 'a')]
+    #[arg(long, short = 'a')]
     pub all: bool,
 
     /// Skip confirmation prompt (use with caution)
-    #[clap(long, short = 'y')]
+    #[arg(long, short = 'y')]
     pub yes: bool,
 }
 
