@@ -6,6 +6,7 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+
 [dependencies]
 thiserror = { workspace = true }
 
@@ -40,10 +41,10 @@ ferrumc-entities = { workspace = true }
 ferrumc-physics = { workspace = true }
 ferrumc-particles = { workspace = true }
 bevy_math = { workspace = true }
+ferrumc-dashboard = { workspace = true, optional = true }
 once_cell = { workspace = true }
 serde_json = { workspace = true }
 
-dhat = { workspace = true }
 tracing = { workspace = true }
 clap = { workspace = true, features = ["derive", "env"] }
 flate2 = { workspace = true }
@@ -52,9 +53,17 @@ ctrlc = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 crossbeam-channel = { workspace = true }
 uuid = { workspace = true }
+dhat = { version = "0.3", optional = true }
 
 [features]
-dhat = []
+dhat = ["dep:dhat"]
+dashboard = [
+    "dep:ferrumc-dashboard",
+    "ferrumc-config/dashboard"
+]
+default = [
+    "dashboard"
+]
 
 [[bin]]
 name = "ferrumc"
