@@ -1,5 +1,5 @@
-use std::ops::Range;
 use bevy_ecs::prelude::Resource;
+use std::ops::Range;
 
 #[derive(Resource, Debug, Default)]
 pub struct WorldTime(u16);

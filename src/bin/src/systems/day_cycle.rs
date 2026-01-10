@@ -1,8 +1,8 @@
-use bevy_ecs::prelude::{Entity, Query, ResMut, Resource};
+use bevy_ecs::prelude::{Entity, Query, ResMut};
+use ferrumc_core::time::WorldTime;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::update_time::UpdateTimePacket;
 use tracing::debug;
-use ferrumc_core::time::WorldTime;
 
 pub fn tick_daylight_cycle(
     mut world_time: ResMut<WorldTime>,
