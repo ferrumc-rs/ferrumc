@@ -28,8 +28,14 @@ impl Inventory {
     }
 
     pub fn clear(&mut self) {
-        for slot in &mut self.slots {
-            *slot = None;
+        for slot in 0..self.slots.len() {
+            let _ = self.clear_slot(slot);
+        }
+    }
+
+    pub fn clear_with_update(&mut self, entity: Entity) {
+        for slot in 0..self.slots.len() {
+            let _ = self.clear_slot_with_update(slot, entity);
         }
     }
 
@@ -137,6 +143,27 @@ impl Inventory {
             slot: InventorySlot::default(),
             entity,
         });
+        Ok(())
+    }
+
+    /// Clears an inventory slot and **does not** send an update packet to the client.
+    /// This is identical to `clear_slot_with_update`, but just does not send an update.
+    pub fn clear_slot(
+        &mut self,
+        index: usize,
+    ) -> Result<(), InventoryError> {
+        if index >= self.slots.len() {
+            return Err(InventoryError::InvalidSlotIndex(index));
+        }
+
+        // If the slot is already empty, we don't need to do anything
+        if self.slots[index].is_none() {
+            return Ok(()); // will 'fail silently'
+        }
+
+        // Otherwise, set the server's state to empty
+        self.slots[index] = None;
+
         Ok(())
     }
 
