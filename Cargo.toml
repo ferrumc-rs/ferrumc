@@ -236,6 +236,9 @@ typename = "0.1.2"
 bevy_ecs = { version = "0.17.3", features = ["multi_threaded", "trace"] }
 bevy_math = "0.17.3"
 once_cell = "1.21.3"
+include_dir = "0.7.4"
+mime_guess = "2.0.5"
+dunce = "1.0.5"
 
 # I/O
 memmap2 = "0.9.9"
@@ -248,10 +251,11 @@ phf = { version = "0.11", features = ["macros"] }
 phf_codegen = { version = "0.11" }
 
 # Web server
-axum = { version = "0.8.7", features = ["tokio", "ws"]}
+axum = { version = "0.8.7", features = ["tokio", "ws"] }
 
 # Stats
 sysinfo = "0.37.2"
+dir-size = "0.1.1"
 
 [profile.dev.package.yazi]
 opt-level = 3
