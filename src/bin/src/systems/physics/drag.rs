@@ -16,9 +16,8 @@ pub fn handle(
 ) {
     for (mut vel, pos, physical) in query.iter_mut() {
         let chunk_pos = ChunkPos::from(pos.coords);
-        let chunk =
-            ferrumc_utils::world::load_or_generate_mut(&state.0, chunk_pos, "overworld")
-               .expect("Failed to load or generate chunk");
+        let chunk = ferrumc_utils::world::load_or_generate_mut(&state.0, chunk_pos, "overworld")
+            .expect("Failed to load or generate chunk");
 
         // Check if the entity's center (middle of body) is in water
         // This makes entities float with their body half-submerged instead of feet out of water
@@ -27,10 +26,8 @@ pub fn handle(
         let center_y = pos.coords.y + (entity_height / 2.0);
         let center_pos = IVec3::new(feet_pos.x, center_y as i32, feet_pos.z);
 
-        let is_center_in_water = match_block!(
-            "water",
-            chunk.get_block(ChunkBlockPos::from(center_pos))
-        );
+        let is_center_in_water =
+            match_block!("water", chunk.get_block(ChunkBlockPos::from(center_pos)));
 
         if is_center_in_water {
             // Water drag for living entities (not items!)

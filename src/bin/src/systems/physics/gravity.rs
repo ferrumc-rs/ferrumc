@@ -6,13 +6,19 @@ use ferrumc_entities::markers::{HasGravity, HasWaterDrag};
 use ferrumc_macros::match_block;
 use ferrumc_physics::GRAVITY_ACCELERATION;
 use ferrumc_state::GlobalStateResource;
-use ferrumc_world::pos::{ChunkBlockPos, ChunkPos};
 use ferrumc_world::block_state_id::BlockStateId;
+use ferrumc_world::pos::{ChunkBlockPos, ChunkPos};
 
 // Just apply gravity to a mob's velocity. Application of velocity is handled elsewhere.
 pub(crate) fn handle(
-    mut entities: Query<(&mut Velocity, &OnGround, &Position), (With<HasGravity>, Without<HasWaterDrag>)>,
-    mut water_entities: Query<(&mut Velocity, &OnGround, &Position), (With<HasGravity>, With<HasWaterDrag>)>,
+    mut entities: Query<
+        (&mut Velocity, &OnGround, &Position),
+        (With<HasGravity>, Without<HasWaterDrag>),
+    >,
+    mut water_entities: Query<
+        (&mut Velocity, &OnGround, &Position),
+        (With<HasGravity>, With<HasWaterDrag>),
+    >,
     state: Res<GlobalStateResource>,
 ) {
     // Apply full gravity to non-water entities
@@ -32,16 +38,12 @@ pub(crate) fn handle(
         }
 
         let chunk_pos = ChunkPos::from(pos.coords);
-        let chunk =
-            ferrumc_utils::world::load_or_generate_mut(&state.0, chunk_pos, "overworld")
-               .expect("Failed to load or generate chunk");
+        let chunk = ferrumc_utils::world::load_or_generate_mut(&state.0, chunk_pos, "overworld")
+            .expect("Failed to load or generate chunk");
 
         let feet_pos = pos.coords.as_ivec3();
 
-        let is_in_water = match_block!(
-            "water",
-            chunk.get_block(ChunkBlockPos::from(feet_pos))
-        );
+        let is_in_water = match_block!("water", chunk.get_block(ChunkBlockPos::from(feet_pos)));
 
         // Only apply full gravity if NOT in water
         if !is_in_water {
