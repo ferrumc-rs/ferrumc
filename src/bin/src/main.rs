@@ -52,6 +52,12 @@ fn main() {
             }
         }
 
+        Some(Command::Clear(clear_args)) => {
+            if let Err(e) = cli::handle_clear(clear_args) {
+                error!("Clear failed: {}", e);
+            }
+        }
+
         Some(Command::Run) | None => {
             info!("Starting server...");
             if let Err(e) = ferrumc_config::setup::setup() {
