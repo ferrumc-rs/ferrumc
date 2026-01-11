@@ -1,6 +1,5 @@
-use crate::structured_components::errors::{
-    InvalidStructuredComponentEnumError, NotSupportedStructuredComponentError,
-};
+use crate::structured_components::components::*;
+use crate::structured_components::errors::StructuredComponentError;
 use ferrumc_net_codec::decode::errors::NetDecodeError;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::encode::errors::NetEncodeError;
@@ -8,6 +7,7 @@ use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use log::debug;
 use std::io::{Read, Write};
+use tokio::io::AsyncReadExt;
 use tokio::io::{AsyncRead, AsyncWrite};
 #[doc = r" NOTE:"]
 #[doc = r" Structured components use an asymmetric protocol:"]
@@ -17,49 +17,49 @@ use tokio::io::{AsyncRead, AsyncWrite};
 pub enum StructuredComponent {
     #[default]
     Invalid,
-    MaxStackSize(crate::structured_components::components::MaxStackSize),
-    MaxDamage(crate::structured_components::components::MaxDamage),
-    Damage(crate::structured_components::components::Damage),
+    MaxStackSize(MaxStackSize),
+    MaxDamage(MaxDamage),
+    Damage(Damage),
     Unbreakable,
-    CustomName(crate::structured_components::components::TextComponentWrapper),
-    ItemName(crate::structured_components::components::TextComponentWrapper),
-    Lore(crate::structured_components::components::Lore),
-    Rarity(crate::structured_components::components::Rarity),
-    Enchantments(crate::structured_components::components::EnchantmentsCollection),
-    CustomModelData(crate::structured_components::components::CustomModelData),
-    TooltipDisplay(crate::structured_components::components::TooltipDisplay),
-    RepairCost(crate::structured_components::components::RepairCost),
+    CustomName(TextComponentWrapper),
+    ItemName(TextComponentWrapper),
+    Lore(Lore),
+    Rarity(Rarity),
+    Enchantments(EnchantmentsCollection),
+    CustomModelData(CustomModelData),
+    TooltipDisplay(TooltipDisplay),
+    RepairCost(RepairCost),
     CreativeSlotLock,
-    EnchantmentGlintOverride(crate::structured_components::components::EnchantmentGlintOverride),
-    Food(crate::structured_components::components::Food),
-    Consumable(crate::structured_components::components::Consumable),
-    UseCooldown(crate::structured_components::components::UseCooldown),
-    DamageResistant(crate::structured_components::components::DamageResistant),
-    Tool(crate::structured_components::components::Tool),
-    Weapon(crate::structured_components::components::Weapon),
-    Enchantable(crate::structured_components::components::Enchantable),
-    Equippable(crate::structured_components::components::Equippable),
-    Repairable(crate::structured_components::components::Repairable),
+    EnchantmentGlintOverride(EnchantmentGlintOverride),
+    Food(Food),
+    Consumable(Consumable),
+    UseCooldown(UseCooldown),
+    DamageResistant(DamageResistant),
+    Tool(Tool),
+    Weapon(Weapon),
+    Enchantable(Enchantable),
+    Equippable(Equippable),
+    Repairable(Repairable),
     Glider,
-    TooltipStyle(crate::structured_components::components::TooltipStyle),
-    DeathProtection(crate::structured_components::components::DeathProtection),
-    BlocksAttacks(crate::structured_components::components::BlocksAttacks),
-    StoredEnchantments(crate::structured_components::components::EnchantmentsCollection),
-    DyedColor(crate::structured_components::components::DyedColor),
-    MapColor(crate::structured_components::components::MapColor),
-    MapId(crate::structured_components::components::MapId),
-    MapPostProcessing(crate::structured_components::components::MapPostProcessing),
-    PotionContents(crate::structured_components::components::PotionContents),
-    SuspiciousStewEffects(crate::structured_components::components::SuspiciousStewEffects),
-    WritableBookContent(crate::structured_components::components::WritableBookContent),
-    WrittenBookContent(crate::structured_components::components::WrittenBookContent),
-    OminousBottleAmplifier(crate::structured_components::components::OminousBottleAmplifier),
-    Fireworks(crate::structured_components::components::Fireworks),
+    TooltipStyle(TooltipStyle),
+    DeathProtection(DeathProtection),
+    BlocksAttacks(BlocksAttacks),
+    StoredEnchantments(EnchantmentsCollection),
+    DyedColor(DyedColor),
+    MapColor(MapColor),
+    MapId(MapId),
+    MapPostProcessing(MapPostProcessing),
+    PotionContents(PotionContents),
+    SuspiciousStewEffects(SuspiciousStewEffects),
+    WritableBookContent(WritableBookContent),
+    WrittenBookContent(WrittenBookContent),
+    OminousBottleAmplifier(OminousBottleAmplifier),
+    Fireworks(Fireworks),
 }
 impl StructuredComponent {
-    pub fn to_id(&self) -> Result<VarInt, InvalidStructuredComponentEnumError> {
+    pub fn to_id(&self) -> Result<VarInt, StructuredComponentError> {
         match self {
-            StructuredComponent::Invalid => Err(InvalidStructuredComponentEnumError()),
+            StructuredComponent::Invalid => Err(StructuredComponentError::InvalidEnum),
             StructuredComponent::MaxStackSize(_) => Ok(VarInt::from(1i32)),
             StructuredComponent::MaxDamage(_) => Ok(VarInt::from(2i32)),
             StructuredComponent::Damage(_) => Ok(VarInt::from(3i32)),
@@ -104,7 +104,7 @@ impl StructuredComponent {
 impl NetEncode for StructuredComponent {
     fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
         if let StructuredComponent::Invalid = self {
-            return Err(InvalidStructuredComponentEnumError().into());
+            return Err(StructuredComponentError::InvalidEnum.into());
         }
         let id = self.to_id()?;
         id.encode(writer, opts)?;
@@ -156,7 +156,7 @@ impl NetEncode for StructuredComponent {
         opts: &NetEncodeOpts,
     ) -> Result<(), NetEncodeError> {
         if let StructuredComponent::Invalid = self {
-            return Err(InvalidStructuredComponentEnumError().into());
+            return Err(StructuredComponentError::InvalidEnum.into());
         }
         let id = self.to_id()?;
         id.encode_async(writer, opts).await?;
@@ -220,133 +220,155 @@ impl NetDecode for StructuredComponent {
         let id = VarInt::decode(reader, opts)?;
         let length = VarInt::decode(reader, opts)?;
         debug! { "Decoding structuredComponent with id {} and length {}" , id , length }
-        match id.0 {
-            1i32 => Ok(StructuredComponent::MaxStackSize(
-                crate::structured_components::components::MaxStackSize::decode(reader, opts)?,
-            )),
-            2i32 => Ok(StructuredComponent::MaxDamage(
-                crate::structured_components::components::MaxDamage::decode(reader, opts)?,
-            )),
-            3i32 => Ok(StructuredComponent::Damage(
-                crate::structured_components::components::Damage::decode(reader, opts)?,
-            )),
+        let mut buffer = vec![0u8; length.0 as usize];
+        reader
+            .read_exact(&mut buffer)
+            .map_err(|e| NetDecodeError::from(e))?;
+        let mut limited_reader = std::io::Cursor::new(buffer);
+        let result: Result<StructuredComponent, NetDecodeError> = match id.0 {
+            1i32 => Ok(StructuredComponent::MaxStackSize(MaxStackSize::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
+            2i32 => Ok(StructuredComponent::MaxDamage(MaxDamage::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
+            3i32 => Ok(StructuredComponent::Damage(Damage::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
             4i32 => Ok(StructuredComponent::Unbreakable),
             5i32 => Ok(StructuredComponent::CustomName(
-                crate::structured_components::components::TextComponentWrapper::decode(
-                    reader, opts,
-                )?,
+                TextComponentWrapper::decode(&mut limited_reader, opts)?,
             )),
-            6i32 => Ok(StructuredComponent::ItemName(
-                crate::structured_components::components::TextComponentWrapper::decode(
-                    reader, opts,
-                )?,
-            )),
-            8i32 => Ok(StructuredComponent::Lore(
-                crate::structured_components::components::Lore::decode(reader, opts)?,
-            )),
-            9i32 => Ok(StructuredComponent::Rarity(
-                crate::structured_components::components::Rarity::decode(reader, opts)?,
-            )),
+            6i32 => Ok(StructuredComponent::ItemName(TextComponentWrapper::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
+            8i32 => Ok(StructuredComponent::Lore(Lore::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
+            9i32 => Ok(StructuredComponent::Rarity(Rarity::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
             10i32 => Ok(StructuredComponent::Enchantments(
-                crate::structured_components::components::EnchantmentsCollection::decode(
-                    reader, opts,
-                )?,
+                EnchantmentsCollection::decode(&mut limited_reader, opts)?,
             )),
             14i32 => Ok(StructuredComponent::CustomModelData(
-                crate::structured_components::components::CustomModelData::decode(reader, opts)?,
+                CustomModelData::decode(&mut limited_reader, opts)?,
             )),
-            15i32 => Ok(StructuredComponent::TooltipDisplay(
-                crate::structured_components::components::TooltipDisplay::decode(reader, opts)?,
-            )),
-            16i32 => Ok(StructuredComponent::RepairCost(
-                crate::structured_components::components::RepairCost::decode(reader, opts)?,
-            )),
+            15i32 => Ok(StructuredComponent::TooltipDisplay(TooltipDisplay::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
+            16i32 => Ok(StructuredComponent::RepairCost(RepairCost::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
             17i32 => Ok(StructuredComponent::CreativeSlotLock),
             18i32 => Ok(StructuredComponent::EnchantmentGlintOverride(
-                crate::structured_components::components::EnchantmentGlintOverride::decode(
-                    reader, opts,
-                )?,
+                EnchantmentGlintOverride::decode(&mut limited_reader, opts)?,
             )),
-            20i32 => Ok(StructuredComponent::Food(
-                crate::structured_components::components::Food::decode(reader, opts)?,
-            )),
-            21i32 => Ok(StructuredComponent::Consumable(
-                crate::structured_components::components::Consumable::decode(reader, opts)?,
-            )),
-            23i32 => Ok(StructuredComponent::UseCooldown(
-                crate::structured_components::components::UseCooldown::decode(reader, opts)?,
-            )),
+            20i32 => Ok(StructuredComponent::Food(Food::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
+            21i32 => Ok(StructuredComponent::Consumable(Consumable::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
+            23i32 => Ok(StructuredComponent::UseCooldown(UseCooldown::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
             24i32 => Ok(StructuredComponent::DamageResistant(
-                crate::structured_components::components::DamageResistant::decode(reader, opts)?,
+                DamageResistant::decode(&mut limited_reader, opts)?,
             )),
-            25i32 => Ok(StructuredComponent::Tool(
-                crate::structured_components::components::Tool::decode(reader, opts)?,
-            )),
-            26i32 => Ok(StructuredComponent::Weapon(
-                crate::structured_components::components::Weapon::decode(reader, opts)?,
-            )),
-            27i32 => Ok(StructuredComponent::Enchantable(
-                crate::structured_components::components::Enchantable::decode(reader, opts)?,
-            )),
-            28i32 => Ok(StructuredComponent::Equippable(
-                crate::structured_components::components::Equippable::decode(reader, opts)?,
-            )),
-            29i32 => Ok(StructuredComponent::Repairable(
-                crate::structured_components::components::Repairable::decode(reader, opts)?,
-            )),
+            25i32 => Ok(StructuredComponent::Tool(Tool::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
+            26i32 => Ok(StructuredComponent::Weapon(Weapon::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
+            27i32 => Ok(StructuredComponent::Enchantable(Enchantable::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
+            28i32 => Ok(StructuredComponent::Equippable(Equippable::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
+            29i32 => Ok(StructuredComponent::Repairable(Repairable::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
             30i32 => Ok(StructuredComponent::Glider),
-            31i32 => Ok(StructuredComponent::TooltipStyle(
-                crate::structured_components::components::TooltipStyle::decode(reader, opts)?,
-            )),
+            31i32 => Ok(StructuredComponent::TooltipStyle(TooltipStyle::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
             32i32 => Ok(StructuredComponent::DeathProtection(
-                crate::structured_components::components::DeathProtection::decode(reader, opts)?,
+                DeathProtection::decode(&mut limited_reader, opts)?,
             )),
-            33i32 => Ok(StructuredComponent::BlocksAttacks(
-                crate::structured_components::components::BlocksAttacks::decode(reader, opts)?,
-            )),
+            33i32 => Ok(StructuredComponent::BlocksAttacks(BlocksAttacks::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
             34i32 => Ok(StructuredComponent::StoredEnchantments(
-                crate::structured_components::components::EnchantmentsCollection::decode(
-                    reader, opts,
-                )?,
+                EnchantmentsCollection::decode(&mut limited_reader, opts)?,
             )),
-            35i32 => Ok(StructuredComponent::DyedColor(
-                crate::structured_components::components::DyedColor::decode(reader, opts)?,
-            )),
-            36i32 => Ok(StructuredComponent::MapColor(
-                crate::structured_components::components::MapColor::decode(reader, opts)?,
-            )),
-            37i32 => Ok(StructuredComponent::MapId(
-                crate::structured_components::components::MapId::decode(reader, opts)?,
-            )),
+            35i32 => Ok(StructuredComponent::DyedColor(DyedColor::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
+            36i32 => Ok(StructuredComponent::MapColor(MapColor::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
+            37i32 => Ok(StructuredComponent::MapId(MapId::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
             39i32 => Ok(StructuredComponent::MapPostProcessing(
-                crate::structured_components::components::MapPostProcessing::decode(reader, opts)?,
+                MapPostProcessing::decode(&mut limited_reader, opts)?,
             )),
-            42i32 => Ok(StructuredComponent::PotionContents(
-                crate::structured_components::components::PotionContents::decode(reader, opts)?,
-            )),
+            42i32 => Ok(StructuredComponent::PotionContents(PotionContents::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
             44i32 => Ok(StructuredComponent::SuspiciousStewEffects(
-                crate::structured_components::components::SuspiciousStewEffects::decode(
-                    reader, opts,
-                )?,
+                SuspiciousStewEffects::decode(&mut limited_reader, opts)?,
             )),
             45i32 => Ok(StructuredComponent::WritableBookContent(
-                crate::structured_components::components::WritableBookContent::decode(
-                    reader, opts,
-                )?,
+                WritableBookContent::decode(&mut limited_reader, opts)?,
             )),
             46i32 => Ok(StructuredComponent::WrittenBookContent(
-                crate::structured_components::components::WrittenBookContent::decode(reader, opts)?,
+                WrittenBookContent::decode(&mut limited_reader, opts)?,
             )),
             54i32 => Ok(StructuredComponent::OminousBottleAmplifier(
-                crate::structured_components::components::OminousBottleAmplifier::decode(
-                    reader, opts,
-                )?,
+                OminousBottleAmplifier::decode(&mut limited_reader, opts)?,
             )),
-            60i32 => Ok(StructuredComponent::Fireworks(
-                crate::structured_components::components::Fireworks::decode(reader, opts)?,
-            )),
-            _ => Err(NotSupportedStructuredComponentError(id).into()),
+            60i32 => Ok(StructuredComponent::Fireworks(Fireworks::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
+            _ => {
+                return Err(NetDecodeError::from(
+                    StructuredComponentError::NotSupported(id),
+                ));
+            }
+        };
+        if limited_reader.position() < length.0 as u64 {
+            return Err(NetDecodeError::ExternalError(
+                "Decoding didn't read all expected data".into(),
+            ));
         }
+        result
     }
     async fn decode_async<R: AsyncRead + Unpin>(
         reader: &mut R,
@@ -354,178 +376,158 @@ impl NetDecode for StructuredComponent {
     ) -> Result<Self, NetDecodeError> {
         let id = VarInt::decode_async(reader, opts).await?;
         let length = VarInt::decode_async(reader, opts).await?;
-        debug! { "Decoding structuredComponent with id {} and length {}" , id , length }
-        match id.0 {
-            1i32 => Ok(StructuredComponent::MaxStackSize(
-                crate::structured_components::components::MaxStackSize::decode_async(reader, opts)
-                    .await?,
-            )),
-            2i32 => Ok(StructuredComponent::MaxDamage(
-                crate::structured_components::components::MaxDamage::decode_async(reader, opts)
-                    .await?,
-            )),
-            3i32 => Ok(StructuredComponent::Damage(
-                crate::structured_components::components::Damage::decode_async(reader, opts)
-                    .await?,
-            )),
+        debug!(
+            "Decoding structuredComponent with id {} and length {}",
+            id, length
+        );
+        let mut buffer = vec![0u8; length.0 as usize];
+        tokio::io::AsyncReadExt::read_exact(reader, &mut buffer)
+            .await
+            .map_err(|e| NetDecodeError::from(e))?;
+        let mut limited_reader = std::io::Cursor::new(buffer);
+        let result: Result<StructuredComponent, NetDecodeError> = match id.0 {
+            1i32 => Ok(StructuredComponent::MaxStackSize(MaxStackSize::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
+            2i32 => Ok(StructuredComponent::MaxDamage(MaxDamage::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
+            3i32 => Ok(StructuredComponent::Damage(Damage::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
             4i32 => Ok(StructuredComponent::Unbreakable),
             5i32 => Ok(StructuredComponent::CustomName(
-                crate::structured_components::components::TextComponentWrapper::decode_async(
-                    reader, opts,
-                )
-                .await?,
+                TextComponentWrapper::decode(&mut limited_reader, opts)?,
             )),
-            6i32 => Ok(StructuredComponent::ItemName(
-                crate::structured_components::components::TextComponentWrapper::decode_async(
-                    reader, opts,
-                )
-                .await?,
-            )),
-            8i32 => Ok(StructuredComponent::Lore(
-                crate::structured_components::components::Lore::decode_async(reader, opts).await?,
-            )),
-            9i32 => Ok(StructuredComponent::Rarity(
-                crate::structured_components::components::Rarity::decode_async(reader, opts)
-                    .await?,
-            )),
+            6i32 => Ok(StructuredComponent::ItemName(TextComponentWrapper::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
+            8i32 => Ok(StructuredComponent::Lore(Lore::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
+            9i32 => Ok(StructuredComponent::Rarity(Rarity::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
             10i32 => Ok(StructuredComponent::Enchantments(
-                crate::structured_components::components::EnchantmentsCollection::decode_async(
-                    reader, opts,
-                )
-                .await?,
+                EnchantmentsCollection::decode(&mut limited_reader, opts)?,
             )),
             14i32 => Ok(StructuredComponent::CustomModelData(
-                crate::structured_components::components::CustomModelData::decode_async(
-                    reader, opts,
-                )
-                .await?,
+                CustomModelData::decode(&mut limited_reader, opts)?,
             )),
-            15i32 => Ok(StructuredComponent::TooltipDisplay(
-                crate::structured_components::components::TooltipDisplay::decode_async(
-                    reader, opts,
-                )
-                .await?,
-            )),
-            16i32 => Ok(StructuredComponent::RepairCost(
-                crate::structured_components::components::RepairCost::decode_async(reader, opts)
-                    .await?,
-            )),
+            15i32 => Ok(StructuredComponent::TooltipDisplay(TooltipDisplay::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
+            16i32 => Ok(StructuredComponent::RepairCost(RepairCost::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
             17i32 => Ok(StructuredComponent::CreativeSlotLock),
             18i32 => Ok(StructuredComponent::EnchantmentGlintOverride(
-                crate::structured_components::components::EnchantmentGlintOverride::decode_async(
-                    reader, opts,
-                )
-                .await?,
+                EnchantmentGlintOverride::decode(&mut limited_reader, opts)?,
             )),
-            20i32 => Ok(StructuredComponent::Food(
-                crate::structured_components::components::Food::decode_async(reader, opts).await?,
-            )),
-            21i32 => Ok(StructuredComponent::Consumable(
-                crate::structured_components::components::Consumable::decode_async(reader, opts)
-                    .await?,
-            )),
-            23i32 => Ok(StructuredComponent::UseCooldown(
-                crate::structured_components::components::UseCooldown::decode_async(reader, opts)
-                    .await?,
-            )),
+            20i32 => Ok(StructuredComponent::Food(Food::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
+            21i32 => Ok(StructuredComponent::Consumable(Consumable::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
+            23i32 => Ok(StructuredComponent::UseCooldown(UseCooldown::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
             24i32 => Ok(StructuredComponent::DamageResistant(
-                crate::structured_components::components::DamageResistant::decode_async(
-                    reader, opts,
-                )
-                .await?,
+                DamageResistant::decode(&mut limited_reader, opts)?,
             )),
-            25i32 => Ok(StructuredComponent::Tool(
-                crate::structured_components::components::Tool::decode_async(reader, opts).await?,
-            )),
-            26i32 => Ok(StructuredComponent::Weapon(
-                crate::structured_components::components::Weapon::decode_async(reader, opts)
-                    .await?,
-            )),
-            27i32 => Ok(StructuredComponent::Enchantable(
-                crate::structured_components::components::Enchantable::decode_async(reader, opts)
-                    .await?,
-            )),
-            28i32 => Ok(StructuredComponent::Equippable(
-                crate::structured_components::components::Equippable::decode_async(reader, opts)
-                    .await?,
-            )),
-            29i32 => Ok(StructuredComponent::Repairable(
-                crate::structured_components::components::Repairable::decode_async(reader, opts)
-                    .await?,
-            )),
+            25i32 => Ok(StructuredComponent::Tool(Tool::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
+            26i32 => Ok(StructuredComponent::Weapon(Weapon::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
+            27i32 => Ok(StructuredComponent::Enchantable(Enchantable::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
+            28i32 => Ok(StructuredComponent::Equippable(Equippable::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
+            29i32 => Ok(StructuredComponent::Repairable(Repairable::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
             30i32 => Ok(StructuredComponent::Glider),
-            31i32 => Ok(StructuredComponent::TooltipStyle(
-                crate::structured_components::components::TooltipStyle::decode_async(reader, opts)
-                    .await?,
-            )),
+            31i32 => Ok(StructuredComponent::TooltipStyle(TooltipStyle::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
             32i32 => Ok(StructuredComponent::DeathProtection(
-                crate::structured_components::components::DeathProtection::decode_async(
-                    reader, opts,
-                )
-                .await?,
+                DeathProtection::decode(&mut limited_reader, opts)?,
             )),
-            33i32 => Ok(StructuredComponent::BlocksAttacks(
-                crate::structured_components::components::BlocksAttacks::decode_async(reader, opts)
-                    .await?,
-            )),
+            33i32 => Ok(StructuredComponent::BlocksAttacks(BlocksAttacks::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
             34i32 => Ok(StructuredComponent::StoredEnchantments(
-                crate::structured_components::components::EnchantmentsCollection::decode_async(
-                    reader, opts,
-                )
-                .await?,
+                EnchantmentsCollection::decode(&mut limited_reader, opts)?,
             )),
-            35i32 => Ok(StructuredComponent::DyedColor(
-                crate::structured_components::components::DyedColor::decode_async(reader, opts)
-                    .await?,
-            )),
-            36i32 => Ok(StructuredComponent::MapColor(
-                crate::structured_components::components::MapColor::decode_async(reader, opts)
-                    .await?,
-            )),
-            37i32 => Ok(StructuredComponent::MapId(
-                crate::structured_components::components::MapId::decode_async(reader, opts).await?,
-            )),
+            35i32 => Ok(StructuredComponent::DyedColor(DyedColor::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
+            36i32 => Ok(StructuredComponent::MapColor(MapColor::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
+            37i32 => Ok(StructuredComponent::MapId(MapId::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
             39i32 => Ok(StructuredComponent::MapPostProcessing(
-                crate::structured_components::components::MapPostProcessing::decode_async(
-                    reader, opts,
-                )
-                .await?,
+                MapPostProcessing::decode(&mut limited_reader, opts)?,
             )),
-            42i32 => Ok(StructuredComponent::PotionContents(
-                crate::structured_components::components::PotionContents::decode_async(
-                    reader, opts,
-                )
-                .await?,
-            )),
+            42i32 => Ok(StructuredComponent::PotionContents(PotionContents::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
             44i32 => Ok(StructuredComponent::SuspiciousStewEffects(
-                crate::structured_components::components::SuspiciousStewEffects::decode_async(
-                    reader, opts,
-                )
-                .await?,
+                SuspiciousStewEffects::decode(&mut limited_reader, opts)?,
             )),
             45i32 => Ok(StructuredComponent::WritableBookContent(
-                crate::structured_components::components::WritableBookContent::decode_async(
-                    reader, opts,
-                )
-                .await?,
+                WritableBookContent::decode(&mut limited_reader, opts)?,
             )),
             46i32 => Ok(StructuredComponent::WrittenBookContent(
-                crate::structured_components::components::WrittenBookContent::decode_async(
-                    reader, opts,
-                )
-                .await?,
+                WrittenBookContent::decode(&mut limited_reader, opts)?,
             )),
             54i32 => Ok(StructuredComponent::OminousBottleAmplifier(
-                crate::structured_components::components::OminousBottleAmplifier::decode_async(
-                    reader, opts,
-                )
-                .await?,
+                OminousBottleAmplifier::decode(&mut limited_reader, opts)?,
             )),
-            60i32 => Ok(StructuredComponent::Fireworks(
-                crate::structured_components::components::Fireworks::decode_async(reader, opts)
-                    .await?,
-            )),
-            _ => Err(NotSupportedStructuredComponentError(id).into()),
+            60i32 => Ok(StructuredComponent::Fireworks(Fireworks::decode(
+                &mut limited_reader,
+                opts,
+            )?)),
+            _ => {
+                return Err(NetDecodeError::from(
+                    StructuredComponentError::NotSupported(id),
+                ));
+            }
+        };
+        if limited_reader.position() < length.0 as u64 {
+            return Err(NetDecodeError::ExternalError(
+                "Decoding didn't read all expected data".into(),
+            ));
         }
+        result
     }
 }

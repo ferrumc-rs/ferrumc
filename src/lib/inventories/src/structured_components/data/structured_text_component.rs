@@ -1,6 +1,4 @@
-﻿use ferrumc_nbt::de::borrow::NbtTag;
-use ferrumc_nbt::de::converter::readers::async_reader::read_nbt_content_async;
-use ferrumc_nbt::de::converter::readers::sync_reader::read_nbt_content_recursive;
+﻿use crate::structured_components::data::utils;
 use ferrumc_nbt::{FromNbt, NBTSerializable, NBTSerializeOptions, NbtTape};
 use ferrumc_net_codec::decode::errors::NetDecodeError;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
@@ -8,7 +6,7 @@ use ferrumc_net_codec::encode::errors::NetEncodeError;
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use ferrumc_text::TextComponent;
 use std::io::{Read, Write};
-use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite};
+use tokio::io::{AsyncRead, AsyncWrite};
 
 #[derive(Debug, Clone, Hash, PartialEq)]
 pub enum StructuredTextComponent {
@@ -20,15 +18,6 @@ impl Default for StructuredTextComponent {
     fn default() -> Self {
         StructuredTextComponent::Text(String::new())
     }
-}
-
-fn create_compound_buffer() -> Vec<u8> {
-    let mut buffer = Vec::with_capacity(256);
-    buffer.push(10);
-    buffer.push(0);
-    buffer.push(0);
-
-    buffer
 }
 
 fn create_text_component_from_tape(
@@ -49,27 +38,16 @@ fn create_text_component_from_tape(
 
 impl NetDecode for StructuredTextComponent {
     fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
-        let tag_id = u8::decode(reader, opts)?;
-
-        match tag_id {
-            8 => {
-                let length = u16::decode(reader, opts)?;
-                let mut buf = vec![0u8; length as usize];
-                reader.read_exact(&mut buf)?;
-                let string = String::from_utf8(buf)?; //todo: from mutf
-                Ok(StructuredTextComponent::Text(string))
-            }
+        match u8::decode(reader, opts)? {
+            8 => Ok(StructuredTextComponent::Text(utils::read_mutf8_string(
+                reader,
+            )?)),
             10 => {
-                let mut buffer = create_compound_buffer();
-
-                let tag = NbtTag::Compound;
-                read_nbt_content_recursive(&tag, reader, &mut buffer)
-                    .map_err(|e| NetDecodeError::ExternalError(Box::new(e)))?;
-
+                let buffer = utils::decode_compound_to_buffer_raw(reader)?;
                 create_text_component_from_tape(&buffer)
             }
-            _ => Err(NetDecodeError::ExternalError(
-                "Invalid TextComponent Tag".into(),
+            tag => Err(NetDecodeError::ExternalError(
+                format!("Invalid Tag {}", tag).into(),
             )),
         }
     }
@@ -78,28 +56,16 @@ impl NetDecode for StructuredTextComponent {
         reader: &mut R,
         opts: &NetDecodeOpts,
     ) -> Result<Self, NetDecodeError> {
-        let tag_id = u8::decode_async(reader, opts).await?;
-
-        match tag_id {
-            8 => {
-                let length = u16::decode_async(reader, opts).await?;
-                let mut buf = vec![0u8; length as usize];
-                reader.read_exact(&mut buf).await?;
-                let string = String::from_utf8(buf)?; //todo: from mutf
-                Ok(StructuredTextComponent::Text(string))
-            }
+        match u8::decode_async(reader, opts).await? {
+            8 => Ok(StructuredTextComponent::Text(
+                utils::read_mutf8_string_async(reader).await?,
+            )),
             10 => {
-                let mut buffer = create_compound_buffer();
-
-                let tag = NbtTag::Compound;
-                read_nbt_content_async(&tag, reader, &mut buffer)
-                    .await
-                    .map_err(|e| NetDecodeError::ExternalError(Box::new(e)))?;
-
+                let buffer = utils::decode_compound_to_buffer_raw_async(reader).await?;
                 create_text_component_from_tape(&buffer)
             }
-            _ => Err(NetDecodeError::ExternalError(
-                format!("Unexpected NBT Tag: {}", tag_id).into(),
+            tag => Err(NetDecodeError::ExternalError(
+                format!("Invalid Tag {}", tag).into(),
             )),
         }
     }
@@ -124,12 +90,14 @@ impl NetEncode for StructuredTextComponent {
         _: &NetEncodeOpts,
     ) -> Result<(), NetEncodeError> {
         match self {
-            StructuredTextComponent::Text(s) => {
-                s.serialize_async(writer, &NBTSerializeOptions::Network)
+            StructuredTextComponent::Text(string) => {
+                string
+                    .serialize_async(writer, &NBTSerializeOptions::Network)
                     .await;
             }
-            StructuredTextComponent::Compound(c) => {
-                c.serialize_async(writer, &NBTSerializeOptions::Network)
+            StructuredTextComponent::Compound(component) => {
+                component
+                    .serialize_async(writer, &NBTSerializeOptions::Network)
                     .await;
             }
         }

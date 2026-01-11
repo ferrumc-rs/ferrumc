@@ -70,7 +70,11 @@ impl FromStr for Identifier {
             return Err(format!("Invalid value: {}", value));
         }
 
-        Ok(Self(format!("{}:{}", namespace, value)))
+        if string.contains(Self::SEPARATOR) {
+            Ok(Self(string.to_string()))
+        } else {
+            Ok(Self(format!("{}{}{}", Self::DEFAULT_NAMESPACE, Self::SEPARATOR, value)))
+        }
     }
 }
 

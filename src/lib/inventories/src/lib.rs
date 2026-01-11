@@ -1,3 +1,5 @@
+extern crate core;
+
 pub mod defined_slots;
 pub mod errors;
 pub mod hotbar;

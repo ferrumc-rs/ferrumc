@@ -1,4 +1,3 @@
-use crate::structured_components::errors::MaxLimitExceededError;
 use ferrumc_net_codec::decode::errors::NetDecodeError;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::encode::errors::NetEncodeError;
@@ -7,6 +6,7 @@ use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::prefixed_optional::PrefixedOptional;
 use std::io::{Read, Write};
 use tokio::io::{AsyncRead, AsyncWrite};
+use crate::structured_components::errors::StructuredComponentError;
 
 const MAX_PAGES: usize = 100;
 const MAX_PAGE_LENGTH: usize = 1024;
@@ -26,13 +26,13 @@ fn throw_if_length_exceeds(
     value_count: usize,
     max_length: usize,
     limit_type: &'static str,
-) -> Result<(), MaxLimitExceededError> {
+) -> Result<(), StructuredComponentError> {
     if value_count > max_length {
-        Err(MaxLimitExceededError::new(
+        Err(StructuredComponentError::MaxLimitExceeded {
             limit_type,
-            value_count,
-            max_length,
-        ))
+            actual : value_count,
+            max_limit: max_length,
+        })
     } else {
         Ok(())
     }

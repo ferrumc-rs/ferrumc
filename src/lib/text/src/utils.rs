@@ -152,6 +152,7 @@ pub enum ClickEvent {
     rename_all(serialize = "snake_case")
 )]
 #[nbt(tag = "action", content = "contents", rename_all = "snake_case")]
+// https://minecraft.wiki/w/Text_component_format#Hover_events
 pub enum HoverEvent {
     ShowText(Box<TextComponent>),
     ShowItem {
@@ -160,10 +161,10 @@ pub enum HoverEvent {
         id: String,
         /// The number of items in the item stack.
         ///
-        count: u32,
+        count: Option<u32>,
         /// The item's sNBT as you would use in /give.
         ///
-        tag: String,
+        tag: String, //todo: test if this actually is String and not CompoundNbt
     },
     ShowEntity {
         #[serde(rename = "type", default)]

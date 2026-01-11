@@ -1,5 +1,4 @@
-﻿use crate::structured_components::errors::ProtocolViolationError;
-use ferrumc_net_codec::decode::errors::NetDecodeError;
+﻿use ferrumc_net_codec::decode::errors::NetDecodeError;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::encode::errors::NetEncodeError;
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
@@ -8,6 +7,7 @@ use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::{Read, Write};
 use tokio::io::{AsyncRead, AsyncWrite};
 use ferrumc_macros::{NetDecode, NetEncode};
+use crate::structured_components::errors::StructuredComponentError;
 
 #[derive(Debug, NetDecode, NetEncode, Clone, Hash, Default, PartialEq)]
 pub struct PotionEffect {
@@ -99,8 +99,8 @@ impl NetDecode for PotionEffectDetail {
         match next_child {
             PrefixedOptional::Some(boxed_root) => Ok(*boxed_root),
             PrefixedOptional::None => {
-                let protocol_error = ProtocolViolationError("Empty potion effect chain decoded");
-                Err(NetDecodeError::ExternalError(Box::new(protocol_error)))
+                let protocol_error = StructuredComponentError::ProtocolViolation("Empty potion effect chain decoded");
+                Err(protocol_error.into())
             }
         }
     }

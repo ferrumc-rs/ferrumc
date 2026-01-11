@@ -6,6 +6,8 @@ pub mod consume_effect;
 pub mod potion_effect;
 pub mod hashable_float;
 pub mod structured_text_component;
+pub mod block_predicate;
+mod utils;
 
 pub use id_or::IdOr;
 pub use identifier::Identifier;

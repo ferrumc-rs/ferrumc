@@ -30,44 +30,44 @@ pub fn main() {
 
 fn build() -> TokenStream {
     let components = vec![
-        ComponentDef { id:1, variant: "MaxStackSize", struct_path: Some("crate::structured_components::components::MaxStackSize") },
-        ComponentDef { id:2, variant: "MaxDamage", struct_path: Some("crate::structured_components::components::MaxDamage") },
-        ComponentDef { id:3, variant: "Damage", struct_path: Some("crate::structured_components::components::Damage") },
+        ComponentDef { id:1, variant: "MaxStackSize", struct_path: Some("MaxStackSize") },
+        ComponentDef { id:2, variant: "MaxDamage", struct_path: Some("MaxDamage") },
+        ComponentDef { id:3, variant: "Damage", struct_path: Some("Damage") },
         ComponentDef { id:4, variant: "Unbreakable", struct_path: None },
-        ComponentDef { id:5, variant: "CustomName", struct_path: Some("crate::structured_components::components::TextComponentWrapper") },
-        ComponentDef { id:6, variant: "ItemName", struct_path: Some("crate::structured_components::components::TextComponentWrapper") },
-        ComponentDef { id:8, variant: "Lore", struct_path: Some("crate::structured_components::components::Lore") },
-        ComponentDef { id:9, variant: "Rarity", struct_path: Some("crate::structured_components::components::Rarity") },
-        ComponentDef { id:10, variant: "Enchantments", struct_path: Some("crate::structured_components::components::EnchantmentsCollection") },
-        ComponentDef { id:14, variant: "CustomModelData", struct_path: Some("crate::structured_components::components::CustomModelData") },
-        ComponentDef { id:15, variant: "TooltipDisplay", struct_path: Some("crate::structured_components::components::TooltipDisplay") },
-        ComponentDef { id:16, variant: "RepairCost", struct_path: Some("crate::structured_components::components::RepairCost") },
+        ComponentDef { id:5, variant: "CustomName", struct_path: Some("TextComponentWrapper") },
+        ComponentDef { id:6, variant: "ItemName", struct_path: Some("TextComponentWrapper") },
+        ComponentDef { id:8, variant: "Lore", struct_path: Some("Lore") },
+        ComponentDef { id:9, variant: "Rarity", struct_path: Some("Rarity") },
+        ComponentDef { id:10, variant: "Enchantments", struct_path: Some("EnchantmentsCollection") },
+        ComponentDef { id:14, variant: "CustomModelData", struct_path: Some("CustomModelData") },
+        ComponentDef { id:15, variant: "TooltipDisplay", struct_path: Some("TooltipDisplay") },
+        ComponentDef { id:16, variant: "RepairCost", struct_path: Some("RepairCost") },
         ComponentDef { id:17, variant: "CreativeSlotLock", struct_path: None },
-        ComponentDef { id:18, variant: "EnchantmentGlintOverride", struct_path: Some("crate::structured_components::components::EnchantmentGlintOverride") },
-        ComponentDef { id:20, variant: "Food", struct_path: Some("crate::structured_components::components::Food") },
-        ComponentDef { id:21, variant: "Consumable", struct_path: Some("crate::structured_components::components::Consumable") },
-        ComponentDef { id:23, variant: "UseCooldown", struct_path: Some("crate::structured_components::components::UseCooldown") },
-        ComponentDef { id:24, variant: "DamageResistant", struct_path: Some("crate::structured_components::components::DamageResistant") },
-        ComponentDef { id:25, variant: "Tool", struct_path: Some("crate::structured_components::components::Tool") },
-        ComponentDef { id:26, variant: "Weapon", struct_path: Some("crate::structured_components::components::Weapon") },
-        ComponentDef { id:27, variant: "Enchantable", struct_path: Some("crate::structured_components::components::Enchantable") },
-        ComponentDef { id:28, variant: "Equippable", struct_path: Some("crate::structured_components::components::Equippable") },
-        ComponentDef { id:29, variant: "Repairable", struct_path: Some("crate::structured_components::components::Repairable") },
+        ComponentDef { id:18, variant: "EnchantmentGlintOverride", struct_path: Some("EnchantmentGlintOverride") },
+        ComponentDef { id:20, variant: "Food", struct_path: Some("Food") },
+        ComponentDef { id:21, variant: "Consumable", struct_path: Some("Consumable") },
+        ComponentDef { id:23, variant: "UseCooldown", struct_path: Some("UseCooldown") },
+        ComponentDef { id:24, variant: "DamageResistant", struct_path: Some("DamageResistant") },
+        ComponentDef { id:25, variant: "Tool", struct_path: Some("Tool") },
+        ComponentDef { id:26, variant: "Weapon", struct_path: Some("Weapon") },
+        ComponentDef { id:27, variant: "Enchantable", struct_path: Some("Enchantable") },
+        ComponentDef { id:28, variant: "Equippable", struct_path: Some("Equippable") },
+        ComponentDef { id:29, variant: "Repairable", struct_path: Some("Repairable") },
         ComponentDef { id:30, variant: "Glider", struct_path: None },
-        ComponentDef { id:31, variant: "TooltipStyle", struct_path: Some("crate::structured_components::components::TooltipStyle") },
-        ComponentDef { id:32, variant: "DeathProtection", struct_path: Some("crate::structured_components::components::DeathProtection") },
-        ComponentDef { id:33, variant: "BlocksAttacks", struct_path: Some("crate::structured_components::components::BlocksAttacks") },
-        ComponentDef { id:34, variant: "StoredEnchantments", struct_path: Some("crate::structured_components::components::EnchantmentsCollection") },
-        ComponentDef { id:35, variant: "DyedColor", struct_path: Some("crate::structured_components::components::DyedColor") },
-        ComponentDef { id:36, variant: "MapColor", struct_path: Some("crate::structured_components::components::MapColor") },
-        ComponentDef { id:37, variant: "MapId", struct_path: Some("crate::structured_components::components::MapId") },
-        ComponentDef { id:39, variant: "MapPostProcessing", struct_path: Some("crate::structured_components::components::MapPostProcessing") },
-        ComponentDef { id:42, variant: "PotionContents", struct_path: Some("crate::structured_components::components::PotionContents") },
-        ComponentDef { id:44, variant: "SuspiciousStewEffects", struct_path: Some("crate::structured_components::components::SuspiciousStewEffects") },
-        ComponentDef { id:45, variant: "WritableBookContent", struct_path: Some("crate::structured_components::components::WritableBookContent") },
-        ComponentDef { id:46, variant: "WrittenBookContent", struct_path: Some("crate::structured_components::components::WrittenBookContent") },
-        ComponentDef { id:54, variant: "OminousBottleAmplifier", struct_path: Some("crate::structured_components::components::OminousBottleAmplifier") },
-        ComponentDef { id:60, variant: "Fireworks", struct_path: Some("crate::structured_components::components::Fireworks") },
+        ComponentDef { id:31, variant: "TooltipStyle", struct_path: Some("TooltipStyle") },
+        ComponentDef { id:32, variant: "DeathProtection", struct_path: Some("DeathProtection") },
+        ComponentDef { id:33, variant: "BlocksAttacks", struct_path: Some("BlocksAttacks") },
+        ComponentDef { id:34, variant: "StoredEnchantments", struct_path: Some("EnchantmentsCollection") },
+        ComponentDef { id:35, variant: "DyedColor", struct_path: Some("DyedColor") },
+        ComponentDef { id:36, variant: "MapColor", struct_path: Some("MapColor") },
+        ComponentDef { id:37, variant: "MapId", struct_path: Some("MapId") },
+        ComponentDef { id:39, variant: "MapPostProcessing", struct_path: Some("MapPostProcessing") },
+        ComponentDef { id:42, variant: "PotionContents", struct_path: Some("PotionContents") },
+        ComponentDef { id:44, variant: "SuspiciousStewEffects", struct_path: Some("SuspiciousStewEffects") },
+        ComponentDef { id:45, variant: "WritableBookContent", struct_path: Some("WritableBookContent") },
+        ComponentDef { id:46, variant: "WrittenBookContent", struct_path: Some("WrittenBookContent") },
+        ComponentDef { id:54, variant: "OminousBottleAmplifier", struct_path: Some("OminousBottleAmplifier") },
+        ComponentDef { id:60, variant: "Fireworks", struct_path: Some("Fireworks") },
     ];
 
     let enum_variants = generate_enum_variants(&components);
@@ -78,6 +78,9 @@ fn build() -> TokenStream {
     let encode_async_match_arms = generate_encode_arms(&components, true);
 
     quote! {
+        use crate::structured_components::components::*;
+        use crate::structured_components::errors::StructuredComponentError;
+        use tokio::io::AsyncReadExt;
         use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
         use ferrumc_net_codec::decode::errors::NetDecodeError;
         use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
@@ -86,7 +89,6 @@ fn build() -> TokenStream {
         use log::debug;
         use std::io::{Read, Write};
         use tokio::io::{AsyncRead, AsyncWrite};
-        use crate::structured_components::errors::{InvalidStructuredComponentEnumError, NotSupportedStructuredComponentError};
 
         /// NOTE:
         /// Structured components use an asymmetric protocol:
@@ -100,9 +102,9 @@ fn build() -> TokenStream {
         }
 
         impl StructuredComponent {
-            pub fn to_id(&self) -> Result<VarInt, InvalidStructuredComponentEnumError> {
+            pub fn to_id(&self) -> Result<VarInt, StructuredComponentError> {
                 match self {
-                    StructuredComponent::Invalid => Err(InvalidStructuredComponentEnumError()),
+                    StructuredComponent::Invalid => Err(StructuredComponentError::InvalidEnum),
                     #to_id_match_arms
                 }
             }
@@ -111,7 +113,7 @@ fn build() -> TokenStream {
         impl NetEncode for StructuredComponent {
             fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
                 if let StructuredComponent::Invalid = self {
-                     return Err(InvalidStructuredComponentEnumError().into());
+                     return Err(StructuredComponentError::InvalidEnum.into());
                 }
 
                 let id = self.to_id()?;
@@ -125,7 +127,7 @@ fn build() -> TokenStream {
 
             async fn encode_async<W: AsyncWrite + Unpin>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {
                 if let StructuredComponent::Invalid = self {
-                     return Err(InvalidStructuredComponentEnumError().into());
+                     return Err(StructuredComponentError::InvalidEnum.into());
                 }
 
                 let id = self.to_id()?;
@@ -143,28 +145,54 @@ fn build() -> TokenStream {
                 let id = VarInt::decode(reader, opts)?;
                 let length = VarInt::decode(reader, opts)?;
 
-                debug!{"Decoding structuredComponent with id {} and length {}", id, length}
+                debug! {"Decoding structuredComponent with id {} and length {}", id, length}
 
-                match id.0 {
+                //we may add max_length from config
+
+                let mut buffer = vec![0u8; length.0 as usize];
+                reader.read_exact(&mut buffer).map_err(|e| NetDecodeError::from(e))?;
+
+                let mut limited_reader = std::io::Cursor::new(buffer);
+
+                let result: Result<StructuredComponent, NetDecodeError> = match id.0 {
                     #decode_match_arms
                     _ => {
-                        Err(NotSupportedStructuredComponentError(id).into())
+                        return Err(NetDecodeError::from(StructuredComponentError::NotSupported(id)));
                     }
+                };
+
+                if limited_reader.position() < length.0 as u64 {
+                    return Err(NetDecodeError::ExternalError("Decoding didn't read all expected data".into()));
                 }
+
+                result
             }
 
             async fn decode_async<R: AsyncRead + Unpin>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
                 let id = VarInt::decode_async(reader, opts).await?;
                 let length = VarInt::decode_async(reader, opts).await?;
 
-                debug!{"Decoding structuredComponent with id {} and length {}", id, length}
+                debug!("Decoding structuredComponent with id {} and length {}", id, length);
 
-                match id.0 {
-                    #decode_async_match_arms
+                //we may add max_length from config
+
+                let mut buffer = vec![0u8; length.0 as usize];
+                tokio::io::AsyncReadExt::read_exact(reader, &mut buffer).await.map_err(|e| NetDecodeError::from(e))?;
+
+                let mut limited_reader = std::io::Cursor::new(buffer);
+
+                let result: Result<StructuredComponent, NetDecodeError> = match id.0 {
+                    #decode_match_arms
                     _ => {
-                        Err(NotSupportedStructuredComponentError(id).into())
+                        return Err(NetDecodeError::from(StructuredComponentError::NotSupported(id)));
                     }
+                };
+
+                if limited_reader.position() < length.0 as u64 {
+                    return Err(NetDecodeError::ExternalError("Decoding didn't read all expected data".into()));
                 }
+
+                result
             }
         }
     }
@@ -217,13 +245,13 @@ fn generate_decode_arms(components: &[ComponentDef], is_async: bool) -> TokenStr
             if is_async {
                 tokens.extend(quote! {
                     #id => {
-                        Ok(StructuredComponent::#variant(#path::decode_async(reader, opts).await?))
+                        Ok(StructuredComponent::#variant(#path::decode_async(&mut limited_reader, opts).await?))
                     },
                 });
             } else {
                 tokens.extend(quote! {
                     #id => {
-                        Ok(StructuredComponent::#variant(#path::decode(reader, opts)?))
+                        Ok(StructuredComponent::#variant(#path::decode(&mut limited_reader, opts)?))
                     },
                 });
             }

@@ -265,8 +265,9 @@ pub mod readers {
             R: AsyncRead + Unpin,
             W: AsyncWrite + Unpin,
         {
-            if count <= 1024 {
-                let mut buf = [0u8; 1024];
+            const BUF_SIZE: usize = 1024;
+            if count <= BUF_SIZE {
+                let mut buf = [0u8; BUF_SIZE];
                 let slice = &mut buf[..count];
                 reader.read_exact(slice).await?;
                 writer.write_all(slice).await?;
@@ -286,7 +287,7 @@ pub mod readers {
         use std::io::{self, Read, Write};
         use crate::de::borrow::NbtTag;
 
-        pub fn read_to_buf<R, W>(reader: &mut R, writer: &mut W) -> Result<(), io::Error>
+        pub fn read_named_nbt_to_buf<R, W>(reader: &mut R, writer: &mut W) -> Result<(), io::Error>
         where
             R: Read,
             W: Write,
@@ -367,7 +368,7 @@ pub mod readers {
             }
         }
 
-        fn read_nbt_string<R, W>(reader: &mut R, writer: &mut W) -> Result<(), io::Error>
+        pub fn read_nbt_string<R, W>(reader: &mut R, writer: &mut W) -> Result<(), io::Error>
         where
             R: Read,
             W: Write,
