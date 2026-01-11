@@ -9,16 +9,24 @@ use ferrumc_state::GlobalStateResource;
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::pos::{ChunkBlockPos, ChunkPos};
 
+type RegularEntityQuery<'w, 's> = Query<
+    'w,
+    's,
+    (&'static mut Velocity, &'static OnGround, &'static Position),
+    (With<HasGravity>, Without<HasWaterDrag>),
+>;
+
+type WaterEntityQuery<'w, 's> = Query<
+    'w,
+    's,
+    (&'static mut Velocity, &'static OnGround, &'static Position),
+    (With<HasGravity>, With<HasWaterDrag>),
+>;
+
 // Just apply gravity to a mob's velocity. Application of velocity is handled elsewhere.
 pub(crate) fn handle(
-    mut entities: Query<
-        (&mut Velocity, &OnGround, &Position),
-        (With<HasGravity>, Without<HasWaterDrag>),
-    >,
-    mut water_entities: Query<
-        (&mut Velocity, &OnGround, &Position),
-        (With<HasGravity>, With<HasWaterDrag>),
-    >,
+    mut entities: RegularEntityQuery,
+    mut water_entities: WaterEntityQuery,
     state: Res<GlobalStateResource>,
 ) {
     // Apply full gravity to non-water entities
