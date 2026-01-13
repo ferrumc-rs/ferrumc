@@ -1,4 +1,4 @@
-use bevy_ecs::prelude::{Query, Res, With, Without};
+use bevy_ecs::prelude::{Has, Query, Res, With};
 use ferrumc_core::transform::grounded::OnGround;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::velocity::Velocity;
@@ -9,52 +9,41 @@ use ferrumc_state::GlobalStateResource;
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::pos::{ChunkBlockPos, ChunkPos};
 
-type RegularEntityQuery<'w, 's> = Query<
+type EntityQuery<'w, 's> = Query<
     'w,
     's,
-    (&'static mut Velocity, &'static OnGround, &'static Position),
-    (With<HasGravity>, Without<HasWaterDrag>),
->;
-
-type WaterEntityQuery<'w, 's> = Query<
-    'w,
-    's,
-    (&'static mut Velocity, &'static OnGround, &'static Position),
-    (With<HasGravity>, With<HasWaterDrag>),
+    (
+        &'static mut Velocity,
+        &'static OnGround,
+        &'static Position,
+        Has<HasWaterDrag>,
+    ),
+    With<HasGravity>,
 >;
 
 // Just apply gravity to a mob's velocity. Application of velocity is handled elsewhere.
-pub(crate) fn handle(
-    mut entities: RegularEntityQuery,
-    mut water_entities: WaterEntityQuery,
-    state: Res<GlobalStateResource>,
-) {
-    // Apply full gravity to non-water entities
-    for (mut vel, grounded, _) in entities.iter_mut() {
-        if grounded.0 {
-            continue;
-        }
-        // Apply gravity
-        vel.vec += GRAVITY_ACCELERATION;
-    }
-
-    // For water entities, only apply gravity if NOT in water
-    // If in water, the drag system will handle the reduced gravity
-    for (mut vel, grounded, pos) in water_entities.iter_mut() {
+pub(crate) fn handle(mut entities: EntityQuery, state: Res<GlobalStateResource>) {
+    for (mut vel, grounded, pos, is_water) in entities.iter_mut() {
         if grounded.0 {
             continue;
         }
 
-        let chunk_pos = ChunkPos::from(pos.coords);
-        let chunk = ferrumc_utils::world::load_or_generate_mut(&state.0, chunk_pos, "overworld")
-            .expect("Failed to load or generate chunk");
+        if is_water {
+            let chunk_pos = ChunkPos::from(pos.coords);
+            let chunk =
+                ferrumc_utils::world::load_or_generate_mut(&state.0, chunk_pos, "overworld")
+                    .expect("Failed to load or generate chunk");
 
-        let feet_pos = pos.coords.as_ivec3();
+            let feet_pos = pos.coords.as_ivec3();
 
-        let is_in_water = match_block!("water", chunk.get_block(ChunkBlockPos::from(feet_pos)));
+            let is_in_water = match_block!("water", chunk.get_block(ChunkBlockPos::from(feet_pos)));
 
-        // Only apply full gravity if NOT in water
-        if !is_in_water {
+            // Only apply full gravity if NOT in water
+            if !is_in_water {
+                vel.vec += GRAVITY_ACCELERATION;
+            }
+        } else {
+            // Apply gravity
             vel.vec += GRAVITY_ACCELERATION;
         }
     }
