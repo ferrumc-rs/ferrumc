@@ -8,7 +8,6 @@ use ferrumc_macros::match_block;
 use ferrumc_state::GlobalStateResource;
 use ferrumc_world::block_state_id::BlockStateId;
 use ferrumc_world::pos::{ChunkBlockPos, ChunkPos};
-use tracing::debug;
 
 pub fn handle(
     mut query: Query<(&mut Velocity, &Position, &PhysicalProperties), With<HasWaterDrag>>,
@@ -40,11 +39,6 @@ pub fn handle(
             // This is much stronger than item buoyancy (0.0005) and makes entities rise to surface
             const BUOYANCY_FORCE: f32 = 0.04;
             vel.y += BUOYANCY_FORCE;
-
-            debug!(
-                "Water physics - center_y: {:.2}, vel.y after drag+buoyancy: {:.4}",
-                center_y, vel.y
-            );
         }
     }
 }
