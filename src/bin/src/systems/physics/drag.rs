@@ -1,5 +1,5 @@
 use bevy_ecs::prelude::{Query, Res, With};
-use bevy_math::IVec3;
+use bevy_math::{IVec3, Vec3A};
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::velocity::Velocity;
 use ferrumc_entities::markers::HasWaterDrag;
@@ -33,12 +33,7 @@ pub fn handle(
             // Water drag for living entities (not items!)
             // From LivingEntity.travelInWater(): multiply(slowDown, 0.8, slowDown)
             // slowDown = 0.8 for normal water movement (0.9 if sprinting)
-            const WATER_DRAG_HORIZONTAL: f32 = 0.8;
-            const WATER_DRAG_VERTICAL: f32 = 0.8;
-
-            vel.x *= WATER_DRAG_HORIZONTAL;
-            vel.z *= WATER_DRAG_HORIZONTAL;
-            vel.y *= WATER_DRAG_VERTICAL;
+            **vel *= Vec3A::splat(0.8);
 
             // Buoyancy force - makes entities float up to the surface
             // From LivingEntity.floatInWaterWhileRidden(): add(0.0, 0.04, 0.0)
