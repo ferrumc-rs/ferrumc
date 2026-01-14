@@ -10,3 +10,4 @@ tracing-appender = { workspace = true }
 ferrumc-profiling = { workspace = true }
 ferrumc-general-purpose = { workspace = true }
 thiserror = { workspace = true }
+tracing-tracy = { workspace = true }

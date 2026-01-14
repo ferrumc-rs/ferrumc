@@ -53,10 +53,13 @@ pub fn init_logging(trace_level: Level) {
 
     let profiler_layer = ProfilerTracingLayer;
 
+    let tracy_layer = tracing_tracy::TracyLayer::default();
+
     tracing_subscriber::registry()
         .with(file_layer)
         .with(env_filter)
         .with(profiler_layer)
         .with(fmt_layer)
+        .with(tracy_layer)
         .init();
 }

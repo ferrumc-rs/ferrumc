@@ -148,6 +148,7 @@ tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.22", features = ["env-filter"] }
 tracing-appender = "0.2.4"
 log = "0.4.29"
+tracing-tracy = { version = "0.11.4" }
 
 # Concurrency/Parallelism
 parking_lot = "0.12.5"
