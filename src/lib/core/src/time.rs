@@ -1,8 +1,13 @@
+use bevy_ecs::component::Component;
 use bevy_ecs::prelude::Resource;
 use std::ops::Range;
+use std::time::Instant;
 
 #[derive(Resource, Debug, Default)]
 pub struct WorldTime(u16);
+
+#[derive(Component)]
+pub struct LastSentTimeUpdate(Instant);
 
 impl WorldTime {
     pub const MAX_TIME: u16 = 24000;
@@ -34,5 +39,21 @@ impl WorldTime {
     pub fn set_time_to_middle(&mut self, range: Range<u16>) {
         let time = (range.end - range.start) / 2 + range.start;
         self.set_time(time);
+    }
+}
+
+impl LastSentTimeUpdate {
+    pub fn reset(&mut self) {
+        self.0 = Instant::now();
+    }
+
+    pub fn should_resend(&self) -> bool {
+        self.0.elapsed().as_secs() >= 5
+    }
+}
+
+impl Default for LastSentTimeUpdate {
+    fn default() -> Self {
+        Self(Instant::now())
     }
 }

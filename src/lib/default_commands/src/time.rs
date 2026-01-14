@@ -1,13 +1,23 @@
-use bevy_ecs::prelude::{Res, ResMut};
+use bevy_ecs::prelude::{Commands, Entity, Query, Res, ResMut, With};
 use ferrumc_commands::arg::primitive::int::Integer;
 use ferrumc_commands::arg::primitive::string::SingleWord;
 use ferrumc_commands::Sender;
-use ferrumc_core::time::WorldTime;
+use ferrumc_core::time::{LastSentTimeUpdate, WorldTime};
 use ferrumc_macros::command;
 use ferrumc_text::TextComponent;
 
 #[command("time set")]
-fn time_set(#[sender] sender: Sender, #[arg] time: SingleWord, mut world_time: ResMut<WorldTime>) {
+fn time_set(
+    #[sender] sender: Sender,
+    #[arg] time: SingleWord,
+    args: (
+        ResMut<WorldTime>,
+        Query<Entity, With<LastSentTimeUpdate>>,
+        Commands,
+    ),
+) {
+    let (mut world_time, query, mut cmds) = args;
+
     match time.parse::<u16>() {
         Ok(time) => world_time.set_time(time),
         Err(_) => match time.as_str() {
@@ -34,12 +44,26 @@ fn time_set(#[sender] sender: Sender, #[arg] time: SingleWord, mut world_time: R
         )),
         false,
     );
+
+    for eid in query.iter() {
+        cmds.entity(eid).remove::<LastSentTimeUpdate>();
+    }
 }
 
 type TimeInteger = Integer<0, 24000>;
 
 #[command("time add")]
-fn time_add(#[sender] sender: Sender, #[arg] time: TimeInteger, mut world_time: ResMut<WorldTime>) {
+fn time_add(
+    #[sender] sender: Sender,
+    #[arg] time: TimeInteger,
+    args: (
+        ResMut<WorldTime>,
+        Query<Entity, With<LastSentTimeUpdate>>,
+        Commands,
+    ),
+) {
+    let (mut world_time, query, mut cmds) = args;
+
     let new_time = world_time.current_time() + *time as u16;
     world_time.set_time(new_time);
 
@@ -47,6 +71,10 @@ fn time_add(#[sender] sender: Sender, #[arg] time: TimeInteger, mut world_time: 
         TextComponent::from(format!("Advanced the world time by {} ticks", *time)),
         false,
     );
+
+    for eid in query.iter() {
+        cmds.entity(eid).remove::<LastSentTimeUpdate>();
+    }
 }
 
 #[command("time get")]
