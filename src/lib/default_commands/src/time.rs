@@ -77,8 +77,8 @@ fn time_add(
     }
 }
 
-#[command("time get")]
-fn time_get(#[sender] sender: Sender, world_time: Res<WorldTime>) {
+#[command("time query")]
+fn time_query(#[sender] sender: Sender, world_time: Res<WorldTime>) {
     sender.send_message(
         TextComponent::from(format!(
             "The current world time is: {}",
