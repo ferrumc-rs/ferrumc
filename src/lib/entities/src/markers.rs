@@ -15,4 +15,6 @@ pub mod entity_types {
     use super::Component;
     #[derive(Component)]
     pub struct Pig;
+    #[derive(Component)]
+    pub struct Cow;
 }
