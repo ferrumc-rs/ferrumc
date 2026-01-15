@@ -1,14 +1,12 @@
 use ferrumc_config::server_config::get_global_config;
 use serde::Serialize;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::OnceLock;
 use std::time::Duration;
 use sysinfo::{Pid, ProcessesToUpdate, System};
 use tokio::sync::broadcast::Sender;
 use tokio::time::interval;
 use tracing::{debug, error};
-
-static DISK_SIZE: OnceLock<u64> = OnceLock::new();
 
 #[derive(Clone, Debug, Serialize)]
 pub struct ServerMetric {
@@ -22,8 +20,6 @@ pub struct ServerMetric {
     pub uptime: u64,
     /// Used storage in bytes
     pub storage_used: u64,
-    /// Total storage in bytes
-    pub storage_total: u64,
 }
 
 /// Events sent from the server to the dashboard (websocket)
@@ -66,34 +62,16 @@ pub async fn start_telemetry_loop(tx: Sender<DashboardEvent>) {
             0
         };
 
-        let storage_total =
-            DISK_SIZE.get_or_init(|| get_total_disk_for_path(&world_path).unwrap_or(0));
-
         let metric = ServerMetric {
             cpu_usage: process.cpu_usage(),
             ram_usage: process.memory(),
             total_ram: sys.total_memory(),
             uptime: process.run_time(),
             storage_used,
-            storage_total: *storage_total,
         };
 
         // Broadcast to all connected web clients
         // We ignore the error (it fails if no browsers are open, which is fine)
         let _ = tx.send(DashboardEvent::Metric(metric));
     }
-}
-
-fn get_total_disk_for_path(path: &Path) -> Option<u64> {
-    let disks = sysinfo::Disks::new_with_refreshed_list();
-    for disk in disks.list() {
-        for segment in path.ancestors() {
-            let segment_str = dunce::simplified(segment);
-            let mount_point_str = dunce::simplified(disk.mount_point());
-            if mount_point_str == segment_str {
-                return Some(disk.available_space());
-            }
-        }
-    }
-    None
 }
