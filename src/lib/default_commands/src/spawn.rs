@@ -18,8 +18,9 @@ lazy_static! {
         let mut m = BiMap::new();
 
         // Add supported entities here
-        m.insert("pig", EntityType::Pig);
-        m.insert("cow", EntityType::Cow);
+        m.insert("allay", EntityType::Allay);
+        m.insert("pig", EntityType::Cow);
+        m.insert("cow", EntityType::Pig);
 
         m
     };
@@ -59,7 +60,7 @@ impl CommandArgument for EntityTypeArg {
 /// Spawns an entity in front of the player.
 ///
 /// Usage: /spawn <entity_type>
-/// Currently supported: pig, cow
+/// Currently supported: allay, cow, pig
 #[command("spawn")]
 fn spawn_command(
     #[sender] sender: Sender,

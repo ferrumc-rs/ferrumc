@@ -13,8 +13,11 @@ pub struct HasCollisions;
 // Entity types
 pub mod entity_types {
     use super::Component;
+
     #[derive(Component)]
-    pub struct Pig;
+    pub struct Allay;
     #[derive(Component)]
     pub struct Cow;
+    #[derive(Component)]
+    pub struct Pig;
 }
