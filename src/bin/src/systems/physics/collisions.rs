@@ -125,5 +125,6 @@ pub fn is_solid_block(state: &GlobalState, pos: IVec3) -> bool {
 
     !match_block!("air", block_state)
         && !match_block!("void_air", block_state)
+        && !match_block!("water", block_state)
         && !match_block!("air", block_state)
 }
