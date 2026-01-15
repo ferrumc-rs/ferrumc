@@ -62,7 +62,7 @@ pub fn init_logging(trace_level: Level) {
     #[cfg(not(feature = "tracy"))]
     {
         registry.init();
-    };
+    }
 
     #[cfg(feature = "tracy")]
     {
@@ -71,5 +71,5 @@ pub fn init_logging(trace_level: Level) {
         // shadow it here and initialize it separately.
         let registry = registry.with(tracy_layer);
         registry.init();
-    };
+    }
 }
