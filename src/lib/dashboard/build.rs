@@ -12,7 +12,7 @@ const API_URL: &str = "https://api.github.com/repos/ferrumc-rs/dashboard/release
 const DASHBOARD_URL: &str =
     "https://github.com/ferrumc-rs/dashboard/releases/download/latest/ferrumc-dashboard.zip";
 const API_KEY: &str =
-    "github_pat_&&11AP6ULWQ00FwfV&&MudA7Yq_mHFFw3SmU4jNtl&&wdfvp229DyGeCF6stYxPwR0&&d0VqFsMO2LPEKVG9dZpGKp";
+    "github_pat_**no secrets**11AP6ULWQ00FwfV**no secrets**MudA7Yq_mHFFw3SmU4jNtl**no secrets**wdfvp229DyGeCF6stYxPwR0**no secrets**d0VqFsMO2LPEKVG9dZpGKp";
 
 fn main() -> Result<()> {
     // Tell Cargo about our custom cfg flags to suppress warnings
@@ -53,7 +53,10 @@ fn main() -> Result<()> {
     let api_req = client
         .get(API_URL)
         .header("User-Agent", "ferrumc-build-script")
-        .header("Authorization", format!("Bearer {API_KEY}"))
+        .header(
+            "Authorization",
+            format!("Bearer {}", API_KEY.replace("**no secrets**", "")),
+        )
         .send();
 
     let api_resp = match api_req {
@@ -105,7 +108,10 @@ fn main() -> Result<()> {
     let download_result = client
         .get(DASHBOARD_URL)
         .header("User-Agent", "ferrumc-build-script")
-        .header("Authorization", format!("Bearer {API_KEY}"))
+        .header(
+            "Authorization",
+            format!("Bearer {}", API_KEY.replace("**no secrets**", "")),
+        )
         .send();
 
     match download_result {
