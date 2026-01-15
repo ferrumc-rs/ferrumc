@@ -59,56 +59,17 @@ mod tests {
     use ferrumc_core::transform::velocity::Velocity;
     use ferrumc_entities::markers::HasGravity;
     use ferrumc_macros::block;
-    use ferrumc_state::player_cache::PlayerCache;
-    use ferrumc_state::player_list::PlayerList;
-    use ferrumc_state::ServerState;
-    use ferrumc_threadpool::ThreadPool;
-    use ferrumc_world::pos::ChunkBlockPos;
-    use ferrumc_world::World as FerrumcWorld;
-    use ferrumc_world_gen::WorldGenerator;
-    use std::sync::Arc;
-    use std::time::Instant;
-    use tempfile::TempDir;
-
-    /// Creates a minimal GlobalStateResource for testing with a temporary database
-    fn create_test_state() -> (GlobalStateResource, TempDir) {
-        let temp_dir = tempfile::tempdir().expect("Failed to create temp dir");
-        let db_path = temp_dir.path().to_path_buf();
-
-        let server_state = ServerState {
-            world: FerrumcWorld::new(&db_path),
-            terrain_generator: WorldGenerator::new(0),
-            shut_down: false.into(),
-            players: PlayerList::default(),
-            player_cache: PlayerCache::default(),
-            thread_pool: ThreadPool::new(),
-            start_time: Instant::now(),
-        };
-
-        let global_state = Arc::new(server_state);
-        (GlobalStateResource(global_state), temp_dir)
-    }
+    use ferrumc_state::create_test_state;
 
     /// Creates a chunk with water blocks at the specified positions
     /// This helper function is used to set up test scenarios where entities are in water
-    fn create_chunk_with_water(
-        state: &GlobalStateResource,
-        chunk_pos: ChunkPos,
-        water_y_range: std::ops::Range<i16>,
-    ) {
+    fn create_chunk_with_water(state: &GlobalStateResource, chunk_pos: ChunkPos) {
         // Load or generate the chunk
         let mut chunk =
             ferrumc_utils::world::load_or_generate_mut(&state.0, chunk_pos, "overworld")
                 .expect("Failed to load or generate chunk");
 
-        // Fill the specified Y range with water blocks (level=0 is full water)
-        for x in 0..16u8 {
-            for z in 0..16u8 {
-                for y in water_y_range.clone() {
-                    chunk.set_block(ChunkBlockPos::new(x, y, z), block!("water", { level: 0 }));
-                }
-            }
-        }
+        chunk.fill(block!("water", { level: 0 }));
     }
 
     #[test]
@@ -238,9 +199,9 @@ mod tests {
         let mut world = World::new();
         let (state, _temp_dir) = create_test_state();
 
-        // Create a chunk with water blocks at Y levels 60-70
+        // Create a chunk with water blocks
         let chunk_pos = ChunkPos::new(0, 0);
-        create_chunk_with_water(&state, chunk_pos, 60..70);
+        create_chunk_with_water(&state, chunk_pos);
 
         world.insert_resource(state);
 
