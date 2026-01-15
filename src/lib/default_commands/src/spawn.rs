@@ -19,6 +19,7 @@ lazy_static! {
 
         // Add supported entities here
         m.insert("pig", EntityType::Pig);
+        m.insert("cow", EntityType::Cow);
 
         m
     };
@@ -58,7 +59,7 @@ impl CommandArgument for EntityTypeArg {
 /// Spawns an entity in front of the player.
 ///
 /// Usage: /spawn <entity_type>
-/// Currently supported: pig
+/// Currently supported: pig, cow
 #[command("spawn")]
 fn spawn_command(
     #[sender] sender: Sender,
