@@ -14,13 +14,14 @@ serde_json = { workspace = true }
 include_dir = { workspace = true }
 mime_guess = { workspace = true }
 dir-size = { workspace = true }
-dunce = { workspace = true }
 
 # ferrumc local crates
 ferrumc-state = { workspace = true }
 ferrumc-config = { workspace = true, features = ["dashboard"] }
 
 [build-dependencies]
-reqwest = { version = "0.13", features = ["blocking"] }
+reqwest = { workspace = true, features = ["blocking"] }
+simd-json = { workspace = true }
+
 anyhow = "1.0"
 zip = "7.0"

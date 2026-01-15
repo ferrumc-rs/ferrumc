@@ -1,7 +1,6 @@
 use ferrumc_config::server_config::get_global_config;
 use serde::Serialize;
 use std::path::PathBuf;
-use std::sync::OnceLock;
 use std::time::Duration;
 use sysinfo::{Pid, ProcessesToUpdate, System};
 use tokio::sync::broadcast::Sender;
