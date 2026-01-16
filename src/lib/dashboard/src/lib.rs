@@ -37,7 +37,7 @@ const PROTOCOL: &str = "http";
 /// It embeds the entire dashboard directory into the binary.
 /// Uses OUT_DIR if available, otherwise falls back to CARGO_MANIFEST_DIR.
 #[cfg(dashboard_in_out_dir)]
-static DASHBOARD_DIR: Dir<'_> = include_dir!("$OUT_DIR/../../dashboard");
+static DASHBOARD_DIR: Dir<'_> = include_dir!("$OUT_DIR/dashboard");
 
 #[cfg(dashboard_in_manifest_dir)]
 static DASHBOARD_DIR: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/dashboard-dist");
