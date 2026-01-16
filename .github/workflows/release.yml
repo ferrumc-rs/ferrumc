@@ -1,0 +1,239 @@
+name: CD - Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v0.1.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  CARGO_TERM_COLOR: always
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  approval:
+    name: Require Approval
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - name: Approval gate
+        run: echo "Release approved for ${{ inputs.version }}"
+
+  build-binaries:
+    name: Build Release Binaries
+    needs: approval
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14
+            target: aarch64-apple-darwin
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+          - os: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install Rust nightly
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      - name: Install cross
+        if: matrix.cross
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cross
+
+      - name: Build release binary
+        run: |
+          if [ "${{ matrix.cross }}" = "true" ]; then
+            cross build --release --target ${{ matrix.target }}
+          else
+            cargo build --release --target ${{ matrix.target }}
+          fi
+
+      - name: Strip binary (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: strip target/${{ matrix.target }}/release/ferrumc || true
+
+      - name: Prepare binary
+        run: |
+          mkdir -p release
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            cp target/${{ matrix.target }}/release/ferrumc.exe release/ferrumc-${{ inputs.version }}-${{ matrix.target }}.exe
+          else
+            cp target/${{ matrix.target }}/release/ferrumc release/ferrumc-${{ inputs.version }}-${{ matrix.target }}
+          fi
+
+      - name: Generate checksums
+        run: |
+          cd release
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            certutil -hashfile ferrumc-${{ inputs.version }}-${{ matrix.target }}.exe SHA256 > ferrumc-${{ inputs.version }}-${{ matrix.target }}.exe.sha256
+          else
+            shasum -a 256 ferrumc-${{ inputs.version }}-${{ matrix.target }} > ferrumc-${{ inputs.version }}-${{ matrix.target }}.sha256
+          fi
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.target }}
+          path: release/*
+
+  build-docker:
+    name: Build and Push Docker Image
+    needs: approval
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=${{ inputs.version }}
+            type=raw,value=latest
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  create-release:
+    name: Create GitHub Release
+    needs: [build-binaries, build-docker]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: release-*
+          merge-multiple: true
+
+      - name: Generate release notes
+        id: notes
+        run: |
+          cat > release_notes.md << 'EOF'
+          ## Installation
+
+          ### Docker (Recommended)
+          ```bash
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ inputs.version }}
+          docker run -p 25565:25565 ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ inputs.version }}
+          ```
+
+          Or use Docker Compose:
+          ```yaml
+          version: '3.8'
+          services:
+            ferrumc:
+              image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ inputs.version }}
+              ports:
+                - "25565:25565"
+              restart: unless-stopped
+          ```
+
+          ### Native Binaries
+          Download the appropriate binary for your platform below and run it directly:
+
+          **Linux/macOS:**
+          ```bash
+          # Download the binary for your platform
+          chmod +x ferrumc-*
+          ./ferrumc-*
+          ```
+
+          **Windows:**
+          ```powershell
+          # Download ferrumc-*.exe and run it
+          .\ferrumc-*.exe
+          ```
+
+          ### Verify Downloads
+          Each binary includes a SHA256 checksum file for verification:
+          ```bash
+          # Linux/macOS
+          shasum -a 256 -c ferrumc-*.sha256
+
+          # Windows PowerShell
+          Get-FileHash ferrumc-*.exe -Algorithm SHA256
+          ```
+
+          ## What's Changed
+          <!-- Add your changelog here -->
+
+          **Full Changelog**: https://github.com/${{ github.repository }}/compare/...HEAD
+          EOF
+          
+          echo "notes_file=release_notes.md" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ inputs.version }}
+          name: Release ${{ inputs.version }}
+          body_path: ${{ steps.notes.outputs.notes_file }}
+          draft: false
+          prerelease: false
+          files: artifacts/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  trigger-site-deploy:
+    name: Trigger Site Deployment
+    needs: create-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger site repository workflow
+        run: |
+          curl -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.SITE_DEPLOY_TOKEN }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/ferrumc-rs/site/actions/workflows/deploy.yml/dispatches \
+            -d '{"ref":"main","inputs":{"release_version":"${{ inputs.version }}"}}'
