@@ -6,9 +6,10 @@ use ferrumc_messages::chunk_calc::ChunkCalc;
 use ferrumc_messages::entity_update::SendEntityUpdate;
 use ferrumc_messages::particle::SendParticle;
 use ferrumc_messages::{
-    BlockBrokenEvent, PlayerCancelledDigging, PlayerDamaged, PlayerDied, PlayerEating,
-    PlayerFinishedDigging, PlayerGainedXP, PlayerGameModeChanged, PlayerJoined, PlayerLeft,
-    PlayerLeveledUp, PlayerStartedDigging, SpawnEntityCommand, SpawnEntityEvent,
+    BlockBrokenEvent, ClearPlayerInventory, GiveItemToPlayer, PlayerCancelledDigging,
+    PlayerDamaged, PlayerDied, PlayerEating, PlayerFinishedDigging, PlayerGainedXP,
+    PlayerGameModeChanged, PlayerJoined, PlayerLeft, PlayerLeveledUp, PlayerStartedDigging,
+    SpawnEntityCommand, SpawnEntityEvent,
 };
 use ferrumc_net::packets::packet_messages::Movement;
 
@@ -32,7 +33,9 @@ pub fn register_messages(world: &mut World) {
     MessageRegistry::register_message::<PlayerGameModeChanged>(world);
     MessageRegistry::register_message::<SpawnEntityCommand>(world);
     MessageRegistry::register_message::<SpawnEntityEvent>(world);
+    MessageRegistry::register_message::<ClearPlayerInventory>(world);
     MessageRegistry::register_message::<SendEntityUpdate>(world);
     MessageRegistry::register_message::<SendParticle>(world);
     MessageRegistry::register_message::<BlockBrokenEvent>(world);
+    MessageRegistry::register_message::<GiveItemToPlayer>(world);
 }
