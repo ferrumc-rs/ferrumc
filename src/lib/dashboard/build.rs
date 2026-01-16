@@ -1,5 +1,4 @@
 use anyhow::Result;
-use simd_json::prelude::{ValueAsArray, ValueAsObject, ValueAsScalar};
 use std::env;
 use std::fs;
 use std::io::{Cursor, Write};
@@ -8,11 +7,8 @@ use zip::ZipArchive;
 
 // CONFIGURATION
 // Since we set up the GitHub Action to release to 'latest', we can use this URL.
-const API_URL: &str = "https://api.github.com/repos/ferrumc-rs/dashboard/releases";
 const DASHBOARD_URL: &str =
     "https://github.com/ferrumc-rs/dashboard/releases/download/latest/ferrumc-dashboard.zip";
-const API_KEY: &str =
-    "github_pat_**no secrets**11AP6ULWQ00FwfV**no secrets**MudA7Yq_mHFFw3SmU4jNtl**no secrets**wdfvp229DyGeCF6stYxPwR0**no secrets**d0VqFsMO2LPEKVG9dZpGKp";
 
 fn main() -> Result<()> {
     // Tell Cargo about our custom cfg flags to suppress warnings
@@ -22,13 +18,7 @@ fn main() -> Result<()> {
 
     // 1. Determine where to put the files.
     let (dest_dir, use_out_dir) = if let Ok(out_dir) = env::var("OUT_DIR") {
-        let out_path = Path::new(&out_dir)
-            .parent()
-            .unwrap()
-            .parent()
-            .unwrap()
-            .parent()
-            .unwrap();
+        let out_path = Path::new(&out_dir);
         // Check if OUT_DIR actually exists and is accessible
         if out_path.exists() {
             (out_path.join("dashboard"), true)
@@ -48,70 +38,16 @@ fn main() -> Result<()> {
         println!("cargo:rustc-cfg=dashboard_in_manifest_dir");
     }
 
-    let client = reqwest::blocking::Client::new();
-
-    let api_req = client
-        .get(API_URL)
-        .header("User-Agent", "ferrumc-build-script")
-        .header(
-            "Authorization",
-            format!("Bearer {}", API_KEY.replace("**no secrets**", "")),
-        )
-        .send();
-
-    let api_resp = match api_req {
-        Ok(response) => {
-            if response.status().is_success() {
-                response.json::<simd_json::value::owned::Value>()?
-            } else {
-                println!(
-                    "cargo:warning=Failed to fetch release info, status: {}",
-                    response.status()
-                );
-                return Err(anyhow::anyhow!("Failed to fetch release info"));
-            }
-        }
-        Err(e) => {
-            println!("cargo:warning=Error fetching release info: {}", e);
-            return Err(anyhow::anyhow!("Error fetching release info: {}", e));
-        }
-    };
-
-    let first_release = api_resp
-        .as_array()
-        .and_then(|arr| arr.first())
-        .and_then(|val| val.as_object())
-        .ok_or_else(|| anyhow::anyhow!("No releases found in API response"))?;
-
-    let time_stamp = first_release
-        .get("created_at")
-        .and_then(|val| val.as_str())
-        .ok_or_else(|| anyhow::anyhow!("No created_at field in release"))?;
-
-    if dest_dir.exists() {
-        let time_stamp_path = dest_dir.join("timestamp.txt");
-        let existing_timestamp = fs::read_to_string(&time_stamp_path).unwrap_or_default();
-        if existing_timestamp == time_stamp {
-            println!("cargo:warning=Dashboard is up-to-date, skipping download.");
-            println!("cargo:rustc-cfg=dashboard_build");
-            return Ok(());
-        }
-    } else {
-        println!("cargo:warning=Dashboard directory does not exist or using OUT_DIR, proceeding to download.");
-    }
-
-    // 2. Attempt to download the dashboard
+    // 2. Always attempt to download the dashboard
     println!(
         "cargo:warning=Downloading Dashboard artifact from {}",
         DASHBOARD_URL
     );
+
+    let client = reqwest::blocking::Client::new();
     let download_result = client
         .get(DASHBOARD_URL)
         .header("User-Agent", "ferrumc-build-script")
-        .header(
-            "Authorization",
-            format!("Bearer {}", API_KEY.replace("**no secrets**", "")),
-        )
         .send();
 
     match download_result {
@@ -147,10 +83,6 @@ fn main() -> Result<()> {
             }
 
             println!("cargo:warning=Dashboard extracted to {:?}", dest_dir);
-
-            // Write the timestamp file
-            let mut ts_file = fs::File::create(dest_dir.join("timestamp.txt"))?;
-            ts_file.write_all(time_stamp.as_bytes())?;
         }
         _ => {
             // Download failed (no internet, request error, non-success status)
