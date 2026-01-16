@@ -33,4 +33,6 @@ pub enum NBTError {
     NoRootTag,
     #[error("Element `{0}` not found in NBT data")]
     ElementNotFound(&'static str),
+    #[error("Field with name `{0}` contains unexpected value `{1}`")]
+    UnexpectedElement(&'static str, String),
 }

@@ -8,7 +8,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
     let syn::Data::Struct(_) = input.data else {
-        panic!("Only structs are supported!");
+        panic!("Only data are supported!");
     };
 
     /*let struct_name = &input.ident;

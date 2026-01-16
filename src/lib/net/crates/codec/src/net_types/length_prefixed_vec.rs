@@ -6,7 +6,7 @@ use crate::net_types::var_int::VarInt;
 use std::io::{Read, Write};
 use tokio::io::{AsyncRead, AsyncWrite};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Hash, PartialEq, Clone)]
 pub struct LengthPrefixedVec<T> {
     pub length: VarInt,
     pub data: Vec<T>,

@@ -1,7 +1,8 @@
 use crate::*;
-use ferrumc_nbt::{NBTSerializable, NBTSerializeOptions};
+use ferrumc_nbt::{FromNbt, NBTError, NBTSerializable, NBTSerializeOptions, NbtTape, NbtTapeElement};
 use paste::paste;
 use std::fmt;
+use std::hash::{Hash, Hasher};
 use std::ops::Add;
 use std::str::FromStr;
 
@@ -97,5 +98,43 @@ impl Default for TextContent {
         TextContent::Text {
             text: String::new(),
         }
+    }
+}
+
+fn read_nbt_field<'a, T>(tape : &NbtTape<'a>, element : &NbtTapeElement<'a>, field_name : &'static str)
+                         -> Result<T, NBTError>
+where T : FromNbt<'a> {
+    let child_element = element
+        .get(field_name)
+        .ok_or(NBTError::ElementNotFound(field_name))?;
+
+    T::from_nbt(tape, child_element)
+}
+
+impl<'a> FromNbt<'a> for TextComponent {
+    fn from_nbt(tapes: &NbtTape<'a>, element: &NbtTapeElement<'a>) -> ferrumc_nbt::Result<Self> {
+        todo!("impl<'a> FromNbt<'a> for TextComponent")
+    }
+}
+
+impl Hash for TextComponent {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        todo!("impl Hash for TextComponent")
+    }
+}
+
+impl<'a> FromNbt<'a> for ClickEvent {
+    fn from_nbt(tape: &NbtTape<'a>, element: &NbtTapeElement<'a>) -> ferrumc_nbt::Result<Self> {
+        let action_field_name = "action";
+        let action: String = read_nbt_field(tape, element, action_field_name)?;
+
+        Ok(match action.as_str() {
+            "open_url" => ClickEvent::OpenUrl(read_nbt_field(tape, element, "url")?),
+            "run_command" => ClickEvent::RunCommand(read_nbt_field(tape, element, "path")?),
+            "suggest_command" => ClickEvent::SuggestCommand(read_nbt_field(tape, element, "command")?),
+            "change_page" => ClickEvent::ChangePage(read_nbt_field(tape, element, "page")?),
+            "copy_to_clipboard" => ClickEvent::CopyToClipboard(read_nbt_field(tape, element, "value")?),
+            _ => return Err(NBTError::UnexpectedElement(action_field_name, action)),
+        })
     }
 }
