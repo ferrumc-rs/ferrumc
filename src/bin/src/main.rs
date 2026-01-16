@@ -9,7 +9,6 @@ use std::sync::Arc;
 use std::time::Instant;
 use tracing::{error, info};
 
-mod cli;
 pub(crate) mod errors;
 mod game_loop;
 mod launch;
@@ -17,6 +16,7 @@ mod packet_handlers;
 mod register_messages;
 mod register_resources;
 mod systems;
+mod cli;
 
 #[cfg(feature = "dhat")]
 #[global_allocator]
@@ -49,6 +49,12 @@ fn main() {
                 error!("Import failed with the following error: {}", e.to_string());
             } else {
                 info!("Import completed successfully.");
+            }
+        }
+
+        Some(Command::Clear(clear_args)) => {
+            if let Err(e) = cli::handle_clear(clear_args) {
+                error!("Clear failed: {}", e);
             }
         }
 
