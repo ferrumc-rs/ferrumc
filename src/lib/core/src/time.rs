@@ -7,7 +7,10 @@ use std::time::Instant;
 pub struct WorldTime(u16);
 
 #[derive(Component)]
-pub struct LastSentTimeUpdate(Instant);
+pub struct LastSentTimeUpdate {
+    timestamp: Instant,
+    send_immediately: bool,
+}
 
 impl WorldTime {
     pub const MAX_TIME: u16 = 24000;
@@ -44,16 +47,24 @@ impl WorldTime {
 
 impl LastSentTimeUpdate {
     pub fn reset(&mut self) {
-        self.0 = Instant::now();
+        self.timestamp = Instant::now();
+        self.send_immediately = false;
+    }
+
+    pub fn send_next_tick(&mut self) {
+        self.send_immediately = true;
     }
 
     pub fn should_resend(&self) -> bool {
-        self.0.elapsed().as_secs() >= 5
+        self.timestamp.elapsed().as_secs() >= 5 || self.send_immediately
     }
 }
 
 impl Default for LastSentTimeUpdate {
     fn default() -> Self {
-        Self(Instant::now())
+        Self {
+            timestamp: Instant::now(),
+            send_immediately: false,
+        }
     }
 }
