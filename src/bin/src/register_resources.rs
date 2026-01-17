@@ -1,9 +1,9 @@
-use crate::systems::day_cycle::WorldTime;
 use crate::systems::new_connections::NewConnectionRecv;
 use bevy_ecs::prelude::World;
 use crossbeam_channel::Receiver;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_core::chunks::world_sync_tracker::WorldSyncTracker;
+use ferrumc_core::time::WorldTime;
 use ferrumc_net::connection::NewConnection;
 use ferrumc_performance::ServerPerformance;
 use ferrumc_state::GlobalStateResource;

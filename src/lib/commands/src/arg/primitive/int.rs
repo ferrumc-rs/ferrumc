@@ -55,7 +55,7 @@ impl NetEncode for IntArgumentFlags {
 /// An integer, limited in size by the type arguments.
 pub struct Integer<const MIN: i32 = { i32::MIN }, const MAX: i32 = { i32::MAX }>(i32);
 
-impl Deref for Integer {
+impl<const MIN: i32, const MAX: i32> Deref for Integer<MIN, MAX> {
     type Target = i32;
 
     fn deref(&self) -> &Self::Target {
@@ -77,9 +77,9 @@ impl<const MIN: i32, const MAX: i32> CommandArgument for Integer<MIN, MAX> {
             )));
         }
 
-        if int > MIN {
+        if int > MAX {
             return Err(parser_error(&format!(
-                "integer too large: {int}, expected at most {MIN}"
+                "integer too large: {int}, expected at most {MAX}"
             )));
         }
 
@@ -87,6 +87,6 @@ impl<const MIN: i32, const MAX: i32> CommandArgument for Integer<MIN, MAX> {
     }
 
     fn primitive() -> PrimitiveArgument {
-        PrimitiveArgument::int(Some(MIN), Some(MIN))
+        PrimitiveArgument::int(Some(MIN), Some(MAX))
     }
 }
