@@ -4,6 +4,8 @@ use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_entities::bundles::PigBundle;
 use ferrumc_entities::components::EntityMetadata;
+use ferrumc_entities::markers::entity_types::Pig;
+use ferrumc_entities::markers::{HasCollisions, HasGravity, HasWaterDrag};
 use ferrumc_messages::{EntityType, SpawnEntityCommand, SpawnEntityEvent};
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::spawn_entity::SpawnEntityPacket;
@@ -104,7 +106,15 @@ pub fn handle_spawn_entity(mut events: MessageReader<SpawnEntityEvent>, mut comm
         match event.entity_type {
             EntityType::Pig => {
                 // Spawn the pig entity
-                let pig_entity = commands.spawn(PigBundle::new(event.position.clone())).id();
+                let pig_entity = commands
+                    .spawn((
+                        PigBundle::new(event.position),
+                        Pig,
+                        HasGravity,
+                        HasCollisions,
+                        HasWaterDrag,
+                    ))
+                    .id();
 
                 // Queue a deferred system to broadcast spawn packets after entity is fully spawned
                 commands.queue(move |world: &mut World| {

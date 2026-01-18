@@ -1,7 +1,7 @@
 use criterion::{Criterion, Throughput};
 use ferrumc_macros::block;
 use ferrumc_world::block_state_id::BlockStateId;
-use ferrumc_world::chunk_format::Chunk;
+use ferrumc_world::chunk::Chunk;
 use rand::Rng;
 use std::hint::black_box;
 
@@ -10,9 +10,11 @@ fn get_rand_in_range(min: i32, max: i32) -> i32 {
     rng.random_range(min..=max)
 }
 
+#[expect(clippy::unit_arg)]
 pub(crate) fn bench_edits(c: &mut Criterion) {
     let chunk_data = std::fs::read("../../../.etc/raw_chunk.dat").unwrap();
-    let chunk: Chunk = bitcode::decode(&chunk_data).unwrap();
+    let chunk: Chunk = bitcode::decode(&chunk_data)
+        .expect("If this fails, go run the dump_chunk test at src/lib/world/src/lib.rs");
 
     let mut read_group = c.benchmark_group("edit_read");
 
@@ -50,14 +52,14 @@ pub(crate) fn bench_edits(c: &mut Criterion) {
     write_group.bench_with_input("Write 0,0,0", &chunk, |b, chunk| {
         b.iter(|| {
             let mut chunk = chunk.clone();
-            black_box(chunk.set_block((0, 0, 0).into(), block!("bricks"))).unwrap();
+            black_box(chunk.set_block((0, 0, 0).into(), block!("bricks")));
         });
     });
 
     write_group.bench_with_input("Write 8,8,150", &chunk, |b, chunk| {
         b.iter(|| {
             let mut chunk = chunk.clone();
-            black_box(chunk.set_block((8, 150, 8).into(), block!("bricks"))).unwrap();
+            black_box(chunk.set_block((8, 150, 8).into(), block!("bricks")));
         });
     });
 
@@ -74,8 +76,7 @@ pub(crate) fn bench_edits(c: &mut Criterion) {
                         .into(),
                     block!("bricks"),
                 ),
-            )
-            .unwrap();
+            );
         });
     });
 
@@ -84,7 +85,7 @@ pub(crate) fn bench_edits(c: &mut Criterion) {
     write_group.bench_with_input("Fill", &chunk, |b, chunk| {
         b.iter(|| {
             let mut chunk = chunk.clone();
-            black_box(chunk.fill(block!("bricks"))).unwrap();
+            black_box(chunk.fill(block!("bricks")));
         });
     });
 
@@ -94,45 +95,10 @@ pub(crate) fn bench_edits(c: &mut Criterion) {
             for x in 0..16 {
                 for y in 0..256 {
                     for z in 0..16 {
-                        black_box(chunk.set_block((x, y, z).into(), block!("bricks"))).unwrap();
+                        black_box(chunk.set_block((x, y, z).into(), block!("bricks")));
                     }
                 }
             }
-        });
-    });
-
-    write_group.bench_with_input("Manual batch fill same", &chunk, |b, chunk| {
-        b.iter(|| {
-            let mut chunk = chunk.clone();
-            let mut batch = ferrumc_world::edit_batch::EditBatch::new(&mut chunk);
-            for x in 0..16 {
-                for y in 0..256 {
-                    for z in 0..16 {
-                        batch.set_block((x, y, z).into(), black_box(block!("bricks")));
-                    }
-                }
-            }
-            black_box(batch.apply()).unwrap();
-        });
-    });
-
-    write_group.bench_with_input("Manual batch fill diff", &chunk, |b, chunk| {
-        b.iter(|| {
-            let mut chunk = chunk.clone();
-            let mut batch = ferrumc_world::edit_batch::EditBatch::new(&mut chunk);
-            for x in 0..16 {
-                for y in 0..256 {
-                    for z in 0..16 {
-                        let block = if (x + y + z) % 2 == 0 {
-                            block!("bricks")
-                        } else {
-                            block!("stone")
-                        };
-                        batch.set_block((x as u8, y, z as u8).into(), black_box(block));
-                    }
-                }
-            }
-            black_box(batch.apply()).unwrap();
         });
     });
 

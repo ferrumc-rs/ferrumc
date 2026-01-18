@@ -2,7 +2,7 @@ use bevy_ecs::prelude::{Entity, Message};
 use ferrumc_core::transform::position::Position;
 
 /// Type of entity to spawn
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum EntityType {
     Pig,
     // Add more entity types here as they're implemented

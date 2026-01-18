@@ -6,6 +6,7 @@ description = "FerrumC components"
 
 [dependencies]
 bevy_ecs = { workspace = true }
+tokio = { workspace = true }
 
 ferrumc-inventories = { workspace = true }
 ferrumc-core = { workspace = true }

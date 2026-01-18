@@ -1,6 +1,9 @@
 use crate::player::abilities::PlayerAbilities;
 use bevy_ecs::prelude::Component;
 use ferrumc_config::server_config::get_global_config;
+use ferrumc_net_codec::encode::errors::NetEncodeError;
+use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
+use std::io::Write;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
@@ -46,6 +49,27 @@ impl GameMode {
                 abilities.creative_mode = false;
             }
         }
+    }
+}
+
+impl NetEncode for GameMode {
+    fn encode<W: Write>(
+        &self,
+        writer: &mut W,
+        _opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
+        writer.write_all(&[*self as u8])?;
+        Ok(())
+    }
+
+    async fn encode_async<W: tokio::io::AsyncWrite + Unpin>(
+        &self,
+        writer: &mut W,
+        _opts: &NetEncodeOpts,
+    ) -> Result<(), NetEncodeError> {
+        use tokio::io::AsyncWriteExt;
+        writer.write_all(&[*self as u8]).await?;
+        Ok(())
     }
 }
 

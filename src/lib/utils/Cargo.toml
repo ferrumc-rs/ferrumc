@@ -9,3 +9,7 @@ thiserror = { workspace = true }
 ferrumc-logging = { workspace = true }
 ferrumc-profiling = { workspace = true }
 ferrumc-config = { workspace = true }
+bevy_math = { workspace = true }
+ferrumc-state = { workspace = true }
+ferrumc-world = { workspace = true }
+ferrumc-world-gen = { workspace = true }

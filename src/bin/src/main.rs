@@ -80,6 +80,9 @@ fn entry(start_time: Instant) -> Result<(), BinaryError> {
         launch::generate_spawn_chunks(global_state.clone())?;
     }
 
+    #[cfg(feature = "dashboard")]
+    ferrumc_dashboard::start_dashboard(global_state.clone());
+
     ctrlc::set_handler({
         let global_state = global_state.clone();
         move || {

@@ -1,32 +1,33 @@
 pub mod block_state_id;
-pub mod chunk_format;
+pub mod chunk;
 mod db_functions;
-pub mod edit_batch;
-pub mod edits;
 pub mod errors;
 mod importing;
 pub mod pos;
 pub mod vanilla_chunk_format;
 
-use crate::chunk_format::Chunk;
+use crate::chunk::Chunk;
 use crate::errors::WorldError;
 use crate::pos::ChunkPos;
-use deepsize::DeepSizeOf;
+use dashmap::DashMap;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_general_purpose::paths::get_root_path;
 use ferrumc_storage::lmdb::LmdbBackend;
-use moka::sync::Cache;
 use std::fs::create_dir_all;
 use std::path::{Path, PathBuf};
 use std::process::exit;
-use std::sync::Arc;
-use std::time::Duration;
-use tracing::{error, trace, warn};
+use tracing::{error, warn};
+use wyhash::WyHasherBuilder;
+
+type ChunkCache = DashMap<(ChunkPos, String), Chunk, WyHasherBuilder>;
+
+pub type MutChunk<'a> = dashmap::mapref::one::RefMut<'a, (ChunkPos, String), Chunk>;
+pub type RefChunk<'a> = dashmap::mapref::one::Ref<'a, (ChunkPos, String), Chunk>;
 
 #[derive(Clone)]
 pub struct World {
     storage_backend: LmdbBackend,
-    cache: Cache<(ChunkPos, String), Arc<Chunk>>,
+    cache: ChunkCache,
 }
 
 fn check_config_validity() -> Result<(), WorldError> {
@@ -93,28 +94,18 @@ impl World {
         let storage_backend =
             LmdbBackend::initialize(Some(backend_path)).expect("Failed to initialize database");
 
-        if get_global_config().database.cache_ttl != 0
-            && get_global_config().database.cache_capacity == 0
-        {
-            error!("Cache TTL and capacity must both be set to 0 or both be set to a value greater than 0.");
-            exit(1);
-        }
+        let rand_seed = rand::random();
 
-        let eviction_listener = move |key, _, cause| {
-            trace!("Evicting key: {:?}, cause: {:?}", key, cause);
-        };
-
-        let cache = Cache::builder()
-            .eviction_listener(eviction_listener)
-            .weigher(|_k, v: &Arc<Chunk>| v.deep_size_of() as u32)
-            .time_to_live(Duration::from_secs(get_global_config().database.cache_ttl))
-            .max_capacity(get_global_config().database.cache_capacity * 1024)
-            .build();
+        let cache = ChunkCache::with_hasher(WyHasherBuilder::new(rand_seed));
 
         World {
             storage_backend,
             cache,
         }
+    }
+
+    pub fn get_cache(&self) -> &ChunkCache {
+        &self.cache
     }
 }
 
@@ -125,16 +116,12 @@ mod tests {
     #[test]
     #[ignore]
     fn dump_chunk() {
-        let world = World::new(
-            std::env::current_dir()
-                .unwrap()
-                .join("../../../target/debug/world"),
-        );
+        let world = World::new(std::env::current_dir().unwrap().join("../../../world"));
         let chunk = world.load_chunk(ChunkPos::new(1, 1), "overworld").expect(
             "Failed to load chunk. If it's a bitcode error, chances are the chunk format \
              has changed since last generating a world so you'll need to regenerate",
         );
-        let encoded = bitcode::encode(&chunk);
+        let encoded = bitcode::encode(&*chunk);
         std::fs::write("../../../.etc/raw_chunk.dat", encoded).unwrap();
     }
 }

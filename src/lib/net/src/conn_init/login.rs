@@ -394,7 +394,7 @@ async fn sync_player_position(
     // Get spawn position from cache or use defaults
     let (spawn_pos, spawn_rotation) =
         if let Some(data) = state.player_cache.get(&player_identity.uuid) {
-            (data.position.clone(), data.rotation)
+            (data.position, data.rotation)
         } else {
             (
                 Position::new(
@@ -469,13 +469,7 @@ fn send_initial_chunks(
             batch.execute({
                 let state = state.clone();
                 move || -> Result<Vec<u8>, NetError> {
-                    let chunk = state.world.load_chunk(ChunkPos::new(x,z), "overworld").unwrap_or(
-                        state
-                            .terrain_generator
-                            .generate_chunk(ChunkPos::new(x, z))
-                            .expect("Could not generate chunk")
-                            .into(),
-                    );
+                    let chunk = ferrumc_utils::world::load_or_generate_mut(&state, ChunkPos::new(x,z), "overworld").expect("Failed to load or generate chunk");
                     let chunk_data =
                         crate::packets::outgoing::chunk_and_light_data::ChunkAndLightData::from_chunk(
                         ChunkPos::new(x,z),

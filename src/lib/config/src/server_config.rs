@@ -53,6 +53,8 @@ pub struct ServerConfig {
     pub whitelist: bool,
     pub chunk_render_distance: u32,
     pub default_gamemode: String,
+    #[cfg(feature = "dashboard")]
+    pub dashboard: DashboardConfig,
 }
 
 /// The database configuration section from [ServerConfig].
@@ -64,15 +66,23 @@ pub struct ServerConfig {
 ///   to hold everything before it starts writing to disk. This isn't memory use though, it's just
 ///   how much we can map into memory if needed, so you can set this to an insane number if you want,
 ///   but it won't actually use that much memory, it'll just show up as virtual memory use.
-/// - `cache_ttl`: The time to live for cache entries in seconds.
-/// - `cache_capacity`: How big the cache can be in kb.
 #[derive(Debug, Deserialize, Serialize, Default)]
 pub struct DatabaseConfig {
     pub db_path: String,
     pub verify_chunk_data: bool,
     pub map_size: u64,
-    pub cache_ttl: u64,
-    pub cache_capacity: u64,
+}
+
+#[cfg(feature = "dashboard")]
+/// The dashboard configuration section from [ServerConfig].
+///
+/// Fields:
+/// - `port`: The port that the dashboard will bind to. (0-65535)
+/// - `secret`: The secret key for accessing the dashboard.
+#[derive(Debug, Deserialize, Serialize, Default)]
+pub struct DashboardConfig {
+    pub port: u16,
+    pub secret: String,
 }
 
 fn create_config() -> ServerConfig {

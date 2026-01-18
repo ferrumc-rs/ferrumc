@@ -10,6 +10,7 @@ use ferrumc_components::{
         gameplay_state::ender_chest::EnderChest,
         hunger::Hunger,
         player_bundle::PlayerBundle,
+        swimming::SwimmingState,
     },
 };
 use ferrumc_core::{
@@ -102,6 +103,7 @@ pub fn accept_new_connections(
             hunger,
             experience,
             active_effects,
+            swimming: SwimmingState::default(),
         };
 
         // --- 3. Spawn the PlayerBundle, then .insert() the network components ---

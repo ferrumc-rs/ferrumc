@@ -10,7 +10,7 @@ static ENTITY_ID_COUNTER: AtomicI32 = AtomicI32::new(1_000_000);
 
 /// Identity component for non-player entities.
 ///
-/// Similar to PlayerIdentity but for mobs and other entities.
+/// Similar to PlayerIdentity but for physics and other entities.
 /// Contains a unique network ID and UUID for the entity.
 ///
 /// # Examples

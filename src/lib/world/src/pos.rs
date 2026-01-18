@@ -1,16 +1,18 @@
 use std::fmt::Display;
 use std::fmt::Formatter;
 use std::fmt::Result;
-use std::ops::Add;
 use std::ops::Range;
+use std::ops::{Add, Deref};
 
-use bevy_math::I16Vec3;
 use bevy_math::IVec2;
 use bevy_math::IVec3;
 use bevy_math::U8Vec2;
 use bevy_math::U8Vec3;
 use bevy_math::Vec2Swizzles;
 use bevy_math::Vec3Swizzles;
+use bevy_math::{DVec3, I16Vec3};
+use bitcode_derive::{Decode, Encode};
+use deepsize::DeepSizeOf;
 use ferrumc_net_codec::net_types::network_position::NetworkPosition;
 
 #[derive(Clone, Copy)]
@@ -85,7 +87,7 @@ impl Add<(i32, i32, i32)> for BlockPos {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, DeepSizeOf, Encode, Decode)]
 pub struct ChunkHeight {
     pub min_y: i16,
     pub height: u16,
@@ -109,6 +111,18 @@ impl ChunkHeight {
 #[derive(Hash, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ChunkPos {
     pub pos: IVec2,
+}
+
+impl From<DVec3> for ChunkPos {
+    fn from(pos: DVec3) -> Self {
+        Self::new(pos.x.div_euclid(16.0) as i32, pos.z.div_euclid(16.0) as i32)
+    }
+}
+
+impl From<IVec3> for ChunkPos {
+    fn from(pos: IVec3) -> Self {
+        Self::new(pos.x.div_euclid(16), pos.z.div_euclid(16))
+    }
 }
 
 impl ChunkPos {
@@ -222,6 +236,16 @@ impl From<(u8, i16, u8)> for ChunkBlockPos {
     }
 }
 
+impl From<IVec3> for ChunkBlockPos {
+    fn from(pos: IVec3) -> Self {
+        Self::new(
+            pos.x.rem_euclid(16) as u8,
+            pos.y as i16,
+            pos.z.rem_euclid(16) as u8,
+        )
+    }
+}
+
 impl ChunkBlockPos {
     pub const fn new(x: u8, y: i16, z: u8) -> Self {
         assert!(x < 16);
@@ -229,6 +253,18 @@ impl ChunkBlockPos {
         Self {
             pos: I16Vec3::new(x as i16, y, z as i16),
         }
+    }
+
+    pub fn x(&self) -> u8 {
+        self.pos.x as _
+    }
+
+    pub fn y(&self) -> i16 {
+        self.pos.y as _
+    }
+
+    pub fn z(&self) -> u8 {
+        self.pos.z as _
     }
 
     pub fn section_block_pos(&self) -> SectionBlockPos {
@@ -297,5 +333,29 @@ impl SectionBlockPos {
     /// So the max value is 0xfff or 4095
     pub fn pack(&self) -> u16 {
         (self.pos.y as u16) << 8 | (self.pos.z as u16) << 4 | self.pos.x as u16
+    }
+
+    /// Unpacks from the packed representation: 0x0yzx
+    /// Returns None if data >= 4096
+    pub fn unpack(data: u16) -> Option<Self> {
+        if data >= 4096 {
+            None
+        } else {
+            let y = (data & (0xF << 8)) >> 8;
+            let z = (data & (0xF << 4)) >> 4;
+            let x = data & 0xF;
+
+            Some(Self {
+                pos: U8Vec3::new(x as _, y as _, z as _),
+            })
+        }
+    }
+}
+
+impl Deref for SectionBlockPos {
+    type Target = U8Vec3;
+
+    fn deref(&self) -> &Self::Target {
+        &self.pos
     }
 }

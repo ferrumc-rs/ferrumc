@@ -20,13 +20,13 @@ stateDiagram-v2
 
 ## Connection States
 
-| State | Purpose | Code Reference |
-|-------|---------|----------------|
-| **Handshake** | Initial packet determines intent | `ConnState::Handshake` in [`lib.rs`](../src/lib/net/src/lib.rs) |
-| **Status** | Server list ping (MOTD, player count) | `ConnState::Status` |
-| **Login** | Authentication, compression setup | `ConnState::Login` |
-| **Configuration** | Registry data, resource packs | `ConnState::Configuration` |
-| **Play** | Actual gameplay packets | `ConnState::Play` |
+| State             | Purpose                               | Code Reference                                                  |
+|-------------------|---------------------------------------|-----------------------------------------------------------------|
+| **Handshake**     | Initial packet determines intent      | `ConnState::Handshake` in [`lib.rs`](../src/lib/net/src/lib.rs) |
+| **Status**        | Server list ping (MOTD, player count) | `ConnState::Status`                                             |
+| **Login**         | Authentication, compression setup     | `ConnState::Login`                                              |
+| **Configuration** | Registry data, resource packs         | `ConnState::Configuration`                                      |
+| **Play**          | Actual gameplay packets               | `ConnState::Play`                                               |
 
 ---
 
@@ -125,14 +125,14 @@ sequenceDiagram
 
 ### Code Flow
 
-| Step | Function | File |
-|------|----------|------|
-| 1. TCP Accept | `tcp_conn_acceptor()` | [`game_loop.rs`](../src/bin/src/game_loop.rs#L309) |
-| 2. Connection Handler | `handle_connection()` | [`connection.rs`](../src/lib/net/src/connection.rs#L253) |
-| 3. Handshake | `handle_handshake()` | [`conn_init/mod.rs`](../src/lib/net/src/conn_init/mod.rs#L60) |
-| 4. Login Sequence | `login()` | [`conn_init/login.rs`](../src/lib/net/src/conn_init/login.rs#L50) |
-| 5. ECS Registration | `accept_new_connections()` | [`new_connections.rs`](../src/bin/src/systems/new_connections.rs) |
-| 6. Packet Loop | `handle_connection()` recv loop | [`connection.rs`](../src/lib/net/src/connection.rs#L358) |
+| Step                  | Function                        | File                                                              |
+|-----------------------|---------------------------------|-------------------------------------------------------------------|
+| 1. TCP Accept         | `tcp_conn_acceptor()`           | [`game_loop.rs`](../src/bin/src/game_loop.rs#L309)                |
+| 2. Connection Handler | `handle_connection()`           | [`connection.rs`](../src/lib/net/src/connection.rs#L253)          |
+| 3. Handshake          | `handle_handshake()`            | [`conn_init/mod.rs`](../src/lib/net/src/conn_init/mod.rs#L60)     |
+| 4. Login Sequence     | `login()`                       | [`conn_init/login.rs`](../src/lib/net/src/conn_init/login.rs#L50) |
+| 5. ECS Registration   | `accept_new_connections()`      | [`new_connections.rs`](../src/bin/src/systems/new_connections.rs) |
+| 6. Packet Loop        | `handle_connection()` recv loop | [`connection.rs`](../src/lib/net/src/connection.rs#L358)          |
 
 ---
 
@@ -141,6 +141,7 @@ sequenceDiagram
 All packets follow this format:
 
 ### Uncompressed
+
 ```
 ┌──────────────┬────────────┬──────────────────┐
 │ Length       │ Packet ID  │ Data             │
@@ -149,6 +150,7 @@ All packets follow this format:
 ```
 
 ### Compressed (when data length > threshold)
+
 ```
 ┌──────────────┬────────────────┬────────────────────────┐
 │ Packet Len   │ Data Length    │ Compressed             │
@@ -176,19 +178,19 @@ flowchart LR
 
 ### Key Components
 
-| Component | Purpose | File |
-|-----------|---------|------|
-| `StreamWriter` | Async packet output | [`connection.rs`](../src/lib/net/src/connection.rs#L41) |
-| `EncryptedReader` | AES-encrypted input | `ferrumc_net_encryption` |
-| `PacketSkeleton` | Parsed packet frame | [`packet_skeleton.rs`](../src/lib/net/src/packets/incoming/packet_skeleton.rs) |
-| `PacketSender` | Channel to ECS | [`lib.rs`](../src/lib/net/src/lib.rs) |
+| Component         | Purpose             | File                                                                           |
+|-------------------|---------------------|--------------------------------------------------------------------------------|
+| `StreamWriter`    | Async packet output | [`connection.rs`](../src/lib/net/src/connection.rs#L41)                        |
+| `EncryptedReader` | AES-encrypted input | `ferrumc_net_encryption`                                                       |
+| `PacketSkeleton`  | Parsed packet frame | [`packet_skeleton.rs`](../src/lib/net/src/packets/incoming/packet_skeleton.rs) |
+| `PacketSender`    | Channel to ECS      | [`lib.rs`](../src/lib/net/src/lib.rs)                                          |
 
 ### Packet Handler Registration
 
 Packets are dispatched via the `setup_packet_handling!` macro:
 
 ```rust
-// src/lib/net/src/lib.rs
+// src/lib/net/src/mod
 setup_packet_handling!("\\src\\packets\\incoming");
 ```
 
@@ -211,6 +213,7 @@ flowchart TD
 ```
 
 **Example**: Player join triggers `PlayerJoined` event:
+
 - [`new_connections.rs`](../src/bin/src/systems/new_connections.rs) sends `PlayerJoined`
 - Listeners in [`register_gameplay_listeners()`](../src/bin/src/systems/listeners/mod.rs) react
 
@@ -248,10 +251,12 @@ See [`game_loop.rs`](../src/bin/src/game_loop.rs) for the threading setup.
 ## Quick Reference
 
 ### Protocol Version
+
 - **Minecraft**: 1.21.8
 - **Protocol**: 772
 - **Constant**: `PROTOCOL_VERSION_1_21_8` in [`conn_init/mod.rs`](../src/lib/net/src/conn_init/mod.rs#L31)
 
 ### External References
+
 - [Minecraft Protocol Wiki](https://minecraft.wiki/w/Java_Edition_protocol/Packets)
 - [Protocol Version Numbers](https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol_version_numbers)

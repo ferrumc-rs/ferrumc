@@ -1,13 +1,12 @@
-use crate::chunk_format::Chunk;
+use crate::chunk::Chunk;
 use crate::errors::WorldError;
 use crate::errors::WorldError::CorruptedChunkData;
 use crate::pos::ChunkPos;
 // db_functions.rs
-use crate::warn;
 use crate::World;
+use crate::{warn, MutChunk, RefChunk};
 use ferrumc_config::server_config::get_global_config;
 use std::hash::Hasher;
-use std::sync::Arc;
 use tracing::trace;
 use yazi::CompressionLevel;
 
@@ -16,34 +15,65 @@ impl World {
     ///
     /// This function will save a chunk to the storage backend and update the cache with the new
     /// chunk data. If the chunk already exists in the cache, it will be updated with the new data.
-    pub fn save_chunk(
+    pub fn insert_chunk(
         &self,
         pos: ChunkPos,
         dimension: &str,
-        chunk: Arc<Chunk>,
+        chunk: Chunk,
     ) -> Result<(), WorldError> {
-        let ret = save_chunk_internal(self, pos, dimension, &chunk);
-        self.cache.insert((pos, dimension.to_string()), chunk);
-        ret
+        let mut chunk = chunk;
+        chunk.sections.iter_mut().for_each(|c| c.dirty = false);
+        save_chunk_internal(self, pos, dimension, &chunk)?;
+        // self.cache.insert((pos, dimension.to_string()), chunk);
+        Ok(())
     }
 
     /// Load a chunk from the storage backend. If the chunk is in the cache, it will be returned
     /// from the cache instead of the storage backend. If the chunk is not in the cache, it will be
     /// loaded from the storage backend and inserted into the cache.
-    pub fn load_chunk(&self, pos: ChunkPos, dimension: &str) -> Result<Arc<Chunk>, WorldError> {
+    pub fn load_chunk(
+        &'_ self,
+        pos: ChunkPos,
+        dimension: &str,
+    ) -> Result<RefChunk<'_>, WorldError> {
         if let Some(chunk) = self.cache.get(&(pos, dimension.to_string())) {
             return Ok(chunk);
         }
         let chunk = load_chunk_internal(self, pos, dimension);
-        if let Ok(ref chunk) = chunk {
-            self.cache
-                .insert((pos, dimension.to_string()), Arc::from(chunk.clone()));
+        match chunk {
+            Ok(c) => {
+                self.cache.insert((pos, dimension.to_string()), c);
+                Ok(self
+                    .cache
+                    .get(&(pos, dimension.to_string()))
+                    .expect("Chunk was just inserted into the cache"))
+            }
+            Err(e) => Err(e),
         }
-        chunk.map(Arc::new)
     }
 
-    pub fn load_chunk_owned(&self, pos: ChunkPos, dimension: &str) -> Result<Chunk, WorldError> {
-        self.load_chunk(pos, dimension).map(|c| c.as_ref().clone())
+    /// Load a mutable chunk from the storage backend. If the chunk is in the cache, it will be returned
+    /// from the cache instead of the storage backend. If the chunk is not in the cache, it will be
+    /// loaded from the storage backend and inserted into the cache.
+    pub fn load_chunk_mut(
+        &'_ self,
+        pos: ChunkPos,
+        dimension: &'_ str,
+    ) -> Result<MutChunk<'_>, WorldError> {
+        if let Some(chunk) = self.cache.get_mut(&(pos, dimension.to_string())) {
+            return Ok(chunk);
+        }
+        let chunk = load_chunk_internal(self, pos, dimension);
+        match chunk {
+            Ok(c) => {
+                self.cache.insert((pos, dimension.to_string()), c);
+                Ok(self
+                    .cache
+                    .get_mut(&(pos, dimension.to_string()))
+                    .expect("Chunk was just inserted into the cache"))
+            }
+            Err(e) => Err(e),
+        }
     }
 
     /// Check if a chunk exists in the storage backend.
@@ -72,9 +102,11 @@ impl World {
     /// storage backend. This should be run after inserting or updating a large number of chunks
     /// to ensure that the data is properly saved to disk.
     pub fn sync(&self) -> Result<(), WorldError> {
-        for (k, v) in self.cache.iter() {
+        for pair in self.cache.iter() {
+            let k = pair.key();
+            let v = pair.value();
             trace!("Syncing chunk: {:?}", k.0);
-            save_chunk_internal(self, k.0, &k.1, &v)?;
+            save_chunk_internal(self, k.0, &k.1, v)?;
         }
         sync_internal(self)
     }
@@ -85,9 +117,9 @@ impl World {
     /// the missing chunks from the storage backend. The chunks are then inserted into the cache and
     /// returned as a vector.
     pub fn load_chunk_batch(
-        &self,
-        coords: &[(ChunkPos, &str)],
-    ) -> Result<Vec<Arc<Chunk>>, WorldError> {
+        &'_ self,
+        coords: &'_ [(ChunkPos, &'_ str)],
+    ) -> Result<Vec<RefChunk<'_>>, WorldError> {
         let mut found_chunks = Vec::new();
         let mut missing_chunks = Vec::new();
         for coord in coords {
@@ -99,10 +131,37 @@ impl World {
         }
         let fetched = load_chunk_batch_internal(self, &missing_chunks)?;
         for (chunk, (pos, dimension)) in fetched.into_iter().zip(missing_chunks) {
-            let chunk = Arc::new(chunk);
-            self.cache
-                .insert((pos, dimension.to_string()), chunk.clone());
-            found_chunks.push(chunk);
+            self.cache.insert((pos, dimension.to_string()), chunk);
+            let found_chunk = self
+                .cache
+                .get(&(pos, dimension.to_string()))
+                .expect("Chunk was just inserted into the cache");
+            found_chunks.push(found_chunk);
+        }
+        Ok(found_chunks)
+    }
+
+    pub fn load_chunk_batch_mut(
+        &'_ self,
+        coords: &'_ [(ChunkPos, &'_ str)],
+    ) -> Result<Vec<MutChunk<'_>>, WorldError> {
+        let mut found_chunks = Vec::new();
+        let mut missing_chunks = Vec::new();
+        for coord in coords {
+            if let Some(chunk) = self.cache.get_mut(&(coord.0, coord.1.to_string())) {
+                found_chunks.push(chunk);
+            } else {
+                missing_chunks.push(*coord);
+            }
+        }
+        let fetched = load_chunk_batch_internal(self, &missing_chunks)?;
+        for (chunk, (pos, dimension)) in fetched.into_iter().zip(missing_chunks) {
+            self.cache.insert((pos, dimension.to_string()), chunk);
+            let found_chunk = self
+                .cache
+                .get_mut(&(pos, dimension.to_string()))
+                .expect("Chunk was just inserted into the cache");
+            found_chunks.push(found_chunk);
         }
         Ok(found_chunks)
     }
@@ -115,8 +174,7 @@ impl World {
     pub fn pre_cache(&self, pos: ChunkPos, dimension: &str) -> Result<(), WorldError> {
         if self.cache.get(&(pos, dimension.to_string())).is_none() {
             let chunk = load_chunk_internal(self, pos, dimension)?;
-            self.cache
-                .insert((pos, dimension.to_string()), Arc::new(chunk));
+            self.cache.insert((pos, dimension.to_string()), chunk);
         }
         Ok(())
     }

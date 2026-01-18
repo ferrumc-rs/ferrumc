@@ -22,4 +22,10 @@ pub mod chunk_calc;
 pub use change_gamemode::*;
 
 pub mod entity_spawn;
+pub mod entity_update;
+pub mod particle;
+
 pub use entity_spawn::{EntityType, SpawnEntityCommand, SpawnEntityEvent};
+
+pub mod block_break;
+pub use block_break::BlockBrokenEvent;

@@ -5,4 +5,5 @@ pub mod gamemode;
 pub mod gameplay_state;
 pub mod hunger;
 pub mod player_bundle;
+pub mod swimming;
 pub mod view_distance;

@@ -1,4 +1,5 @@
 use bevy_ecs::prelude::MessageWriter;
+use bimap::BiMap;
 use ferrumc_commands::{
     arg::{primitive::PrimitiveArgument, utils::parser_error, CommandArgument, ParserResult},
     CommandContext, Sender, Suggestion,
@@ -6,25 +7,33 @@ use ferrumc_commands::{
 use ferrumc_macros::command;
 use ferrumc_messages::{EntityType, SpawnEntityCommand};
 use ferrumc_text::TextComponent;
+use lazy_static::lazy_static;
 
 /// Wrapper type for EntityType that implements CommandArgument
 #[derive(Debug, Clone, Copy)]
 struct EntityTypeArg(EntityType);
 
+lazy_static! {
+    static ref MAPPED_ENTITIES: BiMap<&'static str, EntityType> = {
+        let mut m = BiMap::new();
+
+        // Add supported entities here
+        m.insert("pig", EntityType::Pig);
+
+        m
+    };
+}
+
 impl CommandArgument for EntityTypeArg {
     fn parse(ctx: &mut CommandContext) -> ParserResult<Self> {
         let str = ctx.input.read_string();
 
-        let value = match &*str.to_lowercase() {
-            "pig" => EntityType::Pig,
-            // Add more entity types here as they're implemented
-            // "cow" => EntityType::Cow,
-            // "sheep" => EntityType::Sheep,
-            _ => {
-                return Err(parser_error(&format!(
-                    "Unknown entity type: '{}'. Currently supported: pig",
-                    str
-                )))
+        let value = match MAPPED_ENTITIES.get_by_left(str.as_str()) {
+            Some(&entity_type) => entity_type,
+            None => {
+                return Err(parser_error(
+                    format!("Unknown entity type: {}", str).as_str(),
+                ))
             }
         };
 
@@ -39,8 +48,10 @@ impl CommandArgument for EntityTypeArg {
     fn suggest(ctx: &mut CommandContext) -> Vec<Suggestion> {
         ctx.input.read_string();
 
-        // Only suggest "pig" for now - add more as they're implemented
-        vec![Suggestion::of("pig")]
+        MAPPED_ENTITIES
+            .iter()
+            .map(|(&name, _)| Suggestion::of(name))
+            .collect()
     }
 }
 
@@ -63,9 +74,9 @@ fn spawn_command(
             });
 
             // Get entity name for message
-            let entity_name = match entity_type.0 {
-                EntityType::Pig => "Pig",
-            };
+            let entity_name = MAPPED_ENTITIES
+                .get_by_right(&entity_type.0)
+                .unwrap_or(&"unknown");
 
             sender.send_message(
                 TextComponent::from(format!("{} spawned!", entity_name)),
