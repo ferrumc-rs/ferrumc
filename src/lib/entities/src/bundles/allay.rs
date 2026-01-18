@@ -69,14 +69,15 @@ mod tests {
         let allay = AllayBundle::new(position);
 
         // Verify vanilla metadata
-        assert_eq!(allay.metadata.protocol_id(), 95);
+        assert_eq!(allay.metadata.protocol_id(), 2);
         assert_eq!(allay.metadata.resource_name(), "allay");
         assert!(allay.metadata.is_mob());
 
         // Verify physical properties (using epsilon for floating point comparison)
-        assert!((allay.physical.bounding_box.height() - 0.9).abs() < EPSILON_F64);
-        assert!((allay.physical.bounding_box.width() - 0.9).abs() < EPSILON_F64);
-        assert!((allay.physical.eye_height - 0.765).abs() < EPSILON_F32);
+        // Allay dimensions: [width=0.35, height=0.6]
+        assert!((allay.physical.bounding_box.height() - 0.6).abs() < EPSILON_F64);
+        assert!((allay.physical.bounding_box.width() - 0.35).abs() < EPSILON_F64);
+        assert!((allay.physical.eye_height - 0.36).abs() < EPSILON_F32);
         assert!(!allay.physical.fire_immune);
 
         // Verify combat properties
