@@ -2,9 +2,9 @@ use bevy_ecs::prelude::*;
 use ferrumc_core::identity::entity_identity::EntityIdentity;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
-use ferrumc_entities::bundles::{AllayBundle, CowBundle, PigBundle};
+use ferrumc_entities::bundles::{AllayBundle, ArmadilloBundle, CowBundle, PigBundle};
 use ferrumc_entities::components::EntityMetadata;
-use ferrumc_entities::markers::entity_types::{Allay, Cow, Pig};
+use ferrumc_entities::markers::entity_types::{Allay, Armadillo, Cow, Pig};
 use ferrumc_entities::markers::{HasCollisions, HasGravity, HasWaterDrag};
 use ferrumc_messages::{EntityType, SpawnEntityCommand, SpawnEntityEvent};
 use ferrumc_net::connection::StreamWriter;
@@ -136,7 +136,7 @@ pub fn handle_spawn_entity(mut events: MessageReader<SpawnEntityEvent>, mut comm
                 });
             }
             EntityType::Allay => {
-                // Spawn the pig entity
+                // Spawn the allay entity
                 let allay_entity = commands
                     .spawn((
                         AllayBundle::new(event.position),
@@ -147,6 +147,22 @@ pub fn handle_spawn_entity(mut events: MessageReader<SpawnEntityEvent>, mut comm
 
                 commands.queue(move |world: &mut World| {
                     broadcast_entity_spawn(world, allay_entity);
+                });
+            }
+            EntityType::Armadillo => {
+                // Spawn the armadillo entity
+                let armadillo_entity = commands
+                    .spawn((
+                        ArmadilloBundle::new(event.position),
+                        Armadillo,
+                        HasGravity,
+                        HasCollisions,
+                        HasWaterDrag,
+                    ))
+                    .id();
+
+                commands.queue(move |world: &mut World| {
+                    broadcast_entity_spawn(world, armadillo_entity);
                 });
             }
         }

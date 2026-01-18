@@ -5,6 +5,7 @@ use ferrumc_core::transform::position::Position;
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum EntityType {
     Allay,
+    Armadillo,
     Cow,
     Pig,
     // Add more entity types here as they're implemented
