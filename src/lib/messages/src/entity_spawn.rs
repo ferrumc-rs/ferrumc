@@ -7,6 +7,7 @@ pub enum EntityType {
     Allay,
     Armadillo,
     Axolotl,
+    Bat,
     Cow,
     Pig,
     // Add more entity types here as they're implemented

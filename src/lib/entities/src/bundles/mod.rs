@@ -2,6 +2,7 @@
 pub mod allay;
 pub mod armadillo;
 pub mod axolotl;
+pub mod bat;
 pub mod cow;
 pub mod pig;
 
@@ -9,5 +10,6 @@ pub mod pig;
 pub use allay::AllayBundle;
 pub use armadillo::ArmadilloBundle;
 pub use axolotl::AxolotlBundle;
+pub use bat::BatBundle;
 pub use cow::CowBundle;
 pub use pig::PigBundle;
