@@ -69,14 +69,15 @@ mod tests {
         let cow = CowBundle::new(position);
 
         // Verify vanilla metadata
-        assert_eq!(cow.metadata.protocol_id(), 95);
+        assert_eq!(cow.metadata.protocol_id(), 28);
         assert_eq!(cow.metadata.resource_name(), "cow");
         assert!(cow.metadata.is_mob());
 
         // Verify physical properties (using epsilon for floating point comparison)
-        assert!((cow.physical.bounding_box.height() - 0.9).abs() < EPSILON_F64);
+        // Cow dimensions: [width=0.9, height=1.4]
+        assert!((cow.physical.bounding_box.height() - 1.4).abs() < EPSILON_F64);
         assert!((cow.physical.bounding_box.width() - 0.9).abs() < EPSILON_F64);
-        assert!((cow.physical.eye_height - 0.765).abs() < EPSILON_F32);
+        assert!((cow.physical.eye_height - 1.3).abs() < EPSILON_F32);
         assert!(!cow.physical.fire_immune);
 
         // Verify combat properties

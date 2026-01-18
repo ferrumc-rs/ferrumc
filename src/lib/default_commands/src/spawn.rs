@@ -19,8 +19,8 @@ lazy_static! {
 
         // Add supported entities here
         m.insert("allay", EntityType::Allay);
-        m.insert("pig", EntityType::Cow);
-        m.insert("cow", EntityType::Pig);
+        m.insert("cow", EntityType::Cow);
+        m.insert("pig", EntityType::Pig);
 
         m
     };
