@@ -20,6 +20,7 @@ lazy_static! {
         // Add supported entities here
         m.insert("allay", EntityType::Allay);
         m.insert("armadillo", EntityType::Armadillo);
+        m.insert("axolotl", EntityType::Axolotl);
         m.insert("cow", EntityType::Cow);
         m.insert("pig", EntityType::Pig);
 
@@ -61,7 +62,7 @@ impl CommandArgument for EntityTypeArg {
 /// Spawns an entity in front of the player.
 ///
 /// Usage: /spawn <entity_type>
-/// Currently supported: allay, armadillo, cow, pig
+/// Currently supported: allay, armadillo, axolotl, cow, pig
 #[command("spawn")]
 fn spawn_command(
     #[sender] sender: Sender,

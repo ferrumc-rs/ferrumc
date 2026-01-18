@@ -19,6 +19,8 @@ pub mod entity_types {
     #[derive(Component)]
     pub struct Armadillo;
     #[derive(Component)]
+    pub struct Axolotl;
+    #[derive(Component)]
     pub struct Cow;
     #[derive(Component)]
     pub struct Pig;

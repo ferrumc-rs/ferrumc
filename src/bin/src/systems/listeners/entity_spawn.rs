@@ -2,9 +2,11 @@ use bevy_ecs::prelude::*;
 use ferrumc_core::identity::entity_identity::EntityIdentity;
 use ferrumc_core::transform::position::Position;
 use ferrumc_core::transform::rotation::Rotation;
-use ferrumc_entities::bundles::{AllayBundle, ArmadilloBundle, CowBundle, PigBundle};
+use ferrumc_entities::bundles::{
+    AllayBundle, ArmadilloBundle, AxolotlBundle, CowBundle, PigBundle,
+};
 use ferrumc_entities::components::EntityMetadata;
-use ferrumc_entities::markers::entity_types::{Allay, Armadillo, Cow, Pig};
+use ferrumc_entities::markers::entity_types::{Allay, Armadillo, Axolotl, Cow, Pig};
 use ferrumc_entities::markers::{HasCollisions, HasGravity, HasWaterDrag};
 use ferrumc_messages::{EntityType, SpawnEntityCommand, SpawnEntityEvent};
 use ferrumc_net::connection::StreamWriter;
@@ -163,6 +165,21 @@ pub fn handle_spawn_entity(mut events: MessageReader<SpawnEntityEvent>, mut comm
 
                 commands.queue(move |world: &mut World| {
                     broadcast_entity_spawn(world, armadillo_entity);
+                });
+            }
+            EntityType::Axolotl => {
+                // Spawn the axolotl entity
+                let axolotl_entity = commands
+                    .spawn((
+                        AxolotlBundle::new(event.position),
+                        Axolotl,
+                        HasGravity,
+                        HasCollisions,
+                    ))
+                    .id();
+
+                commands.queue(move |world: &mut World| {
+                    broadcast_entity_spawn(world, axolotl_entity);
                 });
             }
         }

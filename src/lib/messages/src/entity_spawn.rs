@@ -6,6 +6,7 @@ use ferrumc_core::transform::position::Position;
 pub enum EntityType {
     Allay,
     Armadillo,
+    Axolotl,
     Cow,
     Pig,
     // Add more entity types here as they're implemented
