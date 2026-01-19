@@ -352,11 +352,12 @@ fn send_initial_play_packets(
     player_identity: &PlayerIdentity,
 ) -> Result<(), NetError> {
     // Send login_play
-    let game_mode = state
+    let player_data: OfflinePlayerData = state
         .world
         .load_player_data(player_identity.uuid)
-        .map(|data| data.unwrap_or(OfflinePlayerData::default()).gamemode)
+        .unwrap_or_default()
         .unwrap_or_default();
+    let game_mode = player_data.gamemode;
 
     conn_write.send_packet(LoginPlayPacket::new(
         player_identity.short_uuid,
@@ -364,11 +365,7 @@ fn send_initial_play_packets(
     ))?;
 
     // Send abilities
-    let abilities = state
-        .world
-        .load_player_data(player_identity.uuid)
-        .map(|data| data.unwrap_or(OfflinePlayerData::default()).abilities)
-        .unwrap_or_default();
+    let abilities = player_data.abilities;
 
     conn_write.send_packet(PlayerAbilities::from_abilities(&abilities))?;
 
