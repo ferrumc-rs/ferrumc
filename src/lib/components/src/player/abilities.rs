@@ -1,8 +1,9 @@
 use super::gamemode::GameMode;
 use bevy_ecs::prelude::Component;
+use bitcode_derive::{Decode, Encode};
 use ferrumc_config::server_config::get_global_config;
 
-#[derive(Component, Debug, Clone, Copy)]
+#[derive(Component, Debug, Clone, Copy, Encode, Decode)]
 pub struct PlayerAbilities {
     pub invulnerable: bool,
     pub flying: bool,

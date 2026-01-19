@@ -12,7 +12,9 @@ crossbeam-queue = { workspace = true }
 once_cell = { workspace = true }
 thiserror = { workspace = true }
 ferrumc-registry = { workspace = true }
-ferrumc-world = {workspace = true}
+ferrumc-world = { workspace = true }
+bitcode = { workspace = true }
+bitcode_derive = { workspace = true }
 
 [lints]
 workspace = true

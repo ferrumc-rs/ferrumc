@@ -1,5 +1,6 @@
 use bevy_ecs::prelude::Component;
 use bevy_math::{DVec3, IVec2};
+use bitcode_derive::{Decode, Encode};
 use ferrumc_net_codec::net_types::network_position::NetworkPosition;
 use std::ops::DerefMut;
 use std::{
@@ -111,6 +112,12 @@ impl Default for Position {
 impl From<(f64, f64, f64)> for Position {
     fn from((x, y, z): (f64, f64, f64)) -> Self {
         Self::new(x, y, z)
+    }
+}
+
+impl From<Position> for (f64, f64, f64) {
+    fn from(pos: Position) -> Self {
+        (pos.x, pos.y, pos.z)
     }
 }
 
