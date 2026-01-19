@@ -1,34 +1,37 @@
-use bevy_ecs::prelude::{Entity, Query, ResMut, Resource};
+use bevy_ecs::prelude::{Commands, Entity, Query, ResMut};
+use ferrumc_core::time::{LastSentTimeUpdate, WorldTime};
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::update_time::UpdateTimePacket;
-use tracing::debug;
-
-#[derive(Resource, Debug, Default)]
-/// Holds the current world time. The minimum value is 0 and the maximum is 23999 (24000 rolls back over)
-///
-/// Day is from tick 0..12000
-/// Dusk is from tick 12000..13000
-/// Night is from tick 13000..23000
-/// Dawn is from tick 23000..24000
-pub struct WorldTime(pub u16);
+use tracing::warn;
 
 pub fn tick_daylight_cycle(
     mut world_time: ResMut<WorldTime>,
     players: Query<(Entity, &StreamWriter)>,
+    mut last_sent_time: Query<&mut LastSentTimeUpdate>,
+    mut commands: Commands,
 ) {
-    world_time.0 = (world_time.0 + 1) % 24000;
+    world_time.advance_tick();
 
-    // Send time update every 20 ticks
-    if world_time.0.is_multiple_of(20) {
-        let packet = UpdateTimePacket {
-            world_age: 0,
-            time_of_day: world_time.0 as _,
-            time_of_day_increasing: true,
-        };
+    let packet = UpdateTimePacket {
+        world_age: 0,
+        time_of_day: world_time.current_time() as _,
+        time_of_day_increasing: true,
+    };
 
-        for (id, player) in players.iter() {
-            player.send_packet_ref(&packet).unwrap_or_else(|err| {
-                debug!("Failed to send update time packet to player {id}: {err}")
+    for (eid, writer) in players.iter() {
+        if let Ok(mut last_sent_time_update) = last_sent_time.get_mut(eid) {
+            if last_sent_time_update.should_resend() {
+                last_sent_time_update.reset();
+
+                writer.send_packet_ref(&packet).unwrap_or_else(|_| {
+                    warn!("Failed to send UpdateTimePacket to player {}", eid);
+                });
+            }
+        } else {
+            commands.entity(eid).insert(LastSentTimeUpdate::default());
+
+            writer.send_packet_ref(&packet).unwrap_or_else(|_| {
+                warn!("Failed to send UpdateTimePacket to player {}", eid);
             });
         }
     }
