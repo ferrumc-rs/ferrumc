@@ -1,6 +1,7 @@
 pub mod angle;
 pub mod bitset;
 pub mod byte_array;
+pub mod id_set;
 pub mod length_prefixed_vec;
 pub mod net_array;
 pub mod network_position;
