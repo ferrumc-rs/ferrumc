@@ -1,3 +1,4 @@
+use bitcode_derive::{Decode, Encode};
 use ferrumc_net_codec::decode::errors::NetDecodeError;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::encode::errors::NetEncodeError;
@@ -8,7 +9,7 @@ use std::fmt::Display;
 use std::io::{Read, Write};
 use tokio::io::{AsyncRead, AsyncWrite};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Decode, Encode)]
 pub struct ItemID(pub VarInt);
 
 impl Display for ItemID {

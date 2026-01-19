@@ -4,6 +4,7 @@ pub mod experience;
 pub mod gamemode;
 pub mod gameplay_state;
 pub mod hunger;
+pub mod offline_player_data;
 pub mod pending_events;
 pub mod player_bundle;
 pub mod sneak;

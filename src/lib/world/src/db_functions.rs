@@ -105,9 +105,15 @@ impl World {
         for pair in self.cache.iter() {
             let k = pair.key();
             let v = pair.value();
+            if v.sections.iter().any(|c| c.dirty) {
+                trace!("Chunk at {:?} is dirty, saving.", k.0);
+            } else {
+                continue;
+            }
             trace!("Syncing chunk: {:?}", k.0);
             save_chunk_internal(self, k.0, &k.1, v)?;
         }
+
         sync_internal(self)
     }
 

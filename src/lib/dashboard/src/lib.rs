@@ -1,3 +1,40 @@
+//! # Dashboard WebSocket API
+//!
+//! This module provides a WebSocket-based API for the FerrumC dashboard.
+//!
+//! ## WebSocket Protocol
+//!
+//! Connect to `/ws` to receive server events. The protocol uses JSON messages
+//! with a `type` field indicating the event type.
+//!
+//! ### Handshake (sent once on connect)
+//!
+//! ```json
+//! {
+//!   "type": "Handshake",
+//!   "data": {
+//!     "system": { "cpu_model": "...", "cpu_cores": 12, "cpu_threads": 24 },
+//!     "config": { "max_players": 100 }
+//!   }
+//! }
+//! ```
+//!
+//! ### Metrics (sent every second)
+//!
+//! ```json
+//! {
+//!   "type": "Metric",
+//!   "data": {
+//!     "cpu_usage": 15.5,
+//!     "ram_usage": 1073741824,
+//!     "total_ram": 17179869184,
+//!     "uptime": 3600,
+//!     "storage_used": 536870912,
+//!     "player_count": 42
+//!   }
+//! }
+//! ```
+
 use crate::telemetry::DashboardEvent;
 use axum::extract::Path;
 use axum::http::{header, StatusCode};
@@ -10,7 +47,7 @@ use include_dir::{include_dir, Dir};
 use tokio::sync::broadcast;
 use tracing::{debug, info};
 
-/// Dashboard telemetry module
+mod handshake;
 mod telemetry;
 mod ws;
 
@@ -46,18 +83,23 @@ static DASHBOARD_DIR: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/dashboard-dist
 #[cfg(not(any(dashboard_in_out_dir, dashboard_in_manifest_dir)))]
 static DASHBOARD_DIR: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/dashboard-dist");
 
-async fn start_webserver(_state: GlobalState) {
+async fn start_webserver(state: GlobalState) {
     debug!("Starting FerrumC dashboard webserver...");
+
+    // Gather handshake data once at startup
+    let handshake = handshake::Handshake::gather();
+    debug!("Handshake data gathered: {:?}", handshake);
 
     // Create a rx/tx (with max 100 messages buffered) for telemetry events
     let (tx, _rx) = broadcast::channel::<DashboardEvent>(100);
 
-    // Spawn the Telemetry Loop in the background
+    // Spawn the Telemetry Loop in the background with GlobalState for player count
     let tx_clone = tx.clone();
-    tokio::spawn(telemetry::start_telemetry_loop(tx_clone));
+    let state_clone = state.clone();
+    tokio::spawn(telemetry::start_telemetry_loop(tx_clone, state_clone));
 
-    // websocket state:
-    let ws_state = ws::WsState { tx };
+    // WebSocket state includes broadcast channel and handshake data
+    let ws_state = ws::WsState { tx, handshake };
 
     // axum app/router
     let app = Router::new()
