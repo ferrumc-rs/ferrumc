@@ -133,7 +133,7 @@ mod index_type {
     #[derive(Debug, Clone, Copy)]
     pub enum EntityMetadataIndexType {
         Byte, // (0) Used for bit masks and small numbers
-        Pose, // (21) Used for entity pose
+        Pose, // (20) Used for entity pose
     }
 
     impl EntityMetadataIndexType {
@@ -141,7 +141,7 @@ mod index_type {
             use EntityMetadataIndexType::*;
             let val = match self {
                 Byte => 0,
-                Pose => 21,
+                Pose => 20,
             };
 
             VarInt::new(val)

@@ -90,7 +90,7 @@ enum BroadcastMovementPacket {
     TeleportEntity(TeleportEntityPacket),
 }
 
-fn update_pos_for_all(
+pub(crate) fn update_pos_for_all(
     entity_id: Entity,
     delta_pos: Option<(i16, i16, i16)>,
     new_rot: Option<Rotation>,
@@ -150,6 +150,10 @@ fn update_pos_for_all(
     };
 
     for (entity, conn) in conn_query.iter() {
+        // Skip sending to the sender themselves
+        if entity == entity_id {
+            continue;
+        }
         if !state.players.is_connected(entity) || !conn.running.load(Ordering::Relaxed) {
             warn!(
                 "Player {} is not connected, skipping position update",

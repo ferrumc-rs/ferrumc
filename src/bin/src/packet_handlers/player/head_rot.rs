@@ -3,6 +3,7 @@ use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_core::transform::rotation::Rotation;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::set_head_rotation::SetHeadRotationPacket;
+use ferrumc_net::packets::outgoing::update_entity_rotation::UpdateEntityRotationPacket;
 use ferrumc_net::packets::packet_messages::Movement;
 use ferrumc_net_codec::net_types::angle::NetAngle;
 
@@ -20,10 +21,14 @@ pub fn handle_player_move(
             continue;
         };
 
+        // SetHeadRotationPacket - sends yaw for head turning animation
         let head_rot_packet = SetHeadRotationPacket::new(
-            identity.uuid.as_u128() as i32,
+            identity.short_uuid,
             NetAngle::from_degrees(rot.yaw as f64),
         );
+
+        // UpdateEntityRotationPacket - sends both yaw AND pitch for full body rotation
+        let entity_rot_packet = UpdateEntityRotationPacket::new(identity, rot, true);
 
         #[cfg(debug_assertions)]
         let start = std::time::Instant::now();
@@ -37,8 +42,15 @@ pub fn handle_player_move(
             if !writer.running.load(std::sync::atomic::Ordering::Relaxed) {
                 continue;
             }
+
+            // Send head rotation (yaw only, for head animation)
             if let Err(err) = writer.send_packet_ref(&head_rot_packet) {
                 error!("Failed to send head rotation packet: {:?}", err);
+            }
+
+            // Send entity rotation (yaw + pitch, for body/look direction)
+            if let Err(err) = writer.send_packet_ref(&entity_rot_packet) {
+                error!("Failed to send entity rotation packet: {:?}", err);
             }
         }
 
