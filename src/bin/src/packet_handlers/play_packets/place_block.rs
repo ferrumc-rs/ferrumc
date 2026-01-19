@@ -70,15 +70,6 @@ pub fn handle(
                         item_id.0, mapped_block_state_id
                     );
                     let pos: BlockPos = event.position.into();
-                    let mut chunk = ferrumc_utils::world::load_or_generate_mut(
-                        &state.0,
-                        pos.chunk(),
-                        "overworld",
-                    )
-                    .expect("Failed to load or generate chunk");
-                    let block_clicked = chunk.get_block(pos.chunk_block_pos());
-                    trace!("Block clicked: {:?}", block_clicked);
-                    // Use the face to determine the offset of the block to place
                     let offset_pos = pos
                         + match event.face.0 {
                             0 => (0, -1, 0),
@@ -89,6 +80,15 @@ pub fn handle(
                             5 => (1, 0, 0),
                             _ => (0, 0, 0),
                         };
+
+                    let mut chunk = ferrumc_utils::world::load_or_generate_mut(
+                        &state.0,
+                        offset_pos.chunk(),
+                        "overworld",
+                    )
+                    .expect("Failed to load or generate chunk");
+                    let block_clicked = chunk.get_block(offset_pos.chunk_block_pos());
+                    trace!("Block clicked: {:?}", block_clicked);
 
                     // Check if the block collides with any entities
                     let does_collide = {
@@ -111,10 +111,12 @@ pub fn handle(
                             )
                         })
                     };
+
                     if does_collide {
                         trace!("Block placement collided with entity");
                         continue 'ev_loop;
                     }
+
                     let packet = BlockChangeAck {
                         sequence: event.sequence,
                     };
@@ -123,7 +125,7 @@ pub fn handle(
                         continue 'ev_loop;
                     }
 
-                    chunk.set_block(pos.chunk_block_pos(), *mapped_block_state_id);
+                    chunk.set_block(offset_pos.chunk_block_pos(), *mapped_block_state_id);
                     let ack_packet = BlockChangeAck {
                         sequence: event.sequence,
                     };
