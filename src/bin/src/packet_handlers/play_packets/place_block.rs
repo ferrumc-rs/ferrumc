@@ -11,13 +11,13 @@ use ferrumc_state::GlobalStateResource;
 use ferrumc_world::pos::BlockPos;
 use tracing::{debug, error, trace};
 
+use ferrumc_config::server_config::get_global_config;
 use ferrumc_inventories::hotbar::Hotbar;
 use ferrumc_inventories::inventory::Inventory;
 use ferrumc_world::block_state_id::BlockStateId;
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::str::FromStr;
-use ferrumc_config::server_config::get_global_config;
 
 const ITEM_TO_BLOCK_MAPPING_FILE: &str =
     include_str!("../../../../../assets/data/item_to_block_mapping.json");
@@ -145,7 +145,9 @@ pub fn handle(
                         let (chunk_x, chunk_z) = (chunk.x, chunk.y);
 
                         // Only send block update if the player is within the render distance of the block being updated
-                        if (offset_chunk_x - chunk_x).abs() <= render_distance && (offset_chunk_z - chunk_z).abs() <= render_distance {
+                        if (offset_chunk_x - chunk_x).abs() <= render_distance
+                            && (offset_chunk_z - chunk_z).abs() <= render_distance
+                        {
                             if let Err(err) = conn.send_packet_ref(&chunk_packet) {
                                 error!("Failed to send block update packet: {:?}", err);
                             }
