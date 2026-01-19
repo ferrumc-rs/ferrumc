@@ -113,6 +113,14 @@ pub mod constructors {
                 EntityMetadataValue::Entity0(EntityStateMask::new()),
             )
         }
+
+        /// Entity state with sprinting bit set
+        pub fn entity_sprinting() -> Self {
+            Self::new(
+                EntityMetadataIndexType::Byte,
+                EntityMetadataValue::Entity0(EntityStateMask::from_state(EntityState::Sprinting)),
+            )
+        }
     }
 }
 

@@ -45,6 +45,32 @@ pub fn handle(
                     }
                 }
             }
+            PlayerCommandAction::StartSprinting => {
+                let packet =
+                    EntityMetadataPacket::new(event.entity_id, [EntityMetadata::entity_sprinting()]);
+
+                for (entity, conn) in query {
+                    if !state.0.players.is_connected(entity) {
+                        continue;
+                    }
+                    if let Err(err) = conn.send_packet_ref(&packet) {
+                        error!("Failed to send start sprinting packet: {:?}", err);
+                    }
+                }
+            }
+            PlayerCommandAction::StopSprinting => {
+                let packet =
+                    EntityMetadataPacket::new(event.entity_id, [EntityMetadata::entity_clear_state()]);
+
+                for (entity, conn) in query {
+                    if !state.0.players.is_connected(entity) {
+                        continue;
+                    }
+                    if let Err(err) = conn.send_packet_ref(&packet) {
+                        error!("Failed to send stop sprinting packet: {:?}", err);
+                    }
+                }
+            }
             _ => {}
         }
     }

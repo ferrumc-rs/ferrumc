@@ -135,7 +135,10 @@ pub fn accept_new_connections(
         trace!("Spawned entity for new connection: {:?}", entity_id);
 
         // Fire PlayerJoinEvent
-        join_events.write(PlayerJoined(new_connection.player_identity.clone()));
+        join_events.write(PlayerJoined {
+            identity: new_connection.player_identity.clone(),
+            entity: entity_id,
+        });
 
         if let Err(err) = return_sender.send(entity_id) {
             error!(
