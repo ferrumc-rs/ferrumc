@@ -54,6 +54,7 @@ tokio = { workspace = true, features = ["full"] }
 crossbeam-channel = { workspace = true }
 uuid = { workspace = true }
 dhat = { version = "0.3", optional = true }
+bitcode = { workspace = true }
 
 [features]
 dhat = ["dep:dhat"]
