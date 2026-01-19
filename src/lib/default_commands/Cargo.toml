@@ -12,7 +12,7 @@ ferrumc-text = { workspace = true }
 ferrumc-core = { workspace = true }
 ferrumc-net = { workspace = true }
 ferrumc-performance = { workspace = true }
-ferrumc-entities = { workspace = true }
+ferrumc-net-codec = { workspace = true }
 lazy_static = { workspace = true }
 bimap = { workspace = true }
 

@@ -1,11 +1,12 @@
 use crate::player::abilities::PlayerAbilities;
 use bevy_ecs::prelude::Component;
+use bitcode_derive::{Decode, Encode};
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_net_codec::encode::errors::NetEncodeError;
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use std::io::Write;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Decode, Encode)]
 #[repr(u8)]
 pub enum GameMode {
     Survival = 0,

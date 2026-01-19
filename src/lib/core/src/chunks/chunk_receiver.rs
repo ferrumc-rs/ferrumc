@@ -24,7 +24,8 @@ impl ChunkReceiver {
             loaded: HashSet::new(),
             unloading: VecDeque::new(),
             dirty: VecDeque::new(),
-            chunks_per_tick: f32::MAX,
+            // 32.5 chunks per tick is enough to send 650 chunks per second (20 ticks per second)
+            chunks_per_tick: 32.5,
         }
     }
 }

@@ -27,7 +27,7 @@ impl EntityMetadataPacket {
     /// ```ignored
     /// let entity_id = ...;
     /// let metadata = vec![
-    ///                     EntityMetadata::entity_sneaking_pressed(),
+    ///                     EntityMetadata::entity_sneaking_flag(),
     ///                     EntityMetadata::entity_sneaking_visual(),
     ///                     EntityMetadata::entity_standing()
     ///                   ];
@@ -65,8 +65,10 @@ pub mod constructors {
                 value,
             }
         }
-        /// To hide the name tag and stuff
-        pub fn entity_sneaking_pressed() -> Self {
+        /// Sets the sneaking flag in entity state byte (index 0).
+        /// This flag (0x02) affects name tag visibility and hitbox.
+        /// Typically paired with `entity_sneaking_visual()` for the full sneaking effect.
+        pub fn entity_sneaking_flag() -> Self {
             Self::new(
                 EntityMetadataIndexType::Byte,
                 EntityMetadataValue::Entity0(EntityStateMask::from_state(
@@ -113,6 +115,14 @@ pub mod constructors {
                 EntityMetadataValue::Entity0(EntityStateMask::new()),
             )
         }
+
+        /// Entity state with sprinting bit set
+        pub fn entity_sprinting() -> Self {
+            Self::new(
+                EntityMetadataIndexType::Byte,
+                EntityMetadataValue::Entity0(EntityStateMask::from_state(EntityState::Sprinting)),
+            )
+        }
     }
 }
 
@@ -125,7 +135,7 @@ mod index_type {
     #[derive(Debug, Clone, Copy)]
     pub enum EntityMetadataIndexType {
         Byte, // (0) Used for bit masks and small numbers
-        Pose, // (21) Used for entity pose
+        Pose, // (21) Used for entity pose - protocol 772 (1.21.4)
     }
 
     impl EntityMetadataIndexType {

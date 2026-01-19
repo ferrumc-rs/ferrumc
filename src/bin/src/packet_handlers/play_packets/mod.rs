@@ -12,6 +12,7 @@ mod place_block;
 mod player_abilities;
 mod player_action;
 mod player_command;
+pub mod player_input;
 mod player_loaded;
 mod set_player_position;
 mod set_player_position_and_rotation;
@@ -27,6 +28,7 @@ pub fn register_packet_handlers(schedule: &mut Schedule) {
     schedule.add_systems(place_block::handle);
     schedule.add_systems(player_action::handle);
     schedule.add_systems(player_command::handle);
+    schedule.add_systems(player_input::handle);
     schedule.add_systems(set_player_position::handle);
     schedule.add_systems(set_player_position_and_rotation::handle);
     schedule.add_systems(set_player_rotation::handle);
