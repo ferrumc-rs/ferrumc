@@ -10,6 +10,7 @@ use ferrumc_messages::{
     PlayerFinishedDigging, PlayerGainedXP, PlayerGameModeChanged, PlayerJoined, PlayerLeft,
     PlayerLeveledUp, PlayerStartedDigging, SpawnEntityCommand, SpawnEntityEvent,
 };
+use ferrumc_messages::teleport_player::TeleportPlayer;
 use ferrumc_net::packets::packet_messages::Movement;
 
 pub fn register_messages(world: &mut World) {
@@ -35,4 +36,5 @@ pub fn register_messages(world: &mut World) {
     MessageRegistry::register_message::<SendEntityUpdate>(world);
     MessageRegistry::register_message::<SendParticle>(world);
     MessageRegistry::register_message::<BlockBrokenEvent>(world);
+    MessageRegistry::register_message::<TeleportPlayer>(world);
 }
