@@ -17,6 +17,7 @@ use ferrumc_world::block_state_id::BlockStateId;
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::str::FromStr;
+use ferrumc_config::server_config::get_global_config;
 
 const ITEM_TO_BLOCK_MAPPING_FILE: &str =
     include_str!("../../../../../assets/data/item_to_block_mapping.json");
@@ -37,11 +38,11 @@ static ITEM_TO_BLOCK_MAPPING: Lazy<HashMap<i32, BlockStateId>> = Lazy::new(|| {
 pub fn handle(
     receiver: Res<PlaceBlockReceiver>,
     state: Res<GlobalStateResource>,
-    query: Query<(Entity, &StreamWriter, &Inventory, &Hotbar)>,
+    query: Query<(Entity, &StreamWriter, &Inventory, &Hotbar, &Position)>,
     pos_q: Query<(&Position, &CollisionBounds)>,
 ) {
     'ev_loop: for (event, eid) in receiver.0.try_iter() {
-        let Ok((entity, conn, inventory, hotbar)) = query.get(eid) else {
+        let Ok((entity, conn, inventory, hotbar, _)) = query.get(eid) else {
             debug!("Could not get connection for entity {:?}", eid);
             continue;
         };
@@ -117,14 +118,6 @@ pub fn handle(
                         continue 'ev_loop;
                     }
 
-                    let packet = BlockChangeAck {
-                        sequence: event.sequence,
-                    };
-                    if let Err(err) = conn.send_packet_ref(&packet) {
-                        error!("Failed to send block change ack packet: {:?}", err);
-                        continue 'ev_loop;
-                    }
-
                     chunk.set_block(offset_pos.chunk_block_pos(), *mapped_block_state_id);
                     let ack_packet = BlockChangeAck {
                         sequence: event.sequence,
@@ -138,13 +131,25 @@ pub fn handle(
                         },
                         block_state_id: VarInt::from(*mapped_block_state_id),
                     };
-                    if let Err(err) = conn.send_packet_ref(&chunk_packet) {
-                        error!("Failed to send block update packet: {:?}", err);
-                        continue 'ev_loop;
-                    }
+
                     if let Err(err) = conn.send_packet_ref(&ack_packet) {
                         error!("Failed to send block change ack packet: {:?}", err);
                         continue 'ev_loop;
+                    }
+
+                    let offset_chunk = offset_pos.chunk();
+                    let (offset_chunk_x, offset_chunk_z) = (offset_chunk.x(), offset_chunk.z());
+                    let render_distance = get_global_config().chunk_render_distance as i32;
+                    for (_, conn, _, _, pos) in query.iter() {
+                        let chunk = pos.chunk();
+                        let (chunk_x, chunk_z) = (chunk.x, chunk.y);
+
+                        // Only send block update if the player is within the render distance of the block being updated
+                        if (offset_chunk_x - chunk_x).abs() <= render_distance && (offset_chunk_z - chunk_z).abs() <= render_distance {
+                            if let Err(err) = conn.send_packet_ref(&chunk_packet) {
+                                error!("Failed to send block update packet: {:?}", err);
+                            }
+                        }
                     }
                 }
             }

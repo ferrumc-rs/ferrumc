@@ -1,5 +1,5 @@
 use bevy_ecs::prelude::Component;
-use bevy_math::DVec3;
+use bevy_math::{DVec3, IVec2};
 use ferrumc_net_codec::net_types::network_position::NetworkPosition;
 use std::ops::DerefMut;
 use std::{
@@ -80,6 +80,10 @@ impl Position {
     /// ```
     pub fn xyz(&self) -> (f64, f64, f64) {
         (self.x, self.y, self.z)
+    }
+
+    pub fn chunk(&self) -> IVec2 {
+        IVec2::new(self.x.div_euclid(16.0) as _, self.z.div_euclid(16.0) as _)
     }
 }
 
