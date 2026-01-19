@@ -21,6 +21,9 @@ pub mod chunk_calc;
 
 pub use change_gamemode::*;
 
+pub mod clear_player_inventory;
+pub use clear_player_inventory::*;
+
 pub mod entity_spawn;
 pub mod entity_update;
 pub mod particle;
@@ -28,4 +31,7 @@ pub mod particle;
 pub use entity_spawn::{EntityType, SpawnEntityCommand, SpawnEntityEvent};
 
 pub mod block_break;
+pub mod give_item_to_player;
+pub use give_item_to_player::*;
+
 pub use block_break::BlockBrokenEvent;
