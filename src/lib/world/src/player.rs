@@ -1,6 +1,6 @@
-use tracing::trace;
 use crate::errors::WorldError;
 use crate::World;
+use tracing::trace;
 
 impl World {
     /// Loads player data from the storage backend and decodes it.
@@ -22,8 +22,14 @@ impl World {
         &self,
         uuid: uuid::Uuid,
     ) -> Result<Option<T>, WorldError> {
-        if !self.storage_backend.table_exists("player_data".to_string())? {
-            trace!("Player data table does not exist. Returning None for player {}", uuid);
+        if !self
+            .storage_backend
+            .table_exists("player_data".to_string())?
+        {
+            trace!(
+                "Player data table does not exist. Returning None for player {}",
+                uuid
+            );
             return Ok(None);
         }
         let data = self
@@ -54,7 +60,10 @@ impl World {
         uuid: uuid::Uuid,
         data: &T,
     ) -> Result<bool, WorldError> {
-        if !self.storage_backend.table_exists("player_data".to_string())? {
+        if !self
+            .storage_backend
+            .table_exists("player_data".to_string())?
+        {
             self.storage_backend
                 .create_table("player_data".to_string())
                 .map_err(WorldError::DatabaseError)?;

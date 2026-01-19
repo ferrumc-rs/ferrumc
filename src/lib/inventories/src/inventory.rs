@@ -1,7 +1,7 @@
 use crate::errors::InventoryError;
 use crate::item::ItemID;
 use crate::slot::InventorySlot;
-use crate::{InventoryUpdate, INVENTORY_UPDATES_QUEUE};
+use crate::{INVENTORY_UPDATES_QUEUE, InventoryUpdate};
 use bevy_ecs::prelude::{Component, Entity};
 use bitcode_derive::{Decode, Encode};
 
