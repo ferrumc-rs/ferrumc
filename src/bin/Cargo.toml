@@ -65,6 +65,9 @@ default = [
     "dashboard"
 ]
 
+[dev-dependencies]
+tempfile = { workspace = true }
+
 [[bin]]
 name = "ferrumc"
 path = "src/main.rs"

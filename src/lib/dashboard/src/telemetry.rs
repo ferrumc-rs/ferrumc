@@ -1,4 +1,6 @@
+use ferrumc_config::server_config::get_global_config;
 use serde::Serialize;
+use std::path::PathBuf;
 use std::time::Duration;
 use sysinfo::{Pid, ProcessesToUpdate, System};
 use tokio::sync::broadcast::Sender;
@@ -15,6 +17,8 @@ pub struct ServerMetric {
     pub total_ram: u64,
     /// Uptime in seconds
     pub uptime: u64,
+    /// Used storage in bytes
+    pub storage_used: u64,
 }
 
 /// Events sent from the server to the dashboard (websocket)
@@ -48,11 +52,21 @@ pub async fn start_telemetry_loop(tx: Sender<DashboardEvent>) {
             continue;
         };
 
+        let config = get_global_config();
+        let mut world_path = PathBuf::from(&config.database.db_path);
+        let storage_used = if world_path.exists() {
+            world_path = world_path.canonicalize().unwrap_or(world_path);
+            dir_size::get_size_in_bytes(&world_path).unwrap_or(0)
+        } else {
+            0
+        };
+
         let metric = ServerMetric {
             cpu_usage: process.cpu_usage(),
             ram_usage: process.memory(),
             total_ram: sys.total_memory(),
             uptime: process.run_time(),
+            storage_used,
         };
 
         // Broadcast to all connected web clients
