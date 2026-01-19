@@ -24,7 +24,7 @@ impl ChunkReceiver {
             loaded: HashSet::new(),
             unloading: VecDeque::new(),
             dirty: VecDeque::new(),
-            chunks_per_tick: f32::MAX,
+            chunks_per_tick: 128.0,
         }
     }
 }
