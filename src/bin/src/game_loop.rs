@@ -10,14 +10,16 @@ use crate::errors::BinaryError;
 use crate::packet_handlers::{play_packets, register_player_systems};
 use crate::register_messages::register_messages;
 use crate::register_resources::register_resources;
+use crate::systems::emit_player_joined::emit_player_joined;
 use crate::systems::lan_pinger::LanPinger;
 use crate::systems::listeners::register_gameplay_listeners;
 use crate::systems::mobs::register_mob_systems;
+use crate::systems::new_connections::accept_new_connections;
 use crate::systems::physics::register_physics;
 use crate::systems::register_game_systems;
 use crate::systems::shutdown_systems::register_shutdown_systems;
 use bevy_ecs::prelude::World;
-use bevy_ecs::schedule::{ExecutorKind, Schedule};
+use bevy_ecs::schedule::{ApplyDeferred, ExecutorKind, IntoScheduleConfigs, Schedule};
 use crossbeam_channel::Sender;
 use ferrumc_commands::infrastructure::register_command_systems;
 use ferrumc_config::server_config::get_global_config;
@@ -250,7 +252,14 @@ fn build_timed_scheduler() -> Scheduler {
         register_packet_handlers(s); // Handle incoming packets from players
         register_player_systems(s); // Update player state (position, inventory, etc.)
         register_command_systems(s); // Process queued commands
-        register_game_systems(s); // General game logic
+
+        // Player connection handling - chained to ensure proper event timing:
+        // 1. accept_new_connections: Spawns entity + adds PendingPlayerJoin marker (deferred)
+        // 2. ApplyDeferred: Flushes commands, entity now exists and is queryable
+        // 3. emit_player_joined: Fires PlayerJoined event (listeners can now query the entity)
+        s.add_systems((accept_new_connections, ApplyDeferred, emit_player_joined).chain());
+
+        register_game_systems(s); // General game logic (chunks, day cycle, etc.)
         register_gameplay_listeners(s); // Event listeners for gameplay events
         register_physics(s); // Physics systems (movement, collision, etc.)
         register_mob_systems(s); // Mob AI and behavior
