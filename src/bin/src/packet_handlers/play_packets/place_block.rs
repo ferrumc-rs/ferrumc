@@ -12,8 +12,10 @@ use ferrumc_world::pos::BlockPos;
 use tracing::{debug, error, trace};
 
 use ferrumc_config::server_config::get_global_config;
+use ferrumc_core::mq;
 use ferrumc_inventories::hotbar::Hotbar;
 use ferrumc_inventories::inventory::Inventory;
+use ferrumc_text::{Color, NamedColor, TextComponentBuilder};
 use ferrumc_world::block_state_id::BlockStateId;
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
@@ -71,6 +73,33 @@ pub fn handle(
                         item_id.0, mapped_block_state_id
                     );
                     let pos: BlockPos = event.position.into();
+                    if pos.pos.y >= 319 {
+                        mq::queue(
+                            TextComponentBuilder::new(
+                                "Build limit is 319! Cannot place block here.".to_string(),
+                            )
+                            .color(Color::Named(NamedColor::Red))
+                            .bold()
+                            .build(),
+                            true,
+                            entity,
+                        );
+                        trace!("Block placement out of bounds: {}", pos);
+                        continue 'ev_loop;
+                    } else if pos.pos.y <= -64 {
+                        mq::queue(
+                            TextComponentBuilder::new(
+                                "Cannot place block below Y=-64.".to_string(),
+                            )
+                            .color(Color::Named(NamedColor::Red))
+                            .bold()
+                            .build(),
+                            true,
+                            entity,
+                        );
+                        trace!("Block placement out of bounds: {}", pos);
+                        continue 'ev_loop;
+                    }
                     let offset_pos = pos
                         + match event.face.0 {
                             0 => (0, -1, 0),
