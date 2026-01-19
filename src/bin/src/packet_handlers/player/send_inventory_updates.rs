@@ -18,11 +18,11 @@ pub fn handle_inventory_updates(state: Res<GlobalStateResource>, mut query: Quer
                     slot_index: update.slot_index as i16,
                     slot: update.slot,
                 };
-                if let Err(err) = writer.send_packet_ref(&packet) {
+                match writer.send_packet_ref(&packet) { Err(err) => {
                     error!("Failed to send inventory update packet: {:?}", err);
-                } else {
+                } _ => {
                     debug!("Sent inventory update for player {}", update.entity);
-                }
+                }}
             } else {
                 error!("Could not find writer for player {}", update.entity);
             }

@@ -46,7 +46,8 @@ pub fn handle(
                 };
                 for conn in conn_query.iter_mut() {
                     // TODO: Only send if the client is tracking this entity
-                    if let Err(e) = conn.send_packet_ref(&packet) {
+                    let packet_ref = conn.send_packet_ref(&packet);
+                    if let Err(e) = packet_ref {
                         warn!(
                             "Failed to send teleport packet for entity {:?}: {:?}",
                             entity, e
@@ -73,8 +74,9 @@ pub fn handle(
                 };
                 for conn in conn_query.iter_mut() {
                     // TODO: Only send if the client is tracking this entity
-                    if let Err(e) = conn.send_packet_ref(&packet) {
-                        warn!(
+      let packet_ref = conn.send_packet_ref(&packet);
+                    if let Err(e) = packet_ref {
+                                         warn!(
                             "Failed to send entity update packet for entity {:?}: {:?}",
                             entity, e
                         );

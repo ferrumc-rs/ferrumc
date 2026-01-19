@@ -31,7 +31,8 @@ fn kill_command(
     };
 
     for conn in conn_query.iter() {
-        if let Err(err) = conn.send_packet_ref(&packet) {
+        let packet_ref = conn.send_packet_ref(&packet);
+        if let Err(err) = packet_ref {
             sender.send_message(
                 format!("Failed to send RemoveEntitiesPacket: {}", err).into(),
                 false,

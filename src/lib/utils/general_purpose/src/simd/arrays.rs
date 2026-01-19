@@ -36,7 +36,7 @@ fn u8_slice_to_u32_be_normal(input: &[u8]) -> Vec<u32> {
 }
 
 #[cfg(all(target_arch = "x86_64", not(target_os = "macos")))]
-unsafe fn u8_slice_to_u32_be_simd(input: &[u8]) -> Vec<u32> {
+unsafe fn u8_slice_to_u32_be_simd(input: &[u8]) -> Vec<u32> { unsafe {
     debug_assert_eq!(
         input.len() % 4,
         0,
@@ -69,7 +69,7 @@ unsafe fn u8_slice_to_u32_be_simd(input: &[u8]) -> Vec<u32> {
     }
 
     output
-}
+}}
 
 pub fn u8_slice_to_i32_be(input: &[u8]) -> Vec<i32> {
     let out = u8_slice_to_u32_be(input);
@@ -100,7 +100,7 @@ fn u8_slice_to_u64_be_normal(input: &[u8]) -> Vec<u64> {
 
 #[cfg(all(target_arch = "x86_64", not(target_os = "macos")))]
 #[target_feature(enable = "avx2")]
-unsafe fn u8_slice_to_u64_be_simd(input: &[u8]) -> Vec<u64> {
+unsafe fn u8_slice_to_u64_be_simd(input: &[u8]) -> Vec<u64> { unsafe {
     debug_assert_eq!(
         input.len() % 8,
         0,
@@ -135,7 +135,7 @@ unsafe fn u8_slice_to_u64_be_simd(input: &[u8]) -> Vec<u64> {
     }
 
     output
-}
+}}
 
 pub fn u8_slice_to_i64_be(input: &[u8]) -> Vec<i64> {
     let out = u8_slice_to_u64_be(input);
@@ -157,7 +157,7 @@ fn u32_slice_to_u8_be_normal(input: &[u32]) -> Vec<u8> {
 
 #[cfg(all(target_arch = "x86_64", not(target_os = "macos")))]
 #[target_feature(enable = "avx2")]
-unsafe fn u32_slice_to_u8_be_simd(input: &[u32]) -> Vec<u8> {
+unsafe fn u32_slice_to_u8_be_simd(input: &[u32]) -> Vec<u8> { unsafe {
     let mut output: Vec<u8> = Vec::new();
     output.reserve_exact(input.len() * 4);
 
@@ -183,7 +183,7 @@ unsafe fn u32_slice_to_u8_be_simd(input: &[u32]) -> Vec<u8> {
     }
 
     output
-}
+}}
 
 pub fn u64_slice_to_u8_be(input: &[u64]) -> Vec<u8> {
     #[cfg(all(target_arch = "x86_64", not(target_os = "macos")))]
@@ -199,7 +199,7 @@ fn u64_slice_to_u8_be_normal(input: &[u64]) -> Vec<u8> {
 
 #[cfg(all(target_arch = "x86_64", not(target_os = "macos")))]
 #[target_feature(enable = "avx2")]
-unsafe fn u64_slice_to_u8_be_simd(input: &[u64]) -> Vec<u8> {
+unsafe fn u64_slice_to_u8_be_simd(input: &[u64]) -> Vec<u8> { unsafe {
     let mut output: Vec<u8> = Vec::new();
     output.reserve_exact(input.len() * 8);
 
@@ -226,4 +226,4 @@ unsafe fn u64_slice_to_u8_be_simd(input: &[u64]) -> Vec<u8> {
     }
 
     output
-}
+}}

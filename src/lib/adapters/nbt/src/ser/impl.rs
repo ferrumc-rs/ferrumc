@@ -6,7 +6,7 @@ use tokio::io::{AsyncWrite, AsyncWriteExt};
 use uuid::Uuid;
 
 macro_rules! impl_ser_primitives {
-    ($($($ty:ty) | * > $id:expr),*) => {
+    ($($($ty:ty) | * > $id:expr_2021),*) => {
         $($(
             impl NBTSerializable for $ty {
                 fn serialize<W: std::io::Write>(&self, buf: &mut W, options: & NBTSerializeOptions<'_> ) {
@@ -330,13 +330,13 @@ impl<T: NBTSerializable> NBTSerializable for Option<T> {
 /// Order: buf, options, values...
 macro_rules! ser {
 
-    ($buf: expr, $opts: expr, $($value: expr),*) => {
+    ($buf: expr_2021, $opts: expr_2021, $($value: expr_2021),*) => {
         $(
             $value.serialize($buf, &$opts);
         )*
     };
 
-    (asyn; $buf: expr, $opts: expr, $($value: expr),*) => {
+    (asyn; $buf: expr_2021, $opts: expr_2021, $($value: expr_2021),*) => {
         $(
             $value.serialize_async($buf, &$opts).await;
         )*

@@ -95,7 +95,8 @@ pub fn handle(
 
             // 2. Send the packet to sync the client
             let packet = SetHeldItem { slot: hotbar_slot };
-            if let Err(e) = writer.send_packet_ref(&packet) {
+            let packet_ref = writer.send_packet_ref(&packet);
+            if let Err(e) = packet_ref {
                 error!("Failed to send SetHeldItem packet: {:?}", e);
             }
         }
@@ -140,7 +141,8 @@ pub fn handle(
                     warn!("Failed to set creative item in hotbar: {:?}", e);
                 } else {
                     let packet = SetHeldItem { slot: new_index };
-                    if let Err(e) = writer.send_packet_ref(&packet) {
+                    let packet_ref = writer.send_packet_ref(&packet);
+                    if let Err(e) = packet_ref {
                         error!("Failed to send SetHeldItem packet: {:?}", e);
                     }
                 }

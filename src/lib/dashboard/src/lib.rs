@@ -111,7 +111,8 @@ async fn start_webserver(state: GlobalState) {
     let config = get_global_config();
     let addr = format!("{}:{}", config.host, config.dashboard.port);
 
-    match tokio::net::TcpListener::bind(&addr).await {
+    let bind = tokio::net::TcpListener::bind(&addr).await;
+    match bind {
         Ok(listener) => {
             info!("Dashboard listening on {PROTOCOL}://{}", addr);
             if let Err(e) = axum::serve(listener, app).await {

@@ -80,7 +80,8 @@ fn broadcast_metadata(
         if !state.0.players.is_connected(entity) {
             continue;
         }
-        if let Err(err) = conn.send_packet_ref(packet) {
+        let packet_ref = conn.send_packet_ref(packet);
+        if let Err(err) = packet_ref {
             error!("Failed to send entity metadata packet: {:?}", err);
         }
     }

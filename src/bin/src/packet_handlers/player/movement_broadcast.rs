@@ -139,14 +139,16 @@ pub fn handle_player_move(
 
             // Send the movement packet (position and/or rotation)
             if let Some(ref packet) = movement_packet {
-                if let Err(err) = writer.send_packet_ref(packet) {
+                let packet_ref = writer.send_packet_ref(packet);
+                if let Err(err) = packet_ref {
                     error!("Failed to send movement packet: {:?}", err);
                 }
             }
 
             // Send head rotation packet if applicable
             if let Some(ref packet) = head_rot_packet {
-                if let Err(err) = writer.send_packet_ref(packet) {
+                let packet_ref = writer.send_packet_ref(packet);
+                if let Err(err) = packet_ref {
                     error!("Failed to send head rotation packet: {:?}", err);
                 }
             }

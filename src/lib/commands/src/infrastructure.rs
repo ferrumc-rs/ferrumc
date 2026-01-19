@@ -46,11 +46,11 @@ pub fn register_command(command: Arc<Command>) {
 
 /// Gets the server's command graph.
 pub fn get_graph() -> CommandGraph {
-    if let Ok(graph) = COMMAND_GRAPH.read() {
+    match COMMAND_GRAPH.read() { Ok(graph) => {
         graph.clone()
-    } else {
+    } _ => {
         CommandGraph::default()
-    }
+    }}
 }
 
 /// Attempts to find a command by its `name`.
