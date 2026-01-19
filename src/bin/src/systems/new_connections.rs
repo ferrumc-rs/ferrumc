@@ -1,15 +1,15 @@
-use bevy_ecs::prelude::{Commands, MessageWriter, Res, Resource};
+use bevy_ecs::prelude::{Commands, Res, Resource};
 use crossbeam_channel::Receiver;
-use ferrumc_components::player::offline_player_data::OfflinePlayerData;
 use ferrumc_components::player::{
-    gamemode::GameModeComponent, player_bundle::PlayerBundle, swimming::SwimmingState,
+    gamemode::GameModeComponent, offline_player_data::OfflinePlayerData,
+    pending_events::PendingPlayerJoin, player_bundle::PlayerBundle, sneak::SneakState,
+    swimming::SwimmingState,
 };
 use ferrumc_core::{
     chunks::chunk_receiver::ChunkReceiver, conn::keepalive::KeepAliveTracker,
     transform::grounded::OnGround,
 };
 use ferrumc_inventories::hotbar::Hotbar;
-use ferrumc_messages::player_join::PlayerJoined;
 use ferrumc_net::connection::{DisconnectHandle, NewConnection};
 use ferrumc_state::GlobalStateResource;
 use std::time::Instant;
@@ -22,7 +22,6 @@ pub fn accept_new_connections(
     mut cmd: Commands,
     new_connections: Res<NewConnectionRecv>,
     state: Res<GlobalStateResource>,
-    mut join_events: MessageWriter<PlayerJoined>,
 ) {
     if new_connections.0.is_empty() {
         return;
@@ -63,11 +62,15 @@ pub fn accept_new_connections(
             experience: player_data.experience,
             active_effects: player_data.active_effects,
             swimming: SwimmingState::default(),
+            sneak: SneakState::default(),
         };
 
         // --- 3. Spawn the PlayerBundle, then .insert() the network components ---
         let mut entity_commands = cmd.spawn(player_bundle);
 
+        // Add network components and the pending join marker.
+        // The marker triggers `emit_player_joined` to fire the actual event
+        // after `apply_deferred` flushes the entity into existence.
         entity_commands.insert((
             new_connection.stream,
             DisconnectHandle {
@@ -78,6 +81,7 @@ pub fn accept_new_connections(
                 last_received_keep_alive: Instant::now(),
                 has_received_keep_alive: true,
             },
+            PendingPlayerJoin(new_connection.player_identity.clone()),
         ));
 
         let entity_id = entity_commands.id();
@@ -92,9 +96,6 @@ pub fn accept_new_connections(
         );
 
         trace!("Spawned entity for new connection: {:?}", entity_id);
-
-        // Fire PlayerJoinEvent
-        join_events.write(PlayerJoined(new_connection.player_identity.clone()));
 
         if let Err(err) = return_sender.send(entity_id) {
             error!(
