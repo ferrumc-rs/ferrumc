@@ -1,11 +1,8 @@
 use bevy_ecs::prelude::{Commands, Res, Resource};
 use crossbeam_channel::Receiver;
 use ferrumc_components::player::{
-    gamemode::GameModeComponent,
-    offline_player_data::OfflinePlayerData,
-    pending_events::PendingPlayerJoin,
-    player_bundle::PlayerBundle,
-    sneak::SneakState,
+    gamemode::GameModeComponent, offline_player_data::OfflinePlayerData,
+    pending_events::PendingPlayerJoin, player_bundle::PlayerBundle, sneak::SneakState,
     swimming::SwimmingState,
 };
 use ferrumc_core::{
