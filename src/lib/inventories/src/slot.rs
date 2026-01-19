@@ -1,4 +1,5 @@
 use crate::item::ItemID;
+use bitcode_derive::{Decode, Encode};
 use ferrumc_net_codec::decode::errors::NetDecodeError;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::encode::errors::NetEncodeError;
@@ -8,7 +9,7 @@ use std::fmt::Display;
 use std::io::{Read, Write};
 use tokio::io::{AsyncRead, AsyncWrite};
 
-#[derive(Debug, Clone, Hash, Default, PartialEq)]
+#[derive(Debug, Clone, Hash, Default, PartialEq, Decode, Encode)]
 pub struct InventorySlot {
     pub count: VarInt,
     pub item_id: Option<ItemID>,
