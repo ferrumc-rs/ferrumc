@@ -1,4 +1,6 @@
+use crate::handshake::Handshake;
 use ferrumc_config::server_config::get_global_config;
+use ferrumc_state::GlobalState;
 use serde::Serialize;
 use std::path::PathBuf;
 use std::time::Duration;
@@ -19,18 +21,23 @@ pub struct ServerMetric {
     pub uptime: u64,
     /// Used storage in bytes
     pub storage_used: u64,
+    /// Number of connected players
+    pub player_count: usize,
 }
 
 /// Events sent from the server to the dashboard (websocket)
 #[derive(Clone, Debug, Serialize)]
 #[serde(tag = "type", content = "data")]
 pub enum DashboardEvent {
+    /// One-time handshake sent on connection
+    Handshake(Handshake),
+    /// Periodic server metrics
     Metric(ServerMetric),
     #[allow(unused)]
     Log(String),
 }
 
-pub async fn start_telemetry_loop(tx: Sender<DashboardEvent>) {
+pub async fn start_telemetry_loop(tx: Sender<DashboardEvent>, state: GlobalState) {
     debug!("Starting server telemetry");
 
     // Initialize the system monitor
@@ -61,12 +68,15 @@ pub async fn start_telemetry_loop(tx: Sender<DashboardEvent>) {
             0
         };
 
+        let player_count = state.players.player_list.len();
+
         let metric = ServerMetric {
             cpu_usage: process.cpu_usage(),
             ram_usage: process.memory(),
             total_ram: sys.total_memory(),
             uptime: process.run_time(),
             storage_used,
+            player_count,
         };
 
         // Broadcast to all connected web clients
