@@ -1,48 +1,41 @@
-use bevy_ecs::prelude::{Commands, Component, Entity, Query, Res};
+//! Handles PlayerInput packets for sneaking state changes.
+//!
+//! In 1.21.x protocol, sneaking is sent via PlayerInput packet (flag 0x20),
+//! NOT via PlayerCommand (which was used in older protocol versions).
+
+use bevy_ecs::prelude::{Entity, Query, Res};
+use ferrumc_components::player::sneak::SneakState;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
+use ferrumc_net::broadcast::broadcast_packet_except;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::entity_metadata::{EntityMetadata, EntityMetadataPacket};
 use ferrumc_net::PlayerInputReceiver;
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use ferrumc_state::GlobalStateResource;
-use tracing::{debug, error};
+use tracing::{debug, warn};
 
 /// PlayerInput flags (1.21.x protocol)
 const FLAG_SNEAK: u8 = 0x20;
 
-/// Component to track player's previous sneak state
-#[derive(Component, Default)]
-pub struct SneakState {
-    pub is_sneaking: bool,
-}
-
-/// Handles PlayerInput packets - specifically for sneaking state changes
-/// PlayerInput contains movement flags including sneak (0x20)
+/// Handles PlayerInput packets - specifically for sneaking state changes.
+/// PlayerInput contains movement flags including sneak (0x20).
 pub fn handle(
-    mut commands: Commands,
     receiver: Res<PlayerInputReceiver>,
     conn_query: Query<(Entity, &StreamWriter)>,
     identity_query: Query<&PlayerIdentity>,
     mut sneak_query: Query<&mut SneakState>,
-    state: Res<GlobalStateResource>,
 ) {
     for (event, eid) in receiver.0.try_iter() {
-        if !state.0.players.is_connected(eid) {
-            continue;
-        }
-
         let Ok(identity) = identity_query.get(eid) else {
             continue;
         };
 
-        // Get or create SneakState
-        let mut sneak_state = match sneak_query.get_mut(eid) {
-            Ok(state) => state,
-            Err(_) => {
-                // Add SneakState component if missing
-                commands.entity(eid).insert(SneakState::default());
-                continue; // Skip this tick, will process next time
-            }
+        // SneakState should always exist - it's part of PlayerBundle
+        let Ok(mut sneak_state) = sneak_query.get_mut(eid) else {
+            warn!(
+                "SneakState component missing for player {} - this shouldn't happen",
+                identity.username
+            );
+            continue;
         };
 
         let is_sneaking = (event.flags & FLAG_SNEAK) != 0;
@@ -64,8 +57,8 @@ pub fn handle(
             EntityMetadataPacket::new(
                 entity_id,
                 [
+                    EntityMetadata::entity_sneaking_flag(),
                     EntityMetadata::entity_sneaking_visual(),
-                    EntityMetadata::entity_sneaking_pressed(),
                 ],
             )
         } else {
@@ -78,16 +71,6 @@ pub fn handle(
             )
         };
 
-        for (entity, conn) in conn_query.iter() {
-            if entity == eid {
-                continue;
-            }
-            if !state.0.players.is_connected(entity) {
-                continue;
-            }
-            if let Err(err) = conn.send_packet_ref(&packet) {
-                error!("Failed to send sneak packet: {:?}", err);
-            }
-        }
+        broadcast_packet_except(eid, &packet, conn_query.iter());
     }
 }

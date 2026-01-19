@@ -11,6 +11,7 @@ use ferrumc_components::{
         hunger::Hunger,
         pending_events::PendingPlayerJoin,
         player_bundle::PlayerBundle,
+        sneak::SneakState,
         swimming::SwimmingState,
     },
 };
@@ -103,6 +104,7 @@ pub fn accept_new_connections(
             experience,
             active_effects,
             swimming: SwimmingState::default(),
+            sneak: SneakState::default(),
         };
 
         // --- 3. Spawn the PlayerBundle, then .insert() the network components ---

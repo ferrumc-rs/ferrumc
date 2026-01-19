@@ -15,9 +15,7 @@ pub fn handle(
             let on_ground = event.flags & 0x01 != 0;
 
             // Build movement message (rotation only, no position delta)
-            let movement = Movement::new(eid)
-                .rotation(new_rot)
-                .on_ground(on_ground);
+            let movement = Movement::new(eid).rotation(new_rot).on_ground(on_ground);
 
             // Update components
             *rot = new_rot;

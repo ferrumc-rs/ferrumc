@@ -8,6 +8,7 @@ use std::fmt::Display;
 use std::sync::Arc;
 
 pub mod auth;
+pub mod broadcast;
 pub mod compression;
 mod conn_init;
 pub mod connection;

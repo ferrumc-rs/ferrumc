@@ -27,12 +27,21 @@ impl Movement {
         self
     }
 
-    /// Helper to calculate delta from old and new positions
+    /// Helper to calculate delta from old and new positions.
+    /// Uses saturating arithmetic to prevent overflow for large movements (>8 blocks).
+    /// The broadcast handler will detect saturated values and use teleport packets instead.
     pub fn position_delta_from(mut self, old_pos: &Position, new_pos: &Position) -> Self {
+        // Calculate delta with clamping to prevent i16 overflow.
+        // If player moves more than ~8 blocks in one tick, the delta would overflow.
+        // Clamping to i16 range ensures we get max values which trigger teleport logic.
+        let calc_delta = |old: f64, new: f64| -> i16 {
+            let delta = (new * 4096.0) - (old * 4096.0);
+            delta.clamp(i16::MIN as f64, i16::MAX as f64) as i16
+        };
         self.delta_position = Some((
-            ((new_pos.x * 4096.0) - (old_pos.x * 4096.0)) as i16,
-            ((new_pos.y * 4096.0) - (old_pos.y * 4096.0)) as i16,
-            ((new_pos.z * 4096.0) - (old_pos.z * 4096.0)) as i16,
+            calc_delta(old_pos.x, new_pos.x),
+            calc_delta(old_pos.y, new_pos.y),
+            calc_delta(old_pos.z, new_pos.z),
         ));
         self
     }

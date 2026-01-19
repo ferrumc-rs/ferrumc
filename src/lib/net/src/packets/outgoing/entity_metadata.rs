@@ -27,7 +27,7 @@ impl EntityMetadataPacket {
     /// ```ignored
     /// let entity_id = ...;
     /// let metadata = vec![
-    ///                     EntityMetadata::entity_sneaking_pressed(),
+    ///                     EntityMetadata::entity_sneaking_flag(),
     ///                     EntityMetadata::entity_sneaking_visual(),
     ///                     EntityMetadata::entity_standing()
     ///                   ];
@@ -65,8 +65,10 @@ pub mod constructors {
                 value,
             }
         }
-        /// To hide the name tag and stuff
-        pub fn entity_sneaking_pressed() -> Self {
+        /// Sets the sneaking flag in entity state byte (index 0).
+        /// This flag (0x02) affects name tag visibility and hitbox.
+        /// Typically paired with `entity_sneaking_visual()` for the full sneaking effect.
+        pub fn entity_sneaking_flag() -> Self {
             Self::new(
                 EntityMetadataIndexType::Byte,
                 EntityMetadataValue::Entity0(EntityStateMask::from_state(

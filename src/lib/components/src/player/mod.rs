@@ -6,5 +6,6 @@ pub mod gameplay_state;
 pub mod hunger;
 pub mod pending_events;
 pub mod player_bundle;
+pub mod sneak;
 pub mod swimming;
 pub mod view_distance;

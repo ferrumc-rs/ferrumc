@@ -38,7 +38,8 @@ pub fn handle(
         };
 
         // Create packets for the new player once (to broadcast to existing players)
-        let new_player_info_packet = PlayerInfoUpdatePacket::new_player_join_packet(new_player_identity);
+        let new_player_info_packet =
+            PlayerInfoUpdatePacket::new_player_join_packet(new_player_identity);
         let new_player_spawn_packet = SpawnEntityPacket::new(
             new_player_identity.short_uuid,
             new_player_identity.uuid.as_u128(),
@@ -65,10 +66,7 @@ pub fn handle(
             // PlayerInfoUpdate MUST come before SpawnEntity (protocol requirement)
             let existing_player_info = PlayerInfoUpdatePacket::new_player_join_packet(identity);
             if let Err(e) = new_conn.send_packet_ref(&existing_player_info) {
-                error!(
-                    "Failed to send existing player info to new player: {:?}",
-                    e
-                );
+                error!("Failed to send existing player info to new player: {:?}", e);
                 continue;
             }
 
@@ -91,10 +89,7 @@ pub fn handle(
 
             // 3. Send new player's info to existing player
             if let Err(e) = conn.send_packet_ref(&new_player_info_packet) {
-                error!(
-                    "Failed to send new player info to existing player: {:?}",
-                    e
-                );
+                error!("Failed to send new player info to existing player: {:?}", e);
                 continue;
             }
 
