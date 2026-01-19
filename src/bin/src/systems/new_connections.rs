@@ -1,30 +1,17 @@
 use bevy_ecs::prelude::{Commands, MessageWriter, Res, Resource};
-use bitcode::{Decode, Encode};
 use crossbeam_channel::Receiver;
 use ferrumc_components::player::offline_player_data::OfflinePlayerData;
-use ferrumc_components::{
-    active_effects::ActiveEffects,
-    health::Health,
-    player::{
-        abilities::PlayerAbilities,
-        experience::Experience,
-        gamemode::{GameMode, GameModeComponent},
-        gameplay_state::ender_chest::EnderChest,
-        hunger::Hunger,
-        player_bundle::PlayerBundle,
-        swimming::SwimmingState,
-    },
+use ferrumc_components::player::{
+    gamemode::GameModeComponent, player_bundle::PlayerBundle, swimming::SwimmingState,
 };
 use ferrumc_core::{
-    chunks::chunk_receiver::ChunkReceiver,
-    conn::keepalive::KeepAliveTracker,
-    transform::{grounded::OnGround, position::Position, rotation::Rotation},
+    chunks::chunk_receiver::ChunkReceiver, conn::keepalive::KeepAliveTracker,
+    transform::grounded::OnGround,
 };
-use ferrumc_inventories::{hotbar::Hotbar, inventory::Inventory};
+use ferrumc_inventories::hotbar::Hotbar;
 use ferrumc_messages::player_join::PlayerJoined;
 use ferrumc_net::connection::{DisconnectHandle, NewConnection};
 use ferrumc_state::GlobalStateResource;
-use ferrumc_world::errors::WorldError;
 use std::time::Instant;
 use tracing::{error, trace};
 

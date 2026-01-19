@@ -1,6 +1,5 @@
 use bevy_ecs::prelude::Component;
 use bevy_math::{DVec3, IVec2};
-use bitcode_derive::{Decode, Encode};
 use ferrumc_net_codec::net_types::network_position::NetworkPosition;
 use std::ops::DerefMut;
 use std::{
