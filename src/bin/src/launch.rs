@@ -4,7 +4,6 @@ use crate::cli::ImportArgs;
 use crate::errors::BinaryError;
 use ferrumc_config::server_config::get_global_config;
 use ferrumc_general_purpose::paths::get_root_path;
-use ferrumc_state::player_cache::PlayerCache;
 use ferrumc_state::player_list::PlayerList;
 use ferrumc_state::{GlobalState, ServerState};
 use ferrumc_threadpool::ThreadPool;
@@ -22,7 +21,6 @@ pub fn create_state(start_time: Instant) -> Result<ServerState, BinaryError> {
         terrain_generator: WorldGenerator::new(SEED),
         shut_down: false.into(),
         players: PlayerList::default(),
-        player_cache: PlayerCache::default(),
         thread_pool: ThreadPool::new(),
         start_time,
     })

@@ -114,6 +114,12 @@ impl From<(f64, f64, f64)> for Position {
     }
 }
 
+impl From<Position> for (f64, f64, f64) {
+    fn from(pos: Position) -> Self {
+        (pos.x, pos.y, pos.z)
+    }
+}
+
 impl From<&(f64, f64, f64)> for Position {
     fn from((x, y, z): &(f64, f64, f64)) -> Self {
         Self::new(*x, *y, *z)

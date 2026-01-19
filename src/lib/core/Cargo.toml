@@ -16,6 +16,8 @@ uuid = { workspace = true }
 crossbeam-queue = { workspace = true }
 dashmap = { workspace = true }
 ferrumc-data = { workspace = true }
+bitcode = { workspace = true }
+bitcode_derive = { workspace = true }
 
 [dev-dependencies]
 criterion = { workspace = true }
