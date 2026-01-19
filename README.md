@@ -205,6 +205,16 @@ We welcome contributions! If you'd like to contribute to FerrumC, please follow 
 *Please* join our [Discord server](https://discord.gg/qT5J8EMjwk) to get help or discuss the project!
 Also have a look at our [CONTRIBUTING.md](CONTRIBUTING.md) file for more information.
 
+### 🔍 Profiling with Tracy
+
+FerrumC supports [Tracy](https://github.com/wolfpld/tracy) for profiling. To use it:
+
+1. Install and run the Tracy profiler application
+2. Build and run with the tracy feature:
+   ```bash
+   cargo run --release --features ferrumc-logging/tracy
+   ```
+
 ## ❔ FAQ
 
 ### How does this project differ from:
