@@ -5,12 +5,12 @@ use ferrumc_core::conn::force_player_recount_event::ForcePlayerRecount;
 use ferrumc_messages::chunk_calc::ChunkCalc;
 use ferrumc_messages::entity_update::SendEntityUpdate;
 use ferrumc_messages::particle::SendParticle;
+use ferrumc_messages::teleport_player::TeleportPlayer;
 use ferrumc_messages::{
     BlockBrokenEvent, PlayerCancelledDigging, PlayerDamaged, PlayerDied, PlayerEating,
     PlayerFinishedDigging, PlayerGainedXP, PlayerGameModeChanged, PlayerJoined, PlayerLeft,
     PlayerLeveledUp, PlayerStartedDigging, SpawnEntityCommand, SpawnEntityEvent,
 };
-use ferrumc_messages::teleport_player::TeleportPlayer;
 use ferrumc_net::packets::packet_messages::Movement;
 
 pub fn register_messages(world: &mut World) {
