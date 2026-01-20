@@ -19,6 +19,42 @@ use ferrumc_text::TextComponent;
 use std::io::{Read, Write};
 use tokio::io::{AsyncRead, AsyncWrite};
 
+/// Debug helper to get component name from ID
+fn component_id_name(id: i32) -> &'static str {
+    match id {
+        0 => "CustomData",
+        1 => "MaxStackSize",
+        2 => "MaxDamage",
+        3 => "Damage",
+        4 => "Unbreakable",
+        5 => "CustomName",
+        6 => "ItemName",
+        7 => "ItemModel",
+        8 => "Lore",
+        9 => "Rarity",
+        10 => "Enchantments",
+        11 => "CanPlaceOn",
+        12 => "CanBreak",
+        13 => "AttributeModifiers",
+        14 => "CustomModelData",
+        15 => "TooltipDisplay",
+        16 => "RepairCost",
+        17 => "CreativeSlotLock",
+        18 => "EnchantmentGlintOverride",
+        19 => "IntangibleProjectile",
+        20 => "Food",
+        21 => "Consumable",
+        22 => "UseRemainder",
+        23 => "UseCooldown",
+        24 => "DamageResistant",
+        25 => "Tool",
+        26 => "Weapon",
+        27 => "Enchantable",
+        28 => "Equippable",
+        _ => "Unknown",
+    }
+}
+
 // ============================================================================
 // Raw NBT Data Wrapper
 // ============================================================================
@@ -57,35 +93,31 @@ impl NetDecode for RawNbt {
     }
 }
 
-/// Decodes a TextComponent from NBT bytes.
-/// TextComponent in Minecraft NBT can be either:
+/// Parses a TextComponent directly from NBT bytes (no length prefix).
+///
+/// The NBT can be either:
 /// - A string tag (just the raw text)
 /// - A compound tag with "text" and optionally "color", "bold", etc.
-///
-/// IMPORTANT: Network NBT is "nameless" format - the root compound has no name.
-/// This is different from file NBT which has a root name.
-fn decode_text_component_from_nbt<R: Read>(
-    reader: &mut R,
-) -> Result<NBT<TextComponent>, NetDecodeError> {
-    tracing::debug!("Decoding TextComponent from NBT...");
-    let nbt_bytes = read_nbt_bytes(reader).map_err(|e| {
-        tracing::error!("Failed to read NBT bytes for TextComponent: {}", e);
-        NetDecodeError::ExternalError(e.to_string().into())
-    })?;
-    tracing::debug!(
-        "Read {} NBT bytes: {:02X?}",
-        nbt_bytes.len(),
-        &nbt_bytes[..nbt_bytes.len().min(32)]
-    );
+fn parse_text_component_from_nbt_bytes(nbt_bytes: &[u8]) -> NBT<TextComponent> {
+    if nbt_bytes.is_empty() {
+        return NBT::new(TextComponent::from(""));
+    }
 
     // If empty NBT (just TAG_End), return empty text
     if nbt_bytes.len() == 1 && nbt_bytes[0] == NbtTag::End as u8 {
-        return Ok(NBT::new(TextComponent::from("")));
+        return NBT::new(TextComponent::from(""));
     }
 
     // Parse nameless network NBT to extract text
-    let text = extract_text_from_nameless_nbt(&nbt_bytes);
-    Ok(NBT::new(TextComponent::from(text)))
+    let text = extract_text_from_nameless_nbt(nbt_bytes);
+    NBT::new(TextComponent::from(text))
+}
+
+/// Reads one complete NBT value from a stream without knowing its length ahead of time.
+/// Returns the parsed TextComponent.
+fn read_streaming_text_component<R: Read>(reader: &mut R) -> Result<NBT<TextComponent>, NetDecodeError> {
+    let nbt_bytes = read_nbt_bytes(reader)?;
+    Ok(parse_text_component_from_nbt_bytes(&nbt_bytes))
 }
 
 /// Extracts text content from nameless (network) NBT format.
@@ -262,6 +294,10 @@ fn skip_nbt_value(bytes: &[u8], start: usize, tag: u8) -> usize {
 
 /// All possible item components in the Minecraft protocol.
 /// Each variant corresponds to a component ID as defined in the protocol.
+///
+/// NOTE: The derive(NetEncode) encodes NBT<TextComponent> without length prefix.
+/// However, the client re-serializes and sends WITH length prefix.
+/// The decode implementation reads with length prefix to match client behavior.
 #[derive(Debug, Clone, NetEncode)]
 pub enum Component {
     // ID 0
@@ -1644,280 +1680,304 @@ pub struct ConsumeEffectEntry {
 
 impl NetDecode for Component {
     fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
+        // Step 1: Read component type ID
         let component_id = VarInt::decode(reader, opts)?;
-        tracing::debug!("Decoding component ID: {}", component_id.0);
+
+        // Step 2: Read component data length (VarInt)
+        let data_length = VarInt::decode(reader, opts)?;
+
+        // Step 3: Read exactly that many bytes into a buffer
+        let mut data = vec![0u8; data_length.0 as usize];
+        reader.read_exact(&mut data)?;
+
+        tracing::debug!(
+            "    => Component ID: {} ({}), length: {}, data: {:02X?}",
+            component_id.0,
+            component_id_name(component_id.0),
+            data_length.0,
+            &data[..data.len().min(32)]
+        );
+
+        // Step 4: Create a cursor to read from the bounded data buffer
+        let mut cursor = std::io::Cursor::new(data.as_slice());
+
+        // Step 5: Parse component based on type, reading from the bounded cursor
         match component_id.0 {
-            // ID 0: CustomData
-            0 => Ok(Component::CustomData(RawNbt::decode(reader, opts)?)),
+            // ID 0: CustomData - the entire buffer is raw NBT
+            0 => Ok(Component::CustomData(RawNbt(data))),
             // ID 1: MaxStackSize
-            1 => Ok(Component::MaxStackSize(VarInt::decode(reader, opts)?)),
+            1 => Ok(Component::MaxStackSize(VarInt::decode(&mut cursor, opts)?)),
             // ID 2: MaxDamage
-            2 => Ok(Component::MaxDamage(VarInt::decode(reader, opts)?)),
+            2 => Ok(Component::MaxDamage(VarInt::decode(&mut cursor, opts)?)),
             // ID 3: Damage
-            3 => Ok(Component::Damage(VarInt::decode(reader, opts)?)),
-            // ID 4: Unbreakable
+            3 => Ok(Component::Damage(VarInt::decode(&mut cursor, opts)?)),
+            // ID 4: Unbreakable (no data)
             4 => Ok(Component::Unbreakable),
-            // ID 5: CustomName
-            5 => Ok(Component::CustomName(decode_text_component_from_nbt(reader)?)),
-            // ID 6: ItemName
-            6 => Ok(Component::ItemName(decode_text_component_from_nbt(reader)?)),
+            // ID 5: CustomName - entire buffer is NBT
+            5 => Ok(Component::CustomName(parse_text_component_from_nbt_bytes(&data))),
+            // ID 6: ItemName - entire buffer is NBT
+            6 => Ok(Component::ItemName(parse_text_component_from_nbt_bytes(&data))),
             // ID 7: ItemModel
-            7 => Ok(Component::ItemModel(String::decode(reader, opts)?)),
-            // ID 8: Lore (array of text components)
+            7 => Ok(Component::ItemModel(String::decode(&mut cursor, opts)?)),
+            // ID 8: Lore - count + streaming NBT elements
             8 => {
-                let count = VarInt::decode(reader, opts)?;
+                let count = VarInt::decode(&mut cursor, opts)?;
                 let mut lore = Vec::with_capacity(count.0 as usize);
                 for _ in 0..count.0 {
-                    lore.push(decode_text_component_from_nbt(reader)?);
+                    // Each lore entry is a streaming NBT value (no per-element length prefix)
+                    lore.push(read_streaming_text_component(&mut cursor)?);
                 }
                 Ok(Component::Lore(LengthPrefixedVec::new(lore)))
             }
             // ID 9: Rarity
-            9 => Ok(Component::Rarity(Rarity::decode(reader, opts)?)),
+            9 => Ok(Component::Rarity(Rarity::decode(&mut cursor, opts)?)),
             // ID 10: Enchantments
-            10 => Ok(Component::Enchantments(LengthPrefixedVec::decode(reader, opts)?)),
+            10 => Ok(Component::Enchantments(LengthPrefixedVec::decode(&mut cursor, opts)?)),
             // ID 11: CanPlaceOn
-            11 => Ok(Component::CanPlaceOn(BlockPredicates::decode(reader, opts)?)),
+            11 => Ok(Component::CanPlaceOn(BlockPredicates::decode(&mut cursor, opts)?)),
             // ID 12: CanBreak
-            12 => Ok(Component::CanBreak(BlockPredicates::decode(reader, opts)?)),
+            12 => Ok(Component::CanBreak(BlockPredicates::decode(&mut cursor, opts)?)),
             // ID 13: AttributeModifiers
-            13 => Ok(Component::AttributeModifiers(LengthPrefixedVec::decode(reader, opts)?)),
+            13 => Ok(Component::AttributeModifiers(LengthPrefixedVec::decode(&mut cursor, opts)?)),
             // ID 14: CustomModelData
             14 => Ok(Component::CustomModelData {
-                floats: LengthPrefixedVec::decode(reader, opts)?,
-                flags: LengthPrefixedVec::decode(reader, opts)?,
-                strings: LengthPrefixedVec::decode(reader, opts)?,
-                colors: LengthPrefixedVec::decode(reader, opts)?,
+                floats: LengthPrefixedVec::decode(&mut cursor, opts)?,
+                flags: LengthPrefixedVec::decode(&mut cursor, opts)?,
+                strings: LengthPrefixedVec::decode(&mut cursor, opts)?,
+                colors: LengthPrefixedVec::decode(&mut cursor, opts)?,
             }),
             // ID 15: TooltipDisplay
             15 => Ok(Component::TooltipDisplay {
-                hide_tooltip: bool::decode(reader, opts)?,
-                hidden_components: LengthPrefixedVec::decode(reader, opts)?,
+                hide_tooltip: bool::decode(&mut cursor, opts)?,
+                hidden_components: LengthPrefixedVec::decode(&mut cursor, opts)?,
             }),
             // ID 16: RepairCost
-            16 => Ok(Component::RepairCost(VarInt::decode(reader, opts)?)),
-            // ID 17: CreativeSlotLock
+            16 => Ok(Component::RepairCost(VarInt::decode(&mut cursor, opts)?)),
+            // ID 17: CreativeSlotLock (no data)
             17 => Ok(Component::CreativeSlotLock),
             // ID 18: EnchantmentGlintOverride
-            18 => Ok(Component::EnchantmentGlintOverride(bool::decode(reader, opts)?)),
-            // ID 19: IntangibleProjectile
-            19 => Ok(Component::IntangibleProjectile(RawNbt::decode(reader, opts)?)),
+            18 => Ok(Component::EnchantmentGlintOverride(bool::decode(&mut cursor, opts)?)),
+            // ID 19: IntangibleProjectile - entire buffer is raw NBT
+            19 => Ok(Component::IntangibleProjectile(RawNbt(data))),
             // ID 20: Food
             20 => Ok(Component::Food {
-                nutrition: VarInt::decode(reader, opts)?,
-                saturation_modifier: f32::decode(reader, opts)?,
-                can_always_eat: bool::decode(reader, opts)?,
+                nutrition: VarInt::decode(&mut cursor, opts)?,
+                saturation_modifier: f32::decode(&mut cursor, opts)?,
+                can_always_eat: bool::decode(&mut cursor, opts)?,
             }),
             // ID 21: Consumable
             21 => Ok(Component::Consumable {
-                consume_seconds: f32::decode(reader, opts)?,
-                animation: ConsumableAnimation::decode(reader, opts)?,
-                sound: IdOrSoundEvent::decode(reader, opts)?,
-                has_particles: bool::decode(reader, opts)?,
-                consume_effects: LengthPrefixedVec::decode(reader, opts)?,
+                consume_seconds: f32::decode(&mut cursor, opts)?,
+                animation: ConsumableAnimation::decode(&mut cursor, opts)?,
+                sound: IdOrSoundEvent::decode(&mut cursor, opts)?,
+                has_particles: bool::decode(&mut cursor, opts)?,
+                consume_effects: LengthPrefixedVec::decode(&mut cursor, opts)?,
             }),
             // ID 22: UseRemainder
-            22 => Ok(Component::UseRemainder(InventorySlot::decode(reader, opts)?)),
+            22 => Ok(Component::UseRemainder(InventorySlot::decode(&mut cursor, opts)?)),
             // ID 23: UseCooldown
             23 => Ok(Component::UseCooldown {
-                seconds: f32::decode(reader, opts)?,
-                cooldown_group: PrefixedOptional::decode(reader, opts)?,
+                seconds: f32::decode(&mut cursor, opts)?,
+                cooldown_group: PrefixedOptional::decode(&mut cursor, opts)?,
             }),
             // ID 24: DamageResistant
-            24 => Ok(Component::DamageResistant(String::decode(reader, opts)?)),
+            24 => Ok(Component::DamageResistant(String::decode(&mut cursor, opts)?)),
             // ID 25: Tool
             25 => Ok(Component::Tool {
-                rules: LengthPrefixedVec::decode(reader, opts)?,
-                default_mining_speed: f32::decode(reader, opts)?,
-                damage_per_block: VarInt::decode(reader, opts)?,
-                can_destroy_blocks_in_creative: bool::decode(reader, opts)?,
+                rules: LengthPrefixedVec::decode(&mut cursor, opts)?,
+                default_mining_speed: f32::decode(&mut cursor, opts)?,
+                damage_per_block: VarInt::decode(&mut cursor, opts)?,
+                can_destroy_blocks_in_creative: bool::decode(&mut cursor, opts)?,
             }),
             // ID 26: Weapon
             26 => Ok(Component::Weapon {
-                damage: VarInt::decode(reader, opts)?,
-                disable_blocking_for_seconds: f32::decode(reader, opts)?,
+                damage: VarInt::decode(&mut cursor, opts)?,
+                disable_blocking_for_seconds: f32::decode(&mut cursor, opts)?,
             }),
             // ID 27: Enchantable
-            27 => Ok(Component::Enchantable(VarInt::decode(reader, opts)?)),
+            27 => Ok(Component::Enchantable(VarInt::decode(&mut cursor, opts)?)),
             // ID 28: Equippable
             28 => Ok(Component::Equippable {
-                slot: EquippableSlot::decode(reader, opts)?,
-                sound: IdOrSoundEvent::decode(reader, opts)?,
-                model: PrefixedOptional::decode(reader, opts)?,
-                camera_overlay: PrefixedOptional::decode(reader, opts)?,
-                allowed_entities: PrefixedOptional::decode(reader, opts)?,
-                dispensable: bool::decode(reader, opts)?,
-                swappable: bool::decode(reader, opts)?,
-                damage_on_hurt: bool::decode(reader, opts)?,
+                slot: EquippableSlot::decode(&mut cursor, opts)?,
+                sound: IdOrSoundEvent::decode(&mut cursor, opts)?,
+                model: PrefixedOptional::decode(&mut cursor, opts)?,
+                camera_overlay: PrefixedOptional::decode(&mut cursor, opts)?,
+                allowed_entities: PrefixedOptional::decode(&mut cursor, opts)?,
+                dispensable: bool::decode(&mut cursor, opts)?,
+                swappable: bool::decode(&mut cursor, opts)?,
+                damage_on_hurt: bool::decode(&mut cursor, opts)?,
             }),
             // ID 29: Repairable
-            29 => Ok(Component::Repairable(IDSet::decode(reader, opts)?)),
-            // ID 30: Glider
+            29 => Ok(Component::Repairable(IDSet::decode(&mut cursor, opts)?)),
+            // ID 30: Glider (no data)
             30 => Ok(Component::Glider),
             // ID 31: TooltipStyle
-            31 => Ok(Component::TooltipStyle(String::decode(reader, opts)?)),
+            31 => Ok(Component::TooltipStyle(String::decode(&mut cursor, opts)?)),
             // ID 32: DeathProtection
-            32 => Ok(Component::DeathProtection(LengthPrefixedVec::decode(reader, opts)?)),
+            32 => Ok(Component::DeathProtection(LengthPrefixedVec::decode(&mut cursor, opts)?)),
             // ID 33: BlocksAttacks
             33 => Ok(Component::BlocksAttacks {
-                block_delay_seconds: f32::decode(reader, opts)?,
-                disable_cooldown_scale: f32::decode(reader, opts)?,
-                damage_reductions: LengthPrefixedVec::decode(reader, opts)?,
-                item_damage: ItemDamage::decode(reader, opts)?,
-                bypassed_by: PrefixedOptional::decode(reader, opts)?,
-                block_sound: PrefixedOptional::decode(reader, opts)?,
-                disable_sound: PrefixedOptional::decode(reader, opts)?,
+                block_delay_seconds: f32::decode(&mut cursor, opts)?,
+                disable_cooldown_scale: f32::decode(&mut cursor, opts)?,
+                damage_reductions: LengthPrefixedVec::decode(&mut cursor, opts)?,
+                item_damage: ItemDamage::decode(&mut cursor, opts)?,
+                bypassed_by: PrefixedOptional::decode(&mut cursor, opts)?,
+                block_sound: PrefixedOptional::decode(&mut cursor, opts)?,
+                disable_sound: PrefixedOptional::decode(&mut cursor, opts)?,
             }),
             // ID 34: StoredEnchantments
-            34 => Ok(Component::StoredEnchantments(LengthPrefixedVec::decode(reader, opts)?)),
+            34 => Ok(Component::StoredEnchantments(LengthPrefixedVec::decode(&mut cursor, opts)?)),
             // ID 35: DyedColor
-            35 => Ok(Component::DyedColor(i32::decode(reader, opts)?)),
+            35 => Ok(Component::DyedColor(i32::decode(&mut cursor, opts)?)),
             // ID 36: MapColor
-            36 => Ok(Component::MapColor(i32::decode(reader, opts)?)),
+            36 => Ok(Component::MapColor(i32::decode(&mut cursor, opts)?)),
             // ID 37: MapId
-            37 => Ok(Component::MapId(VarInt::decode(reader, opts)?)),
-            // ID 38: MapDecorations
-            38 => Ok(Component::MapDecorations(RawNbt::decode(reader, opts)?)),
+            37 => Ok(Component::MapId(VarInt::decode(&mut cursor, opts)?)),
+            // ID 38: MapDecorations - entire buffer is raw NBT
+            38 => Ok(Component::MapDecorations(RawNbt(data))),
             // ID 39: MapPostProcessing
-            39 => Ok(Component::MapPostProcessing(MapPostProcessing::decode(reader, opts)?)),
+            39 => Ok(Component::MapPostProcessing(MapPostProcessing::decode(&mut cursor, opts)?)),
             // ID 40: ChargedProjectiles
-            40 => Ok(Component::ChargedProjectiles(LengthPrefixedVec::decode(reader, opts)?)),
+            40 => Ok(Component::ChargedProjectiles(LengthPrefixedVec::decode(&mut cursor, opts)?)),
             // ID 41: BundleContents
-            41 => Ok(Component::BundleContents(LengthPrefixedVec::decode(reader, opts)?)),
+            41 => Ok(Component::BundleContents(LengthPrefixedVec::decode(&mut cursor, opts)?)),
             // ID 42: PotionContents
             42 => Ok(Component::PotionContents {
-                potion_id: PrefixedOptional::decode(reader, opts)?,
-                custom_color: PrefixedOptional::decode(reader, opts)?,
-                custom_effects: LengthPrefixedVec::decode(reader, opts)?,
-                custom_name: String::decode(reader, opts)?,
+                potion_id: PrefixedOptional::decode(&mut cursor, opts)?,
+                custom_color: PrefixedOptional::decode(&mut cursor, opts)?,
+                custom_effects: LengthPrefixedVec::decode(&mut cursor, opts)?,
+                custom_name: String::decode(&mut cursor, opts)?,
             }),
             // ID 43: PotionDurationScale
-            43 => Ok(Component::PotionDurationScale(f32::decode(reader, opts)?)),
+            43 => Ok(Component::PotionDurationScale(f32::decode(&mut cursor, opts)?)),
             // ID 44: SuspiciousStewEffects
-            44 => Ok(Component::SuspiciousStewEffects(LengthPrefixedVec::decode(reader, opts)?)),
+            44 => Ok(Component::SuspiciousStewEffects(LengthPrefixedVec::decode(&mut cursor, opts)?)),
             // ID 45: WritableBookContent
-            45 => Ok(Component::WritableBookContent(LengthPrefixedVec::decode(reader, opts)?)),
+            45 => Ok(Component::WritableBookContent(LengthPrefixedVec::decode(&mut cursor, opts)?)),
             // ID 46: WrittenBookContent (requires NBT<TextComponent> decode - not yet supported)
             46 => todo!("WrittenBookContent decoding requires FromNbt for TextComponent"),
             // ID 47: Trim
             47 => Ok(Component::Trim {
-                material: IdOrTrimMaterial::decode(reader, opts)?,
-                pattern: IdOrTrimPattern::decode(reader, opts)?,
+                material: IdOrTrimMaterial::decode(&mut cursor, opts)?,
+                pattern: IdOrTrimPattern::decode(&mut cursor, opts)?,
             }),
-            // ID 48: DebugStickState
-            48 => Ok(Component::DebugStickState(RawNbt::decode(reader, opts)?)),
+            // ID 48: DebugStickState - entire buffer is raw NBT
+            48 => Ok(Component::DebugStickState(RawNbt(data))),
             // ID 49: EntityData
             49 => Ok(Component::EntityData {
-                entity_type: VarInt::decode(reader, opts)?,
-                data: RawNbt::decode(reader, opts)?,
+                entity_type: VarInt::decode(&mut cursor, opts)?,
+                data: RawNbt::decode(&mut cursor, opts)?,
             }),
-            // ID 50: BucketEntityData
-            50 => Ok(Component::BucketEntityData(RawNbt::decode(reader, opts)?)),
+            // ID 50: BucketEntityData - entire buffer is raw NBT
+            50 => Ok(Component::BucketEntityData(RawNbt(data))),
             // ID 51: BlockEntityData
             51 => Ok(Component::BlockEntityData {
-                block_entity_type: VarInt::decode(reader, opts)?,
-                data: RawNbt::decode(reader, opts)?,
+                block_entity_type: VarInt::decode(&mut cursor, opts)?,
+                data: RawNbt::decode(&mut cursor, opts)?,
             }),
             // ID 52: Instrument
-            52 => Ok(Component::Instrument(IdOrInstrument::decode(reader, opts)?)),
+            52 => Ok(Component::Instrument(IdOrInstrument::decode(&mut cursor, opts)?)),
             // ID 53: ProvidesTrimMaterial
             53 => Ok(Component::ProvidesTrimMaterial {
-                material: IdOrIdentifier::decode(reader, opts)?,
+                material: IdOrIdentifier::decode(&mut cursor, opts)?,
             }),
             // ID 54: OminousBottleAmplifier
-            54 => Ok(Component::OminousBottleAmplifier(VarInt::decode(reader, opts)?)),
+            54 => Ok(Component::OminousBottleAmplifier(VarInt::decode(&mut cursor, opts)?)),
             // ID 55: JukeboxPlayable
             55 => Ok(Component::JukeboxPlayable {
-                song: IdOrJukeboxSong::decode(reader, opts)?,
+                song: IdOrJukeboxSong::decode(&mut cursor, opts)?,
             }),
             // ID 56: ProvidesBannerPatterns
-            56 => Ok(Component::ProvidesBannerPatterns(String::decode(reader, opts)?)),
-            // ID 57: Recipes
-            57 => Ok(Component::Recipes(RawNbt::decode(reader, opts)?)),
+            56 => Ok(Component::ProvidesBannerPatterns(String::decode(&mut cursor, opts)?)),
+            // ID 57: Recipes - entire buffer is raw NBT
+            57 => Ok(Component::Recipes(RawNbt(data))),
             // ID 58: LodestoneTracker
             58 => Ok(Component::LodestoneTracker {
-                global_position: PrefixedOptional::decode(reader, opts)?,
-                tracked: bool::decode(reader, opts)?,
+                global_position: PrefixedOptional::decode(&mut cursor, opts)?,
+                tracked: bool::decode(&mut cursor, opts)?,
             }),
             // ID 59: FireworkExplosion
-            59 => Ok(Component::FireworkExplosion(FireworkExplosion::decode(reader, opts)?)),
+            59 => Ok(Component::FireworkExplosion(FireworkExplosion::decode(&mut cursor, opts)?)),
             // ID 60: Fireworks
             60 => Ok(Component::Fireworks {
-                flight_duration: VarInt::decode(reader, opts)?,
-                explosions: LengthPrefixedVec::decode(reader, opts)?,
+                flight_duration: VarInt::decode(&mut cursor, opts)?,
+                explosions: LengthPrefixedVec::decode(&mut cursor, opts)?,
             }),
             // ID 61: Profile
-            61 => Ok(Component::Profile(ResolvableProfile::decode(reader, opts)?)),
+            61 => Ok(Component::Profile(ResolvableProfile::decode(&mut cursor, opts)?)),
             // ID 62: NoteBlockSound
-            62 => Ok(Component::NoteBlockSound(String::decode(reader, opts)?)),
+            62 => Ok(Component::NoteBlockSound(String::decode(&mut cursor, opts)?)),
             // ID 63: BannerPatterns
-            63 => Ok(Component::BannerPatterns(LengthPrefixedVec::decode(reader, opts)?)),
+            63 => Ok(Component::BannerPatterns(LengthPrefixedVec::decode(&mut cursor, opts)?)),
             // ID 64: BaseColor
-            64 => Ok(Component::BaseColor(DyeColor::decode(reader, opts)?)),
+            64 => Ok(Component::BaseColor(DyeColor::decode(&mut cursor, opts)?)),
             // ID 65: PotDecorations
-            65 => Ok(Component::PotDecorations(LengthPrefixedVec::decode(reader, opts)?)),
+            65 => Ok(Component::PotDecorations(LengthPrefixedVec::decode(&mut cursor, opts)?)),
             // ID 66: Container
-            66 => Ok(Component::Container(LengthPrefixedVec::decode(reader, opts)?)),
+            66 => Ok(Component::Container(LengthPrefixedVec::decode(&mut cursor, opts)?)),
             // ID 67: BlockState
-            67 => Ok(Component::BlockState(LengthPrefixedVec::decode(reader, opts)?)),
+            67 => Ok(Component::BlockState(LengthPrefixedVec::decode(&mut cursor, opts)?)),
             // ID 68: Bees
-            68 => Ok(Component::Bees(LengthPrefixedVec::decode(reader, opts)?)),
+            68 => Ok(Component::Bees(LengthPrefixedVec::decode(&mut cursor, opts)?)),
             // ID 69: Lock
-            69 => Ok(Component::Lock(String::decode(reader, opts)?)),
-            // ID 70: ContainerLoot
-            70 => Ok(Component::ContainerLoot(RawNbt::decode(reader, opts)?)),
+            69 => Ok(Component::Lock(String::decode(&mut cursor, opts)?)),
+            // ID 70: ContainerLoot - entire buffer is raw NBT
+            70 => Ok(Component::ContainerLoot(RawNbt(data))),
             // ID 71: BreakSound
-            71 => Ok(Component::BreakSound(IdOrSoundEvent::decode(reader, opts)?)),
+            71 => Ok(Component::BreakSound(IdOrSoundEvent::decode(&mut cursor, opts)?)),
             // ID 72: VillagerVariant
-            72 => Ok(Component::VillagerVariant(VarInt::decode(reader, opts)?)),
+            72 => Ok(Component::VillagerVariant(VarInt::decode(&mut cursor, opts)?)),
             // ID 73: WolfVariant
-            73 => Ok(Component::WolfVariant(VarInt::decode(reader, opts)?)),
+            73 => Ok(Component::WolfVariant(VarInt::decode(&mut cursor, opts)?)),
             // ID 74: WolfSoundVariant
-            74 => Ok(Component::WolfSoundVariant(VarInt::decode(reader, opts)?)),
+            74 => Ok(Component::WolfSoundVariant(VarInt::decode(&mut cursor, opts)?)),
             // ID 75: WolfCollar
-            75 => Ok(Component::WolfCollar(DyeColor::decode(reader, opts)?)),
+            75 => Ok(Component::WolfCollar(DyeColor::decode(&mut cursor, opts)?)),
             // ID 76: FoxVariant
-            76 => Ok(Component::FoxVariant(FoxVariant::decode(reader, opts)?)),
+            76 => Ok(Component::FoxVariant(FoxVariant::decode(&mut cursor, opts)?)),
             // ID 77: SalmonSize
-            77 => Ok(Component::SalmonSize(SalmonSize::decode(reader, opts)?)),
+            77 => Ok(Component::SalmonSize(SalmonSize::decode(&mut cursor, opts)?)),
             // ID 78: ParrotVariant
-            78 => Ok(Component::ParrotVariant(ParrotVariant::decode(reader, opts)?)),
+            78 => Ok(Component::ParrotVariant(ParrotVariant::decode(&mut cursor, opts)?)),
             // ID 79: TropicalFishPattern
-            79 => Ok(Component::TropicalFishPattern(TropicalFishPattern::decode(reader, opts)?)),
+            79 => Ok(Component::TropicalFishPattern(TropicalFishPattern::decode(&mut cursor, opts)?)),
             // ID 80: TropicalFishBaseColor
-            80 => Ok(Component::TropicalFishBaseColor(DyeColor::decode(reader, opts)?)),
+            80 => Ok(Component::TropicalFishBaseColor(DyeColor::decode(&mut cursor, opts)?)),
             // ID 81: TropicalFishPatternColor
-            81 => Ok(Component::TropicalFishPatternColor(DyeColor::decode(reader, opts)?)),
+            81 => Ok(Component::TropicalFishPatternColor(DyeColor::decode(&mut cursor, opts)?)),
             // ID 82: MooshroomVariant
-            82 => Ok(Component::MooshroomVariant(MooshroomVariant::decode(reader, opts)?)),
+            82 => Ok(Component::MooshroomVariant(MooshroomVariant::decode(&mut cursor, opts)?)),
             // ID 83: RabbitVariant
-            83 => Ok(Component::RabbitVariant(RabbitVariant::decode(reader, opts)?)),
+            83 => Ok(Component::RabbitVariant(RabbitVariant::decode(&mut cursor, opts)?)),
             // ID 84: PigVariant
-            84 => Ok(Component::PigVariant(VarInt::decode(reader, opts)?)),
+            84 => Ok(Component::PigVariant(VarInt::decode(&mut cursor, opts)?)),
             // ID 85: CowVariant
-            85 => Ok(Component::CowVariant(VarInt::decode(reader, opts)?)),
+            85 => Ok(Component::CowVariant(VarInt::decode(&mut cursor, opts)?)),
             // ID 86: ChickenVariant
-            86 => Ok(Component::ChickenVariant(IdOrIdentifier::decode(reader, opts)?)),
+            86 => Ok(Component::ChickenVariant(IdOrIdentifier::decode(&mut cursor, opts)?)),
             // ID 87: FrogVariant
-            87 => Ok(Component::FrogVariant(VarInt::decode(reader, opts)?)),
+            87 => Ok(Component::FrogVariant(VarInt::decode(&mut cursor, opts)?)),
             // ID 88: HorseVariant
-            88 => Ok(Component::HorseVariant(HorseVariant::decode(reader, opts)?)),
+            88 => Ok(Component::HorseVariant(HorseVariant::decode(&mut cursor, opts)?)),
             // ID 89: PaintingVariant
-            89 => Ok(Component::PaintingVariant(IdOrPaintingVariant::decode(reader, opts)?)),
+            89 => Ok(Component::PaintingVariant(IdOrPaintingVariant::decode(&mut cursor, opts)?)),
             // ID 90: LlamaVariant
-            90 => Ok(Component::LlamaVariant(LlamaVariant::decode(reader, opts)?)),
+            90 => Ok(Component::LlamaVariant(LlamaVariant::decode(&mut cursor, opts)?)),
             // ID 91: AxolotlVariant
-            91 => Ok(Component::AxolotlVariant(AxolotlVariant::decode(reader, opts)?)),
+            91 => Ok(Component::AxolotlVariant(AxolotlVariant::decode(&mut cursor, opts)?)),
             // ID 92: CatVariant
-            92 => Ok(Component::CatVariant(VarInt::decode(reader, opts)?)),
+            92 => Ok(Component::CatVariant(VarInt::decode(&mut cursor, opts)?)),
             // ID 93: CatCollar
-            93 => Ok(Component::CatCollar(DyeColor::decode(reader, opts)?)),
+            93 => Ok(Component::CatCollar(DyeColor::decode(&mut cursor, opts)?)),
             // ID 94: SheepColor
-            94 => Ok(Component::SheepColor(DyeColor::decode(reader, opts)?)),
+            94 => Ok(Component::SheepColor(DyeColor::decode(&mut cursor, opts)?)),
             // ID 95: ShulkerColor
-            95 => Ok(Component::ShulkerColor(DyeColor::decode(reader, opts)?)),
-            // Unknown component ID
-            _ => Err(NetDecodeError::InvalidEnumVariant),
+            95 => Ok(Component::ShulkerColor(DyeColor::decode(&mut cursor, opts)?)),
+            // Unknown component ID - skip by consuming the data we already read
+            id => {
+                tracing::warn!("Unknown component ID: {}, skipping {} bytes", id, data_length.0);
+                Err(NetDecodeError::InvalidEnumVariant)
+            }
         }
     }
 

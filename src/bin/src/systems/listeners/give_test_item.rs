@@ -48,6 +48,7 @@ pub fn handle(
         const TEST_SIZE: i32 = 69420;
 
         let test_item = ItemBuilder::new(Item::DIAMOND.id as i32)
+            .max_stack_size(52)
             .count(TEST_SIZE)
             .custom_name("Epic Diamond")
             .rarity(Rarity::Epic)
