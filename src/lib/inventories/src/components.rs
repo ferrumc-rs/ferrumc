@@ -29,6 +29,25 @@ pub enum Component {
     CanBreak,   // Unimplemented
     AttributeModifiers(LengthPrefixedVec<AttributeModifierComponent>),
     CustomModelData, // Unimplemented
+    BannerPatterns,
+    BaseColor,
+    Bees {
+        entity_data: String,
+    },
+    BlockEntityData,
+    BlockState,
+    BlocksAttacks {
+        block_delay_seconds: float,
+        disable_cooldown_scale: float,
+        damage_reductions: list,
+        item_damage: VarInt,
+    },
+    BundleComponents {
+        id: String,
+        count: VarInt,
+        components: LengthPrefixedVec<VarInt>,
+    },
+    
     TooltipDisplay {
         hide_tooltip: bool,
         hidden_components: LengthPrefixedVec<VarInt>,
