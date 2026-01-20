@@ -11,7 +11,7 @@ use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_inventories::hotbar::Hotbar;
 use ferrumc_inventories::inventory::Inventory;
 use ferrumc_inventories::slot::InventorySlot;
-use ferrumc_inventories::sync::{EquipmentSlot, EquipmentState, NeedsInventorySync};
+use ferrumc_inventories::sync::{EquipmentState, NeedsInventorySync};
 use ferrumc_messages::inventory::{EquipmentChanged, InventorySynced};
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::set_container_content::SetContainerContent;
@@ -76,6 +76,7 @@ pub fn initial_inventory_sync(
 
 /// Detects equipment changes and broadcasts them to other players.
 /// Uses `Changed<Inventory>` and `Changed<Hotbar>` filters.
+#[expect(clippy::type_complexity, reason = "Bevy ECS queries require complex tuples")]
 pub fn equipment_broadcast(
     state: Res<GlobalStateResource>,
     mut changed_query: Query<
@@ -192,22 +193,17 @@ pub fn join_equipment_exchange(
 
         // Build joining player's equipment
         let joining_equipment = EquipmentState::from_inventory(joining_inv, joining_hotbar);
-        let joining_entries: Vec<EquipmentEntry> = EquipmentSlot::ALL
-            .iter()
-            .filter_map(|&slot| {
-                joining_equipment.get(slot).map(|item| EquipmentEntry {
+
+        // Only send if they have equipment
+        let joining_packet = if !joining_equipment.is_empty() {
+            let entries: Vec<EquipmentEntry> = joining_equipment
+                .non_empty_slots()
+                .map(|(slot, item)| EquipmentEntry {
                     slot,
                     item: item.clone(),
                 })
-            })
-            .collect();
-
-        // Only send if they have equipment
-        let joining_packet = if !joining_entries.is_empty() {
-            Some(SetEquipmentPacket::new(
-                joining_identity.short_uuid,
-                joining_entries,
-            ))
+                .collect();
+            Some(SetEquipmentPacket::new(joining_identity.short_uuid, entries))
         } else {
             None
         };
@@ -235,17 +231,15 @@ pub fn join_equipment_exchange(
 
             // Send this other player's equipment to the joining player
             let other_equipment = EquipmentState::from_inventory(other_inv, other_hotbar);
-            let other_entries: Vec<EquipmentEntry> = EquipmentSlot::ALL
-                .iter()
-                .filter_map(|&slot| {
-                    other_equipment.get(slot).map(|item| EquipmentEntry {
+
+            if !other_equipment.is_empty() {
+                let other_entries: Vec<EquipmentEntry> = other_equipment
+                    .non_empty_slots()
+                    .map(|(slot, item)| EquipmentEntry {
                         slot,
                         item: item.clone(),
                     })
-                })
-                .collect();
-
-            if !other_entries.is_empty() {
+                    .collect();
                 let other_packet =
                     SetEquipmentPacket::new(other_identity.short_uuid, other_entries);
                 if let Err(e) = joining_writer.send_packet(other_packet) {

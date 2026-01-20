@@ -75,66 +75,34 @@ impl Display for InventorySlot {
 
 impl NetDecode for InventorySlot {
     fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
-        // DEBUG: Wrap reader to capture all bytes read
-        let mut all_bytes = Vec::new();
-        reader.read_to_end(&mut all_bytes)?;
-        tracing::debug!(
-            "=== SLOT DECODE: {} total bytes: {:02X?}",
-            all_bytes.len(),
-            &all_bytes[..all_bytes.len().min(128)]
-        );
-
-        let mut cursor = std::io::Cursor::new(&all_bytes);
-
-        let count = VarInt::decode(&mut cursor, opts)?;
-        tracing::debug!("  count={}, cursor_pos={}", count.0, cursor.position());
+        let count = VarInt::decode(reader, opts)?;
 
         if count.0 == 0 {
-            Ok(Self::empty())
-        } else {
-            let item_id = VarInt::decode(&mut cursor, opts)?;
-            tracing::debug!("  item_id={}, cursor_pos={}", item_id.0, cursor.position());
-
-            let add_count = VarInt::decode(&mut cursor, opts)?;
-            tracing::debug!("  add_count={}, cursor_pos={}", add_count.0, cursor.position());
-
-            let remove_count = VarInt::decode(&mut cursor, opts)?;
-            tracing::debug!("  remove_count={}, cursor_pos={}", remove_count.0, cursor.position());
-
-            tracing::debug!(
-                "Decoding slot: item_id={}, count={}, components_add={}, components_remove={}",
-                item_id.0, count.0, add_count.0, remove_count.0
-            );
-
-            // Decode components to add (each component reads its own type ID)
-            let mut components_to_add = Vec::with_capacity(add_count.0 as usize);
-            for i in 0..add_count.0 {
-                let pos = cursor.position() as usize;
-                let remaining = &all_bytes[pos..];
-                tracing::debug!(
-                    "  Component {} of {} at pos={}, next 32 bytes: {:02X?}",
-                    i + 1,
-                    add_count.0,
-                    pos,
-                    &remaining[..remaining.len().min(32)]
-                );
-                components_to_add.push(Component::decode(&mut cursor, opts)?);
-                tracing::debug!("  After component {}, cursor_pos={}", i + 1, cursor.position());
-            }
-
-            // Decode component IDs to remove
-            let mut components_to_remove = Vec::with_capacity(remove_count.0 as usize);
-            for _ in 0..remove_count.0 {
-                components_to_remove.push(VarInt::decode(&mut cursor, opts)?);
-            }
-
-            Ok(Self {
-                count,
-                item_id: Some(ItemID(item_id)),
-                components_to_add,
-                components_to_remove,
-            })
+            return Ok(Self::empty());
         }
+
+        let item_id = VarInt::decode(reader, opts)?;
+        let add_count = VarInt::decode(reader, opts)?;
+        let remove_count = VarInt::decode(reader, opts)?;
+
+        // Decode components to add (each component reads its own type ID)
+        let mut components_to_add = Vec::with_capacity(add_count.0 as usize);
+        for _ in 0..add_count.0 {
+            components_to_add.push(Component::decode(reader, opts)?);
+        }
+
+        // Decode component IDs to remove
+        let mut components_to_remove = Vec::with_capacity(remove_count.0 as usize);
+        for _ in 0..remove_count.0 {
+            components_to_remove.push(VarInt::decode(reader, opts)?);
+        }
+
+        Ok(Self {
+            count,
+            item_id: Some(ItemID(item_id)),
+            components_to_add,
+            components_to_remove,
+        })
     }
 
     async fn decode_async<R: AsyncRead + Unpin>(

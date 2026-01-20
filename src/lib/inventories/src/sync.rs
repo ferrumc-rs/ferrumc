@@ -118,4 +118,17 @@ impl EquipmentState {
         }
         changed
     }
+
+    /// Returns an iterator over all non-empty (slot, item) pairs.
+    /// Useful for building equipment packets.
+    pub fn non_empty_slots(&self) -> impl Iterator<Item = (EquipmentSlot, &InventorySlot)> {
+        EquipmentSlot::ALL
+            .into_iter()
+            .filter_map(|slot| self.get(slot).map(|item| (slot, item)))
+    }
+
+    /// Returns true if all equipment slots are empty.
+    pub fn is_empty(&self) -> bool {
+        EquipmentSlot::ALL.iter().all(|&slot| self.get(slot).is_none())
+    }
 }

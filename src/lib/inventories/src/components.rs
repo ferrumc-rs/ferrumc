@@ -19,42 +19,6 @@ use ferrumc_text::TextComponent;
 use std::io::{Read, Write};
 use tokio::io::{AsyncRead, AsyncWrite};
 
-/// Debug helper to get component name from ID
-fn component_id_name(id: i32) -> &'static str {
-    match id {
-        0 => "CustomData",
-        1 => "MaxStackSize",
-        2 => "MaxDamage",
-        3 => "Damage",
-        4 => "Unbreakable",
-        5 => "CustomName",
-        6 => "ItemName",
-        7 => "ItemModel",
-        8 => "Lore",
-        9 => "Rarity",
-        10 => "Enchantments",
-        11 => "CanPlaceOn",
-        12 => "CanBreak",
-        13 => "AttributeModifiers",
-        14 => "CustomModelData",
-        15 => "TooltipDisplay",
-        16 => "RepairCost",
-        17 => "CreativeSlotLock",
-        18 => "EnchantmentGlintOverride",
-        19 => "IntangibleProjectile",
-        20 => "Food",
-        21 => "Consumable",
-        22 => "UseRemainder",
-        23 => "UseCooldown",
-        24 => "DamageResistant",
-        25 => "Tool",
-        26 => "Weapon",
-        27 => "Enchantable",
-        28 => "Equippable",
-        _ => "Unknown",
-    }
-}
-
 // ============================================================================
 // Raw NBT Data Wrapper
 // ============================================================================
@@ -1689,14 +1653,6 @@ impl NetDecode for Component {
         // Step 3: Read exactly that many bytes into a buffer
         let mut data = vec![0u8; data_length.0 as usize];
         reader.read_exact(&mut data)?;
-
-        tracing::debug!(
-            "    => Component ID: {} ({}), length: {}, data: {:02X?}",
-            component_id.0,
-            component_id_name(component_id.0),
-            data_length.0,
-            &data[..data.len().min(32)]
-        );
 
         // Step 4: Create a cursor to read from the bounded data buffer
         let mut cursor = std::io::Cursor::new(data.as_slice());

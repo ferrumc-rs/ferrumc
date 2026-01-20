@@ -24,6 +24,8 @@ pub enum StorageConversionError {
     JsonError(String),
     /// Unknown component type during conversion
     UnknownComponent(i32),
+    /// Invalid enum value during conversion
+    InvalidEnumValue { type_name: &'static str, value: u8 },
 }
 
 impl std::fmt::Display for StorageConversionError {
@@ -31,6 +33,9 @@ impl std::fmt::Display for StorageConversionError {
         match self {
             Self::JsonError(msg) => write!(f, "JSON conversion error: {}", msg),
             Self::UnknownComponent(id) => write!(f, "Unknown component ID: {}", id),
+            Self::InvalidEnumValue { type_name, value } => {
+                write!(f, "Invalid {} value: {}", type_name, value)
+            }
         }
     }
 }
@@ -296,6 +301,77 @@ fn json_to_text(json: &str) -> Result<TextComponent, StorageConversionError> {
 }
 
 // ============================================================================
+// Safe Enum Conversion Helpers
+// ============================================================================
+
+/// Macro to generate safe u8-to-enum conversion functions.
+/// These replace unsafe transmute calls with explicit match statements.
+macro_rules! impl_safe_enum_convert {
+    ($fn_name:ident, $enum_type:ty, [$($variant:ident = $value:expr),+ $(,)?]) => {
+        fn $fn_name(value: u8) -> Result<$enum_type, StorageConversionError> {
+            match value {
+                $($value => Ok(<$enum_type>::$variant),)+
+                _ => Err(StorageConversionError::InvalidEnumValue {
+                    type_name: stringify!($enum_type),
+                    value,
+                }),
+            }
+        }
+    };
+}
+
+impl_safe_enum_convert!(rarity_from_u8, Rarity, [
+    Common = 0, Uncommon = 1, Rare = 2, Epic = 3
+]);
+
+impl_safe_enum_convert!(dye_color_from_u8, DyeColor, [
+    White = 0, Orange = 1, Magenta = 2, LightBlue = 3, Yellow = 4, Lime = 5,
+    Pink = 6, Gray = 7, LightGray = 8, Cyan = 9, Purple = 10, Blue = 11,
+    Brown = 12, Green = 13, Red = 14, Black = 15
+]);
+
+impl_safe_enum_convert!(map_post_processing_from_u8, MapPostProcessing, [
+    Lock = 0, Scale = 1
+]);
+
+impl_safe_enum_convert!(fox_variant_from_u8, FoxVariant, [
+    Red = 0, Snow = 1
+]);
+
+impl_safe_enum_convert!(salmon_size_from_u8, SalmonSize, [
+    Small = 0, Medium = 1, Large = 2
+]);
+
+impl_safe_enum_convert!(parrot_variant_from_u8, ParrotVariant, [
+    RedBlue = 0, Blue = 1, Green = 2, YellowBlue = 3, Gray = 4
+]);
+
+impl_safe_enum_convert!(tropical_fish_pattern_from_u8, TropicalFishPattern, [
+    Kob = 0, Sunstreak = 1, Snooper = 2, Dasher = 3, Brinely = 4, Spotty = 5,
+    Flopper = 6, Stripey = 7, Glitter = 8, Blockfish = 9, Betty = 10, Clayfish = 11
+]);
+
+impl_safe_enum_convert!(mooshroom_variant_from_u8, MooshroomVariant, [
+    Red = 0, Brown = 1
+]);
+
+impl_safe_enum_convert!(rabbit_variant_from_u8, RabbitVariant, [
+    Brown = 0, White = 1, Black = 2, BlackAndWhite = 3, Gold = 4, SaltAndPepper = 5, Evil = 6
+]);
+
+impl_safe_enum_convert!(horse_variant_from_u8, HorseVariant, [
+    White = 0, Creamy = 1, Chestnut = 2, Brown = 3, Black = 4, Gray = 5, DarkBrown = 6
+]);
+
+impl_safe_enum_convert!(llama_variant_from_u8, LlamaVariant, [
+    Creamy = 0, White = 1, Brown = 2, Gray = 3
+]);
+
+impl_safe_enum_convert!(axolotl_variant_from_u8, AxolotlVariant, [
+    Lucy = 0, Wild = 1, Gold = 2, Cyan = 3, Blue = 4
+]);
+
+// ============================================================================
 // Component -> StorageComponent Conversion
 // ============================================================================
 
@@ -507,9 +583,7 @@ impl TryFrom<StorageComponent> for Component {
                     .collect();
                 Component::Lore(LengthPrefixedVec::new(data?))
             }
-            StorageComponent::Rarity(r) => {
-                Component::Rarity(unsafe { std::mem::transmute::<u8, Rarity>(r) })
-            }
+            StorageComponent::Rarity(r) => Component::Rarity(rarity_from_u8(r)?),
             StorageComponent::Enchantments(vec) => {
                 Component::Enchantments(LengthPrefixedVec::new(vec.into_iter().map(Into::into).collect()))
             }
@@ -546,7 +620,7 @@ impl TryFrom<StorageComponent> for Component {
             StorageComponent::MapId(v) => Component::MapId(VarInt(v)),
             StorageComponent::MapDecorations(data) => Component::MapDecorations(RawNbt(data)),
             StorageComponent::MapPostProcessing(m) => {
-                Component::MapPostProcessing(unsafe { std::mem::transmute::<u8, MapPostProcessing>(m) })
+                Component::MapPostProcessing(map_post_processing_from_u8(m)?)
             }
             StorageComponent::PotionDurationScale(f) => Component::PotionDurationScale(f),
             StorageComponent::DebugStickState(data) => Component::DebugStickState(RawNbt(data)),
@@ -568,63 +642,49 @@ impl TryFrom<StorageComponent> for Component {
             StorageComponent::ProvidesBannerPatterns(s) => Component::ProvidesBannerPatterns(s),
             StorageComponent::Recipes(data) => Component::Recipes(RawNbt(data)),
             StorageComponent::NoteBlockSound(s) => Component::NoteBlockSound(s),
-            StorageComponent::BaseColor(c) => {
-                Component::BaseColor(unsafe { std::mem::transmute::<u8, DyeColor>(c) })
-            }
+            StorageComponent::BaseColor(c) => Component::BaseColor(dye_color_from_u8(c)?),
             StorageComponent::Lock(s) => Component::Lock(s),
             StorageComponent::ContainerLoot(data) => Component::ContainerLoot(RawNbt(data)),
             StorageComponent::VillagerVariant(v) => Component::VillagerVariant(VarInt(v)),
             StorageComponent::WolfVariant(v) => Component::WolfVariant(VarInt(v)),
             StorageComponent::WolfSoundVariant(v) => Component::WolfSoundVariant(VarInt(v)),
-            StorageComponent::WolfCollar(c) => {
-                Component::WolfCollar(unsafe { std::mem::transmute::<u8, DyeColor>(c) })
-            }
-            StorageComponent::FoxVariant(v) => {
-                Component::FoxVariant(unsafe { std::mem::transmute::<u8, FoxVariant>(v) })
-            }
-            StorageComponent::SalmonSize(s) => {
-                Component::SalmonSize(unsafe { std::mem::transmute::<u8, SalmonSize>(s) })
-            }
+            StorageComponent::WolfCollar(c) => Component::WolfCollar(dye_color_from_u8(c)?),
+            StorageComponent::FoxVariant(v) => Component::FoxVariant(fox_variant_from_u8(v)?),
+            StorageComponent::SalmonSize(s) => Component::SalmonSize(salmon_size_from_u8(s)?),
             StorageComponent::ParrotVariant(v) => {
-                Component::ParrotVariant(unsafe { std::mem::transmute::<u8, ParrotVariant>(v) })
+                Component::ParrotVariant(parrot_variant_from_u8(v)?)
             }
             StorageComponent::TropicalFishPattern(p) => {
-                Component::TropicalFishPattern(unsafe { std::mem::transmute::<u8, TropicalFishPattern>(p) })
+                Component::TropicalFishPattern(tropical_fish_pattern_from_u8(p)?)
             }
             StorageComponent::TropicalFishBaseColor(c) => {
-                Component::TropicalFishBaseColor(unsafe { std::mem::transmute::<u8, DyeColor>(c) })
+                Component::TropicalFishBaseColor(dye_color_from_u8(c)?)
             }
             StorageComponent::TropicalFishPatternColor(c) => {
-                Component::TropicalFishPatternColor(unsafe { std::mem::transmute::<u8, DyeColor>(c) })
+                Component::TropicalFishPatternColor(dye_color_from_u8(c)?)
             }
             StorageComponent::MooshroomVariant(v) => {
-                Component::MooshroomVariant(unsafe { std::mem::transmute::<u8, MooshroomVariant>(v) })
+                Component::MooshroomVariant(mooshroom_variant_from_u8(v)?)
             }
             StorageComponent::RabbitVariant(v) => {
-                Component::RabbitVariant(unsafe { std::mem::transmute::<u8, RabbitVariant>(v) })
+                Component::RabbitVariant(rabbit_variant_from_u8(v)?)
             }
             StorageComponent::PigVariant(v) => Component::PigVariant(VarInt(v)),
             StorageComponent::CowVariant(v) => Component::CowVariant(VarInt(v)),
             StorageComponent::FrogVariant(v) => Component::FrogVariant(VarInt(v)),
             StorageComponent::HorseVariant(v) => {
-                Component::HorseVariant(unsafe { std::mem::transmute::<u8, HorseVariant>(v) })
+                Component::HorseVariant(horse_variant_from_u8(v)?)
             }
             StorageComponent::LlamaVariant(v) => {
-                Component::LlamaVariant(unsafe { std::mem::transmute::<u8, LlamaVariant>(v) })
+                Component::LlamaVariant(llama_variant_from_u8(v)?)
             }
             StorageComponent::AxolotlVariant(v) => {
-                Component::AxolotlVariant(unsafe { std::mem::transmute::<u8, AxolotlVariant>(v) })
+                Component::AxolotlVariant(axolotl_variant_from_u8(v)?)
             }
             StorageComponent::CatVariant(v) => Component::CatVariant(VarInt(v)),
-            StorageComponent::CatCollar(c) => {
-                Component::CatCollar(unsafe { std::mem::transmute::<u8, DyeColor>(c) })
-            }
-            StorageComponent::SheepColor(c) => {
-                Component::SheepColor(unsafe { std::mem::transmute::<u8, DyeColor>(c) })
-            }
-            StorageComponent::ShulkerColor(c) => {
-                Component::ShulkerColor(unsafe { std::mem::transmute::<u8, DyeColor>(c) })
-            }
+            StorageComponent::CatCollar(c) => Component::CatCollar(dye_color_from_u8(c)?),
+            StorageComponent::SheepColor(c) => Component::SheepColor(dye_color_from_u8(c)?),
+            StorageComponent::ShulkerColor(c) => Component::ShulkerColor(dye_color_from_u8(c)?),
             StorageComponent::DamageResistant(s) => Component::DamageResistant(s),
             // Complex types that need JSON deserialization - for now return reasonable defaults
             // These can be expanded as needed

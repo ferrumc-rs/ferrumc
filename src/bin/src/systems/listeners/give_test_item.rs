@@ -1,5 +1,7 @@
-//! Gives players a test item with components when they join.
+//! Debug system: Gives players a test item with components when they join.
+//!
 //! This is used to verify item component encoding with a real Minecraft client.
+//! Only compiled in debug builds (behind `#[cfg(debug_assertions)]`).
 
 use bevy_ecs::prelude::{Added, Query};
 use ferrumc_core::identity::player_identity::PlayerIdentity;
@@ -9,7 +11,13 @@ use ferrumc_inventories::{Inventory, ItemBuilder};
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::set_container_slot::SetContainerSlot;
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use tracing::{debug, error, info};
+use tracing::{error, info};
+
+/// Test item count - set high to verify component encoding visually.
+const TEST_COUNT: i32 = 64;
+
+/// Slot index for the test item (slot 38 = third hotbar slot).
+const TEST_SLOT: i16 = 38;
 
 /// Gives new players a test item with components.
 /// Uses `Added<PlayerIdentity>` to detect new players after commands are applied.
@@ -20,31 +28,23 @@ pub fn handle(
     >,
 ) {
     for (identity, writer, mut inventory) in new_players.iter_mut() {
-
-        // Create a test diamond with Epic rarity
-        const TEST_SIZE: i32 = 69420;
-
         let test_item = ItemBuilder::new(Item::DIAMOND.id as i32)
-            .max_stack_size(52)
-            .count(TEST_SIZE)
+            .count(TEST_COUNT)
             .custom_name("Epic Diamond")
             .rarity(Rarity::Epic)
             .enchantment_glint(true)
             .lore(["A legendary gem", "Forged in starfire"])
             .build();
 
-        // Add to first slot (slot 36 = first hotbar slot in player inventory)
-        let slot_index: i16 = 38;
-        if let Err(err) = inventory.set_item(slot_index as usize, test_item.clone()) {
-            error!("Failed to set item in inventory: {:?}", err);
+        if let Err(err) = inventory.set_item(TEST_SLOT as usize, test_item.clone()) {
+            error!("Failed to set test item in inventory: {:?}", err);
             continue;
         }
 
-        // Send packet to client
         let packet = SetContainerSlot {
-            window_id: VarInt::new(0), // Player inventory
+            window_id: VarInt::new(0),
             state_id: VarInt::new(0),
-            slot_index,
+            slot_index: TEST_SLOT,
             slot: test_item,
         };
 
@@ -55,11 +55,8 @@ pub fn handle(
             );
         } else {
             info!(
-                "Gave test item with components to player {}",
+                "[DEBUG] Gave test diamond to player {}",
                 identity.username
-            );
-            debug!(
-                "Test item: Diamond with MaxStackSize(99), Rarity(Epic), EnchantmentGlintOverride(true)"
             );
         }
     }
