@@ -7,6 +7,7 @@ use crate::{ctx::CommandContext, Suggestion};
 
 pub mod duration;
 pub mod gamemode;
+pub mod position;
 pub mod primitive;
 
 pub type ParserResult<T> = Result<T, Box<TextComponent>>;

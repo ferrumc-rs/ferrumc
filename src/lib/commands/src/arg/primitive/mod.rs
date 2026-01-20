@@ -149,6 +149,7 @@ pub enum PrimitiveArgumentType {
     TemplateRotation,
     Heightmap,
     UUID,
+    Position,
 }
 
 impl NetEncode for PrimitiveArgumentType {
