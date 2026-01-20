@@ -16,6 +16,7 @@ pub mod physics;
 mod player_swimming;
 mod send_entity_updates;
 pub mod shutdown_systems;
+pub(crate) mod update_player_ping;
 pub mod world_sync;
 
 pub fn register_game_systems(schedule: &mut bevy_ecs::schedule::Schedule) {

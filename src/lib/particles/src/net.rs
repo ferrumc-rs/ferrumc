@@ -1,10 +1,10 @@
 use crate::{ParticleType, VibrationSource};
+use ParticleType::*;
 use ferrumc_net_codec::encode::errors::NetEncodeError;
 use ferrumc_net_codec::encode::{NetEncode, NetEncodeOpts};
 use ferrumc_net_codec::net_types::network_position::NetworkPosition;
 use ferrumc_net_codec::net_types::var_int::VarInt;
 use std::io::Write;
-use ParticleType::*;
 
 impl NetEncode for ParticleType {
     fn encode<W: Write>(&self, writer: &mut W, opts: &NetEncodeOpts) -> Result<(), NetEncodeError> {

@@ -45,11 +45,14 @@ fn main() {
 
         Some(Command::Import(import_args)) => {
             info!("Starting import...");
-            match launch::handle_import(import_args) { Err(e) => {
-                error!("Import failed with the following error: {}", e.to_string());
-            } _ => {
-                info!("Import completed successfully.");
-            }}
+            match launch::handle_import(import_args) {
+                Err(e) => {
+                    error!("Import failed with the following error: {}", e.to_string());
+                }
+                _ => {
+                    info!("Import completed successfully.");
+                }
+            }
         }
 
         Some(Command::Clear(clear_args)) => {
@@ -65,11 +68,14 @@ fn main() {
             } else {
                 info!("Server setup complete.");
             }
-            match entry(start_time) { Err(e) => {
-                error!("Server exited with the following error: {}", e.to_string());
-            } _ => {
-                info!("Server exited successfully.");
-            }}
+            match entry(start_time) {
+                Err(e) => {
+                    error!("Server exited with the following error: {}", e.to_string());
+                }
+                _ => {
+                    info!("Server exited successfully.");
+                }
+            }
         }
     }
 }

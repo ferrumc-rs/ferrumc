@@ -117,19 +117,20 @@ pub fn command(attr: TokenStream, item: TokenStream) -> TokenStream {
 
     if bevy_args.iter().any(|(_, ty)| {
         if let Type::Reference(refr) = ty {
-            match *refr.clone().elem { Type::Path(path) => {
-                println!("path reference: {:?}", path.path.segments.clone());
-                let is_bevy = path.path.segments.iter().any(|seg| {
-                    println!("{}", &seg.ident.to_string());
-                    &seg.ident.to_string() == "bevy_ecs"
-                });
-                println!("is bevy? {is_bevy}");
-                println!("{}", path.path.is_ident("World"));
+            match *refr.clone().elem {
+                Type::Path(path) => {
+                    println!("path reference: {:?}", path.path.segments.clone());
+                    let is_bevy = path.path.segments.iter().any(|seg| {
+                        println!("{}", &seg.ident.to_string());
+                        &seg.ident.to_string() == "bevy_ecs"
+                    });
+                    println!("is bevy? {is_bevy}");
+                    println!("{}", path.path.is_ident("World"));
 
-                path.path.is_ident("World") && (is_bevy || path.path.segments.len() == 1)
-            } _ => {
-                false
-            }}
+                    path.path.is_ident("World") && (is_bevy || path.path.segments.len() == 1)
+                }
+                _ => false,
+            }
         } else {
             false
         }

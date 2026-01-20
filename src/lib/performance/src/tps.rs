@@ -1,8 +1,8 @@
 use std::time::Duration;
 
 use crate::{
-    tick::{TickData, TickHistory},
     WINDOW_SECONDS,
+    tick::{TickData, TickHistory},
 };
 
 pub struct TPSMonitor {
