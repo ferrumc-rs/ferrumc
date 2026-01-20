@@ -5,7 +5,7 @@
 
 use crate::slot::InventorySlot;
 use ferrumc_macros::{NetDecode, NetEncode};
-use ferrumc_nbt::NBT;
+use ferrumc_nbt::{read_nbt_bytes, NBT, NbtTag};
 use ferrumc_net_codec::decode::errors::NetDecodeError;
 use ferrumc_net_codec::decode::{NetDecode, NetDecodeOpts};
 use ferrumc_net_codec::encode::errors::NetEncodeError;
@@ -44,8 +44,9 @@ impl NetEncode for RawNbt {
 }
 
 impl NetDecode for RawNbt {
-    fn decode<R: Read>(_reader: &mut R, _opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
-        todo!("RawNbt decoding not yet implemented - requires NBT length detection")
+    fn decode<R: Read>(reader: &mut R, _opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
+        let bytes = read_nbt_bytes(reader)?;
+        Ok(RawNbt(bytes))
     }
 
     async fn decode_async<R: AsyncRead + Unpin>(
@@ -53,6 +54,205 @@ impl NetDecode for RawNbt {
         _opts: &NetDecodeOpts,
     ) -> Result<Self, NetDecodeError> {
         todo!("RawNbt async decoding not yet implemented")
+    }
+}
+
+/// Decodes a TextComponent from NBT bytes.
+/// TextComponent in Minecraft NBT can be either:
+/// - A string tag (just the raw text)
+/// - A compound tag with "text" and optionally "color", "bold", etc.
+///
+/// IMPORTANT: Network NBT is "nameless" format - the root compound has no name.
+/// This is different from file NBT which has a root name.
+fn decode_text_component_from_nbt<R: Read>(
+    reader: &mut R,
+) -> Result<NBT<TextComponent>, NetDecodeError> {
+    tracing::debug!("Decoding TextComponent from NBT...");
+    let nbt_bytes = read_nbt_bytes(reader).map_err(|e| {
+        tracing::error!("Failed to read NBT bytes for TextComponent: {}", e);
+        NetDecodeError::ExternalError(e.to_string().into())
+    })?;
+    tracing::debug!(
+        "Read {} NBT bytes: {:02X?}",
+        nbt_bytes.len(),
+        &nbt_bytes[..nbt_bytes.len().min(32)]
+    );
+
+    // If empty NBT (just TAG_End), return empty text
+    if nbt_bytes.len() == 1 && nbt_bytes[0] == NbtTag::End as u8 {
+        return Ok(NBT::new(TextComponent::from("")));
+    }
+
+    // Parse nameless network NBT to extract text
+    let text = extract_text_from_nameless_nbt(&nbt_bytes);
+    Ok(NBT::new(TextComponent::from(text)))
+}
+
+/// Extracts text content from nameless (network) NBT format.
+/// Network NBT doesn't have a root name - just tag type followed by contents.
+fn extract_text_from_nameless_nbt(bytes: &[u8]) -> String {
+    if bytes.is_empty() {
+        return String::new();
+    }
+
+    let tag = bytes[0];
+    match tag {
+        // TAG_END (0) - empty
+        0 => String::new(),
+
+        // TAG_STRING (8) - direct string value
+        8 => {
+            if bytes.len() < 3 {
+                return String::new();
+            }
+            let len = u16::from_be_bytes([bytes[1], bytes[2]]) as usize;
+            if bytes.len() >= 3 + len {
+                std::str::from_utf8(&bytes[3..3 + len])
+                    .unwrap_or("")
+                    .to_string()
+            } else {
+                String::new()
+            }
+        }
+
+        // TAG_COMPOUND (10) - compound with fields, look for "text" field
+        10 => extract_text_field_from_compound(&bytes[1..]),
+
+        // Other tags - not expected for TextComponent
+        _ => {
+            tracing::warn!("Unexpected NBT tag type {} for TextComponent", tag);
+            String::new()
+        }
+    }
+}
+
+/// Extracts the "text" field value from a nameless compound's contents.
+/// Input bytes start AFTER the compound tag byte.
+fn extract_text_field_from_compound(bytes: &[u8]) -> String {
+    let mut pos = 0;
+
+    // Parse compound fields until TAG_END
+    while pos < bytes.len() {
+        let field_tag = bytes[pos];
+        pos += 1;
+
+        // TAG_END means end of compound
+        if field_tag == 0 {
+            break;
+        }
+
+        // Read field name length
+        if pos + 2 > bytes.len() {
+            break;
+        }
+        let name_len = u16::from_be_bytes([bytes[pos], bytes[pos + 1]]) as usize;
+        pos += 2;
+
+        // Read field name
+        if pos + name_len > bytes.len() {
+            break;
+        }
+        let field_name = std::str::from_utf8(&bytes[pos..pos + name_len]).unwrap_or("");
+        pos += name_len;
+
+        // If this is the "text" field and it's a string, extract it
+        if field_name == "text" && field_tag == 8 {
+            if pos + 2 > bytes.len() {
+                break;
+            }
+            let str_len = u16::from_be_bytes([bytes[pos], bytes[pos + 1]]) as usize;
+            pos += 2;
+            if pos + str_len <= bytes.len() {
+                return std::str::from_utf8(&bytes[pos..pos + str_len])
+                    .unwrap_or("")
+                    .to_string();
+            }
+        }
+
+        // Skip this field's value to continue searching
+        pos = skip_nbt_value(bytes, pos, field_tag);
+    }
+
+    String::new()
+}
+
+/// Skips over an NBT value and returns the new position.
+fn skip_nbt_value(bytes: &[u8], start: usize, tag: u8) -> usize {
+    let mut pos = start;
+
+    match tag {
+        0 => pos,                // TAG_END
+        1 => pos + 1,            // TAG_BYTE
+        2 => pos + 2,            // TAG_SHORT
+        3 => pos + 4,            // TAG_INT
+        4 => pos + 8,            // TAG_LONG
+        5 => pos + 4,            // TAG_FLOAT
+        6 => pos + 8,            // TAG_DOUBLE
+        7 => {
+            // TAG_BYTE_ARRAY
+            if pos + 4 > bytes.len() {
+                return bytes.len();
+            }
+            let len = i32::from_be_bytes([bytes[pos], bytes[pos + 1], bytes[pos + 2], bytes[pos + 3]]) as usize;
+            pos + 4 + len
+        }
+        8 => {
+            // TAG_STRING
+            if pos + 2 > bytes.len() {
+                return bytes.len();
+            }
+            let len = u16::from_be_bytes([bytes[pos], bytes[pos + 1]]) as usize;
+            pos + 2 + len
+        }
+        9 => {
+            // TAG_LIST
+            if pos + 5 > bytes.len() {
+                return bytes.len();
+            }
+            let elem_tag = bytes[pos];
+            let count = i32::from_be_bytes([bytes[pos + 1], bytes[pos + 2], bytes[pos + 3], bytes[pos + 4]]) as usize;
+            pos += 5;
+            for _ in 0..count {
+                pos = skip_nbt_value(bytes, pos, elem_tag);
+            }
+            pos
+        }
+        10 => {
+            // TAG_COMPOUND - skip until TAG_END
+            while pos < bytes.len() {
+                let field_tag = bytes[pos];
+                pos += 1;
+                if field_tag == 0 {
+                    break;
+                }
+                // Skip name
+                if pos + 2 > bytes.len() {
+                    break;
+                }
+                let name_len = u16::from_be_bytes([bytes[pos], bytes[pos + 1]]) as usize;
+                pos += 2 + name_len;
+                // Skip value
+                pos = skip_nbt_value(bytes, pos, field_tag);
+            }
+            pos
+        }
+        11 => {
+            // TAG_INT_ARRAY
+            if pos + 4 > bytes.len() {
+                return bytes.len();
+            }
+            let len = i32::from_be_bytes([bytes[pos], bytes[pos + 1], bytes[pos + 2], bytes[pos + 3]]) as usize;
+            pos + 4 + len * 4
+        }
+        12 => {
+            // TAG_LONG_ARRAY
+            if pos + 4 > bytes.len() {
+                return bytes.len();
+            }
+            let len = i32::from_be_bytes([bytes[pos], bytes[pos + 1], bytes[pos + 2], bytes[pos + 3]]) as usize;
+            pos + 4 + len * 8
+        }
+        _ => bytes.len(), // Unknown tag, skip to end
     }
 }
 
@@ -1445,6 +1645,7 @@ pub struct ConsumeEffectEntry {
 impl NetDecode for Component {
     fn decode<R: Read>(reader: &mut R, opts: &NetDecodeOpts) -> Result<Self, NetDecodeError> {
         let component_id = VarInt::decode(reader, opts)?;
+        tracing::debug!("Decoding component ID: {}", component_id.0);
         match component_id.0 {
             // ID 0: CustomData
             0 => Ok(Component::CustomData(RawNbt::decode(reader, opts)?)),
@@ -1456,14 +1657,21 @@ impl NetDecode for Component {
             3 => Ok(Component::Damage(VarInt::decode(reader, opts)?)),
             // ID 4: Unbreakable
             4 => Ok(Component::Unbreakable),
-            // ID 5: CustomName (requires NBT<TextComponent> decode - not yet supported)
-            5 => todo!("CustomName decoding requires FromNbt for TextComponent"),
-            // ID 6: ItemName (requires NBT<TextComponent> decode - not yet supported)
-            6 => todo!("ItemName decoding requires FromNbt for TextComponent"),
+            // ID 5: CustomName
+            5 => Ok(Component::CustomName(decode_text_component_from_nbt(reader)?)),
+            // ID 6: ItemName
+            6 => Ok(Component::ItemName(decode_text_component_from_nbt(reader)?)),
             // ID 7: ItemModel
             7 => Ok(Component::ItemModel(String::decode(reader, opts)?)),
-            // ID 8: Lore (requires NBT<TextComponent> decode - not yet supported)
-            8 => todo!("Lore decoding requires FromNbt for TextComponent"),
+            // ID 8: Lore (array of text components)
+            8 => {
+                let count = VarInt::decode(reader, opts)?;
+                let mut lore = Vec::with_capacity(count.0 as usize);
+                for _ in 0..count.0 {
+                    lore.push(decode_text_component_from_nbt(reader)?);
+                }
+                Ok(Component::Lore(LengthPrefixedVec::new(lore)))
+            }
             // ID 9: Rarity
             9 => Ok(Component::Rarity(Rarity::decode(reader, opts)?)),
             // ID 10: Enchantments

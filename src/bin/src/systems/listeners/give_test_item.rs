@@ -4,15 +4,12 @@
 use bevy_ecs::prelude::{Entity, MessageReader, Query};
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_data::items::Item;
-use ferrumc_inventories::components::{Component, Rarity};
-use ferrumc_inventories::slot::InventorySlot;
+use ferrumc_inventories::components::Rarity;
 use ferrumc_inventories::{Inventory, ItemBuilder};
 use ferrumc_messages::player_join::PlayerJoined;
-use ferrumc_nbt::NBT;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::set_container_slot::SetContainerSlot;
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use ferrumc_text::TextComponent;
 use tracing::{debug, error, info};
 
 /// Listens for `PlayerJoined` events and gives the player a test item with components.
@@ -49,17 +46,6 @@ pub fn handle(
         // Create a test diamond with Epic rarity
         // Diamond item
         const TEST_SIZE: i32 = 69420;
-        /*let test_item = InventorySlot::with_components(
-            ferrumc_data::items::Item::DIAMOND.id as i32, // Diamond
-            TEST_SIZE,                                    // Count
-            vec![
-                Component::Rarity(Rarity::Epic),
-                Component::EnchantmentGlintOverride(true),
-                Component::MaxStackSize(VarInt::new(TEST_SIZE)),
-                Component::CustomName(NBT::new(TextComponent::from("bismillah sigma balsl "))),
-            ],
-        )*/
-        ;
 
         let test_item = ItemBuilder::new(Item::DIAMOND.id as i32)
             .count(TEST_SIZE)

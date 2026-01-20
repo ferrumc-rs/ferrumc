@@ -1,6 +1,6 @@
 use bevy_ecs::prelude::{Commands, MessageWriter, Res, Resource};
 use crossbeam_channel::Receiver;
-use ferrumc_components::player::offline_player_data::OfflinePlayerData;
+use ferrumc_components::player::offline_player_data::{OfflinePlayerData, StorageOfflinePlayerData};
 use ferrumc_components::player::{
     gamemode::GameModeComponent, player_bundle::PlayerBundle, swimming::SwimmingState,
 };
@@ -13,7 +13,7 @@ use ferrumc_messages::player_join::PlayerJoined;
 use ferrumc_net::connection::{DisconnectHandle, NewConnection};
 use ferrumc_state::GlobalStateResource;
 use std::time::Instant;
-use tracing::{error, trace};
+use tracing::{debug, error, trace};
 
 #[derive(Resource)]
 pub struct NewConnectionRecv(pub Receiver<NewConnection>);
@@ -30,9 +30,27 @@ pub fn accept_new_connections(
     while let Ok(new_connection) = new_connections.0.try_recv() {
         let return_sender = new_connection.entity_return;
 
-        // TODO: Re-enable player data persistence once Inventory Component serialization is implemented.
-        // Using defaults until then.
-        let player_data = OfflinePlayerData::default();
+        // Load player data from storage, fall back to defaults for new players
+        let player_data: OfflinePlayerData = state
+            .0
+            .world
+            .load_player_data::<StorageOfflinePlayerData>(new_connection.player_identity.uuid)
+            .ok()
+            .flatten()
+            .map(|storage| {
+                debug!(
+                    "Loaded player data for {} from storage",
+                    new_connection.player_identity.username
+                );
+                OfflinePlayerData::from(storage)
+            })
+            .unwrap_or_else(|| {
+                debug!(
+                    "No saved data for {}, using defaults",
+                    new_connection.player_identity.username
+                );
+                OfflinePlayerData::default()
+            });
         // --- 2. Build the PlayerBundle ---
         let player_bundle = PlayerBundle {
             identity: new_connection.player_identity.clone(),

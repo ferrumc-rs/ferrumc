@@ -82,10 +82,15 @@ impl NetDecode for InventorySlot {
             let item_id = VarInt::decode(reader, opts)?;
             let add_count = VarInt::decode(reader, opts)?;
             let remove_count = VarInt::decode(reader, opts)?;
+            tracing::debug!(
+                "Decoding slot: item_id={}, count={}, components_add={}, components_remove={}",
+                item_id.0, count.0, add_count.0, remove_count.0
+            );
 
             // Decode components to add (each component reads its own type ID)
             let mut components_to_add = Vec::with_capacity(add_count.0 as usize);
-            for _ in 0..add_count.0 {
+            for i in 0..add_count.0 {
+                tracing::debug!("Decoding component {} of {}", i + 1, add_count.0);
                 components_to_add.push(Component::decode(reader, opts)?);
             }
 
@@ -258,5 +263,56 @@ mod tests {
         assert_eq!(decoded.count.0, 1);
         assert_eq!(decoded.components_to_add.len(), 1);
         assert_eq!(decoded.components_to_add[0].id().0, 9); // Rarity
+    }
+
+    #[test]
+    fn test_slot_with_custom_name_roundtrip() {
+        // Test with CustomName (NBT-based component)
+        let slot = InventorySlot::with_components(
+            1,
+            1,
+            vec![Component::custom_name("Test Diamond")],
+        );
+
+        let mut buffer = Vec::new();
+        slot.encode(&mut buffer, &NetEncodeOpts::default())
+            .expect("Encode failed");
+
+        println!("CustomName encoded bytes ({} bytes): {:02X?}", buffer.len(), &buffer);
+
+        let mut reader = Cursor::new(&buffer);
+        let decoded = InventorySlot::decode(&mut reader, &NetDecodeOpts::default())
+            .expect("Decode failed");
+
+        assert_eq!(decoded.count.0, 1);
+        assert_eq!(decoded.components_to_add.len(), 1);
+        assert_eq!(decoded.components_to_add[0].id().0, 5); // CustomName
+    }
+
+    #[test]
+    fn test_slot_with_multiple_components_roundtrip() {
+        // Test with multiple components including NBT-based ones
+        let slot = InventorySlot::with_components(
+            862,  // Diamond
+            64,
+            vec![
+                Component::Rarity(Rarity::Epic),
+                Component::EnchantmentGlintOverride(true),
+                Component::custom_name("Epic Diamond"),
+            ],
+        );
+
+        let mut buffer = Vec::new();
+        slot.encode(&mut buffer, &NetEncodeOpts::default())
+            .expect("Encode failed");
+
+        println!("Multi-component encoded bytes ({} bytes): {:02X?}", buffer.len(), &buffer);
+
+        let mut reader = Cursor::new(&buffer);
+        let decoded = InventorySlot::decode(&mut reader, &NetDecodeOpts::default())
+            .expect("Decode failed");
+
+        assert_eq!(decoded.count.0, 64);
+        assert_eq!(decoded.components_to_add.len(), 3);
     }
 }
