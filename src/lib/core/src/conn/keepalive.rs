@@ -11,6 +11,8 @@ pub struct KeepAliveTracker {
 
 impl KeepAliveTracker {
     pub fn ping(&self) -> i64 {
-        self.last_received_keep_alive.duration_since(self.last_sent_keep_alive).as_millis() as i64
+        self.last_received_keep_alive
+            .duration_since(self.last_sent_keep_alive)
+            .as_millis() as i64
     }
 }
