@@ -5,6 +5,7 @@ use ferrumc_macros::{packet, NetEncode};
 use ferrumc_net_codec::net_types::length_prefixed_vec::LengthPrefixedVec;
 use ferrumc_net_codec::net_types::prefixed_optional::PrefixedOptional;
 use tracing::debug;
+use ferrumc_net_codec::net_types::var_int::VarInt;
 
 #[derive(NetEncode)]
 #[packet(packet_id = "player_info_update", state = "play")]
@@ -54,6 +55,18 @@ impl PlayerInfoUpdatePacket {
 
         Self::with_players(players)
     }
+    
+    pub fn update_players_ping(players: Vec<(u128, VarInt)>) -> Self {
+        let players_with_actions = players
+            .into_iter()
+            .map(|(uuid, ping)| PlayerWithActions {
+                uuid,
+                actions: vec![PlayerAction::UpdatePing(ping)],
+            })
+            .collect::<Vec<_>>();
+
+        Self::with_players(players_with_actions)
+    }
 }
 
 #[derive(NetEncode, Debug, Component)]
@@ -69,6 +82,7 @@ impl PlayerWithActions {
             mask |= match action {
                 PlayerAction::AddPlayer { .. } => 0x01,
                 PlayerAction::UpdateListed { .. } => 0x08,
+                PlayerAction::UpdatePing { .. } => 0x10,
             }
         }
         mask
@@ -108,6 +122,7 @@ pub enum PlayerAction {
     UpdateListed {
         is_listed: bool,
     },
+    UpdatePing(VarInt)
 }
 
 #[derive(NetEncode, Debug)]

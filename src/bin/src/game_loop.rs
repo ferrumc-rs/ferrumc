@@ -303,8 +303,10 @@ fn build_timed_scheduler() -> Scheduler {
     // -------------------------------------------------------------------------
     // Sends keepalive packets to all connected players to maintain the connection.
     // Has a 250ms phase offset to spread load away from tick boundaries.
+    // Also handles updating player ping values.
     let build_keepalive = |s: &mut Schedule| {
         s.add_systems(crate::systems::keep_alive_system::keep_alive_system);
+        s.add_systems(crate::systems::update_player_ping::handle);
     };
     timed.register(
         TimedSchedule::new("keepalive", Duration::from_secs(1), build_keepalive)

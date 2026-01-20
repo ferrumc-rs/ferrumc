@@ -50,8 +50,9 @@ pub fn keep_alive_system(
                 warn!("Failed to send keep alive packet to {}: {:?}", entity, err);
             }
 
-            tracker.last_sent_keep_alive = timestamp;
+            tracker.last_sent_keep_alive_id = timestamp;
             tracker.has_received_keep_alive = false;
+            tracker.last_sent_keep_alive = now;
         }
     }
 }
