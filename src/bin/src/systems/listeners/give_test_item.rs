@@ -2,18 +2,19 @@
 //! This is used to verify item component encoding with a real Minecraft client.
 
 use bevy_ecs::prelude::{Entity, MessageReader, Query};
+use ferrumc_commands::arg::primitive::PrimitiveArgumentType::Nbt;
 use ferrumc_core::identity::player_identity::PlayerIdentity;
 use ferrumc_inventories::components::{Component, Rarity, RawNbt};
 use ferrumc_inventories::slot::InventorySlot;
 use ferrumc_inventories::Inventory;
 use ferrumc_messages::player_join::PlayerJoined;
+use ferrumc_nbt::NBT;
 use ferrumc_net::connection::StreamWriter;
 use ferrumc_net::packets::outgoing::set_container_slot::SetContainerSlot;
 use ferrumc_net_codec::net_types::var_int::VarInt;
-use tracing::{debug, error, info};
-use ferrumc_commands::arg::primitive::PrimitiveArgumentType::Nbt;
-use ferrumc_nbt::NBT;
 use ferrumc_text::TextComponent;
+use tracing::{debug, error, info};
+use uuid::Variant;
 
 /// Listens for `PlayerJoined` events and gives the player a test item with components.
 pub fn handle(
@@ -47,21 +48,21 @@ pub fn handle(
         };
 
         // Create a test diamond with Epic rarity
-        // Diamond item ID is 804 in Minecraft 1.21.x
+        // Diamond item
+        const TEST_SIZE: i32 = 69420;
         let test_item = InventorySlot::with_components(
-            862, // Diamond
-            1,   // Count
+            ferrumc_data::items::Item::DIAMOND.id as i32, // Diamond
+            TEST_SIZE,                                    // Count
             vec![
                 Component::Rarity(Rarity::Epic),
                 Component::EnchantmentGlintOverride(true),
-/*                Component::MaxStackSize(VarInt::new(99)), // Custom max stack
-                Component::Rarity(Rarity::Epic),          // Epic rarity (purple name)
-                Component::EnchantmentGlintOverride(true), // Always glint
-*/            ],
+                Component::MaxStackSize(VarInt::new(TEST_SIZE)),
+                Component::CustomName(NBT::new(TextComponent::from("bismillah sigma balsl "))),
+            ],
         );
 
         // Add to first slot (slot 36 = first hotbar slot in player inventory)
-        let slot_index: i16 = 36;
+        let slot_index: i16 = 38;
         if let Err(err) = inventory.set_item(slot_index as usize, test_item.clone()) {
             error!("Failed to set item in inventory: {:?}", err);
             continue;
