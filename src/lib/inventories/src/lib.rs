@@ -7,9 +7,11 @@ pub mod inventory;
 pub mod item;
 pub mod slot;
 pub mod storage;
+pub mod sync;
 
 pub use builder::ItemBuilder;
 pub use inventory::{Inventory, StorageInventory};
+pub use sync::{EquipmentSlot, EquipmentState, NeedsInventorySync};
 pub use storage::{StorageComponent, StorageInventorySlot};
 
 use crate::slot::InventorySlot;

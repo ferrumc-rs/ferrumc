@@ -9,6 +9,7 @@ use ferrumc_core::{
     transform::grounded::OnGround,
 };
 use ferrumc_inventories::hotbar::Hotbar;
+use ferrumc_inventories::sync::{EquipmentState, NeedsInventorySync};
 use ferrumc_messages::player_join::PlayerJoined;
 use ferrumc_net::connection::{DisconnectHandle, NewConnection};
 use ferrumc_state::GlobalStateResource;
@@ -52,6 +53,11 @@ pub fn accept_new_connections(
                 OfflinePlayerData::default()
             });
         // --- 2. Build the PlayerBundle ---
+        let hotbar = Hotbar::default();
+
+        // Compute initial equipment state BEFORE moving into bundle
+        let initial_equipment = EquipmentState::from_inventory(&player_data.inventory, &hotbar);
+
         let player_bundle = PlayerBundle {
             identity: new_connection.player_identity.clone(),
             abilities: player_data.abilities,
@@ -61,7 +67,7 @@ pub fn accept_new_connections(
             on_ground: OnGround::default(),
             chunk_receiver: ChunkReceiver::default(),
             inventory: player_data.inventory,
-            hotbar: Hotbar::default(),
+            hotbar,
             ender_chest: player_data.ender_chest,
             health: player_data.health,
             hunger: player_data.hunger,
@@ -83,6 +89,9 @@ pub fn accept_new_connections(
                 last_received_keep_alive: Instant::now(),
                 has_received_keep_alive: true,
             },
+            // Inventory sync markers
+            NeedsInventorySync,
+            initial_equipment,
         ));
 
         let entity_id = entity_commands.id();
