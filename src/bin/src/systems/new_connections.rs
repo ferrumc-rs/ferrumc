@@ -80,9 +80,10 @@ pub fn accept_new_connections(
                         sender: Some(new_connection.disconnect_handle),
                     },
                     KeepAliveTracker {
-                        last_sent_keep_alive: 0,
+                        last_sent_keep_alive_id: 0,
                         last_received_keep_alive: Instant::now(),
                         has_received_keep_alive: true,
+                        last_sent_keep_alive: Instant::now(),
                     },
                     PendingPlayerJoin(new_connection.player_identity.clone()),
                 ));
@@ -111,65 +112,5 @@ pub fn accept_new_connections(
                 break;
             }
         };
-        let player_data = offline_data.unwrap_or(OfflinePlayerData::default());
-        // --- 2. Build the PlayerBundle ---
-        let player_bundle = PlayerBundle {
-            identity: new_connection.player_identity.clone(),
-            abilities: player_data.abilities,
-            gamemode: GameModeComponent(player_data.gamemode),
-            position: player_data.position.into(),
-            rotation: player_data.rotation,
-            on_ground: OnGround::default(),
-            chunk_receiver: ChunkReceiver::default(),
-            inventory: player_data.inventory,
-            hotbar: Hotbar::default(),
-            ender_chest: player_data.ender_chest,
-            health: player_data.health,
-            hunger: player_data.hunger,
-            experience: player_data.experience,
-            active_effects: player_data.active_effects,
-            swimming: SwimmingState::default(),
-            sneak: SneakState::default(),
-        };
-
-        // --- 3. Spawn the PlayerBundle, then .insert() the network components ---
-        let mut entity_commands = cmd.spawn(player_bundle);
-
-        // Add network components and the pending join marker.
-        // The marker triggers `emit_player_joined` to fire the actual event
-        // after `apply_deferred` flushes the entity into existence.
-        entity_commands.insert((
-            new_connection.stream,
-            DisconnectHandle {
-                sender: Some(new_connection.disconnect_handle),
-            },
-            KeepAliveTracker {
-                last_sent_keep_alive_id: 0,
-                last_received_keep_alive: Instant::now(),
-                has_received_keep_alive: true,
-                last_sent_keep_alive: Instant::now(),
-            },
-            PendingPlayerJoin(new_connection.player_identity.clone()),
-        ));
-
-        let entity_id = entity_commands.id();
-
-        // Add the new player to the global player list (used for server list player count)
-        state.0.players.player_list.insert(
-            entity_id,
-            (
-                new_connection.player_identity.uuid.as_u128(),
-                new_connection.player_identity.username.clone(),
-            ),
-        );
-
-        trace!("Spawned entity for new connection: {:?}", entity_id);
-
-        if let Err(err) = return_sender.send(entity_id) {
-            error!(
-                "Failed to send entity ID back to the networking thread: {:?}",
-                err
-            );
-        }
     }
 }
